@@ -1457,7 +1457,7 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
    LOCA_LONG and LOCA_SHORT, whichever is set.
 
    If INTERPRETER is non-NULL, then possibly use the unscaled glyph
-   metrics in METRICS when instructing the glyph.
+   metrics in METRICS and the interpreter STATE to instruct the glyph.
 
    Return the outline with an incremented reference count and enter
    the generated outline into CACHE upon success, possibly discarding
@@ -1472,7 +1472,8 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 			    struct sfnt_loca_table_short *loca_short,
 			    struct sfnt_loca_table_long *loca_long,
 			    struct sfnt_interpreter *interpreter,
-			    struct sfnt_glyph_metrics *metrics)
+			    struct sfnt_glyph_metrics *metrics,
+			    struct sfnt_graphics_state *state)
 {
   struct sfnt_outline_cache *start;
   struct sfnt_glyph_outline *outline;
@@ -1518,6 +1519,10 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
   if (interpreter && glyph->simple)
     {
+      /* Restore the interpreter state from the snapshot taken after
+	 loading the preprogram.  */
+      interpreter->state = *state;
+
       error = sfnt_interpret_simple_glyph (glyph, interpreter,
 					   metrics, &value);
 
@@ -2269,7 +2274,8 @@ sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					font->glyf, font->head,
 					font->loca_short,
 					font->loca_long,
-					font->interpreter, &metrics);
+					font->interpreter, &metrics,
+					&font->state);
 
   if (!outline)
     return 1;
@@ -2316,7 +2322,8 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					&font->outline_cache_size,
 					font->glyf, font->head,
 					font->loca_short,
-					font->loca_long, NULL, NULL);
+					font->loca_long, NULL, NULL,
+					NULL);
 
   if (!outline)
     return 1;
@@ -2465,7 +2472,8 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 					    info->loca_short,
 					    info->loca_long,
 					    info->interpreter,
-					    &metrics);
+					    &metrics,
+					    &info->state);
       x_coords[i - from] = 0;
 
       if (!outline)
