@@ -3536,11 +3536,11 @@ get_closer_narrowed_begv (struct window *w, ptrdiff_t pos)
 ptrdiff_t
 get_locked_narrowing_begv (ptrdiff_t pos)
 {
-  if (long_line_locked_narrowing_region_size <= 0)
+  if (long_line_optimizations_region_size <= 0)
     return BEGV;
-  int len = long_line_locked_narrowing_region_size / 2;
+  int len = long_line_optimizations_region_size / 2;
   int begv = max (pos - len, BEGV);
-  int limit = long_line_locked_narrowing_bol_search_limit;
+  int limit = long_line_optimizations_bol_search_limit;
   while (limit > 0)
     {
       if (begv == BEGV || FETCH_BYTE (CHAR_TO_BYTE (begv) - 1) == '\n')
@@ -3554,9 +3554,9 @@ get_locked_narrowing_begv (ptrdiff_t pos)
 ptrdiff_t
 get_locked_narrowing_zv (ptrdiff_t pos)
 {
-  if (long_line_locked_narrowing_region_size <= 0)
+  if (long_line_optimizations_region_size <= 0)
     return ZV;
-  int len = long_line_locked_narrowing_region_size / 2;
+  int len = long_line_optimizations_region_size / 2;
   return min (pos + len, ZV);
 }
 
@@ -4394,7 +4394,7 @@ handle_fontified_prop (struct it *it)
       eassert (it->end_charpos == ZV);
 
       if (current_buffer->long_line_optimizations_p
-	  && long_line_locked_narrowing_region_size > 0)
+	  && long_line_optimizations_region_size > 0)
 	{
 	  ptrdiff_t begv = it->locked_narrowing_begv;
 	  ptrdiff_t zv = it->locked_narrowing_zv;

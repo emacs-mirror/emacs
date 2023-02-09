@@ -1910,7 +1910,7 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   specbind (Qinhibit_quit, Qt);
 
   if (current_buffer->long_line_optimizations_p
-      && long_line_locked_narrowing_region_size > 0)
+      && long_line_optimizations_region_size > 0)
     {
       ptrdiff_t begv = get_locked_narrowing_begv (PT);
       ptrdiff_t zv = get_locked_narrowing_zv (PT);
