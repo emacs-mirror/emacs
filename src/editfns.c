@@ -2787,7 +2787,7 @@ reset_outermost_narrowings (void)
 
 /* Helper functions to save and restore the narrowing locks of the
    current buffer in Fsave_restriction.  */
-static Lisp_Object
+Lisp_Object
 narrowing_locks_save (void)
 {
   Lisp_Object buf = Fcurrent_buffer ();
@@ -2798,7 +2798,7 @@ narrowing_locks_save (void)
   return Fcons (buf, Fcopy_sequence (locks));
 }
 
-static void
+void
 narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
 {
   if (NILP (buf_and_saved_locks))
