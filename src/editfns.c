@@ -2812,7 +2812,7 @@ narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
 static void
 unwind_narrow_to_region_locked (Lisp_Object tag)
 {
-  Fnarrowing_unlock (tag);
+  Finternal__unlock_narrowing (tag);
   Fwiden ();
 }
 
@@ -2821,7 +2821,7 @@ void
 narrow_to_region_locked (Lisp_Object begv, Lisp_Object zv, Lisp_Object tag)
 {
   Fnarrow_to_region (begv, zv);
-  Fnarrowing_lock (tag);
+  Finternal__lock_narrowing (tag);
   record_unwind_protect (restore_point_unwind, Fpoint_marker ());
   record_unwind_protect (unwind_narrow_to_region_locked, tag);
 }
@@ -2932,7 +2932,8 @@ limit of the locked restriction is used instead of the argument.  */)
   return Qnil;
 }
 
-DEFUN ("narrowing-lock", Fnarrowing_lock, Snarrowing_lock, 1, 1, 0,
+DEFUN ("internal--lock-narrowing", Finternal__lock_narrowing,
+       Sinternal__lock_narrowing, 1, 1, 0,
        doc: /* Lock the current narrowing with TAG.
 
 When restrictions are locked, `narrow-to-region' and `widen' can be
@@ -2967,7 +2968,8 @@ not be used as a stronger variant of normal restrictions.  */)
   return Qnil;
 }
 
-DEFUN ("narrowing-unlock", Fnarrowing_unlock, Snarrowing_unlock, 1, 1, 0,
+DEFUN ("internal--unlock-narrowing", Finternal__unlock_narrowing,
+       Sinternal__unlock_narrowing, 1, 1, 0,
        doc: /* Unlock a narrowing locked with (narrowing-lock TAG).
 
 Unlocking restrictions locked with `narrowing-lock' should be used
@@ -4903,8 +4905,8 @@ it to be non-nil.  */);
   defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
-  defsubr (&Snarrowing_lock);
-  defsubr (&Snarrowing_unlock);
+  defsubr (&Sinternal__lock_narrowing);
+  defsubr (&Sinternal__unlock_narrowing);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }

@@ -3963,7 +3963,7 @@ detailed description.
   (save-restriction
     (progn
       (narrow-to-region start end)
-      (if tag (narrowing-lock tag))
+      (if tag (internal--lock-narrowing tag))
       (funcall body))))
 
 (defun find-tag-default-bounds ()
