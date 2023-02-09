@@ -3952,18 +3952,37 @@ and END limits, unless the restrictions are unlocked by calling
 `narrowing-unlock' with TAG.  See `narrowing-lock' for a more
 detailed description.
 
-\(fn START END [:locked TAG] BODY)"
-  (if (eq (car rest) :locked)
+\(fn START END [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
       `(internal--with-narrowing ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))
     `(internal--with-narrowing ,start ,end (lambda () ,@rest))))
 
-(defun internal--with-narrowing (start end body &optional tag)
+(defun internal--with-narrowing (start end body &optional label)
   "Helper function for `with-narrowing', which see."
   (save-restriction
     (progn
       (narrow-to-region start end)
-      (if tag (internal--lock-narrowing tag))
+      (if label (internal--lock-narrowing label))
+      (funcall body))))
+
+(defmacro without-narrowing (&rest rest)
+  "Execute BODY without restrictions.
+
+The current restrictions, if any, are restored upon return.
+
+\(fn [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
+      `(internal--without-narrowing (lambda () ,@(cddr rest))
+                                    ,(cadr rest))
+    `(internal--without-narrowing (lambda () ,@rest))))
+
+(defun internal--without-narrowing (body &optional label)
+  "Helper function for `without-narrowing', which see."
+  (save-restriction
+    (progn
+      (if label (internal--unlock-narrowing label))
+      (widen)
       (funcall body))))
 
 (defun find-tag-default-bounds ()
