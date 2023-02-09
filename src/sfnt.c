@@ -1590,7 +1590,7 @@ sfnt_read_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
 static void
 sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 			struct sfnt_glyf_table *glyf,
-			ptrdiff_t offset)
+			size_t offset)
 {
   struct sfnt_simple_glyph *simple;
   ssize_t min_size, min_size_2;
@@ -1862,7 +1862,7 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 static void
 sfnt_read_compound_glyph (struct sfnt_glyph *glyph,
 			  struct sfnt_glyf_table *glyf,
-			  ptrdiff_t offset)
+			  size_t offset)
 {
   uint16_t flags, instruction_length, words[2], words4[4];
   size_t required_bytes, num_components, i;
@@ -2105,7 +2105,7 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
 		 struct sfnt_loca_table_long *loca_long)
 {
   struct sfnt_glyph glyph, *memory;
-  ptrdiff_t offset, next_offset;
+  size_t offset, next_offset;
 
   /* Check the glyph code is within bounds.  */
   if (glyph_code > 65535)
@@ -2301,7 +2301,8 @@ sfnt_transform_coordinates (struct sfnt_compound_glyph_component *component,
 
 struct sfnt_compound_glyph_context
 {
-  /* Array of points.  */
+  /* Arrays of points.  The underlying type is actually sfnt_f26dot6
+     when instructing a compound glyph.  */
   sfnt_fixed *x_coordinates, *y_coordinates;
 
   /* Array of flags for the points.  */
@@ -2311,7 +2312,7 @@ struct sfnt_compound_glyph_context
   size_t num_points, points_size;
 
   /* Array of contour end points.  */
-  ptrdiff_t *contour_end_points;
+  size_t *contour_end_points;
 
   /* Number of elements in and the size of that array.  */
   size_t num_end_points, end_points_size;
@@ -2331,7 +2332,7 @@ sfnt_expand_compound_glyph_context (struct sfnt_compound_glyph_context *context,
 				    size_t number_of_points,
 				    sfnt_fixed **x_base, sfnt_fixed **y_base,
 				    unsigned char **flags_base,
-				    ptrdiff_t **contour_base)
+				    size_t **contour_base)
 {
   size_t size_bytes;
 
@@ -2433,12 +2434,12 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
   bool need_free;
   struct sfnt_compound_glyph_component *component;
   sfnt_fixed x, y, xtemp, ytemp;
-  ptrdiff_t point, point2, index;
+  size_t point, point2, index;
   uint16_t last_point, number_of_contours;
   sfnt_fixed *x_base, *y_base;
-  ptrdiff_t *contour_base;
+  size_t *contour_base;
   unsigned char *flags_base;
-  ptrdiff_t base_index, contour_start;
+  size_t base_index, contour_start;
   bool defer_offsets;
 
   /* Set up the base index.  This is the index from where on point
@@ -2546,8 +2547,8 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 	      /* Get the points and use them to compute the offsets.  */
 	      xtemp = context->x_coordinates[point];
 	      ytemp = context->y_coordinates[point];
-	      x = (xtemp - subglyph->simple->x_coordinates[point2]) * 65536;
-	      y = (ytemp - subglyph->simple->y_coordinates[point2]) * 65536;
+	      x = (xtemp - subglyph->simple->x_coordinates[point2] * 65536);
+	      y = (ytemp - subglyph->simple->y_coordinates[point2] * 65536);
 	    }
 	  else
 	    {
@@ -2713,8 +2714,8 @@ sfnt_lerp_half (struct sfnt_point *control1, struct sfnt_point *control2,
    spline.
 
    If GLYPH is compound, use GET_GLYPH to obtain subglyphs.  PROC must
-   return whether or not FREE_PROC will be called with the glyph after
-   sfnt_decompose_glyph is done with it.
+   return whether or not FREE_GLYPH will be called with the glyph
+   after sfnt_decompose_glyph is done with it.
 
    All functions will be called with DCONTEXT as an argument.
 
@@ -2832,27 +2833,31 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	      /* Restore here after the for loop increased it.  */
 	      here --;
 
-	      if (glyph->simple->flags[start] & 01) /* On Curve */
-		{
-		  pen.x = glyph->simple->x_coordinates[start] * 65536;
-		  pen.y = glyph->simple->y_coordinates[start] * 65536;
+	      /* Previously, this would check whether or not start is
+		 an ``on curve'' point, but that is not necessary.
 
-		  /* See if the last point (in this case, `here') was
-		     on the curve.  If it wasn't, then curve from
-		     there to here.  */
-		  if (!(glyph->simple->flags[here] & 01))
-		    {
-		      control1.x
-			= glyph->simple->x_coordinates[here] * 65536;
-		      control1.y
-			= glyph->simple->y_coordinates[here] * 65536;
-		      curve_to (control1, pen, dcontext);
-		    }
-		  else
-		    /* Otherwise, this is an ordinary line from there
-		       to here.  */
-		    line_to (pen, dcontext);
+		 If a contour is not closed and the edge building
+		 process skips the second to last vertex, then the
+		 outline can end up with missing edges.  */
+
+	      pen.x = glyph->simple->x_coordinates[start] * 65536;
+	      pen.y = glyph->simple->y_coordinates[start] * 65536;
+
+	      /* See if the last point (in this case, `here') was
+		 on the curve.  If it wasn't, then curve from
+		 there to here.  */
+	      if (!(glyph->simple->flags[here] & 01))
+		{
+		  control1.x
+		    = glyph->simple->x_coordinates[here] * 65536;
+		  control1.y
+		    = glyph->simple->y_coordinates[here] * 65536;
+		  curve_to (control1, pen, dcontext);
 		}
+	      else
+		/* Otherwise, this is an ordinary line from there
+		   to here.  */
+		line_to (pen, dcontext);
 
 	      /* Restore here to where it was earlier.  */
 	      here++;
@@ -2968,25 +2973,28 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	  /* Restore here after the for loop increased it.  */
 	  here --;
 
-	  if (context.flags[start] & 01) /* On Curve */
-	    {
-	      pen.x = context.x_coordinates[start];
-	      pen.y = context.y_coordinates[start];
+	  /* Previously, this would check whether or not start is an
+	     ``on curve'' point, but that is not necessary.
 
-	      /* See if the last point (in this case, `here') was
-		 on the curve.  If it wasn't, then curve from
-		 there to here.  */
-	      if (!(context.flags[here] & 01))
-		{
-		  control1.x = context.x_coordinates[here];
-		  control1.y = context.y_coordinates[here];
-		  curve_to (control1, pen, dcontext);
-		}
-	      else
-		/* Otherwise, this is an ordinary line from there
-		   to here.  */
-		line_to (pen, dcontext);
+	     If a contour is not closed and the edge building process
+	     skips the second to last vertex, then the outline can end
+	     up with missing edges.  */
+
+	  pen.x = context.x_coordinates[start];
+	  pen.y = context.y_coordinates[start];
+
+	  /* See if the last point (in this case, `here') was on the
+	     curve.  If it wasn't, then curve from there to here.  */
+	  if (!(context.flags[here] & 01))
+	    {
+	      control1.x = context.x_coordinates[here];
+	      control1.y = context.y_coordinates[here];
+	      curve_to (control1, pen, dcontext);
 	    }
+	  else
+	    /* Otherwise, this is an ordinary line from there
+	       to here.  */
+	    line_to (pen, dcontext);
 
 	  /* Restore here to where it was earlier.  */
 	  here++;
@@ -3672,7 +3680,8 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
       y = sfnt_poly_grid_ceil (bot);
 
       /* If rounding would make the edge not cover any area, skip this
-	 edge.  */
+	 edge. */
+
       if (y >= edges[edge].top)
 	continue;
 
@@ -4125,7 +4134,7 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
    metrics could be found, else 1.
 
    If PIXEL_SIZE is -1, do not perform any scaling on the glyph
-   metrics.
+   metrics; HEAD need not be specified in that case.
 
    HMTX, HHEA, HEAD and MAXP should be the hmtx, hhea, head, and maxp
    tables of the font respectively.  */
@@ -9554,6 +9563,13 @@ sfnt_interpret_iup (struct sfnt_interpreter *interpreter,
       sfnt_interpret_iup_1 (interpreter, first_point, end,
 			    opcode, mask);
       point = end + 1;
+
+      /* Skip the subsequent phantom points, which may end up
+	 intermixed with contours inside a compound glyph.  */
+
+      while (point < interpreter->glyph_zone->num_points
+	     && interpreter->glyph_zone->flags[point] & SFNT_POINT_PHANTOM)
+	point++;
     }
 }
 
@@ -10470,7 +10486,7 @@ sfnt_interpret_control_value_program (struct sfnt_interpreter *interpreter,
    comprising the spline.  Call each of those functions with 16.16
    fixed point coordinates.
 
-   All functions will be called with DCONTEXT as an argument.
+   Call all functions with DCONTEXT as an argument.
 
    The winding rule used to fill the resulting lines is described in
    chapter 2 of the TrueType reference manual, under the heading
@@ -10578,29 +10594,42 @@ sfnt_decompose_instructed_outline (struct sfnt_instructed_outline *outline,
 	  /* Restore here after the for loop increased it.  */
 	  here --;
 
-	  if (outline->flags[start] & 01) /* On Curve */
-	    {
-	      pen.x = outline->x_points[start] * 1024;
-	      pen.y = outline->y_points[start] * 1024;
+	  /* Previously, this would check whether or not start is an
+	     ``on curve'' point, but that is not necessary.
 
-	      /* See if the last point (in this case, `here') was
-		 on the curve.  If it wasn't, then curve from
-		 there to here.  */
-	      if (!(outline->flags[here] & 01))
-		{
-		  control1.x = outline->x_points[here] * 1024;
-		  control1.y = outline->y_points[here] * 1024;
-		  curve_to (control1, pen, dcontext);
-		}
-	      else
-		/* Otherwise, this is an ordinary line from there
-		   to here.  */
-		line_to (pen, dcontext);
+	     If a contour is not closed and the edge building process
+	     skips the second to last vertex, then the outline can end
+	     up with missing edges.  */
+
+	  pen.x = outline->x_points[start] * 1024;
+	  pen.y = outline->y_points[start] * 1024;
+
+	  /* See if the last point (in this case, `here') was
+	     on the curve.  If it wasn't, then curve from
+	     there to here.  */
+	  if (!(outline->flags[here] & 01))
+	    {
+	      control1.x = outline->x_points[here] * 1024;
+	      control1.y = outline->y_points[here] * 1024;
+	      curve_to (control1, pen, dcontext);
 	    }
+	  else
+	    /* Otherwise, this is an ordinary line from there
+	       to here.  */
+	    line_to (pen, dcontext);
 
 	  /* Restore here to where it was earlier.  */
 	  here++;
 	}
+
+      /* here may be a phantom point when outlining a compound glyph,
+	 as they can have phantom points mixed in with contours.
+
+	 When that happens, skip past all the phantom points.  */
+
+      while (here < outline->num_points
+	     && outline->flags[here] & SFNT_POINT_PHANTOM)
+	here++;
     }
 
   return 0;
@@ -10713,7 +10742,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
 			     struct sfnt_instructed_outline **value)
 {
   size_t zone_size, temp, outline_size, i;
-  struct sfnt_interpreter_zone *volatile zone;
+  struct sfnt_interpreter_zone *zone;
+  struct sfnt_interpreter_zone *volatile preserved_zone;
   sfnt_f26dot6 phantom_point_1_x;
   sfnt_f26dot6 phantom_point_1_y;
   sfnt_f26dot6 phantom_point_2_x;
@@ -10806,6 +10836,9 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
       /* Set flags.  */
       zone->flags[i] = (glyph->simple->flags[i]
 			& ~SFNT_POINT_TOUCHED_BOTH);
+
+      /* Make sure to clear the phantom points flag.  */
+      zone->flags[i] &= ~SFNT_POINT_PHANTOM;
     }
 
   /* Load phantom points.  */
@@ -10815,8 +10848,8 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   zone->y_current[i + 1] = phantom_point_2_x;
 
   /* Load phantom point flags.  */
-  zone->flags[i] = 0;
-  zone->flags[i + 1] = 0;
+  zone->flags[i] = SFNT_POINT_PHANTOM;
+  zone->flags[i + 1] = SFNT_POINT_PHANTOM;
 
   /* Load contour end points.  */
   for (i = 0; i < zone->num_contours; ++i)
@@ -10830,16 +10863,23 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
   interpreter->num_instructions = glyph->simple->instruction_length;
   interpreter->glyph_zone = zone;
 
+  /* Copy zone over to this volatile variable.  */
+  preserved_zone = zone;
+
   if (setjmp (interpreter->trap))
     {
       if (zone_was_allocated)
-	xfree (zone);
+	xfree (preserved_zone);
 
       interpreter->glyph_zone = NULL;
       return interpreter->trap_reason;
     }
 
   sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_GLYPH_PROGRAM);
+  interpreter->glyph_zone = NULL;
+
+  /* Move preserved_zone back to zone.  */
+  zone = preserved_zone;
 
   /* Now that the program has been run, build the scaled outline.  */
 
@@ -10875,6 +10915,750 @@ sfnt_interpret_simple_glyph (struct sfnt_glyph *glyph,
     xfree (zone);
 
   /* Return the outline and NULL.  */
+  *value = outline;
+  return NULL;
+}
+
+/* Apply the transform in the compound glyph component COMPONENT to
+   the array of points of length NUM_COORDINATES given as X and Y.
+
+   Treat X and Y as arrays of 26.6 fixed point values.
+
+   Also, apply the 26.6 fixed point offsets X_OFF and Y_OFF to each X
+   and Y coordinate.
+
+   See sfnt_decompose_compound_glyph for an explanation of why offsets
+   might be applied here, and not while reading the subglyph
+   itself.  */
+
+static void
+sfnt_transform_f26dot6 (struct sfnt_compound_glyph_component *component,
+			sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
+			size_t num_coordinates,
+			sfnt_f26dot6 x_off, sfnt_f26dot6 y_off)
+{
+  double m1, m2, m3;
+  double m4, m5, m6;
+  size_t i;
+
+  if (component->flags & 010) /* WE_HAVE_A_SCALE */
+    {
+      for (i = 0; i < num_coordinates; ++i)
+	{
+	  x[i] *= component->u.scale / 16384.0;
+	  y[i] *= component->u.scale / 16384.0;
+	  x[i] += x_off;
+	  y[i] += y_off;
+	}
+    }
+  else if (component->flags & 0100) /* WE_HAVE_AN_X_AND_Y_SCALE */
+    {
+      for (i = 0; i < num_coordinates; ++i)
+	{
+	  x[i] *= component->u.a.xscale / 16384.0;
+	  y[i] *= component->u.a.yscale / 16384.0;
+	  x[i] += x_off;
+	  y[i] += y_off;
+	}
+    }
+  else if (component->flags & 0200) /* WE_HAVE_A_TWO_BY_TWO */
+    {
+      /* Apply the specified affine transformation.
+	 A transform looks like:
+
+	   M1 M2 M3     X
+	   M4 M5 M6   * Y
+
+	   =
+
+	   M1*X + M2*Y + M3*1 = X1
+	   M4*X + M5*Y + M6*1 = Y1
+
+	 (In most transforms, there is another row at the bottom for
+	  mathematical reasons.  Since Z1 is always 1.0, the row is
+	  simply implied to be 0 0 1, because 0 * x + 0 * y + 1 * 1 =
+	  1.0.  See the definition of matrix3x3 in image.c for some
+	  more explanations about this.) */
+      m1 = component->u.b.xscale / 16384.0;
+      m2 = component->u.b.scale01 / 16384.0;
+      m3 = 0;
+      m4 = component->u.b.scale10 / 16384.0;
+      m5 = component->u.b.yscale / 16384.0;
+      m6 = 0;
+
+      for (i = 0; i < num_coordinates; ++i)
+	{
+	  x[i] = m1 * x[i] + m2 * y[i] + m3 * 1;
+	  y[i] = m4 * x[i] + m5 * y[i] + m6 * 1;
+	  x[i] += x_off;
+	  y[i] += y_off;
+	}
+    }
+}
+
+/* Internal helper for sfnt_interpret_compound_glyph_3.
+
+   Instruct the compound glyph GLYPH using INTERPRETER after all of
+   its components have been instructed.
+
+   Use the unscaled METRICS to compute the phantom points of this
+   glyph.
+
+   CONTEXT contains the points and contours of this compound glyph,
+   numbered starting from BASE_INDEX and BASE_CONTOUR respectively.
+
+   Value is NULL upon success, or a description of the error upon
+   failure.  */
+
+static const char *
+sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
+				 struct sfnt_interpreter *interpreter,
+				 struct sfnt_compound_glyph_context *context,
+				 size_t base_index, size_t base_contour,
+				 struct sfnt_glyph_metrics *metrics)
+{
+  size_t num_points, num_contours, i;
+  size_t zone_size, temp;
+  struct sfnt_interpreter_zone *zone;
+  struct sfnt_interpreter_zone *volatile preserved_zone;
+  sfnt_f26dot6 phantom_point_1_x;
+  sfnt_f26dot6 phantom_point_1_y;
+  sfnt_f26dot6 phantom_point_2_x;
+  sfnt_f26dot6 phantom_point_2_y;
+  volatile bool zone_was_allocated;
+  int rc;
+  sfnt_f26dot6 *x_base, *y_base;
+  size_t *contour_base;
+  unsigned char *flags_base;
+
+  /* Figure out how many points and contours there are to
+     instruct.  */
+  num_points = context->num_points - base_index;
+  num_contours = context->num_end_points - base_contour;
+
+  /* Nothing to instruct! */
+  if (!num_points && !num_contours)
+    return NULL;
+
+  /* Build the zone.  First, calculate the size of the zone
+     structure.  */
+
+  zone_size = 0;
+  zone_was_allocated = false;
+
+  if (INT_MULTIPLY_WRAPV (num_points + 2,
+			  sizeof *zone->x_points * 4,
+			  &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_MULTIPLY_WRAPV (num_contours,
+			     sizeof *zone->contour_end_points,
+			     &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_MULTIPLY_WRAPV (num_points + 2,
+			     sizeof *zone->flags,
+			     &temp)
+      || INT_ADD_WRAPV (temp, zone_size, &zone_size)
+      || INT_ADD_WRAPV (sizeof *zone, zone_size, &zone_size))
+    return "Glyph exceeded maximum permissible size";
+
+  /* Don't use malloc if possible.  */
+
+  if (zone_size <= 1024 * 16)
+    zone = alloca (zone_size);
+  else
+    {
+      zone = xmalloc (zone_size);
+      zone_was_allocated = true;
+    }
+
+  /* Now load the zone with data.  */
+  zone->num_points = num_points + 2;
+  zone->num_contours = num_contours;
+  zone->contour_end_points = (size_t *) (zone + 1);
+  zone->x_points = (sfnt_f26dot6 *) (zone->contour_end_points
+				     + zone->num_contours);
+  zone->x_current = zone->x_points + zone->num_points;
+  zone->y_points = zone->x_current + zone->num_points;
+  zone->y_current = zone->y_points + zone->num_points;
+  zone->flags = (unsigned char *) (zone->y_current
+				   + zone->num_points);
+
+  /* Copy and renumber all contour end points to start from
+     base_index.  */
+
+  for (i = 0; i < zone->num_contours; ++i)
+    zone->contour_end_points[i]
+      = (context->contour_end_points[base_contour + i]
+	 - base_index);
+
+  /* Now copy over x_points, x_current, y_points and y_current.  */
+
+  for (i = 0; i < num_points; ++i)
+    {
+      zone->x_current[i] = context->x_coordinates[i + base_index];
+      zone->x_points[i] = context->x_coordinates[i + base_index];
+    }
+
+  /* Compute phantom points.  */
+  sfnt_compute_phantom_points (glyph, metrics, interpreter->scale,
+			       &phantom_point_1_x, &phantom_point_1_y,
+			       &phantom_point_2_x, &phantom_point_2_y);
+
+  /* Load phantom points.  */
+  zone->x_points[i] = phantom_point_1_x;
+  zone->x_points[i + 1] = phantom_point_2_x;
+  zone->x_current[i] = phantom_point_1_x;
+  zone->x_current[i + 1] = phantom_point_2_x;
+
+  for (i = 0; i < num_points; ++i)
+    {
+      zone->y_current[i] = context->y_coordinates[i + base_index];
+      zone->y_points[i] = context->y_coordinates[i + base_index];
+
+      /* Set flags.  */
+      zone->flags[i] = (context->flags[i + base_index]
+			& ~SFNT_POINT_TOUCHED_BOTH);
+    }
+
+    /* Load phantom points.  */
+  zone->y_points[i] = phantom_point_1_y;
+  zone->y_points[i + 1] = phantom_point_2_y;
+  zone->y_current[i] = phantom_point_1_x;
+  zone->y_current[i + 1] = phantom_point_2_x;
+
+  /* Load phantom point flags.  */
+  zone->flags[i] = SFNT_POINT_PHANTOM;
+  zone->flags[i + 1] = SFNT_POINT_PHANTOM;
+
+  /* Load the compound glyph program.  */
+  interpreter->IP = 0;
+  interpreter->SP = interpreter->stack;
+  interpreter->instructions = glyph->compound->instructions;
+  interpreter->num_instructions = glyph->compound->instruction_length;
+  interpreter->glyph_zone = zone;
+
+  /* Copy zone over to this volatile variable.  */
+  preserved_zone = zone;
+
+  if (setjmp (interpreter->trap))
+    {
+      if (zone_was_allocated)
+	xfree (preserved_zone);
+
+      interpreter->glyph_zone = NULL;
+      return interpreter->trap_reason;
+    }
+
+  sfnt_interpret_run (interpreter, SFNT_RUN_CONTEXT_GLYPH_PROGRAM);
+  interpreter->glyph_zone = NULL;
+
+  /* Move preserved_zone back to zone.  */
+  zone = preserved_zone;
+
+  /* Now copy the instructed points back, and add the two phantom
+     points to the end.  */
+
+  for (i = 0; i < num_points; ++i)
+    {
+      context->x_coordinates[base_index + i] = zone->x_current[i];
+      context->y_coordinates[base_index + i] = zone->y_current[i];
+    }
+
+  /* Grow various arrays to fit the phantom points.  */
+  rc = sfnt_expand_compound_glyph_context (context, 0, 2,
+					   &x_base, &y_base,
+					   &flags_base,
+					   &contour_base);
+
+  if (rc)
+    {
+      if (zone_was_allocated)
+	xfree (zone);
+
+      return "Failed to expand arrays for phantom points";
+    }
+
+  /* Copy over the phantom points.  */
+  x_base[0] = zone->x_current[num_points - 2];
+  x_base[1] = zone->x_current[num_points - 1];
+  y_base[0] = zone->y_current[num_points - 2];
+  y_base[1] = zone->y_current[num_points - 1];
+  flags_base[0] = zone->flags[num_points - 2];
+  flags_base[1] = zone->flags[num_points - 1];
+
+  /* Free the zone if needed.  */
+  if (zone_was_allocated)
+    xfree (zone);
+
+  return NULL;
+}
+
+/* Internal helper for sfnt_interpret_compound_glyph.
+   RECURSION_COUNT is the number of times this function has called itself.
+   OFF_X and OFF_Y are the offsets to apply to the glyph outline.
+
+   METRICS are the unscaled metrics of this compound glyph.
+
+   Other arguments mean the same as they do in
+   `sfnt_interpret_compound_glyph'.  */
+
+static const char *
+sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
+				 struct sfnt_interpreter *interpreter,
+				 struct sfnt_graphics_state *state,
+				 struct sfnt_compound_glyph_context *context,
+				 sfnt_get_glyph_proc get_glyph,
+				 sfnt_free_glyph_proc free_glyph,
+				 struct sfnt_hmtx_table *hmtx,
+				 struct sfnt_hhea_table *hhea,
+				 struct sfnt_maxp_table *maxp,
+				 struct sfnt_glyph_metrics *metrics,
+				 sfnt_fixed off_x, sfnt_fixed off_y,
+				 int recursion_count,
+				 void *dcontext)
+{
+  struct sfnt_glyph *subglyph;
+  int i, j, rc;
+  const char *error;
+  bool need_free;
+  struct sfnt_compound_glyph_component *component;
+  sfnt_f26dot6 x, y, xtemp, ytemp;
+  size_t point, point2;
+  size_t last_point, number_of_contours;
+  sfnt_f26dot6 *x_base, *y_base;
+  size_t *contour_base;
+  unsigned char *flags_base;
+  size_t base_index, contour_start, base_contour;
+  bool defer_offsets;
+  struct sfnt_instructed_outline *value;
+  struct sfnt_glyph_metrics sub_metrics;
+
+  /* Set up the base index.  This is the index from where on point
+     renumbering starts.
+
+     In other words, point 0 in this glyph will be 0 + base_index,
+     point 1 will be 1 + base_index, and so on.  */
+  base_index = context->num_points;
+
+  /* And this is the index of the first contour in this glyph.  */
+  base_contour = context->num_end_points;
+
+  /* Prevent infinite loops.  */
+  if (recursion_count > 12)
+    return "Overly deep recursion in compound glyph data";
+
+  /* Don't defer offsets.  */
+  defer_offsets = false;
+
+  /* Pacify -Wmaybe-uninitialized.  */
+  point = point2 = 0;
+
+  for (j = 0; j < glyph->compound->num_components; ++j)
+    {
+      /* Look up the associated subglyph.  */
+      component = &glyph->compound->components[j];
+      subglyph = get_glyph (component->glyph_index,
+			    dcontext, &need_free);
+
+      if (!subglyph)
+	return "Failed to obtain component glyph";
+
+      /* Record the size of the point array before expansion.  This
+	 will be the base to apply to all points coming from this
+	 subglyph.  */
+      contour_start = context->num_points;
+
+      /* Compute the offset for the component.  */
+      if (component->flags & 02) /* ARGS_ARE_XY_VALUES */
+	{
+	  /* Component offsets are X/Y values as opposed to points
+	     GLYPH.  */
+
+	  if (!(component->flags & 01)) /* ARG_1_AND_2_ARE_WORDS */
+	    {
+	      /* X and Y are signed bytes.  */
+	      x = component->argument1.b * 64;
+	      y = component->argument2.b * 64;
+	    }
+	  else
+	    {
+	      /* X and Y are signed words.  */
+	      x = component->argument1.d * 64;
+	      y = component->argument2.d * 64;
+	    }
+
+	  /* Now convert X and Y into device coordinates.  */
+	  x = sfnt_mul_f26dot6_fixed (x, interpreter->scale);
+	  y = sfnt_mul_f26dot6_fixed (y, interpreter->scale);
+
+	  /* If there is some kind of scale and component offsets are
+	     scaled, then apply the transform to the offset.  */
+	  if (component->flags & 04000) /* SCALED_COMPONENT_OFFSET */
+	    sfnt_transform_f26dot6 (component, &x, &y, 1,
+				    0, 0);
+
+	  if (component->flags & 04) /* ROUND_XY_TO_GRID */
+	    {
+	      x = sfnt_round_f26dot6 (x);
+	      y = sfnt_round_f26dot6 (y);
+	    }
+	}
+      else
+	{
+	  /* The offset is determined by matching a point location in
+	     a preceeding component with a point location in the
+	     current component.  The index of the point in the
+	     previous component can be determined by adding
+	     component->argument1.a or component->argument1.c to
+	     point.  argument2 contains the index of the point in the
+	     current component.  */
+
+	  if (!(component->flags & 01)) /* ARG_1_AND_2_ARE_WORDS */
+	    {
+	      point = base_index + component->argument1.a;
+	      point2 = component->argument2.a;
+	    }
+	  else
+	    {
+	      point = base_index + component->argument1.c;
+	      point2 = component->argument2.c;
+	    }
+
+	  /* Now, check that the anchor point specified lies inside
+	     the glyph.  */
+
+	  if (point >= contour_start)
+	    {
+	      if (need_free)
+		free_glyph (subglyph, dcontext);
+
+	      return "Invalid anchor point";
+	    }
+
+	  if (!subglyph->compound)
+	    {
+	      if (point2 >= subglyph->simple->number_of_points)
+		{
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
+
+		  return "Invalid anchored point";
+		}
+
+	      /* Get the points and use them to compute the offsets.  */
+	      xtemp = context->x_coordinates[point];
+	      ytemp = context->y_coordinates[point];
+	      x = (xtemp - subglyph->simple->x_coordinates[point2] * 64);
+	      y = (ytemp - subglyph->simple->y_coordinates[point2] * 64);
+	    }
+	  else
+	    {
+	      /* First, set offsets to 0, because it is not yet
+		 possible to determine the position of the anchor
+		 point in the child.  */
+	      x = 0;
+	      y = 0;
+
+	      /* Set a flag which indicates that offsets must be
+		 resolved from the child glyph after it is loaded, but
+		 before it is incorporated into the parent glyph.  */
+	      defer_offsets = true;
+	    }
+	}
+
+      /* Obtain the glyph metrics.  If doing so fails, then cancel
+	 decomposition.  */
+
+      if (sfnt_lookup_glyph_metrics (component->glyph_index,
+				     -1, &sub_metrics,
+				     hmtx, hhea, NULL, maxp))
+	{
+	  if (need_free)
+	    free_glyph (subglyph, dcontext);
+
+	  return "Failed to obtain component metrics";
+	}
+
+      if (subglyph->simple)
+	{
+	  /* Simple subglyph.  Copy over the points and contours,
+	     then transform and instruct them.
+
+	     Skip this step for glyphs without contours.  */
+
+	  if (subglyph->number_of_contours)
+	    {
+	      /* Now instruct the simple glyph, and copy it over,
+		 including the two phantom points at the end.  */
+	      interpreter->state = *state;
+	      error = sfnt_interpret_simple_glyph (subglyph, interpreter,
+						   &sub_metrics, &value);
+
+	      /* Cancel instructing if an error occurs.  */
+
+	      if (error)
+		{
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
+
+		  return error;
+		}
+
+	      /* Figure out how many more points and contours are
+		 needed.  Here, last_point is not the end of the
+		 glyph's contours, as two phantom points are
+		 included.  */
+	      last_point = value->num_points;
+	      number_of_contours = value->num_contours;
+
+	      /* Grow various arrays.  */
+	      rc = sfnt_expand_compound_glyph_context (context,
+						       /* Number of
+							  new contours
+							  required.  */
+						       number_of_contours,
+						       /* Number of new
+							  points
+							  required.  */
+						       last_point,
+						       &x_base,
+						       &y_base,
+						       &flags_base,
+						       &contour_base);
+	      if (rc)
+		{
+		  xfree (value);
+
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
+
+		  return "Failed to grow arrays";
+		}
+
+	      /* Copy the values in VALUE into the context and free
+		 VALUE, including phantom points.  */
+
+	      for (i = 0; i < last_point; ++i)
+		{
+		  x_base[i] = value->x_points[i] + off_x + x;
+		  y_base[i] = value->y_points[i] + off_y + y;
+		  flags_base[i] = value->flags[i];
+		}
+
+	      /* Copy over the contours.  */
+	      for (i = 0; i < number_of_contours; ++i)
+		contour_base[i] = (contour_start
+				   + value->contour_end_points[i]);
+
+	      xfree (value);
+
+	      /* Apply the transform to the points.  */
+	      sfnt_transform_f26dot6 (component, x_base, y_base,
+				      last_point, 0, 0);
+	    }
+	}
+      else
+	{
+	  /* Compound subglyph.  Decompose and instruct the glyph
+	     recursively, and then apply the transform.  */
+
+	  error = sfnt_interpret_compound_glyph_1 (subglyph, interpreter,
+						   state,
+						   context, get_glyph,
+						   free_glyph, hmtx, hhea,
+						   maxp, &sub_metrics,
+						   off_x + x, off_y + y,
+						   recursion_count + 1,
+						   dcontext);
+
+	  if (error)
+	    {
+	      if (need_free)
+		free_glyph (subglyph, dcontext);
+
+	      return error;
+	    }
+
+	  /* When an anchor point is being used to translate the
+	     glyph, and the subglyph in question is actually a
+	     compound glyph, it is impossible to know which offset to
+	     use until the compound subglyph has actually been
+	     loaded.
+
+	     As a result, the offset is calculated here, using the
+	     points in the loaded child compound glyph.  But first, X
+	     and Y must be reset to 0, as otherwise the translation
+	     might be applied twice if defer_offsets is not set.  */
+
+	  x = 0;
+	  y = 0;
+
+	  if (defer_offsets)
+	    {
+	      /* Renumber the non renumbered point2 to point into the
+		 decomposed component.  */
+	      point2 += contour_start;
+
+	      /* Next, check that the non-renumbered point being
+		 anchored lies inside the glyph data that was
+		 decomposed.  */
+
+	      if (point2 >= context->num_points)
+		{
+		  if (need_free)
+		    free_glyph (subglyph, dcontext);
+
+		  return "Invalid point2";
+		}
+
+	      /* Get the points and use them to compute the
+		 offsets.  */
+
+	      xtemp = context->x_coordinates[point];
+	      ytemp = context->y_coordinates[point];
+	      x = (xtemp - context->x_coordinates[point2]);
+	      y = (ytemp - context->y_coordinates[point2]);
+	    }
+
+	  sfnt_transform_f26dot6 (component,
+				  context->x_coordinates + contour_start,
+				  context->y_coordinates + contour_start,
+				  contour_start - context->num_points,
+				  x, y);
+	}
+
+      /* Finally, free the subglyph.  */
+      if (need_free)
+	free_glyph (subglyph, dcontext);
+    }
+
+  /* Run the program for the entire compound glyph, if any.  */
+
+  if (glyph->compound->instruction_length)
+    {
+      interpreter->state = *state;
+      error = sfnt_interpret_compound_glyph_2 (glyph, interpreter,
+					       context, base_index,
+					       base_contour,
+					       metrics);
+    }
+
+  return error;
+}
+
+/* Interpret the compound glyph GLYPH using the specified INTERPRETER.
+   Load each component of the compound glyph GLYPH.  CONTEXT should be
+   a reference to a `struct sfnt_compound_glyph_context' that is on
+   the stack.
+
+   Use glyph metrics specified in the HMTX, HHEA and MAXP tables, and
+   the unscaled metrics for GLYPH specified in METRICS.
+
+   If the component is a simple glyph, scale and instruct it
+   immediately.
+
+   If the component is a compound glyph, then load it recursively
+   until a predetermined recursion level is exceeded.
+
+   Set INTERPRETER's state to STATE prior to instructing each
+   component.
+
+   Load component glyphs using GET_GLYPH, which should return whether
+   or not FREE_GLYPH should be called with the glyph that was loaded.
+   Call both functions with DCONTEXT as an argument.
+
+   Finally, append the resulting contours, run any compound glyph
+   program, and return the instructed outline in *VALUE.
+
+   Value is NULL upon success, and the type of error upon failure.  */
+
+TEST_STATIC const char *
+sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
+			       struct sfnt_interpreter *interpreter,
+			       struct sfnt_graphics_state *state,
+			       sfnt_get_glyph_proc get_glyph,
+			       sfnt_free_glyph_proc free_glyph,
+			       struct sfnt_hmtx_table *hmtx,
+			       struct sfnt_hhea_table *hhea,
+			       struct sfnt_maxp_table *maxp,
+			       struct sfnt_glyph_metrics *metrics,
+			       void *dcontext,
+			       struct sfnt_instructed_outline **value)
+{
+  struct sfnt_compound_glyph_context context;
+  const char *error;
+  struct sfnt_instructed_outline *outline;
+  size_t outline_size, temp;
+
+  /* Set up the glyph decomposition context.  */
+  memset (&context, 0, sizeof context);
+
+  /* Now start decomposing the glyph.  */
+  error = sfnt_interpret_compound_glyph_1 (glyph, interpreter,
+					   state, &context,
+					   get_glyph, free_glyph,
+					   hmtx, hhea, maxp,
+					   metrics, 0, 0, 0,
+					   dcontext);
+
+  /* If an error occurs, free the data in the context and return.  */
+
+  if (error)
+    {
+      xfree (context.x_coordinates);
+      xfree (context.y_coordinates);
+      xfree (context.flags);
+      xfree (context.contour_end_points);
+      return error;
+    }
+
+  /* Copy the compound glyph data into an instructed outline.  */
+  outline_size = sizeof (*outline);
+
+  if (INT_MULTIPLY_WRAPV (context.num_end_points,
+			  sizeof *outline->contour_end_points,
+			  &temp)
+      || INT_ADD_WRAPV (outline_size, temp, &outline_size)
+      || INT_MULTIPLY_WRAPV (context.num_points,
+			     sizeof *outline->x_points * 2,
+			     &temp)
+      || INT_ADD_WRAPV (outline_size, temp, &outline_size)
+      || INT_ADD_WRAPV (context.num_points, outline_size,
+			&outline_size))
+    {
+      xfree (context.x_coordinates);
+      xfree (context.y_coordinates);
+      xfree (context.flags);
+      xfree (context.contour_end_points);
+      return "Glyph exceeds maximum permissible size";
+    }
+
+  /* Allocate the outline.  */
+  outline = xmalloc (outline_size);
+  outline->num_points = context.num_points;
+  outline->num_contours = context.num_end_points;
+  outline->contour_end_points = (size_t *) (outline + 1);
+  outline->x_points = (sfnt_f26dot6 *) (outline->contour_end_points
+					+ outline->num_contours);
+  outline->y_points = outline->x_points + outline->num_points;
+  outline->flags = (unsigned char *) (outline->y_points
+				      + outline->num_points);
+
+  /* Copy over the contour endpoints, points, and flags.  */
+  memcpy (outline->contour_end_points, context.contour_end_points,
+	  outline->num_contours * sizeof *outline->contour_end_points);
+  memcpy (outline->x_points, context.x_coordinates,
+	  outline->num_points * sizeof *outline->x_points);
+  memcpy (outline->y_points, context.y_coordinates,
+	  outline->num_points * sizeof *outline->y_points);
+  memcpy (outline->flags, context.flags, context.num_points);
+
+  /* Free the context data.  */
+  xfree (context.x_coordinates);
+  xfree (context.y_coordinates);
+  xfree (context.flags);
+  xfree (context.contour_end_points);
+
   *value = outline;
   return NULL;
 }
@@ -10956,10 +11740,16 @@ sfnt_test_span (struct sfnt_edge *edge, sfnt_fixed y,
 		sfnt_coerce_fixed (edge->x),
 		sfnt_coerce_fixed (sfnt_test_max - y),
 		sfnt_coerce_fixed (y),
-		sfnt_coerce_fixed (edge->bottom),
 		sfnt_coerce_fixed (edge->top),
+		sfnt_coerce_fixed (edge->bottom),
 		sfnt_coerce_fixed (edge->step_x),
 		edge->winding);
+      else
+	printf ("STRIPPED BAD SPAN!!! %g %g %"PRIi32
+		" %"PRIi32" (winding: %d)\n",
+		sfnt_coerce_fixed (edge->top),
+		sfnt_coerce_fixed (edge->bottom),
+		edge->top, y, edge->winding);
     }
 #elif 0
   int winding;
@@ -14743,8 +15533,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 40
+#define EASY_PPEM  40
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -15159,17 +15949,35 @@ main (int argc, char **argv)
 			  interpreter->pop_hook = sfnt_pop_hook;
 			}
 
-		      if (glyph->simple
-			  && !sfnt_lookup_glyph_metrics (code, -1,
-							 &metrics,
-							 hmtx, hhea,
-							 head, maxp))
+		      if (!sfnt_lookup_glyph_metrics (code, -1,
+						      &metrics,
+						      hmtx, hhea,
+						      head, maxp))
 			{
 			  printf ("interpreting glyph\n");
 			  interpreter->state = state;
 			  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
-			  trap = sfnt_interpret_simple_glyph (glyph, interpreter,
-							      &metrics, &value);
+			  if (glyph->simple)
+			    trap
+			      = sfnt_interpret_simple_glyph (glyph,
+							     interpreter,
+							     &metrics,
+							     &value);
+			  else
+#define GG sfnt_test_get_glyph
+#define FG sfnt_test_free_glyph
+			    trap
+			      = sfnt_interpret_compound_glyph (glyph,
+							       interpreter,
+							       &state,
+							       GG, FG,
+							       hmtx, hhea,
+							       maxp,
+							       &metrics,
+							       &dcontext,
+							       &value);
+#undef GG
+#undef FG
 			  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
 			  sub3 = timespec_sub (end, start);
 
@@ -15197,7 +16005,8 @@ main (int argc, char **argv)
 				}
 			    }
 
-			  fprintf (stderr, "execution time: %lld sec %ld nsec\n",
+			  fprintf (stderr, "execution time: %lld sec %ld nse"
+				   "c\n",
 				   (long long) sub3.tv_sec, sub3.tv_nsec);
 			}
 

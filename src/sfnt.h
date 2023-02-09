@@ -1135,6 +1135,11 @@ struct sfnt_interpreter_zone
 
 enum
   {
+    /* Bits 1 stands for X_SHORT_VECTOR on disk and in the tables, but
+       this representation is not useful in memory.  Inside an
+       instructed glyph, this bit is repurposed to mean that the
+       corresponding point is a phantom point.  */
+    SFNT_POINT_PHANTOM	= (1 << 1),
     /* Bits 7 and 6 of a glyph point's flags is reserved.  This scaler
        uses it to mean that the point has been touched in one axis or
        another.  */
@@ -1475,6 +1480,23 @@ extern struct sfnt_glyph_outline *sfnt_build_instructed_outline (PROTOTYPE);
   struct sfnt_instructed_outline **
 
 extern const char *sfnt_interpret_simple_glyph (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  struct sfnt_glyph *,				\
+  struct sfnt_interpreter *,			\
+  struct sfnt_graphics_state *,			\
+  sfnt_get_glyph_proc,				\
+  sfnt_free_glyph_proc,				\
+  struct sfnt_hmtx_table *,			\
+  struct sfnt_hhea_table *,			\
+  struct sfnt_maxp_table *,			\
+  struct sfnt_glyph_metrics *,			\
+  void *,					\
+  struct sfnt_instructed_outline **
+
+extern const char *sfnt_interpret_compound_glyph (PROTOTYPE);
 
 #undef PROTOTYPE
 

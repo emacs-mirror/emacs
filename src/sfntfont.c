@@ -1456,6 +1456,9 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
    Use the offset information in the long or short loca tables
    LOCA_LONG and LOCA_SHORT, whichever is set.
 
+   Use the specified HMTX, HHEA and MAXP tables when instructing
+   compound glyphs.
+
    If INTERPRETER is non-NULL, then possibly use the unscaled glyph
    metrics in METRICS and the interpreter STATE to instruct the glyph.
 
@@ -1469,6 +1472,9 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 			    int pixel_size, int *cache_size,
 			    struct sfnt_glyf_table *glyf,
 			    struct sfnt_head_table *head,
+			    struct sfnt_hmtx_table *hmtx,
+			    struct sfnt_hhea_table *hhea,
+			    struct sfnt_maxp_table *maxp,
 			    struct sfnt_loca_table_short *loca_short,
 			    struct sfnt_loca_table_long *loca_long,
 			    struct sfnt_interpreter *interpreter,
@@ -1517,14 +1523,32 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
   outline = NULL;
 
-  if (interpreter && glyph->simple)
-    {
-      /* Restore the interpreter state from the snapshot taken after
-	 loading the preprogram.  */
-      interpreter->state = *state;
+  dcontext.loca_long = loca_long;
+  dcontext.loca_short = loca_short;
+  dcontext.glyf = glyf;
 
-      error = sfnt_interpret_simple_glyph (glyph, interpreter,
-					   metrics, &value);
+  if (interpreter)
+    {
+      if (glyph->simple)
+	{
+	  /* Restore the interpreter state from the snapshot taken
+	     after loading the preprogram.  */
+	  interpreter->state = *state;
+
+	  error = sfnt_interpret_simple_glyph (glyph, interpreter,
+					       metrics, &value);
+	}
+      else
+	/* Restoring the interpreter state is done by
+	   sfnt_interpret_compound_glyph; all that must be done here
+	   is to give the graphics state to that function.  */
+	error = sfnt_interpret_compound_glyph (glyph, interpreter,
+					       state,
+					       sfntfont_get_glyph,
+					       sfntfont_free_glyph,
+					       hmtx, hhea, maxp,
+					       metrics, &dcontext,
+					       &value);
 
       if (!error)
 	{
@@ -1532,10 +1556,6 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	  xfree (value);
 	}
     }
-
-  dcontext.loca_long = loca_long;
-  dcontext.loca_short = loca_short;
-  dcontext.glyf = glyf;
 
   if (!outline)
     outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
@@ -2272,6 +2292,8 @@ sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					font->font.pixel_size,
 					&font->outline_cache_size,
 					font->glyf, font->head,
+					font->hmtx, font->hhea,
+					font->maxp,
 					font->loca_short,
 					font->loca_long,
 					font->interpreter, &metrics,
@@ -2321,6 +2343,8 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					font->font.pixel_size,
 					&font->outline_cache_size,
 					font->glyf, font->head,
+					font->hmtx, font->hhea,
+					font->maxp,
 					font->loca_short,
 					font->loca_long, NULL, NULL,
 					NULL);
@@ -2469,6 +2493,8 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 					    font->pixel_size,
 					    &info->outline_cache_size,
 					    info->glyf, info->head,
+					    info->hmtx, info->hhea,
+					    info->maxp,
 					    info->loca_short,
 					    info->loca_long,
 					    info->interpreter,
