@@ -2162,7 +2162,7 @@ value.  Otherwise return CHILDREN as is."
       (funcall fn)
     (transient--suspend-override (bound-and-true-p edebug-active))
     (funcall fn) ; Already unwind protected.
-    (cond ((eq this-command '(top-level abort-recursive-edit))
+    (cond ((memq this-command '(top-level abort-recursive-edit))
            (setq transient--exitp t)
            (transient--post-exit)
            (transient--delete-window))
