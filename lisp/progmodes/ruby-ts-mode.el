@@ -661,6 +661,13 @@ a statement container is a node that matches
            ((n-p-gp nil "body_statement" ,ruby-ts--method-regex) ;other statements
             (ruby-ts--align-keywords ruby-ts--grand-parent-node) ruby-indent-level)
 
+           ;; Quirk of the ruby parser: these "alignable" nodes don't
+           ;; have the "container" child node when there are no
+           ;; statements inside. Thus we have to have a separate rule
+           ;; for the "empty if/unless/case/def" situation.
+           ((match "\\`\\'" "\\`\\(?:if\\|unless\\|case\\|method\\)\\'")
+            (ruby-ts--align-keywords ruby-ts--parent-node) ruby-indent-level)
+
            ;; Chained calls:
            ;; if `ruby-align-chained-calls' is true, the first query
            ;; matches and the node is aligned under the first dot (.);
