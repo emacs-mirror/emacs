@@ -895,6 +895,12 @@ permissions of the file itself.)
 If the file does not exist, or if there was trouble determining
 whether the file exists, this function returns @code{nil}.
 
+@cindex empty file name, and @code{file-exists-p}
+Since a file name that is an empty string is interpreted relative to
+the current buffer's default directory (@pxref{Relative File Names}),
+calling @code{file-exists-p} with an argument that is an empty string
+will report about the buffer's default directory.
+
 @cindex dangling symlinks, testing for existence
 Directories are files, so @code{file-exists-p} can return @code{t}
 when given a directory.  However, because @code{file-exists-p} follows
@@ -2338,6 +2344,10 @@ form.
 @end example
 @end defun
 
+@cindex empty file name
+  A file name that is an empty string stands for the current buffer's
+default directory.
+
 @node Directory Names
 @subsection Directory Names
 @cindex directory name
@@ -2527,6 +2537,7 @@ This is for the sake of filesystems that have the concept of a
 superroot above the root directory @file{/}.  On other filesystems,
 @file{/../} is interpreted exactly the same as @file{/}.
 
+@cindex empty file names, and @code{expand-file-name}
 Expanding @file{.} or the empty string returns the default directory:
 
 @example
