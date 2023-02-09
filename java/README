@@ -5,7 +5,12 @@ package out of them.
 The ``org/gnu/emacs'' subdirectory contains the Java sources under the
 ``org.gnu.emacs'' package identifier.
 
-The ``res'' directory contains resources, mainly the Emacs icon.
+``AndroidManifest.xml'' contains a manifest describing the Java
+sources to the system.
+
+The ``res'' directory contains resources, mainly the Emacs icon and
+several ``boolean resources'' which are used as a form of conditional
+evaluation for manifest entries.
 
 `emacs.keystore' is the signing key used to build Emacs.  It is kept
 here, and we encourage all people redistributing Emacs to use this
@@ -456,6 +461,12 @@ loaded by the special invocation:
     System.loadLibrary ("emacs");
   };
 
+where ``static'' defines a section of code which will be run upon the
+object (containing class) being loaded.  This is like:
+
+  __attribute__((constructor))
+
+on systems where shared object constructors are supported.
 
 See http://docs.oracle.com/en/java/javase/19/docs/specs/jni/intro.html
 for more details.

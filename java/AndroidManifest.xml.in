@@ -179,6 +179,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       </intent-filter>
     </activity>
 
+    <provider android:name="org.gnu.emacs.EmacsDocumentsProvider"
+	      android:authorities="org.gnu.emacs"
+	      android:exported="true"
+	      android:grantUriPermissions="true"
+	      android:permission="android.permission.MANAGE_DOCUMENTS"
+	      android:enabled="@bool/isAtLeastKitKat">
+      <intent-filter>
+	<action
+	    android:name="android.content.action.DOCUMENTS_PROVIDER"/>
+      </intent-filter>
+    </provider>
+
     <service android:name="org.gnu.emacs.EmacsService"
 	     android:directBootAware="false"
 	     android:enabled="true"
