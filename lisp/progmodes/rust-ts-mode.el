@@ -124,8 +124,8 @@
   (treesit-font-lock-rules
    :language 'rust
    :feature 'attribute
-   '((attribute_item) @font-lock-constant-face
-     (inner_attribute_item) @font-lock-constant-face)
+   '((attribute_item) @font-lock-preprocessor-face
+     (inner_attribute_item) @font-lock-preprocessor-face)
 
    :language 'rust
    :feature 'bracket
@@ -146,12 +146,6 @@
    :language 'rust
    :feature 'comment
    '(([(block_comment) (line_comment)]) @font-lock-comment-face)
-
-   :language 'rust
-   :feature 'constant
-   `((boolean_literal) @font-lock-constant-face
-     ((identifier) @font-lock-constant-face
-      (:match "^[A-Z][A-Z\\d_]*$" @font-lock-constant-face)))
 
    :language 'rust
    :feature 'delimiter
@@ -211,7 +205,54 @@
 
    :language 'rust
    :feature 'type
-   `((enum_variant name: (identifier) @font-lock-type-face)
+   `((scoped_use_list path: (identifier) @font-lock-constant-face)
+     (scoped_use_list path: (scoped_identifier
+                             name: (identifier) @font-lock-constant-face))
+
+     ((use_as_clause alias: (identifier) @font-lock-type-face)
+      (:match "^[A-Z]" @font-lock-type-face))
+     ((use_as_clause path: (identifier) @font-lock-type-face)
+      (:match "^[A-Z]" @font-lock-type-face))
+     ((use_as_clause path:
+                     (scoped_identifier path: (_)
+                                        name: (identifier) @font-lock-type-face))
+      (:match "^[A-Z]" @font-lock-type-face))
+     (use_as_clause path: (scoped_identifier name: (identifier) @default))
+
+     ((use_declaration
+       argument: (scoped_identifier
+                  path: (_) @font-lock-constant-face
+                  name: (identifier) @font-lock-type-face))
+      (:match "^[A-Z]" @font-lock-type-face))
+     (use_declaration
+      argument: (scoped_identifier
+                 name: (identifier) @default))
+
+     (use_declaration
+      argument: (scoped_identifier
+                 path: (scoped_identifier
+                        path: (_) @font-lock-constant-face
+                        name: (identifier) @font-lock-constant-face)
+                 name: (identifier) @default))
+
+     (use_declaration
+      argument: (scoped_use_list
+                 path: (scoped_identifier
+                        path: (_) @font-lock-constant-face
+                        name: (identifier) @font-lock-constant-face)))
+
+     ((use_list (identifier) @font-lock-type-face)
+      (:match "^[A-Z]" @font-lock-type-face))
+     (use_list (identifier) @default)
+     ((use_list (scoped_identifier path: (_)
+                                   name: (identifier) @font-lock-type-face))
+      (:match "^[A-Z]" @font-lock-type-face))
+     (use_list (scoped_identifier path: (_)
+                                  name: (identifier) @default))
+     (use_wildcard (scoped_identifier
+                    name: (identifier) @font-lock-constant-face))
+
+     (enum_variant name: (identifier) @font-lock-type-face)
      (match_arm
       pattern: (match_pattern (_ type: (identifier) @font-lock-type-face)))
      (match_arm
@@ -226,23 +267,38 @@
      ((scoped_identifier path: (identifier) @font-lock-type-face)
       (:match "^[A-Z]" @font-lock-type-face))
      ((scoped_identifier
-        (scoped_identifier
-         path: (identifier) @font-lock-type-face))
-      (:match "^[A-Z]" @font-lock-type-face))
-     ((scoped_identifier
        path: [(identifier) @font-lock-type-face
               (scoped_identifier
                name: (identifier) @font-lock-type-face)])
       (:match "^[A-Z]" @font-lock-type-face))
-     (scoped_type_identifier path: (identifier) @font-lock-type-face)
+     ((scoped_identifier path: (identifier) @font-lock-type-face)
+      (:match
+       "^\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)$"
+       @font-lock-type-face))
+     (scoped_identifier path: (_) @font-lock-constant-face
+                        name: (identifier) @font-lock-type-face)
+     (scoped_identifier path: (scoped_identifier
+                               name: (identifier) @font-lock-constant-face))
+     (scoped_type_identifier path: (_) @font-lock-constant-face)
+     (scoped_type_identifier
+      path: (scoped_identifier
+             path: (_) @font-lock-constant-face
+             name: (identifier) @font-lock-constant-face))
      (type_identifier) @font-lock-type-face
-     (use_as_clause alias: (identifier) @font-lock-type-face)
-     (use_list (identifier) @font-lock-type-face))
+     ;; Ensure function calls aren't highlighted as types.
+     (call_expression function: (scoped_identifier name: (identifier) @default)))
 
    :language 'rust
    :feature 'property
    '((field_identifier) @font-lock-property-face
      (shorthand_field_initializer (identifier) @font-lock-property-face))
+
+   ;; Must be under type, otherwise some imports can be highlighted as consants.
+   :language 'rust
+   :feature 'constant
+   `((boolean_literal) @font-lock-constant-face
+     ((identifier) @font-lock-constant-face
+      (:match "^[A-Z][A-Z\\d_]*$" @font-lock-constant-face)))
 
    :language 'rust
    :feature 'variable
