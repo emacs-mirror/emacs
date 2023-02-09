@@ -571,7 +571,7 @@ a statement container is a node that matches
            ;; Incomplete buffer state, better not reindent (bug#61017).
            ((and (parent-is "ERROR")
                  (or (node-is ,ruby-ts--class-or-module-regex)
-                     (node-is "\\`def\\'")))
+                     (node-is "\\`\\(?:def\\|identifier\\)\\'")))
             no-indent 0)
 
            ;; if then else elseif notes:
