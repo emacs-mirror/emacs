@@ -1589,9 +1589,9 @@ ranges for @acronym{CSS} and JavaScript parsers:
 @example
 @group
 ;; Create parsers.
-(setq html (treesit-get-parser-create 'html))
-(setq css (treesit-get-parser-create 'css))
-(setq js (treesit-get-parser-create 'javascript))
+(setq html (treesit-parser-create 'html))
+(setq css (treesit-parser-create 'css))
+(setq js (treesit-parser-create 'javascript))
 @end group
 
 @group
