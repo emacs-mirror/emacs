@@ -12731,13 +12731,11 @@ If an unhandled error happens in running this hook, the function in
 which the error occurred is unconditionally removed, since otherwise
 the error might happen repeatedly and make Emacs nonfunctional.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point (whose size
-is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrowing-lock'), so that these hook
-functions cannot use `widen' to gain access to other portions of
-buffer text.
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-narrowing' form,
+with a `long-line-optimizations-in-command-hooks' label and with the
+buffer narrowed to a portion around point whose size is specified by
+`long-line-optimizations-region-size'.
 
 See also `post-command-hook'.  */);
   Vpre_command_hook = Qnil;
@@ -12753,13 +12751,11 @@ It is a bad idea to use this hook for expensive processing.  If
 unavoidable, wrap your code in `(while-no-input (redisplay) CODE)' to
 avoid making Emacs unresponsive while the user types.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', these hook functions are called
-with the buffer narrowed to a small portion around point (whose size
-is specified by `long-line-locked-narrowing-region-size'), and the
-narrowing is locked (see `narrowing-lock'), so that these hook
-functions cannot use `widen' to gain access to other portions of
-buffer text.
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-narrowing' form,
+with a `long-line-optimizations-in-command-hooks' label and with the
+buffer narrowed to a portion around point whose size is specified by
+`long-line-optimizations-region-size'.
 
 See also `pre-command-hook'.  */);
   Vpost_command_hook = Qnil;

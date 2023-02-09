@@ -2659,7 +2659,11 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
    the (uninterned) Qoutermost_narrowing tag and records the narrowing
    bounds that were set by the user and that are visible on display.
    This alist is used internally by narrow-to-region, widen,
-   narrowing-lock, narrowing-unlock and save-restriction.  */
+   internal--lock-narrowing, internal--unlock-narrowing and
+   save-restriction.  For efficiency reasons, an alist is used instead
+   of a buffer-local variable: otherwise reset_outermost_narrowings,
+   which is called during each redisplay cycle, would have to loop
+   through all live buffers.  */
 static Lisp_Object narrowing_locks;
 
 /* Add BUF with its LOCKS in the narrowing_locks alist.  */
@@ -2763,7 +2767,10 @@ unwind_reset_outermost_narrowing (Lisp_Object buf)
    In particular, this function is called when redisplay starts, so
    that if a Lisp function executed during redisplay calls (redisplay)
    while a locked narrowing is in effect, the locked narrowing will
-   not be visible on display.  */
+   not be visible on display.
+   See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57207#140 and
+   https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57207#254 for example
+   recipes that demonstrate why this is necessary.  */
 void
 reset_outermost_narrowings (void)
 {
@@ -2829,10 +2836,12 @@ narrow_to_region_locked (Lisp_Object begv, Lisp_Object zv, Lisp_Object tag)
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
 
-This allows the buffer's full text to be seen and edited, unless
-restrictions have been locked with `narrowing-lock', which see, in
-which case the narrowing that was current when `narrowing-lock' was
-called is restored.  */)
+This allows the buffer's full text to be seen and edited.
+
+However, when restrictions have been set by `with-narrowing' with a
+label, `widen' restores the narrowing limits set by `with-narrowing'.
+To gain access to other portions of the buffer, use
+`without-narrowing' with the same label.  */)
   (void)
 {
   Fset (Qoutermost_narrowing, Qnil);
@@ -2879,11 +2888,12 @@ When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
 remain visible.
 
-When restrictions have been locked with `narrowing-lock', which see,
-`narrow-to-region' can be used only within the limits of the
-restrictions that were current when `narrowing-lock' was called.  If
-the START or END arguments are outside these limits, the corresponding
-limit of the locked restriction is used instead of the argument.  */)
+However, when restrictions have been set by `with-narrowing' with a
+label, `narrow-to-region' can be used only within the limits of these
+restrictions.  If the START or END arguments are outside these limits,
+the corresponding limit set by `with-narrowing' is used instead of the
+argument.  To gain access to other portions of the buffer, use
+`without-narrowing' with the same label.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
@@ -2912,7 +2922,7 @@ limit of the locked restriction is used instead of the argument.  */)
 
   /* Record the accessible range of the buffer when narrow-to-region
      is called, that is, before applying the narrowing.  It is used
-     only by narrowing-lock.  */
+     only by internal--lock-narrowing.  */
   Fset (Qoutermost_narrowing, list3 (Qoutermost_narrowing,
 				     Fpoint_min_marker (),
 				     Fpoint_max_marker ()));
@@ -2934,30 +2944,16 @@ limit of the locked restriction is used instead of the argument.  */)
 
 DEFUN ("internal--lock-narrowing", Finternal__lock_narrowing,
        Sinternal__lock_narrowing, 1, 1, 0,
-       doc: /* Lock the current narrowing with TAG.
+       doc: /* Lock the current narrowing with LABEL.
 
-When restrictions are locked, `narrow-to-region' and `widen' can be
-used only within the limits of the restrictions that were current when
-`narrowing-lock' was called, unless the lock is removed by calling
-`narrowing-unlock' with TAG.
-
-Locking restrictions should be used sparingly, after carefully
-considering the potential adverse effects on the code that will be
-executed within locked restrictions.  It is typically meant to be used
-around portions of code that would become too slow, and make Emacs
-unresponsive, if they were executed in a large buffer.  For example,
-restrictions are locked by Emacs around low-level hooks such as
-`fontification-functions' or `post-command-hook'.
-
-Locked restrictions are never visible on display, and can therefore
-not be used as a stronger variant of normal restrictions.  */)
+This is an internal function used by `with-narrowing'.  */)
   (Lisp_Object tag)
 {
   Lisp_Object buf = Fcurrent_buffer ();
   Lisp_Object outermost_narrowing
     = buffer_local_value (Qoutermost_narrowing, buf);
-  /* If narrowing-lock is called without being preceded by
-     narrow-to-region, do nothing.  */
+  /* If internal--lock-narrowing is ever called without being preceded
+     by narrow-to-region, do nothing.  */
   if (NILP (outermost_narrowing))
     return Qnil;
   if (NILP (narrowing_lock_peek_tag (buf)))
@@ -2970,15 +2966,9 @@ not be used as a stronger variant of normal restrictions.  */)
 
 DEFUN ("internal--unlock-narrowing", Finternal__unlock_narrowing,
        Sinternal__unlock_narrowing, 1, 1, 0,
-       doc: /* Unlock a narrowing locked with (narrowing-lock TAG).
+       doc: /* Unlock a narrowing locked with LABEL.
 
-Unlocking restrictions locked with `narrowing-lock' should be used
-sparingly, after carefully considering the reasons why restrictions
-were locked.  Restrictions are typically locked around portions of
-code that would become too slow, and make Emacs unresponsive, if they
-were executed in a large buffer.  For example, restrictions are locked
-by Emacs around low-level hooks such as `fontification-functions' or
-`post-command-hook'.  */)
+This is an internal function used by `without-narrowing'.  */)
   (Lisp_Object tag)
 {
   Lisp_Object buf = Fcurrent_buffer ();
@@ -3085,8 +3075,8 @@ DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0
 The buffer's restrictions make parts of the beginning and end invisible.
 \(They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's
-restrictions, as well as their locks if they have been locked with
-`narrowing-lock', when it is entered, and restores them when it is exited.
+restrictions, including those that were set by `with-narrowing' with a
+label argument, when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.
 The old restrictions settings are restored even in case of abnormal exit
 \(throw or error).

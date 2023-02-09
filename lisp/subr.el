@@ -3946,11 +3946,11 @@ See also `locate-user-emacs-file'.")
 
 The current restrictions, if any, are restored upon return.
 
-With the optional :locked TAG argument, inside BODY,
-`narrow-to-region' and `widen' can be used only within the START
-and END limits, unless the restrictions are unlocked by calling
-`narrowing-unlock' with TAG.  See `narrowing-lock' for a more
-detailed description.
+When the optional :label LABEL argument is present, in which
+LABEL is a symbol, inside BODY, `narrow-to-region' and `widen'
+can be used only within the START and END limits.  To gain access
+to other portions of the buffer, use `without-narrowing' with the
+same LABEL argument.
 
 \(fn START END [:label LABEL] BODY)"
   (if (eq (car rest) :label)
@@ -3970,6 +3970,10 @@ detailed description.
   "Execute BODY without restrictions.
 
 The current restrictions, if any, are restored upon return.
+
+When the optional :label LABEL argument is present, the
+restrictions set by `with-narrowing' with the same LABEL argument
+are lifted.
 
 \(fn [:label LABEL] BODY)"
   (if (eq (car rest) :label)

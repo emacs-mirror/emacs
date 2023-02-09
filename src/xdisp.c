@@ -36777,12 +36777,11 @@ Each function is called with one argument POS.  Functions must
 fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified' with a non-nil value.
 
-Note that, when the buffer contains one or more lines whose length is
-above `long-line-threshold', these functions are called with the
-buffer narrowed to a small portion around POS (whose size is specified
-by `long-line-locked-narrowing-region-size'), and the narrowing is
-locked (see `narrowing-lock'), so that these functions cannot use
-`widen' to gain access to other portions of buffer text.  */);
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-narrowing' form,
+with a `long-line-optimizations-in-fontification-functions' label and
+with the buffer narrowed to a portion around POS whose size is
+specified by `long-line-optimizations-region-size'.  */);
   Vfontification_functions = Qnil;
   Fmake_variable_buffer_local (Qfontification_functions);
 
