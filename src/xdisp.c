@@ -4406,7 +4406,7 @@ handle_fontified_prop (struct it *it)
 	    }
 	  if (begv != BEG || zv != Z)
 	    narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
-				     Qfontification_functions);
+				     Qlong_line_optimizations_in_fontification_functions);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
@@ -36266,6 +36266,8 @@ be let-bound around code that needs to disable messages temporarily. */);
   DEFSYM (QCfile, ":file");
   DEFSYM (Qfontified, "fontified");
   DEFSYM (Qfontification_functions, "fontification-functions");
+  DEFSYM (Qlong_line_optimizations_in_fontification_functions,
+	  "long-line-optimizations-in-fontification-functions");
 
   /* Name of the symbol which disables Lisp evaluation in 'display'
      properties.  This is used by enriched.el.  */

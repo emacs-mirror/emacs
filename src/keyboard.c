@@ -1915,7 +1915,8 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
       ptrdiff_t begv = get_locked_narrowing_begv (PT);
       ptrdiff_t zv = get_locked_narrowing_zv (PT);
       if (begv != BEG || zv != Z)
-	narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv), hook);
+	narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
+				 Qlong_line_optimizations_in_command_hooks);
     }
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
@@ -12168,6 +12169,8 @@ syms_of_keyboard (void)
   /* Hooks to run before and after each command.  */
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
+  DEFSYM (Qlong_line_optimizations_in_command_hooks,
+	  "long-line-optimizations-in-command-hooks");
 
   /* Hook run after the region is selected.  */
   DEFSYM (Qpost_select_region_hook, "post-select-region-hook");
