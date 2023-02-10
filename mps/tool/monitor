@@ -642,7 +642,7 @@ class Trace(EventHandler):
         self.add_count('snaps', event.snapCount)
         self.add_count('forwarded', event.forwardedCount)
         self.add_size('forwarded', event.forwardedSize)
-        self.add_count('preseved in place', event.preservedInPlaceCount)
+        self.add_count('preserved in place', event.preservedInPlaceCount)
         self.add_size('preserved in place', event.preservedInPlaceSize)
 
     def TraceStatReclaim(self, t, event):
