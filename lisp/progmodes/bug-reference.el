@@ -174,7 +174,7 @@ subexpression 10."
                   (re-search-forward bug-reference-bug-regexp end-line 'move))
         (when (or (not bug-reference-prog-mode)
                   ;; This tests for both comment and string syntax.
-                  (nth 8 (syntax-ppss)))
+                  (nth 8 (save-match-data (syntax-ppss))))
           (let* ((bounds (bug-reference--overlay-bounds))
                  (overlay (or
                            (let ((ov (pop overlays)))
