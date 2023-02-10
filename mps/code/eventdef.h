@@ -608,7 +608,7 @@
   PARAM(X,  0, P, trace, "the trace") \
   PARAM(X,  1, P, arena, "trace's arena") \
   PARAM(X,  2, W, fixRefCount, "references which pass zone check") \
-  PARAM(X,  3, W, segRefCount, "referencess which refer to segments") \
+  PARAM(X,  3, W, segRefCount, "references which refer to segments") \
   PARAM(X,  4, W, whiteSegRefCount, "references which refer to white segments") \
   PARAM(X,  5, W, nailCount, "segments nailed by ambiguous references") \
   PARAM(X,  6, W, snapCount, "references snapped to forwarded objects") \
@@ -654,7 +654,7 @@
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0, "pre-collection reserved size") \
-  PARAM(X,  1, W, vmem1, "pre-compact reseved size") \
+  PARAM(X,  1, W, vmem1, "pre-compact reserved size") \
   PARAM(X,  2, W, vmem2, "post-compact reserved size")
 
 #define EVENT_VMFinish_PARAMS(PARAM, X) \

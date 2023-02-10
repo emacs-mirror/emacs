@@ -283,7 +283,7 @@ The reasons why a segment and its pages might be retained are:
 
 #. ambiguous reference to first-obj: unavoidable page retention (only
    the mutator can reduce this, if they so wish, by nulling out ambig
-   referencess);
+   references);
 #. ambiguous reference to rest-obj: tuning MPS LSP policy could
    mitigate this, reducing the likelihood of rest-objs being
    co-located with large first-objs;
@@ -459,7 +459,7 @@ chooses exactly one of three options:
    broken heart's forwarding pointer.
 
 If the rank of the reference is ``RankAMBIG`` then it either does (1)
-or (2) depending on wether there is an existing nailboard or not.
+or (2) depending on whether there is an existing nailboard or not.
 Otherwise (the rank is exact or higher) if there is a broken heart it
 is used to snapout the pointer. Otherwise it is as for an
 ``RankAMBIG`` reference: we either do (1) or (2).
@@ -521,7 +521,7 @@ _`.struct.pool`: Like other pool class instances, it contains a
 
 _`.struct.format`: The ``format`` field points to a ``Format``
 structure describing the object format of objects allocated in the
-pool. The field is intialized by ``AMCInit()`` from a parameter, and
+pool. The field is initialized by ``AMCInit()`` from a parameter, and
 thereafter it is not changed until the pool is destroyed.
 
 .. note::

@@ -327,7 +327,7 @@ enum {
 
 /* Root Variants -- see <design/type#.rootvar>
  *
- * .rootvar: Synchonize with <code/root.c#rootvarcheck>
+ * .rootvar: Synchronize with <code/root.c#rootvarcheck>
  */
 
 enum {
