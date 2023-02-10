@@ -9375,6 +9375,11 @@ sfnt_interpret_shp (struct sfnt_interpreter *interpreter,
 									\
   i = touch_start + 1;							\
 									\
+  /* touch_start might be the last point in the contour.  */		\
+									\
+  if (i > end)								\
+    i = start;								\
+									\
   while (i != touch_end)						\
     {									\
       /* Movement is always relative to the original position of	\
@@ -15309,31 +15314,35 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
 
   /* Build a temporary outline containing the values of the
      interpreter's glyph zone.  */
-  temp.num_points = interpreter->glyph_zone->num_points;
-  temp.num_contours = interpreter->glyph_zone->num_contours;
-  temp.contour_end_points = interpreter->glyph_zone->contour_end_points;
-  temp.x_points = interpreter->glyph_zone->x_current;
-  temp.y_points = interpreter->glyph_zone->y_current;
-  temp.flags = interpreter->glyph_zone->flags;
 
-  outline = sfnt_build_instructed_outline (&temp);
+  if (interpreter->glyph_zone)
+    {
+      temp.num_points = interpreter->glyph_zone->num_points;
+      temp.num_contours = interpreter->glyph_zone->num_contours;
+      temp.contour_end_points = interpreter->glyph_zone->contour_end_points;
+      temp.x_points = interpreter->glyph_zone->x_current;
+      temp.y_points = interpreter->glyph_zone->y_current;
+      temp.flags = interpreter->glyph_zone->flags;
 
-  if (!outline)
-    return;
+      outline = sfnt_build_instructed_outline (&temp);
 
-  printf ("outline bounds: %g %g, %g %g\n",
-	  sfnt_coerce_fixed (outline->xmin),
-	  sfnt_coerce_fixed (outline->ymin),
-	  sfnt_coerce_fixed (outline->xmax),
-	  sfnt_coerce_fixed (outline->ymax));
+      if (!outline)
+	return;
 
-  raster = sfnt_raster_glyph_outline (outline);
+      printf ("outline bounds: %g %g, %g %g\n",
+	      sfnt_coerce_fixed (outline->xmin),
+	      sfnt_coerce_fixed (outline->ymin),
+	      sfnt_coerce_fixed (outline->xmax),
+	      sfnt_coerce_fixed (outline->ymax));
 
-  if (raster)
-    sfnt_test_raster (raster, NULL, 0);
+      raster = sfnt_raster_glyph_outline (outline);
 
-  xfree (outline);
-  xfree (raster);
+      if (raster)
+	sfnt_test_raster (raster, NULL, 0);
+
+      xfree (outline);
+      xfree (raster);
+    }
 
   opcode = interpreter->instructions[interpreter->IP];
   printf ("opcode, number of instructions: %s %u\n",
@@ -15351,6 +15360,12 @@ sfnt_verbose (struct sfnt_interpreter *interpreter)
     name = "Any";
 
   printf ("projection function: %s\n", name);
+
+  printf ("proj and free vecs: %d %d %d %d\n",
+	  interpreter->state.projection_vector.x,
+	  interpreter->state.projection_vector.y,
+	  interpreter->state.freedom_vector.x,
+	  interpreter->state.freedom_vector.y);
 }
 
 static void
@@ -15534,8 +15549,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 40
-#define EASY_PPEM  40
+#define FANCY_PPEM 12
+#define EASY_PPEM  12
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -15694,6 +15709,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "interpreting the font program, with"
 		   " %zu instructions\n", fpgm->num_instructions);
+
 	  trap = sfnt_interpret_font_program (interpreter, fpgm);
 
 	  if (trap)
@@ -15704,6 +15720,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "interpreting the control value program, with"
 		   " %zu instructions\n", prep->num_instructions);
+
 	  trap = sfnt_interpret_control_value_program (interpreter, prep,
 						       &state);
 
@@ -15878,20 +15895,19 @@ main (int argc, char **argv)
 		  sfnt_test_max = outline->ymax - outline->ymin;
 
 		  for (i = 0; i < outline->outline_used; i++)
-		    {
-		      printf ("ctx.%s (%g, %g) /* %g, %g */\n",
-			      (outline->outline[i].flags & SFNT_GLYPH_OUTLINE_LINETO
-			       ? "lineTo" : "moveTo"),
-			      sfnt_coerce_fixed (outline->outline[i].x
-						 - outline->xmin),
-			      sfnt_coerce_fixed (sfnt_test_max
-						 - (outline->outline[i].y
-						    - outline->ymin)),
-			      sfnt_coerce_fixed (outline->outline[i].x
-						 - outline->xmin),
-			      sfnt_coerce_fixed (outline->outline[i].y
-						 - outline->ymin));
-		    }
+		    printf ("ctx.%s (%g, %g) /* %g, %g */\n",
+			    ((outline->outline[i].flags
+			      & SFNT_GLYPH_OUTLINE_LINETO)
+			     ? "lineTo" : "moveTo"),
+			    sfnt_coerce_fixed (outline->outline[i].x
+					       - outline->xmin),
+			    sfnt_coerce_fixed (sfnt_test_max
+					       - (outline->outline[i].y
+						  - outline->ymin)),
+			    sfnt_coerce_fixed (outline->outline[i].x
+					       - outline->xmin),
+			    sfnt_coerce_fixed (outline->outline[i].y
+					       - outline->ymin));
 
 		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 		  sfnt_build_outline_edges (outline, sfnt_test_edge_ignore,
