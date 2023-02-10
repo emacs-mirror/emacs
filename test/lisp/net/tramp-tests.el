@@ -4641,7 +4641,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; TODO: Add tests for user names and multi-hop file names.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
-  ;; Method and host name in completion mode.  This kind of completion
+  (tramp-cleanup-connection tramp-test-vec nil 'keep-password)
+
+;; Method and host name in completion mode.  This kind of completion
   ;; does not work on MS Windows.
   (unless (memq system-type '(cygwin windows-nt))
     (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
