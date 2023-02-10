@@ -1713,7 +1713,7 @@ INLINE ptrdiff_t
 SCHARS (Lisp_Object string)
 {
   ptrdiff_t nchars = XSTRING (string)->u.s.size;
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   nchars &= ~ARRAY_MARK_FLAG;
 #endif
   eassume (0 <= nchars);
@@ -1728,7 +1728,7 @@ STRING_BYTES (struct Lisp_String *s)
 {
 #ifdef GC_CHECK_STRING_BYTES
   ptrdiff_t nbytes = string_bytes (s);
-#elif defined (USE_COMP_STATIC_LISP_OBJECTS)
+#elif USE_COMP_STATIC_LISP_OBJECTS
   ptrdiff_t nbytes
     = (s->u.s.size_byte < 0 ? s->u.s.size & ~ARRAY_MARK_FLAG
                             : s->u.s.size_byte);
@@ -1743,7 +1743,7 @@ INLINE ptrdiff_t
 STRING_CHARS (struct Lisp_String *s)
 {
   ptrdiff_t nchars = s->u.s.size;
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   nchars &= ~ARRAY_MARK_FLAG;
 #endif
   eassume (0 <= nchars);
@@ -1811,7 +1811,7 @@ gc_asize (Lisp_Object array)
 INLINE ptrdiff_t
 ASIZE (Lisp_Object array)
 {
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   ptrdiff_t size = gc_asize (array);
 #else
   ptrdiff_t size = XVECTOR (array)->header.size;
@@ -1823,7 +1823,7 @@ ASIZE (Lisp_Object array)
 INLINE ptrdiff_t
 VECTOR_ASIZE (struct Lisp_Vector *v)
 {
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   return v->header.size & ~ARRAY_MARK_FLAG;
 #else
   return v->header.size;
@@ -4259,7 +4259,7 @@ extern void mark_c_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 extern void mark_memory (void const *start, void const *end);
 extern void pin_object (Lisp_Object obj);
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 extern bool static_comp_object_p (Lisp_Object obj);
 #else
 INLINE bool

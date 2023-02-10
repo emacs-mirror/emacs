@@ -563,7 +563,7 @@ load_gccjit_if_necessary (bool mandatory)
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 # define DATA_STATICPRO_SYM "d_staticpro"
 # define DATA_EPHEMERAL_SYM "d_ephemeral"
 # define HAVE_STATIC_LISP_DATA_SYM "comp_have_static_lisp_data"
@@ -664,7 +664,7 @@ typedef struct {
   gcc_jit_type *lisp_word_type;
   gcc_jit_type *lisp_word_tag_type;
   gcc_jit_type *untagged_ptr_type;
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   gcc_jit_type *bits_word_type;
 #endif
 #ifdef LISP_OBJECT_IS_STRUCT
@@ -685,7 +685,7 @@ typedef struct {
   gcc_jit_type *lisp_cons_u_type;
   gcc_jit_type *lisp_cons_u_s_type;
   gcc_jit_type *lisp_cons_u_s_u_type;
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   /* struct cons_block */
   gcc_jit_struct *cons_block_s;
   gcc_jit_field *cons_block_conses;
@@ -745,7 +745,7 @@ typedef struct {
   gcc_jit_type *lisp_float_type;
   gcc_jit_type *lisp_float_ptr_type;
   gcc_jit_type *lisp_float_u_type;
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   /* struct Lisp_Subr */
   gcc_jit_struct *lisp_subr_s;
   gcc_jit_field *lisp_subr_header;
@@ -844,7 +844,7 @@ typedef struct {
   Lisp_Object d_impure_idx;
   Lisp_Object d_ephemeral_idx;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   /* If true, compile lisp constants statically into the eln file.  */
   bool compile_static_data;
   /* A list of
@@ -889,7 +889,7 @@ typedef struct {
   gcc_jit_rvalue *idx;
 } imm_reloc_t;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 /* Represents a JIT compiled const static Lisp object.  */
 typedef struct
 {
@@ -941,7 +941,7 @@ static void helper_save_restriction (void);
 static bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object, enum pvec_type);
 static struct Lisp_Symbol_With_Pos *
   helper_GET_SYMBOL_WITH_POSITION (Lisp_Object);
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 static bool helper_static_comp_object_p (Lisp_Object);
 #endif
 
@@ -962,7 +962,7 @@ static void *helper_link_table[] = {
   specbind,
   maybe_gc,
   maybe_quit,
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   helper_static_comp_object_p,
 #endif
 };
@@ -1050,7 +1050,7 @@ hash_native_abi (void)
   /* Check runs once.  */
   eassert (NILP (Vcomp_abi_hash));
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   Lisp_Object builtin_syms = Qnil;
   AUTO_STRING (sep, " ");
 
@@ -1069,7 +1069,7 @@ hash_native_abi (void)
 		    Vsystem_configuration_options),
 	   Fmapconcat (intern_c_string ("comp--subr-signature"),
 		       Vcomp_subr_list, build_string (""))
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 	   ,builtin_syms
 #endif
 	   ));
@@ -2051,7 +2051,7 @@ emit_make_fixnum (gcc_jit_rvalue *obj)
 		     : emit_make_fixnum_MSB_TAG (obj);
 }
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 
 /* Emits a Lisp_Cons struct with the given car and cdr values. */
 static gcc_jit_rvalue *
@@ -3699,7 +3699,7 @@ emit_lisp_obj_rval (Lisp_Object obj)
       return emit_coerce (comp.lisp_obj_type, n);
     }
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp.compile_static_data)
     return emit_lisp_obj_static_rval (obj);
 #endif
@@ -4025,7 +4025,7 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 					   PURESIZE));
 }
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 static gcc_jit_rvalue *
 emit_static_comp_object_p (gcc_jit_rvalue *obj)
 {
@@ -4599,7 +4599,7 @@ emit_limple_insn (Lisp_Object insn)
       emit_comment (SSDATA (Fprin1_to_string (arg[1], Qnil, Qnil)));
       gcc_jit_rvalue *val;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
       if (comp.compile_static_data)
 	val = emit_lisp_obj_static_rval (arg[1]);
       else
@@ -4610,7 +4610,7 @@ emit_limple_insn (Lisp_Object insn)
 	    gcc_jit_context_new_array_access (comp.ctxt, NULL,
 					      reloc.array.r_val,
 					      reloc.idx));
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 	}
 #endif
       emit_frame_assignment (arg[0], val);
@@ -4765,7 +4765,7 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
   static void
   emit_static_object (const char *name, Lisp_Object obj)
 {
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp.compile_static_data)
     {
       comp_lisp_const_t expr = emit_comp_lisp_obj (obj, Qd_default);
@@ -4959,7 +4959,7 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
 }
 #pragma GCC diagnostic pop
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 static Lisp_Object
 emit_static_data_container (Lisp_Object container,
 			    Lisp_Object alloc_class)
@@ -5139,7 +5139,7 @@ declare_runtime_imported_funcs (void)
 
   ADD_IMPORTED (maybe_quit, comp.void_type, 0, NULL);
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   args[0] = comp.lisp_obj_type;
   ADD_IMPORTED (helper_static_comp_object_p, comp.bool_type, 1, args);
 #endif
@@ -5198,7 +5198,7 @@ emit_ctxt_code (void)
 	comp.lisp_obj_type,
 	COMP_UNIT_SYM);
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp.compile_static_data)
     emit_lisp_data ();
   else
@@ -5384,7 +5384,7 @@ define_lisp_cons (void)
 			     NULL, 1, &comp.lisp_cons_u);
 }
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 static void
 define_cons_block (void)
 {
@@ -6562,7 +6562,7 @@ define_CHECK_IMPURE (void)
   gcc_jit_rvalue *pure_p
     = emit_PURE_P (gcc_jit_param_as_rvalue (param[0]));
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   gcc_jit_rvalue *static_const_p
     = emit_static_comp_object_p (gcc_jit_param_as_rvalue (param[0]));
   pure_write_p
@@ -7265,18 +7265,18 @@ Return t on success.  */)
 
   /* Define data structures.  */
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   comp.lisp_vector_structs_h = CALLN (Fmake_hash_table);
 #endif
 
   define_lisp_cons ();
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   define_cons_block ();
 #endif
   define_lisp_symbol_with_position ();
   define_lisp_string ();
   define_lisp_float ();
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   define_float_block ();
 #endif
   define_lisp_vector ();
@@ -7464,10 +7464,11 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
   comp.compiler_options = CALL1I (comp-ctxt-compiler-options, Vcomp_ctxt);
 
-  #ifdef USE_COMP_STATIC_LISP_OBJECTS
-  comp.compile_static_data = !NILP (CALL1I (comp-ctxt-with-static-data,
+# if USE_COMP_STATIC_LISP_OBJECTS
+  comp.compile_static_data
+    = !NILP (CALL1I (comp-ctxt-with-static-data,
 					    Vcomp_ctxt));
-  #endif
+# endif
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
@@ -7500,7 +7501,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
          comp.ctxt, SSDATA (Ffile_name_nondirectory (filename)));
 #endif
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp.compile_static_data)
     {
       comp.static_lisp_data_count = 0;
@@ -7526,7 +7527,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 	CALL1I (comp-data-container-idx,
 		CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
     }
 #endif
 
@@ -7557,7 +7558,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
     if (!BASE_EQ (HASH_VALUE (func_h, i), Qunbound))
       compile_function (HASH_VALUE (func_h, i));
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp.compile_static_data)
     define_init_objs ();
 #endif
@@ -7675,7 +7676,7 @@ helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
 static bool
 helper_static_comp_object_p (Lisp_Object o)
 {
@@ -7851,7 +7852,7 @@ typedef char *(*comp_lit_str_func) (void);
 static Lisp_Object
 load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 {
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp_u->have_static_lisp_data)
     {
       Lisp_Object *obj = dynlib_sym (comp_u->handle, name);
@@ -7984,7 +7985,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       void **pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       bool data_valid = false;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
       Lisp_Object *data_staticpro;
       Lisp_Object (*comp_init_objs) (Lisp_Object);
       if (comp_u->have_static_lisp_data)
@@ -8024,7 +8025,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Imported functions.  */
       *freloc_link_table = freloc.link_table;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
       if (comp_u->have_static_lisp_data)
 	{
 	  comp_u->staticpro = *data_staticpro;
@@ -8110,7 +8111,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   register_native_comp_unit (comp_u_lisp_obj);
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   if (comp_u->have_static_lisp_data)
     comp_u->ephemeral = Qnil;
 #endif
@@ -8206,7 +8207,7 @@ This gets called by top_level_run during the load phase.  */)
    Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
    Lisp_Object comp_u)
 {
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   eassert (!XNATIVE_COMP_UNIT (comp_u)->have_static_lisp_data);
 #endif
   Lisp_Object doc_idx = FIRST (rest);
@@ -8324,13 +8325,13 @@ LATE-LOAD has to be non-nil when loading for deferred compilation.  */)
   comp_u->file = filename;
 
   comp_u->have_static_lisp_data =
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
     dynlib_sym (comp_u->handle, HAVE_STATIC_LISP_DATA_SYM) != NULL;
 #else
   false;
 #endif
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   comp_u->staticpro = Qnil;
   comp_u->ephemeral = Qnil;
 #endif
@@ -8499,7 +8500,7 @@ compiled one.  */);
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   DEFSYM (Qinit_expr_type_val, "init-expr-type-val");
   DEFSYM (Qinit_expr_type_self_repr, "init-expr-type-self-repr");
   DEFSYM (Qinit_expr_type_var, "init-expr-type-var");
@@ -8530,7 +8531,7 @@ compiled one.  */);
   staticpro (&loadsearch_re_list);
   loadsearch_re_list = Qnil;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   staticpro (&comp.d_default_rvals);
   comp.d_default_rvals = Qnil;
   staticpro (&comp.d_impure_rvals);

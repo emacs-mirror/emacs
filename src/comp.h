@@ -49,7 +49,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    && defined(LIBGCCJIT_HAVE_ALIGNMENT) && USE_STACK_LISP_OBJECTS \
    && !GC_CHECK_MARKED_OBJECTS
 #  define USE_COMP_STATIC_LISP_OBJECTS 1
+# else
+#  define USE_COMP_STATIC_LISP_OBJECTS 0
 # endif
+#else
+# define USE_COMP_STATIC_LISP_OBJECTS 0
 #endif
 
 struct Lisp_Native_Comp_Unit
@@ -81,7 +85,7 @@ struct Lisp_Native_Comp_Unit
   dynlib_handle_ptr handle;
   bool have_static_lisp_data;
 
-#ifdef USE_COMP_STATIC_LISP_OBJECTS
+#if USE_COMP_STATIC_LISP_OBJECTS
   /* vector of dynamically allocated lisp objects, marked manually on GC.  */
   Lisp_Object staticpro;
   /* vector of ephemeral objects that need to be marked only during
