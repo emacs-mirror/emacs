@@ -312,7 +312,7 @@ static void loSegReclaim(Seg seg, Trace trace)
   Buffer buffer;
   Bool hasBuffer = SegBuffer(&buffer, seg);
   Count reclaimedGrains = (Count)0;
-  Format format = NULL; /* supress "may be used uninitialized" warning */
+  Format format = NULL; /* suppress "may be used uninitialized" warning */
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   Bool b;

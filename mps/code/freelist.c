@@ -147,7 +147,7 @@ static void freelistBlockSetLimit(Freelist fl, FreelistBlock block, Addr limit)
 }
 
 
-/* freelistBlockInit -- initalize block storing the range [base, limit). */
+/* freelistBlockInit -- initialize block storing the range [base, limit). */
 
 static FreelistBlock freelistBlockInit(Freelist fl, Addr base, Addr limit)
 {
@@ -714,7 +714,7 @@ fail:
 
 /* freelistDescribeVisitor -- visitor method for freelistDescribe
  *
- * Writes a decription of the range into the stream pointed to by
+ * Writes a description of the range into the stream pointed to by
  * closure.
  */
 

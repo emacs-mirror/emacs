@@ -95,7 +95,7 @@ Bool RootModeCheck(RootMode mode)
 
 /* RootCheck -- check the consistency of a root structure
  *
- * .rootcheck: Keep synchonized with <code/mpmst.h#root>. */
+ * .rootcheck: Keep synchronized with <code/mpmst.h#root>. */
 
 Bool RootCheck(Root root)
 {
