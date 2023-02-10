@@ -912,7 +912,8 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
 	     being unsupported.)  Return now.  */
 
 	  for (j = 0; j < i; ++j)
-	    xfree (data[i]);
+	    xfree (data[j]);
+
 	  xfree (*data);
 	  xfree (*subtables);
 	  xfree (cmap);
@@ -15533,8 +15534,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 40
+#define EASY_PPEM  40
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
