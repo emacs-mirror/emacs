@@ -114,12 +114,43 @@ public class EmacsDocumentsProvider extends DocumentsProvider
 
     /* Add the appropriate flags.  */
 
-    row.add (Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE);
+    row.add (Root.COLUMN_FLAGS, (Root.FLAG_SUPPORTS_CREATE
+				 | Root.FLAG_SUPPORTS_IS_CHILD));
     row.add (Root.FLAG_LOCAL_ONLY);
     row.add (Root.COLUMN_TITLE, "Emacs");
     row.add (Root.COLUMN_DOCUMENT_ID, baseDir.getAbsolutePath ());
 
     return result;
+  }
+
+  private Uri
+  getNotificationUri (File file)
+  {
+    Uri updatedUri;
+    Context context;
+
+    context = getContext ();
+    updatedUri
+      = buildChildDocumentsUri ("org.gnu.emacs",
+				file.getAbsolutePath ());
+
+    return updatedUri;
+  }
+
+  /* Inform the system that FILE's contents (or FILE itself) has
+     changed.  */
+
+  private void
+  notifyChange (File file)
+  {
+    Uri updatedUri;
+    Context context;
+
+    context = getContext ();
+    updatedUri
+      = buildChildDocumentsUri ("org.gnu.emacs",
+				file.getAbsolutePath ());
+    context.getContentResolver ().notifyChange (updatedUri, null);
   }
 
   /* Return the MIME type of a file FILE.  */
@@ -174,6 +205,9 @@ public class EmacsDocumentsProvider extends DocumentsProvider
 	  {
 	    flags |= Document.FLAG_DIR_SUPPORTS_CREATE;
 	    flags |= Document.FLAG_SUPPORTS_DELETE;
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	      flags |= Document.FLAG_SUPPORTS_RENAME;
 	  }
       }
     else if (file.canWrite ())
@@ -182,13 +216,11 @@ public class EmacsDocumentsProvider extends DocumentsProvider
 	flags |= Document.FLAG_SUPPORTS_WRITE;
 	flags |= Document.FLAG_SUPPORTS_DELETE;
 
-	/* TODO: implement these
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+	  flags |= Document.FLAG_SUPPORTS_RENAME;
 
-	   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-	     flags |= Document.FLAG_SUPPORTS_RENAME;
-
-	   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-	     flags |= Document.FLAG_SUPPORTS_REMOVE; */
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+	  flags |= Document.FLAG_SUPPORTS_REMOVE;
       }
 
     displayName = file.getName ();
@@ -208,12 +240,21 @@ public class EmacsDocumentsProvider extends DocumentsProvider
     throws FileNotFoundException
   {
     MatrixCursor result;
+    File file;
+    Context context;
+
+    file = new File (documentId);
+    context = getContext ();
 
     if (projection == null)
       projection = DEFAULT_DOCUMENT_PROJECTION;
 
     result = new MatrixCursor (projection);
-    queryDocument1 (result, new File (documentId));
+    queryDocument1 (result, file);
+
+    /* Now allow interested applications to detect changes.  */
+    result.setNotificationUri (context.getContentResolver (),
+			       getNotificationUri (file));
 
     return result;
   }
@@ -225,6 +266,7 @@ public class EmacsDocumentsProvider extends DocumentsProvider
   {
     MatrixCursor result;
     File directory;
+    Context context;
 
     if (projection == null)
       projection = DEFAULT_DOCUMENT_PROJECTION;
@@ -238,6 +280,12 @@ public class EmacsDocumentsProvider extends DocumentsProvider
     /* Now add each child.  */
     for (File child : directory.listFiles ())
       queryDocument1 (result, child);
+
+    context = getContext ();
+
+    /* Now allow interested applications to detect changes.  */
+    result.setNotificationUri (context.getContentResolver (),
+			       getNotificationUri (directory));
 
     return result;
   }
@@ -256,12 +304,9 @@ public class EmacsDocumentsProvider extends DocumentsProvider
   createDocument (String documentId, String mimeType,
 		  String displayName) throws FileNotFoundException
   {
-    File file;
+    File file, parentFile;
     boolean rc;
-    Uri updatedUri;
-    Context context;
 
-    context = getContext ();
     file = new File (documentId, displayName);
 
     try
@@ -293,10 +338,10 @@ public class EmacsDocumentsProvider extends DocumentsProvider
 	throw new FileNotFoundException (e.toString ());
       }
 
-    updatedUri
-      = buildChildDocumentsUri ("org.gnu.emacs", documentId);
-    /* Tell the system about the change.  */
-    context.getContentResolver ().notifyChange (updatedUri, null);
+    parentFile = file.getParentFile ();
+
+    if (parentFile != null)
+      notifyChange (parentFile);
 
     return file.getAbsolutePath ();
   }
@@ -333,7 +378,6 @@ public class EmacsDocumentsProvider extends DocumentsProvider
   {
     File file, parent;
     File[] children;
-    Uri updatedUri;
     Context context;
 
     /* Java makes recursively deleting a file hard.  File name
@@ -347,14 +391,10 @@ public class EmacsDocumentsProvider extends DocumentsProvider
       throw new RuntimeException ("trying to delete file without"
 				  + " parent!");
 
-    updatedUri
-      = buildChildDocumentsUri ("org.gnu.emacs",
-			        parent.getAbsolutePath ());
-
     if (file.delete ())
       {
 	/* Tell the system about the change.  */
-	context.getContentResolver ().notifyChange (updatedUri, null);
+	notifyChange (parent);
 	return;
       }
 
@@ -368,7 +408,7 @@ public class EmacsDocumentsProvider extends DocumentsProvider
 
     if (file.delete ())
       /* Tell the system about the change.  */
-      context.getContentResolver ().notifyChange (updatedUri, null);
+      notifyChange (parent);
   }
 
   @Override
@@ -377,5 +417,43 @@ public class EmacsDocumentsProvider extends DocumentsProvider
     throws FileNotFoundException
   {
     deleteDocument (documentId);
+  }
+
+  @Override
+  public String
+  getDocumentType (String documentId)
+  {
+    return getMimeType (new File (documentId));
+  }
+
+  @Override
+  public String
+  renameDocument (String documentId, String displayName)
+    throws FileNotFoundException
+  {
+    File file, newName;
+    File parent;
+
+    file = new File (documentId);
+    parent = file.getParentFile ();
+    newName = new File (parent, displayName);
+
+    if (parent == null)
+      throw new FileNotFoundException ("parent is null");
+
+    file = new File (documentId);
+
+    if (!file.renameTo (newName))
+      return null;
+
+    notifyChange (parent);
+    return newName.getAbsolutePath ();
+  }
+
+  @Override
+  public boolean
+  isChildDocument (String parentDocumentId, String documentId)
+  {
+    return documentId.startsWith (parentDocumentId);
   }
 }
