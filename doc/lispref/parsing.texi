@@ -970,15 +970,15 @@ A node ``has error'' if the text it spans contains a syntax error.  It
 can be that the node itself has an error, or one of its descendants
 has an error.
 
-@cindex tree-sitter live node
+@cindex tree-sitter, live parsing node
 @cindex live node, tree-sitter
-A node is ``live'' if its parser is not deleted, and the buffer it
-belongs to is live.
+A node is considered @dfn{live} if its parser is not deleted, and the
+buffer to which it belongs to is a live buffer (@pxref{Killing Buffers}).
 
 @defun treesit-node-check node property
-This function checks if @var{node} has the specified @var{property}.
-@var{property} can be @code{named}, @code{missing}, @code{extra},
-@code{outdated}, @code{has-error}, or @code{live}.
+This function returns non-@code{nil} if @var{node} has the specified
+@var{property}.  @var{property} can be @code{named}, @code{missing},
+@code{extra}, @code{outdated}, @code{has-error}, or @code{live}.
 @end defun
 
 @defun treesit-node-type node
