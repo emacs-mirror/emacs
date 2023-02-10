@@ -68,6 +68,9 @@ like::
 
   Executing [proc.merge.pull-request](https://github.com/Ravenbrook/mps/blob/973fc087c9abff01a957b85bd17c4a2be434ae73/procedure/pull-request-merge.rst)
 
+.. FIXME: Add recording of start time and end time metrics similar to
+   proc.review.  Noted during merge with PNJ today.  RB 2023-02-10.
+
 The answers to the checklist questions should be "yes".  If the answer
 to a question isn't "yes", record that, and why (and maybe suggest
 what to do about it).  For example::
@@ -118,9 +121,13 @@ When you finish the checklist, decide whether to start
 #. Does the branch, and its merge, build and pass tests?
 
    CI should have run builds of both the branch, and a *trial merge*
-   of the pull request with master.  Success by CI is a strong
-   indication that `the merging procedure`_ will be quick and
+   [#trial-merge]_ of the pull request with master.  Success by CI is
+   a strong indication that `the merging procedure`_ will be quick and
    successful.
+
+   [FIXME: The trial merge might be quite old if the pull request has
+   been sitting around for a while.  How to get an up-to-date one?  RB
+   2023-02-10]
 
    Look for build results in the pull request on GitHub.  Expand "Show
    all checks", and look for build success messages for both the
@@ -129,6 +136,8 @@ When you finish the checklist, decide whether to start
 
    You can also look for a build results in the `Travis CI build
    history for the repo`_ and in the `GitHub workflows for the repo`_.
+   [FIXME: Link to design.mps.tests.ci.results for details and perhaps
+   don't list the systems here.  RB 2023-02-10]
 
    If there is a failed build *of the branch* you should not execute
    `the merging procedure`_, but talk to the contributor about fixing
@@ -145,6 +154,11 @@ When you finish the checklist, decide whether to start
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
    #. you're prepared to test on all target platforms.
+
+.. [#trial-merge] GitHub automatically creates a "merge commit" for a
+                  pull request, which is a merge of the pull request
+                  branch.  CI is run against both the branch (labelled
+                  "push") and the merge (labelled "pull_request").
 
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
@@ -188,11 +202,17 @@ These steps will only rarely need repeating.
 
      git config user.email spqr@ravenbrook.com
 
+   and possibly your name if you don't have that set in Git globally ::
+
+     git config user.name 'Julius Cesar'
+
 #. Add the Git Fusion mps-public repo, which is the interface to
    Ravenbrook's Perforce. ::
 
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
 
+.. FIXME: This doesn't work well without ``PubkeyAcceptedAlgorithms
+   +ssh-rsa`` option to SSH.  This stymied PNJ.  RB 2023-02-10
 
 .. _the merging procedure:
 
@@ -266,8 +286,7 @@ working repo before that point.
    Edit the commit message to link it to *why* you are merging.  Say
    something like::
 
-     Merging branch/2023-01-06/speed-hax for GitHub pull request 93
-     <https://github.com/Ravenbrook/mps/pull/93>.
+     Merging branch/2023-01-06/speed-hax for GitHub pull request 93 <https://github.com/Ravenbrook/mps/pull/93>.
 
    Do *not* just say "pull request 93" without a link, because that
    number is local to, and only valid on GitHub.  Bear this in mind
