@@ -19,127 +19,114 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import android.view.SurfaceView;
-import android.view.SurfaceHolder;
+import android.view.View;
 
 import android.os.Build;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.Paint;
 
-import android.util.Log;
+/* This originally extended SurfaceView.  However, doing so proved to
+   be too slow, and Android's surface view keeps up to three of its
+   own back buffers, which use too much memory (up to 96 MB for a
+   single frame.) */
 
-public class EmacsSurfaceView extends SurfaceView
+public class EmacsSurfaceView extends View
 {
   private static final String TAG = "EmacsSurfaceView";
-  public Object surfaceChangeLock;
-  private boolean created;
   private EmacsView view;
-
-  /* This is the callback used on Android 8 to 25.  */
-
-  private class Callback implements SurfaceHolder.Callback
-  {
-    @Override
-    public void
-    surfaceChanged (SurfaceHolder holder, int format,
-		    int width, int height)
-    {
-      Canvas canvas;
-
-      Log.d (TAG, "surfaceChanged: " + view + ", ");
-
-      view.swapBuffers (true);
-    }
-
-    @Override
-    public void
-    surfaceCreated (SurfaceHolder holder)
-    {
-      synchronized (surfaceChangeLock)
-	{
-	  Log.d (TAG, "surfaceCreated: " + view);
-	  created = true;
-	}
-
-      /* Drop the lock when doing this, or a deadlock can
-	 result.  */
-      view.swapBuffers (true);
-    }
-
-    @Override
-    public void
-    surfaceDestroyed (SurfaceHolder holder)
-    {
-      synchronized (surfaceChangeLock)
-	{
-	  Log.d (TAG, "surfaceDestroyed: " + view);
-	  created = false;
-	}
-    }
-  }
+  private Bitmap frontBuffer;
+  private Canvas bitmapCanvas;
+  private Bitmap bitmap;
+  private Paint bitmapPaint;
 
   public
   EmacsSurfaceView (final EmacsView view)
   {
     super (view.getContext ());
 
-    this.surfaceChangeLock = new Object ();
     this.view = view;
-
-    getHolder ().addCallback (new Callback ());
+    this.bitmapPaint = new Paint ();
   }
 
-  public boolean
-  isCreated ()
+  private void
+  copyToFrontBuffer (Rect damageRect)
   {
-    return created;
+    if (damageRect != null)
+      bitmapCanvas.drawBitmap (bitmap, damageRect, damageRect,
+			       bitmapPaint);
+    else
+      bitmapCanvas.drawBitmap (bitmap, 0f, 0f, bitmapPaint);
   }
 
-  public Canvas
-  lockCanvas (Rect damage)
+  private void
+  reconfigureFrontBuffer (Bitmap bitmap)
   {
-    SurfaceHolder holder;
+    /* First, remove the old front buffer.  */
 
-    holder = getHolder ();
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    if (frontBuffer != null)
       {
-	damage.setEmpty ();
-	return holder.lockHardwareCanvas ();
+	frontBuffer.recycle ();
+	frontBuffer = null;
+	bitmapCanvas = null;
       }
 
-    return holder.lockCanvas (damage);
+    this.bitmap = bitmap;
+
+    /* Next, create the new front buffer if necessary.  */
+
+    if (bitmap != null && frontBuffer == null)
+      {
+	frontBuffer = Bitmap.createBitmap (bitmap.getWidth (),
+					   bitmap.getHeight (),
+					   Bitmap.Config.ARGB_8888,
+					   false);
+	bitmapCanvas = new Canvas (frontBuffer);
+
+	/* And copy over the bitmap contents.  */
+	copyToFrontBuffer (null);
+      }
+    else if (bitmap != null)
+      /* Just copy over the bitmap contents.  */
+      copyToFrontBuffer (null);
+  }
+
+  public synchronized void
+  setBitmap (Bitmap bitmap, Rect damageRect)
+  {
+    if (bitmap != this.bitmap)
+      reconfigureFrontBuffer (bitmap);
+    else if (bitmap != null)
+      copyToFrontBuffer (damageRect);
+
+    if (bitmap != null)
+      {
+	/* In newer versions of Android, the invalid rectangle is
+	   supposedly internally calculated by the system.  How that
+	   is done is unknown, but calling `invalidateRect' is now
+	   deprecated.
+
+	   Fortunately, nobody has deprecated the version of
+	   `postInvalidate' that accepts a dirty rectangle.  */
+
+	if (damageRect != null)
+	  postInvalidate (damageRect.left, damageRect.top,
+			  damageRect.right, damageRect.bottom);
+	else
+	  postInvalidate ();
+      }
   }
 
   @Override
-  protected void
-  onLayout (boolean changed, int left, int top, int right,
-	    int bottom)
+  public synchronized void
+  onDraw (Canvas canvas)
   {
-    Log.d (TAG, ("onLayout: " + left + " " + top + " " + right
-		 + " " + bottom + " -- " + changed + " visibility "
-		 + getVisibility ()));
-  }
+    /* Paint the view's bitmap; the bitmap might be recycled right
+       now.  */
 
-  /* This method is only used during debugging when it seems damage
-     isn't working correctly.  */
-
-  public Canvas
-  lockCanvas ()
-  {
-    SurfaceHolder holder;
-
-    holder = getHolder ();
-    return holder.lockCanvas ();
-  }
-
-  public void
-  unlockCanvasAndPost (Canvas canvas)
-  {
-    SurfaceHolder holder;
-
-    holder = getHolder ();
-    holder.unlockCanvasAndPost (canvas);
+    if (frontBuffer != null)
+      canvas.drawBitmap (frontBuffer, 0f, 0f, bitmapPaint);
   }
 };

@@ -103,14 +103,6 @@ public class EmacsView extends ViewGroup
      displayed whenever possible.  */
   public boolean isCurrentlyTextEditor;
 
-  /* An empty rectangle.  */
-  public static final Rect emptyRect;
-
-  static
-  {
-    emptyRect = new Rect ();
-  };
-
   public
   EmacsView (EmacsWindow window)
   {
@@ -127,13 +119,7 @@ public class EmacsView extends ViewGroup
 
     /* Create the surface view.  */
     this.surfaceView = new EmacsSurfaceView (this);
-    this.surfaceView.setZOrderMediaOverlay (true);
     addView (this.surfaceView);
-
-    /* Not sure exactly what this does but it makes things magically
-       work.  Why is something as simple as XRaiseWindow so involved
-       on Android? */
-    setChildrenDrawingOrderEnabled (true);
 
     /* Get rid of the default focus highlight.  */
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
@@ -191,8 +177,12 @@ public class EmacsView extends ViewGroup
     bitmapDirty = false;
 
     /* Explicitly free the old bitmap's memory.  */
+
     if (oldBitmap != null)
-      oldBitmap.recycle ();
+      {
+	oldBitmap.recycle ();
+	surfaceView.setBitmap (null, null);
+      }
 
     /* Some Android versions still don't free the bitmap until the
        next GC.  */
@@ -342,65 +332,25 @@ public class EmacsView extends ViewGroup
      thread.  */
 
   public void
-  swapBuffers (boolean force)
+  swapBuffers ()
   {
     Canvas canvas;
     Rect damageRect;
     Bitmap bitmap;
 
-    /* Code must always take damageRegion, and then surfaceChangeLock,
-       never the other way around! */
+    damageRect = null;
 
     synchronized (damageRegion)
       {
-	if (!force && damageRegion.isEmpty ())
+	if (damageRegion.isEmpty ())
 	  return;
 
 	bitmap = getBitmap ();
 
-	/* Emacs must take the following lock to ensure the access to the
-	   canvas occurs with the surface created.  Otherwise, Android
-	   will throttle calls to lockCanvas.  */
-
-	synchronized (surfaceView.surfaceChangeLock)
-	  {
-	    if (!force)
-	      damageRect = damageRegion.getBounds ();
-	    else
-	      damageRect = emptyRect;
-
-	    if (!surfaceView.isCreated ())
-	      return;
-
-	    if (bitmap == null)
-	      return;
-
-	    /* Lock the canvas with the specified damage.  */
-	    canvas = surfaceView.lockCanvas (damageRect);
-
-	    /* Return if locking the canvas failed.  */
-	    if (canvas == null)
-	      return;
-
-	    /* Copy from the back buffer to the canvas.  If damageRect was
-	       made empty, then draw the entire back buffer.  */
-
-	    if (damageRect.isEmpty ())
-	      canvas.drawBitmap (bitmap, 0f, 0f, paint);
-	    else
-	      canvas.drawBitmap (bitmap, damageRect, damageRect, paint);
-
-	    /* Unlock the canvas and clear the damage.  */
-	    surfaceView.unlockCanvasAndPost (canvas);
-	    damageRegion.setEmpty ();
-	  }
+	/* Transfer the bitmap to the surface view, then invalidate
+	   it.  */
+        surfaceView.setBitmap (bitmap, damageRect);
       }
-  }
-
-  public void
-  swapBuffers ()
-  {
-    swapBuffers (false);
   }
 
   @Override
@@ -486,16 +436,6 @@ public class EmacsView extends ViewGroup
       return;
 
     parent.bringChildToFront (this);
-
-    /* Yes, all of this is really necessary! */
-    parent.requestLayout ();
-    parent.invalidate ();
-    requestLayout ();
-    invalidate ();
-
-    /* The surface view must be destroyed and recreated.  */
-    removeView (surfaceView);
-    addView (surfaceView, 0);
   }
 
   public void
@@ -511,16 +451,6 @@ public class EmacsView extends ViewGroup
       return;
 
     parent.moveChildToBack (this);
-
-    /* Yes, all of this is really necessary! */
-    parent.requestLayout ();
-    parent.invalidate ();
-    requestLayout ();
-    invalidate ();
-
-    /* The surface view must be removed and attached again.  */
-    removeView (surfaceView);
-    addView (surfaceView, 0);
   }
 
   @Override
@@ -574,6 +504,7 @@ public class EmacsView extends ViewGroup
 	bitmap.recycle ();
 	bitmap = null;
 	canvas = null;
+	surfaceView.setBitmap (null, null);
 
 	/* Collect the bitmap storage; it could be large.  */
 	Runtime.getRuntime ().gc ();

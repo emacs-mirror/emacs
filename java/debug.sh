@@ -267,10 +267,14 @@ if [ -z "$gdbserver" ]; then
     gdbserver_bin=/system/bin/gdbserver
 else
     gdbserver_bin=/data/local/tmp/gdbserver
+    gdbserver_cat="cat $gdbserver_bin | run-as $package sh -c \
+		   \"tee gdbserver > /dev/null\""
 
     # Upload the specified gdbserver binary to the device.
     adb -s $device push "$gdbserver" "$gdbserver_bin"
-    adb -s $device shell chmod +x "$gdbserver_bin"
+    # Copy it to the user directory.
+    adb -s $device shell "$gdbserver_cat"
+    adb -s $device shell "run-as $package chmod +x gdbserver"
 fi
 
 # Now start gdbserver on the device asynchronously.
@@ -286,10 +290,9 @@ if [ -z "$gdbserver" ]; then
 else
     # Normally the program cannot access $gdbserver_bin when it is
     # placed in /data/local/tmp.
-    adb -s $device shell $gdbserver_bin --once \
-	"+/data/local/tmp/debug.$package.socket" \
-	--attach $pid >&5 &
-    gdb_socket="localfilesystem:/data/local/tmp/debug.$package.socket"
+    adb -s $device shell run-as $package "./gdbserver" --once \
+	"0.0.0.0:7654" --attach $pid >&5 &
+    gdb_socket="tcp:7654"
 fi
 
 # Wait until gdbserver successfully runs.

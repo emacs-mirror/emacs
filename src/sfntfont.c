@@ -2152,6 +2152,10 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 	      * pixel_size * 1.0 / font_info->head->units_per_em);
   font->height = font->ascent + font->descent;
 
+  /* Set font->max_width to the maximum advance width.  */
+  font->max_width = (font_info->hhea->advance_width_max
+		     * pixel_size * 1.0 / font_info->head->units_per_em);
+
   /* Set generic attributes such as type and style.  */
   ASET (font_object, FONT_TYPE_INDEX, sfnt_vendor_name);
 

@@ -110,11 +110,25 @@ public class EmacsCopyArea
 
     if (gc.clip_mask == null)
       {
-	bitmap = Bitmap.createBitmap (srcBitmap,
-				      src_x, src_y, width,
-				      height);
-	canvas.drawBitmap (bitmap, null, rect, paint);
-	bitmap.recycle ();
+	if (source == destination)
+	  {
+	    /* Create a copy of the bitmap, since Android can't handle
+	       overlapping copies.  */
+	    bitmap = Bitmap.createBitmap (srcBitmap,
+					  src_x, src_y, width,
+					  height);
+	    canvas.drawBitmap (bitmap, null, rect, paint);
+	    bitmap.recycle ();
+	  }
+	else
+	  {
+	    /* But here the bitmaps are known to not overlap, so avoid
+	       that extra consing overhead.  */
+
+	    srcRect = new Rect (src_x, src_y, src_x + width,
+				src_y + height);
+	    canvas.drawBitmap (srcBitmap, null, rect, paint);
+	  }
       }
     else
       {

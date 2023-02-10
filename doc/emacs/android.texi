@@ -418,11 +418,6 @@ Due to the unusual nature of the Android windowing environment, Emacs
 only supports a limited subset of GUI features.  Here is a list of
 known limitations, and features which are not implemented:
 
-@itemize @bullet
-@item
-The functions @code{raise-frame} and @code{lower-frame} are
-non-functional, because of bugs in the window system.
-
 @item
 Scroll bars are not supported, as they are close to useless on Android
 devices.

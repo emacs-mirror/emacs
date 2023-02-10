@@ -57,12 +57,6 @@ import android.os.Build;
    Views are also drawables, meaning they can accept drawing
    requests.  */
 
-/* Help wanted.  What does not work includes `EmacsView.raise',
-   `EmacsView.lower', reparenting a window onto another window.
-
-   All three are likely undocumented restrictions within
-   EmacsSurface.  */
-
 public class EmacsWindow extends EmacsHandleObject
   implements EmacsDrawable
 {
@@ -1108,23 +1102,6 @@ public class EmacsWindow extends EmacsHandleObject
 	    view.showOnScreenKeyboard ();
 	  else
 	    view.hideOnScreenKeyboard ();
-	}
-      });
-  }
-
-  /* Notice that outstanding configure events have been processed.
-     SERIAL is checked in the UI thread to verify that no new
-     configure events have been generated in the mean time.  */
-
-  public void
-  windowUpdated (final long serial)
-  {
-    EmacsService.SERVICE.runOnUiThread (new Runnable () {
-	@Override
-	public void
-	run ()
-	{
-	  view.windowUpdated (serial);
 	}
       });
   }
