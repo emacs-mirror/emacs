@@ -105,7 +105,7 @@ design.mps.check_.
 
 ``Res MutatorContextInitFault(MutatorContext context, ...)``
 
-_`.if.init.thread`: Initialize with the context of the mutator at the
+_`.if.init.fault`: Initialize with the context of the mutator at the
 point where it was stopped by a protection fault. The arguments are
 platform-specific and the return may be ``void`` instead of ``Res`` if
 this always succeeds.

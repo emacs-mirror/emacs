@@ -88,12 +88,9 @@ okay), the protection is set to ``PROT_READ|PROT_WRITE|PROT_EXEC``.
 .. _design.mps.prot.if.set: prot#.if.set
 
 _`.fun.set.assume.mprotect`: We assume that the call to ``mprotect()``
-always succeeds.
-
-_`.fun.set.assume.mprotect`: This is because we should always call the
-function with valid arguments (aligned, references to mapped pages,
-and with an access that is compatible with the access of the
-underlying object).
+always succeeds.  We should always call the function with valid
+arguments (aligned, references to mapped pages, and with an access
+that is compatible with the access of the underlying object).
 
 _`.fun.sync`: ``ProtSync()`` does nothing in this implementation as
 ``ProtSet()`` sets the protection without any delay.
