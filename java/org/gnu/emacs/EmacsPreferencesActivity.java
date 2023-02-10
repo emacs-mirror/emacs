@@ -22,27 +22,28 @@ package org.gnu.emacs;
 import java.io.File;
 
 import android.app.Activity;
+
 import android.content.Intent;
+
 import android.os.Bundle;
 import android.os.Build;
-import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import android.R;
+import android.widget.Toast;
+
+import android.preference.*;
 
 /* This module provides a ``preferences'' display for Emacs.  It is
    supposed to be launched from inside the Settings application to
    perform various actions, such as starting Emacs with the ``-Q''
    option, which would not be possible otherwise, as there is no
-   command line on Android.  */
+   command line on Android.
 
-public class EmacsPreferencesActivity extends Activity
+   Android provides a preferences activity, but it is deprecated.
+   Unfortunately, there is no alternative that looks the same way.  */
+
+@SuppressWarnings ("deprecation")
+public class EmacsPreferencesActivity extends PreferenceActivity
 {
-  /* The linear layout associated with the activity.  */
-  private LinearLayout layout;
-
   /* Restart Emacs with -Q.  Call EmacsThread.exit to kill Emacs now, and
      tell the system to EmacsActivity with some parameters later.  */
 
@@ -59,72 +60,82 @@ public class EmacsPreferencesActivity extends Activity
     System.exit (0);
   }
 
+  /* Erase Emacs's dump file.  */
+
+  private void
+  eraseDumpFile ()
+  {
+    String wantedDumpFile;
+    File file;
+    Toast toast;
+
+    wantedDumpFile = ("emacs-" + EmacsNative.getFingerprint ()
+		      + ".pdmp");
+    file = new File (getFilesDir (), wantedDumpFile);
+
+    if (file.exists ())
+      file.delete ();
+
+    /* Make sure to clear EmacsApplication.dumpFileName, or
+       starting Emacs without restarting this program will
+       make Emacs try to load a nonexistent dump file.  */
+    EmacsApplication.dumpFileName = null;
+
+    /* Display a message stating that the dump file has been
+       erased.  */
+    toast = Toast.makeText (this, "Dump file removed",
+			    Toast.LENGTH_SHORT);
+    toast.show ();
+  }
+
   @Override
   public void
   onCreate (Bundle savedInstanceState)
   {
-    LinearLayout layout;
-    TextView textView;
-    LinearLayout.LayoutParams params;
-    int resid;
+    Preference tem;
+    Preference.OnPreferenceClickListener listener;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-      setTheme (R.style.Theme_DeviceDefault_Settings);
+      setTheme (android.R.style.Theme_DeviceDefault_Settings);
     else if (Build.VERSION.SDK_INT
 	     >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-      setTheme (R.style.Theme_DeviceDefault);
+      setTheme (android.R.style.Theme_DeviceDefault);
 
-    layout = new LinearLayout (this);
-    layout.setOrientation (LinearLayout.VERTICAL);
-    setContentView (layout);
+    /* This must come before using any preference APIs.  */
+    super.onCreate (savedInstanceState);
 
-    textView = new TextView (this);
-    textView.setPadding (8, 20, 20, 8);
+    /* Add preferences from the XML file where they are defined.  */
+    addPreferencesFromResource (R.xml.preferences);
 
-    params = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT,
-					    LayoutParams.WRAP_CONTENT);
-    textView.setLayoutParams (params);
-    textView.setText ("(Re)start Emacs with -Q");
-    textView.setOnClickListener (new View.OnClickListener () {
+    /* Now, set up on click handlers for each of the preferences
+       items.  */
+
+    tem = findPreference ("start_quick");
+
+    listener = new Preference.OnPreferenceClickListener () {
 	@Override
-	public void
-	onClick (View view)
+	public boolean
+	onPreferenceClick (Preference preference)
 	{
 	  startEmacsQ ();
+	  return true;
 	}
-      });
-    layout.addView (textView);
+      };
 
-    textView = new TextView (this);
-    textView.setPadding (8, 20, 20, 8);
+    tem.setOnPreferenceClickListener (listener);
 
-    params = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT,
-					    LayoutParams.WRAP_CONTENT);
-    textView.setLayoutParams (params);
-    textView.setText ("Erase dump file");
-    textView.setOnClickListener (new View.OnClickListener () {
+    tem = findPreference ("erase_dump");
+
+    listener = new Preference.OnPreferenceClickListener () {
 	@Override
-	public void
-	onClick (View view)
+	public boolean
+	onPreferenceClick (Preference preference)
 	{
-	  String wantedDumpFile;
-	  File file;
-
-	  wantedDumpFile = ("emacs-" + EmacsNative.getFingerprint ()
-			    + ".pdmp");
-	  file = new File (getFilesDir (), wantedDumpFile);
-
-	  if (file.exists ())
-	    file.delete ();
-
-	  /* Make sure to clear EmacsApplication.dumpFileName, or
-	     starting Emacs without restarting this program will
-	     make Emacs try to load a nonexistent dump file.  */
-	  EmacsApplication.dumpFileName = null;
+	  eraseDumpFile ();
+	  return true;
 	}
-      });
-    layout.addView (textView);
+      };
 
-    super.onCreate (savedInstanceState);
+    tem.setOnPreferenceClickListener (listener);
   }
 };

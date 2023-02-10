@@ -1264,12 +1264,13 @@ Emacs and Haiku
 
 Emacs and Android
 
-* What is Android?::	Preamble.
-* Android Startup::     Starting up Emacs on Android.
-* Android File System:: The Android file system.
-* Android Environment:: Running Emacs under Android.
-* Android Windowing::   The Android window system.
-* Android Fonts::	Font selection under Android.
+* What is Android?::		Preamble.
+* Android Startup::		Starting up Emacs on Android.
+* Android File System::		The Android file system.
+* Android Environment::		Running Emacs under Android.
+* Android Windowing::   	The Android window system.
+* Android Fonts::		Font selection under Android.
+* Android Troubleshooting::	Dealing with problems.
 
 Emacs and unconventional input devices
 

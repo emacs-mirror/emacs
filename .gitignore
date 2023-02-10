@@ -57,11 +57,14 @@ src/emacs-module.h
 !INSTALL.android
 !verbose.mk.android
 
-# Built by `java'.
+# Built by `javac'.
 java/install_temp/*
 java/*.apk*
 java/*.dex
 java/org/gnu/emacs/*.class
+
+# Built by `aapt'.
+java/org/gnu/emacs/R.java
 
 # Built by `config.status'.
 java/AndroidManifest.xml

@@ -14,12 +14,13 @@ or digitizer device and on-screen keyboard.  For more information
 about using such devices with Emacs, @pxref{Other Input Devices}.
 
 @menu
-* What is Android?::	Preamble.
-* Android Startup::     Starting up Emacs on Android.
-* Android File System:: The Android file system.
-* Android Environment:: Running Emacs under Android.
-* Android Windowing::   The Android window system.
-* Android Fonts::	Font selection under Android.
+* What is Android?::		Preamble.
+* Android Startup::		Starting up Emacs on Android.
+* Android File System::		The Android file system.
+* Android Environment::		Running Emacs under Android.
+* Android Windowing::   	The Android window system.
+* Android Fonts::		Font selection under Android.
+* Android Troubleshooting::	Dealing with problems.
 @end menu
 
 @node What is Android?
@@ -82,32 +83,6 @@ command on that other system:
 @example
 $ adb logcat | grep -E "(android_run_debug_thread|[Ee]macs)"
 @end example
-
-@cindex emacs -Q, android
-  Since Android has no command line, there is normally no way to
-specify command-line arguments when starting Emacs.  However, Emacs
-can be started with the equivalent of the @code{--quick} option
-(@pxref{Initial Options}) through a special preferences screen, which
-can be accessed through the Emacs ``app info'' page in the system
-settings application.
-
-  Consult the manufacturer of your device for more details, as how to
-do this varies by device.
-
-@cindex dumping, android
-  The first time any given copy of Emacs starts on a device, it spends
-a while loading the preloaded Lisp files which normally come with
-Emacs.  This produces a ``dump file'' (@pxref{Initial Options}) in the
-files directory, containing an identifier unique to this copy of
-Emacs.
-
-  The next time that same copy of Emacs starts up, it simply loads the
-data contained in that dump file, greatly improving start up time.
-
-  However, if by some unforseen circumstance the dump file is
-corrupted, Emacs can crash.  If that happens, the dump file stored in
-the Emacs files directory can be erased through the same preferences
-screen.
 
 @cindex emacsclient wrapper, android
   Since there is no other way to start the @command{emacsclient}
@@ -213,7 +188,7 @@ Android.
 
   From the perspective of users, Android is mostly a single user
 operating system; however, from the perspective of applications and
-Emacs, the system has an overwhelming number of users!
+Emacs, the system has an overwhelming number of users.
 
   Each application runs in its own user, with his own home directory,
 which is the app data directory (@pxref{Android File System}.)
@@ -418,6 +393,7 @@ Due to the unusual nature of the Android windowing environment, Emacs
 only supports a limited subset of GUI features.  Here is a list of
 known limitations, and features which are not implemented:
 
+@itemize @bullet
 @item
 Scroll bars are not supported, as they are close to useless on Android
 devices.
@@ -484,3 +460,46 @@ lousy font driver, because of limitations and inaccuracies in the font
 metrics provided by the Android platform.  In that case, Emacs uses
 the ``Monospace'' typeface configured on your system; this should
 always be Droid Sans Mono.
+
+@node Android Troubleshooting
+@section What to do when something goes wrong on Android
+@cindex troubleshooting, android
+
+@cindex emacs -Q, android
+  Since Android has no command line, there is normally no way to
+specify command-line arguments when starting Emacs.  This is very
+nasty when you make a mistake in your Emacs initialization files that
+prevents Emacs from starting up at all, as the system normally
+prevents other programs from accessing Emacs's home directory.
+
+  However, Emacs can be started with the equivalent of the
+@code{--quick} option (@pxref{Initial Options}) through a special
+preferences screen, which can be accessed through the Emacs ``app
+info'' page in the system settings application.
+
+  Consult the manufacturer of your device for more details, as how to
+do this varies by device.
+
+@cindex dumping, android
+  The first time any given copy of Emacs starts on a device, it spends
+a while loading the preloaded Lisp files which normally come with
+Emacs.  This produces a ``dump file'' (@pxref{Initial Options}) in the
+files directory, containing an identifier unique to this copy of
+Emacs.
+
+  The next time that same copy of Emacs starts up, it simply loads the
+data contained in that dump file, greatly improving start up time.
+
+  If by some unforseen circumstance the dump file is corrupted, Emacs
+can crash.  If that happens, the dump file stored in the Emacs files
+directory can be erased through the same preferences screen.
+
+@cindex accessing Emacs directories, Android
+  Emacs supports an alternative method of rescuing broken Emacs
+installations on Android 4.4 and later: Emacs exports a ``documents
+provider'' which accesses the contents of Emacs's home directory, that
+can then be accessed by any file manager program.
+
+  If you can find out how to open that documents provider in the file
+manager that comes with your device, you can rename, delete, or edit
+your initialization or dump files from there instead.

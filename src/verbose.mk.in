@@ -36,6 +36,7 @@ AM_V_JAVAC =
 AM_V_DX =
 AM_V_AAPT =
 AM_V_ZIPALIGN =
+AM_V_SILENT =
 else
 
 # Whether $(info ...) works.  This is to work around a bug in GNU Make
@@ -84,4 +85,6 @@ AM_V_RC      = @$(info $   RC       $@)
 # These are used for the Android port.
 AM_V_JAVAC	= @$(info $   JAVAC    $@)
 AM_V_D8		= @$(info $   D8       $@)
+AM_V_AAPT	= @$(info $   AAPT     $@)
+AM_V_SILENT	= @
 endif
