@@ -3150,13 +3150,13 @@ the way.  PREDICATE is a regexp string that matches against each
 node's type, or a function that takes a node and returns nil/non-nil.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
-all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
+all nodes.  If BACKWARD is non-nil, traverse backwards.  If DEPTH is
 non-nil, only traverse nodes up to that number of levels down in the
-tree.  If LIMIT is nil, default to 1000.
+tree.  If DEPTH is nil, default to 1000.
 
 Return the first matched node, or nil if none matches.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object backward,
-   Lisp_Object all, Lisp_Object limit)
+   Lisp_Object all, Lisp_Object depth)
 {
   CHECK_TS_NODE (node);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
@@ -3167,10 +3167,10 @@ Return the first matched node, or nil if none matches.  */)
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = treesit_recursion_limit;
-  if (!NILP (limit))
+  if (!NILP (depth))
     {
-      CHECK_FIXNUM (limit);
-      the_limit = XFIXNUM (limit);
+      CHECK_FIXNUM (depth);
+      the_limit = XFIXNUM (depth);
     }
 
   treesit_initialize ();
@@ -3322,8 +3322,8 @@ If PROCESS-FN is non-nil, it should be a function of one argument.  In
 that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
-If non-nil, LIMIT is the number of levels to go down the tree from
-ROOT.  If LIMIT is nil or omitted, it defaults to 1000.
+If non-nil, DEPTH is the number of levels to go down the tree from
+ROOT.  If DEPTH is nil or omitted, it defaults to 1000.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
@@ -3334,7 +3334,7 @@ PREDICATE can also be a function that takes a node and returns
 nil/non-nil, but it is slower and more memory consuming than using
 a regexp.  */)
   (Lisp_Object root, Lisp_Object predicate, Lisp_Object process_fn,
-   Lisp_Object limit)
+   Lisp_Object depth)
 {
   CHECK_TS_NODE (root);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
@@ -3346,10 +3346,10 @@ a regexp.  */)
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = treesit_recursion_limit;
-  if (!NILP (limit))
+  if (!NILP (depth))
     {
-      CHECK_FIXNUM (limit);
-      the_limit = XFIXNUM (limit);
+      CHECK_FIXNUM (depth);
+      the_limit = XFIXNUM (depth);
     }
 
   treesit_initialize ();
