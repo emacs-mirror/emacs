@@ -79,10 +79,16 @@ public class EmacsSurfaceView extends View
 
     if (bitmap != null && frontBuffer == null)
       {
-	frontBuffer = Bitmap.createBitmap (bitmap.getWidth (),
-					   bitmap.getHeight (),
-					   Bitmap.Config.ARGB_8888,
-					   false);
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	  frontBuffer = Bitmap.createBitmap (bitmap.getWidth (),
+					     bitmap.getHeight (),
+					     Bitmap.Config.ARGB_8888,
+					     false);
+	else
+	  frontBuffer = Bitmap.createBitmap (bitmap.getWidth (),
+					     bitmap.getHeight (),
+					     Bitmap.Config.ARGB_8888);
+
 	bitmapCanvas = new Canvas (frontBuffer);
 
 	/* And copy over the bitmap contents.  */
