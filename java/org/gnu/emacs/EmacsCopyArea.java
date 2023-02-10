@@ -127,7 +127,7 @@ public class EmacsCopyArea
 
 	    srcRect = new Rect (src_x, src_y, src_x + width,
 				src_y + height);
-	    canvas.drawBitmap (srcBitmap, null, rect, paint);
+	    canvas.drawBitmap (srcBitmap, srcRect, rect, paint);
 	  }
       }
     else
