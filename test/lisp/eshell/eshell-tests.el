@@ -34,6 +34,8 @@
                            (file-name-directory (or load-file-name
                                                     default-directory))))
 
+(defvar eshell-test-value nil)
+
 ;;; Tests:
 
 (ert-deftest eshell-test/pipe-headproc ()
@@ -159,6 +161,32 @@ insert the queued one at the next prompt, and finally run it."
    (let ((inhibit-field-text-motion t))
      (beginning-of-line))
    (should (string= (eshell-get-old-input) "echo alpha"))))
+
+(ert-deftest eshell-test/get-old-input/rerun-command ()
+  "Test that we can rerun an old command when point is on it."
+  (with-temp-eshell
+   (let ((eshell-test-value "first"))
+     (eshell-match-command-output "echo $eshell-test-value" "first"))
+   ;; Go to the previous prompt.
+   (forward-line -2)
+   (let ((inhibit-field-text-motion t))
+     (end-of-line))
+   ;; Rerun the command, but with a different variable value.
+   (let ((eshell-test-value "second"))
+     (eshell-send-input))
+   (eshell-match-output "second")))
+
+(ert-deftest eshell-test/get-old-input/run-output ()
+  "Test that we can run a line of output as a command when point is on it."
+  (with-temp-eshell
+   (eshell-match-command-output "echo \"echo there\"" "echo there")
+   ;; Go to the output, and insert "hello" after "echo".
+   (forward-line -1)
+   (forward-word)
+   (insert " hello")
+   ;; Run the line as a command.
+   (eshell-send-input)
+   (eshell-match-output "(\"hello\" \"there\")")))
 
 (provide 'eshell-tests)
 

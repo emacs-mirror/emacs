@@ -686,11 +686,13 @@ If it's on, just add the vertical display."
 Should be run via minibuffer `post-command-hook'.
 See `icomplete-mode' and `minibuffer-setup-hook'."
   (when (and icomplete-mode
+             ;; Check if still in the right buffer (bug#61308)
+             (or (window-minibuffer-p) completion-in-region--data)
              (icomplete-simple-completing-p)) ;Shouldn't be necessary.
     (let ((saved-point (point)))
       (save-excursion
         (goto-char (icomplete--field-end))
-                                        ; Insert the match-status information:
+        ;; Insert the match-status information:
         (when (and (or icomplete-show-matches-on-no-input
                        (not (equal (icomplete--field-string)
                                    icomplete--initial-input)))

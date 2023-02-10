@@ -525,9 +525,7 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 (defun eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
   (when string
-    (add-text-properties 0 (length string)
-                         '(field command-output rear-nonsticky (field))
-                         string)
+    (eshell--mark-as-output 0 (length string) string)
     (eshell-interactive-filter nil string)))
 
 (defsubst eshell-begin-on-new-line ()
@@ -891,7 +889,7 @@ If USE-CURRENT-REGION is non-nil, return the current region."
       (let ((inhibit-field-text-motion)
             (end (point)))
         (beginning-of-line)
-        (buffer-substring (point) end)))))
+        (buffer-substring-no-properties (point) end)))))
 
 (defun eshell-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited."
