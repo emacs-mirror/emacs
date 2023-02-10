@@ -2799,21 +2799,19 @@ narrowing_locks_save (void)
 {
   Lisp_Object buf = Fcurrent_buffer ();
   Lisp_Object locks = assq_no_quit (buf, narrowing_locks);
-  if (NILP (locks))
-    return Qnil;
-  locks = XCAR (XCDR (locks));
+  if (!NILP (locks))
+    locks = XCAR (XCDR (locks));
   return Fcons (buf, Fcopy_sequence (locks));
 }
 
 void
 narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
 {
-  if (NILP (buf_and_saved_locks))
-    return;
   Lisp_Object buf = XCAR (buf_and_saved_locks);
   Lisp_Object saved_locks = XCDR (buf_and_saved_locks);
   narrowing_locks_remove (buf);
-  narrowing_locks_add (buf, saved_locks);
+  if (!NILP (saved_locks))
+    narrowing_locks_add (buf, saved_locks);
 }
 
 static void
