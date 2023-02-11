@@ -442,6 +442,11 @@ or return multiple values."
      (let ((testcover-vector (get sym 'edebug-coverage)))
        (testcover-analyze-coverage-progn body)))
 
+    (`(let ((cconv-dont-trim-unused-variables t))
+        (edebug-enter ',sym ,_ (function (lambda nil . ,body))))
+     (let ((testcover-vector (get sym 'edebug-coverage)))
+       (testcover-analyze-coverage-progn body)))
+
     (`(edebug-after ,(and before-form
                           (or `(edebug-before ,before-id) before-id))
                     ,after-id ,wrapped-form)

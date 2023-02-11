@@ -113,6 +113,10 @@ is less than this number.")
 (defvar cconv--dynbound-variables nil
   "List of variables known to be dynamically bound.")
 
+(defvar cconv-dont-trim-unused-variables nil
+  "When bound to non-nil, don't remove unused variables from the environment.
+This is intended for use by edebug and similar.")
+
 ;;;###autoload
 (defun cconv-closure-convert (form &optional dynbound-vars)
   "Main entry point for closure conversion.
@@ -834,10 +838,13 @@ This function does not return anything but instead fills the
 (define-obsolete-function-alias 'cconv-analyse-form #'cconv-analyze-form "25.1")
 
 (defun cconv-fv (form lexvars dynvars)
-  "Return the list of free variables in FORM.
-LEXVARS is the list of statically scoped vars in the context
-and DYNVARS is the list of dynamically scoped vars in the context.
-Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
+  "Return the free variables used in FORM.
+FORM is usually a function #\\='(lambda ...), but may be any valid
+form.  LEXVARS is a list of symbols, each of which is lexically
+bound in FORM's context.  DYNVARS is a list of symbols, each of
+which is dynamically bound in FORM's context.
+Returns a cons (LEXV . DYNV), the car and cdr being lists of the
+lexically and dynamically bound symbols actually used by FORM."
   (let* ((fun
           ;; Wrap FORM into a function because the analysis code we
           ;; have only computes freevars for functions.
@@ -875,11 +882,19 @@ Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
         (cons fvs dyns)))))
 
 (defun cconv-make-interpreted-closure (fun env)
+  "Make a closure for the interpreter.
+This function is evaluated both at compile time and run time.
+FUN, the closure's function, must be a lambda form.
+ENV, the closure's environment, is a mixture of lexical bindings of the form
+(SYMBOL . VALUE) and symbols which indicate dynamic bindings of those
+symbols."
   (cl-assert (eq (car-safe fun) 'lambda))
   (let ((lexvars (delq nil (mapcar #'car-safe env))))
-    (if (null lexvars)
-        ;; The lexical environment is empty, so there's no need to
-        ;; look for free variables.
+    (if (or cconv-dont-trim-unused-variables (null lexvars))
+        ;; The lexical environment is empty, or needs to be preserved,
+        ;; so there's no need to look for free variables.
+        ;; Attempting to replace ,(cdr fun) by a macroexpanded version
+        ;; causes bootstrap to fail.
         `(closure ,env . ,(cdr fun))
       ;; We could try and cache the result of the macroexpansion and
       ;; `cconv-fv' analysis.  Not sure it's worth the trouble.
@@ -896,7 +911,7 @@ Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
               (pcase expanded-form
                 (`#'(lambda . ,cdr) cdr)
                 (_ (cdr fun))))
-         
+
              (dynvars (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
              (fvs (cconv-fv expanded-form lexvars dynvars))
              (newenv (nconc (mapcar (lambda (fv) (assq fv env)) (car fvs))
