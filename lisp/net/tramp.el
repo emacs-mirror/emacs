@@ -2948,9 +2948,21 @@ not in completion mode."
 
 (defun tramp-completion-handle-expand-file-name (filename &optional directory)
   "Like `expand-file-name' for partial Tramp files."
-  (if (file-name-absolute-p filename)
-      filename
-    (concat (or directory default-directory "/") filename)))
+  ;; We need special handling only when a method is needed.  Then we
+  ;; check, whether DIRECTORY is "/method:" or "/[method/".
+  (let ((dir (or directory default-directory "/")))
+    (cond
+     ((file-name-absolute-p filename) filename)
+     ((and (eq tramp-syntax 'simplified)
+           (string-match-p (rx (regexp tramp-postfix-host-regexp) eos) dir))
+      (concat dir filename))
+     ((string-match-p
+       (rx bos (regexp tramp-prefix-regexp)
+	   (? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp))
+	   eos)
+       dir)
+      (concat dir filename))
+     (t (tramp-run-real-handler #'expand-file-name (list filename directory))))))
 
 (defun tramp-completion-handle-file-exists-p (filename)
   "Like `file-exists-p' for partial Tramp files."
