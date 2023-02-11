@@ -720,6 +720,7 @@ Return nil if a grammar library for LANGUAGE is not available.  */)
     }
 }
 
+
 /*** Parsing functions */
 
 static void
@@ -1113,6 +1114,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
   return beg;
 }
 
+
 /*** Functions for parser and node object */
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
@@ -1274,6 +1276,9 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
 }
+
+
+/* Lisp definitions.  */
 
 DEFUN ("treesit-parser-p",
        Ftreesit_parser_p, Streesit_parser_p, 1, 1, 0,
@@ -1493,6 +1498,7 @@ treesit_parser_live_p (Lisp_Object parser)
 	  (!NILP (Fbuffer_live_p (XTS_PARSER (parser)->buffer))));
 }
 
+
 /*** Parser API */
 
 DEFUN ("treesit-parser-root-node",
@@ -1739,6 +1745,7 @@ positions.  PARSER is the parser issuing the notification.   */)
   return Qnil;
 }
 
+
 /*** Node API  */
 
 /* Check that OBJ is a positive integer and signal an error if
@@ -2261,6 +2268,7 @@ produced by tree-sitter.  */)
   return same_node ? Qt : Qnil;
 }
 
+
 /*** Query functions */
 
 DEFUN ("treesit-pattern-expand",
@@ -2835,6 +2843,7 @@ the query.  */)
   return Fnreverse (result);
 }
 
+
 /*** Navigation */
 
 static inline void
@@ -3455,7 +3464,7 @@ DEFUN ("treesit-available-p", Ftreesit_available_p,
 #endif
 }
 
-
+
 /*** Initialization */
 
 /* Initialize the tree-sitter routines.  */
