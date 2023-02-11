@@ -466,8 +466,4 @@ default value at the prompt."
 
 (provide 'image-dired-external)
 
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
-
 ;;; image-dired-external.el ends here

@@ -378,8 +378,4 @@ tags to their respective image file.  Internal function used by
 
 (provide 'image-dired-tags)
 
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
-
 ;;; image-dired-tags.el ends here

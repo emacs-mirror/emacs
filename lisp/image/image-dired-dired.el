@@ -405,8 +405,4 @@ matching tag will be marked in the Dired buffer."
 
 (provide 'image-dired-dired)
 
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
-
 ;;; image-dired-dired.el ends here

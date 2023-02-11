@@ -179,8 +179,4 @@ Should be used by commands in `image-dired-thumbnail-mode'."
 
 (provide 'image-dired-util)
 
-;; Local Variables:
-;; nameless-current-name: "image-dired"
-;; End:
-
 ;;; image-dired-util.el ends here
