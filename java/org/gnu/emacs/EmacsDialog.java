@@ -230,11 +230,31 @@ public class EmacsDialog implements DialogInterface.OnDismissListener
     AlertDialog dialog;
 
     if (EmacsActivity.focusedActivities.isEmpty ())
-      return false;
+      {
+	/* If focusedActivities is empty then this dialog may have
+	   been displayed immediately after a popup dialog is
+	   dismissed.  */
 
-    activity = EmacsActivity.focusedActivities.get (0);
+	activity = EmacsActivity.lastFocusedActivity;
+
+	if (activity == null)
+	  return false;
+      }
+    else
+      activity = EmacsActivity.focusedActivities.get (0);
+
     dialog = dismissDialog = toAlertDialog (activity);
-    dismissDialog.show ();
+
+    try
+      {
+	dismissDialog.show ();
+      }
+    catch (Exception exception)
+      {
+	/* This can happen when the system decides Emacs is not in the
+	   foreground any longer.  */
+	return false;
+      }
 
     /* If there are less than four buttons, then they must be
        individually enabled or disabled after the dialog is

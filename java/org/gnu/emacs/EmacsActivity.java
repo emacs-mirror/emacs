@@ -47,6 +47,9 @@ public class EmacsActivity extends Activity
   /* List of activities with focus.  */
   public static List<EmacsActivity> focusedActivities;
 
+  /* The last activity to have been focused.  */
+  public static EmacsActivity lastFocusedActivity;
+
   /* The currently focused window.  */
   public static EmacsWindow focusedWindow;
 
@@ -215,6 +218,11 @@ public class EmacsActivity extends Activity
     manager.removeWindowConsumer (this, isMultitask || isFinishing ());
     focusedActivities.remove (this);
     invalidateFocus ();
+
+    /* Remove this activity from the static field, lest it leak.  */
+    if (lastFocusedActivity == this)
+      lastFocusedActivity = null;
+
     super.onDestroy ();
   }
 
@@ -223,7 +231,10 @@ public class EmacsActivity extends Activity
   onWindowFocusChanged (boolean isFocused)
   {
     if (isFocused && !focusedActivities.contains (this))
-      focusedActivities.add (this);
+      {
+	focusedActivities.add (this);
+	lastFocusedActivity = this;
+      }
     else
       focusedActivities.remove (this);
 
