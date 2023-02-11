@@ -171,7 +171,7 @@ thumbnails:
     sharing of thumbnails across different programs.  Thumbnails
     will be stored in \"$XDG_CACHE_HOME/thumbnails/\"
 
-    Set this user option to one of the following values:
+    To use this way, set this user option to one of the following values:
 
     - `standard' means use thumbnails sized 128x128.
     - `standard-large' means use thumbnails sized 256x256.
@@ -181,20 +181,20 @@ thumbnails:
  2. In the Image-Dired specific directory indicated by
     `image-dired-dir'.
 
-    Set this user option to `image-dired' to use it (or
-    `use-image-dired-dir', which means the same thing for
-    backwards-compatibility reasons).
+    To use this way, set this user option to `image-dired' (or
+    to `use-image-dired-dir', which means the same thing for
+    backward-compatibility reasons).
 
  3. In a subdirectory \".image-dired\" in the same directory
     where the image files are.
 
-    Set this user option to `per-directory' to use it.
+    To use this way, set this user option to `per-directory'.
 
-To change the default size of thumbnails with (2) and (3) above,
-customize `image-dired-thumb-size'.
+To control the default size of thumbnails for alternatives (2)
+and (3) above, customize the value of `image-dired-thumb-size'.
 
 With Thumbnail Managing Standard, save thumbnails in the PNG
-format, as mandated by that standard, and otherwise as JPEG.
+format, as mandated by that standard; otherwise save them as JPEG.
 
 For more information on the Thumbnail Managing Standard, see:
 https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"
@@ -216,13 +216,13 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
   'image-dired-tags-db-file "29.1")
 (defcustom image-dired-tags-db-file
   (expand-file-name ".image-dired_db" image-dired-dir)
-  "Database file where file names and their associated tags are stored."
+  "Database file where image-dired file names and associated tags are stored."
   :type 'file)
 
 (defcustom image-dired-rotate-original-ask-before-overwrite t
-  "Confirm overwrite of original file after rotate operation.
+  "Confirm overwriting of original file after image-rotate operation.
 If non-nil, ask user for confirmation before overwriting the
-original file with `image-dired-temp-rotate-image-file'."
+original image file by `image-dired-temp-rotate-image-file'."
   :type 'boolean)
 
 (defcustom image-dired-thumb-size
@@ -261,11 +261,12 @@ deletion."
 
 (defcustom image-dired-line-up-method 'dynamic
   "Default method for line-up of thumbnails in thumbnail buffer.
-Used by `image-dired-display-thumbs' and other functions that needs
-to line-up thumbnails.  Dynamic means to use the available width of
-the window containing the thumbnail buffer, Fixed means to use
-`image-dired-thumbs-per-row', Interactive is for asking the user,
-and No line-up means that no automatic line-up will be done."
+Used by `image-dired-display-thumbs' and other functions that need
+to line-up thumbnails.  The value `dynamic' means to use the
+available width of the window containing the thumbnail buffer,
+the value `fixed' means to use `image-dired-thumbs-per-row',
+the value `interactive' means ask the user, and the
+value `none' means that no automatic line-up will be done."
   :type '(choice :tag "Default line-up method"
                  (const :tag "Dynamic" dynamic)
                  (const :tag "Fixed" fixed)
@@ -277,8 +278,8 @@ and No line-up means that no automatic line-up will be done."
   :type 'natnum)
 
 (defcustom image-dired-track-movement t
-  "The current state of the tracking and mirroring.
-For more information, see the documentation for
+  "The current state of the Image-Dired tracking and mirroring of thumbnails.
+For more information, see the documentation of
 `image-dired-toggle-movement-tracking'."
   :type 'boolean)
 
@@ -286,14 +287,14 @@ For more information, see the documentation for
   "Display format for thumbnail properties.
 This is used for the header line in the Image-Dired buffer.
 
-The following %-specs are replaced by `format-spec' before
+The following %-specs in the value are replaced by `format-spec' before
 displaying:
 
   \"%f\"  The file name (without a directory) of the
           original image file.
   \"%n\"  The number of this image out of the total (e.g. 1/10).
   \"%b\"  The associated Dired buffer name.
-  \"%d\"  The name of the directory that the file is in.
+  \"%d\"  The name of the file's directory.
   \"%s\"  The image file size.
   \"%t\"  The list of tags (from the Image-Dired database).
   \"%c\"  The comment (from the Image-Dired database)."
@@ -310,9 +311,9 @@ displaying:
         ((executable-find "xli") "xli")
         ((executable-find "qiv") "qiv -t")
         ((executable-find "xloadimage") "xloadimage"))
-  "Name of external viewer.
-Including parameters.  Used when displaying original image from
-`image-dired-thumbnail-mode'."
+  "Shell command to invoke the external image viewer program.
+Should include command-line arguments if needed.  Used when displaying
+original image from `image-dired-thumbnail-mode'."
   :version "29.1"
   :type '(choice string
                  (const :tag "Not Set" nil)))
@@ -325,14 +326,14 @@ Used by `image-dired-copy-with-exif-file-name'."
   :version "29.1")
 
 (defcustom image-dired-show-all-from-dir-max-files 1000
-  "Maximum number of files in directory before prompting.
+  "Maximum number of files in directory to show before prompting.
 
-If there are more image files than this in a selected directory,
+If there are more image files in a selected directory than this number,
 the `image-dired-show-all-from-dir' command will ask for
 confirmation before creating the thumbnail buffer.  If this
-variable is nil, it will never ask."
+variable is nil, never ask."
   :type '(choice integer
-                 (const :tag "Disable warning" nil))
+                 (const :tag "Don't ask for confirmation" nil))
   :version "29.1")
 
 (defcustom image-dired-marking-shows-next t
@@ -401,7 +402,7 @@ This affects the following commands:
     (image-file-name-regexp)))
 
 (defun image-dired-insert-image (file type relief margin)
-  "Insert image FILE of image TYPE, using RELIEF and MARGIN, at point."
+  "Insert at point image FILE of image TYPE, using RELIEF and MARGIN."
   (let ((i `(image :type ,type
                    :file ,file
                    :relief ,relief
@@ -495,9 +496,9 @@ by exactly one space or one newline character."
 
 Convenience command that:
 
- - Opens Dired in folder DIR
- - Splits windows in most useful (?) way
- - Sets `truncate-lines' to t
+ - opens Dired in folder DIR;
+ - splits windows in most useful (?) way; and
+ - sets `truncate-lines' to t
 
 After the command has finished, you would typically mark some
 image files in Dired and type
@@ -525,7 +526,7 @@ calling `image-dired-restore-window-configuration'."
         (other-window -2)))))
 
 (defun image-dired-restore-window-configuration ()
-  "Restore window configuration.
+  "Restore window configuration altered by Image-Dired.
 Restore any changes to the window configuration made by calling
 `image-dired-dired-with-window-configuration'."
   (interactive nil image-dired-thumbnail-mode)
@@ -632,7 +633,7 @@ never ask for confirmation."
 ;;; Movement tracking
 
 (defun image-dired-track-original-file ()
-  "Track the original file in the associated Dired buffer.
+  "Track in the associated Dired buffer the file that corresponds to thumbnail.
 See `image-dired-toggle-movement-tracking'.  Interactive use is
 only useful if `image-dired-track-movement' is nil."
   (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
@@ -646,8 +647,8 @@ only useful if `image-dired-track-movement' is nil."
 (defun image-dired-toggle-movement-tracking ()
   "Turn on and off `image-dired-track-movement'.
 Tracking of the movements between thumbnail and Dired buffer so that
-they are \"mirrored\" in the dired buffer.  When this is on, moving
-around in the thumbnail or dired buffer will find the matching
+the movements are \"mirrored\" in the Dired buffer.  When this is on,
+moving around in the thumbnail or Dired buffer will move to the matching
 position in the other buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (setq image-dired-track-movement (not image-dired-track-movement))
@@ -751,7 +752,9 @@ On reaching end or beginning of buffer, stop and show a message."
 ;;; Header line
 
 (defun image-dired-format-properties-string (buf file image-count props comment)
-  "Format display properties.
+  "Format display properties for Image-Dired.
+The properties are formatted according to specification
+in `image-dired-display-properties-format', which see.
 BUF is the associated Dired buffer, FILE is the original image
 file name, IMAGE-COUNT is a string like \"N/M\" where N is the
 number of this image and M is the total number of images, PROPS
@@ -816,7 +819,7 @@ for.  The default is to look for `dired-marker-char'."
   (image-dired-dired-file-marked-p dired-del-marker))
 
 (defmacro image-dired--on-file-in-dired-buffer (&rest body)
-  "Run BODY with point on file at point in Dired buffer.
+  "Run BODY in associated Dired buffer with point on current file's line.
 Should be called from commands in `image-dired-thumbnail-mode'."
   (declare (indent defun) (debug t))
   `(if-let ((file-name (image-dired-original-file-name)))
@@ -1192,7 +1195,8 @@ Ask user how many thumbnails should be displayed per row."
 ;;; Display image from thumbnail buffer
 
 (defun image-dired-thumbnail-display-external ()
-  "Display original image for thumbnail at point using external viewer."
+  "Display original image for thumbnail at point using external viewer.
+The viewer command is specified by `image-dired-external-viewer'."
   (interactive nil image-dired-thumbnail-mode)
   (let ((file (image-dired-original-file-name)))
     (if (not (image-dired-image-at-point-p))
@@ -1205,7 +1209,7 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in the image buffer window.
-If it is an image, the window will use `image-dired-image-mode'
+If FILE is an image, the window will use `image-dired-image-mode'
 which is based on `image-mode'."
   (declare (advertised-calling-convention (file) "29.1"))
   (setq file (expand-file-name file))
@@ -1293,7 +1297,7 @@ overwritten.  This confirmation can be turned off using
 
 (defun image-dired-copy-filename-as-kill (&optional arg)
   "Copy names of marked (or next ARG) files into the kill ring.
-This works as `dired-copy-filename-as-kill' (which see)."
+This works like `dired-copy-filename-as-kill' (which see)."
   (interactive "P" image-dired-thumbnail-mode)
   (image-dired--with-dired-buffer
     (dired-copy-filename-as-kill arg)))

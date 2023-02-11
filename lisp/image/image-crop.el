@@ -41,71 +41,71 @@
   :group 'image)
 
 (defvar image-crop-exif-rotate nil
-  "If non-nil, rotate images by updating exif data.
+  "If non-nil, rotate images by updating Exif data.
 If nil, rotate the images \"physically\".")
 
 (defcustom image-crop-resize-command '("convert" "-resize" "%wx" "-" "%f:-")
-  "Command to resize an image.
-The following `format-spec' elements are allowed:
+  "List of command and command-line arguments to resize an image.
+The following `format-spec' elements are allowed in the value:
 
 %w: Width.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-cut-command '("convert" "-draw" "rectangle %l,%t %r,%b"
                                     "-fill" "%c"
                                     "-" "%f:-")
-  "Command to cut a rectangle out of an image.
+  "List of command and its command-line arguments to cut a rectangle out of image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %l: Left.
 %t: Top.
 %r: Right.
 %b: Bottom.
 %c: Color.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-crop-command '("convert" "+repage" "-crop" "%wx%h+%l+%t"
 	                             "-" "%f:-")
-  "Command to crop an image.
+  "List of command and its command-line arguments to crop an image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %l: Left.
 %t: Top.
 %w: Width.
 %h: Height.
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-rotate-command '("convert" "-rotate" "%r" "-" "%f:-")
-  "Command to rotate an image.
+  "List of command and its command-line arguments to rotate an image.
 
-The following `format-spec' elements are allowed:
+The following `format-spec' elements are allowed in the value:
 %r: Rotation (in degrees).
-%f: Result file type."
+%f: File type to produce."
   :type '(repeat string)
   :version "29.1")
 
 (defvar image-crop-buffer-text-function #'image-crop--default-buffer-text
-  "Function to return the buffer text for the cropped image.
-After cropping an image, the displayed image will be updated to
-show the cropped image in the buffer.  Different modes will have
-different ways to represent this image data in a buffer.  For
-instance, an HTML-based mode might want to represent the image
-with <img src=\"data:...base64...\">, but that's up to the mode.
+  "Function to return the buffer text corresponding to the cropped image.
+After cropping an image, the displayed image in the buffer will be updated
+to show the cropped image.  Different modes will have different ways to
+represent this image data in a buffer, but that's up to the mode.  For
+instance, an HTML-based mode might want to represent the image with
+<img src=\"data:...base64...\">.
 
-The default action is to not alter the buffer text at all.
+The default action is to not alter the image's text in the buffer, and
+just return it.
 
-The function is called with two arguments: The first is the
-original buffer text, and the second parameter is the cropped
-image data.")
+The function is called with two arguments: the original buffer text,
+and the cropped image data.")
 
 (defcustom image-cut-color "black"
-  "Color to use for the rectangle cut from the image."
+  "Color to use for the rectangle that was cut from the image."
   :type 'string
   :version "29.1")
 
