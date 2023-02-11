@@ -5804,8 +5804,9 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
        doc: /* Return MD5 message digest of OBJECT, a buffer or string.
 
-A message digest is a cryptographic checksum of a document, and the
-algorithm to calculate it is defined in RFC 1321.
+A message digest is the string representation of the cryptographic checksum
+of a document, and the algorithm to calculate it is defined in RFC 1321.
+The MD5 digest is 32-character long.
 
 The two optional arguments START and END are character positions
 specifying for which part of OBJECT the message digest should be
@@ -5839,12 +5840,12 @@ anything security-related.  See `secure-hash' for alternatives.  */)
 DEFUN ("secure-hash", Fsecure_hash, Ssecure_hash, 2, 5, 0,
        doc: /* Return the secure hash of OBJECT, a buffer or string.
 ALGORITHM is a symbol specifying the hash to use:
-- md5    corresponds to MD5
-- sha1   corresponds to SHA-1
-- sha224 corresponds to SHA-2 (SHA-224)
-- sha256 corresponds to SHA-2 (SHA-256)
-- sha384 corresponds to SHA-2 (SHA-384)
-- sha512 corresponds to SHA-2 (SHA-512)
+- md5    corresponds to MD5, produces a 32-character signature
+- sha1   corresponds to SHA-1, produces a 40-character signature
+- sha224 corresponds to SHA-2 (SHA-224), produces a 56-character signature
+- sha256 corresponds to SHA-2 (SHA-256), produces a 64-character signature
+- sha384 corresponds to SHA-2 (SHA-384), produces a 96-character signature
+- sha512 corresponds to SHA-2 (SHA-512), produces a 128-character signature
 
 The two optional arguments START and END are positions specifying for
 which part of OBJECT to compute the hash.  If nil or omitted, uses the
