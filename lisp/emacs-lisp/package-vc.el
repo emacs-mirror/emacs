@@ -134,7 +134,10 @@ the `clone' function."
           (package-vc-install name spec))
          ((listp spec)
           (package-vc--archives-initialize)
-          (package-vc--unpack (cadr pkg-descs) spec)))))))
+          (package-vc--unpack
+           (or (cadr (assoc name package-archive-contents))
+               (package-desc-create :name name :kind 'vc))
+           spec)))))))
 
 ;;;###autoload
 (defcustom package-vc-selected-packages '()
@@ -600,8 +603,6 @@ PKG-SPEC is a package specification, a property list describing
 how to fetch and build the package.  See `package-vc--archive-spec-alist'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
-  (unless pkg-desc
-    (setq pkg-desc (package-desc-create :name (car pkg-spec) :kind 'vc)))
   (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
