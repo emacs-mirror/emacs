@@ -926,7 +926,7 @@ Print the contents of $ as an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.u.cdr
+  p $.u.s.u.cdr
   xcons
 end
 document nextcons
