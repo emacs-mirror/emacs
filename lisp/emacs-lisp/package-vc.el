@@ -269,9 +269,9 @@ Populate `package-vc--archive-spec-alist' with the result.
 If optional argument ASYNC is non-nil, perform the downloads
 asynchronously."
   (dolist (archive package-archives)
-    (condition-case-unless-debug nil
+    (condition-case err
         (package--download-one-archive archive "elpa-packages.eld" async)
-      (error (message "Failed to download `%s' archive." (car archive))))))
+      (error (message "Failed to download `%s' archive: %S" (car archive) err)))))
 
 (add-hook 'package-read-archive-hook     #'package-vc--read-archive-data 20)
 
