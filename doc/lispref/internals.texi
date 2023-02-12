@@ -2550,7 +2550,7 @@ variable names have underscores replaced with dashes.  For instance,
 @code{mode_line_format} stores the value of @code{mode-line-format}.
 
 @item overlays
-The inveral tree containing this buffer's overlays.
+The interval tree containing this buffer's overlays.
 
 @item last_selected_window
 This is the last window that was selected with this buffer in it, or @code{nil}
