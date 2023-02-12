@@ -734,7 +734,7 @@ is non-@code{nil}, it looks for smallest named child.
 
 @heading Searching for node
 
-@defun treesit-search-subtree node predicate &optional backward all limit
+@defun treesit-search-subtree node predicate &optional backward all depth
 This function traverses the subtree of @var{node} (including
 @var{node} itself), looking for a node for which @var{predicate}
 returns non-@code{nil}.  @var{predicate} is a regexp that is matched
@@ -745,9 +745,9 @@ the first node that matches, or @code{nil} if none does.
 By default, this function only traverses named nodes, but if @var{all}
 is non-@code{nil}, it traverses all the nodes.  If @var{backward} is
 non-@code{nil}, it traverses backwards (i.e., it visits the last child
-first when traversing down the tree).  If @var{limit} is
+first when traversing down the tree).  If @var{depth} is
 non-@code{nil}, it must be a number that limits the tree traversal to
-that many levels down the tree.  If @var{limit} is @code{nil}, it
+that many levels down the tree.  If @var{depth} is @code{nil}, it
 defaults to 1000.
 @end defun
 
@@ -805,7 +805,7 @@ Arguments @var{predicate}, @var{backward} and @var{all} are the same
 as in @code{treesit-search-forward}.
 @end defun
 
-@defun treesit-induce-sparse-tree root predicate &optional process-fn limit
+@defun treesit-induce-sparse-tree root predicate &optional process-fn depth
 This function creates a sparse tree from @var{root}'s subtree.
 
 It takes the subtree under @var{root}, and combs it so only the nodes
@@ -836,8 +836,8 @@ b   1   2         b   |   |      b   c   d
 
 If @var{process-fn} is non-@code{nil}, instead of returning the
 matched nodes, this function passes each node to @var{process-fn} and
-uses the returned value instead.  If non-@code{nil}, @var{limit} is
-the number of levels to go down from @var{root}.  If @var{limit} is
+uses the returned value instead.  If non-@code{nil}, @var{depth} is
+the number of levels to go down from @var{root}.  If @var{depth} is
 @code{nil}, it defaults to 1000.
 
 Each node in the returned tree looks like
@@ -970,10 +970,15 @@ A node ``has error'' if the text it spans contains a syntax error.  It
 can be that the node itself has an error, or one of its descendants
 has an error.
 
+@cindex tree-sitter, live parsing node
+@cindex live node, tree-sitter
+A node is considered @dfn{live} if its parser is not deleted, and the
+buffer to which it belongs to is a live buffer (@pxref{Killing Buffers}).
+
 @defun treesit-node-check node property
-This function checks if @var{node} has the specified @var{property}.
-@var{property} can be @code{named}, @code{missing}, @code{extra},
-@code{outdated}, or @code{has-error}.
+This function returns non-@code{nil} if @var{node} has the specified
+@var{property}.  @var{property} can be @code{named}, @code{missing},
+@code{extra}, @code{outdated}, @code{has-error}, or @code{live}.
 @end defun
 
 @defun treesit-node-type node
@@ -1584,9 +1589,9 @@ ranges for @acronym{CSS} and JavaScript parsers:
 @example
 @group
 ;; Create parsers.
-(setq html (treesit-get-parser-create 'html))
-(setq css (treesit-get-parser-create 'css))
-(setq js (treesit-get-parser-create 'javascript))
+(setq html (treesit-parser-create 'html))
+(setq css (treesit-parser-create 'css))
+(setq js (treesit-parser-create 'javascript))
 @end group
 
 @group

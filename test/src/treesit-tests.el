@@ -100,6 +100,7 @@
       (should (eq nil (treesit-node-check root-node 'missing)))
       (should (eq nil (treesit-node-check root-node 'extra)))
       (should (eq nil (treesit-node-check root-node 'has-error)))
+      (should (eq t (treesit-node-check root-node 'live)))
       ;; `treesit-node-child'.
       (setq doc-node (treesit-node-child root-node 0))
       (should (equal "array" (treesit-node-type doc-node)))
@@ -160,7 +161,18 @@
                     :type 'args-out-of-range)
       ;; `treesit-node-eq'.
       (should (treesit-node-eq root-node root-node))
-      (should (not (treesit-node-eq root-node doc-node))))))
+      (should (not (treesit-node-eq root-node doc-node)))
+
+      ;; Further test for `treesit-node-check'.
+      (treesit-parser-delete parser)
+      (should (equal nil (treesit-node-check root-node 'live)))
+      ;; Recreate parser.
+      (setq parser (treesit-parser-create 'json))
+      (setq root-node (treesit-parser-root-node
+                       parser))
+      (should (equal t (treesit-node-check root-node 'live)))
+      (kill-buffer)
+      (should (equal nil (treesit-node-check root-node 'live))))))
 
 ;;; Indirect buffer
 

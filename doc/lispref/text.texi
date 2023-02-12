@@ -4947,16 +4947,38 @@ computed for the whole of @var{object}.
 If the argument @var{binary} is omitted or @code{nil}, the function
 returns the @dfn{text form} of the hash, as an ordinary Lisp string.
 If @var{binary} is non-@code{nil}, it returns the hash in @dfn{binary
-form}, as a sequence of bytes stored in a unibyte string.
+form}, as a sequence of bytes stored in a unibyte string.  The length
+of the returned string depends on @var{algorithm}:
+
+@itemize
+@item
+For @code{md5}: 32 characters (32 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha1}: 40 characters (40 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha224}: 56 characters (56 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha256}: 64 characters (64 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha384}: 96 characters (96 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha512}: 128 characters (128 bytes if @var{binary} is
+non-@code{nil}).
+@end itemize
 
 This function does not compute the hash directly from the internal
 representation of @var{object}'s text (@pxref{Text Representations}).
 Instead, it encodes the text using a coding system (@pxref{Coding
 Systems}), and computes the hash from that encoded text.  If
 @var{object} is a buffer, the coding system used is the one which
-would be chosen by default for writing the text into a file.  If
-@var{object} is a string, the user's preferred coding system is used
-(@pxref{Recognize Coding,,, emacs, GNU Emacs Manual}).
+would be chosen by default for writing the text of that buffer into a
+file.  If @var{object} is a string, the user's preferred coding system
+is used (@pxref{Recognize Coding,,, emacs, GNU Emacs Manual}).
 @end defun
 
 @defun md5 object &optional start end coding-system noerror
@@ -4964,7 +4986,7 @@ This function returns an MD5 hash.  It is semi-obsolete, since for
 most purposes it is equivalent to calling @code{secure-hash} with
 @code{md5} as the @var{algorithm} argument.  The @var{object},
 @var{start} and @var{end} arguments have the same meanings as in
-@code{secure-hash}.
+@code{secure-hash}.  The function returns a 32-character string.
 
 If @var{coding-system} is non-@code{nil}, it specifies a coding system
 to use to encode the text; if omitted or @code{nil}, the default
@@ -4987,7 +5009,20 @@ It should be somewhat more efficient on larger buffers than
 @code{secure-hash} is, and should not allocate more memory.
 @c Note that we do not document what hashing function we're using, or
 @c even whether it's a cryptographic hash, since that may change
-@c according to what we find useful.
+@c according to what we find useful.  We also don't document the
+@c length of the hash string it returns, since that can be used to
+@c guess the hashing function being used.
+@end defun
+
+@defun sha1 object &optional start end binary
+This function is equivalent to calling @code{secure-hash} like this:
+
+@lisp
+(secure-hash 'sha1 object start end binary)
+@end lisp
+
+It returns a 40-character string if @var{binary} is @code{nil}, or a
+40-byte unibyte string otherwise.
 @end defun
 
 @node Suspicious Text
