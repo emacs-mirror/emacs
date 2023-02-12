@@ -426,8 +426,8 @@ version of that package."
                    ((let* ((pac package-archive-contents)
                            (desc (cadr (assoc (car pkg) pac))))
                       (if desc
-                          (let ((reqs (package-desc-reqs pkg)))
-                            (push pkg to-install)
+                          (let ((reqs (package-desc-reqs desc)))
+                            (push desc to-install)
                             (mapc #'search reqs))
                         (push pkg missing))))))
                 (version-order (a b)
