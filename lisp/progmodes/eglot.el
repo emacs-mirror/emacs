@@ -221,7 +221,8 @@ chosen (interactively or automatically)."
                                               "--client-id" "emacs.eglot-dart"))
                                 (elixir-mode . ("language_server.sh"))
                                 (ada-mode . ("ada_language_server"))
-                                (scala-mode . ("metals-emacs"))
+                                (scala-mode . ,(eglot-alternatives
+                                                '("metals" "metals-emacs")))
                                 (racket-mode . ("racket" "-l" "racket-langserver"))
                                 ((tex-mode context-mode texinfo-mode bibtex-mode)
                                  . ,(eglot-alternatives '("digestif" "texlab")))

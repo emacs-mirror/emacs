@@ -1061,18 +1061,6 @@ For example, the scope of the @code{magit-branch-configure} transient is
 the branch whose variables are being configured.
 @end defmac
 
-It is possible to define one or more groups independently of a prefix
-definition, which is useful when those groups are to be used by more
-than just one prefix command.
-
-@defmac transient-define-groups name group...
-This macro defines one or more groups of infix and suffix commands
-and stores them in a property of the symbol @var{NAME}.  @var{GROUP} has the
-same form as for @code{transient-define-prefix}.  Subsequently @var{NAME} can
-be used in a @var{GROUP} of @code{transient-define-prefix}, as described in the
-next section.
-@end defmac
-
 @node Binding Suffix and Infix Commands
 @section Binding Suffix and Infix Commands
 
@@ -1199,22 +1187,8 @@ a table.
 
 Inside group specifications, including inside contained suffix
 specifications, nothing has to be quoted and quoting anyway is
-invalid.
-
-How symbols are treated, depends on context.  Inside suffix
-specifications they often name functions.  However if they appear in
-a place where a group is expected, then they are treated as indirect
-group specifications. Such a symbol must have an associated group
-specification, created using @code{transient-define-groups}.
-
-Likewise a symbol can appear in a place where a suffix specification
-is expected.  The value of the @code{transient--layout} property of that
-symbol must be a single suffix specification or a list of such
-specifications.  Currently no macro exist that would create such a
-symbol, and this feature should usually not be used.
-
-The value following a keyword, can be explicitly unquoted using @code{,}.
-This feature is experimental and should be avoided as well.
+invalid.  The value following a keyword, can be explicitly unquoted
+using @code{,}.  This feature is experimental and should be avoided.
 
 The form of suffix specifications is documented in the next node.
 

@@ -58,10 +58,16 @@
 
 ;;; Code:
 
-(require 'esh-util)
-(require 'esh-module)
+;; Load the core Eshell modules; we'll call their initialization
+;; functions below in `eshell-mode'.
+(require 'esh-arg)
 (require 'esh-cmd)
-(require 'esh-arg)                      ;For eshell-parse-arguments
+(require 'esh-ext)
+(require 'esh-io)
+(require 'esh-module)
+(require 'esh-proc)
+(require 'esh-util)
+(require 'esh-var)
 
 (defgroup eshell-mode nil
   "This module contains code for handling input from the user."

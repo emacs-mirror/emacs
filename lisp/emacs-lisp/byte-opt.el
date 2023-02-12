@@ -2415,11 +2415,18 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
               (setq keep-going t))
 
              ;;
-             ;; OP const return  -->  const return
-             ;;  where OP is side-effect-free (or mere stack manipulation).
+             ;; NOEFFECT PRODUCER return  -->  PRODUCER return
+             ;;  where NOEFFECT lacks effects beyond stack change,
+             ;;        PRODUCER pushes a result without looking at the stack:
+             ;;                 const, varref, point etc.
              ;;
-             ((and (eq (car lap1) 'byte-constant)
-                   (eq (car (nth 2 rest)) 'byte-return)
+             ((and (eq (car (nth 2 rest)) 'byte-return)
+                   (memq (car lap1) '( byte-constant byte-varref
+                                       byte-point byte-point-max byte-point-min
+                                       byte-following-char byte-preceding-char
+                                       byte-current-column
+                                       byte-eolp byte-eobp byte-bolp byte-bobp
+                                       byte-current-buffer byte-widen))
                    (or (memq (car lap0) '( byte-discard byte-discardN
                                            byte-discardN-preserve-tos
                                            byte-stack-set))
@@ -2427,6 +2434,35 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
               (setq keep-going t)
               (setq add-depth 1)
               (setcdr prev (cdr rest))
+              (byte-compile-log-lap "  %s %s %s\t-->\t%s %s"
+                                    lap0 lap1 (nth 2 rest) lap1 (nth 2 rest)))
+
+             ;;
+             ;; discardN-preserve-tos OP return  -->  OP return
+             ;; dup                   OP return  -->  OP return
+             ;;  where OP is 1->1 in stack use, like `not'.
+             ;;
+             ;; FIXME: ideally we should run this backwards, so that we could do
+             ;;   discardN-preserve-tos OP1...OPn return -> OP1..OPn return
+             ;; but that would require a different approach.
+             ;;
+             ((and (eq (car (nth 2 rest)) 'byte-return)
+                   (memq (car lap1)
+                         '( byte-not
+                            byte-symbolp byte-consp byte-stringp
+                            byte-listp byte-integerp byte-numberp
+                            byte-list1
+                            byte-car byte-cdr byte-car-safe byte-cdr-safe
+                            byte-length
+                            byte-add1 byte-sub1 byte-negate byte-nreverse
+                            ;; There are more of these but the list is
+                            ;; getting long and the gain is small.
+                            ))
+                   (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
+                       (and (eq (car lap0) 'byte-stack-set)
+                            (eql (cdr lap0) 1))))
+              (setq keep-going t)
+              (setcdr prev (cdr rest))  ; eat lap0
               (byte-compile-log-lap "  %s %s %s\t-->\t%s %s"
                                     lap0 lap1 (nth 2 rest) lap1 (nth 2 rest)))
 
@@ -2658,6 +2694,63 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; we can just leave stuff on it.
 	      (setcdr prev (cdr rest))
 	      (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
+
+             ;;
+             ;;     stack-ref(X) discardN-preserve-tos(Y)
+             ;; --> discard(Y) stack-ref(X-Y),                X≥Y
+             ;;     discard(X) discardN-preserve-tos(Y-X-1),  X<Y
+             ;; where: stack-ref(0) = dup  (works both ways)
+             ;;        discard(0) = no-op
+             ;;        discardN-preserve-tos(0) = no-op
+             ;;
+	     ((and (memq (car lap0) '(byte-stack-ref byte-dup))
+	           (or (eq (car lap1) 'byte-discardN-preserve-tos)
+	               (and (eq (car lap1) 'byte-stack-set)
+	                    (eql (cdr lap1) 1)))
+                   ;; Don't apply if immediately preceding a `return',
+                   ;; since there are more effective rules for that case.
+                   (not (eq (car lap2) 'byte-return)))
+              (let ((x (if (eq (car lap0) 'byte-dup) 0 (cdr lap0)))
+                    (y (cdr lap1)))
+                (cl-assert (> y 0))
+                (cond
+                 ((>= x y)              ; --> discard(Y) stack-ref(X-Y)
+                  (let ((new0 (if (= y 1)
+                                  (cons 'byte-discard nil)
+                                (cons 'byte-discardN y)))
+                        (new1 (if (= x y)
+                                  (cons 'byte-dup nil)
+                                (cons 'byte-stack-ref (- x y)))))
+	            (byte-compile-log-lap "  %s %s\t-->\t%s %s"
+                                          lap0 lap1 new0 new1)
+                    (setcar rest new0)
+                    (setcar (cdr rest) new1)))
+                 ((= x 0)               ; --> discardN-preserve-tos(Y-1)
+                  (setcdr prev (cdr rest))  ; eat lap0
+                  (if (> y 1)
+                      (let ((new (cons 'byte-discardN-preserve-tos (- y 1))))
+                        (byte-compile-log-lap "  %s %s\t-->\t%s"
+                                              lap0 lap1 new)
+                        (setcar (cdr prev) new))
+                    (byte-compile-log-lap "  %s %s\t-->\t<deleted>" lap0 lap1)
+                    (setcdr prev (cddr prev))))  ; eat lap1
+                 ((= y (+ x 1))         ; --> discard(X)
+                  (setcdr prev (cdr rest))  ; eat lap0
+                  (let ((new (if (= x 1)
+                                 (cons 'byte-discard nil)
+                               (cons 'byte-discardN x))))
+                    (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 new)
+                    (setcar (cdr prev) new)))
+                 (t               ; --> discard(X) discardN-preserve-tos(Y-X-1)
+                  (let ((new0 (if (= x 1)
+                                  (cons 'byte-discard nil)
+                                (cons 'byte-discardN x)))
+                        (new1 (cons 'byte-discardN-preserve-tos (- y x 1))))
+	            (byte-compile-log-lap "  %s %s\t-->\t%s %s"
+                                          lap0 lap1 new0 new1)
+                    (setcar rest new0)
+                    (setcar (cdr rest) new1)))))
+              (setq keep-going t))
 
 	     ;;
 	     ;; goto-X ... X: discard  ==>  discard goto-Y ... X: discard Y:

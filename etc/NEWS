@@ -72,6 +72,13 @@ tapping buttons and opening menus.
 
 
 ---
+** On X, Emacs now supports input methods which perform "string conversion".
+This means an input method can now ask Emacs to delete text
+surrounding point and replace it with something else, as well as query
+Emacs for surrounding text.  If your input method allows you to "undo"
+mistaken compositions, this will now work as well.
+
+---
 ** New command 'kill-matching-buffers-no-ask'.
 This works like 'kill-matching-buffers', but without asking for
 confirmation.

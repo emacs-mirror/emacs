@@ -1715,6 +1715,44 @@ del_range (ptrdiff_t from, ptrdiff_t to)
   del_range_1 (from, to, 1, 0);
 }
 
+struct safe_del_range_context
+{
+  /* From and to positions.  */
+  ptrdiff_t from, to;
+};
+
+static Lisp_Object
+safe_del_range_1 (void *ptr)
+{
+  struct safe_del_range_context *context;
+
+  context = ptr;
+  del_range (context->from, context->to);
+  return Qnil;
+}
+
+static Lisp_Object
+safe_del_range_2 (enum nonlocal_exit type, Lisp_Object value)
+{
+  return Qt;
+}
+
+/* Like del_range; however, catch all non-local exits.  Value is 0 if
+   the buffer contents were really deleted.  Otherwise, it is 1.  */
+
+int
+safe_del_range (ptrdiff_t from, ptrdiff_t to)
+{
+  struct safe_del_range_context context;
+
+  context.from = from;
+  context.to = to;
+
+  return !NILP (internal_catch_all (safe_del_range_1,
+				    &context,
+				    safe_del_range_2));
+}
+
 /* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.
    RET_STRING says to return the deleted text. */
 

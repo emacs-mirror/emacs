@@ -690,7 +690,7 @@ struct buffer
      display optimizations must be used.  */
   bool_bf long_line_optimizations_p : 1;
 
-  /* The inveral tree containing this buffer's overlays. */
+  /* The interval tree containing this buffer's overlays. */
   struct itree_tree *overlays;
 
   /* Changes in the buffer are recorded here for undo, and t means
