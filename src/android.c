@@ -125,6 +125,7 @@ struct android_emacs_window
   jclass class;
   jmethodID swap_buffers;
   jmethodID toggle_on_screen_keyboard;
+  jmethodID lookup_string;
 };
 
 /* The API level of the current device.  */
@@ -1829,6 +1830,7 @@ android_init_emacs_window (void)
   FIND_METHOD (swap_buffers, "swapBuffers", "()V");
   FIND_METHOD (toggle_on_screen_keyboard,
 	       "toggleOnScreenKeyboard", "(Z)V");
+  FIND_METHOD (lookup_string, "lookupString", "(I)Ljava/lang/String;");
 #undef FIND_METHOD
 }
 
@@ -4102,6 +4104,115 @@ android_sync (void)
 				       emacs_service,
 				       service_class.sync);
   android_exception_check ();
+}
+
+int
+android_wc_lookup_string (android_key_pressed_event *event,
+			  wchar_t *buffer_return, int wchars_buffer,
+			  int *keysym_return,
+			  enum android_lookup_status *status_return)
+{
+  enum android_lookup_status status;
+  int rc;
+  jobject window, string;
+  const jchar *characters;
+  jsize size;
+  size_t i;
+
+  status = ANDROID_LOOKUP_NONE;
+  rc = 0;
+
+  /* See if an actual lookup has to be made.  Note that while
+     BUFFER_RETURN is wchar_t, the returned characters are always in
+     UCS.  */
+
+  if (event->unicode_char != (uint32_t) -1)
+    {
+      if (event->unicode_char)
+	{
+	  if (wchars_buffer < 1)
+	    {
+	      *status_return = ANDROID_BUFFER_OVERFLOW;
+	      return 0;
+	    }
+	  else
+	    {
+	      buffer_return[0] = event->unicode_char;
+	      status = ANDROID_LOOKUP_CHARS;
+	      rc = 1;
+	    }
+	}
+
+      *keysym_return = event->keycode;
+
+      if (status == ANDROID_LOOKUP_CHARS)
+	status = ANDROID_LOOKUP_BOTH;
+      else
+	{
+	  status = ANDROID_LOOKUP_KEYSYM;
+	  rc = 0;
+	}
+
+      *status_return = status;
+
+      return rc;
+    }
+
+  /* Now look up the window.  */
+  rc = 0;
+
+  if (!android_handles[event->window].handle
+      || (android_handles[event->window].type
+	  != ANDROID_HANDLE_WINDOW))
+    status = ANDROID_LOOKUP_NONE;
+  else
+    {
+      window = android_handles[event->window].handle;
+      string
+	= (*android_java_env)->CallObjectMethod (android_java_env, window,
+						 window_class.lookup_string,
+						 (jint) event->serial);
+      android_exception_check ();
+
+      if (!string)
+	status = ANDROID_LOOKUP_NONE;
+      else
+	{
+	  /* Now return this input method string.  */
+	  characters = (*android_java_env)->GetStringChars (android_java_env,
+							    string, NULL);
+	  android_exception_check ();
+
+	  /* Figure out how big the string is.  */
+	  size = (*android_java_env)->GetStringLength (android_java_env,
+						       string);
+
+	  /* Copy over the string data.  */
+	  for (i = 0; i < MIN ((unsigned int) wchars_buffer, size); ++i)
+	    buffer_return[i] = characters[i];
+
+	  if (i < size)
+	    status = ANDROID_BUFFER_OVERFLOW;
+	  else
+	    status = ANDROID_LOOKUP_CHARS;
+
+	  /* Return the number of characters that should have been
+	     written.  */
+
+	  if (size > INT_MAX)
+	    rc = INT_MAX;
+	  else
+	    rc = size;
+
+	  (*android_java_env)->ReleaseStringChars (android_java_env, string,
+						   characters);
+	  android_exception_check ();
+	  ANDROID_DELETE_LOCAL_REF (string);
+	}
+    }
+
+  *status_return = status;
+  return rc;
 }
 
 

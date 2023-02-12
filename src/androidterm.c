@@ -541,6 +541,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   Lisp_Object window;
   int scroll_height;
   double scroll_unit;
+  int keysym;
+  ptrdiff_t nchars, i;
 
   /* It is okay for this to not resemble handle_one_xevent so much.
      Differences in event handling code are much less nasty than
@@ -550,6 +552,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   hlinfo = &dpyinfo->mouse_highlight;
   *finish = ANDROID_EVENT_NORMAL;
   any = android_window_to_frame (dpyinfo, event->xany.window);
+  nchars = 0;
 
   if (any && any->wait_event_type == event->type)
     any->wait_event_type = 0; /* Indicates we got it.  */
@@ -616,6 +619,13 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    android_flush_dirty_back_buffer_on (mouse_frame);
 	}
 
+      if (!f)
+	goto OTHER;
+
+      wchar_t copy_buffer[129];
+      wchar_t *copy_bufptr = copy_buffer;
+      int copy_bufsiz = 128 * sizeof (wchar_t);
+
       event->xkey.state
 	|= android_emacs_to_android_modifiers (dpyinfo,
 					       extra_keyboard_modifiers);
@@ -627,31 +637,100 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	= android_android_to_emacs_modifiers (dpyinfo, modifiers);
       inev.ie.timestamp = event->xkey.time;
 
-      /* First deal with keysyms which have defined translations to
-	 characters.  */
+      keysym = event->xkey.keycode;
 
-      if (event->xkey.unicode_char >= 32
-	  && event->xkey.unicode_char < 128)
+      {
+	enum android_lookup_status status_return;
+
+	nchars = android_wc_lookup_string (&event->xkey, copy_bufptr,
+					   copy_bufsiz, &keysym,
+					   &status_return);
+
+	/* android_lookup_string can't be called twice, so there's no
+	   way to recover from buffer overflow.  */
+	if (status_return == ANDROID_BUFFER_OVERFLOW)
+	  goto done_keysym;
+	else if (status_return == ANDROID_LOOKUP_NONE)
+	  {
+	    /* Don't skip preedit text events.  */
+	    if (event->xkey.keycode != (uint32_t) -1)
+	      goto done_keysym;
+	  }
+	else if (status_return == ANDROID_LOOKUP_CHARS)
+	  keysym = ANDROID_NO_SYMBOL;
+	else if (status_return != ANDROID_LOOKUP_KEYSYM
+		 && status_return != ANDROID_LOOKUP_BOTH)
+	  emacs_abort ();
+
+	/* Deal with pre-edit text events.  On Android, these are
+	   simply encoded as events with associated strings and a
+	   keycode set to ``-1''.  */
+
+	if (event->xkey.keycode == (uint32_t) -1)
+	  {
+	    inev.ie.kind = PREEDIT_TEXT_EVENT;
+	    inev.ie.arg = Qnil;
+
+	    /* If text was looked up, decode it and make it the
+	       preedit text.  */
+
+	    if (status_return == ANDROID_LOOKUP_CHARS && nchars)
+	      {
+		copy_bufptr[nchars] = 0;
+		inev.ie.arg = from_unicode_buffer (copy_bufptr);
+	      }
+
+	    goto done_keysym;
+	  }
+      }
+
+      if (nchars == 1 && copy_bufptr[0] >= 32)
 	{
-	  inev.ie.kind = ASCII_KEYSTROKE_EVENT;
-	  inev.ie.code = event->xkey.unicode_char;
+	  /* Deal with characters.  */
+
+	  if (copy_bufptr[0] < 128)
+	    inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	  else
+	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+
+	  inev.ie.code = copy_bufptr[0];
 	}
-      else if (event->xkey.unicode_char < 32)
+      else if (nchars < 2 && keysym)
 	{
 	  /* If the key is a modifier key, just return.  */
-	  if (ANDROID_IS_MODIFIER_KEY (event->xkey.keycode))
+	  if (ANDROID_IS_MODIFIER_KEY (keysym))
 	    goto done_keysym;
 
 	  /* Next, deal with special ``characters'' by giving the
 	     keycode to keyboard.c.  */
 	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
-	  inev.ie.code = event->xkey.keycode;
+	  inev.ie.code = keysym;
 	}
       else
 	{
-	  /* Finally, deal with Unicode characters.  */
-	  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-	  inev.ie.code = event->xkey.unicode_char;
+	  /* Finally, deal with strings.  */
+
+	  for (i = 0; i < nchars; ++i)
+	    {
+	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (copy_bufptr[i])
+			      ? ASCII_KEYSTROKE_EVENT
+			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	      inev.ie.code = copy_bufptr[i];
+
+	      /* If the character is actually '\n', then change this
+		 to RET.  */
+
+	      if (copy_bufptr[i] == '\n')
+		{
+		  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+		  inev.ie.code = 66;
+		}
+
+	      kbd_buffer_store_buffered_event (&inev, hold_quit);
+	    }
+
+	  count += nchars;
+	  inev.ie.kind = NO_EVENT;  /* Already stored above.  */
 	}
 
       goto done_keysym;

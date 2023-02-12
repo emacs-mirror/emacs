@@ -94,7 +94,7 @@ public class EmacsView extends ViewGroup
   private long lastClipSerial;
 
   /* The InputMethodManager for this view's context.  */
-  private InputMethodManager imManager;
+  public InputMethodManager imManager;
 
   /* Whether or not this view is attached to a window.  */
   public boolean isAttachedToWindow;
@@ -558,8 +558,9 @@ public class EmacsView extends ViewGroup
        box that obscures Emacs.  */
     info.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
-    /* But don't return an InputConnection, in order to force the on
-       screen keyboard to work correctly.  */
+    /* Set a reasonable inputType.  */
+    info.inputType = InputType.TYPE_NULL;
+
     return null;
   }
 

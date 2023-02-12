@@ -209,7 +209,7 @@ typedef char Emacs_Cursor;
 #ifndef ANDROID_STUBIFY
 
 /* Universal NULL handle.  */
-static const int ANDROID_NONE;
+static const int ANDROID_NONE, ANDROID_NO_SYMBOL;
 
 /* Keep these as conceptually close to X as possible: that makes
    synchronizing code between the ports much easier.  */
@@ -259,8 +259,13 @@ struct android_key_event
   android_time time;
   unsigned int state;
   unsigned int keycode;
+
+  /* If this field is -1, then android_lookup_string should be called
+     to retrieve the associated individual characters.  */
   unsigned int unicode_char;
 };
+
+typedef struct android_key_event android_key_pressed_event;
 
 /* These hard coded values are Android modifier keycodes derived
    through experimentation.  */
@@ -449,6 +454,15 @@ enum
     ANDROID_CURRENT_TIME = 0L,
   };
 
+enum android_lookup_status
+  {
+    ANDROID_BUFFER_OVERFLOW,
+    ANDROID_LOOKUP_NONE,
+    ANDROID_LOOKUP_CHARS,
+    ANDROID_LOOKUP_KEYSYM,
+    ANDROID_LOOKUP_BOTH,
+  };
+
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
 
@@ -536,6 +550,10 @@ extern void android_map_raised (android_window);
 extern void android_translate_coordinates (android_window, int,
 					   int, int *, int *);
 extern void android_sync (void);
+
+extern int android_wc_lookup_string (android_key_pressed_event *,
+				     wchar_t *, int, int *,
+				     enum android_lookup_status *);
 
 #endif
 

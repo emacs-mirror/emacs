@@ -3758,16 +3758,7 @@ sfnt_edge_sort (struct sfnt_edge *edges, size_t size)
    coordinates, and incrementing the Y axis by SFNT_POLY_STEP instead
    of 1.  SFNT_POLY_STEP is chosen to always keep Y aligned to a grid
    placed such that there are always 1 << SFNT_POLY_SHIFT positions
-   available for each integral pixel coordinate.
-
-   Moving upwards is performed using Bresenham's algorithm.  Prior to
-   an edge being created, a single slope error is computed.  This is
-   how much X should increase for each increase in Y.
-
-   Upon each increase in Y, X initially does not move.  Instead, the
-   ``slope error'' is accumulated; once it exceeds the sample size,
-   one sample is subtracted from the accumulator, and X is increased
-   by one step.  */
+   available for each integral pixel coordinate.  */
 
 static void
 sfnt_poly_edges (struct sfnt_edge *edges, size_t size,

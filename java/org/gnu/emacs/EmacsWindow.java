@@ -23,6 +23,8 @@ import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import android.content.Context;
 
@@ -100,7 +102,7 @@ public class EmacsWindow extends EmacsHandleObject
 
   /* The button state and keyboard modifier mask at the time of the
      last button press or release event.  */
-  private int lastButtonState, lastModifiers;
+  public int lastButtonState, lastModifiers;
 
   /* Whether or not the window is mapped, and whether or not it is
      deiconified.  */
@@ -121,6 +123,10 @@ public class EmacsWindow extends EmacsHandleObject
   /* The time of the last KEYCODE_VOLUME_DOWN release.  This is used
      to quit Emacs.  */
   private long lastVolumeButtonRelease;
+
+  /* Linked list of character strings which were recently sent as
+     events.  */
+  public LinkedHashMap<Integer, String> eventStrings;
 
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
@@ -155,6 +161,19 @@ public class EmacsWindow extends EmacsHandleObject
       }
 
     scratchGC = new EmacsGC ((short) 0);
+
+    /* Create the map of input method-committed strings.  Keep at most
+       ten strings in the map.  */
+
+    eventStrings
+      = new LinkedHashMap<Integer, String> () {
+	  @Override
+	  protected boolean
+	  removeEldestEntry (Map.Entry<Integer, String> entry)
+	  {
+	    return size () > 10;
+	  }
+	};
   }
 
   public void
@@ -507,10 +526,40 @@ public class EmacsWindow extends EmacsHandleObject
     return view.getBitmap ();
   }
 
+  /* event.getCharacters is used because older input methods still
+     require it.  */
+  @SuppressWarnings ("deprecation")
+  public int
+  getEventUnicodeChar (KeyEvent event, int state)
+  {
+    String characters;
+
+    if (event.getUnicodeChar (state) != 0)
+      return event.getUnicodeChar (state);
+
+    characters = event.getCharacters ();
+
+    if (characters != null && characters.length () == 1)
+      return characters.charAt (0);
+
+    return characters == null ? 0 : -1;
+  }
+
+  public void
+  saveUnicodeString (int serial, String string)
+  {
+    eventStrings.put (serial, string);
+  }
+
+  /* event.getCharacters is used because older input methods still
+     require it.  */
+  @SuppressWarnings ("deprecation")
   public void
   onKeyDown (int keyCode, KeyEvent event)
   {
     int state, state_1;
+    long serial;
+    String characters;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
       state = event.getModifiers ();
@@ -537,18 +586,28 @@ public class EmacsWindow extends EmacsHandleObject
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
 
-    EmacsNative.sendKeyPress (this.handle,
-			      event.getEventTime (),
-			      state, keyCode,
-			      event.getUnicodeChar (state_1));
-    lastModifiers = state;
+    synchronized (eventStrings)
+      {
+	serial
+	  = EmacsNative.sendKeyPress (this.handle,
+				      event.getEventTime (),
+				      state, keyCode,
+				      getEventUnicodeChar (event,
+							   state_1));
+	lastModifiers = state;
+
+	characters = event.getCharacters ();
+
+	if (characters != null && characters.length () > 1)
+	  saveUnicodeString ((int) serial, characters);
+      }
   }
 
   public void
   onKeyUp (int keyCode, KeyEvent event)
   {
     int state, state_1;
-    long time;
+    long time, serial;
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
       state = event.getModifiers ();
@@ -575,10 +634,12 @@ public class EmacsWindow extends EmacsHandleObject
     state_1
       = state & ~(KeyEvent.META_ALT_MASK | KeyEvent.META_CTRL_MASK);
 
-    EmacsNative.sendKeyRelease (this.handle,
-				event.getEventTime (),
-				state, keyCode,
-				event.getUnicodeChar (state_1));
+    serial
+      = EmacsNative.sendKeyRelease (this.handle,
+				    event.getEventTime (),
+				    state, keyCode,
+				    getEventUnicodeChar (event,
+							 state_1));
     lastModifiers = state;
 
     if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
@@ -1104,5 +1165,18 @@ public class EmacsWindow extends EmacsHandleObject
 	    view.hideOnScreenKeyboard ();
 	}
       });
+  }
+
+  public String
+  lookupString (int eventSerial)
+  {
+    String any;
+
+    synchronized (eventStrings)
+      {
+	any = eventStrings.remove (eventSerial);
+      }
+
+    return any;
   }
 };

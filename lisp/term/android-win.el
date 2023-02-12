@@ -166,6 +166,42 @@ VALUE should be something suitable for passing to
            (android-set-clipboard string))
           ((eq type 'PRIMARY)
            (setq android-primary-selection string)))))
+
+;;; Character composition display.
+
+(defvar android-preedit-overlay nil
+  "The overlay currently used to display preedit text from a compose sequence.")
+
+;; With some input methods, text gets inserted before Emacs is told to
+;; remove any preedit text that was displayed, which causes both the
+;; preedit overlay and the text to be visible for a brief period of
+;; time.  This pre-command-hook clears the overlay before any command
+;; and should be set whenever a preedit overlay is visible.
+(defun android-clear-preedit-text ()
+  "Clear the pre-edit overlay and remove itself from pre-command-hook.
+This function should be installed in `pre-command-hook' whenever
+preedit text is displayed."
+  (when android-preedit-overlay
+    (delete-overlay android-preedit-overlay)
+    (setq android-preedit-overlay nil))
+  (remove-hook 'pre-command-hook #'android-clear-preedit-text))
+
+(defun android-preedit-text (event)
+  "Display preedit text from a compose sequence in EVENT.
+EVENT is a preedit-text event."
+  (interactive "e")
+  (when android-preedit-overlay
+    (delete-overlay android-preedit-overlay)
+    (setq android-preedit-overlay nil)
+    (remove-hook 'pre-command-hook #'android-clear-preedit-text))
+  (when (nth 1 event)
+    (let ((string (propertize (nth 1 event) 'face '(:underline t))))
+      (setq android-preedit-overlay (make-overlay (point) (point)))
+      (add-hook 'pre-command-hook #'android-clear-preedit-text)
+      (overlay-put android-preedit-overlay 'window (selected-window))
+      (overlay-put android-preedit-overlay 'before-string string))))
+
+(define-key special-event-map [preedit-text] 'android-preedit-text)
 
 (provide 'android-win)
 ;; android-win.el ends here.

@@ -25,6 +25,10 @@ import android.content.res.AssetManager;
 
 public class EmacsNative
 {
+  /* List of native libraries that must be loaded during class
+     initialization.  */
+  private static final String[] libraryDeps;
+
   /* Obtain the fingerprint of this build of Emacs.  The fingerprint
      can be used to determine the dump file name.  */
   public static native String getFingerprint ();
@@ -167,148 +171,26 @@ public class EmacsNative
        Every time you add a new shared library dependency to Emacs,
        please add it here as well.  */
 
-    try
-      {
-	System.loadLibrary ("png_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
+    libraryDeps = new String[] { "png_emacs", "selinux_emacs",
+				 "crypto_emacs", "pcre_emacs",
+				 "packagelistparser_emacs",
+				 "gnutls_emacs", "gmp_emacs",
+				 "nettle_emacs", "p11-kit_emacs",
+				 "tasn1_emacs", "hogweed_emacs",
+				 "jansson_emacs", "jpeg_emacs",
+				 "tiff_emacs", "xml2_emacs",
+				 "icuuc_emacs", };
 
-    try
+    for (String dependency : libraryDeps)
       {
-	System.loadLibrary ("selinux_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("crypto_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("pcre_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("packagelistparser_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("gnutls_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("gmp_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("nettle_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("p11-kit_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("tasn1_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("hogweed_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("jansson_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("jpeg_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("tiff_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("xml2_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
-      }
-
-    try
-      {
-	System.loadLibrary ("icuuc_emacs");
-      }
-    catch (UnsatisfiedLinkError exception)
-      {
-	/* Ignore this exception.  */
+	try
+	  {
+	    System.loadLibrary (dependency);
+	  }
+	catch (UnsatisfiedLinkError exception)
+	  {
+	    /* Ignore this exception.  */
+	  }
       }
 
     System.loadLibrary ("emacs");
