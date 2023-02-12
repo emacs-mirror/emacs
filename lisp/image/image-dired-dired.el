@@ -355,7 +355,7 @@ command.  The result is one or more new files in
   "Mark files whose tag matches REGEXP.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
-promts for a regexp, and then matches it against all the tags
+prompts for a regexp, and then matches it against all the tags
 of all the image files in the database file.  The files that have a
 matching tag will be marked in the Dired buffer."
   (interactive "sMark tagged files (regexp): " dired-mode)
