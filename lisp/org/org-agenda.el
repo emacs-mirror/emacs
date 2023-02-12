@@ -8211,7 +8211,7 @@ filter."
   (if (and org-agenda-filtered-by-category
 	   org-agenda-category-filter)
       (org-agenda-filter-show-all-cat)
-    (let ((cat (org-no-properties (org-get-at-eol 'org-category 1))))
+    (let ((cat (org-no-properties (org-agenda-get-category))))
       (cond
        ((and cat strip)
         (org-agenda-filter-apply
