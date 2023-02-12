@@ -1526,7 +1526,7 @@ do_switch_frame (Lisp_Object frame, int for_deletion, Lisp_Object norecord)
 
   if (f->select_mini_window_flag
       && !NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
-    f->selected_window = f->minibuffer_window;
+    fset_selected_window (f, f->minibuffer_window);
   f->select_mini_window_flag = false;
 
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))

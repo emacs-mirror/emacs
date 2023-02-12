@@ -636,6 +636,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
+#ifdef HAVE_X_I18N
+#include "textconv.h"
+#endif
+
 #ifdef USE_XCB
 #include <xcb/xproto.h>
 #include <xcb/xcb.h>
@@ -31506,7 +31510,37 @@ x_initialize (void)
   XSetIOErrorHandler (x_io_error_quitter);
 }
 
-#ifdef USE_GTK
+#ifdef HAVE_X_I18N
+
+/* Notice that a change has occured on F that requires its input
+   method state to be reset.  */
+
+static void
+x_reset_conversion (struct frame *f)
+{
+  char *string;
+
+  if (FRAME_XIC (f))
+    {
+      string = XmbResetIC (FRAME_XIC (f));
+
+      /* string is actually any string that was being composed at the
+	 time of the reset.  */
+
+      if (string)
+	XFree (string);
+    }
+}
+
+/* Interface used to control input method ``text conversion''.  */
+
+static struct textconv_interface text_conversion_interface =
+  {
+    x_reset_conversion,
+  };
+
+#endif
+
 void
 init_xterm (void)
 {
@@ -31520,8 +31554,11 @@ init_xterm (void)
   gdk_disable_multidevice ();
 #endif
 #endif
-}
+
+#ifdef HAVE_X_I18N
+  register_texconv_interface (&text_conversion_interface);
 #endif
+}
 
 void
 mark_xterm (void)

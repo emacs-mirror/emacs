@@ -3856,6 +3856,9 @@ run_window_change_functions_1 (Lisp_Object symbol, Lisp_Object buffer,
  *
  * This function does not save and restore match data.  Any functions
  * it calls are responsible for doing that themselves.
+ *
+ * Additionally, report changes to each frame's selected window to the
+ * input method in textconv.c.
  */
 void
 run_window_change_functions (void)
@@ -4014,6 +4017,18 @@ run_window_change_functions (void)
 	  && FRAME_LIVE_P (f))
 	run_window_change_functions_1
 	  (Qwindow_selection_change_functions, Qnil, frame);
+
+#if defined HAVE_TEXT_CONVERSION
+
+      /* If the buffer or selected window has changed, also reset the
+	 input method composition state.  */
+
+      if ((frame_selected_window_change || frame_buffer_change)
+	  && FRAME_LIVE_P (f)
+	  && FRAME_WINDOW_P (f))
+	report_selected_window_change (f);
+
+#endif
 
       /* A frame has changed state when a size or buffer change
 	 occurred, its selected window has changed, when it was
