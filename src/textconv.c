@@ -279,6 +279,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query)
 	}
 
     default:
+      break;
     }
 
   /* Undo any changes to the excursion.  */
