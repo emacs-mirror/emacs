@@ -2961,6 +2961,8 @@ not in completion mode."
       (concat dir filename))
      ((string-match-p
        (rx bos (regexp tramp-prefix-regexp)
+	   (* (regexp tramp-remote-file-name-spec-regexp)
+	      (regexp tramp-postfix-hop-regexp))
 	   (? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp)
 	      (? (regexp tramp-user-regexp) (regexp tramp-postfix-user-regexp)))
 	   eos)
@@ -2984,6 +2986,8 @@ not in completion mode."
                   (string-match
 	           (rx
 	            (regexp tramp-prefix-regexp)
+		    (* (regexp tramp-remote-file-name-spec-regexp)
+		       (regexp tramp-postfix-hop-regexp))
 	            (group (regexp tramp-method-regexp))
 	            (? (regexp tramp-postfix-method-regexp))
                     eos)
@@ -2993,6 +2997,8 @@ not in completion mode."
             ((string-match
 	      (rx
                (regexp tramp-prefix-regexp)
+	       (* (regexp tramp-remote-file-name-spec-regexp)
+		  (regexp tramp-postfix-hop-regexp))
                (group (regexp tramp-remote-file-name-spec-regexp))
                eos)
               filename)
@@ -3249,30 +3255,31 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
   ;; method.  In the `separate' file name syntax, we return "/[" when
   ;; `filename' is "/[string" w/o a trailing method separator "/".
   (cond
-   ((and (not (string-empty-p tramp-method-regexp))
-         (string-match
+   ((string-match
+     (rx (group (regexp tramp-prefix-regexp)
+		(* (regexp tramp-remote-file-name-spec-regexp)
+		   (regexp tramp-postfix-hop-regexp)))
+         (? (regexp tramp-completion-method-regexp)) eos)
+     filename)
+    (match-string 1 filename))
+   ((and (string-match
           (rx (group
 	       (regexp tramp-prefix-regexp)
+	       (* (regexp tramp-remote-file-name-spec-regexp)
+		  (regexp tramp-postfix-hop-regexp))
                (group (regexp tramp-method-regexp))
 	       (regexp tramp-postfix-method-regexp)
 	       (? (regexp tramp-user-regexp)
-	          (regexp tramp-postfix-user-regexp))))
+	          (regexp tramp-postfix-user-regexp)))
+	      (? (| (regexp tramp-host-regexp)
+                    (: (regexp tramp-prefix-ipv6-regexp)
+		       (? (regexp tramp-ipv6-regexp)
+			  (? (regexp tramp-postfix-ipv6-regexp))))))
+	      eos)
           filename)
          ;; Is it a valid method?
-         (assoc (match-string 2 filename) tramp-methods))
-    (match-string 1 filename))
-   ((and (string-empty-p tramp-method-regexp)
-         (string-match
-          (rx (group
-	       (regexp tramp-prefix-regexp)
-	       (? (regexp tramp-user-regexp)
-	          (regexp tramp-postfix-user-regexp))))
-          filename))
-    (match-string 1 filename))
-   ((string-match
-     (rx (group (regexp tramp-prefix-regexp))
-         (regexp tramp-completion-method-regexp) eos)
-     filename)
+	 (or (tramp-string-empty-or-nil-p (match-string 2 filename))
+             (assoc (match-string 2 filename) tramp-methods)))
     (match-string 1 filename))
    (t (tramp-run-real-handler #'file-name-directory (list filename)))))
 
