@@ -1898,6 +1898,10 @@ instead; it will indirectly limit the specpdl stack size as well.")
                         'native-comp-enable-subr-trampolines
                         "29.1")
 
+(make-obsolete-variable 'native-comp-deferred-compilation
+                        'native-comp-jit-compilation
+                        "29.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 

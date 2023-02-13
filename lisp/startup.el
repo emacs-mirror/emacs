@@ -542,7 +542,7 @@ DIRS are relative."
   (setq comp--compilable t))
 
 (defvar native-comp-eln-load-path)
-(defvar native-comp-deferred-compilation)
+(defvar native-comp-jit-compilation)
 (defvar native-comp-enable-subr-trampolines)
 
 (defvar startup--original-eln-load-path nil
@@ -597,7 +597,7 @@ It is the default value of the variable `top-level'."
         ;; in this session.  This is necessary if libgccjit is not
         ;; available on MS-Windows, but Emacs was built with
         ;; native-compilation support.
-        (setq native-comp-deferred-compilation nil
+        (setq native-comp-jit-compilation nil
               native-comp-enable-subr-trampolines nil))
 
       ;; Form `native-comp-eln-load-path'.

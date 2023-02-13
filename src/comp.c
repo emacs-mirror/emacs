@@ -5173,7 +5173,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (!load_gccjit_if_necessary (false))
     return;
 
-  if (!native_comp_deferred_compilation
+  if (!native_comp_jit_compilation
       || noninteractive
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
@@ -5677,13 +5677,13 @@ For internal use.  */);
 	       doc: /* Non-nil when comp.el can be native compiled.
 For internal use. */);
   /* Compiler control customizes.  */
-  DEFVAR_BOOL ("native-comp-deferred-compilation",
-	       native_comp_deferred_compilation,
+  DEFVAR_BOOL ("native-comp-jit-compilation",
+	       native_comp_jit_compilation,
 	       doc: /* If non-nil compile loaded .elc files asynchronously.
 
 After compilation, each function definition is updated to the native
 compiled one.  */);
-  native_comp_deferred_compilation = true;
+  native_comp_jit_compilation = true;
 
   DEFSYM (Qnative_comp_speed, "native-comp-speed");
   DEFSYM (Qnative_comp_debug, "native-comp-debug");
