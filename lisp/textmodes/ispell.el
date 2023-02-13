@@ -318,7 +318,9 @@ window system by evaluating the following on startup to set this variable:
 ;;;###autoload
 (defcustom ispell-personal-dictionary nil
   "File name of your personal spelling dictionary, or nil.
-If nil, the default personal dictionary for your spelling checker is used."
+If nil, the default personal dictionary for your spelling checker is used.
+Due to a misfeature of Hunspell, if the value is an absolute file name, the
+file by that name must already exist for Hunspell to be able to use it."
   :type '(choice file
                  (const :tag "default" nil)))
 
@@ -1730,7 +1732,10 @@ If you specify a personal dictionary for the current buffer which is
 different from the current personal dictionary, the effect is similar
 to calling \\[ispell-change-dictionary].  This variable is automatically
 set when defined in the file with either `ispell-pdict-keyword' or the
-local variable syntax.")
+local variable syntax.
+
+Due to a misfeature of Hunspell, if the value is an absolute file name, the
+file by that name must already exist for Hunspell to be able to use it.")
 
 ;;;###autoload(put 'ispell-local-pdict 'safe-local-variable 'stringp)
 
