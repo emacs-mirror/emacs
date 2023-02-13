@@ -1734,6 +1734,19 @@ included; callers should bind `case-fold-search' to t."
   :version "27.1"
   :group 'processes)
 
+;; (describe-char-fold-equivalences ?:)
+;; The last entry is taken from history.
+(defcustom password-colon-equivalents
+  '(?\N{COLON}
+    ?\N{FULLWIDTH COLON}
+    ?\N{SMALL COLON}
+    ?\N{PRESENTATION FORM FOR VERTICAL COLON}
+    ?\N{KHMER SIGN CAMNUC PII KUUH})
+  "List of characters equivalent to trailing colon in \"password\" prompts."
+  :type '(repeat character)
+  :version "30.1"
+  :group 'processes)
+
 ;; The old code-pages library is obsoleted by coding systems based on
 ;; the charsets defined in this file but might be required by user
 ;; code.

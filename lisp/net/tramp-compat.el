@@ -275,6 +275,19 @@ Add the extension of F, if existing."
       (autoload 'netrc-parse "netrc")
       (netrc-parse file))))
 
+;; User option `password-colon-equivalents' is new in Emacs 30.1.
+(if (boundp 'password-colon-equivalents)
+    (defvaralias
+      'tramp-compat-password-colon-equivalents
+      'password-colon-equivalents)
+  (defvar tramp-compat-password-colon-equivalents
+    '(?\N{COLON}
+      ?\N{FULLWIDTH COLON}
+      ?\N{SMALL COLON}
+      ?\N{PRESENTATION FORM FOR VERTICAL COLON}
+      ?\N{KHMER SIGN CAMNUC PII KUUH})
+    "List of characters equivalent to trailing colon in \"password\" prompts."))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

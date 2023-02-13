@@ -641,10 +641,11 @@ This regexp must match both `tramp-initial-end-of-output' and
   :type 'regexp)
 
 (defcustom tramp-password-prompt-regexp
-  (rx
-   bol (* nonl)
-   (group (regexp (regexp-opt password-word-equivalents)))
-   (* nonl) (any ":：៖") (? "\^@") (* blank))
+  (rx-to-string
+   `(: bol (* nonl)
+       (group (| . ,password-word-equivalents))
+       (* nonl) (any . ,tramp-compat-password-colon-equivalents)
+       (? "\^@") (* blank)))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
