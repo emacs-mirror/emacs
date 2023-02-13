@@ -4101,7 +4101,7 @@ by calling `format-decode', which see.  */)
       else
 	{
 	  /* Don't try looking inside a file for a coding system
-	     specification if it is not seekable.  */
+	     specification if it is not a regular file.  */
 	  if (regular && !NILP (Vset_auto_coding_function))
 	    {
 	      /* Find a coding system specified in the heading two
