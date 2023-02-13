@@ -1153,9 +1153,10 @@ saved bounds.  In that case it is equivalent to
   body)
 @end example
 
-When the optional @var{label} symbol argument is present however, the
-narrowing is labeled.  A labeled narrowing differs from a non-labeled
-one in several ways:
+@cindex labeled narrowing
+When the optional argument @var{label}, a symbol, is present, the
+narrowing is @dfn{labeled}.  A labeled narrowing differs from a
+non-labeled one in several ways:
 
 @itemize @bullet
 @item
@@ -1178,6 +1179,11 @@ Labeled narrowings can only be used in Lisp programs: they are never
 visible on display, and never interfere with narrowings set by the
 user.
 @end itemize
+
+If you use @code{with-restriction} with the optional @var{label}
+argument, we recommend documenting the @var{label} in the doc strings
+of the functions which use it, so that other Lisp programs your code
+calls could lift the labeled narrowing if and when it needs.
 @end defspec
 
 @defspec without-restriction [:label label] body
@@ -1191,7 +1197,7 @@ restores the saved bounds.  In that case it is equivalent to
   body)
 @end example
 
-When the optional @var{label} argument is present however, the
-narrowing set by @code{with-restriction} with the same @var{label}
-argument is lifted.
+When the optional argument @var{label} is present, the narrowing set
+by @code{with-restriction} with the same @var{label} argument is
+lifted.
 @end defspec
