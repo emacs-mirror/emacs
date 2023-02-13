@@ -71,50 +71,9 @@ mistaken compositions, this will now work as well.
 This works like 'kill-matching-buffers', but without asking for
 confirmation.
 
-+++
-** New helper variable 'transpose-sexps-function'.
-Emacs now can set this variable to customize the behavior of the
-'transpose-sexps' function.
-
-+++
-** New function 'transpose-sexps-default-function'.
-The previous implementation is moved into its own function, to be
-bound by 'transpose-sexps-function'.
-
-** New function 'treesit-transpose-sexps'.
-Tree-sitter now unconditionally sets 'transpose-sexps-function' for all
-tree-sitter enabled modes.  This functionality utilizes the new
-'transpose-sexps-function'.
-
-** Commands and variables to move by program statements
-
-*** New variable 'forward-sentence-function'.
-Major modes can now set this variable to customize the behavior of the
-'forward-sentence' command.
-
-*** New function 'forward-sentence-default-function'.
-The previous implementation of 'forward-sentence' is moved into its
-own function, to be bound by 'forward-sentence-function'.
-
-*** New buffer-local variable 'treesit-sentence-type-regexp'.
-Similarly to 'treesit-defun-type-regexp', this variable is used to
-define "sentences" in tree-sitter enabled modes.
-
-*** New function 'treesit-forward-sentence'.
-All tree-sitter enabled modes that define 'treesit-sentence-type-regexp'
-now set 'forward-sentence-function' to call 'treesit-forward-sentence'.
-
-*** New buffer-local variable 'treesit-sexp-type-regexp'.
-Similarly to 'treesit-defun-type-regexp', this variable is used to
-define "sexps" in tree-sitter enabled modes.
-
-*** New function 'treesit-forward-sexp'.
-Tree-sitter conditionally sets 'forward-sexp-function' for major modes
-that have defined 'treesit-sexp-type-regexp' to enable sexp-related
-motion commands.
-
 
 * Changes in Specialized Modes and Packages in Emacs 30.1
+
 ---
 ** Variable order and truncation can now be configured in 'gdb-many-windows'.
 The new user option 'gdb-locals-table-row-config' allows users to
@@ -239,6 +198,52 @@ This user option has been obsoleted in Emacs 27, use
 
 
 * Lisp Changes in Emacs 30.1
+
+** Functions and variables to transpose sexps
+
++++
+*** New helper variable 'transpose-sexps-function'.
+Emacs now can set this variable to customize the behavior of the
+'transpose-sexps' function.
+
++++
+*** New function 'transpose-sexps-default-function'.
+The previous implementation is moved into its own function, to be
+bound by 'transpose-sexps-function'.
+
+*** New function 'treesit-transpose-sexps'.
+Tree-sitter now unconditionally sets 'transpose-sexps-function' for all
+tree-sitter enabled modes.  This functionality utilizes the new
+'transpose-sexps-function'.
+
+** Functions and variables to move by program statements
+
+*** New variable 'forward-sentence-function'.
+Major modes can now set this variable to customize the behavior of the
+'forward-sentence' command.
+
+*** New function 'forward-sentence-default-function'.
+The previous implementation of 'forward-sentence' is moved into its
+own function, to be bound by 'forward-sentence-function'.
+
+*** New buffer-local variable 'treesit-sentence-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sentences" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sentence'.
+All tree-sitter enabled modes that define 'treesit-sentence-type-regexp'
+now set 'forward-sentence-function' to call 'treesit-forward-sentence'.
+
+** Functions and variables to move by program sexps
+
+*** New buffer-local variable 'treesit-sexp-type-regexp'.
+Similarly to 'treesit-defun-type-regexp', this variable is used to
+define "sexps" in tree-sitter enabled modes.
+
+*** New function 'treesit-forward-sexp'.
+Tree-sitter conditionally sets 'forward-sexp-function' for major modes
+that have defined 'treesit-sexp-type-regexp' to enable sexp-related
+motion commands.
 
 ** New or changed byte-compilation warnings
 
