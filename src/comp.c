@@ -5858,7 +5858,8 @@ The last directory of this list is assumed to be the system one.  */);
      dump reload.  */
   Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
-  DEFVAR_LISP ("comp-enable-subr-trampolines", Vcomp_enable_subr_trampolines,
+  DEFVAR_LISP ("native-comp-enable-subr-trampolines",
+	       Vnative_comp_enable_subr_trampolines,
 	       doc: /* If non-nil, enable primitive trampoline synthesis.
 This makes Emacs respect redefinition or advises of primitive functions
 when they are called from Lisp code natively-compiled at `native-comp-speed'

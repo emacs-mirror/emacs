@@ -543,7 +543,7 @@ DIRS are relative."
 
 (defvar native-comp-eln-load-path)
 (defvar native-comp-deferred-compilation)
-(defvar comp-enable-subr-trampolines)
+(defvar native-comp-enable-subr-trampolines)
 
 (defvar startup--original-eln-load-path nil
   "Original value of `native-comp-eln-load-path'.")
@@ -598,7 +598,7 @@ It is the default value of the variable `top-level'."
         ;; available on MS-Windows, but Emacs was built with
         ;; native-compilation support.
         (setq native-comp-deferred-compilation nil
-              comp-enable-subr-trampolines nil))
+              native-comp-enable-subr-trampolines nil))
 
       ;; Form `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))

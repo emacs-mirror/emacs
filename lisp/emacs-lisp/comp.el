@@ -700,7 +700,7 @@ Useful to hook into pass checkers.")
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (or (null comp-enable-subr-trampolines)
+  (unless (or (null native-comp-enable-subr-trampolines)
               (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
@@ -3790,8 +3790,8 @@ Return the trampoline if found or nil otherwise."
 (defun comp--trampoline-abs-filename (subr-name)
   "Return the absolute filename for a trampoline for SUBR-NAME."
   (cl-loop
-   with dirs = (if (stringp comp-enable-subr-trampolines)
-                   (list comp-enable-subr-trampolines)
+   with dirs = (if (stringp native-comp-enable-subr-trampolines)
+                   (list native-comp-enable-subr-trampolines)
                  (if native-compile-target-directory
                      (list (expand-file-name comp-native-version-dir
                                              native-compile-target-directory))
