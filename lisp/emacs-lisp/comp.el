@@ -105,7 +105,12 @@ during bootstrap."
     ;; correctly (see comment in `advice--add-function'). DO NOT
     ;; REMOVE.
     macroexpand rename-buffer)
-  "Primitive functions to exclude from trampoline optimization."
+  "Primitive functions to exclude from trampoline optimization.
+
+Primitive functions included in this list will not be called
+directly by the native code being compiled, this makes
+tranpolines for those primitives not necessary in case of
+function redefinition/advise."
   :type '(repeat symbol)
   :version "28.1")
 
