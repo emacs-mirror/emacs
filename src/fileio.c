@@ -3908,7 +3908,6 @@ by calling `format-decode', which see.  */)
   int fd;
   ptrdiff_t inserted = 0;
   ptrdiff_t how_much;
-  off_t beg_offset, end_offset;
   int unprocessed;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object handler, val, insval, orig_filename, old_undo;
@@ -3970,6 +3969,17 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
+  if (!NILP (visit))
+    {
+      if (!NILP (beg) || !NILP (end))
+	error ("Attempt to visit less than an entire file");
+      if (BEG < Z && NILP (replace))
+	error ("Cannot do file visiting in a non-empty buffer");
+    }
+
+  off_t beg_offset = !NILP (beg) ? file_offset (beg) : 0;
+  off_t end_offset = !NILP (end) ? file_offset (end) : -1;
+
   orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
@@ -4030,22 +4040,7 @@ by calling `format-decode', which see.  */)
 		  build_string ("not a regular file"), orig_filename);
     }
 
-  if (!NILP (visit))
-    {
-      if (!NILP (beg) || !NILP (end))
-	error ("Attempt to visit less than an entire file");
-      if (BEG < Z && NILP (replace))
-	error ("Cannot do file visiting in a non-empty buffer");
-    }
-
-  if (!NILP (beg))
-    beg_offset = file_offset (beg);
-  else
-    beg_offset = 0;
-
-  if (!NILP (end))
-    end_offset = file_offset (end);
-  else
+  if (end_offset < 0)
     {
       if (!regular)
 	end_offset = TYPE_MAXIMUM (off_t);
