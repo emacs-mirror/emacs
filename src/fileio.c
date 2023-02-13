@@ -4119,7 +4119,7 @@ by calling `format-decode', which see.  */)
 		  if (nread == 1024)
 		    {
 		      int ntail;
-		      if (lseek (fd, - (1024 * 3), SEEK_END) < 0)
+		      if (lseek (fd, st.st_size - 1024 * 3, SEEK_CUR) < 0)
 			report_file_error ("Setting file position",
 					   orig_filename);
 		      ntail = emacs_read_quit (fd, read_buf + nread, 1024 * 3);
