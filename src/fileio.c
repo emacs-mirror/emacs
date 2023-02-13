@@ -4022,7 +4022,6 @@ by calling `format-decode', which see.  */)
   if (!S_ISREG (st.st_mode))
     {
       regular = false;
-      seekable = lseek (fd, 0, SEEK_CUR) < 0;
 
       if (! NILP (visit))
         {
@@ -4030,14 +4029,15 @@ by calling `format-decode', which see.  */)
 	  goto notfound;
         }
 
+      if (!NILP (replace))
+	xsignal2 (Qfile_error,
+		  build_string ("not a regular file"), orig_filename);
+
+      seekable = lseek (fd, 0, SEEK_CUR) < 0;
       if (!NILP (beg) && !seekable)
 	xsignal2 (Qfile_error,
 		  build_string ("cannot use a start position in a non-seekable file/device"),
 		  orig_filename);
-
-      if (!NILP (replace))
-	xsignal2 (Qfile_error,
-		  build_string ("not a regular file"), orig_filename);
     }
 
   if (end_offset < 0)
