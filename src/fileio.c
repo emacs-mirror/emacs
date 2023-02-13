@@ -3907,7 +3907,6 @@ by calling `format-decode', which see.  */)
   struct timespec mtime;
   int fd;
   ptrdiff_t inserted = 0;
-  ptrdiff_t how_much;
   int unprocessed;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object handler, val, insval, orig_filename, old_undo;
@@ -3920,7 +3919,8 @@ by calling `format-decode', which see.  */)
   bool replace_handled = false;
   bool set_coding_system = false;
   Lisp_Object coding_system;
-  bool read_quit = false;
+  /* Negative if read error, 0 if OK so far, positive if quit.  */
+  ptrdiff_t read_quit = 0;
   /* If the undo log only contains the insertion, there's no point
      keeping it.  It's typically when we first fill a file-buffer.  */
   bool empty_undo_list_p
@@ -4404,7 +4404,7 @@ by calling `format-decode', which see.  */)
       ptrdiff_t bufpos;
       unsigned char *decoded;
       ptrdiff_t temp;
-      ptrdiff_t this = 0;
+      ptrdiff_t this;
       specpdl_ref this_count = SPECPDL_INDEX ();
       bool multibyte
 	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -4580,20 +4580,18 @@ by calling `format-decode', which see.  */)
     }
 
   move_gap_both (PT, PT_BYTE);
-  if (GAP_SIZE < total)
-    make_gap (total - GAP_SIZE);
+
+  /* Ensure the gap is at least one byte larger than needed for the
+     estimated file size, so that in the usual case we read to EOF
+     without reallocating.  */
+  if (GAP_SIZE <= total)
+    make_gap (total - GAP_SIZE + 1);
 
   if (beg_offset != 0 || !NILP (replace))
     {
       if (lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);
     }
-
-  /* In the following loop, HOW_MUCH contains the total bytes read so
-     far for a regular file, and not changed for a special file.  But,
-     before exiting the loop, it is set to a negative value if I/O
-     error occurs.  */
-  how_much = 0;
 
   /* Total bytes inserted.  */
   inserted = 0;
@@ -4603,22 +4601,25 @@ by calling `format-decode', which see.  */)
   {
     ptrdiff_t gap_size = GAP_SIZE;
 
-    while (how_much < total)
+    while (NILP (end) || inserted < total)
       {
-	/* `try' is reserved in some compilers (Microsoft C).  */
-	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
 	ptrdiff_t this;
+
+	if (gap_size == 0)
+	  {
+	    /* The size estimate was wrong.  Make the gap 50% larger.  */
+	    make_gap (GAP_SIZE >> 1);
+	    gap_size = GAP_SIZE - inserted;
+	  }
+
+	/* 'try' is reserved in some compilers (Microsoft C).  */
+	ptrdiff_t trytry = min (gap_size, READ_BUF_SIZE);
+	if (!NILP (end))
+	  trytry = min (trytry, total - inserted);
 
 	if (!seekable && NILP (end))
 	  {
 	    Lisp_Object nbytes;
-
-	    /* Maybe make more room.  */
-	    if (gap_size < trytry)
-	      {
-		make_gap (trytry - gap_size);
-		gap_size = GAP_SIZE - inserted;
-	      }
 
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
@@ -4630,7 +4631,7 @@ by calling `format-decode', which see.  */)
 
 	    if (NILP (nbytes))
 	      {
-		read_quit = true;
+		read_quit = 1;
 		break;
 	      }
 
@@ -4649,19 +4650,11 @@ by calling `format-decode', which see.  */)
 
 	if (this <= 0)
 	  {
-	    how_much = this;
+	    read_quit = this;
 	    break;
 	  }
 
 	gap_size -= this;
-
-	/* For a regular file, where TOTAL is the real size,
-	   count HOW_MUCH to compare with it.
-	   For a special file, where TOTAL is just a buffer size,
-	   so don't bother counting in HOW_MUCH.
-	   (INSERTED is where we count the number of characters inserted.)  */
-	if (seekable || !NILP (end))
-	  how_much += this;
 	inserted += this;
       }
   }
@@ -4682,7 +4675,7 @@ by calling `format-decode', which see.  */)
   emacs_close (fd);
   clear_unwind_protect (fd_index);
 
-  if (how_much < 0)
+  if (read_quit < 0)
     report_file_error ("Read error", orig_filename);
 
  notfound:
