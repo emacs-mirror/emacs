@@ -3782,6 +3782,28 @@ Return the trampoline if found or nil otherwise."
    when (file-exists-p filename)
      do (cl-return (native-elisp-load filename))))
 
+(defun comp--trampoline-abs-filename (subr-name)
+  "Return the absolute filename for a trampoline for SUBR-NAME."
+  (cl-loop
+   with dirs = (if (stringp comp-enable-subr-trampolines)
+                   (list comp-enable-subr-trampolines)
+                 (if native-compile-target-directory
+                     (list (expand-file-name comp-native-version-dir
+                                             native-compile-target-directory))
+                   (comp-eln-load-path-eff)))
+   for dir in dirs
+   for f = (expand-file-name
+            (comp-trampoline-filename subr-name)
+            dir)
+   unless (file-exists-p dir)
+     do (ignore-errors
+          (make-directory dir t)
+          (cl-return f))
+   when (file-writable-p f)
+     do (cl-return f)
+   finally (error "Cannot find suitable directory for output in \
+`native-comp-eln-load-path'")))
+
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
   (let* ((lambda-list (comp-make-lambda-list-from-subr
@@ -3803,22 +3825,7 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     (cl-loop
-      for dir in (if native-compile-target-directory
-                     (list (expand-file-name comp-native-version-dir
-                                             native-compile-target-directory))
-                   (comp-eln-load-path-eff))
-      for f = (expand-file-name
-               (comp-trampoline-filename subr-name)
-               dir)
-      unless (file-exists-p dir)
-        do (ignore-errors
-             (make-directory dir t)
-             (cl-return f))
-      when (file-writable-p f)
-        do (cl-return f)
-      finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'")))))
+     (comp--trampoline-abs-filename subr-name))))
 
 
 ;; Some entry point support code.
