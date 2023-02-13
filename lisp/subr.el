@@ -1895,7 +1895,7 @@ instead; it will indirectly limit the specpdl stack size as well.")
 (make-obsolete-variable 'max-specpdl-size nil "29.1")
 
 (make-obsolete-variable 'native-comp-deferred-compilation
-                        'inhibit-automatic-native-compilation "29.1")
+                        'inhibit-native-compilation "29.1")
 
 
 ;;;; Alternate names for functions - these are not being phased out.

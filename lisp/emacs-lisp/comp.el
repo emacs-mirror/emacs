@@ -3805,7 +3805,7 @@ Return the trampoline if found or nil otherwise."
      form nil
      ;; If we've disabled nativecomp, don't write the trampolines to
      ;; the eln cache (but create them).
-     (and (not inhibit-automatic-native-compilation)
+     (and (not inhibit-native-compilation)
           (cl-loop
            for dir in (if native-compile-target-directory
                           (list (expand-file-name comp-native-version-dir
