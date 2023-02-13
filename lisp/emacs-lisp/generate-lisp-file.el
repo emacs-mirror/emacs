@@ -103,7 +103,7 @@ if it's also byte-compiled)."
       (insert ";; no-byte-" "compile: t\n"))
     (unless autoloads
       (insert ";; no-update-autoloads: t\n"))
-    (when inhibit-native-compile
+    (unless native-comp-deferred-compilation
       (insert ";; no-native-" "compile: t\n"))
     (when coding
       (insert (format ";; coding: %s\n"

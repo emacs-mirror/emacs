@@ -4107,14 +4107,12 @@ the deferred compilation mechanism."
                   data
                 ;; So we return the compiled function.
                 (native-elisp-load data)))
-          ;; We may have created a temporary file when we're being
-          ;; called with something other than a file as the argument.
-          ;; Delete it if we can.
           (when (and (not (stringp function-or-file))
                      (not output)
                      comp-ctxt
                      (comp-ctxt-output comp-ctxt)
                      (file-exists-p (comp-ctxt-output comp-ctxt)))
+            ;; NOTE: Not sure if we want to remove this or being cautious.
             (cond ((eq 'windows-nt system-type)
                    ;; We may still be using the temporary .eln file.
                    (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
