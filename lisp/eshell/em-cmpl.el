@@ -74,9 +74,7 @@
 (require 'esh-util)
 (require 'em-dirs)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'eshell))
+(eval-when-compile (require 'cl-lib))
 
 ;;;###autoload
 (progn

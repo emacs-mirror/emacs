@@ -200,6 +200,11 @@ This is used by `eshell-watch-for-password-prompt'."
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
 
+(defvar eshell-non-interactive-p nil
+  "A variable which is non-nil when Eshell is not running interactively.
+Modules should use this variable so that they don't clutter
+non-interactive sessions, such as when using `eshell-command'.")
+
 ;; Internal Variables:
 
 ;; these are only set to nil initially for the sake of the

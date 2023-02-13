@@ -59,8 +59,6 @@
 (require 'ring)
 (require 'esh-opt)
 (require 'esh-mode)
-(require 'em-pred)
-(require 'eshell)
 
 ;;;###autoload
 (progn
@@ -769,6 +767,8 @@ matched."
 
 (defun eshell-hist-parse-modifier (hist reference)
   "Parse a history modifier beginning for HIST in REFERENCE."
+  (cl-assert (eshell-using-module 'em-pred))
+  (declare-function eshell-parse-modifiers "em-pred" ())
   (let ((here (point)))
     (insert reference)
     (prog1

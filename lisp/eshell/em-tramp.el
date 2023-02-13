@@ -29,8 +29,7 @@
 (require 'esh-cmd)
 
 (eval-when-compile
-  (require 'esh-mode)
-  (require 'eshell))
+  (require 'esh-mode))
 
 (require 'tramp)
 

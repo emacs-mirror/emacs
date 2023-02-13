@@ -25,8 +25,6 @@
 
 (require 'cl-lib)
 (require 'esh-util)
-(eval-when-compile
-  (require 'eshell))
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.

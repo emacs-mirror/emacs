@@ -53,9 +53,10 @@
 
 ;;; Code:
 
-(require 'esh-util)
-(require 'eshell)
+(require 'esh-cmd)
+(require 'esh-io)
 (require 'esh-opt)
+(require 'esh-util)
 
 ;;;###autoload
 (progn

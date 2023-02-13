@@ -49,8 +49,9 @@
 
 ;;; Code:
 
+(require 'esh-arg)
+(require 'esh-module)
 (require 'esh-util)
-(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn

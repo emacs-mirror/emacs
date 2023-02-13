@@ -267,10 +267,7 @@ information on Eshell, see Info node `(eshell)Top'."
 (define-obsolete-function-alias 'eshell-return-exits-minibuffer
   #'eshell-command-mode "28.1")
 
-(defvar eshell-non-interactive-p nil
-  "A variable which is non-nil when Eshell is not running interactively.
-Modules should use this variable so that they don't clutter
-non-interactive sessions, such as when using `eshell-command'.")
+(defvar eshell-non-interactive-p)       ; Defined in esh-mode.el.
 
 (declare-function eshell-add-input-to-history "em-hist" (input))
 
