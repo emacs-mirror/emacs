@@ -3961,10 +3961,9 @@ same LABEL argument.
 (defun internal--with-narrowing (start end body &optional label)
   "Helper function for `with-narrowing', which see."
   (save-restriction
-    (progn
-      (narrow-to-region start end)
-      (if label (internal--lock-narrowing label))
-      (funcall body))))
+    (narrow-to-region start end)
+    (if label (internal--lock-narrowing label))
+    (funcall body)))
 
 (defmacro without-narrowing (&rest rest)
   "Execute BODY without restrictions.
@@ -3984,10 +3983,9 @@ are lifted.
 (defun internal--without-narrowing (body &optional label)
   "Helper function for `without-narrowing', which see."
   (save-restriction
-    (progn
-      (if label (internal--unlock-narrowing label))
-      (widen)
-      (funcall body))))
+    (if label (internal--unlock-narrowing label))
+    (widen)
+    (funcall body)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.

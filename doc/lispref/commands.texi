@@ -100,8 +100,8 @@ emacs, The GNU Emacs Manual}) runs these two hooks just as a keyboard
 command does.
 
   Note that, when the buffer text includes very long lines, these two
-hooks are called as if they were in a @code{with-narrowing} form (see
-@ref{Narrowing}), with a
+hooks are called as if they were in a @code{with-narrowing} form
+(@pxref{Narrowing}), with a
 @code{long-line-optimizations-in-command-hooks} label and with the
 buffer narrowed to a portion around point.
 

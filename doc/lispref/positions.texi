@@ -1193,5 +1193,5 @@ restores the saved bounds.  In that case it is equivalent to
 
 When the optional @var{label} argument is present however, the
 narrowing set by @code{with-narrowing} with the same @var{label}
-argument are lifted.
+argument is lifted.
 @end defspec

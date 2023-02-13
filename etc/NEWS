@@ -619,8 +619,9 @@ In buffers in which these display optimizations are in effect, the
 'fontification-functions', 'pre-command-hook' and 'post-command-hook'
 hooks are executed on a narrowed portion of the buffer, whose size is
 controlled by the options 'long-line-optimizations-region-size' and
-'long-line-optimizations-bol-search-limit'.  This may, in particular,
-cause occasional mis-fontifications in these buffers.
+'long-line-optimizations-bol-search-limit', as if they were in a
+'with-narrowing' form.  This may, in particular, cause occasional
+mis-fontifications in these buffers.
 
 The new function 'long-line-optimizations-p' returns non-nil when
 these optimizations are in effect in the current buffer.
