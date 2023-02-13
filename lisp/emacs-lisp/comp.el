@@ -3803,25 +3803,22 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     ;; If we've disabled nativecomp, don't write the trampolines to
-     ;; the eln cache (but create them).
-     (and (not inhibit-native-compilation)
-          (cl-loop
-           for dir in (if native-compile-target-directory
-                          (list (expand-file-name comp-native-version-dir
-                                                  native-compile-target-directory))
-                        (comp-eln-load-path-eff))
-           for f = (expand-file-name
-                    (comp-trampoline-filename subr-name)
-                    dir)
-           unless (file-exists-p dir)
-           do (ignore-errors
-                (make-directory dir t)
-                (cl-return f))
-           when (file-writable-p f)
-           do (cl-return f)
-           finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'"))))))
+     (cl-loop
+      for dir in (if native-compile-target-directory
+                     (list (expand-file-name comp-native-version-dir
+                                             native-compile-target-directory))
+                   (comp-eln-load-path-eff))
+      for f = (expand-file-name
+               (comp-trampoline-filename subr-name)
+               dir)
+      unless (file-exists-p dir)
+        do (ignore-errors
+             (make-directory dir t)
+             (cl-return f))
+      when (file-writable-p f)
+        do (cl-return f)
+      finally (error "Cannot find suitable directory for output in \
+`native-comp-eln-load-path'")))))
 
 
 ;; Some entry point support code.

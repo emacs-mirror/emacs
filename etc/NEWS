@@ -199,14 +199,6 @@ load time.
 ** Native Compilation
 
 +++
-*** New variable 'inhibit-native-compilation'.
-If set, Emacs will inhibit native compilation (and won't write
-anything to the eln cache automatically).  The variable is initialised
-from the EMACS_INHIBIT_NATIVE_COMPILATION environment variable on
-Emacs startup.
-
-
----
 *** New command 'native-compile-prune-cache'.
 This command deletes old subdirectories of the eln cache (but not the
 ones for the current Emacs version).  Note that subdirectories of the
