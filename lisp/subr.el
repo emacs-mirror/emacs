@@ -3946,25 +3946,46 @@ See also `locate-user-emacs-file'.")
 
 The current restrictions, if any, are restored upon return.
 
-With the optional :locked TAG argument, inside BODY,
-`narrow-to-region' and `widen' can be used only within the START
-and END limits, unless the restrictions are unlocked by calling
-`narrowing-unlock' with TAG.  See `narrowing-lock' for a more
-detailed description.
+When the optional :label LABEL argument is present, in which
+LABEL is a symbol, inside BODY, `narrow-to-region' and `widen'
+can be used only within the START and END limits.  To gain access
+to other portions of the buffer, use `without-narrowing' with the
+same LABEL argument.
 
-\(fn START END [:locked TAG] BODY)"
-  (if (eq (car rest) :locked)
+\(fn START END [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
       `(internal--with-narrowing ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))
     `(internal--with-narrowing ,start ,end (lambda () ,@rest))))
 
-(defun internal--with-narrowing (start end body &optional tag)
+(defun internal--with-narrowing (start end body &optional label)
   "Helper function for `with-narrowing', which see."
   (save-restriction
-    (progn
-      (narrow-to-region start end)
-      (if tag (narrowing-lock tag))
-      (funcall body))))
+    (narrow-to-region start end)
+    (if label (internal--lock-narrowing label))
+    (funcall body)))
+
+(defmacro without-narrowing (&rest rest)
+  "Execute BODY without restrictions.
+
+The current restrictions, if any, are restored upon return.
+
+When the optional :label LABEL argument is present, the
+restrictions set by `with-narrowing' with the same LABEL argument
+are lifted.
+
+\(fn [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
+      `(internal--without-narrowing (lambda () ,@(cddr rest))
+                                    ,(cadr rest))
+    `(internal--without-narrowing (lambda () ,@rest))))
+
+(defun internal--without-narrowing (body &optional label)
+  "Helper function for `without-narrowing', which see."
+  (save-restriction
+    (if label (internal--unlock-narrowing label))
+    (widen)
+    (funcall body)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.

@@ -942,6 +942,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bsave_restriction):
 	  record_unwind_protect (save_restriction_restore,
 				 save_restriction_save ());
+	  record_unwind_protect (narrowing_locks_restore,
+				 narrowing_locks_save ());
 	  NEXT;
 
 	CASE (Bcatch):		/* Obsolete since 25.  */
