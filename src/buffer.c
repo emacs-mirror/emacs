@@ -5924,7 +5924,7 @@ This variable has effect only in buffers in which
 `long-line-optimizations-p' is non-nil.  For performance reasons, in
 such buffers, the `fontification-functions', `pre-command-hook' and
 `post-command-hook' hooks are executed on a narrowed buffer around
-point, as if they were called in a `with-narrowing' form with a label.
+point, as if they were called in a `with-restriction' form with a label.
 This variable specifies the size of the narrowed region around point.
 
 To disable that narrowing, set this variable to 0.
@@ -5942,7 +5942,7 @@ This variable has effect only in buffers in which
 `long-line-optimizations-p' is non-nil.  For performance reasons, in
 such buffers, the `fontification-functions', `pre-command-hook' and
 `post-command-hook' hooks are executed on a narrowed buffer around
-point, as if they were called in a `with-narrowing' form with a label.
+point, as if they were called in a `with-restriction' form with a label.
 The variable `long-line-optimizations-region-size' specifies the
 size of the narrowed region around point.  This variable, which should
 be a small integer, specifies the number of characters by which that

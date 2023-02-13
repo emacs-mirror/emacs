@@ -8540,12 +8540,12 @@ Finally, kill the buffer and its temporary file."
       )))
 
 (ert-deftest test-labeled-narrowing ()
-  "Test `with-narrowing' and `without-narrowing'."
+  "Test `with-restriction' and `without-restriction'."
   (with-current-buffer (generate-new-buffer " foo" t)
     (insert (make-string 5000 ?a))
     (should (= (point-min) 1))
     (should (= (point-max) 5001))
-    (with-narrowing
+    (with-restriction
      100 500 :label 'foo
      (should (= (point-min) 100))
      (should (= (point-max) 500))
@@ -8564,11 +8564,11 @@ Finally, kill the buffer and its temporary file."
      (narrow-to-region 400 1000)
      (should (= (point-min) 400))
      (should (= (point-max) 500))
-     (without-narrowing
+     (without-restriction
       :label 'bar
       (should (= (point-min) 100))
       (should (= (point-max) 500)))
-     (without-narrowing
+     (without-restriction
       :label 'foo
       (should (= (point-min) 1))
       (should (= (point-max) 5001)))
@@ -8577,18 +8577,18 @@ Finally, kill the buffer and its temporary file."
      (widen)
      (should (= (point-min) 100))
      (should (= (point-max) 500))
-     (with-narrowing
+     (with-restriction
       50 250 :label 'bar
       (should (= (point-min) 100))
       (should (= (point-max) 250))
       (widen)
       (should (= (point-min) 100))
       (should (= (point-max) 250))
-      (without-narrowing
+      (without-restriction
        :label 'bar
        (should (= (point-min) 100))
        (should (= (point-max) 500))
-       (without-narrowing
+       (without-restriction
         :label 'foo
         (should (= (point-min) 1))
         (should (= (point-max) 5001)))
@@ -8598,39 +8598,39 @@ Finally, kill the buffer and its temporary file."
       (should (= (point-max) 250)))
      (should (= (point-min) 100))
      (should (= (point-max) 500))
-     (with-narrowing
+     (with-restriction
       50 250 :label 'bar
       (should (= (point-min) 100))
       (should (= (point-max) 250))
-      (with-narrowing
+      (with-restriction
        150 500 :label 'baz
        (should (= (point-min) 150))
        (should (= (point-max) 250))
-       (without-narrowing
+       (without-restriction
         :label 'bar
         (should (= (point-min) 150))
         (should (= (point-max) 250)))
-       (without-narrowing
+       (without-restriction
         :label 'foo
         (should (= (point-min) 150))
         (should (= (point-max) 250)))
-       (without-narrowing
+       (without-restriction
         :label 'baz
         (should (= (point-min) 100))
         (should (= (point-max) 250))
-        (without-narrowing
+        (without-restriction
          :label 'foo
          (should (= (point-min) 100))
          (should (= (point-max) 250)))
-        (without-narrowing
+        (without-restriction
          :label 'bar
          (should (= (point-min) 100))
          (should (= (point-max) 500))
-         (without-narrowing
+         (without-restriction
           :label 'foobar
           (should (= (point-min) 100))
           (should (= (point-max) 500)))
-         (without-narrowing
+         (without-restriction
           :label 'foo
           (should (= (point-min) 1))
           (should (= (point-max) 5001)))

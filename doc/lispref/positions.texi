@@ -1037,12 +1037,12 @@ positions.
 In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
 
-However, when the narrowing has been set by @code{with-narrowing} with
+However, when the narrowing has been set by @code{with-restriction} with
 a label argument (see below), @code{narrow-to-region} can be used only
 within the limits of that narrowing.  If @var{start} or @var{end} are
 outside these limits, the corresponding limit set by
-@code{with-narrowing} is used instead.  To gain access to other
-portions of the buffer, use @code{without-narrowing} with the same
+@code{with-restriction} is used instead.  To gain access to other
+portions of the buffer, use @code{without-restriction} with the same
 label.
 @end deffn
 
@@ -1068,10 +1068,10 @@ It is equivalent to the following expression:
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
 
-However, when a narrowing has been set by @code{with-narrowing} with a
-label argument (see below), the limits set by @code{with-narrowing}
+However, when a narrowing has been set by @code{with-restriction} with a
+label argument (see below), the limits set by @code{with-restriction}
 are restored, instead of canceling the narrowing.  To gain access to
-other portions of the buffer, use @code{without-narrowing} with the
+other portions of the buffer, use @code{without-restriction} with the
 same label.
 @end deffn
 
@@ -1089,7 +1089,7 @@ abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 Therefore, this construct is a clean way to narrow a buffer temporarily.
 
 This construct also saves and restores the narrowings that were set by
-@code{with-narrowing} with a label argument (see below).
+@code{with-restriction} with a label argument (see below).
 
 The value returned by @code{save-restriction} is that returned by the
 last form in @var{body}, or @code{nil} if no body forms were given.
@@ -1141,7 +1141,7 @@ This is the contents of foo@point{}
 @end example
 @end defspec
 
-@defspec with-narrowing start end [:label label] body
+@defspec with-restriction start end [:label label] body
 This special form saves the current bounds of the accessible portion
 of the buffer, sets the accessible portion to start at @var{start} and
 end at @var{end}, evaluates the @var{body} forms, and restores the
@@ -1164,8 +1164,8 @@ and @code{widen} can be used only within the @var{start} and @var{end}
 limits.
 
 @item
-To lift the restriction introduced by @code{with-narrowing} and gain
-access to other portions of the buffer, use @code{without-narrowing}
+To lift the restriction introduced by @code{with-restriction} and gain
+access to other portions of the buffer, use @code{without-restriction}
 with the same @var{label} argument.  (Another way to gain access to
 other portions of the buffer is to use an indirect buffer
 (@pxref{Indirect Buffers}).)
@@ -1180,7 +1180,7 @@ user.
 @end itemize
 @end defspec
 
-@defspec without-narrowing [:label label] body
+@defspec without-restriction [:label label] body
 This special form saves the current bounds of the accessible portion
 of the buffer, widens the buffer, evaluates the @var{body} forms, and
 restores the saved bounds.  In that case it is equivalent to
@@ -1192,6 +1192,6 @@ restores the saved bounds.  In that case it is equivalent to
 @end example
 
 When the optional @var{label} argument is present however, the
-narrowing set by @code{with-narrowing} with the same @var{label}
+narrowing set by @code{with-restriction} with the same @var{label}
 argument is lifted.
 @end defspec

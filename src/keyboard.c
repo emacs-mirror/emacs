@@ -12732,7 +12732,7 @@ which the error occurred is unconditionally removed, since otherwise
 the error might happen repeatedly and make Emacs nonfunctional.
 
 Note that, when `long-line-optimizations-p' is non-nil in the buffer,
-these functions are called as if they were in a `with-narrowing' form,
+these functions are called as if they were in a `with-restriction' form,
 with a `long-line-optimizations-in-command-hooks' label and with the
 buffer narrowed to a portion around point whose size is specified by
 `long-line-optimizations-region-size'.
@@ -12752,7 +12752,7 @@ unavoidable, wrap your code in `(while-no-input (redisplay) CODE)' to
 avoid making Emacs unresponsive while the user types.
 
 Note that, when `long-line-optimizations-p' is non-nil in the buffer,
-these functions are called as if they were in a `with-narrowing' form,
+these functions are called as if they were in a `with-restriction' form,
 with a `long-line-optimizations-in-command-hooks' label and with the
 buffer narrowed to a portion around point whose size is specified by
 `long-line-optimizations-region-size'.

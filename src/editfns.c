@@ -2836,10 +2836,10 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
 
 This allows the buffer's full text to be seen and edited.
 
-However, when restrictions have been set by `with-narrowing' with a
-label, `widen' restores the narrowing limits set by `with-narrowing'.
+However, when restrictions have been set by `with-restriction' with a
+label, `widen' restores the narrowing limits set by `with-restriction'.
 To gain access to other portions of the buffer, use
-`without-narrowing' with the same label.  */)
+`without-restriction' with the same label.  */)
   (void)
 {
   Fset (Qoutermost_narrowing, Qnil);
@@ -2886,12 +2886,12 @@ When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
 remain visible.
 
-However, when restrictions have been set by `with-narrowing' with a
+However, when restrictions have been set by `with-restriction' with a
 label, `narrow-to-region' can be used only within the limits of these
 restrictions.  If the START or END arguments are outside these limits,
-the corresponding limit set by `with-narrowing' is used instead of the
+the corresponding limit set by `with-restriction' is used instead of the
 argument.  To gain access to other portions of the buffer, use
-`without-narrowing' with the same label.  */)
+`without-restriction' with the same label.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
@@ -2944,7 +2944,7 @@ DEFUN ("internal--lock-narrowing", Finternal__lock_narrowing,
        Sinternal__lock_narrowing, 1, 1, 0,
        doc: /* Lock the current narrowing with LABEL.
 
-This is an internal function used by `with-narrowing'.  */)
+This is an internal function used by `with-restriction'.  */)
   (Lisp_Object tag)
 {
   Lisp_Object buf = Fcurrent_buffer ();
@@ -2966,7 +2966,7 @@ DEFUN ("internal--unlock-narrowing", Finternal__unlock_narrowing,
        Sinternal__unlock_narrowing, 1, 1, 0,
        doc: /* Unlock a narrowing locked with LABEL.
 
-This is an internal function used by `without-narrowing'.  */)
+This is an internal function used by `without-restriction'.  */)
   (Lisp_Object tag)
 {
   Lisp_Object buf = Fcurrent_buffer ();
@@ -3073,7 +3073,7 @@ DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0
 The buffer's restrictions make parts of the beginning and end invisible.
 \(They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's
-restrictions, including those that were set by `with-narrowing' with a
+restrictions, including those that were set by `with-restriction' with a
 label argument, when it is entered, and restores them when it is exited.
 So any `narrow-to-region' within BODY lasts only until the end of the form.
 The old restrictions settings are restored even in case of abnormal exit

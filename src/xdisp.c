@@ -36778,7 +36778,7 @@ fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified' with a non-nil value.
 
 Note that, when `long-line-optimizations-p' is non-nil in the buffer,
-these functions are called as if they were in a `with-narrowing' form,
+these functions are called as if they were in a `with-restriction' form,
 with a `long-line-optimizations-in-fontification-functions' label and
 with the buffer narrowed to a portion around POS whose size is
 specified by `long-line-optimizations-region-size'.  */);
