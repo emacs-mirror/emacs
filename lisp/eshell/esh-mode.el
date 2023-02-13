@@ -79,6 +79,7 @@
 (defcustom eshell-mode-unload-hook nil
   "A hook that gets run when `eshell-mode' is unloaded."
   :type 'hook)
+(make-obsolete-variable 'eshell-mode-unload-hook nil "30.1")
 
 (defcustom eshell-mode-hook nil
   "A hook that gets run when `eshell-mode' is entered."

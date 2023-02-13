@@ -145,6 +145,11 @@ this to your configuration:
 
     (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
 
+---
+*** You can now properly unload Eshell.
+Calling "(unload-feature 'eshell)" no longer signals an error, and now
+correctly unloads Eshell and all of its modules.
+
 +++
 *** 'eshell-read-aliases-list' is now an interactive command.
 After manually editing 'eshell-aliases-file', you can use this command
@@ -209,6 +214,12 @@ their customization options.
 ** User option 'tramp-completion-reread-directory-timeout' has been removed.
 This user option has been obsoleted in Emacs 27, use
 'remote-file-name-inhibit-cache' instead.
+
+---
+** User options 'eshell-NAME-unload-hook' are now obsolete.
+These hooks were named incorrectly, and so they never actually ran
+when unloading the correspending feature.  Instead, you should use
+hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 
 * Lisp Changes in Emacs 30.1

@@ -199,10 +199,11 @@ shells such as bash, zsh, rc, 4dos."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook '(eshell-unload-all-modules)
+(defcustom eshell-unload-hook nil
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
+(make-obsolete-variable 'eshell-unload-hook nil "30.1")
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers.
@@ -370,28 +371,14 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-;;; Code:
-
-(defun eshell-unload-all-modules ()
-  "Unload all modules that were loaded by Eshell, if possible.
-If the user has require'd in any of the modules, or customized a
-variable with a :require tag (such as `eshell-prefer-to-shell'), it
-will be impossible to unload Eshell completely without restarting
-Emacs."
-  ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
-  ;; Eshell, then `eshell-subgroups' will be unbound
-  (when (fboundp 'eshell-subgroups)
-    (dolist (module (eshell-subgroups 'eshell))
-      ;; this really only unloads as many modules as possible,
-      ;; since other `require' references (such as by customizing
-      ;; `eshell-prefer-to-shell' to a non-nil value) might make it
-      ;; impossible to unload Eshell completely
-      (if (featurep module)
-	  (ignore-errors
-	    (message "Unloading %s..." (symbol-name module))
-	    (unload-feature module)
-	    (message "Unloading %s...done" (symbol-name module)))))
-    (message "Unloading eshell...done")))
+(defun eshell-unload-function ()
+  (eshell-unload-extension-modules)
+  ;; Wait to unload core modules until after `eshell' has finished
+  ;; unloading.  `eshell' depends on several of them, so they can't be
+  ;; unloaded immediately.
+  (run-at-time 0 nil #'eshell-unload-modules
+               (reverse (eshell-subgroups 'eshell)) 'core)
+  nil)
 
 (run-hooks 'eshell-load-hook)
 

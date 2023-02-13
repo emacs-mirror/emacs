@@ -80,6 +80,7 @@
      (remove-hook 'kill-emacs-hook 'eshell-save-some-history)))
   "A hook that gets run when `eshell-hist' is unloaded."
   :type 'hook)
+(make-obsolete-variable 'eshell-hist-unload-hook nil "30.1")
 
 (defcustom eshell-history-file-name
   (expand-file-name "history" eshell-directory-name)
@@ -1036,6 +1037,9 @@ If N is negative, search backwards for the -Nth previous match."
   (interactive)
   (isearch-done)
   (eshell-send-input))
+
+(defun em-hist-unload-function ()
+  (remove-hook 'kill-emacs-hook 'eshell-save-some-history))
 
 (provide 'em-hist)
 

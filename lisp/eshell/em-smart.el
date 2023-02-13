@@ -99,6 +99,7 @@ it to get a real sense of how it works."
   "A hook that gets run when `eshell-smart' is unloaded."
   :type 'hook
   :group 'eshell-smart)
+(make-obsolete-variable 'eshell-smart-unload-hook nil "30.1")
 
 (defcustom eshell-review-quick-commands nil
   "If t, always review commands.
@@ -320,6 +321,9 @@ and the end of the buffer are still visible."
 	(goto-char (point-max)))))
     (if clear
 	(remove-hook 'pre-command-hook 'eshell-smart-display-move t))))
+
+(defun em-smart-unload-hook ()
+  (remove-hook 'window-configuration-change-hook #'eshell-refresh-windows))
 
 (provide 'em-smart)
 
