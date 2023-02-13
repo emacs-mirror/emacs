@@ -570,7 +570,7 @@ documented from day one; it just didn't behave according to
 documentation.  It turns out some Lisp programs were using this
 coding-system on the wrong assumption that the "auto" part means some
 automagic handling of the end-of-line (EOL) format conversion; those
-program will now start to fail, because BOM signature in UTF-8 encoded
+programs will now start to fail, because BOM signature in UTF-8 encoded
 text is rarely expected.  That is the reason we mention this bugfix
 here.
 
@@ -618,7 +618,7 @@ and the major mode with 'M-x so-long-mode', or visit the file with
 In buffers in which these display optimizations are in effect, the
 'fontification-functions', 'pre-command-hook' and 'post-command-hook'
 hooks are executed on a narrowed portion of the buffer, whose size is
-controlled by the options 'long-line-optimizations-region-size' and
+controlled by the variables 'long-line-optimizations-region-size' and
 'long-line-optimizations-bol-search-limit', as if they were in a
 'with-narrowing' form.  This may, in particular, cause occasional
 mis-fontifications in these buffers.
