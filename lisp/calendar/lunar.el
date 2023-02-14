@@ -155,25 +155,18 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 ;; from "Astronomy with your Personal Computer", Subroutine Eclipse
 ;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990
 (defun eclipse-check (moon-lat phase)
-  (let* ((moon-lat (* (/ float-pi 180) moon-lat))
-         ;; For positions near the ascending or descending node,
-         ;; calculate the absolute angular distance from that node.
-         (moon-lat (abs (- moon-lat (* (floor (/ moon-lat float-pi))
-                                       float-pi))))
-         (moon-lat (if (> moon-lat 0.37) ; FIXME (* 0.5 float-pi)
-                       (- float-pi moon-lat)
-                     moon-lat))
+  (let* ((node-dist (mod moon-lat 180))
+         ;; Absolute angular distance from the ascending or descending
+         ;; node, whichever is nearer.
+         (node-dist (min node-dist (- 180 node-dist)))
          (phase-name (cond ((= phase 0) "Solar")
                            ((= phase 2) "Lunar")
                            (t ""))))
-    (cond ((string= phase-name "")
-	   "")
-	  ((< moon-lat 2.42600766e-1)
-	   (concat "** " phase-name " Eclipse **"))
-	  ((< moon-lat 0.37)
-	   (concat "** " phase-name " Eclipse possible **"))
-	  (t
-	   ""))))
+    (cond
+     ((string= phase-name "") "")
+     ((< node-dist 13.9) (concat "** " phase-name " Eclipse **"))
+     ((< node-dist 21.2) (concat "** " phase-name " Eclipse possible **"))
+     (t ""))))
 
 (defconst lunar-cycles-per-year 12.3685 ; 365.25/29.530588853
   "Mean number of lunar cycles per 365.25 day year.")
