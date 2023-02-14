@@ -4527,8 +4527,7 @@ Return it as number of seconds.  Used in `tramp-process-attributes-ps-format'."
 (defconst tramp-process-attributes-ps-args
   `("-eww"
     "-o"
-    ,(mapconcat
-     #'identity
+    ,(string-join
      '("pid"
        "euid"
        "euser"
@@ -5002,7 +5001,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 		(if (consp (tramp-get-method-parameter v 'tramp-direct-async))
 		    (append
 		     (tramp-get-method-parameter v 'tramp-direct-async)
-                     `(,(mapconcat #'identity command " ")))
+                     `(,(string-join command " ")))
 		  command)))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
@@ -5898,8 +5897,7 @@ the remote host use line-endings as defined in the variable
       (let ((inhibit-read-only t)) (delete-region (point-min) (point-max)))
       ;; Replace "\n" by `tramp-rsh-end-of-line'.
       (setq string
-	    (mapconcat
-	     #'identity (split-string string "\n") tramp-rsh-end-of-line))
+	    (string-join (split-string string "\n") tramp-rsh-end-of-line))
       (unless (or (string-empty-p string)
 		  (string-equal (substring string -1) tramp-rsh-end-of-line))
 	(setq string (concat string tramp-rsh-end-of-line)))
@@ -6597,7 +6595,7 @@ verbosity of 6."
 	      (apply #'process-lines program args)
 	    (error
 	     (tramp-error vec (car err) (cdr err)))))
-    (tramp-message vec 6 "\n%s" (mapconcat #'identity result "\n"))
+    (tramp-message vec 6 "\n%s" (string-join result "\n"))
     result))
 
 (defun tramp-process-running-p (process-name)

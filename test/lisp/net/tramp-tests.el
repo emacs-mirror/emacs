@@ -5542,7 +5542,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    ;; (tramp--test-message "%s" attributes)
 	    (should (equal (cdr (assq 'comm attributes)) (car command)))
 	    (should (equal (cdr (assq 'args attributes))
-			   (mapconcat #'identity command " ")))))
+			   (string-join command " ")))))
 
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
@@ -6103,8 +6103,7 @@ INPUT, if non-nil, is a string sent to the process."
           ;; We make a super long `tramp-remote-path'.
           (make-directory tmp-name)
           (should (file-directory-p tmp-name))
-          (while (tramp-compat-length<
-		  (mapconcat #'identity orig-exec-path ":") 5000)
+          (while (tramp-compat-length< (string-join orig-exec-path ":") 5000)
             (let ((dir (make-temp-file (file-name-as-directory tmp-name) 'dir)))
               (should (file-directory-p dir))
               (setq tramp-remote-path
@@ -6126,8 +6125,7 @@ INPUT, if non-nil, is a string sent to the process."
 		    tramp-test-vec "pipe-buf" 4096))
 	    ;; The last element of `exec-path' is `exec-directory'.
             (should
-	     (string-equal
-	      path (mapconcat #'identity (butlast orig-exec-path) ":"))))
+	     (string-equal path (string-join (butlast orig-exec-path) ":"))))
 	  ;; The shell "sh" shall always exist.
 	  (should (executable-find "sh" 'remote)))
 
@@ -7182,7 +7180,7 @@ This requires restrictions of file name syntax."
     ;; Simplify test in order to speed up.
     (apply #'tramp--test-check-files
 	   (if (tramp--test-expensive-test-p)
-	       files (list (mapconcat #'identity files ""))))))
+	       files (list (string-join files ""))))))
 
 (tramp--test-deftest-with-stat tramp-test41-special-characters)
 
