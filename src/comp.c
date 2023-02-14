@@ -5063,8 +5063,6 @@ helper_save_restriction (void)
 {
   record_unwind_protect (save_restriction_restore,
 			 save_restriction_save ());
-  record_unwind_protect (narrowing_locks_restore,
-			 narrowing_locks_save ());
 }
 
 static bool

@@ -4900,7 +4900,7 @@ binding slots have been popped."
 (defun byte-compile-save-restriction (form)
   (byte-compile-out 'byte-save-restriction 0)
   (byte-compile-body-do-effect (cdr form))
-  (byte-compile-out 'byte-unbind 2))
+  (byte-compile-out 'byte-unbind 1))
 
 (defun byte-compile-save-current-buffer (form)
   (byte-compile-out 'byte-save-current-buffer 0)

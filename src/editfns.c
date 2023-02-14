@@ -2794,7 +2794,7 @@ reset_outermost_narrowings (void)
 
 /* Helper functions to save and restore the narrowing locks of the
    current buffer in Fsave_restriction.  */
-Lisp_Object
+static Lisp_Object
 narrowing_locks_save (void)
 {
   Lisp_Object buf = Fcurrent_buffer ();
@@ -2804,7 +2804,7 @@ narrowing_locks_save (void)
   return Fcons (buf, Fcopy_sequence (locks));
 }
 
-void
+static void
 narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
 {
   Lisp_Object buf = XCAR (buf_and_saved_locks);
@@ -2975,8 +2975,8 @@ This is an internal function used by `without-restriction'.  */)
   return Qnil;
 }
 
-Lisp_Object
-save_restriction_save (void)
+static Lisp_Object
+save_restriction_save_1 (void)
 {
   if (BEGV == BEG && ZV == Z)
     /* The common case that the buffer isn't narrowed.
@@ -2999,8 +2999,8 @@ save_restriction_save (void)
     }
 }
 
-void
-save_restriction_restore (Lisp_Object data)
+static void
+save_restriction_restore_1 (Lisp_Object data)
 {
   struct buffer *cur = NULL;
   struct buffer *buf = (CONSP (data)
@@ -3068,6 +3068,21 @@ save_restriction_restore (Lisp_Object data)
     set_buffer_internal (cur);
 }
 
+Lisp_Object
+save_restriction_save (void)
+{
+  Lisp_Object restr = save_restriction_save_1 ();
+  Lisp_Object locks = narrowing_locks_save ();
+  return Fcons (restr, locks);
+}
+
+void
+save_restriction_restore (Lisp_Object data)
+{
+  narrowing_locks_restore (XCDR (data));
+  save_restriction_restore_1 (XCAR (data));
+}
+
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
        doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
@@ -3092,7 +3107,6 @@ usage: (save-restriction &rest BODY)  */)
   specpdl_ref count = SPECPDL_INDEX ();
 
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
-  record_unwind_protect (narrowing_locks_restore, narrowing_locks_save ());
   val = Fprogn (body);
   return unbind_to (count, val);
 }
