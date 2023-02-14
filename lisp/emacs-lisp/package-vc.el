@@ -435,24 +435,29 @@ version of that package."
                         (push pkg missing))))))
                 (version-order (a b)
                   "Predicate to sort packages in order."
-                  (version-list-< (cadr b) (cadr a)))
+                  (version-list-<
+                   (package-desc-version b)
+                   (package-desc-version a)))
                 (duplicate-p (a b)
                   "Are A and B the same package?"
-                  (eq (car a) (car b)))
+                  (equal a (car b)))
                 (depends-on-p (target package)
                   "Does PACKAGE depend on TARGET?"
                   (or (eq target package)
                       (let* ((pac package-archive-contents)
                              (desc (cadr (assoc package pac))))
-                        (seq-some
-                         (apply-partially #'depends-on-p target)
-                         (package-desc-reqs desc)))))
+                        (and desc (seq-some
+                                   (apply-partially #'depends-on-p target)
+                                   (package-desc-reqs desc))))))
                 (dependent-order (a b)
-                  (or (not (depends-on-p (car b) (car a)))
-                      (depends-on-p (car a) (car b)))))
+                  (let ((desc-a (package-desc-name a))
+                        (desc-b (package-desc-name b)))
+                    (or (not desc-a) (not desc-b)
+                        (not (depends-on-p desc-b desc-a))
+                        (depends-on-p desc-a desc-b)))))
       (mapc #'search requirements)
       (cl-callf sort to-install #'version-order)
-      (cl-callf seq-uniq to-install #'duplicate-p)
+      (cl-callf seq-uniq to-install)
       (cl-callf sort to-install #'dependent-order))
     (mapc #'package-install-from-archive to-install)
     missing))
