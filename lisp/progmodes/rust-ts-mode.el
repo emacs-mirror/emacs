@@ -163,11 +163,16 @@
      (macro_definition "macro_rules!" @font-lock-constant-face)
      (macro_definition (identifier) @font-lock-preprocessor-face)
      (field_declaration name: (field_identifier) @font-lock-property-face)
-     (parameter) @rust-ts-mode--fontify-pattern
-     (let_declaration) @rust-ts-mode--fontify-pattern
-     (for_expression) @rust-ts-mode--fontify-pattern
-     (let_condition) @rust-ts-mode--fontify-pattern
-     (match_arm) @rust-ts-mode--fontify-pattern)
+     (parameter pattern: (_) @rust-ts-mode--fontify-pattern)
+     (let_declaration pattern: (_) @rust-ts-mode--fontify-pattern)
+     (for_expression pattern: (_) @rust-ts-mode--fontify-pattern)
+     (let_condition pattern: (_) @rust-ts-mode--fontify-pattern)
+     (match_arm pattern: (_) @rust-ts-mode--fontify-pattern))
+
+   :language 'rust
+   :feature 'assignment
+   '((assignment_expression left: (_) @rust-ts-mode--fontify-pattern)
+     (compound_assignment_expr left: (_) @rust-ts-mode--fontify-pattern))
 
    :language 'rust
    :feature 'function
@@ -261,7 +266,7 @@
    (treesit-available-p)
    `(lambda (node override start end &rest _)
       (let ((captures (treesit-query-capture
-                       (treesit-node-child-by-field-name node "pattern")
+                       node
                        ,(treesit-query-compile 'rust '((identifier) @id
                                                        (shorthand_field_identifier) @id)))))
         (pcase-dolist (`(_name . ,id) captures)
@@ -342,7 +347,7 @@ delimiters < and >'s."
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string)
-                  ( attribute builtin constant escape-sequence
+                  ( assignment attribute builtin constant escape-sequence
                     number type)
                   ( bracket delimiter error function operator property variable)))
 
