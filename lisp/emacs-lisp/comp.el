@@ -3800,18 +3800,22 @@ Return the trampoline if found or nil otherwise."
                      (list (expand-file-name comp-native-version-dir
                                              native-compile-target-directory))
                    (comp-eln-load-path-eff)))
+   with rel-filename = (comp-trampoline-filename subr-name)
    for dir in dirs
-   for f = (expand-file-name
-            (comp-trampoline-filename subr-name)
-            dir)
+   for abs-filename = (expand-file-name rel-filename dir)
    unless (file-exists-p dir)
      do (ignore-errors
           (make-directory dir t)
-          (cl-return f))
-   when (file-writable-p f)
-     do (cl-return f)
-   finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'")))
+          (cl-return abs-filename))
+   when (file-writable-p abs-filename)
+     do (cl-return abs-filename)
+   ;; Default to some temporary directory if no better option was
+   ;; found.
+   finally (cl-return
+            (expand-file-name
+             (make-temp-file-internal (file-name-sans-extension rel-filename)
+                                      0 ".eln" nil)
+             temporary-file-directory))))
 
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
