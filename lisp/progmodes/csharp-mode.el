@@ -862,7 +862,30 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face)))
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language 'c-sharp
+   :feature 'directives
+   :override t
+   '((if_directive
+      "if" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-name-face)
+     (elif_directive
+      "elif" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-name-face)
+     (else_directive) @font-lock-preprocessor-face
+     (endif_directive) @font-lock-preprocessor-face
+     (define_directive
+      "define" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-name-face)
+     (nullable_directive) @font-lock-preprocessor-face
+     (pragma_directive) @font-lock-preprocessor-face
+     (region_directive) @font-lock-preprocessor-face
+     (endregion_directive) @font-lock-preprocessor-face
+     (region_directive
+      (preproc_message) @font-lock-variable-name-face)
+     (endregion_directive
+      (preproc_message) @font-lock-variable-name-face))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -925,7 +948,7 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string type)
+                ( keyword string type directives)
                 ( constant escape-sequence expression literal property)
                 ( function bracket delimiter error)))
 
