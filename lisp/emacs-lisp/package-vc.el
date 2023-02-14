@@ -611,7 +611,7 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
-               (pkg-dir (expand-file-name dirname package-user-dir)))
+               (pkg-dir (file-name-as-directory (expand-file-name dirname package-user-dir))))
     (when (string-empty-p name)
       (user-error "Empty package name"))
     (setf (package-desc-dir pkg-desc) pkg-dir)
@@ -620,6 +620,9 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
           (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
     (package-vc--clone pkg-desc pkg-spec pkg-dir rev)
+    (when (directory-empty-p pkg-dir)
+      (delete-directory pkg-dir)
+      (error "Empty checkout for %s" name))
 
     ;; When nothing is specified about a `lisp-dir', then should
     ;; heuristically check if there is a sub-directory with lisp
