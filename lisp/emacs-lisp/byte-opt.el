@@ -2167,31 +2167,39 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	                  ;; be larger than necessary.
 	                  (setq add-depth 1))
                         t)))))
-	     ;;
-	     ;; dup varset-X discard  -->  varset-X
-	     ;; dup varbind-X discard  -->  varbind-X
-             ;; dup stack-set-X discard  -->  stack-set-X-1
-	     ;; (the varbind variant can emerge from other optimizations)
-	     ;;
-	     ((and (eq 'byte-dup (car lap0))
-	           (eq 'byte-discard (car lap2))
-	           (memq (car lap1) '(byte-varset byte-varbind
-                                                  byte-stack-set)))
-	      (setq keep-going t)
+             ;;
+             ;; dup varset discard(N)       --> varset discard(N-1)
+             ;; dup varbind discard(N)      --> varbind discard(N-1)
+             ;; dup stack-set(M) discard(N) --> stack-set(M-1) discard(N-1), M>1
+             ;; (the varbind variant can emerge from other optimizations)
+             ;;
+             ((and (eq 'byte-dup (car lap0))
+                   (memq (car lap2) '(byte-discard byte-discardN))
+                   (or (memq (car lap1) '(byte-varset byte-varbind))
+                       (and (eq (car lap1) 'byte-stack-set)
+                            (> (cdr lap1) 1))))
               (setcdr prev (cdr rest))          ; remove dup
-              (setcdr (cdr rest) (cdddr rest))  ; remove discard
-              (cond ((not (eq (car lap1) 'byte-stack-set))
-	             (byte-compile-log-lap "  %s %s %s\t-->\t%s"
-                                           lap0 lap1 lap2 lap1))
-                    ((eql (cdr lap1) 1)
-	             (byte-compile-log-lap "  %s %s %s\t-->\t<deleted>"
-                                           lap0 lap1 lap2))
-                    (t
-                     (let ((n (1- (cdr lap1))))
-	               (byte-compile-log-lap "  %s %s %s\t-->\t%s"
-                                             lap0 lap1 lap2
-                                             (cons (car lap1) n))
-                       (setcdr lap1 n)))))
+              (let ((new1 (if (eq (car lap1) 'byte-stack-set)
+                              (cons 'byte-stack-set (1- (cdr lap1)))
+                            lap1))
+                    (n (if (eq (car lap2) 'byte-discard) 1 (cdr lap2))))
+                (setcar (cdr rest) new1)
+                (cl-assert (> n 0))
+                (cond
+                 ((> n 1)
+                  (let ((new2 (if (> n 2)
+                                  (cons 'byte-discardN (1- n))
+                                (cons 'byte-discard nil))))
+                    (byte-compile-log-lap "  %s %s %s\t-->\t%s %s"
+                                          lap0 lap1 lap2 new1 new2)
+                    (setcar (cddr rest) new2)))
+                 (t
+                  (byte-compile-log-lap "  %s %s %s\t-->\t%s"
+                                        lap0 lap1 lap2 new1)
+                  ;; discard(0) = nop, remove
+                  (setcdr (cdr rest) (cdddr rest)))))
+              (setq keep-going t))
+
 	     ;;
 	     ;; not goto-X-if-nil              -->  goto-X-if-non-nil
 	     ;; not goto-X-if-non-nil          -->  goto-X-if-nil
