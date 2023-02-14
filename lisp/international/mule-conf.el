@@ -1741,7 +1741,7 @@ included; callers should bind `case-fold-search' to t."
     ?\uff1a ; ?\N{FULLWIDTH COLON}
     ?\ufe55 ; ?\N{SMALL COLON}
     ?\ufe13 ; ?\N{PRESENTATION FORM FOR VERTICAL COLON}
-    ?\u17d6 ; ?\N{KHMER SIGN CAMNUC PII KUUH})
+    ?\u17d6 ; ?\N{KHMER SIGN CAMNUC PII KUUH}
     )
   "List of characters equivalent to trailing colon in \"password\" prompts."
   :type '(repeat character)
