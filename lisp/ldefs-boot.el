@@ -2921,7 +2921,7 @@ and corresponding effects.
 
 ;;; Generated autoloads from progmodes/c-ts-common.el
 
-(register-definition-prefixes "c-ts-common" '("c-ts-"))
+(register-definition-prefixes "c-ts-common" '("c-ts-common-"))
 
 
 ;;; Generated autoloads from progmodes/c-ts-mode.el
@@ -7881,35 +7881,52 @@ Display-Line-Numbers mode.
 
 (fn &optional ARG)" t)
 (defvar header-line-indent "" "\
-String to indent at the start if the header line.
-This is used in `header-line-indent-mode', and buffers that have
-this switched on should have a `header-line-format' that look like:
+String of spaces to indent the beginning of header-line due to line numbers.
+This is intended to be used in `header-line-format', and requires
+the `header-line-indent-mode' to be turned on, in order for the width
+of this string to be kept updated when the line-number width changes
+on display.  An example of a `header-line-format' that uses this
+variable might look like this:
 
   (\"\" header-line-indent THE-REST...)
 
+where THE-REST is the format string which produces the actual text
+of the header-line.
 Also see `header-line-indent-width'.")
 (defvar header-line-indent-width 0 "\
-The width of the current line numbers displayed.
-This is updated when `header-line-indent-mode' is switched on.
-
+The width of the current line number display in the window.
+This is measured in units of the frame's canonical columns.
+This is updated when `header-line-indent-mode' is switched on,
+and is intended for use in `:align-to' display specifications
+that are part of `header-line-format', when portions of header-line
+text should be aligned to respective parts of buffer text.
 Also see `header-line-indent'.")
 (autoload 'header-line-indent-mode "display-line-numbers" "\
-Mode to indent the header line in `display-line-numbers-mode' buffers.
+Minor mode to help with alignment of header line when line numbers are shown.
 
-This means that the header line will be kept indented so that it
-has blank space that's as wide as the displayed line numbers in
-the buffer.
+This minor mode should be turned on in buffers which display header-line
+that needs to be aligned with buffer text when `display-line-numbers-mode'
+is turned on in the buffer.
 
-Buffers that have this switched on should have a
-`header-line-format' that look like:
+Buffers that have this switched on should have a `header-line-format'
+that uses the `header-line-indent' or the `header-line-indent-width'
+variables, which this mode will keep up-to-date with the current
+display of line numbers.  For example, a `header-line-format' that
+looks like this:
 
   (\"\" header-line-indent THE-REST...)
 
-The `header-line-indent-width' variable is also kept updated, and
-has the width of `header-line-format'.  This can be used, for
-instance, in `:align-to' specs, like:
+will make sure the text produced by THE-REST (which should be
+a header-line format string) is always indented to be aligned on
+display with the first column of buffer text.
+
+The `header-line-indent-width' variable is also kept updated,
+and can be used, for instance, in `:align-to' specs as part
+of `header-line-format', like this:
 
   (space :align-to (+ header-line-indent-width 10))
+
+See also `line-number-display-width'.
 
 This is a minor mode.  If called interactively, toggle the
 `Header-Line-Indent mode' mode.  If the prefix argument is
@@ -9763,6 +9780,10 @@ If called from Lisp, return the name as a string; return nil if
 the name is not known.
 
 (fn GLYPH &optional INTERACTIVE)" t)
+(autoload 'emoji--init "emoji" "\
+
+
+(fn &optional FORCE INHIBIT-ADJUST)")
 (autoload 'emoji-zoom-increase "emoji" "\
 Increase the size of the character under point.
 FACTOR is the multiplication factor for the size.
@@ -10219,7 +10240,7 @@ Example usage:
 
 When present, ID should be a symbol or a string to use for naming
 the server buffer and identifying the connection unequivocally.
-See info node `(erc) Network Identifier' for details.  Like USER
+See Info node `(erc) Network Identifier' for details.  Like USER
 and CLIENT-CERTIFICATE, this parameter cannot be specified
 interactively.
 
@@ -15815,7 +15836,7 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/hideshow.el
 
-(defvar hs-special-modes-alist (mapcar #'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
+(defvar hs-special-modes-alist (mapcar #'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c-ts-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (c++-ts-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (java-ts-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (js-ts-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
 Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
@@ -17306,12 +17327,12 @@ Return non-nil if there is an image at point.")
 ;;; Generated autoloads from image/image-converter.el
 
 (autoload 'image-converter-add-handler "image-converter" "\
-Make Emacs use CONVERTER to parse image files that end with SUFFIX.
-CONVERTER is a function with two parameters, where the first is
-the file name or a string with the image data, and the second is
-non-nil if the first parameter is image data.  The converter
-should output the image in the current buffer, converted to
-`image-convert-to-format'.
+Make Emacs use CONVERTER to parse image files whose names end with SUFFIX.
+CONVERTER is a function with two arguments, the file name or a string
+with the image data, and a non-nil value if the first argument is image data.
+The converter should produce the image in the current buffer, converted to
+the format given by `image-convert-to-format'.
+SUFFIX should not include the leading dot.
 
 (fn SUFFIX CONVERTER)")
 (register-definition-prefixes "image-converter" '("image-convert"))
@@ -17355,9 +17376,9 @@ Open directory DIR and create a default window configuration.
 
 Convenience command that:
 
- - Opens Dired in folder DIR
- - Splits windows in most useful (?) way
- - Sets `truncate-lines' to t
+ - opens Dired in folder DIR;
+ - splits windows in most useful (?) way; and
+ - sets `truncate-lines' to t
 
 After the command has finished, you would typically mark some
 image files in Dired and type
@@ -17415,11 +17436,12 @@ Default bookmark handler for Image-Dired buffers.
 ;;; Generated autoloads from image/image-dired-dired.el
 
 (autoload 'image-dired-dired-toggle-marked-thumbs "image-dired-dired" "\
-Toggle thumbnails in front of file names in the Dired buffer.
-If no marked file could be found, insert or hide thumbnails on the
-current line.  ARG, if non-nil, specifies the files to use instead
-of the marked files.  If ARG is an integer, use the next ARG (or
-previous -ARG, if ARG<0) files.
+Toggle thumbnails in front of marked file names in the Dired buffer.
+If no file is marked, toggle display of thumbnail on the current file's line.
+ARG, if non-nil (interactively, the prefix argument), specifies the files
+whose thumbnail display to toggle instead of the marked files: if ARG is an
+integer, use the next ARG (or previous -ARG, if ARG<0) files; any other
+value of ARG means toggle thumbnail display of the current line's file.
 
 (fn &optional ARG)" '(dired-mode))
 (autoload 'image-dired-jump-thumbnail-buffer "image-dired-dired" "\
@@ -17471,7 +17493,8 @@ Append thumbnails to `image-dired-thumbnail-buffer'." '(dired-mode))
 (autoload 'image-dired-display-thumb "image-dired-dired" "\
 Shorthand for `image-dired-display-thumbs' with prefix argument." '(dired-mode))
 (autoload 'image-dired-dired-display-external "image-dired-dired" "\
-Display file at point using an external viewer." '(dired-mode))
+Display file at point using an external viewer.
+The viewer is specified by the value of `image-dired-external-viewer'." '(dired-mode))
 (autoload 'image-dired-dired-display-image "image-dired-dired" "\
 Display current image file.
 See documentation for `image-dired-display-image' for more information.
@@ -17479,11 +17502,11 @@ See documentation for `image-dired-display-image' for more information.
 (fn &optional _)" '(dired-mode))
 (set-advertised-calling-convention 'image-dired-dired-display-image 'nil '"29.1")
 (autoload 'image-dired-mark-tagged-files "image-dired-dired" "\
-Use REGEXP to mark files with matching tag.
+Mark files whose tag matches REGEXP.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
-lets you input a regexp and this will be matched against all tags
-on all image files in the database file.  The files that have a
+prompts for a regexp, and then matches it against all the tags
+of all the image files in the database file.  The files that have a
 matching tag will be marked in the Dired buffer.
 
 (fn REGEXP)" '(dired-mode))
@@ -17498,7 +17521,8 @@ matching tag will be marked in the Dired buffer.
 ;;; Generated autoloads from image/image-dired-tags.el
 
 (autoload 'image-dired-tag-files "image-dired-tags" "\
-Tag marked file(s) in Dired.  With prefix ARG, tag file at point.
+Tag file(s) which are marked in a Dired buffer.
+With prefix ARG, tag the file at point.
 
 (fn ARG)" '(dired-mode))
 (autoload 'image-dired-delete-tag "image-dired-tags" "\
@@ -18311,7 +18335,9 @@ Add submenus to the File menu, to convert to and from various formats." t)
 (put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
 (defvar ispell-personal-dictionary nil "\
 File name of your personal spelling dictionary, or nil.
-If nil, the default personal dictionary for your spelling checker is used.")
+If nil, the default personal dictionary for your spelling checker is used.
+Due to a misfeature of Hunspell, if the value is an absolute file name, the
+file by that name must already exist for Hunspell to be able to use it.")
 (custom-autoload 'ispell-personal-dictionary "ispell" t)
 (put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
 (defconst ispell-menu-map (let ((map (make-sparse-keymap "Spell"))) (define-key map [ispell-change-dictionary] `(menu-item ,(purecopy "Change Dictionary...") ispell-change-dictionary :help ,(purecopy "Supply explicit dictionary file name"))) (define-key map [ispell-kill-ispell] `(menu-item ,(purecopy "Kill Process") (lambda nil (interactive) (ispell-kill-ispell nil 'clear)) :enable (and (boundp 'ispell-process) ispell-process (eq (ispell-process-status) 'run)) :help ,(purecopy "Terminate Ispell subprocess"))) (define-key map [ispell-pdict-save] `(menu-item ,(purecopy "Save Dictionary") (lambda nil (interactive) (ispell-pdict-save t t)) :help ,(purecopy "Save personal dictionary"))) (define-key map [ispell-customize] `(menu-item ,(purecopy "Customize...") (lambda nil (interactive) (customize-group 'ispell)) :help ,(purecopy "Customize spell checking options"))) (define-key map [ispell-help] `(menu-item ,(purecopy "Help") (lambda nil (interactive) (describe-function 'ispell-help)) :help ,(purecopy "Show standard Ispell keybindings and commands"))) (define-key map [flyspell-mode] `(menu-item ,(purecopy "Automatic spell checking (Flyspell)") flyspell-mode :help ,(purecopy "Check spelling while you edit the text") :button (:toggle bound-and-true-p flyspell-mode))) (define-key map [ispell-complete-word] `(menu-item ,(purecopy "Complete Word") ispell-complete-word :help ,(purecopy "Complete word at cursor using dictionary"))) (define-key map [ispell-complete-word-interior-frag] `(menu-item ,(purecopy "Complete Word Fragment") ispell-complete-word-interior-frag :help ,(purecopy "Complete word fragment at cursor"))) (define-key map [ispell-continue] `(menu-item ,(purecopy "Continue Spell-Checking") ispell-continue :enable (and (boundp 'ispell-region-end) (marker-position ispell-region-end) (equal (marker-buffer ispell-region-end) (current-buffer))) :help ,(purecopy "Continue spell checking last region"))) (define-key map [ispell-word] `(menu-item ,(purecopy "Spell-Check Word") ispell-word :help ,(purecopy "Spell-check word at cursor"))) (define-key map [ispell-comments-and-strings] `(menu-item ,(purecopy "Spell-Check Comments") ispell-comments-and-strings :help ,(purecopy "Spell-check only comments and strings"))) (define-key map [ispell-region] `(menu-item ,(purecopy "Spell-Check Region") ispell-region :enable mark-active :help ,(purecopy "Spell-check text in marked region"))) (define-key map [ispell-message] `(menu-item ,(purecopy "Spell-Check Message") ispell-message :visible (eq major-mode 'mail-mode) :help ,(purecopy "Skip headers and included message text"))) (define-key map [ispell-buffer] `(menu-item ,(purecopy "Spell-Check Buffer") ispell-buffer :help ,(purecopy "Check spelling of selected buffer"))) map) "\
@@ -26541,8 +26567,12 @@ or call the function `repeat-mode'.")
 (autoload 'repeat-mode "repeat" "\
 Toggle Repeat mode.
 
-When Repeat mode is enabled, and the command symbol has the property named
-`repeat-map', this map is activated temporarily for the next command.
+When Repeat mode is enabled, certain commands bound to multi-key
+sequences can be repeated by typing a single key, after typing the
+full key sequence once.
+The commands which can be repeated like that are those whose symbol
+ has the property `repeat-map' which specifies a keymap of single
+keys for repeating.
 See `describe-repeat-maps' for a list of all repeatable commands.
 
 This is a global minor mode.  If called interactively, toggle the
