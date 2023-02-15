@@ -88,6 +88,8 @@ public class EmacsService extends Service
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
 
+  public static final boolean DEBUG_IC = false;
+
   @Override
   public int
   onStartCommand (Intent intent, int flags, int startId)
@@ -612,10 +614,11 @@ public class EmacsService extends Service
 	    int newSelectionEnd, int composingRegionStart,
 	    int composingRegionEnd)
   {
-    Log.d (TAG, ("updateIC: " + window + " " + newSelectionStart
-		 + " " + newSelectionEnd + " "
-		 + composingRegionStart + " "
-		 + composingRegionEnd));
+    if (DEBUG_IC)
+      Log.d (TAG, ("updateIC: " + window + " " + newSelectionStart
+		   + " " + newSelectionEnd + " "
+		   + composingRegionStart + " "
+		   + composingRegionEnd));
     window.view.imManager.updateSelection (window.view,
 					   newSelectionStart,
 					   newSelectionEnd,
@@ -626,7 +629,8 @@ public class EmacsService extends Service
   public void
   resetIC (EmacsWindow window, int icMode)
   {
-    Log.d (TAG, "resetIC: " + window);
+    if (DEBUG_IC)
+      Log.d (TAG, "resetIC: " + window);
 
     window.view.setICMode (icMode);
     window.view.imManager.restartInput (window.view);

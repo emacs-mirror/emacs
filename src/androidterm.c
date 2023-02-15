@@ -621,8 +621,9 @@ android_handle_ime_event (union android_event *event, struct frame *f)
       break;
 
     case ANDROID_IME_SET_POINT:
-      textconv_set_point (f, event->ime.position,
-			  event->ime.counter);
+      textconv_set_point_and_mark (f, event->ime.start,
+				   event->ime.end,
+				   event->ime.counter);
       break;
 
     case ANDROID_IME_START_BATCH_EDIT:
@@ -4305,7 +4306,7 @@ static sem_t edit_sem;
 
    Every time one of the text retrieval functions is called and an
    editing request is made, Emacs gives the main thread approximately
-   50 ms to process it, in order to mostly keep the input method in
+   100 ms to process it, in order to mostly keep the input method in
    sync with the buffer contents.  */
 
 static void
@@ -4319,7 +4320,7 @@ android_sync_edit (void)
     return;
 
   start = current_timespec ();
-  end = timespec_add (start, make_timespec (0, 50000000));
+  end = timespec_add (start, make_timespec (0, 100000000));
 
   while (true)
     {
@@ -4550,8 +4551,7 @@ android_perform_conversion_query (void *data)
   if (!f)
     return;
 
-  textconv_query (f, &context->query,
-		  TEXTCONV_SKIP_CONVERSION_REGION);
+  textconv_query (f, &context->query, TEXTCONV_SKIP_ACTIVE_REGION);
 
   /* context->query.text will have been set even if textconv_query
      returns 1.  */
@@ -4646,13 +4646,6 @@ android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
   string = (*env)->NewString (env, utf16, index);
   free (utf16);
   return string;
-}
-
-JNIEXPORT jstring JNICALL
-NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
-			       jshort window)
-{
-  return NULL;
 }
 
 JNIEXPORT jstring JNICALL
@@ -4805,8 +4798,8 @@ NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
   event.ime.serial = ++event_serial;
   event.ime.window = window;
   event.ime.operation = ANDROID_IME_SET_POINT;
-  event.ime.start = 0;
-  event.ime.end = 0;
+  event.ime.start = start;
+  event.ime.end = end;
   event.ime.length = 0;
   event.ime.position = start;
   event.ime.text = NULL;
@@ -5068,6 +5061,34 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
   return object;
 }
 
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
+			       jshort window)
+{
+  struct android_get_extracted_text_context context;
+  jstring string;
+
+  context.hint_max_chars = -1;
+  context.token = 0;
+  context.text = NULL;
+  context.window = window;
+
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_get_extracted_text,
+				   &context))
+    return NULL;
+
+  if (!context.text)
+    return NULL;
+
+  /* Encode the returned text.  */
+  string = android_text_to_string (env, context.text, context.length,
+				   context.bytes);
+  free (context.text);
+
+  return string;
+}
+
 #ifdef __clang__
 #pragma clang diagnostic pop
 #else
@@ -5083,7 +5104,8 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 static void
 android_update_selection (struct frame *f, struct window *w)
 {
-  ptrdiff_t start, end, point;
+  ptrdiff_t start, end, point, mark;
+  struct buffer *b;
 
   if (MARKERP (f->conversion.compose_region_start))
     {
@@ -5103,12 +5125,20 @@ android_update_selection (struct frame *f, struct window *w)
   if (!w)
     w = XWINDOW (f->selected_window);
 
-  /* Figure out where the point is.  */
+  /* Figure out where the point and mark are.  If the mark is not
+     active, then point is set to equal mark.  */
+  b = XBUFFER (w->contents);
   point = min (w->last_point, TYPE_MAXIMUM (jint));
+  mark = ((!NILP (BVAR (b, mark_active))
+	   && w->last_mark != -1)
+	  ? min (w->last_mark, TYPE_MAXIMUM (jint))
+	  : point);
 
-  /* Send the update.  */
-  android_update_ic (FRAME_ANDROID_WINDOW (f), point, point,
-		     start, end);
+  /* Send the update.  Android doesn't have a concept of ``point'' and
+     ``mark''; instead, it only has a selection, where the start of
+     the selection is less than or equal to the end.  */
+  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark),
+		     max (point, mark), start, end);
 }
 
 /* Notice that the input method connection to F should be reset as a
@@ -5117,16 +5147,32 @@ android_update_selection (struct frame *f, struct window *w)
 static void
 android_reset_conversion (struct frame *f)
 {
+  enum android_ic_mode mode;
+  struct window *w;
+  struct buffer *buffer;
+
   /* Reset the input method.
 
      Pick an appropriate ``input mode'' based on whether or not the
      minibuffer window is selected; this controls whether or not
      ``RET'' inserts a newline or sends an actual key event.  */
+
+  w = XWINDOW (f->selected_window);
+  buffer = XBUFFER (WINDOW_BUFFER (w));
+
+  if (NILP (BVAR (buffer, text_conversion_style)))
+    mode = ANDROID_IC_MODE_NULL;
+  else if (EQ (BVAR (buffer, text_conversion_style),
+	       Qaction))
+    mode = ANDROID_IC_MODE_ACTION;
+  else
+    mode = ANDROID_IC_MODE_TEXT;
+
   android_reset_ic (FRAME_ANDROID_WINDOW (f),
 		    (EQ (f->selected_window,
 			 f->minibuffer_window)
 		     ? ANDROID_IC_MODE_ACTION
-		     : ANDROID_IC_MODE_TEXT));
+		     : mode));
 
   /* Move its selection to the specified position.  */
   android_update_selection (f, NULL);

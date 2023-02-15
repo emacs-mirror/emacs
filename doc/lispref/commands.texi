@@ -2205,9 +2205,51 @@ A few other event types represent occurrences within the system.
 This kind of event is sent @strong{after} a system-wide input method
 performs an edit to one or more buffers.
 
-Once the event is sent, the input method may already have made changes
-to multiple frames. @c TODO: allow querying which frames to which
-@c changes have been made.
+@vindex text-conversion-edits
+Once the event is sent, the input method may already have made
+changes to multiple buffers inside many different frames.  To
+determine which buffers have been changed, and what edits have
+been made to them, use the variable
+@code{text-conversion-edits}, which is set prior to each
+@code{text-conversion} event being sent; it is a list of the
+form:
+
+@indentedblock
+@w{@code{(@var{buffer} @var{beg} @var{end} @var{ephemeral})}}
+@end indentedblock
+
+Where @var{ephemeral} is the buffer which was modified,
+@var{beg} and @var{end} are the positions of the edit at the
+time it was completed, and @var{ephemeral} is either a string,
+containing any text which was inserted, @code{t}, meaning that
+the edit is a temporary edit made by the input method, and
+@code{nil}, meaning that some text was deleted.
+
+@vindex text-conversion-style
+Whether or not this event is sent depends on the value of the
+buffer-local variable @code{text-conversion-style}, which determines
+how an input method that wishes to make edits to buffer contents will
+behave.
+
+This variable can have one three values:
+
+@table @code
+@item nil
+This means that the input method will be disabled entirely, and key
+events will be sent instead of text conversion events.
+
+@item action
+This means that the input method will be enabled, but @key{RET} will
+be sent wherever the input method wanted to insert a new line.
+
+@item t
+This, or any other value, means that the input method will be enabled
+and make edits terminated by @code{text-conversion} events.
+@end itemize
+
+Changes to the value of this variable will only take effect upon
+the next redisplay after the buffer becomes the selected buffer
+of a frame.
 
 @cindex @code{delete-frame} event
 @item (delete-frame (@var{frame}))

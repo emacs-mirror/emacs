@@ -10864,6 +10864,58 @@ If the buffer doesn't exist, create it first."
   "Change value in PLIST of PROP to VAL, comparing with `equal'."
   (declare (obsolete plist-put "29.1"))
   (plist-put plist prop val #'equal))
+
+
+
+;; Text conversion support.  See textconv.c for more details about
+;; what this is.
+
+
+;; Actually in textconv.c.
+(defvar text-conversion-edits)
+
+(defun analyze-text-conversion ()
+  "Analyze the results of the previous text conversion event.
+
+For each insertion:
+
+  - Look for the insertion of a string starting or ending with a
+    character inside `auto-fill-chars', and fill the text around
+    it if `auto-fill-mode' is enabled.
+
+  - Look for the insertion of a new line, and cause automatic
+    line breaking of the previous line when `auto-fill-mode' is
+    enabled.
+
+  - Look for the insertion of a new line, and indent this new
+    line if `electric-indent-mode' is enabled."
+  (interactive)
+  (dolist (edit text-conversion-edits)
+    ;; Filter out ephemeral edits and deletions.
+    (when (and (not (eq (nth 1 edit) (nth 2 edit)))
+               (stringp (nth 3 edit)))
+      (with-current-buffer (car edit)
+        (let* ((inserted (nth 3 edit))
+               ;; Get the first and last characters.
+               (start (aref inserted 0))
+               (end (aref inserted (1- (length inserted))))
+               ;; Figure out whether or not to auto-fill.
+               (auto-fill-p (or (aref auto-fill-chars start)
+                                (aref auto-fill-chars end)))
+               ;; Figure out whether or not a newline was inserted.
+               (newline-p (string-search "\n" inserted)))
+          (save-excursion
+            (if (and auto-fill-function newline-p)
+                (progn (goto-char (nth 2 edit))
+                       (previous-logical-line)
+                       (funcall auto-fill-function))
+              (when (and auto-fill-function auto-fill-p)
+                (progn (goto-char (nth 2 edit))
+                       (funcall auto-fill-function)))))
+          (when (and electric-indent-mode newline-p)
+            (goto-char (nth 2 edit))
+            (indent-according-to-mode)))))))
+
 
 
 (provide 'simple)

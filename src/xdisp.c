@@ -17268,7 +17268,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 {
   struct buffer *b = XBUFFER (w->contents);
 #ifdef HAVE_TEXT_CONVERSION
-  ptrdiff_t prev_point;
+  ptrdiff_t prev_point, prev_mark;
 #endif
 
   w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
@@ -17301,12 +17301,18 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 
 #ifdef HAVE_TEXT_CONVERSION
       prev_point = w->last_point;
+      prev_mark = w->last_mark;
 #endif
 
       if (w == XWINDOW (selected_window))
 	w->last_point = BUF_PT (b);
       else
 	w->last_point = marker_position (w->pointm);
+
+      if (XMARKER (BVAR (b, mark))->buffer == b)
+	w->last_mark = marker_position (BVAR (b, mark));
+      else
+	w->last_mark = -1;
 
 #ifdef HAVE_TEXT_CONVERSION
       /* Point motion is only propagated to the input method for use
@@ -17323,7 +17329,8 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
          during such a change, so the consequences are not that
          severe.  */
 
-      if (prev_point != w->last_point
+      if ((prev_point != w->last_point
+	   || prev_mark != w->last_mark)
 	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
 	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
 	report_point_change (WINDOW_XFRAME (w), w, b);

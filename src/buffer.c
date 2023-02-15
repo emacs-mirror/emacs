@@ -4710,6 +4710,7 @@ init_buffer_once (void)
 #ifdef HAVE_TREE_SITTER
   XSETFASTINT (BVAR (&buffer_local_flags, ts_parser_list), idx); ++idx;
 #endif
+  XSETFASTINT (BVAR (&buffer_local_flags, text_conversion_style), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_in_non_selected_windows), idx); ++idx;
 
   /* buffer_local_flags contains no pointers, so it's safe to treat it
@@ -4780,6 +4781,9 @@ init_buffer_once (void)
   bset_extra_line_spacing (&buffer_defaults, Qnil);
 #ifdef HAVE_TREE_SITTER
   bset_ts_parser_list (&buffer_defaults, Qnil);
+#endif
+#ifdef HAVE_TEXT_CONVERSION
+  bset_text_conversion_style (&buffer_defaults, Qnil);
 #endif
   bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
 
@@ -5851,6 +5855,22 @@ If t, displays a cursor related to the usual cursor type
 \(a solid box becomes hollow, a bar becomes a narrower bar).
 You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable and update the display.  */);
+
+  /* While this is defined here, each *term.c module must implement
+     the logic itself.  */
+
+  DEFVAR_PER_BUFFER ("text-conversion-style", &BVAR (current_buffer,
+						     text_conversion_style),
+		     Qnil,
+   "How the on screen keyboard's input method should insert in this buffer.\n\
+When nil, the input method will be disabled and an ordinary keyboard\n\
+will be displayed in its place.\n\
+When the symbol `action', the input method will insert text directly, but\n\
+will send `return' key events instead of inserting new line characters.\n\
+Any other value means that the input method will insert text directly.\n\
+\n\
+This variable does not take immediate effect when set; rather, it takes\n\
+effect upon the next redisplay after the selected window or buffer changes.");
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.

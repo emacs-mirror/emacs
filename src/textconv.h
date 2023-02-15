@@ -35,9 +35,10 @@ struct textconv_interface
      unexpected buffer change occurs.) */
   void (*reset) (struct frame *);
 
-  /* Notice that point has moved in the specified frame's selected
-     window's selected buffer.  The second argument is the window
-     whose point changed, and the third argument is the buffer.  */
+  /* Notice that point or mark has moved in the specified frame's
+     selected window's selected buffer.  The second argument is the
+     window whose point changed, and the third argument is the
+     buffer.  */
   void (*point_changed) (struct frame *, struct window *,
 			 struct buffer *);
 
@@ -118,6 +119,7 @@ struct textconv_callback_struct
 };
 
 #define TEXTCONV_SKIP_CONVERSION_REGION (1 << 0)
+#define TEXTCONV_SKIP_ACTIVE_REGION	(1 << 1)
 
 extern int textconv_query (struct frame *, struct textconv_callback_struct *,
 			   int);
@@ -132,7 +134,8 @@ extern void set_composing_text (struct frame *, Lisp_Object,
 				ptrdiff_t, unsigned long);
 extern void set_composing_region (struct frame *, ptrdiff_t, ptrdiff_t,
 				  unsigned long);
-extern void textconv_set_point (struct frame *, ptrdiff_t, unsigned long);
+extern void textconv_set_point_and_mark (struct frame *, ptrdiff_t,
+					 ptrdiff_t, unsigned long);
 extern void delete_surrounding_text (struct frame *, ptrdiff_t,
 				     ptrdiff_t, unsigned long);
 extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,

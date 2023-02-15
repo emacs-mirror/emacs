@@ -2000,6 +2000,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_WINDOW_SYSTEM
       init_fringe_once ();	/* Swap bitmaps if necessary.  */
 #endif /* HAVE_WINDOW_SYSTEM */
+#ifdef HAVE_TEXT_CONVERSION
+      syms_of_textconv ();
+#endif
     }
 
   init_alloc ();

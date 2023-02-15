@@ -89,12 +89,26 @@ copy_buffer (ptrdiff_t beg, ptrdiff_t beg_byte,
   size = end0 - beg0;
   memcpy (buffer, BYTE_POS_ADDR (beg0), size);
   if (beg1 != -1)
-    memcpy (buffer, BEG_ADDR + beg1, end1 - beg1);
+    memcpy (buffer + size, BEG_ADDR + beg1, end1 - beg1);
 }
 
 
 
 /* Conversion query.  */
+
+/* Return the position of the active mark, or -1 if there is no mark
+   or it is not active.  */
+
+static ptrdiff_t
+get_mark (void)
+{
+  if (!NILP (BVAR (current_buffer, mark_active))
+      && XMARKER (BVAR (current_buffer, mark))->buffer)
+    return marker_position (BVAR (current_buffer,
+				  mark));
+
+  return -1;
+}
 
 /* Perform the text conversion operation specified in QUERY and return
    the results.
@@ -108,6 +122,9 @@ copy_buffer (ptrdiff_t beg, ptrdiff_t beg_byte,
 
    If FLAGS & TEXTCONV_SKIP_CONVERSION_REGION, then first move PT past
    the conversion region in the specified direction if it is inside.
+
+   If FLAGS & TEXTCONV_SKIP_ACTIVE_REGION, then also move PT past the
+   region if the mark is active.
 
    Value is 0 if QUERY->operation was not TEXTCONV_SUBSTITUTION
    or if deleting the text was successful, and 1 otherwise.  */
@@ -168,6 +185,39 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 	    }
 	}
     }
+
+  /* Likewise for the region if the mark is active.  */
+
+  if (flags & TEXTCONV_SKIP_ACTIVE_REGION)
+    {
+      temp = get_mark ();
+
+      if (temp == -1)
+	goto escape;
+
+      start = min (temp, PT);
+      end = max (temp, PT);
+
+      if (pos >= start && pos < end)
+	{
+	  switch (query->direction)
+	    {
+	    case TEXTCONV_FORWARD_CHAR:
+	    case TEXTCONV_FORWARD_WORD:
+	    case TEXTCONV_CARET_DOWN:
+	    case TEXTCONV_NEXT_LINE:
+	    case TEXTCONV_LINE_START:
+	      pos = end;
+	      break;
+
+	    default:
+	      pos = max (BEGV, start);
+	      break;
+	    }
+	}
+    }
+
+ escape:
 
   /* If pos is outside the accessible part of the buffer or if it
      overflows, move back to point or to the extremes of the
@@ -335,6 +385,55 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
   return 0;
 }
 
+/* Update the overlay displaying the conversion area on F after a
+   change to the conversion region.  */
+
+static void
+sync_overlay (struct frame *f)
+{
+  if (MARKERP (f->conversion.compose_region_start))
+    {
+      if (NILP (f->conversion.compose_region_overlay))
+	{
+	  f->conversion.compose_region_overlay
+	    = Fmake_overlay (f->conversion.compose_region_start,
+			     f->conversion.compose_region_end, Qnil,
+			     Qt, Qnil);
+	  Foverlay_put (f->conversion.compose_region_overlay,
+			Qface, Qunderline);
+	}
+
+      Fmove_overlay (f->conversion.compose_region_overlay,
+		     f->conversion.compose_region_start,
+		     f->conversion.compose_region_end, Qnil);
+    }
+  else if (!NILP (f->conversion.compose_region_overlay))
+    {
+      Fdelete_overlay (f->conversion.compose_region_overlay);
+      f->conversion.compose_region_overlay = Qnil;
+    }
+}
+
+/* Record a change to the current buffer as a result of an
+   asynchronous text conversion operation on F.
+
+   Consult the doc string of `text-conversion-edits' for the meaning
+   of BEG, END, and EPHEMERAL.  */
+
+static void
+record_buffer_change (ptrdiff_t beg, ptrdiff_t end,
+		      Lisp_Object ephemeral)
+{
+  Lisp_Object buffer;
+
+  XSETBUFFER (buffer, current_buffer);
+
+  Vtext_conversion_edits
+    = Fcons (list4 (buffer, make_fixnum (beg),
+		    make_fixnum (end), ephemeral),
+	     Vtext_conversion_edits);
+}
+
 /* Reset F's text conversion state.  Delete any overlays or
    markers inside.  */
 
@@ -438,8 +537,10 @@ really_commit_text (struct frame *f, EMACS_INT position,
       /* Replace its contents.  */
       start = marker_position (f->conversion.compose_region_start);
       end = marker_position (f->conversion.compose_region_end);
-      safe_del_range (start, end);
+      del_range (start, end);
+      record_buffer_change (start, start, Qnil);
       Finsert (1, &text);
+      record_buffer_change (start, PT, text);
 
       /* Move to a the position specified in POSITION.  */
 
@@ -493,6 +594,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	 location.  */
       wanted = PT;
       Finsert (1, &text);
+      record_buffer_change (wanted, PT, text);
 
       if (position < 0)
 	{
@@ -520,6 +622,8 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	}
     }
 
+  /* This should deactivate the mark.  */
+  call0 (Qdeactivate_mark);
   unbind_to (count, Qnil);
 }
 
@@ -575,12 +679,11 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 
   if (!MARKERP (f->conversion.compose_region_start))
     {
-      f->conversion.compose_region_start = Fmake_marker ();
-      f->conversion.compose_region_end = Fmake_marker ();
-      Fset_marker (f->conversion.compose_region_start,
-		   Fpoint (), Qnil);
-      Fset_marker (f->conversion.compose_region_end,
-		   Fpoint (), Qnil);
+      f->conversion.compose_region_start
+	= build_marker (current_buffer, PT, PT_BYTE);
+      f->conversion.compose_region_end
+	= build_marker (current_buffer, PT, PT_BYTE);
+
       Fset_marker_insertion_type (f->conversion.compose_region_end,
 				  Qt);
 
@@ -595,12 +698,18 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
       Fwiden ();
       start = marker_position (f->conversion.compose_region_start);
       end = marker_position (f->conversion.compose_region_end);
-      safe_del_range (start, end);
+      del_range (start, end);
       set_point (start);
+
+      if (start != end)
+	record_buffer_change (start, start, Qnil);
     }
 
   /* Insert the new text.  */
   Finsert (1, &text);
+
+  if (start != PT)
+    record_buffer_change (start, PT, Qnil);
 
   /* Now move point to an appropriate location.  */
   if (position < 0)
@@ -631,6 +740,12 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
     }
 
   set_point (wanted);
+
+  /* This should deactivate the mark.  */
+  call0 (Qdeactivate_mark);
+
+  /* Move the composition overlay.  */
+  sync_overlay (f);
 
   /* If PT hasn't changed, the conversion region definitely has.
      Otherwise, redisplay will update the input method instead.  */
@@ -693,18 +808,21 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 	       make_fixnum (start), Qnil);
   Fset_marker (f->conversion.compose_region_end,
 	       make_fixnum (end), Qnil);
+  sync_overlay (f);
 
   unbind_to (count, Qnil);
 }
 
-/* Delete LEFT and RIGHT chars around point.  */
+/* Delete LEFT and RIGHT chars around point or the active mark,
+   whichever is larger, avoiding the composing region if
+   necessary.  */
 
 static void
 really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
 				ptrdiff_t right)
 {
   specpdl_ref count;
-  ptrdiff_t start, end;
+  ptrdiff_t start, end, a, b, a1, b1, lstart, rstart;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -719,21 +837,71 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
      redisplay.  */
   Fselect_window (f->old_selected_window, Qt);
 
-  start = max (BEGV, PT - left);
-  end = min (ZV, PT + right);
+  /* Figure out where to start deleting from.  */
 
-  safe_del_range (start, end);
+  a = get_mark ();
+
+  if (a != -1 && a != PT)
+    lstart = rstart = max (a, PT);
+  else
+    lstart = rstart = PT;
+
+  /* Avoid the composing text.  This behavior is identical to how
+     Android's BaseInputConnection actually implements avoiding the
+     composing span.  */
+
+  if (MARKERP (f->conversion.compose_region_start))
+    {
+      a = marker_position (f->conversion.compose_region_start);
+      b = marker_position (f->conversion.compose_region_end);
+
+      a1 = min (a, b);
+      b1 = max (a, b);
+
+      lstart = min (lstart, min (PT, a1));
+      rstart = max (rstart, max (PT, b1));
+    }
+
+  if (lstart == rstart)
+    {
+      start = max (BEGV, lstart - left);
+      end = min (ZV, rstart + right);
+
+      del_range (start, end);
+      record_buffer_change (start, start, Qnil);
+    }
+  else
+    {
+      start = max (BEGV, lstart - left);
+      end = lstart;
+
+      del_range (start, end);
+      record_buffer_change (start, start, Qnil);
+
+      start = rstart;
+      end = min (ZV, rstart + right);
+      del_range (start, end);
+      record_buffer_change (start, start, Qnil);      
+    }
+
+  /* if the mark is now equal to start, deactivate it.  */
+
+  if (get_mark () == PT)
+    call0 (Qdeactivate_mark);
+
   unbind_to (count, Qnil);
 }
 
-/* Set point in F to POSITION.
+/* Set point in F to POSITION.  If MARK is not POSITION, activate the
+   mark and set MARK to that as well.
 
    If it has not changed, signal an update through the text input
    interface, which is necessary for the IME to acknowledge that the
    change has completed.  */
 
 static void
-really_set_point (struct frame *f, ptrdiff_t point)
+really_set_point_and_mark (struct frame *f, ptrdiff_t point,
+			   ptrdiff_t mark)
 {
   specpdl_ref count;
 
@@ -762,6 +930,11 @@ really_set_point (struct frame *f, ptrdiff_t point)
   else
     /* Set the point.  */
     Fgoto_char (make_fixnum (point));
+
+  if (mark == point && BVAR (current_buffer, mark_active))
+    call0 (Qdeactivate_mark);
+  else
+    call1 (Qpush_mark, make_fixnum (mark));
 
   unbind_to (count, Qnil);
 }
@@ -845,8 +1018,9 @@ handle_pending_conversion_events_1 (struct frame *f,
 				   XFIXNUM (XCDR (data)));
       break;
 
-    case TEXTCONV_SET_POINT:
-      really_set_point (f, XFIXNUM (data));
+    case TEXTCONV_SET_POINT_AND_MARK:
+      really_set_point_and_mark (f, XFIXNUM (XCAR (data)),
+				 XFIXNUM (XCDR (data)));
       break;
 
     case TEXTCONV_DELETE_SURROUNDING_TEXT:
@@ -856,6 +1030,17 @@ handle_pending_conversion_events_1 (struct frame *f,
     }
 
   unbind_to (count, Qnil);
+}
+
+/* Decrement the variable pointed to by *PTR.  */
+
+static void
+decrement_inside (void *ptr)
+{
+  int *i;
+
+  i = ptr;
+  (*i)--;
 }
 
 /* Process any outstanding text conversion events.
@@ -868,8 +1053,21 @@ handle_pending_conversion_events (void)
   Lisp_Object tail, frame;
   struct text_conversion_action *action, *next;
   bool handled;
+  static int inside;
+  specpdl_ref count;
 
   handled = false;
+
+  /* Reset Vtext_conversion_edits.  Do not do this if called
+     reentrantly.  */
+
+  if (!inside)
+    Vtext_conversion_edits = Qnil;
+
+  inside++;
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (decrement_inside, &inside);
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -905,6 +1103,8 @@ handle_pending_conversion_events (void)
 	  handled = true;
 	}
     }
+
+  unbind_to (count, Qnil);
 }
 
 /* Start a ``batch edit'' in F.  During a batch edit, point_changed
@@ -1057,13 +1257,13 @@ set_composing_region (struct frame *f, ptrdiff_t start,
   input_pending = true;
 }
 
-/* Move point in F's selected buffer to POINT.
+/* Move point in F's selected buffer to POINT and maybe push MARK.
 
    COUNTER means the same as in `start_batch_edit'.  */
 
 void
-textconv_set_point (struct frame *f, ptrdiff_t point,
-		    unsigned long counter)
+textconv_set_point_and_mark (struct frame *f, ptrdiff_t point,
+			     ptrdiff_t mark, unsigned long counter)
 {
   struct text_conversion_action *action, **last;
 
@@ -1071,8 +1271,9 @@ textconv_set_point (struct frame *f, ptrdiff_t point,
     point = MOST_POSITIVE_FIXNUM;
 
   action = xmalloc (sizeof *action);
-  action->operation = TEXTCONV_SET_POINT;
-  action->data = make_fixnum (point);
+  action->operation = TEXTCONV_SET_POINT_AND_MARK;
+  action->data = Fcons (make_fixnum (point),
+			make_fixnum (mark));
   action->next = NULL;
   action->counter = counter;
   for (last = &f->conversion.actions; *last; last = &(*last)->next)
@@ -1104,6 +1305,9 @@ delete_surrounding_text (struct frame *f, ptrdiff_t left,
 
 /* Return N characters of text around point in F's old selected
    window.
+
+   If N is -1, return the text between point and mark instead, given
+   that the mark is active.
 
    Set *N to the actual number of characters returned, *START_RETURN
    to the position of the first character returned, *OFFSET to the
@@ -1137,13 +1341,38 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
   Fselect_window (f->old_selected_window, Qt);
+  buffer = NULL;
 
   /* Figure out the bounds of the text to return.  */
-  start = PT - n / 2;
-  end = PT + n - n / 2;
+  if (n != -1)
+    {
+      start = PT - n / 2;
+      end = PT + n - n / 2;
+    }
+  else
+    {
+      if (!NILP (BVAR (current_buffer, mark_active))
+	  && XMARKER (BVAR (current_buffer, mark))->buffer)
+	{
+	  start = marker_position (BVAR (current_buffer, mark));
+	  end = PT;
+
+	  /* Sort start and end.  start_byte is used to hold a
+	     temporary value.  */
+
+	  if (start > end)
+	    {
+	      start_byte = end;
+	      end = start;
+	      start = start_byte;
+	    }
+	}
+      else
+	goto finish;
+    }
+
   start = max (start, BEGV);
   end = min (end, ZV);
-  buffer = NULL;
 
   /* Detect overflow.  */
 
@@ -1217,4 +1446,38 @@ void
 register_textconv_interface (struct textconv_interface *interface)
 {
   text_interface = interface;
+}
+
+
+
+void
+syms_of_textconv (void)
+{
+  DEFSYM (Qaction, "action");
+  DEFSYM (Qtext_conversion, "text-conversion");
+  DEFSYM (Qpush_mark, "push-mark");
+  DEFSYM (Qunderline, "underline");
+
+  DEFVAR_LISP ("text-conversion-edits", Vtext_conversion_edits,
+    doc: /* List of buffers that were last edited as a result of text conversion.
+
+This list can be used while handling a `text-conversion' event to
+determine the changes which have taken place.
+
+Each element of the list describes a single edit in a buffer, of the
+form:
+
+    (BUFFER BEG END EPHEMERAL)
+
+If an insertion or a change occured, then BEG and END are buffer
+positions denote the bounds of the text that was changed or inserted.
+If EPHEMERAL is t, then the input method will shortly make more
+changes to the text, so any actions that would otherwise be taken
+(such as indenting or automatically filling text) should not take
+place; otherwise, it is a string describing the text which was
+inserted.
+
+If a deletion occured, then BEG and END are the same, and EPHEMERAL is
+nil.  */);
+  Vtext_conversion_edits = Qnil;
 }

@@ -286,6 +286,10 @@ struct window
        it should be positive.  */
     ptrdiff_t last_point;
 
+    /* Value of mark in the selected window at the time of the last
+       redisplay.  */
+    ptrdiff_t last_mark;
+
     /* Line number and position of a line somewhere above the top of the
        screen.  If this field is zero, it means we don't have a base line.  */
     ptrdiff_t base_line_number;

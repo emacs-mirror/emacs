@@ -121,6 +121,9 @@ screen, and send the appropriate key events to Emacs after completion.
   However, on screen keyboard input methods directly perform edits to
 the selected window of each frame; this is known as ``text
 conversion'', or ``string conversion'' under the X Window System.
+Emacs enables these input methods whenever the buffer local value of
+@code{text-conversion-style} is non-@code{nil}, normally inside
+derivatives of @code{text-mode} and @code{prog-mode}.
 
   Text conversion is performed asynchronously whenever Emacs receives
 a request to perform the conversion from the input method.  After the

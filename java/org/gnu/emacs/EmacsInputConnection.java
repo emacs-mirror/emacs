@@ -55,7 +55,9 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   beginBatchEdit ()
   {
-    Log.d (TAG, "beginBatchEdit");
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "beginBatchEdit");
+
     EmacsNative.beginBatchEdit (windowHandle);
     return true;
   }
@@ -64,7 +66,9 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   endBatchEdit ()
   {
-    Log.d (TAG, "endBatchEdit");
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "endBatchEdit");
+
     EmacsNative.endBatchEdit (windowHandle);
     return true;
   }
@@ -73,7 +77,9 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   commitCompletion (CompletionInfo info)
   {
-    Log.d (TAG, "commitCompletion: " + info);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "commitCompletion: " + info);
+
     EmacsNative.commitCompletion (windowHandle,
 				  info.getText ().toString (),
 				  info.getPosition ());
@@ -84,7 +90,9 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   commitText (CharSequence text, int newCursorPosition)
   {
-    Log.d (TAG, "commitText: " + text + " " + newCursorPosition);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "commitText: " + text + " " + newCursorPosition);
+
     EmacsNative.commitText (windowHandle, text.toString (),
 			    newCursorPosition);
     return true;
@@ -94,8 +102,10 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   deleteSurroundingText (int leftLength, int rightLength)
   {
-    Log.d (TAG, ("deleteSurroundingText: "
-		 + leftLength + " " + rightLength));
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, ("deleteSurroundingText: "
+		   + leftLength + " " + rightLength));
+
     EmacsNative.deleteSurroundingText (windowHandle, leftLength,
 				       rightLength);
     return true;
@@ -105,7 +115,8 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   finishComposingText ()
   {
-    Log.d (TAG, "finishComposingText");
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "finishComposingText");
 
     EmacsNative.finishComposingText (windowHandle);
     return true;
@@ -115,7 +126,8 @@ public class EmacsInputConnection extends BaseInputConnection
   public String
   getSelectedText (int flags)
   {
-    Log.d (TAG, "getSelectedText: " + flags);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "getSelectedText: " + flags);
 
     return EmacsNative.getSelectedText (windowHandle, flags);
   }
@@ -124,27 +136,44 @@ public class EmacsInputConnection extends BaseInputConnection
   public String
   getTextAfterCursor (int length, int flags)
   {
-    Log.d (TAG, "getTextAfterCursor: " + length + " " + flags);
+    String string;
 
-    return EmacsNative.getTextAfterCursor (windowHandle, length,
-					   flags);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "getTextAfterCursor: " + length + " " + flags);
+
+    string = EmacsNative.getTextAfterCursor (windowHandle, length,
+					     flags);
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "   --> " + string);
+
+    return string;
   }
 
   @Override
   public String
   getTextBeforeCursor (int length, int flags)
   {
-    Log.d (TAG, "getTextBeforeCursor: " + length + " " + flags);
+    String string;
 
-    return EmacsNative.getTextBeforeCursor (windowHandle, length,
-					    flags);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "getTextBeforeCursor: " + length + " " + flags);
+
+    string = EmacsNative.getTextBeforeCursor (windowHandle, length,
+					      flags);
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "   --> " + string);
+
+    return string;
   }
 
   @Override
   public boolean
   setComposingText (CharSequence text, int newCursorPosition)
   {
-    Log.d (TAG, "setComposingText: " + newCursorPosition);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "setComposingText: " + newCursorPosition);
 
     EmacsNative.setComposingText (windowHandle, text.toString (),
 				  newCursorPosition);
@@ -155,7 +184,8 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   setComposingRegion (int start, int end)
   {
-    Log.d (TAG, "setComposingRegion: " + start + " " + end);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "setComposingRegion: " + start + " " + end);
 
     EmacsNative.setComposingRegion (windowHandle, start, end);
     return true;
@@ -165,7 +195,8 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   performEditorAction (int editorAction)
   {
-    Log.d (TAG, "performEditorAction: " + editorAction);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "performEditorAction: " + editorAction);
 
     EmacsNative.performEditorAction (windowHandle, editorAction);
     return true;
@@ -175,7 +206,8 @@ public class EmacsInputConnection extends BaseInputConnection
   public ExtractedText
   getExtractedText (ExtractedTextRequest request, int flags)
   {
-    Log.d (TAG, "getExtractedText: " + request + " " + flags);
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "getExtractedText: " + request + " " + flags);
 
     return EmacsNative.getExtractedText (windowHandle, request,
 					 flags);
