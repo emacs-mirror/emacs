@@ -738,7 +738,8 @@ the semicolon.  This function skips the semicolon."
   :doc "Keymap for C and C-like languages with tree-sitter"
   :parent prog-mode-map
   "C-c C-q" #'c-ts-mode-indent-defun
-  "C-c ." #'c-ts-mode-set-style)
+  "C-c ." #'c-ts-mode-set-style
+  "C-c C-c" #'comment-region)
 
 ;;;###autoload
 (define-derived-mode c-ts-base-mode prog-mode "C"
