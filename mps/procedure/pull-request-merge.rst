@@ -184,6 +184,11 @@ These steps will only rarely need repeating.
 #. Ensure your public SSH key is submitted in Perforce at
    //.git-fusion/users/USER/keys/
 
+   **NOTE**: As of 2022-11, you may not be able to connect to Perforce
+   Git Fusion without specifying an old public key algorithm.  See
+   `"Connecting to Git Fusion"
+   <https://info.ravenbrook.com/mail/2022/11/29/21-01-14/0/>`__.
+
 #. Ensure your e-mail address is submitted in Perforce at
    //.git-fusion/users/p4gf_usermap and matches your Perforce user
    record.
@@ -209,9 +214,6 @@ These steps will only rarely need repeating.
    Ravenbrook's Perforce. ::
 
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
-
-.. FIXME: This doesn't work well without ``PubkeyAcceptedAlgorithms
-   +ssh-rsa`` option to SSH.  This stymied PNJ.  RB 2023-02-10
 
 .. _the merging procedure:
 
