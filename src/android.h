@@ -108,6 +108,16 @@ extern void android_closedir (struct android_dir *);
 
 extern Lisp_Object android_browse_url (Lisp_Object);
 
+
+
+/* Event loop functions.  */
+
+extern void android_check_query (void);
+extern int android_run_in_emacs_thread (void (*) (void *), void *);
+extern void android_write_event (union android_event *);
+
+extern unsigned int event_serial;
+
 #endif
 
 /* JNI functions should not be built when Emacs is stubbed out for the

@@ -997,6 +997,16 @@ make_frame (bool mini_p)
   f->select_mini_window_flag = false;
   /* This one should never be zero.  */
   f->change_stamp = 1;
+
+#ifdef HAVE_TEXT_CONVERSION
+  f->conversion.compose_region_start = Qnil;
+  f->conversion.compose_region_end = Qnil;
+  f->conversion.compose_region_overlay = Qnil;
+  f->conversion.batch_edit_count = 0;
+  f->conversion.batch_edit_flags = 0;
+  f->conversion.actions = NULL;
+#endif
+
   root_window = make_window ();
   rw = XWINDOW (root_window);
   if (mini_p)
@@ -2263,6 +2273,13 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     terminal = FRAME_TERMINAL (f);
     f->terminal = 0;             /* Now the frame is dead.  */
     unblock_input ();
+
+  /* Clear markers and overlays set by F on behalf of an input
+     method.  */
+#ifdef HAVE_TEXT_CONVERSION
+  if (FRAME_WINDOW_P (f))
+    reset_frame_state (f);
+#endif
 
     /* If needed, delete the terminal that this frame was on.
        (This must be done after the frame is killed.)  */

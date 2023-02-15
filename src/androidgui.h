@@ -235,6 +235,7 @@ enum android_event_type
     ANDROID_DEICONIFIED,
     ANDROID_CONTEXT_MENU,
     ANDROID_EXPOSE,
+    ANDROID_INPUT_METHOD,
   };
 
 struct android_any_event
@@ -419,6 +420,52 @@ struct android_menu_event
   int menu_event_id;
 };
 
+enum android_ime_operation
+  {
+    ANDROID_IME_COMMIT_TEXT,
+    ANDROID_IME_DELETE_SURROUNDING_TEXT,
+    ANDROID_IME_FINISH_COMPOSING_TEXT,
+    ANDROID_IME_SET_COMPOSING_TEXT,
+    ANDROID_IME_SET_COMPOSING_REGION,
+    ANDROID_IME_SET_POINT,
+    ANDROID_IME_START_BATCH_EDIT,
+    ANDROID_IME_END_BATCH_EDIT,
+  };
+
+struct android_ime_event
+{
+  /* Type of the event.  */
+  enum android_event_type type;
+
+  /* The event serial.  */
+  unsigned long serial;
+
+  /* The associated window.  */
+  android_window window;
+
+  /* What operation is being performed.  */
+  enum android_ime_operation operation;
+
+  /* The details of the operation.  START and END provide buffer
+     indices, and may actually mean ``left'' and ``right''.  */
+  ptrdiff_t start, end, position;
+
+  /* The number of characters in TEXT.  */
+  size_t length;
+
+  /* TEXT is either NULL, or a pointer to LENGTH bytes of malloced
+     UTF-16 encoded text that must be decoded by Emacs.
+
+     POSITION is where point should end up after the text is
+     committed, relative to TEXT.  If POSITION is less than 0, it is
+     relative to TEXT's start; otherwise, it is relative to its
+     end.  */
+  unsigned short *text;
+
+  /* Value to set the counter to after the operation completes.  */
+  unsigned long counter;
+};
+
 union android_event
 {
   enum android_event_type type;
@@ -447,6 +494,9 @@ union android_event
 
   /* This is only used to transmit selected menu items.  */
   struct android_menu_event menu;
+
+  /* This is used to dispatch input method editing requests.  */
+  struct android_ime_event ime;
 };
 
 enum
@@ -461,6 +511,13 @@ enum android_lookup_status
     ANDROID_LOOKUP_CHARS,
     ANDROID_LOOKUP_KEYSYM,
     ANDROID_LOOKUP_BOTH,
+  };
+
+enum android_ic_mode
+  {
+    ANDROID_IC_MODE_NULL   = 0,
+    ANDROID_IC_MODE_ACTION = 1,
+    ANDROID_IC_MODE_TEXT   = 2,
   };
 
 extern int android_pending (void);
@@ -554,6 +611,9 @@ extern void android_sync (void);
 extern int android_wc_lookup_string (android_key_pressed_event *,
 				     wchar_t *, int, int *,
 				     enum android_lookup_status *);
+extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
+			       ptrdiff_t, ptrdiff_t);
+extern void android_reset_ic (android_window, enum android_ic_mode);
 
 #endif
 

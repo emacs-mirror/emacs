@@ -279,20 +279,7 @@ public class EmacsContextMenu
 	}
       };
 
-    synchronized (runnable)
-      {
-	EmacsService.SERVICE.runOnUiThread (runnable);
-
-	try
-	  {
-	    runnable.wait ();
-	  }
-	catch (InterruptedException e)
-	  {
-	    EmacsNative.emacsAbort ();
-	  }
-      }
-
+    EmacsService.syncRunnable (runnable);
     return rc.thing;
   }
 

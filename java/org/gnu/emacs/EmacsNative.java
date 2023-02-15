@@ -22,6 +22,8 @@ package org.gnu.emacs;
 import java.lang.System;
 
 import android.content.res.AssetManager;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
 
 public class EmacsNative
 {
@@ -160,6 +162,50 @@ public class EmacsNative
   /* Return the file name associated with the specified file
      descriptor, or NULL if there is none.  */
   public static native byte[] getProcName (int fd);
+
+  /* Notice that the Emacs thread will now start waiting for the main
+     thread's looper to respond.  */
+  public static native void beginSynchronous ();
+
+  /* Notice that the Emacs thread will has finished waiting for the
+     main thread's looper to respond.  */
+  public static native void endSynchronous ();
+
+
+
+  /* Input connection functions.  These mostly correspond to their
+     counterparts in Android's InputConnection.  */
+
+  public static native void beginBatchEdit (short window);
+  public static native void endBatchEdit (short window);
+  public static native void commitCompletion (short window, String text,
+					      int position);
+  public static native void commitText (short window, String text,
+					int position);
+  public static native void deleteSurroundingText (short window,
+						   int leftLength,
+						   int rightLength);
+  public static native void finishComposingText (short window);
+  public static native String getSelectedText (short window, int flags);
+  public static native String getTextAfterCursor (short window, int length,
+						  int flags);
+  public static native String getTextBeforeCursor (short window, int length,
+						   int flags);
+  public static native void setComposingText (short window, String text,
+					      int newCursorPosition);
+  public static native void setComposingRegion (short window, int start,
+						int end);
+  public static native void setSelection (short window, int start, int end);
+  public static native void performEditorAction (short window,
+						 int editorAction);
+  public static native ExtractedText getExtractedText (short window,
+						       ExtractedTextRequest req,
+						       int flags);
+
+
+  /* Return the current value of the selection, or -1 upon
+     failure.  */
+  public static native int getSelection (short window);
 
   static
   {

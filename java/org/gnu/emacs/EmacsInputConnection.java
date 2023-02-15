@@ -25,6 +25,7 @@ import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.SurroundingText;
+import android.view.inputmethod.TextSnapshot;
 import android.view.KeyEvent;
 
 import android.text.Editable;
@@ -38,35 +39,115 @@ import android.util.Log;
 public class EmacsInputConnection extends BaseInputConnection
 {
   private static final String TAG = "EmacsInputConnection";
-  public EmacsView view;
-  private EmacsEditable editable;
-
-  /* The length of the last string to be committed.  */
-  private int lastCommitLength;
-
-  int currentLargeOffset;
+  private EmacsView view;
+  private short windowHandle;
 
   public
   EmacsInputConnection (EmacsView view)
   {
-    super (view, false);
+    super (view, true);
+
     this.view = view;
-    this.editable = new EmacsEditable (this);
+    this.windowHandle = view.window.handle;
   }
 
   @Override
-  public Editable
-  getEditable ()
+  public boolean
+  beginBatchEdit ()
   {
-    return editable;
+    Log.d (TAG, "beginBatchEdit");
+    EmacsNative.beginBatchEdit (windowHandle);
+    return true;
+  }
+
+  @Override
+  public boolean
+  endBatchEdit ()
+  {
+    Log.d (TAG, "endBatchEdit");
+    EmacsNative.endBatchEdit (windowHandle);
+    return true;
+  }
+
+  @Override
+  public boolean
+  commitCompletion (CompletionInfo info)
+  {
+    Log.d (TAG, "commitCompletion: " + info);
+    EmacsNative.commitCompletion (windowHandle,
+				  info.getText ().toString (),
+				  info.getPosition ());
+    return true;
+  }
+
+  @Override
+  public boolean
+  commitText (CharSequence text, int newCursorPosition)
+  {
+    Log.d (TAG, "commitText: " + text + " " + newCursorPosition);
+    EmacsNative.commitText (windowHandle, text.toString (),
+			    newCursorPosition);
+    return true;
+  }
+
+  @Override
+  public boolean
+  deleteSurroundingText (int leftLength, int rightLength)
+  {
+    Log.d (TAG, ("deleteSurroundingText: "
+		 + leftLength + " " + rightLength));
+    EmacsNative.deleteSurroundingText (windowHandle, leftLength,
+				       rightLength);
+    return true;
+  }
+
+  @Override
+  public boolean
+  finishComposingText ()
+  {
+    Log.d (TAG, "finishComposingText");
+
+    EmacsNative.finishComposingText (windowHandle);
+    return true;
+  }
+
+  @Override
+  public String
+  getSelectedText (int flags)
+  {
+    Log.d (TAG, "getSelectedText: " + flags);
+
+    return EmacsNative.getSelectedText (windowHandle, flags);
+  }
+
+  @Override
+  public String
+  getTextAfterCursor (int length, int flags)
+  {
+    Log.d (TAG, "getTextAfterCursor: " + length + " " + flags);
+
+    return EmacsNative.getTextAfterCursor (windowHandle, length,
+					   flags);
+  }
+
+  @Override
+  public String
+  getTextBeforeCursor (int length, int flags)
+  {
+    Log.d (TAG, "getTextBeforeCursor: " + length + " " + flags);
+
+    return EmacsNative.getTextBeforeCursor (windowHandle, length,
+					    flags);
   }
 
   @Override
   public boolean
   setComposingText (CharSequence text, int newCursorPosition)
   {
-    editable.compositionStart ();
-    super.setComposingText (text, newCursorPosition);
+    Log.d (TAG, "setComposingText: " + newCursorPosition);
+
+    EmacsNative.setComposingText (windowHandle, text.toString (),
+				  newCursorPosition);
     return true;
   }
 
@@ -74,102 +155,40 @@ public class EmacsInputConnection extends BaseInputConnection
   public boolean
   setComposingRegion (int start, int end)
   {
-    int i;
+    Log.d (TAG, "setComposingRegion: " + start + " " + end);
 
-    if (lastCommitLength != 0)
-      {
-	Log.d (TAG, "Restarting composition for: " + lastCommitLength);
-
-	for (i = 0; i < lastCommitLength; ++i)
-	  sendKeyEvent (new KeyEvent (KeyEvent.ACTION_DOWN,
-				      KeyEvent.KEYCODE_DEL));
-
-	lastCommitLength = 0;
-      }
-
-    editable.compositionStart ();
-    super.setComposingRegion (start, end);
-    return true;
-  }
-  
-  @Override
-  public boolean
-  finishComposingText ()
-  {
-    editable.compositionEnd ();
-    return super.finishComposingText ();
-  }
-
-  @Override
-  public boolean
-  beginBatchEdit ()
-  {
-    editable.beginBatchEdit ();
-    return super.beginBatchEdit ();
-  }
-
-  @Override
-  public boolean
-  endBatchEdit ()
-  {
-    editable.endBatchEdit ();
-    return super.endBatchEdit ();
-  }
-  
-  @Override
-  public boolean
-  commitText (CharSequence text, int newCursorPosition)
-  {
-    editable.compositionEnd ();
-    super.commitText (text, newCursorPosition);
-
-    /* An observation is that input methods rarely recompose trailing
-       spaces.  Avoid re-setting the commit length in that case.  */
-
-    if (text.toString ().equals (" "))
-      lastCommitLength += 1;
-    else
-      /* At this point, the editable is now empty.
-	 
-	 The input method may try to cancel the edit upon a subsequent
-	 backspace by calling setComposingRegion with a region that is
-	 the length of TEXT.
-	 
-	 Record this length in order to be able to send backspace
-	 events to ``delete'' the text in that case.  */
-      lastCommitLength = text.length ();
-
-    Log.d (TAG, "commitText: \"" + text + "\"");
-
+    EmacsNative.setComposingRegion (windowHandle, start, end);
     return true;
   }
 
-  /* Return a large offset, cycling through 100000, 30000, 0.
-     The offset is typically used to force the input method to update
-     its notion of ``surrounding text'', bypassing any caching that
-     it might have in progress.
-
-     There must be another way to do this, but I can't find it.  */
-
-  public int
-  largeSelectionOffset ()
+  @Override
+  public boolean
+  performEditorAction (int editorAction)
   {
-    switch (currentLargeOffset)
-      {
-      case 0:
-	currentLargeOffset = 100000;
-	return 100000;
+    Log.d (TAG, "performEditorAction: " + editorAction);
 
-      case 100000:
-	currentLargeOffset = 30000;
-	return 30000;
+    EmacsNative.performEditorAction (windowHandle, editorAction);
+    return true;
+  }
 
-      case 30000:
-	currentLargeOffset = 0;
-	return 0;
-      }
+  @Override
+  public ExtractedText
+  getExtractedText (ExtractedTextRequest request, int flags)
+  {
+    Log.d (TAG, "getExtractedText: " + request + " " + flags);
 
-    currentLargeOffset = 0;
-    return -1;
+    return EmacsNative.getExtractedText (windowHandle, request,
+					 flags);
+  }
+
+
+  /* Override functions which are not implemented.  */
+
+  @Override
+  public TextSnapshot
+  takeSnapshot ()
+  {
+    Log.d (TAG, "takeSnapshot");
+    return null;
   }
 }

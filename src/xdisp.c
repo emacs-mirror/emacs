@@ -17267,6 +17267,9 @@ static void
 mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 {
   struct buffer *b = XBUFFER (w->contents);
+#ifdef HAVE_TEXT_CONVERSION
+  ptrdiff_t prev_point;
+#endif
 
   w->last_modified = accurate_p ? BUF_MODIFF (b) : 0;
   w->last_overlay_modified = accurate_p ? BUF_OVERLAY_MODIFF (b) : 0;
@@ -17296,10 +17299,35 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       w->last_cursor_vpos = w->cursor.vpos;
       w->last_cursor_off_p = w->cursor_off_p;
 
+#ifdef HAVE_TEXT_CONVERSION
+      prev_point = w->last_point;
+#endif
+
       if (w == XWINDOW (selected_window))
 	w->last_point = BUF_PT (b);
       else
 	w->last_point = marker_position (w->pointm);
+
+#ifdef HAVE_TEXT_CONVERSION
+      /* Point motion is only propagated to the input method for use
+	 in text conversion during a redisplay.  While this can lead
+	 to inconsistencies when point has moved but the change has
+	 not yet been displayed, it leads to better results most of
+	 the time, as point often changes within calls to
+	 `save-excursion', and the only way to detect such calls is to
+	 observe that the next redisplay never ends with those changes
+	 applied.
+
+         Changes to buffer text are immediately propagated to the
+         input method, and the position of point is also updated
+         during such a change, so the consequences are not that
+         severe.  */
+
+      if (prev_point != w->last_point
+	  && FRAME_WINDOW_P (WINDOW_XFRAME (w))
+	  && w == XWINDOW (WINDOW_XFRAME (w)->selected_window))
+	report_point_change (WINDOW_XFRAME (w), w, b);
+#endif
 
       w->window_end_valid = true;
       w->update_mode_line = false;

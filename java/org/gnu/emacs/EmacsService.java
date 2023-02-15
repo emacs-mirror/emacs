@@ -80,6 +80,11 @@ public class EmacsService extends Service
   private EmacsThread thread;
   private Handler handler;
 
+  /* Keep this in synch with androidgui.h.  */
+  public static final int IC_MODE_NULL   = 0;
+  public static final int IC_MODE_ACTION = 1;
+  public static final int IC_MODE_TEXT   = 2;
+
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
 
@@ -258,20 +263,7 @@ public class EmacsService extends Service
 	}
       };
 
-    synchronized (runnable)
-      {
-	runOnUiThread (runnable);
-
-	try
-	  {
-	    runnable.wait ();
-	  }
-	catch (InterruptedException e)
-	  {
-	    EmacsNative.emacsAbort ();
-	  }
-      }
-
+    syncRunnable (runnable);
     return view.thing;
   }
 
@@ -292,19 +284,7 @@ public class EmacsService extends Service
 	}
       };
 
-    synchronized (runnable)
-      {
-	runOnUiThread (runnable);
-
-	try
-	  {
-	    runnable.wait ();
-	  }
-	catch (InterruptedException e)
-	  {
-	    EmacsNative.emacsAbort ();
-	  }
-      }
+    syncRunnable (runnable);
   }
 
   public void
@@ -502,19 +482,7 @@ public class EmacsService extends Service
 	}
       };
 
-    synchronized (runnable)
-      {
-	runOnUiThread (runnable);
-
-	try
-	  {
-	    runnable.wait ();
-	  }
-	catch (InterruptedException e)
-	  {
-	    EmacsNative.emacsAbort ();
-	  }
-      }
+    syncRunnable (runnable);
   }
 
   
@@ -594,20 +562,7 @@ public class EmacsService extends Service
 	}
       };
 
-    synchronized (runnable)
-      {
-	runOnUiThread (runnable);
-
-	try
-	  {
-	    runnable.wait ();
-	  }
-	catch (InterruptedException e)
-	  {
-	    EmacsNative.emacsAbort ();
-	  }
-      }
-
+    syncRunnable (runnable);
     return manager.thing;
   }
 
@@ -621,5 +576,59 @@ public class EmacsService extends Service
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
     startActivity (intent);
     System.exit (0);
+  }
+
+  /* Wait synchronously for the specified RUNNABLE to complete in the
+     UI thread.  Must be called from the Emacs thread.  */
+
+  public static void
+  syncRunnable (Runnable runnable)
+  {
+    EmacsNative.beginSynchronous ();
+
+    synchronized (runnable)
+      {
+	SERVICE.runOnUiThread (runnable);
+
+	while (true)
+	  {
+	    try
+	      {
+		runnable.wait ();
+		break;
+	      }
+	    catch (InterruptedException e)
+	      {
+		continue;
+	      }
+	  }
+      }
+
+    EmacsNative.endSynchronous ();
+  }
+
+  public void
+  updateIC (EmacsWindow window, int newSelectionStart,
+	    int newSelectionEnd, int composingRegionStart,
+	    int composingRegionEnd)
+  {
+    Log.d (TAG, ("updateIC: " + window + " " + newSelectionStart
+		 + " " + newSelectionEnd + " "
+		 + composingRegionStart + " "
+		 + composingRegionEnd));
+    window.view.imManager.updateSelection (window.view,
+					   newSelectionStart,
+					   newSelectionEnd,
+					   composingRegionStart,
+					   composingRegionEnd);
+  }
+
+  public void
+  resetIC (EmacsWindow window, int icMode)
+  {
+    Log.d (TAG, "resetIC: " + window);
+
+    window.view.setICMode (icMode);
+    window.view.imManager.restartInput (window.view);
   }
 };

@@ -3861,7 +3861,7 @@ xic_string_conversion_callback (XIC ic, XPointer client_data,
     request.operation = TEXTCONV_RETRIEVAL;
 
   /* Now perform the string conversion.  */
-  rc = textconv_query (f, &request);
+  rc = textconv_query (f, &request, 0);
 
   if (rc)
     {

@@ -2200,6 +2200,15 @@ the buffer in which the xwidget will be displayed, using
 A few other event types represent occurrences within the system.
 
 @table @code
+@cindex @code{text-conversion} event
+@item text-conversion
+This kind of event is sent @strong{after} a system-wide input method
+performs an edit to one or more buffers.
+
+Once the event is sent, the input method may already have made changes
+to multiple frames. @c TODO: allow querying which frames to which
+@c changes have been made.
+
 @cindex @code{delete-frame} event
 @item (delete-frame (@var{frame}))
 This kind of event indicates that the user gave the window manager

@@ -7217,7 +7217,7 @@ if test "$window_system" != "none"; then
     [Define if you poll periodically to detect C-g.])
   WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
 
-  if test "$window_system" = "x11"; then
+  if test "$window_system" = "x11" || test "$REALLY_ANDROID" = "yes"; then
     AC_DEFINE([HAVE_TEXT_CONVERSION], [1],
       [Define if the window system has text conversion support.])
     WINDOW_SYSTEM_OBJ="$WINDOW_SYSTEM_OBJ textconv.o"

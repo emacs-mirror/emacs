@@ -103,6 +103,13 @@ public class EmacsView extends ViewGroup
      displayed whenever possible.  */
   public boolean isCurrentlyTextEditor;
 
+  /* The associated input connection.  */
+  private EmacsInputConnection inputConnection;
+
+  /* The current IC mode.  See `android_reset_ic' for more
+     details.  */
+  private int icMode;
+
   public
   EmacsView (EmacsWindow window)
   {
@@ -554,14 +561,46 @@ public class EmacsView extends ViewGroup
   public InputConnection
   onCreateInputConnection (EditorInfo info)
   {
+    int selection, mode;
+
+    /* Figure out what kind of IME behavior Emacs wants.  */
+    mode = getICMode ();
+
     /* Make sure the input method never displays a full screen input
        box that obscures Emacs.  */
     info.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
 
     /* Set a reasonable inputType.  */
-    info.inputType = InputType.TYPE_NULL;
+    info.inputType = InputType.TYPE_CLASS_TEXT;
 
-    return null;
+    /* Obtain the current position of point and set it as the
+       selection.  */
+    selection = EmacsNative.getSelection (window.handle);
+
+    Log.d (TAG, "onCreateInputConnection: current selection is: " + selection);
+
+    /* If this fails or ANDROID_IC_MODE_NULL was requested, then don't
+       initialize the input connection.  */
+    if (selection == -1 || mode == EmacsService.IC_MODE_NULL)
+      {
+	info.inputType = InputType.TYPE_NULL;
+	return null;
+      }
+
+    if (mode == EmacsService.IC_MODE_ACTION)
+      info.imeOptions |= EditorInfo.IME_ACTION_DONE;
+
+    /* Set the initial selection fields.  */
+    info.initialSelStart = selection;
+    info.initialSelEnd = selection;
+
+    /* Create the input connection if necessary.  */
+
+    if (inputConnection == null)
+      inputConnection = new EmacsInputConnection (this);
+
+    /* Return the input connection.  */
+    return inputConnection;
   }
 
   @Override
@@ -571,5 +610,17 @@ public class EmacsView extends ViewGroup
     /* If value is true, then the system will display the on screen
        keyboard.  */
     return isCurrentlyTextEditor;
+  }
+
+  public synchronized void
+  setICMode (int icMode)
+  {
+    this.icMode = icMode;
+  }
+
+  public synchronized int
+  getICMode ()
+  {
+    return icMode;
   }
 };

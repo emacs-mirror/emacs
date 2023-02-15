@@ -31615,7 +31615,7 @@ init_xterm (void)
 #endif
 
 #ifdef HAVE_X_I18N
-  register_texconv_interface (&text_conversion_interface);
+  register_textconv_interface (&text_conversion_interface);
 #endif
 }
 

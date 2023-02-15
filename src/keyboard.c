@@ -44,6 +44,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "process.h"
 #include "menu.h"
+
+#ifdef HAVE_TEXT_CONVERSION
+#include "textconv.h"
+#endif
+
 #include <errno.h>
 
 #ifdef HAVE_PTHREAD
@@ -3020,6 +3025,10 @@ read_char (int commandflag, Lisp_Object map,
     {
       struct buffer *prev_buffer = current_buffer;
       last_input_event = c;
+
+      /* All a `text-conversion' event does is prevent Emacs from
+	 staying idle.  It is not useful.  */
+
       call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && !NILP (Fmemq (XCAR (c), Vwhile_no_input_ignore_events))
@@ -3582,6 +3591,11 @@ readable_events (int flags)
     return 1;
 #endif
 
+#ifdef HAVE_TEXT_CONVERSION
+  if (detect_conversion_events ())
+    return 1;
+#endif
+
   if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES) && some_mouse_moved ())
     return 1;
   if (single_kboard)
@@ -3914,6 +3928,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 
   had_pending_selection_requests = false;
 #endif
+#ifdef HAVE_TEXT_CONVERSION
+  bool had_pending_conversion_events;
+
+  had_pending_conversion_events = false;
+#endif
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -3978,6 +3997,13 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  break;
 	}
 #endif
+#ifdef HAVE_TEXT_CONVERSION
+      if (detect_conversion_events ())
+	{
+	  had_pending_conversion_events = true;
+	  break;
+	}
+#endif
       if (end_time)
 	{
 	  struct timespec now = current_timespec ();
@@ -4022,6 +4048,14 @@ kbd_buffer_get_event (KBOARD **kbp,
 
   if (had_pending_selection_requests)
     x_handle_pending_selection_requests ();
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* Handle pending ``text conversion'' requests from an input
+     method.  */
+
+  if (had_pending_conversion_events)
+    handle_pending_conversion_events ();
 #endif
 
   if (CONSP (Vunread_command_events))
@@ -4381,10 +4415,23 @@ kbd_buffer_get_event (KBOARD **kbp,
   else if (had_pending_selection_requests)
     obj = Qnil;
 #endif
+#ifdef HAVE_TEXT_CONVERSION
+  /* This is an internal event used to prevent Emacs from becoming
+     idle immediately after a text conversion operation.  */
+  else if (had_pending_conversion_events)
+    obj = Qtext_conversion;
+#endif
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
     emacs_abort ();
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* While not implemented as keyboard commands, changes made by the
+     input method still mean that Emacs is no longer idle.  */
+  if (had_pending_conversion_events)
+    timer_stop_idle ();
+#endif
 
   input_pending = readable_events (0);
 
@@ -12902,6 +12949,9 @@ See also `pre-command-hook'.  */);
 
   DEFSYM (Qcoding, "coding");
   DEFSYM (Qtouchscreen, "touchscreen");
+#ifdef HAVE_TEXT_CONVERSION
+  DEFSYM (Qtext_conversion, "text-conversion");
+#endif
 
   Fset (Qecho_area_clear_hook, Qnil);
 

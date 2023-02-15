@@ -6939,6 +6939,11 @@ static void
 mark_frame (struct Lisp_Vector *ptr)
 {
   struct frame *f = (struct frame *) ptr;
+#ifdef HAVE_TEXT_CONVERSION
+  struct text_conversion_action *tem;
+#endif
+
+
   mark_vectorlike (&ptr->header);
   mark_face_cache (f->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -6949,6 +6954,15 @@ mark_frame (struct Lisp_Vector *ptr)
       if (font && !vectorlike_marked_p (&font->header))
         mark_vectorlike (&font->header);
     }
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  mark_object (f->conversion.compose_region_start);
+  mark_object (f->conversion.compose_region_end);
+  mark_object (f->conversion.compose_region_overlay);
+
+  for (tem = f->conversion.actions; tem; tem = tem->next)
+    mark_object (tem->data);
 #endif
 }
 

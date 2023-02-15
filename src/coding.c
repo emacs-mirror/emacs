@@ -11759,7 +11759,7 @@ syms_of_coding (void)
   DEFSYM (Qutf_8_unix, "utf-8-unix");
   DEFSYM (Qutf_8_emacs, "utf-8-emacs");
 
-#if defined (WINDOWSNT) || defined (CYGWIN)
+#if defined (WINDOWSNT) || defined (CYGWIN) || defined HAVE_ANDROID
   /* No, not utf-16-le: that one has a BOM.  */
   DEFSYM (Qutf_16le, "utf-16le");
 #endif

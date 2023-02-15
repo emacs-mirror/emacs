@@ -20,6 +20,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <semaphore.h>
 
 #include "lisp.h"
 #include "androidterm.h"
@@ -28,6 +31,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "android.h"
 #include "buffer.h"
 #include "window.h"
+#include "textconv.h"
+#include "coding.h"
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -59,6 +64,12 @@ enum
     ANDROID_EVENT_DROP,
   };
 
+/* Find the frame whose window has the identifier WDESC.
+
+   This is like x_window_to_frame in xterm.c, except that DPYINFO may
+   be NULL, as there is only at most one Android display, and is only
+   specified in order to stay consistent with X.  */
+
 static struct frame *
 android_window_to_frame (struct android_display_info *dpyinfo,
 			 android_window wdesc)
@@ -73,7 +84,7 @@ android_window_to_frame (struct android_display_info *dpyinfo,
     {
       f = XFRAME (frame);
 
-      if (!FRAME_ANDROID_P (f) || FRAME_DISPLAY_INFO (f) != dpyinfo)
+      if (!FRAME_ANDROID_P (f))
 	continue;
 
       if (FRAME_ANDROID_WINDOW (f) == wdesc)
@@ -527,6 +538,103 @@ android_find_tool (struct frame *f, int pointer_id)
   return NULL;
 }
 
+/* Decode STRING, an array of N little endian UTF-16 characters, into
+   a Lisp string.  Return Qnil if the string is too large, and the
+   encoded string otherwise.  */
+
+static Lisp_Object
+android_decode_utf16 (unsigned short *utf16, size_t n)
+{
+  struct coding_system coding;
+  ptrdiff_t size;
+
+  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+    return Qnil;
+
+  /* Set up the coding system.  Decoding a UTF-16 string (with no BOM)
+     should not signal.  */
+
+  memset (&coding, 0, sizeof coding);
+
+  setup_coding_system (Qutf_16le, &coding);
+  coding.source = (const unsigned char *) utf16;
+  decode_coding_object (&coding, Qnil, 0, 0, size,
+			size, Qt);
+
+  return coding.dst_object;
+}
+
+/* Handle a single input method event EVENT, delivered to the frame
+   F.
+
+   Perform the text conversion action specified inside.  */
+
+static void
+android_handle_ime_event (union android_event *event, struct frame *f)
+{
+  Lisp_Object text;
+
+  /* First, decode the text if necessary.  */
+
+  switch (event->ime.operation)
+    {
+    case ANDROID_IME_COMMIT_TEXT:
+    case ANDROID_IME_FINISH_COMPOSING_TEXT:
+    case ANDROID_IME_SET_COMPOSING_TEXT:
+      text = android_decode_utf16 (event->ime.text,
+				   event->ime.length);
+      xfree (event->ime.text);
+      break;
+
+    default:
+      break;
+    }
+
+  /* Finally, perform the appropriate conversion action.  */
+
+  switch (event->ime.operation)
+    {
+    case ANDROID_IME_COMMIT_TEXT:
+      commit_text (f, text, event->ime.position,
+		   event->ime.counter);
+      break;
+
+    case ANDROID_IME_DELETE_SURROUNDING_TEXT:
+      delete_surrounding_text (f, event->ime.start,
+			       event->ime.end,
+			       event->ime.counter);
+      break;
+
+    case ANDROID_IME_FINISH_COMPOSING_TEXT:
+      finish_composing_text (f, event->ime.counter);
+      break;
+
+    case ANDROID_IME_SET_COMPOSING_TEXT:
+      set_composing_text (f, text, event->ime.position,
+			  event->ime.counter);
+      break;
+
+    case ANDROID_IME_SET_COMPOSING_REGION:
+      set_composing_region (f, event->ime.start,
+			    event->ime.end,
+			    event->ime.counter);
+      break;
+
+    case ANDROID_IME_SET_POINT:
+      textconv_set_point (f, event->ime.position,
+			  event->ime.counter);
+      break;
+
+    case ANDROID_IME_START_BATCH_EDIT:
+      start_batch_edit (f, event->ime.counter);
+      break;
+
+    case ANDROID_IME_END_BATCH_EDIT:
+      end_batch_edit (f, event->ime.counter);
+      break;
+    }
+}
+
 static int
 handle_one_android_event (struct android_display_info *dpyinfo,
 			  union android_event *event, int *finish,
@@ -744,6 +852,17 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto OTHER;
 
     case ANDROID_WINDOW_ACTION:
+
+      /* This is a special event sent by android_run_in_emacs_thread
+	 used to make Android run stuff.  */
+
+      if (!event->xaction.window && !event->xaction.action)
+	{
+	  /* Check for and run anything the UI thread wants to run on the main
+	     thread.  */
+	  android_check_query ();
+	  goto OTHER;
+	}
 
       f = any;
 
@@ -1331,6 +1450,19 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       if (dpyinfo->menu_event_id == -1)
 	dpyinfo->menu_event_id = event->menu.menu_event_id;
+
+      goto OTHER;
+
+      /* Input method events.  textconv.c functions are called here to
+	 queue events, which are then executed in a safe context
+	 inside keyboard.c.  */
+    case ANDROID_INPUT_METHOD:
+
+      if (!any)
+	/* Free any text allocated for this event.  */
+	xfree (event->ime.text);
+      else
+	android_handle_ime_event (event, any);
 
       goto OTHER;
 
@@ -4148,6 +4280,904 @@ android_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 
 
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+#endif
+
+/* Input method related functions.  Some of these are called from Java
+   within the UI thread.  */
+
+/* A counter used to decide when an editing request completes.  */
+static unsigned long edit_counter;
+
+/* The last counter known to have completed.  */
+static unsigned long last_edit_counter;
+
+/* Semaphore posted every time the counter increases.  */
+static sem_t edit_sem;
+
+/* Try to synchronize with the UI thread, waiting a certain amount of
+   time for outstanding editing requests to complete.
+
+   Every time one of the text retrieval functions is called and an
+   editing request is made, Emacs gives the main thread approximately
+   50 ms to process it, in order to mostly keep the input method in
+   sync with the buffer contents.  */
+
+static void
+android_sync_edit (void)
+{
+  struct timespec start, end, rem;
+
+  if (__atomic_load_n (&last_edit_counter,
+		       __ATOMIC_SEQ_CST)
+      == edit_counter)
+    return;
+
+  start = current_timespec ();
+  end = timespec_add (start, make_timespec (0, 50000000));
+
+  while (true)
+    {
+      rem = timespec_sub (end, current_timespec ());
+
+      /* Timeout.  */
+      if (timespec_sign (rem) < 0)
+	break;
+
+      if (__atomic_load_n (&last_edit_counter,
+			   __ATOMIC_SEQ_CST)
+	  == edit_counter)
+	break;
+
+      sem_timedwait (&edit_sem, &end);
+    }
+}
+
+/* Return a copy of the specified Java string and its length in
+   *LENGTH.  Use the JNI environment ENV.  Value is NULL if copying
+   *the string fails.  */
+
+static unsigned short *
+android_copy_java_string (JNIEnv *env, jstring string, size_t *length)
+{
+  jsize size, i;
+  const jchar *java;
+  unsigned short *buffer;
+
+  size = (*env)->GetStringLength (env, string);
+  buffer = malloc (size * sizeof *buffer);
+
+  if (!buffer)
+    return NULL;
+
+  java = (*env)->GetStringChars (env, string, NULL);
+
+  if (!java)
+    {
+      free (buffer);
+      return NULL;
+    }
+
+  for (i = 0; i < size; ++i)
+    buffer[i] = java[i];
+
+  *length = size;
+  (*env)->ReleaseStringChars (env, string, java);
+  return buffer;
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jshort window)
+{
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_START_BATCH_EDIT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (endBatchEdit) (JNIEnv *env, jobject object, jshort window)
+{
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_END_BATCH_EDIT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (commitCompletion) (JNIEnv *env, jobject object, jshort window,
+				jstring completion_text, jint position)
+{
+  union android_event event;
+  unsigned short *text;
+  size_t length;
+
+  /* First, obtain a copy of the Java string.  */
+  text = android_copy_java_string (env, completion_text, &length);
+
+  if (!text)
+    return;
+
+  /* Next, populate the event.  Events will always eventually be
+     delivered on Android, so handle_one_android_event can be relied
+     on to free text.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_COMMIT_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = min (length, PTRDIFF_MAX);
+  event.ime.position = position;
+  event.ime.text = text;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (commitText) (JNIEnv *env, jobject object, jshort window,
+			  jstring commit_text, jint position)
+{
+  union android_event event;
+  unsigned short *text;
+  size_t length;
+
+  /* First, obtain a copy of the Java string.  */
+  text = android_copy_java_string (env, commit_text, &length);
+
+  if (!text)
+    return;
+
+  /* Next, populate the event.  Events will always eventually be
+     delivered on Android, so handle_one_android_event can be relied
+     on to free text.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_COMMIT_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = min (length, PTRDIFF_MAX);
+  event.ime.position = position;
+  event.ime.text = text;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (deleteSurroundingText) (JNIEnv *env, jobject object,
+				     jshort window, jint left_length,
+				     jint right_length)
+{
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_DELETE_SURROUNDING_TEXT;
+  event.ime.start = left_length;
+  event.ime.end = right_length;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
+				   jshort window)
+{
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_FINISH_COMPOSING_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+/* Structure describing the context used for a text query.  */
+
+struct android_conversion_query_context
+{
+  /* The conversion request.  */
+  struct textconv_callback_struct query;
+
+  /* The window the request is being made on.  */
+  android_window window;
+
+  /* Whether or not the request was successful.  */
+  bool success;
+};
+
+/* Obtain the text from the frame whose window is that specified in
+   DATA using the text conversion query specified there.
+
+   Adjust the query position to skip over any active composing region.
+
+   Set ((struct android_conversion_query_context *) DATA)->success on
+   success.  */
+
+static void
+android_perform_conversion_query (void *data)
+{
+  struct android_conversion_query_context *context;
+  struct frame *f;
+
+  context = data;
+
+  /* Find the frame associated with the window.  */
+  f = android_window_to_frame (NULL, context->window);
+
+  if (!f)
+    return;
+
+  textconv_query (f, &context->query,
+		  TEXTCONV_SKIP_CONVERSION_REGION);
+
+  /* context->query.text will have been set even if textconv_query
+     returns 1.  */
+
+  context->success = true;
+}
+
+/* Convert a string BUFFERS containing N characters in Emacs's
+   internal multibyte encoding to a Java string utilizing the
+   specified JNI environment.
+
+   If N is equal to BYTES, then BUFFER is a single byte buffer.
+   Otherwise, BUFFER is a multibyte buffer.
+
+   Make sure N and BYTES are absolutely correct, or you are asking for
+   trouble.
+
+   Value is the string upon success, NULL otherwise.  Any exceptions
+   generated are not cleared.  */
+
+static jstring
+android_text_to_string (JNIEnv *env, char *buffer, ptrdiff_t n,
+			ptrdiff_t bytes)
+{
+  jchar *utf16;
+  size_t size, index;
+  jstring string;
+  int encoded;
+
+  if (n == bytes)
+    {
+      /* This buffer holds no multibyte characters.  */
+
+      if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+	return NULL;
+
+      utf16 = malloc (size);
+      index = 0;
+
+      if (!utf16)
+	return NULL;
+
+      while (n--)
+	{
+	  utf16[index] = buffer[index];
+	  index++;
+	}
+
+      string = (*env)->NewString (env, utf16, bytes);
+      free (utf16);
+
+      return string;
+    }
+
+  /* Allocate enough to hold N characters.  */
+
+  if (INT_MULTIPLY_WRAPV (n, sizeof *utf16, &size))
+    return NULL;
+
+  utf16 = malloc (size);
+  index = 0;
+
+  if (!utf16)
+    return NULL;
+
+  while (n--)
+    {
+      eassert (CHAR_HEAD_P (*buffer));
+      encoded = STRING_CHAR ((unsigned char *) buffer);
+
+      /* Now figure out how to save ENCODED into the string.
+         Emacs operates on multibyte characters, not UTF-16
+         characters with surrogate pairs as Android does.
+
+         However, character positions in Java are represented in 2
+         byte units, meaning that the text position reported to
+         Android can become out of sync if characters are found in a
+         buffer that require surrogate pairs.
+
+         The hack used by Emacs is to simply replace each multibyte
+         character that doesn't fit in a jchar with the NULL
+         character.  */
+
+      if (encoded >= 65536)
+	encoded = 0;
+
+      utf16[index++] = encoded;
+      buffer += BYTES_BY_CHAR_HEAD (*buffer);
+    }
+
+  /* Create the string.  */
+  string = (*env)->NewString (env, utf16, index);
+  free (utf16);
+  return string;
+}
+
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
+			       jshort window)
+{
+  return NULL;
+}
+
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jshort window,
+				  jint length, jint flags)
+{
+  struct android_conversion_query_context context;
+  jstring string;
+
+  /* First, set up the conversion query.  */
+  context.query.position = 0;
+  context.query.direction = TEXTCONV_FORWARD_CHAR;
+  context.query.factor = min (length, 65535);
+  context.query.operation = TEXTCONV_RETRIEVAL;
+
+  /* Next, set the rest of the context.  */
+  context.window = window;
+  context.success = false;
+
+  /* Now try to perform the query.  */
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_perform_conversion_query,
+				   &context))
+    return NULL;
+
+  if (!context.success)
+    return NULL;
+
+  /* context->query.text now contains the text in Emacs's internal
+     UTF-8 based encoding.
+
+     Convert it to Java's UTF-16 encoding, which is the same as
+     UTF-16, except that NULL bytes are encoded as surrogate pairs.
+
+     This assumes that `free' can free data allocated with xmalloc.  */
+
+  string = android_text_to_string (env, context.query.text.text,
+				   context.query.text.length,
+				   context.query.text.bytes);
+  free (context.query.text.text);
+
+  return string;
+}
+
+JNIEXPORT jstring JNICALL
+NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jshort window,
+				   jint length, jint flags)
+{
+  struct android_conversion_query_context context;
+  jstring string;
+
+  /* First, set up the conversion query.  */
+  context.query.position = 0;
+  context.query.direction = TEXTCONV_BACKWARD_CHAR;
+  context.query.factor = min (length, 65535);
+  context.query.operation = TEXTCONV_RETRIEVAL;
+
+  /* Next, set the rest of the context.  */
+  context.window = window;
+  context.success = false;
+
+  /* Now try to perform the query.  */
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_perform_conversion_query,
+				   &context))
+    return NULL;
+
+  if (!context.success)
+    return NULL;
+
+  /* context->query.text now contains the text in Emacs's internal
+     UTF-8 based encoding.
+
+     Convert it to Java's UTF-16 encoding, which is the same as
+     UTF-16, except that NULL bytes are encoded as surrogate pairs.
+
+     This assumes that `free' can free data allocated with xmalloc.  */
+
+  string = android_text_to_string (env, context.query.text.text,
+				   context.query.text.length,
+				   context.query.text.bytes);
+  free (context.query.text.text);
+
+  return string;
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (setComposingText) (JNIEnv *env, jobject object, jshort window,
+				jstring composing_text,
+				jint new_cursor_position)
+{
+  union android_event event;
+  unsigned short *text;
+  size_t length;
+
+  /* First, obtain a copy of the Java string.  */
+  text = android_copy_java_string (env, composing_text, &length);
+
+  if (!text)
+    return;
+
+  /* Next, populate the event.  Events will always eventually be
+     delivered on Android, so handle_one_android_event can be relied
+     on to free text.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_SET_COMPOSING_TEXT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = min (length, PTRDIFF_MAX);
+  event.ime.position = new_cursor_position;
+  event.ime.text = text;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jshort window,
+				  jint start, jint end)
+{
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_SET_COMPOSING_REGION;
+  event.ime.start = start;
+  event.ime.end = end;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
+			    jint start, jint end)
+{
+  union android_event event;
+
+  /* While IMEs want access to the entire selection, Emacs only
+     supports setting the point.  */
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_SET_POINT;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = 0;
+  event.ime.position = start;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+}
+
+/* Structure describing the context for `getSelection'.  */
+
+struct android_get_selection_context
+{
+  /* The window in question.  */
+  android_window window;
+
+  /* The position of the window's point when it was last
+     redisplayed.  */
+  ptrdiff_t point;
+};
+
+/* Function run on the main thread by `getSelection'.
+   Place the character position of point in PT.  */
+
+static void
+android_get_selection (void *data)
+{
+  struct android_get_selection_context *context;
+  struct frame *f;
+  struct window *w;
+
+  context = data;
+
+  /* Look up the associated frame and its selected window.  */
+  f = android_window_to_frame (NULL, context->window);
+
+  if (!f)
+    context->point = -1;
+  else
+    {
+      w = XWINDOW (f->selected_window);
+
+      /* Return W's point at the time of the last redisplay.  This is
+         rather important to keep the input method consistent with the
+         contents of the display.  */
+      context->point = w->last_point;
+    }
+}
+
+JNIEXPORT jint JNICALL
+NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
+{
+  struct android_get_selection_context context;
+
+  context.window = window;
+
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_get_selection,
+				   &context))
+    return -1;
+
+  if (context.point == -1)
+    return -1;
+
+  return min (context.point, TYPE_MAXIMUM (jint));
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
+				   jshort window, int action)
+{
+  union android_event event;
+
+  /* Undocumented behavior: performEditorAction is apparently expected
+     to finish composing any text.  */
+
+  NATIVE_NAME (finishComposingText) (env, object, window);
+
+  event.xkey.type = ANDROID_KEY_PRESS;
+  event.xkey.serial = ++event_serial;
+  event.xkey.window = window;
+  event.xkey.time = 0;
+  event.xkey.state = 0;
+  event.xkey.keycode = 66;
+  event.xkey.unicode_char = 0;
+
+  android_write_event (&event);
+}
+
+struct android_get_extracted_text_context
+{
+  /* The parameters of the request.  */
+  int hint_max_chars;
+
+  /* Token for the request.  */
+  int token;
+
+  /* The returned text, or NULL.  */
+  char *text;
+
+  /* The size of that text in characters and bytes.  */
+  ptrdiff_t length, bytes;
+
+  /* Offsets into that text.  */
+  ptrdiff_t start, offset;
+
+  /* The window.  */
+  android_window window;
+};
+
+/* Return the extracted text in the extracted text context specified
+   by DATA.  */
+
+static void
+android_get_extracted_text (void *data)
+{
+  struct android_get_extracted_text_context *request;
+  struct frame *f;
+
+  request = data;
+
+  /* Find the frame associated with the window.  */
+  f = android_window_to_frame (NULL, request->window);
+
+  if (!f)
+    return;
+
+  /* Now get the extracted text.  */
+  request->text
+    = get_extracted_text (f, min (request->hint_max_chars, 600),
+			  &request->start, &request->offset,
+			  &request->length, &request->bytes);
+}
+
+/* Structure describing the `ExtractedTextRequest' class.
+   Valid only on the UI thread.  */
+
+struct android_extracted_text_request_class
+{
+  bool initialized;
+  jfieldID hint_max_chars;
+  jfieldID token;
+};
+
+/* Structure describing the `ExtractedText' class.
+   Valid only on the UI thread.  */
+
+struct android_extracted_text_class
+{
+  jclass class;
+  jmethodID constructor;
+  jfieldID partial_start_offset;
+  jfieldID partial_end_offset;
+  jfieldID selection_start;
+  jfieldID selection_end;
+  jfieldID start_offset;
+  jfieldID text;
+};
+
+JNIEXPORT jobject JNICALL
+NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
+				jshort window, jobject request,
+				jint flags)
+{
+  struct android_get_extracted_text_context context;
+  static struct android_extracted_text_request_class request_class;
+  static struct android_extracted_text_class text_class;
+  jstring string;
+  jclass class;
+  jobject object;
+
+  /* TODO: report changes to extracted text.  */
+
+  /* Initialize both classes if necessary.  */
+
+  if (!request_class.initialized)
+    {
+      class
+	= (*env)->FindClass (env, ("android/view/inputmethod"
+				   "/ExtractedTextRequest"));
+      assert (class);
+
+      request_class.hint_max_chars
+	= (*env)->GetFieldID (env, class, "hintMaxChars", "I");
+      assert (request_class.hint_max_chars);
+
+      request_class.token
+	= (*env)->GetFieldID (env, class, "token", "I");
+      assert (request_class.token);
+
+      request_class.initialized = true;
+    }
+
+  if (!text_class.class)
+    {
+      text_class.class
+	= (*env)->FindClass (env, ("android/view/inputmethod"
+				   "/ExtractedText"));
+      assert (text_class.class);
+
+      class
+	= text_class.class
+	= (*env)->NewGlobalRef (env, text_class.class);
+      assert (text_class.class);
+
+      text_class.partial_start_offset
+	= (*env)->GetFieldID (env, class, "partialStartOffset", "I");
+      text_class.partial_end_offset
+	= (*env)->GetFieldID (env, class, "partialEndOffset", "I");
+      text_class.selection_start
+	= (*env)->GetFieldID (env, class, "selectionStart", "I");
+      text_class.selection_end
+	= (*env)->GetFieldID (env, class, "selectionEnd", "I");
+      text_class.start_offset
+	= (*env)->GetFieldID (env, class, "startOffset", "I");
+      text_class.text
+	= (*env)->GetFieldID (env, class, "text", "Ljava/lang/CharSequence;");
+      text_class.constructor
+	= (*env)->GetMethodID (env, class, "<init>", "()V");
+    }
+
+  context.hint_max_chars
+    = (*env)->GetIntField (env, request, request_class.hint_max_chars);
+  context.token
+    = (*env)->GetIntField (env, request, request_class.token);
+  context.text = NULL;
+  context.window = window;
+
+  android_sync_edit ();
+  if (android_run_in_emacs_thread (android_get_extracted_text,
+				   &context))
+    return NULL;
+
+  if (!context.text)
+    return NULL;
+
+  /* Encode the returned text.  */
+  string = android_text_to_string (env, context.text, context.length,
+				   context.bytes);
+  free (context.text);
+
+  if (!string)
+    return NULL;
+
+  /* Create an ExtractedText object containing this information.  */
+  object = (*android_java_env)->NewObject (env, text_class.class,
+					   text_class.constructor);
+  if (!object)
+    return NULL;
+
+  (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
+  (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
+  (*env)->SetIntField (env, object, text_class.selection_start,
+		       min (context.offset, TYPE_MAXIMUM (jint)));
+  (*env)->SetIntField (env, object, text_class.selection_end,
+		       min (context.offset, TYPE_MAXIMUM (jint)));
+  (*env)->SetIntField (env, object, text_class.start_offset,
+		       min (context.start, TYPE_MAXIMUM (jint)));
+  (*env)->SetObjectField (env, object, text_class.text, string);
+  return object;
+}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
+
+
+
+/* Tell the input method where the composing region and selection of
+   F's selected window is located.  W should be F's selected window;
+   if it is NULL, then F->selected_window is used in its place.  */
+
+static void
+android_update_selection (struct frame *f, struct window *w)
+{
+  ptrdiff_t start, end, point;
+
+  if (MARKERP (f->conversion.compose_region_start))
+    {
+      eassert (MARKERP (f->conversion.compose_region_end));
+
+      start = marker_position (f->conversion.compose_region_start);
+      end = marker_position (f->conversion.compose_region_end);
+    }
+  else
+    start = -1, end = -1;
+
+  /* Now constrain START and END to the maximium size of a Java
+     integer.  */
+  start = min (start, TYPE_MAXIMUM (jint));
+  end = min (end, TYPE_MAXIMUM (jint));
+
+  if (!w)
+    w = XWINDOW (f->selected_window);
+
+  /* Figure out where the point is.  */
+  point = min (w->last_point, TYPE_MAXIMUM (jint));
+
+  /* Send the update.  */
+  android_update_ic (FRAME_ANDROID_WINDOW (f), point, point,
+		     start, end);
+}
+
+/* Notice that the input method connection to F should be reset as a
+   result of a change to its contents.  */
+
+static void
+android_reset_conversion (struct frame *f)
+{
+  /* Reset the input method.
+
+     Pick an appropriate ``input mode'' based on whether or not the
+     minibuffer window is selected; this controls whether or not
+     ``RET'' inserts a newline or sends an actual key event.  */
+  android_reset_ic (FRAME_ANDROID_WINDOW (f),
+		    (EQ (f->selected_window,
+			 f->minibuffer_window)
+		     ? ANDROID_IC_MODE_ACTION
+		     : ANDROID_IC_MODE_TEXT));
+
+  /* Move its selection to the specified position.  */
+  android_update_selection (f, NULL);
+}
+
+/* Notice that point has moved in the F's selected window's selected
+   buffer.  W is the window, and BUFFER is that buffer.  */
+
+static void
+android_set_point (struct frame *f, struct window *w,
+		   struct buffer *buffer)
+{
+  android_update_selection (f, w);
+}
+
+/* Notice that the composition region on F's old selected window has
+   changed.  */
+
+static void
+android_compose_region_changed (struct frame *f)
+{
+  android_update_selection (f, XWINDOW (f->old_selected_window));
+}
+
+/* Notice that the text conversion has completed.  */
+
+static void
+android_notify_conversion (unsigned long counter)
+{
+  int sval;
+
+  if (last_edit_counter < counter)
+    __atomic_store_n (&last_edit_counter, counter,
+		      __ATOMIC_SEQ_CST);
+
+  sem_getvalue (&edit_sem, &sval);
+
+  if (sval <= 0)
+    sem_post (&edit_sem);
+}
+
+/* Android text conversion interface.  */
+
+static struct textconv_interface text_conversion_interface =
+  {
+    android_reset_conversion,
+    android_set_point,
+    android_compose_region_changed,
+    android_notify_conversion,
+  };
+
+
+
 extern frame_parm_handler android_frame_parm_handlers[];
 
 #endif /* !ANDROID_STUBIFY */
@@ -4327,6 +5357,11 @@ android_term_init (void)
 
   /* Set the baud rate to the same value it gets set to on X.  */
   baud_rate = 19200;
+
+#ifndef ANDROID_STUBIFY
+  sem_init (&edit_sem, false, 0);
+  register_textconv_interface (&text_conversion_interface);
+#endif
 }
 
 

@@ -1521,6 +1521,9 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key special-event-map [sigusr1] 'ignore)
 (define-key special-event-map [sigusr2] 'ignore)
 
+;; Text conversion
+(define-key global-map [text-conversion] 'ignore)
+
 ;; Don't look for autoload cookies in this file.
 ;; Local Variables:
 ;; no-update-autoloads: t

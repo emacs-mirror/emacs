@@ -109,3 +109,20 @@ Emacs quitting.  @xref{Quitting}.
   The exact button is used to do this varies by system: on X, it is
 defined in the variable @code{x-quit-keysym}, and on Android, it is
 always the volume down button.
+
+@cindex text conversion, keyboards
+  Most input methods designed to work with on-screen keyboards perform
+buffer edits differently from desktop input methods.
+
+  On a conventional desktop windowing system, an input method will
+simply display the contents of any on going character compositions on
+screen, and send the appropriate key events to Emacs after completion.
+
+  However, on screen keyboard input methods directly perform edits to
+the selected window of each frame; this is known as ``text
+conversion'', or ``string conversion'' under the X Window System.
+
+  Text conversion is performed asynchronously whenever Emacs receives
+a request to perform the conversion from the input method.  After the
+conversion completes, a @code{text-conversion} event is sent.
+@xref{Misc Events,,, elisp, the Emacs Reference Manual}.

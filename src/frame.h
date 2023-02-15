@@ -76,6 +76,63 @@ enum ns_appearance_type
 #endif
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#ifdef HAVE_TEXT_CONVERSION
+
+enum text_conversion_operation
+  {
+    TEXTCONV_START_BATCH_EDIT,
+    TEXTCONV_END_BATCH_EDIT,
+    TEXTCONV_COMMIT_TEXT,
+    TEXTCONV_FINISH_COMPOSING_TEXT,
+    TEXTCONV_SET_COMPOSING_TEXT,
+    TEXTCONV_SET_COMPOSING_REGION,
+    TEXTCONV_SET_POINT,
+    TEXTCONV_DELETE_SURROUNDING_TEXT,
+  };
+
+/* Structure describing a single edit being performed by the input
+   method that should be executed in the context of
+   kbd_buffer_get_event.  */
+
+struct text_conversion_action
+{
+  /* The next text conversion action.  */
+  struct text_conversion_action *next;
+
+  /* Any associated data.  */
+  Lisp_Object data;
+
+  /* The operation being performed.  */
+  enum text_conversion_operation operation;
+
+  /* Counter value.  */
+  unsigned long counter;
+};
+
+/* Structure describing the text conversion state associated with a
+   frame.  */
+
+struct text_conversion_state
+{
+  /* List of text conversion actions associated with this frame.  */
+  struct text_conversion_action *actions;
+
+  /* Markers representing the composing region.  */
+  Lisp_Object compose_region_start, compose_region_end;
+
+  /* Overlay representing the composing region.  */
+  Lisp_Object compose_region_overlay;
+
+  /* The number of ongoing ``batch edits'' that are causing point
+     reporting to be delayed.  */
+  int batch_edit_count;
+
+  /* Mask containing what must be updated after batch edits end.  */
+  int batch_edit_flags;
+};
+
+#endif
+
 /* The structure representing a frame.  */
 
 struct frame
@@ -663,6 +720,11 @@ struct frame
   /* NSAppearance theme used on this frame.  */
   enum ns_appearance_type ns_appearance;
   bool_bf ns_transparent_titlebar;
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  /* Text conversion state used by certain input methods.  */
+  struct text_conversion_state conversion;
 #endif
 } GCALIGNED_STRUCT;
 

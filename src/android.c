@@ -98,6 +98,8 @@ struct android_emacs_service
   jmethodID sync;
   jmethodID browse_url;
   jmethodID restart_emacs;
+  jmethodID update_ic;
+  jmethodID reset_ic;
 };
 
 struct android_emacs_pixmap
@@ -207,7 +209,7 @@ static struct android_emacs_window window_class;
 
 /* The last event serial used.  This is a 32 bit value, but it is
    stored in unsigned long to be consistent with X.  */
-static unsigned int event_serial;
+unsigned int event_serial;
 
 /* Unused pointer used to control compiler optimizations.  */
 void *unused_pointer;
@@ -408,6 +410,10 @@ android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
 
 #endif
 
+/* Semaphore used to indicate completion of a query.
+   This should ideally be defined further down.  */
+static sem_t android_query_sem;
+
 /* Set up the global event queue by initializing the mutex and two
    condition variables, and the linked list of events.  This must be
    called before starting the Emacs thread.  Also, initialize the
@@ -438,6 +444,7 @@ android_init_events (void)
 
   sem_init (&android_pselect_sem, 0, 0);
   sem_init (&android_pselect_start_sem, 0, 0);
+  sem_init (&android_query_sem, 0, 0);
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
@@ -538,7 +545,7 @@ android_next_event (union android_event *event_return)
   pthread_mutex_unlock (&event_queue.mutex);
 }
 
-static void
+void
 android_write_event (union android_event *event)
 {
   struct android_event_container *container;
@@ -575,6 +582,10 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 #if __ANDROID_API__ < 16
   static char byte;
 #endif
+
+  /* Check for and run anything the UI thread wants to run on the main
+     thread.  */
+  android_check_query ();
 
   pthread_mutex_lock (&event_queue.mutex);
 
@@ -633,6 +644,10 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   /* This is to shut up process.c when pselect gets EINTR.  */
   if (nfds_return < 0)
     errno = EINTR;
+
+  /* Now check for and run anything the UI thread wants to run in the
+     main thread.  */
+  android_check_query ();
 
   return nfds_return;
 }
@@ -1431,7 +1446,7 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 
   /* This may be called from multiple threads.  setEmacsParams should
      only ever be called once.  */
-  if (__atomic_fetch_add (&emacs_initialized, -1, __ATOMIC_RELAXED))
+  if (__atomic_fetch_add (&emacs_initialized, -1, __ATOMIC_SEQ_CST))
     {
       ANDROID_THROW (env, "java/lang/IllegalArgumentException",
 		     "Emacs was already initialized!");
@@ -1705,6 +1720,10 @@ android_init_emacs_service (void)
   FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;)"
 	       "Ljava/lang/String;");
   FIND_METHOD (restart_emacs, "restartEmacs", "()V");
+  FIND_METHOD (update_ic, "updateIC",
+	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
+  FIND_METHOD (reset_ic, "resetIC",
+	       "(Lorg/gnu/emacs/EmacsWindow;I)V");
 #undef FIND_METHOD
 }
 
@@ -1834,7 +1853,7 @@ android_init_emacs_window (void)
 #undef FIND_METHOD
 }
 
-extern JNIEXPORT void JNICALL
+JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
 			 jobject dump_file_object, jint api_level)
 {
@@ -1928,19 +1947,19 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   emacs_abort ();
 }
 
-extern JNIEXPORT void JNICALL
+JNIEXPORT void JNICALL
 NATIVE_NAME (emacsAbort) (JNIEnv *env, jobject object)
 {
   emacs_abort ();
 }
 
-extern JNIEXPORT void JNICALL
+JNIEXPORT void JNICALL
 NATIVE_NAME (quit) (JNIEnv *env, jobject object)
 {
   Vquit_flag = Qt;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 				   jshort window, jlong time,
 				   jint x, jint y, jint width,
@@ -1961,7 +1980,7 @@ NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
 			    jshort window, jlong time,
 			    jint state, jint keycode,
@@ -1981,7 +2000,7 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
 			      jshort window, jlong time,
 			      jint state, jint keycode,
@@ -2001,7 +2020,7 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusIn) (JNIEnv *env, jobject object,
 			   jshort window, jlong time)
 {
@@ -2016,7 +2035,7 @@ NATIVE_NAME (sendFocusIn) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusOut) (JNIEnv *env, jobject object,
 			    jshort window, jlong time)
 {
@@ -2031,7 +2050,7 @@ NATIVE_NAME (sendFocusOut) (JNIEnv *env, jobject object,
   return ++event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
 				jshort window, jint action)
 {
@@ -2046,7 +2065,7 @@ NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
@@ -2064,7 +2083,7 @@ NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
@@ -2082,7 +2101,7 @@ NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
 				jshort window, jint x, jint y,
 				jlong time)
@@ -2100,7 +2119,7 @@ NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time, jint state,
@@ -2121,7 +2140,7 @@ NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
 				 jshort window, jint x, jint y,
 				 jlong time, jint state,
@@ -2142,7 +2161,7 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
@@ -2161,7 +2180,7 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y,
 			   jlong time, jint pointer_id)
@@ -2180,7 +2199,7 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
@@ -2199,7 +2218,7 @@ NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
 			 jshort window, jint x, jint y,
 			 jlong time, jint state,
@@ -2221,7 +2240,7 @@ NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
 			     jshort window)
 {
@@ -2235,7 +2254,7 @@ NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
 			       jshort window)
 {
@@ -2249,7 +2268,7 @@ NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
 			       jshort window, jint menu_event_id)
 {
@@ -2264,7 +2283,7 @@ NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
-extern JNIEXPORT jlong JNICALL
+JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
 			  jshort window, jint x, jint y,
 			  jint width, jint height)
@@ -2281,6 +2300,23 @@ NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
 
   android_write_event (&event);
   return event_serial;
+}
+
+/* Forward declarations of deadlock prevention functions.  */
+
+static void android_begin_query (void);
+static void android_end_query (void);
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (beginSynchronous) (JNIEnv *env, jobject object)
+{
+  android_begin_query ();
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (endSynchronous) (JNIEnv *env, jobject object)
+{
+  android_end_query ();
 }
 
 #ifdef __clang__
@@ -5151,6 +5187,215 @@ int
 android_get_current_api_level (void)
 {
   return android_api_level;
+}
+
+
+
+/* Whether or not a query is currently being made.  */
+static bool android_servicing_query;
+
+/* Function that is waiting to be run in the Emacs thread.  */
+static void (*android_query_function) (void *);
+
+/* Context for that function.  */
+static void *android_query_context;
+
+/* Deadlock protection.  The UI thread and the Emacs thread must
+   sometimes make synchronous queries to each other, which are
+   normally answered inside each thread's respective event loop.
+   Deadlocks can happen when both threads simultaneously make such
+   synchronous queries and block waiting for each others responses.
+
+   The Emacs thread can be interrupted to service any queries made by
+   the UI thread, but is not possible the other way around.
+
+   To avoid such deadlocks, an atomic counter is provided.  This
+   counter is incremented every time a query starts, and is set to
+   zerp every time one ends.  If the UI thread tries to make a query
+   and sees that the counter is non-zero, it simply returns so that
+   its event loop can proceed to perform and respond to the query.  If
+   the Emacs thread sees the same thing, then it stops to service all
+   queries being made by the input method, then proceeds to make its
+   query.  */
+
+/* Run any function that the UI thread has asked to run, and then
+   signal its completion.  */
+
+void
+android_check_query (void)
+{
+  void (*proc) (void *);
+  void *closure;
+
+  if (!__atomic_load_n (&android_servicing_query, __ATOMIC_SEQ_CST))
+    return;
+
+  /* First, load the procedure and closure.  */
+  __atomic_load (&android_query_context, &closure, __ATOMIC_SEQ_CST);
+  __atomic_load (&android_query_function, &proc, __ATOMIC_SEQ_CST);
+
+  if (!proc)
+    return;
+
+  proc (closure);
+
+  /* Finish the query.  */
+  __atomic_store_n (&android_query_context, NULL, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_query_function, NULL, __ATOMIC_SEQ_CST);
+  __atomic_clear (&android_servicing_query, __ATOMIC_SEQ_CST);
+
+  /* Signal completion.  */
+  sem_post (&android_query_sem);
+}
+
+/* Notice that the Emacs thread will start blocking waiting for a
+   response from the UI thread.  Process any pending queries from the
+   UI thread.
+
+   This function may be called from Java.  */
+
+static void
+android_begin_query (void)
+{
+  if (__atomic_test_and_set (&android_servicing_query,
+			     __ATOMIC_SEQ_CST))
+    {
+      /* Answer the query that is currently being made.  */
+      assert (android_query_function != NULL);
+      android_check_query ();
+
+      /* Wait for that query to complete.  */
+      while (__atomic_load_n (&android_servicing_query,
+			      __ATOMIC_SEQ_CST))
+	;;
+    }
+}
+
+/* Notice that a query has stopped.  This function may be called from
+   Java.  */
+
+static void
+android_end_query (void)
+{
+  __atomic_clear (&android_servicing_query, __ATOMIC_SEQ_CST);
+}
+
+/* Synchronously ask the Emacs thread to run the specified PROC with
+   the given CLOSURE.  Return if this fails, or once PROC is run.
+
+   PROC may be run from inside maybe_quit.
+
+   It is not okay to run Lisp code which signals or performs non
+   trivial tasks inside PROC.
+
+   Return 1 if the Emacs thread is currently waiting for the UI thread
+   to respond and PROC could not be run, or 0 otherwise.  */
+
+int
+android_run_in_emacs_thread (void (*proc) (void *), void *closure)
+{
+  union android_event event;
+
+  event.xaction.type = ANDROID_WINDOW_ACTION;
+  event.xaction.serial = ++event_serial;
+  event.xaction.window = 0;
+  event.xaction.action = 0;
+
+  /* Set android_query_function and android_query_context.  */
+  __atomic_store_n (&android_query_context, closure, __ATOMIC_SEQ_CST);
+  __atomic_store_n (&android_query_function, proc, __ATOMIC_SEQ_CST);
+
+  /* Don't allow deadlocks to happen; make sure the Emacs thread is
+     not waiting for something to be done.  */
+
+  if (__atomic_test_and_set (&android_servicing_query,
+			     __ATOMIC_SEQ_CST))
+    {
+      __atomic_store_n (&android_query_context, NULL,
+			__ATOMIC_SEQ_CST);
+      __atomic_store_n (&android_query_function, NULL,
+			__ATOMIC_SEQ_CST);
+
+      return 1;
+    }
+
+  /* Send a dummy event.  `android_check_query' will be called inside
+     wait_reading_process_output after the event arrives.
+
+     Otherwise, android_select will call android_check_thread the next
+     time it is entered.  */
+  android_write_event (&event);
+
+  /* Start waiting for the function to be executed.  */
+  while (sem_wait (&android_query_sem) < 0)
+    ;;
+
+  return 0;
+}
+
+
+
+/* Input method related functions.  */
+
+/* Change WINDOW's active selection to the characters between
+   SELECTION_START and SELECTION_END.
+
+   Also, update the composing region to COMPOSING_REGION_START and
+   COMPOSING_REGION_END.
+
+   If any value cannot fit in jint, then the behavior of the input
+   method is undefined.  */
+
+void
+android_update_ic (android_window window, ptrdiff_t selection_start,
+		   ptrdiff_t selection_end, ptrdiff_t composing_region_start,
+		   ptrdiff_t composing_region_end)
+{
+  jobject object;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.update_ic,
+				       object,
+				       (jint) selection_start,
+				       (jint) selection_end,
+				       (jint) composing_region_start,
+				       (jint) composing_region_end);
+  android_exception_check ();
+}
+
+/* Reinitialize any ongoing input method connection on WINDOW.
+
+   Any input method that is connected to WINDOW will invalidate its
+   cache of the buffer contents.
+
+   MODE controls certain aspects of the input method's behavior:
+
+     - If MODE is ANDROID_IC_MODE_NULL, the input method will be
+       deactivated, and an ASCII only keyboard will be displayed
+       instead.
+
+     - If MODE is ANDROID_IC_MODE_ACTION, the input method will
+       edit text normally, but send ``return'' as a key event.
+       This is useful inside the mini buffer.
+
+     - If MODE is ANDROID_IC_MODE_TEXT, the input method is free
+       to behave however it wants.  */
+
+void
+android_reset_ic (android_window window, enum android_ic_mode mode)
+{
+  jobject object;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.reset_ic,
+				       object, (jint) mode);
+  android_exception_check ();
 }
 
 

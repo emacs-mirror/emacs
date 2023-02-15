@@ -5230,7 +5230,10 @@ extern char *emacs_root_dir (void);
 
 #ifdef HAVE_TEXT_CONVERSION
 /* Defined in textconv.c.  */
+extern void reset_frame_state (struct frame *);
 extern void report_selected_window_change (struct frame *);
+extern void report_point_change (struct frame *, struct window *,
+				 struct buffer *);
 #endif
 
 #ifdef HAVE_NATIVE_COMP

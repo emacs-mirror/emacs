@@ -121,6 +121,7 @@ static struct rlimit nofile_limit;
 
 #ifdef HAVE_ANDROID
 #include "android.h"
+#include "androidterm.h"
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM

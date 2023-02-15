@@ -34,6 +34,20 @@ struct textconv_interface
      happen if the window is deleted or switches buffers, or an
      unexpected buffer change occurs.) */
   void (*reset) (struct frame *);
+
+  /* Notice that point has moved in the specified frame's selected
+     window's selected buffer.  The second argument is the window
+     whose point changed, and the third argument is the buffer.  */
+  void (*point_changed) (struct frame *, struct window *,
+			 struct buffer *);
+
+  /* Notice that the preconversion region has changed without point
+     being moved.  */
+  void (*compose_region_changed) (struct frame *);
+
+  /* Notice that an asynch conversion identified by COUNTER has
+     completed.  */
+  void (*notify_conversion) (unsigned long);
 };
 
 
@@ -103,7 +117,27 @@ struct textconv_callback_struct
   struct textconv_conversion_text text;
 };
 
-extern int textconv_query (struct frame *, struct textconv_callback_struct *);
-extern void register_texconv_interface (struct textconv_interface *);
+#define TEXTCONV_SKIP_CONVERSION_REGION (1 << 0)
+
+extern int textconv_query (struct frame *, struct textconv_callback_struct *,
+			   int);
+extern bool detect_conversion_events (void);
+extern void handle_pending_conversion_events (void);
+extern void start_batch_edit (struct frame *, unsigned long);
+extern void end_batch_edit (struct frame *, unsigned long);
+extern void commit_text (struct frame *, Lisp_Object, ptrdiff_t,
+			 unsigned long);
+extern void finish_composing_text (struct frame *, unsigned long);
+extern void set_composing_text (struct frame *, Lisp_Object,
+				ptrdiff_t, unsigned long);
+extern void set_composing_region (struct frame *, ptrdiff_t, ptrdiff_t,
+				  unsigned long);
+extern void textconv_set_point (struct frame *, ptrdiff_t, unsigned long);
+extern void delete_surrounding_text (struct frame *, ptrdiff_t,
+				     ptrdiff_t, unsigned long);
+extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,
+				 ptrdiff_t *, ptrdiff_t *, ptrdiff_t *);
+
+extern void register_textconv_interface (struct textconv_interface *);
 
 #endif /* _TEXTCONV_H_ */
