@@ -4638,7 +4638,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 ;; This test is inspired by Bug#51386, Bug#52758, Bug#53513, Bug#54042
 ;; and Bug#60505.
-;; TODO: Add tests for user names and multi-hop file names.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
   (tramp-cleanup-connection tramp-test-vec nil 'keep-password)
@@ -4649,12 +4648,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
 	  (user (file-remote-p ert-remote-temporary-file-directory 'user))
 	  (host (file-remote-p ert-remote-temporary-file-directory 'host))
+	  (hop (file-remote-p ert-remote-temporary-file-directory 'hop))
           (orig-syntax tramp-syntax)
           (non-essential t)
 	  (inhibit-message t))
       (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
 	(setq host (match-string 1 host)))
 
+      ;; (trace-function #'tramp-completion-file-name-handler)
+      ;; (trace-function #'completion-file-name-table)
       (unwind-protect
           (dolist (syntax (if (tramp--test-expensive-test-p)
 		              (tramp-syntax-values) `(,orig-syntax)))
@@ -4689,25 +4691,29 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		    (ipv6-postfix
 		     (and (string-match-p tramp-ipv6-regexp host)
 		          tramp-postfix-ipv6-format))
+		    ;; The hop string fits only the initial syntax.
+		    (hop (and (eq tramp-syntax orig-syntax) hop))
                     test result completions)
 
 		(dolist
 		    (test-and-result
-		     ;; These are triples (TEST-STRING SINGLE-RESULT
-		     ;; COMPLETION-RESULT).
+		     ;; These are triples (TEST-STRING RESULT-CHECK
+		     ;; COMPLETION-CHECK).
 		     (append
 		      ;; Complete method name.
 		      (unless (string-empty-p tramp-method-regexp)
 			`((,(concat
-                             tramp-prefix-format
-                             (substring-no-properties method 0 2))
+                             tramp-prefix-format hop
+                             (substring-no-properties
+			      method 0 (min 2 (length method))))
 			   ,(concat tramp-prefix-format method-string)
 			   ,method-string)))
 		      ;; Complete user name.
 	              (unless (tramp-string-empty-or-nil-p user)
 			`((,(concat
-                             tramp-prefix-format method-string
-                             (substring-no-properties user 0 2))
+                             tramp-prefix-format hop method-string
+                             (substring-no-properties
+			      user 0 (min 2 (length user))))
 			   ,(concat
                              tramp-prefix-format method-string
 	                     user tramp-postfix-user-format)
@@ -4716,8 +4722,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		      ;; Complete host name.
 	              (unless (tramp-string-empty-or-nil-p host)
 			`((,(concat
-                             tramp-prefix-format method-string
-			     ipv6-prefix (substring-no-properties host 0 2))
+                             tramp-prefix-format hop method-string
+			     ipv6-prefix
+			     (substring-no-properties
+			      host 0 (min 2 (length host))))
 			   ,(concat
                              tramp-prefix-format method-string
 	                     ipv6-prefix host
@@ -4729,9 +4737,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	              (unless (or (tramp-string-empty-or-nil-p user)
 				  (tramp-string-empty-or-nil-p host))
 			`((,(concat
-                             tramp-prefix-format method-string
+                             tramp-prefix-format hop method-string
 	                     user tramp-postfix-user-format
-			     ipv6-prefix (substring-no-properties host 0 2))
+			     ipv6-prefix
+			     (substring-no-properties
+			      host 0 (min 2 (length host))))
 			   ,(concat
                              tramp-prefix-format method-string
 	                     user tramp-postfix-user-format
@@ -4742,12 +4752,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			     ipv6-postfix tramp-postfix-host-format))))))
 
                   (ignore-errors (kill-buffer "*Completions*"))
+                  ;; (and (bufferp trace-buffer) (kill-buffer trace-buffer))
                   (discard-input)
                   (setq test (car test-and-result)
                         unread-command-events
                         (mapcar #'identity (concat test "\t\t\n"))
                         completions nil
                         result (read-file-name "Prompt: "))
+
                   (if (not (get-buffer "*Completions*"))
                       (progn
                         ;; (tramp--test-message
@@ -4776,6 +4788,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                     (should (member (caddr test-and-result) completions)))))))
 
 	;; Cleanup.
+	;; (tramp--test-message "%s" (tramp-get-buffer-string trace-buffer))
+	;; (untrace-function #'tramp-completion-file-name-handler)
+	;; (untrace-function #'completion-file-name-table)
         (tramp-change-syntax orig-syntax)))))
 
 (ert-deftest tramp-test27-load ()
@@ -5527,7 +5542,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    ;; (tramp--test-message "%s" attributes)
 	    (should (equal (cdr (assq 'comm attributes)) (car command)))
 	    (should (equal (cdr (assq 'args attributes))
-			   (mapconcat #'identity command " ")))))
+			   (string-join command " ")))))
 
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
@@ -6088,8 +6103,7 @@ INPUT, if non-nil, is a string sent to the process."
           ;; We make a super long `tramp-remote-path'.
           (make-directory tmp-name)
           (should (file-directory-p tmp-name))
-          (while (tramp-compat-length<
-		  (mapconcat #'identity orig-exec-path ":") 5000)
+          (while (tramp-compat-length< (string-join orig-exec-path ":") 5000)
             (let ((dir (make-temp-file (file-name-as-directory tmp-name) 'dir)))
               (should (file-directory-p dir))
               (setq tramp-remote-path
@@ -6111,8 +6125,7 @@ INPUT, if non-nil, is a string sent to the process."
 		    tramp-test-vec "pipe-buf" 4096))
 	    ;; The last element of `exec-path' is `exec-directory'.
             (should
-	     (string-equal
-	      path (mapconcat #'identity (butlast orig-exec-path) ":"))))
+	     (string-equal path (string-join (butlast orig-exec-path) ":"))))
 	  ;; The shell "sh" shall always exist.
 	  (should (executable-find "sh" 'remote)))
 
@@ -7167,7 +7180,7 @@ This requires restrictions of file name syntax."
     ;; Simplify test in order to speed up.
     (apply #'tramp--test-check-files
 	   (if (tramp--test-expensive-test-p)
-	       files (list (mapconcat #'identity files ""))))))
+	       files (list (string-join files ""))))))
 
 (tramp--test-deftest-with-stat tramp-test41-special-characters)
 

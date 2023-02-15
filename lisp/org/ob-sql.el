@@ -234,7 +234,7 @@ database connections."
                                   (:database . sql-database)))
                   (mapped-name (cdr (assq name name-mapping))))
              (cadr (assq mapped-name
-                         (cdr (assoc dbconnection sql-connection-alist))))))))
+                         (cdr (assoc-string dbconnection sql-connection-alist t))))))))
 
 (defun org-babel-execute:sql (body params)
   "Execute a block of Sql code with Babel.

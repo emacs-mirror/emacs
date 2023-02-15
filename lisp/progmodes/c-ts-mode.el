@@ -272,6 +272,11 @@ MODE is either `c' or `cpp'."
                  ;; Indent the body of namespace definitions.
                  ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
 
+           ;; Closing bracket.  This should be before initializer_list
+           ;; (and probably others) rule because that rule (and other
+           ;; similar rules) will match the closing bracket.  (Bug#61398)
+           ((node-is "}") point-min c-ts-common-statement-offset)
+
            ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
            ;; Statement in enum.
@@ -281,8 +286,6 @@ MODE is either `c' or `cpp'."
 
            ;; Statement in {} blocks.
            ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
-           ;; Closing bracket.
-           ((node-is "}") point-min c-ts-common-statement-offset)
            ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
            ;; Bug#61291.
@@ -799,7 +802,9 @@ the semicolon.  This function skips the semicolon."
   (setq-local c-ts-common-indent-type-regexp-alist
               `((block . ,(rx (or "compound_statement"
                                   "field_declaration_list"
-                                  "enumerator_list")))
+                                  "enumerator_list"
+                                  "initializer_list"
+                                  "field_declaration_list")))
                 (if . "if_statement")
                 (else . ("if_statement" . "alternative"))
                 (do . "do_statement")

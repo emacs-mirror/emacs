@@ -4991,7 +4991,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
-    Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
+    Fmake_temp_file_internal (base_name, make_fixnum (0),
+			      build_string (".eln.tmp"), Qnil);
   Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
 #ifdef WINDOWSNT
   encoded_tmp_file = ansi_encode_filename (encoded_tmp_file);

@@ -182,6 +182,20 @@ else if (false)
   return 3;
 =-=-=
 
+Name: Initializer List (Bug#61398)
+
+=-=
+int main()
+{
+  const char *emoticons[][2] =
+    {
+      {":-)", "SLIGHTLY SMILING FACE"},
+      {";-)", "WINKING FACE"},
+      {":-(", "SLIGHTLY FROWNING FACE"},
+    };
+}
+=-=-=
+
 Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
@@ -325,5 +339,18 @@ void foo(
                 && false)
               return 6;
     }
+}
+=-=-=
+
+Name: Initializer List (Linux Style) (Bug#61398)
+
+=-=
+int main()
+{
+  const char *emoticons[][2] = {
+    {":-)", "SLIGHTLY SMILING FACE"},
+    {";-)", "WINKING FACE"},
+    {":-(", "SLIGHTLY FROWNING FACE"},
+  };
 }
 =-=-=
