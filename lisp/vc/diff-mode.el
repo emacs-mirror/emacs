@@ -153,6 +153,17 @@ and hunk-based syntax highlighting otherwise as a fallback."
   :type (get 'whitespace-style 'custom-type)
   :version "29.1")
 
+(defcustom diff-ignore-whitespace-switches "-b"
+  "Switch or list of diff switches to use when ignoring whitespace.
+The default \"-b\" means to ignore whitespace-only changes,
+\"-w\" means ignore all whitespace changes."
+  :type '(choice
+          (string :tag "Ignore whitespace-only changes" :value "-b")
+          (string :tag "Ignore all whitespace changes" :value "-w")
+          (string :tag "Single switch")
+          (repeat :tag "Multiple switches" (string :tag "Switch")))
+  :version "30.1")
+
 (defvar diff-vc-backend nil
   "The VC backend that created the current Diff buffer, if any.")
 
@@ -2130,7 +2141,7 @@ With non-nil prefix arg, re-diff all the hunks."
 	 (coding-system-for-read buffer-file-coding-system)
 	 opts old new)
     (when ignore-whitespace
-      (setq opts '("-b")))
+      (setq opts (ensure-list diff-ignore-whitespace-switches)))
     (when opt-type
       (setq opts (cons opt-type opts)))
 
