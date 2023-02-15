@@ -570,7 +570,7 @@ documented from day one; it just didn't behave according to
 documentation.  It turns out some Lisp programs were using this
 coding-system on the wrong assumption that the "auto" part means some
 automagic handling of the end-of-line (EOL) format conversion; those
-program will now start to fail, because BOM signature in UTF-8 encoded
+programs will now start to fail, because BOM signature in UTF-8 encoded
 text is rarely expected.  That is the reason we mention this bugfix
 here.
 
@@ -615,8 +615,19 @@ with 'C-x x t', or try disabling all known slow minor modes with
 and the major mode with 'M-x so-long-mode', or visit the file with
 'M-x find-file-literally' instead of the usual 'C-x C-f'.
 
-Note that the display optimizations in these cases may cause the
-buffer to be occasionally mis-fontified.
+In buffers in which these display optimizations are in effect, the
+'fontification-functions', 'pre-command-hook' and 'post-command-hook'
+hooks are executed on a narrowed portion of the buffer, whose size is
+controlled by the variables 'long-line-optimizations-region-size' and
+'long-line-optimizations-bol-search-limit', as if they were in a
+'with-restriction' form.  This may, in particular, cause occasional
+mis-fontifications in these buffers.  Modes which are affected by
+these optimizations and by the fact that the buffer is narrowed,
+should adapt and either modify their algorithm so as not to expect the
+entire buffer to be accessible, or, if accessing outside of the
+narrowed region doesn't hurt performance, use the
+'without-restriction' form to temporarily lift the restriction and
+access portions of the buffer outside of the narrowed region.
 
 The new function 'long-line-optimizations-p' returns non-nil when
 these optimizations are in effect in the current buffer.
@@ -3813,6 +3824,14 @@ map, including a special formatting spec to list available keys.
 TIMEOUT is the idle time after which to deactivate the transient map.
 The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
+
++++
+** New forms 'with-restriction' and 'without-restriction'.
+These forms can be used as enhanced alternatives to the
+'save-restriction' form combined with, respectively,
+'narrow-to-region' and 'widen'.  They also accept an optional label
+argument, with which labeled narrowings can be created and lifted.
+See the "(elisp) Narrowing" node for details.
 
 ** Connection Local Variables
 

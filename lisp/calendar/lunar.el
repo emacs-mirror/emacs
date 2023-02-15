@@ -85,6 +85,9 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                            (* 0.0107306 time time)
                            (* 0.00001236 time time time))
                         360.0))
+         ;; moon-lat is the argument of latitude, which is the angle
+         ;; of the moon measured from the ascending node of its orbit
+         ;; (i.e. argument of perigee + true anomaly).
          (moon-lat (mod
                     (+ 21.2964
                        (* 390.67050646 index)
@@ -153,15 +156,19 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 ;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990
 (defun eclipse-check (moon-lat phase)
   (let* ((moon-lat (* (/ float-pi 180) moon-lat))
+         ;; For positions near the ascending or descending node,
+         ;; calculate the absolute angular distance from that node.
          (moon-lat (abs (- moon-lat (* (floor (/ moon-lat float-pi))
                                        float-pi))))
-         (moon-lat (if (> moon-lat 0.37)
+         (moon-lat (if (> moon-lat 0.37) ; FIXME (* 0.5 float-pi)
                        (- float-pi moon-lat)
                      moon-lat))
          (phase-name (cond ((= phase 0) "Solar")
                            ((= phase 2) "Lunar")
                            (t ""))))
-    (cond ((< moon-lat 2.42600766e-1)
+    (cond ((string= phase-name "")
+	   "")
+	  ((< moon-lat 2.42600766e-1)
 	   (concat "** " phase-name " Eclipse **"))
 	  ((< moon-lat 0.37)
 	   (concat "** " phase-name " Eclipse possible **"))

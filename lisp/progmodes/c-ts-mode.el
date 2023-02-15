@@ -803,8 +803,7 @@ the semicolon.  This function skips the semicolon."
               `((block . ,(rx (or "compound_statement"
                                   "field_declaration_list"
                                   "enumerator_list"
-                                  "initializer_list"
-                                  "field_declaration_list")))
+                                  "initializer_list")))
                 (if . "if_statement")
                 (else . ("if_statement" . "alternative"))
                 (do . "do_statement")

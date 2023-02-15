@@ -965,7 +965,7 @@ keyword.
 
 Only use this alias to define an infix command that actually
 sets an infix argument.  To define a infix command that, for
-example, sets a variable use `transient-define-infix' instead.
+example, sets a variable, use `transient-define-infix' instead.
 
 \(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]...)")
 
@@ -1509,18 +1509,8 @@ then just return it.  Otherwise return the symbol whose
 
 ;;; Keymaps
 
-(defvar transient-base-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "ESC ESC ESC") #'transient-quit-all)
-    (define-key map (kbd "C-g")   #'transient-quit-one)
-    (define-key map (kbd "C-q")   #'transient-quit-all)
-    (define-key map (kbd "C-z")   #'transient-suspend)
-    (define-key map (kbd "C-v")   #'transient-scroll-up)
-    (define-key map (kbd "C-M-v") #'transient-scroll-down)
-    (define-key map [next]        #'transient-scroll-up)
-    (define-key map [prior]       #'transient-scroll-down)
-    map)
-  "Parent of other keymaps used by Transient.
+(defvar-keymap transient-base-map
+  :doc "Parent of other keymaps used by Transient.
 
 This is the parent keymap of all the keymaps that are used in
 all transients: `transient-map' (which in turn is the parent
@@ -1533,40 +1523,42 @@ the latter isn't a proper transient prefix command, it can be
 edited using the same functions as used for transients.
 
 If you add a new command here, then you must also add a binding
-to `transient-predicate-map'.")
+to `transient-predicate-map'."
+  "ESC ESC ESC" #'transient-quit-all
+  "C-g"     #'transient-quit-one
+  "C-q"     #'transient-quit-all
+  "C-z"     #'transient-suspend
+  "C-v"     #'transient-scroll-up
+  "C-M-v"   #'transient-scroll-down
+  "<next>"  #'transient-scroll-up
+  "<prior>" #'transient-scroll-down)
 
-(defvar transient-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map transient-base-map)
-    (define-key map (kbd "C-u")   #'universal-argument)
-    (define-key map (kbd "C--")   #'negative-argument)
-    (define-key map (kbd "C-t")   #'transient-show)
-    (define-key map (kbd "?")     #'transient-help)
-    (define-key map (kbd "C-h")   #'transient-help)
-    ;; Also bound to "C-x p" and "C-x n" in transient-common-commands.
-    (define-key map (kbd "C-M-p") #'transient-history-prev)
-    (define-key map (kbd "C-M-n") #'transient-history-next)
-    map)
-  "Top-level keymap used by all transients.
+(defvar-keymap transient-map
+  :doc "Top-level keymap used by all transients.
 
 If you add a new command here, then you must also add a binding
-to `transient-predicate-map'.  Also see `transient-base-map'.")
+to `transient-predicate-map'.  Also see `transient-base-map'."
+  :parent transient-base-map
+  "C-u"   #'universal-argument
+  "C--"   #'negative-argument
+  "C-t"   #'transient-show
+  "?"     #'transient-help
+  "C-h"   #'transient-help
+  ;; Also bound to "C-x p" and "C-x n" in transient-common-commands.
+  "C-M-p" #'transient-history-prev
+  "C-M-n" #'transient-history-next)
 
-(defvar transient-edit-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map transient-base-map)
-    (define-key map (kbd "?")     #'transient-help)
-    (define-key map (kbd "C-h")   #'transient-help)
-    (define-key map (kbd "C-x l") #'transient-set-level)
-    map)
-  "Keymap that is active while a transient in is in \"edit mode\".")
+(defvar-keymap transient-edit-map
+  :doc "Keymap that is active while a transient in is in \"edit mode\"."
+  :parent transient-base-map
+  "?"     #'transient-help
+  "C-h"   #'transient-help
+  "C-x l" #'transient-set-level)
 
-(defvar transient-sticky-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map transient-base-map)
-    (define-key map (kbd "C-g") #'transient-quit-seq)
-    map)
-  "Keymap that is active while an incomplete key sequence is active.")
+(defvar-keymap transient-sticky-map
+  :doc "Keymap that is active while an incomplete key sequence is active."
+  :parent transient-base-map
+  "C-g" #'transient-quit-seq)
 
 (defvar transient--common-command-prefixes '(?\C-x))
 
@@ -1606,70 +1598,28 @@ to `transient-predicate-map'.  Also see `transient-base-map'.")
                          "Show common permanently")))
                (list "C-x l" "Show/hide suffixes" #'transient-set-level))))))))
 
-(defvar transient-popup-navigation-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<down-mouse-1>") #'transient-noop)
-    (define-key map (kbd "<up>")   #'transient-backward-button)
-    (define-key map (kbd "<down>") #'transient-forward-button)
-    (define-key map (kbd "C-r")    #'transient-isearch-backward)
-    (define-key map (kbd "C-s")    #'transient-isearch-forward)
-    (define-key map (kbd "M-RET")  #'transient-push-button)
-    map)
-  "One of the keymaps used when popup navigation is enabled.
-See `transient-enable-popup-navigation'.")
+(defvar-keymap transient-popup-navigation-map
+  :doc "One of the keymaps used when popup navigation is enabled.
+See `transient-enable-popup-navigation'."
+  "<down-mouse-1>" #'transient-noop
+  "<up>"   #'transient-backward-button
+  "<down>" #'transient-forward-button
+  "C-r"    #'transient-isearch-backward
+  "C-s"    #'transient-isearch-forward
+  "M-RET"  #'transient-push-button)
 
-(defvar transient-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<mouse-1>") #'transient-push-button)
-    (define-key map (kbd "<mouse-2>") #'transient-push-button)
-    map)
-  "One of the keymaps used when popup navigation is enabled.
-See `transient-enable-popup-navigation'.")
+(defvar-keymap transient-button-map
+  :doc "One of the keymaps used when popup navigation is enabled.
+See `transient-enable-popup-navigation'."
+  "<mouse-1>" #'transient-push-button
+  "<mouse-2>" #'transient-push-button)
 
-(defvar transient-predicate-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [transient-suspend]       #'transient--do-suspend)
-    (define-key map [transient-help]          #'transient--do-stay)
-    (define-key map [transient-set-level]     #'transient--do-stay)
-    (define-key map [transient-history-prev]  #'transient--do-stay)
-    (define-key map [transient-history-next]  #'transient--do-stay)
-    (define-key map [universal-argument]      #'transient--do-stay)
-    (define-key map [negative-argument]       #'transient--do-minus)
-    (define-key map [digit-argument]          #'transient--do-stay)
-    (define-key map [top-level]               #'transient--do-quit-all)
-    (define-key map [transient-quit-all]      #'transient--do-quit-all)
-    (define-key map [transient-quit-one]      #'transient--do-quit-one)
-    (define-key map [transient-quit-seq]      #'transient--do-stay)
-    (define-key map [transient-show]          #'transient--do-stay)
-    (define-key map [transient-update]        #'transient--do-stay)
-    (define-key map [transient-toggle-common] #'transient--do-stay)
-    (define-key map [transient-set]           #'transient--do-call)
-    (define-key map [transient-save]          #'transient--do-call)
-    (define-key map [transient-reset]         #'transient--do-call)
-    (define-key map [describe-key-briefly]    #'transient--do-stay)
-    (define-key map [describe-key]            #'transient--do-stay)
-    (define-key map [transient-scroll-up]     #'transient--do-stay)
-    (define-key map [transient-scroll-down]   #'transient--do-stay)
-    (define-key map [mwheel-scroll]           #'transient--do-stay)
-    (define-key map [scroll-bar-toolkit-scroll]   #'transient--do-stay)
-    (define-key map [transient-noop]              #'transient--do-noop)
-    (define-key map [transient-mouse-push-button] #'transient--do-move)
-    (define-key map [transient-push-button]       #'transient--do-push-button)
-    (define-key map [transient-backward-button]   #'transient--do-move)
-    (define-key map [transient-forward-button]    #'transient--do-move)
-    (define-key map [transient-isearch-backward]  #'transient--do-move)
-    (define-key map [transient-isearch-forward]   #'transient--do-move)
-    ;; If a valid but incomplete prefix sequence is followed by
-    ;; an unbound key, then Emacs calls the `undefined' command
-    ;; but does not set `this-command', `this-original-command'
-    ;; or `real-this-command' accordingly.  Instead they are nil.
-    (define-key map [nil] #'transient--do-warn)
-    map)
-  "Base keymap used to map common commands to their transient behavior.
+(defvar-keymap transient-predicate-map
+  :doc "Base keymap used to map common commands to their transient behavior.
 
 The \"transient behavior\" of a command controls, among other
 things, whether invoking the command causes the transient to be
-exited or not and whether infix arguments are exported before
+exited or not, and whether infix arguments are exported before
 doing so.
 
 Each \"key\" is a command that is common to all transients and
@@ -1681,7 +1631,43 @@ transient behavior of the respective command.
 
 For transient commands that are bound in individual transients,
 the transient behavior is specified using the `:transient' slot
-of the corresponding object.")
+of the corresponding object."
+  "<transient-suspend>"           #'transient--do-suspend
+  "<transient-help>"              #'transient--do-stay
+  "<transient-set-level>"         #'transient--do-stay
+  "<transient-history-prev>"      #'transient--do-stay
+  "<transient-history-next>"      #'transient--do-stay
+  "<universal-argument>"          #'transient--do-stay
+  "<negative-argument>"           #'transient--do-minus
+  "<digit-argument>"              #'transient--do-stay
+  "<top-level>"                   #'transient--do-quit-all
+  "<transient-quit-all>"          #'transient--do-quit-all
+  "<transient-quit-one>"          #'transient--do-quit-one
+  "<transient-quit-seq>"          #'transient--do-stay
+  "<transient-show>"              #'transient--do-stay
+  "<transient-update>"            #'transient--do-stay
+  "<transient-toggle-common>"     #'transient--do-stay
+  "<transient-set>"               #'transient--do-call
+  "<transient-save>"              #'transient--do-call
+  "<transient-reset>"             #'transient--do-call
+  "<describe-key-briefly>"        #'transient--do-stay
+  "<describe-key>"                #'transient--do-stay
+  "<transient-scroll-up>"         #'transient--do-stay
+  "<transient-scroll-down>"       #'transient--do-stay
+  "<mwheel-scroll>"               #'transient--do-stay
+  "<scroll-bar-toolkit-scroll>"   #'transient--do-stay
+  "<transient-noop>"              #'transient--do-noop
+  "<transient-mouse-push-button>" #'transient--do-move
+  "<transient-push-button>"       #'transient--do-push-button
+  "<transient-backward-button>"   #'transient--do-move
+  "<transient-forward-button>"    #'transient--do-move
+  "<transient-isearch-backward>"  #'transient--do-move
+  "<transient-isearch-forward>"   #'transient--do-move
+  ;; If a valid but incomplete prefix sequence is followed by
+  ;; an unbound key, then Emacs calls the `undefined' command
+  ;; but does not set `this-command', `this-original-command'
+  ;; or `real-this-command' accordingly.  Instead they are nil.
+  "<nil>"                         #'transient--do-warn)
 
 (defvar transient--transient-map nil)
 (defvar transient--predicate-map nil)
@@ -1725,9 +1711,9 @@ of the corresponding object.")
                      (string-trim key)
                      cmd conflict)))
           (define-key map kbd cmd))))
-    (when-let ((b (lookup-key map "-"))) (define-key map [kp-subtract] b))
-    (when-let ((b (lookup-key map "="))) (define-key map [kp-equal] b))
-    (when-let ((b (lookup-key map "+"))) (define-key map [kp-add] b))
+    (when-let ((b (keymap-lookup map "-"))) (keymap-set map "<kp-subtract>" b))
+    (when-let ((b (keymap-lookup map "="))) (keymap-set map "<kp-equal>" b))
+    (when-let ((b (keymap-lookup map "+"))) (keymap-set map "<kp-add>" b))
     (when transient-enable-popup-navigation
       ;; `transient--make-redisplay-map' maps only over bindings that are
       ;; directly in the base keymap, so that cannot be a composed keymap.
@@ -1742,7 +1728,7 @@ of the corresponding object.")
     (set-keymap-parent map transient-predicate-map)
     (when (memq (oref transient--prefix transient-non-suffix)
                 '(nil transient--do-warn transient--do-noop))
-      (define-key map [handle-switch-frame] #'transient--do-suspend))
+      (keymap-set map "<handle-switch-frame>" #'transient--do-suspend))
     (dolist (obj transient--suffixes)
       (let* ((cmd (oref obj command))
              (sub-prefix (and (symbolp cmd) (get cmd 'transient--prefix) t))
@@ -1810,8 +1796,8 @@ of the corresponding object.")
 
 This function is called by transient prefix commands to setup the
 transient.  In that case NAME is mandatory, LAYOUT and EDIT must
-be nil and PARAMS may be (but usually is not) used to set e.g. the
-\"scope\" of the transient (see `transient-define-prefix').
+be nil and PARAMS may be (but usually is not) used to set, e.g.,
+the \"scope\" of the transient (see `transient-define-prefix').
 
 This function is also called internally in which case LAYOUT and
 EDIT may be non-nil."
@@ -2587,10 +2573,10 @@ transient is active."
 
 (defvar transient-resume-mode)
 
-(defun transient-help ()
-  "Show help for the active transient or one of its suffixes."
-  (interactive)
-  (if (called-interactively-p 'any)
+(defun transient-help (&optional interactive)
+  "Show help for the active transient or one of its suffixes.\n\n(fn)"
+  (interactive (list t))
+  (if interactive
       (setq transient--helpp t)
     (with-demoted-errors "transient-help: %S"
       (when (lookup-key transient--transient-map
@@ -3831,17 +3817,15 @@ Suffixes on levels %s and %s are unavailable.\n"
                (propertize (format ">=%s" (1+ level))
                            'face 'transient-disabled-suffix))))))
 
-(defvar transient-resume-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap Man-quit]    #'transient-resume)
-    (define-key map [remap Info-exit]   #'transient-resume)
-    (define-key map [remap quit-window] #'transient-resume)
-    map)
-  "Keymap for `transient-resume-mode'.
+(defvar-keymap transient-resume-mode-map
+  :doc "Keymap for `transient-resume-mode'.
 
 This keymap remaps every command that would usually just quit the
 documentation buffer to `transient-resume', which additionally
-resumes the suspended transient.")
+resumes the suspended transient."
+  "<remap> <Man-quit>"    #'transient-resume
+  "<remap> <Info-exit>"   #'transient-resume
+  "<remap> <quit-window>" #'transient-resume)
 
 (define-minor-mode transient-resume-mode
   "Auxiliary minor-mode used to resume a transient after viewing help.")
@@ -3901,13 +3885,11 @@ See `forward-button' for information about N."
 ;;; Compatibility
 ;;;; Popup Isearch
 
-(defvar transient--isearch-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map isearch-mode-map)
-    (define-key map [remap isearch-exit]   #'transient-isearch-exit)
-    (define-key map [remap isearch-cancel] #'transient-isearch-cancel)
-    (define-key map [remap isearch-abort]  #'transient-isearch-abort)
-    map))
+(defvar-keymap transient--isearch-mode-map
+  :parent isearch-mode-map
+  "<remap> <isearch-exit>"   #'transient-isearch-exit
+  "<remap> <isearch-cancel>" #'transient-isearch-cancel
+  "<remap> <isearch-abort>"  #'transient-isearch-abort)
 
 (defun transient-isearch-backward (&optional regexp-p)
   "Do incremental search backward.
@@ -4034,8 +4016,8 @@ that does that.  Of course \"Q\" may already be bound to something
 else, so that function binds \"M-q\" to that command instead.
 Of course \"M-q\" may already be bound to something else, but
 we stop there."
-  (define-key transient-base-map   "q" #'transient-quit-one)
-  (define-key transient-sticky-map "q" #'transient-quit-seq)
+  (keymap-set transient-base-map   "q" #'transient-quit-one)
+  (keymap-set transient-sticky-map "q" #'transient-quit-seq)
   (setq transient-substitute-key-function
         #'transient-rebind-quit-commands))
 

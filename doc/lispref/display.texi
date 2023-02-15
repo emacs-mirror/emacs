@@ -3501,11 +3501,11 @@ function finishes are the ones that really matter.
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
 
-When the buffer text includes very long lines, these functions are
-called with the buffer narrowed to a relatively small region around
-@var{pos}, and with narrowing locked, so the functions cannot use
-@code{widen} to gain access to the rest of the buffer.
-@xref{Narrowing}.
+Note that, when the buffer text includes very long lines, these
+functions are called as if they were in a @code{with-restriction} form
+(@pxref{Narrowing}), with a
+@code{long-line-optimizations-in-fontification-functions} label and
+with the buffer narrowed to a portion around @var{pos}.
 @end defvar
 
 @node Basic Faces
