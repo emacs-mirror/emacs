@@ -32,7 +32,7 @@ _`.run`: Run these commands::
 
 where ``<makefile>`` is the appropriate makefile for the platform (see
 `manual/build.txt`_), ``<variety>`` is the variety (see
-design.mps.config.var_) and ``<target>`` is the collection of tests
+design.mps.config.var.codes_) and ``<target>`` is the collection of tests
 (see `.target`_ below). For example::
 
     make -f lii6ll VARIETY=cool testrun
@@ -40,7 +40,7 @@ design.mps.config.var_) and ``<target>`` is the collection of tests
 If ``<variety>`` is omitted, tests are run in both the cool and hot
 varieties.
 
-.. _design.mps.config.var: config#.var
+.. _design.mps.config.var.codes: config#.var.codes
 .. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
 
 
