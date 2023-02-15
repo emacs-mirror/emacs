@@ -263,6 +263,8 @@ if [ -n "$jdb_command" ]; then
 fi
 
 # See if gdbserver has to be uploaded
+gdbserver_cmd=
+is_root=
 if [ -z "$gdbserver" ]; then
     gdbserver_bin=/system/bin/gdbserver
 else
@@ -272,9 +274,26 @@ else
 
     # Upload the specified gdbserver binary to the device.
     adb -s $device push "$gdbserver" "$gdbserver_bin"
-    # Copy it to the user directory.
-    adb -s $device shell "$gdbserver_cat"
-    adb -s $device shell "run-as $package chmod +x gdbserver"
+
+    if (adb -s $device pull /system/bin/tee /dev/null &> /dev/null); then
+	# Copy it to the user directory.
+	adb -s $device shell "$gdbserver_cat"
+	adb -s $device shell "run-as $package chmod +x gdbserver"
+	gdbserver_cmd="./gdbserver"
+    else
+	# Hopefully this is an old version of Android which allows
+	# execution from /data/local/tmp.  Its `chmod' doesn't support
+	# `+x' either.
+	adb -s $device shell "chmod 777 $gdbserver_bin"
+	gdbserver_cmd="$gdbserver_bin"
+
+	# If the user is root, then there is no need to open any kind
+	# of TCP socket.
+	if (adb -s $device shell id | grep -G root); then
+	    gdbserver=
+	    is_root=yes
+	fi
+    fi
 fi
 
 # Now start gdbserver on the device asynchronously.
@@ -284,13 +303,19 @@ exec 5<> /tmp/file-descriptor-stamp
 rm -f /tmp/file-descriptor-stamp
 
 if [ -z "$gdbserver" ]; then
-    adb -s $device shell run-as $package $gdbserver_bin --once \
-	"+debug.$package.socket" --attach $pid >&5 &
-    gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
+    if [ "$is_root" = "yes" ]; then
+	adb -s $device shell $gdbserver_bin --once \
+	    "+/data/local/tmp/debug.$package.socket" --attach $pid >&5 &
+	gdb_socket="localfilesystem:/data/local/tmp/debug.$package.socket"
+    else	
+	adb -s $device shell run-as $package $gdbserver_bin --once \
+	    "+debug.$package.socket" --attach $pid >&5 &
+	gdb_socket="localfilesystem:$app_data_dir/debug.$package.socket"
+    fi
 else
     # Normally the program cannot access $gdbserver_bin when it is
     # placed in /data/local/tmp.
-    adb -s $device shell run-as $package "./gdbserver" --once \
+    adb -s $device shell run-as $package $gdbserver_cmd --once \
 	"0.0.0.0:7654" --attach $pid >&5 &
     gdb_socket="tcp:7654"
 fi
