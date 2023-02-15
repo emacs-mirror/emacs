@@ -218,9 +218,9 @@ is translated into a ``c:macro`` directive::
 
     .. c:macro:: RING_FOR(node, ring, next)
 
-Macros are identified by having names consisting of capital letters,
-numbers, and underscore, or appearing in the list of exceptions given
-by the ``MACROS`` global in designs.py.
+_`.fmt.macro`: Macros are identified by having names consisting of
+capital letters, numbers, and underscore, or appearing in the list of
+exceptions given by the ``MACROS`` global in designs.py.
 
 _`.fmt.type-def`: A paragraph consisting of a type definition on a
 single line formatted as code, for example::
