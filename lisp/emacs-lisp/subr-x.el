@@ -102,6 +102,7 @@ threading."
   "Join all STRINGS using SEPARATOR.
 Optional argument SEPARATOR must be a string, a vector, or a list of
 characters; nil stands for the empty string."
+  (declare (pure t) (side-effect-free t))
   (mapconcat #'identity strings separator))
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")
@@ -112,6 +113,7 @@ characters; nil stands for the empty string."
 When truncating, \"...\" is always prepended to the string, so
 the resulting string may be longer than the original if LENGTH is
 3 or smaller."
+  (declare (pure t) (side-effect-free t))
   (let ((strlen (length string)))
     (if (<= strlen length)
 	string
@@ -124,16 +126,19 @@ the resulting string may be longer than the original if LENGTH is
   "Check whether STRING is either empty or only whitespace.
 The following characters count as whitespace here: space, tab, newline and
 carriage return."
+  (declare (pure t) (side-effect-free t))
   (string-match-p "\\`[ \t\n\r]*\\'" string))
 
 (defsubst string-remove-prefix (prefix string)
   "Remove PREFIX from STRING if present."
+  (declare (pure t) (side-effect-free t))
   (if (string-prefix-p prefix string)
       (substring string (length prefix))
     string))
 
 (defsubst string-remove-suffix (suffix string)
   "Remove SUFFIX from STRING if present."
+  (declare (pure t) (side-effect-free t))
   (if (string-suffix-p suffix string)
       (substring string 0 (- (length string) (length suffix)))
     string))
@@ -252,6 +257,7 @@ is done.
 If START is nil (or not present), the padding is done to the end
 of the string, and if non-nil, padding is done to the start of
 the string."
+  (declare (pure t) (side-effect-free t))
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (let ((pad-length (- length (length string))))
@@ -261,6 +267,7 @@ the string."
 
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
+  (declare (pure t) (side-effect-free t))
   (string-remove-suffix "\n" string))
 
 (defun replace-region-contents (beg end replace-fn
