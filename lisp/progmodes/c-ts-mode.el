@@ -267,15 +267,15 @@ MODE is either `c' or `cpp'."
            ((query "(for_statement update: (_) @indent)") parent-bol 5)
            ((query "(call_expression arguments: (_) @indent)") parent c-ts-mode-indent-offset)
            ((parent-is "call_expression") parent 0)
+           ;; Closing bracket.  This should be before initializer_list
+           ;; (and probably others) rule because that rule (and other
+           ;; similar rules) will match the closing bracket.  (Bug#61398)
+           ((node-is "}") point-min c-ts-common-statement-offset)
            ,@(when (eq mode 'cpp)
                '(((node-is "access_specifier") parent-bol 0)
                  ;; Indent the body of namespace definitions.
                  ((parent-is "declaration_list") parent-bol c-ts-mode-indent-offset)))
 
-           ;; Closing bracket.  This should be before initializer_list
-           ;; (and probably others) rule because that rule (and other
-           ;; similar rules) will match the closing bracket.  (Bug#61398)
-           ((node-is "}") point-min c-ts-common-statement-offset)
 
            ;; int[5] a = { 0, 0, 0, 0 };
            ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
