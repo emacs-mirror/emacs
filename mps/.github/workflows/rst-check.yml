@@ -1,0 +1,23 @@
+# .github/workflows/rst-check.yml -- check syntax of reStructuredText files
+#
+# This is a GitHub CI workflow
+# <https://docs.github.com/en/actions/using-workflows/about-workflows>
+# to check the syntax of reStructuredText files.
+
+name: reStructuredText syntax check
+
+on:
+  # Run as part of CI checks on branch push and on merged pull request.
+  - push
+  - pull_request
+  - workflow_dispatch # allow manual triggering
+
+jobs:
+  check-rst:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install docutils
+        run: sudo apt-get install -y docutils
+      - name: Check reStructuredText syntax
+        run: tool/check-rst

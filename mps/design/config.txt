@@ -169,7 +169,7 @@ predefined when compiling the module sources::
 
     CONFIG_VAR_<variety-code>
 
-_`.var`: The variety codes are as follows:
+_`.var.codes`: The variety codes are as follows:
 
 _`.var.hot`: ``HOT``
 
