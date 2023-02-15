@@ -120,13 +120,9 @@ When you finish the checklist, decide whether to start
 #. Does the branch, and its merge, build and pass tests?
 
    CI should have run builds of both the branch, and a *trial merge*
-   [#trial-merge]_ of the pull request with master.  Success by CI is
-   a strong indication that `the merging procedure`_ will be quick and
-   successful.
-
-   [FIXME: The trial merge might be quite old if the pull request has
-   been sitting around for a while.  How to get an up-to-date one?  RB
-   2023-02-10]
+   [#trial-merge]_ of the pull request with master.  Recent success by
+   CI is a strong indication that `the merging procedure`_ will be
+   quick and successful.
 
    Look for build results in the pull request on GitHub.  Expand "Show
    all checks", and look for build success messages for both the
@@ -134,9 +130,13 @@ When you finish the checklist, decide whether to start
    results are missing, inform sysadmins that CI isn't functioning.
 
    You can also look for a build results in the logs of CI systems.
-   See `design.mps.ci.results`_.
+   See `design.mps.ci.results <../design/tests.txt#ci-results>`__.
 
-.. _design.mps.ci.results: ../design/tests.txt#ci-results
+   Are the build results up to date?  If master has changed since the
+   date of the commit that kicked off the build (the one immediately
+   before the build results) then the build results are out of date.
+   Consider a *catch-up merge* from master to the branch to bring the
+   branch up to date and kick off new builds.
 
    If there is a failed build *of the branch* you should not execute
    `the merging procedure`_, but talk to the contributor about fixing
@@ -147,17 +147,18 @@ When you finish the checklist, decide whether to start
    believe that the failure is due to merge conflicts that you are
    willing to resolve.
 
-   If you have no build and test results for the merge, then you can
-   still try to execute `the merging procedure`_ if:
+   If you don't have recent build and test results for the merge, then
+   you can still try to execute `the merging procedure`_ if:
 
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
    #. you're prepared to test on all target platforms.
 
-.. [#trial-merge] GitHub automatically creates a "merge commit" for a
-                  pull request, which is a merge of the pull request
-                  branch.  CI is run against both the branch (labelled
-                  "push") and the merge (labelled "pull_request").
+.. [#trial-merge] CI is run against both the branch (labelled "push"),
+                  and a `pull request merge branch`_ (labelled "pull
+                  request") automatically created by GitHub.
+
+.. _pull request merge branch: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
