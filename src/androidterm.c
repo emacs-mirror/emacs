@@ -572,7 +572,7 @@ android_decode_utf16 (unsigned short *utf16, size_t n)
 static void
 android_handle_ime_event (union android_event *event, struct frame *f)
 {
-  Lisp_Object text;
+  Lisp_Object text UNINIT;
 
   /* First, decode the text if necessary.  */
 
@@ -4811,6 +4811,8 @@ NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
   event.ime.position = start;
   event.ime.text = NULL;
   event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
 }
 
 /* Structure describing the context for `getSelection'.  */

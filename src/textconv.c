@@ -583,6 +583,8 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 		   Fpoint (), Qnil);
       Fset_marker_insertion_type (f->conversion.compose_region_end,
 				  Qt);
+
+      start = position;
     }
   else
     {
@@ -875,13 +877,24 @@ handle_pending_conversion_events (void)
 
       /* Test if F has any outstanding conversion events.  Then
 	 process them in bottom to up order.  */
-      for (action = f->conversion.actions; action; action = next)
+      while (true)
 	{
 	  /* Redisplay in between if there is more than one
-	     action.  */
+	     action.
+
+	     This can read input.  This function must be reentrant
+	     here.  */
 
 	  if (handled)
 	    redisplay ();
+
+	  /* Reload action.  */
+	  action = f->conversion.actions;
+
+	  /* If there are no more actions, break.  */
+
+	  if (!action)
+	    break;
 
 	  /* Unlink this action.  */
 	  next = action->next;
@@ -1134,7 +1147,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 
   /* Detect overflow.  */
 
-  if (!(start <= PT <= end))
+  if (!(start <= PT && PT <= end))
     goto finish;
 
   /* Convert the character positions to byte positions.  */
