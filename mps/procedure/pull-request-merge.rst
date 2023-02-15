@@ -63,13 +63,12 @@ you should probably read section "`6. Rationale`_".
 ----------------------
 
 Start by making a record for the merge.  Make a comment on the pull
-request with a permalink to the procedure you're following (this one),
-like::
+request with a permalink to the procedure you're following (this one)
+and the start time, like::
 
   Executing [proc.merge.pull-request](https://github.com/Ravenbrook/mps/blob/973fc087c9abff01a957b85bd17c4a2be434ae73/procedure/pull-request-merge.rst)
 
-.. FIXME: Add recording of start time and end time metrics similar to
-   proc.review.  Noted during merge with PNJ today.  RB 2023-02-10.
+  1. Start time 11:03.
 
 The answers to the checklist questions should be "yes".  If the answer
 to a question isn't "yes", record that, and why (and maybe suggest
@@ -378,6 +377,11 @@ working repo before that point.
    the merge was recorded correctly.  Check that any issues *not
    completely resolved* by the merge were not closed.  Re-open them if
    necessary.
+
+10. Edit the comment you made in `3. Pre-merge checklist`_ to record
+    the end time of the merge and how long you spent merging, like::
+
+      6. End time 11:20.  Merge took 17 mins.
 
 .. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 
