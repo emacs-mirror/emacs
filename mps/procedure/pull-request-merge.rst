@@ -133,10 +133,10 @@ When you finish the checklist, decide whether to start
    branch and for the pull request (the trial merge).  If these
    results are missing, inform sysadmins that CI isn't functioning.
 
-   You can also look for a build results in the `Travis CI build
-   history for the repo`_ and in the `GitHub workflows for the repo`_.
-   [FIXME: Link to design.mps.tests.ci.results for details and perhaps
-   don't list the systems here.  RB 2023-02-10]
+   You can also look for a build results in the logs of CI systems.
+   See `design.mps.ci.results`_.
+
+.. _design.mps.ci.results: ../design/tests.txt#ci-results
 
    If there is a failed build *of the branch* you should not execute
    `the merging procedure`_, but talk to the contributor about fixing
