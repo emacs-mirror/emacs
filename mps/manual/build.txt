@@ -112,6 +112,8 @@ manual, like this::
   cd manual
   make html
 
+then open manual/html/index.html.
+
 On Windows platforms, follow the `Sphinx installation instructions
 <https://www.sphinx-doc.org/en/master/usage/installation.html>`_ for
 Windows, then invoke Sphinx as shown in the Makefile in the manual
