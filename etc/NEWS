@@ -56,6 +56,11 @@ This allows the user to customize the prompt that is appended by
 'yes-or-no-p' when asking questions.  The default value is
 "(yes or no) ".
 
+---
+** New face 'display-time-time-and-date-indicator'.
+This is used for displaying the time and date components of
+'display-time-mode'.
+
 
 * Editing Changes in Emacs 30.1
 
