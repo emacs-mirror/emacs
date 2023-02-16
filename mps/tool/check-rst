@@ -10,16 +10,17 @@
 # It can be invoked from the command line of from Continuous
 # Integration scripts.  See .github/workflows/rst-check.yml
 #
-# This script excludes manual/source because the reStructuredText
-# there is in an extended Sphinx format that can't be checked by the
-# basic docutils.  It can be checked by building the manual.  See
-# manual/Makefile.
+# This script excludes the manual because the reStructuredText there
+# is in an extended Sphinx format that can't be checked by the basic
+# docutils.  It can be checked by building the manual.  See "Building
+# the MPS manual" in manual/build.txt.
 
 {
     find . -path ./manual/source -prune -o \
 	 -path ./manual/tool -prune -o \
 	 -type f -name '*.rst' -print
-    find . -type f -name '*.txt' -print |
+    find . -path ./manual/build.txt -prune -o \
+	 -type f -name '*.txt' -print |
 	while read -r f; do
 	    if head -1 -- "$f" | grep -F -q -e '-*- rst -*-'; then
 		echo "$f"
