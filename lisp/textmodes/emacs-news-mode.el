@@ -53,7 +53,7 @@
   :parent emacs-news-common-map
   "C-c C-s" #'emacs-news-next-untagged-entry
   "C-c C-r" #'emacs-news-previous-untagged-entry
-  "C-c C-t" #'emacs-news-toggle-tag
+  "C-c C-t" #'emacs-news-cycle-tag
   "C-c C-d" #'emacs-news-delete-temporary-markers
   "C-c C-g" #'emacs-news-goto-section
   "C-c C-j" #'emacs-news-find-heading
@@ -67,7 +67,7 @@
     ["Next Untagged" emacs-news-next-untagged-entry :help "Go to next untagged entry"]
     ["Previous Untagged" emacs-news-previous-untagged-entry :help "Go to previous untagged entry"]
     ["Count Untagged" emacs-news-count-untagged-entries :help "Count the number of untagged entries"]
-    ["Toggle Tag" emacs-news-toggle-tag :help "Toggle documentation tag of current entry"]
+    ["Cycle Tag" emacs-news-cycle-tag :help "Cycle documentation tag of current entry"]
     ["Delete Tags" emacs-news-delete-temporary-markers :help "Delete all documentation tags in buffer"]
     "--"
     ["Goto Section" emacs-news-goto-section :help "Prompt for section and go to it"]
@@ -188,8 +188,8 @@ untagged NEWS entry."
   (interactive nil emacs-news-mode)
   (emacs-news-next-untagged-entry t))
 
-(defun emacs-news-toggle-tag ()
-  "Toggle documentation tag of current headline in the Emacs NEWS file."
+(defun emacs-news-cycle-tag ()
+  "Cycle documentation tag of current headline in the Emacs NEWS file."
   (interactive nil emacs-news-mode)
   (save-excursion
     (goto-char (line-beginning-position))
@@ -206,7 +206,7 @@ untagged NEWS entry."
            (insert "+++"))
           ((looking-at (rx bol "+++" eol))
            (delete-char 4))
-          (t (user-error "Invalid headline tag; can't toggle")))))
+          (t (user-error "Invalid headline tag; can't cycle")))))
 
 (defun emacs-news-count-untagged-entries ()
   "Say how many untagged entries there are in the current NEWS buffer."
