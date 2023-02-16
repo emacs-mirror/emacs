@@ -1,11 +1,14 @@
 # designs.py -- Convert MPS design documents into sources for the MPS manual
-# $Id$
 #
-# This was originally done in the Makefile, but moved to Python in the hope
-# that readthedocs.org would be able to generate the manual.  However, they
-# (sensibly) don't run extensions, so we can't use them.  Processing the
-# designs here still seems like a good idea, though.
+# Copyright (c) 2013-2023 Ravenbrook Limited. See end of file for license.
 #
+# This code converts the MPS design documents (in plain
+# reStructuredText) for use in the manual (in Sphinx extended
+# reStructuredText) and so implements design.mps.doc.fmt.
+#
+# TODO: It's a shame that the regexps we convert from (near the start
+# of the file) are a log way from the strings we convert to (in
+# ``convert_file``).
 
 from __future__ import unicode_literals
 
@@ -43,22 +46,43 @@ MACROS = '''
 '''
 
 mode = re.compile(r'\.\. mode: .*\n')
+
+# design.mps.doc.metadata.tag
 prefix = re.compile(r'^:Tag: ([a-z][a-z.0-9-]*[a-z0-9])$', re.MULTILINE)
+
 rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format|Index terms|Readership):.*?$\n', re.MULTILINE | re.IGNORECASE)
+
+# design.mps.doc.fmt.tag
 mps_tag = re.compile(r'_`\.([a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`:')
+
+# design.mps.doc.fmt.ref
 mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`_(?:        )?')
+
+# design.mps.doc.fmt.function-decl
 funcdef = re.compile(r'^``([^`]*\([^`]*\))``$', re.MULTILINE)
+
+# design.mps.doc.fmt.macro-decl
 macrodef = re.compile(r'^``((?:[A-Z][A-Z0-9_]+|{})(?:\([^`]*\))?)``$'
                       .format('|'.join(map(re.escape, MACROS.split()))), re.MULTILINE)
+# design.mps.doc.fmt.macro
 macro = re.compile(r'``([A-Z][A-Z0-9_]+)``(?:       )?')
+
+# design.mps.doc.fmt.type-def
 typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE) 
+
+# design.mps.doc.fmt.function-ref
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
+
+# design.mps.doc.fmt.type-ref
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*'
                       r'(?:Class|Function|Method|Struct|Union)|'
                       r'mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
+
+# Tags referencing other design documents
 design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
 design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#(.+)$', re.MULTILINE)
+
 relative_link = re.compile(r'^( *\.\. _[\w\.]+: +\.\./)', re.MULTILINE)
 history = re.compile(r'^Document History\n.*',
                      re.MULTILINE | re.IGNORECASE | re.DOTALL)
@@ -69,7 +93,9 @@ secnum = re.compile(r'^(?:[0-9]+|[A-Z])\.\s+(.*)$\n(([=`:.\'"~^_*+#-])\3+)$',
 def secnum_sub(m):
     return m.group(1) + '\n' + m.group(3) * len(m.group(1))
 
-# Convert Ravenbrook style citations into MPS Manual style citations.
+# Convert Ravenbrook style citations into MPS Manual style citations
+# (design.mps.doc.fmt.citation)
+#
 # Example citations transformation, from:
 #     .. [THVV_1995] "Structure Marking"; Tom Van Vleck; 1995;
 #        <http://www.multicians.org/thvv/marking.html>.
@@ -157,18 +183,66 @@ def newer(src, target):
 logger = logging.getLogger(__name__)
 
 # Mini-make
+#
+# This uses app.srcdir (the directory of the manual sources) to find
+# the root of the MPS tree (two directories above) and so find the
+# design documents to convert.
+
 def convert_updated(app):
     logger.info(bold('converting MPS design documents'))
-    for design in glob.iglob('../design/*.txt'):
+    for design in glob.iglob(os.path.join(app.srcdir, '../../design/*.txt')):
         name = os.path.splitext(os.path.basename(design))[0]
         if name == 'index': continue
-        converted = 'source/design/%s.rst' % name
+        converted = os.path.join(app.srcdir, 'design/%s.rst' % name)
         if newer(design, converted):
             logger.info('converting design %s' % name)
             convert_file(name, design, converted)
-    diagrams = chain(*[glob.iglob('../design/*.' + ext)
+    diagrams = chain(*[glob.iglob(os.path.join(app.srcdir, '../../design/*.' + ext))
                        for ext in 'png svg'.split()])
     for diagram in diagrams:
-        target = os.path.join('source/design/', os.path.basename(diagram))
+        target = os.path.join(app.srcdir, 'design/', os.path.basename(diagram))
         if newer(diagram, target):
             shutil.copyfile(diagram, target)
+
+
+# A. REFERENCES
+#
+# [GDR-2018-09-18] "Documentation"; Gareth Rees; 2018-09-18; design.mps.doc.
+#
+#
+# B. DOCUMENT HISTORY
+#
+# 2013-06-01 RB Created.
+# 2023-02-15 RB Updated with copyright, licence, and document history.
+#
+#
+# C. COPYRIGHT AND LICENSE
+#
+# Copyright (C) 2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# $Id$

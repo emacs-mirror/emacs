@@ -8,6 +8,9 @@
 Overview of the Memory Pool System
 ==================================
 
+.. IMPORTANT: If you change the paragraph below, also change
+   readme.txt
+
 The Memory Pool System is a very general, adaptable, flexible,
 reliable, and efficient memory management system. It permits the
 flexible combination of memory management techniques, supporting
