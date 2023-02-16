@@ -1,6 +1,7 @@
 .. mode: -*- rst -*-
 
-===============================
+.. _guide-build:
+
 Building the Memory Pool System
 ===============================
 
