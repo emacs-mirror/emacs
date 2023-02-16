@@ -19,6 +19,9 @@ very brief overview and tell you where to find more information.
 Overview of the MPS
 -------------------
 
+.. IMPORTANT: If you change the paragraph below, also change
+   manual/source/guide/overview.rst
+
 The Memory Pool System (MPS) is a very general, adaptable, flexible,
 reliable, and efficient memory management system.  It permits the
 flexible combination of memory management techniques, supporting manual

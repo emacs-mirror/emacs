@@ -58,22 +58,22 @@ mps_tag = re.compile(r'_`\.([a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`:')
 # design.mps.doc.fmt.ref
 mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`_(?:        )?')
 
-# design.mps.fmt.function-decl
+# design.mps.doc.fmt.function-decl
 funcdef = re.compile(r'^``([^`]*\([^`]*\))``$', re.MULTILINE)
 
-# design.mps.fmt.macro-decl
+# design.mps.doc.fmt.macro-decl
 macrodef = re.compile(r'^``((?:[A-Z][A-Z0-9_]+|{})(?:\([^`]*\))?)``$'
                       .format('|'.join(map(re.escape, MACROS.split()))), re.MULTILINE)
-# design.mps.fmt.macro
+# design.mps.doc.fmt.macro
 macro = re.compile(r'``([A-Z][A-Z0-9_]+)``(?:       )?')
 
-# design.mps.fmt.type-def
+# design.mps.doc.fmt.type-def
 typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE) 
 
-# design.mps.fmt.function-ref
+# design.mps.doc.fmt.function-ref
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 
-# design.mps.fmt.type-ref
+# design.mps.doc.fmt.type-ref
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*'
                       r'(?:Class|Function|Method|Struct|Union)|'
                       r'mps_[a-z_]+_[stu])``(?:      )?'
