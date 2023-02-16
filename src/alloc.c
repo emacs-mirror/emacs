@@ -1083,7 +1083,7 @@ lisp_free (void *block)
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
 /* Byte alignment of storage blocks.  */
-#define BLOCK_ALIGN (1 << 10)
+#define BLOCK_ALIGN (1 << 15)
 verify (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available.
