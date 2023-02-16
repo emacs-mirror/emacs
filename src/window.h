@@ -286,6 +286,21 @@ struct window
        it should be positive.  */
     ptrdiff_t last_point;
 
+#ifdef HAVE_TEXT_CONVERSION
+    /* ``ephemeral'' last point position.  This is used while
+       processing text conversion events.
+
+       `last_point' is normally used during redisplay to indicate the
+       position of point as seem by the input method.  However, it is
+       not updated if consequtive conversions are processed at the
+       same time.
+
+       This `ephemeral_last_point' field is either the last point as
+       set in redisplay or the last point after a text editing
+       operation.  */
+    ptrdiff_t ephemeral_last_point;
+#endif
+
     /* Value of mark in the selected window at the time of the last
        redisplay.  */
     ptrdiff_t last_mark;

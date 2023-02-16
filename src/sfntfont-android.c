@@ -49,9 +49,11 @@ struct sfntfont_android_scanline_buffer
 };
 
 /* Array of directories to search for system fonts.  */
-const char *system_font_directories[] =
+static char *system_font_directories[] =
   {
     "/system/fonts",
+    /* This should be filled in by init_sfntfont_android.  */
+    (char[PATH_MAX]) { },
   };
 
 /* The font cache.  */
@@ -691,6 +693,10 @@ loaded before character sets are made available.  */)
     {
       dir = opendir (system_font_directories[i]);
 
+      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			   "Loading fonts from: %s",
+			   system_font_directories[i]);
+
       if (!dir)
 	continue;
 
@@ -752,6 +758,11 @@ init_sfntfont_android (void)
 		      build_string ("Droid Sans Mono")),
 	       Fcons (build_string ("Sans Serif"),
 		      build_string ("Droid Sans")));
+
+  /* Set up the user fonts directory.  This directory is ``fonts'' in
+     the Emacs files directory.  */
+  snprintf (system_font_directories[1], PATH_MAX, "%s/fonts",
+	    android_get_home_directory ());
 }
 
 void

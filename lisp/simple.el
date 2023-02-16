@@ -10887,8 +10887,9 @@ For each insertion:
     line breaking of the previous line when `auto-fill-mode' is
     enabled.
 
-  - Look for the insertion of a new line, and indent this new
-    line if `electric-indent-mode' is enabled."
+  - Run `post-self-insert-functions' for the last character of
+    any inserted text so that modes such as `electric-pair-mode'
+    can work."
   (interactive)
   (dolist (edit text-conversion-edits)
     ;; Filter out ephemeral edits and deletions.
@@ -10912,9 +10913,9 @@ For each insertion:
               (when (and auto-fill-function auto-fill-p)
                 (progn (goto-char (nth 2 edit))
                        (funcall auto-fill-function)))))
-          (when (and electric-indent-mode newline-p)
-            (goto-char (nth 2 edit))
-            (indent-according-to-mode)))))))
+          (goto-char (nth 2 edit))
+          (let ((last-command-event end))
+            (run-hooks 'post-self-insert-hook)))))))
 
 
 

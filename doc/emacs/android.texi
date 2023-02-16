@@ -446,10 +446,10 @@ application via cut-and-paste.
 named @code{sfnt-android} and @code{android}.
 
 Upon startup, Emacs enumerates all the TrueType format fonts in the
-directory @file{/system/fonts}; this is where the Android system
-places fonts.  Emacs assumes there will always be a font named ``Droid
-Sans Mono'', and then defaults to using this font.  These fonts are
-then rendered by the @code{sfnt-android} font driver.
+directory @file{/system/fonts}, and the @file{fonts} directory inside
+the Emacs home directory.  Emacs assumes there will always be a font
+named ``Droid Sans Mono'', and then defaults to using this font.
+These fonts are then displayed by the @code{sfnt-android} font driver.
 
 When running on Android, Emacs currently lacks support for OpenType
 fonts.  This means that only a subset of the fonts installed on the

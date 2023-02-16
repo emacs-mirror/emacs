@@ -200,7 +200,7 @@
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
-	(cjk-misc #x300E)
+	(cjk-misc #x300E #xff0c)
 	(kana #x304B)
 	(bopomofo #x3105)
 	(kanbun #x319D)
@@ -683,7 +683,11 @@
 	  (nil . "JISX0213.2000-2")
 	  (nil . "JISX0213.2004-1")
 	  ,(font-spec :registry "iso10646-1" :lang 'ja)
-	  ,(font-spec :registry "iso10646-1" :lang 'zh))
+	  ,(font-spec :registry "iso10646-1" :lang 'zh)
+          ;; This is required, as otherwise many TrueType fonts with
+          ;; CJK characters but no corresponding ``design language''
+          ;; declaration can't be found.
+          ,(font-spec :registry "iso10646-1" :script 'han))
 
      (cjk-misc (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
@@ -702,7 +706,11 @@
 	       (nil . "JISX0213.2000-1")
 	       (nil . "JISX0213.2000-2")
 	       ,(font-spec :registry "iso10646-1" :lang 'ja)
-	       ,(font-spec :registry "iso10646-1" :lang 'zh))
+	       ,(font-spec :registry "iso10646-1" :lang 'zh)
+               ;; This is required, as otherwise many TrueType fonts
+               ;; with CJK characters but no corresponding ``design
+               ;; language'' declaration can't be found.
+               ,(font-spec :registry "iso10646-1" :script 'cjk-misc))
 
      (hangul (nil . "KSC5601.1987-0")
 	     ,(font-spec :registry "iso10646-1" :lang 'ko))

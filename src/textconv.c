@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "textconv.h"
 #include "buffer.h"
 #include "syntax.h"
+#include "blockinput.h"
 
 
 
@@ -46,6 +47,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    straightforward text conversion protocols.  */
 
 static struct textconv_interface *text_interface;
+
+/* How many times text conversion has been disabled.  */
+
+static int suppress_conversion_count;
 
 /* Flags used to determine what must be sent after a batch edit
    ends.  */
@@ -391,7 +396,8 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 static void
 sync_overlay (struct frame *f)
 {
-  if (MARKERP (f->conversion.compose_region_start))
+  if (MARKERP (f->conversion.compose_region_start)
+      && !NILP (Vtext_conversion_face))
     {
       if (NILP (f->conversion.compose_region_overlay))
 	{
@@ -400,7 +406,7 @@ sync_overlay (struct frame *f)
 			     f->conversion.compose_region_end, Qnil,
 			     Qt, Qnil);
 	  Foverlay_put (f->conversion.compose_region_overlay,
-			Qface, Qunderline);
+			Qface, Vtext_conversion_face);
 	}
 
       Fmove_overlay (f->conversion.compose_region_overlay,
@@ -514,6 +520,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 {
   specpdl_ref count;
   ptrdiff_t wanted, start, end;
+  struct window *w;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -624,6 +631,10 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
   /* This should deactivate the mark.  */
   call0 (Qdeactivate_mark);
+
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
   unbind_to (count, Qnil);
 }
 
@@ -760,6 +771,10 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
 	text_interface->compose_region_changed (f);
     }
 
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
+
   unbind_to (count, Qnil);
 }
 
@@ -771,6 +786,7 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 			     ptrdiff_t end)
 {
   specpdl_ref count;
+  struct window *w;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -810,6 +826,10 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 	       make_fixnum (end), Qnil);
   sync_overlay (f);
 
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
+
   unbind_to (count, Qnil);
 }
 
@@ -823,6 +843,7 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
 {
   specpdl_ref count;
   ptrdiff_t start, end, a, b, a1, b1, lstart, rstart;
+  struct window *w;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -889,6 +910,10 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
   if (get_mark () == PT)
     call0 (Qdeactivate_mark);
 
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
+
   unbind_to (count, Qnil);
 }
 
@@ -904,6 +929,7 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
 			   ptrdiff_t mark)
 {
   specpdl_ref count;
+  struct window *w;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -922,7 +948,7 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
     {
       if (f->conversion.batch_edit_count > 0)
 	f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
-      else
+      else if (text_interface && text_interface->point_changed)
 	text_interface->point_changed (f,
 				       XWINDOW (f->old_selected_window),
 				       current_buffer);
@@ -935,6 +961,10 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
     call0 (Qdeactivate_mark);
   else
     call1 (Qpush_mark, make_fixnum (mark));
+
+  /* Update the ephemeral last point.  */
+  w = XWINDOW (selected_window);
+  w->ephemeral_last_point = PT;
 
   unbind_to (count, Qnil);
 }
@@ -949,9 +979,11 @@ complete_edit (void *token)
 }
 
 /* Process and free the text conversion ACTION.  F must be the frame
-   on which ACTION will be performed.  */
+   on which ACTION will be performed.
 
-static void
+   Value is the window which was used, or NULL.  */
+
+static struct window *
 handle_pending_conversion_events_1 (struct frame *f,
 				    struct text_conversion_action *action)
 {
@@ -969,9 +1001,23 @@ handle_pending_conversion_events_1 (struct frame *f,
   token = action->counter;
   xfree (action);
 
+  /* Text conversion events can still arrive immediately after
+     `conversion_disabled_p' becomes true.  In that case, process all
+     events, but don't perform any associated actions.  */
+
+  if (conversion_disabled_p ())
+    return NULL;
+
   /* Make sure completion is signalled.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (complete_edit, &token);
+  w = NULL;
+
+  if (WINDOW_LIVE_P (f->old_selected_window))
+    {
+      w = XWINDOW (f->old_selected_window);
+      buffer = XBUFFER (WINDOW_BUFFER (w));
+    }
 
   switch (operation)
     {
@@ -987,12 +1033,7 @@ handle_pending_conversion_events_1 (struct frame *f,
 	break;
 
       if (f->conversion.batch_edit_flags & PENDING_POINT_CHANGE)
-	{
-	  w = XWINDOW (f->old_selected_window);
-	  buffer = XBUFFER (WINDOW_BUFFER (w));
-
-	  text_interface->point_changed (f, w, buffer);
-	}
+	text_interface->point_changed (f, w, buffer);
 
       if (f->conversion.batch_edit_flags & PENDING_COMPOSE_CHANGE)
 	text_interface->compose_region_changed (f);
@@ -1030,6 +1071,8 @@ handle_pending_conversion_events_1 (struct frame *f,
     }
 
   unbind_to (count, Qnil);
+
+  return w;
 }
 
 /* Decrement the variable pointed to by *PTR.  */
@@ -1055,6 +1098,8 @@ handle_pending_conversion_events (void)
   bool handled;
   static int inside;
   specpdl_ref count;
+  ptrdiff_t last_point;
+  struct window *w;
 
   handled = false;
 
@@ -1065,6 +1110,8 @@ handle_pending_conversion_events (void)
     Vtext_conversion_edits = Qnil;
 
   inside++;
+  last_point = -1;
+  w = NULL;
 
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (decrement_inside, &inside);
@@ -1077,16 +1124,26 @@ handle_pending_conversion_events (void)
 	 process them in bottom to up order.  */
       while (true)
 	{
-	  /* Redisplay in between if there is more than one
-	     action.
+	  /* Update the input method if handled &&
+	     w->ephemeral_last_point != last_point.  */
+	  if (w && (last_point != w->ephemeral_last_point))
+	    {
+	      if (handled
+		  && last_point != -1
+		  && text_interface
+		  && text_interface->point_changed)
+		{
+		  if (f->conversion.batch_edit_count > 0)
+		    f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
+		  else
+		    text_interface->point_changed (f, NULL, NULL);
+		}
 
-	     This can read input.  This function must be reentrant
-	     here.  */
+	      last_point = w->ephemeral_last_point;
+	    }
 
-	  if (handled)
-	    redisplay ();
-
-	  /* Reload action.  */
+	  /* Reload action.  This needs to be reentrant as buffer
+	     modification functions can call `read-char'.  */
 	  action = f->conversion.actions;
 
 	  /* If there are no more actions, break.  */
@@ -1099,7 +1156,7 @@ handle_pending_conversion_events (void)
 	  f->conversion.actions = next;
 
 	  /* Handle and free the action.  */
-	  handle_pending_conversion_events_1 (f, action);
+	  w = handle_pending_conversion_events_1 (f, action);
 	  handled = true;
 	}
     }
@@ -1399,6 +1456,16 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   return buffer;
 }
 
+/* Return whether or not text conversion is temporarily disabled.
+   `reset' should always call this to determine whether or not to
+   disable the input method.  */
+
+bool
+conversion_disabled_p (void)
+{
+  return suppress_conversion_count > 0;
+}
+
 
 
 /* Window system interface.  These are called from the rest of
@@ -1440,12 +1507,119 @@ report_point_change (struct frame *f, struct window *window,
     text_interface->point_changed (f, window, buffer);
 }
 
+/* Temporarily disable text conversion.  Must be paired with a
+   corresponding call to resume_text_conversion.  */
+
+void
+disable_text_conversion (void)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+
+  suppress_conversion_count++;
+
+  if (!text_interface || suppress_conversion_count > 1)
+    return;
+
+  /* Loop through and reset the input method on each window system
+     frame.  It should call conversion_disabled_p and then DTRT.  */
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      reset_frame_state (f);
+
+      if (FRAME_WINDOW_P (f) && FRAME_VISIBLE_P (f))
+	text_interface->reset (f);
+    }
+}
+
+/* Undo the effect of the last call to `disable_text_conversion'.  */
+
+void
+resume_text_conversion (void)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+
+  suppress_conversion_count--;
+  eassert (suppress_conversion_count >= 0);
+
+  if (!text_interface || suppress_conversion_count)
+    return;
+
+  /* Loop through and reset the input method on each window system
+     frame.  It should call conversion_disabled_p and then DTRT.  */
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+      reset_frame_state (f);
+
+      if (FRAME_WINDOW_P (f) && FRAME_VISIBLE_P (f))
+	text_interface->reset (f);
+    }
+}
+
 /* Register INTERFACE as the text conversion interface.  */
 
 void
 register_textconv_interface (struct textconv_interface *interface)
 {
   text_interface = interface;
+}
+
+
+
+/* Lisp interface.  */
+
+DEFUN ("set-text-conversion-style", Fset_text_conversion_style,
+       Sset_text_conversion_style, 1, 1, 0,
+       doc: /* Set the text conversion style in the current buffer.
+
+Set `text-conversion-mode' to VALUE, then force any input method
+editing frame displaying this buffer to stop itself.
+
+This can lead to a significant amount of time being taken by the input
+method resetting itself, so you should not use this function lightly;
+instead, set `text-conversion-mode' before your buffer is displayed,
+and let redisplay manage the input method appropriately.  */)
+  (Lisp_Object value)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+  Lisp_Object buffer;
+
+  bset_text_conversion_style (current_buffer, value);
+
+  if (!text_interface)
+    return Qnil;
+
+  /* If there are any seleted windows displaying this buffer, reset
+     text conversion on their associated frames.  */
+
+  if (buffer_window_count (current_buffer))
+    {
+      buffer = Fcurrent_buffer ();
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  f = XFRAME (frame);
+
+	  if (WINDOW_LIVE_P (f->old_selected_window)
+	      && FRAME_WINDOW_P (f)
+	      && EQ (XWINDOW (f->old_selected_window)->contents,
+		     buffer))
+	    {
+	      block_input ();
+	      reset_frame_state (f);
+	      text_interface->reset (f);
+	      unblock_input ();
+	    }
+	}
+    }
+
+  return Qnil;
 }
 
 
@@ -1457,6 +1631,7 @@ syms_of_textconv (void)
   DEFSYM (Qtext_conversion, "text-conversion");
   DEFSYM (Qpush_mark, "push-mark");
   DEFSYM (Qunderline, "underline");
+  DEFSYM (Qoverriding_text_conversion_style, "overriding-text-conversion-style");
 
   DEFVAR_LISP ("text-conversion-edits", Vtext_conversion_edits,
     doc: /* List of buffers that were last edited as a result of text conversion.
@@ -1480,4 +1655,21 @@ inserted.
 If a deletion occured, then BEG and END are the same, and EPHEMERAL is
 nil.  */);
   Vtext_conversion_edits = Qnil;
+
+  DEFVAR_LISP ("overriding-text-conversion-style",
+	       Voverriding_text_conversion_style,
+    doc: /* Non-buffer local version of `text-conversion-style'.
+
+If this variable is the symbol `lambda', it means to consult the
+buffer local variable `text-conversion-style' to determine whether or
+not to activate the input method.  Otherwise, its value is used in
+preference to any buffer local value of `text-conversion-style'.  */);
+  Voverriding_text_conversion_style = Qlambda;
+
+  DEFVAR_LISP ("text-conversion-face", Vtext_conversion_face,
+    doc: /* Face in which to display temporary edits by an input method.
+nil means to display no indication of a temporary edit.  */);
+  Vtext_conversion_face = Qunderline;
+
+  defsubr (&Sset_text_conversion_style);
 }

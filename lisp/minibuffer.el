@@ -2918,7 +2918,10 @@ For customizing this mode, it is better to use
 `minibuffer-setup-hook' and `minibuffer-exit-hook' rather than
 the mode hook of this mode."
   :syntax-table nil
-  :interactive nil)
+  :interactive nil
+  ;; Enable text conversion, but always make sure `RET' does
+  ;; something.
+  (setq text-conversion-style 'action))
 
 ;;; Completion tables.
 

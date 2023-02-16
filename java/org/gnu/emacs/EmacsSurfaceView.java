@@ -28,6 +28,8 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.Paint;
 
+import java.lang.ref.WeakReference;
+
 /* This originally extended SurfaceView.  However, doing so proved to
    be too slow, and Android's surface view keeps up to three of its
    own back buffers, which use too much memory (up to 96 MB for a
@@ -39,7 +41,7 @@ public class EmacsSurfaceView extends View
   private EmacsView view;
   private Bitmap frontBuffer;
   private Canvas bitmapCanvas;
-  private Bitmap bitmap;
+  private WeakReference<Bitmap> bitmap;
   private Paint bitmapPaint;
 
   public
@@ -49,10 +51,11 @@ public class EmacsSurfaceView extends View
 
     this.view = view;
     this.bitmapPaint = new Paint ();
+    this.bitmap = new WeakReference<Bitmap> (null);
   }
 
   private void
-  copyToFrontBuffer (Rect damageRect)
+  copyToFrontBuffer (Bitmap bitmap, Rect damageRect)
   {
     if (damageRect != null)
       bitmapCanvas.drawBitmap (bitmap, damageRect, damageRect,
@@ -73,7 +76,7 @@ public class EmacsSurfaceView extends View
 	bitmapCanvas = null;
       }
 
-    this.bitmap = bitmap;
+    this.bitmap = new WeakReference<Bitmap> (bitmap);
 
     /* Next, create the new front buffer if necessary.  */
 
@@ -92,20 +95,20 @@ public class EmacsSurfaceView extends View
 	bitmapCanvas = new Canvas (frontBuffer);
 
 	/* And copy over the bitmap contents.  */
-	copyToFrontBuffer (null);
+	copyToFrontBuffer (bitmap, null);
       }
     else if (bitmap != null)
       /* Just copy over the bitmap contents.  */
-      copyToFrontBuffer (null);
+      copyToFrontBuffer (bitmap, null);
   }
 
   public synchronized void
   setBitmap (Bitmap bitmap, Rect damageRect)
   {
-    if (bitmap != this.bitmap)
+    if (bitmap != this.bitmap.get ())
       reconfigureFrontBuffer (bitmap);
     else if (bitmap != null)
-      copyToFrontBuffer (damageRect);
+      copyToFrontBuffer (bitmap, damageRect);
 
     if (bitmap != null)
       {

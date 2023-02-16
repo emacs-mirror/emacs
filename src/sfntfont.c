@@ -87,6 +87,10 @@ struct sfnt_font_desc
 
   /* The offset of the table directory within PATH.  */
   off_t offset;
+
+  /* The number of glyphs in this font.  Used to catch invalid cmap
+     tables.  This is actually the number of glyphs - 1.  */
+  int num_glyphs;
 };
 
 /* List of fonts.  */
@@ -517,10 +521,11 @@ sfnt_enum_font_1 (int fd, const char *file,
 		  struct sfnt_offset_subtable *subtables,
 		  off_t offset)
 {
-  struct sfnt_font_desc *desc;
+  struct sfnt_font_desc *desc, **next, *prev;
   struct sfnt_head_table *head;
   struct sfnt_name_table *name;
   struct sfnt_meta_table *meta;
+  struct sfnt_maxp_table *maxp;
   Lisp_Object family, style;
 
   /* Create the font desc and copy in the file name.  */
@@ -543,18 +548,25 @@ sfnt_enum_font_1 (int fd, const char *file,
   if (!name)
     goto bail2;
 
+  maxp = sfnt_read_maxp_table (fd, subtables);
+  if (!maxp)
+    goto bail3;
+
   /* meta is not required, nor present on many non-Apple fonts.  */
   meta = sfnt_read_meta_table (fd, subtables);
 
   /* Decode the family and style from the name table.  */
   if (sfnt_decode_family_style (name, &family, &style))
-    goto bail3;
+    goto bail4;
 
   /* Set the family.  */
   desc->family = family;
   desc->designer = sfnt_decode_foundry_name (name);
   desc->char_cache = Qnil;
   desc->subtable.platform_id = 500;
+
+  /* Set the largest glyph identifier.  */
+  desc->num_glyphs = maxp->num_glyphs;
 
   /* Parse the style.  */
   sfnt_parse_style (style, desc);
@@ -584,13 +596,32 @@ sfnt_enum_font_1 (int fd, const char *file,
   desc->next = system_fonts;
   system_fonts = desc;
 
+  /* Remove any fonts which have the same style as this one.  */
+
+  next = &system_fonts->next;
+  prev = *next;
+  for (; *next; prev = *next)
+    {
+      if (!NILP (Fstring_equal (prev->style, desc->style))
+	  && !NILP (Fstring_equal (prev->family, desc->family)))
+	{
+	  *next = prev->next;
+	  xfree (prev);
+	}
+      else
+	next = &prev->next;
+    }
+
   xfree (meta);
+  xfree (maxp);
   xfree (name);
   xfree (head);
   return 0;
 
- bail3:
+ bail4:
   xfree (meta);
+  xfree (maxp);
+ bail3:
   xfree (name);
  bail2:
   xfree (head);
@@ -601,6 +632,8 @@ sfnt_enum_font_1 (int fd, const char *file,
 
 /* Enumerate the font FILE into the list of system fonts.  Return 1 if
    it could not be enumerated, 0 otherwise.
+
+   Remove any font whose family and style is a duplicate of this one.
 
    FILE can either be a TrueType collection file containing TrueType
    fonts, or a TrueType font itself.  */
@@ -960,6 +993,25 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   emacs_close (fd);
 }
 
+/* Return whether or not CHARACTER has an associated mapping in CMAP,
+   and the mapping points to a valid glyph.  DESC is the font
+   descriptor associated with the font.  */
+
+static bool
+sfntfont_glyph_valid (struct sfnt_font_desc *desc,
+		      sfnt_char font_character,
+		      struct sfnt_cmap_encoding_subtable_data *cmap)
+{
+  sfnt_glyph glyph;
+
+  glyph = sfnt_lookup_glyph (font_character, cmap);
+
+  if (!glyph)
+    return false;
+
+  return glyph <= desc->num_glyphs;
+}
+
 /* Look up a character CHARACTER in the font description DESC.  Cache
    the results.  Return true if the character exists, false otherwise.
 
@@ -1013,8 +1065,10 @@ sfntfont_lookup_char (struct sfnt_font_desc *desc, Lisp_Object character,
   if (font_character == CHARSET_INVALID_CODE (charset))
     return false;
 
-  /* Now return whether or not the glyph is present.  */
-  present = sfnt_lookup_glyph (font_character, *cmap) != 0;
+  /* Now return whether or not the glyph is present.  Noto Sans
+     Georgian comes with a corrupt format 4 cmap table that somehow
+     tries to express glyphs greater than 65565.  */
+  present = sfntfont_glyph_valid (desc, font_character, *cmap);
 
   /* Cache the result.  Store Qlambda when not present, Qt
      otherwise.  */
@@ -1133,22 +1187,23 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
 	{
 	  tem = XCDR (tem);
 
-	  /* tem is a list of each characters, one of which must be
+	  /* tem is a list of each characters, all of which must be
 	     present in the font.  */
 	  FOR_EACH_TAIL_SAFE (tem)
 	    {
-	      if (FIXNUMP (XCAR (tem)))
-		{
-		  if (!sfntfont_lookup_char (desc, XCAR (tem), &cmap,
-					     &subtable))
-		    goto fail;
-
-		  /* One character is enough to pass a font.  Don't
-		     look at too many.  */
-		  break;
-		}
+	      if (FIXNUMP (XCAR (tem))
+		  && !sfntfont_lookup_char (desc, XCAR (tem), &cmap,
+					    &subtable))
+		goto fail;
 	    }
+
+	  /* One or more characters are missing.  */
+	  if (!NILP (tem))
+	    goto fail;
 	}
+      /* Fail if there are no matching fonts at all.  */
+      else if (NILP (tem))
+	goto fail;
     }
 
   /* Now check that the language is supported.  */

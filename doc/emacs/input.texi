@@ -129,3 +129,10 @@ derivatives of @code{text-mode} and @code{prog-mode}.
 a request to perform the conversion from the input method.  After the
 conversion completes, a @code{text-conversion} event is sent.
 @xref{Misc Events,,, elisp, the Emacs Reference Manual}.
+
+@vindex text-conversion-face
+  If the input method needs to work on a region of the buffer, then
+the region becomes known as the ``composing region'' (or
+``preconversion region''.)  The variable @code{text-conversion-face}
+describes whether or not to display the composing region in a specific
+face.

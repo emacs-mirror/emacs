@@ -140,6 +140,7 @@ extern void delete_surrounding_text (struct frame *, ptrdiff_t,
 				     ptrdiff_t, unsigned long);
 extern char *get_extracted_text (struct frame *, ptrdiff_t, ptrdiff_t *,
 				 ptrdiff_t *, ptrdiff_t *, ptrdiff_t *);
+extern bool conversion_disabled_p (void);
 
 extern void register_textconv_interface (struct textconv_interface *);
 

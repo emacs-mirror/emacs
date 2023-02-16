@@ -2231,7 +2231,7 @@ buffer-local variable @code{text-conversion-style}, which determines
 how an input method that wishes to make edits to buffer contents will
 behave.
 
-This variable can have one three values:
+This variable can have one of three values:
 
 @table @code
 @item nil
@@ -2245,11 +2245,16 @@ be sent wherever the input method wanted to insert a new line.
 @item t
 This, or any other value, means that the input method will be enabled
 and make edits terminated by @code{text-conversion} events.
-@end itemize
+@end table
 
+@findex disable-text-conversion
 Changes to the value of this variable will only take effect upon
 the next redisplay after the buffer becomes the selected buffer
-of a frame.
+of a frame.  If you need to disable text conversion in a way
+that takes immediate effect, call the function
+@code{set-text-conversion-style} instead.  This can potentially
+lock up the input method for a significant amount of time, so do
+not do this lightly!
 
 @cindex @code{delete-frame} event
 @item (delete-frame (@var{frame}))

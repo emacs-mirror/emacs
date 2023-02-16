@@ -173,7 +173,8 @@ public class EmacsInputConnection extends BaseInputConnection
   setComposingText (CharSequence text, int newCursorPosition)
   {
     if (EmacsService.DEBUG_IC)
-      Log.d (TAG, "setComposingText: " + newCursorPosition);
+      Log.d (TAG, ("setComposingText: "
+		   + text + " ## " + newCursorPosition));
 
     EmacsNative.setComposingText (windowHandle, text.toString (),
 				  newCursorPosition);
@@ -211,6 +212,17 @@ public class EmacsInputConnection extends BaseInputConnection
 
     return EmacsNative.getExtractedText (windowHandle, request,
 					 flags);
+  }
+
+  @Override
+  public boolean
+  setSelection (int start, int end)
+  {
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "setSelection: " + start + " " + end);
+
+    EmacsNative.setSelection (windowHandle, start, end);
+    return true;
   }
 
 

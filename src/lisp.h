@@ -5234,6 +5234,8 @@ extern void reset_frame_state (struct frame *);
 extern void report_selected_window_change (struct frame *);
 extern void report_point_change (struct frame *, struct window *,
 				 struct buffer *);
+extern void disable_text_conversion (void);
+extern void resume_text_conversion (void);
 extern void syms_of_textconv (void);
 #endif
 

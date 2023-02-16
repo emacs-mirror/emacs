@@ -17315,6 +17315,9 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 	w->last_mark = -1;
 
 #ifdef HAVE_TEXT_CONVERSION
+      /* See the description of this field in struct window.  */
+      w->ephemeral_last_point = w->last_point;
+
       /* Point motion is only propagated to the input method for use
 	 in text conversion during a redisplay.  While this can lead
 	 to inconsistencies when point has moved but the change has

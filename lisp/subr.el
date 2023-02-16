@@ -3424,6 +3424,9 @@ an error message."
     (minibuffer-message "Wrong answer")
     (sit-for 2)))
 
+;; Defined in textconv.c.
+(defvar overriding-text-conversion-style)
+
 (defun read-char-from-minibuffer (prompt &optional chars history)
   "Read a character from the minibuffer, prompting for it with PROMPT.
 Like `read-char', but uses the minibuffer to read and return a character.
@@ -3438,7 +3441,15 @@ while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result.
 There is no need to explicitly add `help-char' to CHARS;
 `help-char' is bound automatically to `help-form-show'."
-  (let* ((map (if (consp chars)
+
+  ;; If text conversion is enabled in this buffer, then it will only
+  ;; be disabled the next time `force-mode-line-update' happens.
+  (when (and overriding-text-conversion-style
+             text-conversion-style)
+    (force-mode-line-update))
+
+  (let* ((overriding-text-conversion-style nil)
+         (map (if (consp chars)
                   (or (gethash (list help-form (cons help-char chars))
                                read-char-from-minibuffer-map-hash)
                       (let ((map (make-sparse-keymap))
@@ -3450,15 +3461,15 @@ There is no need to explicitly add `help-char' to CHARS;
                         ;; being a command char.
                         (when help-form
                           (define-key map (vector help-char)
-                            (lambda ()
-                              (interactive)
-                              (let ((help-form msg)) ; lexically bound msg
-                                (help-form-show)))))
+                                      (lambda ()
+                                        (interactive)
+                                        (let ((help-form msg)) ; lexically bound msg
+                                          (help-form-show)))))
                         (dolist (char chars)
                           (define-key map (vector char)
-                            #'read-char-from-minibuffer-insert-char))
+                                      #'read-char-from-minibuffer-insert-char))
                         (define-key map [remap self-insert-command]
-                          #'read-char-from-minibuffer-insert-other)
+                                    #'read-char-from-minibuffer-insert-other)
                         (puthash (list help-form (cons help-char chars))
                                  map read-char-from-minibuffer-map-hash)
                         map))

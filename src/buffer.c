@@ -5862,15 +5862,19 @@ Use Custom to set this variable and update the display.  */);
   DEFVAR_PER_BUFFER ("text-conversion-style", &BVAR (current_buffer,
 						     text_conversion_style),
 		     Qnil,
-   "How the on screen keyboard's input method should insert in this buffer.\n\
-When nil, the input method will be disabled and an ordinary keyboard\n\
-will be displayed in its place.\n\
-When the symbol `action', the input method will insert text directly, but\n\
-will send `return' key events instead of inserting new line characters.\n\
-Any other value means that the input method will insert text directly.\n\
-\n\
-This variable does not take immediate effect when set; rather, it takes\n\
-effect upon the next redisplay after the selected window or buffer changes.");
+    doc: /* How the on screen keyboard's input method should insert in this buffer.
+When nil, the input method will be disabled and an ordinary keyboard
+will be displayed in its place.
+When the symbol `action', the input method will insert text directly, but
+will send `return' key events instead of inserting new line characters.
+Any other value means that the input method will insert text directly.
+
+If you need to make non-buffer local changes to this variable, use
+`overriding-text-conversion-style', which see.
+
+This variable does not take immediate effect when set; rather, it
+takes effect upon the next redisplay after the selected window or
+buffer changes.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.

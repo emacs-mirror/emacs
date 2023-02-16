@@ -2708,6 +2708,281 @@ sfnt_lerp_half (struct sfnt_point *control1, struct sfnt_point *control2,
   result->y = control1->y + ((control2->y - control1->y) >> 1);
 }
 
+/* Decompose contour data inside X, Y and FLAGS, between the indices
+   HERE and LAST.  Call LINE_TO, CURVE_TO and MOVE_TO as appropriate,
+   with DCONTEXT as an argument.  Apply SCALE to each point; SCALE
+   should be the factor necessary to turn points into 16.16 fixed
+   point.
+
+   Value is 1 upon failure, else 0.  */
+
+static int
+sfnt_decompose_glyph_1 (size_t here, size_t last,
+			sfnt_move_to_proc move_to,
+			sfnt_line_to_proc line_to,
+			sfnt_curve_to_proc curve_to,
+			void *dcontext,
+			sfnt_fword *x,
+			sfnt_fword *y, unsigned char *flags,
+			int scale)
+{
+  struct sfnt_point control1, control2, start, mid;
+  size_t i;
+
+  /* The contour is empty.  */
+
+  if (here == last)
+    return 1;
+
+  /* Move the pen to the start of the contour.  Apparently some fonts
+     have off the curve points as the start of a contour, so when that
+     happens lerp between the first and last points.  */
+
+  if (flags[here] & 01) /* On Curve */
+    {
+      control1.x = x[here] * scale;
+      control1.y = y[here] * scale;
+      start = control1;
+    }
+  else if (flags[last] & 01)
+    {
+      /* Start at the last point if it is on the curve.  Here, the
+         start really becomes the middle of a spline.  */
+      control1.x = x[last] * scale;
+      control1.y = y[last] * scale;
+      start = control1;
+
+      /* Curve back one point early.  */
+      last -= 1;
+      here -= 1;
+    }
+  else
+    {
+      /* Lerp between the start and the end.  */
+      control1.x = x[here] * scale;
+      control1.y = y[here] * scale;
+      control2.x = x[last] * scale;
+      control2.y = y[last] * scale;
+      sfnt_lerp_half (&control1, &control2, &start);
+
+      /* In either of these cases, start iterating from just here as
+	 opposed to here + 1, since logically the contour now starts
+	 from the last curve.  */
+      here -= 1;
+    }
+
+  /* Move to the start.  */
+  move_to (start, dcontext);
+
+  /* Now handle each point between here + 1 and last.  */
+
+  i = here;
+  while (++i <= last)
+    {
+      /* If the point is on the curve, then draw a line here from the
+	 last control point.  */
+
+      if (flags[i] & 01)
+	{
+	  control1.x = x[i] * scale;
+	  control1.y = y[i] * scale;
+
+	  line_to (control1, dcontext);
+
+	  /* Move to the next point.  */
+	  continue;
+	}
+
+      /* Off the curve points are more interesting.  They are handled
+	 one by one, with points in between being interpolated, until
+	 either the last point is reached or an on-curve point is
+	 processed.  First, load the initial control points.  */
+
+      control1.x = x[i] * scale;
+      control1.y = y[i] * scale;
+
+      while (++i <= last)
+	{
+	  /* Load this point.  */
+	  control2.x = x[i] * scale;
+	  control2.y = y[i] * scale;
+
+	  /* If this point is on the curve, curve directly to this
+	     point.  */
+
+	  if (flags[i] & 01)
+	    {
+	      curve_to (control1, control2, dcontext);
+	      goto continue_loop;
+	    }
+
+	  /* Calculate the point between here and the previous
+	     point.  */
+	  sfnt_lerp_half (&control1, &control2, &mid);
+
+	  /* Curve over there.  */
+	  curve_to (control1, mid, dcontext);
+
+	  /* Reload the control point.  */
+	  control1 = control2;
+	}
+
+      /* Close the contour by curving back to start.  */
+      curve_to (control1, start, dcontext);
+
+      /* Don't close the contour twice.  */
+      goto exit;
+
+    continue_loop:
+      continue;
+    }
+
+  /* Close the contour with a line back to start.  */
+  line_to (start, dcontext);
+
+ exit:
+  return 0;
+}
+
+/* Decompose contour data inside X, Y and FLAGS, between the indices
+   HERE and LAST.  Call LINE_TO, CURVE_TO and MOVE_TO as appropriate,
+   with DCONTEXT as an argument.  Apply SCALE to each point; SCALE
+   should be the factor necessary to turn points into 16.16 fixed
+   point.
+
+   This is the version of sfnt_decompose_glyph_1 which takes
+   sfnt_fixed (or sfnt_f26dot6) as opposed to sfnt_fword.
+
+   Value is 1 upon failure, else 0.  */
+
+static int
+sfnt_decompose_glyph_2 (size_t here, size_t last,
+			sfnt_move_to_proc move_to,
+			sfnt_line_to_proc line_to,
+			sfnt_curve_to_proc curve_to,
+			void *dcontext,
+			sfnt_fixed *x,
+			sfnt_fixed *y, unsigned char *flags,
+			int scale)
+{
+  struct sfnt_point control1, control2, start, mid;
+  size_t i;
+
+  /* The contour is empty.  */
+
+  if (here == last)
+    return 1;
+
+  /* Move the pen to the start of the contour.  Apparently some fonts
+     have off the curve points as the start of a contour, so when that
+     happens lerp between the first and last points.  */
+
+  if (flags[here] & 01) /* On Curve */
+    {
+      control1.x = x[here] * scale;
+      control1.y = y[here] * scale;
+      start = control1;
+    }
+  else if (flags[last] & 01)
+    {
+      /* Start at the last point if it is on the curve.  Here, the
+         start really becomes the middle of a spline.  */
+      control1.x = x[last] * scale;
+      control1.y = y[last] * scale;
+      start = control1;
+
+      /* Curve back one point early.  */
+      last -= 1;
+      here -= 1;
+    }
+  else
+    {
+      /* Lerp between the start and the end.  */
+      control1.x = x[here] * scale;
+      control1.y = y[here] * scale;
+      control2.x = x[last] * scale;
+      control2.y = y[last] * scale;
+      sfnt_lerp_half (&control1, &control2, &start);
+
+      /* In either of these cases, start iterating from just here as
+	 opposed to here + 1, since logically the contour now starts
+	 from the last curve.  */
+      here -= 1;
+    }
+
+  /* Move to the start.  */
+  move_to (start, dcontext);
+
+  /* Now handle each point between here + 1 and last.  */
+
+  i = here;
+  while (++i <= last)
+    {
+      /* If the point is on the curve, then draw a line here from the
+	 last control point.  */
+
+      if (flags[i] & 01)
+	{
+	  control1.x = x[i] * scale;
+	  control1.y = y[i] * scale;
+
+	  line_to (control1, dcontext);
+
+	  /* Move to the next point.  */
+	  continue;
+	}
+
+      /* Off the curve points are more interesting.  They are handled
+	 one by one, with points in between being interpolated, until
+	 either the last point is reached or an on-curve point is
+	 processed.  First, load the initial control points.  */
+
+      control1.x = x[i] * scale;
+      control1.y = y[i] * scale;
+
+      while (++i <= last)
+	{
+	  /* Load this point.  */
+	  control2.x = x[i] * scale;
+	  control2.y = y[i] * scale;
+
+	  /* If this point is on the curve, curve directly to this
+	     point.  */
+
+	  if (flags[i] & 01)
+	    {
+	      curve_to (control1, control2, dcontext);
+	      goto continue_loop;
+	    }
+
+	  /* Calculate the point between here and the previous
+	     point.  */
+	  sfnt_lerp_half (&control1, &control2, &mid);
+
+	  /* Curve over there.  */
+	  curve_to (control1, mid, dcontext);
+
+	  /* Reload the control point.  */
+	  control1 = control2;
+	}
+
+      /* Close the contour by curving back to start.  */
+      curve_to (control1, start, dcontext);
+
+      /* Don't close the contour twice.  */
+      goto exit;
+
+    continue_loop:
+      continue;
+    }
+
+  /* Close the contour with a line back to start.  */
+  line_to (start, dcontext);
+
+ exit:
+  return 0;
+}
+
 /* Decompose GLYPH into its individual components.  Call MOVE_TO to
    move to a specific location.  For each line encountered, call
    LINE_TO to draw a line to that location.  For each spline
@@ -2736,10 +3011,8 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 		      sfnt_free_glyph_proc free_glyph,
 		      void *dcontext)
 {
-  size_t here, start, last;
-  struct sfnt_point pen, control1, control2;
+  size_t here, last, n;
   struct sfnt_compound_glyph_context context;
-  size_t n;
 
   if (glyph->simple)
     {
@@ -2756,113 +3029,23 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	     of the last point in the contour.  */
 	  last = glyph->simple->end_pts_of_contours[n];
 
-	  /* Move to the start.  */
-	  pen.x = glyph->simple->x_coordinates[here] * 65536;
-	  pen.y = glyph->simple->y_coordinates[here] * 65536;
-	  move_to (pen, dcontext);
+	  /* Make sure here and last make sense.  */
 
-	  /* Record start so the contour can be closed.  */
-	  start = here;
-
-	  /* If there is only one point in a contour, draw a one pixel
-	     wide line.  */
-	  if (last == here)
-	    {
-	      line_to (pen, dcontext);
-	      here++;
-
-	      continue;
-	    }
-
-	  if (here > last)
-	    /* Indices moved backwards.  */
+	  if (here > last || last >= glyph->simple->number_of_points)
 	    return 1;
 
-	  /* Now start reading points.  If the next point is on the
-	     curve, then it is actually a line.  */
-	  for (++here; here <= last; ++here)
-	    {
-	      /* Make sure here is within bounds.  */
-	      if (here >= glyph->simple->number_of_points)
-		return 1;
+	  /* Now perform the decomposition.  */
+	  if (sfnt_decompose_glyph_1 (here, last, move_to,
+				      line_to, curve_to,
+				      dcontext,
+				      glyph->simple->x_coordinates,
+				      glyph->simple->y_coordinates,
+				      glyph->simple->flags,
+				      65536))
+	    return 1;
 
-	      if (glyph->simple->flags[here] & 01) /* On Curve */
-		{
-		  pen.x = glyph->simple->x_coordinates[here] * 65536;
-		  pen.y = glyph->simple->y_coordinates[here] * 65536;
-
-		  /* See if the last point was on the curve.  If it
-		     wasn't, then curve from there to here.  */
-		  if (!(glyph->simple->flags[here - 1] & 01))
-		    {
-		      control1.x
-			= glyph->simple->x_coordinates[here - 1] * 65536;
-		      control1.y
-			= glyph->simple->y_coordinates[here - 1] * 65536;
-		      curve_to (control1, pen, dcontext);
-		    }
-		  else
-		    /* Otherwise, this is an ordinary line from there
-		       to here.  */
-		    line_to (pen, dcontext);
-
-		  continue;
-		}
-
-	      /* If the last point was on the curve, then there's
-		 nothing extraordinary to do yet.  */
-	      if (glyph->simple->flags[here - 1] & 01)
-		;
-	      else
-		{
-		  /* Otherwise, interpolate the point halfway between
-		     the last and current points and make that point
-		     the pen.  */
-		  control1.x = glyph->simple->x_coordinates[here - 1] * 65536;
-		  control1.y = glyph->simple->y_coordinates[here - 1] * 65536;
-		  control2.x = glyph->simple->x_coordinates[here] * 65536;
-		  control2.y = glyph->simple->y_coordinates[here] * 65536;
-		  sfnt_lerp_half (&control1, &control2, &pen);
-		  curve_to (control1, pen, dcontext);
-		}
-	    }
-
-	  /* Now close the contour if there is more than one point
-	     inside it.  */
-	  if (start != here - 1)
-	    {
-	      /* Restore here after the for loop increased it.  */
-	      here --;
-
-	      /* Previously, this would check whether or not start is
-		 an ``on curve'' point, but that is not necessary.
-
-		 If a contour is not closed and the edge building
-		 process skips the second to last vertex, then the
-		 outline can end up with missing edges.  */
-
-	      pen.x = glyph->simple->x_coordinates[start] * 65536;
-	      pen.y = glyph->simple->y_coordinates[start] * 65536;
-
-	      /* See if the last point (in this case, `here') was
-		 on the curve.  If it wasn't, then curve from
-		 there to here.  */
-	      if (!(glyph->simple->flags[here] & 01))
-		{
-		  control1.x
-		    = glyph->simple->x_coordinates[here] * 65536;
-		  control1.y
-		    = glyph->simple->y_coordinates[here] * 65536;
-		  curve_to (control1, pen, dcontext);
-		}
-	      else
-		/* Otherwise, this is an ordinary line from there
-		   to here.  */
-		line_to (pen, dcontext);
-
-	      /* Restore here to where it was earlier.  */
-	      here++;
-	    }
+	  /* Move forward to the start of the next contour.  */
+	  here = last + 1;
 	}
 
       return 0;
@@ -2898,108 +3081,22 @@ sfnt_decompose_glyph (struct sfnt_glyph *glyph,
 	 of the last point in the contour.  */
       last = context.contour_end_points[n];
 
-      /* Move to the start.  */
-      pen.x = context.x_coordinates[here];
-      pen.y = context.y_coordinates[here];
-      move_to (pen, dcontext);
+      /* Make sure here and last make sense.  */
 
-      /* Record start so the contour can be closed.  */
-      start = here;
-
-      /* If there is only one point in a contour, draw a one pixel
-	 wide line.  */
-      if (last == here)
-	{
-	  line_to (pen, dcontext);
-	  here++;
-
-	  continue;
-	}
-
-      if (here > last)
-	/* Indices moved backwards.  */
+      if (here > last || last >= context.num_points)
 	goto fail;
 
-      /* Now start reading points.  If the next point is on the
-	 curve, then it is actually a line.  */
-      for (++here; here <= last; ++here)
-	{
-	  /* Make sure here is within bounds.  */
-	  if (here >= context.num_points)
-	    return 1;
+      /* Now perform the decomposition.  */
+      if (sfnt_decompose_glyph_2 (here, last, move_to,
+				  line_to, curve_to,
+				  dcontext,
+				  context.x_coordinates,
+				  context.y_coordinates,
+				  context.flags, 1))
+	goto fail;
 
-	  if (context.flags[here] & 01) /* On Curve */
-	    {
-	      pen.x = context.x_coordinates[here];
-	      pen.y = context.y_coordinates[here];
-
-	      /* See if the last point was on the curve.  If it
-		 wasn't, then curve from there to here.  */
-	      if (!(context.flags[here - 1] & 01))
-		{
-		  control1.x = context.x_coordinates[here - 1];
-		  control1.y = context.y_coordinates[here - 1];
-		  curve_to (control1, pen, dcontext);
-		}
-	      else
-		/* Otherwise, this is an ordinary line from there
-		   to here.  */
-		line_to (pen, dcontext);
-
-	      continue;
-	    }
-
-	  /* If the last point was on the curve, then there's
-	     nothing extraordinary to do yet.  */
-	  if (context.flags[here - 1] & 01)
-	    ;
-	  else
-	    {
-	      /* Otherwise, interpolate the point halfway between
-		 the last and current points and make that point
-		 the pen.  */
-	      control1.x = context.x_coordinates[here - 1];
-	      control1.y = context.y_coordinates[here - 1];
-	      control2.x = context.x_coordinates[here];
-	      control2.y = context.y_coordinates[here];
-	      sfnt_lerp_half (&control1, &control2, &pen);
-	      curve_to (control1, pen, dcontext);
-	    }
-	}
-
-      /* Now close the contour if there is more than one point
-	 inside it.  */
-      if (start != here - 1)
-	{
-	  /* Restore here after the for loop increased it.  */
-	  here --;
-
-	  /* Previously, this would check whether or not start is an
-	     ``on curve'' point, but that is not necessary.
-
-	     If a contour is not closed and the edge building process
-	     skips the second to last vertex, then the outline can end
-	     up with missing edges.  */
-
-	  pen.x = context.x_coordinates[start];
-	  pen.y = context.y_coordinates[start];
-
-	  /* See if the last point (in this case, `here') was on the
-	     curve.  If it wasn't, then curve from there to here.  */
-	  if (!(context.flags[here] & 01))
-	    {
-	      control1.x = context.x_coordinates[here];
-	      control1.y = context.y_coordinates[here];
-	      curve_to (control1, pen, dcontext);
-	    }
-	  else
-	    /* Otherwise, this is an ordinary line from there
-	       to here.  */
-	    line_to (pen, dcontext);
-
-	  /* Restore here to where it was earlier.  */
-	  here++;
-	}
+      /* Move forward.  */
+      here = last + 1;
     }
 
  early:
@@ -10499,9 +10596,7 @@ sfnt_decompose_instructed_outline (struct sfnt_instructed_outline *outline,
 				   sfnt_curve_to_proc curve_to,
 				   void *dcontext)
 {
-  size_t here, start, last;
-  struct sfnt_point pen, control1, control2;
-  size_t n;
+  size_t here, last, n;
 
   if (!outline->num_contours)
     return 0;
@@ -10515,109 +10610,20 @@ sfnt_decompose_instructed_outline (struct sfnt_instructed_outline *outline,
 	 of the last point in the contour.  */
       last = outline->contour_end_points[n];
 
-      /* Move to the start.  */
-      pen.x = outline->x_points[here] * 1024;
-      pen.y = outline->y_points[here] * 1024;
-      move_to (pen, dcontext);
+      /* Make sure here and last make sense.  */
 
-      /* Record start so the contour can be closed.  */
-      start = here;
-
-      /* If there is only one point in a contour, draw a one pixel
-	 wide line.  */
-      if (last == here)
-	{
-	  line_to (pen, dcontext);
-	  here++;
-
-	  continue;
-	}
-
-      if (here > last)
-	/* Indices moved backwards.  */
+      if (here > last || last >= outline->num_points)
 	goto fail;
 
-      /* Now start reading points.  If the next point is on the
-	 curve, then it is actually a line.  */
-      for (++here; here <= last; ++here)
-	{
-	  /* Make sure here is within bounds.  */
-	  if (here >= outline->num_points)
-	    return 1;
+      if (sfnt_decompose_glyph_2 (here, last, move_to,
+				  line_to, curve_to, dcontext,
+				  outline->x_points,
+				  outline->y_points,
+				  outline->flags, 1024))
+	goto fail;
 
-	  if (outline->flags[here] & 01) /* On Curve */
-	    {
-	      pen.x = outline->x_points[here] * 1024;
-	      pen.y = outline->y_points[here] * 1024;
-
-	      /* See if the last point was on the curve.  If it
-		 wasn't, then curve from there to here.  */
-	      if (!(outline->flags[here - 1] & 01))
-		{
-		  control1.x = outline->x_points[here - 1] * 1024;
-		  control1.y = outline->y_points[here - 1] * 1024;
-		  curve_to (control1, pen, dcontext);
-		}
-	      else
-		/* Otherwise, this is an ordinary line from there
-		   to here.  */
-		line_to (pen, dcontext);
-
-	      continue;
-	    }
-
-	  /* If the last point was on the curve, then there's
-	     nothing extraordinary to do yet.  */
-	  if (outline->flags[here - 1] & 01)
-	    ;
-	  else
-	    {
-	      /* Otherwise, interpolate the point halfway between
-		 the last and current points and make that point
-		 the pen.  */
-	      control1.x = outline->x_points[here - 1] * 1024;
-	      control1.y = outline->y_points[here - 1] * 1024;
-	      control2.x = outline->x_points[here] * 1024;
-	      control2.y = outline->y_points[here] * 1024;
-	      sfnt_lerp_half (&control1, &control2, &pen);
-	      curve_to (control1, pen, dcontext);
-	    }
-	}
-
-      /* Now close the contour if there is more than one point
-	 inside it.  */
-      if (start != here - 1)
-	{
-	  /* Restore here after the for loop increased it.  */
-	  here --;
-
-	  /* Previously, this would check whether or not start is an
-	     ``on curve'' point, but that is not necessary.
-
-	     If a contour is not closed and the edge building process
-	     skips the second to last vertex, then the outline can end
-	     up with missing edges.  */
-
-	  pen.x = outline->x_points[start] * 1024;
-	  pen.y = outline->y_points[start] * 1024;
-
-	  /* See if the last point (in this case, `here') was
-	     on the curve.  If it wasn't, then curve from
-	     there to here.  */
-	  if (!(outline->flags[here] & 01))
-	    {
-	      control1.x = outline->x_points[here] * 1024;
-	      control1.y = outline->y_points[here] * 1024;
-	      curve_to (control1, pen, dcontext);
-	    }
-	  else
-	    /* Otherwise, this is an ordinary line from there
-	       to here.  */
-	    line_to (pen, dcontext);
-
-	  /* Restore here to where it was earlier.  */
-	  here++;
-	}
+      /* Move forward to the start of the next contour.  */
+      here = last + 1;
 
       /* here may be a phantom point when outlining a compound glyph,
 	 as they can have phantom points mixed in with contours.
@@ -15530,6 +15536,9 @@ main (int argc, char **argv)
       return 1;
     }
 
+  fprintf (stderr, "number of subtables: %"PRIu16"\n",
+	   table->num_subtables);
+
   for (i = 0; i < table->num_subtables; ++i)
     {
       fprintf (stderr, "Found cmap table %"PRIu32": %p\n",
@@ -15540,8 +15549,8 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 40
+#define EASY_PPEM  40
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);

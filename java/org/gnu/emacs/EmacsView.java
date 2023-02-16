@@ -186,13 +186,7 @@ public class EmacsView extends ViewGroup
     /* Explicitly free the old bitmap's memory.  */
 
     if (oldBitmap != null)
-      {
-	oldBitmap.recycle ();
-
-	/* Make sure to set the view's bitmap to the new bitmap, or
-	   ugly flicker can result.  */
-	surfaceView.setBitmap (bitmap, null);
-      }
+      oldBitmap.recycle ();
 
     /* Some Android versions still don't free the bitmap until the
        next GC.  */

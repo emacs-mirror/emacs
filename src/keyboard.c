@@ -4050,14 +4050,6 @@ kbd_buffer_get_event (KBOARD **kbp,
     x_handle_pending_selection_requests ();
 #endif
 
-#ifdef HAVE_TEXT_CONVERSION
-  /* Handle pending ``text conversion'' requests from an input
-     method.  */
-
-  if (had_pending_conversion_events)
-    handle_pending_conversion_events ();
-#endif
-
   if (CONSP (Vunread_command_events))
     {
       Lisp_Object first;
@@ -4067,6 +4059,24 @@ kbd_buffer_get_event (KBOARD **kbp,
       return first;
     }
 
+#ifdef HAVE_TEXT_CONVERSION
+  /* There are pending text conversion operations.  Text conversion
+     events should be generated before processing any other keyboard
+     input.  */
+  if (had_pending_conversion_events)
+    {
+      handle_pending_conversion_events ();
+      obj = Qtext_conversion;
+
+      /* See the comment in handle_pending_conversion_events_1.
+         Note that in addition, text conversion events are not
+         generated if no edits were actually made.  */
+      if (conversion_disabled_p ()
+	  || NILP (Vtext_conversion_edits))
+	obj = Qnil;
+    }
+  else
+#endif
   /* At this point, we know that there is a readable event available
      somewhere.  If the event queue is empty, then there must be a
      mouse movement enabled and available.  */
@@ -4415,23 +4425,10 @@ kbd_buffer_get_event (KBOARD **kbp,
   else if (had_pending_selection_requests)
     obj = Qnil;
 #endif
-#ifdef HAVE_TEXT_CONVERSION
-  /* This is an internal event used to prevent Emacs from becoming
-     idle immediately after a text conversion operation.  */
-  else if (had_pending_conversion_events)
-    obj = Qtext_conversion;
-#endif
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
     emacs_abort ();
-
-#ifdef HAVE_TEXT_CONVERSION
-  /* While not implemented as keyboard commands, changes made by the
-     input method still mean that Emacs is no longer idle.  */
-  if (had_pending_conversion_events)
-    timer_stop_idle ();
-#endif
 
   input_pending = readable_events (0);
 

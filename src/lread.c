@@ -672,7 +672,11 @@ static void substitute_in_interval (INTERVAL, void *);
    if the character warrants that.
 
    If SECONDS is a number, wait that many seconds for input, and
-   return Qnil if no input arrives within that time.  */
+   return Qnil if no input arrives within that time.
+
+   If text conversion is enabled and ASCII_REQUIRED && ERROR_NONASCII,
+   temporarily disable any input method which wants to perform
+   edits.  */
 
 static Lisp_Object
 read_filtered_event (bool no_switch_frame, bool ascii_required,
@@ -680,10 +684,26 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 {
   Lisp_Object val, delayed_switch_frame;
   struct timespec end_time;
+#ifdef HAVE_TEXT_CONVERSION
+  specpdl_ref count;
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
+#endif
+
+#ifdef HAVE_TEXT_CONVERSION
+  count = SPECPDL_INDEX ();
+
+  /* Don't use text conversion when trying to just read a
+     character.  */
+
+  if (ascii_required && error_nonascii)
+    {
+      disable_text_conversion ();
+      record_unwind_protect_void (resume_text_conversion);
+    }
 #endif
 
   delayed_switch_frame = Qnil;
@@ -761,7 +781,11 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 
 #endif
 
+#ifdef HAVE_TEXT_CONVERSION
+  return unbind_to (count, val);
+#else
   return val;
+#endif
 }
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,

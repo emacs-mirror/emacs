@@ -258,10 +258,6 @@ show_back_buffer (struct frame *f)
 {
   struct android_swap_info swap_info;
 
-  /* Somehow Android frames can be swapped while garbaged.  */
-  if (FRAME_GARBAGED_P (f))
-    return;
-
   memset (&swap_info, 0, sizeof (swap_info));
   swap_info.swap_window = FRAME_ANDROID_WINDOW (f);
   swap_info.swap_action = ANDROID_COPIED;
@@ -5128,7 +5124,8 @@ android_update_selection (struct frame *f, struct window *w)
   /* Figure out where the point and mark are.  If the mark is not
      active, then point is set to equal mark.  */
   b = XBUFFER (w->contents);
-  point = min (w->last_point, TYPE_MAXIMUM (jint));
+  point = min (w->ephemeral_last_point,
+	       TYPE_MAXIMUM (jint));
   mark = ((!NILP (BVAR (b, mark_active))
 	   && w->last_mark != -1)
 	  ? min (w->last_mark, TYPE_MAXIMUM (jint))
@@ -5150,6 +5147,7 @@ android_reset_conversion (struct frame *f)
   enum android_ic_mode mode;
   struct window *w;
   struct buffer *buffer;
+  Lisp_Object style;
 
   /* Reset the input method.
 
@@ -5160,19 +5158,20 @@ android_reset_conversion (struct frame *f)
   w = XWINDOW (f->selected_window);
   buffer = XBUFFER (WINDOW_BUFFER (w));
 
-  if (NILP (BVAR (buffer, text_conversion_style)))
+  style = (EQ (find_symbol_value (Qoverriding_text_conversion_style),
+	       Qlambda)
+	   ? BVAR (buffer, text_conversion_style)
+	   : find_symbol_value (Qoverriding_text_conversion_style));
+
+  if (NILP (style) || conversion_disabled_p ())
     mode = ANDROID_IC_MODE_NULL;
-  else if (EQ (BVAR (buffer, text_conversion_style),
-	       Qaction))
+  else if (EQ (style, Qaction) || EQ (f->selected_window,
+				      f->minibuffer_window))
     mode = ANDROID_IC_MODE_ACTION;
   else
     mode = ANDROID_IC_MODE_TEXT;
 
-  android_reset_ic (FRAME_ANDROID_WINDOW (f),
-		    (EQ (f->selected_window,
-			 f->minibuffer_window)
-		     ? ANDROID_IC_MODE_ACTION
-		     : mode));
+  android_reset_ic (FRAME_ANDROID_WINDOW (f), mode);
 
   /* Move its selection to the specified position.  */
   android_update_selection (f, NULL);
