@@ -176,7 +176,7 @@ PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
   `nicknames', these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
-  :version "29.1"
+  :package-version '(ERC . "5.5")
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"

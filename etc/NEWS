@@ -110,6 +110,20 @@ This is a string or a list of strings that specifies the Git log
 switches for shortlogs, such as the one produced by 'C-x v L'.
 'vc-git-log-switches' is no longer used for shortlogs.
 
+** Diff Mode
+
++++
+*** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.
+When called with a non-nil prefix argument
+'diff-ignore-whitespace-hunk' now iterates over all the hunks in the
+current diff, regenerating them without whitespace changes.
+
++++
+*** New user option 'diff-ignore-whitespace-switches'.
+This allows changing which type of whitespace changes are ignored when
+regenerating hunks with 'diff-ignore-whitespace-hunk'.  Defaults to
+the previously hard-coded "-b".
+
 ** Buffer Selection
 
 ---
@@ -142,6 +156,11 @@ line.  If you want to go back to the old behavior, add something like
 this to your configuration:
 
     (keymap-set eshell-mode-map "<home>" #'eshell-bol-ignoring-prompt)
+
+---
+*** You can now properly unload Eshell.
+Calling "(unload-feature 'eshell)" no longer signals an error, and now
+correctly unloads Eshell and all of its modules.
 
 +++
 *** 'eshell-read-aliases-list' is now an interactive command.
@@ -207,6 +226,12 @@ their customization options.
 ** User option 'tramp-completion-reread-directory-timeout' has been removed.
 This user option has been obsoleted in Emacs 27, use
 'remote-file-name-inhibit-cache' instead.
+
+---
+** User options 'eshell-NAME-unload-hook' are now obsolete.
+These hooks were named incorrectly, and so they never actually ran
+when unloading the correspending feature.  Instead, you should use
+hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 
 * Lisp Changes in Emacs 30.1

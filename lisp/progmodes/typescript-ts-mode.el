@@ -86,6 +86,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "template_string") no-indent) ; Don't indent the string contents.
      ((parent-is "template_substitution") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "object_pattern") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "object") parent-bol typescript-ts-mode-indent-offset)

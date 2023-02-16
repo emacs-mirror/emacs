@@ -27,8 +27,6 @@
 ;;; Code:
 
 (require 'esh-mode)
-(eval-when-compile (require 'eshell))
-
 (require 'text-property-search)
 
 ;;;###autoload

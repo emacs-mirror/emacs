@@ -36,6 +36,21 @@
 
 (eval-when-compile (require 'files-x))
 
+;;;###autoload
+(progn
+(defgroup eshell-extpipe nil
+  "Native shell pipelines.
+
+This module lets you construct pipelines that use your operating
+system's shell instead of Eshell's own pipelining support.  This
+is especially relevant when executing commands on a remote
+machine using Eshell's Tramp integration: using the remote
+shell's pipelining avoids copying the data which will flow
+through the pipeline to local Emacs buffers and then right back
+again."
+  :tag "External pipelines"
+  :group 'eshell-module))
+
 ;;; Functions:
 
 (defun eshell-extpipe-initialize () ;Called from `eshell-mode' via intern-soft!

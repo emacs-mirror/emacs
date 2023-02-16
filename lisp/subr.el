@@ -3984,30 +3984,51 @@ See also `locate-user-emacs-file'.")
   "Return non-nil if the current buffer is narrowed."
   (/= (- (point-max) (point-min)) (buffer-size)))
 
-(defmacro with-narrowing (start end &rest rest)
+(defmacro with-restriction (start end &rest rest)
   "Execute BODY with restrictions set to START and END.
 
 The current restrictions, if any, are restored upon return.
 
-With the optional :locked TAG argument, inside BODY,
-`narrow-to-region' and `widen' can be used only within the START
-and END limits, unless the restrictions are unlocked by calling
-`narrowing-unlock' with TAG.  See `narrowing-lock' for a more
-detailed description.
+When the optional :label LABEL argument is present, in which
+LABEL is a symbol, inside BODY, `narrow-to-region' and `widen'
+can be used only within the START and END limits.  To gain access
+to other portions of the buffer, use `without-restriction' with the
+same LABEL argument.
 
-\(fn START END [:locked TAG] BODY)"
-  (if (eq (car rest) :locked)
-      `(internal--with-narrowing ,start ,end (lambda () ,@(cddr rest))
+\(fn START END [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
+      `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))
-    `(internal--with-narrowing ,start ,end (lambda () ,@rest))))
+    `(internal--with-restriction ,start ,end (lambda () ,@rest))))
 
-(defun internal--with-narrowing (start end body &optional tag)
-  "Helper function for `with-narrowing', which see."
+(defun internal--with-restriction (start end body &optional label)
+  "Helper function for `with-restriction', which see."
   (save-restriction
-    (progn
-      (narrow-to-region start end)
-      (if tag (narrowing-lock tag))
-      (funcall body))))
+    (narrow-to-region start end)
+    (if label (internal--lock-narrowing label))
+    (funcall body)))
+
+(defmacro without-restriction (&rest rest)
+  "Execute BODY without restrictions.
+
+The current restrictions, if any, are restored upon return.
+
+When the optional :label LABEL argument is present, the
+restrictions set by `with-restriction' with the same LABEL argument
+are lifted.
+
+\(fn [:label LABEL] BODY)"
+  (if (eq (car rest) :label)
+      `(internal--without-restriction (lambda () ,@(cddr rest))
+                                    ,(cadr rest))
+    `(internal--without-restriction (lambda () ,@rest))))
+
+(defun internal--without-restriction (body &optional label)
+  "Helper function for `without-restriction', which see."
+  (save-restriction
+    (if label (internal--unlock-narrowing label))
+    (widen)
+    (funcall body)))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
@@ -4145,15 +4166,18 @@ system's shell."
 
 (defsubst string-to-list (string)
   "Return a list of characters in STRING."
+  (declare (side-effect-free t))
   (append string nil))
 
 (defsubst string-to-vector (string)
   "Return a vector of characters in STRING."
+  (declare (side-effect-free t))
   (vconcat string))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
 Otherwise, return nil."
+  (declare (pure t) (side-effect-free error-free))
   (or (stringp object) (null object)))
 
 (defun list-of-strings-p (object)
@@ -4166,21 +4190,25 @@ Otherwise, return nil."
 (defun booleanp (object)
   "Return t if OBJECT is one of the two canonical boolean values: t or nil.
 Otherwise, return nil."
+  (declare (pure t) (side-effect-free error-free))
   (and (memq object '(nil t)) t))
 
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
+  (declare (side-effect-free error-free))
   (if (and (symbolp object) (fboundp object))
       (setq object (indirect-function object)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun plistp (object)
   "Non-nil if and only if OBJECT is a valid plist."
+  (declare (pure t) (side-effect-free error-free))
   (let ((len (proper-list-p object)))
     (and len (zerop (% len 2)))))
 
 (defun macrop (object)
   "Non-nil if and only if OBJECT is a macro."
+  (declare (side-effect-free t))
   (let ((def (indirect-function object)))
     (when (consp def)
       (or (eq 'macro (car def))
@@ -4190,6 +4218,7 @@ Otherwise, return nil."
   "Return non-nil if OBJECT is a function that has been compiled.
 Does not distinguish between functions implemented in machine code
 or byte-code."
+  (declare (side-effect-free error-free))
   (or (subrp object) (byte-code-function-p object)))
 
 (defun field-at-pos (pos)
@@ -6864,6 +6893,7 @@ returned list are in the same order as in TREE.
 
 \(flatten-tree \\='(1 (2 . 3) nil (4 5 (6)) 7))
 => (1 2 3 4 5 6 7)"
+  (declare (side-effect-free error-free))
   (let (elems)
     (while (consp tree)
       (let ((elem (pop tree)))

@@ -24,13 +24,13 @@
 ;;
 ;; https://lists.gnu.org/archive/html/erc-discuss/2012-02/msg00001.html
 ;;
-;; See options and Info manual for usage.
+;; See M-x customize-group RET erc-sasl RET and (info "(erc) SASL")
+;; for usage.
 ;;
 ;; TODO:
 ;;
-;; - Find a way to obfuscate the password in memory (via something
-;;   like `auth-source--obfuscate'); it's currently visible in
-;;   backtraces.
+;; - Obfuscate non-auth-source passwords in memory.  They're currently
+;;   visible in backtraces.
 ;;
 ;; - Implement a proxy mechanism that chooses the strongest available
 ;;   mechanism for you.  Requires CAP 3.2 (see bug#49860).
@@ -52,7 +52,7 @@
 (defgroup erc-sasl nil
   "SASL for ERC."
   :group 'erc
-  :package-version '(ERC . "5.4.1")) ; FIXME increment on next release
+  :package-version '(ERC . "5.5"))
 
 (defcustom erc-sasl-mechanism 'plain
   "SASL mechanism to connect with.
@@ -76,19 +76,19 @@ commands, `erc' and `erc-tls'."
 
 (defcustom erc-sasl-password :password
   "Optional account password to send when authenticating.
-When `erc-sasl-auth-source-function' is a function, ERC will
-attempt an auth-source query and prompt for input if it fails.
-Otherwise, when the value is a nonempty string, ERC will use it
-unconditionally for most mechanisms.  Likewise with `:password',
-except ERC will instead use the \"session password\" on file, if
-any, which often originates from the entry-point commands `erc'
-or `erc-tls'.  As with auth-source, ERC will prompt for input as
-a fallback.
+When `erc-sasl-auth-source-function' is a function, ERC attempts
+an auth-source query and prompts for input if it fails.
+Otherwise, when the value of this option is a nonempty string,
+ERC uses it unconditionally for most mechanisms.  Likewise with a
+value of `:password', except ERC instead uses the \"session
+password\" on file, if any, which often originates from the
+entry-point commands `erc' or `erc-tls'.  As with auth-source,
+ERC prompts for input as a fallback.
 
-Note that, with `:password', ERC will forgo sending a traditional
+Note that, with `:password', ERC forgoes sending a traditional
 server password via the IRC \"PASS\" command.  Also, when
-`erc-sasl-mechanism' is set to `ecdsa-nist256p-challenge', this
-option should hold the file name of the key."
+`erc-sasl-mechanism' is set to `ecdsa-nist256p-challenge', ERC
+expects this option to hold the file name of the key."
   :type '(choice (const nil) (const :password) string symbol))
 
 (defcustom erc-sasl-auth-source-function nil
@@ -100,9 +100,8 @@ though ERC itself only specifies `:user' paired with a
 ERC binds all options defined in this library, such as
 `erc-sasl-password', to their values from entry-point invocation.
 In return, ERC expects a string to send as the SASL password, or
-nil, in which case, ERC will prompt the for input.  See info
-node `(erc) auth-source' for details on ERC's auth-source
-integration."
+nil, in which case, ERC prompts for input.  See Info node `(erc)
+auth-source' for details on ERC's auth-source integration."
   :type '(choice (function-item erc-sasl-auth-source-password-as-host)
                  (function-item erc-auth-source-search)
                  (const nil)

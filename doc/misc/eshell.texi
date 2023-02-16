@@ -2189,8 +2189,6 @@ Hitting space during a process invocation, such as @command{make}, will
 cause it to track the bottom of the output; but backspace no longer
 scrolls back.
 
-@item It's not possible to fully @code{unload-feature} Eshell
-
 @item Menu support was removed, but never put back
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work

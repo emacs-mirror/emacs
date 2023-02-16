@@ -2544,6 +2544,7 @@ This function is intended to be added to `auto-coding-functions'."
                        ;; coding-system-equal, since it isn't a
                        ;; coding-system.  So test that up front.
                        (not (equal sym-type 'charset))
+                       (not (equal bfcs-type 'charset))
                        (coding-system-equal 'utf-8 sym-type)
                        (coding-system-equal 'utf-8 bfcs-type))
                   buffer-file-coding-system

@@ -1737,9 +1737,13 @@ only the hunks within the region.
 Re-generate the current hunk (@code{diff-refresh-hunk}).
 
 @item C-c C-w
+@vindex diff-ignore-whitespace-switches
 @findex diff-ignore-whitespace-hunk
-Re-generate the current hunk, disregarding changes in whitespace
-(@code{diff-ignore-whitespace-hunk}).
+Re-generate the current hunk, disregarding changes in whitespace.
+With a non-@code{nil} prefix arg, re-generate all the hunks
+(@code{diff-ignore-whitespace-hunk}).  This calls @code{diff-command}
+with @code{diff-ignore-whitespace-switches}, which defaults to
+@samp{-b}, meaning ignore changes in whitespace only.
 
 @item C-x 4 A
 @findex diff-add-change-log-entries-other-window

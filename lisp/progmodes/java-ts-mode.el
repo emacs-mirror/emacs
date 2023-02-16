@@ -162,7 +162,8 @@
    :override t
    :feature 'keyword
    `([,@java-ts-mode--keywords
-      (this)] @font-lock-keyword-face
+      (this)
+      (super)] @font-lock-keyword-face
       (labeled_statement
        (identifier) @font-lock-keyword-face))
    :language 'java

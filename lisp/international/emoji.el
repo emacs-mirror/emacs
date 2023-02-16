@@ -116,6 +116,11 @@ and also consults the `emoji-alternate-names' alist."
       (emoji--add-recent glyph)
       (insert glyph))))
 
+(defclass emoji--narrow (transient-suffix)
+  ((title :initarg :title)
+   (done-derived :initarg :done-derived)
+   (children :initarg :children)))
+
 (defun emoji--setup-prefix (command title done-derived spec)
   (transient-setup
    command nil nil
@@ -136,11 +141,6 @@ and also consults the `emoji-alternate-names' alist."
 
 (defun emoji--group-description ()
   (car (oref transient--prefix scope)))
-
-(defclass emoji--narrow (transient-suffix)
-  ((title :initarg :title)
-   (done-derived :initarg :done-derived)
-   (children :initarg :children)))
 
 (transient-define-suffix emoji-insert-glyph ()
   "Insert the emoji you selected."

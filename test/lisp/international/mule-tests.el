@@ -99,7 +99,7 @@ provide HTML fragments.  Some tests override those variables."
 
 (ert-deftest sgml-html-meta-utf-8 ()
   "Baseline: UTF-8."
-  (should (eq 'utf-8 (sgml-html-meta-run "utf-8"))))
+  (should (eq 'utf-8 (coding-system-base (sgml-html-meta-run "utf-8")))))
 
 (ert-deftest sgml-html-meta-windows-hebrew ()
   "A non-Unicode charset."
