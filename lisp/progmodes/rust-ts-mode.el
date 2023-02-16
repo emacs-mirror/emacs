@@ -293,7 +293,7 @@
    '((field_identifier) @font-lock-property-face
      (shorthand_field_initializer (identifier) @font-lock-property-face))
 
-   ;; Must be under type, otherwise some imports can be highlighted as consants.
+   ;; Must be under type, otherwise some imports can be highlighted as constants.
    :language 'rust
    :feature 'constant
    `((boolean_literal) @font-lock-constant-face
