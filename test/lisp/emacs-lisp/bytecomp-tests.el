@@ -1213,7 +1213,8 @@ byte-compiled.  Run with dynamic binding."
 literals (Bug#20852)."
   (should (boundp 'lread--unescaped-character-literals))
   (let ((byte-compile-error-on-warn t)
-        (byte-compile-debug t))
+        (byte-compile-debug t)
+        (text-quoting-style 'grave))
     (bytecomp-tests--with-temp-file source
       (write-region "(list ?) ?( ?; ?\" ?[ ?])" nil source)
       (bytecomp-tests--with-temp-file destination
@@ -1332,6 +1333,7 @@ literals (Bug#20852)."
 
 (defun test-suppression (form suppress match)
   (let ((lexical-binding t)
+        (text-quoting-style 'grave)
         (byte-compile-log-buffer (generate-new-buffer " *Compile-Log*")))
     ;; Check that we get a warning without suppression.
     (with-current-buffer byte-compile-log-buffer

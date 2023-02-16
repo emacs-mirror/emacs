@@ -137,11 +137,13 @@ literals (Bug#20852)."
     (write-region "?) ?( ?; ?\" ?[ ?]" nil file-name)
     (should (equal (load file-name nil :nomessage :nosuffix) t))
     (should (equal (lread-tests--last-message)
-                   (concat (format-message "Loading `%s': " file-name)
-                           "unescaped character literals "
-                           "`?\"', `?(', `?)', `?;', `?[', `?]' detected, "
-                           "`?\\\"', `?\\(', `?\\)', `?\\;', `?\\[', `?\\]' "
-                           "expected!")))))
+                   (format-message
+                    (concat "Loading `%s': "
+                            "unescaped character literals "
+                            "`?\"', `?(', `?)', `?;', `?[', `?]' detected, "
+                            "`?\\\"', `?\\(', `?\\)', `?\\;', `?\\[', `?\\]' "
+                            "expected!")
+                    file-name)))))
 
 (ert-deftest lread-test-bug26837 ()
   "Test for https://debbugs.gnu.org/26837 ."
