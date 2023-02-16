@@ -63,7 +63,7 @@ you should probably read section "`6. Rationale`_".
 ----------------------
 
 Start by making a record for the merge.  Make a comment on the pull
-request with a permalink to the procedure you're following (this one)
+request with a permalink_ to the procedure you're following (this one)
 and the start time, like::
 
   Executing [proc.merge.pull-request](https://github.com/Ravenbrook/mps/blob/973fc087c9abff01a957b85bd17c4a2be434ae73/procedure/pull-request-merge.rst)
@@ -93,8 +93,9 @@ When you finish the checklist, decide whether to start
 
 #. If there changes to the `MPS interface`_, are they documented?
 
-#. If the changes are significant and user-visible, is there an update
-   to the release notes (``manual/source/release.rst``)?
+#. If the changes to the MPS are significant and user-visible, is
+   there an update to the release notes
+   (``manual/source/release.rst``)?
 
 #. Has there been a code review, and only review edits since?
 
@@ -158,6 +159,8 @@ When you finish the checklist, decide whether to start
                   and a `pull request merge branch`_ (labelled "pull
                   request") automatically created by GitHub.
 
+.. _permalink: https://docs.github.com/en/repositories/working-with-files/using-files/getting-permanent-links-to-files
+
 .. _pull request merge branch: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
@@ -185,6 +188,9 @@ These steps will only rarely need repeating.
 #. Ensure your public SSH key is submitted in Perforce at
    //.git-fusion/users/USER/keys/
 
+   This is the public key that the SSH used by your Git will use to
+   connect to perforce.ravenbrook.com.
+
    **NOTE**: As of 2022-11, you may not be able to connect to Perforce
    Git Fusion without specifying an old public key algorithm.  See
    `"Connecting to Git Fusion"
@@ -195,16 +201,16 @@ These steps will only rarely need repeating.
    record.
 
 #. Clone the Ravenbrook MPS GitHub repository and name the remote
-   "github".  This will give you access to CI to build and test the
-   merge.  (If you're an MPS developer you can use your existing
-   repo.)  ::
+   "github" [#github]_.  This will give you access to CI to
+   build and test the merge.  (If you're an MPS developer you can use
+   your existing repo.)  ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
-     cd mps
 
 #. Set your e-mail address for commits to the repo to match the one in
    your Perforce user record, e.g. ::
 
+     cd mps
      git config user.email spqr@ravenbrook.com
 
    and possibly your name if you don't have that set in Git globally ::
@@ -214,7 +220,12 @@ These steps will only rarely need repeating.
 #. Add the Git Fusion mps-public repo, which is the interface to
    Ravenbrook's Perforce. ::
 
+     cd mps
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
+
+.. [#github] There's nothing special about this name -- it's just
+             assumed in the examples in the procedure.
+
 
 .. _the merging procedure:
 
