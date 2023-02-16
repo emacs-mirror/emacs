@@ -440,7 +440,7 @@ version of that package."
                    (package-desc-version a)))
                 (duplicate-p (a b)
                   "Are A and B the same package?"
-                  (equal a (car b)))
+                  (eq (package-desc-name a) (package-desc-name b)))
                 (depends-on-p (target package)
                   "Does PACKAGE depend on TARGET?"
                   (or (eq target package)
@@ -457,7 +457,7 @@ version of that package."
                         (depends-on-p desc-a desc-b)))))
       (mapc #'search requirements)
       (cl-callf sort to-install #'version-order)
-      (cl-callf seq-uniq to-install)
+      (cl-callf seq-uniq to-install #'duplicate-p)
       (cl-callf sort to-install #'dependent-order))
     (mapc #'package-install-from-archive to-install)
     missing))
