@@ -3085,6 +3085,17 @@ Keywords here should also be in `c-block-stmt-1-kwds'."
   t (c-make-keywords-re t (c-lang-const c-block-stmt-2-kwds)))
 (c-lang-defvar c-block-stmt-2-key (c-lang-const c-block-stmt-2-key))
 
+(c-lang-defconst c-generic-kwds
+  "The keyword \"_Generic\" which introduces a C11 generic statement."
+  t nil
+  c '("_Generic"))
+
+(c-lang-defconst c-generic-key
+  ;; Regexp matching the keyword(s) in `c-generic-kwds'.
+  t (if (c-lang-const c-generic-kwds)
+	(c-make-keywords-re t (c-lang-const c-generic-kwds))))
+(c-lang-defvar c-generic-key (c-lang-const c-generic-key))
+
 (c-lang-defconst c-block-stmt-kwds
   ;; Union of `c-block-stmt-1-kwds' and `c-block-stmt-2-kwds'.
   t (c--delete-duplicates (append (c-lang-const c-block-stmt-1-kwds)
