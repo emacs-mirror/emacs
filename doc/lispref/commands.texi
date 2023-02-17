@@ -99,6 +99,12 @@ is removed from the hook.
 emacs, The GNU Emacs Manual}) runs these two hooks just as a keyboard
 command does.
 
+  Note that, when the buffer text includes very long lines, these two
+hooks are called as if they were in a @code{with-restriction} form
+(@pxref{Narrowing}), with a
+@code{long-line-optimizations-in-command-hooks} label and with the
+buffer narrowed to a portion around point.
+
 @node Defining Commands
 @section Defining Commands
 @cindex defining commands

@@ -217,8 +217,8 @@ parameters and authentication."
 
 This variable only exists for legacy reasons.  It's not customizable and
 is limited to a single server password.  Users looking for similar
-functionality should consider auth-source instead.  See info
-node `(auth) Top' and info node `(erc) auth-source'.")
+functionality should consider auth-source instead.  See Info
+node `(auth) Top' and Info node `(erc) auth-source'.")
 
 (make-obsolete-variable 'erc-password "use auth-source instead" "29.1")
 
@@ -250,19 +250,19 @@ node `(auth) Top' and info node `(erc) auth-source'.")
 Issue an error when the number of input lines submitted for
 sending exceeds this value.  The value t means disallow more
 than 1 line of input."
-  :package-version '(ERC . "5.4.1") ; FIXME match to next release
+  :package-version '(ERC . "5.5")
   :group 'erc
   :type '(choice integer boolean))
 
 (defcustom erc-ask-about-multiline-input nil
   "Whether to ask to ignore `erc-inhibit-multiline-input' when tripped."
-  :package-version '(ERC . "5.4.1") ; FIXME match to next release
+  :package-version '(ERC . "5.5")
   :group 'erc
   :type 'boolean)
 
 (defcustom erc-prompt-hidden ">"
   "Text to show in lieu of the prompt when hidden."
-  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
+  :package-version '(ERC . "5.5")
   :group 'erc-display
   :type 'string)
 
@@ -272,7 +272,7 @@ To unhide, type something in the input area.  Once revealed, a
 prompt remains unhidden until the next disconnection.  Channel
 prompts are unhidden upon rejoining.  See
 `erc-unhide-query-prompt' for behavior concerning query prompts."
-  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
+  :package-version '(ERC . "5.5")
   :group 'erc-display
   :type '(choice (const :tag "Always hide prompt" t)
                  (set (const server)
@@ -284,7 +284,7 @@ prompts are unhidden upon rejoining.  See
 Otherwise, prompts in a connection's query buffers remain hidden
 until the user types in the input area or a new message arrives
 from the target."
-  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
+  :package-version '(ERC . "5.5")
   :group 'erc-display
   ;; Extensions may one day offer a way to discover whether a target
   ;; is online.  When that happens, this can be expanded accordingly.
@@ -1479,7 +1479,7 @@ The available choices are:
   `bury'            - bury it in a new buffer,
   `buffer'          - in place of the current buffer,
   any other value  - in place of the current buffer."
-  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc-buffers
   :type '(choice (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
@@ -1495,7 +1495,7 @@ This only affects automatic reconnections and is ignored when
 issuing a /reconnect command or reinvoking `erc-tls' with the
 same args (assuming success, of course).  See `erc-join-buffer'
 for a description of possible values."
-  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc-buffers
   :type '(choice (const :tag "Use value of `erc-join-buffer'" nil)
                  (const :tag "Split window and select" window)
@@ -2319,7 +2319,7 @@ Example usage:
 
 When present, ID should be a symbol or a string to use for naming
 the server buffer and identifying the connection unequivocally.
-See info node `(erc) Network Identifier' for details.  Like USER
+See Info node `(erc) Network Identifier' for details.  Like USER
 and CLIENT-CERTIFICATE, this parameter cannot be specified
 interactively."
   (interactive (let ((erc-default-port erc-default-port-tls))
@@ -3258,10 +3258,10 @@ if any.  In return, ERC expects a string to send as the server
 password, or nil, to skip the \"PASS\" command completely.  An
 explicit `:password' argument to entry-point commands `erc' and
 `erc-tls' also inhibits lookup, as does setting this option to
-nil.  See info node `(erc) auth-source' for details."
-  :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
+nil.  See Info node `(erc) auth-source' for details."
+  :package-version '(ERC . "5.5")
   :group 'erc
-  :type '(choice (const erc-auth-source-search)
+  :type '(choice (function-item erc-auth-source-search)
                  (const nil)
                  function))
 
@@ -3272,11 +3272,11 @@ Called with a subset of keyword arguments known to
 channel.  In return, ERC expects a string to use as the channel
 \"key\", or nil to just join the channel normally.  Setting the
 option itself to nil tells ERC to always forgo consulting
-auth-source for channel keys.  For more information, see info
+auth-source for channel keys.  For more information, see Info
 node `(erc) auth-source'."
-  :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc
-  :type '(choice (const erc-auth-source-search)
+  :type '(choice (function-item erc-auth-source-search)
                  (const nil)
                  function))
 
@@ -6837,8 +6837,8 @@ shortened server name instead."
 
 ;; erc-goodies is required at end of this file.
 
-;; FIXME when 29.1 is cut and `format-spec' is added to ELPA Compat,
-;; remove the function invocations from the spec form below.
+;; TODO when ERC drops Emacs 28, replace the expressions in the format
+;; spec below with functions.
 (defun erc-update-mode-line-buffer (buffer)
   "Update the mode line in a single ERC buffer BUFFER."
   (with-current-buffer buffer
@@ -7213,7 +7213,7 @@ See also `format-spec'."
 (defcustom erc-kill-server-hook '(erc-kill-server
                                   erc-networks-shrink-ids-and-buffer-names)
   "Invoked whenever a live server buffer is killed via `kill-buffer'."
-  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc-hooks
   :type 'hook)
 
@@ -7222,7 +7222,7 @@ See also `format-spec'."
     erc-networks-shrink-ids-and-buffer-names
     erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
-  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc-hooks
   :type 'hook)
 
@@ -7232,7 +7232,7 @@ See also `format-spec'."
   "Hook run whenever a query buffer is killed.
 
 See also `kill-buffer'."
-  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
+  :package-version '(ERC . "5.5")
   :group 'erc-hooks
   :type 'hook)
 
@@ -7311,7 +7311,7 @@ Called with a string meant to represent a URL scheme, like
 \"ircs\", followed by any number of keyword arguments recognized
 by `erc' and `erc-tls'."
   :group 'erc
-  :package-version '(ERC . "5.4.1") ; FIXME increment on release
+  :package-version '(ERC . "5.5")
   :type '(choice (const nil) function))
 
 (defun erc--url-default-connect-function (scheme &rest plist)

@@ -540,15 +540,18 @@ declaration (@code{c-indent-defun} in CC mode,
 @kindex C-M-q @r{(C mode)}
 @findex c-indent-exp
 @findex prog-indent-sexp
-Reindent each line in the balanced expression that follows point.  In
-CC mode, this invokes @code{c-indent-exp}; in tree-sitter based
-@code{c-ts-mode} this invokes a more general @code{prog-indent-sexp}.
-A prefix argument inhibits warning messages about invalid syntax.
+Reindent each line in the balanced expression (@pxref{Expressions}),
+also known as ``sexp'', that follows point.  In CC mode, this invokes
+@code{c-indent-exp}; in tree-sitter based @code{c-ts-mode} this
+invokes a more general @code{prog-indent-sexp}.  A prefix argument
+inhibits warning messages about invalid syntax.
 
 @item @key{TAB}
 @findex c-indent-line-or-region
 Reindent the current line, active region, or block starting on this
-line (@code{c-indent-line-or-region}).
+line (@code{c-indent-line-or-region}).  With prefix argument, rigidly
+reindent the balanced expression which starts on the current line, if
+the current line needs reindentation.
 
 @vindex c-tab-always-indent
 If @code{c-tab-always-indent} is @code{t}, this command always reindents

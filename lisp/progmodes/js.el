@@ -3442,6 +3442,7 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "arguments") parent-bol js-indent-level)
        ((parent-is "array") parent-bol js-indent-level)
        ((parent-is "formal_parameters") parent-bol js-indent-level)
+       ((parent-is "template_string") no-indent) ; Don't indent the string contents.
        ((parent-is "template_substitution") parent-bol js-indent-level)
        ((parent-is "object_pattern") parent-bol js-indent-level)
        ((parent-is "object") parent-bol js-indent-level)

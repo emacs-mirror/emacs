@@ -359,8 +359,8 @@ This property can override the value of this variable."
   :group 'repeat
   :version "28.1")
 
-(defvar repeat-exit-function nil
-  "Function that exits the repeating sequence.")
+(defvar repeat--transient-exitfun nil
+  "Function returned by `set-transient-map'.")
 
 (defvar repeat-exit-timer nil
   "Timer activated after the last key typed in the repeating key sequence.")
@@ -517,9 +517,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                       'ignore))
 
         (setq repeat-in-progress t)
-        (repeat--exit)
+        (repeat--clear-prev)
         (let ((exitfun (set-transient-map map)))
-          (setq repeat-exit-function exitfun)
+          (setq repeat--transient-exitfun exitfun)
 
           (let* ((prop (repeat--command-property 'repeat-exit-timeout))
                  (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
@@ -538,17 +538,17 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 This function can be used to force exit of repetition while it's active."
   (interactive)
   (setq repeat-in-progress nil)
-  (repeat--exit)
+  (repeat--clear-prev)
   (funcall repeat-echo-function nil))
 
-(defun repeat--exit ()
+(defun repeat--clear-prev ()
   "Internal function to clean up previously set exit function and timer."
   (when repeat-exit-timer
     (cancel-timer repeat-exit-timer)
     (setq repeat-exit-timer nil))
-  (when repeat-exit-function
-    (funcall repeat-exit-function)
-    (setq repeat-exit-function nil)))
+  (when repeat--transient-exitfun
+    (funcall repeat--transient-exitfun)
+    (setq repeat--transient-exitfun nil)))
 
 (defun repeat-echo-message-string (keymap)
   "Return a string with the list of repeating keys in KEYMAP."

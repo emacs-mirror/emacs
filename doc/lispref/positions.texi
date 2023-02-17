@@ -1037,11 +1037,13 @@ positions.
 In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
 
-Note that, in rare circumstances, Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after a call to @code{narrow-to-region}.  This can happen when a Lisp
-program is called via low-level hooks, such as
-@code{jit-lock-functions}, @code{post-command-hook}, etc.
+However, when the narrowing has been set by @code{with-restriction} with
+a label argument (see below), @code{narrow-to-region} can be used only
+within the limits of that narrowing.  If @var{start} or @var{end} are
+outside these limits, the corresponding limit set by
+@code{with-restriction} is used instead.  To gain access to other
+portions of the buffer, use @code{without-restriction} with the same
+label.
 @end deffn
 
 @deffn Command narrow-to-page &optional move-count
@@ -1065,13 +1067,13 @@ It is equivalent to the following expression:
 @example
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
-@end deffn
 
-Note that, in rare circumstances, Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after a call to @code{widen}.  This can happen when a Lisp program is
-called via low-level hooks, such as @code{jit-lock-functions},
-@code{post-command-hook}, etc.
+However, when a narrowing has been set by @code{with-restriction} with a
+label argument (see below), the limits set by @code{with-restriction}
+are restored, instead of canceling the narrowing.  To gain access to
+other portions of the buffer, use @code{without-restriction} with the
+same label.
+@end deffn
 
 @defun buffer-narrowed-p
 This function returns non-@code{nil} if the buffer is narrowed, and
@@ -1085,6 +1087,9 @@ thus restoring the same state of narrowing (or absence thereof) formerly
 in effect.  The state of narrowing is restored even in the event of an
 abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 Therefore, this construct is a clean way to narrow a buffer temporarily.
+
+This construct also saves and restores the narrowings that were set by
+@code{with-restriction} with a label argument (see below).
 
 The value returned by @code{save-restriction} is that returned by the
 last form in @var{body}, or @code{nil} if no body forms were given.
@@ -1134,4 +1139,65 @@ This is the contents of foo@point{}
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defspec
+
+@defspec with-restriction start end [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, sets the accessible portion to start at @var{start} and
+end at @var{end}, evaluates the @var{body} forms, and restores the
+saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (narrow-to-region start end)
+  body)
+@end example
+
+@cindex labeled narrowing
+When the optional argument @var{label}, a symbol, is present, the
+narrowing is @dfn{labeled}.  A labeled narrowing differs from a
+non-labeled one in several ways:
+
+@itemize @bullet
+@item
+During the evaluation of the @var{body} form, @code{narrow-to-region}
+and @code{widen} can be used only within the @var{start} and @var{end}
+limits.
+
+@item
+To lift the restriction introduced by @code{with-restriction} and gain
+access to other portions of the buffer, use @code{without-restriction}
+with the same @var{label} argument.  (Another way to gain access to
+other portions of the buffer is to use an indirect buffer
+(@pxref{Indirect Buffers}).)
+
+@item
+Labeled narrowings can be nested.
+
+@item
+Labeled narrowings can only be used in Lisp programs: they are never
+visible on display, and never interfere with narrowings set by the
+user.
+@end itemize
+
+If you use @code{with-restriction} with the optional @var{label}
+argument, we recommend documenting the @var{label} in the doc strings
+of the functions which use it, so that other Lisp programs your code
+calls could lift the labeled narrowing if and when it needs.
+@end defspec
+
+@defspec without-restriction [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, widens the buffer, evaluates the @var{body} forms, and
+restores the saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (widen)
+  body)
+@end example
+
+When the optional argument @var{label} is present, the narrowing set
+by @code{with-restriction} with the same @var{label} argument is
+lifted.
 @end defspec

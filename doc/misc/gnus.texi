@@ -3853,15 +3853,6 @@ The dribble file will be saved, though (@pxref{Auto Save}).
 @code{gnus-after-exiting-gnus-hook} is called as the final item when
 exiting Gnus.
 
-Note:
-
-@quotation
-Miss Lisa Cannifax, while sitting in English class, felt her feet go
-numbly heavy and herself fall into a hazy trance as the boy sitting
-behind her drew repeated lines with his pencil across the back of her
-plastic chair.
-@end quotation
-
 
 @node Group Topics
 @section Group Topics

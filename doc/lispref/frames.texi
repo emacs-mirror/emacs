@@ -1474,19 +1474,24 @@ in this frame.  Its value is @code{color}, @code{grayscale} or
 
 @vindex title@r{, a frame parameter}
 @item title
-If a frame has a non-@code{nil} title, it appears in the window
+If a frame has a non-@code{nil} title, that title appears in the window
 system's title bar at the top of the frame, and also in the mode line
 of windows in that frame if @code{mode-line-frame-identification} uses
 @samp{%F} (@pxref{%-Constructs}).  This is normally the case when
 Emacs is not using a window system, and can only display one frame at
-a time.  @xref{Frame Titles}.
+a time.  When Emacs is using a window system, this parameter, if
+non-@code{nil}, overrides the title determined by the @code{name}
+parameter and the implicit title calculated according to
+@code{frame-title-format}.  It also overrides the title determined by
+@code{icon-title-format} for iconified frames.  @xref{Frame Titles}.
 
 @vindex name@r{, a frame parameter}
 @item name
-The name of the frame.  The frame name serves as a default for the frame
-title, if the @code{title} parameter is unspecified or @code{nil}.  If
-you don't specify a name, Emacs sets the frame name automatically
-(@pxref{Frame Titles}).
+The name of the frame.  If you don't specify a name via this
+parameter, Emacs sets the frame name automatically, as specified by
+@code{frame-title-format} and @code{icon-title-format}, and that is
+the frame's title that will appear on display when Emacs uses a window
+system (unless the @code{title} parameter overrides it).
 
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
@@ -2630,17 +2635,26 @@ frame name automatically based on a template stored in the variable
 frame is redisplayed.
 
 @defvar frame-title-format
-This variable specifies how to compute a name for a frame when you have
-not explicitly specified one.  The variable's value is actually a mode
+This variable specifies how to compute a name for a frame when you
+have not explicitly specified one (via the frame's parameters;
+@pxref{Basic Parameters}).  The variable's value is actually a mode
 line construct, just like @code{mode-line-format}, except that the
-@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.  @xref{Mode Line
-Data}.
+@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.
+@xref{Mode Line Data}.
 @end defvar
 
 @defvar icon-title-format
-This variable specifies how to compute the name for an iconified frame,
-when you have not explicitly specified the frame title.  This title
-appears in the icon itself.
+This variable specifies how to compute the name for an iconified frame
+when you have not explicitly specified the frame's name via the
+frame's parameters.  The resulting title appears in the frame's icon
+itself.  If the value is a string, is should be a mode line construct
+like that of @code{frame-title-format}.  The value can also be
+@code{t}, which means to use @code{frame-title-format} instead; this
+avoids problems with some window managers and desktop environments,
+where a change in a frame's title (when a frame is iconified) is
+interpreted as a request to raise the frame and/or give it input
+focus.  The default is a string identical to the default value of
+@code{frame-title-format}.
 @end defvar
 
 @defvar multiple-frames

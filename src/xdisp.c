@@ -3536,11 +3536,11 @@ get_closer_narrowed_begv (struct window *w, ptrdiff_t pos)
 ptrdiff_t
 get_locked_narrowing_begv (ptrdiff_t pos)
 {
-  if (long_line_locked_narrowing_region_size <= 0)
+  if (long_line_optimizations_region_size <= 0)
     return BEGV;
-  int len = long_line_locked_narrowing_region_size / 2;
+  int len = long_line_optimizations_region_size / 2;
   int begv = max (pos - len, BEGV);
-  int limit = long_line_locked_narrowing_bol_search_limit;
+  int limit = long_line_optimizations_bol_search_limit;
   while (limit > 0)
     {
       if (begv == BEGV || FETCH_BYTE (CHAR_TO_BYTE (begv) - 1) == '\n')
@@ -3554,9 +3554,9 @@ get_locked_narrowing_begv (ptrdiff_t pos)
 ptrdiff_t
 get_locked_narrowing_zv (ptrdiff_t pos)
 {
-  if (long_line_locked_narrowing_region_size <= 0)
+  if (long_line_optimizations_region_size <= 0)
     return ZV;
-  int len = long_line_locked_narrowing_region_size / 2;
+  int len = long_line_optimizations_region_size / 2;
   return min (pos + len, ZV);
 }
 
@@ -4394,7 +4394,7 @@ handle_fontified_prop (struct it *it)
       eassert (it->end_charpos == ZV);
 
       if (current_buffer->long_line_optimizations_p
-	  && long_line_locked_narrowing_region_size > 0)
+	  && long_line_optimizations_region_size > 0)
 	{
 	  ptrdiff_t begv = it->locked_narrowing_begv;
 	  ptrdiff_t zv = it->locked_narrowing_zv;
@@ -4406,7 +4406,7 @@ handle_fontified_prop (struct it *it)
 	    }
 	  if (begv != BEG || zv != Z)
 	    narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
-				     Qfontification_functions);
+				     Qlong_line_optimizations_in_fontification_functions);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
@@ -13424,7 +13424,8 @@ gui_consider_frame_title (Lisp_Object frame)
 
       Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->contents));
-      fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
+      fmt = (FRAME_ICONIFIED_P (f) && !EQ (Vicon_title_format, Qt)
+	     ? Vicon_title_format : Vframe_title_format);
 
       mode_line_target = MODE_LINE_TITLE;
       title_start = MODE_LINE_NOPROP_LEN (0);
@@ -36266,6 +36267,8 @@ be let-bound around code that needs to disable messages temporarily. */);
   DEFSYM (QCfile, ":file");
   DEFSYM (Qfontified, "fontified");
   DEFSYM (Qfontification_functions, "fontification-functions");
+  DEFSYM (Qlong_line_optimizations_in_fontification_functions,
+	  "long-line-optimizations-in-fontification-functions");
 
   /* Name of the symbol which disables Lisp evaluation in 'display'
      properties.  This is used by enriched.el.  */
@@ -36606,9 +36609,11 @@ which no explicit name has been set (see `modify-frame-parameters').  */);
   DEFVAR_LISP ("icon-title-format", Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
 \(Assuming the window manager supports this feature.)
-This variable has the same structure as `mode-line-format' (which see),
-and is used only on frames for which no explicit name has been set
-\(see `modify-frame-parameters').  */);
+If the value is a string, it should have the same structure
+as `mode-line-format' (which see), and is used only on frames
+for which no explicit name has been set \(see `modify-frame-parameters').
+If the value is t, that means use `frame-title-format' for
+iconified frames.  */);
   /* Do not nest calls to pure_list.  This works around a bug in
      Oracle Developer Studio 12.6.  */
   Lisp_Object icon_title_name_format
@@ -36775,12 +36780,11 @@ Each function is called with one argument POS.  Functions must
 fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified' with a non-nil value.
 
-Note that, when the buffer contains one or more lines whose length is
-above `long-line-threshold', these functions are called with the
-buffer narrowed to a small portion around POS (whose size is specified
-by `long-line-locked-narrowing-region-size'), and the narrowing is
-locked (see `narrowing-lock'), so that these functions cannot use
-`widen' to gain access to other portions of buffer text.  */);
+Note that, when `long-line-optimizations-p' is non-nil in the buffer,
+these functions are called as if they were in a `with-restriction' form,
+with a `long-line-optimizations-in-fontification-functions' label and
+with the buffer narrowed to a portion around POS whose size is
+specified by `long-line-optimizations-region-size'.  */);
   Vfontification_functions = Qnil;
   Fmake_variable_buffer_local (Qfontification_functions);
 

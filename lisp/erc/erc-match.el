@@ -244,7 +244,7 @@ server and other miscellaneous functions."
   "Whether to `regexp-quote' when adding to a match list interactively.
 When the value is a boolean, the opposite behavior will be made
 available via universal argument."
-  :package-version '(ERC . "5.4.1") ; FIXME increment on next release
+  :package-version '(ERC . "5.5")
   :type '(choice (const ask)
                  (const t)
                  (const nil)))

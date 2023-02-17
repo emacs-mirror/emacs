@@ -8539,4 +8539,110 @@ Finally, kill the buffer and its temporary file."
       (if f2 (delete-file f2))
       )))
 
+(ert-deftest test-labeled-narrowing ()
+  "Test `with-restriction' and `without-restriction'."
+  (with-current-buffer (generate-new-buffer " foo" t)
+    (insert (make-string 5000 ?a))
+    (should (= (point-min) 1))
+    (should (= (point-max) 5001))
+    (with-restriction
+     100 500 :label 'foo
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 1 5000)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 50 150)
+     (should (= (point-min) 100))
+     (should (= (point-max) 150))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (narrow-to-region 400 1000)
+     (should (= (point-min) 400))
+     (should (= (point-max) 500))
+     (without-restriction
+      :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 500)))
+     (without-restriction
+      :label 'foo
+      (should (= (point-min) 1))
+      (should (= (point-max) 5001)))
+     (should (= (point-min) 400))
+     (should (= (point-max) 500))
+     (widen)
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (with-restriction
+      50 250 :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (widen)
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (without-restriction
+       :label 'bar
+       (should (= (point-min) 100))
+       (should (= (point-max) 500))
+       (without-restriction
+        :label 'foo
+        (should (= (point-min) 1))
+        (should (= (point-max) 5001)))
+       (should (= (point-min) 100))
+       (should (= (point-max) 500)))
+      (should (= (point-min) 100))
+      (should (= (point-max) 250)))
+     (should (= (point-min) 100))
+     (should (= (point-max) 500))
+     (with-restriction
+      50 250 :label 'bar
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))
+      (with-restriction
+       150 500 :label 'baz
+       (should (= (point-min) 150))
+       (should (= (point-max) 250))
+       (without-restriction
+        :label 'bar
+        (should (= (point-min) 150))
+        (should (= (point-max) 250)))
+       (without-restriction
+        :label 'foo
+        (should (= (point-min) 150))
+        (should (= (point-max) 250)))
+       (without-restriction
+        :label 'baz
+        (should (= (point-min) 100))
+        (should (= (point-max) 250))
+        (without-restriction
+         :label 'foo
+         (should (= (point-min) 100))
+         (should (= (point-max) 250)))
+        (without-restriction
+         :label 'bar
+         (should (= (point-min) 100))
+         (should (= (point-max) 500))
+         (without-restriction
+          :label 'foobar
+          (should (= (point-min) 100))
+          (should (= (point-max) 500)))
+         (without-restriction
+          :label 'foo
+          (should (= (point-min) 1))
+          (should (= (point-max) 5001)))
+         (should (= (point-min) 100))
+         (should (= (point-max) 500)))
+        (should (= (point-min) 100))
+        (should (= (point-max) 250)))
+       (should (= (point-min) 150))
+       (should (= (point-max) 250)))
+      (should (= (point-min) 100))
+      (should (= (point-max) 250))))
+    (should (= (point-min) 1))
+    (should (= (point-max) 5001))))
+
 ;;; buffer-tests.el ends here
