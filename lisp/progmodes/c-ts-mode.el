@@ -87,6 +87,25 @@
   :safe 'integerp
   :group 'c)
 
+(defun c-ts-mode-toggle-comment-style ()
+  "Toggle the comment style between block and line comments.
+Optional numeric ARG, if supplied, switches to block comment
+style when positive, to line comment style when negative, and
+just toggles it when zero or left out."
+  (interactive)
+  (pcase-let ((`(,starter . ,ender)
+               (if (string= comment-start "// ")
+                   (cons "/* " " */")
+                 (cons "// " ""))))
+    (setq-local comment-start starter
+                comment-end ender))
+  (c-ts-mode-set-modeline))
+
+(defun c-ts-mode-set-modeline ()
+  (setq mode-name
+        (concat (if (eq major-mode 'c-ts-mode) "C" "C++") comment-start))
+  (force-mode-line-update))
+
 (defun c-ts-mode--indent-style-setter (sym val)
   "Custom setter for `c-ts-mode-set-style'.
 
@@ -740,7 +759,8 @@ the semicolon.  This function skips the semicolon."
   :parent prog-mode-map
   "C-c C-q" #'c-ts-mode-indent-defun
   "C-c ." #'c-ts-mode-set-style
-  "C-c C-c" #'comment-region)
+  "C-c C-c" #'comment-region
+  "C-c C-k" #'c-ts-mode-toggle-comment-style)
 
 ;;;###autoload
 (define-derived-mode c-ts-base-mode prog-mode "C"
@@ -824,6 +844,7 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your configuration."
   :group 'c
+  :after-hook (c-ts-mode-set-modeline)
 
   (when (treesit-ready-p 'c)
     (treesit-parser-create 'c)
@@ -856,6 +877,7 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your configuration."
   :group 'c++
+  :after-hook (c-ts-mode-set-modeline)
 
   (when (treesit-ready-p 'cpp)
     (treesit-parser-create 'cpp)
