@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
-;; Version: 0.9.6
+;; Version: 0.9.7
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -505,7 +505,8 @@ project backend implementation of `project-external-roots'.")
                 "_svn"
               ".svn"))
     (DARCS . "_darcs")
-    (Fossil . ".fslckout"))
+    (Fossil . ".fslckout")
+    (Got . ".got"))
   "Associative list assigning root markers to VC backend symbols.
 
 See `project-vc-extra-root-markers' for the marker value format.")
