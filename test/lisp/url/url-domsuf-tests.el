@@ -24,6 +24,10 @@
 (require 'url-domsuf)
 (require 'ert)
 
+(ert-deftest url-domsuf--public-suffix-file ()
+  ;; We should always have a file, since it ships with Emacs.
+  (should (file-readable-p (url-domsuf--public-suffix-file))))
+
 (defun url-domsuf-tests--run ()
   (should-not (url-domsuf-cookie-allowed-p "com"))
   (should (url-domsuf-cookie-allowed-p "foo.bar.bd"))
