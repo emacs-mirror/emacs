@@ -3251,8 +3251,10 @@ for which a "built-in" mode would be turned on.  For example:
     (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
 
 If you try these modes and don't like them, you can go back to the
-"built-in" modes by restarting Emacs.  But please tell us why you
-didn't like the tree-sitter based modes, so that we could try
+"built-in" modes by restarting Emacs.  (If you use desktop.el to save
+and restore Emacs sessions, make sure no buffer under these modes is
+recorded in the desktop file, before restarting.)  But please tell us
+why you didn't like the tree-sitter based modes, so that we could try
 improving them.
 
 Each major mode based on tree-sitter needs a language grammar library,
