@@ -1202,6 +1202,13 @@ the most recently deleted frame.  With a numerical prefix argument
 between 1 and 16, where 1 is the most recently deleted frame, undelete
 the corresponding deleted frame.
 
++++
+*** The variable 'icon-title-format' can now have the value t.
+That value means to use 'frame-title-format' for iconified frames.
+This is useful with some window managers and desktop environments
+which treat changes in frame's title as requests to raise the frame
+and/or give it input focus.
+
 ** Tab Bars and Tab Lines
 
 ---
