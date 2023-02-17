@@ -494,6 +494,22 @@ files related to the current buffer.
 The directory names should be absolute.  Used in the VC-aware
 project backend implementation of `project-external-roots'.")
 
+(defvar project-vc-backend-markers-alist
+  `((Git . ".git")
+    (Hg . ".hg")
+    (Bzr . ".bzr")
+    ;; See the comment above `vc-svn-admin-directory' for why we're
+    ;; duplicating the definition.
+    (SVN . ,(if (and (memq system-type '(cygwin windows-nt ms-dos))
+                     (getenv "SVN_ASP_DOT_NET_HACK"))
+                "_svn"
+              ".svn"))
+    (DARCS . "_darcs")
+    (Fossil . ".fslckout"))
+  "Associative list assigning root markers to VC backend symbols.
+
+See `project-vc-extra-root-markers' for the marker value format.")
+
 (defun project-try-vc (dir)
   (defvar vc-svn-admin-directory)
   (require 'vc-svn)
@@ -501,17 +517,11 @@ project backend implementation of `project-external-roots'.")
   ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
   ;; changes.
   (or (vc-file-getprop dir 'project-vc)
-      (let* ((backend-markers-alist `((Git . ".git")
-                                      (Hg . ".hg")
-                                      (Bzr . ".bzr")
-                                      (SVN . ,vc-svn-admin-directory)
-                                      (DARCS . "_darcs")
-                                      (Fossil . ".fslckout")))
-             (backend-markers
+      (let* ((backend-markers
               (delete
                nil
                (mapcar
-                (lambda (b) (assoc-default b backend-markers-alist))
+                (lambda (b) (assoc-default b project-vc-backend-markers-alist))
                 vc-handled-backends)))
              (marker-re
               (concat
@@ -537,7 +547,7 @@ project backend implementation of `project-external-roots'.")
              (backend
               (cl-find-if
                (lambda (b)
-                 (member (assoc-default b backend-markers-alist)
+                 (member (assoc-default b project-vc-backend-markers-alist)
                          last-matches))
                vc-handled-backends))
              project)
