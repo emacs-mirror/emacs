@@ -1188,8 +1188,12 @@ Used by `calc-user-invocation'.")
   "Start the Calculator."
   (let ((key (calc-read-key-sequence
 	      (if calc-dispatch-help
-		  "Calc options: Calc, Keypad, Quick, Embed; eXit; Info, Tutorial; Grab; ?=more"
-		(format "%s  (Type ? for a list of Calc options)"
+		  (substitute-command-keys
+                   (concat
+                    "Calc options: \\`c'alc, \\`k'eypad, \\`q'uick, \\`e'mbed; "
+                    "e\\`x'it; \\`i'nfo, \\`t'utorial; \\`g'rab; \\`?'=more"))
+		(format (substitute-command-keys
+                         "%s  (Type \\`?' for a list of Calc options)")
 			(key-description (this-command-keys))))
 	      calc-dispatch-map)))
     (setq key (lookup-key calc-dispatch-map key))
