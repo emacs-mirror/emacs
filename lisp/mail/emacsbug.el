@@ -408,6 +408,12 @@ copy text to your preferred mail program.\n"
                   "', version "
 		  (mapconcat #'number-to-string (x-server-version) ".") "\n")
 	(error t)))
+  (when (and (boundp 'android-build-fingerprint)
+             (symbol-value 'android-build-fingerprint))
+    ;; This is used on Android.
+    (insert "Android version and manufacturer: "
+            (symbol-value 'android-build-fingerprint)
+            "\n"))
   (let ((os (ignore-errors (report-emacs-bug--os-description))))
     (if (stringp os)
         (insert "System Description: " os "\n\n")))

@@ -192,12 +192,18 @@ ifneq ($(NDK_BUILD_SHARED),)
 	  install_temp/lib/$(ANDROID_ABI)
 endif
 
-install_temp/assets/directory-tree: $(libsrc)/asset-directory-tool install_temp
+install_temp/assets/directory-tree: $(libsrc)/asset-directory-tool \
+  install_temp install_temp/assets/version
 	$(AM_V_GEN) $(libsrc)/asset-directory-tool install_temp/assets \
 	  install_temp/assets/directory-tree
 
+install_temp/assets/version: install_temp
+	$(AM_V_GEN) { (git rev-parse HEAD || echo "Unknown")		\
+			&& (git rev-parse --abbrev-ref HEAD 		\
+			    || echo "Unknown") } 2> /dev/null > $@
+
 emacs.apk-in: install_temp install_temp/assets/directory-tree \
-	AndroidManifest.xml
+  install_temp/assets/version AndroidManifest.xml
 # Package everything.  Specifying the assets on this command line is
 # necessary for AAssetManager_getNextFileName to work on old versions
 # of Android.  Make sure not to generate R.java, as it's already been

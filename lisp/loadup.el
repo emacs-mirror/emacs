@@ -439,6 +439,13 @@ lost after dumping")))
       (defconst emacs-build-number
 	(if versions (1+ (apply #'max versions)) 1))))
 
+;; Just set the repository branch during initial dumping on Android.
+(if (and (eq system-type 'android)
+         (not (pdumper-stats)))
+    (setq emacs-repository-version
+          (ignore-errors (emacs-repository-get-version))
+          emacs-repository-branch
+          (ignore-errors (emacs-repository-get-branch))))
 
 (message "Finding pointers to doc strings...")
 (if (and (or (and (fboundp 'dump-emacs)

@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "textconv.h"
 #include "coding.h"
+#include "pdumper.h"
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -5413,6 +5414,84 @@ android_term_init (void)
 
 
 
+/* Set Vandroid_build_fingerprint to a reasonable value.  */
+
+static void
+android_set_build_fingerprint (void)
+{
+#ifdef ANDROID_STUBIFY
+  Vandroid_build_fingerprint = Qnil;
+#else
+  jclass class;
+  jfieldID field;
+  jobject string;
+  const char *data;
+
+  /* Set class to NULL so freeing an uninitialized local ref can be
+     avoided.  */
+  class = NULL;
+
+  /* Likewise for string.  */
+  string = NULL;
+
+  if (!android_init_gui)
+    goto fail;
+  else
+    {
+      /* Obtain Build.FINGERPRINT.  Clear exceptions after each query;
+	 JNI can't find Build.FINGERPRIN on some systems.  */
+
+      class = (*android_java_env)->FindClass (android_java_env,
+					      "android/os/Build");
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!class)
+	goto fail;
+
+      field = (*android_java_env)->GetStaticFieldID (android_java_env,
+						     class,
+						     "FINGERPRINT",
+						     "Ljava/lang/String;");
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!field)
+	goto fail;
+
+      string
+	= (*android_java_env)->GetStaticObjectField (android_java_env,
+						     class, field);
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!string)
+	goto fail;
+
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!data)
+	goto fail;
+
+      Vandroid_build_fingerprint = build_string_from_utf8 (data);
+      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						  string, data);
+    }
+
+  if (string)
+    ANDROID_DELETE_LOCAL_REF (string);
+
+  ANDROID_DELETE_LOCAL_REF (class);
+
+  return;
+
+ fail:
+  if (class)
+    ANDROID_DELETE_LOCAL_REF (class);
+
+  Vandroid_build_fingerprint = Qnil;
+#endif
+}
+
 void
 syms_of_androidterm (void)
 {
@@ -5441,6 +5520,15 @@ If set to a non-float value, there will be no wait at all.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = false;
+
+  DEFVAR_LISP ("android-build-fingerprint", Vandroid_build_fingerprint,
+    doc: /* String identifying the device's OS version.
+This is a string that uniquely identifies the version of Android
+Emacs is running on.  */);
+
+  /* Avoid dumping Vandroid_build_fingerprint.  */
+  pdumper_do_now_and_after_load (android_set_build_fingerprint);
+
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 }
 
