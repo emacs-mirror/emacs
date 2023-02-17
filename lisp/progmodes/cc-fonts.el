@@ -259,14 +259,14 @@
 
   (defmacro c-fontify-types-and-refs (varlist &rest body)
     (declare (indent 1) (debug let*))
-    ;; Like `let', but additionally activates `c-record-type-identifiers'
+    ;; Like `let*', but additionally activates `c-record-type-identifiers'
     ;; and `c-record-ref-identifiers', and fontifies the recorded ranges
     ;; accordingly on exit.
     ;;
     ;; This function does hidden buffer changes.
-    `(let ((c-record-type-identifiers t)
-	   c-record-ref-identifiers
-	   ,@varlist)
+    `(let* ((c-record-type-identifiers t)
+	    c-record-ref-identifiers
+	    ,@varlist)
        (prog1 (progn ,@body)
 	 (c-fontify-recorded-types-and-refs))))
 
@@ -1219,6 +1219,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;;           inside a function declaration arglist).
   ;; '<>       In an angle bracket arglist.
   ;; 'arglist  Some other type of arglist.
+  ;; 'generic  In a C11 _Generic construct.
   ;; 'top      Some other context and point is at the top-level (either
   ;;           outside any braces or directly inside a class or namespace,
   ;;           etc.)
@@ -1345,6 +1346,15 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     (c-back-over-member-initializers)))
       (c-put-char-property (1- match-pos) 'c-type 'c-not-decl)
       (cons 'not-decl nil))
+     ;; In a C11 _Generic construct.
+     ((and c-generic-key
+	   (eq (char-before match-pos) ?,)
+	   (save-excursion
+	     (and (c-go-up-list-backward match-pos
+					 (max (- (point) 2000) (point-min)))
+		  (zerop (c-backward-token-2))
+		  (looking-at c-generic-key))))
+      (cons 'generic nil))
      ;; At start of a declaration inside a declaration paren.
      ((save-excursion
 	(goto-char match-pos)
@@ -1616,13 +1626,16 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		   (c-forward-syntactic-ws))
 
 		 ;; Now analyze the construct.
-		 (if (eq context 'not-decl)
-		     (progn
-		       (setq decl-or-cast nil)
-		       (if (c-syntactic-re-search-forward
-			    "," (min limit (point-max)) 'at-limit t)
-			   (c-put-char-property (1- (point)) 'c-type 'c-not-decl))
-		       nil)
+		 (cond
+		  ((eq context 'not-decl)
+		   (setq decl-or-cast nil)
+		   (if (c-syntactic-re-search-forward
+			"," (min limit (point-max)) 'at-limit t)
+		       (c-put-char-property (1- (point)) 'c-type 'c-not-decl))
+		   nil)
+		  ((eq context 'generic)
+		   (c-font-lock-c11-generic-clause))
+		  (t
 		   (setq decl-or-cast
 			 (c-forward-decl-or-cast-1
 			  match-pos context last-cast-end inside-macro))
@@ -1683,7 +1696,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 					      context
 					      (or toplev (nth 4 decl-or-cast))))
 
-		    (t t))))
+		    (t t)))))
 
 	     ;; It was a false alarm.  Check if we're in a label (or other
 	     ;; construct with `:' except bitfield) instead.
@@ -1712,6 +1725,28 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       t))))
 
 	nil))))
+
+(defun c-font-lock-c11-generic-clause ()
+  ;; Fontify a type inside the C11 _Generic clause.  Point will be at the
+  ;; type and will be left at the next comma of the clause (if any) or the
+  ;; closing parenthesis, if any, or at the end of the type, otherwise.
+  ;; The return value is always nil.
+  (c-fontify-types-and-refs
+      ((here (point))
+       (type-type (c-forward-type t))
+       (c-promote-possible-types (if (eq type-type 'maybe) 'just-one t))
+       (pos (point)) pos1)
+    (when (and type-type (eq (char-after) ?:))
+      (goto-char here)
+      (c-forward-type t))		; Fontify the type.
+    (cond
+     ((c-syntactic-re-search-forward "," nil t t t)
+      (backward-char))
+     ((and (setq pos1 (c-up-list-forward))
+	   (eq (char-before pos1) ?\)))
+      (goto-char (1- pos1)))
+     (t (goto-char pos))))
+  nil)
 
 (defun c-font-lock-enum-body (limit)
   ;; Fontify the identifiers of each enum we find by searching forward.

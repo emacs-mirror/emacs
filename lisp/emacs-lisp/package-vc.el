@@ -440,7 +440,7 @@ version of that package."
                    (package-desc-version a)))
                 (duplicate-p (a b)
                   "Are A and B the same package?"
-                  (equal a (car b)))
+                  (eq (package-desc-name a) (package-desc-name b)))
                 (depends-on-p (target package)
                   "Does PACKAGE depend on TARGET?"
                   (or (eq target package)
@@ -457,7 +457,7 @@ version of that package."
                         (depends-on-p desc-a desc-b)))))
       (mapc #'search requirements)
       (cl-callf sort to-install #'version-order)
-      (cl-callf seq-uniq to-install)
+      (cl-callf seq-uniq to-install #'duplicate-p)
       (cl-callf sort to-install #'dependent-order))
     (mapc #'package-install-from-archive to-install)
     missing))
@@ -602,6 +602,13 @@ attribute in PKG-SPEC."
           (vc-retrieve-tag dir release-rev)
         (message "No release revision was found, continuing...")))))
 
+(defvar package-vc-non-code-file-names
+  '(".dir-locals.el" ".dir-locals-2.el")
+  "List of file names that do not contain Emacs Lisp code.
+This list is used by `package-vc--unpack' to better check if the
+user is fetching code from a repository that does not contain any
+Emacs Lisp files.")
+
 (defun package-vc--unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
 PKG-SPEC is a package specification, a property list describing
@@ -623,6 +630,14 @@ checkout.  This overrides the `:branch' attribute in PKG-SPEC."
     (when (directory-empty-p pkg-dir)
       (delete-directory pkg-dir)
       (error "Empty checkout for %s" name))
+    (unless (seq-remove
+             (lambda (file)
+               (member (file-name-nondirectory file) package-vc-non-code-file-names))
+             (directory-files-recursively pkg-dir "\\.el\\'" nil))
+      (when (yes-or-no-p (format "No Emacs Lisp files found when fetching \"%s\", \
+abort installation?" name))
+        (delete-directory pkg-dir t)
+        (user-error "Installation aborted")))
 
     ;; When nothing is specified about a `lisp-dir', then should
     ;; heuristically check if there is a sub-directory with lisp

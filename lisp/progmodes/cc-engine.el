@@ -14911,7 +14911,49 @@ comment at the start of cc-engine.el for more info."
 	  (c-add-syntax 'topmost-intro-cont (c-point 'boi)))
 	 ))
 
-       ;; (CASE 6 has been removed.)
+       ;; ((Old) CASE 6 has been removed.)
+       ;; CASE 6: line is within a C11 _Generic expression.
+       ((and c-generic-key
+	     (eq (char-after containing-sexp) ?\()
+	     (progn (setq tmp-pos (c-safe-scan-lists
+				   containing-sexp 1 0
+				   (min (+ (point) 2000) (point-max))))
+		    t)
+	     (save-excursion
+	       (and
+		(progn (goto-char containing-sexp)
+		       (zerop (c-backward-token-2)))
+		(looking-at c-generic-key)
+		(progn (goto-char (1+ containing-sexp))
+		       (c-syntactic-re-search-forward
+			"," indent-point 'bound t t))
+		(setq placeholder (point)))))
+	(let ((res (c-syntactic-re-search-forward
+		    "[,:)]"
+		    (or tmp-pos (min (+ (point) 2000) (point-max)))
+		    'bound t t)))
+	  (cond
+	   ((and res
+		 (eq (char-before) ?\))
+		 (save-excursion
+		   (backward-char)
+		   (c-backward-syntactic-ws indent-point)
+		   (eq (point) indent-point)))
+	    (c-add-stmt-syntax
+	     'arglist-close (list containing-sexp) t
+	     (c-most-enclosing-brace paren-state indent-point) paren-state))
+	   ((or (not res)
+		(eq (char-before) ?\)))
+	    (backward-char)
+	    (c-syntactic-skip-backward "^,:"  containing-sexp t)
+	    (c-add-syntax (if (eq (char-before) ?:)
+			      'statement-case-intro
+			    'case-label)
+			  (1+ containing-sexp)))
+	   (t (c-add-syntax (if (eq (char-before) ?:)
+	    			'case-label
+			      'statement-case-intro)
+			    (1+ containing-sexp))))))
 
        ;; CASE 7: line is an expression, not a statement.  Most
        ;; likely we are either in a function prototype or a function

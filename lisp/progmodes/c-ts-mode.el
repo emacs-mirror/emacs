@@ -219,6 +219,7 @@ delimiters < and >'s."
 MODE is either `c' or `cpp'."
   (let ((common
          `(((parent-is "translation_unit") point-min 0)
+           ((query "(ERROR (ERROR)) @indent") point-min 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
            ((node-is "else") parent-bol 0)
@@ -816,7 +817,7 @@ the semicolon.  This function skips the semicolon."
 
   ;; Electric
   (setq-local electric-indent-chars
-              (append "{}():;," electric-indent-chars))
+              (append "{}():;,#" electric-indent-chars))
 
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
