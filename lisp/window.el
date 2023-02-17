@@ -2522,6 +2522,7 @@ selected frame and no others.
 `display-buffer-avoid-small-windows', if non-nil, is also taken into
 consideration.  Windows whose height is smaller that the value of that
 variable will be avoided if larger windows are available."
+  (declare (side-effect-free error-free))
   (let ((windows (window-list-1 nil 'nomini all-frames))
         best-window best-time second-best-window second-best-time time)
     (dolist (window windows)
@@ -2603,6 +2604,7 @@ have special meanings:
 
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
+  (declare (side-effect-free error-free))
   (let ((best-size 0)
 	best-window size)
     (dolist (window (window-list-1 nil 'nomini all-frames))
@@ -3801,6 +3803,7 @@ frame, rounded if necessary.  PIXELWISE non-nil means to return
 the coordinates in pixels where the values for RIGHT and BOTTOM
 are one more than the actual value of these edges.  Note that if
 ABSOLUTE is non-nil, PIXELWISE is implicitly non-nil too."
+  (declare (side-effect-free t))
   (let* ((window (window-normalize-window window body))
 	 (frame (window-frame window))
 	 (border-width (frame-internal-border-width frame))
@@ -3856,6 +3859,7 @@ ABSOLUTE is non-nil, PIXELWISE is implicitly non-nil too."
   "Return a list of the edge coordinates of WINDOW's body.
 The return value is that of `window-edges' called with argument
 BODY non-nil."
+  (declare (side-effect-free t))
   (window-edges window t))
 (defalias 'window-inside-edges 'window-body-edges)
 
@@ -3863,12 +3867,14 @@ BODY non-nil."
   "Return a list of the edge pixel coordinates of WINDOW.
 The return value is that of `window-edges' called with argument
 PIXELWISE non-nil."
+  (declare (side-effect-free t))
   (window-edges window nil nil t))
 
 (defun window-body-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW's body.
 The return value is that of `window-edges' called with arguments
 BODY and PIXELWISE non-nil."
+  (declare (side-effect-free t))
   (window-edges window t nil t))
 (defalias 'window-inside-pixel-edges 'window-body-pixel-edges)
 
@@ -3876,12 +3882,14 @@ BODY and PIXELWISE non-nil."
   "Return a list of the edge pixel coordinates of WINDOW.
 The return value is that of `window-edges' called with argument
 ABSOLUTE non-nil."
+  (declare (side-effect-free t))
   (window-edges window nil t t))
 
 (defun window-absolute-body-pixel-edges (&optional window)
   "Return a list of the edge pixel coordinates of WINDOW's text area.
 The return value is that of `window-edges' called with arguments
 BODY and ABSOLUTE non-nil."
+  (declare (side-effect-free t))
   (window-edges window t t t))
 (defalias 'window-inside-absolute-pixel-edges 'window-absolute-body-pixel-edges)
 
@@ -4091,6 +4099,7 @@ with a special meaning are:
 
 Anything else means consider all windows on the selected frame
 and no others."
+  (declare (side-effect-free error-free))
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
