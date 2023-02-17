@@ -770,7 +770,8 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
       treesit_check_parser (lisp_parser);
       TSTree *tree = XTS_PARSER (lisp_parser)->tree;
       /* See comment (ref:visible-beg-null) if you wonder why we don't
-      update visible_beg/end when tree is NULL.  */
+	 update visible_beg/end when tree is NULL.  */
+
       if (tree != NULL)
 	{
 	  eassert (start_byte <= old_end_byte);
@@ -794,8 +795,14 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  ptrdiff_t old_end_offset = (min (visible_end,
 					   max (visible_beg, old_end_byte))
 				      - visible_beg);
-	  ptrdiff_t new_end_offset = (min (visible_end,
-					   max (visible_beg, new_end_byte))
+	  /* We don't clip new_end_offset under visible_end, because
+             inserting in narrowed region always extends the visible
+             region.  If we clip new_end_offset here, and re-add the
+             clipped "tail" in treesit_sync_visible_region later,
+             while it is technically equivalent, tree-sitter's
+             incremental parsing algorithm doesn't seem to like it
+             (bug#61369).  */
+	  ptrdiff_t new_end_offset = (max (visible_beg, new_end_byte)
 				      - visible_beg);
 	  eassert (start_offset <= old_end_offset);
 	  eassert (start_offset <= new_end_offset);
@@ -817,11 +824,13 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	    /* Move forward.  */
 	    visi_beg_delta = (old_end_byte < visible_beg
 			      ? new_end_byte - old_end_byte : 0);
+
 	  XTS_PARSER (lisp_parser)->visible_beg = visible_beg + visi_beg_delta;
 	  XTS_PARSER (lisp_parser)->visible_end = (visible_end
 						   + visi_beg_delta
 						   + (new_end_offset
 						      - old_end_offset));
+
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg >= 0);
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg
 		   <= XTS_PARSER (lisp_parser)->visible_end);
