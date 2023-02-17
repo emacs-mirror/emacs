@@ -953,7 +953,7 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   /* Pick a character map and place it in *CMAP.  */
   fd = emacs_open (desc->path, O_RDONLY, 0);
 
-  if (fd < 1)
+  if (fd < 0)
     return;
 
   font = sfnt_read_table_directory (fd);

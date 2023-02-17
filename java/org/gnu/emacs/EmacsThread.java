@@ -28,11 +28,16 @@ public class EmacsThread extends Thread
   /* Whether or not Emacs should be started -Q.  */
   private boolean startDashQ;
 
+  /* Runnable run to initialize Emacs.  */
+  private Runnable paramsClosure;
+
   public
-  EmacsThread (EmacsService service, boolean startDashQ)
+  EmacsThread (EmacsService service, Runnable paramsClosure,
+	       boolean startDashQ)
   {
     super ("Emacs main thread");
     this.startDashQ = startDashQ;
+    this.paramsClosure = paramsClosure;
   }
 
   @Override
@@ -45,6 +50,8 @@ public class EmacsThread extends Thread
       args = new String[] { "libandroid-emacs.so", };
     else
       args = new String[] { "libandroid-emacs.so", "-Q", };
+
+    paramsClosure.run ();
 
     /* Run the native code now.  */
     EmacsNative.initEmacs (args, EmacsApplication.dumpFileName,

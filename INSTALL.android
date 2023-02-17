@@ -91,9 +91,18 @@ for, and the include directories specify the paths to the relevant
 Android headers.  In addition, it may be necessary to specify
 "-gdwarf-2", due to a bug in the Android NDK.
 
-Emacs is known to build for Android 2.2 (API version 8) or later, and
-run on Android 2.3 or later.  It is supposed to run on Android 2.2 as
-well.
+Even older versions of the Android SDK do not require the extra
+`-isystem' directives.
+
+Emacs is known to run on Android 2.2 (API version 8) or later, with
+the NDK r10b or later.  We wanted to make Emacs work on even older
+versions of Android, but they are missing the required JNI graphics
+library that allows Emacs to display text from C code.
+
+Due to an extremely nasty bug in the Android 2.2 system, the generated
+Emacs package cannot be compressed in builds for Android 2.2.  As a
+result, the Emacs package will be approximately 100 megabytes larger
+than a compressed package for a newer version of Android.
 
 DEBUG AND RELEASE BUILDS
 

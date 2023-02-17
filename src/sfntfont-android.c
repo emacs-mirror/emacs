@@ -51,7 +51,7 @@ struct sfntfont_android_scanline_buffer
 /* Array of directories to search for system fonts.  */
 static char *system_font_directories[] =
   {
-    "/system/fonts",
+    (char *) "/system/fonts",
     /* This should be filled in by init_sfntfont_android.  */
     (char[PATH_MAX]) { },
   };

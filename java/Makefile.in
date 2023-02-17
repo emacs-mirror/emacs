@@ -39,6 +39,7 @@ JARSIGNER_FLAGS =
 ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
 ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
+ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
 
 WARN_JAVAFLAGS = -Xlint:deprecation
 JAVAFLAGS = -classpath "$(ANDROID_JAR):." -target 1.7 -source 1.7 \
@@ -51,6 +52,16 @@ ifneq (,$(ANDROID_SDK_18_OR_EARLIER))
 JARSIGNER_FLAGS = -sigalg MD5withRSA -digestalg SHA1
 else
 JARSIGNER_FLAGS =
+endif
+
+# When building Emacs for Android 2.2, assets must not be compressed.
+# Otherwise, the asset manager fails to extract files larger than 1
+# MB.
+
+ifneq (,$(ANDROID_SDK_8_OR_EARLIER))
+AAPT_ASSET_ARGS = -0 ""
+else
+AAPT_ASSET_ARGS =
 endif
 
 SIGN_EMACS = -keystore emacs.keystore -storepass emacs1 $(JARSIGNER_FLAGS)
@@ -192,7 +203,8 @@ emacs.apk-in: install_temp install_temp/assets/directory-tree \
 # of Android.  Make sure not to generate R.java, as it's already been
 # generated.
 	$(AM_V_AAPT) $(AAPT) p -I "$(ANDROID_JAR)" -F $@   \
-	  -f -M AndroidManifest.xml -A install_temp/assets \
+	  -f -M AndroidManifest.xml $(AAPT_ASSET_ARGS)	   \
+	  -A install_temp/assets			   \
 	  -S res -J install_temp
 	$(AM_V_SILENT) pushd install_temp &> /dev/null;	\
 	  $(AAPT) add ../$@ `find lib -type f`;		\

@@ -32,6 +32,7 @@ jdb_port=64013
 jdb=no
 attach_existing=no
 gdbserver=
+gdb=gdb
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -51,6 +52,7 @@ while [ $# -gt 0 ]; do
 	    echo "  --port PORT		run the GDB server on a specific port"
 	    echo "  --jdb-port PORT	run the JDB server on a specific port"
 	    echo "  --jdb		run JDB instead of GDB"
+	    echo "  --gdb		use specified GDB binary"
 	    echo "  --attach-existing	attach to an existing process"
 	    echo "  --gdbserver BINARY	upload and use the specified gdbserver binary"
 	    echo "  --help		print this message"
@@ -64,6 +66,10 @@ while [ $# -gt 0 ]; do
 	    ;;
 	"--jdb" )
 	    jdb=yes
+	    ;;
+	"--gdb" )
+	    shift
+	    gdb=$1
 	    ;;
 	"--gdbserver" )
 	    shift
@@ -355,4 +361,4 @@ fi
 
 # Finally, start gdb with any extra arguments needed.
 cd "$oldpwd"
-gdb --eval-command "target remote localhost:$gdb_port" $gdbargs
+$gdb --eval-command "target remote localhost:$gdb_port" $gdbargs

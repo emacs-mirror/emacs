@@ -7248,7 +7248,7 @@ process has been transmitted to the serial port.  */)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
     {
-#ifndef WINDOWSNT
+#if !defined WINDOWSNT && defined HAVE_TCDRAIN
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
 	report_file_error ("Failed tcdrain", Qnil);
 #endif /* not WINDOWSNT */

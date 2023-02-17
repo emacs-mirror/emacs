@@ -989,7 +989,7 @@ handle_pending_conversion_events_1 (struct frame *f,
 {
   Lisp_Object data;
   enum text_conversion_operation operation;
-  struct buffer *buffer;
+  struct buffer *buffer UNINIT;
   struct window *w;
   specpdl_ref count;
   unsigned long token;

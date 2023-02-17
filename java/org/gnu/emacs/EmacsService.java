@@ -180,11 +180,11 @@ public class EmacsService extends Service
   public void
   onCreate ()
   {
-    AssetManager manager;
+    final AssetManager manager;
     Context app_context;
-    String filesDir, libDir, cacheDir, classPath;
-    double pixelDensityX;
-    double pixelDensityY;
+    final String filesDir, libDir, cacheDir, classPath;
+    final double pixelDensityX;
+    final double pixelDensityY;
 
     SERVICE = this;
     handler = new Handler (Looper.getMainLooper ());
@@ -210,13 +210,18 @@ public class EmacsService extends Service
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
 	       + ", libDir = " + libDir + ", and classPath = " + classPath);
 
-	EmacsNative.setEmacsParams (manager, filesDir, libDir,
-				    cacheDir, (float) pixelDensityX,
-				    (float) pixelDensityY,
-				    classPath, this);
-
 	/* Start the thread that runs Emacs.  */
-	thread = new EmacsThread (this, needDashQ);
+	thread = new EmacsThread (this, new Runnable () {
+	    @Override
+	    public void
+	    run ()
+	    {
+	      EmacsNative.setEmacsParams (manager, filesDir, libDir,
+					  cacheDir, (float) pixelDensityX,
+					  (float) pixelDensityY,
+					  classPath, EmacsService.this);
+	    }
+	  }, needDashQ);
 	thread.start ();
       }
     catch (IOException exception)

@@ -49,6 +49,7 @@ public class EmacsApplication extends Application
        for a file named ``emacs-<fingerprint>.pdmp'' and delete the
        rest.  */
     filesDirectory = context.getFilesDir ();
+
     allFiles = filesDirectory.listFiles (new FileFilter () {
 	@Override
 	public boolean

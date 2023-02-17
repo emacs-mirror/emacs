@@ -1044,10 +1044,17 @@ package will likely install on older systems but crash on startup.])
   # Now tell java/Makefile if Emacs is being built for Android 4.3 or
   # earlier.
   ANDROID_SDK_18_OR_EARLIER=
-  if test "$android_sdk" -lt "18"; then
+  if test "$android_sdk" -le "18"; then
      ANDROID_SDK_18_OR_EARLIER=yes
   fi
   AC_SUBST([ANDROID_SDK_18_OR_EARLIER])
+
+  # Likewise for Android 2.2.
+  ANDROID_SDK_8_OR_EARLIER=
+  if test "$android_sdk" -le "8"; then
+     ANDROID_SDK_8_OR_EARLIER=yes
+  fi
+  AC_SUBST([ANDROID_SDK_8_OR_EARLIER])
 
   # Save confdefs.h and config.log for now.
   mv -f confdefs.h _confdefs.h
@@ -2251,6 +2258,10 @@ AC_DEFINE_UNQUOTED([SYSTEM_TYPE], ["$SYSTEM_TYPE"],
   [The type of system you are compiling for; sets 'system-type'.])
 AC_SUBST([SYSTEM_TYPE])
 
+# Check for pw_gecos in struct passwd; this is known to be missing on
+# Android.
+
+AC_CHECK_MEMBERS([struct passwd.pw_gecos], [], [], [#include <pwd.h>])
 
 pre_PKG_CONFIG_CFLAGS=$CFLAGS
 pre_PKG_CONFIG_LIBS=$LIBS
@@ -2487,7 +2498,13 @@ for Android, but all API calls need to be stubbed out])
     ANDROID_CFLAGS="$ANDROID_CFLAGS -ftree-vectorize"
 
     # Link with libraries required for Android support.
-    ANDROID_LIBS="-landroid -llog -ljnigraphics"
+    # API 9 and later require `-landroid' for the asset manager.
+    # API 8 uses an emulation via the JNI.
+    if test "$ANDROID_SDK" -lt "9"; then
+      ANDROID_LIBS="-llog -ljnigraphics"
+    else
+      ANDROID_LIBS="-landroid -llog -ljnigraphics"
+    fi
 
     # This is required to make the system load emacs.apk's libpng
     # (among others) instead of the system's own.  But it doesn't work
@@ -5610,7 +5627,7 @@ OLD_LIBS=$LIBS
 LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS([accept4 fchdir gethostname \
 getrusage get_current_dir_name \
-lrand48 random rint trunc \
+lrand48 random rint tcdrain trunc \
 select getpagesize setlocale newlocale \
 getrlimit setrlimit shutdown \
 pthread_sigmask strsignal setitimer \

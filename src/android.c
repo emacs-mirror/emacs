@@ -32,6 +32,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/mman.h>
 #include <sys/param.h>
 
+/* Old NDK versions lack MIN and MAX.  */
+#include <minmax.h>
+
 #include <assert.h>
 #include <fingerprint.h>
 
@@ -49,8 +52,13 @@ bool android_init_gui;
 
 #ifndef ANDROID_STUBIFY
 
+#if __ANDROID_API__ >= 9
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
+#else
+#include "android-asset.h"
+#endif
+
 #include <android/bitmap.h>
 #include <android/log.h>
 
@@ -907,10 +915,14 @@ android_is_directory (const char *dir)
 char *
 android_user_full_name (struct passwd *pw)
 {
+#ifdef HAVE_STRUCT_PASSWD_PW_GECOS
   if (!pw->pw_gecos)
     return (char *) "Android user";
 
   return pw->pw_gecos;
+#else
+  return "Android user";
+#endif
 }
 
 /* Given a real file name, return the part that describes its asset
@@ -1048,6 +1060,60 @@ android_file_access_p (const char *name, int amode)
 static int
 android_hack_asset_fd (AAsset *asset)
 {
+#if __ANDROID_API__ < 9
+  int fd;
+  char filename[PATH_MAX];
+  size_t size;
+  void *mem;
+
+  /* Assets must be small enough to fit in size_t, if off_t is
+     larger.  */
+  size = AAsset_getLength (asset);
+
+  /* Get an unlinked file descriptor from a file in the cache
+     directory, which is guaranteed to only be written to by Emacs.
+     Creating an asset file descriptor doesn't work on these old
+     Android versions.  */
+
+  snprintf (filename, PATH_MAX, "%s/%s.%d",
+	    android_cache_dir, "temp-unlinked",
+	    getpid ());
+  fd = open (filename, O_CREAT | O_RDWR | O_TRUNC,
+	     S_IRUSR | S_IWUSR);
+
+  if (fd < 1)
+    return -1;
+
+  if (unlink (filename))
+    goto fail;
+
+  if (ftruncate (fd, size))
+    goto fail;
+
+  mem = mmap (NULL, size, PROT_WRITE, MAP_SHARED, fd, 0);
+  if (mem == MAP_FAILED)
+    {
+      __android_log_print (ANDROID_LOG_ERROR, __func__,
+			   "mmap: %s", strerror (errno));
+      goto fail;
+    }
+
+  if (AAsset_read (asset, mem, size) != size)
+    {
+      /* Too little was read.  Close the file descriptor and
+	 report an error.  */
+      __android_log_print (ANDROID_LOG_ERROR, __func__,
+			   "AAsset_read: %s", strerror (errno));
+      goto fail;
+    }
+
+  munmap (mem, size);
+  return fd;
+
+ fail:
+  close (fd);
+  return -1;
+#else
   int fd, rc;
   unsigned char *mem;
   size_t size;
@@ -1172,10 +1238,11 @@ android_hack_asset_fd (AAsset *asset)
   /* Return anyway even if munmap fails.  */
   munmap (mem, size);
   return fd;
+#endif
 }
 
 /* Read two bytes from FD and see if they are ``PK'', denoting ZIP
-   archive compressed data.
+   archive compressed data.  If FD is -1, return -1.
 
    If they are not, rewind the file descriptor to offset 0.
 
@@ -1186,6 +1253,9 @@ static int
 android_check_compressed_file (int fd)
 {
   char bytes[2];
+
+  if (fd == -1)
+    return -1;
 
   if (read (fd, bytes, 2) != 2)
     goto lseek_back;
