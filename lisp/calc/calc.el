@@ -1282,16 +1282,17 @@ the trail buffer."
 (defun calc-mode ()
   "Calculator major mode.
 
-This is an RPN calculator featuring arbitrary-precision integer, rational,
-floating-point, complex, matrix, and symbolic arithmetic.
+This is a Reverse Polish notation (RPN) calculator featuring
+arbitrary-precision integer, rational, floating-point, complex,
+matrix, and symbolic arithmetic.
 
 RPN calculation:  2 RET 3 +    produces 5.
 Algebraic style:  \\=' 2+3 RET    produces 5.
 
 Basic operators are +, -, *, /, ^, & (reciprocal), % (modulo), n (change-sign).
 
-Press ? repeatedly for more complete help.  Press `h i' to read the
-Calc manual on-line, `h s' to read the summary, or `h t' for the tutorial.
+Press \\`?' repeatedly for more complete help.  Press \\`h i' to read the
+Calc manual, \\`h s' to read the summary, or \\`h t' for the tutorial.
 
 Notations:  3.14e6     3.14 * 10^6
             _23        negative number -23 (or type `23 n')
