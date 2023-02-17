@@ -1477,10 +1477,23 @@ conversion_disabled_p (void)
 void
 report_selected_window_change (struct frame *f)
 {
+  struct window *w;
+
   reset_frame_state (f);
 
   if (!text_interface)
     return;
+
+  /* When called from window.c, F's selected window has already been
+     redisplayed, but w->last_point has not yet been updated.  Update
+     it here to avoid race conditions when the IM asks for the initial
+     selection position immediately after.  */
+
+  if (WINDOWP (f->selected_window))
+    {
+      w = XWINDOW (f->selected_window);
+      w->ephemeral_last_point = window_point (w);
+    }
 
   text_interface->reset (f);
 }

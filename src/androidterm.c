@@ -4841,7 +4841,7 @@ android_get_selection (void *data)
       /* Return W's point at the time of the last redisplay.  This is
          rather important to keep the input method consistent with the
          contents of the display.  */
-      context->point = w->last_point;
+      context->point = w->ephemeral_last_point;
     }
 }
 
