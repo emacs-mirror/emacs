@@ -112,9 +112,8 @@ during bootstrap."
   "Primitive functions to exclude from trampoline optimization.
 
 Primitive functions included in this list will not be called
-directly by the native code being compiled, this makes
-tranpolines for those primitives not necessary in case of
-function redefinition/advise."
+directly by the natively-compiled code, which makes trampolines for
+those primitives unnecessary in case of function redefinition/advice."
   :type '(repeat symbol)
   :version "28.1")
 
