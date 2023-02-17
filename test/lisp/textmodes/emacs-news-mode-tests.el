@@ -23,10 +23,10 @@
 (require 'ert-x)
 (require 'emacs-news-mode)
 
-(ert-deftest emacs-news-toggle-tag ()
-  (ert-test-erts-file (ert-resource-file "toggle-tag.erts")
+(ert-deftest emacs-news-cycle-tag ()
+  (ert-test-erts-file (ert-resource-file "cycle-tag.erts")
                       (lambda ()
                         (emacs-news-mode)
-                        (emacs-news-toggle-tag))))
+                        (emacs-news-cycle-tag))))
 
 ;;; emacs-news-mode-tests.el ends here
