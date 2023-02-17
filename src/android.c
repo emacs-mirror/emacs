@@ -4923,6 +4923,11 @@ android_exception_check (void)
 {
   if ((*android_java_env)->ExceptionCheck (android_java_env))
     {
+      __android_log_print (ANDROID_LOG_WARNING, __func__,
+			   "Possible out of memory error."
+			   " The Java exception follows:  ");
+      /* Describe exactly what went wrong.  */
+      (*android_java_env)->ExceptionDescribe (android_java_env);
       (*android_java_env)->ExceptionClear (android_java_env);
       memory_full (0);
     }
