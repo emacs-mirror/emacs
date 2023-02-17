@@ -470,7 +470,10 @@ public class EmacsService extends Service
   public String
   nameKeysym (int keysym)
   {
-    return KeyEvent.keyCodeToString (keysym);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
+      return KeyEvent.keyCodeToString (keysym);
+
+    return String.valueOf (keysym);
   }
 
   public void
