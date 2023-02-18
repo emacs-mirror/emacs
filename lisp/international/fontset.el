@@ -200,7 +200,10 @@
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
-	(cjk-misc #x300E #xff0c)
+        ;; Noto Sans Phags Pa is broken and reuses the CJK misc code
+        ;; points for some of its own characters.  Add one actual CJK
+        ;; character to prevent finding such broken fonts.
+	(cjk-misc #x300E #xff0c #x300a #xff09 #x5b50)
 	(kana #x304B)
 	(bopomofo #x3105)
 	(kanbun #x319D)

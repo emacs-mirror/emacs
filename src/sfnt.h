@@ -524,6 +524,10 @@ struct sfnt_glyf_table
 
   /* Pointer to possibly unaligned glyph data.  */
   unsigned char *glyphs;
+
+  /* Pointer to the start of the mapping.
+     Only initialized if this table was mmapped.  */
+  unsigned char *start;
 };
 
 struct sfnt_simple_glyph
@@ -951,6 +955,11 @@ extern struct sfnt_loca_table_short *sfnt_read_loca_table_short (PROTOTYPE);
 extern struct sfnt_loca_table_long *sfnt_read_loca_table_long (PROTOTYPE);
 extern struct sfnt_maxp_table *sfnt_read_maxp_table (PROTOTYPE);
 extern struct sfnt_glyf_table *sfnt_read_glyf_table (PROTOTYPE);
+
+#ifdef HAVE_MMAP
+extern struct sfnt_glyf_table *sfnt_map_glyf_table (PROTOTYPE);
+extern int sfnt_unmap_glyf_table (struct sfnt_glyf_table *);
+#endif /* HAVE_MMAP */
 #undef PROTOTYPE
 
 extern struct sfnt_glyph *sfnt_read_glyph (sfnt_glyph, struct sfnt_glyf_table *,

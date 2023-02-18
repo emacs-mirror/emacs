@@ -1805,6 +1805,11 @@ struct sfnt_font_info
   /* Parent font structure.  */
   struct font font;
 
+#ifdef HAVE_MMAP
+  /* The next font in this chain.  */
+  struct sfnt_font_info *next;
+#endif /* HAVE_MMAP */
+
   /* Various tables required to use the font.  */
   struct sfnt_cmap_table *cmap;
   struct sfnt_hhea_table *hhea;
@@ -1842,7 +1847,20 @@ struct sfnt_font_info
   /* Graphics state after the execution of the font and control value
      programs.  */
   struct sfnt_graphics_state state;
+
+#ifdef HAVE_MMAP
+  /* Whether or not the glyph table has been mmapped.  */
+  bool glyf_table_mapped;
+#endif /* HAVE_MMAP */
 };
+
+#ifdef HAVE_MMAP
+
+/* List of all open fonts.  */
+
+static struct sfnt_font_info *open_fonts;
+
+#endif /* HAVE_MMAP */
 
 /* Look up the glyph corresponding to the character C in FONT.  Return
    0 upon failure, and the glyph otherwise.  */
@@ -2040,6 +2058,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   struct sfnt_font_desc *desc;
   Lisp_Object font_object;
   int fd, i;
+#ifdef HAVE_MMAP
+  int rc;
+#endif /* HAVE_MMAP */
   struct sfnt_offset_subtable *subtable;
   struct sfnt_cmap_encoding_subtable *subtables;
   struct sfnt_cmap_encoding_subtable_data **data;
@@ -2096,6 +2117,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->raster_cache.last = &font_info->raster_cache;
   font_info->raster_cache_size = 0;
   font_info->interpreter = NULL;
+#ifdef HAVE_MMAP
+  font_info->glyf_table_mapped = false;
+#endif /* HAVE_MMAP */
 
   /* Open the font.  */
   fd = emacs_open (desc->path, O_RDONLY, 0);
@@ -2145,7 +2169,24 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Read the hhea, maxp, glyf, and head tables.  */
   font_info->hhea = sfnt_read_hhea_table (fd, subtable);
   font_info->maxp = sfnt_read_maxp_table (fd, subtable);
-  font_info->glyf = sfnt_read_glyf_table (fd, subtable);
+
+#ifdef HAVE_MMAP
+
+  /* First try to map the glyf table.  If that fails, then read the
+     glyf table.  */
+
+  font_info->glyf = sfnt_map_glyf_table (fd, subtable);
+
+  /* Next, if this fails, read the glyf table.  */
+
+  if (!font_info->glyf)
+#endif /* HAVE_MMAP */
+    font_info->glyf = sfnt_read_glyf_table (fd, subtable);
+#ifdef HAVE_MMAP
+  else
+    font_info->glyf_table_mapped = true;
+#endif /* HAVE_MMAP */
+
   font_info->head = sfnt_read_head_table (fd, subtable);
 
   /* If any of those tables couldn't be read, bail.  */
@@ -2266,6 +2307,12 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   /* Free the offset subtable.  */
   xfree (subtable);
 
+#ifdef HAVE_MMAP
+  /* Link the font onto the font table.  */
+  font_info->next = open_fonts;
+  open_fonts = font_info;
+#endif /* HAVE_MMAP */
+
   /* All done.  */
   unblock_input ();
   return font_object;
@@ -2281,7 +2328,19 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
  bail4:
   xfree (font_info->hhea);
   xfree (font_info->maxp);
-  xfree (font_info->glyf);
+
+#ifdef HAVE_MMAP
+  if (font_info->glyf_table_mapped)
+    {
+      rc = sfnt_unmap_glyf_table (font_info->glyf);
+
+      if (rc)
+	emacs_abort ();
+    }
+  else
+#endif /* HAVE_MMAP */
+    xfree (font_info->glyf);
+
   xfree (font_info->head);
   font_info->hhea = NULL;
   font_info->maxp = NULL;
@@ -2473,7 +2532,10 @@ sfntfont_text_extents (struct font *font, const unsigned int *code,
 void
 sfntfont_close (struct font *font)
 {
-  struct sfnt_font_info *info;
+  struct sfnt_font_info *info, **next;
+#ifdef HAVE_MMAP
+  int rc;
+#endif /* HAVE_MMAP */
 
   info = (struct sfnt_font_info *) font;
   xfree (info->cmap);
@@ -2481,7 +2543,20 @@ sfntfont_close (struct font *font)
   xfree (info->maxp);
   xfree (info->head);
   xfree (info->hmtx);
-  xfree (info->glyf);
+
+#ifdef HAVE_MMAP
+
+  if (info->glyf_table_mapped)
+    {
+      rc = sfnt_unmap_glyf_table (info->glyf);
+
+      if (rc)
+	emacs_abort ();
+    }
+  else
+#endif /* HAVE_MMAP */
+    xfree (info->glyf);
+
   xfree (info->loca_short);
   xfree (info->loca_long);
   xfree (info->cmap_data);
@@ -2489,6 +2564,16 @@ sfntfont_close (struct font *font)
   xfree (info->fpgm);
   xfree (info->cvt);
   xfree (info->interpreter);
+
+  /* Unlink INFO.  */
+
+  next = &open_fonts;
+  while (*next && (*next) != info)
+    next = &(*next)->next;
+
+  if (*next)
+    *next = info->next;
+  info->next = NULL;
 
   sfntfont_free_outline_cache (&info->outline_cache);
   sfntfont_free_raster_cache (&info->raster_cache);
@@ -2624,6 +2709,34 @@ sfntfont_list_family (struct frame *f)
      called? */
   return families;
 }
+
+
+
+/* mmap specific stuff.  */
+
+#ifdef HAVE_MMAP
+
+/* Return whether or not ADDR lies in a mapped glyph, and bus faults
+   should be ignored.  */
+
+bool
+sfntfont_detect_sigbus (void *addr)
+{
+  struct sfnt_font_info *info;
+
+  for (info = open_fonts; info; info = info->next)
+    {
+      if (info->glyf_table_mapped
+	  && (unsigned char *) addr >= info->glyf->glyphs
+	  && (unsigned char *) addr < (info->glyf->glyphs
+				       + info->glyf->size))
+	return true;
+    }
+
+  return false;
+}
+
+#endif
 
 
 

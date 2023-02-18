@@ -34,6 +34,11 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #include <unistd.h>
 #include <setjmp.h>
+#include <errno.h>
+
+#ifdef HAVE_MMAP
+#include <sys/mman.h>
+#endif
 
 #if defined __GNUC__ && !defined __clang__
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
@@ -1583,6 +1588,91 @@ sfnt_read_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
   /* Return the table.  */
   return glyf;
 }
+
+#if defined HAVE_MMAP && !defined TEST
+
+/* Map a glyph table from the given font FD.  Use the table directory
+   specified in SUBTABLE.  The glyph data is not byte-swapped.
+
+   Value is the glyf table upon success, else NULL.
+   A mapped glyf table must be unmapped using `sfnt_unmap_glyf_table'.
+   The caller must correctly handle bus errors in between glyf->table
+   and glyf->size.  */
+
+struct sfnt_glyf_table *
+sfnt_map_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_table_directory *directory;
+  struct sfnt_glyf_table *glyf;
+  void *glyphs;
+  size_t offset, page, map_offset;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_GLYF);
+
+  if (!directory)
+    return NULL;
+
+  /* Now try to map the glyph data.  Make sure offset is a multiple of
+     the page size.  */
+
+  page = getpagesize ();
+  offset = directory->offset & ~(page - 1);
+
+  /* Figure out how much larger the mapping should be.  */
+  map_offset = directory->offset - offset;
+
+  /* Do the mmap.  */
+  glyphs = mmap (NULL, directory->length + map_offset,
+		 PROT_READ, MAP_PRIVATE, fd, offset);
+
+  if (glyphs == MAP_FAILED)
+    {
+      fprintf (stderr, "sfnt_map_glyf_table: mmap: %s\n",
+	       strerror (errno));
+
+      return NULL;
+    }
+
+  /* An observation is that glyphs tend to be accessed in sequential
+     order and immediately after the font's glyph table is loaded.  */
+
+#ifdef HAVE_POSIX_MADVISE
+  posix_madvise (glyphs, directory->length,
+		 POSIX_MADV_WILLNEED);
+#elif defined HAVE_MADVISE
+  madvise (glyphs, directory->length, MADV_WILLNEED);
+#endif
+
+  /* Allocate the glyf table.  */
+  glyf = xmalloc (sizeof *glyf);
+  glyf->size = directory->length;
+  glyf->glyphs = (unsigned char *) glyphs + map_offset;
+  glyf->start = glyphs;
+  return glyf;
+}
+
+/* Unmap the mmap'ed glyf table GLYF, then free its associated data.
+   Value is 0 upon success, else 1, in which case GLYF is still freed
+   all the same.  */
+
+int
+sfnt_unmap_glyf_table (struct sfnt_glyf_table *glyf)
+{
+  int rc;
+  size_t size;
+
+  /* Calculate the size of the mapping.  */
+  size = glyf->size + (glyf->glyphs - glyf->start);
+
+  rc = munmap (glyf->start, size);
+  xfree (glyf);
+
+  return rc != 0;
+}
+
+#endif /* HAVE_MMAP */
 
 /* Read the simple glyph outline from the glyph GLYPH from the
    specified glyf table at the given offset.  Set GLYPH->simple to a

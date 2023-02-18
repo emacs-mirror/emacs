@@ -138,6 +138,10 @@ int _cdecl _spawnlp (int, const char *, const char *, ...);
 #include "android.h"
 #endif
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "sfntfont.h"
+#endif
+
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -1816,6 +1820,40 @@ handle_arith_signal (int sig)
   xsignal0 (Qarith_error);
 }
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY && defined HAVE_MMAP
+
+static void
+handle_sigbus (int sig, siginfo_t *siginfo, void *arg)
+{
+  /* If this arrives during sfntfont_open, then Emacs may be
+     screwed.  */
+
+  if (sfntfont_detect_sigbus (siginfo->si_addr))
+    return;
+
+  handle_fatal_signal (sig);
+}
+
+/* Try to set up SIGBUS handling for the sfnt font driver.
+   Value is 1 upon failure, 0 otherwise.  */
+
+static int
+init_sigbus (void)
+{
+  struct sigaction sa;
+
+  sigfillset (&sa.sa_mask);
+  sa.sa_sigaction = handle_sigbus;
+  sa.sa_flags = SA_SIGINFO;
+
+  if (sigaction (SIGBUS, &sa, NULL))
+    return 1;
+
+  return 0;
+}
+
+#endif
+
 /* This does not work on Android and interferes with the system
    tombstone generation.  */
 
@@ -2076,7 +2114,10 @@ init_signals (void)
   sigaction (SIGEMT, &thread_fatal_action, 0);
 #endif
 #ifdef SIGBUS
-  sigaction (SIGBUS, &thread_fatal_action, 0);
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY && defined HAVE_MMAP
+  if (init_sigbus ())
+#endif
+    sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
 #if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (!init_sigsegv ())

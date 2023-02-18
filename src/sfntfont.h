@@ -56,4 +56,13 @@ extern void mark_sfntfont (void);
 extern void init_sfntfont_vendor (Lisp_Object, const struct font_driver *,
 				  sfntfont_put_glyph_proc);
 
+
+/* mmap specific functions.  */
+
+#ifdef HAVE_MMAP
+
+extern bool sfntfont_detect_sigbus (void *);
+
+#endif /* HAVE_MMAP */
+
 #endif /* _SFNTFONT_H_ */

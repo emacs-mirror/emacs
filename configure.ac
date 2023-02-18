@@ -5722,8 +5722,8 @@ if test "$with_unexec" = yes && test "$opsys" = "haiku"; then
 Please use the portable dumper instead.])
 fi
 
-# Dump loading
-AC_CHECK_FUNCS([posix_madvise])
+# Dump loading.  Android lacks posix_madvise.
+AC_CHECK_FUNCS([posix_madvise madvise])
 
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_frame_address],
