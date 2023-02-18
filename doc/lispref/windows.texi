@@ -630,11 +630,11 @@ example, by calling @code{select-window} with argument @var{norecord}
 with @var{window} as the selected window without needlessly running
 @code{buffer-list-update-hook}.
 
-Note that this macro temporarily puts the window management code in a
-unstable state.  In particular, the most recently window (see below)
+Note that this macro temporarily puts the window management code in an
+unstable state.  In particular, the most recently used window (see below)
 will not necessarily match the selected one.  Hence, functions like
 @code{get-lru-window} and @code{get-mru-window} may return unexpected
-results when called from within the scope of this macro.
+results when called from the body of this macro.
 @end defmac
 
 @defmac with-selected-frame frame forms@dots{}
@@ -662,10 +662,11 @@ selected window unless @code{with-selected-window} has been used.
 @end defun
 
 @defun window-bump-use-time &optional window
-This function marks @var{window} as being the second most recently used
-one.  It does nothing if @var{window} is the selected window or the
-selected window does not have the highest use time among all windows
-which may happen within the scope of @code{with-selected-window}.
+This function marks @var{window} as being the second most recently
+used one (after the selected window).  It does nothing if @var{window}
+is the selected window or the selected window does not have the
+highest use time among all windows which may happen within the scope
+of @code{with-selected-window}.
 @end defun
 
 @anchor{Window Group}Sometimes several windows collectively and
@@ -3068,29 +3069,30 @@ entry.
 @vindex window-min-width@r{, a buffer display action alist entry}
 @item window-min-width
 The value specifies a minimum width of the window used, in canonical
-frame columns.  The special value @code{full-width} means the window
-chosen should be one has no other windows on the left or right it in its
-frame.
+frame columns.  The special value @code{full-width} means the chosen
+window should be one that has no other windows on the left or right of
+it in its frame.
 
 This entry is currently honored by @code{display-buffer-use-some-window}
-and @code{display-buffer-use-least-recent-window} who try hard to avoid
-returning a less recently used window that does not satisfy it.
+and @code{display-buffer-use-least-recent-window}, which try hard to avoid
+returning a less recently used window that does not satisfy the entry.
 
 Note that providing such an entry alone does not necessarily make the
 window as wide as specified by its value.  To actually resize an
-existing window or make a new window as wide as specified by that value,
-a @code{window-width} entry specifying that value should be provided as
-well.  Such a @code{window-width} entry can, however, specify a
-completely different value or ask the window width to be fit to that of
-its buffer in which case the @code{window-min-width} entry provides the
-guaranteed minimum width of the window used.
+existing window or make a new window as wide as specified by this
+entry's value, a @code{window-width} entry specifying that value
+should be provided as well.  Such a @code{window-width} entry can,
+however, specify a completely different value, or ask the window width
+to fit that of its buffer, in which case the
+@code{window-min-width} entry provides the guaranteed minimum width of
+the window.
 
 @vindex window-min-height@r{, a buffer display action alist entry}
 @item window-min-height
 The value specifies a minimum height of the window used, in canonical
-frame lines.  The special value @code{full-height} means the window
-chosen should be a full-height window, one has no other windows above or
-below it in its frame.
+frame lines.  The special value @code{full-height} means the chosen
+window should be a full-height window, one that has no other windows
+above or below it in its frame.
 
 This entry is currently honored by @code{display-buffer-below-selected}
 which does not use a window that is not as high as specified by this
@@ -3228,7 +3230,7 @@ after this list.
 
 @vindex lru-frames@r{, a buffer display action alist entry}
 @item lru-frames
-The value specifies the set of frames to search for window that can be
+The value specifies the set of frames to search for a window that can be
 used to display the buffer.  It is honored by
 @code{display-buffer-use-some-window} and
 @code{display-buffer-use-least-recent-window} when trying to find a less
@@ -3248,7 +3250,7 @@ functions will not consider such a window for displaying the buffer.
 @item bump-use-time
 If non-@code{nil}, such an entry will cause @code{display-buffer} to
 bump the use time (@pxref{Selecting Windows}) of the window it uses.
-This should avoid that this window is later used by action functions
+This should avoid later use of this window by action functions
 like @code{display-buffer-use-some-window} and
 @code{display-buffer-use-least-recent-window} for showing another
 buffer.
@@ -4079,7 +4081,7 @@ related to the new window.  For non-input related actions
 @code{display-buffer-below-selected} might be preferable because the
 selected window usually already has the user's attention.
 
-@item Take care about which window is selected
+@item Take care which window is selected
 Many applications call @code{display-buffer} from within window
 excursions produced by @code{with-selected-window} or
 @code{select-window} calls with a non-@code{nil} @var{norecord}
@@ -4102,6 +4104,7 @@ window, evaluating the following form
 @end group
 @end example
 
+@noindent
 will display a window showing the @file{*Messages*} buffer at the bottom
 and leave the other window selected.  Evaluating the next form
 
@@ -4112,6 +4115,7 @@ and leave the other window selected.  Evaluating the next form
 @end group
 @end example
 
+@noindent
 will display @file{*Messages*} in a window on the top and select it
 which is usually not what @code{display-buffer} is supposed to do.
 
@@ -4125,6 +4129,7 @@ On the other hand, while evaluating the following form
 @end group
 @end example
 
+@noindent
 will correctly select the @file{*Messages*} buffer, the next form
 
 @example
@@ -4136,6 +4141,7 @@ will correctly select the @file{*Messages*} buffer, the next form
 @end group
 @end example
 
+@noindent
 will not.
 
 Also, invocations of action functions like
