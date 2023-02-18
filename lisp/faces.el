@@ -2226,7 +2226,7 @@ the X resource \"reverseVideo\" is present, handle that."
     (unwind-protect
 	(progn
 	  (x-setup-function-keys frame)
-	  (dolist (face (nreverse (face-list)))
+	  (dolist (face (face-list))
 	    (face-spec-recalc face frame))
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame t)
