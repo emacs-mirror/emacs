@@ -1088,7 +1088,8 @@ Leave one space or none, according to the context."
 
 (defun delete-horizontal-space (&optional backward-only)
   "Delete all spaces and tabs around point.
-If BACKWARD-ONLY is non-nil, delete them only before point."
+If BACKWARD-ONLY is non-nil (interactively, the prefix argument), delete
+them only before point."
   (interactive "*P")
   (delete-space--internal " \t" backward-only))
 
@@ -1114,6 +1115,7 @@ If BACKWARD-ONLY is non-nil, delete them only before point."
 
 (defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces).
+Interactively, N is the prefix numeric argument.
 If N is negative, delete newlines as well, leaving -N spaces.
 See also `cycle-spacing'."
   (interactive "*p")
