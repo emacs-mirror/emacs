@@ -57,7 +57,7 @@ This allows the user to customize the prompt that is appended by
 "(yes or no) ".
 
 ---
-** New face 'display-time-time-and-date-indicator'.
+** New face 'display-time-date-and-time'.
 This is used for displaying the time and date components of
 'display-time-mode'.
 
