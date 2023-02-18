@@ -594,7 +594,7 @@ lost after dumping")))
                    (equal dump-mode "pdump"))
           ;; Don't enable this before bootstrap is completed, as the
           ;; compiler infrastructure may not be usable yet.
-          (setq native-comp-enable-subr-trampolines t))
+          (setq comp-enable-subr-trampolines t))
         (message "Dumping under the name %s" output)
         (condition-case ()
             (delete-file output)
@@ -644,17 +644,10 @@ lost after dumping")))
                 (message "Adding name %s" (concat name ".pdmp"))
                 (add-name-to-file (expand-file-name "emacs.pdmp"
                                                     invocation-directory)
-                                  (expand-file-name (concat name exe)
+                                  (expand-file-name (concat name ".pdmp")
                                                     invocation-directory)
-                                  t)
-                (when (equal dump-mode "pdump")
-                  (message "Adding name %s" (concat name ".pdmp"))
-                  (add-name-to-file (expand-file-name "emacs.pdmp"
-                                                      invocation-directory)
-                                    (expand-file-name (concat name ".pdmp")
-                                                      invocation-directory)
-                                    t))))
-          (kill-emacs)))))
+                                  t))))
+        (kill-emacs))))
 
 ;; This file must be loaded each time Emacs is run from scratch, e.g., temacs.
 ;; So run the startup code now.  First, remove `-l loadup' from args.
