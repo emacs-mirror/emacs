@@ -555,8 +555,9 @@ libtasn1, p11-kit) which can be built with the ndk-build system can be
 found at https://sourceforge.net/projects/android-ports-for-gnu-emacs.
 
 They have only been tested on arm64 Android systems running Android
-5.0 or later, so your mileage may vary, especially if you are trying
-to build Emacs for another kind of machine.
+5.0 or later, and armv7l systems running Android 13 or later, so your
+mileage may vary, especially if you are trying to build Emacs for
+another kind of machine.
 
 To build Emacs with GnuTLS, you must unpack each of the following tar
 archives in that site:
@@ -567,7 +568,9 @@ archives in that site:
   p11-kit-0.24.1-emacs.tar.gz
   nettle-3.8-emacs.tar.gz
 
-and add the resulting folders to ``--with-ndk-path''.
+and add the resulting folders to ``--with-ndk-path''.  Note that you
+should not try to build these packages separately using any
+`configure' script or Makefiles inside.
 
 
 

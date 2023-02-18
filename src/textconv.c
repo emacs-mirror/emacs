@@ -978,6 +978,52 @@ complete_edit (void *token)
     text_interface->notify_conversion (*(unsigned long *) token);
 }
 
+/* Context for complete_edit_check.  */
+
+struct complete_edit_check_context
+{
+  /* The window.  */
+  struct window *w;
+
+  /* Whether or not editing was successful.  */
+  bool check;
+};
+
+/* If CONTEXT->check is false, then update W's ephemeral last point
+   and give it to the input method, the assumption being that an
+   editing operation signalled.  */
+
+static void
+complete_edit_check (void *ptr)
+{
+  struct complete_edit_check_context *context;
+  struct frame *f;
+
+  context = ptr;
+
+  if (!context->check)
+    {
+      /* Figure out the new position of point.  */
+      context->w->ephemeral_last_point
+	= window_point (context->w);
+
+      /* See if the frame is still alive.  */
+
+      f = WINDOW_XFRAME (context->w);
+
+      if (!FRAME_LIVE_P (f))
+	return;
+
+      if (text_interface && text_interface->point_changed)
+	{
+	  if (f->conversion.batch_edit_count > 0)
+	    f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
+	  else
+	    text_interface->point_changed (f, context->w, NULL);
+	}
+    }
+}
+
 /* Process and free the text conversion ACTION.  F must be the frame
    on which ACTION will be performed.
 
@@ -993,6 +1039,7 @@ handle_pending_conversion_events_1 (struct frame *f,
   struct window *w;
   specpdl_ref count;
   unsigned long token;
+  struct complete_edit_check_context context;
 
   /* Next, process this action and free it.  */
 
@@ -1008,6 +1055,10 @@ handle_pending_conversion_events_1 (struct frame *f,
   if (conversion_disabled_p ())
     return NULL;
 
+  /* check is a flag used by complete_edit_check to determine whether
+     or not the editing operation completed successfully.  */
+  context.check = false;
+
   /* Make sure completion is signalled.  */
   count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (complete_edit, &token);
@@ -1017,6 +1068,10 @@ handle_pending_conversion_events_1 (struct frame *f,
     {
       w = XWINDOW (f->old_selected_window);
       buffer = XBUFFER (WINDOW_BUFFER (w));
+      context.w = w;
+
+      /* Notify the input method of any editing failures.  */
+      record_unwind_protect_ptr (complete_edit_check, &context);
     }
 
   switch (operation)
@@ -1070,6 +1125,8 @@ handle_pending_conversion_events_1 (struct frame *f,
       break;
     }
 
+  /* Signal success.  */
+  context.check = true;
   unbind_to (count, Qnil);
 
   return w;
