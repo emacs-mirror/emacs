@@ -483,7 +483,7 @@ Return them as multiple value."
 ;;; Union specific code.
 
 (defun comp-cstr-union-homogeneous-no-range (dst &rest srcs)
-  "As `comp-cstr-union' but escluding the irange component.
+  "As `comp-cstr-union' but excluding the irange component.
 All SRCS constraints must be homogeneously negated or non-negated."
 
   ;; Type propagation.
