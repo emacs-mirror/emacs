@@ -1925,8 +1925,13 @@ activations.  To prevent runaway recursion, use `max-lisp-eval-depth'
 instead; it will indirectly limit the specpdl stack size as well.")
 (make-obsolete-variable 'max-specpdl-size nil "29.1")
 
+(make-obsolete-variable 'comp-enable-subr-trampolines
+                        'native-comp-enable-subr-trampolines
+                        "29.1")
+
 (make-obsolete-variable 'native-comp-deferred-compilation
-                        'inhibit-automatic-native-compilation "29.1")
+                        'native-comp-jit-compilation
+                        "29.1")
 
 
 ;;;; Alternate names for functions - these are not being phased out.

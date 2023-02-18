@@ -13424,7 +13424,8 @@ gui_consider_frame_title (Lisp_Object frame)
 
       Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->contents));
-      fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
+      fmt = (FRAME_ICONIFIED_P (f) && !EQ (Vicon_title_format, Qt)
+	     ? Vicon_title_format : Vframe_title_format);
 
       mode_line_target = MODE_LINE_TITLE;
       title_start = MODE_LINE_NOPROP_LEN (0);
@@ -36655,9 +36656,11 @@ which no explicit name has been set (see `modify-frame-parameters').  */);
   DEFVAR_LISP ("icon-title-format", Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
 \(Assuming the window manager supports this feature.)
-This variable has the same structure as `mode-line-format' (which see),
-and is used only on frames for which no explicit name has been set
-\(see `modify-frame-parameters').  */);
+If the value is a string, it should have the same structure
+as `mode-line-format' (which see), and is used only on frames
+for which no explicit name has been set \(see `modify-frame-parameters').
+If the value is t, that means use `frame-title-format' for
+iconified frames.  */);
   /* Do not nest calls to pure_list.  This works around a bug in
      Oracle Developer Studio 12.6.  */
   Lisp_Object icon_title_name_format

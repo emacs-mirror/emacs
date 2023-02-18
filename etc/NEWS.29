@@ -199,13 +199,6 @@ load time.
 ** Native Compilation
 
 +++
-*** New variable 'inhibit-automatic-native-compilation'.
-If set, Emacs will inhibit native compilation (and won't write
-anything to the eln cache automatically).  The variable is initialized
-during Emacs startup from the environment variable
-'EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION'.
-
----
 *** New command 'native-compile-prune-cache'.
 This command deletes old subdirectories of the eln cache (but not the
 ones for the current Emacs version).  Note that subdirectories of the
@@ -1201,6 +1194,13 @@ The 16 most recently deleted frames can be undeleted with 'C-x 5 u' when
 the most recently deleted frame.  With a numerical prefix argument
 between 1 and 16, where 1 is the most recently deleted frame, undelete
 the corresponding deleted frame.
+
++++
+*** The variable 'icon-title-format' can now have the value t.
+That value means to use 'frame-title-format' for iconified frames.
+This is useful with some window managers and desktop environments
+which treat changes in frame's title as requests to raise the frame
+and/or give it input focus.
 
 ** Tab Bars and Tab Lines
 
@@ -3251,8 +3251,10 @@ for which a "built-in" mode would be turned on.  For example:
     (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
 
 If you try these modes and don't like them, you can go back to the
-"built-in" modes by restarting Emacs.  But please tell us why you
-didn't like the tree-sitter based modes, so that we could try
+"built-in" modes by restarting Emacs.  (If you use desktop.el to save
+and restore Emacs sessions, make sure no buffer under these modes is
+recorded in the desktop file, before restarting.)  But please tell us
+why you didn't like the tree-sitter based modes, so that we could try
 improving them.
 
 Each major mode based on tree-sitter needs a language grammar library,

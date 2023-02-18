@@ -191,7 +191,7 @@ For internal use only."
                (let ((face-id  (car (gethash face face--new-frame-defaults))))
                  (push `(,face-id ,face . ,spec) faces)))
              (frame--face-hash-table frame))
-    (mapcar #'cdr (sort faces (lambda (f1 f2) (< (car f1) (car f2)))))))
+    (mapcar #'cdr (sort faces (lambda (f1 f2) (> (car f1) (car f2)))))))
 
 (defun face-list ()
   "Return a list of all defined faces."
@@ -199,7 +199,7 @@ For internal use only."
     (maphash (lambda (face spec)
                (push `(,(car spec) . ,face) faces))
              face--new-frame-defaults)
-    (mapcar #'cdr (sort faces (lambda (f1 f2) (< (car f1) (car f2)))))))
+    (mapcar #'cdr (sort faces (lambda (f1 f2) (> (car f1) (car f2)))))))
 
 (defun make-face (face)
   "Define a new face with name FACE, a symbol.
@@ -2226,7 +2226,7 @@ the X resource \"reverseVideo\" is present, handle that."
     (unwind-protect
 	(progn
 	  (x-setup-function-keys frame)
-	  (dolist (face (nreverse (face-list)))
+	  (dolist (face (face-list))
 	    (face-spec-recalc face frame))
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame t)

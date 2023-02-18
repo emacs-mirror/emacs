@@ -855,7 +855,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 #ifdef HAVE_NATIVE_COMP
   register Lisp_Object function = XSYMBOL (symbol)->u.s.function;
 
-  if (comp_enable_subr_trampolines
+  if (!NILP (Vnative_comp_enable_subr_trampolines)
       && SUBRP (function)
       && !SUBR_NATIVE_COMPILEDP (function))
     CALLN (Ffuncall, Qcomp_subr_trampoline_install, symbol);
