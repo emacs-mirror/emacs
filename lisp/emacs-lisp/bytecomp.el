@@ -530,10 +530,9 @@ Return the compile-time value of FORM."
                               ;; or byte-compile-file-form.
                               (let* ((print-symbols-bare t) ; Possibly redundant binding.
                                      (expanded
-                                      (byte-run-strip-symbol-positions
-                                       (macroexpand--all-toplevel
-                                        form
-                                        macroexpand-all-environment))))
+                                      (macroexpand--all-toplevel
+                                       form
+                                       macroexpand-all-environment)))
                                 (eval expanded lexical-binding)
                                 expanded)))))
     (with-suppressed-warnings
