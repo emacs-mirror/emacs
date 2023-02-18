@@ -611,6 +611,7 @@ then remove all hi-lock highlighting."
    (cond
     (current-prefix-arg (list t))
     ((and (display-popup-menus-p)
+          last-nonmenu-event
           (listp last-nonmenu-event)
           use-dialog-box)
      (catch 'snafu
