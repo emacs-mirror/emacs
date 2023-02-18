@@ -3458,12 +3458,14 @@ This function is intended for use in `after-change-functions'."
        ((match "<" "jsx_fragment") parent 0)
        ((parent-is "jsx_fragment") parent js-indent-level)
        ((node-is "jsx_closing_element") parent 0)
-       ((node-is "jsx_element") parent js-indent-level)
+       ((match "jsx_element" "statement") parent js-indent-level)
        ((parent-is "jsx_element") parent js-indent-level)
+       ((parent-is "jsx_text") parent-bol js-indent-level)
        ((parent-is "jsx_opening_element") parent js-indent-level)
        ((parent-is "jsx_expression") parent-bol js-indent-level)
        ((match "/" "jsx_self_closing_element") parent 0)
        ((parent-is "jsx_self_closing_element") parent js-indent-level)
+       ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
        (no-node parent-bol 0)))))
 
 (defvar js--treesit-keywords
@@ -3820,7 +3822,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     (setq-local comment-multi-line t)
     ;; Electric-indent.
     (setq-local electric-indent-chars
-	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+                (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
     (setq-local electric-layout-rules
 	        '((?\; . after) (?\{ . after) (?\} . before)))
 
