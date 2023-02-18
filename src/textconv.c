@@ -702,11 +702,8 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
     }
   else
     {
-      /* Delete the text between the start of the composition region
-	 and its end.  TODO: avoid this widening.  */
-      record_unwind_protect (save_restriction_restore,
-			     save_restriction_save ());
-      Fwiden ();
+      /* Delete the text between the start of the composing region and
+	 its end.  */
       start = marker_position (f->conversion.compose_region_start);
       end = marker_position (f->conversion.compose_region_end);
       del_range (start, end);
@@ -844,6 +841,7 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
   specpdl_ref count;
   ptrdiff_t start, end, a, b, a1, b1, lstart, rstart;
   struct window *w;
+  Lisp_Object text;
 
   /* If F's old selected window is no longer live, fail.  */
 
@@ -888,21 +886,25 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
       start = max (BEGV, lstart - left);
       end = min (ZV, rstart + right);
 
-      del_range (start, end);
-      record_buffer_change (start, start, Qnil);
+      text = del_range_1 (start, end, false, true);
+      record_buffer_change (start, start, text);
     }
   else
     {
-      start = max (BEGV, lstart - left);
-      end = lstart;
-
-      del_range (start, end);
-      record_buffer_change (start, start, Qnil);
+      /* Don't record a deletion if the text which was deleted lies
+	 after point.  */
 
       start = rstart;
       end = min (ZV, rstart + right);
-      del_range (start, end);
-      record_buffer_change (start, start, Qnil);      
+      text = del_range_1 (start, end, false, true);
+      record_buffer_change (start, start, Qnil);
+
+      /* Now delete what must be deleted on the left.  */
+
+      start = max (BEGV, lstart - left);
+      end = lstart;
+      text = del_range_1 (start, end, false, true);
+      record_buffer_change (start, start, text);
     }
 
   /* if the mark is now equal to start, deactivate it.  */
@@ -1701,7 +1703,8 @@ syms_of_textconv (void)
   DEFSYM (Qtext_conversion, "text-conversion");
   DEFSYM (Qpush_mark, "push-mark");
   DEFSYM (Qunderline, "underline");
-  DEFSYM (Qoverriding_text_conversion_style, "overriding-text-conversion-style");
+  DEFSYM (Qoverriding_text_conversion_style,
+	  "overriding-text-conversion-style");
 
   DEFVAR_LISP ("text-conversion-edits", Vtext_conversion_edits,
     doc: /* List of buffers that were last edited as a result of text conversion.
@@ -1722,8 +1725,14 @@ changes to the text, so any actions that would otherwise be taken
 place; otherwise, it is a string describing the text which was
 inserted.
 
-If a deletion occured, then BEG and END are the same, and EPHEMERAL is
-nil.  */);
+If a deletion occured before point, then BEG and END are the same, and
+EPHEMERAL is the text which was deleted.
+
+If a deletion occured after point, then BEG and END are also the same,
+but EPHEMERAL is nil.
+
+The list contents are ordered later edits first, so you must iterate
+through the list in reverse.  */);
   Vtext_conversion_edits = Qnil;
 
   DEFVAR_LISP ("overriding-text-conversion-style",

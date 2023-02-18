@@ -1136,6 +1136,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (setq-local term-last-input-end (make-marker))
   (setq-local term-last-input-match "")
 
+  ;; Always display the onscreen keyboard.
+  (setq-local touch-screen-display-keyboard t)
+
   ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
   (make-local-variable 'term-saved-cursor)

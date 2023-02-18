@@ -166,14 +166,14 @@ public class EmacsDialog implements DialogInterface.OnDismissListener
 	if (size >= 2)
 	  {
 	    button = buttons.get (1);
-	    dialog.setButton (DialogInterface.BUTTON_NEUTRAL,
+	    dialog.setButton (DialogInterface.BUTTON_NEGATIVE,
 			      button.name, button);
 	  }
 
 	if (size >= 3)
 	  {
 	    button = buttons.get (2);
-	    dialog.setButton (DialogInterface.BUTTON_NEGATIVE,
+	    dialog.setButton (DialogInterface.BUTTON_NEUTRAL,
 			      button.name, button);
 	  }
       }
@@ -274,10 +274,8 @@ public class EmacsDialog implements DialogInterface.OnDismissListener
 	if (size >= 2)
 	  {
 	    button = buttons.get (1);
-	    dialog.setButton (DialogInterface.BUTTON_NEUTRAL,
-			      button.name, button);
 	    buttonView
-	      = dialog.getButton (DialogInterface.BUTTON_NEUTRAL);
+	      = dialog.getButton (DialogInterface.BUTTON_NEGATIVE);
 	    buttonView.setEnabled (button.enabled);
 	  }
 
@@ -285,7 +283,7 @@ public class EmacsDialog implements DialogInterface.OnDismissListener
 	  {
 	    button = buttons.get (2);
 	    buttonView
-	      = dialog.getButton (DialogInterface.BUTTON_NEGATIVE);
+	      = dialog.getButton (DialogInterface.BUTTON_NEUTRAL);
 	    buttonView.setEnabled (button.enabled);
 	  }
       }

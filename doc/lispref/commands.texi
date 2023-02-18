@@ -2227,9 +2227,10 @@ form:
 Where @var{ephemeral} is the buffer which was modified,
 @var{beg} and @var{end} are the positions of the edit at the
 time it was completed, and @var{ephemeral} is either a string,
-containing any text which was inserted, @code{t}, meaning that
-the edit is a temporary edit made by the input method, and
-@code{nil}, meaning that some text was deleted.
+containing any text which was inserted, or any text before point
+which was deleted, @code{t}, meaning that the edit is a
+temporary edit made by the input method, and @code{nil}, meaning
+that some text was deleted after point.
 
 @vindex text-conversion-style
 Whether or not this event is sent depends on the value of the

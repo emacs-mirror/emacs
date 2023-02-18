@@ -49,6 +49,14 @@ keyboard after a mouse command is executed in response to a
   "Timer used to track long-presses.
 This is always cleared upon any significant state change.")
 
+(defcustom touch-screen-display-keyboard nil
+  "If non-nil, always display the on screen keyboard.
+A buffer local value means to always display the on screen
+keyboard when the buffer is selected."
+  :type 'boolean
+  :group 'mouse
+  :version "30.1")
+
 (defcustom touch-screen-delay 0.7
   "Delay in seconds before Emacs considers a touch to be a long-press."
   :type 'number
@@ -417,8 +425,12 @@ is not read-only."
                  (call-interactively command nil
                                      (vector event))
                  (when (memq command touch-screen-set-point-commands)
-                   (if (not (or buffer-read-only
-                                (get-text-property (point) 'read-only)))
+                   (if (and (or (not buffer-read-only)
+                                touch-screen-display-keyboard)
+                            ;; Detect the splash screen and avoid
+                            ;; displaying the on screen keyboard
+                            ;; there.
+                            (not (equal (buffer-name) "*GNU Emacs*")))
                        ;; Once the on-screen keyboard has been opened,
                        ;; add `touch-screen-window-selection-changed'
                        ;; as a window selection change function This

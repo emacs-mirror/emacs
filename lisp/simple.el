@@ -10877,6 +10877,10 @@ If the buffer doesn't exist, create it first."
 ;; Actually in textconv.c.
 (defvar text-conversion-edits)
 
+;; Actually in elec-pair.el.
+(defvar electric-pair-preserve-balance)
+(declare-function electric-pair-analyze-conversion "elec-pair.el")
+
 (defun analyze-text-conversion ()
   "Analyze the results of the previous text conversion event.
 
@@ -10890,35 +10894,61 @@ For each insertion:
     line breaking of the previous line when `auto-fill-mode' is
     enabled.
 
+  - Look for the deletion of a single electric pair character,
+    and delete the adjascent pair if
+    `electric-pair-delete-adjacent-pairs'.
+
   - Run `post-self-insert-functions' for the last character of
     any inserted text so that modes such as `electric-pair-mode'
     can work."
   (interactive)
-  (dolist (edit text-conversion-edits)
+  ;; The list must be processed in reverse.
+  (dolist (edit (reverse text-conversion-edits))
     ;; Filter out ephemeral edits and deletions.
-    (when (and (not (eq (nth 1 edit) (nth 2 edit)))
-               (stringp (nth 3 edit)))
+    (when (and (stringp (nth 3 edit)))
       (with-current-buffer (car edit)
-        (let* ((inserted (nth 3 edit))
-               ;; Get the first and last characters.
-               (start (aref inserted 0))
-               (end (aref inserted (1- (length inserted))))
-               ;; Figure out whether or not to auto-fill.
-               (auto-fill-p (or (aref auto-fill-chars start)
-                                (aref auto-fill-chars end)))
-               ;; Figure out whether or not a newline was inserted.
-               (newline-p (string-search "\n" inserted)))
-          (save-excursion
-            (if (and auto-fill-function newline-p)
-                (progn (goto-char (nth 2 edit))
-                       (previous-logical-line)
-                       (funcall auto-fill-function))
-              (when (and auto-fill-function auto-fill-p)
-                (progn (goto-char (nth 2 edit))
-                       (funcall auto-fill-function)))))
-          (goto-char (nth 2 edit))
-          (let ((last-command-event end))
-            (run-hooks 'post-self-insert-hook)))))))
+        (if (not (eq (nth 1 edit) (nth 2 edit)))
+            ;; Process this insertion.  (nth 3 edit) is the text which
+            ;; was inserted.
+            (let* ((inserted (nth 3 edit))
+                   ;; Get the first and last characters.
+                   (start (aref inserted 0))
+                   (end (aref inserted (1- (length inserted))))
+                   ;; Figure out whether or not to auto-fill.
+                   (auto-fill-p (or (aref auto-fill-chars start)
+                                    (aref auto-fill-chars end)))
+                   ;; Figure out whether or not a newline was inserted.
+                   (newline-p (string-search "\n" inserted))
+                   ;; FIXME: this leads to an error in
+                   ;; `atomic-change-group', seemingly because
+                   ;; buffer-undo-list is being modified or
+                   ;; prematurely truncated.  Turn it off for now.
+                   (electric-pair-preserve-balance nil))
+              (save-excursion
+                (if (and auto-fill-function newline-p)
+                    (progn (goto-char (nth 2 edit))
+                           (previous-logical-line)
+                           (funcall auto-fill-function))
+                  (when (and auto-fill-function auto-fill-p)
+                    (progn (goto-char (nth 2 edit))
+                           (funcall auto-fill-function)))))
+              (goto-char (nth 2 edit))
+              (let ((last-command-event end))
+                (run-hooks 'post-self-insert-hook)))
+          ;; Process this deletion before point.  (nth 2 edit) is the
+          ;; text which was deleted.  Input methods typically prefer
+          ;; to edit words instead of deleting characters off their
+          ;; ends, but they seem to always send proper requests for
+          ;; deletion for punctuation.
+          (when (and (boundp 'electric-pair-delete-adjacent-pairs)
+                     (symbol-value 'electric-pair-delete-adjacent-pairs)
+                     ;; Make sure elec-pair is loaded.
+                     (fboundp 'electric-pair-analyze-conversion)
+                     ;; Only do this if only a single edit happened.
+                     text-conversion-edits)
+            (save-excursion
+              (goto-char (nth 2 edit))
+              (electric-pair-analyze-conversion (nth 3 edit)))))))))
 
 
 
