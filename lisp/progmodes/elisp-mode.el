@@ -220,8 +220,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`inhibit-automatic-native-compilation' set to nil to achieve
-asynchronous native compilation."
+`native-comp-jit-compilation' set to t to achieve asynchronous
+native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (load (native-compile buffer-file-name)))

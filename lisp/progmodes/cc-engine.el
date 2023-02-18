@@ -14951,7 +14951,7 @@ comment at the start of cc-engine.el for more info."
 			    'case-label)
 			  (1+ containing-sexp)))
 	   (t (c-add-syntax (if (eq (char-before) ?:)
-	    			'case-label
+				'case-label
 			      'statement-case-intro)
 			    (1+ containing-sexp))))))
 

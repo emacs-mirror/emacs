@@ -139,7 +139,7 @@ make the mail indicator stand out on a color display."
   :version "22.1"
   :type '(choice (const :tag "None" nil) face))
 
-(defface display-time-time-and-date-indicator nil
+(defface display-time-date-and-time nil
   "Face for `display-time-format'."
   :group 'mode-line-faces
   :version "30.1")
@@ -184,7 +184,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
      (format-time-string (or display-time-format
 			     (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			 now)
-     'face 'display-time-time-and-date-indicator
+     'face 'display-time-date-and-time
      'help-echo (format-time-string "%a %b %e, %Y" now))
     load
     (if mail
