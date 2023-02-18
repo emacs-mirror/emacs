@@ -364,5 +364,18 @@
                            (call-interactively f))
                      '((t 51696) (nil 51695) (t 51697)))))))
 
+(ert-deftest cconv-safe-for-space ()
+  (let* ((magic-string "This-is-a-magic-string")
+         (safe-p (lambda (x) (not (string-match magic-string (format "%S" x))))))
+    (should (funcall safe-p (lambda (x) (+ x 1))))
+    (should (funcall safe-p (eval '(lambda (x) (+ x 1))
+                                  `((y . ,magic-string)))))
+    (should (funcall safe-p (eval '(lambda (x) :closure-dont-trim-context)
+                                  `((y . ,magic-string)))))
+    (should-not (funcall safe-p
+                         (eval '(lambda (x) :closure-dont-trim-context (+ x 1))
+                               `((y . ,magic-string)))))))
+
+
 (provide 'cconv-tests)
 ;;; cconv-tests.el ends here

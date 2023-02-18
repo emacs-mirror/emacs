@@ -113,10 +113,6 @@ is less than this number.")
 (defvar cconv--dynbound-variables nil
   "List of variables known to be dynamically bound.")
 
-(defvar cconv-dont-trim-unused-variables nil
-  "When bound to non-nil, don't remove unused variables from the environment.
-This is intended for use by edebug and similar.")
-
 ;;;###autoload
 (defun cconv-closure-convert (form &optional dynbound-vars)
   "Main entry point for closure conversion.
@@ -882,15 +878,22 @@ lexically and dynamically bound symbols actually used by FORM."
         (cons fvs dyns)))))
 
 (defun cconv-make-interpreted-closure (fun env)
+  ;; FIXME: I don't know what "This function is evaluated both at
+  ;; compile time and run time" is intended to mean here.
   "Make a closure for the interpreter.
 This function is evaluated both at compile time and run time.
 FUN, the closure's function, must be a lambda form.
 ENV, the closure's environment, is a mixture of lexical bindings of the form
-(SYMBOL . VALUE) and symbols which indicate dynamic bindings of those
+\(SYMBOL . VALUE) and symbols which indicate dynamic bindings of those
 symbols."
   (cl-assert (eq (car-safe fun) 'lambda))
   (let ((lexvars (delq nil (mapcar #'car-safe env))))
-    (if (or cconv-dont-trim-unused-variables (null lexvars))
+    (if (or (null lexvars)
+            ;; Functions with a `:closure-dont-trim-context' marker
+            ;; should keep their whole context untrimmed (bug#59213).
+            (and (eq :closure-dont-trim-context (nth 2 fun))
+                 ;; Check the function doesn't just return the magic keyword.
+                 (nthcdr 3 fun)))
         ;; The lexical environment is empty, or needs to be preserved,
         ;; so there's no need to look for free variables.
         ;; Attempting to replace ,(cdr fun) by a macroexpanded version
