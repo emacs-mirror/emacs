@@ -768,7 +768,7 @@ android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
 AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
-AC_ARG_VAR([SDK_BULD_TOOLS], [Path to the Android SDK build tools.])
+AC_ARG_VAR([SDK_BUILD_TOOLS], [Path to the Android SDK build tools.])
 
 if test "$with_android" = "yes"; then
    AC_MSG_ERROR([Please specify the path to the Android.jar file, like so:
