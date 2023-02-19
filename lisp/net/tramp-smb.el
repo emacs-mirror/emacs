@@ -757,7 +757,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Read ACL data from connection buffer."
   (unless (process-live-p proc)
     ;; Accept pending output.
-    (while (tramp-accept-process-output proc))
+    (while (tramp-accept-process-output proc 0))
     (with-current-buffer (tramp-get-connection-buffer vec)
       ;; There might be a hidden password prompt.
       (widen)
@@ -1361,7 +1361,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Set ACL data."
   (unless (process-live-p proc)
     ;; Accept pending output.
-    (while (tramp-accept-process-output proc))
+    (while (tramp-accept-process-output proc 0))
     (tramp-message
      vec 10 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
     (throw 'tramp-action 'ok)))
