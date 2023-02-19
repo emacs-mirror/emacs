@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 

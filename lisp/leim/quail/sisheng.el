@@ -1,6 +1,6 @@
 ;;; sisheng.el --- sisheng input method for Chinese pinyin transliteration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Werner LEMBERG <wl@gnu.org>
 

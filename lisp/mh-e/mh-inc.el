@@ -1,6 +1,6 @@
 ;;; mh-inc.el --- MH-E "inc" and separate mail spool handling  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

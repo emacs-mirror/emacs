@@ -1,6 +1,6 @@
 ;;; map-tests.el --- Tests for map.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org

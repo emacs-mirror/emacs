@@ -1,6 +1,6 @@
 ;;; ob-awk.el --- Babel Functions for Awk            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Tyler Smith <tyler@plantarum.ca>

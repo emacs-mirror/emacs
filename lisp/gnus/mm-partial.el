@@ -1,6 +1,6 @@
 ;;; mm-partial.el --- showing message/partial  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message partial

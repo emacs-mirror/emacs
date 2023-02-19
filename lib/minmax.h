@@ -1,5 +1,5 @@
 /* MIN, MAX macros.
-   Copyright (C) 1995, 1998, 2001, 2003, 2005, 2009-2022 Free Software
+   Copyright (C) 1995, 1998, 2001, 2003, 2005, 2009-2023 Free Software
    Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

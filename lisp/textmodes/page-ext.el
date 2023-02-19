@@ -1,6 +1,6 @@
 ;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990-2023 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
 ;; (according to ack.texi)

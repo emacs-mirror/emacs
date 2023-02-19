@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2022 Free Software Foundation, Inc.
+Copyright 2015-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

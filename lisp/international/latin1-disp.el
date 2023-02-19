@@ -1,6 +1,6 @@
 ;;; latin1-disp.el --- display tables for non-ASCII on Latin-1 terminals -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

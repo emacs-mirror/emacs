@@ -1,6 +1,6 @@
 ;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org

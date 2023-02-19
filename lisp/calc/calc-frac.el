@@ -1,6 +1,6 @@
 ;;; calc-frac.el --- fraction functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
