@@ -1669,9 +1669,9 @@ in an external viewer.  You must first configure
 
   You can delete images through Image-Dired also.  Type @kbd{d}
 (@code{image-dired-flag-thumb-original-file}) to flag the image file
-for deletion in the Dired buffer.  You can also remove the thumbnail
-image from the thumbnail buffer with @kbd{C-d}
-(@code{image-dired-delete-char}).
+for deletion in the Dired buffer.  Alternatively, you can remove an
+image's thumbnail from the thumbnail buffer without flagging the image
+for deletion, by typing @kbd{C-d} (@code{image-dired-delete-char}).
 
 @findex image-dired-dired-toggle-marked-thumbs
 @findex image-dired-dired-display-external
