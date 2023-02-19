@@ -2565,6 +2565,8 @@ sfntfont_close (struct font *font)
   xfree (info->cvt);
   xfree (info->interpreter);
 
+#ifdef HAVE_MMAP
+
   /* Unlink INFO.  */
 
   next = &open_fonts;
@@ -2574,6 +2576,8 @@ sfntfont_close (struct font *font)
   if (*next)
     *next = info->next;
   info->next = NULL;
+
+#endif /* HAVE_MMAP */
 
   sfntfont_free_outline_cache (&info->outline_cache);
   sfntfont_free_raster_cache (&info->raster_cache);
