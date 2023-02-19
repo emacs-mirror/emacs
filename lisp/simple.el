@@ -9884,7 +9884,12 @@ minibuffer, but don't quit the completions window."
       (with-current-buffer buffer
         (choose-completion-string
          choice buffer
-         (or (and completion-use-base-affixes base-affixes)
+         ;; Don't allow affixes to replace the whole buffer when not
+         ;; in the minibuffer.  Thus check for `completion-in-region-mode'
+         ;; to ignore non-nil value of `completion-use-base-affixes' set by
+         ;; `minibuffer-choose-completion'.
+         (or (and (not completion-in-region-mode)
+                  completion-use-base-affixes base-affixes)
              base-position
              ;; If all else fails, just guess.
              (list (choose-completion-guess-base-position choice)))
