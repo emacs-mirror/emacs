@@ -154,7 +154,8 @@ src/libemacs.so: src/Makefile src/config.h src/verbose.mk \
   lib/libgnu.a $(PRE_BUILD_DEPS)
 	$(MAKE) -C src libemacs.so
 
-src/android-emacs: src/Makefile src/config.h $(PRE_BUILD_DEPS)
+src/android-emacs: src/Makefile src/config.h lib/libgnu.a \
+  $(PRE_BUILD_DEPS)
 	$(MAKE) -C src android-emacs
 
 lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
