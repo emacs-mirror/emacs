@@ -158,6 +158,7 @@
      (macro_definition (identifier) @font-lock-preprocessor-face)
      (field_declaration name: (field_identifier) @font-lock-property-face)
      (parameter pattern: (_) @rust-ts-mode--fontify-pattern)
+     (closure_parameters (_) @rust-ts-mode--fontify-pattern)
      (let_declaration pattern: (_) @rust-ts-mode--fontify-pattern)
      (for_expression pattern: (_) @rust-ts-mode--fontify-pattern)
      (let_condition pattern: (_) @rust-ts-mode--fontify-pattern)

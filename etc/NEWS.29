@@ -1162,12 +1162,6 @@ commands are now available with key sequences that start with the
 'C-x w' prefix.
 
 +++
-*** New user option 'display-buffer-avoid-small-windows'.
-If non-nil, this should be a window height in lines, a number.
-Windows smaller than this will be avoided by 'display-buffer', if
-possible.
-
-+++
 *** New display action 'display-buffer-full-frame'.
 This action removes other windows from the frame when displaying a
 buffer on that frame.

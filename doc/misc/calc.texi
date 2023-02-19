@@ -232,7 +232,8 @@ series of calculators, its many features include:
 
 @itemize @bullet
 @item
-Choice of algebraic or RPN (stack-based) entry of calculations.
+Choice of algebraic or Reverse Polish notation (RPN),
+i.e. stack-based, entry of calculations.
 
 @item
 Arbitrary precision integers and floating-point numbers.
@@ -421,8 +422,8 @@ difference between lower-case and upper-case letters.  Remember,
 @key{RET}, @key{TAB}, @key{DEL}, and @key{SPC} are the Return, Tab,
 Delete, and Space keys.
 
-@strong{RPN calculation.}  In RPN, you type the input number(s) first,
-then the command to operate on the numbers.
+@strong{RPN calculation.}  In Reverse Polish notation (RPN), you type
+the input number(s) first, then the command to operate on the numbers.
 
 @noindent
 Type @kbd{2 @key{RET} 3 + Q} to compute
@@ -1348,18 +1349,19 @@ to control various modes of the Calculator.
 @subsection RPN Calculations and the Stack
 
 @cindex RPN notation
+@cindex Reverse Polish notation
 @noindent
 @ifnottex
-Calc normally uses RPN notation.  You may be familiar with the RPN
-system from Hewlett-Packard calculators, FORTH, or PostScript.
-(Reverse Polish Notation, RPN, is named after the Polish mathematician
-Jan Lukasiewicz.)
+Calc normally uses Reverse Polish notation (RPN).  You may be familiar
+with the RPN system from Hewlett-Packard calculators, FORTH, or
+PostScript.  (Reverse Polish Notation is named after the Polish
+mathematician Jan Lukasiewicz.)
 @end ifnottex
 @tex
-Calc normally uses RPN notation.  You may be familiar with the RPN
-system from Hewlett-Packard calculators, FORTH, or PostScript.
-(Reverse Polish Notation, RPN, is named after the Polish mathematician
-Jan \L ukasiewicz.)
+Calc normally uses Reverse Polish notation (RPN).  You may be familiar
+with the RPN system from Hewlett-Packard calculators, FORTH, or
+PostScript.  (Reverse Polish Notation is named after the Polish
+mathematician Jan \L ukasiewicz.)
 @end tex
 
 The central component of an RPN calculator is the @dfn{stack}.  A

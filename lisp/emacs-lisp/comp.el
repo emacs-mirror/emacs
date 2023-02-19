@@ -3794,7 +3794,8 @@ Return the trampoline if found or nil otherwise."
   "Return the absolute filename for a trampoline for SUBR-NAME."
   (cl-loop
    with dirs = (if (stringp native-comp-enable-subr-trampolines)
-                   (list native-comp-enable-subr-trampolines)
+                   (list (expand-file-name native-comp-enable-subr-trampolines
+                                           invocation-directory))
                  (if native-compile-target-directory
                      (list (expand-file-name comp-native-version-dir
                                              native-compile-target-directory))

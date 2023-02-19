@@ -762,10 +762,15 @@ future use.  */)
 
 DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
        doc: /* Return the use time of window WINDOW.
-WINDOW must be a live window and defaults to the selected one.
-The window with the highest use time is the most recently selected
-one.  The window with the lowest use time is the least recently
-selected one.  */)
+WINDOW must specify a live window and defaults to the selected one.
+
+The window with the highest use time is usually the one most recently
+selected by calling `select-window' with NORECORD nil.  The window with
+the lowest use time is usually the least recently selected one chosen in
+such a way.
+
+Note that the use time of a window can be also changed by calling
+`window-bump-use-time' for that window.  */)
   (Lisp_Object window)
 {
   return make_fixnum (decode_live_window (window)->use_time);
@@ -773,15 +778,27 @@ selected one.  */)
 
 DEFUN ("window-bump-use-time", Fwindow_bump_use_time,
        Swindow_bump_use_time, 0, 1, 0,
-       doc: /* Mark WINDOW as having been most recently used.
-WINDOW must be a live window and defaults to the selected one.  */)
+       doc: /* Mark WINDOW as second most recently used.
+WINDOW must specify a live window.
+
+If WINDOW is not selected and the selected window has the highest use
+time of all windows, set the use time of WINDOW to that of the selected
+window, increase the use time of the selected window by one and return
+the new use time of WINDOW.  Otherwise, do nothing and return nil.  */)
   (Lisp_Object window)
 {
   struct window *w = decode_live_window (window);
+  struct window *sw = XWINDOW (selected_window);
 
-  w->use_time = ++window_select_count;
+  if (w != sw && sw->use_time == window_select_count)
+    {
+      w->use_time = window_select_count;
+      sw->use_time = ++window_select_count;
 
-  return Qnil;
+      return make_fixnum (w->use_time);
+    }
+  else
+    return Qnil;
 }
 
 DEFUN ("window-pixel-width", Fwindow_pixel_width, Swindow_pixel_width, 0, 1, 0,

@@ -3759,14 +3759,15 @@ the python shell:
      whitespaces will be removed.  Otherwise, wraps indented
      regions under an \"if True:\" block so the interpreter
      evaluates them correctly."
-  (let* ((single-p (save-restriction
-                     (narrow-to-region start end)
-                     (= (progn
-                          (goto-char start)
-                          (python-nav-beginning-of-statement))
-                        (progn
-                          (goto-char end)
-                          (python-nav-beginning-of-statement)))))
+  (let* ((single-p (save-excursion
+                     (save-restriction
+                       (narrow-to-region start end)
+                       (= (progn
+                            (goto-char start)
+                            (python-nav-beginning-of-statement))
+                          (progn
+                            (goto-char end)
+                            (python-nav-beginning-of-statement))))))
          (start (save-excursion
                   ;; If we're at the start of the expression, and if
                   ;; the region consists of a single statement, then
@@ -3785,10 +3786,11 @@ the python shell:
                         (line-beginning-position)
                       start))))
          (substring (buffer-substring-no-properties start end))
-         (starts-at-first-line-p (save-restriction
-                                   (widen)
-                                   (goto-char start)
-                                   (= (line-number-at-pos) 1)))
+         (starts-at-first-line-p (save-excursion
+                                   (save-restriction
+                                     (widen)
+                                     (goto-char start)
+                                     (= (line-number-at-pos) 1))))
          (encoding (python-info-encoding))
          (toplevel-p (zerop (save-excursion
                               (goto-char start)

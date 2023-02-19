@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
-;; Version: 0.9.7
+;; Version: 0.9.8
 ;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -512,8 +512,6 @@ project backend implementation of `project-external-roots'.")
 See `project-vc-extra-root-markers' for the marker value format.")
 
 (defun project-try-vc (dir)
-  (defvar vc-svn-admin-directory)
-  (require 'vc-svn)
   ;; FIXME: Learn to invalidate when the value of
   ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
   ;; changes.

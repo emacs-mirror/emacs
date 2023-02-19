@@ -189,6 +189,14 @@ default to `point-min' and `point-max' respectively."
                            (overlay-end overlay))))
       (buffer-substring-no-properties (point-min) (point-max)))))
 
+(defun python-tests-should-not-move (func &rest args)
+  "Assert that point does not move while calling FUNC with ARGS.
+Returns the value returned by FUNC."
+  (let ((pos (point))
+        (ret (apply func args)))
+    (should (= pos (point)))
+    ret))
+
 (defun python-virt-bin (&optional virt-root)
   "Return the virtualenv bin dir, starting from VIRT-ROOT.
 If nil, VIRT-ROOT defaults to `python-shell-virtualenv-root'.
@@ -4213,7 +4221,8 @@ class Bar(models.Model):
     pass
 "
    (should (string= (buffer-string)
-                    (python-shell-buffer-substring (point-min) (point-max))))))
+                    (python-tests-should-not-move
+                     #'python-shell-buffer-substring (point-min) (point-max))))))
 
 (ert-deftest python-shell-buffer-substring-2 ()
   "Main block should be removed if NOMAIN is non-nil."
@@ -4229,7 +4238,8 @@ if __name__ == \"__main__\":
     foo = Foo()
     print (foo)
 "
-   (should (string= (python-shell-buffer-substring (point-min) (point-max) t)
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring (point-min) (point-max) t)
                     "
 class Foo(models.Model):
     pass
@@ -4256,7 +4266,8 @@ if __name__ == \"__main__\":
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring (point-min) (point-max) t)
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring (point-min) (point-max) t)
                     "
 class Foo(models.Model):
     pass
@@ -4284,7 +4295,8 @@ if __name__ == \"__main__\":
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "class Foo(models.Model):")
                      (progn (python-nav-forward-sexp) (point)))
                     "# -*- coding: latin-1 -*-
@@ -4307,7 +4319,8 @@ if __name__ == \"__main__\":
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "class Bar(models.Model):")
                      (progn (python-nav-forward-sexp) (point)))
                     "# -*- coding: latin-1 -*-
@@ -4338,7 +4351,8 @@ if __name__ == \"__main__\":
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "# coding: latin-1")
                      (python-tests-look-at "if __name__ == \"__main__\":"))
                     "# -*- coding: latin-1 -*-
@@ -4365,7 +4379,8 @@ if __name__ == \"__main__\":
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "# coding: latin-1")
                      (python-tests-look-at "if __name__ == \"__main__\":"))
                     "# -*- coding: utf-8 -*-
@@ -4385,7 +4400,8 @@ class Foo(models.Model):
 class Foo(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring (point-min) (point-max))
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring (point-min) (point-max))
                     "# coding: utf-8
 
 
@@ -4404,7 +4420,8 @@ class Foo(models.Model):
 class Bar(models.Model):
     pass
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (point-min)
                      (python-tests-look-at "class Bar(models.Model):"))
                     "# coding: utf-8
@@ -4421,7 +4438,8 @@ class Foo(models.Model):
 def foo():
     print ('a')
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "print ('a')")
                      (point-max))
                     "# -*- coding: utf-8 -*-\nif True:\n    print ('a')\n\n"))))
@@ -4433,7 +4451,8 @@ def foo():
 def foo():
     print ('a')
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (progn
                        (python-tests-look-at "print ('a')")
                        (backward-char 1)
@@ -4451,7 +4470,8 @@ def foo():
 
     print ('a')
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "# Whitespace")
                      (point-max))
                     "# -*- coding: utf-8 -*-\n\nif True:\n        # Whitespace\n\n    print ('a')\n\n"))))
@@ -4463,7 +4483,8 @@ def foo():
 def foo():
     a = 1
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "a = 1")
                      (pos-eol))
                     "# -*- coding: utf-8 -*-\n\na = 1"))))
@@ -4476,7 +4497,8 @@ def foo():
     a = \"\"\"Some
     string\"\"\"
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "a = \"\"\"Some")
                      (pos-eol 2))
                     "# -*- coding: utf-8 -*-\n\na = \"\"\"Some\n    string\"\"\""))))
@@ -4488,7 +4510,8 @@ def foo():
 def foo():
     a = 1
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "    a = 1")
                      (python-tests-look-at " = 1"))
                     "# -*- coding: utf-8 -*-\n\na"))))
@@ -4500,7 +4523,8 @@ def foo():
 def foo():
     a = 1
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "1")
                      (1+ (point)))
                     "# -*- coding: utf-8 -*-\n\n1"))))
@@ -4515,7 +4539,8 @@ def foo():
     b = 2
 \"\"\"
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "a = 1")
                      (python-tests-look-at "\"\"\""))
                     "# -*- coding: utf-8 -*-\n\nif True:\n    a = 1\n    b = 2\n\n"))))
@@ -4525,7 +4550,8 @@ def foo():
   (python-tests-with-temp-buffer
    "s = 'test'
 "
-   (should (string= (python-shell-buffer-substring
+   (should (string= (python-tests-should-not-move
+                     #'python-shell-buffer-substring
                      (python-tests-look-at "'test'")
                      (pos-eol))
                     "'test'"))))
