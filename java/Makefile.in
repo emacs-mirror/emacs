@@ -149,10 +149,11 @@ $(libsrc)/asset-directory-tool:
 
 # install_tmp is a directory used to generate emacs.apk-in.
 # That is then packaged into $(APK_NAME).
+# There is no need to depend on NDK_BUILD_SHARED as libemacs.so
+# does already.
 
 .PHONY: install_temp install_temp/assets/directory-tree
-install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(NDK_BUILD_SHARED)	\
-  $(RESOURCE_FILES)
+install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	$(AM_V_GEN)
 # Make the working directory for this stuff
 	$(AM_V_SILENT) rm -rf install_temp

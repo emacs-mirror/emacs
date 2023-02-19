@@ -770,12 +770,13 @@ libemacs.so: $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
 	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@
 
 # There is also a binary named `android-emacs' which simply calls
-# emacs.so.
+# emacs.so.  It need not link against libemacs because app_process
+# will do that instead.
 
-android-emacs: libemacs.so android-emacs.c
+android-emacs: android-emacs.c
 	$(AM_V_CCLD)$(CC) $(lastword $^) -o $@ \
-	  $(ALL_CFLAGS) $(LDFLAGS)		\
-	  $(LIBEGNU_ARCHIVE) -L. "-l:libemacs.so"
+	  $(ALL_CFLAGS) $(LDFLAGS)	       \
+	  $(LIBEGNU_ARCHIVE)
 endif
 
 ## The following oldxmenu-related rules are only (possibly) used if

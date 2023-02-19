@@ -149,9 +149,13 @@ src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
 	sed -i 's/-I\$$(top_srcdir)\/lib//g' src/Makefile
 
 .PHONY: src/android-emacs src/libemacs.so
-src/android-emacs src/libemacs.so &: src/Makefile src/config.h \
-  src/verbose.mk lib/libgnu.a $(PRE_BUILD_DEPS)
-	$(MAKE) -C src android-emacs libemacs.so
+
+src/libemacs.so: src/Makefile src/config.h src/verbose.mk \
+  lib/libgnu.a $(PRE_BUILD_DEPS)
+	$(MAKE) -C src libemacs.so
+
+src/android-emacs: src/Makefile src/config.h $(PRE_BUILD_DEPS)
+	$(MAKE) -C src android-emacs
 
 lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
 	$(AM_V_GEN) mkdir -p src lib-src
