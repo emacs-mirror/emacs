@@ -891,7 +891,7 @@ Returns a pair (LEXV . DYNV) of those vars actually used by FORM."
               (pcase expanded-form
                 (`#'(lambda . ,cdr) cdr)
                 (_ (cdr fun))))
-         
+
              (dynvars (delq nil (mapcar (lambda (b) (if (symbolp b) b)) env)))
              (fvs (cconv-fv expanded-form lexvars dynvars))
              (newenv (nconc (mapcar (lambda (fv) (assq fv env)) (car fvs))

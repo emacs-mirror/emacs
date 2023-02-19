@@ -3964,7 +3964,7 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     ;; "throw" in `c-type-modifier-kwds' is followed
 		     ;; by a parenthesis list, but no extra measures
 		     ;; are necessary to handle that.
-		     (regexp-opt 
+		     (regexp-opt
 		      (append (c-lang-const c-fun-name-substitute-kwds)
 			      (c-lang-const c-type-modifier-kwds))
 		      t)

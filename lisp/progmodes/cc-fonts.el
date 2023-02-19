@@ -2070,7 +2070,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
   (while (and (< (point) limit)
-	      (re-search-forward 
+	      (re-search-forward
 	       "\\<\\(module\\|export\\|import\\)\\>\\(?:[^_$]\\|$\\)"
 	       limit t))
     (goto-char (match-end 1))
