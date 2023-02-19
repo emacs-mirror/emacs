@@ -667,8 +667,29 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 	    }
 	  font_object = font_open_for_lface (f, font_entity, face->lface,
 					     FONT_DEF_SPEC (font_def));
+
+	  /* If the font registry is not the same as explicitly
+	     specified in the font spec, do not cache the font.
+	     TrueType fonts have contrived character map selection
+	     semantics which makes determining the repertory at font
+	     spec matching time unduly expensive.  */
+
+	  {
+	    Lisp_Object spec;
+
+	    spec = FONT_DEF_SPEC (font_def);
+
+	    if (!NILP (font_object)
+		&& !NILP (AREF (spec, FONT_REGISTRY_INDEX))
+		&& !NILP (AREF (font_object, FONT_REGISTRY_INDEX))
+		&& !EQ (AREF (spec, FONT_REGISTRY_INDEX),
+			AREF (font_object, FONT_REGISTRY_INDEX)))
+	      goto strangeness;
+	  }
+
 	  if (NILP (font_object))
 	    {
+	    strangeness:
 	      /* Something strange happened, perhaps because of a
 		 Font-backend problem.  To avoid crashing, record
 		 that this spec is unusable.  It may be better to find
