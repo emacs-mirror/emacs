@@ -3590,6 +3590,9 @@ character.  This is not possible when using `read-key', but using
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
+;; Actually in textconv.c.
+(defvar overriding-text-conversion-style)
+
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
 Return t if answer is \"y\" and nil if it is \"n\".
@@ -3696,6 +3699,9 @@ like) while `y-or-n-p' is running)."
       (setq prompt (funcall padded prompt))
       (let* ((enable-recursive-minibuffers t)
              (msg help-form)
+             ;; Disable text conversion so that real Y or N events are
+             ;; sent.
+             (overriding-text-conversion-style nil)
              (keymap (let ((map (make-composed-keymap
                                  y-or-n-p-map query-replace-map)))
                        (when help-form

@@ -1285,6 +1285,39 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
   return Qtrue_color;
 }
 
+#ifndef ANDROID_STUBIFY
+
+static Lisp_Object
+android_make_monitor_attribute_list (struct MonitorInfo *monitors,
+				     int n_monitors,
+				     int primary_monitor)
+{
+  Lisp_Object monitor_frames;
+  Lisp_Object frame, rest;
+  struct frame *f;
+
+  monitor_frames = make_nil_vector (n_monitors);
+
+  FOR_EACH_FRAME (rest, frame)
+    {
+      f = XFRAME (frame);
+
+      /* Associate all frames with the primary monitor.  */
+
+      if (FRAME_WINDOW_P (f)
+	  && !FRAME_TOOLTIP_P (f))
+	ASET (monitor_frames, primary_monitor,
+	      Fcons (frame, AREF (monitor_frames,
+				  primary_monitor)));
+    }
+
+  return make_monitor_attribute_list (monitors, n_monitors,
+				      primary_monitor,
+                                      monitor_frames, NULL);
+}
+
+#endif
+
 DEFUN ("android-display-monitor-attributes-list",
        Fandroid_display_monitor_attributes_list,
        Sandroid_display_monitor_attributes_list,
@@ -1312,9 +1345,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   monitor.work = monitor.geom;
   monitor.name = (char *) "Android device monitor";
 
-  /* What to do about monitor_frames? */
-  return make_monitor_attribute_list (&monitor, 1,
-				      0, Qnil, NULL);
+  return android_make_monitor_attribute_list (&monitor, 1, 0);
 #endif
 }
 
