@@ -10801,7 +10801,8 @@ If the buffer doesn't exist, create it first."
            '((?y "yes" "kill buffer without saving")
              (?n "no" "exit without doing anything")
              (?s "save and then kill" "save the buffer and then kill it"))
-           nil nil (not use-short-answers)))))
+           nil nil (and (not use-short-answers)
+                        (not (use-dialog-box-p)))))))
     (if (equal response "no")
         nil
       (unless (equal response "yes")
