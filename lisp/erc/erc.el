@@ -1549,10 +1549,14 @@ effect when `erc-join-buffer' is set to `frame'."
 (defun erc-channel-p (channel)
   "Return non-nil if CHANNEL seems to be an IRC channel name."
   (cond ((stringp channel)
-         (memq (aref channel 0) '(?# ?& ?+ ?!)))
-        ((and (bufferp channel) (buffer-live-p channel))
-         (with-current-buffer channel
-           (erc-channel-p (erc-default-target))))
+         (memq (aref channel 0)
+               (if-let ((types (erc--get-isupport-entry 'CHANTYPES 'single)))
+                   (append types nil)
+                 '(?# ?& ?+ ?!))))
+        ((and-let* (((bufferp channel))
+                    ((buffer-live-p channel))
+                    (target (buffer-local-value 'erc--target channel)))
+           (erc-channel-p (erc--target-string target))))
         (t nil)))
 
 ;; For the sake of compatibility, a historical quirk concerning this

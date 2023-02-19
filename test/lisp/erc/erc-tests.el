@@ -447,6 +447,27 @@
       (should (equal (erc-downcase "Tilde~") "tilde~" ))
       (should (equal (erc-downcase "\\O/") "|o/" )))))
 
+(ert-deftest erc-channel-p ()
+  (let ((erc--isupport-params (make-hash-table))
+        erc-server-parameters)
+
+    (should (erc-channel-p "#chan"))
+    (should (erc-channel-p "##chan"))
+    (should (erc-channel-p "&chan"))
+    (should (erc-channel-p "+chan"))
+    (should (erc-channel-p "!chan"))
+    (should-not (erc-channel-p "@chan"))
+
+    (push '("CHANTYPES" . "#&@+!") erc-server-parameters)
+
+    (should (erc-channel-p "!chan"))
+    (should (erc-channel-p "#chan"))
+
+    (with-current-buffer (get-buffer-create "#chan")
+      (setq erc--target (erc--target-from-string "#chan")))
+    (should (erc-channel-p (get-buffer "#chan"))))
+  (kill-buffer "#chan"))
+
 (ert-deftest erc--valid-local-channel-p ()
   (ert-info ("Local channels not supported")
     (let ((erc--isupport-params (make-hash-table)))
