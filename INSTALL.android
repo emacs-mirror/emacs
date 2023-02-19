@@ -14,7 +14,7 @@ Android is an unusual operating system in that program binaries cannot
 be produced on computers running Android themselves.  Instead, they
 must be built on some other computer using a set of tools known as the
 ``Android SDK'' (Software Development Kit) and the ``Android NDK''
-(Native Development Kit).  Appropriate versions of both must be
+(Native Development Kit.)  Appropriate versions of both must be
 obtained to build GNU Emacs; after being built, the generated binaries
 will work on almost all Android devices.  This document does not
 elaborate on how both sets of tools can be obtained.  However, for
@@ -23,6 +23,9 @@ Debian project.
 
 In addition to the Android SDK and Android NDK, Emacs also requires
 the Java compiler from OpenJDK 1.7.0 to be installed on your system.
+Building on GNU systems is all that is officially supported.  We are
+told that Mac OS works too, and other Unix systems will likely work
+as well, but MS Windows and Cygwin will not.
 
 Once all of those tools are obtained, you may invoke the `configure'
 script like so:

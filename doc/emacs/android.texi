@@ -72,17 +72,49 @@ application icon is clicked.
 
   During startup, Emacs will display messages in the system log
 buffer; reading that buffer requires the Android Debug Bridge
-(@code{adb}) utility to be installed on another computer; it cannot be
-read on the computer running Android itself.
+(@command{adb}) utility to be installed on another computer; it cannot
+be read on the computer running Android itself.
 
   After enabling the ``USB Debugging'' feature on the Android system,
-and connecting it via USB to another system with the @code{adb}
+and connecting it via USB to another system with the @command{adb}
 utility installed, the log can be viewed by running the following
 command on that other system:
 
 @example
 $ adb logcat | grep -E "(android_run_debug_thread|[Ee]macs)"
 @end example
+
+  Assuming that the @command{adb} utility is installed on a GNU/Linux
+or Unix system, follow the steps below to connect to your device.
+
+@enumerate
+@item
+Enable ``developer options'' on your device, by going to the ``About''
+page in the system settings application and clicking on the ``build
+version'' or ``kernel version'' items five to seven times.
+
+@item
+Turn on the switch ``USB debugging''.
+
+@item
+Connect one end of a USB cable to your device, and the other end to
+your computer's USB port.
+
+@item
+Run the command @command{adb shell} on your computer.  This will fail
+or hang because you have not yet granted your computer permission to
+access the connected device.
+
+@item
+Confirm the pop-up displayed on your device asking whether or not it
+should allow access from your computer.
+@end enumerate
+
+  Depending on the versions of Android and @command{adb} installed,
+there may be other ways to establish a connection.  See the official
+documentation at
+@url{https://developer.android.com/studio/command-line/adb} for more
+details.
 
 @cindex emacsclient wrapper, android
   Since there is no other way to start the @command{emacsclient}
