@@ -593,7 +593,8 @@ thumbnail buffer to be selected."
       (if do-not-pop
           (display-buffer buf)
         (pop-to-buffer buf))
-      (image-dired--line-up-with-method))))
+      (image-dired--line-up-with-method)
+      (image-dired--update-header-line))))
 
 ;;;###autoload
 (defun image-dired-show-all-from-dir (dir)

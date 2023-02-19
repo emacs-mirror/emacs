@@ -797,12 +797,10 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 					   max (visible_beg, old_end_byte))
 				      - visible_beg);
 	  /* We don't clip new_end_offset under visible_end, because
-             inserting in narrowed region always extends the visible
-             region.  If we clip new_end_offset here, and re-add the
-             clipped "tail" in treesit_sync_visible_region later,
-             while it is technically equivalent, tree-sitter's
-             incremental parsing algorithm doesn't seem to like it
-             (bug#61369).  */
+	     otherwise we would miss updating the clipped part.  Plus,
+	     when inserting in narrowed region, the narrowed region
+	     will grow to accommodate the new text, so this is the
+	     correct behavior.  (Bug#61369).  */
 	  ptrdiff_t new_end_offset = (max (visible_beg, new_end_byte)
 				      - visible_beg);
 	  eassert (start_offset <= old_end_offset);

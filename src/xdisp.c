@@ -9609,8 +9609,8 @@ move_it_in_display_line_to (struct it *it,
 	  else
 	    line_number_pending = true;
 	}
-      /* If there's a line-/wrap-prefix, handle it.  */
-      if (it->method == GET_FROM_BUFFER)
+      /* If there's a line-/wrap-prefix, handle it, if we didn't already.  */
+      if (it->area == TEXT_AREA && !it->string_from_prefix_prop_p)
 	handle_line_prefix (it);
     }
 
