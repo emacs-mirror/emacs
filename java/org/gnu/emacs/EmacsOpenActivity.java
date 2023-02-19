@@ -58,8 +58,10 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -174,6 +176,50 @@ public class EmacsOpenActivity extends Activity
     dialog.setMessage (text);
     dialog.setButton (DialogInterface.BUTTON_POSITIVE, "OK", this);
     dialog.show ();
+  }
+
+  /* Check that the specified FILE is readable.  If it is not, then
+     copy the file in FD to a location in the system cache
+     directory and return the name of that file.  */
+
+  private String
+  checkReadableOrCopy (String file, ParcelFileDescriptor fd)
+    throws IOException, FileNotFoundException
+  {
+    File inFile;
+    FileOutputStream outStream;
+    InputStream stream;
+    byte buffer[];
+    int read;
+
+    inFile = new File (file);
+
+    if (inFile.setReadable (true))
+      return file;
+
+    /* inFile is now the file being written to.  */
+    inFile = new File (getCacheDir (), inFile.getName ());
+    buffer = new byte[4098];
+    outStream = new FileOutputStream (inFile);
+    stream = new FileInputStream (fd.getFileDescriptor ());
+
+    try
+      {
+	while ((read = stream.read (buffer)) >= 0)
+	  outStream.write (buffer, 0, read);
+      }
+    finally
+      {
+	/* Note that this does not close FD.
+
+	   Keep in mind that execution is transferred to ``finally''
+	   even if an exception happens inside the while loop
+	   above.  */
+	stream.close ();
+	outStream.close ();
+      }
+
+    return inFile.getCanonicalPath ();
   }
 
   /* Finish this activity in response to emacsclient having
@@ -340,17 +386,19 @@ public class EmacsOpenActivity extends Activity
 		   opening the file and doing readlink on its file
 		   descriptor in /proc/self/fd.  */
 		resolver = getContentResolver ();
+		fd = null;
 
 		try
 		  {
 		    fd = resolver.openFileDescriptor (uri, "r");
 		    names = EmacsNative.getProcName (fd.getFd ());
-		    fd.close ();
 
 		    /* What is the right encoding here? */
 
 		    if (names != null)
 		      fileName = new String (names, "UTF-8");
+
+		    fileName = checkReadableOrCopy (fileName, fd);
 		  }
 		catch (FileNotFoundException exception)
 		  {
@@ -359,6 +407,18 @@ public class EmacsOpenActivity extends Activity
 		catch (IOException exception)
 		  {
 		    /* Do nothing.  */
+		  }
+
+		if (fd != null)
+		  {
+		    try
+		      {
+			fd.close ();
+		      }
+		    catch (IOException exception)
+		      {
+			/* Do nothing.  */
+		      }
 		  }
 	      }
 
