@@ -614,6 +614,7 @@ extern int android_wc_lookup_string (android_key_pressed_event *,
 extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
 			       ptrdiff_t, ptrdiff_t);
 extern void android_reset_ic (android_window, enum android_ic_mode);
+extern int android_set_fullscreen (android_window, bool);
 
 #endif
 

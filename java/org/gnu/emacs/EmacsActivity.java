@@ -26,12 +26,16 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
-import android.widget.FrameLayout;
-import android.widget.FrameLayout.LayoutParams;
 import android.view.Menu;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.FrameLayout;
 
 public class EmacsActivity extends Activity
   implements EmacsWindowAttachmentManager.WindowConsumer
@@ -55,6 +59,9 @@ public class EmacsActivity extends Activity
 
   /* Whether or not this activity is paused.  */
   private boolean isPaused;
+
+  /* Whether or not this activity is fullscreen.  */
+  private boolean isFullscreen;
 
   static
   {
@@ -104,6 +111,8 @@ public class EmacsActivity extends Activity
   public void
   detachWindow ()
   {
+    syncFullscreenWith (null);
+
     if (window == null)
       Log.w (TAG, "detachWindow called, but there is no window");
     else
@@ -130,6 +139,8 @@ public class EmacsActivity extends Activity
     if (window != null)
       throw new IllegalStateException ("trying to attach window when one"
 				       + " already exists");
+
+    syncFullscreenWith (child);
 
     /* Record and attach the view.  */
 
@@ -230,6 +241,9 @@ public class EmacsActivity extends Activity
   public void
   onWindowFocusChanged (boolean isFocused)
   {
+    Log.d (TAG, ("onWindowFocusChanged: "
+		 + (isFocused ? "YES" : "NO")));
+
     if (isFocused && !focusedActivities.contains (this))
       {
 	focusedActivities.add (this);
@@ -257,6 +271,9 @@ public class EmacsActivity extends Activity
   {
     isPaused = false;
 
+    /* Update the window insets.  */
+    syncFullscreenWith (window);
+
     EmacsWindowAttachmentManager.MANAGER.noticeDeiconified (this);
     super.onResume ();
   }
@@ -278,5 +295,89 @@ public class EmacsActivity extends Activity
       EmacsNative.sendContextMenu ((short) 0, 0);
 
     super.onContextMenuClosed (menu);
+  }
+
+  @SuppressWarnings ("deprecation")
+  public void
+  syncFullscreenWith (EmacsWindow emacsWindow)
+  {
+    WindowInsetsController controller;
+    Window window;
+    int behavior, flags;
+    View view;
+
+    if (emacsWindow != null)
+      isFullscreen = emacsWindow.fullscreen;
+    else
+      isFullscreen = false;
+
+    /* On Android 11 or later, use the window insets controller to
+       control whether or not the view is fullscreen.  */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+      {
+	window = getWindow ();
+
+	/* If there is no attached window, return immediately.  */
+	if (window == null)
+	  return;
+
+	behavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE;
+	controller = window.getInsetsController ();
+	controller.setSystemBarsBehavior (behavior);
+
+	if (isFullscreen)
+	  controller.hide (WindowInsets.Type.statusBars ()
+			   | WindowInsets.Type.navigationBars ());
+	else
+	  controller.show (WindowInsets.Type.statusBars ()
+			   | WindowInsets.Type.navigationBars ());
+
+	return;
+      }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+      {
+	/* On Android 4.1 or later, use `setSystemUiVisibility'.  */
+
+	window = getWindow ();
+
+	if (window == null)
+	  return;
+
+	view = window.getDecorView ();
+
+	if (isFullscreen)
+	  {
+	    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+	      /* This flag means that Emacs will be full screen, but
+		 the system will cancel the full screen state upon
+		 switching to another program.  */
+	      view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_FULLSCREEN);
+	    else
+	      {
+		/* These flags means that Emacs will be full screen as
+		   long as the state flag is set.  */
+		flags = 0;
+		flags |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+		flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+		flags |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+		flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+		view.setSystemUiVisibility (flags);
+	      }
+	  }
+	else
+	  view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_VISIBLE);
+      }
+  }
+
+  @Override
+  public void
+  onAttachedToWindow ()
+  {
+    super.onAttachedToWindow ();
+
+    /* Update the window insets.  */
+    syncFullscreenWith (window);
   }
 };

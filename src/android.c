@@ -136,6 +136,7 @@ struct android_emacs_window
   jmethodID swap_buffers;
   jmethodID toggle_on_screen_keyboard;
   jmethodID lookup_string;
+  jmethodID set_fullscreen;
 };
 
 /* The API level of the current device.  */
@@ -1920,6 +1921,7 @@ android_init_emacs_window (void)
   FIND_METHOD (toggle_on_screen_keyboard,
 	       "toggleOnScreenKeyboard", "(Z)V");
   FIND_METHOD (lookup_string, "lookupString", "(I)Ljava/lang/String;");
+  FIND_METHOD (set_fullscreen, "setFullscreen", "(Z)V");
 #undef FIND_METHOD
 }
 
@@ -5471,6 +5473,36 @@ android_reset_ic (android_window window, enum android_ic_mode mode)
 				       service_class.reset_ic,
 				       object, (jint) mode);
   android_exception_check ();
+}
+
+
+
+/* Window decoration management functions.  */
+
+/* Make the specified WINDOW fullscreen, i.e. obscure all of the
+   system navigation and status bars.  If not FULLSCREEN, make it
+   maximized instead.
+
+   Value is 1 if the system does not support this, else 0.  */
+
+int
+android_set_fullscreen (android_window window, bool fullscreen)
+{
+  jobject object;
+
+  /* Android 4.0 and earlier don't support fullscreen windows.  */
+
+  if (android_api_level < 16)
+    return 1;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       object,
+				       window_class.set_fullscreen,
+				       (jboolean) fullscreen);
+  android_exception_check ();
+  return 0;
 }
 
 

@@ -1792,12 +1792,30 @@ android_make_frame_visible_invisible (struct frame *f, bool visible)
 static void
 android_fullscreen_hook (struct frame *f)
 {
-  /* Explicitly setting fullscreen is not supported on Android.  */
+  Lisp_Object wanted;
 
   if (!FRAME_PARENT_FRAME (f))
-    store_frame_param (f, Qfullscreen, Qmaximized);
+    {
+      /* Explicitly setting fullscreen is not supported on older
+	 Android versions.  */
+
+      wanted = (f->want_fullscreen == FULLSCREEN_BOTH
+		? Qfullscreen : Qmaximized);
+
+      if (android_set_fullscreen (FRAME_ANDROID_WINDOW (f),
+				  EQ (wanted, Qfullscreen)))
+	store_frame_param (f, Qfullscreen, Qmaximized);
+      else
+        store_frame_param (f, Qfullscreen, wanted);
+    }
   else
-    store_frame_param (f, Qfullscreen, Qnil);
+    {
+      store_frame_param (f, Qfullscreen, Qnil);
+
+      /* If this is a child frame, don't keep it fullscreen
+	 anymore.  */
+      android_set_fullscreen (FRAME_ANDROID_WINDOW (f), false);
+    }
 }
 
 void

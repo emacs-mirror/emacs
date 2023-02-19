@@ -128,6 +128,9 @@ public class EmacsWindow extends EmacsHandleObject
      events.  */
   public LinkedHashMap<Integer, String> eventStrings;
 
+  /* Whether or not this window is fullscreen.  */
+  public boolean fullscreen;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -1178,5 +1181,28 @@ public class EmacsWindow extends EmacsHandleObject
       }
 
     return any;
+  }
+
+  public void
+  setFullscreen (final boolean isFullscreen)
+  {
+    EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  EmacsActivity activity;
+	  Object tem;
+
+	  fullscreen = isFullscreen;
+	  tem = getAttachedConsumer ();
+
+	  if (tem != null)
+	    {
+	      activity = (EmacsActivity) getAttachedConsumer ();
+	      activity.syncFullscreenWith (EmacsWindow.this);
+	    }
+	}
+      });
   }
 };
