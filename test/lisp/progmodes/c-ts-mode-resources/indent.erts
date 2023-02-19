@@ -242,6 +242,21 @@ line 2
  */
 =-=-=
 
+Name: Block Comment prefixes (Bug#61314)
+
+=-=-=
+/*
+- item1
+- item2
+- item3
+*/
+=-=-=
+/*
+  - item1
+  - item2
+  - item3
+ */
+=-=-=
 
 Code:
   (lambda ()
