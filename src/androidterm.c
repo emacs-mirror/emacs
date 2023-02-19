@@ -4831,8 +4831,8 @@ struct android_get_selection_context
   android_window window;
 
   /* The position of the window's point when it was last
-     redisplayed.  */
-  ptrdiff_t point;
+     redisplayed, and its last mark if active.  */
+  ptrdiff_t point, mark;
 };
 
 /* Function run on the main thread by `getSelection'.
@@ -4844,6 +4844,7 @@ android_get_selection (void *data)
   struct android_get_selection_context *context;
   struct frame *f;
   struct window *w;
+  struct buffer *b;
 
   context = data;
 
@@ -4860,25 +4861,50 @@ android_get_selection (void *data)
          rather important to keep the input method consistent with the
          contents of the display.  */
       context->point = w->ephemeral_last_point;
+
+      /* Default context->mark to w->last_point too.  */
+      context->mark = context->point;
+
+      /* If the mark is active, then set it properly.  */
+      b = XBUFFER (w->contents);
+      if (!NILP (BVAR (b, mark_active)) && w->last_mark != -1)
+	context->mark = w->last_mark;
     }
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jintArray JNICALL
 NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
 {
   struct android_get_selection_context context;
+  jintArray array;
+  jint contents[2];
 
   context.window = window;
 
   android_sync_edit ();
   if (android_run_in_emacs_thread (android_get_selection,
 				   &context))
-    return -1;
+    return NULL;
 
   if (context.point == -1)
-    return -1;
+    return NULL;
 
-  return min (context.point, TYPE_MAXIMUM (jint));
+  /* Wraparound actually makes more sense than truncation; at least
+     editing will sort of work.  */
+  contents[0] = (unsigned int) min (context.point,
+				    context.mark);
+  contents[1] = (unsigned int) max (context.point,
+				    context.mark);
+
+  /* Now create the array.  */
+  array = (*env)->NewIntArray (env, 2);
+
+  if (!array)
+    return NULL;
+
+  /* Set its contents.  */
+  (*env)->SetIntArrayRegion (env, array, 0, 2, contents);
+  return array;
 }
 
 JNIEXPORT void JNICALL

@@ -555,7 +555,8 @@ public class EmacsView extends ViewGroup
   public InputConnection
   onCreateInputConnection (EditorInfo info)
   {
-    int selection, mode;
+    int mode;
+    int[] selection;
 
     /* Figure out what kind of IME behavior Emacs wants.  */
     mode = getICMode ();
@@ -575,7 +576,7 @@ public class EmacsView extends ViewGroup
 
     /* If this fails or ANDROID_IC_MODE_NULL was requested, then don't
        initialize the input connection.  */
-    if (selection == -1 || mode == EmacsService.IC_MODE_NULL)
+    if (mode == EmacsService.IC_MODE_NULL || selection == null)
       {
 	info.inputType = InputType.TYPE_NULL;
 	return null;
@@ -585,8 +586,8 @@ public class EmacsView extends ViewGroup
       info.imeOptions |= EditorInfo.IME_ACTION_DONE;
 
     /* Set the initial selection fields.  */
-    info.initialSelStart = selection;
-    info.initialSelEnd = selection;
+    info.initialSelStart = selection[0];
+    info.initialSelEnd = selection[1];
 
     /* Create the input connection if necessary.  */
 

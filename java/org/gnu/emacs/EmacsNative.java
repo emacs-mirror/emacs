@@ -205,7 +205,7 @@ public class EmacsNative
 
   /* Return the current value of the selection, or -1 upon
      failure.  */
-  public static native int getSelection (short window);
+  public static native int[] getSelection (short window);
 
   static
   {
