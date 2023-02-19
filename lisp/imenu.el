@@ -756,9 +756,11 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
   (setq index-alist (imenu--split-submenus index-alist))
   (let* ((menu (imenu--split-menu index-alist (or title (buffer-name))))
 	 (map (imenu--create-keymap (car menu)
-				    (cdr (if (< 1 (length (cdr menu)))
-					     menu
-					   (car (cdr menu)))))))
+                                    (cdr (if (and (null (cddr menu))
+                                                  (stringp (caadr menu))
+                                                  (consp (cdadr menu)))
+                                             (cadr menu)
+                                           menu)))))
     (popup-menu map event)))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
@@ -854,13 +856,12 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
                                         (buffer-name)))
                (menu1 (imenu--create-keymap
                        (car menu)
-		       (cdr (if (or (< 1 (length (cdr menu)))
-                                    ;; Have we a non-nested single entry?
-                                    (atom (cdadr menu))
-                                    (atom (cadadr menu)))
-				menu
-			      (car (cdr menu))))
-		       'imenu--menubar-select)))
+                       (cdr (if (and (null (cddr menu))
+                                     (stringp (caadr menu))
+                                     (consp (cdadr menu)))
+                                (cadr menu)
+                              menu))
+                       'imenu--menubar-select)))
 	  (setcdr imenu--menubar-keymap (cdr menu1)))))))
 
 (defun imenu--menubar-select (item)
