@@ -167,28 +167,27 @@ to use the Thumbnail Managing Standard; they will be saved in
 There are three ways that Image-Dired can store and generate
 thumbnails:
 
- 1. According to the \"Thumbnail Managing Standard\", which allows
+ 1. According to the Thumbnail Managing Standard, which allows
     sharing of thumbnails across different programs.  Thumbnails
     will be stored in \"$XDG_CACHE_HOME/thumbnails/\"
 
-    To use this way, set this user option to one of the following values:
+    Set this user option to one of the following symbols:
 
     - `standard' means use thumbnails sized 128x128.
     - `standard-large' means use thumbnails sized 256x256.
     - `standard-x-large' means use thumbnails sized 512x512.
     - `standard-xx-large' means use thumbnails sized 1024x1024.
 
- 2. In the Image-Dired specific directory indicated by
+ 2. In the Image-Dired specific directory, as indicated by
     `image-dired-dir'.
 
-    To use this way, set this user option to `image-dired' (or
-    to `use-image-dired-dir', which means the same thing for
-    backward-compatibility reasons).
+    Set this user option to `image-dired' (`use-image-dired-dir'
+    also works, for backward-compatibility reasons).
 
  3. In a subdirectory \".image-dired\" in the same directory
-    where the image files are.
+    as the image files.
 
-    To use this way, set this user option to `per-directory'.
+    Set this user option to `per-directory'.
 
 To control the default size of thumbnails for alternatives (2)
 and (3) above, customize the value of `image-dired-thumb-size'.
