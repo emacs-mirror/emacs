@@ -121,17 +121,25 @@ CROSS_BINS = ../cross/src/android-emacs ../cross/lib-src/ctags	\
 # Libraries to cross-compile.
 CROSS_LIBS = ../cross/src/libemacs.so
 
+# Make sure gnulib is built first!
+# If not, then the recursive invocations of make below will try to
+# build gnulib at the same time.
+CROSS_ARCHIVES = ../cross/lib/libgnu.a
+
 # Third party libraries to compile.
 include $(top_builddir)/cross/ndk-build/ndk-build.mk
 
-.PHONY: $(CROSS_BINS) $(CROSS_LIBS)
+.PHONY: $(CROSS_BINS) $(CROSS_LIBS) $(CROSS_ARCHIVES)
 
-../cross/src/android-emacs ../cross/src/libemacs.so:
-	make -C ../cross src/$(notdir $@)
+../cross/src/android-emacs ../cross/src/libemacs.so: $(CROSS_ARCHIVES)
+	$(MAKE) -C ../cross src/$(notdir $@)
 
 ../cross/lib-src/hexl ../cross/lib-src/movemail \
-../cross/lib-src/ctags ../cross/lib-src/ebrowse &:
-	make -C ../cross lib-src/$(notdir $@)
+../cross/lib-src/ctags ../cross/lib-src/ebrowse &: $(CROSS_ARCHIVES)
+	$(MAKE) -C ../cross lib-src/$(notdir $@)
+
+../cross/lib/libgnu.a:
+	$(MAKE) -C ../cross lib/libgnu.a
 
 # This is needed to generate the ``.directory-tree'' file used by the
 # Android emulations of readdir and faccessat.

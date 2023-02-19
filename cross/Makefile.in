@@ -80,11 +80,11 @@ $(top_builddir)/lib/libgnu.a:
 	$(MAKE) -C $(top_builddir)/lib libgnu.a
 
 .PHONY: $(top_builddir)/lib-src/make-fingerprint
-$(top_builddir)/lib-src/make-fingerprint:
+$(top_builddir)/lib-src/make-fingerprint: $(top_builddir)/lib/libgnu.a
 	$(MAKE) -C $(top_builddir)/lib-src make-fingerprint
 
 .PHONY: $(top_builddir)/lib-src/make-docfile
-$(top_builddir)/lib-src/make-docfile:
+$(top_builddir)/lib-src/make-docfile: $(top_builddir)/lib/libgnu.a
 	$(MAKE) -C $(top_builddir)/lib-src make-docfile
 
 PRE_BUILD_DEPS=$(top_builddir)/lib/libgnu.a		\
