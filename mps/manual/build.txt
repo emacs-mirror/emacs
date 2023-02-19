@@ -1,5 +1,11 @@
 .. mode: -*- rst -*-
 
+.. NOTE: This file is a chapter of the MPS manual, and so uses some
+   Sphinx markup.  It does double-duty as plain text / GitHub rendered
+   instructions for bootstrapping the manual.  When editing, be
+   careful to ensure that the manual builds correctly.  See GitHub
+   issue #158 <https://github.com/Ravenbrook/mps/issues/158>.
+
 .. _guide-build:
 
 Building the Memory Pool System
