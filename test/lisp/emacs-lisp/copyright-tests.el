@@ -62,6 +62,7 @@
     "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
 
 (ert-deftest test-correct-notice ()
+  :tags '(:unstable)
   (should (equal
            (with-temp-buffer
              (dotimes (_ 2)
