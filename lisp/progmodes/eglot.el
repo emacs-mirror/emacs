@@ -2782,10 +2782,9 @@ for which LSP on-type-formatting should be requested."
               (cl-sort completions
                        #'string-lessp
                        :key (lambda (c)
-                              (or (plist-get
-                                   (get-text-property 0 'eglot--lsp-item c)
-                                   :sortText)
-                                  "")))))
+                              (plist-get
+                               (get-text-property 0 'eglot--lsp-item c)
+                               :sortText)))))
            (metadata `(metadata (category . eglot)
                                 (display-sort-function . ,sort-completions)))
            resp items (cached-proxies :none)
