@@ -2976,8 +2976,9 @@ not in completion mode."
   ;; We need special handling only when a method is needed.  Then we
   ;; regard all files "/method:" or "/[method/" as existent, if
   ;; "method" is a valid Tramp method.  And we regard all files
-  ;; "/method:user@host" or "/[method/user@host" as existent, if
-  ;; "user@host" is a valid file name completion.
+  ;; "/method:user@", "/user@" or "/[method/user@" as existent, if
+  ;; "user@" is a valid file name completion.  Host completion is
+  ;; performed in the respective backen operation.
   (or (and (cond
             ;; Completion styles like `flex' and `substring' check for
             ;; the file name "/".  This does exist.
@@ -2989,27 +2990,30 @@ not in completion mode."
 	            (regexp tramp-prefix-regexp)
 		    (* (regexp tramp-remote-file-name-spec-regexp)
 		       (regexp tramp-postfix-hop-regexp))
-	            (group (regexp tramp-method-regexp))
+	            (group-n 9 (regexp tramp-method-regexp))
 	            (? (regexp tramp-postfix-method-regexp))
                     eos)
                    filename))
-             (assoc (match-string 1 filename) tramp-methods))
-            ;; Is it a valid user@host?
+             (assoc (match-string 9 filename) tramp-methods))
+            ;; Is it a valid user?
             ((string-match
 	      (rx
                (regexp tramp-prefix-regexp)
 	       (* (regexp tramp-remote-file-name-spec-regexp)
 		  (regexp tramp-postfix-hop-regexp))
-               (group (regexp tramp-remote-file-name-spec-regexp))
+               (group-n 10
+		 (regexp tramp-method-regexp)
+		 (regexp tramp-postfix-method-regexp))
+	       (group-n 11
+		 (regexp tramp-user-regexp)
+		 (regexp tramp-postfix-user-regexp))
                eos)
               filename)
-             (member
-              (concat
-               (file-name-nondirectory filename) tramp-postfix-host-format)
-              (file-name-all-completions
-               (file-name-nondirectory filename)
-               (file-name-directory filename)))))
-           t)
+	     (member
+	      (match-string 11 filename)
+	      (file-name-all-completions
+	       "" (concat tramp-prefix-format (match-string 10 filename))))))
+	   t)
 
       (tramp-run-real-handler #'file-exists-p (list filename))))
 
@@ -3629,6 +3633,25 @@ BODY is the backend specific code."
 	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
       nil)))
 
+(defmacro tramp-skeleton-file-exists-p (filename &rest body)
+  "Skeleton for `tramp-*-handle-file-exists-p'.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  ;; `file-exists-p' is used as predicate in file name completion.
+  `(or (and minibuffer-completing-file-name
+	    (file-name-absolute-p ,filename)
+	    (tramp-string-empty-or-nil-p
+	     (tramp-file-name-localname (tramp-dissect-file-name ,filename))))
+       ;; We don't want to run it when `non-essential' is t, or there
+       ;; is no connection process yet.
+       (when (tramp-connectable-p ,filename)
+	 (with-parsed-tramp-file-name (expand-file-name ,filename) nil
+	   (with-tramp-file-property v localname "file-exists-p"
+	     (if (tramp-file-property-p v localname "file-attributes")
+		 (not
+		  (null (tramp-get-file-property v localname "file-attributes")))
+	       ,@body))))))
+
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
   "Skeleton for `tramp-*-handle-file-local-copy'.
 BODY is the backend specific code."
@@ -4066,13 +4089,8 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(not (null (file-attributes filename)))))))
+  (tramp-skeleton-file-exists-p filename
+    (not (null (file-attributes filename)))))
 
 (defun tramp-handle-file-in-directory-p (filename directory)
   "Like `file-in-directory-p' for Tramp files."

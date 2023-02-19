@@ -1217,16 +1217,18 @@ purpose by adding an entry to this alist, and setting
     (setq edebug-old-def-name nil))
   (setq edebug-def-name
 	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
-  `(let ((cconv-dont-trim-unused-variables t))
-     (edebug-enter
-      (quote ,edebug-def-name)
-      ,(if edebug-inside-func
-	   `(list
-	     ;; Doesn't work with more than one def-body!!
-	     ;; But the list will just be reversed.
-	     ,@(nreverse edebug-def-args))
-         'nil)
-      (function (lambda () ,@forms)))))
+  `(edebug-enter
+    (quote ,edebug-def-name)
+    ,(if edebug-inside-func
+	 `(list
+	   ;; Doesn't work with more than one def-body!!
+	   ;; But the list will just be reversed.
+	   ,@(nreverse edebug-def-args))
+       'nil)
+    ;; Make sure `forms' is not nil so we don't accidentally return
+    ;; the magic keyword.  Mark the closure so we don't throw away
+    ;; unused vars (bug#59213).
+    #'(lambda () :closure-dont-trim-context ,@(or forms '(nil)))))
 
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented

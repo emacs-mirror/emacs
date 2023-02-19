@@ -466,6 +466,12 @@
 
 ;; Viper mode-changing commands and utilities
 
+(defcustom viper-enable-minibuffer-faces t
+  "If non-nil, viper uses distinct faces in the minibuffer."
+  :type 'boolean
+  :version "30.1"
+  :group 'viper-misc)
+
 ;; Modifies mode-line-buffer-identification.
 (defun viper-refresh-mode-line ()
   (setq-local viper-mode-string
@@ -561,7 +567,7 @@
        ))
 
   ;; minibuffer faces
-  (if (viper-has-face-support-p)
+  (if (and (viper-has-face-support-p) viper-enable-minibuffer-faces)
       (setq viper-minibuffer-current-face
 	    (cond ((eq state 'emacs-state) viper-minibuffer-emacs-face)
 		  ((eq state 'vi-state) viper-minibuffer-vi-face)
