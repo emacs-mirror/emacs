@@ -1120,16 +1120,18 @@ the trampoline generation, unless you know that all the trampolines
 needed by your Lisp programs are already compiled and accessible to
 Emacs.
 
-The value of this variable can also be a string, in which case it is
-interpreted as the name of a directory in which to store the generated
-trampoline @file{*.eln} files, overriding the directories specified by
+The value of this variable can also be a string, in which case it
+specifies the name of a directory in which to store the generated
+trampoline @file{*.eln} files, overriding the directories in
 @code{native-comp-eln-load-path}.  This is useful if you want the
 trampolines to be generated as needed, but don't want to store them
-under the user's @env{HOME} directory or the other public directories
-where @file{*.eln} files are kept.  However, unlike with directories
-in @code{native-comp-eln-load-path}, the trampolines will be stored in
-the directory given by the value of this variable, not in its
-version-specific subdirectory.
+under the user's @env{HOME} directory or in the other public
+directories where @file{*.eln} files are kept.  However, unlike with
+directories in @code{native-comp-eln-load-path}, the trampolines will
+be stored in the directory given by the value of this variable, not in
+its version-specific subdirectory.  If the name of this directory is
+not absolute, it is interpreted relative to
+@code{invocation-directory} (@pxref{System Environment})
 
 If this variable is non-@code{nil}, and Emacs needs to produce a
 trampoline, but it cannot find any writable directory to store the

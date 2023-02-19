@@ -1204,6 +1204,11 @@ See `treesit-simple-indent-presets'.")
         (cons 'grand-parent
               (lambda (_n parent &rest _)
                 (treesit-node-start (treesit-node-parent parent))))
+        (cons 'great-grand-parent
+              (lambda (_n parent &rest _)
+                (treesit-node-start
+                 (treesit-node-parent
+                  (treesit-node-parent parent)))))
         (cons 'parent-bol (lambda (_n parent &rest _)
                             (save-excursion
                               (goto-char (treesit-node-start parent))
