@@ -7562,15 +7562,15 @@ the cache."
                  ;; beginning.
                  (next-element-re (pcase granularity
                                     ((or `headline
-                                         (guard (eq '(headline)
-                                                    restrict-elements)))
+                                         (guard (equal '(headline)
+                                                       restrict-elements)))
                                      (cons
                                       (org-with-limited-levels
                                        org-element-headline-re)
                                       'match-beg))
                                     (`headline+inlinetask
                                      (cons
-                                      (if (eq '(inlinetask) restrict-elements)
+                                      (if (equal '(inlinetask) restrict-elements)
                                           (org-inlinetask-outline-regexp)
                                         org-element-headline-re)
                                       'match-beg))
