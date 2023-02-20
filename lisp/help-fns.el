@@ -996,7 +996,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                               (symbol-name function)))))))
 	 (real-def (cond
                     ((and aliased (not (subrp def)))
-                     (car (function-alias-p real-function t)))
+                     (car (function-alias-p real-function)))
 		    ((subrp def) (intern (subr-name def)))
                     (t def))))
 

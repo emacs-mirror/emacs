@@ -772,4 +772,40 @@ comparing the subr with a much slower Lisp implementation."
   "Can't set variable marked with 'make_symbol_constant'."
   (should-error (setq most-positive-fixnum 1) :type 'setting-constant))
 
+(ert-deftest data-tests-fset ()
+  (fset 'data-tests--fs-fun (lambda () 'moo))
+  (declare-function data-tests--fs-fun nil)
+  (should (equal (data-tests--fs-fun) 'moo))
+
+  (fset 'data-tests--fs-fun1 'data-tests--fs-fun)
+  (declare-function data-tests--fs-fun1 nil)
+  (should (equal (data-tests--fs-fun1) 'moo))
+
+  (fset 'data-tests--fs-a 'data-tests--fs-b)
+  (fset 'data-tests--fs-b 'data-tests--fs-c)
+
+  (should-error (fset 'data-tests--fs-c 'data-tests--fs-c)
+                :type 'cyclic-function-indirection)
+  (fset 'data-tests--fs-d 'data-tests--fs-a)
+  (should-error (fset 'data-tests--fs-c 'data-tests--fs-d)
+                :type 'cyclic-function-indirection))
+
+(ert-deftest data-tests-defalias ()
+  (defalias 'data-tests--da-fun (lambda () 'baa))
+  (declare-function data-tests--da-fun nil)
+  (should (equal (data-tests--da-fun) 'baa))
+
+  (defalias 'data-tests--da-fun1 'data-tests--da-fun)
+  (declare-function data-tests--da-fun1 nil)
+  (should (equal (data-tests--da-fun1) 'baa))
+
+  (defalias 'data-tests--da-a 'data-tests--da-b)
+  (defalias 'data-tests--da-b 'data-tests--da-c)
+
+  (should-error (defalias 'data-tests--da-c 'data-tests--da-c)
+                :type 'cyclic-function-indirection)
+  (defalias 'data-tests--da-d 'data-tests--da-a)
+  (should-error (defalias 'data-tests--da-c 'data-tests--da-d)
+                :type 'cyclic-function-indirection))
+
 ;;; data-tests.el ends here

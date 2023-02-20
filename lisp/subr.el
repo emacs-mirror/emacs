@@ -7002,27 +7002,17 @@ string will be displayed only if BODY takes longer than TIMEOUT seconds.
                                  (lambda ()
                                    ,@body)))
 
-(defun function-alias-p (func &optional noerror)
+(defun function-alias-p (func &optional _noerror)
   "Return nil if FUNC is not a function alias.
-If FUNC is a function alias, return the function alias chain.
-
-If the function alias chain contains loops, an error will be
-signaled.  If NOERROR, the non-loop parts of the chain is returned."
-  (declare (side-effect-free t))
-  (let ((chain nil)
-        (orig-func func))
-    (nreverse
-     (catch 'loop
-       (while (and (symbolp func)
-                   (setq func (symbol-function func))
-                   (symbolp func))
-         (when (or (memq func chain)
-                   (eq func orig-func))
-           (if noerror
-               (throw 'loop chain)
-             (signal 'cyclic-function-indirection (list orig-func))))
-         (push func chain))
-       chain))))
+If FUNC is a function alias, return the function alias chain."
+  (declare (advertised-calling-convention (func) "30.1")
+           (side-effect-free error-free))
+  (let ((chain nil))
+    (while (and (symbolp func)
+                (setq func (symbol-function func))
+                (symbolp func))
+      (push func chain))
+    (nreverse chain)))
 
 (defun readablep (object)
   "Say whether OBJECT has a readable syntax.

@@ -737,9 +737,12 @@ explicitly in the source file being loaded.  This is because
 By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such
 records.  @xref{Function Cells}.
+
+If the resulting function definition chain would be circular, then
+Emacs will signal a @code{cyclic-function-indirection} error.
 @end defun
 
-@defun function-alias-p object &optional noerror
+@defun function-alias-p object
 Checks whether @var{object} is a function alias.  If it is, it returns
 a list of symbols representing the function alias chain, else
 @code{nil}.  For instance, if @code{a} is an alias for @code{b}, and
@@ -750,9 +753,8 @@ a list of symbols representing the function alias chain, else
     @result{} (b c)
 @end example
 
-If there's a loop in the definitions, an error will be signaled.  If
-@var{noerror} is non-@code{nil}, the non-looping parts of the chain is
-returned instead.
+There is also a second, optional argument that is obsolete and has no
+effect.
 @end defun
 
   You cannot create a new primitive function with @code{defun} or
@@ -1539,6 +1541,9 @@ is not a function, e.g., a keyboard macro (@pxref{Keyboard Macros}):
 If you wish to use @code{fset} to make an alternate name for a
 function, consider using @code{defalias} instead.  @xref{Definition of
 defalias}.
+
+If the resulting function definition chain would be circular, then
+Emacs will signal a @code{cyclic-function-indirection} error.
 @end defun
 
 @node Closures
