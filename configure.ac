@@ -1074,6 +1074,8 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-gnutls=$with_gnutls"
   passthrough="$passthrough --with-tiff=$with_tiff"
   passthrough="$passthrough --with-selinux=$with_selinux"
+  passthrough="$passthrough --with-modules=$with_modules"
+  passthrough="$passthrough --with-tree-sitter=$with_tree_sitter"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1146,6 +1148,8 @@ if test "$ANDROID" = "yes"; then
     with_gnutls=no
     with_tiff=no
     with_selinux=no
+    with_modules=no
+    with_tree_sitter=no
   fi
 
   with_rsvg=no
@@ -1153,14 +1157,12 @@ if test "$ANDROID" = "yes"; then
   with_libsystemd=no
   with_cairo=no
   with_imagemagick=no
-  with_tree_sitter=no
   with_xft=no
   with_harfbuzz=no
   with_libotf=no
   with_gpm=no
   with_dbus=no
   with_gsettings=no
-  with_modules=no
   with_threads=no
 
   # zlib is available in android.

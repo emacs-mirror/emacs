@@ -461,8 +461,15 @@ On Android 2.3 and earlier, the function @code{gui-selection-owner-p}
 always returns @code{nil} for the clipboard selection.
 
 @item
-On Android 3.0 and later, Emacs can only access clipboard data when
-one of its frames has the input focus.
+Between Android 3.0 and Android 9.0, Emacs is able to access the
+clipboard whenever it wants, and @code{gui-selection-owner-p} always
+returns accurate results.
+
+@item
+Under Android 10.0 and later, Emacs can only access clipboard data
+when one of its frames has the input focus, and
+@code{gui-selection-owner-p} always returns @code{nil} for the
+clipboard selection.
 @end itemize
 
   Since the Android system itself has no concept of a primary

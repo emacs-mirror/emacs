@@ -25,6 +25,8 @@ import android.content.ClipData;
 
 import android.util.Log;
 
+import android.os.Build;
+
 import java.io.UnsupportedEncodingException;
 
 /* This class implements EmacsClipboard for Android 3.0 and later
@@ -43,7 +45,12 @@ public class EmacsSdk11Clipboard extends EmacsClipboard
   EmacsSdk11Clipboard ()
   {
     manager = EmacsService.SERVICE.getClipboardManager ();
-    manager.addPrimaryClipChangedListener (this);
+
+    /* The system forbids Emacs from reading clipboard data in the
+       background under Android 10 or later.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+      manager.addPrimaryClipChangedListener (this);
   }
 
   @Override
@@ -105,6 +112,9 @@ public class EmacsSdk11Clipboard extends EmacsClipboard
   public synchronized int
   ownsClipboard ()
   {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+      return -1;
+
     return ownsClipboard ? 1 : 0;
   }
 

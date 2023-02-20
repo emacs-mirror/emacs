@@ -213,6 +213,8 @@ Android systems:
     (Please see the section GNUTLS near the end of this file.)
   libtiff    	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Extract and point ``--with-ndk-path'' to tiff-4.5.0-emacs.tar.gz.)
+  tree-sitter	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section TREE-SITTER near the end of this file.)
 
 We anticipate that most untested non-trivial ndk-build dependencies
 will need adjustments in Emacs to work, as the Emacs build system
@@ -574,6 +576,16 @@ archives in that site:
 and add the resulting folders to ``--with-ndk-path''.  Note that you
 should not try to build these packages separately using any
 `configure' script or Makefiles inside.
+
+TREE-SITTER
+
+A copy of tree-sitter modified to build with the ndk-build system can
+also find that URL.  To build Emacs with tree-sitter, you must unpack
+the following tar archive in that site:
+
+  tree-sitter-0.20.7-emacs.tar.gz
+
+and add the resulting folder to ``--with-ndk-build''.
 
 
 
