@@ -943,6 +943,10 @@ namespace but with lower confidence."
                                  cl-defmethod cl-defgeneric)))
             ;; (defun FUNC (... IDENT
             'variable)
+           ((and (eql j 2)
+                 (eq j-head 'defclass))
+            ;; (defclass CLASS (... IDENT
+            'function)
            ((eq j-head 'cond)
             ;; (cond ... (... IDENT
             'variable)
