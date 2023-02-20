@@ -463,7 +463,7 @@ places where they originally did not directly appear."
                                   ; first element is lambda expression
     (`(,(and `(lambda . ,_) fun) . ,args)
      ;; FIXME: it's silly to create a closure just to call it.
-     ;; Running byte-optimize-form earlier will resolve this.
+     ;; Running byte-optimize-form earlier would resolve this.
      `(funcall
        ,(cconv-convert `(function ,fun) env extend)
        ,@(mapcar (lambda (form)
@@ -878,14 +878,14 @@ lexically and dynamically bound symbols actually used by FORM."
         (cons fvs dyns)))))
 
 (defun cconv-make-interpreted-closure (fun env)
-  ;; FIXME: I don't know what "This function is evaluated both at
-  ;; compile time and run time" is intended to mean here.
   "Make a closure for the interpreter.
-This function is evaluated both at compile time and run time.
-FUN, the closure's function, must be a lambda form.
-ENV, the closure's environment, is a mixture of lexical bindings of the form
-\(SYMBOL . VALUE) and symbols which indicate dynamic bindings of those
-symbols."
+This is intended to be called at runtime by the ELisp interpreter (when
+the code has not been compiled).
+FUN is the closure's source code, must be a lambda form.
+ENV is the runtime representation of the lexical environment,
+i.e. a list whose elements can be either plain symbols (which indicate
+that this symbol should use dynamic scoping) or pairs (SYMBOL . VALUE)
+for the lexical bindings."
   (cl-assert (eq (car-safe fun) 'lambda))
   (let ((lexvars (delq nil (mapcar #'car-safe env))))
     (if (or (null lexvars)
