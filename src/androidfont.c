@@ -1027,18 +1027,19 @@ androidfont_list_family (struct frame *f)
   jsize i, length;
   const char *family;
 
-  /* Maybe initialize the font driver.  */
-  androidfont_check_init ();
+  /* Return if the Android font driver is not initialized.  Loading
+     every font under Android takes a non trivial amount of memory,
+     and is not something that should be done when the user tries to
+     list all of the font families.  */
+
+  if (!font_driver)
+    return Qnil;
 
   family_array
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     font_driver,
 					     font_driver_class.list_families);
-  if (!family_array)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   length = (*android_java_env)->GetArrayLength (android_java_env,
 						family_array);
