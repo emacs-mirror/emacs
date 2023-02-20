@@ -1237,7 +1237,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
   while (!found) {
     Tree oldRoot, newRoot;
 
-    /* FIXME: Rename to "seen" and "not yet seen" or something. */
+    /* TODO: Rename to "seen" and "not yet seen" or something. */
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeRight(oldRoot);
 
