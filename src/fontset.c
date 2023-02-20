@@ -683,7 +683,13 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 		&& !NILP (AREF (spec, FONT_REGISTRY_INDEX))
 		&& !NILP (AREF (font_object, FONT_REGISTRY_INDEX))
 		&& !EQ (AREF (spec, FONT_REGISTRY_INDEX),
-			AREF (font_object, FONT_REGISTRY_INDEX)))
+			AREF (font_object, FONT_REGISTRY_INDEX))
+		/* See sfntfont_registries_compatible_p in
+		   sfntfont.c.  */
+		&& !(EQ (AREF (spec, FONT_REGISTRY_INDEX),
+			 Qiso8859_1)
+		     && EQ (AREF (font_object, FONT_REGISTRY_INDEX),
+			    Qiso10646_1)))
 	      goto strangeness;
 	  }
 

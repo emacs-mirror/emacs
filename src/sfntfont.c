@@ -68,6 +68,9 @@ struct sfnt_font_desc
   /* List of design languages.  */
   Lisp_Object languages;
 
+  /* Font registry that this font supports.  */
+  Lisp_Object registry;
+
   /* Numeric width, weight, slant and spacing.  */
   int width, weight, slant, spacing;
 
@@ -511,6 +514,226 @@ sfnt_parse_languages (struct sfnt_meta_table *meta,
   SAFE_FREE ();
 }
 
+/* Return the font registry corresponding to the encoding subtable
+   SUBTABLE.
+
+   Under X, the font registry is an atom registered with the Open
+   Group uniquely identifying the organization which defines the
+   font's character set.
+
+   In practice, the registry overlaps with the character set itself.
+   So Emacs just uses the ``registry'' field of each font object and
+   entity to represent both instead.  */
+
+static Lisp_Object
+sfnt_registry_for_subtable (struct sfnt_cmap_encoding_subtable *subtable)
+{
+  switch (subtable->platform_id)
+    {
+    case SFNT_PLATFORM_UNICODE:
+      /* Reject variation selector and last resort tables.  */
+      if ((subtable->platform_specific_id
+	   == SFNT_UNICODE_VARIATION_SEQUENCES)
+	  || (subtable->platform_specific_id
+	      == SFNT_UNICODE_LAST_RESORT))
+	return Qnil;
+
+      return Qiso10646_1;
+
+    case SFNT_PLATFORM_MACINTOSH:
+
+      switch (subtable->platform_specific_id)
+	{
+	case SFNT_MACINTOSH_ROMAN:
+	  /* X calls mac-roman ``apple-roman''.  */
+	  return Qapple_roman;
+
+	default:
+	  /* Some other Macintosh charset not supported by Emacs.  */
+	  return Qnil;
+	}
+
+    case SFNT_PLATFORM_MICROSOFT:
+
+      /* Microsoft specific encodings.  */
+
+      switch (subtable->platform_specific_id)
+	{
+	case SFNT_MICROSOFT_SYMBOL:
+	case SFNT_MICROSOFT_UNICODE_BMP:
+	  /* Symbols in the Unicode PUA are still Unicode.  */
+	  return Qiso10646_1;
+
+	case SFNT_MICROSOFT_SHIFT_JIS:
+	  return Qjisx0208_1983_0;
+
+	case SFNT_MICROSOFT_PRC:
+	  return Qgbk;
+
+	case SFNT_MICROSOFT_JOHAB:
+	  return Qksc5601_1987_0;
+
+	case SFNT_MICROSOFT_UNICODE_UCS_4:
+	  return Qiso10646_1;
+	}
+
+    default:
+      return Qnil;
+    }
+}
+
+/* Return the type of characters that the cmap subtable SUBTABLE maps
+   from.  Value is:
+
+   2 if SUBTABLE maps from Unicode characters, including those outside
+   the Unicode Basic Multilingual Plane (BMP).
+
+   1 if SUBTABLE maps from Unicode characters within the BMP.
+
+   0 if SUBTABLE maps from some other character set that Emacs knows
+   about.
+
+   3 if SUBTABLE cannot be used by Emacs.  */
+
+static int
+sfntfont_identify_cmap (struct sfnt_cmap_encoding_subtable subtable)
+{
+  switch (subtable.platform_id)
+    {
+    case SFNT_PLATFORM_UNICODE:
+
+      /* Reject variation selector and last resort tables.  */
+      if ((subtable.platform_specific_id
+	   == SFNT_UNICODE_VARIATION_SEQUENCES)
+	  || (subtable.platform_specific_id
+	      == SFNT_UNICODE_LAST_RESORT))
+	return 3;
+
+      /* 1.0, 1.1, ISO-10646-1993, and 2.0_BMP tables are all within
+	 the BMP.  */
+      if (subtable.platform_specific_id < SFNT_UNICODE_2_0)
+	return 1;
+
+      return 2;
+
+    case SFNT_PLATFORM_MACINTOSH:
+
+      switch (subtable.platform_specific_id)
+	{
+	case SFNT_MACINTOSH_ROMAN:
+	  /* mac-roman */
+	  return 0;
+
+	default:
+	  /* Some other Macintosh charset not supported by Emacs.  */
+	  return 3;
+	}
+
+    case SFNT_PLATFORM_MICROSOFT:
+
+      /* Microsoft specific encodings.  */
+
+      switch (subtable.platform_specific_id)
+	{
+	case SFNT_MICROSOFT_SYMBOL:
+	  /* Symbols in the Unicode PUA are still Unicode.  */
+	  return 1;
+
+	case SFNT_MICROSOFT_UNICODE_BMP:
+	  return 1;
+
+	case SFNT_MICROSOFT_SHIFT_JIS:
+	  /* PCK aka japanese-jisx0208.  */
+	  return 0;
+
+	case SFNT_MICROSOFT_PRC:
+	  /* GBK, GB2312 or GB18030.  */
+	  return 0;
+
+	case SFNT_MICROSOFT_JOHAB:
+	  /* KS C 5601-1992, aka korean-ksc5601.  */
+	  return 0;
+
+	case SFNT_MICROSOFT_UNICODE_UCS_4:
+	  /* Unicode past the BMP.  */
+	  return 2;
+	}
+
+    default:
+      return 3;
+    }
+}
+
+/* Figure out which registry DESC, backed by FD, whose table directory
+   is SUBTABLE, is likely to support.
+
+   Read the header of each subtable in the character map and compute
+   the registry to use; then, set DESC->registry to that value.  */
+
+static void
+sfnt_grok_registry (int fd, struct sfnt_font_desc *desc,
+		    struct sfnt_offset_subtable *subtable)
+{
+  struct sfnt_cmap_table *cmap;
+  struct sfnt_cmap_encoding_subtable *subtables;
+  int i;
+
+  cmap = sfnt_read_cmap_table (fd, subtable, &subtables, NULL);
+
+  if (!cmap)
+    return;
+
+  /* Now pick the ``best'' character map the same way as sfntfont_open
+     does.  The caveat is that since the subtable data has not been
+     read, Emacs cannot determine whether or not the encoding subtable
+     is valid.
+
+     Once platform_id is set, that value becomes much more
+     reliable.  */
+
+  /* First look for a non-BMP Unicode cmap.  */
+
+  for (i = 0; i < cmap->num_subtables; ++i)
+    {
+      if (sfntfont_identify_cmap (subtables[i]) == 2)
+	{
+	  desc->registry
+	    = sfnt_registry_for_subtable (&subtables[i]);
+	  goto done;
+	}
+    }
+
+  /* Next, look for a BMP only Unicode cmap.  */
+
+  for (i = 0; i < cmap->num_subtables; ++i)
+    {
+      if (sfntfont_identify_cmap (subtables[i]) == 1)
+        {
+	  desc->registry
+	    = sfnt_registry_for_subtable (&subtables[i]);
+	  goto done;
+	}
+    }
+
+  /* Finally, use the first cmap that appears and can be
+     identified.  */
+
+  for (i = 0; i < cmap->num_subtables; ++i)
+    {
+      if (sfntfont_identify_cmap (subtables[i]) == 0)
+        {
+	  desc->registry
+	    = sfnt_registry_for_subtable (&subtables[i]);
+	  goto done;
+	}
+    }
+
+  /* There are no cmaps available to Emacs.  */
+ done:
+  xfree (cmap);
+  xfree (subtables);
+}
+
 /* Enumerate the offset subtable SUBTABLES in the file FD, whose file
    name is FILE.  OFFSET should be the offset of the subtable within
    the font file, and is recorded for future use.  Value is 1 upon
@@ -590,6 +813,9 @@ sfnt_enum_font_1 (int fd, const char *file,
 
   if (head->mac_style & 02 && desc->slant == 0) /* Italic */
     desc->slant = 100;
+
+  /* Figure out what registry this font is likely to support.  */
+  sfnt_grok_registry (fd, desc, subtables);
 
   /* Set the style, link the desc onto system_fonts and return.  */
   desc->style = style;
@@ -803,88 +1029,6 @@ sfntfont_charset_for_cmap (struct sfnt_cmap_encoding_subtable subtable)
     }
 }
 
-/* Return the type of characters that the cmap subtable SUBTABLE maps
-   from.  Value is:
-
-   2 if SUBTABLE maps from Unicode characters, including those outside
-   the Unicode Basic Multilingual Plane (BMP).
-
-   1 if SUBTABLE maps from Unicode characters within the BMP.
-
-   0 if SUBTABLE maps from some other character set that Emacs knows
-   about.
-
-   3 if SUBTABLE cannot be used by Emacs.  */
-
-static int
-sfntfont_identify_cmap (struct sfnt_cmap_encoding_subtable subtable)
-{
-  switch (subtable.platform_id)
-    {
-    case SFNT_PLATFORM_UNICODE:
-
-      /* Reject variation selector and last resort tables.  */
-      if ((subtable.platform_specific_id
-	   == SFNT_UNICODE_VARIATION_SEQUENCES)
-	  || (subtable.platform_specific_id
-	      == SFNT_UNICODE_LAST_RESORT))
-	return 3;
-
-      /* 1.0, 1.1, ISO-10646-1993, and 2.0_BMP tables are all within
-	 the BMP.  */
-      if (subtable.platform_specific_id < SFNT_UNICODE_2_0)
-	return 1;
-
-      return 2;
-
-    case SFNT_PLATFORM_MACINTOSH:
-
-      switch (subtable.platform_specific_id)
-	{
-	case SFNT_MACINTOSH_ROMAN:
-	  /* mac-roman */
-	  return 0;
-
-	default:
-	  /* Some other Macintosh charset not supported by Emacs.  */
-	  return 3;
-	}
-
-    case SFNT_PLATFORM_MICROSOFT:
-
-      /* Microsoft specific encodings.  */
-
-      switch (subtable.platform_specific_id)
-	{
-	case SFNT_MICROSOFT_SYMBOL:
-	  /* Symbols in the Unicode PUA are still Unicode.  */
-	  return 1;
-
-	case SFNT_MICROSOFT_UNICODE_BMP:
-	  return 1;
-
-	case SFNT_MICROSOFT_SHIFT_JIS:
-	  /* PCK aka japanese-jisx0208.  */
-	  return 0;
-
-	case SFNT_MICROSOFT_PRC:
-	  /* GBK, GB2312 or GB18030.  */
-	  return 0;
-
-	case SFNT_MICROSOFT_JOHAB:
-	  /* KS C 5601-1992, aka korean-ksc5601.  */
-	  return 0;
-
-	case SFNT_MICROSOFT_UNICODE_UCS_4:
-	  /* Unicode past the BMP.  */
-	  return 2;
-	}
-
-    default:
-      return 3;
-    }
-}
-
 /* Pick the best character map in the cmap table CMAP.  Use the
    subtables in SUBTABLES and DATA.  Return the subtable data and the
    subtable in *SUBTABLE upon success, NULL otherwise.  */
@@ -1082,6 +1226,24 @@ sfntfont_lookup_char (struct sfnt_font_desc *desc, Lisp_Object character,
   return present;
 }
 
+/* Return whether or not the specified registry A is ``compatible''
+   with registry B.
+
+   Compatibility does not refer to whether or not the font registries
+   have an identical character set or repertory of characters.
+
+   Instead, it refers to whether or not Emacs expects looking for A to
+   result in fonts used with B.  */
+
+static bool
+sfntfont_registries_compatible_p (Lisp_Object a, Lisp_Object b)
+{
+  if (EQ (a, Qiso8859_1) && EQ (b, Qiso10646_1))
+    return true;
+
+  return EQ (a, b);
+}
+
 /* Return whether or not the font description DESC satisfactorily
    matches the font specification FONT_SPEC.  */
 
@@ -1125,6 +1287,17 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
 
   if (!NILP (tem) && NILP (Fstring_equal (SYMBOL_NAME (tem),
 					  desc->family)))
+    return false;
+
+  /* If a registry is set and wrong, then reject the font desc
+     immediately.  This detects 50% of mismatches from fontset.c.
+
+     If DESC->registry is nil, then the registry couldn't be
+     determined beforehand.  */
+
+  tem = AREF (spec, FONT_REGISTRY_INDEX);
+  if (!NILP (tem) && !NILP (desc->registry)
+      && !sfntfont_registries_compatible_p (tem, desc->registry))
     return false;
 
   /* Check that the adstyle specified matches.  */
@@ -1264,63 +1437,9 @@ sfntfont_registry_for_desc (struct sfnt_font_desc *desc)
   xfree (cmap);
 
   if (desc->subtable.platform_id != 500)
-    {
-      /* desc->subtable.platform_id is now set.  CMAP is already free,
-	 because it is not actually used.  */
-
-      switch (desc->subtable.platform_id)
-	{
-	case SFNT_PLATFORM_UNICODE:
-	  /* Reject variation selector and last resort tables.  */
-	  if ((desc->subtable.platform_specific_id
-	       == SFNT_UNICODE_VARIATION_SEQUENCES)
-	      || (desc->subtable.platform_specific_id
-		  == SFNT_UNICODE_LAST_RESORT))
-	    return Qnil;
-
-	  return Qiso10646_1;
-
-	case SFNT_PLATFORM_MACINTOSH:
-
-	  switch (desc->subtable.platform_specific_id)
-	    {
-	    case SFNT_MACINTOSH_ROMAN:
-	      /* X calls mac-roman ``apple-roman''.  */
-	      return Qapple_roman;
-
-	    default:
-	      /* Some other Macintosh charset not supported by Emacs.  */
-	      return Qnil;
-	    }
-
-	case SFNT_PLATFORM_MICROSOFT:
-
-	  /* Microsoft specific encodings.  */
-
-	  switch (desc->subtable.platform_specific_id)
-	    {
-	    case SFNT_MICROSOFT_SYMBOL:
-	    case SFNT_MICROSOFT_UNICODE_BMP:
-	      /* Symbols in the Unicode PUA are still Unicode.  */
-	      return Qiso10646_1;
-
-	    case SFNT_MICROSOFT_SHIFT_JIS:
-	      return Qjisx0208_1983_0;
-
-	    case SFNT_MICROSOFT_PRC:
-	      return Qgbk;
-
-	    case SFNT_MICROSOFT_JOHAB:
-	      return Qksc5601_1987_0;
-
-	    case SFNT_MICROSOFT_UNICODE_UCS_4:
-	      return Qiso10646_1;
-	    }
-
-	default:
-	  return Qnil;
-	}
-    }
+    /* desc->subtable.platform_id is now set.  CMAP is already free,
+       because it is not actually used.  */
+    return sfnt_registry_for_subtable (&desc->subtable);
 
   return Qnil;
 }
@@ -2793,6 +2912,7 @@ mark_sfntfont (void)
       mark_object (desc->style);
       mark_object (desc->adstyle);
       mark_object (desc->languages);
+      mark_object (desc->registry);
       mark_object (desc->char_cache);
       mark_object (desc->designer);
     }

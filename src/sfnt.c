@@ -837,7 +837,8 @@ sfnt_read_cmap_table_1 (int fd, uint32_t directory_offset,
    table directory specified in SUBTABLE.
 
    Return the CMAP table and a list of encoding subtables in
-   *SUBTABLES and *DATA upon success, else NULL.  */
+   *SUBTABLES and *DATA upon success, else NULL.  If DATA is NULL, do
+   not read the subtable data.  */
 
 TEST_STATIC struct sfnt_cmap_table *
 sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
@@ -901,6 +902,11 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
       sfnt_swap16 (&(*subtables)[i].platform_specific_id);
       sfnt_swap32 (&(*subtables)[i].offset);
     }
+
+  /* If data is NULL, the caller only wants the table headers.  */
+
+  if (!data)
+    return cmap;
 
   /* Second, read each encoding subtable itself.  */
   *data = xmalloc (cmap->num_subtables
