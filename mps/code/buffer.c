@@ -357,7 +357,8 @@ void BufferFinish(Buffer buffer)
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
 
-  BufferDetach(buffer, BufferPool(buffer)); /* FIXME: Should be in BufferAbsFinish? */
+  /* TODO: Consider whether this could move to BufferAbsFinish. */
+  BufferDetach(buffer, BufferPool(buffer));
 
   Method(Inst, buffer, finish)(MustBeA(Inst, buffer));
 }
