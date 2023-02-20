@@ -514,6 +514,10 @@ load_gccjit_if_necessary (bool mandatory)
 #define CALL2I(fun, arg1, arg2)				\
   CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2)
 
+/* Like call4 but stringify and intern.  */
+#define CALL4I(fun, arg1, arg2, arg3, arg4)				\
+  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2, arg3, arg4)
+
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
     gcc_jit_function_new_block ((func), STR (name))
@@ -4991,7 +4995,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
-    Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
+    CALL4I (make-temp-file, base_name, Qnil, build_string (".eln.tmp"), Qnil);
+
   Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
 #ifdef WINDOWSNT
   encoded_tmp_file = ansi_encode_filename (encoded_tmp_file);

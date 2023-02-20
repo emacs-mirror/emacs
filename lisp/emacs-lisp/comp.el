@@ -3813,8 +3813,8 @@ Return the trampoline if found or nil otherwise."
    ;; found.
    finally (cl-return
             (expand-file-name
-             (make-temp-file-internal (file-name-sans-extension rel-filename)
-                                      0 ".eln" nil)
+             (make-temp-file (file-name-sans-extension rel-filename) 0 ".eln"
+                             nil)
              temporary-file-directory))))
 
 (defun comp-trampoline-compile (subr-name)
