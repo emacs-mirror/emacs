@@ -60,6 +60,8 @@
             erc-input-marker (make-marker)
             erc-insert-marker (make-marker)
             erc-server-current-nick "dummy")
+      (erc-display-prompt)
+      (set-marker erc-insert-marker (pos-bol))
       (set-process-query-on-exit-flag erc-server-process nil)
       (should-not erc-dcc-list)
       (erc-ctcp-query-DCC erc-server-process

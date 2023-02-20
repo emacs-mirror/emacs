@@ -2632,6 +2632,16 @@ this option to nil."
   :type 'boolean
   :group 'erc)
 
+(define-inline erc--assert-input-bounds ()
+  (inline-quote
+   (progn (when (and (processp erc-server-process)
+                     (eq (current-buffer) (process-buffer erc-server-process)))
+            ;; It's believed that these only need syncing immediately
+            ;; following the first two insertions in a server buffer.
+            (set-marker (process-mark erc-server-process) erc-insert-marker))
+          (cl-assert (< erc-insert-marker erc-input-marker))
+          (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
+
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
 Auxiliary function used in `erc-display-line'.  The line gets filtered to
@@ -2641,8 +2651,7 @@ Afterwards, `erc-insert-modify' and `erc-insert-post-hook' get called.
 If STRING is nil, the function does nothing."
   (when string
     (with-current-buffer (or buffer (process-buffer erc-server-process))
-      (let ((insert-position (or (marker-position erc-insert-marker)
-                                 (point-max))))
+      (let ((insert-position (marker-position erc-insert-marker)))
         (let ((string string) ;; FIXME! Can this be removed?
               (buffer-undo-list t)
               (inhibit-read-only t))
@@ -2667,6 +2676,7 @@ If STRING is nil, the function does nothing."
                 (widen)
                 (goto-char insert-position)
                 (insert-before-markers string)
+                (erc--assert-input-bounds)
                 ;; run insertion hook, with point at restored location
                 (save-restriction
                   (narrow-to-region insert-position (point))
@@ -2674,7 +2684,8 @@ If STRING is nil, the function does nothing."
                   (run-hooks 'erc-insert-post-hook)
                   (when erc-remove-parsed-property
                     (remove-text-properties (point-min) (point-max)
-                                            '(erc-parsed nil))))))))
+                                            '(erc-parsed nil))))
+                (erc--assert-input-bounds)))))
         (run-hooks 'erc-insert-done-hook)
         (erc-update-undo-list (- (or (marker-position erc-insert-marker)
                                      (point-max))
@@ -6006,8 +6017,7 @@ When the returned value is a string, pass it to `erc-error'.")
               (progn ; unprogn this during next major surgery
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
-                (delete-region (erc-beg-of-input-line)
-                               (erc-end-of-input-line))
+                (delete-region erc-input-marker (erc-end-of-input-line))
                 (unwind-protect
                     (erc-send-input str 'skip-ws-chk)
                   ;; Fix the buffer if the command didn't kill it
@@ -6015,12 +6025,7 @@ When the returned value is a string, pass it to `erc-error'.")
                     (with-current-buffer old-buf
                       (save-restriction
                         (widen)
-                        (goto-char (point-max))
-                        (when (processp erc-server-process)
-                          (set-marker (process-mark erc-server-process) (point)))
-                        (set-marker erc-insert-marker (point))
                         (let ((buffer-modified (buffer-modified-p)))
-                          (erc-display-prompt)
                           (set-buffer-modified-p buffer-modified))))))
 
                 ;; Only when last hook has been run...
@@ -6106,21 +6111,21 @@ Return non-nil only if we actually send anything."
 (defun erc-display-msg (line)
   "Display LINE as a message of the user to the current target at point."
   (when erc-insert-this
-    (let ((insert-position (point)))
-      (insert (erc-format-my-nick))
-      (let ((beg (point)))
-        (insert line)
-        (erc-put-text-property beg (point)
-                               'font-lock-face 'erc-input-face))
-      (insert "\n")
-      (when (processp erc-server-process)
-        (set-marker (process-mark erc-server-process) (point)))
-      (set-marker erc-insert-marker (point))
-      (save-excursion
+    (save-excursion
+      (erc--assert-input-bounds)
+      (let ((insert-position (marker-position erc-insert-marker))
+            beg)
+        (goto-char insert-position)
+        (insert-before-markers (erc-format-my-nick))
+        (setq beg (point))
+        (insert-before-markers line)
+        (erc-put-text-property beg (point) 'font-lock-face 'erc-input-face)
+        (insert-before-markers "\n")
         (save-restriction
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)
-          (run-hooks 'erc-send-post-hook))))))
+          (run-hooks 'erc-send-post-hook))
+        (erc--assert-input-bounds)))))
 
 (defun erc-command-symbol (command)
   "Return the ERC command symbol for COMMAND if it exists and is bound."

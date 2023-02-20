@@ -559,8 +559,8 @@
     ;;
     (cl-letf (((symbol-function 'erc-process-input-line)
                (lambda (&rest _)
-                 (insert-before-markers
-                  (erc-display-message-highlight 'notice "echo: one\n"))))
+                 (erc-display-message
+                  nil 'notice (current-buffer) "echo: one\n")))
               ((symbol-function 'erc-command-no-process-p)
                (lambda (&rest _) t)))
       (ert-info ("Create ring, populate, recall")
