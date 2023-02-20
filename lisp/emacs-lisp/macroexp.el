@@ -496,7 +496,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 ;; Record which arguments expect functions, so we can warn when those
 ;; are accidentally quoted with ' rather than with #'
 (dolist (f '( funcall apply mapcar mapatoms mapconcat mapc cl-mapcar maphash
-              map-char-table map-keymap map-keymap-internal))
+              mapcan map-char-table map-keymap map-keymap-internal))
   (put f 'funarg-positions '(1)))
 (dolist (f '( add-hook remove-hook advice-remove advice--remove-function
               defalias fset global-set-key run-after-idle-timeout
