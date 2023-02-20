@@ -4505,7 +4505,8 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
   if (res != MPS_RES_OK) error("Couldn't create obj format");
 
-  /* Create a chain controlling GC strategy. FIXME: explain! */
+  /* Create a chain controlling GC strategy. */
+  /* TODO: Brief explanation with link to manual. */
   res = mps_chain_create(&obj_chain,
                          arena,
                          LENGTH(obj_gen_params),
