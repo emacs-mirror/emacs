@@ -81,6 +81,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
