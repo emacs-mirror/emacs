@@ -1641,6 +1641,14 @@ under cursor."
              if (not (listp (cadr probe))) do (cl-return (if more nil (cadr probe)))
              finally (cl-return (or (cadr probe) t)))))
 
+(defun eglot--server-capable-or-lose (&rest feats)
+  "Like `eglot--server-capable', but maybe error out."
+  (let ((retval (apply #'eglot--server-capable feats)))
+    (unless retval
+      (eglot--error "Unsupported or ignored LSP capability `%s'"
+                    (mapconcat #'symbol-name feats " ")))
+    retval))
+
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG . END) that represents LSP RANGE.
 If optional MARKERS, make markers."
@@ -2484,7 +2492,7 @@ When called interactively, use the currently active server"
      :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier)))))
 
 (defun eglot--signal-textDocument/willSave ()
-  "Send textDocument/willSave to server."
+  "Maybe send textDocument/willSave to server."
   (let ((server (eglot--current-server-or-lose))
         (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
     (when (eglot--server-capable :textDocumentSync :willSave)
@@ -2496,7 +2504,7 @@ When called interactively, use the currently active server"
                           :timeout 0.5))))))
 
 (defun eglot--signal-textDocument/didSave ()
-  "Send textDocument/didSave to server."
+  "Maybe send textDocument/didSave to server."
   (eglot--signal-textDocument/didChange)
   (when (eglot--server-capable :textDocumentSync :save)
     (jsonrpc-notify
@@ -2593,8 +2601,7 @@ Try to visit the target file for a richer summary line."
   "Ask for :workspace/symbol on PAT, return list of formatted strings.
 If BUFFER, switch to it before."
   (with-current-buffer (or buffer (current-buffer))
-    (unless (eglot--server-capable :workspaceSymbolProvider)
-      (eglot--error "This LSP server isn't a :workspaceSymbolProvider"))
+    (eglot--server-capable-or-lose :workspaceSymbolProvider)
     (mapcar
      (lambda (wss)
        (eglot--dbind ((WorkspaceSymbol) name containerName kind) wss
@@ -2656,13 +2663,12 @@ If BUFFER, switch to it before."
 
 (cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
   "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
-  (unless (eglot--server-capable
-           (or capability
-               (intern
-                (format ":%sProvider"
-                        (cadr (split-string (symbol-name method)
-                                            "/"))))))
-    (eglot--error "Sorry, this server doesn't do %s" method))
+  (eglot--server-capable-or-lose
+   (or capability
+       (intern
+        (format ":%sProvider"
+                (cadr (split-string (symbol-name method)
+                                    "/"))))))
   (let ((response
          (jsonrpc-request
           (eglot--current-server-or-lose)
@@ -2759,8 +2765,7 @@ for which LSP on-type-formatting should be requested."
                                   :end (eglot--pos-to-lsp-position end)))))
                 (t
                  '(:textDocument/formatting :documentFormattingProvider nil)))))
-    (unless (eglot--server-capable cap)
-      (eglot--error "Server can't format!"))
+    (eglot--server-capable-or-lose cap)
     (eglot--apply-text-edits
      (jsonrpc-request
       (eglot--current-server-or-lose)
@@ -3203,8 +3208,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
                                          "unknown symbol"))
           nil nil nil nil
           (symbol-name (symbol-at-point)))))
-  (unless (eglot--server-capable :renameProvider)
-    (eglot--error "Server can't rename!"))
+  (eglot--server-capable-or-lose :renameProvider)
   (eglot--apply-workspace-edit
    (jsonrpc-request (eglot--current-server-or-lose)
                     :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
@@ -3231,9 +3235,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                             '("quickfix" "refactor.extract" "refactor.inline"
                               "refactor.rewrite" "source.organizeImports")))
      t))
-  (unless (or (not interactive)
-              (eglot--server-capable :codeActionProvider))
-    (eglot--error "Server can't execute code actions!"))
+  (eglot--server-capable-or-lose :codeActionProvider)
   (let* ((server (eglot--current-server-or-lose))
          (actions
           (jsonrpc-request
