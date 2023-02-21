@@ -3443,7 +3443,7 @@ lambda-expression."
 				      (format "; %s"
 					      (substitute-command-keys
 					       interactive-only)))
-				     ((and (symbolp 'interactive-only)
+				     ((and (symbolp interactive-only)
 					   (not (eq interactive-only t)))
 				      (format-message "; use `%s' instead."
                                                       interactive-only))
