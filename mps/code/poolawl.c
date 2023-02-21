@@ -1057,7 +1057,7 @@ static void awlSegReclaim(Seg seg, Trace trace)
   Bool hasBuffer = SegBuffer(&buffer, seg);
   Format format = pool->format;
   Count reclaimedGrains = (Count)0;
-  Count preservedInPlaceCount = (Count)0;
+  STATISTIC_DECL(Count preservedInPlaceCount = (Count)0)
   Size preservedInPlaceSize = (Size)0;
   Index i;
 
@@ -1089,7 +1089,7 @@ static void awlSegReclaim(Seg seg, Trace trace)
       AVER(BTGet(awlseg->scanned, i));
       BTSetRange(awlseg->mark, i, j);
       BTSetRange(awlseg->scanned, i, j);
-      ++preservedInPlaceCount;
+      STATISTIC(++preservedInPlaceCount);
       preservedInPlaceSize += AddrOffset(p, q);
     } else {
       BTResRange(awlseg->mark, i, j);
