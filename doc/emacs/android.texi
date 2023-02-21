@@ -129,9 +129,15 @@ file, it invokes @command{emacsclient} with the options
 and the name of the file being opened.  Then, upon success, the focus
 is transferred to any open Emacs frame.
 
-It is sadly impossible to open certain kinds of files which are
-provided by a ``content provider''.  When that is the case, a dialog
-is displayed with an explanation of the error.
+@cindex /content directory, android
+  Some files are given to Emacs as ``content identifiers'', which the
+system provides access to outside the normal filesystem APIs.  Emacs
+internally supports a temporary @file{/content} directory which is
+used to access those files.  Do not make any assumptions about the
+contents of this directory, or try to open files in it yourself.
+
+  This feature is not provided on Android 4.3 and earlier, in which
+case the file is copied to a temporary directory instead.
 
 @node Android File System
 @section What files Emacs can access under Android

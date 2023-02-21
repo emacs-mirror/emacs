@@ -31,6 +31,10 @@ public class EmacsNative
      initialization.  */
   private static final String[] libraryDeps;
 
+
+  /* Like `dup' in C.  */
+  public static native int dup (int fd);
+
   /* Obtain the fingerprint of this build of Emacs.  The fingerprint
      can be used to determine the dump file name.  */
   public static native String getFingerprint ();

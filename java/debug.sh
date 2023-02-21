@@ -281,7 +281,7 @@ else
     # Upload the specified gdbserver binary to the device.
     adb -s $device push "$gdbserver" "$gdbserver_bin"
 
-    if (adb -s $device pull /system/bin/tee /dev/null &> /dev/null); then
+    if adb -s $device shell ls /system/bin/tee; then
 	# Copy it to the user directory.
 	adb -s $device shell "$gdbserver_cat"
 	adb -s $device shell "run-as $package chmod +x gdbserver"

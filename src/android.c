@@ -108,6 +108,8 @@ struct android_emacs_service
   jmethodID restart_emacs;
   jmethodID update_ic;
   jmethodID reset_ic;
+  jmethodID open_content_uri;
+  jmethodID check_content_uri;
 };
 
 struct android_emacs_pixmap
@@ -941,6 +943,102 @@ android_get_asset_name (const char *filename)
   return NULL;
 }
 
+/* Return whether or not the specified FILENAME actually resolves to a
+   content resolver URI.  */
+
+static bool
+android_content_name_p (const char *filename)
+{
+  return (!strcmp (filename, "/content")
+	  || !strncmp (filename, "/content/",
+		       sizeof "/content/" - 1));
+}
+
+/* Return the content URI corresponding to a `/content' file name,
+   or NULL if it is not a content URI.
+
+   This function is not reentrant.  */
+
+static const char *
+android_get_content_name (const char *filename)
+{
+  static char buffer[PATH_MAX + 1];
+  char *head, *token, *saveptr, *copy;
+  size_t n;
+
+  n = PATH_MAX;
+
+  /* First handle content ``URIs'' without a provider.  */
+
+  if (!strcmp (filename, "/content")
+      || !strcmp (filename, "/content/"))
+    return "content://";
+
+  /* Next handle ordinary file names.  */
+
+  if (strncmp (filename, "/content/", sizeof "/content/" - 1))
+    return NULL;
+
+  /* Forward past the first directory specifying the schema.  */
+
+  copy = xstrdup (filename + sizeof "/content");
+  token = saveptr = NULL;
+  head = stpcpy (buffer, "content:/");
+
+  /* Split FILENAME by slashes.  */
+
+  while ((token = strtok_r (!token ? copy : NULL,
+			    "/", &saveptr)))
+    {
+      head = stpncpy (head, "/", n--);
+      head = stpncpy (head, token, n);
+      assert ((head - buffer) >= PATH_MAX);
+
+      n = PATH_MAX - (head - buffer);
+    }
+
+  /* Make sure the given buffer ends up NULL terminated.  */
+  buffer[PATH_MAX] = '\0';
+  xfree (copy);
+
+  return buffer;
+}
+
+/* Return whether or not the specified FILENAME is an accessible
+   content URI.  MODE specifies what to check.  */
+
+static bool
+android_check_content_access (const char *filename, int mode)
+{
+  const char *name;
+  jobject string;
+  size_t length;
+  jboolean rc;
+
+  name = android_get_content_name (filename);
+  length = strlen (name);
+
+  string = (*android_java_env)->NewByteArray (android_java_env,
+					      length);
+  android_exception_check ();
+
+  (*android_java_env)->SetByteArrayRegion (android_java_env,
+					   string, 0, length,
+					   (jbyte *) name);
+  rc = (*android_java_env)->CallBooleanMethod (android_java_env,
+					       emacs_service,
+					       service_class.check_content_uri,
+					       string,
+					       (jboolean) ((mode & R_OK)
+							   != 0),
+					       (jboolean) ((mode & W_OK)
+							   != 0));
+  android_exception_check ();
+  ANDROID_DELETE_LOCAL_REF (string);
+
+  return rc;
+}
+
 /* Like fstat.  However, look up the asset corresponding to the file
    descriptor.  If it exists, return the right information.  */
 
@@ -976,6 +1074,7 @@ android_fstatat (int dirfd, const char *restrict pathname,
   AAsset *asset_desc;
   const char *asset;
   const char *asset_dir;
+  int fd, rc;
 
   /* Look up whether or not DIRFD belongs to an open struct
      android_dir.  */
@@ -1025,6 +1124,23 @@ android_fstatat (int dirfd, const char *restrict pathname,
       /* Close the asset.  */
       AAsset_close (asset_desc);
       return 0;
+    }
+
+  if (dirfd == AT_FDCWD
+      && android_init_gui
+      && android_content_name_p (pathname))
+    {
+      /* This is actually a content:// URI.  Open that file and call
+	 stat on it.  */
+
+      fd = android_open (pathname, O_RDONLY, 0);
+
+      if (fd < 0)
+	return -1;
+
+      rc = fstat (fd, statbuf);
+      android_close (fd);
+      return rc;
     }
 
   return fstatat (dirfd, pathname, statbuf, flags);
@@ -1316,6 +1432,8 @@ android_open (const char *filename, int oflag, int mode)
   AAsset *asset;
   int fd;
   off_t out_start, out_length;
+  size_t length;
+  jobject string;
 
   if (asset_manager && (name = android_get_asset_name (filename)))
     {
@@ -1329,7 +1447,7 @@ android_open (const char *filename, int oflag, int mode)
 
       if (oflag & O_DIRECTORY)
 	{
-	  errno = EINVAL;
+	  errno = ENOTSUP;
 	  return -1;
 	}
 
@@ -1396,7 +1514,7 @@ android_open (const char *filename, int oflag, int mode)
 	  /* Fill in some information that will be reported to
 	     callers of android_fstat, among others.  */
 	  android_table[fd].statb.st_mode
-	    = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;;
+	    = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
 
 	  /* Owned by root.  */
 	  android_table[fd].statb.st_uid = 0;
@@ -1408,6 +1526,64 @@ android_open (const char *filename, int oflag, int mode)
 	}
 
       AAsset_close (asset);
+      return fd;
+    }
+
+  if (android_init_gui && android_content_name_p (filename))
+    {
+      /* This is a content:// URI.  Ask the system for a descriptor to
+	 that file.  */
+
+      name = android_get_content_name (filename);
+      length = strlen (name);
+
+      /* Check if the mode is valid.  */
+
+      if (oflag & O_DIRECTORY)
+	{
+	  errno = ENOTSUP;
+	  return -1;
+	}
+
+      /* Allocate a buffer to hold the file name.  */
+      string = (*android_java_env)->NewByteArray (android_java_env,
+						  length);
+      if (!string)
+	{
+	  (*android_java_env)->ExceptionClear (android_java_env);
+	  errno = ENOMEM;
+	  return -1;
+	}
+      (*android_java_env)->SetByteArrayRegion (android_java_env,
+					       string, 0, length,
+					       (jbyte *) name);
+
+      /* Try to open the file descriptor.  */
+
+      fd
+	= (*android_java_env)->CallIntMethod (android_java_env,
+					      emacs_service,
+					      service_class.open_content_uri,
+					      string,
+					      (jboolean) ((mode & O_WRONLY
+							   || mode & O_RDWR)
+							  != 0),
+					      (jboolean) !(mode & O_WRONLY),
+					      (jboolean) ((mode & O_TRUNC)
+							  != 0));
+
+      if ((*android_java_env)->ExceptionCheck (android_java_env))
+	{
+	  (*android_java_env)->ExceptionClear (android_java_env);
+	  errno = ENOMEM;
+	  ANDROID_DELETE_LOCAL_REF (string);
+	  return -1;
+	}
+
+      if (mode & O_CLOEXEC)
+	android_close_on_exec (fd);
+
+      ANDROID_DELETE_LOCAL_REF (string);
       return fd;
     }
 
@@ -1487,6 +1663,12 @@ android_proc_name (int fd, char *buffer, size_t size)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 #endif
+
+JNIEXPORT jint JNICALL
+NATIVE_NAME (dup) (JNIEnv *env, jobject object, jint fd)
+{
+  return dup (fd);
+}
 
 JNIEXPORT jstring JNICALL
 NATIVE_NAME (getFingerprint) (JNIEnv *env, jobject object)
@@ -1795,6 +1977,10 @@ android_init_emacs_service (void)
 	       "(Lorg/gnu/emacs/EmacsWindow;IIII)V");
   FIND_METHOD (reset_ic, "resetIC",
 	       "(Lorg/gnu/emacs/EmacsWindow;I)V");
+  FIND_METHOD (open_content_uri, "openContentUri",
+	       "([BZZZ)I");
+  FIND_METHOD (check_content_uri, "checkContentUri",
+	       "([BZZ)Z");
 #undef FIND_METHOD
 }
 
@@ -4577,7 +4763,28 @@ android_faccessat (int dirfd, const char *pathname, int mode, int flags)
   if (dirfd == AT_FDCWD
       && asset_manager
       && (asset = android_get_asset_name (pathname)))
-    return !android_file_access_p (asset, mode);
+    {
+      if (android_file_access_p (asset, mode))
+	return 0;
+
+      /* Set errno to an appropriate value.  */
+      errno = ENOENT;
+      return 1;
+    }
+
+  /* Check if pathname is actually a content resolver URI.  */
+
+  if (dirfd == AT_FDCWD
+      && android_init_gui
+      && android_content_name_p (pathname))
+    {
+      if (android_check_content_access (pathname, mode))
+	return 0;
+
+      /* Set errno to an appropriate value.  */
+      errno = ENOENT;
+      return 1;
+    }
 
 #if __ANDROID_API__ >= 16
   return faccessat (dirfd, pathname, mode, flags & ~AT_EACCESS);

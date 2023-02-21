@@ -57,6 +57,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -69,6 +71,8 @@ import java.io.UnsupportedEncodingException;
 public class EmacsOpenActivity extends Activity
   implements DialogInterface.OnClickListener
 {
+  private static final String TAG = "EmacsOpenActivity";
+
   private class EmacsClientThread extends Thread
   {
     private ProcessBuilder builder;
@@ -178,12 +182,16 @@ public class EmacsOpenActivity extends Activity
     dialog.show ();
   }
 
-  /* Check that the specified FILE is readable.  If it is not, then
-     copy the file in FD to a location in the system cache
-     directory and return the name of that file.  */
+  /* Check that the specified FILE is readable.  If Android 4.4 or
+     later is being used, return URI formatted into a `/content/' file
+     name.
+
+     If it is not, then copy the file in FD to a location in the
+     system cache directory and return the name of that file.  */
 
   private String
-  checkReadableOrCopy (String file, ParcelFileDescriptor fd)
+  checkReadableOrCopy (String file, ParcelFileDescriptor fd,
+		       Uri uri)
     throws IOException, FileNotFoundException
   {
     File inFile;
@@ -191,11 +199,33 @@ public class EmacsOpenActivity extends Activity
     InputStream stream;
     byte buffer[];
     int read;
+    String content;
+
+    Log.d (TAG, "checkReadableOrCopy: " + file);
 
     inFile = new File (file);
 
-    if (inFile.setReadable (true))
+    if (inFile.canRead ())
       return file;
+
+    Log.d (TAG, "checkReadableOrCopy: NO");
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      {
+	content = "/content/" + uri.getEncodedAuthority ();
+
+	for (String segment : uri.getPathSegments ())
+	  content += "/" + Uri.encode (segment);
+
+	/* Append the URI query.  */
+
+	if (uri.getEncodedQuery () != null)
+	  content += "?" + uri.getEncodedQuery ();
+
+	Log.d (TAG, "checkReadableOrCopy: " + content);
+
+	return content;
+      }
 
     /* inFile is now the file being written to.  */
     inFile = new File (getCacheDir (), inFile.getName ());
@@ -398,7 +428,7 @@ public class EmacsOpenActivity extends Activity
 		    if (names != null)
 		      fileName = new String (names, "UTF-8");
 
-		    fileName = checkReadableOrCopy (fileName, fd);
+		    fileName = checkReadableOrCopy (fileName, fd, uri);
 		  }
 		catch (FileNotFoundException exception)
 		  {

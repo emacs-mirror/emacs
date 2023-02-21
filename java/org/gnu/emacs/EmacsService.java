@@ -19,7 +19,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -41,11 +44,16 @@ import android.app.Service;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+
+import android.database.Cursor;
+import android.database.MatrixCursor;
+
 
 import android.net.Uri;
 
@@ -53,9 +61,13 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.os.VibrationEffect;
+
+import android.provider.DocumentsContract;
+import android.provider.DocumentsContract.Document;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -79,6 +91,7 @@ public class EmacsService extends Service
 
   private EmacsThread thread;
   private Handler handler;
+  private ContentResolver resolver;
 
   /* Keep this in synch with androidgui.h.  */
   public static final int IC_MODE_NULL   = 0;
@@ -193,6 +206,7 @@ public class EmacsService extends Service
     metrics = getResources ().getDisplayMetrics ();
     pixelDensityX = metrics.xdpi;
     pixelDensityY = metrics.ydpi;
+    resolver = getContentResolver ();
 
     try
       {
@@ -642,5 +656,110 @@ public class EmacsService extends Service
 
     window.view.setICMode (icMode);
     window.view.imManager.restartInput (window.view);
+  }
+
+  /* Open a content URI described by the bytes BYTES, a non-terminated
+     string; make it writable if WRITABLE, and readable if READABLE.
+     Truncate the file if TRUNCATE.
+
+     Value is the resulting file descriptor or -1 upon failure.  */
+
+  public int
+  openContentUri (byte[] bytes, boolean writable, boolean readable,
+		  boolean truncate)
+  {
+    String name, mode;
+    ParcelFileDescriptor fd;
+    int i;
+
+    /* Figure out the file access mode.  */
+
+    mode = "";
+
+    if (readable)
+      mode += "r";
+
+    if (writable)
+      mode += "w";
+
+    if (truncate)
+      mode += "t";
+
+    /* Try to open an associated ParcelFileDescriptor.  */
+
+    try
+      {
+	/* The usual file name encoding question rears its ugly head
+	   again.  */
+	name = new String (bytes, "UTF-8");
+	Log.d (TAG, "openContentUri: " + Uri.parse (name));
+
+	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
+
+	/* Use detachFd on newer versions of Android or plain old
+	   dup.  */
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
+	  {
+	    i = fd.detachFd ();
+	    fd.close ();
+
+	    return i;
+	  }
+	else
+	  {
+	    i = EmacsNative.dup (fd.getFd ());
+	    fd.close ();
+
+	    return i;
+	  }
+      }
+    catch (Exception exception)
+      {
+	return -1;
+      }
+  }
+
+  public boolean
+  checkContentUri (byte[] string, boolean readable, boolean writable)
+  {
+    String mode, name;
+    ParcelFileDescriptor fd;
+
+    /* Decode this into a URI.  */
+
+    try
+      {
+	/* The usual file name encoding question rears its ugly head
+	   again.  */
+	name = new String (string, "UTF-8");
+	Log.d (TAG, "checkContentUri: " + Uri.parse (name));
+      }
+    catch (UnsupportedEncodingException exception)
+      {
+	name = null;
+	throw new RuntimeException (exception);
+      }
+
+    mode = "r";
+
+    if (writable)
+      mode += "w";
+
+    try
+      {
+	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
+	fd.close ();
+
+	Log.d (TAG, "checkContentUri: YES");
+
+	return true;
+      }
+    catch (Exception exception)
+      {
+	Log.d (TAG, "checkContentUri: NO");
+	Log.d (TAG, exception.toString ());
+	return false;
+      }
   }
 };
