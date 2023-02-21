@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import android.os.Bundle;
+import android.os.Build;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,7 +55,7 @@ public class EmacsContextMenu
   private class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
-    public String itemName;
+    public String itemName, tooltip;
     public EmacsContextMenu subMenu;
     public boolean isEnabled, isCheckable, isChecked;
 
@@ -147,7 +148,7 @@ public class EmacsContextMenu
      item name.  */
 
   public EmacsContextMenu
-  addSubmenu (String itemName, String title)
+  addSubmenu (String itemName, String title, String tooltip)
   {
     EmacsContextMenu submenu;
     Item item;
@@ -155,6 +156,7 @@ public class EmacsContextMenu
     item = new Item ();
     item.itemID = 0;
     item.itemName = itemName;
+    item.tooltip = tooltip;
     item.subMenu = createContextMenu (title);
     item.subMenu.parent = this;
 
@@ -214,6 +216,13 @@ public class EmacsContextMenu
 
 	    if (item.isChecked)
 	      menuItem.setChecked (true);
+
+	    /* If the tooltip text is set and the system is new enough
+	       to support menu item tooltips, set it on the item.  */
+
+	    if (item.tooltip != null
+		&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+	      menuItem.setTooltipText (item.tooltip);
 	  }
       }
   }

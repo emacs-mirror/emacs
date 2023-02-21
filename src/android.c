@@ -777,13 +777,17 @@ android_scan_directory_tree (char *file, size_t *limit_return)
 
   /* If there are no tokens, just return the start of the directory
      tree.  */
+
   if (!ntokens)
     {
       SAFE_FREE ();
 
-      /* Subtract the initial header bytes.  */
+      /* Return the size of the directory tree as the limit.
+         Do not subtract the initial header bytes, as the limit
+         is an offset from the start of the file.  */
+
       if (limit_return)
-	*limit_return = directory_tree_size - 5;
+	*limit_return = directory_tree_size;
 
       return start;
     }

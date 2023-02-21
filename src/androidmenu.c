@@ -100,7 +100,8 @@ android_init_emacs_context_menu (void)
 
   FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ)V");
   FIND_METHOD (add_submenu, "addSubmenu", "(Ljava/lang/String;"
-	       "Ljava/lang/String;)Lorg/gnu/emacs/EmacsContextMenu;");
+	       "Ljava/lang/String;Ljava/lang/String;)"
+	       "Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (add_pane, "addPane", "(Ljava/lang/String;)V");
   FIND_METHOD (parent, "parent", "()Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (display, "display", "(Lorg/gnu/emacs/EmacsWindow;II)Z");
@@ -236,12 +237,13 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 		   Lisp_Object title, const char **error_name)
 {
   jobject context_menu, current_context_menu;
-  jobject title_string, temp;
+  jobject title_string, help_string, temp;
   size_t i;
   Lisp_Object pane_name, prefix;
   const char *pane_string;
   specpdl_ref count, count1;
   Lisp_Object item_name, enable, def, tem, entry, type, selected;
+  Lisp_Object help;
   jmethodID method;
   jobject store;
   bool rc;
@@ -354,6 +356,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	  def = AREF (menu_items, i + MENU_ITEMS_ITEM_DEFINITION);
 	  type = AREF (menu_items, i + MENU_ITEMS_ITEM_TYPE);
 	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
+	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 	  /* This is an actual menu item (or submenu).  Add it to the
 	     menu.  */
@@ -365,12 +368,22 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      title_string = (!NILP (item_name)
 			      ? android_build_string (item_name)
 			      : NULL);
+	      help_string = NULL;
+
+	      /* Menu items can have tool tips on Android 26 and
+		 later.  In this case, set it to the help string.  */
+
+	      if (android_get_current_api_level () >= 26
+		  && STRINGP (help))
+		help_string = android_build_string (help_string);
+
 	      store = current_context_menu;
 	      current_context_menu
 		= (*android_java_env)->CallObjectMethod (android_java_env,
 							 current_context_menu,
 							 menu_class.add_submenu,
-							 title_string, NULL);
+							 title_string, NULL,
+							 help_string);
 	      android_exception_check ();
 
 	      if (store != context_menu)
@@ -378,6 +391,9 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	      if (title_string)
 		ANDROID_DELETE_LOCAL_REF (title_string);
+
+	      if (help_string)
+		ANDROID_DELETE_LOCAL_REF (help_string);
 	    }
 	  else if (NILP (def) && menu_separator_name_p (SSDATA (item_name)))
 	    /* Ignore this separator item.  */
