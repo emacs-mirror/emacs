@@ -87,6 +87,25 @@
   :safe 'integerp
   :group 'c)
 
+(defun c-ts-mode-toggle-comment-style ()
+  "Toggle the comment style between block and line comments.
+Optional numeric ARG, if supplied, switches to block comment
+style when positive, to line comment style when negative, and
+just toggles it when zero or left out."
+  (interactive)
+  (pcase-let ((`(,starter . ,ender)
+               (if (string= comment-start "// ")
+                   (cons "/* " " */")
+                 (cons "// " ""))))
+    (setq-local comment-start starter
+                comment-end ender))
+  (c-ts-mode-set-modeline))
+
+(defun c-ts-mode-set-modeline ()
+  (setq mode-name
+        (concat (if (eq major-mode 'c-ts-mode) "C" "C++") comment-start))
+  (force-mode-line-update))
+
 (defun c-ts-mode--indent-style-setter (sym val)
   "Custom setter for `c-ts-mode-set-style'.
 
@@ -214,6 +233,25 @@ delimiters < and >'s."
 
 ;;; Indent
 
+(defun c-ts-mode--preproc-offset (_n _p &rest _)
+  "This anchor is used for preprocessor directives.
+
+Because node is nil at the moment of indentation, we use
+`treesit-node-on' to capture the anonymous node covering the
+newline.  If the grand-parent of that node is the
+translation_unit itself, we don't indent.  Otherwise, just indent
+one step according to the great-grand-parent indent level.  The
+reason there is a difference between grand-parent and
+great-grand-parent here is that the node containing the newline
+is actually the parent of point at the moment of indentation."
+  (when-let ((node (treesit-node-on (point) (point))))
+    (if (string-equal "translation_unit"
+                      (treesit-node-type
+                       (treesit-node-parent
+                        (treesit-node-parent node))))
+        0
+      c-ts-mode-indent-offset)))
+
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
@@ -246,12 +284,13 @@ MODE is either `c' or `cpp'."
            ((match nil "do_statement" "body") parent-bol c-ts-mode-indent-offset)
            ((match nil "for_statement" "body") parent-bol c-ts-mode-indent-offset)
 
-           ((match "preproc_ifdef" "compound_statement") point-min 0)
-           ((match "#endif" "preproc_ifdef") point-min 0)
-           ((match "preproc_if" "compound_statement") point-min 0)
-           ((match "#endif" "preproc_if") point-min 0)
-           ((match "preproc_function_def" "compound_statement") point-min 0)
+           ((node-is "preproc") point-min 0)
+           ((node-is "#endif") point-min 0)
            ((match "preproc_call" "compound_statement") point-min 0)
+
+           ((n-p-gp nil "preproc" "translation_unit") point-min 0)
+           ((n-p-gp nil "\n" "preproc") great-grand-parent c-ts-mode--preproc-offset)
+           ((parent-is "preproc") grand-parent c-ts-mode-indent-offset)
 
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
@@ -740,7 +779,8 @@ the semicolon.  This function skips the semicolon."
   :parent prog-mode-map
   "C-c C-q" #'c-ts-mode-indent-defun
   "C-c ." #'c-ts-mode-set-style
-  "C-c C-c" #'comment-region)
+  "C-c C-c" #'comment-region
+  "C-c C-k" #'c-ts-mode-toggle-comment-style)
 
 ;;;###autoload
 (define-derived-mode c-ts-base-mode prog-mode "C"
@@ -805,7 +845,8 @@ the semicolon.  This function skips the semicolon."
               `((block . ,(rx (or "compound_statement"
                                   "field_declaration_list"
                                   "enumerator_list"
-                                  "initializer_list")))
+                                  "initializer_list"
+                                  "declaration_list")))
                 (if . "if_statement")
                 (else . ("if_statement" . "alternative"))
                 (do . "do_statement")
@@ -855,6 +896,7 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your configuration."
   :group 'c
+  :after-hook (c-ts-mode-set-modeline)
 
   (when (treesit-ready-p 'c)
     (treesit-parser-create 'c)
@@ -887,6 +929,7 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your configuration."
   :group 'c++
+  :after-hook (c-ts-mode-set-modeline)
 
   (when (treesit-ready-p 'cpp)
     (setq-local treesit-text-type-regexp

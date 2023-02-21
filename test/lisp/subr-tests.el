@@ -1058,10 +1058,12 @@ final or penultimate step during initialization."))
                  '(subr-tests--b subr-tests--c)))
 
   (defalias 'subr-tests--d 'subr-tests--e)
-  (defalias 'subr-tests--e 'subr-tests--d)
-  (should-error (function-alias-p 'subr-tests--d))
-  (should (equal (function-alias-p 'subr-tests--d t)
-                 '(subr-tests--e))))
+  (should (equal (function-alias-p 'subr-tests--d)
+                 '(subr-tests--e)))
+
+  (fset 'subr-tests--f 'subr-tests--a)
+  (should (equal (function-alias-p 'subr-tests--f)
+                 '(subr-tests--a subr-tests--b subr-tests--c))))
 
 (ert-deftest test-readablep ()
   (should (readablep "foo"))

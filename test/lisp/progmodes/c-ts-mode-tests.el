@@ -27,6 +27,10 @@
   (skip-unless (treesit-ready-p 'c))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
+(ert-deftest c-ts-mode-test-indentation-preproc ()
+  (skip-unless (treesit-ready-p 'c))
+  (ert-test-erts-file (ert-resource-file "indent-preproc.erts")))
+
 (ert-deftest c-ts-mode-test-indentation-bsd ()
   (skip-unless (treesit-ready-p 'c))
   (ert-test-erts-file (ert-resource-file "indent-bsd.erts")))

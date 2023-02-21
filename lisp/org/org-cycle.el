@@ -648,6 +648,9 @@ With a numeric prefix, show all headlines up to that level."
 		 (org-fold-show-hidden-entry)
 		 (org-fold-show-children))
 		("content"
+                 ;; Newline before heading will be outside the
+                 ;; narrowing.  Make sure that it is revealed.
+                 (org-fold-heading nil)
 		 (save-excursion
 		   (save-restriction
 		     (org-narrow-to-subtree)

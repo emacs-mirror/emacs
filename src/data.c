@@ -840,7 +840,9 @@ the position will be taken.  */)
 }
 
 DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
-       doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.  */)
+       doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
+If the resulting chain of function definitions would contain a loop,
+signal a `cyclic-function-indirection' error.  */)
   (register Lisp_Object symbol, Lisp_Object definition)
 {
   CHECK_SYMBOL (symbol);
@@ -851,6 +853,12 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
     xsignal1 (Qsetting_constant, symbol);
 
   eassert (valid_lisp_object_p (definition));
+
+  /* Ensure non-circularity.  */
+  for (Lisp_Object s = definition; SYMBOLP (s) && !NILP (s);
+       s = XSYMBOL (s)->u.s.function)
+    if (EQ (s, symbol))
+      xsignal1 (Qcyclic_function_indirection, symbol);
 
 #ifdef HAVE_NATIVE_COMP
   register Lisp_Object function = XSYMBOL (symbol)->u.s.function;
@@ -1078,7 +1086,7 @@ If CMD is not a command, the return value is nil.
 Value, if non-nil, is a list (interactive SPEC).  */)
   (Lisp_Object cmd)
 {
-  Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
+  Lisp_Object fun = indirect_function (cmd);
   bool genfun = false;
 
   if (NILP (fun))
@@ -1168,7 +1176,7 @@ If COMMAND is not a command, the return value is nil.
 The value, if non-nil, is a list of mode name symbols.  */)
   (Lisp_Object command)
 {
-  Lisp_Object fun = indirect_function (command); /* Check cycles.  */
+  Lisp_Object fun = indirect_function (command);
 
   if (NILP (fun))
     return Qnil;
@@ -2482,55 +2490,22 @@ If the current binding is global (the default), the value is nil.  */)
 
 /* If OBJECT is a symbol, find the end of its function chain and
    return the value found there.  If OBJECT is not a symbol, just
-   return it.  If there is a cycle in the function chain, signal a
-   cyclic-function-indirection error.
-
-   This is like Findirect_function, except that it doesn't signal an
-   error if the chain ends up unbound.  */
+   return it.  */
 Lisp_Object
-indirect_function (register Lisp_Object object)
+indirect_function (Lisp_Object object)
 {
-  Lisp_Object tortoise, hare;
-
-  hare = tortoise = object;
-
-  for (;;)
-    {
-      if (!SYMBOLP (hare) || NILP (hare))
-	break;
-      hare = XSYMBOL (hare)->u.s.function;
-      if (!SYMBOLP (hare) || NILP (hare))
-	break;
-      hare = XSYMBOL (hare)->u.s.function;
-
-      tortoise = XSYMBOL (tortoise)->u.s.function;
-
-      if (EQ (hare, tortoise))
-	xsignal1 (Qcyclic_function_indirection, object);
-    }
-
-  return hare;
+  while (SYMBOLP (object) && !NILP (object))
+    object = XSYMBOL (object)->u.s.function;
+  return object;
 }
 
 DEFUN ("indirect-function", Findirect_function, Sindirect_function, 1, 2, 0,
        doc: /* Return the function at the end of OBJECT's function chain.
 If OBJECT is not a symbol, just return it.  Otherwise, follow all
-function indirections to find the final function binding and return it.
-Signal a cyclic-function-indirection error if there is a loop in the
-function chain of symbols.  */)
-  (register Lisp_Object object, Lisp_Object noerror)
+function indirections to find the final function binding and return it.  */)
+  (Lisp_Object object, Lisp_Object noerror)
 {
-  Lisp_Object result;
-
-  /* Optimize for no indirection.  */
-  result = object;
-  if (SYMBOLP (result) && !NILP (result)
-      && (result = XSYMBOL (result)->u.s.function, SYMBOLP (result)))
-    result = indirect_function (result);
-  if (!NILP (result))
-    return result;
-
-  return Qnil;
+  return indirect_function (object);
 }
 
 /* Extract and set vector and string elements.  */

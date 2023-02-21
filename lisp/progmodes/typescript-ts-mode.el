@@ -81,6 +81,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "variable_declarator") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
@@ -101,12 +103,14 @@ Argument LANGUAGE is either `typescript' or `tsx'."
          `(((match "<" "jsx_fragment") parent 0)
            ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)
            ((node-is "jsx_closing_element") parent 0)
-           ((node-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((match "jsx_element" "statement") parent typescript-ts-mode-indent-offset)
            ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
+           ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)
            ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
            ((parent-is "jsx_expression") parent-bol typescript-ts-mode-indent-offset)
            ((match "/" "jsx_self_closing_element") parent 0)
            ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset)))
+     ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
      (no-node parent-bol 0))))
 
 (defvar typescript-ts-mode--keywords
@@ -377,8 +381,9 @@ See `treesit-sexp-type-regexp' for more information.")
 
   ;; Electric
   (setq-local electric-indent-chars
-              (append "{}():;," electric-indent-chars))
-
+              (append "{}():;,<>/" electric-indent-chars))
+  (setq-local electric-layout-rules
+	      '((?\; . after) (?\{ . after) (?\} . before)))
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
               (regexp-opt '("class_declaration"

@@ -2116,7 +2116,7 @@ then strings and vectors are not accepted.  */)
 
   fun = function;
 
-  fun = indirect_function (fun); /* Check cycles.  */
+  fun = indirect_function (fun);
   if (NILP (fun))
     return Qnil;
 

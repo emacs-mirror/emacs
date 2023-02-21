@@ -242,6 +242,21 @@ line 2
  */
 =-=-=
 
+Name: Block Comment prefixes (Bug#61314)
+
+=-=-=
+/*
+- item1
+- item2
+- item3
+*/
+=-=-=
+/*
+  - item1
+  - item2
+  - item3
+ */
+=-=-=
 
 Code:
   (lambda ()
@@ -351,6 +366,22 @@ int main()
     {":-)", "SLIGHTLY SMILING FACE"},
     {";-)", "WINKING FACE"},
     {":-(", "SLIGHTLY FROWNING FACE"},
+  };
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (c++-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (indent-region (point-min) (point-max)))
+
+Name: Declaration List (Namespace) (Bug#61635)
+
+=-=
+namespace test {
+  class Name {
   };
 }
 =-=-=
