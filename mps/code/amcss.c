@@ -101,6 +101,7 @@ static mps_addr_t make(size_t rootsCount)
   mps_addr_t p;
   mps_res_t res;
   ++ calls;
+  (void)calls; /* suppress unused warning: we want to look at this from debugger */
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
