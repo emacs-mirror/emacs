@@ -47,7 +47,7 @@
 # define optind __GETOPT_ID (optind)
 # define optopt __GETOPT_ID (optopt)
 
-/* Work around a a problem on macOS, which declares getopt with a
+/* Work around a problem on macOS, which declares getopt with a
    trailing __DARWIN_ALIAS(getopt) that would expand to something like
    __asm("_" "rpl_getopt" "$UNIX2003") were it not for the following
    hack to suppress the macOS declaration <https://bugs.gnu.org/40205>.  */

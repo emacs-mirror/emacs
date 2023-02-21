@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <dlfcn.h>
 #include <errno.h>
 #include <math.h>
+#include <string.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>

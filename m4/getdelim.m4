@@ -1,4 +1,4 @@
-# getdelim.m4 serial 18
+# getdelim.m4 serial 19
 
 dnl Copyright (C) 2005-2007, 2009-2023 Free Software Foundation, Inc.
 dnl
@@ -82,8 +82,8 @@ AC_DEFUN([gl_FUNC_GETDELIM],
                 ],
                 [gl_cv_func_working_getdelim="guessing yes"],
                 [case "$host_os" in
-                   *-musl*) gl_cv_func_working_getdelim="guessing yes" ;;
-                   *)       gl_cv_func_working_getdelim="$gl_cross_guess_normal" ;;
+                   *-musl* | midipix*) gl_cv_func_working_getdelim="guessing yes" ;;
+                   *)                  gl_cv_func_working_getdelim="$gl_cross_guess_normal" ;;
                  esac
                 ])
              ])

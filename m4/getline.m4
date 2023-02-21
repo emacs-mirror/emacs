@@ -1,4 +1,4 @@
-# getline.m4 serial 32
+# getline.m4 serial 33
 
 dnl Copyright (C) 1998-2003, 2005-2007, 2009-2023 Free Software Foundation,
 dnl Inc.
@@ -76,8 +76,8 @@ AC_DEFUN([gl_FUNC_GETLINE],
             ],
             [am_cv_func_working_getline="guessing yes"],
             [case "$host_os" in
-               *-musl*) am_cv_func_working_getline="guessing yes" ;;
-               *)       am_cv_func_working_getline="$gl_cross_guess_normal" ;;
+               *-musl* | midipix*) am_cv_func_working_getline="guessing yes" ;;
+               *)                  am_cv_func_working_getline="$gl_cross_guess_normal" ;;
              esac
             ])
          ])
