@@ -313,7 +313,7 @@ static void loSegReclaim(Seg seg, Trace trace)
   Bool hasBuffer = SegBuffer(&buffer, seg);
   Count reclaimedGrains = (Count)0;
   Format format = NULL; /* supress "may be used uninitialized" warning */
-  Count preservedInPlaceCount = (Count)0;
+  STATISTIC_DECL(Count preservedInPlaceCount = (Count)0)
   Size preservedInPlaceSize = (Size)0;
   Bool b;
 
@@ -355,7 +355,7 @@ static void loSegReclaim(Seg seg, Trace trace)
     q = (*format->skip)(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
     if(BTGet(loseg->mark, i)) {
-      ++preservedInPlaceCount;
+      STATISTIC(++preservedInPlaceCount);
       preservedInPlaceSize += AddrOffset(p, q);
     } else {
       Index j = PoolIndexOfAddr(base, pool, q);
