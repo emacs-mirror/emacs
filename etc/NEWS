@@ -1221,7 +1221,8 @@ the corresponding deleted frame.
 That value means to use 'frame-title-format' for iconified frames.
 This is useful with some window managers and desktop environments
 which treat changes in frame's title as requests to raise the frame
-and/or give it input focus.
+and/or give it input focus, or if you want the frame's title to be the
+same no matter if the frame is iconified or not.
 
 ** Tab Bars and Tab Lines
 
