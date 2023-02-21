@@ -3653,6 +3653,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
   re_opcode_t op2;
   bool multibyte = RE_MULTIBYTE_P (bufp);
   unsigned char *pend = bufp->buffer + bufp->used;
+  re_char *p2_orig = p2;
 
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
@@ -3821,6 +3822,23 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
       return ((re_opcode_t) *p1 == notcategoryspec && p1[1] == p2[1]);
     case notcategoryspec:
       return ((re_opcode_t) *p1 == categoryspec && p1[1] == p2[1]);
+
+    case on_failure_jump_nastyloop:
+    case on_failure_jump_smart:
+    case on_failure_jump_loop:
+    case on_failure_keep_string_jump:
+    case on_failure_jump:
+      {
+        int mcnt;
+	p2++;
+	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
+	/* Don't just test `mcnt > 0` because non-greedy loops have
+	   their test at the end with an unconditional jump at the start.  */
+	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
+	  return (mutually_exclusive_p (bufp, p1, p2)
+		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
+	break;
+      }
 
     default:
       ;

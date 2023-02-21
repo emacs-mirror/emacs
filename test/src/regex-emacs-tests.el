@@ -872,4 +872,15 @@ This evaluates the TESTS test cases from glibc."
   (should (equal (string-match "\\`\\(?:ab\\)*\\'" "a") nil))
   (should (equal (string-match "\\`a\\{2\\}*\\'" "a") nil)))
 
+(ert-deftest regexp-tests-backtrack-optimization () ;bug#61514
+  ;; Make sure we don't use up the regexp stack needlessly.
+  (with-current-buffer (get-buffer-create "*bug*")
+    (erase-buffer)
+    (insert (make-string 1000000 ?x) "=")
+    (goto-char (point-min))
+    (should (looking-at "x*=*"))
+    (should (looking-at "x*\\(=\\|:\\)"))
+    (should (looking-at "x*\\(=\\|:\\)*"))
+    (should (looking-at "x*=*?"))))
+
 ;;; regex-emacs-tests.el ends here
