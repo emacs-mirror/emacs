@@ -243,8 +243,8 @@ value of the last statement in BODY, as elisp."
       (`output
        (setq results
 	     (if matlabp
-		 (cdr (reverse (delq "" (mapcar #'org-strip-quotes
-						(mapcar #'org-trim raw)))))
+		 (cdr (reverse (delete "" (mapcar #'org-strip-quotes
+					          (mapcar #'org-trim raw)))))
 	       (cdr (member org-babel-octave-eoe-output
 			    (reverse (mapcar #'org-strip-quotes
 					     (mapcar #'org-trim raw)))))))

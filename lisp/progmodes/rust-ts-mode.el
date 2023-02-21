@@ -36,6 +36,7 @@
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
@@ -209,50 +210,15 @@
    `((scoped_use_list path: (identifier) @font-lock-constant-face)
      (scoped_use_list path: (scoped_identifier
                              name: (identifier) @font-lock-constant-face))
-
      ((use_as_clause alias: (identifier) @font-lock-type-face)
       (:match "^[A-Z]" @font-lock-type-face))
      ((use_as_clause path: (identifier) @font-lock-type-face)
       (:match "^[A-Z]" @font-lock-type-face))
-     ((use_as_clause path:
-                     (scoped_identifier path: (_)
-                                        name: (identifier) @font-lock-type-face))
-      (:match "^[A-Z]" @font-lock-type-face))
-     (use_as_clause path: (scoped_identifier name: (identifier) @default))
-
-     ((use_declaration
-       argument: (scoped_identifier
-                  path: (_) @font-lock-constant-face
-                  name: (identifier) @font-lock-type-face))
-      (:match "^[A-Z]" @font-lock-type-face))
-     (use_declaration
-      argument: (scoped_identifier
-                 name: (identifier) @default))
-
-     (use_declaration
-      argument: (scoped_identifier
-                 path: (scoped_identifier
-                        path: (_) @font-lock-constant-face
-                        name: (identifier) @font-lock-constant-face)
-                 name: (identifier) @default))
-
-     (use_declaration
-      argument: (scoped_use_list
-                 path: (scoped_identifier
-                        path: (_) @font-lock-constant-face
-                        name: (identifier) @font-lock-constant-face)))
-
      ((use_list (identifier) @font-lock-type-face)
       (:match "^[A-Z]" @font-lock-type-face))
-     (use_list (identifier) @default)
-     ((use_list (scoped_identifier path: (_)
-                                   name: (identifier) @font-lock-type-face))
-      (:match "^[A-Z]" @font-lock-type-face))
-     (use_list (scoped_identifier path: (_)
-                                  name: (identifier) @default))
-     (use_wildcard (scoped_identifier
-                    name: (identifier) @font-lock-constant-face))
-
+     (use_wildcard [(identifier) @rust-ts-mode--fontify-scope
+                    (scoped_identifier
+                     name: (identifier) @rust-ts-mode--fontify-scope)])
      (enum_variant name: (identifier) @font-lock-type-face)
      (match_arm
       pattern: (match_pattern (_ type: (identifier) @font-lock-type-face)))
@@ -263,31 +229,13 @@
      (mod_item name: (identifier) @font-lock-constant-face)
      (primitive_type) @font-lock-type-face
      (type_identifier) @font-lock-type-face
-     ((scoped_identifier name: (identifier) @font-lock-type-face)
-      (:match "^[A-Z]" @font-lock-type-face))
-     ((scoped_identifier path: (identifier) @font-lock-type-face)
-      (:match "^[A-Z]" @font-lock-type-face))
-     ((scoped_identifier
-       path: [(identifier) @font-lock-type-face
-              (scoped_identifier
-               name: (identifier) @font-lock-type-face)])
-      (:match "^[A-Z]" @font-lock-type-face))
+     ((scoped_identifier name: (identifier) @rust-ts-mode--fontify-tail))
      ((scoped_identifier path: (identifier) @font-lock-type-face)
       (:match
        "^\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)$"
        @font-lock-type-face))
-     (scoped_identifier path: (_) @font-lock-constant-face
-                        name: (identifier) @font-lock-type-face)
-     (scoped_identifier path: (scoped_identifier
-                               name: (identifier) @font-lock-constant-face))
-     (scoped_type_identifier path: (_) @font-lock-constant-face)
-     (scoped_type_identifier
-      path: (scoped_identifier
-             path: (_) @font-lock-constant-face
-             name: (identifier) @font-lock-constant-face))
-     (type_identifier) @font-lock-type-face
-     ;; Ensure function calls aren't highlighted as types.
-     (call_expression function: (scoped_identifier name: (identifier) @default)))
+     ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
+     (type_identifier) @font-lock-type-face)
 
    :language 'rust
    :feature 'property
@@ -303,9 +251,25 @@
 
    :language 'rust
    :feature 'variable
-   '((identifier) @font-lock-variable-name-face
-     ;; Everything in a token_tree is an identifier.
-     (token_tree (identifier) @default))
+   '((arguments (identifier) @font-lock-variable-name-face)
+     (array_expression (identifier) @font-lock-variable-name-face)
+     (assignment_expression right: (identifier) @font-lock-variable-name-face)
+     (binary_expression left: (identifier) @font-lock-variable-name-face)
+     (binary_expression right: (identifier) @font-lock-variable-name-face)
+     (block (identifier) @font-lock-variable-name-face)
+     (compound_assignment_expr right: (identifier) @font-lock-variable-name-face)
+     (field_expression value: (identifier) @font-lock-variable-name-face)
+     (field_initializer value: (identifier) @font-lock-variable-name-face)
+     (if_expression condition: (identifier) @font-lock-variable-name-face)
+     (let_condition value: (identifier) @font-lock-variable-name-face)
+     (let_declaration value: (identifier) @font-lock-variable-name-face)
+     (match_arm value: (identifier) @font-lock-variable-name-face)
+     (match_expression value: (identifier) @font-lock-variable-name-face)
+     (reference_expression value: (identifier) @font-lock-variable-name-face)
+     (return_expression (identifier) @font-lock-variable-name-face)
+     (tuple_expression (identifier) @font-lock-variable-name-face)
+     (unary_expression (identifier) @font-lock-variable-name-face)
+     (while_expression condition: (identifier) @font-lock-variable-name-face))
 
    :language 'rust
    :feature 'escape-sequence
@@ -317,6 +281,28 @@
    :override t
    '((ERROR) @font-lock-warning-face))
   "Tree-sitter font-lock settings for `rust-ts-mode'.")
+
+(defun rust-ts-mode--fontify-scope (node override start end &optional tail-p)
+  (let* ((case-fold-search nil)
+         (face
+          (cond
+           ((string-match-p "^[A-Z]" (treesit-node-text node))
+            'font-lock-type-face)
+           ((and
+             tail-p
+             (string-match-p
+              "\\`\\(?:use_list\\|call_expression\\|use_as_clause\\|use_declaration\\)\\'"
+              (treesit-node-type (treesit-node-parent (treesit-node-parent node)))))
+            nil)
+           (t 'font-lock-constant-face))))
+    (when face
+      (treesit-fontify-with-override
+       (treesit-node-start node) (treesit-node-end node)
+       face
+       override start end))))
+
+(defun rust-ts-mode--fontify-tail (node override start end)
+  (rust-ts-mode--fontify-scope node override start end t))
 
 (defalias 'rust-ts-mode--fontify-pattern
   (and

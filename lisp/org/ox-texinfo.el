@@ -32,6 +32,8 @@
 (require 'cl-lib)
 (require 'ox)
 
+(eval-when-compile (require 'subr-x))
+
 (defvar orgtbl-exp-regexp)
 (defvar org-texinfo-supports-math--cache)
 
@@ -2025,12 +2027,14 @@ Once computed, the results remain cached."
   (unless (boundp 'org-texinfo-supports-math--cache)
     (setq org-texinfo-supports-math--cache
           (let ((math-example "1 + 1 = 2"))
-            (let* ((input-file
-                    (make-temp-file "test" nil ".info"))
-                   (input-content
-                    (concat (format "@setfilename %s" input-file) "\n"
-                            "@node Top" "\n"
-                            (format "@displaymath{%s}" math-example) "\n")))
+            (let* ((input-file (make-temp-file "test" nil ".info"))
+                   (input-content (string-join
+                                   (list (format "@setfilename %s" input-file)
+                                         "@node Top"
+                                         "@displaymath"
+                                         math-example
+                                         "@end displaymath")
+                                   "\n")))
               (with-temp-file input-file
                 (insert input-content))
               (let* ((output-file (org-texinfo-compile input-file))

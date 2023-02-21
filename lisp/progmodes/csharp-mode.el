@@ -474,28 +474,37 @@ compilation and evaluation time conflicts."
          (and (eq (char-before) ?\])
               (not (eq (char-after) ?\;))))))
     `((annotation-top-cont ,(c-point 'iopl))))
-
    ((and
      ;; Heuristics to find object initializers
      (save-excursion
        ;; Next non-whitespace character should be '{'
        (goto-char (c-point 'boi))
-       (eq (char-after) ?{))
-     (save-excursion
-       ;; 'new' should be part of the line
-       (goto-char (c-point 'iopl))
-       (looking-at ".*new.*"))
+       (unless (eq (char-after) ?{)
+         (backward-up-list 1 t t))
+       (save-excursion
+         ;; 'new' should be part of the line
+         (goto-char (c-point 'iopl))
+         (looking-at ".*new.*")))
      ;; Line should not already be terminated
      (save-excursion
        (goto-char (c-point 'eopl))
        (or (not (eq (char-before) ?\;))
            (not (eq (char-before) ?\{)))))
-    (if (save-excursion
-          ;; if we have a hanging brace on line before
-          (goto-char (c-point 'eopl))
-          (eq (char-before) ?\{))
-        `((brace-list-intro ,(c-point 'iopl)))
-      `((block-open) (statement ,(c-point 'iopl)))))
+    (cond
+     ((save-excursion
+        ;; if we have a hanging brace on line before
+        (goto-char (c-point 'eopl))
+        (eq (char-before) ?\{))
+      `((brace-list-intro ,(c-point 'iopl))))
+     ((save-excursion
+        ;; if we have a hanging brace on line before
+        (goto-char (c-point 'boi))
+        (and (eq (char-after) ?\})
+             `((brace-list-close ,(save-excursion
+                                    (backward-up-list 1 t t)
+                                    (point)))))))
+     (t
+      `((block-open) (statement ,(c-point 'iopl))))))
    (t
     (apply orig-fun args))))
 

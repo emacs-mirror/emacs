@@ -1,0 +1,45 @@
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (newline)
+    (indent-for-tab-command))
+
+Point-Char: |
+
+Name: Indents inside #if preproc
+
+=-=
+static void
+free_glyph_pool (struct glyph_pool *pool)
+{
+  if (pool)
+    {
+#if defined GLYPH_DEBUG|
+#endif
+    }
+}
+=-=
+static void
+free_glyph_pool (struct glyph_pool *pool)
+{
+  if (pool)
+    {
+#if defined GLYPH_DEBUG
+      |
+#endif
+    }
+}
+=-=-=
+
+Name: Indents to 0 if #if preproc at root
+
+=-=
+#if 0|
+/* */
+static void
+=-=
+#if 0
+|
+/* */
+static void
+=-=-=

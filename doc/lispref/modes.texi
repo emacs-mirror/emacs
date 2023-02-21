@@ -5111,8 +5111,11 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}.  It tries to go to the beginning of the
 previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
 there is a match, this function returns the end of the match,
-otherwise it returns nil.  This anchor is useful for a
-@code{indent-relative}-like indent behavior for block comments.
+otherwise it returns nil.  However, if the current line begins with a
+prefix (e.g., ``-''), return the beginning of the prefix of the
+previous line instead, so that the two prefixes aligns.  This anchor
+is useful for a @code{indent-relative}-like indent behavior for block
+comments.
 
 @end ftable
 @end defvar
