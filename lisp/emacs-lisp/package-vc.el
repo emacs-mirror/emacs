@@ -615,6 +615,10 @@ PKG-SPEC is a package specification, a property list describing
 how to fetch and build the package.  See `package-vc--archive-spec-alist'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
+  (unless (eq (package-desc-kind pkg-desc) 'vc)
+    (let ((copy (copy-package-desc pkg-desc)))
+      (setf (package-desc-kind copy) 'vc
+            pkg-desc copy)))
   (pcase-let* (((map :lisp-dir) pkg-spec)
                (name (package-desc-name pkg-desc))
                (dirname (package-desc-full-name pkg-desc))
@@ -826,9 +830,7 @@ regular package, but it will not remove a VC package.
        rev)))
    ((and-let* ((desc (assoc package package-archive-contents #'string=)))
       (package-vc--unpack
-       (let ((copy (copy-package-desc (cadr desc))))
-         (setf (package-desc-kind copy) 'vc)
-         copy)
+       (cadr desc)
        (or (package-vc--desc->spec (cadr desc))
            (and-let* ((extras (package-desc-extras (cadr desc)))
                       (url (alist-get :url extras))
