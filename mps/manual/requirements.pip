@@ -2,3 +2,4 @@
 
 # Layout breaks in Sphinx >= 5.  See <https://github.com/Ravenbrook/mps/issues/121>.
 sphinx >= 4, < 5
+sphinx-rtd-theme
