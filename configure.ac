@@ -4792,7 +4792,20 @@ if test "${with_modules}" != "no"; then
  ]], [[cleanup_func (); return 1;]])],
        [emacs_cv_attribute_cleanup=yes],
        [emacs_cv_attribute_cleanup=no],
-       [emacs_cv_attribute_cleanup="guessing yes"])])
+       [AC_COMPILE_IFELSE([
+         AC_LANG_PROGRAM([[
+	   cleanup_func_1 (k)
+	     int *k;
+	   {
+	     return *k;
+	   };
+	   cleanup_func ()
+	   {
+	     int k __attribute__((cleanup (cleanup_func_1))) = 100;
+	   }]],
+	   [[cleanup_func ()]])],
+	 [emacs_cv_attribute_cleanup="guessing yes"],
+	 [emacs_cv_attribute_cleanup=no])])])
 
   if test "$emacs_cv_attribute_cleanup" = "no"; then
     if test "${with_modules}" = "ifavailable"; then
