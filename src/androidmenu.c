@@ -375,7 +375,7 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	      if (android_get_current_api_level () >= 26
 		  && STRINGP (help))
-		help_string = android_build_string (help_string);
+		help_string = android_build_string (help);
 
 	      store = current_context_menu;
 	      current_context_menu
