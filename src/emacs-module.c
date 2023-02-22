@@ -246,10 +246,6 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
    of `internal_condition_case' etc., and to avoid worrying about
    passing information to the handler functions.  */
 
-#if !HAS_ATTRIBUTE (cleanup)
- #error "__attribute__ ((cleanup)) not supported by this compiler; try GCC"
-#endif
-
 /* Place this macro at the beginning of a function returning a number
    or a pointer to handle non-local exits.  The function must have an
    ENV parameter.  The function will return the specified value if a
@@ -258,7 +254,9 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
 /* It is very important that pushing the handler doesn't itself raise
    a signal.  Install the cleanup only after the handler has been
    pushed.  Use __attribute__ ((cleanup)) to avoid
-   non-local-exit-prone manual cleanup.
+   non-local-exit-prone manual cleanup.  This is an extension provided
+   by GCC and similar compilers; configure prevents module.c from
+   being compiled when it is not present.
 
    The do-while forces uses of the macro to be followed by a semicolon.
    This macro cannot enclose its entire body inside a do-while, as the

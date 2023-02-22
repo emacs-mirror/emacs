@@ -66,6 +66,12 @@ case "$ndk_ABI" in
  *x86* )
    ndk_ARCH=x86
    ;;
+ *mips64* )
+   ndk_ARCH=mips64
+   ;;
+ *mips* )
+   ndk_ARCH=mips
+   ;;
  * )
    AC_MSG_ERROR([Failed to determine Android device architecture])
    ;;

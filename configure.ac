@@ -548,7 +548,7 @@ OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
-OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
+OPTION_DEFAULT_IFAVAILABLE([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
@@ -910,6 +910,8 @@ for your machine.  For example:
     *aarch64*) android_abi=arm64-v8a
       ;;
     *arm*v7a*) android_abi=armeabi-v7a
+      ;;
+    *mips64*) android_abi=mips64
       ;;
     *mips*) android_abi=mips
       ;;
@@ -4768,27 +4770,61 @@ if test $window_system = pgtk; then
 fi
 
 if test "${with_modules}" != "no"; then
-  case $opsys in
-    gnu|gnu-linux)
-      LIBMODULES="-ldl"
-      HAVE_MODULES=yes
-      ;;
-    cygwin|mingw32|darwin)
-      HAVE_MODULES=yes
-      ;;
-    *)
-      # BSD systems have dlopen in libc.
-      AC_CHECK_FUNC([dlopen], [HAVE_MODULES=yes])
-      ;;
-  esac
+  # __attribute__ ((cleanup)) is required for dynamic modules to
+  # work.
+  AC_CACHE_CHECK([for working __attribute__((cleanup))],
+    [emacs_cv_attribute_cleanup],
+    [AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 
-  if test "${HAVE_MODULES}" = no; then
-    AC_MSG_ERROR([Dynamic modules are not supported on your system])
+ extern int exit ();
+
+ cleanup_func_1 (k)
+    int *k;
+ {
+   exit (*k - 100);
+ }
+
+ cleanup_func ()
+ {
+   int k __attribute__((cleanup (cleanup_func_1))) = 100;
+ }
+
+ ]], [[cleanup_func (); return 1;]])],
+       [emacs_cv_attribute_cleanup=yes],
+       [emacs_cv_attribute_cleanup=no],
+       [emacs_cv_attribute_cleanup="guessing yes"])])
+
+  if test "$emacs_cv_attribute_cleanup" = "no"; then
+    if test "${with_modules}" = "ifavailable"; then
+      AC_MSG_WARN([your compiler does not support cleanup attributes,
+and as a result dynamic modules have been disabled])
+    else
+      AC_MSG_ERROR([your compiler is missing the cleanup attribute
+required for dynamic modules to work])
+    fi
   else
-    SAVE_LIBS=$LIBS
-    LIBS="$LIBS $LIBMODULES"
-    AC_CHECK_FUNCS([dladdr dlfunc])
-    LIBS=$SAVE_LIBS
+    case $opsys in
+      gnu|gnu-linux)
+	LIBMODULES="-ldl"
+	HAVE_MODULES=yes
+	;;
+      cygwin|mingw32|darwin)
+	HAVE_MODULES=yes
+	;;
+      *)
+	# BSD systems have dlopen in libc.
+	AC_CHECK_FUNC([dlopen], [HAVE_MODULES=yes])
+	;;
+    esac
+
+    if test "${HAVE_MODULES}" = no; then
+      AC_MSG_ERROR([Dynamic modules are not supported on your system])
+    else
+      SAVE_LIBS=$LIBS
+      LIBS="$LIBS $LIBMODULES"
+      AC_CHECK_FUNCS([dladdr dlfunc])
+      LIBS=$SAVE_LIBS
+    fi
   fi
 fi
 
