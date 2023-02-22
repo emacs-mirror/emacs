@@ -933,7 +933,7 @@ WHAT is a value of nil, `never', or `always'."
 			     (end-of-line)
 			     (if (eobp) (point) (1+ (point)))))
     (when (eobp)
-      (backward-delete-char 1)
+      (delete-char -1)
       (beginning-of-line)
       (recenter -1))
     (bs--set-window-height)))

@@ -3730,7 +3730,7 @@ of the target of the link instead."
 	  (process-file "file" nil t t "-L" "--" file)
 	(process-file "file" nil t t "--" file))
       (when (bolp)
-	(backward-delete-char 1))
+	(delete-char -1))
       (message "%s" (buffer-string)))))
 
 
