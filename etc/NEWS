@@ -1177,7 +1177,7 @@ height use 'window-height' and 'body-lines', respectively.
 
 +++
 *** 'display-buffer' provides more options for using an existing window.
-The display buffer action functions 'display-buffer-use-window' and
+The display buffer action functions 'display-buffer-reuse-window' and
 'display-buffer-use-least-recent-window' now honor the action alist
 entry 'window-min-height' as well as the entries listed below to make
 the display of several buffers in a row more amenable.
