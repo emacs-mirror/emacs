@@ -1711,7 +1711,7 @@ See Info node `(elisp) Integer Basics'."
 	 eobp eolp eq equal
 	 floatp following-char framep
 	 hash-table-p
-	 identity integerp integer-or-marker-p
+	 identity indirect-function integerp integer-or-marker-p
 	 invocation-directory invocation-name
 	 keymapp keywordp
 	 list listp
