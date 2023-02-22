@@ -245,10 +245,11 @@ use instead of point."
         (insert
          (mapconcat
           (lambda (x)
-            (format "%s: %s %s %s" (calendar-date-string (car x))
-                    (lunar-phase-name (nth 2 x))
-                    (cadr x)
-		    (car (last x))))
+            (let ((eclipse (nth 3 x)))
+              (concat (calendar-date-string (car x)) ": "
+                      (lunar-phase-name (nth 2 x)) " "
+                      (cadr x) (unless (string-empty-p eclipse) " ")
+                      eclipse)))
           (lunar-phase-list m1 y1) "\n")))
       (message "Computing phases of the moon...done"))))
 
@@ -283,9 +284,13 @@ use when highlighting the day in the calendar."
     (while (calendar-date-compare phase (list date))
       (setq index (1+ index)
             phase (lunar-phase index)))
-    (if (calendar-date-equal (car phase) date)
-        (cons mark (concat (lunar-phase-name (nth 2 phase)) " "
-                           (cadr phase))))))
+    (and (calendar-date-equal (car phase) date)
+         (cons mark
+               (let ((eclipse (nth 3 phase)))
+                 (concat (lunar-phase-name (nth 2 phase)) " "
+                         (cadr phase)
+                         (unless (string-empty-p eclipse) " ")
+                         eclipse))))))
 
 ;; For the Chinese calendar the calculations for the new moon need to be more
 ;; accurate than those above, so we use more terms in the approximation.
