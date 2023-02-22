@@ -48,9 +48,6 @@
   ;; User data
   nickname host login full-name info
   ;; Buffers
-  ;;
-  ;; This is an alist of the form (BUFFER . CHANNEL-DATA), where
-  ;; CHANNEL-DATA is either nil or an erc-channel-user struct.
   (buffers nil))
 
 (cl-defstruct (erc-channel-user (:type vector) :named)

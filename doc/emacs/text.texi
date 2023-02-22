@@ -619,7 +619,12 @@ variable @code{fill-column}.  The default value (@pxref{Locals}) is
 is to use the command @kbd{C-x f} (@code{set-fill-column}).  With a
 numeric argument, it uses that as the new fill column.  With just
 @kbd{C-u} as argument, it sets @code{fill-column} to the current
-horizontal position of point.
+horizontal position of point.  Note that, by its very nature,
+@code{fill-column} is measured in column units; the actual position of
+that column on a graphical display depends on the font being used.  In
+particular, using variable-pitch fonts will cause the
+@code{fill-column} occupy different horizontal positions on display in
+different lines.
 
 @cindex centering
 @findex center-line

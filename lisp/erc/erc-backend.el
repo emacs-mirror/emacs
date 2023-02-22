@@ -883,24 +883,22 @@ Conditionally try to reconnect and take appropriate action."
     (erc--unhide-prompt)))
 
 (defun erc--hide-prompt (proc)
-  (erc-with-all-buffers-of-server
-      proc nil ; sorta wish this was indent 2
-      (when (and erc-hide-prompt
-                 (or (eq erc-hide-prompt t)
-                     ;; FIXME use `erc--target' after bug#48598
-                     (memq (if (erc-default-target)
-                               (if (erc-channel-p (car erc-default-recipients))
-                                   'channel
-                                 'query)
-                             'server)
-                           erc-hide-prompt))
-                 (marker-position erc-insert-marker)
-                 (marker-position erc-input-marker)
-                 (get-text-property erc-insert-marker 'erc-prompt))
-        (with-silent-modifications
-          (add-text-properties erc-insert-marker (1- erc-input-marker)
-                               `(display ,erc-prompt-hidden)))
-        (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 0 t))))
+  (erc-with-all-buffers-of-server proc nil
+    (when (and erc-hide-prompt
+               (or (eq erc-hide-prompt t)
+                   (memq (if erc--target
+                             (if (erc--target-channel-p erc--target)
+                                 'channel
+                               'query)
+                           'server)
+                         erc-hide-prompt))
+               (marker-position erc-insert-marker)
+               (marker-position erc-input-marker)
+               (get-text-property erc-insert-marker 'erc-prompt))
+      (with-silent-modifications
+        (add-text-properties erc-insert-marker (1- erc-input-marker)
+                             `(display ,erc-prompt-hidden)))
+      (add-hook 'pre-command-hook #'erc--unhide-prompt-on-self-insert 91 t))))
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."
