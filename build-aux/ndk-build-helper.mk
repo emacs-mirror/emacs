@@ -21,6 +21,9 @@
 # See the text under ``NDK BUILD SYSTEM IMPLEMENTATION'' in
 # INSTALL.android for more details.
 
+# TARGET_ARCH_ABI is the ABI that is being built for.
+TARGET_ARCH_ABI := $(EMACS_ABI)
+
 # NDK_LAST_MAKEFILE is the last Makefile that was included.
 NDK_LAST_MAKEFILE = $(lastword $(filter %Android.mk,$(MAKEFILE_LIST)))
 

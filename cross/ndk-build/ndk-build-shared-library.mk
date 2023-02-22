@@ -27,6 +27,10 @@ eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 # same name but of different types.
 objname = $(1)-shared-$(subst /,_,$(2).o)
 
+# LOCAL_SRC_FILES sometimes contains absolute file names.  Filter them
+# out with this function.
+maybe-absolute = $(or $(and $(wildcard $(1)),$(1)),$(LOCAL_PATH)/$(1))
+
 # Here are the default flags to link shared libraries with.
 NDK_SO_DEFAULT_LDFLAGS := -lc -lm
 
@@ -34,26 +38,26 @@ define single-object-target
 
 ifeq (x$(suffix $(1)),x.c)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_BUILD_CFLAGS) $(call LOCAL_C_ADDITIONAL_FLAGS,$(1))
 
 else
 ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_BUILD_CFLAGS) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq ($(or $(call eq,x$(suffix $(1)),x.s),$(call eq,x$(suffix $(1)),x.S)),)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_ASFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq (x$(suffix $(1)),x.asm)
 ifeq (x$(suffix $(1)),x.cc)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_BUILD_CFLAGS) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
@@ -137,9 +141,8 @@ ALL_SOURCE_FILES := $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
 ALL_OBJECT_FILES$(LOCAL_MODULE) :=
 
 # Now filter out code that is only built on systems with neon.
-ifeq ($(NDK_BUILD_ABI),armeabi-v7a)
+ifneq $(findstring v8,$(NDK_BUILD_ARCH))
 ALL_SOURCE_FILES := $(filter-out %.neon,$(ALL_SOURCE_FILES))
-endif
 
 $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source))))
 

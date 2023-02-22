@@ -1078,6 +1078,8 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-selinux=$with_selinux"
   passthrough="$passthrough --with-modules=$with_modules"
   passthrough="$passthrough --with-tree-sitter=$with_tree_sitter"
+  passthrough="$passthrough --with-imagemagick=$with_imagemagick"
+  passthrough="$passthrough --with-lcms2=$with_lcms2"
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
          ANDROID_SDK="$android_sdk" android_abi=$android_abi \
@@ -1152,13 +1154,13 @@ if test "$ANDROID" = "yes"; then
     with_selinux=no
     with_modules=no
     with_tree_sitter=no
+    with_imagemagick=no
+    with_lcms2=no
   fi
 
   with_rsvg=no
-  with_lcms2=no
   with_libsystemd=no
   with_cairo=no
-  with_imagemagick=no
   with_xft=no
   with_harfbuzz=no
   with_libotf=no
@@ -3430,7 +3432,8 @@ AC_SUBST([SQLITE3_CFLAGS])
 
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes" || \
-   test "${HAVE_BE_APP}" = "yes" || test "${window_system}" = "pgtk"; then
+   test "${HAVE_BE_APP}" = "yes" || test "${window_system}" = "pgtk" || \
+   test "${REALLY_ANDROID}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     if test -n "$BREW"; then
       # Homebrew doesn't link ImageMagick 6 by default, so make sure
@@ -3453,14 +3456,23 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
       OLD_LIBS=$LIBS
       CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
       LIBS="$IMAGEMAGICK_LIBS $LIBS"
-      AC_CHECK_FUNCS([MagickRelinquishMemory MagickExportImagePixels \
-		      MagickMergeImageLayers MagickAutoOrientImage])
+      if test "$REALLY_ANDROID" != "yes"; then
+	AC_CHECK_FUNCS([MagickRelinquishMemory MagickExportImagePixels \
+			MagickMergeImageLayers MagickAutoOrientImage])
+      else
+        # AC_CHECK_FUNCS doesn't work for Android dependencies because
+	# they are built alongside Emacs.
+	AC_CHECK_DECLS([MagickRelinquishMemory,MagickExportImagePixels,
+MagickMergeImageLayers,MagickAutoOrientImage],
+		       [], [], [#include <MagickWand/MagickWand.h>])
+      fi
       CFLAGS=$OLD_CFLAGS
       LIBS=$OLD_LIBS
       # Check that ImageMagick links.  It does not link on Fedora 25
       # with './configure CC=clang', as pkg-config outputs flags like
       # -lomp that work for GCC but not Clang.
-      if test "$ac_cv_func_MagickRelinquishMemory" != yes; then
+      if test "$ac_cv_func_MagickRelinquishMemory" != yes \
+         && test "$REALLY_ANDROID" != "yes"; then
 	HAVE_IMAGEMAGICK=no
       fi
     fi

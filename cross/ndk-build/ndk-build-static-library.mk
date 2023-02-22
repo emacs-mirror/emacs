@@ -22,30 +22,34 @@
 eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 objname = $(1)-static-$(subst /,_,$(2).o)
 
+# LOCAL_SRC_FILES sometimes contains absolute file names.  Filter them
+# out with this function.
+maybe-absolute = $(or $(and $(wildcard $(1)),$(1)),$(LOCAL_PATH)/$(1))
+
 define single-object-target
 
 ifeq (x$(suffix $(1)),x.c)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(call LOCAL_C_ADDITIONAL_FLAGS,$(1))
 
 else
 ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq ($(or $(call eq,x$(suffix $(1)),x.s),$(call eq,x$(suffix $(1)),x.S)),)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_ASFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq (x$(suffix $(1)),x.asm)
 ifeq (x$(suffix $(1)),x.cc)
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
@@ -63,7 +67,7 @@ ifeq ($(findstring x86,$(NDK_BUILD_ARCH)),)
 $$(error Trying to build nasm file on non-Intel platform!)
 else
 
-$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(LOCAL_PATH)/$(1)
+$(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1))
 	$(NDK_BUILD_NASM) -o $$@ -i $(LOCAL_PATH) -i $$(dir $$<) $(NDK_ASFLAGS_$(LOCAL_MODULE)) $$<
 
 endif
@@ -102,14 +106,10 @@ NDK_CFLAGS ::= -mthumb
 endif
 endif
 
-LOCAL_MODULE_FILENAME := $(strip $(LOCAL_MODULE_FILENAME))
-
-ifndef LOCAL_MODULE_FILENAME
 ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE)
 else
 LOCAL_MODULE_FILENAME := lib$(LOCAL_MODULE)
-endif
 endif
 
 LOCAL_MODULE_FILENAME := $(LOCAL_MODULE_FILENAME).a
@@ -123,9 +123,7 @@ include ndk-resolve.mk
 ALL_SOURCE_FILES := $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
 
 # Now filter out code that is only built on systems with neon.
-ifeq ($(NDK_BUILD_ABI),armeabi-v7a)
 ALL_SOURCE_FILES := $(filter-out %.neon,$(ALL_SOURCE_FILES))
-endif
 
 # This defines all dependencies.
 ALL_OBJECT_FILES$(LOCAL_MODULE) =

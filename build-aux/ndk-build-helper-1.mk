@@ -36,14 +36,10 @@ $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
 $(info $(addprefix $(LOCAL_PATH)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
 
-ifeq ($(LOCAL_MODULE_FILENAME),)
 ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
 NDK_SO_NAMES = $(LOCAL_MODULE)_emacs.so
 else
 NDK_SO_NAMES = lib$(LOCAL_MODULE)_emacs.so
-endif
-else
-NDK_SO_NAMES = $(LOCAL_MODULE_FILENAME).so
 endif
 
 define add-so-name-1

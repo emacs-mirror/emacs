@@ -30,15 +30,10 @@ $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
 $(info $(addprefix $(LOCAL_PATH)/,$(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES$(EMACS_ABI))))
 
-ifeq ($(LOCAL_MODULE_FILENAME),)
-
 ifeq ($(findstring lib,$(LOCAL_MODULE)),lib)
 NDK_A_NAMES = $(LOCAL_MODULE).a
 else
 NDK_A_NAMES = lib$(LOCAL_MODULE).a
-endif
-else
-NDK_A_NAMES = $(LOCAL_MODULE_FILENAME).a
 endif
 
 define add-a-name

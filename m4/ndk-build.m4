@@ -82,6 +82,7 @@ esac
 
 ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2 jansson:libjansson"
 ndk_package_map="$ndk_package_map sqlite3:libsqlite_static_minimal"
+ndk_package_map="$ndk_package_map MagickWand:libmagickwand-7 lcms2:liblcms2"
 
 # Replace ndk_module with the appropriate Android module name if it is
 # found in ndk_package_map.
@@ -111,7 +112,8 @@ ndk_parse_pkg_config_string () {
     ndk_input="$(printf "$ndk_input" | cut -s -f2- -d' ')"
 
     if test "$ndk_str" = ">=" || test "$ndk_str" = "<=" \
-      || test "$ndk_str" = ">" || test "$ndk_str" = "<"; then
+      || test "$ndk_str" = ">" || test "$ndk_str" = "<" \
+      || test "$ndk_str" = "!="; then
       ndk_input="$(printf "$ndk_input" | cut -s -f2- -d' ')"
     else
       ndk_modules="$ndk_modules$ndk_str "
@@ -135,11 +137,12 @@ ndk_resolve_import_module () {
     # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
     # tree build system sets it to a meaning value, but build files
     # just use it to test whether or not the NDK is being used.
-    ndk_commands=$($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=.  \
-		   EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"     \
-		   ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")     \
-		   NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
-		   | awk -f build-aux/ndk-module-extract.awk 		     \
+    ndk_commands=$(($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=. \
+		    EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"    \
+		    ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")    \
+		    NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
+		    2>&AS_MESSAGE_LOG_FD)	   			     \
+		   | awk -f build-aux/ndk-module-extract.awk		     \
 		   MODULE="$ndk_module")
 
     AS_IF([test -n "${ndk_commands//\n }"], [eval "$ndk_commands"])
@@ -298,10 +301,11 @@ for ndk_android_mk in $ndk_module_files; do
   # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
   # tree build system sets it to a meaning value, but build files just
   # use it to test whether or not the NDK is being used.
-  ndk_commands=$($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=.    \
-		 EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"       \
-	         ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")       \
-	         NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
+  ndk_commands=$(($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=.   \
+		  EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"      \
+	          ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")      \
+	          NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
+		  2>&AS_MESSAGE_LOG_FD)	   				     \
 	         | awk -f build-aux/ndk-module-extract.awk 		     \
 		 MODULE="$ndk_module")
 

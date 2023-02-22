@@ -209,8 +209,8 @@ themselves:
      its Android.mk includes $(BUILD_SHARED_LIBRARY), then copy
      android/jansson_config.h to android/jansson_private_config.h.)
 
-And Emacs developers have ported the following dependencies to arm64
-Android systems:
+Emacs developers have ported the following dependencies to ARM Android
+systems:
 
   gnutls, gmp	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section GNUTLS near the end of this file.)
@@ -218,6 +218,12 @@ Android systems:
     (Extract and point ``--with-ndk-path'' to tiff-4.5.0-emacs.tar.gz.)
   tree-sitter	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section TREE-SITTER near the end of this file.)
+
+And other developers have ported the following dependencies to Android
+systems:
+
+  ImageMagick, lcms2 - https://github.com/MolotovCherry/Android-ImageMagick7
+    (Please see the section IMAGEMAGICK near the end of this file.)
 
 We anticipate that most untested non-trivial ndk-build dependencies
 will need adjustments in Emacs to work, as the Emacs build system
@@ -590,6 +596,14 @@ the following tar archive in that site:
 
 and add the resulting folder to ``--with-ndk-build''.
 
+IMAGEMAGICK
+
+There is a third party port of ImageMagick to Android.  Unfortunately,
+the port also uses its own patched versions of libpng, libjpeg,
+libtiff and libwebp, which conflict with those used by Emacs.  Its
+Makefiles were also written for MS Windows, so you must also apply the
+patch at the end of this file.
+
 
 
 This file is part of GNU Emacs.
@@ -835,3 +849,47 @@ index e82f3d5..be3a3c4 100644
  
  linux_x86_sources := \
    linux-x86/crypto/aes/aes-586.S\
+
+PATCH FOR IMAGEMAGICK
+
+diff --git a/make/libmagickwand-7.mk b/make/libmagickwand-7.mk
+index 7be2fb6..70a2cee 100644
+--- a/make/libmagickwand-7.mk
++++ b/make/libmagickwand-7.mk
+@@ -14,7 +14,7 @@ LOCAL_C_INCLUDES  :=  \
+ 
+ # always ignored in static builds
+ ifneq ($(STATIC_BUILD),true)
+-    LOCAL_LDLIBS    := -L$(SYSROOT)/usr/lib -llog -lz
++    LOCAL_LDLIBS    := -llog -lz
+ endif
+ 
+ LOCAL_SRC_FILES := \
+@@ -54,6 +54,27 @@ ifeq ($(OPENCL_BUILD),true)
+     LOCAL_SHARED_LIBRARIES += libopencl
+ endif
+ 
++ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm64
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm64
++else ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)  
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/arm
++else ifeq ($(TARGET_ARCH_ABI),x86)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86
++else ifeq ($(TARGET_ARCH_ABI),x86_64)
++    LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86-64
++    LOCAL_C_INCLUDES += $(IMAGE_MAGICK)/configs/x86-64
++    
++    ifneq ($(STATIC_BUILD),true)
++        LOCAL_LDFLAGS += -latomic
++    endif
++    
++endif
++
++LOCAL_EXPORT_C_INCLUDES += $(IMAGE_MAGICK)
++
+ ifeq ($(BUILD_MAGICKWAND),true)
+     ifeq ($(STATIC_BUILD),true)
+         LOCAL_STATIC_LIBRARIES := \
