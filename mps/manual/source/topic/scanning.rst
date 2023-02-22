@@ -557,7 +557,7 @@ the scanners, found in ``scan.c`` in the MPS source code.
     .. note::
 
         The reason that :c:data:`base` and :c:data:`limit` have type
-        :c:type:`void *` and not :c:type:`mps_addr_t` is that the
+        ``void *`` and not :c:type:`mps_addr_t` is that the
         latter is used only for :term:`addresses` managed by the MPS,
         but :c:type:`mps_area_scan_t` may also be used to scan
         :term:`roots` that are not managed by the MPS.
