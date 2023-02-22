@@ -121,12 +121,12 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-magenta-subtle  "#552f5f")
       (bg-cyan-subtle     "#004065")
 
-      (bg-red-nuanced     "#2c0614")
-      (bg-green-nuanced   "#001904")
-      (bg-yellow-nuanced  "#221000")
-      (bg-blue-nuanced    "#0f0e39")
-      (bg-magenta-nuanced "#230631")
-      (bg-cyan-nuanced    "#041529")
+      (bg-red-nuanced     "#350f14")
+      (bg-green-nuanced   "#002718")
+      (bg-yellow-nuanced  "#2c1f00")
+      (bg-blue-nuanced    "#131c4d")
+      (bg-magenta-nuanced "#2f133f")
+      (bg-cyan-nuanced    "#04253f")
 
 ;;; Graphs
 
@@ -176,23 +176,25 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-added           "#003a2f")
       (bg-added-faint     "#002922")
       (bg-added-refine    "#035542")
-      (bg-added-intense   "#237f4f")
+      (bg-added-fringe    "#23884f")
       (fg-added           "#a0e0a0")
       (fg-added-intense   "#80e080")
 
       (bg-changed         "#363300")
       (bg-changed-faint   "#2a1f00")
       (bg-changed-refine  "#4a4a00")
-      (bg-changed-intense "#8a7a00")
+      (bg-changed-fringe  "#8f7a30")
       (fg-changed         "#efef80")
       (fg-changed-intense "#c0b05f")
 
       (bg-removed         "#4f1127")
       (bg-removed-faint   "#380a19")
       (bg-removed-refine  "#781a3a")
-      (bg-removed-intense "#b81a26")
+      (bg-removed-fringe  "#b81a26")
       (fg-removed         "#ffbfbf")
       (fg-removed-intense "#ff9095")
+
+      (bg-diff-context    "#1a1f30")
 
 ;;; Uncommon accent backgrounds
 
@@ -377,10 +379,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
   (defcustom modus-vivendi-tinted-palette-overrides nil
     "Overrides for `modus-vivendi-tinted-palette'.

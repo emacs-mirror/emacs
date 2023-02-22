@@ -80,7 +80,7 @@ which corresponds to a minimum contrast in relative luminance of
       (yellow-faint    "#624416")
       (yellow-intense  "#808000")
       (blue            "#0031a9")
-      (blue-warmer     "#354fcf")
+      (blue-warmer     "#3548cf")
       (blue-cooler     "#0000b0")
       (blue-faint      "#003497")
       (blue-intense    "#0000ff")
@@ -121,12 +121,12 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-magenta-subtle  "#ffddff")
       (bg-cyan-subtle     "#bfefff")
 
-      (bg-red-nuanced     "#fff1f0")
-      (bg-green-nuanced   "#ecf7ed")
-      (bg-yellow-nuanced  "#fff3da")
-      (bg-blue-nuanced    "#f3f3ff")
-      (bg-magenta-nuanced "#fdf0ff")
-      (bg-cyan-nuanced    "#ebf6fa")
+      (bg-red-nuanced     "#ffe8f0")
+      (bg-green-nuanced   "#e0f5e0")
+      (bg-yellow-nuanced  "#f9ead0")
+      (bg-blue-nuanced    "#ebebff")
+      (bg-magenta-nuanced "#f6e7ff")
+      (bg-cyan-nuanced    "#e1f3fc")
 
 ;;; Uncommon accent backgrounds
 
@@ -182,23 +182,25 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-added           "#c3ebc1")
       (bg-added-faint     "#dcf8d1")
       (bg-added-refine    "#acd6a5")
-      (bg-added-intense   "#8cca8c")
+      (bg-added-fringe    "#6cc06c")
       (fg-added           "#005000")
       (fg-added-intense   "#006700")
 
       (bg-changed         "#ffdfa9")
       (bg-changed-faint   "#ffefbf")
       (bg-changed-refine  "#fac090")
-      (bg-changed-intense "#d7c20a")
+      (bg-changed-fringe  "#c0b200")
       (fg-changed         "#553d00")
       (fg-changed-intense "#655000")
 
       (bg-removed         "#f4d0cf")
       (bg-removed-faint   "#ffe9e5")
       (bg-removed-refine  "#f3b5a7")
-      (bg-removed-intense "#d84a4f")
+      (bg-removed-fringe  "#d84a4f")
       (fg-removed         "#8f1313")
       (fg-removed-intense "#aa2222")
+
+      (bg-diff-context    "#efe9df")
 
 ;;; Paren match
 
@@ -377,10 +379,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
   (defcustom modus-operandi-tinted-palette-overrides nil
     "Overrides for `modus-operandi-tinted-palette'.
