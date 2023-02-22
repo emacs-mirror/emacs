@@ -10835,7 +10835,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
-#ifdef HAVE_MAGICKAUTOORIENTIMAGE
+#if defined HAVE_MAGICKAUTOORIENTIMAGE		\
+  || HAVE_DECL_MAGICKAUTOORIENTIMAGE
   /* If no :rotation is explicitly specified, apply the automatic
      rotation from EXIF. */
   if (NILP (image_spec_value (img->spec, QCrotation, NULL)))
@@ -10992,7 +10993,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
   {
     MagickWand *new_wand;
     MagickSetImageBackgroundColor (image_wand, bg_wand);
-#ifdef HAVE_MAGICKMERGEIMAGELAYERS
+#if defined HAVE_MAGICKMERGEIMAGELAYERS		\
+  || HAVE_DECL_MAGICKMERGEIMAGELAYERS
     new_wand = MagickMergeImageLayers (image_wand, MergeLayer);
 #else
     new_wand = MagickFlattenImages (image_wand);
@@ -11021,8 +11023,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-#if defined (HAVE_MAGICKEXPORTIMAGEPIXELS) && \
-  ! defined (HAVE_NS) && ! defined (HAVE_HAIKU)
+#if (defined (HAVE_MAGICKEXPORTIMAGEPIXELS)	     \
+     || HAVE_DECL_MAGICKEXPORTIMAGEPIXELS)	     \
+  && ! defined (HAVE_NS) && ! defined (HAVE_HAIKU)
   if (imagemagick_render_type != 0)
     {
       /* Magicexportimage is normally faster than pixelpushing.  This
