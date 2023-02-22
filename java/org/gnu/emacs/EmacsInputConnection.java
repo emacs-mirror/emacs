@@ -207,11 +207,19 @@ public class EmacsInputConnection extends BaseInputConnection
   public ExtractedText
   getExtractedText (ExtractedTextRequest request, int flags)
   {
+    ExtractedText text;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getExtractedText: " + request + " " + flags);
 
-    return EmacsNative.getExtractedText (windowHandle, request,
+    text = EmacsNative.getExtractedText (windowHandle, request,
 					 flags);
+
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "getExtractedText: " + text.text + " @"
+	     + text.startOffset + ":" + text.selectionStart);
+
+    return text;
   }
 
   @Override
@@ -223,6 +231,16 @@ public class EmacsInputConnection extends BaseInputConnection
 
     EmacsNative.setSelection (windowHandle, start, end);
     return true;
+  }
+
+  @Override
+  public boolean
+  sendKeyEvent (KeyEvent key)
+  {
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "sendKeyEvent: " + key);
+
+    return super.sendKeyEvent (key);
   }
 
 

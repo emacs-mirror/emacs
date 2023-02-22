@@ -132,9 +132,11 @@ Emacs enables these input methods whenever the buffer local value of
 derivatives of @code{text-mode} and @code{prog-mode}.
 
   Text conversion is performed asynchronously whenever Emacs receives
-a request to perform the conversion from the input method.  After the
-conversion completes, a @code{text-conversion} event is sent.
-@xref{Misc Events,,, elisp, the Emacs Reference Manual}.
+a request to perform the conversion from the input method, and Emacs
+is not currently reading a key sequence for which one prefix key has
+already been read (@pxref{Keys}.)  After the conversion completes, a
+@code{text-conversion} event is sent.  @xref{Misc Events,,, elisp, the
+Emacs Reference Manual}.
 
 @vindex text-conversion-face
   If the input method needs to work on a region of the buffer, then

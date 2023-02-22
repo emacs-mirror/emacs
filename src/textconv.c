@@ -1462,6 +1462,9 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   /* Figure out the bounds of the text to return.  */
   if (n != -1)
     {
+      /* Make sure n is at least 2.  */
+      n = max (2, n);
+
       start = PT - n / 2;
       end = PT + n - n / 2;
     }

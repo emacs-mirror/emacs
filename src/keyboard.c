@@ -10053,6 +10053,13 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
   /* Gets around Microsoft compiler limitations.  */
   bool dummyflag = false;
 
+#ifdef HAVE_TEXT_CONVERSION
+  bool disabled_conversion;
+
+  /* Whether or not text conversion has already been disabled.  */
+  disabled_conversion = false;
+#endif
+
   struct buffer *starting_buffer;
 
   /* List of events for which a fake prefix key has been generated.  */
@@ -10201,6 +10208,22 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
       if (INTERACTIVE)
 	echo_local_start = echo_length ();
       keys_local_start = this_command_key_count;
+
+#ifdef HAVE_TEXT_CONVERSION
+      /* When reading a key sequence while text conversion is in
+	 effect, turn it off after the first character read.  This
+	 makes input methods send actual key events instead.
+
+         Make sure only to do this once.  */
+
+      if (!disabled_conversion && t)
+	{
+	  disable_text_conversion ();
+	  record_unwind_protect_void (resume_text_conversion);
+
+	  disabled_conversion = true;
+	}
+#endif
 
     replay_key:
       /* These are no-ops, unless we throw away a keystroke below and
