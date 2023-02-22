@@ -309,7 +309,6 @@ asynchronously."
          (directory (file-name-concat
                      (or (package-desc-dir pkg-desc)
                          (expand-file-name name package-user-dir))
-                     (plist-get pkg-spec :lisp-dir)
                      (and-let* ((extras (package-desc-extras pkg-desc)))
                        (alist-get :lisp-dir extras))))
          (file (or (plist-get pkg-spec :main-file)
