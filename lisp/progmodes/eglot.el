@@ -1814,9 +1814,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server)))
-          (eglot-shutdown server))))))
-  ;; Note: the public hook runs before the internal eglot--managed-mode-hook.
-  (run-hooks 'eglot-managed-mode-hook))
+          (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
@@ -1858,7 +1856,10 @@ If it is activated, also signal textDocument/didOpen."
     (when (and buffer-file-name (eglot-current-server))
       (setq eglot--diagnostics nil)
       (eglot--managed-mode)
-      (eglot--signal-textDocument/didOpen))))
+      (eglot--signal-textDocument/didOpen)
+      ;; Run user hook after 'textDocument/didOpen' so server knows
+      ;; about the buffer.
+      (run-hooks 'eglot-managed-mode-hook))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
