@@ -2168,6 +2168,10 @@ before execution.  For example, in a Git repository, you can produce a
 log of more than one branch by typing 'C-x v ! C-x v b l' and then
 appending additional branch names to the 'git log' command.
 
+The intention is that this command can be used to access a wide
+variety of version control system-specific functionality from VC
+without complexifying either the VC command set or the backend API.
+
 ---
 *** 'C-x v v' in a diffs buffer allows to commit only some of the changes.
 This command is intended to allow you to commit only some of the
