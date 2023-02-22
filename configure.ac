@@ -7420,6 +7420,7 @@ AC_DEFINE_UNQUOTED([EMACS_CONFIG_FEATURES], ["${emacs_config_features}"],
 
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
   Does Emacs use Android?                                 ${ANDROID}
+  Does Emacs use the X Double Buffer Extension?           ${HAVE_XDBE}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}
   Does Emacs use -ltiff?                                  ${HAVE_TIFF}

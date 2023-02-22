@@ -778,7 +778,7 @@ the C sources, too."
                    ;; Cf byte-compile-form.
                    (cond ((stringp interactive-only)
                           (format ";\n  in Lisp code %s" interactive-only))
-                         ((and (symbolp 'interactive-only)
+                         ((and (symbolp interactive-only)
                                (not (eq interactive-only t)))
                           (format-message ";\n  in Lisp code use `%s' instead."
                                           interactive-only))
