@@ -347,10 +347,6 @@ _`.interface.tags.alloc`: Two functions to extend the existing
 _`.interface.tags.walker.type`: Type of walker function for
 ``mps_pool_walk()`` and ``mps_arena_walk()``.
 
-``void mps_pool_walk(mps_arena_t arena, mps_pool_t pool, mps_objects_step_t step, void *p)``
-
-``void mps_arena_walk(mps_arena_t arena, mps_objects_step_t step, void *p)``
-
 _`.interface.tags.walker`: Functions to walk all the allocated
 objects in an arena (only client pools in this case),
 ``format`` and ``tag_data`` can be ``NULL`` (``tag_data`` really wants
