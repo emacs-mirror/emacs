@@ -141,7 +141,6 @@ ALL_SOURCE_FILES := $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
 ALL_OBJECT_FILES$(LOCAL_MODULE) :=
 
 # Now filter out code that is only built on systems with neon.
-ifneq $(findstring v8,$(NDK_BUILD_ARCH))
 ALL_SOURCE_FILES := $(filter-out %.neon,$(ALL_SOURCE_FILES))
 
 $(foreach source,$(ALL_SOURCE_FILES),$(eval $(call single-object-target,$(source))))
