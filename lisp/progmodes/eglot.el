@@ -3490,17 +3490,17 @@ If NOERROR, return predicate, else erroring function."
   "Face used for parameter inlay hint overlays.")
 
 (defcustom eglot-lazy-inlay-hints 0.3
-  "If non-nil, restrict LSP inlay hints to visible portion of buffer.
+  "If non-nil, restrict LSP inlay hints to visible portion of the buffer.
 
-Value is number specifying how many seconds to wait after a
+Value is a number specifying how many seconds to wait after a
 window has been (re)scrolled before requesting new inlay hints
-for the visible region of the window being manipulated.
+for the now-visible portion of the buffer shown in the window.
 
 If nil, then inlay hints are requested for the entire buffer.
+This could be slow.
 
 This value is only meaningful if the minor mode
-`eglot-inlay-hints-mode' is true.
-"
+`eglot-inlay-hints-mode' is turned on in a buffer."
   :type 'number
   :version "29.1")
 
@@ -3573,7 +3573,7 @@ This value is only meaningful if the minor mode
                           (wsetq eglot--inlay-hints-timer nil))))))))))
 
 (define-minor-mode eglot-inlay-hints-mode
-  "Minor mode annotating buffer with LSP inlay hints."
+  "Minor mode for annotating buffers with LSP server's inlay hints."
   :global nil
   (cond (eglot-inlay-hints-mode
          (cond
