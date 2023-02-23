@@ -574,7 +574,7 @@
 		  ((memq state '(insert-state replace-state))
 		   viper-minibuffer-insert-face))))
 
-  (if (viper-is-in-minibuffer)
+  (if (and (viper-is-in-minibuffer) viper-enable-minibuffer-faces)
       (viper-set-minibuffer-overlay))
   )
 
