@@ -6376,7 +6376,7 @@ for key in sorted(result):
   "List files containing Python imports that may be useful in the current buffer."
   (if-let (((featurep 'project))        ;For compatibility with Emacs < 26
            (proj (project-current)))
-      (seq-filter (lambda (s) (string-match-p "\\.py[ciw]?\\'" s))
+      (seq-filter (lambda (s) (string-match-p "\\.py[iwx]?\\'" s))
                   (project-files proj))
     (list default-directory)))
 

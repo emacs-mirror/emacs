@@ -1299,7 +1299,7 @@ Otherwise, the A or B file present is copied to the output file."
 	      (setq ancestor-dir-files (cdr ancestor-dir-files))))
 	(if output-dir
 	    (insert "output=" output-dir f "\t"))
-	(backward-delete-char 1)
+	(delete-char -1)
 	(insert "\n")))))
 
 ;;; Common setup routines

@@ -3498,18 +3498,18 @@ init_iterator (struct it *it, struct window *w,
 static int
 get_narrowed_width (struct window *w)
 {
-  int fact;
   /* In a character-only terminal, only one font size is used, so we
      can use a smaller factor.  */
-  fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
-  return fact * window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+  int fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
+  int width = window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+  return fact * max (1, width);
 }
 
 static int
 get_narrowed_len (struct window *w)
 {
-  return get_narrowed_width (w) *
-    window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+  int height = window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+  return get_narrowed_width (w) * max (1, height);
 }
 
 ptrdiff_t

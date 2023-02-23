@@ -622,7 +622,7 @@
                    (insert "foo")
                    (goto-char 2)
                    (insert " ")
-                   (backward-delete-char 1)
+                   (delete-char -1)
                    (buffer-hash))
                  (sha1 "foo"))))
 

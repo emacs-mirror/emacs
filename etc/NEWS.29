@@ -1175,6 +1175,33 @@ For example, a 'display-buffer-alist' entry of
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' and 'body-lines', respectively.
 
++++
+*** 'display-buffer' provides more options for using an existing window.
+The display buffer action functions 'display-buffer-use-some-window' and
+'display-buffer-use-least-recent-window' now honor the action alist
+entry 'window-min-height' as well as the entries listed below to make
+the display of several buffers in a row more amenable.
+
++++
+*** New buffer display action alist entry 'lru-frames'.
+This allows to specify which frames 'display-buffer' should consider
+when using a window that shows another buffer.
+
++++
+*** New buffer display action alist entry 'lru-time'.
+'display-buffer' will ignore windows with a use time higher than that
+when using a window that shows another buffer.
+
++++
+*** New buffer display action alist entry 'bump-use-time'.
+This has 'display-buffer' bump the use time of any window it returns,
+making it a less likely candidate for displaying another buffer.
+
++++
+*** New buffer display action alist entry 'window-min-width'.
+This allows to specify a minimum width of the window used to display a
+buffer.
+
 ---
 *** You can customize on which window 'scroll-other-window' operates.
 This is controlled by the new 'other-window-scroll-default' variable.
@@ -1194,7 +1221,8 @@ the corresponding deleted frame.
 That value means to use 'frame-title-format' for iconified frames.
 This is useful with some window managers and desktop environments
 which treat changes in frame's title as requests to raise the frame
-and/or give it input focus.
+and/or give it input focus, or if you want the frame's title to be the
+same no matter if the frame is iconified or not.
 
 ** Tab Bars and Tab Lines
 
@@ -2139,6 +2167,10 @@ This prefix command requests editing of the next VC shell command
 before execution.  For example, in a Git repository, you can produce a
 log of more than one branch by typing 'C-x v ! C-x v b l' and then
 appending additional branch names to the 'git log' command.
+
+The intention is that this command can be used to access a wide
+variety of version control system-specific functionality from VC
+without complexifying either the VC command set or the backend API.
 
 ---
 *** 'C-x v v' in a diffs buffer allows to commit only some of the changes.

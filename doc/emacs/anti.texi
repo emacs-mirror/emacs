@@ -69,13 +69,14 @@ idea anyway.
 @item
 In line with simplifying and eventually removing the
 native-compilation option, we've deleted the
-@code{inhibit-automatic-native-compilation} variable and its support
-code.  This greatly simplifies how native compilation works and makes
-your configure-time decision regarding native compilation in Emacs
-clear-cut: either Emacs always compiles Lisp to native code before
-using it, or it never does so; no more half measures and special
-exceptions.  For similar reasons, @code{native-compile-prune-cache}
-and @code{startup-redirect-eln-cache} features are no longer part of
+@option{--with-native-compilation=aot} configure-time option.  This
+greatly simplifies how native compilation works and makes your
+configure-time decision regarding native compilation in Emacs
+clear-cut: either Emacs compiles non-preloaded Lisp packages to native
+code only before using it, or it never uses native compilation at all;
+no more half measures and special exceptions.  For similar reasons,
+@code{native-compile-prune-cache} and
+@code{startup-redirect-eln-cache} features are no longer part of
 Emacs.
 
 @item

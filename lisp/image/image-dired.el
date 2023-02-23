@@ -585,13 +585,15 @@ thumbnail buffer to be selected."
               (erase-buffer))
           (goto-char (point-max)))
         (dolist (file files)
-          (let ((thumb (image-dired--get-create-thumbnail-file file)))
+          (when (string-match-p (image-dired--file-name-regexp) file)
             (image-dired-insert-thumbnail
-             thumb file dired-buf
+             (image-dired--get-create-thumbnail-file file) file dired-buf
              (cl-incf image-dired--number-of-thumbnails)))))
-      (if do-not-pop
-          (display-buffer buf)
-        (pop-to-buffer buf))
+      (if (> image-dired--number-of-thumbnails 0)
+          (if do-not-pop
+              (display-buffer buf)
+            (pop-to-buffer buf))
+        (message "No images selected"))
       (image-dired--line-up-with-method)
       (image-dired--update-header-line))))
 

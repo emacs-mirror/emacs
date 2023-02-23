@@ -2147,7 +2147,7 @@ command `antlr-show-makefile-rules' for detail."
 	    (antlr-makefile-insert-variable i " $(" ")"))
 	  (insert "\n" (car antlr-makefile-specification))))
     (if (string-equal (car antlr-makefile-specification) "\n")
-	(backward-delete-char 1))
+	(delete-char -1))
     (when with-error
       (goto-char (point-min))
       (insert antlr-help-unknown-file-text))

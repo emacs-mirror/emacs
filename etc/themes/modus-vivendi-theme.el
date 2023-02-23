@@ -182,23 +182,25 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-added           "#00381f")
       (bg-added-faint     "#002910")
       (bg-added-refine    "#034f2f")
-      (bg-added-intense   "#237f3f")
+      (bg-added-fringe    "#237f3f")
       (fg-added           "#a0e0a0")
       (fg-added-intense   "#80e080")
 
       (bg-changed         "#363300")
       (bg-changed-faint   "#2a1f00")
       (bg-changed-refine  "#4a4a00")
-      (bg-changed-intense "#8a7a00")
+      (bg-changed-fringe  "#8a7a00")
       (fg-changed         "#efef80")
       (fg-changed-intense "#c0b05f")
 
       (bg-removed         "#4f1119")
       (bg-removed-faint   "#380a0f")
       (bg-removed-refine  "#781a1f")
-      (bg-removed-intense "#b81a1f")
+      (bg-removed-fringe  "#b81a1f")
       (fg-removed         "#ffbfbf")
       (fg-removed-intense "#ff9095")
+
+      (bg-diff-context    "#1a1a1a")
 
 ;;; Paren match
 
@@ -377,10 +379,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
 
   (defcustom modus-vivendi-palette-overrides nil

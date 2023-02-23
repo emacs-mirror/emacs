@@ -47,9 +47,10 @@
 ;;   definition-chasing, Flymake for diagnostics, Eldoc for at-point
 ;;   documentation, etc.  Eglot's job is generally *not* to provide
 ;;   such a UI itself, though a small number of simple
-;;   counter-examples do exist, for example in the `eglot-rename'
-;;   command.  When a new UI is evidently needed, consider adding a
-;;   new package to Emacs, or extending an existing one.
+;;   counter-examples do exist, e.g. in the `eglot-rename' command or
+;;   the `eglot-inlay-hints-mode' minor mode.  When a new UI is
+;;   evidently needed, consider adding a new package to Emacs, or
+;;   extending an existing one.
 ;;
 ;; * Eglot was designed to function with just the UI facilities found
 ;;   in the latest Emacs core, as long as those facilities are also
@@ -483,7 +484,9 @@ This can be useful when using docker to run a language server.")
       (VersionedTextDocumentIdentifier (:uri :version) ())
       (WorkDoneProgress (:kind) (:title :message :percentage :cancellable))
       (WorkspaceEdit () (:changes :documentChanges))
-      (WorkspaceSymbol (:name :kind) (:containerName :location :data)))
+      (WorkspaceSymbol (:name :kind) (:containerName :location :data))
+      (InlayHint (:position :label) (:kind :textEdits :tooltip :paddingLeft
+                                           :paddingRight :data)))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -803,6 +806,7 @@ treated as in `eglot--dbind'."
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
+             :inlayHint          `(:dynamicRegistration :json-false)
              :publishDiagnostics (list :relatedInformation :json-false
                                        ;; TODO: We can support :codeDescription after
                                        ;; adding an appropriate UI to
@@ -1625,7 +1629,8 @@ under cursor."
           (const :tag "Highlight links in document" :documentLinkProvider)
           (const :tag "Decorate color references" :colorProvider)
           (const :tag "Fold regions of buffer" :foldingRangeProvider)
-          (const :tag "Execute custom commands" :executeCommandProvider)))
+          (const :tag "Execute custom commands" :executeCommandProvider)
+          (const :tag "Inlay hints" :inlayHintProvider)))
 
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
@@ -1640,6 +1645,14 @@ under cursor."
              if (eq (cadr probe) :json-false) do (cl-return nil)
              if (not (listp (cadr probe))) do (cl-return (if more nil (cadr probe)))
              finally (cl-return (or (cadr probe) t)))))
+
+(defun eglot--server-capable-or-lose (&rest feats)
+  "Like `eglot--server-capable', but maybe error out."
+  (let ((retval (apply #'eglot--server-capable feats)))
+    (unless retval
+      (eglot--error "Unsupported or ignored LSP capability `%s'"
+                    (mapconcat #'symbol-name feats " ")))
+    retval))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG . END) that represents LSP RANGE.
@@ -1764,6 +1777,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend))
     (eglot--setq-saving company-backends '(company-capf))
     (eglot--setq-saving company-tooltip-align-annotations t)
+    (eglot--setq-saving eldoc-documentation-strategy
+                        #'eldoc-documentation-compose)
     (unless (eglot--stay-out-of-p 'imenu)
       (add-function :before-until (local 'imenu-create-index-function)
                     #'eglot-imenu))
@@ -1789,6 +1804,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
+    (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
+    (remove-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function t)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -1802,12 +1819,11 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
                    (null (eglot--managed-buffers server)))
-          (eglot-shutdown server))))))
-  ;; Note: the public hook runs before the internal eglot--managed-mode-hook.
-  (run-hooks 'eglot-managed-mode-hook))
+          (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
+  (remove-overlays nil nil 'eglot--overlay t)
   (eglot--managed-mode -1))
 
 (defun eglot-current-server ()
@@ -1846,7 +1862,10 @@ If it is activated, also signal textDocument/didOpen."
     (when (and buffer-file-name (eglot-current-server))
       (setq eglot--diagnostics nil)
       (eglot--managed-mode)
-      (eglot--signal-textDocument/didOpen))))
+      (eglot--signal-textDocument/didOpen)
+      ;; Run user hook after 'textDocument/didOpen' so server knows
+      ;; about the buffer.
+      (run-hooks 'eglot-managed-mode-hook))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
@@ -2272,6 +2291,7 @@ THINGS are either registrations or unregisterations (sic)."
 
 (defun eglot--before-change (beg end)
   "Hook onto `before-change-functions' with BEG and END."
+  (remove-overlays beg end 'eglot--overlay t)
   (when (listp eglot--recent-changes)
     ;; Records BEG and END, crucially convert them into LSP
     ;; (line/char) positions before that information is lost (because
@@ -2283,6 +2303,9 @@ THINGS are either registrations or unregisterations (sic)."
             (,beg . ,(copy-marker beg nil))
             (,end . ,(copy-marker end t)))
           eglot--recent-changes)))
+
+(defvar eglot--document-changed-hook '(eglot--signal-textDocument/didChange)
+  "Internal hook for doing things when the document changes.")
 
 (defun eglot--after-change (beg end pre-change-length)
   "Hook onto `after-change-functions'.
@@ -2324,7 +2347,7 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
            eglot-send-changes-idle-time
            nil (lambda () (eglot--when-live-buffer buf
                             (when eglot--managed-mode
-                              (eglot--signal-textDocument/didChange)
+                              (run-hooks 'eglot--document-changed-hook)
                               (setq eglot--change-idle-timer nil))))))))
 
 ;; HACK! Launching a deferred sync request with outstanding changes is a
@@ -2482,7 +2505,7 @@ When called interactively, use the currently active server"
      :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier)))))
 
 (defun eglot--signal-textDocument/willSave ()
-  "Send textDocument/willSave to server."
+  "Maybe send textDocument/willSave to server."
   (let ((server (eglot--current-server-or-lose))
         (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
     (when (eglot--server-capable :textDocumentSync :willSave)
@@ -2494,7 +2517,7 @@ When called interactively, use the currently active server"
                           :timeout 0.5))))))
 
 (defun eglot--signal-textDocument/didSave ()
-  "Send textDocument/didSave to server."
+  "Maybe send textDocument/didSave to server."
   (eglot--signal-textDocument/didChange)
   (when (eglot--server-capable :textDocumentSync :save)
     (jsonrpc-notify
@@ -2591,8 +2614,7 @@ Try to visit the target file for a richer summary line."
   "Ask for :workspace/symbol on PAT, return list of formatted strings.
 If BUFFER, switch to it before."
   (with-current-buffer (or buffer (current-buffer))
-    (unless (eglot--server-capable :workspaceSymbolProvider)
-      (eglot--error "This LSP server isn't a :workspaceSymbolProvider"))
+    (eglot--server-capable-or-lose :workspaceSymbolProvider)
     (mapcar
      (lambda (wss)
        (eglot--dbind ((WorkspaceSymbol) name containerName kind) wss
@@ -2654,13 +2676,12 @@ If BUFFER, switch to it before."
 
 (cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
   "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
-  (unless (eglot--server-capable
-           (or capability
-               (intern
-                (format ":%sProvider"
-                        (cadr (split-string (symbol-name method)
-                                            "/"))))))
-    (eglot--error "Sorry, this server doesn't do %s" method))
+  (eglot--server-capable-or-lose
+   (or capability
+       (intern
+        (format ":%sProvider"
+                (cadr (split-string (symbol-name method)
+                                    "/"))))))
   (let ((response
          (jsonrpc-request
           (eglot--current-server-or-lose)
@@ -2757,8 +2778,7 @@ for which LSP on-type-formatting should be requested."
                                   :end (eglot--pos-to-lsp-position end)))))
                 (t
                  '(:textDocument/formatting :documentFormattingProvider nil)))))
-    (unless (eglot--server-capable cap)
-      (eglot--error "Server can't format!"))
+    (eglot--server-capable-or-lose cap)
     (eglot--apply-text-edits
      (jsonrpc-request
       (eglot--current-server-or-lose)
@@ -3201,8 +3221,7 @@ Returns a list as described in docstring of `imenu--index-alist'."
                                          "unknown symbol"))
           nil nil nil nil
           (symbol-name (symbol-at-point)))))
-  (unless (eglot--server-capable :renameProvider)
-    (eglot--error "Server can't rename!"))
+  (eglot--server-capable-or-lose :renameProvider)
   (eglot--apply-workspace-edit
    (jsonrpc-request (eglot--current-server-or-lose)
                     :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
@@ -3229,9 +3248,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                             '("quickfix" "refactor.extract" "refactor.inline"
                               "refactor.rewrite" "source.organizeImports")))
      t))
-  (unless (or (not interactive)
-              (eglot--server-capable :codeActionProvider))
-    (eglot--error "Server can't execute code actions!"))
+  (eglot--server-capable-or-lose :codeActionProvider)
   (let* ((server (eglot--current-server-or-lose))
          (actions
           (jsonrpc-request
@@ -3456,6 +3473,129 @@ If NOERROR, return predicate, else erroring function."
                               (hash-table-values eglot--servers-by-project))))
       (revert-buffer)
       (pop-to-buffer (current-buffer)))))
+
+
+;;; Inlay hints
+(defface eglot-inlay-hint-face '((t (:height 0.8 :inherit shadow)))
+  "Face used for inlay hint overlays.")
+
+(defface eglot-type-hint-face '((t (:inherit eglot-inlay-hint-face)))
+  "Face used for type inlay hint overlays.")
+
+(defface eglot-parameter-hint-face '((t (:inherit eglot-inlay-hint-face)))
+  "Face used for parameter inlay hint overlays.")
+
+(defcustom eglot-lazy-inlay-hints 0.3
+  "If non-nil, restrict LSP inlay hints to visible portion of buffer.
+
+Value is number specifying how many seconds to wait after a
+window has been (re)scrolled before requesting new inlay hints
+for the visible region of the window being manipulated.
+
+If nil, then inlay hints are requested for the entire buffer.
+
+This value is only meaningful if the minor mode
+`eglot-inlay-hints-mode' is true.
+"
+  :type 'number
+  :version "29.1")
+
+(defun eglot--inlay-hints-fully ()
+  (eglot--widening (eglot--update-hints-1 (point-min) (point-max))))
+
+(cl-defun eglot--inlay-hints-lazily (&optional (buffer (current-buffer)))
+  (eglot--when-live-buffer buffer
+    (when eglot--managed-mode
+      (dolist (window (get-buffer-window-list nil nil 'visible))
+        (eglot--update-hints-1 (window-start window) (window-end window))))))
+
+(defun eglot--update-hints-1 (from to)
+  "Request LSP inlay hints and annotate current buffer from FROM to TO."
+  (let* ((buf (current-buffer))
+         (paint-hint
+          (eglot--lambda ((InlayHint) position kind label paddingLeft paddingRight)
+            (goto-char (eglot--lsp-position-to-point position))
+            (let ((ov (make-overlay (point) (point)))
+                  (left-pad (and paddingLeft (not (memq (char-before) '(32 9)))))
+                  (right-pad (and paddingRight (not (memq (char-after) '(32 9)))))
+                  (text (if (stringp label) label (plist-get label :value))))
+              (overlay-put ov 'before-string
+                           (propertize
+                            (concat (and left-pad " ") text (and right-pad " "))
+                            'face (pcase kind
+                                    (1 'eglot-type-hint-face)
+                                    (2 'eglot-parameter-hint-face)
+                                    (_ 'eglot-inlay-hint-face))))
+              (overlay-put ov 'eglot--inlay-hint t)
+              (overlay-put ov 'eglot--overlay t)))))
+    (jsonrpc-async-request
+     (eglot--current-server-or-lose)
+     :textDocument/inlayHint
+     (list :textDocument (eglot--TextDocumentIdentifier)
+           :range (list :start (eglot--pos-to-lsp-position from)
+                        :end (eglot--pos-to-lsp-position to)))
+     :success-fn (lambda (hints)
+                   (eglot--when-live-buffer buf
+                     (eglot--widening
+                      (remove-overlays from to 'eglot--inlay-hint t)
+                      (mapc paint-hint hints))))
+     :deferred 'eglot--update-hints-1)))
+
+(defun eglot--inlay-hints-after-scroll (window display-start)
+  (cl-macrolet ((wsetq (sym val) `(set-window-parameter window ',sym ,val))
+                (wgetq (sym) `(window-parameter window ',sym)))
+    (let ((buf (window-buffer window))
+          (timer (wgetq eglot--inlay-hints-timer))
+          (last-display-start (wgetq eglot--last-inlay-hint-display-start)))
+      (when (and eglot-lazy-inlay-hints
+                 ;; FIXME: If `window' is _not_ the selected window,
+                 ;; then for some unknown reason probably related to
+                 ;; the overlays added later to the buffer, the scroll
+                 ;; function will be called indefinitely.  Not sure if
+                 ;; an Emacs bug, but prevent useless duplicate calls
+                 ;; by saving and examining `display-start' fixes it.
+                 (not (eql last-display-start display-start)))
+        (when timer (cancel-timer timer))
+        (wsetq eglot--last-inlay-hint-display-start
+               display-start)
+        (wsetq eglot--inlay-hints-timer
+               (run-at-time
+                eglot-lazy-inlay-hints
+                nil (lambda ()
+                      (eglot--when-live-buffer buf
+                        (when (eq buf (window-buffer window))
+                          (eglot--update-hints-1 (window-start window)
+                                                 (window-end window))
+                          (wsetq eglot--inlay-hints-timer nil))))))))))
+
+(define-minor-mode eglot-inlay-hints-mode
+  "Minor mode annotating buffer with LSP inlay hints."
+  :global nil
+  (cond (eglot-inlay-hints-mode
+         (cond
+          ((not (eglot--server-capable :inlayHintProvider))
+           (eglot--warn
+            "No :inlayHintProvider support. Inlay hints will not work."))
+          (eglot-lazy-inlay-hints
+           (add-hook 'eglot--document-changed-hook
+                     #'eglot--inlay-hints-lazily t t)
+           (add-hook 'window-scroll-functions
+                     #'eglot--inlay-hints-after-scroll nil t)
+           ;; Maybe there isn't a window yet for current buffer,
+           ;; so `run-at-time' ensures this runs after redisplay.
+           (run-at-time 0 nil #'eglot--inlay-hints-lazily))
+          (t
+           (add-hook 'eglot--document-changed-hook
+                     #'eglot--inlay-hints-fully nil t)
+           (eglot--inlay-hints-fully))))
+        (t
+         (remove-hook 'eglot--document-changed-hook
+                      #'eglot--inlay-hints-lazily t)
+         (remove-hook 'eglot--document-changed-hook
+                      #'eglot--inlay-hints-fully t)
+         (remove-hook 'window-scroll-functions
+                      #'eglot--inlay-hints-after-scroll t)
+         (remove-overlays nil nil 'eglot--inlay-hint t))))
 
 
 ;;; Hacks

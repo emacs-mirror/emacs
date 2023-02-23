@@ -81,7 +81,7 @@ which corresponds to a minimum contrast in relative luminance of
       (yellow-faint    "#624416")
       (yellow-intense  "#808000")
       (blue            "#0031a9")
-      (blue-warmer     "#354fcf")
+      (blue-warmer     "#3548cf")
       (blue-cooler     "#0000b0")
       (blue-faint      "#003497")
       (blue-intense    "#0000ff")
@@ -155,7 +155,7 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-completion       "#c0deff")
       (bg-hover            "#94d4ff")
       (bg-hover-secondary  "#f5d0a0")
-      (bg-hl-line          "#d0d6ec")
+      (bg-hl-line          "#dae5ec")
       (bg-region           "#bdbdbd")
       (fg-region           "#000000")
 
@@ -183,23 +183,25 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-added           "#c1f2d1")
       (bg-added-faint     "#d8f8e1")
       (bg-added-refine    "#aee5be")
-      (bg-added-intense   "#8cca8c")
+      (bg-added-fringe    "#6cc06c")
       (fg-added           "#005000")
       (fg-added-intense   "#006700")
 
       (bg-changed         "#ffdfa9")
       (bg-changed-faint   "#ffefbf")
       (bg-changed-refine  "#fac090")
-      (bg-changed-intense "#d7c20a")
+      (bg-changed-fringe  "#d7c20a")
       (fg-changed         "#553d00")
       (fg-changed-intense "#655000")
 
       (bg-removed         "#ffd8d5")
       (bg-removed-faint   "#ffe9e9")
       (bg-removed-refine  "#f3b5af")
-      (bg-removed-intense "#d84a4f")
+      (bg-removed-fringe  "#d84a4f")
       (fg-removed         "#8f1313")
       (fg-removed-intense "#aa2222")
+
+      (bg-diff-context    "#f3f3f3")
 
 ;;; Paren match
 
@@ -378,10 +380,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
   (defcustom modus-operandi-palette-overrides nil
     "Overrides for `modus-operandi-palette'.

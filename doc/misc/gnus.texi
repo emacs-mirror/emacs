@@ -19808,10 +19808,11 @@ locally stored articles.
 @chapter Scoring
 @cindex scoring
 
-Other people use @dfn{kill files}, but we here at Gnus Towers like
-scoring better than killing, so we'd rather switch than fight.  They do
-something completely different as well, so sit up straight and pay
-attention!
+Other people use @dfn{kill files} (@pxref{Kill Files}, but we here at
+Gnus Towers like scoring better than killing, so we'd rather switch
+than fight.  Scoring and score files processing are more powerful and
+faster than processing of kill files.  Scoring also does something
+completely different as well, so sit up straight and pay attention!
 
 @vindex gnus-summary-mark-below
 All articles have a default score (@code{gnus-summary-default-score}),

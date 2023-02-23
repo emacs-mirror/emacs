@@ -195,7 +195,9 @@ untagged NEWS entry."
     (goto-char (line-beginning-position))
     (cond ((or (looking-at (rx bol (or "---" "+++") eol)))
            (forward-line 2))
-          ((or (looking-at (rx bol "*** ")))
+          ((or (looking-at (rx bol "**"
+                               (zero-or-more "*")
+                               " ")))
            (forward-line 1)))
     (outline-previous-visible-heading 1)
     (forward-line -1)
