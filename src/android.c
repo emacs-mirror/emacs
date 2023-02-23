@@ -344,12 +344,15 @@ android_run_select_thread (void *data)
       android_pselect_rc = rc;
       pthread_mutex_unlock (&event_queue.select_mutex);
 
-      /* Signal the main thread that there is now data to read.
-         It is ok to signal this condition variable without holding
-         the event queue lock, because android_select will always
-         wait for this to complete before returning.  */
+      /* Signal the main thread that there is now data to read.  Hold
+         the event queue lock during this process to make sure this
+         does not happen before the main thread begins to wait for the
+         condition variable.  */
+
+      pthread_mutex_lock (&event_queue.mutex);
       android_pselect_completed = true;
       pthread_cond_broadcast (&event_queue.read_var);
+      pthread_mutex_unlock (&event_queue.mutex);
 
       /* Read a single byte from the select pipe.  */
       read (select_pipe[0], &byte, 1);
@@ -392,10 +395,10 @@ android_run_select_thread (void *data)
          does not happen before the main thread begins to wait for the
          condition variable.  */
 
-      pthread_mutex_lock (&event_queue.select_mutex);
+      pthread_mutex_lock (&event_queue.mutex);
       android_pselect_completed = true;
       pthread_cond_broadcast (&event_queue.read_var);
-      pthread_mutex_unlock (&event_queue.select_mutex);
+      pthread_mutex_unlock (&event_queue.mutex);
 
       if (rc != -1 || errno != EINTR)
 	/* Now, wait for SIGUSR1, unless pselect was interrupted and
