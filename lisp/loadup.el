@@ -258,6 +258,9 @@
 (load "jit-lock")
 
 (load "mouse")
+;; This loading happens on Android despite scroll bars being
+;; unsupported, because scroll-bar-mode (the variable) must be
+;; defined.
 (if (boundp 'x-toolkit-scroll-bars)
     (load "scroll-bar"))
 (load "select")
