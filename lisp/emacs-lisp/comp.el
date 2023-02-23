@@ -3812,10 +3812,8 @@ Return the trampoline if found or nil otherwise."
    ;; Default to some temporary directory if no better option was
    ;; found.
    finally (cl-return
-            (expand-file-name
-             (make-temp-file (file-name-sans-extension rel-filename) 0 ".eln"
-                             nil)
-             temporary-file-directory))))
+            (make-temp-file (file-name-sans-extension rel-filename) nil ".eln"
+                            nil))))
 
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."

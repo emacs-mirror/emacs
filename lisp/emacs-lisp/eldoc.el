@@ -570,7 +570,7 @@ known to be truncated."
 Honor `eldoc-echo-area-use-multiline-p' and
 `eldoc-echo-area-prefer-doc-buffer'."
   (cond
-   (;; Check if he wave permission to mess with echo area at all.  For
+   (;; Check if we have permission to mess with echo area at all.  For
     ;; example, if this-command is non-nil while running via an idle
     ;; timer, we're still in the middle of executing a command, e.g. a
     ;; query-replace where it would be annoying to overwrite the echo

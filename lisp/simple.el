@@ -937,7 +937,7 @@ column specified by the function `current-left-margin'."
 
 (defcustom read-quoted-char-radix 8
   "Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
-Legitimate radix values are 8, 10 and 16."
+Supported radix values are 8, 10 and 16."
  :type '(choice (const 8) (const 10) (const 16))
  :group 'editing-basics)
 
@@ -1012,21 +1012,25 @@ any other non-digit terminates the character code and is then used as input."))
 This is useful for inserting control characters.
 With argument, insert ARG copies of the character.
 
-If the first character you type after this command is an octal digit,
-you should type a sequence of octal digits that specify a character code.
-Any nondigit terminates the sequence.  If the terminator is a RET,
-it is discarded; any other terminator is used itself as input.
+If the first character you type is an octal digit, the sequence of
+one or more octal digits you type is interpreted to specify a
+character code.  Any character that is not an octal digit terminates
+the sequence.  If the terminator is a RET, it is discarded; any
+other terminator is used itself as input and is inserted.
+
 The variable `read-quoted-char-radix' specifies the radix for this feature;
-set it to 10 or 16 to use decimal or hex instead of octal.
+set it to 10 or 16 to use decimal or hex instead of octal.  If you change
+the radix, the characters interpreted as specifying a character code
+change accordingly: 0 to 9 for decimal, 0 to F for hex.
 
 In overwrite mode, this function inserts the character anyway, and
-does not handle octal digits specially.  This means that if you use
-overwrite as your normal editing mode, you can use this function to
-insert characters when necessary.
+does not handle octal (or decimal or hex) digits specially.  This means
+that if you use overwrite mode as your normal editing mode, you can use
+this function to insert characters when necessary.
 
 In binary overwrite mode, this function does overwrite, and octal
-digits are interpreted as a character code.  This is intended to be
-useful for editing binary files."
+(or decimal or hex) digits are interpreted as a character code.  This
+is intended to be useful for editing binary files."
   (interactive "*p")
   (let* ((char
 	  ;; Avoid "obsolete" warnings for translation-table-for-input.
