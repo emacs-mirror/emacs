@@ -25,6 +25,7 @@ NDK_A_NAMES =
 NDK_$(LOCAL_MODULE)_STATIC_LIBRARIES := $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_STATIC_LIBRARIES)
 NDK_$(LOCAL_MODULE)_SHARED_LIBRARIES := $(LOCAL_SHARED_LIBRARIES)
 NDK_$(LOCAL_MODULE)_EXPORT_INCLUDES := $(LOCAL_EXPORT_C_INCLUDE_DIRS) $(LOCAL_EXPORT_C_INCLUDES)
+NDK_CXX_FLAG_$(LOCAL_MODULE) :=
 
 $(info Building $(build_kind))
 $(info $(LOCAL_MODULE))
@@ -49,6 +50,10 @@ NDK_A_NAMES := $$(NDK_A_NAMES) $$(NDK_A_NAME)
 # Now recurse over this module's dependencies.
 $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_STATIC_LIBRARIES)),$$(eval $$(call add-a-name,$$(module))))
 $$(foreach module,$$(filter-out $$(SYSTEM_LIBRARIES), $$(NDK_$(1)_SHARED_LIBRARIES)),$$(eval $$(call add-so-name,$$(module))))
+endif
+
+ifneq ($$(findstring stdc++,$$(NDK_$(1)_SHARED_LIBRARIES)),)
+NDK_CXX_FLAG_$(LOCAL_MODULE) := yes
 endif
 endef
 
@@ -88,9 +93,13 @@ $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_STATIC_LIBRARIES) $(L
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES)),$(eval $(call add-so-name,$(module))))
 $(foreach module,$(filter-out $(SYSTEM_LIBRARIES), $(LOCAL_SHARED_LIBRARIES) $(LOCAL_STATIC_LIBRARIES) $(LOCAL_WHOLE_LIBRARIES)),$(eval $(call add-includes,$(module))))
 
+ifneq ($(findstring stdc++,$(LOCAL_SHARED_LIBRARIES)),)
+NDK_CXX_FLAG_$(LOCAL_MODULE) := yes
+endif
+
 $(info $(foreach dir,$(NDK_INCLUDES),-I$(dir)))
 $(info $(LOCAL_EXPORT_CFLAGS))
 $(info $(LOCAL_EXPORT_LDFLAGS) $(abspath $(addprefix $(NDK_BUILD_DIR)/,$(NDK_A_NAMES))) $(and $(NDK_SO_NAMES), -L$(abspath $(NDK_BUILD_DIR)) $(foreach soname,$(NDK_SO_NAMES),-l:$(soname))))
 $(info $(NDK_A_NAMES) $(NDK_SO_NAMES))
-$(info $(filter %stdc++,$(LOCAL_SHARED_LIBRARIES)))
+$(info $(NDK_CXX_FLAG_$(LOCAL_MODULE)))
 $(info End)
