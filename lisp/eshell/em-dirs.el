@@ -290,10 +290,10 @@ Thus, this does not include the current directory.")
         (throw 'pcomplete-completions
                ;; Provide a programmed completion table.  This works
                ;; just like completing over the list of names, except
-               ;; it always returns the completed string, never `t'.
-               ;; That's because this is only completing a directory
-               ;; name, and so the completion isn't actually finished
-               ;; yet.
+               ;; it always returns the completed string for
+               ;; `try-completion', never `t'.  That's because this is
+               ;; only completing a directory name, and so the
+               ;; completion isn't actually finished yet.
                (lambda (string pred action)
                  (pcase action
                    ('nil                  ; try-completion
@@ -302,8 +302,7 @@ Thus, this does not include the current directory.")
                    ('t                    ; all-completions
                     (all-completions string names pred))
                    ('lambda               ; test-completion
-                     (let ((result (test-completion string names pred)))
-                       (if (eq result t) string result)))
+                    (test-completion string names pred))
                    ('metadata
                     '(metadata (category . file)))
                    (`(boundaries . ,suffix)
