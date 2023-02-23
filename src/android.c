@@ -387,12 +387,15 @@ android_run_select_thread (void *data)
       android_pselect_rc = rc;
       pthread_mutex_unlock (&event_queue.select_mutex);
 
-      /* Signal the main thread that there is now data to read.
-         It is ok to signal this condition variable without holding
-         the event queue lock, because android_select will always
-         wait for this to complete before returning.  */
+      /* Signal the main thread that there is now data to read.  Hold
+         the event queue lock during this process to make sure this
+         does not happen before the main thread begins to wait for the
+         condition variable.  */
+
+      pthread_mutex_lock (&event_queue.select_mutex);
       android_pselect_completed = true;
       pthread_cond_broadcast (&event_queue.read_var);
+      pthread_mutex_unlock (&event_queue.select_mutex);
 
       if (rc != -1 || errno != EINTR)
 	/* Now, wait for SIGUSR1, unless pselect was interrupted and
@@ -635,13 +638,22 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 			 "write: %s", strerror (errno));
 #endif
 
-  /* Wait for pselect to return in any case.  */
+  /* Unlock the event queue mutex.  */
+  pthread_mutex_unlock (&event_queue.mutex);
+
+  /* Wait for pselect to return in any case.  This must be done with
+     the event queue mutex unlocked.  Otherwise, the pselect thread
+     can hang if it tries to lock the event queue mutex to signal
+     read_var after the UI thread has already done so.  */
   while (sem_wait (&android_pselect_sem) < 0)
     ;;
 
   /* If there are now events in the queue, return 1.  */
+
+  pthread_mutex_lock (&event_queue.mutex);
   if (event_queue.num_events)
     nfds_return = 1;
+  pthread_mutex_unlock (&event_queue.mutex);
 
   /* Add the return value of pselect.  */
   if (android_pselect_rc >= 0)
@@ -649,9 +661,6 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 
   if (!nfds_return && android_pselect_rc < 0)
     nfds_return = android_pselect_rc;
-
-  /* Unlock the event queue mutex.  */
-  pthread_mutex_unlock (&event_queue.mutex);
 
   /* This is to shut up process.c when pselect gets EINTR.  */
   if (nfds_return < 0)
