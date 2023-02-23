@@ -3572,6 +3572,9 @@ This value is only meaningful if the minor mode
                                                  (window-end window))
                           (wsetq eglot--inlay-hints-timer nil))))))))))
 
+(defun eglot--inlay-hints-after-window-config-change ()
+  (eglot--update-hints-1 (window-start) (window-end)))
+
 (define-minor-mode eglot-inlay-hints-mode
   "Minor mode for annotating buffers with LSP server's inlay hints."
   :global nil
@@ -3585,6 +3588,8 @@ This value is only meaningful if the minor mode
                      #'eglot--inlay-hints-lazily t t)
            (add-hook 'window-scroll-functions
                      #'eglot--inlay-hints-after-scroll nil t)
+           (add-hook 'window-configuration-change-hook
+                     #'eglot--inlay-hints-after-window-config-change nil t)
            ;; Maybe there isn't a window yet for current buffer,
            ;; so `run-at-time' ensures this runs after redisplay.
            (run-at-time 0 nil #'eglot--inlay-hints-lazily))
@@ -3593,6 +3598,8 @@ This value is only meaningful if the minor mode
                      #'eglot--inlay-hints-fully nil t)
            (eglot--inlay-hints-fully))))
         (t
+         (remove-hook 'window-configuration-change-hook
+                      #'eglot--inlay-hints-after-window-config-change)
          (remove-hook 'eglot--document-changed-hook
                       #'eglot--inlay-hints-lazily t)
          (remove-hook 'eglot--document-changed-hook
