@@ -1985,7 +1985,11 @@ all.
 
 @defun file-modes-number-to-symbolic modes
 This function converts a numeric file mode specification in
-@var{modes} into the equivalent symbolic form.
+@var{modes} into the equivalent string form.  The string which this
+function returns is in the same format produced by the shell command
+@kbd{ls -l} and by @code{file-attributes}, @emph{not} the symbolic
+form accepted by @code{file-modes-symbolic-to-number} and the
+@command{chmod} shell command.
 @end defun
 
 @defun set-file-times filename &optional time flag

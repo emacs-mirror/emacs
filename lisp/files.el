@@ -8391,11 +8391,14 @@ as in \"og+rX-w\"."
     num-rights))
 
 (defun file-modes-number-to-symbolic (mode &optional filetype)
-  "Return a string describing a file's MODE.
+  "Return a description of a file's MODE as a string of 10 letters and dashes.
+The returned string is like the mode description produced by \"ls -l\".
 For instance, if MODE is #o700, then it produces `-rwx------'.
-FILETYPE if provided should be a character denoting the type of file,
-such as `?d' for a directory, or `?l' for a symbolic link and will override
-the leading `-' char."
+Note that this is NOT the same as the \"chmod\" style symbolic description
+accepted by `file-modes-symbolic-to-number'.
+FILETYPE, if provided, should be a character denoting the type of file,
+such as `?d' for a directory, or `?l' for a symbolic link, and will override
+the leading `-' character."
   (string
    (or filetype
        (pcase (ash mode -12)
