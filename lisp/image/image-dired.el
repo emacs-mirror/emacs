@@ -546,7 +546,7 @@ Restore any changes to the window configuration made by calling
         (t
          (image-dired-line-up-dynamic))))
 
-(defvar-local image-dired--number-of-thumbnails nil)
+(defvar-local image-dired--number-of-thumbnails 0)
 
 ;;;###autoload
 (defun image-dired-display-thumbs (&optional arg append do-not-pop)
