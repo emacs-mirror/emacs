@@ -3741,12 +3741,21 @@ of the target of the link instead."
 
 ;;;###autoload
 (defun dired-vc-next-action (verbose)
-  "Do the next version control operation on marked files/directories.
-When only files are marked then call `vc-next-action' with the
-same value of the VERBOSE argument.
-When also directories are marked then call `vc-dir' and mark
-the same files/directories in the VC-Dir buffer that were marked
-in the Dired buffer."
+  "Do the next logical version control operation on marked files/directories.
+The VC control operation will operate on a fileset which includes
+the marked files/directories.  If no files/directories are marked, the
+fileset will include the single file/directory shown on the current line.
+
+If only regular files are in the fileset, call `vc-next-action' with
+the same value of the VERBOSE argument (interactively, the prefix
+argument).
+
+If one or more directories are in the fileset, start `vc-dir' in the root
+directory of the repository that includes the current directory, with
+the same files/directories marked in the VC-Directory buffer that were
+marked in the original Dired buffer.  If the current directory doesn't
+belong to a VCS repository, prompt for a repository directory.  In this
+case, the VERBOSE argument is ignored."
   (interactive "P")
   (let* ((marked-files
           (dired-get-marked-files nil nil nil nil t))
