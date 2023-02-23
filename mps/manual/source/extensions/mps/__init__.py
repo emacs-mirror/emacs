@@ -1,6 +1,6 @@
 '''
 Sphinx extensions for the MPS documentation.
-See <http://sphinx-doc.org/extensions.html>
+See <https://www.sphinx-doc.org/en/master/development/index.html>
 '''
 
 from collections import defaultdict
