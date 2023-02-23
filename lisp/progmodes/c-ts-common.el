@@ -314,7 +314,9 @@ If NODE is nil, return nil."
     nil))
 
 (defun c-ts-common-statement-offset (node parent &rest _)
-  "This anchor is used for children of a statement inside a block.
+  "Return an indent offset for a statement inside a block.
+
+Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
 brackets) (defined by `c-ts-common-indent-block-type-regexp')
@@ -324,6 +326,9 @@ multiply that by `c-ts-common-indent-offset'.
 To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,
 it adds an extra level, except for the top-level.
+
+It also has special handling for bracketless statements and
+else-if statements, which see.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters on the current line."
