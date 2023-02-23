@@ -282,7 +282,6 @@ Thus, this does not include the current directory.")
     (when (string-match "\\`~[a-z]*\\'" arg)
       (setq pcomplete-stub (substring arg 1)
             pcomplete-last-completion-raw t)
-            ;; pcomplete-exit-function #'eshell-complete-user-ref--exit)
       (eshell-read-user-names)
       (let ((names (pcomplete-uniquify-list
                     (mapcar (lambda (user)
