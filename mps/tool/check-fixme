@@ -16,13 +16,15 @@
 #
 # TODO: A much older convention in the MPS (predates the adoption of
 # "FIXME") is to mark such things with "@@@@".  We should find and fix
-# those too, eventually.
+# those too, eventually.  See GitHub issue #162
+# <https://github.com/Ravenbrook/mps/issues/162>.
 
-# Exclude some things that:
+# To avoid false positives that waste time, exclude some things that:
 # - we have no control over
-# - come from elsewhere
+# - come from outside the MPS project
 # - build results that are copies of other things
 # - things that legit talk about FIXMEs (like this script)
+# - local editor backups
 find . \
      -path './tool/check-fixme' -prune -o \
      -path './.github/workflows/fixme-check.yml' -prune -o \
