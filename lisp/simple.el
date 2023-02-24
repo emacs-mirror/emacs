@@ -10454,7 +10454,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
-			(memq window-system '(w32 ns pgtk haiku))
+			(memq window-system '(w32 ns pgtk haiku android))
                         (and (eq window-system 'x)
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))
