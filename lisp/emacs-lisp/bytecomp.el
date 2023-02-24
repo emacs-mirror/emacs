@@ -5079,7 +5079,10 @@ binding slots have been popped."
 (defun byte-compile-suppressed-warnings (form)
   (let ((byte-compile--suppressed-warnings
          (append (cadadr form) byte-compile--suppressed-warnings)))
-    (byte-compile-form (macroexp-progn (cddr form)))))
+    ;; Propagate the for-effect mode explicitly so that warnings about
+    ;; ignored return values can be detected and suppressed correctly.
+    (byte-compile-form (macroexp-progn (cddr form)) byte-compile--for-effect)
+    (setq byte-compile--for-effect nil)))
 
 ;; Warn about misuses of make-variable-buffer-local.
 (byte-defop-compiler-1 make-variable-buffer-local
