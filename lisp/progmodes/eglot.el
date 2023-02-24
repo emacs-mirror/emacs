@@ -3529,7 +3529,8 @@ If NOERROR, return predicate, else erroring function."
             (let ((ov (make-overlay (point) (point)))
                   (left-pad (and paddingLeft (not (memq (char-before) '(32 9)))))
                   (right-pad (and paddingRight (not (memq (char-after) '(32 9)))))
-                  (text (if (stringp label) label (plist-get label :value))))
+                  (text (if (stringp label)
+                            label (plist-get (elt label 0) :value))))
               (overlay-put ov 'before-string
                            (propertize
                             (concat (and left-pad " ") text (and right-pad " "))
