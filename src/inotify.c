@@ -419,6 +419,7 @@ IN_ONESHOT  */)
   int wd = -1;
   uint32_t imask = aspect_to_inotifymask (aspect);
   uint32_t mask = imask | IN_MASK_ADD | IN_EXCL_UNLINK;
+  char *name;
 
   CHECK_STRING (filename);
 
@@ -432,7 +433,23 @@ IN_ONESHOT  */)
     }
 
   encoded_file_name = ENCODE_FILE (filename);
-  wd = inotify_add_watch (inotifyfd, SSDATA (encoded_file_name), mask);
+  name = SSDATA (encoded_file_name);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* If FILENAME actually lies in a special directory, return now
+     instead of letting inotify fail.  These directories cannot
+     receive file notifications as they are read only.  */
+
+  if (strcmp (name, "/assets")
+      || strcmp (name, "/assets/")
+      || strcmp (name, "/content")
+      || strcmp (name, "/content/")
+      || strncmp (name, "/assets/", sizeof "/assets")
+      || strncmp (name, "/content", sizeof "/content"))
+    return Qnil;
+#endif
+
+  wd = inotify_add_watch (inotifyfd, name, mask);
   if (wd < 0)
     report_file_notify_error ("Could not add watch for file", filename);
 
