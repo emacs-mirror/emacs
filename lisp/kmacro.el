@@ -377,10 +377,14 @@ and `kmacro-counter-format'.")
 (defvar kmacro-view-item-no 0)
 
 
+(autoload 'macro--string-to-vector "macros")
 (defun kmacro-ring-head ()
   "Return pseudo head element in macro ring."
   (and last-kbd-macro
-       (kmacro last-kbd-macro kmacro-counter kmacro-counter-format-start)))
+       (kmacro (if (stringp last-kbd-macro)
+                   (macro--string-to-vector last-kbd-macro)
+                 last-kbd-macro)
+               kmacro-counter kmacro-counter-format-start)))
 
 
 (defun kmacro-push-ring (&optional elt)
@@ -841,8 +845,6 @@ KEYS should be a vector or a string that obeys `key-valid-p'."
       (setq mac     (nth 0 mac)))
     (when (stringp mac)
       ;; `kmacro' interprets a string according to `key-parse'.
-      (require 'macros)
-      (declare-function macro--string-to-vector "macros")
       (setq mac (macro--string-to-vector mac)))
     (kmacro mac counter format)))
 
