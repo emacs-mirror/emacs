@@ -2824,16 +2824,20 @@ for which LSP on-type-formatting should be requested."
                       (mapcar
                        (jsonrpc-lambda
                            (&rest item &key label insertText insertTextFormat
-                                  &allow-other-keys)
+                                  textEdit &allow-other-keys)
                          (let ((proxy
-                                (cond ((and (eql insertTextFormat 2)
-                                            (eglot--snippet-expansion-fn))
+                                ;; Snippet or textEdit, it's safe to
+                                ;; display/insert the label since
+                                ;; it'll be adjusted.  If no usable
+                                ;; insertText at all, label is best,
+                                ;; too.
+                                (cond ((or (and (eql insertTextFormat 2)
+                                                (eglot--snippet-expansion-fn))
+                                           textEdit
+                                           (null insertText)
+                                           (string-empty-p insertText))
                                        (string-trim-left label))
-                                      ((and insertText
-                                            (not (string-empty-p insertText)))
-                                       insertText)
-                                      (t
-                                       (string-trim-left label)))))
+                                      (t insertText))))
                            (unless (zerop (length proxy))
                              (put-text-property 0 1 'eglot--lsp-item item proxy))
                            proxy))
@@ -3485,32 +3489,39 @@ If NOERROR, return predicate, else erroring function."
 (defface eglot-parameter-hint-face '((t (:inherit eglot-inlay-hint-face)))
   "Face used for parameter inlay hint overlays.")
 
-(defcustom eglot-lazy-inlay-hints 0.3
-  "If non-nil, restrict LSP inlay hints to visible portion of buffer.
+(defvar-local eglot--outstanding-inlay-hints-region (cons nil nil)
+  "Jit-lock-calculated (FROM . TO) region with potentially outdated hints")
 
-Value is number specifying how many seconds to wait after a
-window has been (re)scrolled before requesting new inlay hints
-for the visible region of the window being manipulated.
+(defvar-local eglot--outstanding-inlay-regions-timer nil
+  "Helper timer for `eglot--update-hints'")
 
-If nil, then inlay hints are requested for the entire buffer.
-
-This value is only meaningful if the minor mode
-`eglot-inlay-hints-mode' is true.
-"
-  :type 'number
-  :version "29.1")
-
-(defun eglot--inlay-hints-fully ()
-  (eglot--widening (eglot--update-hints-1 (point-min) (point-max))))
-
-(cl-defun eglot--inlay-hints-lazily (&optional (buffer (current-buffer)))
-  (eglot--when-live-buffer buffer
-    (when eglot--managed-mode
-      (dolist (window (get-buffer-window-list nil nil 'visible))
-        (eglot--update-hints-1 (window-start window) (window-end window))))))
+(defun eglot--update-hints (from to)
+  "Jit-lock function for Eglot inlay hints."
+  (cl-symbol-macrolet ((region eglot--outstanding-inlay-hints-region)
+                       (timer eglot--outstanding-inlay-regions-timer))
+    (setcar region (min (or (car region) (point-max)) from))
+    (setcdr region (max (or (cdr region) (point-min)) to))
+    ;; HACK: We're relying on knowledge of jit-lock internals here.  The
+    ;; condition comparing `jit-lock-context-unfontify-pos' to
+    ;; `point-max' is a heuristic for telling whether this call to
+    ;; `jit-lock-functions' happens after `jit-lock-context-timer' has
+    ;; just run.  Only after this delay should we start the smoothing
+    ;; timer that will eventually call `eglot--update-hints-1' with the
+    ;; coalesced region.  I wish we didn't need the timer, but sometimes
+    ;; a lot of "non-contextual" calls come in all at once and do verify
+    ;; the condition.  Notice it is a 0 second timer though, so we're
+    ;; not introducing any more delay over jit-lock's timers.
+    (when (= jit-lock-context-unfontify-pos (point-max))
+      (if timer (cancel-timer timer))
+      (setq timer (run-at-time
+                   0 nil
+                   (lambda ()
+                     (eglot--update-hints-1 (max (car region) (point-min))
+                                            (min (cdr region) (point-max)))
+                     (setq region (cons nil nil) timer nil)))))))
 
 (defun eglot--update-hints-1 (from to)
-  "Request LSP inlay hints and annotate current buffer from FROM to TO."
+  "Do most work for `eglot--update-hints', including LSP request."
   (let* ((buf (current-buffer))
          (paint-hint
           (eglot--lambda ((InlayHint) position kind label paddingLeft paddingRight)
@@ -3541,60 +3552,16 @@ This value is only meaningful if the minor mode
                       (mapc paint-hint hints))))
      :deferred 'eglot--update-hints-1)))
 
-(defun eglot--inlay-hints-after-scroll (window display-start)
-  (cl-macrolet ((wsetq (sym val) `(set-window-parameter window ',sym ,val))
-                (wgetq (sym) `(window-parameter window ',sym)))
-    (let ((buf (window-buffer window))
-          (timer (wgetq eglot--inlay-hints-timer))
-          (last-display-start (wgetq eglot--last-inlay-hint-display-start)))
-      (when (and eglot-lazy-inlay-hints
-                 ;; FIXME: If `window' is _not_ the selected window,
-                 ;; then for some unknown reason probably related to
-                 ;; the overlays added later to the buffer, the scroll
-                 ;; function will be called indefinitely.  Not sure if
-                 ;; an Emacs bug, but prevent useless duplicate calls
-                 ;; by saving and examining `display-start' fixes it.
-                 (not (eql last-display-start display-start)))
-        (when timer (cancel-timer timer))
-        (wsetq eglot--last-inlay-hint-display-start
-               display-start)
-        (wsetq eglot--inlay-hints-timer
-               (run-at-time
-                eglot-lazy-inlay-hints
-                nil (lambda ()
-                      (eglot--when-live-buffer buf
-                        (when (eq buf (window-buffer window))
-                          (eglot--update-hints-1 (window-start window)
-                                                 (window-end window))
-                          (wsetq eglot--inlay-hints-timer nil))))))))))
-
 (define-minor-mode eglot-inlay-hints-mode
-  "Minor mode annotating buffer with LSP inlay hints."
+  "Minor mode for annotating buffers with LSP server's inlay hints."
   :global nil
   (cond (eglot-inlay-hints-mode
-         (cond
-          ((not (eglot--server-capable :inlayHintProvider))
+         (if (eglot--server-capable :inlayHintProvider)
+             (jit-lock-register #'eglot--update-hints 'contextual)
            (eglot--warn
-            "No :inlayHintProvider support. Inlay hints will not work."))
-          (eglot-lazy-inlay-hints
-           (add-hook 'eglot--document-changed-hook
-                     #'eglot--inlay-hints-lazily t t)
-           (add-hook 'window-scroll-functions
-                     #'eglot--inlay-hints-after-scroll nil t)
-           ;; Maybe there isn't a window yet for current buffer,
-           ;; so `run-at-time' ensures this runs after redisplay.
-           (run-at-time 0 nil #'eglot--inlay-hints-lazily))
-          (t
-           (add-hook 'eglot--document-changed-hook
-                     #'eglot--inlay-hints-fully nil t)
-           (eglot--inlay-hints-fully))))
+            "No :inlayHintProvider support. Inlay hints will not work.")))
         (t
-         (remove-hook 'eglot--document-changed-hook
-                      #'eglot--inlay-hints-lazily t)
-         (remove-hook 'eglot--document-changed-hook
-                      #'eglot--inlay-hints-fully t)
-         (remove-hook 'window-scroll-functions
-                      #'eglot--inlay-hints-after-scroll t)
+         (jit-lock-unregister #'eglot--update-hints)
          (remove-overlays nil nil 'eglot--inlay-hint t))))
 
 

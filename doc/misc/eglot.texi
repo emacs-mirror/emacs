@@ -883,14 +883,6 @@ this map.  For example:
   (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
 @end lisp
 
-@item eglot-lazy-inlay-hints
-This variable controls the operation and performance of LSP Inlay
-Hints (@pxref{Eglot Features}).  If non-@code{nil}, it specifies how
-much time to wait after a window is displayed or scrolled before
-requesting hints for that visible portion of a given buffer.  If
-@code{nil}, inlay hints are always requested for the whole buffer,
-even for parts of it not currently visible.
-
 @end vtable
 
 Additional variables, which are relevant for customizing the server

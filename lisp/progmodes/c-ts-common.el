@@ -268,7 +268,7 @@ particular major mode.  This cannot be nil for `c-ts-common'
 statement indent functions to work.")
 
 (defvar c-ts-common-indent-type-regexp-alist nil
-  "An alist of of node type regexps.
+  "An alist of node type regexps.
 
 Each key in the alist is one of `if', `else', `do', `while',
 `for', `block', `close-bracket'.  Each value in the alist
