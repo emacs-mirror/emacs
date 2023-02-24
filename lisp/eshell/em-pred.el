@@ -293,7 +293,7 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
     (forward-char)
     (let ((end (eshell-find-delimiter ?\( ?\))))
       (if (not end)
-	  (throw 'eshell-incomplete ?\()
+          (throw 'eshell-incomplete "(")
 	(when (eshell-arg-delimiter (1+ end))
 	  (save-restriction
 	    (narrow-to-region (point) end)

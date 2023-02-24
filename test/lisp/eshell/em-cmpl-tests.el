@@ -183,6 +183,31 @@ See <lisp/eshell/esh-var.el>."
    (should (equal (eshell-insert-and-complete "echo $system-nam")
                   "echo $system-name "))))
 
+(ert-deftest em-cmpl-test/quoted-variable-ref-completion ()
+  "Test completion of variable references like \"$'var'\".
+See <lisp/eshell/esh-var.el>."
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $'system-nam")
+                  "echo $'system-name' ")))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $\"system-nam")
+                  "echo $\"system-name\" "))))
+
+(ert-deftest em-cmpl-test/variable-ref-completion/directory ()
+  "Test completion of variable references that expand to directories.
+See <lisp/eshell/esh-var.el>."
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $PW")
+                  "echo $PWD/")))
+  (with-temp-eshell
+   (let ((minibuffer-message-timeout 0)
+         (inhibit-message t))
+     (should (equal (eshell-insert-and-complete "echo $PWD")
+                    "echo $PWD/"))))
+  (with-temp-eshell
+   (should (equal (eshell-insert-and-complete "echo $'PW")
+                  "echo $'PWD'/"))))
+
 (ert-deftest em-cmpl-test/variable-assign-completion ()
   "Test completion of variable assignments like \"var=value\".
 See <lisp/eshell/esh-var.el>."
@@ -193,15 +218,14 @@ See <lisp/eshell/esh-var.el>."
                     "VAR=file.txt ")))))
 
 (ert-deftest em-cmpl-test/user-ref-completion ()
-  "Test completeion of user references like \"~user\".
+  "Test completion of user references like \"~user\".
 See <lisp/eshell/em-dirs.el>."
   (unwind-protect
       (with-temp-eshell
        (cl-letf (((symbol-function 'eshell-read-user-names)
                   (lambda () (setq eshell-user-names '((1234 . "user"))))))
-         ;; FIXME: Should this really add a space at the end?
          (should (equal (eshell-insert-and-complete "echo ~us")
-                        "echo ~user/ "))))
+                        "echo ~user/"))))
     ;; Clear the cached user names we set above.
     (setq eshell-user-names nil)))
 

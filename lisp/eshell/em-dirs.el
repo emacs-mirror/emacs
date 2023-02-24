@@ -281,15 +281,32 @@ Thus, this does not include the current directory.")
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match "\\`~[a-z]*\\'" arg)
       (setq pcomplete-stub (substring arg 1)
-	    pcomplete-last-completion-raw t)
-      (throw 'pcomplete-completions
-	     (progn
-	       (eshell-read-user-names)
-	       (pcomplete-uniquify-list
-		(mapcar
-                 (lambda (user)
-                   (file-name-as-directory (cdr user)))
-		 eshell-user-names)))))))
+            pcomplete-last-completion-raw t)
+      (eshell-read-user-names)
+      (let ((names (pcomplete-uniquify-list
+                    (mapcar (lambda (user)
+                              (file-name-as-directory (cdr user)))
+                            eshell-user-names))))
+        (throw 'pcomplete-completions
+               ;; Provide a programmed completion table.  This works
+               ;; just like completing over the list of names, except
+               ;; it always returns the completed string for
+               ;; `try-completion', never `t'.  That's because this is
+               ;; only completing a directory name, and so the
+               ;; completion isn't actually finished yet.
+               (lambda (string pred action)
+                 (pcase action
+                   ('nil                  ; try-completion
+                    (let ((result (try-completion string names pred)))
+                      (if (eq result t) string result)))
+                   ('t                    ; all-completions
+                    (all-completions string names pred))
+                   ('lambda               ; test-completion
+                    (test-completion string names pred))
+                   ('metadata
+                    '(metadata (category . file)))
+                   (`(boundaries . ,suffix)
+                    `(boundaries 0 . ,(string-search "/" suffix))))))))))
 
 (defun eshell/pwd (&rest _args)
   "Change output from `pwd' to be cleaner."

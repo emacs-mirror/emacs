@@ -317,8 +317,7 @@ to writing a completion function."
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (beginning-of-line) (point)))
-	(posns (list t))
-	args delim)
+	args posns delim)
     (when (and pcomplete-allow-modifications
 	       (memq this-command '(pcomplete-expand
 			            pcomplete-expand-and-complete)))
@@ -330,21 +329,25 @@ to writing a completion function."
 	      (catch 'eshell-incomplete
 		(ignore
 		 (setq args (eshell-parse-arguments begin end)))))
-	(cond ((memq (car delim) '(?\{ ?\<))
+        (cond ((member (car delim) '("{" "${" "$<"))
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
-	      ((eq (car delim) ?\()
+              ((member (car delim) '("$'" "$\""))
+               ;; Add the (incomplete) argument to our arguments, and
+               ;; note its position.
+               (setq args (append (nth 2 delim) (list (car delim))))
+               (push (- (nth 1 delim) 2) posns))
+              ((member (car delim) '("(" "$("))
 	       (throw 'pcompleted (elisp-completion-at-point)))
 	      (t
 	       (eshell--pcomplete-insert-tab))))
     (when (get-text-property (1- end) 'comment)
       (eshell--pcomplete-insert-tab))
-    (let ((pos begin))
-      (while (< pos end)
-	(if (get-text-property pos 'arg-begin)
-	    (nconc posns (list pos)))
-	(setq pos (1+ pos))))
-    (setq posns (cdr posns))
+    (let ((pos (1- end)))
+      (while (>= pos begin)
+        (when (get-text-property pos 'arg-begin)
+          (push pos posns))
+        (setq pos (1- pos))))
     (cl-assert (= (length args) (length posns)))
     (let ((a args) (i 0) new-start)
       (while a
