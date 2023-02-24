@@ -10,9 +10,18 @@
  * external build system (gnumake, nmake, etc.) into specific sets
  * of features used by MPS modules.
  *
+ * TODO: It also defines defaults for various parts of the MPS.
+ * Perhaps this should be split into a separate header with better
+ * documentation.  See
+ * <https://github.com/Ravenbrook/mps/issues/176#issuecomment-1443192870>.
+ *
  * DESIGN
  *
  * <design/config>.
+ *
+ * TODO: Many of the default constants defined in this file do not
+ * have documented justification.  See GitHub issue #176
+ * <https://github.com/Ravenbrook/mps/issues/176>.
  */
 
 #ifndef config_h
@@ -393,7 +402,10 @@
 
 
 /* Pool MVT Configuration -- see <code/poolmv2.c> */
-/* TODO: These numbers were lifted from mv2test and need thought. */
+
+/* TODO: These numbers were lifted from mv2test and need thought.  See
+   GitHub issue #176
+   <https://github.com/Ravenbrook/mps/issues/176>. */
 
 #define MVT_ALIGN_DEFAULT         MPS_PF_ALIGN
 #define MVT_MIN_SIZE_DEFAULT      MPS_PF_ALIGN
