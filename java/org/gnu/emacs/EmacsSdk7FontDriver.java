@@ -325,7 +325,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
 	  list.add (new Sdk7FontEntity (typefaceList[i]));
       }
 
-    return (FontEntity[]) list.toArray (new FontEntity[0]);
+    return list.toArray (new FontEntity[0]);
   }
 
   @Override

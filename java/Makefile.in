@@ -40,10 +40,7 @@ ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
 ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
 ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
-
-WARN_JAVAFLAGS = -Xlint:deprecation
-JAVAFLAGS = -classpath "$(ANDROID_JAR):." -target 1.7 -source 1.7 \
-  $(WARN_JAVAFLAGS)
+JAVAFLAGS = @JAVAFLAGS@
 
 # Android 4.3 and earlier require Emacs to be signed with a different
 # digital signature algorithm.
