@@ -4970,6 +4970,7 @@ const char *const lispy_function_keys[] =
     /* All elements in this array default to 0, except for the few
        function keys that Emacs recognizes.  */
     [111] = "escape",
+    [112] = "delete",
     [121] = "break",
     [122] = "home",
     [123] = "end",
