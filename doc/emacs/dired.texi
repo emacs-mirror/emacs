@@ -715,6 +715,10 @@ Otherwise, the command operates on the current file only.
 Certain other Dired commands, such as @kbd{!} and the @samp{%}
 commands, use the same conventions to decide which files to work on.
 
+  In addition to Dired commands described here, you can also invoke
+Version Control (VC) commands on one or more files shown in a Dired
+buffer.  @xref{Version Control}.
+
 @vindex dired-dwim-target
 @cindex two directories (in Dired)
   Commands which ask for a destination directory, such as those which
