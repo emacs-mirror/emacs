@@ -1,7 +1,7 @@
 # .github/workflows/fixme-check.yml -- check for FIXME task labels
 #
 # This is a GitHub CI workflow
-# <https://docs.github.com/en/actions/using-workflows/about-workflows>
+# <https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration>
 # to check for FIXME and similar task labels left unresolved in the
 # MPS source tree.
 
@@ -14,7 +14,7 @@ on:
   - workflow_dispatch # allow manual triggering
 
 jobs:
-  check-rst:
+  check-fixme:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
