@@ -567,6 +567,11 @@ Similarly to buffer restoration by Desktop, 'recentf-mode' checking
 of the accessibility of remote files can now time out if
 'remote-file-name-access-timeout' is set to a positive number.
 
+** Image Dired
+
+*** New user option 'image-dired-thumb-naming'.
+You can now configure how a thumbnail is named using this option.
+
 
 * New Modes and Packages in Emacs 30.1
 
