@@ -166,5 +166,21 @@ extern JNIEnv *android_java_env;
 
 #define NATIVE_NAME(name) Java_org_gnu_emacs_EmacsNative_##name
 
+/* Prologue which must be inserted before each JNI function.
+   See initEmacs for why.  */
+
+#if defined __i386__
+extern void *unused_pointer;
+
+#define JNI_STACK_ALIGNMENT_PROLOGUE				\
+  __attribute__ ((aligned (32))) char stack_align_buffer[32];	\
+								\
+  /* Trick GCC into not optimizing this variable away.  */	\
+  unused_pointer = stack_align_buffer;
+
+#else /* !__i386__ */
+#define JNI_STACK_ALIGNMENT_PROLOGUE ((void) 0)
+#endif /* __i386__ */
+
 #endif
 #endif /* _ANDROID_H_ */

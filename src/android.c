@@ -224,8 +224,12 @@ static struct android_emacs_window window_class;
    stored in unsigned long to be consistent with X.  */
 unsigned int event_serial;
 
+#ifdef __i386__
+
 /* Unused pointer used to control compiler optimizations.  */
 void *unused_pointer;
+
+#endif /* __i386__ */
 
 
 
@@ -295,10 +299,13 @@ static int select_pipe[2];
 static void *
 android_run_select_thread (void *data)
 {
+  /* Apparently this is required too.  */
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   int rc;
 #if __ANDROID_API__ < 16
   int nfds;
-  fd_set readfds;
+  fd_set readfds, writefds;
   char byte;
 #else
   sigset_t signals, waitset;
@@ -325,22 +332,28 @@ android_run_select_thread (void *data)
 
       pthread_mutex_lock (&event_queue.select_mutex);
       nfds = android_pselect_nfds;
-      readfds = *android_pselect_readfds;
+
+      if (android_pselect_readfds)
+	readfds = *android_pselect_readfds;
+      else
+	FD_ZERO (&readfds);
 
       if (nfds < select_pipe[0] + 1)
 	nfds = select_pipe[0] + 1;
       FD_SET (select_pipe[0], &readfds);
 
-      rc = pselect (nfds, &readfds,
-		    android_pselect_writefds,
+      rc = pselect (nfds, &readfds, &writefds,
 		    android_pselect_exceptfds,
 		    android_pselect_timeout,
 		    NULL);
 
       /* Subtract 1 from rc if writefds contains the select pipe.  */
-      if (FD_ISSET (select_pipe[0],
-		    android_pselect_writefds))
+      if (FD_ISSET (select_pipe[0], &writefds))
 	rc -= 1;
+
+      /* Save the writefds back again.  */
+      if (android_pselect_writefds)
+	*android_pselect_writefds = writefds;
 
       android_pselect_rc = rc;
       pthread_mutex_unlock (&event_queue.select_mutex);
@@ -1641,12 +1654,16 @@ android_proc_name (int fd, char *buffer, size_t size)
 JNIEXPORT jint JNICALL
 NATIVE_NAME (dup) (JNIEnv *env, jobject object, jint fd)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   return dup (fd);
 }
 
 JNIEXPORT jstring JNICALL
 NATIVE_NAME (getFingerprint) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   char buffer[sizeof fingerprint * 2 + 1];
 
   memset (buffer, 0, sizeof buffer);
@@ -1666,6 +1683,8 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 			      jobject class_path,
 			      jobject emacs_service_object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   int pipefd[2];
   pthread_t thread;
   const char *java_string;
@@ -1864,6 +1883,8 @@ NATIVE_NAME (setEmacsParams) (JNIEnv *env, jobject object,
 JNIEXPORT jobject JNICALL
 NATIVE_NAME (getProcName) (JNIEnv *env, jobject object, jint fd)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   char buffer[PATH_MAX + 1];
   size_t length;
   jbyteArray array;
@@ -2090,22 +2111,20 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
 			 jobject dump_file_object, jint api_level)
 {
+  /* android_emacs_init is not main, so GCC is not nice enough to add
+     the stack alignment prologue.
+
+     Unfortunately for us, dalvik on Android 4.0.x calls native code
+     with a 4 byte aligned stack, so this prologue must be inserted
+     before each function exported via JNI.  */
+
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   char **c_argv;
   jsize nelements, i;
   jobject argument;
   const char *c_argument;
   char *dump_file;
-
-  /* android_emacs_init is not main, so GCC is not nice enough to add
-     the stack alignment prologue.
-
-     Unfortunately for us, dalvik on Android 4.0.x calls native code
-     with a 4 byte aligned stack.  */
-
-  __attribute__ ((aligned (32))) char buffer[32];
-
-  /* Trick GCC into not optimizing this variable away.  */
-  unused_pointer = buffer;
 
   /* Set the Android API level.  */
   android_api_level = api_level;
@@ -2183,12 +2202,16 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
 JNIEXPORT void JNICALL
 NATIVE_NAME (emacsAbort) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   emacs_abort ();
 }
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (quit) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   Vquit_flag = Qt;
 }
 
@@ -2198,6 +2221,8 @@ NATIVE_NAME (sendConfigureNotify) (JNIEnv *env, jobject object,
 				   jint x, jint y, jint width,
 				   jint height)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xconfigure.type = ANDROID_CONFIGURE_NOTIFY;
@@ -2219,6 +2244,8 @@ NATIVE_NAME (sendKeyPress) (JNIEnv *env, jobject object,
 			    jint state, jint keycode,
 			    jint unicode_char)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xkey.type = ANDROID_KEY_PRESS;
@@ -2239,6 +2266,8 @@ NATIVE_NAME (sendKeyRelease) (JNIEnv *env, jobject object,
 			      jint state, jint keycode,
 			      jint unicode_char)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xkey.type = ANDROID_KEY_RELEASE;
@@ -2257,6 +2286,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusIn) (JNIEnv *env, jobject object,
 			   jshort window, jlong time)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xfocus.type = ANDROID_FOCUS_IN;
@@ -2272,6 +2303,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendFocusOut) (JNIEnv *env, jobject object,
 			    jshort window, jlong time)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xfocus.type = ANDROID_FOCUS_OUT;
@@ -2287,6 +2320,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendWindowAction) (JNIEnv *env, jobject object,
 				jshort window, jint action)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xaction.type = ANDROID_WINDOW_ACTION;
@@ -2303,6 +2338,8 @@ NATIVE_NAME (sendEnterNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xcrossing.type = ANDROID_ENTER_NOTIFY;
@@ -2321,6 +2358,8 @@ NATIVE_NAME (sendLeaveNotify) (JNIEnv *env, jobject object,
 			       jshort window, jint x, jint y,
 			       jlong time)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xcrossing.type = ANDROID_LEAVE_NOTIFY;
@@ -2339,6 +2378,8 @@ NATIVE_NAME (sendMotionNotify) (JNIEnv *env, jobject object,
 				jshort window, jint x, jint y,
 				jlong time)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xmotion.type = ANDROID_MOTION_NOTIFY;
@@ -2358,6 +2399,8 @@ NATIVE_NAME (sendButtonPress) (JNIEnv *env, jobject object,
 			       jlong time, jint state,
 			       jint button)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xbutton.type = ANDROID_BUTTON_PRESS;
@@ -2379,6 +2422,8 @@ NATIVE_NAME (sendButtonRelease) (JNIEnv *env, jobject object,
 				 jlong time, jint state,
 				 jint button)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xbutton.type = ANDROID_BUTTON_RELEASE;
@@ -2399,6 +2444,8 @@ NATIVE_NAME (sendTouchDown) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_DOWN;
@@ -2418,6 +2465,8 @@ NATIVE_NAME (sendTouchUp) (JNIEnv *env, jobject object,
 			   jshort window, jint x, jint y,
 			   jlong time, jint pointer_id)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_UP;
@@ -2437,6 +2486,8 @@ NATIVE_NAME (sendTouchMove) (JNIEnv *env, jobject object,
 			     jshort window, jint x, jint y,
 			     jlong time, jint pointer_id)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.touch.type = ANDROID_TOUCH_MOVE;
@@ -2457,6 +2508,8 @@ NATIVE_NAME (sendWheel) (JNIEnv *env, jobject object,
 			 jlong time, jint state,
 			 jfloat x_delta, jfloat y_delta)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.wheel.type = ANDROID_WHEEL;
@@ -2477,6 +2530,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendIconified) (JNIEnv *env, jobject object,
 			     jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.iconified.type = ANDROID_ICONIFIED;
@@ -2491,6 +2546,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
 			       jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.iconified.type = ANDROID_DEICONIFIED;
@@ -2505,6 +2562,8 @@ JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
 			       jshort window, jint menu_event_id)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.menu.type = ANDROID_CONTEXT_MENU;
@@ -2521,6 +2580,8 @@ NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
 			  jshort window, jint x, jint y,
 			  jint width, jint height)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.xexpose.type = ANDROID_EXPOSE;
@@ -2543,12 +2604,16 @@ static void android_end_query (void);
 JNIEXPORT void JNICALL
 NATIVE_NAME (beginSynchronous) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   android_begin_query ();
 }
 
 JNIEXPORT void JNICALL
 NATIVE_NAME (endSynchronous) (JNIEnv *env, jobject object)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   android_end_query ();
 }
 

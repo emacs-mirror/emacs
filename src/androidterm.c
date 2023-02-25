@@ -4390,6 +4390,8 @@ android_copy_java_string (JNIEnv *env, jstring string, size_t *length)
 JNIEXPORT void JNICALL
 NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.ime.type = ANDROID_INPUT_METHOD;
@@ -4409,6 +4411,8 @@ NATIVE_NAME (beginBatchEdit) (JNIEnv *env, jobject object, jshort window)
 JNIEXPORT void JNICALL
 NATIVE_NAME (endBatchEdit) (JNIEnv *env, jobject object, jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.ime.type = ANDROID_INPUT_METHOD;
@@ -4429,6 +4433,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (commitCompletion) (JNIEnv *env, jobject object, jshort window,
 				jstring completion_text, jint position)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
   unsigned short *text;
   size_t length;
@@ -4461,6 +4467,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (commitText) (JNIEnv *env, jobject object, jshort window,
 			  jstring commit_text, jint position)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
   unsigned short *text;
   size_t length;
@@ -4494,6 +4502,8 @@ NATIVE_NAME (deleteSurroundingText) (JNIEnv *env, jobject object,
 				     jshort window, jint left_length,
 				     jint right_length)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.ime.type = ANDROID_INPUT_METHOD;
@@ -4514,6 +4524,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (finishComposingText) (JNIEnv *env, jobject object,
 				   jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.ime.type = ANDROID_INPUT_METHOD;
@@ -4667,6 +4679,8 @@ JNIEXPORT jstring JNICALL
 NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jshort window,
 				  jint length, jint flags)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   struct android_conversion_query_context context;
   jstring string;
 
@@ -4709,6 +4723,8 @@ JNIEXPORT jstring JNICALL
 NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jshort window,
 				   jint length, jint flags)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   struct android_conversion_query_context context;
   jstring string;
 
@@ -4752,6 +4768,8 @@ NATIVE_NAME (setComposingText) (JNIEnv *env, jobject object, jshort window,
 				jstring composing_text,
 				jint new_cursor_position)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
   unsigned short *text;
   size_t length;
@@ -4784,6 +4802,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jshort window,
 				  jint start, jint end)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   event.ime.type = ANDROID_INPUT_METHOD;
@@ -4804,6 +4824,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
 			    jint start, jint end)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   /* While IMEs want access to the entire selection, Emacs only
@@ -4875,6 +4897,8 @@ android_get_selection (void *data)
 JNIEXPORT jintArray JNICALL
 NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   struct android_get_selection_context context;
   jintArray array;
   jint contents[2];
@@ -4911,6 +4935,8 @@ JNIEXPORT void JNICALL
 NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
 				   jshort window, int action)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   union android_event event;
 
   /* Undocumented behavior: performEditorAction is apparently expected
@@ -5004,6 +5030,8 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 				jshort window, jobject request,
 				jint flags)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   struct android_get_extracted_text_context context;
   static struct android_extracted_text_request_class request_class;
   static struct android_extracted_text_class text_class;
@@ -5106,6 +5134,8 @@ JNIEXPORT jstring JNICALL
 NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
 			       jshort window)
 {
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
   struct android_get_extracted_text_context context;
   jstring string;
 
