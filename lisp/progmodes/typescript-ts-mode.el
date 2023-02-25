@@ -245,16 +245,13 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'property
    `((property_signature
-      name: (property_identifier) @font-lock-property-face)
+      name: (property_identifier) @font-lock-property-name-face)
      (public_field_definition
-      name: (property_identifier) @font-lock-property-face)
+      name: (property_identifier) @font-lock-property-name-face)
 
-     (pair key: (property_identifier) @font-lock-variable-name-face)
+     (pair key: (property_identifier) @font-lock-property-ref-face)
 
-     ((shorthand_property_identifier) @font-lock-property-face)
-
-     ((shorthand_property_identifier_pattern)
-      @font-lock-property-face))
+     ((shorthand_property_identifier) @font-lock-property-ref-face))
 
    :language language
    :feature 'expression
@@ -268,30 +265,34 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :feature 'function
    '((call_expression
       function:
-      [(identifier) @font-lock-function-name-face
+      [(identifier) @font-lock-function-call-face
        (member_expression
-        property: (property_identifier) @font-lock-function-name-face)]))
+        property: (property_identifier) @font-lock-function-call-face)]))
 
    :language language
    :feature 'pattern
    `((pair_pattern
-      key: (property_identifier) @font-lock-property-face)
+      key: (property_identifier) @font-lock-property-ref-face
+      value: [(identifier) @font-lock-variable-name-face
+              (assignment_pattern left: (identifier) @font-lock-variable-name-face)])
 
-     (array_pattern (identifier) @font-lock-variable-name-face))
+     (array_pattern (identifier) @font-lock-variable-name-face)
+
+     ((shorthand_property_identifier_pattern) @font-lock-variable-name-face))
 
    :language language
    :feature 'jsx
    `((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_self_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_attribute (property_identifier) @font-lock-constant-face))
 

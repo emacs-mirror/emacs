@@ -4186,7 +4186,9 @@ Default face attributes override any local face attributes.  */)
   if (EQ (face, Qdefault))
     {
       struct face_cache *c = FRAME_FACE_CACHE (f);
-      struct face *newface, *oldface = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
+      struct face *newface;
+      struct face *oldface =
+	c ? FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID) : NULL;
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
       /* This can be NULL (e.g., in batch mode).  */

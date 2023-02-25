@@ -292,11 +292,11 @@ values of OVERRIDE"
 
    :language language
    :feature 'global
-   '((global_variable) @font-lock-variable-name-face)
+   '((global_variable) @font-lock-variable-ref-face)
 
    :language language
    :feature 'instance
-   '((instance_variable) @font-lock-variable-name-face)
+   '((instance_variable) @font-lock-variable-ref-face)
 
    :language language
    :feature 'method-definition
@@ -350,7 +350,7 @@ values of OVERRIDE"
    :language language
    :feature 'function
    '((call
-      method: (identifier) @font-lock-function-name-face))
+      method: (identifier) @font-lock-function-call-face))
 
    :language language
    :feature 'assignment

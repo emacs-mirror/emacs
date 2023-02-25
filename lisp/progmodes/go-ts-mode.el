@@ -134,7 +134,7 @@
      (method_spec
       name: (field_identifier) @font-lock-function-name-face)
      (field_declaration
-      name: (field_identifier) @font-lock-property-face)
+      name: (field_identifier) @font-lock-property-name-face)
      (parameter_declaration
       name: (identifier) @font-lock-variable-name-face)
      (short_var_declaration
@@ -147,10 +147,10 @@
    :language 'go
    :feature 'function
    '((call_expression
-      function: (identifier) @font-lock-function-name-face)
+      function: (identifier) @font-lock-function-call-face)
      (call_expression
       function: (selector_expression
-                 field: (field_identifier) @font-lock-function-name-face)))
+                 field: (field_identifier) @font-lock-function-call-face)))
 
    :language 'go
    :feature 'keyword
@@ -178,12 +178,12 @@
 
    :language 'go
    :feature 'property
-   '((field_identifier) @font-lock-property-face
-     (keyed_element (_ (identifier) @font-lock-property-face)))
+   '((selector_expression field: (field_identifier) @font-lock-property-ref-face)
+     (keyed_element (_ (identifier) @font-lock-property-ref-face)))
 
    :language 'go
    :feature 'variable
-   '((identifier) @font-lock-variable-name-face)
+   '((identifier) @font-lock-variable-ref-face)
 
    :language 'go
    :feature 'escape-sequence
