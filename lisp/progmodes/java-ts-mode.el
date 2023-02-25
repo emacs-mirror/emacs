@@ -220,7 +220,7 @@
 
      (method_reference (identifier) @font-lock-type-face)
 
-     (scoped_identifier (identifier) @font-lock-variable-name-face)
+     (scoped_identifier (identifier) @font-lock-constant-face)
 
      ((scoped_identifier name: (identifier) @font-lock-type-face)
       (:match "^[A-Z]" @font-lock-type-face))
@@ -244,7 +244,7 @@
       name: (identifier) @font-lock-variable-name-face)
 
      (element_value_pair
-      key: (identifier) @font-lock-property-face)
+      key: (identifier) @font-lock-property-ref-face)
 
      (formal_parameter
       name: (identifier) @font-lock-variable-name-face)
@@ -255,14 +255,14 @@
    :override t
    :feature 'expression
    '((method_invocation
-      object: (identifier) @font-lock-variable-name-face)
+      object: (identifier) @font-lock-variable-ref-face)
 
      (method_invocation
-      name: (identifier) @font-lock-function-name-face)
+      name: (identifier) @font-lock-function-call-face)
 
      (argument_list (identifier) @font-lock-variable-name-face)
 
-     (expression_statement (identifier) @font-lock-variable-name-face))
+     (expression_statement (identifier) @font-lock-variable-ref-face))
 
    :language 'java
    :feature 'bracket

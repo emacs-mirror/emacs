@@ -189,5 +189,28 @@ wdired-get-filename before and after editing."
               (wdired-finish-edit))
           (if buf (kill-buffer buf)))))))
 
+(ert-deftest wdired-test-bug61510 ()
+  "Test visibility of symlink target on leaving wdired-mode.
+When dired-hide-details-mode is enabled and
+dired-hide-details-hide-symlink-targets is non-nil (the default),
+the link target becomes invisible.  When wdired-mode is enabled
+the target becomes visible, but on returning to dired-mode, it
+should be invisible again."
+  (ert-with-temp-directory test-dir
+    (let ((buf (find-file-noselect test-dir))
+          ;; Default value is t, but set it anyway, to be sure.
+          (dired-hide-details-hide-symlink-targets t))
+      (unwind-protect
+          (with-current-buffer buf
+            (make-symbolic-link "bar" "foo")
+            (dired-hide-details-mode)
+            (should (memq 'dired-hide-details-link buffer-invisibility-spec))
+            (dired-toggle-read-only)
+            (should-not (memq 'dired-hide-details-link
+                              buffer-invisibility-spec))
+            (wdired-finish-edit)
+            (should (memq 'dired-hide-details-link buffer-invisibility-spec)))
+        (if buf (kill-buffer buf))))))
+
 (provide 'wdired-tests)
 ;;; wdired-tests.el ends here

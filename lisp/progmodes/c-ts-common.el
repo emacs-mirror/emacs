@@ -305,6 +305,7 @@ If NODE is nil, return nil."
                        (and parent
                             (string-match-p (car regexp)
                                             (treesit-node-type parent))
+                            (treesit-node-field-name node)
                             (string-match-p (cdr regexp)
                                             (treesit-node-field-name
                                              node)))
@@ -313,7 +314,9 @@ If NODE is nil, return nil."
     nil))
 
 (defun c-ts-common-statement-offset (node parent &rest _)
-  "This anchor is used for children of a statement inside a block.
+  "Return an indent offset for a statement inside a block.
+
+Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
 brackets) (defined by `c-ts-common-indent-block-type-regexp')
@@ -323,6 +326,9 @@ multiply that by `c-ts-common-indent-offset'.
 To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,
 it adds an extra level, except for the top-level.
+
+It also has special handling for bracketless statements and
+else-if statements, which see.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters on the current line."
@@ -363,7 +369,13 @@ characters on the current line."
           (cl-incf level))
         ;; Flatten "else if" statements.
         (when (and (c-ts-common--node-is node 'else)
-                   (c-ts-common--node-is node 'if))
+                   (c-ts-common--node-is node 'if)
+                   ;; But if the "if" is on it's own line, still
+                   ;; indent a level.
+                   (not (save-excursion
+                          (goto-char (treesit-node-start node))
+                          (looking-back (rx bol (* whitespace))
+                                        (line-beginning-position)))))
           (cl-decf level)))
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))

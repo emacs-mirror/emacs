@@ -237,7 +237,7 @@ Otherwise result is a reason code."
    ((eq (car-safe fun) 'lambda)
     (unsafep fun unsafep-vars))
    ((not (and (symbolp fun)
-	      (or (get fun 'side-effect-free)
+	      (or (function-get fun 'side-effect-free)
 		  (eq (get fun 'safe-function) t)
 		  (eq safe-functions t)
 		  (memq fun safe-functions))))
