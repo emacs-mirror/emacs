@@ -125,7 +125,7 @@
 
    :language 'cmake
    :feature 'function
-   '((normal_command (identifier) @font-lock-function-name-face))
+   '((normal_command (identifier) @font-lock-function-call-face))
 
    :language 'cmake
    :feature 'keyword
@@ -154,7 +154,7 @@
    :language 'cmake
    :feature 'variable
    :override t
-   '((variable) @font-lock-variable-name-face)
+   '((variable) @font-lock-variable-ref-face)
 
    :language 'cmake
    :feature 'error

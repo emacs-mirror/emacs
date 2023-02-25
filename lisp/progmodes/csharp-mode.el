@@ -708,9 +708,9 @@ compilation and evaluation time conflicts."
   (treesit-font-lock-rules
    :language 'c-sharp
    :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-name-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-name-face)))
+   '((conditional_expression (identifier) @font-lock-variable-ref-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-ref-face)
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-ref-face)))
 
    :language 'c-sharp
    :feature 'bracket
@@ -739,8 +739,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'property
-   `((attribute (identifier) @font-lock-property-face (attribute_argument_list))
-     (attribute (identifier) @font-lock-property-face))
+   `((attribute (identifier) @font-lock-property-ref-face (attribute_argument_list))
+     (attribute (identifier) @font-lock-property-ref-face))
 
    :language 'c-sharp
    :override t
@@ -859,14 +859,14 @@ compilation and evaluation time conflicts."
    :feature 'function
    '((invocation_expression
       function: (member_access_expression
-                 name: (identifier) @font-lock-function-name-face))
+                 name: (identifier) @font-lock-function-call-face))
      (invocation_expression
-      function: (identifier) @font-lock-function-name-face)
+      function: (identifier) @font-lock-function-call-face)
      (invocation_expression
       function: (member_access_expression
-                 name: (generic_name (identifier) @font-lock-function-name-face)))
+                 name: (generic_name (identifier) @font-lock-function-call-face)))
      (invocation_expression
-      function: (generic_name (identifier) @font-lock-function-name-face)))
+      function: (generic_name (identifier) @font-lock-function-call-face)))
 
    :language 'c-sharp
    :feature 'escape-sequence
@@ -878,23 +878,23 @@ compilation and evaluation time conflicts."
    :override t
    '((if_directive
       "if" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-name-face)
+      (identifier) @font-lock-variable-ref-face)
      (elif_directive
       "elif" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-name-face)
+      (identifier) @font-lock-variable-ref-face)
      (else_directive) @font-lock-preprocessor-face
      (endif_directive) @font-lock-preprocessor-face
      (define_directive
       "define" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-name-face)
+      (identifier) @font-lock-variable-ref-face)
      (nullable_directive) @font-lock-preprocessor-face
      (pragma_directive) @font-lock-preprocessor-face
      (region_directive) @font-lock-preprocessor-face
      (endregion_directive) @font-lock-preprocessor-face
      (region_directive
-      (preproc_message) @font-lock-variable-name-face)
+      (preproc_message) @font-lock-variable-ref-face)
      (endregion_directive
-      (preproc_message) @font-lock-variable-name-face))))
+      (preproc_message) @font-lock-variable-ref-face))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))

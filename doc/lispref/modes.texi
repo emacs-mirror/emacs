@@ -3679,9 +3679,19 @@ in C.
 @vindex font-lock-function-name-face
 for the name of a function being defined or declared.
 
+@item font-lock-function-call-face
+@vindex font-lock-function-call-face
+for the name of a function being called.  This face inherits, by
+default, from @code{font-lock-function-name-face}.
+
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face
 for the name of a variable being defined or declared.
+
+@item font-lock-variable-ref-face
+@vindex font-lock-variable-ref-face
+for the name of a variable being referenced.  This face inherits, by
+default, from @code{font-lock-variable-name-face}.
 
 @item font-lock-keyword-face
 @vindex font-lock-keyword-face
@@ -3756,11 +3766,16 @@ for numbers.
 @vindex font-lock-operator-face
 for operators.
 
-@item font-lock-property-face
-@vindex font-lock-property-face
-for properties of an object, such as the declaration and use of fields
-in a struct.
-This face inherits, by default, from @code{font-lock-variable-name-face}.
+@item font-lock-property-name-face
+@vindex font-lock-property-name-face
+for properties of an object, such as the declaration of fields in a
+struct.  This face inherits, by default, from
+@code{font-lock-variable-name-face}.
+
+@item font-lock-property-ref-face
+@vindex font-lock-property-ref-face
+for properties of an object, such as use of fields in a struct.  This
+face inherits, by default, from @code{font-lock-property-name-face}.
 
 For example,
 
