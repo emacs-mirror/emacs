@@ -886,19 +886,20 @@ byte-compiled.  Run with dynamic binding."
     ;; Should not warn that mt--test2 is not known to be defined.
     (should-not (re-search-forward "my--test2" nil t))))
 
-(defmacro bytecomp--with-warning-test (re-warning form)
+(defun bytecomp--with-warning-test (re-warning form)
   (declare (indent 1))
-  `(with-current-buffer (get-buffer-create "*Compile-Log*")
+  `(bytecomp--with-warning-test-1 ,re-warning ,form))
+(defun bytecomp--with-warning-test-1 (re-warning form)
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
      (let ((text-quoting-style 'grave)
-           (macroexp--warned
-            (make-hash-table :test #'equal :weakness 'key))   ; oh dear
-           (form ,form))
+           (macroexp--warned            ; oh dear
+            (make-hash-table :test #'equal :weakness 'key)))
        (ert-info ((prin1-to-string form) :prefix "form: ")
          (byte-compile form)
          (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
            (should (re-search-forward
-                    (string-replace " " "[ \n]+" ,re-warning))))))))
+                    (string-replace " " "[ \n]+" re-warning))))))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"
