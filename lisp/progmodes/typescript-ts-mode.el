@@ -272,7 +272,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'pattern
    `((pair_pattern
-      key: (property_identifier) @font-lock-property-ref-face)
+      key: (property_identifier) @font-lock-property-ref-face
+      value: [(identifier) @font-lock-variable-name-face
+              (assignment_pattern left: (identifier) @font-lock-variable-name-face)])
 
      (array_pattern (identifier) @font-lock-variable-name-face)
 
