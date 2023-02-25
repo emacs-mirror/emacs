@@ -305,6 +305,7 @@ If NODE is nil, return nil."
                        (and parent
                             (string-match-p (car regexp)
                                             (treesit-node-type parent))
+                            (treesit-node-field-name node)
                             (string-match-p (cdr regexp)
                                             (treesit-node-field-name
                                              node)))
@@ -363,7 +364,13 @@ characters on the current line."
           (cl-incf level))
         ;; Flatten "else if" statements.
         (when (and (c-ts-common--node-is node 'else)
-                   (c-ts-common--node-is node 'if))
+                   (c-ts-common--node-is node 'if)
+                   ;; But if the "if" is on it's own line, still
+                   ;; indent a level.
+                   (not (save-excursion
+                          (goto-char (treesit-node-start node))
+                          (looking-back (rx bol (* whitespace))
+                                        (line-beginning-position)))))
           (cl-decf level)))
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))
