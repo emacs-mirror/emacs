@@ -2783,6 +2783,46 @@ frame_parm_handler android_frame_parm_handlers[] =
   NULL,
 };
 
+
+
+/* Battery information support.  */
+
+DEFUN ("android-query-battery", Fandroid_query_battery,
+       Sandroid_query_battery, 0, 0, 0,
+       doc: /* Perform a query for battery information.
+This function will not work before Android 5.0.
+Value is nil upon failure, or a list of the form:
+
+  (CAPACITY CHARGE-COUNTER CURRENT-AVERAGE CURRENT-NOW STATUS
+   REMAINING)
+
+See the documentation at
+
+  https://developer.android.com/reference/android/os/BatteryManager
+
+for more details about these values.  */)
+  (void)
+{
+  struct android_battery_state state;
+
+  /* Make sure the Android libraries have been initialized.  */
+
+  if (!android_init_gui)
+    return Qnil;
+
+  /* Perform the query.  */
+
+  if (android_query_battery (&state))
+    return Qnil;
+
+  return listn (6, make_int (state.capacity),
+		make_int (state.charge_counter),
+		make_int (state.current_average),
+		make_int (state.current_now),
+		make_int (state.status),
+		make_int (state.remaining));
+}
+
 #endif
 
 
@@ -2837,8 +2877,9 @@ syms_of_androidfns (void)
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
   defsubr (&Sandroid_toggle_on_screen_keyboard);
-
 #ifndef ANDROID_STUBIFY
+  defsubr (&Sandroid_query_battery);
+
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;

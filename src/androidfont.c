@@ -431,12 +431,7 @@ androidfont_from_lisp (Lisp_Object font)
 
   spec = (*android_java_env)->AllocObject (android_java_env,
 					   font_spec_class.class);
-
-  if (!spec)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
 #define DO_SYMBOL_FIELD(field, index)						\
   tem = AREF (font, index);							\
@@ -446,11 +441,7 @@ androidfont_from_lisp (Lisp_Object font)
 	 not matter at all.  */							\
       string = (*android_java_env)->NewStringUTF (android_java_env,		\
 						  SSDATA (SYMBOL_NAME (tem)));	\
-      if (!string)								\
-	{									\
-	  (*android_java_env)->ExceptionClear (android_java_env);		\
-	  memory_full (0);							\
-	}									\
+      android_exception_check_1 (spec);						\
 										\
       (*android_java_env)->SetObjectField (android_java_env, spec,		\
 					   font_spec_class.field,		\
@@ -472,11 +463,7 @@ androidfont_from_lisp (Lisp_Object font)
 						integer_class.class,		\
 						integer_class.constructor,	\
 						(jint) value);			\
-      if (!integer)								\
-	{									\
-	  (*android_java_env)->ExceptionClear (android_java_env);		\
-	  memory_full (0);							\
-	}									\
+      android_exception_check_1 (spec);						\
 										\
       (*android_java_env)->SetObjectField (android_java_env, spec,		\
 					   font_spec_class.field,		\
@@ -582,11 +569,8 @@ androidfont_list (struct frame *f, Lisp_Object font_spec)
 						 font_driver,
 						 font_driver_class.list,
 						 spec);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (spec);
   ANDROID_DELETE_LOCAL_REF (spec);
-
-  if (!array)
-    memory_full (0);
 
   entities = (jarray) array;
   size = (*android_java_env)->GetArrayLength (android_java_env,
@@ -613,11 +597,8 @@ androidfont_list (struct frame *f, Lisp_Object font_spec)
       /* Now, make a global reference to the Java font entity.  */
       info->object = (*android_java_env)->NewGlobalRef (android_java_env,
 							(jobject) tem);
-      (*android_java_env)->ExceptionClear (android_java_env);
+      android_exception_check_2 (tem, entities);
       ANDROID_DELETE_LOCAL_REF (tem);
-
-      if (!info->object)
-	memory_full (0);
 
       value = Fcons (entity, value);
     }
@@ -641,11 +622,8 @@ androidfont_match (struct frame *f, Lisp_Object font_spec)
 						  font_driver,
 						  font_driver_class.match,
 						  spec);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (spec);
   ANDROID_DELETE_LOCAL_REF (spec);
-
-  if (!result)
-    memory_full (0);
 
   entity = font_make_entity_android (VECSIZE (struct androidfont_entity));
   info = (struct androidfont_entity *) XFONT_ENTITY (entity);
@@ -658,11 +636,8 @@ androidfont_match (struct frame *f, Lisp_Object font_spec)
   androidfont_from_java (result, entity);
   info->object = (*android_java_env)->NewGlobalRef (android_java_env,
 						    (jobject) result);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_2 (entity, result);
   ANDROID_DELETE_LOCAL_REF (result);
-
-  if (!info->object)
-    memory_full (0);
 
   return entity;
 }
@@ -688,12 +663,7 @@ androidfont_draw (struct glyph_string *s, int from, int to,
 				     ANDROID_HANDLE_WINDOW);
   chars = (*android_java_env)->NewIntArray (android_java_env,
 					    to - from);
-
-  if (!chars)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   (*android_java_env)->SetIntArrayRegion (android_java_env, chars,
 					  0, to - from,
@@ -710,7 +680,7 @@ androidfont_draw (struct glyph_string *s, int from, int to,
 					   chars, (jint) x, (jint) y,
 					   (jint) s->width,
 					   (jboolean) with_background);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (chars);
   ANDROID_DELETE_LOCAL_REF (chars);
 
   return rc;
@@ -769,16 +739,12 @@ androidfont_open_font (struct frame *f, Lisp_Object font_entity,
 					     font_driver_class.open_font,
 					     entity->object,
 					     (jint) pixel_size);
-  if (!font_info->object)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      return Qnil;
-    }
+  android_exception_check ();
 
   old = font_info->object;
   font_info->object
     = (*android_java_env)->NewGlobalRef (android_java_env, old);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (old);
   ANDROID_DELETE_LOCAL_REF (old);
 
   if (!font_info->object)
@@ -839,14 +805,20 @@ androidfont_close_font (struct font *font)
       xfree (info->metrics);
     }
 
+  info->metrics = NULL;
+
   /* If info->object is NULL, then FONT was unsuccessfully created,
-     and there is no global reference that has to be deleted.  */
+     and there is no global reference that has to be deleted.
+
+     Alternatively, FONT may have been closed by font_close_object,
+     with this function called from GC.  */
 
   if (!info->object)
     return;
 
   (*android_java_env)->DeleteGlobalRef (android_java_env,
 					info->object);
+  info->object = NULL;
 }
 
 static int

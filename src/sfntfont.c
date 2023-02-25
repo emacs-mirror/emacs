@@ -1798,6 +1798,9 @@ sfntfont_free_outline_cache (struct sfnt_outline_cache *cache)
       sfntfont_dereference_outline (last->outline);
       xfree (last);
     }
+
+  cache->next = cache;
+  cache->last = cache;
 }
 
 /* Dereference the raster RASTER.  Free it once refcount reaches
@@ -1913,6 +1916,9 @@ sfntfont_free_raster_cache (struct sfnt_raster_cache *cache)
       sfntfont_dereference_raster (last->raster);
       xfree (last);
     }
+
+  cache->next = cache;
+  cache->last = cache;
 }
 
 
@@ -2664,8 +2670,8 @@ sfntfont_close (struct font *font)
   xfree (info->hmtx);
 
 #ifdef HAVE_MMAP
-
-  if (info->glyf_table_mapped)
+  if (info->glyf_table_mapped
+      && info->glyf)
     {
       rc = sfnt_unmap_glyf_table (info->glyf);
 
@@ -2683,6 +2689,23 @@ sfntfont_close (struct font *font)
   xfree (info->fpgm);
   xfree (info->cvt);
   xfree (info->interpreter);
+
+  /* Clear these fields.  It seems that close can be called twice,
+     once during font driver destruction, and once during GC.  */
+
+  info->cmap = NULL;
+  info->hhea = NULL;
+  info->maxp = NULL;
+  info->head = NULL;
+  info->hhea = NULL;
+  info->glyf = NULL;
+  info->loca_short = NULL;
+  info->loca_long = NULL;
+  info->cmap_data = NULL;
+  info->prep = NULL;
+  info->fpgm = NULL;
+  info->cvt = NULL;
+  info->interpreter = NULL;
 
 #ifdef HAVE_MMAP
 

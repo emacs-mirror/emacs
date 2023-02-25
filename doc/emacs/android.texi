@@ -94,6 +94,10 @@ page in the system settings application and clicking on the ``build
 version'' or ``kernel version'' items five to seven times.
 
 @item
+Open the ``developer options'' settings page, which should be under
+the ``system'' page in the settings application.
+
+@item
 Turn on the switch ``USB debugging''.
 
 @item
@@ -194,8 +198,10 @@ when the user grants the ``Files and Media'' permission to Emacs via
 system settings.
 @end itemize
 
-  The external storage directory is found at @file{/sdcard}; the other
-directories are not found at any fixed location.
+  The external storage directory is found at @file{/sdcard}.  The
+other directories are not found at any fixed location, although the
+app data directory is typically symlinked to
+@file{/data/data/org.gnu.emacs}.
 
 @cindex file system limitations, Android 11
   On Android 11 and later, the Android system restricts applications
@@ -242,7 +248,7 @@ they are packaged as libraries in the library directory, because
 otherwise the system will not unpack them while Emacs is being
 installed.  This means, instead of specifying @code{ctags} or
 @code{emacsclient} in a subprocess, Lisp code must specify
-@code{libctags.so} or @code{libemacsclient.so} on the commnd line
+@code{libctags.so} or @code{libemacsclient.so} on the command line
 instead when starting either of those programs in a subprocess.
 
   The @file{/assets} directory containing Emacs start-up files is
@@ -274,7 +280,7 @@ unless the device is under memory stress.
 such special treatment.  However, Emacs applies a workaround: the
 system considers applications that create a permanent notification to
 be performing active work, and will avoid killing such applications.
-Thus, on those systems, Emacs displays a permanant notification for as
+Thus, on those systems, Emacs displays a permanent notification for as
 long as it is running.  Once the notification is displayed, it can be
 safely hidden through the system settings without resulting in Emacs
 being killed.
@@ -393,8 +399,9 @@ tiled on the screen at any time.
 are created.  Instead, the system may choose to terminate windows that
 are not on screen in order to save memory, with the assumption that
 the program will save its contents to disk and restore them later,
-when the user asks to open it again.  As this is obviously not
-possible with Emacs, Emacs separates a frame from a system window.
+when the user asks for it to be opened again.  As this is obviously
+not possible with Emacs, Emacs separates the resources associated with
+a frame from its system window.
 
   Each system window created (including the initial window created
 during Emacs startup) is appended to a list of windows that do not
@@ -537,7 +544,7 @@ Emacs.
   The next time that same copy of Emacs starts up, it simply loads the
 data contained in that dump file, greatly improving start up time.
 
-  If by some unforseen circumstance the dump file is corrupted, Emacs
+  If by some unforeseen circumstance the dump file is corrupted, Emacs
 can crash.  If that happens, the dump file stored in the Emacs files
 directory can be erased through the same preferences screen.
 

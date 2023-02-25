@@ -147,7 +147,7 @@ DEFUN ("android-set-clipboard", Fandroid_set_clipboard,
 				       clipboard,
 				       clipboard_class.set_clipboard,
 				       bytes);
-  android_exception_check ();
+  android_exception_check_1 (bytes);
 
   ANDROID_DELETE_LOCAL_REF (bytes);
   return Qnil;
@@ -172,18 +172,13 @@ Alternatively, return nil if the clipboard is empty.  */)
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     clipboard,
 					     method);
-
-  if (!bytes)
-    {
-      android_exception_check ();
-      return Qnil;
-    }
+  android_exception_check ();
 
   length = (*android_java_env)->GetArrayLength (android_java_env,
 						bytes);
   data = (*android_java_env)->GetByteArrayElements (android_java_env,
 						    bytes, NULL);
-  android_exception_check ();
+  android_exception_check_1 (bytes);
 
   string = make_unibyte_string ((char *) data, length);
 

@@ -111,6 +111,7 @@ struct android_emacs_service
   jmethodID reset_ic;
   jmethodID open_content_uri;
   jmethodID check_content_uri;
+  jmethodID query_battery;
 };
 
 struct android_emacs_pixmap
@@ -1050,7 +1051,7 @@ android_check_content_access (const char *filename, int mode)
 							   != 0),
 					       (jboolean) ((mode & W_OK)
 							   != 0));
-  android_exception_check ();
+  android_exception_check_1 (string);
   ANDROID_DELETE_LOCAL_REF (string);
 
   return rc;
@@ -1998,6 +1999,7 @@ android_init_emacs_service (void)
 	       "([BZZZ)I");
   FIND_METHOD (check_content_uri, "checkContentUri",
 	       "([BZZ)Z");
+  FIND_METHOD (query_battery, "queryBattery", "()[J");
 #undef FIND_METHOD
 }
 
@@ -2691,11 +2693,8 @@ android_destroy_handle (android_handle handle)
       class
 	= (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
 						      (jobject) class);
-      (*android_java_env)->ExceptionClear (android_java_env);
+      android_exception_check_1 (old);
       ANDROID_DELETE_LOCAL_REF (old);
-
-      if (!class)
-	memory_full (0);
     }
 
   (*android_java_env)->CallVoidMethod (android_java_env,
@@ -2818,11 +2817,8 @@ android_create_window (android_window parent, int x, int y,
 
       old = class;
       class = (*android_java_env)->NewGlobalRef (android_java_env, class);
-      (*android_java_env)->ExceptionClear (android_java_env);
+      android_exception_check_1 (old);
       ANDROID_DELETE_LOCAL_REF (old);
-
-      if (!class)
-	memory_full (0);
     }
 
   /* N.B. that ANDROID_CW_OVERRIDE_REDIRECT can only be set at window
@@ -2904,11 +2900,8 @@ android_init_android_rect_class (void)
   android_rect_class
     = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
 						  (jobject) android_rect_class);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (old);
   ANDROID_DELETE_LOCAL_REF (old);
-
-  if (!android_rect_class)
-    memory_full (0);
 }
 
 static void
@@ -2941,10 +2934,8 @@ android_init_emacs_gc_class (void)
   emacs_gc_class
     = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
 						  (jobject) emacs_gc_class);
-  (*android_java_env)->ExceptionClear (android_java_env);
+  android_exception_check_1 (old);
   ANDROID_DELETE_LOCAL_REF (old);
-  if (!emacs_gc_class)
-    memory_full (0);
 
   emacs_gc_foreground
     = (*android_java_env)->GetFieldID (android_java_env,
@@ -3188,12 +3179,7 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
 					       n_clip_rects,
 					       android_rect_class,
 					       NULL);
-
-  if (!array)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   for (i = 0; i < n_clip_rects; ++i)
     {
@@ -3207,12 +3193,10 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
 					     (jint) (clip_rects[i].y
 						     + clip_rects[i].height));
 
-      if (!rect)
-	{
-	  (*android_java_env)->ExceptionClear (android_java_env);
-	  ANDROID_DELETE_LOCAL_REF (array);
-	  memory_full (0);
-	}
+      /* The meaning of this call is to check whether or not an
+	 allocation error happened, and to delete ARRAY and signal an
+	 out-of-memory error if that is the case.  */
+      android_exception_check_1 (array);
 
       (*android_java_env)->SetObjectArrayElement (android_java_env,
 						  array, i, rect);
@@ -3511,12 +3495,7 @@ android_create_pixmap_from_bitmap_data (char *data, unsigned int width,
   /* Create the color array holding the data.  */
   colors = (*android_java_env)->NewIntArray (android_java_env,
 					     width * height);
-
-  if (!colors)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   SAFE_NALLOCA (region, sizeof *region, width);
 
@@ -3666,12 +3645,7 @@ android_fill_polygon (android_drawable drawable, struct android_gc *gc,
 					       npoints,
 					       point_class.class,
 					       NULL);
-
-  if (!array)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   for (i = 0; i < npoints; ++i)
     {
@@ -3680,13 +3654,7 @@ android_fill_polygon (android_drawable drawable, struct android_gc *gc,
 					      point_class.constructor,
 					      (jint) points[i].x,
 					      (jint) points[i].y);
-
-      if (!point)
-	{
-	  (*android_java_env)->ExceptionClear (android_java_env);
-	  ANDROID_DELETE_LOCAL_REF (array);
-	  memory_full (0);
-	}
+      android_exception_check_1 (array);
 
       (*android_java_env)->SetObjectArrayElement (android_java_env,
 						  array, i, point);
@@ -3978,12 +3946,9 @@ android_get_image (android_drawable handle,
   bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
 						  drawable,
 						  drawable_class.get_bitmap);
-  if (!bitmap)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
+  /* Clear the bitmap info structure.  */
   memset (&bitmap_info, 0, sizeof bitmap_info);
 
   /* The NDK doc seems to imply this function can fail but doesn't say
@@ -4115,12 +4080,9 @@ android_put_image (android_pixmap handle, struct android_image *image)
   bitmap = (*android_java_env)->CallObjectMethod (android_java_env,
 						  drawable,
 						  drawable_class.get_bitmap);
-  if (!bitmap)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
+  /* Clear the bitmap info structure.  */
   memset (&bitmap_info, 0, sizeof bitmap_info);
 
   /* The NDK doc seems to imply this function can fail but doesn't say
@@ -4196,6 +4158,7 @@ android_bell (void)
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       emacs_service,
 				       service_class.ring_bell);
+  android_exception_check ();
 }
 
 void
@@ -4210,6 +4173,7 @@ android_set_input_focus (android_window handle, unsigned long time)
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       make_input_focus, (jlong) time);
+  android_exception_check ();
 }
 
 void
@@ -4224,6 +4188,7 @@ android_raise_window (android_window handle)
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       raise);
+  android_exception_check ();
 }
 
 void
@@ -4238,6 +4203,7 @@ android_lower_window (android_window handle)
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       lower);
+  android_exception_check ();
 }
 
 int
@@ -4259,11 +4225,7 @@ android_query_tree (android_window handle, android_window *root_return,
 					     emacs_service,
 					     service_class.query_tree,
 					     window);
-  if (!array)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   /* The first element of the array is the parent window.  The rest
      are the children.  */
@@ -4315,11 +4277,7 @@ android_get_geometry (android_window handle,
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     window,
 					     get_geometry);
-  if (!window_geometry)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   /* window_geometry is an array containing x, y, width and
      height.  border_width is always 0 on Android.  */
@@ -4380,12 +4338,7 @@ android_translate_coordinates (android_window src, int x,
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     window, method,
 					     (jint) x, (jint) y);
-
-  if (!coordinates)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   /* The array must contain two elements: X, Y translated to the root
      window.  */
@@ -4396,6 +4349,8 @@ android_translate_coordinates (android_window src, int x,
   /* Obtain the coordinates from the array.  */
   ints = (*android_java_env)->GetIntArrayElements (android_java_env,
 						   coordinates, NULL);
+  android_exception_check_1 (coordinates);
+
   *root_x = ints[0];
   *root_y = ints[1];
 
@@ -4492,7 +4447,7 @@ android_wc_lookup_string (android_key_pressed_event *event,
 	  /* Now return this input method string.  */
 	  characters = (*android_java_env)->GetStringChars (android_java_env,
 							    string, NULL);
-	  android_exception_check ();
+	  android_exception_check_1 (string);
 
 	  /* Figure out how big the string is.  */
 	  size = (*android_java_env)->GetStringLength (android_java_env,
@@ -4517,7 +4472,6 @@ android_wc_lookup_string (android_key_pressed_event *event,
 
 	  (*android_java_env)->ReleaseStringChars (android_java_env, string,
 						   characters);
-	  android_exception_check ();
 	  ANDROID_DELETE_LOCAL_REF (string);
 	}
     }
@@ -4604,17 +4558,14 @@ android_damage_window (android_drawable handle,
 						 + damage->width),
 					 (jint) (damage->y
 						 + damage->height));
-  if (!rect)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   /* Post the damage to the drawable.  */
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       drawable,
 				       drawable_class.damage_rect,
 				       rect);
+  android_exception_check_1 (rect);
   ANDROID_DELETE_LOCAL_REF (rect);
 }
 
@@ -5114,11 +5065,7 @@ android_build_string (Lisp_Object text)
      not really of consequence.  */
   string = (*android_java_env)->NewStringUTF (android_java_env,
 					      SSDATA (encoded));
-  if (!string)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   return string;
 }
@@ -5132,14 +5079,44 @@ android_build_jstring (const char *text)
 
   string = (*android_java_env)->NewStringUTF (android_java_env,
 					      text);
-  if (!string)
-    {
-      (*android_java_env)->ExceptionClear (android_java_env);
-      memory_full (0);
-    }
+  android_exception_check ();
 
   return string;
 }
+
+
+
+/* Exception checking functions.  Most JNI functions which allocate
+   memory return NULL upon failure; they also set the JNI
+   environment's pending exception to an OutOfMemoryError.
+
+   These functions check for such errors and call memory_full wherever
+   appropriate.  Three variants are provided: one which releases no
+   local references, one which releases a single local reference
+   before calling memory_full, and one which releases two local
+   references.
+
+   Typically, you use these functions by calling them immediately
+   after a JNI function which allocates memory, passing it any local
+   references that are already valid but are not used after leaving
+   the current scope.  For example, to allocate foo and then make
+   global_foo its global reference, and then release foo, you write:
+
+     jobject foo, global_foo;
+
+     foo = (*android_java_env)->New...;
+     android_exception_check ();
+
+     global_foo = (*android_java_env)->NewGlobalRef (..., foo);
+     android_exception_check_1 (foo);
+     ANDROID_DELETE_LOCAL_REF (foo);
+
+   where the first android_exception_check ensures that foo has been
+   allocated correctly, while the call to android_exception_check_1,
+   and the call to ANDROID_DELETE_LOCAL_REF afterwards, together
+   ensure the same of global_foo, and also that foo is released both
+   if global_foo cannot be allocated, and after the global reference
+   is created.  */
 
 /* Check for JNI exceptions and call memory_full in that
    situation.  */
@@ -5158,6 +5135,47 @@ android_exception_check (void)
       memory_full (0);
     }
 }
+
+/* Check for JNI exceptions.  If there is one such exception, clear
+   it, then delete the local reference to OBJECT and call
+   memory_full.  */
+
+void
+android_exception_check_1 (jobject object)
+{
+  if ((*android_java_env)->ExceptionCheck (android_java_env))
+    {
+      __android_log_print (ANDROID_LOG_WARN, __func__,
+			   "Possible out of memory error."
+			   " The Java exception follows:  ");
+      /* Describe exactly what went wrong.  */
+      (*android_java_env)->ExceptionDescribe (android_java_env);
+      (*android_java_env)->ExceptionClear (android_java_env);
+      ANDROID_DELETE_LOCAL_REF (object);
+      memory_full (0);
+    }
+}
+
+/* Like android_exception_check_one, except it takes more than one
+   local reference argument.  */
+
+void
+android_exception_check_2 (jobject object, jobject object1)
+{
+  if ((*android_java_env)->ExceptionCheck (android_java_env))
+    {
+      __android_log_print (ANDROID_LOG_WARN, __func__,
+			   "Possible out of memory error."
+			   " The Java exception follows:  ");
+      /* Describe exactly what went wrong.  */
+      (*android_java_env)->ExceptionDescribe (android_java_env);
+      (*android_java_env)->ExceptionClear (android_java_env);
+      ANDROID_DELETE_LOCAL_REF (object);
+      ANDROID_DELETE_LOCAL_REF (object1);
+      memory_full (0);
+    }
+}
+
 
 
 
@@ -5446,7 +5464,7 @@ android_browse_url (Lisp_Object url)
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) value,
 						   NULL);
-  android_exception_check ();
+  android_exception_check_1 (string);
 
   /* Otherwise, build the string describing the error.  */
   tem = build_string_from_utf8 (buffer);
@@ -5488,6 +5506,45 @@ int
 android_get_current_api_level (void)
 {
   return android_api_level;
+}
+
+/* Query the status of the battery, and place it in *STATUS.
+   Value is 1 if the system is too old, else 0.  */
+
+int
+android_query_battery (struct android_battery_state *status)
+{
+  jlongArray array;
+  jlong *longs;
+
+  array = (*android_java_env)->CallObjectMethod (android_java_env,
+						 emacs_service,
+						 service_class.query_battery);
+  android_exception_check ();
+
+  /* A NULL return with no exception means that battery information
+     could not be obtained.  */
+
+  if (!array)
+    return 1;
+
+  longs = (*android_java_env)->GetLongArrayElements (android_java_env,
+						     array, NULL);
+  android_exception_check_1 (array);
+
+  status->capacity = longs[0];
+  status->charge_counter = longs[1];
+  status->current_average = longs[2];
+  status->current_now = longs[3];
+  status->remaining = longs[4];
+  status->status = longs[5];
+
+  (*android_java_env)->ReleaseLongArrayElements (android_java_env,
+						 array, longs,
+						 JNI_ABORT);
+  ANDROID_DELETE_LOCAL_REF (array);
+
+  return 0;
 }
 
 

@@ -54,9 +54,9 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 
-
 import android.net.Uri;
 
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Looper;
 import android.os.IBinder;
@@ -761,5 +761,60 @@ public class EmacsService extends Service
 	Log.d (TAG, exception.toString ());
 	return false;
       }
+  }
+
+  /* Return the status of the battery.  See struct
+     android_battery_status for the order of the elements
+     returned.
+
+     Value may be null upon failure.  */
+
+  public long[]
+  queryBattery ()
+  {
+    Object tem;
+    BatteryManager manager;
+    long capacity, chargeCounter, currentAvg, currentNow;
+    long status, remaining;
+    int prop;
+
+    /* Android 4.4 or earlier require applications to listen to
+       changes to the battery instead of querying for its status.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return null;
+
+    tem = getSystemService (Context.BATTERY_SERVICE);
+    manager = (BatteryManager) tem;
+    remaining = -1;
+
+    prop = BatteryManager.BATTERY_PROPERTY_CAPACITY;
+    capacity = manager.getLongProperty (prop);
+    prop = BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER;
+    chargeCounter = manager.getLongProperty (prop);
+    prop = BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE;
+    currentAvg = manager.getLongProperty (prop);
+    prop = BatteryManager.BATTERY_PROPERTY_CURRENT_NOW;
+    currentNow = manager.getLongProperty (prop);
+
+    /* Return the battery status.  N.B. that Android 7.1 and earlier
+       only return ``charging'' or ``discharging''.  */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      status = manager.getIntProperty (BatteryManager.BATTERY_PROPERTY_STATUS);
+    else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+      status = (manager.isCharging ()
+		? BatteryManager.BATTERY_STATUS_CHARGING
+		: BatteryManager.BATTERY_STATUS_DISCHARGING);
+    else
+      status = (currentNow > 0
+		? BatteryManager.BATTERY_STATUS_CHARGING
+		: BatteryManager.BATTERY_STATUS_DISCHARGING);
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+      remaining = manager.computeChargeTimeRemaining ();
+
+    return new long[] { capacity, chargeCounter, currentAvg,
+			currentNow, remaining, status, };
   }
 };

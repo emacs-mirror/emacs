@@ -1634,12 +1634,7 @@ sfnt_map_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
 		 PROT_READ, MAP_PRIVATE, fd, offset);
 
   if (glyphs == MAP_FAILED)
-    {
-      fprintf (stderr, "sfnt_map_glyf_table: mmap: %s\n",
-	       strerror (errno));
-
-      return NULL;
-    }
+    return NULL;
 
   /* An observation is that glyphs tend to be accessed in sequential
      order and immediately after the font's glyph table is loaded.  */
@@ -1656,6 +1651,7 @@ sfnt_map_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
   glyf->size = directory->length;
   glyf->glyphs = (unsigned char *) glyphs + map_offset;
   glyf->start = glyphs;
+
   return glyf;
 }
 

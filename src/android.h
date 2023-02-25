@@ -84,6 +84,8 @@ extern void android_set_dont_accept_focus (android_window, bool);
 extern jstring android_build_string (Lisp_Object);
 extern jstring android_build_jstring (const char *);
 extern void android_exception_check (void);
+extern void android_exception_check_1 (jobject);
+extern void android_exception_check_2 (jobject, jobject);
 
 extern void android_get_keysym_name (int, char *, size_t);
 extern void android_wait_event (void);
@@ -106,7 +108,37 @@ extern void android_closedir (struct android_dir *);
 
 /* Very miscellaneous functions.  */
 
+struct android_battery_state
+{
+  /* Battery charge level in integer percentage.  */
+  intmax_t capacity;
+
+  /* Battery charge level in microampere-hours.  */
+  intmax_t charge_counter;
+
+  /* Battery current in microampere-hours.  */
+  intmax_t current_average;
+
+  /* Instantaneous battery current in microampere-hours.  */
+  intmax_t current_now;
+
+  /* Estimate as to the amount of time remaining until the battery is
+     charged, in milliseconds.  */
+  intmax_t remaining;
+
+  /* Battery status.  The value is either:
+
+       2, if the battery is charging.
+       3, if the battery is discharging.
+       5, if the battery is full.
+       4, if the battery is not full or discharging,
+          but is not charging either.
+       1, if the battery state is unknown.  */
+  int status;
+};
+
 extern Lisp_Object android_browse_url (Lisp_Object);
+extern int android_query_battery (struct android_battery_state *);
 
 
 

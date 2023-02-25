@@ -2221,7 +2221,7 @@ been made to them, use the variable
 form:
 
 @indentedblock
-@w{@code{(@var{buffer} @var{beg} @var{end} @var{ephemeral})}}
+@w{@code{((@var{buffer} @var{beg} @var{end} @var{ephemeral}) ...)}}
 @end indentedblock
 
 Where @var{ephemeral} is the buffer which was modified,
