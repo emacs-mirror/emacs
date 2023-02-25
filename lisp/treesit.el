@@ -1533,7 +1533,7 @@ Similar to `treesit-indent', but indent a region instead."
         (dotimes (jdx idx)
           (let ((anchor (aref meta-vec (* jdx meta-len)))
                 (offset (aref meta-vec (+ 1 (* jdx meta-len)))))
-            (when offset
+            (when (and anchor offset)
               (let ((col (save-excursion
                            (goto-char anchor)
                            (+ offset (current-column)))))
