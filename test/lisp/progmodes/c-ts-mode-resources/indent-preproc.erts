@@ -1,6 +1,7 @@
 Code:
   (lambda ()
     (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
     (newline)
     (indent-for-tab-command))
 
