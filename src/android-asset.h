@@ -365,15 +365,6 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
   return total;
 }
 
-static int
-AAsset_openFileDescriptor (AAsset *asset, off_t *out_start,
-			   off_t *out_end)
-{
-  *out_start = 0;
-  *out_end = 0;
-  return -1;
-}
-
 static long
 AAsset_getLength (AAsset *asset)
 {

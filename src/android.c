@@ -1376,42 +1376,6 @@ android_hack_asset_fd (AAsset *asset)
 #endif
 }
 
-/* Read two bytes from FD and see if they are ``PK'', denoting ZIP
-   archive compressed data.  If FD is -1, return -1.
-
-   If they are not, rewind the file descriptor to offset 0.
-
-   If either operation fails, return -1 and close FD.  Else, value is
-   FD.  */
-
-static int
-android_check_compressed_file (int fd)
-{
-  char bytes[2];
-
-  if (fd == -1)
-    return -1;
-
-  if (read (fd, bytes, 2) != 2)
-    goto lseek_back;
-
-  if (bytes[0] != 'P' || bytes[1] != 'K')
-    goto lseek_back;
-
-  /* This could be compressed data! */
-  return -1;
-
- lseek_back:
-  /* Seek back to offset 0.  If this fails, return -1.  */
-  if (lseek (fd, 0, SEEK_SET) != 0)
-    {
-      close (fd);
-      return -1;
-    }
-
-  return fd;
-}
-
 /* Make FD close-on-exec.  If any system call fails, do not abort, but
    log a warning to the system log.  */
 
@@ -1482,28 +1446,21 @@ android_open (const char *filename, int oflag, int mode)
 	  return -1;
 	}
 
-      /* Try to obtain the file descriptor corresponding to this
-	 asset.  */
-      fd = AAsset_openFileDescriptor (asset, &out_start,
-				      &out_length);
+      /* Create a shared memory file descriptor containing the asset
+	 contents.
 
-      /* The platform sometimes returns a file descriptor to ZIP
-	 compressed data.  Detect that and fall back to creating a
-	 shared memory file descriptor.  */
-      fd = android_check_compressed_file (fd);
+         The documentation misleads people into thinking that
+         AAsset_openFileDescriptor does precisely this.  However, it
+         instead returns an offset into any uncompressed assets in the
+         ZIP archive.  This cannot be found in its documentation.  */
+
+      fd = android_hack_asset_fd (asset);
 
       if (fd == -1)
 	{
-	  /* The asset can't be accessed for some reason.  Try to
-	     create a shared memory file descriptor.  */
-	  fd = android_hack_asset_fd (asset);
-
-	  if (fd == -1)
-	    {
-	      AAsset_close (asset);
-	      errno = ENXIO;
-	      return -1;
-	    }
+	  AAsset_close (asset);
+	  errno = ENXIO;
+	  return -1;
 	}
 
       /* If O_CLOEXEC is specified, make the file descriptor close on

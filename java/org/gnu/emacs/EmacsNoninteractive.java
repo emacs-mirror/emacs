@@ -87,56 +87,23 @@ public class EmacsNoninteractive
 
 	/* Create and attach the activity thread.  */
 	activityThread = method.invoke (null);
+	context = null;
 
 	/* Now get an LoadedApk.  */
-	loadedApkClass = Class.forName ("android.app.LoadedApk");
-
-	/* Get a LoadedApk.  How to do this varies by Android version.
-	   On Android 2.3.3 and earlier, there is no
-	   ``compatibilityInfo'' argument to getPackageInfo.  */
-
-	if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1)
-	  {
-	    method
-	      = activityThreadClass.getMethod ("getPackageInfo",
-					       String.class,
-					       int.class);
-	    loadedApk = method.invoke (activityThread, "org.gnu.emacs",
-				       0);
-	  }
-	else
-	  {
-	    compatibilityInfoClass
-	      = Class.forName ("android.content.res.CompatibilityInfo");
-
-	    method
-	      = activityThreadClass.getMethod ("getPackageInfo",
-					       String.class,
-					       compatibilityInfoClass,
-					       int.class);
-	    loadedApk = method.invoke (activityThread, "org.gnu.emacs", null,
-				       0);
-	  }
-
-	if (loadedApk == null)
-	  throw new RuntimeException ("getPackageInfo returned NULL");
-
-	/* Now, get a context.  */
-	contextImplClass = Class.forName ("android.app.ContextImpl");
 
 	try
 	  {
-	    method = contextImplClass.getDeclaredMethod ("createAppContext",
-							 activityThreadClass,
-							 loadedApkClass);
-	    method.setAccessible (true);
-	    context = (Context) method.invoke (null, activityThread, loadedApk);
+	    loadedApkClass = Class.forName ("android.app.LoadedApk");
 	  }
-	catch (NoSuchMethodException exception)
+	catch (ClassNotFoundException exception)
 	  {
-	    /* Older Android versions don't have createAppContext, but
-	       instead require creating a ContextImpl, and then
-	       calling createPackageContext.  */
+	    /* Android 2.2 has no LoadedApk class, but fortunately it
+	       does not need to be used, since contexts can be
+	       directly created.  */
+
+	    loadedApkClass = null;
+	    contextImplClass = Class.forName ("android.app.ContextImpl");
+
 	    method = activityThreadClass.getDeclaredMethod ("getSystemContext");
 	    context = (Context) method.invoke (activityThread);
 	    method = contextImplClass.getDeclaredMethod ("createPackageContext",
@@ -145,6 +112,73 @@ public class EmacsNoninteractive
 	    method.setAccessible (true);
 	    context = (Context) method.invoke (context, "org.gnu.emacs",
 					       0);
+	  }
+
+	/* If the context has not already been created, then do what
+	   is appropriate for newer versions of Android.  */
+
+	if (context == null)
+	  {
+	    /* Get a LoadedApk.  How to do this varies by Android version.
+	       On Android 2.3.3 and earlier, there is no
+	       ``compatibilityInfo'' argument to getPackageInfo.  */
+
+	    if (Build.VERSION.SDK_INT
+		<= Build.VERSION_CODES.GINGERBREAD_MR1)
+	      {
+		method
+		  = activityThreadClass.getMethod ("getPackageInfo",
+						   String.class,
+						   int.class);
+		loadedApk = method.invoke (activityThread, "org.gnu.emacs",
+					   0);
+	      }
+	    else
+	      {
+		compatibilityInfoClass
+		  = Class.forName ("android.content.res.CompatibilityInfo");
+
+		method
+		  = activityThreadClass.getMethod ("getPackageInfo",
+						   String.class,
+						   compatibilityInfoClass,
+						   int.class);
+		loadedApk = method.invoke (activityThread, "org.gnu.emacs",
+					   null, 0);
+	      }
+
+	    if (loadedApk == null)
+	      throw new RuntimeException ("getPackageInfo returned NULL");
+
+	    /* Now, get a context.  */
+	    contextImplClass = Class.forName ("android.app.ContextImpl");
+
+	    try
+	      {
+		method
+		  = contextImplClass.getDeclaredMethod ("createAppContext",
+							activityThreadClass,
+							loadedApkClass);
+		method.setAccessible (true);
+		context = (Context) method.invoke (null, activityThread,
+						   loadedApk);
+	      }
+	    catch (NoSuchMethodException exception)
+	      {
+		/* Older Android versions don't have createAppContext, but
+		   instead require creating a ContextImpl, and then
+		   calling createPackageContext.  */
+		method
+		  = activityThreadClass.getDeclaredMethod ("getSystemContext");
+		context = (Context) method.invoke (activityThread);
+		method
+		  = contextImplClass.getDeclaredMethod ("createPackageContext",
+							String.class,
+							int.class);
+		method.setAccessible (true);
+		context = (Context) method.invoke (context, "org.gnu.emacs",
+						   0);
+	      }
 	  }
 
 	/* Don't actually start the looper or anything.  Instead, obtain
