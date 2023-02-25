@@ -191,7 +191,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   menu)
 
 (defun emacs-lisp-byte-compile ()
-  "Byte compile the file containing the current buffer."
+  "Byte-compile the current buffer's file."
   (interactive nil emacs-lisp-mode)
   (if buffer-file-name
       (byte-compile-file buffer-file-name)
