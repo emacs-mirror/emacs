@@ -252,6 +252,33 @@ is actually the parent of point at the moment of indentation."
         0
       c-ts-mode-indent-offset)))
 
+(defun c-ts-mode--anchor-prev-sibling (node &rest _)
+  "Return the start of the previous named sibling of NODE.
+
+This anchor handles the special case where the previous sibling
+is a labeled_statement, in that case, return the child of the
+labeled statement instead.  (Actually, recursively go down until
+the node isn't a labeled_statement.)  Eg,
+
+label:
+  int x = 1;
+  int y = 2;
+
+The anchor of \"int y = 2;\" should be \"int x = 1;\" rather than
+the labeled_statement.
+
+Return nil if a) there is no prev-sibling, or 2) prev-sibling
+doesn't have a child."
+  (when-let ((prev-sibling (treesit-node-prev-sibling node t)))
+    (while (and prev-sibling
+                (equal "labeled_statement"
+                       (treesit-node-type prev-sibling)))
+      ;; The 0th child is the label, the 1th the colon.
+      (setq prev-sibling (treesit-node-child prev-sibling 2)))
+    ;; This could be nil if a) there is no prev-sibling or b)
+    ;; prev-sibling doesn't have a child.
+    (treesit-node-start prev-sibling)))
+
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
@@ -276,13 +303,6 @@ MODE is either `c' or `cpp'."
            ((node-is "labeled_statement") parent-bol 0)
            ((parent-is "labeled_statement")
             point-min c-ts-common-statement-offset)
-
-           ;; Bracketless statement matchers.
-           ((match nil "while_statement" "condition") parent-bol c-ts-mode-indent-offset)
-           ((match nil "if_statement" "consequence") parent-bol c-ts-mode-indent-offset)
-           ((match nil "if_statement" "alternative") parent-bol c-ts-mode-indent-offset)
-           ((match nil "do_statement" "body") parent-bol c-ts-mode-indent-offset)
-           ((match nil "for_statement" "body") parent-bol c-ts-mode-indent-offset)
 
            ((node-is "preproc") point-min 0)
            ((node-is "#endif") point-min 0)
@@ -318,14 +338,18 @@ MODE is either `c' or `cpp'."
 
 
            ;; int[5] a = { 0, 0, 0, 0 };
-           ((parent-is "initializer_list") parent-bol c-ts-mode-indent-offset)
+           ((match nil "initializer_list" nil 1 1) parent-bol c-ts-mode-indent-offset)
+           ((match nil "initializer_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in enum.
-           ((parent-is "enumerator_list") point-min c-ts-common-statement-offset)
+           ((match nil "enumerator_list" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "enumerator_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in struct and union.
-           ((parent-is "field_declaration_list") point-min c-ts-common-statement-offset)
+           ((match nil "field_declaration_list" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "field_declaration_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
-           ((parent-is "compound_statement") point-min c-ts-common-statement-offset)
+           ((match nil "compound_statement" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "compound_statement" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Opening bracket.
            ((node-is "compound_statement") point-min c-ts-common-statement-offset)
            ;; Bug#61291.
