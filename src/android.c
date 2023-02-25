@@ -1413,7 +1413,6 @@ android_open (const char *filename, int oflag, int mode)
   const char *name;
   AAsset *asset;
   int fd;
-  off_t out_start, out_length;
   size_t length;
   jobject string;
 
