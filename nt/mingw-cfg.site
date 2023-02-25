@@ -170,3 +170,6 @@ gl_cv_func_free_preserves_errno=yes
 # Don't build the Gnulib nanosleep module: it requires W2K or later,
 # and MinGW does have nanosleep.
 gl_cv_func_nanosleep=yes
+# Suppress configure-time diagnostic from unnecessary libxattr check,
+# as xattr will not be supported here.
+enable_xattr=no
