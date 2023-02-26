@@ -1070,7 +1070,7 @@ fontified."
     ;; Don't highlight string prefixes like f/r/b.
     (save-excursion
       (goto-char string-beg)
-      (when (search-forward "\"" string-end t)
+      (when (re-search-forward "[\"']" string-end t)
         (setq string-beg (match-beginning 0))))
     (treesit-fontify-with-override
      string-beg string-end face override start end)))

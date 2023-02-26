@@ -1126,6 +1126,7 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
   bidi_it->invalid_levels = 0;
   bidi_it->invalid_isolates = 0;
   bidi_it->stack_idx = 0;
+  bidi_it->isolate_level = 0;
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
 }
 
