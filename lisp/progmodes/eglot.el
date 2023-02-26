@@ -1451,12 +1451,13 @@ CONNECT-ARGS are passed as additional arguments to
   'eglot-current-column-function 'eglot-current-linepos-function "29.1")
 
 (defvar eglot-current-linepos-function #'eglot-utf-16-linepos
-  "Function calculating number of code units from line beginning.
+  "Function calculating position relative to line beginning.
 
-This is the inverse operation of
-`eglot-move-to-linepos-function' (which see).  It is a function of
-no arguments returning the number of code units corresponding to
-the current position of point relative to line beginning.")
+This is the inverse of `eglot-move-to-linepos-function' (which see).
+It is a function of no arguments returning the number of code units
+or bytes or codepoints corresponding to the current position of point,
+relative to line beginning, as expected by the function that is the
+value of `eglot-move-to-linepos-function'.")
 
 (defun eglot-utf-8-linepos ()
   "Calculate number of UTF-8 bytes from line beginning."
