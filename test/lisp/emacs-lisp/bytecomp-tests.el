@@ -888,8 +888,6 @@ byte-compiled.  Run with dynamic binding."
 
 (defun bytecomp--with-warning-test (re-warning form)
   (declare (indent 1))
-  `(bytecomp--with-warning-test-1 ,re-warning ,form))
-(defun bytecomp--with-warning-test-1 (re-warning form)
   (with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
      (let ((text-quoting-style 'grave)
@@ -900,6 +898,16 @@ byte-compiled.  Run with dynamic binding."
          (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
            (should (re-search-forward
                     (string-replace " " "[ \n]+" re-warning))))))))
+
+(ert-deftest bytecomp-warn--ignore ()
+  (bytecomp--with-warning-test "unused"
+    '(lambda (y) 6))
+  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+    '(lambda (y) (ignore y) 6))
+  (bytecomp--with-warning-test "assq"
+    '(lambda (x y) (progn (assq x y) 5)))
+  (bytecomp--with-warning-test "\\`\\'" ;No warning!
+    '(lambda (x y) (progn (ignore (assq x y)) 5))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"

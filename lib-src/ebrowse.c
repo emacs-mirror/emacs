@@ -31,11 +31,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <min-max.h>
 #include <unlocked-io.h>
 
-/* The SunOS compiler doesn't have SEEK_END.  */
-#ifndef SEEK_END
-#define SEEK_END 2
-#endif
-
 /* Files are read in chunks of this number of bytes.  */
 
 enum { READ_CHUNK_SIZE = 100 * 1024 };

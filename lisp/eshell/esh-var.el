@@ -862,11 +862,19 @@ START and END."
 
 (defun eshell-complete-variable-assignment ()
   "If there is a variable assignment, allow completion of entries."
-  (let ((arg (pcomplete-actual-arg)) pos)
-    (when (string-match (concat "\\`" eshell-variable-name-regexp "=") arg)
-      (setq pos (match-end 0))
-      (if (string-match "\\(:\\)[^:]*\\'" arg)
-	  (setq pos (match-end 1)))
+  (catch 'not-assignment
+    ;; The current argument can only be a variable assignment if all
+    ;; arguments leading up to it are also variable assignments.  See
+    ;; `eshell-handle-local-variables'.
+    (dotimes (offset (1+ pcomplete-index))
+      (unless (string-match (concat "\\`" eshell-variable-name-regexp "=")
+                            (pcomplete-actual-arg 'first offset))
+        (throw 'not-assignment nil)))
+    ;; We have a variable assignment.  Handle it.
+    (let ((arg (pcomplete-actual-arg))
+          (pos (match-end 0)))
+      (when (string-match "\\(:\\)[^:]*\\'" arg)
+	(setq pos (match-end 1)))
       (setq pcomplete-stub (substring arg pos))
       (throw 'pcomplete-completions (pcomplete-entries)))))
 

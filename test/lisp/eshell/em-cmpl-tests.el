@@ -217,6 +217,20 @@ See <lisp/eshell/esh-var.el>."
      (should (equal (eshell-insert-and-complete "VAR=f")
                     "VAR=file.txt ")))))
 
+(ert-deftest em-cmpl-test/variable-assign-completion/non-assignment ()
+  "Test completion of things that look like variable assignment, but aren't.
+For example, the second argument in \"tar --directory=dir\" looks
+like it could be a variable assignment, but it's not.  We should
+let `pcomplete-tar' handle it instead.
+
+See <lisp/eshell/esh-var.el>."
+  (with-temp-eshell
+   (ert-with-temp-directory default-directory
+     (write-region nil nil (expand-file-name "file.txt"))
+     (make-directory "dir")
+     (should (equal (eshell-insert-and-complete "tar --directory=")
+                    "tar --directory=dir/")))))
+
 (ert-deftest em-cmpl-test/user-ref-completion ()
   "Test completion of user references like \"~user\".
 See <lisp/eshell/em-dirs.el>."
