@@ -1732,6 +1732,8 @@ process_file_name (char *file, language *lang)
 	  char *cmd = xmalloc (buf_len);
 	  snprintf (cmd, buf_len, "%s %s > %s",
 		    compr->command, new_real_name, new_tmp_name);
+	  free (new_real_name);
+	  free (new_tmp_name);
 #endif
 	  inf = (system (cmd) == -1
 		 ? NULL
