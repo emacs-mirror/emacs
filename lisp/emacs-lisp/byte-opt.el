@@ -1664,8 +1664,8 @@ See Info node `(elisp) Integer Basics'."
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
          file-name-concat
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 float float-time floor format format-time-string frame-first-window
-	 frame-root-window frame-selected-window
+	 float float-time floor format format-message format-time-string
+         frame-first-window frame-root-window frame-selected-window
 	 frame-visible-p fround ftruncate
 	 get gethash get-buffer get-buffer-window get-file-buffer
 	 hash-table-count
@@ -1685,7 +1685,7 @@ See Info node `(elisp) Integer Basics'."
          regexp-quote region-beginning region-end reverse round
 	 sin sqrt string string-equal string-lessp
          string-search string-to-char
-	 string-to-number string-to-syntax substring
+	 string-to-number string-to-syntax substring substring-no-properties
 	 sxhash-equal sxhash-eq sxhash-eql
 	 symbol-function symbol-name symbol-plist symbol-value
          string-make-unibyte
