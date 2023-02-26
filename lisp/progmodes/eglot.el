@@ -1451,7 +1451,7 @@ CONNECT-ARGS are passed as additional arguments to
   'eglot-current-column-function 'eglot-current-linepos-function "29.1")
 
 (defvar eglot-current-linepos-function #'eglot-utf-16-linepos
-  "Function calculating number of code units to line beginning.
+  "Function calculating number of UTF-16 code units from line beginning.
 
 This is the inverse operation of
 `eglot-move-to-linepos-function' (which see).  It is a function of
@@ -1459,12 +1459,12 @@ no arguments returning the number of code units corresponding to
 the current position of point relative to line beginning.")
 
 (defun eglot-utf-8-linepos ()
-  "Calculate number of code units to line beginning using UTF-8."
+  "Calculate number of UTF-8 bytes from line beginning."
   (length (encode-coding-region (line-beginning-position) (point)
                                 'utf-8-unix t)))
 
 (defun eglot-utf-16-linepos (&optional lbp)
-  "Calculate number of code units to line beginning using UTF-16.
+  "Calculate number of UTF-16 code units from position given by LBP.
 LBP defaults to `line-beginning-position'."
   (/ (- (length (encode-coding-region (or lbp (line-beginning-position))
                                       ;; Fix github#860
@@ -1473,7 +1473,7 @@ LBP defaults to `line-beginning-position'."
      2))
 
 (defun eglot-utf-32-linepos ()
-  "Calculate number of code units to line beginning using UTF-32."
+  "Calculate number of Unicode codepoints from line beginning."
   (- (point) (line-beginning-position)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
@@ -1492,7 +1492,7 @@ LBP defaults to `line-beginning-position'."
 'eglot-move-to-column-function 'eglot-move-to-linepos-function "29.1")
 
 (defvar eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos
-  "Function to move to a column reported by the LSP server.
+  "Function to move to a position within a line reported by the LSP server.
 
 Per the LSP spec, character offsets in LSP Position objects count
 UTF-16 code units, not actual code points.  So when LSP says
@@ -1501,13 +1501,13 @@ looking character in the UTF-16 \"supplementary plane\", it
 actually means `b', not `c'.  The default value
 `eglot-move-to-utf-16-linepos' accounts for this.
 
-This variable also be set to `eglot-move-to-utf-8-linepos' or
+This variable can also be set to `eglot-move-to-utf-8-linepos' or
 `eglot-move-to-utf-32-linepos' for servers not closely following
 the spec.  Also, since LSP 3.17 server and client may agree on an
 encoding and Eglot will set this variable automatically.")
 
 (defun eglot-move-to-utf-8-linepos (n)
-  "Move to line's Nth code unit as computed by LSP's UTF-8 criterion."
+  "Move to line's Nth byte as computed by LSP's UTF-8 criterion."
   (let* ((bol (line-beginning-position))
          (goal-byte (+ (position-bytes bol) n))
          (eol (line-end-position)))
@@ -1529,7 +1529,7 @@ encoding and Eglot will set this variable automatically.")
       (forward-char 1))))
 
 (defun eglot-move-to-utf-32-linepos (n)
-  "Move to line's Nth code unit as computed by LSP's UTF-32 criterion."
+  "Move to line's Nth codepoint as computed by LSP's UTF-32 criterion."
   ;; We cannot use `move-to-column' here, because it moves to *visual*
   ;; columns, which can be different from LSP characters in case of
   ;; `whitespace-mode', `prettify-symbols-mode', etc.  (github#296,
