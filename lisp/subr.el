@@ -768,7 +768,9 @@ one is kept.  See `seq-uniq' for non-destructive operation."
 (defun delete-consecutive-dups (list &optional circular)
   "Destructively remove `equal' consecutive duplicates from LIST.
 First and last elements are considered consecutive if CIRCULAR is
-non-nil."
+non-nil.
+Of several consecutive `equal' occurrences, the one earliest in
+the list is kept."
   (let ((tail list) last)
     (while (cdr tail)
       (if (equal (car tail) (cadr tail))
