@@ -46,10 +46,13 @@ AC_DEFUN([gl_ASSERT_H],
        gl_NEXT_HEADERS([assert.h])])
 
   dnl The "zz" puts this toward config.h's end, to avoid potential
-  dnl collisions with other definitions.  #undef assert so that
-  dnl programs are not tempted to use it without specifically
-  dnl including assert.h.  Break the #undef apart with a comment
-  dnl so that 'configure' does not comment it out.
+  dnl collisions with other definitions.
+  dnl #undef assert so that programs are not tempted to use it without
+  dnl specifically including assert.h.
+  dnl #undef __ASSERT_H__ so that on IRIX, when programs later include
+  dnl <assert.h>, this include actually defines assert.
+  dnl Break the #undef_s apart with a comment so that 'configure' does
+  dnl not comment them out.
   AH_VERBATIM([zzstatic_assert],
 [#if (!defined HAVE_C_STATIC_ASSERT && !defined assert \
      && (!defined __cplusplus \
@@ -57,6 +60,9 @@ AC_DEFUN([gl_ASSERT_H],
              && __GNUG__ < 6 && __clang_major__ < 6)))
  #include <assert.h>
  #undef/**/assert
+ #ifdef __sgi
+  #undef/**/__ASSERT_H__
+ #endif
  /* Solaris 11.4 <assert.h> defines static_assert as a macro with 2 arguments.
     We need it also to be invocable with a single argument.  */
  #if defined __sun && (__STDC_VERSION__ - 0 >= 201112L) && !defined __cplusplus

@@ -1,4 +1,4 @@
-# malloc.m4 serial 28
+# malloc.m4 serial 29
 dnl Copyright (C) 2007, 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -25,7 +25,7 @@ AC_DEFUN([_AC_FUNC_MALLOC_IF],
        [case "$host_os" in
           # Guess yes on platforms where we know the result.
           *-gnu* | freebsd* | netbsd* | openbsd* | bitrig* \
-          | gnu* | *-musl* | midnightbsd* \
+          | gnu* | *-musl* | midipix* | midnightbsd* \
           | hpux* | solaris* | cygwin* | mingw* | msys* )
             ac_cv_func_malloc_0_nonnull="guessing yes" ;;
           # If we don't know, obey --enable-cross-guesses.
