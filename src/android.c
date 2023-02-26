@@ -141,6 +141,19 @@ struct android_emacs_window
   jmethodID toggle_on_screen_keyboard;
   jmethodID lookup_string;
   jmethodID set_fullscreen;
+  jmethodID change_window_background;
+  jmethodID reparent_to;
+  jmethodID map_window;
+  jmethodID unmap_window;
+  jmethodID resize_window;
+  jmethodID move_window;
+  jmethodID make_input_focus;
+  jmethodID raise;
+  jmethodID lower;
+  jmethodID get_window_geometry;
+  jmethodID translate_coordinates;
+  jmethodID set_dont_accept_focus;
+  jmethodID set_dont_focus_on_map;
 };
 
 /* The API level of the current device.  */
@@ -2238,6 +2251,23 @@ android_init_emacs_window (void)
 	       "toggleOnScreenKeyboard", "(Z)V");
   FIND_METHOD (lookup_string, "lookupString", "(I)Ljava/lang/String;");
   FIND_METHOD (set_fullscreen, "setFullscreen", "(Z)V");
+  FIND_METHOD (change_window_background, "changeWindowBackground",
+	       "(I)V");
+  FIND_METHOD (reparent_to, "reparentTo",
+	       "(Lorg/gnu/emacs/EmacsWindow;II)V");
+  FIND_METHOD (map_window, "mapWindow", "()V");
+  FIND_METHOD (unmap_window, "unmapWindow", "()V");
+  FIND_METHOD (resize_window, "resizeWindow", "(II)V");
+  FIND_METHOD (move_window, "moveWindow", "(II)V");
+  FIND_METHOD (make_input_focus, "makeInputFocus", "(J)V");
+  FIND_METHOD (raise, "raise", "()V");
+  FIND_METHOD (lower, "lower", "()V");
+  FIND_METHOD (get_window_geometry, "getWindowGeometry",
+	       "()[I");
+  FIND_METHOD (translate_coordinates, "translateCoordinates",
+	       "(II)[I");
+  FIND_METHOD (set_dont_focus_on_map, "setDontFocusOnMap", "(Z)V");
+  FIND_METHOD (set_dont_accept_focus, "setDontAcceptFocus", "(Z)V");
 #undef FIND_METHOD
 }
 
@@ -2911,9 +2941,6 @@ android_resolve_handle2 (android_handle handle,
   return android_handles[handle].handle;
 }
 
-static jmethodID android_lookup_method (const char *, const char *,
-					const char *);
-
 void
 android_change_window_attributes (android_window handle,
 				  enum android_window_value_mask value_mask,
@@ -2926,8 +2953,7 @@ android_change_window_attributes (android_window handle,
 
   if (value_mask & ANDROID_CW_BACK_PIXEL)
     {
-      method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				      "changeWindowBackground", "(I)V");
+      method = window_class.change_window_background;
       (*android_java_env)->CallVoidMethod (android_java_env,
 					   window, method,
 					   (jint) attrs->background_pixel);
@@ -3403,53 +3429,10 @@ android_reparent_window (android_window w, android_window parent_handle,
   parent = android_resolve_handle (parent_handle,
 				   ANDROID_HANDLE_WINDOW);
 
-  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				  "reparentTo",
-				  "(Lorg/gnu/emacs/EmacsWindow;II)V");
+  method = window_class.reparent_to;
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       method,
 				       parent, (jint) x, (jint) y);
-}
-
-/* Look up the method with SIGNATURE by NAME in CLASS.  Abort if it
-   could not be found.  This should be used for functions which are
-   not called very often.
-
-   CLASS must never be unloaded, or the behavior is undefined.  */
-
-static jmethodID
-android_lookup_method (const char *class, const char *name,
-		       const char *signature)
-{
-  jclass java_class;
-  jmethodID method;
-
-  java_class
-    = (*android_java_env)->FindClass (android_java_env, class);
-
-  if (!java_class)
-    {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "Failed to find class %s", class);
-      emacs_abort ();
-    }
-
-  method
-    = (*android_java_env)->GetMethodID (android_java_env,
-					java_class, name,
-					signature);
-
-  if (!method)
-    {
-      __android_log_print (ANDROID_LOG_ERROR, __func__,
-			   "Failed to find method %s in class %s"
-			   " with signature %s",
-			   name, class, signature);
-      emacs_abort ();
-    }
-
-  ANDROID_DELETE_LOCAL_REF (java_class);
-  return method;
 }
 
 void
@@ -3472,8 +3455,7 @@ android_map_window (android_window handle)
   jmethodID map_window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  map_window = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				      "mapWindow", "()V");
+  map_window = window_class.map_window;
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       window, map_window);
@@ -3486,8 +3468,7 @@ android_unmap_window (android_window handle)
   jmethodID unmap_window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  unmap_window = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-					"unmapWindow", "()V");
+  unmap_window = window_class.unmap_window;
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       window, unmap_window);
@@ -3501,8 +3482,7 @@ android_resize_window (android_window handle, unsigned int width,
   jmethodID resize_window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  resize_window = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-					 "resizeWindow", "(II)V");
+  resize_window = window_class.resize_window;
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       window, resize_window,
@@ -3516,8 +3496,7 @@ android_move_window (android_window handle, int x, int y)
   jmethodID move_window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  move_window = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				       "moveWindow", "(II)V");
+  move_window = window_class.move_window;
 
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       window, move_window,
@@ -4323,8 +4302,7 @@ android_set_input_focus (android_window handle, unsigned long time)
   jmethodID make_input_focus;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  make_input_focus = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-					    "makeInputFocus", "(J)V");
+  make_input_focus = window_class.make_input_focus;
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       make_input_focus, (jlong) time);
@@ -4338,8 +4316,7 @@ android_raise_window (android_window handle)
   jmethodID raise;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  raise = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				 "raise", "()V");
+  raise = window_class.raise;
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       raise);
@@ -4353,8 +4330,7 @@ android_lower_window (android_window handle)
   jmethodID lower;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  lower = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				 "lower", "()V");
+  lower = window_class.lower;
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       lower);
@@ -4425,8 +4401,7 @@ android_get_geometry (android_window handle,
   jint *ints;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  get_geometry = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-					"getWindowGeometry", "()[I");
+  get_geometry = window_class.get_window_geometry;
 
   window_geometry
     = (*android_java_env)->CallObjectMethod (android_java_env,
@@ -4486,9 +4461,7 @@ android_translate_coordinates (android_window src, int x,
   jint *ints;
 
   window = android_resolve_handle (src, ANDROID_HANDLE_WINDOW);
-  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				  "translateCoordinates",
-				  "(II)[I");
+  method = window_class.translate_coordinates;
   coordinates
     = (*android_java_env)->CallObjectMethod (android_java_env,
 					     window, method,
@@ -4780,8 +4753,7 @@ android_set_dont_focus_on_map (android_window handle,
   jobject window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				  "setDontFocusOnMap", "(Z)V");
+  method = window_class.set_dont_focus_on_map;
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       method,
@@ -4796,8 +4768,7 @@ android_set_dont_accept_focus (android_window handle,
   jobject window;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
-  method = android_lookup_method ("org/gnu/emacs/EmacsWindow",
-				  "setDontAcceptFocus", "(Z)V");
+  method = window_class.set_dont_accept_focus;
 
   (*android_java_env)->CallVoidMethod (android_java_env, window,
 				       method,
