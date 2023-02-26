@@ -430,13 +430,32 @@ static void
 record_buffer_change (ptrdiff_t beg, ptrdiff_t end,
 		      Lisp_Object ephemeral)
 {
-  Lisp_Object buffer;
+  Lisp_Object buffer, beg_marker, end_marker;
 
   XSETBUFFER (buffer, current_buffer);
 
+  /* Make markers for both BEG and END.  */
+  beg_marker = build_marker (current_buffer, beg,
+			     CHAR_TO_BYTE (beg));
+
+  /* If BEG and END are identical, make sure to keep the markers
+     eq.  */
+
+  if (beg == end)
+    end_marker = beg_marker;
+  else
+    {
+      end_marker = build_marker (current_buffer, end,
+				 CHAR_TO_BYTE (end));
+
+      /* Otherwise, make sure the marker extends past inserted
+	 text.  */
+      Fset_marker_insertion_type (end_marker, Qt);
+    }
+
   Vtext_conversion_edits
-    = Fcons (list4 (buffer, make_fixnum (beg),
-		    make_fixnum (end), ephemeral),
+    = Fcons (list4 (buffer, beg_marker, end_marker,
+		    ephemeral),
 	     Vtext_conversion_edits);
 }
 
@@ -1720,19 +1739,20 @@ form:
 
     (BUFFER BEG END EPHEMERAL)
 
-If an insertion or a change occured, then BEG and END are buffer
-positions denote the bounds of the text that was changed or inserted.
+If an insertion or a change occured, then BEG and END are markers
+which denote the bounds of the text that was changed or inserted.
+
 If EPHEMERAL is t, then the input method will shortly make more
 changes to the text, so any actions that would otherwise be taken
 (such as indenting or automatically filling text) should not take
 place; otherwise, it is a string describing the text which was
 inserted.
 
-If a deletion occured before point, then BEG and END are the same, and
-EPHEMERAL is the text which was deleted.
+If a deletion occured before point, then BEG and END are the same
+object, and EPHEMERAL is the text which was deleted.
 
-If a deletion occured after point, then BEG and END are also the same,
-but EPHEMERAL is nil.
+If a deletion occured after point, then BEG and END are also the same
+object, but EPHEMERAL is nil.
 
 The list contents are ordered later edits first, so you must iterate
 through the list in reverse.  */);

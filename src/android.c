@@ -1202,13 +1202,13 @@ android_file_access_p (const char *name, int amode)
   return false;
 }
 
-/* Get a file descriptor backed by a temporary in-memory file for the
-   given asset.  */
+/* Do the same as android_hack_asset_fd, but use an unlinked temporary
+   file to cater to old Android kernels where ashmem files are not
+   readable.  */
 
 static int
-android_hack_asset_fd (AAsset *asset)
+android_hack_asset_fd_fallback (AAsset *asset)
 {
-#if __ANDROID_API__ < 9
   int fd;
   char filename[PATH_MAX];
   size_t size;
@@ -1220,8 +1220,8 @@ android_hack_asset_fd (AAsset *asset)
 
   /* Get an unlinked file descriptor from a file in the cache
      directory, which is guaranteed to only be written to by Emacs.
-     Creating an asset file descriptor doesn't work on these old
-     Android versions.  */
+     Creating an ashmem file descriptor and reading from it doesn't
+     work on these old Android versions.  */
 
   snprintf (filename, PATH_MAX, "%s/%s.%d",
 	    android_cache_dir, "temp-unlinked",
@@ -1261,11 +1261,146 @@ android_hack_asset_fd (AAsset *asset)
  fail:
   close (fd);
   return -1;
-#else
+}
+
+/* Pointer to the `ASharedMemory_create' function which is loaded
+   dynamically.  */
+static int (*asharedmemory_create) (const char *, size_t);
+
+/* Return whether or not shared memory file descriptors can also be
+   read from, and are thus suitable for creating asset files.
+
+   This does not work on some ancient Android systems running old
+   versions of the kernel.  */
+
+static bool
+android_detect_ashmem (void)
+{
+  int fd, rc;
+  void *mem;
+  char test_buffer[10];
+
+  memcpy (test_buffer, "abcdefghi", 10);
+
+  /* Create the file descriptor to be used for the test.  */
+
+  /* Android 28 and earlier let Emacs access /dev/ashmem directly, so
+     prefer that over using ASharedMemory.  */
+
+  if (android_api_level <= 28)
+    {
+      fd = open ("/dev/ashmem", O_RDWR);
+
+      if (fd < 0)
+	return false;
+
+      /* An empty name means the memory area will exist until the file
+	 descriptor is closed, because no other process can
+	 attach.  */
+      rc = ioctl (fd, ASHMEM_SET_NAME, "");
+
+      if (rc < 0)
+	{
+	  close (fd);
+	  return false;
+	}
+
+      rc = ioctl (fd, ASHMEM_SET_SIZE, sizeof test_buffer);
+
+      if (rc < 0)
+	{
+	  close (fd);
+	  return false;
+	}
+    }
+  else
+    {
+      /* On the other hand, SELinux restrictions on Android 29 and
+	 later require that Emacs use a system service to obtain
+	 shared memory.  Load this dynamically, as this service is not
+	 available on all versions of the NDK.  */
+
+      if (!asharedmemory_create)
+	{
+	  *(void **) (&asharedmemory_create)
+	    = dlsym (RTLD_DEFAULT, "ASharedMemory_create");
+
+	  if (!asharedmemory_create)
+	    {
+	      __android_log_print (ANDROID_LOG_FATAL, __func__,
+				   "dlsym: %s\n",
+				   strerror (errno));
+	      emacs_abort ();
+	    }
+	}
+
+      fd = asharedmemory_create ("", sizeof test_buffer);
+
+      if (fd < 0)
+	return false;
+    }
+
+  /* Now map the resource and write the test contents.  */
+
+  mem = mmap (NULL, sizeof test_buffer, PROT_WRITE,
+	      MAP_SHARED, fd, 0);
+  if (mem == MAP_FAILED)
+    {
+      close (fd);
+      return false;
+    }
+
+  /* Copy over the test contents.  */
+  memcpy (mem, test_buffer, sizeof test_buffer);
+
+  /* Return anyway even if munmap fails.  */
+  munmap (mem, sizeof test_buffer);
+
+  /* Try to read the content back into test_buffer.  If this does not
+     compare equal to the original string, or the read fails, then
+     ashmem descriptors are not readable on this system.  */
+
+  if ((read (fd, test_buffer, sizeof test_buffer)
+       != sizeof test_buffer)
+      || memcmp (test_buffer, "abcdefghi", sizeof test_buffer))
+    {
+      __android_log_print (ANDROID_LOG_WARN, __func__,
+			   "/dev/ashmem does not produce real"
+			   " temporary files on this system, so"
+			   " Emacs will fall back to creating"
+			   " unlinked temporary files.");
+      close (fd);
+      return false;
+    }
+
+  close (fd);
+  return true;
+}
+
+/* Get a file descriptor backed by a temporary in-memory file for the
+   given asset.  */
+
+static int
+android_hack_asset_fd (AAsset *asset)
+{
+  static bool ashmem_readable_p;
+  static bool ashmem_initialized;
   int fd, rc;
   unsigned char *mem;
   size_t size;
-  static int (*asharedmemory_create) (const char *, size_t);
+
+  /* The first time this function is called, try to determine whether
+     or not ashmem file descriptors can be read from.  */
+
+  if (!ashmem_initialized)
+    ashmem_readable_p
+      = android_detect_ashmem ();
+  ashmem_initialized = true;
+
+  /* If it isn't, fall back.  */
+
+  if (!ashmem_readable_p)
+    return android_hack_asset_fd_fallback (asset);
 
   /* Assets must be small enough to fit in size_t, if off_t is
      larger.  */
@@ -1386,7 +1521,6 @@ android_hack_asset_fd (AAsset *asset)
   /* Return anyway even if munmap fails.  */
   munmap (mem, size);
   return fd;
-#endif
 }
 
 /* Make FD close-on-exec.  If any system call fails, do not abort, but

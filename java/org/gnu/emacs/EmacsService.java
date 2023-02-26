@@ -101,6 +101,8 @@ public class EmacsService extends Service
   /* Display metrics used by font backends.  */
   public DisplayMetrics metrics;
 
+  /* Flag that says whether or not to print verbose debugging
+     information.  */
   public static final boolean DEBUG_IC = false;
 
   @Override
@@ -117,8 +119,10 @@ public class EmacsService extends Service
       {
 	tem = getSystemService (Context.NOTIFICATION_SERVICE);
 	manager = (NotificationManager) tem;
-	infoBlurb = ("See (emacs)Android Environment for more"
-		     + " details about this notification.");
+	infoBlurb = ("This notification is displayed to keep Emacs"
+		     + " running while it is in the background.  You"
+		     + " may disable if you want;"
+		     + " see (emacs)Android Environment.");
 	channel
 	  = new NotificationChannel ("emacs", "Emacs persistent notification",
 				     NotificationManager.IMPORTANCE_DEFAULT);
