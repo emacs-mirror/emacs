@@ -2484,7 +2484,7 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error,
-	      build_string ("Predicate `equal' requires two "
+	      build_string ("Predicate `match' requires two "
 		            "arguments but only given"),
 	      Flength (args));
 
