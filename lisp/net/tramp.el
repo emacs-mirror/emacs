@@ -4778,7 +4778,13 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-handle-unlock-file (file)
   "Like `unlock-file' for Tramp files."
-  (when-let ((lockname (tramp-compat-make-lock-file-name file)))
+  ;; When there is no connection, we don't do it.  Otherwise,
+  ;; functions like `kill-buffer' would try to reestablish the
+  ;; connection.  See Bug#61663.
+  (when-let ((v (tramp-dissect-file-name file))
+	     (p (tramp-get-process v))
+	     ((process-live-p p))
+	     (lockname (tramp-compat-make-lock-file-name file)))
     (condition-case err
         (delete-file lockname)
       ;; `userlock--handle-unlock-error' exists since Emacs 28.1.
