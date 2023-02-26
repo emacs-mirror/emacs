@@ -816,6 +816,9 @@ treated as in `eglot--dbind'."
                                        `(:valueSet
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
+            :general
+            (list
+             :positionEncodings ["utf-32" "utf-8" "utf-16"])
             :experimental eglot--{})))
 
 (cl-defgeneric eglot-workspace-folders (server)
@@ -1441,6 +1444,11 @@ CONNECT-ARGS are passed as additional arguments to
 
 (defun eglot-current-column () (- (point) (line-beginning-position)))
 
+(defun eglot-bytewise-column ()
+  "Calculate current column using the LSP `utf-8' criterion."
+  (length (encode-coding-region (line-beginning-position) (point)
+                                'utf-8-unix t)))
+
 (defvar eglot-current-column-function #'eglot-lsp-abiding-column
   "Function to calculate the current column.
 
@@ -1500,6 +1508,18 @@ be set to `eglot-move-to-lsp-abiding-column' (the default), and
                 (< (point) eol))
       (if (<= #x010000 (char-after) #x10ffff)
           (setq goal-char (1- goal-char)))
+      (forward-char 1))))
+
+(defun eglot-move-to-bytewise-column (column)
+  "Move to COLUMN as computed using the LSP `utf-8' criterion."
+  (let* ((bol (line-beginning-position))
+	 (goal-byte (+ (position-bytes bol) column))
+	 (eol (line-end-position)))
+    (goto-char bol)
+    (while (and (< (position-bytes (point)) goal-byte)
+		(< (point) eol))
+      (if (>= (char-after) #x3fff80)  ; raw bytes take 2 bytes in the buffer
+	  (setq goal-byte (1+ goal-byte)))
       (forward-char 1))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
@@ -1755,6 +1775,14 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
   :init-value nil :lighter nil :keymap eglot-mode-map
   (cond
    (eglot--managed-mode
+    (pcase (plist-get (eglot--capabilities (eglot-current-server))
+                      :positionEncoding)
+      ("utf-32"
+       (eglot--setq-saving eglot-current-column-function #'eglot-current-column)
+       (eglot--setq-saving eglot-move-to-column-function #'eglot-move-to-column))
+      ("utf-8"
+       (eglot--setq-saving eglot-current-column-function #'eglot-bytewise-column)
+       (eglot--setq-saving eglot-move-to-column-function #'eglot-move-to-bytewise-column)))
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'kill-buffer-hook #'eglot--managed-mode-off nil t)
