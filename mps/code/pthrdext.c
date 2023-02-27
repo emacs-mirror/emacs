@@ -1,4 +1,4 @@
-/* pthreadext.c: POSIX THREAD EXTENSIONS
+/* pthrdext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
  *  Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
-#error "protsgix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#error "pthrdext.c is specific to MPS_OS_FR or MPS_OS_LI"
 #endif
 
 #include "pthrdext.h"

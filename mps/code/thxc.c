@@ -22,7 +22,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_XC)
-#error "protw3.c is specific to MPS_OS_XC"
+#error "thxc.c is specific to MPS_OS_XC"
 #endif
 
 #include "protxc.h"
