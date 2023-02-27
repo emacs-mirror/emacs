@@ -1440,6 +1440,12 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
+(defalias 'eglot--bol
+  (if (fboundp 'pos-bol) #'pos-bol
+    (lambda (&optional n) (let ((inhibit-field-text-motion t))
+                            (line-beginning-position n))))
+  "Return position of first character in current line.")
+
 
 ;;; Encoding fever
 ;;;
@@ -1465,13 +1471,12 @@ return value is fed through the corresponding inverse function
 
 (defun eglot-utf-8-linepos ()
   "Calculate number of UTF-8 bytes from line beginning."
-  (length (encode-coding-region (line-beginning-position) (point)
-                                'utf-8-unix t)))
+  (length (encode-coding-region (eglot--bol) (point) 'utf-8-unix t)))
 
 (defun eglot-utf-16-linepos (&optional lbp)
   "Calculate number of UTF-16 code units from position given by LBP.
-LBP defaults to `line-beginning-position'."
-  (/ (- (length (encode-coding-region (or lbp (line-beginning-position))
+LBP defaults to `eglot--bol'."
+  (/ (- (length (encode-coding-region (or lbp (eglot--bol))
                                       ;; Fix github#860
                                       (min (point) (point-max)) 'utf-16 t))
         2)
@@ -1479,7 +1484,7 @@ LBP defaults to `line-beginning-position'."
 
 (defun eglot-utf-32-linepos ()
   "Calculate number of Unicode codepoints from line beginning."
-  (- (point) (line-beginning-position)))
+  (- (point) (eglot--bol)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
@@ -1513,7 +1518,7 @@ encoding and Eglot will set this variable automatically.")
 
 (defun eglot-move-to-utf-8-linepos (n)
   "Move to line's Nth byte as computed by LSP's UTF-8 criterion."
-  (let* ((bol (line-beginning-position))
+  (let* ((bol (eglot--bol))
          (goal-byte (+ (position-bytes bol) n))
          (eol (line-end-position)))
     (goto-char bol)
@@ -1524,7 +1529,7 @@ encoding and Eglot will set this variable automatically.")
 
 (defun eglot-move-to-utf-16-linepos (n)
   "Move to line's Nth code unit as computed by LSP's UTF-16 criterion."
-  (let* ((bol (line-beginning-position))
+  (let* ((bol (eglot--bol))
          (goal-char (+ bol n))
          (eol (line-end-position)))
     (goto-char bol)
@@ -1539,8 +1544,7 @@ encoding and Eglot will set this variable automatically.")
   ;; columns, which can be different from LSP characters in case of
   ;; `whitespace-mode', `prettify-symbols-mode', etc.  (github#296,
   ;; github#297)
-  (goto-char (min (+ (line-beginning-position) n)
-                  (line-end-position))))
+  (goto-char (min (+ (eglot--bol) n) (line-end-position))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
@@ -2190,7 +2194,7 @@ COMMAND is a symbol naming the command."
                            (eglot--widening
                             (goto-char (point-min))
                             (setq beg
-                                  (line-beginning-position
+                                  (eglot--bol
                                    (1+ (plist-get (plist-get range :start) :line))))
                             (setq end
                                   (line-end-position
@@ -2630,7 +2634,7 @@ Try to visit the target file for a richer summary line."
        (collect (lambda ()
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
-                                (bol (progn (goto-char beg) (line-beginning-position)))
+                                (bol (progn (goto-char beg) (eglot--bol)))
                                 (substring (buffer-substring bol (line-end-position)))
                                 (hi-beg (- beg bol))
                                 (hi-end (- (min (line-end-position) end) bol)))
@@ -2981,7 +2985,7 @@ for which LSP on-type-formatting should be requested."
            (looking-back
             (regexp-opt
              (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
-            (line-beginning-position))))
+            (eglot--bol))))
        :exit-function
        (lambda (proxy status)
          (when (memq status '(finished exact))
