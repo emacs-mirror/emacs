@@ -339,14 +339,19 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (`(cond . ,clauses)
              (macroexp--cons fn (macroexp--all-clauses clauses) form))
             (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
-             (macroexp--cons
-              fn
-              (macroexp--cons err
-                              (macroexp--cons (macroexp--expand-all body)
-                                              (macroexp--all-clauses handlers 1)
-                                              (cddr form))
-                              (cdr form))
-              form))
+             (let ((exp-body (macroexp--expand-all body)))
+               (if handlers
+                   (macroexp--cons fn
+                                   (macroexp--cons
+                                    err (macroexp--cons
+                                         exp-body
+                                         (macroexp--all-clauses handlers 1)
+                                         (cddr form))
+                                    (cdr form))
+                                   form)
+                 (macroexp-warn-and-return
+                  (format-message "`condition-case' without handlers")
+                  exp-body (list 'suspicious 'condition-case) t form))))
             (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
              (push name macroexp--dynvars)
              (macroexp--all-forms form 2))

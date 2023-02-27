@@ -1447,6 +1447,12 @@ literals (Bug#20852)."
    "Warning: Use .with-current-buffer. rather than")
 
   (test-suppression
+   '(defun zot (x)
+      (condition-case nil (list x)))
+   '((suspicious condition-case))
+   "Warning: `condition-case' without handlers")
+
+  (test-suppression
    '(defun zot ()
       (let ((_ 1))
         ))
