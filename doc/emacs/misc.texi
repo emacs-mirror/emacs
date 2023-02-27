@@ -2748,10 +2748,12 @@ desktop reloading, since it bypasses the init file, where
 @findex desktop-revert
   You can have separate saved desktop configurations in different
 directories; starting Emacs from a directory where you have a saved
-desktop configuration will restore that configuration.  You can save
-the current desktop and reload the one saved in another directory by
-typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x desktop-revert}
-reverts to the previously reloaded desktop.
+desktop configuration will restore that configuration, provided that
+you customize @code{desktop-path} to prepend @file{.} (the current
+directory) to the other directories there.  You can save the current
+desktop and reload the one saved in another directory by typing
+@kbd{M-x desktop-change-dir}.  Typing @kbd{M-x desktop-revert} reverts
+to the previously reloaded desktop.
 
 @vindex desktop-load-locked-desktop
   The file in which Emacs saves the desktop is locked while the
