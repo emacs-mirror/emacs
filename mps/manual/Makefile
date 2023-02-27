@@ -159,10 +159,10 @@ doctest: $(SPHINXBUILD)
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 .PHONY: tools
-tools: tool/bin/pip requirements.pip
-	tool/bin/pip install -r requirements.pip
+tools: $(SPHINXBUILD)
 
-tool/bin/sphinx-build: tools
+$(SPHINXBUILD): tool/bin/pip requirements.pip
+	tool/bin/pip install -r requirements.pip
 
 tool/bin/pip:
 	$(PYTHON) -mvenv tool
