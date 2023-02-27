@@ -75,17 +75,20 @@ file exists, and Emacs was compiled with native-compilation support
 (@pxref{Native Compilation}), @code{load} attempts to find a
 corresponding @samp{.eln} file, and if found, loads it instead of
 @file{@var{filename}.elc}.  Otherwise, it loads
-@file{@var{filename}.elc}.  If there is no file by that name, then
-@code{load} looks for a file named @file{@var{filename}.el}.  If that
-file exists, it is loaded.  If Emacs was compiled with support for
-dynamic modules (@pxref{Dynamic Modules}), @code{load} next looks for
-a file named @file{@var{filename}.@var{ext}}, where @var{ext} is a
-system-dependent file-name extension of shared libraries.  Finally, if
-neither of those names is found, @code{load} looks for a file named
-@var{filename} with nothing appended, and loads it if it exists.  (The
-@code{load} function is not clever about looking at @var{filename}.
-In the perverse case of a file named @file{foo.el.el}, evaluation of
-@code{(load "foo.el")} will indeed find it.)
+@file{@var{filename}.elc} (and starts a background native compilation
+to produce the missing @samp{.eln} file, followed by loading that
+file).  If there is no @file{@var{filename}.elc}, then @code{load}
+looks for a file named @file{@var{filename}.el}.  If that file exists,
+it is loaded.  If Emacs was compiled with support for dynamic modules
+(@pxref{Dynamic Modules}), @code{load} next looks for a file named
+@file{@var{filename}.@var{ext}}, where @var{ext} is a system-dependent
+file-name extension of shared libraries (@samp{.so} on GNU and Unix
+systems).  Finally, if neither of those names is found, @code{load}
+looks for a file named @var{filename} with nothing appended, and loads
+it if it exists.  (The @code{load} function is not clever about
+looking at @var{filename}.  In the perverse case of a file named
+@file{foo.el.el}, evaluation of @code{(load "foo.el")} will indeed
+find it.)
 
 If Auto Compression mode is enabled, as it is by default, then if
 @code{load} can not find a file, it searches for a compressed version

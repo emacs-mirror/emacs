@@ -856,8 +856,8 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
            '((c-mode . ("clangd")))))
       (with-current-buffer
           (eglot--find-file-noselect "project/foo.c")
-        (setq-local eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column)
-        (setq-local eglot-current-column-function #'eglot-lsp-abiding-column)
+        (setq-local eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos)
+        (setq-local eglot-current-linepos-function #'eglot-utf-16-linepos)
         (eglot--sniffing (:client-notifications c-notifs)
           (eglot--tests-connect)
           (end-of-line)
@@ -866,12 +866,12 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
             (should (equal 71 (cadddr (cadadr (aref (cadddr params) 0))))))
           (beginning-of-line)
-          (should (eq eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column))
-          (funcall eglot-move-to-column-function 71)
+          (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
+          (funcall eglot-move-to-linepos-function 71)
           (should (looking-at "p")))))))
 
 (ert-deftest eglot-test-lsp-abiding-column ()
-  "Test basic `eglot-lsp-abiding-column' and `eglot-move-to-lsp-abiding-column'."
+  "Test basic LSP character counting logic."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--lsp-abiding-column-1))
 

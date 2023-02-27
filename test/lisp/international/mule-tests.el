@@ -119,9 +119,10 @@ provide HTML fragments.  Some tests override those variables."
 (ert-deftest sgml-html-meta-no-post-less-than-10lines ()
   "No '</head>', detect charset in the first 10 lines."
   (let ((sgml-html-meta-post ""))
-    (should (eq 'utf-8 (sgml-html-meta-run
-                        (concat "\n\n\n\n\n\n\n\n\n"
-                                "<meta charset='utf-8'>"))))))
+    (should (eq 'utf-8 (coding-system-base
+                        (sgml-html-meta-run
+                         (concat "\n\n\n\n\n\n\n\n\n"
+                                 "<meta charset='utf-8'>")))))))
 
 (ert-deftest sgml-html-meta-no-post-10lines ()
   "No '</head>', do not detect charset after the first 10 lines."
