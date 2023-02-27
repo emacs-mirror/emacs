@@ -641,7 +641,7 @@ Honor `eglot-strict-mode'."
 Honor `eglot-strict-mode'."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
-    `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
+    `(lambda (,e) (cl-block nil (eglot--dbind ,cl-lambda-list ,e ,@body)))))
 
 (cl-defmacro eglot--dcase (obj &rest clauses)
   "Like `pcase', but for the LSP object OBJ.
@@ -3595,6 +3595,7 @@ If NOERROR, return predicate, else erroring function."
          (paint-hint
           (eglot--lambda ((InlayHint) position kind label paddingLeft paddingRight)
             (goto-char (eglot--lsp-position-to-point position))
+            (when (or (> (point) to) (< (point) from)) (cl-return))
             (let ((ov (make-overlay (point) (point)))
                   (left-pad (and paddingLeft (not (memq (char-before) '(32 9)))))
                   (right-pad (and paddingRight (not (memq (char-after) '(32 9)))))
