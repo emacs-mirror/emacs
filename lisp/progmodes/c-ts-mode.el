@@ -279,6 +279,12 @@ doesn't have a child."
     ;; prev-sibling doesn't have a child.
     (treesit-node-start prev-sibling)))
 
+(defun c-ts-mode--standalone-grandparent (_node parent bol &rest args)
+  "Like the standalone-parent anchor but pass it the grandparent.
+PARENT, BOL, ARGS are the same as other anchor functions."
+  (apply (alist-get 'standalone-parent treesit-simple-indent-presets)
+         parent (treesit-node-parent parent) bol args))
+
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
@@ -300,9 +306,9 @@ MODE is either `c' or `cpp'."
            ((parent-is "comment") prev-adaptive-prefix 0)
 
            ;; Labels.
-           ((node-is "labeled_statement") parent-bol 0)
+           ((node-is "labeled_statement") standalone-parent 0)
            ((parent-is "labeled_statement")
-            point-min c-ts-common-statement-offset)
+            c-ts-mode--standalone-grandparent c-ts-mode-indent-offset)
 
            ((node-is "preproc") point-min 0)
            ((node-is "#endif") point-min 0)
@@ -330,7 +336,7 @@ MODE is either `c' or `cpp'."
            ;; Closing bracket.  This should be before initializer_list
            ;; (and probably others) rule because that rule (and other
            ;; similar rules) will match the closing bracket.  (Bug#61398)
-           ((node-is "}") point-min c-ts-common-statement-offset)
+           ((node-is "}") standalone-parent 0)
            ,@(when (eq mode 'cpp)
                '(((node-is "access_specifier") parent-bol 0)
                  ;; Indent the body of namespace definitions.
@@ -341,25 +347,25 @@ MODE is either `c' or `cpp'."
            ((match nil "initializer_list" nil 1 1) parent-bol c-ts-mode-indent-offset)
            ((match nil "initializer_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in enum.
-           ((match nil "enumerator_list" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "enumerator_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
            ((match nil "enumerator_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in struct and union.
-           ((match nil "field_declaration_list" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "field_declaration_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
            ((match nil "field_declaration_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
-           ((match nil "compound_statement" nil 1 1) point-min c-ts-common-statement-offset)
+           ((match nil "compound_statement" nil 1 1) standalone-parent c-ts-mode-indent-offset)
            ((match nil "compound_statement" nil 2) c-ts-mode--anchor-prev-sibling 0)
            ;; Opening bracket.
-           ((node-is "compound_statement") point-min c-ts-common-statement-offset)
+           ((node-is "compound_statement") standalone-parent c-ts-mode-indent-offset)
            ;; Bug#61291.
-           ((match "expression_statement" nil "body") point-min c-ts-common-statement-offset)
+           ((match "expression_statement" nil "body") standalone-parent c-ts-mode-indent-offset)
            ;; These rules are for cases where the body is bracketless.
            ;; Tested by the "Bracketless Simple Statement" test.
-           ((parent-is "if_statement") point-min c-ts-common-statement-offset)
-           ((parent-is "for_statement") point-min c-ts-common-statement-offset)
-           ((parent-is "while_statement") point-min c-ts-common-statement-offset)
-           ((parent-is "do_statement") point-min c-ts-common-statement-offset)
+           ((parent-is "if_statement") standalone-parent c-ts-mode-indent-offset)
+           ((parent-is "for_statement") standalone-parent c-ts-mode-indent-offset)
+           ((parent-is "while_statement") standalone-parent c-ts-mode-indent-offset)
+           ((parent-is "do_statement") standalone-parent c-ts-mode-indent-offset)
 
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))
@@ -836,6 +842,8 @@ the semicolon.  This function skips the semicolon."
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
   (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
+  ;; This setup is not needed anymore, but we might find uses for it
+  ;; later, so I'm keeping it.
   (setq-local c-ts-common-indent-type-regexp-alist
               `((block . ,(rx (or "compound_statement"
                                   "field_declaration_list"

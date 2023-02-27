@@ -5093,7 +5093,15 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @item parent-bol
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-space character
-on the line of @var{parent}.
+on the line which @var{parent}'s start is on.
+
+@item parent-bol
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}.  It finds the first ancestor node
+(parent, grandparent, etc) of @var{node} that starts on its own line,
+and return the start of that node.  ``Starting on its own line'' means
+there is only whitespace character before the node on the line which
+the node's start is on.
 
 @item prev-sibling
 This anchor is a function that is called with 3 arguments: @var{node},

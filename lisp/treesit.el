@@ -1227,6 +1227,16 @@ See `treesit-simple-indent-presets'.")
                               (goto-char (treesit-node-start parent))
                               (back-to-indentation)
                               (point))))
+        (cons 'standalone-parent
+              (lambda (_n parent &rest _)
+                (save-excursion
+                  (catch 'term
+                    (while parent
+                      (goto-char (treesit-node-start parent))
+                      (when (looking-back (rx bol (* whitespace))
+                                          (line-beginning-position))
+                        (throw 'term (point)))
+                      (setq parent (treesit-node-parent parent)))))))
         (cons 'prev-sibling (lambda (node &rest _)
                               (treesit-node-start
                                (treesit-node-prev-sibling node))))
@@ -1322,6 +1332,11 @@ parent-bol
 
     Returns the beginning of non-space characters on the line where
     PARENT is on.
+
+standalone-parent
+
+    Finds the first ancestor node (parent, grandparent, etc) that
+    starts on its own line, and return the start of that node.
 
 prev-sibling
 
