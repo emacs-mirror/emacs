@@ -486,7 +486,8 @@ This can be useful when using docker to run a language server.")
       (WorkspaceEdit () (:changes :documentChanges))
       (WorkspaceSymbol (:name :kind) (:containerName :location :data))
       (InlayHint (:position :label) (:kind :textEdits :tooltip :paddingLeft
-                                           :paddingRight :data)))
+                                           :paddingRight :data))
+      (InlayHintLabelPart (:value) (:tooltip :location :command)))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -3596,20 +3597,29 @@ If NOERROR, return predicate, else erroring function."
           (eglot--lambda ((InlayHint) position kind label paddingLeft paddingRight)
             (goto-char (eglot--lsp-position-to-point position))
             (when (or (> (point) to) (< (point) from)) (cl-return))
-            (let ((ov (make-overlay (point) (point)))
-                  (left-pad (and paddingLeft (not (memq (char-before) '(32 9)))))
-                  (right-pad (and paddingRight (not (memq (char-after) '(32 9)))))
-                  (text (if (stringp label)
-                            label (plist-get (elt label 0) :value))))
-              (overlay-put ov 'before-string
-                           (propertize
-                            (concat (and left-pad " ") text (and right-pad " "))
-                            'face (pcase kind
-                                    (1 'eglot-type-hint-face)
-                                    (2 'eglot-parameter-hint-face)
-                                    (_ 'eglot-inlay-hint-face))))
-              (overlay-put ov 'eglot--inlay-hint t)
-              (overlay-put ov 'eglot--overlay t)))))
+            (let ((left-pad (and paddingLeft
+                                 (not (memq (char-before) '(32 9))) " "))
+                  (right-pad (and paddingRight
+                                  (not (memq (char-after) '(32 9))) " ")))
+              (cl-flet
+                  ((do-it (text lpad rpad)
+                     (let ((ov (make-overlay (point) (point))))
+                       (overlay-put ov 'before-string
+                                    (propertize
+                                     (concat lpad text rpad)
+                                     'face (pcase kind
+                                             (1 'eglot-type-hint-face)
+                                             (2 'eglot-parameter-hint-face)
+                                             (_ 'eglot-inlay-hint-face))))
+                       (overlay-put ov 'eglot--inlay-hint t)
+                       (overlay-put ov 'eglot--overlay t))))
+                (if (stringp label) (do-it label left-pad right-pad)
+                  (cl-loop
+                   for i from 0 for ldetail across label
+                   do (eglot--dbind ((InlayHintLabelPart) value) ldetail
+                        (do-it value
+                               (and (zerop i) left-pad)
+                               (and (= i (1- (length label))) right-pad))))))))))
     (jsonrpc-async-request
      (eglot--current-server-or-lose)
      :textDocument/inlayHint
