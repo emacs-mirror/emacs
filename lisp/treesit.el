@@ -1828,10 +1828,23 @@ This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
 and `treesit-defun-skipper'."
   (interactive "^p")
-  (when (treesit-beginning-of-thing treesit-defun-type-regexp arg)
-    (when treesit-defun-skipper
-      (funcall treesit-defun-skipper))
-    t))
+  (let ((orig-point (point))
+        (success nil))
+    (catch 'done
+      (dotimes (_ 2)
+
+        (when (treesit-beginning-of-thing treesit-defun-type-regexp arg)
+          (when treesit-defun-skipper
+            (funcall treesit-defun-skipper)
+            (setq success t)))
+
+        ;; If we end up at the same point, it means we went to the
+        ;; next beg-of-defun, but defun skipper moved point back to
+        ;; where we started, in this case we just move one step
+        ;; further.
+        (if (or (eq arg 0) (not (eq orig-point (point))))
+            (throw 'done success)
+          (setq arg (if (> arg 0) (1+ arg) (1- arg))))))))
 
 (defun treesit-end-of-defun (&optional arg _)
   "Move forward to next end of defun.
@@ -1843,9 +1856,21 @@ This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
 `treesit-defun-skipper'."
   (interactive "^p\nd")
-  (when (treesit-end-of-thing treesit-defun-type-regexp arg)
-    (when treesit-defun-skipper
-      (funcall treesit-defun-skipper))))
+  (let ((orig-point (point)))
+    (catch 'done
+      (dotimes (_ 2) ; Not making progress is better than infloop.
+
+        (when (treesit-end-of-thing treesit-defun-type-regexp arg)
+          (when treesit-defun-skipper
+            (funcall treesit-defun-skipper)))
+
+        ;; If we end up at the same point, it means we went to the
+        ;; prev end-of-defun, but defun skipper moved point back to
+        ;; where we started, in this case we just move one step
+        ;; further.
+        (if (or (eq arg 0) (not (eq orig-point (point))))
+            (throw 'done nil)
+          (setq arg (if (> arg 0) (1+ arg) (1- arg))))))))
 
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
@@ -1967,9 +1992,9 @@ REGEXP and PRED are the same as in `treesit-thing-at-point'."
 ;;
 ;; prev-end (tricky):
 ;; 1. prev-sibling exists
-;;    -> If you think about it, we are already at prev-sibling's end!
-;;       So we need to go one step further, either to
-;;       prev-prev-sibling's end, or parent's prev-sibling's end, etc.
+;;    -> If we are already at prev-sibling's end, we need to go one
+;;       step further, either to prev-prev-sibling's end, or parent's
+;;       prev-sibling's end, etc.
 ;; 2. prev-sibling is nil but parent exists
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
@@ -2019,18 +2044,24 @@ function is called recursively."
               ;; ...forward.
               (if (and (eq side 'beg)
                        ;; Should we skip the defun (recurse)?
-                       (cond (next (not recursing)) ; [1] (see below)
-                             (parent t) ; [2]
-                             (t nil)))
-                  ;; Special case: go to next beg-of-defun.  Set POS
-                  ;; to the end of next-sib/parent defun, and run one
-                  ;; more step.  If there is a next-sib defun, we only
-                  ;; need to recurse once, so we don't need to recurse
-                  ;; if we are already recursing [1]. If there is no
+                       (cond (next (and (not recursing) ; [1] (see below)
+                                        (eq pos (funcall advance next))))
+                             (parent t))) ; [2]
+                  ;; Special case: go to next beg-of-defun, but point
+                  ;; is already on beg-of-defun.  Set POS to the end
+                  ;; of next-sib/parent defun, and run one more step.
+                  ;; If there is a next-sib defun, we only need to
+                  ;; recurse once, so we don't need to recurse if we
+                  ;; are already recursing [1]. If there is no
                   ;; next-sib but a parent, keep stepping out
                   ;; (recursing) until we got out of the parents until
                   ;; (1) there is a next sibling defun, or (2) no more
                   ;; parents [2].
+                  ;;
+                  ;; If point on beg-of-defun but we are already
+                  ;; recurring, that doesn't count as special case,
+                  ;; because we have already made progress (by moving
+                  ;; the end of next before recurring.)
                   (setq pos (or (treesit--navigate-thing
                                  (treesit-node-end (or next parent))
                                  1 'beg regexp pred t)
@@ -2039,9 +2070,9 @@ function is called recursively."
                 (setq pos (funcall advance (or next parent))))
             ;; ...backward.
             (if (and (eq side 'end)
-                     (cond (prev (not recursing))
-                           (parent t)
-                           (t nil)))
+                     (cond (prev (and (not recursing)
+                                      (eq pos (funcall advance prev))))
+                           (parent t)))
                 ;; Special case: go to prev end-of-defun.
                 (setq pos (or (treesit--navigate-thing
                                (treesit-node-start (or prev parent))
