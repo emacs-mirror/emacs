@@ -394,16 +394,13 @@ MODE is either `c' or `cpp'."
        ((parent-is "do_statement") parent-bol 0)
        ,@common))))
 
-(defun c-ts-mode--top-level-label-matcher (node &rest _)
+(defun c-ts-mode--top-level-label-matcher (node parent &rest _)
   "A matcher that matches a top-level label.
-NODE should be a labeled_statement."
-  (let ((func (treesit-parent-until
-               node (lambda (n)
-                      (equal (treesit-node-type n)
-                             "compound_statement")))))
-    (and (equal (treesit-node-type node)
-                "labeled_statement")
-         (not (treesit-node-top-level func "compound_statement")))))
+NODE should be a labeled_statement.  PARENT is its parent."
+  (and (equal (treesit-node-type node)
+              "labeled_statement")
+       (equal "function_definition"
+              (treesit-node-type (treesit-node-parent parent)))))
 
 ;;; Font-lock
 
