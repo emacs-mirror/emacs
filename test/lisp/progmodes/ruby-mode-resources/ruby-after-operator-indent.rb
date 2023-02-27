@@ -10,6 +10,10 @@ qux = 4 + 5 *
 foo = obj.bar { |m| tee(m) } +
   obj.qux { |m| hum(m) }
 
+some_variable = abc + some_method(
+  some_argument
+)
+
 foo.
   bar
   .baz
