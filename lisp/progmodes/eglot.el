@@ -1453,11 +1453,15 @@ CONNECT-ARGS are passed as additional arguments to
 (defvar eglot-current-linepos-function #'eglot-utf-16-linepos
   "Function calculating position relative to line beginning.
 
-This is the inverse of `eglot-move-to-linepos-function' (which see).
-It is a function of no arguments returning the number of code units
-or bytes or codepoints corresponding to the current position of point,
-relative to line beginning, as expected by the function that is the
-value of `eglot-move-to-linepos-function'.")
+It is a function of no arguments considering the text from line
+beginning up to current point.  The return value is the number of
+UTF code units needed to encode that text from the LSP server's
+perspective.  This may be a number of octets, 16-bit words or
+Unicode code points, depending on whether the LSP server's
+`positionEncoding' capability is UTF-8, UTF-16 or UTF-32,
+respectively.  Position of point should remain unaltered if that
+return value is fed through the corresponding inverse function
+`eglot-move-to-linepos-function' (which see).")
 
 (defun eglot-utf-8-linepos ()
   "Calculate number of UTF-8 bytes from line beginning."
