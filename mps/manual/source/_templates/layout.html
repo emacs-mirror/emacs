@@ -1,0 +1,32 @@
+{# manual/source/_templates/layout.html -- add index to manual sidebar.
+ #
+ # See https://stackoverflow.com/a/37843854 .
+ #}
+
+{% extends "!layout.html" %}
+
+  {% block menu %}
+    {{ super() }}
+
+<p class="caption" role="heading">
+  <span class="caption-text">Indices and tables</span>
+</p>
+
+<ul>
+
+  <li class="toctree-11">
+
+    <a class="reference internal" href="{{pathto('genindex.html', 1)}}">Index</a>
+
+    {# Module index and search page aren't used in the MPS manual but
+       might be in future.  This is how they might be added. #}
+
+    {# <a class="reference internal" href="{{pathto('modindex.html', 1)}}">Module Index</a> #}
+
+    {# <a class="reference internal" href="{{pathto('search.html', 1)}}">Search Page</a> #}
+
+  </li>
+
+</ul>
+
+  {% endblock %}
