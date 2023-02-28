@@ -1,7 +1,5 @@
-Memory Pool System
-##################
-
 .. toctree::
+    :caption: Memory Pool System
     :maxdepth: 2
 
     guide/index
@@ -10,11 +8,8 @@ Memory Pool System
     design/index
     design/old
 
-
-Appendices
-##########
-
 .. toctree::
+    :caption: Appendices
     :maxdepth: 1
 
     bib
@@ -25,14 +20,15 @@ Appendices
     contributing
     release
 
-* :ref:`genindex`
-
-
 .. toctree::
-    :hidden:
+    :caption: Memory Management Reference
+    :maxdepth: 2
 
     mmref/index
     mmref-index
     mmref/faq
     mmref-copyright
     mmref/credit
+
+* :ref:`genindex`
+
