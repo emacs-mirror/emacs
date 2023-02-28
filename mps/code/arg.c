@@ -65,7 +65,9 @@ Bool ArgCheckPoolDebugOptions(Arg arg)
 
 Bool ArgCheckFun(Arg arg)
 {
-  CHECKL(FUNCHECK(arg->val.addr_method)); /* FIXME: Potential pun here */
+  /* TODO: Fix potential pun here on Harvard architectures where
+     function pointers are not compatible with other pointers. */
+  CHECKL(FUNCHECK(arg->val.addr_method));
   return TRUE;
 }
 
