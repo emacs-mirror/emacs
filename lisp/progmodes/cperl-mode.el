@@ -2918,8 +2918,9 @@ and closing parentheses and brackets."
 	 ;;
 	 ((eq 'REx-part2 (elt i 0)) ;; [self start] start of /REP in s//REP/x
 	  (goto-char (elt i 1))
-	  (condition-case nil	; Use indentation of the 1st part
-	      (forward-sexp -1))
+          (condition-case nil
+	      (forward-sexp -1) 	; Use indentation of the 1st part
+            (error nil))
 	  (current-column))
 	 ((eq 'indentable (elt i 0))	; Indenter for REGEXP qw() etc
 	  (cond		       ;;; [indentable terminator start-pos is-block]
