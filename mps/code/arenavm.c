@@ -183,7 +183,7 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKD(Land, VMArenaSpareLand(vmArena));
   CHECKL((LandSize)(VMArenaSpareLand(vmArena)) == arena->spareCommitted);
 
-  /* FIXME: Can't check VMParams */
+  /* TODO: Add sig to VMParamsStruct so it can be checked. */
 
   return TRUE;
 }
