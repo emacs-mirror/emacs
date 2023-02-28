@@ -92,8 +92,8 @@
    :language 'toml
    :feature 'pair
    :override t            ; Needed for overriding string face on keys.
-   '((bare_key) @font-lock-property-ref-face
-     (quoted_key) @font-lock-property-ref-face
+   '((bare_key) @font-lock-property-use-face
+     (quoted_key) @font-lock-property-use-face
      (table ("[" @font-lock-bracket-face
              (_) @font-lock-type-face
              "]" @font-lock-bracket-face))

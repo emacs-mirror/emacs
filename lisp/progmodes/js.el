@@ -3563,13 +3563,13 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'property
-   '(((property_identifier) @font-lock-property-ref-face
+   '(((property_identifier) @font-lock-property-use-face
       (:pred js--treesit-property-not-function-p
-             @font-lock-property-ref-face))
+             @font-lock-property-use-face))
 
-     (pair value: (identifier) @font-lock-variable-ref-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
 
-     ((shorthand_property_identifier) @font-lock-property-ref-face))
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language 'javascript
    :feature 'assignment
@@ -3681,8 +3681,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
     (treesit-fontify-with-override
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
-       ("identifier" 'font-lock-variable-ref-face)
-       ("property_identifier" 'font-lock-property-ref-face))
+       ("identifier" 'font-lock-variable-use-face)
+       ("property_identifier" 'font-lock-property-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)

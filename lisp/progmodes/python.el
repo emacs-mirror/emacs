@@ -1147,7 +1147,7 @@ fontified."
                  @font-lock-variable-name-face)
      (assignment left: (attribute
                         attribute: (identifier)
-                        @font-lock-property-ref-face))
+                        @font-lock-property-use-face))
      (pattern_list (identifier)
                    @font-lock-variable-name-face)
      (tuple_pattern (identifier)
@@ -1184,12 +1184,12 @@ fontified."
    :feature 'property
    :language 'python
    '((attribute
-      attribute: (identifier) @font-lock-property-ref-face)
+      attribute: (identifier) @font-lock-property-use-face)
      (class_definition
       body: (block
              (expression_statement
               (assignment left:
-                          (identifier) @font-lock-property-ref-face)))))
+                          (identifier) @font-lock-property-use-face)))))
 
    :feature 'operator
    :language 'python

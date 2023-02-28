@@ -547,7 +547,7 @@ MODE is either `c' or `cpp'."
    '((assignment_expression
       left: (identifier) @font-lock-variable-name-face)
      (assignment_expression
-      left: (field_expression field: (_) @font-lock-property-ref-face))
+      left: (field_expression field: (_) @font-lock-property-use-face))
      (assignment_expression
       left: (pointer_expression
              (identifier) @font-lock-variable-name-face))
@@ -583,7 +583,7 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'property
-   '((field_identifier) @font-lock-property-ref-face)
+   '((field_identifier) @font-lock-property-use-face)
 
    :language mode
    :feature 'bracket
@@ -660,7 +660,7 @@ OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
                     "call_expression"))
     (treesit-fontify-with-override
      (treesit-node-start node) (treesit-node-end node)
-     'font-lock-variable-ref-face override start end)))
+     'font-lock-variable-use-face override start end)))
 
 (defun c-ts-mode--fontify-defun (node override start end &rest _)
   "Correctly fontify the DEFUN macro.

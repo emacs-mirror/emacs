@@ -249,9 +249,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      (public_field_definition
       name: (property_identifier) @font-lock-property-name-face)
 
-     (pair key: (property_identifier) @font-lock-property-ref-face)
+     (pair key: (property_identifier) @font-lock-property-use-face)
 
-     ((shorthand_property_identifier) @font-lock-property-ref-face))
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language language
    :feature 'expression
@@ -272,7 +272,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
    :language language
    :feature 'pattern
    `((pair_pattern
-      key: (property_identifier) @font-lock-property-ref-face
+      key: (property_identifier) @font-lock-property-use-face
       value: [(identifier) @font-lock-variable-name-face
               (assignment_pattern left: (identifier) @font-lock-variable-name-face)])
 

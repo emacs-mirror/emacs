@@ -3688,8 +3688,8 @@ default, from @code{font-lock-function-name-face}.
 @vindex font-lock-variable-name-face
 for the name of a variable being defined or declared.
 
-@item font-lock-variable-ref-face
-@vindex font-lock-variable-ref-face
+@item font-lock-variable-use-face
+@vindex font-lock-variable-use-face
 for the name of a variable being referenced.  This face inherits, by
 default, from @code{font-lock-variable-name-face}.
 
@@ -3772,8 +3772,8 @@ for properties of an object, such as the declaration of fields in a
 struct.  This face inherits, by default, from
 @code{font-lock-variable-name-face}.
 
-@item font-lock-property-ref-face
-@vindex font-lock-property-ref-face
+@item font-lock-property-use-face
+@vindex font-lock-property-use-face
 for properties of an object, such as use of fields in a struct.  This
 face inherits, by default, from @code{font-lock-property-name-face}.
 

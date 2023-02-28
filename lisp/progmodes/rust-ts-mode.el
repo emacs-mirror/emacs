@@ -239,8 +239,8 @@
 
    :language 'rust
    :feature 'property
-   '((field_identifier) @font-lock-property-ref-face
-     (shorthand_field_initializer (identifier) @font-lock-property-ref-face))
+   '((field_identifier) @font-lock-property-use-face
+     (shorthand_field_initializer (identifier) @font-lock-property-use-face))
 
    ;; Must be under type, otherwise some imports can be highlighted as constants.
    :language 'rust
@@ -251,25 +251,25 @@
 
    :language 'rust
    :feature 'variable
-   '((arguments (identifier) @font-lock-variable-ref-face)
-     (array_expression (identifier) @font-lock-variable-ref-face)
-     (assignment_expression right: (identifier) @font-lock-variable-ref-face)
-     (binary_expression left: (identifier) @font-lock-variable-ref-face)
-     (binary_expression right: (identifier) @font-lock-variable-ref-face)
-     (block (identifier) @font-lock-variable-ref-face)
-     (compound_assignment_expr right: (identifier) @font-lock-variable-ref-face)
-     (field_expression value: (identifier) @font-lock-variable-ref-face)
-     (field_initializer value: (identifier) @font-lock-variable-ref-face)
-     (if_expression condition: (identifier) @font-lock-variable-ref-face)
-     (let_condition value: (identifier) @font-lock-variable-ref-face)
-     (let_declaration value: (identifier) @font-lock-variable-ref-face)
-     (match_arm value: (identifier) @font-lock-variable-ref-face)
-     (match_expression value: (identifier) @font-lock-variable-ref-face)
-     (reference_expression value: (identifier) @font-lock-variable-ref-face)
-     (return_expression (identifier) @font-lock-variable-ref-face)
-     (tuple_expression (identifier) @font-lock-variable-ref-face)
-     (unary_expression (identifier) @font-lock-variable-ref-face)
-     (while_expression condition: (identifier) @font-lock-variable-ref-face))
+   '((arguments (identifier) @font-lock-variable-use-face)
+     (array_expression (identifier) @font-lock-variable-use-face)
+     (assignment_expression right: (identifier) @font-lock-variable-use-face)
+     (binary_expression left: (identifier) @font-lock-variable-use-face)
+     (binary_expression right: (identifier) @font-lock-variable-use-face)
+     (block (identifier) @font-lock-variable-use-face)
+     (compound_assignment_expr right: (identifier) @font-lock-variable-use-face)
+     (field_expression value: (identifier) @font-lock-variable-use-face)
+     (field_initializer value: (identifier) @font-lock-variable-use-face)
+     (if_expression condition: (identifier) @font-lock-variable-use-face)
+     (let_condition value: (identifier) @font-lock-variable-use-face)
+     (let_declaration value: (identifier) @font-lock-variable-use-face)
+     (match_arm value: (identifier) @font-lock-variable-use-face)
+     (match_expression value: (identifier) @font-lock-variable-use-face)
+     (reference_expression value: (identifier) @font-lock-variable-use-face)
+     (return_expression (identifier) @font-lock-variable-use-face)
+     (tuple_expression (identifier) @font-lock-variable-use-face)
+     (unary_expression (identifier) @font-lock-variable-use-face)
+     (while_expression condition: (identifier) @font-lock-variable-use-face))
 
    :language 'rust
    :feature 'escape-sequence

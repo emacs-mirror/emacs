@@ -244,7 +244,7 @@
       name: (identifier) @font-lock-variable-name-face)
 
      (element_value_pair
-      key: (identifier) @font-lock-property-ref-face)
+      key: (identifier) @font-lock-property-use-face)
 
      (formal_parameter
       name: (identifier) @font-lock-variable-name-face)
@@ -255,14 +255,14 @@
    :override t
    :feature 'expression
    '((method_invocation
-      object: (identifier) @font-lock-variable-ref-face)
+      object: (identifier) @font-lock-variable-use-face)
 
      (method_invocation
       name: (identifier) @font-lock-function-call-face)
 
      (argument_list (identifier) @font-lock-variable-name-face)
 
-     (expression_statement (identifier) @font-lock-variable-ref-face))
+     (expression_statement (identifier) @font-lock-variable-use-face))
 
    :language 'java
    :feature 'bracket
