@@ -1692,8 +1692,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   if (!glyph)
     return NULL;
 
-  /* Try to instruct the glyph if INTERPRETER is specified.
-     TODO: support compound glyphs.  */
+  /* Try to instruct the glyph if INTERPRETER is specified.  */
 
   outline = NULL;
 
