@@ -486,7 +486,8 @@ This can be useful when using docker to run a language server.")
       (WorkspaceEdit () (:changes :documentChanges))
       (WorkspaceSymbol (:name :kind) (:containerName :location :data))
       (InlayHint (:position :label) (:kind :textEdits :tooltip :paddingLeft
-                                           :paddingRight :data)))
+                                           :paddingRight :data))
+      (InlayHintLabelPart (:value) (:tooltip :location :command)))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -641,7 +642,7 @@ Honor `eglot-strict-mode'."
 Honor `eglot-strict-mode'."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
-    `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
+    `(lambda (,e) (cl-block nil (eglot--dbind ,cl-lambda-list ,e ,@body)))))
 
 (cl-defmacro eglot--dcase (obj &rest clauses)
   "Like `pcase', but for the LSP object OBJ.
@@ -1440,6 +1441,12 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
+(defalias 'eglot--bol
+  (if (fboundp 'pos-bol) #'pos-bol
+    (lambda (&optional n) (let ((inhibit-field-text-motion t))
+                            (line-beginning-position n))))
+  "Return position of first character in current line.")
+
 
 ;;; Encoding fever
 ;;;
@@ -1453,21 +1460,24 @@ CONNECT-ARGS are passed as additional arguments to
 (defvar eglot-current-linepos-function #'eglot-utf-16-linepos
   "Function calculating position relative to line beginning.
 
-This is the inverse of `eglot-move-to-linepos-function' (which see).
-It is a function of no arguments returning the number of code units
-or bytes or codepoints corresponding to the current position of point,
-relative to line beginning, as expected by the function that is the
-value of `eglot-move-to-linepos-function'.")
+It is a function of no arguments considering the text from line
+beginning up to current point.  The return value is the number of
+UTF code units needed to encode that text from the LSP server's
+perspective.  This may be a number of octets, 16-bit words or
+Unicode code points, depending on whether the LSP server's
+`positionEncoding' capability is UTF-8, UTF-16 or UTF-32,
+respectively.  Position of point should remain unaltered if that
+return value is fed through the corresponding inverse function
+`eglot-move-to-linepos-function' (which see).")
 
 (defun eglot-utf-8-linepos ()
   "Calculate number of UTF-8 bytes from line beginning."
-  (length (encode-coding-region (line-beginning-position) (point)
-                                'utf-8-unix t)))
+  (length (encode-coding-region (eglot--bol) (point) 'utf-8-unix t)))
 
 (defun eglot-utf-16-linepos (&optional lbp)
   "Calculate number of UTF-16 code units from position given by LBP.
-LBP defaults to `line-beginning-position'."
-  (/ (- (length (encode-coding-region (or lbp (line-beginning-position))
+LBP defaults to `eglot--bol'."
+  (/ (- (length (encode-coding-region (or lbp (eglot--bol))
                                       ;; Fix github#860
                                       (min (point) (point-max)) 'utf-16 t))
         2)
@@ -1475,7 +1485,7 @@ LBP defaults to `line-beginning-position'."
 
 (defun eglot-utf-32-linepos ()
   "Calculate number of Unicode codepoints from line beginning."
-  (- (point) (line-beginning-position)))
+  (- (point) (eglot--bol)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
@@ -1509,7 +1519,7 @@ encoding and Eglot will set this variable automatically.")
 
 (defun eglot-move-to-utf-8-linepos (n)
   "Move to line's Nth byte as computed by LSP's UTF-8 criterion."
-  (let* ((bol (line-beginning-position))
+  (let* ((bol (eglot--bol))
          (goal-byte (+ (position-bytes bol) n))
          (eol (line-end-position)))
     (goto-char bol)
@@ -1520,7 +1530,7 @@ encoding and Eglot will set this variable automatically.")
 
 (defun eglot-move-to-utf-16-linepos (n)
   "Move to line's Nth code unit as computed by LSP's UTF-16 criterion."
-  (let* ((bol (line-beginning-position))
+  (let* ((bol (eglot--bol))
          (goal-char (+ bol n))
          (eol (line-end-position)))
     (goto-char bol)
@@ -1535,8 +1545,7 @@ encoding and Eglot will set this variable automatically.")
   ;; columns, which can be different from LSP characters in case of
   ;; `whitespace-mode', `prettify-symbols-mode', etc.  (github#296,
   ;; github#297)
-  (goto-char (min (+ (line-beginning-position) n)
-                  (line-end-position))))
+  (goto-char (min (+ (eglot--bol) n) (line-end-position))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
@@ -2186,7 +2195,7 @@ COMMAND is a symbol naming the command."
                            (eglot--widening
                             (goto-char (point-min))
                             (setq beg
-                                  (line-beginning-position
+                                  (eglot--bol
                                    (1+ (plist-get (plist-get range :start) :line))))
                             (setq end
                                   (line-end-position
@@ -2626,7 +2635,7 @@ Try to visit the target file for a richer summary line."
        (collect (lambda ()
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
-                                (bol (progn (goto-char beg) (line-beginning-position)))
+                                (bol (progn (goto-char beg) (eglot--bol)))
                                 (substring (buffer-substring bol (line-end-position)))
                                 (hi-beg (- beg bol))
                                 (hi-end (- (min (line-end-position) end) bol)))
@@ -2977,7 +2986,7 @@ for which LSP on-type-formatting should be requested."
            (looking-back
             (regexp-opt
              (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
-            (line-beginning-position))))
+            (eglot--bol))))
        :exit-function
        (lambda (proxy status)
          (when (memq status '(finished exact))
@@ -3587,20 +3596,30 @@ If NOERROR, return predicate, else erroring function."
          (paint-hint
           (eglot--lambda ((InlayHint) position kind label paddingLeft paddingRight)
             (goto-char (eglot--lsp-position-to-point position))
-            (let ((ov (make-overlay (point) (point)))
-                  (left-pad (and paddingLeft (not (memq (char-before) '(32 9)))))
-                  (right-pad (and paddingRight (not (memq (char-after) '(32 9)))))
-                  (text (if (stringp label)
-                            label (plist-get (elt label 0) :value))))
-              (overlay-put ov 'before-string
-                           (propertize
-                            (concat (and left-pad " ") text (and right-pad " "))
-                            'face (pcase kind
-                                    (1 'eglot-type-hint-face)
-                                    (2 'eglot-parameter-hint-face)
-                                    (_ 'eglot-inlay-hint-face))))
-              (overlay-put ov 'eglot--inlay-hint t)
-              (overlay-put ov 'eglot--overlay t)))))
+            (when (or (> (point) to) (< (point) from)) (cl-return))
+            (let ((left-pad (and paddingLeft
+                                 (not (memq (char-before) '(32 9))) " "))
+                  (right-pad (and paddingRight
+                                  (not (memq (char-after) '(32 9))) " ")))
+              (cl-flet
+                  ((do-it (text lpad rpad)
+                     (let ((ov (make-overlay (point) (point))))
+                       (overlay-put ov 'before-string
+                                    (propertize
+                                     (concat lpad text rpad)
+                                     'face (pcase kind
+                                             (1 'eglot-type-hint-face)
+                                             (2 'eglot-parameter-hint-face)
+                                             (_ 'eglot-inlay-hint-face))))
+                       (overlay-put ov 'eglot--inlay-hint t)
+                       (overlay-put ov 'eglot--overlay t))))
+                (if (stringp label) (do-it label left-pad right-pad)
+                  (cl-loop
+                   for i from 0 for ldetail across label
+                   do (eglot--dbind ((InlayHintLabelPart) value) ldetail
+                        (do-it value
+                               (and (zerop i) left-pad)
+                               (and (= i (1- (length label))) right-pad))))))))))
     (jsonrpc-async-request
      (eglot--current-server-or-lose)
      :textDocument/inlayHint

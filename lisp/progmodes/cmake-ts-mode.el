@@ -154,7 +154,7 @@
    :language 'cmake
    :feature 'variable
    :override t
-   '((variable) @font-lock-variable-ref-face)
+   '((variable) @font-lock-variable-use-face)
 
    :language 'cmake
    :feature 'error
