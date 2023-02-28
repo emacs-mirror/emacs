@@ -178,12 +178,12 @@
 
    :language 'go
    :feature 'property
-   '((selector_expression field: (field_identifier) @font-lock-property-ref-face)
-     (keyed_element (_ (identifier) @font-lock-property-ref-face)))
+   '((selector_expression field: (field_identifier) @font-lock-property-use-face)
+     (keyed_element (_ (identifier) @font-lock-property-use-face)))
 
    :language 'go
    :feature 'variable
-   '((identifier) @font-lock-variable-ref-face)
+   '((identifier) @font-lock-variable-use-face)
 
    :language 'go
    :feature 'escape-sequence

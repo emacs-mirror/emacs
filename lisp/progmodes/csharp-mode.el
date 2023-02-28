@@ -708,9 +708,9 @@ compilation and evaluation time conflicts."
   (treesit-font-lock-rules
    :language 'c-sharp
    :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-ref-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-ref-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-ref-face)))
+   '((conditional_expression (identifier) @font-lock-variable-use-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-use-face)))
 
    :language 'c-sharp
    :feature 'bracket
@@ -739,8 +739,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'property
-   `((attribute (identifier) @font-lock-property-ref-face (attribute_argument_list))
-     (attribute (identifier) @font-lock-property-ref-face))
+   `((attribute (identifier) @font-lock-property-use-face (attribute_argument_list))
+     (attribute (identifier) @font-lock-property-use-face))
 
    :language 'c-sharp
    :override t
@@ -878,23 +878,23 @@ compilation and evaluation time conflicts."
    :override t
    '((if_directive
       "if" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-ref-face)
+      (identifier) @font-lock-variable-use-face)
      (elif_directive
       "elif" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-ref-face)
+      (identifier) @font-lock-variable-use-face)
      (else_directive) @font-lock-preprocessor-face
      (endif_directive) @font-lock-preprocessor-face
      (define_directive
       "define" @font-lock-preprocessor-face
-      (identifier) @font-lock-variable-ref-face)
+      (identifier) @font-lock-variable-use-face)
      (nullable_directive) @font-lock-preprocessor-face
      (pragma_directive) @font-lock-preprocessor-face
      (region_directive) @font-lock-preprocessor-face
      (endregion_directive) @font-lock-preprocessor-face
      (region_directive
-      (preproc_message) @font-lock-variable-ref-face)
+      (preproc_message) @font-lock-variable-use-face)
      (endregion_directive
-      (preproc_message) @font-lock-variable-ref-face))))
+      (preproc_message) @font-lock-variable-use-face))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))

@@ -73,11 +73,11 @@ Do not call this mode function yourself.  It is meant for internal use."
   font-lock-keyword-face font-lock-negation-char-face
   font-lock-number-face font-lock-misc-punctuation-face
   font-lock-operator-face font-lock-preprocessor-face
-  font-lock-property-name-face font-lock-property-ref-face
+  font-lock-property-name-face font-lock-property-use-face
   font-lock-punctuation-face
   font-lock-regexp-grouping-backslash font-lock-regexp-grouping-construct
   font-lock-string-face font-lock-type-face font-lock-variable-name-face
-  font-lock-variable-ref-face
+  font-lock-variable-use-face
   font-lock-warning-face button link link-visited fringe
   header-line tooltip mode-line mode-line-buffer-id
   mode-line-emphasis mode-line-highlight mode-line-inactive

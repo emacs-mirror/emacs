@@ -1399,8 +1399,8 @@ for determining whether point is within a selector."
 
    :feature 'query
    :language 'css
-   '((keyword_query) @font-lock-property-ref-face
-     (feature_name) @font-lock-property-ref-face)
+   '((keyword_query) @font-lock-property-use-face
+     (feature_name) @font-lock-property-use-face)
 
    :feature 'bracket
    :language 'css

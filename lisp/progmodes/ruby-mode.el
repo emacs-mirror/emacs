@@ -909,7 +909,9 @@ This only affects the output of the command `ruby-toggle-block'."
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
      (cond
       ((not ruby-after-operator-indent)
-       (ruby-smie--indent-to-stmt ruby-indent-level))
+       (ruby-smie--indent-to-stmt (if (smie-indent--hanging-p)
+                                      ruby-indent-level
+                                    0)))
       ((and (smie-rule-parent-p ";" nil)
             (smie-indent--hanging-p))
        ruby-indent-level)))

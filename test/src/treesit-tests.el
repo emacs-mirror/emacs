@@ -977,22 +977,22 @@ and \"]\"."
 
 (defvar treesit--ert-defun-navigation-nested-master
   ;; START PREV-BEG NEXT-END PREV-END NEXT-BEG
-  '((0 103 105 102 106) ; Between Beg of parent & 1st sibling.
+  '((0 103 105 102 104) ; Between Beg of parent & 1st sibling.
     (1 103 105 102 106) ; Beg of 1st sibling.
     (2 104 105 102 106) ; Inside 1st sibling.
-    (3 104 107 102 109) ; End of 1st sibling.
-    (4 104 107 102 109) ; Between 1st sibling & 2nd sibling.
-    (5 104 107 102 109) ; Beg of 2nd sibling.
+    (3 104 107 102 106) ; End of 1st sibling.
+    (4 104 107 105 106) ; Between 1st sibling & 2nd sibling.
+    (5 104 107 105 109) ; Beg of 2nd sibling.
     (6 106 107 105 109) ; Inside 2nd sibling.
     (7 106 108 105 109) ; End of 2nd sibling.
-    (8 106 108 105 109) ; Between 2nd sibling & end of parent.
-    (9 103 110 102 nil) ; End of parent.
+    (8 106 108 107 109) ; Between 2nd sibling & end of parent.
+    (9 103 110 102 109) ; End of parent.
 
-    (100 nil 102 nil 103) ; Before 1st parent.
+    (100 nil 102 nil 101) ; Before 1st parent.
     (101 nil 102 nil 103) ; Beg of 1st parent.
-    (102 101 108 nil 109) ; Between 1st & 2nd parent.
-    (103 101 108 nil 109) ; Beg of 2nd parent.
-    (110 109 nil 108 nil) ; After 3rd parent.
+    (102 101 108 102 103) ; Between 1st & 2nd parent.
+    (103 101 108 102 109) ; Beg of 2nd parent.
+    (110 109 nil 110 nil) ; After 3rd parent.
     )
   "Master of nested navigation test.
 
@@ -1000,7 +1000,7 @@ This basically says, e.g., \"start with point on marker 0, go to
 the prev-beg, now point should be at marker 103\", etc.")
 
 (defvar treesit--ert-defun-navigation-top-level-master
-  ;; START PREV-BEG NEXT-END NEXT-BEG PREV-END
+  ;; START PREV-BEG NEXT-END PREV-END NEXT-BEG
   '((0 103 108 102 109) ; Between Beg of parent & 1st sibling.
     (1 103 108 102 109) ; Beg of 1st sibling.
     (2 103 108 102 109) ; Inside 1st sibling.
@@ -1010,14 +1010,14 @@ the prev-beg, now point should be at marker 103\", etc.")
     (6 103 108 102 109) ; Inside 2nd sibling.
     (7 103 108 102 109) ; End of 2nd sibling.
     (8 103 108 102 109) ; Between 2nd sibling & end of parent.
-    (9 103 110 102 nil) ; End of parent.
+    (9 103 110 102 109) ; End of parent.
 
     ;; Top-level defuns should be identical to the nested test.
-    (100 nil 102 nil 103) ; Before 1st parent.
+    (100 nil 102 nil 101) ; Before 1st parent.
     (101 nil 102 nil 103) ; Beg of 1st parent.
-    (102 101 108 nil 109) ; Between 1st & 2nd parent.
-    (103 101 108 nil 109) ; Beg of 2nd parent.
-    (110 109 nil 108 nil) ; After 3rd parent.
+    (102 101 108 102 103) ; Between 1st & 2nd parent.
+    (103 101 108 102 109) ; Beg of 2nd parent.
+    (110 109 nil 110 nil) ; After 3rd parent.
     )
   "Master of top-level navigation test.")
 

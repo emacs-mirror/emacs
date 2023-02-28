@@ -107,6 +107,15 @@ If you want to get back the old behavior, set the user option to the value
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
 
+** Compile
+
+*** New user option 'grep-use-headings'.
+When non-nil, the output of Grep is split into sections, one for each
+file, instead of having file names prefixed to each line.  It is
+equivalent to the --heading option of some tools such as 'git grep'
+and 'rg'.  The headings are displayed using the new 'grep-heading'
+face.
+
 ** VC
 
 ---
@@ -348,6 +357,21 @@ To compare by (structural) value, use 'equal', 'member', 'assoc',
 'rassoc', 'remove' or 'delete' instead.  Floats and bignums can also
 be compared using 'eql', '=' and 'memql'.  Function literals cannot be
 compared reliably at all.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
+*** Warn about 'condition-case' without handlers.
+The compiler now warns when the 'condition-case' form is used without
+any actual handlers, as in
+
+    (condition-case nil (read buffer))
+
+because it has no effect other than the execution of the body form.
+In particular, no errors are caught or suppressed.  If the intention
+was to catch all errors, add an explicit handler for 'error', or use
+'ignore-error' or 'ignore-errors'.
 
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.

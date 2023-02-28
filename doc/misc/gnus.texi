@@ -14509,13 +14509,23 @@ Here's an example method that's more complex:
 @end example
 
 @table @code
+@vindex nnimap-address
 @item nnimap-address
 The address of the server, like @samp{imap.gmail.com}.
 
+@vindex nnimap-user
+@item nnimap-user
+Username to use for authentication to the @acronym{IMAP} server.  This
+corresponds to the value of the @samp{login} token in your
+@file{~/.authinfo} file.  Set this variable if you want to access
+multiple accounts from the same @acronym{IMAP} server.
+
+@vindex nnimap-server-port
 @item nnimap-server-port
 If the server uses a non-standard port, that can be specified here.  A
 typical port would be @code{"imap"} or @code{"imaps"}.
 
+@vindex nnimap-stream
 @item nnimap-stream
 How @code{nnimap} should connect to the server.  Possible values are:
 
@@ -14546,6 +14556,7 @@ Non-encrypted and unsafe straight socket connection.
 
 @end table
 
+@vindex nnimap-authenticator
 @item nnimap-authenticator
 Some @acronym{IMAP} servers allow anonymous logins.  In that case,
 this should be set to @code{anonymous}.  If this variable isn't set,
@@ -14555,6 +14566,7 @@ specific login method to be used, you can set this variable to either
 @code{plain}, @code{cram-md5} or @code{xoauth2}.  (The latter method
 requires using the @file{oauth2.el} library.)
 
+@vindex nnimap-expunge
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
 are marked with the IMAP @code{\\Delete} flag but not automatically
@@ -14570,27 +14582,32 @@ EXPUNGE nil is equivalent to @code{never}, while t will immediately
 expunge ALL articles that are currently flagged as deleted
 (i.e., potentially not only the article that was just deleted).
 
+@vindex nnimap-streaming
 @item nnimap-streaming
 Virtually all @acronym{IMAP} server support fast streaming of data.
 If you have problems connecting to the server, try setting this to
 @code{nil}.
 
+@vindex nnimap-fetch-partial-articles
 @item nnimap-fetch-partial-articles
 If non-@code{nil}, fetch partial articles from the server.  If set to
 a string, then it's interpreted as a regexp, and parts that have
 matching types will be fetched.  For instance, @samp{"text/"} will
 fetch all textual parts, while leaving the rest on the server.
 
+@vindex nnimap-record-commands
 @item nnimap-record-commands
 If non-@code{nil}, record all @acronym{IMAP} commands in the
 @samp{"*imap log*"} buffer.
 
+@vindex nnimap-use-namespaces
 @item nnimap-use-namespaces
 If non-@code{nil}, omit the IMAP namespace prefix in nnimap group
 names.  If your IMAP mailboxes are called something like @samp{INBOX}
 and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
 be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
 
+@vindex nnimap-keepalive-intervals
 @item nnimap-keepalive-intervals
 By default, nnimap will send occasional @samp{NOOP} (keepalive)
 commands to the server, to keep the connection alive.  This option

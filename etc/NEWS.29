@@ -832,8 +832,8 @@ These faces are primarily meant for use with tree-sitter.  They are:
 'font-lock-escape-face', 'font-lock-function-call-face',
 'font-lock-misc-punctuation-face', 'font-lock-number-face',
 'font-lock-operator-face', 'font-lock-property-name-face',
-'font-lock-property-ref-face', 'font-lock-punctuation-face',
-'font-lock-regexp-face', and 'font-lock-variable-ref-face'.
+'font-lock-property-use-face', 'font-lock-punctuation-face',
+'font-lock-regexp-face', and 'font-lock-variable-use-face'.
 
 +++
 ** New face 'variable-pitch-text'.

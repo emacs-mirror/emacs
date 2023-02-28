@@ -1556,18 +1556,26 @@ command prompts for a @dfn{library name} rather than a file name; it
 searches through each directory in the Emacs Lisp load path, trying to
 find a file matching that library name.  If the library name is
 @samp{@var{foo}}, it tries looking for files named
-@file{@var{foo}.elc}, @file{@var{foo}.el}, and @file{@var{foo}}.  The
-default behavior is to load the first file found.  This command
-prefers @file{.elc} files over @file{.el} files because compiled files
-load and run faster.  If it finds that @file{@var{lib}.el} is newer
-than @file{@var{lib}.elc}, it issues a warning, in case someone made
-changes to the @file{.el} file and forgot to recompile it, but loads
-the @file{.elc} file anyway.  (Due to this behavior, you can save
-unfinished edits to Emacs Lisp source files, and not recompile until
-your changes are ready for use.)  If you set the option
-@code{load-prefer-newer} to a non-@code{nil} value, however, then
-rather than the procedure described above, Emacs loads whichever
-version of the file is newest.
+@file{@var{foo}.elc}, @file{@var{foo}.el}, and @file{@var{foo}}.  (If
+Emacs was built with native compilation enabled, @code{load-library}
+looks for a @samp{.eln} file that corresponds to @file{@var{foo}.el}
+and loads it instead of @file{@var{foo}.elc}.)  The default behavior
+is to load the first file found.  This command prefers @file{.eln}
+files over @file{.elc} files, and prefers @file{.elc} files over
+@file{.el} files, because compiled files load and run faster.  If it
+finds that @file{@var{lib}.el} is newer than @file{@var{lib}.elc}, it
+issues a warning, in case someone made changes to the @file{.el} file
+and forgot to recompile it, but loads the @file{.elc} file anyway.
+(Due to this behavior, you can save unfinished edits to Emacs Lisp
+source files, and not recompile until your changes are ready for use.)
+If you set the option @code{load-prefer-newer} to a non-@code{nil}
+value, however, then rather than the procedure described above, Emacs
+loads whichever version of the file is newest.  If Emacs was built
+with native compilation, and it cannot find the @samp{.eln} file
+corresponding to @file{@var{lib}.el}, it will load a
+@file{@var{lib}.elc} and start native compilation of
+@file{@var{lib}.el} in the background, then load the @samp{.eln} file
+when it finishes compilation.
 
   Emacs Lisp programs usually load Emacs Lisp files using the
 @code{load} function.  This is similar to @code{load-library}, but is
@@ -1603,6 +1611,11 @@ It is customary to put locally installed libraries in the
 @file{site-lisp} directory that is already in the default value of
 @code{load-path}, or in some subdirectory of @file{site-lisp}.  This
 way, you don't need to modify the default value of @code{load-path}.
+
+@vindex native-comp-eln-load-path
+  Similarly to @code{load-path}, the list of directories where Emacs
+looks for @file{*.eln} files with natively-compiled Lisp code is
+specified by the variable @code{native-comp-eln-load-path}.
 
 @cindex autoload
   Some commands are @dfn{autoloaded}; when you run them, Emacs

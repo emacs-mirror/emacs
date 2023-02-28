@@ -2482,7 +2482,8 @@ the United States."
   (interactive)
   (cond ((eq last-command 'calcDigit-start)
 	 (erase-buffer))
-	(t (backward-delete-char 1)))
+	(t (with-suppressed-warnings ((interactive-only backward-delete-char))
+             (backward-delete-char 1))))
   (if (= (calc-minibuffer-size) 0)
       (progn
 	(setq last-command-event 13)
