@@ -220,6 +220,24 @@ asynchronously (which is the default behavior).
 *** New face 'doc-view-svg-face'.
 This replaces 'doc-view-svg-foreground' and 'doc-view-svg-background'.
 
+** Shortdoc
+
++++
+*** New function 'shortdoc-function-examples'.
+This function queries the registered documentation groups and returns
+examples of use of a given Emacs Lisp function.
+
++++
+*** New function 'shortdoc-help-fns-examples-function'.
+This function queries the registered documentation groups and inserts
+examples of use of a given Emacs Lisp function into the current
+buffer.  If you want to insert Emacs Lisp function examples into
+regular *Help* buffers when you use 'describe-function', add the
+following to you init file:
+
+    (add-hook 'help-fns-describe-function-functions
+              #'shortdoc-help-fns-examples-function)
+
 
 * New Modes and Packages in Emacs 30.1
 

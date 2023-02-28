@@ -65,6 +65,16 @@
         (when buf
           (kill-buffer buf))))))
 
+(ert-deftest shortdoc-function-examples-test ()
+  "Test the extraction of usage examples of some Elisp functions."
+  (should (equal '((list . "(delete 2 (list 1 2 3 4))\n    => (1 3 4)\n  (delete \"a\" (list \"a\" \"b\" \"c\" \"d\"))\n    => (\"b\" \"c\" \"d\")"))
+                 (shortdoc-function-examples 'delete)))
+  (should (equal '((alist . "(assq 'foo '((foo . bar) (zot . baz)))\n    => (foo . bar)")
+		   (list . "(assq 'b '((a . 1) (b . 2)))\n    => (b . 2)"))
+                 (shortdoc-function-examples 'assq)))
+  (should (equal '((regexp . "(string-match-p \"^[fo]+\" \"foobar\")\n    => 0"))
+                 (shortdoc-function-examples 'string-match-p))))
+
 (provide 'shortdoc-tests)
 
 ;;; shortdoc-tests.el ends here

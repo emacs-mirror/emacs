@@ -989,3 +989,29 @@ in the function group to insert the function into.
 If @var{group} doesn't exist, it will be created.  If @var{section}
 doesn't exist, it will be added to the end of the function group.
 @end defun
+
+You can also query the examples of use of functions defined in
+shortdoc groups.
+
+@defun shortdoc-function-examples function
+This function returns all shortdoc examples for @var{function}.  The
+result is an alist with items of the form
+
+@example
+(@var{group} . @var{examples})
+@end example
+
+@noindent
+where @var{group} is a documentation group where @var{function}
+appears in and @var{examples} is a string with the examples of use of
+@var{function} defined in @var{group}.
+
+@code{shortdoc-function-examples} returns @code{nil} if @var{function}
+is not a function or if it doesn’t contain shortdoc information.
+@end defun
+
+@defun shortdoc-help-fns-examples-function function
+This function queries the registered documentation groups and inserts
+examples of use of a given Emacs Lisp function into the current
+buffer.
+@end defun
