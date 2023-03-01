@@ -59,7 +59,7 @@ import android.os.Build;
    Views are also drawables, meaning they can accept drawing
    requests.  */
 
-public class EmacsWindow extends EmacsHandleObject
+public final class EmacsWindow extends EmacsHandleObject
   implements EmacsDrawable
 {
   private static final String TAG = "EmacsWindow";

@@ -27,7 +27,7 @@ import android.content.Context;
 import android.app.Application;
 import android.util.Log;
 
-public class EmacsApplication extends Application
+public final class EmacsApplication extends Application
 {
   private static final String TAG = "EmacsApplication";
 

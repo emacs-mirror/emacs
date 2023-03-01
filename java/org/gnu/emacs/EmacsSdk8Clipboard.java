@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
    similarly old systems.  */
 
 @SuppressWarnings ("deprecation")
-public class EmacsSdk8Clipboard extends EmacsClipboard
+public final class EmacsSdk8Clipboard extends EmacsClipboard
 {
   private static final String TAG = "EmacsSdk8Clipboard";
   private ClipboardManager manager;

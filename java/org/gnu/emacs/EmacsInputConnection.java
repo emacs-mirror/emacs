@@ -36,7 +36,7 @@ import android.util.Log;
 
    See EmacsEditable for more details.  */
 
-public class EmacsInputConnection extends BaseInputConnection
+public final class EmacsInputConnection extends BaseInputConnection
 {
   private static final String TAG = "EmacsInputConnection";
   private EmacsView view;
@@ -241,6 +241,15 @@ public class EmacsInputConnection extends BaseInputConnection
       Log.d (TAG, "sendKeyEvent: " + key);
 
     return super.sendKeyEvent (key);
+  }
+
+  @Override
+  public boolean
+  deleteSurroundingTextInCodePoints (int beforeLength, int afterLength)
+  {
+    /* This can be implemented the same way as
+       deleteSurroundingText.  */
+    return this.deleteSurroundingText (beforeLength, afterLength);
   }
 
 

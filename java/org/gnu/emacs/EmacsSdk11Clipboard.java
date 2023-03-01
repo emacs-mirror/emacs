@@ -32,7 +32,7 @@ import java.io.UnsupportedEncodingException;
 /* This class implements EmacsClipboard for Android 3.0 and later
    systems.  */
 
-public class EmacsSdk11Clipboard extends EmacsClipboard
+public final class EmacsSdk11Clipboard extends EmacsClipboard
   implements ClipboardManager.OnPrimaryClipChangedListener
 {
   private static final String TAG = "EmacsSdk11Clipboard";

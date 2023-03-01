@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-public class EmacsDrawPoint
+public final class EmacsDrawPoint
 {
   public static void
   perform (EmacsDrawable drawable,

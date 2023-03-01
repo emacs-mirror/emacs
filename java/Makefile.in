@@ -281,9 +281,23 @@ $(APK_NAME): classes.dex emacs.apk-in emacs.keystore
 	$(AM_V_SILENT) $(APKSIGNER) $(SIGN_EMACS_V2) $@
 	$(AM_V_SILENT) rm -f $@.unaligned *.idsig
 
+# TAGS generation.
+
+ETAGS = $(top_builddir)/lib-src/etags
+
+$(ETAGS): FORCE
+	$(MAKE) -C ../lib-src $(notdir $@)
+
+tagsfiles = $(JAVA_FILES) $(RESOURCE_FILE)
+
+.PHONY: tags FORCE
+tags: TAGS
+TAGS: $(ETAGS) $(tagsfiles)
+	$(AM_V_GEN) $(ETAGS) $(tagsfiles)
+
 clean:
 	rm -f *.apk emacs.apk-in *.dex *.unaligned *.class *.idsig
-	rm -rf install-temp $(RESOURCE_FILE)
+	rm -rf install-temp $(RESOURCE_FILE) TAGS
 	find . -name '*.class' -delete
 
 maintainer-clean distclean bootstrap-clean: clean

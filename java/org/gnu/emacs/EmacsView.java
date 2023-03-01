@@ -51,7 +51,7 @@ import android.util.Log;
 
    It is also a ViewGroup, as it also lays out children.  */
 
-public class EmacsView extends ViewGroup
+public final class EmacsView extends ViewGroup
 {
   public static final String TAG = "EmacsView";
 

@@ -29,7 +29,7 @@ import android.os.Build;
 
 /* Drawable backed by bitmap.  */
 
-public class EmacsPixmap extends EmacsHandleObject
+public final class EmacsPixmap extends EmacsHandleObject
   implements EmacsDrawable
 {
   /* The depth of the bitmap.  This is not actually used, just defined

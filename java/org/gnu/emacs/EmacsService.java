@@ -82,7 +82,7 @@ class Holder<T>
 /* EmacsService is the service that starts the thread running Emacs
    and handles requests by that Emacs instance.  */
 
-public class EmacsService extends Service
+public final class EmacsService extends Service
 {
   public static final String TAG = "EmacsService";
   public static final int MAX_PENDING_REQUESTS = 256;

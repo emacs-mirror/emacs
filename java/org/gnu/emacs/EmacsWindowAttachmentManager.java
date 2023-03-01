@@ -50,7 +50,7 @@ import android.util.Log;
    Finally, every time a window is removed, the consumer is
    destroyed.  */
 
-public class EmacsWindowAttachmentManager
+public final class EmacsWindowAttachmentManager
 {
   public static EmacsWindowAttachmentManager MANAGER;
   private final static String TAG = "EmacsWindowAttachmentManager";

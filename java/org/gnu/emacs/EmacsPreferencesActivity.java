@@ -42,7 +42,7 @@ import android.preference.*;
    Unfortunately, there is no alternative that looks the same way.  */
 
 @SuppressWarnings ("deprecation")
-public class EmacsPreferencesActivity extends PreferenceActivity
+public final class EmacsPreferencesActivity extends PreferenceActivity
 {
   /* Restart Emacs with -Q.  Call EmacsThread.exit to kill Emacs now, and
      tell the system to EmacsActivity with some parameters later.  */

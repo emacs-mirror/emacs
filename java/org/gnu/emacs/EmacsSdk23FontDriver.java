@@ -22,7 +22,7 @@ package org.gnu.emacs;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-public class EmacsSdk23FontDriver extends EmacsSdk7FontDriver
+public final class EmacsSdk23FontDriver extends EmacsSdk7FontDriver
 {
   private void
   textExtents1 (Sdk7FontObject font, int code, FontMetrics metrics,

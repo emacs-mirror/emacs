@@ -29,7 +29,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
-public class EmacsFillPolygon
+public final class EmacsFillPolygon
 {
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc, Point points[])

@@ -29,7 +29,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
 
-public class EmacsDrawLine
+public final class EmacsDrawLine
 {
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc,

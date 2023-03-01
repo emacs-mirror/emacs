@@ -29,7 +29,7 @@ import android.graphics.Xfermode;
 /* X like graphics context structures.  Keep the enums in synch with
    androidgui.h! */
 
-public class EmacsGC extends EmacsHandleObject
+public final class EmacsGC extends EmacsHandleObject
 {
   public static final int GC_COPY = 0;
   public static final int GC_XOR  = 1;

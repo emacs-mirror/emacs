@@ -38,7 +38,7 @@ import android.view.ViewGroup;
    describes a single alert dialog.  Then, `inflate' turns it into
    AlertDialog.  */
 
-public class EmacsDialog implements DialogInterface.OnDismissListener
+public final class EmacsDialog implements DialogInterface.OnDismissListener
 {
   private static final String TAG = "EmacsDialog";
 

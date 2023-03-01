@@ -35,7 +35,7 @@ import java.lang.ref.WeakReference;
    own back buffers, which use too much memory (up to 96 MB for a
    single frame.) */
 
-public class EmacsSurfaceView extends View
+public final class EmacsSurfaceView extends View
 {
   private static final String TAG = "EmacsSurfaceView";
   private EmacsView view;

@@ -27,7 +27,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
 
-public class EmacsCopyArea
+public final class EmacsCopyArea
 {
   private static Xfermode overAlu;
 

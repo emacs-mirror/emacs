@@ -68,7 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
-public class EmacsOpenActivity extends Activity
+public final class EmacsOpenActivity extends Activity
   implements DialogInterface.OnClickListener
 {
   private static final String TAG = "EmacsOpenActivity";

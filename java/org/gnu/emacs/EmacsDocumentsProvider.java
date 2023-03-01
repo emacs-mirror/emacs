@@ -48,7 +48,7 @@ import java.io.IOException;
 
    This functionality is only available on Android 19 and later.  */
 
-public class EmacsDocumentsProvider extends DocumentsProvider
+public final class EmacsDocumentsProvider extends DocumentsProvider
 {
   /* Home directory.  This is the directory whose contents are
      initially returned to requesting applications.  */

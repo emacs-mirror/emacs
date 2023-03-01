@@ -108,7 +108,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   detachWindow ()
   {
     syncFullscreenWith (null);
@@ -131,7 +131,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   attachWindow (EmacsWindow child)
   {
     Log.d (TAG, "attachWindow: " + child);
@@ -161,21 +161,21 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   destroy ()
   {
     finish ();
   }
 
   @Override
-  public EmacsWindow
+  public final EmacsWindow
   getAttachedWindow ()
   {
     return window;
   }
 
   @Override
-  public void
+  public final void
   onCreate (Bundle savedInstanceState)
   {
     FrameLayout.LayoutParams params;
@@ -238,7 +238,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onWindowFocusChanged (boolean isFocused)
   {
     Log.d (TAG, ("onWindowFocusChanged: "
@@ -256,7 +256,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onPause ()
   {
     isPaused = true;
@@ -266,7 +266,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onResume ()
   {
     isPaused = false;
@@ -279,7 +279,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onContextMenuClosed (Menu menu)
   {
     Log.d (TAG, "onContextMenuClosed: " + menu);
@@ -298,7 +298,7 @@ public class EmacsActivity extends Activity
   }
 
   @SuppressWarnings ("deprecation")
-  public void
+  public final void
   syncFullscreenWith (EmacsWindow emacsWindow)
   {
     WindowInsetsController controller;
@@ -372,7 +372,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onAttachedToWindow ()
   {
     super.onAttachedToWindow ();

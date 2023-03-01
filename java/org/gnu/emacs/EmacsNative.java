@@ -25,7 +25,7 @@ import android.content.res.AssetManager;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 
-public class EmacsNative
+public final class EmacsNative
 {
   /* List of native libraries that must be loaded during class
      initialization.  */

@@ -27,7 +27,7 @@ import android.graphics.RectF;
 
 import android.util.Log;
 
-public class EmacsDrawRectangle
+public final class EmacsDrawRectangle
 {
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc,

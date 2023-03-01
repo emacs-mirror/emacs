@@ -42,7 +42,7 @@ import android.widget.PopupMenu;
    Android menu, which can be turned into a popup (or other kind of)
    menu.  */
 
-public class EmacsContextMenu
+public final class EmacsContextMenu
 {
   private static final String TAG = "EmacsContextMenu";
 

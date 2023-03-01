@@ -44,7 +44,7 @@ import java.lang.reflect.Method;
    initializes Emacs.  */
 
 @SuppressWarnings ("unchecked")
-public class EmacsNoninteractive
+public final class EmacsNoninteractive
 {
   private static String
   getLibraryDirectory (Context context)
