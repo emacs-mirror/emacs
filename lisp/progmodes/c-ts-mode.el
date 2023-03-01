@@ -356,17 +356,17 @@ MODE is either `c' or `cpp'."
 
            ;; int[5] a = { 0, 0, 0, 0 };
            ((match nil "initializer_list" nil 1 1) parent-bol c-ts-mode-indent-offset)
-           ((match nil "initializer_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "initializer_list") c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in enum.
            ((match nil "enumerator_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "enumerator_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "enumerator_list") c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in struct and union.
            ((match nil "field_declaration_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "field_declaration_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "field_declaration_list") c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
            ((match nil "compound_statement" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "compound_statement" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "compound_statement") c-ts-mode--anchor-prev-sibling 0)
            ;; Opening bracket.
            ((node-is "compound_statement") standalone-parent c-ts-mode-indent-offset)
            ;; Bug#61291.
