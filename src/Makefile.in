@@ -807,7 +807,7 @@ ns-app: emacs$(EXEEXT) $(pdmp)
 .PHONY: versionclean
 
 mostlyclean:
-	rm -f aemacs emacs.so
+	rm -f android-emacs libemacs.so
 	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
 	rm -f dmpstruct.h
 	rm -f emacs.pdmp

@@ -32,12 +32,6 @@ top_builddir = @top_builddir@
 # $(top_builddir)/lib-src/Makefile.android are copied to their usual
 # locations in this directory.
 
-# Finally, the following commands are executed in order, to produce
-# libgnu.a, various binaries in lib-src, and src/aemacs:
-#   make -C lib libgnu.a
-#   make -C lib-src src/aemacs
-#   make -C src aemacs
-
 # This is possibly the ugliest Makefile ever written!
 
 LIB_SRCDIR = $(realpath ./lib)
