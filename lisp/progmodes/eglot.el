@@ -130,7 +130,8 @@
 (defvar markdown-fontify-code-blocks-natively)
 (defvar company-backends)
 (defvar company-tooltip-align-annotations)
-
+(defvar tramp-ssh-controlmaster-options)
+(defvar tramp-use-ssh-controlmaster-options)
 
 
 ;;; User tweakable stuff
@@ -1249,7 +1250,15 @@ This docstring appeases checkdoc, that's all."
                         (contact (cl-subseq contact 0 probe)))
                    `(:process
                      ,(lambda ()
-                        (let ((default-directory default-directory))
+                        (let ((default-directory default-directory)
+                              ;; bug#61350: Tramp turns on a feature
+                              ;; by default that can't (yet) handle
+                              ;; very much data so we turn it off
+                              ;; unconditionally -- just for our
+                              ;; process.
+                              (tramp-use-ssh-controlmaster-options t)
+                              (tramp-ssh-controlmaster-options
+                               "-o ControlMaster=no -o ControlPath=none"))
                           (make-process
                            :name readable-name
                            :command (setq server-info (eglot--cmd contact))
