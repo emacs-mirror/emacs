@@ -916,11 +916,14 @@ This only affects the output of the command `ruby-toggle-block'."
             (smie-indent--hanging-p))
        ruby-indent-level)))
     (`(:before . "=")
-     (save-excursion
-      (and (smie-rule-parent-p " @ ")
-           (goto-char (nth 1 (smie-indent--parent)))
-           (smie-rule-prev-p "def=")
-           (cons 'column (+ (current-column) ruby-indent-level -3)))))
+     (or
+      (save-excursion
+        (and (smie-rule-parent-p " @ ")
+             (goto-char (nth 1 (smie-indent--parent)))
+             (smie-rule-prev-p "def=")
+             (cons 'column (+ (current-column) ruby-indent-level -3))))
+      (and (smie-rule-parent-p ",")
+           (smie-rule-parent))))
     (`(:after . ,(or "?" ":"))
      (if ruby-after-operator-indent
          ruby-indent-level

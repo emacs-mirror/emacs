@@ -163,6 +163,11 @@ if something == :==
   )
 end
 
+# Bug#61871
+foo, bar = baz.(
+  some_arg
+)
+
 # Bug#17097
 if x == :!=
   something

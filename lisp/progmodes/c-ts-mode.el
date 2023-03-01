@@ -88,19 +88,23 @@
   :safe 'integerp
   :group 'c)
 
-(defun c-ts-mode-toggle-comment-style ()
+(defun c-ts-mode-toggle-comment-style (&optional arg)
   "Toggle the comment style between block and line comments.
 Optional numeric ARG, if supplied, switches to block comment
 style when positive, to line comment style when negative, and
 just toggles it when zero or left out."
-  (interactive)
-  (pcase-let ((`(,starter . ,ender)
-               (if (string= comment-start "// ")
-                   (cons "/* " " */")
-                 (cons "// " ""))))
-    (setq-local comment-start starter
-                comment-end ender))
-  (c-ts-mode-set-modeline))
+  (interactive "P")
+  (let ((prevstate-line (string= comment-start "// ")))
+    (when (or (not arg)
+              (zerop (setq arg (prefix-numeric-value arg)))
+              (xor (> 0 arg) prevstate-line))
+      (pcase-let ((`(,starter . ,ender)
+                   (if prevstate-line
+                       (cons "/* " " */")
+                     (cons "// " ""))))
+        (setq-local comment-start starter
+                    comment-end ender))
+      (c-ts-mode-set-modeline))))
 
 (defun c-ts-mode-set-modeline ()
   (setq mode-name
