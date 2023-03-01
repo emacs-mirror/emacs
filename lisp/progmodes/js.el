@@ -58,11 +58,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'ido)
   (require 'rx))
 
-(defvar ido-cur-list)
-(declare-function ido-mode "ido" (&optional arg))
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-induce-sparse-tree "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
@@ -3288,11 +3285,7 @@ one from `js--get-all-known-symbols', using prompt PROMPT and
 initial input INITIAL-INPUT.  Return a cons of (SYMBOL-NAME
 . LOCATION), where SYMBOL-NAME is a string and LOCATION is a
 marker."
-  (unless ido-mode
-    (ido-mode 1)
-    (ido-mode -1))
-
-  (let ((choice (ido-completing-read
+  (let ((choice (completing-read
                  prompt
                  (cl-loop for key being the hash-keys of symbols-table
                           collect key)
