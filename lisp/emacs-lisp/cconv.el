@@ -477,7 +477,7 @@ places where they originally did not directly appear."
                                         branch))
                               cond-forms)))
 
-    (`(function (lambda ,args . ,body) . ,_)
+    (`(function (lambda ,args . ,body) . ,rest)
      (let* ((docstring (if (eq :documentation (car-safe (car body)))
                            (cconv-convert (cadr (pop body)) env extend)))
             (bf (if (stringp (car body)) (cdr body) body))
@@ -485,15 +485,32 @@ places where they originally did not directly appear."
                   (gethash form cconv--interactive-form-funs)))
             (wrapped (pcase if (`#'(lambda (&rest _cconv--dummy) .,_) t) (_ nil)))
             (cif (when if (cconv-convert if env extend)))
-            (_ (pcase cif
-                 ('nil nil)
-                 (`#',f
-                  (setf (cadr (car bf)) (if wrapped (nth 2 f) cif))
-                  (setq cif nil))
-                 ;; The interactive form needs special treatment, so the form
-                 ;; inside the `interactive' won't be used any further.
-                 (_ (setf (cadr (car bf)) nil))))
-            (cf (cconv--convert-function args body env form docstring)))
+            (cf nil))
+       ;; TODO: Because we need to non-destructively modify body, this code
+       ;; is particularly ugly.  This should ideally be moved to
+       ;; cconv--convert-function.
+       (pcase cif
+         ('nil (setq bf nil))
+         (`#',f
+          (pcase-let ((`((,f1 . (,_ . ,f2)) . ,f3) bf))
+            (setq bf `((,f1 . (,(if wrapped (nth 2 f) cif) . ,f2)) . ,f3)))
+          (setq cif nil))
+         ;; The interactive form needs special treatment, so the form
+         ;; inside the `interactive' won't be used any further.
+         (_ (pcase-let ((`((,f1 . (,_ . ,f2)) . ,f3) bf))
+              (setq bf `((,f1 . (nil . ,f2)) . ,f3)))))
+       (when bf
+         ;; If we modified bf, re-build body and form as
+         ;; copies with the modified bits.
+         (setq body (if (stringp (car body))
+                        (cons (car body) bf)
+                      bf)
+               form `(function (lambda ,args . ,body) . ,rest))
+         ;; Also, remove the current old entry on the alist, replacing
+         ;; it with the new one.
+         (let ((entry (pop cconv-freevars-alist)))
+           (push (cons body (cdr entry)) cconv-freevars-alist)))
+       (setq cf (cconv--convert-function args body env form docstring))
        (if (not cif)
            ;; Normal case, the interactive form needs no special treatment.
            cf
