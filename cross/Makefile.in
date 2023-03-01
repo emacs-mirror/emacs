@@ -18,6 +18,7 @@
 # along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 top_srcdir = @top_srcdir@
+srcdir = @srcdir@
 top_builddir = @top_builddir@
 
 -include $(top_builddir)/src/verbose.mk
@@ -34,7 +35,7 @@ top_builddir = @top_builddir@
 
 # This is possibly the ugliest Makefile ever written!
 
-LIB_SRCDIR = $(realpath ./lib)
+LIB_SRCDIR = $(realpath $(srcdir)/lib)
 LIB_TOP_SRCDIR = $(realpath $(top_srcdir))
 
 SRC_SRCDIR = $(realpath $(top_srcdir)/src)
@@ -61,9 +62,10 @@ all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
 config.status: $(top_srcdir)/config.status
 	$(AM_V_GEN) touch config.status
 
-src/verbose.mk: verbose.mk.android
+src/verbose.mk: $(srcdir)/verbose.mk.android
 	$(AM_V_GEN) mkdir -p src
-	$(AM_V_SILENT) cp -f verbose.mk.android src/verbose.mk
+	$(AM_V_SILENT) cp -f $(srcdir)/verbose.mk.android \
+	  src/verbose.mk
 
 # Gnulib, make-fingerprint and make-docfile must be built before
 # entering any of the rules below, or they will get the Android
@@ -86,21 +88,25 @@ PRE_BUILD_DEPS=$(top_builddir)/lib/libgnu.a		\
 	       $(top_builddir)/lib-src/make-docfile
 
 lib/config.h: $(top_builddir)/src/config.h.android
-	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android \
+	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
 	  lib/config.h
 
 lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
-	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/gnulib.mk.android \
+	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/gnulib.mk.android	\
 	  lib/gnulib.mk
 	$(AM_V_SILENT) \
-	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g'	\
 	  lib/gnulib.mk
 
 lib/Makefile: $(top_builddir)/lib/Makefile.android
-	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/Makefile.android \
-	  lib/Makefile
+	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/Makefile.android	\
+	     lib/Makefile
 	$(AM_V_SILENT) \
 	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	  lib/Makefile \
+        && sed -i 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	  lib/Makefile							  \
+	&& sed -i 's/VPATH =.*$$/VPATH = $(subst /,\/,$(LIB_SRCDIR))/g' \
 	  lib/Makefile
 
 # What is needed to build gnulib.
@@ -137,10 +143,10 @@ src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
 # cross-compiled binaries at ./lib-src.
 	$(AM_V_SILENT) \
 	sed -i 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' src/Makefile
-# Edit out anything saying -I($(top_srcdir)/lib); that should be
-# covered by -I$(lib)
+# Edit out anything saying -I($(top_srcdir)/lib) into
+# -I$../(srcdir)/lib; that should be covered by -I$(lib)
 	$(AM_V_SILENT) \
-	sed -i 's/-I\$$(top_srcdir)\/lib//g' src/Makefile
+	sed -i 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' src/Makefile
 
 .PHONY: src/android-emacs src/libemacs.so
 
@@ -167,6 +173,9 @@ lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
 # Edit out SCRIPTS, it interferes with the build.
 	$(AM_V_SILENT) \
 	sed -i 's/^SCRIPTS=.*$$/SCRIPTS=/g' lib-src/Makefile
+# Make BASE_CFLAGS also include cross/lib as well as ../lib.
+	$(AM_V_SILENT) \
+	sed -i 's/-I\.\.\/lib/-I..\/lib -I..\/$(subst /,\/,$(srcdir))\/lib/g' lib-src/Makefile
 
 .PHONY: $(LIBSRC_BINARIES)
 $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
@@ -181,7 +190,8 @@ clean:
 	  make -C lib clean;		\
 	fi
 	rm -rf lib/config.h
-	make -C ndk-build clean
+# ndk-build won't have been generated in a non-Android build.
+	-make -C ndk-build clean
 
 distclean bootstrap-clean: clean
 	if [ -e lib/Makefile ]; then		\

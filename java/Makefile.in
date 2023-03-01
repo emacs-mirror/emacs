@@ -20,6 +20,7 @@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 srcdir = @srcdir@
+builddir = @builddir@
 version = @version@
 
 # This is the host lib-src and lib, not the cross compiler's lib-src.
@@ -40,7 +41,8 @@ ANDROID_JAR = @ANDROID_JAR@
 ANDROID_ABI = @ANDROID_ABI@
 ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
 ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
-JAVAFLAGS = @JAVAFLAGS@
+WARN_JAVAFLAGS = @WARN_JAVAFLAGS@
+JAVAFLAGS = $(WARN_JAVAFLAGS) -classpath "$(ANDROID_JAR):$(srcdir)"
 
 # Android 4.3 and earlier require Emacs to be signed with a different
 # digital signature algorithm.
@@ -61,9 +63,11 @@ else
 AAPT_ASSET_ARGS =
 endif
 
-SIGN_EMACS = -keystore emacs.keystore -storepass emacs1 $(JARSIGNER_FLAGS)
-SIGN_EMACS_V2 = sign --v2-signing-enabled --ks emacs.keystore	\
-	--debuggable-apk-permitted --ks-pass pass:emacs1
+SIGN_EMACS = -keystore $(srcdir)/emacs.keystore -storepass	\
+	emacs1 $(JARSIGNER_FLAGS)
+SIGN_EMACS_V2 = sign --v2-signing-enabled --ks			\
+	$(srcdir)/emacs.keystore -debuggable-apk-permitted	\
+	--ks-pass pass:emacs1
 
 JAVA_FILES := $(wildcard $(srcdir)/org/gnu/emacs/*.java)
 RESOURCE_FILES := $(foreach file,$(wildcard $(srcdir)/res/*),	\
@@ -128,7 +132,7 @@ CROSS_LIBS = $(top_builddir)/cross/src/libemacs.so
 CROSS_ARCHIVES = $(top_builddir)/cross/lib/libgnu.a
 
 # Third party libraries to compile.
-include $(top_builddir)/cross/ndk-build/ndk-build.mk
+-include $(top_builddir)/cross/ndk-build/ndk-build.mk
 
 .PHONY: $(CROSS_BINS) $(CROSS_LIBS) $(CROSS_ARCHIVES)
 
@@ -169,9 +173,9 @@ install_temp: $(CROSS_BINS) $(CROSS_LIBS) $(RESOURCE_FILES)
 	$(AM_V_SILENT) mkdir -p install_temp/assets/lisp
 	$(AM_V_SILENT) mkdir -p install_temp/assets/info
 # Install architecture independents to assets/etc and assets/lisp
-	$(AM_V_SILENT) cp -r $(top_builddir)/lisp install_temp/assets
-	$(AM_V_SILENT) cp -r $(top_builddir)/etc install_temp/assets
-	$(AM_V_SILENT) cp -r $(top_builddir)/info install_temp/assets
+	$(AM_V_SILENT) cp -r $(top_srcdir)/lisp install_temp/assets
+	$(AM_V_SILENT) cp -r $(top_srcdir)/etc install_temp/assets
+	$(AM_V_SILENT) cp -r $(top_srcdir)/info install_temp/assets
 # Remove undesirable files from those directories.
 	$(AM_V_SILENT)						\
 	for subdir in `find install_temp -type d -print`; do	\
@@ -227,28 +231,29 @@ emacs.apk-in: install_temp install_temp/assets/directory-tree \
 	$(AM_V_AAPT) $(AAPT) p -I "$(ANDROID_JAR)" -F $@   \
 	  -f -M AndroidManifest.xml $(AAPT_ASSET_ARGS)	   \
 	  -A install_temp/assets			   \
-	  -S res -J install_temp
+	  -S $(top_srcdir)/java/res -J install_temp
 	$(AM_V_SILENT) pushd install_temp &> /dev/null;	\
 	  $(AAPT) add ../$@ `find lib -type f`;		\
 	popd &> /dev/null
 	$(AM_V_SILENT) rm -rf install_temp
 
 # Makefile itself.
-.PRECIOUS: ../config.status Makefile
-../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
+.PRECIOUS: $(top_srcdir)/config.status Makefile
+$(top_srcdir)/config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
 	$(MAKE) -C $(dir $@) $(notdir $@)
-Makefile: ../config.status $(top_builddir)/java/Makefile.in
+Makefile: $(top_srcdir)/config.status $(top_srcdir)/java/Makefile.in
 	$(MAKE) -C .. java/$@
 
 # AndroidManifest.xml:
 AndroidManifest.xml: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4 \
-  AndroidManifest.xml.in
+  $(srcdir)/AndroidManifest.xml.in
 	pushd ..; ./config.status java/AndroidManifest.xml; popd
 
 # R.java:
 $(RESOURCE_FILE): $(RESOURCE_FILES)
-	$(AM_V_GEN) $(AAPT) p -I "$(ANDROID_JAR)" -f \
-	  -J $(dir $@) -M AndroidManifest.xml -S res
+	$(AM_V_GEN) $(AAPT) p -I "$(ANDROID_JAR)" -f	\
+	  -J $(dir $@) -M AndroidManifest.xml		\
+	  -S $(top_srcdir)/java/res
 
 # Make all class files depend on R.java being built.
 $(CLASS_FILES): $(RESOURCE_FILE)
@@ -261,8 +266,9 @@ $(CLASS_FILES) &: $(JAVA_FILES)
 # nested classes.
 
 classes.dex: $(CLASS_FILES)
-	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR) \
-	  $(subst $$,\$$,$(shell find . -type f -name *.class))
+	$(AM_V_D8) $(D8) --classpath $(ANDROID_JAR)		\
+	  $(subst $$,\$$,$(shell find $(srcdir) -type f		\
+	    -name *.class)) --output $(builddir)
 
 # When emacs.keystore expires, regenerate it with:
 #
@@ -271,7 +277,7 @@ classes.dex: $(CLASS_FILES)
 
 .PHONY: clean maintainer-clean
 
-$(APK_NAME): classes.dex emacs.apk-in emacs.keystore
+$(APK_NAME): classes.dex emacs.apk-in $(srcdir)/emacs.keystore
 	$(AM_V_GEN)
 	$(AM_V_SILENT) cp -f emacs.apk-in $@.unaligned
 	$(AM_V_SILENT) $(AAPT) add $@.unaligned classes.dex
