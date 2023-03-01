@@ -178,7 +178,7 @@ Alternatively, return nil if the clipboard is empty.  */)
 						bytes);
   data = (*android_java_env)->GetByteArrayElements (android_java_env,
 						    bytes, NULL);
-  android_exception_check_1 (bytes);
+  android_exception_check_nonnull (data, bytes);
 
   string = make_unibyte_string ((char *) data, length);
 

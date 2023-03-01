@@ -4370,6 +4370,8 @@ android_query_tree (android_window handle, android_window *root_return,
   shorts
     = (*android_java_env)->GetShortArrayElements (android_java_env, array,
 						  NULL);
+  android_exception_check_nonnull (shorts, array);
+
   for (i = 1; i < nelements; ++i)
     children[i] = shorts[i];
 
@@ -4422,6 +4424,7 @@ android_get_geometry (android_window handle,
     = (*android_java_env)->GetIntArrayElements (android_java_env,
 						window_geometry,
 						NULL);
+  android_exception_check_nonnull (ints, window_geometry);
 
   *x_return = ints[0];
   *y_return = ints[1];
@@ -4477,7 +4480,7 @@ android_translate_coordinates (android_window src, int x,
   /* Obtain the coordinates from the array.  */
   ints = (*android_java_env)->GetIntArrayElements (android_java_env,
 						   coordinates, NULL);
-  android_exception_check_1 (coordinates);
+  android_exception_check_nonnull (ints, coordinates);
 
   *root_x = ints[0];
   *root_y = ints[1];
@@ -5302,6 +5305,26 @@ android_exception_check_2 (jobject object, jobject object1)
     }
 }
 
+/* Check for JNI problems based on the value of OBJECT.
+
+   Signal out of memory if OBJECT is NULL.  OBJECT1 means the
+   same as in `android_exception_check_1'.
+
+   This function is useful when checking for errors from JNI
+   functions that do not set exceptions on failure, such as
+   `GetIntArrayElements'.  */
+
+void
+android_exception_check_nonnull (void *object, jobject object1)
+{
+  if (object)
+    return;
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  memory_full (0);
+}
 
 
 
@@ -5656,7 +5679,7 @@ android_query_battery (struct android_battery_state *status)
 
   longs = (*android_java_env)->GetLongArrayElements (android_java_env,
 						     array, NULL);
-  android_exception_check_1 (array);
+  android_exception_check_nonnull (longs, array);
 
   status->capacity = longs[0];
   status->charge_counter = longs[1];
