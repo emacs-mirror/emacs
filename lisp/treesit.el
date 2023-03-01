@@ -1532,14 +1532,24 @@ Similar to `treesit-indent', but indent a region instead."
                     (aref meta-vec (+ 1 (* idx meta-len))) nil)
             (pcase-let* ((`(,anchor . ,offset) (treesit--indent-1))
                          (marker (aref meta-vec (* idx meta-len))))
-              ;; Set ANCHOR.
-              (when anchor
+              (if (not (and anchor offset))
+                  ;; No indent for this line, either...
+                  (if (markerp marker)
+                      (progn
+                        ;; ... Set marker and offset to do a dummy
+                        ;; indent, or...
+                        (back-to-indentation)
+                        (move-marker marker (point))
+                        (setf (aref meta-vec (+ 1 (* idx meta-len))) 0))
+                    ;; ...Set anchor to nil so no indent is performed.
+                    (setf (aref meta-vec (* idx meta-len)) nil))
+                ;; Set ANCHOR.
                 (if (markerp marker)
                     (move-marker marker anchor)
                   (setf (aref meta-vec (* idx meta-len))
-                        (copy-marker anchor t))))
-              ;; SET OFFSET.
-              (setf (aref meta-vec (+ 1 (* idx meta-len))) offset)))
+                        (copy-marker anchor t)))
+                ;; SET OFFSET.
+                (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))))
           (cl-incf idx)
           (setq lines-left-to-move (forward-line 1)))
         ;; Now IDX = last valid IDX + 1.
