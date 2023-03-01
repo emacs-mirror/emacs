@@ -3662,6 +3662,15 @@ If NOERROR, return predicate, else erroring function."
   (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore)))
 
 
+;;; Misc
+;;;
+(defun eglot--debbugs-or-github-bug-uri ()
+  (format (if (string= (match-string 2) "github")
+              "https://github.com/joaotavora/eglot/issues/%s"
+            "https://debbugs.gnu.org/%s")
+          (match-string 3)))
+(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+
 ;;; Obsolete
 ;;;
 
@@ -3671,8 +3680,8 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;; Local Variables:
-;; bug-reference-bug-regexp: "\\(github#\\([0-9]+\\)\\)"
-;; bug-reference-url-format: "https://github.com/joaotavora/eglot/issues/%s"
+;; bug-reference-bug-regexp: "\\(\\(github\\|bug\\)#\\([0-9]+\\)\\)"
+;; bug-reference-url-format: eglot--debbugs-or-github-bug-uri
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
 
