@@ -187,13 +187,6 @@ public class EmacsActivity extends Activity
       = intent.getBooleanExtra ("org.gnu.emacs.START_DASH_Q",
 				false);
 
-    /* Set the theme to one without a title bar.  */
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-      setTheme (android.R.style.Theme_DeviceDefault_NoActionBar);
-    else
-      setTheme (android.R.style.Theme_NoTitleBar);
-
     params = new FrameLayout.LayoutParams (LayoutParams.MATCH_PARENT,
 					   LayoutParams.MATCH_PARENT);
 
