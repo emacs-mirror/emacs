@@ -257,7 +257,7 @@ is actually the parent of point at the moment of indentation."
         0
       c-ts-mode-indent-offset)))
 
-(defun c-ts-mode--anchor-prev-sibling (node &rest _)
+(defun c-ts-mode--anchor-prev-sibling (node parent bol &rest _)
   "Return the start of the previous named sibling of NODE.
 
 This anchor handles the special case where the previous sibling
@@ -273,8 +273,14 @@ The anchor of \"int y = 2;\" should be \"int x = 1;\" rather than
 the labeled_statement.
 
 Return nil if a) there is no prev-sibling, or 2) prev-sibling
-doesn't have a child."
-  (when-let ((prev-sibling (treesit-node-prev-sibling node t)))
+doesn't have a child.
+
+PARENT and BOL are like other anchor functions."
+  (when-let ((prev-sibling
+              (or (treesit-node-prev-sibling node t)
+                  (treesit-node-prev-sibling
+                   (treesit-node-first-child-for-pos parent bol) t)
+                  (treesit-node-child parent -1 t))))
     (while (and prev-sibling
                 (equal "labeled_statement"
                        (treesit-node-type prev-sibling)))

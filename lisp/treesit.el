@@ -1237,9 +1237,17 @@ See `treesit-simple-indent-presets'.")
                                           (line-beginning-position))
                         (throw 'term (point)))
                       (setq parent (treesit-node-parent parent)))))))
-        (cons 'prev-sibling (lambda (node &rest _)
+        (cons 'prev-sibling (lambda (node parent bol &rest _)
                               (treesit-node-start
-                               (treesit-node-prev-sibling node))))
+                               (or (treesit-node-prev-sibling node t)
+                                   ;; If node is nil (indenting empty
+                                   ;; line), we still try to guess the
+                                   ;; previous sibling.
+                                   (treesit-node-prev-sibling
+                                    (treesit-node-first-child-for-pos
+                                     parent bol)
+                                    t)
+                                   (treesit-node-child parent -1 t)))))
         (cons 'no-indent (lambda (_n _p bol &rest _) bol))
         (cons 'prev-line (lambda (_n _p bol &rest _)
                            (save-excursion
