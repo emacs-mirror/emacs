@@ -961,7 +961,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
   "Lookup `eglot-server-programs' for MODE.
 Return (MANAGED-MODES LANGUAGE-ID CONTACT-PROXY).
 
-MANAGED-MODES is a list with MODE as its first elements.
+MANAGED-MODES is a list with MODE as its first element.
 Subsequent elements are other major modes also potentially
 managed by the server that is to manage MODE.
 
@@ -1335,10 +1335,7 @@ This docstring appeases checkdoc, that's all."
                                    (lambda ()
                                      (setf (eglot--inhibit-autoreconnect server)
                                            (null eglot-autoreconnect)))))))
-                          (let ((default-directory (project-root project))
-                                (major-mode (car managed-modes)))
-                            (hack-dir-local-variables-non-file-buffer)
-                            (run-hook-with-args 'eglot-connect-hook server))
+                          (run-hook-with-args 'eglot-connect-hook server)
                           (eglot--message
                            "Connected! Server `%s' now managing `%s' buffers \
 in project `%s'."
@@ -2444,9 +2441,7 @@ format described above.")
 
 (defun eglot-show-workspace-configuration (&optional server)
   "Dump `eglot-workspace-configuration' as JSON for debugging."
-  (interactive (list (and (eglot-current-server)
-                          (eglot--read-server "Server configuration"
-                                              (eglot-current-server)))))
+  (interactive (list (eglot--read-server "Show workspace configuration for" t)))
   (let ((conf (eglot--workspace-configuration-plist server)))
     (with-current-buffer (get-buffer-create "*EGLOT workspace configuration*")
       (erase-buffer)
@@ -2457,14 +2452,23 @@ format described above.")
         (json-pretty-print-buffer))
       (pop-to-buffer (current-buffer)))))
 
-(defun eglot--workspace-configuration (server)
-  (if (functionp eglot-workspace-configuration)
-      (funcall eglot-workspace-configuration server)
-    eglot-workspace-configuration))
-
-(defun eglot--workspace-configuration-plist (server)
-  "Returns `eglot-workspace-configuration' suitable for serialization."
-  (let ((val (eglot--workspace-configuration server)))
+(defun eglot--workspace-configuration-plist (server &optional path)
+  "Returns SERVER's workspace configuration as a plist.
+If PATH consider that file's `file-name-directory' to get the
+local value of the `eglot-workspace-configuration' variable, else
+use the root of SERVER's `eglot--project'."
+  (let ((val (with-temp-buffer
+               (setq default-directory
+                     (if path
+                         (file-name-directory path)
+                       (project-root (eglot--project server))))
+               ;; Set the major mode to be the first of the managed
+               ;; modes.  This is the one the user started eglot in.
+               (setq major-mode (car (eglot--major-modes server)))
+               (hack-dir-local-variables-non-file-buffer)()
+               (if (functionp eglot-workspace-configuration)
+                   (funcall eglot-workspace-configuration server)
+                 eglot-workspace-configuration))))
     (or (and (consp (car val))
              (cl-loop for (section . v) in val
                       collect (if (keywordp section) section
@@ -2489,25 +2493,17 @@ When called interactively, use the currently active server"
   (apply #'vector
          (mapcar
           (eglot--lambda ((ConfigurationItem) scopeUri section)
-            (with-temp-buffer
-              (let* ((uri-path (eglot--uri-to-path scopeUri))
-                     (default-directory
-                      (if (and uri-path
-                               (not (string-empty-p uri-path))
-                               (file-directory-p uri-path))
-                          (file-name-as-directory uri-path)
-                        (project-root (eglot--project server)))))
-                (setq-local major-mode (car (eglot--major-modes server)))
-                (hack-dir-local-variables-non-file-buffer)
-                (cl-loop for (wsection o)
-                         on (eglot--workspace-configuration-plist server)
-                         by #'cddr
-                         when (string=
-                               (if (keywordp wsection)
-                                   (substring (symbol-name wsection) 1)
-                                 wsection)
-                               section)
-                         return o))))
+            (cl-loop
+             with scope-uri-path = (and scopeUri (eglot--uri-to-path scopeUri))
+             for (wsection o)
+             on (eglot--workspace-configuration-plist server scope-uri-path)
+             by #'cddr
+             when (string=
+                   (if (keywordp wsection)
+                       (substring (symbol-name wsection) 1)
+                     wsection)
+                   section)
+             return o))
           items)))
 
 (defun eglot--signal-textDocument/didChange ()
