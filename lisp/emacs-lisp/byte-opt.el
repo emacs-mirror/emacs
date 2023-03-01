@@ -515,9 +515,7 @@ for speeding up processing.")
 			   form)
 			  nil)))))
        (byte-compile-log "  %s called for effect; deleted" fn)
-       ;; appending a nil here might not be necessary, but it can't hurt.
-       (byte-optimize-form
-	(cons 'progn (append (cdr form) '(nil))) t))
+       (byte-optimize-form (cons 'progn (cdr form)) t))
 
       (_
        ;; Otherwise, no args can be considered to be for-effect,
