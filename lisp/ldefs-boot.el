@@ -7765,6 +7765,9 @@ customize `display-fill-column-indicator-column'.  You can change the
 character for the indicator setting `display-fill-column-indicator-character'.
 The globalized version is `global-display-fill-column-indicator-mode',
 which see.
+This minor mode assumes the buffer uses a fixed-pitch font; if you
+use variable-pitch fonts, the indicators on different lines might
+not appear aligned.
 See Info node `Displaying Boundaries' for details.
 
 This is a minor mode.  If called interactively, toggle the
@@ -25171,7 +25174,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 9 6)) package--builtin-versions)
+(push (purecopy '(project 0 9 8)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -34218,6 +34221,10 @@ When using this command to register a new file (or files), it
 will automatically deduce which VC repository to register it
 with, using the most specific one.
 
+If VERBOSE is non-nil (interactively, the prefix argument),
+you can specify a VC backend or (for centralized VCS only)
+the revision ID or branch ID.
+
 (fn VERBOSE)" t)
 (autoload 'vc-register "vc" "\
 Register into a version control system.
@@ -34378,24 +34385,31 @@ Uses `vc-retrieve-tag' with the non-nil arg `branchp'.
 
 (fn DIR NAME)" t)
 (autoload 'vc-print-log "vc" "\
-List the change log of the current fileset in a window.
-If WORKING-REVISION is non-nil, leave point at that revision.
+Show in another window the VC change history of the current fileset.
+If WORKING-REVISION is non-nil, it should be a revision ID; position
+point in the change history buffer at that revision.
 If LIMIT is non-nil, it should be a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
 
 When called interactively with a prefix argument, prompt for
 WORKING-REVISION and LIMIT.
 
+This shows a short log (one line for each commit) if the current
+fileset includes directories and the VC backend supports that;
+otherwise it shows the detailed log of each commit, which includes
+the full log message and the author.  Additional control of the
+shown log style is available via `vc-log-short-style'.
+
 (fn &optional WORKING-REVISION LIMIT)" t)
 (autoload 'vc-print-root-log "vc" "\
-List the revision history for the current VC controlled tree in a window.
+Show in another window VC change history of the current VC controlled tree.
 If LIMIT is non-nil, it should be a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
-When called interactively with a prefix argument, prompt for LIMIT.
-When the prefix argument is a number, use it as LIMIT.
+When called interactively with a prefix argument, prompt for LIMIT, but
+if the prefix argument is a number, use it as LIMIT.
 A special case is when the prefix argument is 1: in this case
-the command asks for the ID of a revision, and shows that revision
-with its diffs (if the underlying VCS supports that).
+the command prompts for the ID of a revision, and shows that revision
+with its diffs (if the underlying VCS backend supports that).
 
 (fn &optional LIMIT REVISION)" t)
 (autoload 'vc-print-branch-log "vc" "\
@@ -34415,20 +34429,22 @@ In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-search "vc" "\
-Search the log of changes for PATTERN.
+Search the VC log of changes for PATTERN and show log of matching changes.
 
 PATTERN is usually interpreted as a regular expression.  However, its
 exact semantics is up to the backend's log search command; some can
 only match fixed strings.
 
-Display all entries that match log messages in long format.
-With a prefix argument, ask for a command to run that will output
-log entries.
+This command displays in long format all the changes whose log messages
+match PATTERN.
+
+With a prefix argument, the command asks for a shell command to run that
+will output log entries, and displays those log entries instead.
 
 (fn PATTERN)" t)
 (autoload 'vc-log-mergebase "vc" "\
-Show a log of changes between the merge base of REV1 and REV2 revisions.
-The merge base is a common ancestor between REV1 and REV2 revisions.
+Show a log of changes between the merge base of revisions REV1 and REV2.
+The merge base is a common ancestor of revisions REV1 and REV2.
 
 (fn FILES REV1 REV2)" t)
 (autoload 'vc-region-history "vc" "\
@@ -36891,7 +36907,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push (purecopy '(xref 1 6 1)) package--builtin-versions)
+(push (purecopy '(xref 1 6 2)) package--builtin-versions)
 (autoload 'xref-find-backend "xref")
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\
