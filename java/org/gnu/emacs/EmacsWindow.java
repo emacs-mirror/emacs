@@ -875,7 +875,14 @@ public final class EmacsWindow extends EmacsHandleObject
   public boolean
   onSomeKindOfMotionEvent (MotionEvent event)
   {
-    if (!event.isFromSource (InputDevice.SOURCE_CLASS_POINTER))
+    /* isFromSource is not available until API level 18.  */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+      {
+	if (!event.isFromSource (InputDevice.SOURCE_CLASS_POINTER))
+	  return false;
+      }
+    else if (event.getSource () != InputDevice.SOURCE_CLASS_POINTER)
       return false;
 
     switch (event.getAction ())

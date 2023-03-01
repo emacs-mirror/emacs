@@ -2124,8 +2124,10 @@ android_scroll_run (struct window *w, struct run *run)
   /* Cursor off.  Will be switched on again in gui_update_window_end.  */
   gui_clear_cursor (w);
 
+  /* To avoid sequence point problems, make sure to only call
+     FRAME_ANDROID_DRAWABLE once.  */
   android_copy_area (FRAME_ANDROID_DRAWABLE (f),
-		     FRAME_ANDROID_DRAWABLE (f),
+		     FRAME_ANDROID_WINDOW (f),
 		     f->output_data.android->normal_gc,
 		     x, from_y, width, height, x, to_y);
 

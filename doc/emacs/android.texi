@@ -169,7 +169,9 @@ that result from such an implementation:
 @itemize @bullet
 @item
 Subprocesses (such as @command{ls}) can not run from the
-@file{/assets} directory.
+@file{/assets} directory; if you try to run a subprocess with
+@code{current-directory} set to @file{/assets} or a subdirectory
+thereof, it will run from the home directory instead.
 
 @item
 There are no @file{.} and @file{..} directories inside the

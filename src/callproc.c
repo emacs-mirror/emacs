@@ -144,7 +144,11 @@ static CHILD_SETUP_TYPE child_setup (int, int, int, char **, char **,
    directory if it's unreachable.  If ENCODE is true, return as a string
    suitable for a system call; otherwise, return a string in its
    internal representation.  Signal an error if the result would not be
-   an accessible directory.  */
+   an accessible directory.
+
+   If the default directory lies inside a special directory which
+   cannot be made the current working directory, and ENCODE is also
+   set, simply return the home directory.  */
 
 Lisp_Object
 get_current_directory (bool encode)
@@ -156,6 +160,19 @@ get_current_directory (bool encode)
      a sensible default. */
   if (NILP (dir))
     dir = build_string ("~");
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+
+  /* If DIR is an asset directory or a content directory, return
+     the home directory instead.  */
+
+  if (encode && (!strcmp (SSDATA (dir), "/assets")
+		 || !strncmp (SSDATA (dir), "/assets/", 8)
+		 || !strcmp (SSDATA (dir), "/content")
+		 || !strncmp (SSDATA (dir), "/content/", 9)))
+    dir = build_string ("~");
+
+#endif /* HAVE_ANDROID && ANDROID_STUBIFY */
 
   dir = expand_and_dir_to_file (dir);
   Lisp_Object encoded_dir = ENCODE_FILE (remove_slash_colon (dir));
