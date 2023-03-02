@@ -431,6 +431,26 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   "Face used for marking note regions."
   :version "26.1")
 
+(defface flymake-error-eol
+  '(t :inherit compilation-error)
+  "Face used for showing errors at end-of-line."
+  :package-version '("Flymake" . "1.3.4"))
+
+(defface flymake-warning-eol
+  '(t :inherit compilation-warning)
+  "Face used for showing warnings at end-of-line."
+  :package-version '("Flymake" . "1.3.4"))
+
+(defface flymake-note-eol
+  '(t :inherit compilation-warning)
+  "Face used for showing notes at end-of-line."
+  :package-version '("Flymake" . "1.3.4"))
+
+(defcustom flymake-show-eol-overlays nil
+  "If non-nil, add diagnostic summary overlays at end-of-line."
+  :type 'boolean
+  :package-version '("Flymake" . "1.3.4"))
+
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
 
@@ -582,6 +602,7 @@ Node `(Flymake)Flymake error types'"
  "27.1")
 
 (put 'flymake-error 'face 'flymake-error)
+(put 'flymake-error 'eol-face 'compilation-error)
 (put 'flymake-error 'flymake-bitmap 'flymake-error-bitmap)
 (put 'flymake-error 'severity (warning-numeric-level :error))
 (put 'flymake-error 'mode-line-face 'compilation-error)
@@ -592,6 +613,7 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-warning 'flymake-bitmap 'flymake-warning-bitmap)
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
 (put 'flymake-warning 'mode-line-face 'compilation-warning)
+(put 'flymake-warning 'eol-face 'compilation-warning)
 (put 'flymake-warning 'echo-face 'warning)
 (put 'flymake-warning 'flymake-type-name "warning")
 
@@ -600,6 +622,7 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-note 'severity (warning-numeric-level :debug))
 (put 'flymake-note 'mode-line-face 'compilation-info)
 (put 'flymake-note 'echo-face 'compilation-info)
+(put 'flymake-note 'eol-face 'flymake-note)
 (put 'flymake-note 'flymake-type-name "note")
 
 (defun flymake--lookup-type-property (type prop &optional default)
@@ -656,6 +679,12 @@ associated `flymake-category' return DEFAULT."
                              flymake-diagnostic-text)
                always (equal (funcall comp a) (funcall comp b)))))
 
+(defun flymake--delete-overlay (ov)
+  "Like `delete-overlay', delete OV, but do some more stuff."
+  (let ((eolov (overlay-get ov 'eol-ov)))
+    (when eolov (delete-overlay eolov))
+    (delete-overlay ov)))
+
 (cl-defun flymake--highlight-line (diagnostic &optional foreign)
   "Attempt to overlay DIAGNOSTIC in current buffer.
 
@@ -695,6 +724,7 @@ Return nil or the overlay created."
     ;; diagnostic is already registered in the same place, which only
     ;; happens for clashes between domestic and foreign diagnostics
     (cl-loop for e in (flymake-diagnostics beg end)
+             for eov = (flymake--diag-overlay e)
              when (flymake--equal-diagnostic-p e diagnostic)
              ;; FIXME.  This is an imperfect heuristic.  Ideally, we'd
              ;; want to delete no overlays and keep annotating the
@@ -710,7 +740,7 @@ Return nil or the overlay created."
                         (flymake--diag-orig-beg e)
                         (flymake--diag-end e)
                         (flymake--diag-orig-end e))
-                  (delete-overlay (flymake--diag-overlay e))))
+                  (flymake--delete-overlay eov)))
     (setq ov (make-overlay end beg))
     (setf (flymake--diag-beg diagnostic) (overlay-start ov)
           (flymake--diag-end diagnostic) (overlay-end ov))
@@ -728,6 +758,16 @@ Return nil or the overlay created."
               (flymake--lookup-type-property type 'flymake-overlay-control))
              (alist-get type flymake-diagnostic-types-alist))
      do (overlay-put ov ov-prop value))
+    (when-let* ((eol-face
+                 (and flymake-show-eol-overlays
+                      (flymake--lookup-type-property type 'eol-face compilation-error)))
+                (eolov (save-excursion
+                         (goto-char (overlay-start ov))
+                         (make-overlay (line-end-position) (line-end-position) nil t t))))
+      (overlay-put eolov 'after-string
+                   (propertize (concat "   " (flymake-diagnostic-oneliner diagnostic))
+                               'cursor 1))
+      (overlay-put ov 'eol-ov eolov))
     ;; Now ensure some essential defaults are set
     ;;
     (cl-flet ((default-maybe
@@ -743,6 +783,8 @@ Return nil or the overlay created."
           'flymake-bitmap
           (alist-get 'bitmap (alist-get type ; backward compat
                                         flymake-diagnostic-types-alist)))))
+      ;; (default-maybe 'after-string
+      ;;                (flymake--diag-text diagnostic))
       (default-maybe 'help-echo
         (lambda (window _ov pos)
           (with-selected-window window
@@ -873,7 +915,7 @@ report applies to that region."
   (maphash (lambda (_buffer diags)
              (cl-loop for d in diags
                       when (flymake--diag-overlay d)
-                      do (delete-overlay it)))
+                      do (flymake--delete-overlay it)))
            (flymake--state-foreign-diags state))
   (clrhash (flymake--state-foreign-diags state)))
 
@@ -900,7 +942,7 @@ and other buffers."
                       (flymake--intersects-p
                        (overlay-start ov) (overlay-end ov)
                        (car region) (cdr region)))
-               do (delete-overlay ov)
+               do (flymake--delete-overlay ov)
                else collect diag into surviving
                finally (setf (flymake--state-diags state)
                              surviving)))
@@ -909,7 +951,7 @@ and other buffers."
       (not (flymake--state-reported-p state))
       (cl-loop for diag in (flymake--state-diags state)
                for ov = (flymake--diag-overlay diag)
-               when ov do (delete-overlay ov))
+               when ov do (flymake--delete-overlay ov))
       (setf (flymake--state-diags state) nil)
       ;; Also clear all overlays for `foreign-diags' in all other
       ;; buffers.
@@ -1153,7 +1195,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     ;; existing diagnostic overlays, lest we forget them by blindly
     ;; reinitializing `flymake--state' in the next line.
     ;; See https://github.com/joaotavora/eglot/issues/223.
-    (mapc #'delete-overlay (flymake--overlays))
+    (mapc #'flymake--delete-overlay (flymake--overlays))
     (setq flymake--state (make-hash-table))
     (setq flymake--recent-changes nil)
 
@@ -1200,7 +1242,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (when flymake-timer
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
-    (mapc #'delete-overlay (flymake--overlays))
+    (mapc #'flymake--delete-overlay (flymake--overlays))
     (when flymake--state
       (maphash (lambda (_backend state)
                  (flymake--clear-foreign-diags state))
