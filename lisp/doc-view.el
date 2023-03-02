@@ -236,17 +236,14 @@ showing only titles and no page number."
   :type 'boolean
   :version "29.1")
 
-(defcustom doc-view-svg-background "white"
-  "Background color for svg images.
+(defface doc-view-svg-face '((t :inherit default))
+  "Face used for SVG images.  Only background and foreground colors
+are used.
 See `doc-view-mupdf-use-svg'."
-  :type 'color
-  :version "29.1")
+  :version "30.1")
 
-(defcustom doc-view-svg-foreground "black"
-  "Foreground color for svg images.
-See `doc-view-mupdf-use-svg'."
-  :type 'color
-  :version "29.1")
+(make-obsolete 'doc-view-svg-background 'doc-view-svg-face "30.1")
+(make-obsolete 'doc-view-svg-foreground 'doc-view-svg-face "30.1")
 
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
@@ -1602,8 +1599,8 @@ ARGS is a list of image descriptors."
                           (unless (member :transform-smoothing args)
                             (setq args `(,@args :transform-smoothing t)))
                           (when (eq doc-view--image-type 'svg)
-                            (setq args `(,@args :background ,doc-view-svg-background
-                                               :foreground ,doc-view-svg-foreground)))
+                            (setq args `(,@args :background ,(face-background 'doc-view-svg-face)
+                                                :foreground ,(face-foreground 'doc-view-svg-face))))
 			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))

@@ -214,6 +214,12 @@ bound to 'C-c C-d' in 'go-ts-mode'.
 When this is non-nil, call the 'man' program synchronously rather than
 asynchronously (which is the default behavior).
 
+** DocView
+
+---
+*** New face 'doc-view-svg-face'.
+This replaces 'doc-view-svg-foreground' and 'doc-view-svg-background'.
+
 
 * New Modes and Packages in Emacs 30.1
 
