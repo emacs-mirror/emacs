@@ -109,7 +109,8 @@ just toggles it when zero or left out."
 
 (defun c-ts-mode-set-modeline ()
   (setq mode-name
-        (concat (if (eq major-mode 'c-ts-mode) "C" "C++") comment-start))
+        (concat (if (eq major-mode 'c-ts-mode) "C" "C++")
+                (string-trim-right comment-start)))
   (force-mode-line-update))
 
 (defun c-ts-mode--indent-style-setter (sym val)
