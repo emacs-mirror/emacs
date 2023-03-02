@@ -866,9 +866,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       if (event->xaction.action == 0)
 	{
-	  /* Action 0 either means to destroy a frame or to create a
-	     new frame, depending on whether or not
-	     event->xaction.window exists.  */
+	  /* Action 0 either means that a window has been destroyed
+	     and its associated frame should be as well.  */
 
 	  if (event->xaction.window)
 	    {
@@ -878,8 +877,6 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      inev.ie.kind = DELETE_WINDOW_EVENT;
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
-	  else
-	    ((void) 0) /* A new frame must be created.  */;
 	}
 
     case ANDROID_ENTER_NOTIFY:

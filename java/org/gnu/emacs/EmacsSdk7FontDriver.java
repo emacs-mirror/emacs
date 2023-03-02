@@ -40,7 +40,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
   private static final String EM_STRING   = "m";
   private static final String TAG	  = "EmacsSdk7FontDriver";
 
-  protected class Sdk7Typeface
+  protected static final class Sdk7Typeface
   {
     /* The typeface and paint.  */
     public Typeface typeface;
@@ -164,7 +164,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     }
   };
 
-  protected class Sdk7FontEntity extends FontEntity
+  protected static final class Sdk7FontEntity extends FontEntity
   {
     /* The typeface.  */
     public Sdk7Typeface typeface;
@@ -187,7 +187,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     }
   };
 
-  protected class Sdk7FontObject extends FontObject
+  protected final class Sdk7FontObject extends FontObject
   {
     /* The typeface.  */
     public Sdk7Typeface typeface;

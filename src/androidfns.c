@@ -2357,6 +2357,11 @@ there is no mouse.  */)
   (void)
 {
 #ifndef ANDROID_STUBIFY
+  /* If no display connection is present, just return nil.  */
+
+  if (!android_init_gui)
+    return Qnil;
+
   return android_detect_mouse () ? Qt : Qnil;
 #else
   return Qnil;

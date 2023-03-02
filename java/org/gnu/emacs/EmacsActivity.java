@@ -207,7 +207,7 @@ public class EmacsActivity extends Activity
   }
 
   @Override
-  public void
+  public final void
   onDestroy ()
   {
     EmacsWindowAttachmentManager manager;

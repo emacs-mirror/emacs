@@ -110,6 +110,9 @@ determined.  */)
 {
   jint rc;
 
+  if (!android_init_gui)
+    error ("Accessing clipboard without display connection");
+
   block_input ();
   rc = (*android_java_env)->CallIntMethod (android_java_env,
 					   clipboard,
@@ -132,6 +135,9 @@ DEFUN ("android-set-clipboard", Fandroid_set_clipboard,
   (Lisp_Object string)
 {
   jarray bytes;
+
+  if (!android_init_gui)
+    error ("Accessing clipboard without display connection");
 
   CHECK_STRING (string);
   string = ENCODE_UTF_8 (string);
@@ -166,6 +172,9 @@ Alternatively, return nil if the clipboard is empty.  */)
   jmethodID method;
   size_t length;
   jbyte *data;
+
+  if (!android_init_gui)
+    error ("No Android display connection!");
 
   method = clipboard_class.get_clipboard;
   bytes
@@ -216,6 +225,9 @@ URL with a scheme specified.  Signal an error upon failure.  */)
   (Lisp_Object url)
 {
   Lisp_Object value;
+
+  if (!android_init_gui)
+    error ("No Android display connection!");
 
   CHECK_STRING (url);
   value = android_browse_url (url);

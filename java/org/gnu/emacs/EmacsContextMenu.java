@@ -52,7 +52,7 @@ public final class EmacsContextMenu
   /* Whether or not a submenu was selected.  */
   public static boolean wasSubmenuSelected;
 
-  private class Item implements MenuItem.OnMenuItemClickListener
+  private static class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
     public String itemName, tooltip;

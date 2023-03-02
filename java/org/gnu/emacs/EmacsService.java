@@ -54,6 +54,8 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 
+import android.hardware.input.InputManager;
+
 import android.net.Uri;
 
 import android.os.BatteryManager;
@@ -72,7 +74,7 @@ import android.provider.DocumentsContract.Document;
 import android.util.Log;
 import android.util.DisplayMetrics;
 
-import android.hardware.input.InputManager;
+import android.widget.Toast;
 
 class Holder<T>
 {
@@ -820,5 +822,25 @@ public final class EmacsService extends Service
 
     return new long[] { capacity, chargeCounter, currentAvg,
 			currentNow, remaining, status, };
+  }
+
+  /* Display the specified STRING in a small dialog box on the main
+     thread.  */
+
+  public void
+  displayToast (final String string)
+  {
+    runOnUiThread (new Runnable () {
+	@Override
+	public void
+	run ()
+	{
+	  Toast toast;
+
+	  toast = Toast.makeText (getApplicationContext (),
+				  string, Toast.LENGTH_SHORT);
+	  toast.show ();
+	}
+      });
   }
 };

@@ -64,11 +64,12 @@ public final class EmacsWindow extends EmacsHandleObject
 {
   private static final String TAG = "EmacsWindow";
 
-  private class Coordinate
+  private static class Coordinate
   {
     /* Integral coordinate.  */
     int x, y;
 
+    public
     Coordinate (int x, int y)
     {
       this.x = x;

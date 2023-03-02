@@ -112,6 +112,7 @@ struct android_emacs_service
   jmethodID open_content_uri;
   jmethodID check_content_uri;
   jmethodID query_battery;
+  jmethodID display_toast;
 };
 
 struct android_emacs_pixmap
@@ -2124,6 +2125,8 @@ android_init_emacs_service (void)
   FIND_METHOD (check_content_uri, "checkContentUri",
 	       "([BZZ)Z");
   FIND_METHOD (query_battery, "queryBattery", "()[J");
+  FIND_METHOD (display_toast, "displayToast",
+	       "(Ljava/lang/String;)V");
 #undef FIND_METHOD
 }
 
@@ -5694,6 +5697,31 @@ android_query_battery (struct android_battery_state *status)
   ANDROID_DELETE_LOCAL_REF (array);
 
   return 0;
+}
+
+/* Display a small momentary notification on screen containing
+   TEXT, which must be in the modified UTF encoding used by the
+   JVM.  */
+
+void
+android_display_toast (const char *text)
+{
+  jstring string;
+
+  /* Make the string.  */
+  string = (*android_java_env)->NewStringUTF (android_java_env,
+					      text);
+  android_exception_check ();
+
+  /* Display the toast.  */
+  (*android_java_env)->CallVoidMethod (android_java_env,
+				       emacs_service,
+				       service_class.display_toast,
+				       string);
+  android_exception_check_1 (string);
+
+  /* Delete the local reference to the string.  */
+  ANDROID_DELETE_LOCAL_REF (string);
 }
 
 

@@ -438,9 +438,8 @@ that window.
 
 @cindex windowing limitations, android
 @cindex frame parameters, android
-Due to the unusual nature of the Android windowing environment, Emacs
-only supports a limited subset of GUI features.  Here is a list of
-known limitations, and features which are not implemented:
+Emacs only supports a limited subset of GUI features on Android; the
+limitations are as follows:
 
 @itemize @bullet
 @item

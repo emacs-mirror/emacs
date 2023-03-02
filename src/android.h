@@ -140,6 +140,7 @@ struct android_battery_state
 
 extern Lisp_Object android_browse_url (Lisp_Object);
 extern int android_query_battery (struct android_battery_state *);
+extern void android_display_toast (const char *);
 
 
 

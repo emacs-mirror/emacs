@@ -65,7 +65,7 @@ public abstract class EmacsFontDriver
   public static final int MONO		= 100;
   public static final int CHARCELL	= 110;
 
-  public class FontSpec
+  public static class FontSpec
   {
     /* The fields below mean the same as they do in enum
        font_property_index in font.h.  */
@@ -99,7 +99,7 @@ public abstract class EmacsFontDriver
     }
   };
 
-  public class FontMetrics
+  public static class FontMetrics
   {
     public short lbearing;
     public short rbearing;
@@ -119,7 +119,7 @@ public abstract class EmacsFontDriver
     }
   }
 
-  public class FontEntity extends FontSpec
+  public static class FontEntity extends FontSpec
   {
     /* No extra fields here.  */
   };
