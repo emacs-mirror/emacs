@@ -2530,7 +2530,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 			(rx bos))
 		      tramp--test-messages))))))
 
-	    ;; We do not test lockname here.  See
+	    ;; We do not test the lock file here.  See
 	    ;; `tramp-test39-make-lock-file-name'.
 
 	    ;; Do not overwrite if excluded.
@@ -4635,6 +4635,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  ;; Cleanup.
 	  (ignore-errors (delete-directory tmp-name 'recursive)))))))
 
+(tramp--test-deftest-with-perl tramp-test26-file-name-completion)
+
+(tramp--test-deftest-with-ls tramp-test26-file-name-completion)
+
 ;; This test is inspired by Bug#51386, Bug#52758, Bug#53513, Bug#54042
 ;; and Bug#60505.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
@@ -6561,7 +6565,7 @@ INPUT, if non-nil, is a string sent to the process."
                          (lambda (&rest _args) "yes")))
                 (kill-buffer)))
 	    ;; A new connection changes process id, and also the
-	    ;; lockname contents.  But the lock file still exists.
+	    ;; lock file contents.  But it still exists.
 	    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	    (should (stringp (with-no-warnings (file-locked-p tmp-name1))))
 

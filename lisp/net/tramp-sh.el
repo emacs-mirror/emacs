@@ -631,7 +631,6 @@ foreach $f (@files) {
   print \"$f\\n\";
  }
 }
-print \"ok\\n\"
 ' \"$1\" %n"
   "Perl script to produce output suitable for use with
 `file-name-all-completions' on the remote file system.
@@ -1768,57 +1767,34 @@ ID-FORMAT valid values are `string' and `integer'."
 	   ;; Get a list of directories and files, including reliably
 	   ;; tagging the directories with a trailing "/".  Because I
 	   ;; rock.  --daniel@danann.net
-	   (tramp-send-command
-	    v
-	    (if (tramp-get-remote-perl v)
-		(progn
-		  (tramp-maybe-send-script
-		   v tramp-perl-file-name-all-completions
-		   "tramp_perl_file_name_all_completions")
-		  (format "tramp_perl_file_name_all_completions %s"
-			  (tramp-shell-quote-argument localname)))
+	   (when (tramp-send-command-and-check
+		  v
+		  (if (tramp-get-remote-perl v)
+		      (progn
+			(tramp-maybe-send-script
+			 v tramp-perl-file-name-all-completions
+			 "tramp_perl_file_name_all_completions")
+			(format "tramp_perl_file_name_all_completions %s"
+				(tramp-shell-quote-argument localname)))
 
-	      (format (concat
-		       "(cd %s 2>&1 && %s -a 2>%s"
-		       " | while IFS= read f; do"
-		       " if %s -d \"$f\" 2>%s;"
-		       " then \\echo \"$f/\"; else \\echo \"$f\"; fi; done"
-		       " && \\echo ok) || \\echo fail")
-		      (tramp-shell-quote-argument localname)
-		      (tramp-get-ls-command v)
-                      (tramp-get-remote-null-device v)
-		      (tramp-get-test-command v)
-                      (tramp-get-remote-null-device v))))
+		    (format (concat
+			     "cd %s 2>&1 && %s -a 2>%s"
+			     " | while IFS= read f; do"
+			     " if %s -d \"$f\" 2>%s;"
+			     " then \\echo \"$f/\"; else \\echo \"$f\"; fi;"
+			     " done")
+			    (tramp-shell-quote-argument localname)
+			    (tramp-get-ls-command v)
+			    (tramp-get-remote-null-device v)
+			    (tramp-get-test-command v)
+			    (tramp-get-remote-null-device v))))
 
-	   ;; Now grab the output.
-	   (with-current-buffer (tramp-get-buffer v)
-	     (goto-char (point-max))
-
-	     ;; Check result code, found in last line of output.
-	     (forward-line -1)
-	     (if (looking-at-p (rx bol "fail" eol))
-		 (progn
-		   ;; Grab error message from line before last line
-		   ;; (it was put there by `cd 2>&1').
-		   (forward-line -1)
-		   (tramp-error
-		    v 'file-error
-		    "tramp-sh-handle-file-name-all-completions: %s"
-		    (buffer-substring (point) (line-end-position))))
-	       ;; For peace of mind, if buffer doesn't end in `fail'
-	       ;; then it should end in `ok'.  If neither are in the
-	       ;; buffer something went seriously wrong on the remote
-	       ;; side.
-	       (unless (looking-at-p (rx bol "ok" eol))
-		 (tramp-error
-		  v 'file-error
-		  (concat "tramp-sh-handle-file-name-all-completions: "
-			  "internal error accessing `%s': `%s'")
-		  (tramp-shell-quote-argument localname) (buffer-string))))
-
-	     (while (zerop (forward-line -1))
-	       (push (buffer-substring (point) (line-end-position)) result)))
-	   result))))))
+	     ;; Now grab the output.
+	     (with-current-buffer (tramp-get-buffer v)
+	       (goto-char (point-max))
+	       (while (zerop (forward-line -1))
+		 (push (buffer-substring (point) (line-end-position)) result)))
+	     result)))))))
 
 ;; cp, mv and ln
 
