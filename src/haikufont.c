@@ -760,7 +760,7 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   struct haiku_font_pattern ptn;
   struct font *font;
   void *be_font;
-  Lisp_Object font_object, tem, extra, indices, antialias;
+  Lisp_Object font_object, extra, indices, antialias;
   int px_size, min_width, max_width;
   int avg_width, height, space_width, ascent;
   int descent, underline_pos, underline_thickness;
