@@ -206,7 +206,7 @@ bound to 'C-c C-d' in 'go-ts-mode'.
 +++
 *** New user option 'Man-prefer-synchronous-call'.
 When this is non-nil, call the 'man' program synchronously rather than
-asynchronously, which is the default behaviour.
+asynchronously (which is the default behavior).
 
 
 * New Modes and Packages in Emacs 30.1
