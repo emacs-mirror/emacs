@@ -1387,6 +1387,12 @@ this, change the value of the variable @code{Man-switches} to
 @kbd{M-p} to switch between man pages in different sections.  The mode
 line shows how many manual pages are available.
 
+@vindex Man-prefer-synchronous-call
+  By default, @kbd{M-x man} calls the @code{man} program
+asynchronously.  You can force the invocation to be synchronous by
+customizing @code{Man-prefer-synchronous-calls} to a non-@code{nil}
+value.
+
 @findex woman
 @cindex manual pages, on MS-DOS/MS-Windows
   An alternative way of reading manual pages is the @kbd{M-x woman}

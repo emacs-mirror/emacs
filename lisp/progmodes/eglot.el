@@ -130,7 +130,8 @@
 (defvar markdown-fontify-code-blocks-natively)
 (defvar company-backends)
 (defvar company-tooltip-align-annotations)
-
+(defvar tramp-ssh-controlmaster-options)
+(defvar tramp-use-ssh-controlmaster-options)
 
 
 ;;; User tweakable stuff
@@ -1249,7 +1250,15 @@ This docstring appeases checkdoc, that's all."
                         (contact (cl-subseq contact 0 probe)))
                    `(:process
                      ,(lambda ()
-                        (let ((default-directory default-directory))
+                        (let ((default-directory default-directory)
+                              ;; bug#61350: Tramp turns on a feature
+                              ;; by default that can't (yet) handle
+                              ;; very much data so we turn it off
+                              ;; unconditionally -- just for our
+                              ;; process.
+                              (tramp-use-ssh-controlmaster-options t)
+                              (tramp-ssh-controlmaster-options
+                               "-o ControlMaster=no -o ControlPath=none"))
                           (make-process
                            :name readable-name
                            :command (setq server-info (eglot--cmd contact))
@@ -3653,6 +3662,15 @@ If NOERROR, return predicate, else erroring function."
   (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore)))
 
 
+;;; Misc
+;;;
+(defun eglot--debbugs-or-github-bug-uri ()
+  (format (if (string= (match-string 2) "github")
+              "https://github.com/joaotavora/eglot/issues/%s"
+            "https://debbugs.gnu.org/%s")
+          (match-string 3)))
+(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+
 ;;; Obsolete
 ;;;
 
@@ -3662,8 +3680,8 @@ If NOERROR, return predicate, else erroring function."
 
 
 ;; Local Variables:
-;; bug-reference-bug-regexp: "\\(github#\\([0-9]+\\)\\)"
-;; bug-reference-url-format: "https://github.com/joaotavora/eglot/issues/%s"
+;; bug-reference-bug-regexp: "\\(\\(github\\|bug\\)#\\([0-9]+\\)\\)"
+;; bug-reference-url-format: eglot--debbugs-or-github-bug-uri
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
 

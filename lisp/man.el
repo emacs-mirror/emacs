@@ -97,6 +97,14 @@
   :group 'external
   :group 'help)
 
+(defcustom Man-prefer-synchronous-call nil
+  "Whether to call the Un*x \"man\" program synchronously.
+When this is non-nil, call the \"man\" program synchronously
+(rather than asynchronously, which is the default behavior)."
+  :type 'boolean
+  :group 'man
+  :version 30.1)
+
 (defcustom Man-filter-list nil
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
@@ -1118,7 +1126,8 @@ Return the buffer in which the manpage will appear."
 					"[cleaning...]")
 				      'face 'mode-line-emphasis)))
 	(Man-start-calling
-	 (if (fboundp 'make-process)
+	 (if (and (fboundp 'make-process)
+                  (not Man-prefer-synchronous-call))
 	     (let ((proc (start-process
 			  manual-program buffer
 			  (if (memq system-type '(cygwin windows-nt))

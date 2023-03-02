@@ -257,7 +257,7 @@ is actually the parent of point at the moment of indentation."
         0
       c-ts-mode-indent-offset)))
 
-(defun c-ts-mode--anchor-prev-sibling (node &rest _)
+(defun c-ts-mode--anchor-prev-sibling (node parent bol &rest _)
   "Return the start of the previous named sibling of NODE.
 
 This anchor handles the special case where the previous sibling
@@ -273,8 +273,14 @@ The anchor of \"int y = 2;\" should be \"int x = 1;\" rather than
 the labeled_statement.
 
 Return nil if a) there is no prev-sibling, or 2) prev-sibling
-doesn't have a child."
-  (when-let ((prev-sibling (treesit-node-prev-sibling node t)))
+doesn't have a child.
+
+PARENT and BOL are like other anchor functions."
+  (when-let ((prev-sibling
+              (or (treesit-node-prev-sibling node t)
+                  (treesit-node-prev-sibling
+                   (treesit-node-first-child-for-pos parent bol) t)
+                  (treesit-node-child parent -1 t))))
     (while (and prev-sibling
                 (equal "labeled_statement"
                        (treesit-node-type prev-sibling)))
@@ -350,17 +356,17 @@ MODE is either `c' or `cpp'."
 
            ;; int[5] a = { 0, 0, 0, 0 };
            ((match nil "initializer_list" nil 1 1) parent-bol c-ts-mode-indent-offset)
-           ((match nil "initializer_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "initializer_list") c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in enum.
            ((match nil "enumerator_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "enumerator_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "enumerator_list") c-ts-mode--anchor-prev-sibling 0)
            ;; Statement in struct and union.
            ((match nil "field_declaration_list" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "field_declaration_list" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "field_declaration_list") c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
            ((match nil "compound_statement" nil 1 1) standalone-parent c-ts-mode-indent-offset)
-           ((match nil "compound_statement" nil 2) c-ts-mode--anchor-prev-sibling 0)
+           ((parent-is "compound_statement") c-ts-mode--anchor-prev-sibling 0)
            ;; Opening bracket.
            ((node-is "compound_statement") standalone-parent c-ts-mode-indent-offset)
            ;; Bug#61291.

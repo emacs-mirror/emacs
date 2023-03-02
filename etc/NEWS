@@ -213,6 +213,13 @@ This command adds a docstring comment to the current defun.  If a
 comment already exists, point is only moved to the comment.  It is
 bound to 'C-c C-d' in 'go-ts-mode'.
 
+** Man-mode
+
++++
+*** New user option 'Man-prefer-synchronous-call'.
+When this is non-nil, call the 'man' program synchronously rather than
+asynchronously (which is the default behavior).
+
 
 * New Modes and Packages in Emacs 30.1
 
