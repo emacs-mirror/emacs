@@ -261,6 +261,7 @@ $(CLASS_FILES): $(RESOURCE_FILE)
 .SUFFIXES: .java .class
 $(CLASS_FILES) &: $(JAVA_FILES)
 	$(AM_V_JAVAC) $(JAVAC) $(JAVAFLAGS) $(JAVA_FILES)
+	$(AM_V_SILENT) touch $(CLASS_FILES)
 
 # N.B. that find must be called all over again in case javac generated
 # nested classes.

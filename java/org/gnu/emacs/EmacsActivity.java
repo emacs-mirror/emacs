@@ -241,6 +241,15 @@ public class EmacsActivity extends Activity
       {
 	focusedActivities.add (this);
 	lastFocusedActivity = this;
+
+	/* Update the window insets as the focus change may have
+	   changed the window insets as well, and the system does not
+	   automatically restore visibility flags.  */
+
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
+	    && Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+	    && isFullscreen)
+	  syncFullscreenWith (window);
       }
     else
       focusedActivities.remove (this);
@@ -263,9 +272,6 @@ public class EmacsActivity extends Activity
   onResume ()
   {
     isPaused = false;
-
-    /* Update the window insets.  */
-    syncFullscreenWith (window);
 
     EmacsWindowAttachmentManager.MANAGER.noticeDeiconified (this);
     super.onResume ();
