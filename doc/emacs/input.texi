@@ -15,8 +15,8 @@ holds true.  As a result, Emacs now has support for other kinds of
 input devices, which is detailed here.
 
 @menu
-* Touchscreens::		Using Emacs on touchscreens.
-* On-Screen Keyboards::		Using Emacs with virtual keyboards.
+* Touchscreens::                Using Emacs on touchscreens.
+* On-Screen Keyboards::         Using Emacs with virtual keyboards.
 @end menu
 
 @node Touchscreens

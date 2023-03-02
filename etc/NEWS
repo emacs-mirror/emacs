@@ -28,7 +28,7 @@ applies, and please also update docstrings as needed.
 This requires Emacs to be compiled on another computer.  The Android
 NDK, SDK, and a suitable Java compiler must also be installed.
 
-See the file 'INSTALL.android' for more details.
+See the file 'java/INSTALL' for more details.
 
 
 * Startup Changes in Emacs 30.1

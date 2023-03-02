@@ -225,7 +225,7 @@ Appendices
 * Haiku::               Using Emacs on Haiku.
 * Android::             Using Emacs on Android.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
-* Other Input Devices::	Using Emacs with other input devices.
+* Other Input Devices:: Using Emacs with other input devices.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
 * Glossary::            Terms used in this manual.
@@ -1264,18 +1264,18 @@ Emacs and Haiku
 
 Emacs and Android
 
-* What is Android?::		Preamble.
-* Android Startup::		Starting up Emacs on Android.
-* Android Environment::		Running Emacs under Android.
-* Android File System::		The Android file system.
-* Android Windowing::   	The Android window system.
-* Android Fonts::		Font selection under Android.
-* Android Troubleshooting::	Dealing with problems.
+* What is Android?::            Preamble.
+* Android Startup::             Starting up Emacs on Android.
+* Android Environment::         Running Emacs under Android.
+* Android File System::         The Android file system.
+* Android Windowing::           The Android window system.
+* Android Fonts::               Font selection under Android.
+* Android Troubleshooting::     Dealing with problems.
 
 Emacs and unconventional input devices
 
-* Touchscreens::	Using Emacs on touchscreens.
-* On-Screen Keyboards::	Using Emacs with virtual keyboards.
+* Touchscreens::        Using Emacs on touchscreens.
+* On-Screen Keyboards:: Using Emacs with virtual keyboards.
 
 Emacs and Microsoft Windows/MS-DOS
 

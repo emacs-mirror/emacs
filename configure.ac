@@ -1656,9 +1656,6 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
   nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
-  nw="$nw -Wunknown-warning-option" # Let #pragma GCC ignore work properly
-				    # even when the compiler in use doesn't
-				    # support the option.
 
   # Emacs doesn't care about shadowing; see
   # <https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
@@ -1695,7 +1692,8 @@ AS_IF([test $gl_gcc_warnings = no],
   # currently stubbed out for operation on the build machine, disable
   # -Wsuggest-attribute=noreturn.
 
-  nw="$nw -Wsuggest-attribute=noreturn"
+  AS_IF([test "$ANDROID" = "yes"],
+    [nw="$nw -Wsuggest-attribute=noreturn"])
 
   gl_MANYWARN_ALL_GCC([ws])
   gl_MANYWARN_COMPLEMENT([ws], [$ws], [$nw])
