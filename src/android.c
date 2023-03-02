@@ -2825,25 +2825,32 @@ android_alloc_id (void)
   android_handle handle;
 
   /* 0 is never a valid handle ID.  */
+
   if (!max_handle)
     max_handle++;
 
+  /* See if the handle is already occupied.  */
+
   if (android_handles[max_handle].handle)
     {
-      handle = max_handle + 1;
+      /* Look for a fresh unoccupied handle.  */
 
-      while (max_handle < handle)
+      handle = max_handle;
+      max_handle++;
+
+      while (handle != max_handle)
 	{
 	  ++max_handle;
 
+	  /* Make sure the handle is valid.  */
 	  if (!max_handle)
 	    ++max_handle;
 
 	  if (!android_handles[max_handle].handle)
-	    return 0;
+	    return max_handle++;
 	}
 
-      return 0;
+      return ANDROID_NONE;
     }
 
   return max_handle++;
