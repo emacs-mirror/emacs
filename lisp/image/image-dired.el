@@ -424,11 +424,10 @@ This affects the following commands:
                          (file-name-nondirectory thumb-file)))
     thumb-file))
 
-(defun image-dired-insert-thumbnail ( file original-file-name
-                           associated-dired-buffer image-number)
+(defun image-dired-insert-thumbnail (file original-file-name
+                                          associated-dired-buffer)
   "Insert thumbnail image FILE.
-Add text properties ORIGINAL-FILE-NAME, ASSOCIATED-DIRED-BUFFER
-and IMAGE-NUMBER."
+Add text properties ORIGINAL-FILE-NAME, ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
     (setq beg (point))
     (image-dired-insert-image
@@ -452,7 +451,6 @@ and IMAGE-NUMBER."
            'keymap nil
            'original-file-name original-file-name
            'associated-dired-buffer associated-dired-buffer
-           'image-number image-number
            'tags (image-dired-list-tags original-file-name)
            'mouse-face 'highlight
            'comment (image-dired-get-comment original-file-name)))))
@@ -587,8 +585,8 @@ thumbnail buffer to be selected."
         (dolist (file files)
           (when (string-match-p (image-dired--file-name-regexp) file)
             (image-dired-insert-thumbnail
-             (image-dired--get-create-thumbnail-file file) file dired-buf
-             (cl-incf image-dired--number-of-thumbnails)))))
+             (image-dired--get-create-thumbnail-file file) file dired-buf)
+            (cl-incf image-dired--number-of-thumbnails))))
       (if (> image-dired--number-of-thumbnails 0)
           (if do-not-pop
               (display-buffer buf)
@@ -789,7 +787,10 @@ comment."
     (let ((file-name (image-dired-original-file-name))
           (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
           (image-count (format "%s/%s"
-                               (get-text-property (point) 'image-number)
+                               ;; Line-up adds one space between two
+                               ;; images: this formula takes this into
+                               ;; account.
+                               (1+ (/ (point) 2))
                                image-dired--number-of-thumbnails))
           (props (string-join (get-text-property (point) 'tags) ", "))
           (comment (get-text-property (point) 'comment))
@@ -1127,10 +1128,12 @@ With a negative prefix argument, prompt user for the delay."
   "Remove current thumbnail from thumbnail buffer and line up."
   (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
-    (delete-char 1))
+    (delete-char 1)
+    (cl-decf image-dired--number-of-thumbnails))
   (let ((pos (point)))
     (image-dired--line-up-with-method)
-    (goto-char pos)))
+    (goto-char pos)
+    (image-dired--update-header-line)))
 
 (defun image-dired-line-up ()
   "Line up thumbnails according to `image-dired-thumbs-per-row'.
