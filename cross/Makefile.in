@@ -63,7 +63,6 @@ config.status: $(top_srcdir)/config.status
 	$(AM_V_GEN) touch config.status
 
 src/verbose.mk: $(srcdir)/verbose.mk.android
-	$(AM_V_GEN) mkdir -p src
 	$(AM_V_SILENT) cp -f $(srcdir)/verbose.mk.android \
 	  src/verbose.mk
 
@@ -91,6 +90,10 @@ lib/config.h: $(top_builddir)/src/config.h.android
 	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
 	  lib/config.h
 
+lib-src/config.h: $(top_builddir)/src/config.h.android
+	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
+	  lib-src/config.h
+
 lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
 	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/gnulib.mk.android	\
 	  lib/gnulib.mk
@@ -114,15 +117,12 @@ LIB_DEPS = lib/config.h lib/gnulib.mk lib/Makefile
 
 .PHONY: lib/libgnu.a
 lib/libgnu.a: src/verbose.mk config.status $(LIB_DEPS) $(PRE_BUILD_DEPS)
-	mkdir -p lib/deps lib/deps/malloc
 	$(MAKE) -C lib libgnu.a
 
 src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
   $(top_builddir)/src/Makefile.android
-	$(AM_V_GEN)
-	$(AM_V_SILENT) mkdir -p src src/deps
 # Copy config.h to src/
-	$(AM_V_SILENT) \
+	$(AM_V_GEN) \
 	cp -f -p $(top_builddir)/src/config.h.android src/config.h
 # And the Makefile.
 	$(AM_V_SILENT) \
@@ -159,9 +159,7 @@ src/android-emacs: src/Makefile src/config.h lib/libgnu.a \
 	$(MAKE) -C src android-emacs
 
 lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
-	$(AM_V_GEN) mkdir -p src lib-src
-	$(AM_V_SILENT) mkdir -p lib-src
-	$(AM_V_SILENT) cp -f -p $< $@
+	$(AM_V_GEN) cp -f -p $< $@
 	$(AM_V_SILENT) sed -i 's/-I\$${srcdir}\/\.\.\/lib//g' lib-src/Makefile
 # Next, edit srcdir and top_srcdir to the right location.
 	$(AM_V_SILENT) \
@@ -178,18 +176,20 @@ lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
 	sed -i 's/-I\.\.\/lib/-I..\/lib -I..\/$(subst /,\/,$(srcdir))\/lib/g' lib-src/Makefile
 
 .PHONY: $(LIBSRC_BINARIES)
-$(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a	\
-  src/config.h lib-src/Makefile $(PRE_BUILD_DEPS)
+$(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
+  lib-src/config.h lib-src/Makefile $(PRE_BUILD_DEPS)
 # Finally, go into lib-src and make everything being built
 	$(MAKE) -C lib-src $(foreach bin,$(LIBSRC_BINARIES),$(notdir $(bin)))
 
 .PHONY: clean maintainer-clean distclean
 clean:
-	rm -rf $(CLEAN_SUBDIRS) *.bak sys
+	for dir in $(CLEAN_SUBDIRS); do \
+	  find $$dir -type f -delete;   \
+	done;				\
 	if [ -e lib/Makefile ]; then	\
 	  make -C lib clean;		\
 	fi
-	rm -rf lib/config.h
+	rm -rf lib/config.h lib-src/config.h
 # ndk-build won't have been generated in a non-Android build.
 	-make -C ndk-build clean
 

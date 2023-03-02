@@ -7707,18 +7707,22 @@ if test "$XCONFIGURE" != "android"; then
   if test $AUTO_DEPEND = yes; then
      for dir in $AUTODEPEND_PARENTS; do
        AS_MKDIR_P([$dir/deps])
+       AS_MKDIR_P([cross/$dir/deps])
      done
   fi
   if $gl_gnulib_enabled_dynarray || $gl_gnulib_enabled_scratch_buffer; then
     AS_MKDIR_P([lib/malloc])
+    AS_MKDIR_P([cross/lib/malloc])
     if test $AUTO_DEPEND = yes; then
       AS_MKDIR_P([lib/deps/malloc])
+      AS_MKDIR_P([cross/lib/deps/malloc])
     fi
   fi
 
   dnl Make cross/lib, which various Makefiles in cross expect to
   dnl always exist.
   AS_MKDIR_P([cross/lib])
+  AS_MKDIR_P([cross/lib-src])
 fi
 
 # Make java/Makefile
