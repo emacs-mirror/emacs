@@ -4583,7 +4583,7 @@ face_at_pos (const struct it *it, enum lface_attribute_index attr_filter)
                                       &next_stop,
                                       base_face_id, false,
                                       attr_filter);
-    } // !STRINGP (it->string))
+    } /* !STRINGP (it->string) */
 }
 
 
