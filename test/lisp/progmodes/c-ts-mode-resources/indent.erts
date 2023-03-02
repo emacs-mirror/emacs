@@ -84,14 +84,6 @@ int main()
 }
 =-=-=
 
-Name: Empty Line
-=-=
-int main()
-{
-  |
-}
-=-=-=
-
 Name: Concecutive blocks (GNU Style) (bug#60873)
 
 =-=
@@ -383,5 +375,30 @@ Name: Declaration List (Namespace) (Bug#61635)
 namespace test {
   class Name {
   };
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-style 'gnu)
+    (indent-for-tab-command))
+
+Name: Empty Line
+=-=
+int main()
+{
+  |
+}
+=-=-=
+
+Name: Empty Line Previous Sibling
+=-=
+int main()
+{
+  int a = 1;
+  |
 }
 =-=-=
