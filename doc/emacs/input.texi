@@ -94,7 +94,7 @@ If it is, then Emacs looks up whether or not the text under the point
 is read-only; if not, it activates the on-screen keyboard, assuming
 that the user is about to enter text in to the current buffer.
 
-@vindex touch-screen-always-display
+@vindex touch-screen-display-keyboard
   The user option @code{touch-screen-display-keyboard} forces Emacs to
 always display the on screen keyboard; it may also be bound buffer
 locally, meaning to always display the keyboard when the buffer is
