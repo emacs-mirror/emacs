@@ -259,12 +259,20 @@ following to your init file:
               #'shortdoc-help-fns-examples-function)
 
 ** Package
-
 ---
 *** New user option 'package-vc-register-as-project'.
 When non-nil, it will automatically register every package as a
 project, that you can quickly select using 'project-switch-project'
 ('C-x p p').
+
+** Flymake
++++
+*** New user option 'flymake-show-diagnostics-at-end-of-line'.
+When non-nil, Flymake shows summarized descriptions of diagnostics at
+the end of the line.  Depending on your preference, this can either be
+distracting and easily confused with actual code, or a significant
+early aid that relieves you from moving the buffer or reaching for the
+mouse to consult an error message.
 
 
 * New Modes and Packages in Emacs 30.1

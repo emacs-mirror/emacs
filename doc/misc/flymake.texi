@@ -1,7 +1,7 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
-@set VERSION 1.3.3
+@set VERSION 1.3.4
 @set UPDATED April 2023
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
@@ -141,6 +141,12 @@ If Flymake has highlighted the buffer, you may hover the mouse on the
 highlighted regions to learn what the specific problem
 is.  Alternatively, place point on the highlighted regions and use the
 commands @code{eldoc} or @code{display-local-help}.
+
+Another easy way to get instant access to the diagnostic text is to
+set @code{flymake-show-diagnostics-at-end-of-line} to a non-@code{nil}
+value.  This makes the diagnostic messages appear at the end of the
+line where the regular annotation is located (@pxref{Customizable
+variables})
 
 @cindex next and previous diagnostic
 If the diagnostics are outside the visible region of the buffer,
@@ -314,6 +320,23 @@ Which fringe (if any) should show the warning/error bitmaps.
 @item flymake-wrap-around
 If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
+@end vtable
+
+@item flymake-show-diagnostics-at-end-of-line
+If non-@code{nil}, show summarized descriptions of diagnostics at the
+end of the line.  Depending on your preference, this can either be
+distracting and easily confused with actual code, or a significant
+early aid that relieves you from moving around or reaching for the
+mouse to consult an error message.
+
+@item flymake-error-eol
+A custom face for summarizing diagnostic error messages.
+
+@item flymake-warning-eol
+A custom face for summarizing diagnostic warning messages.
+
+@item flymake-note-eol
+A custom face for summarizing diagnostic notes.
 @end vtable
 
 @node Extending Flymake
