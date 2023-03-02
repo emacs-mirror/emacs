@@ -1266,8 +1266,8 @@ Emacs and Android
 
 * What is Android?::		Preamble.
 * Android Startup::		Starting up Emacs on Android.
-* Android File System::		The Android file system.
 * Android Environment::		Running Emacs under Android.
+* Android File System::		The Android file system.
 * Android Windowing::   	The Android window system.
 * Android Fonts::		Font selection under Android.
 * Android Troubleshooting::	Dealing with problems.
@@ -1648,9 +1648,9 @@ Lisp programming.
 @include macos.texi
 @include haiku.texi
 @include android.texi
-@include input.texi
 @c Includes msdos-xtra.
 @include msdos.texi
+@include input.texi
 @include gnu.texi
 @include glossary.texi
 @ifnottex
