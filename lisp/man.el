@@ -103,7 +103,7 @@ When this is non-nil, call the \"man\" program synchronously
 (rather than asynchronously, which is the default behavior)."
   :type 'boolean
   :group 'man
-  :version 30.1)
+  :version "30.1")
 
 (defcustom Man-filter-list nil
   "Manpage cleaning filter command phrases.
