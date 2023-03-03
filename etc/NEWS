@@ -3231,8 +3231,11 @@ manually if needed, using the new user options 'wallpaper-command' and
 
 +++
 ** New package 'oclosure'.
-This allows the creation of "functions with slots" or "function
-objects" via the macros 'oclosure-define' and 'oclosure-lambda'.
+This allows the creation of OClosures, which are "functions with
+slots" or "function objects" that expose additional information about
+themselves.  Use the new macros 'oclosure-define' and
+'oclosure-lambda' to create OClosures.  See the "(elisp) OClosures"
+node for more information.
 
 +++
 *** New generic function 'oclosure-interactive-form'.

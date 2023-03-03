@@ -1731,6 +1731,11 @@ This function returns the OClosure type (a symbol) of @var{object} if
 it is an OClosure, and @code{nil} otherwise.
 @end defun
 
+One other function related to OClosures is
+@code{oclosure-interactive-form}, which allows some types of OClosures
+to compute their interactive forms dynamically.  @xref{Using
+Interactive, oclosure-interactive-form}.
+
 
 @node Advising Functions
 @section Advising Emacs Lisp Functions

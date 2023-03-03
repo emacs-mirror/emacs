@@ -325,10 +325,10 @@ function @code{oclosure-interactive-form}.
 @defun oclosure-interactive-form function
 Just like @code{interactive-form}, this function takes a command and
 returns its interactive form.  The difference is that it is a generic
-function and it is only called when @var{function} is an OClosure.
-The purpose is to make it possible for some OClosure types to compute
-their interactive forms dynamically instead of carrying it in one of
-their slots.
+function and it is only called when @var{function} is an OClosure
+(@pxref{OClosures}).  The purpose is to make it possible for some
+OClosure types to compute their interactive forms dynamically instead
+of carrying it in one of their slots.
 
 This is used for example for @code{kmacro} functions in order to
 reduce their memory size, since they all share the same interactive
