@@ -1715,9 +1715,19 @@ android_open (const char *filename, int oflag, int mode)
 	  return -1;
 	}
 
+      /* If fd is -1, just assume that the file does not exist,
+	 and return -1 with errno set to ENOENT.  */
+
+      if (fd == -1)
+	{
+	  errno = ENOENT;
+	  goto skip;
+	}
+
       if (mode & O_CLOEXEC)
 	android_close_on_exec (fd);
 
+    skip:
       ANDROID_DELETE_LOCAL_REF (string);
       return fd;
     }

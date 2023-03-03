@@ -752,6 +752,8 @@ public final class EmacsService extends Service
     if (writable)
       mode += "w";
 
+    Log.d (TAG, "checkContentUri: checking against mode " + mode);
+
     try
       {
 	fd = resolver.openFileDescriptor (Uri.parse (name), mode);
