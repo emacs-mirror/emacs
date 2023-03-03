@@ -1,6 +1,6 @@
 ;;; rtree.el --- functions for manipulating range trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -171,7 +171,7 @@
 	  (setq tree nil))))))))
 
 (defun rtree-delq (tree number)
-  "Remove NUMBER from TREE destructively.  Returns the new tree."
+  "Remove NUMBER from TREE destructively.  Return the new tree."
   (let ((result tree)
 	prev)
     (while tree

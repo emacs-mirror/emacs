@@ -1,6 +1,6 @@
 ;;; arc-mode-tests.el --- Test suite for arc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -48,4 +48,4 @@
 
 (provide 'arc-mode-tests)
 
-;; arc-mode-tests.el ends here
+;;; arc-mode-tests.el ends here

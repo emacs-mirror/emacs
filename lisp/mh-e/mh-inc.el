@@ -1,6 +1,6 @@
-;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
+;;; mh-inc.el --- MH-E "inc" and separate mail spool handling  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -27,8 +27,6 @@
 ;; Support for inc. In addition to reading from the system mailbox,
 ;; inc can also be used to incorporate mail from multiple spool files
 ;; into separate folders. See "C-h v mh-inc-spool-list".
-
-;;; Change Log:
 
 ;;; Code:
 
@@ -58,19 +56,15 @@
                     (mh-inc-spool-generator folder spool)
                     (mh-inc-spool-def-key key folder))))))
 
-(defalias 'mh-inc-spool-make-no-autoload 'mh-inc-spool-make)
+(defalias 'mh-inc-spool-make-no-autoload #'mh-inc-spool-make)
 
 (defun mh-inc-spool-generator (folder spool)
   "Create a command to inc into FOLDER from SPOOL file."
-  (let ((folder1 (make-symbol "folder"))
-        (spool1 (make-symbol "spool")))
-    (set folder1 folder)
-    (set spool1 spool)
-    (setf (symbol-function (intern (concat "mh-inc-spool-" folder)))
-          `(lambda ()
-             ,(format "Inc spool file %s into folder %s." spool folder)
-             (interactive)
-             (mh-inc-folder ,spool1 (concat "+" ,folder1))))))
+  (defalias (symbol-function (intern (concat "mh-inc-spool-" folder)))
+    (lambda ()
+      (:documentation (format "Inc spool file %s into folder %s." spool folder))
+      (interactive)
+      (mh-inc-folder spool (concat "+" folder)))))
 
 (defun mh-inc-spool-def-key (key folder)
   "Define a KEY in `mh-inc-spool-map' to inc FOLDER and collect help string."
@@ -84,7 +78,6 @@
 (provide 'mh-inc)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2001--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2001--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Hash Tables
 @chapter Hash Tables
@@ -150,17 +150,22 @@ multiplied by an approximation to this value.  The default for
 @end table
 @end defun
 
-You can also create a new hash table using the printed representation
+You can also create a hash table using the printed representation
 for hash tables.  The Lisp reader can read this printed
 representation, provided each element in the specified hash table has
 a valid read syntax (@pxref{Printed Representation}).  For instance,
-the following specifies a new hash table containing the keys
+the following specifies a hash table containing the keys
 @code{key1} and @code{key2} (both symbols) associated with @code{val1}
 (a symbol) and @code{300} (a number) respectively.
 
 @example
 #s(hash-table size 30 data (key1 val1 key2 300))
 @end example
+
+Note, however, that when using this in Emacs Lisp code, it's
+undefined whether this creates a new hash table or not.  If you want
+to create a new hash table, you should always use
+@code{make-hash-table} (@pxref{Self-Evaluating Forms}).
 
 @noindent
 The printed representation for a hash table consists of @samp{#s}
@@ -198,7 +203,8 @@ association in @var{table}.
 @defun puthash key value table
 This function enters an association for @var{key} in @var{table}, with
 value @var{value}.  If @var{key} already has an association in
-@var{table}, @var{value} replaces the old associated value.
+@var{table}, @var{value} replaces the old associated value.  This
+function always returns @var{value}.
 @end defun
 
 @defun remhash key table
@@ -214,10 +220,7 @@ otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @defun clrhash table
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
-table.
-
-@b{Common Lisp note:} In Common Lisp, @code{clrhash} returns the empty
-@var{table}.  In Emacs Lisp, it returns @code{nil}.
+table.  @code{clrhash} returns the empty @var{table}.
 @end defun
 
 @defun maphash function table
@@ -284,9 +287,13 @@ If two objects @var{obj1} and @var{obj2} are @code{equal}, then
 are the same integer.
 
 If the two objects are not @code{equal}, the values returned by
-@code{sxhash-equal} are usually different, but not always; once in a
-rare while, by luck, you will encounter two distinct-looking objects
-that give the same result from @code{sxhash-equal}.
+@code{sxhash-equal} are usually different, but not always.
+@code{sxhash-equal} is designed to be reasonably fast (since it's used
+for indexing hash tables) so it won't recurse deeply into nested
+structures.  In addition; once in a rare while, by luck, you will
+encounter two distinct-looking simple objects that give the same
+result from @code{sxhash-equal}.  So you can't, in general, use
+@code{sxhash-equal} to check whether an object has changed.
 
 @b{Common Lisp note:} In Common Lisp a similar function is called
 @code{sxhash}.  Emacs provides this name as a compatibility alias for
@@ -317,15 +324,13 @@ the same integer.
 compared case-insensitively.
 
 @example
-(defun case-fold-string= (a b)
-  (eq t (compare-strings a nil nil b nil nil t)))
-(defun case-fold-string-hash (a)
+(defun string-hash-ignore-case (a)
   (sxhash-equal (upcase a)))
 
-(define-hash-table-test 'case-fold
-  'case-fold-string= 'case-fold-string-hash)
+(define-hash-table-test 'ignore-case
+  'string-equal-ignore-case 'string-hash-ignore-case)
 
-(make-hash-table :test 'case-fold)
+(make-hash-table :test 'ignore-case)
 @end example
 
   Here is how you could define a hash table test equivalent to the

@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Deprecated-since: 27.1
@@ -113,7 +113,7 @@
                most-positive-float
                ;; custom-print-functions
                ))
-  (defvaralias var (intern (format "cl-%s" var))))
+  (define-obsolete-variable-alias var (intern (format "cl-%s" var)) "27.1"))
 
 (dolist (fun '(
                (get* . cl-get)
@@ -291,7 +291,7 @@
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))
-    (defalias fun new)))
+    (define-obsolete-function-alias fun new "27.1")))
 
 (defun cl--wrap-in-nil-block (fun &rest args)
   `(cl-block nil ,(apply fun args)))
@@ -331,7 +331,7 @@ The two cases that are handled are:
                         (cddr f))))
       (if (and cl-closure-vars
                (cl--expr-contains-any body cl-closure-vars))
-          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
+          (let* ((new (mapcar #'cl-gensym cl-closure-vars))
                  (sub (cl-pairlis cl-closure-vars new)) (decls nil))
             (while (or (stringp (car body))
                        (eq (car-safe (car body)) 'interactive))
@@ -431,14 +431,13 @@ definitions, or lack thereof).
            (obsolete "use either `cl-flet' or `cl-letf'."  "24.3"))
   `(letf ,(mapcar
            (lambda (x)
-             (if (or (and (fboundp (car x))
-                          (eq (car-safe (symbol-function (car x))) 'macro))
+             (if (or (eq (car-safe (symbol-function (car x))) 'macro)
                      (cdr (assq (car x) macroexpand-all-environment)))
                  (error "Use `labels', not `flet', to rebind macro names"))
              (let ((func `(cl-function
                            (lambda ,(cadr x)
                              (cl-block ,(car x) ,@(cddr x))))))
-               (when (cl--compiling-file)
+               (when (macroexp-compiling-p)
                  ;; Bug#411.  It would be nice to fix this.
                  (and (get (car x) 'byte-compile)
                       (error "Byte-compiling a redefinition of `%s' \
@@ -446,7 +445,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
                  ;; FIXME This affects the rest of the file, when it
                  ;; should be restricted to the flet body.
                  (and (boundp 'byte-compile-function-environment)
-                      (push (cons (car x) (eval func))
+                      (push (cons (car x) (eval func t))
                             byte-compile-function-environment)))
                (list `(symbol-function ',(car x)) func)))
            bindings)
@@ -466,10 +465,10 @@ rather than relying on `lexical-binding'."
 	(push `(cl-function (lambda . ,(cdr binding))) sets)
 	(push var sets)
 	(push (cons (car binding)
-                    `(lambda (&rest cl-labels-args)
-                       (if (eq (car cl-labels-args) cl--labels-magic)
-                           (list cl--labels-magic ',var)
-                         (cl-list* 'funcall ',var cl-labels-args))))
+                    (lambda (&rest cl-labels-args)
+                      (if (eq (car cl-labels-args) cl--labels-magic)
+                          (list cl--labels-magic var)
+                        (cl-list* 'funcall var cl-labels-args))))
               newenv)))
     ;; `lexical-let' adds `cl--function-convert' (which calls
     ;; `cl--labels-convert') as a macroexpander for `function'.
@@ -514,7 +513,8 @@ a temporary-variables list, a value-forms list, a store-variables list
 See `gv-define-expander', and `gv-define-setter' for better and
 simpler ways to define setf-methods."
   (declare (debug
-            (&define name cl-lambda-list cl-declarations-or-string def-body)))
+            (&define name cl-lambda-list cl-declarations-or-string def-body))
+           (indent defun))
   `(progn
      ,@(if (stringp (car body))
            (list `(put ',name 'setf-documentation ,(pop body))))
@@ -555,7 +555,8 @@ You can replace this form with `gv-define-setter'.
             (&define name
                      [&or [symbolp &optional stringp]
                           [cl-lambda-list (symbolp)]]
-                     cl-declarations-or-string def-body)))
+                     cl-declarations-or-string def-body))
+           (indent defun))
   (if (and (listp arg1) (consp args))
       ;; Like `gv-define-setter' but with `cl-function'.
       `(gv-define-expander ,name
@@ -616,7 +617,8 @@ arguments from ARGLIST using FUNC.  For example:
 You can replace this macro with `gv-letplace'."
   (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
-                     symbolp &optional stringp)))
+                     symbolp &optional stringp))
+           (indent defun))
   (if (memq '&key arglist)
       (error "&key not allowed in define-modify-macro"))
   (require 'cl-macs)                    ;For cl--arglist-args.
@@ -630,10 +632,10 @@ You can replace this macro with `gv-letplace'."
 ;;; Additional compatibility code.
 ;; For names that were clean but really aren't needed any more.
 
-(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.3")
+(define-obsolete-function-alias 'cl-macroexpand #'macroexpand "24.3")
 (define-obsolete-variable-alias 'cl-macro-environment
   'macroexpand-all-environment "24.3")
-(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.3")
+(define-obsolete-function-alias 'cl-macroexpand-all #'macroexpand-all "24.3")
 
 ;;; Hash tables.
 ;; This is just kept for compatibility with code byte-compiled by Emacs-20.
@@ -652,22 +654,22 @@ You can replace this macro with `gv-letplace'."
 (defvar cl-builtin-maphash (symbol-function 'maphash))
 
 (make-obsolete-variable 'cl-builtin-maphash nil "24.3")
-(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.3")
-(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.3")
-(define-obsolete-function-alias 'cl-gethash 'gethash "24.3")
-(define-obsolete-function-alias 'cl-puthash 'puthash "24.3")
-(define-obsolete-function-alias 'cl-remhash 'remhash "24.3")
-(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.3")
-(define-obsolete-function-alias 'cl-maphash 'maphash "24.3")
-(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.3")
-(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.3")
-(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.3")
+(define-obsolete-function-alias 'cl-map-keymap #'map-keymap "24.3")
+(define-obsolete-function-alias 'cl-copy-tree #'copy-tree "24.3")
+(define-obsolete-function-alias 'cl-gethash #'gethash "24.3")
+(define-obsolete-function-alias 'cl-puthash #'puthash "24.3")
+(define-obsolete-function-alias 'cl-remhash #'remhash "24.3")
+(define-obsolete-function-alias 'cl-clrhash #'clrhash "24.3")
+(define-obsolete-function-alias 'cl-maphash #'maphash "24.3")
+(define-obsolete-function-alias 'cl-make-hash-table #'make-hash-table "24.3")
+(define-obsolete-function-alias 'cl-hash-table-p #'hash-table-p "24.3")
+(define-obsolete-function-alias 'cl-hash-table-count #'hash-table-count "24.3")
 
 (define-obsolete-function-alias 'cl-map-keymap-recursively
-  'cl--map-keymap-recursively "24.3")
-(define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
-(define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
-(define-obsolete-function-alias 'cl-set-getf 'cl--set-getf "24.3")
+  #'cl--map-keymap-recursively "24.3")
+(define-obsolete-function-alias 'cl-map-intervals #'cl--map-intervals "24.3")
+(define-obsolete-function-alias 'cl-map-extents #'cl--map-overlays "24.3")
+(define-obsolete-function-alias 'cl-set-getf #'cl--set-getf "24.3")
 
 (defun cl-maclisp-member (item list)
   (declare (obsolete member "24.3"))

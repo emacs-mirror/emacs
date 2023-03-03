@@ -1,6 +1,6 @@
-;;; tls.el --- TLS/SSL support via wrapper around GnuTLS
+;;; tls.el --- TLS/SSL support via wrapper around GnuTLS  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: comm, tls, gnutls, ssl
@@ -70,8 +70,7 @@
 Client data stream begins after the last character this matches.
 The default matches the output of \"gnutls-cli\" (version 2.0.1)."
   :version "22.2"
-  :type 'regexp
-  :group 'tls)
+  :type 'regexp)
 
 (defcustom tls-program
   '("gnutls-cli --x509cafile %t -p %p %h"
@@ -104,22 +103,19 @@ successful negotiation."
 	  (repeat :inline t :tag "Other" (string)))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
-  :version "26.1"                       ; remove s_client
-  :group 'tls)
+  :version "26.1")
 
 (defcustom tls-process-connection-type nil
   "Value for `process-connection-type' to use when starting TLS process."
   :version "22.1"
-  :type 'boolean
-  :group 'tls)
+  :type 'boolean)
 
 (defcustom tls-success "- Handshake was completed\\|SSL handshake has read "
   "Regular expression indicating completed TLS handshakes.
 The default is what GnuTLS's \"gnutls-cli\" outputs."
 ;; or OpenSSL's \"openssl s_client\"
   :version "22.1"
-  :type 'regexp
-  :group 'tls)
+  :type 'regexp)
 
 (defcustom tls-checktrust nil
   "Indicate if certificates should be checked against trusted root certs.
@@ -130,13 +126,14 @@ the external program knows about the root certificates you
 consider trustworthy, e.g.:
 
 \(setq tls-program
-      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
-	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"))"
+      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h\"
+        \"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h --protocols ssl3\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
-  :version "23.1" ;; No Gnus
-  :group 'tls)
+  :version "23.1")
 
 (defcustom tls-untrusted
   "- Peer's certificate is NOT trusted\\|Verify return code: \\([^0] \\|.[^ ]\\)"
@@ -145,8 +142,7 @@ The default is what GnuTLS's \"gnutls-cli\" returns in the event of
 unsuccessful verification."
 ;; or OpenSSL's \"openssl s_client\"
   :type 'regexp
-  :version "23.1" ;; No Gnus
-  :group 'tls)
+  :version "23.1")
 
 (defcustom tls-hostmismatch
   "# The hostname in the certificate does NOT match"
@@ -156,20 +152,13 @@ name of the host you are connecting to, gnutls-cli issues a
 warning to this effect.  There is no such feature in openssl.  Set
 this to nil if you want to ignore host name mismatches."
   :type 'regexp
-  :version "23.1" ;; No Gnus
-  :group 'tls)
+  :version "23.1")
 
 (defcustom tls-certtool-program "certtool"
   "Name of GnuTLS certtool.
 Used by `tls-certificate-information'."
   :version "22.1"
-  :type 'string
-  :group 'tls)
-
-(defalias 'tls-format-message
-  (if (fboundp 'format-message) 'format-message
-    ;; for Emacs < 25, and XEmacs, don't worry about quote translation.
-    'format))
+  :type 'string)
 
 (defun tls-certificate-information (der)
   "Parse X.509 certificate in DER format into an assoc list."
@@ -270,15 +259,15 @@ Fourth arg PORT is an integer specifying a port to connect to."
 			     (message "The certificate presented by `%s' is \
 NOT trusted." host))
 			(not (yes-or-no-p
-			      (tls-format-message "\
-The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
+			      (format-message "\
+The certificate presented by `%s' is NOT trusted.  Accept anyway?" host)))))
 		  (and tls-hostmismatch
 		       (save-excursion
 			 (goto-char (point-min))
 			 (re-search-forward tls-hostmismatch nil t))
 		       (not (yes-or-no-p
 			     (format "Host name in certificate doesn't \
-match `%s'. Connect anyway? " host))))))
+match `%s'.  Connect anyway?" host))))))
 	(setq done nil)
 	(delete-process process))
       ;; Delete all the informational messages that could confuse

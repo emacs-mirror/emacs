@@ -1,5 +1,5 @@
 ;;; konsole.el --- terminal initialization for konsole  -*- lexical-binding:t -*-
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 (require 'term/xterm)
 
@@ -9,4 +9,4 @@
 
 (provide 'term/konsole)
 
-;; konsole.el ends here
+;;; konsole.el ends here

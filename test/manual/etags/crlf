@@ -1,0 +1,2 @@
+test_crlf1	test_crlf.c	/^void test_crlf1()$/
+test_crlf2	tset_crlf.c	/^void test_crlf2()$/

@@ -1,12 +1,10 @@
-;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;;; org-ctags.el --- Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-
-
 ;; Keywords: org, wp
-;;
+
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -21,6 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;
 ;; Synopsis
@@ -45,9 +45,7 @@
 ;; Installation
 ;; ============
 ;;
-;; Install org mode
-;; Ensure org-ctags.el is somewhere in your emacs load path.
-;; Download and install Exuberant ctags -- "http://ctags.sourceforge.net/"
+;; Download and install Exuberant ctags -- "https://ctags.sourceforge.net/"
 ;; Edit your .emacs file (see next section) and load emacs.
 
 ;; To put in your init file (.emacs):
@@ -137,6 +135,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (eval-when-compile (require 'cl-lib))
 (require 'org)
 
@@ -157,7 +158,6 @@ See the ctags documentation for more information.")
 (defcustom org-ctags-path-to-ctags
   (if (executable-find "ctags-exuberant") "ctags-exuberant" "ctags")
   "Name of the ctags executable file."
-  :group 'org-ctags
   :version "24.1"
   :type 'file)
 
@@ -165,8 +165,7 @@ See the ctags documentation for more information.")
   '(org-ctags-find-tag
     org-ctags-ask-rebuild-tags-file-then-find-tag
     org-ctags-ask-append-topic)
-  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS when ORG-CTAGS is active."
-  :group 'org-ctags
+  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS by ORG-CTAGS."
   :version "24.1"
   :type 'hook
   :options '(org-ctags-find-tag
@@ -188,7 +187,6 @@ Created as a local variable in each buffer.")
   "Text to insert when creating a new org file via opening a hyperlink.
 The following patterns are replaced in the string:
     `%t' - replaced with the capitalized title of the hyperlink"
-  :group 'org-ctags
   :version "24.1"
   :type 'string)
 
@@ -207,7 +205,8 @@ The following patterns are replaced in the string:
                   (visit-tags-table tags-filename))))))
 
 
-(defadvice visit-tags-table (after org-ctags-load-tag-list activate compile)
+(advice-add 'visit-tags-table :after #'org--ctags-load-tag-list)
+(defun org--ctags-load-tag-list (&rest _)
   (when (and org-ctags-enabled-p tags-file-name)
     (setq-local org-ctags-tag-list
 		(org-ctags-all-tags-in-current-tags-table))))
@@ -229,7 +228,7 @@ If the tag is found, return a list containing the filename, line number, and
 buffer position where the tag is found."
   (interactive "sTag: ")
   (unless tags-file-name
-    (call-interactively (visit-tags-table)))
+    (call-interactively #'visit-tags-table))
   (save-excursion
     (visit-tags-table-buffer 'same)
     (when tags-file-name
@@ -256,7 +255,7 @@ Return the list."
   (interactive)
   (let ((taglist nil))
     (unless tags-file-name
-      (call-interactively (visit-tags-table)))
+      (call-interactively #'visit-tags-table))
     (save-excursion
       (visit-tags-table-buffer 'same)
       (with-current-buffer (get-file-buffer tags-file-name)
@@ -295,8 +294,9 @@ The new topic will be titled NAME (or TITLE if supplied)."
 ;;;; Misc interoperability with etags system =================================
 
 
-(defadvice xref-find-definitions
-    (before org-ctags-set-org-mark-before-finding-tag activate compile)
+(advice-add 'xref-find-definitions :before
+            #'org--ctags-set-org-mark-before-finding-tag)
+(defun org--ctags-set-org-mark-before-finding-tag (&rest _)
   "Before trying to find a tag, save our current position on org mark ring."
   (save-excursion
     (when (and (derived-mode-p 'org-mode) org-ctags-enabled-p)
@@ -437,7 +437,7 @@ to append a new topic."
 Like ORG-CTAGS-FIND-TAG, but calls the external ctags program first,
 to rebuild (update) the TAGS file."
   (unless tags-file-name
-    (call-interactively (visit-tags-table)))
+    (call-interactively #'visit-tags-table))
   (when (buffer-file-name)
     (org-ctags-create-tags))
   (org-ctags-find-tag name))
@@ -510,10 +510,7 @@ Uses `ido-mode' if available.
 If the user enters a string that does not match an existing tag, create
 a new topic."
   (interactive)
-  (let* ((completing-read-fn (if (fboundp 'ido-completing-read)
-                                 'ido-completing-read
-                               'completing-read))
-         (tag (funcall completing-read-fn "Topic: " org-ctags-tag-list
+  (let* ((tag (ido-completing-read "Topic: " org-ctags-tag-list
                        nil 'confirm nil 'org-ctags-find-tag-history)))
     (when tag
       (cond

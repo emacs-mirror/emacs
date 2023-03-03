@@ -1,6 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2020 Free Software Foundation,
-   Inc.
+   Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -88,7 +87,7 @@ modify_text_properties (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   BUF_COMPUTE_UNCHANGED (buf, b - 1, e);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, 1);
 
   bset_point_before_scroll (current_buffer, Qnil);
 
@@ -341,7 +340,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
       for (sym = properties;
 	   PLIST_ELT_P (sym, value);
 	   sym = XCDR (value))
-	if (EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
+	if (BASE_EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
 	  {
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), Qnil,
@@ -561,8 +560,13 @@ DEFUN ("text-properties-at", Ftext_properties_at,
        doc: /* Return the list of properties of the character at POSITION in OBJECT.
 If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
+
 If OBJECT is a string, POSITION is a 0-based index into it.
-If POSITION is at the end of OBJECT, the value is nil.
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if OBJECT is a
+buffer or nil, and the buffer is narrowed and POSITION is at the end
+of the narrowed buffer, the result may be non-nil.
 
 If you want to display the text properties at point in a human-readable
 form, use the `describe-text-properties' command.  */)
@@ -590,7 +594,11 @@ DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 OBJECT should be a buffer or a string; if omitted or nil, it defaults
 to the current buffer.
-If POSITION is at the end of OBJECT, the value is nil.  */)
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if the buffer is
+narrowed and POSITION is at the end of the narrowed buffer, the result
+may be non-nil.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   return textget (Ftext_properties_at (position, object), prop);
@@ -625,36 +633,40 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
     }
   if (BUFFERP (object))
     {
-      ptrdiff_t noverlays;
-      Lisp_Object *overlay_vec;
-      struct buffer *obuf = current_buffer;
+      struct buffer *b = XBUFFER (object);
+      struct itree_node *node;
+      struct sortvec items[2];
+      struct sortvec *result = NULL;
+      Lisp_Object result_tem = Qnil;
 
-      if (! (BUF_BEGV (XBUFFER (object)) <= pos
-	     && pos <= BUF_ZV (XBUFFER (object))))
+      if (! (BUF_BEGV (b) <= pos
+	     && pos <= BUF_ZV (b)))
 	xsignal1 (Qargs_out_of_range, position);
 
-      set_buffer_temp (XBUFFER (object));
-
-      USE_SAFE_ALLOCA;
-      GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, false);
-      noverlays = sort_overlays (overlay_vec, noverlays, w);
-
-      set_buffer_temp (obuf);
-
       /* Now check the overlays in order of decreasing priority.  */
-      while (--noverlays >= 0)
+      ITREE_FOREACH (node, b->overlays, pos, pos + 1, ASCENDING)
 	{
-	  Lisp_Object tem = Foverlay_get (overlay_vec[noverlays], prop);
-	  if (!NILP (tem))
-	    {
-	      if (overlay)
-		/* Return the overlay we got the property from.  */
-		*overlay = overlay_vec[noverlays];
-	      SAFE_FREE ();
-	      return tem;
-	    }
+	  Lisp_Object tem = Foverlay_get (node->data, prop);
+          struct sortvec *this;
+
+	  if (NILP (tem) || node->end < pos + 1
+	      || (w && ! overlay_matches_window (w, node->data)))
+	    continue;
+
+          this = (result == items ? items + 1 : items);
+          make_sortvec_item (this, node->data);
+          if (! result || (compare_overlays (result, this) < 0))
+            {
+              result = this;
+              result_tem = tem;
+            }
 	}
-      SAFE_FREE ();
+      if (result)
+        {
+          if (overlay)
+            *overlay = result->overlay;
+          return result_tem;
+        }
     }
 
   if (overlay)
@@ -792,7 +804,7 @@ The property values are compared with `eq'.  */)
   else
     {
       Lisp_Object initial_value, value;
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);
@@ -879,7 +891,7 @@ first valid position in OBJECT.  */)
     }
   else
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       if (! NILP (object))
 	CHECK_BUFFER (object);
@@ -1164,7 +1176,7 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
      buffers is slow and often unnecessary.  */
   if (BUFFERP (object) && XBUFFER (object) != current_buffer)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (object));
       return unbind_to (count, add_text_properties_1 (start, end, properties,
@@ -1379,7 +1391,7 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
      buffers is slow and often unnecessary.  */
   if (BUFFERP (object) && XBUFFER (object) != current_buffer)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (object));
       return unbind_to (count,
@@ -1398,8 +1410,8 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
   /* If we want no properties for a whole string,
      get rid of its intervals.  */
   if (NILP (properties) && STRINGP (object)
-      && EQ (start, make_fixnum (0))
-      && EQ (end, make_fixnum (SCHARS (object))))
+      && BASE_EQ (start, make_fixnum (0))
+      && BASE_EQ (end, make_fixnum (SCHARS (object))))
     {
       if (!string_intervals (object))
 	return Qnil;
@@ -1462,7 +1474,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end,
      buffers is slow and often unnecessary.  */
   if (BUFFERP (object) && XBUFFER (object) != current_buffer)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (object));
 
@@ -1558,7 +1570,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
      buffers is slow and often unnecessary.  */
   if (BUFFERP (object) && XBUFFER (object) != current_buffer)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (object));
       return unbind_to (count,
@@ -1683,7 +1695,7 @@ Return t if any property was actually removed, nil otherwise.  */)
      buffers is slow and often unnecessary.  */
   if (BUFFERP (object) && XBUFFER (object) != current_buffer)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (object));
       return unbind_to (count,
@@ -2240,7 +2252,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (i->plist, Qfront_sticky);
 		      if (TMEM (Qread_only, tem)
-			  || (NILP (Fplist_get (i->plist, Qread_only))
+			  || (NILP (plist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
 			text_read_only (after);
 		    }
@@ -2260,7 +2272,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (prev->plist, Qrear_nonsticky);
 		      if (! TMEM (Qread_only, tem)
-			  && (! NILP (Fplist_get (prev->plist,Qread_only))
+			  && (! NILP (plist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
 			text_read_only (before);
 		    }
@@ -2279,13 +2291,13 @@ verify_interval_modification (struct buffer *buf,
 
 		  tem = textget (i->plist, Qfront_sticky);
 		  if (TMEM (Qread_only, tem)
-		      || (NILP (Fplist_get (i->plist, Qread_only))
+		      || (NILP (plist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
 		    text_read_only (after);
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
-		      && (! NILP (Fplist_get (prev->plist, Qread_only))
+		      && (! NILP (plist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
 		    text_read_only (after);
 		}
@@ -2380,15 +2392,7 @@ returned. */);
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
-This also inhibits the use of the `intangible' text property.
-
-This variable is obsolete since Emacs-25.1.  Use `cursor-intangible-mode'
-or `cursor-sensor-mode' instead.  */);
-  /* FIXME: We should make-obsolete-variable, but that signals too many
-     warnings in code which does (let ((inhibit-point-motion-hooks t)) ...)
-     Ideally, make-obsolete-variable should let us specify that only the nil
-     value is obsolete, but that requires too many changes in bytecomp.el,
-     so for now we'll keep it "obsolete via the docstring".  */
+This also inhibits the use of the `intangible' text property.  */);
   Vinhibit_point_motion_hooks = Qt;
 
   DEFVAR_LISP ("text-property-default-nonsticky",

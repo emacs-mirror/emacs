@@ -1,6 +1,6 @@
-;;; fortune.el --- use fortune to create signatures
+;;; fortune.el --- use fortune to create signatures  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -21,38 +21,48 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
 ;; This utility allows you to automatically cut regions to a fortune
 ;; file.  In case that the region stems from an article buffer (mail or
 ;; news), it will try to automatically determine the author of the
-;; fortune.  It will also allow you to compile your fortune-database
+;; fortune.  It will also allow you to compile your fortune database
 ;; as well as providing a function to extract a fortune for use as your
 ;; signature.
+;;
 ;; Of course, it can simply display a fortune, too.
 ;; Use prefix arguments to specify different fortune databases.
-
+;;
 ;;; Installation:
-
-;; Please check the customize settings -- you will at least have to
-;; modify the values of `fortune-dir' and `fortune-file'.
-
+;;
+;; Please type `M-x customize-group RET fortune RET' -- you will at
+;; least have to modify the user options `fortune-dir' and
+;; `fortune-file'.
+;;
 ;; I then use this in my .gnus:
-;;(message "Making new signature: %s" (fortune-to-signature "~/fortunes/"))
+;;
+;;     (message "Making new signature: %s"
+;;              (fortune-to-signature "~/fortunes/"))
+;;
 ;; This automagically creates a new signature when starting up Gnus.
-;; Note that the call to fortune-to-signature specifies a directory in which
-;; several fortune-files and their databases are stored.
-
-;; If you like to get a new signature for every message, you can also hook
-;; it into message-mode:
-;; (add-hook 'message-setup-hook 'fortune-to-signature)
-;; This time no fortune-file is specified, so fortune-to-signature would use
-;; the default-file as specified by fortune-file.
-
-;; I have also this in my .gnus:
-;;(add-hook 'gnus-article-mode-hook
-;;	  (lambda ()
-;;	     (define-key gnus-article-mode-map "i" 'fortune-from-region)))
+;; Note that the call to `fortune-to-signature' specifies a directory
+;; in which several fortune files and their databases are stored.
+;;
+;; To get a new signature for every message, you can hook it into
+;; `message-mode':
+;;
+;;     (add-hook 'message-setup-hook #'fortune-to-signature)
+;;
+;; This time no fortune file is specified, so `fortune-to-signature'
+;; would use the default file as specified by `fortune-file'.
+;;
+;; I also have this in my .gnus:
+;;
+;;     (add-hook 'gnus-article-mode-hook
+;;               (lambda ()
+;;                 (define-key gnus-article-mode-map "i" #'fortune-from-region)))
+;;
 ;; which allows marking a region and then pressing "i" so that the marked
-;; region will be automatically added to my favorite fortune-file.
+;; region will be automatically added to my favorite fortune file.
 
 ;;; Code:
 
@@ -63,76 +73,75 @@
   :link '(emacs-commentary-link "fortune.el")
   :version "21.1"
   :group 'games)
+
+(defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
+  "The directory to look in for local fortune cookies files."
+  :type 'directory)
+
+(defcustom fortune-file
+  (expand-file-name "usenet" fortune-dir)
+  "The file in which local fortune cookies will be stored."
+  :type 'file)
+
+(defcustom fortune-database-extension  ".dat"
+  "The extension of the corresponding fortune database.
+Normally you won't have a reason to change it."
+  :type 'string)
+
+(defcustom fortune-program "fortune"
+  "Program to select a fortune cookie."
+  :type 'string)
+
+(defcustom fortune-program-options ()
+  "List of options to pass to the fortune program."
+  :type '(choice (repeat (string :tag "Option"))
+                 (string :tag "Obsolete string of options"))
+  :version "23.1")
+
+(defcustom fortune-strfile "strfile"
+  "Program to compute a new fortune database."
+  :type 'string)
+
+(defcustom fortune-strfile-options ""
+  "Options to pass to the strfile program (a string)."
+  :type 'string)
+
+(defcustom fortune-quiet-strfile-options (concat "> " null-device)
+  "Text added to the command for running `strfile'.
+By default it discards the output produced by `strfile'.
+Set this to \"\" if you would like to see the output."
+  :type 'string)
+
+(defcustom fortune-always-compile t
+  "Non-nil means automatically compile fortune files.
+If nil, you must invoke `fortune-compile' manually to do that."
+  :type 'boolean)
+
 (defgroup fortune-signature nil
   "Settings for use of fortune for signatures."
   :group 'fortune
   :group 'mail)
 
-(defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
-  "The directory to look in for local fortune cookies files."
-  :type 'directory
-  :group 'fortune)
-(defcustom fortune-file
-  (expand-file-name "usenet" fortune-dir)
-  "The file in which local fortune cookies will be stored."
-  :type 'file
-  :group 'fortune)
-(defcustom fortune-database-extension  ".dat"
-  "The extension of the corresponding fortune database.
-Normally you won't have a reason to change it."
-  :type 'string
-  :group 'fortune)
-(defcustom fortune-program "fortune"
-  "Program to select a fortune cookie."
-  :type 'string
-  :group 'fortune)
-(defcustom fortune-program-options ()
-  "List of options to pass to the fortune program."
-  :type '(choice (repeat (string :tag "Option"))
-                 (string :tag "Obsolete string of options"))
-  :version "23.1"
-  :group 'fortune)
-(defcustom fortune-strfile "strfile"
-  "Program to compute a new fortune database."
-  :type 'string
-  :group 'fortune)
-(defcustom fortune-strfile-options ""
-  "Options to pass to the strfile program (a string)."
-  :type 'string
-  :group 'fortune)
-(defcustom fortune-quiet-strfile-options "> /dev/null"
-  "Text added to the command for running `strfile'.
-By default it discards the output produced by `strfile'.
-Set this to \"\" if you would like to see the output."
-  :type 'string
-  :group 'fortune)
-
-(defcustom fortune-always-compile t
-  "Non-nil means automatically compile fortune files.
-If nil, you must invoke `fortune-compile' manually to do that."
-  :type 'boolean
-  :group 'fortune)
 (defcustom fortune-author-line-prefix "                  -- "
   "Prefix to put before the author name of a fortunate."
-  :type 'string
-  :group 'fortune-signature)
+  :type 'string)
+
 (defcustom fortune-fill-column fill-column
   "Fill column for fortune files."
-  :type 'integer
-  :group 'fortune-signature)
+  :type 'integer)
+
 (defcustom fortune-from-mail "private e-mail"
   "String to use to characterize that the fortune comes from an e-mail.
 No need to add an `in'."
-  :type 'string
-  :group 'fortune-signature)
+  :type 'string)
+
 (defcustom fortune-sigstart ""
   "Some text to insert before the fortune cookie, in a mail signature."
-  :type 'string
-  :group 'fortune-signature)
+  :type 'string)
+
 (defcustom fortune-sigend ""
   "Some text to insert after the fortune cookie, in a mail signature."
-  :type 'string
-  :group 'fortune-signature)
+  :type 'string)
 
 
 ;; not customizable settings
@@ -143,7 +152,7 @@ No need to add an `in'."
 ;;; **************
 ;;; Inserting a new fortune
 (defun fortune-append (string &optional interactive file)
-  "Appends STRING to the fortune FILE.
+  "Append STRING to the fortune FILE.
 
 If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
   (setq file (expand-file-name
@@ -167,7 +176,7 @@ If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
 	  (fortune-compile file)))))
 
 (defun fortune-ask-file ()
-  "Asks the user for a file-name."
+  "Ask the user for the file name of the fortune file."
   (expand-file-name
    (read-file-name
     "Fortune file to use: "
@@ -297,7 +306,7 @@ specifies the file to choose the fortune from."
         (erase-buffer)
         (if fortune-always-compile
             (fortune-compile fort-file))
-        (apply 'call-process
+        (apply #'call-process
                fortune-program            ; program to call
                nil fortune-buffer nil     ; INFILE BUFFER DISPLAY
                (append (if (stringp fortune-program-options)
@@ -334,7 +343,6 @@ and choose the directory as the fortune-file."
   (setq buffer-read-only t))
 
 
-;;; Provide ourselves.
 (provide 'fortune)
 
 ;;; fortune.el ends here

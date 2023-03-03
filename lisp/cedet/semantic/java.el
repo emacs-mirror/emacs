@@ -1,6 +1,6 @@
-;;; semantic/java.el --- Semantic functions for Java
+;;; semantic/java.el --- Semantic functions for Java  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -37,25 +37,24 @@
 ;;; Lexical analysis
 ;;
 (defconst semantic-java-number-regexp
-  (eval-when-compile
-    (concat "\\("
-            "\\<[0-9]+[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[.][eE][-+]?[0-9]+[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[.][fFdD]\\>"
-            "\\|"
-            "\\<[0-9]+[.]"
-            "\\|"
-            "[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
-            "\\|"
-            "\\<0[xX][[:xdigit:]]+[lL]?\\>"
-            "\\|"
-            "\\<[0-9]+[lLfFdD]?\\>"
-            "\\)"
-            ))
+  (concat "\\("
+          "\\<[0-9]+[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[.][eE][-+]?[0-9]+[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[.][fFdD]\\>"
+          "\\|"
+          "\\<[0-9]+[.]"
+          "\\|"
+          "[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
+          "\\|"
+          "\\<0[xX][[:xdigit:]]+[lL]?\\>"
+          "\\|"
+          "\\<[0-9]+[lLfFdD]?\\>"
+          "\\)"
+          )
   "Lexer regexp to match Java number terminals.
 Following is the specification of Java number literals.
 
@@ -141,14 +140,14 @@ corresponding compound declaration."
         (semantic-tag-put-attribute clone :dereference (+ dim0 (cdr dim)))
         (semantic-tag-set-bounds clone start end)))
 
-     ((and (eq class 'type) (string-match "\\." (semantic-tag-name tag)))
+     ((and (eq class 'type) (string-search "." (semantic-tag-name tag)))
       ;; javap outputs files where the package name is stuck onto the class or interface
       ;; name.  To make this more regular, we extract the package name into a package statement,
       ;; then make the class name regular.
       (let* ((name (semantic-tag-name tag))
 	     (rsplit (nreverse (split-string name "\\." t)))
 	     (newclassname (car rsplit))
-	     (newpkg (mapconcat 'identity (reverse (cdr rsplit)) ".")))
+	     (newpkg (mapconcat #'identity (reverse (cdr rsplit)) ".")))
 	(semantic-tag-set-name tag newclassname)
 	(setq xpand
 	      (list tag
@@ -169,7 +168,7 @@ corresponding compound declaration."
 (define-mode-local-override semantic-ctxt-scoped-types
   java-mode (&optional point)
   "Return a list of type names currently in scope at POINT."
-  (mapcar 'semantic-tag-name
+  (mapcar #'semantic-tag-name
           (semantic-find-tags-by-class
            'type (semantic-find-tag-by-overlay point))))
 
@@ -184,7 +183,7 @@ Override function for `semantic-tag-protection'."
 
 ;; Prototype handler
 ;;
-(defun semantic-java-prototype-function (tag &optional parent color)
+(defun semantic-java-prototype-function (tag &optional _parent color)
   "Return a function (method) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -212,7 +211,7 @@ See also `semantic-format-tag-prototype'."
             (or type "") (if type " " "")
             name "(" argp ")")))
 
-(defun semantic-java-prototype-variable (tag &optional parent color)
+(defun semantic-java-prototype-variable (tag &optional _parent color)
   "Return a variable (field) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -227,7 +226,7 @@ See also `semantic-format-tag-prototype'."
                 (semantic--format-colorize-text name 'variable)
               name))))
 
-(defun semantic-java-prototype-type (tag &optional parent color)
+(defun semantic-java-prototype-type (tag &optional _parent color)
   "Return a type (class/interface) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -260,7 +259,7 @@ Optional argument COLOR indicates that color should be mixed in."
 (define-mode-local-override semantic-tag-include-filename java-mode (tag)
   "Return a suitable path for (some) Java imports."
   (let ((name (semantic-tag-name tag)))
-    (concat (mapconcat 'identity (split-string name "\\.") "/") ".java")))
+    (concat (mapconcat #'identity (split-string name "\\.") "/") ".java")))
 
 ;; Documentation handler
 ;;
@@ -391,15 +390,15 @@ That is TAG `symbol-name' without the leading `@'."
 Return the list of FUN results.  If optional PROPERTY is non-nil only
 call FUN for javadoc keywords which have a value for PROPERTY.  FUN
 receives two arguments: the javadoc keyword and its associated
-'javadoc property list.  It can return any value.  All nil values are
+`javadoc' property list.  It can return any value.  All nil values are
 removed from the result list."
   (delq nil
         (mapcar
-         #'(lambda (k)
-             (let* ((tag   (semantic-java-doc-tag k))
-                    (plist (semantic-lex-keyword-get tag 'javadoc)))
-               (if (or (not property) (plist-get plist property))
-                   (funcall fun k plist))))
+         (lambda (k)
+           (let* ((tag   (semantic-java-doc-tag k))
+                  (plist (semantic-lex-keyword-get tag 'javadoc)))
+             (if (or (not property) (plist-get plist property))
+                 (funcall fun k plist))))
          semantic-java-doc-line-tags)))
 
 
@@ -417,61 +416,59 @@ removed from the result list."
   (or semantic-java-doc-with-name-tags
       (setq semantic-java-doc-with-name-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 k)
+             (lambda (k _p) k)
              'with-name)))
 
   (or semantic-java-doc-with-ref-tags
       (setq semantic-java-doc-with-ref-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 k)
+             (lambda (k _p) k)
              'with-ref)))
 
   (or semantic-java-doc-extra-type-tags
       (setq semantic-java-doc-extra-type-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'type (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'type (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-extra-function-tags
       (setq semantic-java-doc-extra-function-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'function (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'function (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-extra-variable-tags
       (setq semantic-java-doc-extra-variable-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'variable (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'variable (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-type-tags
       (setq semantic-java-doc-type-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'type (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'type (plist-get p 'usage))
+                   k)))))
 
   (or semantic-java-doc-function-tags
       (setq semantic-java-doc-function-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'function (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'function (plist-get p 'usage))
+                   k)))))
 
   (or semantic-java-doc-variable-tags
       (setq semantic-java-doc-variable-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'variable (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'variable (plist-get p 'usage))
+                   k)))))
 
   )
 

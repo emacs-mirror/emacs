@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -37,7 +37,8 @@
 ;; page 2:	paired insertion
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
-(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
+(define-obsolete-variable-alias 'skeleton-transformation
+  'skeleton-transformation-function "29.1")
 
 (defvar skeleton-transformation-function 'identity
   "If non-nil, function applied to literal strings before they are inserted.
@@ -65,7 +66,8 @@ region.")
   "Hook called at end of skeleton but before going to point of interest.
 The variables `v1' and `v2' are still set when calling this.")
 
-(defvaralias 'skeleton-filter 'skeleton-filter-function)
+(define-obsolete-variable-alias 'skeleton-filter
+  'skeleton-filter-function "29.1")
 
 ;;;###autoload
 (defvar skeleton-filter-function 'identity
@@ -104,16 +106,17 @@ are integer buffer positions in the reverse order of the insertion order.")
 (defvar skeleton-point)
 (defvar skeleton-regions)
 
-(def-edebug-spec skeleton-edebug-spec
-  ([&or null stringp (stringp &rest stringp) [[&not atom] sexp]]
-   &rest &or "n" "_" "-" ">" "@" "&" "!" "|" "resume:"
-   ("quote" def-form) skeleton-edebug-spec def-form))
+(def-edebug-elem-spec 'skeleton-edebug-spec
+  '([&or null stringp (stringp &rest stringp) [[&not atom] sexp]]
+    &rest &or "n" "_" "-" ">" "@" "&" "!" "|" "resume:"
+    ("quote" def-form) skeleton-edebug-spec def-form))
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
   "Define a user-configurable COMMAND that enters a statement skeleton.
 DOCUMENTATION is that of the command.
 SKELETON is as defined under `skeleton-insert'."
-  (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec)))
+  (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec))
+           (indent defun))
   (if skeleton-debug
       (set command skeleton))
   `(progn
@@ -290,7 +293,8 @@ i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
 is non-nil or a default string."
-  (let ((minibuffer-help-form (or (if (boundp 'help) (symbol-value 'help))
+  (with-suppressed-warnings ((lexical help)) (defvar help)) ;FIXME: Prefix!
+  (let ((minibuffer-help-form (or (bound-and-true-p help)
 				  (if recursive "\
 As long as you provide input you will insert another subskeleton.
 
@@ -312,10 +316,15 @@ automatically, and you are prompted to fill in the variable parts.")))
         (save-excursion (insert "\n")))
     (unwind-protect
 	(setq prompt (cond ((stringp prompt)
-                            (read-string (format prompt skeleton-subprompt)
-                                         (setq initial-input
-                                               (or initial-input
-                                                   (symbol-value 'input)))))
+                            ;; The user may issue commands to move
+                            ;; around (like `C-M-v').  Ensure that we
+                            ;; insert the skeleton at the correct
+                            ;; (initial) point.
+                            (save-excursion
+                              (read-string (format prompt skeleton-subprompt)
+                                           (setq initial-input
+                                                 (or initial-input
+                                                     (symbol-value 'input))))))
                            ((functionp prompt)
                             (funcall prompt))
                            (t (eval prompt))))
@@ -339,7 +348,8 @@ automatically, and you are prompted to fill in the variable parts.")))
       (dlet ((str (or str
                       `(setq str
 			     (skeleton-read ',(car skeleton-il)
-			                    nil ,recursive)))))
+			                    nil ,recursive))))
+             resume:)
 	(when (and (eq (cadr skeleton-il) '\n) (not recursive)
 	           (save-excursion (skip-chars-backward " \t") (bolp)))
 	  (setq skeleton-il (cons nil (cons '> (cddr skeleton-il)))))

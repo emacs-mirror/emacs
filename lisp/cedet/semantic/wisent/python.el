@@ -1,6 +1,6 @@
-;;; wisent-python.el --- Semantic support for Python
+;;; wisent-python.el --- Semantic support for Python  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Richard Kim <emacs18@gmail.com>
 ;; Created: June 2002
@@ -27,11 +27,7 @@
 
 ;;; Code:
 
-(require 'rx)
-
-;; Try to load python support, but fail silently since it is only used
-;; for optional functionality
-(require 'python nil t)
+(require 'python)
 
 (require 'semantic/wisent)
 (require 'semantic/wisent/python-wy)
@@ -120,9 +116,9 @@ curly braces."
         ;; look-ahead assertions.)
         (when (and (= (- end start) 2)
                    (looking-at "\"\\{3\\}\\|'\\{3\\}"))
-          (error "unterminated syntax"))
+          (error "Unterminated syntax"))
         (goto-char end))
-    (error "unterminated syntax")))
+    (error "Unterminated syntax")))
 
 (defun wisent-python-forward-balanced-expression ()
   "Move point to the end of the balanced expression at point.
@@ -147,7 +143,7 @@ triple-quoted string syntax."
        ;; delimiter (backquote) characters, line continuation, and end
        ;; of comment characters (AKA newline characters in Python).
        ((zerop (skip-syntax-forward "-w_.$\\>"))
-        (error "can't figure out how to go forward from here"))))
+        (error "Can't figure out how to go forward from here"))))
     ;; Skip closing character.  As a last resort this should raise an
     ;; error if we hit EOB before we find our closing character..
     (forward-char 1)))
@@ -464,19 +460,19 @@ To be implemented for Python!  For now just return nil."
 (define-mode-local-override semantic-tag-include-filename python-mode (tag)
   "Return a suitable path for (some) Python imports."
   (let ((name (semantic-tag-name tag)))
-    (concat (mapconcat 'identity (split-string name "\\.") "/") ".py")))
+    (concat (mapconcat #'identity (split-string name "\\.") "/") ".py")))
 
 ;; Override ctxt-current-function/assignment defaults, since they do
 ;; not work properly with Python code, even leading to endless loops
 ;; (see bug #xxxxx).
-(define-mode-local-override semantic-ctxt-current-function python-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-function python-mode (&optional _point)
   "Return the current function call the cursor is in at POINT.
 The function returned is the one accepting the arguments that
 the cursor is currently in.  It will not return function symbol if the
 cursor is on the text representing that function."
   nil)
 
-(define-mode-local-override semantic-ctxt-current-assignment python-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-assignment python-mode (&optional _point)
   "Return the current assignment near the cursor at POINT.
 Return a list as per `semantic-ctxt-current-symbol'.
 Return nil if there is nothing relevant."
@@ -503,21 +499,21 @@ Shortens `code' tags, but passes through for others."
 (defun wisent-python-default-setup ()
   "Setup buffer for parse."
   (wisent-python-wy--install-parser)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local parse-sexp-ignore-comments t)
   ;; Give python modes the possibility to overwrite this:
   (if (not comment-start-skip)
-      (set (make-local-variable 'comment-start-skip) "#+\\s-*"))
+      (setq-local comment-start-skip "#+\\s-*"))
   (setq
   ;; Character used to separation a parent/child relationship
    semantic-type-relation-separator-character '(".")
    semantic-command-separation-character ";"
    ;; Parsing
-   semantic-tag-expand-function 'semantic-python-expand-tag
+   semantic-tag-expand-function #'semantic-python-expand-tag
 
    ;; Semantic to take over from the one provided by python.
    ;; The python one, if it uses the senator advice, will hang
    ;; Emacs unrecoverably.
-   imenu-create-index-function 'semantic-create-imenu-index
+   imenu-create-index-function #'semantic-create-imenu-index
 
    ;; I need a python guru to update this list:
    semantic-symbol->name-assoc-list-for-type-parts '((variable . "Variables")
@@ -557,7 +553,7 @@ SELF or the instance name \"self\" if SELF is nil."
 	     (rx-to-string
 	      `(seq string-start ,(or self "self") "."))
 	     name)
-	(not (string-match "\\." (substring name 5)))))))
+	(not (string-search "." (substring name 5)))))))
 
 (defun semantic-python-docstring-p (tag)
   "Return non-nil, when TAG is a Python documentation string."

@@ -1,6 +1,6 @@
 ;;; autoinsert-tests.el --- Tests for autoinsert.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -28,6 +28,7 @@
 
 (require 'autoinsert)
 (require 'ert)
+(require 'ert-x)
 
 (ert-deftest autoinsert-tests-auto-insert-skeleton ()
   (let ((auto-insert-alist '((text-mode nil "f" _ "oo")))
@@ -39,16 +40,14 @@
       (should (equal (point) (+ (point-min) 1))))))
 
 (ert-deftest autoinsert-tests-auto-insert-file ()
-  (let ((temp-file (make-temp-file "autoinsert-tests" nil nil "foo")))
-    (unwind-protect
-        (let ((auto-insert-alist `((text-mode . ,temp-file)))
-              (auto-insert-query nil))
-          (with-temp-buffer
-            (text-mode)
-            (auto-insert)
-            (should (equal (buffer-string) "foo"))))
-      (when (file-exists-p temp-file)
-        (delete-file temp-file)))))
+  (ert-with-temp-file temp-file
+    :text "foo"
+    (let ((auto-insert-alist `((text-mode . ,temp-file)))
+          (auto-insert-query nil))
+      (with-temp-buffer
+        (text-mode)
+        (auto-insert)
+        (should (equal (buffer-string) "foo"))))))
 
 (ert-deftest autoinsert-tests-auto-insert-function ()
   (let ((auto-insert-alist '((text-mode . (lambda () (insert "foo")))))

@@ -85,6 +85,12 @@ git --no-pager grep -inH -p -e "org-element-map"
 lisp/org/org.el[36m=[m20969[36m=[m(defun org-fill-paragraph (&optional justify)
 lisp/org/org.el[36m:[m21047[36m:[m		      ([1;31morg-element-map[m
 
+* ripgrep
+
+rg -nH --color always --no-heading -e grep-match-regexp
+[0m[35mlisp/progmodes/grep.el[0m:[0m[32m608[0m:        (while (re-search-forward [0m[1m[31mgrep-match-regexp[0m end 1)
+Binary file emacs.info matches (found "\u{0}" byte around offset 2222525)
+
 * unknown greps
 
 grep -nH -e "xyzxyz" ../info/*
@@ -96,8 +102,9 @@ grep -nH -e "xyzxyz" ../info/*
 ../info/emacs-2 1205 inserts `xyzxyzxyzxyz' in the current buffer.
 
 
+* Miscellaneous
 
-Copyright (C) 2005-2020 Free Software Foundation, Inc.
+Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 
@@ -118,4 +125,7 @@ COPYING PERMISSIONS:
 ;;; Local Variables:
 ;;; eval: (let ((inhibit-read-only t) (compilation-filter-start (point-min))) (save-excursion (goto-char (point-max)) (grep-filter) (set-buffer-modified-p nil)))
 ;;; buffer-read-only: t
+;;; outline-minor-mode-cycle: t
+;;; outline-minor-mode-highlight: t
+;;; eval: (outline-minor-mode 1)
 ;;; End:

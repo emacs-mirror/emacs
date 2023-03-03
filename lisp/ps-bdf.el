@@ -1,6 +1,6 @@
-;;; ps-bdf.el --- BDF font file handler for ps-print
+;;; ps-bdf.el --- BDF font file handler for ps-print  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -138,7 +138,7 @@ See the documentation of the function `bdf-read-font-info' for more detail."
 (defun bdf-initialize ()
   "Initialize `bdf' library."
   (and (bdf-read-cache)
-       (add-hook 'kill-emacs-hook 'bdf-write-cache)))
+       (add-hook 'kill-emacs-hook #'bdf-write-cache)))
 
 (defun bdf-compact-code (code code-range)
   (if (or (< code (aref code-range 4))

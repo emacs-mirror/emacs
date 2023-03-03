@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998, 2001--2020 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1998, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -252,11 +252,8 @@ the original symbol.  If the contents are another symbol, this
 process, called @dfn{symbol function indirection}, is repeated until
 it obtains a non-symbol.  @xref{Function Names}, for more information
 about symbol function indirection.
-
-  One possible consequence of this process is an infinite loop, in the
-event that a symbol's function cell refers to the same symbol.
-Otherwise, we eventually obtain a non-symbol, which ought to be a
-function or other suitable object.
+We eventually obtain a non-symbol, which ought to be a function or
+other suitable object.
 
 @kindex invalid-function
   More precisely, we should now have a Lisp function (a lambda
@@ -332,26 +329,24 @@ or just
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
 
-@c Emacs 19 feature
-@defun indirect-function function &optional noerror
+@defun indirect-function function
 @anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If
 @var{function} is a symbol, then it finds @var{function}'s function
 definition and starts over with that value.  If @var{function} is not a
 symbol, then it returns @var{function} itself.
 
-This function returns @code{nil} if the final symbol is unbound.  It
-signals a @code{cyclic-function-indirection} error if there is a loop
-in the chain of symbols.
+This function returns @code{nil} if the final symbol is unbound.
 
-The optional argument @var{noerror} is obsolete, kept for backward
-compatibility, and has no effect.
+There is also a second, optional argument that is obsolete and has no
+effect.
 
 Here is how you could define @code{indirect-function} in Lisp:
 
 @example
 (defun indirect-function (function)
-  (if (symbolp function)
+  (if (and function
+           (symbolp function))
       (indirect-function (symbol-function function))
     function))
 @end example
@@ -435,7 +430,7 @@ expansion.
 @cindex forms, special
 @cindex evaluation of special forms
 
-  A @dfn{special form} is a primitive function specially marked so that
+  A @dfn{special form} is a primitive specially marked so that
 its arguments are not all evaluated.  Most special forms define control
 structures or perform variable bindings---things which functions cannot
 do.
@@ -819,9 +814,6 @@ output of the output functions is printed in the echo area.
 (@pxref{Unloading}), and defaults to @code{buffer-file-name}
 (@pxref{Buffer File Name}).  If @var{unibyte} is non-@code{nil},
 @code{read} converts strings to unibyte whenever possible.
-
-@findex eval-current-buffer
-@code{eval-current-buffer} is an alias for this command.
 @end deffn
 
 @defopt max-lisp-eval-depth
@@ -830,7 +822,7 @@ This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
 message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).
 
-This limit, with the associated error when it is exceeded, is one way
+This limit, with the associated error when it is exceeded, is how
 Emacs Lisp avoids infinite recursion on an ill-defined function.  If
 you increase the value of @code{max-lisp-eval-depth} too much, such
 code can cause stack overflow instead.  On some systems, this overflow
@@ -846,14 +838,11 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 800.  If you set it to a value
+The default value of this variable is 1600.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
 reached.  Entry to the Lisp debugger increases the value, if there is
 little room left, to make sure the debugger itself has room to
 execute.
-
-@code{max-specpdl-size} provides another limit on nesting.
-@xref{Definition of max-specpdl-size,, Local Variables}.
 @end defopt
 
 @defvar values
@@ -862,8 +851,13 @@ expressions that were read, evaluated, and printed from buffers
 (including the minibuffer) by the standard Emacs commands which do
 this.  (Note that this does @emph{not} include evaluation in
 @file{*ielm*} buffers, nor evaluation using @kbd{C-j}, @kbd{C-x C-e},
-and similar evaluation commands in @code{lisp-interaction-mode}.)  The
-elements are ordered most recent first.
+and similar evaluation commands in @code{lisp-interaction-mode}.)
+
+This variable is obsolete, and will be removed in a future version,
+since it constantly enlarges the memory footprint of the Emacs
+process.  For that reason, we recommend against using it.
+
+The elements of @code{values} are ordered most recent first.
 
 @example
 @group
@@ -880,8 +874,8 @@ values
 @end group
 @end example
 
-This variable is useful for referring back to values of forms recently
-evaluated.  It is generally a bad idea to print the value of
+This variable could be useful for referring back to values of forms
+recently evaluated.  It is generally a bad idea to print the value of
 @code{values} itself, since this may be very long.  Instead, examine
 particular elements, like this:
 

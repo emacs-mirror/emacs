@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
@@ -45,14 +45,18 @@ This variable is also used in the `vc-diff' command (and related
 commands) if the backend-specific diff switch variable isn't
 set (`vc-git-diff-switches' for git, for instance), and
 `vc-diff-switches' isn't set."
-  :type '(choice string (repeat string))
-  :group 'diff)
+  :type '(choice string (repeat string)))
 
 ;;;###autoload
 (defcustom diff-command (purecopy "diff")
   "The command to use to run diff."
-  :type 'string
-  :group 'diff)
+  :type 'string)
+
+(defcustom diff-entire-buffers t
+  "If non-nil, diff the entire buffers, not just the visible part.
+If nil, only use the narrowed-to parts of the buffers."
+  :type 'boolean
+  :version "29.1")
 
 ;; prompt if prefix arg present
 (defun diff-switches ()
@@ -60,7 +64,7 @@ set (`vc-git-diff-switches' for git, for instance), and
       (read-string "Diff switches: "
 		   (if (stringp diff-switches)
 		       diff-switches
-		     (mapconcat 'identity diff-switches " ")))))
+		     (mapconcat #'identity diff-switches " ")))))
 
 (defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
@@ -89,24 +93,24 @@ minibuffer.  The default for NEW is the current buffer's file
 name, and the default for OLD is a backup file for NEW, if one
 exists.  If NO-ASYNC is non-nil, call diff synchronously.
 
-When called interactively with a prefix argument, prompt
+When called interactively with a prefix argument SWITCHES, prompt
 interactively for diff switches.  Otherwise, the switches
-specified in the variable `diff-switches' are passed to the
-diff command.
+specified in the variable `diff-switches' are passed to the diff
+command.
 
 Non-interactively, OLD and NEW may each be a file or a buffer."
   (interactive
    (let* ((newf (if (and buffer-file-name (file-exists-p buffer-file-name))
 		    (read-file-name
-		     (concat "Diff new file (default "
-			     (file-name-nondirectory buffer-file-name) "): ")
+                     (format-prompt "Diff new file"
+                                    (file-name-nondirectory buffer-file-name))
 		     nil buffer-file-name t)
 		  (read-file-name "Diff new file: " nil nil t)))
           (oldf (file-newest-backup newf)))
      (setq oldf (if (and oldf (file-exists-p oldf))
 		    (read-file-name
-		     (concat "Diff original file (default "
-			     (file-name-nondirectory oldf) "): ")
+                     (format-prompt "Diff original file"
+                                    (file-name-nondirectory oldf))
 		     (file-name-directory oldf) oldf t)
 		  (read-file-name "Diff original file: "
 				  (file-name-directory newf) nil t)))
@@ -121,7 +125,9 @@ temporary file with the buffer's contents."
   (if (bufferp file-or-buf)
       (with-current-buffer file-or-buf
         (let ((tempfile (make-temp-file "buffer-content-")))
-          (write-region nil nil tempfile nil 'nomessage)
+          (if diff-entire-buffers
+              (write-region nil nil tempfile nil 'nomessage)
+            (write-region (point-min) (point-max) tempfile nil 'nomessage))
           tempfile))
     (file-local-copy file-or-buf)))
 
@@ -147,7 +153,7 @@ Possible values are:
   ;; Noninteractive helper for creating and reverting diff buffers
   "Compare the OLD and NEW file/buffer.
 If the optional SWITCHES is nil, the switches specified in the
-variable ‘diff-switches’ are passed to the diff command,
+variable `diff-switches' are passed to the diff command,
 otherwise SWITCHES is used.  SWITCHES can be a string or a list
 of strings.
 
@@ -165,7 +171,7 @@ returns the buffer used."
   (let* ((old-alt (diff-file-local-copy old))
 	 (new-alt (diff-file-local-copy new))
 	 (command
-	  (mapconcat 'identity
+	  (mapconcat #'identity
 		     `(,diff-command
 		       ;; Use explicitly specified switches
 		       ,@switches
@@ -190,9 +196,9 @@ returns the buffer used."
 	(erase-buffer))
       (buffer-enable-undo (current-buffer))
       (diff-mode)
-      (set (make-local-variable 'revert-buffer-function)
-           (lambda (_ignore-auto _noconfirm)
-             (diff-no-select old new switches no-async (current-buffer))))
+      (setq-local revert-buffer-function
+                  (lambda (_ignore-auto _noconfirm)
+                    (diff-no-select old new switches no-async (current-buffer))))
       (setq default-directory thisdir)
       (setq diff-default-directory default-directory)
       (let ((inhibit-read-only t))
@@ -200,7 +206,7 @@ returns the buffer used."
       (if (and (not no-async) (fboundp 'make-process))
 	  (let ((proc (start-process "Diff" buf shell-file-name
                                      shell-command-switch command)))
-	    (set-process-filter proc 'diff-process-filter)
+	    (set-process-filter proc #'diff-process-filter)
             (set-process-sentinel
              proc (lambda (proc _msg)
                     (with-current-buffer (process-buffer proc)
@@ -231,7 +237,7 @@ returns the buffer used."
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
 The backup file is the first file given to `diff'.
-With prefix arg, prompt for diff switches."
+With prefix arg SWITCHES, prompt for diff switches."
   (interactive (list (read-file-name "Diff (file with backup): ")
 		     (diff-switches)))
   (let (bak ori)
@@ -245,7 +251,7 @@ With prefix arg, prompt for diff switches."
 
 ;;;###autoload
 (defun diff-latest-backup-file (fn)
-  "Return the latest existing backup of FILE, or nil."
+  "Return the latest existing backup of file FN, or nil."
   (let ((handler (find-file-name-handler fn 'diff-latest-backup-file)))
     (if handler
 	(funcall handler 'diff-latest-backup-file fn)
@@ -276,7 +282,9 @@ interactively for diff switches.  Otherwise, the switches
 specified in the variable `diff-switches' are passed to the
 diff command.
 
-OLD and NEW may each be a buffer or a buffer name."
+OLD and NEW may each be a buffer or a buffer name.
+
+Also see the `diff-entire-buffers' variable."
   (interactive
    (let ((newb (read-buffer "Diff new buffer" (current-buffer) t))
          (oldb (read-buffer "Diff original buffer"

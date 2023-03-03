@@ -1,6 +1,6 @@
 ;;; button-tests.el --- tests for button.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,11 +21,9 @@
 
 (require 'ert)
 
-(defvar button-tests--map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "x" #'ignore)
-    map)
-  "Keymap for testing command substitution.")
+(defvar-keymap button-tests--map
+  :doc "Keymap for testing command substitution."
+  "x" #'ignore)
 
 (ert-deftest button-at ()
   "Test `button-at' behavior."
@@ -59,6 +57,7 @@
   "Test `button--help-echo' with forms."
   (with-temp-buffer
     ;; Test text property buttons with dynamic scoping.
+    (setq lexical-binding nil)
     (let* ((help   (make-symbol "help"))
            (form   `(funcall (let ((,help "lexical form"))
                                (lambda () ,help))))

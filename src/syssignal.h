@@ -1,6 +1,6 @@
 /* syssignal.h - System-dependent definitions for signals.
 
-Copyright (C) 1993, 1999, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1993, 1999, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMACS_SYSSIGNAL_H
 
 #include <signal.h>
+
+#include <attribute.h>
 
 extern void init_signals (void);
 extern void block_child_signal (sigset_t *);

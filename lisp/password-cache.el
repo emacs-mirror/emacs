@@ -1,6 +1,6 @@
 ;;; password-cache.el --- Read passwords, possibly using a password cache.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21
@@ -103,9 +103,7 @@ that a password is invalid, so that `password-read' query the
 user again."
   (let ((password (gethash key password-data)))
     (when (stringp password)
-      (if (fboundp 'clear-string)
-          (clear-string password)
-        (fillarray password ?_)))
+      (clear-string password))
     (remhash key password-data)))
 
 (defun password-cache-add (key password)

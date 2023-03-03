@@ -111,7 +111,7 @@
 
 2017-03-21  Noam Postavsky  <npostavs@gmail.com>
 
-	Narrow scope of modification hook renabling in org-src fontification
+	Narrow scope of modification hook re-enabling in org-src fontification
 
 	Modification hooks should be enabled while modifying text in the
 	org-src temp buffer, but in 2017-01-29 "Call modification hooks in
@@ -4040,7 +4040,7 @@
 
 	* lisp/progmodes/xref.el (xref--query-replace-1):
 	Say 'All results processed' at the end if the user hadn't
-	cancelled the process (bug#23284).
+	canceled the process (bug#23284).
 
 2016-05-07  Eli Zaretskii  <eliz@gnu.org>
 
@@ -9269,7 +9269,7 @@
 
 	This is related to the autogen.sh changes made by Paul Eggert in
 	commit d766ca8f (2016-02-01) and commit cedd7cad (2016-02-01), and to
-	my edits today to http://www.emacswiki.org/emacs/GitForEmacsDevs and
+	my edits today to https://www.emacswiki.org/emacs/GitForEmacsDevs and
 	to emacswiki.org/emacs/GitQuickStartForEmacsDevs.  See also the thread
 	"Recommend these .gitconfig settings for git integrity." at
 	https://lists.gnu.org/r/emacs-devel/2016-01/threads.html#01802.
@@ -9317,7 +9317,7 @@
 	optional.
 
 	* src/buffer.c (Fbarf_if_buffer_read_only): Rename argument POS
-	to POSITION to keep consisteny with doc-string.
+	to POSITION to keep consistent with doc-string.
 
 2016-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -11843,7 +11843,7 @@
 
 2016-01-05  Alan Mackenzie  <acm@muc.de>
 
-	Make C++ buffers writeable when writing their initial text properties.
+	Make C++ buffers writable when writing their initial text properties.
 
 	This is a correction to yesterday's CC Mode patch.
 
@@ -12542,7 +12542,7 @@
 
 	* lisp/erc/erc-backend.el (erc-server-setup-periodical-ping): Checks
 	for existing timers in the alist before adding new ones.  If a
-	timer already exists, it is cancelled and
+	timer already exists, it is canceled and
 	overwritten. (bug#19292).
 
 2015-12-27  Jens Lechtenboerger  <jens.lechtenboerger@fsfe.org>
@@ -13444,7 +13444,7 @@
 	(gdb-send): Recognize various ways of exiting from Python and
 	Guile interpreters and returning to GDB.  For details, see
 	https://lists.gnu.org/r/emacs-devel/2015-12/msg00693.html
-	and http://stackoverflow.com/questions/31514741.
+	and https://stackoverflow.com/questions/31514741.
 
 2015-12-16  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -22108,7 +22108,7 @@
 	* src/gfilenotify.c (dir_monitor_callback): Cancel the monitor if
 	the file or directory to be watched is deleted.
 	(Fgfile_add_watch): Make watch_object a triple.
-	(Fgfile_rm_watch): Check, whether watch is cancelled already.
+	(Fgfile_rm_watch): Check, whether watch is canceled already.
 	(Fgfile_valid_p): New defun.
 	(syms_of_gfilenotify): Declare Sgfile_valid_p.
 
@@ -23054,8 +23054,8 @@
 
 	Fix tests in file-notify-tests.el
 	* test/automated/file-notify-tests.el: Remove Tramp declarations.
-	(file-notify-test00-availability): Print remote command w/o Tramp
-	internal functions.
+	(file-notify-test00-availability): Print remote command without
+	Tramp internal functions.
 	(file-notify-test02-events, file-notify-test02-events-remote):
 	Adapt docstring.
 	(file-notify-test03-autorevert): Use `format-message' when
@@ -23731,7 +23731,7 @@
 
 	* lisp/progmodes/etags.el (etags-tags-completion-table):
 	Allow even one non-regular character before the implicit tag name.
-	Reported at http://emacs.stackexchange.com/questions/15269/.
+	Reported at https://emacs.stackexchange.com/questions/15269/.
 
 2015-09-06  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
 
@@ -26343,7 +26343,7 @@
 	(verilog-type-font-keywords): Cycle delay operators like ##1 and
 	##[0:$] are now highlighted in their entirety similarly to the #
 	delay-control operator.  Likewise, the followed-by operators #-#
-	and #=# are no longer partially highlighed.
+	and #=# are no longer partially highlighted.
 	(verilog-backward-syntactic-ws-quick)
 	(verilog-skip-backward-comments): Minor performance improvements
 	to buffer traversal functions for reduced latency.
@@ -28676,7 +28676,7 @@
 	* lisp/faces.el (set-face-attribute): Don't be fooled too easily
 	by a hyphen in a font's name.
 
-	Fix value of posn-at-pont in R2L lines
+	Fix value of posn-at-point in R2L lines
 	* src/keyboard.c (Fposn_at_x_y, Fposn_at_point): Allow X pixel
 	coordinate of -1, for a newline in a right-to-left line that
 	overflowed into the left fringe.
@@ -34464,7 +34464,7 @@
 
 	* lisp/emacs-lisp/package.el: Make archive and status pseudo-keywords
 	(package--has-keyword-p): Understand "arc:xxxx" and "status:xxxx"
-	as special keywords which match agains package archive and status
+	as special keywords which match against package archive and status
 	respectively.
 	* etc/NEWS: Document it.
 
@@ -35670,7 +35670,7 @@
 2015-04-08  Artur Malabarba  <bruce.connor.am@gmail.com>
 
 	* lisp/emacs-lisp/package.el (package-menu-mode): Mode-line notification
-	while dowloading information.
+	while downloading information.
 
 	* lisp/emacs-lisp/package.el: More conservative `ensure-init-file'
 	(package--ensure-init-file): Check file contents before visiting.
@@ -35787,7 +35787,7 @@ See ChangeLog.1 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2015-2020 Free Software Foundation, Inc.
+  Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,11 +1,11 @@
 ;;; ol-bbdb.el --- Links to BBDB entries             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
-;; Authors: Carsten Dominik <carsten at orgmode dot org>
+;; Authors: Carsten Dominik <carsten.dominik@gmail.com>
 ;;       Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -60,7 +60,7 @@
 ;;
 ;; CLASS-OR-FORMAT-STRING is one of two things:
 ;;
-;;  - an identifier for a class of anniversaries (eg. birthday or
+;;  - an identifier for a class of anniversaries (e.g. birthday or
 ;;    wedding) from `org-bbdb-anniversary-format-alist' which then
 ;;    defines the format string for this class
 ;;  - the (format) string displayed in the diary.
@@ -93,12 +93,15 @@
 ;;
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-compat)
 (require 'org-macs)
 (require 'ol)
 
-;; Declare functions and variables
+;;; Declare functions and variables
 
 (declare-function bbdb "ext:bbdb-com" (string elidep))
 (declare-function bbdb-company "ext:bbdb-com" (string elidep))
@@ -126,13 +129,13 @@
 
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
-(with-no-warnings (defvar date))	;unprefixed, from calendar.el
+(with-no-warnings (defvar date))	; unprefixed, from calendar.el
 
-;; Customization
+;;; Customization
 
 (defgroup org-bbdb-anniversaries nil
   "Customizations for including anniversaries from BBDB into Agenda."
-  :group 'org-bbdb)
+  :group 'org-agenda)
 
 (defcustom org-bbdb-default-anniversary-format "birthday"
   "Default anniversary class."
@@ -162,13 +165,13 @@ used."
   '(("birthday" .
      (lambda (name years suffix)
        (concat "Birthday: [[bbdb:" name "][" name " ("
-               (format "%s" years) ; handles numbers as well as strings
-               suffix ")]]")))
+	       (format "%s" years)        ; handles numbers as well as strings
+	       suffix ")]]")))
     ("wedding" .
      (lambda (name years suffix)
        (concat "[[bbdb:" name "][" name "'s "
-               (format "%s" years)
-               suffix " wedding anniversary]]"))))
+	       (format "%s" years)
+	       suffix " wedding anniversary]]"))))
   "How different types of anniversaries should be formatted.
 An alist of elements (STRING . FORMAT) where STRING is the name of an
 anniversary class and format is either:
@@ -221,7 +224,8 @@ date year)."
 			 :complete #'org-bbdb-complete-link
 			 :store #'org-bbdb-store-link)
 
-;; Implementation
+;;; Implementation
+
 (defun org-bbdb-store-link ()
   "Store a link to a BBDB database entry."
   (when (eq major-mode 'bbdb-mode)
@@ -236,7 +240,7 @@ date year)."
 			    :link link :description name)
       link)))
 
-(defun org-bbdb-export (path desc format)
+(defun org-bbdb-export (path desc format _)
   "Create the export version of a BBDB link specified by PATH or DESC.
 If exporting to either HTML or LaTeX FORMAT the link will be
 italicized, in all other cases it is left unchanged."
@@ -249,7 +253,7 @@ italicized, in all other cases it is left unchanged."
     (format "<text:span text:style-name=\"Emphasis\">%s</text:span>" desc))
    (t desc)))
 
-(defun org-bbdb-open (name)
+(defun org-bbdb-open (name _)
   "Follow a BBDB link to NAME."
   (require 'bbdb-com)
   (let ((inhibit-redisplay (not debug-on-error)))
@@ -362,7 +366,9 @@ This is used by Org to re-create the anniversary hash table."
 
 ;;;###autoload
 (defun org-bbdb-anniversaries ()
-  "Extract anniversaries from BBDB for display in the agenda."
+  "Extract anniversaries from BBDB for display in the agenda.
+When called programmatically, this function expects the `date'
+variable to be globally bound."
   (require 'bbdb)
   (require 'diary-lib)
   (unless (hash-table-p org-bbdb-anniv-hash)
@@ -380,7 +386,7 @@ This is used by Org to re-create the anniversary hash table."
          (text ())
          rec recs)
 
-    ;; we don't want to miss people born on Feb. 29th
+    ;; We don't want to miss people born on Feb. 29th
     (when (and (= m 3) (= d 1)
                (not (null (gethash (list 2 29) org-bbdb-anniv-hash)))
                (not (calendar-leap-year-p y)))
@@ -415,8 +421,9 @@ This is used by Org to re-create the anniversary hash table."
         ))
     text))
 
-;;; Return list of anniversaries for today and the next n-1 (default: n=7) days.
-;;; This is meant to be used in an org file instead of org-bbdb-anniversaries:
+;;; Return the list of anniversaries for today and the next n-1
+;;; (default: n=7) days.  This is meant to be used in an org file
+;;; instead of org-bbdb-anniversaries:
 ;;;
 ;;; %%(org-bbdb-anniversaries-future)
 ;;;
@@ -427,7 +434,7 @@ This is used by Org to re-create the anniversary hash table."
 ;;; to override the 7-day default.
 
 (defun org-bbdb-date-list (d n)
-  "Return a list of dates in (m d y) format from the given date D to n-1 days hence."
+  "Return list of dates in (m d y) format from the given date D to n-1 days hence."
   (let ((abs (calendar-absolute-from-gregorian d)))
     (mapcar (lambda (i) (calendar-gregorian-from-absolute (+ abs i)))
 	    (number-sequence 0 (1- n)))))
@@ -442,14 +449,13 @@ for the same event depending on if it occurs in the next few days
 or far away in the future."
   (let ((delta (- (calendar-absolute-from-gregorian anniv-date)
                   (calendar-absolute-from-gregorian agenda-date))))
-
     (cond
      ((= delta 0) " -- today\\&")
      ((= delta 1) " -- tomorrow\\&")
-     ((< delta org-bbdb-general-anniversary-description-after) (format " -- in %d days\\&" delta))
+     ((< delta org-bbdb-general-anniversary-description-after)
+      (format " -- in %d days\\&" delta))
      ((pcase-let ((`(,month ,day ,year) anniv-date))
 	(format " -- %d-%02d-%02d\\&" year month day))))))
-
 
 (defun org-bbdb-anniversaries-future (&optional n)
   "Return list of anniversaries for today and the next n-1 days (default n=7)."

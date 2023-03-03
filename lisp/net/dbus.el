@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -36,6 +36,8 @@
 ;; Declare used subroutines and variables.
 (declare-function dbus-message-internal "dbusbind.c")
 (declare-function dbus--init-bus "dbusbind.c")
+(declare-function libxml-parse-xml-region "xml.c")
+(defvar dbus-debug)
 (defvar dbus-message-type-invalid)
 (defvar dbus-message-type-method-call)
 (defvar dbus-message-type-method-return)
@@ -940,9 +942,7 @@ association to the service from D-Bus."
 
     ;; Loop over the registered functions.
     (dolist (elt entry)
-      (when (equal
-	     value
-	     (butlast (cdr elt) (- (length (cdr elt)) (length value))))
+      (when (equal value (take (length value) (cdr elt)))
 	(setq ret t)
 	;; Compute new hash value.  If it is empty, remove it from the
 	;; hash table.
@@ -1144,6 +1144,7 @@ compound type arguments (TYPE VALUE) will be kept as is."
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
 part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message."
+  (declare (completion ignore))
   (interactive "e")
   (condition-case err
       (let (monitor args result)
@@ -1869,13 +1870,7 @@ name and cdr is the list of properties as returned by
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
 
-  => ((\"/org/gnome/SettingsDaemon/MediaKeys\"
-       (\"org.gnome.SettingsDaemon.MediaKeys\")
-       (\"org.freedesktop.DBus.Peer\")
-       (\"org.freedesktop.DBus.Introspectable\")
-       (\"org.freedesktop.DBus.Properties\")
-       (\"org.freedesktop.DBus.ObjectManager\"))
-      (\"/org/gnome/SettingsDaemon/Power\"
+  => ((\"/org/gnome/SettingsDaemon/Power\"
        (\"org.gnome.SettingsDaemon.Power.Keyboard\")
        (\"org.gnome.SettingsDaemon.Power.Screen\")
        (\"org.gnome.SettingsDaemon.Power\"
@@ -1942,35 +1937,38 @@ It will be registered for all objects created by `dbus-register-service'."
       ;; Check for object path wildcard interfaces.
       (maphash
        (lambda (key val)
-	 (when (and (equal (butlast key 2) (list :property bus))
-		    (null (nth 2 (car-safe val))))
-	   (push (nth 2 key) interfaces)))
+	 (when (equal (butlast key 2) (list :property bus))
+           (dolist (item val)
+	     (unless (nth 2 item) ; Path.
+	       (push (nth 2 key) interfaces)))))
        dbus-registered-objects-table)
 
       ;; Check all registered object paths.
       (maphash
        (lambda (key val)
-	 (let ((object (or (nth 2 (car-safe val)) "")))
-	   (when (and (equal (butlast key 2) (list :property bus))
-		      (string-prefix-p path object))
-	     (dolist (interface (cons (nth 2 key) interfaces))
-	       (unless (assoc object result)
-		 (push (list object) result))
-	       (unless (assoc interface (cdr (assoc object result)))
-		 (setcdr
-		  (assoc object result)
-		  (append
-		   (list (cons
-		    interface
-		    ;; We simulate "org.freedesktop.DBus.Properties.GetAll"
-		    ;; by using an appropriate D-Bus event.
-		    (let ((last-input-event
-			   (append
-			    (butlast last-input-event 4)
-			    (list object dbus-interface-properties
-                                  "GetAll" #'dbus-property-handler))))
-		      (dbus-property-handler interface))))
-		   (cdr (assoc object result)))))))))
+	 (when (equal (butlast key 2) (list :property bus))
+           (dolist (item val)
+	     (let ((object (or (nth 2 item) ""))) ; Path.
+	       (when (string-prefix-p path object)
+	         (dolist (interface (cons (nth 2 key) (delete-dups interfaces)))
+	           (unless (assoc object result)
+		     (push (list object) result))
+	           (unless (assoc interface (cdr (assoc object result)))
+		     (setcdr
+		      (assoc object result)
+		      (append
+		       (list (cons
+		              interface
+		              ;; We simulate
+		              ;; "org.freedesktop.DBus.Properties.GetAll"
+		              ;; by using an appropriate D-Bus event.
+		              (let ((last-input-event
+			             (append
+			              (butlast last-input-event 4)
+			              (list object dbus-interface-properties
+                                            "GetAll" #'dbus-property-handler))))
+		                (dbus-property-handler interface))))
+		       (cdr (assoc object result)))))))))))
        dbus-registered-objects-table)
 
       ;; Return the result, or an empty array.
@@ -2025,8 +2023,9 @@ either a method name, a signal name, or an error name."
            ",")
           rule (or rule ""))
 
-    (unless (ignore-errors (dbus-get-unique-name bus-private))
-      (dbus-init-bus bus 'private))
+    (when (fboundp 'dbus-get-unique-name)
+      (unless (ignore-errors (dbus-get-unique-name bus-private))
+        (dbus-init-bus bus 'private)))
     (dbus-call-method
      bus-private dbus-service-dbus dbus-path-dbus dbus-interface-monitoring
      "BecomeMonitor" `(:array :string ,rule) :uint32 0)
@@ -2068,7 +2067,8 @@ either a method name, a signal name, or an error name."
     (goto-char point)))
 
 (defun dbus-monitor-handler (&rest _args)
-  "Default handler for the \"org.freedesktop.DBus.Monitoring.BecomeMonitor\" interface.
+  "Default handler for the \"Monitoring.BecomeMonitor\" interface.
+Its full name is \"org.freedesktop.DBus.Monitoring.BecomeMonitor\".
 It will be applied for all objects created by `dbus-register-monitor'
 which don't declare an own handler.  The printed timestamps do
 not reflect the time the D-Bus message has passed the D-Bus
@@ -2076,6 +2076,7 @@ daemon, it is rather the timestamp the corresponding D-Bus event
 has been handled by this function."
   (with-current-buffer (get-buffer-create "*D-Bus Monitor*")
     (special-mode)
+    (buffer-disable-undo)
     ;; Move forward and backward between messages.
     (local-set-key [?n] #'forward-paragraph)
     (local-set-key [?p] #'backward-paragraph)
@@ -2095,7 +2096,7 @@ has been handled by this function."
 	   (interface (dbus-event-interface-name event))
 	   (member (dbus-event-member-name event))
            (arguments (dbus-event-arguments event))
-           (time (time-to-seconds (current-time))))
+	   (time (float-time)))
       (save-excursion
         ;; Check for matching method-call.
         (goto-char (point-max))
@@ -2167,6 +2168,23 @@ has been handled by this function."
       (when eobp
         (goto-char (point-max))))))
 
+;;;###autoload
+(defun dbus-monitor (&optional bus)
+  "Invoke `dbus-register-monitor' interactively, and switch to the buffer.
+BUS is either a Lisp keyword, `:system' or `:session', or a
+string denoting the bus address.  The value nil defaults to `:session'."
+  (interactive
+   (list
+    (let ((input
+           (completing-read
+            (format-prompt "Enter bus symbol or name" :session)
+            '(:system :session) nil nil nil nil :session)))
+      (if (and (stringp input)
+               (string-match-p "^\\(:session\\|:system\\)$" input))
+          (intern input) input))))
+  (dbus-register-monitor (or bus :session))
+  (switch-to-buffer (get-buffer-create "*D-Bus Monitor*")))
+
 (defun dbus-handle-bus-disconnect ()
   "React to a bus disconnection.
 BUS is the bus that disconnected.  This routine unregisters all
@@ -2228,15 +2246,19 @@ keywords `:system-private' or `:session-private', respectively."
      bus nil dbus-path-local dbus-interface-local
      "Disconnected" #'dbus-handle-bus-disconnect)))
 
- 
-;; Initialize `:system' and `:session' buses.  This adds their file
-;; descriptors to input_wait_mask, in order to detect incoming
-;; messages immediately.
-(when (featurep 'dbusbind)
-  (dbus-ignore-errors
-    (dbus-init-bus :system))
-  (dbus-ignore-errors
-    (dbus-init-bus :session)))
+
+(defun dbus--init ()
+  ;; Initialize `:system' and `:session' buses.  This adds their file
+  ;; descriptors to input_wait_mask, in order to detect incoming
+  ;; messages immediately.
+  (when (featurep 'dbusbind)
+    (dbus-ignore-errors
+      (dbus-init-bus :system))
+    (dbus-ignore-errors
+      (dbus-init-bus :session))))
+
+(add-hook 'after-pdump-load-hook #'dbus--init)
+(dbus--init)
 
 (provide 'dbus)
 

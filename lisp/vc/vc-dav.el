@@ -1,6 +1,6 @@
-;;; vc-dav.el --- vc.el support for WebDAV
+;;; vc-dav.el --- vc.el support for WebDAV  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: url, vc
@@ -64,7 +64,7 @@ For a list of possible values, see `vc-state'."
 	  'edited
 	(cdr (car locks)))))))
 
-(defun vc-dav-checkout-model (url)
+(defun vc-dav-checkout-model (_url)
   "Indicate whether URL needs to be \"checked out\" before it can be edited.
 See `vc-checkout-model' for a list of possible values."
   ;; The only thing we can support with webdav is 'locking
@@ -72,59 +72,56 @@ See `vc-checkout-model' for a list of possible values."
 
 ;; This should figure out the version # of the file somehow.  What is
 ;; the most appropriate property in WebDAV to look at for this?
-(defun vc-dav-workfile-version (url)
+(defun vc-dav-workfile-version (_url)
   "Return the current workfile version of URL."
   "Unknown")
 
-(defun vc-dav-register (url &optional _comment)
+(defun vc-dav-register (_url &optional _comment)
   "Register URL in the DAV backend."
   ;; Do we need to do anything here?  FIXME?
   )
 
-(defun vc-dav-checkin (url comment &optional _rev)
+(defun vc-dav-checkin (_url _comment &optional _rev)
   "Commit changes in URL to WebDAV. COMMENT is used as a check-in comment."
   ;; This should PUT the resource and release any locks that we hold.
   )
 
-(defun vc-dav-checkout (url &optional rev destfile)
+(defun vc-dav-checkout (_url &optional _rev _destfile)
   "Check out revision REV of URL into the working area.
 
 If EDITABLE is non-nil URL should be writable by the user and if
 locking is used for URL, a lock should also be set.
 
 If REV is non-nil, that is the revision to check out.  If REV is the
-empty string, that means to check ou tht ehead of the trunk.
+empty string, that means to check out the head of the trunk.
 
 If optional arg DESTFILE is given, it is an alternate filename to
-write the contents to.
-"
+write the contents to."
   ;; This should LOCK the resource.
   )
 
-(defun vc-dav-revert (url &optional contents-done)
+(defun vc-dav-revert (_url &optional _contents-done)
   "Revert URL back to the current workfile version.
 
 If optional arg CONTENTS-DONE is non-nil, then the contents of FILE
 have already been reverted from a version backup, and this function
-only needs to update the status of URL within the backend.
-"
+only needs to update the status of URL within the backend."
   ;; Should do a GET if !contents_done
   ;; Should UNLOCK the file.
   )
 
-(defun vc-dav-print-log (url)
+(defun vc-dav-print-log (_url)
   "Insert the revision log of URL into the *vc* buffer."
   )
 
-(defun vc-dav-diff (url &optional rev1 rev2 buffer async)
+(defun vc-dav-diff (_url &optional _rev1 _rev2 _buffer _async)
   "Insert the diff for URL into the *vc-diff* buffer.
 If REV1 and REV2 are non-nil report differences from REV1 to REV2.
 If REV1 is nil, use the current workfile version as the older version.
 If REV2 is nil, use the current workfile contents as the nwer version.
 
 It should return a status of either 0 (no differences found), or
-1 (either non-empty diff or the diff is run asynchronously).
-"
+1 (either non-empty diff or the diff is run asynchronously)."
   ;; We should do this asynchronously...
   ;; How would we do it at all, that is the question!
   )
@@ -135,14 +132,14 @@ It should return a status of either 0 (no differences found), or
 
 ;; This should use url-dav-get-properties with a depth of `1' to get
 ;; all the properties.
-(defun vc-dav-dir-state (url)
-  "find the version control state of all files in DIR in a fast way."
+(defun vc-dav-dir-state (_url)
+  "Find the version control state of all files in DIR in a fast way."
   )
 
 (defun vc-dav-responsible-p (url)
-  "Return non-nil if DAV considers itself `responsible' for URL."
+  "Return the URL if DAV considers itself `responsible' for URL."
   ;; Check for DAV support on the web server.
-  t)
+  url)
 
 ;;; Unimplemented functions
 ;;

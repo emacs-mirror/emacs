@@ -1737,7 +1737,7 @@
 	(bibtex-find-crossref, bibtex-find-entry): New funs.
 	(bibtex-find-entry-location): Rename to bibtex-prepare-new-entry, use
 	bibtex-lessp, Simplify.
-	(bibtex-validate): Simplify.  Fixe bug of internal variable
+	(bibtex-validate): Simplify.  Fix bug of internal variable
 	questionable-month.
 	(bibtex-remove-OPT-or-ALT): Use when.
 	(bibtex-remove-delimiters, bibtex-kill-field, bibtex-kill-entry)
@@ -4788,7 +4788,7 @@
 2003-03-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table):
-	Construct w/o using `with-syntax-table'.
+	Construct without using `with-syntax-table'.
 
 2003-03-10  John Paul Wallington  <jpw@gnu.org>
 
@@ -9449,7 +9449,7 @@
 	Use shy group.
 	(outline-level) <var>: Update calling convention.
 	(outline-level) <fun>: Take advantage of it.
-	(outline-demote): Don't assume the match-data is still uptodate.
+	(outline-demote): Don't assume the match-data is still up-to-date.
 	(outline-up-heading): Simplify and make sure the match data is
 	properly set at the end.
 
@@ -9490,7 +9490,7 @@
 	toolbar/rescan.pbm, toolbar/rescan.xpm, toolbar/show.pbm,
 	toolbar/show.xpm, toolbar/widen.pbm, toolbar/widen.xpm:
 	Upgraded to mh-e version 6.1.1.  Full ChangeLog available in
-	http://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
+	https://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
 	There were no user-visible changes in 6.1.1 from 6.1--only the
 	section of the Makefile that installs the files into Emacs was changed.
 
@@ -23541,7 +23541,7 @@ See ChangeLog.9 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2001-2020 Free Software Foundation, Inc.
+    Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

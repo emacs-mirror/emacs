@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2020 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2023 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -20,6 +20,9 @@
 
 SHELL = @SHELL@
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
+
 # Following ../lisp/Makefile.in.
 EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp
@@ -27,7 +30,9 @@ EMACSOPT = -batch --no-site-file --no-site-lisp
 # ==================== Things 'configure' will edit ====================
 
 CC=@CC@
+CXX=@CXX@
 CFLAGS=@CFLAGS@
+CXXFLAGS=@CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 
@@ -44,39 +49,15 @@ WERROR_CFLAGS = @WERROR_CFLAGS@
 # Program name transformation.
 TRANSFORM = @program_transform_name@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_RC = $(am__v_RC_@AM_V@)
-am__v_RC_ = $(am__v_RC_@AM_DEFAULT_V@)
-am__v_RC_0 = @echo "  RC      " $@;
-am__v_RC_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
 # Later values may use this.
 ns_appbindir=@ns_appbindir@
+ns_applibexecdir=@ns_applibexecdir@
 
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of
@@ -154,6 +135,11 @@ MKDIR_P = @MKDIR_P@
 
 # ========================== Lists of Files ===========================
 
+## Haiku build-time support
+HAVE_BE_APP=@HAVE_BE_APP@
+HAIKU_LIBS=@HAIKU_LIBS@
+HAIKU_CFLAGS=@HAIKU_CFLAGS@
+
 # emacsclientw.exe for MinGW, empty otherwise
 CLIENTW = @CLIENTW@
 
@@ -167,7 +153,11 @@ UTILITIES = hexl${EXEEXT} 			 	 \
 	    $(if $(with_mailutils), , movemail${EXEEXT}) \
             $(and $(use_gamedir), update-game-score${EXEEXT})
 
+ifeq ($(HAVE_BE_APP),yes)
+DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT} be-resources
+else
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
+endif
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -203,15 +193,49 @@ LIBRESOLV=@LIBRESOLV@
 ## -llockfile if HAVE_LIBLOCKFILE or -lmail if HAVE_LIBMAIL
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
-LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+CLOCK_TIME_LIB = @CLOCK_TIME_LIB@
+## empty or -lbcrypt or -ladvapi32
+GETRANDOM_LIB = @GETRANDOM_LIB@
 ## Whatever libraries are needed for euidaccess
-LIB_EACCESS=@LIB_EACCESS@
+EUIDACCESS_LIBGEN=@EUIDACCESS_LIBGEN@
+## Libraries needed for file_has_acl
+FILE_HAS_ACL_LIB=@FILE_HAS_ACL_LIB@
 ## empty or -lwsock2 for MinGW
 LIB_WSOCK32=@LIB_WSOCK32@
 
+## Extra libraries for etags
+LIBS_ETAGS = $(CLOCK_TIME_LIB) $(GETRANDOM_LIB)
+
+HAVE_SECCOMP=@HAVE_SECCOMP@
+HAVE_LIBSECCOMP=@HAVE_LIBSECCOMP@
+LIBSECCOMP_LIBS=@LIBSECCOMP_LIBS@
+LIBSECCOMP_CFLAGS=@LIBSECCOMP_CFLAGS@
+SIZEOF_LONG=@SIZEOF_LONG@
+
+# Currently, we can only generate seccomp filter files for x86-64.
+ifeq ($(HAVE_SECCOMP),yes)
+ifeq ($(HAVE_LIBSECCOMP),yes)
+ifeq ($(shell uname -m),x86_64)
+ifeq ($(SIZEOF_LONG),8)
+# We require SECCOMP_RET_KILL_PROCESS, which is only available in
+# Linux 4.14 and later.
+ifeq ($(shell { echo 4.14; uname -r | cut -d . -f 1-2; } | \
+              sort -C -t . -n -k 1,1 -k 2,2 && \
+              echo 1),1)
+SECCOMP_FILTER=1
+endif
+endif
+endif
+endif
+endif
+
+ifeq ($(SECCOMP_FILTER),1)
+DONT_INSTALL += seccomp-filter$(EXEEXT)
+endif
+
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
-            $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32)
+  $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32) $(LIBS_ETAGS)
 
 ## Extra libraries when linking emacsclient
 ## (empty or -lcomctl32 for MinGW)
@@ -225,6 +249,10 @@ WINDRES = @WINDRES@
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
 
+# Flags that could be in WARN_CFLAGS, but are invalid for C++.
+NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+  -Wstrict-prototypes -Wno-override-init
+
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
 	      -I. -I../src -I../lib \
@@ -233,10 +261,17 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
+ALL_CXXFLAGS = $(filter-out ${NON_CXX_CFLAGS},${BASE_CFLAGS}) \
+  ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS} ${CXXFLAGS} ${HAIKU_CFLAGS}
+
 # Configuration files for .o files to depend on.
 config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 
 all: ${EXE_FILES} ${SCRIPTS}
+
+ifeq ($(SECCOMP_FILTER),1)
+all: seccomp-filter.bpf seccomp-filter-exec.bpf
+endif
 
 .PHONY: all need-blessmail maybe-blessmail
 
@@ -268,11 +303,11 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 ## up if chown or chgrp fails, as the package responsible for
 ## installing Emacs can fix this problem later.
 $(DESTDIR)${archlibdir}: all
-	@echo
-	@echo "Installing utilities run internally by Emacs."
+	$(info $ )
+	$(info Installing utilities run internally by Emacs.)
 	umask 022 && ${MKDIR_P} "$(DESTDIR)${archlibdir}"
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
-	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P` && \
+	if [ "$$exp_archlibdir" != "`pwd -P`" ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file \
 	      "$(DESTDIR)${archlibdir}/$$file" || exit; \
@@ -298,8 +333,8 @@ $(DESTDIR)${archlibdir}: all
 	 chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"
     endif
   endif
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
-	if [ "$$exp_archlibdir" != "`cd ${srcdir} && /bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P` && \
+	if [ "$$exp_archlibdir" != "`cd ${srcdir} && pwd -P`" ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file \
 	      "$(DESTDIR)${archlibdir}/$$file" || exit; \
@@ -307,11 +342,11 @@ $(DESTDIR)${archlibdir}: all
 	fi
 
 .PHONY: install uninstall mostlyclean clean distclean maintainer-clean
-.PHONY: bootstrap-clean extraclean check tags
+.PHONY: bootstrap-clean check tags
 
 install: $(DESTDIR)${archlibdir}
-	@echo
-	@echo "Installing utilities for users to run."
+	$(info $ )
+	$(info Installing utilities for users to run.)
 	umask 022 && ${MKDIR_P} "$(DESTDIR)${bindir}"
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} \
@@ -335,6 +370,7 @@ mostlyclean:
 	rm -f core ./*.o ./*.res
 
 clean: mostlyclean
+	-rm -f seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc
 	rm -f ${EXE_FILES}
 
 distclean: clean
@@ -342,12 +378,10 @@ distclean: clean
 
 bootstrap-clean maintainer-clean: distclean
 
-extraclean: maintainer-clean
-	rm -f ./*~ \#*
 
 ## Test the contents of the directory.
 check:
-	@echo "We don't have any tests for the lib-src/ directory yet."
+	$(info We don't have any tests for the lib-src/ directory yet.)
 
 tagsfiles = $(wildcard ${srcdir}/*.[ch])
 
@@ -360,7 +394,7 @@ TAGS: etags${EXEEXT} ${tagsfiles}
 	$(MAKE) -C ../lib all
 
 etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
-etags_libs = $(NTLIB) $(LOADLIBES)
+etags_libs = $(NTLIB) $(LOADLIBES) $(LIBS_ETAGS)
 
 etags${EXEEXT}: ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
@@ -392,12 +426,17 @@ pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< \
 	   $(NTLIB) $(LOADLIBES) \
-	   $(LIB_WSOCK32) $(LIB_EACCESS) $(LIBS_ECLIENT) -o $@
+	   $(LIB_WSOCK32) $(EUIDACCESS_LIBGEN) \
+	   $(FILE_HAS_ACL_LIB) $(LIBS_ECLIENT) \
+	   -o $@
 
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows $< \
 	   $(LOADLIBES) \
-	   $(LIB_WSOCK32) $(LIB_EACCESS) $(LIBS_ECLIENT) -o $@
+	   $(LIB_WSOCK32) $(EUIDACCESS_LIBGEN) $(LIBS_ECLIENT) -o $@
+
+be-resources: ${srcdir}/be_resources.cc ${config_h}
+	$(AM_V_CXXLD)$(CXX) ${ALL_CXXFLAGS} ${HAIKU_LIBS} $< -o $@
 
 NTINC = ${srcdir}/../nt/inc
 NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \
@@ -419,5 +458,16 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 
 emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 	$(AM_V_RC)$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ $<
+
+ifeq ($(SECCOMP_FILTER),1)
+seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
+	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
+	  $(LIBSECCOMP_LIBS) -o $@
+
+seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc: seccomp-filter$(EXEEXT)
+	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
+	  seccomp-filter.bpf seccomp-filter.pfc \
+	  seccomp-filter-exec.bpf seccomp-filter-exec.pfc
+endif
 
 ## Makefile ends here.

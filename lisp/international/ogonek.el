@@ -1,6 +1,6 @@
-;;; ogonek.el --- change the encoding of Polish diacritics
+;;; ogonek.el --- change the encoding of Polish diacritics  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Włodek Bzyl
 ;;	   Ryszard Kubiak
@@ -214,7 +214,7 @@ The functions come in the following groups.
  is stored in the constant `ogonek-name-encoding-alist'.
 
  The `ogonek' functions refer to five variables in which the suggested
- answers to dialogue questions are stored.  The variables and their
+ answers to dialog questions are stored.  The variables and their
  default values are:
 
    ogonek-from-encoding           iso8859-2
@@ -266,7 +266,7 @@ The functions come in the following groups.
   (switch-to-buffer " *ogonek-how*")
   (goto-char (point-min)))
 
-;; ---- Variables keeping the suggested answers to dialogue questions -----
+;; ---- Variables keeping the suggested answers to dialog questions -----
 (defvar ogonek-encoding-choices
   (cons 'choice
 	(mapcar (lambda (x) (list 'const (car x)))

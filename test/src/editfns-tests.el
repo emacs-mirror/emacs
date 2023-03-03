@@ -1,6 +1,6 @@
-;;; editfns-tests.el -- tests for editfns.c  -*- lexical-binding:t -*-
+;;; editfns-tests.el --- tests for editfns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,16 +23,16 @@
 
 (ert-deftest format-properties ()
   ;; Bug #23730
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (propertize "%d" 'face '(:background "red")) 1)
            #("1" 0 1 (face (:background "red")))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (propertize "%2d" 'face '(:background "red")) 1)
            #(" 1" 0 2 (face (:background "red")))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (propertize "%02d" 'face '(:background "red")) 1)
            #("01" 0 2 (face (:background "red")))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (concat (propertize "%2d" 'x 'X)
                            (propertize "a" 'a 'A)
                            (propertize "b" 'b 'B))
@@ -40,27 +40,27 @@
            #(" 1ab" 0 2 (x X) 2 3 (a A) 3 4 (b B))))
 
   ;; Bug #5306
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%.10s"
                    (concat "1234567890aaaa"
                            (propertize "12345678901234567890" 'xxx 25)))
            "1234567890"))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%.10s"
                    (concat "123456789"
                            (propertize "12345678901234567890" 'xxx 25)))
            #("1234567891" 9 10 (xxx 25))))
 
   ;; Bug #23859
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%4s" (propertize "hi" 'face 'bold))
            #("  hi" 2 4 (face bold))))
 
   ;; Bug #23897
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%s" (concat (propertize "01234" 'face 'bold) "56789"))
            #("0123456789" 0 5 (face bold))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%s" (concat (propertize "01" 'face 'bold)
                                 (propertize "23" 'face 'underline)
                                 "45"))
@@ -68,45 +68,69 @@
   ;; The last property range is extended to include padding on the
   ;; right, but the first range is not extended to the left to include
   ;; padding on the left!
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%12s" (concat (propertize "01234" 'face 'bold) "56789"))
            #("  0123456789" 2 7 (face bold))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%-12s" (concat (propertize "01234" 'face 'bold) "56789"))
            #("0123456789  " 0 5 (face bold))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%10s" (concat (propertize "01" 'face 'bold)
                                   (propertize "23" 'face 'underline)
                                   "45"))
            #("    012345" 4 6 (face bold) 6 8 (face underline))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%-10s" (concat (propertize "01" 'face 'bold)
                                    (propertize "23" 'face 'underline)
                                    "45"))
            #("012345    " 0 2 (face bold) 2 4 (face underline))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format "%-10s" (concat (propertize "01" 'face 'bold)
                                    (propertize "23" 'face 'underline)
                                    (propertize "45" 'face 'italic)))
            #("012345    "
              0 2 (face bold) 2 4 (face underline) 4 10 (face italic))))
   ;; Bug #38191
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (propertize "‘foo’ %s bar" 'face 'bold) "xxx")
            #("‘foo’ xxx bar" 0 13 (face bold))))
   ;; Bug #32404
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (concat (propertize "%s" 'face 'bold)
                            ""
                            (propertize "%s" 'face 'error))
                    "foo" "bar")
            #("foobar" 0 3 (face bold) 3 6 (face error))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (concat "%s" (propertize "%s" 'face 'error)) "foo" "bar")
            #("foobar" 3 6 (face error))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (format (concat "%s " (propertize "%s" 'face 'error)) "foo" "bar")
-           #("foo bar" 4 7 (face error)))))
+           #("foo bar" 4 7 (face error))))
+  ;; Bug #46317
+  (let ((s (propertize "X" 'prop "val")))
+    (should (equal-including-properties
+             (format (concat "%3s/" s) 12)
+             #(" 12/X" 4 5 (prop "val"))))
+    (should (equal-including-properties
+             (format (concat "%3S/" s) 12)
+             #(" 12/X" 4 5 (prop "val"))))
+    (should (equal-including-properties
+             (format (concat "%3d/" s) 12)
+             #(" 12/X" 4 5 (prop "val"))))
+    (should (equal-including-properties
+             (format (concat "%-3s/" s) 12)
+             #("12 /X" 4 5 (prop "val"))))
+    (should (equal-including-properties
+             (format (concat "%-3S/" s) 12)
+             #("12 /X" 4 5 (prop "val"))))
+    (should (equal-including-properties
+             (format (concat "%-3d/" s) 12)
+             #("12 /X" 4 5 (prop "val"))))))
+
+(ert-deftest propertize/error-even-number-of-args ()
+  "Number of args for `propertize' must be odd."
+  (should-error (propertize "foo" 'bar) :type 'wrong-number-of-arguments))
 
 ;; Tests for bug#5131.
 (defun transpose-test-reverse-word (start end)
@@ -388,5 +412,18 @@
       (insert max-char)
       (translate-region-internal (point-min) (point-max) tt)
       (should (string-equal (buffer-string) "*")))))
+
+(ert-deftest find-fields ()
+  (with-temp-buffer
+    (insert "foo" (propertize "bar" 'field 'bar) "zot")
+    (goto-char (point-min))
+    (should (= (field-beginning) (point-min)))
+    (should (= (field-end) 4))
+    (goto-char 5)
+    (should (= (field-beginning) 4))
+    (should (= (field-end) 7))
+    (goto-char 8)
+    (should (= (field-beginning) 7))
+    (should (= (field-end) (point-max)))))
 
 ;;; editfns-tests.el ends here

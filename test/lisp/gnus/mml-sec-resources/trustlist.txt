@@ -1,0 +1,26 @@
+# This is the list of trusted keys.  Comment lines, like this one, as
+# well as empty lines are ignored.  Lines have a length limit but this
+# is not a serious limitation as the format of the entries is fixed and
+# checked by gpg-agent.  A non-comment line starts with optional white
+# space, followed by the SHA-1 fingerprint in hex, followed by a flag
+# which may be one of 'P', 'S' or '*' and optionally followed by a list of
+# other flags.  The fingerprint may be prefixed with a '!' to mark the
+# key as not trusted.  You should give the gpg-agent a HUP or run the
+# command "gpgconf --reload gpg-agent" after changing this file.
+
+
+# Include the default trust list
+include-default
+
+
+# CN=No Expiry
+D0:6A:A1:18:65:3C:C3:8E:9D:0C:AF:56:ED:7A:21:35:E1:58:21:77 S relax
+
+# CN=Second Key Pair
+0E:58:22:9B:80:EE:33:95:9F:F7:18:FE:EF:25:40:2B:47:9D:C6:E2 S relax
+
+# CN=No Expiry two UIDs
+D4:CA:78:E1:47:0B:9F:C2:AE:45:D7:84:64:9B:8C:E6:4E:BB:32:0C S relax
+
+# CN=Different subkeys
+4F:96:2A:B7:F4:76:61:6A:78:3D:72:AA:40:35:D5:9B:5F:88:E9:FC S relax

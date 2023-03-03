@@ -1,6 +1,6 @@
 ;;; calc-store.el --- value storage functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -163,21 +163,19 @@
 			     tag (and (not val) 1))
 	   (message "Variable \"%s\" changed" (calc-var-name var)))))))
 
-(defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
-(if calc-var-name-map
-    ()
-  (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
-  (define-key calc-var-name-map " " 'self-insert-command)
-  (mapc (function
-	 (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-	    'calcVar-digit)))
-	"0123456789")
-  (mapc (function
-	 (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-	    'calcVar-oper)))
-	"+-*/^|"))
+(defvar calc-var-name-map
+  (let ((map (copy-keymap minibuffer-local-completion-map)))
+    (define-key map " " #'self-insert-command)
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-digit))
+          "0123456789")
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-oper))
+          "+-*/^|")
+    map)
+  "Keymap for reading Calc variable names.")
 
 (defvar calc-store-opers)
 
@@ -190,12 +188,15 @@
   (let* ((calc-store-opers store-opers)
          (var (concat
               "var-"
-              (let ((minibuffer-completion-table
-                     (mapcar (lambda (x) (substring x 4))
-                             (all-completions "var-" obarray)))
-                    (minibuffer-completion-predicate
-                     (lambda (x) (boundp (intern (concat "var-" x)))))
-                    (minibuffer-completion-confirm t))
+              (minibuffer-with-setup-hook
+                  (lambda ()
+                    (setq-local minibuffer-completion-table
+                                (mapcar (lambda (x) (substring x 4))
+                                        (all-completions "var-" obarray)))
+                    (setq-local minibuffer-completion-predicate
+                                (lambda (x)
+                                  (boundp (intern (concat "var-" x)))))
+                    (setq-local minibuffer-completion-confirm t))
                 (read-from-minibuffer
                  prompt nil calc-var-name-map nil
                  'calc-read-var-name-history)))))
@@ -324,10 +325,9 @@
 	 (calc-pop-push-record
 	  (1+ calc-given-value-flag)
 	  (concat "=" (calc-var-name (car (car var))))
-	  (let ((saved-val (mapcar (function
-				    (lambda (v)
-				      (and (boundp (car v))
-					   (symbol-value (car v)))))
+          (let ((saved-val (mapcar (lambda (v)
+                                     (and (boundp (car v))
+                                          (symbol-value (car v))))
 				   var)))
 	    (unwind-protect
 		(let ((vv var))
@@ -440,10 +440,10 @@
 	 (if (eq (car-safe value) 'special-const)
 	     (error "%s is a special constant" var))
 	 (setq calc-last-edited-variable var)
-	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
-			 t
-			 (format-message
-                          "Editing variable `%s'" (calc-var-name var)))
+	 (calc--edit-mode (lambda () (calc-finish-stack-edit var))
+			  t
+			  (format-message
+                           "Editing variable `%s'" (calc-var-name var)))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))
@@ -589,7 +589,7 @@
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name "Save variable (default all): ")))
+   (or var (setq var (calc-read-var-name (format-prompt "Save variable" "all"))))
    (let (calc-pv-pos)
      (and var (or (and (boundp var) (symbol-value var))
 		  (error "No such variable")))
@@ -597,13 +597,12 @@
 				      calc-settings-file)))
      (if var
 	 (calc-insert-permanent-variable var)
-       (mapatoms (function
-		  (lambda (x)
-		    (and (string-match "\\`var-" (symbol-name x))
-			 (not (memq x calc-dont-insert-variables))
-			 (calc-var-value x)
-			 (not (eq (car-safe (symbol-value x)) 'special-const))
-			 (calc-insert-permanent-variable x))))))
+       (mapatoms (lambda (x)
+                   (and (string-match "\\`var-" (symbol-name x))
+                        (not (memq x calc-dont-insert-variables))
+                        (calc-var-value x)
+                        (not (eq (car-safe (symbol-value x)) 'special-const))
+                        (calc-insert-permanent-variable x)))))
      (save-buffer))))
 
 
@@ -638,27 +637,26 @@
 (defun calc-insert-variables (buf)
   (interactive "bBuffer in which to save variable values: ")
   (with-current-buffer buf
-    (mapatoms (function
-	       (lambda (x)
-		 (and (string-match "\\`var-" (symbol-name x))
-		      (not (memq x calc-dont-insert-variables))
-		      (calc-var-value x)
-		      (not (eq (car-safe (symbol-value x)) 'special-const))
-		      (or (not (eq x 'var-Decls))
-			  (not (equal var-Decls '(vec))))
-		      (or (not (eq x 'var-Holidays))
-			  (not (equal var-Holidays '(vec (var sat var-sat)
-							 (var sun var-sun)))))
-		      (insert "(setq "
-			      (symbol-name x)
-			      " "
-			      (prin1-to-string
-			       (let ((calc-language
-				      (if (memq calc-language '(nil big))
-					  'flat
-					calc-language)))
-				 (math-format-value (symbol-value x) 100000)))
-			      ")\n")))))))
+    (mapatoms (lambda (x)
+                (and (string-match "\\`var-" (symbol-name x))
+                     (not (memq x calc-dont-insert-variables))
+                     (calc-var-value x)
+                     (not (eq (car-safe (symbol-value x)) 'special-const))
+                     (or (not (eq x 'var-Decls))
+                         (not (equal var-Decls '(vec))))
+                     (or (not (eq x 'var-Holidays))
+                         (not (equal var-Holidays '(vec (var sat var-sat)
+                                                        (var sun var-sun)))))
+                     (insert "(setq "
+                             (symbol-name x)
+                             " "
+                             (prin1-to-string
+                              (let ((calc-language
+                                     (if (memq calc-language '(nil big))
+                                         'flat
+                                       calc-language)))
+                                (math-format-value (symbol-value x) 100000)))
+                             ")\n"))))))
 
 (defun calc-assign (arg)
   (interactive "P")

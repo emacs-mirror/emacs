@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2020 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -277,8 +277,13 @@ GDB:
 If you do this, then typing C-c or C-BREAK into the console window
 through which you interact with GDB will stop Emacs and return control
 to the debugger, no matter if Emacs displays GUI or text-mode frames.
-This is the only reliable alternative on MS-Windows to get control to
-the debugger, besides setting breakpoints in advance.
+With GDB versions before 13.1, this is the only reliable alternative
+on MS-Windows to get control to the debugger, besides setting
+breakpoints in advance.  GDB 13.1 changed the way C-c and C-BREAK are
+handled on Windows, so with those newer versions, you don't need the
+"set new-console 1" setting to be able to interrupt Emacs by typing
+C-c or C-BREAK into the console window from which you started Emacs
+and where you interact with GDB.
 
 ** Examining Lisp object values.
 
@@ -573,6 +578,32 @@ debugging did not (yet) happen.  Here are some useful techniques for that:
    GET_FROM_IMAGE for displaying an image, etc.  See 'enum it_method' in
    dispextern.h for the full list of values.
 
+** Debugging problems with native-compiled Lisp.
+
+When you encounter problems specific to native-compilation of Lisp, we
+recommend to follow the procedure below to try to identify the cause:
+
+ . Reduce the problematic .el file to the minimum by bisection, and
+   try identifying the function that causes the problem.
+
+ . Reduce the problematic function to the minimal code that still
+   reproduces the problem.
+
+ . Study the problem's artifacts, like Lisp or C backtraces, to try
+   identifying the cause of the problem.
+
+If you cannot figure out the cause for the problem using the above,
+native-compile the problematic file after setting the variable
+'comp-libgccjit-reproducer' to a non-nil value.  That should produce a
+file named ELNFILENAME_libgccjit_repro.c, where ELNFILENAME is the
+name of the problematic .eln file, either in the same directory where
+the .eln file is produced, or under your ~/.emacs.d/eln-cache (which
+one depends on how the native-compilation is invoked).  It is also
+possible that the reproducer file's name will be something like
+subr--trampoline-XXXXXXX_FUNCTION_libgccjit_repro.c, where XXXXXXX is
+a long string of hex digits and FUNCTION is some function from the
+compiled .el file.  Attach that reproducer C file to your bug report.
+
 ** Following longjmp call.
 
 Recent versions of glibc (2.4+?) encrypt stored values for setjmp/longjmp which
@@ -635,10 +666,10 @@ Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
-Note that the -xrm option may have no effect when you make an Emacs
-process invoked with the -nw option a server and want to trace X
-protocol errors from subsequent invocations of emacsclient in a GUI
-frame.  In that case calling the initial Emacs via
+Note that the -xrm option may have no effect when you start a server
+in an Emacs session invoked with the -nw command-line option, and want
+to trace X protocol errors from GUI frames created by subsequent
+invocations of emacsclient.  In that case starting Emacs via
 
   emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
 
@@ -875,15 +906,6 @@ It is also useful to look at the corrupted object or data structure in
 a fresh Emacs session and compare its contents with a session that you
 are debugging.
 
-** Debugging problems with non-ASCII characters
-
-If you experience problems which seem to be related to non-ASCII
-characters, such as \201 characters appearing in the buffer or in your
-files, set the variable byte-debug-flag to t.  This causes Emacs to do
-some extra checks, such as look for broken relations between byte and
-character positions in buffers and strings; the resulting diagnostics
-might pinpoint the cause of the problem.
-
 ** Debugging the TTY (non-windowed) version
 
 The most convenient method of debugging the character-terminal display
@@ -930,16 +952,21 @@ several kinds of low-level problems in C code, including:
   * Passing invalid values to some builtin functions, e.g., __builtin_clz (0).
   * Reaching __builtin_unreachable calls (in Emacs, 'eassume' failure).
 
-To use UndefinedBehaviorSanitizer with GCC and similar compilers,
-append '-fsanitize=undefined' to CFLAGS, either when running
-'configure' or running 'make'.  When supported, you can also specify
-'bound-strict' and 'float-cast-overflow'.  For example:
+To use GCC's UndefinedBehaviorSanitizer, append '-fsanitize=undefined'
+to CFLAGS, either when running 'configure' or running 'make'.
+When supported, you can also specify 'bound-strict' and
+'float-cast-overflow'.  For example:
 
   ./configure \
     CFLAGS='-O0 -g3 -fsanitize=undefined,bounds-strict,float-cast-overflow'
 
 You may need to append '-static-libubsan' to CFLAGS if your version of
 GCC is installed in an unusual location.
+
+Clang's UB sanitizer can also be used, but has coverage problems.
+You'll need '-fsanitize=undefined -fno-sanitize=pointer-overflow' to
+suppress misguided warnings about adding zero to a null pointer,
+although this also suppresses any valid pointer overflow warnings.
 
 When using GDB to debug an executable with undefined-behavior
 sanitization, the GDB command:
@@ -980,9 +1007,31 @@ Address sanitization is incompatible with undefined-behavior
 sanitization, unfortunately.  Address sanitization is also
 incompatible with the --with-dumping=unexec option of 'configure'.
 
+*** Address poisoning/unpoisoning
+
+When compiled with address sanitization, Emacs will also try to mark
+dead/free lisp objects as poisoned, forbidding them from being
+accessed without being unpoisoned first.  This adds an extra layer
+of checking with objects in internal free lists, which may otherwise
+evade traditional use-after-free checks. To disable this, add
+'allow_user_poisoning=0' to ASAN_OPTIONS, or build Emacs with
+'-DGC_ASAN_POISON_OBJECTS=0' in CFLAGS.
+
+While using GDB, memory addresses can be inspected by using helper
+functions additionally provided by the ASan library:
+
+  (gdb) call __asan_describe_address(ptr)
+
+To check whether an address range is poisoned or not, use:
+
+  (gdb) call __asan_region_is_poisoned(ptr, 8)
+
+Additional functions can be found in the header
+'sanitizer/asan_interface.h' in your compiler's headers directory.
+
 ** Running Emacs under Valgrind
 
-Valgrind <http://valgrind.org/> is free software that can be useful
+Valgrind <https://valgrind.org/> is free software that can be useful
 when debugging low-level Emacs problems.  Unlike GCC sanitizers,
 Valgrind does not need you to compile Emacs with special debugging
 flags, so it can be helpful in investigating problems that vanish when
@@ -1013,6 +1062,42 @@ The file etc/emacs-buffer.gdb defines a set of GDB commands for
 recovering the contents of Emacs buffers from a core dump file.  You
 might also find those commands useful for displaying the list of
 buffers in human-readable format from within the debugger.
+
+*** Debugging Emacs with LLDB
+
+On systems where GDB is not available, like macOS with M1 chip, you
+can also use LLDB for Emacs debugging.
+
+To start LLDB to debug Emacs, you can simply type "lldb ./emacs RET"
+at the shell prompt in directory of the Emacs executable, usually the
+'src' sub-directory of the Emacs tree).
+
+When you debug Emacs with LLDB, you should start LLDB in the directory
+where the Emacs executable was built.  That directory has an .lldbinit
+file that loads a Python module emacs_lldb.py from the 'etc' directory
+of the Emacs source tree.  The Python module defines "user-defined"
+commands for debugging Emacs.
+
+LLDB by default does not automatically load .lldbinit files in the
+current directory.  The simplest way to fix this is to add the
+following line to your ~/.lldbinit file (creating such a file if it
+doesn't already exist):
+
+  settings set target.load-cwd-lldbinit true
+
+Alternatively, you can type "lldb --local-lldbinit ./emacs RET".
+
+If everything worked, you should see something like "Emacs debugging
+support has been installed" after starting LLDB.  You can see which
+Emacs-specific commands are defined with
+
+  (lldb) help
+
+User-defined commands for Emacs debugging start with an "x".
+
+Please refer to the LLDB reference on the web for more information
+about LLDB.  If you already know GDB, you will also find a mapping
+from GDB commands to corresponding LLDB commands there.
 
 
 This file is part of GNU Emacs.

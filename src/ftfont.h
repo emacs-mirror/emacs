@@ -25,8 +25,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_SIZES_H
+#include FT_TRUETYPE_TABLES_H
 #ifdef FT_BDF_H
 # include FT_BDF_H
+#endif
+
+#ifdef USE_BE_CAIRO
+#include <cairo.h>
 #endif
 
 #ifdef HAVE_HARFBUZZ
@@ -62,7 +67,7 @@ struct font_info
   hb_font_t *hb_font;
 #endif  /* HAVE_HARFBUZZ */
 
-#ifdef USE_CAIRO
+#if defined (USE_CAIRO) || defined (USE_BE_CAIRO)
   cairo_scaled_font_t *cr_scaled_font;
   /* Scale factor from the bitmap strike metrics in 1/64 pixels, used
      as the hb_position_t value in HarfBuzz, to those in (scaled)
@@ -78,5 +83,12 @@ struct font_info
   unsigned x_display_id;
 #endif
 };
+
+#if defined USE_CAIRO && defined HAVE_X_WINDOWS
+
+extern void ftcrfont_get_default_font_options (struct x_display_info *,
+					       cairo_font_options_t *);
+
+#endif /* USE_CAIRO && HAVE_X_WINDOWS */
 
 #endif	/* EMACS_FTFONT_H */

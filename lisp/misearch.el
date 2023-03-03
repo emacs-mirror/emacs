@@ -1,6 +1,6 @@
-;;; misearch.el --- isearch extensions for multi-buffer search
+;;; misearch.el --- isearch extensions for multi-buffer search  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 ;;; Search multiple buffers
 
 ;;;###autoload (add-hook 'isearch-mode-hook 'multi-isearch-setup)
@@ -40,8 +42,7 @@
 (defcustom multi-isearch-search t
   "Non-nil enables searching multiple related buffers, in certain modes."
   :type 'boolean
-  :version "23.1"
-  :group 'multi-isearch)
+  :version "23.1")
 
 (defcustom multi-isearch-pause t
   "A choice defining where to pause the search.
@@ -53,8 +54,7 @@ If t, pause in all buffers that contain the search string."
 	  (const :tag "Don't pause" nil)
 	  (const :tag "Only in initial buffer" initial)
 	  (const :tag "All buffers" t))
-  :version "23.1"
-  :group 'multi-isearch)
+  :version "23.1")
 
 ;;;###autoload
 (defvar multi-isearch-next-buffer-function nil
@@ -119,10 +119,10 @@ Intended to be added to `isearch-mode-hook'."
 	  (default-value 'isearch-wrap-function)
 	  multi-isearch-orig-push-state
 	  (default-value 'isearch-push-state-function))
-    (setq-default isearch-search-fun-function 'multi-isearch-search-fun
-		  isearch-wrap-function       'multi-isearch-wrap
-		  isearch-push-state-function 'multi-isearch-push-state)
-    (add-hook 'isearch-mode-end-hook  'multi-isearch-end)))
+    (setq-default isearch-search-fun-function #'multi-isearch-search-fun
+		  isearch-wrap-function       #'multi-isearch-wrap
+		  isearch-push-state-function #'multi-isearch-push-state)
+    (add-hook 'isearch-mode-end-hook #'multi-isearch-end)))
 
 (defun multi-isearch-end ()
   "Clean up the multi-buffer search after terminating isearch."
@@ -133,7 +133,7 @@ Intended to be added to `isearch-mode-hook'."
   (setq-default isearch-search-fun-function multi-isearch-orig-search-fun
 		isearch-wrap-function       multi-isearch-orig-wrap
 		isearch-push-state-function multi-isearch-orig-push-state)
-  (remove-hook 'isearch-mode-end-hook  'multi-isearch-end))
+  (remove-hook 'isearch-mode-end-hook #'multi-isearch-end))
 
 (defun multi-isearch-search-fun ()
   "Return the proper search function, for isearch in multiple buffers."
@@ -190,10 +190,10 @@ the initial buffer."
   (if (or (null multi-isearch-pause)
 	  (and multi-isearch-pause multi-isearch-current-buffer))
       (progn
-	(switch-to-buffer
-	 (setq multi-isearch-current-buffer
-	       (funcall multi-isearch-next-buffer-current-function
-			(current-buffer) t)))
+	(setq multi-isearch-current-buffer
+	      (funcall multi-isearch-next-buffer-current-function
+		       (current-buffer) t))
+	(multi-isearch-switch-buffer)
 	(goto-char (if isearch-forward (point-min) (point-max))))
     (setq multi-isearch-current-buffer (current-buffer))
     (setq isearch-wrapped nil)))
@@ -202,14 +202,25 @@ the initial buffer."
   "Save a function restoring the state of multiple buffers search.
 Save the current buffer to the additional state parameter in the
 search status stack."
-  `(lambda (cmd)
-     (multi-isearch-pop-state cmd ,(current-buffer))))
+  (let ((buf (current-buffer)))
+    (lambda (cmd)
+      (multi-isearch-pop-state cmd buf))))
 
 (defun multi-isearch-pop-state (_cmd buffer)
-  "Restore the multiple buffers search state.
+  "Restore the multiple buffers search state in BUFFER.
 Switch to the buffer restored from the search status stack."
-  (unless (equal buffer (current-buffer))
-    (switch-to-buffer (setq multi-isearch-current-buffer buffer))))
+  (unless (eq buffer (current-buffer))
+    (setq multi-isearch-current-buffer buffer)
+    (multi-isearch-switch-buffer)))
+
+;;;###autoload
+(defun multi-isearch-switch-buffer ()
+  "Switch to the next buffer in multi-buffer search."
+  (when (and (buffer-live-p multi-isearch-current-buffer)
+             (not (eq multi-isearch-current-buffer (current-buffer))))
+    (setq isearch-mode nil)
+    (switch-to-buffer multi-isearch-current-buffer)
+    (setq isearch-mode " M-Isearch")))
 
 
 ;;; Global multi-buffer search invocations
@@ -238,7 +249,7 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (while (not (string-equal
 		 (setq buf (read-buffer (multi-occur--prompt) nil t))
 		 ""))
-      (add-to-list 'bufs buf)
+      (cl-pushnew buf bufs :test #'equal)
       (setq ido-ignore-item-temp-list bufs))
     (nreverse bufs)))
 
@@ -322,7 +333,7 @@ Every next/previous file in the defined sequence is visited by
 			     default-directory
 			     default-directory))
 		 default-directory))
-      (add-to-list 'files file))
+      (cl-pushnew file files :test #'equal))
     (nreverse files)))
 
 ;; A regexp is not the same thing as a file glob - does this matter?
@@ -381,7 +392,7 @@ whose file names match the specified wildcard."
 (defun multi-isearch-unload-function ()
   "Remove autoloaded variables from `unload-function-defs-list'.
 Also prevent the feature from being reloaded via `isearch-mode-hook'."
-  (remove-hook 'isearch-mode-hook 'multi-isearch-setup)
+  (remove-hook 'isearch-mode-hook #'multi-isearch-setup)
   (let ((defs (list (car unload-function-defs-list)))
 	(auto '(multi-isearch-next-buffer-function
 		multi-isearch-next-buffer-current-function
@@ -395,7 +406,7 @@ Also prevent the feature from being reloaded via `isearch-mode-hook'."
     ;; .
     nil))
 
-(defalias 'misearch-unload-function 'multi-isearch-unload-function)
+(defalias 'misearch-unload-function #'multi-isearch-unload-function)
 
 
 (provide 'multi-isearch)

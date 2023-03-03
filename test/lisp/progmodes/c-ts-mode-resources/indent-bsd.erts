@@ -1,0 +1,93 @@
+Code:
+  (lambda ()
+    (c-ts-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local c-ts-mode-indent-offset 2)
+    (c-ts-mode-set-style 'bsd)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+int
+main (void)
+{
+  return 0;
+}
+=-=-=
+
+Name: Hanging Braces
+
+=-=
+int
+main (void)
+{
+  if (true)
+  {
+    |
+  }
+}
+=-=-=
+
+Name: Labels
+
+=-=
+int
+main (void)
+{
+  label:
+    return 0;
+  if (true)
+  {
+    label:
+      return 0;
+  }
+  else
+  {
+    if (true)
+    {
+      label:
+        return 0;
+    }
+  }
+}
+=-=-=
+
+Name: If-Else
+
+=-=
+int main()
+{
+  if (true)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+}
+=-=-=
+
+Name: Empty Line
+=-=
+int main()
+{
+  |
+}
+=-=-=
+
+Name: Consecutive blocks (bug#60873)
+
+=-=
+int
+main (int   argc,
+      char *argv[])
+{
+  {
+    int i = 0;
+  }
+}
+=-=-=

@@ -1,6 +1,6 @@
-;;; fontset.el --- commands for handling fontset
+;;; fontset.el --- commands for handling fontset  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -152,12 +152,14 @@
       '((latin ?A ?Z ?a ?z #x00C0 #x0100 #x0180 #x1e00)
 	(phonetic #x250 #x283)
 	(greek #x3A9)
-	(coptic #x3E2)
+	(coptic #x3E2 #x2C80 #x2CAE)
 	(cyrillic #x42F)
 	(armenian #x531)
 	(hebrew #x5D0)
 	(vai #xA500)
-	(arabic #x628)
+        ;; U+06C1 prevents us from using bad fonts, like DejaVu Sans,
+        ;; for Arabic text.
+	(arabic #x628 #x6C1)
 	(syriac #x710)
 	(thaana #x78C)
 	(devanagari #x915)
@@ -180,8 +182,21 @@
 	(canadian-aboriginal #x14C0)
 	(ogham #x168F)
 	(runic #x16A0)
+        (tagalog #x1700)
+        (hanunoo #x1720)
+        (buhid #x1740)
+        (tagbanwa #x1760)
 	(khmer #x1780)
 	(mongolian #x1826)
+        (limbu #x1901 #x1920 #x1936)
+        (buginese #x1A00 #x1A1E)
+        (balinese #x1B13 #x1B35 #x1B5E)
+        (sundanese #x1B8A #x1BAB #x1CC4)
+        (batak #x1BC2 #x1BE7 #x1BFF)
+        (lepcha #x1C00 #x1C24 #x1C40)
+        (tai-le #x1950)
+        (tai-lue #x1980)
+        (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
@@ -191,8 +206,12 @@
 	(kanbun #x319D)
 	(han #x5B57)
 	(yi #xA288)
+        (syloti-nagri #xA807 #xA823 #xA82C)
+        (rejang #xA930 #xA947 #xA95F)
+	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
+        (meetei-mayek #xABC0 #xABE3 #xAAE0 #xAAF6)
 	(hangul #xAC00)
 	(linear-b #x10000)
 	(aegean-number #x10100)
@@ -202,15 +221,17 @@
 	(lycian #x10280)
 	(carian #x102A0)
 	(old-italic #x10300)
+        (gothic #x10330 #x10348)
 	(ugaritic #x10380)
 	(old-permic #x10350)
 	(old-persian #x103A0)
 	(deseret #x10400)
 	(shavian #x10450)
 	(osmanya #x10480)
-        (osage #x104B0)
+	(osage #x104B0)
 	(elbasan #x10500)
 	(caucasian-albanian #x10530)
+	(vithkuqi #x10570)
 	(linear-a #x10600)
 	(cypriot-syllabary #x10800)
 	(palmyrene #x10860)
@@ -219,79 +240,89 @@
 	(lydian #x10920)
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
-        (hanifi-rohingya #x10D00)
-        (yezidi #x10E80)
-        (old-sogdian #x10F00)
-        (sogdian #x10F30)
-        (chorasmian #x10FB0)
-        (elymaic #x10FE0)
+	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
+	(yezidi #x10E80)
+	(old-sogdian #x10F00)
+	(sogdian #x10F30)
+	(chorasmian #x10FB0)
+	(elymaic #x10FE0)
+	(old-uyghur #x10F70)
+        (brahmi #x11013 #x11045 #x11052 #x11065)
+        (kaithi #x1108D #x110B0 #x110BD)
 	(mahajani #x11150)
-	(sinhala-archaic-number #x111E1)
+        (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
 	(khudawadi #x112B0)
-	(grantha #x11305)
-        (newa #x11400)
-	(tirhuta #x11481)
-	(siddham #x11580)
-	(modi #x11600)
+	(grantha #x11315 #x1133E #x11374)
+	(newa #x11400)
+	(tirhuta #x11481 #x1148F #x114D0)
+	(siddham #x1158E #x115AF #x115D4)
+	(modi #x1160E #x11630 #x11655)
 	(takri #x11680)
-        (dogra #x11800)
+	(dogra #x11800)
 	(warang-citi #x118A1)
-        (dives-akuru #x11900)
-        (nandinagari #x119a0)
-        (zanabazar-square #x11A00)
-        (soyombo #x11A50)
+	(dives-akuru #x11900)
+	(nandinagari #x119a0)
+	(zanabazar-square #x11A00)
+	(soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
-        (bhaiksuki #x11C00)
-        (marchen #x11C72)
-        (masaram-gondi #x11D00)
-        (gunjala-gondi #x11D60)
-        (makasar #x11EE0)
+	(bhaiksuki #x11C00)
+	(marchen #x11C72)
+	(masaram-gondi #x11D00)
+	(gunjala-gondi #x11D60)
+	(makasar #x11EE0 #x11EF7)
+        (kawi #x11F04 #x11F41 #x11F4F)
 	(cuneiform #x12000)
-	(cuneiform-numbers-and-punctuation #x12400)
+	(cypro-minoan #x12F90)
 	(egyptian #x13000)
 	(mro #x16A40)
+	(tangsa #x16A70 #x16AC0)
 	(bassa-vah #x16AD0)
 	(pahawh-hmong #x16B11)
-        (medefaidrin #x16E40)
-        (tangut #x17000)
-        (tangut-components #x18800)
-        (khitan-small-script #x18B00)
-        (nushu #x1B170)
+	(medefaidrin #x16E40)
+	(tangut #x17000)
+	(khitan-small-script #x18B00)
+	(nushu #x1B170)
 	(duployan-shorthand #x1BC20)
+	(znamenny-musical-notation #x1CF00 #x1CF42 #x1CF50)
 	(byzantine-musical-symbol #x1D000)
 	(musical-symbol #x1D100)
 	(ancient-greek-musical-notation #x1D200)
+        (kaktovik-numeral #x1D2C0)
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
-        (nyiakeng-puachue-hmong #x1e100)
-        (wancho #x1e2c0)
-	(mende-kikakui #x1E810)
-        (adlam #x1E900)
-        (indic-siyaq-number #x1ec71)
-        (ottoman-siyaq-number #x1ed01)
+	(nyiakeng-puachue-hmong #x1e100)
+	(toto #x1E290 #x1E295 #x1E2AD)
+	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
+        (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
+	(mende-kikakui #x1E810 #x1E8A6)
+	(adlam #x1E900 #x1E943)
+	(indic-siyaq-number #x1EC71 #x1EC9F)
+	(ottoman-siyaq-number #x1ED01 #x1ED27)
 	(mahjong-tile #x1F000)
-	(domino-tile #x1F030)))
+	(domino-tile #x1F030)
+        (emoji #x1F300 #x1F600)
+        (chess-symbol . [#x1FA00 #x1FA67])))
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Aug 16, 2018 version of
+;; The below was synchronized with the latest Sep 12, 2021 version of
 ;; https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 (setq otf-script-alist
       '((adlm . adlam)
-        (ahom . ahom)
-        (hluw . anatolian)
-        (arab . arabic)
+	(ahom . ahom)
+	(hluw . anatolian)
+	(arab . arabic)
 	(armi . aramaic)
 	(armn . armenian)
 	(avst . avestan)
 	(bali . balinese)
 	(bamu . bamum)
-        (bass . bassa-vah)
+	(bass . bassa-vah)
 	(batk . batak)
 	(bng2 . bengali)
 	(beng . bengali)
-        (bhks . bhaiksuki)
+	(bhks . bhaiksuki)
 	(bopo . bopomofo)
 	(brah . brahmi)
 	(brai . braille)
@@ -300,40 +331,44 @@
 	(byzm . byzantine-musical-symbol)
 	(cans . canadian-aboriginal)
 	(cari . carian)
-        (aghb . caucasian-albanian)
+	(aghb . caucasian-albanian)
 	(cakm . chakma)
 	(cham . cham)
 	(cher . cherokee)
+	(chrs . chorasmian)
 	(copt . coptic)
 	(xsux . cuneiform)
 	(cprt . cypriot)
+        (cpmn . cypro-minoan)
 	(cyrl . cyrillic)
 	(dsrt . deseret)
 	(deva . devanagari)
 	(dev2 . devanagari)
-        (dogr . dogra)
-        (dupl . duployan-shorthand)
+	(diak . dives-akuru)
+	(dogr . dogra)
+	(dupl . duployan-shorthand)
 	(egyp . egyptian)
-        (elba . elbasan)
+	(elba . elbasan)
+	(elym . elymaic)
 	(ethi . ethiopic)
 	(geor . georgian)
 	(glag . glagolitic)
 	(goth . gothic)
-        (gran . grantha)
+	(gran . grantha)
 	(grek . greek)
 	(gujr . gujarati)
 	(gjr2 . gujarati)
-        (gong . gunjala-gondi)
+	(gong . gunjala-gondi)
 	(guru . gurmukhi)
 	(gur2 . gurmukhi)
 	(hani . han)
 	(hang . hangul)
-	(jamo . hangul)
-        (rohg . hanifi-rohingya)
+	(jamo . hangul) ; Not recommended; use 'hang' instead.
+	(rohg . hanifi-rohingya)
 	(hano . hanunoo)
-        (hatr . hatran)
+	(hatr . hatran)
 	(hebr . hebrew)
-        (hung . old-hungarian)
+	(hung . old-hungarian)
 	(phli . inscriptional-pahlavi)
 	(prti . inscriptional-parthian)
 	(java . javanese)
@@ -341,104 +376,115 @@
 	(knda . kannada)
 	(knd2 . kannada)
 	(kana . kana)	; Hiragana
+        (kawi . kawi)
 	(kali . kayah-li)
 	(khar . kharoshthi)
+	(kits . khitan-small-script)
 	(khmr . khmer)
-        (khoj . khojki)
-        (sind . khudawadi)
+	(khoj . khojki)
+	(sind . khudawadi)
 	(lao\  . lao)
 	(latn . latin)
 	(lepc . lepcha)
 	(limb . limbu)
-	(lina . linear_a)
-	(linb . linear_b)
-        (lisu . lisu)
-        (lyci . lycian)
-        (lydi . lydian)
-        (mahj . mahajani)
-        (maka . makasar)
-        (marc . marchen)
+	(lina . linear-a)
+	(linb . linear-b)
+	(lisu . lisu)
+	(lyci . lycian)
+	(lydi . lydian)
+	(mahj . mahajani)
+	(maka . makasar)
+	(marc . marchen)
 	(mlym . malayalam)
 	(mlm2 . malayalam)
 	(mand . mandaic)
-        (mani . manichaean)
-        (gonm . masaram-gondi)
+	(mani . manichaean)
+	(gonm . masaram-gondi)
 	(math . mathematical)
-        (medf . medefaidrin)
+	(medf . medefaidrin)
 	(mtei . meetei-mayek)
-        (mend . mende-kikakui)
+	(mend . mende-kikakui)
 	(merc . meroitic)
 	(mero . meroitic)
-        (plrd . miao)
-        (modi . modi)
+	(plrd . miao)
+	(modi . modi)
 	(mong . mongolian)
-        (mroo . mro)
-        (mult . multani)
+	(mroo . mro)
+	(mult . multani)
 	(musc . musical-symbol)
 	(mym2 . burmese)
 	(mymr . burmese)
-        (nbat . nabataean)
-        (newa . newa)
+        (nand . nandinagari)
+	(nbat . nabataean)
+        (nagm . nag-mundari)
+	(newa . newa)
 	(nko\  . nko)
-        (nshu . nushu)
+	(nshu . nushu)
+	(hmnp . nyiakeng-puachue-hmong)
 	(ogam . ogham)
 	(olck . ol-chiki)
-	(ital . old_italic)
-	(xpeo . old_persian)
-        (narb . old-north-arabian)
-        (perm . old-permic)
-        (sogo . old-sogdian)
+	(ital . old-italic)
+	(xpeo . old-persian)
+	(narb . old-north-arabian)
+	(perm . old-permic)
+	(sogo . old-sogdian)
 	(sarb . old-south-arabian)
 	(orkh . old-turkic)
+        (ougr . old-uyghur)
 	(orya . oriya)
 	(ory2 . oriya)
-        (osge . osage)
+	(osge . osage)
 	(osma . osmanya)
-        (hmng . pahawh-hmong)
-        (palm . palmyrene)
-        (pauc . pau-cin-hau)
+	(hmng . pahawh-hmong)
+	(palm . palmyrene)
+	(pauc . pau-cin-hau)
 	(phag . phags-pa)
-        (phli . inscriptional-pahlavi)
+	(phli . inscriptional-pahlavi)
 	(phnx . phoenician)
-        (phlp . psalter-pahlavi)
-        (prti . inscriptional-parthian)
+	(phlp . psalter-pahlavi)
+	(prti . inscriptional-parthian)
 	(rjng . rejang)
 	(runr . runic)
 	(samr . samaritan)
 	(saur . saurashtra)
 	(shrd . sharada)
 	(shaw . shavian)
-        (sidd . siddham)
-        (sgnw . sutton-sign-writing)
+	(sidd . siddham)
+	(sgnw . sutton-sign-writing)
 	(sinh . sinhala)
-        (sogd . sogdian)
+	(sogd . sogdian)
 	(sora . sora-sompeng)
-        (soyo . soyombo)
+	(soyo . soyombo)
 	(sund . sundanese)
-	(sylo . syloti_nagri)
+	(sylo . syloti-nagri)
 	(syrc . syriac)
 	(tglg . tagalog)
 	(tagb . tagbanwa)
-	(tale . tai_le)
+	(tale . tai-le)
 	(talu . tai-lue)
 	(lana . tai-tham)
 	(tavt . tai-viet)
 	(takr . takri)
 	(taml . tamil)
 	(tml2 . tamil)
-        (tang . tangut)
+        (tnsa . tangsa)
+	(tang . tangut)
 	(telu . telugu)
 	(tel2 . telugu)
 	(thaa . thaana)
 	(thai . thai)
 	(tibt . tibetan)
 	(tfng . tifinagh)
-        (tirh . tirhuta)
+	(tirh . tirhuta)
+        (toto . toto)
 	(ugar . ugaritic)
+        (vith . vithkuqi)
 	(vai\  . vai)
-        (wara . warang-citi)
-	(yi\ \   . yi)
-        (zanb . zanabazar-square)))
+	(wcho . wancho)
+	(wara . warang-citi)
+	(yezi . yezidi)
+	(yi\ \	 . yi)
+	(zanb . zanabazar-square)))
 
 ;; Set standard fontname specification of characters in the default
 ;; fontset to find an appropriate font for each script/charset.  The
@@ -496,37 +542,37 @@
 		     (:registry "iso10646-1"))))
 	 (cjk-table (make-char-table nil))
 	 (script-coverage
-	  #'(lambda (script)
-	      (let ((coverage))
-		(map-char-table
-		 #'(lambda (range val)
-		     (when (eq val script)
-		       (if (consp range)
-			   (setq range (cons (car range) (cdr range))))
-		       (push range coverage)))
-		 char-script-table)
-		coverage)))
+          (lambda (script)
+            (let ((coverage))
+              (map-char-table
+               (lambda (range val)
+                 (when (eq val script)
+                   (if (consp range)
+                       (setq range (cons (car range) (cdr range))))
+                   (push range coverage)))
+               char-script-table)
+              coverage)))
 	 (data (list (vconcat (mapcar 'car cjk))))
 	 (i 0))
     (dolist (elt cjk)
       (let ((mask (ash 1 i)))
 	(map-charset-chars
-	 #'(lambda (range _arg)
-	     (let ((from (car range)) (to (cdr range)))
-	       (if (< to #x110000)
-		   (while (<= from to)
-		     (or (memq (aref char-script-table from)
-			       '(kana hangul han cjk-misc))
-			 (aset cjk-table from
-			       (logior (or (aref cjk-table from) 0) mask)))
-		     (setq from (1+ from))))))
+         (lambda (range _arg)
+           (let ((from (car range)) (to (cdr range)))
+             (if (< to #x110000)
+                 (while (<= from to)
+                   (or (memq (aref char-script-table from)
+                             '(kana hangul han cjk-misc))
+                       (aset cjk-table from
+                             (logior (or (aref cjk-table from) 0) mask)))
+                   (setq from (1+ from))))))
 	 (nth 1 elt) nil (nth 2 elt) (nth 3 elt)))
       (setq i (1+ i)))
     (map-char-table
-     #'(lambda (range val)
-	 (if (consp range)
-	     (setq range (cons (car range) (cdr range))))
-	 (push (cons range val) data))
+     (lambda (range val)
+       (if (consp range)
+           (setq range (cons (car range) (cdr range))))
+       (push (cons range val) data))
      cjk-table)
     (dolist (script scripts)
       (dolist (range (funcall script-coverage (car script)))
@@ -718,12 +764,28 @@
 		    georgian
 		    cherokee
 		    canadian-aboriginal
+                    cham
 		    ogham
 		    runic
+                    tagalog
+                    hanunoo
+                    buhid
+                    tagbanwa
+                    limbu
+                    buginese
+                    balinese
+                    sundanese
+                    batak
+                    lepcha
 		    symbol
 		    braille
+                    coptic
 		    yi
+                    syloti-nagri
+                    rejang
+                    javanese
 		    tai-viet
+                    meetei-mayek
 		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
@@ -731,36 +793,59 @@
 		    lycian
 		    carian
 		    old-italic
+                    gothic
 		    ugaritic
 		    old-persian
 		    deseret
 		    shavian
 		    osmanya
 		    osage
+                    vithkuqi
 		    cypriot-syllabary
 		    phoenician
 		    lydian
+                    hanifi-rohingya
                     yezidi
 		    kharoshthi
 		    manichaean
                     chorasmian
 		    elymaic
+                    old-uyghur
+                    brahmi
+                    kaithi
+                    sharada
+                    grantha
+                    tirhuta
+                    siddham
+                    modi
 		    makasar
+                    kawi
                     dives-akuru
-		    cuneiform-numbers-and-punctuation
 		    cuneiform
 		    egyptian
+                    tangsa
 		    bassa-vah
 		    pahawh-hmong
 		    medefaidrin
+                    znamenny-musical-notation
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
+                    kaktovik-numeral
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
+                    toto
+                    wancho
+                    nag-mundari
+                    mende-kikakui
 		    adlam
+                    tai-tham
+                    indic-siyaq-number
+                    ottoman-siyaq-number
 		    mahjong-tile
-		    domino-tile))
+		    domino-tile
+                    emoji
+                    chess-symbol))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))
@@ -791,11 +876,16 @@
 			   (#x1D7EC #x1D7F5 mathematical-sans-serif-bold)
 			   (#x1D7F6 #x1D7FF mathematical-monospace)))
     (let ((slot (assq (nth 2 math-subgroup) script-representative-chars)))
+      ;; Add both ends of each subgroup to help filter out some
+      ;; incomplete fonts, e.g. those that cover MATHEMATICAL SCRIPT
+      ;; CAPITAL glyphs but not MATHEMATICAL SCRIPT SMALL ones.
       (if slot
-	  (if (vectorp (cdr slot))
-	      (setcdr slot (vconcat (cdr slot) (vector (car math-subgroup))))
-	    (setcdr slot (vector (cadr slot) (car math-subgroup))))
-	(setq slot (list (nth 2 math-subgroup) (car math-subgroup)))
+          (setcdr slot (append (list (nth 0 math-subgroup)
+                                     (nth 1 math-subgroup))
+                               (cdr slot)))
+        (setq slot (list (nth 2 math-subgroup)
+                         (nth 0 math-subgroup)
+                         (nth 1 math-subgroup)))
 	(nconc script-representative-chars (list slot))))
     (set-fontset-font
      "fontset-default"
@@ -901,6 +991,20 @@
     (set-fontset-font "fontset-default" symbol-subgroup
                       "-*-fixed-medium-*-*-*-*-*-*-*-*-*-iso10646-1"
                       nil 'prepend))
+  ;; This sets up the Emoji codepoints to use prettier fonts:
+  ;;  this is fallback, if they don't have color Emoji capabilities...
+  (set-fontset-font "fontset-default" 'emoji
+                    '("Noto Emoji" . "iso10646-1") nil 'prepend)
+  ;;  ...and this is if they do
+  (set-fontset-font "fontset-default" 'emoji
+                    '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
+
+  ;; This supports the display of Tamil Supplement characters.  As
+  ;; these characters are pretty simple and do not need reordering,
+  ;; ligatures, vowel signs, virama etc., neither tml2 nor other OTF
+  ;; features are needed here.
+  (set-fontset-font "fontset-default" '(#x11FC0 . #x11FFF)
+                    '("Noto Sans Tamil Supplement" . "iso10646-1") nil 'append)
 
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
   ;; Append fonts for scripts whose name is also a charset name.
@@ -1104,7 +1208,7 @@ Internal use only.  Should be called at startup time."
 (defconst xlfd-regexp-pointsize-subnum 6)	; POINT_SIZE
 (defconst xlfd-regexp-resx-subnum 7)		; RESOLUTION_X
 (defconst xlfd-regexp-resy-subnum 8)		; RESOLUTION_Y
-(defconst xlfd-regexp-spacing-subnum 8)		; SPACING
+(defconst xlfd-regexp-spacing-subnum 9)		; SPACING
 (defconst xlfd-regexp-avgwidth-subnum 10)	; AVERAGE_WIDTH
 (defconst xlfd-regexp-registry-subnum 11)	; REGISTRY and ENCODING
 
@@ -1224,7 +1328,7 @@ Done when `mouse-set-font' is called."
 	  (string-match "fontset-auto[0-9]+$" fontset)
 	  (push (list (fontset-plain-name fontset) fontset) l)))
     (cons "Fontset"
-	  (sort l #'(lambda (x y) (string< (car x) (car y)))))))
+          (sort l (lambda (x y) (string< (car x) (car y)))))))
 
 (declare-function query-fontset "fontset.c" (pattern &optional regexpp))
 

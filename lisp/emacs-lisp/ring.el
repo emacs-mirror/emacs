@@ -1,6 +1,6 @@
 ;;; ring.el --- handle rings of items   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;;; User Functions:
 
 ;;;###autoload
@@ -50,6 +52,8 @@
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (cadr x))
        (vectorp (cddr x))))
+
+(cl-deftype ring () '(satisfies ring-p))
 
 ;;;###autoload
 (defun make-ring (size)
@@ -247,8 +251,6 @@ If SEQ is already a ring, return it."
 		  (not (equal (ring-ref ring 0) (elt seq count))))
 	  (ring-insert-at-beginning ring (elt seq count))))
       ring)))
-
-;;; provide ourself:
 
 (provide 'ring)
 

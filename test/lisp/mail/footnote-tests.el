@@ -1,6 +1,6 @@
 ;;; footnote-tests.el --- Tests for footnote-mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -40,7 +40,7 @@
     (footnote-back-to-message)
     (should (equal (buffer-substring (point-min) (point))
                    "hello[1]"))
-    (should (equal (buffer-substring (point-min) (line-end-position))
+    (should (equal (buffer-substring (point-min) (pos-eol))
                    "hello[1][2] world"))))
 
 (provide 'footnote-tests)

@@ -1,6 +1,6 @@
 ;;; life.el --- John Horton Conway's Game of Life  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -136,10 +136,10 @@
 (defvar life-window-start nil)
 
 (defvar life--max-width nil
-  "If non-nil, restrict width to this positive integer. ")
+  "If non-nil, restrict width to this positive integer.")
 
 (defvar life--max-height nil
-  "If non-nil, restrict height to this positive integer. ")
+  "If non-nil, restrict height to this positive integer.")
 
 ;; For mode line
 (defvar life-current-generation nil)

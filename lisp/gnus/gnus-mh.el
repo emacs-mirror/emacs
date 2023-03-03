@@ -1,6 +1,6 @@
-;;; gnus-mh.el --- mh-e interface for Gnus
+;;; gnus-mh.el --- mh-e interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -53,7 +53,7 @@ If N is a positive number, save the N next articles.
 If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 save those articles instead."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (require 'gnus-art)
   (let ((gnus-default-article-saver 'gnus-summary-save-in-folder))
     (gnus-summary-save-article arg)))
@@ -95,7 +95,7 @@ Optional argument FOLDER specifies folder name."
 	  (kill-buffer errbuf))))
     (setq gnus-newsgroup-last-folder folder)))
 
-(defun gnus-Folder-save-name (newsgroup headers &optional last-folder)
+(defun gnus-Folder-save-name (newsgroup _headers &optional last-folder)
   "Generate folder name from NEWSGROUP, HEADERS, and optional LAST-FOLDER.
 If variable `gnus-use-long-file-name' is nil, it is +News.group.
 Otherwise, it is like +news/group."
@@ -105,7 +105,7 @@ Otherwise, it is like +news/group."
 		  (gnus-capitalize-newsgroup newsgroup)
 		(gnus-newsgroup-directory-form newsgroup)))))
 
-(defun gnus-folder-save-name (newsgroup headers &optional last-folder)
+(defun gnus-folder-save-name (newsgroup _headers &optional last-folder)
   "Generate folder name from NEWSGROUP, HEADERS, and optional LAST-FOLDER.
 If variable `gnus-use-long-file-name' is nil, it is +news.group.
 Otherwise, it is like +news/group."

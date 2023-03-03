@@ -1,6 +1,6 @@
 ;;; calcalg3.el --- more algebraic functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -56,7 +56,7 @@
 					   (calc-top-n 1)
 					   (calc-top-n 2)))
        (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			   (not (string-match "\\[" var)))
+			   (not (string-search "[" var)))
 		      (math-read-expr (concat "[" var "]"))
 		    (math-read-expr var))))
 	 (if (eq (car-safe var) 'error)
@@ -81,7 +81,7 @@
 					(calc-top-n 1)
 					(calc-top-n 2)))
        (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			   (not (string-match "\\[" var)))
+			   (not (string-search "[" var)))
 		      (math-read-expr (concat "[" var "]"))
 		    (math-read-expr var))))
 	 (if (eq (car-safe var) 'error)
@@ -480,17 +480,17 @@
                             "Fitting variables"
                             (format "%s; %s"
 				    (mapconcat 'symbol-name
-					       (mapcar (function (lambda (v)
-								   (nth 1 v)))
+                                               (mapcar (lambda (v)
+                                                         (nth 1 v))
 						       defv)
 					       ",")
 				    (mapconcat 'symbol-name
-					       (mapcar (function (lambda (v)
-								   (nth 1 v)))
+                                               (mapcar (lambda (v)
+                                                         (nth 1 v))
 						       defc)
 					       ",")))))
 	(coefs nil))
-    (setq vars (if (string-match "\\[" vars)
+    (setq vars (if (string-search "[" vars)
 		   (math-read-expr vars)
 		 (math-read-expr (concat "[" vars "]"))))
     (if (eq (car-safe vars) 'error)
@@ -1336,7 +1336,7 @@
   (or (> (length (nth 1 data)) 2)
       (math-reject-arg data "*Too few data points"))
   (if (and (math-vectorp x) (or (math-constp x) math-expand-formulas))
-      (cons 'vec (mapcar (function (lambda (x) (calcFunc-polint data x)))
+      (cons 'vec (mapcar (lambda (x) (calcFunc-polint data x))
 			 (cdr x)))
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
@@ -1352,7 +1352,7 @@
   (or (> (length (nth 1 data)) 2)
       (math-reject-arg data "*Too few data points"))
   (if (and (math-vectorp x) (or (math-constp x) math-expand-formulas))
-      (cons 'vec (mapcar (function (lambda (x) (calcFunc-ratint data x)))
+      (cons 'vec (mapcar (lambda (x) (calcFunc-ratint data x))
 			 (cdr x)))
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
@@ -1484,7 +1484,7 @@
 		      h (cdr h)))
 	    (setq curh (math-div-float curh '(float 9 0))))
 	  ss
-	  (math-reject-arg nil (format "*Integral failed to converge"))))))
+	  (math-reject-arg nil "*Integral failed to converge")))))
 
 
 (defun math-ninteg-evaluate (expr x mode)
@@ -1910,8 +1910,8 @@
     (while p
       (setq vars (delq (assoc (car-safe p) vars) vars)
 	    p (cdr p)))
-    (sort (mapcar 'car vars)
-	  (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))))
+    (sort (mapcar #'car vars)
+          (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
 
 ;; The variables math-all-vars-vars (the vars for math-all-vars) and
 ;; math-all-vars-found are local to math-all-vars-in, but are used by

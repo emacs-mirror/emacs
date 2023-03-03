@@ -1,21 +1,21 @@
 ;;; cl-extra-tests.el --- tests for emacs-lisp/cl-extra.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -32,8 +32,28 @@
 (ert-deftest cl-getf ()
   (let ((plist '(x 1 y nil)))
     (should (eq (cl-getf plist 'x) 1))
-    (should (eq (cl-getf plist 'y :none) nil))
-    (should (eq (cl-getf plist 'z :none) :none))))
+    (should-not (cl-getf plist 'y :none))
+    (should (eq (cl-getf plist 'z :none) :none))
+    (should (eq (cl-incf (cl-getf plist 'x 10) 2) 3))
+    (should (equal plist '(x 3 y nil)))
+    (should-error (cl-incf (cl-getf plist 'y 10) 4) :type 'wrong-type-argument)
+    (should (equal plist '(x 3 y nil)))
+    (should (eq (cl-incf (cl-getf plist 'z 10) 5) 15))
+    (should (equal plist '(z 15 x 3 y nil))))
+  (let ((plist '(x 1 y)))
+    (should (eq (cl-getf plist 'x) 1))
+    (should (eq (cl-getf plist 'y :none) :none))
+    (should (eq (cl-getf plist 'z :none) :none))
+    (should (eq (cl-incf (cl-getf plist 'x 10) 2) 3))
+    (should (equal plist '(x 3 y)))
+    (should (eq (cl-incf (cl-getf plist 'y 10) 4) 14))
+    (should (equal plist '(y 14 x 3 y))))
+  (let ((plist '(x 1 y . 2)))
+    (should (eq (cl-getf plist 'x) 1))
+    (should (eq (cl-incf (cl-getf plist 'x 10) 2) 3))
+    (should (equal plist '(x 3 y . 2)))
+    (should-error (cl-getf plist 'y :none) :type 'wrong-type-argument)
+    (should-error (cl-getf plist 'z :none) :type 'wrong-type-argument)))
 
 (ert-deftest cl-extra-test-mapc ()
   (let ((lst '(a b c))
@@ -77,7 +97,7 @@
         (fn3 (lambda (x _y _z) (string-to-char (format "%S" x)))))
     (should (equal lst (cl-map 'list fn1 lst)))
     (should (equal (vconcat lst2) (cl-map 'vector fn2 lst lst2)))
-    (should (equal (mapconcat (lambda (x) (format "%S" x)) lst "")
+    (should (equal (mapconcat (lambda (x) (format "%S" x)) lst)
                    (cl-map 'string fn3 lst lst2 lst3)))))
 
 (ert-deftest cl-extra-test-maplist ()

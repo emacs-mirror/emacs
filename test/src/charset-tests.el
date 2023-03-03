@@ -1,6 +1,6 @@
 ;;; charset-tests.el --- Tests for charset.c -*- lexical-binding: t -*-
 
-;; Copyright 2017-2020 Free Software Foundation, Inc.
+;; Copyright 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,9 @@
 (require 'ert)
 
 (ert-deftest charset-decode-char ()
-  "Test decode-char."
+  "Test `decode-char'."
   (should-error (decode-char 'ascii 0.5)))
 
 (provide 'charset-tests)
+
+;;; charset-tests.el ends here

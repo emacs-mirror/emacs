@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1994, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Debugging
@@ -77,6 +77,7 @@ debugger recursively.  @xref{Recursive Editing}.
 
 @menu
 * Error Debugging::       Entering the debugger when an error happens.
+* Debugging Redisplay::   Getting backtraces from redisplay errors.
 * Infinite Loops::        Stopping and debugging a program that doesn't exit.
 * Function Debugging::    Entering it when a certain function is called.
 * Variable Debugging::    Entering it when a variable is modified.
@@ -104,6 +105,10 @@ debugger each time this happens.  So if you want errors to enter the
 debugger, set the variable @code{debug-on-error} to non-@code{nil}.
 (The command @code{toggle-debug-on-error} provides an easy way to do
 this.)
+
+Note that, for technical reasons, you cannot use the facilities
+defined in this subsection to debug errors in Lisp that the redisplay
+code has invoked.  @xref{Debugging Redisplay}, for help with these.
 
 @defopt debug-on-error
 This variable determines whether the debugger is called when an error
@@ -196,11 +201,61 @@ echo area.  For example, this can be useful when trying to find the
 cause of a particular message.
 @end defvar
 
+@defvar debug-allow-recursive-debug
+You can evaluate forms in the current stack frame in the
+@samp{*Backtrace*} buffer with the @key{e} command, and while
+edebugging you can use the @key{e} and @key{C-x C-e} commands to do
+something similar.  By default, the debugger is inhibited by these
+commands (because (re-)entering the debugger at this point will
+usually take you out of the debugging context you're in).  Set
+@code{debug-allow-recursive-debug} to a non-@code{nil} value to allow
+these commands to enter the debugger recursively.
+@end defvar
+
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
 @code{debug-on-error} to @code{t} while loading the init file, and
 bypasses the @code{condition-case} which normally catches errors in the
 init file.
+
+@node Debugging Redisplay
+@subsection Debugging Redisplay Errors
+@cindex redisplay errors
+@cindex debugging redisplay errors
+
+When an error occurs in Lisp code which redisplay has invoked, Emacs's
+usual debugging mechanisms are unusable, for technical reasons.  This
+subsection describes how to get a backtrace from such an error, which
+should be helpful in debugging it.
+
+These directions apply to Lisp forms used, for example, in
+@code{:eval} mode line constructs (@pxref{Mode Line Data}), and in all
+hooks invoked from redisplay, such as:
+
+@itemize
+@item
+@code{fontification-functions} (@pxref{Auto Faces}).
+@item
+@code{window-scroll-functions} (@pxref{Window Hooks}).
+@end itemize
+
+Note that if you have had an error in a hook function called from
+redisplay, the error handling might have removed this function from
+the hook.  You will thus need to reinitialize that hook somehow,
+perhaps with @code{add-hook}, to be able to replay the bug.
+
+To generate a backtrace in these circumstances, set the variable
+@code{backtrace-on-redisplay-error} to non-@code{nil}.  When the error
+occurs, Emacs will dump the backtrace to the buffer
+@file{*Redisplay-trace*}, but won't automatically display it in a
+window.  This is to avoid needlessly corrupting the redisplay you are
+debugging.  You will thus need to display the buffer yourself, with a
+command such as @code{switch-to-buffer-other-frame} @key{C-x 5 b}.
+
+@defvar backtrace-on-redisplay-error
+Set this variable to non-@code{nil} to enable the generation of a
+backtrace when an error occurs in any Lisp called from redisplay.
+@end defvar
 
 @node Infinite Loops
 @subsection Debugging Infinite Loops
@@ -387,11 +442,9 @@ possibilities.)
 variable is temporarily set according to
 @code{eval-expression-debug-on-error}.  If the latter variable is
 non-@code{nil}, @code{debug-on-error} will temporarily be set to
-@code{t}.  This means that any further errors that occur while doing a
-debugging session will (by default) trigger another backtrace.  If
-this is not what you want, you can either set
-@code{eval-expression-debug-on-error} to @code{nil}, or set
-@code{debug-on-error} to @code{nil} in @code{debugger-mode-hook}.
+@code{t}.  However, further errors that occur while debugging won't
+(by default) trigger another debugger, because @code{inhibit-debugger}
+will also be bound to non-@code{nil}.
 
   The debugger itself must be run byte-compiled, since it makes
 assumptions about the state of the Lisp interpreter.  These
@@ -424,7 +477,7 @@ move to it and type @key{RET}, to visit the source code.  You can also
 type @key{RET} while point is on any name of a function or variable
 which is not underlined, to see help information for that symbol in a
 help buffer, if any exists.  The @code{xref-find-definitions} command,
-bound to @key{M-.}, can also be used on any identifier in a backtrace
+bound to @kbd{M-.}, can also be used on any identifier in a backtrace
 (@pxref{Looking Up Identifiers,,,emacs, The GNU Emacs Manual}).
 
 In backtraces, the tails of long lists and the ends of long strings,
@@ -522,6 +575,7 @@ Flag the current frame like @kbd{b}.  Then continue execution like
 @kbd{c}, but temporarily disable break-on-entry for all functions that
 are set up to do so by @code{debug-on-entry}.
 
+@vindex debug-allow-recursive-debug
 @item e
 Read a Lisp expression in the minibuffer, evaluate it (with the
 relevant lexical environment, if applicable), and print the
@@ -530,7 +584,11 @@ variables, and the current buffer, as part of its operation; @kbd{e}
 temporarily restores their values from outside the debugger, so you can
 examine and change them.  This makes the debugger more transparent.  By
 contrast, @kbd{M-:} does nothing special in the debugger; it shows you
-the variable values within the debugger.
+the variable values within the debugger.  By default, this command
+suppresses the debugger during evaluation, so that an error in the
+evaluated expression won't add a new error on top of the existing one.
+Set the @code{debug-allow-recursive-debug} user option to a
+non-@code{nil} value to override this.
 
 @item R
 Like @kbd{e}, but also save the result of evaluation in the
@@ -997,11 +1055,12 @@ start looking for ways to optimize that piece.
 @findex profiler-report
 @findex profiler-stop
 Emacs has built-in support for this.  To begin profiling, type
-@kbd{M-x profiler-start}.  You can choose to profile by processor
-usage, memory usage, or both.  Then run the code you'd like to speed
-up.  After that, type @kbd{M-x profiler-report} to display a summary
-buffer for each resource (cpu and memory) that you chose to profile.
-The names of the report buffers include the times at which the reports
+@w{@kbd{M-x profiler-start}}.  You can choose to sample CPU usage
+periodically (@code{cpu}), when memory is allocated (@code{memory}),
+or both.  Then run the code you'd like to speed up.  After that, type
+@kbd{M-x profiler-report} to display a summary buffer for CPU usage
+sampled by each type (cpu and memory) that you chose to profile.  The
+names of the report buffers include the times at which the reports
 were generated, so you can generate another report later on without
 erasing previous results.  When you have finished profiling, type
 @kbd{M-x profiler-stop} (there is a small overhead associated with
@@ -1009,13 +1068,14 @@ profiling, so we don't recommend leaving it active except when you are
 actually running the code you want to examine).
 
 The profiler report buffer shows, on each line, a function that was
-called, followed by how much resources (cpu or memory) it used in
+called, preceded by how much CPU resources it used in
 absolute and percentage terms since profiling started.  If a given
-line has a @samp{+} symbol at the left-hand side, you can expand that
-line by typing @kbd{@key{RET}}, in order to see the function(s) called
-by the higher-level function.  Use a prefix argument (@kbd{C-u
-@key{RET}}) to see the whole call tree below a function.  Pressing
-@kbd{@key{RET}} again will collapse back to the original state.
+line has a @samp{+} symbol to the left of the function name, you can
+expand that line by typing @kbd{@key{RET}}, in order to see the
+function(s) called by the higher-level function.  Use a prefix
+argument (@kbd{C-u @key{RET}}) to see the whole call tree below a
+function.  Pressing @kbd{@key{RET}} again will collapse back to the
+original state.
 
 Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function
 at point.  Press @kbd{d} to view a function's documentation.  You can
@@ -1040,9 +1100,10 @@ functions written in Lisp, it cannot profile Emacs primitives.
 @cindex @file{benchmark.el}
 @cindex benchmarking
 You can measure the time it takes to evaluate individual Emacs Lisp
-forms using the @file{benchmark} library.  See the macros
-@code{benchmark-run}, @code{benchmark-run-compiled} and
-@code{benchmark-progn} in @file{benchmark.el}.  You can also use the
+forms using the @file{benchmark} library.  See the function
+@code{benchmark-call} as well as the macros @code{benchmark-run},
+@code{benchmark-run-compiled}, @code{benchmark-progn} and
+@code{benchmark-call} in @file{benchmark.el}.  You can also use the
 @code{benchmark} command for timing forms interactively.
 
 @c Not worth putting in the printed manual.

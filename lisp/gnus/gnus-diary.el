@@ -1,6 +1,6 @@
-;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
+;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Tue Jul 20 10:42:55 1999
@@ -21,21 +21,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
 
 ;; Contents management by FCM version 0.1.
 
-;; Description:
-;; ===========
-
-;; gnus-diary is a utility toolkit used on top of the nndiary back end. It is
+;; gnus-diary is a utility toolkit used on top of the nndiary back end.  It is
 ;; now fully documented in the Gnus manual.
-
-
-;; Bugs / Todo:
-;; ===========
-
 
 ;;; Code:
 
@@ -57,8 +48,7 @@
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
   "Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
-  :type 'string
-  :group 'gnus-diary)
+  :type 'string)
 
 (defcustom gnus-diary-delay-format-function 'gnus-diary-delay-format-english
   "Function called to format a diary delay string.
@@ -73,11 +63,11 @@ There are currently two built-in format functions:
 `gnus-diary-delay-format-french'"
   :type '(choice (const  :tag "english" gnus-diary-delay-format-english)
 		 (const  :tag "french"  gnus-diary-delay-format-french)
-		 (symbol :tag "other"))
-  :group 'gnus-diary)
+		 (symbol :tag "other")))
 
-(defconst gnus-diary-version nndiary-version
+(defconst gnus-diary-version "0.2-b14"
   "Current Diary back end version.")
+(make-obsolete-variable 'gnus-diary-version 'emacs-version "29.1")
 
 
 ;; Compatibility functions ==================================================
@@ -216,7 +206,7 @@ There are currently two built-in format functions:
 (defun gnus-summary-sort-by-schedule (&optional reverse)
   "Sort nndiary summary buffers by schedule of appointments.
 Optional prefix (or REVERSE argument) means sort in reverse order."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (gnus-summary-sort 'schedule reverse))
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
@@ -276,13 +266,13 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
     (gnus-diary-update-group-parameters group)))
 
 (add-hook 'nndiary-request-create-group-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 ;; Now that we have `gnus-subscribe-newsgroup-functions', this is not needed
 ;; anymore. Maybe I should remove this completely.
 (add-hook 'nndiary-request-update-info-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 (add-hook 'gnus-subscribe-newsgroup-functions
-	  'gnus-diary-maybe-update-group-parameters)
+	  #'gnus-diary-maybe-update-group-parameters)
 
 
 ;; Diary Message Checking ===================================================
@@ -324,7 +314,7 @@ This function checks that all NNDiary required headers are present and
 valid, and prompts for values / correction otherwise.
 
 If ARG (or prefix) is non-nil, force prompting for all fields."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-excursion
     (mapcar
      (lambda (head)
@@ -337,7 +327,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 	   (when (re-search-forward (concat "^" header ":") nil t)
 	     (unless (eq (char-after) ? )
 	       (insert " "))
-	     (setq value (buffer-substring (point) (point-at-eol)))
+             (setq value (buffer-substring (point) (line-end-position)))
 	     (and (string-match "[ \t]*\\([^ \t]+\\)[ \t]*" value)
 		  (setq value (match-string 1 value)))
 	     (condition-case ()
@@ -360,7 +350,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
+		       (gnus-completing-read prompt (cons "*" (mapcar #'car (nth 1 head)))
                                              t value
                                              'gnus-diary-header-value-history)
 		     (read-string prompt value
@@ -388,8 +378,9 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (defun gnus-diary-version ()
   "Current Diary back end version."
+  (declare (obsolete emacs-version "29.1"))
   (interactive)
-  (message "NNDiary version %s" nndiary-version))
+  (message "NNDiary version %s" gnus-diary-version))
 
 (provide 'gnus-diary)
 

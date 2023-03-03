@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2013-2020 Free Software Foundation, Inc.
+# Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -41,23 +41,8 @@ WERROR_CFLAGS = @WERROR_CFLAGS@
 # Program name transformation.
 TRANSFORM = @program_transform_name@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_RC = $(am__v_RC_@AM_V@)
-am__v_RC_ = $(am__v_RC_@AM_DEFAULT_V@)
-am__v_RC_0 = @echo "  RC      " $@;
-am__v_RC_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 # ==================== Where To Install Things ====================
 
@@ -159,6 +144,7 @@ LIBS_ADDPM = -lole32 -luuid
 ## Compilation and linking flags
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
+	      -I../src -I${srcdir}/../src -I../lib -I${srcdir}/../lib \
 	      -I. -I${srcdir}
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
@@ -177,15 +163,15 @@ $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	umask 022; ${MKDIR_P} "$(DESTDIR)${archlibdir}"
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
-	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P`; \
+	if [ "$$exp_archlibdir" != "`pwd -P`" ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file "$(DESTDIR)${archlibdir}/$$file" ; \
 	  done ; \
         fi
 
 .PHONY: install uninstall mostlyclean clean distclean maintainer-clean
-.PHONY: bootstrap-clean extraclean check tags
+.PHONY: bootstrap-clean check tags
 
 install: $(DESTDIR)${archlibdir}
 	@echo
@@ -217,9 +203,6 @@ distclean: clean
 
 bootstrap-clean maintainer-clean: distclean
 	true
-
-extraclean: maintainer-clean
-	-rm -f *~ \#*
 
 ## Test the contents of the directory.
 check:

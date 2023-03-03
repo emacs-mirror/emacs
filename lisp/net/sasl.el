@@ -1,6 +1,6 @@
-;;; sasl.el --- SASL client framework
+;;; sasl.el --- SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: SASL
@@ -161,15 +161,8 @@ the current challenge.  At the first time STEP should be set to nil."
     (if function
 	(vector function (funcall function client step)))))
 
-(defvar sasl-read-passphrase nil)
+(defvar sasl-read-passphrase 'read-passwd)
 (defun sasl-read-passphrase (prompt)
-  (if (not sasl-read-passphrase)
-      (if (functionp 'read-passwd)
-	  (setq sasl-read-passphrase 'read-passwd)
-	(if (load "passwd" t)
-	    (setq sasl-read-passphrase 'read-passwd)
-	  (autoload 'ange-ftp-read-passwd "ange-ftp")
-	  (setq sasl-read-passphrase 'ange-ftp-read-passwd))))
   (funcall sasl-read-passphrase prompt))
 
 (defun sasl-unique-id ()
@@ -181,21 +174,24 @@ It contain at least 64 bits of entropy."
 
 ;; stolen (and renamed) from message.el
 (defun sasl-unique-id-function ()
-  ;; Don't use microseconds from (current-time), they may be unsupported.
+  ;; Don't use fractional seconds from timestamp; they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq sasl-unique-id-char
-	(% (1+ (or sasl-unique-id-char (logand (random) (1- (ash 1 20)))))
-	   ;; (current-time) returns 16-bit ints,
-	   ;; and 2^16*25 just fits into 4 digits i base 36.
-	   (* 25 25)))
-  (let ((tm (current-time)))
+	;; 2^16 * 25 just fits into 4 digits i base 36.
+	(let ((base (* 25 25)))
+	  (if sasl-unique-id-char
+	      (% (1+ sasl-unique-id-char) base)
+	    (random base))))
+  (let ((tm (time-convert nil 'integer)))
     (concat
      (sasl-unique-id-number-base36
-      (+ (car   tm)
-	 (ash (% sasl-unique-id-char 25) 16)) 4)
+      (+ (ash tm -16)
+	 (ash (% sasl-unique-id-char 25) 16))
+      4)
      (sasl-unique-id-number-base36
-      (+ (nth 1 tm)
-	 (ash (/ sasl-unique-id-char 25) 16)) 4))))
+      (+ (logand tm #xffff)
+	 (ash (/ sasl-unique-id-char 25) 16))
+      4))))
 
 (defun sasl-unique-id-number-base36 (num len)
   (if (if (< len 0)
@@ -210,7 +206,7 @@ It contain at least 64 bits of entropy."
 (defconst sasl-plain-steps
   '(sasl-plain-response))
 
-(defun sasl-plain-response (client step)
+(defun sasl-plain-response (client _step)
   (let ((passphrase
 	 (sasl-read-passphrase
 	  (format "PLAIN passphrase for %s: " (sasl-client-name client))))
@@ -236,12 +232,12 @@ It contain at least 64 bits of entropy."
     sasl-login-response-1
     sasl-login-response-2))
 
-(defun sasl-login-response-1 (client step)
+(defun sasl-login-response-1 (client _step)
 ;;;  (unless (string-match "^Username:" (sasl-step-data step))
 ;;;    (sasl-error (format "Unexpected response: %s" (sasl-step-data step))))
   (sasl-client-name client))
 
-(defun sasl-login-response-2 (client step)
+(defun sasl-login-response-2 (client _step)
 ;;;  (unless (string-match "^Password:" (sasl-step-data step))
 ;;;    (sasl-error (format "Unexpected response: %s" (sasl-step-data step))))
   (sasl-read-passphrase
@@ -257,7 +253,7 @@ It contain at least 64 bits of entropy."
   '(ignore				;no initial response
     sasl-anonymous-response))
 
-(defun sasl-anonymous-response (client step)
+(defun sasl-anonymous-response (client _step)
   (or (sasl-client-property client 'trace)
       (sasl-client-name client)))
 

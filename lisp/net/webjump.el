@@ -1,10 +1,11 @@
 ;;; webjump.el --- programmable Web hotlist  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2023 Free Software Foundation, Inc.
 
-;; Author:    Neil W. Van Dyke <nwv@acm.org>
-;; Created:   09-Aug-1996
-;; Keywords:  comm www
+;; Author:     Neil W. Van Dyke <nwv@acm.org>
+;; Maintainer: emacs-devel@gnu.org
+;; Created:    09-Aug-1996
+;; Keywords:   comm www
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +41,6 @@
 
 ;; You may wish to add something like the following to your init file:
 ;;
-;;   (require 'webjump)
 ;;   (global-set-key "\C-cj" 'webjump)
 ;;   (setq webjump-sites
 ;;         (append '(
@@ -61,6 +61,13 @@
 
 ;;; Code:
 
+;; TODO:
+;; - Add a menu bar and tool bar for this library.
+;; - Add commands to create/delete link from the hotlist.
+;; - Add something like a bookmark folder in modern browsers.
+;;    - Add a command that can open/follow all links in a folder.
+;; - Add tags for Web sites in the hotlist.
+
 ;;-------------------------------------------------------- Package Dependencies
 
 (require 'browse-url)
@@ -72,6 +79,14 @@
   :prefix "webjump-"
   :group 'browse-url)
 
+(defcustom webjump-use-internal-browser nil
+  "Whether or not to force the use of an internal browser.
+If non-nil, WebJump will always use an internal browser (such as
+EWW or xwidget-webkit) to open web pages, as opposed to an
+external browser like IceCat."
+  :version "29.1"
+  :type 'boolean)
+
 (defconst webjump-sample-sites
   '(
     ;; FSF, not including Emacs-specific.
@@ -79,10 +94,10 @@
      ;; GNU FTP Mirror List from https://www.gnu.org/order/ftp.html
      [mirrors "https://ftp.gnu.org/pub/gnu/"
               "https://ftpmirror.gnu.org"])
-    ("GNU Project Home Page" . "www.gnu.org")
+    ("GNU Project Website" . "www.gnu.org")
 
     ;; Emacs.
-    ("Emacs Home Page" .
+    ("Emacs Website" .
      "www.gnu.org/software/emacs/emacs.html")
     ("Savannah Emacs page" .
      "savannah.gnu.org/projects/emacs")
@@ -96,9 +111,6 @@
     ("DuckDuckGo" .
      [simple-query "duckduckgo.com"
 		   "duckduckgo.com/?q=" ""])
-    ("Google" .
-     [simple-query "www.google.com"
-		   "www.google.com/search?q=" ""])
     ("Google Groups" .
      [simple-query "groups.google.com"
 		   "groups.google.com/groups?q=" ""])
@@ -251,18 +263,32 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		webjump-sites t))
 	 (name (car item))
 	 (expr (cdr item)))
-    (browse-url (webjump-url-fix
-		 (cond ((not expr) "")
-		       ((stringp expr) expr)
-		       ((vectorp expr) (webjump-builtin expr name))
-		       ((listp expr) (eval expr))
-		       ((symbolp expr)
-			(if (fboundp expr)
-			    (funcall expr name)
-			  (error "WebJump URL function \"%s\" undefined"
-				 expr)))
-		       (t (error "WebJump URL expression for \"%s\" invalid"
-				 name)))))))
+    (if webjump-use-internal-browser
+        (browse-url-with-browser-kind
+         'internal (webjump-url-fix
+                    (cond ((not expr) "")
+                          ((stringp expr) expr)
+                          ((vectorp expr) (webjump-builtin expr name))
+                          ((listp expr) (eval expr t))
+                          ((symbolp expr)
+                           (if (fboundp expr)
+                               (funcall expr name)
+                             (error "WebJump URL function \"%s\" undefined"
+                                    expr)))
+                          (t (error "WebJump URL expression for \"%s\" invalid"
+                                    name)))))
+      (browse-url (webjump-url-fix
+                   (cond ((not expr) "")
+                         ((stringp expr) expr)
+                         ((vectorp expr) (webjump-builtin expr name))
+                         ((listp expr) (eval expr t))
+                         ((symbolp expr)
+                          (if (fboundp expr)
+                              (funcall expr name)
+                            (error "WebJump URL function \"%s\" undefined"
+                                   expr)))
+                         (t (error "WebJump URL expression for \"%s\" invalid"
+                                   name))))))))
 
 (defun webjump-builtin (expr name)
   (if (< (length expr) 1)

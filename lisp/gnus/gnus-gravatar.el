@@ -1,6 +1,6 @@
 ;;; gnus-gravatar.el --- Gnus Gravatar support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: multimedia, news
@@ -38,21 +38,18 @@
 If nil, default to `gravatar-size'."
   :type '(choice (const :tag "Default" nil)
                  (integer :tag "Pixels"))
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defcustom gnus-gravatar-properties '(:ascent center :relief 1)
   "List of image properties applied to Gravatar images."
   :type 'plist
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defcustom gnus-gravatar-too-ugly gnus-article-x-face-too-ugly
   "Regexp matching posters whose avatar shouldn't be shown automatically.
 If nil, show all avatars."
   :type '(choice regexp (const :tag "Allow all" nil))
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defun gnus-gravatar-transform-address (header category &optional force)
   (gnus-with-article-headers
@@ -90,7 +87,6 @@ callback for `gravatar-retrieve'."
         (let ((real-name (car address))
               (mail-address (cadr address))
               (mark (point-marker))
-              (inhibit-point-motion-hooks t)
               (case-fold-search t))
           (save-restriction
             (article-narrow-to-head)
@@ -128,7 +124,7 @@ callback for `gravatar-retrieve'."
 (defun gnus-treat-from-gravatar (&optional force)
   "Display gravatar in the From header.
 If gravatar is already displayed, remove it."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (memq 'from-gravatar gnus-article-wash-types)
 	(gnus-delete-images 'from-gravatar)
@@ -138,7 +134,7 @@ If gravatar is already displayed, remove it."
 (defun gnus-treat-mail-gravatar (&optional force)
   "Display gravatars in the Cc and To headers.
 If gravatars are already displayed, remove them."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (memq 'mail-gravatar gnus-article-wash-types)
         (gnus-delete-images 'mail-gravatar)

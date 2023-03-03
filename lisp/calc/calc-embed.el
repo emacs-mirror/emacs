@@ -1,6 +1,6 @@
 ;;; calc-embed.el --- embed Calc in a buffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -46,10 +46,8 @@
 (defvar calc-embedded-modes nil)
 (defvar calc-embedded-globals nil)
 (defvar calc-embedded-active nil)
-(defvar calc-embedded-all-active nil)
-(make-variable-buffer-local 'calc-embedded-all-active)
-(defvar calc-embedded-some-active nil)
-(make-variable-buffer-local 'calc-embedded-some-active)
+(defvar-local calc-embedded-all-active nil)
+(defvar-local calc-embedded-some-active nil)
 
 ;; The following variables are customizable and defined in calc.el.
 (defvar calc-embedded-announce-formula)
@@ -209,9 +207,8 @@
 
 ;; The following is to take care of any minor modes which override
 ;; a Calc command.
-(defvar calc-override-minor-modes-map
-  (make-sparse-keymap)
-  "A list of keybindings that might be overwritten by minor modes.")
+(defvar-keymap calc-override-minor-modes-map
+  :doc "A list of keybindings that might be overwritten by minor modes.")
 
 ;; Add any keys that might be overwritten here.
 (define-key calc-override-minor-modes-map "`" 'calc-edit)
@@ -337,7 +334,8 @@
 	  (message (concat
                     "Embedded Calc mode enabled; "
                     (if calc-embedded-quiet
-                        "Type `C-x * x'"
+                        (substitute-command-keys
+                         "Type \\`C-x * x'")
                       "Give this command again")
                     " to return to normal")))))
   (scroll-down 0)))    ; fix a bug which occurs when truncate-lines is changed.
@@ -396,7 +394,7 @@
     (calc-wrapper
      (setq str (math-showing-full-precision
 		(math-format-nice-expr (aref info 8) (frame-width))))
-     (calc-edit-mode (list 'calc-embedded-finish-edit info))
+     (calc--edit-mode (lambda () (calc-embedded-finish-edit info)))
      (insert str "\n")))
   (calc-show-edit-buffer)))
 
@@ -651,6 +649,8 @@ The command \\[yank] can retrieve it from there."
 (defvar calc-embed-prev-modes)
 
 (defun calc-embedded-set-modes (gmodes modes local-modes &optional temp)
+  (defvar the-language)
+  (defvar the-display-just)
   (let ((the-language (calc-embedded-language))
 	(the-display-just (calc-embedded-justify))
 	(v gmodes)
@@ -854,31 +854,21 @@ The command \\[yank] can retrieve it from there."
                (newmode (cl-assoc-if #'derived-mode-p
                                      calc-embedded-open-close-mode-alist)))
            (when newann
-             (make-local-variable 'calc-embedded-announce-formula)
-             (setq calc-embedded-announce-formula (cdr newann)))
+             (setq-local calc-embedded-announce-formula (cdr newann)))
            (when newform
-             (make-local-variable 'calc-embedded-open-formula)
-             (make-local-variable 'calc-embedded-close-formula)
-             (setq calc-embedded-open-formula (nth 0 (cdr newform)))
-             (setq calc-embedded-close-formula (nth 1 (cdr newform))))
+             (setq-local calc-embedded-open-formula (nth 0 (cdr newform)))
+             (setq-local calc-embedded-close-formula (nth 1 (cdr newform))))
            (when newword
-             (make-local-variable 'calc-embedded-word-regexp)
-             (setq calc-embedded-word-regexp (nth 1 newword)))
+             (setq-local calc-embedded-word-regexp (nth 1 newword)))
            (when newplain
-             (make-local-variable 'calc-embedded-open-plain)
-             (make-local-variable 'calc-embedded-close-plain)
-             (setq calc-embedded-open-plain (nth 0 (cdr newplain)))
-             (setq calc-embedded-close-plain (nth 1 (cdr newplain))))
+             (setq-local calc-embedded-open-plain (nth 0 (cdr newplain)))
+             (setq-local calc-embedded-close-plain (nth 1 (cdr newplain))))
            (when newnewform
-             (make-local-variable 'calc-embedded-open-new-formula)
-             (make-local-variable 'calc-embedded-close-new-formula)
-             (setq calc-embedded-open-new-formula (nth 0 (cdr newnewform)))
-             (setq calc-embedded-close-new-formula (nth 1 (cdr newnewform))))
+             (setq-local calc-embedded-open-new-formula (nth 0 (cdr newnewform)))
+             (setq-local calc-embedded-close-new-formula (nth 1 (cdr newnewform))))
            (when newmode
-             (make-local-variable 'calc-embedded-open-mode)
-             (make-local-variable 'calc-embedded-close-mode)
-             (setq calc-embedded-open-mode (nth 0 (cdr newmode)))
-             (setq calc-embedded-close-mode (nth 1 (cdr newmode)))))))
+             (setq-local calc-embedded-open-mode (nth 0 (cdr newmode)))
+             (setq-local calc-embedded-close-mode (nth 1 (cdr newmode)))))))
     (while (and (cdr found)
 		(> point (aref (car (cdr found)) 3)))
       (setq found (cdr found)))

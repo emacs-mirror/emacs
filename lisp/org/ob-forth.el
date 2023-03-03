@@ -1,10 +1,10 @@
 ;;; ob-forth.el --- Babel Functions for Forth        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, forth
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +32,10 @@
 ;; `forth-mode' which is distributed with gforth (in gforth.el).
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 
@@ -75,8 +79,9 @@ This function is called by `org-babel-execute-src-block'."
 		   ((string= "\n:" case)
 		    ;; Report errors.
 		    (org-babel-eval-error-notify 1
-		     (buffer-substring
-		      (+ (match-beginning 0) 1) (point-max))) nil))))
+		                                 (buffer-substring
+		                                  (+ (match-beginning 0) 1) (point-max)))
+		    nil))))
 	      (split-string (org-trim
 			     (org-babel-expand-body:generic body params))
 			    "\n"

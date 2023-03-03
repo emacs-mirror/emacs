@@ -1,4 +1,4 @@
-;;; khmer.el --- support for Khmer -*- coding: utf-8 -*-
+;;; khmer.el --- support for Khmer -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -21,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (set-language-info-alist
@@ -31,8 +33,8 @@
 	   (documentation . t)))
 
 (let ((val (list (vector "[\x1780-\x17FF\x19E0-\x19FF\x200C\x200D]+"
-			 0 'font-shape-gstring))))
+			 0 #'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 
-;; khmer.el ends here
+;;; khmer.el ends here

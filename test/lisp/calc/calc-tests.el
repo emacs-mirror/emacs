@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -38,7 +38,7 @@
 ;; be used to compare such calc expressions.
 (defun calc-tests-equal (a b)
   "Like `equal' but allow for different representations of numbers.
-For example: (calc-tests-equal 10 '(float 1 1)) => t.
+For example: (calc-tests-equal 10 \\='(float 1 1)) => t.
 A and B should be calc expressions."
   (cond ((math-numberp a)
 	 (and (math-numberp b)
@@ -53,7 +53,7 @@ A and B should be calc expressions."
 
 (defun calc-tests-simple (fun string &rest args)
   "Push STRING on the calc stack, then call FUN and return the new top.
-The result is a calc (i.e., lisp) expression, not its string representation.
+The result is a calc (i.e., Lisp) expression, not its string representation.
 Also pop the entire stack afterwards.
 An existing calc stack is reused, otherwise a new one is created."
   (calc-eval string 'push)
@@ -190,6 +190,33 @@ An existing calc stack is reused, otherwise a new one is created."
       (should (equal (math-format-number 12345678901) "16#2,DFDC,1C35")))
     (let ((calc-number-radix 36))
       (should (equal (math-format-number 12345678901) "36#5,O6A,QT1")))))
+
+(ert-deftest calc-digit-after-point ()
+  "Test display of trailing 0 after decimal point (bug#47302)."
+  (let ((calc-digit-after-point nil))
+    ;; Integral floats have no digits after the decimal point (default).
+    (should (equal (math-format-number '(float 0 0)) "0."))
+    (should (equal (math-format-number '(float 5 0)) "5."))
+    (should (equal (math-format-number '(float 3 1)) "30."))
+    (should (equal (math-format-number '(float 23 0)) "23."))
+    (should (equal (math-format-number '(float 123 0)) "123."))
+    (should (equal (math-format-number '(float 1 -1)) "0.1"))
+    (should (equal (math-format-number '(float 54 -1)) "5.4"))
+    (should (equal (math-format-number '(float 1 -4)) "1e-4"))
+    (should (equal (math-format-number '(float 1 14)) "1e14"))
+    (should (equal (math-format-number 12) "12")))
+  (let ((calc-digit-after-point t))
+    ;; Integral floats have at least one digit after the decimal point.
+    (should (equal (math-format-number '(float 0 0)) "0.0"))
+    (should (equal (math-format-number '(float 5 0)) "5.0"))
+    (should (equal (math-format-number '(float 3 1)) "30.0"))
+    (should (equal (math-format-number '(float 23 0)) "23.0"))
+    (should (equal (math-format-number '(float 123 0)) "123.0"))
+    (should (equal (math-format-number '(float 1 -1)) "0.1"))
+    (should (equal (math-format-number '(float 54 -1)) "5.4"))
+    (should (equal (math-format-number '(float 1 -4)) "1e-4"))
+    (should (equal (math-format-number '(float 1 14)) "1e14"))
+    (should (equal (math-format-number 12) "12"))))
 
 (ert-deftest calc-calendar ()
   "Test calendar conversions (bug#36822)."
@@ -418,10 +445,10 @@ An existing calc stack is reused, otherwise a new one is created."
        (t  ; n<k<0
         0))))
    ((natnump k)
-    ;; Generalisation for any n, integral k≥0: use falling product
+    ;; Generalization for any n, integral k≥0: use falling product
     (/ (apply '* (number-sequence n (- n (1- k)) -1))
        (calc-tests--fac k)))
-   (t (error "case not covered"))))
+   (t (error "Case not covered"))))
 
 (defun calc-tests--calc-to-number (x)
   "Convert a Calc object to a Lisp number."
@@ -707,9 +734,87 @@ An existing calc stack is reused, otherwise a new one is created."
                             (var c var-c))))))
     (calc-set-language nil)))
 
+(defvar var-g)
+
+;; Test `let'.
+(defmath test1 (x)
+  (let ((x (+ x 1))
+        (y (+ x 3)))
+    (let ((z (+ y 6)))
+      (* x y z g))))
+
+;; Test `let*'.
+(defmath test2 (x)
+  (let* ((y (+ x 1))
+         (z (+ y 3)))
+    (let* ((u (+ z 6)))
+      (* x y z u g))))
+
+;; Test `for'.
+(defmath test3 (x)
+  (let ((s 0))
+    (for ((ii 1 x)
+          (jj 1 ii))
+      (setq s (+ s (* ii jj))))
+    s))
+
+;; Test `for' with non-unit stride.
+(defmath test4 (x)
+  (let ((l nil))
+    (for ((ii 1 x 1)
+          (jj 1 10 ii))
+      (setq l ('cons jj l)))       ; Use Lisp `cons', not `calcFunc-cons'.
+    (reverse l)))
+
+;; Test `foreach'.
+(defmath test5 (x)
+  (let ((s 0))
+    (foreach ((a x)
+              (b a))
+      (setq s (+ s b)))
+    s))
+
+;; Test `break'.
+(defmath test6 (x)
+  (let ((a (for ((ii 1 10))
+             (when (= ii x)
+               (break (* ii 2)))))
+        (b (foreach ((e '(9 3 6)))
+             (when (= e x)
+               (break (- e 1))))))
+    (* a b)))
+
+;; Test `return' from `for'.
+(defmath test7 (x)
+  (for ((ii 1 10))
+    (when (= ii x)
+      (return (* ii 2))))
+  5)
+
+(ert-deftest calc-defmath ()
+  (let ((var-g 17))
+    (should (equal (calcFunc-test1 2) (* 3 5 11 17)))
+    (should (equal (calcFunc-test2 2) (* 2 3 6 12 17))))
+  (should (equal (calcFunc-test3 3)
+                 (+ (* 1 1)
+                    (* 2 1) (* 2 2)
+                    (* 3 1) (* 3 2) (* 3 3))))
+  (should (equal (calcFunc-test4 5)
+                 '( 1 2 3 4 5 6 7 8 9 10
+                    1 3 5 7 9
+                    1 4 7 10
+                    1 5 9
+                    1 6)))
+  (should (equal (calcFunc-test5 '((2 3) (5) (7 11 13)))
+                 (+ 2 3 5 7 11 13)))
+  (should (equal (calcFunc-test6 3) (* (* 3 2) (- 3 1))))
+  (should (equal (calcFunc-test7 3) (* 3 2))))
+
+(ert-deftest calc-nth-root ()
+  ;; bug#51209
+  (let* ((calc-display-working-message nil)
+         (x (calc-tests--calc-to-number (math-pow 8 '(frac 1 6)))))
+    (should (< (abs (- x (sqrt 2.0))) 1.0e-10))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
-
-;; Local Variables:
-;; bug-reference-url-format: "https://debbugs.gnu.org/%s"
-;; End:

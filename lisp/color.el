@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -33,16 +33,15 @@
 
 ;;; Code:
 
-;; Emacs < 23.3
-(eval-and-compile
-  (unless (boundp 'float-pi)
-    (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")))
-
 ;;;###autoload
 (defun color-name-to-rgb (color &optional frame)
   "Convert COLOR string to a list of normalized RGB components.
 COLOR should be a color name (e.g. \"white\") or an RGB triplet
 string (e.g. \"#ffff1122eecc\").
+
+COLOR can also be the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", in which case the
+return value is nil.
 
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
@@ -408,7 +407,7 @@ See `color-desaturate-hsl'."
 Given a color defined in terms of hue, saturation, and luminance
 \(arguments H, S, and L), return a color that is PERCENT lighter.
 Returns a list (HUE SATURATION LUMINANCE)."
-  (list H S (color-clamp (+ L (/ percent 100.0)))))
+  (list H S (color-clamp (+ L (* L (/ percent 100.0))))))
 
 (defun color-lighten-name (name percent)
   "Make a color with a specified NAME lighter by PERCENT.

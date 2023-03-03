@@ -1,5 +1,5 @@
-# stdint.m4 serial 56
-dnl Copyright (C) 2001-2020 Free Software Foundation, Inc.
+# stdint.m4 serial 61
+dnl Copyright (C) 2001-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -34,7 +34,7 @@ AC_DEFUN_ONCE([gl_STDINT_H],
   AC_SUBST([HAVE_WCHAR_H])
 
   dnl Check for <inttypes.h>.
-  dnl AC_INCLUDES_DEFAULT defines $ac_cv_header_inttypes_h.
+  AC_CHECK_HEADERS_ONCE([inttypes.h])
   if test $ac_cv_header_inttypes_h = yes; then
     HAVE_INTTYPES_H=1
   else
@@ -43,7 +43,7 @@ AC_DEFUN_ONCE([gl_STDINT_H],
   AC_SUBST([HAVE_INTTYPES_H])
 
   dnl Check for <sys/types.h>.
-  dnl AC_INCLUDES_DEFAULT defines $ac_cv_header_sys_types_h.
+  AC_CHECK_HEADERS_ONCE([sys/types.h])
   if test $ac_cv_header_sys_types_h = yes; then
     HAVE_SYS_TYPES_H=1
   else
@@ -170,7 +170,7 @@ struct s {
       PTRDIFF_MIN == TYPE_MINIMUM (ptrdiff_t)
       && PTRDIFF_MAX == TYPE_MAXIMUM (ptrdiff_t)
       ? 1 : -1;
-  /* Detect bug in FreeBSD 6.0 / ia64.  */
+  /* Detect bug in FreeBSD 6.0/ia64 and FreeBSD 13.0/arm64.  */
   int check_SIG_ATOMIC:
       SIG_ATOMIC_MIN == TYPE_MINIMUM (sig_atomic_t)
       && SIG_ATOMIC_MAX == TYPE_MAXIMUM (sig_atomic_t)
@@ -296,7 +296,7 @@ static const char *macro_values[] =
   HAVE_C99_STDINT_H=0
   HAVE_SYS_BITYPES_H=0
   HAVE_SYS_INTTYPES_H=0
-  STDINT_H=stdint.h
+  GL_GENERATE_STDINT_H=true
   case "$gl_cv_header_working_stdint_h" in
     *yes)
       HAVE_C99_STDINT_H=1
@@ -341,7 +341,7 @@ int32_t i32 = INT32_C (0x7fffffff);
               ]])],
            [gl_cv_header_stdint_width=yes])])
       if test "$gl_cv_header_stdint_width" = yes; then
-        STDINT_H=
+        GL_GENERATE_STDINT_H=false
       fi
       ;;
     *)
@@ -364,8 +364,6 @@ int32_t i32 = INT32_C (0x7fffffff);
   AC_SUBST([HAVE_C99_STDINT_H])
   AC_SUBST([HAVE_SYS_BITYPES_H])
   AC_SUBST([HAVE_SYS_INTTYPES_H])
-  AC_SUBST([STDINT_H])
-  AM_CONDITIONAL([GL_GENERATE_STDINT_H], [test -n "$STDINT_H"])
 ])
 
 dnl gl_STDINT_BITSIZEOF(TYPES, INCLUDES)
@@ -493,13 +491,9 @@ AC_DEFUN([gl_INTEGER_TYPE_SUFFIX],
 dnl gl_STDINT_INCLUDES
 AC_DEFUN([gl_STDINT_INCLUDES],
 [[
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
   #include <stddef.h>
   #include <signal.h>
   #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
   # include <wchar.h>
   #endif
 ]])
@@ -531,7 +525,7 @@ AC_DEFUN([gl_STDINT_TYPE_PROPERTIES],
   dnl requirement that wint_t is "unchanged by default argument promotions".
   dnl In this case gnulib's <wchar.h> and <wctype.h> override wint_t.
   dnl Set the variable BITSIZEOF_WINT_T accordingly.
-  if test $GNULIB_OVERRIDES_WINT_T = 1; then
+  if test $GNULIBHEADERS_OVERRIDE_WINT_T = 1; then
     BITSIZEOF_WINT_T=32
   fi
 ])

@@ -1,11 +1,13 @@
-;;; gitmerge.el --- help merge one Emacs branch into another
+;;; gitmerge.el --- help merge one Emacs branch into another  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Authors: David Engster <deng@randomsample.de>
 ;;          Stefan Monnier <monnier@iro.umontreal.ca>
 
 ;; Keywords: maint
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,10 +37,10 @@
 ;;   up-to-date).
 ;; - Mark commits you'd like to skip, meaning to only merge their
 ;;   metadata (merge strategy 'ours').
-;; - Hit 'm' to start merging. Skipped commits will be merged separately.
+;; - Hit 'm' to start merging.  Skipped commits will be merged separately.
 ;; - If conflicts cannot be resolved automatically, you'll have to do
-;;   it manually. In that case, resolve the conflicts and restart
-;;   gitmerge, which will automatically resume. It will add resolved
+;;   it manually.  In that case, resolve the conflicts and restart
+;;   gitmerge, which will automatically resume.  It will add resolved
 ;;   files, commit the pending merge and continue merging the rest.
 ;; - Inspect master branch, and if everything looks OK, push.
 
@@ -66,8 +68,7 @@ bump Emacs version\\|Auto-commit"))
 (defvar gitmerge-minimum-missing 10
   "Minimum number of missing commits to consider merging in batch mode.")
 
-(defvar gitmerge-status-file (expand-file-name "gitmerge-status"
-					       user-emacs-directory)
+(defvar gitmerge-status-file (locate-user-emacs-file "gitmerge-status")
   "File where missing commits will be saved between sessions.")
 
 (defvar gitmerge-ignore-branches-regexp
@@ -96,11 +97,14 @@ If nil, the function `gitmerge-default-branch' guesses.")
 
 (defvar gitmerge-mode-map
   (let ((map (make-keymap)))
-    (define-key map [(l)] 'gitmerge-show-log)
-    (define-key map [(d)] 'gitmerge-show-diff)
-    (define-key map [(f)] 'gitmerge-show-files)
-    (define-key map [(s)] 'gitmerge-toggle-skip)
-    (define-key map [(m)] 'gitmerge-start-merge)
+    (define-key map [(l)] #'gitmerge-show-log)
+    (define-key map [(d)] #'gitmerge-show-diff)
+    (define-key map [(f)] #'gitmerge-show-files)
+    (define-key map [(s)] #'gitmerge-toggle-skip)
+    (define-key map [(m)] #'gitmerge-start-merge)
+    ;; For convenience:
+    (define-key map [(n)] #'next-line)
+    (define-key map [(p)] #'previous-line)
     map)
   "Keymap for gitmerge major mode.")
 
@@ -120,20 +124,21 @@ If nil, the function `gitmerge-default-branch' guesses.")
   (with-temp-buffer
     (if (not branch)
         (insert-file-contents "configure.ac")
-      (call-process "git" nil t nil "show" (format "%s:configure.ac" branch))
+      (let ((coding-system-for-read vc-git-log-output-coding-system))
+	(call-process "git" nil t nil "show" (format "%s:configure.ac" branch)))
       (goto-char (point-min)))
-    (re-search-forward "^AC_INIT([^,]+, \\([0-9]+\\)\\.")
+    (re-search-forward "^AC_INIT([^,]+, \\[?\\([0-9]+\\)\\.")
     (string-to-number (match-string 1))))
 
 (defun gitmerge-default-branch ()
-  "Default for branch that should be merged; eg \"origin/emacs-26\"."
+  "Default for branch that should be merged; e.g. \"origin/emacs-28\"."
   (or gitmerge-default-branch
       (format "origin/emacs-%s" (1- (gitmerge-emacs-version)))))
 
 (defun gitmerge-get-sha1 ()
   "Get SHA1 from commit at point."
   (save-excursion
-    (goto-char (point-at-bol))
+    (goto-char (line-beginning-position))
     (when (looking-at "^[A-Z ]\\s-*\\([a-f0-9]+\\)")
       (match-string 1))))
 
@@ -146,7 +151,8 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	(pop-to-buffer (get-buffer-create gitmerge-output-buffer))
 	(fundamental-mode)
 	(erase-buffer)
-	(call-process "git" nil t nil "log" "-1" commit)
+	(let ((coding-system-for-read vc-git-log-output-coding-system))
+	  (call-process "git" nil t nil "log" "-1" commit))
 	(goto-char (point-min))
 	(gitmerge-highlight-skip-regexp)))))
 
@@ -158,7 +164,8 @@ If nil, the function `gitmerge-default-branch' guesses.")
       (when commit
 	(pop-to-buffer (get-buffer-create gitmerge-output-buffer))
 	(erase-buffer)
-	(call-process "git" nil t nil "diff-tree" "-p" commit)
+	(let ((coding-system-for-read vc-git-log-output-coding-system))
+	  (call-process "git" nil t nil "diff-tree" "-p" commit))
 	(goto-char (point-min))
 	(diff-mode)))))
 
@@ -171,7 +178,9 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	(pop-to-buffer (get-buffer-create gitmerge-output-buffer))
 	(erase-buffer)
 	(fundamental-mode)
-	(call-process "git" nil t nil "diff" "--name-only" (concat commit "^!"))
+	(let ((coding-system-for-read vc-git-log-output-coding-system))
+	  (call-process "git" nil t nil "diff" "--name-only"
+			(concat commit "^!")))
 	(goto-char (point-min))))))
 
 (defun gitmerge-toggle-skip ()
@@ -181,7 +190,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	skip)
     (when commit
       (save-excursion
-	(goto-char (point-at-bol))
+        (goto-char (line-beginning-position))
 	(when (looking-at "^\\([A-Z ]\\)\\s-*\\([a-f0-9]+\\)")
 	  (setq skip (string= (match-string 1) " "))
 	  (goto-char (match-beginning 2))
@@ -189,7 +198,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	  (dolist (ct gitmerge--commits)
 	    (when (string-match commit (car ct))
 	      (setcdr ct (when skip "M"))))
-	  (goto-char (point-at-bol))
+          (goto-char (line-beginning-position))
 	  (setq buffer-read-only nil)
 	  (delete-char 1)
 	  (insert (if skip "M" " "))
@@ -214,9 +223,10 @@ if and why this commit should be skipped."
     ;; Go through the log and remember all commits that match
     ;; `gitmerge-skip-regexp' or are marked by --cherry-mark.
     (with-temp-buffer
-      (call-process "git" nil t nil "log" "--cherry-mark" "--left-only"
-		    "--no-decorate"
-		    (concat from "..." (car (vc-git-branches))))
+      (let ((coding-system-for-read vc-git-log-output-coding-system))
+	(call-process "git" nil t nil "log" "--cherry-mark" "--left-only"
+		      "--no-decorate"
+		      (concat from "..." (car (vc-git-branches)))))
       (goto-char (point-max))
       (while (re-search-backward "^commit \\(.+\\) \\([0-9a-f]+\\).*" nil t)
 	(let ((cherrymark (match-string 1))
@@ -239,9 +249,10 @@ if and why this commit should be skipped."
   "Create the buffer for choosing commits."
   (with-current-buffer (get-buffer-create gitmerge-buffer)
     (erase-buffer)
-    (call-process "git" nil t nil "log" "--left-only"
-		  "--pretty=format:%h %<(20,trunc) %an: %<(100,trunc) %s"
-		  (concat from "..." (car (vc-git-branches))))
+    (let ((coding-system-for-read vc-git-log-output-coding-system))
+      (call-process "git" nil t nil "log" "--left-only"
+		    "--pretty=format:%h %<(20,trunc) %an: %<(100,trunc) %s"
+		    (concat from "..." (car (vc-git-branches)))))
     (goto-char (point-min))
     (while (looking-at "^\\([a-f0-9]+\\)")
       (let ((skipreason (gitmerge-skip-commit-p (match-string 1) commits)))
@@ -282,7 +293,7 @@ should not be skipped."
   "Try to resolve conflicts in FILE with smerge.
 Returns non-nil if conflicts remain."
   (unless (file-exists-p file) (error "Gitmerge-resolve: Can't find %s" file))
-  (with-demoted-errors
+  (with-demoted-errors "Error: %S"
     (let ((exists (find-buffer-visiting file)))
       (with-current-buffer (let ((enable-local-variables :safe)
                                  (enable-local-eval nil))
@@ -324,7 +335,8 @@ Returns non-nil if conflicts remain."
             ;; (pop-to-buffer (current-buffer)) (debug 'before-resolve)
             ))
           ;; Try to resolve the conflicts.
-          (let (temp)
+          (let ((coding-system-for-read vc-git-log-output-coding-system)
+		temp)
             (cond
              ;; FIXME when merging release branch to master, we still
              ;; need to detect and handle the case where NEWS was modified
@@ -390,9 +402,10 @@ is nil, only the single commit BEG is merged."
 			(if end "s were " " was ")
 			"skipped:\n\n")
 	      ""))
-    (apply 'call-process "git" nil t nil "log" "--oneline"
-	   (if end (list (concat beg "~.." end))
-	     `("-1" ,beg)))
+    (let ((coding-system-for-read vc-git-log-output-coding-system))
+      (apply #'call-process "git" nil t nil "log" "--oneline"
+	     (if end (list (concat beg "~.." end))
+	       `("-1" ,beg))))
     (insert "\n")
     ;; Truncate to 72 chars so that the resulting ChangeLog line fits in 80.
     (goto-char (point-min))
@@ -406,8 +419,9 @@ MISSING must be a list of SHA1 strings."
   (with-current-buffer (get-buffer-create gitmerge-output-buffer)
     (erase-buffer)
     (let* ((skip (cdar missing))
+	   (coding-system-for-read vc-git-log-output-coding-system)
 	   (beg (car (pop missing)))
-	   end commitmessage)
+	   end commitmessage commitmessage1 commitmessage-file status)
       ;; Determine last revision with same boolean skip status.
       (while (and missing
 		  (eq (null (cdar missing))
@@ -421,12 +435,32 @@ MISSING must be a list of SHA1 strings."
 	       (if end (concat ".." (substring end 0 6)) ""))
       (unless end
 	(setq end beg))
-      (unless (zerop
-	       (apply 'call-process "git" nil t nil "merge" "--no-ff"
-		      (append (when skip '("-s" "ours"))
-			      `("-m" ,commitmessage ,end))))
+      (when (eq system-type 'windows-nt)
+        ;; Command lines on MS-Windows cannot include newlines.
+	;; Since "git merge" doesn't accept a -F FILE option, we
+	;; commit the merge with a shortened single-line log message,
+	;; and then invoke "git commit --amend" with the full log
+	;; message from a temporary file.
+	(setq commitmessage1
+	      ;; Make sure the commit message is at most a single line.
+	      (car (split-string commitmessage "[\f\n\r\v]+")))
+	(setq commitmessage-file (make-nearby-temp-file "gitmerge-msg"))
+	(let ((coding-system-for-write vc-git-commits-coding-system))
+	  (write-region commitmessage nil commitmessage-file nil 'silent)))
+      (unless (setq status
+		    (zerop
+		     (apply #'call-process "git" nil t nil "merge" "--no-ff"
+			    (append (when skip '("-s" "ours"))
+				    (if commitmessage-file
+					`("-m" ,commitmessage1 ,end)
+				      `("-m" ,commitmessage ,end))))))
 	(gitmerge-write-missing missing from)
-	(gitmerge-resolve-unmerged)))
+	(gitmerge-resolve-unmerged))
+      (when (and commitmessage-file (file-exists-p commitmessage-file))
+	(if status
+	    (call-process "git" nil t nil
+			  "commit" "--amend" "-F" commitmessage-file))
+	(delete-file commitmessage-file)))
     missing))
 
 (defun gitmerge-resolve-unmerged ()
@@ -434,12 +468,13 @@ MISSING must be a list of SHA1 strings."
 Throw an user-error if we cannot resolve automatically."
   (with-current-buffer (get-buffer-create gitmerge-output-buffer)
     (erase-buffer)
-    (let (files conflicted)
+    (let ((coding-system-for-read vc-git-log-output-coding-system)
+	  files conflicted)
       ;; List unmerged files
       (if (not (zerop
 		(call-process "git" nil t nil
 			      "diff" "--name-only" "--diff-filter=U")))
-	  (error "Error listing unmerged files. Resolve manually.")
+          (error "Error listing unmerged files.  Resolve manually.")
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (push (buffer-substring (point) (line-end-position)) files)
@@ -477,17 +512,19 @@ Throw an user-error if we cannot resolve automatically."
 (defun gitmerge-repo-clean ()
   "Return non-nil if repository is clean."
   (with-temp-buffer
+    (let ((coding-system-for-read vc-git-log-output-coding-system))
       (call-process "git" nil t nil
 		    "diff" "--staged" "--name-only")
       (call-process "git" nil t nil
 		    "diff" "--name-only")
-      (zerop (buffer-size))))
+      (zerop (buffer-size)))))
 
 (defun gitmerge-commit ()
   "Commit, and return non-nil if it succeeds."
   (with-current-buffer (get-buffer-create gitmerge-output-buffer)
-    (erase-buffer)
-    (eq 0 (call-process "git" nil t nil "commit" "--no-edit"))))
+    (let ((coding-system-for-read vc-git-log-output-coding-system))
+      (erase-buffer)
+      (eq 0 (call-process "git" nil t nil "commit" "--no-edit")))))
 
 (defun gitmerge-maybe-resume ()
   "Check if we have to resume a merge.
@@ -597,12 +634,18 @@ Branch FROM will be prepended to the list."
       (with-current-buffer
 	  (gitmerge-setup-log-buffer gitmerge--commits gitmerge--from)
 	(goto-char (point-min))
-	(insert (propertize "Commands: " 'font-lock-face 'bold)
-		"(s) Toggle skip, (l) Show log, (d) Show diff, "
-		"(f) Show files, (m) Start merge\n"
-		(propertize "Flags:    " 'font-lock-face 'bold)
-		"(C) Detected backport (cherry-mark), (R) Log matches "
-		"regexp, (M) Manually picked\n\n")
+        (insert (substitute-command-keys
+                 (concat
+                  (propertize "Commands: " 'font-lock-face 'bold)
+                  "\\<gitmerge-mode-map>"
+                  "(\\[gitmerge-toggle-skip]) Toggle skip, "
+                  "(\\[gitmerge-show-log]) Show log, "
+                  "(\\[gitmerge-show-diff]) Show diff, "
+                  "(\\[gitmerge-show-files]) Show files, "
+                  "(\\[gitmerge-start-merge]) Start merge\n"
+                  (propertize "Flags:    " 'font-lock-face 'bold)
+                  "(C) Detected backport (cherry-mark), (R) Matches skip "
+                  "regexp, (M) Manually picked\n\n")))
 	(gitmerge-mode)
 	(pop-to-buffer (current-buffer))
 	(if noninteractive (gitmerge-start-merge))))))

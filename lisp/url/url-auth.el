@@ -1,6 +1,6 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -19,11 +19,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-vars)
 (require 'url-parse)
-(autoload 'url-warn "url")
 (autoload 'auth-source-search "auth-source")
 
 (defsubst url-auth-user-prompt (url realm)
@@ -86,27 +87,32 @@ instead of the filename inheritance method."
      ((and prompt (not byserv))
       (setq user (or
 		  (url-do-auth-source-search server type :user)
-		  (read-string (url-auth-user-prompt href realm)
-			       (or user (user-real-login-name))))
+                  (and (url-interactive-p)
+		       (read-string (url-auth-user-prompt href realm)
+			            (or user (user-real-login-name)))))
 	    pass (or
 		  (url-do-auth-source-search server type :secret)
-		  (read-passwd "Password: " nil (or pass ""))))
+                  (and (url-interactive-p)
+		       (read-passwd "Password: " nil (or pass "")))))
       (set url-basic-auth-storage
 	   (cons (list server
 		       (cons file
 			     (setq retval
 				   (base64-encode-string
 				    (format "%s:%s" user
-					    (encode-coding-string pass 'utf-8))
+                                            (if pass
+					        (encode-coding-string pass
+                                                                      'utf-8)
+                                              ""))
                                     t))))
 		 (symbol-value url-basic-auth-storage))))
      (byserv
       (setq retval (cdr-safe (assoc file byserv)))
       (if (and (not retval)
-	       (string-match "/" file))
+	       (string-search "/" file))
  	  (while (and byserv (not retval))
 	    (setq data (car (car byserv)))
-	    (if (or (not (string-match "/" data)) ; It's a realm - take it!
+	    (if (or (not (string-search "/" data)) ; It's a realm - take it!
 		    (and
 		     (>= (length file) (length data))
 		     (string= data (substring file 0 (length data)))))
@@ -116,11 +122,13 @@ instead of the filename inheritance method."
 	  (progn
 	    (setq user (or
 			(url-do-auth-source-search server type :user)
-			(read-string (url-auth-user-prompt href realm)
-				     (user-real-login-name)))
+                        (and (url-interactive-p)
+			     (read-string (url-auth-user-prompt href realm)
+				          (user-real-login-name))))
 		  pass (or
 			(url-do-auth-source-search server type :secret)
-			(read-passwd "Password: "))
+                        (and (url-interactive-p)
+			     (read-passwd "Password: ")))
 		  retval (base64-encode-string (format "%s:%s" user pass) t)
 		  byserv (assoc server (symbol-value url-basic-auth-storage)))
 	    (setcdr byserv
@@ -232,11 +240,13 @@ CREDS is a plist that may have properties `:user' and `:secret'."
   ;; plist-put modify the same plist.
   (setq creds
         (plist-put creds :user
-                   (read-string (url-auth-user-prompt url realm)
-                                (or (plist-get creds :user)
-                                    (user-real-login-name)))))
+                   (and (url-interactive-p)
+                        (read-string (url-auth-user-prompt url realm)
+                                     (or (plist-get creds :user)
+                                         (user-real-login-name))))))
   (plist-put creds :secret
-             (read-passwd "Password: " nil (plist-get creds :secret))))
+             (and (url-interactive-p)
+                  (read-passwd "Password: " nil (plist-get creds :secret)))))
 
 (defun url-digest-auth-directory-id-assoc (dirkey keylist)
   "Find the best match for DIRKEY in key alist KEYLIST.
@@ -252,12 +262,12 @@ a match."
    (assoc dirkey keylist)
    ;; No exact match found.  Continue to look for partial match if
    ;; dirkey is not a realm.
-   (and (string-match "/" dirkey)
+   (and (string-search "/" dirkey)
         (let (match)
           (while (and (null match) keylist)
             (if (or
                  ;; Any realm candidate matches.  Why?
-                 (not (string-match "/" (caar keylist)))
+                 (not (string-search "/" (caar keylist)))
                  ;; Parent directory matches.
                  (string-prefix-p (caar keylist) dirkey))
                 (setq match (car keylist))
@@ -300,8 +310,8 @@ object."
 (defun url-digest-auth-build-response (key url realm attrs)
   "Compute authorization string for the given challenge using KEY.
 
-The string looks like 'Digest username=\"John\", realm=\"The
-Realm\", ...'
+The string looks like \"Digest username=\"John\", realm=\"The
+Realm\", ...\"
 
 Part of the challenge is already solved in a pre-computed KEY
 which is list of a realm (or a directory), user name, and hash
@@ -459,8 +469,7 @@ information associated with them.")
 
 ;;;###autoload
 (defun url-get-authentication (url realm type prompt &optional args)
-  "Return an authorization string suitable for use in the WWW-Authenticate
-header in an HTTP/1.0 request.
+  "Return authorization string for the WWW-Authenticate header in HTTP/1.0 request.
 
 URL    is the url you are requesting authorization to.  This can be either a
        string representing the URL, or the parsed representation returned by
@@ -494,21 +503,19 @@ PROMPT is boolean - specifies whether to ask the user for a username/password
        (car-safe
 	(sort
 	 (mapcar
-	  (function
-	   (lambda (scheme)
-	     (if (fboundp (car (cdr scheme)))
-		 (cons (cdr (cdr scheme))
-		       (funcall (car (cdr scheme)) url nil nil realm))
-	       (cons 0 nil))))
+          (lambda (scheme)
+            (if (fboundp (car (cdr scheme)))
+                (cons (cdr (cdr scheme))
+                      (funcall (car (cdr scheme)) url nil nil realm))
+              (cons 0 nil)))
 	  url-registered-auth-schemes)
-	 (function
-	  (lambda (x y)
-	    (cond
-	     ((null (cdr x)) nil)
-	     ((and (cdr x) (null (cdr y))) t)
-	     ((and (cdr x) (cdr y))
-	      (>= (car x) (car y)))
-	     (t nil)))))))
+         (lambda (x y)
+           (cond
+            ((null (cdr x)) nil)
+            ((and (cdr x) (null (cdr y))) t)
+            ((and (cdr x) (cdr y))
+             (>= (car x) (car y)))
+            (t nil))))))
     (if (symbolp type) (setq type (symbol-name type)))
     (let* ((scheme (car-safe
 		    (cdr-safe (assoc (downcase type)
@@ -542,7 +549,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 		  (t rating)))
 	 (node (assoc type url-registered-auth-schemes)))
     (if (not (fboundp function))
-	(url-warn
+        (display-warning
 	 'security
 	 (format-message
 	  "Tried to register `%s' as an auth scheme, but it is not a function!"

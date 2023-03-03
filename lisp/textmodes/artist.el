@@ -1,12 +1,12 @@
 ;;; artist.el --- draw ascii graphics with your mouse -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse
 ;; Old-Version:	 1.2.6
 ;; Release-date: 6-Aug-2004
-;; Location:     http://www.lysator.liu.se/~tab/artist/
+;; Location:     https://www.lysator.liu.se/~tab/artist/
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is filed in
@@ -33,7 +33,7 @@
 ;; What is artist?
 ;; ---------------
 ;;
-;; Artist is an Emacs lisp package that allows you to draw lines,
+;; Artist is an Emacs Lisp package that allows you to draw lines,
 ;; rectangles and ellipses by using your mouse and/or keyboard.  The
 ;; shapes are made up with the ascii characters |, -, / and \.
 ;;
@@ -46,8 +46,8 @@
 ;;
 ;; * Rubber-banding: When drawing lines you can interactively see the
 ;;   result while holding the mouse button down and moving the mouse.  If
-;;   your machine is not fast enough (a 386 is a bit to slow, but a
-;;   pentium is well enough), you can turn this feature off.  You will
+;;   your machine is not fast enough (a 386 is a bit too slow, but a
+;;   Pentium is good enough), you can turn this feature off.  You will
 ;;   then see 1's and 2's which mark the 1st and 2nd endpoint of the line
 ;;   you are drawing.
 ;;
@@ -75,10 +75,10 @@
 ;; * Flood-filling: You can fill any area with a certain character by
 ;;   flood-filling.
 ;;
-;; * Cut copy and paste: You can cut, copy and paste rectangular
+;; * Cut, copy and paste: You can cut, copy and paste rectangular
 ;;   regions.  Artist also interfaces with the rect package (this can be
 ;;   turned off if it causes you any trouble) so anything you cut in
-;;   artist can be yanked with C-x r y and vice versa.
+;;   artist can be yanked with `C-x r y' and vice versa.
 ;;
 ;; * Drawing with keys: Everything you can do with the mouse, you can
 ;;   also do without the mouse.
@@ -86,7 +86,7 @@
 ;; * Arrows: After having drawn a (straight) line or a (straight)
 ;;   poly-line, you can set arrows on the line-ends by typing < or >.
 ;;
-;; * Aspect-ratio: You can set the variable artist-aspect-ratio to
+;; * Aspect-ratio: You can set the user option `artist-aspect-ratio' to
 ;;   reflect the height-width ratio for the font you are using.  Squares
 ;;   and circles are then drawn square/round.  Note, that once your
 ;;   ascii-file is shown with font with a different height-width ratio,
@@ -95,7 +95,7 @@
 ;; * Picture mode compatibility: Artist is picture mode compatible (this
 ;;   can be turned off).
 ;;
-;; See the documentation for the function artist-mode for a detailed
+;; See the documentation for the function `artist-mode' for a detailed
 ;; description on how to use artist.
 ;;
 ;;
@@ -105,13 +105,6 @@
 ;; See the short guide at the end of this file.
 ;; If you add a new drawing mode, send it to me, and I would gladly
 ;; include in the next release!
-
-;;; Installation:
-
-;; To use artist, put this in your .emacs:
-;;
-;;    (autoload 'artist-mode "artist" "Enter artist-mode" t)
-
 
 ;;; Requirements:
 
@@ -126,8 +119,8 @@
 ;;; Known bugs:
 
 ;; It is not possible to change between shifted and unshifted operation
-;; while drawing with the mouse. (See the comment in the function
-;; artist-shift-has-changed for further details.)
+;; while drawing with the mouse.  (See the comment in the function
+;; `artist-shift-has-changed' for further details.)
 
 
 ;;; ChangeLog:
@@ -156,9 +149,9 @@
 ;;
 ;; 1.2.1	15-Nov-2000
 ;; New:		Documentation fixes.
-;; Bugfix:	Sets next-line-add-newlines to t while in artist-mode.
+;; Bugfix:	Set `next-line-add-newlines' to t while in `artist-mode'.
 ;;		Drawing with keys was confusing without this fix, if
-;;		next-line-add-newlines was set to nil.
+;;		`next-line-add-newlines' was set to nil.
 ;;		Thanks to Tatsuo Furukawa <tatsuo@kobe.hp.com> for this.
 ;;
 ;; 1.2		22-Oct-2000
@@ -191,7 +184,6 @@
 
 ;; Variables
 
-(defconst artist-version "1.2.6")
 (defconst artist-maintainer-address "tab@lysator.liu.se, bug-gnu-emacs@gnu.org")
 
 (defvar x-pointer-crosshair)
@@ -345,7 +337,8 @@ Example:
 (defvar artist-pointer-shape (if (eq window-system 'x) x-pointer-crosshair nil)
   "If in X Windows, use this pointer shape while drawing with the mouse.")
 
-(defvaralias 'artist-text-renderer 'artist-text-renderer-function)
+(define-obsolete-variable-alias 'artist-text-renderer
+  'artist-text-renderer-function "29.1")
 
 (defcustom artist-text-renderer-function 'artist-figlet
   "Function for doing text rendering."
@@ -408,57 +401,43 @@ be in `artist-spray-chars', or spraying will behave strangely.")
 
 ;; Internal variables
 ;;
-(defvar artist-mode nil
-  "Non-nil to enable `artist-mode' and nil to disable.")
-(make-variable-buffer-local 'artist-mode)
-
 (defvar artist-mode-name " Artist"
   "Name of Artist mode beginning with a space (appears in the mode-line).")
 
-(defvar artist-curr-go 'pen-line
+(defvar-local artist-curr-go 'pen-line
   "Current selected graphics operation.")
-(make-variable-buffer-local 'artist-curr-go)
 
-(defvar artist-line-char-set nil
+(defvar-local artist-line-char-set nil
   "Boolean to tell whether user has set some char to use when drawing lines.")
-(make-variable-buffer-local 'artist-line-char-set)
 
-(defvar artist-line-char nil
+(defvar-local artist-line-char nil
   "Char to use when drawing lines.")
-(make-variable-buffer-local 'artist-line-char)
 
-(defvar artist-fill-char-set nil
+(defvar-local artist-fill-char-set nil
   "Boolean to tell whether user has set some char to use when filling.")
-(make-variable-buffer-local 'artist-fill-char-set)
 
-(defvar artist-fill-char nil
+(defvar-local artist-fill-char nil
   "Char to use when filling.")
-(make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\s
+(defvar-local artist-erase-char ?\s
   "Char to use when erasing.")
-(make-variable-buffer-local 'artist-erase-char)
 
-(defvar artist-default-fill-char ?.
+(defvar-local artist-default-fill-char ?.
   "Char to use when a fill-char is required but none is set.")
-(make-variable-buffer-local 'artist-default-fill-char)
 
 ; This variable is not buffer local
 (defvar artist-copy-buffer nil
   "Copy buffer.")
 
-(defvar artist-draw-region-min-y 0
+(defvar-local artist-draw-region-min-y 0
   "Line-number for top-most visited line for draw operation.")
-(make-variable-buffer-local 'artist-draw-region-min-y)
 
-(defvar artist-draw-region-max-y 0
+(defvar-local artist-draw-region-max-y 0
   "Line-number for bottom-most visited line for draw operation.")
-(make-variable-buffer-local 'artist-draw-region-max-y)
 
-(defvar artist-borderless-shapes nil
+(defvar-local artist-borderless-shapes nil
   "When non-nil, draw shapes without border.
 The fill char is used instead, if it is set.")
-(make-variable-buffer-local 'artist-borderless-shapes)
 
 (defvar artist-prev-next-op-alist nil
   "Assoc list for looking up next and/or previous draw operation.
@@ -483,7 +462,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 (if artist-picture-compatibility
     (require 'picture))
 
-;; Variables that are made local in artist-mode-init
+;; Variables that are made local in `artist-mode-init'
 (defvar artist-key-is-drawing nil)
 (defvar artist-key-endpoint1 nil)
 (defvar artist-key-poly-point-list nil)
@@ -495,105 +474,98 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 (defvar artist-arrow-point-1 nil)
 (defvar artist-arrow-point-2 nil)
 
-(defvar artist-menu-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [spray-chars]
-      '(menu-item "Characters for Spray" artist-select-spray-chars
-		  :help "Choose characters for sprayed by the spray-can"))
-    (define-key map [borders]
-      '(menu-item "Draw Shape Borders" artist-toggle-borderless-shapes
-		  :help "Toggle whether shapes are drawn with borders"
-		  :button (:toggle . (not artist-borderless-shapes))))
-    (define-key map [trimming]
-      '(menu-item "Trim Line Endings" artist-toggle-trim-line-endings
-		  :help "Toggle trimming of line-endings"
-		  :button (:toggle . artist-trim-line-endings)))
-    (define-key map [rubber-band]
-      '(menu-item "Rubber-banding" artist-toggle-rubber-banding
-		  :help "Toggle rubber-banding"
-		  :button (:toggle . artist-rubber-banding)))
-    (define-key map [set-erase]
-      '(menu-item "Character to Erase..." artist-select-erase-char
-		  :help "Choose a specific character to erase"))
-    (define-key map [set-line]
-      '(menu-item "Character for Line..." artist-select-line-char
-		  :help "Choose the character to insert when drawing lines"))
-    (define-key map [set-fill]
-      '(menu-item "Character for Fill..." artist-select-fill-char
-		  :help "Choose the character to insert when filling in shapes"))
-    (define-key map [artist-separator] '(menu-item "--"))
-    (dolist (op '(("Vaporize" artist-select-op-vaporize-lines vaporize-lines)
-		  ("Erase" artist-select-op-erase-rectangle erase-rect)
-		  ("Spray-can" artist-select-op-spray-set-size spray-get-size)
-		  ("Text" artist-select-op-text-overwrite text-ovwrt)
-		  ("Ellipse" artist-select-op-circle circle)
-		  ("Poly-line" artist-select-op-straight-poly-line spolyline)
-		  ("Square" artist-select-op-square square)
-		  ("Rectangle" artist-select-op-rectangle rectangle)
-    		  ("Line" artist-select-op-straight-line s-line)
-    		  ("Pen" artist-select-op-pen-line pen-line)))
-      (define-key map (vector (nth 2 op))
-    	`(menu-item ,(nth 0 op)
-    		    ,(nth 1 op)
-    		    :help ,(format "Draw using the %s style" (nth 0 op))
-    		    :button (:radio . (eq artist-curr-go ',(nth 2 op))))))
-    map))
+(defvar-keymap artist-mode-map
+  :doc "Keymap for `artist-mode'."
+  "<down-mouse-1>"   #'artist-down-mouse-1
+  "S-<down-mouse-1>" #'artist-down-mouse-1
+  "<down-mouse-2>"   #'artist-mouse-choose-operation
+  "S-<down-mouse-2>" #'artist-mouse-choose-operation
+  "<down-mouse-3>"   #'artist-down-mouse-3
+  "S-<down-mouse-3>" #'artist-down-mouse-3
+  "C-<mouse-4>"      #'artist-select-prev-op-in-list
+  "C-<mouse-5>"      #'artist-select-next-op-in-list
+  "RET"              #'artist-key-set-point ; return
+  "<up>"             #'artist-previous-line
+  "C-p"              #'artist-previous-line
+  "<down>"           #'artist-next-line
+  "C-n"              #'artist-next-line
+  "<left>"           #'artist-backward-char
+  "C-b"              #'artist-backward-char
+  "<right>"          #'artist-forward-char
+  "C-f"              #'artist-forward-char
+  "<"                #'artist-toggle-first-arrow
+  ">"                #'artist-toggle-second-arrow
+  "C-c C-a C-e"      #'artist-select-erase-char
+  "C-c C-a C-f"      #'artist-select-fill-char
+  "C-c C-a C-l"      #'artist-select-line-char
+  "C-c C-a C-o"      #'artist-select-operation
+  "C-c C-a C-r"      #'artist-toggle-rubber-banding
+  "C-c C-a C-t"      #'artist-toggle-trim-line-endings
+  "C-c C-a C-s"      #'artist-toggle-borderless-shapes
+  "C-c C-c"          #'artist-mode-off
+  "C-c C-a l"        #'artist-select-op-line
+  "C-c C-a L"        #'artist-select-op-straight-line
+  "C-c C-a r"        #'artist-select-op-rectangle
+  "C-c C-a R"        #'artist-select-op-square
+  "C-c C-a s"        #'artist-select-op-square
+  "C-c C-a p"        #'artist-select-op-poly-line
+  "C-c C-a P"        #'artist-select-op-straight-poly-line
+  "C-c C-a e"        #'artist-select-op-ellipse
+  "C-c C-a c"        #'artist-select-op-circle
+  "C-c C-a t"        #'artist-select-op-text-see-thru
+  "C-c C-a T"        #'artist-select-op-text-overwrite
+  "C-c C-a S"        #'artist-select-op-spray-can
+  "C-c C-a z"        #'artist-select-op-spray-set-size
+  "C-c C-a C-d"      #'artist-select-op-erase-char
+  "C-c C-a E"        #'artist-select-op-erase-rectangle
+  "C-c C-a v"        #'artist-select-op-vaporize-line
+  "C-c C-a V"        #'artist-select-op-vaporize-lines
+  "C-c C-a C-k"      #'artist-select-op-cut-rectangle
+  "C-c C-a M-w"      #'artist-select-op-copy-rectangle
+  "C-c C-a C-y"      #'artist-select-op-paste
+  "C-c C-a f"        #'artist-select-op-flood-fill
+  "C-c C-a C-b"      #'artist-submit-bug-report)
 
-(defvar artist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (setq artist-mode-map (make-sparse-keymap))
-    (define-key map [down-mouse-1] 'artist-down-mouse-1)
-    (define-key map [S-down-mouse-1] 'artist-down-mouse-1)
-    (define-key map [down-mouse-2] 'artist-mouse-choose-operation)
-    (define-key map [S-down-mouse-2] 'artist-mouse-choose-operation)
-    (define-key map [down-mouse-3] 'artist-down-mouse-3)
-    (define-key map [S-down-mouse-3] 'artist-down-mouse-3)
-    (define-key map [C-mouse-4] 'artist-select-prev-op-in-list)
-    (define-key map [C-mouse-5] 'artist-select-next-op-in-list)
-    (define-key map "\r" 'artist-key-set-point) ; return
-    (define-key map [up] 'artist-previous-line)
-    (define-key map "\C-p" 'artist-previous-line)
-    (define-key map [down] 'artist-next-line)
-    (define-key map "\C-n" 'artist-next-line)
-    (define-key map [left] 'artist-backward-char)
-    (define-key map "\C-b" 'artist-backward-char)
-    (define-key map [right] 'artist-forward-char)
-    (define-key map "\C-f" 'artist-forward-char)
-    (define-key map "<" 'artist-toggle-first-arrow)
-    (define-key map ">" 'artist-toggle-second-arrow)
-    (define-key map "\C-c\C-a\C-e" 'artist-select-erase-char)
-    (define-key map "\C-c\C-a\C-f" 'artist-select-fill-char)
-    (define-key map "\C-c\C-a\C-l" 'artist-select-line-char)
-    (define-key map "\C-c\C-a\C-o" 'artist-select-operation)
-    (define-key map "\C-c\C-a\C-r" 'artist-toggle-rubber-banding)
-    (define-key map "\C-c\C-a\C-t" 'artist-toggle-trim-line-endings)
-    (define-key map "\C-c\C-a\C-s" 'artist-toggle-borderless-shapes)
-    (define-key map "\C-c\C-c"     'artist-mode-off)
-    (define-key map "\C-c\C-al"    'artist-select-op-line)
-    (define-key map "\C-c\C-aL"    'artist-select-op-straight-line)
-    (define-key map "\C-c\C-ar"    'artist-select-op-rectangle)
-    (define-key map "\C-c\C-aR"    'artist-select-op-square)
-    (define-key map "\C-c\C-as"    'artist-select-op-square)
-    (define-key map "\C-c\C-ap"    'artist-select-op-poly-line)
-    (define-key map "\C-c\C-aP"    'artist-select-op-straight-poly-line)
-    (define-key map "\C-c\C-ae"    'artist-select-op-ellipse)
-    (define-key map "\C-c\C-ac"    'artist-select-op-circle)
-    (define-key map "\C-c\C-at"    'artist-select-op-text-see-thru)
-    (define-key map "\C-c\C-aT"    'artist-select-op-text-overwrite)
-    (define-key map "\C-c\C-aS"    'artist-select-op-spray-can)
-    (define-key map "\C-c\C-az"    'artist-select-op-spray-set-size)
-    (define-key map "\C-c\C-a\C-d" 'artist-select-op-erase-char)
-    (define-key map "\C-c\C-aE"    'artist-select-op-erase-rectangle)
-    (define-key map "\C-c\C-av"    'artist-select-op-vaporize-line)
-    (define-key map "\C-c\C-aV"    'artist-select-op-vaporize-lines)
-    (define-key map "\C-c\C-a\C-k" 'artist-select-op-cut-rectangle)
-    (define-key map "\C-c\C-a\M-w" 'artist-select-op-copy-rectangle)
-    (define-key map "\C-c\C-a\C-y" 'artist-select-op-paste)
-    (define-key map "\C-c\C-af"    'artist-select-op-flood-fill)
-    (define-key map "\C-c\C-a\C-b" 'artist-submit-bug-report)
-    (define-key map [menu-bar artist] (cons "Artist" artist-menu-map))
-    map)
-  "Keymap for `artist-mode'.")
+(easy-menu-define artist-menu-map artist-mode-map
+  "Menu for `artist-mode'."
+  `("Artist"
+    ,@(mapcar
+       (lambda (op)
+         `[,(nth 0 op) ,(nth 1 op)
+           :help ,(format "Draw using the %s style" (nth 0 op))
+           :style radio
+           :selected (eq artist-curr-go ',(nth 2 op))])
+       '(("Vaporize" artist-select-op-vaporize-lines vaporize-lines)
+         ("Erase" artist-select-op-erase-rectangle erase-rect)
+         ("Spray-can" artist-select-op-spray-set-size spray-get-size)
+         ("Text" artist-select-op-text-overwrite text-ovwrt)
+         ("Ellipse" artist-select-op-circle circle)
+         ("Poly-line" artist-select-op-straight-poly-line spolyline)
+         ("Square" artist-select-op-square square)
+         ("Rectangle" artist-select-op-rectangle rectangle)
+         ("Line" artist-select-op-straight-line s-line)
+         ("Pen" artist-select-op-pen-line pen-line)))
+    "---"
+    ["Character for Fill..." artist-select-fill-char
+     :help "Choose the character to insert when filling in shapes"]
+    ["Character for Line..." artist-select-line-char
+     :help "Choose the character to insert when drawing lines"]
+    ["Character to Erase..." artist-select-erase-char
+     :help "Choose a specific character to erase"]
+    ["Rubber-banding" artist-toggle-rubber-banding
+     :help "Toggle rubber-banding"
+     :style toggle
+     :selected artist-rubber-banding]
+    ["Trim Line Endings" artist-toggle-trim-line-endings
+     :help "Toggle trimming of line-endings"
+     :style toggle
+     :selected artist-trim-line-endings]
+    ["Draw Shape Borders" artist-toggle-borderless-shapes
+     :help "Toggle whether shapes are drawn with borders"
+     :style toggle
+     :selected (not artist-borderless-shapes)]
+    ["Characters for Spray" artist-select-spray-chars
+     :help "Choose characters for sprayed by the spray-can"]))
 
 (defvar artist-replacement-table (make-vector 256 0)
   "Replacement table for `artist-replace-char'.")
@@ -1302,7 +1274,7 @@ Drawing with keys
 
  \\[artist-key-set-point]		Does one of the following:
 		For lines/rectangles/squares: sets the first/second endpoint
-		For poly-lines: sets a point (use C-u \\[artist-key-set-point] to set last point)
+                For poly-lines: sets a point (use \\[universal-argument] \\[artist-key-set-point] to set last point)
 		When erase characters: toggles erasing
 		When cutting/copying: Sets first/last endpoint of rect/square
 		When pasting: Pastes
@@ -1359,25 +1331,25 @@ Variables
  This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
- artist-rubber-banding		Interactively do rubber-banding or not
- artist-first-char		What to set at first/second point...
- artist-second-char		...when not rubber-banding
- artist-interface-with-rect	If cut/copy/paste should interface with rect
- artist-arrows			The arrows to use when drawing arrows
- artist-aspect-ratio		Character height-to-width for squares
- artist-trim-line-endings	Trimming of line endings
- artist-flood-fill-right-border	Right border when flood-filling
- artist-flood-fill-show-incrementally	Update display while filling
- artist-pointer-shape		Pointer shape to use while drawing
- artist-ellipse-left-char	Character to use for narrow ellipses
- artist-ellipse-right-char	Character to use for narrow ellipses
- artist-borderless-shapes       If shapes should have borders
- artist-picture-compatibility   Whether or not to be picture mode compatible
- artist-vaporize-fuzziness      Tolerance when recognizing lines
- artist-spray-interval          Seconds between repeated sprayings
- artist-spray-radius            Size of the spray-area
- artist-spray-chars             The spray-\"color\"
- artist-spray-new-chars         Initial spray-\"color\"
+ `artist-rubber-banding'              Interactively do rubber-banding or not
+ `artist-first-char'                  What to set at first/second point...
+ `artist-second-char'                 ...when not rubber-banding
+ `artist-interface-with-rect'         Should cut/copy/paste interface with rect
+ `artist-arrows'                      The arrows to use when drawing arrows
+ `artist-aspect-ratio'                Character height-to-width for squares
+ `artist-trim-line-endings'           Trimming of line endings
+ `artist-flood-fill-right-border'     Right border when flood-filling
+ `artist-flood-fill-show-incrementally'  Update display while filling
+ `artist-pointer-shape'               Pointer shape to use while drawing
+ `artist-ellipse-left-char'           Character to use for narrow ellipses
+ `artist-ellipse-right-char'          Character to use for narrow ellipses
+ `artist-borderless-shapes'           If shapes should have borders
+ `artist-picture-compatibility'       Picture mode compatibility on or off
+ `artist-vaporize-fuzziness'          Tolerance when recognizing lines
+ `artist-spray-interval'              Seconds between repeated sprayings
+ `artist-spray-radius'                Size of the spray-area
+ `artist-spray-chars'                 The spray-\"color\"
+ `artist-spray-new-char'              Initial spray-\"color\"
 
 Hooks
 
@@ -1395,8 +1367,11 @@ Keymap summary
 	(t
 	 ;; Turn mode on
 	 (artist-mode-init)
-         (let ((font (face-attribute 'default :font)))
-           (when (and (fontp font) (not (font-get font :spacing)))
+         (let* ((font (face-attribute 'default :font))
+                (spacing-prop (if (fontp font)
+                                  (font-get font :spacing)
+                                t)))
+           (when (or (null spacing-prop) (eq spacing-prop 0))
              (message "The default font isn't monospaced, so the drawings in this buffer may look odd"))))))
 
 ;; Init and exit
@@ -1413,32 +1388,20 @@ Keymap summary
   (aset artist-replacement-table ?\t ?\s)
   (aset artist-replacement-table 0 ?\s)
   ;; More setup
-  (make-local-variable 'artist-key-is-drawing)
-  (make-local-variable 'artist-key-endpoint1)
-  (make-local-variable 'artist-key-poly-point-list)
-  (make-local-variable 'artist-key-shape)
-  (make-local-variable 'artist-key-draw-how)
-  (make-local-variable 'artist-popup-menu-table)
-  (make-local-variable 'artist-key-compl-table)
-  (make-local-variable 'artist-prev-next-op-alist)
-  (make-local-variable 'artist-rb-save-data)
-  (make-local-variable 'artist-arrow-point-1)
-  (make-local-variable 'artist-arrow-point-2)
-  (setq artist-key-is-drawing nil)
-  (setq artist-key-endpoint1 nil)
-  (setq artist-key-poly-point-list nil)
-  (setq artist-key-shape nil)
-  (setq artist-popup-menu-table (artist-compute-popup-menu-table artist-mt))
-  (setq artist-key-compl-table (artist-compute-key-compl-table artist-mt))
-  (setq artist-prev-next-op-alist
-	(artist-make-prev-next-op-alist artist-key-compl-table))
-  (setq artist-rb-save-data (make-vector 7 0))
-  (setq artist-arrow-point-1 nil)
-  (setq artist-arrow-point-2 nil)
-  (make-local-variable 'next-line-add-newlines)
-  (setq next-line-add-newlines t)
-  (setq artist-key-draw-how
-	(artist-go-get-draw-how-from-symbol artist-curr-go))
+  (setq-local artist-key-is-drawing nil)
+  (setq-local artist-key-endpoint1 nil)
+  (setq-local artist-key-poly-point-list nil)
+  (setq-local artist-key-shape nil)
+  (setq-local artist-popup-menu-table (artist-compute-popup-menu-table artist-mt))
+  (setq-local artist-key-compl-table (artist-compute-key-compl-table artist-mt))
+  (setq-local artist-prev-next-op-alist
+              (artist-make-prev-next-op-alist artist-key-compl-table))
+  (setq-local artist-rb-save-data (make-vector 7 0))
+  (setq-local artist-arrow-point-1 nil)
+  (setq-local artist-arrow-point-2 nil)
+  (setq-local next-line-add-newlines t)
+  (setq-local artist-key-draw-how
+              (artist-go-get-draw-how-from-symbol artist-curr-go))
   (if (and artist-picture-compatibility (not (eq major-mode 'picture-mode)))
       (progn
 	(picture-mode)
@@ -1789,13 +1752,6 @@ info-variant-part."
 (defmacro artist-funcall (fn &rest args)
   "Call function FN with ARGS, if FN is not nil."
   `(if ,fn (funcall ,fn ,@args)))
-
-(defun artist-uniq (l)
-  "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
-  (cond ((null l) nil)
-	((null (cdr l)) l)		; only one element in list
-	((equal (car l) (car (cdr l))) (artist-uniq (cdr l))) ; first 2 equal
-	(t (cons (car l) (artist-uniq (cdr l)))))) ; first 2 are different
 
 (defun artist-string-split (str r)
   "Split string STR at occurrences of regexp R, returning a list of strings."
@@ -2798,7 +2754,7 @@ to append to the end of the list, when doing free-hand drawing)."
 Also, the `artist-key-poly-point-list' is reversed."
 
   (setq artist-key-poly-point-list
-	(artist-uniq artist-key-poly-point-list))
+        (seq-uniq artist-key-poly-point-list))
 
   (if (>= (length artist-key-poly-point-list) 2)
 
@@ -2884,9 +2840,8 @@ Returns a list of strings."
           (if (memq system-type '(windows-nt ms-dos))
               (artist-figlet-get-font-list-windows)
             (artist-figlet-get-font-list)))
-	 (font (completing-read (concat "Select font (default "
-					artist-figlet-default-font
-					"): ")
+         (font (completing-read (format-prompt "Select font"
+                                               artist-figlet-default-font)
 				(mapcar
 				 (lambda (font) (cons font font))
 				 avail-fonts))))
@@ -3496,7 +3451,7 @@ The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
 	(line-char  (if artist-line-char-set artist-line-char ?-))
 	(i          0)
 	(point-list nil)
-	(fill-info  nil)
+	;; (fill-info  nil)
 	(shape-info (make-vector 2 0)))
     (while (< i width)
       (let* ((line-x (+ left-edge i))
@@ -3509,7 +3464,7 @@ The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
 	(setq point-list (append point-list (list new-coord)))
 	(setq i (1+ i))))
     (aset shape-info 0 point-list)
-    (aset shape-info 1 fill-info)
+    (aset shape-info 1 nil) ;; fill-info
     (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))
@@ -4935,7 +4890,7 @@ If optional argument STATE is positive, turn borders on."
 	    (+ window-y window-start-y))))
 
 (defun artist--adjust-x (x)
-  "Adjust the X position wrt. `display-line-numbers-mode'."
+  "Adjust the X position with regards to `display-line-numbers-mode'."
   (let ((adjust (line-number-display-width)))
     (if (= adjust 0)
         x
@@ -4960,7 +4915,7 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (timer nil))
@@ -4976,7 +4931,7 @@ The event, EV, is the mouse event."
           (while (or (mouse-movement-p ev)
                      (member 'down (event-modifiers ev)))
             (setq ev-start-pos (artist-coord-win-to-buf
-                                (posn-col-row (event-start ev))))
+                                (posn-col-row (event-start ev) t)))
             (setq x1 (artist--adjust-x (car ev-start-pos)))
             (setq y1 (cdr ev-start-pos))
 
@@ -5016,7 +4971,7 @@ The event, EV, is the mouse event."
                   (setq timer (run-at-time interval interval draw-fn x1 y1))))
 
             ;; Read next event
-            (setq ev (read-event))))
+            (setq ev (read--potential-mouse-event))))
       ;; Cleanup: get rid of any active timer.
       (if timer
           (cancel-timer timer)))
@@ -5056,7 +5011,7 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start t)))
 	 (x1-last      (artist--adjust-x (car ev-start-pos)))
 	 (y1-last      (cdr ev-start-pos))
 	 (x2           x1-last)
@@ -5148,7 +5103,7 @@ The event, EV, is the mouse event."
 	      ;; set x2 and y2
 	      ;;
 	      (setq ev-start-pos (artist-coord-win-to-buf
-				  (posn-col-row (event-start ev))))
+				  (posn-col-row (event-start ev) t)))
 	      (setq x2 (artist--adjust-x (car ev-start-pos)))
 	      (setq y2 (cdr ev-start-pos))
 
@@ -5175,7 +5130,7 @@ The event, EV, is the mouse event."
 	  ;;
 	  ;; set x2 and y2
 	  (setq ev-start-pos (artist-coord-win-to-buf
-			      (posn-col-row (event-start ev))))
+			      (posn-col-row (event-start ev) t)))
 	  (setq x2 (artist--adjust-x (car ev-start-pos)))
 	  (setq y2 (cdr ev-start-pos))
 
@@ -5224,7 +5179,7 @@ The event, EV, is the mouse event."
 
 	;; Read next event (only if we should not stop)
 	(if (not done)
-	    (setq ev (read-event)))))
+	    (setq ev (read--potential-mouse-event)))))
 
     ;; Reverse point-list (last points are cond'ed first)
     (setq point-list (reverse point-list))
@@ -5259,7 +5214,8 @@ Operation is done once.  The event, EV, is the mouse event."
 	 (arrow-pred   (artist-go-get-arrow-pred-from-symbol op))
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf
+                        (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr  ev-start-pos)))
     (select-window (posn-window ev-start))
@@ -5293,7 +5249,8 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf
+                        (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (x2)
@@ -5307,7 +5264,7 @@ The event, EV, is the mouse event."
       (while (or (mouse-movement-p ev)
 		 (member 'down (event-modifiers ev)))
 	(setq ev-start-pos (artist-coord-win-to-buf
-			    (posn-col-row (event-start ev))))
+			    (posn-col-row (event-start ev) t)))
 	(setq x2 (artist--adjust-x (car ev-start-pos)))
 	(setq y2 (cdr ev-start-pos))
 
@@ -5351,7 +5308,7 @@ The event, EV, is the mouse event."
 
 
 	;; Read next event
-	(setq ev (read-event))))
+	(setq ev (read--potential-mouse-event))))
 
     ;; If we are not rubber-banding (that is, we were moving around the `2')
     ;; draw the shape
@@ -5384,8 +5341,6 @@ The event, EV, is the mouse event."
   (require 'reporter)
   (if (y-or-n-p "Do you want to submit a bug report on Artist? ")
       (let ((vars '(window-system
-		    window-system-version
-		    ;;
 		    artist-rubber-banding
 		    artist-interface-with-rect
 		    artist-aspect-ratio
@@ -5398,22 +5353,21 @@ The event, EV, is the mouse event."
 		    artist-arrow-point-2)))
 	;; Remove those variables from vars that are not bound
 	(mapc
-	 (function
-	  (lambda (x)
-	    (if (not (and (boundp x) (symbol-value x)))
-		(setq vars (delq x vars))))) vars)
+         (lambda (x)
+           (if (not (and (boundp x) (symbol-value x)))
+               (setq vars (delq x vars)))) vars)
 	(reporter-submit-bug-report
 	 artist-maintainer-address
-	 (concat "artist.el " artist-version)
+         (concat "artist.el in Emacs " emacs-version)
 	 vars
 	 nil nil
 	 (concat "Hello Tomas,\n\n"
 		 "I have a nice bug report on Artist for you! Here it is:")))))
 
+(define-obsolete-function-alias 'artist-uniq #'seq-uniq "28.1")
 
-;;
-;; Now provide this minor mode
-;;
+(defconst artist-version "1.2.6")
+(make-obsolete-variable 'artist-version 'emacs-version "29.1")
 
 (provide 'artist)
 

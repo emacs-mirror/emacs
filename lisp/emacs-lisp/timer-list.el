@@ -1,6 +1,6 @@
 ;;; timer-list.el --- list active timers in a buffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -49,23 +49,25 @@
                 (let ((time (list (aref timer 1)
 				  (aref timer 2)
 				  (aref timer 3))))
-                  (format "%10.2f"
-			  (float-time
-			   (if (aref timer 7)
-			       time
-			     (time-subtract time nil)))))
-                'help-echo "Time in sec till next invocation")
+                  (format "%12s"
+                          (format-seconds "%dd %hh %mm %z%,1ss"
+			                  (float-time
+			                   (if (aref timer 7)
+			                       time
+			                     (time-subtract time nil))))))
+                'help-echo "Time until next invocation")
               ;; Repeat.
-              ,(propertize
-                (let ((repeat (aref timer 4)))
-                  (cond
-                   ((numberp repeat)
-                    (format "%8.1f" repeat))
-                   ((null repeat)
-                    "       -")
-                   (t
-                    (format "%8s" repeat))))
-                'help-echo "Symbol: repeat; number: repeat interval in sec")
+              ,(let ((repeat (aref timer 4)))
+                 (cond
+                  ((numberp repeat)
+                   (propertize
+                    (format "%12s" (format-seconds
+                                    "%x%dd %hh %mm %z%,1ss" repeat))
+                    'help-echo "Repeat interval"))
+                  ((null repeat)
+                   (propertize "           -" 'help-echo "Runs once"))
+                  (t
+                   (format "%12s" repeat))))
               ;; Function.
               ,(propertize
                 (let ((cl-print-compiled 'static)
@@ -79,13 +81,12 @@
 ;; doing.  Kids, don't try this at home!
 ;;;###autoload (put 'list-timers 'disabled "Beware: manually canceling timers can ruin your Emacs session.")
 
-(defvar timer-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "c" 'timer-list-cancel)
-    (easy-menu-define nil map ""
-      '("Timers"
-	["Cancel" timer-list-cancel t]))
-    map))
+(defvar-keymap timer-list-mode-map
+  "c" #'timer-list-cancel
+  :menu
+  '("Timers"
+    ["Cancel" timer-list-cancel t]
+    ["Quit" quit-window]))
 
 (define-derived-mode timer-list-mode tabulated-list-mode "Timer-List"
   "Mode for listing and controlling timers."
@@ -93,8 +94,8 @@
   (setq-local revert-buffer-function #'list-timers)
   (setq tabulated-list-format
         '[("Idle" 6 timer-list--idle-predicate)
-          ("      Next" 12 timer-list--next-predicate)
-          ("  Repeat" 11 timer-list--repeat-predicate)
+          ("Next" 12 timer-list--next-predicate :right-align t :pad-right 1)
+          ("Repeat" 12 timer-list--repeat-predicate :right-align t :pad-right 1)
           ("Function" 10 timer-list--function-predicate)]))
 
 (defun timer-list--idle-predicate (A B)
@@ -119,7 +120,7 @@
     (string< rA rB)))
 
 (defun timer-list--function-predicate (A B)
-  "Predicate to sort Timer-List by the Next column."
+  "Predicate to sort Timer-List by the Function column."
   (let ((fA (aref (cadr A) 3))
         (fB (aref (cadr B) 3)))
     (string< fA fB)))

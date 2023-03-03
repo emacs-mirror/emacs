@@ -1,6 +1,6 @@
 ;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -26,7 +26,7 @@
 ;; specified in rng-pttrn.el.
 ;;
 ;; RELAX NG Compact Syntax is specified by
-;;    http://relaxng.org/compact.html
+;;    https://relaxng.org/compact.html
 ;;
 ;; This file uses the prefix "rng-c-".
 
@@ -82,25 +82,23 @@ Return a pattern."
   (concat "\\`\\(" (regexp-opt rng-c-keywords) "\\)\\'")
   "Regular expression to match a keyword in the compact syntax.")
 
-(defvar rng-c-syntax-table nil
+(defvar rng-c-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?#  "<" st)
+    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?-  "w" st)
+    (modify-syntax-entry ?.  "w" st)
+    (modify-syntax-entry ?_  "w" st)
+    (modify-syntax-entry ?:  "_" st)
+    st)
   "Syntax table for parsing the compact syntax.")
-
-(if rng-c-syntax-table
-    ()
-  (setq rng-c-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?# "<" rng-c-syntax-table)
-  (modify-syntax-entry ?\n ">" rng-c-syntax-table)
-  (modify-syntax-entry ?- "w" rng-c-syntax-table)
-  (modify-syntax-entry ?. "w" rng-c-syntax-table)
-  (modify-syntax-entry ?_ "w" rng-c-syntax-table)
-  (modify-syntax-entry ?: "_" rng-c-syntax-table))
 
 (defconst rng-c-literal-1-re
   "'\\(''\\([^']\\|'[^']\\|''[^']\\)*''\\|[^'\n]*\\)'"
   "Regular expression to match a single-quoted literal.")
 
 (defconst rng-c-literal-2-re
-  (replace-regexp-in-string "'" "\"" rng-c-literal-1-re)
+  (string-replace "'" "\"" rng-c-literal-1-re)
   "Regular expression to match a double-quoted literal.")
 
 (defconst rng-c-ncname-re "\\w+")
@@ -123,8 +121,7 @@ Return a pattern."
   (set-buffer-multibyte t)
   (set-syntax-table rng-c-syntax-table))
 
-(defvar rng-c-current-token nil)
-(make-variable-buffer-local 'rng-c-current-token)
+(defvar-local rng-c-current-token nil)
 
 (defun rng-c-advance ()
   (cond ((looking-at rng-c-token-re)
@@ -180,7 +177,7 @@ Return a pattern."
     (setq rng-c-default-namespace rng-c-inherit-namespace)))
 
 (defun rng-c-expand-name (prefixed-name)
-  (let ((i (string-match ":" prefixed-name)))
+  (let ((i (string-search ":" prefixed-name)))
     (rng-make-name (rng-c-lookup-prefix (substring prefixed-name
 						   0
 						   i))
@@ -223,7 +220,7 @@ and URI is a symbol.")
     (cdr binding)))
 
 (defun rng-c-expand-datatype (prefixed-name)
-  (let ((i (string-match ":" prefixed-name)))
+  (let ((i (string-search ":" prefixed-name)))
     (rng-make-datatype
      (rng-c-lookup-datatype-prefix (substring prefixed-name 0 i))
      (substring prefixed-name (+ i 1)))))
@@ -334,11 +331,9 @@ OVERRIDE is either nil, require or t."
 
 ;;; Parsing
 
-(defvar rng-c-escape-positions nil)
-(make-variable-buffer-local 'rng-c-escape-positions)
+(defvar-local rng-c-escape-positions nil)
 
-(defvar rng-c-file-name nil)
-(make-variable-buffer-local 'rng-c-file-name)
+(defvar-local rng-c-file-name nil)
 
 (defvar rng-c-file-index nil)
 
@@ -372,7 +367,7 @@ OVERRIDE is either nil, require or t."
     (while (re-search-forward "\\\\x+{\\([[:xdigit:]]+\\)}"
 			      (point-max)
 			      t)
-      (let* ((ch (decode-char 'ucs (string-to-number (match-string 1) 16))))
+      (let* ((ch (string-to-number (match-string 1) 16)))
 	(if (and ch (> ch 0))
 	    (let ((begin (match-beginning 0))
 		  (end (match-end 0)))
@@ -925,4 +920,4 @@ Current token after parse is token following ]."
 
 (provide 'rng-cmpct)
 
-;;; rng-cmpct.el
+;;; rng-cmpct.el ends here

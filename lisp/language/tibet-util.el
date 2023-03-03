@@ -1,6 +1,6 @@
-;;; tibet-util.el --- utilities for Tibetan   -*- coding: utf-8-emacs; -*-
+;;; tibet-util.el --- utilities for Tibetan   -*- coding: utf-8-emacs; lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -31,6 +31,13 @@
 ;; 1999.10.25 Modification for a new composition way by K.Handa.
 
 ;;; Commentary:
+
+;; Note: This file includes several codepoints outside of the Unicode
+;; 0..#x10FFFF range, which are characters that were not unified into
+;; Unicode.  Therefore, this file is encoded in utf-8-emacs, because
+;; UTF-8 cannot encode such codepoints.  We include these codepoints
+;; literally in the file to have them displayed by suitable fonts,
+;; which makes maintenance easier.
 
 ;;; Code:
 
@@ -126,42 +133,42 @@ The returned string has no composition information."
 	(setq t-str-list (cons (substring str idx) t-str-list)))
     (apply 'concat (nreverse t-str-list))))
 
-;;;
+;;
 ;;; Functions for composing/decomposing Tibetan sequence.
-;;;
-;;; A Tibetan syllable is typically structured as follows:
-;;;
-;;;      [Prefix] C [C+] V [M] [Suffix [Post suffix]]
-;;;
-;;; where C's are all vertically stacked, V appears below or above
-;;; consonant cluster and M is always put above the C[C+]V combination.
-;;; (Sanskrit visarga, though it is a vowel modifier, is considered
-;;;  to be a punctuation.)
-;;;
-;;; Here are examples of the words "bsgrubs" and "hfauM"
-;;;
-;;;            བསྒྲུབས            ཧཱུཾ
-;;;
-;;;                             M
-;;;             b s b s         h
-;;;               g             fa
-;;;               r             u
-;;;               u
-;;;
-;;; Consonants `'' (འ), `w' (ཝ), `y' (ཡ), `r' (ར) take special
-;;; forms when they are used as subjoined consonant.  Consonant `r'
-;;; takes another special form when used as superjoined in such a case
-;;; as "rka", while it does not change its form when conjoined with
-;;; subjoined `'', `w' or `y' as in "rwa", "rya".
+;;
+;; A Tibetan syllable is typically structured as follows:
+;;
+;;      [Prefix] C [C+] V [M] [Suffix [Post suffix]]
+;;
+;; where C's are all vertically stacked, V appears below or above
+;; consonant cluster and M is always put above the C[C+]V combination.
+;; (Sanskrit visarga, though it is a vowel modifier, is considered
+;;  to be a punctuation.)
+;;
+;; Here are examples of the words "bsgrubs" and "hfauM"
+;;
+;;            བསྒྲུབས            ཧཱུཾ
+;;
+;;                             M
+;;             b s b s         h
+;;               g             fa
+;;               r             u
+;;               u
+;;
+;; Consonants `'' (འ), `w' (ཝ), `y' (ཡ), `r' (ར) take special
+;; forms when they are used as subjoined consonant.  Consonant `r'
+;; takes another special form when used as superjoined in such a case
+;; as "rka", while it does not change its form when conjoined with
+;; subjoined `'', `w' or `y' as in "rwa", "rya".
 
-;; Append a proper composition rule and glyph to COMPONENTS to compose
-;; CHAR with a composition that has COMPONENTS.
+; Append a proper composition rule and glyph to COMPONENTS to compose
+; CHAR with a composition that has COMPONENTS.
 
 (defun tibetan-add-components (components char)
   (let ((last (last components))
 	(stack-upper '(tc . bc))
 	(stack-under '(bc . tc))
-	rule comp-vowel tmp)
+	rule comp-vowel)
     ;; Special treatment for 'a chung.
     ;; If 'a follows a consonant, turn it into the subjoined form.
     ;; * Disabled by Tomabechi 2000/06/09 *
@@ -246,7 +253,7 @@ The returned string has no composition information."
 (defun tibetan-compose-region (beg end)
   "Compose Tibetan text the region BEG and END."
   (interactive "r")
-  (let (str result chars)
+  ;; (let (str result chars)
     (save-excursion
       (save-restriction
 	(narrow-to-region beg end)
@@ -272,7 +279,7 @@ The returned string has no composition information."
 	    (while (< (point) to)
 	      (tibetan-add-components components (following-char))
 	      (forward-char 1))
-	    (compose-region from to components)))))))
+	    (compose-region from to components)))))) ;; )
 
 (defvar tibetan-decompose-precomposition-alist
   (mapcar (lambda (x) (cons (string-to-char (cdr x)) (car x)))
@@ -281,8 +288,9 @@ The returned string has no composition information."
 ;;;###autoload
 (defun tibetan-decompose-region (from to)
   "Decompose Tibetan text in the region FROM and TO.
-This is different from decompose-region because precomposed Tibetan characters
-are decomposed into normal Tibetan character sequences."
+This is different from `decompose-region' because precomposed
+Tibetan characters are decomposed into normal Tibetan character
+sequences."
   (interactive "r")
   (save-restriction
     (narrow-to-region from to)
@@ -301,8 +309,9 @@ are decomposed into normal Tibetan character sequences."
 ;;;###autoload
 (defun tibetan-decompose-string (str)
   "Decompose Tibetan string STR.
-This is different from decompose-string because precomposed Tibetan characters
-are decomposed into normal Tibetan character sequences."
+This is different from `decompose-string' because precomposed
+Tibetan characters are decomposed into normal Tibetan character
+sequences."
   (let ((new "")
 	(len (length str))
 	(idx 0)
@@ -332,7 +341,7 @@ See also the documentation of the function `tibetan-decompose-region'."
 ;;;###autoload
 (defun tibetan-compose-buffer ()
   "Composes Tibetan character components in the buffer.
-See also docstring of the function tibetan-compose-region."
+See also docstring of the function `tibetan-compose-region'."
   (interactive)
   (make-local-variable 'tibetan-decomposed)
   (tibetan-compose-region (point-min) (point-max))

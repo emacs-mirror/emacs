@@ -1,6 +1,6 @@
-;;; cyrillic.el --- support for Cyrillic -*- coding: utf-8; -*-
+;;; cyrillic.el --- support for Cyrillic -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -33,7 +33,7 @@
 ;; are converted to Unicode internally.  See
 ;; <URL:http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM>.  For more info
 ;; on Cyrillic charsets, see
-;; <URL:http://czyborra.com/charsets/cyrillic.html>.  The KOI and
+;; <URL:https://czyborra.com/charsets/cyrillic.html>.  The KOI and
 ;; Alternativnyj coding systems should live in code-pages.el, but
 ;; they've always been preloaded and the coding system autoload
 ;; mechanism didn't get accepted, so they have to stay here and
@@ -131,13 +131,15 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :mime-charset 'koi8-u)
 
 (set-language-info-alist
- "Ukrainian" '((charset koi8-u)
+ "Ukrainian" '((tutorial . "TUTORIAL.uk")
+	       (charset koi8-u)
 	       (coding-system koi8-u)
 	       (coding-priority koi8-u)
 	       (nonascii-translation . koi8-u)
 	       (input-method . "ukrainian-computer")
+	       (sample-text . "Ukrainian (Українська)	Вітаю / Добрий день! / Привіт")
 	       (documentation
-		. "Support for Ukrainian with KOI8-U character set."))
+		. "Support for Ukrainian with koi8-u character set."))
  '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ stuff
@@ -252,14 +254,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
- '("Cyrillic"))
-
-(set-language-info-alist
- "Ukrainian" '((coding-system koi8-u)
-	       (coding-priority koi8-u)
-	       (input-method . "ukrainian-computer")
-	       (documentation
-		. "Support for Ukrainian with koi8-u character set."))
  '("Cyrillic"))
 
 (provide 'cyrillic)

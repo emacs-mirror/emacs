@@ -1,6 +1,6 @@
 ;;; calc-keypd.el --- mouse-capable keypad input for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -387,7 +387,7 @@
   (interactive)
   (unless (eq major-mode 'calc-keypad-mode)
     (error "Must be in *Calc Keypad* buffer for this command"))
-  (let* ((row (count-lines (point-min) (point-at-bol)))
+  (let* ((row (count-lines (point-min) (line-beginning-position)))
 	 (y (/ row 2))
 	 (x (/ (current-column) (if (>= y 4) 6 5)))
 	 radix frac inv
@@ -481,7 +481,7 @@
 					      ":"
 					    (if (and (equal cmd "e")
 						     (or (not input)
-							 (string-match
+							 (string-search
 							  "#" input))
 						     (> radix 14))
 						(format "*%d.^" radix)

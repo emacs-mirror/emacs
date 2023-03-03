@@ -1,6 +1,6 @@
-;;; idle.el --- Schedule parsing tasks in idle time
+;;; idle.el --- Schedule parsing tasks in idle time  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2006, 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -47,8 +47,6 @@
 ;; For the semantic-find-tags-by-name macro.
 (eval-when-compile (require 'semantic/find))
 
-(defvar eldoc-last-message)
-(declare-function eldoc-message "eldoc")
 (declare-function semantic-analyze-unsplit-name "semantic/analyze/fcn")
 (declare-function semantic-complete-analyze-inline-idle "semantic/complete")
 (declare-function semanticdb-deep-find-tags-by-name "semantic/db-find")
@@ -104,7 +102,6 @@ it is unlikely the user would be ready to type again right away."
 
 (defun semantic-idle-scheduler-setup-timers ()
   "Lazy initialization of the auto parse idle timer."
-  ;; REFRESH THIS FUNCTION for XEMACS FOIBLES
   (or (timerp semantic-idle-scheduler-timer)
       (setq semantic-idle-scheduler-timer
             (run-with-idle-timer
@@ -135,10 +132,9 @@ it is unlikely the user would be ready to type again right away."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-idle-scheduler-mode nil
+(defvar-local semantic-idle-scheduler-mode nil
   "Non-nil if idle-scheduler minor mode is enabled.
 Use the command `semantic-idle-scheduler-mode' to change this variable.")
-(make-variable-buffer-local 'semantic-idle-scheduler-mode)
 
 (defcustom semantic-idle-scheduler-max-buffer-size 0
   "Maximum size in bytes of buffers where idle-scheduler is enabled.
@@ -174,7 +170,8 @@ date, and reparses while the user is idle (not typing.)
 
 The minor mode can be turned on only if semantic feature is
 available and the current buffer was set up for parsing.  Return
-non-nil if the minor mode is enabled."  nil nil nil
+non-nil if the minor mode is enabled."
+  :lighter nil
   (if semantic-idle-scheduler-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
           (progn
@@ -219,22 +216,22 @@ And also manages services that depend on tag values."
     (let* ((inhibit-quit nil)
            (buffers (delq (current-buffer)
                           (delq nil
-                                (mapcar #'(lambda (b)
-                                            (and (buffer-file-name b)
-                                                 b))
+                                (mapcar (lambda (b)
+                                          (and (buffer-file-name b)
+                                               b))
                                         (buffer-list)))))
-	   safe ;; This safe is not used, but could be.
+	   ;; safe ;; This safe is not used, but could be.
            others
 	   mode)
       (when (semantic-idle-scheduler-enabled-p)
         (save-excursion
           ;; First, reparse the current buffer.
-          (setq mode major-mode
-                safe (semantic-safe "Idle Parse Error: %S"
-		       ;(error "Goofy error 1")
-		       (semantic-idle-scheduler-refresh-tags)
-		       )
-		)
+          (setq mode major-mode)
+          ;; (setq safe
+	  (semantic-safe "Idle Parse Error: %S"
+                                        ;(error "Goofy error 1")
+		         (semantic-idle-scheduler-refresh-tags))
+
           ;; Now loop over other buffers with same major mode, trying to
           ;; update them as well.  Stop on keypress.
           (dolist (b buffers)
@@ -350,55 +347,57 @@ Returns t if all processing succeeded."
   "Core handler for idle work processing of long running tasks.
 Visits Semantic controlled buffers, and makes sure all needed
 include files have been parsed, and that the typecache is up to date.
-Uses `semantic-idle-work-for-on-buffer' to do the work."
-  (let ((errbuf nil)
-	(interrupted
-	 (semantic-exit-on-input 'idle-work-timer
-	   (let* ((inhibit-quit nil)
-		  (cb (current-buffer))
-		  (buffers (delq (current-buffer)
-				 (delq nil
-				       (mapcar #'(lambda (b)
-						   (and (buffer-file-name b)
-							b))
-					       (buffer-list)))))
-		  safe errbuf)
-	     ;; First, handle long tasks in the current buffer.
-	     (when (semantic-idle-scheduler-enabled-p)
-	       (save-excursion
-		 (setq safe (semantic-idle-work-for-one-buffer (current-buffer))
-		       )))
-	     (when (not safe) (push (current-buffer) errbuf))
+Uses `semantic-idle-work-for-one-buffer' to do the work."
+  (let*
+      ((errbuf nil)
+       (interrupted
+	(semantic-exit-on-input 'idle-work-timer
+	  (let* ((inhibit-quit nil)
+		 (cb (current-buffer))
+		 (buffers (delq (current-buffer)
+				(delq nil
+                                      (mapcar (lambda (b)
+                                                (and (buffer-file-name b)
+                                                     b))
+					      (buffer-list)))))
+		 safe) ;; errbuf
+	    ;; First, handle long tasks in the current buffer.
+	    (when (semantic-idle-scheduler-enabled-p)
+	      (save-excursion
+		(setq safe (semantic-idle-work-for-one-buffer (current-buffer))
+		      )))
+	    (when (not safe) (push (current-buffer) errbuf))
 
-	     ;; Now loop over other buffers with same major mode, trying to
-	     ;; update them as well.  Stop on keypress.
-	     (dolist (b buffers)
-	       (semantic-throw-on-input 'parsing-mode-buffers)
-	       (with-current-buffer b
-		 (when (semantic-idle-scheduler-enabled-p)
-		   (and (semantic-idle-scheduler-enabled-p)
-			(unless (semantic-idle-work-for-one-buffer (current-buffer))
-			  (push (current-buffer) errbuf)))
-		   ))
-	       )
+	    ;; Now loop over other buffers with same major mode, trying to
+	    ;; update them as well.  Stop on keypress.
+	    (dolist (b buffers)
+	      (semantic-throw-on-input 'parsing-mode-buffers)
+	      (with-current-buffer b
+		(when (semantic-idle-scheduler-enabled-p)
+		  (and (semantic-idle-scheduler-enabled-p)
+		       (unless (semantic-idle-work-for-one-buffer
+			        (current-buffer))
+			 (push (current-buffer) errbuf)))
+		  ))
+	      )
 
-	     (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
-	       ;; Save everything.
-	       (semanticdb-save-all-db-idle)
+	    (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
+	      ;; Save everything.
+	      (semanticdb-save-all-db-idle)
 
-	       ;; Parse up files near our active buffer
-	       (when semantic-idle-work-parse-neighboring-files-flag
-		 (semantic-safe "Idle Work Parse Neighboring Files: %S"
-		   (set-buffer cb)
-		   (semantic-idle-scheduler-work-parse-neighboring-files))
-		 t)
+	      ;; Parse up files near our active buffer
+	      (when semantic-idle-work-parse-neighboring-files-flag
+		(semantic-safe "Idle Work Parse Neighboring Files: %S"
+		  (set-buffer cb)
+		  (semantic-idle-scheduler-work-parse-neighboring-files))
+		t)
 
-	       ;; Save everything... again
-	       (semanticdb-save-all-db-idle)
-	       )
+	      ;; Save everything... again
+	      (semanticdb-save-all-db-idle)
+	      )
 
-	     ;; Done w/ processing
-	     nil))))
+            ;; Done with processing
+	    nil))))
 
     ;; Done
     (if interrupted
@@ -430,6 +429,8 @@ datasets."
     (when semantic-idle-scheduler-verbose-flag
       (message "Long Work Idle Timer...%s" exit-type)))
   )
+
+(defvar ede-auto-add-method)
 
 (defun semantic-idle-scheduler-work-parse-neighboring-files ()
   "Parse all the files in similar directories to buffers being edited."
@@ -565,20 +566,22 @@ DOC will be a documentation string describing FORMS.
 FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
 This routine creates the following functions and variables:"
+  (declare (indent 1) (debug (&define name stringp def-body)))
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
 	(mode	(intern (concat (symbol-name name) "-mode")))
 	(hook	(intern (concat (symbol-name name) "-mode-hook")))
 	(map	(intern (concat (symbol-name name) "-mode-map")))
-	(setup	(intern (concat (symbol-name name) "-mode-setup")))
+	;; (setup	(intern (concat (symbol-name name) "-mode-setup")))
 	(func	(intern (concat (symbol-name name) "-idle-function"))))
 
     `(progn
        (define-minor-mode ,global
 	 ,(concat "Toggle " (symbol-name global) ".
-With ARG, turn the minor mode on if ARG is positive, off otherwise.
-
-When this minor mode is enabled, `" (symbol-name mode) "' is
-turned on in every Semantic-supported buffer.")
+With ARG, turn the minor mode on if ARG is positive, off otherwise.\n\n"
+                  (internal--format-docstring-line
+                   "When this minor mode is enabled, `%s' is \
+turned on in every Semantic-supported buffer."
+                   (symbol-name mode)))
          :global t
 	 :group 'semantic
 	 :group 'semantic-modes
@@ -616,14 +619,10 @@ turned on in every Semantic-supported buffer.")
 				"")	; idle schedulers are quiet?
 
        (defun ,func ()
-	 ,(concat "Perform idle activity for the minor mode `"
-		  (symbol-name mode) "'.")
+         ,(internal--format-docstring-line
+           "Perform idle activity for the minor mode `%s'."
+           (symbol-name mode))
 	 ,@forms))))
-(put 'define-semantic-idle-service 'lisp-indent-function 1)
-(add-hook 'edebug-setup-hook
-          (lambda ()
-	    (def-edebug-spec define-semantic-idle-service
-	      (&define name stringp def-body))))
 
 ;;; SUMMARY MODE
 ;;
@@ -717,8 +716,7 @@ specific to a major mode.  For example, in jde mode:
 
 (defun semantic-idle-summary-useful-context-p ()
   "Non-nil if we should show a summary based on context."
-  (if (and (boundp 'font-lock-mode)
-	   font-lock-mode
+  (if (and font-lock-mode
 	   (memq (get-text-property (point) 'face)
 		 semantic-idle-summary-out-of-context-faces))
       ;; The best I can think of at the moment is to disable
@@ -734,32 +732,19 @@ specific to a major mode.  For example, in jde mode:
   :group 'semantic
   :type 'hook)
 
-(defun semantic-idle-summary-idle-function ()
-  "Display a tag summary of the lexical token under the cursor.
+(defun semantic--eldoc-info (_callback &rest _)
+  "Return the eldoc info for the current symbol.
 Call `semantic-idle-summary-current-symbol-info' for getting the
 current tag to display information."
   (or (eq major-mode 'emacs-lisp-mode)
       (not (semantic-idle-summary-useful-context-p))
-      (let* ((found (semantic-idle-summary-current-symbol-info))
+      (let* ((found (save-excursion
+                      (semantic-idle-summary-current-symbol-info)))
              (str (cond ((stringp found) found)
                         ((semantic-tag-p found)
                          (funcall semantic-idle-summary-function
                                   found nil t)))))
-	;; Show the message with eldoc functions
-        (unless (and str (boundp 'eldoc-echo-area-use-multiline-p)
-                     eldoc-echo-area-use-multiline-p)
-          (let ((w (1- (window-width (minibuffer-window)))))
-            (if (> (length str) w)
-                (setq str (substring str 0 w)))))
-	;; I borrowed some bits from eldoc to shorten the
-	;; message.
-	(when semantic-idle-truncate-long-summaries
-	  (let ((ea-width (1- (window-width (minibuffer-window))))
-		(strlen (length str)))
-	    (when (> strlen ea-width)
-	      (setq str (substring str 0 ea-width)))))
-	;; Display it
-        (eldoc-message str))))
+        str)))
 
 (define-minor-mode semantic-idle-summary-mode
   "Toggle Semantic Idle Summary mode.
@@ -768,30 +753,16 @@ When this minor mode is enabled, the echo area displays a summary
 of the lexical token at point whenever Emacs is idle."
   :group 'semantic
   :group 'semantic-modes
-  (if semantic-idle-summary-mode
-      ;; Enable the mode
-      (progn
-	(unless (and (featurep 'semantic) (semantic-active-p))
-	  ;; Disable minor mode if semantic stuff not available
-	  (setq semantic-idle-summary-mode nil)
-	  (error "Buffer %s was not set up for parsing"
-		 (buffer-name)))
-	(require 'eldoc)
-	(semantic-idle-scheduler-add 'semantic-idle-summary-idle-function)
-	(add-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
-    ;; Disable the mode
-    (semantic-idle-scheduler-remove 'semantic-idle-summary-idle-function)
-    (remove-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t)))
-
-(defun semantic-idle-summary-refresh-echo-area ()
-  (and semantic-idle-summary-mode
-       eldoc-last-message
-       (if (and (not executing-kbd-macro)
-		(not (and (boundp 'edebug-active) edebug-active))
-		(not cursor-in-echo-area)
-		(not (eq (selected-window) (minibuffer-window))))
-           (eldoc-message eldoc-last-message)
-         (setq eldoc-last-message nil))))
+  (remove-hook 'eldoc-documentation-functions #'semantic--eldoc-info t)
+  (when semantic-idle-summary-mode
+    ;; Enable the mode
+    (unless (and (featurep 'semantic) (semantic-active-p))
+      ;; Disable minor mode if semantic stuff not available
+      (setq semantic-idle-summary-mode nil)
+      (error "Buffer %s was not set up for parsing"
+	     (buffer-name)))
+    (add-hook 'eldoc-documentation-functions #'semantic--eldoc-info nil t)
+    (eldoc-mode 1)))
 
 (semantic-add-minor-mode 'semantic-idle-summary-mode "")
 
@@ -823,6 +794,8 @@ turned on in every Semantic-supported buffer."
 (make-obsolete-variable 'semantic-idle-symbol-highlight-face
     "customize the face `semantic-idle-symbol-highlight' instead" "24.4" 'set)
 
+(defvar pulse-flag)
+
 (defun semantic-idle-symbol-maybe-highlight (tag)
   "Perhaps add highlighting to the symbol represented by TAG.
 TAG was found as the symbol under point.  If it happens to be
@@ -845,13 +818,13 @@ visible, then highlight it."
 	       (goto-char (overlay-start region))
 	       (when (pos-visible-in-window-p
 		      (point) (get-buffer-window (current-buffer) 'visible))
-		 (if (< (overlay-end region) (point-at-eol))
+                 (if (< (overlay-end region) (line-end-position))
 		     (pulse-momentary-highlight-overlay
 		      region semantic-idle-symbol-highlight-face)
 		   ;; Not the same
 		   (pulse-momentary-highlight-region
 		    (overlay-start region)
-		    (point-at-eol)
+                    (line-end-position)
 		    semantic-idle-symbol-highlight-face))))
 	     ))
 	  ((vectorp region)
@@ -870,8 +843,8 @@ visible, then highlight it."
 			end t)
 		   ;; This is likely it, give it a try.
 		   (pulse-momentary-highlight-region
-		    start (if (<= end (point-at-eol)) end
-			    (point-at-eol))
+                    start (if (<= end (line-end-position)) end
+                            (line-end-position))
 		    semantic-idle-symbol-highlight-face)))
 	       ))))
     nil))
@@ -900,7 +873,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	(when (semantic-tag-p target)
 	  (require 'semantic/symref/filter)
 	  (semantic-symref-hits-in-region
-	   target (lambda (start end prefix)
+           target (lambda (start end _prefix)
 		    (when (/= start (car Hbounds))
 		      (pulse-momentary-highlight-region
 		       start end semantic-idle-symbol-highlight-face))
@@ -1067,21 +1040,20 @@ be called."
     (popup-menu semantic-idle-breadcrumbs-popup-menu)
     (select-window old-window)))
 
-(defmacro semantic-idle-breadcrumbs--tag-function (function)
+(defun semantic-idle-breadcrumbs--tag-function (function)
   "Return lambda expression calling FUNCTION when called from a popup."
-  `(lambda (event)
-     (interactive "e")
-     (let* ((old-window (selected-window))
-	    (window     (semantic-event-window event))
-	    (column     (car (nth 6 (nth 1 event)))) ;; TODO semantic-event-column?
-	    (tag        (progn
-			  (select-window window t)
-			  (plist-get
-			   (text-properties-at column header-line-format)
-			   'tag))))
-       (,function tag)
-       (select-window old-window)))
-  )
+  (lambda (event)
+    (interactive "e")
+    (let* ((old-window (selected-window))
+	   (window     (semantic-event-window event))
+	   (column     (car (nth 6 (nth 1 event)))) ;; TODO semantic-event-column?
+	   (tag        (progn
+			 (select-window window t)
+			 (plist-get
+			  (text-properties-at column header-line-format)
+			  'tag))))
+      (funcall function tag)
+      (select-window old-window))))
 
 ;; TODO does this work for mode-line case?
 (defvar semantic-idle-breadcrumbs-popup-map
@@ -1089,25 +1061,23 @@ be called."
     ;; mouse-1 goes to clicked tag
     (define-key map
       [ header-line mouse-1 ]
-      (semantic-idle-breadcrumbs--tag-function
-       semantic-go-to-tag))
+      (semantic-idle-breadcrumbs--tag-function #'semantic-go-to-tag))
     ;; mouse-3 pops up a context menu
     (define-key map
       [ header-line mouse-3 ]
-      'semantic-idle-breadcrumbs--popup-menu)
+      #'semantic-idle-breadcrumbs--popup-menu)
     map)
   "Keymap for semantic idle breadcrumbs minor mode.")
 
 (easy-menu-define
   semantic-idle-breadcrumbs-popup-menu
   semantic-idle-breadcrumbs-popup-map
-  "Semantic Breadcrumbs Mode Menu"
+  "Semantic Breadcrumbs Mode Menu."
   (list
    "Breadcrumb Tag"
    (vector
     "Go to Tag"
-    (semantic-idle-breadcrumbs--tag-function
-     semantic-go-to-tag)
+    (semantic-idle-breadcrumbs--tag-function #'semantic-go-to-tag)
     :active t
     :help  "Jump to this tag")
    ;; TODO these entries need minor changes (optional tag argument) in
@@ -1115,37 +1085,32 @@ be called."
    ;;  (semantic-menu-item
    ;;   (vector
    ;;    "Copy Tag"
-   ;;    (semantic-idle-breadcrumbs--tag-function
-   ;;     senator-copy-tag)
+   ;;    (semantic-idle-breadcrumbs--tag-function #'senator-copy-tag)
    ;;    :active t
    ;;    :help   "Copy this tag"))
    ;;   (semantic-menu-item
    ;;    (vector
    ;;     "Kill Tag"
-   ;;     (semantic-idle-breadcrumbs--tag-function
-   ;;      senator-kill-tag)
+   ;;     (semantic-idle-breadcrumbs--tag-function #'senator-kill-tag)
    ;;     :active t
    ;;     :help   "Kill tag text to the kill ring, and copy the tag to
    ;; the tag ring"))
    ;;   (semantic-menu-item
    ;;    (vector
    ;;     "Copy Tag to Register"
-   ;;     (semantic-idle-breadcrumbs--tag-function
-   ;;      senator-copy-tag-to-register)
+   ;;     (semantic-idle-breadcrumbs--tag-function #'senator-copy-tag-to-register)
    ;;     :active t
    ;;     :help   "Copy this tag"))
    ;;   (semantic-menu-item
    ;;    (vector
    ;;     "Narrow to Tag"
-   ;;     (semantic-idle-breadcrumbs--tag-function
-   ;;      senator-narrow-to-defun)
+   ;;     (semantic-idle-breadcrumbs--tag-function #'senator-narrow-to-defun)
    ;;     :active t
    ;;     :help   "Narrow to the bounds of the current tag"))
    ;;   (semantic-menu-item
    ;;    (vector
    ;;     "Fold Tag"
-   ;;     (semantic-idle-breadcrumbs--tag-function
-   ;;      senator-fold-tag-toggle)
+   ;;     (semantic-idle-breadcrumbs--tag-function #'senator-fold-tag-toggle)
    ;;     :active   t
    ;;     :style    'toggle
    ;;     :selected '(let ((tag (semantic-current-tag)))
@@ -1233,7 +1198,7 @@ shortened at the beginning."
   )
 
 (defun semantic-idle-breadcrumbs--format-linear
-  (tag-list &optional max-length)
+  (tag-list &optional _max-length)
   "Format TAG-LIST as a linear list, starting with the outermost tag.
 MAX-LENGTH is not used."
   (require 'semantic/analyze/fcn)

@@ -10,7 +10,7 @@
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.
 
-Copyright @copyright{} 2001, 2003--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2003--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -27,7 +27,8 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* PGG: (pgg).                   Emacs interface to various PGP implementations.
+* PGG: (pgg).                   An obsolete Emacs interface to various
+                                  PGP implementations.
 @end direntry
 
 @titlepage
@@ -94,7 +95,7 @@ and that you are familiar with its basic functions.
 
 By default, PGG uses GnuPG@.  If you are new to such a system, I
 recommend that you should look over the GNU Privacy Handbook (GPH)
-which is available at @uref{http://www.gnupg.org/documentation/}.
+which is available at @uref{https://www.gnupg.org/documentation/}.
 
 When using GnuPG, we recommend the use of the @code{gpg-agent}
 program, which is distributed with versions 2.0 and later of GnuPG@.

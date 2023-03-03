@@ -1,6 +1,6 @@
-;;; cc-menus.el --- imenu support for CC Mode
+;;; cc-menus.el --- imenu support for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2023 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -172,7 +172,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
    "[ \t\n\r]*"))
 
 (defun cc-imenu-java-build-type-args-regex (depth)
-  "Builds regexp for type arguments list with DEPTH allowed
+  "Build regexp for type arguments list with DEPTH allowed
 nested angle brackets constructs."
   (if (> depth 0)
       (concat "<"

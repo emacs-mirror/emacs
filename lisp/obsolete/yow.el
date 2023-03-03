@@ -1,6 +1,6 @@
-;;; yow.el --- quote random zippyisms
+;;; yow.el --- quote random zippyisms  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; Maintainer: emacs-devel@gnu.org
@@ -39,8 +39,7 @@
 
 (defcustom yow-file (expand-file-name "yow.lines" data-directory)
    "File containing pertinent pinhead phrases."
-  :type 'file
-  :group 'yow)
+  :type 'file)
 
 (defconst yow-load-message "Am I CONSING yet?...")
 (defconst yow-after-load-message "I have SEEN the CONSING!!")

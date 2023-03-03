@@ -1,6 +1,6 @@
-;;; srecode/semantic.el --- Semantic specific extensions to SRecode.
+;;; srecode/semantic.el --- Semantic specific extensions to SRecode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -43,8 +43,8 @@
 
 ;;; The SEMANTIC TAG inserter
 ;;
-;; Put a tag into the dictionary that can be used w/ arbitrary
-;; lisp expressions.
+;; Put a tag into the dictionary that can be used with arbitrary
+;; Lisp expressions.
 
 (defclass srecode-semantic-tag (srecode-dictionary-compound-value)
   ((prime :initarg :prime
@@ -57,7 +57,7 @@ This class will be used to derive dictionary values.")
 
 (cl-defmethod srecode-compound-toString((cp srecode-semantic-tag)
 				     function
-				     dictionary)
+				     _dictionary)
   "Convert the compound dictionary value CP to a string.
 If FUNCTION is non-nil, then FUNCTION is somehow applied to an
 aspect of the compound value."
@@ -201,7 +201,7 @@ variable default values, and other things."
   (let ((tag (or srecode-semantic-selected-tag
 		 (srecode-semantic-tag-from-kill-ring))))
     (when (not tag)
-      (error "No tag for current template.  Use the semantic kill-ring."))
+      (error "No tag for current template.  Use the semantic kill-ring"))
     (srecode-semantic-apply-tag-to-dict
      (srecode-semantic-tag (semantic-tag-name tag)
 			   :prime tag)
@@ -410,7 +410,9 @@ as `function' will leave point where code might be inserted."
     ;; Insert the template.
     (let ((endpt (srecode-insert-fcn temp dict nil t)))
 
-      (run-hook-with-args 'point-insert-fcn tag)
+      (if (functionp point-insert-fcn)
+          (funcall point-insert-fcn tag)
+        (dolist (f point-insert-fcn) (funcall f tag)))
       ;;(sit-for 1)
 
       (cond

@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -54,21 +54,19 @@
 (define-obsolete-variable-alias 'vc-log-mode-map 'log-edit-mode-map "28.1")
 (define-obsolete-variable-alias 'vc-log-entry-mode 'log-edit-mode-map "28.1")
 
-(easy-mmode-defmap log-edit-mode-map
-  '(("\C-c\C-c" . log-edit-done)
-    ("\C-c\C-a" . log-edit-insert-changelog)
-    ("\C-c\C-w" . log-edit-generate-changelog-from-diff)
-    ("\C-c\C-d" . log-edit-show-diff)
-    ("\C-c\C-f" . log-edit-show-files)
-    ("\C-c\C-k" . log-edit-kill-buffer)
-    ("\C-a"     . log-edit-beginning-of-line)
-    ("\M-n"	. log-edit-next-comment)
-    ("\M-p"	. log-edit-previous-comment)
-    ("\M-r"	. log-edit-comment-search-backward)
-    ("\M-s"	. log-edit-comment-search-forward)
-    ("\C-c?"	. log-edit-mode-help))
-  "Keymap for the `log-edit-mode' (to edit version control log messages)."
-  :group 'log-edit)
+(defvar-keymap log-edit-mode-map
+  "C-c C-c" #'log-edit-done
+  "C-c C-a" #'log-edit-insert-changelog
+  "C-c C-w" #'log-edit-generate-changelog-from-diff
+  "C-c C-d" #'log-edit-show-diff
+  "C-c C-f" #'log-edit-show-files
+  "C-c C-k" #'log-edit-kill-buffer
+  "C-a"     #'log-edit-beginning-of-line
+  "M-n"     #'log-edit-next-comment
+  "M-p"     #'log-edit-previous-comment
+  "M-r"     #'log-edit-comment-search-backward
+  "M-s"     #'log-edit-comment-search-forward
+  "C-c ?"   #'log-edit-mode-help)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -98,7 +96,7 @@
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
 If `changed', only request confirmation if the list of files has
-  changed since the beginning of the log-edit session."
+  changed since the beginning of the `log-edit' session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
 
@@ -191,7 +189,8 @@ when this variable is set to nil.")
 (defconst log-edit-files-buf "*log-edit-files*")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
-(defvar log-edit-diff-function nil)
+(defvar log-edit-diff-function
+  (lambda () (error "Diff functionality has not been setup")))
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
@@ -202,13 +201,15 @@ when this variable is set to nil.")
 ;;; Originally taken from VC-Log mode
 
 (defconst log-edit-maximum-comment-ring-size 32
-  "Maximum number of saved comments in the comment ring.")
+  "Maximum number of saved commit comments in `log-edit-comment-ring'.")
 (defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
 (defvar log-edit-comment-ring-index nil)
 (defvar log-edit-last-comment-match "")
 
 (defun log-edit-new-comment-index (stride len)
-  "Return the comment index STRIDE elements from the current one.
+  "Return the comment whose index is STRIDE elements away from the current one.
+This accesses `log-edit-comment-ring', which stores commit log comments,
+i.e. descriptions of changes done by commits.
 LEN is the length of `log-edit-comment-ring'."
   (mod (cond
 	(log-edit-comment-ring-index (+ log-edit-comment-ring-index stride))
@@ -220,7 +221,7 @@ LEN is the length of `log-edit-comment-ring'."
        len))
 
 (defun log-edit-previous-comment (arg)
-  "Cycle backwards through comment history.
+  "Cycle backwards through VC commit comment history.
 With a numeric prefix ARG, go back ARG comments."
   (interactive "*p")
   (let ((len (ring-length log-edit-comment-ring)))
@@ -233,15 +234,15 @@ With a numeric prefix ARG, go back ARG comments."
       (insert (ring-ref log-edit-comment-ring log-edit-comment-ring-index)))))
 
 (defun log-edit-next-comment (arg)
-  "Cycle forwards through comment history.
+  "Cycle forwards through VC commit comment history.
 With a numeric prefix ARG, go forward ARG comments."
   (interactive "*p")
   (log-edit-previous-comment (- arg)))
 
 (defun log-edit-comment-search-backward (str &optional stride)
-  "Search backwards through comment history for substring match of STR.
+  "Search backwards through VC commit comment history for a match of STR.
 If the optional argument STRIDE is present, that is a step-width to use
-when going through the comment ring."
+when going through the comment ring, `log-edit-comment-ring'."
   ;; Why substring rather than regexp ?   -sm
   (interactive
    (list (read-string (format-prompt "Comment substring"
@@ -261,7 +262,7 @@ when going through the comment ring."
     (log-edit-previous-comment 0)))
 
 (defun log-edit-comment-search-forward (str)
-  "Search forwards through comment history for a substring match of STR."
+  "Search forwards through VC commit comment history for a match of STR."
   (interactive
    (list (read-string (format-prompt "Comment substring"
                                      log-edit-last-comment-match)
@@ -269,10 +270,15 @@ when going through the comment ring."
   (log-edit-comment-search-backward str -1))
 
 (defun log-edit-comment-to-change-log (&optional whoami file-name)
-  "Enter last VC comment into the change log for the current file.
-WHOAMI (interactive prefix) non-nil means prompt for user name
-and site.  FILE-NAME is the name of the change log; if nil, use
-`change-log-default-name'.
+  "Insert the last VC commit comment into the change log for the current file.
+This reuses the text of the last VC commit comment in `log-edit-comment-ring'
+for the change-log entry of the current file, which is handy when several
+related changes have the same commit comment.
+WHOAMI (interactively, prefix argument) non-nil means prompt for user name
+and email address of the person to whom to attribute the change.
+FILE-NAME is the name of the change log; if nil, use `change-log-default-name'
+Interactively, with prefix argument, prompt for both the name and address of
+the person who did the change and for FILE-NAME.
 
 This may be useful as a `vc-checkin-hook' to update change logs
 automatically."
@@ -319,6 +325,11 @@ automatically."
 (defface log-edit-summary '((t :inherit font-lock-function-name-face))
   "Face for the summary in `log-edit-mode' buffers.")
 
+(defface log-edit-headers-separator
+  '((t :height 0.1 :inverse-video t :extend t))
+  "Face for the separator line in `log-edit-mode' buffers."
+  :version "29.1")
+
 (defface log-edit-header '((t :inherit font-lock-keyword-face))
   "Face for the headers in `log-edit-mode' buffers.")
 
@@ -331,7 +342,7 @@ automatically."
 
 (defconst log-edit-header-contents-regexp
   "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?"
-  "Regular expression matching a header field.
+  "Regular expression matching the header field in `log-edit-mode'.
 The first subexpression is the actual text of the field.")
 
 (defun log-edit-match-to-eoh (_limit)
@@ -387,11 +398,14 @@ The first subexpression is the actual text of the field.")
          nil lax))
      ("^\n"
       (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(:height 0.1 :inverse-video t :extend t))))
+      (0 '(face log-edit-headers-separator
+           display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
-  "If non-nil, highlight common failures to follow the GNU coding standards.")
+  "If non-nil, highlight common failures to follow VC commit log conventions.
+The conventions checked are those described in the GNU coding standards
+document.")
 (put 'log-edit-font-lock-gnu-style 'safe-local-variable 'booleanp)
 
 (defconst log-edit-font-lock-gnu-keywords
@@ -434,28 +448,28 @@ The first subexpression is the actual text of the field.")
 
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest _ignore)
-  "Setup a buffer to enter a log message.
-The buffer is put in mode MODE or `log-edit-mode' if MODE is nil.
+  "Setup a buffer to enter a VC commit log message.
+The buffer is put in mode MODE, or `log-edit-mode' if MODE is nil.
 \\<log-edit-mode-map>
 If SETUP is non-nil, erase the buffer and run `log-edit-hook'.
 Set mark and point around the entire contents of the buffer, so
 that it is easy to kill the contents of the buffer with
-\\[kill-region].  Once the user is done editing the message,
-invoking the command \\[log-edit-done] (`log-edit-done') will
-call CALLBACK to do the actual commit.
+\\[kill-region].  Once the user is done editing the message, he
+or she is expected to invoke the command \\[log-edit-done] (`log-edit-done'),
+which will call CALLBACK, a function to do the actual commit.
 
-PARAMS if non-nil is an alist of variables and buffer-local
-values to give them in the Log Edit buffer.  Possible keys and
-associated values:
+PARAMS, if non-nil, is an alist of variables and buffer-local
+values to give to those variables in the Log Edit buffer.  Possible
+keys and associated values are:
  `log-edit-listfun' -- function taking no arguments that returns the list of
- files that are concerned by the current operation (using relative names);
+    files that are concerned by the current operation (using relative names);
  `log-edit-diff-function' -- function taking no arguments that
- displays a diff of the files concerned by the current operation.
+    displays a diff of the files concerned by the current operation.
  `vc-log-fileset' -- the VC fileset to be committed (if any).
 
-If BUFFER is non-nil `log-edit' will jump to that buffer, use it
+If BUFFER is non-nil, `log-edit' will switch to that buffer, use it
 to edit the log message and go back to the current buffer when
-done.  Otherwise, it uses the current buffer."
+done.  Otherwise, this function will use the current buffer."
   (let ((parent (current-buffer)))
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))
@@ -463,16 +477,16 @@ done.  Otherwise, it uses the current buffer."
     (if mode
 	(funcall mode)
       (log-edit-mode))
-    (set (make-local-variable 'log-edit-callback) callback)
+    (setq-local log-edit-callback callback)
     (if (listp params)
 	(dolist (crt params)
 	  (set (make-local-variable (car crt)) (cdr crt)))
       ;; For backward compatibility with log-edit up to version 22.2
       ;; accept non-list PARAMS to mean `log-edit-list'.
-      (set (make-local-variable 'log-edit-listfun) params))
+      (setq-local log-edit-listfun params))
 
-    (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
-    (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
+    (if buffer (setq-local log-edit-parent-buffer parent))
+    (setq-local log-edit-initial-files (log-edit-files))
     (when setup
       (erase-buffer)
       (run-hooks 'log-edit-hook))
@@ -481,16 +495,18 @@ done.  Otherwise, it uses the current buffer."
 	      "Press \\[log-edit-done] when you are done editing."))))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
-  "Major mode for editing version-control log messages.
-When done editing the log entry, just type \\[log-edit-done] which
-will trigger the actual commit of the file(s).
-Several other handy support commands are provided of course and
-the package from which this is used might also provide additional
-commands (under C-x v for VC, for example).
+  "Major mode for editing version-control (VC) commit log messages.
+When done editing the log entry, type \\[log-edit-done], which will
+trigger the actual commit of the file(s).
+Several other handy support commands are provided, and the package
+from which this is used might also provide additional commands (under
+the \\[vc-prefix-map] prefix for VC commands, for example).
 
 \\{log-edit-mode-map}"
-  (set (make-local-variable 'font-lock-defaults)
-       '(log-edit-font-lock-keywords t))
+  (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
+  (make-local-variable 'font-lock-extra-managed-props)
+  (cl-pushnew 'rear-nonsticky font-lock-extra-managed-props)
+  (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)
@@ -516,7 +532,7 @@ commands (under C-x v for VC, for example).
     (insert "):")))
 
 (defun log-edit-fill-entry (&optional justify)
-  "Like \\[fill-paragraph], but handle ChangeLog entries.
+  "Like \\[fill-paragraph], but for filling ChangeLog-formatted entries.
 Consecutive function entries without prose (i.e., lines of the
 form \"(FUNCTION):\") will be combined into \"(FUNC1, FUNC2):\"
 according to `fill-column'."
@@ -566,7 +582,7 @@ according to `fill-column'."
     (ring-insert log-edit-comment-ring comment)))
 
 (defun log-edit-done ()
-  "Finish editing the log message and commit the files.
+  "Finish editing the VC commit log message, and commit the files.
 If you want to abort the commit, simply delete the buffer."
   (interactive)
   ;; Clean up empty headers.
@@ -613,9 +629,9 @@ If you want to abort the commit, simply delete the buffer."
       (call-interactively log-edit-callback))))
 
 (defun log-edit-kill-buffer ()
-  "Kill the current buffer.
-Also saves its contents in the comment history and hides
-`log-edit-files-buf'."
+  "Kill the current VC commit log buffer.
+This command saves the contents of the log buffer in the VC commit
+comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
   (interactive)
   (log-edit-hide-buf)
   (let ((buf (current-buffer)))
@@ -653,12 +669,23 @@ Also saves its contents in the comment history and hides
       (indent-rigidly (point) (point-max)
 		      (- log-edit-common-indent common)))))
 
+(defvar vc-patch-string)
+
+(autoload 'vc-diff-patch-string "vc")
+(defun log-edit-diff-patch ()
+  (vc-diff-patch-string vc-patch-string))
+
+(defvar vc-log-fileset)
+
+(defun log-edit-diff-fileset ()
+  "Display diffs for the files to be committed."
+  (interactive)
+  (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset)))
+
 (defun log-edit-show-diff ()
   "Show the diff for the files to be committed."
   (interactive)
-  (if (functionp log-edit-diff-function)
-      (funcall log-edit-diff-function)
-    (error "Diff functionality has not been setup")))
+  (funcall log-edit-diff-function))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
@@ -697,18 +724,22 @@ different header separator appropriate for `log-edit-mode'."
         (eobp))))
 
 (defun log-edit-insert-message-template ()
-  "Insert the default template with Summary and Author."
+  "Insert the default VC commit log template with Summary and Author."
   (interactive)
   (when (or (called-interactively-p 'interactive)
             (log-edit-empty-buffer-p))
-    (insert "Summary: ")
-    (when log-edit-setup-add-author
-      (insert "\nAuthor: "))
-    (insert "\n\n")
+    (dolist (header (append '("Summary") (and log-edit-setup-add-author
+                                              '("Author"))))
+      ;; Make `C-a' work like in other buffers with header names.
+      (insert (propertize (concat header ": ")
+                          'field 'header
+                          'rear-nonsticky t)
+              "\n"))
+    (insert "\n")
     (message-position-point)))
 
 (defun log-edit-insert-cvs-template ()
-  "Insert the template specified by the CVS administrator, if any.
+  "Insert the commit log template specified by the CVS administrator, if any.
 This simply uses the local CVS/Template file."
   (interactive)
   (when (or (called-interactively-p 'interactive)
@@ -720,7 +751,7 @@ This simply uses the local CVS/Template file."
       (insert-file-contents "CVS/Template"))))
 
 (defun log-edit-insert-cvs-rcstemplate ()
-  "Insert the rcstemplate from the CVS repository.
+  "Insert the RCS commit log template from the CVS repository.
 This contacts the repository to get the rcstemplate file and
 can thus take some time."
   (interactive)
@@ -754,7 +785,7 @@ can thus take some time."
       (insert (mapconcat 'identity files ", ") ": "))))
 
 (defun log-edit-add-to-changelog ()
-  "Insert this log message into the appropriate ChangeLog file."
+  "Insert this VC commit log message into the appropriate ChangeLog file."
   (interactive)
   (log-edit-remember-comment)
   (dolist (f (log-edit-files))
@@ -768,7 +799,7 @@ can thus take some time."
   "Non-nil means rewrite (tiny change).")
 
 (defvar log-edit-rewrite-fixes nil
-  "Rule to rewrite bug numbers into Fixes: headers.
+  "Rule to rewrite bug numbers into Fixes: headers in commit log messages.
 The value should be of the form (REGEXP . REPLACEMENT)
 where REGEXP should match the expression referring to a bug number
 in the text, and REPLACEMENT is an expression to pass to `replace-match'
@@ -786,10 +817,15 @@ to build the Fixes: header.")
 (declare-function diff-add-log-current-defuns "diff-mode" ())
 
 (defun log-edit-generate-changelog-from-diff ()
-  "Insert a log message by looking at the current diff.
-This command will generate a ChangeLog entries listing the
-functions.  You can then add a description where needed, and use
-\\[fill-paragraph] to join consecutive function names."
+  "Insert a VC commit log message by looking at the current diffs.
+This command is intended to be used in the \"*vc-log*\" buffer.
+This command will generate ChangeLog entries listing the modified
+files and functions changed in those files, based on the diffs
+you are about to commit.  You can then add a description for each
+change where needed, and use \\[fill-paragraph] to join consecutive function
+names into a single entry where they all share the same description.
+Should you need to look at the diffs themselves, they can be found
+in the \"*vc-diff*\" buffer produced by this command."
   (interactive)
   (change-log-insert-entries
    (with-current-buffer
@@ -807,21 +843,21 @@ functions.  You can then add a description where needed, and use
      (diff-add-log-current-defuns))))
 
 (defun log-edit-insert-changelog (&optional use-first)
-  "Insert a log message by looking at the ChangeLog.
+  "Insert a VC commit log message by looking at the ChangeLog.
 The idea is to write your ChangeLog entries first, and then use this
-command to commit your changes.
+command to commit your changes with that log.
 
-To select default log text, we:
-- find the ChangeLog entries for the files to be checked in,
-- verify that the top entry in the ChangeLog is on the current date
-  and by the current user; if not, we don't provide any default text,
-- search the ChangeLog entry for paragraphs containing the names of
-  the files we're checking in, and finally
-- use those paragraphs as the log text.
+To select default log text, this command:
+- finds the ChangeLog entries for the files to be checked in;
+- verifies that the top entry in the ChangeLog is on the current date
+    and by the current user; if not, it doesn't provide any default text;
+- searches the ChangeLog entry for paragraphs containing the names of
+    the files to be checked in; and finally
+- uses those paragraphs as the log text.
 
 If the optional prefix arg USE-FIRST is given (via \\[universal-argument]),
-or if the command is repeated a second time in a row, use the first log entry
-regardless of user name or time."
+or if the command is repeated, use the first log entry regardless of user
+name or time."
   (interactive "P")
   (save-excursion
     (let ((eoh (save-excursion (rfc822-goto-eoh) (point))))
@@ -871,11 +907,11 @@ regardless of user name or time."
 ;;;;
 
 (defun log-edit-narrow-changelog ()
-  "Narrow to the top page of the current buffer, a ChangeLog file.
+  "Narrow to the top page of the current buffer, which visits a ChangeLog file.
 Actually, the narrowed region doesn't include the date line.
 A \"page\" in a ChangeLog file is the area between two dates."
   (or (eq major-mode 'change-log-mode)
-      (error "log-edit-narrow-changelog: current buffer isn't a ChangeLog"))
+      (error "log-edit-narrow-changelog: Current buffer isn't a ChangeLog"))
 
   (goto-char (point-min))
 
@@ -919,7 +955,7 @@ If we are between sub-paragraphs, return the previous subparagraph."
 
 (defun log-edit-changelog-entry ()
   "Return the bounds of the ChangeLog entry containing point.
-The variable `log-edit-changelog-full-paragraphs' decides whether an
+The variable `log-edit-changelog-full-paragraphs' determines whether an
 \"entry\" is a paragraph or a subparagraph; see its documentation string
 for more details."
   (save-excursion
@@ -958,8 +994,8 @@ Return non-nil if it is."
                    (not (looking-at (format ".+  .+  <%s>"
                                             (regexp-quote mail))))
                    (looking-at ".+  \\(.+  <.+>\\) *\\((tiny change)\\)?"))
-          (let ((author (replace-regexp-in-string "  " " "
-                                                  (match-string 1))))
+          (let ((author (string-replace "  " " "
+                                        (match-string 1))))
             (unless (and log-edit-author
                          (string-match (regexp-quote author)
                                        (car log-edit-author)))
@@ -984,16 +1020,17 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                (visiting-buffer (find-buffer-visiting file)))
            ;; If there is a buffer visiting FILE, and it has a local
            ;; value for `change-log-default-name', use that.
-           (if (and visiting-buffer
+           (or (and visiting-buffer
                     (local-variable-p 'change-log-default-name
-                                      visiting-buffer))
-               (with-current-buffer visiting-buffer
-                 change-log-default-name)
-             ;; `find-change-log' uses `change-log-default-name' if set
-             ;; and sets it before exiting, so we need to work around
-             ;; that memoizing which is undesired here.
-             (setq change-log-default-name nil)
-             (find-change-log)))))
+                                      visiting-buffer)
+                    (with-current-buffer visiting-buffer
+                      change-log-default-name))
+               ;; `find-change-log' uses `change-log-default-name' if set
+               ;; and sets it before exiting, so we need to work around
+               ;; that memoizing which is undesired here.
+               (progn
+                 (setq change-log-default-name nil)
+                 (find-change-log))))))
     (when (or (find-buffer-visiting changelog-file-name)
               (file-exists-p changelog-file-name)
               add-log-dont-create-changelog-file)
@@ -1044,8 +1081,12 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                             "\\($\\|[^[:alnum:]]\\)")))))
 
 (defun log-edit-changelog-insert-entries (buffer beg end &rest files)
-  "Insert the text from BUFFER between BEG and END.
-Rename relative filenames in the ChangeLog entry as FILES."
+  "Insert the text from ChangeLog BUFFER between BEG and END.
+Rename relative filenames in the ChangeLog entry with FILES.
+FILES are supposed to name the same files whose relative filenames
+are to be replaced, and their names relative to the directory of
+BUFFER are expected to match the relative file names in the ChangeLog
+entry."
   (let ((opoint (point))
 	(log-name (buffer-file-name buffer))
 	(case-fold-search nil)
@@ -1127,7 +1168,7 @@ Return t if toggled on (or TOGGLE is nil), otherwise nil."
     val))
 
 (defun log-edit-extract-headers (headers comment)
-  "Extract headers from COMMENT to form command line arguments.
+  "Extract headers from VC commit COMMENT to form command line arguments.
 HEADERS should be an alist with elements (HEADER . CMDARG)
 or (HEADER . FUNCTION) associating headers to command line
 options and the result is then a list of the form (MSG ARGUMENTS...)

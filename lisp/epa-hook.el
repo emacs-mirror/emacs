@@ -1,6 +1,6 @@
 ;;; epa-hook.el --- preloaded code to enable epa-file.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -21,10 +21,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (defgroup epa-file nil
-  "The EasyPG Assistant hooks for transparent file encryption"
+  "The EasyPG Assistant hooks for transparent file encryption."
   :version "23.1"
   :group 'epa)
 
@@ -54,15 +56,15 @@ through Custom does that automatically."
 May either be a string or a list of strings.")
 
 (put 'epa-file-encrypt-to 'safe-local-variable
-     #'(lambda (val)
-	 (or (stringp val)
-	     (and (listp val)
-		  (catch 'safe
-		    (mapc (lambda (elt)
-			    (unless (stringp elt)
-			      (throw 'safe nil)))
-			  val)
-		    t)))))
+     (lambda (val)
+       (or (stringp val)
+           (and (listp val)
+                (catch 'safe
+                  (mapc (lambda (elt)
+                          (unless (stringp elt)
+                            (throw 'safe nil)))
+                        val)
+                  t)))))
 
 (put 'epa-file-encrypt-to 'permanent-local t)
 
@@ -85,6 +87,14 @@ interface, update `file-name-handler-alist'."
 	   (string-match epa-file-name-regexp buffer-file-name)
 	   epa-file-inhibit-auto-save)
       (auto-save-mode 0)))
+
+(defun epa-file-name-p (file)
+  "Say whether FILE is handled by `epa-file'."
+  (and auto-encryption-mode (string-match-p epa-file-name-regexp file)))
+
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'epa-file-name-p))
 
 (define-minor-mode auto-encryption-mode
   "Toggle automatic file encryption/decryption (Auto Encryption mode)."

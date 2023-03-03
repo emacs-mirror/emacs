@@ -1,11 +1,11 @@
 ;;; delim-col.el --- prettify all columns in a region or rectangle  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Old-Version: 2.1
 ;; Keywords: convenience text
-;; X-URL: https://www.emacswiki.org/emacs/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/emacs/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 
@@ -276,7 +276,7 @@ See the `delimit-columns-str-before',
 `delimit-columns-before', `delimit-columns-after',
 `delimit-columns-separator', `delimit-columns-format' and
 `delimit-columns-extra' variables for customization of the
-look. "
+look."
   (interactive "*r")
   (if rectangle-mark-mode
       ;; Delegate to delimit-columns-rectangle when called with a

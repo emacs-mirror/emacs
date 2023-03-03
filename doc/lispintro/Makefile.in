@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994-1999, 2001-2020 Free Software Foundation, Inc.
+# Copyright (C) 1994-1999, 2001-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -20,6 +20,7 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
+top_builddir = @top_builddir@
 
 buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
@@ -55,20 +56,14 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
 ENVADD = \
   $(AM_V_GEN)TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \
   MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 DVI_TARGETS = emacs-lisp-intro.dvi
-HTML_TARGETS = emacs-lisp-intro.html
+HTML_TARGETS = eintr.html
 PDF_TARGETS = emacs-lisp-intro.pdf
 PS_TARGETS = emacs-lisp-intro.ps
 
@@ -100,7 +95,7 @@ emacs-lisp-intro.dvi: ${srcs}
 emacs-lisp-intro.pdf: ${srcs}
 	$(ENVADD) $(TEXI2PDF) $<
 
-emacs-lisp-intro.html: ${srcs}
+eintr.html: ${srcs}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
 
 emacs-lisp-intro.ps: emacs-lisp-intro.dvi
@@ -124,6 +119,7 @@ infoclean:
 	  $(buildinfodir)/eintr.info-[1-9]
 
 bootstrap-clean maintainer-clean: distclean infoclean
+	rm -f TAGS
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
@@ -171,5 +167,20 @@ uninstall-pdf:
 
 uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
 
+ETAGS = ../../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+texifiles = $(wildcard ${srcdir}/*.texi)
+
+TAGS: ${ETAGS} $(texifiles)
+	$(AM_V_GEN)${ETAGS} $(texifiles)
+
+tags: TAGS
+.PHONY: tags
+
+FORCE:
+.PHONY: FORCE
 
 ### Makefile ends here

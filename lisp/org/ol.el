@@ -1,8 +1,8 @@
 ;;; ol.el --- Org links library                      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -27,8 +27,12 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org-compat)
 (require 'org-macs)
+(require 'org-fold)
 
 (defvar clean-buffer-list-kill-buffer-names)
 (defvar org-agenda-buffer-name)
@@ -38,15 +42,15 @@
 (defvar org-inhibit-startup)
 (defvar org-outline-regexp-bol)
 (defvar org-src-source-file-name)
-(defvar org-time-stamp-formats)
 (defvar org-ts-regexp)
 
 (declare-function calendar-cursor-to-date "calendar" (&optional error event))
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 (declare-function org-at-heading-p "org" (&optional _))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
+(declare-function org-before-first-heading-p "org" ())
 (declare-function org-do-occur "org" (regexp &optional cleanup))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-cache-refresh "org-element" (pos))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-lineage "org-element" (datum &optional types with-self))
@@ -57,17 +61,18 @@
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-find-property "org" (property &optional value))
 (declare-function org-get-heading "org" (&optional no-tags no-todo no-priority no-comment))
-(declare-function org-heading-components "org" ())
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-id-store-link "org-id" ())
 (declare-function org-insert-heading "org" (&optional arg invisible-ok top))
 (declare-function org-load-modules-maybe "org" (&optional force))
 (declare-function org-mark-ring-push "org" (&optional pos buffer))
+(declare-function org-mode "org" ())
 (declare-function org-occur "org" (regexp &optional keep-previous callback))
 (declare-function org-open-file "org" (path &optional in-emacs line search))
-(declare-function org-overview "org" ())
+(declare-function org-cycle-overview "org-cycle" ())
 (declare-function org-restart-font-lock "org" ())
-(declare-function org-show-context "org" (&optional key))
+(declare-function org-run-like-in-org-mode "org" (cmd))
+(declare-function org-fold-show-context "org-fold" (&optional key))
 (declare-function org-src-coderef-format "org-src" (&optional element))
 (declare-function org-src-coderef-regexp "org-src" (fmt &optional label))
 (declare-function org-src-edit-buffer-p "org-src" (&optional buffer))
@@ -85,52 +90,116 @@
   :group 'org)
 
 (defcustom org-link-parameters nil
-  "An alist of properties that defines all the links in Org mode.
+  "Alist of properties that defines all the links in Org mode.
+
 The key in each association is a string of the link type.
-Subsequent optional elements make up a plist of link properties.
+Subsequent optional elements make up a property list for that
+type.
 
-:follow - A function that takes the link path as an argument.
+All properties are optional.  However, the most important ones
+are, in this order, `:follow', `:export', and `:store', described
+below.
 
-:export - A function that takes the link path, description and
-export-backend as arguments.
+`:follow'
 
-:store - A function responsible for storing the link.  See the
-function `org-store-link-functions'.
+  Function used to follow the link, when the `org-open-at-point'
+  command runs on it.  It is called with two arguments: the path,
+  as a string, and a universal prefix argument.
 
-:complete - A function that inserts a link with completion.  The
-function takes one optional prefix argument.
+  Here, you may use `org-link-open-as-file' helper function for
+  types similar to \"file\".
 
-:face - A face for the link, or a function that returns a face.
-The function takes one argument which is the link path.  The
-default face is `org-link'.
+`:export'
 
-:mouse-face - The mouse-face. The default is `highlight'.
+  Function that accepts four arguments:
+  - the path, as a string,
+  - the description as a string, or nil,
+  - the export back-end,
+  - the export communication channel, as a plist.
 
-:display - `full' will not fold the link in descriptive
-display.  Default is `org-link'.
+  When nil, export for that type of link is delegated to the
+  back-end.
 
-:help-echo - A string or function that takes (window object position)
-as arguments and returns a string.
+`:store'
 
-:keymap - A keymap that is active on the link.  The default is
-`org-mouse-map'.
+  Function responsible for storing the link.  See the function
+  `org-store-link-functions' for a description of the expected
+  arguments.
 
-:htmlize-link - A function for the htmlize-link.  Defaults
-to (list :uri \"type:path\")
+Additional properties provide more specific control over the
+link.
 
-:activate-func - A function to run at the end of font-lock
-activation.  The function must accept (link-start link-end path bracketp)
-as arguments."
+`:activate-func'
+
+  Function to run at the end of Font Lock activation.  It must
+  accept four arguments:
+  - the buffer position at the start of the link,
+  - the buffer position at its end,
+  - the path, as a string,
+  - a boolean, non-nil when the link has brackets.
+
+`:complete'
+
+  Function that inserts a link with completion.  The function
+  takes one optional prefix argument.
+
+`:insert-description'
+
+  String or function used as a default when prompting users for a
+  link's description.  A string is used as-is, a function is
+  called with two arguments: the link location (a string such as
+  \"~/foobar\", \"id:some-org-id\" or \"https://www.foo.com\")
+  and the description generated by `org-insert-link'.  It should
+  return the description to use (this reflects the behavior of
+  `org-link-make-description-function').  If it returns nil, no
+  default description is used, but no error is thrown (from the
+  user's perspective, this is equivalent to a default description
+  of \"\").
+
+`:display'
+
+  Value for `invisible' text property on the hidden parts of the
+  link.  The most useful value is `full', which will not fold the
+  link in descriptive display.  Default is `org-link'.
+
+`:face'
+
+  Face for the link, or a function returning a face.  The
+  function takes one argument, which is the path.
+
+  The default face is `org-link'.
+
+`:help-echo'
+
+  String or function used as a value for the `help-echo' text
+  property.  The function is called with one argument, the help
+  string to display, and should return a string.
+
+`:htmlize-link'
+
+  Function or plist for the `htmlize-link' text property.  The
+  function takes no argument.
+
+  Default is (:uri \"type:path\")
+
+`:keymap'
+
+  Active keymap when point is on the link.  Default is
+  `org-mouse-map'.
+
+`:mouse-face'
+
+  Face used when hovering over the link.  Default is
+  `highlight'."
   :group 'org-link
   :package-version '(Org . "9.1")
   :type '(alist :tag "Link display parameters"
-		:value-type plist)
-  :safe nil)
+		:value-type plist))
 
 (defcustom org-link-descriptive t
   "Non-nil means Org displays descriptive links.
 
-E.g. [[https://orgmode.org][Org website]] is be displayed as
+E.g. [[https://orgmode.org][Org website]] is displayed as
 \"Org Website\", hiding the link itself and just displaying its
 description.  When set to nil, Org displays the full links
 literally.
@@ -146,7 +215,9 @@ You can interactively set the value of this variable by calling
 This function must take two parameters: the first one is the
 link, the second one is the description generated by
 `org-insert-link'.  The function should return the description to
-use."
+use.  If it returns nil, no default description is used, but no
+error is thrown (from the user’s perspective, this is equivalent
+to a default description of \"\")."
   :group 'org-link
   :type '(choice (const nil) (function))
   :safe #'null)
@@ -160,13 +231,18 @@ relative  Relative to the current directory, i.e. the directory of the file
 absolute  Absolute path, if possible with ~ for home directory.
 noabbrev  Absolute path, no abbreviation of home directory.
 adaptive  Use relative path for files in the current directory and sub-
-          directories of it.  For other files, use an absolute path."
+          directories of it.  For other files, use an absolute path.
+
+Alternatively, users may supply a custom function that takes the
+full filename as an argument and returns the path."
   :group 'org-link
   :type '(choice
 	  (const relative)
 	  (const absolute)
 	  (const noabbrev)
-	  (const adaptive))
+	  (const adaptive)
+	  (function))
+  :package-version '(Org . "9.5")
   :safe #'symbolp)
 
 (defcustom org-link-abbrev-alist nil
@@ -223,13 +299,6 @@ links created by planner."
   :type '(choice (const nil) (function))
   :safe #'null)
 
-(defcustom org-link-doi-server-url "https://doi.org/"
-  "The URL of the DOI server."
-  :group 'org-link-follow
-  :version "24.3"
-  :type 'string
-  :safe #'stringp)
-
 (defcustom org-link-frame-setup
   '((vm . vm-visit-folder-other-frame)
     (vm-imap . vm-visit-imap-folder-other-frame)
@@ -283,13 +352,12 @@ another window."
 	  (cons (const wl)
 		(choice
 		 (const wl)
-		 (const wl-other-frame))))
-  :safe nil)
+		 (const wl-other-frame)))))
 
 (defcustom org-link-search-must-match-exact-headline 'query-to-create
   "Non-nil means internal fuzzy links can only match headlines.
 
-When nil, the a fuzzy link may point to a target or a named
+When nil, the fuzzy link may point to a target or a named
 construct in the document.  When set to the special value
 `query-to-create', offer to create a new headline when none
 matched.
@@ -322,9 +390,9 @@ changes to the current buffer."
 
 Shell links can be dangerous: just think about a link
 
-     [[shell:rm -rf ~/*][Google Search]]
+     [[shell:rm -rf ~/*][Web Search]]
 
-This link would show up in your Org document as \"Google Search\",
+This link would show up in your Org document as \"Web Search\",
 but really it would remove your entire home directory.
 Therefore we advise against setting this variable to nil.
 Just change it to `y-or-n-p' if you want to confirm with a
@@ -333,23 +401,21 @@ single keystroke rather than having to type \"yes\"."
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
 	  (const :tag "with y-or-n (faster)" y-or-n-p)
-	  (const :tag "no confirmation (dangerous)" nil))
-  :safe nil)
+	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defcustom org-link-shell-skip-confirm-regexp ""
   "Regexp to skip confirmation for shell links."
   :group 'org-link-follow
   :version "24.1"
-  :type 'regexp
-  :safe nil)
+  :type 'regexp)
 
 (defcustom org-link-elisp-confirm-function 'yes-or-no-p
   "Non-nil means ask for confirmation before executing Emacs Lisp links.
 Elisp links can be dangerous: just think about a link
 
-     [[elisp:(shell-command \"rm -rf ~/*\")][Google Search]]
+     [[elisp:(shell-command \"rm -rf ~/*\")][Web Search]]
 
-This link would show up in your Org document as \"Google Search\",
+This link would show up in your Org document as \"Web Search\",
 but really it would remove your entire home directory.
 Therefore we advise against setting this variable to nil.
 Just change it to `y-or-n-p' if you want to confirm with a
@@ -358,15 +424,13 @@ single keystroke rather than having to type \"yes\"."
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
 	  (const :tag "with y-or-n (faster)" y-or-n-p)
-	  (const :tag "no confirmation (dangerous)" nil))
-  :safe nil)
+	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defcustom org-link-elisp-skip-confirm-regexp ""
   "A regexp to skip confirmation for Elisp links."
   :group 'org-link-follow
   :version "24.1"
-  :type 'regexp
-  :safe nil)
+  :type 'regexp)
 
 (defgroup org-link-store nil
   "Options concerning storing links in Org mode."
@@ -390,7 +454,7 @@ negates this setting for the duration of the command."
   :safe (lambda (val) (or (booleanp val) (integerp val))))
 
 (defcustom org-link-email-description-format "Email %c: %s"
-  "Format of the description part of a link to an email or usenet message.
+  "Format of the description part of a link to an email or Usenet message.
 The following %-escapes will be replaced by corresponding information:
 
 %F   full \"From\" field
@@ -408,7 +472,7 @@ This is for example useful to limit the length of the subject.
 
 Examples: \"%f on: %.30s\", \"Email from %f\", \"Email %c\""
   :group 'org-link-store
-  :package-version '(Org . 9.3)
+  :package-version '(Org . "9.3")
   :type 'string
   :safe #'stringp)
 
@@ -454,13 +518,16 @@ links more efficient."
   "Regular expression matching radio targets in plain text.")
 
 (defvar org-link-types-re nil
-  "Matches a link that has a url-like prefix like \"http:\"")
+  "Matches a link that has a url-like prefix like \"http:\".")
 
 (defvar org-link-angle-re nil
   "Matches link with angular brackets, spaces are allowed.")
 
 (defvar org-link-plain-re nil
-  "Matches plain link, without spaces.")
+  "Matches plain link, without spaces.
+Group 1 must contain the link type (i.e. https).
+Group 2 must contain the link path (i.e. //example.com).
+Used by `org-element-link-parser'.")
 
 (defvar org-link-bracket-re nil
   "Matches a link in double brackets.")
@@ -537,7 +604,7 @@ handle this as a special case.
 
 When the function does handle the link, it must return a non-nil value.
 If it decides that it is not responsible for this link, it must return
-nil to indicate that that Org can continue with other options like
+nil to indicate that Org can continue with other options like
 exact and fuzzy text search.")
 
 
@@ -554,6 +621,22 @@ exact and fuzzy text search.")
 
 (defvar org-link--search-failed nil
   "Non-nil when last link search failed.")
+
+
+(defvar-local org-link--link-folding-spec '(org-link
+                                            (:global t)
+                                            (:ellipsis . nil)
+                                            (:isearch-open . t)
+                                            (:fragile . org-link--reveal-maybe))
+  "Folding spec used to hide invisible parts of links.")
+
+(defvar-local org-link--description-folding-spec '(org-link-description
+                                                   (:global t)
+                                                   (:ellipsis . nil)
+                                                   (:visible . t)
+                                                   (:isearch-open . nil)
+                                                   (:fragile . org-link--reveal-maybe))
+  "Folding spec used to reveal link description.")
 
 
 ;;; Internal Functions
@@ -597,7 +680,7 @@ followed by another \"%[A-F0-9]{2}\" group."
 		  (cons 6 128))))
 	  (when (>= val 192) (setq eat (car shift-xor)))
 	  (setq val (logxor val (cdr shift-xor)))
-	  (setq sum (+ (lsh sum (car shift-xor)) val))
+	  (setq sum (+ (ash sum (car shift-xor)) val))
 	  (when (> eat 0) (setq eat (- eat 1)))
 	  (cond
 	   ((= 0 eat)			;multi byte
@@ -651,7 +734,7 @@ followed by another \"%[A-F0-9]{2}\" group."
 		(make-indirect-buffer (current-buffer)
 				      indirect-buffer-name
 				      'clone))))
-      (with-current-buffer indirect-buffer (org-overview))
+      (with-current-buffer indirect-buffer (org-cycle-overview))
       indirect-buffer))))
 
 (defun org-link--search-radio-target (target)
@@ -669,10 +752,55 @@ White spaces are not significant."
 	(let ((object (org-element-context)))
 	  (when (eq (org-element-type object) 'radio-target)
 	    (goto-char (org-element-property :begin object))
-	    (org-show-context 'link-search)
+	    (org-fold-show-context 'link-search)
 	    (throw :radio-match nil))))
       (goto-char origin)
       (user-error "No match for radio target: %s" target))))
+
+(defun org-link--context-from-region ()
+  "Return context string from active region, or nil."
+  (when (org-region-active-p)
+    (let ((context (buffer-substring (region-beginning) (region-end))))
+      (when (and (wholenump org-link-context-for-files)
+		 (> org-link-context-for-files 0))
+	(let ((lines (org-split-string context "\n")))
+	  (setq context
+		(mapconcat #'identity
+			   (cl-subseq lines 0 org-link-context-for-files)
+			   "\n"))))
+      context)))
+
+(defun org-link--normalize-string (string &optional context)
+  "Remove ignored contents from STRING string and return it.
+This function removes contiguous white spaces and statistics
+cookies.  When optional argument CONTEXT is non-nil, it assumes
+STRING is a context string, and also removes special search
+syntax around the string."
+  (let ((string
+	 (org-trim
+	  (replace-regexp-in-string
+	   (rx (one-or-more (any " \t")))
+	   " "
+	   (replace-regexp-in-string
+	    ;; Statistics cookie regexp.
+	    (rx (seq "[" (0+ digit) (or "%" (seq "/" (0+ digit))) "]"))
+	    " "
+	    string)))))
+    (when context
+      (while (cond ((and (string-prefix-p "(" string)
+			 (string-suffix-p ")" string))
+		    (setq string (org-trim (substring string 1 -1))))
+		   ((string-match "\\`[#*]+[ \t]*" string)
+		    (setq string (substring string (match-end 0))))
+		   (t nil))))
+    string))
+
+(defun org-link--reveal-maybe (region _)
+  "Reveal folded link in REGION when needed.
+This function is intended to be used as :fragile property of a folding
+spec."
+  (org-with-point-at (car region)
+    (not (org-in-regexp org-link-any-re))))
 
 
 ;;; Public API
@@ -692,6 +820,8 @@ TYPE is a string and KEY is a plist keyword.  See
   "Set link TYPE properties to PARAMETERS.
 PARAMETERS should be keyword value pairs.  See
 `org-link-parameters' for supported keys."
+  (when (member type '("coderef" "custom-id" "fuzzy" "radio"))
+    (error "Cannot override reserved link type: %S" type))
   (let ((data (assoc type org-link-parameters)))
     (if data (setcdr data (org-combine-plists (cdr data) parameters))
       (push (cons type parameters) org-link-parameters)
@@ -708,20 +838,36 @@ This should be called after the variable `org-link-parameters' has changed."
 	  (format "<%s:\\([^>\n]*\\(?:\n[ \t]*[^> \t\n][^>\n]*\\)*\\)>"
 		  types-re)
 	  org-link-plain-re
-	  (concat
-	   "\\<" types-re ":"
-	   "\\([^][ \t\n()<>]+\\(?:([[:word:]0-9_]+)\\|\\([^[:punct:] \t\n]\\|/\\)\\)\\)")
-	  ;;	 "\\([^]\t\n\r<>() ]+[^]\t\n\r<>,.;() ]\\)")
-	  org-link-bracket-re
-	  (rx (seq "[["
-		   ;; URI part: match group 1.
-		   (group
-		    ;; Allow an even number of backslashes right
-		    ;; before the closing bracket.
-		    (or (one-or-more "\\\\")
-			(and (*? anything)
-			     (not (any "\\"))
-			     (zero-or-more "\\\\"))))
+          (let* ((non-space-bracket "[^][ \t\n()<>]")
+	         (parenthesis
+		  `(seq "("
+		        (0+ (or (regex ,non-space-bracket)
+			        (seq "("
+				     (0+ (regex ,non-space-bracket))
+				     ")")))
+		        ")")))
+	    ;; Heuristics for an URL link inspired by
+	    ;; https://daringfireball.net/2010/07/improved_regex_for_matching_urls
+	    (rx-to-string
+	     `(seq word-start
+                   ;; Link type: match group 1.
+		   (regexp ,types-re)
+		   ":"
+                   ;; Link path: match group 2.
+                   (group
+		    (1+ (or (regex ,non-space-bracket)
+			    ,parenthesis))
+		    (or (regexp "[^[:punct:] \t\n]")
+		        ?/
+		        ,parenthesis)))))
+          org-link-bracket-re
+          (rx (seq "[["
+	           ;; URI part: match group 1.
+	           (group
+	            (one-or-more
+                     (or (not (any "[]\\"))
+			 (and "\\" (zero-or-more "\\\\") (any "[]"))
+			 (and (one-or-more "\\") (not (any "[]"))))))
 		   "]"
 		   ;; Description (optional): match group 2.
 		   (opt "[" (group (+? anything)) "]")
@@ -818,7 +964,7 @@ and dates."
 
 (defun org-link-encode (text table)
   "Return percent escaped representation of string TEXT.
-TEXT is a string with the text to escape. TABLE is a list of
+TEXT is a string with the text to escape.  TABLE is a list of
 characters that should be escaped."
   (mapconcat
    (lambda (c)
@@ -832,43 +978,32 @@ characters that should be escaped."
 
 (defun org-link-decode (s)
   "Decode percent-encoded parts in string S.
-E.g. \"%C3%B6\" becomes the german o-Umlaut."
+E.g. \"%C3%B6\" becomes the German o-Umlaut."
   (replace-regexp-in-string "\\(%[0-9A-Za-z]\\{2\\}\\)+"
 			    #'org-link--decode-compound s t t))
 
 (defun org-link-escape (link)
   "Backslash-escape sensitive characters in string LINK."
-  ;; Escape closing square brackets followed by another square bracket
-  ;; or at the end of the link.  Also escape final backslashes so that
-  ;; we do not escape inadvertently URI's closing bracket.
-  (with-temp-buffer
-    (insert link)
-    (insert (make-string (- (skip-chars-backward "\\\\"))
-			 ?\\))
-    (while (search-backward "]" nil t)
-      (when (looking-at-p "]\\(?:[][]\\|\\'\\)")
-	(insert (make-string (1+ (- (skip-chars-backward "\\\\")))
-			     ?\\))))
-    (buffer-string)))
+  (replace-regexp-in-string
+   (rx (seq (group (zero-or-more "\\")) (group (or string-end (any "[]")))))
+   (lambda (m)
+     (concat (match-string 1 m)
+	     (match-string 1 m)
+	     (and (/= (match-beginning 2) (match-end 2)) "\\")))
+   link nil t 1))
 
 (defun org-link-unescape (link)
   "Remove escaping backslash characters from string LINK."
-  (with-temp-buffer
-    (save-excursion (insert link))
-    (while (re-search-forward "\\(\\\\+\\)\\]\\(?:[][]\\|\\'\\)" nil t)
-      (replace-match (make-string (/ (- (match-end 1) (match-beginning 1)) 2)
-				  ?\\)
-		     nil t nil 1))
-    (goto-char (point-max))
-    (delete-char (/ (- (skip-chars-backward "\\\\")) 2))
-    (buffer-string)))
+  (replace-regexp-in-string
+   (rx (group (one-or-more "\\")) (or string-end (any "[]")))
+   (lambda (_)
+     (concat (make-string (/ (- (match-end 1) (match-beginning 1)) 2) ?\\)))
+   link nil t 1))
 
 (defun org-link-make-string (link &optional description)
   "Make a bracket link, consisting of LINK and DESCRIPTION.
 LINK is escaped with backslashes for inclusion in buffer."
-  (unless (org-string-nw-p link) (error "Empty link"))
-  (let* ((uri (org-link-escape link))
-	 (zero-width-space (string ?\x200B))
+  (let* ((zero-width-space (string ?\x200B))
 	 (description
 	  (and (org-string-nw-p description)
 	       ;; Description cannot contain two consecutive square
@@ -881,9 +1016,12 @@ LINK is escaped with backslashes for inclusion in buffer."
 		(replace-regexp-in-string "]\\'"
 					  (concat "\\&" zero-width-space)
 					  (org-trim description))))))
-    (format "[[%s]%s]"
-	    uri
-	    (if description (format "[%s]" description) ""))))
+    (if (not (org-string-nw-p link))
+        (or description
+            (error "Empty link"))
+      (format "[[%s]%s]"
+	      (org-link-escape link)
+	      (if description (format "[%s]" description) "")))))
 
 (defun org-store-link-functions ()
   "List of functions that are called to create and store a link.
@@ -930,7 +1068,8 @@ Abbreviations are defined in `org-link-abbrev-alist'."
 	 ((string-match "%(\\([^)]+\\))" rpl)
 	  (replace-match
 	   (save-match-data
-	     (funcall (intern-soft (match-string 1 rpl)) tag)) t t rpl))
+	     (funcall (intern-soft (match-string 1 rpl)) tag))
+	   t t rpl))
 	 ((string-match "%s" rpl) (replace-match (or tag "") t t rpl))
 	 ((string-match "%h" rpl)
 	  (replace-match (url-hexify-string (or tag "")) t t rpl))
@@ -938,63 +1077,60 @@ Abbreviations are defined in `org-link-abbrev-alist'."
 
 (defun org-link-open (link &optional arg)
   "Open a link object LINK.
-Optional argument is passed to `org-open-file' when S is
-a \"file\" link."
+
+ARG is an optional prefix argument.  Some link types may handle
+it.  For example, it determines what application to run when
+opening a \"file\" link.
+
+Functions responsible for opening the link are either hard-coded
+for internal and \"file\" links, or stored as a parameter in
+`org-link-parameters', which see."
   (let ((type (org-element-property :type link))
 	(path (org-element-property :path link)))
-    (cond
-     ((equal type "file")
-      (if (string-match "[*?{]" (file-name-nondirectory path))
-	  (dired path)
-	;; Look into `org-link-parameters' in order to find
-	;; a DEDICATED-FUNCTION to open file.  The function will be
-	;; applied on raw link instead of parsed link due to the
-	;; limitation in `org-add-link-type' ("open" function called
-	;; with a single argument).  If no such function is found,
-	;; fallback to `org-open-file'.
-	(let* ((option (org-element-property :search-option link))
-	       (app (org-element-property :application link))
-	       (dedicated-function
-		(org-link-get-parameter (if app (concat type "+" app) type)
-					:follow)))
-	  (if dedicated-function
-	      (funcall dedicated-function
-		       (concat path
-			       (and option (concat "::" option))))
-	    (apply #'org-open-file
-		   path
-		   (cond (arg)
-			 ((equal app "emacs") 'emacs)
-			 ((equal app "sys") 'system))
-		   (cond ((not option) nil)
-			 ((string-match-p "\\`[0-9]+\\'" option)
-			  (list (string-to-number option)))
-			 (t (list nil option))))))))
-     ((functionp (org-link-get-parameter type :follow))
-      (funcall (org-link-get-parameter type :follow) path))
-     ((member type '("coderef" "custom-id" "fuzzy" "radio"))
-      (unless (run-hook-with-args-until-success 'org-open-link-functions path)
-	(if (not arg) (org-mark-ring-push)
-	  (switch-to-buffer-other-window (org-link--buffer-for-internals)))
-	(let ((destination
-	       (org-with-wide-buffer
-		(if (equal type "radio")
-		    (org-link--search-radio-target
-		     (org-element-property :path link))
-		  (org-link-search
-		   (pcase type
-		     ("custom-id" (concat "#" path))
-		     ("coderef" (format "(%s)" path))
-		     (_ path))
-		   ;; Prevent fuzzy links from matching themselves.
-		   (and (equal type "fuzzy")
-			(+ 2 (org-element-property :begin link)))))
-		(point))))
-	  (unless (and (<= (point-min) destination)
-		       (>= (point-max) destination))
-	    (widen))
-	  (goto-char destination))))
-     (t (browse-url-at-point)))))
+    (pcase type
+      ;; Opening a "file" link requires special treatment since we
+      ;; first need to integrate search option, if any.
+      ("file"
+       (let* ((option (org-element-property :search-option link))
+	      (path (if option (concat path "::" option) path)))
+	 (org-link-open-as-file path
+				(pcase (org-element-property :application link)
+				  ((guard arg) arg)
+				  ("emacs" 'emacs)
+				  ("sys" 'system)))))
+      ;; Internal links.
+      ((or "coderef" "custom-id" "fuzzy" "radio")
+       (unless (run-hook-with-args-until-success 'org-open-link-functions path)
+	 (if (not arg) (org-mark-ring-push)
+	   (switch-to-buffer-other-window (org-link--buffer-for-internals)))
+	 (let ((destination
+		(org-with-wide-buffer
+		 (if (equal type "radio")
+		     (org-link--search-radio-target path)
+		   (org-link-search
+		    (pcase type
+		      ("custom-id" (concat "#" path))
+		      ("coderef" (format "(%s)" path))
+		      (_ path))
+		    ;; Prevent fuzzy links from matching themselves.
+		    (and (equal type "fuzzy")
+			 (+ 2 (org-element-property :begin link)))))
+		 (point))))
+	   (unless (and (<= (point-min) destination)
+			(>= (point-max) destination))
+	     (widen))
+	   (goto-char destination))))
+      (_
+       ;; Look for a dedicated "follow" function in custom links.
+       (let ((f (org-link-get-parameter type :follow)))
+	 (when (functionp f)
+	   ;; Function defined in `:follow' parameter may use a single
+	   ;; argument, as it was mandatory before Org 9.4.  This is
+	   ;; deprecated, but support it for now.
+	   (condition-case nil
+	       (funcall (org-link-get-parameter type :follow) path arg)
+	     (wrong-number-of-arguments
+	      (funcall (org-link-get-parameter type :follow) path)))))))))
 
 (defun org-link-open-from-string (s &optional arg)
   "Open a link in the string S, as if it was in Org mode.
@@ -1095,10 +1231,9 @@ of matched result, which is either `dedicated' or `fuzzy'."
 	     (catch :name-match
 	       (goto-char (point-min))
 	       (while (re-search-forward name nil t)
-		 (let ((element (org-element-at-point)))
-		   (when (equal words
-				(split-string
-				 (org-element-property :name element)))
+		 (let* ((element (org-element-at-point))
+			(name (org-element-property :name element)))
+		   (when (and name (equal words (split-string name)))
 		     (setq type 'dedicated)
 		     (beginning-of-line)
 		     (throw :name-match t))))
@@ -1111,18 +1246,14 @@ of matched result, which is either `dedicated' or `fuzzy'."
 		  (format "%s.*\\(?:%s[ \t]\\)?.*%s"
 			  org-outline-regexp-bol
 			  org-comment-string
-			  (mapconcat #'regexp-quote words ".+")))
-		 (cookie-re "\\[[0-9]*\\(?:%\\|/[0-9]*\\)\\]")
-		 (comment-re (format "\\`%s[ \t]+" org-comment-string)))
+			  (mapconcat #'regexp-quote words ".+"))))
 	     (goto-char (point-min))
 	     (catch :found
 	       (while (re-search-forward title-re nil t)
 		 (when (equal words
 			      (split-string
-			       (replace-regexp-in-string
-				cookie-re ""
-				(replace-regexp-in-string
-				 comment-re "" (org-get-heading t t t)))))
+			       (org-link--normalize-string
+				(org-get-heading t t t t))))
 		   (throw :found t)))
 	       nil)))
       (beginning-of-line)
@@ -1169,28 +1300,44 @@ of matched result, which is either `dedicated' or `fuzzy'."
 	(error "No match for fuzzy expression: %s" normalized)))
     ;; Disclose surroundings of match, if appropriate.
     (when (and (derived-mode-p 'org-mode) (not stealth))
-      (org-show-context 'link-search))
+      (org-fold-show-context 'link-search))
     type))
 
 (defun org-link-heading-search-string (&optional string)
-  "Make search string for the current headline or STRING."
-  (let ((s (or string
-	       (and (derived-mode-p 'org-mode)
-		    (save-excursion
-		      (org-back-to-heading t)
-		      (org-element-property :raw-value
-					    (org-element-at-point))))))
-	(lines org-link-context-for-files))
-    (unless string (setq s (concat "*" s))) ;Add * for headlines
-    (setq s (replace-regexp-in-string "\\[[0-9]+%\\]\\|\\[[0-9]+/[0-9]+\\]" "" s))
-    (when (and string (integerp lines) (> lines 0))
-      (let ((slines (org-split-string s "\n")))
-	(when (< lines (length slines))
-	  (setq s (mapconcat
-		   #'identity
-		   (reverse (nthcdr (- (length slines) lines)
-				    (reverse slines))) "\n")))))
-    (mapconcat #'identity (split-string s) " ")))
+  "Make search string for the current headline or STRING.
+
+Search string starts with an asterisk.  COMMENT keyword and
+statistics cookies are removed, and contiguous spaces are packed
+into a single one.
+
+When optional argument STRING is non-nil, assume it a headline,
+without any asterisk, TODO or COMMENT keyword, and without any
+priority cookie or tag."
+  (concat "*"
+	  (org-link--normalize-string
+	   (or string (org-get-heading t t t t)))))
+
+(defun org-link-open-as-file (path arg)
+  "Pretend PATH is a file name and open it.
+
+According to \"file\"-link syntax, PATH may include additional
+search options, separated from the file name with \"::\".
+
+This function is meant to be used as a possible tool for
+`:follow' property in `org-link-parameters'."
+  (let* ((option (and (string-match "::\\(.*\\)\\'" path)
+		      (match-string 1 path)))
+	 (file-name (if (not option) path
+		      (substring path 0 (match-beginning 0)))))
+    (if (string-match "[*?{]" (file-name-nondirectory file-name))
+	(dired file-name)
+      (apply #'org-open-file
+	     file-name
+	     arg
+	     (cond ((not option) nil)
+		   ((string-match-p "\\`[0-9]+\\'" option)
+		    (list (string-to-number option)))
+		   (t (list nil option)))))))
 
 (defun org-link-display-format (s)
   "Replace links in string S with their description.
@@ -1210,23 +1357,15 @@ If there is no description, use the link target."
 
 ;;; Built-in link types
 
-;;;; "doi" link type
-(defun org-link--open-doi (path)
-  "Open a \"doi\" type link.
-PATH is a the path to search for, as a string."
-  (browse-url (url-encode-url (concat org-link-doi-server-url path))))
-
-(org-link-set-parameters "doi" :follow #'org-link--open-doi)
-
 ;;;; "elisp" link type
-(defun org-link--open-elisp (path)
+(defun org-link--open-elisp (path _)
   "Open a \"elisp\" type link.
 PATH is the sexp to evaluate, as a string."
   (if (or (and (org-string-nw-p org-link-elisp-skip-confirm-regexp)
 	       (string-match-p org-link-elisp-skip-confirm-regexp path))
 	  (not org-link-elisp-confirm-function)
 	  (funcall org-link-elisp-confirm-function
-		   (format "Execute %S as Elisp? "
+		   (format "Execute %s as Elisp? "
 			   (org-add-props path nil 'face 'org-warning))))
       (message "%s => %s" path
 	       (if (eq ?\( (string-to-char path))
@@ -1240,31 +1379,48 @@ PATH is the sexp to evaluate, as a string."
 (org-link-set-parameters "file" :complete #'org-link-complete-file)
 
 ;;;; "help" link type
-(defun org-link--open-help (path)
+(defun org-link--open-help (path _)
   "Open a \"help\" type link.
 PATH is a symbol name, as a string."
   (pcase (intern path)
-    ((and (pred fboundp) variable) (describe-function variable))
-    ((and (pred boundp) function) (describe-variable function))
+    ((and (pred fboundp) function) (describe-function function))
+    ((and (pred boundp) variable) (describe-variable variable))
     (name (user-error "Unknown function or variable: %s" name))))
 
-(org-link-set-parameters "help" :follow #'org-link--open-help)
+(defun org-link--store-help ()
+  "Store \"help\" type link."
+  (when (eq major-mode 'help-mode)
+    (let ((symbol
+           (save-excursion
+	     (goto-char (point-min))
+             ;; In case the help is about the key-binding, store the
+             ;; function instead.
+             (search-forward "runs the command " (line-end-position) t)
+             (read (current-buffer)))))
+      (org-link-store-props :type "help"
+                            :link (format "help:%s" symbol)
+                            :description nil))))
+
+(org-link-set-parameters "help"
+                         :follow #'org-link--open-help
+                         :store #'org-link--store-help)
 
 ;;;; "http", "https", "mailto", "ftp", and "news" link types
 (dolist (scheme '("ftp" "http" "https" "mailto" "news"))
   (org-link-set-parameters scheme
 			   :follow
-			   (lambda (url) (browse-url (concat scheme ":" url)))))
+			   (lambda (url arg)
+			     (browse-url (concat scheme ":" url) arg))))
 
 ;;;; "shell" link type
-(defun org-link--open-shell (path)
+(defun org-link--open-shell (path _)
   "Open a \"shell\" type link.
 PATH is the command to execute, as a string."
   (if (or (and (org-string-nw-p org-link-shell-skip-confirm-regexp)
 	       (string-match-p org-link-shell-skip-confirm-regexp path))
 	  (not org-link-shell-confirm-function)
 	  (funcall org-link-shell-confirm-function
-		   (format "Execute %S in shell? "
+		   (format "Execute %s in shell? "
 			   (org-add-props path nil 'face 'org-warning))))
       (let ((buf (generate-new-buffer "*Org Shell Output*")))
 	(message "Executing %s" path)
@@ -1317,7 +1473,7 @@ is non-nil, move backward."
 	    (`nil nil)
 	    (link
 	     (goto-char (org-element-property :begin link))
-	     (when (org-invisible-p) (org-show-context))
+	     (when (org-invisible-p) (org-fold-show-context 'link-search))
 	     (throw :found t)))))
       (goto-char pos)
       (setq org-link--search-failed t)
@@ -1330,14 +1486,18 @@ If the link is in hidden text, expose it."
   (interactive)
   (org-next-link t))
 
+(defun org-link-descriptive-ensure ()
+  "Toggle the literal or descriptive display of links in current buffer if needed."
+  (org-fold-core-set-folding-spec-property
+   (car org-link--link-folding-spec)
+   :visible (not org-link-descriptive)))
+
 ;;;###autoload
 (defun org-toggle-link-display ()
-  "Toggle the literal or descriptive display of links."
+  "Toggle the literal or descriptive display of links in current buffer."
   (interactive)
-  (if org-link-descriptive (remove-from-invisibility-spec '(org-link))
-    (add-to-invisibility-spec '(org-link)))
-  (org-restart-font-lock)
-  (setq org-link-descriptive (not org-link-descriptive)))
+  (setq org-link-descriptive (not org-link-descriptive))
+  (org-link-descriptive-ensure))
 
 ;;;###autoload
 (defun org-store-link (arg &optional interactive?)
@@ -1368,14 +1528,14 @@ non-nil."
 	(let ((end (region-end)))
 	  (goto-char (region-beginning))
 	  (set-mark (point))
-	  (while (< (point-at-eol) end)
+          (while (< (line-end-position) end)
 	    (move-end-of-line 1) (activate-mark)
 	    (let (current-prefix-arg)
 	      (call-interactively 'org-store-link))
 	    (move-beginning-of-line 2)
 	    (set-mark (point)))))
     (setq org-store-link-plist nil)
-    (let (link cpltxt desc description search txt custom-id agenda-link)
+    (let (link cpltxt desc search custom-id agenda-link) ;; description
       (cond
        ;; Store a link using an external link type, if any function is
        ;; available. If more than one can generate a link from current
@@ -1399,14 +1559,15 @@ non-nil."
 		  (apply #'org-link-store-props
 			 (cdr (assoc-string
 			       (completing-read
-				"Which function for creating the link? "
-				(mapcar #'car results-alist)
-				nil t (symbol-name name))
+                                (format "Store link with (default %s): " name)
+                                (mapcar #'car results-alist)
+                                nil t nil nil (symbol-name name))
 			       results-alist)))
 		  t))))
 	(setq link (plist-get org-store-link-plist :link))
-	(setq desc (or (plist-get org-store-link-plist :description)
-		       link)))
+        ;; If store function actually set `:description' property, use
+        ;; it, even if it is nil.  Otherwise, fallback to nil (ask user).
+	(setq desc (plist-get org-store-link-plist :description)))
 
        ;; Store a link from a remote editing buffer.
        ((org-src-edit-buffer-p)
@@ -1447,7 +1608,7 @@ non-nil."
 	   (t (setq link nil)))))
 
        ;; We are in the agenda, link to referenced location
-       ((equal (bound-and-true-p org-agenda-buffer-name) (buffer-name))
+       ((eq major-mode 'org-agenda-mode)
 	(let ((m (or (get-text-property (point) 'org-hd-marker)
 		     (get-text-property (point) 'org-marker))))
 	  (when m
@@ -1458,26 +1619,9 @@ non-nil."
 	(let ((cd (calendar-cursor-to-date)))
 	  (setq link
 		(format-time-string
-		 (car org-time-stamp-formats)
-		 (apply 'encode-time
-			(list 0 0 0 (nth 1 cd) (nth 0 cd) (nth 2 cd)
-			      nil nil nil))))
+                 (org-time-stamp-format)
+		 (org-encode-time 0 0 0 (nth 1 cd) (nth 0 cd) (nth 2 cd))))
 	  (org-link-store-props :type "calendar" :date cd)))
-
-       ((eq major-mode 'help-mode)
-	(setq link (concat "help:" (save-excursion
-				     (goto-char (point-min))
-				     (looking-at "^[^ ]+")
-				     (match-string 0))))
-	(org-link-store-props :type "help"))
-
-       ((eq major-mode 'w3-mode)
-	(setq cpltxt (if (and (buffer-name)
-			      (not (string-match "Untitled" (buffer-name))))
-			 (buffer-name)
-		       (url-view-url t))
-	      link (url-view-url t))
-	(org-link-store-props :type "w3" :url (url-view-url t)))
 
        ((eq major-mode 'image-mode)
 	(setq cpltxt (concat "file:"
@@ -1491,7 +1635,7 @@ non-nil."
 	  (setq file (if file
 			 (abbreviate-file-name
 			  (expand-file-name (dired-get-filename nil t)))
-		       ;; otherwise, no file so use current directory.
+		       ;; Otherwise, no file so use current directory.
 		       default-directory))
 	  (setq cpltxt (concat "file:" file)
 		link cpltxt)))
@@ -1500,7 +1644,7 @@ non-nil."
 		      'org-create-file-search-functions))
 	(setq link (concat "file:" (abbreviate-file-name buffer-file-name)
 			   "::" search))
-	(setq cpltxt (or description link)))
+	(setq cpltxt (or link))) ;; description
 
        ((and (buffer-file-name (buffer-base-buffer)) (derived-mode-p 'org-mode))
 	(org-with-limited-levels
@@ -1508,12 +1652,19 @@ non-nil."
 	 (cond
 	  ;; Store a link using the target at point
 	  ((org-in-regexp "[^<]<<\\([^<>]+\\)>>[^>]" 1)
-	   (setq cpltxt
+	   (setq link
 		 (concat "file:"
 			 (abbreviate-file-name
 			  (buffer-file-name (buffer-base-buffer)))
 			 "::" (match-string 1))
-		 link cpltxt))
+                 ;; Target may be shortened when link is inserted.
+                 ;; Avoid [[target][file:~/org/test.org::target]]
+                 ;; links.  Maybe the case of identical target and
+                 ;; description should be handled by `org-insert-link'.
+                 cpltxt nil
+                 desc nil
+                 ;; Do not append #CUSTOM_ID link below.
+                 custom-id nil))
 	  ((and (featurep 'org-id)
 		(or (eq org-id-link-to-org-use-id t)
 		    (and interactive?
@@ -1525,39 +1676,42 @@ non-nil."
 	   ;; Store a link using the ID at point
 	   (setq link (condition-case nil
 			  (prog1 (org-id-store-link)
-			    (setq desc (or (plist-get org-store-link-plist
-						      :description)
-					   "")))
+			    (setq desc (plist-get org-store-link-plist :description)))
 			(error
 			 ;; Probably before first headline, link only to file
 			 (concat "file:"
 				 (abbreviate-file-name
 				  (buffer-file-name (buffer-base-buffer))))))))
 	  (t
-	   ;; Just link to current headline
+	   ;; Just link to current headline.
 	   (setq cpltxt (concat "file:"
 				(abbreviate-file-name
 				 (buffer-file-name (buffer-base-buffer)))))
-	   ;; Add a context search string
+	   ;; Add a context search string.
 	   (when (org-xor org-link-context-for-files (equal arg '(4)))
 	     (let* ((element (org-element-at-point))
-		    (name (org-element-property :name element)))
-	       (setq txt (cond
-			  ((org-at-heading-p) nil)
-			  (name)
-			  ((org-region-active-p)
-			   (buffer-substring (region-beginning) (region-end)))))
-	       (when (or (null txt) (string-match "\\S-" txt))
-		 (setq cpltxt
-		       (concat cpltxt "::"
-			       (condition-case nil
-				   (org-link-heading-search-string txt)
-				 (error "")))
-		       desc (or name
-				(nth 4 (ignore-errors (org-heading-components)))
-				"NONE")))))
-	   (when (string-match "::\\'" cpltxt)
-	     (setq cpltxt (substring cpltxt 0 -2)))
+		    (name (org-element-property :name element))
+		    (context
+		     (cond
+		      ((let ((region (org-link--context-from-region)))
+			 (and region (org-link--normalize-string region t))))
+		      (name)
+		      ((org-before-first-heading-p)
+		       (org-link--normalize-string (org-current-line-string) t))
+		      (t (org-link-heading-search-string)))))
+	       (when (org-string-nw-p context)
+		 (setq cpltxt (format "%s::%s" cpltxt context))
+		 (setq desc
+		       (or name
+			   ;; Although description is not a search
+			   ;; string, use `org-link--normalize-string'
+			   ;; to prettify it (contiguous white spaces)
+			   ;; and remove volatile contents (statistics
+			   ;; cookies).
+			   (and (not (org-before-first-heading-p))
+				(org-link--normalize-string
+				 (org-get-heading t t t t)))
+			   "NONE")))))
 	   (setq link cpltxt)))))
 
        ((buffer-file-name (buffer-base-buffer))
@@ -1565,16 +1719,16 @@ non-nil."
 	(setq cpltxt (concat "file:"
 			     (abbreviate-file-name
 			      (buffer-file-name (buffer-base-buffer)))))
-	;; Add a context string.
+	;; Add a context search string.
 	(when (org-xor org-link-context-for-files (equal arg '(4)))
-	  (setq txt (if (org-region-active-p)
-			(buffer-substring (region-beginning) (region-end))
-		      (buffer-substring (point-at-bol) (point-at-eol))))
-	  ;; Only use search option if there is some text.
-	  (when (string-match "\\S-" txt)
-	    (setq cpltxt
-		  (concat cpltxt "::" (org-link-heading-search-string txt))
-		  desc "NONE")))
+	  (let ((context (org-link--normalize-string
+			  (or (org-link--context-from-region)
+			      (org-current-line-string))
+			  t)))
+	    ;; Only use search option if there is some text.
+	    (when (org-string-nw-p context)
+	      (setq cpltxt (format "%s::%s" cpltxt context))
+	      (setq desc "NONE"))))
 	(setq link cpltxt))
 
        (interactive?
@@ -1584,20 +1738,23 @@ non-nil."
 
       ;; We're done setting link and desc, clean up
       (when (consp link) (setq cpltxt (car link) link (cdr link)))
-      (setq link (or link cpltxt)
-	    desc (or desc cpltxt))
+      (setq link (or link cpltxt))
       (cond ((not desc))
 	    ((equal desc "NONE") (setq desc nil))
 	    (t (setq desc (org-link-display-format desc))))
-      ;; Return the link
+      ;; Store and return the link
       (if (not (and interactive? link))
 	  (or agenda-link (and link (org-link-make-string link desc)))
-	(push (list link desc) org-stored-links)
-	(message "Stored: %s" (or desc link))
-	(when custom-id
-	  (setq link (concat "file:" (abbreviate-file-name
-				      (buffer-file-name)) "::#" custom-id))
-	  (push (list link desc) org-stored-links))
+	(if (member (list link desc) org-stored-links)
+	    (message "This link has already been stored")
+	  (push (list link desc) org-stored-links)
+	  (message "Stored: %s" (or desc link))
+	  (when custom-id
+	    (setq link (concat "file:"
+			       (abbreviate-file-name
+				(buffer-file-name (buffer-base-buffer)))
+			       "::#" custom-id))
+	    (push (list link desc) org-stored-links)))
 	(car org-stored-links)))))
 
 ;;;###autoload
@@ -1611,6 +1768,9 @@ The history can be used to select a link previously stored with
 press `RET' at the prompt), the link defaults to the most recently
 stored link.  As `SPC' triggers completion in the minibuffer, you need to
 use `M-SPC' or `C-q SPC' to force the insertion of a space character.
+Completion candidates include link descriptions.
+
+If there is a link under cursor then edit it.
 
 You will also be prompted for a description, and if one is given, it will
 be displayed in the buffer instead of the link.
@@ -1636,11 +1796,14 @@ prefix negates `org-link-keep-stored-after-insertion'.
 If the LINK-LOCATION parameter is non-nil, this value will be used as
 the link location instead of reading one interactively.
 
-If the DESCRIPTION parameter is non-nil, this value will be used as the
-default description.  Otherwise, if `org-link-make-description-function'
-is non-nil, this function will be called with the link target, and the
-result will be the default link description.  When called non-interactively,
-don't allow to edit the default description."
+If the DESCRIPTION parameter is non-nil, this value will be used
+as the default description.  If not, and the chosen link type has
+a non-nil `:insert-description' parameter, that is used to
+generate a description as described in `org-link-parameters'
+docstring.  Otherwise, if `org-link-make-description-function' is
+non-nil, this function will be called with the link target, and
+the result will be the default link description.  When called
+non-interactively, don't allow to edit the default description."
   (interactive "P")
   (let* ((wcf (current-window-configuration))
 	 (origbuf (current-buffer))
@@ -1650,7 +1813,10 @@ don't allow to edit the default description."
 	 (desc region)
 	 (link link-location)
 	 (abbrevs org-link-abbrev-alist-local)
-	 entry all-prefixes auto-desc)
+	 (all-prefixes (append (mapcar #'car abbrevs)
+			       (mapcar #'car org-link-abbrev-alist)
+			       (org-link-types)))
+         entry)
     (cond
      (link-location)		      ; specified by arg, just use it.
      ((org-in-regexp org-link-bracket-re 1)
@@ -1684,15 +1850,13 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
 			     (reverse org-stored-links)
 			     "\n")))
 	(goto-char (point-min)))
-      (let ((cw (selected-window)))
-	(select-window (get-buffer-window "*Org Links*" 'visible))
-	(with-current-buffer "*Org Links*" (setq truncate-lines t))
-	(unless (pos-visible-in-window-p (point-max))
-	  (org-fit-window-to-buffer))
-	(and (window-live-p cw) (select-window cw)))
-      (setq all-prefixes (append (mapcar #'car abbrevs)
-				 (mapcar #'car org-link-abbrev-alist)
-				 (org-link-types)))
+      (when (get-buffer-window "*Org Links*" 'visible)
+        (let ((cw (selected-window)))
+	  (select-window (get-buffer-window "*Org Links*" 'visible))
+	  (with-current-buffer "*Org Links*" (setq truncate-lines t))
+	  (unless (pos-visible-in-window-p (point-max))
+	    (org-fit-window-to-buffer))
+	  (and (window-live-p cw) (select-window cw))))
       (unwind-protect
 	  ;; Fake a link history, containing the stored links.
 	  (let ((org-link--history
@@ -1703,15 +1867,19 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
 		   "Link: "
 		   (append
 		    (mapcar (lambda (x) (concat x ":")) all-prefixes)
-		    (mapcar #'car org-stored-links))
+		    (mapcar #'car org-stored-links)
+                    ;; Allow description completion.  Avoid "nil" option
+                    ;; in the case of `completing-read-default' and
+                    ;; an error in `ido-completing-read' when some links
+                    ;; have no description.
+                    (delq nil (mapcar 'cadr org-stored-links)))
 		   nil nil nil
 		   'org-link--history
 		   (caar org-stored-links)))
 	    (unless (org-string-nw-p link) (user-error "No link selected"))
 	    (dolist (l org-stored-links)
 	      (when (equal link (cadr l))
-		(setq link (car l))
-		(setq auto-desc t)))
+		(setq link (car l))))
 	    (when (or (member link all-prefixes)
 		      (and (equal ":" (substring link -1))
 			   (member (substring link 0 -1) all-prefixes)
@@ -1737,13 +1905,14 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
     ;; Check if we are linking to the current file with a search
     ;; option If yes, simplify the link by using only the search
     ;; option.
-    (when (and buffer-file-name
+    (when (and (buffer-file-name (buffer-base-buffer))
 	       (let ((case-fold-search nil))
 		 (string-match "\\`file:\\(.+?\\)::" link)))
       (let ((path (match-string-no-properties 1 link))
 	    (search (substring-no-properties link (match-end 0))))
 	(save-match-data
-	  (when (equal (file-truename buffer-file-name) (file-truename path))
+	  (when (equal (file-truename (buffer-file-name (buffer-base-buffer)))
+		       (file-truename path))
 	    ;; We are linking to this same file, with a search option
 	    (setq link search)))))
 
@@ -1769,6 +1938,9 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
 	    (setq path (expand-file-name path)))
 	   ((eq org-link-file-path-type 'relative)
 	    (setq path (file-relative-name path)))
+	   ((functionp org-link-file-path-type)
+	    (setq path (funcall org-link-file-path-type
+				(expand-file-name path))))
 	   (t
 	    (save-match-data
 	      (if (string-match (concat "^" (regexp-quote
@@ -1784,21 +1956,40 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
 	  (when (equal desc origpath)
 	    (setq desc path)))))
 
-    (unless auto-desc
-      (let ((initial-input
-	     (cond
-	      (description)
-	      ((not org-link-make-description-function) desc)
-	      (t (condition-case nil
-		     (funcall org-link-make-description-function link desc)
-		   (error
-		    (message "Can't get link description from %S"
-			     (symbol-name org-link-make-description-function))
-		    (sit-for 2)
-		    nil))))))
-	(setq desc (if (called-interactively-p 'any)
-		       (read-string "Description: " initial-input)
-		     initial-input))))
+    (let* ((type
+            (cond
+             ((and all-prefixes
+                   (string-match (rx-to-string `(: string-start (submatch (or ,@all-prefixes)) ":")) link))
+              (match-string 1 link))
+             ((file-name-absolute-p link) "file")
+             ((string-match "\\`\\.\\.?/" link) "file")))
+           (initial-input
+            (cond
+             (description)
+             (desc)
+             ((org-link-get-parameter type :insert-description)
+              (let ((def (org-link-get-parameter type :insert-description)))
+                (condition-case nil
+                    (cond
+                     ((stringp def) def)
+                     ((functionp def)
+                      (funcall def link desc)))
+                  (error
+                   (message "Can't get link description from org link parameter `:insert-description': %S"
+                            def)
+                   (sit-for 2)
+                   nil))))
+             (org-link-make-description-function
+              (condition-case nil
+                  (funcall org-link-make-description-function link desc)
+                (error
+                 (message "Can't get link description from %S"
+                          org-link-make-description-function)
+                 (sit-for 2)
+                 nil))))))
+      (setq desc (if (called-interactively-p 'any)
+                     (read-string "Description: " initial-input)
+                   initial-input)))
 
     (unless (org-string-nw-p desc) (setq desc nil))
     (when remove (apply #'delete-region remove))
@@ -1867,6 +2058,10 @@ Also refresh fontification if needed."
 		  (cl-pushnew (org-element-property :value obj) rtn
 			      :test #'equal))))
 	    rtn))))
+    (setq targets
+          (sort targets
+                (lambda (a b)
+                  (> (length a) (length b)))))
     (setq org-target-link-regexp
 	  (and targets
 	       (concat before-re
@@ -1890,7 +2085,8 @@ Also refresh fontification if needed."
 				    (list old-regexp org-target-link-regexp)
 				    "\\|")
 				   after-re)))))
-	(when (featurep 'org-element)
+	(when (and (featurep 'org-element)
+                   (not (bound-and-true-p org-mode-loading)))
 	  (org-with-point-at 1
 	    (while (re-search-forward regexp nil t)
 	      (org-element-cache-refresh (match-beginning 1))))))
@@ -1903,7 +2099,10 @@ Also refresh fontification if needed."
 
 (org-link-make-regexps)
 
-
 (provide 'ol)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; ol.el ends here

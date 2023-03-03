@@ -1,6 +1,6 @@
-;;; mh-funcs.el --- MH-E functions not everyone will use right away
+;;; mh-funcs.el --- MH-E functions not everyone will use right away  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -29,8 +29,6 @@
 ;; Please add the functions in alphabetical order. If only one or two
 ;; small support routines are needed, place them with the function;
 ;; otherwise, create a separate section for them.
-
-;;; Change Log:
 
 ;;; Code:
 
@@ -97,13 +95,13 @@ RANGE is read in interactive use."
 Remove all of the messages (files) within the current folder, and
 then remove the folder (directory) itself.
 
-Run the abnormal hook `mh-kill-folder-suppress-prompt-hooks'. The
-hook functions are called with no arguments and should return a
-non-nil value to suppress the normal prompt when you remove a
+Run the abnormal hook `mh-kill-folder-suppress-prompt-functions'.
+The hook functions are called with no arguments and should return
+a non-nil value to suppress the normal prompt when you remove a
 folder. This is useful for folders that are easily regenerated."
   (interactive)
   (if (or (run-hook-with-args-until-success
-           'mh-kill-folder-suppress-prompt-hooks)
+           'mh-kill-folder-suppress-prompt-functions)
           (yes-or-no-p (format "Remove folder %s (and all included messages)? "
                                mh-current-folder)))
       (let ((folder mh-current-folder)
@@ -149,7 +147,7 @@ Display the results only if something went wrong."
                                             "-recurse"
                                           "-norecurse"))
         (goto-char (point-min))
-        (mh-view-mode-enter)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing folders...done")))))
 
@@ -348,7 +346,7 @@ See `mh-store-msg' for a description of DIRECTORY."
         (error "Error occurred during execution of %s" command)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder (&rest ignored)
+(defun mh-undo-folder (&rest _ignored)
   "Undo all refiles and deletes in the current folder.
 Arguments are IGNORED (for `revert-buffer')."
   (interactive)
@@ -356,8 +354,8 @@ Arguments are IGNORED (for `revert-buffer')."
              (yes-or-no-p "Undo all commands in folder? "))
          (setq mh-delete-list nil
                mh-refile-list nil
-               mh-blacklist nil
-               mh-whitelist nil
+               mh-blocklist nil
+               mh-allowlist nil
                mh-seq-list nil
                mh-next-direction 'forward)
          (with-mh-folder-updating (nil)
@@ -368,7 +366,6 @@ Arguments are IGNORED (for `revert-buffer')."
 (provide 'mh-funcs)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -1,6 +1,6 @@
-;;; strokes.el --- control Emacs through mouse strokes
+;;; strokes.el --- control Emacs through mouse strokes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -138,15 +138,14 @@
 ;; the user to enter strokes which "remove the pencil from the paper"
 ;; so to speak, so one character can have multiple strokes.
 
-;; NOTE (Oct 7, 2006): The URLs below seem to be invalid!!!
-
 ;; You can read more about strokes at:
 
-;; http://www.mit.edu/people/cadet/strokes-help.html
+;; https://web.archive.org/web/20041209171947/http://www.mit.edu/people/cadet/strokes-help.html
 
 ;; If you're interested in using strokes for writing English into Emacs
 ;; using strokes, then you'll want to read about it on the web page above
-;; or just download from http://www.mit.edu/people/cadet/strokes-abc.el,
+;; or just download from:
+;; https://web.archive.org/web/20041204163338/http://www.mit.edu/people/cadet/strokes-abc.el
 ;; which is nothing but a file with some helper commands for inserting
 ;; alphanumerics and punctuation.
 
@@ -211,19 +210,14 @@ static char * stroke_xpm[] = {
   :link '(emacs-commentary-link "strokes")
   :group 'mouse)
 
-(define-obsolete-variable-alias 'strokes-modeline-string 'strokes-lighter
-  "24.3")
-
 (defcustom strokes-lighter " Strokes"
   "Mode line identifier for Strokes mode."
-  :type 'string
-  :group 'strokes)
+  :type 'string)
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.
 \(The default is `@', which works well.)"
-  :type 'character
-  :group 'strokes)
+  :type 'character)
 
 (defcustom strokes-minimum-match-score 1000
   "Minimum score for a stroke to be considered a possible match.
@@ -239,8 +233,7 @@ then you can set `strokes-minimum-match-score' to something that works
 for you.  The only purpose of this variable is to insure that if you
 do a bogus stroke that really doesn't match any of the predefined
 ones, then strokes should NOT pick the one that came closest."
-  :type 'integer
-  :group 'strokes)
+  :type 'integer)
 
 (defcustom strokes-grid-resolution 9
   "Integer defining dimensions of the stroke grid.
@@ -256,14 +249,12 @@ WARNING: Changing the value of this variable will gravely affect the
          figure out what it should be based on your needs and on how
          quick the particular platform(s) you're operating on, and
          only then start programming in your custom strokes."
-  :type 'integer
-  :group 'strokes)
+  :type 'natnum)
 
 (defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'file
-  :group 'strokes)
+  :type 'file)
 
 (defvar strokes-buffer-name " *strokes*"
   "The name of the buffer that the strokes take place in.")
@@ -273,8 +264,7 @@ WARNING: Changing the value of this variable will gravely affect the
 If nil, strokes will be read the same, however the user will not be
 able to see the strokes.  This be helpful for people who don't like
 the delay in switching to the strokes buffer."
-  :type 'boolean
-  :group 'strokes)
+  :type 'boolean)
 
 ;;; internal variables...
 
@@ -312,12 +302,6 @@ the corresponding interactive function.")
 ;;    ))
 
 ;;; Macros...
-
-;; unused
-;; (defmacro strokes-while-inhibiting-garbage-collector (&rest forms)
-;;   "Execute FORMS without interference from the garbage collector."
-;;   `(let ((gc-cons-threshold 134217727))
-;;      ,@forms))
 
 (defsubst strokes-click-p (stroke)
   "Non-nil if STROKE is really click."
@@ -574,9 +558,8 @@ Optional GRID-RESOLUTION may be used in place of `strokes-grid-resolution'.
 The grid is a square whose dimension is [0,GRID-RESOLUTION)."
   (or grid-resolution (setq grid-resolution strokes-grid-resolution))
   (let ((stroke-extent (strokes-get-stroke-extent positions)))
-    (mapcar (function
-	     (lambda (pos)
-	       (strokes-get-grid-position stroke-extent pos grid-resolution)))
+    (mapcar (lambda (pos)
+              (strokes-get-grid-position stroke-extent pos grid-resolution))
 	    positions)))
 
 (defun strokes-fill-stroke (unfilled-stroke &optional force)
@@ -757,12 +740,12 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	      (strokes-fill-current-buffer-with-whitespace))
 	    (when prompt
 	      (message "%s" prompt)
-	      (setq event (read-event))
+	      (setq event (read--potential-mouse-event))
 	      (or (strokes-button-press-event-p event)
 		  (error "You must draw with the mouse")))
 	    (unwind-protect
 		(track-mouse
-		  (or event (setq event (read-event)
+		  (or event (setq event (read--potential-mouse-event)
 				  safe-to-draw-p t))
 		  (while (not (strokes-button-release-event-p event))
 		    (if (strokes-mouse-event-p event)
@@ -777,7 +760,7 @@ Optional EVENT is acceptable as the starting event of the stroke."
 			    (setq safe-to-draw-p t))
 			  (push (cdr (mouse-pixel-position))
 				pix-locs)))
-		    (setq event (read-event)))))
+		    (setq event (read--potential-mouse-event)))))
 	    ;; protected
 	    ;; clean up strokes buffer and then bury it.
 	    (when (equal (buffer-name) strokes-buffer-name)
@@ -788,16 +771,16 @@ Optional EVENT is acceptable as the starting event of the stroke."
       ;; Otherwise, don't use strokes buffer and read stroke silently
       (when prompt
 	(message "%s" prompt)
-	(setq event (read-event))
+	(setq event (read--potential-mouse-event))
 	(or (strokes-button-press-event-p event)
 	    (error "You must draw with the mouse")))
       (track-mouse
-	(or event (setq event (read-event)))
+	(or event (setq event (read--potential-mouse-event)))
 	(while (not (strokes-button-release-event-p event))
 	  (if (strokes-mouse-event-p event)
 	      (push (cdr (mouse-pixel-position))
 		    pix-locs))
-	  (setq event (read-event))))
+	  (setq event (read--potential-mouse-event))))
       (setq grid-locs (strokes-renormalize-to-grid (nreverse pix-locs)))
       (strokes-fill-stroke
        (strokes-eliminate-consecutive-redundancies grid-locs)))))
@@ -818,10 +801,10 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	(if prompt
 	    (while (not (strokes-button-press-event-p event))
 	      (message "%s" prompt)
-	      (setq event (read-event))))
+	      (setq event (read--potential-mouse-event))))
 	(unwind-protect
 	    (track-mouse
-	      (or event (setq event (read-event)))
+	      (or event (setq event (read--potential-mouse-event)))
 	      (while (not (and (strokes-button-press-event-p event)
 			       (eq 'mouse-3
 				   (car (get (car event)
@@ -835,14 +818,15 @@ Optional EVENT is acceptable as the starting event of the stroke."
 						?\s strokes-character))
 			(push (cdr (mouse-pixel-position))
 			      pix-locs)))
-		  (setq event (read-event)))
+		  (setq event (read--potential-mouse-event)))
 		(push strokes-lift pix-locs)
 		(while (not (strokes-button-press-event-p event))
-		  (setq event (read-event))))
+		  (setq event (read--potential-mouse-event))))
 	      ;; ### KLUDGE! ### sit and wait
 	      ;; for some useless event to
 	      ;; happen to fix the minibuffer bug.
-	      (while (not (strokes-button-release-event-p (read-event))))
+	      (while (not (strokes-button-release-event-p
+                           (read--potential-mouse-event))))
 	      (setq pix-locs (nreverse (cdr pix-locs))
 		    grid-locs (strokes-renormalize-to-grid pix-locs))
 	      (strokes-fill-stroke
@@ -941,13 +925,13 @@ cycle can continue.
 
 To toggle strokes-mode, invoke the command
 
-> M-x strokes-mode
+> \\[strokes-mode]
 
 ** Strokes for controlling the behavior of Emacs...
 
 When you're ready to start defining strokes, just use the command
 
-> M-x strokes-global-set-stroke
+> \\[strokes-global-set-stroke]
 
 You will see a ` *strokes*' buffer which is waiting for you to enter in
 your stroke.  When you enter in the stroke, you draw with button 1 or
@@ -956,7 +940,7 @@ which will be executed when that stroke is invoked.  Simple as that.
 For now, try to define a stroke to copy a region.  This is a popular
 edit command, so type
 
-> M-x strokes-global-set-stroke
+> \\[strokes-global-set-stroke]
 
 Then, in the ` *strokes*' buffer, draw the letter `C' (for `copy')
 and then, when it asks you to enter the command to map that to, type
@@ -968,7 +952,7 @@ Remember: paint with button 1 or button 2 and then end with button 3.
 
 If ever you want to know what a certain strokes maps to, then do
 
-> M-x strokes-describe-stroke
+> \\[strokes-describe-stroke]
 
 and you can enter in any arbitrary stroke.  Remember: The strokes
 package lets you program in simple and complex (multi-lift) strokes.
@@ -980,12 +964,12 @@ will invoke the command `strokes-do-stroke'.
 If ever you define a stroke which you don't like, then you can unset
 it with the command
 
-> M-x strokes-unset-last-stroke
+> \\[strokes-unset-last-stroke]
 
 You can always get an idea of what your current strokes look like with
 the command
 
-> M-x strokes-list-strokes
+> \\[strokes-list-strokes]
 
 Your strokes will be displayed in alphabetical order (based on command
 names) and the beginning of each simple stroke will be marked by a
@@ -994,19 +978,19 @@ stroke, the dot colors are arranged in the rainbow color sequence,
 `ROYGBIV'.  If you want a listing of your strokes from most recent
 down, then use a prefix argument:
 
-> C-u M-x strokes-list-strokes
+> \\[universal-argument] \\[strokes-list-strokes]
 
 Your strokes are stored as you enter them.  They get saved into the
 file specified by the `strokes-file' variable, along with other strokes
 configuration variables.  You will be prompted to save them when you
 exit Emacs, or you can save them with
 
-> M-x strokes-prompt-user-save-strokes
+> \\[strokes-prompt-user-save-strokes]
 
 Your strokes get loaded automatically when you enable `strokes-mode'.
 You can also load in your user-defined strokes with
 
-> M-x strokes-load-user-strokes
+> \\[strokes-load-user-strokes]
 
 ** Strokes for pictographic editing...
 
@@ -1019,11 +1003,11 @@ into the buffer.  You treat it somewhat like any other character,
 which you can copy, paste, delete, move, etc.  When all is done, you
 may want to send the file, or save it.  This is done with
 
-> M-x strokes-encode-buffer
+> \\[strokes-encode-buffer]
 
 Likewise, to decode the strokes from a strokes-encoded buffer you do
 
-> M-x strokes-decode-buffer
+> \\[strokes-decode-buffer]
 
 ** A few more important things...
 
@@ -1044,13 +1028,11 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (help-mode)
     (help-print-return-message)))
 
-(define-obsolete-function-alias 'strokes-report-bug 'report-emacs-bug "24.1")
-
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.
 This is based on the last time `strokes-window-configuration' was updated."
-  (compare-window-configurations (current-window-configuration)
-				 strokes-window-configuration))
+  (window-configuration-equal-p (current-window-configuration)
+				strokes-window-configuration))
 
 (defun strokes-update-window-configuration ()
   "Ensure that `strokes-window-configuration' is up-to-date."
@@ -1169,7 +1151,7 @@ the stroke as a character in some language."
 						     strokes-last-stroke)
 						 31))))
 	  (lift-flag t)
-	  (rainbow-chars (list ?R ?O ?Y ?G ?B ?P))) ; ROYGBIV w/o indigo
+	  (rainbow-chars (list ?R ?O ?Y ?G ?B ?P))) ; ROYGBIV without indigo
       (set-buffer buf)
       (erase-buffer)
       (insert strokes-xpm-header)
@@ -1232,8 +1214,8 @@ the stroke as a character in some language."
 ;;	mode-popup-menu edit-strokes-menu) ; what about extent-specific stuff?
 ;;  (and (featurep 'menubar)
 ;;       current-menubar
-;;       (set (make-local-variable 'current-menubar)
-;;	    (copy-sequence current-menubar))
+;;       (setq-local current-menubar
+;;                   (copy-sequence current-menubar))
 ;;       (add-submenu nil edit-strokes-menu)))
 
 ;;(let ((map edit-strokes-mode-map))
@@ -1364,24 +1346,22 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
      finally do (unless (eobp)
                   (kill-region (1+ (point)) (point-max))))
     (view-buffer "*Strokes List*" nil)
-    (set (make-local-variable 'view-mode-map)
-	 (let ((map (copy-keymap view-mode-map)))
-	   (define-key map "q" `(lambda ()
-				  (interactive)
-				  (View-quit)
-				  (set-window-configuration ,config)))
-	   map))
+    (setq-local view-mode-map
+                (let ((map (copy-keymap view-mode-map)))
+                  (define-key map "q" `(lambda ()
+                                         (interactive)
+                                         (View-quit)
+                                         (set-window-configuration ,config)))
+                  map))
     (goto-char (point-min))))
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
   "Return t if STROKE1's command name precedes STROKE2's in lexicographic order."
   (string-lessp (cdr stroke1) (cdr stroke2)))
 
-(defvar strokes-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(shift down-mouse-2)] 'strokes-do-stroke)
-    (define-key map [(meta down-mouse-2)] 'strokes-do-complex-stroke)
-    map))
+(defvar-keymap strokes-mode-map
+  "S-<down-mouse-2>" #'strokes-do-stroke
+  "M-<down-mouse-2>" #'strokes-do-complex-stroke)
 
 ;;;###autoload
 (define-minor-mode strokes-mode
@@ -1399,8 +1379,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 \\[strokes-decode-buffer].
 
 \\{strokes-mode-map}"
-  nil strokes-lighter strokes-mode-map
-  :group 'strokes :global t
+  :lighter strokes-lighter :global t
   (cond ((not (display-mouse-p))
 	 (error "Can't use Strokes without a mouse"))
 	(strokes-mode			; turn on strokes
@@ -1408,15 +1387,20 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 	      (null strokes-global-map)
 	      (strokes-load-user-strokes))
 	 (add-hook 'kill-emacs-query-functions
-		   'strokes-prompt-user-save-strokes)
-	 (add-hook 'select-frame-hook
-		   'strokes-update-window-configuration)
+		   #'strokes-prompt-user-save-strokes)
+         ;; FIXME: Should this be something like `focus-in-hook'?
+         ;; That variable is obsolete, but `select-frame-hook' has
+         ;; never existed in Emacs.
+         ;;(add-hook 'select-frame-hook
+         ;;          #'strokes-update-window-configuration)
 	 (strokes-update-window-configuration))
 	(t				; turn off strokes
 	 (if (get-buffer strokes-buffer-name)
-	     (kill-buffer (get-buffer strokes-buffer-name)))
-	 (remove-hook 'select-frame-hook
-		      'strokes-update-window-configuration))))
+             (kill-buffer (get-buffer strokes-buffer-name)))
+         ;; FIXME: Same as above.
+         ;;(remove-hook 'select-frame-hook
+         ;;             #'strokes-update-window-configuration)
+         )))
 
 
 ;;;; strokes-xpm stuff (later may be separate)...
@@ -1426,74 +1410,75 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 
 (defface strokes-char '((t (:background "lightgray")))
   "Face for strokes characters."
-  :version "21.1"
-  :group 'strokes)
+  :version "21.1")
 
 (put 'strokes 'char-table-extra-slots 0)
-(defconst strokes-char-table (make-char-table 'strokes) ;
+(defconst strokes-char-table
+  (let ((ct (make-char-table 'strokes))) ;
+    (aset ct ?0 0)
+    (aset ct ?1 1)
+    (aset ct ?2 2)
+    (aset ct ?3 3)
+    (aset ct ?4 4)
+    (aset ct ?5 5)
+    (aset ct ?6 6)
+    (aset ct ?7 7)
+    (aset ct ?8 8)
+    (aset ct ?9 9)
+    (aset ct ?a 10)
+    (aset ct ?b 11)
+    (aset ct ?c 12)
+    (aset ct ?d 13)
+    (aset ct ?e 14)
+    (aset ct ?f 15)
+    (aset ct ?g 16)
+    (aset ct ?h 17)
+    (aset ct ?i 18)
+    (aset ct ?j 19)
+    (aset ct ?k 20)
+    (aset ct ?l 21)
+    (aset ct ?m 22)
+    (aset ct ?n 23)
+    (aset ct ?o 24)
+    (aset ct ?p 25)
+    (aset ct ?q 26)
+    (aset ct ?r 27)
+    (aset ct ?s 28)
+    (aset ct ?t 29)
+    (aset ct ?u 30)
+    (aset ct ?v 31)
+    (aset ct ?w 32)
+    (aset ct ?x 33)
+    (aset ct ?y 34)
+    (aset ct ?z 35)
+    (aset ct ?A 36)
+    (aset ct ?B 37)
+    (aset ct ?C 38)
+    (aset ct ?D 39)
+    (aset ct ?E 40)
+    (aset ct ?F 41)
+    (aset ct ?G 42)
+    (aset ct ?H 43)
+    (aset ct ?I 44)
+    (aset ct ?J 45)
+    (aset ct ?K 46)
+    (aset ct ?L 47)
+    (aset ct ?M 48)
+    (aset ct ?N 49)
+    (aset ct ?O 50)
+    (aset ct ?P 51)
+    (aset ct ?Q 52)
+    (aset ct ?R 53)
+    (aset ct ?S 54)
+    (aset ct ?T 55)
+    (aset ct ?U 56)
+    (aset ct ?V 57)
+    (aset ct ?W 58)
+    (aset ct ?X 59)
+    (aset ct ?Y 60)
+    (aset ct ?Z 61)
+    ct)
   "The table which stores values for the character keys.")
-(aset strokes-char-table ?0 0)
-(aset strokes-char-table ?1 1)
-(aset strokes-char-table ?2 2)
-(aset strokes-char-table ?3 3)
-(aset strokes-char-table ?4 4)
-(aset strokes-char-table ?5 5)
-(aset strokes-char-table ?6 6)
-(aset strokes-char-table ?7 7)
-(aset strokes-char-table ?8 8)
-(aset strokes-char-table ?9 9)
-(aset strokes-char-table ?a 10)
-(aset strokes-char-table ?b 11)
-(aset strokes-char-table ?c 12)
-(aset strokes-char-table ?d 13)
-(aset strokes-char-table ?e 14)
-(aset strokes-char-table ?f 15)
-(aset strokes-char-table ?g 16)
-(aset strokes-char-table ?h 17)
-(aset strokes-char-table ?i 18)
-(aset strokes-char-table ?j 19)
-(aset strokes-char-table ?k 20)
-(aset strokes-char-table ?l 21)
-(aset strokes-char-table ?m 22)
-(aset strokes-char-table ?n 23)
-(aset strokes-char-table ?o 24)
-(aset strokes-char-table ?p 25)
-(aset strokes-char-table ?q 26)
-(aset strokes-char-table ?r 27)
-(aset strokes-char-table ?s 28)
-(aset strokes-char-table ?t 29)
-(aset strokes-char-table ?u 30)
-(aset strokes-char-table ?v 31)
-(aset strokes-char-table ?w 32)
-(aset strokes-char-table ?x 33)
-(aset strokes-char-table ?y 34)
-(aset strokes-char-table ?z 35)
-(aset strokes-char-table ?A 36)
-(aset strokes-char-table ?B 37)
-(aset strokes-char-table ?C 38)
-(aset strokes-char-table ?D 39)
-(aset strokes-char-table ?E 40)
-(aset strokes-char-table ?F 41)
-(aset strokes-char-table ?G 42)
-(aset strokes-char-table ?H 43)
-(aset strokes-char-table ?I 44)
-(aset strokes-char-table ?J 45)
-(aset strokes-char-table ?K 46)
-(aset strokes-char-table ?L 47)
-(aset strokes-char-table ?M 48)
-(aset strokes-char-table ?N 49)
-(aset strokes-char-table ?O 50)
-(aset strokes-char-table ?P 51)
-(aset strokes-char-table ?Q 52)
-(aset strokes-char-table ?R 53)
-(aset strokes-char-table ?S 54)
-(aset strokes-char-table ?T 55)
-(aset strokes-char-table ?U 56)
-(aset strokes-char-table ?V 57)
-(aset strokes-char-table ?W 58)
-(aset strokes-char-table ?X 59)
-(aset strokes-char-table ?Y 60)
-(aset strokes-char-table ?Z 61)
 
 (defconst strokes-base64-chars
   ;; I wanted to make this a vector of individual like (vector ?0

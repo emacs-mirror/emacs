@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2020 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -320,6 +320,8 @@ early init file.")
 This variable is used to define the proper function and keypad
 keys for use under X.  It is used in a fashion analogous to the
 environment variable TERM.")
+(make-obsolete-variable 'keyboard-type nil "28.1")
+(internal-make-var-non-special 'keyboard-type)
 
 (defvar window-setup-hook nil
   "Normal hook run after loading init files and handling the command line.
@@ -456,7 +458,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; The Windows version doesn't report meaningful inode numbers, so
 	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
-			(nthcdr 10 (file-attributes this-dir))))
+			(file-attribute-file-identifier
+                         (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
@@ -517,6 +520,60 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
+(defvar comp--compilable)
+(defvar comp--delayed-sources)
+(defun startup--require-comp-safely ()
+  "Require the native compiler avoiding circular dependencies."
+  (when (featurep 'native-compile)
+    ;; Require comp with `comp--compilable' set to nil to break
+    ;; circularity.
+    (let ((comp--compilable nil))
+      (require 'comp))
+    (native--compile-async comp--delayed-sources nil 'late)
+    (setq comp--delayed-sources nil)))
+
+(declare-function native--compile-async "comp.el"
+                  (files &optional recursively load selector))
+(defun startup--honor-delayed-native-compilations ()
+  "Honor pending delayed deferred native compilations."
+  (when (and (native-comp-available-p)
+             comp--delayed-sources)
+    (startup--require-comp-safely))
+  (setq comp--compilable t))
+
+(defvar native-comp-eln-load-path)
+(defvar native-comp-jit-compilation)
+(defvar native-comp-enable-subr-trampolines)
+
+(defvar startup--original-eln-load-path nil
+  "Original value of `native-comp-eln-load-path'.")
+
+(defun startup-redirect-eln-cache (cache-directory)
+  "Redirect the user's eln-cache directory to CACHE-DIRECTORY.
+CACHE-DIRECTORY must be a single directory, a string.
+This function destructively changes `native-comp-eln-load-path'
+so that its first element is CACHE-DIRECTORY.  If CACHE-DIRECTORY
+is not an absolute file name, it is interpreted relative
+to `user-emacs-directory'.
+For best results, call this function in your early-init file,
+so that the rest of initialization and package loading uses
+the updated value."
+  ;; Remove the original eln-cache.
+  (setq native-comp-eln-load-path (cdr native-comp-eln-load-path))
+  ;; Add the new eln-cache.
+  (push (expand-file-name (file-name-as-directory cache-directory)
+                          user-emacs-directory)
+        native-comp-eln-load-path))
+
+(defun startup--update-eln-cache ()
+  "Update the user eln-cache directory due to user customizations."
+  ;; Don't override user customizations!
+  (when (equal native-comp-eln-load-path
+               startup--original-eln-load-path)
+    (startup-redirect-eln-cache "eln-cache")
+    (setq startup--original-eln-load-path
+          (copy-sequence native-comp-eln-load-path))))
+
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
@@ -533,6 +590,24 @@ It is the default value of the variable `top-level'."
 	      startup--xdg-config-default)))
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
+
+    (when (featurep 'native-compile)
+      (unless (native-comp-available-p)
+        ;; Disable deferred async compilation and trampoline synthesis
+        ;; in this session.  This is necessary if libgccjit is not
+        ;; available on MS-Windows, but Emacs was built with
+        ;; native-compilation support.
+        (setq native-comp-jit-compilation nil
+              native-comp-enable-subr-trampolines nil))
+
+      ;; Form `native-comp-eln-load-path'.
+      (let ((path-env (getenv "EMACSNATIVELOADPATH")))
+        (when path-env
+          (dolist (path (split-string path-env path-separator))
+            (unless (string= "" path)
+              (push path native-comp-eln-load-path)))))
+      (push (expand-file-name "eln-cache/" user-emacs-directory)
+            native-comp-eln-load-path))
 
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
@@ -620,6 +695,18 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
+        (when (featurep 'native-compile)
+          (let ((npath (symbol-value 'native-comp-eln-load-path)))
+            (set 'native-comp-eln-load-path
+                 (mapcar (lambda (dir)
+                           ;; Call expand-file-name to remove all the
+                           ;; pesky ".." from the directyory names in
+                           ;; native-comp-eln-load-path.
+                           (expand-file-name
+                            (decode-coding-string dir coding t)))
+                         npath)))
+          (setq startup--original-eln-load-path
+                (copy-sequence native-comp-eln-load-path)))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name
@@ -632,8 +719,6 @@ It is the default value of the variable `top-level'."
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
         (messages-buffer-mode)
-        ;; Make it easy to do like "tail -f".
-        (set (make-local-variable 'window-point-insertion-type) t)
         ;; Give *Messages* the same default-directory as *scratch*,
         ;; just to keep things predictable.
 	(setq default-directory (or dir (expand-file-name "~/")))))
@@ -669,6 +754,7 @@ It is the default value of the variable `top-level'."
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
+
 	;; Do this again, in case .emacs defined more abbreviations.
 	(if default-directory
 	    (setq default-directory (abbreviate-file-name default-directory)))
@@ -713,10 +799,13 @@ It is the default value of the variable `top-level'."
 	  ;; face-font-rescale-alist into account.  For such
 	  ;; situations, we ought to have a way to find all font
 	  ;; objects and regenerate them; currently we do not.  As a
-	  ;; workaround, we specifically reset te default face's :font
-	  ;; attribute here.  See bug#1785.
-	  (unless (eq face-font-rescale-alist
-		      old-face-font-rescale-alist)
+	  ;; workaround, we specifically reset the default face's :font
+	  ;; attribute here, if it was rescaled.  See bug#1785.
+	  (when (and (display-multi-font-p)
+                     (not (eq face-font-rescale-alist
+		              old-face-font-rescale-alist))
+                     (assoc (font-xlfd-name (face-attribute 'default :font))
+                            face-font-rescale-alist #'string-match-p))
 	    (set-face-attribute 'default nil :font (font-spec)))
 
 	  ;; Modify the initial frame based on what .emacs puts into
@@ -735,6 +824,7 @@ It is the default value of the variable `top-level'."
 	    (font-menu-add-default))
 	(unless inhibit-startup-hooks
 	  (run-hooks 'window-setup-hook))))
+
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
     ;; We are careful to do it late (after term-setup-hook), although the
@@ -752,7 +842,8 @@ It is the default value of the variable `top-level'."
           (if (string-match "\\`DISPLAY=" varval)
               (setq display varval))))
       (when display
-        (delete display process-environment)))))
+        (delete display process-environment))))
+  (startup--honor-delayed-native-compilations))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 ;; Command-line options supported by tty's:
@@ -921,7 +1012,8 @@ the name of the init-file to load.  If this file cannot be
 loaded, and ALTERNATE-FILENAME-FUNCTION is non-nil, then it is
 called with no arguments and should return the name of an
 alternate init-file to load.  If LOAD-DEFAULTS is non-nil, then
-load default.el after the init-file.
+load default.el after the init-file, unless `inhibit-default-init'
+is non-nil.
 
 This function sets `user-init-file' to the name of the loaded
 init-file, or to a default value if loading is not possible."
@@ -930,7 +1022,11 @@ init-file, or to a default value if loading is not possible."
         (debug-on-error-initial
          (if (eq init-file-debug t)
              'startup
-           init-file-debug)))
+           init-file-debug))
+        ;; The init file might contain byte-code with embedded NULs,
+        ;; which can cause problems when read back, so disable nul
+        ;; byte detection.  (Bug#52554)
+        (inhibit-null-byte-detection t))
     (let ((debug-on-error debug-on-error-initial))
       (condition-case-unless-debug error
           (when init-file-user
@@ -949,10 +1045,10 @@ init-file, or to a default value if loading is not possible."
 
               (when (and (eq user-init-file t) alternate-filename-function)
                 (let ((alt-file (funcall alternate-filename-function)))
-                  (and (equal (file-name-extension alt-file) "el")
-                       (setq alt-file (file-name-sans-extension alt-file)))
 		  (unless init-file-name
 		    (setq init-file-name alt-file))
+                  (and (equal (file-name-extension alt-file) "el")
+                       (setq alt-file (file-name-sans-extension alt-file)))
                   (load alt-file 'noerror 'nomessage)))
 
               ;; If we did not find the user's init file, set
@@ -963,22 +1059,33 @@ init-file, or to a default value if loading is not possible."
 
             ;; If we loaded a compiled file, set `user-init-file' to
             ;; the source version if that exists.
-            (when (equal (file-name-extension user-init-file)
-                         "elc")
-              (let* ((source (file-name-sans-extension user-init-file))
-                     (alt (concat source ".el")))
-                (setq source (cond ((file-exists-p alt) alt)
-                                   ((file-exists-p source) source)
-                                   (t nil)))
-                (when source
-                  (when (file-newer-than-file-p source user-init-file)
-                    (message "Warning: %s is newer than %s"
-                             source user-init-file)
-                    (sit-for 1))
-                  (setq user-init-file source))))
+            (if (equal (file-name-extension user-init-file) "elc")
+                (let* ((source (file-name-sans-extension user-init-file))
+                       (alt (concat source ".el")))
+                  (setq source (cond ((file-exists-p alt) alt)
+                                     ((file-exists-p source) source)
+                                     (t nil)))
+                  (when source
+                    (when (file-newer-than-file-p source user-init-file)
+                      (message "Warning: %s is newer than %s"
+                               source user-init-file)
+                      (sit-for 1))
+                    (setq user-init-file source)))
+              ;; Else, perhaps the user init file was compiled
+              (when (and (equal (file-name-extension user-init-file) "eln")
+                         ;; The next test is for builds without native
+                         ;; compilation support or builds with unexec.
+                         (boundp 'comp-eln-to-el-h))
+                (if-let (source (gethash (file-name-nondirectory user-init-file)
+                                         comp-eln-to-el-h))
+                    ;; source exists or the .eln file would not load
+                    (setq user-init-file source)
+                  (message "Warning: unknown source file for init file %S"
+                           user-init-file)
+                  (sit-for 1))))
 
-            (when load-defaults
-
+            (when (and load-defaults
+                       (not inhibit-default-init))
               ;; Prevent default.el from changing the value of
               ;; `inhibit-startup-screen'.
               (let ((inhibit-startup-screen nil))
@@ -1007,6 +1114,9 @@ the `--debug-init' option to view a complete error backtrace."
 
     (when debug-on-error-should-be-set
       (setq debug-on-error debug-on-error-from-init-file))))
+
+(defvar lisp-directory nil
+  "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
 
 (defun command-line ()
   "A subroutine of `normal-top-level'.
@@ -1039,8 +1149,7 @@ Amongst another things, it parses the command-line arguments."
   (let ((simple-file-name
 	 ;; Look for simple.el or simple.elc and use their directory
 	 ;; as the place where all Lisp files live.
-	 (locate-file "simple" load-path (get-load-suffixes)))
-	lisp-dir)
+	 (locate-file "simple" load-path (get-load-suffixes))))
     ;; Don't abort if simple.el cannot be found, but print a warning.
     ;; Although in most usage we are going to cryptically abort a moment
     ;; later anyway, due to missing required bidi data files (eg bug#13430).
@@ -1056,12 +1165,13 @@ please check its value")
 	  (unless (file-readable-p lispdir)
 	    (princ (format "Lisp directory %s not readable?" lispdir))
 	    (terpri)))
-      (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+      (setq lisp-directory
+            (file-truename (file-name-directory simple-file-name)))
       (setq load-history
 	    (mapcar (lambda (elt)
 		      (if (and (stringp (car elt))
 			       (not (file-name-absolute-p (car elt))))
-			  (cons (concat lisp-dir
+			  (cons (concat lisp-directory
 					(car elt))
 				(cdr elt))
 			elt))
@@ -1094,7 +1204,8 @@ please check its value")
                          ("--no-x-resources") ("--debug-init")
                          ("--user") ("--iconic") ("--icon-type") ("--quick")
 			 ("--no-blinking-cursor") ("--basic-display")
-                         ("--dump-file") ("--temacs")))
+                         ("--dump-file") ("--temacs") ("--seccomp")
+                         ("--init-directory" "--no-comp-spawn")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1114,6 +1225,14 @@ please check its value")
 		  (t
 		   (setq argval nil
 			 argi orig-argi)))))
+
+        ;; We handle "-scripteval" further down, but we have to
+        ;; inhibit loading the user init file first.  (This is for
+        ;; "emacs -x" handling.)
+	(when (equal argi "-scripteval")
+	  (setq init-file-user nil
+                noninteractive t))
+
 	(cond
 	 ;; The --display arg is handled partly in C, partly in Lisp.
 	 ;; When it shows up here, we just put it back to be handled
@@ -1134,19 +1253,32 @@ please check its value")
 	  (push '(vertical-scroll-bars . nil) initial-frame-alist))
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
+	 ((member argi '("-init-directory"))
+	  (setq user-emacs-directory (or argval (pop args))
+                user-emacs-directory (if (stringp user-emacs-directory)
+                                         (file-name-as-directory
+                                          (expand-file-name
+                                           user-emacs-directory
+                                           command-line-default-directory))
+                                       user-emacs-directory)
+                argval nil))
 	 ((member argi '("-u" "-user"))
 	  (setq init-file-user (or argval (pop args))
 		argval nil))
 	 ((equal argi "-no-site-file")
 	  (setq site-run-file nil)
 	  (put 'site-run-file 'standard-value '(nil)))
+         ((equal argi "-no-comp-spawn")
+          (defvar comp-no-spawn)
+          (setq comp-no-spawn t))
 	 ((equal argi "-debug-init")
 	  (setq init-file-debug t))
 	 ((equal argi "-iconic")
 	  (push '(visibility . icon) initial-frame-alist))
 	 ((member argi '("-nbc" "-no-blinking-cursor"))
 	  (setq no-blinking-cursor t))
-         ((member argi '("-dump-file" "-temacs"))  ; Handled in C
+         ((member argi '("-dump-file" "-temacs" "-seccomp"))
+          ;; Handled in C
           (or argval (pop args))
           (setq argval nil))
 	 ;; Push the popped arg back on the list of arguments.
@@ -1165,13 +1297,17 @@ please check its value")
          (setcdr command-line-args args)))
 
   ;; Re-evaluate predefined variables whose initial value depends on
-  ;; the runtime context.
-  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
-    (setq custom-delayed-init-variables
-          ;; Initialize them in the same order they were loaded, in case there
-          ;; are dependencies between them.
-          (nreverse custom-delayed-init-variables))
-    (mapc 'custom-reevaluate-setting custom-delayed-init-variables))
+  ;; the runtime context.  But delay the warning about
+  ;; `user-emacs-directory' being inaccessible until after processing
+  ;; the init file and the command-line arguments, in case the user
+  ;; customized `user-emacs-directory-warning' to nil via those.
+  (let ((user-emacs-directory-warning nil))
+    (when (listp custom-delayed-init-variables)
+      (mapc #'custom-reevaluate-setting
+            ;; Initialize them in the same order they were loaded, in
+            ;; case there are dependencies between them.
+            (reverse custom-delayed-init-variables))))
+  (setq custom-delayed-init-variables t)
 
   ;; Warn for invalid user name.
   (when init-file-user
@@ -1209,7 +1345,8 @@ please check its value")
 		(and (eq xdg-dir user-emacs-directory)
 		     (not (eq xdg-dir startup--xdg-config-default))))
 	    user-emacs-directory
-	  ;; The name is not obvious, so access more directories to calculate it.
+	  ;; The name is not obvious, so access more directories
+	  ;; to calculate it.
 	  (setq xdg-dir (concat "~" init-file-user "/.config/emacs/"))
 	  (startup--xdg-or-homedot xdg-dir init-file-user)))
 
@@ -1225,22 +1362,18 @@ please check its value")
       startup-init-directory)))
   (setq early-init-file user-init-file)
 
+  ;; Amend `native-comp-eln-load-path', since the early-init file may
+  ;; have altered `user-emacs-directory' and/or changed the eln-cache
+  ;; directory.
+  (when (featurep 'native-compile)
+    (startup--update-eln-cache))
+
   ;; If any package directory exists, initialize the package system.
   (and user-init-file
        package-enable-at-startup
        (not (bound-and-true-p package--activated))
        (catch 'package-dir-found
-	 (let (dirs)
-	   (if (boundp 'package-directory-list)
-	       (setq dirs package-directory-list)
-	     (dolist (f load-path)
-	       (and (stringp f)
-		    (equal (file-name-nondirectory f) "site-lisp")
-		    (push (expand-file-name "elpa" f) dirs))))
-	   (push (if (boundp 'package-user-dir)
-		     package-user-dir
-		   (locate-user-emacs-file "elpa"))
-		 dirs)
+	 (let ((dirs (cons package-user-dir package-directory-list)))
 	   (dolist (dir dirs)
 	     (when (file-directory-p dir)
 	       (dolist (subdir (directory-files dir))
@@ -1298,8 +1431,7 @@ please check its value")
     (if (or noninteractive emacs-basic-display)
 	(setq menu-bar-mode nil
 	      tab-bar-mode nil
-	      tool-bar-mode nil
-	      no-blinking-cursor t))
+	      tool-bar-mode nil))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)
@@ -1308,25 +1440,9 @@ please check its value")
     (unless noninteractive
       (tool-bar-setup)))
 
-  ;; Turn off blinking cursor if so specified in X resources.  This is here
-  ;; only because all other settings of no-blinking-cursor are here.
-  (unless (or noninteractive
-	      emacs-basic-display
-	      (and (memq window-system '(x w32 ns))
-		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
-				'("no" "off" "false" "0")))))
-    (setq no-blinking-cursor t))
-
   (unless noninteractive
     (startup--setup-quote-display)
     (setq internal--text-quoting-flag t))
-
-  ;; Re-evaluate again the predefined variables whose initial value
-  ;; depends on the runtime context, in case some of them depend on
-  ;; the window-system features.  Example: blink-cursor-mode.
-  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
-    (mapc 'custom-reevaluate-setting custom-delayed-init-variables)
-    (setq custom-delayed-init-variables nil))
 
   (normal-erase-is-backspace-setup-frame)
 
@@ -1382,9 +1498,15 @@ please check its value")
          "~/.emacs")))
      (lambda ()
        (expand-file-name
-        "init"
+        "init.el"
         startup-init-directory))
-     (not inhibit-default-init))
+     t)
+
+    ;; Amend `native-comp-eln-load-path' again, since the early-init
+    ;; file may have altered `user-emacs-directory' and/or changed the
+    ;; eln-cache directory.
+    (when (featurep 'native-compile)
+      (startup--update-eln-cache))
 
     (when (and deactivate-mark transient-mark-mode)
       (with-current-buffer (window-buffer)
@@ -1410,7 +1532,7 @@ please check its value")
 	 (equal user-mail-address
 		(let (mail-host-address)
 		  (ignore-errors
-		    (eval (car (get 'user-mail-address 'standard-value))))))
+		    (custom--standard-value 'user-mail-address))))
 	 (custom-reevaluate-setting 'user-mail-address))
 
     ;; If parameter have been changed in the init file which influence
@@ -1445,8 +1567,20 @@ please check its value")
 	(list 'error
 	      (substitute-command-keys "Memory exhausted--use \\[save-some-buffers] then exit and restart Emacs")))
 
+  ;; Reevaluate `user-emacs-directory-warning' before processing
+  ;; '--eval' arguments, so that the user could override the default
+  ;; value in the '--eval' forms.
+  (custom-reevaluate-setting 'user-emacs-directory-warning)
+
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
+
+  ;; Check if `user-emacs-directory' is accessible and warn if it
+  ;; isn't, unless `user-emacs-directory-warning' was customized to
+  ;; disable that warning.
+  (when (and user-emacs-directory-warning
+             (not (file-accessible-directory-p user-emacs-directory)))
+    (locate-user-emacs-file ""))
 
   ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
   ;; trying to load gnus could load the wrong file.
@@ -1458,7 +1592,8 @@ please check its value")
   ;; or EMACSLOADPATH, so we basically always have to check.
   (let (warned)
     (dolist (dir load-path)
-      (and (not warned)
+      (and (not noninteractive)
+           (not warned)
 	   (stringp dir)
 	   (string-equal (file-name-as-directory (expand-file-name dir))
 			 (expand-file-name user-emacs-directory))
@@ -1466,7 +1601,7 @@ please check its value")
 	   (display-warning 'initialization
 			    (format-message "\
 Your `load-path' seems to contain\n\
-your `.emacs.d' directory: %s\n\
+your `user-emacs-directory': %s\n\
 This is likely to cause problems...\n\
 Consider using a subdirectory instead, e.g.: %s"
                                     dir (expand-file-name
@@ -1508,13 +1643,13 @@ to reading the init file), or afterwards when the user first
 opens a graphical frame.
 
 This can set the values of `menu-bar-mode', `tool-bar-mode',
-`tab-bar-mode', and `no-blinking-cursor', as well as the `cursor' face.
+`tab-bar-mode', and `blink-cursor-mode', as well as the `cursor' face.
 Changed settings will be marked as \"CHANGED outside of Customize\"."
   (let ((no-vals  '("no" "off" "false" "0"))
 	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
 		    ("toolBar" "ToolBar" tool-bar-mode nil)
 		    ("scrollBar" "ScrollBar" scroll-bar-mode nil)
-		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
+		    ("cursorBlink" "CursorBlink" blink-cursor-mode nil))))
     (dolist (x settings)
       (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
 	  (set (nth 2 x) (nth 3 x)))))
@@ -1548,17 +1683,22 @@ If this is nil, no message will be displayed."
   `((:face (variable-pitch font-lock-comment-face)
      "Welcome to "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button)
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
             `("GNU/Linux"
-              ,(lambda (_button) (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+              ,(lambda (_button)
+                 (let ((browse-url-browser-function 'eww-browse-url))
+                   (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
           `("GNU" ,(lambda (_button)
-		     (browse-url "https://www.gnu.org/gnu/thegnuproject.html"))
+		     (let ((browse-url-browser-function 'eww-browse-url))
+                       (browse-url "https://www.gnu.org/gnu/thegnuproject.html")))
 	    "Browse https://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
@@ -1591,7 +1731,8 @@ If this is nil, no message will be displayed."
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1614,22 +1755,31 @@ Each element in the list should be a list of strings or pairs
   `((:face (variable-pitch font-lock-comment-face)
      "This is "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button)
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
-     ", one component of the "
+     ", a text editor and more.\nIt's a component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
 	   `("GNU/Linux"
 	     ,(lambda (_button)
-                (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+                (let ((browse-url-browser-function 'eww-browse-url))
+                  (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
-	 `("GNU" ,(lambda (_button) (describe-gnu-project))
+	 `("GNU" ,(lambda (_button)
+                    (let ((browse-url-browser-function 'eww-browse-url))
+                      (describe-gnu-project)))
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (variable-pitch font-lock-builtin-face)
      "\n"
-     ,(lambda () (emacs-version))
+     ,(lambda ()
+        (with-temp-buffer
+          (insert (emacs-version))
+          (fill-region (point-min) (point-max))
+          (buffer-string)))
      "\n"
      :face (variable-pitch (:height 0.8))
      ,(lambda () emacs-copyright)
@@ -1644,7 +1794,9 @@ Each element in the list should be a list of strings or pairs
 	    ,(lambda (_button) (info "(emacs)Contributing")))
      "\tHow to report bugs and contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" ,(lambda (_button) (describe-gnu-project)))
+     :link ("GNU and Freedom" ,(lambda (_button)
+                                 (let ((browse-url-browser-function 'eww-browse-url))
+                                   (describe-gnu-project))))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
@@ -1682,7 +1834,8 @@ Each element in the list should be a list of strings or pairs
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org\n"
      :link ("Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1780,9 +1933,19 @@ a face or button specification."
 	 (window-width (window-width)))
     (when img
       (when (> window-width image-width)
-	;; Center the image in the window.
-	(insert (propertize " " 'display
-			    `(space :align-to (+ center (-0.5 . ,img)))))
+        ;; Center the image above text.
+        ;;  NB. The logo used to be centered in the window, which made
+        ;;      it align poorly with the non-centered text on large
+        ;;      displays.  Arguably it would be better to center both
+        ;;      text and image, but this will do for now.  -- SK
+        (let ((text-width 80)
+              ;; The below value chosen to avoid splash screen being
+              ;; visually unbalanced.  This needs to be eye-balled.
+              (adjust-left 3))
+          (insert (propertize " " 'display
+                              `(space :align-to (+ ,(- (/ text-width 2)
+                                                       adjust-left)
+                                                   (-0.5 . ,img))))))
 
 	;; Change the color of the XPM version of the splash image
 	;; so that it is visible with a dark frame background.
@@ -1794,7 +1957,9 @@ a face or button specification."
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
 		     'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
-		     'action (lambda (_button) (browse-url "https://www.gnu.org/"))
+		     'action (lambda (_button)
+                               (let ((browse-url-browser-function 'eww-browse-url))
+                                 (browse-url "https://www.gnu.org/")))
 		     'follow-link t)
 	(insert "\n\n")))))
 
@@ -1803,28 +1968,35 @@ a face or button specification."
   (unless concise
     (fancy-splash-insert
      :face 'variable-pitch
-     "\nTo start...     "
+     "\nTo start...\t"
      :link `("Open a File"
 	     ,(lambda (_button) (call-interactively 'find-file))
 	     "Specify a new file's name, to edit the file")
-     "     "
+     "\t\t"
      :link `("Open Home Directory"
 	     ,(lambda (_button) (dired "~"))
 	     "Open your home directory, to operate on its files")
-     "     "
+     "\n\t"
      :link `("Customize Startup"
 	     ,(lambda (_button) (customize-group 'initialization))
 	     "Change initialization settings including this screen")
+     "\t"
+     :link `("Explore Packages"
+	     ,(lambda (_button) (call-interactively 'package-list-packages))
+	     "Explore, install and remove Emacs packages (requires Internet connection)")
      "\n"))
   (fancy-splash-insert
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
-  (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
-		       "\nThis is "
-		       (emacs-version)
-		       "\n"
-		       :face '(variable-pitch (:height 0.8))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
+		         "\nThis is "
+		         (emacs-version)
+		         "\n")
+    (fill-region (point-min) (point-max)))
+  (fancy-splash-insert :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
   (when auto-save-list-file-prefix
@@ -1908,7 +2080,6 @@ splash screen in another window."
 	(insert "\n")
 	(fancy-startup-tail concise))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22
 	    buffer-read-only t)
       (set-buffer-modified-p nil)
@@ -1946,11 +2117,11 @@ splash screen in another window."
 	(goto-char (point-min))
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22)
       (setq buffer-read-only t)
+      ;; Place point somewhere it doesn't cover a character.
       (goto-char (point-min))
-      (forward-line 3))))
+      (re-search-forward "\n$" nil nil 2))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1962,6 +2133,8 @@ we put it on this frame."
     ;; frame visible.
     (if (eq (window-system) 'w32)
 	(sit-for 0 t))
+    (if (eq (window-system) 'pgtk)
+	(sit-for 0.1 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
@@ -1999,7 +2172,7 @@ splash screen in another window."
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq default-directory command-line-default-directory)
-      (set (make-local-variable 'tab-width) 8)
+      (setq-local tab-width 8)
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))
@@ -2103,8 +2276,11 @@ To quit a partially entered command, type Control-g.\n")
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
 
-  (insert "\n" (emacs-version)
-	  "\n" emacs-copyright))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright))
 
 (defun normal-no-mouse-startup-screen ()
   "Show a splash screen suitable for displays without mouse support."
@@ -2181,10 +2357,14 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
   (insert "\t\t")
   (insert-button "Open *scratch* buffer"
 		 'action (lambda (_button) (switch-to-buffer
-                                       (startup--get-buffer-create-scratch)))
+                                       (get-scratch-buffer-create)))
 		 'follow-link t)
   (insert "\n")
-  (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright "\n")
   (insert (substitute-command-keys
 	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
@@ -2224,7 +2404,9 @@ Type \\[describe-distribution] for information on "))
   (insert "\tHow to report bugs and contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (_button) (describe-gnu-project))
+		 'action (lambda (_button)
+                           (let ((browse-url-browser-function 'eww-browse-url))
+                             (describe-gnu-project)))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
@@ -2307,11 +2489,8 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'about-emacs 'display-about-screen)
 (defalias 'display-splash-screen 'display-startup-screen)
 
-(defun startup--get-buffer-create-scratch ()
-  (or (get-buffer "*scratch*")
-      (with-current-buffer (get-buffer-create "*scratch*")
-        (set-buffer-major-mode (current-buffer))
-        (current-buffer))))
+;; This avoids byte-compiler warning in the unexec build.
+(declare-function pdumper-stats "pdumper.c" ())
 
 (defun command-line-1 (args-left)
   "A subroutine of `command-line'."
@@ -2362,6 +2541,7 @@ A fancy display is used on graphic displays, normal otherwise."
                ;; and long versions of what's on command-switch-alist.
                (longopts
                 (append '("--funcall" "--load" "--insert" "--kill"
+                          "--dump-file" "--seccomp"
                           "--directory" "--eval" "--execute" "--no-splash"
                           "--find-file" "--visit" "--file" "--no-desktop")
                         (mapcar (lambda (elt) (concat "-" (car elt)))
@@ -2384,6 +2564,7 @@ nil default-directory" name)
 				  (command-line-normalize-file-name name)
 				  dir))
 			   (buf (find-file-noselect file)))
+                      (file-name-history--add file)
 		      (setq displayable-buffers (cons buf displayable-buffers))
                       ;; Set the file buffer to the current buffer so
                       ;; that it will be used with "--eval" and
@@ -2493,19 +2674,30 @@ nil default-directory" name)
                                    (or argval (pop command-line-args-left))))
                             ;; Take file from default dir if it exists there;
                             ;; otherwise let `load' search for it.
-                            (file-ex (expand-file-name file)))
+                            (file-ex (file-truename (expand-file-name file))))
                        (when (file-regular-p file-ex)
                          (setq file file-ex))
                        (load file nil t)))
 
                     ;; This is used to handle -script.  It's not clear
                     ;; we need to document it (it is totally internal).
-                    ((member argi '("-scriptload"))
+                    ((member argi '("-scriptload" "-scripteval"))
                      (let* ((file (command-line-normalize-file-name
                                    (or argval (pop command-line-args-left))))
                             ;; Take file from default dir.
-                            (file-ex (expand-file-name file)))
-                       (load file-ex nil t t)))
+                            (file-ex (expand-file-name file))
+                            (truename (file-truename file-ex)))
+                       ;; We want to use the truename here if we can,
+                       ;; because that makes `eval-after-load' work
+                       ;; more reliably.  But if the file is, for
+                       ;; instance, /dev/stdin, the truename doesn't
+                       ;; actually exist on some systems.
+                       (when (file-exists-p truename)
+                         (setq file-ex truename))
+                       (if (equal argi "-scripteval")
+                           ;; This will kill Emacs.
+                           (command-line--eval-script file-ex)
+                         (command-line--load-script file-ex))))
 
                     ((equal argi "-insert")
                      (setq inhibit-startup-screen t)
@@ -2513,6 +2705,11 @@ nil default-directory" name)
                      (or (stringp tem)
                          (error "File name omitted from `-insert' option"))
                      (insert-file-contents (command-line-normalize-file-name tem)))
+
+                    ((or (equal argi "-dump-file")
+                         (equal argi "-seccomp"))
+                     ;; This was processed in C.
+                     (or argval (pop command-line-args-left)))
 
                     ((equal argi "-kill")
                      (kill-emacs t))
@@ -2583,7 +2780,7 @@ nil default-directory" name)
     (when (eq initial-buffer-choice t)
       ;; When `initial-buffer-choice' equals t make sure that *scratch*
       ;; exists.
-      (startup--get-buffer-create-scratch))
+      (get-scratch-buffer-create))
 
     ;; If *scratch* exists and is empty, insert initial-scratch-message.
     ;; Do this before switching to *scratch* below to handle bug#9605.
@@ -2607,7 +2804,7 @@ nil default-directory" name)
 		   ((functionp initial-buffer-choice)
 		    (funcall initial-buffer-choice))
                    ((eq initial-buffer-choice t)
-                    (startup--get-buffer-create-scratch))
+                    (get-scratch-buffer-create))
                    (t
                     (error "`initial-buffer-choice' must be a string, a function, or t")))))
         (unless (buffer-live-p buf)
@@ -2622,13 +2819,28 @@ nil default-directory" name)
           ;; `nondisplayed-buffers-p' is true if there exist buffers
           ;; in `displayable-buffers' that were not displayed to the
           ;; user.
-          (nondisplayed-buffers-p nil))
+          (nondisplayed-buffers-p nil)
+          (old-face-font-rescale-alist face-font-rescale-alist))
       (when (> displayable-buffers-len 0)
         (switch-to-buffer (car displayable-buffers)))
-      (when (> displayable-buffers-len 1)
-        (switch-to-buffer-other-window (car (cdr displayable-buffers)))
+      (cond
+       ;; Two buffers; display them both.
+       ((= displayable-buffers-len 2)
+        (switch-to-buffer-other-window (cadr displayable-buffers))
         ;; Focus on the first buffer.
         (other-window -1))
+       ;; More than two buffers: Ensure that the buffer display order
+       ;; reflects the order they were given on the command line.
+       ;; (This will end up with a `next-buffer' order that's in
+       ;; reverse order -- the final file is the focused one, and then
+       ;; the rest are in `next-buffer' in descending order.
+       ((> displayable-buffers-len 2)
+        (let ((bufs (reverse (cdr displayable-buffers))))
+          (switch-to-buffer-other-window (pop bufs))
+          (dolist (buf bufs)
+            (switch-to-buffer buf nil t))
+          ;; Focus on the first buffer.
+          (other-window -1))))
       (when (> displayable-buffers-len 2)
         (setq nondisplayed-buffers-p t))
 
@@ -2652,6 +2864,15 @@ nil default-directory" name)
         ;; before doing any output.
         (run-hooks 'emacs-startup-hook 'term-setup-hook)
 
+        ;; See the commentary in `normal-top-level' for why we do
+        ;; this.
+	(when (and (display-multi-font-p)
+                   (not (eq face-font-rescale-alist
+		            old-face-font-rescale-alist))
+                   (assoc (font-xlfd-name (face-attribute 'default :font))
+                          face-font-rescale-alist #'string-match-p))
+	  (set-face-attribute 'default nil :font (font-spec)))
+
         ;; It's important to notice the user settings before we
         ;; display the startup message; otherwise, the settings
         ;; won't take effect until the user gives the first
@@ -2674,6 +2895,35 @@ nil default-directory" name)
         ;; 	(setq menubar-bindings-done t))
 
         (display-startup-screen (> displayable-buffers-len 0))))))
+
+(defun command-line--load-script (file)
+  (load-with-code-conversion
+   file file nil t
+   (lambda (buffer file)
+     (with-current-buffer buffer
+       (goto-char (point-min))
+       ;; Removing the #! and then calling `eval-buffer' will make the
+       ;; reader not signal an error if it then turns out that the
+       ;; buffer is empty.
+       (when (looking-at "#!")
+         (delete-line))
+       (eval-buffer buffer nil file nil t)))))
+
+(defun command-line--eval-script (file)
+  (load-with-code-conversion
+   file file nil t
+   (lambda (buffer _)
+     (with-current-buffer buffer
+       (goto-char (point-min))
+       (when (looking-at "#!")
+         (forward-line))
+       (let (value form)
+         (while (ignore-error end-of-file
+                  (setq form (read (current-buffer))))
+           (setq value (eval form t)))
+         (kill-emacs (if (numberp value)
+                         value
+                       0)))))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."

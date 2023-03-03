@@ -1,6 +1,6 @@
 ;;; cl-generic-tests.el --- Tests for cl-generic.el functionality  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -27,7 +27,7 @@
 (require 'edebug)
 
 ;; Don't indirectly require `cl-lib' at run-time.
-(eval-when-compile (require 'ert))
+(require 'ert)
 (declare-function ert--should-signal-hook "ert")
 (declare-function ert--signal-should-execution "ert")
 (declare-function ert-fail "ert")
@@ -56,7 +56,14 @@
   (should (equal (cl--generic-1 'a nil) '(a)))
   (should (equal (cl--generic-1 4 nil) '("quatre" 4)))
   (should (equal (cl--generic-1 5 nil) '("cinq" 5)))
-  (should (equal (cl--generic-1 6 nil) '("six" a))))
+  (should (equal (cl--generic-1 6 nil) '("six" a)))
+  (defvar cl--generic-fooval 41)
+  (cl-defmethod cl--generic-1 ((_x (eql (+ cl--generic-fooval 1))) _y)
+    "forty-two")
+  (cl-defmethod cl--generic-1 (_x (_y (eql 42)))
+    "FORTY-TWO")
+  (should (equal (cl--generic-1 42 nil) "forty-two"))
+  (should (equal (cl--generic-1 nil 42) "FORTY-TWO")))
 
 (cl-defstruct cl-generic-struct-parent a b)
 (cl-defstruct (cl-generic-struct-child1 (:include cl-generic-struct-parent)) c)
@@ -193,9 +200,14 @@
   (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y))
   (cl-defmethod cl--generic-1 ((x t) y)
-    (list x y (cl-next-method-p)))
+    (list x y
+          (with-suppressed-warnings ((obsolete cl-next-method-p))
+            (cl-next-method-p))))
   (cl-defmethod cl--generic-1 ((_x (eql 4)) _y)
-    (cl-list* "quatre" (cl-next-method-p) (cl-call-next-method)))
+    (cl-list* "quatre"
+              (with-suppressed-warnings ((obsolete cl-next-method-p))
+                (cl-next-method-p))
+              (cl-call-next-method)))
   (should (equal (cl--generic-1 4 5) '("quatre" t 4 5 nil))))
 
 (ert-deftest cl-generic-test-12-context ()
@@ -269,9 +281,7 @@ Edebug symbols (Bug#42672)."
               (when (memq name instrumented-names)
                 (error "Duplicate definition of `%s'" name))
               (push name instrumented-names)
-              (edebug-new-definition name)))
-           ;; Make generated symbols reproducible.
-           (gensym-counter 10000))
+              (edebug-new-definition name))))
       (eval-buffer)
       (should (equal
                (reverse instrumented-names)
@@ -280,12 +290,34 @@ Edebug symbols (Bug#42672)."
                ;; FIXME: We'd rather have names such as
                ;; `cl-defgeneric/edebug/method/1 ((_ number))', but
                ;; that requires further changes to Edebug.
-               (list (intern "cl-generic-:method@10000 ((_ number))")
-                     (intern "cl-generic-:method@10001 ((_ string))")
-                     (intern "cl-generic-:method@10002 :around ((_ number))")
+               (list (intern "cl-defgeneric/edebug/method/1 (number)")
+                     (intern "cl-defgeneric/edebug/method/1 (string)")
+                     (intern "cl-defgeneric/edebug/method/1 :around (number)")
                      'cl-defgeneric/edebug/method/1
-                     (intern "cl-generic-:method@10003 ((_ number))")
+                     (intern "cl-defgeneric/edebug/method/2 (number)")
                      'cl-defgeneric/edebug/method/2))))))
+
+(cl-defgeneric cl-generic-tests--acc (x &optional y)
+  (declare (advertised-calling-convention (x) "671.2")))
+
+(cl-defmethod cl-generic-tests--acc ((x float)) (+ x 5.0))
+
+(ert-deftest cl-generic-tests--advertised-calling-convention-bug58563 ()
+  (should (equal (get-advertised-calling-convention
+                  (indirect-function 'cl-generic-tests--acc))
+                 '(x)))
+  (should
+   (condition-case err
+       (let ((lexical-binding t)
+             (byte-compile-debug t)
+             (byte-compile-error-on-warn t))
+         (byte-compile '(cl-defmethod cl-generic-tests--acc ((x list))
+                          (declare (advertised-calling-convention (y) "1.1"))
+                          (cons x '(5 5 5 5 5))))
+         nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Stray.*declare" (cadr err)))))))
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

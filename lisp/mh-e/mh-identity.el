@@ -1,6 +1,6 @@
-;;; mh-identity.el --- multiple identify support for MH-E
+;;; mh-identity.el --- multiple identify support for MH-E  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -33,31 +33,29 @@
 ;; in MH-Letter mode. The command `mh-insert-identity' can be used
 ;; to manually insert an identity.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
 
 (autoload 'mml-insert-tag "mml")
 
-(defvar mh-identity-pgg-default-user-id nil
-  "Holds the GPG key ID to be used by pgg.el.
+(define-obsolete-variable-alias 'mh-identity-pgg-default-user-id
+  'mh-identity-gpg-default-user-id "29.1")
+(defvar-local mh-identity-gpg-default-user-id nil
+  "Holds the GPG key ID.
 This is normally set as part of an Identity in
 `mh-identity-list'.")
-(make-variable-buffer-local 'mh-identity-pgg-default-user-id)
 
 (defvar mh-identity-menu nil
   "The Identity menu.")
 
-(defalias 'mh-identity-make-menu-no-autoload 'mh-identity-make-menu)
+(defalias 'mh-identity-make-menu-no-autoload #'mh-identity-make-menu)
 
 ;;;###mh-autoload
 (defun mh-identity-make-menu ()
   "Build the Identity menu.
 This should be called any time `mh-identity-list' or
-`mh-auto-fields-list' change.
-See `mh-identity-add-menu'."
+`mh-auto-fields-list' change."
   (easy-menu-define mh-identity-menu mh-letter-mode-map
     "MH-E identity menu"
     (append
@@ -71,11 +69,10 @@ See `mh-identity-add-menu'."
         (mh-insert-auto-fields) mh-auto-fields-list]
        "--")
 
-     (mapcar (function
-              (lambda (arg)
-                `[,arg  (mh-insert-identity ,arg) :style radio
-                        :selected (equal mh-identity-local ,arg)]))
-             (mapcar 'car mh-identity-list))
+     (mapcar (lambda (arg)
+               `[,arg  (mh-insert-identity ,arg) :style radio
+                       :selected (equal mh-identity-local ,arg)])
+             (mapcar #'car mh-identity-list))
      '(["None"
         (mh-insert-identity "None") :style radio
         :selected (not mh-identity-local)]
@@ -91,12 +88,11 @@ See `mh-identity-add-menu'."
 (defun mh-identity-add-menu ()
   "Add the current Identity menu.
 See `mh-identity-make-menu'."
-  (if mh-identity-menu
-      (easy-menu-add mh-identity-menu)))
+  (declare (obsolete nil "29.1"))
+  nil)
 
-(defvar mh-identity-local nil
+(defvar-local mh-identity-local nil
   "Buffer-local variable that holds the identity currently in use.")
-(make-variable-buffer-local 'mh-identity-local)
 
 (defun mh-header-field-delete (field value-only)
   "Delete header FIELD, or only its value if VALUE-ONLY is t.
@@ -125,7 +121,7 @@ The field name is downcased. If the FIELD begins with the
 character \":\", then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a
 valid header field."
-  (or (cdr (mh-assoc-string field mh-identity-handlers t))
+  (or (cdr (assoc-string field mh-identity-handlers t))
       (and (eq (aref field 0) ?:)
            (error "Field %s not found in `mh-identity-handlers'" field))
       (cdr (assoc ":default" mh-identity-handlers))
@@ -143,9 +139,9 @@ See `mh-identity-list'."
           (completing-read
            "Identity: "
            (cons '("None")
-                 (mapcar 'list (mapcar 'car mh-identity-list)))
+                 (mapcar #'list (mapcar #'car mh-identity-list)))
            nil t default nil default))
-    (if (eq identity "None")
+    (if (equal identity "None")
         nil
       identity)))
 
@@ -172,8 +168,8 @@ See `mh-identity-list'."
           "Identity: "
           (if mh-identity-local
               (cons '("None")
-                    (mapcar 'list (mapcar 'car mh-identity-list)))
-            (mapcar 'list (mapcar 'car mh-identity-list)))
+                    (mapcar #'list (mapcar #'car mh-identity-list)))
+            (mapcar #'list (mapcar #'car mh-identity-list)))
           nil t)
          nil))
 
@@ -208,15 +204,15 @@ See `mh-identity-list'."
 (defun mh-identity-handler-gpg-identity (_field action &optional value)
   "Process header FIELD \":pgg-default-user-id\".
 The ACTION is one of `remove' or `add'. If `add', the VALUE is added.
-The buffer-local variable `mh-identity-pgg-default-user-id' is set to
+The buffer-local variable `mh-identity-gpg-default-user-id' is set to
 VALUE when action `add' is selected."
   (cond
    ((or (equal action 'remove)
         (not value)
         (string= value ""))
-    (setq mh-identity-pgg-default-user-id nil))
+    (setq mh-identity-gpg-default-user-id nil))
    ((equal action 'add)
-    (setq mh-identity-pgg-default-user-id value))))
+    (setq mh-identity-gpg-default-user-id value))))
 
 ;;;###mh-autoload
 (defun mh-identity-handler-signature (_field action &optional value)
@@ -238,11 +234,9 @@ added."
         (if (null value)
             (mh-insert-signature)
           (mh-insert-signature value))
-        (set (make-local-variable 'mh-identity-signature-start)
-             (point-min-marker))
+        (setq-local mh-identity-signature-start (point-min-marker))
         (set-marker-insertion-type mh-identity-signature-start t)
-        (set (make-local-variable 'mh-identity-signature-end)
-             (point-max-marker)))))))
+        (setq-local mh-identity-signature-end (point-max-marker)))))))
 
 (defvar mh-identity-attribution-verb-start nil
   "Marker for the beginning of the attribution verb.")
@@ -274,11 +268,9 @@ If VALUE is nil, use `mh-extract-from-attribution-verb'."
     (if (null value)
         (insert mh-extract-from-attribution-verb)
       (insert value))
-    (set (make-local-variable 'mh-identity-attribution-verb-start)
-         (point-min-marker))
+    (setq-local mh-identity-attribution-verb-start (point-min-marker))
     (set-marker-insertion-type mh-identity-attribution-verb-start t)
-    (set (make-local-variable 'mh-identity-attribution-verb-end)
-         (point-max-marker))))
+    (setq-local mh-identity-attribution-verb-end (point-max-marker))))
 
 (defun mh-identity-handler-default (field action top &optional value)
   "Process header FIELD.
@@ -326,7 +318,6 @@ the header."
 (provide 'mh-identity)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

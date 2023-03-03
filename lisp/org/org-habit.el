@@ -1,10 +1,10 @@
 ;;; org-habit.el --- The habit tracking code for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,9 @@
 ;; This file contains the habit tracking code for Org mode
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org)
@@ -343,7 +346,10 @@ current time."
 	      (if (and in-the-past-p
 		       (not last-done-date)
 		       (not (< scheduled now)))
-		  '(org-habit-clear-face . org-habit-clear-future-face)
+		  (if (and all-done-dates (= (car all-done-dates) start))
+		      ;; This is the very first done of this habit.
+		      '(org-habit-ready-face . org-habit-ready-future-face)
+		    '(org-habit-clear-face . org-habit-clear-future-face))
 		(org-habit-get-faces
 		 habit start
 		 (and in-the-past-p
@@ -409,7 +415,7 @@ current time."
 			   'help-echo
 			   (concat (format-time-string
 				    (org-time-stamp-format)
-                                    (time-add starting (days-to-time (- start (time-to-days starting)))))
+				    (time-add starting (days-to-time (- start (time-to-days starting)))))
 				   (if donep " DONE" ""))
 			   graph))
       (setq start (1+ start)
@@ -420,12 +426,12 @@ current time."
   "Insert consistency graph for any habitual tasks."
   (let ((inhibit-read-only t)
 	(buffer-invisibility-spec '(org-link))
-	(moment (org-time-subtract nil
-				   (* 3600 org-extend-today-until))))
+	(moment (time-subtract nil (* 3600 org-extend-today-until))))
     (save-excursion
-      (goto-char (if line (point-at-bol) (point-min)))
+      (goto-char (if line (line-beginning-position) (point-min)))
       (while (not (eobp))
-	(let ((habit (get-text-property (point) 'org-habit-p)))
+	(let ((habit (get-text-property (point) 'org-habit-p))
+              (invisible-prop (get-text-property (point) 'invisible)))
 	  (when habit
 	    (move-to-column org-habit-graph-column t)
 	    (delete-char (min (+ 1 org-habit-preceding-days
@@ -436,7 +442,12 @@ current time."
 	      habit
 	      (time-subtract moment (days-to-time org-habit-preceding-days))
 	      moment
-              (time-add moment (days-to-time org-habit-following-days))))))
+	      (time-add moment (days-to-time org-habit-following-days))))
+            ;; Inherit invisible state of hidden entries.
+            (when invisible-prop
+              (put-text-property
+               (- (point) org-habit-graph-column) (point)
+               'invisible invisible-prop))))
 	(forward-line)))))
 
 (defun org-habit-toggle-habits ()

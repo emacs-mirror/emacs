@@ -1,10 +1,10 @@
 ;;; ol-mhe.el --- Links to MH-E Messages             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,6 +29,9 @@
 ;; configure the variable `org-modules'.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'org-macs)
 (require 'ol)
@@ -96,7 +99,7 @@ supported by MH-E."
 	(org-link-add-props :link link :description desc)
 	link))))
 
-(defun org-mhe-open (path)
+(defun org-mhe-open (path _)
   "Follow an MH-E message link specified by PATH."
   (let (folder article)
     (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))

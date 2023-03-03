@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -26,6 +26,8 @@
 ;; and `display-warning'.
 
 ;;; Code:
+
+(require 'icons)
 
 (defgroup warnings nil
   "Log and display warnings."
@@ -67,6 +69,7 @@ Level :debug is ignored by default (see `warning-minimum-level').")
 Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
+(make-obsolete-variable 'warning-level-aliases 'warning-levels "28.1")
 
 (define-obsolete-variable-alias 'display-warning-minimum-level
   'warning-minimum-level "28.1")
@@ -200,20 +203,32 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; we return t.
     some-match))
 
-(define-button-type 'warning-suppress-warning
-  'action #'warning-suppress-action
-  'help-echo "mouse-2, RET: Don't display this warning automatically")
-(defun warning-suppress-action (button)
-  (customize-save-variable 'warning-suppress-types
-                           (cons (list (button-get button 'warning-type))
-                                 warning-suppress-types)))
-(define-button-type 'warning-suppress-log-warning
-  'action #'warning-suppress-log-action
-  'help-echo "mouse-2, RET: Don't log this warning")
-(defun warning-suppress-log-action (button)
-  (customize-save-variable 'warning-suppress-log-types
-                           (cons (list (button-get button 'warning-type))
-                                 warning-suppress-types)))
+(define-icon warnings-suppress button
+  `((emoji "⛔")
+    ;; Many MS-Windows console fonts don't have good glyphs for U+25A0.
+    (symbol ,(if (and (eq system-type 'windows-nt)
+                      (null window-system))
+                 " » "
+               " ■ "))
+    (text " stop "))
+  "Suppress warnings."
+  :version "29.1"
+  :help-echo "Click to suppress this warning type")
+
+(defun warnings-suppress (type)
+  (pcase (car
+          (read-multiple-choice
+           (format "Suppress `%s' warnings? " type)
+           `((?y ,(format "yes, ignore `%s' warnings completely" type))
+             (?n "no, just disable showing them")
+             (?q "quit and do nothing"))))
+    (?y
+     (customize-save-variable 'warning-suppress-log-types
+                              (cons (list type) warning-suppress-log-types)))
+    (?n
+     (customize-save-variable 'warning-suppress-types
+                              (cons (list type) warning-suppress-types)))
+    (_ (message "Exiting"))))
 
 ;;;###autoload
 (defun display-warning (type message &optional level buffer-name)
@@ -256,8 +271,10 @@ entirely by setting `warning-suppress-types' or
       (setq level :warning))
     (unless buffer-name
       (setq buffer-name "*Warnings*"))
-    (if (assq level warning-level-aliases)
-	(setq level (cdr (assq level warning-level-aliases))))
+    (with-suppressed-warnings ((obsolete warning-level-aliases))
+      (when-let ((new (cdr (assq level warning-level-aliases))))
+        (warn "Warning level `%s' is obsolete; use `%s' instead" level new)
+        (setq level new)))
     (or (< (warning-numeric-level level)
 	   (warning-numeric-level warning-minimum-log-level))
 	(warning-suppress-p type warning-suppress-log-types)
@@ -286,25 +303,22 @@ entirely by setting `warning-suppress-types' or
 	      (unless (bolp)
 		(funcall newline))
 	      (setq start (point))
+              ;; Don't output the button when doing batch compilation
+              ;; and similar.
+              (unless (or noninteractive (eq type 'bytecomp))
+                (insert (buttonize (icon-string 'warnings-suppress)
+                                   #'warnings-suppress type)
+                        " "))
 	      (if warning-prefix-function
 		  (setq level-info (funcall warning-prefix-function
 					    level level-info)))
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
-              ;; Don't output the buttons when doing batch compilation
-              ;; and similar.
-              (unless (or noninteractive (eq type 'bytecomp))
-                (insert " ")
-                (insert-button "Disable showing"
-                               'type 'warning-suppress-warning
-                               'warning-type type)
-                (insert " ")
-                (insert-button "Disable logging"
-                               'type 'warning-suppress-log-warning
-                               'warning-type type))
               (funcall newline)
-	      (when (and warning-fill-prefix (not (string-match "\n" message)))
+	      (when (and warning-fill-prefix
+                         (not (string-search "\n" message))
+                         (not noninteractive))
 		(let ((fill-prefix warning-fill-prefix)
 		      (fill-column warning-fill-column))
 		  (fill-region start (point))))

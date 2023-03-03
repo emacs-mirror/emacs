@@ -655,7 +655,7 @@
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-fun.el (gnus-grab-cam-face):
-	Do not use predictable temp-file name.  (http://bugs.debian.org/747100)
+	Do not use predictable temp-file name.  (https://bugs.debian.org/747100)
 	This is CVE-2014-3421.
 
 2014-05-04  Glenn Morris  <rgm@gnu.org>
@@ -4243,7 +4243,7 @@
 	* gnus-msg.el (gnus-inews-do-gcc):
 	* message.el (message-send-mail):
 	* mml.el (mml-generate-mime): Share the value of the buffer-local
-	`message-options' variable between a draft buffer and temprary working
+	`message-options' variable between a draft buffer and temporary working
 	buffers.
 
 2011-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4902,7 +4902,7 @@
 2011-07-31  Marcus Harnisch  <marcus.harnisch@gmx.net>  (tiny change)
 
 	* gnus-art.el (gnus-article-stop-animations): Use `elt' instead of
-	`aref' for XEmacs compatibiltiy.
+	`aref' for XEmacs compatibility.
 
 2011-07-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -6032,7 +6032,7 @@
 	Make `default' the default, for compatibility with open-network-stream.
 	Handle the no-parameter case exactly as open-network-stream, with no
 	additional stream processing.  Search plists using plist-get.
-	Explicitly add :end-of-commend parameter if it is missing.
+	Explicitly add :end-of-comment parameter if it is missing.
 	(proto-stream-open-default): Rename from
 	proto-stream-open-network-only.  Return 'default as the type.
 	(proto-stream-open-starttls): Rename from proto-stream-open-network.
@@ -7385,7 +7385,7 @@
 2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
-	backends after sanitising on entry, because this never makes sense:
+	backends after sanitizing on entry, because this never makes sense:
 	If the articles have gone missing, then the data no longer exists on
 	the backend, and if they haven't, then Gnus is wrong, and shouldn't
 	overwrite anything anyway.
@@ -10876,7 +10876,7 @@
 2010-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-line-format-alist): Have the ?U (unseen)
-	spec inser "*" if the group isn't active instead of 0.
+	spec insert "*" if the group isn't active instead of 0.
 
 	* nnimap.el (nnimap-request-group): Don't select the imap buffer before
 	opening the server.
@@ -11763,7 +11763,7 @@
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Ensure that the directory
-	where the dribbel file lives exists.
+	where the dribble file lives exists.
 
 	* message.el (message-send-mail-partially-limit): Change the default to
 	nil, since most people don't want this.
@@ -17348,7 +17348,7 @@
 	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
 	New function.
 	(rfc2047-encode-message-header, rfc2047-encode-region): Use it.
-	(rfc2047-strip-backslashes-in-quoted-strings): New fnction.
+	(rfc2047-strip-backslashes-in-quoted-strings): New function.
 	(rfc2047-decode-region): Use it; add optional argument `address-mime'.
 	(rfc2047-decode-string): Ditto.
 	(rfc2047-decode-address-region): New function.
@@ -21361,7 +21361,7 @@
 	to get all the groups a message ID is in.
 
 	* spam-stat.el (spam-stat-split-fancy-spam-threshold)
-	(spam-stat-split-fancy): Change "threshhold" to "threshold".
+	(spam-stat-split-fancy): Fix typo for "threshold".
 	(spam-stat-score-buffer-user-functions): Add :number custom type.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -22675,7 +22675,8 @@
 	* nnspool.el (nnspool-spool-directory): Use news-directory instead
 	of news-path.
 
-	* spam-stat.el (spam-stat-unload-hook): Set as a variable w/ add-hook.
+	* spam-stat.el (spam-stat-unload-hook): Set as a variable with
+	add-hook.
 
 	* spam.el: Delete duplicate `provide'.
 	(spam-unload-hook): Set as a variable with add-hook.
@@ -23276,7 +23277,7 @@
 	Signal a specific `search-failed' rather than a generic `error'.
 
 	* gnus-salt.el (gnus-pick-mouse-pick-region): Switch 1 => point-min.
-	(gnus-generate-vertical-tree): Usue `bobp' rather than compare to 1.
+	(gnus-generate-vertical-tree): Use `bobp' rather than compare to 1.
 	(gnus-highlight-selected-tree): Use point-min rather than 1 and 2.
 
 2004-09-10  Simon Josefsson  <jas@extundo.com>
@@ -26325,7 +26326,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2020 Free Software Foundation, Inc.
+  Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

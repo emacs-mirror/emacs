@@ -1,6 +1,6 @@
 ;;; org-duration.el --- Library handling durations   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -28,14 +28,16 @@
 ;;   - 3:12
 ;;   - 1:23:45
 ;;   - 1y 3d 3h 4min
+;;   - 1d3h5min
 ;;   - 3d 13:35
 ;;   - 2.35h
 ;;
 ;; More accurately, it consists of numbers and units, as defined in
-;; variable `org-duration-units', separated with white spaces, and
-;; a "H:MM" or "H:MM:SS" part.  White spaces are tolerated between the
-;; number and its relative unit.  Variable `org-duration-format'
-;; controls durations default representation.
+;; variable `org-duration-units', possibly separated with white
+;; spaces, and an optional "H:MM" or "H:MM:SS" part, which always
+;; comes last.  White spaces are tolerated between the number and its
+;; relative unit.  Variable `org-duration-format' controls durations
+;; default representation.
 ;;
 ;; The library provides functions allowing to convert a duration to,
 ;; and from, a number of minutes: `org-duration-to-minutes' and
@@ -48,6 +50,9 @@
 ;; through optional arguments.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org-macs)
@@ -95,7 +100,11 @@ sure to call the following command:
   :group 'org-agenda
   :version "26.1"
   :package-version '(Org . "9.1")
-  :set (lambda (var val) (set-default var val) (org-duration-set-regexps))
+  :set (lambda (var val)
+         (set-default-toplevel-value var val)
+         ;; Avoid recursive load at startup.
+	 (when (featurep 'org-duration)
+           (org-duration-set-regexps)))
   :initialize 'custom-initialize-changed
   :type '(choice
 	  (const :tag "H:MM" h:mm)
@@ -122,8 +131,7 @@ are specified here.
 Units with a zero value are skipped, unless REQUIRED? is non-nil.
 In that case, the unit is always used.
 
-Eventually, the list can contain one of the following special
-entries:
+The list can also contain one of the following special entries:
 
   (special . h:mm)
   (special . h:mm:ss)
@@ -138,6 +146,10 @@ entries:
     the number of decimal places to show.  The unit chosen is the
     first one required or with a non-zero integer part.  If there
     is no such unit, the smallest one is used.
+
+Eventually, if the list contains the symbol `compact', the
+duration is expressed in a compact form, without any white space
+between units.
 
 For example,
 
@@ -172,7 +184,6 @@ a 2-digits fractional part, of \"d\" unit.  A duration shorter
 than a day uses \"h\" unit instead."
   :group 'org-time
   :group 'org-clock
-  :version "26.1"
   :package-version '(Org . "9.1")
   :type '(choice
 	  (const :tag "Use H:MM" h:mm)
@@ -191,7 +202,8 @@ than a day uses \"h\" unit instead."
 			 (const h:mm))
 		   (cons :tag "Use both units and H:MM:SS"
 			 (const special)
-			 (const h:mm:ss))))))
+			 (const h:mm:ss))
+		   (const :tag "Use compact form" compact)))))
 
 
 ;;; Internal variables and functions
@@ -249,13 +261,10 @@ When optional argument CANONICAL is non-nil, refer to
 						  org-duration-units))
 			    t)))
   (setq org-duration--full-re
-	(format "\\`[ \t]*%s\\(?:[ \t]+%s\\)*[ \t]*\\'"
-		org-duration--unit-re
-		org-duration--unit-re))
+	(format "\\`\\(?:[ \t]*%s\\)+[ \t]*\\'" org-duration--unit-re))
   (setq org-duration--mixed-re
-	(format "\\`[ \t]*\\(?1:%s\\(?:[ \t]+%s\\)*\\)[ \t]+\
+	(format "\\`\\(?1:\\([ \t]*%s\\)+\\)[ \t]*\
 \\(?2:[0-9]+\\(?::[0-9][0-9]\\)\\{1,2\\}\\)[ \t]*\\'"
-		org-duration--unit-re
 		org-duration--unit-re)))
 
 ;;;###autoload
@@ -278,30 +287,31 @@ translated into 0.0.
 
 Return value as a float.  Raise an error if duration format is
 not recognized."
-  (cond
-   ((equal duration "") 0.0)
-   ((numberp duration) (float duration))
-   ((string-match-p org-duration--h:mm-re duration)
-    (pcase-let ((`(,hours ,minutes ,seconds)
-		 (mapcar #'string-to-number (split-string duration ":"))))
-      (+ (/ (or seconds 0) 60.0) minutes (* 60 hours))))
-   ((string-match-p org-duration--full-re duration)
-    (let ((minutes 0)
-	  (s 0))
-      (while (string-match org-duration--unit-re duration s)
-	(setq s (match-end 0))
-	(let ((value (string-to-number (match-string 1 duration)))
-	      (unit (match-string 2 duration)))
-	  (cl-incf minutes (* value (org-duration--modifier unit canonical)))))
-      (float minutes)))
-   ((string-match org-duration--mixed-re duration)
-    (let ((units-part (match-string 1 duration))
-	  (hms-part (match-string 2 duration)))
-      (+ (org-duration-to-minutes units-part)
-	 (org-duration-to-minutes hms-part))))
-   ((string-match-p "\\`[0-9]+\\(\\.[0-9]*\\)?\\'" duration)
-    (float (string-to-number duration)))
-   (t (error "Invalid duration format: %S" duration))))
+  (save-match-data
+    (cond
+     ((equal duration "") 0.0)
+     ((numberp duration) (float duration))
+     ((string-match-p org-duration--h:mm-re duration)
+      (pcase-let ((`(,hours ,minutes ,seconds)
+		   (mapcar #'string-to-number (split-string duration ":"))))
+        (+ (/ (or seconds 0) 60.0) minutes (* 60 hours))))
+     ((string-match-p org-duration--full-re duration)
+      (let ((minutes 0)
+	    (s 0))
+        (while (string-match org-duration--unit-re duration s)
+	  (setq s (match-end 0))
+	  (let ((value (string-to-number (match-string 1 duration)))
+	        (unit (match-string 2 duration)))
+	    (cl-incf minutes (* value (org-duration--modifier unit canonical)))))
+        (float minutes)))
+     ((string-match org-duration--mixed-re duration)
+      (let ((units-part (match-string 1 duration))
+	    (hms-part (match-string 2 duration)))
+        (+ (org-duration-to-minutes units-part)
+	   (org-duration-to-minutes hms-part))))
+     ((string-match-p "\\`[0-9]+\\(\\.[0-9]*\\)?\\'" duration)
+      (float (string-to-number duration)))
+     (t (error "Invalid duration format: %S" duration)))))
 
 ;;;###autoload
 (defun org-duration-from-minutes (minutes &optional fmt canonical)
@@ -353,10 +363,11 @@ Raise an error if expected format is unknown."
 	 ;; Represent minutes above hour using provided units and H:MM
 	 ;; or H:MM:SS below.
 	 (let* ((units-part (* min-modifier (/ (floor minutes) min-modifier)))
-		(minutes-part (- minutes units-part)))
+		(minutes-part (- minutes units-part))
+		(compact (memq 'compact duration-format)))
 	   (concat
 	    (org-duration-from-minutes units-part truncated-format canonical)
-	    " "
+	    (and (not compact) " ")
 	    (org-duration-from-minutes minutes-part mode))))))
     ;; Units format.
     (duration-format
@@ -368,12 +379,16 @@ Raise an error if expected format is unknown."
 		    (format "%%.%df" digits))))
 	    (selected-units
 	     (sort (cl-remove-if
-		    ;; Ignore special format cells.
-		    (lambda (pair) (pcase pair (`(special . ,_) t) (_ nil)))
+		    ;; Ignore special format cells and compact option.
+		    (lambda (pair)
+		      (pcase pair
+			((or `compact `(special . ,_)) t)
+			(_ nil)))
 		    duration-format)
 		   (lambda (a b)
 		     (> (org-duration--modifier (car a) canonical)
-			(org-duration--modifier (car b) canonical))))))
+			(org-duration--modifier (car b) canonical)))))
+	    (separator (if (memq 'compact duration-format) "" " ")))
        (cond
 	;; Fractional duration: use first unit that is either required
 	;; or smaller than MINUTES.
@@ -402,8 +417,8 @@ Raise an error if expected format is unknown."
 		(cond ((<= modifier minutes)
 		       (let ((value (floor minutes modifier)))
 			 (cl-decf minutes (* value modifier))
-			 (format " %d%s" value unit)))
-		      (required? (concat " 0" unit))
+			 (format "%s%d%s" separator value unit)))
+		      (required? (concat separator "0" unit))
 		      (t ""))))
 	    selected-units
 	    ""))))
@@ -441,4 +456,9 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 (org-duration-set-regexps)
 
 (provide 'org-duration)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-duration.el ends here

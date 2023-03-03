@@ -1,6 +1,6 @@
 ;;; hmac-md5-tests.el --- Tests for hmac-md5.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -48,7 +48,7 @@
   (should (equal (encode-hex-string
                   (hmac-md5 (decode-hex-string
                              (mapconcat (lambda (c) (concat (list c) "d"))
-                                        (make-string 50 ?c) ""))
+                                        (make-string 50 ?c)))
                             (decode-hex-string "0102030405060708090a0b0c0d0e0f10111213141516171819")))
                  "697eaf0aca3a3aea3a75164746ffaa79"))
 

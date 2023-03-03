@@ -1,9 +1,9 @@
-;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands
+;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -33,7 +33,6 @@
 
 (defcustom erc-ezb-regexp "^ezbounce!srv$"
   "Regexp used by the EZBouncer to identify itself to the user."
-  :group 'erc-ezbounce
   :type 'regexp)
 
 (defcustom erc-ezb-login-alist '()
@@ -44,7 +43,6 @@ The alist's format is as follows:
  (((server . port) . (username . password))
   ((server . port) . (username . password))
   ...)"
-  :group 'erc-ezbounce
   :type '(repeat
 	  (cons (cons :tag "Server"
 		     string
@@ -61,15 +59,14 @@ The alist's format is as follows:
   "Alist of actions to take on NOTICEs from EZBounce.")
 
 
-(defvar erc-ezb-session-list '()
+(defvar-local erc-ezb-session-list '()
   "List of detached EZBounce sessions.")
-(make-variable-buffer-local 'erc-ezb-session-list)
 
 (defvar erc-ezb-inside-session-listing nil
   "Indicate whether current notices are expected to be EZB session listings.")
 
 ;;;###autoload
-(defun erc-cmd-ezb (line &optional force)
+(defun erc-cmd-ezb (line &optional _force)
   "Send EZB commands to the EZBouncer verbatim."
   (erc-server-send (concat "EZB " line)))
 (put 'erc-cmd-EZB 'do-not-parse-args t)
@@ -103,7 +100,7 @@ in the alist is nil, prompt for the appropriate values."
     found))
 
 ;;;###autoload
-(defun erc-ezb-notice-autodetect (proc parsed)
+(defun erc-ezb-notice-autodetect (_proc parsed)
   "React on an EZBounce NOTICE request."
   (let* ((sender (erc-response.sender parsed))
 	 (message (erc-response.contents parsed))
@@ -114,7 +111,7 @@ in the alist is nil, prompt for the appropriate values."
   nil)
 
 ;;;###autoload
-(defun erc-ezb-identify (message)
+(defun erc-ezb-identify (_message)
   "Identify to the EZBouncer server."
   (let ((login (erc-ezb-get-login erc-session-server (erc-port-to-string erc-session-port))))
     (unless (null login)
@@ -123,13 +120,13 @@ in the alist is nil, prompt for the appropriate values."
 	(erc-server-send (concat "LOGIN " username " " pass))))))
 
 ;;;###autoload
-(defun erc-ezb-init-session-list (message)
+(defun erc-ezb-init-session-list (_message)
   "Reset the EZBounce session list to nil."
   (setq erc-ezb-session-list nil)
   (setq erc-ezb-inside-session-listing t))
 
 ;;;###autoload
-(defun erc-ezb-end-of-session-list (message)
+(defun erc-ezb-end-of-session-list (_message)
   "Indicate the end of the EZBounce session listing."
   (setq erc-ezb-inside-session-listing nil))
 
@@ -144,7 +141,7 @@ in the alist is nil, prompt for the appropriate values."
       (add-to-list 'erc-ezb-session-list (list id nick to)))))
 
 ;;;###autoload
-(defun erc-ezb-select (message)
+(defun erc-ezb-select (_message)
   "Select an IRC server to use by EZBounce, in ERC style."
   (unless (and erc-ezb-session-list
 	       (erc-ezb-select-session))
@@ -170,7 +167,7 @@ in the alist is nil, prompt for the appropriate values."
 ;;;###autoload
 (defun erc-ezb-initialize ()
   "Add EZBouncer convenience functions to ERC."
-  (add-hook 'erc-server-NOTICE-functions 'erc-ezb-notice-autodetect))
+  (add-hook 'erc-server-NOTICE-functions #'erc-ezb-notice-autodetect))
 
 (provide 'erc-ezbounce)
 

@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -187,14 +187,14 @@ Set it to nil if you don't want limits here."
 (defvar reb-target-window nil
   "Window to which the RE is applied to.")
 
-(defvar reb-regexp nil
+(defvar-local reb-regexp nil
   "Last regexp used by RE Builder.")
 
-(defvar reb-regexp-src nil
+(defvar-local reb-regexp-src nil
   "Last regexp used by RE Builder before processing it.
 Except for Lisp syntax this is the same as `reb-regexp'.")
 
-(defvar reb-overlays nil
+(defvar-local reb-overlays nil
   "List of overlays of the RE Builder.")
 
 (defvar reb-window-config nil
@@ -211,94 +211,86 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 (defvar reb-valid-string ""
   "String in mode line showing validity of RE.")
-
-(make-variable-buffer-local 'reb-overlays)
-(make-variable-buffer-local 'reb-regexp)
-(make-variable-buffer-local 'reb-regexp-src)
+(put 'reb-valid-string 'risky-local-variable t)
 
 (defconst reb-buffer "*RE-Builder*"
   "Buffer to use for the RE Builder.")
 
 ;; Define the local "\C-c" keymap
-(defvar reb-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'reb-toggle-case)
-    (define-key map "\C-c\C-q" 'reb-quit)
-    (define-key map "\C-c\C-w" 'reb-copy)
-    (define-key map "\C-c\C-s" 'reb-next-match)
-    (define-key map "\C-c\C-r" 'reb-prev-match)
-    (define-key map "\C-c\C-i" 'reb-change-syntax)
-    (define-key map "\C-c\C-e" 'reb-enter-subexp-mode)
-    (define-key map "\C-c\C-b" 'reb-change-target-buffer)
-    (define-key map "\C-c\C-u" 'reb-force-update)
-    (define-key map [menu-bar reb-mode] (cons "Re-Builder" menu-map))
-    (define-key menu-map [rq]
-      '(menu-item "Quit" reb-quit
-		  :help "Quit the RE Builder mode"))
-    (define-key menu-map [div1] '(menu-item "--"))
-    (define-key menu-map [rt]
-      '(menu-item "Case sensitive" reb-toggle-case
-		  :button (:toggle . (with-current-buffer
-					 reb-target-buffer
-				       (null case-fold-search)))
-		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
-    (define-key menu-map [rb]
-      '(menu-item "Change target buffer..." reb-change-target-buffer
-		  :help "Change the target buffer and display it in the target window"))
-    (define-key menu-map [rs]
-      '(menu-item "Change syntax..." reb-change-syntax
-		  :help "Change the syntax used by the RE Builder"))
-    (define-key menu-map [div2] '(menu-item "--"))
-    (define-key menu-map [re]
-      '(menu-item "Enter subexpression mode" reb-enter-subexp-mode
-		  :help "Enter the subexpression mode in the RE Builder"))
-    (define-key menu-map [ru]
-      '(menu-item "Force update" reb-force-update
-		  :help "Force an update in the RE Builder target window without a match limit"))
-    (define-key menu-map [rn]
-      '(menu-item "Go to next match" reb-next-match
-		  :help "Go to next match in the RE Builder target window"))
-    (define-key menu-map [rp]
-      '(menu-item "Go to previous match" reb-prev-match
-		  :help "Go to previous match in the RE Builder target window"))
-    (define-key menu-map [div3] '(menu-item "--"))
-    (define-key menu-map [rc]
-      '(menu-item "Copy current RE" reb-copy
-		  :help "Copy current RE into the kill ring for later insertion"))
-    map)
-  "Keymap used by the RE Builder.")
+(defvar-keymap reb-mode-map
+  :doc "Keymap used by the RE Builder."
+  "C-c C-c" #'reb-toggle-case
+  "C-c C-q" #'reb-quit
+  "C-c C-w" #'reb-copy
+  "C-c C-s" #'reb-next-match
+  "C-c C-r" #'reb-prev-match
+  "C-c C-i" #'reb-change-syntax
+  "C-c C-e" #'reb-enter-subexp-mode
+  "C-c C-b" #'reb-change-target-buffer
+  "C-c C-u" #'reb-force-update)
+
+(easy-menu-define reb-mode-menu reb-mode-map
+  "Menu for the RE Builder."
+  '("Re-Builder"
+    ["Copy current RE" reb-copy
+     :help "Copy current RE into the kill ring for later insertion"]
+    "---"
+    ["Go to previous match" reb-prev-match
+     :help "Go to previous match in the RE Builder target window"]
+    ["Go to next match" reb-next-match
+     :help "Go to next match in the RE Builder target window"]
+    ["Force update" reb-force-update
+     :help "Force an update in the RE Builder target window without a match limit"]
+    ["Enter subexpression mode" reb-enter-subexp-mode
+     :help "Enter the subexpression mode in the RE Builder"]
+    "---"
+    ["Change syntax..." reb-change-syntax
+     :help "Change the syntax used by the RE Builder"]
+    ["Change target buffer..." reb-change-target-buffer
+     :help "Change the target buffer and display it in the target window"]
+    ["Case sensitive" reb-toggle-case
+     :style toggle
+     :selected (with-current-buffer reb-target-buffer
+                 (null case-fold-search))
+     :help "Toggle case sensitivity of searches for RE Builder target buffer"]
+    "---"
+    ["Quit" reb-quit
+     :help "Quit the RE Builder mode"]))
 
 (define-derived-mode reb-mode nil "RE Builder"
   "Major mode for interactively building Regular Expressions."
-  (set (make-local-variable 'blink-matching-paren) nil)
+  (setq-local blink-matching-paren nil)
   (reb-mode-common))
 
-(defvar reb-lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
-    ;; `emacs-lisp-mode'
-    (define-key map "\C-c" (lookup-key reb-mode-map "\C-c"))
-    map))
+(defvar-keymap reb-lisp-mode-map
+  ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
+  ;; `emacs-lisp-mode'
+  "C-c" (keymap-lookup reb-mode-map "C-c"))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
   ;; Pull in packages as needed
-  (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
-	 (require 'rx)))                   ; require rx anyway
+  (when (eq reb-re-syntax 'rx)          ; rx-to-string is autoloaded
+    (require 'rx))                      ; require rx anyway
   (reb-mode-common))
 
-(defvar reb-subexp-mode-map
-  (let ((m (make-keymap)))
-    (suppress-keymap m)
-    ;; Again share the "\C-c" keymap for the commands
-    (define-key m "\C-c" (lookup-key reb-mode-map "\C-c"))
-    (define-key m "q" 'reb-quit-subexp-mode)
-    (dotimes (digit 10)
-      (define-key m (int-to-string digit) 'reb-display-subexp))
-    m)
-  "Keymap used by the RE Builder for the subexpression mode.")
+(defvar-keymap reb-subexp-mode-map
+  :doc "Keymap used by the RE Builder for the subexpression mode."
+  :full t :suppress t
+  ;; Again share the "\C-c" keymap for the commands
+  "C-c" (keymap-lookup reb-mode-map "C-c")
+  "q" #'reb-quit-subexp-mode
+  "0" #'reb-display-subexp
+  "1" #'reb-display-subexp
+  "2" #'reb-display-subexp
+  "3" #'reb-display-subexp
+  "4" #'reb-display-subexp
+  "5" #'reb-display-subexp
+  "6" #'reb-display-subexp
+  "7" #'reb-display-subexp
+  "8" #'reb-display-subexp
+  "9" #'reb-display-subexp)
 
 (defun reb-mode-common ()
   "Setup functions common to functions `reb-mode' and `reb-lisp-mode'."
@@ -317,13 +309,13 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Return t if display is capable of displaying colors."
   (eq 'color (frame-parameter nil 'display-type)))
 
-(defsubst reb-lisp-syntax-p ()
-  "Return non-nil if RE Builder uses a Lisp syntax."
-  (memq reb-re-syntax '(sregex rx)))
+(defun reb-lisp-syntax-p ()
+  "Return non-nil if RE Builder uses `rx' syntax."
+  (eq reb-re-syntax 'rx))
 
-(defmacro reb-target-binding (symbol)
+(defun reb-target-value (symbol)
   "Return binding for SYMBOL in the RE Builder target buffer."
-  `(with-current-buffer reb-target-buffer ,symbol))
+  (buffer-local-value symbol reb-target-buffer))
 
 (defun reb-initialize-buffer ()
   "Initialize the current buffer as a RE Builder buffer."
@@ -334,7 +326,10 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
          (reb-lisp-mode))
         (t (reb-mode)))
   (reb-restart-font-lock)
-  (reb-do-update))
+  ;; When using `rx' syntax, the initial syntax () is invalid.  But
+  ;; don't signal an error in that case.
+  (ignore-errors
+    (reb-do-update)))
 
 (defun reb-mode-buffer-p ()
   "Return non-nil if the current buffer is a RE Builder buffer."
@@ -352,7 +347,12 @@ the regexp builder.  It displays a buffer named \"*RE-Builder*\"
 in another window, initially containing an empty regexp.
 
 As you edit the regexp in the \"*RE-Builder*\" buffer, the
-matching parts of the target buffer will be highlighted."
+matching parts of the target buffer will be highlighted.
+
+Case-sensitivity can be toggled with \\[reb-toggle-case].  The
+regexp builder supports three different forms of input which can
+be set with \\[reb-change-syntax].  More options and details are
+provided in the Commentary section of this library."
   (interactive)
   (if (and (string= (buffer-name) reb-buffer)
 	   (reb-mode-buffer-p))
@@ -361,18 +361,23 @@ matching parts of the target buffer will be highlighted."
       (reb-delete-overlays))
     (setq reb-target-buffer (current-buffer)
           reb-target-window (selected-window))
-    (select-window (or (get-buffer-window reb-buffer)
-		       (progn
-			 (setq reb-window-config (current-window-configuration))
-			 (split-window (selected-window) (- (window-height) 4)))))
-    (switch-to-buffer (get-buffer-create reb-buffer))
+    (select-window
+     (or (get-buffer-window reb-buffer)
+         (let ((dir (if (window-parameter nil 'window-side)
+                        'bottom 'down)))
+           (setq reb-window-config (current-window-configuration))
+           (display-buffer
+            (get-buffer-create reb-buffer)
+            `((display-buffer-in-direction)
+              (direction . ,dir)
+              (dedicated . t)
+              (window-height . fit-window-to-buffer))))))
     (font-lock-mode 1)
     (reb-initialize-buffer)))
 
 (defun reb-change-target-buffer (buf)
   "Change the target buffer and display it in the target window."
   (interactive "bSet target buffer to: ")
-
   (let ((buffer (get-buffer buf)))
     (if (not buffer)
         (error "No such buffer")
@@ -385,7 +390,6 @@ matching parts of the target buffer will be highlighted."
 (defun reb-force-update ()
   "Force an update in the RE Builder target window without a match limit."
   (interactive)
-
   (let ((reb-auto-match-limit nil))
     (reb-update-overlays
      (if reb-subexp-mode reb-subexp-displayed nil))))
@@ -393,7 +397,6 @@ matching parts of the target buffer will be highlighted."
 (defun reb-quit ()
   "Quit the RE Builder mode."
   (interactive)
-
   (setq reb-subexp-mode nil
 	reb-subexp-displayed nil)
   (reb-delete-overlays)
@@ -403,7 +406,6 @@ matching parts of the target buffer will be highlighted."
 (defun reb-next-match ()
   "Go to next match in the RE Builder target window."
   (interactive)
-
   (reb-assert-buffer-in-window)
   (with-selected-window reb-target-window
     (if (not (re-search-forward reb-regexp (point-max) t))
@@ -415,7 +417,6 @@ matching parts of the target buffer will be highlighted."
 (defun reb-prev-match ()
   "Go to previous match in the RE Builder target window."
   (interactive)
-
   (reb-assert-buffer-in-window)
   (with-selected-window reb-target-window
     (let ((p (point)))
@@ -430,7 +431,6 @@ matching parts of the target buffer will be highlighted."
 (defun reb-toggle-case ()
   "Toggle case sensitivity of searches for RE Builder target buffer."
   (interactive)
-
   (with-current-buffer reb-target-buffer
     (setq case-fold-search (not case-fold-search)))
   (reb-update-modestring)
@@ -439,12 +439,11 @@ matching parts of the target buffer will be highlighted."
 (defun reb-copy ()
   "Copy current RE into the kill ring for later insertion."
   (interactive)
-
   (reb-update-regexp)
   (let ((re (with-output-to-string
-	      (print (reb-target-binding reb-regexp)))))
+	      (print (reb-target-value 'reb-regexp)))))
     (setq re (substring re 1 (1- (length re))))
-    (setq re (replace-regexp-in-string "\n" "\\n" re nil t))
+    (setq re (string-replace "\n" "\\n" re))
     (kill-new re)
     (message "Copied regexp `%s' to kill-ring" re)))
 
@@ -456,7 +455,8 @@ matching parts of the target buffer will be highlighted."
   (setq reb-subexp-mode t)
   (reb-update-modestring)
   (use-local-map reb-subexp-mode-map)
-  (message "`0'-`9' to display subexpressions  `q' to quit subexp mode"))
+  (message (substitute-command-keys
+            "\\`0'-\\`9' to display subexpressions  \\`q' to quit subexp mode")))
 
 (defun reb-show-subexp (subexp &optional pause)
   "Visually show limit of subexpression SUBEXP of recent search.
@@ -490,16 +490,17 @@ Optional argument SYNTAX must be specified if called non-interactively."
    (list (intern
 	  (completing-read
 	   (format-prompt "Select syntax" reb-re-syntax)
-	   '(read string sregex rx)
+           '(read string rx)
 	   nil t nil nil (symbol-name reb-re-syntax)
            'reb-change-syntax-hist))))
 
-  (if (memq syntax '(read string sregex rx))
+  (if (memq syntax '(read string rx))
       (let ((buffer (get-buffer reb-buffer)))
 	(setq reb-re-syntax syntax)
 	(when buffer
           (with-current-buffer buffer
-            (reb-initialize-buffer))))
+            (reb-initialize-buffer))
+          (message "Switched syntax to `%s'" reb-re-syntax)))
     (error "Invalid syntax: %s" syntax)))
 
 
@@ -507,7 +508,6 @@ Optional argument SYNTAX must be specified if called non-interactively."
 (defun reb-do-update (&optional subexp)
   "Update matches in the RE Builder target window.
 If SUBEXP is non-nil mark only the corresponding sub-expressions."
-
   (reb-assert-buffer-in-window)
   (reb-update-regexp)
   (reb-update-overlays subexp))
@@ -519,12 +519,17 @@ An actual update is only done if the regexp has changed or if the
 optional fourth argument FORCE is non-nil."
   (let ((prev-valid reb-valid-string)
 	(new-valid
-	 (condition-case nil
+	 (condition-case err
 	     (progn
 	       (when (or (reb-update-regexp) force)
 		 (reb-do-update))
 	       "")
-	   (error " *invalid*"))))
+	   (error (propertize
+                   (format " %s"
+                           (if (and (consp (cdr err)) (stringp (cadr err)))
+                               (format "%s: %s" (car err) (cadr err))
+                             (car err)))
+                   'face 'font-lock-warning-face)))))
     (setq reb-valid-string new-valid)
     (force-mode-line-update)
 
@@ -545,7 +550,6 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-assert-buffer-in-window ()
   "Assert that `reb-target-buffer' is displayed in `reb-target-window'."
-
   (if (not (eq reb-target-buffer (window-buffer reb-target-window)))
       (set-window-buffer reb-target-window reb-target-buffer)))
 
@@ -556,7 +560,7 @@ optional fourth argument FORCE is non-nil."
 	 (if reb-subexp-mode
              (format " (subexp %s)" (or reb-subexp-displayed "-"))
 	   "")
-	 (if (not (reb-target-binding case-fold-search))
+	 (if (not (reb-target-value 'case-fold-search))
 	     " Case"
 	   "")))
   (force-mode-line-update))
@@ -564,7 +568,6 @@ optional fourth argument FORCE is non-nil."
 (defun reb-display-subexp (&optional subexp)
   "Highlight only subexpression SUBEXP in the RE Builder."
   (interactive)
-
   (setq reb-subexp-displayed
 	(or subexp (string-to-number (format "%c" last-command-event))))
   (reb-update-modestring)
@@ -572,7 +575,6 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-kill-buffer ()
   "When the RE Builder buffer is killed make sure no overlays stay around."
-
   (when (reb-mode-buffer-p)
     (reb-delete-overlays)))
 
@@ -604,8 +606,7 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-insert-regexp ()
   "Insert current RE."
-
-  (let ((re (or (reb-target-binding reb-regexp)
+  (let ((re (or (reb-target-value 'reb-regexp)
 		(reb-empty-regexp))))
   (cond ((eq reb-re-syntax 'read)
 	 (print re (current-buffer)))
@@ -613,14 +614,14 @@ optional fourth argument FORCE is non-nil."
 	 (insert "\n\"" re "\""))
 	;; For the Lisp syntax we need the "source" of the regexp
 	((reb-lisp-syntax-p)
-	 (insert (or (reb-target-binding reb-regexp-src)
+	 (insert (or (reb-target-value 'reb-regexp-src)
 		     (reb-empty-regexp)))))))
 
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
-  (cond ((memq reb-re-syntax '(sregex rx))
-	 (rx-to-string (eval (car (read-from-string re)))))
-	(t re)))
+  (if (eq reb-re-syntax 'rx)
+      (rx-to-string (eval (car (read-from-string re))))
+    re))
 
 (defun reb-update-regexp ()
   "Update the regexp for the target buffer.
@@ -632,15 +633,13 @@ Return t if the (cooked) expression changed."
 	(prog1
 	    (not (string= oldre re))
 	  (setq reb-regexp re)
-	  ;; Only update the source re for the lisp formats
-	  (when (reb-lisp-syntax-p)
-	    (setq reb-regexp-src re-src)))))))
+	  ;; Update the source re for the Lisp formats.
+	  (setq reb-regexp-src re-src))))))
 
 
 ;; And now the real core of the whole thing
 (defun reb-count-subexps (re)
   "Return number of sub-expressions in the regexp RE."
-
   (let ((i 0) (beg 0))
     (while (string-match "\\\\(" re beg)
       (setq i (1+ i)
@@ -650,7 +649,7 @@ Return t if the (cooked) expression changed."
 (defun reb-update-overlays (&optional subexp)
   "Switch to `reb-target-buffer' and mark all matches of `reb-regexp'.
 If SUBEXP is non-nil mark only the corresponding sub-expressions."
-  (let* ((re (reb-target-binding reb-regexp))
+  (let* ((re (reb-target-value 'reb-regexp))
 	 (subexps (reb-count-subexps re))
 	 (matches 0)
 	 (submatches 0)
@@ -745,8 +744,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
           (let ((face (get-text-property (1- (point)) 'face)))
             (when (or (and (listp face)
                            (memq 'font-lock-string-face face))
-                      (eq 'font-lock-string-face face)
-                      t)
+                      (eq 'font-lock-string-face face))
               (throw 'found t))))))))
 
 (defface reb-regexp-grouping-backslash
@@ -827,13 +825,12 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (defun reb-restart-font-lock ()
   "Restart `font-lock-mode' to fit current regexp format."
-  (message "reb-restart-font-lock re-re-syntax=%s" reb-re-syntax)
   (with-current-buffer (get-buffer reb-buffer)
     (let ((font-lock-is-on font-lock-mode))
       (font-lock-mode -1)
       (kill-local-variable 'font-lock-set-defaults)
-      ;;(set (make-local-variable 'reb-re-syntax) 'string)
-      ;;(set (make-local-variable 'reb-re-syntax) 'rx)
+      ;;(setq-local reb-re-syntax 'string)
+      ;;(setq-local reb-re-syntax 'rx)
       (setq font-lock-defaults
             (cond
              ((memq reb-re-syntax '(read string))

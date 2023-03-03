@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
+#include "frame.h"
 #include "dispextern.h"
 #include "composite.h"
 #include "disptab.h"
@@ -177,12 +178,16 @@ usage: (characterp OBJECT)  */
   return (CHARACTERP (object) ? Qt : Qnil);
 }
 
-DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
-       doc: /* Return the character of the maximum code.  */
+DEFUN ("max-char", Fmax_char, Smax_char, 0, 1, 0,
+       doc: /* Return the maximum character code.
+If UNICODE is non-nil, return the maximum character code defined
+by the Unicode Standard.  */
        attributes: const)
-  (void)
+  (Lisp_Object unicode)
 {
-  return make_fixnum (MAX_CHAR);
+  return (!NILP (unicode)
+	  ? make_fixnum (MAX_UNICODE_CHAR)
+	  : make_fixnum (MAX_CHAR));
 }
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
@@ -321,28 +326,41 @@ strwidth (const char *str, ptrdiff_t len)
   return c_string_width ((const unsigned char *) str, len, -1, NULL, NULL);
 }
 
-/* Return width of Lisp string STRING when displayed in the current
-   buffer.  The width is measured by how many columns it occupies on
-   the screen while paying attention to compositions.  If PRECISION >
-   0, return the width of longest substring that doesn't exceed
-   PRECISION, and set number of characters and bytes of the substring
-   in *NCHARS and *NBYTES respectively.  */
+/* Return width of a (substring of a) Lisp string STRING when
+   displayed in the current buffer.  The width is measured by how many
+   columns it occupies on the screen while paying attention to
+   compositions.  If PRECISION > 0, return the width of longest
+   substring that doesn't exceed PRECISION, and set number of
+   characters and bytes of the substring in *NCHARS and *NBYTES
+   respectively.  FROM and TO are zero-based character indices that
+   define the substring of STRING to consider.  If AUTO_COMP is
+   non-zero, account for automatic compositions in STRING.  */
 
 ptrdiff_t
-lisp_string_width (Lisp_Object string, ptrdiff_t precision,
-		   ptrdiff_t *nchars, ptrdiff_t *nbytes)
+lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
+		   ptrdiff_t precision, ptrdiff_t *nchars, ptrdiff_t *nbytes,
+		   bool auto_comp)
 {
-  ptrdiff_t len = SCHARS (string);
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
-  bool multibyte = len < SBYTES (string);
-  unsigned char *str = SDATA (string);
-  ptrdiff_t i = 0, i_byte = 0;
+  bool multibyte = SCHARS (string) < SBYTES (string);
+  ptrdiff_t i = from, i_byte = from ? string_char_to_byte (string, from) : 0;
+  ptrdiff_t from_byte = i_byte;
   ptrdiff_t width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f =
+    (FRAMEP (selected_frame) && FRAME_LIVE_P (XFRAME (selected_frame)))
+    ? XFRAME (selected_frame)
+    : NULL;
+  int font_width = -1;
+  Lisp_Object default_font, frame_font;
+#endif
 
-  while (i < len)
+  eassert (precision <= 0 || (nchars && nbytes));
+
+  while (i < to)
     {
       ptrdiff_t chars, bytes, thiswidth;
       Lisp_Object val;
@@ -357,9 +375,53 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
 	  chars = end - i;
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
+#ifdef HAVE_WINDOW_SYSTEM
+      else if (auto_comp
+	       && f && FRAME_WINDOW_P (f)
+	       && multibyte
+	       && find_automatic_composition (i, -1, i, &ignore,
+					      &end, &val, string)
+	       && end > i)
+	{
+	  int j;
+	  for (j = 0; j < LGSTRING_GLYPH_LEN (val); j++)
+	    if (NILP (LGSTRING_GLYPH (val, j)))
+	      break;
+
+	  int pixelwidth = composition_gstring_width (val, 0, j, NULL);
+
+	  /* The below is somewhat expensive, so compute it only once
+	     for the entire loop, and only if needed.  */
+	  if (font_width < 0)
+	    {
+	      font_width = FRAME_COLUMN_WIDTH (f);
+	      default_font = Fface_font (Qdefault, Qnil, Qnil);
+	      frame_font = Fframe_parameter (Qnil, Qfont);
+
+	      if (STRINGP (default_font) && STRINGP (frame_font)
+		  && (SCHARS (default_font) != SCHARS (frame_font)
+		      || SBYTES (default_font) != SBYTES (frame_font)
+		      || memcmp (SDATA (default_font), SDATA (frame_font),
+				 SBYTES (default_font))))
+		{
+		  Lisp_Object font_info = Ffont_info (default_font, Qnil);
+		  if (VECTORP (font_info))
+		    {
+		      font_width = XFIXNUM (AREF (font_info, 11));
+		      if (font_width <= 0)
+			font_width = XFIXNUM (AREF (font_info, 10));
+		    }
+		}
+	    }
+	  thiswidth = (double) pixelwidth / font_width + 0.5;
+	  chars = end - i;
+	  bytes = string_char_to_byte (string, end) - i_byte;
+	}
+#endif	/* HAVE_WINDOW_SYSTEM */
       else
 	{
 	  int c;
+	  unsigned char *str = SDATA (string);
 
 	  if (multibyte)
 	    {
@@ -375,8 +437,8 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
 
       if (0 < precision && precision - width < thiswidth)
 	{
-	  *nchars = i;
-	  *nbytes = i_byte;
+	  *nchars = i - from;
+	  *nbytes = i_byte - from_byte;
 	  return width;
 	}
       if (INT_ADD_WRAPV (thiswidth, width, &width))
@@ -387,27 +449,37 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
 
   if (precision > 0)
     {
-      *nchars = i;
-      *nbytes = i_byte;
+      *nchars = i - from;
+      *nbytes = i_byte - from_byte;
     }
 
   return width;
 }
 
-DEFUN ("string-width", Fstring_width, Sstring_width, 1, 1, 0,
+DEFUN ("string-width", Fstring_width, Sstring_width, 1, 3, 0,
        doc: /* Return width of STRING when displayed in the current buffer.
 Width is measured by how many columns it occupies on the screen.
+Optional arguments FROM and TO specify the substring of STRING to
+consider, and are interpreted as in `substring'.
+
 When calculating width of a multibyte character in STRING,
 only the base leading-code is considered; the validity of
 the following bytes is not checked.  Tabs in STRING are always
-taken to occupy `tab-width' columns.
-usage: (string-width STRING)  */)
-  (Lisp_Object str)
+taken to occupy `tab-width' columns.  The effect of faces and fonts
+used for non-Latin and other unusual characters (such as emoji) is
+ignored as well, as are display properties and invisible text.
+For these reasons, the results are not generally reliable;
+for accurate dimensions of text as it will be displayed,
+use `window-text-pixel-size' instead.
+usage: (string-width STRING &optional FROM TO)  */)
+  (Lisp_Object str, Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object val;
+  ptrdiff_t ifrom, ito;
 
   CHECK_STRING (str);
-  XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
+  validate_subarray (str, from, to, SCHARS (str), &ifrom, &ito);
+  XSETFASTINT (val, lisp_string_width (str, ifrom, ito, -1, NULL, NULL, true));
   return val;
 }
 
@@ -586,48 +658,38 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 ptrdiff_t
 count_size_as_multibyte (const unsigned char *str, ptrdiff_t len)
 {
-  const unsigned char *endp = str + len;
+  /* Count the number of non-ASCII (raw) bytes, since they will occupy
+     two bytes in a multibyte string.  */
+  ptrdiff_t nonascii = 0;
+  for (ptrdiff_t i = 0; i < len; i++)
+    nonascii += str[i] >> 7;
   ptrdiff_t bytes;
-
-  for (bytes = 0; str < endp; str++)
-    {
-      int n = *str < 0x80 ? 1 : 2;
-      if (INT_ADD_WRAPV (bytes, n, &bytes))
-        string_overflow ();
-    }
+  if (INT_ADD_WRAPV (len, nonascii, &bytes))
+    string_overflow ();
   return bytes;
 }
 
 
-/* Convert unibyte text at STR of BYTES bytes to a multibyte text
-   that contains the same single-byte characters.  It actually
-   converts all 8-bit characters to multibyte forms.  It is assured
-   that we can use LEN bytes at STR as a work area and that is
-   enough.  */
-
+/* Convert unibyte text at SRC of NCHARS chars to a multibyte text
+   at DST, that contains the same single-byte characters.
+   Return the number of bytes written at DST.  */
 ptrdiff_t
-str_to_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t bytes)
+str_to_multibyte (unsigned char *dst, const unsigned char *src,
+		  ptrdiff_t nchars)
 {
-  unsigned char *p = str, *endp = str + bytes;
-  unsigned char *to;
-
-  while (p < endp && *p < 0x80) p++;
-  if (p == endp)
-    return bytes;
-  to = p;
-  bytes = endp - p;
-  endp = str + len;
-  memmove (endp - bytes, p, bytes);
-  p = endp - bytes;
-  while (p < endp)
+  unsigned char *d = dst;
+  for (ptrdiff_t i = 0; i < nchars; i++)
     {
-      int c = *p++;
-
-      if (c >= 0x80)
-	c = BYTE8_TO_CHAR (c);
-      to += CHAR_STRING (c, to);
+      unsigned char c = src[i];
+      if (c <= 0x7f)
+	*d++ = c;
+      else
+	{
+	  *d++ = 0xc0 + ((c >> 6) & 1);
+	  *d++ = 0x80 + (c & 0x3f);
+	}
     }
-  return (to - str);
+  return d - dst;
 }
 
 /* Arrange multibyte text at STR of LEN bytes as a unibyte text.  It
@@ -666,31 +728,6 @@ str_as_unibyte (unsigned char *str, ptrdiff_t bytes)
     }
   return (to - str);
 }
-
-/* Convert eight-bit chars in SRC (in multibyte form) to the
-   corresponding byte and store in DST.  CHARS is the number of
-   characters in SRC.  The value is the number of bytes stored in DST.
-   Usually, the value is the same as CHARS, but is less than it if SRC
-   contains a non-ASCII, non-eight-bit character.  */
-
-ptrdiff_t
-str_to_unibyte (const unsigned char *src, unsigned char *dst, ptrdiff_t chars)
-{
-  ptrdiff_t i;
-
-  for (i = 0; i < chars; i++)
-    {
-      int c = string_char_advance (&src);
-
-      if (CHAR_BYTE8_P (c))
-	c = CHAR_TO_BYTE8 (c);
-      else if (! ASCII_CHAR_P (c))
-	return i;
-      *dst++ = c;
-    }
-  return i;
-}
-
 
 static ptrdiff_t
 string_count_byte8 (Lisp_Object string)
@@ -980,6 +1017,27 @@ printablep (int c)
   return (!(gen_cat == UNICODE_CATEGORY_Cc /* control */
 	    || gen_cat == UNICODE_CATEGORY_Cs /* surrogate */
 	    || gen_cat == UNICODE_CATEGORY_Cn)); /* unassigned */
+}
+
+/* Return true if C is graphic character that can be printed independently.  */
+bool
+graphic_base_p (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! FIXNUMP (category))
+    return false;
+  EMACS_INT gen_cat = XFIXNUM (category);
+
+  return (!(gen_cat == UNICODE_CATEGORY_Mn       /* mark, nonspacing */
+            || gen_cat == UNICODE_CATEGORY_Mc    /* mark, combining */
+            || gen_cat == UNICODE_CATEGORY_Me    /* mark, enclosing */
+            || gen_cat == UNICODE_CATEGORY_Zs    /* separator, space */
+            || gen_cat == UNICODE_CATEGORY_Zl    /* separator, line */
+            || gen_cat == UNICODE_CATEGORY_Zp    /* separator, paragraph */
+            || gen_cat == UNICODE_CATEGORY_Cc    /* other, control */
+            || gen_cat == UNICODE_CATEGORY_Cs    /* other, surrogate */
+            || gen_cat == UNICODE_CATEGORY_Cf    /* other, format */
+            || gen_cat == UNICODE_CATEGORY_Cn)); /* other, unassigned */
 }
 
 /* Return true if C is a horizontal whitespace character, as defined

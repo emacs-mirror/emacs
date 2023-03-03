@@ -26,6 +26,10 @@ Maintainer: Dale Gulledge <dsplat@rochester.rr.com>
 Author:     Rafael Sepúlveda <drs@gnulinux.org.mx>
 Maintainer: Rafael Sepúlveda <drs@gnulinux.org.mx>
 
+* TUTORIAL.el_GR:
+Author:     Protesilaos Stavrou <info@protesilaos.com>
+Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+
 * TUTORIAL.fr:
 Author:     Éric Jacoboni <jaco@teaser.fr>
 Maintainer: Éric Jacoboni <jaco@teaser.fr>
@@ -85,6 +89,10 @@ Maintainer: Mats Lidell <matsl@contactor.se>
 * TUTORIAL.th:
 Author:     Virach Sornlertlamvanich <virach@nectec.or.th>
 Maintainer: Virach Sornlertlamvanich <virach@nectec.or.th>
+
+* TUTORIAL.uk:
+Author:     Denys Nykula <vegan@libre.net.ua>
+Maintainer: Denys Nykula <vegan@libre.net.ua>
 
 * TUTORIAL.zh:
 Author:     Chao-Hong Liu <chliu@gnu.org>

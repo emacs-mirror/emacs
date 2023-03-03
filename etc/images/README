@@ -27,19 +27,19 @@ COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 File: mh-logo.xpm
   Author: Satyaki Das
-  Copyright (C) 2003-2020 Free Software Foundation, Inc.
+  Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 Files: gnus.pbm
   Author: Luis Fernandes <elf@ee.ryerson.ca>
-  Copyright (C) 2001-2020 Free Software Foundation, Inc.
+  Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 Files: splash.png, splash.svg, splash.pbm, splash.xpm
   Author: Francesc Rocher <francesc.rocher@gmail.com>
-  Copyright (C) 2008-2020 Free Software Foundation, Inc.
+  Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 Files: checked.xpm, unchecked.xpm
   Author: Chong Yidong <cyd@stupidchicken.com>
-  Copyright (C) 2010-2020 Free Software Foundation, Inc.
+  Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 
 * The following icons are from GTK+ 2.x. They are not part of Emacs, but
@@ -68,6 +68,7 @@ Emacs images and their source in the GNOME icons stock/ directory:
   bookmark_add.xpm          actions/bookmark_add
   cancel.xpm                slightly modified generic/stock_stop
   connect.xpm               net/stock_connect
+  connect-to-url.xpm        net/stock_connect-to-url
   contact.xpm               net/stock_contact
   data-save.xpm             data/stock_data-save
   delete.xpm                generic/stock_delete
@@ -104,3 +105,30 @@ same conditions.
 
 The *.pbm files were generally converted from *.xpm by running GIMP or
 ImageMagick's 'convert'.
+
+
+* The following icons are from the Adwaita Icon Theme (made by the
+GNOME project).  They are not part of Emacs, but are distributed and
+used by Emacs.  They are licensed under either the GNU LGPL v3 or the
+Creative Commons Attribution-Share Alike 3.0 United States License.
+
+To view a copy of the CC-BY-SA license, visit
+http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative
+Commons, 171 Second Street, Suite 300, San Francisco, California 94105, USA.
+
+For more information see the adwaita-icon-theme repository at:
+
+    https://gitlab.gnome.org/GNOME/adwaita-icon-theme
+
+Emacs images and their source in the Adwaita/scalable directory:
+
+  checked.svg               ui/checkbox-checked-symbolic.svg
+  unchecked.svg             ui/checkbox-symbolic.svg
+  checkbox-mixed.svg        ui/checkbox-mixed-symbolic.svg
+  radio.svg                 ui/radio-symbolic.svg
+  radio-mixed.svg           ui/radio-mixed-symbolic.svg
+  radio-checked.svg         ui/radio-checked-symbolic.svg
+  down.svg                  ui/pan-down-symbolic.svg
+  left.svg                  ui/pan-start-symbolic.svg
+  right.svg                 ui/pan-end-symbolic.svg
+  up.svg                    ui/pan-up-symbolic.svg

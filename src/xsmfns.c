@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -357,7 +357,7 @@ ice_conn_watch_CB (IceConn iceConn, IcePointer clientData,
     }
 
   ice_fd = IceConnectionNumber (iceConn);
-  add_read_fd (ice_fd, x_session_check_input, NULL);
+  add_non_keyboard_read_fd (ice_fd, x_session_check_input, NULL);
 }
 
 /* Create the client leader window.  */
@@ -511,7 +511,7 @@ Do not call this function yourself. */)
      this at the wrong time. */
   if (doing_interact && ! kill_emacs)
     {
-      bool cancel_shutdown = ! NILP (call0 (intern ("emacs-session-save")));
+      bool cancel_shutdown = ! NILP (call0 (Qemacs_session_save));
 
       SmcInteractDone (smc_conn, cancel_shutdown);
       SmcSaveYourselfDone (smc_conn, True);
@@ -522,7 +522,7 @@ Do not call this function yourself. */)
     {
       /* We should not do user interaction here, but it is not easy to
          prevent.  Fix this in next version.  */
-      Fkill_emacs (Qnil);
+      Fkill_emacs (Qnil, Qnil);
 
 #if false
       /* This will not be reached, but we want kill-emacs-hook to be run.  */
@@ -542,6 +542,8 @@ Do not call this function yourself. */)
 void
 syms_of_xsmfns (void)
 {
+  DEFSYM (Qemacs_session_save, "emacs-session-save");
+
   DEFVAR_LISP ("x-session-id", Vx_session_id,
     doc: /* The session id Emacs got from the session manager for this session.
 Changing the value does not change the session id used by Emacs.

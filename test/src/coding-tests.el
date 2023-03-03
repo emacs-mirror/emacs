@@ -1,6 +1,6 @@
 ;;; coding-tests.el --- tests for text encoding and decoding -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Author: Kenichi Handa <handa@gnu.org>
@@ -56,21 +56,22 @@
     (set-buffer-multibyte nil)
     (insert (encode-coding-string "あ" 'euc-jp) "\xd" "\n")
     (decode-coding-region (point-min) (point-max) 'euc-jp-dos)
-    (should-not (string-match-p "\^M" (buffer-string)))))
+    (should-not (string-search "\^M" (buffer-string)))))
 
 ;; Return the contents (specified by CONTENT-TYPE; ascii, latin, or
 ;; binary) of a test file.
 (defun coding-tests-file-contents (content-type)
-  (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
-	 (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
-	 (binary (string-to-multibyte
-		  (concat (string-as-unibyte latin)
-			  (unibyte-string #xC0 #xC1 ?\n)))))
-    (cond ((eq content-type 'ascii) ascii)
-	  ((eq content-type 'latin) latin)
-	  ((eq content-type 'binary) binary)
-	  (t
-	   (error "Invalid file content type: %s" content-type)))))
+  (with-suppressed-warnings ((obsolete string-as-unibyte))
+    (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
+           (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
+           (binary (string-to-multibyte
+                    (concat (string-as-unibyte latin)
+                            (unibyte-string #xC0 #xC1 ?\n)))))
+      (cond ((eq content-type 'ascii) ascii)
+            ((eq content-type 'latin) latin)
+            ((eq content-type 'binary) binary)
+            (t
+             (error "Invalid file content type: %s" content-type))))))
 
 ;; Generate FILE with CONTENTS encoded by CODING-SYSTEM.
 ;; whose encoding specified by CODING-SYSTEM.
@@ -147,21 +148,21 @@
 
 (defun coding-tests (content-type write-coding read-coding detected-coding
 				   &optional translator)
-  (prefer-coding-system 'utf-8-auto)
-  (let ((filename (coding-tests-filename content-type write-coding)))
-    (with-temp-buffer
-      (let ((coding-system-for-read read-coding)
-	    (contents (coding-tests-file-contents content-type))
-	    (disable-ascii-optimization nil))
-	(if translator
-	    (setq contents (funcall translator contents)))
-	(insert-file-contents filename)
-	(if (and (coding-system-equal buffer-file-coding-system detected-coding)
-		 (string= (buffer-string) contents))
-	    nil
-	  (list buffer-file-coding-system
-		(string-to-list (buffer-string))
-		(string-to-list contents)))))))
+  (with-coding-priority '(utf-8-auto)
+    (let ((filename (coding-tests-filename content-type write-coding)))
+      (with-temp-buffer
+        (let ((coding-system-for-read read-coding)
+	      (contents (coding-tests-file-contents content-type))
+	      (disable-ascii-optimization nil))
+	  (if translator
+	      (setq contents (funcall translator contents)))
+	  (insert-file-contents filename)
+	  (if (and (coding-system-equal buffer-file-coding-system detected-coding)
+		   (string= (buffer-string) contents))
+	      nil
+	    (list buffer-file-coding-system
+		  (string-to-list (buffer-string))
+		  (string-to-list contents))))))))
 
 (ert-deftest ert-test-coding-ascii ()
   (unwind-protect
@@ -359,7 +360,7 @@
 	(delete-region (point-min) (point))))))
 
 (defun benchmark-decoder ()
-  (let ((gc-cons-threshold 4000000))
+  (let ((gc-cons-threshold (max gc-cons-threshold 4000000)))
     (insert "Without optimization:\n")
     (dolist (files test-file-list)
       (dolist (file (cdr files))
@@ -429,9 +430,5 @@
                  '((iso-latin-1 3) (us-ascii 1 3))))
   (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
 
-;; Local Variables:
-;; byte-compile-warnings: (not obsolete)
-;; End:
-
 (provide 'coding-tests)
-;; coding-tests.el ends here
+;;; coding-tests.el ends here

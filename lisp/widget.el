@@ -1,10 +1,10 @@
-;;; widget.el --- a library of user interface components
+;;; widget.el --- a library of user interface components  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
+;; URL: http://www.dina.kvl.dk/~abraham/custom/
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -44,7 +44,7 @@
   ;; 	(list 'or (list 'boundp (list 'car 'keywords))
   ;; 	  (list 'set (list 'car 'keywords) (list 'car 'keywords)))
   ;; 	(list 'setq 'keywords (list 'cdr 'keywords)))))
-  (declare (obsolete nil "27.1"))
+  (declare (obsolete nil "27.1") (indent defun))
   nil)
 
 ;;(define-widget-keywords :documentation-indent
@@ -83,18 +83,15 @@ create identical widgets:
 * (apply #\\='widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;;
   (unless (or (null doc) (stringp doc))
-    (error "widget documentation must be nil or a string."))
+    (error "Widget documentation must be nil or a string"))
   (put name 'widget-type (cons class args))
   (put name 'widget-documentation (purecopy doc))
   name)
 
-;; This is used by external widget code (in W3, at least).
 (define-obsolete-function-alias 'widget-plist-member #'plist-member "26.1")
-
-;;; The End.
 
 (provide 'widget)
 

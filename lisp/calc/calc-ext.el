@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -678,14 +678,13 @@
 
   (calc-init-prefixes)
 
-  (mapc (function
-	 (lambda (x)
+  (mapc (lambda (x)
 	  (define-key calc-mode-map (format "c%c" x) 'calc-clean-num)
 	  (define-key calc-mode-map (format "j%c" x) 'calc-select-part)
 	  (define-key calc-mode-map (format "r%c" x) 'calc-recall-quick)
 	  (define-key calc-mode-map (format "s%c" x) 'calc-store-quick)
 	  (define-key calc-mode-map (format "t%c" x) 'calc-store-into-quick)
-	  (define-key calc-mode-map (format "u%c" x) 'calc-quick-units)))
+          (define-key calc-mode-map (format "u%c" x) 'calc-quick-units))
 	"0123456789")
 
   (let ((i ?A))
@@ -711,9 +710,9 @@
   (define-key calc-alg-map "\e\177" 'calc-pop-above)
 
 ;;;; (Autoloads here)
-  (mapc (function (lambda (x)
-    (mapcar (function (lambda (func) (autoload func (car x))))
-            (cdr x))))
+  (mapc (lambda (x)
+          (mapcar (lambda (func) (autoload func (car x)))
+                  (cdr x)))
     '(
 
  ("calc-alg" calc-has-rules math-defsimplify
@@ -980,9 +979,9 @@ calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
 
 ))
 
-  (mapcar (function (lambda (x)
-                      (mapcar (function (lambda (cmd) (autoload cmd (car x) nil t)))
-                              (cdr x))))
+  (mapcar (lambda (x)
+            (mapcar (lambda (cmd) (autoload cmd (car x) nil t))
+                    (cdr x)))
     '(
 
  ("calc-alg" calc-alg-evaluate calc-apart calc-collect calc-expand
@@ -1196,7 +1195,7 @@ calc-set-xor calc-sort calc-subvector calc-tail calc-transpose
 calc-unpack calc-unpack-bits calc-vector-find calc-vlength)
 
  ("calc-yank" calc-copy-as-kill calc-copy-region-as-kill
-calc-copy-to-buffer calc-edit calc-edit-cancel calc-edit-mode
+calc-copy-to-buffer calc-edit calc-edit-cancel calc--edit-mode
 calc-kill calc-kill-region calc-yank))))
 
 (defun calc-init-prefixes ()
@@ -1267,27 +1266,23 @@ calc-kill calc-kill-region calc-yank))))
 	   (math-normalize val)))))
 
 
-(defvar calc-help-map nil)
-
-(if calc-help-map
-    nil
-  (setq calc-help-map (make-keymap))
-  (define-key calc-help-map "b" 'calc-describe-bindings)
-  (define-key calc-help-map "c" 'calc-describe-key-briefly)
-  (define-key calc-help-map "f" 'calc-describe-function)
-  (define-key calc-help-map "h" 'calc-full-help)
-  (define-key calc-help-map "i" 'calc-info)
-  (define-key calc-help-map "k" 'calc-describe-key)
-  (define-key calc-help-map "n" 'calc-view-news)
-  (define-key calc-help-map "s" 'calc-info-summary)
-  (define-key calc-help-map "t" 'calc-tutorial)
-  (define-key calc-help-map "v" 'calc-describe-variable)
-  (define-key calc-help-map "\C-c" 'calc-describe-copying)
-  (define-key calc-help-map "\C-d" 'calc-describe-distribution)
-  (define-key calc-help-map "\C-n" 'calc-view-news)
-  (define-key calc-help-map "\C-w" 'calc-describe-no-warranty)
-  (define-key calc-help-map "?" 'calc-help-for-help)
-  (define-key calc-help-map "\C-h" 'calc-help-for-help))
+(defvar-keymap calc-help-map
+  "b"   'calc-describe-bindings
+  "c"   'calc-describe-key-briefly
+  "f"   'calc-describe-function
+  "h"   'calc-full-help
+  "i"   'calc-info
+  "k"   'calc-describe-key
+  "n"   'calc-view-news
+  "s"   'calc-info-summary
+  "t"   'calc-tutorial
+  "v"   'calc-describe-variable
+  "C-c" 'calc-describe-copying
+  "C-d" 'calc-describe-distribution
+  "C-n" 'calc-view-news
+  "C-w" 'calc-describe-no-warranty
+  "?"   'calc-help-for-help
+  "C-h" 'calc-help-for-help)
 
 (defvar calc-prefix-help-retry nil)
 (defvar calc-prefix-help-phase 0)
@@ -1302,12 +1297,13 @@ calc-kill calc-kill-region calc-yank))))
 		  0))
 	  (let ((msg (nth calc-prefix-help-phase msgs)))
 	    (message "%s" (if msg
-			      (concat group ": " msg ":"
+			      (concat group ": " (substitute-command-keys msg) ":"
 				      (make-string
 				       (- (apply #'max (mapcar #'length msgs))
 					  (length msg))
                                        ?\s)
-				      "  [MORE]"
+				      (substitute-command-keys
+                                       "  [\\`?'=MORE]")
 				      (if key
 					  (concat "  " (char-to-string key)
 						  "-")
@@ -1358,7 +1354,7 @@ calc-kill calc-kill-region calc-yank))))
             calc-redo-list nil)
       (let (calc-stack calc-user-parse-tables calc-standard-date-formats
                        calc-invocation-macro)
-        (mapc (function (lambda (v) (set v nil))) calc-local-var-list)
+        (mapc (lambda (v) (set v nil)) calc-local-var-list)
         (if (and arg (<= arg 0))
             (calc-mode-var-list-restore-default-values)
           (calc-mode-var-list-restore-saved-values)))
@@ -1658,7 +1654,7 @@ calc-kill calc-kill-region calc-yank))))
 	    (calc-pop-stack n 1 t)
 	    (calc-push-list (mapcar #'car entries)
 			    1
-			    (mapcar (function (lambda (x) (nth 2 x)))
+                            (mapcar (lambda (x) (nth 2 x))
 				    entries)))))))
 
 (defvar calc-refreshing-evaltos nil)
@@ -1924,11 +1920,10 @@ calc-kill calc-kill-region calc-yank))))
   (let* ((calc-z-prefix-msgs nil)
 	 (calc-z-prefix-buf "")
 	 (kmap (sort (copy-sequence (calc-user-key-map))
-		     (function (lambda (x y) (< (car x) (car y))))))
+                     (lambda (x y) (< (car x) (car y)))))
 	 (flags (apply #'logior
-		       (mapcar (function
-				(lambda (k)
-				  (calc-user-function-classify (car k))))
+                       (mapcar (lambda (k)
+                                 (calc-user-function-classify (car k)))
 			       kmap))))
     (if (= (logand flags 8) 0)
 	(calc-user-function-list kmap 7)
@@ -2419,17 +2414,6 @@ If X is not an error form, return 1."
                (mapcar #'math-normalize (cdr a))))))
 
 
-;;; Normalize a bignum digit list by trimming high-end zeros.  [L l]
-(defun math-norm-bignum (a)
-  (let ((digs a) (last nil))
-    (while digs
-      (or (eq (car digs) 0) (setq last digs))
-      (setq digs (cdr digs)))
-    (and last
-	 (progn
-	   (setcdr last nil)
-	   a))))
-
 ;;; Return 0 for zero, -1 for negative, 1 for positive.  [S n] [Public]
 (defun calcFunc-sign (a &optional x)
   (let ((signs (math-possible-signs a)))
@@ -2544,23 +2528,6 @@ If X is not an error form, return 1."
 	     0
 	   2))))
 
-;;; Compare two bignum digit lists, return -1 for A<B, 0 for A=B, 1 for A>B.
-(defun math-compare-bignum (a b)   ; [S l l]
-  (let ((res 0))
-    (while (and a b)
-      (if (< (car a) (car b))
-	  (setq res -1)
-	(if (> (car a) (car b))
-	    (setq res 1)))
-      (setq a (cdr a)
-	    b (cdr b)))
-    (if a
-	(progn
-	  (while (eq (car a) 0) (setq a (cdr a)))
-	  (if a 1 res))
-      (while (eq (car b) 0) (setq b (cdr b)))
-      (if b -1 res))))
-
 (defun math-compare-lists (a b)
   (cond ((null a) (null b))
 	((null b) nil)
@@ -2595,9 +2562,9 @@ If X is not an error form, return 1."
 ;;; True if A is numerically equal to the integer B.  [P N S] [Public]
 ;;; B must not be a multiple of 10.
 (defun math-equal-int (a b)
-  (or (eq a b)
+  (or (eql a b)
       (and (eq (car-safe a) 'float)
-	   (eq (nth 1 a) b)
+	   (eql (nth 1 a) b)
 	   (= (nth 2 a) 0))))
 
 
@@ -2633,9 +2600,8 @@ If X is not an error form, return 1."
 	   (let ((rhs (calc-top-n 1)))
 	     (calc-enter-result (- 1 n)
 				name
-				(mapcar (function
-					 (lambda (x)
-					   (list func x rhs)))
+                                (mapcar (lambda (x)
+                                          (list func x rhs))
 					(calc-top-list-n (- n) 2))))))))
 
 (defun calc-unary-op-fancy (name func arg)
@@ -2644,9 +2610,8 @@ If X is not an error form, return 1."
     (cond ((> n 0)
 	   (calc-enter-result n
 			      name
-			      (mapcar (function
-				       (lambda (x)
-					 (list func x)))
+                              (mapcar (lambda (x)
+                                        (list func x))
 				      (calc-top-list-n n))))
 	  ((< n 0)
 	   (calc-enter-result 1
@@ -2689,7 +2654,7 @@ If X is not an error form, return 1."
 	 (if (Math-integer-negp a) (setq a (math-neg a)))
 	 (if (Math-integer-negp b) (setq b (math-neg b)))
 	 (let (c)
-	   (if (Math-natnum-lessp a b)
+	   (if (< a b)
 	       (setq c b b a a c))
 	   (while (and (consp a) (not (eq b 0)))
 	     (setq c b
@@ -2816,23 +2781,23 @@ If X is not an error form, return 1."
   (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-integral
-                          (nconc
-                           (get ',func 'math-integral)
-                           (list
-                            #'(lambda (u) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-integral
+                        (nconc
+                         (get ',func 'math-integral)
+                         (list
+                          (lambda (u) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (defmacro math-defintegral-2 (funcs &rest code)
   (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-integral-2
-                          (nconc
-                            (get ',func 'math-integral-2)
-                            (list #'(lambda (u v) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-integral-2
+                        (nconc
+                         (get ',func 'math-integral-2)
+                         (list (lambda (u v) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (defvar var-IntegAfterRules 'calc-IntegAfterRules)
@@ -3120,7 +3085,7 @@ If X is not an error form, return 1."
 	  (math-read-big-err-msg nil)
 	  math-read-big-baseline math-read-big-h2
 	  new-pos p)
-      (while (setq new-pos (string-match "\n" str pos))
+      (while (setq new-pos (string-search "\n" str pos))
 	(setq math-read-big-lines
               (cons (substring str pos new-pos) math-read-big-lines)
 	      pos (1+ new-pos)))
@@ -3281,7 +3246,7 @@ If X is not an error form, return 1."
 	(t
 	 (let ((str (math-format-flat-expr x 0))
 	       (pos 0) p)
-	   (or (string-match "\"" str)
+	   (or (string-search "\"" str)
 	       (while (<= (setq p (+ pos w)) (length str))
 		 (while (and (> (setq p (1- p)) pos)
 			     (not (= (aref str p) ? ))))
@@ -3310,7 +3275,7 @@ If X is not an error form, return 1."
 			      (math-format-radix-float a prec))
 		   (format "%d#%s" calc-number-radix
 			   (math-format-radix-float a prec)))))
-	(if (and prec (> prec 191) (string-match "\\*" str))
+	(if (and prec (> prec 191) (string-search "*" str))
 	    (concat "(" str ")")
 	  str))))
    ((eq (car a) 'frac)
@@ -3450,7 +3415,7 @@ If X is not an error form, return 1."
 
 ;;; Users can redefine this in their init files.
 (defvar calc-keypad-user-menu nil
-  "If non-nil, this describes an additional menu for calc-keypad.
+  "If non-nil, this describes an additional menu for `calc-keypad'.
 It should contain a list of three rows.
 Each row should be a list of six keys.
 Each key should be a list of a label string, plus a Calc command name spec.

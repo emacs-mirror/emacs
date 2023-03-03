@@ -1,6 +1,6 @@
-;;; url-news.el --- News Uniform Resource Locator retrieval code
+;;; url-news.el --- News Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -19,19 +19,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-vars)
 (require 'url-util)
 (require 'url-parse)
 (require 'nntp)
-(autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
-
-;; Unused.
-;;; (defgroup url-news nil
-;;;   "News related options."
-;;;   :group 'url)
 
 (defun url-news-open-host (host port user pass)
   (if (fboundp 'nnheader-init-server-buffer)
@@ -42,7 +38,7 @@
 	(nntp-send-command "^.*\r?\n" "AUTHINFO USER" user)
 	(nntp-send-command "^.*\r?\n" "AUTHINFO PASS" pass)
 	(if (not (nntp-server-opened host))
-	    (url-warn 'url (format "NNTP authentication to `%s' as `%s' failed"
+            (display-warning 'url (format "NNTP authentication to `%s' as `%s' failed"
 				   host user))))))
 
 (defun url-news-fetch-message-id (host message-id)
@@ -107,12 +103,12 @@
   ;; Find a news reference
   (let* ((host (or (url-host url) url-news-server))
 	 (port (url-port url))
-	 (article-brackets nil)
+	 ;; (article-brackets nil)
 	 (buf nil)
 	 (article (url-unhex-string (url-filename url))))
     (url-news-open-host host port (url-user url) (url-password url))
     (cond
-     ((string-match "@" article)	; Its a specific article
+     ((string-search "@" article)	; Its a specific article
       (setq buf (url-news-fetch-message-id host article)))
      ((string= article "")		; List all newsgroups
       (gnus))

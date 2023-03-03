@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -173,6 +173,9 @@ a greeting from the server.
 :nowait, if non-nil, says the connection should be made
 asynchronously, if possible.
 
+:noquery - when exiting Emacs and the network process is running,
+don't query the user if it's non-nil.
+
 :shell-command is a `format-spec' string that can be used if
 :type is `shell'.  It has two specs, %s for host and %p for port
 number.  Example: \"ssh gateway nc %s %p\".
@@ -195,6 +198,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	(make-network-process :name name :buffer buffer
 			      :host (puny-encode-domain host) :service service
 			      :nowait (plist-get parameters :nowait)
+			      :noquery (plist-get parameters :noquery)
                               :tls-parameters
                               (plist-get parameters :tls-parameters)
                               :coding (plist-get parameters :coding))
@@ -248,8 +252,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	     (list key cert)))))))
 
 ;;;###autoload
-(defalias 'open-protocol-stream 'open-network-stream)
-(define-obsolete-function-alias 'open-protocol-stream 'open-network-stream
+(define-obsolete-function-alias 'open-protocol-stream #'open-network-stream
   "26.1")
 
 (defun network-stream-open-plain (name buffer host service parameters)

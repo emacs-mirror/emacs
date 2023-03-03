@@ -1,6 +1,6 @@
-;;; dirtrack.el --- Directory Tracking by watching the prompt
+;;; dirtrack.el --- Directory Tracking by watching the prompt  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -26,13 +26,14 @@
 ;; Shell directory tracking by watching the prompt.
 ;;
 ;; This is yet another attempt at a directory-tracking package for
-;; Emacs shell-mode.  However, this package makes one strong assumption:
-;; that you can customize your shell's prompt to contain the
-;; current working directory.  Most shells do support this, including
-;; almost every type of Bourne and C shell on Unix, the native shells on
-;; Windows95 (COMMAND.COM) and Windows NT (CMD.EXE), and most 3rd party
-;; Windows shells.  If you cannot do this, or do not wish to, this package
-;; will be useless to you.
+;; Emacs shell-mode.  However, this package makes one strong
+;; assumption: that you can customize your shell's prompt to contain
+;; the current working directory.  Most shells do support this,
+;; including almost every type of Bourne and C shell on Unix, the
+;; native shells on Windows 9X (COMMAND.COM) and modern MS-Windows
+;; systems (cmd.exe), and most 3rd party MS-Windows shells.  If you
+;; cannot do this, or do not wish to, this package will be useless to
+;; you.
 ;;
 ;; Installation:
 ;;
@@ -63,7 +64,7 @@
 ;;
 ;; Examples:
 ;;
-;; 1) On Windows NT, my prompt is set to emacs$S$P$G.
+;; 1) On MS-Windows, my prompt is set to emacs$S$P$G.
 ;; 'dirtrack-list' is set to (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
 ;;
 ;; 2) On Solaris running bash, my prompt is set like this:
@@ -77,7 +78,7 @@
 ;;   Running under tcsh:
 ;;   (setq-default dirtrack-list '("^%E \\([^ ]+\\)" 1))
 ;;
-;;   It might be worth mentioning in your file that emacs sources start up
+;;   It might be worth mentioning in your file that Emacs sources start up
 ;;   files of the form: ~/.emacs_<SHELL> where <SHELL> is the name of the
 ;;   shell.  So for example, I have the following in ~/.emacs_tcsh:
 ;;
@@ -92,7 +93,7 @@
 ;; A final note:
 ;;
 ;;   I run LOTS of shell buffers through Emacs, sometimes as different users
-;;   (eg, when logged in as myself, I'll run a root shell in the same Emacs).
+;;   (e.g., when logged in as myself, I'll run a root shell in the same Emacs).
 ;;   If you do this, and the shell prompt contains a ~, Emacs will interpret
 ;;   this relative to the user which owns the Emacs process, not the user
 ;;   who owns the shell buffer.  This may cause dirtrack to behave strangely
@@ -100,7 +101,7 @@
 ;;   with a ~ in it).
 ;;
 ;;   The same behavior can occur if you use dirtrack with remote filesystems
-;;   (using telnet, rlogin, etc) as Emacs will be checking the local
+;;   (using telnet, ssh, etc.) as Emacs will be checking the local
 ;;   filesystem, not the remote one.  This problem is not specific to dirtrack,
 ;;   but also affects file completion, etc.
 
@@ -123,7 +124,6 @@
   "List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
 Second is a number, the regexp group to match."
-  :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")
 		(integer :tag "Regexp Group"))
   :version "24.1")
@@ -132,12 +132,10 @@ Second is a number, the regexp group to match."
 
 (defcustom dirtrack-debug nil
   "If non-nil, the function `dirtrack' will report debugging info."
-  :group 'dirtrack
   :type  'boolean)
 
 (defcustom dirtrack-debug-buffer "*Directory Tracking Log*"
   "Buffer in which to write directory tracking debug information."
-  :group 'dirtrack
   :type  'string)
 
 (defcustom dirtrack-directory-function
@@ -145,19 +143,16 @@ Second is a number, the regexp group to match."
       'dirtrack-windows-directory-function
     'file-name-as-directory)
   "Function to apply to the prompt directory for comparison purposes."
-  :group 'dirtrack
   :type  'function)
 
 (defcustom dirtrack-canonicalize-function
   (if (memq system-type '(ms-dos windows-nt cygwin))
       'downcase 'identity)
   "Function to apply to the default directory for comparison purposes."
-  :group 'dirtrack
   :type  'function)
 
 (defcustom dirtrack-directory-change-hook nil
   "Hook that is called when a directory change is made."
-  :group 'dirtrack
   :type 'hook)
 
 
@@ -190,7 +185,7 @@ working directory at all times, and that you set the variable
 This is an alternative to `shell-dirtrack-mode', which works by
 tracking `cd' and similar commands which change the shell working
 directory."
-  nil nil nil
+  :lighter nil
   (if dirtrack-mode
       (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)
     (remove-hook 'comint-preoutput-filter-functions 'dirtrack t)))
@@ -198,7 +193,7 @@ directory."
 
 (define-minor-mode dirtrack-debug-mode
   "Toggle Dirtrack debugging."
-  nil nil nil
+  :lighter nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))
 

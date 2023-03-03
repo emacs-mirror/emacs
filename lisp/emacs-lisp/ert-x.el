@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>
@@ -96,20 +96,41 @@ ERT--THUNK with that buffer as current."
 
 To be used in ERT tests.  If BODY finishes successfully, the test
 buffer is killed; if there is an error, the test buffer is kept
-around on error for further inspection.  Its name is derived from
+around for further inspection.  Its name is derived from
 the name of the test and the result of NAME-FORM."
-  (declare (debug ((":name" form) body))
+  (declare (debug ((":name" form) def-body))
            (indent 1))
   `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
 
-;; We use these `put' forms in addition to the (declare (indent)) in
-;; the defmacro form since the `declare' alone does not lead to
-;; correct indentation before the .el/.elc file is loaded.
-;; Autoloading these `put' forms solves this.
-;;;###autoload
-(progn
-  ;; TODO(ohler): Figure out what these mean and make sure they are correct.
-  (put 'ert-with-test-buffer 'lisp-indent-function 1))
+(cl-defmacro ert-with-buffer-selected (buffer-or-name &body body)
+  "Display a buffer in a temporary selected window and run BODY.
+
+If BUFFER-OR-NAME is nil, the current buffer is used.
+
+The buffer is made the current buffer, and the temporary window
+becomes the `selected-window', before BODY is evaluated.  The
+modification hooks `before-change-functions' and
+`after-change-functions' are not inhibited during the evaluation
+of BODY, which makes it easier to use `execute-kbd-macro' to
+simulate user interaction.  The window configuration is restored
+before returning, even if BODY exits nonlocally.  The return
+value is the last form in BODY."
+  (declare (debug (form body)) (indent 1))
+  `(save-window-excursion
+     (with-current-buffer (or ,buffer-or-name (current-buffer))
+       (with-selected-window (display-buffer (current-buffer))
+         ,@body))))
+
+(cl-defmacro ert-with-test-buffer-selected ((&key name) &body body)
+  "Create a test buffer, switch to it, and run BODY.
+
+This combines `ert-with-test-buffer' and
+`ert-with-buffer-selected'.  The return value is the last form in
+BODY."
+  (declare (debug ((":name" form) body)) (indent 1))
+  `(ert-with-test-buffer (:name ,name)
+     (ert-with-buffer-selected (current-buffer)
+       ,@body)))
 
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()
@@ -167,9 +188,6 @@ test for `called-interactively' in the command will fail."
     (run-hooks 'pre-command-hook)
     (setq return-value (apply (car command) (cdr command)))
     (run-hooks 'post-command-hook)
-    (and (boundp 'deferred-action-list)
-         deferred-action-list
-         (run-hooks 'deferred-action-function))
     (setq real-last-command (car command)
           last-command this-command)
     (when (boundp 'last-repeatable-command)
@@ -347,7 +365,8 @@ unless the output is going to the echo area (when PRINTCHARFUN is
 t or PRINTCHARFUN is nil and `standard-output' is t).  If the
 output is destined for the echo area, the advice function will
 convert it to a string and pass it to COLLECTOR first."
-  (lambda (func object &optional printcharfun)
+  ;;; FIXME: Pass on OVERRIDES.
+  (lambda (func object &optional printcharfun _overrides)
     (if (not (eq t (or printcharfun standard-output)))
         (funcall func object printcharfun)
       (funcall collector (with-output-to-string
@@ -361,38 +380,192 @@ convert it to a string and pass it to COLLECTOR first."
 (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
   "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
 
-;; Has to be a macro for `load-file-name'.
 (defmacro ert-resource-directory ()
-  "Return absolute file name of the resource directory for this file.
+  "Return absolute file name of the resource (test data) directory.
 
 The path to the resource directory is the \"resources\" directory
-in the same directory as the test file.
+in the same directory as the test file this is called from.
 
-If that directory doesn't exist, use the directory named like the
-test file but formatted by `ert-resource-directory-format' and trimmed
-using `string-trim' with arguments
+If that directory doesn't exist, find a directory based on the
+test file name.  If the file is named \"foo-tests.el\", return
+the absolute file name for \"foo-resources\".
+
+If you want a different resource directory naming scheme, set the
+variable `ert-resource-directory-format'.  Before formatting, the
+file name will be trimmed using `string-trim' with arguments
 `ert-resource-directory-trim-left-regexp' and
-`ert-resource-directory-trim-right-regexp'.  The default values mean
-that if called from a test file named \"foo-tests.el\", return
-the absolute file name for \"foo-resources\"."
-  `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
-                         (and load-in-progress load-file-name)
-                         buffer-file-name))
-          (default-directory (file-name-directory testfile)))
-     (file-truename
-      (if (file-accessible-directory-p "resources/")
-          (expand-file-name "resources/")
-        (expand-file-name
-         (format ert-resource-directory-format
-                 (string-trim testfile
-                              ert-resource-directory-trim-left-regexp
-                              ert-resource-directory-trim-right-regexp)))))))
+`ert-resource-directory-trim-right-regexp'."
+  `(when-let ((testfile ,(or (macroexp-file-name)
+                             buffer-file-name)))
+     (let ((default-directory (file-name-directory testfile)))
+       (file-truename
+        (if (file-accessible-directory-p "resources/")
+            (expand-file-name "resources/")
+          (expand-file-name
+           (format ert-resource-directory-format
+                   (string-trim testfile
+                                ert-resource-directory-trim-left-regexp
+                                ert-resource-directory-trim-right-regexp))))))))
 
 (defmacro ert-resource-file (file)
-  "Return file name of resource file named FILE.
-A resource file is in the resource directory as per
-`ert-resource-directory'."
+  "Return absolute file name of resource (test data) file named FILE.
+A resource file is defined as any file placed in the resource
+directory as returned by `ert-resource-directory'."
   `(expand-file-name ,file (ert-resource-directory)))
+
+(defvar ert-temp-file-prefix "emacs-test-"
+  "Prefix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
+
+(defvar ert-temp-file-suffix nil
+  "Suffix used by `ert-with-temp-file' and `ert-with-temp-directory'.")
+
+(defun ert--with-temp-file-generate-suffix (filename)
+  "Generate temp file suffix from FILENAME."
+  (thread-last
+    (file-name-base filename)
+    (replace-regexp-in-string (rx string-start
+                                  (group (+? not-newline))
+                                  (regexp "-?tests?")
+                                  string-end)
+                              "\\1")
+    (concat "-")))
+
+(defmacro ert-with-temp-file (name &rest body)
+  "Bind NAME to the name of a new temporary file and evaluate BODY.
+Delete the temporary file after BODY exits normally or
+non-locally.  NAME will be bound to the file name of the temporary
+file.
+
+The following keyword arguments are supported:
+
+:prefix STRING  If non-nil, pass STRING to `make-temp-file' as
+                the PREFIX argument.  Otherwise, use the value of
+                `ert-temp-file-prefix'.
+
+:suffix STRING  If non-nil, pass STRING to `make-temp-file' as the
+                SUFFIX argument.  Otherwise, use the value of
+                `ert-temp-file-suffix'; if the value of that
+                variable is nil, generate a suffix based on the
+                name of the file that `ert-with-temp-file' is
+                called from.
+
+:text STRING    If non-nil, pass STRING to `make-temp-file' as
+                the TEXT argument.
+
+:buffer SYMBOL  Open the temporary file using `find-file-noselect'
+                and bind SYMBOL to the buffer.  Kill the buffer
+                after BODY exits normally or non-locally.
+
+:coding CODING  If non-nil, bind `coding-system-for-write' to CODING
+                when executing BODY.  This is handy when STRING includes
+                non-ASCII characters or the temporary file must have a
+                specific encoding or end-of-line format.
+
+See also `ert-with-temp-directory'."
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-check-type name symbol)
+  (let (keyw prefix suffix directory text extra-keywords buffer coding)
+    (while (keywordp (setq keyw (car body)))
+      (setq body (cdr body))
+      (pcase keyw
+        (:prefix (setq prefix (pop body)))
+        (:suffix (setq suffix (pop body)))
+        ;; This is only for internal use by `ert-with-temp-directory'
+        ;; and is therefore not documented.
+        (:directory (setq directory (pop body)))
+        (:text (setq text (pop body)))
+        (:buffer (setq buffer (pop body)))
+        (:coding (setq coding (pop body)))
+        (_ (push keyw extra-keywords) (pop body))))
+    (when extra-keywords
+      (error "Invalid keywords: %s" (mapconcat #'symbol-name extra-keywords " ")))
+    (let ((temp-file (make-symbol "temp-file"))
+          (prefix (or prefix ert-temp-file-prefix))
+          (suffix (or suffix ert-temp-file-suffix
+                      (ert--with-temp-file-generate-suffix
+                       (or (macroexp-file-name) buffer-file-name)))))
+      `(let* ((coding-system-for-write ,(or coding coding-system-for-write))
+              (,temp-file (,(if directory 'file-name-as-directory 'identity)
+                           (make-temp-file ,prefix ,directory ,suffix ,text)))
+              (,name ,(if directory
+                          `(file-name-as-directory ,temp-file)
+                        temp-file))
+              ,@(when buffer
+                  (list `(,buffer (find-file-literally ,temp-file)))))
+         (unwind-protect
+             (progn ,@body)
+           (ignore-errors
+             ,@(when buffer
+                 (list `(with-current-buffer ,buffer
+                          (set-buffer-modified-p nil))
+                       `(kill-buffer ,buffer))))
+           (ignore-errors
+             ,(if directory
+                  `(delete-directory ,temp-file :recursive)
+                `(delete-file ,temp-file))))))))
+
+(defmacro ert-with-temp-directory (name &rest body)
+  "Bind NAME to the name of a new temporary directory and evaluate BODY.
+Delete the temporary directory after BODY exits normally or
+non-locally.
+
+NAME is bound to the directory name, not the directory file
+name.  (In other words, it will end with the directory delimiter;
+on Unix-like systems, it will end with \"/\".)
+
+The same keyword arguments are supported as in
+`ert-with-temp-file' (which see), except for :text."
+  (declare (indent 1) (debug (symbolp body)))
+  (let ((tail body) keyw)
+    (while (keywordp (setq keyw (car tail)))
+      (setq tail (cddr tail))
+      (pcase keyw (:text (error "Invalid keyword for directory: :text")))))
+  `(ert-with-temp-file ,name
+     :directory t
+     ,@body))
+
+(defun ert-gcc-is-clang-p ()
+  "Return non-nil if the `gcc' command actually runs the Clang compiler."
+  ;; Some macOS machines run llvm when you type gcc.  (!)
+  ;; We can't even check if it's a symlink; it's a binary placed in
+  ;; "/usr/bin/gcc".  So we need to check the output.
+  (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
+                (shell-command-to-string "gcc --version")))
+
+(defvar tramp-default-host-alist)
+(defvar tramp-methods)
+(defvar tramp-remote-path)
+
+;; This should happen on hydra only.
+(when (and (featurep 'tramp) (getenv "EMACS_HYDRA_CI"))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+
+;; If this defconst is used in a test file, `tramp' shall be loaded
+;; prior `ert-x'.  There is no default value on w32 systems, which
+;; could work out of the box.
+(defconst ert-remote-temporary-file-directory
+  (when (featurep 'tramp)
+    (cond
+     ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
+     ((eq system-type 'windows-nt) null-device)
+     (t (add-to-list
+         'tramp-methods
+         '("mock"
+	   (tramp-login-program	     "sh")
+	   (tramp-login-args	     (("-i")))
+           (tramp-direct-async       ("-c"))
+	   (tramp-remote-shell	     "/bin/sh")
+	   (tramp-remote-shell-args  ("-c"))
+	   (tramp-connection-timeout 10)))
+        (add-to-list
+         'tramp-default-host-alist
+         `("\\`mock\\'" nil ,(system-name)))
+        ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
+        ;; in batch mode only, therefore.
+        (when (and noninteractive (not (file-directory-p "~/")))
+          (setenv "HOME" temporary-file-directory))
+        (format "/mock::%s" temporary-file-directory))))
+    "Temporary directory for remote file tests.")
 
 (provide 'ert-x)
 

@@ -1,12 +1,14 @@
 ;;; lisp-tests.el --- Test Lisp editing commands     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Author: Marcin Borkowski <mbork@mbork.pl>
 ;; Keywords: internal
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -211,6 +213,7 @@
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
 
 ;; Test some core Elisp rules.
+(defvar c-e-x)
 (ert-deftest core-elisp-tests-1-defvar-in-let ()
   "Test some core Elisp rules."
   (with-temp-buffer
@@ -233,7 +236,7 @@
     (should (or (not mark-active) (mark)))))
 
 (ert-deftest core-elisp-tests-3-backquote ()
-  (should (eq 3 (eval ``,,'(+ 1 2)))))
+  (should (eq 3 (eval ``,,'(+ 1 2) t))))
 
 ;; Test up-list and backward-up-list.
 (defun lisp-run-up-list-test (fn data start instructions)
@@ -322,7 +325,7 @@ start."
   (declare (indent 1) (debug (def-form body)))
   (let* ((var-pos nil)
          (text (with-temp-buffer
-                 (insert (eval contents))
+                 (insert (eval contents t))
                  (goto-char (point-min))
                  (while (re-search-forward elisp-test-point-position-regex nil t)
                    (push (list (intern (match-string-no-properties 1))

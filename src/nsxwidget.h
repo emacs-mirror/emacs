@@ -1,6 +1,6 @@
 /* Header for NS Cocoa part of xwidget and webkit widget.
 
-Copyright (C) 2019-2020 Free Software Foundation, Inc.
+Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef NSXWIDGET_H_INCLUDED
 #define NSXWIDGET_H_INCLUDED
@@ -36,6 +36,8 @@ Lisp_Object nsxwidget_webkit_uri (struct xwidget *xw);
 Lisp_Object nsxwidget_webkit_title (struct xwidget *xw);
 void nsxwidget_webkit_goto_uri (struct xwidget *xw, const char *uri);
 void nsxwidget_webkit_goto_history (struct xwidget *xw, int rel_pos);
+double nsxwidget_webkit_estimated_load_progress(struct xwidget *xw);
+void nsxwidget_webkit_stop_loading (struct xwidget *xw);
 void nsxwidget_webkit_zoom (struct xwidget *xw, double zoom_change);
 void nsxwidget_webkit_execute_script (struct xwidget *xw, const char *script,
                                       Lisp_Object fun);

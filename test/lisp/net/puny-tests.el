@@ -1,6 +1,6 @@
 ;;; puny-tests.el --- tests for net/puny.el  -*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -39,10 +39,12 @@
   (should (string= (puny-decode-string "xn--9dbdkw") "חנוך")))
 
 (ert-deftest puny-test-encode-domain ()
-  (should (string= (puny-encode-domain "åäö.se") "xn--4cab6c.se")))
+  (should (string= (puny-encode-domain "åäö.se") "xn--4cab6c.se"))
+  (should (string= (puny-encode-domain "яндекс.рф") "xn--d1acpjx3f.xn--p1ai")))
 
 (ert-deftest puny-test-decode-domain ()
-  (should (string= (puny-decode-domain "xn--4cab6c.se") "åäö.se")))
+  (should (string= (puny-decode-domain "xn--4cab6c.se") "åäö.se"))
+  (should (string= (puny-decode-domain "xn--d1acpjx3f.xn--p1ai") "яндекс.рф")))
 
 (ert-deftest puny-highly-restrictive-domain-p ()
   (should (puny-highly-restrictive-domain-p "foo.bar.org"))
@@ -58,5 +60,18 @@
   (should-not (puny-highly-restrictive-domain-p "Ωmega.org"))
   ;; Only allowed in unrestricted.
   (should-not (puny-highly-restrictive-domain-p "I♥NY.org")))
+
+(ert-deftest puny-normalize ()
+  (should (equal (puny-encode-string (string-glyph-compose "Bä.com"))
+                 "xn--b.com-gra"))
+  (should (equal (puny-encode-string "Bä.com")
+                 "xn--b.com-gra"))
+  (should (equal (puny-encode-string "Bä.com") "xn--b.com-gra")))
+
+;;; TODO!
+;; puny-resources/IdnaTestV2.txt has a bunch of tests, and they should
+;; be implemented.  However, the puny encoding does not fully
+;; implement https://www.unicode.org/reports/tr46/#Conformance yet, so
+;; it'll fail.
 
 ;;; puny-tests.el ends here

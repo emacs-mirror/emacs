@@ -1,6 +1,6 @@
-;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
+;;; semantic/wisent/grammar.el --- Wisent's input grammar mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 26 Aug 2002
@@ -198,10 +198,10 @@ See also the function `wisent-skip-token'."
 (defun wisent-grammar-assocs ()
   "Return associativity and precedence level definitions."
   (mapcar
-   #'(lambda (tag)
-       (cons (intern (semantic-tag-name tag))
-             (mapcar #'semantic-grammar-item-value
-                     (semantic-tag-get-attribute tag :value))))
+   (lambda (tag)
+     (cons (intern (semantic-tag-name tag))
+           (mapcar #'semantic-grammar-item-value
+                   (semantic-tag-get-attribute tag :value))))
    (semantic-find-tags-by-class 'assoc (current-buffer))))
 
 (defun wisent-grammar-terminals ()
@@ -209,14 +209,14 @@ See also the function `wisent-skip-token'."
 Keep order of declaration in the WY file without duplicates."
   (let (terms)
     (mapc
-     #'(lambda (tag)
-	 (mapcar #'(lambda (name)
-		     (add-to-list 'terms (intern name)))
-		 (cons (semantic-tag-name tag)
-		       (semantic-tag-get-attribute tag :rest))))
+     (lambda (tag)
+       (mapcar (lambda (name)
+                 (add-to-list 'terms (intern name)))
+               (cons (semantic-tag-name tag)
+                     (semantic-tag-get-attribute tag :rest))))
      (semantic--find-tags-by-function
-      #'(lambda (tag)
-	  (memq (semantic-tag-class tag) '(token keyword)))
+      (lambda (tag)
+        (memq (semantic-tag-class tag) '(token keyword)))
       (current-buffer)))
     (nreverse terms)))
 
@@ -228,7 +228,7 @@ Keep order of declaration in the WY file without duplicates."
 Return the expanded expression."
   (if (or (atom expr) (semantic-grammar-quote-p (car expr)))
       expr ;; Just return atom or quoted expression.
-    (let* ((expr  (mapcar 'wisent-grammar-expand-macros expr))
+    (let* ((expr  (mapcar #'wisent-grammar-expand-macros expr))
            (macro (assq (car expr) wisent--grammar-macros)))
       (if macro ;; Expand Semantic built-in.
           (apply (cdr macro) (cdr expr))
@@ -284,16 +284,15 @@ Return the expanded expression."
          (assocs       (wisent-grammar-assocs)))
     (cons terminals (cons assocs nonterminals))))
 
-(defun wisent-grammar-parsetable-builder ()
+(define-mode-local-override semantic-grammar-parsetable-builder
+  wisent-grammar-mode ()
   "Return the value of the parser table."
-  `(progn
-     ;; Ensure that the grammar [byte-]compiler is available.
-     (eval-when-compile (require 'semantic/wisent/comp))
-     (wisent-compile-grammar
-      ',(wisent-grammar-grammar)
-      ',(semantic-grammar-start))))
+  `(wisent-compiled-grammar
+    ,(wisent-grammar-grammar)
+    ,(semantic-grammar-start)))
 
-(defun wisent-grammar-setupcode-builder ()
+(define-mode-local-override semantic-grammar-setupcode-builder
+  wisent-grammar-mode ()
   "Return the parser setup code."
   (format
    "(semantic-install-function-overrides\n\
@@ -305,7 +304,7 @@ Return the expanded expression."
           semantic-lex-types-obarray %s)\n\
     ;; Collect unmatched syntax lexical tokens\n\
     (add-hook 'wisent-discarding-token-functions\n\
-              'wisent-collect-unmatched-syntax nil t)"
+              #'wisent-collect-unmatched-syntax nil t)"
    (semantic-grammar-parsetable)
    (buffer-name)
    (semantic-grammar-keywordtable)
@@ -325,9 +324,7 @@ Menu items are appended to the common grammar menu.")
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
-  (semantic-install-function-overrides
-   '((semantic-grammar-parsetable-builder . wisent-grammar-parsetable-builder)
-     (semantic-grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))
+  (setq-local semantic-grammar-require-form '(require 'semantic/wisent)))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
@@ -427,7 +424,7 @@ Menu items are appended to the common grammar menu.")
   "\n;; It is derived from the grammar in the ECMAScript Language
 ;; Specification published at
 ;;
-;; http://www.ecma-international.org/publications/standards/Ecma-262.htm
+;; https://www.ecma-international.org/publications/standards/Ecma-262.htm
 ;;
 ;; and redistributed under the following license:
 ;;
@@ -479,7 +476,7 @@ Menu items are appended to the common grammar menu.")
 	 (condition-case err
 	     (with-current-buffer (find-file-noselect infile)
 	       (if outdir (setq default-directory outdir))
-	       (semantic-grammar-create-package nil t))
+	       (semantic-grammar-create-package t t))
 	   (error (message "%s" (error-message-string err)) nil)))
 	output-data)
     (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))
@@ -514,7 +511,8 @@ Menu items are appended to the common grammar menu.")
 	  (goto-char (point-min))
 	  (delete-region (point-min) (line-end-position))
 	  (insert ";;; " packagename
-		  " --- Generated parser support file")
+		  " --- Generated parser support file  "
+		  "-*- lexical-binding:t -*-")
 	  (re-search-forward ";;; \\(.*\\) ends here")
 	  (replace-match packagename nil nil nil 1)
 	  (delete-trailing-whitespace))))))

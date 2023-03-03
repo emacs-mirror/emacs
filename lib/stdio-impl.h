@@ -1,17 +1,17 @@
 /* Implementation details of FILE streams.
-   Copyright (C) 2007-2008, 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2008, 2010-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Many stdio implementations have the same logic and therefore can share
@@ -71,6 +71,12 @@
 #  else
 #   define _gl_flags_file_t short
 #  endif
+#  ifdef __LP64__
+#   define _gl_file_offset_t int64_t
+#  else
+    /* see https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md */
+#   define _gl_file_offset_t __kernel_off_t
+#  endif
   /* Up to this commit from 2015-10-12
      <https://android.googlesource.com/platform/bionic.git/+/f0141dfab10a4b332769d52fa76631a64741297a>
      the innards of FILE were public, and fp_ub could be defined like for OpenBSD,
@@ -96,7 +102,7 @@
                          unsigned char _nbuf[1]; \
                          struct { unsigned char *_base; size_t _size; } _lb; \
                          int _blksize; \
-                         fpos_t _offset; \
+                         _gl_file_offset_t _offset; \
                          /* More fields, not relevant here.  */ \
                        } *) fp)
 # else
@@ -175,7 +181,7 @@
 #  define fp_ fp
 # endif
 
-# if defined _SCO_DS                /* OpenServer */
+# if defined _SCO_DS || (defined __SCO_VERSION__ || defined __sysv5__)  /* OpenServer 5, OpenServer 6, UnixWare 7 */
 #  define _cnt __cnt
 #  define _ptr __ptr
 #  define _base __base

@@ -1,0 +1,7 @@
+&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 21 4 2010)) 11:30-12:00 Scrum
+ Status: CONFIRMED
+ Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1262
+&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 22 4 2010)) Tues + Thurs thinking
+ Class: PUBLIC
+ UID: 8814e3f9-7482-408f-996c-3bfe486a1263

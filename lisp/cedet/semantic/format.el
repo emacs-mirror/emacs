@@ -1,6 +1,6 @@
-;;; semantic/format.el --- Routines for formatting tags
+;;; semantic/format.el --- Routines for formatting tags  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -32,7 +32,6 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'font-lock))
 (require 'semantic)
 (require 'semantic/tag-ls)
 (require 'ezimage)
@@ -79,13 +78,11 @@ Images can be used as icons instead of some types of text strings."
   :group 'semantic
   :type 'boolean)
 
-(defvar semantic-function-argument-separator ","
+(defvar-local semantic-function-argument-separator ","
   "Text used to separate arguments when creating text from tags.")
-(make-variable-buffer-local 'semantic-function-argument-separator)
 
-(defvar semantic-format-parent-separator "::"
+(defvar-local semantic-format-parent-separator "::"
   "Text used to separate names when between namespaces/classes and functions.")
-(make-variable-buffer-local 'semantic-format-parent-separator)
 
 (defvar semantic-format-face-alist
   `( (function . font-lock-function-name-face)
@@ -119,16 +116,14 @@ be used unless font lock is a feature.")
   "Apply onto TEXT a color associated with FACE-CLASS.
 FACE-CLASS is a tag type found in `semantic-format-face-alist'.
 See that variable for details on adding new types."
-  (if (featurep 'font-lock)
-      (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
-	    (newtext (concat text)))
-	(put-text-property 0 (length text) 'face face newtext)
-	newtext)
-    text))
+  (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
+        (newtext (concat text)))
+    (put-text-property 0 (length text) 'face face newtext)
+    newtext))
 
 (defun semantic--format-colorize-merge-text (precoloredtext face-class)
   "Apply onto PRECOLOREDTEXT a color associated with FACE-CLASS.
-FACE-CLASS is a tag type found in `semantic-formatface-alist'.
+FACE-CLASS is a tag type found in `semantic-format-face-alist'.
 See that variable for details on adding new types."
   (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
 	(newtext (concat precoloredtext)))
@@ -167,7 +162,7 @@ COLOR specifies if color should be used."
 	       (car args) nil color 'variable))
 	    out)
       (setq args (cdr args)))
-    (mapconcat 'identity (nreverse out) semantic-function-argument-separator)
+    (mapconcat #'identity (nreverse out) semantic-function-argument-separator)
     ))
 
 ;;; Data Type
@@ -205,7 +200,7 @@ Argument COLOR specifies to colorize the text."
 ;;; Abstract formatting functions
 ;;
 
-(defun semantic-format-tag-prin1 (tag &optional parent color)
+(defun semantic-format-tag-prin1 (tag &optional _parent _color)
   "Convert TAG to a string that is the print name for TAG.
 PARENT and COLOR are ignored."
   (format "%S" tag))
@@ -242,7 +237,7 @@ The name is the shortest possible representation.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
 
-(defun semantic-format-tag-name-default (tag &optional parent color)
+(defun semantic-format-tag-name-default (tag &optional _parent color)
   "Return an abbreviated string describing TAG.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors."
@@ -505,7 +500,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 		      args
 		      (if (eq class 'type) "}" ")"))))
     (when mods
-      (setq mods (concat (mapconcat 'identity mods " ") " ")))
+      (setq mods (concat (mapconcat #'identity mods " ") " ")))
     (concat (or mods "")
 	    (if type (concat type " "))
 	    name

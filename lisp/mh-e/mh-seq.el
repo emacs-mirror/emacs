@@ -1,6 +1,6 @@
-;;; mh-seq.el --- MH-E sequences support
+;;; mh-seq.el --- MH-E sequences support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -26,8 +26,6 @@
 ;; Sequences are stored in the alist `mh-seq-list' in the form:
 ;;     ((seq-name msgs ...) (seq-name msgs ...) ...)
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
@@ -40,9 +38,8 @@
 (defvar mh-last-seq-used nil
   "Name of seq to which a msg was last added.")
 
-(defvar mh-non-seq-mode-line-annotation nil
+(defvar-local mh-non-seq-mode-line-annotation nil
   "Saved value of `mh-mode-line-annotation' when narrowed to a seq.")
-(make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
 
 (defvar mh-internal-seqs '(answered cur deleted forwarded printed))
 
@@ -156,7 +153,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
           (let ((name (mh-seq-name (car seq-list)))
                 (sorted-seq-msgs
                  (mh-coalesce-msg-list
-                  (sort (copy-sequence (mh-seq-msgs (car seq-list))) '<)))
+                  (sort (copy-sequence (mh-seq-msgs (car seq-list))) #'<)))
                 name-spec)
             (insert (setq name-spec (format (format "%%%ss:" max-len) name)))
             (while sorted-seq-msgs
@@ -169,7 +166,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
             (insert "\n"))
           (setq seq-list (cdr seq-list)))
         (goto-char (point-min))
-        (mh-view-mode-enter)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing sequences...done")))))
 
@@ -189,16 +186,11 @@ MESSAGE appears."
     (message "Message %d%s is in sequences: %s"
              message
              (cond (dest-folder (format " (to be refiled to %s)" dest-folder))
-                   (deleted-flag (format " (to be deleted)"))
+                   (deleted-flag " (to be deleted)")
                    (t ""))
-             (mapconcat 'concat
+             (mapconcat #'concat
                         (mh-list-to-string (mh-seq-containing-msg message t))
                         " "))))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar tool-bar-mode))
-(defvar tool-bar-map)
 
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)
@@ -231,12 +223,12 @@ When you want to widen the view to all your messages again, use
              (mh-make-folder-mode-line)
              (mh-recenter nil)
              (when (and (boundp 'tool-bar-mode) tool-bar-mode)
-               (set (make-local-variable 'tool-bar-map)
-                    mh-folder-seq-tool-bar-map)
+               (setq-local tool-bar-map
+                           mh-folder-seq-tool-bar-map)
                (when (buffer-live-p (get-buffer mh-show-buffer))
                  (with-current-buffer mh-show-buffer
-                   (set (make-local-variable 'tool-bar-map)
-                        mh-show-seq-tool-bar-map))))
+                   (setq-local tool-bar-map
+                               mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
           (t
            (error "No messages in sequence %s" (symbol-name sequence))))))
@@ -364,10 +356,10 @@ remove all limits and sequence restrictions."
       (mh-notate-cur)
       (mh-recenter nil)))
   (when (and (null mh-folder-view-stack) (boundp 'tool-bar-mode) tool-bar-mode)
-    (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
+    (setq-local tool-bar-map mh-folder-tool-bar-map)
     (when (buffer-live-p (get-buffer mh-show-buffer))
       (with-current-buffer mh-show-buffer
-        (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))))
+        (setq-local tool-bar-map mh-show-tool-bar-map)))))
 
 
 
@@ -390,10 +382,7 @@ Prompt with PROMPT, raise an error if the sequence is empty and
 the NOT-EMPTY flag is non-nil, and supply an optional DEFAULT
 sequence. A reply of `%' defaults to the first sequence
 containing the current message."
-  (let* ((input (completing-read (format "%s sequence%s: " prompt
-                                         (if default
-                                             (format " (default %s)" default)
-                                           ""))
+  (let* ((input (completing-read (format-prompt "%s sequence" default prompt)
                                  (mh-seq-names mh-seq-list)
                                  nil nil nil 'mh-sequence-history))
          (seq (cond ((equal input "%")
@@ -494,13 +483,13 @@ folder buffer are not updated."
   ;; Add to a SEQUENCE each message the list of MSGS.
   (if (and (mh-valid-seq-p seq) (not (mh-folder-name-p seq)))
       (if msgs
-          (apply 'mh-exec-cmd "mark" mh-current-folder "-add"
+          (apply #'mh-exec-cmd "mark" mh-current-folder "-add"
                  "-sequence" (symbol-name seq)
                  (mh-coalesce-msg-list msgs)))))
 
 (defun mh-canonicalize-sequence (msgs)
   "Sort MSGS in decreasing order and remove duplicates."
-  (let* ((sorted-msgs (sort (copy-sequence msgs) '>))
+  (let* ((sorted-msgs (sort (copy-sequence msgs) #'>))
          (head sorted-msgs))
     (while (cdr head)
       (if (= (car head) (cadr head))
@@ -565,7 +554,7 @@ OP is one of `widen' and `unthread'."
 (defvar mh-range-seq-names)
 (defvar mh-range-history ())
 (defvar mh-range-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-range-completion-map " " 'self-insert-command)
+(define-key mh-range-completion-map " " #'self-insert-command)
 
 ;;;###mh-autoload
 (defun mh-interactive-range (range-prompt &optional default)
@@ -587,7 +576,7 @@ Otherwise, the message number at point is returned.
 
 This function is usually used with `mh-iterate-on-range' in order to
 provide a uniform interface to MH-E functions."
-  (cond ((mh-mark-active-p t) (cons (region-beginning) (region-end)))
+  (cond ((and transient-mark-mode mark-active) (cons (region-beginning) (region-end)))
         (current-prefix-arg (mh-read-range range-prompt nil nil t t))
         (default default)
         (t (mh-get-msg-num t))))
@@ -646,13 +635,10 @@ should be replaced with:
                         ((stringp default) default)
                         ((symbolp default) (symbol-name default))))
          (prompt (cond ((and guess large default)
-                        (format "%s (folder has %s messages, default %s)"
-                                prompt (car counts) default))
-                       ((and guess large)
-                        (format "%s (folder has %s messages)"
-                                prompt (car counts)))
+                        (format-prompt "%s (folder has %s messages)"
+                                default prompt (car counts)))
                        (default
-                         (format "%s (default %s)" prompt default))))
+                         (format-prompt prompt default))))
          (minibuffer-local-completion-map mh-range-completion-map)
          (seq-list (if (eq folder mh-current-folder)
                        mh-seq-list
@@ -662,7 +648,7 @@ should be replaced with:
                   (mh-seq-names seq-list)))
          (input (cond ((and (not ask-flag) unseen) (symbol-name mh-unseen-seq))
                       ((and (not ask-flag) (not large)) "all")
-                      (t (completing-read (format "%s: " prompt)
+                      (t (completing-read prompt
                                           'mh-range-completion-function nil nil
                                           nil 'mh-range-history default))))
          msg-list)
@@ -744,7 +730,7 @@ completion is over."
     (cl-multiple-value-bind (folder unseen total)
         (cl-values-list
          (mh-parse-flist-output-line
-          (buffer-substring (point) (mh-line-end-position))))
+          (buffer-substring (point) (line-end-position))))
       (list total unseen folder))))
 
 (defun mh-folder-size-folder (folder)
@@ -772,7 +758,7 @@ folders whose names end with a `+' character."
       (when (search-backward " out of " (point-min) t)
         (setq total (string-to-number
                      (buffer-substring-no-properties
-                      (match-end 0) (mh-line-end-position))))
+                      (match-end 0) (line-end-position))))
         (when (search-backward " in sequence " (point-min) t)
           (setq p (point))
           (when (search-backward " has " (point-min) t)
@@ -794,10 +780,10 @@ If SAVE-REFILES is non-nil, then keep the sequences
 that note messages to be refiled."
   (let ((seqs ()))
     (cond (save-refiles
-           (mh-mapc (function (lambda (seq) ; Save the refiling sequences
-                                (if (mh-folder-name-p (mh-seq-name seq))
-                                    (setq seqs (cons seq seqs)))))
-                    mh-seq-list)))
+           (mapc (lambda (seq) ; Save the refiling sequences
+                   (if (mh-folder-name-p (mh-seq-name seq))
+                       (setq seqs (cons seq seqs))))
+                 mh-seq-list)))
     (save-excursion
       (if (eq 0 (mh-exec-cmd-quiet nil "mark" folder "-list"))
           (progn
@@ -816,7 +802,7 @@ that note messages to be refiled."
   "Return a list of message numbers from point to the end of the line.
 Expands ranges into set of individual numbers."
   (let ((msgs ())
-        (end-of-line (point-at-eol))
+        (end-of-line (line-end-position))
         num)
     (while (re-search-forward "[0-9]+" end-of-line t)
       (setq num (string-to-number (buffer-substring (match-beginning 0)
@@ -950,7 +936,7 @@ font-lock is turned on."
             ;; the case of user sequences.
             (mh-notate nil nil mh-cmd-note)
             (when font-lock-mode
-              (font-lock-fontify-region (point) (mh-line-end-position))))
+              (font-lock-fontify-region (point) (line-end-position))))
         (forward-char (+ mh-cmd-note mh-scan-field-destination-offset))
         (let ((stack (gethash msg mh-sequence-notation-history)))
           (setf (gethash msg mh-sequence-notation-history)
@@ -1010,7 +996,6 @@ removed."
 (provide 'mh-seq)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

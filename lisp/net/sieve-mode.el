@@ -1,6 +1,6 @@
-;;; sieve-mode.el --- Sieve code editing commands for Emacs
+;;; sieve-mode.el --- Sieve code editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -26,11 +26,6 @@
 ;; sieve-style #-comments and a lightly hacked syntax table.  It was
 ;; strongly influenced by awk-mode.el.
 ;;
-;; Put something similar to the following in your .emacs to use this file:
-;;
-;; (load "~/lisp/sieve")
-;; (setq auto-mode-alist (cons '("\\.siv\\'" . sieve-mode) auto-mode-alist))
-;;
 ;; References:
 ;;
 ;; RFC 3028,
@@ -48,8 +43,6 @@
 
 (autoload 'sieve-manage "sieve")
 (autoload 'sieve-upload "sieve")
-(eval-when-compile
-  (require 'font-lock))
 
 (defgroup sieve nil
   "Sieve."
@@ -135,19 +128,20 @@
     (modify-syntax-entry ?| "." st)
     (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?\' "\"" st)
+    (modify-syntax-entry ?\{ "(}" st)
+    (modify-syntax-entry ?\} "){" st)
+    (modify-syntax-entry ?\" "\"" st)
     st)
-  "Syntax table in use in sieve-mode buffers.")
+  "Syntax table in use in `sieve-mode' buffers.")
 
 
 ;; Key map definition
 
-(defvar sieve-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-l" 'sieve-upload)
-    (define-key map "\C-c\C-c" 'sieve-upload-and-kill)
-    (define-key map "\C-c\C-m" 'sieve-manage)
-    map)
-  "Key map used in sieve mode.")
+(defvar-keymap sieve-mode-map
+  :doc "Keymap used in sieve mode."
+  "C-c C-l" #'sieve-upload
+  "C-c C-c" #'sieve-upload-and-kill
+  "C-c RET" #'sieve-manage)
 
 ;; Menu
 
@@ -185,25 +179,35 @@
                          'syntax-table (string-to-syntax "|")))))
 
 ;;;###autoload
-(define-derived-mode sieve-mode c-mode "Sieve"
+(define-derived-mode sieve-mode prog-mode "Sieve"
   "Major mode for editing Sieve code.
-This is much like C mode except for the syntax of comments.  Its keymap
-inherits from C mode's and it has the same variables for customizing
-indentation.  It has its own abbrev table and its own syntax table.
-
 Turning on Sieve mode runs `sieve-mode-hook'."
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'comment-start) "#")
-  (set (make-local-variable 'comment-end) "")
-  ;;(set (make-local-variable 'comment-start-skip) "\\(^\\|\\s-\\);?#+ *")
-  (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'syntax-propertize-function)
-       #'sieve-syntax-propertize)
-  (set (make-local-variable 'font-lock-defaults)
-       '(sieve-font-lock-keywords nil nil ((?_ . "w"))))
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
+  ;; (setq-local comment-start-skip "\\(^\\|\\s-\\);?#+ *")
+  (setq-local comment-start-skip "#+ *")
+  (setq-local syntax-propertize-function #'sieve-syntax-propertize)
+  (setq-local font-lock-defaults
+              '(sieve-font-lock-keywords nil nil ((?_ . "w"))))
+  (setq-local indent-line-function #'sieve-mode-indent-function)
   (easy-menu-add-item nil nil sieve-mode-menu))
+
+(defun sieve-mode-indent-function ()
+  (save-excursion
+    (beginning-of-line)
+    (let ((depth (car (syntax-ppss))))
+      (when (looking-at "[ \t]*}")
+        (setq depth (1- depth)))
+      (indent-line-to (* 2 depth))))
+  ;; Skip to the end of the indentation if at the beginning of the
+  ;; line.
+  (when (save-excursion
+          (skip-chars-backward " \t")
+          (bolp))
+    (skip-chars-forward " \t")))
 
 (provide 'sieve-mode)
 
-;; sieve-mode.el ends here
+;;; sieve-mode.el ends here

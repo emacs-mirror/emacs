@@ -1,0 +1,5 @@
+&%%(and (not (diary-date 6 1 2016)) (not (diary-date 3 2 2016)) (not (diary-date 2 3 2016)) (not (diary-date 4 5 2016)) (not (diary-date 1 6 2016)) (diary-float t 3 1) (diary-block 2 12 2015 1 1 9999)) 12:46-16:00 Summary
+ Desc: Desc
+ Location: Loc
+ Class: DEFAULT
+ UID: 9188710a-08a7-4061-bae3-d4cf4972599a

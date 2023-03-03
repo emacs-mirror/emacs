@@ -1,6 +1,6 @@
 ;;; rng-uri.el --- URI parsing and manipulation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -68,7 +68,7 @@ Signal an error if URI is not a valid file URL."
 
 ;; pattern is either nil or match or replace
 (defun rng-uri-file-name-1 (uri pattern)
-  (unless (string-match "\\`\\(?:[^%]\\|%[[:xdigit:]]{2}\\)*\\'" uri)
+  (unless (string-match "\\`\\(?:[^%]\\|%[[:xdigit:]]\\{2\\}\\)*\\'" uri)
     (rng-uri-error "Bad escapes in URI `%s'" uri))
   (setq uri (rng-uri-unescape-multibyte uri))
   (let* ((components
@@ -93,7 +93,7 @@ Signal an error if URI is not a valid file URL."
       (rng-uri-error "`?' not escaped in file URI `%s'" uri))
     (when fragment-id
       (rng-uri-error "URI `%s' has a fragment identifier" uri))
-    (when (string-match ";" path)
+    (when (string-search ";" path)
       (rng-uri-error "`;' not escaped in URI `%s'" uri))
     (when (string-match "%2[fF]" path) ;; 2f is hex code of slash
       (rng-uri-error "Escaped slash in URI `%s'" uri))
@@ -110,7 +110,7 @@ Signal an error if URI is not a valid file URL."
 		 (rng-uri-unescape-unibyte-replace path 2))
 		(t
 		 (rng-uri-unescape-unibyte path))))
-    (when (string-match "\000" path)
+    (when (string-search "\000" path)
       (rng-uri-error "URI `%s' has NUL character in path" uri))
     (when (eq pattern 'match)
       (setq path
@@ -312,7 +312,7 @@ Both FULL and BASE must be absolute URIs."
 (defun rng-uri-unescape-unibyte (str)
   (replace-regexp-in-string "%[0-7][[:xdigit:]]"
 			    (lambda (h)
-			      (string-to-number (substring h 1) 16))
+			      (string (string-to-number (substring h 1) 16)))
 			    str
 			    t
 			    t))
@@ -325,8 +325,8 @@ Both FULL and BASE must be absolute URIs."
 				(regexp-quote
 				 (if (= (length match) 1)
 				     match
-				   (string-to-number (substring match 1)
-						     16)))))
+				   (string (string-to-number (substring match 1)
+						             16))))))
 			    str
 			    t
 			    t))

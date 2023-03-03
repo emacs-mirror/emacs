@@ -1,7 +1,7 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
 
-Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2020 Free Software
+Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -69,6 +69,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <string.h>
 
+#include <attribute.h>
 #include <unlocked-io.h>
 
 #include "syswait.h"
@@ -270,6 +271,7 @@ main (int argc, char **argv)
 	 You might also wish to verify that your system is one which
 	 uses lock files for this purpose.  Some systems use other methods.  */
 
+      bool lockname_unlinked = false;
       inname_len = strlen (inname);
       lockname = xmalloc (inname_len + sizeof ".lock");
       strcpy (lockname, inname);
@@ -312,15 +314,10 @@ main (int argc, char **argv)
 	     Five minutes should be good enough to cope with crashes
 	     and wedgitude, and long enough to avoid being fooled
 	     by time differences between machines.  */
-	  if (stat (lockname, &st) >= 0)
-	    {
-	      time_t now = time (0);
-	      if (st.st_ctime < now - 300)
-		{
-		  unlink (lockname);
-		  lockname = 0;
-		}
-	    }
+	  if (!lockname_unlinked
+	      && stat (lockname, &st) == 0
+	      && st.st_ctime < time (0) - 300)
+	    lockname_unlinked = unlink (lockname) == 0 || errno == ENOENT;
 	}
 
       delete_lockname = lockname;

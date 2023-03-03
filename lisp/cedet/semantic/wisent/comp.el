@@ -1,6 +1,6 @@
-;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
+;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2020 Free
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
@@ -35,12 +35,10 @@
 ;;
 ;; For more details on Wisent itself read the Wisent manual.
 
-;;; History:
-;;
-
 ;;; Code:
 (require 'semantic/wisent)
 (eval-when-compile (require 'cl-lib))
+(require 'subr-x)   ; `string-pad'
 
 ;;;; -------------------
 ;;;; Misc. useful things
@@ -54,21 +52,23 @@
 ;; bound locally, without all these "reference to free variable"
 ;; compiler warnings!
 
-(defmacro wisent-context-name (name)
-  "Return the context name from NAME."
-  `(if (and ,name (symbolp ,name))
-       (intern (format "wisent-context-%s" ,name))
-     (error "Invalid context name: %S" ,name)))
+(eval-when-compile
+  (defun wisent-context-name (name)
+    "Return the context name from NAME."
+    (if (and name (symbolp name))
+        (intern (format "wisent-context-%s" name))
+      (error "Invalid context name: %S" name)))
 
-(defmacro wisent-context-bindings (name)
-  "Return the variables in context NAME."
-  `(symbol-value (wisent-context-name ,name)))
+  (defun wisent-context-bindings (name)
+    "Return the variables in context NAME."
+    (symbol-value (wisent-context-name name))))
 
 (defmacro wisent-defcontext (name &rest vars)
   "Define a context NAME that will bind variables VARS."
   (declare (indent 1))
+  (declare-function wisent-context-name nil (name))
   (let* ((context (wisent-context-name name))
-         (declarations (mapcar #'(lambda (v) (list 'defvar v)) vars)))
+         (declarations (mapcar (lambda (v) (list 'defvar v)) vars)))
     `(progn
        ,@declarations
        (eval-when-compile
@@ -77,29 +77,23 @@
 (defmacro wisent-with-context (name &rest body)
   "Bind variables in context NAME then eval BODY."
   (declare (indent 1))
-  (let ((bindings (wisent-context-bindings name)))
-    `(progn
-       ,@(mapcar (lambda (binding) `(defvar ,(or (car-safe binding) binding)))
-                 bindings)
-       (let* ,bindings
-         ,@body))))
-
-;; Other utilities
+  (declare-function wisent-context-bindings nil (name))
+  `(dlet ,(wisent-context-bindings name)
+     ,@body))
 
 (defsubst wisent-pad-string (s n &optional left)
   "Fill string S with spaces.
 Return a new string of at least N characters.  Insert spaces on right.
 If optional LEFT is non-nil insert spaces on left."
-  (let ((i (length s)))
-    (if (< i n)
-        (if left
-            (concat (make-string (- n i) ?\ ) s)
-          (concat s (make-string (- n i) ?\ )))
-      s)))
+  (declare (obsolete string-pad "29.1"))
+  (string-pad s n nil left))
+
 
 ;;;; ------------------------
 ;;;; Environment dependencies
 ;;;; ------------------------
+
+;; FIXME: Use bignums or bool-vectors?
 
 (defconst wisent-BITS-PER-WORD (logcount most-positive-fixnum))
 
@@ -159,13 +153,9 @@ Its name is defined in constant `wisent-log-buffer-name'."
   '(with-current-buffer (wisent-log-buffer)
      (erase-buffer)))
 
-(defvar byte-compile-current-file)
-
 (defun wisent-source ()
   "Return the current source file name or nil."
-  (let ((source (or (and (boundp 'byte-compile-current-file)
-                         byte-compile-current-file)
-                    load-file-name (buffer-file-name))))
+  (let ((source (macroexp-file-name)))
     (if source
         (file-relative-name source))))
 
@@ -710,7 +700,7 @@ S must be a vector of integers."
       (setq i 1)
       (while (<= i nrules)
         (unless (aref ruseful i)
-          (wisent-log "#%s  " (wisent-pad-string (format "%d" i) 4))
+          (wisent-log "#%s  " (string-pad (format "%d" i) 4))
           (wisent-log "%s:" (wisent-tag (aref rlhs i)))
           (setq r (aref rrhs i))
           (while (natnump (aref ritem r))
@@ -2241,7 +2231,7 @@ there are any reduce/reduce conflicts."
           ;; output warnings.
           (and src
                (intern (format "wisent-%s--expected-conflicts"
-                               (replace-regexp-in-string "\\.el$" "" src))))))
+                               (replace-regexp-in-string "\\.el\\'" "" src))))))
     (when (or (not (zerop rrc-total))
               (and (not (zerop src-total))
                    (not (= src-total (or wisent-expected-conflicts 0)))
@@ -2304,7 +2294,7 @@ there are any reduce/reduce conflicts."
       ;; Don't print rules disabled in `wisent-reduce-grammar-tables'.
       (when (aref ruseful i)
         (wisent-log "  %s  %s ->"
-                    (wisent-pad-string (number-to-string i) 6)
+                    (string-pad (number-to-string i) 6)
                     (wisent-tag (aref rlhs i)))
         (setq r (aref rrhs i))
         (if (> (aref ritem r) 0)
@@ -2778,7 +2768,7 @@ that likes a token gets to handle it."
   "Figure out the actions for every state.
 Return the action table."
   ;; Store the semantic action obarray in (unused) RCODE[0].
-  (aset rcode 0 (make-vector 13 0))
+  (aset rcode 0 (obarray-make 13))
   (let (i j action-table actrow action)
     (setq action-table (make-vector nstates nil)
           actrow (make-vector ntokens nil)
@@ -3392,7 +3382,7 @@ NONTERMS is the list of non terminal definitions (see function
 ;;;; Compile input grammar
 ;;;; ---------------------
 
-(defun wisent-compile-grammar (grammar &optional start-list)
+(defun wisent--compile-grammar (grammar start-list)
   "Compile the LALR(1) GRAMMAR.
 
 GRAMMAR is a list (TOKENS ASSOCS . NONTERMS) where:
@@ -3435,7 +3425,7 @@ where:
   (if (wisent-automaton-p grammar)
       grammar ;; Grammar already compiled just return it
     (wisent-with-context compile-grammar
-      (let* ((gc-cons-threshold 1000000))
+      (let* ((gc-cons-threshold (max gc-cons-threshold 1000000)))
         (garbage-collect)
 	(setq wisent-new-log-flag t)
 	;; Parse input grammar
@@ -3444,7 +3434,7 @@ where:
 	(wisent-parser-automaton)))))
 
 ;;;; --------------------------
-;;;; Byte compile input grammar
+;;;; Obsolete byte compile support
 ;;;; --------------------------
 
 (require 'bytecomp)
@@ -3453,25 +3443,32 @@ where:
   "Byte compile the `wisent-compile-grammar' FORM.
 Automatically called by the Emacs Lisp byte compiler as a
 `byte-compile' handler."
-  ;; Eval the `wisent-compile-grammar' form to obtain an LALR
-  ;; automaton internal data structure.  Then, because the internal
-  ;; data structure contains an obarray, convert it to a lisp form so
-  ;; it can be byte-compiled.
   (byte-compile-form
-   ;; FIXME: we macroexpand here since `byte-compile-form' expects
-   ;; macroexpanded code, but that's just a workaround: for lexical-binding
-   ;; the lisp form should have to pass through closure-conversion and
-   ;; `wisent-byte-compile-grammar' is called much too late for that.
-   ;; Why isn't this `wisent-automaton-lisp-form' performed at
-   ;; macroexpansion time?  --Stef
    (macroexpand-all
-    (wisent-automaton-lisp-form (eval form)))))
+    (wisent-automaton-lisp-form (eval form t)))))
 
-;; FIXME: We shouldn't use a `byte-compile' handler.  Maybe using a hash-table
-;; instead of an obarray would work around the problem that obarrays
-;; aren't printable.  Then (put 'wisent-compile-grammar 'side-effect-free t).
-(put 'wisent-compile-grammar 'byte-compile 'wisent-byte-compile-grammar)
+(defun wisent-compile-grammar (grammar &optional start-list)
+  ;; This is kept for compatibility with FOO-wy.el files generated
+  ;; with older Emacsen.
+  (declare (obsolete wisent-compiled-grammar "Mar 2021"))
+  (wisent--compile-grammar grammar start-list))
 
+(put 'wisent-compile-grammar 'byte-compile #'wisent-byte-compile-grammar)
+
+;;;; --------------------------
+;;;; Byte compile input grammar
+;;;; --------------------------
+
+;; `wisent--compile-grammar' generates the actual parse table
+;; we need at run-time, but in order to be able to compile the code it
+;; contains, we need to "reify" it back into a piece of ELisp code
+;; which (re)builds it.
+;; This is needed for 2 reasons:
+;; - The parse tables include an obarray and these don't survive the print+read
+;;   steps involved in generating a `.elc' file and reading it back in.
+;; - Within the parse table vectors/obarrays we have ELisp functions which
+;;   we want to byte-compile, but if we were to just `quote' the table
+;;   we'd get them with the same non-compiled functions.
 (defun wisent-automaton-lisp-form (automaton)
   "Return a Lisp form that produces AUTOMATON.
 See also `wisent-compile-grammar' for more details on AUTOMATON."
@@ -3481,16 +3478,16 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
   (let ((obn (make-symbol "ob"))        ; Generated obarray name
         (obv (aref automaton 3))        ; Semantic actions obarray
         )
-    `(let ((,obn (make-vector 13 0)))
+    `(let ((,obn (obarray-make 13)))
        ;; Generate code to initialize the semantic actions obarray,
        ;; in local variable OBN.
        ,@(let (obcode)
            (mapatoms
-            #'(lambda (s)
-                (setq obcode
-                      (cons `(fset (intern ,(symbol-name s) ,obn)
-                                   #',(symbol-function s))
-                            obcode)))
+            (lambda (s)
+              (setq obcode
+                    (cons `(fset (intern ,(symbol-name s) ,obn)
+                                 #',(symbol-function s))
+                          obcode)))
             obv)
            obcode)
        ;; Generate code to create the automaton.
@@ -3500,18 +3497,20 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
         ;; obarray.
         (vector
          ,@(mapcar
-            #'(lambda (state) ;; for each state
-                `(list
-                  ,@(mapcar
-                     #'(lambda (tr) ;; for each transition
-                         (let ((k (car tr))  ; token
-                               (a (cdr tr))) ; action
-                           (if (and (symbolp a)
-                                    (intern-soft (symbol-name a) obv))
-                               `(cons ,(if (symbolp k) `(quote ,k) k)
-                                      (intern-soft ,(symbol-name a) ,obn))
-                             `(quote ,tr))))
-                     state)))
+            ;; Use name `st' rather than `state' since `state' is
+            ;; defined as dynbound in `semantic-actions' context above :-( !
+            (lambda (st) ;; for each state
+              `(list
+                ,@(mapcar
+                   (lambda (tr) ;; for each transition
+                     (let ((k (car tr))  ; token
+                           (a (cdr tr))) ; action
+                       (if (and (symbolp a)
+                                (intern-soft (symbol-name a) obv))
+                           `(cons ,(if (symbolp k) `(quote ,k) k)
+                                  (intern-soft ,(symbol-name a) ,obn))
+                         `(quote ,tr))))
+                   st)))
             (aref automaton 0)))
         ;; The code of the goto table is unchanged.
         ,(aref automaton 1)

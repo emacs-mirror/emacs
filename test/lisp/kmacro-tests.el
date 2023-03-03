@@ -1,6 +1,6 @@
 ;;; kmacro-tests.el --- Tests for kmacro.el       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 
@@ -91,33 +91,30 @@ body in KEYS-AND-BODY."
        ,docstring ,@keys
        (kmacro-tests-with-kmacro-clean-slate ,@body))))
 
-(defvar kmacro-tests-keymap
-  (let ((map (make-sparse-keymap)))
-    (dotimes (i 26)
-      (define-key map (string (+ ?a i)) 'self-insert-command))
-    (dotimes (i 10)
-      (define-key map (string (+ ?0 i)) 'self-insert-command))
-    ;; Define a few key sequences of different lengths.
-    (dolist (item '(("\C-a"     . beginning-of-line)
-                    ("\C-b"     . backward-char)
-                    ("\C-e"     . end-of-line)
-                    ("\C-f"     . forward-char)
-                    ("\C-r"     . isearch-backward)
-                    ("\C-u"     . universal-argument)
-                    ("\C-w"     . kill-region)
-                    ("\C-SPC"   . set-mark-command)
-                    ("\M-w"     . kill-ring-save)
-                    ("\M-x"     . execute-extended-command)
-                    ("\C-cd"    . downcase-word)
-                    ("\C-cxu"   . upcase-word)
-                    ("\C-cxq"   . quoted-insert)
-                    ("\C-cxi"   . kmacro-insert-counter)
-                    ("\C-x\C-k" . kmacro-keymap)))
-      (define-key map (car item) (cdr item)))
-    map)
-  "Keymap to use for testing keyboard macros.
+(defvar-keymap kmacro-tests-keymap
+  :doc "Keymap to use for testing keyboard macros.
 This is used to obtain consistent results even if tests are run
-in an environment with rebound keys.")
+in an environment with rebound keys."
+  ;; Define a few key sequences of different lengths.
+  "C-a"     'beginning-of-line
+  "C-b"     'backward-char
+  "C-e"     'end-of-line
+  "C-f"     'forward-char
+  "C-r"     'isearch-backward
+  "C-u"     'universal-argument
+  "C-w"     'kill-region
+  "C-SPC"   'set-mark-command
+  "M-w"     'kill-ring-save
+  "M-x"     'execute-extended-command
+  "C-c d"   'downcase-word
+  "C-c x u" 'upcase-word
+  "C-c x q" 'quoted-insert
+  "C-c x i" 'kmacro-insert-counter
+  "C-x C-k" 'kmacro-keymap)
+(dotimes (i 26)
+  (keymap-set kmacro-tests-keymap (string (+ ?a i)) 'self-insert-command))
+(dotimes (i 10)
+  (keymap-set kmacro-tests-keymap (string (+ ?0 i)) 'self-insert-command))
 
 (defvar kmacro-tests-events nil
   "Input events used by the kmacro test in progress.")
@@ -519,7 +516,7 @@ This is a regression test for: Bug#3412, Bug#11817."
     (should (eq saved-binding (key-binding "\C-a")))))
 
 (kmacro-tests-deftest kmacro-tests-name-or-bind-to-key-when-no-macro ()
-  "Bind to key, symbol or register fails when when no macro exists."
+  "Bind to key, symbol or register fails when no macro exists."
   (should-error (kmacro-bind-to-key nil))
   (should-error (kmacro-name-last-macro 'kmacro-tests-symbol-for-test))
   (should-error (kmacro-to-register)))
@@ -583,8 +580,10 @@ This is a regression test for: Bug#3412, Bug#11817."
     ;; Check the bound key and run it and verify correct counter
     ;; and format.
     (should (equal (string-to-vector "\C-cxi")
-                   (car (kmacro-extract-lambda
-                         (key-binding "\C-x\C-kA")))))
+                   (car (with-suppressed-warnings
+                            ((obsolete kmacro-extract-lambda))
+                          (kmacro-extract-lambda
+                           (key-binding "\C-x\C-kA"))))))
     (kmacro-tests-should-insert "<5>"
       (funcall (key-binding "\C-x\C-kA")))))
 
@@ -608,11 +607,25 @@ This is a regression test for: Bug#3412, Bug#11817."
   (dotimes (i 2)
     (kmacro-tests-define-macro (make-vector (1+ i) (+ ?a i)))
     (kmacro-name-last-macro 'kmacro-tests-symbol-for-test)
-    (should (fboundp 'kmacro-tests-symbol-for-test)))
+    (should (commandp 'kmacro-tests-symbol-for-test)))
 
   ;; Now run the function bound to the symbol. Result should be the
   ;; second macro.
   (kmacro-tests-should-insert "bb"
+    (kmacro-tests-simulate-command '(kmacro-tests-symbol-for-test))))
+
+;; Bug#61700 inserting named macro when the definition contains things
+;; that `key-parse' thinks are named keys
+(kmacro-tests-deftest kmacro-tests-name-last-macro-key-parse-syntax ()
+  "Name last macro can rebind a symbol it binds."
+  ;; Make sure our symbol is unbound.
+  (when (fboundp 'kmacro-tests-symbol-for-test)
+    (fmakunbound 'kmacro-tests-symbol-for-test))
+  (setplist 'kmacro-tests-symbol-for-test nil)
+  (kmacro-tests-define-macro "<b> hello </>")
+  (kmacro-name-last-macro 'kmacro-tests-symbol-for-test)
+  ;; Now run the function bound to the symbol.
+  (kmacro-tests-should-insert "<b> hello </>"
     (kmacro-tests-simulate-command '(kmacro-tests-symbol-for-test))))
 
 (kmacro-tests-deftest kmacro-tests-store-in-register ()
@@ -825,6 +838,15 @@ This is a regression for item 7 in Bug#24991."
                                 :macro-result "x")
     (kmacro-tests-simulate-command '(beginning-of-line))))
 
+(ert-deftest kmacro-tests--cl-print ()
+  (should (equal (cl-prin1-to-string
+                  (kmacro [?a ?b backspace backspace]))
+                 "#f(kmacro \"a b <backspace> <backspace>\")"))
+  (should (equal (cl-prin1-to-string
+                  (with-suppressed-warnings ((obsolete kmacro-lambda-form))
+                    (kmacro-lambda-form [?a ?b backspace backspace] 1 "%d")))
+                 "#f(kmacro \"a b <backspace> <backspace>\" 1 \"%d\")")))
+
 (cl-defun kmacro-tests-run-step-edit
     (macro &key events sequences result macro-result)
   "Set up and run a test of `kmacro-step-edit-macro'.
@@ -834,7 +856,7 @@ and `read-event' and `read-key-sequence' set up to return items from
 EVENTS and SEQUENCES respectively.  SEQUENCES may be nil, but
 EVENTS should not be.  EVENTS should be a list of symbols bound
 in `kmacro-step-edit-map' or `query-replace' map, and this function
-will do the keymap lookup for you. SEQUENCES should contain
+will do the keymap lookup for you.  SEQUENCES should contain
 return values for `read-key-sequence'.
 
 Before running the macro, the current buffer will be erased.

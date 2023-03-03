@@ -1,6 +1,6 @@
-;;; winner.el --- Restore old window configurations
+;;; winner.el --- Restore old window configurations  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -33,13 +33,12 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'ring)
 
 (defun winner-active-region ()
   (declare (gv-setter (lambda (store)
                         `(if ,store (activate-mark) (deactivate-mark)))))
   (region-active-p))
-
-(require 'ring)
 
 (defgroup winner nil
   "Restoring window configurations."
@@ -51,7 +50,7 @@
 
 (defcustom winner-ring-size 200
   "Maximum number of stored window configurations per frame."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom winner-boring-buffers '("*Completions*")
   "List of buffer names whose windows `winner-undo' will not restore.
@@ -132,8 +131,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 (defsubst winner-equal (a b)
-  "Check whether two Winner configurations (as produced by
-`winner-conf') are equal."
+  "Return t if two Winner configurations (as produced by `winner-conf') are equal."
   (equal (cdr a) (cdr b)))
 
 
@@ -173,8 +171,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
               (/= 0 (minibuffer-depth)))
     (push (selected-frame) winner-modified-list)))
 
-;; A `post-command-hook' for emacsen with
-;; `window-configuration-change-hook'.
+;; Used as `post-command-hook'.
 (defun winner-save-old-configurations ()
   (when (zerop (minibuffer-depth))
     (unless (eq this-command winner-last-command)
@@ -193,8 +190,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (winner-insert-if-new (selected-frame))
   (winner-remember))
 
-;; A `post-command-hook' for other emacsen.
-;; Also called by `winner-undo' before "undoing".
+;; Called by `winner-undo' before "undoing".
 (defun winner-save-conditionally ()
   (when (zerop (minibuffer-depth))
     (winner-save-unconditionally)))
@@ -219,8 +215,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
      ((window-minibuffer-p) (other-window 1)))
     (when (/= minisize (window-height miniwin))
       (with-selected-window miniwin
-        (setf (window-height) minisize)))))
-
+        (enlarge-window (- minisize (window-height)))))))
 
 
 (defvar winner-point-alist nil)
@@ -273,7 +268,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (let* ((buffers nil)
 	 (alive
           ;; Possibly update `winner-point-alist'
-	  (cl-loop for buf in (mapcar 'cdr (cdr conf))
+          (cl-loop for buf in (mapcar #'cdr (cdr conf))
                    for pos = (winner-get-point buf nil)
                    if (and pos (not (memq buf buffers)))
                    do (push buf buffers)
@@ -284,17 +279,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
       ;; Restore points
       (dolist (win (winner-sorted-window-list))
         (unless (and (pop alive)
-                     (let* ((buf   (window-buffer win))
-                            (pos   (winner-get-point (window-buffer win) win))
-                            (entry (assq buf (window-prev-buffers win))))
-                       ;; Try to restore point of buffer in the selected
-                       ;; window (Bug#23621).
-                       (let ((marker (nth 2 entry)))
-                         (when (and switch-to-buffer-preserve-window-point
-                                    marker
-                                    (not (= marker pos)))
-                           (setq pos marker))
-                         (setf (window-point win) pos)))
+                     (setf (window-point win)
+                           (winner-get-point (window-buffer win) win))
 		     (not (or (member (buffer-name (window-buffer win))
 				      winner-boring-buffers)
 			      (and winner-boring-buffers-regexp
@@ -317,7 +303,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
       ;; Return t if this is still a possible configuration.
       (or (null xwins)
 	  (progn
-	    (mapc 'delete-window (cdr xwins)) ; delete all but one
+            (mapc #'delete-window (cdr xwins)) ; delete all but one
 	    (unless (one-window-p t)
 	      (delete-window (car xwins))
 	      t))))))
@@ -328,24 +314,25 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defcustom winner-mode-hook nil
   "Functions to run whenever Winner mode is turned on or off."
-  :type 'hook
-  :group 'winner)
-
-(define-obsolete-variable-alias 'winner-mode-leave-hook
-  'winner-mode-off-hook "24.3")
+  :type 'hook)
 
 (defcustom winner-mode-off-hook nil
   "Functions to run whenever Winner mode is turned off."
-  :type 'hook
-  :group 'winner)
+  :type 'hook)
 
 (defvar winner-mode-map
   (let ((map (make-sparse-keymap)))
     (unless winner-dont-bind-my-keys
-      (define-key map [(control c) left] 'winner-undo)
-      (define-key map [(control c) right] 'winner-redo))
+      (define-key map [(control c) left] #'winner-undo)
+      (define-key map [(control c) right] #'winner-redo))
     map)
   "Keymap for Winner mode.")
+
+(defvar-keymap winner-repeat-map
+  :doc "Keymap to repeat winner key sequences.  Used in `repeat-mode'."
+  :repeat t
+  "<left>"  #'winner-undo
+  "<right>" #'winner-redo)
 
 
 ;;;###autoload
@@ -356,8 +343,8 @@ Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned
 into windows) so that the changes can be \"undone\" using the
 command `winner-undo'.  By default this one is bound to the key
-sequence `C-c <left>'.  If you change your mind (while undoing),
-you can press `C-c <right>' (calling `winner-redo')."
+sequence \\`C-c <left>'.  If you change your mind (while undoing),
+you can press \\`C-c <right>' (calling `winner-redo')."
   :global t
   (if winner-mode
       (progn

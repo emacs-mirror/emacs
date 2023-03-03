@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2020 Free Software Foundation, Inc.
+Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,6 +66,8 @@ char *w32_getenv (const char *);
 
 #endif /* !WINDOWSNT */
 
+#define DEFAULT_TIMEOUT (30)
+
 #include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
@@ -80,6 +82,7 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <attribute.h>
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -116,6 +119,9 @@ static bool eval;
 /* True means open a new frame.  --create-frame etc.  */
 static bool create_frame;
 
+/* True means reuse a frame if it already exists.  */
+static bool reuse_frame;
+
 /* The display on which Emacs should work.  --display.  */
 static char const *display;
 
@@ -139,6 +145,9 @@ static char const *socket_name;
 
 /* If non-NULL, the filename of the authentication file.  */
 static char const *server_file;
+
+/* Seconds to wait before timing out (0 means wait forever).  */
+static uintmax_t timeout;
 
 /* If non-NULL, the tramp prefix emacs must use to find the files.  */
 static char const *tramp_prefix;
@@ -165,6 +174,7 @@ static struct option const longopts[] =
   { "tty",	no_argument,       NULL, 't' },
   { "nw",	no_argument,       NULL, 't' },
   { "create-frame", no_argument,   NULL, 'c' },
+  { "reuse-frame", no_argument,   NULL, 'r' },
   { "alternate-editor", required_argument, NULL, 'a' },
   { "frame-parameters", required_argument, NULL, 'F' },
 #ifdef SOCKETS_IN_FILE_SYSTEM
@@ -173,6 +183,7 @@ static struct option const longopts[] =
   { "server-file",	required_argument, NULL, 'f' },
   { "display",	required_argument, NULL, 'd' },
   { "parent-id", required_argument, NULL, 'p' },
+  { "timeout",	required_argument, NULL, 'w' },
   { "tramp",	required_argument, NULL, 'T' },
   { 0, 0, 0, 0 }
 };
@@ -180,7 +191,7 @@ static struct option const longopts[] =
 /* Short options, in the same order as the corresponding long options.
    There is no '-p' short option.  */
 static char const shortopts[] =
-  "nqueHVtca:F:"
+  "nqueHVtca:F:w:"
 #ifdef SOCKETS_IN_FILE_SYSTEM
   "s:"
 #endif
@@ -251,7 +262,6 @@ get_current_dir_name (void)
   bufsize_max = min (bufsize_max, PATH_MAX);
 #endif
 
-  char *buf;
   struct stat dotstat, pwdstat;
   size_t pwdlen;
   /* If PWD is accurate, use it instead of calling getcwd.  PWD is
@@ -265,37 +275,23 @@ get_current_dir_name (void)
       && stat (".", &dotstat) == 0
       && dotstat.st_ino == pwdstat.st_ino
       && dotstat.st_dev == pwdstat.st_dev)
-    {
-      buf = xmalloc (strlen (pwd) + 1);
-      strcpy (buf, pwd);
-    }
+    return strdup (pwd);
   else
     {
-      size_t buf_size = 1024;
+      ptrdiff_t buf_size = min (bufsize_max, 1024);
       for (;;)
-        {
-	  int tmp_errno;
-	  buf = malloc (buf_size);
-	  if (! buf)
-	    break;
-          if (getcwd (buf, buf_size) == buf)
-            break;
-	  tmp_errno = errno;
+	{
+	  char *buf = malloc (buf_size);
+	  if (!buf)
+	    return NULL;
+	  if (getcwd (buf, buf_size) == buf)
+	    return buf;
 	  free (buf);
-	  if (tmp_errno != ERANGE)
-            {
-              errno = tmp_errno;
-              return NULL;
-            }
-          buf_size *= 2;
-	  if (! buf_size)
-	    {
-	      errno = ENOMEM;
-	      return NULL;
-	    }
-        }
+	  if (errno != ERANGE || buf_size == bufsize_max)
+	    return NULL;
+	  buf_size = buf_size <= bufsize_max / 2 ? 2 * buf_size : bufsize_max;
+	}
     }
-  return buf;
 }
 #endif
 
@@ -507,6 +503,7 @@ decode_options (int argc, char **argv)
       if (opt < 0)
 	break;
 
+      char* endptr;
       switch (opt)
 	{
 	case 0:
@@ -540,6 +537,17 @@ decode_options (int argc, char **argv)
 	  nowait = true;
 	  break;
 
+	case 'w':
+	  timeout = strtoumax (optarg, &endptr, 10);
+	  if (timeout <= 0 ||
+	      ((timeout == INTMAX_MAX || timeout == INTMAX_MIN)
+	       && errno == ERANGE))
+	    {
+	      fprintf (stderr, "Invalid timeout: \"%s\"\n", optarg);
+	      exit (EXIT_FAILURE);
+	    }
+	  break;
+
 	case 'e':
 	  eval = true;
 	  break;
@@ -560,11 +568,18 @@ decode_options (int argc, char **argv)
         case 't':
 	  tty = true;
 	  create_frame = true;
+	  reuse_frame = false;
           break;
 
         case 'c':
 	  create_frame = true;
           break;
+
+	case 'r':
+	  create_frame = true;
+	  if (!tty)
+	    reuse_frame = true;
+	  break;
 
 	case 'p':
 	  parent_id = optarg;
@@ -609,9 +624,16 @@ decode_options (int argc, char **argv)
       alt_display = "ns";
 #elif defined (HAVE_NTGUI)
       alt_display = "w32";
+#elif defined (HAVE_HAIKU)
+      alt_display = "be";
 #endif
 
+#ifdef HAVE_PGTK
+      display = egetenv ("WAYLAND_DISPLAY");
+      alt_display = egetenv ("DISPLAY");
+#else
       display = egetenv ("DISPLAY");
+#endif
     }
 
   if (!display)
@@ -662,11 +684,14 @@ The following OPTIONS are accepted:\n\
 -nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
+-r, --reuse-frame	Create a new frame if none exists, otherwise\n\
+			use the current Emacs frame\n\
 ", "\
 -F ALIST, --frame-parameters=ALIST\n\
 			Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
+-w, --timeout=SECONDS	Seconds to wait before timing out\n\
 -q, --quiet		Don't display messages on success\n\
 -u, --suppress-output   Don't display return values from the server\n\
 -d DISPLAY, --display=DISPLAY\n\
@@ -1055,7 +1080,9 @@ set_tcp_socket (const char *local_server_file)
 
   /* The cast to 'const char *' is to avoid a compiler warning when
      compiling for MS-Windows sockets.  */
-  setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  int ret = setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  if (ret < 0)
+    sock_err_message ("setsockopt");
 
   /* Send the authentication.  */
   auth_string[AUTH_KEY_LENGTH] = '\0';
@@ -1143,24 +1170,80 @@ process_grouping (void)
 
 #ifdef SOCKETS_IN_FILE_SYSTEM
 
-/* Return the file status of NAME, ordinarily a socket.
-   It should be owned by UID.  Return one of the following:
-  >0 - 'stat' failed with this errno value
-  -1 - isn't owned by us
-   0 - success: none of the above */
+# include <acl.h>
+
+# ifndef O_PATH
+#  define O_PATH O_SEARCH
+# endif
+
+/* A local socket address.  The union avoids the need to cast.  */
+union local_sockaddr
+{
+  struct sockaddr_un un;
+  struct sockaddr sa;
+};
+
+/* Relative to the directory DIRFD, connect the socket file named ADDR
+   to the socket S.  Return 0 if successful, -1 if DIRFD is not
+   AT_FDCWD and DIRFD's permissions would allow a symlink attack, an
+   errno otherwise.  */
 
 static int
-socket_status (const char *name, uid_t uid)
+connect_socket (int dirfd, char const *addr, int s, uid_t uid)
 {
-  struct stat statbfr;
+  int sock_status = 0;
 
-  if (stat (name, &statbfr) != 0)
-    return errno;
+  union local_sockaddr server;
+  if (sizeof server.un.sun_path <= strlen (addr))
+    return ENAMETOOLONG;
+  server.un.sun_family = AF_UNIX;
+  strcpy (server.un.sun_path, addr);
 
-  if (statbfr.st_uid != uid)
-    return -1;
+  /* If -1, WDFD is not set yet.  If nonnegative, WDFD is a file
+     descriptor for the initial working directory.  Otherwise -1 - WDFD is
+     the error number for the initial working directory.  */
+  static int wdfd = -1;
 
-  return 0;
+  if (dirfd != AT_FDCWD)
+    {
+      /* Fail if DIRFD's permissions are bogus.  */
+      struct stat st;
+      if (fstat (dirfd, &st) != 0)
+	return errno;
+      if (st.st_uid != uid || (st.st_mode & (S_IWGRP | S_IWOTH)))
+	return -1;
+
+      if (wdfd == -1)
+	{
+	  /* Save the initial working directory.  */
+	  wdfd = open (".", O_PATH | O_CLOEXEC);
+	  if (wdfd < 0)
+	    wdfd = -1 - errno;
+	}
+      if (wdfd < 0)
+	return -1 - wdfd;
+      if (fchdir (dirfd) != 0)
+	return errno;
+
+      /* Fail if DIRFD has an ACL, which means its permissions are
+	 almost surely bogus.  */
+      int has_acl = file_has_acl (".", &st);
+      if (has_acl)
+	sock_status = has_acl < 0 ? errno : -1;
+    }
+
+  if (!sock_status)
+    sock_status = connect (s, &server.sa, sizeof server.un) == 0 ? 0 : errno;
+
+  /* Fail immediately if we cannot change back to the initial working
+     directory, as that can mess up the rest of execution.  */
+  if (dirfd != AT_FDCWD && fchdir (wdfd) != 0)
+    {
+      message (true, "%s: .: %s\n", progname, strerror (errno));
+      exit (EXIT_FAILURE);
+    }
+
+  return sock_status;
 }
 
 
@@ -1337,32 +1420,47 @@ act_on_signals (HSOCKET emacs_socket)
     }
 }
 
-/* Create in SOCKNAME (of size SOCKNAMESIZE) a name for a local socket.
-   The first TMPDIRLEN bytes of SOCKNAME are already initialized to be
-   the name of a temporary directory.  Use UID and SERVER_NAME to
-   concoct the name.  Return the total length of the name if successful,
-   -1 if it does not fit (and store a truncated name in that case).
-   Fail if TMPDIRLEN is out of range.  */
+enum { socknamesize = sizeof ((struct sockaddr_un *) NULL)->sun_path };
+
+/* Given a local socket S, create in *SOCKNAME a name for a local socket
+   and connect to that socket.  The first TMPDIRLEN bytes of *SOCKNAME are
+   already initialized to be the name of a temporary directory.
+   Use UID and SERVER_NAME to concoct the name.  Return 0 if
+   successful, -1 if the socket's parent directory is not safe, and an
+   errno if there is some other problem.  */
 
 static int
-local_sockname (char *sockname, int socknamesize, int tmpdirlen,
-		uintmax_t uid, char const *server_name)
+local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
+		uid_t uid, char const *server_name)
 {
   /* If ! (0 <= TMPDIRLEN && TMPDIRLEN < SOCKNAMESIZE) the truncated
      temporary directory name is already in SOCKNAME, so nothing more
      need be stored.  */
-  if (0 <= tmpdirlen)
-    {
-      int remaining = socknamesize - tmpdirlen;
-      if (0 < remaining)
-	{
-	  int suffixlen = snprintf (&sockname[tmpdirlen], remaining,
-				    "/emacs%"PRIuMAX"/%s", uid, server_name);
-	  if (0 <= suffixlen && suffixlen < remaining)
-	    return tmpdirlen + suffixlen;
-	}
-    }
-  return -1;
+  if (! (0 <= tmpdirlen && tmpdirlen < socknamesize))
+    return ENAMETOOLONG;
+
+  /* Put the full address name into the buffer, since the caller might
+     need it for diagnostics.  But don't overrun the buffer.  */
+  uintmax_t uidmax = uid;
+  int suffixlen = snprintf (sockname + tmpdirlen, socknamesize - tmpdirlen,
+			    "/emacs%"PRIuMAX"/%s", uidmax, server_name);
+  if (! (0 <= suffixlen && suffixlen < socknamesize - tmpdirlen))
+    return ENAMETOOLONG;
+
+  /* Make sure the address's parent directory is not a symlink and is
+     this user's directory and does not let others write to it; this
+     fends off some symlink attacks.  To avoid races, keep the parent
+     directory open while checking.  */
+  char *emacsdirend = sockname + tmpdirlen + suffixlen -
+    strlen(server_name) - 1;
+  *emacsdirend = '\0';
+  int dir = open (sockname, O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  *emacsdirend = '/';
+  if (dir < 0)
+    return errno;
+  int sock_status = connect_socket (dir, server_name, s, uid);
+  close (dir);
+  return sock_status;
 }
 
 /* Create a local socket for SERVER_NAME and connect it to Emacs.  If
@@ -1373,27 +1471,41 @@ local_sockname (char *sockname, int socknamesize, int tmpdirlen,
 static HSOCKET
 set_local_socket (char const *server_name)
 {
-  union {
-    struct sockaddr_un un;
-    struct sockaddr sa;
-  } server = {{ .sun_family = AF_UNIX }};
+  union local_sockaddr server;
+  int sock_status;
   char *sockname = server.un.sun_path;
-  enum { socknamesize = sizeof server.un.sun_path };
   int tmpdirlen = -1;
   int socknamelen = -1;
   uid_t uid = geteuid ();
   bool tmpdir_used = false;
+  int s = cloexec_socket (AF_UNIX, SOCK_STREAM, 0);
+  if (s < 0)
+    {
+      message (true, "%s: can't create socket: %s\n",
+	       progname, strerror (errno));
+      fail ();
+    }
 
   if (strchr (server_name, '/')
       || (ISSLASH ('\\') && strchr (server_name, '\\')))
-    socknamelen = snprintf (sockname, socknamesize, "%s", server_name);
+    {
+      socknamelen = snprintf (sockname, socknamesize, "%s", server_name);
+      sock_status = (0 <= socknamelen && socknamelen < socknamesize
+		     ? connect_socket (AT_FDCWD, sockname, s, 0)
+		     : ENAMETOOLONG);
+    }
   else
     {
       /* socket_name is a file name component.  */
       char const *xdg_runtime_dir = egetenv ("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir)
-	socknamelen = snprintf (sockname, socknamesize, "%s/emacs/%s",
-				xdg_runtime_dir, server_name);
+	{
+	  socknamelen = snprintf (sockname, socknamesize, "%s/emacs/%s",
+				  xdg_runtime_dir, server_name);
+	  sock_status = (0 <= socknamelen && socknamelen < socknamesize
+			 ? connect_socket (AT_FDCWD, sockname, s, 0)
+			 : ENAMETOOLONG);
+	}
       else
 	{
 	  char const *tmpdir = egetenv ("TMPDIR");
@@ -1413,23 +1525,24 @@ set_local_socket (char const *server_name)
 	      if (tmpdirlen < 0)
 		tmpdirlen = snprintf (sockname, socknamesize, "/tmp");
 	    }
-	  socknamelen = local_sockname (sockname, socknamesize, tmpdirlen,
+	  sock_status = local_sockname (s, sockname, tmpdirlen,
 					uid, server_name);
 	  tmpdir_used = true;
 	}
     }
 
-  if (! (0 <= socknamelen && socknamelen < socknamesize))
+  if (sock_status == 0)
+    return s;
+
+  if (sock_status == ENAMETOOLONG)
     {
       message (true, "%s: socket-name %s... too long\n", progname, sockname);
       fail ();
     }
 
-  /* See if the socket exists, and if it's owned by us. */
-  int sock_status = socket_status (sockname, uid);
-  if (sock_status)
+  if (tmpdir_used)
     {
-      /* Failing that, see if LOGNAME or USER exist and differ from
+      /* See whether LOGNAME or USER exist and differ from
 	 our euid.  If so, look for a socket based on the UID
 	 associated with the name.  This is reminiscent of the logic
 	 that init_editfns uses to set the global Vuser_full_name.  */
@@ -1446,48 +1559,26 @@ set_local_socket (char const *server_name)
 	  if (pw && pw->pw_uid != uid)
 	    {
 	      /* We're running under su, apparently. */
-	      socknamelen = local_sockname (sockname, socknamesize, tmpdirlen,
+	      sock_status = local_sockname (s, sockname, tmpdirlen,
 					    pw->pw_uid, server_name);
-	      if (socknamelen < 0)
+	      if (sock_status == 0)
+		return s;
+	      if (sock_status == ENAMETOOLONG)
 		{
 		  message (true, "%s: socket-name %s... too long\n",
 			   progname, sockname);
 		  exit (EXIT_FAILURE);
 		}
-
-	      sock_status = socket_status (sockname, uid);
 	    }
 	}
     }
 
-  if (sock_status == 0)
-    {
-      HSOCKET s = cloexec_socket (AF_UNIX, SOCK_STREAM, 0);
-      if (s < 0)
-	{
-	  message (true, "%s: socket: %s\n", progname, strerror (errno));
-	  return INVALID_SOCKET;
-	}
-      if (connect (s, &server.sa, sizeof server.un) != 0)
-	{
-	  message (true, "%s: connect: %s\n", progname, strerror (errno));
-	  CLOSE_SOCKET (s);
-	  return INVALID_SOCKET;
-	}
+  close (s);
 
-      struct stat connect_stat;
-      if (fstat (s, &connect_stat) != 0)
-	sock_status = errno;
-      else if (connect_stat.st_uid == uid)
-	return s;
-      else
-	sock_status = -1;
-
-      CLOSE_SOCKET (s);
-    }
-
-  if (sock_status < 0)
-    message (true, "%s: Invalid socket owner\n", progname);
+  if (sock_status == -1)
+    message (true,
+	     "%s: Invalid permissions on parent directory of socket: %s\n",
+	     progname, sockname);
   else if (sock_status == ENOENT)
     {
       if (tmpdir_used)
@@ -1517,7 +1608,7 @@ set_local_socket (char const *server_name)
 	}
     }
   else
-    message (true, "%s: can't stat %s: %s\n",
+    message (true, "%s: can't connect to %s: %s\n",
 	     progname, sockname, strerror (sock_status));
 
   return INVALID_SOCKET;
@@ -1694,8 +1785,9 @@ start_daemon_and_retry_set_socket (void)
 	}
 
       /* Try connecting, the daemon should have started by now.  */
-      message (true,
-	       "Emacs daemon should have started, trying to connect again\n");
+      if (!quiet)
+        message (true,
+                 "Emacs daemon should have started, trying to connect again\n");
     }
   else if (dpid < 0)
     {
@@ -1786,7 +1878,7 @@ start_daemon_and_retry_set_socket (void)
   /* Try connecting, the daemon should have started by now.  */
   /* It's just a progress message, so don't pop a dialog if this is
      emacsclientw.  */
-  if (!w32_window_app ())
+  if (!quiet && !w32_window_app ())
     message (true,
 	     "Emacs daemon should have started, trying to connect again\n");
 #endif /* WINDOWSNT */
@@ -1799,6 +1891,43 @@ start_daemon_and_retry_set_socket (void)
       exit (EXIT_FAILURE);
     }
   return emacs_socket;
+}
+
+static void
+set_socket_timeout (HSOCKET socket, int seconds)
+{
+  int ret;
+
+#ifndef WINDOWSNT
+  struct timeval timeout;
+  timeout.tv_sec = seconds;
+  timeout.tv_usec = 0;
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+#else
+  DWORD timeout;
+
+  if (seconds > INT_MAX / 1000)
+    timeout = INT_MAX;
+  else
+    timeout = seconds * 1000;
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
+#endif
+
+  if (ret < 0)
+    sock_err_message ("setsockopt");
+}
+
+static bool
+check_socket_timeout (int rl)
+{
+#ifndef WINDOWSNT
+  return (rl == -1)
+    && (errno == EAGAIN)
+    && (errno == EWOULDBLOCK);
+#else
+  return (rl == SOCKET_ERROR)
+    && (WSAGetLastError() == WSAETIMEDOUT);
+#endif
 }
 
 int
@@ -1890,7 +2019,7 @@ main (int argc, char **argv)
   if (nowait)
     send_to_emacs (emacs_socket, "-nowait ");
 
-  if (!create_frame)
+  if (!create_frame || reuse_frame)
     send_to_emacs (emacs_socket, "-current-frame ");
 
   if (display)
@@ -2017,19 +2146,40 @@ main (int argc, char **argv)
     }
   fflush (stdout);
 
+  set_socket_timeout (emacs_socket, timeout > 0 ? timeout : DEFAULT_TIMEOUT);
+  bool saw_response = false;
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
+      bool retry = true;
+      bool msg_showed = quiet;
       do
 	{
 	  act_on_signals (emacs_socket);
 	  rl = recv (emacs_socket, string, BUFSIZ, 0);
+	  retry = check_socket_timeout (rl);
+	  if (retry && !saw_response)
+	    {
+	      if (timeout > 0)
+		{
+		  /* Don't retry if we were given a --timeout flag.  */
+		  fprintf (stderr, "\nServer not responding; timed out after %ju seconds",
+			   timeout);
+		  retry = false;
+		}
+	      else if (!msg_showed)
+		{
+		  msg_showed = true;
+		  fprintf (stderr, "\nServer not responding; use Ctrl+C to break");
+		}
+	    }
 	}
-      while (rl < 0 && errno == EINTR);
+      while ((rl < 0 && errno == EINTR) || retry);
 
       if (rl <= 0)
         break;
 
+      saw_response = true;
       string[rl] = '\0';
 
       /* Loop over all NL-terminated messages.  */
@@ -2092,7 +2242,7 @@ main (int argc, char **argv)
               char *str = unquote_argument (p + strlen ("-error "));
               if (!skiplf)
                 printf ("\n");
-              fprintf (stderr, "*ERROR*: %s", str);
+	      message (true, "*ERROR*: %s", str);
               if (str[0])
 	        skiplf = str[strlen (str) - 1] == '\n';
               exit_status = EXIT_FAILURE;

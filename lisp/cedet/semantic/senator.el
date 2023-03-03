@@ -1,6 +1,6 @@
-;;; semantic/senator.el --- SEmantic NAvigaTOR
+;;; semantic/senator.el --- SEmantic NAvigaTOR  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -60,7 +60,6 @@ A tag class is a symbol, such as `variable', `function', or `type'.
 
 As a special exception, if the value is nil, Senator's navigation
 commands recognize all tag classes."
-  :group 'senator
   :type '(repeat (symbol)))
 ;;;###autoload
 (make-variable-buffer-local 'senator-step-at-tag-classes)
@@ -78,7 +77,6 @@ commands stop at the beginning of every tag.
 
 If t, the navigation commands stop at the start and end of any
 tag, where possible."
-  :group 'senator
   :type '(choice :tag "Identifiers"
                  (repeat :menu-tag "Symbols" (symbol))
                  (const  :tag "All" t)))
@@ -87,7 +85,6 @@ tag, where possible."
 
 (defcustom senator-highlight-found nil
   "If non-nil, Senator commands momentarily highlight found tags."
-  :group 'senator
   :type 'boolean)
 (make-variable-buffer-local 'senator-highlight-found)
 
@@ -193,7 +190,6 @@ source."
   '(code block)
   "List of ignored tag classes.
 Tags of those classes are excluded from search."
-  :group 'senator
   :type '(repeat (symbol :tag "class")))
 
 (defun senator-search-default-tag-filter (tag)
@@ -461,7 +457,7 @@ filters in `senator-search-tag-filter-functions' remain active."
          ((symbolp classes)
           (list classes))
          ((stringp classes)
-          (mapcar 'read (split-string classes)))
+          (mapcar #'read (split-string classes)))
          (t
           (signal 'wrong-type-argument (list classes)))
          ))
@@ -470,11 +466,10 @@ filters in `senator-search-tag-filter-functions' remain active."
                senator--search-filter t)
   (kill-local-variable 'senator--search-filter)
   (if classes
-      (let ((tag   (make-symbol "tag"))
-            (names (mapconcat 'symbol-name classes "', `")))
-        (set (make-local-variable 'senator--search-filter)
-             `(lambda (,tag)
-                (memq (semantic-tag-class ,tag) ',classes)))
+      (let ((names (mapconcat #'symbol-name classes "', `")))
+        (setq-local senator--search-filter
+                    (lambda (tag)
+                      (memq (semantic-tag-class tag) classes)))
         (add-hook 'senator-search-tag-filter-functions
                   senator--search-filter nil t)
         (message "Limit search to `%s' tags" names))
@@ -601,12 +596,11 @@ Makes C/C++ language like assumptions."
 	 )
         (t nil)))
 
-(defvar senator-isearch-semantic-mode nil
+(defvar-local senator-isearch-semantic-mode nil
   "Non-nil if isearch does semantic search.
 This is a buffer local variable.")
-(make-variable-buffer-local 'senator-isearch-semantic-mode)
 
-(defun senator-beginning-of-defun (&optional arg)
+(defun senator-beginning-of-defun (&optional _arg)
   "Move backward to the beginning of a defun.
 Use semantic tags to navigate.
 ARG is the number of tags to navigate (not yet implemented)."
@@ -621,7 +615,7 @@ ARG is the number of tags to navigate (not yet implemented)."
           (goto-char (semantic-tag-start tag)))
       (beginning-of-line))))
 
-(defun senator-end-of-defun (&optional arg)
+(defun senator-end-of-defun (&optional _arg)
   "Move forward to next end of defun.
 Use semantic tags to navigate.
 ARG is the number of tags to navigate (not yet implemented)."
@@ -741,12 +735,9 @@ yanked to."
 Optional argument KILL-FLAG will delete the text of the tag to the
 kill ring.
 
-Interactively, reads the register using `register-read-with-preview',
-if available."
-  (interactive (list (if (fboundp 'register-read-with-preview)
-			 (register-read-with-preview "Tag to register: ")
-		       (read-char "Tag to register: "))
-		     current-prefix-arg))
+Interactively, reads the register using `register-read-with-preview'."
+  (interactive (list (register-read-with-preview "Tag to register: ")
+                     current-prefix-arg))
   (semantic-fetch-tags)
   (let ((ft (semantic-obtain-foreign-tag)))
     (when ft
@@ -810,7 +801,7 @@ if available."
 (defun senator-lazy-highlight-update ()
   "Force lazy highlight update."
   (lazy-highlight-cleanup t)
-  (set 'isearch-lazy-highlight-last-string nil)
+  (setq isearch-lazy-highlight-last-string nil)
   (setq isearch-adjusted t)
   (isearch-update))
 
@@ -857,17 +848,17 @@ Use a senator search function when semantic isearch mode is enabled."
 	;; senator one.
 	(when (and (local-variable-p 'isearch-search-fun-function)
 		   (not (local-variable-p 'senator-old-isearch-search-fun)))
-	  (set (make-local-variable 'senator-old-isearch-search-fun)
-	       isearch-search-fun-function))
-	(set (make-local-variable 'isearch-search-fun-function)
-	     'senator-isearch-search-fun))
+          (setq-local senator-old-isearch-search-fun
+                      isearch-search-fun-function))
+        (setq-local isearch-search-fun-function
+                    #'senator-isearch-search-fun))
     ;; When `senator-isearch-semantic-mode' is off restore the
     ;; previous `isearch-search-fun-function'.
     (when (eq isearch-search-fun-function 'senator-isearch-search-fun)
       (if (local-variable-p 'senator-old-isearch-search-fun)
 	  (progn
-	    (set (make-local-variable 'isearch-search-fun-function)
-		 senator-old-isearch-search-fun)
+            (setq-local isearch-search-fun-function
+                        senator-old-isearch-search-fun)
 	    (kill-local-variable 'senator-old-isearch-search-fun))
 	(kill-local-variable 'isearch-search-fun-function)))))
 

@@ -1,6 +1,6 @@
-;;; mouse-copy.el --- one-click text copy and move
+;;; mouse-copy.el --- one-click text copy and move  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -55,9 +55,6 @@
 ;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
 ;; doesn't pass clicks through.
 ;;
-;; These functions have been tested in emacs version 19.30,
-;; and this package has run in the past on 19.25-19.29.
-;;
 ;; Originally mouse-copy was part of a larger package.
 ;; As of 11 July 96 the scrolling functions were split out
 ;; in preparation for incorporation into (the future) emacs-19.32.
@@ -78,7 +75,7 @@
 ;; <http://www.zip.com.au/~cs/app/wily/auug.html>.  I'd like
 ;; to incorporate some of these ideas into mouse-copy.  The only
 ;; lose is that this is not the current Emacs Way Of Doing Things, so
-;; there would be a learning curve for existing emacs users.
+;; there would be a learning curve for existing Emacs users.
 ;;
 ;;
 ;; Thanks:
@@ -113,7 +110,7 @@ The problem occurs under XFree86-3.1.1 (X11R6pl11) but not under X11R5,
 and under post-19.29 but not early versions of Emacs.
 
 19.29 and 19.30 seems to drop mouse drag events
-sometimes. (Reproducible under XFree86-3.1.1 (X11R6pl11) and
+sometimes.  (Reproducible under XFree86-3.1.1 (X11R6pl11) and
 XFree86-3.1.2 under Linux 1.2.x.  Doesn't occur under X11R5 and SunOS
 4.1.1.)
 
@@ -216,8 +213,7 @@ by johnh@ficus.cs.ucla.edu."
   (if (mouse-drag-secondary start-event)
       (progn
 	(mouse-kill-preserving-secondary)
-	(insert (gui-get-selection 'SECONDARY))))
-)
+        (insert (gui-get-selection 'SECONDARY)))))
 
 (provide 'mouse-copy)
 

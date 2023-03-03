@@ -1,6 +1,6 @@
 ;;; todo-mode-tests.el --- tests for todo-mode.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;; Keywords: calendar
@@ -35,27 +35,26 @@
   "Todo Archive mode test file.")
 
 (defmacro with-todo-test (&rest body)
-  "Set up an isolated todo-mode test environment."
+  "Set up an isolated `todo-mode' test environment."
   (declare (debug (body)))
-  `(let* ((todo-test-home (make-temp-file "todo-test-home-" t))
-          ;; Since we change HOME, clear this to avoid a conflict
-          ;; e.g. if Emacs runs within the user's home directory.
-          (abbreviated-home-dir nil)
-          (process-environment (cons (format "HOME=%s" todo-test-home)
-                                     process-environment))
-          (todo-directory (ert-resource-directory))
-          (todo-default-todo-file (todo-short-file-name
-				   (car (funcall todo-files-function)))))
-     (unwind-protect
-         (progn ,@body)
-       ;; Restore pre-test-run state of test files.
-       (dolist (f (directory-files todo-directory))
-         (let ((buf (get-file-buffer f)))
-           (when buf
-             (with-current-buffer buf
-               (restore-buffer-modified-p nil)
-               (kill-buffer)))))
-       (delete-directory todo-test-home t))))
+  `(ert-with-temp-directory todo-test-home
+     (let* (;; Since we change HOME, clear this to avoid a conflict
+            ;; e.g. if Emacs runs within the user's home directory.
+            (abbreviated-home-dir nil)
+            (process-environment (cons (format "HOME=%s" todo-test-home)
+                                       process-environment))
+            (todo-directory (ert-resource-directory))
+            (todo-default-todo-file (todo-short-file-name
+                                 (car (funcall todo-files-function)))))
+       (unwind-protect
+           (progn ,@body)
+         ;; Restore pre-test-run state of test files.
+         (dolist (f (directory-files todo-directory))
+           (let ((buf (get-file-buffer f)))
+             (when buf
+               (with-current-buffer buf
+                 (restore-buffer-modified-p nil)
+                 (kill-buffer)))))))))
 
 (defun todo-test--show (num &optional archive)
   "Display category NUM of test todo file.
@@ -460,7 +459,7 @@ the top done item should be the first done item."
                                  todo-date-pattern
 			         "\\( " diary-time-regexp "\\)?"
 			         (regexp-quote todo-nondiary-end) "?")
-		         (line-end-position) t)
+                         (pos-eol) t)
                         (forward-char)
                         (point)))
           (start1 (save-excursion (funcall find-start)))
@@ -567,7 +566,7 @@ The remaining arguments (except _ARG, which is ignored) specify
 item insertion parameters.  This provides a noninteractive API
 for todo-insert-item for use in automatic testing."
   (cl-letf (((symbol-function 'read-from-minibuffer)
-             (lambda (_prompt) item))
+             (lambda (_prompt &rest _) item))
             ((symbol-function 'read-number) ; For todo-set-item-priority
              (lambda (_prompt &optional _default) (or priority 1))))
     (todo-insert-item--basic nil diary-type date-type time where)))
@@ -855,7 +854,7 @@ item's date should be adjusted accordingly."
    (let ((current-prefix-arg t)         ; For todo-edit-item--header.
          (get-date (lambda ()
                      (save-excursion
-                       (todo-date-string-matcher (line-end-position))
+                       (todo-date-string-matcher (pos-eol))
                        (buffer-substring-no-properties (match-beginning 1)
                                                        (match-end 0))))))
      (should (equal (funcall get-date) "Jan 1, 2020"))
@@ -904,7 +903,7 @@ tab character."
      (todo-test--insert-item item 1)
      (re-search-forward (concat todo-date-string-start todo-date-pattern
 				(regexp-quote todo-nondiary-end) " ")
-			(line-end-position) t)
+			(pos-eol) t)
      (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
 
 (ert-deftest todo-test-multiline-item-indentation-2 () ; bug#43068
@@ -918,7 +917,7 @@ begin with a tab character."
      (todo-edit-item--text 'multiline)
      (insert (concat "\n" item1))
      (todo-edit-quit)
-     (goto-char (line-beginning-position))
+     (goto-char (pos-bol))
      (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
 
 (ert-deftest todo-test-multiline-item-indentation-3 ()
@@ -931,7 +930,7 @@ since all non-initial item lines must begin with whitespace."
           (item1 "Second line."))
      (todo-edit-file)
      (should (looking-at (regexp-quote item0)))
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (insert (concat "\n" item1))
      (should-error (todo-edit-quit) :type 'user-error))))
 

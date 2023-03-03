@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1997-2020 Free Software Foundation, Inc.
+# Copyright (C) 1997-2023 Free Software Foundation, Inc.
 # Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 #   2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -25,35 +25,30 @@ SHELL = @SHELL@
 
 # Here are the things that we expect ../configure to edit.
 srcdir=@srcdir@
+top_builddir = @top_builddir@
 
 # Where the generated files go.
 leimdir = ${srcdir}/../lisp/leim
 
 EXEEXT = @EXEEXT@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+SMALL_JA_DIC = @SMALL_JA_DIC@
+JA_DIC_NO_REDUCTION_OPTION = --no-reduction
+ifeq ($(SMALL_JA_DIC), yes)
+	JA_DIC_NO_REDUCTION_OPTION =
+endif
 
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+-include ${top_builddir}/src/verbose.mk
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # and generate the file leim-list.el.
 EMACS = ../src/emacs${EXEEXT}
 
 # How to run Emacs.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-RUN_EMACS = EMACSLOADPATH= '$(EMACS)' -batch --no-site-file --no-site-lisp
+RUN_EMACS = '$(EMACS)' -batch --no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
 
@@ -91,7 +86,7 @@ MISC= \
 TIT_MISC = ${TIT_GB} ${TIT_BIG5} ${MISC}
 
 
-all: ${leimdir}/leim-list.el ${leimdir}/ja-dic/ja-dic.el
+all: ${leimdir}/leim-list.el
 .PHONY: all
 
 
@@ -139,27 +134,31 @@ ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 
 ${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 
+.PHONY: generate-ja-dic
+generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
-	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" "$<"
+	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 
 ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
 	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@
 
 
-.PHONY: bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: bootstrap-clean distclean maintainer-clean gen-clean
 
+## Perhaps this should run gen-clean.
 bootstrap-clean:
 	rm -f ${TIT_MISC} ${leimdir}/leim-list.el
 
 distclean:
 	rm -f Makefile
 
-maintainer-clean: distclean bootstrap-clean
+maintainer-clean: gen-clean distclean
 
-## We do not delete ja-dic, even in a bootstrap, because it rarely
-## changes and is slow to regenerate.
-extraclean: bootstrap-clean
+## ja-dic rarely changes and is slow to regenerate, and tends to be a
+## bottleneck in parallel builds.
+gen-clean:
+	rm -f ${TIT_MISC} ${leimdir}/leim-list.el
 	rm -rf ${leimdir}/ja-dic
 
 ### Makefile.in ends here

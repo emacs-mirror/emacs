@@ -1,6 +1,6 @@
 ;;; subr-x-tests.el --- Testing the extended lisp routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Keywords:
@@ -169,13 +169,13 @@
              "no")
            "no"))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (if-let* (z (a 1) (b 2) (c 3))
                  "yes"
                "no"))
            "no"))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (if-let* ((a 1) (b 2) (c 3) d)
                  "yes"
                "no"))
@@ -191,7 +191,7 @@
 
 (ert-deftest subr-x-test-if-let*-and-laziness-is-preserved ()
   "Test `if-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a nil)
                        (b (setq b-called t))
@@ -199,7 +199,7 @@
                  "yes"
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
                        (b nil)
@@ -207,12 +207,12 @@
                  "yes"
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
-                      (b (setq b-called t))
-                      (c nil)
-                      (d (setq c-called t)))
+                       (b (setq b-called t))
+                       (c nil)
+                       (d (setq c-called t)))
                  "yes"
                (list a-called b-called c-called))
              (list t t nil)))))
@@ -329,12 +329,12 @@
              "no")
            nil))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (when-let* (z (a 1) (b 2) (c 3))
                "no"))
            nil))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (when-let* ((a 1) (b 2) (c 3) d)
                "no"))
            nil)))
@@ -348,7 +348,7 @@
 
 (ert-deftest subr-x-test-when-let*-and-laziness-is-preserved ()
   "Test `when-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a nil)
@@ -357,7 +357,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))
@@ -366,7 +366,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))
@@ -455,18 +455,18 @@
   "Test `thread-first' wraps single function names."
   (should (equal (macroexpand
                   '(thread-first 5
-                     -))
+                                 -))
                  '(- 5)))
   (should (equal (macroexpand
                   '(thread-first (+ 1 2)
-                     -))
+                                 -))
                  '(- (+ 1 2)))))
 
 (ert-deftest subr-x-test-thread-first-expansion ()
   "Test `thread-first' expands correctly."
   (should (equal
            (macroexpand '(thread-first
-                             5
+                           5
                            (+ 20)
                            (/ 25)
                            -
@@ -477,13 +477,13 @@
   "Test several `thread-first' examples."
   (should (equal (thread-first (+ 40 2)) 42))
   (should (equal (thread-first
-                     5
+                   5
                    (+ 20)
                    (/ 25)
                    -
                    (+ 40)) 39))
   (should (equal (thread-first
-                     "this-is-a-string"
+                   "this-is-a-string"
                    (split-string "-")
                    (nbutlast 2)
                    (append (list "good")))
@@ -500,18 +500,18 @@
   "Test `thread-last' wraps single function names."
   (should (equal (macroexpand
                   '(thread-last 5
-                     -))
+                                -))
                  '(- 5)))
   (should (equal (macroexpand
                   '(thread-last (+ 1 2)
-                     -))
+                                -))
                  '(- (+ 1 2)))))
 
 (ert-deftest subr-x-test-thread-last-expansion ()
   "Test `thread-last' expands correctly."
   (should (equal
            (macroexpand '(thread-last
-                             5
+                           5
                            (+ 20)
                            (/ 25)
                            -
@@ -522,13 +522,13 @@
   "Test several `thread-last' examples."
   (should (equal (thread-last (+ 40 2)) 42))
   (should (equal (thread-last
-                     5
+                   5
                    (+ 20)
                    (/ 25)
                    -
                    (+ 40)) 39))
   (should (equal (thread-last
-                     (list 1 -2 3 -4 5)
+                   (list 1 -2 3 -4 5)
                    (mapcar #'abs)
                    (cl-reduce #'+)
                    (format "abs sum is: %s"))
@@ -581,6 +581,204 @@
   (should (equal (string-remove-suffix "a" "a") ""))
   (should (equal (string-remove-suffix "a" "aa") "a"))
   (should (equal (string-remove-suffix "a" "ba") "b")))
+
+(ert-deftest subr-clean-whitespace ()
+  (should (equal (string-clean-whitespace " foo ") "foo"))
+  (should (equal (string-clean-whitespace " foo   \r\n\t  Bar") "foo Bar")))
+
+(ert-deftest subr-string-fill ()
+  (should (equal (string-fill "foo" 10) "foo"))
+  (should (equal (string-fill "foobar" 5) "foobar"))
+  (should (equal (string-fill "foo bar zot" 5) "foo\nbar\nzot"))
+  (should (equal (string-fill "foo bar zot" 7) "foo bar\nzot")))
+
+(ert-deftest subr-string-limit ()
+  (should (equal (string-limit "foo" 10) "foo"))
+  (should (equal (string-limit "foo" 2) "fo"))
+  (should (equal (string-limit "foo" 2 t) "oo"))
+  (should (equal (string-limit "abc" 10 t) "abc"))
+  (should (equal (string-limit "foo" 0) ""))
+  (should-error (string-limit "foo" -1)))
+
+(ert-deftest subr-string-limit-coding ()
+  (should (not (multibyte-string-p (string-limit "foó" 10 nil 'utf-8))))
+  (should (equal (string-limit "foó" 10 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foó" 3 nil 'utf-8) "fo"))
+  (should (equal (string-limit "foó" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóa" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóá" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóá" 2 nil 'utf-8-with-signature)
+                 ""))
+  (should (equal (string-limit "foóá" 4 nil 'utf-8-with-signature)
+                 "\357\273\277f"))
+  (should (equal (string-limit "foóa" 4 nil 'iso-8859-1) "fo\363a"))
+  (should (equal (string-limit "foóá" 4 nil 'iso-8859-1) "fo\363\341"))
+  (should (equal (string-limit "foóá" 3 nil 'utf-16) ""))
+  (should (equal (string-limit "foóá" 6 nil 'utf-16) "\376\377\000f\000o"))
+
+  (should (equal (string-limit "foó" 10 t 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foó" 3 t 'utf-8) "o\303\263"))
+  (should (equal (string-limit "foó" 4 t 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóa" 4 t 'utf-8) "o\303\263a"))
+  (should (equal (string-limit "foóá" 4 t 'utf-8) "\303\263\303\241"))
+  (should (equal (string-limit "foóá" 2 t 'utf-8-with-signature)
+                 ""))
+  (should (equal (string-limit "foóa" 4 t 'iso-8859-1) "fo\363a"))
+  (should (equal (string-limit "foóá" 4 t 'iso-8859-1) "fo\363\341"))
+  (should (equal (string-limit "foóá" 6 t 'utf-16) "\376\377\000\363\000\341")))
+
+(ert-deftest subr-string-limit-glyphs ()
+  (should (equal (encode-coding-string "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273\360\237\247\221\360\237\217\274\342\200\215\360\237\244\235\342\200\215\360\237\247\221\360\237\217\273"))
+  (should (= (length (encode-coding-string "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 'utf-8)) 41))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 100 nil 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273\360\237\247\221\360\237\217\274\342\200\215\360\237\244\235\342\200\215\360\237\247\221\360\237\217\273"))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 15 nil 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273"))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 10 nil 'utf-8)
+                 "Hello, ")))
+
+(ert-deftest subr-string-lines ()
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo \nbar") '("foo " "bar"))))
+
+(ert-deftest subr-string-pad ()
+  (should (equal (string-pad "foo" 5) "foo  "))
+  (should (equal (string-pad "foo" 5 ?-) "foo--"))
+  (should (equal (string-pad "foo" 5 ?- t) "--foo"))
+  (should (equal (string-pad "foo" 2 ?-) "foo")))
+
+(ert-deftest subr-string-chop-newline ()
+  (should (equal (string-chop-newline "foo\n") "foo"))
+  (should (equal (string-chop-newline "foo\nbar\n") "foo\nbar"))
+  (should (equal (string-chop-newline "foo\nbar") "foo\nbar")))
+
+(ert-deftest subr-ensure-empty-lines ()
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo")
+      (goto-char (point-min))
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "\n\nfoo"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n\n\n\n\n")
+      (ensure-empty-lines 2)
+      (buffer-string))
+    "foo\n\n\n"))
+  (should
+   (equal
+    (with-temp-buffer
+      (insert "foo\n\n\n")
+      (ensure-empty-lines 0)
+      (buffer-string))
+    "foo\n")))
+
+(ert-deftest subr-x-test-add-display-text-property ()
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (add-display-text-property 4 8 'height 2.0)
+    (add-display-text-property 2 12 'raise 0.5)
+    (should (equal (get-text-property 2 'display) '(raise 0.5)))
+    (should (equal (get-text-property 5 'display)
+                   '((raise 0.5) (height 2.0))))
+    (should (equal (get-text-property 9 'display) '(raise 0.5))))
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (put-text-property 4 8 'display [(height 2.0)])
+    (add-display-text-property 2 12 'raise 0.5)
+    (should (equal (get-text-property 2 'display) '(raise 0.5)))
+    (should (equal (get-text-property 5 'display)
+                   [(raise 0.5) (height 2.0)]))
+    (should (equal (get-text-property 9 'display) '(raise 0.5))))
+  (with-temp-buffer
+    (should (equal (let ((str "some useless string"))
+                     (add-display-text-property 4 8 'height 2.0 str)
+                     (add-display-text-property 2 12 'raise 0.5 str)
+                     str)
+                   #("some useless string"
+                     2 4 (display (raise 0.5))
+                     4 8 (display ((raise 0.5) (height 2.0)))
+                     8 12 (display (raise 0.5)))))))
+
+(ert-deftest subr-x-named-let ()
+  (let ((funs ()))
+    (named-let loop
+        ((rest '(1 42 3))
+         (sum 0))
+      (when rest
+        ;; Here, we make sure that the variables are distinct in every
+        ;; iteration, since a naive tail-call optimization would tend to end up
+        ;; with a single `sum' variable being shared by all the closures.
+        (push (lambda () sum) funs)
+        ;; Here we add a dummy `sum' variable which shadows the `sum' iteration
+        ;; variable since a naive tail-call optimization could also trip here
+        ;; thinking it can `(setq sum ...)' to set the iteration
+        ;; variable's value.
+        (let ((sum sum))
+          (loop (cdr rest) (+ sum (car rest))))))
+    (should (equal (mapcar #'funcall funs) '(43 1 0)))))
+
+(ert-deftest test-with-buffer-unmodified-if-unchanged ()
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t"))
+    (should (buffer-modified-p)))
+
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t")
+      (delete-char -1))
+    (should-not (buffer-modified-p)))
+
+  ;; Shouldn't error.
+  (should
+   (with-temp-buffer
+     (with-buffer-unmodified-if-unchanged
+       (insert "t")
+       (delete-char -1)
+       (kill-buffer))))
+
+  (with-temp-buffer
+    (let ((outer (current-buffer)))
+      (with-temp-buffer
+        (let ((inner (current-buffer)))
+          (with-buffer-unmodified-if-unchanged
+            (insert "t")
+            (delete-char -1)
+            (set-buffer outer))
+          (with-current-buffer inner
+            (should-not (buffer-modified-p))))))))
+
+(ert-deftest subr-x--hash-table-keys-and-values ()
+  (let ((h (make-hash-table)))
+    (puthash 'a 1 h)
+    (puthash 'c 3 h)
+    (puthash 'b 2 h)
+    (should (equal (sort (hash-table-keys h) #'string<) '(a b c)))
+    (should (equal (sort (hash-table-values h) #'<) '(1 2 3)))))
+
+(ert-deftest test-string-truncate-left ()
+  (should (equal (string-truncate-left "band" 3) "...d"))
+  (should (equal (string-truncate-left "band" 2) "...d"))
+  (should (equal (string-truncate-left "longstring" 8) "...tring")))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

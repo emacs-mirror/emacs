@@ -379,7 +379,7 @@
 2013-02-28  Sam Steingold  <sds@gnu.org>
 
 	* vc/diff-mode.el (diff-hunk-file-names): Handle filenames with spaces.
-	See <http://stackoverflow.com/questions/14720205>.
+	See <https://stackoverflow.com/questions/14720205>.
 
 2013-02-28  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
@@ -1326,7 +1326,7 @@
 
 	* net/soap-client.el (soap-invoke): Encode the string for
 	`url-request-data' as UTF-8.
-	Fixes <http://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
+	Fixes <https://code.google.com/p/emacs-soap-client/issues/detail?id=16>.
 
 2013-02-01  Glenn Morris  <rgm@gnu.org>
 
@@ -2462,7 +2462,7 @@
 2012-12-27  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-calculate-indent): Do not stagger
-	continuations, see <http://stackoverflow.com/questions/3582436>.
+	continuations, see <https://stackoverflow.com/questions/3582436>.
 
 2012-12-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -2814,7 +2814,7 @@
 2012-12-12  Jonas Bernoulli  <jonas@bernoul.li>
 
 	* emacs-lisp/eieio.el: Prettier object pretty-printing (bug#13115).
-	(eieio-override-prin1): Don't quote kewords and booleans.
+	(eieio-override-prin1): Don't quote keywords and booleans.
 	(object-write) <eieio-default-superclass>: Don't put closing parens
 	on new line, avoid needless empty lines, align values that are objects
 	with the slot keyword (instead of beginning on the same line).
@@ -4866,12 +4866,13 @@
 2012-10-12  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* progmodes/python.el (python-mode-map):
-	Replace subtitute-key-definition with proper command remapping.
+	Replace substitute-key-definition with proper command remapping.
 	(python-nav--up-list): Fix behavior for blocks on the same level.
 
 2012-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* help-fns.el (describe-function-1): Handle autoloads w/o docstrings.
+	* help-fns.el (describe-function-1): Handle autoloads without
+	docstrings.
 
 	* emacs-lisp/bytecomp.el (byte-compile-eval): Adjust to long-ago
 	changes to the format of load-history.
@@ -10765,7 +10766,7 @@
 
 	* play/zone.el (zone-hiding-mode-line): Rename from
 	zone-hiding-modeline.  All callers changed.
-	(zone): Remove unusued `modeline-hidden-level' property.
+	(zone): Remove unused `modeline-hidden-level' property.
 
 	* progmodes/xscheme.el (xscheme-mode-line-initialize): Rename from
 	xscheme-modeline-initialize.  All callers changed.
@@ -10931,7 +10932,7 @@
 
 2012-05-29  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
-	* vc/vc.el (vc-revert, vc-rollback): Dont kill vc-diff buffer on
+	* vc/vc.el (vc-revert, vc-rollback): Don't kill vc-diff buffer on
 	revert (Bug#11488).
 
 2012-05-29  Juri Linkov  <juri@jurta.org>
@@ -10967,8 +10968,8 @@
 	* comint.el (comint-history-isearch-end):
 	Use `isearch-search-fun-default'.
 	(comint-history-isearch-search): Use `isearch-search-fun-default'
-	and remove spacial case for `isearch-word'.
-	(comint-history-isearch-wrap): Remove spacial case for
+	and remove special case for `isearch-word'.
+	(comint-history-isearch-wrap): Remove special case for
 	`isearch-word'.
 
 	* hexl.el (hexl-isearch-search-function):
@@ -10981,13 +10982,13 @@
 	Use `isearch-search-fun-default'.
 
 	* simple.el (minibuffer-history-isearch-search):
-	Use `isearch-search-fun-default' and remove spacial case for
+	Use `isearch-search-fun-default' and remove special case for
 	`isearch-word'.
-	(minibuffer-history-isearch-wrap): Remove spacial case for
+	(minibuffer-history-isearch-wrap): Remove special case for
 	`isearch-word'.
 
 	* textmodes/reftex-global.el (reftex-isearch-wrap-function):
-	Remove spacial case for `isearch-word'.
+	Remove special case for `isearch-word'.
 	(reftex-isearch-isearch-search): Use `isearch-search-fun-default'.
 
 2012-05-28  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
@@ -11473,7 +11474,7 @@
 	(sh-set-shell): Use smie-setup if requested.
 
 	* term.el (term-set-escape-char): Properly set term-escape-char.
-	See http://stackoverflow.com/questions/10524656.
+	See https://stackoverflow.com/questions/10524656.
 
 2012-05-10  Chong Yidong  <cyd@gnu.org>
 
@@ -15340,7 +15341,7 @@
 	* subr.el (with-selected-frame): Mention that the selected frame
 	is restored (bug#9980).
 
-	* ibuffer.el (ibuffer-mode): List the bindings in the corrent map
+	* ibuffer.el (ibuffer-mode): List the bindings in the correct map
 	(bug#9759).
 
 	* mail/smtpmail.el (password-cache-add): Remove unused declaration.
@@ -16476,7 +16477,7 @@
 	(python-pdbtrack-track-stack-file): Adjust to recognize ipdb as well as
 	regular python pdb prompts.  Adjustments shamelessly taken exactly as
 	suggested in EmacsWiki page (tiny change):
-	http://www.emacswiki.org/PythonProgrammingInEmacs#toc14
+	https://www.emacswiki.org/PythonProgrammingInEmacs#toc14
 
 2011-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -22838,15 +22839,14 @@
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
-	* international/quail.el (quail-insert-kbd-layout): and and -> and.
-	* kermit.el: and and -> and.
-	* net/ldap.el (ldap-search-internal): to to -> to.
-	* progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
-	* progmodes/js.el (js-mode): and and -> and.
-	* textmodes/artist.el (artist-move-to-xy): at at -> at.
-	(artist-draw-region-trim-line-endings): if if -> if.
-	And Safetyc -> Safety.
-	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a.
+	* international/quail.el (quail-insert-kbd-layout):
+	* kermit.el:
+	* net/ldap.el (ldap-search-internal):
+	* progmodes/vhdl-mode.el (vhdl-offsets-alist):
+	* progmodes/js.el (js-mode):
+	* textmodes/artist.el (artist-move-to-xy):
+	(artist-draw-region-trim-line-endings):
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Fix typos.
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -24104,7 +24104,7 @@
 
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Use eval-sexp-add-defvars.
 
-	* htmlfontify.el (hfy-etags-cmd): Remove inoperant eval-and-compile.
+	* htmlfontify.el (hfy-etags-cmd): Remove inoperative eval-and-compile.
 	(hfy-e2x-etags-cmd, hfy-etags-cmd-alist-default)
 	(hfy-etags-cmd-alist): Don't eval-and-compile any more.
 
@@ -24325,7 +24325,7 @@
 	Pass nil for `after-find-file-from-revert-buffer'.
 
 	* saveplace.el (save-place-find-file-hook): Use new variable
-	`rever-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
+	`revert-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
 
 2011-04-06  Glenn Morris  <rgm@gnu.org>
 
@@ -25223,7 +25223,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2020 Free Software Foundation, Inc.
+  Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

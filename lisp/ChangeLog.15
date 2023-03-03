@@ -10320,7 +10320,7 @@
 	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
 	* skeleton.el, term.el, time.el, wid-edit.el, woman.el,
 	* calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
-	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lips/cl-loaddefs.el,
+	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lisp/cl-loaddefs.el,
 	* emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
 	* eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
 	* gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
@@ -11955,7 +11955,7 @@
 	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
 	fix bug for /* / comments.
 	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
-	Speed up and simplfy as this is never called with a bound.
+	Speed up and simplify as this is never called with a bound.
 	(verilog-pretty-declarations): Enhance to line up declarations
 	inside a parameter list, suggested by Alan Morgan.
 	(verilog-pretty-expr): Tune assignment regular expression match
@@ -15783,7 +15783,7 @@
 	* simple.el (with-wrapper-hook): Fix thinko.
 
 	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
-	(htmlfontify-load-rgb-file): Remove unnused var `ff'.
+	(htmlfontify-load-rgb-file): Remove unused var `ff'.
 	Use with-current-buffer and string-to-number.
 	(hfy-fallback-colour-values): Use assoc-string.
 	* htmlfontify.el (hfy-face-to-css): Remove unused var `style'.
@@ -17307,7 +17307,7 @@
 	* simple.el (normal-erase-is-backspace-mode): Use input-decode-map
 	rather than fiddling with global-map bindings, since it should only
 	affect per-terminal settings.
-	See http://bugs.gentoo.org/show_bug.cgi?id=289709.
+	See https://bugs.gentoo.org/show_bug.cgi?id=289709.
 
 	* minibuffer.el (completion-table-with-terminator): Allow to specify
 	the terminator-regexp.
@@ -22575,7 +22575,7 @@
 
 2009-06-28  Juri Linkov  <juri@jurta.org>
 
-	* help-fns.el (describe-function-1): Correctly locate adviced
+	* help-fns.el (describe-function-1): Correctly locate advised
 	functions in hyperlink (Bug#2438).
 
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
@@ -22762,7 +22762,7 @@
 
 	Automatically handle .xz suffix (XZ-compressed files), too.
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add xz.
-	XZ is the successor to LZMA: <http://tukaani.org/xz/>
+	XZ is the successor to LZMA: <https://tukaani.org/xz/>
 
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
 	    Nick Roberts  <nickrob@snap.net.nz>
@@ -22802,7 +22802,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2020 Free Software Foundation, Inc.
+  Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

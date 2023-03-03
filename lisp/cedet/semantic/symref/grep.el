@@ -1,6 +1,6 @@
-;;; semantic/symref/grep.el --- Symref implementation using find/grep
+;;; semantic/symref/grep.el --- Symref implementation using find/grep  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -39,12 +39,14 @@
    )
   "A symref tool implementation using grep.
 This tool uses EDE to find the root of the project, then executes
-find-grep in the project.  The output is parsed for hits and
+`find-grep' in the project.  The output is parsed for hits and
 those hits returned.")
 
 (defvar semantic-symref-filepattern-alist
   '((c-mode "*.[ch]")
+    (c-ts-mode "*.[ch]")
     (c++-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
+    (c++-ts-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
     (html-mode "*.html" "*.shtml" "*.php")
     (mhtml-mode "*.html" "*.shtml" "*.php") ; FIXME: remove
                                             ; duplication of
@@ -53,7 +55,10 @@ those hits returned.")
                                             ; major mode definition?
     (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
                "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
+    (ruby-ts-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
+                  "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
     (python-mode "*.py" "*.pyi" "*.pyw")
+    (python-ts-mode "*.py" "*.pyi" "*.pyw")
     (perl-mode "*.pl" "*.PL")
     (cperl-mode "*.pl" "*.PL")
     (lisp-interaction-mode "*.el" "*.ede" ".emacs" "_emacs")
@@ -87,7 +92,7 @@ Optional argument MODE specifies the `major-mode' to test."
         (if (null (cdr pat))
             args
           `("(" ,@args
-            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) (cdr pat))
             ")"))))))
 
 (defvar semantic-symref-grep-flags)
@@ -133,6 +138,14 @@ This shell should support pipe redirect syntax."
   :group 'semantic
   :type 'string)
 
+(defun semantic-symref-grep--quote-grep (string)
+  "Quote STRING as a grep-syntax regexp."
+  (replace-regexp-in-string (rx (in ".^$*[\\"))
+                            (lambda (s) (concat "\\" s))
+                            string nil t))
+
+(defvar semantic-symref-grep--local-dir nil)
+
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
@@ -150,15 +163,11 @@ This shell should support pipe redirect syntax."
                            "-l ")
                           ((eq (oref tool searchtype) 'regexp)
                            "-nE ")
-                          (t "-n ")))
-         (greppat (cond ((eq (oref tool searchtype) 'regexp)
-                         (oref tool searchfor))
-                        (t
-                         ;; Can't use the word boundaries: Grep
-                         ;; doesn't always agree with the language
-                         ;; syntax on those.
-                         (format "\\(^\\|\\W\\)%s\\(\\W\\|$\\)"
-                                 (oref tool searchfor)))))
+                          (t "-nw ")))
+         (searchfor (oref tool searchfor))
+         (greppat (if (eq (oref tool searchtype) 'regexp)
+                      searchfor
+                    (semantic-symref-grep--quote-grep searchfor)))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)
@@ -167,25 +176,13 @@ This shell should support pipe redirect syntax."
     (with-current-buffer b
       (erase-buffer)
       (setq default-directory rootdir)
-
-      (if (not (fboundp 'grep-compute-defaults))
-
-	  ;; find . -type f -print0 | xargs -0 -e grep -nH -e
-	  ;; Note : I removed -e as it is not posix, nor necessary it seems.
-
-	  (let ((cmd (concat "find " (file-local-name rootdir)
-                             " -type f " filepattern " -print0 "
-			     "| xargs -0 grep -H " grepflags "-e " greppat)))
-	    ;;(message "Old command: %s" cmd)
-	    (process-file semantic-symref-grep-shell nil b nil
-                          shell-command-switch cmd)
-	    )
-	(let ((cmd (semantic-symref-grep-use-template
-                    (file-local-name rootdir) filepattern grepflags greppat)))
-	  (process-file semantic-symref-grep-shell nil b nil
-                        shell-command-switch cmd))
-	))
-    (setq ans (semantic-symref-parse-tool-output tool b))
+      (let ((cmd (semantic-symref-grep-use-template
+                  "."
+                  filepattern grepflags greppat)))
+        (process-file semantic-symref-grep-shell nil b nil
+                      shell-command-switch cmd)))
+    (let ((semantic-symref-grep--local-dir (directory-file-name (file-local-name rootdir))))
+      (setq ans (semantic-symref-parse-tool-output tool b)))
     ;; Return the answer
     ans))
 
@@ -201,12 +198,12 @@ Moves cursor to end of the match."
           ((eq (oref tool resulttype) 'line-and-text)
            (when (re-search-forward grep-re nil t)
              (list (string-to-number (match-string line-group))
-                   (match-string file-group)
+                   (concat semantic-symref-grep--local-dir (substring (match-string file-group) 1))
                    (buffer-substring-no-properties (point) (line-end-position)))))
 	  (t
 	   (when (re-search-forward grep-re nil t)
 	     (cons (string-to-number (match-string line-group))
-		   (match-string file-group))
+		   (concat semantic-symref-grep--local-dir (substring (match-string file-group) 1)))
 	     )))))
 
 (provide 'semantic/symref/grep)

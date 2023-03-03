@@ -1,6 +1,6 @@
-;;; url-cache.el --- Uniform Resource Locator retrieval tool
+;;; url-cache.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-parse)
@@ -35,7 +37,7 @@
   "Default maximum time in seconds before cache files expire.
 Used by the function `url-cache-expired'."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url-cache)
 
 ;; Cache manager
@@ -47,7 +49,7 @@ Used by the function `url-cache-expired'."
          (file-directory-p (file-name-directory file)))))
 
 (defun url-cache-prepare (file)
-  "Makes it possible to cache data in FILE.
+  "Make it possible to cache data in FILE.
 Creates any necessary parent directories, deleting any non-directory files
 that would stop this.  Returns nil if parent directories can not be
 created.  If FILE already exists as a non-directory, it changes
@@ -110,18 +112,17 @@ The actual return value is the last modification time of the cache file."
 	    (let ((slash nil))
 	      (setq fname
 		    (mapconcat
-		     (function
-		      (lambda (x)
-			(cond
-			 ((and (= ?/ x) slash)
-			  (setq slash nil)
-			  "%2F")
-			 ((= ?/ x)
-			  (setq slash t)
-			  "/")
-			 (t
-			  (setq slash nil)
-			  (char-to-string x))))) fname ""))))
+                     (lambda (x)
+                       (cond
+                        ((and (= ?/ x) slash)
+                         (setq slash nil)
+                         "%2F")
+                        ((= ?/ x)
+                         (setq slash t)
+                         "/")
+                        (t
+                         (setq slash nil)
+                         (char-to-string x)))) fname ""))))
 
 	(setq fname (and fname
 			 (mapconcat

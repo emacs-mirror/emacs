@@ -1,6 +1,6 @@
-;;; rcompile.el --- run a compilation on a remote machine
+;;; rcompile.el --- run a compilation on a remote machine  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Alon Albert <alon@milcse.rtsg.mot.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -76,14 +76,12 @@
 
 (defcustom remote-compile-host nil
   "Host for remote compilations."
-  :type '(choice string (const nil))
-  :group 'remote-compile)
+  :type '(choice string (const nil)))
 
 (defcustom remote-compile-user nil
   "User for remote compilations.
 nil means use the value returned by \\[user-login-name]."
-  :type '(choice string (const nil))
-  :group 'remote-compile)
+  :type '(choice string (const nil)))
 
 (defcustom remote-compile-run-before nil
   "Command to run before compilation.
@@ -91,18 +89,15 @@ This can be used for setting up environment variables,
 since rsh does not invoke the shell as a login shell and files like .login
 \(tcsh) and .bash_profile \(bash) are not run.
 nil means run no commands."
-  :type '(choice string (const nil))
-  :group 'remote-compile)
+  :type '(choice string (const nil)))
 
 (defcustom remote-compile-prompt-for-host nil
   "Non-nil means prompt for host if not available from filename."
-  :type 'boolean
-  :group 'remote-compile)
+  :type 'boolean)
 
 (defcustom remote-compile-prompt-for-user nil
   "Non-nil means prompt for user if not available from filename."
-  :type 'boolean
-  :group 'remote-compile)
+  :type 'boolean)
 
 ;;;; internal variables
 
@@ -113,7 +108,10 @@ nil means run no commands."
 
 ;;;; entry point
 
-;; We use the Tramp internal function`tramp-make-tramp-file-name'.
+;; We use the Tramp internal function `tramp-make-tramp-file-name'.
+;; It has changed its signature in Emacs 27.1, supporting still the
+;; old calling convention.  Let's assume rcompile.el has been removed
+;; once Tramp does not support it any longer.
 ;; Better would be, if there are functions to provide user, host and
 ;; localname of a remote filename, independent of Tramp's implementation.
 ;; The function calls are wrapped by `funcall' in order to pacify the byte
@@ -123,7 +121,7 @@ nil means run no commands."
   "Compile the current buffer's directory on HOST.  Log in as USER.
 See \\[compile]."
   (interactive
-   (let (host user command prompt l l-host l-user)
+   (let (host user command prompt) ;; l l-host l-user
      (setq prompt (if (stringp remote-compile-host)
                       (format "Compile on host (default %s): "
                               remote-compile-host)
@@ -153,7 +151,7 @@ See \\[compile]."
          (setq remote-compile-user user))
         ((null remote-compile-user)
          (setq remote-compile-user (user-login-name))))
-  (let* (localname ;; Pacify byte-compiler.
+  (let* (;; localname ;; Pacify byte-compiler.
          (compile-command
           (format "%s %s -l %s \"(%scd %s; %s)\""
 		  remote-shell-program
@@ -169,10 +167,11 @@ See \\[compile]."
     (compilation-start compile-command)
     ;; Set comint-file-name-prefix in the compilation buffer so
     ;; compilation-parse-errors will find referenced files by Tramp.
-    (with-current-buffer compilation-last-buffer
+    (with-current-buffer next-error-last-buffer
       (when (fboundp 'tramp-make-tramp-file-name)
 	(set (make-local-variable 'comint-file-name-prefix)
-	     (tramp-make-tramp-file-name
+	     (funcall
+              #'tramp-make-tramp-file-name
 	      nil ;; method.
 	      remote-compile-user
 	      remote-compile-host

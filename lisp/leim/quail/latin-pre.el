@@ -1,6 +1,6 @@
-;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8;-*-
+;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -497,7 +497,15 @@ Key translation rules are:
    cedilla   |   \\=`    | \\=`c -> ç   \\=`e -> ?ę
     misc     | \\=' \\=` ~  | \\='d -> đ   \\=`l -> ł   \\=`z -> ż   ~o -> ő   ~u -> ű
    symbol    |   ~    | \\=`. -> ˙   ~~ -> ˘   ~. -> ?¸
-" nil t nil nil nil nil nil nil nil nil t)
+"
+ '(("\C-?" . quail-delete-last-char)
+   (">" . quail-next-translation)
+   ("\C-f" . quail-next-translation)
+   ([right] . quail-next-translation)
+   ("<" . quail-prev-translation)
+   ("\C-b" . quail-prev-translation)
+   ([left] . quail-prev-translation))
+ t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?Á)
@@ -532,15 +540,15 @@ Key translation rules are:
  ("`C" ?Ç)
  ("`E" ?Ę)
  ("`L" ?Ł)
- ("`S" ?Ş)
- ("`T" ?Ţ)
+ ("`S" "ŞȘ")
+ ("`T" "ŢȚ") ; the second variant is for Romanian
  ("`Z" ?Ż)
  ("`a" ?ą)
  ("`l" ?ł)
  ("`c" ?ç)
  ("`e" ?ę)
- ("`s" ?ş)
- ("`t" ?ţ)
+ ("`s" "şș")
+ ("`t" "ţț") ; the second variant is for Romanian
  ("`z" ?ż)
  ("``" ?Ş)
  ("`." ?˙)
@@ -1096,14 +1104,32 @@ of characters from a single Latin-N charset.
    cedilla   |  , ~   | ,c -> ç  ~c -> ç
     caron    |   ~    | ~c -> č  ~g -> ğ
     breve    |   ~    | ~a -> ă
+    macron   |   -    | -a -> ā  -/e -> ǣ  -- -> ¯
   dot above  |   / .  | /g -> ġ   .g -> ġ
     misc     | \" ~ /  | \"s -> ß  ~d -> ð  ~t -> þ  /a -> å  /e -> æ  /o -> ø
    symbol    |   ~    | ~> -> »  ~< -> «  ~! -> ¡  ~? -> ¿  ~~ -> ¸
    symbol    |  _ /   | _o -> º  _a -> ª  // -> °  /\\ -> ×  _y -> ¥
-   symbol    |   ^    | ^r -> ®  ^c -> ©  ^1 -> ¹  ^2 -> ²  ^3 -> ³
+   symbol    |   ^    | ^r -> ®  ^t -> ™  ^c -> ©  ^1 -> ¹  ^2 -> ²  ^3 -> ³
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
+ ("--" ?¯)
+ ("-A" ?Ā)
+ ("-a" ?ā)
+ ("-E" ?Ē)
+ ("-e" ?ē)
+ ("-/E" ?Ǣ)
+ ("-/e" ?ǣ)
+ ("-G" ?Ḡ)
+ ("-g" ?ḡ)
+ ("-I" ?Ī)
+ ("-i" ?ī)
+ ("-O" ?Ō)
+ ("-o" ?ō)
+ ("-U" ?Ū)
+ ("-u" ?ū)
+ ("-Y" ?Ȳ)
+ ("-y" ?ȳ)
  ("' " ?')
  ("''" ?´)
  ("'A" ?Á)
@@ -1189,9 +1215,16 @@ of characters from a single Latin-N charset.
  ("\"w" ?ẅ)
  ("\"y" ?ÿ)
  ("^ " ?^)
+ ("^0" ?⁰)
  ("^1" ?¹)
  ("^2" ?²)
  ("^3" ?³)
+ ("^4" ?⁴)
+ ("^5" ?⁵)
+ ("^6" ?⁶)
+ ("^7" ?⁷)
+ ("^8" ?⁸)
+ ("^9" ?⁹)
  ("^A" ?Â)
  ("^C" ?Ĉ)
  ("^E" ?Ê)
@@ -1216,9 +1249,24 @@ of characters from a single Latin-N charset.
  ("^o" ?ô)
  ("^r" ?®)
  ("^s" ?ŝ)
+ ("^t" ?™)
  ("^u" ?û)
  ("^w" ?ŵ)
  ("^y" ?ŷ)
+ ("^+" ?⁺)
+ ("^-" ?⁻)
+ ("_0" ?₀)
+ ("_1" ?₁)
+ ("_2" ?₂)
+ ("_3" ?₃)
+ ("_4" ?₄)
+ ("_5" ?₅)
+ ("_6" ?₆)
+ ("_7" ?₇)
+ ("_8" ?₈)
+ ("_9" ?₉)
+ ("_++" ?₊)
+ ("_-" ?₋)
  ("_+" ?±)
  ("_:" ?÷)
  ("_a" ?ª)
@@ -1294,7 +1342,7 @@ of characters from a single Latin-N charset.
 ;;; correctly on most displays.
 
 ;;; This reference is an authoritative guide to Hawaiian orthography:
-;;; http://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
+;;; https://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
 
 ;;; Initial coding 2018-09-08 Bob Newell, Honolulu, Hawaiʻi
 ;;; Comments to bobnewell@bobnewell.net
@@ -1336,5 +1384,34 @@ Doubling the prefix separates the letter and prefix. --a -> -a
  ("--u" ["-u"])
  ("``"  ["`"])
  )
+
+(quail-define-package
+ "lakota-slo-prefix" "Lakota" "SLO " t
+ "Suggested Lakota Orthography input method with prefix modifier.
+To add stress to a vowel, simply type the single quote ' before the vowel.
+The glottal stop is produced by repeating the ' character.  All other
+characters are bound to a single key.  Mitákuyepi philámayayapi ló."
+nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ;; accented vowels
+ ("'a" ?á) ("'A" ?Á)
+ ("'e" ?é) ("'E" ?É)
+ ("'i" ?í) ("'I" ?Í)
+ ("'o" ?ó) ("'O" ?Ó)
+ ("'u" ?ú) ("'U" ?Ú)
+
+ ;; consonants with caron
+ ("c" ?č) ("C" ?Č)
+ ("j" ?ȟ) ("J" ?Ȟ)
+ ("q" ?ǧ) ("Q" ?Ǧ)
+ ("x" ?ž) ("X" ?Ž)
+ ("r" ?š) ("R" ?Š)
+
+ ;; velar nasal n
+ ("f" ?ŋ)
+
+ ;; glottal stop
+ ("''" ?’))
 
 ;;; latin-pre.el ends here

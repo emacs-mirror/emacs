@@ -1,7 +1,6 @@
-;;; completion.el --- dynamic word-completion code
+;;; completion.el --- dynamic word-completion code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2020 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1990-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -179,7 +178,7 @@
 ;;    Inserts a completion at point
 ;;
 ;;  completion-initialize
-;;    Loads the completions file and sets up so that exiting emacs will
+;;    Loads the completions file and sets up so that exiting Emacs will
 ;;  save them.
 ;;
 ;;  save-completions-to-file &optional filename
@@ -208,7 +207,7 @@
 ;;   Add package prefix smarts (for Common Lisp)
 ;;   Add autoprompting of possible completions after every keystroke (fast
 ;;      terminals only !)
-;;   Add doc. to texinfo
+;;   Add documentation to texinfo
 ;;
 ;;
 ;;-----------------------------------------------
@@ -286,62 +285,52 @@
 (defcustom enable-completion t
   "Non-nil means enable recording and saving of completions.
 If nil, no new words are added to the database or saved to the init file."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom save-completions-flag t
   "Non-nil means save most-used completions when exiting Emacs.
 See also `save-completions-retention-time'."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom save-completions-file-name
   (locate-user-emacs-file "completions" ".completions")
   "The filename to save completions to."
-  :type 'file
-  :group 'completion)
+  :type 'file)
 
 (defcustom save-completions-retention-time 336
   "Discard a completion if unused for this many hours.
 \(1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
 will not be saved unless these are used.  Default is two weeks."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-on-separator-character nil
   "Non-nil means separator characters mark previous word as used.
 This means the word will be saved as a completion."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom completions-file-versions-kept kept-new-versions
   "Number of versions to keep for the saved completions file."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-prompt-speed-threshold 4800
   "Minimum output speed at which to display next potential completion."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-cdabbrev-prompt-flag nil
   "If non-nil, the next completion prompt does a cdabbrev search.
 This can be time consuming."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom completion-search-distance 15000
   "How far to search in the buffer when looking for completions.
 In number of characters.  If nil, search the whole buffer."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completions-merging-modes '(lisp c)
   "List of modes {`c' or `lisp'} for automatic completions merging.
 Definitions from visited files which have these modes
 are automatically added to the completion database."
-  :type '(set (const lisp) (const c))
-  :group 'completion)
+  :type '(set (const lisp) (const c)))
 
 ;;(defvar *completion-auto-save-period* 1800
 ;;  "The period in seconds to wait for emacs to be idle before autosaving
@@ -503,11 +492,10 @@ Used to decide whether to save completions.")
     table))
 
 ;; Old name, non-namespace-clean.
-(defvaralias 'cmpl-syntax-table 'completion-syntax-table)
+(define-obsolete-variable-alias 'cmpl-syntax-table 'completion-syntax-table "29.1")
 
-(defvar completion-syntax-table completion-standard-syntax-table
+(defvar-local completion-syntax-table completion-standard-syntax-table
   "This variable holds the current completion syntax table.")
-(make-variable-buffer-local 'completion-syntax-table)
 
 ;;-----------------------------------------------
 ;; Symbol functions
@@ -938,10 +926,6 @@ Each symbol is bound to a single completion entry.")
   "Return a completion entry."
   (list string 0 nil current-completion-source))
 
-;; Obsolete
-;;(defmacro cmpl-prefix-entry-symbol (completion-entry)
-;;  (list 'car (list 'cdr completion-entry)))
-
 
 
 ;;-----------------------------------------------
@@ -951,9 +935,9 @@ Each symbol is bound to a single completion entry.")
 
 ;; READER Macros
 
-(defalias 'cmpl-prefix-entry-head 'car)
+(defalias 'cmpl-prefix-entry-head #'car)
 
-(defalias 'cmpl-prefix-entry-tail 'cdr)
+(defalias 'cmpl-prefix-entry-tail #'cdr)
 
 ;; WRITER Macros
 
@@ -979,31 +963,27 @@ Each symbol is bound to a single completion entry.")
   (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
   (setq cmpl-obarray (make-vector cmpl-obarray-length 0)))
 
-(defvar completions-list-return-value)
-
 (defun list-all-completions ()
   "Return a list of all the known completion entries."
-  (let ((completions-list-return-value nil))
-    (mapatoms 'list-all-completions-1 cmpl-prefix-obarray)
-    completions-list-return-value))
+  (let ((return-value nil))
+    (mapatoms (lambda (prefix-symbol)
+                (if (boundp prefix-symbol)
+                    (setq return-value
+	                  (append (cmpl-prefix-entry-head
+		                   (symbol-value prefix-symbol))
+		                  return-value))))
+	      cmpl-prefix-obarray)
+    return-value))
 
-(defun list-all-completions-1 (prefix-symbol)
-  (if (boundp prefix-symbol)
-      (setq completions-list-return-value
-	    (append (cmpl-prefix-entry-head (symbol-value prefix-symbol))
-		    completions-list-return-value))))
-
-(defun list-all-completions-by-hash-bucket ()
+(defun list-all-completions-by-hash-bucket () ;FIXME: Unused!
   "Return list of lists of known completion entries, organized by hash bucket."
-  (let ((completions-list-return-value nil))
-    (mapatoms 'list-all-completions-by-hash-bucket-1 cmpl-prefix-obarray)
-    completions-list-return-value))
-
-(defun list-all-completions-by-hash-bucket-1 (prefix-symbol)
-  (if (boundp prefix-symbol)
-      (setq completions-list-return-value
-	    (cons (cmpl-prefix-entry-head (symbol-value prefix-symbol))
-		  completions-list-return-value))))
+  (let ((return-value nil))
+    (mapatoms (lambda (prefix-symbol)
+                (if (boundp prefix-symbol)
+                    (push (cmpl-prefix-entry-head (symbol-value prefix-symbol))
+		          return-value)))
+	      cmpl-prefix-obarray)
+    return-value))
 
 
 ;;-----------------------------------------------
@@ -1104,7 +1084,8 @@ Must be called after `find-exact-completion'."
   #'completion-locate-db-error "27.1")
 (defun completion-locate-db-error ()
   ;; recursive error: really scrod
-  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report"))
+  (error (substitute-command-keys
+          "Completion database corrupted.  Try \\[clear-all-completions].  Send bug report")))
 
 ;; WRITES
 (defun add-completion-to-tail-if-new (string)
@@ -1933,68 +1914,64 @@ If file is not specified, then use `save-completions-file-name'."
 	    (clear-visited-file-modtime)
 	    (erase-buffer)
 
-	    (let ((insert-okay-p nil)
-		  (buffer (current-buffer))
+	    (let ((buffer (current-buffer))
 		  string entry last-use-time
 		  cmpl-entry cmpl-last-use-time
 		  (current-completion-source cmpl-source-init-file)
 		  (total-in-file 0) (total-perm 0))
 	      ;; insert the file into a buffer
 	      (condition-case nil
-		  (progn (insert-file-contents filename t)
-			 (setq insert-okay-p t))
-
+		  (insert-file-contents filename t)
 		(file-error
 		 (message "File error trying to load completion file %s."
-			  filename)))
-	      ;; parse it
-	      (if insert-okay-p
-		  (progn
-		    (goto-char (point-min))
+			  filename))
+                (:success
+	         ;; parse it
+		 (goto-char (point-min))
 
-		    (condition-case nil
-			(while t
-			  (setq entry (read buffer))
-			  (setq total-in-file (1+ total-in-file))
-			  (cond
-			   ((and (consp entry)
-				 (stringp (setq string (car entry)))
-				 (cond
-				  ((eq (setq last-use-time (cdr entry)) 'T)
-				   ;; handle case sensitivity
-				   (setq total-perm (1+ total-perm))
-				   (setq last-use-time t))
-				  ((eq last-use-time t)
-				   (setq total-perm (1+ total-perm)))
-				  ((integerp last-use-time))))
-			    ;; Valid entry
-			    ;; add it in
-			    (setq cmpl-last-use-time
-				  (completion-last-use-time
-				   (setq cmpl-entry
-					 (add-completion-to-tail-if-new string))))
-			    (if (or (eq last-use-time t)
-				    (and (> last-use-time 1000);;backcompatibility
-					 (not (eq cmpl-last-use-time t))
-					 (or (not cmpl-last-use-time)
-					     ;; more recent
-					     (> last-use-time  cmpl-last-use-time))))
-				;; update last-use-time
-				(set-completion-last-use-time cmpl-entry last-use-time)))
-			   (t
-			    ;; Bad format
-			    (message "Error: invalid saved completion - %s"
-				     (prin1-to-string entry))
-			    ;; try to get back in sync
-			    (search-forward "\n("))))
-		      (search-failed
-		       (message "End of file while reading completions."))
-		      (end-of-file
-		       (if (= (point) (point-max))
-			   (if (not no-message-p)
-			       (message "Loading completions from file %s . . . Done."
-					filename))
-			 (message "End of file while reading completions."))))))
+		 (condition-case nil
+		     (while t
+		       (setq entry (read buffer))
+		       (setq total-in-file (1+ total-in-file))
+		       (cond
+			((and (consp entry)
+			      (stringp (setq string (car entry)))
+			      (cond
+			       ((eq (setq last-use-time (cdr entry)) 'T)
+				;; handle case sensitivity
+				(setq total-perm (1+ total-perm))
+				(setq last-use-time t))
+			       ((eq last-use-time t)
+				(setq total-perm (1+ total-perm)))
+			       ((integerp last-use-time))))
+			 ;; Valid entry
+			 ;; add it in
+			 (setq cmpl-last-use-time
+			       (completion-last-use-time
+				(setq cmpl-entry
+				      (add-completion-to-tail-if-new string))))
+			 (if (or (eq last-use-time t)
+				 (and (> last-use-time 1000);;backcompatibility
+				      (not (eq cmpl-last-use-time t))
+				      (or (not cmpl-last-use-time)
+					  ;; more recent
+					  (> last-use-time  cmpl-last-use-time))))
+			     ;; update last-use-time
+			     (set-completion-last-use-time cmpl-entry last-use-time)))
+			(t
+			 ;; Bad format
+			 (message "Error: invalid saved completion - %s"
+				  (prin1-to-string entry))
+			 ;; try to get back in sync
+			 (search-forward "\n("))))
+		   (search-failed
+		    (message "End of file while reading completions."))
+		   (end-of-file
+		    (if (= (point) (point-max))
+			(if (not no-message-p)
+			    (message "Loading completions from file %s . . . Done."
+				     filename))
+		      (message "End of file while reading completions."))))))
 ))))))
 
 (defun completion-initialize ()
@@ -2156,7 +2133,6 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (define-minor-mode dynamic-completion-mode
   "Toggle dynamic word-completion on or off."
   :global t
-  :group 'completion
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])
 
@@ -2240,7 +2216,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (completion-def-wrapper 'delete-backward-char-untabify :backward)
 
 ;; Old name, non-namespace-clean.
-(defalias 'initialize-completions 'completion-initialize)
+(define-obsolete-function-alias 'initialize-completions #'completion-initialize "29.1")
 
 (provide 'completion)
 

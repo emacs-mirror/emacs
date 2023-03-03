@@ -1,6 +1,6 @@
-;;; unrmail.el --- convert Rmail Babyl files to mbox files
+;;; unrmail.el --- convert Rmail Babyl files to mbox files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -208,7 +208,7 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	      (setq mail-from (or (let ((from (mail-fetch-field "Mail-From")))
 				    ;; mail-mbox-from (below) returns a
 				    ;; string that ends in a newline, but
-				    ;; but mail-fetch-field does not, so
+				    ;; mail-fetch-field does not, so
 				    ;; we append a newline here.
 				    (if from
 					(format "%s\n" from)))
@@ -235,7 +235,7 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	    ;; Insert the `From ' line.
 	    (insert mail-from)
 	    ;; Record the keywords and attributes in our special way.
-	    (insert "X-RMAIL-ATTRIBUTES: " (apply 'string attrs) "\n")
+	    (insert "X-RMAIL-ATTRIBUTES: " (apply #'string attrs) "\n")
 	    (when keywords
 	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
 	    ;; Convert From to >From, etc.

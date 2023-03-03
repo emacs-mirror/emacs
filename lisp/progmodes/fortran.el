@@ -1,7 +1,6 @@
-;;; fortran.el --- Fortran mode for GNU Emacs
+;;; fortran.el --- Fortran mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1993-1995, 1997-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1986-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -495,14 +494,15 @@ This is used to fontify fixed-format Fortran comments."
   ;; `byte-compile', but simple benchmarks indicate that it's probably not
   ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
-   '(syntax-propertize-rules
+   `(syntax-propertize-rules
      ("^[CcDd\\*]" (0 "<"))
      ;; We mark all chars after line-length as "comment-start", rather than
      ;; just the first one.  This is so that a closing ' that's past the
      ;; line-length will indeed be ignored (and will result in a string that
      ;; leaks into subsequent lines).
-     ((format "^[^CcDd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
-      (1 "<")))))
+     (,(format "^[^CcDd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
+      (1 "<")))
+   t))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
@@ -623,102 +623,32 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
     st)
   "Syntax table used to parse Fortran expressions for printing in GUD.")
 
-(defvar fortran-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map ";"        'fortran-abbrev-start)
-    (define-key map "\C-c;"    'fortran-comment-region)
-    ;; The default comment-dwim does at least as much as this.
-;;;    (define-key map "\M-;"     'fortran-indent-comment)
-    (define-key map "\M-\n"    'fortran-split-line)
-    (define-key map "\M-\C-n"  'fortran-end-of-block)
-    (define-key map "\M-\C-p"  'fortran-beginning-of-block)
-    (define-key map "\M-\C-q"  'fortran-indent-subprogram)
-    (define-key map "\C-c\C-w" 'fortran-window-create-momentarily)
-    (define-key map "\C-c\C-r" 'fortran-column-ruler)
-    (define-key map "\C-c\C-p" 'fortran-previous-statement)
-    (define-key map "\C-c\C-n" 'fortran-next-statement)
-    (define-key map "\C-c\C-d" 'fortran-join-line) ; like f90
-    (define-key map "\M-^"     'fortran-join-line) ; subvert delete-indentation
-    (define-key map "0" 'fortran-electric-line-number)
-    (define-key map "1" 'fortran-electric-line-number)
-    (define-key map "2" 'fortran-electric-line-number)
-    (define-key map "3" 'fortran-electric-line-number)
-    (define-key map "4" 'fortran-electric-line-number)
-    (define-key map "5" 'fortran-electric-line-number)
-    (define-key map "6" 'fortran-electric-line-number)
-    (define-key map "7" 'fortran-electric-line-number)
-    (define-key map "8" 'fortran-electric-line-number)
-    (define-key map "9" 'fortran-electric-line-number)
-
-    (easy-menu-define fortran-menu map "Menu for Fortran mode."
-      `("Fortran"
-        ["Manual" (info "(emacs)Fortran") :active t
-         :help "Read the Emacs manual chapter on Fortran mode"]
-        ("Customization"
-         ,(custom-menu-create 'fortran)
-         ;; FIXME useless?
-         ["Set"  Custom-set :active t
-          :help "Set current value of all edited settings in the buffer"]
-         ["Save" Custom-save :active t
-          :help "Set and save all edited settings"]
-         ["Reset to Current" Custom-reset-current :active t
-          :help "Reset all edited settings to current"]
-         ["Reset to Saved" Custom-reset-saved :active t
-          :help "Reset all edited or set settings to saved"]
-         ["Reset to Standard Settings" Custom-reset-standard :active t
-          :help "Erase all customizations in buffer"]
-         )
-        "--"
-        ["Comment Region" fortran-comment-region mark-active]
-        ["Uncomment Region"
-         (fortran-comment-region (region-beginning) (region-end) 1)
-         mark-active]
-        ["Indent Region"     indent-region mark-active]
-        ["Indent Subprogram" fortran-indent-subprogram t]
-        "--"
-        ["Beginning of Subprogram" fortran-beginning-of-subprogram :active t
-         :help "Move point to the start of the current subprogram"]
-        ["End of Subprogram" fortran-end-of-subprogram :active t
-         :help "Move point to the end of the current subprogram"]
-        ("Mark"
-         :help "Mark a region of code"
-         ["Subprogram" mark-defun      t]
-         ["IF Block"   fortran-mark-if t]
-         ["DO Block"   fortran-mark-do t]
-         )
-        ["Narrow to Subprogram" narrow-to-defun t]
-        ["Widen" widen t]
-        "--"
-        ["Temporary Column Ruler" fortran-column-ruler :active t
-         :help "Briefly display Fortran column numbers"]
-        ;; May not be '72', depending on fortran-line-length, but this
-        ;; seems ok for a menu item.
-        ["72-column Window" fortran-window-create :active t
-         :help "Set window width to Fortran line length"]
-        ["Full Width Window"
-         (enlarge-window-horizontally (- (frame-width) (window-width)))
-         :active (not (window-full-width-p))
-         :help "Make window full width"]
-        ["Momentary 72-Column Window" fortran-window-create-momentarily
-         :active t :help "Briefly set window width to Fortran line length"]
-        "--"
-        ["Break Line at Point" fortran-split-line :active t
-         :help "Break the current line at point"]
-        ["Join Line" fortran-join-line :active t
-         :help "Join the current line to the previous one"]
-        ["Fill Statement/Comment" fill-paragraph t]
-        "--"
-        ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
-         :style toggle
-         :help "Automatically fill text while typing in this buffer"]
-        ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
-         :style toggle :help "Expand abbreviations while typing in this buffer"]
-        ["Add Imenu Menu" imenu-add-menubar-index
-         :active   (not (lookup-key (current-local-map) [menu-bar index]))
-         :included (fboundp 'imenu-add-to-menubar)
-         :help "Add an index menu to the menu-bar"]))
-    map)
-  "Keymap used in Fortran mode.")
+(defvar-keymap fortran-mode-map
+  :doc "Keymap used in Fortran mode."
+  ";"        #'fortran-abbrev-start
+  "C-c ;"    #'fortran-comment-region
+  ;; The default comment-dwim does at least as much as this.
+  ;; "M-;"   #'fortran-indent-comment
+  "C-M-j"    #'fortran-split-line
+  "C-M-n"    #'fortran-end-of-block
+  "C-M-p"    #'fortran-beginning-of-block
+  "C-M-q"    #'fortran-indent-subprogram
+  "C-c C-w"  #'fortran-window-create-momentarily
+  "C-c C-r"  #'fortran-column-ruler
+  "C-c C-p"  #'fortran-previous-statement
+  "C-c C-n"  #'fortran-next-statement
+  "C-c C-d"  #'fortran-join-line        ; like f90
+  "M-^"      #'fortran-join-line        ; subvert delete-indentation
+  "0"        #'fortran-electric-line-number
+  "1"        #'fortran-electric-line-number
+  "2"        #'fortran-electric-line-number
+  "3"        #'fortran-electric-line-number
+  "4"        #'fortran-electric-line-number
+  "5"        #'fortran-electric-line-number
+  "6"        #'fortran-electric-line-number
+  "7"        #'fortran-electric-line-number
+  "8"        #'fortran-electric-line-number
+  "9"        #'fortran-electric-line-number)
 
 
 (define-abbrev-table 'fortran-mode-abbrev-table
@@ -816,7 +746,7 @@ Variables controlling indentation style and extra features:
 `fortran-comment-line-extra-indent'
   Amount of extra indentation for text in full-line comments (default 0).
 `fortran-comment-indent-style'
-  How to indent the text in full-line comments. Allowed values are:
+  How to indent the text in full-line comments.  Allowed values are:
   nil         don't change the indentation
   `fixed'     indent to `fortran-comment-line-extra-indent' beyond the
               value of either
@@ -860,36 +790,34 @@ with no args, if that value is non-nil."
   :group 'fortran
   :syntax-table fortran-mode-syntax-table
   :abbrev-table fortran-mode-abbrev-table
-  (set (make-local-variable 'indent-line-function) 'fortran-indent-line)
-  (set (make-local-variable 'indent-region-function)
+  (setq-local indent-line-function 'fortran-indent-line)
+  (setq-local indent-region-function
        (lambda (start end)
          (let (fortran-blink-matching-if ; avoid blinking delay
                indent-region-function)
            (indent-region start end nil))))
-  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  (setq-local require-final-newline mode-require-final-newline)
   ;; The syntax tables don't understand the column-0 comment-markers.
-  (set (make-local-variable 'comment-use-syntax) nil)
-  (set (make-local-variable 'comment-padding) "$$$")
-  (set (make-local-variable 'comment-start) fortran-comment-line-start)
-  (set (make-local-variable 'comment-start-skip)
+  (setq-local comment-use-syntax nil)
+  (setq-local comment-padding "$$$")
+  (setq-local comment-start fortran-comment-line-start)
+  (setq-local comment-start-skip
        ;; We can't reuse `fortran-comment-line-start-skip' directly because
        ;; it contains backrefs whereas we need submatch-1 to end at the
        ;; beginning of the comment delimiter.
        ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
        "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
-  (set (make-local-variable 'comment-indent-function) 'fortran-comment-indent)
-  (set (make-local-variable 'comment-region-function) 'fortran-comment-region)
-  (set (make-local-variable 'uncomment-region-function)
-       'fortran-uncomment-region)
-  (set (make-local-variable 'comment-insert-comment-function)
-       'fortran-indent-comment)
-  (set (make-local-variable 'abbrev-all-caps) t)
-  (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
-  (set (make-local-variable 'indent-tabs-mode) (fortran-analyze-file-format))
+  (setq-local comment-indent-function 'fortran-comment-indent)
+  (setq-local comment-region-function 'fortran-comment-region)
+  (setq-local uncomment-region-function 'fortran-uncomment-region)
+  (setq-local comment-insert-comment-function 'fortran-indent-comment)
+  (setq-local abbrev-all-caps t)
+  (setq-local normal-auto-fill-function 'fortran-auto-fill)
+  (setq-local indent-tabs-mode (fortran-analyze-file-format))
   (setq mode-line-process '(indent-tabs-mode fortran-tab-mode-string))
-  (set (make-local-variable 'fill-column) fortran-line-length)
-  (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local fill-column fortran-line-length)
+  (setq-local fill-paragraph-function 'fortran-fill-paragraph)
+  (setq-local font-lock-defaults
        '((fortran-font-lock-keywords
           fortran-font-lock-keywords-1
           fortran-font-lock-keywords-2
@@ -897,20 +825,19 @@ with no args, if that value is non-nil."
           fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram))
-  (set (make-local-variable 'syntax-propertize-function)
+  (setq-local syntax-propertize-function
        (fortran-make-syntax-propertize-function fortran-line-length))
-  (set (make-local-variable 'imenu-case-fold-search) t)
-  (set (make-local-variable 'imenu-generic-expression)
-       fortran-imenu-generic-expression)
-  (set (make-local-variable 'imenu-syntax-alist) '(("_$" . "w")))
-  (set (make-local-variable 'beginning-of-defun-function)
-       #'fortran-beginning-of-subprogram)
-  (set (make-local-variable 'end-of-defun-function)
-       #'fortran-end-of-subprogram)
-  (set (make-local-variable 'add-log-current-defun-function)
-       #'fortran-current-defun)
-  (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
-  (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
+  (setq-local imenu-case-fold-search t)
+  (setq-local imenu-generic-expression fortran-imenu-generic-expression)
+  (setq-local imenu-syntax-alist '(("_$" . "w")))
+  (setq-local beginning-of-defun-function
+              #'fortran-beginning-of-subprogram)
+  (setq-local end-of-defun-function
+              #'fortran-end-of-subprogram)
+  (setq-local add-log-current-defun-function
+              #'fortran-current-defun)
+  (setq-local dabbrev-case-fold-search 'case-fold-search)
+  (setq-local gud-find-expr-function 'fortran-gud-find-expr)
   (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t))
 
 
@@ -1030,7 +957,7 @@ With non-nil ARG, uncomments the region."
     (set-marker save-point nil)))
 
 ;; uncomment-region calls this with 3 args.
-(defun fortran-uncomment-region (start end &optional ignored)
+(defun fortran-uncomment-region (start end &optional _ignored)
   "Uncomment every line in the region."
   (fortran-comment-region start end t))
 
@@ -1187,7 +1114,7 @@ Auto-indent does not happen if a numeric ARG is used."
                  (eq ?\t (char-after (line-beginning-position)))
                  (not (or (eq last-command 'fortran-indent-line)
                           (eq last-command
-                              'fortran-indent-new-line))))
+                              'reindent-then-newline-and-indent))))
             (save-excursion
               (re-search-backward "[^ \t0-9]"
                                   (line-beginning-position)
@@ -1220,25 +1147,32 @@ Auto-indent does not happen if a numeric ARG is used."
 ;; Note that unlike the latter, we don't have to worry about nested
 ;; subprograms (?).
 ;; FIXME push-mark?
-(defun fortran-beginning-of-subprogram ()
-  "Move point to the beginning of the current Fortran subprogram."
+(defun fortran-beginning-of-subprogram (&optional arg)
+  "Move point to the beginning of the current Fortran subprogram.
+If ARG is negative, and point is between subprograms, the
+\"current\" subprogram is the next one."
   (interactive)
-  (let ((case-fold-search t))
-    ;; If called already at the start of subprogram, go to the previous.
-    (beginning-of-line (if (bolp) 0 1))
-    (save-match-data
-      (or (looking-at fortran-start-prog-re)
-          ;; This leaves us at bob if before the first subprogram.
-          (eq (fortran-previous-statement) 'first-statement)
-          (if (or (catch 'ok
-                    (while (re-search-backward fortran-end-prog-re nil 'move)
-                      (if (fortran-check-end-prog-re) (throw 'ok t))))
-                  ;; If the search failed, must be at bob.
-                  ;; First code line is the start of the subprogram.
-                  ;; FIXME use a more rigorous test, cf fortran-next-statement?
-                  ;; Though that needs to handle continuations too.
-                  (not (looking-at "^\\([ \t]*[0-9]\\|[ \t]+[^!#]\\)")))
-              (fortran-next-statement))))))
+  (if (and arg
+           (< arg 0))
+      (progn
+        (fortran-end-of-subprogram)
+        (fortran-beginning-of-subprogram))
+    (let ((case-fold-search t))
+      ;; If called already at the start of subprogram, go to the previous.
+      (beginning-of-line (if (bolp) 0 1))
+      (save-match-data
+        (or (looking-at fortran-start-prog-re)
+            ;; This leaves us at bob if before the first subprogram.
+            (eq (fortran-previous-statement) 'first-statement)
+            (if (or (catch 'ok
+                      (while (re-search-backward fortran-end-prog-re nil 'move)
+                        (if (fortran-check-end-prog-re) (throw 'ok t))))
+                    ;; If the search failed, must be at bob.
+                    ;; First code line is the start of the subprogram.
+                    ;; FIXME use a more rigorous test, cf fortran-next-statement?
+                    ;; Though that needs to handle continuations too.
+                    (not (looking-at "^\\([ \t]*[0-9]\\|[ \t]+[^!#]\\)")))
+                (fortran-next-statement)))))))
 
 ;; This is simpler than f-beginning-of-s because the end of a
 ;; subprogram is never implicit.
@@ -1649,10 +1583,6 @@ Return point or nil."
         (if (< (current-column) cfi)
             (move-to-column cfi)))))
 
-;; Historically this was a separate function which advertised itself
-;; as reindenting but only did so where `most likely to be necessary'.
-(defalias 'fortran-indent-new-line 'reindent-then-newline-and-indent)
-
 (defun fortran-indent-subprogram ()
   "Properly indent the Fortran subprogram containing point."
   (interactive "*")
@@ -1989,9 +1919,6 @@ If ALL is nil, only match comments that start in column > 0."
           ;; Result.
           (nth 3 parse-state))))))
 
-;; From old version.
-(defalias 'fortran-auto-fill-mode 'auto-fill-mode)
-
 (defun fortran-fill ()
   "Fill the current line at an appropriate point(s)."
   (let* ((auto-fill-function #'fortran-auto-fill)
@@ -2203,6 +2130,83 @@ arg DO-SPACE prevents stripping the whitespace."
                 (buffer-substring-no-properties (point) (progn (backward-sexp)
                                                                (point)))))
         "main"))))
+
+;; The menu is defined at the end because `custom-menu-create' is
+;; called at load time and will result in (recursively) loading this
+;; file otherwise.
+(easy-menu-define fortran-menu fortran-mode-map "Menu for Fortran mode."
+  `("Fortran"
+    ["Manual" (info "(emacs)Fortran") :active t
+     :help "Read the Emacs manual chapter on Fortran mode"]
+    ("Customization"
+     ,(progn
+        ;; Tell the byte compiler that `features' is lexical.
+        (with-no-warnings (defvar features))
+        (let ((features (cons 'fortran features)))
+          (custom-menu-create 'fortran)))
+     ;; FIXME useless?
+     ["Set"  Custom-set :active t
+      :help "Set current value of all edited settings in the buffer"]
+     ["Save" Custom-save :active t
+      :help "Set and save all edited settings"]
+     ["Reset to Current" Custom-reset-current :active t
+      :help "Reset all edited settings to current"]
+     ["Reset to Saved" Custom-reset-saved :active t
+      :help "Reset all edited or set settings to saved"]
+     ["Reset to Standard Settings" Custom-reset-standard :active t
+      :help "Erase all customizations in buffer"]
+     )
+    "--"
+    ["Comment Region" fortran-comment-region mark-active]
+    ["Uncomment Region"
+     (fortran-comment-region (region-beginning) (region-end) 1)
+     mark-active]
+    ["Indent Region"     indent-region mark-active]
+    ["Indent Subprogram" fortran-indent-subprogram t]
+    "--"
+    ["Beginning of Subprogram" fortran-beginning-of-subprogram :active t
+     :help "Move point to the start of the current subprogram"]
+    ["End of Subprogram" fortran-end-of-subprogram :active t
+     :help "Move point to the end of the current subprogram"]
+    ("Mark"
+     :help "Mark a region of code"
+     ["Subprogram" mark-defun      t]
+     ["IF Block"   fortran-mark-if t]
+     ["DO Block"   fortran-mark-do t]
+     )
+    ["Narrow to Subprogram" narrow-to-defun t]
+    ["Widen" widen t]
+    "--"
+    ["Temporary Column Ruler" fortran-column-ruler :active t
+     :help "Briefly display Fortran column numbers"]
+    ;; May not be '72', depending on fortran-line-length, but this
+    ;; seems ok for a menu item.
+    ["72-column Window" fortran-window-create :active t
+     :help "Set window width to Fortran line length"]
+    ["Full Width Window"
+     (enlarge-window-horizontally (- (frame-width) (window-width)))
+     :active (not (window-full-width-p))
+     :help "Make window full width"]
+    ["Momentary 72-Column Window" fortran-window-create-momentarily
+     :active t :help "Briefly set window width to Fortran line length"]
+    "--"
+    ["Break Line at Point" fortran-split-line :active t
+     :help "Break the current line at point"]
+    ["Join Line" fortran-join-line :active t
+     :help "Join the current line to the previous one"]
+    ["Fill Statement/Comment" fill-paragraph t]
+    "--"
+    ["Toggle Auto Fill" auto-fill-mode :selected auto-fill-function
+     :style toggle
+     :help "Automatically fill text while typing in this buffer"]
+    ["Toggle Abbrev Mode" abbrev-mode :selected abbrev-mode
+     :style toggle :help "Expand abbreviations while typing in this buffer"]
+    ["Add Imenu Menu" imenu-add-menubar-index
+     :active   (not (lookup-key (current-local-map) [menu-bar index]))
+     :help "Add an index menu to the menu-bar"]))
+
+(define-obsolete-function-alias 'fortran-indent-new-line #'reindent-then-newline-and-indent "29.1")
+(define-obsolete-function-alias 'fortran-auto-fill-mode #'auto-fill-mode "29.1")
 
 (provide 'fortran)
 

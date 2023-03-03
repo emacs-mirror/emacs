@@ -1,6 +1,6 @@
 ;;; org-num.el --- Dynamic Headlines Numbering  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -29,8 +29,8 @@
 ;; to toggle it.
 ;;
 ;; You can select what is numbered according to level, tags, COMMENT
-;; keyword, or UNNUMBERED property. You can also skip footnotes
-;; sections. See `org-num-max-level', `org-num-skip-tags',
+;; keyword, or UNNUMBERED property.  You can also skip footnotes
+;; sections.  See `org-num-max-level', `org-num-skip-tags',
 ;; `org-num-skip-commented', `org-num-skip-unnumbered', and
 ;; `org-num-skip-footnotes' for details.
 ;;
@@ -61,8 +61,12 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
+(require 'org) ;Otherwise `org-num--comment-re' burps on `org-comment-string'
 
 (defvar org-comment-string)
 (defvar org-complex-heading-regexp)
@@ -90,7 +94,7 @@ output."
                  (face :tag "Use face"))
   :safe (lambda (val) (or (null val) (facep val))))
 
-(defcustom org-num-format-function 'org-num-default-format
+(defcustom org-num-format-function #'org-num-default-format
   "Function used to display numbering.
 It is called with one argument, a list of numbers, and should
 return a string, or nil.  When nil, no numbering is displayed.
@@ -98,8 +102,7 @@ Any `face' text property on the returned string overrides
 `org-num-face'."
   :group 'org-appearance
   :package-version '(Org . "9.3")
-  :type 'function
-  :safe nil)
+  :type 'function)
 
 (defcustom org-num-max-level nil
   "Level below which headlines are not numbered.
@@ -254,6 +257,7 @@ otherwise."
              org-footnote-section
              (equal title org-footnote-section))
         (and org-num-skip-commented
+	     title
              (let ((case-fold-search nil))
                (string-match org-num--comment-re title))
              t)
@@ -457,6 +461,7 @@ NUMBERING is a list of numbers."
    (org-num-mode
     (unless (derived-mode-p 'org-mode)
       (user-error "Cannot activate headline numbering outside Org mode"))
+    (org-num--clear)
     (setq org-num--numbering nil)
     (setq org-num--overlays (nreverse (org-num--number-region nil nil)))
     (add-hook 'after-change-functions #'org-num--verify nil t)
@@ -466,6 +471,10 @@ NUMBERING is a list of numbers."
     (remove-hook 'after-change-functions #'org-num--verify t)
     (remove-hook 'change-major-mode-hook #'org-num--clear t))))
 
-
 (provide 'org-num)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-num.el ends here

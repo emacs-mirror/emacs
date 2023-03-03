@@ -1,6 +1,6 @@
-;;; ol-eshell.el - Links to Working Directories in Eshell -*- lexical-binding: t; -*-
+;;; ol-eshell.el --- Links to Working Directories in Eshell  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 
@@ -23,6 +23,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'eshell)
 (require 'esh-mode)
 (require 'ol)
@@ -33,11 +36,11 @@
 			 :follow #'org-eshell-open
 			 :store #'org-eshell-store-link)
 
-(defun org-eshell-open (link)
+(defun org-eshell-open (link _)
   "Switch to an eshell buffer and execute a command line.
-   The link can be just a command line (executed in the default
-   eshell buffer) or a command line prefixed by a buffer name
-   followed by a colon."
+The link can be just a command line (executed in the default
+eshell buffer) or a command line prefixed by a buffer name
+followed by a colon."
   (let* ((buffer-and-command
           (if (string-match "\\([A-Za-z0-9+*-]+\\):\\(.*\\)" link)
 	      (list (match-string 1 link)
@@ -46,7 +49,11 @@
          (eshell-buffer-name (car buffer-and-command))
          (command (cadr buffer-and-command)))
     (if (get-buffer eshell-buffer-name)
-	(pop-to-buffer-same-window eshell-buffer-name)
+        (pop-to-buffer
+         eshell-buffer-name
+         (if (boundp 'display-comint-buffer-action) ; Emacs >= 29
+             display-comint-buffer-action
+           '(display-buffer-same-window (inhibit-same-window))))
       (eshell))
     (goto-char (point-max))
     (eshell-kill-input)
@@ -55,7 +62,7 @@
 
 (defun org-eshell-store-link ()
   "Store a link that, when opened, switches back to the current eshell buffer
-   and the current working directory."
+and the current working directory."
   (when (eq major-mode 'eshell-mode)
     (let* ((command (concat "cd " (eshell/pwd)))
            (link  (concat (buffer-name) ":" command)))

@@ -1,6 +1,6 @@
 /* Allocate X colors.  Used for testing with dense colormaps.
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 
 void
 fatal (const char *fmt, ...)

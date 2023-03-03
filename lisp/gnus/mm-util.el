@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -31,7 +31,7 @@
 
 (defun mm-ucs-to-char (codepoint)
   "Convert Unicode codepoint to character."
-  (or (decode-char 'ucs codepoint) ?#))
+  (or codepoint ?#))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()
@@ -101,9 +101,9 @@ version, you could use `autoload-coding-system' here."
   :type '(list (repeat :inline t
 		       :tag "Other options"
 		       (cons (symbol :tag "charset")
-			     (symbol :tag "form"))))
+                             (symbol :tag "form"))))
+  :risky t
   :group 'mime)
-(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-charset-override-alist)
 
@@ -144,9 +144,9 @@ is not available."
    ;; on there being some coding system matching each `mime-charset'
    ;; property defined, as there should be.)
    ((and (mm-coding-system-p charset)
-;;; Doing this would potentially weed out incorrect charsets.
-;;; 	 charset
-;;; 	 (eq charset (coding-system-get charset 'mime-charset))
+	 ;; Doing this would potentially weed out incorrect charsets.
+	 ;; 	 charset
+	 ;; 	 (eq charset (coding-system-get charset 'mime-charset))
 	 )
     charset)
    ;; Use coding system Emacs knows.
@@ -160,7 +160,7 @@ is not available."
 	   form
 	   (prog2
 	       ;; Avoid errors...
-	       (condition-case nil (eval form) (error nil))
+	       (condition-case nil (eval form t) (error nil))
 	       ;; (message "Failed to eval `%s'" form))
 	       (mm-coding-system-p cs)
 	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
@@ -315,8 +315,7 @@ Valid elements include:
   "ISO-8859-15 exchangeable coding systems and inconvertible characters.")
 
 (defvar mm-iso-8859-x-to-15-table
-  (and (fboundp 'coding-system-p)
-       (mm-coding-system-p 'iso-8859-15)
+  (and (mm-coding-system-p 'iso-8859-15)
        (mapcar
 	(lambda (cs)
 	  (if (mm-coding-system-p (car cs))
@@ -380,7 +379,7 @@ like \"&#128;\" to the euro sign, mainly in html messages."
   "Return the MIME charset corresponding to the given Mule CHARSET."
   (let ((css (sort (sort-coding-systems
 		    (find-coding-systems-for-charsets (list charset)))
-		   'mm-sort-coding-systems-predicate))
+		   #'mm-sort-coding-systems-predicate))
 	cs mime)
     (while (and (not mime)
 		css)
@@ -501,7 +500,7 @@ charset, and a longer list means no appropriate charset."
 	     (let ((systems (find-coding-systems-region b e)))
 	       (when mm-coding-system-priorities
 		 (setq systems
-		       (sort systems 'mm-sort-coding-systems-predicate)))
+		       (sort systems #'mm-sort-coding-systems-predicate)))
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
@@ -674,7 +673,6 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 	   inhibit-file-name-handlers)))
     (write-region start end filename append visit lockname)))
 
-(defalias 'mm-make-temp-file 'make-temp-file)
 (define-obsolete-function-alias 'mm-make-temp-file 'make-temp-file "26.1")
 
 (defvar mm-image-load-path-cache nil)
@@ -751,7 +749,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 	    (insert-buffer-substring cur)
 	    (condition-case err
 		(progn
-		  (unless (memq (apply 'call-process-region
+		  (unless (memq (apply #'call-process-region
 				       (point-min) (point-max)
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)

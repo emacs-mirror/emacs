@@ -1,6 +1,6 @@
 ;;; srecode-template.wy --- Semantic Recoder Template parser
 
-;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -126,7 +126,7 @@ variable
   : SET symbol insertable-string-list newline
     (VARIABLE-TAG $2 nil $3)
   | SET symbol number newline
-    ;; This so a common error w/ priority works.
+    ;; This so a common error with priority works.
     ;; Note that "number" still has a string value in the lexer.
     (VARIABLE-TAG $2 nil (list $3))
   | SHOW symbol newline

@@ -1,6 +1,6 @@
 ;;; xmltok.el --- XML tokenization  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -22,13 +22,13 @@
 
 ;;; Commentary:
 
-;; This implements an XML 1.0 parser. It also implements the XML
+;; This implements an XML 1.0 parser.  It also implements the XML
 ;; Namespaces Recommendation.  It is designed to be conforming, but it
-;; works a bit differently from a normal XML parser. An XML document
+;; works a bit differently from a normal XML parser.  An XML document
 ;; consists of the prolog and an instance.  The prolog is parsed as a
 ;; single unit using `xmltok-forward-prolog'.  The instance is
 ;; considered as a sequence of tokens, where a token is something like
-;; a start-tag, a comment, a chunk of data or a CDATA section. The
+;; a start-tag, a comment, a chunk of data or a CDATA section.  The
 ;; tokenization of the instance is stateless: the tokenization of one
 ;; part of the instance does not depend on tokenization of the
 ;; preceding part of the instance.  This allows the instance to be
@@ -70,7 +70,7 @@
 ;; value literals specifying default attribute values, and default
 ;; attribute values are not reported to the client.
 ;;
-;; 2. It does not implement internal entities containing elements. If
+;; 2. It does not implement internal entities containing elements.  If
 ;; an internal entity is referenced and parsing its replacement text
 ;; yields one or more tags, then it will skip the reference and
 ;; report this to the client.
@@ -324,8 +324,8 @@ and VALUE-END, otherwise a STRING giving the value."
 	    (setq strs (cons (car arg) strs))
 	    (setq names (cons (cdr arg) names)))
 	  (setq args (cdr args))))
-      (cons (apply 'concat (nreverse strs))
-	    (apply 'append (nreverse names))))))
+      (cons (apply #'concat (nreverse strs))
+	    (apply #'append (nreverse names))))))
 
 (eval-when-compile
   ;; Make a symbolic group named NAME from the regexp R.
@@ -338,7 +338,7 @@ and VALUE-END, otherwise a STRING giving the value."
 	   (cons (concat "\\(" (car ,sym) "\\)") (cons ',name (cdr ,sym)))))))
 
   (defun xmltok-p (&rest r) (xmltok+ "\\(?:"
-				     (apply 'xmltok+ r)
+				     (apply #'xmltok+ r)
 				     "\\)"))
 
   ;; Get the group index of ELEM in a LIST of symbols.
@@ -372,22 +372,23 @@ and VALUE-END, otherwise a STRING giving the value."
   (defmacro xmltok-defregexp (sym r)
     `(defalias ',sym
        (let ((r ,r))
-	 `(macro lambda (action &optional group-name)
-		 (cond ((eq action 'regexp)
-			,(car r))
-		       ((or (eq action 'start) (eq action 'beginning))
-			(list 'match-beginning (xmltok-get-index group-name
-								 ',(cdr r))))
-		       ((eq action 'end)
-			(list 'match-end (xmltok-get-index group-name
-							   ',(cdr r))))
-		       ((eq action 'string)
-			(list 'match-string
-			      (xmltok-get-index group-name ',(cdr r))))
-		       ((eq action 'string-no-properties)
-			(list 'match-string-no-properties
-			      (xmltok-get-index group-name ',(cdr r))))
-		       (t (error "Invalid action: %s" action))))))))
+	 `(macro
+	   . ,(lambda (action &optional group-name)
+		(cond ((eq action 'regexp)
+		       (car r))
+		      ((or (eq action 'start) (eq action 'beginning))
+		       (list 'match-beginning (xmltok-get-index group-name
+								(cdr r))))
+		      ((eq action 'end)
+		       (list 'match-end (xmltok-get-index group-name
+							  (cdr r))))
+		      ((eq action 'string)
+		       (list 'match-string
+			     (xmltok-get-index group-name (cdr r))))
+		      ((eq action 'string-no-properties)
+		       (list 'match-string-no-properties
+			     (xmltok-get-index group-name (cdr r))))
+		      (t (error "Invalid action: %s" action)))))))))
 
 
 (eval-when-compile
@@ -478,7 +479,7 @@ and VALUE-END, otherwise a STRING giving the value."
 		      "[^<'&\r\n\t]*"
 		      (xmltok-g complex1 "[&\r\n\t][^<']*") opt
 		      "'"))
-	    (lit2 (cons (replace-regexp-in-string "'" "\"" (car lit1))
+	    (lit2 (cons (string-replace "'" "\"" (car lit1))
 			'(complex2)))
 	    (literal (xmltok-g literal lit1 or lit2))
 	    (name (xmltok+ open (xmltok-g xmlns "xmlns") or ncname close
@@ -878,7 +879,7 @@ and VALUE-END, otherwise a STRING giving the value."
 				(cons " " value-parts)))))
 	       (< (point) end))))
     (when well-formed
-      (aset att 5 (apply 'concat (nreverse value-parts))))
+      (aset att 5 (apply #'concat (nreverse value-parts))))
     (aset att 6 (nreverse refs))))
 
 (defun xmltok-scan-after-amp (entity-handler)
@@ -942,7 +943,6 @@ and VALUE-END, otherwise a STRING giving the value."
 	(let ((n (string-to-number (buffer-substring-no-properties start end)
 				base)))
 	  (cond ((and (integerp n) (xmltok-valid-char-p n))
-		 (setq n (xmltok-unicode-to-char n))
 		 (and n (string n)))
 		(t
 		 (xmltok-add-error "Invalid character code" start end)
@@ -969,11 +969,6 @@ and VALUE-END, otherwise a STRING giving the value."
 	((< n #xFFFE) t)
 	(t (and (> n #xFFFF)
 		(< n #x110000)))))
-
-(defun xmltok-unicode-to-char (n)
-  "Return the character corresponding to Unicode scalar value N.
-Return nil if unsupported in Emacs."
-  (decode-char 'ucs n))
 
 ;;; Prolog parsing
 
@@ -1333,7 +1328,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 		 t))))
     (if (not well-formed)
 	nil
-      (apply 'concat
+      (apply #'concat
 	     (nreverse (cons (buffer-substring-no-properties start lim)
 			     value-parts))))))
 
@@ -1358,7 +1353,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 
 (defun xmltok-require-next-token (&rest types)
   (xmltok-next-prolog-token)
-  (apply 'xmltok-require-token types))
+  (apply #'xmltok-require-token types))
 
 (defun xmltok-require-token (&rest types)
   ;; XXX Generate a more helpful error message
@@ -1764,6 +1759,10 @@ and `xmltok-namespace-attributes'."
 		   (string xmltok-type)
 		 xmltok-type))
     (message "Scanned end of file")))
+
+;;; Obsolete
+
+(define-obsolete-function-alias 'xmltok-unicode-to-char #'identity "29.1")
 
 (provide 'xmltok)
 

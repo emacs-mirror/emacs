@@ -1,6 +1,6 @@
-;;; korean.el --- support for Korean -*- coding: utf-8 -*-
+;;; korean.el --- support for Korean -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -42,6 +42,7 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
+(define-coding-system-alias 'ks_c_5601-1987 'korean-iso-8bit)
 
 (define-coding-system 'iso-2022-kr
   "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
@@ -91,10 +92,10 @@ and the following key bindings are available within Korean input methods:
        (pattern (concat choseong jungseong jongseong)))
   (set-char-table-range composition-function-table
                         '(#x1100 . #x115F)
-                        (list (vector pattern 0 'font-shape-gstring)))
+                        (list (vector pattern 0 #'font-shape-gstring)))
   (set-char-table-range composition-function-table
                         '(#xA960 . #xA97C)
-                        (list (vector pattern 0 'font-shape-gstring))))
+                        (list (vector pattern 0 #'font-shape-gstring))))
 
 (provide 'korean)
 

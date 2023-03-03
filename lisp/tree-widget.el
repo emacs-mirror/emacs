@@ -1,6 +1,6 @@
 ;;; tree-widget.el --- Tree widget  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 16 Feb 2001
@@ -110,10 +110,8 @@
 ;; `tree-widget-themes-directory', and `tree-widget-theme' options for
 ;; more details.
 
-;;; History:
-;;
-
 ;;; Code:
+
 (require 'wid-edit)
 
 ;;; Customization
@@ -216,8 +214,8 @@ Give the image the specified properties PROPS."
 See also the option `widget-image-conversion'."
   (delq nil
         (mapcar
-         #'(lambda (fmt)
-             (and (image-type-available-p (car fmt)) fmt))
+         (lambda (fmt)
+           (and (image-type-available-p (car fmt)) fmt))
          widget-image-conversion)))
 
 ;; Buffer local cache of theme data.
@@ -260,10 +258,9 @@ Typically it should contain something like this:
      \\='(:ascent center :mask (heuristic t)))"
   (or name (setq name (or tree-widget-theme "default")))
   (unless (string-equal name (tree-widget-theme-name))
-    (set (make-local-variable 'tree-widget--theme)
-         (make-vector 4 nil))
-      (tree-widget-set-parent-theme name)
-      (tree-widget-set-parent-theme "default")))
+    (setq-local tree-widget--theme (make-vector 4 nil))
+    (tree-widget-set-parent-theme name)
+    (tree-widget-set-parent-theme "default")))
 
 (defun tree-widget--locate-sub-directory (name path)
   "Locate all occurrences of the sub-directory NAME in PATH.
@@ -322,6 +319,7 @@ has been found accessible."
   '(
     ("guide"     . arrow)
     ("no-guide"  . arrow)
+    ("nohandle-guide" . arrow)
     ("end-guide" . arrow)
     ("handle"    . arrow)
     ("no-handle" . arrow)
@@ -443,6 +441,12 @@ Handle mouse button 1 click on buttons.")
   :format    "%t"
   )
 
+(define-widget 'tree-widget-nohandle-guide 'item
+  "Vertical guide line, when there is no handle."
+  :tag       " |"
+  ;;:tag-glyph (tree-widget-find-image "nohandle-guide")
+  :format    "%t")
+
 (define-widget 'tree-widget-end-guide 'item
   "End of a vertical guide line."
   :tag       " \\=`"
@@ -486,6 +490,7 @@ Handle mouse button 1 click on buttons.")
   :empty-icon     'tree-widget-empty-icon
   :leaf-icon      'tree-widget-leaf-icon
   :guide          'tree-widget-guide
+  :nohandle-guide 'tree-widget-nohandle-guide
   :end-guide      'tree-widget-end-guide
   :no-guide       'tree-widget-no-guide
   :handle         'tree-widget-handle
@@ -615,11 +620,13 @@ This hook should be local in the buffer setup to display widgets.")
 ;;;; Expanded node.
         (let ((args     (widget-get tree :args))
               (guide    (widget-get tree :guide))
+              (nohandle-guide (widget-get tree :nohandle-guide))
               (noguide  (widget-get tree :no-guide))
               (endguide (widget-get tree :end-guide))
               (handle   (widget-get tree :handle))
               (nohandle (widget-get tree :no-handle))
               (guidi    (tree-widget-find-image "guide"))
+              (nohandle-guidi (tree-widget-find-image "nohandle-guide"))
               (noguidi  (tree-widget-find-image "no-guide"))
               (endguidi (tree-widget-find-image "end-guide"))
               (handli   (tree-widget-find-image "handle"))
@@ -651,8 +658,8 @@ This hook should be local in the buffer setup to display widgets.")
             ;; Insert guide lines elements from previous levels.
             (dolist (f (reverse flags))
               (widget-create-child-and-convert
-               tree (if f guide noguide)
-               :tag-glyph (if f guidi noguidi))
+               tree (if f nohandle-guide noguide)
+               :tag-glyph (if f nohandle-guidi noguidi))
               (widget-create-child-and-convert
                tree nohandle :tag-glyph nohandli))
             ;; Insert guide line element for this level.

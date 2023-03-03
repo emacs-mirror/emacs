@@ -1,6 +1,6 @@
 ;;; image-file.el --- support for visiting image files  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: multimedia
@@ -37,7 +37,7 @@
 
 ;;;###autoload
 (defcustom image-file-name-extensions
-  (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg"))
+  (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg" "webp"))
   "A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
@@ -91,9 +91,10 @@ the variable is set using \\[customize]."
 		      "\\'"))))
     (mapconcat
      #'identity
-     (delq nil (list exts-regexp
-		     image-file-name-regexps
-		     (car (rassq 'imagemagick image-type-file-name-regexps))))
+     (delq nil
+           (nconc (list exts-regexp
+                        (car (rassq 'imagemagick image-type-file-name-regexps)))
+		  (ensure-list image-file-name-regexps)))
      "\\|")))
 
 

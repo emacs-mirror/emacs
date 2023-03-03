@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004--2020 Free Software Foundation, Inc.
+@c Copyright (C) 2004--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in vc-xtra.texi (when producing the
@@ -15,6 +15,8 @@
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
 * Version Headers::     Inserting version control headers into working files.
+* Editing VC Commands:: Editing the VC shell commands that Emacs will run.
+* Preparing Patches::   Preparing and Composing patches from within VC
 @end menu
 
 @node Change Logs and VC
@@ -263,13 +265,62 @@ elements of the form @code{(@var{regexp} . @var{format})}.  Whenever
 part of the version header.  A @samp{%s} in @var{format} is replaced
 with the file's version control type.
 
+@node Editing VC Commands
+@subsubsection Editing VC Commands
+
+@findex vc-edit-next-command
+@kindex C-x v !
+You can use the @kbd{C-x v !} (@code{vc-edit-next-command}) prefix
+command to edit the shell command line that VC is about to run.  This
+is primarily intended to make it possible to add optional command-line
+arguments to VCS commands without unnecessary complications of the VC
+command set and its interfaces with the backend.
+
+For example, Git can produce logs of more than one branch, but
+@kbd{C-x v b l} (@code{vc-print-branch-log}) prompts for the name of
+just one branch.  To obtain a log of more than one branch, you can
+type @w{@kbd{C-x v ! C-x v b l}} and then append the names of
+additional branches to the end of the @samp{git log} command that VC
+is about to run.
+
+@node Preparing Patches
+@subsubsection Preparing Patches
+
+@findex vc-prepare-patch
+When collaborating on projects it is common to send patches via email,
+to share changes.  You can do this using VC with the
+@code{vc-prepare-patch} command.  This will prompt you for the
+revisions you wish to share, and which destination email address(es)
+to use.  Separate the revisions using the value of
+@var{crm-separator}, commas by default.  The command will then prepare
+those revisions using your @abbr{MUA, Mail User Agent} for you to
+review and send.
+
+When invoked interactively in a Log View buffer with marked revisions,
+those marked revisions will be used.
+
+@vindex vc-prepare-patches-separately
+Depending on the value of the user option
+@code{vc-prepare-patches-separately}, @code{vc-prepare-patch} will
+generate one or more messages.  The default value @code{t} means
+prepare and display a message for each revision, one after another.  A
+value of @code{nil} means to generate a single message with all
+patches attached in the body.
+
+@vindex vc-default-patch-addressee
+If you expect to contribute patches on a regular basis, you can set
+the user option @code{vc-default-patch-addressee} to the address(es)
+you wish to use.  This will be used as the default value when invoking
+@code{vc-prepare-patch}.  Project maintainers may consider setting
+this as a directory local variable (@pxref{Directory Variables}).
+
 @node Customizing VC
 @subsection Customizing VC
 
 @vindex vc-handled-backends
   The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SVN SCCS SRC Bzr Git Hg Mtn)}, so it contains all the version systems
+SVN SCCS SRC Bzr Git Hg)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
 these systems, exclude its name from the list.  To disable VC
 entirely, set this variable to @code{nil}.

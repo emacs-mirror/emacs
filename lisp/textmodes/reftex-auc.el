@@ -1,6 +1,6 @@
-;;; reftex-auc.el --- RefTeX's interface to AUCTeX
+;;; reftex-auc.el --- RefTeX's interface to AUCTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -32,11 +32,12 @@
 		  (optional prompt default &optional complete))
 (declare-function TeX-argument-insert "ext:tex"
 		  (name optional &optional prefix))
-(declare-function LaTeX-add-labels "ext:tex" (&rest entries) t)
-(declare-function LaTeX-add-index-entries "ext:tex" (&rest entries) t)
-(declare-function LaTeX-bibitem-list "ext:tex" () t)
-(declare-function LaTeX-index-entry-list "ext:tex" () t)
-(declare-function LaTeX-label-list "ext:tex" () t)
+(declare-function LaTeX-add-labels "ext:latex" (&rest labels) t)
+(declare-function LaTeX-add-index-entries "ext:latex" (&rest index-entries) t)
+(declare-function LaTeX-add-bibitems "ext:latex" (&rest bibitems) t)
+(declare-function LaTeX-bibitem-list "ext:latex" () t)
+(declare-function LaTeX-index-entry-list "ext:latex" () t)
+(declare-function LaTeX-label-list "ext:latex" () t)
 (declare-function multi-prompt "ext:multi-prompt"
 		  (separator unique prompt table &optional
 			     mp-predicate require-match initial history))
@@ -82,13 +83,12 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
 			   (if prompt prompt "Add key")
 			   " (default none): "))
       (setq items (multi-prompt "," t prompt (LaTeX-bibitem-list)))))
-    (apply 'LaTeX-add-bibitems items)
-    (TeX-argument-insert (mapconcat 'identity items reftex-cite-key-separator)
+    (apply #'LaTeX-add-bibitems items)
+    (TeX-argument-insert (mapconcat #'identity items reftex-cite-key-separator)
 			 optional)))
 
-
 ;;;###autoload
-(defun reftex-arg-index-tag (optional &optional prompt &rest args)
+(defun reftex-arg-index-tag (optional &optional prompt &rest _args)
   "Prompt for an index tag with completion.
 This is the name of an index, not the entry."
   (let (tag taglist)
@@ -102,13 +102,13 @@ This is the name of an index, not the entry."
           (setq taglist
                 (cdr (assoc 'index-tags
                             (symbol-value reftex-docstruct-symbol)))
-                tag (completing-read prompt (mapcar 'list taglist))))
+                tag (completing-read prompt (mapcar #'list taglist))))
       ;; Just ask like AUCTeX does.
       (setq tag (read-string prompt)))
     (TeX-argument-insert tag optional)))
 
 ;;;###autoload
-(defun reftex-arg-index (optional &optional prompt &rest args)
+(defun reftex-arg-index (optional &optional prompt &rest _args)
   "Prompt for an index entry completing with known entries.
 Completion is specific for just one index, if the macro or a tag
 argument identify one of multiple indices."
@@ -149,23 +149,27 @@ argument identify one of multiple indices."
   ;; `reftex-plug-into-AUCTeX'.
 
   (if (reftex-plug-flag 0)
-      (setq LaTeX-label-function 'reftex-label)
-    (setq LaTeX-label-function nil))
+      (if (bound-and-true-p LaTeX-label-function)
+          (add-function :override LaTeX-label-function #'reftex-label)
+        (setq LaTeX-label-function #'reftex-label))
+    (if (eq #'reftex-label (bound-and-true-p LaTeX-label-function))
+        (setq LaTeX-label-function nil)
+      (remove-function LaTeX-label-function #'reftex-label)))
 
-  (and (or (reftex-plug-flag 1) (reftex-plug-flag 2))
-       (fboundp 'TeX-arg-label)
-       (fset 'TeX-arg-label 'reftex-arg-label))
+  (if (or (reftex-plug-flag 1) (reftex-plug-flag 2))
+      (advice-add 'TeX-arg-label :override #'reftex-arg-label)
+    (advice-remove 'TeX-arg-label #'reftex-arg-label))
 
-  (and (reftex-plug-flag 3)
-       (fboundp 'TeX-arg-cite)
-       (fset 'TeX-arg-cite 'reftex-arg-cite))
+  (if (reftex-plug-flag 3)
+      (advice-add 'TeX-arg-cite :override #'reftex-arg-cite)
+    (advice-remove 'TeX-arg-cite #'reftex-arg-cite))
 
-  (and (reftex-plug-flag 4)
-       (fboundp 'TeX-arg-index-tag)
-       (fset 'TeX-arg-index-tag 'reftex-arg-index-tag))
-  (and (reftex-plug-flag 4)
-       (fboundp 'TeX-arg-index)
-       (fset 'TeX-arg-index 'reftex-arg-index)))
+  (if (reftex-plug-flag 4)
+      (advice-add 'TeX-arg-index-tag :override #'reftex-arg-index-tag)
+    (advice-remove 'TeX-arg-index-tag #'reftex-arg-index-tag))
+  (if (reftex-plug-flag 4)
+      (advice-add 'TeX-arg-index :override #'reftex-arg-index)
+    (advice-remove 'TeX-arg-index #'reftex-arg-index)))
 
 ;;;###autoload
 (defun reftex-toggle-plug-into-AUCTeX ()
@@ -205,7 +209,7 @@ the label information is recompiled on next use."
       (when changed
         (put reftex-docstruct-symbol 'reftex-label-alist-style list)))))
 ;;;###autoload
-(defalias 'reftex-add-to-label-alist 'reftex-add-label-environments)
+(defalias 'reftex-add-to-label-alist #'reftex-add-label-environments)
 
 ;;;###autoload
 (defun reftex-add-section-levels (entry-list)

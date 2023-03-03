@@ -1,4 +1,4 @@
-;;; thai-word.el -- find Thai word boundaries
+;;; thai-word.el --- find Thai word boundaries  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -64,7 +64,6 @@
 ;;   the sale, use or other dealings in this Software without prior
 ;;   written authorization of the copyright holder.
 
-
 ;;; Commentary:
 
 ;; This file implements an algorithm to find Thai word breaks using a
@@ -75,6 +74,8 @@
 ;; Table of Thai words.  It is a nested alist (see `nested-alist-p'),
 ;; which means that you can easily index the list character by
 ;; character.
+
+;;; Code:
 
 (defvar thai-word-table
   (let ((table (list 'thai-words)))
@@ -10740,8 +10741,8 @@
 
 
 (defun thai-update-word-table (file &optional append)
-  "Update Thai word table by replacing the current word list with
-FILE.  If called with a prefix argument, FILE is appended instead to
+  "Update Thai word table by replacing the current word list with FILE.
+If called with a prefix argument, FILE is appended instead to
 the current word list."
   (interactive "FThai word table file: \nP")
   (let ((buf (generate-new-buffer "*thai-work*"))
@@ -10973,8 +10974,7 @@ If COUNT is negative, move point backward (- COUNT) words."
 	    ;; special instead of using forward-word.
 	    (let ((start (point))
 		  (limit (match-end 0))
-		  boundaries
-		  tail)
+		  boundaries) ;; tail
 	      ;; If thai-forward-word has been called within a Thai
 	      ;; region, we must go back until the Thai region starts
 	      ;; to do the contextual analysis for finding word
@@ -11042,20 +11042,20 @@ If COUNT is negative, move point forward (- COUNT) words."
 
 
 (defun thai-kill-word (arg)
-  "Like kill-word but pay attention to Thai word boundaries.
+  "Like `kill-word' but pay attention to Thai word boundaries.
 With argument, do this that many times."
   (interactive "p")
   (kill-region (point) (progn (thai-forward-word arg) (point))))
 
 
 (defun thai-backward-kill-word (arg)
-  "Like backward-kill-word but pay attention to Thai word boundaries."
+  "Like `backward-kill-word' but pay attention to Thai word boundaries."
   (interactive "p")
   (thai-kill-word (- arg)))
 
 
 (defun thai-transpose-words (arg)
-  "Like transpose-words but pay attention to Thai word boundaries."
+  "Like `transpose-words' but pay attention to Thai word boundaries."
   (interactive "*p")
   (transpose-subr 'thai-forward-word arg))
 
@@ -11075,4 +11075,4 @@ With argument, do this that many times."
 ;; coding: utf-8
 ;; End:
 
-;; end of thai-word.el
+;;; thai-word.el ends here

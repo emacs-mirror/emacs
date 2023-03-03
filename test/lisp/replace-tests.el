@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>
@@ -378,7 +378,7 @@ Each element has the format:
               (goto-char (point-min))
               (should (string-match "\\`2 matches for \"and\" in buffer: "
                                     (buffer-substring-no-properties
-                                     (point) (line-end-position)))))))
+                                     (point) (pos-eol)))))))
       (and (buffer-name temp-buffer)
            (kill-buffer temp-buffer)))))
 
@@ -401,9 +401,105 @@ Each element has the format:
               (goto-char (point-min))
               (should (string-match "\\`2 matches for \"and\" in buffer: "
                                     (buffer-substring-no-properties
-                                     (point) (line-end-position)))))))
+                                     (point) (pos-eol)))))))
       (and (buffer-name temp-buffer)
            (kill-buffer temp-buffer)))))
+
+
+;;; General tests for `query-replace' and `query-replace-regexp'.
+
+(defconst query-replace-tests
+  '(
+    ;; query-replace
+    ("aaa" "M-% a RET 1 RET !" "111")
+    ("aaa" "M-% a RET 1 RET y n y" "1a1")
+    ;; Empty inputs
+    ("aaa" "M-% a RET RET !" "")
+    ("aaa" "M-% RET 1 RET !" "1a1a1a")
+    ("aaa" "M-% RET RET !" "aaa")
+    ;; Reuse the previous default
+    ("aaa" "M-% a RET 1 RET . M-% RET !" "111")
+
+    ;; query-replace-regexp
+    ("aaa" "C-M-% a* RET 1 RET !" "1")
+    ;; Empty inputs
+    ("aaa" "C-M-% a* RET RET !" "")
+    ("aaa" "C-M-% RET 1 RET !" "1a1a1a")
+    ("aaa" "C-M-% RET RET !" "aaa")
+    ;; Empty matches
+    ("aaa" "C-M-% b* RET 1 RET !" "1a1a1a")
+    ;; Complete matches
+    ("aaa" "C-M-% .* RET 1 RET !" "1")
+    ;; Adjacent non-empty matches
+    ("abaab" "C-M-% ab* RET 12 RET !" "121212")
+    ;; Adjacent non-empty and empty matches
+    ("abab" "C-M-% a* RET 1 RET !" "1b1b")
+    ("abab" "C-M-% b* RET 1 RET !" "1a1a1")
+    ;; Test case from commit 5632eb272c7
+    ("a a a " "C-M-% \\ba SPC RET c RET !" "ccc") ; not "ca c"
+    ))
+
+(defun query-replace--run-tests (tests)
+  (with-temp-buffer
+    (save-window-excursion
+      ;; `execute-kbd-macro' is applied to window only
+      (set-window-buffer nil (current-buffer))
+      (dolist (case tests)
+        ;; Ensure empty input means empty string to replace:
+        (setq query-replace-defaults nil)
+        (delete-region (point-min) (point-max))
+        (insert (nth 0 case))
+        (goto-char (point-min))
+        (execute-kbd-macro (kbd (nth 1 case)))
+        (should (equal (buffer-string) (nth 2 case)))))))
+
+(ert-deftest query-replace-tests ()
+  (query-replace--run-tests query-replace-tests))
+
+(ert-deftest query-replace-search-function-tests ()
+  (let* ((replace-re-search-function #'re-search-forward))
+    (query-replace--run-tests query-replace-tests))
+
+  (let* ((pairs '((1 . 2) (3 . 4)))
+         (replace-re-search-function
+          (lambda (string &optional _bound noerror count)
+            (let (found)
+              (while (and (not found) pairs)
+                (goto-char (caar pairs))
+                (when (re-search-forward string (cdar pairs) noerror count)
+                  (setq found t))
+                (pop pairs))
+              found)))
+         (tests
+          '(
+            ;; FIXME: this test should pass after fixing bug#54733:
+            ;; ("aaaa" "C-M-% .* RET 1 RET !" "1a1a")
+            )))
+    (query-replace--run-tests tests)))
+
+
+;;; General tests for `perform-replace'.
+
+(defconst perform-replace-tests
+  '(
+    ;; Test case from commit 5632eb272c7
+    ("a a a " "\\ba " "c" nil t nil nil nil nil nil nil nil "ccc") ; not "ca c"
+    ;; The same with region inside the second match
+    ;; FIXME: this test should pass after fixing bug#54733:
+    ;; ("a a a " "\\ba " "c" nil t nil nil nil 1 4 nil nil "ca a ")
+    ))
+
+(defun perform-replace--run-tests (tests)
+  (with-temp-buffer
+    (dolist (case tests)
+      (delete-region (point-min) (point-max))
+      (insert (pop case))
+      (goto-char (point-min))
+      (apply 'perform-replace (butlast case))
+      (should (equal (buffer-string) (car (last case)))))))
+
+(ert-deftest perform-replace-tests ()
+  (perform-replace--run-tests perform-replace-tests))
 
 
 ;;; Tests for `query-replace' undo feature.
@@ -465,7 +561,12 @@ Return the last evalled form in BODY."
                    ;; isearch-lazy-highlight-new-loop and sit-for (bug#36328)
                    ((symbol-function 'replace-highlight)
                     (lambda (&rest _args)
-                      (string-match "[A-Z ]" "ForestGreen"))))
+                      (string-match "[A-Z ]" "ForestGreen")))
+                   ;; Override `sit-for' and `ding' so that we don't have
+                   ;; to wait and listen to bells when running the test.
+                   ((symbol-function 'sit-for)
+                    (lambda (&rest _args) (redisplay)))
+                   ((symbol-function 'ding) 'ignore))
            (perform-replace ,from ,to t replace-tests-perform-replace-regexp-flag nil))
          ,@body))))
 
@@ -584,8 +685,33 @@ bound to HIGHLIGHT-LOCUS."
       (replace-tests-with-highlighted-occurrence highlight-locus
         (occur-mode-display-occurrence)
         (with-current-buffer (marker-buffer
-                              (get-text-property (point) 'occur-target))
+                              (caar (get-text-property (point) 'occur-target)))
           (should (funcall check-overlays has-overlay)))))))
 
+(ert-deftest replace-regexp-bug45973 ()
+  "Test for https://debbugs.gnu.org/45973 ."
+  (let ((before "1RB 1LC 1RC 1RB 1RD 0LE 1LA 1LD 1RH 0LA")
+        (after  "1LB 1RC 1LC 1LB 1LD 0RE 1RA 1RD 1LH 0RA"))
+    (with-temp-buffer
+      (insert before)
+      (goto-char (point-min))
+      (with-suppressed-warnings ((interactive-only replace-regexp))
+        (replace-regexp
+         "\\(\\(L\\)\\|\\(R\\)\\)"
+         '(replace-eval-replacement
+           replace-quote
+           (if (match-string 2) "R" "L"))))
+      (should (equal (buffer-string) after)))))
+
+(ert-deftest test-count-matches ()
+  (with-temp-buffer
+    (insert "oooooooooo")
+    (goto-char (point-min))
+    (should (= (count-matches "oo") 5))
+    (should (= (count-matches "o+") 1)))
+  (with-temp-buffer
+    (insert "o\n\n\n\no\n\n")
+    (goto-char (point-min))
+    (should (= (count-matches "^$") 4))))
 
 ;;; replace-tests.el ends here

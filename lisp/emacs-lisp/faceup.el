@@ -1,6 +1,6 @@
 ;;; faceup.el --- Markup language for faces and font-lock regression testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Version: 0.0.6
@@ -795,7 +795,7 @@ See `faceup-properties' for a list of tracked properties."
       nil
     (if (and (null pos)
              (faceup-has-any-text-property (point-min)))
-        ;; `pos' is `nil' and the character at `point-min' contains a
+        ;; `pos' is nil and the character at `point-min' contains a
         ;; tracked property, return `point-min'.
         (point-min)
       (unless pos
@@ -1006,7 +1006,7 @@ which could be defined as:
     (defun my-test-explain (args...)
       (let ((faceup-test-explain t))
         (the-test args...)))
-    (put 'my-test 'ert-explainer 'my-test-explain)
+    (put \\='my-test \\='ert-explainer \\='my-test-explain)
 
 Alternative, you can use the macro `faceup-defexplainer' as follows:
 
@@ -1169,11 +1169,6 @@ Intended to be called when a file is loaded."
        (file-name-directory load-file-name)
      ;; File is being evaluated using, for example, `eval-buffer'.
      default-directory)))
-
-
-;; ----------------------------------------------------------------------
-;; The end
-;;
 
 (provide 'faceup)
 

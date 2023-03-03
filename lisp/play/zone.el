@@ -1,6 +1,6 @@
-;;; zone.el --- idle display hacks
+;;; zone.el --- idle display hacks  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -99,13 +99,28 @@ If the element is a function or a list of a function and a number,
                                (functionp (car elem))
                                (numberp (cadr elem)))
                           (apply 'zone-call elem))
-                         (t (error "bad `zone-call' elem: %S" elem))))
+                         (t (error "Bad `zone-call' elem: %S" elem))))
                  program))))
 
 ;;;###autoload
-(defun zone ()
-  "Zone out, completely."
-  (interactive)
+(defun zone (&optional pgm)
+  "Zone out, completely.
+With a prefix argument the user is prompted for a program to run.
+When called from Lisp the optional argument PGM can be used to
+run a specific program.  The program must be a member of
+`zone-programs'."
+  (interactive
+   (and current-prefix-arg
+        (let ((choice (completing-read
+                       "Program: "
+                       (mapcar
+                        (lambda (prog)
+                          (substring (symbol-name prog) 9))
+                        zone-programs)
+                       nil t)))
+          (list (intern (concat "zone-pgm-" choice))))))
+  (unless pgm
+    (setq pgm (aref zone-programs (random (length zone-programs)))))
   (save-window-excursion
     (let ((f (selected-frame))
           (outbuf (get-buffer-create "*zone*"))
@@ -124,18 +139,20 @@ If the element is a function or a list of a function and a number,
       (untabify (point-min) (point-max))
       (set-window-start (selected-window) (point-min))
       (set-window-point (selected-window) wp)
-      (sit-for 0 500)
-      (let ((pgm (elt zone-programs (random (length zone-programs))))
-            (ct (and f (frame-parameter f 'cursor-type)))
+      (sit-for 0.500)
+      (let ((ct (and f (frame-parameter f 'cursor-type)))
             (show-trailing-whitespace nil)
-            (restore (list '(kill-buffer outbuf))))
+            restore)
         (when ct
-          (modify-frame-parameters f '((cursor-type . (bar . 0))))
-          (setq restore (cons '(modify-frame-parameters
-                                f (list (cons 'cursor-type ct)))
-                              restore)))
+          (modify-frame-parameters f '((cursor-type . (bar . 0)))))
         ;; Make `restore' a self-disabling one-shot thunk.
-        (setq restore `(lambda () ,@restore (setq restore nil)))
+        (setq restore
+              (lambda ()
+                (when ct
+                  (modify-frame-parameters
+                   f (list (cons 'cursor-type ct))))
+                (kill-buffer outbuf)
+                (setq restore nil)))
         (condition-case nil
             (progn
               (message "Zoning... (%s)" pgm)
@@ -201,8 +218,7 @@ If the element is a function or a list of a function and a number,
     (insert s)))
 
 (defun zone-shift-left ()
-  (let ((inhibit-point-motion-hooks t)
-        s)
+  (let (s)
     (while (not (eobp))
       (unless (eolp)
         (setq s (buffer-substring (point) (1+ (point))))
@@ -213,8 +229,7 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-shift-right ()
   (goto-char (point-max))
-  (let ((inhibit-point-motion-hooks t)
-        s)
+  (let (s)
     (while (not (bobp))
       (unless (bolp)
         (setq s (buffer-substring (1- (point)) (point)))
@@ -234,7 +249,7 @@ If the element is a function or a list of a function and a number,
     (while (not (input-pending-p))
       (funcall (elt ops (random (length ops))))
       (goto-char (point-min))
-      (sit-for 0 10))))
+      (sit-for 0.01))))
 
 
 ;;;; whacking chars
@@ -247,7 +262,7 @@ If the element is a function or a list of a function and a number,
           (aset tbl i (+ 48 (random (- 123 48))))
           (setq i (1+ i)))
         (translate-region (point-min) (point-max) tbl)
-        (sit-for 0 2)))))
+        (sit-for 0.002)))))
 
 (put 'zone-pgm-whack-chars 'wc-tbl
      (let ((tbl (make-string 128 ?x))
@@ -275,7 +290,7 @@ If the element is a function or a list of a function and a number,
                   (delete-char 1)
                   (insert " ")))
             (forward-char 1))))
-      (sit-for 0 2))))
+      (sit-for 0.002))))
 
 (defun zone-pgm-dissolve ()
   (zone-remove-text)
@@ -297,7 +312,7 @@ If the element is a function or a list of a function and a number,
                 (insert " ")))
           (forward-char 1)))
       (setq i (1+ i))
-      (sit-for 0 2)))
+      (sit-for 0.002)))
   (zone-pgm-jitter))
 
 (defun zone-pgm-explode ()
@@ -305,7 +320,7 @@ If the element is a function or a list of a function and a number,
   (zone-pgm-jitter))
 
 
-;;;; putzing w/ case
+;;;; putzing with case
 
 ;; Faster than `zone-pgm-putz-with-case', but not as good: all
 ;; instances of the same letter have the same case, which produces a
@@ -332,7 +347,7 @@ If the element is a function or a list of a function and a number,
                 (upcase i)))
         (setq i (+ i (1+ (random 5)))))
       (translate-region (point-min) (point-max) tbl)
-      (sit-for 0 2))))
+      (sit-for 0.002))))
 
 (defun zone-pgm-putz-with-case ()
   (goto-char (point-min))
@@ -344,7 +359,7 @@ If the element is a function or a list of a function and a number,
                    'downcase-region) (1- np) np)
         (setq np (+ np (1+ (random 5))))))
     (goto-char (point-min))
-    (sit-for 0 2)))
+    (sit-for 0.002)))
 
 
 ;;;; rotating
@@ -419,7 +434,7 @@ If the element is a function or a list of a function and a number,
 (defsubst zone-replace-char (count del-count char-as-string new-value)
   (delete-char (or del-count (- count)))
   (aset char-as-string 0 new-value)
-  (dotimes (i count) (insert char-as-string)))
+  (dotimes (_ count) (insert char-as-string)))
 
 (defsubst zone-park/sit-for (pos seconds)
   (let ((p (point)))
@@ -445,8 +460,7 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-fill-out-screen (width height)
   (let ((start (window-start))
-	(line (make-string width 32))
-	(inhibit-point-motion-hooks t))
+	(line (make-string width 32)))
     (goto-char start)
     ;; fill out rectangular ws block
     (while (progn (end-of-line)
@@ -460,7 +474,7 @@ If the element is a function or a list of a function and a number,
     (let ((nl (- height (count-lines (point-min) (point)))))
       (when (> nl 0)
 	(setq line (concat line "\n"))
-        (dotimes (i nl)
+        (dotimes (_ nl)
 	  (insert line))))
     (goto-char start)
     (recenter 0)
@@ -593,7 +607,7 @@ If the element is a function or a list of a function and a number,
          (forward-line -1)
          (delete-region (point) (line-beginning-position 2))
          (goto-char (point-min))
-         (insert (nth (random (length lines)) lines)))
+         (insert (seq-random-elt lines)))
        (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
        (sit-for 0.1)))))
 
@@ -661,8 +675,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
       (setq c (point))
       (move-to-column 9)
       (setq col (cons (buffer-substring (point) c) col))
-;      (let ((inhibit-point-motion-hooks t))
-        (end-of-line 0);)
+      (end-of-line 0)
       (forward-char -10))
     (let ((life-patterns (vector
                           (if (and col (search-forward "@" max t))

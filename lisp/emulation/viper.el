@@ -3,11 +3,11 @@
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
-;; Version: 3.14.1
+;; Version: 3.14.2
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 20/3/2008, and the maintainer agreed that when a bug is
@@ -15,7 +15,7 @@
 ;; of the bug report be sent to the maintainer's email address.
 
 (defconst viper-version "3.14.2 of July 4, 2013"
-  "The current version of Viper")
+  "The current version of Viper.")
 
 ;; This file is part of GNU Emacs.
 
@@ -304,7 +304,6 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
-(defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-mode-string)
 (defvar viper-major-mode-modifier-list)
@@ -380,7 +379,7 @@ widget."
     flora-mode
     sql-mode
 
-    text-mode indented-text-mode
+    text-mode
     tex-mode latex-mode bibtex-mode
     ps-mode
 
@@ -516,7 +515,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 
 ;;;###autoload
 (defun viper-mode ()
-  "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Top'."
+  "Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'."
   (interactive)
   (if (not noninteractive)
       (progn
@@ -560,10 +559,10 @@ and improving upon much of it.
    2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
       do not cause Emacs to quit, except at user level 1 (for a novice).
    3. ^X^C EXITS EMACS.
-   4. Viper supports multiple undo: `u' will undo.  Typing `.' will repeat
-      undo.  Another `u' changes direction.
+   4. Viper supports multiple undo: \\`u' will undo.  Typing \\`.' will repeat
+      undo.  Another \\`u' changes direction.
 
-   6. Emacs Meta key is `C-\\' (in all modes) or `\\ ESC' (in Vi command mode).
+   6. Emacs Meta key is \\`C-\\' (in all modes) or \\`\\ ESC' (in Vi command mode).
       On a window system, the best way is to use the Meta-key on your keyboard.
    7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
       something funny happens.  This would abort the current editing command.
@@ -574,12 +573,12 @@ For more information on Viper:
    b. Print Viper manual, found in ./etc/viper.dvi
    c. Print the Quick Reference, found in ./etc/viperCard.dvi
 
-To submit a bug report or to contact the author, type :submitReport in Vi
+To submit a bug report or to contact the author, type \\`:submitReport' in Vi
 command mode.  To shoo Viper away and return to pure Emacs (horror!), type:
 
-   M-x viper-go-away
+   \\[viper-go-away]
 
-This startup message appears whenever you load Viper, unless you type `y' now."
+This startup message appears whenever you load Viper, unless you type \\`y' now."
 		      ))
 		    (goto-char (point-min))
 		    (if (y-or-n-p "Inhibit Viper startup message? ")
@@ -606,7 +605,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 ;; Apply a little heuristic to invoke vi state on major-modes
 ;; that are not listed in viper-vi-state-mode-list
-(defun this-major-mode-requires-vi-state (mode)
+(defun viper-this-major-mode-requires-vi-state (mode)
   (let ((major-mode mode))
     (cond ((apply #'derived-mode-p viper-vi-state-mode-list) t)
           ((apply #'derived-mode-p viper-emacs-state-mode-list) nil)
@@ -617,7 +616,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun viper-comint-mode-hook ()
-  (set (make-local-variable 'require-final-newline) nil)
+  (setq-local require-final-newline nil)
   (setq viper-ex-style-editing nil
 	viper-ex-style-motion nil)
   (viper-change-state-to-insert))
@@ -635,7 +634,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 	 (remove-hook symbol #'viper-minibuffer-post-command-hook)
 	 (remove-hook symbol #'viper-minibuffer-setup-sentinel)
 	 (remove-hook symbol #'viper-major-mode-change-sentinel)
-	 (remove-hook symbol #'set-viper-state-in-major-mode)
+         (remove-hook symbol #'viper-set-state-in-major-mode)
 	 (remove-hook symbol #'viper-post-command-sentinel)
 	 )))
 
@@ -787,12 +786,12 @@ It also can't undo some Viper settings."
 (defvar viper-new-major-mode-buffer-list nil)
 
 ;; set appropriate Viper state in buffers that changed major mode
-(defun set-viper-state-in-major-mode ()
+(defun viper-set-state-in-major-mode ()
   (mapc
    (lambda (buf)
      (if (viper-buffer-live-p buf)
 	 (with-current-buffer buf
-	   (cond ((and (this-major-mode-requires-vi-state major-mode)
+           (cond ((and (viper-this-major-mode-requires-vi-state major-mode)
 		       (eq viper-current-state 'emacs-state))
 		  (viper-mode))
 		 ((cl-member-if #'derived-mode-p viper-emacs-state-mode-list)
@@ -811,7 +810,7 @@ It also can't undo some Viper settings."
   ;; clear the list of bufs that changed major mode
   (setq viper-new-major-mode-buffer-list nil)
   ;; change the global value of hook
-  (remove-hook 'viper-post-command-hooks #'set-viper-state-in-major-mode))
+  (remove-hook 'viper-post-command-hooks #'viper-set-state-in-major-mode))
 
 ;; sets up post-command-hook to turn viper-mode, if the current mode is
 ;; fundamental
@@ -821,7 +820,7 @@ It also can't undo some Viper settings."
 	(setq viper-new-major-mode-buffer-list
 	      (cons (current-buffer) viper-new-major-mode-buffer-list))))
   ;; change the global value of hook
-  (add-hook 'viper-post-command-hooks #'set-viper-state-in-major-mode t))
+  (add-hook 'viper-post-command-hooks #'viper-set-state-in-major-mode t))
 
 
 ;;; Handling of tty's ESC event
@@ -892,7 +891,7 @@ Two differences:
   (viper-setup-ESC-to-escape t)
 
   (add-hook 'change-major-mode-hook #'viper-major-mode-change-sentinel)
-  (add-hook 'find-file-hook #'set-viper-state-in-major-mode)
+  (add-hook 'find-file-hook #'viper-set-state-in-major-mode)
 
   ;; keep this because many modes we don't know about use this hook
   (defvar text-mode-hook)
@@ -1061,9 +1060,7 @@ This may be needed if the previous `:map' command terminated abnormally."
   (if (viper-window-display-p)
       (viper--advice-add
        'handle-switch-frame :before
-       (lambda (&rest _)
-	 "Remember the selected frame before the switch-frame event."
-	 (viper-remember-current-frame (selected-frame)))))
+       #'viper-remember-current-frame))
 
   ) ; end viper-non-hook-settings
 
@@ -1191,7 +1188,7 @@ These two lines must come in the order given."))
 
 ;; The default viper-toggle-key is \C-z; for the novice, it suspends or
 ;; iconifies Emacs
-(define-key viper-vi-intercept-map viper-toggle-key 'viper-toggle-key-action)
+(define-key viper-vi-intercept-map viper-toggle-key #'viper-toggle-key-action)
 (define-key
   viper-emacs-intercept-map viper-toggle-key #'viper-change-state-to-vi)
 
@@ -1245,20 +1242,18 @@ These two lines must come in the order given."))
   (when (eq viper-current-state 'emacs-state)
     (viper-change-state-to-emacs))
 
-  (if (this-major-mode-requires-vi-state major-mode)
+  (if (viper-this-major-mode-requires-vi-state major-mode)
       (viper-mode))
 
-  (add-function :after initial-major-mode #'set-viper-state-in-major-mode))
+  (add-function :after initial-major-mode #'viper-set-state-in-major-mode))
 
-
+(define-obsolete-function-alias 'set-viper-state-in-major-mode
+  #'viper-set-state-in-major-mode "29.1")
+(define-obsolete-function-alias 'this-major-mode-requires-vi-state
+  #'viper-this-major-mode-requires-vi-state "29.1")
 
 (run-hooks 'viper-load-hook) ; the last chance to change something
 
 (provide 'viper)
-
-
-;; Local Variables:
-;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;; End:
 
 ;;; viper.el ends here

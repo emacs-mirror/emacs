@@ -1,23 +1,23 @@
 ;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,10 +39,11 @@
 (defun ert-self-test ()
   "Run ERT's self-tests and make sure they actually ran."
   (let ((window-configuration (current-window-configuration)))
-    (let ((ert--test-body-was-run nil))
+    (let ((ert--test-body-was-run nil)
+          (ert--output-buffer-name " *ert self-tests*"))
       ;; The buffer name chosen here should not compete with the default
       ;; results buffer name for completion in `switch-to-buffer'.
-      (let ((stats (ert-run-tests-interactively "^ert-" " *ert self-tests*")))
+      (let ((stats (ert-run-tests-interactively "^ert-")))
         (cl-assert ert--test-body-was-run)
         (if (zerop (ert-stats-completed-unexpected stats))
             ;; Hide results window only when everything went well.
@@ -376,8 +377,11 @@ This macro is used to test if macroexpansion in `should' works."
          (test (make-ert-test :body test-body))
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
-    (should (eq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
-                'signal))))
+    (should (memq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
+                  ;;; This is `ert-fail' on nativecomp and `signal'
+                  ;;; otherwise.  It's not clear whether that's a bug
+                  ;;; or not (bug#51308).
+                  '(ert-fail signal)))))
 
 (ert-deftest ert-test-messages ()
   :tags '(:causes-redisplay)
@@ -494,6 +498,12 @@ This macro is used to test if macroexpansion in `should' works."
     (should (equal (ert-select-tests '(tag b) (list test)) (list test)))
     (should (equal (ert-select-tests '(tag c) (list test)) '()))))
 
+(ert-deftest ert-test-select-undefined ()
+  (let* ((symbol (make-symbol "ert-not-a-test"))
+         (data (should-error (ert-select-tests symbol t)
+                             :type 'ert-test-unbound)))
+    (should (eq (cadr data) symbol))))
+
 
 ;;; Tests for utility functions.
 (ert-deftest ert-test-parse-keys-and-body ()
@@ -519,17 +529,18 @@ This macro is used to test if macroexpansion in `should' works."
                                      :body (lambda () (ert-skip
                                                        "skip message")))))
     (let ((ert-debug-on-error nil))
-      (let* ((buffer-name (generate-new-buffer-name " *ert-test-run-tests*"))
-             (messages nil)
-             (mock-message-fn
-              (lambda (format-string &rest args)
-                (push (apply #'format format-string args) messages))))
+      (cl-letf* ((buffer-name (generate-new-buffer-name
+                               " *ert-test-run-tests*"))
+                 (ert--output-buffer-name buffer-name)
+                 (messages nil)
+                 ((symbol-function 'message)
+                  (lambda (format-string &rest args)
+                    (push (apply #'format format-string args) messages))))
         (save-window-excursion
           (unwind-protect
               (let ((case-fold-search nil))
                 (ert-run-tests-interactively
-                 `(member ,passing-test ,failing-test, skipped-test) buffer-name
-                 mock-message-fn)
+                 `(member ,passing-test ,failing-test, skipped-test))
                 (should (equal messages `(,(concat
                                             "Ran 3 tests, 1 results were "
                                             "as expected, 1 unexpected, "
@@ -550,6 +561,69 @@ This macro is used to test if macroexpansion in `should' works."
                             "Total:   3/3\n")))))
             (when (get-buffer buffer-name)
               (kill-buffer buffer-name))))))))
+
+(ert-deftest ert-test-run-tests-batch ()
+  (let* ((complex-list '((:1 (:2 (:3 (:4 (:5 (:6 "abc"))))))))
+	 (long-list (make-list 11 1))
+	 (failing-test-1
+          (make-ert-test :name 'failing-test-1
+			 :body (lambda () (should (equal complex-list 1)))))
+	 (failing-test-2
+          (make-ert-test :name 'failing-test-2
+			 :body (lambda () (should (equal long-list 1))))))
+    (let ((ert-debug-on-error nil)
+          messages)
+      (cl-letf* (((symbol-function 'message)
+                  (lambda (format-string &rest args)
+                    (push (apply #'format format-string args) messages))))
+        (save-window-excursion
+          (unwind-protect
+              (let ((case-fold-search nil)
+                    (ert-batch-backtrace-right-margin nil)
+		    (ert-batch-print-level 10)
+		    (ert-batch-print-length 11))
+                (ert-run-tests-batch
+                 `(member ,failing-test-1 ,failing-test-2))))))
+      (let ((long-text "(different-types[ \t\n]+(1 1 1 1 1 1 1 1 1 1 1)[ \t\n]+1)))[ \t\n]*$")
+	    (complex-text "(different-types[ \t\n]+((:1[ \t\n]+(:2[ \t\n]+(:3[ \t\n]+(:4[ \t\n]+(:5[ \t\n]+(:6[ \t\n]+\"abc\")))))))[ \t\n]+1)))[ \t\n]*$")
+            found-long
+	    found-complex)
+	(cl-loop for msg in (reverse messages)
+		 do
+		 (unless found-long
+		   (setq found-long (string-match long-text msg)))
+		 (unless found-complex
+		   (setq found-complex (string-match complex-text msg))))
+	(should found-long)
+	(should found-complex)))))
+
+(ert-deftest ert-test-run-tests-batch-expensive ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
+  (let* ((complex-list '((:1 (:2 (:3 (:4 (:5 (:6 "abc"))))))))
+	 (failing-test-1
+          (make-ert-test :name 'failing-test-1
+			 :body (lambda () (should (equal complex-list 1))))))
+    (let ((ert-debug-on-error nil)
+          messages)
+      (cl-letf* (((symbol-function 'message)
+                  (lambda (format-string &rest args)
+                    (push (apply #'format format-string args) messages))))
+        (save-window-excursion
+          (unwind-protect
+              (let ((case-fold-search nil)
+                    (ert-batch-backtrace-right-margin nil)
+                    (ert-batch-backtrace-line-length nil)
+		    (ert-batch-print-level 6)
+		    (ert-batch-print-length 11))
+                (ert-run-tests-batch
+                 `(member ,failing-test-1))))))
+      (let ((frame "ert-fail(((should (equal complex-list 1)) :form (equal ((:1 (:2 (:3 (:4 (:5 (:6 \"abc\"))))))) 1) :value nil :explanation (different-types ((:1 (:2 (:3 (:4 (:5 (:6 \"abc\"))))))) 1)))")
+            found-frame)
+	(cl-loop for msg in (reverse messages)
+		 do
+		 (unless found-frame
+		   (setq found-frame (cl-search frame msg :test 'equal))))
+        (should found-frame)))))
 
 (ert-deftest ert-test-special-operator-p ()
   (should (ert--special-operator-p 'if))
@@ -695,49 +769,40 @@ This macro is used to test if macroexpansion in `should' works."
   (should (equal (ert--abbreviate-string "bar" 0 t) "")))
 
 (ert-deftest ert-test-explain-equal-string-properties ()
-  (should
-   (equal (ert--explain-equal-including-properties #("foo" 0 1 (a b))
-                                                   "foo")
-          '(char 0 "f"
-                 (different-properties-for-key a (different-atoms b nil))
-                 context-before ""
-                 context-after "oo")))
-  (should (equal (ert--explain-equal-including-properties
+  (should-not (ert--explain-equal-including-properties-rec "foo" "foo"))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a b))
+               (propertize "foo" 'a 'b)))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a b c d))
+               (propertize "foo" 'a 'b 'c 'd)))
+  (should-not (ert--explain-equal-including-properties-rec
+               #("foo" 0 3 (a (t)))
+               (propertize "foo" 'a (list t))))
+
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 3 (a b c e))
+                  (propertize "foo" 'a 'b 'c 'd))
+                 '(char 0 "f" (different-properties-for-key c (different-atoms e d))
+                        context-before ""
+                        context-after "oo")))
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 1 (a b))
+                  "foo")
+                 '(char 0 "f"
+                        (different-properties-for-key a (different-atoms b nil))
+                        context-before ""
+                        context-after "oo")))
+  (should (equal (ert--explain-equal-including-properties-rec
                   #("foo" 1 3 (a b))
                   #("goo" 0 1 (c d)))
                  '(array-elt 0 (different-atoms (?f "#x66" "?f")
                                                 (?g "#x67" "?g")))))
-  (should
-   (equal (ert--explain-equal-including-properties
-           #("foo" 0 1 (a b c d) 1 3 (a b))
-           #("foo" 0 1 (c d a b) 1 2 (a foo)))
-          '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
-                 context-before "f" context-after "o"))))
-
-(ert-deftest ert-test-equal-including-properties ()
-  (should (equal-including-properties "foo" "foo"))
-  (should (ert-equal-including-properties "foo" "foo"))
-
-  (should (equal-including-properties #("foo" 0 3 (a b))
-                                      (propertize "foo" 'a 'b)))
-  (should (ert-equal-including-properties #("foo" 0 3 (a b))
-                                          (propertize "foo" 'a 'b)))
-
-  (should (equal-including-properties #("foo" 0 3 (a b c d))
-                                      (propertize "foo" 'a 'b 'c 'd)))
-  (should (ert-equal-including-properties #("foo" 0 3 (a b c d))
-                                          (propertize "foo" 'a 'b 'c 'd)))
-
-  (should-not (equal-including-properties #("foo" 0 3 (a b c e))
-                                          (propertize "foo" 'a 'b 'c 'd)))
-  (should-not (ert-equal-including-properties #("foo" 0 3 (a b c e))
-                                              (propertize "foo" 'a 'b 'c 'd)))
-
-  ;; This is bug 6581.
-  (should-not (equal-including-properties #("foo" 0 3 (a (t)))
-                                          (propertize "foo" 'a (list t))))
-  (should (ert-equal-including-properties #("foo" 0 3 (a (t)))
-                                          (propertize "foo" 'a (list t)))))
+  (should (equal (ert--explain-equal-including-properties-rec
+                  #("foo" 0 1 (a b c d) 1 3 (a b))
+                  #("foo" 0 1 (c d a b) 1 2 (a foo)))
+                 '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
+                        context-before "f" context-after "o"))))
 
 (ert-deftest ert-test-stats-set-test-and-result ()
   (let* ((test-1 (make-ert-test :name 'test-1
@@ -801,6 +866,28 @@ This macro is used to test if macroexpansion in `should' works."
     (should (eql 0 (ert-stats-completed-unexpected stats)))
     (should (eql 1 (ert-stats-skipped stats)))))
 
+(ert-deftest ert-test-with-demoted-errors ()
+  "Check that ERT correctly handles `with-demoted-errors'."
+  :expected-result :failed  ;; FIXME!  Bug#11218
+  (should-not (with-demoted-errors "FOO: %S" (error "Foo"))))
+
+(ert-deftest ert-test-fail-inside-should ()
+  "Check that `ert-fail' inside `should' works correctly."
+  (let ((result (ert-run-test
+                 (make-ert-test
+                  :name 'test-1
+                  :body (lambda () (should (integerp (ert-fail "Boo"))))))))
+    (should (ert-test-failed-p result))
+    (should (equal (ert-test-failed-condition result)
+                   '(ert-test-failed "Boo")))))
+
+(ert-deftest ert-test-deftest-lexical-binding-t ()
+  "Check that `lexical-binding' in `ert-deftest' has the file value."
+  (should (equal lexical-binding t)))
+
+(ert-deftest ert-test-get-explainer ()
+  (should (eq (ert--get-explainer 'string-equal) 'ert--explain-string-equal))
+  (should (eq (ert--get-explainer 'string=) 'ert--explain-string-equal)))
 
 (provide 'ert-tests)
 

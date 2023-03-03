@@ -1,6 +1,6 @@
-;;; rfc822.el --- hairy RFC 822 (or later) parser for mail, news, etc.
+;;; rfc822.el --- hairy RFC 822 (or later) parser for mail, news, etc.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1987, 1990, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1990, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -226,11 +226,11 @@
 		       ((and (not (eobp)) (= (following-char) ?\@))
 			;; <@foo.bar,@baz:quux@abcd.efg>
 			(rfc822-snarf-frob-list "<...> address" ?\, ?\:
-			  (function (lambda ()
-				      (if (rfc822-looking-at ?\@)
-					  (rfc822-snarf-domain)
-					(rfc822-bad-address
-					  "Gubbish in route-addr")))))
+                          (lambda ()
+                            (if (rfc822-looking-at ?\@)
+                                (rfc822-snarf-domain)
+                              (rfc822-bad-address
+                               "Gubbish in route-addr"))))
 			(rfc822-snarf-words)
 			(or (rfc822-looking-at ?@)
 			    (rfc822-bad-address "Malformed <..@..> address"))
@@ -279,8 +279,7 @@
     (let ((buf (generate-new-buffer " rfc822")))
       (unwind-protect
           (with-current-buffer buf
-            (make-local-variable 'case-fold-search)
-            (setq case-fold-search nil)	;For speed(?)
+            (setq-local case-fold-search nil)	;For speed(?)
             (insert header-text)
             ;; unfold continuation lines
             (goto-char (point-min))

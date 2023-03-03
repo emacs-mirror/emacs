@@ -1,21 +1,21 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -23,7 +23,10 @@
 
 (require 'cl-lib)
 (require 'cl-macs)
+(require 'edebug)
 (require 'ert)
+(require 'ert-x)
+(require 'pcase)
 
 
 ;;;; cl-loop tests -- many adapted from Steele's CLtL2
@@ -529,7 +532,7 @@ collection clause."
   (should-error
    ;; Use `eval' so the error is signaled when running the test rather than
    ;; when macroexpanding it.
-   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0)))))
+   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0))) t))
   ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
   ;; see its `gv-expander'.
   (should (equal (let ((l '(0)))
@@ -538,7 +541,27 @@ collection clause."
                          ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
                        (cl-incf p)))
                    l)
-                 '(1))))
+                 '(1)))
+  ;; Make sure `gv-synthetic-place' isn't macro-expanded before
+  ;; `cl-letf' gets to see its `gv-expander'.
+  (should (equal
+           (condition-case err
+               (let ((x 1))
+                 (list x
+                       (cl-letf (((gv-synthetic-place (+ 1 2)
+                                                      (lambda (v) `(setq x ,v)))
+                                  7))
+                         x)
+                       x))
+             (error err))
+           '(1 7 3)))
+  (should (equal
+           (let ((x (list 42)))
+             (cl-symbol-macrolet ((m (car x)))
+               (list m
+                     (cl-letf ((m 5)) m)
+                     m)))
+           '(42 5 42))))
 
 (ert-deftest cl-macs-loop-conditional-step-clauses ()
   "These tests failed under the initial fixes in #bug#29799."
@@ -609,5 +632,181 @@ collection clause."
            (current-buffer))
     ;; Just make sure the function can be instrumented.
     (edebug-defun)))
+
+;;; cl-labels
+
+(ert-deftest cl-macs--labels ()
+  ;; Simple recursive function.
+  (cl-labels ((len (xs) (if xs (1+ (len (cdr xs))) 0)))
+    (should (equal (len (make-list 42 t)) 42)))
+
+  (let ((list-42 (make-list 42 t))
+        (list-42k (make-list 42000 t)))
+
+    (cl-labels
+        ;; Simple tail-recursive function.
+        ((len (xs n) (if xs (len (cdr xs) (1+ n)) n))
+         ;; Slightly obfuscated version to exercise tail calls from
+         ;; `let', `progn', `and' and `or'.
+         (len2 (xs n) (or (and (not xs) n)
+                          (let (n1)
+                            (and xs
+                                 (progn (setq n1 (1+ n))
+                                        (len2 (cdr xs) n1))))))
+         ;; Tail calls in error and success handlers.
+         (len3 (xs n)
+               (if xs
+                   (condition-case k
+                       (/ 1 (logand n 1))
+                     (arith-error (len3 (cdr xs) (1+ n)))
+                     (:success (len3 (cdr xs) (+ n k))))
+                 n))
+
+         ;; Tail calls in `cond'.
+         (len4 (xs n)
+           (cond (xs (cond (nil 'nevertrue)
+                           ((len4 (cdr xs) (1+ n)))))
+                 (t n))))
+      (should (equal (len nil 0) 0))
+      (should (equal (len2 nil 0) 0))
+      (should (equal (len3 nil 0) 0))
+      (should (equal (len4 nil 0) 0))
+      (should (equal (len list-42 0) 42))
+      (should (equal (len2 list-42 0) 42))
+      (should (equal (len3 list-42 0) 42))
+      (should (equal (len4 list-42 0) 42))
+      ;; Should not bump into stack depth limits.
+      (should (equal (len list-42k 0) 42000))
+      (should (equal (len2 list-42k 0) 42000))
+      (should (equal (len3 list-42k 0) 42000))
+      (should (equal (len4 list-42k 0) 42000))))
+
+  ;; Check that non-recursive functions are handled more efficiently.
+  (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))
+            (`(let* ,_ (funcall ,_ 5)) t)))
+
+  ;; Case of "tail-recursive lambdas".
+  (should (pcase (macroexpand
+                  '(cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
+                     #'len))
+            (`(function (lambda (,_ ,_) . ,_)) t)))
+
+  ;; Verify that there is no tail position inside dynamic variable bindings.
+  (defvar dyn-var)
+  (let ((dyn-var 'a))
+    (cl-labels ((f (x) (if x
+                           dyn-var
+                         (let ((dyn-var 'b))
+                           (f dyn-var)))))
+      (should (equal (f nil) 'b))))
+
+  ;; Control: same as above but with lexical binding.
+  (let ((lex-var 'a))
+    (cl-labels ((f (x) (if x
+                           lex-var
+                         (let ((lex-var 'b))
+                           (f lex-var)))))
+      (should (equal (f nil) 'a)))))
+
+(ert-deftest cl-macs--progv ()
+  (defvar cl-macs--test)
+  (defvar cl-macs--test1)
+  (defvar cl-macs--test2)
+  (should (= (cl-progv '(cl-macs--test cl-macs--test) '(1 2) cl-macs--test) 2))
+  (should (equal (cl-progv '(cl-macs--test1 cl-macs--test2) '(1 2)
+                   (list cl-macs--test1 cl-macs--test2))
+                 '(1 2))))
+
+(ert-deftest cl-define-compiler-macro/edebug ()
+  "Check that we can instrument compiler macros."
+  (with-temp-buffer
+    (dolist (form '((defun cl-define-compiler-macro/edebug (a b) nil)
+                    (cl-define-compiler-macro
+                        cl-define-compiler-macro/edebug
+                        (&whole w a b)
+                      w)))
+      (print form (current-buffer)))
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      ;; Just make sure the forms can be instrumented.
+      (eval-buffer))))
+
+(ert-deftest cl-defstruct/edebug ()
+  "Check that we can instrument `cl-defstruct' forms."
+  (with-temp-buffer
+    (dolist (form '((cl-defstruct cl-defstruct/edebug/1)
+                    (cl-defstruct (cl-defstruct/edebug/2
+                                   :noinline))
+                    (cl-defstruct (cl-defstruct/edebug/3
+                                   (:noinline t)))
+                    (cl-defstruct (cl-defstruct/edebug/4
+                                   :named))
+                    (cl-defstruct (cl-defstruct/edebug/5
+                                   (:named t)))))
+      (print form (current-buffer)))
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      ;; Just make sure the forms can be instrumented.
+      (eval-buffer))))
+
+(ert-deftest cl-case-error ()
+  "Test that `cl-case' and `cl-ecase' signal an error if a t or
+`otherwise' key is misplaced."
+  (let ((text-quoting-style 'grave))
+    (dolist (form '((cl-case val (t 1) (123 2))
+                    (cl-ecase val (t 1) (123 2))
+                    (cl-ecase val (123 2) (t 1))))
+      (ert-info ((prin1-to-string form) :prefix "Form: ")
+                (let ((error (should-error (macroexpand form))))
+                  (should (equal (cdr error)
+                                 '("Misplaced t or `otherwise' clause"))))))))
+
+(ert-deftest cl-case-warning ()
+  "Test that `cl-case' and `cl-ecase' warn about suspicious
+constructs."
+  (let ((text-quoting-style 'grave))
+    (pcase-dolist (`(,case . ,message)
+                   `((nil . "Case nil will never match")
+                     ('nil . ,(concat "Case 'nil will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(nil quote) instead.  "
+                                      "Otherwise, don't quote `nil'."))
+                     ('t . ,(concat "Case 't will match `quote'.  "
+                                    "If that's intended, write "
+                                    "(t quote) instead.  "
+                                    "Otherwise, don't quote `t'."))
+                     ('foo . ,(concat "Case 'foo will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(foo quote) instead.  "
+                                      "Otherwise, don't quote `foo'."))
+                     (#'foo . ,(concat "Case #'foo will match "
+                                       "`function'.  If that's "
+                                       "intended, write (foo function) "
+                                       "instead.  Otherwise, don't "
+                                       "quote `foo'."))))
+      (dolist (macro '(cl-case cl-ecase))
+        (let ((form `(,macro val (,case 1))))
+          (ert-info ((prin1-to-string form) :prefix "Form: ")
+                    (ert-with-message-capture messages
+                                              (macroexpand form)
+                                              (should (equal messages
+                                                             (concat "Warning: " message "\n"))))))))))
+
+(ert-deftest cl-case-no-warning ()
+  "Test that `cl-case' and `cl-ecase' don't warn in some valid cases.
+See Bug#57915."
+  (dolist (case '(quote (quote) function (function)))
+    (dolist (macro '(cl-case cl-ecase))
+      (let ((form `(,macro val (,case 1))))
+        (ert-info ((prin1-to-string form) :prefix "Form: ")
+          (ert-with-message-capture messages
+            (macroexpand form)
+            (should (string-empty-p messages))))))))
+
+(ert-deftest cl-&key-arguments ()
+  (cl-flet ((fn (&key x) x))
+    (should-error (fn :x))
+    (should (eq (fn :x :a) :a))))
+
 
 ;;; cl-macs-tests.el ends here

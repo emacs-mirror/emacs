@@ -1,7 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2020 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
@@ -36,7 +35,7 @@
 ;; anything encapsulated in a nice eieio object.
 ;;
 ;;   Current example apps for chart can be accessed via these commands:
-;; `chart-file-count'     - count files w/ matching extensions
+;; `chart-file-count'     - count files with matching extensions
 ;; `chart-space-usage'    - display space used by files/directories
 ;; `chart-emacs-storage'  - Emacs storage units used/free (garbage-collect)
 ;; `chart-emacs-lists'    - length of Emacs lists
@@ -64,12 +63,10 @@
 (eval-when-compile (require 'cl-generic))
 
 ;;; Code:
-(define-obsolete-variable-alias 'chart-map 'chart-mode-map "24.1")
-(defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
+(defvar-keymap chart-mode-map :doc "Keymap used in chart mode.")
 
-(defvar chart-local-object nil
+(defvar-local chart-local-object nil
   "Local variable containing the locally displayed chart object.")
-(make-variable-buffer-local 'chart-local-object)
 
 (defvar chart-face-color-list '("red" "green" "blue"
 				"cyan" "yellow" "purple")
@@ -77,8 +74,7 @@
 Colors will be the background color.")
 
 (defvar chart-face-pixmap-list
-  (if (and (fboundp 'display-graphic-p)
-	   (display-graphic-p))
+  (if (display-graphic-p)
       '("dimple1" "scales" "dot" "cross_weave" "boxes" "dimple3"))
   "If pixmaps are allowed, display these background pixmaps.
 Useful if new Emacs is used on B&W display.")
@@ -90,37 +86,43 @@ Useful if new Emacs is used on B&W display.")
 
 (declare-function x-display-color-cells "xfns.c" (&optional terminal))
 
-(defvar chart-face-list
-  (if (display-color-p)
-      (let ((cl chart-face-color-list)
-            (pl chart-face-pixmap-list)
-            (faces ())
-            nf)
-        (while cl
-          (setq nf (make-face
-                    (intern (concat "chart-" (car cl) "-" (car pl)))))
-          (set-face-background nf (if (condition-case nil
-                                          (> (x-display-color-cells) 4)
-                                        (error t))
-                                      (car cl)
-                                    "white"))
-          (set-face-foreground nf "black")
-          (if (and chart-face-use-pixmaps pl)
-              (condition-case nil
-                  (set-face-background-pixmap nf (car pl))
-                (error (message "Cannot set background pixmap %s" (car pl)))))
-          (push nf faces)
-          (setq cl (cdr cl)
-                pl (cdr pl)))
-        faces))
+(defvar chart-face-list #'chart--face-list
   "Faces used to colorize charts.
+This should either be a list of faces, or a function that returns
+a list of faces.
+
 List is limited currently, which is ok since you really can't display
 too much in text characters anyways.")
+
+(defun chart--face-list ()
+  (and
+   (display-color-p)
+   (let ((cl chart-face-color-list)
+         (pl chart-face-pixmap-list)
+         (faces ())
+         nf)
+     (while cl
+       (setq nf (make-face
+                 (intern (concat "chart-" (car cl) "-" (car pl)))))
+       (set-face-background nf (if (condition-case nil
+                                       (> (x-display-color-cells) 4)
+                                     (error t))
+                                   (car cl)
+                                 "white"))
+       (set-face-foreground nf "black")
+       (if (and chart-face-use-pixmaps pl)
+           (condition-case nil
+               (set-face-stipple nf (car pl))
+             (error (message "Cannot set background pixmap %s" (car pl)))))
+       (push nf faces)
+       (setq cl (cdr cl)
+             pl (cdr pl)))
+     faces)))
 
 (define-derived-mode chart-mode special-mode "Chart"
   "Define a mode in Emacs for displaying a chart."
   (buffer-disable-undo)
-  (set (make-local-variable 'font-lock-global-modes) nil)
+  (setq-local font-lock-global-modes nil)
   (font-lock-mode -1)                   ;Isn't it off already?  --Stef
   )
 
@@ -188,7 +190,7 @@ Make sure the width/height is correct."
    )
   "Class used to display an axis which represents different named items.")
 
-(defclass chart-sequece ()
+(defclass chart-sequence ()
   ((data :initarg :data
 	 :initform nil)
    (name :initarg :name
@@ -198,7 +200,7 @@ Make sure the width/height is correct."
 
 (defclass chart-bar (chart)
   ((direction :initarg :direction
-	      :initform vertical))
+	      :initform 'vertical))
   "Subclass for bar charts (vertical or horizontal).")
 
 (cl-defmethod chart-draw ((c chart) &optional buff)
@@ -333,7 +335,8 @@ Automatically compensates for direction."
 (cl-defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
-Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
+Optional arguments MARGIN, ZONE, START and END specify boundaries
+of the drawing."
   (cl-call-next-method)
   ;; We prefer about 5 spaces between each value
   (let* ((i 0)
@@ -374,7 +377,10 @@ Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing
   (let* ((data (oref c sequences))
 	 (dir (oref c direction))
 	 (odir (if (eq dir 'vertical) 'horizontal 'vertical))
-	)
+         (faces
+          (if (functionp chart-face-list)
+              (funcall chart-face-list)
+            chart-face-list)))
     (while data
       (if (stringp (car (oref (car data) data)))
 	  ;; skip string lists...
@@ -390,10 +396,9 @@ Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing
 		  (zp (if (eq dir 'vertical)
 			  (chart-translate-ypos c 0)
 			(chart-translate-xpos c 0)))
-		  (fc (if chart-face-list
-			  (nth (% i (length chart-face-list)) chart-face-list)
-			'default))
-		  )
+		  (fc (if faces
+			  (nth (% i (length faces)) faces)
+			'default)))
 	      (if (< dp zp)
 		  (progn
 		    (chart-draw-line dir (car rng) dp zp)
@@ -512,7 +517,7 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
     (if (eobp) (newline num))
     (if (< x 0) (setq x 0))
     (if (< y 0) (setq y 0))
-    ;; Now, a quicky column moveto/forceto method.
+    ;; Now, a quickie column moveto/forceto method.
     (or (= (move-to-column x) x)
 	(let ((p (point)))
 	  (indent-to x)
@@ -521,9 +526,9 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
 (defun chart-zap-chars (n)
   "Zap up to N chars without deleting EOLs."
   (if (not (eobp))
-      (if (< n (- (point-at-eol) (point)))
+      (if (< n (- (line-end-position) (point)))
 	  (delete-char n)
-	(delete-region (point) (point-at-eol)))))
+        (delete-region (point) (line-end-position)))))
 
 (defun chart-display-label (label dir zone start end &optional face)
   "Display LABEL in direction DIR in column/row ZONE between START and END.
@@ -583,12 +588,12 @@ SORT-PRED if desired."
 			   ))
 	(iv (eq dir 'vertical)))
     (chart-add-sequence nc
-			(make-instance 'chart-sequece
+			(make-instance 'chart-sequence
 				       :data namelst
 				       :name nametitle)
 			(if iv 'x-axis 'y-axis))
     (chart-add-sequence nc
-			(make-instance 'chart-sequece
+			(make-instance 'chart-sequence
 				       :data numlst
 				       :name numtitle)
 			(if iv 'y-axis 'x-axis))

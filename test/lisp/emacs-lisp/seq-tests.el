@@ -1,6 +1,6 @@
 ;;; seq-tests.el --- Tests for seq.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -28,6 +28,9 @@
 
 (require 'ert)
 (require 'seq)
+
+(eval-when-compile
+  (require 'cl-lib))
 
 (defmacro with-test-sequences (spec &rest body)
   "Successively bind VAR to a list, vector, and string built from SEQ.
@@ -108,16 +111,12 @@ Evaluate BODY for each created sequence.
                  '((a 0) (b 1) (c 2) (d 3)))))
 
 (ert-deftest test-seq-do-indexed ()
-  (let ((result nil))
-    (seq-do-indexed (lambda (elt i)
-                      (add-to-list 'result (list elt i)))
-                    nil)
-    (should (equal result nil)))
+  (let (result)
+    (seq-do-indexed (lambda (elt i) (push (list elt i) result)) ())
+    (should-not result))
   (with-test-sequences (seq '(4 5 6))
-    (let ((result nil))
-      (seq-do-indexed (lambda (elt i)
-                        (add-to-list 'result (list elt i)))
-                      seq)
+    (let (result)
+      (seq-do-indexed (lambda (elt i) (push (list elt i) result)) seq)
       (should (equal (seq-elt result 0) '(6 2)))
       (should (equal (seq-elt result 1) '(5 1)))
       (should (equal (seq-elt result 2) '(4 0))))))
@@ -137,6 +136,14 @@ Evaluate BODY for each created sequence.
     (should (same-contents-p (seq-remove (lambda (_) nil) seq) seq)))
   (with-test-sequences (seq '())
     (should (equal (seq-remove #'test-sequences-evenp seq) '()))))
+
+(ert-deftest test-seq-remove-at-position ()
+  (with-test-sequences (seq '(1 2 3 4))
+    (should (same-contents-p (seq-remove-at-position seq 2) '(1 2 4)))
+    (should (same-contents-p (seq-remove-at-position seq 0) '(2 3 4)))
+    (should (same-contents-p (seq-remove-at-position seq 3) '(1 2 3)))
+    (should (eq (type-of (seq-remove-at-position seq 2))
+                (type-of seq)))))
 
 (ert-deftest test-seq-count ()
   (with-test-sequences (seq '(6 7 8 9 10))
@@ -174,16 +181,18 @@ Evaluate BODY for each created sequence.
   (should (seq-find #'null '(1 2 3) 'sentinel)))
 
 (ert-deftest test-seq-contains ()
-  (with-test-sequences (seq '(3 4 5 6))
-    (should (seq-contains seq 3))
-    (should-not (seq-contains seq 7)))
-  (with-test-sequences (seq '())
-    (should-not (seq-contains seq 3))
-    (should-not (seq-contains seq nil))))
+  (with-suppressed-warnings ((obsolete seq-contains))
+    (with-test-sequences (seq '(3 4 5 6))
+      (should (seq-contains seq 3))
+      (should-not (seq-contains seq 7)))
+    (with-test-sequences (seq '())
+      (should-not (seq-contains seq 3))
+      (should-not (seq-contains seq nil)))))
 
 (ert-deftest test-seq-contains-should-return-the-elt ()
-  (with-test-sequences (seq '(3 4 5 6))
-    (should (= 5 (seq-contains seq 5)))))
+  (with-suppressed-warnings ((obsolete seq-contains))
+    (with-test-sequences (seq '(3 4 5 6))
+      (should (= 5 (seq-contains seq 5))))))
 
 (ert-deftest test-seq-contains-p ()
   (with-test-sequences (seq '(3 4 5 6))
@@ -256,6 +265,19 @@ Evaluate BODY for each created sequence.
   (with-test-sequences (seq '())
     (should (equal (seq-uniq seq) '()))))
 
+(defun seq-tests--list-subseq-ref (list start &optional end)
+  "Reference implementation of `seq-subseq' for lists."
+  (let ((len (length list)))
+    (when (< start 0)
+      (setq start (+ start len)))
+    (unless end
+      (setq end len))
+    (when (< end 0)
+      (setq end (+ end len)))
+    (if (<= 0 start end len)
+        (take (- end start) (nthcdr start list))
+      (error "bad args"))))
+
 (ert-deftest test-seq-subseq ()
   (with-test-sequences (seq '(2 3 4 5))
     (should (equal (seq-subseq seq 0 4) seq))
@@ -274,7 +296,21 @@ Evaluate BODY for each created sequence.
   (should-error (seq-subseq [] -1))
   (should-error (seq-subseq "" -1))
   (should-not (seq-subseq '() 0))
-  (should-error (seq-subseq '() 0 -1)))
+  (should-error (seq-subseq '() 0 -1))
+
+  (dolist (list '(() (a b c d)))
+    (ert-info ((prin1-to-string list) :prefix "list: ")
+      (let ((len (length list)))
+        (dolist (start (number-sequence (- -2 len) (+ 2 len)))
+          (ert-info ((prin1-to-string start) :prefix "start: ")
+            (dolist (end (cons nil (number-sequence (- -2 len) (+ 2 len))))
+              (ert-info ((prin1-to-string end) :prefix "end: ")
+                (condition-case res
+                    (seq-tests--list-subseq-ref list start end)
+                  (error
+                   (should-error (seq-subseq list start end)))
+                  (:success
+                   (should (equal (seq-subseq list start end) res))))))))))))
 
 (ert-deftest test-seq-concatenate ()
   (with-test-sequences (seq '(2 4 6))
@@ -337,6 +373,33 @@ Evaluate BODY for each created sequence.
     (should (same-contents-p list vector))
     (should (vectorp vector))))
 
+(ert-deftest test-seq-union ()
+  (let ((v1 '(1 2 3))
+        (v2 '(3 5)))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 5))))
+
+  (let ((v1 '(1 2 3 4 5 6))
+        (v2 '(4 5 6 7 8 9)))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 4 5 6 7 8 9))))
+
+  (let ((v1 [1 2 3 4 5])
+        (v2 [4 5 6 "a"]))
+   (should (same-contents-p (seq-union v1 v2)
+                            '(1 2 3 4 5 6 "a"))))
+
+  (let ((v1 '("a" "b" "c"))
+        (v2 '("f" "c" "e" "a")))
+   (should (same-contents-p (seq-union v1 v2)
+                            '("a" "b" "c" "f" "e"))))
+
+  (let ((v1 '("a"))
+        (v2 '("a"))
+        (testfn #'eq))
+   (should (same-contents-p (seq-union v1 v2 testfn)
+                            '("a" "a")))))
+
 (ert-deftest test-seq-intersection ()
   (let ((v1 [2 3 4 5])
         (v2 [1 3 5 6 7]))
@@ -378,11 +441,35 @@ Evaluate BODY for each created sequence.
   (let ((seq '(1 (2 (3 (4))))))
     (seq-let (_ (_ (_ (a)))) seq
       (should (= a 4))))
-  (let (seq)
+  (let ((seq nil))
     (seq-let (a b c) seq
       (should (null a))
       (should (null b))
       (should (null c)))))
+
+(ert-deftest test-seq-setq ()
+  (with-test-sequences (seq '(1 2 3 4))
+    (let (a b c d e)
+      (seq-setq (a b c d e) seq)
+      (should (= a 1))
+      (should (= b 2))
+      (should (= c 3))
+      (should (= d 4))
+      (should (null e)))
+    (let (a b others)
+      (seq-setq (a b &rest others) seq)
+      (should (= a 1))
+      (should (= b 2))
+      (should (same-contents-p others (seq-drop seq 2)))))
+  (let ((a)
+        (seq '(1 (2 (3 (4))))))
+    (seq-setq (_ (_ (_ (a)))) seq)
+    (should (= a 4)))
+  (let ((seq nil) a b c)
+    (seq-setq (a b c) seq)
+    (should (null a))
+    (should (null b))
+    (should (null c))))
 
 (ert-deftest test-seq-min-max ()
   (with-test-sequences (seq '(4 5 3 2 0 4))
@@ -403,6 +490,13 @@ Evaluate BODY for each created sequence.
     (should (= (seq-position seq 'a #'eq) 0))
     (should (null (seq-position seq (make-symbol "a") #'eq)))))
 
+(ert-deftest test-seq-positions ()
+  (with-test-sequences (seq '(1 2 3 1 4))
+    (should (equal '(0 3) (seq-positions seq 1)))
+    (should (seq-empty-p (seq-positions seq 9))))
+  (with-test-sequences (seq '(11 5 7 12 9 15))
+    (should (equal '(0 3 5) (seq-positions seq 10 #'>=)))))
+
 (ert-deftest test-seq-sort-by ()
   (let ((seq ["x" "xx" "xxx"]))
     (should (equal (seq-sort-by #'seq-length #'> seq)
@@ -410,12 +504,10 @@ Evaluate BODY for each created sequence.
 
 (ert-deftest test-seq-random-elt-take-all ()
   (let ((seq '(a b c d e))
-        (elts '()))
-    (should (= 0 (length elts)))
+        elts)
     (dotimes (_ 1000)
       (let ((random-elt (seq-random-elt seq)))
-        (add-to-list 'elts
-                     random-elt)))
+        (cl-pushnew random-elt elts)))
     (should (= 5 (length elts)))))
 
 (ert-deftest test-seq-random-elt-signal-on-empty ()
@@ -460,6 +552,51 @@ Evaluate BODY for each created sequence.
   (ert-deftest test-difference-with-nil ()
     (should (equal (seq-difference '(1 nil) '(2 nil))
                    '(1)))))
+
+(ert-deftest test-seq-split ()
+  (let ((seq [0 1 2 3 4 5 6 7 8 9 10]))
+    (should (equal seq (car (seq-split seq 20))))
+    (should (equal seq (car (seq-split seq 11))))
+    (should (equal (seq-split seq 10)
+                   '([0 1 2 3 4 5 6 7 8 9] [10])))
+    (should (equal (seq-split seq 5)
+                   '([0 1 2 3 4] [5 6 7 8 9] [10])))
+    (should (equal (seq-split seq 1)
+                   '([0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10])))
+    (should-error (seq-split seq 0))
+    (should-error (seq-split seq -10)))
+  (let ((seq '(0 1 2 3 4 5 6 7 8 9)))
+    (should (equal (seq-split seq 5)
+                   '((0 1 2 3 4) (5 6 7 8 9)))))
+  (let ((seq "0123456789"))
+    (should (equal (seq-split seq 2)
+                   '("01" "23" "45" "67" "89")))
+    (should (equal (seq-split seq 3)
+                   '("012" "345" "678" "9")))))
+
+(ert-deftest test-seq-uniq-list ()
+  (let ((list '(1 2 3)))
+    (should (equal (seq-uniq (append list list)) '(1 2 3))))
+  (let ((list '(1 2 3 2 1)))
+    (should (equal (seq-uniq list) '(1 2 3))))
+  (let ((list (list (substring "1")
+                    (substring "2")
+                    (substring "3")
+                    (substring "2")
+                    (substring "1"))))
+    (should (equal (seq-uniq list) '("1" "2" "3")))
+    (should (equal (seq-uniq list #'eq) '("1" "2" "3" "2" "1"))))
+  ;; Long lists have a different code path.
+  (let ((list (seq-map-indexed (lambda (_ i) i)
+			       (make-list 10000 nil))))
+    (should (= (length list) 10000))
+    (should (= (length (seq-uniq (append list list))) 10000))))
+
+(ert-deftest test-seq-keep ()
+  (should (equal (seq-keep #'cl-digit-char-p '(?6 ?a ?7))
+                 '(6 7)))
+  (should (equal (seq-keep #'cl-digit-char-p [?6 ?a ?7])
+                 '(6 7))))
 
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; generator.el --- generators  -*- lexical-binding: t -*-
 
-;;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords: extensions, elisp
@@ -143,8 +143,7 @@ the CPS state machinery."
          (setf ,static-var ,dynamic-var)))))
 
 (defmacro cps--with-dynamic-binding (dynamic-var static-var &rest body)
-  "Evaluate BODY such that generated atomic evaluations run with
-DYNAMIC-VAR bound to STATIC-VAR."
+  "Run BODY's atomic evaluations run with DYNAMIC-VAR bound to STATIC-VAR."
   (declare (indent 2))
   `(cps--with-value-wrapper
        (cps--make-dynamic-binding-wrapper ,dynamic-var ,static-var)
@@ -291,22 +290,28 @@ DYNAMIC-VAR bound to STATIC-VAR."
                         (cps--transform-1 `(progn ,@rest)
                                           next-state)))
 
-    ;; Process `let' in a helper function that transforms it into a
-    ;; let* with temporaries.
+    (`(,(or 'let 'let*) () . ,body)
+      (cps--transform-1 `(progn ,@body) next-state))
+
+    ;; Transform multi-variable `let' into `let*':
+    ;;    (let ((v1 e1) ... (vN eN)) BODY)
+    ;; -> (let* ((t1 e1) ... (tN-1 eN-1) (vN eN) (v1 t1) (vN-1 tN-1)) BODY)
 
     (`(let ,bindings . ,body)
       (let* ((bindings (cl-loop for binding in bindings
                           collect (if (symbolp binding)
                                       (list binding nil)
                                     binding)))
-             (temps (cl-loop for (var _value-form) in bindings
+             (butlast-bindings (butlast bindings))
+             (temps (cl-loop for (var _value-form) in butlast-bindings
                        collect (cps--add-binding var))))
         (cps--transform-1
          `(let* ,(append
-                  (cl-loop for (_var value-form) in bindings
+                  (cl-loop for (_var value-form) in butlast-bindings
                      for temp in temps
                      collect (list temp value-form))
-                  (cl-loop for (var _binding) in bindings
+                  (last bindings)
+                  (cl-loop for (var _binding) in butlast-bindings
                      for temp in temps
                      collect (list var temp)))
             ,@body)
@@ -314,9 +319,6 @@ DYNAMIC-VAR bound to STATIC-VAR."
 
     ;; Process `let*' binding: process one binding at a time.  Flatten
     ;; lexical bindings.
-
-    (`(let* () . ,body)
-      (cps--transform-1 `(progn ,@body) next-state))
 
     (`(let* (,binding . ,more-bindings) . ,body)
       (let* ((var (if (symbolp binding) binding (car binding)))
@@ -467,7 +469,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
           (guard (cps--special-form-p name))
           (guard (not (memq name cps-standard-special-forms))))
      name                               ; Shut up byte compiler
-     (error "special form %S incorrect or not supported" form))
+     (error "Special form %S incorrect or not supported" form))
 
     ;; Process regular function applications with nontrivial
     ;; parameters, converting them to applications of trivial
@@ -633,7 +635,7 @@ modified copy."
                          ;; If we're exiting non-locally (error, quit,
                          ;; etc.)  close the iterator.
                          ,(cps--make-close-iterator-form terminal-state)))))
-                  (t (error "unknown iterator operation %S" op))))))
+                  (t (error "Unknown iterator operation %S" op))))))
          ,(when finalizer-symbol
             '(funcall iterator
                       :stash-finalizer
@@ -642,12 +644,11 @@ modified copy."
                          (iter-close iterator)))))
          iterator))))
 
-(defun iter-yield (value)
+(defun iter-yield (_value)
   "When used inside a generator, yield control to caller.
 The caller of `iter-next' receives VALUE, and the next call to
 `iter-next' resumes execution with the form immediately following this
 `iter-yield' call."
-  (identity value)
   (error "`iter-yield' used outside a generator"))
 
 (defmacro iter-yield-from (value)
@@ -668,7 +669,7 @@ sub-iterator function returns via `iter-end-of-sequence'."
          (iter-close ,valsym)))))
 
 (defmacro iter-defun (name arglist &rest body)
-  "Creates a generator NAME.
+  "Create a generator NAME that accepts ARGLIST as its arguments.
 When called as a function, NAME returns an iterator value that
 encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."
@@ -689,8 +690,10 @@ of values.  Callers can retrieve each value using `iter-next'."
   (declare (indent defun)
            (debug (&define lambda-list lambda-doc &rest sexp)))
   (cl-assert lexical-binding)
-  `(lambda ,arglist
-     ,(cps-generate-evaluator body)))
+  (pcase-let* ((`(,declarations . ,exps) (macroexp-parse-body body)))
+    `(lambda ,arglist
+       ,@declarations
+       ,(cps-generate-evaluator exps))))
 
 (defmacro iter-make (&rest body)
   "Return a new iterator."
@@ -711,7 +714,7 @@ iterator cannot supply more values."
 
 (defun iter-close (iterator)
   "Terminate an iterator early.
-Run any unwind-protect handlers in scope at the point ITERATOR
+Run any `unwind-protect' handlers in scope at the point ITERATOR
 is blocked."
   (funcall iterator :close nil))
 
@@ -725,17 +728,20 @@ Return the value with which ITERATOR finished iteration."
         (condition-symbol (cps--gensym "iter-do-condition"))
         (it-symbol (cps--gensym "iter-do-iterator"))
         (result-symbol (cps--gensym "iter-do-result")))
-    `(let (,var
-           ,result-symbol
+    `(let (,result-symbol
            (,done-symbol nil)
            (,it-symbol ,iterator))
-       (while (not ,done-symbol)
-         (condition-case ,condition-symbol
-             (setf ,var (iter-next ,it-symbol))
-           (iter-end-of-sequence
-            (setf ,result-symbol (cdr ,condition-symbol))
-            (setf ,done-symbol t)))
-         (unless ,done-symbol ,@body))
+       (while
+           (let ((,var
+                  (condition-case ,condition-symbol
+                      (iter-next ,it-symbol)
+                    (iter-end-of-sequence
+                     (setf ,result-symbol (cdr ,condition-symbol))
+                     (setf ,done-symbol t)))))
+             (unless ,done-symbol
+               ,@body
+               ;; Loop until done-symbol is set.
+               t)))
        ,result-symbol)))
 
 (defvar cl--loop-args)

@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,6 +99,7 @@ DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
 Precisely, if point is on line I, move to the start of line I + N
 \("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
+Interactively, N is the numeric prefix argument and defaults to 1.
 
 Returns the count of lines left to move.  If moving forward,
 that is N minus number of lines moved; if backward, N plus number
@@ -454,7 +455,7 @@ internal_self_insert (int c, EMACS_INT n)
       ptrdiff_t to;
       if (INT_ADD_WRAPV (PT, chars_to_delete, &to))
 	to = PTRDIFF_MAX;
-      replace_range (PT, to, string, 1, 1, 1, 0);
+      replace_range (PT, to, string, 1, 1, 1, 0, false);
       Fforward_char (make_fixnum (n));
     }
   else if (n > 1)
@@ -528,25 +529,4 @@ This is run after inserting the character.  */);
 
   defsubr (&Sdelete_char);
   defsubr (&Sself_insert_command);
-}
-
-void
-keys_of_cmds (void)
-{
-  int n;
-
-  initial_define_key (global_map, Ctl ('I'), "self-insert-command");
-  for (n = 040; n < 0177; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-#ifdef MSDOS
-  for (n = 0200; n < 0240; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-#endif
-  for (n = 0240; n < 0400; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-
-  initial_define_key (global_map, Ctl ('A'), "beginning-of-line");
-  initial_define_key (global_map, Ctl ('B'), "backward-char");
-  initial_define_key (global_map, Ctl ('E'), "end-of-line");
-  initial_define_key (global_map, Ctl ('F'), "forward-char");
 }

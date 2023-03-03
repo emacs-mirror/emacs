@@ -1,6 +1,6 @@
-;; ede/source.el --- EDE source code object
+;; ede/source.el --- EDE source code object  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000, 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -72,7 +72,7 @@ that they are willing to use.")
 
 ;;; Methods
 ;;
-(cl-defmethod initialize-instance :after ((this ede-sourcecode) &rest fields)
+(cl-defmethod initialize-instance :after ((this ede-sourcecode) &rest _fields)
   "Make sure that all ede compiler objects are cached in
 `ede-compiler-list'."
   (let ((lst ede-sourcecode-list))
@@ -91,12 +91,12 @@ that they are willing to use.")
       (ede-want-file-auxiliary-p this filename)))
 
 (cl-defmethod ede-want-file-source-p ((this ede-sourcecode) filename)
-  "Return non-nil if THIS will take FILENAME as an auxiliary ."
+  "Return non-nil if THIS will take FILENAME as an auxiliary."
   (let ((case-fold-search nil))
     (string-match (oref this sourcepattern) filename)))
 
 (cl-defmethod ede-want-file-auxiliary-p ((this ede-sourcecode) filename)
-  "Return non-nil if THIS will take FILENAME as an auxiliary ."
+  "Return non-nil if THIS will take FILENAME as an auxiliary."
   (let ((case-fold-search nil))
     (and (slot-boundp this 'auxsourcepattern)
 	 (oref this auxsourcepattern)

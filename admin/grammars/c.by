@@ -1,5 +1,5 @@
 ;;; c.by -- LL grammar for C/C++ language specification
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         David Ponce <david@dponce.com>
@@ -415,7 +415,7 @@ typesimple
   : struct-or-class opt-class opt-name opt-template-specifier
     opt-class-parents semantic-list
     (TYPE-TAG (car $3) (car $1)
-          (let ((semantic-c-classname (cons (car ,$3) (car ,$1))))
+          (dlet ((semantic-c-classname (cons (car ,$3) (car ,$1))))
             (EXPANDFULL $6 classsubparts))
           $5
           :template-specifier $4

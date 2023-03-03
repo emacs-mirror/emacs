@@ -1,6 +1,6 @@
-;;; ede/config.el --- Configuration Handler baseclass
+;;; ede/config.el --- Configuration Handler baseclass  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -65,7 +65,7 @@
 (defclass ede-extra-config (eieio-persistent)
   ((extension :initform ".ede")
    (file-header-line :initform ";; EDE Project Configuration")
-   (project :type ede-project-with-config-child
+   (project :type ede-project-with-config
 	    :documentation
 	    "The project this config is bound to.")
    (ignored-file :initform nil
@@ -96,13 +96,13 @@ and also want to save some extra level of configuration.")
 This filename excludes the directory name and is used to
 initialize the :file slot of the persistent baseclass.")
    (config-class
-    :initform ede-extra-config
+    :initform 'ede-extra-config
     :allocation :class
     :type class
     :documentation
     "The class of the configuration used by this project.")
    (config :initform nil
-	   :type (or null ede-extra-config-child)
+	   :type (or null ede-extra-config)
 	   :documentation
 	   "The configuration object for this project.")
    )
@@ -171,7 +171,7 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
 	(oset config project proj)))
     config))
 
-(cl-defmethod ede-config-setup-configuration ((proj ede-project-with-config) config)
+(cl-defmethod ede-config-setup-configuration ((_proj ede-project-with-config) _config)
   "Default configuration setup method."
   nil)
 
@@ -187,7 +187,7 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
   (let ((config (ede-config-get-configuration proj t)))
     (eieio-customize-object config)))
 
-(cl-defmethod ede-customize ((target ede-target-with-config))
+(cl-defmethod ede-customize ((_target ede-target-with-config))
   "Customize the EDE TARGET by actually configuring the config object."
   ;; Nothing unique for the targets, use the project.
   (ede-customize-project))
@@ -302,14 +302,14 @@ This class brings in method overloads for building.")
   "Class to mix into a project with configuration for builds.
 This class brings in method overloads for building.")
 
-(cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional command)
+(cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional _command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   (let* ((config (ede-config-get-configuration proj t))
 	 (comp (oref config build-command)))
     (compile comp)))
 
-(cl-defmethod project-compile-target ((obj ede-target-with-config-build) &optional command)
+(cl-defmethod project-compile-target ((_obj ede-target-with-config-build) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))

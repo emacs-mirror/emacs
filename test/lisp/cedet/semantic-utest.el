@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Tests for semantic's parsing system. -*- lexical-binding:t -*-
 
-;;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -29,6 +29,8 @@
 (require 'cedet)
 (require 'semantic)
 
+;;; Code:
+
 (defvar cedet-utest-directory
   (let* ((C (file-name-directory (locate-library "cedet")))
          (D (expand-file-name "../../test/manual/cedet/" C)))
@@ -38,14 +40,9 @@
 (defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
   "Location of test files.")
 
-(defvar semantic-utest-temp-directory (if (fboundp 'temp-directory)
-					  (temp-directory)
-					temporary-file-directory)
-  "Temporary directory to use when creating files.")
-
 (defun semantic-utest-fname (name)
   "Create a filename for NAME in /tmp."
-  (expand-file-name name semantic-utest-temp-directory))
+  (expand-file-name name temporary-file-directory))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Data for C tests
@@ -108,7 +105,7 @@ int calc_sv(int);
 (defvar semantic-utest-C-filename-h
   (concat (file-name-sans-extension semantic-utest-C-filename)
 	  ".h")
-  "Header file filename for C")
+  "Header file filename for C.")
 
 
 (defvar semantic-utest-C-name-contents
@@ -429,8 +426,7 @@ class aClass {
      nil
      (overlay 135 262 "phptest.php"))
     )
-  "Expected results from the PHP Unit test"
-  )
+  "Expected results from the PHP Unit test.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -582,10 +578,8 @@ INSERTME is the text to be inserted after the deletion."
 
 
 (ert-deftest semantic-utest-Javascript()
-  (if (fboundp 'javascript-mode)
-      (semantic-utest-generic (semantic-utest-fname "javascripttest.js") semantic-utest-Javascript-buffer-contents  semantic-utest-Javascript-name-contents   '("fun2") "//1" "//deleted line")
-    (message "Skipping JavaScript test: NO major mode."))
-  )
+  (skip-unless (fboundp 'javascript-mode))
+  (semantic-utest-generic (semantic-utest-fname "javascripttest.js") semantic-utest-Javascript-buffer-contents  semantic-utest-Javascript-name-contents   '("fun2") "//1" "//deleted line"))
 
 (ert-deftest semantic-utest-Java()
   ;; If JDE is installed, it might mess things up depending on the version
@@ -599,7 +593,7 @@ INSERTME is the text to be inserted after the deletion."
   )
 
 (ert-deftest semantic-utest-Scheme()
-  (skip-unless nil) ;; There is a bug w/ scheme parser.  Skip this for now.
+  (skip-unless nil) ;; There is a bug with scheme parser.  Skip this for now.
   (semantic-utest-generic (semantic-utest-fname "tst.scm") semantic-utest-Scheme-buffer-contents  semantic-utest-Scheme-name-contents   '("fun2") ";1" ";deleted line")
   )
 
@@ -615,7 +609,6 @@ INSERTME is the text to be inserted after the deletion."
   (semantic-utest-generic (semantic-utest-fname "phptest.php") semantic-utest-PHP-buffer-contents semantic-utest-PHP-name-contents '("fun1") "fun2" "%^@")
   )
 
-;look at http://mfgames.com/linux/csharp-mode
 (ert-deftest semantic-utest-Csharp() ;; hmm i don't even know how to edit a scharp file. need a csharp mode implementation i suppose
   (skip-unless (featurep 'csharp-mode))
   (semantic-utest-generic (semantic-utest-fname "csharptest.cs") semantic-utest-Csharp-buffer-contents  semantic-utest-Csharp-name-contents   '("fun2") "//1" "//deleted line")
@@ -742,8 +735,8 @@ JAVE this thing would need to be recursive to handle java and csharp"
   (beginning-of-line)
   (setq semantic-utest-last-kill-pos (point))
   (setq semantic-utest-last-kill-text
-	(buffer-substring (point) (point-at-eol)))
-  (delete-region (point) (point-at-eol))
+        (buffer-substring (point) (pos-eol)))
+  (delete-region (point) (pos-eol))
   (insert insertme)
   (sit-for 0)
 )
@@ -751,7 +744,7 @@ JAVE this thing would need to be recursive to handle java and csharp"
 (defun semantic-utest-unkill-indicator ()
   "Unkill the last indicator."
   (goto-char semantic-utest-last-kill-pos)
-  (delete-region (point) (point-at-eol))
+  (delete-region (point) (pos-eol))
   (insert semantic-utest-last-kill-text)
   (sit-for 0)
   )

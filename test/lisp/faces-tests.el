@@ -1,6 +1,6 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:
@@ -23,14 +23,9 @@
 ;;; Code:
 
 (require 'ert)
-(require 'faces)
+(require 'ert-x)
 
-(defvar faces--test-data-dir
-  (expand-file-name "../data/"
-                    (file-name-directory (or load-file-name
-                                             buffer-file-name))))
-
-(defgroup faces--test nil ""
+(defgroup faces--test nil "Group to test faces."
   :group 'faces--test)
 
 (defface faces--test1
@@ -122,7 +117,7 @@
   (should (equal (face-attribute 'spiff-changed-face :extend) t))
   (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
   (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
-  (add-to-list 'custom-theme-load-path (concat faces--test-data-dir "themes"))
+  (add-to-list 'custom-theme-load-path (ert-resource-directory))
   (load-theme 'faces-test-dark t t)
   (load-theme 'faces-test-light t t)
   (should (equal (face-attribute 'faces--test-inherit-extend :extend)
@@ -221,6 +216,14 @@
         (should (equal (face-attribute 'faces--test-face3 :extend nil t) 'unspecified))
         ))
   )
+
+(ert-deftest test-tty-find-type ()
+  (let ((pred (lambda (string)
+                (locate-library (concat "term/" string ".el")))))
+    (should (tty-find-type pred "cygwin"))
+    (should (tty-find-type pred "cygwin-foo"))
+    (should (equal (tty-find-type pred "xterm") "xterm"))
+    (should (equal (tty-find-type pred "screen.xterm") "screen"))))
 
 (provide 'faces-tests)
 ;;; faces-tests.el ends here

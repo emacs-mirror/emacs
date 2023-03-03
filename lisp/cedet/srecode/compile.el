@@ -1,6 +1,6 @@
-;;; srecode/compile --- Compilation of srecode template files.
+;;; srecode/compile --- Compilation of srecode template files.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -37,9 +37,6 @@
 (require 'eieio-base)
 (require 'srecode/table)
 (require 'srecode/dictionary)
-
-(declare-function srecode-template-inserter-newline-child-p "srecode/insert"
-		  t t)
 
 ;;; Code:
 
@@ -110,7 +107,12 @@ stack is broken."
 	       :type (or null string)
 	       :documentation
 	       "If there is a colon in the inserter's name, it represents
-additional static argument data."))
+additional static argument data.")
+   (key :initform nil :allocation :class
+        :documentation
+        "The character code used to identify inserters of this style.
+All children of this class should specify `key' slot with appropriate
+:initform value."))
   "This represents an item to be inserted via a template macro.
 Plain text strings are not handled via this baseclass."
   :abstract t)
@@ -373,8 +375,11 @@ It is hard if the previous inserter is a newline object."
   (while (and comp (stringp (car comp)))
     (setq comp (cdr comp)))
   (or (not comp)
-      (progn (require 'srecode/insert)
-	     (srecode-template-inserter-newline-child-p (car comp)))))
+      (srecord-compile-inserter-newline-p (car comp))))
+
+(cl-defgeneric srecord-compile-inserter-newline-p (_obj)
+  "Non-nil if OBJ is a newline inserter object."
+  nil)
 
 (defun srecode-compile-split-code (tag str STATE
 				       &optional end-name)
@@ -499,7 +504,7 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (apply 'srecode-template-inserter-variable name props)
+      (apply #'make-instance 'srecode-template-inserter-variable name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
@@ -510,7 +515,7 @@ to the inserter constructor."
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref-default (car classes) key) key))
 	  ;; Create the new class, and apply state.
-	  (setq new (apply (car classes) name props))
+	  (setq new (apply #'make-instance (car classes) name props))
 	  (srecode-inserter-apply-state new STATE)
 	  )
 	(setq classes (cdr classes)))

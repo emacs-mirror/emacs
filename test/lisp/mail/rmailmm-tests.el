@@ -1,6 +1,6 @@
 ;;; rmailmm-tests.el --- Tests for rmailmm.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -114,4 +114,4 @@ This is the epilogue.  It is also to be ignored."))
 
 (provide 'rmailmm-tests)
 
-;; rmailmm-tests.el ends here
+;;; rmailmm-tests.el ends here

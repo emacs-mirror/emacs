@@ -1,6 +1,6 @@
-;;; url-proxy.el --- Proxy server support
+;;; url-proxy.el --- Proxy server support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -19,10 +19,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-parse)
-(autoload 'url-warn "url")
 
 (defun url-default-find-proxy-for-url (urlobj host)
   (cond
@@ -50,17 +51,15 @@
     ;; Not sure how I should handle gracefully degrading from one proxy to
     ;; another, so for now just deal with the first one
     ;; (while proxies
-    (if (listp proxies)
-	(setq proxy (car proxies))
-      (setq proxy proxies))
+    (setq proxy (if (listp proxies) (car proxies) proxies))
     (cond
-     ((string-match "^direct" proxy) nil)
-     ((string-match "^proxy +" proxy)
+     ((string-match "^DIRECT" proxy) nil)
+     ((string-match "^PROXY +" proxy)
       (concat "http://" (substring proxy (match-end 0)) "/"))
-     ((string-match "^socks +" proxy)
+     ((string-match "^SOCKS +" proxy)
       (concat "socks://" (substring proxy (match-end 0))))
      (t
-      (url-warn 'url (format "Unknown proxy directive: %s" proxy) 'critical)
+      (display-warning 'url (format "Unknown proxy directive: %s" proxy) :error)
       nil))))
 
 (autoload 'url-http "url-http")

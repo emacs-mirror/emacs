@@ -1,6 +1,6 @@
-;;; cookie1.el --- retrieve random phrases from fortune cookie files
+;;; cookie1.el --- retrieve random phrases from fortune cookie files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -60,7 +60,6 @@
 (defcustom cookie-file nil
   "Default phrase file for cookie functions."
   :type '(choice (const nil) file)
-  :group 'cookie
   :version "24.4")
 
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
@@ -111,7 +110,7 @@ of load, ENDMSG at the end."
       (fill-region-as-paragraph start (point) nil))))
 
 (defun cookie1 (arg cookie-vec)
-  "Inserts a cookie phrase ARG times."
+  "Insert a cookie phrase ARG times."
   (cond ((zerop arg) t)
 	(t (insert (aref cookie-vec arg))
 	   (insert " ")
@@ -119,12 +118,13 @@ of load, ENDMSG at the end."
 
 ;;;###autoload
 (defun cookie-snarf (phrase-file &optional startmsg endmsg)
-  "Reads in the PHRASE-FILE, returns it as a vector of strings.
-Emit STARTMSG and ENDMSG before and after.  Caches the result; second
+  "Read the PHRASE-FILE, return it as a vector of strings.
+Emit STARTMSG and ENDMSG before and after.  Cache the result; second
 and subsequent calls on the same file won't go to disk."
   (setq phrase-file (cookie-check-file phrase-file))
   (let ((sym (intern-soft phrase-file cookie-cache)))
-    (and sym (not (equal (symbol-function sym)
+    (and sym (not (time-equal-p
+			 (symbol-function sym)
 			 (file-attribute-modification-time
                           (file-attributes phrase-file))))
 	 (yes-or-no-p (concat phrase-file
@@ -178,11 +178,12 @@ Argument REQUIRE-MATCH non-nil forces a matching cookie."
   "Randomly permute the elements of VECTOR (all permutations equally likely)."
   (let ((len (length vector))
 	j temp)
-    (dotimes (i len vector)
+    (dotimes (i len)
       (setq j (+ i (random (- len i)))
 	    temp (aref vector i))
       (aset vector i (aref vector j))
-      (aset vector j temp))))
+      (aset vector j temp))
+    vector))
 
 (define-obsolete-function-alias 'shuffle-vector 'cookie-shuffle-vector "24.4")
 
@@ -205,9 +206,10 @@ If called interactively, or if DISPLAY is non-nil, display a list of matches."
          (cookie-table-symbol (intern phrase-file cookie-cache))
          (string-table (symbol-value cookie-table-symbol))
          (matches nil))
-    (and (dotimes (i (length string-table) matches)
-           (and (string-match-p regexp (aref string-table i))
-                (setq matches (cons (aref string-table i) matches))))
+    (dotimes (i (length string-table))
+      (and (string-match-p regexp (aref string-table i))
+           (setq matches (cons (aref string-table i) matches))))
+    (and matches
          (setq matches (sort matches 'string-lessp)))
     (and display
          (if matches

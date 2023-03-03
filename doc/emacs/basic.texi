@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic
@@ -112,7 +112,7 @@ just like digits.  Case is ignored.
 @cindex curly quotes, inserting
 @cindex curved quotes, inserting
   A few common Unicode characters can be inserted via a command
-starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
+starting with @w{@kbd{C-x 8}}.  For example, @kbd{C-x 8 [} inserts @t{‘}
 which is Unicode code-point U+2018 @sc{left single quotation mark},
 sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @w{@kbd{C-x 8 ]}}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
@@ -144,6 +144,12 @@ the buffer.
 
   A numeric argument to @kbd{C-q} or @kbd{C-x 8 ...} specifies
 how many copies of the character to insert (@pxref{Arguments}).
+
+  As an alternative to @kbd{C-x 8}, you can select the corresponding
+transient input method by typing @kbd{C-u C-x \ iso-transl @key{RET}},
+then temporarily activating this transient input method by typing
+@kbd{C-x \ [} will insert the same character @t{‘} (@pxref{transient
+input method}).
 
   In addition, in some contexts, if you type a quotation using grave
 accent and apostrophe @kbd{`like this'}, it is converted to a form
@@ -304,7 +310,10 @@ Scroll one screen backward, and move point onscreen if necessary
 @kindex M-g c
 @findex goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
-Position 1 is the beginning of the buffer.
+Position 1 is the beginning of the buffer.  If point is on or just
+after a number in the buffer, that is the default for @var{n}.  Just
+type @key{RET} in the minibuffer to use it.  You can also specify
+@var{n} by giving @kbd{M-g c} a numeric prefix argument.
 
 @item M-g M-g
 @itemx M-g g
@@ -322,6 +331,11 @@ a plain prefix argument.  Alternatively, you can use the command
 @code{goto-line-relative} to move point to the line relative to the
 accessible portion of the narrowed buffer.
 
+@code{goto-line} has its own history list (@pxref{Minibuffer
+History}).  You can have either a single list shared between all
+buffers (the default) or a separate list for each buffer, by
+customizing the user option @code{goto-line-history-local}.
+
 @item M-g @key{TAB}
 @kindex M-g TAB
 @findex move-to-column
@@ -333,11 +347,11 @@ move to the column number specified by the argument's numeric value.
 @kindex C-x C-n
 @findex set-goal-column
 Use the current column of point as the @dfn{semipermanent goal column}
-for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}) in the current
-buffer.  When a semipermanent goal column is in effect, those commands
-always try to move to this column, or as close as possible to it,
-after moving vertically.  The goal column remains in effect until
-canceled.
+(@code{set-goal-column}) in the current buffer.  When a semipermanent
+goal column is in effect, @kbd{C-n}, @kbd{C-p}, @kbd{<prior>} and
+@kbd{<next>} always try to move to this column, or as close as
+possible to it, after moving vertically.  The goal column remains in
+effect until canceled.
 
 @item C-u C-x C-n
 Cancel the goal column.  Henceforth, @kbd{C-n} and @kbd{C-p} try to
@@ -639,14 +653,14 @@ Toggle automatic display of the current line number or column number.
 displayed before each line, see @ref{Display Custom}.
 
 @item M-=
-Display the number of lines, words, and characters that are present in
-the region (@code{count-words-region}).  @xref{Mark}, for information
-about the region.
+Display the number of lines, sentences, words, and characters that are
+present in the region (@code{count-words-region}).  @xref{Mark}, for
+information about the region.
 
 @item M-x count-words
-Display the number of lines, words, and characters that are present in
-the buffer.  If the region is active (@pxref{Mark}), display the
-numbers for the region instead.
+Display the number of lines, sentences, words, and characters that are
+present in the buffer.  If the region is active (@pxref{Mark}),
+display the numbers for the region instead.
 
 @item C-x =
 Display the character code of character after point, character position of
@@ -675,7 +689,7 @@ narrowed region and the line number relative to the whole buffer.
 @kindex M-=
 @findex count-words-region
   @kbd{M-=} (@code{count-words-region}) displays a message reporting
-the number of lines, words, and characters in the region
+the number of lines, sentences, words, and characters in the region
 (@pxref{Mark}, for an explanation of the region).  With a prefix
 argument, @kbd{C-u M-=}, the command displays a count for the entire
 buffer.
@@ -871,3 +885,42 @@ characters.  You can repeat that command (including its argument) three
 additional times, to delete a total of 80 characters, by typing @kbd{C-x
 z z z}.  The first @kbd{C-x z} repeats the command once, and each
 subsequent @kbd{z} repeats it once again.
+
+@findex repeat-mode
+@findex describe-repeat-maps
+@vindex repeat-exit-key
+@vindex repeat-exit-timeout
+  You can also activate @code{repeat-mode} which allows repeating
+commands bound to sequences of two or more keys by typing a single
+character.  For example, after typing @w{@kbd{C-x u}} (@code{undo},
+@pxref{Undo}) to undo the most recent edits, you can undo many more
+edits by typing @w{@kbd{u u u@dots{}}}.  Similarly, type @w{@kbd{C-x o
+o o@dots{}}} instead of @w{@kbd{C-x o C-x o C-x o@dots{}}} to switch
+to the window several windows away.  This works by entering a
+transient repeating mode after you type the full key sequence that
+invokes the command; the single-key shortcuts are shown in the echo
+area.
+
+Only some commands support repetition in @code{repeat-mode}; type
+@w{@kbd{M-x describe-repeat-maps @key{RET}}} to see which ones.
+
+The single-character shortcuts enabled by the transient repeating mode
+do not need to be identical: for example, after typing @w{@kbd{C-x
+@{}}, either @kbd{@{} or @kbd{@}} or @kbd{^} or @kbd{v}, or any series
+that mixes these characters in any order, will resize the selected
+window in respective ways.  Similarly, after @w{@kbd{M-g n}} or
+@kbd{M-g p}, typing any sequence of @kbd{n} and/or @kbd{p} in any mix
+will repeat @code{next-error} and @code{previous-error} to navigate in
+a @file{*compilation*} or @file{*grep*} buffer (@pxref{Compilation
+Mode}).
+
+Typing any key other than those defined to repeat the previous command
+exits the transient repeating mode, and then the key you typed is
+executed normally.  You can also define a key which will exit the
+transient repeating mode @emph{without} executing the key which caused
+the exit.  To this end, customize the user option
+@code{repeat-exit-key} to name a key; one natural value is @key{RET}.
+Finally, it's possible to break the repetition chain automatically
+after some amount of idle time: customize the user option
+@code{repeat-exit-timeout} to specify the idle time in seconds after
+which this transient repetition mode will be turned off automatically.

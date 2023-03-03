@@ -1,6 +1,6 @@
-;;; nndir.el --- single directory newsgroup access for Gnus
+;;; nndir.el --- single directory newsgroup access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -48,6 +48,7 @@
 
 (defvoo nndir-status-string "" nil nnmh-status-string)
 (defconst nndir-version "nndir 1.0")
+(make-obsolete-variable 'nndir-version 'emacs-version "29.1")
 
 
 

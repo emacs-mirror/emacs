@@ -1,5 +1,5 @@
-# manywarnings.m4 serial 21
-dnl Copyright (C) 2008-2020 Free Software Foundation, Inc.
+# manywarnings.m4 serial 23
+dnl Copyright (C) 2008-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -167,11 +167,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   # them here so that the above 'comm' command doesn't report a false match.
   gl_AS_VAR_APPEND([$1], [' -Warray-bounds=2'])
   gl_AS_VAR_APPEND([$1], [' -Wattribute-alias=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wbidi-chars=any,ucn'])
   gl_AS_VAR_APPEND([$1], [' -Wformat-overflow=2'])
   gl_AS_VAR_APPEND([$1], [' -Wformat=2'])
   gl_AS_VAR_APPEND([$1], [' -Wformat-truncation=2'])
   gl_AS_VAR_APPEND([$1], [' -Wimplicit-fallthrough=5'])
   gl_AS_VAR_APPEND([$1], [' -Wshift-overflow=2'])
+  gl_AS_VAR_APPEND([$1], [' -Wuse-after-free=3'])
   gl_AS_VAR_APPEND([$1], [' -Wunused-const-variable=2'])
   gl_AS_VAR_APPEND([$1], [' -Wvla-larger-than=4031'])
 
@@ -195,15 +197,9 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     gl_AS_VAR_APPEND([$1], [' -Wno-uninitialized'])
   fi
 
-  # Some warnings have too many false alarms in GCC 10.1.
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93695
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-double-free'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94458
+  # This warning have too many false alarms in GCC 11.2.1.
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101713
   gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-malloc-leak'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94851
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-null-dereference'])
-  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95758
-  gl_AS_VAR_APPEND([$1], [' -Wno-analyzer-use-after-free'])
 
   AC_LANG_POP([C])
 ])

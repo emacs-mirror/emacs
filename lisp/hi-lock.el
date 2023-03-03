@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -69,12 +69,12 @@
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
 
-;;    (define-key hi-lock-map "\C-z\C-h" 'highlight-lines-matching-regexp)
-;;    (define-key hi-lock-map "\C-zi" 'hi-lock-find-patterns)
-;;    (define-key hi-lock-map "\C-zh" 'highlight-regexp)
-;;    (define-key hi-lock-map "\C-zp" 'highlight-phrase)
-;;    (define-key hi-lock-map "\C-zr" 'unhighlight-regexp)
-;;    (define-key hi-lock-map "\C-zb" 'hi-lock-write-interactive-patterns))
+;;    (keymap-set hi-lock-map "C-z C-h" 'highlight-lines-matching-regexp)
+;;    (keymap-set hi-lock-map "C-z i" 'hi-lock-find-patterns)
+;;    (keymap-set hi-lock-map "C-z h" 'highlight-regexp)
+;;    (keymap-set hi-lock-map "C-z p" 'highlight-phrase)
+;;    (keymap-set hi-lock-map "C-z r" 'unhighlight-regexp)
+;;    (keymap-set hi-lock-map "C-z b" 'hi-lock-write-interactive-patterns))
 
 ;;    See the documentation for hi-lock-mode `C-h f hi-lock-mode' for
 ;;    additional instructions.
@@ -87,8 +87,6 @@
 
 ;;; Code:
 
-(require 'font-lock)
-
 (defgroup hi-lock nil
   "Interactively add and remove font-lock patterns for highlighting text."
   :link '(custom-manual "(emacs)Highlight Interactively")
@@ -99,7 +97,7 @@
 When a file is visited and hi-lock mode is on, patterns starting
 up to this limit are added to font-lock's patterns.  See documentation
 of functions `hi-lock-mode' and `hi-lock-find-patterns'."
-  :type 'integer
+  :type 'natnum
   :group 'hi-lock)
 
 (defcustom hi-lock-highlight-range 2000000
@@ -109,11 +107,11 @@ such as the buffer created by `list-colors-display'.  In those buffers
 hi-lock patterns will only be applied over a range of
 `hi-lock-highlight-range' characters.  If font-lock is active then
 highlighting will be applied throughout the buffer."
-  :type 'integer
+  :type 'natnum
   :group 'hi-lock)
 
 (defcustom hi-lock-exclude-modes
-  '(rmail-mode mime/viewer-mode gnus-article-mode)
+  '(rmail-mode mime/viewer-mode gnus-article-mode term-mode)
   "List of major modes in which hi-lock will not run.
 For security reasons since font lock patterns can specify function
 calls."
@@ -130,10 +128,9 @@ patterns."
                  (const :tag "Ask about file patterns" ask)
                  (function :tag "Function to check file patterns"))
   :group 'hi-lock
+  ;; It can have a function value.
+  :risky t
   :version "22.1")
-
-;; It can have a function value.
-(put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defcustom hi-lock-auto-select-face nil
   "When nil, highlighting commands prompt for the face to use.
@@ -237,16 +234,18 @@ by cycling through the faces in `hi-lock-face-defaults'."
   "Human-readable lighters for `hi-lock-interactive-patterns'.")
 (put 'hi-lock-interactive-lighters 'permanent-local t)
 
-(defvar hi-lock-face-defaults
+(defcustom hi-lock-face-defaults
   '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-salmon" "hi-aquamarine"
     "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
-  "Default faces for hi-lock interactive functions.")
+  "Default face names for hi-lock interactive functions."
+  :type '(repeat string)
+  :version "29.1")
 
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
   "String used to identify hi-lock patterns at the start of files.")
 
 (defvar hi-lock-archaic-interface-message-used nil
-  "True if user alerted that `global-hi-lock-mode' is now the global switch.
+  "Non-nil if user alerted that `global-hi-lock-mode' is now the global switch.
 Earlier versions of hi-lock used `hi-lock-mode' as the global switch;
 the message is issued if it appears that `hi-lock-mode' is used assuming
 that older functionality.  This variable avoids multiple reminders.")
@@ -256,51 +255,36 @@ that older functionality.  This variable avoids multiple reminders.")
 Assumption is made if `hi-lock-mode' used in the *scratch* buffer while
 a library is being loaded.")
 
-(defvar hi-lock-menu
-  (let ((map (make-sparse-keymap "Hi Lock")))
-    (define-key-after map [highlight-regexp]
-      '(menu-item "Highlight Regexp..." highlight-regexp
-        :help "Highlight text matching PATTERN (a regexp)."))
+(easy-menu-define hi-lock-menu nil
+  "Menu for hi-lock mode."
+  '("Hi Lock"
+    ["Highlight Regexp..." highlight-regexp
+     :help "Highlight text matching PATTERN (a regexp)."]
+    ["Highlight Phrase..." highlight-phrase
+     :help "Highlight text matching PATTERN (a regexp processed to match phrases)."]
+    ["Highlight Lines..." highlight-lines-matching-regexp
+     :help "Highlight lines containing match of PATTERN (a regexp)."]
+    ["Highlight Symbol at Point" highlight-symbol-at-point
+     :help "Highlight symbol found near point without prompting."]
+    ["Remove Highlighting..." unhighlight-regexp
+     :help "Remove previously entered highlighting pattern."
+     :enable hi-lock-interactive-patterns]
+    ["Patterns to Buffer" hi-lock-write-interactive-patterns
+     :help "Insert interactively added REGEXPs into buffer at point."
+     :enable hi-lock-interactive-patterns]
+    ["Patterns from Buffer" hi-lock-find-patterns
+     :help "Use patterns (if any) near top of buffer."]))
 
-    (define-key-after map [highlight-phrase]
-      '(menu-item "Highlight Phrase..." highlight-phrase
-        :help "Highlight text matching PATTERN (a regexp processed to match phrases)."))
-
-    (define-key-after map [highlight-lines-matching-regexp]
-      '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
-        :help "Highlight lines containing match of PATTERN (a regexp)."))
-
-    (define-key-after map [highlight-symbol-at-point]
-      '(menu-item "Highlight Symbol at Point" highlight-symbol-at-point
-        :help "Highlight symbol found near point without prompting."))
-
-    (define-key-after map [unhighlight-regexp]
-      '(menu-item "Remove Highlighting..." unhighlight-regexp
-        :help "Remove previously entered highlighting pattern."
-        :enable hi-lock-interactive-patterns))
-
-    (define-key-after map [hi-lock-write-interactive-patterns]
-      '(menu-item "Patterns to Buffer" hi-lock-write-interactive-patterns
-        :help "Insert interactively added REGEXPs into buffer at point."
-        :enable hi-lock-interactive-patterns))
-
-    (define-key-after map [hi-lock-find-patterns]
-      '(menu-item "Patterns from Buffer" hi-lock-find-patterns
-        :help "Use patterns (if any) near top of buffer."))
-    map)
-  "Menu for hi-lock mode.")
-
-(defvar hi-lock-map
-  (let ((map (make-sparse-keymap "Hi Lock")))
-    (define-key map "\C-xwi" 'hi-lock-find-patterns)
-    (define-key map "\C-xwl" 'highlight-lines-matching-regexp)
-    (define-key map "\C-xwp" 'highlight-phrase)
-    (define-key map "\C-xwh" 'highlight-regexp)
-    (define-key map "\C-xw." 'highlight-symbol-at-point)
-    (define-key map "\C-xwr" 'unhighlight-regexp)
-    (define-key map "\C-xwb" 'hi-lock-write-interactive-patterns)
-    map)
-  "Key map for hi-lock.")
+(defvar-keymap hi-lock-map
+  :doc "Keymap for `hi-lock-mode'."
+  :name "Hi Lock"
+  "C-x w i" #'hi-lock-find-patterns
+  "C-x w l" #'highlight-lines-matching-regexp
+  "C-x w p" #'highlight-phrase
+  "C-x w h" #'highlight-regexp
+  "C-x w ." #'highlight-symbol-at-point
+  "C-x w r" #'unhighlight-regexp
+  "C-x w b" #'hi-lock-write-interactive-patterns)
 
 ;; Visible Functions
 
@@ -360,9 +344,9 @@ which can be called interactively, are:
 When hi-lock is started and if the mode is not excluded or patterns
 rejected, the beginning of the buffer is searched for lines of the
 form:
-  Hi-lock: FOO
+  Hi-lock: (FOO ...)
 
-where FOO is a list of patterns.  The patterns must start before
+where (FOO ...) is a list of patterns.  The patterns must start before
 position \(number of characters into buffer)
 `hi-lock-file-patterns-range'.  Patterns will be read until
 Hi-lock: end is found.  A mode is excluded if it's in the list
@@ -383,13 +367,7 @@ Hi-lock: end is found.  A mode is excluded if it's in the list
       (warn "%s"
        "Possible archaic use of (hi-lock-mode).
 Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
-use (hi-lock-mode 1) for individual buffers.  For compatibility with Emacs
-versions before 22 use the following in your init file:
-
-        (if (functionp 'global-hi-lock-mode)
-            (global-hi-lock-mode 1)
-          (hi-lock-mode 1))
-")))
+use (hi-lock-mode 1) for individual buffers.")))
   (if hi-lock-mode
       ;; Turned on.
       (progn
@@ -591,24 +569,29 @@ the major mode specifies support for Font Lock."
       (when (and face-before face-after (not (eq face-before face-after)))
         (setq face-before nil))
       (when (or face-after face-before)
-        (let* ((hi-text
-                (buffer-substring-no-properties
-                 (if face-before
-                     (or (previous-single-property-change (point) 'face)
-                         (point-min))
-                   (point))
-                 (if face-after
-                     (or (next-single-property-change (point) 'face)
-                         (point-max))
-                   (point)))))
+        (let* ((beg (if face-before
+                        (or (previous-single-property-change (point) 'face)
+                            (point-min))
+                      (point)))
+               (end (if face-after
+                        (or (next-single-property-change (point) 'face)
+                            (point-max))
+                      (point))))
           ;; Compute hi-lock patterns that match the
           ;; highlighted text at point.  Use this later in
           ;; during completing-read.
           (dolist (hi-lock-pattern hi-lock-interactive-patterns)
-            (let ((regexp (or (car (rassq hi-lock-pattern hi-lock-interactive-lighters))
-                              (car hi-lock-pattern))))
-              (if (string-match regexp hi-text)
-                  (push regexp regexps)))))))
+            (let ((pattern (or (rassq hi-lock-pattern hi-lock-interactive-lighters)
+                               (car hi-lock-pattern))))
+              (cond
+               ((stringp pattern)
+                (when (string-match pattern (buffer-substring-no-properties beg end))
+                  (push pattern regexps)))
+               ((functionp (cadr pattern))
+                (save-excursion
+                  (goto-char beg)
+                  (when (funcall (cadr pattern) end)
+                    (push (car pattern) regexps))))))))))
     regexps))
 
 (defvar-local hi-lock--unused-faces nil
@@ -628,6 +611,7 @@ then remove all hi-lock highlighting."
    (cond
     (current-prefix-arg (list t))
     ((and (display-popup-menus-p)
+          last-nonmenu-event
           (listp last-nonmenu-event)
           use-dialog-box)
      (catch 'snafu
@@ -745,20 +729,31 @@ with completion and history."
 	  (when hi-lock-interactive-patterns
 	    (face-name (hi-lock-keyword->face
                         (car hi-lock-interactive-patterns)))))
-	 (defaults (append hi-lock--unused-faces
-			   (cdr (member last-used-face hi-lock-face-defaults))
-			   hi-lock-face-defaults))
+	 (defaults (seq-uniq
+                    (append hi-lock--unused-faces
+			    (cdr (member last-used-face hi-lock-face-defaults))
+			    hi-lock-face-defaults)
+                    #'equal))
 	 face)
-          (if (and hi-lock-auto-select-face (not current-prefix-arg))
+    (if (and hi-lock-auto-select-face (not current-prefix-arg))
 	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
-      (setq face (completing-read
-		  (format-prompt "Highlight using face" (car defaults))
-		  obarray 'facep t nil 'face-name-history defaults))
+      (setq face (symbol-name (read-face-name "Highlight using face" defaults)))
       ;; Update list of un-used faces.
       (setq hi-lock--unused-faces (remove face hi-lock--unused-faces))
       ;; Grow the list of defaults.
       (add-to-list 'hi-lock-face-defaults face t))
     (intern face)))
+
+(defvar hi-lock-use-overlays nil
+  "Whether to always use overlays instead of font-lock rules.
+When font-lock-mode is enabled and the buffer specifies font-lock rules,
+highlighting is performed by adding new font-lock rules to the existing ones,
+so when new matching strings are added, they are highlighted by font-lock.
+Otherwise, overlays are used, but new highlighting overlays are not added
+when new matching strings are inserted to the buffer.
+However, sometimes overlays are still preferable even in buffers
+where font-lock is enabled, when hi-lock overlays take precedence
+over other overlays in the same buffer.")
 
 (defun hi-lock-set-pattern (regexp face &optional subexp lighter case-fold spaces-regexp)
   "Highlight SUBEXP of REGEXP with face FACE.
@@ -781,7 +776,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
         (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
       (push (cons (or lighter regexp) pattern) hi-lock-interactive-lighters)
-      (if (and font-lock-mode (font-lock-specified-p major-mode))
+      (if (and font-lock-mode (font-lock-specified-p major-mode)
+               (not hi-lock-use-overlays))
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
 	    (font-lock-flush))
@@ -803,6 +799,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
                                            (match-end subexp))))
                 (overlay-put overlay 'hi-lock-overlay t)
                 (overlay-put overlay 'hi-lock-overlay-regexp (or lighter regexp))
+                ;; Use priority higher than default used by e.g. diff-refine.
+                (overlay-put overlay 'priority 1)
                 (overlay-put overlay 'face face))
               (goto-char (match-end 0)))
             (when no-matches
@@ -840,7 +838,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
 		      (not (looking-at "\\s-*end")))
             (condition-case nil
                 (setq all-patterns (append (read (current-buffer)) all-patterns))
-              (error (message "Invalid pattern list expression at %d"
+              (error (message "Invalid pattern list expression at line %d"
                               (line-number-at-pos)))))))
       (when (and all-patterns
                  hi-lock-mode
@@ -875,6 +873,27 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   (global-hi-lock-mode -1)
   ;; continue standard unloading
   nil)
+
+;;; Mouse support
+(defalias 'highlight-symbol-at-mouse 'hi-lock-face-symbol-at-mouse)
+(defun hi-lock-face-symbol-at-mouse (event)
+  "Highlight symbol at mouse click EVENT."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point event)
+    (highlight-symbol-at-point)))
+
+;;;###autoload
+(defun hi-lock-context-menu (menu click)
+  "Populate MENU with a menu item to highlight symbol at CLICK."
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [highlight-search-separator] menu-bar-separator
+      'middle-separator)
+    (define-key-after menu [highlight-search-mouse]
+      '(menu-item "Highlight Symbol" highlight-symbol-at-mouse
+                  :help "Highlight symbol at point")
+      'highlight-search-separator))
+  menu)
 
 (provide 'hi-lock)
 

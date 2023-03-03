@@ -16,7 +16,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -259,7 +259,7 @@ contexts to have the same name.  Some standard contexts are
 @code{file}, @code{declaration}, and @code{classdecl}.
 
 A context can be automatically derived as well based on the parsing
-state from @i{Semantic}.  @inforef{Top, Semantic Manual, semantic}.
+state from @i{Semantic}.  @xref{Top, Semantic Manual,, semantic}.
 
 @section Applications
 Commands that do a particular user task which involves also writing
@@ -293,14 +293,14 @@ If the variable @code{srecode-takeover-INS-key} is set, then the key
 The most important key is bound to @code{srecode-insert} which is
 @kbd{C-c / /}, or @kbd{@key{INSERT} @key{INSERT}}.  @ref{Quick Start}.
 
-Major keybindings are:
+Major key bindings are:
 
 @table @kbd
 @item C-c / /
 Insert a template whose name is typed into the minibuffer.
 @item C-c / <lower case letter>
 Reserved for direct binding of simple templates to keys using a
-keybinding command in the template file.
+key binding command in the template file.
 @item C-c / <upper case letter>
 Reserved for template applications (Such as comment or get/set inserter.)
 @item C-c / E
@@ -1070,9 +1070,9 @@ Here is an example of wrapping a semantic tag in a compound value:
   "Wrap up a collection of semantic tag information.
 This class will be used to derive dictionary values.")
 
-(defmethod srecode-compound-toString((cp srecode-semantic-tag)
-                                     function
-                                     dictionary)
+(cl-defmethod srecode-compound-toString ((cp srecode-semantic-tag)
+                                         function
+                                         dictionary)
   "Convert the compound dictionary value CP to a string.
 If FUNCTION is non-nil, then FUNCTION is somehow applied to an
 aspect of the compound value."
@@ -1595,7 +1595,7 @@ from a user perspective during basic interactive insertion via
 
 NOTES ON THIS CHAPTER:
 
-These conventions are being worked on.  Check w/ CEDET-DEVEL mailing
+These conventions are being worked on.  Check with CEDET-DEVEL mailing
 list if you want to support a language, or write an application and
 provide your opinions on this topic.  Any help is appreciated.
 

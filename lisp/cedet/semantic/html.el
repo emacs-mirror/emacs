@@ -1,6 +1,6 @@
-;;; semantic/html.el --- Semantic details for html files
+;;; semantic/html.el --- Semantic details for html files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -59,14 +59,14 @@
   "Alist of sectioning commands and their relative level.")
 
 (define-mode-local-override semantic-parse-region
-  html-mode (&rest ignore)
+  html-mode (&rest _ignore)
   "Parse the current html buffer for semantic tags.
 IGNORE any arguments.  Always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
  (\"NAME\" anchor)"
-  (mapcar 'semantic-html-expand-tag
+  (mapcar #'semantic-html-expand-tag
 	  (semantic-html-parse-headings)))
 
 (define-mode-local-override semantic-parse-changes
@@ -79,9 +79,14 @@ or
   (let ((chil (semantic-html-components tag)))
     (if chil
         (semantic-tag-put-attribute
-         tag :members (mapcar 'semantic-html-expand-tag chil)))
+         tag :members (mapcar #'semantic-html-expand-tag chil)))
     (car (semantic--tag-expand tag))))
 
+(define-mode-local-override semantic-tag-components html-mode (tag)
+  "Return components belonging to TAG."
+  ;; Keep this η-regexp because `semantic-html-components' is called
+  ;; from elsewhere.
+  (semantic-html-components tag))
 (defun semantic-html-components (tag)
   "Return components belonging to TAG."
   (semantic-tag-get-attribute tag :members))
@@ -233,7 +238,7 @@ tag with greater section value than LEVEL is found."
   ;; This will use our parser.
   (setq semantic-parser-name "HTML"
         semantic--parse-table t
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character ">"
 	semantic-type-relation-separator-character '(":")
 	semantic-symbol->name-assoc-list '((section . "Section")
@@ -245,12 +250,7 @@ tag with greater section value than LEVEL is found."
 	senator-step-at-start-end-tag-classes '(section)
 	senator-step-at-tag-classes '(section)
 	semantic-stickyfunc-sticky-classes '(section)
-	)
-  (semantic-install-function-overrides
-   '((semantic-tag-components . semantic-html-components)
-     )
-   t)
-  )
+	))
 
 ;; `html-helper-mode' hasn't been updated since 2004, so it's not very
 ;; relevant nowadays.

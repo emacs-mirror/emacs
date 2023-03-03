@@ -1,6 +1,6 @@
 /* Implementation of MS-Windows native image API via the GDI+ library.
 
-Copyright (C) 2020 Free Software Foundation, Inc.
+Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -253,9 +253,10 @@ w32_can_use_native_image_api (Lisp_Object type)
 	|| EQ (type, Qpng)
 	|| EQ (type, Qgif)
 	|| EQ (type, Qtiff)
+	|| EQ (type, Qbmp)
 	|| EQ (type, Qnative_image)))
     {
-      /* GDI+ can also display BMP, Exif, ICON, WMF, and EMF images.
+      /* GDI+ can also display Exif, ICON, WMF, and EMF images.
 	 But we don't yet support these in image.c.  */
       return false;
     }
@@ -381,7 +382,7 @@ w32_select_active_frame (GpBitmap *pBitmap, int frame, int *nframes,
 static ARGB
 w32_image_bg_color (struct frame *f, struct image *img)
 {
-  Lisp_Object specified_bg = Fplist_get (XCDR (img->spec), QCbackground);
+  Lisp_Object specified_bg = plist_get (XCDR (img->spec), QCbackground);
   Emacs_Color color;
 
   /* If the user specified a color, try to use it; if not, use the
@@ -434,7 +435,7 @@ w32_load_image (struct frame *f, struct image *img,
   if (status == Ok)
     {
       /* In multiframe pictures, select the first frame.  */
-      Lisp_Object lisp_index = Fplist_get (XCDR (img->spec), QCindex);
+      Lisp_Object lisp_index = plist_get (XCDR (img->spec), QCindex);
       int index = FIXNATP (lisp_index) ? XFIXNAT (lisp_index) : 0;
       int nframes;
       double delay;

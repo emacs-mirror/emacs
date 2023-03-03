@@ -1,6 +1,6 @@
-;;; url-cid.el --- Content-ID URL loader
+;;; url-cid.el --- Content-ID URL loader  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -18,6 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;; Code:
 

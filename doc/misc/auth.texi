@@ -9,7 +9,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -107,6 +107,18 @@ The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
 @code{account}.
 
+Matching entries are usually used in the order they appear, so placing
+the most specific entries first in the file is a good idea.  For
+instance:
+
+@example
+machine example.com login foobar password geheimnis port smtp
+machine example.com login foobar password hemmelig
+@end example
+
+Here we're using one password for the @code{smtp} service, and a
+different one for all the other services.
+
 You can also use this file to specify client certificates to use when
 setting up TLS connections.  The format is:
 
@@ -179,7 +191,7 @@ get fancy, the default and simplest configuration is:
 (setq auth-sources '("secrets:Login"))
 ;;; use pass (@file{~/.password-store})
 ;;; (@pxref{The Unix password store})
-(setq auth-sources '(password-store))
+(auth-source-pass-enable)
 ;;; JSON data in format [@{ "machine": "SERVER",
 ;;; "login": "USER", "password": "PASSWORD" @}...]
 (setq auth-sources '("~/.authinfo.json.gpg"))
@@ -293,7 +305,8 @@ The @dfn{Secret Service API} is a standard from
 to securely store passwords and other confidential information.  This
 API is implemented by system daemons such as the GNOME Keyring and the
 KDE Wallet (these are GNOME and KDE packages respectively and should
-be available on most modern GNU/Linux systems).
+be available on most modern GNU/Linux systems).  It has been tested
+also with KeePassXC.
 
 The auth-source library uses the @file{secrets.el} library to connect
 through the Secret Service API@.  You can also use that library in
@@ -348,15 +361,19 @@ Collections can be created and deleted by the functions
 Usually, this is not done from within Emacs.  Do not delete standard
 collections such as @code{"login"}.
 
-The special collection @code{"session"} exists for the lifetime of the
-corresponding client session (in our case, Emacs's lifetime).  It is
-created automatically when Emacs uses the Secret Service interface and
-it is deleted when Emacs is killed.  Therefore, it can be used to
-store and retrieve secret items temporarily.  The @code{"session"}
-collection is better than a persistent collection when the secret
-items should not live longer than Emacs.  The session collection can
-be specified either by the string @code{"session"}, or by @code{nil},
-whenever a collection parameter is needed in the following functions.
+With GNOME Keyring, there exists a special collection called
+@code{"session"}, which has the lifetime of the user being logged in.
+Its data are not stored on disk and go away when the user logs out.
+Therefore, it can be used to store and retrieve secret items
+temporarily.  The @code{"session"} collection is better than a
+persistent collection when the secret items should not live
+permanently.  The @code{"session"} collection can be addressed either
+by the string @code{"session"}, or by @code{nil}, whenever a
+collection parameter is needed.
+
+However, other Secret Service provider don't create this temporary
+@code{"session"} collection.  You shall check first that this
+collection exists, before you use it.
 
 @defun secrets-list-items collection
 Returns all the item labels of @var{collection} as a list.
@@ -367,10 +384,10 @@ This function creates a new item in @var{collection} with label
 @var{item} and password @var{password}.  The label @var{item} does not
 have to be unique in @var{collection}.  @var{attributes} are key-value
 pairs set for the created item.  The keys are keyword symbols,
-starting with a colon.  Example:
+starting with a colon; values are strings.  Example:
 
 @example
-;;; The session is "session", the label is "my item"
+;;; The collection is "session", the label is "my item"
 ;;; and the secret (password) is "geheim".
 (secrets-create-item "session" "my item" "geheim"
  :method "sudo" :user "joe" :host "remote-host")
@@ -449,6 +466,10 @@ then fall back to @file{~/.authinfo.gpg}.
                      "~/.authinfo.gpg"))
 @end example
 
+Attribute values in the auth-source spec, which are not strings (like
+port numbers), are stringified prior calling the @file{secrets.el}
+functions.
+
 @node The Unix password store
 @chapter The Unix password store
 
@@ -505,6 +526,8 @@ If several entries match, the one matching the most items (where an
 while searching for an entry matching the @code{rms} user on host
 @code{gnu.org} and port @code{22}, then the entry
 @file{gnu.org:22/rms.gpg} is preferred over @file{gnu.org.gpg}.
+However, such processing is not applied when the option
+@code{auth-source-pass-extra-parameters} is set to @code{t}.
 
 Users of @code{pass} may also be interested in functionality provided
 by other Emacs packages:
@@ -526,6 +549,23 @@ Defaults to @file{~/.password-store}.
 @defvar auth-source-pass-port-separator
 Set this variable to a string that should separate an host name from a
 port in an entry.  Defaults to @samp{:}.
+@end defvar
+
+@defvar auth-source-pass-extra-query-keywords
+This expands the selection of available keywords to include
+@code{:max} and @code{:require} and tells more of them to accept a
+list of query parameters as an argument.  When searching, it also
+favors the @samp{rms@@gnu.org.gpg} form for usernames over the
+@samp{gnu.org/rms.gpg} form, regardless of whether a @code{:user}
+param was provided.
+
+In general, if you prefer idiosyncrasies traditionally exhibited by
+this backend, such as prioritizing field count in a filename or
+matching against subdomain labels, keep this option set to @code{nil}
+(the default).  But, if you experience problems predicting the outcome
+of searches relative to other auth-source backends or encounter code
+expecting to query multiple backends uniformly, try flipping it to
+@code{t}.
 @end defvar
 
 @node Help for developers
@@ -562,10 +602,7 @@ from Gnus's @code{nnimap.el}.
                                            :create t))))
     (if found
         (list (plist-get found :user)
-              (let ((secret (plist-get found :secret)))
-                (if (functionp secret)
-                    (funcall secret)
-                  secret))
+              (auth-info-password found)
               (plist-get found :save-function))
       nil)))
 @end example
@@ -585,7 +622,7 @@ Later, after a successful login, @code{nnimap.el} calls the
 
 @example
 (when (functionp (nth 2 credentials))
-   (funcall (nth 2 credentials)))
+  (funcall (nth 2 credentials)))
 @end example
 
 This will work whether the @code{:save-function} was provided or not.
@@ -620,6 +657,16 @@ This function forgets any cached data matching @var{spec}.
 It returns the number of items forgotten.
 @end defun
 
+@defun auth-source-pick-first-password &rest spec
+This function returns the password of the first record found by
+applying @code{auth-source-search} to @var{spec}.
+@end defun
+
+@defun auth-info-password auth-info
+This function extracts the password string from the @var{auth-info}
+record.
+@end defun
+
 @node GnuPG and EasyPG Assistant Configuration
 @appendix GnuPG and EasyPG Assistant Configuration
 
@@ -628,14 +675,8 @@ before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.
 
-In Emacs 23 or later there is an option @code{auto-encryption-mode} to
-automatically decrypt @file{*.gpg} files.  It is enabled by default.
-If you are using earlier versions of Emacs, you will need:
-
-@lisp
-(require 'epa-file)
-(epa-file-enable)
-@end lisp
+There is an option @code{auto-encryption-mode} to automatically
+decrypt @file{*.gpg} files.  It is enabled by default.
 
 If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
 or EasyPG Assistant

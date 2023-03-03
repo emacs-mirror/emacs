@@ -1,6 +1,6 @@
 ;;; buff-menu-tests.el --- Test suite for buff-menu.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 
@@ -24,19 +24,20 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'ert-x))
 
 (ert-deftest buff-menu-24962 ()
   "Test for https://debbugs.gnu.org/24962 ."
-  (let* ((file (make-temp-file "foo"))
-         (buf (find-file file)))
-    (unwind-protect
-        (progn
-          (rename-buffer " foo")
-          (list-buffers)
-          (with-current-buffer "*Buffer List*"
-            (should (string= " foo" (buffer-name (Buffer-menu-buffer))))))
-      (and (buffer-live-p buf) (kill-buffer buf))
-      (and (file-exists-p file) (delete-file file)))))
+  (ert-with-temp-file file
+    :suffix "foo"
+    (let ((buf (find-file file)))
+      (unwind-protect
+          (progn
+            (rename-buffer " foo")
+            (list-buffers)
+            (with-current-buffer "*Buffer List*"
+              (should (string= " foo" (buffer-name (Buffer-menu-buffer))))))
+        (and (buffer-live-p buf) (kill-buffer buf))))))
 
 (provide 'buff-menu-tests)
 

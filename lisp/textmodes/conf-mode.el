@@ -1,6 +1,6 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
@@ -63,8 +63,7 @@ not align (only setting space according to `conf-assignment-space')."
   :type 'boolean)
 
 (defvar conf-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-u" 'conf-unix-mode)
     (define-key map "\C-c\C-w" 'conf-windows-mode)
     (define-key map "\C-c\C-j" 'conf-javaprop-mode)
@@ -78,51 +77,45 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c\"" 'conf-quote-normal)
     (define-key map "\C-c'" 'conf-quote-normal)
     (define-key map "\C-c\C-a" 'conf-align-assignments)
-    (define-key map [menu-bar sh-script] (cons "Conf" menu-map))
-    (define-key menu-map [conf-windows-mode]
-      '(menu-item "Windows mode"
-		  conf-windows-mode
-		  :help "Conf Mode starter for Windows style Conf files"
-		  :button (:radio . (eq major-mode 'conf-windows-mode))))
-    (define-key menu-map [conf-javaprop-mode]
-      '(menu-item "Java properties mode"
-		  conf-javaprop-mode
-		  :help "Conf Mode starter for Java properties files"
-		  :button (:radio . (eq major-mode 'conf-javaprop-mode))))
-    (define-key menu-map [conf-space-keywords]
-      '(menu-item "Space keywords mode..."
-		  conf-space-keywords
-		  :help "Enter Conf Space mode using regexp KEYWORDS to match the keywords"
-		  :button (:radio . (eq major-mode 'conf-space-keywords))))
-    (define-key menu-map [conf-ppd-mode]
-      '(menu-item "PPD mode"
-		  conf-ppd-mode
-		  :help "Conf Mode starter for Adobe/CUPS PPD files"
-		  :button (:radio . (eq major-mode 'conf-ppd-mode))))
-    (define-key menu-map [conf-colon-mode]
-      '(menu-item "Colon mode"
-		  conf-colon-mode
-		  :help "Conf Mode starter for Colon files"
-		  :button (:radio . (eq major-mode 'conf-colon-mode))))
-    (define-key menu-map [conf-unix-mode]
-      '(menu-item "Unix mode"
-		  conf-unix-mode
-		  :help "Conf Mode starter for Unix style Conf files"
-		  :button (:radio . (eq major-mode 'conf-unix-mode))))
-    (define-key menu-map [conf-xdefaults-mode]
-      '(menu-item "Xdefaults mode"
-		  conf-xdefaults-mode
-		  :help "Conf Mode starter for Xdefaults files"
-		  :button (:radio . (eq major-mode 'conf-xdefaults-mode))))
-    (define-key menu-map [c-s0] '("--"))
-    (define-key menu-map [conf-quote-normal]
-      '(menu-item "Set quote syntax normal" conf-quote-normal
-		  :help "Set the syntax of \\=' and \" to punctuation"))
-    (define-key menu-map [conf-align-assignments]
-      '(menu-item "Align assignments" conf-align-assignments
-		  :help "Align assignments"))
     map)
   "Local keymap for `conf-mode' buffers.")
+
+(easy-menu-define conf-mode-menu conf-mode-map
+  "Menu for `conf-mode'."
+  '("Conf"
+    ["Align assignments" conf-align-assignments
+     :help "Align assignments"]
+    ["Set quote syntax normal" conf-quote-normal
+     :help "Set the syntax of \\=' and \" to punctuation"]
+    "---"
+    ["Xdefaults mode" conf-xdefaults-mode
+     :help "Conf Mode starter for Xdefaults files"
+     :style radio
+     :selected (eq major-mode 'conf-xdefaults-mode)]
+    ["Unix mode" conf-unix-mode
+     :help "Conf Mode starter for Unix style Conf files"
+     :style radio
+     :selected (eq major-mode 'conf-unix-mode)]
+    ["Colon mode" conf-colon-mode
+     :help "Conf Mode starter for Colon files"
+     :style radio
+     :selected (eq major-mode 'conf-colon-mode)]
+    ["PPD mode" conf-ppd-mode
+     :help "Conf Mode starter for Adobe/CUPS PPD files"
+     :style radio
+     :selected (eq major-mode 'conf-ppd-mode)]
+    ["Space keywords mode..." conf-space-keywords
+     :help "Enter Conf Space mode using regexp KEYWORDS to match the keywords"
+     :style radio
+     :selected (eq major-mode 'conf-space-keywords)]
+    ["Java properties mode" conf-javaprop-mode
+     :help "Conf Mode starter for Java properties files"
+     :style radio
+     :selected (eq major-mode 'conf-javaprop-mode)]
+    ["Windows mode" conf-windows-mode
+     :help "Conf Mode starter for Windows style Conf files"
+     :style radio
+     :selected (eq major-mode 'conf-windows-mode)]))
 
 (defvar conf-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -146,11 +139,9 @@ not align (only setting space according to `conf-assignment-space')."
   "Syntax table in use in Unix style `conf-mode' buffers.")
 
 (defvar conf-javaprop-mode-syntax-table
-  (let ((table (make-syntax-table conf-unix-mode-syntax-table)))
-    (modify-syntax-entry ?/  ". 124" table)
-    (modify-syntax-entry ?*  ". 23b" table)
-    table)
+  (make-syntax-table conf-unix-mode-syntax-table)
   "Syntax table in use in Java properties buffers.")
+(make-obsolete-variable 'conf-javaprop-mode-syntax-table nil "29.1")
 
 (defvar conf-ppd-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -424,12 +415,18 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 ;; To tell the difference between those two cases where the function
 ;; might be called, we check `delay-mode-hooks'.
 ;; (inspired from tex-mode.el)
+(defvar conf-mode--recursing nil)
 (advice-add 'conf-mode :around
             (lambda (orig-fun)
               "Redirect to one of the submodes when called directly."
-              (funcall (if delay-mode-hooks orig-fun (conf--guess-mode)))))
-
-
+              ;; The file may have "mode: conf" in the local variable
+              ;; block, in which case we'll be called recursively
+              ;; infinitely.  Inhibit that.
+              (let ((conf-mode--recursing conf-mode--recursing))
+                (funcall (if (or delay-mode-hooks conf-mode--recursing)
+                             orig-fun
+                           (setq conf-mode--recursing t)
+                           (conf--guess-mode))))))
 
 (defun conf-mode-initialize (comment &optional font-lock)
   "Initializations for sub-modes of `conf-mode'.
@@ -471,13 +468,9 @@ PersistMoniker=file://Folder.htt"
 ;;;###autoload
 (define-derived-mode conf-javaprop-mode conf-mode "Conf[JavaProp]"
   "Conf Mode starter for Java properties files.
-Comments start with `#' but are also recognized with `//' or
-between `/*' and `*/'.
-For details see `conf-mode'.  Example:
+Comments start with `#'.  Example:
 
 # Conf mode font-locks this right with \\[conf-javaprop-mode] (Java properties)
-// another kind of comment
-/* yet another */
 
 name:value
 name=value
@@ -488,7 +481,6 @@ x.2.y.1.z.2.zz ="
   (conf-mode-initialize "#" 'conf-javaprop-font-lock-keywords)
   (setq-local conf-assignment-column conf-javaprop-assignment-column)
   (setq-local conf-assignment-regexp ".+?\\([ \t]*[=: \t][ \t]*\\|$\\)")
-  (setq-local comment-start-skip "\\(?:#+\\|/[/*]+\\)\\s *")
   (setq-local imenu-generic-expression
 	      '(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
 
@@ -616,7 +608,7 @@ For details see `conf-mode'.  Example:
   (conf-mode-initialize "!"))
 
 (defun conf-toml-recognize-section (limit)
-  "Font-lock helper function for conf-toml-mode.
+  "Font-lock helper function for `conf-toml-mode'.
 Handles recognizing TOML section names, like [section],
 \[[section]], or [something.\"else\".section]."
   (save-excursion

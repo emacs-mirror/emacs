@@ -11,7 +11,7 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -735,7 +735,7 @@ context menu.
 
 Classes can be marked for operations similar to the standard Emacs
 commands @kbd{M-x tags-search} and @kbd{M-x tags-query-replace} (see
-also @xref{Tags-like Functions}.)
+also @pxref{Tags-like Functions}.)
 
 @table @kbd
 @cindex toggle mark

@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2020 Free Software Foundation, Inc.
+Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,14 +26,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <getopt.h>
 
+#include <attribute.h>
 #include <flexmember.h>
 #include <min-max.h>
 #include <unlocked-io.h>
-
-/* The SunOS compiler doesn't have SEEK_END.  */
-#ifndef SEEK_END
-#define SEEK_END 2
-#endif
 
 /* Files are read in chunks of this number of bytes.  */
 
@@ -1208,17 +1204,14 @@ sym_scope (struct sym *p)
 }
 
 
-/* Dump the list of members M to file FP.  Value is the length of the
-   list.  */
+/* Dump the list of members M to file FP.  */
 
-static int
+static void
 dump_members (FILE *fp, struct member *m)
 {
-  int n;
-
   putc ('(', fp);
 
-  for (n = 0; m; m = m->next, ++n)
+  for (; m; m = m->next)
     {
       fputs (MEMBER_STRUCT, fp);
       putstr (m->name, fp);
@@ -1238,7 +1231,6 @@ dump_members (FILE *fp, struct member *m)
 
   putc (')', fp);
   putc ('\n', fp);
-  return n;
 }
 
 
@@ -1267,15 +1259,11 @@ dump_sym (FILE *fp, struct sym *root)
 }
 
 
-/* Dump class ROOT and its subclasses to file FP.  Value is the
-   number of classes written.  */
+/* Dump class ROOT and its subclasses to file FP.  */
 
-static int
+static void
 dump_tree (FILE *fp, struct sym *root)
 {
-  struct link *lk;
-  unsigned n = 0;
-
   dump_sym (fp, root);
 
   if (f_verbose)
@@ -1286,20 +1274,20 @@ dump_tree (FILE *fp, struct sym *root)
 
   putc ('(', fp);
 
-  for (lk = root->subs; lk; lk = lk->next)
+  for (struct link *lk = root->subs; lk; lk = lk->next)
     {
       fputs (TREE_STRUCT, fp);
-      n += dump_tree (fp, lk->sym);
+      dump_tree (fp, lk->sym);
       putc (']', fp);
     }
 
   putc (')', fp);
 
   dump_members (fp, root->vars);
-  n += dump_members (fp, root->fns);
+  dump_members (fp, root->fns);
   dump_members (fp, root->static_vars);
-  n += dump_members (fp, root->static_fns);
-  n += dump_members (fp, root->friends);
+  dump_members (fp, root->static_fns);
+  dump_members (fp, root->friends);
   dump_members (fp, root->types);
 
   /* Superclasses.  */
@@ -1311,7 +1299,6 @@ dump_tree (FILE *fp, struct sym *root)
   putc (')', fp);
 
   putc ('\n', fp);
-  return n;
 }
 
 
@@ -1320,9 +1307,6 @@ dump_tree (FILE *fp, struct sym *root)
 static void
 dump_roots (FILE *fp)
 {
-  int i, n = 0;
-  struct sym *r;
-
   /* Output file header containing version string, command line
      options etc.  */
   if (!f_append)
@@ -1346,12 +1330,12 @@ dump_roots (FILE *fp)
   mark_inherited_virtual ();
 
   /* Dump the roots of the graph.  */
-  for (i = 0; i < TABLE_SIZE; ++i)
-    for (r = class_table[i]; r; r = r->next)
+  for (int i = 0; i < TABLE_SIZE; ++i)
+    for (struct sym *r = class_table[i]; r; r = r->next)
       if (!r->supers)
         {
 	  fputs (TREE_STRUCT, fp);
-          n += dump_tree (fp, r);
+          dump_tree (fp, r);
 	  putc (']', fp);
         }
 
@@ -1585,6 +1569,67 @@ yylex (void)
 
         end_string:
           return end_char == '\'' ? CCHAR : CSTRING;
+	case 'R':
+	  if (GET (c) == '"')
+	    {
+	      /* C++11 rstrings.  */
+
+#define RSTRING_EOF_CHECK						\
+	      do {							\
+		if (c == '\0')						\
+		  {							\
+		    yyerror ("unterminated c++11 rstring", NULL);	\
+		    UNGET ();						\
+		    return CSTRING;					\
+		  }							\
+	      } while (0)
+
+	    char *rstring_prefix_start = in;
+
+	    while (GET (c) != '(')
+	      {
+		RSTRING_EOF_CHECK;
+		if (c == '"')
+		  {
+		    yyerror ("malformed c++11 rstring", NULL);
+		    return CSTRING;
+		  }
+	      }
+	    char *rstring_prefix_end = in - 1;
+	    while (TRUE)
+	      {
+		switch (GET (c))
+		  {
+		  default:
+		    RSTRING_EOF_CHECK;
+		    break;
+		  case '\n':
+		    INCREMENT_LINENO;
+		    break;
+		  case ')':
+		    {
+		      char *in_saved = in;
+		      char *prefix = rstring_prefix_start;
+		      while (prefix != rstring_prefix_end && GET (c) == *prefix)
+			{
+			  RSTRING_EOF_CHECK;
+			  prefix++;
+			}
+		      if (prefix == rstring_prefix_end)
+			{
+			  if (GET (c) == '"')
+			    return CSTRING;
+			  RSTRING_EOF_CHECK;
+			}
+		      in = in_saved;
+		    }
+		  }
+	      }
+	    }
+
+          UNGET ();
+          /* Fall through to identifiers and keywords.  */
+	  FALLTHROUGH;
 
         case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
         case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
@@ -1592,7 +1637,7 @@ yylex (void)
         case 'v': case 'w': case 'x': case 'y': case 'z':
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':
         case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':
-        case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U':
+        case 'O': case 'P': case 'Q': case 'S': case 'T': case 'U':
         case 'V': case 'W': case 'X': case 'Y': case 'Z': case '_':
           {
             /* Identifier and keywords.  */
@@ -1925,7 +1970,15 @@ matching_regexp (void)
       *--s = *--t;
 
       if (*s == '"' || *s == '\\')
-        *--s = '\\';
+	{
+	  if (s > matching_regexp_buffer)
+	    *--s = '\\';
+	  else
+	    {
+	      s++;
+	      break;
+	    }
+	}
     }
 
   *(matching_regexp_end_buf - 1) = '\0';

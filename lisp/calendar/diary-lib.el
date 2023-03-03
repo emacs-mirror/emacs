@@ -1,7 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2020 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1989-2023 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -73,18 +72,18 @@ are holidays."
 ;; follows: the first line matching "^# [tag:value]" defines the value
 ;; for that particular tag.
 (defcustom diary-face-attrs
-  '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
-    (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
-    (" *\\[height:\\([.0-9]+\\)\\]$" 1 :height int)
-    (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
-    (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
-    (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
-    (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
-    (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
-    (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
-    (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
-    (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+  '((" *\\[foreground:\\([-a-z]+\\)\\] *" 1 :foreground string)
+    (" *\\[background:\\([-a-z]+\\)\\] *" 1 :background string)
+    (" *\\[width:\\([-a-z]+\\)\\] *" 1 :width symbol)
+    (" *\\[height:\\([.0-9]+\\)\\] *" 1 :height int)
+    (" *\\[weight:\\([-a-z]+\\)\\] *" 1 :weight symbol)
+    (" *\\[slant:\\([-a-z]+\\)\\] *" 1 :slant symbol)
+    (" *\\[underline:\\([-a-z]+\\)\\] *" 1 :underline stringtnil)
+    (" *\\[overline:\\([-a-z]+\\)\\] *" 1 :overline stringtnil)
+    (" *\\[strike-through:\\([-a-z]+\\)\\] *" 1 :strike-through stringtnil)
+    (" *\\[inverse-video:\\([-a-z]+\\)\\] *" 1 :inverse-video tnil)
+    (" *\\[face:\\([-0-9a-z]+\\)\\] *" 1 :face string)
+    (" *\\[font:\\([-a-z0-9]+\\)\\] *" 1 :font string)
     ;; Unsupported.
 ;;;    (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
 ;;;    (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
@@ -93,7 +92,7 @@ are holidays."
 This is used by `diary-pull-attrs' to fontify certain diary
 elements.  REGEXP is a regular expression to for, and SUBEXP is
 the numbered sub-expression to extract.  `diary-glob-file-regexp-prefix'
-is pre-pended to REGEXP for file-wide specifiers.  ATTRIBUTE
+is prepended to REGEXP for file-wide specifiers.  ATTRIBUTE
 specifies which face attribute (e.g. `:foreground') to modify, or
 that this is a face (`:face') to apply.  TYPE is the type of
 attribute being applied.  Available TYPES (see `diary-attrtype-convert')
@@ -101,16 +100,16 @@ are: `string', `symbol', `int', `tnil', `stringtnil'."
   :type '(repeat (list (regexp :tag "Regular expression")
                        (integer :tag "Sub-expression")
                        (symbol :tag "Attribute (e.g. :foreground)")
-                       (choice (const string :tag "A string")
-                               (const symbol :tag "A symbol")
-                               (const int :tag "An integer")
-                               (const tnil :tag "t or nil")
-                               (const stringtnil
+                       (choice (const :value string :tag "A string")
+                               (const :value symbol :tag "A symbol")
+                               (const :value int    :tag "An integer")
+                               (const :value tnil   :tag "t or nil")
+                               (const :value stringtnil
                                       :tag "A string, t, or nil"))))
   :group 'diary)
 
 (defcustom diary-glob-file-regexp-prefix "^#"
-  "Regular expression pre-pended to `diary-face-attrs' for file-wide specifiers."
+  "Regular expression prepended to `diary-face-attrs' for file-wide specifiers."
   :type 'regexp
   :group 'diary)
 
@@ -340,7 +339,7 @@ Returns a string using match elements 1-5, where:
                     (t "\\1 \\2 \\3"))) ; MDY
             "\n \\4 %s, \\5")))
 ;; TODO Sometimes the time is in a different time-zone to the one you
-;; are in.  Eg in PST, you might still get an email referring to:
+;; are in.  E.g., in Los Angeles, you might still get an email referring to:
 ;; "7:00 PM-8:00 PM. Greenwich Standard Time".
 ;; Note that it doesn't use a standard abbreviation for the timezone,
 ;; or anything helpful like that.
@@ -663,7 +662,7 @@ any entries were found."
          (calendar-month-name-array (or months calendar-month-name-array))
          (case-fold-search t)
          entry-found)
-    (calendar-dlet*
+    (calendar-dlet
         ((dayname (format "%s\\|%s\\.?" (calendar-day-name date)
                           (calendar-day-name date 'abbrev)))
          (monthname (format "\\*\\|%s%s" (calendar-month-name month)
@@ -839,7 +838,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                     (goto-char (point-min))
                     (unless list-only
                       (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
-                        (set (make-local-variable 'diary-selective-display) t)
+                        (setq-local diary-selective-display t)
                         (overlay-put ol 'invisible 'diary)
                         (overlay-put ol 'evaporate t)))
                     (dotimes (_ number)
@@ -858,7 +857,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                   ;; every time, diary-include-other-diary-files
                   ;; binds it to nil (essentially) when it runs
                   ;; in included files.
-                  (calendar-dlet* ((number number)
+                  (calendar-dlet ((number number)
                                    (list-only list-only))
                     (run-hooks 'diary-nongregorian-listing-hook
                                'diary-list-entries-hook))
@@ -877,11 +876,14 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                                   (copy-sequence
                                    (car display-buffer-fallback-action))))))
                       (funcall diary-display-function)))
-                  (calendar-dlet* ((number number)
+                  (calendar-dlet ((number number)
                                    (original-date original-date))
                     (run-hooks 'diary-hook))))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
-      (or d-incp (message "Preparing diary...done"))
+      (or d-incp
+          ;; Don't clobber messages displayed while preparing the diary.
+          (not (equal (current-message) "Preparing diary..."))
+          (message "Preparing diary...done"))
       diary-entries-list)))
 
 (defun diary-unhide-everything ()
@@ -1223,8 +1225,7 @@ ensure that all relevant variables are set.
 
 \(diary-mail-entries)
 
-# diary-rem.el ends here
-"
+# diary-rem.el ends here"
   (interactive "P")
   (if (string-equal diary-mail-addr "")
       (user-error "You must set `diary-mail-addr' to use this command")
@@ -1254,10 +1255,10 @@ the regexp with parentheses."
               paren))
 
 (defvar diary-marking-entries-flag nil
-  "True during the marking of diary entries, nil otherwise.")
+  "Non-nil during the marking of diary entries, nil otherwise.")
 
 (defvar diary-marking-entry-flag nil
-  "True during the marking of diary entries, if current entry is marking.")
+  "Non-nil during the marking of diary entries, if current entry is marking.")
 
 ;; file-glob-attrs bound in diary-mark-entries.
 (defun diary-mark-entries-1 (markfunc &optional months symbol absfunc)
@@ -1266,7 +1267,7 @@ MARKFUNC is a function that marks entries of the appropriate type
 matching a given date pattern.  MONTHS is an array of month names.
 SYMBOL marks diary entries of the type in question.  ABSFUNC is a
 function that converts absolute dates to dates of the appropriate type."
-  (calendar-dlet*
+  (calendar-dlet
       ((dayname (diary-name-pattern calendar-day-name-array
                                     calendar-day-abbrev-array))
        (monthname (format "%s\\|\\*"
@@ -1435,7 +1436,7 @@ marks.  This is intended to deal with deleted diary entries."
 (defun diary-sexp-entry (sexp entry date)
   "Process a SEXP diary ENTRY for DATE."
   (let ((result
-         (calendar-dlet* ((date date)
+         (calendar-dlet ((date date)
                           (entry entry))
            (if calendar-debug-sexp
                (let ((debug-on-error t))
@@ -1771,7 +1772,7 @@ These functions give the date in alternative calendrical systems:
 `diary-islamic-date', `diary-julian-date', `diary-mayan-date',
 `diary-persian-date'
 
-Theses functions only produce output on certain dates:
+These functions only produce output on certain dates:
 
 `diary-lunar-phases'           - phases of moon (on the appropriate days)
 `diary-hebrew-omer'            - Omer count, within 50 days after Passover
@@ -2014,6 +2015,17 @@ string to use when highlighting the day in the calendar."
     (and (>= diff 0) (zerop (% diff n))
          (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+(defun diary-offset (sexp days)
+  "Offsetted diary entry.  Offsets SEXP by DAYS days.
+Entry applies if the date is DAYS days after another diary-sexp SEXP."
+  (with-no-warnings (defvar date))
+  (unless (integerp days)
+    (user-error "Days must be an integer"))
+  (let ((date (calendar-gregorian-from-absolute
+	       (- (calendar-absolute-from-gregorian date) days))))
+    (eval sexp)))
+
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
   (with-no-warnings (defvar date))
@@ -2043,7 +2055,7 @@ calendar."
   (and (integerp days)
        (< days 0)
        (setq days (number-sequence 1 (- days))))
-  (calendar-dlet* ((diary-entry (eval sexp)))
+  (calendar-dlet ((diary-entry (eval sexp)))
     (cond
      ;; Diary entry applies on date.
      ((and diary-entry
@@ -2059,7 +2071,7 @@ calendar."
         (when (setq diary-entry (eval sexp))
           ;; Discard any mark portion from diary-anniversary, etc.
           (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
-          (calendar-dlet* ((days days))
+          (calendar-dlet ((days days))
             (mapconcat #'eval diary-remind-message "")))))
      ;; Diary entry may apply to one of a list of days before date.
      ((and (listp days) days)
@@ -2221,8 +2233,8 @@ Prefix argument ARG makes the entry nonmarking."
     (diary-make-entry
      (format "%s(diary-cyclic %d %s)"
              diary-sexp-entry-symbol
-             (calendar-read "Repeat every how many days: "
-                            (lambda (x) (> x 0)))
+             (calendar-read-sexp "Repeat every how many days"
+                                 (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
 
@@ -2236,12 +2248,10 @@ Prefix argument ARG makes the entry nonmarking."
   ;; Return value suitable for `write-contents-functions'.
   nil)
 
-(defvar diary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-s" 'diary-show-all-entries)
-    (define-key map "\C-c\C-q" 'quit-window)
-    map)
-  "Keymap for `diary-mode'.")
+(defvar-keymap diary-mode-map
+  :doc "Keymap for `diary-mode'."
+  "C-c C-s" #'diary-show-all-entries
+  "C-c C-q" #'quit-window)
 
 (defun diary-font-lock-sexps (limit)
   "Recognize sexp diary entry up to LIMIT for font-locking."
@@ -2264,7 +2274,7 @@ If given, optional SYMBOL must be a prefix to entries.  If
 optional ABBREV-ARRAY is present, also matches the abbreviations
 from this array (with or without a final `.'), in addition to the
 full month names."
-  (calendar-dlet*
+  (calendar-dlet
       ((dayname (diary-name-pattern calendar-day-name-array
                                     calendar-day-abbrev-array t))
        (monthname (format "\\(%s\\|\\*\\)"
@@ -2381,10 +2391,9 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 ;;;###autoload
 (define-derived-mode diary-mode fundamental-mode "Diary"
   "Major mode for editing the diary file."
-  (set (make-local-variable 'font-lock-defaults)
-       '(diary-font-lock-keywords t))
-  (set (make-local-variable 'comment-start) diary-comment-start)
-  (set (make-local-variable 'comment-end) diary-comment-end)
+  (setq-local font-lock-defaults '(diary-font-lock-keywords t))
+  (setq-local comment-start diary-comment-start)
+  (setq-local comment-end diary-comment-end)
   (add-to-invisibility-spec '(diary . nil))
   (add-hook 'after-save-hook #'diary-redraw-calendar nil t)
   ;; In case the file was modified externally, refresh the calendar
@@ -2401,7 +2410,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 This depends on the calendar date style."
   (declare (obsolete nil "28.1"))
   (concat
-   (calendar-dlet*
+   (calendar-dlet
        ((dayname (diary-name-pattern calendar-day-name-array nil t))
         (monthname (diary-name-pattern calendar-month-name-array nil t))
         (day "1")
@@ -2459,19 +2468,19 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
-(defvar diary-fancy-overriding-map (make-sparse-keymap)
-  "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
+(defvar-keymap diary-fancy-overriding-map
+  :doc "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
 
 (define-derived-mode diary-fancy-display-mode special-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
-  (set (make-local-variable 'font-lock-defaults)
-       '(diary-fancy-font-lock-keywords
-         t nil nil nil
-         (font-lock-fontify-region-function
-          . diary-fancy-font-lock-fontify-region-function)))
-  (set (make-local-variable 'minor-mode-overriding-map-alist)
-       (list (cons t diary-fancy-overriding-map)))
+  (setq-local font-lock-defaults
+              '(diary-fancy-font-lock-keywords
+                t nil nil nil
+                (font-lock-fontify-region-function
+                 . diary-fancy-font-lock-fontify-region-function)))
+  (setq-local minor-mode-overriding-map-alist
+              (list (cons t diary-fancy-overriding-map)))
   (view-mode 1))
 
 ;; Following code from Dave Love <fx@gnu.org>.

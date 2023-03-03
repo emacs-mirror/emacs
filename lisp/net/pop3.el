@@ -1,6 +1,6 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; Post Office Protocol version 3 (RFC 1460) interface.
+;;
 ;; Most of the standard Post Office Protocol version 3 (RFC 1460) commands
 ;; are implemented.  The LIST command has not been implemented due to lack
 ;; of actual usefulness.
@@ -59,7 +61,7 @@
 (defcustom pop3-port 110
   "POP3 port."
   :version "22.1" ;; Oort Gnus
-  :type 'number
+  :type 'natnum
   :group 'pop3)
 
 (defcustom pop3-password-required t
@@ -88,7 +90,7 @@ valid value is `apop'."
 The lower the number, the more latency-sensitive the fetching
 will be.  If your pop3 server doesn't support streaming at all,
 set this to 1."
-  :type 'number
+  :type 'natnum
   :version "24.1"
   :group 'pop3)
 
@@ -463,13 +465,13 @@ Return non-nil if it is necessary to update the local UIDL file."
 		(when (cdr elt)
 		  (insert "(\"" (pop elt) "\"\n   ")
 		  (while elt
-		    (insert (format "\"%s\" %s\n   " (pop elt) (pop elt))))
+		    (insert (format "%S %s\n   " (pop elt) (pop elt))))
 		  (delete-char -4)
 		  (insert ")\n  ")))
 	      (delete-char -3)
 	      (if (eq (char-before) ?\))
 		  (insert ")\n ")
-		(goto-char (1+ (point-at-bol)))
+                (goto-char (1+ (line-beginning-position)))
 		(delete-region (point) (point-max)))))
 	  (when (eq (char-before) ? )
 	    (delete-char -2))
@@ -551,8 +553,8 @@ Returns the process associated with the connection."
       (when result
 	(let ((response (plist-get (cdr result) :greeting)))
 	  (setq pop3-timestamp
-		(substring response (or (string-match "<" response) 0)
-			   (+ 1 (or (string-match ">" response) -1)))))
+		(substring response (or (string-search "<" response) 0)
+			   (+ 1 (or (string-search ">" response) -1)))))
 	(set-process-query-on-exit-flag (car result) nil)
 	(erase-buffer)
 	(car result)))))
@@ -725,9 +727,9 @@ Otherwise, return the size of the message-id MSG."
 	  (setq pop3-read-point (point-marker))
 	  (goto-char (match-beginning 0))
 	  (setq end (point-marker))
-	  (mapcar #'(lambda (s) (let ((split (split-string s " ")))
-				  (cons (string-to-number (nth 0 split))
-					(string-to-number (nth 1 split)))))
+          (mapcar (lambda (s) (let ((split (split-string s " ")))
+                           (cons (string-to-number (nth 0 split))
+                                 (string-to-number (nth 1 split)))))
 		  (split-string (buffer-substring start end) "\r\n" t)))))))
 
 (defun pop3-retr (process msg crashbuf)

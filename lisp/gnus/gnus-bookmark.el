@@ -1,6 +1,6 @@
-;;; gnus-bookmark.el --- Bookmarks in Gnus
+;;; gnus-bookmark.el --- Bookmarks in Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news
@@ -65,7 +65,7 @@
 ;; http://thread.gmane.org/v9fxx9fkm4.fsf@marauder.physik.uni-ulm.de
 
 ;; FIXME: Check if `gnus-bookmark.el' should use
-;; `bookmark-make-cell-function'.
+;; `bookmark-make-record-function'.
 ;; Cf. http://article.gmane.org/gmane.emacs.gnus.general/66076
 
 (defgroup gnus-bookmark nil
@@ -78,22 +78,19 @@
    ((file-exists-p "~/.gnus.bmk") "~/.gnus.bmk")
    (t (nnheader-concat gnus-directory "bookmarks.el")))
   "The default Gnus bookmarks file."
-  :type 'string
-  :group 'gnus-bookmark)
+  :type 'string)
 
 (defcustom gnus-bookmark-file-coding-system
   (if (mm-coding-system-p 'iso-2022-7bit)
       'iso-2022-7bit)
   "Coding system used for writing Gnus bookmark files."
-  :type '(symbol :tag "Coding system")
-  :group 'gnus-bookmark)
+  :type '(symbol :tag "Coding system"))
 
 (defcustom gnus-bookmark-sort-flag t
   "Non-nil means Gnus bookmarks are sorted by bookmark names.
 Otherwise they will be displayed in LIFO order (that is,
 most recently set ones come first, oldest ones come last)."
-  :type 'boolean
-  :group 'gnus-bookmark)
+  :type 'boolean)
 
 (defcustom gnus-bookmark-bmenu-toggle-infos t
   "Non-nil means show details when listing Gnus bookmarks.
@@ -102,19 +99,16 @@ This may result in truncated bookmark names.  To disable this, put the
 following in your `.emacs' file:
 
 \(setq gnus-bookmark-bmenu-toggle-infos nil)"
-  :type 'boolean
-  :group 'gnus-bookmark)
+  :type 'boolean)
 
 (defcustom gnus-bookmark-bmenu-file-column 30
   "Column at which to display details in a buffer listing Gnus bookmarks.
 You can toggle whether details are shown with \\<gnus-bookmark-bmenu-mode-map>\\[gnus-bookmark-bmenu-toggle-infos]."
-  :type 'integer
-  :group 'gnus-bookmark)
+  :type 'integer)
 
 (defcustom gnus-bookmark-use-annotations nil
   "If non-nil, ask for an annotation when setting a bookmark."
-  :type 'boolean
-  :group 'gnus-bookmark)
+  :type 'boolean)
 
 (defcustom gnus-bookmark-bookmark-inline-details '(author)
   "Details to be shown with `gnus-bookmark-bmenu-toggle-infos'.
@@ -125,8 +119,7 @@ The default value is \(subject)."
 		    (const :tag "Subject" subject)
 		    (const :tag "Date" date)
 		    (const :tag "Group" group)
-		    (const :tag "Message-id" message-id)))
-  :group 'gnus-bookmark)
+		    (const :tag "Message-id" message-id))))
 
 (defcustom gnus-bookmark-bookmark-details
   '(author subject date group annotation)
@@ -139,14 +132,12 @@ The default value is \(author subject date group annotation)."
 		    (const :tag "Date" date)
 		    (const :tag "Group" group)
 		    (const :tag "Message-id" message-id)
-		    (const :tag "Annotation" annotation)))
-  :group 'gnus-bookmark)
+		    (const :tag "Annotation" annotation))))
 
 (defface gnus-bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
   "Face used to highlight the heading in Gnus bookmark menu buffers."
-  :version "23.1" ;; No Gnus
-  :group 'gnus-bookmark)
+  :version "23.1") ;; No Gnus
 
 (defconst gnus-bookmark-end-of-version-stamp-marker
   "-*- End Of Bookmark File Format Version Stamp -*-\n"
@@ -177,7 +168,7 @@ So the cdr of each bookmark is an alist too.")
 ;;;###autoload
 (defun gnus-bookmark-set ()
   "Set a bookmark for this article."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-bookmark-maybe-load-default-file)
   (if (or (not (derived-mode-p 'gnus-summary-mode))
 	  (not gnus-article-current))
@@ -207,7 +198,9 @@ So the cdr of each bookmark is an alist too.")
 
 (defun gnus-bookmark-make-record
   (group message-id author date subject annotation)
-  "Return the record part of a new bookmark, given GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION."
+  "Return the record part of a new bookmark.
+Arguments GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION
+will be saved in the bookmark."
   (let ((the-record
 	 `((group . ,(substring-no-properties group))
 	   (message-id . ,(substring-no-properties message-id))
@@ -279,7 +272,7 @@ So the cdr of each bookmark is an alist too.")
   (gnus-bookmark-maybe-load-default-file)
   (let* ((bookmark (or bmk-name
                        (gnus-completing-read "Jump to bookmarked article"
-                                             (mapcar 'car gnus-bookmark-alist))))
+                                             (mapcar #'car gnus-bookmark-alist))))
 	 (bmk-record (cadr (assoc bookmark gnus-bookmark-alist)))
 	 (group (cdr (assoc 'group bmk-record)))
 	 (message-id (cdr (assoc 'message-id bmk-record))))
@@ -345,8 +338,7 @@ copy of the alist."
   (when gnus-bookmark-sort-flag
     (setq gnus-bookmark-alist
 	  (sort (copy-alist gnus-bookmark-alist)
-		(function
-		 (lambda (x y) (string-lessp (car x) (car y))))))))
+                (lambda (x y) (string-lessp (car x) (car y)))))))
 
 ;;;###autoload
 (defun gnus-bookmark-bmenu-list ()
@@ -360,7 +352,7 @@ deletion, or > if it is flagged for displaying."
       (switch-to-buffer (gnus-get-buffer-create "*Gnus Bookmark List*"))
     (set-buffer (gnus-get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)
-	alist name start end)
+	alist name) ;; start end
     (erase-buffer)
     (insert "% Gnus Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)
@@ -426,32 +418,29 @@ That is, all information but the name."
 
 (defvar gnus-bookmark-bmenu-bookmark-column nil)
 (defvar gnus-bookmark-bmenu-hidden-bookmarks ())
-(defvar gnus-bookmark-bmenu-mode-map nil)
 
-(if gnus-bookmark-bmenu-mode-map
-    nil
-  (setq gnus-bookmark-bmenu-mode-map (make-keymap))
-  (suppress-keymap gnus-bookmark-bmenu-mode-map t)
-  (define-key gnus-bookmark-bmenu-mode-map "q" 'quit-window)
-  (define-key gnus-bookmark-bmenu-mode-map "\C-m" 'gnus-bookmark-bmenu-select)
-  (define-key gnus-bookmark-bmenu-mode-map "v" 'gnus-bookmark-bmenu-select)
-  (define-key gnus-bookmark-bmenu-mode-map "d" 'gnus-bookmark-bmenu-delete)
-  (define-key gnus-bookmark-bmenu-mode-map "k" 'gnus-bookmark-bmenu-delete)
-  (define-key gnus-bookmark-bmenu-mode-map "\C-d" 'gnus-bookmark-bmenu-delete-backwards)
-  (define-key gnus-bookmark-bmenu-mode-map "x" 'gnus-bookmark-bmenu-execute-deletions)
-  (define-key gnus-bookmark-bmenu-mode-map " " 'next-line)
-  (define-key gnus-bookmark-bmenu-mode-map "n" 'next-line)
-  (define-key gnus-bookmark-bmenu-mode-map "p" 'previous-line)
-  (define-key gnus-bookmark-bmenu-mode-map "\177" 'gnus-bookmark-bmenu-backup-unmark)
-  (define-key gnus-bookmark-bmenu-mode-map "?" 'describe-mode)
-  (define-key gnus-bookmark-bmenu-mode-map "u" 'gnus-bookmark-bmenu-unmark)
-  (define-key gnus-bookmark-bmenu-mode-map "m" 'gnus-bookmark-bmenu-mark)
-  (define-key gnus-bookmark-bmenu-mode-map "l" 'gnus-bookmark-bmenu-load)
-  (define-key gnus-bookmark-bmenu-mode-map "s" 'gnus-bookmark-bmenu-save)
-  (define-key gnus-bookmark-bmenu-mode-map "t" 'gnus-bookmark-bmenu-toggle-infos)
-  (define-key gnus-bookmark-bmenu-mode-map "a" 'gnus-bookmark-bmenu-show-details)
-  (define-key gnus-bookmark-bmenu-mode-map [mouse-2]
-    'gnus-bookmark-bmenu-select-by-mouse))
+(defvar-keymap gnus-bookmark-bmenu-mode-map
+  :full t
+  :suppress 'nodigits
+  "q" #'quit-window
+  "RET" #'gnus-bookmark-bmenu-select
+  "v" #'gnus-bookmark-bmenu-select
+  "d" #'gnus-bookmark-bmenu-delete
+  "k" #'gnus-bookmark-bmenu-delete
+  "C-d" #'gnus-bookmark-bmenu-delete-backwards
+  "x" #'gnus-bookmark-bmenu-execute-deletions
+  "SPC" #'next-line
+  "n" #'next-line
+  "p" #'previous-line
+  "DEL" #'gnus-bookmark-bmenu-backup-unmark
+  "?" #'describe-mode
+  "u" #'gnus-bookmark-bmenu-unmark
+  "m" #'gnus-bookmark-bmenu-mark
+  "l" #'gnus-bookmark-bmenu-load
+  "s" #'gnus-bookmark-bmenu-save
+  "t" #'gnus-bookmark-bmenu-toggle-infos
+  "a" #'gnus-bookmark-bmenu-show-details
+  "<mouse-2>" #'gnus-bookmark-bmenu-select-by-mouse)
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.
@@ -493,7 +482,7 @@ Gnus bookmarks names preceded by a \"*\" have annotations.
 (defun gnus-bookmark-bmenu-toggle-infos (&optional show)
   "Toggle whether details are shown in the Gnus bookmark list.
 Optional argument SHOW means show them unconditionally."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (cond
    (show
     (setq gnus-bookmark-bmenu-toggle-infos nil)
@@ -520,7 +509,7 @@ Optional argument SHOW means show them unconditionally."
             (let ((bmrk (gnus-bookmark-bmenu-bookmark)))
               (setq gnus-bookmark-bmenu-hidden-bookmarks
                     (cons bmrk gnus-bookmark-bmenu-hidden-bookmarks))
-	      (let ((start (point-at-eol)))
+              (let ((start (line-end-position)))
 		(move-to-column gnus-bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
 		(if (display-mouse-p)
@@ -554,7 +543,7 @@ Optional argument SHOW means show them unconditionally."
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (delete-region (point) (point-at-eol))
+  (delete-region (point) (line-end-position))
   (if (and newline-too (looking-at "\n"))
       (delete-char 1)))
 
@@ -659,14 +648,14 @@ reposition and try again, else return nil."
 
 (defun gnus-bookmark-bmenu-show-details ()
   "Show the annotation for the current bookmark in another window."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (let ((bookmark (gnus-bookmark-bmenu-bookmark)))
     (if (gnus-bookmark-bmenu-check-position)
 	(gnus-bookmark-show-details bookmark))))
 
 (defun gnus-bookmark-bmenu-mark ()
   "Mark bookmark on this line to be displayed by \\<gnus-bookmark-bmenu-mode-map>\\[gnus-bookmark-bmenu-select]."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (beginning-of-line)
   (if (gnus-bookmark-bmenu-check-position)
       (let ((inhibit-read-only t))
@@ -678,7 +667,7 @@ reposition and try again, else return nil."
 (defun gnus-bookmark-bmenu-unmark (&optional backup)
   "Cancel all requested operations on bookmark on this line and move down.
 Optional BACKUP means move up."
-  (interactive "P")
+  (interactive "P" gnus-bookmark-bmenu-mode)
   (beginning-of-line)
   (if (gnus-bookmark-bmenu-check-position)
       (progn
@@ -693,7 +682,7 @@ Optional BACKUP means move up."
 
 (defun gnus-bookmark-bmenu-backup-unmark ()
   "Move up and cancel all requested operations on bookmark on line above."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (forward-line -1)
   (if (gnus-bookmark-bmenu-check-position)
       (progn
@@ -705,7 +694,7 @@ Optional BACKUP means move up."
   "Mark Gnus bookmark on this line to be deleted.
 To carry out the deletions that you've marked, use
 \\<gnus-bookmark-bmenu-mode-map>\\[gnus-bookmark-bmenu-execute-deletions]."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (beginning-of-line)
   (if (gnus-bookmark-bmenu-check-position)
       (let ((inhibit-read-only t))
@@ -718,7 +707,7 @@ To carry out the deletions that you've marked, use
   "Mark bookmark on this line to be deleted, then move up one line.
 To carry out the deletions that you've marked, use
 \\<gnus-bookmark-bmenu-mode-map>\\[gnus-bookmark-bmenu-execute-deletions]."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (gnus-bookmark-bmenu-delete)
   (forward-line -2)
   (if (gnus-bookmark-bmenu-check-position)
@@ -730,7 +719,7 @@ To carry out the deletions that you've marked, use
 You can mark bookmarks with the
 \\<gnus-bookmark-bmenu-mode-map>\\[gnus-bookmark-bmenu-mark]
 command."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (if (gnus-bookmark-bmenu-check-position)
       (let ((bmrk (gnus-bookmark-bmenu-bookmark))
             (menu (current-buffer)))
@@ -740,13 +729,13 @@ command."
         (bury-buffer menu))))
 
 (defun gnus-bookmark-bmenu-select-by-mouse (event)
-  (interactive "e")
+  (interactive "e" gnus-bookmark-bmenu-mode)
   (mouse-set-point event)
   (gnus-bookmark-bmenu-select))
 
 (defun gnus-bookmark-bmenu-load ()
   "Load the Gnus bookmark file and rebuild the bookmark menu-buffer."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (if (gnus-bookmark-bmenu-check-position)
       (save-excursion
         (save-window-excursion
@@ -755,7 +744,7 @@ command."
 
 (defun gnus-bookmark-bmenu-execute-deletions ()
   "Delete Gnus bookmarks marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
-  (interactive)
+  (interactive nil gnus-bookmark-bmenu-mode)
   (message "Deleting Gnus bookmarks...")
   (let ((hide-em gnus-bookmark-bmenu-toggle-infos)
         (o-point  (point))

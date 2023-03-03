@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -163,14 +162,13 @@ List killed groups (@code{gnus-group-list-killed}).
 List zombie groups (@code{gnus-group-list-zombies}).
 
 @kindex u @r{(Gnus Group mode)}
-@findex gnus-group-unsubscribe-current-group
+@findex gnus-group-toggle-subscription-at-point
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
 Toggle the subscription status of the group
-(@code{gnus-group-unsubscribe-current-group}) on the current line
-(i.e., turn a subscribed group into an unsubscribed group, or vice
-versa).  Invoking this on a killed or zombie group turns it into an
+(@code{gnus-group-toggle-subscription-at-point}) on the current line.
+Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
 
 @kindex C-k @r{(Gnus Group mode)}
@@ -247,7 +245,7 @@ buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
 @kindex M-s M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
-@item M-s @var{regexp} @key{RET}
+@item M-s M-s @var{regexp} @key{RET}
 Search forward for articles containing a match for @var{regexp}
 (@code{gnus-summary-search-article-forward}).
 
@@ -456,20 +454,23 @@ servers the user has connected to.  If this variable is @code{t},
 @cindex PostScript file
 @cindex OpenDocument file
 @cindex Microsoft Office file
+@cindex EPUB file
+@cindex CBZ file
+@cindex FB2 file
+@cindex XPS file
+@cindex OXPS file
 @cindex DocView mode
 @cindex mode, DocView
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
   DocView mode is a major mode for viewing DVI, PostScript (PS), PDF,
-OpenDocument, and Microsoft Office documents.  It provides features
-such as slicing, zooming, and searching inside documents.  It works by
-converting the document to a set of images using the @command{gs}
-(GhostScript) or @command{mudraw}/@command{pdfdraw} (MuPDF) commands
-and other external tools @footnote{For PostScript files, GhostScript
-is a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm}
-is needed.  For OpenDocument and Microsoft Office documents, the
-@code{unoconv} tool is needed.}, and displaying those images.
+OpenDocument, Microsoft Office, EPUB, CBZ, FB2, XPS and OXPS
+documents.  It provides features such as slicing, zooming, and
+searching inside documents.  It works by converting the document to a
+set of images using the @command{gs} (GhostScript) or
+@command{pdfdraw}/@command{mutool draw} (MuPDF) commands and other
+external tools, and then displays those converted images.
 
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
@@ -578,6 +579,18 @@ you instead want the image to be re-rendered at the new size, set
 @code{doc-view-scale-internally} to @code{nil}.  To specify the
 default size for DocView, customize the variable
 @code{doc-view-resolution}.
+
+@vindex doc-view-imenu-enabled
+@vindex doc-view-imenu-flatten
+@vindex doc-view-imenu-format
+  When the @command{mutool} program is available, DocView will use it
+to generate entries for an outline menu, making it accessible via the
+@code{imenu} facility (@pxref{Imenu}).  To disable this functionality
+even when @command{mutool} can be found on your system, customize the
+variable @code{doc-view-imenu-enabled} to the @code{nil} value.  You
+can further customize how @code{imenu} items are formatted and
+displayed using the variables @code{doc-view-imenu-format} and
+@code{doc-view-flatten}.
 
 @node DocView Searching
 @subsection DocView Searching
@@ -734,6 +747,8 @@ Command Output*"} (@code{shell-command-buffer-name}) buffer (if the
 output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
 Emacs should consider the output to be too long for the echo area.
+Note that customizing @code{shell-command-dont-erase-buffer},
+described below, can affect what is displayed in the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -810,6 +825,7 @@ to @command{gpg}.  This will output the list of keys to the
 buffer whose name is the value of @code{shell-command-buffer-name}.
 
 @vindex shell-file-name
+@cindex @env{SHELL} environment variable
   The above commands use the shell specified by the variable
 @code{shell-file-name}.  Its default value is determined by the
 @env{SHELL} environment variable when Emacs is started.  If the file
@@ -849,6 +865,13 @@ Restores the position of point as it was before inserting the
 shell-command output.
 @end table
 
+Note that if this option is non-@code{nil}, the output shown in the
+echo area could be from more than just the last command, since the
+echo area just displays a portion of the output buffer.
+
+In case the output buffer is not the current buffer, shell command
+output is appended at the end of this buffer.
+
 @node Interactive Shell
 @subsection Interactive Subshell
 
@@ -886,10 +909,22 @@ also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
 
+  Emacs attempts to keep track of what the current directory is by
+looking at the commands you enter, looking for @samp{cd} commands and
+the like.  This is an error-prone solution, since there are many ways
+to change the current directory, so Emacs also looks for special
+@acronym{OSC} (Operating System Commands) escape codes that are
+designed to convey this information in a more reliable fashion.  You
+should arrange for your shell to print the appropriate escape sequence
+at each prompt, for instance with the following command:
+
+@example
+printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+@end example
+
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
-@cindex @env{SHELL} environment variable
   To specify the shell file name used by @kbd{M-x shell}, customize
 the variable @code{explicit-shell-file-name}.  If this is @code{nil}
 (the default), Emacs uses the environment variable @env{ESHELL} if it
@@ -915,7 +950,7 @@ Coding}.
 @cindex @env{INSIDE_EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
-Emacs version (e.g., @samp{24.1}).  Programs can check this variable
+Emacs version (e.g., @samp{28.1}).  Programs can check this variable
 to determine whether they are running inside an Emacs subshell.
 
 @node Shell Mode
@@ -1021,7 +1056,10 @@ pending in the shell buffer and not yet sent.
 @findex comint-delete-output
 Delete the last batch of output from a shell command
 (@code{comint-delete-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.
+out lots of output that just gets in the way.  With a prefix argument,
+this command saves the deleted text in the @code{kill-ring}
+(@pxref{Kill Ring}), so that you could later yank it (@pxref{Yanking})
+elsewhere.
 
 @item C-c C-s
 @kindex C-c C-s @r{(Shell mode)}
@@ -1110,6 +1148,19 @@ subshell:
           'comint-truncate-buffer)
 @end example
 @end table
+
+By default, Shell mode handles common @acronym{ANSI} escape codes (for
+instance, for changing the color of text).  Emacs also optionally
+supports some extend escape codes, like some of the @acronym{OSC}
+(Operating System Codes) if you put the following in your init file:
+
+@lisp
+(add-hook 'comint-output-filter-functions 'comint-osc-process-output)
+@end lisp
+
+With this enabled, the output from, for instance, @code{ls
+--hyperlink} will be made into clickable buttons in the Shell mode
+buffer.
 
 @cindex Comint mode
 @cindex mode, Comint
@@ -1482,14 +1533,20 @@ directory stack if they are not already on it
 underlying shell, of course.
 
 @vindex comint-terminfo-terminal
+@vindex system-uses-terminfo
 @vindex TERM@r{, environment variable, in sub-shell}
 Comint mode sets the @env{TERM} environment variable to a safe default
 value, but this value disables some useful features.  For example,
 color is disabled in applications that use @env{TERM} to determine if
 color is supported.  Therefore, Emacs provides an option
-@code{comint-terminfo-terminal}, which you can set to a terminal that
-is present in your system's terminfo database, in order to take
-advantage of advanced features of that terminal.
+@code{comint-terminfo-terminal} to let you choose a terminal with more
+advanced features, as defined in your system's terminfo database.
+Emacs will use this option as the value for @env{TERM} so long as
+@code{system-uses-terminfo} is non-@code{nil}.
+
+Both @code{comint-terminfo-terminal} and @code{system-uses-terminfo}
+can be declared as connection-local variables to adjust these options
+to match what a remote system expects (@pxref{Connection Variables}).
 
 @node Terminal emulator
 @subsection Emacs Terminal Emulator
@@ -1599,11 +1656,11 @@ interface is similar to the @code{more} program.
 @cindex remote host
 @cindex connecting to remote host
 @cindex Telnet
-@cindex Rlogin
+@cindex SSH
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g., using the @command{ssh} or
-@command{telnet} or @code{rlogin} commands), from a Term window.
+would from a regular terminal (e.g., the @command{ssh} command), from
+a Term window.
 
   A program that asks you for a password will normally suppress
 echoing of the password, so the password will not show up in the
@@ -1682,6 +1739,11 @@ options.  @xref{Initial Options}.  When Emacs is started this way, it
 calls @code{server-start} after initialization and does not open an
 initial frame.  It then waits for edit requests from clients.
 
+@item
+Run the command @code{emacsclient} with the @samp{--alternate-editor=""}
+command-line option.  This starts an Emacs daemon only if no Emacs daemon
+is already running.
+
 @cindex systemd unit file
 @item
 If your operating system uses @command{systemd} to manage startup,
@@ -1709,6 +1771,7 @@ connections.  A setup to use this functionality could be:
 @example
 [Socket]
 ListenStream=/path/to/.emacs.socket
+DirectoryMode=0700
 
 [Install]
 WantedBy=sockets.target
@@ -1747,6 +1810,29 @@ you can give each daemon its own server name like this:
   emacs --daemon=foo
 @end example
 
+@vindex server-stop-automatically
+  The Emacs server can optionally be stopped automatically when
+certain conditions are met.  To do this, set the option
+@code{server-stop-automatically} to one of the following values:
+
+@table @code
+@item empty
+This value causes the server to be stopped when it has no clients, no
+unsaved file-visiting buffers and no running processes anymore.
+
+@item delete-frame
+This value means that when the last client frame is being closed, you
+are asked whether each unsaved file-visiting buffer must be saved and
+each unfinished process can be stopped, and if so, the server is
+stopped.
+
+@item kill-terminal
+This value means that when the last client frame is being closed with
+@kbd{C-x C-c} (@code{save-buffers-kill-terminal}), you are asked
+whether each unsaved file-visiting buffer must be saved and each
+unfinished process can be stopped, and if so, the server is stopped.
+@end table
+
 @findex server-eval-at
   If you have defined a server by a unique server name, it is possible
 to connect to the server from another Emacs instance and evaluate Lisp
@@ -1755,6 +1841,13 @@ For instance, @code{(server-eval-at "foo" '(+ 1 2))} evaluates the
 expression @code{(+ 1 2)} on the @samp{foo} server, and returns
 @code{3}.  (If there is no server with that name, an error is
 signaled.)  Currently, this feature is mainly useful for developers.
+
+  If your operating system’s desktop environment is
+@url{https://www.freedesktop.org/wiki/Specifications/,,freedesktop.org-compatible}
+(which is true of most GNU/Linux and other recent Unix-like GUIs), you
+may use the @samp{Emacs (Client)} menu entry to connect to an Emacs
+server with @command{emacsclient}.  The daemon starts if not
+already running.
 
 @menu
 * TCP Emacs server::     Listening to a TCP socket.
@@ -1863,6 +1956,12 @@ it to exit.  Programs that use @env{EDITOR} usually wait for the
 editor---in this case @command{emacsclient}---to exit before doing
 something else.
 
+@findex server-edit-abort
+  If you want to abandon the edit instead, use the @w{@kbd{M-x
+server-edit-abort}} command.  This sends a message back to the
+@command{emacsclient} program, telling it to exit with abnormal exit
+status, and doesn't save any buffers.
+
   You can also call @command{emacsclient} with multiple file name
 arguments: @samp{emacsclient @var{file1} @var{file2} ...} tells the
 Emacs server to visit @var{file1}, @var{file2}, and so forth.  Emacs
@@ -1892,6 +1991,12 @@ with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
   If you set the value of the variable @code{server-window} to a
 window or a frame, @kbd{C-x #} always displays the next server buffer
 in that window or in that frame.
+
+@vindex server-client-instructions
+  When @command{emacsclient} connects, the server will normally output
+a message that says how to exit the client frame.  If
+@code{server-client-instructions} is set to @code{nil}, this message
+is inhibited.
 
 @node emacsclient Options
 @subsection @code{emacsclient} Options
@@ -1951,6 +2056,11 @@ the new frame displays the @file{*scratch*} buffer by default.  You
 can customize this behavior with the variable @code{initial-buffer-choice}
 (@pxref{Entering Emacs}).
 
+@item -r
+@itemx --reuse-frame
+Create a new graphical client frame if none exists, otherwise use an
+existing Emacs frame.
+
 @item -F @var{alist}
 @itemx --frame-parameters=@var{alist}
 Set the parameters for a newly-created graphical frame
@@ -1990,7 +2100,14 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
-@item --parent-id @var{id}
+@item -w
+@itemx --timeout=@var{N}
+Wait for a response from Emacs for @var{N} seconds before giving up.
+If there is no response within that time, @command{emacsclient} will
+display a warning and exit.  The default is @samp{0}, which means to
+wait forever.
+
+@item --parent-id=@var{id}
 Open an @command{emacsclient} frame as a client frame in the parent X
 window with id @var{id}, via the XEmbed protocol.  Currently, this
 option is mainly useful for developers.
@@ -2011,7 +2128,7 @@ evaluation performed is for side-effect rather than result.
 Connect to the Emacs server named @var{server-name}.  (This option is
 not supported on MS-Windows.)  The server name is given by the
 variable @code{server-name} on the Emacs server.  If this option is
-omitted, @command{emacsclient} connects to the first server it finds.
+omitted, @command{emacsclient} connects to the default socket.
 If you set @code{server-name} of the Emacs server to an absolute file
 name, give the same absolute file name as @var{server-name} to this
 option to instruct @command{emacsclient} to connect to that server.
@@ -2255,13 +2372,18 @@ off.
 @vindex ps-print-color-p
   If your printer doesn't support colors, you should turn off color
 processing by setting @code{ps-print-color-p} to @code{nil}.  By
-default, if the display supports colors, Emacs produces hardcopy output
-with color information; on black-and-white printers, colors are emulated
-with shades of gray.  This might produce illegible output, even if your
-screen colors only use shades of gray.
+default, if the display supports colors, Emacs produces hardcopy
+output with color information; on black-and-white printers, colors are
+emulated with shades of gray.  This might produce barely-readable or
+even illegible output, even if your screen colors only use shades of
+gray.
 
-  Alternatively, you can set @code{ps-print-color-p} to @code{black-white} to
-print colors on black/white printers.
+@vindex ps-black-white-faces
+  Alternatively, you can set @code{ps-print-color-p} to @code{black-white}
+to have colors display better on black/white printers.  This works by
+using information in @code{ps-black-white-faces} to express colors by
+customizable list of shades of gray, augmented by bold and italic
+face attributes.
 
 @vindex ps-use-face-background
   By default, PostScript printing ignores the background colors of the
@@ -2562,8 +2684,19 @@ invoked @code{hexl-mode}.
 @noindent
 Other Hexl commands let you insert strings (sequences) of binary
 bytes, move by @code{short}s or @code{int}s, etc.; type @kbd{C-h a
-hexl-@key{RET}} for details.
+hexl- @key{TAB}} for details.
 
+  Hexl mode can also be used for editing text files.  This could come
+in handy if the text file includes unusual characters or uses unusual
+encoding (@pxref{Coding Systems}).  For this purpose, Hexl commands
+that insert bytes can also insert @acronym{ASCII} and
+non-@acronym{ASCII} characters, including multibyte characters.  To
+edit a text file with Hexl, visit the file as usual, and then type
+@w{@kbd{M-x hexl-mode @key{RET}}} to switch to Hexl mode.  You can now
+insert text characters by typing them.  However, inserting multibyte
+characters requires special care, to avoid the danger of creating
+invalid multibyte sequences: you should start typing such characters
+when point is on the first byte of a multibyte sequence in the file.
 
 @node Saving Emacs Sessions
 @section Saving Emacs Sessions
@@ -2571,40 +2704,16 @@ hexl-@key{RET}} for details.
 @cindex restore session
 @cindex remember editing session
 @cindex reload files
-@cindex desktop
 
-@vindex desktop-restore-frames
-   Use the desktop library to save the state of Emacs from one session
-to another.  Once you save the Emacs @dfn{desktop}---the buffers,
-their file names, major modes, buffer positions, and so on---then
-subsequent Emacs sessions reload the saved desktop.  By default,
-the desktop also tries to save the frame and window configuration.
-To disable this, set @code{desktop-restore-frames} to @code{nil}.
-(See that variable's documentation for some related options
-that you can customize to fine-tune this behavior.)
+@cindex desktop configuration
+  You can use the desktop library to save the state of Emacs from one
+session to another.  The saved Emacs @dfn{desktop configuration}
+includes the buffers, their file names, major modes, buffer positions,
+window and frame configuration, and some important global variables.
 
-@vindex desktop-files-not-to-save
-Information about buffers visiting remote files is not saved by
-default.  Customize the variable @code{desktop-files-not-to-save} to
-change this.
-
-@vindex frameset-filter-alist
-   When the desktop restores the frame and window configuration, it
-uses the recorded values of frame parameters, disregarding any
-settings for those parameters you have in your init file (@pxref{Init
-File}).  This means that frame parameters such as fonts and faces for
-the restored frames will come from the desktop file, where they were
-saved when you exited your previous Emacs session; any settings for
-those parameters in your init file will be ignored.  To disable this,
-customize the value of @code{frameset-filter-alist} to filter out the
-frame parameters you don't want to be restored.
-
-@findex desktop-save
 @vindex desktop-save-mode
-  You can save the desktop manually with the command @kbd{M-x
-desktop-save}.  You can also enable automatic saving of the desktop
-when you exit Emacs, and automatic restoration of the last saved
-desktop when Emacs starts: use the Customization buffer (@pxref{Easy
+@findex desktop-save-mode
+  To enable this feature, use the Customization buffer (@pxref{Easy
 Customization}) to set @code{desktop-save-mode} to @code{t} for future
 sessions, or add this line in your init file (@pxref{Init File}):
 
@@ -2612,25 +2721,100 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
+@vindex desktop-path
+@vindex desktop-auto-save-timeout
+  If you turn on @code{desktop-save-mode} in your init file, then when
+Emacs starts, it looks for a saved desktop in @code{desktop-path}
+(which defaults to @code{user-emacs-directory} and then your home
+directory) and uses the first desktop it finds.  While Emacs runs with
+@code{desktop-save-mode} turned on, it by default auto-saves the
+desktop whenever any of the desktop configuration changes.  The
+variable @code{desktop-auto-save-timeout} determines how frequently
+Emacs checks for modifications to your desktop.  The desktop is also
+saved when you exit Emacs.
+
+@cindex disable restoring of desktop configuration
+  Specify the option @samp{--no-desktop} on the Emacs command line
+when you don't want it to reload any saved desktop configurations.
+This turns off @code{desktop-save-mode} for the current session.
+Starting Emacs with the @samp{--no-init-file} option also disables
+desktop reloading, since it bypasses the init file, where
+@code{desktop-save-mode} is usually turned on.
+
 @findex desktop-change-dir
 @findex desktop-revert
-@vindex desktop-path
-  If you turn on @code{desktop-save-mode} in your init file, then when
-Emacs starts, it looks for a saved desktop in the current directory.
-(More precisely, it looks in the directories specified by
-@code{desktop-path}, and uses the first desktop it finds.)
-Thus, you can have separate saved desktops in different directories,
-and the starting directory determines which one Emacs reloads.  You
-can save the current desktop and reload one saved in another directory
-by typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x
-desktop-revert} reverts to the desktop previously reloaded.
+  You can have separate saved desktop configurations in different
+directories; starting Emacs from a directory where you have a saved
+desktop configuration will restore that configuration, provided that
+you customize @code{desktop-path} to prepend @file{.} (the current
+directory) to the other directories there.  You can save the current
+desktop and reload the one saved in another directory by typing
+@kbd{M-x desktop-change-dir}.  Typing @kbd{M-x desktop-revert} reverts
+to the previously reloaded desktop.
 
-  Specify the option @samp{--no-desktop} on the command line when you
-don't want it to reload any saved desktop.  This turns off
-@code{desktop-save-mode} for the current session.  Starting Emacs with
-the @samp{--no-init-file} option also disables desktop reloading,
-since it bypasses the init file, where @code{desktop-save-mode} is
-usually turned on.
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.  You can also customize the variable to the
+special value @code{check-pid}, which means to load the file if the
+Emacs process that has locked the desktop is not running on the local
+machine.  This should not be used in circumstances where the locking
+Emacs might still be running on another machine, which could be the
+case in multi-user environments where your home directory is mounted
+remotely using NFS or similar.
+
+@cindex desktop restore in daemon mode
+  When Emacs starts in daemon mode, it cannot ask you any questions,
+so if it finds the desktop file locked, it will not load it, unless
+@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
+the desktop in daemon mode is somewhat problematic for other reasons:
+e.g., the daemon cannot use GUI features, so parameters such as frame
+position, size, and decorations cannot be restored.  For that reason,
+you may wish to delay restoring the desktop in daemon mode until the
+first client connects, by calling @code{desktop-read} (see below) in a
+hook function that you add to @code{server-after-make-frame-hook}
+(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
+
+@findex desktop-save
+@findex desktop-read
+  Whenever you want, you can use the command @kbd{M-x desktop-save} to
+force immediate saving of the current desktop.  This is useful either
+if you do not want to use the automatic desktop restoration, and thus
+don't turn on @code{desktop-save-mode}, or when you have made
+significant changes to the desktop, and want to make sure the
+configuration doesn't get lost if Emacs or your system crashes.  You
+can use @kbd{M-x desktop-read} to restore a previously-saved desktop
+if the current Emacs session didn't load any desktop yet.
+
+@vindex desktop-restore-frames
+  By default, the desktop tries to save and restore the frame and
+window configuration.  To disable this, set
+@code{desktop-restore-frames} to @code{nil}.  (See that variable's
+documentation for some related options that you can customize to
+fine-tune this behavior.)
+
+@vindex frameset-filter-alist
+  When the desktop restores the frame and window configuration, it
+uses the recorded values of frame parameters, disregarding any
+settings for those parameters you have in your init file (@pxref{Init
+File}).  This means that frame parameters such as fonts and faces for
+the restored frames will come from the desktop file, where they were
+saved when you exited your previous Emacs session; any settings for
+those parameters in your init file will be ignored.  To disable this,
+customize the value of @code{frameset-filter-alist} to filter out the
+frame parameters you don't want to be restored; they will then be set
+according to your customizations in the init file.
+
+@vindex desktop-files-not-to-save
+  Information about buffers visiting remote files is not saved by
+default.  Customize the variable @code{desktop-files-not-to-save} to
+change this.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored in one go.
@@ -2642,44 +2826,17 @@ remaining buffers are restored lazily, when Emacs is idle.
 @findex desktop-clear
 @vindex desktop-globals-to-clear
 @vindex desktop-clear-preserve-buffers-regexp
-  Type @kbd{M-x desktop-clear} to empty the Emacs desktop.  This kills
-all buffers except for internal ones, and clears the global variables
-listed in @code{desktop-globals-to-clear}.  If you want this to
-preserve certain buffers, customize the variable
+  Type @kbd{M-x desktop-clear} to empty the Emacs desktop; this can be
+useful, for example, if you want to switch to another desktop by
+invoking @kbd{M-x desktop-read} next.  The @code{desktop-clear}
+command kills all buffers except for internal ones, and clears the
+global variables listed in @code{desktop-globals-to-clear}.  If you
+want it to preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
-
-@vindex desktop-auto-save-timeout
-  While Emacs runs with @code{desktop-save-mode} turned on, it by
-default auto-saves the desktop whenever any of it changes.  The
-variable @code{desktop-auto-save-timeout} determines how frequently
-Emacs checks for modifications to your desktop.
-
-@vindex desktop-load-locked-desktop
-  The file in which Emacs saves the desktop is locked while the
-session runs, to avoid inadvertently overwriting it from another Emacs
-session.  That lock is normally removed when Emacs exits, but if Emacs
-or your system crashes, the lock stays, and when you restart Emacs, it
-will by default ask you whether to use the locked desktop file.  You
-can avoid the question by customizing the variable
-@code{desktop-load-locked-desktop} to either @code{nil}, which means
-never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.
-
-@cindex desktop restore in daemon mode
-  When Emacs starts in daemon mode, it cannot ask you any questions,
-so if it finds the desktop file locked, it will not load it, unless
-@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
-the desktop in daemon mode is somewhat problematic for other reasons:
-e.g., the daemon cannot use GUI features, so parameters such as frame
-position, size, and decorations cannot be restored.  For that reason,
-you may wish to delay restoring the desktop in daemon mode until the
-first client connects, by calling @code{desktop-read} in a hook
-function that you add to @code{server-after-make-frame-hook}
-(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
 @section Recursive Editing Levels
@@ -2749,99 +2906,6 @@ new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
 
-@ignore
-@c Apart from edt and viper, this is all obsolete.
-@c (Can't believe we were saying "most other editors" into 2014!)
-@c There seems no point having a node just for those, which both have
-@c their own manuals.
-@node Emulation
-@section Emulation
-@cindex emulating other editors
-@cindex other editors
-@cindex EDT
-@cindex vi
-@cindex WordStar
-
-  GNU Emacs can be programmed to emulate (more or less) most other
-editors.  Standard facilities can emulate these:
-
-@table @asis
-@item CRiSP/Brief (PC editor)
-@findex crisp-mode
-@vindex crisp-override-meta-x
-@findex scroll-all-mode
-@cindex CRiSP mode
-@cindex Brief emulation
-@cindex emulation of Brief
-@cindex mode, CRiSP
-@kbd{M-x crisp-mode} enables key bindings to emulate the CRiSP/Brief
-editor.  Note that this rebinds @kbd{M-x} to exit Emacs unless you set
-the variable @code{crisp-override-meta-x}.  You can also use the
-command @kbd{M-x scroll-all-mode} or set the variable
-@code{crisp-load-scroll-all} to emulate CRiSP's scroll-all feature
-(scrolling all windows together).
-
-@item EDT (DEC VMS editor)
-@findex edt-emulation-on
-@findex edt-emulation-off
-Turn on EDT emulation with @kbd{M-x edt-emulation-on}; restore normal
-command bindings with @kbd{M-x edt-emulation-off}.
-
-Most of the EDT emulation commands are keypad keys, and most standard
-Emacs key bindings are still available.  The EDT emulation rebindings
-are done in the global keymap, so there is no problem switching
-buffers or major modes while in EDT emulation.
-
-@item TPU (DEC VMS editor)
-@findex tpu-edt-on
-@cindex TPU
-@kbd{M-x tpu-edt-on} turns on emulation of the TPU editor emulating EDT.
-
-@item vi (Berkeley editor)
-@findex viper-mode
-Viper is an emulator for vi.  It implements several levels of
-emulation; level 1 is closest to vi itself, while level 5 departs
-somewhat from strict emulation to take advantage of the capabilities of
-Emacs.  To invoke Viper, type @kbd{M-x viper-mode}; it will guide you
-the rest of the way and ask for the emulation level.  @inforef{Top,
-Viper, viper}.
-
-@item vi (another emulator)
-@findex vi-mode
-@kbd{M-x vi-mode} enters a major mode that replaces the previously
-established major mode.  All of the vi commands that, in real vi, enter
-input mode are programmed instead to return to the previous major
-mode.  Thus, ordinary Emacs serves as vi's input mode.
-
-Because vi emulation works through major modes, it does not work
-to switch buffers during emulation.  Return to normal Emacs first.
-
-If you plan to use vi emulation much, you probably want to bind a key
-to the @code{vi-mode} command.
-
-@item vi (alternate emulator)
-@findex vip-mode
-@kbd{M-x vip-mode} invokes another vi emulator, said to resemble real vi
-more thoroughly than @kbd{M-x vi-mode}.  Input mode in this emulator
-is changed from ordinary Emacs so you can use @key{ESC} to go back to
-emulated vi command mode.  To get from emulated vi command mode back to
-ordinary Emacs, type @kbd{C-z}.
-
-This emulation does not work through major modes, and it is possible
-to switch buffers in various ways within the emulator.  It is not
-so necessary to assign a key to the command @code{vip-mode} as
-it is with @code{vi-mode} because terminating insert mode does
-not use it.
-
-@inforef{Top, VIP, vip}, for full information.
-
-@item WordStar (old wordprocessor)
-@findex wordstar-mode
-@kbd{M-x wordstar-mode} provides a major mode with WordStar-like
-key bindings.
-@end table
-@end ignore
-
 
 @node Hyperlinking
 @section Hyperlinking and Web Navigation Features
@@ -2891,6 +2955,41 @@ one-key commands for scrolling the widget, changing its size, and
 reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
 bindings.
 
+@findex xwidget-webkit-edit-mode
+@cindex xwidget-webkit-edit-mode
+  By default, typing a self-inserting character inside an xwidget
+webkit buffer will do nothing, or trigger some special action.  To
+make those characters and other common editing keys insert themselves
+when pressed, you can enable @code{xwidget-webkit-edit-mode}, which
+redefines them to be passed through to the WebKit xwidget.
+
+You can also enable @code{xwidget-webkit-edit-mode} by typing @kbd{e}
+inside the xwidget webkit buffer.
+
+@findex xwidget-webkit-isearch-mode
+@cindex searching in webkit buffers
+  @code{xwidget-webkit-isearch-mode} is a minor mode that behaves
+similarly to incremental search (@pxref{Incremental Search}), but
+operates on the contents of a WebKit widget instead of the current
+buffer.  It is bound to @kbd{C-s} and @kbd{C-r} inside xwidget-webkit
+buffers.  When it is invoked by @kbd{C-r}, the initial search will be
+performed in reverse direction.
+
+Typing any self-inserting character will cause the character to be
+inserted into the current search query.  Typing @kbd{C-s} will cause
+the WebKit widget to display the next search result, while typing
+@kbd{C-r} will cause it to display the previous one.
+
+To leave incremental search, you can type @kbd{C-g}.
+
+@findex xwidget-webkit-browse-history
+@cindex history of webkit buffers
+  The command @code{xwidget-webkit-browse-history} displays a buffer
+containing a list of pages previously loaded by the current WebKit
+buffer, and lets you navigate to those pages by hitting @kbd{RET}.
+
+It is bound to @kbd{H}.
+
 @node Browse-URL
 @subsection  Following URLs
 @cindex World Wide Web
@@ -2934,6 +3033,15 @@ URLs.
 
 For more information, view the package commentary by typing @kbd{C-h P
 browse-url @key{RET}}.
+
+@findex url-handler-mode
+  Emacs also has a minor mode that has some support for handling
+@acronym{URL}s as if they were files.  @code{url-handler-mode} is a
+global minor mode that affects most of the Emacs commands and
+primitives that deal with file names.  After switching on this mode,
+you can say, for instance, @kbd{C-x C-f https://www.gnu.org/ RET} to
+see the @acronym{HTML} for that web page, and you can then edit it and
+save it to a local file, for instance.
 
 @node Goto Address mode
 @subsection Activating URLs

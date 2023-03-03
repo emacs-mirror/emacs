@@ -1,6 +1,6 @@
-;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
+;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Paul D. Smith <psmith@BayNetworks.com>
 ;; Keywords: data
@@ -24,9 +24,7 @@
 
 ;; INTRODUCTION
 ;; ------------
-;; This package provides a major mode for editing SNMP MIBs.  It
-;; provides all the modern Emacs 19 bells and whistles: default
-;; fontification via font-lock, imenu search functions, etc.
+;; This package provides a major mode for editing SNMP MIBs.
 ;;
 ;; SNMP mode also uses tempo, a textual boilerplate insertion package
 ;; distributed with Emacs, to add in boilerplate SNMP MIB structures.
@@ -71,16 +69,6 @@
 ;; Once the template is done, you can use C-cC-f and C-cC-b to move back
 ;; and forth between the Tempo sequence points to fill in the rest of
 ;; the information.
-;;
-;; Font Lock
-;; ------------
-;;
-;; If you want font-lock in your MIB buffers, add this:
-;;
-;;  (add-hook 'snmp-common-mode-hook 'turn-on-font-lock)
-;;
-;; Enabling global-font-lock-mode is also sufficient.
-;;
 
 ;;; Code:
 
@@ -103,42 +91,35 @@
 (defcustom snmp-special-indent t
   "If non-nil, use a simple heuristic to try to guess the right indentation.
 If nil, then no special indentation is attempted."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-indent-level 4
   "Indentation level for SNMP MIBs."
-  :type 'integer
-  :group 'snmp)
+  :type 'integer)
 
 (defcustom snmp-tab-always-indent nil
   "Non-nil means TAB should always reindent the current line.
 A value of nil means reindent if point is within the initial line indentation;
 otherwise insert a TAB."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-completion-ignore-case t
   "Non-nil means that case differences are ignored during completion.
 A value of nil means that case is significant.
 This is used during Tempo template completion."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-common-mode-hook nil
   "Hook(s) evaluated when a buffer enters either SNMP or SNMPv2 mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defcustom snmp-mode-hook nil
   "Hook(s) evaluated when a buffer enters SNMP mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defcustom snmpv2-mode-hook nil
   "Hook(s) evaluated when a buffer enters SNMPv2 mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defvar snmp-tempo-tags nil
   "Tempo tags for SNMP mode.")
@@ -267,14 +248,12 @@ This is used during Tempo template completion."
 
 ;; Set up our keymap
 ;;
-(defvar snmp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\177"         'backward-delete-char-untabify)
-    (define-key map "\C-c\C-i"     'tempo-complete-tag)
-    (define-key map "\C-c\C-f"     'tempo-forward-mark)
-    (define-key map "\C-c\C-b"     'tempo-backward-mark)
-    map)
-  "Keymap used in SNMP mode.")
+(defvar-keymap snmp-mode-map
+  :doc "Keymap used in SNMP mode."
+  "DEL"     #'backward-delete-char-untabify
+  "C-c TAB" #'tempo-complete-tag
+  "C-c C-f" #'tempo-forward-mark
+  "C-c C-b" #'tempo-backward-mark)
 
 
 ;; Set up our syntax table
@@ -293,7 +272,7 @@ This is used during Tempo template completion."
 
 ;; Set up the stuff that's common between snmp-mode and snmpv2-mode
 ;;
-(defun snmp-common-mode (name mode abbrev font-keywords imenu-index tempo-tags)
+(defun snmp-common-mode (name mode abbrev font-keywords imenu-index mode-tempo-tags)
   (kill-all-local-variables)
 
   ;; Become the current major mode
@@ -306,59 +285,48 @@ This is used during Tempo template completion."
   (setq local-abbrev-table abbrev)
 
   ;; Set up paragraphs (?)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
 
   ;; Set up comments
-  (make-local-variable 'comment-start)
-  (setq comment-start "-- ")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "--+[ \t]*")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+  (setq-local comment-start "-- ")
+  (setq-local comment-start-skip "--+[ \t]*")
+  (setq-local comment-column 40)
+  (setq-local parse-sexp-ignore-comments t)
 
   ;; Set up indentation
   (if snmp-special-indent
-      (set (make-local-variable 'indent-line-function) 'snmp-indent-line))
-  (set (make-local-variable 'tab-always-indent) snmp-tab-always-indent)
+      (setq-local indent-line-function 'snmp-indent-line))
+  (setq-local tab-always-indent snmp-tab-always-indent)
 
   ;; Font Lock
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults (cons font-keywords '(nil nil ((?- . "w 1234")))))
+  (setq-local font-lock-defaults (cons font-keywords '(nil nil ((?- . "w 1234")))))
 
   ;; Imenu
-  (make-local-variable 'imenu-create-index-function)
-  (setq imenu-create-index-function imenu-index)
+  (setq-local imenu-create-index-function imenu-index)
 
   ;; Tempo
-  (tempo-use-tag-list tempo-tags)
-  (make-local-variable 'tempo-match-finder)
-  (setq tempo-match-finder "\\b\\(.+\\)\\=")
-  (make-local-variable 'tempo-interactive)
-  (setq tempo-interactive t)
+  (tempo-use-tag-list mode-tempo-tags)
+  (setq-local tempo-match-finder "\\b\\(.+\\)\\=")
+  (setq-local tempo-interactive t)
 
   ;; Miscellaneous customization
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline))
+  (setq-local require-final-newline mode-require-final-newline))
 
 
 ;; SNMPv1 MIB Editing Mode.
 ;;
 ;;;###autoload
 (defun snmp-mode ()
+  ;; FIXME: Use define-derived-mode.
   "Major mode for editing SNMP MIBs.
 Expression and list commands understand all C brackets.
 Tab indents for C code.
 Comments start with -- and end with newline or another --.
 Delete converts tabs to spaces as it moves back.
 \\{snmp-mode-map}
-Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
+Turning on `snmp-mode' runs the hooks in `snmp-common-mode-hook', then
 `snmp-mode-hook'."
   (interactive)
 
@@ -372,14 +340,11 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
                    'snmp-tempo-tags)
 
   ;; Completion lists
-  (make-local-variable 'snmp-mode-syntax-list)
-  (setq snmp-mode-syntax-list (append snmp-rfc1155-types
-                                     snmp-rfc1213-types
-                                     snmp-mode-syntax-list))
-  (make-local-variable 'snmp-mode-access-list)
-  (setq snmp-mode-access-list snmp-rfc1155-access)
-  (make-local-variable 'snmp-mode-status-list)
-  (setq snmp-mode-status-list snmp-rfc1212-status)
+  (setq-local snmp-mode-syntax-list (append snmp-rfc1155-types
+                                            snmp-rfc1213-types
+                                            snmp-mode-syntax-list))
+  (setq-local snmp-mode-access-list snmp-rfc1155-access)
+  (setq-local snmp-mode-status-list snmp-rfc1212-status)
 
   ;; Run hooks
   (run-mode-hooks 'snmp-common-mode-hook 'snmp-mode-hook))
@@ -387,13 +352,14 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
 
 ;;;###autoload
 (defun snmpv2-mode ()
+  ;; FIXME: Use define-derived-mode.
   "Major mode for editing SNMPv2 MIBs.
 Expression and list commands understand all C brackets.
 Tab indents for C code.
 Comments start with -- and end with newline or another --.
 Delete converts tabs to spaces as it moves back.
 \\{snmp-mode-map}
-Turning on snmp-mode runs the hooks in `snmp-common-mode-hook',
+Turning on `snmp-mode' runs the hooks in `snmp-common-mode-hook',
 then `snmpv2-mode-hook'."
   (interactive)
 
@@ -407,14 +373,11 @@ then `snmpv2-mode-hook'."
                    'snmpv2-tempo-tags)
 
   ;; Completion lists
-  (make-local-variable 'snmp-mode-syntax-list)
-  (setq snmp-mode-syntax-list (append snmp-rfc1902-types
-                                     snmp-rfc1903-types
-                                     snmp-mode-syntax-list))
-  (make-local-variable 'snmp-mode-access-list)
-  (setq snmp-mode-access-list snmp-rfc1902-access)
-  (make-local-variable 'snmp-mode-status-list)
-  (setq snmp-mode-status-list snmp-rfc1902-status)
+  (setq-local snmp-mode-syntax-list (append snmp-rfc1902-types
+                                            snmp-rfc1903-types
+                                            snmp-mode-syntax-list))
+  (setq-local snmp-mode-access-list snmp-rfc1902-access)
+  (setq-local snmp-mode-status-list snmp-rfc1902-status)
 
   ;; Run hooks
   (run-mode-hooks 'snmp-common-mode-hook 'snmpv2-mode-hook))
@@ -494,13 +457,11 @@ lines for the purposes of this function."
 	(index-table-alist '())
 	(index-trap-alist '())
         (case-fold-search nil) ; keywords must be uppercase
-	prev-pos token end)
+        token end)
     (goto-char (point-min))
-    (imenu-progress-message prev-pos 0)
     ;; Search for a useful MIB item (that's not in a comment)
     (save-match-data
       (while (re-search-forward snmp-clause-regexp nil t)
-        (imenu-progress-message prev-pos)
         (setq
          end (match-end 0)
          token (cons (match-string 1)
@@ -518,7 +479,6 @@ lines for the purposes of this function."
                (push token index-tc-alist)))
         (goto-char end)))
     ;; Create the menu
-    (imenu-progress-message prev-pos 100)
     (setq index-alist (nreverse index-alist))
     (and index-tc-alist
  	 (push (cons "Textual Conventions" (nreverse index-tc-alist))

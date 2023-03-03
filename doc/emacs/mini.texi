@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer
@@ -41,11 +41,14 @@ Alternatively, you can type @kbd{C-g} to exit the minibuffer by
 canceling the command asking for the argument (@pxref{Quitting}).
 
 @cindex default argument
+@vindex minibuffer-default-prompt-format
   Sometimes, the prompt shows a @dfn{default argument}, inside
 parentheses before the colon.  This default will be used as the
 argument if you just type @key{RET}.  For example, commands that read
 buffer names usually show a buffer name as the default; you can type
-@key{RET} to operate on that default buffer.
+@key{RET} to operate on that default buffer.  You can customize how
+the default argument is shown with the user option
+@code{minibuffer-default-prompt-format}.
 
 @cindex Minibuffer Electric Default mode
 @cindex mode, Minibuffer Electric Default
@@ -55,19 +58,32 @@ buffer names usually show a buffer name as the default; you can type
 Emacs hides the default argument as soon as you modify the contents of
 the minibuffer (since typing @key{RET} would no longer submit that
 default).  If you ever bring back the original minibuffer text, the
-prompt again shows the default.  Furthermore, if you change the
-variable @code{minibuffer-eldef-shorten-default} to a non-@code{nil}
-value, the default argument is displayed as @samp{[@var{default-arg}]}
-instead of @samp{(default @var{default-arg})}, saving some screen
-space.  To enable this minor mode, type @kbd{M-x
-minibuffer-electric-default-mode}.
+prompt again shows the default.  To enable this minor mode, type
+@kbd{M-x minibuffer-electric-default-mode}.
 
   Since the minibuffer appears in the echo area, it can conflict with
 other uses of the echo area.  If an error message or an informative
-message is emitted while the minibuffer is active, the message hides
-the minibuffer for a few seconds, or until you type something; then
-the minibuffer comes back.  While the minibuffer is in use, Emacs does
-not echo keystrokes.
+message is emitted while the minibuffer is active, the message is
+displayed in brackets after the minibuffer text for a few seconds, or
+until you type something; then the message disappears.  While the
+minibuffer is in use, Emacs does not echo keystrokes.
+
+@vindex minibuffer-follows-selected-frame
+  While using the minibuffer, you can switch to a different frame,
+perhaps to note text you need to enter (@pxref{Frame Commands}).  By
+default, the active minibuffer moves to this new frame.  If you set
+the user option @code{minibuffer-follows-selected-frame} to
+@code{nil}, then the minibuffer stays in the frame where you opened
+it, and you must switch back to that frame in order to complete (or
+abort) the current command.  If you set that option to a value which
+is neither @code{nil} nor @code{t}, the minibuffer moves frame only
+after a recursive minibuffer has been opened in the current command
+(@pxref{Recursive Mini,,, elisp}).  This option is mainly to retain
+(approximately) the behavior prior to Emacs 28.1.  Note that the
+effect of the command, when you finally finish using the minibuffer,
+always takes place in the frame where you first opened it.  The sole
+exception is that when that frame no longer exists, the action takes
+place in the currently selected frame.
 
 @node Minibuffer File
 @section Minibuffers for File Names
@@ -175,7 +191,14 @@ use the @kbd{C-o} (@code{open-line}) command (@pxref{Blank Lines}).
 often bound to @dfn{completion commands}, which allow you to easily
 fill in the desired text without typing all of it.  @xref{Completion}.
 As with @key{RET}, you can use @kbd{C-q} to insert a @key{TAB},
-@key{SPC}, or @samp{?}  character.
+@key{SPC}, or @samp{?} character.  If you want to make @key{SPC} and
+@key{?} insert normally instead of starting completion, you can put
+the following in your init file:
+
+@lisp
+(keymap-unset minibuffer-local-completion-map "SPC")
+(keymap-unset minibuffer-local-completion-map "?")
+@end lisp
 
   For convenience, @kbd{C-a} (@code{move-beginning-of-line}) in a
 minibuffer moves point to the beginning of the argument text, not the
@@ -229,6 +252,9 @@ set the variable @code{enable-recursive-minibuffers} to @code{t}.
 You might need also to enable @code{minibuffer-depth-indicate-mode}
 to show the current recursion depth in the minibuffer prompt
 on recursive use of the minibuffer.
+
+  When active, the minibuffer is usually in @code{minibuffer-mode}.
+This is an internal Emacs mode without any special features.
 
 @findex minibuffer-inactive-mode
   When not active, the minibuffer is in @code{minibuffer-inactive-mode},
@@ -348,32 +374,51 @@ window.  You can display the same list with @kbd{?}
 used with the completion list:
 
 @table @kbd
+@vindex minibuffer-completion-auto-choose
+@item M-@key{DOWN}
+@itemx M-@key{UP}
+While in the minibuffer, these keys navigate through the completions
+displayed in the completions buffer.  When
+@code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
+the default), using these commands also inserts the current completion
+candidate into the minibuffer.  If
+@code{minibuffer-completion-auto-choose} is @code{nil}, you can use
+the @kbd{M-@key{RET}} command to insert the completion candidates into
+the minibuffer.  By default, that exits the minibuffer, but with a
+prefix argument, @kbd{C-u M-@key{RET}} inserts the currently active
+candidate without exiting the minibuffer.
+
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
 @itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
-way for using the commands below.  @key{PageUp} or @key{prior} does
-the same.  You can also select the window in other ways
-(@pxref{Windows}).
+way for using the commands below.  @key{PageUp}, @key{prior} and
+@kbd{M-g M-c} does the same.  You can also select the window in other
+ways (@pxref{Windows}).
 
 @findex choose-completion
 @item @key{RET}
 @itemx mouse-1
 @itemx mouse-2
 While in the completion list buffer, this chooses the completion at
-point (@code{choose-completion}).
+point (@code{choose-completion}).  With a prefix argument, @kbd{C-u
+@key{RET}} inserts the completion at point into the minibuffer, but
+doesn't exit the minibuffer---thus, you can change your mind and
+choose another candidate.
 
 @findex next-completion
 @item @key{TAB}
 @item @key{RIGHT}
+@item @key{n}
 While in the completion list buffer, these keys move point to the
 following completion alternative (@code{next-completion}).
 
 @findex previous-completion
 @item @key{S-TAB}
 @item @key{LEFT}
+@item @key{p}
 While in the completion list buffer, these keys move point to the
 previous completion alternative (@code{previous-completion}).
 
@@ -472,7 +517,10 @@ falls back on the next style.
 @vindex completion-styles
   The list variable @code{completion-styles} specifies the completion
 styles to use.  Each list element is the name of a completion style (a
-Lisp symbol).  The default completion styles are (in order):
+Lisp symbol).  The available style symbols are stored in the variable
+@code{completion-styles-alist} (@pxref{Completion Variables,,, elisp,
+The Emacs Lisp Reference Manual}).  The default completion styles are
+(in order):
 
 @table @code
 @item basic
@@ -589,11 +637,34 @@ completion alternatives in the completion list.
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
 commands never display the completion list buffer; you must type
-@kbd{?}  to display the list.  If the value is @code{lazy}, Emacs only
+@kbd{?} to display the list.  If the value is @code{lazy}, Emacs only
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} shows the
-completion list buffer.
+completion list buffer.  If the value is @code{always}, the completion
+list buffer is always shown when completion is attempted.
+
+The display of the completion list buffer after it is shown for the
+first time is also controlled by @code{completion-auto-help}.  If the
+value is @code{t} or @code{lazy}, the window showing the completions
+pops down when Emacs is able to complete (and may pop up again if
+Emacs is again unable to complete after you type some more text); if
+the value is @code{always}, the window pops down only when you exit
+the completion.  The value @code{visible} is a hybrid: it behaves like
+@code{t} when it decides whether to pop up the window showing the
+completion list buffer, and like @code{always} when it decides whether
+to pop it down.
+
+@vindex completion-auto-select
+  Emacs can optionally select the window showing the completions when
+it shows that window.  To enable this behavior, customize the user
+option @code{completion-auto-select} to @code{t}, which changes the
+behavior of @key{TAB} when Emacs pops up the completions: pressing
+@kbd{@key{TAB}} will switch to the completion list buffer, and you can
+then move to a candidate by cursor motion commands and select it with
+@kbd{@key{RET}}.  If the value of @code{completion-auto-select} is
+@code{second-tab}, then the first @kbd{@key{TAB}} will pop up the
+completions list buffer, and the second one will switch to it.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
@@ -608,15 +679,65 @@ in a cyclic manner.  If you give @code{completion-cycle-threshold} a
 numeric value @var{n}, completion commands switch to this cycling
 behavior only when there are @var{n} or fewer alternatives.
 
+@vindex completions-format
+  When displaying completions, Emacs will normally pop up a new buffer
+to display the completions.  The completions will by default be sorted
+horizontally, using as many columns as will fit in the window-width,
+but this can be changed by customizing the @code{completions-format}
+user option.  If its value is @code{vertical}, Emacs will sort the
+completions vertically instead, and if it's @code{one-column}, Emacs
+will use just one column.
+
+@vindex completions-sort
+  The @code{completions-sort} user option controls the order in which
+the completions are sorted in the @samp{*Completions*} buffer.  The
+default is @code{alphabetical}, which sorts in alphabetical order.
+The value @code{nil} disables sorting.  The value can also be a
+function, which will be called with the list of completions, and
+should return the list in the desired order.
+
+@vindex completions-max-height
+  When @code{completions-max-height} is non-@code{nil}, it limits the
+size of the completions window.  It is specified in lines and include
+mode, header line and a bottom divider, if any.  For a more complex
+control of the Completion window display properties, you can use
+@code{display-buffer-alist} (@pxref{Buffer Display Action
+Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
+Reference Manual}).
+
+@vindex completions-header-format
+The variable @code{completions-header-format} is a format spec string to
+control the informative line shown before the completions list of
+candidates.  If it contains a @samp{%s} construct, that get replaced
+by the number of completions shown in the completion list buffer.  To
+suppress the display of the heading line, customize this variable to
+@code{nil}.  The string that is the value of this variable can have
+text properties to change the visual appearance of the heading line;
+some useful properties @code{face} or @code{cursor-intangible}
+(@pxref{Special Properties,,Properties with Special Meanings, elisp,
+The Emacs Lisp Reference Manual}).
+
+@vindex completions-highlight-face
+When @code{completions-highlight-face} names a face, the current
+completion candidate, the one that will be selected by typing
+@kbd{@key{RET}} or clicking the mouse, will be highlighted using that
+face.  The default value of this variable is
+@code{completions-highlight}; the value is @code{nil} disables this
+highlighting.  This feature uses the special text property
+@code{cursor-face}.
+
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history
 @cindex history of minibuffer input
+@cindex completion, walking through candidates
 
-  Every argument that you enter with the minibuffer is saved in a
-@dfn{minibuffer history list} so you can easily use it again later.
-You can use the following arguments to quickly fetch an earlier
-argument into the minibuffer:
+  Everything you type in the minibuffer is saved in a @dfn{minibuffer
+history list} so you can easily use it again later.  This includes
+completion candidates (such as file names, buffer names, command
+names, etc.@:) and any other kind of minibuffer input.  You can use
+the following commands to quickly fetch an earlier or alternative
+response into the minibuffer:
 
 @table @kbd
 @item M-p
@@ -785,6 +906,7 @@ can re-execute a command by calling @code{eval} with the
 
 @node Passwords
 @section Entering passwords
+@cindex entering passwords
 
 Sometimes, you may need to enter a password into Emacs.  For instance,
 when you tell Emacs to visit a file on another machine via a network
@@ -795,7 +917,7 @@ access to the machine (@pxref{Remote Files}).
 displays a prompt in the echo area (such as @samp{Password: }); after
 you type the required password, press @key{RET} to submit it.  To
 prevent others from seeing your password, every character you type is
-displayed as a dot (@samp{.}) instead of its usual form.
+displayed as an asterisk (@samp{*}) instead of its usual form.
 
   Most of the features and commands associated with the minibuffer
 @emph{cannot} be used when entering a password.  There is no history
@@ -831,12 +953,14 @@ File ‘foo.el’ exists; overwrite? (y or n)
 @end smallexample
 
 @cindex yes or no prompt
+@vindex yes-or-no-prompt
   The second type of yes-or-no query is typically employed if giving
 the wrong answer would have serious consequences; it thus features a
-longer prompt ending with @samp{(yes or no)}.  For example, if you
-invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer with
-unsaved changes, Emacs activates the minibuffer with a prompt like
-this:
+longer prompt ending with @samp{(yes or no)} (or the value of
+@code{yes-or-no-prompt} if you've customized that).  For example, if
+you invoke @kbd{C-x k} (@code{kill-buffer}) on a file-visiting buffer
+with unsaved changes, Emacs activates the minibuffer with a prompt
+like this:
 
 @smallexample
 Buffer foo.el modified; kill anyway? (yes or no)

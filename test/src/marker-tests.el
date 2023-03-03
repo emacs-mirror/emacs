@@ -1,6 +1,6 @@
 ;;; marker-tests.el --- tests for marker.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -57,4 +57,4 @@
     (set-marker marker-2 marker-1)
     (should (goto-char marker-2))))
 
-;;; marker-tests.el ends here.
+;;; marker-tests.el ends here

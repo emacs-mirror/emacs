@@ -7899,7 +7899,7 @@
 	* buffer.c (scroll-up-aggressively, scroll-down-aggressively):
 	* keymap.c (Fminor_mode_key_binding):
 	* macterm.c (mac-emulate-three-button-mouse):
-	Delete duplicate duplicate words.
+	Delete duplicate words.
 
 2005-07-18  Ken Raeburn  <raeburn@gnu.org>
 
@@ -27912,7 +27912,7 @@ See ChangeLog.9 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001-2020 Free Software Foundation, Inc.
+    Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

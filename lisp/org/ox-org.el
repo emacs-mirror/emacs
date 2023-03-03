@@ -1,8 +1,9 @@
 ;;; ox-org.el --- Org Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: org, wp
 
 ;; This file is part of GNU Emacs.
@@ -23,6 +24,9 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ox)
 (declare-function htmlize-buffer "ext:htmlize" (&optional buffer))
@@ -140,7 +144,7 @@ CONTENTS and INFO are ignored."
 CONTENTS is its contents, as a string or nil.  INFO is ignored."
   (let ((case-fold-search t))
     (replace-regexp-in-string
-     "^[ \t]*#\\+ATTR_[-_A-Za-z0-9]+:\\(?: .*\\)?\n" ""
+     "^[ \t]*#\\+attr_[-_a-z0-9]+:\\(?: .*\\)?\n" ""
      (org-export-expand blob contents t))))
 
 (defun org-org-headline (headline contents info)
@@ -165,11 +169,11 @@ CONTENTS is nil.  INFO is ignored."
 		    '("AUTHOR" "CREATOR" "DATE" "EMAIL" "OPTIONS" "TITLE"))
       (org-element-keyword-interpreter keyword nil))))
 
-(defun org-org-link (link contents _info)
+(defun org-org-link (link contents info)
   "Transcode LINK object back into Org syntax.
 CONTENTS is the description of the link, as a string, or nil.
 INFO is a plist containing current export state."
-  (or (org-export-custom-protocol-maybe link contents 'org)
+  (or (org-export-custom-protocol-maybe link contents 'org info)
       (org-element-link-interpreter link contents)))
 
 (defun org-org-template (contents info)
@@ -184,26 +188,26 @@ as a communication channel."
 	       (org-element-map (plist-get info :parse-tree) 'keyword
 		 (lambda (k)
 		   (and (string-equal (org-element-property :key k) "OPTIONS")
-			(concat "#+OPTIONS: "
+			(concat "#+options: "
 				(org-element-property :value k)))))
 	       "\n"))
    (and (plist-get info :with-title)
-	(format "#+TITLE: %s\n" (org-export-data (plist-get info :title) info)))
+	(format "#+title: %s\n" (org-export-data (plist-get info :title) info)))
    (and (plist-get info :with-date)
 	(let ((date (org-export-data (org-export-get-date info) info)))
 	  (and (org-string-nw-p date)
-	       (format "#+DATE: %s\n" date))))
+	       (format "#+date: %s\n" date))))
    (and (plist-get info :with-author)
 	(let ((author (org-export-data (plist-get info :author) info)))
 	  (and (org-string-nw-p author)
-	       (format "#+AUTHOR: %s\n" author))))
+	       (format "#+author: %s\n" author))))
    (and (plist-get info :with-email)
 	(let ((email (org-export-data (plist-get info :email) info)))
 	  (and (org-string-nw-p email)
-	       (format "#+EMAIL: %s\n" email))))
+	       (format "#+email: %s\n" email))))
    (and (plist-get info :with-creator)
 	(org-string-nw-p (plist-get info :creator))
-	(format "#+CREATOR: %s\n" (plist-get info :creator)))
+	(format "#+creator: %s\n" (plist-get info :creator)))
    contents))
 
 (defun org-org-timestamp (timestamp _contents _info)
@@ -238,7 +242,7 @@ a communication channel."
 
 ;;;###autoload
 (defun org-org-export-as-org
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to an Org buffer.
 
 If narrowing is active in the current buffer, only export its
@@ -273,7 +277,7 @@ non-nil."
 
 ;;;###autoload
 (defun org-org-export-to-org
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to an Org file.
 
 If narrowing is active in the current buffer, only export its
@@ -327,8 +331,8 @@ Return output file name."
 	   (work-buffer (or visitingp (find-file-noselect filename)))
 	   newbuf)
       (with-current-buffer work-buffer
-        (org-font-lock-ensure)
-        (org-show-all)
+        (font-lock-ensure)
+        (org-fold-show-all)
         (setq newbuf (htmlize-buffer)))
       (with-current-buffer newbuf
 	(when org-org-htmlized-css-url

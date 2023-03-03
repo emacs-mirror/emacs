@@ -825,7 +825,7 @@
 
 2015-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Prefer "initialize" to "initialise"
+	Prefer "initialize"
 	* progmodes/js.el (js-indent-first-init):
 	Rename from js-indent-first-initialiser, to avoid worrying about
 	American vs British spelling.  All uses changed.
@@ -917,7 +917,7 @@
 
 	* desktop.el (desktop-buffer-info): Write docstring.
 	(desktop-buffer-info): Use `pushnew' instead of `add-to-list' and
-	unquote lamda.
+	unquote lambda.
 
 	* emacs-lisp/package.el (package-refresh-contents): Update doc.
 
@@ -10766,7 +10766,7 @@
 	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
 	(find-gc-source-files): Update some names.
 	(trace-call-tree): Simplify and update.
-	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+	Avoid predictable temp-file names.  (https://bugs.debian.org/747100)
 	This is CVE-2014-3422.
 
 2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -14039,7 +14039,7 @@
 
 	* epa-file.el (epa-file-write-region): Encode the region according
 	to `buffer-file-format'.  Problem reported at:
-	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=32917>.
+	<https://sourceforge.jp/ticket/browse.php?group_id=2267&tid=32917>.
 
 2014-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -15465,7 +15465,7 @@
 2013-12-12  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* progmodes/python.el (python-indent-context)
-	(python-indent-calculate-indentation): Fix auto-identation
+	(python-indent-calculate-indentation): Fix auto-indentation
 	behavior for comment blocks.  (Bug#15916)
 
 2013-12-12  Nathan Trapuzzano  <nbtrap@nbtrap.com>  (tiny change)
@@ -17742,7 +17742,7 @@
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/sh-script.el (sh-mark-line, sh-learn-buffer-indent):
-	Occur buffers are read-only.  http://bugs.debian.org/720775
+	Occur buffers are read-only.  https://bugs.debian.org/720775
 
 	* emacs-lisp/authors.el (authors-fixed-entries):
 	Comment out old alpha stuff.
@@ -23951,7 +23951,7 @@
 
 	* simple.el (shell-command-on-region): Pass the `replace' argument
 	down to `call-process-region' to comply with the doc as reported on
-	<http://stackoverflow.com/questions/16720458/emacs-noninteractive-call-to-shell-command-on-region-always-deletes-region>
+	<https://stackoverflow.com/questions/16720458/emacs-noninteractive-call-to-shell-command-on-region-always-deletes-region>
 
 2013-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -25522,7 +25522,7 @@
 
 	* textmodes/ispell.el (ispell-add-per-file-word-list):
 	Fix `flyspell-correct-word-before-point' error when accepting
-	words and `coment-padding' is an integer by using
+	words and `comment-padding' is an integer by using
 	`comment-normalize-vars' (Bug #14214).
 
 2013-04-17  Fabián Ezequiel Gallina  <fgallina@gnu.org>
@@ -26294,7 +26294,7 @@ See ChangeLog.16 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2020 Free Software Foundation, Inc.
+  Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

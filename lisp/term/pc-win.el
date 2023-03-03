@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2020 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -246,6 +246,14 @@ Consult the selection.  Treat empty strings as if they were unset."
         ;; if it does not exist, or exists and compares
         ;; equal with the last text we've put into the
         ;; Windows clipboard.
+        ;; NOTE: that variable is actually the last text any program
+        ;; (not just Emacs) has put into the windows clipboard (up
+        ;; until the last time Emacs read or set the clipboard), so
+        ;; it's not suitable for checking actual selection
+        ;; ownership. This should not result in a bug for the current
+        ;; uses of gui-backend-selection-owner however, since they
+        ;; don't actually care about selection ownership, but about
+        ;; the selected text having changed.
         (cond
          ((not text) t)
          ((equal text gui--last-selected-text-clipboard) text)
@@ -290,7 +298,7 @@ This is used by `msdos-show-help'.")
              (not cursor-in-echo-area)) ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (setq help (replace-regexp-in-string "\n" ", " help))
+      (setq help (string-replace "\n" ", " help))
       (unless (or msdos-previous-message
 		  (string-equal help (current-message))
 		  (and (stringp msdos-last-help-message)

@@ -1,6 +1,6 @@
 ;;; url-future.el --- general futures facility for url.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -53,7 +53,7 @@
 (define-inline url-future-errored-p (url-future)
   (inline-quote (eq (url-future-status ,url-future) 'error)))
 
-(define-inline url-future-cancelled-p (url-future)
+(define-inline url-future-canceled-p (url-future)
   (inline-quote (eq (url-future-status ,url-future) 'cancel)))
 
 (defun url-future-finish (url-future &optional status)
@@ -95,6 +95,9 @@
   (if (url-future-done-p url-future)
       (signal 'error 'url-future-already-done)
     (url-future-finish url-future 'cancel)))
+
+(define-obsolete-function-alias 'url-future-cancelled-p
+  #'url-future-canceled-p "30.1")
 
 (provide 'url-future)
 ;;; url-future.el ends here

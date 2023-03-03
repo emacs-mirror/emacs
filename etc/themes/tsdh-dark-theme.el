@@ -1,6 +1,6 @@
 ;;; tsdh-dark-theme.el --- Tassilo's dark custom theme  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +19,12 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme tsdh-dark
-  "A dark theme used and created by Tassilo Horn.")
+  "A dark theme used and created by Tassilo Horn."
+  :background-mode 'dark
+  :kind 'color-scheme
+  :family 'tsdh)
 
 (custom-theme-set-faces
  'tsdh-dark

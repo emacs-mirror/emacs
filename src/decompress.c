@@ -1,5 +1,5 @@
 /* Interface to zlib.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "composite.h"
+#include "md5.h"
 
 #include <verify.h>
 
@@ -66,6 +67,109 @@ init_zlib_functions (void)
 #endif	/* WINDOWSNT */
 
 
+#ifdef HAVE_NATIVE_COMP
+
+# define MD5_BLOCKSIZE 32768 /* From md5.c  */
+
+static char acc_buff[2 * MD5_BLOCKSIZE];
+static size_t acc_size;
+
+static void
+accumulate_and_process_md5 (void *data, size_t len, struct md5_ctx *ctxt)
+{
+  eassert (len <= MD5_BLOCKSIZE);
+  /* We may optimize this saving some of these memcpy/move using
+     directly the outer buffers but so far don't bother.  */
+  memcpy (acc_buff + acc_size, data, len);
+  acc_size += len;
+  if (acc_size >= MD5_BLOCKSIZE)
+    {
+      acc_size -= MD5_BLOCKSIZE;
+      md5_process_block (acc_buff, MD5_BLOCKSIZE, ctxt);
+      memmove (acc_buff, acc_buff + MD5_BLOCKSIZE, acc_size);
+    }
+}
+
+static void
+final_process_md5 (struct md5_ctx *ctxt)
+{
+  if (acc_size)
+    {
+      md5_process_bytes (acc_buff, acc_size, ctxt);
+      acc_size = 0;
+    }
+}
+
+int
+md5_gz_stream (FILE *source, void *resblock)
+{
+  z_stream stream;
+  unsigned char in[MD5_BLOCKSIZE];
+  unsigned char out[MD5_BLOCKSIZE];
+
+# ifdef WINDOWSNT
+  if (!zlib_initialized)
+    zlib_initialized = init_zlib_functions ();
+  if (!zlib_initialized)
+    {
+      message1 ("zlib library not found");
+      return -1;
+    }
+# endif
+
+  eassert (!acc_size);
+
+  struct md5_ctx ctx;
+  md5_init_ctx (&ctx);
+
+  /* allocate inflate state */
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.opaque = Z_NULL;
+  stream.avail_in = 0;
+  stream.next_in = Z_NULL;
+  int res = inflateInit2 (&stream, MAX_WBITS + 32);
+  if (res != Z_OK)
+    return -1;
+
+  do {
+    stream.avail_in = fread (in, 1, MD5_BLOCKSIZE, source);
+    if (ferror (source)) {
+      inflateEnd (&stream);
+      return -1;
+    }
+    if (stream.avail_in == 0)
+      break;
+    stream.next_in = in;
+
+    do {
+      stream.avail_out = MD5_BLOCKSIZE;
+      stream.next_out = out;
+      res = inflate (&stream, Z_NO_FLUSH);
+
+      if (res != Z_OK && res != Z_STREAM_END)
+	return -1;
+
+      accumulate_and_process_md5 (out, MD5_BLOCKSIZE - stream.avail_out, &ctx);
+    } while (!stream.avail_out);
+
+  } while (res != Z_STREAM_END);
+
+  final_process_md5 (&ctx);
+  inflateEnd (&stream);
+
+  if (res != Z_STREAM_END)
+    return -1;
+
+  md5_finish_ctx (&ctx, resblock);
+
+  return 0;
+}
+# undef MD5_BLOCKSIZE
+#endif
+
+
+
 struct decompress_unwind_data
 {
   ptrdiff_t old_point, orig, start, nbytes;
@@ -137,7 +241,7 @@ This function can be called only in unibyte buffers.  */)
   z_stream stream;
   int inflate_status;
   struct decompress_unwind_data unwind_data;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   validate_region (&start, &end);
 

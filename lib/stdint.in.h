@@ -1,19 +1,19 @@
-/* Copyright (C) 2001-2002, 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2002, 2004-2023 Free Software Foundation, Inc.
    Written by Paul Eggert, Bruno Haible, Sam Steingold, Peter Burwood.
    This file is part of gnulib.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
  * ISO C 99 <stdint.h> for platforms that lack it.
@@ -85,7 +85,7 @@
 
 /* Override WINT_MIN and WINT_MAX if gnulib's <wchar.h> or <wctype.h> overrides
    wint_t.  */
-#if @GNULIB_OVERRIDES_WINT_T@
+#if @GNULIBHEADERS_OVERRIDE_WINT_T@
 # undef WINT_MIN
 # undef WINT_MAX
 # define WINT_MIN 0x0U
@@ -579,11 +579,6 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
    <wchar.h> -> <stdio.h> -> <getopt.h> -> <stdlib.h>, and the latter includes
    <stdint.h> and assumes its types are already defined.  */
 # if @HAVE_WCHAR_H@ && ! (defined WCHAR_MIN && defined WCHAR_MAX)
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-#  include <stddef.h>
-#  include <stdio.h>
-#  include <time.h>
 #  define _GL_JUST_INCLUDE_SYSTEM_WCHAR_H
 #  include <wchar.h>
 #  undef _GL_JUST_INCLUDE_SYSTEM_WCHAR_H
@@ -603,7 +598,7 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 /* wint_t limits */
 /* If gnulib's <wchar.h> or <wctype.h> overrides wint_t, @WINT_T_SUFFIX@ is not
    accurate, therefore use the definitions from above.  */
-# if !@GNULIB_OVERRIDES_WINT_T@
+# if !@GNULIBHEADERS_OVERRIDE_WINT_T@
 #  undef WINT_MIN
 #  undef WINT_MAX
 #  if @HAVE_SIGNED_WINT_T@

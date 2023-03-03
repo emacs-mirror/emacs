@@ -1,6 +1,6 @@
-;;; xml-parse-tests.el --- Test suite for XML parsing.  -*- lexical-binding:t -*-
+;;; xml-tests.el --- Test suite for XML parsing.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -78,7 +78,7 @@
     ;; Bug#16344
     "<!----><x>< /x>"
     "<a>< b/></a>")
-  "List of XML strings that should signal an error in the parser")
+  "List of XML strings that should signal an error in the parser.")
 
 (defvar xml-parse-tests--qnames
   '( ;; Test data for name expansion
@@ -97,7 +97,7 @@
      ((("FOOBAR:" . "something") nil "hi there"))
      ((FOOBAR:something nil "hi there"))))
   "List of strings which are parsed using namespace expansion.
-Parser is called with and without 'symbol-qnames argument.")
+Parser is called with and without `symbol-qnames' argument.")
 
 (ert-deftest xml-parse-tests ()
   "Test XML parsing."
@@ -195,8 +195,4 @@ Parser is called with and without 'symbol-qnames argument.")
     (should (equal (cdr test)
                    (xml-parse-region (point-min) (point-max))))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
-;;; xml-parse-tests.el ends here.
+;;; xml-tests.el ends here

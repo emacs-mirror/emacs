@@ -3,13 +3,14 @@
 @setfilename ../../info/remember.info
 @settitle Remember Manual
 @include docstyle.texi
+@include emacsver.texi
 @syncodeindex fn cp
 @c %**end of header
 
 @copying
-This manual is for Remember Mode, version 2.0
+This manual is for Remember Mode, as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2001, 2004--2005, 2007--2020 Free Software
+Copyright @copyright{} 2001, 2004--2005, 2007--2023 Free Software
 Foundation, Inc.
 
 @quotation
@@ -312,7 +313,7 @@ Save (if it is modified) and bury the current buffer.
 @node Keystrokes
 @chapter Keystroke Reference
 
-@file{remember.el} defines the following keybindings by default:
+@file{remember.el} defines the following key bindings by default:
 
 @table @kbd
 
@@ -423,13 +424,6 @@ The default priority for remembered mail messages.
 @section Saving to an Org Mode file
 @cindex org mode, integration
 
-@ignore
-From org.texi:
-Up to version 6.36 Org used a special setup
-for @file{remember.el}.  @file{org-remember.el} is still part of Org mode for
-backward compatibility with existing setups.  You can find the documentation
-for org-remember at @url{http://orgmode.org/org-remember.pdf}.
-@end ignore
 For instructions on how to integrate Remember with Org Mode,
 consult @ref{Capture, , , org}.
 

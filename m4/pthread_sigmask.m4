@@ -1,5 +1,5 @@
-# pthread_sigmask.m4 serial 19
-dnl Copyright (C) 2011-2020 Free Software Foundation, Inc.
+# pthread_sigmask.m4 serial 22
+dnl Copyright (C) 2011-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -24,7 +24,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
        [gl_cv_func_pthread_sigmask_macro=no])
     ])
 
-  LIB_PTHREAD_SIGMASK=
+  PTHREAD_SIGMASK_LIB=
 
   if test $gl_cv_func_pthread_sigmask_macro = yes; then
     dnl pthread_sigmask is a dummy macro.
@@ -62,7 +62,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
               ])
             if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
               dnl pthread_sigmask is available with -pthread or -lpthread.
-              LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"
+              PTHREAD_SIGMASK_LIB="$LIBMULTITHREAD"
             else
               dnl pthread_sigmask is not available at all.
               HAVE_PTHREAD_SIGMASK=0
@@ -101,6 +101,9 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     ])
   fi
 
+  AC_SUBST([PTHREAD_SIGMASK_LIB])
+  dnl For backward compatibility.
+  LIB_PTHREAD_SIGMASK="$PTHREAD_SIGMASK_LIB"
   AC_SUBST([LIB_PTHREAD_SIGMASK])
   dnl We don't need a variable LTLIB_PTHREAD_SIGMASK, because when
   dnl "$gl_threads_api" = posix, $LTLIBMULTITHREAD and $LIBMULTITHREAD are the
@@ -111,10 +114,10 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     AC_REQUIRE([AC_PROG_CC])
     AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
 
-    dnl On FreeBSD 6.4, HP-UX 11.31, Solaris 9, in programs that are not linked
-    dnl with -lpthread, the pthread_sigmask() function always returns 0 and has
-    dnl no effect.
-    if test -z "$LIB_PTHREAD_SIGMASK"; then
+    dnl On FreeBSD 13.0, MidnightBSD 1.1, HP-UX 11.31, Solaris 9, in programs
+    dnl that are not linked with -lpthread, the pthread_sigmask() function
+    dnl always returns 0 and has no effect.
+    if test -z "$PTHREAD_SIGMASK_LIB"; then
       case " $LIBS " in
         *' -pthread '*) ;;
         *' -lpthread '*) ;;
@@ -138,7 +141,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
                 [
                  changequote(,)dnl
                  case "$host_os" in
-                   freebsd* | hpux* | solaris | solaris2.[2-9]*)
+                   freebsd* | midnightbsd* | hpux* | solaris | solaris2.[2-9]*)
                      gl_cv_func_pthread_sigmask_in_libc_works="guessing no";;
                    *)
                      gl_cv_func_pthread_sigmask_in_libc_works="guessing yes";;
@@ -162,7 +165,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
       [gl_cv_func_pthread_sigmask_return_works],
       [
         gl_save_LIBS="$LIBS"
-        LIBS="$LIBS $LIB_PTHREAD_SIGMASK"
+        LIBS="$LIBS $PTHREAD_SIGMASK_LIB"
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
 #include <pthread.h>
@@ -208,13 +211,14 @@ int main ()
             gl_cv_func_pthread_sigmask_unblock_works="guessing yes";;
         esac
         m4_ifdef([gl_][THREADLIB],
-          [dnl Link against $LIBMULTITHREAD, not only $LIB_PTHREAD_SIGMASK.
+          [dnl Link against $LIBMULTITHREAD, not only $PTHREAD_SIGMASK_LIB.
            dnl Otherwise we get a false positive on those platforms where
            dnl $gl_cv_func_pthread_sigmask_in_libc_works is "no".
            gl_save_LIBS=$LIBS
            LIBS="$LIBS $LIBMULTITHREAD"])
         AC_RUN_IFELSE(
           [AC_LANG_SOURCE([[
+#include <limits.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -230,14 +234,16 @@ sigint_handler (int sig)
 int main ()
 {
   sigset_t set;
-  int pid = getpid ();
+  pid_t pid = getpid ();
   char command[80];
+  if (LONG_MAX < pid)
+    return 6;
   signal (SIGINT, sigint_handler);
   sigemptyset (&set);
   sigaddset (&set, SIGINT);
   if (!(pthread_sigmask (SIG_BLOCK, &set, NULL) == 0))
     return 1;
-  sprintf (command, "sh -c 'sleep 1; kill -%d %d' &", SIGINT, pid);
+  sprintf (command, "sh -c 'sleep 1; kill -INT %ld' &", (long) pid);
   if (!(system (command) == 0))
     return 2;
   sleep (2);

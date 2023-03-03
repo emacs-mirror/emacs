@@ -1,6 +1,6 @@
 ;;; sort-tests.el --- Tests for sort.el              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -28,7 +28,7 @@
   (mapconcat (lambda (_) (string (let ((c (random 52)))
                               (+ (if (> c 25) 71 65)
                                  c))))
-             (make-list n nil) ""))
+             (make-list n nil)))
 
 (defun sort-tests--insert-words-sort-and-compare (words separator function reverse less-predicate)
   (with-temp-buffer

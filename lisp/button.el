@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions, hypermedia
@@ -55,28 +55,24 @@
   "Default face used for buttons."
   :group 'basic-faces)
 
-(defvar button-map
-  (let ((map (make-sparse-keymap)))
-    ;; The following definition needs to avoid using escape sequences that
-    ;; might get converted to ^M when building loaddefs.el
-    (define-key map [(control ?m)] 'push-button)
-    (define-key map [mouse-2] 'push-button)
-    ;; FIXME: You'd think that for keymaps coming from text-properties on the
-    ;; mode-line or header-line, the `mode-line' or `header-line' prefix
-    ;; shouldn't be necessary!
-    (define-key map [mode-line mouse-2] 'push-button)
-    (define-key map [header-line mouse-2] 'push-button)
-    map)
-  "Keymap used by buttons.")
+(defvar-keymap button-buffer-map
+  :doc "Keymap useful for buffers containing buttons.
+Mode-specific keymaps may want to use this as their parent keymap."
+  "TAB" #'forward-button
+  "ESC TAB" #'backward-button
+  "<backtab>" #'backward-button)
 
-(defvar button-buffer-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\t] 'forward-button)
-    (define-key map "\e\t" 'backward-button)
-    (define-key map [backtab] 'backward-button)
-    map)
-  "Keymap useful for buffers containing buttons.
-Mode-specific keymaps may want to use this as their parent keymap.")
+(defvar-keymap button-map
+  :doc "Keymap used by buttons."
+  :parent button-buffer-map
+  "RET" #'push-button
+  "<mouse-2>" #'push-button
+  "<follow-link>" 'mouse-face
+  ;; FIXME: You'd think that for keymaps coming from text-properties on the
+  ;; mode-line or header-line, the `mode-line' or `header-line' prefix
+  ;; shouldn't be necessary!
+  "<mode-line> <mouse-2>" #'push-button
+  "<header-line> <mouse-2>" #'push-button)
 
 (define-minor-mode button-mode
   "A minor mode for navigating to buttons with the TAB key."
@@ -112,22 +108,24 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 
 ;; [this is an internal function]
 (defsubst button-category-symbol (type)
-  "Return the symbol used by button-type TYPE to store properties.
+  "Return the symbol used by `button-type' TYPE to store properties.
 Buttons inherit them by setting their `category' property to that symbol."
   (or (get type 'button-category-symbol)
       (error "Unknown button type `%s'" type)))
 
 (defun define-button-type (name &rest properties)
   "Define a `button type' called NAME (a symbol).
-The remaining arguments form a plist of PROPERTY VALUE pairs,
-specifying properties to use as defaults for buttons with this type
-\(a button's type may be set by giving it a `type' property when
-creating the button, using the :type keyword argument).
+The remaining PROPERTIES arguments form a plist of PROPERTY VALUE
+pairs, specifying properties to use as defaults for buttons with
+this type (a button's type may be set by giving it a `type'
+property when creating the button, using the :type keyword
+argument).
 
 In addition, the keyword argument :supertype may be used to specify a
-button-type from which NAME inherits its default property values
-\(however, the inheritance happens only when NAME is defined; subsequent
+`button-type' from which NAME inherits its default property values
+(however, the inheritance happens only when NAME is defined; subsequent
 changes to a supertype are not reflected in its subtypes)."
+  (declare (indent defun))
   (let ((catsym (make-symbol (concat (symbol-name name) "-button")))
 	(super-catsym
 	 (button-category-symbol
@@ -155,15 +153,15 @@ changes to a supertype are not reflected in its subtypes)."
     name))
 
 (defun button-type-put (type prop val)
-  "Set the button-type TYPE's PROP property to VAL."
+  "Set the `button-type' TYPE's PROP property to VAL."
   (put (button-category-symbol type) prop val))
 
 (defun button-type-get (type prop)
-  "Get the property of button-type TYPE named PROP."
+  "Get the property of `button-type' TYPE named PROP."
   (get (button-category-symbol type) prop))
 
 (defun button-type-subtype-p (type supertype)
-  "Return non-nil if button-type TYPE is a subtype of SUPERTYPE."
+  "Return non-nil if `button-type' TYPE is a subtype of SUPERTYPE."
   (or (eq type supertype)
       (and type
 	   (button-type-subtype-p (button-type-get type 'supertype)
@@ -270,11 +268,11 @@ This function only works when BUTTON is in the current buffer."
 				    (button-end button))))
 
 (defsubst button-type (button)
-  "Return BUTTON's button-type."
+  "Return BUTTON's `button-type'."
   (button-get button 'type))
 
 (defun button-has-type-p (button type)
-  "Return non-nil if BUTTON has button-type TYPE, or one of its subtypes."
+  "Return non-nil if BUTTON has `button-type' TYPE, or one of its subtypes."
   (button-type-subtype-p (button-get button 'type) type))
 
 (defun button--area-button-p (b)
@@ -289,10 +287,10 @@ Such area buttons are used for buttons in the mode-line and header-line."
 
 (defun make-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
-The remaining arguments form a plist of PROPERTY VALUE pairs,
-specifying properties to add to the button.
+The remaining PROPERTIES arguments form a plist of PROPERTY VALUE
+pairs, specifying properties to add to the button.
 In addition, the keyword argument :type may be used to specify a
-button-type from which to inherit other properties; see
+`button-type' from which to inherit other properties; see
 `define-button-type'.
 
 Also see `make-text-button', `insert-button'."
@@ -313,7 +311,7 @@ Also see `make-text-button', `insert-button'."
 The remaining arguments form a plist of PROPERTY VALUE pairs,
 specifying properties to add to the button.
 In addition, the keyword argument :type may be used to specify a
-button-type from which to inherit other properties; see
+`button-type' from which to inherit other properties; see
 `define-button-type'.
 
 Also see `insert-text-button', `make-button'."
@@ -327,10 +325,10 @@ Also see `insert-text-button', `make-button'."
 
 (defun make-text-button (beg end &rest properties)
   "Make a button from BEG to END in the current buffer.
-The remaining arguments form a plist of PROPERTY VALUE pairs,
-specifying properties to add to the button.
+The remaining PROPERTIES arguments form a plist of PROPERTY VALUE
+pairs, specifying properties to add to the button.
 In addition, the keyword argument :type may be used to specify a
-button-type from which to inherit other properties; see
+`button-type' from which to inherit other properties; see
 `define-button-type'.
 
 This function is like `make-button', except that the button is actually
@@ -381,10 +379,10 @@ Also see `insert-text-button'."
 
 (defun insert-text-button (label &rest properties)
   "Insert a button with the label LABEL.
-The remaining arguments form a plist of PROPERTY VALUE pairs,
-specifying properties to add to the button.
+The remaining PROPERTIES arguments form a plist of PROPERTY VALUE
+pairs, specifying properties to add to the button.
 In addition, the keyword argument :type may be used to specify a
-button-type from which to inherit other properties; see
+`button-type' from which to inherit other properties; see
 `define-button-type'.
 
 This function is like `insert-button', except that the button is
@@ -472,8 +470,8 @@ mouse event is used.
 If there's no button at POS, do nothing and return nil, otherwise
 return t.
 
-To get a description of what function will called when pushing a
-butting, use the `button-describe' command."
+To get a description of the function that will be invoked when
+pushing a button, use the `button-describe' command."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
   (if (and (not (integerp pos)) (eventp pos))
@@ -601,7 +599,8 @@ When called from Lisp, pass BUTTON-OR-POS as the button to describe, or a
 buffer position where a button is present.  If BUTTON-OR-POS is nil, the
 button at point is the button to describe."
   (interactive "d")
-  (let* ((button (cond ((integer-or-marker-p button-or-pos)
+  (let* ((help-buffer-under-preparation t)
+         (button (cond ((integer-or-marker-p button-or-pos)
                         (button-at button-or-pos))
                        ((null button-or-pos) (button-at (point)))
                        ((overlayp button-or-pos) button-or-pos)))
@@ -612,6 +611,47 @@ button at point is the button to describe."
     (when props
       (button--describe props)
       t)))
+
+(define-obsolete-function-alias 'button-buttonize #'buttonize "29.1")
+
+(defun buttonize (string callback &optional data help-echo)
+  "Make STRING into a button and return it.
+When clicked, CALLBACK will be called with the DATA as the
+function argument.  If DATA isn't present (or is nil), the button
+itself will be used instead as the function argument.
+
+If HELP-ECHO, use that as the `help-echo' property.
+
+Also see `buttonize-region'."
+  (let ((string
+         (apply #'propertize string
+                (button--properties callback data help-echo))))
+    ;; Add the face to the end so that it can be overridden.
+    (add-face-text-property 0 (length string) 'button t string)
+    string))
+
+(defun button--properties (callback data help-echo)
+  (list 'font-lock-face 'button
+        'mouse-face 'highlight
+        'help-echo help-echo
+        'button t
+        'follow-link t
+        'category t
+        'button-data data
+        'keymap button-map
+        'action callback))
+
+(defun buttonize-region (start end callback &optional data help-echo)
+  "Make the region between START and END into a button.
+When clicked, CALLBACK will be called with the DATA as the
+function argument.  If DATA isn't present (or is nil), the button
+itself will be used instead as the function argument.
+
+If HELP-ECHO, use that as the `help-echo' property.
+
+Also see `buttonize'."
+  (add-text-properties start end (button--properties callback data help-echo))
+  (add-face-text-property start end 'button t))
 
 (provide 'button)
 

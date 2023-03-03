@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -161,6 +161,8 @@ Select another window (@code{other-window}).
 Scroll the next window upward (@code{scroll-other-window}).
 @item C-M-S-v
 Scroll the next window downward (@code{scroll-other-window-down}).
+@item C-M-S-l
+Recenter the next window (@code{recenter-other-window}).
 @item mouse-1
 @kbd{mouse-1}, in the text area of a window, selects the window and
 moves point to the position clicked.  Clicking in the mode line
@@ -194,6 +196,8 @@ rebind a command.)
 @findex scroll-other-window
 @kindex C-M-S-v
 @findex scroll-other-window-down
+@kindex C-M-S-l
+@findex recenter-other-window
   The usual scrolling commands (@pxref{Display}) apply to the selected
 window only, but there are also commands to scroll the next window.
 @kbd{C-M-v} (@code{scroll-other-window}) scrolls the window that
@@ -203,7 +207,9 @@ take positive and negative arguments.  (In the minibuffer, @kbd{C-M-v}
 scrolls the help window associated with the minibuffer, if any, rather
 than the next window in the standard cyclic order; @pxref{Minibuffer
 Edit}.)  @kbd{C-M-S-v} (@code{scroll-other-window-down}) scrolls the
-next window downward in a similar way.
+next window downward in a similar way.  Likewise, @kbd{C-M-S-l}
+(@code{recenter-other-window}) behaves like @kbd{C-l}
+(@code{recenter-top-bottom}) in the next window.
 
 @vindex mouse-autoselect-window
   If you set @code{mouse-autoselect-window} to a non-@code{nil} value,
@@ -304,6 +310,9 @@ the space that it occupied is given to an adjacent window (but not the
 minibuffer window, even if that is active at the time).  Deleting the
 window has no effect on the buffer it used to display; the buffer
 continues to exist, and you can still switch to it with @kbd{C-x b}.
+The option @code{delete-window-choose-selected} controls which
+window is chosen as the new selected window instead (@pxref{Deleting
+Windows,,, elisp, The Emacs Lisp Reference Manual}).
 
 @findex kill-buffer-and-window
 @kindex C-x 4 0
@@ -433,9 +442,9 @@ selected window write:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
- '("\\*scratch\\*" (display-buffer-same-window)))
+(setopt
+ display-buffer-alist
+ '(("\\*scratch\\*" (display-buffer-same-window))))
 @end group
 @end example
 
@@ -459,8 +468,8 @@ Lisp Reference Manual}) as follows:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '((display-buffer-reuse-window display-buffer-pop-up-frame)
    (reusable-frames . 0)))
 @end group
@@ -526,8 +535,8 @@ the following form in your initialization file (@pxref{Init File}):
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*Completions\\*" display-buffer-below-selected)))
 @end group
 @end example
@@ -589,22 +598,22 @@ buffer.  @xref{Follow Mode}.
 @findex windmove-default-keybindings
 @findex windmove-display-default-keybindings
 @findex windmove-delete-default-keybindings
-@findex windmove-swap-states-in-direction
+@findex windmove-swap-states-default-keybindings
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
 one, and similarly for the left, up, and down counterparts.
-@w{@kbd{M-x windmove-default-keybindings}} binds these commands to
+@code{windmove-default-keybindings} binds these commands to
 @kbd{S-right} etc.; doing so disables shift selection for those keys
-(@pxref{Shift Selection}).  In the same way as keybindings can be
+(@pxref{Shift Selection}).  In the same way as key bindings can be
 defined for commands that select windows directionally, you can use
-@w{@kbd{M-x windmove-display-default-keybindings}} to define
-keybindings for commands that specify in what direction to display the
-window for the buffer that the next command is going to display.
-Also there is @w{@kbd{M-x windmove-delete-default-keybindings}} to
-define keybindings for commands that delete windows directionally, and
-@w{@kbd{M-x windmove-swap-states-in-direction}} that define
-keybindings for commands that swap the window contents of the selected
+@code{windmove-display-default-keybindings} to define keybindings for
+commands that specify in what direction to display the window for the
+buffer that the next command is going to display.  Also there is
+@code{windmove-delete-default-keybindings} to define keybindings for
+commands that delete windows directionally, and
+@code{windmove-swap-states-default-keybindings} that defines
+key bindings for commands that swap the window contents of the selected
 window with the window in the specified direction.
 
   The command @kbd{M-x compare-windows} lets you compare the text

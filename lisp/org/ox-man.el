@@ -1,6 +1,6 @@
-;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
+;;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;;      Luis R Anaya <papoanaya aroba hot mail punto com>
@@ -37,8 +37,13 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'ox)
+
+;;; Function Declarations
 
 (defvar org-export-man-default-packages-alist)
 (defvar org-export-man-packages-alist)
@@ -184,7 +189,7 @@ When nil, no transformation is made."
     (ldap "ldap") (opa "opa")
     (php "php") (postscript "postscript") (prolog "prolog")
     (properties "properties") (makefile "makefile")
-    (tml "tml") (vala "vala") (vbscript "vbscript") (xorg "xorg"))
+    (tml "tml") (vbscript "vbscript") (xorg "xorg"))
   "Alist mapping languages to their listing language counterpart.
 The key is a symbol, the major mode symbol without the \"-mode\".
 The value is the string that should be inserted as the language
@@ -221,7 +226,6 @@ By default, Org uses 3 runs of to do the processing.
 Alternatively, this may be a Lisp function that does the
 processing.  This function should accept the file name as
 its single argument."
-  :group 'org-export-pdf
   :group 'org-export-man
   :version "24.4"
   :package-version '(Org . "8.0")
@@ -299,12 +303,12 @@ CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
   (let* ((title (when (plist-get info :with-title)
 		  (org-export-data (plist-get info :title) info)))
-        (attr (read (format "(%s)"
-                            (mapconcat
-                             #'identity
-                             (list (plist-get info :man-class-options))
-                             " "))))
-        (section-item (plist-get attr :section-id)))
+         (attr (read (format "(%s)"
+                             (mapconcat
+                              #'identity
+                              (list (plist-get info :man-class-options))
+                              " "))))
+         (section-item (plist-get attr :section-id)))
 
     (concat
 
@@ -363,9 +367,9 @@ holding contextual information."
 
 (defun org-man-drawer (_drawer contents _info)
   "Transcode a DRAWER element from Org to Man.
-   DRAWER holds the drawer information
-   CONTENTS holds the contents of the block.
-   INFO is a plist holding contextual information. "
+DRAWER holds the drawer information
+CONTENTS holds the contents of the block.
+INFO is a plist holding contextual information."
   contents)
 
 
@@ -599,24 +603,24 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 ;;; Link
 
 
-(defun org-man-link (link desc _info)
+(defun org-man-link (link desc info)
   "Transcode a LINK object from Org to Man.
 
 DESC is the description part of the link, or the empty string.
 INFO is a plist holding contextual information.  See
 `org-export-data'."
   (let* ((type (org-element-property :type link))
-         (raw-path (org-element-property :path link))
+	 (raw-path (org-element-property :path link))
          ;; Ensure DESC really exists, or set it to nil.
          (desc (and (not (string= desc "")) desc))
-         (path (cond
-                ((member type '("http" "https" "ftp" "mailto"))
-                 (concat type ":" raw-path))
-                ((string= type "file") (org-export-file-uri raw-path))
-                (t raw-path))))
+         (path (pcase type
+                 ((or "http" "https" "ftp" "mailto")
+                  (concat type ":" raw-path))
+                 ("file" (org-export-file-uri raw-path))
+                 (_ raw-path))))
     (cond
      ;; Link type is handled by a special function.
-     ((org-export-custom-protocol-maybe link desc 'man))
+     ((org-export-custom-protocol-maybe link desc 'man info))
      ;; External link with a description part.
      ((and path desc) (format "%s \\fBat\\fP \\fI%s\\fP" path desc))
      ;; External link without a description part.
@@ -823,10 +827,10 @@ contextual information."
    ;; Case 1: verbatim table.
    ((or (plist-get info :man-tables-verbatim)
         (let ((attr (read (format "(%s)"
-                 (mapconcat
-                  #'identity
-                  (org-element-property :attr_man table)
-                  " ")))))
+                                  (mapconcat
+                                   #'identity
+                                   (org-element-property :attr_man table)
+                                   " ")))))
 
           (and attr (plist-get attr :verbatim))))
 
@@ -1051,7 +1055,7 @@ contextual information."
 ;;; Interactive functions
 
 (defun org-man-export-to-man
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to a Man file.
 
 If narrowing is active in the current buffer, only export its
@@ -1084,7 +1088,7 @@ Return output file's name."
       async subtreep visible-only body-only ext-plist)))
 
 (defun org-man-export-to-pdf
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to Groff then process through to PDF.
 
 If narrowing is active in the current buffer, only export its
@@ -1115,7 +1119,7 @@ Return PDF file's name."
   (let ((outfile (org-export-output-file-name ".man" subtreep)))
     (org-export-to-file 'man outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 (defun org-man-compile (file)
   "Compile a Groff file.
@@ -1135,9 +1139,5 @@ Return PDF file name or an error if it couldn't be produced."
     output))
 
 (provide 'ox-man)
-
-;; Local variables:
-;; generated-autoload-file: "org-loaddefs.el"
-;; End:
 
 ;;; ox-man.el ends here

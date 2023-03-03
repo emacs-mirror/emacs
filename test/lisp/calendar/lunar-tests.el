@@ -1,6 +1,6 @@
 ;;; lunar-tests.el --- tests for calendar/lunar.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -27,39 +27,40 @@
 (defmacro with-lunar-test (&rest body)
   `(let ((calendar-latitude 40.1)
          (calendar-longitude -88.2)
-         (calendar-location-name "Urbana, IL")
-         (calendar-time-zone -360)
-         (calendar-standard-time-zone-name "CST")
-         (calendar-time-display-form '(12-hours ":" minutes am-pm)))
+         (calendar-location-name "Paris")
+         (calendar-time-zone 0)
+         (calendar-standard-time-zone-name "UTC")
+         ;; Make sure daylight saving is disabled to avoid interference
+         ;; from the system settings (see bug#45818).
+         (calendar-daylight-savings-starts nil)
+         (calendar-time-display-form '(24-hours ":" minutes)))
      ,@body))
 
 (ert-deftest lunar-test-phase ()
   (with-lunar-test
    (should (equal (lunar-phase 1)
-                  '((1 7 1900) "11:40pm" 1 "")))))
+                  '((1 8 1900) "05:40" 1 "")))))
 
-(ert-deftest lunar-test-eclipse-check ()
+(ert-deftest lunar-test-check-for-eclipse ()
   (with-lunar-test
-   (should (equal (eclipse-check 1 1) "**  Eclipse **"))))
+   (should (equal (lunar-check-for-eclipse 10.0 1) ""))
+   (should (equal (lunar-check-for-eclipse 10.0 2) "** Lunar Eclipse **"))))
 
-;; This fails in certain time zones.
-;; Eg TZ=America/Phoenix make lisp/calendar/lunar-tests
-;; Similarly with TZ=UTC.
-;; Daylight saving related?
 (ert-deftest lunar-test-phase-list ()
-  :tags '(:unstable)
   (with-lunar-test
-   (should (equal  (lunar-phase-list 3 1871)
-                   '(((3 20 1871) "11:03pm" 0 "")
-                     ((3 29 1871) "1:46am" 1 "**  Eclipse **")
-                     ((4 5 1871) "9:20am" 2 "")
-                     ((4 12 1871) "12:57am" 3 "**  Eclipse possible **")
-                     ((4 19 1871) "2:06pm" 0 "")
-                     ((4 27 1871) "6:49pm" 1 "")
-                     ((5 4 1871) "5:57pm" 2 "")
-                     ((5 11 1871) "9:29am" 3 "")
-                     ((5 19 1871) "5:46am" 0 "")
-                     ((5 27 1871) "8:02am" 1 ""))))))
+   (should (equal (lunar-phase-list 9 2023)
+                  '(((9 6 2023) "22:27" 3 "")
+                    ((9 15 2023) "01:40" 0 "")
+                    ((9 22 2023) "19:33" 1 "")
+                    ((9 29 2023) "09:54" 2 "** Lunar Eclipse possible **")
+                    ((10 6 2023) "13:53" 3 "")
+                    ((10 14 2023) "17:55" 0 "** Solar Eclipse **")
+                    ((10 22 2023) "03:30" 1 "")
+                    ((10 28 2023) "20:20" 2 "** Lunar Eclipse **")
+                    ((11 5 2023) "08:42" 3 "")
+                    ((11 13 2023) "09:27" 0 "")
+                    ((11 20 2023) "10:51" 1 "")
+                    ((11 27 2023) "09:13" 2 ""))))))
 
 (ert-deftest lunar-test-new-moon-time ()
   (with-lunar-test

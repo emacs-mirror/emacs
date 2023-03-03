@@ -1,6 +1,6 @@
 ;;; sasl-scram-rfc.el --- SCRAM-SHA-1 module for the SASL client framework  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
 ;; Package: sasl
@@ -45,14 +45,21 @@
 
 ;;; Generic for SCRAM-*
 
+(defvar sasl-scram-gs2-header-function 'sasl-scram-construct-gs2-header
+  "Function to create GS2 header.
+See https://www.rfc-editor.org/rfc/rfc5801#section-4.")
+
+(defun sasl-scram-construct-gs2-header (client)
+  ;; The "n," means the client doesn't support channel binding, and
+  ;; the trailing comma is included as per RFC 5801.
+  (let ((authzid (sasl-client-property client 'authenticator-name)))
+    (concat "n," (and authzid "a=") authzid ",")))
+
 (defun sasl-scram-client-first-message (client _step)
   (let ((c-nonce (sasl-unique-id)))
     (sasl-client-set-property client 'c-nonce c-nonce))
   (concat
-   ;; n = client doesn't support channel binding
-   "n,"
-   ;; TODO: where would we get authorization id from?
-   ","
+   (funcall sasl-scram-gs2-header-function client)
    (sasl-scram--client-first-message-bare client)))
 
 (defun sasl-scram--client-first-message-bare (client)
@@ -77,11 +84,11 @@
 
 	 (c-nonce (sasl-client-property client 'c-nonce))
 	 ;; no channel binding, no authorization id
-	 (cbind-input "n,,"))
+         (cbind-input (funcall sasl-scram-gs2-header-function client)))
     (unless (string-prefix-p c-nonce nonce)
       (sasl-error "Invalid nonce from server"))
     (let* ((client-final-message-without-proof
-	    (concat "c=" (base64-encode-string cbind-input) ","
+            (concat "c=" (base64-encode-string cbind-input t) ","
 		    "r=" nonce))
 	   (password
 	    ;; TODO: either apply saslprep or disallow non-ASCII characters
@@ -90,6 +97,8 @@
 		     (sasl-mechanism-name (sasl-client-mechanism client))
 		     (sasl-client-name client))))
 	   (salt (base64-decode-string salt-base64))
+           (string-xor (lambda (a b)
+                         (apply #'unibyte-string (cl-mapcar #'logxor a b))))
 	   (salted-password
 	    ;; Hi(str, salt, i):
 	    (let ((digest (concat salt (string 0 0 0 1)))
@@ -98,7 +107,7 @@
 		(setq digest (funcall hmac-fun digest password))
 		(setq xored (if (null xored)
 				digest
-			      (cl-map 'string 'logxor xored digest))))))
+                              (funcall string-xor xored digest))))))
 	   (client-key
 	    (funcall hmac-fun "Client Key" salted-password))
 	   (stored-key (decode-hex-string (funcall hash-fun client-key)))
@@ -108,10 +117,10 @@
 	     step-data ","
 	     client-final-message-without-proof))
 	   (client-signature (funcall hmac-fun (encode-coding-string auth-message 'utf-8) stored-key))
-	   (client-proof (cl-map 'string 'logxor client-key client-signature))
+	   (client-proof (funcall string-xor client-key client-signature))
 	   (client-final-message
 	    (concat client-final-message-without-proof ","
-		    "p=" (base64-encode-string client-proof))))
+                    "p=" (base64-encode-string client-proof t))))
       (sasl-client-set-property client 'auth-message auth-message)
       (sasl-client-set-property client 'salted-password salted-password)
       client-final-message)))

@@ -1,6 +1,6 @@
-;;; ede/proj-scheme.el --- EDE Generic Project scheme (guile) support
+;;; ede/proj-scheme.el --- EDE Generic Project scheme (guile) support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2000, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, scheme
@@ -40,7 +40,7 @@
    )
   "This target consists of scheme files.")
 
-(cl-defmethod ede-proj-tweak-autoconf ((this ede-proj-target-scheme))
+(cl-defmethod ede-proj-tweak-autoconf ((_this ede-proj-target-scheme))
   "Tweak the configure file (current buffer) to accommodate THIS."
   (autoconf-insert-new-macro "AM_INIT_GUILE_MODULE"))
 

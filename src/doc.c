@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -82,29 +82,29 @@ Lisp_Object
 get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
   char *from, *to, *name, *p, *p1;
-  int fd;
-  int offset;
-  EMACS_INT position;
-  Lisp_Object file, tem, pos;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  Lisp_Object file, pos;
+  specpdl_ref count = SPECPDL_INDEX ();
+  Lisp_Object dir;
   USE_SAFE_ALLOCA;
 
   if (FIXNUMP (filepos))
     {
       file = Vdoc_file_name;
+      dir = Vdoc_directory;
       pos = filepos;
     }
   else if (CONSP (filepos))
     {
       file = XCAR (filepos);
+      dir = Fsymbol_value (Qlisp_directory);
       pos = XCDR (filepos);
     }
   else
     return Qnil;
 
-  position = eabs (XFIXNUM (pos));
+  EMACS_INT position = eabs (XFIXNUM (pos));
 
-  if (!STRINGP (Vdoc_directory))
+  if (!STRINGP (dir))
     return Qnil;
 
   if (!STRINGP (file))
@@ -113,17 +113,17 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   /* Put the file name in NAME as a C string.
      If it is relative, combine it with Vdoc_directory.  */
 
-  tem = Ffile_name_absolute_p (file);
+  Lisp_Object tem = Ffile_name_absolute_p (file);
   file = ENCODE_FILE (file);
   Lisp_Object docdir
-    = NILP (tem) ? ENCODE_FILE (Vdoc_directory) : empty_unibyte_string;
+    = NILP (tem) ? ENCODE_FILE (dir) : empty_unibyte_string;
   ptrdiff_t docdir_sizemax = SBYTES (docdir) + 1;
   if (will_dump_p ())
     docdir_sizemax = max (docdir_sizemax, sizeof sibling_etc);
   name = SAFE_ALLOCA (docdir_sizemax + SBYTES (file));
   lispstpcpy (lispstpcpy (name, docdir), file);
 
-  fd = emacs_open (name, O_RDONLY, 0);
+  int fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     {
       if (will_dump_p ())
@@ -150,7 +150,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
      so we can check the leading text for consistency.  */
-  offset = min (position, max (1024, position % (8 * 1024)));
+  int offset = min (position, max (1024, position % (8 * 1024)));
   if (TYPE_MAXIMUM (off_t) < position
       || lseek (fd, position - offset, 0) < 0)
     error ("Position %"pI"d out of range in doc string file \"%s\"",
@@ -164,7 +164,6 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
     {
       ptrdiff_t space_left = (get_doc_string_buffer_size - 1
 			      - (p - get_doc_string_buffer));
-      int nread;
 
       /* Allocate or grow the buffer if we need to.  */
       if (space_left <= 0)
@@ -182,7 +181,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
          If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
-      nread = emacs_read_quit (fd, p, space_left);
+      int nread = emacs_read_quit (fd, p, space_left);
       if (nread < 0)
 	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
@@ -240,10 +239,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
     {
       if (*from == 1)
 	{
-	  int c;
-
 	  from++;
-	  c = *from++;
+	  int c = *from++;
 	  if (c == 1)
 	    *to++ = c;
 	  else if (c == '0')
@@ -313,10 +310,8 @@ Unless a non-nil second argument RAW is given, the
 string is passed through `substitute-command-keys'.  */)
   (Lisp_Object function, Lisp_Object raw)
 {
-  Lisp_Object fun;
-  Lisp_Object funcar;
   Lisp_Object doc;
-  bool try_reload = 1;
+  bool try_reload = true;
 
  documentation:
 
@@ -330,71 +325,16 @@ string is passed through `substitute-command-keys'.  */)
 					raw);
     }
 
-  fun = Findirect_function (function, Qnil);
+  Lisp_Object fun = Findirect_function (function, Qnil);
   if (NILP (fun))
     xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
-  if (SUBRP (fun))
-    doc = make_fixnum (XSUBR (fun)->doc);
-#ifdef HAVE_MODULES
-  else if (MODULE_FUNCTIONP (fun))
-    doc = module_function_documentation (XMODULE_FUNCTION (fun));
-#endif
-  else if (COMPILEDP (fun))
-    {
-      if (PVSIZE (fun) <= COMPILED_DOC_STRING)
-	return Qnil;
-      else
-	{
-	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  else if (FIXNATP (tem) || CONSP (tem))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-    }
-  else if (STRINGP (fun) || VECTORP (fun))
-    {
-      return build_string ("Keyboard macro.");
-    }
-  else if (CONSP (fun))
-    {
-      funcar = XCAR (fun);
-      if (!SYMBOLP (funcar))
-	xsignal1 (Qinvalid_function, fun);
-      else if (EQ (funcar, Qkeymap))
-	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
-      else if (EQ (funcar, Qlambda)
-	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
-	       || EQ (funcar, Qautoload))
-	{
-	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
-	  Lisp_Object tem = Fcar (tem1);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  /* Handle a doc reference--but these never come last
-	     in the function body, so reject them if they are last.  */
-	  else if ((FIXNATP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
-		   && !NILP (XCDR (tem1)))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-      else
-	goto oops;
-    }
-  else
-    {
-    oops:
-      xsignal1 (Qinvalid_function, fun);
-    }
+  doc = call1 (Qfunction_documentation, fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (EQ (doc, make_fixnum (0)))
+  if (BASE_EQ (doc, make_fixnum (0)))
     doc = Qnil;
   if (FIXNUMP (doc) || CONSP (doc))
     {
@@ -406,7 +346,7 @@ string is passed through `substitute-command-keys'.  */)
 	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  if (try_reload)
 	    {
-	      try_reload = 0;
+	      try_reload = false;
 	      goto documentation;
 	    }
 	}
@@ -415,8 +355,27 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (NILP (raw))
-    doc = Fsubstitute_command_keys (doc);
+    doc = call1 (Qsubstitute_command_keys, doc);
   return doc;
+}
+
+DEFUN ("internal-subr-documentation", Fsubr_documentation, Ssubr_documentation, 1, 1, 0,
+       doc: /* Return the raw documentation info of a C primitive.  */)
+  (Lisp_Object function)
+{
+#ifdef HAVE_NATIVE_COMP
+  if (!NILP (Fsubr_native_elisp_p (function)))
+    return native_function_doc (function);
+  else
+#endif
+  if (SUBRP (function))
+    return make_fixnum (XSUBR (function)->doc);
+#ifdef HAVE_MODULES
+  else if (MODULE_FUNCTIONP (function))
+    return module_function_documentation (XMODULE_FUNCTION (function));
+#endif
+  else
+    return Qt;
 }
 
 DEFUN ("documentation-property", Fdocumentation_property,
@@ -430,7 +389,7 @@ This differs from `get' in that it can refer to strings stored in the
 aren't strings.  */)
   (Lisp_Object symbol, Lisp_Object prop, Lisp_Object raw)
 {
-  bool try_reload = 1;
+  bool try_reload = true;
   Lisp_Object tem;
 
  documentation_property:
@@ -448,7 +407,7 @@ aren't strings.  */)
 	tem = Fget (indirect, prop);
     }
 
-  if (EQ (tem, make_fixnum (0)))
+  if (BASE_EQ (tem, make_fixnum (0)))
     tem = Qnil;
 
   /* See if we want to look for the string in the DOC file. */
@@ -462,7 +421,7 @@ aren't strings.  */)
 	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  if (try_reload)
 	    {
-	      try_reload = 0;
+	      try_reload = false;
 	      goto documentation_property;
 	    }
 	}
@@ -472,7 +431,7 @@ aren't strings.  */)
     tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
-    tem = Fsubstitute_command_keys (tem);
+    tem = call1 (Qsubstitute_command_keys, tem);
   return tem;
 }
 
@@ -492,9 +451,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     fun = XCDR (fun);
   if (CONSP (fun))
     {
-      Lisp_Object tem;
-
-      tem = XCAR (fun);
+      Lisp_Object tem = XCAR (fun);
       if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
 	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
@@ -505,21 +462,28 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
-
   /* Lisp_Subrs have a slot for it.  */
-  else if (SUBRP (fun))
-    XSUBR (fun)->doc = offset;
+  else if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+    {
+      XSUBR (fun)->doc = offset;
+    }
 
   /* Bytecode objects sometimes have slots for it.  */
   else if (COMPILEDP (fun))
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      if (PVSIZE (fun) > COMPILED_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there,
+           * such as the symbols used for Oclosures.  */
+	  && VALID_DOCSTRING_P (AREF (fun, COMPILED_DOC_STRING)))
 	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
       else
 	{
-	  AUTO_STRING (format, "No docstring slot for %s");
+	  AUTO_STRING (format,
+	               (PVSIZE (fun) > COMPILED_DOC_STRING
+	                ? "Docstring slot busy for %s"
+	                : "No docstring slot for %s"));
 	  CALLN (Fmessage, format,
 		 (SYMBOLP (obj)
 		  ? SYMBOL_NAME (obj)
@@ -546,7 +510,6 @@ the same file name is found in the `doc-directory'.  */)
   EMACS_INT pos;
   Lisp_Object sym;
   char *p, *name;
-  ptrdiff_t count;
   char const *dirname;
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
@@ -554,7 +517,7 @@ the same file name is found in the `doc-directory'.  */)
   Lisp_Object delayed_init =
     find_symbol_value (intern ("custom-delayed-init-variables"));
 
-  if (EQ (delayed_init, Qunbound)) delayed_init = Qnil;
+  if (!CONSP (delayed_init)) delayed_init = Qnil;
 
   CHECK_STRING (filename);
 
@@ -570,7 +533,7 @@ the same file name is found in the `doc-directory'.  */)
       dirlen = SBYTES (Vdoc_directory);
     }
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
   name = SAFE_ALLOCA (dirlen + SBYTES (filename) + 1);
   lispstpcpy (stpcpy (name, dirname), filename); 	/*** Add this line ***/
@@ -613,6 +576,8 @@ the same file name is found in the `doc-directory'.  */)
       if (p)
 	{
 	  end = strchr (p, '\n');
+	  if (!end)
+	    error ("DOC file invalid at position %"pI"d", pos);
 
 	  /* We used to skip files not in build_files, so that when a
 	     function was defined several times in different files
@@ -679,332 +644,47 @@ default_to_grave_quoting_style (void)
   Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
 				     LEFT_SINGLE_QUOTATION_MARK);
   return (VECTORP (dv) && ASIZE (dv) == 1
-	  && EQ (AREF (dv, 0), make_fixnum ('`')));
+	  && BASE_EQ (AREF (dv, 0), make_fixnum ('`')));
 }
 
-/* Return the current effective text quoting style.  */
-enum text_quoting_style
-text_quoting_style (void)
+DEFUN ("text-quoting-style", Ftext_quoting_style,
+       Stext_quoting_style, 0, 0, 0,
+       doc: /* Return the current effective text quoting style.
+If the variable `text-quoting-style' is `grave', `straight' or
+`curve', just return that value.  If it is nil (the default), return
+`grave' if curved quotes cannot be displayed (for instance, on a
+terminal with no support for these characters), otherwise return
+`quote'.  Any other value is treated as `grave'.
+
+Note that in contrast to the variable `text-quoting-style', this
+function will never return nil.  */)
+  (void)
 {
+  /* Use grave accent and apostrophe `like this'.  */
   if (NILP (Vtext_quoting_style)
       ? default_to_grave_quoting_style ()
       : EQ (Vtext_quoting_style, Qgrave))
-    return GRAVE_QUOTING_STYLE;
+    return Qgrave;
+
+  /* Use apostrophes 'like this'.  */
   else if (EQ (Vtext_quoting_style, Qstraight))
-    return STRAIGHT_QUOTING_STYLE;
+    return Qstraight;
+
+  /* Use curved single quotes ‘like this’.  */
   else
-    return CURVE_QUOTING_STYLE;
+    return Qcurve;
 }
 
-DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
-       Ssubstitute_command_keys, 1, 1, 0,
-       doc: /* Substitute key descriptions for command names in STRING.
-Each substring of the form \\=\\[COMMAND] is replaced by either a
-keystroke sequence that invokes COMMAND, or "M-x COMMAND" if COMMAND
-is not on any keys.
-
-Each substring of the form \\=\\{MAPVAR} is replaced by a summary of
-the value of MAPVAR as a keymap.  This summary is similar to the one
-produced by `describe-bindings'.  The summary ends in two newlines
-\(used by the helper function `help-make-xrefs' to find the end of the
-summary).
-
-Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
-as the keymap for future \\=\\[COMMAND] substrings.
-
-Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
-is replaced by right quote.  Left and right quote characters are
-specified by `text-quoting-style'.
-
-\\=\\= quotes the following character and is discarded; thus, \\=\\=\\=\\= puts \\=\\=
-into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and \\=\\=\\=` puts \\=` into the
-output.
-
-Return the original STRING if no substitutions are made.
-Otherwise, return a new string (without any text properties).  */)
-  (Lisp_Object string)
-{
-  char *buf;
-  bool changed = false;
-  bool nonquotes_changed = false;
-  unsigned char *strp;
-  char *bufp;
-  ptrdiff_t idx;
-  ptrdiff_t bsize;
-  Lisp_Object tem;
-  Lisp_Object keymap;
-  unsigned char const *start;
-  ptrdiff_t length, length_byte;
-  Lisp_Object name;
-  ptrdiff_t nchars;
-
-  if (NILP (string))
-    return Qnil;
-
-  /* If STRING contains non-ASCII unibyte data, process its
-     properly-encoded multibyte equivalent instead.  This simplifies
-     the implementation and is OK since substitute-command-keys is
-     intended for use only on text strings.  Keep STRING around, since
-     it will be returned if no changes occur.  */
-  Lisp_Object str = Fstring_make_multibyte (string);
-
-  enum text_quoting_style quoting_style = text_quoting_style ();
-
-  nchars = 0;
-
-  /* KEYMAP is either nil (which means search all the active keymaps)
-     or a specified local map (which means search just that and the
-     global map).  If non-nil, it might come from Voverriding_local_map,
-     or from a \\<mapname> construct in STRING itself..  */
-  keymap = Voverriding_local_map;
-
-  ptrdiff_t strbytes = SBYTES (str);
-  bsize = strbytes;
-
-  /* Fixed-size stack buffer.  */
-  char sbuf[MAX_ALLOCA];
-
-  /* Heap-allocated buffer, if any.  */
-  char *abuf;
-
-  /* Extra room for expansion due to replacing ‘\[]’ with ‘M-x ’.  */
-  enum { EXTRA_ROOM = sizeof "M-x " - sizeof "\\[]" };
-
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  if (bsize <= sizeof sbuf - EXTRA_ROOM)
-    {
-      abuf = NULL;
-      buf = sbuf;
-      bsize = sizeof sbuf;
-    }
-  else
-    {
-      buf = abuf = xpalloc (NULL, &bsize, EXTRA_ROOM, STRING_BYTES_BOUND, 1);
-      record_unwind_protect_ptr (xfree, abuf);
-    }
-  bufp = buf;
-
-  strp = SDATA (str);
-  while (strp < SDATA (str) + strbytes)
-    {
-      unsigned char *close_bracket;
-
-      if (strp[0] == '\\' && strp[1] == '='
-	  && strp + 2 < SDATA (str) + strbytes)
-	{
-	  /* \= quotes the next character;
-	     thus, to put in \[ without its special meaning, use \=\[.  */
-	  changed = nonquotes_changed = true;
-	  strp += 2;
-	  /* Fall through to copy one char.  */
-	}
-      else if (strp[0] == '\\' && strp[1] == '['
-	       && (close_bracket
-		   = memchr (strp + 2, ']',
-			     SDATA (str) + strbytes - (strp + 2))))
-	{
-	  bool follow_remap = 1;
-
-	  start = strp + 2;
-	  length_byte = close_bracket - start;
-	  idx = close_bracket + 1 - SDATA (str);
-
-	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
-
-	do_remap:
-	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
-
-	  if (VECTORP (tem) && ASIZE (tem) > 1
-	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
-	      && follow_remap)
-	    {
-	      name = AREF (tem, 1);
-	      follow_remap = 0;
-	      goto do_remap;
-	    }
-
-	  /* Fwhere_is_internal can GC, so take relocation of string
-	     contents into account.  */
-	  strp = SDATA (str) + idx;
-	  start = strp - length_byte - 1;
-
-	  if (NILP (tem))	/* but not on any keys */
-	    {
-	      memcpy (bufp, "M-x ", 4);
-	      bufp += 4;
-	      nchars += 4;
-	      length = multibyte_chars_in_text (start, length_byte);
-	      goto subst;
-	    }
-	  else
-	    {			/* function is on a key */
-	      tem = Fkey_description (tem, Qnil);
-	      goto subst_string;
-	    }
-	}
-      /* \{foo} is replaced with a summary of the keymap (symbol-value foo).
-	 \<foo> just sets the keymap used for \[cmd].  */
-      else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<')
-	       && (close_bracket
-		   = memchr (strp + 2, strp[1] == '{' ? '}' : '>',
-			     SDATA (str) + strbytes - (strp + 2))))
-	{
-	 {
-	  bool generate_summary = strp[1] == '{';
-	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
-	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
-	  ptrdiff_t count = SPECPDL_INDEX ();
-
-	  start = strp + 2;
-	  length_byte = close_bracket - start;
-	  idx = close_bracket + 1 - SDATA (str);
-
-	  /* Get the value of the keymap in TEM, or nil if undefined.
-	     Do this while still in the user's current buffer
-	     in case it is a local variable.  */
-	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
-	  tem = Fboundp (name);
-	  if (! NILP (tem))
-	    {
-	      tem = Fsymbol_value (name);
-	      if (! NILP (tem))
-		tem = get_keymap (tem, 0, 1);
-	    }
-
-	  /* Now switch to a temp buffer.  */
-	  struct buffer *oldbuf = current_buffer;
-	  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
-	  /* This is for an unusual case where some after-change
-	     function uses 'format' or 'prin1' or something else that
-	     will thrash Vprin1_to_string_buffer we are using.  */
-	  specbind (Qinhibit_modification_hooks, Qt);
-
-	  if (NILP (tem))
-	    {
-	      name = Fsymbol_name (name);
-	      AUTO_STRING (msg_prefix, "\nUses keymap `");
-	      insert1 (Fsubstitute_command_keys (msg_prefix));
-	      insert_from_string (name, 0, 0,
-				  SCHARS (name),
-				  SBYTES (name), 1);
-	      AUTO_STRING (msg_suffix, "', which is not currently defined.\n");
-	      insert1 (Fsubstitute_command_keys (msg_suffix));
-	      if (!generate_summary)
-		keymap = Qnil;
-	    }
-	  else if (!generate_summary)
-	    keymap = tem;
-	  else
-	    {
-	      /* Get the list of active keymaps that precede this one.
-		 If this one's not active, get nil.  */
-	      Lisp_Object earlier_maps
-		= Fcdr (Fmemq (tem, Freverse (active_maps)));
-	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
-				 Qnil, 0, 1, 0, 0, 1);
-	    }
-	  tem = Fbuffer_string ();
-	  Ferase_buffer ();
-	  set_buffer_internal (oldbuf);
-	  unbind_to (count, Qnil);
-	 }
-
-	subst_string:
-	  /* Convert non-ASCII unibyte data to properly-encoded multibyte,
-	     for the same reason STRING was converted to STR.  */
-	  tem = Fstring_make_multibyte (tem);
-	  start = SDATA (tem);
-	  length = SCHARS (tem);
-	  length_byte = SBYTES (tem);
-	subst:
-	  nonquotes_changed = true;
-	subst_quote:
-	  changed = true;
-	  {
-	    ptrdiff_t offset = bufp - buf;
-	    ptrdiff_t avail = bsize - offset;
-	    ptrdiff_t need = strbytes - idx;
-	    if (INT_ADD_WRAPV (need, length_byte + EXTRA_ROOM, &need))
-	      string_overflow ();
-	    if (avail < need)
-	      {
-		abuf = xpalloc (abuf, &bsize, need - avail,
-				STRING_BYTES_BOUND, 1);
-		if (buf == sbuf)
-		  {
-		    record_unwind_protect_ptr (xfree, abuf);
-		    memcpy (abuf, sbuf, offset);
-		  }
-		else
-		  set_unwind_protect_ptr (count, xfree, abuf);
-		buf = abuf;
-		bufp = buf + offset;
-	      }
-	    memcpy (bufp, start, length_byte);
-	    bufp += length_byte;
-	    nchars += length;
-
-	    /* Some of the previous code can GC, so take relocation of
-	       string contents into account.  */
-	    strp = SDATA (str) + idx;
-
-	    continue;
-	  }
-	}
-      else if ((strp[0] == '`' || strp[0] == '\'')
-	       && quoting_style == CURVE_QUOTING_STYLE)
-	{
-	  start = (unsigned char const *) (strp[0] == '`' ? uLSQM : uRSQM);
-	  length = 1;
-	  length_byte = sizeof uLSQM - 1;
-	  idx = strp - SDATA (str) + 1;
-	  goto subst_quote;
-	}
-      else if (strp[0] == '`' && quoting_style == STRAIGHT_QUOTING_STYLE)
-	{
-	  *bufp++ = '\'';
-	  strp++;
-	  nchars++;
-	  changed = true;
-	  continue;
-	}
-
-      /* Copy one char.  */
-      do
-	*bufp++ = *strp++;
-      while (! CHAR_HEAD_P (*strp));
-      nchars++;
-    }
-
-  if (changed)			/* don't bother if nothing substituted */
-    {
-      tem = make_string_from_bytes (buf, nchars, bufp - buf);
-      if (!nonquotes_changed)
-	{
-	  /* Nothing has changed other than quoting, so copy the string’s
-	     text properties.  FIXME: Text properties should survive other
-	     changes too; see bug#17052.  */
-	  INTERVAL interval_copy = copy_intervals (string_intervals (string),
-						   0, SCHARS (string));
-	  if (interval_copy)
-	    {
-	      set_interval_object (interval_copy, tem);
-	      set_string_intervals (tem, interval_copy);
-	    }
-	}
-    }
-  else
-    tem = string;
-  return unbind_to (count, tem);
-}
 
 void
 syms_of_doc (void)
 {
+  DEFSYM (Qlisp_directory, "lisp-directory");
+  DEFSYM (Qsubstitute_command_keys, "substitute-command-keys");
   DEFSYM (Qfunction_documentation, "function-documentation");
   DEFSYM (Qgrave, "grave");
   DEFSYM (Qstraight, "straight");
+  DEFSYM (Qcurve, "curve");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
@@ -1016,17 +696,23 @@ syms_of_doc (void)
 
   DEFVAR_LISP ("text-quoting-style", Vtext_quoting_style,
                doc: /* Style to use for single quotes in help and messages.
-Its value should be a symbol.  It works by substituting certain single
-quotes for grave accent and apostrophe.  This is done in help output
-\(but not for display of Info manuals) and in functions like `message'
-and `format-message'.  It is not done in `format'.
 
-`curve' means quote with curved single quotes ‘like this’.
-`straight' means quote with straight apostrophes \\='like this\\='.
-`grave' means quote with grave accent and apostrophe \\=`like this\\=';
-i.e., do not alter quote marks.  The default value nil acts like
-`curve' if curved single quotes are displayable, and like `grave'
-otherwise.  */);
+The value of this variable determines substitution of grave accents
+and apostrophes in help output (but not for display of Info
+manuals) and in functions like `message' and `format-message', but not
+in `format'.
+
+The value should be one of these symbols:
+  `curve':    quote with curved single quotes ‘like this’.
+  `straight': quote with straight apostrophes \\='like this\\='.
+  `grave':    quote with grave accent and apostrophe \\=`like this\\=';
+	      i.e., do not alter the original quote marks.
+  nil:        like `curve' if curved single quotes are displayable,
+	      and like `grave' otherwise.  This is the default.
+
+You should never read the value of this variable directly from a Lisp
+program.  Use the function `text-quoting-style' instead, as that will
+compute the correct value for the current terminal in the nil case.  */);
   Vtext_quoting_style = Qnil;
 
   DEFVAR_BOOL ("internal--text-quoting-flag", text_quoting_flag,
@@ -1034,7 +720,8 @@ otherwise.  */);
   /* Initialized by ‘main’.  */
 
   defsubr (&Sdocumentation);
+  defsubr (&Ssubr_documentation);
   defsubr (&Sdocumentation_property);
   defsubr (&Ssnarf_documentation);
-  defsubr (&Ssubstitute_command_keys);
+  defsubr (&Stext_quoting_style);
 }

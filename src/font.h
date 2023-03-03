@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -69,9 +69,10 @@ INLINE_HEADER_BEGIN
 
 enum font_property_index
   {
-    /* FONT-TYPE is a symbol indicating a font backend; currently `x'
-       and `xft' are available on X, `uniscribe' and `gdi' on
-       Windows, and `ns' under Cocoa / GNUstep.  */
+    /* FONT-TYPE is a symbol indicating a font backend; currently `x',
+       `xft', `xfthb', `ftrc', and `ftcrhb' are available on X;
+       `harfbuzz', `uniscribe', and `gdi' on Windows, and `ns' under
+       Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
@@ -154,8 +155,9 @@ enum font_property_index
     /* In a font-spec, the value is an alist of extra information of a
        font such as name, OpenType features, and language coverage.
        In addition, in a font-entity, the value may contain a pair
-       (font-entity . INFO) where INFO is extra information to identify
-       a font (font-driver dependent).  */
+       (font-entity . INFO) where INFO is extra information to
+       identify a font (font-driver dependent).  In a font-entity,
+       this holds font driver-specific information.  */
     FONT_EXTRA_INDEX,		/* alist		alist */
 
     /* This value is the length of font-spec vector.  */
@@ -218,13 +220,13 @@ enum font_property_index
 #define FONT_WIDTH_FOR_FACE(font)	\
   font_style_symbolic (font, FONT_WIDTH_INDEX, true)
 
-/* Return the numeric weight value corresponding ot the symbol NAME.  */
+/* Return the numeric weight value corresponding to the symbol NAME.  */
 #define FONT_WEIGHT_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_WEIGHT_INDEX, (name), false) >> 8)
-/* Return the numeric slant value corresponding ot the symbol NAME.  */
+/* Return the numeric slant value corresponding to the symbol NAME.  */
 #define FONT_SLANT_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_SLANT_INDEX, (name), false) >> 8)
-/* Return the numeric width value corresponding ot the symbol NAME.  */
+/* Return the numeric width value corresponding to the symbol NAME.  */
 #define FONT_WIDTH_NAME_NUMERIC(name)	\
   (font_style_to_value (FONT_WIDTH_INDEX, (name), false) >> 8)
 
@@ -658,7 +660,7 @@ struct font_driver
 
   /* Optional.
      Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
-     position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND,
+     position of frame S->f with S->face and S->gc.  If WITH_BACKGROUND,
      fill the background in advance.  It is assured that WITH_BACKGROUND
      is false when (FROM > 0 || TO < S->nchars).  */
   int (*draw) (struct glyph_string *s, int from, int to,
@@ -885,7 +887,7 @@ valid_font_driver (struct font_driver const *d)
 extern Lisp_Object font_update_drivers (struct frame *f, Lisp_Object list);
 extern Lisp_Object font_range (ptrdiff_t, ptrdiff_t, ptrdiff_t *,
 			       struct window *, struct face *,
-			       Lisp_Object);
+			       Lisp_Object, int);
 extern void font_fill_lglyph_metrics (Lisp_Object, struct font *, unsigned int);
 
 extern Lisp_Object font_put_extra (Lisp_Object font, Lisp_Object prop,
@@ -964,7 +966,7 @@ extern struct font_driver const nsfont_driver;
 extern void syms_of_nsfont (void);
 extern void syms_of_macfont (void);
 #endif	/* HAVE_NS */
-#ifdef USE_CAIRO
+#if defined (USE_CAIRO) || defined (USE_BE_CAIRO)
 extern struct font_driver const ftcrfont_driver;
 #ifdef HAVE_HARFBUZZ
 extern struct font_driver ftcrhbfont_driver;
@@ -998,7 +1000,7 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 INLINE bool
 font_data_structures_may_be_ill_formed (void)
 {
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined USE_BE_CAIRO
   /* Although this works around Bug#20890, it is probably not the
      right thing to do.  */
   return gc_in_progress;

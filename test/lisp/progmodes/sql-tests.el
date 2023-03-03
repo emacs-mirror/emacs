@@ -1,6 +1,6 @@
 ;;; sql-tests.el --- Tests for sql.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -28,6 +28,7 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'sql)
 
 (ert-deftest sql-tests-postgres-list-databases ()
@@ -50,7 +51,7 @@
         (lambda (_command) t))
        ((symbol-function 'process-lines)
         (lambda (_program &rest _args)
-          (error "some error"))))
+          (error "Some error"))))
     (should-not (sql-postgres-list-databases))))
 
 ;;; Check Connection Password Handling/Wallet
@@ -63,52 +64,49 @@ Identify tests by ID.  Set :sql-login dialect attribute to
 LOGIN-PARAMS.  Provide the CONNECTION parameters and the EXPECTED
 string of values passed to the comint function for validation."
   (declare (indent 2))
-  `(cl-letf
-       ((sql-test-login-params ' ,login-params)
-        ((symbol-function 'sql-comint-test)
-         (lambda (product options &optional buf-name)
-           (with-current-buffer (get-buffer-create buf-name)
-             (insert (pp-to-string (list product options sql-user sql-password sql-server sql-database))))))
-        ((symbol-function 'sql-run-test)
-         (lambda (&optional buffer)
-           (interactive "P")
-           (sql-product-interactive 'sqltest buffer)))
-        (sql-user nil)
-        (sql-server nil)
-        (sql-database nil)
-        (sql-product-alist
-         '((ansi)
-           (sqltest
-            :name "SqlTest"
-            :sqli-login sql-test-login-params
-            :sqli-comint-func sql-comint-test)))
-        (sql-connection-alist
-         '((,(format "test-%s" id)
-            ,@connection)))
-        (sql-password-wallet
-         (list
-          (make-temp-file
-           "sql-test-netrc" nil nil
-           (mapconcat #'identity
-                      '("machine aMachine user aUserName password \"netrc-A aPassword\""
-                        "machine aServer user aUserName password \"netrc-B aPassword\""
-                        "machine aMachine server aServer user aUserName password \"netrc-C aPassword\""
-                        "machine aMachine database aDatabase user aUserName password \"netrc-D aPassword\""
-                        "machine aDatabase user aUserName password \"netrc-E aPassword\""
-                        "machine aMachine server aServer database aDatabase user aUserName password \"netrc-F aPassword\""
-                        "machine \"aServer/aDatabase\" user aUserName password \"netrc-G aPassword\""
-                        ) "\n")))))
-
-     (let* ((connection ,(format "test-%s" id))
-            (buffername (format "*SQL: ERT TEST <%s>*" connection)))
-       (when (get-buffer buffername)
-         (kill-buffer buffername))
-       (sql-connect connection buffername)
-       (should (get-buffer buffername))
-       (should (string-equal (with-current-buffer buffername (buffer-string)) ,expected))
-       (when (get-buffer buffername)
-         (kill-buffer buffername))
-       (delete-file (car sql-password-wallet)))))
+  `(ert-with-temp-file tempfile
+     :suffix "sql-test-netrc"
+     :text (concat
+            "machine aMachine user aUserName password \"netrc-A aPassword\""
+            "machine aServer user aUserName password \"netrc-B aPassword\""
+            "machine aMachine server aServer user aUserName password \"netrc-C aPassword\""
+            "machine aMachine database aDatabase user aUserName password \"netrc-D aPassword\""
+            "machine aDatabase user aUserName password \"netrc-E aPassword\""
+            "machine aMachine server aServer database aDatabase user aUserName password \"netrc-F aPassword\""
+            "machine \"aServer/aDatabase\" user aUserName password \"netrc-G aPassword\""
+            "\n")
+     (cl-letf
+         ((sql-test-login-params ' ,login-params)
+          ((symbol-function 'sql-comint-test)
+           (lambda (product options &optional buf-name)
+             (with-current-buffer (get-buffer-create buf-name)
+               (insert (pp-to-string (list product options sql-user sql-password sql-server sql-database))))))
+          ((symbol-function 'sql-run-test)
+           (lambda (&optional buffer)
+             (interactive "P")
+             (sql-product-interactive 'sqltest buffer)))
+          (sql-user nil)
+          (sql-server nil)
+          (sql-database nil)
+          (sql-product-alist
+           '((ansi)
+             (sqltest
+              :name "SqlTest"
+              :sqli-login sql-test-login-params
+              :sqli-comint-func sql-comint-test)))
+          (sql-connection-alist
+           '((,(format "test-%s" id)
+              ,@connection)))
+          (sql-password-wallet (list tempfile)))
+       (let* ((connection ,(format "test-%s" id))
+              (buffername (format "*SQL: ERT TEST <%s>*" connection)))
+         (when (get-buffer buffername)
+           (kill-buffer buffername))
+         (sql-connect connection buffername)
+         (should (get-buffer buffername))
+         (should (string-equal (with-current-buffer buffername (buffer-string)) ,expected))
+         (when (get-buffer buffername)
+           (kill-buffer buffername))))))
 
 (ert-deftest sql-test-connect ()
   "Test of basic `sql-connect'."
@@ -416,6 +414,96 @@ The ACTION will be tested after set-up of PRODUCT."
 
     (kill-buffer "*SQL: exist*")))
 
+(ert-deftest sql-tests-comint-automatic-password ()
+  (let ((sql-password nil))
+    (should-not (sql-comint-automatic-password "Password: ")))
+  (let ((sql-password ""))
+    (should-not (sql-comint-automatic-password "Password: ")))
+  (let ((sql-password "password"))
+    (should (equal "password" (sql-comint-automatic-password "Password: "))))
+  ;; Also, we shouldn't care what the password is - we rely on comint for that.
+  (let ((sql-password "password"))
+    (should (equal "password" (sql-comint-automatic-password "")))))
+
+
+
+;; Tests for sql-interactive-remove-continuation-prompt
+
+(defmacro sql-tests-remove-cont-prompts-harness (&rest body)
+  "Set-up and tear-down for tests of
+`sql-interactive-remove-continuation-prompt'."
+  (declare (indent 0))
+  `(let ((comint-prompt-regexp "^ +\\.\\{3\\} ")
+         (sql-output-newline-count nil)
+         (sql-preoutput-hold nil))
+     ,@body
+     (should (null sql-output-newline-count))
+     (should (null sql-preoutput-hold))))
+
+(ert-deftest sql-tests-remove-cont-prompts-pass-through ()
+  "Test that `sql-interactive-remove-continuation-prompt' just
+passes the output line through when it doesn't expect prompts."
+  (sql-tests-remove-cont-prompts-harness
+   (should
+    (equal " ... "
+           (sql-interactive-remove-continuation-prompt
+            " ... ")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-anchored-successive ()
+  "Test that `sql-interactive-remove-continuation-prompt' is able
+to delete multiple prompts (anchored to bol) even if they appear
+in a single line, but not more than `sql-output-newline-count'."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-output-newline-count 2)
+   (should
+    (equal
+     ;; 2 of 3 prompts are deleted
+     "some output ... more output...\n\
+ ... \n\
+output after prompt"
+     (sql-interactive-remove-continuation-prompt
+      "some output ... more output...\n\
+ ...  ...  ... \n\
+output after prompt")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-collect-chunked-output ()
+  "Test that `sql-interactive-remove-continuation-prompt' properly
+collects output when output arrives in chunks, with prompts
+intermixed."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-output-newline-count 2)
+
+   ;; Part of first prompt gets held.  Complete line is passed
+   ;; through.
+   (should (equal "line1\n"
+                  (sql-interactive-remove-continuation-prompt
+                   "line1\n ..")))
+   (should (equal " .." sql-preoutput-hold))
+   (should (equal 2 sql-output-newline-count))
+
+   ;; First prompt is complete - remove it.  Hold part of line2.
+   (should (equal ""
+                  (sql-interactive-remove-continuation-prompt ". li")))
+   (should (equal "li" sql-preoutput-hold))
+   (should (equal 1 sql-output-newline-count))
+
+   ;; Remove second prompt.  Flush output & don't hold / process any
+   ;; output further on.
+   (should (equal "line2\nli"
+                  (sql-interactive-remove-continuation-prompt "ne2\n ... li")))
+   (should (null sql-preoutput-hold))
+   (should (null sql-output-newline-count))
+   (should (equal "line3\n ... "
+                  (sql-interactive-remove-continuation-prompt "line3\n ... ")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-flush-held ()
+  "Test that when we don't wait for prompts,
+ `sql-interactive-remove-continuation-prompt' just 'flushes' held
+ output, with no prompt processing."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-preoutput-hold "line1\n ..")
+   (should (equal "line1\n ... line2 .."
+                  (sql-interactive-remove-continuation-prompt ". line2 ..")))))
 
 (provide 'sql-tests)
 ;;; sql-tests.el ends here

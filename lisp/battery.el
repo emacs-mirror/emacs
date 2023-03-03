@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -96,12 +96,14 @@ Value does not include \".\" or \"..\"."
   (cond ((member battery-upower-service (dbus-list-activatable-names))
          #'battery-upower)
         ((and (eq system-type 'gnu/linux)
+              (file-readable-p "/sys/")
               (battery--find-linux-sysfs-batteries))
          #'battery-linux-sysfs)
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/proc/acpi/battery"))
 	 #'battery-linux-proc-acpi)
 	((and (eq system-type 'gnu/linux)
+              (file-readable-p "/proc/")
               (file-readable-p "/proc/apm"))
          #'battery-linux-proc-apm)
 	((and (eq system-type 'berkeley-unix)
@@ -113,6 +115,10 @@ Value does not include \".\" or \"..\"."
                   (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
                        (not (bobp))))))
 	 #'battery-pmset)
+        ((and (eq system-type 'haiku)
+              ;; TODO: Support the Haiku APM battery driver.
+              (file-directory-p "/dev/power/acpi_battery"))
+         #'battery-haiku-acpi-battery)
 	((fboundp 'w32-battery-status)
 	 #'w32-battery-status))
   "Function for getting battery status information.
@@ -161,9 +167,9 @@ The full `format-spec' formatting syntax is supported."
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function #'battery-linux-proc-acpi)
-	 "[%b%p%%,%d°C]")
+	 "[%b%p%%,%d°C] ")
 	(battery-status-function
-	 "[%b%p%%]"))
+	 "[%b%p%%] "))
   "Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -226,6 +232,40 @@ The text being displayed in the echo area is controlled by the variables
 				    (funcall battery-status-function))
 		  "Battery status not available")))
 
+(defcustom battery-update-functions nil
+  "Functions run by `display-battery-mode' after updating the status.
+These functions will be called with one parameter, an alist that
+contains data about the current battery status.  The keys in the
+alist are single characters and the values are strings.
+Different battery backends deliver different information, so some
+of the following information may or may not be available:
+
+    v: driver-version
+    V: bios-version
+    I: bios-interface
+    L: line-status
+    B: battery-status
+    b: battery-status-symbol
+    p: load-percentage
+    s: seconds
+    m: minutes
+    h: hours
+    t: remaining-time
+
+For instance, to play an alarm when the battery power dips below
+10%, you could use a function like the following:
+
+  (defvar my-prev-battery nil)
+  (defun my-battery-alarm (data)
+    (when (and my-prev-battery
+               (equal (alist-get ?L data) \"off-line\")
+               (< (string-to-number (alist-get ?p data)) 10)
+               (>= (string-to-number (alist-get ?p my-prev-battery)) 10))
+      (play-sound-file \"~/alarm.wav\" 5))
+    (setq my-prev-battery data))"
+  :version "29.1"
+  :type '(repeat function))
+
 ;;;###autoload
 (define-minor-mode display-battery-mode
   "Toggle battery status display in mode line (Display Battery mode).
@@ -233,7 +273,11 @@ The text being displayed in the echo area is controlled by the variables
 The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
 The mode line is be updated every `battery-update-interval'
-seconds."
+seconds.
+
+The function which updates the mode-line display will call the
+functions in `battery-update-functions', which can be used to
+trigger actions based on battery-related events."
   :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
@@ -246,7 +290,7 @@ seconds."
 	(add-to-list 'global-mode-string 'battery-mode-line-string t)
         (and (eq battery-status-function #'battery-upower)
              battery-upower-subscribe
-             (battery--upower-subsribe))
+             (battery--upower-subscribe))
 	(setq battery-update-timer (run-at-time nil battery-update-interval
                                                 #'battery-update-handler))
 	(battery-update))
@@ -273,7 +317,8 @@ seconds."
             ((< percentage battery-load-low)
              (add-face-text-property 0 len 'battery-load-low t res)))
       (put-text-property 0 len 'help-echo "Battery status information" res))
-    (setq battery-mode-line-string (or res "")))
+    (setq battery-mode-line-string (or res ""))
+    (run-hook-with-args 'battery-update-functions data))
   (force-mode-line-update t))
 
 
@@ -324,11 +369,11 @@ The following %-sequences are provided:
 	(setq driver-version (match-string 1))
 	(setq bios-version (match-string 2))
 	(setq tem (string-to-number (match-string 3) 16))
-	(if (not (logand tem 2))
+        (if (zerop (logand tem 2))
 	    (setq bios-interface "not supported")
 	  (setq bios-interface "enabled")
-	  (cond ((logand tem 16) (setq bios-interface "disabled"))
-		((logand tem 32) (setq bios-interface "disengaged")))
+          (cond ((/= (logand tem 16) 0) (setq bios-interface "disabled"))
+                ((/= (logand tem 32) 0) (setq bios-interface "disengaged")))
 	  (setq tem (string-to-number (match-string 4) 16))
 	  (cond ((= tem 0) (setq line-status "off-line"))
 		((= tem 1) (setq line-status "on-line"))
@@ -600,6 +645,103 @@ The following %-sequences are provided:
                      (_ "N/A"))))))
 
 
+;;; `/dev/power/acpi_battery' interface for Haiku.
+
+(defun battery--search-haiku-acpi-status ()
+  "Search forward for battery status in the current buffer.
+Return a property list once all relevant properties are found.
+The following properties may be inside the list:
+
+  - `:capacity' (the current capacity of the battery.)
+  - `:voltage' (the current voltage of the battery.)
+  - `:rate', (the current rate of charge or discharge.)
+  - `:state' (the current state of the battery.)
+  - `:design-capacity' (the design capacity of the battery.)
+  - `:design-voltage' (the design voltage of the battery.)
+  - `:last-full-charge' (the capacity at the last full charge of
+    the battery.)
+
+`:capacity' and `:design-capacity' are both represented in
+terms of milliamp-hours."
+  (let ((state-regexp "State \\([[:digit:]]+\\), Current Rate \\([[:digit:]]+\\), \
+Capacity \\([[:digit:]]+\\), Voltage \\([[:digit:]]+\\)")
+        (pu-regexp "Power Unit \\([[:digit:]]\\)+, Design Capacity \\([[:digit:]]+\\), \
+Last Full Charge \\([[:digit:]]+\\)")
+        (design-regexp "Design Voltage \\([[:digit:]]+\\)")
+        power-unit last-full-charge state rate capacity
+        voltage design-capacity design-voltage)
+    (when (re-search-forward state-regexp)
+      (setq state (string-to-number (match-string 1)))
+      (setq rate (string-to-number (match-string 2)))
+      (setq capacity (string-to-number (match-string 3)))
+      (setq voltage (/ (string-to-number (match-string 4)) 1000.0)))
+    (when (re-search-forward pu-regexp)
+      (setq power-unit (string-to-number (match-string 1)))
+      (setq design-capacity (string-to-number (match-string 2)))
+      (setq last-full-charge (string-to-number (match-string 3))))
+    (when (re-search-forward design-regexp)
+      (setq design-voltage (/ (string-to-number (match-string 1)) 1000.0)))
+    ;; Convert capacity fields to milliamp-hours if they're
+    ;; specified as miliwatt-hours.
+    (when (eq power-unit 0)
+      (setq capacity (/ capacity voltage))
+      (setq design-capacity (/ design-capacity design-voltage))
+      (setq last-full-charge (/ last-full-charge voltage)))
+    (list :capacity capacity :voltage voltage
+          :rate rate :state (cond
+                             ((not (zerop (logand state 2))) 'charging)
+                             ((not (zerop (logand state 1))) 'discharging)
+                             ((not (zerop (logand state 4))) 'critical)
+                             (t 'fully-charged))
+          :design-capacity design-capacity
+          :design-voltage design-voltage
+          :last-full-charge last-full-charge)))
+
+(defun battery-haiku-acpi-battery ()
+  "Get battery status from `/dev/power/acpi_battery'.
+This function only works on Haiku systems with an ACPI battery.
+
+The following %-sequences are provided:
+%c Current capacity (mAh)
+%r Current rate of charge or discharge
+%L AC line status (verbose)
+%B Battery status (verbose)
+%b Battery status: empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%p Battery load percentage"
+  (with-temp-buffer
+    (dolist (file (battery--files "/dev/power/acpi_battery"))
+      (insert-file-contents (expand-file-name file "/dev/power/acpi_battery")))
+    ;; I don't think Haiku actually supports multiple batteries yet,
+    ;; since the code in PowerStatus doesn't take care of that
+    ;; situation.
+    (let ((list (ignore-errors (battery--search-haiku-acpi-status))))
+      (if list
+          (list (cons ?c (format "%.0f" (plist-get list :capacity)))
+                (cons ?r (format "%.0f" (plist-get list :rate)))
+                (cons ?B (symbol-name (plist-get list :state)))
+                (cons ?b (let ((state (plist-get list :state)))
+                           (cond
+                            ((eq state 'charging) "+")
+                            ((and (eq state 'discharging)
+                                  (< (/ (plist-get list :capacity)
+                                        (plist-get list :last-full-charge))
+                                     0.15))
+                             "-")
+                            ((eq state 'critical) "!")
+                            (t ""))))
+                (cons ?L (if (not (eq (plist-get list :state) 'discharging))
+                             "on-line" "off-line"))
+                (cons ?p (format "%.0f"
+                                 (* 100 (/ (plist-get list :capacity)
+                                           (plist-get list :last-full-charge))))))
+        '((?c . "N/A")
+          (?r . "N/A")
+          (?B . "N/A")
+          (?b . "N/A")
+          (?p . "N/A"))))))
+
+
 ;;; UPower interface.
 
 (defconst battery-upower-interface "org.freedesktop.UPower"
@@ -634,7 +776,7 @@ Intended as a UPower PropertiesChanged signal handler."
   (mapc #'dbus-unregister-object battery--upower-signals)
   (setq battery--upower-signals ()))
 
-(defun battery--upower-subsribe ()
+(defun battery--upower-subscribe ()
   "Subscribe to UPower device change signals."
   (push (dbus-register-signal :system battery-upower-service
                               battery-upower-path
@@ -661,10 +803,12 @@ Intended as a UPower PropertiesChanged signal handler."
   (cond ((stringp battery-upower-device)
          (list battery-upower-device))
         (battery-upower-device)
-        ((dbus-call-method :system battery-upower-service
-                           battery-upower-path
-                           battery-upower-interface
-                           "EnumerateDevices"))))
+        ((dbus-ignore-errors
+           (dbus-call-method :system battery-upower-service
+                             battery-upower-path
+                             battery-upower-interface
+                             "EnumerateDevices"
+                             :timeout 1000)))))
 
 (defun battery--upower-state (props state)
   "Merge the UPower battery state in PROPS with STATE.
@@ -770,6 +914,15 @@ The following %-sequences are provided:
 
 ;;; `apm' interface for BSD.
 
+;; This function is a wrapper on `call-process' that return the
+;; standard output in a string.  We are using it instead
+;; `shell-command-to-string' because this last one is trying to run
+;; PROGRAM on the remote host if the buffer is remote.
+(defun battery--call-process-to-string (program &rest args)
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (apply #'call-process program nil t nil args))))
+
 (defun battery-bsd-apm ()
   "Get APM status information from BSD apm binary.
 The following %-sequences are provided:
@@ -785,13 +938,14 @@ The following %-sequences are provided:
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
                         ;; FIXME: Can't we use something like `system-type'?
-                        (shell-command-to-string "/usr/bin/uname"))))
+                        (battery--call-process-to-string "uname"))))
          (apm-flag (pcase os-name
                      ("OpenBSD" "mP")
                      ("FreeBSD" "st")
                      (_         "ms")))
-         (apm-cmd (concat "/usr/sbin/apm -abl" apm-flag))
-         (apm-output (split-string (shell-command-to-string apm-cmd)))
+         (apm-args (concat "-abl" apm-flag))
+         (apm-output (split-string
+                      (battery--call-process-to-string "apm" apm-args)))
          (indices (pcase os-name
                     ;; FreeBSD's manpage documents that multiple
                     ;; outputs are ordered by "the order in which

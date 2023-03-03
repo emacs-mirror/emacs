@@ -1,6 +1,6 @@
-;;; bat-mode.el --- Major mode for editing DOS/Windows scripts
+;;; bat-mode.el --- Major mode for editing DOS/Windows scripts  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003, 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Arni Magnusson <arnima@hafro.is>
 ;; Keywords: languages
@@ -44,7 +44,7 @@
 ;; Separate package `dos-indent' (Matthew Fidler) provides rudimentary
 ;; indentation, see https://www.emacswiki.org/emacs/dos-indent.el.
 ;;
-;; Acknowledgements:
+;; Acknowledgments:
 ;;
 ;; Inspired by `batch-mode' (Agnar Renolen) and `cmd-mode' (Tadamegu Furukawa).
 
@@ -71,8 +71,8 @@
              "doskey" "echo" "endlocal" "erase" "fc" "find" "findstr" "format"
              "ftype" "label" "md" "mkdir" "more" "move" "net" "path" "pause"
              "popd" "prompt" "pushd" "rd" "ren" "rename" "replace" "rmdir" "set"
-             "setlocal" "shift" "sort" "subst" "time" "title" "tree" "type"
-             "ver" "vol" "xcopy"))
+             "setlocal" "setx" "shift" "sort" "subst" "time" "title" "tree"
+             "type" "ver" "vol" "xcopy"))
           (CONTROLFLOW
            '("call" "cmd" "defined" "do" "else" "equ" "exist" "exit" "for" "geq"
              "goto" "gtr" "if" "in" "leq" "lss" "neq" "not" "start"))
@@ -82,7 +82,7 @@
          (2 font-lock-constant-face t))
         ("^:[^:].*"
          . 'bat-label-face)
-        ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
+        ("\\_<\\(defined\\|set\\|setx\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
          (2 font-lock-variable-name-face))
         ("%~\\([0-9]\\)"
          (1 font-lock-variable-name-face))
@@ -175,7 +175,7 @@
 
 ;;;###autoload
 (define-derived-mode bat-mode prog-mode "Bat"
-  "Major mode for editing DOS/Windows batch files.\n
+  "Major mode for editing DOS/Windows batch files.
 Start a new script from `bat-template'.  Read help pages for DOS commands
 with `bat-cmd-help'.  Navigate between sections using `imenu'.
 Run script using `bat-run' and `bat-run-args'.\n

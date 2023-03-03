@@ -1,6 +1,6 @@
-;;; sieve.el --- Utilities to manage sieve scripts
+;;; sieve.el --- Utilities to manage sieve scripts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -69,13 +69,11 @@
 
 (defcustom sieve-new-script "<new script>"
   "Name of name script indicator."
-  :type 'string
-  :group 'sieve)
+  :type 'string)
 
 (defcustom sieve-buffer "*sieve*"
   "Name of sieve management buffer."
-  :type 'string
-  :group 'sieve)
+  :type 'string)
 
 (defcustom sieve-template "\
 require \"fileinto\";
@@ -91,8 +89,7 @@ require \"fileinto\";
 # }
 "
   "Template sieve script."
-  :type 'string
-  :group 'sieve)
+  :type 'string)
 
 ;; Internal variables:
 
@@ -104,33 +101,36 @@ require \"fileinto\";
 
 ;; Sieve-manage mode:
 
-(defvar sieve-manage-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; various
-    (define-key map "?" 'sieve-help)
-    (define-key map "h" 'sieve-help)
-    ;; activating
-    (define-key map "m" 'sieve-activate)
-    (define-key map "u" 'sieve-deactivate)
-    (define-key map "\M-\C-?" 'sieve-deactivate-all)
-    ;; navigation keys
-    (define-key map "\C-p" 'sieve-prev-line)
-    (define-key map [up] 'sieve-prev-line)
-    (define-key map "\C-n" 'sieve-next-line)
-    (define-key map [down] 'sieve-next-line)
-    (define-key map " " 'sieve-next-line)
-    (define-key map "n" 'sieve-next-line)
-    (define-key map "p" 'sieve-prev-line)
-    (define-key map "\C-m" 'sieve-edit-script)
-    (define-key map "f" 'sieve-edit-script)
-    (define-key map "o" 'sieve-edit-script-other-window)
-    (define-key map "r" 'sieve-remove)
-    (define-key map "q" 'sieve-bury-buffer)
-    (define-key map "Q" 'sieve-manage-quit)
-    (define-key map [(down-mouse-2)] 'sieve-edit-script)
-    (define-key map [(down-mouse-3)] 'sieve-manage-mode-menu)
-    map)
-  "Keymap for `sieve-manage-mode'.")
+;; This function is defined by `easy-menu-define' but it's only done
+;; at run time and the compiler is not aware of it.
+;; FIXME: This is arguably a bug/problem in `easy-menu-define'.
+(declare-function sieve-manage-mode-menu "sieve")
+
+(defvar-keymap sieve-manage-mode-map
+  :doc "Keymap for `sieve-manage-mode'."
+  ;; various
+  "?"      #'sieve-help
+  "h"      #'sieve-help
+  ;; activating
+  "m"      #'sieve-activate
+  "u"      #'sieve-deactivate
+  "M-DEL"  #'sieve-deactivate-all
+  ;; navigation keys
+  "C-p"    #'sieve-prev-line
+  "<up>"   #'sieve-prev-line
+  "C-n"    #'sieve-next-line
+  "<down>" #'sieve-next-line
+  "SPC"    #'sieve-next-line
+  "n"      #'sieve-next-line
+  "p"      #'sieve-prev-line
+  "RET"    #'sieve-edit-script
+  "f"      #'sieve-edit-script
+  ;; "o"   #'sieve-edit-script-other-window
+  "r"      #'sieve-remove
+  "q"      #'sieve-bury-buffer
+  "Q"      #'sieve-manage-quit
+  "<down-mouse-2>" #'sieve-edit-script
+  "<down-mouse-3>" #'sieve-manage-mode-menu)
 
 (easy-menu-define sieve-manage-mode-menu sieve-manage-mode-map
   "Sieve Menu."
@@ -143,8 +143,7 @@ require \"fileinto\";
 (define-derived-mode sieve-manage-mode special-mode "Sieve-manage"
   "Mode used for sieve script management."
   (buffer-disable-undo (current-buffer))
-  (setq truncate-lines t)
-  (easy-menu-add sieve-manage-mode-menu sieve-manage-mode-map))
+  (setq truncate-lines t))
 
 ;; Commands used in sieve-manage mode:
 
@@ -153,15 +152,16 @@ require \"fileinto\";
   (interactive)
   (sieve-manage-close sieve-manage-buffer)
   (kill-buffer sieve-manage-buffer)
-  (kill-buffer (current-buffer)))
+  (when-let ((buffer (get-buffer sieve-buffer)))
+    (kill-buffer buffer)))
 
 (defun sieve-bury-buffer ()
   "Bury the Manage Sieve buffer without closing the connection."
   (interactive)
   (bury-buffer))
 
-(defun sieve-activate (&optional pos)
-  (interactive "d")
+(defun sieve-activate (&optional _pos)
+  (interactive)
   (let ((name (sieve-script-at-point)) err)
     (when (or (null name) (string-equal name sieve-new-script))
       (error "No sieve script at point"))
@@ -172,20 +172,20 @@ require \"fileinto\";
 	(message "Activating script %s...done" name)
       (message "Activating script %s...failed: %s" name (nth 2 err)))))
 
-(defun sieve-deactivate-all (&optional pos)
-  (interactive "d")
-  (let ((name (sieve-script-at-point)) err)
-    (message "Deactivating scripts...")
-    (setq err (sieve-manage-setactive "" sieve-manage-buffer))
+(defun sieve-deactivate-all (&optional _pos)
+  (interactive)
+  (message "Deactivating scripts...")
+  (let (;; (name (sieve-script-at-point))
+        (err (sieve-manage-setactive "" sieve-manage-buffer)))
     (sieve-refresh-scriptlist)
     (if (sieve-manage-ok-p err)
 	(message "Deactivating scripts...done")
       (message "Deactivating scripts...failed: %s" (nth 2 err)))))
 
-(defalias 'sieve-deactivate 'sieve-deactivate-all)
+(defalias 'sieve-deactivate #'sieve-deactivate-all)
 
-(defun sieve-remove (&optional pos)
-  (interactive "d")
+(defun sieve-remove (&optional _pos)
+  (interactive)
   (let ((name (sieve-script-at-point)) err)
     (when (or (null name) (string-equal name sieve-new-script))
       (error "No sieve script at point"))
@@ -196,8 +196,8 @@ require \"fileinto\";
     (sieve-refresh-scriptlist)
     (message "Removing sieve script %s...done" name)))
 
-(defun sieve-edit-script (&optional pos)
-  (interactive "d")
+(defun sieve-edit-script (&optional _pos)
+  (interactive)
   (let ((name (sieve-script-at-point)))
     (unless name
       (error "No sieve script at point"))
@@ -223,13 +223,13 @@ require \"fileinto\";
              (substitute-command-keys "\\[sieve-upload]"))))
 
 (defmacro sieve-change-region (&rest body)
-  "Turns off sieve-region before executing BODY, then re-enables it after.
+  "Turn off sieve-region before executing BODY, then re-enables it after.
 Used to bracket operations which move point in the sieve-buffer."
+  (declare (indent 0) (debug t))
   `(progn
      (sieve-highlight nil)
      ,@body
      (sieve-highlight t)))
-(put 'sieve-change-region 'lisp-indent-function 0)
 
 (defun sieve-next-line (&optional arg)
   (interactive)
@@ -273,8 +273,7 @@ Used to bracket operations which move point in the sieve-buffer."
   (let* ((port (or port sieve-manage-default-port))
          (header (format "Server : %s:%s\n\n" server port)))
     (insert header))
-  (set (make-local-variable 'sieve-buffer-header-end)
-       (point-max)))
+  (setq-local sieve-buffer-header-end (point-max)))
 
 (defun sieve-script-at-point (&optional pos)
   "Return name of sieve script at point POS, or nil."
@@ -305,8 +304,8 @@ Used to bracket operations which move point in the sieve-buffer."
   "Open SERVER (on PORT) and authenticate."
   (with-current-buffer
       (or ;; open server
-       (set (make-local-variable 'sieve-manage-buffer)
-	    (sieve-manage-open server port))
+       (setq-local sieve-manage-buffer
+                   (sieve-manage-open server port))
        (error "Error opening server %s" server))
     (sieve-manage-authenticate)))
 
@@ -362,8 +361,8 @@ Used to bracket operations which move point in the sieve-buffer."
         (if (not (sieve-manage-ok-p err))
             (message "Sieve upload failed: %s" (nth 2 err))
           (message "Sieve upload done.  Use %s to manage scripts."
-                   (substitute-command-keys "\\[sieve-manage]"))
-          (set-buffer-modified-p nil))))))
+                   (substitute-command-keys "\\[sieve-manage]"))))
+      (set-buffer-modified-p nil))))
 
 ;;;###autoload
 (defun sieve-upload-and-bury (&optional name)
@@ -379,4 +378,4 @@ Used to bracket operations which move point in the sieve-buffer."
 
 (provide 'sieve)
 
-;; sieve.el ends here
+;;; sieve.el ends here

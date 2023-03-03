@@ -1,5 +1,5 @@
 /* The emacs frame widget public header file.
-   Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -97,6 +97,6 @@ extern struct _DisplayContext *display_context;
 /* Special entry points */
 void EmacsFrameSetCharSize (Widget, int, int);
 void widget_store_internal_border (Widget widget);
-void widget_update_wm_size_hints (Widget widget);
+bool widget_update_wm_size_hints (Widget widget, Widget frame);
 
 #endif /* _EmacsFrame_h */

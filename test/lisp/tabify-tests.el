@@ -1,6 +1,6 @@
 ;;; tabify-tests.el --- tests for tabify.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -27,9 +27,9 @@
 (defun tabify-tests--test-changes (fun changes width)
   (with-temp-buffer
     (let ((tab-width width))
-      (insert (mapconcat #'car changes ""))
+      (insert (mapconcat #'car changes))
       (funcall fun (point-min) (point-max))
-      (should (equal (buffer-string) (mapconcat #'cadr changes ""))))))
+      (should (equal (buffer-string) (mapconcat #'cadr changes))))))
 
 (ert-deftest tabify-tests-untabify ()
   (let ((changes '(("***\n"        "***\n")

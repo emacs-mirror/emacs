@@ -1,6 +1,6 @@
-;;; nnheader.el --- header access macros for Gnus and its backends
+;;; nnheader.el --- header access macros for Gnus and its backends  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -27,6 +27,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'range)
 
 (defvar gnus-decode-encoded-word-function)
 (defvar gnus-decode-encoded-address-function)
@@ -44,8 +45,6 @@
 (require 'mm-util)
 (require 'gnus-util)
 (autoload 'gnus-remove-odd-characters "gnus-sum")
-(autoload 'gnus-range-add "gnus-range")
-(autoload 'gnus-remove-from-range "gnus-range")
 ;; FIXME none of these are used explicitly in this file.
 (autoload 'gnus-sorted-intersection "gnus-range")
 (autoload 'gnus-intersection "gnus-range")
@@ -189,7 +188,7 @@ on your system, you could say something like:
 
 (defsubst nnheader-header-value ()
   (skip-chars-forward " \t")
-  (buffer-substring (point) (point-at-eol)))
+  (buffer-substring (point) (line-end-position)))
 
 (autoload 'ietf-drums-unfold-fws "ietf-drums")
 
@@ -398,7 +397,7 @@ leaving the original buffer untouched."
 (autoload 'gnus-extract-message-id-from-in-reply-to "gnus-sum")
 
 (defun nnheader-parse-nov (&optional number)
-  (let ((eol (point-at-eol))
+  (let ((eol (line-end-position))
 	references in-reply-to x header)
       (setq header
 	    (make-full-mail-header
@@ -468,7 +467,7 @@ leaving the original buffer untouched."
 (defun nnheader-write-overview-file (file headers)
   "Write HEADERS to FILE."
   (with-temp-file file
-    (mapcar 'nnheader-insert-nov headers)))
+    (mapcar #'nnheader-insert-nov headers)))
 
 (defun nnheader-insert-header (header)
   (insert
@@ -568,7 +567,7 @@ the line could be found."
     (mm-enable-multibyte)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
-    (set (make-local-variable 'nntp-process-response) nil)
+    (setq-local nntp-process-response nil)
     t))
 
 ;;; Various functions the backends use.
@@ -633,7 +632,7 @@ the line could be found."
       ;; This is invalid, but not all articles have Message-IDs.
       ()
     (mail-position-on-field "References")
-    (let ((begin (point-at-bol))
+    (let ((begin (line-beginning-position))
 	  (fill-column 78)
 	  (fill-prefix "\t"))
       (when references
@@ -723,15 +722,15 @@ an alarming frequency on NFS mounted file systems.  If it is nil,
 
 (defun nnheader-directory-files-safe (&rest args)
   "Execute `directory-files' twice and returns the longer result."
-  (let ((first (apply 'directory-files args))
-	(second (apply 'directory-files args)))
+  (let ((first (apply #'directory-files args))
+	(second (apply #'directory-files args)))
     (if (> (length first) (length second))
 	first
       second)))
 
 (defun nnheader-directory-articles (dir)
   "Return a list of all article files in directory DIR."
-  (mapcar 'nnheader-file-to-number
+  (mapcar #'nnheader-file-to-number
 	  (if nnheader-directory-files-is-safe
 	      (directory-files
 	       dir nil nnheader-numerical-short-files t)
@@ -783,7 +782,7 @@ The first string in ARGS can be a format string."
   (set (intern (format "%s-status-string" backend))
        (if (< (length args) 2)
 	   (car args)
-	 (apply 'format args)))
+	 (apply #'format args)))
   nil)
 
 (defun nnheader-get-report-string (backend)
@@ -803,9 +802,9 @@ If FORMAT isn't a format string, it and all ARGS will be inserted
 without formatting."
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
-    (if (string-match "%" format)
-	(insert (apply 'format format args))
-      (apply 'insert format args))
+    (if (string-search "%" format)
+	(insert (apply #'format format args))
+      (apply #'insert format args))
     t))
 
 (defsubst nnheader-replace-chars-in-string (string from to)
@@ -841,12 +840,13 @@ without formatting."
 
 (defun nnheader-message (level &rest args)
   "Message if the Gnus backends are talkative."
-  (if (or (not (numberp gnus-verbose-backends))
-	  (<= level gnus-verbose-backends))
-      (if gnus-add-timestamp-to-message
-	  (apply 'gnus-message-with-timestamp args)
-	(apply 'message args))
-    (apply 'format args)))
+  (apply (cond
+	  ((and (numberp gnus-verbose-backends)
+	        (> level gnus-verbose-backends))
+	   #'format)
+	  (gnus-add-timestamp-to-message #'gnus-message-with-timestamp)
+	  (t #'message))
+	 args))
 
 (defun nnheader-be-verbose (level)
   "Return whether the backends should be verbose on LEVEL."
@@ -877,7 +877,7 @@ without formatting."
 
 (defun nnheader-concat (dir &rest files)
   "Concat DIR as directory to FILES."
-  (apply 'concat (file-name-as-directory dir) files))
+  (apply #'concat (file-name-as-directory dir) files))
 
 (defun nnheader-ms-strip-cr ()
   "Strip ^M from the end of all lines."
@@ -915,18 +915,14 @@ first.  Otherwise, find the newest one, though it may take a time."
 	(setq path (cdr path))))
     (if (or first (not (cdr results)))
 	(car results)
-      (car (sort results 'file-newer-than-file-p)))))
+      (car (sort results #'file-newer-than-file-p)))))
 
 (defvar ange-ftp-path-format)
-(defvar efs-path-regexp)
 (defun nnheader-re-read-dir (path)
   "Re-read directory PATH if PATH is on a remote system."
-  (if (and (fboundp 'efs-re-read-dir) (boundp 'efs-path-regexp))
-      (when (string-match efs-path-regexp path)
-	(efs-re-read-dir path))
-    (when (and (fboundp 'ange-ftp-re-read-dir) (boundp 'ange-ftp-path-format))
-      (when (string-match (car ange-ftp-path-format) path)
-	(ange-ftp-re-read-dir path)))))
+  (when (and (fboundp 'ange-ftp-reread-dir) (boundp 'ange-ftp-path-format))
+    (when (string-match (car ange-ftp-path-format) path)
+      (ange-ftp-reread-dir path))))
 
 (defun nnheader-insert-file-contents (filename &optional visit beg end replace)
   "Like `insert-file-contents', q.v., but only reads in the file.
@@ -961,15 +957,15 @@ find-file-hook, etc.
   "Open a file with some variables bound.
 See `find-file-noselect' for the arguments."
   (cl-letf* ((format-alist nil)
-          (auto-mode-alist (mm-auto-mode-alist))
-          ((default-value 'major-mode) 'fundamental-mode)
-          (enable-local-variables nil)
-          (after-insert-file-functions nil)
-          (enable-local-eval nil)
-          (coding-system-for-read nnheader-file-coding-system)
-          (version-control 'never)
-	  (find-file-hook nil))
-    (apply 'find-file-noselect args)))
+             (auto-mode-alist (mm-auto-mode-alist))
+             ((default-value 'major-mode) 'fundamental-mode)
+             (enable-local-variables nil)
+             (after-insert-file-functions nil)
+             (enable-local-eval nil)
+             (coding-system-for-read nnheader-file-coding-system)
+             (version-control 'never)
+	     (find-file-hook nil))
+    (apply #'find-file-noselect args)))
 
 (defun nnheader-directory-regular-files (dir)
   "Return a list of all regular files in DIR."
@@ -983,7 +979,7 @@ See `find-file-noselect' for the arguments."
 
 (defun nnheader-directory-files (&rest args)
   "Same as `directory-files', but prune \".\" and \"..\"."
-  (let ((files (apply 'directory-files args))
+  (let ((files (apply #'directory-files args))
 	out)
     (while files
       (unless (member (file-name-nondirectory (car files)) '("." ".."))
@@ -1043,10 +1039,9 @@ See `find-file-noselect' for the arguments."
 	       mark
 	       (cond
 		((eq what 'add)
-		 (gnus-range-add (cdr (assoc mark backend-marks)) range))
+		 (range-concat (cdr (assoc mark backend-marks)) range))
 		((eq what 'del)
-		 (gnus-remove-from-range
-		  (cdr (assoc mark backend-marks)) range))
+		 (range-remove (cdr (assoc mark backend-marks)) range))
 		((eq what 'set)
 		 range))
 	       backend-marks)))))
@@ -1060,12 +1055,12 @@ See `find-file-noselect' for the arguments."
 				     (or ,end (point-max)))
 		'(buffer-string)))))
 
-(defvar nnheader-last-message-time '(0 0))
+(defvar nnheader-last-message-time 0)
 (defun nnheader-message-maybe (&rest args)
   (let ((now (current-time)))
     (when (time-less-p 1 (time-subtract now nnheader-last-message-time))
       (setq nnheader-last-message-time now)
-      (apply 'nnheader-message args))))
+      (apply #'nnheader-message args))))
 
 (make-obsolete-variable 'nnheader-load-hook
                         "use `with-eval-after-load' instead." "28.1")

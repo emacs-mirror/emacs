@@ -1,4 +1,4 @@
-;;; ja-dic-utl.el --- utilities for handling Japanese dictionary (SKK-JISYO.L)
+;;; ja-dic-utl.el --- utilities for handling Japanese dictionary (SKK-JISYO.L)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -112,11 +112,9 @@ without okurigana are placed at the head of the returned list."
 		 (princ (substitute-command-keys "\
 The library `ja-dic' can't be loaded.
 
-The most common case is that you have not yet installed the library
-included in LEIM (Libraries of Emacs Input Method) which is
-distributed separately from Emacs.
-
-LEIM is available from the same ftp directory as Emacs.")))
+This might indicate a problem with your Emacs installation, as
+LEIM (Libraries of Emacs Input Method) should normally always be
+installed together with Emacs.")))
 	       (signal (car err) (cdr err)))))
 
   (let ((vec (make-vector len 0))

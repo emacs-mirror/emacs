@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2000, 2002, 2007-2020 Free Software Foundation,
+;; Copyright (C) 1996-2000, 2002, 2007-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
@@ -154,7 +154,7 @@
 
 (defcustom socks-server
   (list "Default server" "socks" 1080 5)
-  ""
+  "Socks server."
   :type '(list
 	  (string :format "" :value "Default server")
 	  (string :tag "Server")
@@ -235,11 +235,10 @@
   (let ((num 0)
 	(retval ""))
     (mapc
-     (function
-      (lambda (x)
-	(if (fboundp (cdr (cdr x)))
-	    (setq retval (format "%s%c" retval (car x))
-		  num (1+ num)))))
+     (lambda (x)
+       (if (fboundp (cdr (cdr x)))
+           (setq retval (format "%s%c" retval (car x))
+                 num (1+ num))))
      (reverse socks-authentication-methods))
     (format "%c%s" num retval)))
 
@@ -261,7 +260,7 @@
     (setq state (process-get proc 'socks-state))
     (cond
      ((= state socks-state-waiting-for-auth)
-      (cl-callf (lambda (s) (setq string (concat string s)))
+      (cl-callf (lambda (s) (setq string (concat s string)))
           (process-get proc 'socks-scratch))
       (if (< (length string) 2)
 	  nil				; We need to spin some more
@@ -273,12 +272,12 @@
      ((= state socks-state-authenticated)
       )
      ((= state socks-state-waiting)
-      (cl-callf (lambda (s) (setq string (concat string s)))
+      (cl-callf (lambda (s) (setq string (concat s string)))
           (process-get proc 'socks-scratch))
       (setq version (process-get proc 'socks-server-protocol))
       (cond
        ((equal version 'http)
-	(if (not (string-match "\r\n\r\n" string))
+	(if (not (string-search "\r\n\r\n" string))
 	    nil			; Need to spin some more
 	  (process-put proc 'socks-state socks-state-connected)
 	  (process-put proc 'socks-reply 0)
@@ -386,10 +385,13 @@
 	  )
 	 )
 	(process-put proc 'socks-state socks-state-authenticated)
+	(process-put proc 'socks-scratch "")
 	(set-process-filter proc #'socks-filter)))
       proc)))
 
 (defun socks-send-command (proc command atype address port)
+  "Send COMMAND to SOCKS service PROC for proxying ADDRESS and PORT.
+When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
   (let ((addr (cond
 	       ((or (= atype socks-address-type-v4)
 		    (= atype socks-address-type-v6))
@@ -405,11 +407,10 @@
     (setq version (process-get proc 'socks-server-protocol))
     (cond
      ((equal version 'http)
-      (setq request (format (eval-when-compile
-			      (concat
-			       "CONNECT %s:%d HTTP/1.0\r\n"
-			       "User-Agent: Emacs/SOCKS v1.0\r\n"
-			       "\r\n"))
+      (setq request (format (concat
+			     "CONNECT %s:%d HTTP/1.0\r\n"
+			     "User-Agent: Emacs/SOCKS v1.0\r\n"
+			     "\r\n")
 			    (cond
 			     ((equal atype socks-address-type-name) address)
 			     (t
@@ -451,7 +452,7 @@
 
 ;; Replacement functions for open-network-stream, etc.
 (defvar socks-noproxy nil
-  "List of regexps matching hosts that we should not socksify connections to")
+  "List of regexps matching hosts that we should not socksify connections to.")
 
 (defun socks-find-route (host _service)
   (let ((route socks-server)
@@ -528,7 +529,7 @@
 	        (setq host (socks-nslookup-host host))
 	        (if (not (listp host))
 	            (error "Could not get IP address for: %s" host))
-	        (setq host (apply #'format "%c%c%c%c" host))
+		(setq host (apply #'unibyte-string host))
                 socks-address-type-v4)
                (t
                 socks-address-type-name))))
@@ -543,7 +544,7 @@
 			      service))
         (process-put proc 'socks-buffer buffer)
         (process-put proc 'socks-host host)
-        (process-put proc 'socks-service host)
+        (process-put proc 'socks-service service)
         (set-process-filter proc nil)
         (set-process-buffer proc (if buffer (get-buffer-create buffer)))
         proc))))

@@ -1,6 +1,6 @@
 ;;; ediff-vers.el --- version control interface to Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -24,23 +24,9 @@
 
 ;;; Code:
 
-;; Compiler pacifier
-(defvar rcs-default-co-switches)
+(eval-when-compile (require 'ediff-init))
 
-(and noninteractive
-     (eval-when-compile
-       (condition-case nil
-	   ;; for compatibility with current stable version of xemacs
-	   (progn
-	     ;;(require 'pcvs nil 'noerror)
-	     ;;(require 'rcs nil 'noerror)
-	     (require 'pcvs)
-	     (require 'rcs))
-	 (error nil))
-       (require 'vc)
-       (require 'ediff-init)
-       ))
-;; end pacifier
+(defvar rcs-default-co-switches)
 
 (defcustom ediff-keep-tmp-versions nil
   "If t, do not delete temporary previous versions for the files on which
@@ -102,8 +88,8 @@ comparison or merge operations are being performed."
 
 ;; RCS.el support
 (defun rcs-ediff-view-revision (&optional rev)
-;; View previous RCS revision of current file.
-;; With prefix argument, prompts for a revision name.
+  "View previous RCS revision of current file.
+With prefix argument, prompts for a revision name."
   (interactive (list (if current-prefix-arg
 			 (read-string "Revision: "))))
   (let* ((filename (buffer-file-name (current-buffer)))

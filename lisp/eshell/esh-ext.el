@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -77,7 +77,7 @@ but Eshell will be able to understand
     (let ((list (eshell-get-path))
 	  suffixes n1 n2 file)
       (while list
-	(setq n1 (concat (car list) name))
+	(setq n1 (file-name-concat (car list) name))
 	(setq suffixes eshell-binary-suffixes)
 	(while suffixes
 	  (setq n2 (concat n1 (car suffixes)))
@@ -110,7 +110,7 @@ wholly ignored."
 (autoload 'eshell-parse-command "esh-cmd")
 
 (defsubst eshell-invoke-batch-file (&rest args)
-  "Invoke a .BAT or .CMD file on DOS/Windows systems."
+  "Invoke a .BAT or .CMD file on MS-DOS/MS-Windows systems."
   ;; since CMD.EXE can't handle forward slashes in the initial
   ;; argument...
   (setcar args (subst-char-in-string ?/ ?\\ (car args)))
@@ -163,7 +163,7 @@ by the user on the command line."
 
 (defcustom eshell-explicit-command-char ?*
   "If this char occurs before a command name, call it externally.
-That is, although `vi' may be an alias, `\vi' will always call the
+That is, although `vi' may be an alias, `*vi' will always call the
 external version."
   :type 'character
   :group 'eshell-ext)
@@ -239,17 +239,16 @@ causing the user to wonder if anything's really going on..."
      (?h "help" nil nil  "display this usage message")
      :usage "[-b] PATH
 Adds the given PATH to $PATH.")
-   (if args
-       (progn
-	 (setq eshell-path-env (getenv "PATH")
-	       args (mapconcat #'identity args path-separator)
-	       eshell-path-env
-	       (if prepend
-		   (concat args path-separator eshell-path-env)
-		 (concat eshell-path-env path-separator args)))
-	 (setenv "PATH" eshell-path-env))
-     (dolist (dir (parse-colon-path (getenv "PATH")))
-       (eshell-printn dir)))))
+   (let ((path (eshell-get-path t)))
+     (if args
+         (progn
+           (setq path (if prepend
+                          (append args path)
+                        (append path args)))
+           (eshell-set-path path)
+           (string-join path (path-separator)))
+       (dolist (dir path)
+         (eshell-printn dir))))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
 (put 'eshell/addpath 'eshell-filename-arguments t)

@@ -1,6 +1,6 @@
-;;; reftex-parse.el --- parser functions for RefTeX
+;;; reftex-parse.el --- parser functions for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -143,7 +143,7 @@ When allowed, do only a partial scan from FILE."
                       (car (push (list 'is-multi is-multi) docstruct)))))
       (setcdr entry (cons is-multi nil)))
     (and reftex--index-tags
-         (setq reftex--index-tags (sort reftex--index-tags 'string<)))
+         (setq reftex--index-tags (sort reftex--index-tags #'string<)))
     (let ((index-tag-cell (assq 'index-tags docstruct)))
       (if index-tag-cell
           (setcdr index-tag-cell reftex--index-tags)
@@ -160,10 +160,10 @@ When allowed, do only a partial scan from FILE."
                          nil))
                      allxr))
              (alist (delq nil alist))
-             (allprefix (delq nil (mapcar 'car alist)))
+             (allprefix (delq nil (mapcar #'car alist)))
              (regexp (if allprefix
                          (concat "\\`\\("
-                                 (mapconcat 'identity allprefix "\\|")
+                                 (mapconcat #'identity allprefix "\\|")
                                  "\\)")
                        "\\\\\\\\\\\\")))   ; this will never match
         (push (list 'xr alist regexp) docstruct)))
@@ -209,7 +209,7 @@ of master file."
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
       (if (and (not file-found)
-               (setq buf (reftex-get-buffer-visiting file)))
+               (setq buf (find-buffer-visiting file)))
           (setq file-found (buffer-file-name buf)))
 
       (unless file-found
@@ -345,7 +345,17 @@ of master file."
 
              ;; Find external document specifications
              (goto-char 1)
-             (while (re-search-forward "[\n\r][ \t]*\\\\externaldocument\\(\\[\\([^]]*\\)\\]\\)?{\\([^}]+\\)}" nil t)
+             (while (re-search-forward
+                     (concat "[\n\r][ \t]*"
+                             ;; Support \externalcitedocument macro
+                             "\\\\external\\(?:cite\\)?document"
+                             ;; The optional prefix
+                             "\\(\\[\\([^]]*\\)\\]\\)?"
+                             ;; The 2nd opt. arg can only be nocite
+                             "\\(?:\\[nocite\\]\\)?"
+                             ;; Mandatory file argument
+                             "{\\([^}]+\\)}")
+                     nil t)
                (push (list 'xr-doc (reftex-match-string 2)
                            (reftex-match-string 3))
                      docstruct))
@@ -360,13 +370,18 @@ of master file."
     docstruct))
 
 (defun reftex-using-biblatex-p ()
-  "Return non-nil if we are using biblatex rather than bibtex."
+  "Return non-nil if we are using biblatex or other specific cite package.
+biblatex and other similar packages like multibib allow multiple macro
+calls to load a bibliography file.  This function should be able to
+detect those packages."
   (if (boundp 'TeX-active-styles)
       ;; the sophisticated AUCTeX way
-      (member "biblatex" TeX-active-styles)
+      (or (member "biblatex" TeX-active-styles)
+          (member "multibib" TeX-active-styles))
     ;; poor-man's check...
     (save-excursion
-      (re-search-forward "^[^%\n]*?\\\\usepackage.*{biblatex}" nil t))))
+      (re-search-forward
+       "^[^%\n]*?\\\\usepackage\\(\\[[^]]*\\]\\)?{biblatex\\|multibib}" nil t))))
 
 ;;;###autoload
 (defun reftex-locate-bibliography-files (master-dir &optional files)
@@ -374,7 +389,7 @@ of master file."
   (unless files
     (save-excursion
       (goto-char (point-min))
-      ;; when biblatex is used, multiple \bibliography or
+      ;; when biblatex or multibib are used, multiple \bibliography or
       ;; \addbibresource macros are allowed.  With plain bibtex, only
       ;; the first is used.
       (let ((using-biblatex (reftex-using-biblatex-p))
@@ -382,10 +397,11 @@ of master file."
 	(while (and again
 		    (re-search-forward
 		     (concat
-		      ;;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
+		      ;; "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
 		      "\\(^\\)[^%\n\r]*\\\\\\("
-		      (mapconcat 'identity reftex-bibliography-commands "\\|")
-		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t))
+		      (mapconcat #'identity reftex-bibliography-commands "\\|")
+		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)")
+		     nil t))
 	  (setq files
 		(append files
 			(split-string (reftex-match-string 4)
@@ -404,7 +420,7 @@ of master file."
                ;; find the file
                (reftex-locate-file x "bib" master-dir)))
            files))
-    (delq nil files)))
+    (delq nil (delete-dups files))))
 
 (defun reftex-replace-label-list-segment (old insert &optional entirely)
   "Replace the segment in OLD which corresponds to INSERT.
@@ -434,7 +450,8 @@ This function also makes sure the old toc markers do not point anywhere."
 ;;;###autoload
 (defun reftex-section-info (file)
   "Return a section entry for the current match.
-Careful: This function expects the match-data to be still in place!"
+Careful: This function expects the `match-data' to still be in
+place!"
   (let* ((marker (set-marker (make-marker) (1- (match-beginning 3))))
          (macro (reftex-match-string 3))
          (prefix (save-match-data
@@ -493,7 +510,8 @@ will rescan the entire document."
 ;;;###autoload
 (defun reftex-index-info (file)
   "Return an index entry for the current match.
-Careful: This function expects the match-data to be still in place!"
+Careful: This function expects the `match-data' to still be in
+place!"
   (catch 'exit
     (let* ((macro (reftex-match-string 10))
            (bom (match-beginning 10))
@@ -532,7 +550,7 @@ Careful: This function expects the match-data to be still in place!"
 
            (key (if prefix (concat prefix rawkey) rawkey))
            (sortkey (downcase key))
-           (showkey (mapconcat 'identity
+           (showkey (mapconcat #'identity
                                (split-string key reftex-index-level-re)
                                " ! ")))
       (goto-char end-of-args)
@@ -756,7 +774,7 @@ if the information is exact (t) or approximate (nil)."
              (while (and (setq tail (memq (assq 'toc (cdr tail)) tail))
                          (setq entry (car tail))
                          (>= (nth 5 entry) level))
-               (setq star (string-match "\\*" (nth 6 entry))
+               (setq star (string-search "*" (nth 6 entry))
                      context (nth 2 entry)
                      section-number
                      (reftex-section-number (nth 5 entry) star))
@@ -1046,7 +1064,7 @@ When point is just after a { or [, limit string to matching parenthesis."
 
 ;;;###autoload
 (defun reftex-init-section-numbers (&optional toc-entry appendix)
-  "Initialize the section numbers with zeros or with what is found in the TOC-ENTRY."
+  "Initialize section numbers with zeros or with what is found in the TOC-ENTRY."
   (let* ((level  (or (nth 5 toc-entry) -1))
          (numbers (nreverse (split-string (or (nth 6 toc-entry) "") "\\.")))
          (depth (1- (length reftex-section-numbers)))

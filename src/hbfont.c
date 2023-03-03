@@ -1,5 +1,5 @@
 /* hbfont.c -- Platform-independent support for HarfBuzz font driver.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -249,7 +249,7 @@ uni_combining (hb_unicode_funcs_t *funcs, hb_codepoint_t ch, void *user_data)
   if (!combining_class_loaded)
     {
       canonical_combining_class_table =
-	uniprop_table (intern ("canonical-combining-class"));
+	uniprop_table (Qcanonical_combining_class);
       if (NILP (canonical_combining_class_table))
 	emacs_abort ();
       staticpro (&canonical_combining_class_table);

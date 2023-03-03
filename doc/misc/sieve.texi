@@ -10,7 +10,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -339,7 +339,7 @@ Indicate which script on the server should be active.
 The Emacs Sieve package implements all or parts of a small but
 hopefully growing number of RFCs and drafts documents.  This chapter
 lists the relevant ones.  They can all be fetched from
-@uref{http://quimby.gnus.org/notes/}.
+@uref{https://quimby.gnus.org/notes/}.
 
 @table @dfn
 

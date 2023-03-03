@@ -1,6 +1,7 @@
 ;;; srecode/test-getset.el --- Test the getset inserter. -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008, 2009, 2011, 2019-2020 Free Software Foundation, Inc
+;; Copyright (C) 2008-2009, 2011, 2019-2023 Free Software Foundation,
+;; Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -128,7 +129,6 @@ private:
        (srecode-utest-getset-jumptotag "miscFunction"))
 
       (let ((pos (point)))
-	(skip-chars-backward " \t\n") ; xemacs forward-comment is different.
 	(forward-comment -1)
 	(re-search-forward "miscFunction" pos))
 

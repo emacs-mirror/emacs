@@ -1,6 +1,6 @@
-;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
+;;; unsafep.el --- Determine whether a Lisp form is safe to evaluate  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: safety lisp utility
@@ -91,29 +91,54 @@
 in the parse.")
 (put 'unsafep-vars 'risky-local-variable t)
 
-;;Other safe functions
+;; Other safe forms.
+;;
+;; A function, macro or special form may be put here only if all of
+;; the following statements are true:
+;;
+;; * It is not already marked `pure' or `side-effect-free', or handled
+;;   explicitly by `unsafep'.
+;;
+;; * It is not inherently unsafe; eg, would allow the execution of
+;;   arbitrary code, interact with the file system, network or other
+;;   processes, or otherwise exfiltrate information from the running
+;;   Emacs process or manipulate the user's environment.
+;;
+;; * It does not have side-effects that can make other code behave in
+;;   unsafe and/or unexpected ways; eg, set variables, mutate data, or
+;;   change control flow.
+;;   Any side effect must be innocuous; altering the match data is
+;;   explicitly permitted.
+;;
+;; * It does not allow Emacs to behave deceptively to the user; eg,
+;;   display arbitrary messages.
+;;
+;; * It does not present a potentially large attack surface; eg,
+;;   play arbitrary audio files.
+
 (dolist (x '(;;Special forms
-	     and catch if or prog1 prog2 progn while unwind-protect
+	     and if or prog1 prog2 progn while unwind-protect
 	     ;;Safe subrs that have some side-effects
-	     ding error random signal sleep-for string-match throw
+	     ding random sleep-for string-match
 	     ;;Defsubst functions from subr.el
 	     caar cadr cdar cddr
 	     ;;Macros from subr.el
 	     save-match-data unless when
 	     ;;Functions from subr.el that have side effects
-	     split-string replace-regexp-in-string play-sound-file))
+	     split-string))
   (put x 'safe-function t))
 
 ;;;###autoload
-(defun unsafep (form &optional unsafep-vars)
+(defun unsafep (form &optional vars)
   "Return nil if evaluating FORM couldn't possibly do any harm.
 Otherwise result is a reason why FORM is unsafe.
-UNSAFEP-VARS is a list of symbols with local bindings."
+VARS is a list of symbols with local bindings like `unsafep-vars'."
   (catch 'unsafep
     (if (or (eq safe-functions t)	    ;User turned off safety-checking
 	    (atom form))		    ;Atoms are never unsafe
 	(throw 'unsafep nil))
-    (let* ((fun    (car form))
+    (let* ((unsafep-vars vars)
+	   (fun    (car form))
 	   (reason (unsafep-function fun))
 	   arg)
       (cond
@@ -212,7 +237,7 @@ Otherwise result is a reason code."
    ((eq (car-safe fun) 'lambda)
     (unsafep fun unsafep-vars))
    ((not (and (symbolp fun)
-	      (or (get fun 'side-effect-free)
+	      (or (function-get fun 'side-effect-free)
 		  (eq (get fun 'safe-function) t)
 		  (eq safe-functions t)
 		  (memq fun safe-functions))))

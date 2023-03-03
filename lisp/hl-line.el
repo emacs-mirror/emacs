@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -45,11 +45,7 @@
 ;; An overlay is used.  In the non-sticky cases, this overlay is
 ;; active only on the selected window.  A hook is added to
 ;; `post-command-hook' to activate the overlay and move it to the line
-;; about point.  To get the non-sticky behavior, `hl-line-unhighlight'
-;; is added to `pre-command-hook' as well.  This function deactivates
-;; the overlay unconditionally in case the command changes the
-;; selected window.  (It does so rather than keeping track of changes
-;; in the selected window).
+;; about point.
 
 ;; You could make variable `global-hl-line-mode' buffer-local and set
 ;; it to nil to avoid highlighting specific buffers, when the global
@@ -91,9 +87,9 @@ when `global-hl-line-sticky-flag' is non-nil.")
 	 (set symbol value)
 	 (dolist (buffer (buffer-list))
 	   (with-current-buffer buffer
-	     (when hl-line-overlay
+	     (when (overlayp hl-line-overlay)
 	       (overlay-put hl-line-overlay 'face hl-line-face))))
-	 (when global-hl-line-overlay
+	 (when (overlayp global-hl-line-overlay)
 	   (overlay-put global-hl-line-overlay 'face hl-line-face))))
 
 (defcustom hl-line-sticky-flag t
@@ -106,7 +102,16 @@ This variable has no effect in Global Highlight Line mode.
 For that, use `global-hl-line-sticky-flag'."
   :type 'boolean
   :version "22.1"
-  :group 'hl-line)
+  :group 'hl-line
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (when (featurep 'hl-line)
+           (unless value
+             (let ((selected (window-buffer (selected-window))))
+               (dolist (buffer (buffer-list))
+                 (unless (eq buffer selected)
+                   (with-current-buffer buffer
+                     (hl-line-unhighlight)))))))))
 
 (defcustom global-hl-line-sticky-flag nil
   "Non-nil means the Global HL-Line mode highlight appears in all windows.
@@ -129,6 +134,12 @@ This variable is expected to be made buffer-local by modes.")
 (defvar hl-line-overlay-buffer nil
   "Most recently visited buffer in which Hl-Line mode is enabled.")
 
+(defcustom hl-line-overlay-priority -50
+  "Priority used on the overlay used by hl-line."
+  :type 'integer
+  :version "28.1"
+  :group 'hl-line)
+
 ;;;###autoload
 (define-minor-mode hl-line-mode
   "Toggle highlighting of the current line (Hl-Line mode).
@@ -141,26 +152,29 @@ non-selected window.  Hl-Line mode uses the function
 `hl-line-highlight' on `post-command-hook' in this case.
 
 When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
-line about point in the selected window only.  In this case, it
-uses the function `hl-line-maybe-unhighlight' in
-addition to `hl-line-highlight' on `post-command-hook'."
+line about point in the selected window only."
   :group 'hl-line
+  ;; If the global mode is switched on, then `M-x hl-line-mode' should
+  ;; switch the mode off in this buffer.
+  (when (and global-hl-line-mode
+             (eq arg 'toggle))
+    (setq hl-line-mode nil)
+    (setq-local global-hl-line-mode nil)
+    (global-hl-line-unhighlight))
   (if hl-line-mode
       (progn
         ;; In case `kill-all-local-variables' is called.
         (add-hook 'change-major-mode-hook #'hl-line-unhighlight nil t)
         (hl-line-highlight)
         (setq hl-line-overlay-buffer (current-buffer))
-	(add-hook 'post-command-hook #'hl-line-highlight nil t)
-        (add-hook 'post-command-hook #'hl-line-maybe-unhighlight nil t))
+	(add-hook 'post-command-hook #'hl-line-highlight nil t))
     (remove-hook 'post-command-hook #'hl-line-highlight t)
     (hl-line-unhighlight)
-    (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)
-    (remove-hook 'post-command-hook #'hl-line-maybe-unhighlight t)))
+    (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)))
 
 (defun hl-line-make-overlay ()
   (let ((ol (make-overlay (point) (point))))
-    (overlay-put ol 'priority -50)           ;(bug#16192)
+    (overlay-put ol 'priority hl-line-overlay-priority) ;(bug#16192)
     (overlay-put ol 'face hl-line-face)
     ol))
 
@@ -168,17 +182,19 @@ addition to `hl-line-highlight' on `post-command-hook'."
   "Activate the Hl-Line overlay on the current line."
   (if hl-line-mode	; Might be changed outside the mode function.
       (progn
-        (unless hl-line-overlay
+        (unless (overlayp hl-line-overlay)
           (setq hl-line-overlay (hl-line-make-overlay))) ; To be moved.
         (overlay-put hl-line-overlay
                      'window (unless hl-line-sticky-flag (selected-window)))
-	(hl-line-move hl-line-overlay))
+	(hl-line-move hl-line-overlay)
+        (hl-line-maybe-unhighlight))
     (hl-line-unhighlight)))
 
 (defun hl-line-unhighlight ()
   "Deactivate the Hl-Line overlay on the current line."
-  (when hl-line-overlay
-    (delete-overlay hl-line-overlay)))
+  (when (overlayp hl-line-overlay)
+    (delete-overlay hl-line-overlay)
+    (setq hl-line-overlay nil)))
 
 (defun hl-line-maybe-unhighlight ()
   "Maybe deactivate the Hl-Line overlay on the current line.
@@ -191,8 +207,7 @@ such overlays in all buffers except the current one."
                (not (eq curbuf hlob))
                (not (minibufferp)))
       (with-current-buffer hlob
-        (when (overlayp hl-line-overlay)
-          (delete-overlay hl-line-overlay))))
+        (hl-line-unhighlight)))
     (when (and (overlayp hl-line-overlay)
                (eq (overlay-buffer hl-line-overlay) curbuf))
       (setq hl-line-overlay-buffer curbuf))))
@@ -205,8 +220,8 @@ If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
 highlights the line about the current buffer's point in all live
 windows.
 
-Global-Hl-Line mode uses the functions `global-hl-line-highlight'
-and `global-hl-line-maybe-unhighlight' on `post-command-hook'."
+Global-Hl-Line mode uses the function `global-hl-line-highlight'
+on `post-command-hook'."
   :global t
   :group 'hl-line
   (if global-hl-line-mode
@@ -214,25 +229,24 @@ and `global-hl-line-maybe-unhighlight' on `post-command-hook'."
         ;; In case `kill-all-local-variables' is called.
         (add-hook 'change-major-mode-hook #'global-hl-line-unhighlight)
         (global-hl-line-highlight-all)
-	(add-hook 'post-command-hook #'global-hl-line-highlight)
-        (add-hook 'post-command-hook #'global-hl-line-maybe-unhighlight))
+	(add-hook 'post-command-hook #'global-hl-line-highlight))
     (global-hl-line-unhighlight-all)
     (remove-hook 'post-command-hook #'global-hl-line-highlight)
-    (remove-hook 'change-major-mode-hook #'global-hl-line-unhighlight)
-    (remove-hook 'post-command-hook #'global-hl-line-maybe-unhighlight)))
+    (remove-hook 'change-major-mode-hook #'global-hl-line-unhighlight)))
 
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
   (when global-hl-line-mode	; Might be changed outside the mode function.
     (unless (window-minibuffer-p)
-      (unless global-hl-line-overlay
+      (unless (overlayp global-hl-line-overlay)
         (setq global-hl-line-overlay (hl-line-make-overlay))) ; To be moved.
       (unless (member global-hl-line-overlay global-hl-line-overlays)
 	(push global-hl-line-overlay global-hl-line-overlays))
       (overlay-put global-hl-line-overlay 'window
 		   (unless global-hl-line-sticky-flag
 		     (selected-window)))
-      (hl-line-move global-hl-line-overlay))))
+      (hl-line-move global-hl-line-overlay)
+      (global-hl-line-maybe-unhighlight))))
 
 (defun global-hl-line-highlight-all ()
   "Highlight the current line in all live windows."
@@ -243,8 +257,9 @@ and `global-hl-line-maybe-unhighlight' on `post-command-hook'."
 
 (defun global-hl-line-unhighlight ()
   "Deactivate the Global-Hl-Line overlay on the current line."
-  (when global-hl-line-overlay
-    (delete-overlay global-hl-line-overlay)))
+  (when (overlayp global-hl-line-overlay)
+    (delete-overlay global-hl-line-overlay)
+    (setq global-hl-line-overlay nil)))
 
 (defun global-hl-line-maybe-unhighlight ()
   "Maybe deactivate the Global-Hl-Line overlay on the current line.
@@ -256,9 +271,8 @@ all such overlays in all buffers except the current one."
                        (bufferp ovb)
                        (not (eq ovb (current-buffer)))
                        (not (minibufferp)))
-		(with-current-buffer ovb
-                  (when (overlayp global-hl-line-overlay)
-                    (delete-overlay global-hl-line-overlay))))))
+	      (with-current-buffer ovb
+                (global-hl-line-unhighlight)))))
         global-hl-line-overlays))
 
 (defun global-hl-line-unhighlight-all ()

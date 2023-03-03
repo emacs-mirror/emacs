@@ -42,3 +42,13 @@ die "This world is backwards";
     }
 }
 # -------- PBP uncuddle else: end --------
+
+# -------- PBP closing paren offset: input --------
+my $a = func1(
+    Module::test()
+  );
+# -------- PBP closing paren offset: expected output --------
+my $a = func1(
+    Module::test()
+);
+# -------- PBP closing paren offset: end --------

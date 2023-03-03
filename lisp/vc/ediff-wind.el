@@ -1,6 +1,6 @@
 ;;; ediff-wind.el --- window manipulation utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -24,44 +24,17 @@
 
 ;;; Code:
 
-
-;; Compiler pacifier
 (defvar icon-title-format)
-(defvar top-toolbar-height)
-(defvar bottom-toolbar-height)
-(defvar left-toolbar-height)
-(defvar right-toolbar-height)
-(defvar left-toolbar-width)
-(defvar right-toolbar-width)
-(defvar default-menubar)
-(defvar top-gutter)
-(defvar frame-icon-title-format)
 (defvar ediff-diff-status)
 
 (require 'ediff-init)
 (require 'ediff-help)
-;; end pacifier
-
-
-;; be careful with ediff-tbar
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (require 'ediff-tbar)
-    (defun ediff-compute-toolbar-width () 0)))
 
 (defgroup ediff-window nil
   "Ediff window manipulation."
   :prefix "ediff-"
   :group 'ediff
   :group 'frames)
-
-
-;; Determine which window setup function to use based on current window system.
-(defun ediff-choose-window-setup-function-automatically ()
-  (declare (obsolete ediff-setup-windows-default "24.3"))
-  (if (ediff-window-display-p)
-      #'ediff-setup-windows-multiframe
-    #'ediff-setup-windows-plain))
 
 (defcustom ediff-window-setup-function #'ediff-setup-windows-default
   "Function called to set up windows.
@@ -96,25 +69,25 @@ provided functions are written."
 		 (function :tag "Other function"))
   :version "24.3")
 
-;; indicates if we are in a multiframe setup
-(ediff-defvar-local ediff-multiframe nil "")
+(ediff-defvar-local ediff-multiframe nil
+  "Indicates if we are in a multiframe setup.")
 
-;; Share of the frame occupied by the merge window (buffer C)
-(ediff-defvar-local ediff-merge-window-share 0.45 "")
+(ediff-defvar-local ediff-merge-window-share 0.45
+  "Share of the frame occupied by the merge window (buffer C).")
 
-;; The control window.
-(ediff-defvar-local ediff-control-window nil "")
-;; Official window for buffer A
-(ediff-defvar-local ediff-window-A nil "")
-;; Official window for buffer B
-(ediff-defvar-local ediff-window-B nil "")
-;; Official window for buffer C
-(ediff-defvar-local ediff-window-C nil "")
-;; Official window for buffer Ancestor
-(ediff-defvar-local ediff-window-Ancestor nil "")
-;; Ediff's window configuration.
-;; Used to minimize the need to rearrange windows.
-(ediff-defvar-local ediff-window-config-saved "" "")
+(ediff-defvar-local ediff-control-window nil
+  "The control window.")
+(ediff-defvar-local ediff-window-A nil
+  "Official window for buffer A.")
+(ediff-defvar-local ediff-window-B nil
+  "Official window for buffer B.")
+(ediff-defvar-local ediff-window-C nil
+  "Official window for buffer C.")
+(ediff-defvar-local ediff-window-Ancestor nil
+  "Official window for buffer Ancestor.")
+(ediff-defvar-local ediff-window-config-saved ""
+  "Ediff's window configuration.
+Used to minimize the need to rearrange windows.")
 
 ;; Association between buff-type and ediff-window-*
 (defconst ediff-window-alist
@@ -183,13 +156,14 @@ In this case, Ediff will use those frames to display these buffers."
   "Frame parameters for displaying Ediff Control Panel.
 Used internally---not a user option.")
 
-;; position of the mouse; used to decide whether to warp the mouse into ctl
-;; frame
-(ediff-defvar-local ediff-mouse-pixel-position nil "")
+(ediff-defvar-local ediff-mouse-pixel-position nil
+  "Position of the mouse.
+Used to decide whether to warp the mouse into control frame.")
+(make-obsolete-variable 'ediff-mouse-pixel-position "it is unused." "29.1")
 
 ;; not used for now
 (defvar ediff-mouse-pixel-threshold 30
-  "If the user moves mouse more than this many pixels, Ediff won't warp mouse into control window.")
+  "If mouse moved more than this many pixels, don't warp mouse into control window.")
 
 (defcustom ediff-grab-mouse t
   "If t, Ediff will always grab the mouse and put it in the control frame.
@@ -234,12 +208,10 @@ customization of the default."
 
 ;; Wide frame display
 
-;; t means Ediff is using wide display
-(ediff-defvar-local ediff-wide-display-p nil "")
-;; keeps frame config for toggling wide display
+(ediff-defvar-local ediff-wide-display-p nil
+  "If t, Ediff is using wide display.")
 (ediff-defvar-local ediff-wide-display-orig-parameters nil
-  "Frame parameters to be restored when the user wants to toggle the wide
-display off.")
+  "Frame parameters to restore when toggling the wide display off.")
 (ediff-defvar-local ediff-wide-display-frame nil
   "Frame to be used for wide display.")
 (ediff-defvar-local ediff-make-wide-display-function #'ediff-make-wide-display
@@ -250,8 +222,8 @@ frame parameters in `ediff-wide-display-orig-parameters'.
 The variable `ediff-wide-display-frame' should be set to contain
 the frame used for the wide display.")
 
-;; Frame used for the control panel in a windowing system.
-(ediff-defvar-local ediff-control-frame nil "")
+(ediff-defvar-local ediff-control-frame nil
+  "Frame used for the control panel in a windowing system.")
 
 (defcustom ediff-prefer-iconified-control-frame nil
   "If t, keep control panel iconified when help message is off.
@@ -269,11 +241,12 @@ keyboard input to go into icons."
   (let (event)
     (message
      "Select windows by clicking.  Please click on Window %d " wind-number)
-    (while (not (ediff-mouse-event-p (setq event (read-event))))
+    (while (not (mouse-event-p (setq event
+                                     (read--potential-mouse-event))))
       (if (sit-for 1) ; if sequence of events, wait till the final word
 	  (beep 1))
       (message "Please click on Window %d " wind-number))
-    (read-event) ; discard event
+    (read--potential-mouse-event) ; discard event
     (posn-window (event-start event))))
 
 
@@ -311,7 +284,7 @@ keyboard input to go into icons."
       (other-window 1))
 
   ;; in case user did a no-no on a tty
-  (or (ediff-window-display-p)
+  (or (display-graphic-p)
       (setq ediff-window-setup-function #'ediff-setup-windows-plain))
 
   (or (ediff-keep-window-config control-buffer)
@@ -406,7 +379,8 @@ keyboard input to go into icons."
   ;; skip dedicated and unsplittable frames
   (ediff-destroy-control-frame control-buffer)
   (let ((window-min-height 1)
-	split-window-function wind-width-or-height
+        (window-combination-resize t)
+	split-window-function
 	three-way-comparison
 	wind-A-start wind-B-start wind-A wind-B wind-C)
     (with-current-buffer control-buffer
@@ -425,22 +399,12 @@ keyboard input to go into icons."
 	(select-window (next-window nil 'ignore-minibuf)))
     (delete-other-windows)
     (set-window-dedicated-p (selected-window) nil)
-    (split-window-vertically)
-    (ediff-select-lowest-window)
-    (ediff-setup-control-buffer control-buffer)
 
     ;; go to the upper window and split it betw A, B, and possibly C
     (other-window 1)
     (switch-to-buffer buf-A)
     (setq wind-A (selected-window))
-    (if three-way-comparison
-	(setq wind-width-or-height
-	      (/ (if (eq split-window-function #'split-window-vertically)
-		     (window-height wind-A)
-		   (window-width wind-A))
-		 3)))
-
-    (funcall split-window-function wind-width-or-height)
+    (funcall split-window-function)
 
     (if (eq (selected-window) wind-A)
 	(other-window 1))
@@ -449,7 +413,7 @@ keyboard input to go into icons."
 
     (if three-way-comparison
 	(progn
-	  (funcall split-window-function) ; equally
+	  (funcall split-window-function)
 	  (if (eq (selected-window) wind-B)
 	      (other-window 1))
 	  (switch-to-buffer buf-C)
@@ -467,7 +431,9 @@ keyboard input to go into icons."
 	  (set-window-start wind-A wind-A-start)
 	  (set-window-start wind-B wind-B-start)))
 
-    (ediff-select-lowest-window)
+    (select-window (display-buffer-in-direction
+                    control-buffer
+                    '((direction . bottom))))
     (ediff-setup-control-buffer control-buffer)
     ))
 
@@ -752,6 +718,7 @@ keyboard input to go into icons."
 			     (and (not (frame-live-p frame-A))
 				  (or ctl-frame-exists-p
 				      (eq frame-B (selected-frame))))))
+         (window-combination-resize t)
 	 wind-A-start wind-B-start
 	 designated-minibuffer-frame)
 
@@ -764,7 +731,7 @@ keyboard input to go into icons."
 			   'B ediff-narrow-bounds))))
 
     (if use-same-frame
-	(let (wind-width-or-height) ; this affects 3way setups only
+        (progn
 	  (if (and (eq frame-A frame-B) (frame-live-p frame-A))
 	      (select-frame frame-A)
 	    ;; avoid dedicated and non-splittable windows
@@ -773,15 +740,7 @@ keyboard input to go into icons."
 	  (switch-to-buffer buf-A)
 	  (setq wind-A (selected-window))
 
-	  (if three-way-comparison
-	      (setq wind-width-or-height
-		    (/
-		     (if (eq split-window-function #'split-window-vertically)
-			 (window-height wind-A)
-		       (window-width wind-A))
-		     3)))
-
-	  (funcall split-window-function wind-width-or-height)
+          (funcall split-window-function)
 	  (if (eq (selected-window) wind-A)
 	      (other-window 1))
 	  (switch-to-buffer buf-B)
@@ -864,10 +823,10 @@ keyboard input to go into icons."
 
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   "Skip unsplittable frames and frames that have dedicated windows.
-create a new splittable frame if none is found."
-  (if (ediff-window-display-p)
+Create a new splittable frame if none is found."
+  (if (display-graphic-p)
       (let ((wind-frame (window-frame))
-	     seen-windows)
+            seen-windows)
 	(while (and (not (memq (selected-window) seen-windows))
 		    (or
 		     (ediff-frame-has-dedicated-windows wind-frame)
@@ -876,8 +835,8 @@ create a new splittable frame if none is found."
 		     (< (frame-height wind-frame)
 			(* 3 window-min-height))
 		     (if ok-unsplittable
-			 nil
-		       (ediff-frame-unsplittable-p wind-frame))))
+                         nil
+                       (cdr (assq 'unsplittable (frame-parameters wind-frame))))))
 	  ;; remember history
 	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
@@ -923,7 +882,6 @@ create a new splittable frame if none is found."
 	fheight fwidth adjusted-parameters)
 
     (with-current-buffer ctl-buffer
-      ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
       (run-hooks 'ediff-before-setup-control-frame-hook))
 
     (setq old-ctl-frame (with-current-buffer ctl-buffer ediff-control-frame))
@@ -961,8 +919,7 @@ create a new splittable frame if none is found."
     ;; 1 more line for the mode line
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
-	  fwidth (max (+ (ediff-help-message-line-length) 2)
-		      (ediff-compute-toolbar-width))
+          fwidth (max (+ (ediff-help-message-line-length) 2) 0)
 	  adjusted-parameters
 	  (list
 	   ;; possibly change surrogate minibuffer
@@ -1016,7 +973,7 @@ create a new splittable frame if none is found."
 
     ;; synchronize so the cursor will move to control frame
     ;; per RMS suggestion
-    (if (ediff-window-display-p)
+    (if (display-graphic-p)
 	(let ((count 7))
 	  (sit-for .1)
 	  (while (and (not (frame-visible-p ctl-frame)) (> count 0))
@@ -1035,7 +992,7 @@ create a new splittable frame if none is found."
 
 (defun ediff-destroy-control-frame (ctl-buffer)
   (ediff-with-current-buffer ctl-buffer
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
 	  (setq ediff-control-frame nil)
 	  (delete-frame ctl-frame))))
@@ -1050,8 +1007,8 @@ create a new splittable frame if none is found."
   (with-current-buffer ctl-buffer
     (let* ((frame-A (window-frame ediff-window-A))
 	   (frame-A-parameters (frame-parameters frame-A))
-	   (frame-A-top (eval (cdr (assoc 'top frame-A-parameters))))
-	   (frame-A-left (eval (cdr (assoc 'left frame-A-parameters))))
+	   (frame-A-top (eval (cdr (assoc 'top frame-A-parameters)) t))
+	   (frame-A-left (eval (cdr (assoc 'left frame-A-parameters)) t))
 	   (frame-A-width (frame-width frame-A))
 	   (ctl-frame ediff-control-frame)
 	   horizontal-adjustment upward-adjustment
@@ -1112,7 +1069,7 @@ It assumes that it is called from within the control buffer."
 	 (cw (frame-char-width frame-A))
 	 (wd (- (/ (display-pixel-width) cw) 5)))
     (setq ediff-wide-display-orig-parameters
-	  (list (cons 'left (max 0 (eval (cdr (assoc 'left frame-A-params)))))
+	  (list (cons 'left (max 0 (eval (cdr (assoc 'left frame-A-params)) t)))
 		(cons 'width (cdr (assoc 'width frame-A-params))))
 	  ediff-wide-display-frame frame-A)
     (modify-frame-parameters
@@ -1158,7 +1115,8 @@ It assumes that it is called from within the control buffer."
     (setq mode-line-format
 	  (if (ediff-narrow-control-frame-p)
 	      (list "   " mode-line-buffer-identification)
-	    (list "-- " mode-line-buffer-identification "        Quick Help")))
+	    (list "-- " mode-line-buffer-identification
+                  (list 'ediff-use-long-help-message "        Quick Help"))))
     ;; control buffer id
     (setq mode-line-buffer-identification
 	  (if (ediff-narrow-control-frame-p)
@@ -1167,7 +1125,7 @@ It assumes that it is called from within the control buffer."
     ;; Force mode-line redisplay
     (force-mode-line-update)
 
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(ediff-refresh-control-frame))
 
     (ediff-with-current-buffer ediff-buffer-A
@@ -1236,18 +1194,20 @@ It assumes that it is called from within the control buffer."
    ediff-control-buffer-suffix))
 
 (defun ediff-make-wide-control-buffer-id ()
-  (cond ((< ediff-current-difference 0)
-	 (list (format "%%b   At start of %d diffs"
-		       ediff-number-of-differences)))
-	((>= ediff-current-difference ediff-number-of-differences)
-	 (list (format "%%b   At end of %d diffs"
-		       ediff-number-of-differences)))
-	(t
-	 (list (format "%%b   diff %d of %d"
-		       (1+ ediff-current-difference)
-		       ediff-number-of-differences)))))
-
-
+  (list
+   (concat "%b   "
+           (propertize
+            (cond ((< ediff-current-difference 0)
+                   (format "At start of %d diffs"
+                           ediff-number-of-differences))
+                  ((>= ediff-current-difference ediff-number-of-differences)
+                   (format "At end of %d diffs"
+                           ediff-number-of-differences))
+                  (t
+                   (format "diff %d of %d"
+                           (1+ ediff-current-difference)
+                           ediff-number-of-differences)))
+            'face 'mode-line-buffer-id))))
 
 ;; If buff is not live, return nil
 (defun ediff-get-visible-buffer-window (buff)
@@ -1291,6 +1251,9 @@ It assumes that it is called from within the control buffer."
 			     (ediff-multiframe-setup-p)
 			     ediff-wide-display-p)))))))
 
+(defun ediff-compute-toolbar-width ()
+  (declare (obsolete nil "28.1"))
+  0)
 
 (provide 'ediff-wind)
 ;;; ediff-wind.el ends here

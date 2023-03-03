@@ -1,6 +1,6 @@
-;;; srecode/fields.el --- Handling type-in fields in a buffer.
+;;; srecode/fields.el --- Handling type-in fields in a buffer.  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -193,7 +193,7 @@ If SET-TO is a string, then replace the text of OLAID with SET-TO."
   "Manage a buffer region in which fields exist.")
 
 (cl-defmethod initialize-instance ((ir srecode-template-inserted-region)
-				&rest args)
+				   &rest _args)
   "Initialize IR, capturing the active fields, and creating the overlay."
   ;; Fill in the fields
   (oset ir fields srecode-field-archive)
@@ -221,7 +221,7 @@ If SET-TO is a string, then replace the text of OLAID with SET-TO."
   (oset ir active-region ir)
 
   ;; Setup the post command hook.
-  (add-hook 'post-command-hook 'srecode-field-post-command t t)
+  (add-hook 'post-command-hook #'srecode-field-post-command t t)
   )
 
 (cl-defmethod srecode-delete ((ir srecode-template-inserted-region))
@@ -229,12 +229,11 @@ If SET-TO is a string, then replace the text of OLAID with SET-TO."
   ;; Clear us out of the baseclass.
   (oset ir active-region nil)
   ;; Clear our fields.
-  (mapc 'srecode-delete (oref ir fields))
+  (mapc #'srecode-delete (oref ir fields))
   ;; Call to our base
   (cl-call-next-method)
   ;; Clear our hook.
-  (remove-hook 'post-command-hook 'srecode-field-post-command t)
-  )
+  (remove-hook 'post-command-hook #'srecode-field-post-command t))
 
 (defsubst srecode-active-template-region ()
   "Return the active region for template fields."
@@ -246,7 +245,7 @@ If SET-TO is a string, then replace the text of OLAID with SET-TO."
 	)
     (if (not ar)
 	;; Find a bug and fix it.
-	(remove-hook 'post-command-hook 'srecode-field-post-command t)
+	(remove-hook 'post-command-hook #'srecode-field-post-command t)
       (if (srecode-point-in-region-p ar)
 	  nil ;; Keep going
 	;; We moved out of the template.  Cancel the edits.
@@ -277,16 +276,16 @@ Try to use this to provide useful completion when available.")
 
 (defvar srecode-field-keymap
   (let ((km (make-sparse-keymap)))
-    (define-key km "\C-i" 'srecode-field-next)
-    (define-key km "\M-\C-i" 'srecode-field-prev)
-    (define-key km "\C-e" 'srecode-field-end)
-    (define-key km "\C-a" 'srecode-field-start)
-    (define-key km "\M-m" 'srecode-field-start)
-    (define-key km "\C-c\C-c" 'srecode-field-exit-ask)
+    (define-key km "\C-i" #'srecode-field-next)
+    (define-key km "\M-\C-i" #'srecode-field-prev)
+    (define-key km "\C-e" #'srecode-field-end)
+    (define-key km "\C-a" #'srecode-field-start)
+    (define-key km "\M-m" #'srecode-field-start)
+    (define-key km "\C-c\C-c" #'srecode-field-exit-ask)
     km)
   "Keymap applied to field overlays.")
 
-(cl-defmethod initialize-instance ((field srecode-field) &optional args)
+(cl-defmethod initialize-instance ((field srecode-field) &optional _args)
   "Initialize FIELD, being sure it archived."
   (add-to-list 'srecode-field-archive field t)
   (cl-call-next-method)
@@ -327,7 +326,7 @@ Try to use this to provide useful completion when available.")
 (defvar srecode-field-replication-max-size 100
   "Maximum size of a field before canceling replication.")
 
-(defun srecode-field-mod-hook (ol after start end &optional pre-len)
+(defun srecode-field-mod-hook (ol after _start _end &optional _pre-len)
   "Modification hook for the field overlay.
 OL is the overlay.
 AFTER is non-nil if it is called after the change.
@@ -335,9 +334,7 @@ START and END are the bounds of the change.
 PRE-LEN is used in the after mode for the length of the changed text."
   (when (and after (not undo-in-progress))
     (let* ((field (overlay-get ol 'srecode))
-	   (inhibit-point-motion-hooks t)
-	   (inhibit-modification-hooks t)
-	   )
+	   (inhibit-modification-hooks t))
       ;; Sometimes a field is deleted, but we might still get a stray
       ;; event.  Let's just ignore those events.
       (when (slot-boundp field 'overlay)
@@ -374,7 +371,7 @@ AFTER is non-nil if it is called after the change.
 START and END are the bounds of the change.
 PRE-LEN is used in the after mode for the length of the changed text."
   (when after
-    (let* ((field (overlay-get ol 'srecode))
+    (let* (;; (field (overlay-get ol 'srecode))
 	   )
       (move-overlay ol (overlay-start ol) end)
       (srecode-field-mod-hook ol after start end pre-len))

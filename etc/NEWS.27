@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2017-2020 Free Software Foundation, Inc.
+Copyright (C) 2017-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -15,15 +15,58 @@ in older Emacs versions.
 You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
-Temporary note:
-+++ indicates that all relevant manuals in doc/ have been updated.
---- means no change in the manuals is needed.
-When you add a new item, use the appropriate mark if you are sure it
-applies, and please also update docstrings as needed.
+
+* Changes in Emacs 27.2
+
+This is a bug-fix release with no new features.
+
+
+* Lisp Changes in Emacs 27.2
+
+** The behavior of the user option 'resize-mini-frames' has changed.
+If set to a non-nil value which isn't a function, resize the mini
+frame using the new function 'fit-mini-frame-to-buffer' which won't
+skip leading or trailing empty lines of the buffer.
+
++++
+** Update IRC-related references to point to Libera.Chat.
+In June 2021, the Free Software Foundation and the GNU Project moved
+their official IRC channels from the Freenode network to Libera.Chat
+in the aftermath of the changes in Freenode's governance structure and
+policies in May and June 2021.  The decision-making process took into
+account the feedback received from the community against a set of
+criteria devised by a working group drawn from both GNU and the FSF
+to gauge a chat network's acceptability to software freedom activists.
+
+For the original announcement and the follow-up update, including more
+details, see:
+
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html
+
+Given the relocation of GNU and FSF's official IRC channels, as well
+as #emacs and various other Emacs-themed channels (see the link below)
+to Libera.Chat, IRC-related references in the Emacs repository have
+now been updated to point to Libera.Chat.
+
+https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
+
+
+* Changes in Specialized Modes and Packages in Emacs 27.2
 
 ** Tramp
 
-*** The user option 'tramp-completion-reread-directory-timeout' is made obsolete.
+*** The user option 'tramp-completion-reread-directory-timeout' is now obsolete.
+
+
+* Changes in Emacs 27.2 on Non-Free Operating Systems
+
+** Emacs now ignores modifier keys when IME input is used.
+By default, pressing Ctrl, Shift, and Alt keys while using IME input
+will no longer apply the modifiers to the produced characters, as
+there are IMEs which use keys with modifiers to input some
+characters.  Customize the variable 'w32-ignore-modifiers-on-IME-input'
+to nil to get back the old behavior.
 
 
 * Installation Changes in Emacs 27.1
@@ -190,8 +233,8 @@ into the init file when Emacs was started.  This call can now safely
 be removed.  Alternatively, if you want to ensure that your init file
 is still compatible with earlier versions of Emacs, change it to:
 
-(when (< emacs-major-version 27)
-  (package-initialize))
+    (when (< emacs-major-version 27)
+      (package-initialize))
 
 However, if your init file changes the values of 'package-load-list'
 or 'package-user-dir', or sets 'package-enable-at-startup' to nil then
@@ -946,7 +989,6 @@ the entire list as before.  An integer value limits the list length
 
 *** 'vc-git-stash' is now bound to 'C' in the stash headers.
 
---
 *** Some stash keybindings are now available in the stash button.
 'vc-git-stash' and 'vc-git-stash-snapshot' can now be run using 'C'
 and 'S' respectively, including when there are no stashes.
@@ -1719,7 +1761,7 @@ error.
 It can be used to set any buffer as the next one to be used by
 'next-error' and 'previous-error'.
 
-** nxml-mode
+** 'nxml-mode'
 
 *** The default value of 'nxml-sexp-element-flag' is now t.
 This means that pressing 'C-M-SPACE' now selects the entire tree by
@@ -2243,7 +2285,7 @@ Unqualified host name: (was none), now %q
 Login name: was %u, now %l
 User's full name: was %U, now %L
 
-Merely having '(add-hook 'before-save-hook 'time-stamp)' in your
+Merely having '(add-hook 'before-save-hook #'time-stamp)' in your
 Emacs init file does not expose you to this change.  However,
 if you set 'time-stamp-format' or 'time-stamp-pattern' with a
 file-local variable, you may need to update the value.
@@ -2358,7 +2400,7 @@ expansion to backtrace buffers produced by the Lisp debugger, Edebug
 and ERT.  See the node "(elisp) Backtraces" in the Elisp manual for
 documentation of the new mode and its commands.
 
-** so-long.el helps to mitigate performance problems with long lines.
+** 'so-long' helps to mitigate performance problems with long lines.
 When 'global-so-long-mode' has been enabled, visiting a file with very
 long lines will (subject to configuration) cause the user's preferred
 'so-long-action' to be automatically invoked (by default, the buffer's
@@ -2557,8 +2599,8 @@ available by scrolling with the meta modifier key.
 To get the old behavior back, customize the user option
 'mouse-wheel-scroll-amount', or add the following to your init file:
 
-(customize-set-variable 'mouse-wheel-scroll-amount
-                        '(5 ((shift) . 1) ((control) . nil)))
+    (customize-set-variable 'mouse-wheel-scroll-amount
+                            '(5 ((shift) . 1) ((control) . nil)))
 
 By default, the font size will be changed in the window that the mouse
 pointer is over.  To change this behavior, you can customize the user
@@ -2682,7 +2724,7 @@ days there are in a month in a specific year), 'date-ordinal-to-time'
 (that computes the date of an ordinal day), 'decoded-time-add' (for
 doing computations on a decoded time structure), 'make-decoded-time'
 (for making a decoded time structure with only the given keywords
-filled out), and 'encoded-time-set-defaults' (which fills in nil
+filled out), and 'decoded-time-set-defaults' (which fills in nil
 elements as if it's midnight January 1st, 1970) have been added.
 
 *** In the DST slot, 'encode-time' and 'parse-time-string' now return -1
@@ -2721,7 +2763,7 @@ not waiting for a process to be set up.
 This variable determines how many bytes can be read from a sub-process
 in one read operation.  The default, 4096 bytes, was previously a
 hard-coded constant.  Setting it to a larger value might enhance
-throughput of reading from sub-processes that produces vast
+throughput of reading from sub-processes that produce vast
 (megabytes) amounts of data in one go.
 
 ** The new user option 'quit-window-hook' is now run first when

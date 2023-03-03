@@ -1,6 +1,6 @@
 ;;; network-stream-tests.el --- tests for network processes       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -24,11 +24,15 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'gnutls)
 (require 'network-stream)
 ;; The require above is needed for 'open-network-stream' to work, but
 ;; it pulls in nsm, which then makes the :nowait t' tests fail unless
 ;; we disable the nsm, which we do by binding 'network-security-level'
+
+(declare-function gnutls-peer-status "gnutls.c")
 
 (ert-deftest make-local-unix-server ()
   (skip-unless (featurep 'make-network-process '(:family local)))
@@ -126,7 +130,7 @@
     (when prev
       (setq string (concat prev string))
       (process-put proc 'previous-string nil)))
-  (if (and (not (string-match "\n" string))
+  (if (and (not (string-search "\n" string))
            (> (length string) 0))
       (process-put proc 'previous-string string))
   (let ((command (split-string string)))
@@ -239,16 +243,13 @@
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
-(defconst network-stream-tests--datadir
-  (expand-file-name "test/data/net" source-directory))
-
 (defun make-tls-server (port)
   (start-process "gnutls" (generate-new-buffer "*tls*")
                  "gnutls-serv" "--http"
                  "--x509keyfile"
-                 (concat network-stream-tests--datadir "/key.pem")
+                 (ert-resource-file "key.pem")
                  "--x509certfile"
-                 (concat network-stream-tests--datadir "/cert.pem")
+                 (ert-resource-file "cert.pem")
                  "--port" (format "%s" port)))
 
 (ert-deftest connect-to-tls-ipv4-wait ()
@@ -308,6 +309,7 @@
                                           :name "bar"
                                           :buffer (generate-new-buffer "*foo*")
                                           :nowait t
+                                          :family 'ipv4
                                           :tls-parameters
                                           (cons 'gnutls-x509pki
                                                 (gnutls-boot-parameters
@@ -611,7 +613,7 @@
   (skip-unless (gnutls-available-p))
   (let ((server (make-tls-server 44667))
         (times 0)
-        nowait
+        (nowait nil) ; Workaround Bug#47080
         proc status)
     (unwind-protect
         (progn

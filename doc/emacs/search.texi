@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -201,6 +201,14 @@ something before the starting point, type @kbd{C-r} to switch to a
 backward search, leaving the search string unchanged.  Similarly,
 @kbd{C-s} in a backward search switches to a forward search.
 
+@cindex search, changing direction
+@vindex isearch-repeat-on-direction-change
+  When you change the direction of a search, the first command you
+type will, by default, remain on the same match, and the cursor will
+move to the other end of the match.  To move to another match
+immediately, customize the variable
+@code{isearch-repeat-on-direction-change} to @code{t}.
+
 @cindex search, wrapping around
 @cindex search, overwrapped
 @cindex wrapped search
@@ -213,6 +221,16 @@ appears in the search prompt once this has happened.  If you keep on
 going past the original starting point of the search, it changes to
 @samp{Overwrapped}, which means that you are revisiting matches that
 you have already seen.
+
+@vindex isearch-wrap-pause
+  You can control what happens when there are no more matches by
+customizing the @code{isearch-wrap-pause} user option.  If it is
+@code{t} (the default), signal an error.  (Repeating the search will
+wrap around.)  If @code{no}, issue a @code{ding} and wrap immediately
+after reaching the last match.  If @code{no-ding}, wrap immediately,
+but don't @code{ding}.  With the values @code{no} and @code{no-ding}
+the search will try to wrap around also on typing a character.
+Finally, if @code{nil}, never wrap, but just stop at the last match.
 
 @cindex search ring
 @findex isearch-ring-advance
@@ -293,11 +311,12 @@ from point to the @var{n}th occurrence of the specified character.
 @findex isearch-yank-x-selection
   Within incremental search, @kbd{C-y} (@code{isearch-yank-kill})
 appends the current kill to the search string.  @kbd{M-y}
-(@code{isearch-yank-pop}), if called after @kbd{C-y}, replaces that
-appended text with an earlier kill, similar to the usual @kbd{M-y}
-(@code{yank-pop}) command (@pxref{Yanking}).  Clicking @kbd{mouse-2}
-in the echo area appends the current X selection (@pxref{Primary
-Selection}) to the search string (@code{isearch-yank-x-selection}).
+(@code{isearch-yank-pop}), if called after @kbd{C-y} during
+incremental search, replaces that appended text with an earlier kill,
+similar to the usual @kbd{M-y} (@code{yank-pop}) command.  Clicking
+@kbd{mouse-2} in the echo area appends the current X selection
+(@pxref{Primary Selection}) to the search string
+(@code{isearch-yank-x-selection}).
 
 @kindex C-M-d @r{(Incremental search)}
 @kindex C-M-y @r{(Incremental search)}
@@ -318,6 +337,16 @@ case-insensitive (@pxref{Lax Search, case folding}).  However, if the
 value of the variable @code{search-upper-case} (@pxref{Lax Search,
 search-upper-case}) is other than @code{not-yanks}, that disables this
 down-casing.
+
+@kindex M-s M-.
+@findex isearch-forward-thing-at-point
+  To begin a new incremental search with the text near point yanked
+into the initial search string, type @kbd{M-s M-.} that runs the
+command @code{isearch-forward-thing-at-point}.  If the region was
+active, then it yanks the text from the region into the search string.
+Otherwise, it tries to yank a URL, a symbol or an expression found
+near point.  What to yank is defined by the user option
+@code{isearch-forward-thing-at-point}.
 
 @node Error in Isearch
 @subsection Errors in Incremental Search
@@ -394,7 +423,7 @@ characters, that disables character folding during that search.
 search string.
 
   To search for non-@acronym{ASCII} characters, use one of the
-following methods:
+following methods during incremental search:
 
 @itemize @bullet
 @item
@@ -408,17 +437,10 @@ incremental search adds the @samp{control-S} character to the search
 string.
 
 @item
-@findex isearch-char-by-name
-@kindex C-x 8 RET @r{(Incremental Search)}
-Type @kbd{C-x 8 @key{RET}} (@code{isearch-char-by-name}), followed by
-a Unicode name or code-point in hex.  This adds the specified
-character into the search string, similar to the usual
-@code{insert-char} command (@pxref{Inserting Text}).
-
-@item
 @kindex C-^ @r{(Incremental Search)}
 @findex isearch-toggle-input-method
 @findex isearch-toggle-specified-input-method
+@findex isearch-transient-input-method
 Use an input method (@pxref{Input Methods}).  If an input method is
 enabled in the current buffer when you start the search, the same
 method will be active in the minibuffer when you type the search
@@ -437,8 +459,30 @@ I-search [@var{im}]:
 @noindent
 where @var{im} is the mnemonic of the active input method.  Any input
 method you enable during incremental search remains enabled in the
-current buffer afterwards.
+current buffer afterwards.  Finally, you can temporarily enable a
+transient input method (@pxref{transient input method}) with
+@kbd{C-x \} (@code{isearch-transient-input-method}) to insert a single
+character to the search string using an input method, and
+automatically disable the input method afterwards.
+
+@item
+@findex isearch-char-by-name
+@kindex C-x 8 RET @r{(Incremental Search)}
+Type @kbd{C-x 8 @key{RET}} (@code{isearch-char-by-name}), followed by
+a Unicode name or code-point in hex.  This adds the specified
+character into the search string, similar to the usual
+@code{insert-char} command (@pxref{Inserting Text}).
 @end itemize
+
+@findex isearch-emoji-by-name
+@kindex C-x 8 e RET @r{(Incremental Search)}
+  You can also include Emoji sequences in the search string.  Type
+@w{@kbd{C-x 8 e @key{RET}}} (@code{isearch-emoji-by-name}), followed
+by the Unicode name of an Emoji (for example, @kbd{smiling face} or
+@kbd{heart with arrow}).  This adds the specified Emoji to the search
+string.  If you don't know the name of the Emoji you want to search
+for, you can use @kbd{C-x 8 e l} (@code{emoji-list}) and @kbd{C-x 8 e
+d} (@code{emoji-describe}) (@pxref{Input Methods}).
 
 @kindex M-s o @r{(Incremental Search)}
 @findex isearch-occur
@@ -578,6 +622,19 @@ change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.  This feature is disabled if
 @code{isearch-allow-scroll} is @code{nil} (which it is by default).
+
+@vindex isearch-allow-motion
+@vindex isearch-motion-changes-direction
+  Likewise, if you change the variable @code{isearch-allow-motion}
+to a non-@code{nil} value, this enables the use of the keyboard motion
+commands @kbd{M-<}, @kbd{M->}, @kbd{C-v} and @kbd{M-v}, to move
+respectively to the first occurrence of the current search string in
+the buffer, the last one, the first one after the current window,
+and the last one before the current window.  The search direction
+does not change when these motion commands are used, unless you change
+the variable @code{isearch-motion-changes-direction} to a non-@code{nil}
+value, in which case the search direction is forward after @kbd{M-<} and
+@kbd{C-v}, and backward after @kbd{M->} and @kbd{M-v}.
 
 @item Motion Commands
 @cindex motion commands, during incremental search
@@ -843,11 +900,13 @@ character folding during incremental regexp search with @kbd{M-s '},
 the search becomes a non-regexp search and the search pattern you
 typed is interpreted as a literal string.)
 
+@cindex pending, in incremental search
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
 example, if you have searched for @samp{foo} and you add @samp{\|bar},
 the cursor backs up in case the first @samp{bar} precedes the first
-@samp{foo}.  @xref{Regexps}.
+@samp{foo}.  (The prompt will change to say ``Pending'' to notify the
+user that this recalculation has happened.)   @xref{Regexps}.
 
   Forward and backward regexp search are not symmetrical, because
 regexp matching in Emacs always operates forward, starting with the
@@ -969,24 +1028,11 @@ you search for @samp{a.*?$} against the text @samp{abbab} followed by
 a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
-@item @kbd{\@{@var{n}\@}}
-is a postfix operator specifying @var{n} repetitions---that is, the
-preceding regular expression must match exactly @var{n} times in a
-row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx} and
-nothing else.
-
-@item @kbd{\@{@var{n},@var{m}\@}}
-is a postfix operator specifying between @var{n} and @var{m}
-repetitions---that is, the preceding regular expression must match at
-least @var{n} times, but no more than @var{m} times.  If @var{m} is
-omitted, then there is no upper limit, but the preceding regular
-expression must match at least @var{n} times.@* @samp{\@{0,1\@}} is
-equivalent to @samp{?}. @* @samp{\@{0,\@}} is equivalent to
-@samp{*}. @* @samp{\@{1,\@}} is equivalent to @samp{+}.
-
+@cindex set of alternative characters, in regular expressions
+@cindex character set, in regular expressions
 @item @kbd{[ @dots{} ]}
-is a @dfn{character set}, beginning with @samp{[} and terminated by
-@samp{]}.
+is a @dfn{set of alternative characters}, or a @dfn{character set},
+beginning with @samp{[} and terminated by @samp{]}.
 
 In the simplest case, the characters between the two brackets are what
 this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or
@@ -1003,9 +1049,10 @@ which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.  As another example, @samp{[α-ωί]} matches all lower-case
 Greek letters.
 
+@cindex character classes, in regular expressions
 You can also include certain special @dfn{character classes} in a
 character set.  A @samp{[:} and balancing @samp{:]} enclose a
-character class inside a character alternative.  For instance,
+character class inside a set of alternative characters.  For instance,
 @samp{[[:alnum:]]} matches any letter or digit.  @xref{Char Classes,,,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
@@ -1073,13 +1120,13 @@ no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
 regardless of where it appears.
 
-As a @samp{\} is not special inside a character alternative, it can
-never remove the special meaning of @samp{-} or @samp{]}.  So you
-should not quote these characters when they have no special meaning
-either.  This would not clarify anything, since backslashes can
-legitimately precede these characters where they @emph{have} special
-meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string syntax),
-which matches any single character except a backslash.
+As a @samp{\} is not special inside a set of alternative characters, it can
+never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
+You should not quote these characters when they have no special
+meaning.  This would not clarify anything, since backslashes
+can legitimately precede these characters where they @emph{have}
+special meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string
+syntax), which matches any single character except a backslash.
 
 @node Regexp Backslash
 @section Backslash in Regular Expressions
@@ -1144,11 +1191,11 @@ matches the same text that matched the @var{d}th occurrence of a
 @samp{\( @dots{} \)} construct.  This is called a @dfn{back
 reference}.
 
-After the end of a @samp{\( @dots{} \)} construct, the matcher remembers
-the beginning and end of the text matched by that construct.  Then,
-later on in the regular expression, you can use @samp{\} followed by the
-digit @var{d} to mean ``match the same text matched the @var{d}th time
-by the @samp{\( @dots{} \)} construct''.
+After the end of a @samp{\( @dots{} \)} construct, the matcher
+remembers the beginning and end of the text matched by that construct.
+Then, later on in the regular expression, you can use @samp{\}
+followed by the digit @var{d} to mean ``match the same text matched
+the @var{d}th @samp{\( @dots{} \)} construct''.
 
 The strings matching the first nine @samp{\( @dots{} \)} constructs
 appearing in a regular expression are assigned numbers 1 through 9 in
@@ -1164,6 +1211,21 @@ the same exact text.
 If a particular @samp{\( @dots{} \)} construct matches more than once
 (which can easily happen if it is followed by @samp{*}), only the last
 match is recorded.
+
+@item @kbd{\@{@var{m}\@}}
+is a postfix operator specifying @var{m} repetitions---that is, the
+preceding regular expression must match exactly @var{m} times in a
+row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx} and
+nothing else.
+
+@item @kbd{\@{@var{m},@var{n}\@}}
+is a postfix operator specifying between @var{m} and @var{n}
+repetitions---that is, the preceding regular expression must match at
+least @var{m} times, but no more than @var{n} times.  If @var{n} is
+omitted, then there is no upper limit, but the preceding regular
+expression must match at least @var{m} times.@* @samp{\@{0,1\@}} is
+equivalent to @samp{?}. @* @samp{\@{0,\@}} is equivalent to
+@samp{*}. @* @samp{\@{1,\@}} is equivalent to @samp{+}.
 
 @item \`
 matches the empty string, but only at the beginning of the string or
@@ -1286,19 +1348,19 @@ tailor them to your needs.
 @kindex SPC @r{(Incremental search)}
 @findex isearch-toggle-lax-whitespace
 @vindex search-whitespace-regexp
-  By default, search commands perform @dfn{lax space matching}:
-each space, or sequence of spaces, matches any sequence of one or more
-whitespace characters in the text.  (Incremental regexp search has a
-separate default; see @ref{Regexp Search}.)  Hence, @w{@samp{foo bar}}
-matches @w{@samp{foo bar}}, @w{@samp{foo@ @ bar}},
-@w{@samp{foo@ @ @ bar}}, and so on (but not @samp{foobar}).  More
-precisely, Emacs matches each sequence of space characters in the
-search string to a regular expression specified by the variable
-@code{search-whitespace-regexp}.  For example, to make spaces match
-sequences of newlines as well as spaces, set it to
-@samp{"[[:space:]\n]+"}.  The default value of this variable depends
-on the buffer's major mode; most major modes classify spaces, tabs,
-and formfeed characters as whitespace.
+  By default, search commands perform @dfn{lax space matching}: each
+space, or sequence of spaces, matches any sequence of one or more
+whitespace characters in the text.  More precisely, Emacs matches each
+sequence of space characters in the search string to a regular
+expression specified by the user option
+@code{search-whitespace-regexp}.  The default value of this option
+considers any sequence of spaces and tab characters as whitespace.
+Hence, @w{@samp{foo bar}} matches @w{@samp{foo bar}}, @w{@samp{foo@ @
+bar}}, @w{@samp{foo@ @ @ bar}}, and so on (but not @samp{foobar}).  If
+you want to make spaces match sequences of newlines as well as spaces
+and tabs, customize the option to make its value be the regular
+expression @samp{[ \t\n]+}.  (The default behavior of the
+incremental regexp search is different; see @ref{Regexp Search}.)
 
   If you want whitespace characters to match exactly, you can turn lax
 space matching off by typing @kbd{M-s @key{SPC}}
@@ -1368,16 +1430,18 @@ of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
 match disregards the diacritics that distinguish these
 variants.  In addition, @code{a} matches other characters that
 resemble it, or have it as part of their graphical representation,
-such as U+249C @sc{parenthesized latin small letter a} and U+2100
-@sc{account of} (which looks like a small @code{a} over @code{c}).
+such as U+00AA @sc{feminine ordinal indicator} and U+24D0
+@sc{circled latin small letter a} (which looks like a small @code{a}
+inside a circle).
 Similarly, the @acronym{ASCII} double-quote character @code{"} matches
 all the other variants of double quotes defined by the Unicode
 standard.  Finally, character folding can make a sequence of one or
 more characters match another sequence of a different length: for
 example, the sequence of two characters @code{ff} matches U+FB00
-@sc{latin small ligature ff}.  Character sequences that are not identical,
-but match under character folding are known as @dfn{equivalent
-character sequences}.
+@sc{latin small ligature ff} and the sequence @code{(a)} matches
+U+249C @sc{parenthesized latin small letter a}.  Character sequences
+that are not identical, but match under character folding are known as
+@dfn{equivalent character sequences}.
 
 @kindex M-s ' @r{(Incremental Search)}
 @findex isearch-toggle-char-fold
@@ -1403,9 +1467,13 @@ letter @code{a} as well as all the other variants like @code{@'a}.
 
 @vindex char-fold-include
 @vindex char-fold-exclude
+@vindex char-fold-override
   You can add new foldings using the customizable variable
 @code{char-fold-include}, or remove the existing ones using the
-customizable variable @code{char-fold-exclude}.
+customizable variable @code{char-fold-exclude}.  You can also
+customize @code{char-fold-override} to @code{t} to disable all the
+character equivalences except those you add yourself using
+@code{char-fold-include}.
 
 @node Replace
 @section Replacement Commands
@@ -1768,6 +1836,13 @@ minibuffer by typing @key{RET}, the minibuffer contents replace the
 current occurrence of the pattern.  They also become the new
 replacement string for any further occurrences.
 
+@item E
+is like @kbd{e}, but the next replacement will be done with exact
+case.  I.e., if you have a @code{query-replace} from @samp{foo} to
+@samp{bar}, a text like @samp{Foo} will be normally be replaced with
+@samp{Bar}.  Use this command to do the current replacement with exact
+case.
+
 @item C-l
 to redisplay the screen.  Then you must type another character to
 specify what to do with this occurrence.
@@ -1814,12 +1889,12 @@ replacing regexp matches in file names.
 @node Other Repeating Search
 @section Other Search-and-Loop Commands
 
-  Here are some other commands that find matches for a regular
-expression.  They all ignore case in matching, if the pattern contains
+  Here are some other commands that find matches for regular
+expressions.  They all ignore case in matching, if the pattern contains
 no upper-case letters and @code{case-fold-search} is non-@code{nil}.
 Aside from @code{multi-occur} and @code{multi-occur-in-matching-buffers},
-which always search the whole buffer, all operate on the text from point
-to the end of the buffer, or on the region if it is active.
+which always search the whole buffer, all of the commands operate on the
+text from point to the end of the buffer, or on the region if it is active.
 
 @table @kbd
 @findex multi-isearch-buffers
@@ -1893,19 +1968,27 @@ is not considered a match.
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}
-In the @file{*Occur*} buffer, you can click on each entry, or move
-point there and type @key{RET}, to visit the corresponding position in
-the buffer that was searched.  @kbd{o} and @kbd{C-o} display the match
-in another window; @kbd{C-o} does not select it.  Alternatively, you
-can use the @kbd{M-g M-n} (@code{next-error}) command to visit the
-occurrences one by one (@pxref{Compilation Mode}).
+The @file{*Occur*} buffer uses the Occur mode as its major mode.  You
+can use the @kbd{n} and @kbd{p} keys to move to the next or previous
+match; with prefix numeric argument, these commands move that many
+matches.  Digit keys are bound to @code{digit-argument}, so @kbd{5 n}
+moves to the fifth next match (you don't have to type @kbd{C-u}).
+@key{SPC} and @key{DEL} scroll the @file{*Occur*} buffer up and down.
+Clicking on a match or moving point there and typing @key{RET} visits
+the corresponding position in the original buffer that was searched.
+@kbd{o} and @kbd{C-o} display the match in another window; @kbd{C-o}
+does not select that window.  Alternatively, you can use the @kbd{M-g
+M-n} (@code{next-error}) command to visit the occurrences one by one
+(@pxref{Compilation Mode}).  Finally, @kbd{q} quits the window showing
+the @file{*Occur*} buffer and buries the buffer.
 
 @cindex Occur Edit mode
 @cindex mode, Occur Edit
-Typing @kbd{e} in the @file{*Occur*} buffer switches to Occur Edit
-mode, in which edits made to the entries are also applied to the text
-in the originating buffer.  Type @kbd{C-c C-c} to return to Occur
-mode.
+Typing @kbd{e} in the @file{*Occur*} buffer makes the buffer writable
+and enters the Occur Edit mode, in which you can edit the matching
+lines and have those edits reflected in the text in the originating
+buffer.  Type @kbd{C-c C-c} to leave the Occur Edit mode and return to
+the Occur mode.
 
 @findex list-matching-lines
 The command @kbd{M-x list-matching-lines} is a synonym for @kbd{M-x
@@ -1956,6 +2039,17 @@ it never deletes lines that are only partially contained in the region
 (a newline that ends a line counts as part of that line).
 
 If a match is split across lines, this command keeps all those lines.
+
+@findex kill-matching-lines
+@item M-x kill-matching-lines
+Like @code{flush-lines}, but also add the matching lines to the kill
+ring.  The command adds the matching lines to the kill ring as a
+single string, including the newlines that separated the lines.
+
+@findex copy-matching-lines
+@item M-x copy-matching-lines
+Like @code{kill-matching-lines}, but the matching lines are not
+removed from the buffer.
 @end table
 
 @node Search Customizations
@@ -2018,6 +2112,13 @@ highlighting:
 @item lazy-highlight-initial-delay
 @vindex lazy-highlight-initial-delay
 Time in seconds to wait before highlighting visible matches.
+Applies only if the search string is less than
+@code{lazy-highlight-no-delay-length} characters long.
+
+@item lazy-highlight-no-delay-length
+@vindex lazy-highlight-no-delay-length
+For search strings at least as long as the value of this variable,
+lazy highlighting of matches starts immediately.
 
 @item lazy-highlight-interval
 @vindex lazy-highlight-interval

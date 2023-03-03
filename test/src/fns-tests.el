@@ -1,27 +1,64 @@
 ;;; fns-tests.el --- tests for src/fns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (require 'cl-lib)
+(require 'ert)
+
+(ert-deftest fns-tests-identity ()
+  (let ((num 12345)) (should (eq (identity num) num)))
+  (let ((str "foo")) (should (eq (identity str) str)))
+  (let ((lst '(11))) (should (eq (identity lst) lst))))
+
+(ert-deftest fns-tests-random ()
+  (unwind-protect
+      (progn
+        (should-error (random -1) :type 'args-out-of-range)
+        (should-error (random 0) :type 'args-out-of-range)
+        (should (integerp (random)))
+        (should (= (random 1) 0))
+        (should (>= (random 10) 0))
+        (should (< (random 10) 10))
+        (should (equal (random "seed") (random "seed")))
+        ;; The probability of four calls being the same is low.
+        ;; This makes sure that the value isn't constant.
+        (should (not (= (random t) (random t) (random t) (random t))))
+        ;; Handle bignums.
+        (should (integerp (random (1+ most-positive-fixnum)))))
+    ;; Reset the PRNG seed after testing.
+    (random t)))
+
+(ert-deftest fns-tests-length ()
+  (should (= (length nil) 0))
+  (should (= (length '(1 2 3)) 3))
+  (should (= (length '[1 2 3]) 3))
+  (should (= (length "foo") 3))
+  (should-error (length t)))
+
+(ert-deftest fns-tests-safe-length ()
+  (should (= (safe-length '(1 2 3)) 3)))
+
+(ert-deftest fns-tests-string-bytes ()
+  (should (= (string-bytes "abc") 3)))
 
 ;; Test that equality predicates work correctly on NaNs when combined
 ;; with hash tables based on those predicates.  This was not the case
@@ -33,6 +70,33 @@
            (-nan (- nan)))
       (puthash nan t h)
       (should (eq (funcall test nan -nan) (gethash -nan h))))))
+
+(ert-deftest fns-tests-equal-including-properties ()
+  (should (equal-including-properties "" ""))
+  (should (equal-including-properties "foo" "foo"))
+  (should (equal-including-properties #("foo" 0 3 (a b))
+                                      (propertize "foo" 'a 'b)))
+  (should (equal-including-properties #("foo" 0 3 (a b c d))
+                                      (propertize "foo" 'a 'b 'c 'd)))
+  (should (equal-including-properties #("a" 0 1 (k v))
+                                      #("a" 0 1 (k v))))
+  (should-not (equal-including-properties #("a" 0 1 (k v))
+                                          #("a" 0 1 (k x))))
+  (should-not (equal-including-properties #("a" 0 1 (k v))
+                                          #("b" 0 1 (k v))))
+  (should-not (equal-including-properties #("foo" 0 3 (a b c e))
+                                          (propertize "foo" 'a 'b 'c 'd))))
+
+(ert-deftest fns-tests-equal-including-properties/string-prop-vals ()
+  "Handle string property values.  (Bug#6581)"
+  (should (equal-including-properties #("a" 0 1 (k "v"))
+                                      #("a" 0 1 (k "v"))))
+  (should (equal-including-properties #("foo" 0 3 (a (t)))
+                                      (propertize "foo" 'a (list t))))
+  (should-not (equal-including-properties #("a" 0 1 (k "v"))
+                                          #("a" 0 1 (k "x"))))
+  (should-not (equal-including-properties #("a" 0 1 (k "v"))
+                                          #("b" 0 1 (k "v")))))
 
 (ert-deftest fns-tests-reverse ()
   (should-error (reverse))
@@ -79,6 +143,58 @@
     (nreverse A)
     (should (equal [nil nil nil nil nil t t t t t] (vconcat A)))
     (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A))))))
+
+(defconst fns-tests--string-lessp-cases
+  `(("abc" < "abd")
+    (abc < "abd")
+    (abc < abd)
+    ("" = "")
+    ("" < " ")
+    ("abc" < "abcd")
+    ("abc" = "abc")
+    (abc = abc)
+    ("" < "\0")
+    ("~" < "\x80")
+    ("\x80" = "\x80")
+    ("\xfe" < "\xff")
+    ("Munchen" < "München")
+    ("München" = "München")
+    ("Ré" < "Réunion")
+    ("abc" = ,(string-to-multibyte "abc"))
+    (,(string-to-multibyte "abc") = ,(string-to-multibyte "abc"))
+    ("abc" < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "abc") < "abd")
+    (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "\x80") = ,(string-to-multibyte "\x80"))
+    ("Liberté, Égalité, Fraternité" = "Liberté, Égalité, Fraternité")
+    ("Liberté, Égalité, Fraternité" < "Liberté, Égalité, Sororité")
+
+    ;; Cases concerning the ordering of raw bytes: these are
+    ;; troublesome because the current `string<' order is not very useful as
+    ;; it equates unibyte 80..FF with multibyte U+0080..00FF, and is also
+    ;; inconsistent with `string=' (see bug#58168).
+    ;;("\x80" < ,(string-to-multibyte "\x80"))
+    ;;("\xff" < ,(string-to-multibyte "\x80"))
+    ;;("ü" < "\xfc")
+    ;;("ü" < ,(string-to-multibyte "\xfc"))
+    )
+  "List of (A REL B) where REL is the relation (`<' or `=') between A and B.")
+
+(ert-deftest fns-tests-string-lessp ()
+  ;; Exercise both `string-lessp' and its alias `string<', both directly
+  ;; and in a function (exercising its bytecode).
+  (dolist (fun (list #'string-lessp #'string<
+                     (lambda (a b) (string-lessp a b))
+                     (lambda (a b) (string< a b))))
+    (ert-info ((prin1-to-string fun) :prefix "function: ")
+      (should-error (funcall fun 'a 97))
+      (should-error (funcall fun 97 "a"))
+      (dolist (case fns-tests--string-lessp-cases)
+        (ert-info ((prin1-to-string case) :prefix "case: ")
+          (pcase-let ((`(,x ,rel ,y) case))
+            (cl-assert (memq rel '(< =)))
+            (should (equal (funcall fun x y) (eq rel '<)))
+            (should (equal (funcall fun y x) nil))))))))
 
 (ert-deftest fns-tests-compare-strings ()
   (should-error (compare-strings))
@@ -154,6 +270,76 @@
 		 [-1 2 3 4 5 5 7 8 9]))
   (should (equal (sort (vector 9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
 		 [9 8 7 5 5 4 3 2 -1]))
+  ;; Sort a reversed list and vector.
+  (should (equal
+	 (sort (reverse (number-sequence 1 1000)) (lambda (x y) (< x y)))
+	 (number-sequence 1 1000)))
+  (should (equal
+	   (sort (reverse (vconcat (number-sequence 1 1000)))
+                 (lambda (x y) (< x y)))
+	 (vconcat (number-sequence 1 1000))))
+  ;; Sort a constant list and vector.
+  (should (equal
+           (sort (make-vector 100 1) (lambda (x y) (> x y)))
+           (make-vector 100 1)))
+  (should (equal
+           (sort (append (make-vector 100 1) nil) (lambda (x y) (> x y)))
+           (append (make-vector 100 1) nil)))
+  ;; Sort a long list and vector with every pair reversed.
+  (let ((vec (make-vector 100000 nil))
+        (logxor-vec (make-vector 100000 nil)))
+    (dotimes (i 100000)
+      (aset logxor-vec i  (logxor i 1))
+      (aset vec i i))
+    (should (equal
+             (sort logxor-vec (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append logxor-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; Sort a list and vector with seven swaps.
+  (let ((vec (make-vector 100 nil))
+        (swap-vec (make-vector 100 nil)))
+    (dotimes (i 100)
+      (aset vec i (- i 50))
+      (aset swap-vec i (- i 50)))
+    (mapc (lambda (p)
+	(let ((tmp (elt swap-vec (car p))))
+	  (aset swap-vec (car p) (elt swap-vec (cdr p)))
+	  (aset swap-vec (cdr p) tmp)))
+          '((48 . 94) (75 . 77) (33 . 41) (92 . 52)
+            (10 . 96) (1 . 14) (43 . 81)))
+    (should (equal
+             (sort (copy-sequence swap-vec) (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append swap-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; Check for possible corruption after GC.
+  (let* ((size 3000)
+         (complex-vec (make-vector size nil))
+         (vec (make-vector size nil))
+         (counter 0)
+         (my-counter (lambda ()
+                       (if (< counter 500)
+                           (cl-incf counter)
+                         (setq counter 0)
+                         (garbage-collect))))
+         (rand 1)
+         (generate-random
+	  (lambda () (setq rand
+                           (logand (+ (* rand 1103515245) 12345)  2147483647)))))
+    ;; Make a complex vector and its sorted version.
+    (dotimes (i size)
+      (let ((r (funcall generate-random)))
+        (aset complex-vec i (cons r "a"))
+        (aset vec i (cons r "a"))))
+    ;; Sort it.
+    (should (equal
+             (sort complex-vec
+                   (lambda (x y) (funcall my-counter) (< (car x) (car y))))
+             (sort vec 'car-less-than-car))))
+  ;; Check for sorting stability.
   (should (equal
 	   (sort
 	    (vector
@@ -268,7 +454,10 @@
   (should (equal (base64-encode-string "fooba") "Zm9vYmE="))
   (should (equal (base64-encode-string "foobar") "Zm9vYmFy"))
   (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l+"))
-  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/")))
+  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/"))
+
+  (should-error (base64-encode-string "ƒ"))
+  (should-error (base64-encode-string "ü")))
 
 (ert-deftest fns-test-base64url-encode-region ()
   ;; url variant with padding
@@ -310,7 +499,11 @@
   (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t)
                  (fns-tests--string-repeat "FPucA9l-" 10)))
   (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t)
-                 (fns-tests--string-repeat "FPucA9l_" 10))))
+                 (fns-tests--string-repeat "FPucA9l_" 10)))
+
+  (should-error (fns-tests--with-region base64url-encode-region "ƒ"))
+  (should-error (fns-tests--with-region base64url-encode-region "ü")))
+
 
 (ert-deftest fns-test-base64url-encode-string ()
   ;; url variant with padding
@@ -344,7 +537,10 @@
   (should (equal (base64url-encode-string (fns-tests--string-repeat "fooba" 15) t) (fns-tests--string-repeat "Zm9vYmFmb29iYWZvb2Jh" 5)))
   (should (equal (base64url-encode-string (fns-tests--string-repeat "foobar" 15) t) (concat (fns-tests--string-repeat "Zm9vYmFyZm9vYmFy" 7) "Zm9vYmFy")))
   (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t) (fns-tests--string-repeat "FPucA9l-" 10)))
-  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t) (fns-tests--string-repeat "FPucA9l_" 10))))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t) (fns-tests--string-repeat "FPucA9l_" 10)))
+
+  (should-error (base64url-encode-string "ƒ"))
+  (should-error (base64url-encode-string "ü")))
 
 (ert-deftest fns-tests-base64-decode-string ()
   ;; standard variant RFC2045
@@ -426,9 +622,26 @@
                    (insert "foo")
                    (goto-char 2)
                    (insert " ")
-                   (backward-delete-char 1)
+                   (delete-char -1)
                    (buffer-hash))
                  (sha1 "foo"))))
+
+(ert-deftest fns-tests-mapconcat ()
+  (should (string= (mapconcat #'identity '()) ""))
+  (should (string= (mapconcat #'identity '("a" "b")) "ab"))
+  (should (string= (mapconcat #'identity '() "_") ""))
+  (should (string= (mapconcat #'identity '("A") "_") "A"))
+  (should (string= (mapconcat #'identity '("A" "B") "_") "A_B"))
+  (should (string= (mapconcat #'identity '("A" "B" "C") "_") "A_B_C"))
+  ;; non-ASCII strings
+  (should (string= (mapconcat #'identity '("Ä" "ø" "☭" "தமிழ்") "_漢字_")
+                   "Ä_漢字_ø_漢字_☭_漢字_தமிழ்"))
+  ;; vector
+  (should (string= (mapconcat #'identity ["a" "b"]) "ab"))
+  ;; bool-vector
+  (should (string= (mapconcat #'identity [nil nil]) ""))
+  (should-error (mapconcat #'identity [nil nil t])
+                :type 'wrong-type-argument))
 
 (ert-deftest fns-tests-mapcan ()
   (should-error (mapcan))
@@ -644,6 +857,14 @@
   (should-error (reverse (dot1 1)) :type 'wrong-type-argument)
   (should-error (reverse (dot2 1 2)) :type 'wrong-type-argument))
 
+(ert-deftest test-cycle-equal ()
+  (should-error (equal (cyc1 1) (cyc1 1)))
+  (should-error (equal (cyc2 1 2) (cyc2 1 2))))
+
+(ert-deftest test-cycle-nconc ()
+  (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
+  (should-error (nconc (cyc2 1 2) 'tail) :type 'circular-list))
+
 (ert-deftest test-cycle-plist-get ()
   (let ((c1 (cyc1 1))
         (c2 (cyc2 1 2))
@@ -661,24 +882,6 @@
     (should-not (plist-get c2 3))
     (should-not (plist-get d1 3))
     (should-not (plist-get d2 3))))
-
-(ert-deftest test-cycle-lax-plist-get ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-get c1 1))
-    (should (lax-plist-get c2 1))
-    (should (lax-plist-get d1 1))
-    (should (lax-plist-get d2 1))
-    (should-error (lax-plist-get c1 2) :type 'circular-list)
-    (should (lax-plist-get c2 2))
-    (should-error (lax-plist-get d1 2) :type 'wrong-type-argument)
-    (should (lax-plist-get d2 2))
-    (should-error (lax-plist-get c1 3) :type 'circular-list)
-    (should-error (lax-plist-get c2 3) :type 'circular-list)
-    (should-error (lax-plist-get d1 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-get d2 3) :type 'wrong-type-argument)))
 
 (ert-deftest test-cycle-plist-member ()
   (let ((c1 (cyc1 1))
@@ -716,59 +919,46 @@
     (should-error (plist-put d1 3 3) :type 'wrong-type-argument)
     (should-error (plist-put d2 3 3) :type 'wrong-type-argument)))
 
-(ert-deftest test-cycle-lax-plist-put ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-put c1 1 1))
-    (should (lax-plist-put c2 1 1))
-    (should (lax-plist-put d1 1 1))
-    (should (lax-plist-put d2 1 1))
-    (should-error (lax-plist-put c1 2 2) :type 'circular-list)
-    (should (lax-plist-put c2 2 2))
-    (should-error (lax-plist-put d1 2 2) :type 'wrong-type-argument)
-    (should (lax-plist-put d2 2 2))
-    (should-error (lax-plist-put c1 3 3) :type 'circular-list)
-    (should-error (lax-plist-put c2 3 3) :type 'circular-list)
-    (should-error (lax-plist-put d1 3 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-put d2 3 3) :type 'wrong-type-argument)))
-
-(ert-deftest test-cycle-equal ()
-  (should-error (equal (cyc1 1) (cyc1 1)))
-  (should-error (equal (cyc2 1 2) (cyc2 1 2))))
-
-(ert-deftest test-cycle-nconc ()
-  (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
-  (should-error (nconc (cyc2 1 2) 'tail) :type 'circular-list))
-
 (ert-deftest plist-get/odd-number-of-elements ()
   "Test that `plist-get' doesn't signal an error on degenerate plists."
   (should-not (plist-get '(:foo 1 :bar) :bar)))
 
-(ert-deftest lax-plist-get/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-get '(:foo 1 :bar) :bar)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
 (ert-deftest plist-put/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (plist-put '(:foo 1 :bar) :zot 2)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
-(ert-deftest lax-plist-put/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-put '(:foo 1 :bar) :zot 2)
-                               :type 'wrong-type-argument)
+  "Check for bug#27726."
+  (should (equal (should-error (plist-put (list :foo 1 :bar) :zot 2))
                  '(wrong-type-argument plistp (:foo 1 :bar)))))
 
 (ert-deftest plist-member/improper-list ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux)
-                               :type 'wrong-type-argument)
+  "Check for bug#27726."
+  (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux))
                  '(wrong-type-argument plistp (:foo 1 . :bar)))))
+
+(ert-deftest test-plist ()
+  (let ((plist (list :a "b")))
+    (setq plist (plist-put plist :b "c"))
+    (should (equal (plist-get plist :b) "c"))
+    (should (equal (plist-member plist :b) '(:b "c"))))
+
+  (let ((plist (list "1" "2" "a" "b")))
+    (setq plist (plist-put plist (string ?a) "c"))
+    (should (equal plist '("1" "2" "a" "b" "a" "c")))
+    (should-not (plist-get plist (string ?a)))
+    (should-not (plist-member plist (string ?a))))
+
+  (let ((plist (list "1" "2" "a" "b")))
+    (setq plist (plist-put plist (string ?a) "c" #'equal))
+    (should (equal plist '("1" "2" "a" "c")))
+    (should (equal (plist-get plist (string ?a) #'equal) "c"))
+    (should (equal (plist-member plist (string ?a) #'equal) '("a" "c"))))
+
+  (let ((plist (list :a 1 :b 2 :c 3)))
+    (setq plist (plist-put plist ":a" 4 #'string>))
+    (should (equal plist '(:a 1 :b 4 :c 3)))
+    (should (equal (plist-get plist ":b" #'string>) 3))
+    (should (equal (plist-member plist ":c" #'string<) plist))
+    (dolist (fn '(plist-get plist-member))
+      (should-not (funcall fn plist ":a" #'string<))
+      (should-not (funcall fn plist ":c" #'string>)))))
 
 (ert-deftest test-string-distance ()
   "Test `string-distance' behavior."
@@ -786,7 +976,15 @@
   ;; string containing hanzi character, compare by character
   (should (equal 2 (string-distance "ab" "ab我她")))
   (should (equal 1 (string-distance "ab" "a我b")))
-  (should (equal 1 (string-distance "我" "她"))))
+  (should (equal 1 (string-distance "我" "她")))
+
+  ;; correct behavior with empty strings
+  (should (equal 0 (string-distance "" "")))
+  (should (equal 0 (string-distance "" "" t)))
+  (should (equal 1 (string-distance "x" "")))
+  (should (equal 1 (string-distance "x" "" t)))
+  (should (equal 1 (string-distance "" "x")))
+  (should (equal 1 (string-distance "" "x" t))))
 
 (ert-deftest test-bignum-eql ()
   "Test that `eql' works for bignums."
@@ -938,6 +1136,13 @@
   (should (equal (string-search "\303" "aøb") nil))
   (should (equal (string-search "\270" "aøb") nil))
   (should (equal (string-search "ø" "\303\270") nil))
+  (should (equal (string-search "ø" (make-string 32 ?a)) nil))
+  (should (equal (string-search "ø" (string-to-multibyte (make-string 32 ?a)))
+                 nil))
+  (should (equal (string-search "o" (string-to-multibyte
+                                     (apply #'string
+                                            (number-sequence ?a ?z))))
+                 14))
 
   (should (equal (string-search "a\U00010f98z" "a\U00010f98a\U00010f98z") 2))
 
@@ -976,3 +1181,303 @@
   (should (equal (string-search (string-to-multibyte "o\303\270") "foo\303\270")
                  2))
   (should (equal (string-search "\303\270" "foo\303\270") 3)))
+
+(ert-deftest object-intervals ()
+  (should (equal (object-intervals (propertize "foo" 'bar 'zot))
+                 '((0 3 (bar zot)))))
+  (should (equal (object-intervals (concat (propertize "foo" 'bar 'zot)
+                                           (propertize "foo" 'gazonk "gazonk")))
+                 '((0 3 (bar zot)) (3 6 (gazonk "gazonk")))))
+  (should (equal
+           (with-temp-buffer
+             (insert "foobar")
+             (put-text-property 1 3 'foo 1)
+             (put-text-property 3 6 'bar 2)
+             (put-text-property 2 5 'zot 3)
+             (object-intervals (current-buffer)))
+           '((0 1 (foo 1)) (1 2 (zot 3 foo 1)) (2 4 (zot 3 bar 2))
+             (4 5 (bar 2)) (5 6 nil)))))
+
+(ert-deftest length-equals-tests ()
+  (should-not (length< (list 1 2 3) 2))
+  (should-not (length< (list 1 2 3) 3))
+  (should (length< (list 1 2 3) 4))
+
+  (should-not (length< "abc" 2))
+  (should-not (length< "abc" 3))
+  (should (length< "abc" 4))
+
+  (should (length> (list 1 2 3) 2))
+  (should-not (length> (list 1 2 3) 3))
+  (should-not (length> (list 1 2 3) 4))
+
+  (should (length> "abc" 2))
+  (should-not (length> "abc" 3))
+  (should-not (length> "abc" 4))
+
+  (should-not (length= (list 1 2 3) 2))
+  (should (length= (list 1 2 3) 3))
+  (should-not (length= (list 1 2 3) 4))
+
+  (should-not (length= "abc" 2))
+  (should (length= "abc" 3))
+  (should-not (length= "abc" 4))
+
+  (should-not (length< (list 1 2 3) -1))
+  (should-not (length< (list 1 2 3) 0))
+  (should-not (length< (list 1 2 3) -10))
+
+  (should (length> (list 1 2 3) -1))
+  (should (length> (list 1 2 3) 0))
+
+  (should-not (length= (list 1 2 3) -1))
+  (should-not (length= (list 1 2 3) 0))
+  (should-not (length= (list 1 2 3) 1))
+
+  (should-error
+   (let ((list (list 1)))
+     (setcdr list list)
+     (length< list #x1fffe))))
+
+(defun approx-equal (list1 list2)
+  (and (equal (length list1) (length list2))
+       (cl-loop for v1 in list1
+                for v2 in list2
+                when (not (or (= v1 v2)
+                              (< (abs (- v1 v2)) 0.1)))
+                return nil
+                finally return t)))
+
+(ert-deftest test-buffer-line-stats-nogap ()
+  (with-temp-buffer
+    (insert "")
+    (should (approx-equal (buffer-line-statistics) '(0 0 0))))
+  (with-temp-buffer
+    (insert "123\n")
+    (should (approx-equal (buffer-line-statistics) '(1 3 3))))
+  (with-temp-buffer
+    (insert "123\n12345\n123\n")
+    (should (approx-equal (buffer-line-statistics) '(3 5 3.66))))
+  (with-temp-buffer
+    (insert "123\n12345\n123")
+    (should (approx-equal (buffer-line-statistics) '(3 5 3.66))))
+  (with-temp-buffer
+    (insert "123\n12345")
+    (should (approx-equal (buffer-line-statistics) '(2 5 4))))
+
+  (with-temp-buffer
+    (insert "123\n12é45\n123\n")
+    (should (approx-equal (buffer-line-statistics) '(3 6 4))))
+
+  (with-temp-buffer
+    (insert "\n\n\n")
+    (should (approx-equal (buffer-line-statistics) '(3 0 0)))))
+
+(ert-deftest test-buffer-line-stats-gap ()
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    ;; This should make a gap appear.
+    (insert "123\n")
+    (delete-region (point-min) (point))
+    (should (approx-equal (buffer-line-statistics) '(1000 50 50.0))))
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    (insert "123\n")
+    (should (approx-equal (buffer-line-statistics) '(1001 50 49.9))))
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    (insert "123\n")
+    (goto-char (point-max))
+    (insert "fóo")
+    (should (approx-equal (buffer-line-statistics) '(1002 50 49.9)))))
+
+(ert-deftest test-line-number-at-position ()
+  (with-temp-buffer
+    (insert (make-string 10 ?\n))
+    (should (= (line-number-at-pos (point)) 11))
+    (should (= (line-number-at-pos nil) 11))
+    (should-error (line-number-at-pos -1))
+    (should-error (line-number-at-pos 100))))
+
+(defun fns-tests-concat (&rest args)
+  ;; Dodge the byte-compiler's partial evaluation of `concat' with
+  ;; constant arguments.
+  (apply #'concat args))
+
+(ert-deftest fns-concat ()
+  (should (equal (fns-tests-concat) ""))
+  (should (equal (fns-tests-concat "") ""))
+  (should (equal (fns-tests-concat nil) ""))
+  (should (equal (fns-tests-concat []) ""))
+  (should (equal (fns-tests-concat [97 98]) "ab"))
+  (should (equal (fns-tests-concat '(97 98)) "ab"))
+  (should (equal (fns-tests-concat "ab" '(99 100) nil [101 102] "gh")
+                 "abcdefgh"))
+  (should (equal (fns-tests-concat "Ab" "\200" "cd") "Ab\200cd"))
+  (should (equal (fns-tests-concat "aB" "\200" "çd") "aB\200çd"))
+  (should (equal (fns-tests-concat "AB" (string-to-multibyte "\200") "cd")
+                 (string-to-multibyte "AB\200cd")))
+  (should (equal (fns-tests-concat "ab" '(#xe5) [255] "cd") "abåÿcd"))
+  (should (equal (fns-tests-concat '(#x3fffff) [#x3fff80] "xy") "\377\200xy"))
+  (should (equal (fns-tests-concat '(#x3fffff) [#x3fff80] "xy§") "\377\200xy§"))
+  (should (equal-including-properties
+           (fns-tests-concat #("abc" 0 3 (a 1)) #("de" 0 2 (a 1)))
+           #("abcde" 0 5 (a 1))))
+  (should (equal-including-properties
+           (fns-tests-concat #("abc" 0 3 (a 1)) "§ü" #("çå" 0 2 (b 2)))
+           #("abc§üçå" 0 3 (a 1) 5 7 (b 2))))
+  (should-error (fns-tests-concat "a" '(98 . 99))
+                :type 'wrong-type-argument)
+  (let ((loop (list 66 67)))
+    (setcdr (cdr loop) loop)
+    (should-error (fns-tests-concat "A" loop)
+                  :type 'circular-list)))
+
+(ert-deftest fns-vconcat ()
+  (should (equal (vconcat) []))
+  (should (equal (vconcat nil) []))
+  (should (equal (vconcat "") []))
+  (should (equal (vconcat [1 2 3]) [1 2 3]))
+  (should (equal (vconcat '(1 2 3)) [1 2 3]))
+  (should (equal (vconcat "ABC") [65 66 67]))
+  (should (equal (vconcat "ü§") [252 167]))
+  (should (equal (vconcat [1 2 3] nil '(4 5) "AB" "å"
+                          "\377" (string-to-multibyte "\377")
+                          (bool-vector t nil nil t nil))
+                 [1 2 3 4 5 65 66 #xe5 255 #x3fffff t nil nil t nil]))
+  (should-error (vconcat [1] '(2 . 3))
+                :type 'wrong-type-argument)
+  (let ((loop (list 1 2)))
+    (setcdr (cdr loop) loop)
+    (should-error (vconcat [1] loop)
+                  :type 'circular-list)))
+
+(ert-deftest fns-append ()
+  (should (equal (append) nil))
+  (should (equal (append 'tail) 'tail))
+  (should (equal (append [1 2 3] nil '(4 5) "AB" "å"
+                         "\377" (string-to-multibyte "\377")
+                          (bool-vector t nil nil t nil)
+                         '(9 10))
+                 '(1 2 3 4 5 65 66 #xe5 255 #x3fffff t nil nil t nil 9 10)))
+  (should (equal (append '(1 2) '(3 4) 'tail)
+                 '(1 2 3 4 . tail)))
+  (should-error (append '(1 . 2) '(3))
+                :type 'wrong-type-argument)
+  (let ((loop (list 1 2)))
+    (setcdr (cdr loop) loop)
+    (should-error (append loop '(end))
+                  :type 'circular-list)))
+
+(ert-deftest fns--string-to-unibyte-multibyte ()
+  (dolist (str (list "" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz" "\x80\xdd\xff"
+                     (apply #'unibyte-string (number-sequence 0 255))))
+    (ert-info ((prin1-to-string str) :prefix "str: ")
+      (should-not (multibyte-string-p str))
+      (let* ((u (string-to-unibyte str))   ; should be identity
+             (m (string-to-multibyte u))   ; lossless conversion
+             (mm (string-to-multibyte m))  ; should be identity
+             (uu (string-to-unibyte m))    ; also lossless
+             (ml (mapcar (lambda (c) (if (<= c #x7f) c (+ c #x3fff00))) u)))
+        (should-not (multibyte-string-p u))
+        (should (multibyte-string-p m))
+        (should (multibyte-string-p mm))
+        (should-not (multibyte-string-p uu))
+        (should (equal str u))
+        (should (equal m mm))
+        (should (equal str uu))
+        (should (equal (append m nil) ml)))))
+  (should-error (string-to-unibyte "å"))
+  (should-error (string-to-unibyte "ABC∀BC")))
+
+(defun fns-tests--take-ref (n list)
+  "Reference implementation of `take'."
+  (named-let loop ((m n) (tail list) (ac nil))
+    (if (and (> m 0) tail)
+        (loop (1- m) (cdr tail) (cons (car tail) ac))
+      (nreverse ac))))
+
+(ert-deftest fns--take-ntake ()
+  "Test `take' and `ntake'."
+  ;; Check errors and edge cases.
+  (should-error (take 'x '(a)))
+  (should-error (ntake 'x '(a)))
+  (should-error (take 1 'a))
+  (should-error (ntake 1 'a))
+  (should-error (take 2 '(a . b)))
+  (should-error (ntake 2 '(a . b)))
+  ;; Tolerate non-lists for a count of zero.
+  (should (equal (take 0 'a) nil))
+  (should (equal (ntake 0 'a) nil))
+  ;; But not non-numbers for empty lists.
+  (should-error (take 'x nil))
+  (should-error (ntake 'x nil))
+
+  (dolist (list '(nil (a) (a b) (a b c) (a b c d) (a . b) (a b . c)))
+    (ert-info ((prin1-to-string list) :prefix "list: ")
+      (let ((max (if (proper-list-p list)
+                     (+ 2 (length list))
+                   (safe-length list))))
+        (dolist (n (number-sequence -1 max))
+          (ert-info ((prin1-to-string n) :prefix "n: ")
+            (let* ((l (copy-tree list))
+                   (ref (fns-tests--take-ref n l)))
+              (should (equal (take n l) ref))
+              (should (equal l list))
+              (should (equal (ntake n l) ref))))))))
+
+  ;; Circular list.
+  (let ((list (list 'a 'b 'c)))
+    (setcdr (nthcdr 2 list) (cdr list)) ; list now (a b c b c b c ...)
+    (should (equal (take 0 list) nil))
+    (should (equal (take 1 list) '(a)))
+    (should (equal (take 2 list) '(a b)))
+    (should (equal (take 3 list) '(a b c)))
+    (should (equal (take 4 list) '(a b c b)))
+    (should (equal (take 5 list) '(a b c b c)))
+    (should (equal (take 10 list) '(a b c b c b c b c b)))
+
+    (should (equal (ntake 10 list) '(a b))))
+
+  ;; Bignum N argument.
+  (let ((list (list 'a 'b 'c)))
+    (should (equal (take (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (take (- most-negative-fixnum 1) list) nil))
+    (should (equal (ntake (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (ntake (- most-negative-fixnum 1) list) nil))
+    (should (equal list '(a b c)))))
+
+(ert-deftest fns--copy-alist ()
+  (dolist (orig '(nil
+                  ((a . 1) (b . 2) (a . 3))
+                  (a (b . 3) ((c) (d)))))
+    (ert-info ((prin1-to-string orig) :prefix "orig: ")
+      (let ((copy (copy-alist orig)))
+        (should (equal orig copy))
+        (while orig
+          (should-not (eq orig copy))
+          ;; Check that cons pairs are copied but nothing else.
+          (let ((orig-elt (car orig))
+                (copy-elt (car copy)))
+            (if (atom orig-elt)
+                (should (eq orig-elt copy-elt))
+              (should-not (eq orig-elt copy-elt))
+              (should (eq (car orig-elt) (car copy-elt)))
+              (should (eq (cdr orig-elt) (cdr copy-elt)))))
+          (setq orig (cdr orig))
+          (setq copy (cdr copy))))))
+
+  (should-error (copy-alist 'a)
+                :type 'wrong-type-argument)
+  (should-error (copy-alist [(a . 1) (b . 2) (a . 3)])
+                :type 'wrong-type-argument)
+  (should-error (copy-alist "abc")
+                :type 'wrong-type-argument))
+
+;;; fns-tests.el ends here

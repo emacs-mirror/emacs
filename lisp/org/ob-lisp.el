@@ -1,12 +1,12 @@
 ;;; ob-lisp.el --- Babel Functions for Common Lisp   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Authors: Joel Boehland
 ;;	 Eric Schulte
 ;;	 David T. O'Toole <dto@gnu.org>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -33,9 +33,13 @@
 ;; Requires SLY (Sylvester the Cat's Common Lisp IDE) or SLIME
 ;; (Superior Lisp Interaction Mode for Emacs).  See:
 ;; - https://github.com/capitaomorte/sly
-;; - http://common-lisp.net/project/slime/
+;; - https://common-lisp.net/project/slime/
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 
@@ -121,7 +125,5 @@ a property list containing the parameters of the block."
   (replace-regexp-in-string "#(" "(" results))
 
 (provide 'ob-lisp)
-
-
 
 ;;; ob-lisp.el ends here

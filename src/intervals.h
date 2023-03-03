@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993-1994, 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2000-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -251,7 +251,7 @@ extern void traverse_intervals_noorder (INTERVAL,
 					void (*) (INTERVAL, void *), void *);
 extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;
-extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t);
+extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t) ATTRIBUTE_RETURNS_NONNULL;
 extern INTERVAL find_interval (INTERVAL, ptrdiff_t);
 extern INTERVAL next_interval (INTERVAL);
 extern INTERVAL previous_interval (INTERVAL);

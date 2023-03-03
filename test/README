@@ -1,4 +1,4 @@
-Copyright (C) 2008-2020 Free Software Foundation, Inc.
+Copyright (C) 2008-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -6,6 +6,9 @@ Emacs's functionality.  Please help add tests!
 
 See the file file-organization.org for the details of the directory
 structure and file-naming conventions.
+
+For tests in the manual/ subdirectory, look there for separate README
+files, or look for instructions in the test files themselves.
 
 Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 "(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
@@ -19,10 +22,17 @@ following tags are recognized:
   to run on a regular basis by users.  Instead, it runs on demand
   only, or during regression tests.
 
+* :nativecomp
+  The test runs only if Emacs is configured with Lisp native compiler
+  support.
+
 * :unstable
   The test is under development.  It shall run on demand only.
 
-The Makefile in this directory supports the following targets:
+The Makefile sets the environment variable $EMACS_TEST_DIRECTORY,
+which points to this directory.  This environment variable does not
+exist when the tests are run outside make.  The Makefile supports the
+following targets:
 
 * make check
   Run all tests as defined in the directory.  Expensive and unstable
@@ -38,6 +48,11 @@ The Makefile in this directory supports the following targets:
 
 * make check-all
   Like "make check", but run all tests.
+
+* make check-<dirname>
+  Like "make check", but run only the tests in test/<dirname>/*.el.
+  <dirname> is a relative directory path, which has replaced "/" by "-",
+  like in "check-src" or "check-lisp-net".
 
 * make <filename>  -or-  make <filename>.log
   Run all tests declared in <filename>.el.  This includes expensive
@@ -55,7 +70,9 @@ https://www.gnu.org/software/emacs/manual/html_node/ert/Test-Selectors.html
 
 You could use predefined selectors of the Makefile.  "make <filename>
 SELECTOR='$(SELECTOR_DEFAULT)'" runs all tests for <filename>.el
-except the tests tagged as expensive or unstable.
+except the tests tagged as expensive or unstable.  Other predefined
+selectors are $(SELECTOR_EXPENSIVE) (run all tests except unstable
+ones) and $(SELECTOR_ALL) (run all tests).
 
 If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you
@@ -81,20 +98,34 @@ Some tests might take long time to run.  In order to summarize the
 
     make SUMMARIZE_TESTS=<nn> ...
 
+The backtrace of failing tests are truncated to the default value of
+'ert-batch-backtrace-right-margin'.  To see more of the backtrace, use
+
+    make TEST_BACKTRACE_LINE_LENGTH=<nn> ...
+
 The tests are run in batch mode by default; sometimes it's useful to
 get precisely the same environment but run in interactive mode for
 debugging.  To do that, use
 
     make TEST_INTERACTIVE=yes ...
 
-Some of the tests require a remote temporary directory
-(autorevert-tests.el, filenotify-tests.el, shadowfile-tests.el and
-tramp-tests.el).  Per default, a mock-up connection method is used
-(this might not be possible when running on MS Windows).  If you want
-to test a real remote connection, set $REMOTE_TEMPORARY_FILE_DIRECTORY
-to a suitable value in order to overwrite the default value:
+By default, ERT test failure summaries are quite brief in batch
+mode--only the names of the failed tests are listed.  If the
+$EMACS_TEST_VERBOSE environment variable is set and non-empty, the
+failure summaries will also include the data from the failing test.
 
-  env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
+If the $EMACS_TEST_JUNIT_REPORT environment variable is set to a file
+name, a JUnit test report is generated under this name.
+
+Some of the tests require a remote temporary directory
+(autorevert-tests.el, dnd-tests.el, eglot-tests.el, filenotify-tests.el,
+shadowfile-tests.el and tramp-tests.el).  Per default, a mock-up
+connection method is used (this might not be possible when running on
+MS Windows).  If you want to test a real remote connection, set
+$REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
+overwrite the default value:
+
+    env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
 
 
 There are also continuous integration tests on
@@ -107,8 +138,14 @@ these test environments.
 $EMACS_HYDRA_CI indicates the hydra environment, and $EMACS_EMBA_CI
 indicates the emba environment, respectively.
 
+If tests on these premises take too long, and it is needed to create a
+core dump for further analysis, the environment variable
+$EMACS_TEST_TIMEOUT could set a limit (in seconds) when this shall
+happen.
+
 
-(Also, see etc/compilation.txt for compilation mode font lock tests.)
+(Also, see etc/compilation.txt for compilation mode font lock tests
+and etc/grep.txt for grep mode font lock tests.)
 
 
 This file is part of GNU Emacs.

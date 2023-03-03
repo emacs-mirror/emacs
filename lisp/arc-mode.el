@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -51,17 +51,17 @@
 ;; ARCHIVE TYPES: Currently only the archives below are handled, but the
 ;; structure for handling just about anything is in place.
 ;;
-;;			Arc	Lzh	Zip	Zoo	Rar	7z	Ar
-;;			--------------------------------------------------
-;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y
-;; Extract member	Y	Y	Y	Y	Y	Y	Y
-;; Save changed member	Y	Y	Y	Y	N	Y	Y
-;; Add new member	N	N	N	N	N	N	N
-;; Delete member	Y	Y	Y	Y	N	Y	N
-;; Rename member	Y	Y	N	N	N	N	N
-;; Chmod		-	Y	Y	-	N	N	N
-;; Chown		-	Y	-	-	N	N	N
-;; Chgrp		-	Y	-	-	N	N	N
+;;			Arc	Lzh	Zip	Zoo	Rar	7z	Ar	Squashfs
+;;			---------------------------------------------------------------
+;; View listing		Intern	Intern	Intern	Intern	Y	Y	Y	Y
+;; Extract member	Y	Y	Y	Y	Y	Y	Y	Y
+;; Save changed member	Y	Y	Y	Y	N	Y	Y	N
+;; Add new member	N	N	N	N	N	N	N	N
+;; Delete member	Y	Y	Y	Y	N	Y	N	N
+;; Rename member	Y	Y	N	N	N	N	N	N
+;; Chmod		-	Y	Y	-	N	N	N	N
+;; Chown		-	Y	-	-	N	N	N	N
+;; Chgrp		-	Y	-	-	N	N	N	N
 ;;
 ;; Special thanks to Bill Brodie <wbrodie@panix.com> for very useful tips
 ;; on the first released version of this package.
@@ -101,6 +101,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Configuration.
@@ -124,8 +125,6 @@ A non-local file is one whose file name is not proper outside Emacs.
 A local copy of the archive will be used when updating."
   :type 'regexp)
 
-(define-obsolete-variable-alias 'archive-extract-hooks
-  'archive-extract-hook "24.3")
 (defcustom archive-extract-hook nil
   "Hook run when an archive member has been extracted."
   :type 'hook)
@@ -370,6 +369,24 @@ file.  Archive and member name will be added."
 		       :inline t
 		       (string :format "%v"))))
 
+;; ------------------------------
+;; Squashfs archive configuration
+
+(defgroup archive-squashfs nil
+  "Squashfs-specific options to archive."
+  :group 'archive)
+
+(defcustom archive-squashfs-extract '("rdsquashfs" "-c")
+  "Program and its options to run in order to extract a squashsfs file member.
+Extraction should happen to standard output.  Archive and member name will
+be added."
+  :type '(list (string :tag "Program")
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
+  :version "28.1"
+  :group 'archive-squashfs)
+
 ;; -------------------------------------------------------------------------
 ;;; Section: Variables
 
@@ -413,12 +430,8 @@ file.  Archive and member name will be added."
     ;; Let mouse-1 follow the link.
     (define-key map [follow-link] 'mouse-face)
 
-    (if (fboundp 'command-remapping)
-        (progn
-          (define-key map [remap advertised-undo] 'archive-undo)
-          (define-key map [remap undo] 'archive-undo))
-      (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
-      (substitute-key-definition 'undo 'archive-undo map global-map))
+    (define-key map [remap advertised-undo] #'archive-undo)
+    (define-key map [remap undo] #'archive-undo)
 
     (define-key map [mouse-2] 'archive-extract)
 
@@ -603,12 +616,8 @@ OLDMODE will be modified accordingly just like chmod(2) would have done."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let* ((time (list high low))
-	 (str (current-time-string time)))
-    (format "%s-%s-%s"
-	    (substring str 8 10)
-	    (substring str 4 7)
-	    (format-time-string "%Y" time))))
+  (let ((system-time-locale "C"))
+    (format-time-string "%e-%b-%Y" (list high low))))
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."
@@ -628,7 +637,7 @@ Does not signal an error if optional argument NOERROR is non-nil."
              (< no (length archive-files)))
 	(let ((item (aref archive-files no)))
 	  (if (and (archive--file-desc-p item)
-	           (let ((mode (archive--file-desc-mode item)))
+	           (let ((mode (or (archive--file-desc-mode item) 0)))
 	             (zerop (logand 16384 mode))))
 	      item
 	    (if (not noerror)
@@ -642,11 +651,11 @@ Does not signal an error if optional argument NOERROR is non-nil."
 (defun archive-mode (&optional force)
   "Major mode for viewing an archive file in a dired-like way.
 You can move around using the usual cursor motion commands.
-Letters no longer insert themselves.
-Type `e' to pull a file out of the archive and into its own buffer;
+Letters no longer insert themselves.\\<archive-mode-map>
+Type \\[archive-extract] to pull a file out of the archive and into its own buffer;
 or click mouse-2 on the file's line in the archive mode buffer.
 
-If you edit a sub-file of this archive (as with the `e' command) and
+If you edit a sub-file of this archive (as with the \\[archive-extract] command) and
 save it, the contents of that buffer will be saved back into the
 archive.
 
@@ -741,6 +750,7 @@ archive.
                 (re-search-forward "Rar!" (+ (point) 100000) t))
            'rar-exe)
 	  ((looking-at "7z\274\257\047\034") '7z)
+          ((looking-at "hsqs") 'squashfs)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 
@@ -1039,27 +1049,53 @@ return nil.  Otherwise point is returned."
       (archive-goto-file short))
     next))
 
-(defun archive-copy-file (file new-name)
-  "Copy FILE to a location specified by NEW-NAME.
-Interactively, FILE is the file at point, and the function prompts
-for NEW-NAME."
+(defun archive-copy-file (files new-name)
+  "Copy FILES to a location specified by NEW-NAME.
+FILES can be a single file or a list of files.
+
+Interactively, FILES is the list of marked files, or the file at
+point if nothing is marked, and the function prompts for
+NEW-NAME."
   (interactive
-   (let ((name (archive--file-desc-ext-file-name (archive-get-descr))))
-     (list name
-           (read-file-name (format "Copy %s to: " name)))))
-  (when (file-directory-p new-name)
-    (setq new-name (expand-file-name file new-name)))
-  (when (and (file-exists-p new-name)
-             (not (yes-or-no-p (format "%s already exists; overwrite? "
-                                       new-name))))
-    (user-error "Not overwriting %s" new-name))
-  (let* ((descr (archive-get-descr))
-         (archive (buffer-file-name))
-         (extractor (archive-name "extract"))
-         (ename (archive--file-desc-ext-file-name descr)))
-    (with-temp-buffer
-      (archive--extract-file extractor archive ename)
-      (write-region (point-min) (point-max) new-name))))
+   (let ((names
+          (mapcar
+           #'archive--file-desc-ext-file-name
+           (or (archive-get-marked ?*) (list (archive-get-descr))))))
+     (list names
+           (read-file-name (format "Copy %s to: " (string-join names ", "))
+                           nil default-directory))))
+  (unless (consp files)
+    (setq files (list files)))
+  (when (and (> (length files) 1)
+             (not (file-directory-p new-name)))
+    (user-error "Can't copy a list of files to a single file"))
+  (save-excursion
+    (dolist (file files)
+      (let* ((write-to (if (file-directory-p new-name)
+                           (expand-file-name file new-name)
+                         new-name))
+             (write-to-dir (file-name-directory write-to)))
+        (when (and (file-exists-p write-to)
+                   (not (yes-or-no-p (format "%s already exists; overwrite? "
+                                             write-to))))
+          (user-error "Not overwriting %s" write-to))
+        (unless (file-directory-p write-to-dir)
+          (make-directory write-to-dir t))
+        (archive-goto-file file)
+        (let* ((descr (archive-get-descr))
+               (archive (buffer-file-name))
+               (extractor (archive-name "extract"))
+               (ename (archive--file-desc-ext-file-name descr))
+               ;; If the archive is remote, we have to copy it to a
+               ;; local file first to make extraction work.
+               (copy (archive-maybe-copy archive)))
+          (unwind-protect
+              (with-temp-buffer
+                (set-buffer-multibyte nil)
+                (archive--extract-file extractor copy ename)
+                (write-region (point-min) (point-max) write-to))
+            (unless (equal copy archive)
+              (delete-file copy))))))))
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
@@ -1289,6 +1325,8 @@ for NEW-NAME."
 ;;; Section: IO stuff
 
 (defun archive-write-file-member ()
+  (unless (buffer-live-p archive-superior-buffer)
+    (error "The archive buffer no longer exists; can't save"))
   (save-excursion
     (save-restriction
       (message "Updating archive...")
@@ -1313,7 +1351,8 @@ for NEW-NAME."
   t)
 
 (defun archive-*-write-file-member (archive descr command)
-  (let* ((ename (archive--file-desc-ext-file-name descr))
+  (let* ((archive (expand-file-name archive))
+         (ename (archive--file-desc-ext-file-name descr))
          (tmpfile (expand-file-name ename archive-tmpdir))
          (top (directory-file-name (file-name-as-directory archive-tmpdir)))
 	 (default-directory (file-name-as-directory top)))
@@ -1337,6 +1376,7 @@ for NEW-NAME."
 	  (setq ename
 		(encode-coding-string ename archive-file-name-coding-system))
           (let* ((coding-system-for-write 'no-conversion)
+		 (default-directory (file-name-as-directory archive-tmpdir))
 		 (exitcode (apply #'call-process
 				  (car command)
 				  nil
@@ -1672,7 +1712,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		(= (get-byte p) ?\C-z)
 		(> (get-byte (1+ p)) 0))
       (let* ((namefld (buffer-substring (+ p 2) (+ p 2 13)))
-	     (fnlen   (or (string-match "\0" namefld) 13))
+	     (fnlen   (or (string-search "\0" namefld) 13))
 	     (efnname (decode-coding-string (substring namefld 0 fnlen)
 					    archive-file-name-coding-system))
              (csize   (archive-l-e (+ p 15) 4))
@@ -1724,7 +1764,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     neh	;beginning of next extension header (level 1 and 2)
 	     mode uid gid dir prname
 	     gname uname modtime moddate)
-	(if (= hdrlvl 3) (error "can't handle lzh level 3 header type"))
+        (if (= hdrlvl 3) (error "Can't handle lzh level 3 header type"))
 	(when (or (= hdrlvl 0) (= hdrlvl 1))
 	  (setq fnlen   (get-byte (+ p 21))) ;filename length
 	  (setq efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))	;filename from offset 22
@@ -2054,7 +2094,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (dirtype (get-byte (+ p 4)))
 	     (lfnlen  (if (= dirtype 2) (get-byte (+ p 56)) 0))
 	     (ldirlen (if (= dirtype 2) (get-byte (+ p 57)) 0))
-	     (fnlen   (or (string-match "\0" namefld) 13))
+	     (fnlen   (or (string-search "\0" namefld) 13))
 	     (efnname (let ((str
 			     (concat
 			      (if (> ldirlen 0)
@@ -2202,8 +2242,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; not the GNU nor the BSD extensions.  As it turns out, this is sufficient
 ;; for .deb packages.
 
-(autoload 'tar-grind-file-mode "tar-mode")
-
 (defconst archive-ar-file-header-re
   "\\(.\\{16\\}\\)\\([ 0-9]\\{12\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-7]\\{8\\}\\)\\([ 0-9]\\{10\\}\\)`\n")
 
@@ -2280,6 +2318,85 @@ NAME is expected to be the 16-bytes part of an ar record."
    descr
    '("ar" "r")))
 
+;; -------------------------------------------------------------------------
+;;; Section Squashfs archives.
+
+(defun archive-squashfs-summarize (&optional file)
+  (unless file
+    (setq file buffer-file-name))
+  (let ((copy (file-local-copy file))
+        (files ()))
+    (with-temp-buffer
+      (call-process "unsquashfs" nil t nil "-ll" (or file copy))
+      (when copy
+        (delete-file copy))
+      (goto-char (point-min))
+      (search-forward-regexp "[drwxl\\-]\\{10\\}")
+      (beginning-of-line)
+      (while (looking-at (concat
+                          "^\\(.[rwx\\-]\\{9\\}\\) " ;Mode
+                          "\\(.+\\)/\\(.+\\) "       ;user/group
+                          "\\(.+\\) "                ;size
+                          "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) " ;date
+                          "\\([0-9]\\{2\\}:[0-9]\\{2\\}\\) " ;time
+                          "\\(.+\\)\n"))                     ;Filename
+        (let* ((name (match-string 7))
+               (flags (match-string 1))
+               (uid (match-string 2))
+               (gid (match-string 3))
+               (size (string-to-number (match-string 4)))
+               (date (match-string 5))
+               (time (match-string 6))
+               (date-time)
+               (mode))
+          ;; Only list directory and regular files
+          (when (or (eq (aref flags 0) ?d)
+                    (eq (aref flags 0) ?-))
+            (when (equal name "squashfs-root")
+              (setf name "/"))
+            ;; Remove 'squashfs-root/' from filenames.
+            (setq name (string-replace "squashfs-root/" "" name))
+            (setq date-time (concat date " " time))
+            (setq mode (logior
+                        (cond
+                         ((eq (aref flags 0) ?d) #o40000)
+                         (t 0))
+                        ;; Convert symbolic to octal representation.
+                        (file-modes-symbolic-to-number
+                         (concat
+                          "u=" (string-replace "-" "" (substring flags 1 4))
+                          ",g=" (string-replace "-" "" (substring flags 4 7))
+                          ",o=" (string-replace "-" ""
+                                                (substring flags 7 10))))))
+            (push (archive--file-desc name name mode size
+                                      date-time :uid uid :gid gid)
+                  files)))
+        (goto-char (match-end 0))))
+    (archive--summarize-descs (nreverse files))))
+
+(defun archive-squashfs-extract-by-stdout (archive name command
+                                                   &optional stderr-test)
+  (let ((stderr-file (make-temp-file "arc-stderr")))
+    (unwind-protect
+	(prog1
+	    (apply #'call-process
+		   (car command)
+		   nil
+		   (if stderr-file (list t stderr-file) t)
+		   nil
+		   (append (cdr command) (list name archive)))
+	  (with-temp-buffer
+	    (insert-file-contents stderr-file)
+	    (goto-char (point-min))
+	    (when (if (stringp stderr-test)
+		      (not (re-search-forward stderr-test nil t))
+		    (> (buffer-size) 0))
+	      (message "%s" (buffer-string)))))
+      (if (file-exists-p stderr-file)
+          (delete-file stderr-file)))))
+
+(defun archive-squashfs-extract (archive name)
+  (archive-squashfs-extract-by-stdout archive name archive-squashfs-extract))
 
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.

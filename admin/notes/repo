@@ -42,6 +42,24 @@ yet another fun excursion into the exciting world of version control.
 
 https://lists.gnu.org/r/emacs-devel/2010-04/msg00086.html
 
+* feature and scratch branches
+
+Besides the master branch, which is where development takes place, and
+the "emacs-NN" release branches, we also have branches whose names
+start with "scratch/" and "feature/".  The "feature/" prefix is used
+for feature branches that are intended to live for some time, while
+"scratch/" is for one-off throw-away-after-use branches.
+
+We do not intend to "git merge" from scratch branches, so force-pushes
+are tolerated, as well as commits with poor style, incomplete commit
+messages, etc.
+
+We do expect to "git merge" from feature branches so: no force push,
+and no commits that don't have a proper commit message.
+
+Automatic tests are run for feature/* branches on EMBA.
+See: https://emba.gnu.org/emacs/emacs/-/pipelines
+
 * Installing changes from gnulib
 
 Some of the files in Emacs are copied from gnulib.  To synchronize
@@ -110,6 +128,14 @@ again.
 This is a semi-automated way to find the revision that introduced a bug.
 Browse 'git help bisect' for technical instructions.
 
+It is recommended to start a bisection with the admin/git-bisect-start
+script.  Using that script ensures that commits in branches that are
+the result of merging external trees into the Emacs repository, as
+well as certain commits on which Emacs fails to build, are skipped
+during the bisection process.  That script can also be executed
+automatically when 'git bisect start' is called, with the help of a
+wrapper script that is included in its commentary section.
+
 * Maintaining ChangeLog history
 
 Older ChangeLog entries are kept in history files named ChangeLog.1,
@@ -124,6 +150,11 @@ This ChangeLog file is not put into the repository.
 'make change-history' copies all newer ChangeLog entries into the
 start of the newest ChangeLog history file.  These ChangeLog entries
 are thereafter considered to be old, so later uses of 'make ChangeLog'
-and/or 'make change-history' will no longer copy the entries.  To
-alter ChangeLog history, run 'make change-history', then edit
-the ChangeLog history files manually and commit your changes.
+and/or 'make change-history' will no longer copy the entries.
+
+To alter ChangeLog history, run 'make change-history' and commit the
+changes made by that command.  Then edit the ChangeLog history files
+manually and commit those changes in a second, distinct commit.
+Altering ChangeLog history like this can make things harder for those
+who handle merging branches and Emacs releases, so reserve it for
+correcting more serious mistakes.

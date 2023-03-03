@@ -1,5 +1,5 @@
 /* Input event support for Emacs on the Microsoft Windows API.
-   Copyright (C) 1992-1993, 1995, 2001-2020 Free Software Foundation,
+   Copyright (C) 1992-1993, 1995, 2001-2023 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -420,7 +420,7 @@ w32_console_mouse_position (struct frame **f,
   *f = get_frame ();
   *bar_window = Qnil;
   *part = scroll_bar_above_handle;
-  SELECTED_FRAME ()->mouse_moved = 0;
+  (*f)->mouse_moved = 0;
 
   XSETINT (*x, movement_pos.X);
   XSETINT (*y, movement_pos.Y);
@@ -436,7 +436,8 @@ mouse_moved_to (int x, int y)
   /* If we're in the same place, ignore it.  */
   if (x != movement_pos.X || y != movement_pos.Y)
     {
-      SELECTED_FRAME ()->mouse_moved = 1;
+      struct frame *f = get_frame ();
+      f->mouse_moved = 1;
       movement_pos.X = x;
       movement_pos.Y = y;
       movement_time = GetTickCount ();
@@ -470,11 +471,14 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   DWORD but_change, mask, flags = event->dwEventFlags;
   int i;
 
+  /* Mouse didn't move unless MOUSE_MOVED says it did.  */
+  struct frame *f = get_frame ();
+  f->mouse_moved = 0;
+
   switch (flags)
     {
     case MOUSE_MOVED:
       {
-	struct frame *f = get_frame ();
 	Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
 	int mx = event->dwMousePosition.X, my = event->dwMousePosition.Y;
 
@@ -533,7 +537,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
     case MOUSE_WHEELED:
     case MOUSE_HWHEELED:
       {
-	struct frame *f = get_frame ();
 	/* Mouse positions in console wheel events are reported to
 	   ReadConsoleInput relative to the display's top-left
 	   corner(!), not relative to the origin of the console screen
@@ -585,10 +588,9 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 
       int x = event->dwMousePosition.X;
       int y = event->dwMousePosition.Y;
-      struct frame *f = get_frame ();
-      if (tty_handle_tab_bar_click (f, x, y, (button_state & mask) != 0,
-				    emacs_ev))
-	return 0;	/* tty_handle_tab_bar_click adds the event to queue */
+      emacs_ev->arg = tty_handle_tab_bar_click (f, x, y,
+						(button_state & mask) != 0,
+						emacs_ev);
 
       emacs_ev->modifiers |= ((button_state & mask)
 			      ? down_modifier : up_modifier);
@@ -597,7 +599,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
       XSETFASTINT (emacs_ev->x, x);
       XSETFASTINT (emacs_ev->y, y);
       XSETFRAME (emacs_ev->frame_or_window, f);
-      emacs_ev->arg = Qnil;
 
       return 1;
     }
@@ -608,9 +609,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 {
   struct frame *f = get_frame ();
 
-  change_frame_size (f, event->dwSize.X, event->dwSize.Y
-		     - FRAME_MENU_BAR_LINES (f)
-		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
+  change_frame_size (f, event->dwSize.X, event->dwSize.Y, false, true, false);
   SET_FRAME_GARBAGED (f);
 }
 
@@ -624,11 +623,9 @@ maybe_generate_resize_event (void)
 
   /* It is okay to call this unconditionally, since it will do nothing
      if the size hasn't actually changed.  */
-  change_frame_size (f,
-		     1 + info.srWindow.Right - info.srWindow.Left,
-		     1 + info.srWindow.Bottom - info.srWindow.Top
-		     - FRAME_MENU_BAR_LINES (f)
-		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
+  change_frame_size (f, 1 + info.srWindow.Right - info.srWindow.Left,
+		     1 + info.srWindow.Bottom - info.srWindow.Top,
+		     false, true, false);
 }
 
 #if HAVE_W32NOTIFY
@@ -651,7 +648,7 @@ handle_file_notifications (struct input_event *hold_quit)
       ns = NULL;
 
       /* Find out if there is a record available in the linked list of
-	 notifications sets.  If so, unlink te set from the linked list.
+	 notifications sets.  If so, unlink the set from the linked list.
 	 Use the critical section.  */
       enter_crit ();
       if (notifications_set_head->next != notifications_set_head)

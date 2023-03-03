@@ -1,6 +1,6 @@
 ;;; pcmpl-x.el --- completion for miscellaneous tools  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: processes, tools, convenience
@@ -21,13 +21,31 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 (require 'pcomplete)
 
+;;; TeX
 
-;;;; tlmgr - http://www.tug.org/texlive/tlmgr.html
+;;;###autoload
+(defun pcomplete/tex ()
+  "Completion for the `tex' command."
+  (pcomplete-here-using-help "tex --help"
+                             :margin "^\\(?:\\[-no\\]\\)?\\(\\)-"))
+;;;###autoload(defalias 'pcomplete/pdftex 'pcomplete/tex)
+;;;###autoload(defalias 'pcomplete/latex 'pcomplete/tex)
+;;;###autoload(defalias 'pcomplete/pdflatex 'pcomplete/tex)
+
+;;;###autoload
+(defun pcomplete/luatex ()
+  "Completion for the `luatex' command."
+  (pcomplete-here-using-help "luatex --help"))
+;;;###autoload(defalias 'pcomplete/lualatex 'pcomplete/luatex)
+
+;;;; tlmgr - https://www.tug.org/texlive/tlmgr.html
 
 (defcustom pcmpl-x-tlmgr-program "tlmgr"
   "Name of the tlmgr program."
@@ -140,8 +158,14 @@
         (unless (pcomplete-match "^--" 0)
           (pcomplete-here* (pcomplete-dirs-or-entries)))))))
 
+;;; Grep-like tools
 
-;;;; ack - http://betterthangrep.com
+;;;###autoload
+(defun pcomplete/rg ()
+  "Completion for the `rg' command."
+  (pcomplete-here-using-help "rg --help"))
+
+;;;; ack - https://betterthangrep.com
 
 ;; Usage:
 ;;   - To complete short options type '-' first
@@ -286,6 +310,8 @@ long options."
                                     (pcmpl-x-ag-options))))
       (pcomplete-here* (pcomplete-dirs-or-entries)))))
 
+;;; Borland
+
 ;;;###autoload
 (defun pcomplete/bcc32 ()
   "Completion function for Borland's C++ compiler."
@@ -301,7 +327,8 @@ long options."
          "nst" "ntd" "nto" "nvf" "obi" "obs" "ofp" "osh" "ovf" "par"
          "pch" "pck" "pia" "pin" "pow" "prc" "pre" "pro" "rch" "ret"
          "rng" "rpt" "rvl" "sig" "spa" "stl" "stu" "stv" "sus" "tai"
-         "tes" "thr" "ucp" "use" "voi" "zdi") (match-string 2 cur)))
+         "tes" "thr" "ucp" "use" "voi" "zdi")
+       (match-string 2 cur)))
      ((string-match "\\`-[LIn]\\([^;]+;\\)*\\([^;]*\\)\\'" cur)
       (pcomplete-here (pcomplete-dirs) (match-string 2 cur)))
      ((string-match "\\`-[Ee]\\(.*\\)\\'" cur)
@@ -317,6 +344,25 @@ long options."
 
 ;;;###autoload
 (defalias 'pcomplete/bcc 'pcomplete/bcc32)
+
+;;; Network tools
+
+;;;###autoload
+(defun pcomplete/rclone ()
+  "Completion for the `rclone' command."
+  (let ((subcmds (pcomplete-from-help "rclone help"
+                                      :margin "^  "
+                                      :argument "[a-z]+"
+                                      :narrow-start "\n\n")))
+    (while (not (member (pcomplete-arg 1) subcmds))
+      (pcomplete-here (completion-table-merge
+                       subcmds
+                       (pcomplete-from-help "rclone help flags"))))
+    (let ((subcmd (pcomplete-arg 1)))
+      (while (if (pcomplete-match "\\`-" 0)
+                 (pcomplete-here (pcomplete-from-help
+                                  `("rclone" ,subcmd "--help")))
+               (pcomplete-here (pcomplete-entries)))))))
 
 (provide 'pcmpl-x)
 ;;; pcmpl-x.el ends here

@@ -1,7 +1,7 @@
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 The following icons were created by Nick Roberts <nickrob@snap.net.nz>.
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2023 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
   break.pbm, nexti.pbm, go.pbm, pp.pbm, print.pbm, pstar.pbm, remove.pbm
@@ -13,10 +13,10 @@ License: GNU General Public License version 3 or later (see COPYING)
 
 Some icons are derived from Red Hat's Insight Debugger:
 
-<http://sourceware.org/insight/>
+<https://sourceware.org/insight/>
 "Insight is a graphical user interface to GDB, the GNU Debugger"
 
-<http://sourceware.org/insight/aboutus.php>
+<https://sourceware.org/insight/aboutus.php>
 "Insight is being released under the terms of the GNU General Public
 License (GPL)"
 
@@ -31,7 +31,7 @@ their copyright assignment included the icons.
 The following icons are converted from the Insight Windows style icon
 set in src/gdb/gdbtk/library/images2.
 
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2021 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
   cont.pbm and cont.xpm were converted from continue.gif
@@ -47,7 +47,7 @@ License: GNU General Public License version 3 or later (see COPYING)
 The following icons are created from the Insight Windows style icon
 set in src/gdb/gdbtk/library/images2.
 
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2021 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
   rcont.xpm rfinish.xpm

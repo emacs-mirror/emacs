@@ -1,6 +1,6 @@
-;;; ede/generic.el --- Base Support for generic build systems
+;;; ede/generic.el --- Base Support for generic build systems  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -93,7 +93,7 @@
    )
   "User Configuration object for a generic project.")
 
-(defun ede-generic-load (dir &optional rootproj)
+(defun ede-generic-load (dir &optional _rootproj)
   "Return a Generic Project object if there is a match.
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
@@ -137,7 +137,7 @@ subclasses of this base target will override the default value.")
 			       ede-project-with-config-program
 			       ede-project-with-config-c
 			       ede-project-with-config-java)
-  ((config-class :initform ede-generic-config)
+  ((config-class :initform 'ede-generic-config)
    (config-file-basename :initform "EDEConfig.el")
    (buildfile :initform ""
 	      :type string
@@ -149,7 +149,7 @@ The class allocated value is replace by different sub classes.")
   :abstract t)
 
 (cl-defmethod initialize-instance ((this ede-generic-project)
-				&rest fields)
+				   &rest _fields)
   "Make sure the targets slot is bound."
   (cl-call-next-method)
   (unless (slot-boundp this 'targets)
@@ -161,7 +161,7 @@ The class allocated value is replace by different sub classes.")
   this)
 
 (cl-defmethod ede-find-subproject-for-directory ((proj ede-generic-project)
-					      dir)
+					         _dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
 
@@ -258,8 +258,8 @@ If one doesn't exist, create a new one for this directory."
 INTERNAL-NAME is obsolete and ignored.
 EXTERNAL-NAME is a human readable name to describe the project; it
 must be unique among all autoloaded projects.
-PROJECTFILE is a file name that identifies a project of this type to EDE, such as
-a Makefile, or SConstruct file.
+PROJECTFILE is a file name that identifies a project of this type to EDE, such
+as a Makefile, or SConstruct file.
 CLASS is the EIEIO class that is used to track this project.  It should subclass
 `ede-generic-project'."
   (ede-add-project-autoload
@@ -324,7 +324,7 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
    )
   "Generic Project for makefiles.")
 
-(cl-defmethod ede-generic-setup-configuration ((proj ede-generic-makefile-project) config)
+(cl-defmethod ede-generic-setup-configuration ((_proj ede-generic-makefile-project) config)
   "Setup a configuration for Make."
   (oset config build-command "make -k")
   (oset config debug-command "gdb ")
@@ -337,7 +337,7 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
    )
   "Generic Project for scons.")
 
-(cl-defmethod ede-generic-setup-configuration ((proj ede-generic-scons-project) config)
+(cl-defmethod ede-generic-setup-configuration ((_proj ede-generic-scons-project) config)
   "Setup a configuration for SCONS."
   (oset config build-command "scons")
   (oset config debug-command "gdb ")
@@ -350,7 +350,7 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
    )
   "Generic Project for cmake.")
 
-(cl-defmethod ede-generic-setup-configuration ((proj ede-generic-cmake-project) config)
+(cl-defmethod ede-generic-setup-configuration ((_proj ede-generic-cmake-project) config)
   "Setup a configuration for CMake."
   (oset config build-command "cmake")
   (oset config debug-command "gdb ")
@@ -361,9 +361,9 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
   ()
   "Generic project found via Version Control files.")
 
-(cl-defmethod ede-generic-setup-configuration ((proj ede-generic-vc-project) config)
+(cl-defmethod ede-generic-setup-configuration ((_proj ede-generic-vc-project) _config)
   "Setup a configuration for projects identified by revision control."
-  )
+  nil)
 
 (provide 'ede/generic)
 

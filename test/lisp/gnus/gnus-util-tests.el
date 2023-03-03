@@ -1,14 +1,14 @@
 ;;; gnus-util-tests.el --- Selectived tests only.  -*- lexical-binding:t -*-
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -132,41 +132,4 @@
   (should (equal '("1") (gnus-setdiff '(2 "1" 2) '(2))))
   (should (equal '("1" "1") (gnus-setdiff '(2 "1" 2 "1") '(2)))))
 
-(ert-deftest gnus-base64-repad ()
-  (should-error (gnus-base64-repad 1)
-                :type 'wrong-type-argument)
-
-  ;; RFC4648 test vectors
-  (should (equal "" (gnus-base64-repad "")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg==")))
-  (should (equal "Zm8=" (gnus-base64-repad "Zm8=")))
-  (should (equal "Zm9v" (gnus-base64-repad "Zm9v")))
-  (should (equal "Zm9vYg==" (gnus-base64-repad "Zm9vYg==")))
-  (should (equal "Zm9vYmE=" (gnus-base64-repad "Zm9vYmE=")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9vYmFy")))
-
-  (should (equal "Zm8=" (gnus-base64-repad "Zm8")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg")))
-  (should (equal "Zg==" (gnus-base64-repad "Zg====")))
-
-  (should-error (gnus-base64-repad " ")
-                :type 'error)
-  (should-error (gnus-base64-repad "Zg== ")
-                :type 'error)
-  (should-error (gnus-base64-repad "Z?\x00g==")
-                :type 'error)
-  ;; line-length
-  (should-error (gnus-base64-repad "Zg====" nil 4)
-                :type 'error)
-  ;; reject-newlines
-  (should-error (gnus-base64-repad "Zm9v\r\nYmFy" t)
-                :type 'error)
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9vYmFy" t)))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\nYmFy\n")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v\r\n YmFy\r\n")))
-  (should (equal "Zm9vYmFy" (gnus-base64-repad "Zm9v \r\n\tYmFy")))
-  (should-error (gnus-base64-repad "Zm9v\r\nYmFy" nil 3)
-                :type 'error))
-
-;;; gnustest-gnus-util.el ends here
+;;; gnus-util-tests.el ends here

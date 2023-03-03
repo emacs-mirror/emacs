@@ -1,6 +1,6 @@
 ;;; char-fold-tests.el --- Tests for char-fold.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -26,7 +26,7 @@
 
 (defun char-fold--random-word (n)
   (mapconcat (lambda (_) (string (+ 9 (random 117))))
-             (make-list n nil) ""))
+             (make-list n nil)))
 
 (defun char-fold--ascii-upcase (string)
   "Like `upcase' but acts on ASCII characters only."
