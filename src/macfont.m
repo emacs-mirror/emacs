@@ -2952,7 +2952,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
           offset = CGSizeMake (face->shadow_offset.x, face->shadow_offset.y);
           if (!face->shadow_color_defaulted_p)
             {
-              CGColorRef color = get_cgcolor (face->shadow_color, f);
+              CGColorRef color = get_cgcolor (face->shadow_color);
               CGContextSetShadowWithColor (context, offset, face->shadow_blur,
                                            color);
               CGColorRelease (color);
