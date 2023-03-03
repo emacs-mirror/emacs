@@ -36,28 +36,15 @@ boxes_for_gaussian (double sigma)
   return sizes;
 }
 
-v4f
-uc2f (v4uc v)
-{
-  return (v4f) {v[0] / 128.0f, v[1] / 128.0f, v[2] / 128.0f, v[3] / 128.0f};
-}
-
-v4uc
-f2uc (v4f v)
-{
-  return (v4uc) {v[0] * 128.0f, v[1] * 128.0f, v[2] * 128.0f, v[3] * 128.0f};
-}
-
-v4uc
-scaled_mult4 (v4uc v, float x)
-{
-  return f2uc (uc2f (v) * x);
-}
+#define uc2f(v) (__builtin_convertvector((v), v4f) / 128.0f)
+#define f2uc(v) (__builtin_convertvector((v) * 128.0f, v4uc))
+#define scaled_mult4(v,x) f2uc(uc2f((v))*x)
 
 static void
 box_blur_h (v4uc *s, v4uc *t, int w, int h, int r)
 {
   float iarr = 1.0f / (r + r + 1.0f);
+#pragma omp parallel for
   for (int i = 0; i < h; ++i)
     {
       int ti = i * w, li = ti, ri = ti + r;
@@ -87,6 +74,7 @@ static void
 box_blur_t (v4uc *s, v4uc *t, int w, int h, int r)
 {
   float iarr = 1.0f / (r + r + 1.0f);
+#pragma omp parallel for
   for (int i = 0; i < w; ++i)
     {
       int ti = i, li = ti, ri = ti+r*w;
