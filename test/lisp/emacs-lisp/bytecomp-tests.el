@@ -757,6 +757,15 @@ inner loops respectively."
         (bytecomp-test-identity 3)
       (error 'bad)
       (:success))                       ; empty handler
+
+    ;; `cond' miscompilation bug
+    (let ((fn (lambda (x)
+                (let ((y nil))
+                  (cond ((progn (setq x (1+ x)) (> x 10)) (setq y 'a))
+                        ((eq x 1) (setq y 'b))
+                        ((eq x 2) (setq y 'c)))
+                  (list x y)))))
+      (mapcar fn (bytecomp-test-identity '(0 1 2 3 10 11))))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

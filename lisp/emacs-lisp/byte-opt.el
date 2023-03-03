@@ -439,13 +439,12 @@ for speeding up processing.")
                               (byte-optimize-body (cdr clause) for-effect))))
                     clauses)))
 
-      ;; `unwind-protect' is a special form which here takes the shape
-      ;; (unwind-protect EXPR :fun-body UNWIND-FUN).
-      ;; We can treat it as if it were a plain function at this point,
-      ;; although there are specific optimizations possible.
-      ;; In particular, the return value of UNWIND-FUN is never used
-      ;; so its body should really be compiled for-effect, but we
-      ;; don't do that right now.
+      (`(unwind-protect ,protected-expr :fun-body ,unwind-fun)
+       ;; FIXME: The return value of UNWIND-FUN is never used so we
+       ;; could potentially optimise it for-effect, but we don't do
+       ;; that right no.
+       `(,fn ,(byte-optimize-form protected-expr for-effect)
+             :fun-body ,(byte-optimize-form unwind-fun)))
 
       (`(catch ,tag . ,exps)
        `(,fn ,(byte-optimize-form tag nil)

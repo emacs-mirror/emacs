@@ -4590,6 +4590,7 @@ Return (TAIL VAR TEST CASES), where:
         (if switch-prefix
             (progn
               (byte-compile-cond-jump-table (cdr switch-prefix) donetag)
+              (setq clause nil)
               (setq clauses (car switch-prefix)))
           (setq clause (car clauses))
           (cond ((or (eq (car clause) t)

@@ -4791,7 +4791,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	;; Trigger the unlock error.
 	(signal 'file-error `("Cannot remove lock file for" ,file)))
     ;; `userlock--handle-unlock-error' exists since Emacs 28.1.
-    (error (tramp-compat-funcall 'userlock--handle-unlock-error err))))
+    (error
+     (when create-lockfiles
+       (tramp-compat-funcall 'userlock--handle-unlock-error err)))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."
