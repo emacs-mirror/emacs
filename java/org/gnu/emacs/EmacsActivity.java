@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -38,7 +39,8 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.FrameLayout;
 
 public class EmacsActivity extends Activity
-  implements EmacsWindowAttachmentManager.WindowConsumer
+  implements EmacsWindowAttachmentManager.WindowConsumer,
+  ViewTreeObserver.OnGlobalLayoutListener
 {
   public static final String TAG = "EmacsActivity";
 
@@ -180,6 +182,8 @@ public class EmacsActivity extends Activity
   {
     FrameLayout.LayoutParams params;
     Intent intent;
+    View decorView;
+    ViewTreeObserver observer;
 
     /* See if Emacs should be started with -Q.  */
     intent = getIntent ();
@@ -203,7 +207,27 @@ public class EmacsActivity extends Activity
     /* Add this activity to the list of available activities.  */
     EmacsWindowAttachmentManager.MANAGER.registerWindowConsumer (this);
 
+    /* Start observing global layout changes between Jelly Bean and Q.
+       This is required to restore the fullscreen state whenever the
+       on screen keyboard is displayed, as there is otherwise no way
+       to determine when the on screen keyboard becomes visible.  */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
+	&& Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
+      {
+	decorView = getWindow ().getDecorView ();
+	observer = decorView.getViewTreeObserver ();
+	observer.addOnGlobalLayoutListener (this);
+      }
+
     super.onCreate (savedInstanceState);
+  }
+
+  @Override
+  public final void
+  onGlobalLayout ()
+  {
+    syncFullscreenWith (window);
   }
 
   @Override
@@ -348,22 +372,20 @@ public class EmacsActivity extends Activity
 
 	if (isFullscreen)
 	  {
-	    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-	      /* This flag means that Emacs will be full screen, but
-		 the system will cancel the full screen state upon
-		 switching to another program.  */
-	      view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_FULLSCREEN);
-	    else
+	    flags = 0;
+	    flags |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
 	      {
 		/* These flags means that Emacs will be full screen as
 		   long as the state flag is set.  */
-		flags = 0;
-		flags |= View.SYSTEM_UI_FLAG_FULLSCREEN;
 		flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 		flags |= View.SYSTEM_UI_FLAG_IMMERSIVE;
 		flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-		view.setSystemUiVisibility (flags);
 	      }
+
+	    /* Apply the given flags.  */
+	    view.setSystemUiVisibility (flags);
 	  }
 	else
 	  view.setSystemUiVisibility (View.SYSTEM_UI_FLAG_VISIBLE);

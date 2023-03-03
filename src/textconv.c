@@ -115,6 +115,25 @@ get_mark (void)
   return -1;
 }
 
+/* Like Fselect_window.  However, if WINDOW is a mini buffer window
+   but not the active minibuffer window, select its frame's selected
+   window instead.  */
+
+static void
+select_window (Lisp_Object window, Lisp_Object norecord)
+{
+  struct window *w;
+
+  w = XWINDOW (window);
+
+  if (MINI_WINDOW_P (w)
+      && WINDOW_LIVE_P (window)
+      && !EQ (window, Factive_minibuffer_window ()))
+    window = WINDOW_XFRAME (w)->selected_window;
+
+  Fselect_window (window, norecord);
+}
+
 /* Perform the text conversion operation specified in QUERY and return
    the results.
 
@@ -153,9 +172,9 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window ((WINDOW_LIVE_P (f->old_selected_window)
-		   ? f->old_selected_window
-		   : f->selected_window), Qt);
+  select_window ((WINDOW_LIVE_P (f->old_selected_window)
+		  ? f->old_selected_window
+		  : f->selected_window), Qt);
 
   /* Now find the appropriate text bounds for QUERY.  First, move
      point QUERY->position steps forward or backwards.  */
@@ -526,7 +545,7 @@ static void
 restore_selected_window (Lisp_Object window)
 {
   /* FIXME: not sure what to do if WINDOW has been deleted.  */
-  Fselect_window (window, Qt);
+  select_window (window, Qt);
 }
 
 /* Commit the given text in the composing region.  If there is no
@@ -552,7 +571,7 @@ really_commit_text (struct frame *f, EMACS_INT position,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
 
   /* Now detect whether or not there is a composing region.
      If there is, then replace it with TEXT.  Don't do that
@@ -703,7 +722,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
   w = XWINDOW (f->old_selected_window);
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
 
   /* Now set up the composition region if necessary.  */
 
@@ -824,7 +843,7 @@ really_set_composing_region (struct frame *f, ptrdiff_t start,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
 
   /* Now set up the composition region if necessary.  */
 
@@ -873,7 +892,7 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
 
   /* Figure out where to start deleting from.  */
 
@@ -963,7 +982,7 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
 
   if (point == PT)
     {
@@ -1475,7 +1494,7 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
 
   /* Temporarily switch to F's selected window at the time of the last
      redisplay.  */
-  Fselect_window (f->old_selected_window, Qt);
+  select_window (f->old_selected_window, Qt);
   buffer = NULL;
 
   /* Figure out the bounds of the text to return.  */
