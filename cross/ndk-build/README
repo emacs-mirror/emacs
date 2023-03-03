@@ -75,6 +75,7 @@ for each ``Android.mk'' file found by ndk_INIT, with the following
 variables given to Make:
 
     EMACS_SRCDIR=.  # the source directory (in which configure is running)
+    BUILD_AUXDIR=$ndk_AUX_DIR # the build-aux directory
     EMACS_ABI=$ndk_ABI # this is the $android_abi given to ndk_INIT
     ANDROID_MAKEFILE="/opt/android/libpng/Android.mk"
     ANDROID_MODULE_DIRECTORY="/opt/android/libpng"
