@@ -182,7 +182,7 @@ that could not be found in the list of directories specified in \
 }
 
 # Look for a suitable ar in the same directory as the C compiler.
-ndk_cc_firstword=`AS_ECHO([$CC]) | cut -d' ' -f1`
+ndk_cc_firstword=`AS_ECHO(["$CC"]) | cut -d' ' -f1`
 ndk_where_cc=`which $ndk_cc_firstword`
 ndk_ar_search_path=$PATH
 

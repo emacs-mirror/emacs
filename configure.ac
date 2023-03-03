@@ -172,6 +172,7 @@ if test "$XCONFIGURE" = "android"; then
   # Make sure to pass through the CFLAGS, as older versions of the
   # NDK require them to be able to find system includes.
   with_ndk_path="$android_ndk_path"
+  with_ndk_cxx_shared="$android_ndk_cxx_shared"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],\
            [$ANDROID_CFLAGS])
 fi
@@ -1150,9 +1151,11 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-imagemagick=$with_imagemagick"
   passthrough="$passthrough --with-lcms2=$with_lcms2"
 
-  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC" \
-         ANDROID_SDK="$android_sdk" android_abi=$android_abi \
-	 android_ndk_path="$with_ndk_path" $0 $passthrough], [],
+  AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC"		\
+         ANDROID_SDK="$android_sdk" android_abi=$android_abi	\
+	 android_ndk_path="$with_ndk_path"		     	\
+	 android_ndk_cxx_shared="$with_ndk_cxx_shared"	     	\
+	 $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
   # Now set ANDROID to yes.
