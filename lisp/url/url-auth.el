@@ -100,7 +100,10 @@ instead of the filename inheritance method."
 			     (setq retval
 				   (base64-encode-string
 				    (format "%s:%s" user
-					    (encode-coding-string pass 'utf-8))
+                                            (if pass
+					        (encode-coding-string pass
+                                                                      'utf-8)
+                                              ""))
                                     t))))
 		 (symbol-value url-basic-auth-storage))))
      (byserv
