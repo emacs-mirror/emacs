@@ -6862,10 +6862,9 @@ are not included."
 
 (defun message-setup-1 (headers &optional yank-action actions return-action)
   (dolist (action actions)
-    (condition-case nil
-        ;; FIXME: Use functions rather than expressions!
-	(add-to-list 'message-send-actions
-		     `(apply #',(car action) ',(cdr action)))))
+    ;; FIXME: Use functions rather than expressions!
+    (add-to-list 'message-send-actions
+		 `(apply #',(car action) ',(cdr action))))
   (setq message-return-action return-action)
   (setq message-reply-buffer
 	(if (and (consp yank-action)

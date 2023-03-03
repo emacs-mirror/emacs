@@ -1651,7 +1651,7 @@ This function does not do any hidden buffer changes."
 	;; comment, but XEmacs doesn't.  We depend on the Emacs
 	;; behavior (which also is symmetric).
 	(if (and (eolp) (elt (parse-partial-sexp start (point)) 7))
-	    (condition-case nil (forward-char 1)))
+	    (forward-char 1))
 
 	t))))
 
