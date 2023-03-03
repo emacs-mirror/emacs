@@ -661,7 +661,6 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (setq-local icomplete-hide-common-prefix nil
               ;; Ask `icomplete-completions' to return enough completions candidates.
               icomplete-prospects-height 25
-              truncate-lines t
               redisplay-adhoc-scroll-in-resize-mini-windows nil))
 
 ;;;###autoload
