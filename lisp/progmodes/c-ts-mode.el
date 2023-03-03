@@ -78,6 +78,7 @@
 (declare-function treesit-node-child-by-field-name "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-first-child-for-pos "treesit.c")
 
 ;;; Custom variables
 
@@ -108,7 +109,8 @@ just toggles it when zero or left out."
 
 (defun c-ts-mode-set-modeline ()
   (setq mode-name
-        (concat (if (eq major-mode 'c-ts-mode) "C" "C++") comment-start))
+        (concat (if (eq major-mode 'c-ts-mode) "C" "C++")
+                (string-trim-right comment-start)))
   (force-mode-line-update))
 
 (defun c-ts-mode--indent-style-setter (sym val)
@@ -280,12 +282,19 @@ PARENT and BOL are like other anchor functions."
               (or (treesit-node-prev-sibling node t)
                   (treesit-node-prev-sibling
                    (treesit-node-first-child-for-pos parent bol) t)
-                  (treesit-node-child parent -1 t))))
-    (while (and prev-sibling
-                (equal "labeled_statement"
-                       (treesit-node-type prev-sibling)))
-      ;; The 0th child is the label, the 1th the colon.
-      (setq prev-sibling (treesit-node-child prev-sibling 2)))
+                  (treesit-node-child parent -1 t)))
+             (continue t))
+    (while (and prev-sibling continue)
+      (pcase (treesit-node-type prev-sibling)
+        ;; Get the statement in the label.
+        ("labeled_statement"
+         (setq prev-sibling (treesit-node-child prev-sibling 2)))
+        ;; Get the last statement in the preproc.  Tested by
+        ;; "Prev-Sibling When Prev-Sibling is Preproc" test.
+        ((or "preproc_if" "preproc_ifdef" "preproc_elif" "preproc_else")
+         (setq prev-sibling (treesit-node-child prev-sibling -2)))
+        ;; Don't do anything special.
+        (_ (setq continue nil))))
     ;; This could be nil if a) there is no prev-sibling or b)
     ;; prev-sibling doesn't have a child.
     (treesit-node-start prev-sibling)))
