@@ -44,6 +44,8 @@ for file in $with_ndk_path; do
   fi
 done
 
+AC_REQUIRE_AUX_FILE([ndk-build-helper.mk])
+ndk_AUX_DIR=$ac_aux_dir
 ndk_ABI=$1
 ndk_MODULES=
 ndk_MAKEFILES=
@@ -53,29 +55,14 @@ ndk_DIR=$3
 ndk_ANY_CXX=
 ndk_BUILD_CFLAGS="$4"
 
-case "$ndk_ABI" in
- *arm64* )
-   ndk_ARCH=arm64
-   ;;
- *arm* )
-   ndk_ARCH=arm
-   ;;
- *x86_64* )
-   ndk_ARCH=x86_64
-   ;;
- *x86* )
-   ndk_ARCH=x86
-   ;;
- *mips64* )
-   ndk_ARCH=mips64
-   ;;
- *mips* )
-   ndk_ARCH=mips
-   ;;
- * )
-   AC_MSG_ERROR([Failed to determine Android device architecture])
-   ;;
-esac
+AS_CASE(["$ndk_ABI"],
+  [*arm64*], [ndk_ARCH=arm64],
+  [*arm*], [ndk_ARCH=arm],
+  [*x86_64*], [ndk_ARCH=x86_64],
+  [*x86*], [ndk_ARCH=x86],
+  [*mips64*], [ndk_ARCH=mips64],
+  [*mips*], [ndk_ARCH=mips],
+  [AC_MSG_ERROR([Failed to determine Android device architecture])])
 
 # This is a map between pkg-config style package names and Android
 # ones.
@@ -89,14 +76,36 @@ ndk_package_map="$ndk_package_map MagickWand:libmagickwand-7 lcms2:liblcms2"
 
 ndk_replace_pkg_config_package () {
   for ndk_stuff in $ndk_package_map; do
-    ndk_key=${ndk_stuff%%:*}
-    ndk_value=${ndk_stuff#*:}
+    ndk_key=`AS_ECHO([$ndk_stuff]) | cut -d: -f1`
+    ndk_value=`AS_ECHO([$ndk_stuff]) | cut -d: -f2`
 
     if test "$ndk_key" = "$ndk_module"; then
       ndk_module="$ndk_value"
       break
     fi
   done
+}
+
+# Run the Makefile helper script for the Android.mk file.
+
+ndk_run_test () {
+  # Figure out where the helper Makefile is.
+  ndk_build_helper_file="${ndk_AUX_DIR}ndk-build-helper.mk"
+  ndk_module_extract_awk="${ndk_AUX_DIR}ndk-module-extract.awk"
+  ndk_dir=`AS_DIRNAME([$ndk_android_mk])`
+
+  # Now call Make with the right arguments.
+  "$MAKE" -s -f "$ndk_build_helper_file" EMACS_SRCDIR=`pwd`		\
+    EMACS_ABI="$ndk_ABI" ANDROID_MAKEFILE="$ndk_android_mk"		\
+    NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"				\
+    ANDROID_MODULE_DIRECTORY="$ndk_dir" BUILD_AUXDIR=$ndk_AUX_DIR	\
+    2>&AS_MESSAGE_LOG_FD >conftest.ndk
+
+  # Read the output.
+  cat conftest.ndk | awk -f "$ndk_module_extract_awk" MODULE="$ndk_module"
+
+  # Remove the temporary file.
+  rm -f conftest.ndk
 }
 
 # ndk_parse_pkg_config_string PKG_CONFIG_STRING
@@ -108,13 +117,13 @@ ndk_parse_pkg_config_string () {
   ndk_input=[$]1
   ndk_modules=
   while test -n "$ndk_input"; do
-    ndk_str=$(printf "$ndk_input" | cut -f1 -d' ')
-    ndk_input="$(printf "$ndk_input" | cut -s -f2- -d' ')"
+    ndk_str=`AS_ECHO_N(["$ndk_input"]) | cut -f1 -d' '`
+    ndk_input=`AS_ECHO_N(["$ndk_input"]) | cut -s -f2- -d' '`
 
     if test "$ndk_str" = ">=" || test "$ndk_str" = "<=" \
       || test "$ndk_str" = ">" || test "$ndk_str" = "<" \
       || test "$ndk_str" = "!="; then
-      ndk_input="$(printf "$ndk_input" | cut -s -f2- -d' ')"
+      ndk_input=`AS_ECHO_N(["$ndk_input"]) | cut -s -f2- -d' '`
     else
       ndk_modules="$ndk_modules$ndk_str "
     fi
@@ -137,13 +146,7 @@ ndk_resolve_import_module () {
     # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
     # tree build system sets it to a meaning value, but build files
     # just use it to test whether or not the NDK is being used.
-    ndk_commands=$(($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=. \
-		    EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"    \
-		    ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")    \
-		    NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
-		    2>&AS_MESSAGE_LOG_FD)	   			     \
-		   | awk -f build-aux/ndk-module-extract.awk		     \
-		   MODULE="$ndk_module")
+    ndk_commands=`ndk_run_test`
 
     AS_IF([test -n "${ndk_commands//\n }"], [eval "$ndk_commands"])
 
@@ -152,21 +155,19 @@ ndk_resolve_import_module () {
     fi
   done
 
-  if test -z "$module_name"; then
-    AC_MSG_RESULT([no])
-    AC_MSG_ERROR([The module currently being built depends on [$]1, but \
+  AS_IF([test -z "$module_name"],
+    [AC_MSG_RESULT([no])
+     AC_MSG_ERROR([The module currently being built depends on [$]1, but \
 that could not be found in the list of directories specified in \
-`--with-ndk-path'.])
-  fi
+`--with-ndk-path'.])])
 
   if test -n "$module_cxx_deps"; then
     ndk_ANY_CXX=yes
   fi
 
-  if test "$ndk_ANY_CXX" = "yes" && test -z "$with_ndk_cxx_shared"; then
-    AC_MSG_ERROR([The module [$]1 requires the C++ standard library \
-(libc++_shared.so), but it was not found.])
-  fi
+  AS_IF([test "$ndk_ANY_CXX" = "yes" && test -z "$with_ndk_cxx_shared"],
+    [AC_MSG_ERROR([The module [$]1 requires the C++ standard library \
+(libc++_shared.so), but it was not found.])])
 
   AC_MSG_RESULT([yes])
 
@@ -181,35 +182,34 @@ that could not be found in the list of directories specified in \
 }
 
 # Look for a suitable ar in the same directory as the C compiler.
-ndk_where_cc=$(which $(echo "$CC" | awk -- "{ print \[$]1 }"))
+ndk_cc_firstword=`AS_ECHO([$CC]) | cut -d' ' -f1`
+ndk_where_cc=`which $ndk_cc_firstword`
 ndk_ar_search_path=$PATH
 
 # First, try to find $host_alias-ar in PATH.
 AC_PATH_PROGS([AR], [$host_alias-ar], [], [$ndk_ar_search_path])
 
-if test -z "$AR"; then
+AS_IF([test -z "$AR"],[
   # Next, try finding either that or llvm-ar in the directory holding
   # CC.
-  ndk_ar_search_path="$(dirname $ndk_where_cc):$ndk_ar_search_path"
-  AC_PATH_PROGS([AR], [$host_alias-ar llvm-ar], [], [$ndk_ar_search_path])
-fi
+  ndk_ar_search_path="`AS_DIRNAME([$ndk_where_cc])`:$ndk_ar_search_path"
+  AC_PATH_PROGS([AR], [$host_alias-ar llvm-ar], [], [$ndk_ar_search_path])])
 
 NDK_BUILD_NASM=
 
 # Next, try to find nasm on x86.  This doesn't ship with the NDK.
-if test "$ndk_ARCH" = "x86" || test "$ndk_ARCH" = "x86_64"; then
-  AC_CHECK_PROGS([NDK_BUILD_NASM], [nasm])
-fi
+AS_IF([test "$ndk_ARCH" = "x86" || test "$ndk_ARCH" = "x86_64"],
+  [AC_CHECK_PROGS([NDK_BUILD_NASM], [nasm])])
 
 # Look for a file named ``libc++_shared.so'' in a subdirectory of
 # $ndk_where_cc if it was not specified.
 AC_MSG_CHECKING([for libc++_shared.so])
 
 ndk_where_toolchain=
-if test -z "$with_ndk_cxx_shared" && test -n "$ndk_where_cc"; then
+AS_IF([test -z "$with_ndk_cxx_shared" && test -n "$ndk_where_cc"],[
   # Find the NDK root directory.  Go to $ndk_where_cc.
   SAVE_PWD=`pwd`
-  cd $(dirname "$ndk_where_cc")
+  cd `dirname "$ndk_where_cc"`
 
   # Now, keep moving backwards until pwd ends with ``toolchains''.
   while :; do
@@ -218,8 +218,9 @@ if test -z "$with_ndk_cxx_shared" && test -n "$ndk_where_cc"; then
       break
     fi
 
-    if test "`basename $(pwd)`" = "toolchains"; then
-      ndk_where_toolchain=`pwd`
+    ndk_pwd=`pwd`
+    if test "`AS_BASENAME([$ndk_pwd])`" = "toolchains"; then
+      ndk_where_toolchain=$ndk_pwd
       cd "$SAVE_PWD"
       break
     fi
@@ -230,51 +231,36 @@ if test -z "$with_ndk_cxx_shared" && test -n "$ndk_where_cc"; then
   ndk_matching_libcxx_shared_so=
 
   # The toolchain directory should be in "$ndk_where_toolchain".
-  if test -n "$ndk_where_toolchain"; then
+  AS_IF([test -n "$ndk_where_toolchain"],[
     # Now, look in the directory behind it.
     ndk_cxx_shared_so=`find "$ndk_where_toolchain" -name libc++_shared.so`
 
     # Look for one with the correct architecture.
     for ndk_candidate in $ndk_cxx_shared_so; do
-      case "$ndk_candidate" in
-        *arm-linux-android* )
-	  if test "$ndk_ARCH" = "arm"; then
-	    ndk_matching_libcxx_shared_so=$ndk_candidate
-	  fi
-	  ;;
-	*aarch64-linux-android* )
-	  if test "$ndk_ARCH" = "arm64"; then
-	    ndk_matching_libcxx_shared_so=$ndk_candidate
-	  fi
-	  ;;
-	*i[[3-6]]86-linux-android* )
-	  if test "$ndk_ARCH" = "x86"; then
-	    ndk_matching_libcxx_shared_so=$ndk_candidate
-	  fi
-	  ;;
-	*x86_64-linux-android* )
-	  if test "$ndk_ARCH" = "x86_64"; then
-	    ndk_matching_libcxx_shared_so=$ndk_candidate
-	  fi
-	  ;;
-      esac
+      AS_CASE([$ndk_candidate],
+        [*arm-linux-android*],
+	  [AS_IF([test "$ndk_ARCH" = "arm"],
+	    [ndk_matching_libcxx_shared_so=$ndk_candidate])],
+	[*aarch64-linux-android*],
+	  [AS_IF([test "$ndk_ARCH" = "arm64"],
+	    [ndk_matching_libcxx_shared_so=$ndk_candidate])],
+	[*i[[3-6]]86-linux-android*],
+	  [AS_IF([test "$ndk_ARCH" = "x86"],
+	    [ndk_matching_libcxx_shared_so=$ndk_candidate])],
+	[*x86_64-linux-android*],
+	  [AS_IF([test "$ndk_ARCH" = "x86_64"],
+	    [ndk_matching_libcxx_shared_so=$ndk_candidate])])
 
-      if test -n "$ndk_matching_libcxx_shared_so"; then
-        with_ndk_cxx_shared=$ndk_matching_libcxx_shared_so
-      fi
-    done
-  fi
-fi
+      AS_IF([test -n "$ndk_matching_libcxx_shared_so"],
+        [with_ndk_cxx_shared=$ndk_matching_libcxx_shared_so])
+    done])])
 
-if test -z "$with_ndk_cxx_shared"; then
-  AC_MSG_RESULT([no])
+AS_IF([test -z "$with_ndk_cxx_shared"],[AC_MSG_RESULT([no])
   AC_MSG_WARN([The C++ standard library could not be found.  \
 If you try to build Emacs with a dependency that requires the C++ standard \
 library, Emacs will not build correctly, unless you manually specify the \
-name of an appropriate ``libc++_shared.so'' binary.])
-else
-  AC_MSG_RESULT([$with_ndk_cxx_shared])
-fi
+name of an appropriate ``libc++_shared.so'' binary.])],
+  [AC_MSG_RESULT([$with_ndk_cxx_shared])])
 
 ndk_CXX_SHARED=$with_ndk_cxx_shared
 
@@ -301,18 +287,11 @@ for ndk_android_mk in $ndk_module_files; do
   # Read this Android.mk file.  Set NDK_ROOT to /tmp: the Android in
   # tree build system sets it to a meaning value, but build files just
   # use it to test whether or not the NDK is being used.
-  ndk_commands=$(($MAKE -s -f build-aux/ndk-build-helper.mk EMACS_SRCDIR=.   \
-		  EMACS_ABI=$ndk_ABI ANDROID_MAKEFILE="$ndk_android_mk"      \
-	          ANDROID_MODULE_DIRECTORY=$(dirname "$ndk_android_mk")      \
-	          NDK_BUILD_DIR="$ndk_DIR" NDK_ROOT="/tmp"		     \
-		  2>&AS_MESSAGE_LOG_FD)	   				     \
-	         | awk -f build-aux/ndk-module-extract.awk 		     \
-		 MODULE="$ndk_module")
+  ndk_commands=`ndk_run_test`
 
-  AS_IF([test -n "${ndk_commands//\n }"], [eval "$ndk_commands"])
-
+  eval "$ndk_commands"
   if test -n "$module_name"; then
-    break
+    break;
   fi
 done
 

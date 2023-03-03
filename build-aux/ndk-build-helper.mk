@@ -19,7 +19,7 @@
 # file and return useful information about its contents.
 
 # See the text under ``NDK BUILD SYSTEM IMPLEMENTATION'' in
-# INSTALL.android for more details.
+# cross/ndk-build/README for more details.
 
 # TARGET_ARCH_ABI is the ABI that is being built for.
 TARGET_ARCH_ABI := $(EMACS_ABI)
@@ -60,10 +60,10 @@ import-module = $(eval NDK_IMPORTS += $(1))
 # Print out module information every time BUILD_SHARED_LIBRARY is
 # called.
 
-BUILD_SHARED_LIBRARY=$(EMACS_SRCDIR)/build-aux/ndk-build-helper-1.mk
-BUILD_STATIC_LIBRARY=$(EMACS_SRCDIR)/build-aux/ndk-build-helper-2.mk
-BUILD_EXECUTABLE=$(EMACS_SRCDIR)/build-aux/ndk-build-helper-3.mk
-CLEAR_VARS=$(EMACS_SRCDIR)/build-aux/ndk-build-helper-4.mk
+BUILD_SHARED_LIBRARY=$(BUILD_AUXDIR)ndk-build-helper-1.mk
+BUILD_STATIC_LIBRARY=$(BUILD_AUXDIR)ndk-build-helper-2.mk
+BUILD_EXECUTABLE=$(BUILD_AUXDIR)ndk-build-helper-3.mk
+CLEAR_VARS=$(BUILD_AUXDIR)ndk-build-helper-4.mk
 
 # Now include Android.mk.
 
