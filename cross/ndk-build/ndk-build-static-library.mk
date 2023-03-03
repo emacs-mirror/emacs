@@ -121,7 +121,7 @@ LOCAL_MODULE_FILENAME := $(LOCAL_MODULE_FILENAME).a
 # Record this module's dependencies and exported includes and CFLAGS,
 # and then add that of its dependencies.
 
-include ndk-resolve.mk
+include $(srcdir)/ndk-resolve.mk
 
 # Then define rules to build all objects.
 ALL_SOURCE_FILES := $(LOCAL_SRC_FILES) $(LOCAL_SRC_FILES_$(NDK_BUILD_ARCH))
