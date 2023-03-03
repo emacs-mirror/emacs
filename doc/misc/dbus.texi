@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -795,13 +795,7 @@ and interface.  Example:
 (dbus-get-all-managed-objects
  :session "org.gnome.SettingsDaemon" "/")
 
-@result{} (("/org/gnome/SettingsDaemon/MediaKeys"
-     ("org.gnome.SettingsDaemon.MediaKeys")
-     ("org.freedesktop.DBus.Peer")
-     ("org.freedesktop.DBus.Introspectable")
-     ("org.freedesktop.DBus.Properties")
-     ("org.freedesktop.DBus.ObjectManager"))
-    ("/org/gnome/SettingsDaemon/Power"
+@result{} (("/org/gnome/SettingsDaemon/Power"
      ("org.gnome.SettingsDaemon.Power.Keyboard")
      ("org.gnome.SettingsDaemon.Power.Screen")
      ("org.gnome.SettingsDaemon.Power"
@@ -2150,6 +2144,11 @@ And this form restricts the monitoring on D-Bus errors:
 (dbus-register-monitor :session nil :type "error")
 @end lisp
 @end defun
+
+@deffn Command dbus-monitor &optional bus
+This command invokes @code{dbus-register-monitor} interactively, and
+switches to the monitor buffer.
+@end deffn
 
 
 @node Index

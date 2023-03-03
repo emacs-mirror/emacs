@@ -1,6 +1,6 @@
-;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.
+;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -46,11 +46,7 @@
 (defun semantic-string-lessp-ci (s1 s2)
   "Case insensitive version of `string-lessp'.
 Argument S1 and S2 are the strings to compare."
-  ;; Use downcase instead of upcase because an average name
-  ;; has more lower case characters.
-  (if (fboundp 'compare-strings)
-      (eq (compare-strings s1 0 nil s2 0 nil t) -1)
-    (string-lessp (downcase s1) (downcase s2))))
+  (eq (compare-strings s1 0 nil s2 0 nil t) -1))
 
 (defun semantic-sort-tag-type (tag)
   "Return a type string for TAG guaranteed to be a string."
@@ -237,8 +233,7 @@ unmodified as components of their parent tags."
 			       (semantic-flatten-tags-table components)
 			       lists)))))
 	  table)
-    (apply 'append (nreverse lists))
-    ))
+    (apply #'append (nreverse lists))))
 
 
 ;;; Buckets:
@@ -314,11 +309,10 @@ may re-organize the list with side-effects."
 ;; external members, and bring them together in a cloned copy of the
 ;; class tag.
 ;;
-(defvar semantic-orphaned-member-metaparent-type "class"
-  "In `semantic-adopt-external-members', the type of 'type for metaparents.
+(defvar-local semantic-orphaned-member-metaparent-type "class"
+  "In `semantic-adopt-external-members', the type of `type' for metaparents.
 A metaparent is a made-up type semantic token used to hold the child list
 of orphaned members of a named type.")
-(make-variable-buffer-local 'semantic-orphaned-member-metaparent-type)
 
 (defvar semantic-mark-external-member-function nil
   "Function called when an externally defined orphan is found.
@@ -480,7 +474,7 @@ The default behavior, if not overridden with
 the name of TAG.
 
 If this function is overridden, use
-`semantic-tag-external-member-children-p-default' to also
+`semantic-tag-external-member-children-default' to also
 include the default behavior, and merely extend your own."
   )
 
@@ -525,12 +519,11 @@ See `semantic-tag-external-member-children' for details."
 		(semantic-tag-name tag) tag)))
 	(if m (apply #'append (mapcar #'cdr m))))
     (semantic--find-tags-by-function
-     `(lambda (tok)
-	;; This bit of annoying backquote forces the contents of
-	;; tag into the generated lambda.
-       (semantic-tag-external-member-p ',tag tok))
-     (current-buffer))
-    ))
+     (lambda (tok)
+       ;; This bit of annoying backquote forces the contents of
+       ;; tag into the generated lambda.
+       (semantic-tag-external-member-p tag tok))
+     (current-buffer))))
 
 (define-overloadable-function semantic-tag-external-class (tag)
   "Return a list of real tags that faux TAG might represent.
@@ -544,6 +537,8 @@ likely derived, then this function is needed."
     (signal 'wrong-type-argument (list tag 'semantic-tag-faux-p)))
   (:override)
   )
+
+(defvar semanticdb-search-system-databases)
 
 (defun semantic-tag-external-class-default (tag)
   "Return a list of real tags that faux TAG might represent.

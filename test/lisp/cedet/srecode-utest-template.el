@@ -1,6 +1,6 @@
-;;; srecode/test.el --- SRecode Core Template tests. -*- lexical-binding:t -*-
+;;; srecode-utest-template.el --- SRecode Core Template tests. -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;;; MAP DUMP TESTING
 (defun srecode-utest-map-reset ()
   "Reset, then dump the map of SRecoder templates.
-Probably should be called 'describe-srecode-maps'."
+Probably should be called `describe-srecode-maps'."
   (interactive)
   (message "SRecode Template Path: %S" srecode-map-load-path)
   ;; Interactive call allows us to dump.
@@ -307,13 +307,9 @@ INSIDE SECTION: ARG HANDLER ONE")
       (should (srecode-table major-mode))
 
       ;; Loop over the output testpoints.
-
       (dolist (p srecode-utest-output-entries)
-	(set-buffer testbuff) ;; XEmacs causes a buffer switch.  I don't know why
-	(should-not (srecode-utest-test p))
-	)
+        (should-not (srecode-utest-test p)))))
 
-      ))
   (when (file-exists-p srecode-utest-testfile)
     (delete-file srecode-utest-testfile)))
 

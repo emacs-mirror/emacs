@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1999, 2001--2020 Free Software Foundation,
+@c Copyright (C) 1990--1995, 1999, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Backups and Auto-Saving
@@ -474,12 +474,18 @@ Each transform is a list of the form @w{@code{(@var{regexp}
 @var{replacement} [@var{uniquify}])}}.  @var{regexp} is a regular
 expression to match against the file name; if it matches,
 @code{replace-match} is used to replace the matching part with
-@var{replacement}.  If the optional element @var{uniquify} is non-nil,
+@var{replacement}.  If the optional element @var{uniquify} is non-@code{nil},
 the auto-save file name is constructed by concatenating the directory
 part of the transformed file name with the buffer's file name in which
 all directory separators were changed to @samp{!} to prevent clashes.
 (This will not work correctly if your filesystem truncates the
 resulting name.)
+
+If @var{uniquify} is one of the members of
+@code{secure-hash-algorithms}, Emacs constructs the nondirectory part
+of the auto-save file name by applying that @code{secure-hash} to the
+buffer file name.  This avoids any risk of excessively long file
+names.
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
@@ -706,7 +712,11 @@ contents and the file contents are identical before the revert
 operation, reverting preserves all the markers.  If they are not
 identical, reverting does change the buffer; in that case, it preserves
 the markers in the unchanged text (if any) at the beginning and end of
-the buffer.  Preserving any additional markers would be problematical.
+the buffer.  Preserving any additional markers would be problematic.
+
+When reverting from non-file sources, markers are usually not
+preserved, but this is up to the specific @code{revert-buffer-function}
+implementation.
 @end deffn
 
 @defvar revert-buffer-in-progress-p

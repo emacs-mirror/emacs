@@ -1,6 +1,6 @@
-;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8 -*-
+;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -30,7 +30,7 @@
 
 (set-char-table-range composition-function-table
 		      '(#xAA80 . #xAADF)
-		      'tai-viet-composition-function)
+		      #'tai-viet-composition-function)
 
 (set-language-info-alist
  "TaiViet" '((charset unicode)
@@ -56,3 +56,5 @@ The language name is spelled as \"ꪁꪫꪱꪣ ꪼꪕ\", and the script name is
 spelled as \"ꪎꪳ ꪼꪕ\".")))
 
 (provide 'tai-viet)
+
+;;; tai-viet.el ends here

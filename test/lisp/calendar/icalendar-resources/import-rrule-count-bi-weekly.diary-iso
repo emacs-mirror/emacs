@@ -1,0 +1,1 @@
+&%%(and (diary-cyclic 14 2003 9 19) (diary-block 2003 9 19 2003 10 31)) 09:00-11:30 rrule count bi-weekly 3 times

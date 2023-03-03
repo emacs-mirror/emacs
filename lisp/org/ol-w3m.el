@@ -1,19 +1,19 @@
 ;;; ol-w3m.el --- Copy and Paste From W3M            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
-;;
-;; This program is free software: you can redistribute it and/or modify
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -40,6 +40,9 @@
 ;;
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ol)
 
@@ -72,7 +75,7 @@ so that it can be yanked into an Org  buffer with links working correctly."
       (setq transform-start (region-beginning))
       (setq transform-end (region-end))
       ;; Deactivate mark if current mark is activate.
-      (when (fboundp 'deactivate-mark) (deactivate-mark)))
+      (deactivate-mark))
     (message "Transforming links...")
     (save-excursion
       (goto-char transform-start)
@@ -82,26 +85,41 @@ so that it can be yanked into an Org  buffer with links working correctly."
         (setq temp-position (point))
         ;; move to next anchor when current point is not at anchor
         (or (get-text-property (point) 'w3m-href-anchor) (org-w3m-get-next-link-start))
-        (if (<= (point) transform-end) ; if point is inside transform bound
-            (progn
-              ;; get content between two links.
-              (when (> (point) temp-position)
-                (setq return-content (concat return-content
-                                             (buffer-substring
-                                              temp-position (point)))))
-              ;; get link location at current point.
-              (setq link-location (get-text-property (point) 'w3m-href-anchor))
-              ;; get link title at current point.
-              (setq link-title (buffer-substring (point)
-                                                 (org-w3m-get-anchor-end)))
-              ;; concat Org style url to `return-content'.
-              (setq return-content
-		    (concat return-content
-			    (if (org-string-nw-p link-location)
-				(org-link-make-string link-location link-title)
-			      link-title))))
+        (cond
+         ((<= (point) transform-end) ; point is inside transform bound
+          ;; get content between two links.
+          (when (> (point) temp-position)
+            (setq return-content (concat return-content
+                                         (buffer-substring
+                                          temp-position (point)))))
+          (cond
+           ((setq link-location (get-text-property (point) 'w3m-href-anchor))
+            ;; current point is a link
+            ;; (we thus also got link location at current point)
+            ;; get link title at current point.
+            (setq link-title (buffer-substring (point)
+                                               (org-w3m-get-anchor-end)))
+            ;; concat Org style url to `return-content'.
+            (setq return-content
+                  (concat return-content
+                          (if (org-string-nw-p link-location)
+                              (org-link-make-string link-location link-title)
+                            link-title))))
+           ((setq link-location (get-text-property (point) 'w3m-image))
+            ;; current point is an image
+            ;; (we thus also got image link location at current point)
+            ;; get link title at current point.
+            (setq link-title (buffer-substring (point) (org-w3m-get-image-end)))
+            ;; concat Org style url to `return-content'.
+            (setq return-content
+                  (concat return-content
+                          (if (org-string-nw-p link-location)
+                              (org-link-make-string link-location link-title)
+                            link-title))))
+           (t nil))); current point is neither a link nor an image
+         (t ; point is NOT inside transform bound
           (goto-char temp-position) ; reset point before jump next anchor
-          (setq out-bound t)))	    ; for break out `while' loop
+          (setq out-bound t))))	    ; for break out `while' loop
       ;; add the rest until end of the region to be copied
       (when (< (point) transform-end)
         (setq return-content
@@ -114,6 +132,7 @@ so that it can be yanked into an Org  buffer with links working correctly."
 (defun org-w3m-get-anchor-start ()
   "Move cursor to the start of current anchor.  Return point."
   ;; get start position of anchor or current point
+  ;; NOTE: This function seems never to be used. Should it be removed?
   (goto-char (or (previous-single-property-change (point) 'w3m-anchor-sequence)
                  (point))))
 
@@ -123,26 +142,46 @@ so that it can be yanked into an Org  buffer with links working correctly."
   (goto-char (or (next-single-property-change (point) 'w3m-anchor-sequence)
 		 (point))))
 
+(defun org-w3m-get-image-end ()
+  "Move cursor to the end of current image.  Return point."
+  ;; get end position of image or point
+  ;; NOTE: Function `org-w3m-get-image-start' was not created because
+  ;;       function `org-w3m-get-anchor-start' is never used.
+  (goto-char (or (next-single-property-change (point) 'w3m-image)
+		 (point))))
+
 (defun org-w3m-get-next-link-start ()
-  "Move cursor to the start of next link.  Return point."
-  (catch 'reach
-    (while (next-single-property-change (point) 'w3m-anchor-sequence)
-      ;; jump to next anchor
-      (goto-char (next-single-property-change (point) 'w3m-anchor-sequence))
-      (when (get-text-property (point) 'w3m-href-anchor)
-        ;; return point when current is valid link
-        (throw 'reach nil))))
-  (point))
+  "Move cursor to the start of next link or image.  Return point."
+  (let (pos start-pos anchor-pos image-pos)
+    (setq pos (setq start-pos (point)))
+    (setq anchor-pos
+          (catch 'reach
+            (while (setq pos (next-single-property-change pos 'w3m-anchor-sequence))
+              (when (get-text-property pos 'w3m-href-anchor)
+                (throw 'reach pos)))))
+    (setq pos start-pos)
+    (setq image-pos
+          (catch 'reach
+            (while (setq pos (next-single-property-change pos 'w3m-image))
+              (when (get-text-property pos 'w3m-image)
+                (throw 'reach pos)))))
+    (goto-char (min (or anchor-pos (point-max)) (or image-pos (point-max))))))
 
 (defun org-w3m-get-prev-link-start ()
   "Move cursor to the start of previous link.  Return point."
+  ;; NOTE: This function is only called by `org-w3m-no-prev-link-p',
+  ;;       which itself seems never to be used. Should it be removed?
+  ;;
+  ;; WARNING: This function has not been updated to account for
+  ;;      `w3m-image'. See `org-w3m-get-next-link-start'.
   (catch 'reach
-    (while (previous-single-property-change (point) 'w3m-anchor-sequence)
-      ;; jump to previous anchor
-      (goto-char (previous-single-property-change (point) 'w3m-anchor-sequence))
-      (when (get-text-property (point) 'w3m-href-anchor)
-        ;; return point when current is valid link
-        (throw 'reach nil))))
+    (let ((pos (point)))
+      (while (setq pos (previous-single-property-change pos 'w3m-anchor-sequence))
+        (when (get-text-property pos 'w3m-href-anchor)
+          ;; jump to previous anchor
+          (goto-char pos)
+          ;; return point when current is valid link
+          (throw 'reach nil)))))
   (point))
 
 (defun org-w3m-no-next-link-p ()
@@ -154,6 +193,7 @@ Return t if there is no next link; otherwise, return nil."
 (defun org-w3m-no-prev-link-p ()
   "Whether there is no previous link after the cursor.
 Return t if there is no previous link; otherwise, return nil."
+  ;; NOTE: This function seems never to be used. Should it be removed?
   (save-excursion
     (equal (point) (org-w3m-get-prev-link-start))))
 

@@ -1,9 +1,9 @@
 ;;; org-mouse.el --- Better mouse support for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
-;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
+;; Maintainer: Carsten Dominik <carsten.dominik@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -136,6 +136,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org)
 (require 'cl-lib)
 
@@ -161,20 +164,18 @@ it is intended to operate on.  If nil, then the action has been invoked
 indirectly, for example, through the agenda buffer.")
 
 (defgroup org-mouse nil
-  "Mouse support for org-mode."
+  "Mouse support for `org-mode'."
   :tag "Org Mouse"
   :group 'org)
 
 (defcustom org-mouse-punctuation ":"
   "Punctuation used when inserting text by drag and drop."
-  :group 'org-mouse
   :type 'string)
 
 (defcustom org-mouse-features
   '(context-menu yank-link activate-stars activate-bullets activate-checkboxes)
   "The features of org-mouse that should be activated.
 Changing this variable requires a restart of Emacs to get activated."
-  :group 'org-mouse
   :type '(set :greedy t
 	      (const :tag "Mouse-3 shows context menu" context-menu)
 	      (const :tag "C-mouse-1 and mouse-3 move trees" move-tree)
@@ -186,7 +187,7 @@ Changing this variable requires a restart of Emacs to get activated."
 (defun org-mouse-re-search-line (regexp)
   "Search the current line for a given regular expression."
   (beginning-of-line)
-  (re-search-forward regexp (point-at-eol) t))
+  (re-search-forward regexp (line-end-position) t))
 
 (defun org-mouse-end-headline ()
   "Go to the end of current headline (ignoring tags)."
@@ -210,7 +211,11 @@ this function is called.  Otherwise, the current major mode menu is used."
   (interactive "@e \nP")
   (if (and (= (event-click-count event) 1)
 	   (or (not mark-active)
-	       (sit-for (/ double-click-time 1000.0))))
+               (sit-for
+                (/ (if (fboundp 'mouse-double-click-time) ; Emacs >= 29
+                       (mouse-double-click-time)
+                     double-click-time)
+                   1000.0))))
       (progn
 	(select-window (posn-window (event-start event)))
 	(when (not (org-mouse-mark-active))
@@ -219,10 +224,7 @@ this function is called.  Otherwise, the current major mode menu is used."
 	  (sit-for 0))
 	(if (functionp org-mouse-context-menu-function)
 	    (funcall org-mouse-context-menu-function event)
-	  (if (fboundp 'mouse-menu-major-mode-map)
-	      (popup-menu (mouse-menu-major-mode-map) event prefix)
-	    (with-no-warnings ; don't warn about fallback, obsolete since 23.1
-	     (mouse-major-mode-menu event prefix)))))
+          (popup-menu (mouse-menu-major-mode-map) event prefix)))
     (setq this-command 'mouse-save-then-kill)
     (mouse-save-then-kill event)))
 
@@ -239,7 +241,7 @@ return `:middle'."
    (t :middle)))
 
 (defun org-mouse-empty-line ()
-  "Return non-nil iff the line contains only white space."
+  "Return non-nil if the line contains only white space."
   (save-excursion (beginning-of-line) (looking-at "[ \t]*$")))
 
 (defun org-mouse-next-heading ()
@@ -281,7 +283,7 @@ keyword as the only argument.
 
 If SELECTED is nil, then all items are normal menu items.  If
 SELECTED is a function, then each item is a checkbox, which is
-enabled for a given keyword iff (funcall SELECTED keyword) return
+enabled for a given keyword if (funcall SELECTED keyword) return
 non-nil.  If SELECTED is neither nil nor a function, then the
 items are radio buttons.  A radio button is enabled for the
 keyword `equal' to SELECTED.
@@ -292,19 +294,19 @@ argument.  If it is a string, it is interpreted as the format
 string to (format ITEMFORMAT keyword).  If it is neither a string
 nor a function, elements of KEYWORDS are used directly."
   (mapcar
-   `(lambda (keyword)
-      (vector (cond
-	       ((functionp ,itemformat) (funcall ,itemformat keyword))
-	       ((stringp ,itemformat) (format ,itemformat keyword))
-	       (t keyword))
-	      (list 'funcall ,function keyword)
-	      :style (cond
-		      ((null ,selected) t)
-		      ((functionp ,selected) 'toggle)
-		      (t 'radio))
-	      :selected (if (functionp ,selected)
-			    (and (funcall ,selected keyword) t)
-			  (equal ,selected keyword))))
+   (lambda (keyword)
+     (vector (cond
+	      ((functionp itemformat) (funcall itemformat keyword))
+	      ((stringp itemformat) (format itemformat keyword))
+	      (t keyword))
+	     `(funcall #',function ,keyword)
+	     :style (cond
+		     ((null selected) t)
+		     ((functionp selected) 'toggle)
+		     (t 'radio))
+	     :selected (if (functionp selected)
+			   (and (funcall selected keyword) t)
+			 (equal selected keyword))))
    keywords))
 
 (defun org-mouse-remove-match-and-spaces ()
@@ -344,12 +346,12 @@ string to (format ITEMFORMAT keyword).  If it is neither a string
 nor a function, elements of KEYWORDS are used directly."
   (setq group (or group 0))
   (let ((replace (org-mouse-match-closure
-		  (if nosurround 'replace-match
-		    'org-mouse-replace-match-and-surround))))
+		  (if nosurround #'replace-match
+		    #'org-mouse-replace-match-and-surround))))
     (append
      (org-mouse-keyword-menu
       keywords
-      `(lambda (keyword) (funcall ,replace keyword t t nil ,group))
+      (lambda (keyword) (funcall replace keyword t t nil group))
       (match-string group)
       itemformat)
      `(["None" org-mouse-remove-match-and-spaces
@@ -386,7 +388,7 @@ DEFAULT is returned if no priority is given in the headline."
   (save-excursion
     (if (org-mouse-re-search-line org-mouse-priority-regexp)
 	(match-string 1)
-      (when default (char-to-string org-default-priority)))))
+      (when default (char-to-string org-priority-default)))))
 
 (defun org-mouse-delete-timestamp ()
   "Deletes the current timestamp as well as the preceding keyword.
@@ -407,7 +409,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	  (> (match-end 0) point))))))
 
 (defun org-mouse-priority-list ()
-  (cl-loop for priority from ?A to org-lowest-priority
+  (cl-loop for priority from ?A to org-priority-lowest
 	   collect (char-to-string priority)))
 
 (defun org-mouse-todo-menu (state)
@@ -416,7 +418,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
    (let ((kwds org-todo-keywords-1))
      (org-mouse-keyword-menu
       kwds
-      `(lambda (kwd) (org-todo kwd))
+      #'org-todo
       (lambda (kwd) (equal state kwd))))))
 
 (defun org-mouse-tag-menu ()		;todo
@@ -424,14 +426,14 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   (append
    (let ((tags (org-get-tags nil t)))
      (org-mouse-keyword-menu
-      (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-      `(lambda (tag)
-	 (org-mouse-set-tags
-	  (sort (if (member tag (quote ,tags))
-		    (delete tag (quote ,tags))
-		  (cons tag (quote ,tags)))
-		'string-lessp)))
-      `(lambda (tag) (member tag (quote ,tags)))
+      (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+      (lambda (tag)
+	(org-mouse-set-tags
+	 (sort (if (member tag tags)
+		   (delete tag tags)
+		 (cons tag tags))
+	       #'string-lessp)))
+      (lambda (tag) (member tag tags))
       ))
    '("--"
      ["Align Tags Here" (org-align-tags) t]
@@ -495,12 +497,13 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Check Deadlines"
       (if (functionp 'org-check-deadlines-and-todos)
 	  (org-check-deadlines-and-todos org-deadline-warning-days)
-	(org-check-deadlines org-deadline-warning-days)) t]
+	(org-check-deadlines org-deadline-warning-days))
+      t]
      ["Check TODOs" org-show-todo-tree t]
      ("Check Tags"
       ,@(org-mouse-keyword-menu
-	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 #'(lambda (tag) (org-tags-sparse-tree nil tag)))
+	 (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+         (lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
       ["Custom Tag ..." org-tags-sparse-tree t])
      ["Check Phrase ..." org-occur]
@@ -509,27 +512,27 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Display TODO List" org-todo-list t]
      ("Display Tags"
       ,@(org-mouse-keyword-menu
-	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 #'(lambda (tag) (org-tags-view nil tag)))
+	 (sort (mapcar #'car (org-get-buffer-tags)) #'string-lessp)
+         (lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
      ["Display Calendar" org-goto-calendar t]
      "--"
      ,@(org-mouse-keyword-menu
-	(mapcar 'car org-agenda-custom-commands)
-	#'(lambda (key)
-	    (eval `(org-agenda nil (string-to-char ,key))))
+	(mapcar #'car org-agenda-custom-commands)
+        (lambda (key)
+	  (org-agenda nil (string-to-char key)))
 	nil
-	#'(lambda (key)
-	    (let ((entry (assoc key org-agenda-custom-commands)))
-	      (org-mouse-clip-text
-	       (cond
-		((stringp (nth 1 entry)) (nth 1 entry))
-		((stringp (nth 2 entry))
-		 (concat (org-mouse-agenda-type (nth 1 entry))
-			 (nth 2 entry)))
-		(t "Agenda Command `%s'"))
-	       30))))
+        (lambda (key)
+          (let ((entry (assoc key org-agenda-custom-commands)))
+            (org-mouse-clip-text
+             (cond
+              ((stringp (nth 1 entry)) (nth 1 entry))
+              ((stringp (nth 2 entry))
+               (concat (org-mouse-agenda-type (nth 1 entry))
+                       (nth 2 entry)))
+              (t "Agenda Command `%s'"))
+             30))))
      "--"
      ["Delete Blank Lines" delete-blank-lines
       :visible (org-mouse-empty-line)]
@@ -575,28 +578,30 @@ This means, between the beginning of line and the point."
      (insert "+ "))
     (:end				; insert text here
      (skip-chars-backward " \t")
-     (kill-region (point) (point-at-eol))
+     (kill-region (point) (line-end-position))
      (unless (looking-back org-mouse-punctuation (line-beginning-position))
        (insert (concat org-mouse-punctuation " ")))))
   (insert text)
   (beginning-of-line))
 
-(defadvice dnd-insert-text (around org-mouse-dnd-insert-text activate)
+(advice-add 'dnd-insert-text :around #'org--mouse-dnd-insert-text)
+(defun org--mouse-dnd-insert-text (orig-fun window action text &rest args)
   (if (derived-mode-p 'org-mode)
       (org-mouse-insert-item text)
-    ad-do-it))
+    (apply orig-fun window action text args)))
 
-(defadvice dnd-open-file (around org-mouse-dnd-open-file activate)
+(advice-add 'dnd-open-file :around #'org--mouse-dnd-open-file)
+(defun org--mouse-dnd-open-file (orig-fun uri &rest args)
   (if (derived-mode-p 'org-mode)
       (org-mouse-insert-item uri)
-    ad-do-it))
+    (apply orig-fun uri args)))
 
 (defun org-mouse-match-closure (function)
   (let ((match (match-data t)))
-    `(lambda (&rest rest)
-       (save-match-data
-	 (set-match-data ',match)
-	 (apply ',function rest)))))
+    (lambda (&rest rest)
+      (save-match-data
+	(set-match-data match)
+	(apply function rest)))))
 
 (defun org-mouse-yank-link (click)
   (interactive "e")
@@ -630,7 +635,7 @@ This means, between the beginning of line and the point."
      ((save-excursion (beginning-of-line) (looking-at "[ \t]*#\\+STARTUP: \\(.*\\)"))
       (popup-menu
        `(nil
-	 ,@(org-mouse-list-options-menu (mapcar 'car org-startup-options)
+	 ,@(org-mouse-list-options-menu (mapcar #'car org-startup-options)
 					'org-mode-restart))))
      ((or (eolp)
 	  (and (looking-at "\\(  \\|\t\\)\\(\\+:[0-9a-zA-Z_:]+\\)?\\(  \\|\t\\)+$")
@@ -741,7 +746,8 @@ This means, between the beginning of line and the point."
 			       (?$ "($) Formula Parameters")
 			       (?# "(#) Recalculation: Auto")
 			       (?* "(*) Recalculation: Manual")
-			       (?' "(') Recalculation: None"))) t))))
+			       (?' "(') Recalculation: None")))
+			   t))))
      ((assq :table contextlist)
       (popup-menu
        '(nil
@@ -793,8 +799,8 @@ This means, between the beginning of line and the point."
 	   ("Tags and Priorities"
 	    ,@(org-mouse-keyword-menu
 	       (org-mouse-priority-list)
-	       #'(lambda (keyword)
-		   (org-mouse-set-priority (string-to-char keyword)))
+               (lambda (keyword)
+                 (org-mouse-set-priority (string-to-char keyword)))
 	       priority "Priority %s")
 	    "--"
 	    ,@(org-mouse-tag-menu))
@@ -854,55 +860,57 @@ This means, between the beginning of line and the point."
     (mouse-drag-region event)))
 
 (add-hook 'org-mode-hook
-	  #'(lambda ()
-	      (setq org-mouse-context-menu-function 'org-mouse-context-menu)
+          (lambda ()
+            (setq org-mouse-context-menu-function #'org-mouse-context-menu)
 
-	      (when (memq 'context-menu org-mouse-features)
-		(org-defkey org-mouse-map [mouse-3] nil)
-		(org-defkey org-mode-map [mouse-3] 'org-mouse-show-context-menu))
-	      (org-defkey org-mode-map [down-mouse-1] 'org-mouse-down-mouse)
-	      (when (memq 'context-menu org-mouse-features)
-		(org-defkey org-mouse-map [C-drag-mouse-1] 'org-mouse-move-tree)
-		(org-defkey org-mouse-map [C-down-mouse-1] 'org-mouse-move-tree-start))
-	      (when (memq 'yank-link org-mouse-features)
-		(org-defkey org-mode-map [S-mouse-2] 'org-mouse-yank-link)
-		(org-defkey org-mode-map [drag-mouse-3] 'org-mouse-yank-link))
-	      (when (memq 'move-tree org-mouse-features)
-		(org-defkey org-mouse-map [drag-mouse-3] 'org-mouse-move-tree)
-		(org-defkey org-mouse-map [down-mouse-3] 'org-mouse-move-tree-start))
+            (when (memq 'context-menu org-mouse-features)
+              (org-defkey org-mouse-map [mouse-3] nil)
+              (org-defkey org-mode-map [mouse-3] #'org-mouse-show-context-menu))
+            (org-defkey org-mode-map [down-mouse-1] #'org-mouse-down-mouse)
+            (when (memq 'context-menu org-mouse-features)
+              (org-defkey org-mouse-map [C-drag-mouse-1] #'org-mouse-move-tree)
+              (org-defkey org-mouse-map [C-down-mouse-1] #'org-mouse-move-tree-start))
+            (when (memq 'yank-link org-mouse-features)
+              (org-defkey org-mode-map [S-mouse-2] #'org-mouse-yank-link)
+              (org-defkey org-mode-map [drag-mouse-3] #'org-mouse-yank-link))
+            (when (memq 'move-tree org-mouse-features)
+              (org-defkey org-mouse-map [drag-mouse-3] #'org-mouse-move-tree)
+              (org-defkey org-mouse-map [down-mouse-3] #'org-mouse-move-tree-start))
 
-	      (when (memq 'activate-stars org-mouse-features)
-		(font-lock-add-keywords
-		 nil
-		 `((,org-outline-regexp
-		    0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
-		    'prepend))
-		 t))
+            (when (memq 'activate-stars org-mouse-features)
+              (font-lock-add-keywords
+               nil
+               `((,org-outline-regexp
+                  0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
+                  'prepend))
+               t))
 
-	      (when (memq 'activate-bullets org-mouse-features)
-		(font-lock-add-keywords
-		 nil
-		 `(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
-		    (1 `(face org-link keymap ,org-mouse-map mouse-face highlight)
-		       'prepend)))
-		 t))
+            (when (memq 'activate-bullets org-mouse-features)
+              (font-lock-add-keywords
+               nil
+               `(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +"
+                  (1 `(face org-link keymap ,org-mouse-map mouse-face highlight)
+                     'prepend)))
+               t))
 
-	      (when (memq 'activate-checkboxes org-mouse-features)
-		(font-lock-add-keywords
-		 nil
-		 `(("^[ \t]*\\([-+*]\\|[0-9]+[.)]\\) +\\(\\[[ X]\\]\\)"
-		    (2 `(face bold keymap ,org-mouse-map mouse-face highlight) t)))
-		 t))
+            (when (memq 'activate-checkboxes org-mouse-features)
+              (font-lock-add-keywords
+               nil
+               `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[.)]\\)[ \t]+\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\(\\[[- X]\\]\\)"
+                  (1 `(face nil keymap ,org-mouse-map mouse-face highlight) prepend)))
+               t))
 
-	      (defadvice org-open-at-point (around org-mouse-open-at-point activate)
-		(let ((context (org-context)))
-		  (cond
-		   ((assq :headline-stars context) (org-cycle))
-		   ((assq :checkbox context) (org-toggle-checkbox))
-		   ((assq :item-bullet context)
-		    (let ((org-cycle-include-plain-lists t)) (org-cycle)))
-		   ((org-footnote-at-reference-p) nil)
-		   (t ad-do-it))))))
+            (advice-add 'org-open-at-point :around #'org--mouse-open-at-point)))
+
+(defun org--mouse-open-at-point (orig-fun &rest args)
+  (let ((context (org-context)))
+    (cond
+     ((assq :headline-stars context) (org-cycle))
+     ((assq :checkbox context) (org-toggle-checkbox))
+     ((assq :item-bullet context)
+      (let ((org-cycle-include-plain-lists t)) (org-cycle)))
+     ((org-footnote-at-reference-p) nil)
+     (t (apply orig-fun args)))))
 
 (defun org-mouse-move-tree-start (_event)
   (interactive "e")
@@ -985,7 +993,7 @@ This means, between the beginning of line and the point."
 (defun org-mouse-do-remotely (command)
   ;;  (org-agenda-check-no-diary)
   (when (get-text-property (point) 'org-marker)
-    (let* ((anticol (- (point-at-eol) (point)))
+    (let* ((anticol (- (line-end-position) (point)))
 	   (marker (get-text-property (point) 'org-marker))
 	   (buffer (marker-buffer marker))
 	   (pos (marker-position marker))
@@ -1003,13 +1011,13 @@ This means, between the beginning of line and the point."
 	    (with-current-buffer buffer
 	      (widen)
 	      (goto-char pos)
-	      (org-show-hidden-entry)
+	      (org-fold-show-hidden-entry)
 	      (save-excursion
 		(and (outline-next-heading)
-		     (org-flag-heading nil)))   ; show the next heading
+		     (org-fold-heading nil)))   ; show the next heading
 	      (org-back-to-heading)
 	      (setq marker (point-marker))
-	      (goto-char (max (point-at-bol) (- (point-at-eol) anticol)))
+              (goto-char (max (line-beginning-position) (- (line-end-position) anticol)))
 	      (funcall command)
 	      (message "_cmd: %S" org-mouse-cmd)
 	      (message "this-command: %S" this-command)
@@ -1084,11 +1092,11 @@ This means, between the beginning of line and the point."
 (defvar org-agenda-mode-map)
 (add-hook 'org-agenda-mode-hook
 	  (lambda ()
-	    (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
-	    (org-defkey org-agenda-mode-map [mouse-3] 'org-mouse-show-context-menu)
-	    (org-defkey org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
-	    (org-defkey org-agenda-mode-map [C-mouse-4] 'org-agenda-earlier)
-	    (org-defkey org-agenda-mode-map [C-mouse-5] 'org-agenda-later)
+	    (setq org-mouse-context-menu-function #'org-mouse-agenda-context-menu)
+	    (org-defkey org-agenda-mode-map [mouse-3] #'org-mouse-show-context-menu)
+	    (org-defkey org-agenda-mode-map [down-mouse-3] #'org-mouse-move-tree-start)
+	    (org-defkey org-agenda-mode-map [C-mouse-4] #'org-agenda-earlier)
+	    (org-defkey org-agenda-mode-map [C-mouse-5] #'org-agenda-later)
 	    (org-defkey org-agenda-mode-map [drag-mouse-3]
 			(lambda (event) (interactive "e")
 			  (cl-case (org-mouse-get-gesture event)

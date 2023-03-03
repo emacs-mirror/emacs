@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2020 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -198,10 +198,6 @@ struct window
        Note Lisp code may set this to something beyond Qnil
        and Qt, so bitfield can't be used here.  */
     Lisp_Object dedicated;
-
-    /* If redisplay in this window goes beyond this buffer position,
-       must run the redisplay-end-trigger-hook.  */
-    Lisp_Object redisplay_end_trigger;
 
     /* t means this window's child windows are not (re-)combined.  */
     Lisp_Object combination_limit;
@@ -445,6 +441,10 @@ struct window
        window.  */
     bool_bf suspend_auto_hscroll : 1;
 
+    /* True if vscroll should be preserved while forcing the start due
+       to a frozen window.  */
+    bool_bf preserve_vscroll_p : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
@@ -491,12 +491,6 @@ INLINE void
 wset_prev (struct window *w, Lisp_Object val)
 {
   w->prev = val;
-}
-
-INLINE void
-wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
-{
-  w->redisplay_end_trigger = val;
 }
 
 INLINE void
@@ -756,7 +750,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #endif
 
 /* True if W is a tab bar window.  */
-#if defined (HAVE_WINDOW_SYSTEM)
+#if defined (HAVE_WINDOW_SYSTEM) && !defined (HAVE_PGTK)
 # define WINDOW_TAB_BAR_P(W) \
    (WINDOWP (WINDOW_XFRAME (W)->tab_bar_window) \
     && (W) == XWINDOW (WINDOW_XFRAME (W)->tab_bar_window))
@@ -1120,14 +1114,6 @@ void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 
 extern Lisp_Object echo_area_window;
 
-/* Depth in recursive edits.  */
-
-extern EMACS_INT command_loop_level;
-
-/* Depth in minibuffer invocations.  */
-
-extern EMACS_INT minibuf_level;
-
 /* Non-zero if we should redraw the mode lines on the next redisplay.
    Usually set to a unique small integer so we can track the main causes of
    full redisplays in `redisplay--mode-lines-cause'.  */
@@ -1149,6 +1135,7 @@ extern void wset_redisplay (struct window *w);
 extern void fset_redisplay (struct frame *f);
 extern void bset_redisplay (struct buffer *b);
 extern void bset_update_mode_line (struct buffer *b);
+extern void wset_update_mode_line (struct window *w);
 /* Call this to tell redisplay to look for other windows than selected-window
    that need to be redisplayed.  Calling one of the *set_redisplay functions
    above already does it, so it's only needed in unusual cases.  */
@@ -1189,20 +1176,26 @@ extern bool window_wants_mode_line (struct window *);
 extern bool window_wants_header_line (struct window *);
 extern bool window_wants_tab_line (struct window *);
 extern int window_internal_height (struct window *);
-extern int window_body_width (struct window *w, bool);
+enum window_body_unit
+  {
+    WINDOW_BODY_IN_CANONICAL_CHARS,
+    WINDOW_BODY_IN_PIXELS,
+    WINDOW_BODY_IN_REMAPPED_CHARS
+  };
+extern int window_body_width (struct window *w, enum window_body_unit);
+extern int window_body_height (struct window *w, enum window_body_unit);
 enum margin_unit { MARGIN_IN_LINES, MARGIN_IN_PIXELS };
 extern int window_scroll_margin (struct window *, enum margin_unit);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
-extern void sanitize_window_sizes (Lisp_Object horizontal);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);
+extern ptrdiff_t window_point (struct window *w);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);
-extern void keys_of_window (void);
 /* Move cursor to row/column position VPOS/HPOS, pixel coordinates
    Y/X. HPOS/VPOS are window-relative row and column numbers and X/Y
    are window-relative pixel positions.  This is always done during
@@ -1217,6 +1210,16 @@ output_cursor_to (struct window *w, int vpos, int hpos, int y, int x)
   w->output_cursor.vpos = vpos;
   w->output_cursor.x = x;
   w->output_cursor.y = y;
+}
+
+/* Return true, if overlay OV's properties should have an effect in
+   window W. */
+INLINE bool
+overlay_matches_window (const struct window *w, Lisp_Object ov)
+{
+  eassert (OVERLAYP (ov));
+  Lisp_Object  window = Foverlay_get (ov, Qwindow);
+  return (! WINDOWP (window) || XWINDOW (window) == w);
 }
 
 INLINE_HEADER_END

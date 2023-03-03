@@ -2,7 +2,7 @@
 
 ### upload-manuals - upload the Emacs manuals to the gnu.org website
 
-## Copyright 2018-2020 Free Software Foundation, Inc.
+## Copyright 2018-2023 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -36,14 +36,7 @@
 
 ### Code:
 
-
-die ()                          # write error to stderr and exit
-{
-    [ $# -gt 0 ] && echo "$PN: $@" >&2
-    exit 1
-}
-
-PN=${0##*/}                     # basename of script
+source "${0%/*}/emacs-shell-lib"
 
 usage ()
 {
@@ -334,7 +327,10 @@ for d in html_node/*; do
     [ -e $webdir/manual/$d ] || {
         echo "New directory: $d"
         mkdir $webdir/manual/$d
-        $cvs add $webdir/manual/$d || die "add error"
+        (
+            cd $webdir/manual
+            $cvs add $d || die "add error"
+        )
     }
 
     new=

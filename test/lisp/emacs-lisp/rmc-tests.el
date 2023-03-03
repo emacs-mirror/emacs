@@ -1,6 +1,6 @@
 ;;; rmc-tests.el --- Test suite for rmc.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -22,14 +22,42 @@
 
 ;;; Commentary:
 
-;;
-
 ;;; Code:
 
 (require 'ert)
 (require 'rmc)
+(require 'cl-lib)
 (eval-when-compile (require 'cl-lib))
 
+(ert-deftest test-rmc--add-key-description ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
+    (should (equal (rmc--add-key-description '(?y "yes"))
+                   '(?y . "yes")))
+    (should (equal (rmc--add-key-description '(?n "foo"))
+                   '(?n . "n foo")))
+    (should (equal (rmc--add-key-description '(?\s "foo bar"))
+                   `(?\s . "SPC foo bar")))))
+
+(ert-deftest test-rmc--add-key-description/with-attributes ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?y "yes"))
+             `(?y . ,(concat (propertize "y" 'face 'read-multiple-choice-face) "es"))))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?n "foo"))
+             `(?n . ,(concat (propertize "n" 'face 'read-multiple-choice-face) " foo"))))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?\s "foo bar"))
+             `(?\s . ,(concat (propertize "SPC" 'face 'read-multiple-choice-face) " foo bar"))))))
+
+(ert-deftest test-rmc--add-key-description/non-graphical-display ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) nil)))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?y "yes"))
+             '(?y . "[Y]es")))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?n "foo"))
+             `(?n . ,(concat (propertize "n" 'face 'help-key-binding) " foo"))))))
 
 (ert-deftest test-read-multiple-choice ()
   (dolist (char '(?y ?n))
@@ -38,6 +66,26 @@
       (should (equal (list char str)
                      (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
 
+(ert-deftest test-read-multiple-choice-help ()
+  (let ((chars '(?o ?a))
+        help)
+    (cl-letf* (((symbol-function #'read-event)
+                (lambda ()
+                  (message "chars %S" chars)
+                  (when (= 1 (length chars))
+                    (with-current-buffer "*Multiple Choice Help*"
+                      (setq help (buffer-string))))
+                  (pop chars))))
+      (read-multiple-choice
+       "Choose:"
+       '((?a "aaa")
+         (?b "bbb")
+         (?c "ccc" "a really long description of ccc")))
+      (should (equal help "Choose:
 
-(provide 'rmc-tests)
+a: [A]aa                 b: [B]bb                 c: [C]cc
+                                                  a really long
+                                                  description of ccc
+                                                  \n")))))
+
 ;;; rmc-tests.el ends here

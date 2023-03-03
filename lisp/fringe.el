@@ -1,6 +1,6 @@
 ;;; fringe.el --- fringe setup and control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -46,6 +46,7 @@
   (let ((bitmaps '(question-mark exclamation-mark
 		   left-arrow right-arrow up-arrow down-arrow
 		   left-curly-arrow right-curly-arrow
+		   large-circle
 		   left-triangle right-triangle
 		   top-left-angle top-right-angle
 		   bottom-left-angle bottom-right-angle
@@ -181,11 +182,15 @@ When setting this variable in a Lisp program, call
 `set-fringe-mode' afterward to make it take real effect.
 
 To modify the appearance of the fringe in a specific frame, use
-the interactive function `set-fringe-style'."
+the interactive function `set-fringe-style'.
+
+Note that, despite the name, this is not a variable that controls
+a (major or minor) Emacs mode, but controls the appearance of the
+fringes."
   :type `(choice
           ,@ (mapcar (lambda (style)
                       (let ((name
-                             (replace-regexp-in-string "-" " " (car style))))
+                             (string-replace "-" " " (car style))))
                         `(const :tag
                                 ,(concat (capitalize (substring name 0 1))
                                          (substring name 1))
@@ -240,15 +245,26 @@ When used in a Lisp program, MODE should be one of these:
   nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.
+
 This command may round up the left and right width specifications
 to ensure that their sum is a multiple of the character width of
 a frame.  It never rounds up a fringe width of 0.
+
+Note that removing a right or left fringe (by setting the width
+to zero) makes Emacs reserve one column of the window body to
+display a line continuation marker.  (This happens for both the
+left and right fringe, since Emacs can display both left-to-right
+and right-to-left text.)  You can use `window-max-chars-per-line'
+to check the effective width.
 
 Fringe widths set by `set-window-fringes' override the default
 fringe widths set by this command.  This command applies to all
 frames that exist and frames to be created in the future.  If you
 want to set the default appearance of fringes on the selected
-frame only, see the command `set-fringe-style'."
+frame only, see the command `set-fringe-style'.
+
+Note that, despite the name, this is not a (major or minor) Emacs
+mode, but a command that controls the appearance of the fringes."
   (interactive (list (fringe-query-style 'all-frames)))
   (set-fringe-mode mode))
 
@@ -299,7 +315,7 @@ BITMAP is a symbol identifying the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
 WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
-Optional fifth arg ALIGN may be one of ‘top’, ‘center’, or ‘bottom’,
+Optional fifth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fifth arg may also be a
 list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
@@ -308,6 +324,17 @@ If BITMAP already exists, the existing definition is replaced."
     ;; This is a fallback for non-GUI builds.
     ;; The real implementation is in src/fringe.c.
     ))
+
+(defun fringe-custom-set-bitmap (symbol value)
+  "Set SYMBOL to a fringe bitmap VALUE.
+This sets the `fringe' property on SYMBOL to match that of VALUE,
+and then force all windows to be updated on the next redisplay.
+You should use this for the :set parameter for customization
+options to pick a fringe bitmap."
+  (prog1
+      (set symbol value)
+    (put symbol 'fringe (get value 'fringe))
+    (force-window-update)))
 
 (provide 'fringe)
 

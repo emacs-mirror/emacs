@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org
@@ -27,8 +27,8 @@
 
 ;;; Commentary:
 
-;; To enter perl-mode automatically, add (autoload 'perl-mode "perl-mode")
-;; to your init file and change the first line of your perl script to:
+;; To enter `perl-mode' automatically, change the first line of your
+;; perl script to:
 ;; #!/usr/bin/perl --	 # -*-Perl-*-
 ;; With arguments to perl:
 ;; #!/usr/bin/perl -P-	 # -*-Perl-*-
@@ -95,8 +95,13 @@
   :prefix "perl-"
   :group 'languages)
 
+(defface perl-non-scalar-variable
+  '((t :inherit font-lock-variable-name-face :underline t))
+  "Face used for non-scalar variables."
+  :version "28.1")
+
 (defvar perl-mode-abbrev-table nil
-  "Abbrev table in use in perl-mode buffers.")
+  "Abbrev table in use in `perl-mode' buffers.")
 (define-abbrev-table 'perl-mode-abbrev-table ())
 
 (defvar perl-mode-map
@@ -137,7 +142,7 @@
   '(;; Functions
     (nil "^[ \t]*sub\\s-+\\([-[:alnum:]+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^[ \t]*\\(?:anon\\|argument\\|has\\|local\\|my\\|our\\|state\\|supersede\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
+    ("Variables" "^[ \t]*\\(?:has\\|local\\|my\\|our\\|state\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
     ("Packages" "^[ \t]*package\\s-+\\([-[:alnum:]+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
@@ -165,33 +170,34 @@
     ;;  (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t))
     ;;
     ;; Fontify function and package names in declarations.
-    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\(?:\\sw\\|::\\)+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-    ("\\(^\\|[^$@%&\\]\\)\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\(?:^\\|[^$@%&\\]\\)\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\(?:\\sw\\|::\\)+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Perl mode.")
 
 (defconst perl-font-lock-keywords-2
   (append
+   '(;; Fontify function, variable and file name references. They have to be
+     ;; handled first because they might conflict with keywords.
+     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
+     ;; Additionally fontify non-scalar variables.  `perl-non-scalar-variable'
+     ;; will underline them by default.
+     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+      (2 'perl-non-scalar-variable)))
    perl-font-lock-keywords-1
    `( ;; Fontify keywords, except those fontified otherwise.
      ,(concat "\\<"
               (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
                             "do" "dump" "for" "foreach" "exit" "die"
-                            "BEGIN" "END" "return" "exec" "eval") t)
+                            "BEGIN" "END" "return" "exec" "eval"
+                            "when" "given" "default")
+                          t)
               "\\>")
      ;;
      ;; Fontify declarators and prefixes as types.
-     ("\\<\\(anon\\|argument\\|has\\|local\\|my\\|our\\|state\\|supersede\\)\\>" . font-lock-type-face) ; declarators
-     ("\\<\\(let\\|temp\\)\\>" . font-lock-type-face) ; prefixes
-     ;;
-     ;; Fontify function, variable and file name references.
-     ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
-     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-     ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-     ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
-      (2 (cons font-lock-variable-name-face '(underline))))
+     ("\\<\\(has\\|local\\|my\\|our\\|state\\)\\>" . font-lock-keyword-face) ; declarators
      ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
      ;;
      ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
@@ -208,12 +214,17 @@
 
 (eval-and-compile
   (defconst perl--syntax-exp-intro-keywords
-    '("split" "if" "unless" "until" "while" "print"
-      "grep" "map" "not" "or" "and" "for" "foreach"))
+    '("split" "if" "unless" "until" "while" "print" "printf"
+      "grep" "map" "not" "or" "and" "for" "foreach" "return" "die"
+      "warn" "eval"))
 
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
             (regexp-opt perl--syntax-exp-intro-keywords)
+            ;; A HERE document as an argument to printf?
+            ;; when printing to a filehandle.
+            "\\|printf?[ \t]*\\$?[_[:alpha:]][_[:alnum:]]*"
+            "\\|=>"
             "\\|[?:.,;|&*=!~({[]"
             "\\|[^-+][-+]"    ;Bug#42168: `+' is intro but `++' isn't!
             "\\|\\(^\\)\\)[ \t\n]*")))
@@ -236,6 +247,12 @@
                                          (not (nth 3 (syntax-ppss
                                                       (match-beginning 0))))))
                             (string-to-syntax ". p"))))
+      ;; If "\" is acting as a backslash operator, it shouldn't start an
+      ;; escape sequence, so change its syntax.  This allows us to handle
+      ;; correctly the \() construct (Bug#11996) as well as references
+      ;; to string values.
+      ("\\(\\\\\\)['`\"($]" (1 (unless (nth 3 (syntax-ppss))
+                                       (string-to-syntax "."))))
       ;; Handle funny names like $DB'stop.
       ("\\$ ?{?\\^?[_[:alpha:]][_[:alnum:]]*\\('\\)[_[:alpha:]]" (1 "_"))
       ;; format statements
@@ -274,13 +291,14 @@
                                       (backward-sexp 1)
                                       (member (buffer-substring (point) end)
                                               perl--syntax-exp-intro-keywords)))
+                               (bobp)
                                (memq (char-before)
                                      '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[))))))
                nil ;; A division sign instead of a regexp-match.
              (put-text-property (match-beginning 2) (match-end 2)
                                 'syntax-table (string-to-syntax "\""))
              (perl-syntax-propertize-special-constructs end)))))
-      ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
+      ("\\(^\\|[?:.,;=|&!~({[ \t]\\|=>\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\(?:\\s-\\|\n\\)*\\(?:\\([^])}>= \n\t]\\)\\|\\(?3:=\\)[^>]\\)"
        ;; Nasty cases:
        ;; /foo/m  $a->m  $#m $m @m %m
        ;; \s (appears often in regexps).
@@ -299,12 +317,21 @@
                ;; $a = "foo y \"toto\" bar" where we'd end up changing the
                ;; syntax of the backslash and hence de-escaping the embedded
                ;; double quote.
-               (put-text-property (match-beginning 3) (match-end 3)
-                                  'syntax-table
-                                  (if (assoc (char-after (match-beginning 3))
-                                             perl-quote-like-pairs)
-                                      (string-to-syntax "|")
-                                    (string-to-syntax "\"")))
+               (let* ((b3 (match-beginning 3))
+                      (c (char-after b3)))
+                 (put-text-property
+                  b3 (match-end 3) 'syntax-table
+                  (cond
+                   ((assoc c perl-quote-like-pairs)
+                    (string-to-syntax "|"))
+                   ;; If the separator is a normal quote and the operation
+                   ;; only takes a single arg, then there's nothing
+                   ;; special to do.
+                   ((and (memq c '(?\" ?\'))
+                         (memq (char-after (match-beginning 2)) '(?m ?q)))
+                    nil)
+                   (t
+                    (string-to-syntax "\"")))))
                (perl-syntax-propertize-special-constructs end))))))
       ;; Here documents.
       ((concat
@@ -313,15 +340,35 @@
         "<<\\(~\\)?[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
         ;; The <<EOF case which needs perl--syntax-exp-intro-regexp, to
         ;; disambiguate with the left-bitshift operator.
-        "\\|" perl--syntax-exp-intro-regexp "<<\\(?2:\\sw+\\)\\)"
+        "\\|" perl--syntax-exp-intro-regexp "<<\\(?1:~\\)?\\(?2:\\sw+\\)\\)"
         ".*\\(\n\\)")
-       (4 (let* ((st (get-text-property (match-beginning 4) 'syntax-table))
+       (4 (let* ((eol (match-beginning 4))
+                 (st (get-text-property eol 'syntax-table))
                  (name (match-string 2))
                  (indented (match-beginning 1)))
             (goto-char (match-end 2))
             (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+                ;; '<<' occurred in a string, or in a comment.
                 ;; Leave the property of the newline unchanged.
                 st
+              ;; Beware of `foo <<'BAR' #baz` because
+              ;; the newline needs to start the here-doc
+              ;; and can't be used to close the comment.
+              (let ((eol-state (save-excursion (syntax-ppss eol))))
+                (when (nth 4 eol-state)
+                  (if (/= (1- eol) (nth 8 eol-state))
+                      ;; make the last char of the comment closing it
+                      (put-text-property (1- eol) eol
+                                         'syntax-table (string-to-syntax ">"))
+                    ;; In `foo <<'BAR' #` the # is the last character
+                    ;; before eol and can't both open and close the
+                    ;; comment.  Workaround: disguise the "#" as
+                    ;; whitespace and fontify it as a comment.
+                    (put-text-property (1- eol) eol
+                                       'syntax-table (string-to-syntax "-"))
+                    (put-text-property (1- eol) eol
+                                       'font-lock-face
+                                       'font-lock-comment-face))))
               (cons (car (string-to-syntax "< c"))
                     ;; Remember the names of heredocs found on this line.
                     (cons (cons (pcase (aref name 0)
@@ -379,7 +426,8 @@
             (put-text-property (1- (point)) (point) 'syntax-table
                                (string-to-syntax "> c"))))))
      ((or (null (setq char (nth 3 state)))
-          (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
+          (and (characterp char)
+               (null (get-text-property (nth 8 state) 'syntax-table))))
       ;; Normal text, or comment, or docstring, or normal string.
       nil)
      ((eq (nth 3 state) ?\n)
@@ -400,6 +448,7 @@
                                                (point)))
                                '("tr" "s" "y"))))
             (close (cdr (assq char perl-quote-like-pairs)))
+            (middle nil)
             (st (perl-quote-syntax-table char)))
         (when (with-syntax-table st
 		(if close
@@ -430,6 +479,7 @@
 			   ;; In the case of s{...}{...}, we only handle the
 			   ;; first part here and the next below.
 			   (when (and twoargs (not close))
+			     (setq middle (point))
 			     (nth 8 (parse-partial-sexp
 				     (point) limit
 				     nil nil state 'syntax-table)))))))
@@ -437,11 +487,14 @@
 	  (when (eq (char-before (1- (point))) ?$)
 	    (put-text-property (- (point) 2) (1- (point))
 			       'syntax-table '(1)))
-	  (put-text-property (1- (point)) (point)
-			     'syntax-table
-			     (if close
-				 (string-to-syntax "|")
-			       (string-to-syntax "\"")))
+	  (if (and middle (memq char '(?\" ?\')))
+	      (put-text-property (1- middle) middle
+			     'syntax-table '(1))
+	    (put-text-property (1- (point)) (point)
+			       'syntax-table
+			       (if close
+				   (string-to-syntax "|")
+				 (string-to-syntax "\""))))
 	  ;; If we have two args with a non-self-paired starter (e.g.
 	  ;; s{...}{...}) we're right after the first arg, so we still have to
 	  ;; handle the second part.
@@ -468,8 +521,15 @@
 	      ;; as twoarg).
 	      (perl-syntax-propertize-special-constructs limit)))))))))
 
+(defface perl-heredoc
+  '((t (:inherit font-lock-string-face)))
+  "The face for here-documents.  Inherits from `font-lock-string-face'.")
+
 (defun perl-font-lock-syntactic-face-function (state)
   (cond
+   ((and (eq 2 (nth 7 state)) ; c-style comment
+         (cdr-safe (get-text-property (nth 8 state) 'syntax-table))) ; HERE doc
+    'perl-heredoc)
    ((and (nth 3 state)
          (eq ?e (cdr-safe (get-text-property (nth 8 state) 'syntax-table)))
          ;; This is a second-arg of s{..}{...} form; let's check if this second
@@ -592,17 +652,16 @@ This is a non empty list of strings, the checker tool possibly
 followed by required arguments.  Once launched it will receive
 the Perl source to be checked as its standard input."
   :version "26.1"
-  :group 'perl
   :type '(repeat string))
 
 (defvar-local perl--flymake-proc nil)
 
 ;;;###autoload
 (defun perl-flymake (report-fn &rest _args)
-  "Perl backend for Flymake.  Launches
-`perl-flymake-command' (which see) and passes to its standard
-input the contents of the current buffer.  The output of this
-command is analyzed for error and warning messages."
+  "Perl backend for Flymake.
+Launch `perl-flymake-command' (which see) and pass to its
+standard input the contents of the current buffer.  The output of
+this command is analyzed for error and warning messages."
   (unless (executable-find (car perl-flymake-command))
     (error "Cannot find a suitable checker"))
 
@@ -1073,7 +1132,6 @@ Returns (parse-state) if line starts inside a string."
         (t (forward-char -1) (forward-comment (- (point))) t)))))
 
 ;; note: this may be slower than the c-mode version, but I can understand it.
-(defalias 'indent-perl-exp 'perl-indent-exp)
 (defun perl-indent-exp ()
   "Indent each line of the Perl grouping following point."
   (interactive)
@@ -1173,7 +1231,6 @@ With argument, repeat that many times; negative args move backward."
 	      (goto-char (point-min)))))
       (setq arg (1+ arg)))))
 
-(defalias 'mark-perl-function 'perl-mark-function)
 (defun perl-mark-function ()
   "Put mark at end of Perl function, point at beginning."
   (interactive)
@@ -1182,6 +1239,9 @@ With argument, repeat that many times; negative args move backward."
   (push-mark)
   (perl-beginning-of-function)
   (backward-paragraph))
+
+(define-obsolete-function-alias 'indent-perl-exp #'perl-indent-exp "29.1")
+(define-obsolete-function-alias 'mark-perl-function #'perl-mark-function "29.1")
 
 (provide 'perl-mode)
 

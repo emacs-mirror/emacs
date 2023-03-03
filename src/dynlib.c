@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2020 Free Software Foundation, Inc.
+Copyright 2015-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -104,6 +104,12 @@ dynlib_open (const char *dll_fname)
   return (dynlib_handle_ptr) hdll;
 }
 
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *dll_fname)
+{
+  return dynlib_open (dll_fname);
+}
+
 void *
 dynlib_sym (dynlib_handle_ptr h, const char *sym)
 {
@@ -135,7 +141,7 @@ dynlib_addr (void (*funcptr) (void), const char **fname, const char **symname)
   void *addr = (void *) funcptr;
 
   /* Step 1: Find the handle of the module where ADDR lives.  */
-  if (os_subtype == OS_9X
+  if (os_subtype == OS_SUBTYPE_9X
       /* Windows NT family version before XP (v5.1).  */
       || ((w32_major_version + (w32_minor_version > 0)) < 6))
     {
@@ -270,8 +276,16 @@ dynlib_close (dynlib_handle_ptr h)
 dynlib_handle_ptr
 dynlib_open (const char *path)
 {
+  return dlopen (path, RTLD_LAZY | RTLD_GLOBAL);
+}
+
+# ifdef HAVE_NATIVE_COMP
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *path)
+{
   return dlopen (path, RTLD_LAZY);
 }
+# endif
 
 void *
 dynlib_sym (dynlib_handle_ptr h, const char *sym)
@@ -301,15 +315,13 @@ dynlib_error (void)
   return dlerror ();
 }
 
-/* FIXME: Currently there is no way to unload a module, so this
-   function is never used.  */
-#if false
+# ifdef HAVE_NATIVE_COMP
 int
 dynlib_close (dynlib_handle_ptr h)
 {
   return dlclose (h) == 0;
 }
-#endif
+# endif
 
 #else
 

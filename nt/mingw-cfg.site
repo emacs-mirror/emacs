@@ -83,13 +83,16 @@ ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail
 gl_cv_func_readlink_works=yes
+gl_cv_func_readlink_trailing_slash=yes
+gl_cv_func_readlink_truncate=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
 # Avoid compiling Gnulib's canonicalize-lgpl.c, which fails
 ac_cv_func_canonicalize_file_name=yes
-ac_cv_func_realpath="not-needed"
-gl_cv_func_realpath_works="no-but-not-needed-so-yes"
+# Implemented in w32.c
+ac_cv_func_realpath=yes
+gl_cv_func_realpath_works=yes
 # Implemented in w32.c
 ac_cv_func_fcntl=yes
 gl_cv_func_fcntl_f_dupfd_cloexec=yes
@@ -156,3 +159,17 @@ gl_cv_func_copy_file_range=yes
 # We don't want to build Emacs so it depends on bcrypt.dll, since then
 # it will refuse to start on systems where that DLL is absent.
 gl_cv_lib_assume_bcrypt=no
+# Force 'ac_cv_func_strsignal' to no as mingw64 libgccjit exports this
+# symbol erroneously
+# <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=45303#83>.
+ac_cv_func_strsignal=no
+# Don't build the Gnulib free.c: it is not needed, since the w32
+# implementation of 'free' doesn't touch errno, and it emits a
+# compilation warning.
+gl_cv_func_free_preserves_errno=yes
+# Don't build the Gnulib nanosleep module: it requires W2K or later,
+# and MinGW does have nanosleep.
+gl_cv_func_nanosleep=yes
+# Suppress configure-time diagnostic from unnecessary libxattr check,
+# as xattr will not be supported here.
+enable_xattr=no

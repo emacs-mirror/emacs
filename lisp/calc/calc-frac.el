@@ -1,6 +1,6 @@
 ;;; calc-frac.el --- fraction functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -132,9 +132,8 @@
   (cond ((Math-ratp a)
 	 a)
 	((memq (car a) '(cplx polar vec hms date sdev intv mod))
-	 (cons (car a) (mapcar (function
-				(lambda (x)
-				  (calcFunc-frac x tol)))
+         (cons (car a) (mapcar (lambda (x)
+                                 (calcFunc-frac x tol))
 			       (cdr a))))
 	((Math-messy-integerp a)
 	 (math-trunc a))

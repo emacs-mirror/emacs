@@ -1,0 +1,4 @@
+;; -*- mode: Emacs-Lisp; coding: utf-8; -*-
+;;; file-format: 9
+["Emacs" "ERT3" nil nil nil nil nil ("emacs-ert-test-3@bbdb.gnu.org") ((notes . " ")) "c8bd3a63-3a83-48a7-a95b-be118a923e00" "2022-11-19 16:36:04 +0000" "2022-11-19 16:36:04 +0000" nil]
+["Emacs" "ERT4" nil nil nil nil nil ("emacs-ert-test-4@bbdb.gnu.org") ((notes . " ")) "5a93c3c5-9270-4e10-8b28-d28cfa2562cf" "2022-11-19 16:47:49 +0000" "2022-11-19 16:47:49 +0000" nil]

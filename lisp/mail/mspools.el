@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Created: 22 Jan 1997
@@ -29,7 +29,7 @@
 ;; to be read in them.  It assumes that new mail for the file `folder'
 ;; is written by the filter to a file called `folder.spool'.  (If the
 ;; file writes directly to `folder' you may lose mail if new mail
-;; arrives whilst you are reading the folder in emacs, hence the use
+;; arrives whilst you are reading the folder in Emacs, hence the use
 ;; of a spool file.)  For example, the following procmail recipe puts
 ;; any mail with `emacs' in the subject line into the spool file
 ;; `emacs.spool', ready to go into the folder `emacs'.
@@ -55,7 +55,6 @@
 ;; `mspools-using-vm' for details.
 
 ;;; Basic installation.
-;; (autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
 ;; (setq mspools-folder-directory "~/MAIL/")
 ;;
 ;; If you use VM, mspools-folder-directory will default to vm-folder-directory
@@ -165,17 +164,13 @@ your primary spool is.  If this fails, set it to something like
 (defvar mspools-buffer "*spools*"
   "Name of buffer for displaying spool info.")
 
-(defvar mspools-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'mspools-visit-spool)
-    (define-key map "\C-m" 'mspools-visit-spool)
-    (define-key map " " 'mspools-visit-spool)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    map)
-  "Keymap for the *spools* buffer.")
-
-;;; Code
+(defvar-keymap mspools-mode-map
+  :doc "Keymap for the *spools* buffer."
+  "C-c C-c" #'mspools-visit-spool
+  "RET"     #'mspools-visit-spool
+  "SPC"     #'mspools-visit-spool
+  "n"       #'next-line
+  "p"       #'previous-line)
 
 ;;; VM Specific code
 (if mspools-using-vm
@@ -269,7 +264,7 @@ Buffer is not displayed if SHOW is non-nil."
 	      (delete-char 1))))
 
       (message "folder %s spool %s" folder-name spool-name)
-      (forward-line (if (eq (count-lines (point-min) (point-at-eol))
+      (forward-line (if (eq (count-lines (point-min) (line-end-position))
 	                    mspools-files-len)
 	                ;; FIXME: Why use `mspools-files-len' instead
                         ;; of looking if we're on the last line and
@@ -312,7 +307,7 @@ Buffer is not displayed if SHOW is non-nil."
 
 (defun mspools-get-spool-name ()
   "Return the name of the spool on the current line."
-  (let ((line-num (1- (count-lines (point-min) (point-at-eol)))))
+  (let ((line-num (1- (count-lines (point-min) (line-end-position)))))
     ;; FIXME: Why not extract the name directly from the current line's text?
     (car (nth line-num mspools-files))))
 
@@ -342,7 +337,7 @@ This is useful if `mspools-update' is nil."
   (kill-buffer mspools-buffer))
 
 (define-derived-mode mspools-mode special-mode "MSpools"
-  "Major mode for output from mspools-show.
+  "Major mode for output from `mspools-show'.
 \\<mspools-mode-map>Move point to one of the items in this buffer, then use
 \\[mspools-visit-spool] to go to the spool that the current line refers to.
 \\[revert-buffer] to regenerate the list of spools.

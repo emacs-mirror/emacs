@@ -1,6 +1,6 @@
 ;;; calc-alg.el --- algebraic functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -444,12 +444,12 @@ Code can refer to the expression to simplify via lexical variable `expr'
 and should return the simplified expression to use (or nil)."
   (declare (indent 1) (debug (sexp body)))
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-simplify
-                          (nconc
-                           (get ',func 'math-simplify)
-                           (list
-                            #'(lambda (expr) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-simplify
+                        (nconc
+                         (get ',func 'math-simplify)
+                         (list
+                          (lambda (expr) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (math-defsimplify (+ -)
@@ -1785,7 +1785,7 @@ and should return the simplified expression to use (or nil)."
 				  (cons (nth 2 expr) math-poly-neg-powers))))
 		   (not (Math-zerop (nth 2 expr)))
 		   (let ((p1 (math-is-poly-rec (nth 1 expr) negpow)))
-		     (mapcar (function (lambda (x) (math-div x (nth 2 expr))))
+                     (mapcar (lambda (x) (math-div x (nth 2 expr)))
 			     p1))))
 	     ((and (eq (car expr) 'calcFunc-exp)
 		   (equal math-var '(var e var-e)))
@@ -1838,8 +1838,9 @@ and should return the simplified expression to use (or nil)."
 (defun math-polynomial-base (top-expr &optional pred)
   "Find the variable (or sub-expression) which is the base of polynomial expr."
   (let ((math-poly-base-pred
-         (or pred (function (lambda (base) (math-polynomial-p
-				       top-expr base))))))
+         (or pred (lambda (base)
+                    (math-polynomial-p
+                     top-expr base)))))
   (or (let ((math-poly-base-const-ok nil))
 	(math-polynomial-base-rec top-expr))
       (let ((math-poly-base-const-ok t))

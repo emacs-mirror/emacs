@@ -1,6 +1,6 @@
 ;;; url-history.el --- Global history tracking for URL package  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -38,10 +38,10 @@
 If non-nil, the URL package will keep track of all the URLs visited.
 If set to t, then the list is saved to disk at the end of each Emacs
 session."
-  :set #'(lambda (var val)
-	   (set-default var val)
-	   (and (bound-and-true-p url-setup-done)
-		(url-history-setup-save-timer)))
+  :set (lambda (var val)
+         (set-default var val)
+         (and (bound-and-true-p url-setup-done)
+              (url-history-setup-save-timer)))
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
 		 (other :tag "within session" session))
@@ -59,11 +59,11 @@ is parsed at startup and used to provide URL completion."
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-history-setup-save-timer' function manually."
-  :set #'(lambda (var val)
-	   (set-default var val)
-	   (if (bound-and-true-p url-setup-done)
-	       (url-history-setup-save-timer)))
-  :type 'integer
+  :set (lambda (var val)
+         (set-default var val)
+         (if (bound-and-true-p url-setup-done)
+             (url-history-setup-save-timer)))
+  :type 'natnum
   :group 'url-history)
 
 (defvar url-history-timer nil)

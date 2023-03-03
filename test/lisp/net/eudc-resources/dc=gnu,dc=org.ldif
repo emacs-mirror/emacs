@@ -1,0 +1,15 @@
+# AUTO-GENERATED FILE - DO NOT EDIT!! Use ldapmodify.
+# CRC32 12f0e8c3
+dn: dc=gnu
+objectClass: dcObject
+objectClass: organization
+dc: gnu
+o: The ldap.gnu.org organization
+description: An organization for the following person
+structuralObjectClass: organization
+entryUUID: 43dd74ec-fc0d-103c-8d5c-7dbac5615d14
+creatorsName:
+createTimestamp: 20221119042038Z
+entryCSN: 20221119042038.100000Z#000000#000#000000
+modifiersName:
+modifyTimestamp: 20221119042038Z

@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -31,9 +31,6 @@
 (require 'compile)
 
 (defconst compile-tests--test-regexps-data
-  ;; The computed column numbers are zero-indexed, so subtract 1 from
-  ;; what's reported in the string.  The end column numbers are for
-  ;; the character after, so it matches what's reported in the string.
   '(;; absoft
     (absoft
      "Error on line 3 of t.f: Execution error unclassifiable statement"
@@ -61,7 +58,7 @@
     (ant "[javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally"
      13 nil 49 "/src/DataBaseTestCase.java" 1)
     (ant "[jikes]  foo.java:3:5:7:9: blah blah"
-     14 (5 . 10) (3 . 7) "foo.java" 2)
+     14 (5 . 9) (3 . 7) "foo.java" 2)
     (ant "[javac] c:/cygwin/Test.java:12: error: foo: bar"
      9 nil 12 "c:/cygwin/Test.java" 2)
     (ant "[javac] c:\\cygwin\\Test.java:87: error: foo: bar"
@@ -86,10 +83,10 @@
     ;; caml
     (python-tracebacks-and-caml
      "File \"foobar.ml\", lines 5-8, characters 20-155: blah blah"
-     1 (20 . 156) (5 . 8) "foobar.ml")
+     1 (20 . 155) (5 . 8) "foobar.ml")
     (python-tracebacks-and-caml
      "File \"F:\\ocaml\\sorting.ml\", line 65, characters 2-145:\nWarning 26: unused variable equ."
-     1 (2 . 146) 65 "F:\\ocaml\\sorting.ml")
+     1 (2 . 145) 65 "F:\\ocaml\\sorting.ml")
     (python-tracebacks-and-caml
      "File \"/usr/share/gdesklets/display/TargetGauge.py\", line 41, in add_children"
      1 nil 41 "/usr/share/gdesklets/display/TargetGauge.py")
@@ -124,6 +121,8 @@
     ;; cucumber
     (cucumber "Scenario: undefined step  # features/cucumber.feature:3"
      29 nil 3 "features/cucumber.feature")
+    ;; This rule is actually handled by the `cucumber' pattern but when
+    ;; `omake' is included, then `gnu' matches it first.
     (gnu "      /home/gusev/.rvm/foo/bar.rb:500:in `_wrap_assertion'"
      1 nil 500 "/home/gusev/.rvm/foo/bar.rb")
     ;; edg-1 edg-2
@@ -191,10 +190,10 @@
     ;; javac
     (javac
      "/src/Test.java:5: ';' expected\n        foo foo\n               ^\n"
-     1 15 5 "/src/Test.java" 2)
+     1 16 5 "/src/Test.java" 2)
     (javac
      "e:\\src\\Test.java:7: warning: ';' expected\n   foo foo\n          ^\n"
-     1 10 7 "e:\\src\\Test.java" 1)
+     1 11 7 "e:\\src\\Test.java" 1)
     ;; jikes-file jikes-line
     (jikes-file
      "Found 2 semantic errors compiling \"../javax/swing/BorderFactory.java\":"
@@ -229,12 +228,13 @@
     (gnu "foo.c:8.23: note: message" 1 23 8 "foo.c")
     (gnu "foo.c:8.23: info: message" 1 23 8 "foo.c")
     (gnu "foo.c:8:23:information: message" 1 23 8 "foo.c")
-    (gnu "foo.c:8.23-45: Informational: message" 1 (23 . 46) (8 . nil) "foo.c")
+    (gnu "foo.c:8.23-45: Informational: message" 1 (23 . 45) (8 . nil) "foo.c")
     (gnu "foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
+    (gnu "   |foo.c:8: message" 1 nil 8 "foo.c")
     ;; The next one is not in the GNU standards AFAICS.
     ;; Here we seem to interpret it as LINE1-LINE2.COL2.
-    (gnu "foo.c:8-45.3: message" 1 (nil . 4) (8 . 45) "foo.c")
-    (gnu "foo.c:8.23-9.1: message" 1 (23 . 2) (8 . 9) "foo.c")
+    (gnu "foo.c:8-45.3: message" 1 (nil . 3) (8 . 45) "foo.c")
+    (gnu "foo.c:8.23-9.1: message" 1 (23 . 1) (8 . 9) "foo.c")
     (gnu "jade:dbcommon.dsl:133:17:E: missing argument for function call"
      1 17 133 "dbcommon.dsl")
     (gnu "G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found."
@@ -260,6 +260,9 @@
      "e: e:\\src\\Test.kt: (34, 15): foo: bar" 4 15 34 "e:\\src\\Test.kt" 2)
     (gradle-kotlin
      "w: e:\\src\\Test.kt: (11, 98): foo: bar" 4 98 11 "e:\\src\\Test.kt" 1)
+    (gradle-android
+     "     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension."
+     1 nil 3 "/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml" 2)
     ;; Guile
     (guile-file "In foo.scm:\n" 1 nil nil "foo.scm")
     (guile-line "  63:4 [call-with-prompt prompt0 ...]" 1 4 63 nil)
@@ -379,6 +382,10 @@
     ;; sun-ada
     (sun-ada "/home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: \",\" inserted"
      1 6 361 "/home3/xdhar/rcds_rc/main.a")
+    (typescript-tsc-plain "/home/foo/greeter.ts(30,12): error TS2339: Property 'foo' does not exist."
+     1 12 30 "/home/foo/greeter.ts")
+    (typescript-tsc-pretty "src/resources/document.ts:140:22 - error TS2362: something."
+     1 22 140 "src/resources/document.ts")
     ;; 4bsd
     (edg-1 "/usr/src/foo/foo.c(8): warning: w may be used before set"
      1 nil 8 "/usr/src/foo/foo.c")
@@ -470,8 +477,11 @@ can only work with the NUL byte to disambiguate colons.")
           (when file
             (should (equal (caar (compilation--loc->file-struct loc)) file)))
           (when end-col
+            ;; The computed END-COL is exclusive; subtract one to get the
+            ;; number in the error message.
             (should (equal
-                     (car (cadr (nth 2 (compilation--loc->file-struct loc))))
+                     (1- (car (cadr
+                               (nth 2 (compilation--loc->file-struct loc)))))
                      end-col)))
           (should (equal (car (nth 2 (compilation--loc->file-struct loc)))
                          (or end-line line)))
@@ -489,7 +499,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 96))
+      (should (eq compilation-num-errors-found 100))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 
@@ -512,5 +522,32 @@ The test data is in `compile-tests--grep-regexp-testcases'."
     (dolist (testcase compile-tests--grep-regexp-tricky-testcases)
       (compile--test-error-line testcase))
     (should (eq compilation-num-errors-found 8))))
+
+(ert-deftest compile-test-functions ()
+  "Test rules using functions instead of regexp group numbers."
+  (let* ((file-fun (lambda () '("my-file")))
+         (line-start-fun (lambda () 123))
+         (line-end-fun (lambda () 134))
+         (col-start-fun (lambda () 39))
+         (col-end-fun (lambda () 24))
+         (compilation-error-regexp-alist-alist
+         `((my-rule
+            ,(rx bol "My error message")
+            ,file-fun
+            (,line-start-fun . ,line-end-fun)
+            (,col-start-fun . ,col-end-fun))))
+         (compilation-error-regexp-alist '(my-rule)))
+  (with-temp-buffer
+    (font-lock-mode -1)
+    (let ((compilation-num-errors-found 0)
+          (compilation-num-warnings-found 0)
+          (compilation-num-infos-found 0))
+      (compile--test-error-line
+       '(my-rule
+         "My error message"
+         1 (39 . 24) (123 . 134) "my-file" 2))
+      (should (eq compilation-num-errors-found 1))
+      (should (eq compilation-num-warnings-found 0))
+      (should (eq compilation-num-infos-found 0))))))
 
 ;;; compile-tests.el ends here

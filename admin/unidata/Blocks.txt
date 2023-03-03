@@ -1,10 +1,10 @@
-# Blocks-13.0.0.txt
-# Date: 2019-07-10, 19:06:00 GMT [KW]
-# © 2019 Unicode®, Inc.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
+# Blocks-15.0.0.txt
+# Date: 2022-01-28, 20:58:00 GMT [KW]
+# © 2022 Unicode®, Inc.
+# For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
-# For documentation, see http://www.unicode.org/reports/tr44/
+# For documentation, see https://www.unicode.org/reports/tr44/
 #
 # Format:
 # Start Code..End Code; Block Name
@@ -15,7 +15,7 @@
 #         and underbars are ignored.
 #         For example, "Latin Extended-A" and "latin extended a" are equivalent.
 #         For more information on the comparison of property values,
-#            see UAX #44: http://www.unicode.org/reports/tr44/
+#            see UAX #44: https://www.unicode.org/reports/tr44/
 #
 #  All block ranges start with a value where (cp MOD 16) = 0,
 #  and end with a value where (cp MOD 16) = 15. In other words,
@@ -52,6 +52,7 @@
 0800..083F; Samaritan
 0840..085F; Mandaic
 0860..086F; Syriac Supplement
+0870..089F; Arabic Extended-B
 08A0..08FF; Arabic Extended-A
 0900..097F; Devanagari
 0980..09FF; Bengali
@@ -215,7 +216,9 @@ FFF0..FFFF; Specials
 104B0..104FF; Osage
 10500..1052F; Elbasan
 10530..1056F; Caucasian Albanian
+10570..105BF; Vithkuqi
 10600..1077F; Linear A
+10780..107BF; Latin Extended-F
 10800..1083F; Cypriot Syllabary
 10840..1085F; Imperial Aramaic
 10860..1087F; Palmyrene
@@ -238,8 +241,10 @@ FFF0..FFFF; Specials
 10D00..10D3F; Hanifi Rohingya
 10E60..10E7F; Rumi Numeral Symbols
 10E80..10EBF; Yezidi
+10EC0..10EFF; Arabic Extended-C
 10F00..10F2F; Old Sogdian
 10F30..10F6F; Sogdian
+10F70..10FAF; Old Uyghur
 10FB0..10FDF; Chorasmian
 10FE0..10FFF; Elymaic
 11000..1107F; Brahmi
@@ -259,29 +264,34 @@ FFF0..FFFF; Specials
 11600..1165F; Modi
 11660..1167F; Mongolian Supplement
 11680..116CF; Takri
-11700..1173F; Ahom
+11700..1174F; Ahom
 11800..1184F; Dogra
 118A0..118FF; Warang Citi
 11900..1195F; Dives Akuru
 119A0..119FF; Nandinagari
 11A00..11A4F; Zanabazar Square
 11A50..11AAF; Soyombo
+11AB0..11ABF; Unified Canadian Aboriginal Syllabics Extended-A
 11AC0..11AFF; Pau Cin Hau
+11B00..11B5F; Devanagari Extended-A
 11C00..11C6F; Bhaiksuki
 11C70..11CBF; Marchen
 11D00..11D5F; Masaram Gondi
 11D60..11DAF; Gunjala Gondi
 11EE0..11EFF; Makasar
+11F00..11F5F; Kawi
 11FB0..11FBF; Lisu Supplement
 11FC0..11FFF; Tamil Supplement
 12000..123FF; Cuneiform
 12400..1247F; Cuneiform Numbers and Punctuation
 12480..1254F; Early Dynastic Cuneiform
+12F90..12FFF; Cypro-Minoan
 13000..1342F; Egyptian Hieroglyphs
-13430..1343F; Egyptian Hieroglyph Format Controls
+13430..1345F; Egyptian Hieroglyph Format Controls
 14400..1467F; Anatolian Hieroglyphs
 16800..16A3F; Bamum Supplement
 16A40..16A6F; Mro
+16A70..16ACF; Tangsa
 16AD0..16AFF; Bassa Vah
 16B00..16B8F; Pahawh Hmong
 16E40..16E9F; Medefaidrin
@@ -290,24 +300,32 @@ FFF0..FFFF; Specials
 17000..187FF; Tangut
 18800..18AFF; Tangut Components
 18B00..18CFF; Khitan Small Script
-18D00..18D8F; Tangut Supplement
+18D00..18D7F; Tangut Supplement
+1AFF0..1AFFF; Kana Extended-B
 1B000..1B0FF; Kana Supplement
 1B100..1B12F; Kana Extended-A
 1B130..1B16F; Small Kana Extension
 1B170..1B2FF; Nushu
 1BC00..1BC9F; Duployan
 1BCA0..1BCAF; Shorthand Format Controls
+1CF00..1CFCF; Znamenny Musical Notation
 1D000..1D0FF; Byzantine Musical Symbols
 1D100..1D1FF; Musical Symbols
 1D200..1D24F; Ancient Greek Musical Notation
+1D2C0..1D2DF; Kaktovik Numerals
 1D2E0..1D2FF; Mayan Numerals
 1D300..1D35F; Tai Xuan Jing Symbols
 1D360..1D37F; Counting Rod Numerals
 1D400..1D7FF; Mathematical Alphanumeric Symbols
 1D800..1DAAF; Sutton SignWriting
+1DF00..1DFFF; Latin Extended-G
 1E000..1E02F; Glagolitic Supplement
+1E030..1E08F; Cyrillic Extended-D
 1E100..1E14F; Nyiakeng Puachue Hmong
+1E290..1E2BF; Toto
 1E2C0..1E2FF; Wancho
+1E4D0..1E4FF; Nag Mundari
+1E7E0..1E7FF; Ethiopic Extended-B
 1E800..1E8DF; Mende Kikakui
 1E900..1E95F; Adlam
 1EC70..1ECBF; Indic Siyaq Numbers
@@ -336,6 +354,7 @@ FFF0..FFFF; Specials
 2CEB0..2EBEF; CJK Unified Ideographs Extension F
 2F800..2FA1F; CJK Compatibility Ideographs Supplement
 30000..3134F; CJK Unified Ideographs Extension G
+31350..323AF; CJK Unified Ideographs Extension H
 E0000..E007F; Tags
 E0100..E01EF; Variation Selectors Supplement
 F0000..FFFFF; Supplementary Private Use Area-A

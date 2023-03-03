@@ -1,6 +1,6 @@
-;;; data-debug.el --- Data structure debugger
+;;; data-debug.el --- Data structure debugger  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
@@ -42,16 +42,15 @@
 ;;       (data-debug-show-stuff stuff "myStuff"))
 ;;     stuff))
 
-(require 'font-lock)
 (require 'ring)
 
 ;;; Code:
 
 ;;; Compatibility
 ;;
-(define-obsolete-function-alias 'data-debug-overlay-properties 'overlay-properties "28.1")
-(define-obsolete-function-alias 'data-debug-overlay-p 'overlayp "28.1")
-(define-obsolete-function-alias 'dd-propertize 'propertize "28.1")
+(define-obsolete-function-alias 'data-debug-overlay-properties #'overlay-properties "28.1")
+(define-obsolete-function-alias 'data-debug-overlay-p #'overlayp "28.1")
+(define-obsolete-function-alias 'dd-propertize #'propertize "28.1")
 
 ;;; GENERIC STUFF
 ;;
@@ -101,14 +100,14 @@ PREBUTTONTEXT is some text between prefix and the overlay button."
   (let ((start (point))
 	(end nil)
 	(str (format "%s" overlay))
-	(tip nil))
+	) ;; (tip nil)
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-comment-face)
     (put-text-property start end 'ddebug overlay)
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-overlay-from-point)
     (insert "\n")
@@ -150,14 +149,14 @@ PREBUTTONTEXT is some text between prefix and the overlay list button."
   (let ((start (point))
 	(end nil)
 	(str (format "#<overlay list: %d entries>" (length overlaylist)))
-	(tip nil))
+	) ;; (tip nil)
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-comment-face)
     (put-text-property start end 'ddebug overlaylist)
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-overlay-list-from-point)
     (insert "\n")
@@ -205,14 +204,14 @@ PREBUTTONTEXT is some text between prefix and the buffer button."
   (let ((start (point))
 	(end nil)
 	(str (format "%S" buffer))
-	(tip nil))
+	) ;; (tip nil)
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-comment-face)
     (put-text-property start end 'ddebug buffer)
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-buffer-from-point)
     (insert "\n")
@@ -254,14 +253,14 @@ PREBUTTONTEXT is some text between prefix and the buffer list button."
   (let ((start (point))
 	(end nil)
 	(str (format "#<buffer list: %d entries>" (length bufferlist)))
-	(tip nil))
+	) ;; (tip nil)
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-comment-face)
     (put-text-property start end 'ddebug bufferlist)
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-buffer-list-from-point)
     (insert "\n")
@@ -310,14 +309,14 @@ PREBUTTONTEXT is some text between prefix and the process button."
   (let ((start (point))
 	(end nil)
 	(str (format "%S : %s" process (process-status process)))
-	(tip nil))
+	) ;; (tip nil)
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-comment-face)
     (put-text-property start end 'ddebug process)
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-process-from-point)
     (insert "\n")
@@ -364,8 +363,8 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 	 (str (format "#<RING: %d, %d max>"
 		      (ring-length ring)
 		      (ring-size ring)))
-	 (ringthing
-	  (if (= (ring-length ring) 0) nil (ring-ref ring 0)))
+	 ;; (ringthing
+	 ;;  (if (= (ring-length ring) 0) nil (ring-ref ring 0)))
 	 (tip (format "Ring max-size %d, length %d."
 		      (ring-size ring)
 		      (ring-length ring)))
@@ -414,7 +413,9 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
   )
 
 (defun data-debug-insert-hash-table-button (hash-table prefix prebuttontext)
-  "Insert HASH-TABLE as expandable button with recursive prefix PREFIX and PREBUTTONTEXT in front of the button text."
+  "Insert HASH-TABLE as expandable button, using PREFIX and PREBUTTONTEXT.
+PREFIX is a recursive prefix and PREBUTTONTEXT is text to be inserted
+in front of the button text."
   (let ((string (propertize (format "%s" hash-table)
 			    'face 'font-lock-keyword-face)))
     (insert (propertize
@@ -438,7 +439,7 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 ;; Widgets have a long list of properties
 (defun data-debug-insert-widget-properties (widget prefix)
   "Insert the contents of WIDGET inserting PREFIX before each element."
-  (let ((type (car widget))
+  (let (;; (type (car widget))
 	(rest (cdr widget)))
     (while rest
       (data-debug-insert-thing (car (cdr rest))
@@ -684,7 +685,7 @@ PREBUTTONTEXT is some text between prefix and the thing."
   )
 
 ;;; nil thing
-(defun data-debug-insert-nil (thing prefix prebuttontext)
+(defun data-debug-insert-nil (_thing prefix prebuttontext)
   "Insert one simple THING with a face.
 PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between prefix and the thing.
@@ -853,23 +854,21 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
     table)
   "Syntax table used in data-debug macro buffers.")
 
-(define-obsolete-variable-alias 'data-debug-map 'data-debug-mode-map "24.1")
 (defvar data-debug-mode-map
   (let ((km (make-sparse-keymap)))
     (suppress-keymap km)
-    (define-key km [mouse-2] 'data-debug-expand-or-contract-mouse)
-    (define-key km " " 'data-debug-expand-or-contract)
-    (define-key km "\C-m" 'data-debug-expand-or-contract)
-    (define-key km "n" 'data-debug-next)
-    (define-key km "p" 'data-debug-prev)
-    (define-key km "N" 'data-debug-next-expando)
-    (define-key km "P" 'data-debug-prev-expando)
+    (define-key km [mouse-2] #'data-debug-expand-or-contract-mouse)
+    (define-key km " " #'data-debug-expand-or-contract)
+    (define-key km "\C-m" #'data-debug-expand-or-contract)
+    (define-key km "n" #'data-debug-next)
+    (define-key km "p" #'data-debug-prev)
+    (define-key km "N" #'data-debug-next-expando)
+    (define-key km "P" #'data-debug-prev-expando)
     km)
   "Keymap used in data-debug.")
 
 (defcustom data-debug-mode-hook nil
   "Hook run when data-debug starts."
-  :group 'data-debug
   :type 'hook)
 
 (define-derived-mode data-debug-mode fundamental-mode "DATA-DEBUG"
@@ -882,9 +881,8 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (setq-local comment-start-skip
        "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (buffer-disable-undo)
-  (set (make-local-variable 'font-lock-global-modes) nil)
-  (font-lock-mode -1)
-  )
+  (setq-local font-lock-global-modes nil)
+  (font-lock-mode -1))
 
 ;;;###autoload
 (defun data-debug-new-buffer (name)
@@ -904,14 +902,14 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (interactive)
   (forward-line 1)
   (beginning-of-line)
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-prev ()
   "Go to the previous line in the Ddebug buffer."
   (interactive)
   (forward-line -1)
   (beginning-of-line)
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-next-expando ()
   "Go to the next line in the Ddebug buffer.
@@ -998,7 +996,7 @@ Do nothing if already contracted."
 	   (data-debug-current-line-expanded-p))
       (data-debug-contract-current-line)
     (data-debug-expand-current-line))
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-expand-or-contract-mouse (event)
   "Expand or contract anything at event EVENT."
@@ -1029,12 +1027,10 @@ Do nothing if already contracted."
 (defun data-debug-edebug-expr (expr)
   "Dump out the contents of some expression EXPR in edebug with ddebug."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))
-	 ))
-  (let ((v (eval expr)))
+   (list (read-from-minibuffer "Eval: "
+                               nil read-expression-map t
+                               'read-expression-history)))
+  (let ((v (eval expr t)))
     (if (not v)
 	(message "Expression %s is nil." expr)
       (data-debug-show-stuff v "expression"))))
@@ -1044,33 +1040,32 @@ Do nothing if already contracted."
 If the result is something simple, show it in the echo area.
 If the result is a list or vector, then use the data debugger to display it."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))
-	 ))
+   (list (read-from-minibuffer "Eval: "
+                               nil read-expression-map t
+                               'read-expression-history)))
 
-  (if (null eval-expression-debug-on-error)
-      (setq values (cons (eval expr) values))
-    (let ((old-value (make-symbol "t")) new-value)
-      ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evalled code changes it.
-      (let ((debug-on-error old-value))
-	(setq values (cons (eval expr) values))
-	(setq new-value debug-on-error))
-      ;; If evalled code has changed the value of debug-on-error,
-      ;; propagate that change to the global binding.
-      (unless (eq old-value new-value)
-	(setq debug-on-error new-value))))
+  (let (result)
+    (if (null eval-expression-debug-on-error)
+        (setq result (values--store-value (eval expr t)))
+      (let ((old-value (make-symbol "t")) new-value)
+        ;; Bind debug-on-error to something unique so that we can
+        ;; detect when evalled code changes it.
+        (let ((debug-on-error old-value))
+	  (setq result (values--store-value (eval expr t)))
+	  (setq new-value debug-on-error))
+        ;; If evalled code has changed the value of debug-on-error,
+        ;; propagate that change to the global binding.
+        (unless (eq old-value new-value)
+	  (setq debug-on-error new-value))))
 
-  (if (or (consp (car values)) (vectorp (car values)))
-      (let ((v (car values)))
-	(data-debug-show-stuff v "Expression"))
-    ;; Old style
-    (prog1
-	(prin1 (car values) t)
-      (let ((str (eval-expression-print-format (car values))))
-	(if str (princ str t))))))
+    (if (or (consp result) (vectorp result))
+        (let ((v result))
+	  (data-debug-show-stuff v "Expression"))
+      ;; Old style
+      (prog1
+	  (prin1 result t)
+        (let ((str (eval-expression-print-format result)))
+	  (if str (princ str t)))))))
 
 (provide 'data-debug)
 

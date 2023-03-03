@@ -1,8 +1,9 @@
 ;;; rot13.el --- display a buffer in ROT13  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
+;;         Simon Josefsson
 ;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
@@ -22,44 +23,46 @@
 
 ;;; Commentary:
 
-;; The entry point, `rot13-other-window', performs a Caesar cipher
-;; encrypt/decrypt on the current buffer and displays the result in another
-;; window.  ROT13 encryption is sometimes used on USENET as a read-at-your-
-;; own-risk wrapper for material some might consider offensive, such as
-;; ethnic humor.
+;;   "ROT13 ('rotate by 13 places') is a simple letter substitution
+;;   cipher that replaces a letter with the 13th letter after it in
+;;   the alphabet.  ROT13 is a special case of the Caesar cipher
+;;   which was developed in ancient Rome.
 ;;
-;; Written by Howard Gayle.
-;; This hack is mainly to show off the char table stuff.
+;;   Because there are 26 letters (2×13) in the basic Latin
+;;   alphabet, ROT13 is its own inverse; that is, to undo ROT13, the
+;;   same algorithm is applied, so the same action can be used for
+;;   encoding and decoding.  The algorithm provides virtually no
+;;   cryptographic security, and is often cited as a canonical
+;;   example of weak encryption.
 ;;
-;; New entry points, `rot13', `rot13-string', and `rot13-region' that
-;; performs Caesar cipher encrypt/decrypt on buffers and strings, was
-;; added by Simon Josefsson.
+;;   ROT13 is used in online forums as a means of hiding spoilers,
+;;   punchlines, puzzle solutions, and offensive materials from the
+;;   casual glance."                      - Wikipedia article on ROT13
+;;
+;; The entry points, `rot13', `rot13-string', and `rot13-region' performs ROT13
+;; encoding/decoding on buffers and strings.  The entry point
+;; `rot13-other-window' performs a ROT13 encoding/decoding on the current
+;; buffer and displays the result in another window.
 
 ;;; Code:
 
-(defvar rot13-display-table
-  (let ((table (make-display-table))
-	(i 0))
-    (while (< i 26)
+(defconst rot13-display-table
+  (let ((table (make-display-table)))
+    (dotimes (i 26)
       (aset table (+ i ?a) (vector (+ (% (+ i 13) 26) ?a)))
-      (aset table (+ i ?A) (vector (+ (% (+ i 13) 26) ?A)))
-      (setq i (1+ i)))
+      (aset table (+ i ?A) (vector (+ (% (+ i 13) 26) ?A))))
     table)
   "Char table for ROT13 display.")
 
-(defvar rot13-translate-table
-  (let ((str (make-string 127 0))
-	(i 0))
-    (while (< i 127)
-      (aset str i i)
-      (setq i (1+ i)))
-    (setq i 0)
-    (while (< i 26)
-      (aset str (+ i ?a) (+ (% (+ i 13) 26) ?a))
-      (aset str (+ i ?A) (+ (% (+ i 13) 26) ?A))
-      (setq i (1+ i)))
-    str)
-  "String table for ROT13 translation.")
+(put 'plain-char-table 'char-table-extra-slots 0)
+
+(defconst rot13-translate-table
+  (let ((table (make-char-table 'translation-table)))
+    (dotimes (i 26)
+      (aset table (+ i ?a) (+ (% (+ i 13) 26) ?a))
+      (aset table (+ i ?A) (+ (% (+ i 13) 26) ?A)))
+    table)
+  "Char table for ROT13 translation.")
 
 ;;;###autoload
 (defun rot13 (object &optional start end)
@@ -82,9 +85,16 @@ and END, and return the encrypted string."
 
 ;;;###autoload
 (defun rot13-region (start end)
-  "ROT13 encrypt the region between START and END in current buffer."
+  "ROT13 encrypt the region between START and END in current buffer.
+If invoked interactively and the buffer is read-only, a message
+will be printed instead."
   (interactive "r")
-  (translate-region start end rot13-translate-table))
+  (condition-case nil
+      (translate-region start end rot13-translate-table)
+    (buffer-read-only
+     (when (called-interactively-p 'interactive)
+       (let ((dec (rot13-string (buffer-substring start end))))
+         (message "Buffer is read-only:\n%s" (string-trim dec)))))))
 
 ;;;###autoload
 (defun rot13-other-window ()

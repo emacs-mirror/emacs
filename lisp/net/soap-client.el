@@ -1,15 +1,15 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.2.0
+;; Version: 3.2.1
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
-;; Homepage: https://github.com/alex-hhh/emacs-soap-client
-;; Package-Requires: ((cl-lib "0.6.1"))
+;; URL: https://github.com/alex-hhh/emacs-soap-client
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -717,10 +717,9 @@ representing leap seconds."
                 second)
               minute hour day month year second-fraction datatype time-zone)
       (let ((time
-             (apply
-              #'encode-time (list
-                             (if new-decode-time new-decode-time-second second)
-                             minute hour day month year nil nil time-zone))))
+	     (encode-time (list
+			   (if new-decode-time new-decode-time-second second)
+			   minute hour day month year nil nil time-zone))))
         (if new-decode-time
             (with-no-warnings (decode-time time nil t))
           (decode-time time))))))
@@ -771,6 +770,8 @@ This is a specialization of `soap-decode-type' for
         (Array (soap-decode-array node))))))
 
 (defalias 'soap-type-of
+  ;; FIXME: Once we drop support for Emacs<25, use generic functions
+  ;; via `cl-defmethod' instead of our own ad-hoc version of it.
   (if (eq 'soap-xs-basic-type (type-of (make-soap-xs-basic-type)))
       ;; `type-of' in Emacs ≥ 26 already does what we need.
       #'type-of
@@ -857,7 +858,7 @@ contains a reference, retrieve the type of the reference."
             (if complex-type
                 (setq type (soap-xs-parse-complex-type (car complex-type)))
               ;; else
-              (error "Soap-xs-parse-element: missing type or ref"))))))
+              (error "soap-xs-parse-element: Missing type or ref"))))))
 
     (make-soap-xs-element :name name
                           ;; Use the full namespace name for now, we will
@@ -1263,7 +1264,7 @@ See also `soap-wsdl-resolve-references'."
              (soap-l2wk (xml-node-name node)))
 
   (setf (soap-xs-simple-type-base type)
-        (mapcar 'soap-l2fq
+        (mapcar #'soap-l2fq
                 (split-string
                  (or (xml-get-attribute-or-nil node 'memberTypes) ""))))
 
@@ -1316,7 +1317,7 @@ See also `soap-wsdl-resolve-references'."
   "Validate VALUE against the basic type TYPE."
   (let* ((kind (soap-xs-basic-type-kind type)))
     (cl-case kind
-      ((anyType Array byte[])
+      ((anyType Array byte\[\])
        value)
       (t
        (let ((convert (get kind 'rng-xsd-convert)))
@@ -1343,7 +1344,7 @@ See also `soap-wsdl-resolve-references'."
                               (soap-validate-xs-basic-type value base))))
               (error (push (cadr error-object) messages))))
           (when messages
-            (error (mapconcat 'identity (nreverse messages) "; and: "))))
+            (error (mapconcat #'identity (nreverse messages) "; and: "))))
       (cl-labels ((fail-with-message (format value)
                                      (push (format format value) messages)
                                      (throw 'invalid nil)))
@@ -2345,8 +2346,8 @@ See also `soap-resolve-references' and
 
   (when (= (length (soap-operation-parameter-order operation)) 0)
     (setf (soap-operation-parameter-order operation)
-          (mapcar 'car (soap-message-parts
-                        (cdr (soap-operation-input operation))))))
+          (mapcar #'car (soap-message-parts
+                         (cdr (soap-operation-input operation))))))
 
   (setf (soap-operation-parameter-order operation)
         (mapcar (lambda (p)
@@ -2391,13 +2392,13 @@ See also `soap-wsdl-resolve-references'."
 ;; Install resolvers for our types
 (progn
   (put (soap-type-of (make-soap-message)) 'soap-resolve-references
-       'soap-resolve-references-for-message)
+       #'soap-resolve-references-for-message)
   (put (soap-type-of (make-soap-operation)) 'soap-resolve-references
-       'soap-resolve-references-for-operation)
+       #'soap-resolve-references-for-operation)
   (put (soap-type-of (make-soap-binding)) 'soap-resolve-references
-       'soap-resolve-references-for-binding)
+       #'soap-resolve-references-for-binding)
   (put (soap-type-of (make-soap-port)) 'soap-resolve-references
-       'soap-resolve-references-for-port))
+       #'soap-resolve-references-for-port))
 
 (defun soap-wsdl-resolve-references (wsdl)
   "Resolve all references inside the WSDL structure.
@@ -2511,7 +2512,7 @@ Build on WSDL if it is provided."
     (soap-wsdl-resolve-references (soap-parse-wsdl xml wsdl))
     wsdl))
 
-(defalias 'soap-load-wsdl-from-url 'soap-load-wsdl)
+(defalias 'soap-load-wsdl-from-url #'soap-load-wsdl)
 
 (defun soap-parse-wsdl-phase-validate-node (node)
   "Assert that NODE is valid."
@@ -2871,7 +2872,7 @@ decode function to perform the actual decoding."
       (unless wtype
         ;; The node has type info encoded in it, but we don't know how to
         ;; decode it...
-        (error "Soap-decode-array: node has unknown type: %s" type)))
+        (error "soap-decode-array: Node has unknown type: %s" type)))
     (dolist (e contents)
       (when (consp e)
         (push (if wtype
@@ -2884,7 +2885,7 @@ decode function to perform the actual decoding."
 
 (if (fboundp 'define-error)
     (define-error 'soap-error "SOAP error")
-  ;; Support older Emacs versions that do not have define-error, so
+  ;; Support Emacs<24.4 that do not have define-error, so
   ;; that soap-client can remain unchanged in GNU ELPA.
   (put 'soap-error
        'error-conditions
@@ -3123,8 +3124,7 @@ http://schemas.xmlsoap.org/soap/encoding/\"\n"))
 
 (defcustom soap-debug nil
   "When t, enable some debugging facilities."
-  :type 'boolean
-  :group 'soap-client)
+  :type 'boolean)
 
 (defun soap-find-port (wsdl service)
   "Return the WSDL port having SERVICE name.

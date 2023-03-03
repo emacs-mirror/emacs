@@ -1,6 +1,6 @@
-;;; deuglify.el --- deuglify broken Outlook (Express) articles
+;;; deuglify.el --- deuglify broken Outlook (Express) articles  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
 ;;         Thomas Steffen
@@ -155,15 +155,15 @@
 ;; To automatically invoke deuglification on every article you read,
 ;; put something like that in your .gnus:
 ;;
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-unwrap-lines)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-unwrap-lines)
 ;;
 ;; or _one_ of the following lines:
 ;;
 ;; ;; repair broken attribution lines
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-repair-attribution)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-repair-attribution)
 ;;
 ;; ;; repair broken attribution lines and citations
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-rearrange-citation)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-rearrange-citation)
 ;;
 ;; Note that there always may be some false positives, so I suggest
 ;; using the manual invocation.  After deuglification you may want to
@@ -223,6 +223,7 @@
 
 (defconst gnus-outlook-deuglify-version "1.5 Gnus version"
   "Version of gnus-outlook-deuglify.")
+(make-obsolete-variable 'gnus-outlook-deuglify-version 'emacs-version "29.1")
 
 ;;; User Customizable Variables:
 
@@ -234,61 +235,56 @@
 (defcustom gnus-outlook-deuglify-unwrap-min 45
   "Minimum length of the cited line above the (possibly) wrapped line."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-outlook-deuglify)
+  :type 'integer)
 
 (defcustom gnus-outlook-deuglify-unwrap-max 95
   "Maximum length of the cited line after unwrapping."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-outlook-deuglify)
+  :type 'integer)
 
 (defcustom gnus-outlook-deuglify-cite-marks ">|#%"
   "Characters that indicate cited lines."
   :version "22.1"
-  :type 'string
-  :group 'gnus-outlook-deuglify)
+  :type 'string)
 
 (defcustom gnus-outlook-deuglify-unwrap-stop-chars nil ;; ".?!" or nil
-  "Characters that inhibit unwrapping if they are the last one on the cited line above the possible wrapped line."
+  "Characters that, when at end of cited line, inhibit unwrapping.
+When one of these characters is the last one on the cited line
+above the possibly wrapped line, it disallows unwrapping."
   :version "22.1"
   :type '(radio (const :format "None  " nil)
-		(string :value ".?!"))
-  :group 'gnus-outlook-deuglify)
+		(string :value ".?!")))
 
 (defcustom gnus-outlook-deuglify-no-wrap-chars "`"
-  "Characters that inhibit unwrapping if they are the first one in the possibly wrapped line."
+  "Characters that, when at beginning of line, inhibit unwrapping.
+When one of these characters is the first one in the possibly
+wrapped line, it disallows unwrapping."
   :version "22.1"
-  :type 'string
-  :group 'gnus-outlook-deuglify)
+  :type 'string)
 
 (defcustom  gnus-outlook-deuglify-attrib-cut-regexp
   "\\(On \\|Am \\)?\\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),[^,]+, "
-  "Regular expression matching the beginning of an attribution line that should be cut off."
+  "Regexp matching beginning of attribution line that should be cut off."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom gnus-outlook-deuglify-attrib-verb-regexp
   "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a écrit\\|schreef\\|escribió"
   "Regular expression matching the verb used in an attribution line."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom  gnus-outlook-deuglify-attrib-end-regexp
   ": *\\|\\.\\.\\."
   "Regular expression matching the end of an attribution line."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom gnus-outlook-display-hook nil
   "A hook called after a deuglified article has been prepared.
 It is run after `gnus-article-prepare-hook'."
   :version "22.1"
-  :type 'hook
-  :group 'gnus-outlook-deuglify)
+  :type 'hook)
 
 ;; Functions
 
@@ -315,7 +311,7 @@ You can control what lines will be unwrapped by frobbing
 `gnus-outlook-deuglify-unwrap-min' and `gnus-outlook-deuglify-unwrap-max',
 indicating the minimum and maximum length of an unwrapped citation line.  If
 NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((case-fold-search nil)
 	(inhibit-read-only t)
 	(cite-marks gnus-outlook-deuglify-cite-marks)
@@ -338,10 +334,11 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
   (unless nodisplay (gnus-outlook-display-article-buffer)))
 
 (defun gnus-outlook-rearrange-article (attr-start)
-  "Put the text from ATTR-START to the end of buffer at the top of the article buffer."
+  "Put text from ATTR-START to the end of buffer at the top of the article buffer."
   ;; FIXME: 1.  (*) text/plain          ( ) text/html
   (let ((inhibit-read-only t)
-	(cite-marks gnus-outlook-deuglify-cite-marks))
+	;; (cite-marks gnus-outlook-deuglify-cite-marks)
+	)
     (gnus-with-article-buffer
       (article-goto-body)
       ;; article does not start with attribution
@@ -434,7 +431,7 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
 (defun gnus-article-outlook-repair-attribution (&optional nodisplay)
   "Repair a broken attribution line.
 If NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((attrib-start
 	 (or
 	  (gnus-outlook-repair-attribution-other)
@@ -443,10 +440,11 @@ If NODISPLAY is non-nil, don't redisplay the article buffer."
     (unless nodisplay (gnus-outlook-display-article-buffer))
     attrib-start))
 
+;;;###autoload
 (defun gnus-article-outlook-rearrange-citation (&optional nodisplay)
   "Repair broken citations.
 If NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((attrib-start (gnus-article-outlook-repair-attribution 'nodisplay)))
     ;; rearrange citations if an attribution line has been recognized
     (if attrib-start
@@ -459,7 +457,7 @@ If NODISPLAY is non-nil, don't redisplay the article buffer."
 Treat \"smartquotes\", unwrap lines, repair attribution and
 rearrange citation.  If NODISPLAY is non-nil, don't redisplay the
 article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   ;; apply treatment of dumb quotes
   (gnus-article-treat-smartquotes)
   ;; repair wrapped cited lines
@@ -471,7 +469,7 @@ article buffer."
 ;;;###autoload
 (defun gnus-article-outlook-deuglify-article ()
   "Deuglify broken Outlook (Express) articles and redisplay."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-outlook-deuglify-article nil))
 
 (provide 'deuglify)

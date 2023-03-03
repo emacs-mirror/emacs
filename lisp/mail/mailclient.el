@@ -1,6 +1,6 @@
-;;; mailclient.el --- mail sending via system's mail client.
+;;; mailclient.el --- mail sending via system's mail client.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail
@@ -198,7 +198,7 @@ The mail client is taken to be the handler of mailto URLs."
 		   ((string= character-coding "quoted-printable")
 		    (mail-unquote-printable-region (point-min) (point-max)
 						   nil nil t))
-		   (t (error "unsupported Content-Transfer-Encoding: %s"
+                   (t (error "Unsupported Content-Transfer-Encoding: %s"
 			     character-coding)))
 		  (decode-coding-region (point-min) (point-max) coding-system))
 		(mailclient-encode-string-as-url

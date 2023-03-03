@@ -1,6 +1,6 @@
-;;; semantic/scope.el --- Analyzer Scope Calculations
+;;; semantic/scope.el --- Analyzer Scope Calculations  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -115,7 +115,7 @@ Saves scoping information between runs of the analyzer.")
   )
 
 (cl-defmethod semanticdb-synchronize ((cache semantic-scope-cache)
-				   new-tags)
+				      _new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))
 
@@ -262,7 +262,7 @@ are from nesting data types."
 	(semantic-go-to-tag pparent)
 	(setq stack (semantic-find-tag-by-overlay (point)))
 	;; Step one, find the merged version of stack in the typecache.
-	(let* ((stacknames (reverse (mapcar 'semantic-tag-name stack)))
+	(let* ((stacknames (reverse (mapcar #'semantic-tag-name stack)))
 	       (tc nil)
 	       )
 	  ;; @todo - can we use the typecache ability to
@@ -317,7 +317,7 @@ are from nesting data types."
 	      ;; returnlist is empty.
 	      (while snlist
 		(setq fullsearchname
-		      (append (mapcar 'semantic-tag-name returnlist)
+		      (append (mapcar #'semantic-tag-name returnlist)
 			      (list (car snlist)))) ;; Next one
 		(setq ptag
 		      (semanticdb-typecache-find fullsearchname))
@@ -325,8 +325,8 @@ are from nesting data types."
 		(when (or (not ptag)
 			  (not (semantic-tag-of-class-p ptag 'type)))
 		  (let ((rawscope
-			 (apply 'append
-				(mapcar 'semantic-tag-type-members
+			 (apply #'append
+				(mapcar #'semantic-tag-type-members
 					(cons (car returnlist) scopetypes)
 					)))
 			)
@@ -541,7 +541,7 @@ tag is not something you can complete from within TYPE."
 	  (setq leftover (cons S leftover)))))
     (nreverse leftover)))
 
-(defun semantic-analyze-scoped-type-parts (type &optional scope noinherit protection)
+(defun semantic-analyze-scoped-type-parts (type &optional scope noinherit _protection)
   "Return all parts of TYPE, a tag representing a TYPE declaration.
 SCOPE is the scope object.
 NOINHERIT turns off searching of inherited tags.
@@ -562,7 +562,7 @@ such as `public' or `private'."
 	   ;; @TODO - is this line needed??  Try w/out for a while
 	   ;; @note - I think C++ says no.  elisp might, but methods
 	   ;;         look like defuns, so it makes no difference.
-	   (extmeth nil) ; (semantic-tag-external-member-children type t))
+	   ;;(extmeth nil) ; (semantic-tag-external-member-children type t))
 
 	   ;; INHERITED are tags found in classes that our TYPE tag
 	   ;; inherits from.  Do not do this if it was not requested.
@@ -577,14 +577,14 @@ such as `public' or `private'."
 	    (if (semantic-tag-file-name TAG)
 		;; If it has a filename, just go with it...
 		(setq copyslots (cons TAG copyslots))
-	      ;; Otherwise, copy the tag w/ the guessed filename.
+              ;; Otherwise, copy the tag with the guessed filename.
 	      (setq copyslots (cons (semantic-tag-copy TAG nil fname)
 				    copyslots)))
 	    )
 	  (setq slots (nreverse copyslots))
 	  ))
       ;; Flatten the database output.
-      (append slots extmeth inherited)
+      (append slots nil inherited) ;; extmeth
       )))
 
 (defun semantic-analyze-scoped-inherited-tags (type scope access)
@@ -822,7 +822,7 @@ hits in order, with the first tag being in the closest scope."
 	  ans)
       ;; Not a real scope.  Our scope calculation analyze parts of
       ;; what it finds, and needs to pass lists through to do it's work.
-      ;; Tread that list as a singly entry.
+      ;; Treat that list as a singly entry.
       (if class
 	  (semantic-find-tags-by-class class scope)
 	scope)

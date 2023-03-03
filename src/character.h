@@ -42,7 +42,7 @@ INLINE_HEADER_BEGIN
 			F9..FF	   11111yyy
 
    In each bit pattern, 'x' and 'y' each represent a single bit of the
-   character code payload, and least one 'y' must be a 1 bit.
+   character code payload, and at least one 'y' must be a 1 bit.
    In the 5-byte sequence, the 22-bit payload cannot exceed 3FFF7F.
 */
 
@@ -82,6 +82,8 @@ enum
   LEFT_ANGLE_BRACKET = 0x3008,
   RIGHT_ANGLE_BRACKET = 0x3009,
   OBJECT_REPLACEMENT_CHARACTER = 0xFFFC,
+  TAG_SPACE = 0xE0020,
+  CANCEL_TAG = 0xE007F,
 };
 
 extern int char_string (unsigned, unsigned char *);
@@ -565,15 +567,14 @@ extern int translate_char (Lisp_Object, int c);
 extern ptrdiff_t count_size_as_multibyte (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t str_as_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t *);
-extern ptrdiff_t str_to_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t);
+extern ptrdiff_t str_to_multibyte (unsigned char *dst, const unsigned char *src,
+				   ptrdiff_t nchars);
 extern ptrdiff_t str_as_unibyte (unsigned char *, ptrdiff_t);
-extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
-                                 ptrdiff_t);
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t,
-				    ptrdiff_t *, ptrdiff_t *);
+extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t, ptrdiff_t,
+				    ptrdiff_t, ptrdiff_t *, ptrdiff_t *, bool);
 
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
@@ -583,6 +584,7 @@ extern bool alphanumericp (int);
 extern bool graphicp (int);
 extern bool printablep (int);
 extern bool blankp (int);
+extern bool graphic_base_p (int);
 
 /* Look up the element in char table OBJ at index CH, and return it as
    an integer.  If the element is not a character, return CH itself.  */

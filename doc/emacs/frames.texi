@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -128,6 +128,12 @@ In addition, the text in the region becomes the primary selection
 non-@code{nil} value, dragging the mouse over a stretch of text also
 adds the text to the kill ring.  The default is @code{nil}.
 
+  If this variable is @code{non-empty}, only copy to the kill ring if
+the region is non-empty.  For instance, if you mouse drag an area that
+is less than a half a character, you'd normally get the empty string
+in your kill ring, but with @code{non-empty}, this short mouse drag
+won't affect the kill ring.
+
 @vindex mouse-scroll-min-lines
   If you move the mouse off the top or bottom of the window while
 dragging, the window scrolls at a steady rate until you move the mouse
@@ -135,6 +141,12 @@ back into the window.  This way, you can select regions that don't fit
 entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
+
+@vindex mouse-drag-mode-line-buffer
+  If you enable the option @code{mouse-drag-mode-line-buffer} and
+dragging files is supported by the window system, then dragging the
+mouse on the buffer name portion of the mode line will drag that
+buffer's file to another program or frame.
 
 @findex mouse-yank-primary
 @findex mouse-yank-at-click
@@ -203,6 +215,10 @@ deactivating the mark.  @xref{Shift Selection}.
 @vindex mouse-wheel-follow-mouse
 @vindex mouse-wheel-scroll-amount
 @vindex mouse-wheel-progressive-speed
+@cindex wheel-up, a mouse event
+@cindex wheel-down, a mouse event
+@cindex wheel-left, a mouse event
+@cindex wheel-right, a mouse event
   Some mice have a ``wheel'' which can be used for scrolling.  Emacs
 supports scrolling windows with the mouse wheel, by default, on most
 graphical displays.  To toggle this feature, use @kbd{M-x
@@ -211,10 +227,18 @@ mouse-wheel-mode}.  The variables @code{mouse-wheel-follow-mouse} and
 buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.  This mode also
-supports increasing or decreasing the height of the default face, by
-default bound to scrolling with the @key{Ctrl} modifier.
+supports increasing or decreasing the font size, by default bound to
+scrolling with the @key{Ctrl} modifier.  When this mode is enabled,
+mouse wheel produces special events like @code{wheel-up} and
+@code{wheel-down}.  (Some older systems report them as @code{mouse-4}
+and @code{mouse-5}.)  If the mouse has a horizontal scroll wheel, it
+produces @code{wheel-left} and @code{wheel-right} events as well.
 
-Emacs also supports horizontal scrolling with the @key{Shift} modifier.
+@vindex mouse-wheel-scroll-amount-horizontal
+Emacs also supports horizontal scrolling with the @key{Shift}
+modifier.  Typing a numeric prefix arg (e.g., @kbd{M-5}) before
+starting horizontal scrolling changes its step value defined
+by the user option @code{mouse-wheel-scroll-amount-horizontal}.
 
 @vindex mouse-wheel-tilt-scroll
 @vindex mouse-wheel-flip-direction
@@ -310,6 +334,7 @@ In this way, you can use the mouse to move point over a button without
 activating it.  Dragging the mouse over or onto a button has its usual
 behavior of setting the region, and does not activate the button.
 
+@vindex mouse-1-click-follows-link
   You can change how @kbd{mouse-1} applies to buttons by customizing
 the variable @code{mouse-1-click-follows-link}.  If the value is a
 positive integer, that determines how long you need to hold the mouse
@@ -362,20 +387,24 @@ This menu is for changing the default face within the window's buffer.
 @xref{Text Scale}.
 @end table
 
-  Some graphical applications use @kbd{mouse-3} for a mode-specific
-menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a menu
-instead of running the @code{mouse-save-then-kill} command, rebind
-@kbd{mouse-3} by adding the following line to your init file
-(@pxref{Init Rebinding}):
-
-@smallexample
-(global-set-key [mouse-3]
-  '(menu-item "Menu Bar" ignore
-    :filter (lambda (_)
-              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
-                  (mouse-menu-bar-map)
-                (mouse-menu-major-mode-map)))))
-@end smallexample
+@cindex context menu
+@findex context-menu-mode
+@vindex context-menu-functions
+@kindex Down-mouse-3
+@kindex S-F10
+  Many GUI applications use @kbd{mouse-3} to display @dfn{context
+menus}: menus that provide access to various pertinent settings and
+actions for the location and context of the mouse click.  If you
+prefer this in Emacs over the default function of @kbd{mouse-3}, which
+is bound to the @code{mouse-save-then-kill} command (@pxref{Mouse
+Commands}), you can enable the minor mode @code{context-menu-mode}.
+Then Emacs will show context menus when you click @kbd{mouse-3}.  The
+exact contents of these context menus depends on the current major
+mode and the buffer contents around the place where you click the
+mouse.  To customize the contents of the context menu, you can use the
+variable @code{context-menu-functions} (@pxref{Major Mode
+Conventions,,, elisp, The Emacs Lisp Reference Manual}).
+You can also invoke the context menu by pressing @kbd{S-@key{F10}}.
 
 @node Mode Line Mouse
 @section Mode Line Mouse Commands
@@ -444,7 +473,14 @@ buffer to select:
 @item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
-Create a new frame (@code{make-frame-command}).
+Create a new frame using the default frame parameters
+(@code{make-frame-command}).
+
+@item C-x 5 c
+@kindex C-x 5 c
+@findex clone-frame
+Create a new frame using the window configuration and frame parameters
+of the current frame (@code{clone-frame}).
 
 @item C-x 5 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another frame.  This runs
@@ -476,9 +512,10 @@ frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 
 @item C-x 5 5
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another frame.
+A more general prefix command that affects the buffer displayed by the
+next command invoked immediately after this prefix command
+(@code{other-frame-prefix}).  It requests the buffer of the next
+command to be displayed in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created
@@ -495,6 +532,16 @@ frames by specifying @dfn{frame parameters}.  @xref{Frame Parameters}.
 @findex delete-frame
 Delete the selected frame (@code{delete-frame}).  This signals an
 error if there is only one frame.
+
+@item C-x 5 u
+@kindex C-x 5 u
+@findex undelete-frame
+@findex undelete-frame-mode
+When @code{undelete-frame-mode} is enabled, undelete one of the 16
+most recently deleted frames.  Without a prefix argument, undelete the
+most recently deleted frame.  With a numerical prefix argument between
+1 and 16, where 1 is the most recently deleted frame, undelete the
+corresponding deleted frame.
 
 @item C-z
 @kindex C-z @r{(X windows)}
@@ -606,11 +653,15 @@ resources file to take effect.  @xref{Resources}.  Do not quote
 font names in X resource files.
 
 @item
-If you are running Emacs on the GNOME desktop, you can tell Emacs to
-use the default system font by setting the variable
+If you are running Emacs on the GNOME desktop or Haiku, you can tell
+Emacs to adjust the frame's default font along with changes to the
+default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
 For this to work, Emacs must have been compiled with support for
-Gsettings (or the older Gconf).
+Gsettings (or the older Gconf).  (To be specific, the Gsettings
+configuration names used are @samp{org.gnome.desktop.interface
+monospace-font-name} and @samp{org.gnome.desktop.interface
+font-name}.)
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
@@ -920,6 +971,7 @@ Speedbar,,speedbar, Speedbar Manual}.
 @node Multiple Displays
 @section Multiple Displays
 @cindex multiple displays
+@cindex display server
 
   A single Emacs can talk to more than one X display.  Initially, Emacs
 uses just one display---the one specified with the @env{DISPLAY}
@@ -1166,6 +1218,18 @@ the variable @code{dnd-open-file-other-window}.
   The XDND and Motif drag and drop protocols, and the old KDE 1.x
 protocol, are currently supported.
 
+@vindex dnd-indicate-insertion-point
+@vindex dnd-scroll-margin
+
+  It can be difficult to scroll a window or determine where dropped
+text will be inserted while dragging text onto an Emacs window.
+Setting the option @code{dnd-indicate-insertion-point} to a
+non-@code{nil} value makes point move to the location any dropped text
+will be inserted when the mouse moves in a window during drag, and
+setting @code{dnd-scroll-margin} to an integer value causes a window
+to be scrolled if the mouse moves within that many lines of the top
+or bottom of the window during drag.
+
 @vindex mouse-drag-and-drop-region
   Emacs can also optionally drag the region with the mouse into
 another portion of this or another buffer.  To enable that, customize
@@ -1190,6 +1254,17 @@ cursor during dragging.  To suppress such behavior, set the options
 @code{mouse-drag-and-drop-region-show-tooltip} and/or
 @code{mouse-drag-and-drop-region-show-cursor} to @code{nil}.
 
+@vindex mouse-drag-and-drop-region-cross-program
+To drag text from Emacs to other programs, set the option
+@code{mouse-drag-and-drop-region-cross-program} to a non-@code{nil}
+value.
+
+  On the X window system, some programs can drop files on Emacs,
+expecting Emacs to save them.  Normally, Emacs will prompt for a file
+name under which the file will be saved, and then open the file, but
+that behavior can be changed by changing the variable
+@code{x-dnd-direct-save-function}.  @xref{Drag and Drop,,, elisp, The
+Emacs Lisp Reference Manual}.
 
 @node Menu Bars
 @section Menu Bars
@@ -1210,7 +1285,9 @@ the use of menu bars at startup, customize the variable
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
 with @kbd{C-mouse-3} on a display which supports pop-up menus.
-@xref{Menu Mouse Clicks}.
+Or you can enable @code{context-menu-mode} and customize the variable
+@code{context-menu-functions} to pop up a context menu with
+@kbd{mouse-3}.  @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.  @xref{X Resources}, for how to customize the menu bar
@@ -1260,19 +1337,23 @@ displayed by moving the mouse pointer to the top of the screen.
 @section Tab Bars
 @cindex tab bar mode
 @cindex mode, Tab Bar
-@cindex tabs, tabbar
+@cindex tabs, on the Tab Bar
 
   On graphical displays and on text terminals, Emacs can optionally
 display a @dfn{Tab Bar} at the top of each frame, just below the menu
-bar.  The Tab Bar is a row of @dfn{tabs}---buttons that you can click
-to switch between window configurations on that frame.
+bar (@pxref{Menu Bars}) and above or below the tool bar (@pxref{Tool
+Bars}) depending on the variable @code{tab-bar-position}.
+The Tab Bar is a row of @dfn{tabs}---buttons that you can click to
+switch between window configurations.
 
   Each tab on the Tab Bar represents a named persistent window
-configuration.  Its name is composed from the list of names of buffers
-visible in windows of that window configuration.  Clicking on the tab
-switches to the window configuration recorded by the tab; it is a
-configuration of windows and buffers which was previously used in the
-frame when that tab was the current tab.
+configuration of its frame, i.e., how that frame is partitioned into
+windows and which buffer is displayed in each window.  The tab's name
+is composed from the list of names of buffers shown in windows of that
+window configuration.  Clicking on the tab switches to the window
+configuration recorded by the tab; it is a configuration of windows
+and buffers which was previously used in the frame when that tab was
+the current tab.
 
   If you are using the desktop library to save and restore your
 sessions (@pxref{Saving Emacs Sessions}), the tabs from the Tab Bar are
@@ -1281,28 +1362,40 @@ configurations, and will be available after restoring the session.
 
 Note that the Tab Bar is different from the Tab Line (@pxref{Tab Line}).
 Whereas tabs on the Tab Line at the top of each window are used to
-switch between buffers, tabs on the Tab Bar at the top of each frame
-are used to switch between window configurations containing several
-windows with buffers.
+switch between buffers in the window, tabs on the Tab Bar at the top
+of each frame are used to switch between window configurations
+containing several windows showing one or more buffers.
 
 @findex tab-bar-mode
-  To toggle the use of tab bars, type @kbd{M-x tab-bar-mode}.  This
+  To toggle the use of Tab Bars, type @kbd{M-x tab-bar-mode}.  This
 command applies to all frames, including frames yet to be created.  To
 control the use of tab bars at startup, customize the variable
-@code{tab-bar-mode}.
+@code{tab-bar-mode} and save your customization.
 
 @vindex tab-bar-show
   The variable @code{tab-bar-show} controls whether the Tab Bar mode
 is turned on automatically.  If the value is @code{t}, then
 @code{tab-bar-mode} is enabled when using the commands that create new
 tabs.  The value @code{1} hides the tab bar when it has only one tab,
-and shows it again when more tabs are created.  The value @code{nil}
-always keeps the tab bar hidden; in this case it's still possible to
-switch between named window configurations without the tab bar by
-using @kbd{M-x tab-next}, @kbd{M-x tab-switcher}, and other commands
-that provide completion on tab names.  Also it's possible to create
-and close tabs without the tab bar by using commands @kbd{M-x
-tab-new}, @kbd{M-x tab-close}, etc.
+and shows it again when more tabs are created.  More generally, a
+value that is a non-negative integer causes the Tab Bar to be
+displayed only if the number of tabs is greater than that integer.
+The value @code{nil} always keeps the Tab Bar hidden; in this case
+it's still possible to switch between named window configurations
+without displaying the Tab Bar by using @kbd{M-x tab-next}, @kbd{M-x
+tab-switcher}, and other commands that provide completion on tab
+names.  Also it's possible to create and close tabs without the Tab
+Bar by using commands @kbd{M-x tab-new}, @kbd{M-x tab-close}, etc.
+
+  Note that a numerical value of @code{tab-bar-show} can cause the Tab
+Bar to be displayed on some frames, but not on others, depending on
+the number of tabs created on each frame.
+
+@findex toggle-frame-tab-bar
+  To toggle the use of the Tab Bar only on the selected frame, type
+@kbd{M-x toggle-frame-tab-bar}.  This command allows to enable the
+display of the Tab Bar on some frames and disable it on others,
+regardless of the values of @code{tab-bar-mode} and @code{tab-bar-show}.
 
 @kindex C-x t
   The prefix key @kbd{C-x t} is analogous to @kbd{C-x 5}.
@@ -1315,29 +1408,41 @@ buffer to select.  The following commands can be used to select a buffer
 in a new tab:
 
 @table @kbd
-@item C-x t 2
 @kindex C-x t 2
 @findex tab-new
+@vindex tab-bar-tab-name-function
+@item C-x t 2
 Add a new tab (@code{tab-new}).  You can control the choice of the
 buffer displayed in a new tab by customizing the variable
-@code{tab-bar-new-tab-choice}.
+@code{tab-bar-new-tab-choice}.  You can control the names given by
+default to new tabs by customizing the variable
+@code{tab-bar-tab-name-function}.
 
+@kindex C-x t b
+@findex switch-to-buffer-other-tab
 @item C-x t b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another tab.  This runs
 @code{switch-to-buffer-other-tab}.
 
+@kindex C-x t f
+@findex find-file-other-tab
 @item C-x t f @var{filename} @key{RET}
-Visit file @var{filename} and select its buffer in another tab.  This
-runs @code{find-file-other-tab}.  @xref{Visiting}.
+Visit the file @var{filename} (@pxref{Visiting}) and select its buffer
+in another tab.  This runs @code{find-file-other-tab}.
 
+@kindex C-x t d
+@findex dired-other-tab
 @item C-x t d @var{directory} @key{RET}
-Select a Dired buffer for directory @var{directory} in another tab.
-This runs @code{dired-other-tab}.  @xref{Dired}.
+Edit the specified @var{directory} (@pxref{Dired}) in another tab.
+This runs @code{dired-other-tab}.
 
+@kindex C-x t t
+@findex other-tab-prefix
 @item C-x t t
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another tab.
+This is a prefix command (@code{other-tab-prefix}) that affects the
+next command invoked immediately after this prefix command.  It
+requests the buffer displayed by the next command to be shown in
+another tab.
 @end table
 
 @vindex tab-bar-new-tab-choice
@@ -1353,17 +1458,18 @@ By default, a new tab is added on the right side of the current tab.
   The following commands can be used to delete tabs:
 
 @table @kbd
-@item C-x t 0
 @kindex C-x t 0
 @findex tab-close
-Close the selected tab (@code{tab-close}).  It has no effect if there
+@vindex tab-bar-close-last-tab-choice
+@item C-x t 0
+Close the selected tab (@code{tab-close}).  This has no effect if there
 is only one tab, unless the variable @code{tab-bar-close-last-tab-choice}
 is customized to a non-default value.
 
-@item C-x t 1
 @kindex C-x t 1
 @findex tab-close-other
-Close all tabs on the selected frame, except the selected one.
+@item C-x t 1
+Close all tabs, except the selected tab, on the selected frame.
 @end table
 
 @vindex tab-bar-close-tab-select
@@ -1377,76 +1483,112 @@ a recently used tab.
   The following commands can be used to switch between tabs:
 
 @table @kbd
-@item C-x t o
-@itemx C-@key{TAB}
 @kindex C-x t o
 @kindex C-TAB
 @findex tab-next
-Switch to the next tab.  If you repeat this command, it cycles through
-all the tabs on the selected frame.  With a positive numeric argument
-@var{n}, it switches to the next @var{n}th tab; with a negative
-argument @minus{}@var{n}, it switches back to the previous @var{n}th
-tab.
+@item C-x t o
+@itemx C-@key{TAB}
+Switch to the next tab (@code{tab-next}).  If you repeat this command,
+it cycles through all the tabs on the selected frame.  With a positive
+numeric argument @var{n}, it switches to the @var{n}th next tab; with
+a negative argument @minus{}@var{n}, it switches back to the @var{n}th
+previous tab.
 
-@item S-C-@key{TAB}
 @kindex S-C-TAB
 @findex tab-previous
-Switch to the previous tab.  With a positive numeric argument @var{n},
-it switches to the previous @var{n}th tab; with a negative argument
-@minus{}@var{n}, it switches back to the next @var{n}th tab.
+@item S-C-@key{TAB}
+Switch to the previous tab (@code{tab-previous}).  With a positive
+numeric argument @var{n}, it switches to the @var{n}th previous tab;
+with a negative argument @minus{}@var{n}, it switches to the
+@var{n}th next tab.
 
+@kindex C-x t @key{RET}
+@findex tab-switch
 @item C-x t @key{RET} @var{tabname} @key{RET}
-Switch to the tab by its name, with completion on all tab names.
-Default values are tab names sorted by recency, so you can use
-@kbd{M-n} (@code{next-history-element}) to get the name of the last
-visited tab, the second last, and so on.
+Switch to the tab by its name (@code{tab-switch}), with completion on
+all tab names.  The default value and the ``future history'' of tab
+names is sorted by recency, so you can use @kbd{M-n}
+(@code{next-history-element}) to get the name of the last visited tab,
+the second last, and so on.
 
-@item @var{modifier}-@var{tabnumber}
+@kindex C-1, tab bar
+@kindex M-1, tab bar
 @findex tab-select
-Switch to the tab by its number.  After customizing the variable
-@code{tab-bar-select-tab-modifiers} to specify a @var{modifier} key, you
-can select a tab by its ordinal number using the specified modifier in
-combination with the tab number to select.  To display the tab number
-alongside the tab name, you can customize another variable
-@code{tab-bar-tab-hints}.  This will help you to decide what key to press
-to select the tab by its number.
+@vindex tab-bar-select-tab-modifiers
+@vindex tab-bar-tab-hints
+@item @var{modifier}-@var{tab-number}
+Switch to the tab by its number @var{tab-number} (@code{tab-select}).
+After customizing the variable @code{tab-bar-select-tab-modifiers} to
+specify one or more @var{modifier} keys, you can select a tab by its
+ordinal number using one of the specified modifiers in combination
+with the tab number to select.  The number 9 can be used to select the
+last tab. You can select any modifiers supported by Emacs,
+@pxref{Modifier Keys}.  To display the tab number alongside the tab
+name, you can customize another variable @code{tab-bar-tab-hints}.
+This will help you decide which numerical key to press to select the
+tab by its number.
 
-@item @var{modifier}-@kbd{0}
+@kindex C-9, tab bar
+@kindex M-9, tab bar
+@findex tab-last
+@item @var{modifier}-@kbd{9}
+Switch to the last tab (@code{tab-last}).  The key combination is
+the modifier key defined by @code{tab-bar-select-tab-modifiers} and
+the key @kbd{9}.  With a numeric argument @var{n}, switch to the
+@var{n}th last tab.
+
+@kindex C-0, tab bar
+@kindex M-0, tab bar
 @findex tab-recent
-Switch to the recent tab.  The key combination is the modifier key
-defined by @code{tab-bar-select-tab-modifiers} and the key @kbd{0}.
-With a numeric argument @var{n}, switch to the @var{n}th recent tab.
+@item @var{modifier}-@kbd{0}
+Switch to the recent tab (@code{tab-recent}).  The key combination is
+the modifier key defined by @code{tab-bar-select-tab-modifiers} and
+the key @kbd{0}.  With a numeric argument @var{n}, switch to the
+@var{n}th recent tab.
 @end table
 
   The following commands can be used to operate on tabs:
 
 @table @kbd
-@item C-x t r @var{tabname} @key{RET}
+@kindex C-x t r
 @findex tab-rename
-Rename the current tab to @var{tabname}.  You can control the
-programmatic name given to a tab by default by customizing the
-variable @code{tab-bar-tab-name-function}.
+@item C-x t r @var{tabname} @key{RET}
+Rename the current tab to @var{tabname} (@code{tab-rename}).
 
-@item C-x t m
+@kindex C-x t m
 @findex tab-move
-Move the current tab @var{n} positions to the right with a positive
-numeric argument @var{n}.  With a negative argument @minus{}@var{n},
-move the current tab @var{n} positions to the left.
+@item C-x t m
+Move the current tab one position to the right (@code{tab-move}).
+With a positive numeric argument @var{n}, move it that many positions
+to the right; with a negative argument @minus{}@var{n}, move it
+@var{n} positions to the left.
 @end table
+
+  You can use the mouse to operate on tabs.  Clicking @kbd{mouse-2}
+closes the tab.  Clicking @kbd{mouse-3} pops up the context menu with
+the items that operate on the clicked tab.  Dragging the tab with
+@kbd{mouse-1} moves it to another position on the tab bar.  Mouse
+wheel scrolling switches to the next or previous tab.  Holding down
+the @key{SHIFT} key during scrolling moves the tab to the left or right.
 
 @findex tab-bar-history-mode
   You can enable @code{tab-bar-history-mode} to remember window
-configurations used in every tab, and restore them.
+configurations used in every tab, and later restore them.
 
 @table @kbd
-@item tab-bar-history-back
+@findex tab-bar-history-back
+@item M-x tab-bar-history-back
 Restore a previous window configuration used in the current tab.
 This navigates back in the history of window configurations.
 
-@item tab-bar-history-forward
+@findex tab-bar-history-forward
+@item M-x tab-bar-history-forward
 Cancel restoration of the previous window configuration.
-This navigates forward in the history of window configurations.
+This moves forward in the history of window configurations.
 @end table
+
+  It's possible to customize the items displayed on the tab bar
+by the user option @code{tab-bar-format}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes
@@ -1537,13 +1679,18 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}, and also
 For additional customization options for displaying tooltips, use
 @kbd{M-x customize-group @key{RET} tooltip @key{RET}}.
 
-@vindex x-gtk-use-system-tooltips
-  If Emacs is built with GTK+ support, it displays tooltips via GTK+,
-using the default appearance of GTK+ tooltips.  To disable this,
-change the variable @code{x-gtk-use-system-tooltips} to @code{nil}.
-If you do this, or if Emacs is built without GTK+ support, most
-attributes of the tooltip text are specified by the @code{tooltip}
-face, and by X resources (@pxref{X Resources}).
+@vindex use-system-tooltips
+  If Emacs is built with the GTK+ toolkit, Nextstep windowing, or
+Haiku windowing support, it displays tooltips via the toolkit, using
+the default appearance of the toolkit's tooltips.@footnote{The
+foreground and background colors of toolkit-created tooltips on
+Nextstep can also be customized by setting the @code{foreground} and
+@code{background} frame parameters that are part of
+@code{tooltip-frame-parameters}.} To disable this, change the variable
+@code{use-system-tooltips} to @code{nil}.  If you do this, or if Emacs
+is built without the appropriate windowing support, most attributes of
+the tooltip text are specified by the @code{tooltip} face, and by X
+resources (@pxref{X Resources}).
 
   @dfn{GUD tooltips} are special tooltips that show the values of
 variables when debugging a program with GUD@.  @xref{Debugger

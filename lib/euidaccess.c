@@ -1,21 +1,21 @@
 /* euidaccess -- check if effective user id can access file
 
-   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2020 Free
+   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2023 Free
    Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by David MacKenzie and Torbjorn Granlund.
@@ -107,7 +107,10 @@ euidaccess (const char *file, int mode)
      safe.  */
 
   if (mode == F_OK)
-    return stat (file, &stats);
+    {
+      int result = stat (file, &stats);
+      return result != 0 && errno == EOVERFLOW ? 0 : result;
+    }
   else
     {
       int result;
@@ -142,8 +145,8 @@ euidaccess (const char *file, int mode)
     /* If we are not set-uid or set-gid, access does the same.  */
     return access (file, mode);
 
-  if (stat (file, &stats) != 0)
-    return -1;
+  if (stat (file, &stats) == -1)
+    return mode == F_OK && errno == EOVERFLOW ? 0 : -1;
 
   /* The super-user can read and write any file, and execute any file
      that anyone can execute.  */

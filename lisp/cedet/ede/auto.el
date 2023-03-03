@@ -1,6 +1,6 @@
-;;; ede/auto.el --- Autoload features for EDE
+;;; ede/auto.el --- Autoload features for EDE  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -64,24 +64,22 @@ location is varied dependent on other complex criteria, this class
 can be used to define that match without loading the specific project
 into memory.")
 
+(cl-defmethod ede-calc-fromconfig ((dirmatch ede-project-autoload-dirmatch))
+  "Calculate the value of :fromconfig from DIRMATCH."
+  (let* ((fc (oref dirmatch fromconfig))
+	 (found (cond ((stringp fc) fc)
+		      ((functionp fc) (funcall fc))
+                      (t (error "Unknown dirmatch object match style")))))
+    (expand-file-name found)
+    ))
+
 (cl-defmethod ede-dirmatch-installed ((dirmatch ede-project-autoload-dirmatch))
   "Return non-nil if the tool DIRMATCH might match is installed on the system."
-  (let ((fc (oref dirmatch fromconfig)))
-
-    (cond
-     ;; If the thing to match is stored in a config file.
-     ((stringp fc)
-      (file-exists-p fc))
-
-     ;; Add new types of dirmatches here.
-
-     ;; Error for weird stuff
-     (t (error "Unknown dirmatch type.")))))
-
+  (file-exists-p (ede-calc-fromconfig dirmatch)))
 
 (cl-defmethod ede-do-dirmatch ((dirmatch ede-project-autoload-dirmatch) file)
   "Does DIRMATCH match the filename FILE."
-  (let ((fc (oref dirmatch fromconfig)))
+  (let ((fc (ede-calc-fromconfig dirmatch)))
 
     (cond
      ;; If the thing to match is stored in a config file.
@@ -131,7 +129,7 @@ into memory.")
 
      ;; Error if none others known
      (t
-      (error "Unknown dirmatch object match style.")))
+      (error "Unknown dirmatch object match style")))
     ))
 
 (declare-function ede-directory-safe-p "ede")
@@ -236,6 +234,7 @@ type is required and the load function used.")
     (display-buffer b)
  ))
 
+;;;###autoload
 (defun ede-add-project-autoload (projauto &optional flag)
   "Add PROJAUTO, an EDE autoload definition to `ede-project-class-files'.
 Optional argument FLAG indicates how this autoload should be
@@ -327,13 +326,13 @@ NOTE: Do not call this - it should only be called from `ede-load-project-file'."
 ;; See if we can do without them.
 
 ;; @FIXME - delete from loaddefs to remove this.
-(cl-defmethod ede-project-root ((this ede-project-autoload))
+(cl-defmethod ede-project-root ((_this ede-project-autoload))
   "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems."
   nil)
 
 ;; @FIXME - delete from loaddefs to remove this.
-(cl-defmethod ede-project-root-directory ((this ede-project-autoload) &optional file)
+(cl-defmethod ede-project-root-directory ((_this ede-project-autoload) &optional _file)
   "" nil)
 
 (provide 'ede/auto)

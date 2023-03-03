@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -93,7 +93,7 @@ Non-nil means \\[display-time] should display day and date as well as time."
 
 (defcustom display-time-interval 60
   "Seconds between updates of time in the mode line."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom display-time-24hr-format nil
   "Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
@@ -139,6 +139,11 @@ make the mail indicator stand out on a color display."
   :version "22.1"
   :type '(choice (const :tag "None" nil) face))
 
+(defface display-time-date-and-time nil
+  "Face for `display-time-format'."
+  :group 'mode-line-faces
+  :version "30.1")
+
 (defvar display-time-mail-icon
   (find-image '((:type xpm :file "letter.xpm" :ascent center)
 		(:type pbm :file "letter.pbm" :ascent center)))
@@ -179,6 +184,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
      (format-time-string (or display-time-format
 			     (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			 now)
+     'face 'display-time-date-and-time
      'help-echo (format-time-string "%a %b %e, %Y" now))
     load
     (if mail
@@ -205,7 +211,8 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 	  'mouse-face 'mode-line-highlight
 	  'local-map (make-mode-line-mouse-map 'mouse-2
 					       read-mail-command)))
-      ""))
+      "")
+    " ")
   "List of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
 which is a more standard interface.
@@ -339,10 +346,10 @@ Switches from the 1 to 5 to 15 minute load average, and then back to 1."
                        (float-time end-time))))))))))
 
 (defun display-time-update ()
-  "Update the display-time info for the mode line.
+  "Update the `display-time' info for the mode line.
 However, don't redisplay right now.
 
-This is used for things like Rmail `g' that want to force an
+This is used for things like Rmail \\`g' that want to force an
 update which can wait for the next redisplay."
   (let* ((now (current-time))
          (time (current-time-string now))
@@ -354,7 +361,7 @@ update which can wait for the next redisplay."
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
-         (time-zone (car (cdr (current-time-zone now))))
+	 (time-zone (format-time-string "%Z" now))
          (day (substring time 8 10))
          (year (format-time-string "%Y" now))
          (monthname (substring time 4 7))
@@ -518,18 +525,34 @@ If the value is t instead of an alist, use the value of
 
 (defcustom world-clock-timer-second 60
   "Interval in seconds for updating the `world-clock' buffer."
-  :type 'integer
+  :type 'natnum
   :version "28.1")
 
 (defface world-clock-label
   '((t :inherit font-lock-variable-name-face))
   "Face for time zone label in `world-clock' buffer.")
 
+(defvar-keymap world-clock-mode-map
+  "n" #'next-line
+  "p" #'previous-line
+  "w" #'world-clock-copy-time-as-kill)
+
+(defun world-clock-copy-time-as-kill ()
+  "Copy current line into the kill ring."
+  (interactive nil world-clock-mode)
+  (when-let ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
+    (kill-new str)
+    (message str)))
+
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `world-clock'."
+  :interactive nil
   (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
+
+(defvar world-clock--timer nil
+  "The current world clock timer.")
 
 (defun world-clock-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
@@ -571,7 +594,8 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
       (pop-to-buffer buffer)
     (pop-to-buffer world-clock-buffer-name)
     (when world-clock-timer-enable
-      (run-at-time t world-clock-timer-second #'world-clock-update)
+      (setq world-clock--timer
+            (run-at-time t world-clock-timer-second #'world-clock-update))
       (add-hook 'kill-buffer-hook #'world-clock-cancel-timer nil t)))
   (world-clock-display (time--display-world-list))
   (world-clock-mode)
@@ -579,18 +603,17 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
 
 (defun world-clock-cancel-timer ()
   "Cancel the world clock timer."
-  (let ((list timer-list))
-    (while list
-      (let ((elt (pop list)))
-        (when (equal (symbol-name (timer--function elt))
-                     "world-clock-update")
-          (cancel-timer elt))))))
+  (when world-clock--timer
+    (cancel-timer world-clock--timer)
+    (setq world-clock--timer nil)))
 
 (defun world-clock-update (&optional _arg _noconfirm)
   "Update the `world-clock' buffer."
   (if (get-buffer world-clock-buffer-name)
       (with-current-buffer (get-buffer world-clock-buffer-name)
-        (world-clock-display (time--display-world-list)))
+        (let ((op (point)))
+          (world-clock-display (time--display-world-list))
+          (goto-char op)))
     (world-clock-cancel-timer)))
 
 ;;;###autoload
@@ -613,13 +636,14 @@ point."
         str))))
 
 ;;;###autoload
-(defun emacs-init-time ()
-  "Return a string giving the duration of the Emacs initialization."
+(defun emacs-init-time (&optional format)
+  "Return a string giving the duration of the Emacs initialization.
+FORMAT is a string to format the result, using `format'.  If nil,
+the default format \"%f seconds\" is used."
   (interactive)
-  (let ((str
-	 (format "%s seconds"
-		 (float-time
-		  (time-subtract after-init-time before-init-time)))))
+  (let ((str (format (or format "%f seconds")
+                     (float-time (time-subtract after-init-time
+                                                before-init-time)))))
     (if (called-interactively-p 'interactive)
         (message "%s" str)
       str)))

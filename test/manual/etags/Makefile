@@ -16,6 +16,7 @@ HTMLSRC=$(addprefix ./html-src/,softwarelibero.html index.shtml algrthms.html so
 #JAVASRC=$(addprefix ./java-src/, )
 LUASRC=$(addprefix ./lua-src/,allegro.lua test.lua)
 MAKESRC=$(addprefix ./make-src/,Makefile)
+MERCSRC=$(addprefix ./merc-src/,accumulator.m)
 OBJCSRC=$(addprefix ./objc-src/,Subprocess.h Subprocess.m PackInsp.h PackInsp.m)
 OBJCPPSRC=$(addprefix ./objcpp-src/,SimpleCalc.H SimpleCalc.M)
 PASSRC=$(addprefix ./pas-src/,common.pas)
@@ -25,13 +26,14 @@ PSSRC=$(addprefix ./ps-src/,rfc1245.ps)
 PROLSRC=$(addprefix ./prol-src/,ordsets.prolog natded.prolog)
 PYTSRC=$(addprefix ./pyt-src/,server.py)
 RBSRC=$(addprefix ./ruby-src/,test.rb test1.ru)
+RSSRC=$(addprefix ./rs-src/,test.rs)
 SCMSRC=$(addprefix ./scm-src/,test.scm)
 TEXSRC=$(addprefix ./tex-src/,testenv.tex gzip.texi texinfo.tex nonewline.tex)
 YSRC=$(addprefix ./y-src/,parse.y parse.c atest.y cccp.c cccp.y)
 SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
      ${FORTHSRC} ${GOSRC} ${HTMLSRC} ${JAVASRC} ${LUASRC} ${MAKESRC}\
      ${OBJCSRC} ${OBJCPPSRC} ${PASSRC} ${PHPSRC} ${PERLSRC} ${PSSRC}\
-     ${PROLSRC} ${PYTSRC} ${RBSRC} ${SCMSRC} ${TEXSRC} ${YSRC}
+     ${PROLSRC} ${PYTSRC} ${RBSRC} ${RSSRC} ${SCMSRC} ${TEXSRC} ${YSRC} ${MERCSRC}
 NONSRCS=./f-src/entry.strange ./erl-src/lists.erl ./cp-src/clheir.hpp.gz
 
 ETAGS_PROG=../../../lib-src/etags
@@ -58,12 +60,27 @@ check:
 	@$(MAKE) OPTIONS='nonexistent --members --declarations --regex=@regexfile' ediff_5
 	@$(MAKE) OPTIONS='--class-qualify --members --declarations --regex=@regexfile' ediff_6
 	@$(MAKE) cdiff
+	@$(MAKE) ctags_update
 
 ediff%: ETAGS.good% ETAGS ${infiles}
 	diff -u --suppress-common-lines --width=80 ETAGS.good$* ETAGS
 
 cdiff: CTAGS.good CTAGS ${infiles}
 	diff -u --suppress-common-lines --width=80 CTAGS.good CTAGS
+
+ctags_update: CTAGS.good_update ${infiles}
+	head -n 100 CTAGS.good_update > CTAGS
+	tail -n 100 CTAGS.good_update >> CTAGS
+	${RUN} ${CTAGS_PROG} -o CTAGS -u ${ARGS}
+	sort CTAGS > CTAGS.sorted
+	sort CTAGS.good_update > CTAGS.good_update.sorted
+	diff -u --suppress-common-lines --width=80 CTAGS.good_update.sorted CTAGS.sorted
+
+	cp crlf CTAGS
+	${RUN} ${CTAGS_PROG} -o CTAGS -u ${ARGS}
+	sort CTAGS > CTAGS.sorted
+	sort CTAGS.good_crlf > CTAGS.good_crlf.sorted
+	diff -u --suppress-common-lines --width=80 CTAGS.good_crlf.sorted CTAGS.sorted
 
 ETAGS: ${infiles}
 	${RUN} ${ETAGS_PROG} ${OPTIONS} -o $@ ${ARGS}

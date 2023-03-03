@@ -1,6 +1,6 @@
 ;;; env.el --- functions to manipulate environment variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes, unix
@@ -44,7 +44,7 @@ If it is also not t, RET does not exit if it does non-null completion."
   (completing-read prompt
 		   (mapcar (lambda (enventry)
                              (let ((str (substring enventry 0
-                                             (string-match "=" enventry))))
+                                             (string-search "=" enventry))))
                                (if (multibyte-string-p str)
                                    (decode-coding-string
                                     str locale-coding-system t)
@@ -184,7 +184,7 @@ a side-effect."
       (setq variable (encode-coding-string variable locale-coding-system)))
   (if (and value (multibyte-string-p value))
       (setq value (encode-coding-string value locale-coding-system)))
-  (if (string-match-p "=" variable)
+  (if (string-search "=" variable)
       (error "Environment variable name `%s' contains `='" variable))
   (if (string-equal "TZ" variable)
       (set-time-zone-rule value))
@@ -204,6 +204,7 @@ parameter.
 Otherwise, this function searches `process-environment' for
 VARIABLE.  If it is not found there, then it continues the search
 in the environment list of the selected frame."
+  (declare (side-effect-free t))
   (interactive (list (read-envvar-name "Get environment variable: " t)))
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string
@@ -217,6 +218,23 @@ in the environment list of the selected frame."
     (when (called-interactively-p 'interactive)
       (message "%s" (if value value "Not set")))
     value))
+
+;;;###autoload
+(defmacro with-environment-variables (variables &rest body)
+  "Set VARIABLES in the environment and execute BODY.
+VARIABLES is a list of variable settings of the form (VAR VALUE),
+where VAR is the name of the variable (a string) and VALUE
+is its value (also a string).
+
+The previous values will be restored upon exit."
+  (declare (indent 1) (debug (sexp body)))
+  (unless (consp variables)
+    (error "Invalid VARIABLES: %s" variables))
+  `(let ((process-environment (copy-sequence process-environment)))
+     ,@(mapcar (lambda (elem)
+                 `(setenv ,(car elem) ,(cadr elem)))
+               variables)
+     ,@body))
 
 (provide 'env)
 

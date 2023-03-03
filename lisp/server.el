@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2020 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -27,12 +27,12 @@
 
 ;;; Commentary:
 
-;; This Lisp code is run in Emacs when it is to operate as
-;; a server for other processes.
+;; This library allows Emacs to operate as a server for other
+;; processes.
 
-;; Load this library and do M-x server-edit to enable Emacs as a server.
+;; Load this library and do `M-x server-start' to enable Emacs as a server.
 ;; Emacs opens up a socket for communication with clients.  If there are no
-;; client buffers to edit, server-edit acts like (switch-to-buffer
+;; client buffers to edit, `server-edit' acts like (switch-to-buffer
 ;; (other-buffer))
 
 ;; When some other program runs "the editor" to edit a file,
@@ -42,10 +42,10 @@
 
 ;; Note that any number of clients may dispatch files to Emacs to be edited.
 
-;; When you finish editing a Server buffer, again call server-edit
+;; When you finish editing a Server buffer, again call `server-edit'
 ;; to mark that buffer as done for the client and switch to the next
 ;; Server buffer.  When all the buffers for a client have been edited
-;; and exited with server-edit, the client "editor" will return
+;; and exited with `server-edit', the client "editor" will return
 ;; to the program that invoked it.
 
 ;; Your editing commands and Emacs's display output go to and from
@@ -54,24 +54,27 @@
 ;; the client.  This is possible in four cases:
 
 ;; 1. On a window system, where Emacs runs in one window and the
-;; program that wants to use "the editor" runs in another.
+;;    program that wants to use "the editor" runs in another.
 
-;; 2. On a multi-terminal system, where Emacs runs on one terminal and the
-;; program that wants to use "the editor" runs on another.
+;; 2. On a multi-terminal system, where Emacs runs on one terminal and
+;;    the program that wants to use "the editor" runs on another.
 
-;; 3. When the program that wants to use "the editor" is running
-;; as a subprocess of Emacs.
+;; 3. When the program that wants to use "the editor" is running as a
+;;    subprocess of Emacs.
 
-;; 4. On a system with job control, when Emacs is suspended, the program
-;; that wants to use "the editor" will stop and display
-;; "Waiting for Emacs...".  It can then be suspended, and Emacs can be
-;; brought into the foreground for editing.  When done editing, Emacs is
-;; suspended again, and the client program is brought into the foreground.
+;; 4. On a system with job control, when Emacs is suspended, the
+;;    program that wants to use "the editor" will stop and display
+;;    "Waiting for Emacs...".  It can then be suspended, and Emacs can
+;;    be brought into the foreground for editing.  When done editing,
+;;    Emacs is suspended again, and the client program is brought into
+;;    the foreground.
 
-;; The buffer local variable "server-buffer-clients" lists
+;; The buffer local variable `server-buffer-clients' lists
 ;; the clients who are waiting for this buffer to be edited.
-;; The global variable "server-clients" lists all the waiting clients,
+;; The global variable `server-clients' lists all the waiting clients,
 ;; and which files are yet to be edited for each.
+
+;;; Code:
 
 ;; Todo:
 
@@ -79,8 +82,6 @@
 ;; - move most of the args processing and decision making from emacsclient.c
 ;;   to here.
 ;; - fix up handling of the client's environment (place it in the terminal?).
-
-;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 
@@ -90,12 +91,12 @@
 
 (defcustom server-use-tcp nil
   "If non-nil, use TCP sockets instead of local sockets."
-  :set #'(lambda (sym val)
-           (unless (featurep 'make-network-process '(:family local))
-             (setq val t)
-             (unless load-in-progress
-               (message "Local sockets unsupported, using TCP sockets")))
-           (set-default sym val))
+  :set (lambda (sym val)
+         (unless (featurep 'make-network-process '(:family local))
+           (setq val t)
+           (unless load-in-progress
+             (message "Local sockets unsupported, using TCP sockets")))
+         (set-default sym val))
   :type 'boolean
   :version "22.1")
 
@@ -197,9 +198,8 @@ The created frame is selected when the hook is called."
   "List of current server clients.
 Each element is a process.")
 
-(defvar server-buffer-clients nil
+(defvar-local server-buffer-clients nil
   "List of client processes requesting editing of current buffer.")
-(make-variable-buffer-local 'server-buffer-clients)
 ;; Changing major modes should not erase this local.
 (put 'server-buffer-clients 'permanent-local t)
 
@@ -239,11 +239,10 @@ in this way."
   :type 'boolean
   :version "21.1")
 
-(defvar server-existing-buffer nil
+(defvar-local server-existing-buffer nil
   "Non-nil means the buffer existed before the server was asked to visit it.
 This means that the server should not kill the buffer when you say you
 are done with it in the server.")
-(make-variable-buffer-local 'server-existing-buffer)
 
 (defvar server--external-socket-initialized nil
   "When an external socket is passed into Emacs, we need to call
@@ -268,6 +267,17 @@ the \"-f\" switch otherwise."
   :type 'string
   :version "23.1")
 
+(defcustom server-client-instructions t
+  "If non-nil, display instructions on how to exit the client on connection.
+If nil, no instructions are displayed."
+  :version "28.1"
+  :type 'boolean)
+
+(defvar server-stop-automatically)      ; Defined below to avoid recursive load.
+
+(defvar server-stop-automatically--timer nil
+  "The timer object for `server-stop-automatically--maybe-kill-emacs'.")
+
 ;; We do not use `temporary-file-directory' here, because emacsclient
 ;; does not read the init file.
 (defvar server-socket-dir
@@ -281,6 +291,8 @@ the \"-f\" switch otherwise."
                                (or (getenv "TMPDIR") "/tmp"))))))
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
+
+(define-error 'server-running-external "External server running")
 
 (defun server-clients-with (property value)
   "Return a list of clients with PROPERTY set to VALUE."
@@ -354,9 +366,11 @@ Updates `server-clients'."
 
       (setq server-clients (delq proc server-clients))
 
-      ;; Delete the client's tty, except on Windows (both GUI and console),
-      ;; where there's only one terminal and does not make sense to delete it.
-      (unless (eq system-type 'windows-nt)
+      ;; Delete the client's tty, except on Windows (both GUI and
+      ;; console), where there's only one terminal and does not make
+      ;; sense to delete it, or if we are explicitly told not.
+      (unless (or (eq system-type 'windows-nt)
+                  (process-get proc 'no-delete-terminal))
 	(let ((terminal (process-get proc 'terminal)))
 	  ;; Only delete the terminal if it is non-nil.
 	  (when (and terminal (eq (terminal-live-p terminal) t))
@@ -407,9 +421,14 @@ If CLIENT is non-nil, add a description of it to the logged message."
   ;; for possible servers before doing anything, so it *should* be ours.
   (and (process-contact proc :server)
        (eq (process-status proc) 'closed)
+       ;; If this variable is non-nil, the socket was passed in to
+       ;; Emacs, and not created by Emacs itself (for instance,
+       ;; created by systemd).  In that case, don't delete the socket.
+       (not internal--daemon-sockname)
        (ignore-errors
 	 (delete-file (process-get proc :server-file))))
-  (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
+  (server-log (format "Status changed to %s: %s"
+                      (process-status proc) msg) proc)
   (server-delete-client proc))
 
 (defun server--on-display-p (frame display)
@@ -474,11 +493,11 @@ If CLIENT is non-nil, add a description of it to the logged message."
     (when (and (frame-live-p frame)
 	       proc
 	       ;; See if this is the last frame for this client.
-	       (>= 1 (let ((frame-num 0))
-		       (dolist (f (frame-list))
-			 (when (eq proc (frame-parameter f 'client))
-			   (setq frame-num (1+ frame-num))))
-		       frame-num)))
+               (not (seq-some
+                     (lambda (f)
+                       (and (not (eq frame f))
+                            (eq proc (frame-parameter f 'client))))
+                     (frame-list))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
@@ -533,7 +552,8 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
-      (cl-letf (((default-file-modes) ?\700)) (make-directory dir t))
+      (with-file-modes ?\700
+        (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
 
     ;; Check that it's safe for use.
@@ -597,6 +617,58 @@ If the key is not valid, signal an error."
       (error "The key `%s' is invalid" server-auth-key))
     (server-generate-key)))
 
+(defsubst server--file-name ()
+  "Return the file name to use for the server socket."
+  (let ((server-dir (if server-use-tcp server-auth-dir server-socket-dir)))
+    (expand-file-name server-name server-dir)))
+
+(defun server-stop (&optional noframe)
+  "If this Emacs process has a server communication subprocess, stop it.
+If this actually stopped the server, return non-nil.  If the
+server is running in some other Emacs process (see
+`server-running-p'), signal a `server-running-external' error.
+
+If NOFRAME is non-nil, don't delete any existing frames
+associated with a client process.  This is useful, for example,
+when killing Emacs, in which case the frames will get deleted
+anyway."
+  (let ((server-file (server--file-name))
+        stopped-p)
+    (when server-process
+      ;; Kill it dead!
+      (ignore-errors (delete-process server-process))
+      (server-log "Stopped server")
+      (setq stopped-p t
+            server-process nil
+            server-mode nil
+            global-minor-modes (delq 'server-mode global-minor-modes))
+      (server-apply-stop-automatically))
+    (unwind-protect
+        ;; Delete the socket files made by previous server
+        ;; invocations.
+        (if (not (eq t (server-running-p server-name)))
+            ;; Remove any leftover socket or authentication file.
+            (ignore-errors
+              (let (delete-by-moving-to-trash)
+                (delete-file server-file)
+                ;; Also delete the directory that the server file was
+                ;; created in -- but only in /tmp (see bug#44644).
+                ;; There may be other servers running, too, so this may
+                ;; fail.
+                (when (equal (file-name-directory
+                              (directory-file-name
+                               (file-name-directory server-file)))
+                             "/tmp/")
+                  (ignore-errors
+                    (delete-directory (file-name-directory server-file))))))
+            (signal 'server-running-external
+                    (list (format "There is an existing Emacs server, named %S"
+                                  server-name))))
+      ;; If this Emacs already had a server, clear out associated status.
+      (while server-clients
+        (server-delete-client (car server-clients) noframe)))
+    stopped-p))
+
 ;;;###autoload
 (defun server-start (&optional leave-dead inhibit-prompt)
   "Allow this Emacs process to be a server for client processes.
@@ -630,47 +702,32 @@ the `server-process' variable."
 	     (inhibit-prompt t)
 	     (t (yes-or-no-p
 		 "The current server still has clients; delete them? "))))
-    (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	   (server-file (expand-file-name server-name server-dir)))
-      (when server-process
-	;; kill it dead!
-	(ignore-errors (delete-process server-process)))
-      ;; Check to see if an uninitialized external socket has been
-      ;; passed in, if that is the case, skip checking
-      ;; `server-running-p' as this will return the wrong result.
-      (if (and internal--daemon-sockname
-               (not server--external-socket-initialized))
-          (setq server--external-socket-initialized t)
-        ;; Delete the socket files made by previous server invocations.
-        (if (not (eq t (server-running-p server-name)))
-           ;; Remove any leftover socket or authentication file.
-           (ignore-errors
-             (let (delete-by-moving-to-trash)
-               (delete-file server-file)))
-         (setq server-mode nil) ;; already set by the minor mode code
-         (display-warning
-          'server
-          (concat "Unable to start the Emacs server.\n"
-                  (format "There is an existing Emacs server, named %S.\n"
-                          server-name)
-                  (substitute-command-keys
-                    "To start the server in this Emacs process, stop the existing
-server or call `\\[server-force-delete]' to forcibly disconnect it."))
-          :warning)
-         (setq leave-dead t)))
-      ;; If this Emacs already had a server, clear out associated status.
-      (while server-clients
-	(server-delete-client (car server-clients)))
+    ;; If a server is already running, try to stop it.
+    (condition-case err
+        ;; Check to see if an uninitialized external socket has been
+        ;; passed in.  If that is the case, don't try to stop the
+        ;; server.  (`server-stop' checks `server-running-p', which
+        ;; would return the wrong result).
+        (if (and internal--daemon-sockname
+                 (not server--external-socket-initialized))
+            (setq server--external-socket-initialized t)
+          (when (server-stop)
+            (message (if leave-dead "Stopped server" "Restarting server"))))
+      (server-running-external
+       (display-warning
+        'server
+        (concat "Unable to start the Emacs server.\n"
+                (cadr err)
+                (substitute-command-keys
+                 "\nTo start the server in this Emacs process, stop the existing server or call `\\[server-force-delete]' to forcibly disconnect it."))
+        :warning)
+       (setq leave-dead t)))
       ;; Now any previous server is properly stopped.
-      (if leave-dead
-	  (progn
-	    (unless (eq t leave-dead) (server-log (message "Server stopped")))
-	    (setq server-process nil))
+    (unless leave-dead
+      (let ((server-file (server--file-name)))
 	;; Make sure there is a safe directory in which to place the socket.
-	(server-ensure-safe-dir server-dir)
-	(when server-process
-	  (server-log (message "Restarting server")))
-	(cl-letf (((default-file-modes) ?\700))
+	(server-ensure-safe-dir (file-name-directory server-file))
+        (with-file-modes ?\700
 	  (add-hook 'suspend-tty-functions #'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions #'server-handle-delete-frame)
 	  (add-hook 'kill-emacs-query-functions
@@ -693,7 +750,10 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
 		       ;; confused by CRs since we don't quote them.
-		       :coding 'raw-text-unix
+                       ;; For encoding, we must use the locale's encoding,
+                       ;; since emacsclient shows that verbatim on the
+                       ;; console.
+		       :coding (cons 'raw-text-unix locale-coding-system)
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
@@ -703,8 +763,12 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 			 (list :family 'local
 			       :service server-file
 			       :plist '(:authenticated t)))))
+          (server-apply-stop-automatically)
 	  (unless server-process (error "Could not start server process"))
+          (server-log "Started server")
 	  (process-put server-process :server-file server-file)
+          (setq server-mode t)
+          (push 'server-mode global-minor-modes)
 	  (when server-use-tcp
 	    (let ((auth-key (server-get-auth-key)))
 	      (process-put server-process :auth-key auth-key)
@@ -719,7 +783,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 (defun server-force-stop ()
   "Kill all connections to the current server.
 This function is meant to be called from `kill-emacs-hook'."
-  (server-start t t))
+  (ignore-errors (server-stop 'noframe)))
 
 ;;;###autoload
 (defun server-force-delete (&optional name)
@@ -758,7 +822,8 @@ by the current Emacs process, use the `server-process' variable."
   (condition-case nil
       (if server-use-tcp
 	  (with-temp-buffer
-	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
+            (setq default-directory server-auth-dir)
+	    (insert-file-contents-literally (expand-file-name name))
 	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
 			   (process-attributes
@@ -772,6 +837,10 @@ by the current Emacs process, use the `server-process' variable."
 	t)
     (file-error nil)))
 
+;; This keymap is empty, but allows users to define keybindings to use
+;; when `server-mode' is active.
+(defvar-keymap server-mode-map)
+
 ;;;###autoload
 (define-minor-mode server-mode
   "Toggle Server mode.
@@ -781,6 +850,7 @@ Server mode runs a process that accepts commands from the
 `server-start' for details."
   :global t
   :version "22.1"
+  :keymap server-mode-map
   ;; Fixme: Should this check for an existing server socket and do
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))
@@ -830,7 +900,6 @@ This handles splitting the command if it would be bigger than
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (add-to-list 'frame-inherited-parameters 'client)
   (let ((frame
          (server-with-environment
              (process-get proc 'env)
@@ -842,39 +911,26 @@ This handles splitting the command if it would be bigger than
                "TERMINFO_DIRS" "TERMPATH"
                ;; rxvt wants these
                "COLORFGBG" "COLORTERM")
-           (make-frame `((window-system . nil)
-                         (tty . ,tty)
-                         (tty-type . ,type)
-                         ;; Ignore nowait here; we always need to
-                         ;; clean up opened ttys when the client dies.
-                         (client . ,proc)
-                         ;; This is a leftover from an earlier
-                         ;; attempt at making it possible for process
-                         ;; run in the server process to use the
-                         ;; environment of the client process.
-                         ;; It has no effect now and to make it work
-                         ;; we'd need to decide how to make
-                         ;; process-environment interact with client
-                         ;; envvars, and then to change the
-                         ;; C functions `child_setup' and
-                         ;; `getenv_internal' accordingly.
-                         (environment . ,(process-get proc 'env))
-                         ,@parameters)))))
+           (server--create-frame
+            ;; Ignore nowait here; we always need to
+            ;; clean up opened ttys when the client dies.
+            nil proc
+            `((window-system . nil)
+              (tty . ,tty)
+              (tty-type . ,type)
+              ,@parameters)))))
 
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
     (set-frame-parameter frame 'display
                          (getenv-internal "DISPLAY" (process-get proc 'env)))
-    (select-frame frame)
-    (process-put proc 'frame frame)
-    (process-put proc 'terminal (frame-terminal frame))
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id
 						  &optional parameters)
   (let* ((display (or display
                       (frame-parameter nil 'display)
-                      (error "Please specify display.")))
+                      (error "Please specify display")))
          (w (or (cdr (assq 'window-system parameters))
                 (window-system-for-display display))))
 
@@ -893,30 +949,60 @@ This handles splitting the command if it would be bigger than
       )
 
     (cond (w
-           ;; Flag frame as client-created, but use a dummy client.
-           ;; This will prevent the frame from being deleted when
-           ;; emacsclient quits while also preventing
-           ;; `server-save-buffers-kill-terminal' from unexpectedly
-           ;; killing emacs on that frame.
-           (let* ((params `((client . ,(if nowait 'nowait proc))
-                            ;; This is a leftover, see above.
-                            (environment . ,(process-get proc 'env))
-                            ,@parameters))
-                  frame)
-             (if parent-id
-                 (push (cons 'parent-id (string-to-number parent-id)) params))
-             (add-to-list 'frame-inherited-parameters 'client)
-             (setq frame (make-frame-on-display display params))
-             (server-log (format "%s created" frame) proc)
-             (select-frame frame)
-             (process-put proc 'frame frame)
-             (process-put proc 'terminal (frame-terminal frame))
-             frame))
+           (condition-case nil
+               (server--create-frame
+                nowait proc
+                `((display . ,display)
+                  ,@(if parent-id
+                        `((parent-id . ,(string-to-number parent-id))))
+                  ,@parameters))
+             (error
+              (server-log "Window system unsupported" proc)
+              (server-send-string proc "-window-system-unsupported \n")
+              nil)))
 
           (t
            (server-log "Window system unsupported" proc)
            (server-send-string proc "-window-system-unsupported \n")
            nil))))
+
+(defun server-create-dumb-terminal-frame (nowait proc &optional parameters)
+  ;; If the destination is a dumb terminal, we can't really run Emacs
+  ;; in its tty.  So instead, we use whichever terminal is currently
+  ;; selected.  This situation typically occurs when `emacsclient' is
+  ;; running inside something like an Emacs shell buffer (bug#25547).
+  (let ((frame (server--create-frame nowait proc parameters)))
+    ;; The client is not the exclusive owner of this terminal, so don't
+    ;; delete the terminal when the client exits.
+    ;; FIXME: Maybe we just shouldn't set the `terminal' property instead?
+    (process-put proc 'no-delete-terminal t)
+    frame))
+
+(defun server--create-frame (nowait proc parameters)
+  (add-to-list 'frame-inherited-parameters 'client)
+  ;; When `nowait' is set, flag frame as client-created, but use
+  ;; a dummy client.  This will prevent the frame from being deleted
+  ;; when emacsclient quits while also preventing
+  ;; `server-save-buffers-kill-terminal' from unexpectedly killing
+  ;; emacs on that frame.
+  (let ((frame (make-frame `((client . ,(if nowait 'nowait proc))
+                             ;; This is a leftover from an earlier
+                             ;; attempt at making it possible for process
+                             ;; run in the server process to use the
+                             ;; environment of the client process.
+                             ;; It has no effect now and to make it work
+                             ;; we'd need to decide how to make
+                             ;; process-environment interact with client
+                             ;; envvars, and then to change the
+                             ;; C functions `child_setup' and
+                             ;; `getenv_internal' accordingly.
+                             (environment . ,(process-get proc 'env))
+                             ,@parameters))))
+    (server-log (format "%s created" frame) proc)
+    (select-frame frame)
+    (process-put proc 'frame frame)
+    (process-put proc 'terminal (frame-terminal frame))
+    frame))
 
 (defun server-goto-toplevel (proc)
   (condition-case nil
@@ -1046,7 +1132,7 @@ The following commands are accepted by the client:
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
-  Sent when the user presses C-z."
+  Sent when the user presses \\[suspend-frame]."
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
@@ -1264,6 +1350,9 @@ The following commands are accepted by the client:
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
+                   ((equal tty-type "dumb")
+                    (server-create-dumb-terminal-frame nowait proc
+                                                       frame-parameters))
 		   ((or (and (eq system-type 'windows-nt)
 			     (daemonp)
 			     (setq display "w32"))
@@ -1273,7 +1362,18 @@ The following commands are accepted by the client:
 						       frame-parameters))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
-		    (server-create-tty-frame tty-name tty-type proc))))
+		    (server-create-tty-frame tty-name tty-type proc
+                                             frame-parameters))
+
+                   ;; If there won't be a current frame to use, fall
+                   ;; back to trying to create a new one.
+		   ((and use-current-frame
+			 (daemonp)
+			 (null (cdr (frame-list)))
+			 (eq (selected-frame) terminal-frame)
+			 display)
+		    (setq tty-name nil tty-type nil)
+		    (server-select-display display))))
 
             (process-put
              proc 'continuation
@@ -1316,7 +1416,7 @@ The following commands are accepted by the client:
 			 ((functionp initial-buffer-choice)
 			  (funcall initial-buffer-choice)))))
 	      (switch-to-buffer
-	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	       (if (buffer-live-p buf) buf (get-scratch-buffer-create))
 	       'norecord)))
 
           ;; Delete the client if necessary.
@@ -1334,8 +1434,10 @@ The following commands are accepted by the client:
             nil)
            ((and frame (null buffers))
             (run-hooks 'server-after-make-frame-hook)
-            (message "%s" (substitute-command-keys
-                           "When done with this frame, type \\[delete-frame]")))
+            (when server-client-instructions
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with this frame, type \\[delete-frame]"))))
            ((not (null buffers))
             (run-hooks 'server-after-make-frame-hook)
             (server-switch-buffer
@@ -1346,9 +1448,11 @@ The following commands are accepted by the client:
              ;; where it may be displayed.
              (plist-get (process-plist proc) 'frame))
             (run-hooks 'server-switch-hook)
-            (unless nowait
-              (message "%s" (substitute-command-keys
-                             "When done with a buffer, type \\[server-edit]")))))
+            (when (and (not nowait)
+                       server-client-instructions)
+              (message "%s"
+                       (substitute-command-keys
+                        "When done with a buffer, type \\[server-edit]")))))
           (when (and frame (null tty-name))
             (server-unselect-display frame)))
       ((quit error)
@@ -1398,7 +1502,7 @@ so don't mark these buffers specially, just visit them normally."
 					  minibuffer-auto-raise))
 	       (filen (car file))
 	       (obuf (get-file-buffer filen)))
-	  (add-to-history 'file-name-history filen)
+          (file-name-history--add filen)
 	  (if (null obuf)
 	      (progn
 		(run-hooks 'pre-command-hook)
@@ -1531,14 +1635,19 @@ specifically for the clients and did not exist before their request for it."
     (server-buffer-done (current-buffer))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs if it has live clients."
-  (or (not (let (live-client)
-             (dolist (proc server-clients)
-               (when (memq t (mapcar #'buffer-live-p
-                                     (process-get proc 'buffers)))
-                 (setq live-client t)))
-             live-client))
-      (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
+  "Ask before exiting Emacs if it has other live clients.
+A \"live client\" is a client with at least one live buffer
+associated with it.  These clients were (probably) started by
+external processes that are waiting for some buffers to be
+edited.  If there are any other clients, we don't want to fail
+their waiting processes, so ask the user to be sure."
+  (let ((this-client (frame-parameter nil 'client)))
+    (or (not (seq-some (lambda (proc)
+                         (unless (eq proc this-client)
+                           (seq-some #'buffer-live-p
+                                     (process-get proc 'buffers))))
+                       server-clients))
+        (yes-or-no-p "This Emacs session has other clients; exit anyway? "))))
 
 (defun server-kill-buffer ()
   "Remove the current buffer from its clients' buffer list.
@@ -1564,7 +1673,9 @@ prevent a backup for it.)  The variable `server-temp-file-regexp' controls
 which filenames are considered temporary.
 
 If invoked with a prefix argument, or if there is no server process running,
-starts server process and that is all.  Invoked by \\[server-edit]."
+starts server process and that is all.  Invoked by \\[server-edit].
+
+To abort an edit instead of saying \"Done\", use \\[server-edit-abort]."
   (interactive "P")
   (cond
    ((or arg
@@ -1573,6 +1684,17 @@ starts server process and that is all.  Invoked by \\[server-edit]."
     (server-mode 1))
    (server-clients (apply #'server-switch-buffer (server-done)))
    (t (message "No server editing buffers exist"))))
+
+(defun server-edit-abort ()
+  "Abort editing the current client buffer."
+  (interactive)
+  (if server-clients
+      (mapc (lambda (proc)
+              (server-send-string
+               proc (concat "-error "
+                            (server-quote-arg "Aborted by the user"))))
+            server-clients)
+    (message "This buffer has no clients")))
 
 (defun server-switch-buffer (&optional next-buffer killed-one filepos
                                        this-frame-only)
@@ -1661,28 +1783,138 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
-only these files will be asked to be saved."
-  (let ((proc (frame-parameter nil 'client)))
+only these files will be asked to be saved.
+
+When running Emacs as a daemon and with
+`server-stop-automatically' (which see) set to `kill-terminal' or
+`delete-frame', this function may call `save-buffers-kill-emacs'
+if there are no other active clients."
+  (let ((stop-automatically
+         (and (daemonp)
+              (memq server-stop-automatically '(kill-terminal delete-frame))))
+        (proc (frame-parameter nil 'client)))
     (cond ((eq proc 'nowait)
 	   ;; Nowait frames have no client buffer list.
-	   (if (cdr (frame-list))
+	   (if (length> (frame-list) (if stop-automatically 2 1))
+               ;; If there are any other frames, only delete this one.
+               ;; When `server-stop-automatically' is set, don't count
+               ;; the daemon frame.
 	       (progn (save-some-buffers arg)
 		      (delete-frame))
 	     ;; If we're the last frame standing, kill Emacs.
 	     (save-buffers-kill-emacs arg)))
 	  ((processp proc)
-	   (let ((buffers (process-get proc 'buffers)))
-	     (save-some-buffers
-	      arg (if buffers
-                      ;; Only files from emacsclient file list.
-		      (lambda () (memq (current-buffer) buffers))
-                    ;; No emacsclient file list: don't override
-                    ;; `save-some-buffers-default-predicate' (unless
-                    ;; ARG is non-nil), since we're not killing
-                    ;; Emacs (unlike `save-buffers-kill-emacs').
-		    (and arg t)))
-	     (server-delete-client proc)))
+           (if (or (not stop-automatically)
+                   (length> server-clients 1)
+                   (seq-some
+                    (lambda (frame)
+                      (when-let ((p (frame-parameter frame 'client)))
+                        (not (eq proc p))))
+                    (frame-list)))
+               ;; If `server-stop-automatically' is not enabled, there
+               ;; are any other clients, or there are frames not owned
+               ;; by the current client (e.g. `nowait' frames), then
+               ;; we just want to delete this client.
+	       (let ((buffers (process-get proc 'buffers)))
+	         (save-some-buffers
+	          arg (if buffers
+                          ;; Only files from emacsclient file list.
+		          (lambda () (memq (current-buffer) buffers))
+                        ;; No emacsclient file list: don't override
+                        ;; `save-some-buffers-default-predicate' (unless
+                        ;; ARG is non-nil), since we're not killing
+                        ;; Emacs (unlike `save-buffers-kill-emacs').
+		        (and arg t)))
+	         (server-delete-client proc))
+             ;; Otherwise, we want to kill Emacs.
+             (save-buffers-kill-emacs arg)))
 	  (t (error "Invalid client frame")))))
+
+(defun server-stop-automatically--handle-delete-frame (_frame)
+  "Handle deletion of FRAME when `server-stop-automatically' is `delete-frame'."
+  (when (null (cddr (frame-list)))
+    (let ((server-stop-automatically nil))
+      (save-buffers-kill-emacs))))
+
+(defun server-stop-automatically--maybe-kill-emacs ()
+  "Handle closing of Emacs daemon when `server-stop-automatically' is `empty'."
+  (unless (cdr (frame-list))
+    (when (and
+	   (not (memq t (mapcar (lambda (b)
+				  (and (buffer-file-name b)
+				       (buffer-modified-p b)))
+				(buffer-list))))
+	   (not (memq t (mapcar (lambda (p)
+				  (and (memq (process-status p)
+					     '(run stop open listen))
+				       (process-query-on-exit-flag p)))
+				(process-list)))))
+      (kill-emacs))))
+
+(defun server-apply-stop-automatically ()
+  "Apply the current value of `server-stop-automatically'.
+This function adds or removes the necessary helpers to manage
+stopping the Emacs server automatically, depending on the whether
+the server is running or not.  This function only applies when
+running Emacs as a daemon."
+  (when (daemonp)
+    (let (empty-timer-p delete-frame-p)
+      (when server-process
+        (pcase server-stop-automatically
+          ('empty        (setq empty-timer-p t))
+          ('delete-frame (setq delete-frame-p t))))
+      ;; Start or stop the timer.
+      (if empty-timer-p
+          (unless server-stop-automatically--timer
+            (setq server-stop-automatically--timer
+                  (run-with-timer
+                   10 2
+		   #'server-stop-automatically--maybe-kill-emacs)))
+        (when server-stop-automatically--timer
+          (cancel-timer server-stop-automatically--timer)
+          (setq server-stop-automatically--timer nil)))
+      ;; Add or remove the delete-frame hook.
+      (if delete-frame-p
+          (add-hook 'delete-frame-functions
+		    #'server-stop-automatically--handle-delete-frame)
+        (remove-hook 'delete-frame-functions
+                     #'server-stop-automatically--handle-delete-frame))))
+  ;; Return the current value of `server-stop-automatically'.
+  server-stop-automatically)
+
+(defcustom server-stop-automatically nil
+  "If non-nil, stop the server under the requested conditions.
+
+If this is the symbol `empty', stop the server when it has no
+remaining clients, no remaining unsaved file-visiting buffers,
+and no running processes with a `query-on-exit' flag.
+
+If this is the symbol `delete-frame', ask the user when the last
+frame is deleted whether each unsaved file-visiting buffer must
+be saved and each running process with a `query-on-exit' flag
+can be stopped, and if so, stop the server itself.
+
+If this is the symbol `kill-terminal', ask the user when the
+terminal is killed with \\[save-buffers-kill-terminal] \
+whether each unsaved file-visiting
+buffer must be saved and each running process with a `query-on-exit'
+flag can be stopped, and if so, stop the server itself."
+  :type '(choice
+          (const :tag "Never" nil)
+          (const :tag "When no clients, unsaved files, or processes"
+                 empty)
+          (const :tag "When killing last terminal" kill-terminal)
+          (const :tag "When killing last terminal or frame" delete-frame))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (server-apply-stop-automatically))
+  :version "29.1")
+
+;;;###autoload
+(defun server-stop-automatically (value)
+  "Automatically stop the Emacs server as specified by VALUE.
+This sets the variable `server-stop-automatically' (which see)."
+  (setopt server-stop-automatically value))
 
 (define-key ctl-x-map "#" 'server-edit)
 
@@ -1704,10 +1936,10 @@ cannot contact the specified server.  For example:
   (server-eval-at \"server\" \\='(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
-	 (server-file (expand-file-name server server-dir))
-	 (coding-system-for-read 'binary)
-	 (coding-system-for-write 'binary)
-	 address port secret process)
+         (server-file (expand-file-name server server-dir))
+         (coding-system-for-read 'binary)
+         (coding-system-for-write 'binary)
+         address port secret process)
     (unless (file-exists-p server-file)
       (error "No such server: %s" server))
     (with-temp-buffer

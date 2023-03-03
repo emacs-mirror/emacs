@@ -5,6 +5,6 @@ Exec=emacs -f message-mailto %u
 Icon=emacs
 Name=Emacs (Mail)
 MimeType=x-scheme-handler/mailto;
-NoDisplay=false
+NoDisplay=true
 Terminal=false
 Type=Application

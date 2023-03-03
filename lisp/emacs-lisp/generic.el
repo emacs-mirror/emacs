@@ -1,6 +1,6 @@
-;;; generic.el --- defining simple major modes with comment and font-lock
+;;; generic.el --- defining simple major modes with comment and font-lock  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -96,9 +96,8 @@
 ;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar generic-font-lock-keywords nil
+(defvar-local generic-font-lock-keywords nil
   "Keywords for `font-lock-defaults' in a generic mode.")
-(make-variable-buffer-local 'generic-font-lock-keywords)
 
 ;;;###autoload
 (defvar generic-mode-list nil
@@ -245,7 +244,6 @@ Some generic modes are defined in `generic-x.el'."
   "Set up comment functionality for generic mode."
   (let ((chars nil)
 	(comstyles)
-        (comstyle "")
         (comment-start nil))
 
     ;; Go through all the comments.
@@ -269,14 +267,16 @@ Some generic modes are defined in `generic-x.el'."
 	    ;; Store the relevant info but don't update yet.
 	    (push (cons c0 (concat (cdr (assoc c0 chars)) "1")) chars)
 	    (push (cons c1 (concat (cdr (assoc c1 chars))
-				   (concat "2" comstyle))) chars)))
+				   (concat "2" comstyle)))
+		  chars)))
 	(if (= (length end) 1)
 	    (modify-syntax-entry (aref end 0)
 				 (concat ">" comstyle) st)
 	  (let ((c0 (aref end 0)) (c1 (aref end 1)))
 	    ;; Store the relevant info but don't update yet.
 	    (push (cons c0 (concat (cdr (assoc c0 chars))
-				   (concat "3" comstyle))) chars)
+				   (concat "3" comstyle)))
+		  chars)
 	    (push (cons c1 (concat (cdr (assoc c1 chars)) "4")) chars)))))
 
     ;; Process the chars that were part of a 2-char comment marker

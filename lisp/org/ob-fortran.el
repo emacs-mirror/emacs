@@ -1,11 +1,11 @@
 ;;; ob-fortran.el --- Babel Functions for Fortran    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Authors: Sergey Litvinov
 ;;       Eric Schulte
 ;; Keywords: literate programming, reproducible research, fortran
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,10 @@
 ;; Org-Babel support for evaluating fortran code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 (require 'cc-mode)
@@ -40,9 +44,11 @@
 
 (defvar org-babel-default-header-args:fortran '())
 
-(defvar org-babel-fortran-compiler "gfortran"
-  "fortran command used to compile a fortran source code file into an
-  executable.")
+(defcustom org-babel-fortran-compiler "gfortran"
+  "Fortran command used to compile Fortran source code file."
+  :group 'org-babel
+  :package-version '(Org . "9.5")
+  :type  'string)
 
 (defun org-babel-execute:fortran (body params)
   "This function should only be called by `org-babel-execute:fortran'."
@@ -101,7 +107,8 @@ its header arguments."
 		     (concat
 		      ;; variables
 		      (mapconcat 'org-babel-fortran-var-to-fortran vars "\n")
-		      body) params)
+		      body)
+		     params)
 		  body) "\n") "\n")))
 
 (defun org-babel-fortran-ensure-main-wrap (body params)
@@ -154,7 +161,7 @@ of the same value."
       (format "real, parameter :: %S(%d) = %s\n"
 	      var (length val) (org-babel-fortran-transform-list val)))
      (t
-      (error "the type of parameter %s is not supported by ob-fortran" var)))))
+      (error "The type of parameter %s is not supported by ob-fortran" var)))))
 
 (defun org-babel-fortran-transform-list (val)
   "Return a fortran representation of enclose syntactic lists."

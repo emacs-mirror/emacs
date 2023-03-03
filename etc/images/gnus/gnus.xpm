@@ -1,7 +1,7 @@
 /* XPM */
-static char *gnus[] = {
+static char *gnus_xpm[] = {
 /* width height num_colors chars_per_pixel */
-"   271   273        3            1",
+"271 273 3 1",
 /* colors */
 ". s thing c #bf9900",
 "# s shadow c #ffcc00",

@@ -1,21 +1,23 @@
 ;;; tramp-archive-tests.el --- Tests of file archive access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
-;; This program is free software: you can redistribute it and/or
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation, either version 3 of the
 ;; License, or (at your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful, but
+;; GNU Emacs is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +31,6 @@
 (require 'ert)
 (require 'ert-x)
 (require 'tramp-archive)
-(defvar tramp-copy-size-limit)
 (defvar tramp-persistency-file-name)
 
 ;; `ert-resource-file' was introduced in Emacs 28.1.
@@ -39,7 +40,8 @@
       "Format for `ert-resource-directory'.")
     (defvar ert-resource-directory-trim-left-regexp ""
       "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
-    (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
+    (defvar ert-resource-directory-trim-right-regexp
+      (rx (? "-test" (? "s")) ".el")
       "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
 
     (defmacro ert-resource-directory ()
@@ -94,7 +96,6 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
 
 (setq password-cache-expiry nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
-      tramp-copy-size-limit nil
       tramp-persistency-file-name nil
       tramp-verbose 0)
 
@@ -119,18 +120,6 @@ the origin of the temporary TMPFILE, have no write permissions."
      #'tramp-archive--test-delete
      (directory-files tmpfile 'full directory-files-no-dot-files-regexp))
     (delete-directory tmpfile)))
-
-(defun tramp-archive--test-emacs26-p ()
-  "Check for Emacs version >= 26.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
-  (>= emacs-major-version 26))
-
-(defun tramp-archive--test-emacs27-p ()
-  "Check for Emacs version >= 27.1.
-Some semantics has been changed for there, w/o new functions or
-variables, so we check the Emacs version directly."
-  (>= emacs-major-version 27))
 
 (ert-deftest tramp-archive-test00-availability ()
   "Test availability of archive file name functions."
@@ -263,21 +252,20 @@ variables, so we check the Emacs version directly."
 	       (concat
 		(tramp-gvfs-url-file-name
 		 (tramp-make-tramp-file-name
-		  tramp-archive-method
-		  ;; User and Domain.
-		  nil nil
-		  ;; Host.
-		  (url-hexify-string
-		   (concat
-		    "file://"
-		    ;; `directory-file-name' does not leave file
-		    ;; archive boundaries.  So we must cut the
-		    ;; trailing slash ourselves.
-		    (substring
-		     (file-name-directory
-		      (tramp-archive-test-file-archive-hexlified))
-		     0 -1)))
-		  nil "/"))
+		  (make-tramp-file-name
+		   :method tramp-archive-method
+		   :host
+		   (url-hexify-string
+		    (concat
+		     "file://"
+		     ;; `directory-file-name' does not leave file
+		     ;; archive boundaries.  So we must cut the
+		     ;; trailing slash ourselves.
+		     (substring
+		      (file-name-directory
+		       (tramp-archive-test-file-archive-hexlified))
+		      0 -1)))
+		   :localname "/")))
 		(file-name-nondirectory tramp-archive-test-file-archive)))))
 	    (should-not port)
 	    (should (string-equal localname "/bar"))
@@ -290,15 +278,26 @@ variables, so we check the Emacs version directly."
   "Check `expand-file-name'."
   (should
    (string-equal
-    (expand-file-name "/foo.tar/path/./file") "/foo.tar/path/file"))
+    (expand-file-name (concat tramp-archive-test-archive "path/./file"))
+    (concat tramp-archive-test-archive "path/file")))
   (should
-   (string-equal (expand-file-name "/foo.tar/path/../file") "/foo.tar/file"))
+   (string-equal
+    (expand-file-name (concat tramp-archive-test-archive "path/../file"))
+    (concat tramp-archive-test-archive "file")))
   ;; `expand-file-name' does not care "~/" in archive file names.
   (should
-   (string-equal (expand-file-name "/foo.tar/~/file") "/foo.tar/~/file"))
+   (string-equal
+    (expand-file-name (concat tramp-archive-test-archive "~/file"))
+    (concat tramp-archive-test-archive "~/file")))
   ;; `expand-file-name' does not care file archive boundaries.
-  (should (string-equal (expand-file-name "/foo.tar/./file") "/foo.tar/file"))
-  (should (string-equal (expand-file-name "/foo.tar/../file") "/file")))
+  (should
+   (string-equal
+    (expand-file-name (concat tramp-archive-test-archive "./file"))
+    (concat tramp-archive-test-archive "file")))
+  (should
+   (string-equal
+    (expand-file-name (concat tramp-archive-test-archive "../file"))
+    (concat (ert-resource-directory) "file"))))
 
 ;; This test is inspired by Bug#30293.
 (ert-deftest tramp-archive-test05-expand-file-name-non-archive-directory ()
@@ -323,38 +322,59 @@ This checks also `file-name-as-directory', `file-name-directory',
 
   (should
    (string-equal
-    (directory-file-name "/foo.tar/path/to/file") "/foo.tar/path/to/file"))
+    (directory-file-name (concat tramp-archive-test-archive "path/to/file"))
+    (concat tramp-archive-test-archive "path/to/file")))
   (should
    (string-equal
-    (directory-file-name "/foo.tar/path/to/file/") "/foo.tar/path/to/file"))
+    (directory-file-name (concat tramp-archive-test-archive "path/to/file/"))
+    (concat tramp-archive-test-archive "path/to/file")))
   ;; `directory-file-name' does not leave file archive boundaries.
-  (should (string-equal (directory-file-name "/foo.tar/") "/foo.tar/"))
+  (should
+   (string-equal
+    (directory-file-name tramp-archive-test-archive) tramp-archive-test-archive))
 
   (should
    (string-equal
-    (file-name-as-directory "/foo.tar/path/to/file") "/foo.tar/path/to/file/"))
+    (file-name-as-directory (concat tramp-archive-test-archive "path/to/file"))
+    (concat tramp-archive-test-archive "path/to/file/")))
   (should
    (string-equal
-    (file-name-as-directory "/foo.tar/path/to/file/") "/foo.tar/path/to/file/"))
-  (should (string-equal (file-name-as-directory "/foo.tar/") "/foo.tar/"))
-  (should (string-equal (file-name-as-directory "/foo.tar") "/foo.tar/"))
+    (file-name-as-directory (concat tramp-archive-test-archive "path/to/file/"))
+    (concat tramp-archive-test-archive "path/to/file/")))
+  (should
+   (string-equal
+    (file-name-as-directory tramp-archive-test-archive)
+    tramp-archive-test-archive))
+  (should
+   (string-equal
+    (file-name-as-directory tramp-archive-test-file-archive)
+    tramp-archive-test-archive))
 
   (should
    (string-equal
-    (file-name-directory "/foo.tar/path/to/file") "/foo.tar/path/to/"))
+    (file-name-directory (concat tramp-archive-test-archive "path/to/file"))
+    (concat tramp-archive-test-archive "path/to/")))
   (should
    (string-equal
-    (file-name-directory "/foo.tar/path/to/file/") "/foo.tar/path/to/file/"))
-  (should (string-equal (file-name-directory "/foo.tar/") "/foo.tar/"))
+    (file-name-directory (concat tramp-archive-test-archive "path/to/file/"))
+    (concat tramp-archive-test-archive "path/to/file/")))
+  (should
+   (string-equal
+    (file-name-directory tramp-archive-test-archive) tramp-archive-test-archive))
 
   (should
-   (string-equal (file-name-nondirectory "/foo.tar/path/to/file") "file"))
+   (string-equal
+    (file-name-nondirectory (concat tramp-archive-test-archive "path/to/file"))
+    "file"))
   (should
-   (string-equal (file-name-nondirectory "/foo.tar/path/to/file/") ""))
-  (should (string-equal (file-name-nondirectory "/foo.tar/") ""))
+   (string-equal
+    (file-name-nondirectory (concat tramp-archive-test-archive "path/to/file/"))
+    ""))
+  (should (string-equal (file-name-nondirectory tramp-archive-test-archive) ""))
 
   (should-not
-   (unhandled-file-name-directory "/foo.tar/path/to/file")))
+   (unhandled-file-name-directory
+    (concat tramp-archive-test-archive "path/to/file"))))
 
 (ert-deftest tramp-archive-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
@@ -400,7 +420,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	     (setq tmp-name
 		   (file-local-copy
 		    (expand-file-name "what" tramp-archive-test-archive)))
-	     :type tramp-file-missing))
+	     :type 'file-missing))
 
       ;; Cleanup.
       (ignore-errors (tramp-archive--test-delete tmp-name))
@@ -428,7 +448,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should-error
 	   (insert-file-contents
 	    (expand-file-name "what" tramp-archive-test-archive))
-	   :type tramp-file-missing))
+	   :type 'file-missing))
 
 	;; Cleanup.
 	(tramp-archive-cleanup-hash))))
@@ -519,11 +539,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should (file-directory-p tmp-name2))
 	  (should (file-exists-p tmp-name4))
 	  ;; Target directory does exist already.
-	  ;; This has been changed in Emacs 26.1.
-	  (when (tramp-archive--test-emacs26-p)
-	    (should-error
-	     (copy-directory tmp-name1 tmp-name2)
-	     :type 'file-error))
+	  (should-error
+	   (copy-directory tmp-name1 tmp-name2)
+	   :type 'file-error)
 	  (tramp-archive--test-delete tmp-name4)
 	  (copy-directory tmp-name1 (file-name-as-directory tmp-name2))
 	  (should (file-directory-p tmp-name3))
@@ -588,19 +606,16 @@ This checks also `file-name-as-directory', `file-name-directory',
 	 (append '("LANG=C" "LANGUAGE=C" "LC_ALL=C") process-environment)))
     (unwind-protect
 	(progn
-	  ;; Due to Bug#29423, this works only since for Emacs 26.1.
-	  (when nil ;; TODO (tramp-archive--test-emacs26-p)
-	    (with-temp-buffer
-	      (insert-directory tramp-archive-test-archive nil)
-	      (goto-char (point-min))
-	      (should
-	       (looking-at-p (regexp-quote tramp-archive-test-archive)))))
+	  (with-temp-buffer
+	    (insert-directory tramp-archive-test-archive nil)
+	    (goto-char (point-min))
+	    (should (looking-at-p (rx (literal tramp-archive-test-archive)))))
 	  (with-temp-buffer
 	    (insert-directory tramp-archive-test-archive "-al")
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (format "^.+ %s$" (regexp-quote tramp-archive-test-archive)))))
+	      (rx bol (+ nonl) blank (literal tramp-archive-test-archive) eol))))
 	  (with-temp-buffer
 	    (insert-directory
 	     (file-name-as-directory tramp-archive-test-archive)
@@ -608,21 +623,23 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (concat
-	       ;; There might be a summary line.
-	       "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
-	       ;; We don't know in which order the files appear.
-	       (format
-		"\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"
-		(regexp-opt (directory-files tramp-archive-test-archive))
-		(length (directory-files tramp-archive-test-archive)))))))
-
+	      (rx-to-string
+	       `(:
+		 ;; There might be a summary line.
+		 (? "total" (+ nonl) (+ digit) (? blank)
+		    (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
+		 ;; We don't know in which order the files appear.
+		 (= ,(length (directory-files tramp-archive-test-archive))
+		    (+ nonl) blank
+		    (regexp
+		     ,(regexp-opt (directory-files tramp-archive-test-archive)))
+		    (? " ->" (+ nonl)) "\n"))))))
 	  ;; Check error case.
 	  (with-temp-buffer
 	    (should-error
 	     (insert-directory
 	      (expand-file-name "baz" tramp-archive-test-archive) nil)
-	     :type tramp-file-missing)))
+	     :type 'file-missing)))
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
@@ -668,6 +685,7 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 	  ;; Symlink.
 	  (should (file-exists-p tmp-name2))
 	  (should (file-symlink-p tmp-name2))
+	  (should (file-regular-p tmp-name2))
 	  (setq attr (file-attributes tmp-name2))
 	  (should (string-equal (car attr) (file-name-nondirectory tmp-name1)))
 
@@ -682,7 +700,7 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 	  ;; Check error case.
 	  (should-error
 	   (access-file tmp-name4  "error")
-	   :type tramp-file-missing))
+	   :type 'file-missing))
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
@@ -706,7 +724,7 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 	  (setq attr (directory-files-and-attributes tmp-name 'full))
 	  (dolist (elt attr)
 	    (should (equal (file-attributes (car elt)) (cdr elt))))
-	  (setq attr (directory-files-and-attributes tmp-name nil "\\`b"))
+	  (setq attr (directory-files-and-attributes tmp-name nil (rx bos "b")))
 	  (should (equal (mapcar #'car attr) '("bar"))))
 
       ;; Cleanup.
@@ -758,12 +776,14 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (unwind-protect
 	(progn
 	  (should (file-exists-p tmp-name1))
+	  (should (file-regular-p tmp-name1))
 	  (should (string-equal tmp-name1 (file-truename tmp-name1)))
 	  ;; `make-symbolic-link' is not implemented.
 	  (should-error
 	   (make-symbolic-link tmp-name1 tmp-name2)
 	   :type 'file-error)
 	  (should (file-symlink-p tmp-name2))
+	  (should (file-regular-p tmp-name2))
 	  (should
 	   (string-equal
 	    ;; This is "/foo.txt".
@@ -821,98 +841,106 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
 
-;; The functions were introduced in Emacs 26.1.
-(ert-deftest tramp-archive-test39-make-nearby-temp-file ()
+(ert-deftest tramp-archive-test40-make-nearby-temp-file ()
   "Check `make-nearby-temp-file' and `temporary-file-directory'."
   (skip-unless tramp-archive-enabled)
-  ;; Since Emacs 26.1.
-  (skip-unless
-   (and (fboundp 'make-nearby-temp-file) (fboundp 'temporary-file-directory)))
 
-  ;; `make-nearby-temp-file' and `temporary-file-directory' exists
-  ;; since Emacs 26.1.  We don't want to see compiler warnings for
-  ;; older Emacsen.
   (let ((default-directory tramp-archive-test-archive)
 	tmp-file)
     ;; The file archive shall know a temporary file directory.  It is
     ;; not in the archive itself.
-    (should
-     (stringp (with-no-warnings (with-no-warnings (temporary-file-directory)))))
-    (should-not
-     (tramp-archive-file-name-p (with-no-warnings (temporary-file-directory))))
+    (should (stringp (temporary-file-directory)))
+    (should-not (tramp-archive-file-name-p (temporary-file-directory)))
 
     ;; A temporary file or directory shall not be located in the
     ;; archive itself.
-    (setq tmp-file
-	  (with-no-warnings (make-nearby-temp-file "tramp-archive-test")))
+    (setq tmp-file (make-nearby-temp-file "tramp-archive-test"))
     (should (file-exists-p tmp-file))
     (should (file-regular-p tmp-file))
     (should-not (tramp-archive-file-name-p tmp-file))
     (delete-file tmp-file)
     (should-not (file-exists-p tmp-file))
 
-    (setq tmp-file
-	  (with-no-warnings (make-nearby-temp-file "tramp-archive-test" 'dir)))
+    (setq tmp-file (make-nearby-temp-file "tramp-archive-test" 'dir))
     (should (file-exists-p tmp-file))
     (should (file-directory-p tmp-file))
     (should-not (tramp-archive-file-name-p tmp-file))
     (delete-directory tmp-file)
     (should-not (file-exists-p tmp-file))))
 
-(ert-deftest tramp-archive-test42-file-system-info ()
+(ert-deftest tramp-archive-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
   (skip-unless tramp-archive-enabled)
-  ;; Since Emacs 27.1.
-  (skip-unless (fboundp 'file-system-info))
 
-  ;; `file-system-info' exists since Emacs 27.  We don't want to see
-  ;; compiler warnings for older Emacsen.
-  (let ((fsi (with-no-warnings (file-system-info tramp-archive-test-archive))))
+  (let ((fsi (file-system-info tramp-archive-test-archive)))
     (skip-unless fsi)
     (should (and (consp fsi)
-		 (= (length fsi) 3)
+		 (tramp-compat-length= fsi 3)
 		 (numberp (nth 0 fsi))
 		 ;; FREE and AVAIL are always 0.
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test45-auto-load ()
+;; `file-user-uid' was introduced in Emacs 30.1.
+(ert-deftest tramp-archive-test44-file-user-uid ()
+  "Check that `file-user-uid' returns proper values."
+  (skip-unless tramp-archive-enabled)
+  (skip-unless (fboundp 'file-user-uid))
+
+  (let ((default-directory tramp-archive-test-archive))
+    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
+    ;; compiler warnings for older Emacsen.
+    (should (integerp (with-no-warnings (file-user-uid))))))
+
+(ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
-  ;; Autoloading tramp-archive works since Emacs 27.1.
-  (skip-unless (tramp-archive--test-emacs27-p))
 
   ;; tramp-archive is neither loaded at Emacs startup, nor when
   ;; loading a file like "/mock::foo" (which loads Tramp).
-  (let ((default-directory (expand-file-name temporary-file-directory))
-	(code
+  (let ((code
 	 "(progn \
-	    (message \"tramp-archive loaded: %%s %%s\" \
-              (featurep 'tramp) (featurep 'tramp-archive)) \
-	    (file-attributes %S \"/\") \
-	    (message \"tramp-archive loaded: %%s %%s\" \
-              (featurep 'tramp) (featurep 'tramp-archive)))"))
-    (dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
-      (should
-       (string-match
-	(format
-	 "tramp-archive loaded: nil nil[[:ascii:]]+tramp-archive loaded: t %s"
-	 (tramp-archive-file-name-p file))
-	(shell-command-to-string
-	 (format
-	  "%s -batch -Q -L %s --eval %s"
-	  (shell-quote-argument
-	   (expand-file-name invocation-name invocation-directory))
-	  (mapconcat #'shell-quote-argument load-path " -L ")
-	  (shell-quote-argument (format code file)))))))))
+	    (message \"tramp-archive loaded: %%s\" \
+              (featurep 'tramp-archive)) \
+	    (let ((inhibit-message t)) \
+              (file-attributes %S \"/\")) \
+	    (message \"tramp-archive loaded: %%s\" \
+              (featurep 'tramp-archive))))"))
+    (dolist (enabled '(t nil))
+      (dolist (default-directory
+               `(,temporary-file-directory
+		 ;;  Starting Emacs in a directory which has
+		 ;; `tramp-archive-file-name-regexp' syntax is
+		 ;; supported only with Emacs > 27.2 (sigh!).
+		 ;; (Bug#48476)
+                 ,(file-name-as-directory tramp-archive-test-directory)))
+	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
+          (should
+           (string-match
+	    (rx
+	     "tramp-archive loaded: "
+	     (literal (symbol-name
+		       (tramp-archive-file-name-p default-directory)))
+	     (+ ascii)
+	     "tramp-archive loaded: "
+	     (literal (symbol-name
+		       (or (tramp-archive-file-name-p default-directory)
+			   (and enabled (tramp-archive-file-name-p file))))))
+	    (shell-command-to-string
+	     (format
+	      "%s -batch -Q -L %s --eval %s --eval %s"
+	      (shell-quote-argument
+	       (expand-file-name invocation-name invocation-directory))
+	      (mapconcat #'shell-quote-argument load-path " -L ")
+	      (shell-quote-argument
+	       (format "(setq tramp-archive-enabled %s)" enabled))
+	      (shell-quote-argument (format code file)))))))))))
 
-(ert-deftest tramp-archive-test45-delay-load ()
+(ert-deftest tramp-archive-test48-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
-  ;; Autoloading tramp-archive works since Emacs 27.1.
-  (skip-unless (tramp-archive--test-emacs27-p))
 
   ;; tramp-archive is neither loaded at Emacs startup, nor when
   ;; loading a file like "/foo.tar".  It is loaded only when
@@ -933,9 +961,10 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (dolist (tae '(t nil))
       (should
        (string-match
-	(format
-	 "tramp-archive loaded: nil[[:ascii:]]+tramp-archive loaded: nil[[:ascii:]]+tramp-archive loaded: %s"
-	 tae)
+	(rx
+	 "tramp-archive loaded: nil" (+ ascii)
+	 "tramp-archive loaded: nil" (+ ascii)
+	 "tramp-archive loaded: " (literal (symbol-name tae)))
         (shell-command-to-string
          (format
 	  "%s -batch -Q -L %s --eval %s"
@@ -983,7 +1012,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	     (apply
 	      'append
 	      (mapcar
-	       (lambda (x) (directory-files (concat dir x) 'full "uu\\'" 'sort))
+	       (lambda (x)
+		 (directory-files (concat dir x) 'full (rx "uu" eos) 'sort))
 	       '("~/src/libarchive-3.2.2/libarchive/test"
 		 "~/src/libarchive-3.2.2/cpio/test"
 		 "~/src/libarchive-3.2.2/tar/test"))))

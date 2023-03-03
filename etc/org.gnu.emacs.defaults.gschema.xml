@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019-2020, 2022-2023 Free Software Foundation, Inc. -->
+<schemalist>
+
+  <schema id="org.gnu.emacs.defaults">
+
+    <key name='alpha'                    type='s'><default>''</default></key>
+    <key name='auto-raise-lower'         type='s'><default>''</default></key>
+    <key name='auto-lower'               type='s'><default>''</default></key>
+    <key name='auto-raise'               type='s'><default>''</default></key>
+    <key name='background'               type='s'><default>''</default></key>
+    <key name='background-mode'          type='s'><default>''</default></key>
+    <key name='bitmap-icon'              type='s'><default>''</default></key>
+    <key name='border-color'             type='s'><default>''</default></key>
+    <key name='border-width'             type='s'><default>''</default></key>
+    <key name='buffer-predicate'         type='s'><default>''</default></key>
+    <key name='cursor-blink'             type='s'><default>''</default></key>
+    <key name='cursor-type'              type='s'><default>''</default></key>
+    <key name='cursor-color'             type='s'><default>''</default></key>
+    <key name='font'                     type='s'><default>''</default></key>
+    <key name='font-backend'             type='s'><default>''</default></key>
+    <key name='foreground'               type='s'><default>''</default></key>
+    <key name='fullscreen'               type='s'><default>''</default></key>
+    <key name='horizontal-scroll-bars'   type='s'><default>''</default></key>
+    <key name='icon-name'                type='s'><default>''</default></key>
+    <key name='inhibit-double-buffering' type='s'><default>''</default></key>
+    <key name='internal-border'          type='s'><default>''</default></key>
+    <key name='internal-border-width'    type='s'><default>''</default></key>
+    <key name='left-fringe'              type='s'><default>''</default></key>
+    <key name='line-spacing'             type='s'><default>''</default></key>
+    <key name='menu-bar'                 type='s'><default>''</default></key>
+    <key name='minibuffer'               type='s'><default>''</default></key>
+    <key name='name'                     type='s'><default>''</default></key>
+    <key name='pointer-color'            type='s'><default>''</default></key>
+    <key name='reverse-video'            type='s'><default>''</default></key>
+    <key name='right-fringe'             type='s'><default>''</default></key>
+    <key name='screen-gamma'             type='s'><default>''</default></key>
+    <key name='scroll-bar'               type='s'><default>''</default></key>
+    <key name='scroll-bar-background'    type='s'><default>''</default></key>
+    <key name='scroll-bar-foreground'    type='s'><default>''</default></key>
+    <key name='scroll-bar-height'        type='s'><default>''</default></key>
+    <key name='scroll-bar-width'         type='s'><default>''</default></key>
+    <key name='scroll-bars'              type='s'><default>''</default></key>
+    <key name='title'                    type='s'><default>''</default></key>
+    <key name='tool-bar'                 type='s'><default>''</default></key>
+    <key name='vertical-scroll-bars'     type='s'><default>''</default></key>
+    <key name='wait-for-w-m'             type='s'><default>''</default></key>
+
+  </schema>
+
+</schemalist>

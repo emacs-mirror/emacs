@@ -1,6 +1,6 @@
 ;;; dns-mode-tests.el --- Test suite for dns-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Peder O. Klingenberg <peder@klingenberg.no>
 ;; Keywords: dns zone
@@ -24,6 +24,27 @@
 
 (require 'ert)
 (require 'dns-mode)
+
+(ert-deftest dns-mode-tests-dns-mode-soa-increment-serial ()
+  (with-temp-buffer
+    (insert "$TTL 86400
+@   IN  SOA     ns.icann.org. noc.dns.icann.org. (
+        2015080302  ;Serial
+        7200        ;Refresh
+        3600        ;Retry
+        1209600     ;Expire
+        3600        ;Negative response caching TTL\n)")
+    (dns-mode-soa-increment-serial)
+    ;; Number is updated from 2015080302 to the current date
+    ;; (actually, just ensure the year part is later than 2020).
+    (should (string-match "\\$TTL 86400
+@   IN  SOA     ns.icann.org. noc.dns.icann.org. (
+        20[2-9][0-9]+  ;Serial
+        7200        ;Refresh
+        3600        ;Retry
+        1209600     ;Expire
+        3600        ;Negative response caching TTL\n)"
+                          (buffer-string)))))
 
 ;;; IPv6 reverse zones
 (ert-deftest dns-mode-ipv6-conversion ()
@@ -56,3 +77,5 @@
       (insert " ")
       (dns-mode-ipv6-to-nibbles nil)
       (should (equal (buffer-string) "8.b.d.0.1.0.0.2.ip6.arpa.  ")))))
+
+;;; dns-mode-tests.el ends here

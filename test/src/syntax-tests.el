@@ -1,6 +1,6 @@
 ;;; syntax-tests.el --- tests for syntax.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,8 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
+(require 'cl-lib)
 
 (ert-deftest parse-partial-sexp-continue-over-comment-marker ()
   "Continue a parse that stopped in the middle of a comment marker."
@@ -54,6 +56,16 @@
                      pps-aftC))
       (should (equal (parse-partial-sexp aftC pointX nil nil pps-aftC)
                      ppsX)))))
+
+(ert-deftest syntax-class-character-test ()
+  (cl-loop for char across " .w_()'\"$\\/<>@!|"
+           for i from 0
+           do (should (= char (syntax-class-to-char i)))
+           when (string-to-syntax (string char))
+           do (should (= char (syntax-class-to-char
+                               (car (string-to-syntax (string char)))))))
+  (should-error (syntax-class-to-char -1))
+  (should-error (syntax-class-to-char 200)))
 
 (ert-deftest parse-partial-sexp-paren-comments ()
   "Test syntax parsing with paren comment markers.
@@ -91,7 +103,7 @@ also has open paren syntax (see Bug#24870)."
 ;; It is intended to enhance this bit to test nested comments
 ;; (2020-10-01).
 
-;; This bit uses the data file test/data/syntax-comments.txt.
+;; This bit uses the data file syntax-resources/syntax-comments.txt.
 
 (defun syntax-comments-point (n forw)
   "Return the buffer offset corresponding to the \"label\" N.
@@ -182,8 +194,7 @@ missing or nil, the value of START is assumed for it."
 	 ()
        (with-current-buffer
 	   (find-file
-	    ,(expand-file-name "data/syntax-comments.txt"
-			       (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
 	 (,(intern (concat (symbol-name type) "-in")))
 	 (goto-char (syntax-comments-point ,start ,forw))
 	 (let ((stop (syntax-comments-point ,(or stop start) ,(not forw))))
@@ -220,7 +231,7 @@ missing or nil, the value of -START- is assumed for it."
 	  (cond
 	   ((eq -dir- 'forward) t)
 	   ((eq -dir- 'backward) nil)
-	   (t (error "Invalid -dir- argument \"%s\" to `syntax-comments'" -dir-))))
+	   (t (error "Invalid -dir- argument \"%s\" to `syntax-br-comments'" -dir-))))
          (start -start-)
 	 (start-str (format "%d" (abs start)))
 	 (type -type-))
@@ -230,8 +241,7 @@ missing or nil, the value of -START- is assumed for it."
 	 ()
        (with-current-buffer
 	   (find-file
-	    ,(expand-file-name "data/syntax-comments.txt"
-			       (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
 	 (,(intern (concat (symbol-name type) "-in")))
          (let ((start-pos (syntax-comments-point ,start ,forw))
                ,@(if res
@@ -285,8 +295,7 @@ the `parse-partial-sexp's are expected to stop.  See
          ()
        (with-current-buffer
            (find-file
-            ,(expand-file-name "data/syntax-comments.txt"
-                               (getenv "EMACS_TEST_DIRECTORY")))
+            ,(ert-resource-file "syntax-comments.txt"))
          (,(intern (concat (symbol-name type) "-in")))
          (let ((start-pos (syntax-comments-point ,start t))
                (open-pos (syntax-comments-midpoint ,open))
@@ -340,10 +349,14 @@ the `parse-partial-sexp's are expected to stop.  See
   (setq parse-sexp-ignore-comments t)
   (setq comment-end-can-be-escaped nil)
   (modify-syntax-entry ?\n ">")
-  (modify-syntax-entry ?\; "<"))
+  (modify-syntax-entry ?\; "<")
+  (modify-syntax-entry ?{ ".")
+  (modify-syntax-entry ?} "."))
 (defun \;-out ()
   (modify-syntax-entry ?\n " ")
-  (modify-syntax-entry ?\; "."))
+  (modify-syntax-entry ?\; ".")
+  (modify-syntax-entry ?{ "(}")
+  (modify-syntax-entry ?} "){"))
 (eval-and-compile
   (setq syntax-comments-section "lisp"))
 
@@ -354,6 +367,62 @@ the `parse-partial-sexp's are expected to stop.  See
 (syntax-comments \; backward t 32)
 (syntax-comments \; forward t 33)
 (syntax-comments \; backward t 33)
+
+;; "Lisp" style comments inside lists.
+(syntax-br-comments \; backward nil 40)
+(syntax-br-comments \; forward t 41)
+(syntax-br-comments \; backward t 41)
+(syntax-br-comments \; forward t 42)
+(syntax-br-comments \; backward t 42)
+(syntax-br-comments \; forward nil 43)
+
+;; "Lisp" style comments parsed by `parse-partial-sexp'.
+(syntax-pps-comments \; 41 90 91)
+(syntax-pps-comments \; 42 92 93)
+(syntax-pps-comments \; 43 94 95 -999)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; "Lisp" style nested comments: between delimiters #|  |#.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun \#|-in ()
+  (setq parse-sexp-ignore-comments t)
+  (modify-syntax-entry ?# ". 14")
+  (modify-syntax-entry ?| ". 23n")
+  (modify-syntax-entry ?\; "< b")
+  (modify-syntax-entry ?\n "> b"))
+(defun \#|-out ()
+  (modify-syntax-entry ?# ".")
+  (modify-syntax-entry ?| ".")
+  (modify-syntax-entry ?\; ".")
+  (modify-syntax-entry ?\n " "))
+(eval-and-compile
+  (setq syntax-comments-section "lisp-n"))
+
+(syntax-comments \#| forward nil 100 0)
+(syntax-comments \#| backward nil 100 0)
+(syntax-comments \#| forward nil 101 -999)
+(syntax-comments \#| forward t 102)
+(syntax-comments \#| backward t 102)
+
+(syntax-comments \#| forward t 103)
+(syntax-comments \#| backward t 103)
+(syntax-comments \#| forward t 104)
+(syntax-comments \#| backward t 104)
+
+(syntax-comments \#| forward nil 105 -999)
+(syntax-comments \#| backward t 105)
+(syntax-comments \#| forward t 106)
+(syntax-comments \#| backward t 106)
+(syntax-comments \#| forward t 107)
+(syntax-comments \#| backward t 107)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mixed "Lisp" style (nested and unnested) comments.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(syntax-comments \#| forward t 110)
+(syntax-comments \#| backward t 110)
+(syntax-comments \#| forward t 111)
+(syntax-comments \#| backward t 111)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs 27 "C" style comments - `comment-end-can-be-escaped' is non-nil.
@@ -430,5 +499,26 @@ the `parse-partial-sexp's are expected to stop.  See
 (syntax-pps-comments /* 54 74 55 20)
 (syntax-pps-comments /* 56 76 77 58)
 (syntax-pps-comments /* 60 78 79)
+
+(ert-deftest test-from-to-parse-partial-sexp ()
+  (with-temp-buffer
+    (insert "foo")
+    (should (parse-partial-sexp 1 1))
+    (should-error (parse-partial-sexp 2 1))))
+
+(ert-deftest syntax-char-syntax ()
+  ;; Verify that char-syntax behaves identically in interpreted and
+  ;; byte-compiled code (bug#53260).
+  (let ((cs (byte-compile (lambda (x) (char-syntax x)))))
+    ;; Use a unibyte buffer with a syntax table using symbol syntax
+    ;; for raw byte 128.
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (let ((st (make-syntax-table)))
+        (modify-syntax-entry (unibyte-char-to-multibyte 128) "_" st)
+        (set-syntax-table st)
+        (should (equal (eval '(char-syntax 128) t) ?_))
+        (should (equal (funcall cs 128) ?_))))
+    (list (char-syntax 128) (funcall cs 128))))
 
 ;;; syntax-tests.el ends here

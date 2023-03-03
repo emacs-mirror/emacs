@@ -1,6 +1,6 @@
-;;; gnus-demon.el --- daemonic Gnus behavior
+;;; gnus-demon.el --- daemonic Gnus behavior  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -52,7 +52,6 @@ this number of `gnus-demon-timestep's.
 If IDLE is nil, don't care about idleness.
 If IDLE is a number and TIME is nil, then call once each time
 Emacs has been idle for IDLE `gnus-demon-timestep's."
-  :group 'gnus-demon
   :type '(repeat (list function
 		       (choice :tag "Time"
 			       (const :tag "never" nil)
@@ -65,7 +64,6 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defcustom gnus-demon-timestep 60
   "Number of seconds in each demon timestep."
-  :group 'gnus-demon
   :type 'integer)
 
 ;;; Internal variables.
@@ -224,7 +222,7 @@ minutes, the connection is closed."
 
 (defun gnus-demon-nntp-close-connection ()
   (save-window-excursion
-    (when (time-less-p '(0 300) (time-since nntp-last-command-time))
+    (when (time-less-p 300 (time-since nntp-last-command-time))
       (nntp-close-server))))
 
 (defun gnus-demon-add-scanmail ()

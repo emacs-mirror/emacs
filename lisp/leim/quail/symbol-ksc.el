@@ -1,6 +1,6 @@
-;;; symbol-ksc.el --- Quail-package for Korean Symbol (KSC5601) -*-coding: utf-8;-*-
+;;; symbol-ksc.el --- Quail-package for Korean Symbol (KSC5601) -*-coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -39,7 +39,7 @@
  "한글심벌입력표:
   【(】괄호열기【arrow】화살【sex】♂♀【index】첨자  【accent】악센트
   【)】괄호닫기【music】음악【dot】점  【quote】따옴표【xtext】§※¶¡¿
-  【Unit】℃Å￠℉【math】수학기호【pic】상형문자【line】선문자
+  【Unit】℃Å￠℉【math】수학기호【pic】상형문자【line】선문자
   【unit】단위    【frac】분수    【textline】­―∥＼∼
   【wn】㈜【ks】㉿【No】№【㏇】㏇ 【dag】† 【ddag】‡【percent】‰
   【am】㏂【pm】㏘【™】™【Tel】℡【won】￦ 【yen】￥ 【pound】￡
@@ -65,7 +65,7 @@
  ("dot"	"·‥…¨ː")
  ("quote"	"、。〃‘’“”°′″´˝")
  ("textline"	"­―∥＼∼")
- ("Unit"	"℃Å￠℉")
+ ("Unit"	"℃Å￠℉")
  ("sex"	"♂♀")
  ("accent"	"～ˇ˘˚˙¸˛")
  ("percent"	"‰")

@@ -1,6 +1,6 @@
 ;;; emacsclient-tests.el --- Test emacsclient  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,9 @@
 
 ;;; Commentary:
 
-;;
+;; Tests for the emacsclient executable.  For tests involving the
+;; interaction between emacsclient and an Emacs server, see
+;; test/lisp/server-tests.el.
 
 ;;; Code:
 

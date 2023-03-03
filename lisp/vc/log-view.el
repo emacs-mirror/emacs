@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -50,7 +50,7 @@
 ;; ------------------------------------------------------------------------
 ;; r4622 | ckuethe | 2007-12-23 18:18:01 -0500 (Sun, 23 Dec 2007) | 2 lines
 ;;
-;; uBlox AEK-4T in binary mode. Added to unstable because it breaks gpsfake
+;; uBlox AEK-4T in binary mode.  Added to unstable because it breaks gpsfake
 ;;
 ;; ------------------------------------------------------------------------
 ;; r4621 | ckuethe | 2007-12-23 16:48:11 -0500 (Sun, 23 Dec 2007) | 3 lines
@@ -110,6 +110,7 @@
 ;;; Code:
 
 (require 'pcvs-util)
+(require 'easy-mmode)
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-diff-internal "vc")
 
@@ -121,42 +122,22 @@
   :group 'pcl-cvs
   :prefix "log-view-")
 
-(easy-mmode-defmap log-view-mode-map
-  '(
-    ("-"	. 	negative-argument)
-    ("0"	.	digit-argument)
-    ("1"	.	digit-argument)
-    ("2"	.	digit-argument)
-    ("3"	.	digit-argument)
-    ("4"	.	digit-argument)
-    ("5"	.	digit-argument)
-    ("6"	.	digit-argument)
-    ("7"	.	digit-argument)
-    ("8"	.	digit-argument)
-    ("9"	.	digit-argument)
-
-    ("\C-m" . log-view-toggle-entry-display)
-    ("m" . log-view-toggle-mark-entry)
-    ("e" . log-view-modify-change-comment)
-    ("d" . log-view-diff)
-    ("=" . log-view-diff)
-    ("D" . log-view-diff-changeset)
-    ("a" . log-view-annotate-version)
-    ("f" . log-view-find-revision)
-    ("n" . log-view-msg-next)
-    ("p" . log-view-msg-prev)
-    ("\t" . log-view-msg-next)
-    ([backtab] . log-view-msg-prev)
-    ("N" . log-view-file-next)
-    ("P" . log-view-file-prev)
-    ("\M-n" . log-view-file-next)
-    ("\M-p" . log-view-file-prev))
-  "Log-View's keymap."
-  :inherit special-mode-map
-  :group 'log-view)
+(defvar-keymap log-view-mode-map
+  "RET" #'log-view-toggle-entry-display
+  "m" #'log-view-toggle-mark-entry
+  "e" #'log-view-modify-change-comment
+  "d" #'log-view-diff
+  "=" #'log-view-diff
+  "D" #'log-view-diff-changeset
+  "a" #'log-view-annotate-version
+  "f" #'log-view-find-revision
+  "n" #'log-view-msg-next
+  "p" #'log-view-msg-prev
+  "TAB" #'log-view-msg-next
+  "<backtab>" #'log-view-msg-prev)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
-  "Log-View Display Menu"
+  "Log-View Display Menu."
   '("Log-View"
     ;; XXX Do we need menu entries for these?
     ;; ["Quit"  quit-window]
@@ -181,9 +162,15 @@
     ["Previous Log Entry"  log-view-msg-prev
      :help "Go to the previous count'th log message"]
     ["Next File"  log-view-file-next
-     :help "Go to the next count'th file"]
+     :help "Go to the next count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]
     ["Previous File"  log-view-file-prev
-     :help "Go to the previous count'th file"]))
+     :help "Go to the previous count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
@@ -207,6 +194,10 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
     (t (:weight bold :extend t)))
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
+
+(defface log-view-commit-body '((t :inherit font-lock-comment-face))
+  "Face for the commit body in `log-view-mode'."
+  :version "28.1")
 
 (defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
@@ -261,12 +252,10 @@ The match group number 1 should match the revision number itself.")
 (define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
-  (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'log-view-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'log-view-end-of-defun)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap)
+  (setq-local font-lock-defaults log-view-font-lock-defaults)
+  (setq-local beginning-of-defun-function #'log-view-beginning-of-defun)
+  (setq-local end-of-defun-function #'log-view-end-of-defun)
+  (setq-local cvs-minor-wrap-function #'log-view-minor-wrap)
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;;
@@ -370,6 +359,7 @@ log entries."
 	    (overlay-put ov 'log-view-self ov)
 	    (overlay-put ov 'log-view-marked (nth 1 entry))))))))
 
+;;;###autoload
 (defun log-view-get-marked ()
   "Return the list of tags for the marked log entries."
   (save-excursion
@@ -415,7 +405,7 @@ This calls `log-view-expanded-log-entry-function' to do the work."
 	      (insert long-entry "\n")
 	      (add-text-properties
 	       beg (point)
-	       '(font-lock-face font-lock-comment-face log-view-comment t))
+	       '(font-lock-face log-view-commit-body log-view-comment t))
 	      (goto-char opoint))))))))
 
 (defun log-view-beginning-of-defun (&optional arg)

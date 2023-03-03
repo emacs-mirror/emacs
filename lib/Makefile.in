@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright 2017-2020 Free Software Foundation, Inc.
+# Copyright 2017-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,32 +29,19 @@ top_srcdir = @top_srcdir@
 all:
 .PHONY: all
 
-# 'make' verbosity.
-AM_V_AR = $(am__v_AR_@AM_V@)
-am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
-am__v_AR_0 = @echo "  AR      " $@;
-am__v_AR_1 =
+-include ${top_builddir}/src/verbose.mk
 
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
 ALL_CFLAGS= \
   $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) $(DEPFLAGS) \
   $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
   -I. -I../src -I$(srcdir) -I$(srcdir)/../src \
   $(if $(patsubst e-%,,$(notdir $<)),,-Demacs)
+
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ALL_CFLAGS += -DGL_COMPILE_CRYPTO_STREAM
+endif
 
 SYSTEM_TYPE = @SYSTEM_TYPE@
 ifeq ($(SYSTEM_TYPE),windows-nt)
@@ -77,12 +64,14 @@ endif
 ../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
 	$(MAKE) -C .. $(notdir $@)
 Makefile: ../config.status $(srcdir)/Makefile.in
-	$(MAKE) -C .. src/$@
+	$(MAKE) -C .. lib/$@
 
 # Object modules that need not be built for Emacs.
 # Emacs does not need e-regex.o (it has its own regex-emacs.c),
 # and building it would just waste time.
-not_emacs_OBJECTS = regex.o
+# Emacs also doesn't need the dynarray-related files in malloc/ and
+# the replacement 'free'.
+not_emacs_OBJECTS = regex.o malloc/%.o free.o
 
 libgnu_a_OBJECTS = fingerprint.o $(gl_LIBOBJS) \
   $(patsubst %.c,%.o,$(filter %.c,$(libgnu_a_SOURCES)))
@@ -92,20 +81,20 @@ libegnu_a_OBJECTS = $(patsubst %.o,e-%.o,$(for_emacs_OBJECTS))
 $(libegnu_a_OBJECTS) $(libgnu_a_OBJECTS): $(BUILT_SOURCES)
 
 .c.o:
-	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -o $@ $<
 e-%.o: %.c
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -Demacs -o $@ $<
 
 all: libgnu.a $(if $(HYBRID_MALLOC),libegnu.a)
 
 libgnu.a: $(libgnu_a_OBJECTS)
-	$(AM_V_at)rm -f $@
-	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(libgnu_a_OBJECTS)
+	$(AM_V_AR)rm -f $@
+	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(libgnu_a_OBJECTS)
 	$(AM_V_at)$(RANLIB) $@
 
 libegnu.a: $(libegnu_a_OBJECTS)
-	$(AM_V_at)rm -f $@
-	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(libegnu_a_OBJECTS)
+	$(AM_V_AR)rm -f $@
+	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(libegnu_a_OBJECTS)
 	$(AM_V_at)$(RANLIB) $@
 
 ETAGS = ../lib-src/etags$(EXEEXT)
@@ -118,7 +107,7 @@ TAGS: $(ETAGS) $(tagsfiles)
 .PHONY: $(ETAGS) tags
 
 clean:
-	rm -f ./*.[ao] ./*-t \#* $(DEPDIR)/*
+	rm -f ./*.[ao] ./*/*.o ./*-t \#* $(DEPDIR)/*.d $(DEPDIR)/*/*.d
 mostlyclean: clean
 	rm -f $(filter-out %-t,$(MOSTLYCLEANFILES))
 distclean bootstrap-clean: mostlyclean
@@ -126,8 +115,7 @@ distclean bootstrap-clean: mostlyclean
 	rm -fr $(DEPDIR)
 maintainer-clean: distclean
 	rm -f TAGS gnulib.mk
-extraclean: distclean
-	-rmdir sys 2>/dev/null
+	-rmdir malloc sys 2>/dev/null || true
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 

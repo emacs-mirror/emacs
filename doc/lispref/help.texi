@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -69,14 +69,14 @@ Variables}.  The string is stored in the variable's
 @cindex @file{DOC} (documentation) file
   Sometimes, Emacs does not keep documentation strings in memory.
 There are two such circumstances.  Firstly, to save memory, the
-documentation for preloaded functions and variables (including
-primitives) is kept in a file named @file{DOC}, in the directory
-specified by @code{doc-directory} (@pxref{Accessing Documentation}).
-Secondly, when a function or variable is loaded from a byte-compiled
-file, Emacs avoids loading its documentation string (@pxref{Docs and
-Compilation}).  In both cases, Emacs looks up the documentation string
-from the file only when needed, such as when the user calls @kbd{C-h
-f} (@code{describe-function}) for a function.
+documentation for primitive functions (@pxref{What Is a Function}) and
+built-in variables is kept in a file named @file{DOC}, in the
+directory specified by @code{doc-directory} (@pxref{Accessing
+Documentation}).  Secondly, when a function or variable is loaded from
+a byte-compiled file, Emacs avoids loading its documentation string
+(@pxref{Docs and Compilation}).  In both cases, Emacs looks up the
+documentation string from the file only when needed, such as when the
+user calls @kbd{C-h f} (@code{describe-function}) for a function.
 
   Documentation strings can contain special @dfn{key substitution
 sequences}, referring to key bindings which are looked up only when
@@ -156,6 +156,13 @@ The @code{documentation} function signals a @code{void-function} error
 if @var{function} has no function definition.  However, it is OK if
 the function definition has no documentation string.  In that case,
 @code{documentation} returns @code{nil}.
+@end defun
+
+@defun function-documentation function
+Generic function used by @code{documentation} to extract the raw
+docstring from a function object.  You can specify how to get the
+docstring of a specific function type by adding a corresponding method
+to it.
 @end defun
 
 @defun face-documentation face
@@ -296,7 +303,7 @@ for in the directory @code{doc-directory}.  Usually @var{filename} is
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
 file @code{"DOC"} that contains documentation strings for
-built-in and preloaded functions and variables.
+built-in functions and variables.
 
 In most cases, this is the same as @code{data-directory}.  They may be
 different when you run Emacs from the directory where you built it,
@@ -333,6 +340,16 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
+@item \`@var{KEYSEQ}'
+stands for a key sequence @var{KEYSEQ}, which will use the same face
+as a command substitution.  This should be used only when a key
+sequence has no corresponding command, for example when it is read
+directly with @code{read-key-sequence}.  It must be a valid key
+sequence according to @code{key-valid-p}.  It can also be used with
+command names, like @samp{\`M-x foo'}, where you want this to be
+fontified like a keyboard sequence, but you want to inhibit
+translating it into a key sequence like @samp{\[foo]} does.
+
 @item `
 (grave accent) stands for a left quote.
 This generates a left single quotation mark, an apostrophe, or a grave
@@ -348,35 +365,29 @@ depending on the value of @code{text-quoting-style}.
 quotes the following character and is discarded; thus, @samp{\=`} puts
 @samp{`} into the output, @samp{\=\[} puts @samp{\[} into the output,
 and @samp{\=\=} puts @samp{\=} into the output.
+
+@item \+
+This indicates that the symbol directly following should not be marked
+as link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
 
-@defopt text-quoting-style
-@cindex curved quotes
-@cindex curly quotes
-The value of this variable is a symbol that specifies the style Emacs
-should use for single quotes in the wording of help and messages.  If
-the variable's value is @code{curve}, the style is @t{‘like this’}
-with curved single quotes.  If the value is @code{straight}, the style
-is @t{'like this'} with straight apostrophes.  If the value is
-@code{grave}, quotes are not translated and the style is @t{`like
-this'} with grave accent and apostrophe, the standard style before
-Emacs version 25.  The default value @code{nil} acts like @code{curve}
-if curved single quotes seem to be displayable, and like @code{grave}
-otherwise.
-
-This option is useful on platforms that have problems with curved
-quotes.  You can customize it freely according to your personal
-preference.
-@end defopt
-
-@defun substitute-command-keys string
+@defun substitute-command-keys string &optional no-face include-menus
+@vindex help-key-binding@r{ (face)}
 This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
 This permits display of documentation that refers accurately to the
-user's own customized key bindings.
+user's own customized key bindings.  By default, the key bindings are
+given a special face @code{help-key-binding}, but if the optional
+argument @var{no-face} is non-@code{nil}, the function doesn't add
+this face to the produced string.
+
+@defun substitute-quotes string
+This function works like @code{substitute-command-keys}, but only
+replaces quote characters.
+@end defun
 
 @cindex advertised binding
 If a command has multiple bindings, this function normally uses the
@@ -417,6 +428,9 @@ C-j             minibuffer-complete-and-exit
 RET             minibuffer-complete-and-exit
 C-g             abort-recursive-edit
 "
+
+The keymap description will normally exclude menu items, but if
+@var{include-menus} is non-@code{nil}, include them.
 
 @group
 (substitute-command-keys
@@ -476,6 +490,13 @@ This option is useful on platforms that have problems with curved
 quotes.  You can customize it freely according to your personal
 preference.
 @end defopt
+
+@defun text-quoting-style
+You should not read the value of the variable
+@code{text-quoting-style} directly.  Instead, use this function with
+the same name to dynamically compute the correct quoting style on the
+current terminal in the @code{nil} case described above.
+@end defun
 
 @node Describing Characters
 @section Describing Characters for Help Messages
@@ -545,7 +566,7 @@ brackets.
 @end group
 @group
 (single-key-description 'C-mouse-1)
-     @result{} "<C-mouse-1>"
+     @result{} "C-<mouse-1>"
 @end group
 @group
 (single-key-description 'C-mouse-1 t)
@@ -640,7 +661,7 @@ follows:
 
 @smallexample
 @group
-(define-key global-map (string help-char) 'help-command)
+(keymap-set global-map (key-description (string help-char)) 'help-command)
 (fset 'help-command help-map)
 @end group
 @end smallexample
@@ -676,8 +697,9 @@ If this variable is non-@code{nil}, its value is a form to evaluate
 whenever the character @code{help-char} is read.  If evaluating the form
 produces a string, that string is displayed.
 
-A command that calls @code{read-event}, @code{read-char-choice}, or
-@code{read-char} probably should bind @code{help-form} to a
+A command that calls @code{read-event}, @code{read-char-choice},
+@code{read-char}, @code{read-char-from-minibuffer}, or
+@code{y-or-n-p} probably should bind @code{help-form} to a
 non-@code{nil} expression while it does input.  (The time when you
 should not do this is when @kbd{C-h} has some other meaning.)
 Evaluating this expression should result in a string that explains
@@ -805,7 +827,7 @@ if the user types the help character again.
 
 Emacs can list functions based on various groupings.  For instance,
 @code{string-trim} and @code{mapconcat} are ``string'' functions, so
-@kbd{M-x shortdoc-display-group RET string RET} will give an overview
+@kbd{M-x shortdoc RET string RET} will give an overview
 of functions that operate on strings.
 
 The documentation groups are created with the
@@ -817,7 +839,7 @@ summaries of using those functions.  The optional argument
 @var{functions} is a list whose elements are of the form:
 
 @lisp
-(@var{func} @var{keyword} @var{val} @dots{})
+(@var{func} [@var{keyword} @var{val}]@dots{})
 @end lisp
 
 The following keywords are recognized:
@@ -838,7 +860,7 @@ evaluated, and the result used.  For instance:
 @end example
 
 @noindent
-will be printed as
+will result in:
 
 @example
 (concat "foo" "bar" "zot")
@@ -865,13 +887,14 @@ should be included.
 @end example
 
 @item :no-eval*
-Like @code{:no-eval}, but alaways inserts @samp{[it depends]} as the
-result.
+Like @code{:no-eval}, but always inserts @samp{[it depends]} as the
+result.  For instance:
 
 @example
 :no-eval* (buffer-string)
 @end example
 
+@noindent
 will result in:
 
 @example
@@ -893,17 +916,26 @@ Used to output the result from non-evaluating example forms.
 
 @item :eg-result
 Used to output an example result from non-evaluating example forms.
+For instance:
 
 @example
 :no-eval (looking-at "f[0-9]")
 :eg-result t
 @end example
 
+@noindent
+will result in:
+
+@example
+(looking-at "f[0-9]")
+eg. @click{} t
+@end example
+
 @item :result-string
 @itemx :eg-result-string
 These two are the same as @code{:result} and @code{:eg-result},
 respectively, but are inserted as is.  This is useful when the result
-is unreadable or should be on a particular form:
+is unreadable or should be of a particular form:
 
 @example
 :no-eval (find-file "/tmp/foo")
@@ -948,9 +980,9 @@ In addition to function descriptions, the list can also have string
 elements, which are used to divide a documentation group into
 sections.
 
-@defun shortdoc-add-function shortdoc-add-function group section elem
-Lisp packages can add functions to groups with this command.  Each
-@var{elem} should be a function descriptions, as described above.
+@defun shortdoc-add-function group section elem
+Lisp packages can add functions to groups with this function.  Each
+@var{elem} should be a function description, as described above.
 @var{group} is the function group, and @var{section} is what section
 in the function group to insert the function into.
 

@@ -1,6 +1,6 @@
-;;; isearch-x.el --- extended isearch handling commands
+;;; isearch-x.el --- extended isearch handling commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -35,9 +35,8 @@
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (toggle-input-method t))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 ;;;###autoload
@@ -46,9 +45,17 @@
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (toggle-input-method))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
+  (isearch-update))
+
+;;;###autoload
+(defun isearch-transient-input-method ()
+  "Activate transient input method in interactive search."
+  (interactive)
+  (let ((overriding-terminal-local-map nil))
+    (activate-transient-input-method))
+  (setq-local input-method-function nil)
   (isearch-update))
 
 (defvar isearch-minibuffer-local-map
@@ -60,7 +67,7 @@
 
 ;; Exit from recursive edit safely.  Set in `after-change-functions'
 ;; by isearch-with-keyboard-coding.
-(defun isearch-exit-recursive-edit (start end length)
+(defun isearch-exit-recursive-edit (_start _end _length)
   (interactive)
   (throw 'exit nil))
 
@@ -95,6 +102,7 @@
 
 ;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char &optional count)
+  (defvar junk-hist)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
 	    (prompt (isearch-message-prefix))
@@ -117,6 +125,7 @@
 			  (cons last-char unread-command-events))
 		    ;; Inherit current-input-method in a minibuffer.
 		    str (read-string prompt isearch-message 'junk-hist nil t))
+	      (deactivate-transient-input-method)
 	      (if (or (not str) (< (length str) (length isearch-message)))
 		  ;; All inputs were deleted while the input method
 		  ;; was working.

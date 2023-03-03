@@ -1,6 +1,6 @@
-;;; cpp.el --- highlight or hide text according to cpp conditionals
+;;; cpp.el --- highlight or hide text according to cpp conditionals -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -53,8 +53,7 @@
 
 (defcustom cpp-config-file (convert-standard-filename ".cpp.el")
   "File name to save cpp configuration."
-  :type 'file
-  :group 'cpp)
+  :type 'file)
 
 (define-widget 'cpp-face 'lazy
   "Either a face or the special symbol `invisible'."
@@ -62,13 +61,11 @@
 
 (defcustom cpp-known-face 'invisible
   "Face used for known cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-unknown-face 'highlight
   "Face used for unknown cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-face-type 'light
   "Indicate what background face type you prefer.
@@ -76,18 +73,15 @@ Can be either light or dark for color screens, mono for monochrome
 screens, and none if you don't use a window system and don't have
 a color-capable display."
   :options '(light dark mono nil)
-  :type 'symbol
-  :group 'cpp)
+  :type 'symbol)
 
 (defcustom cpp-known-writable t
   "Non-nil means you are allowed to modify the known conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-unknown-writable t
   "Non-nil means you are allowed to modify the unknown conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-edit-list nil
   "Alist of cpp macros and information about how they should be displayed.
@@ -101,20 +95,17 @@ Each entry is a list with the following elements:
 		       (cpp-face :tag "False")
 		       (choice (const :tag "True branch writable" t)
 			       (const :tag "False branch writable" nil)
-			       (const :tag "Both branches writable" both))))
-  :group 'cpp)
+                               (const :tag "Both branches writable" both)))))
 
 (defcustom cpp-message-min-time-interval 1.0
-  "Minimum time interval in seconds for `cpp-progress-message' messages.
-If nil, `cpp-progress-message' prints no progress messages."
+  "Minimum time interval in seconds for `cpp-highlight-buffer' progress messages.
+If nil, `cpp-highlight-buffer' prints no progress messages."
   :type '(choice (const :tag "Disable progress messages" nil)
                  float)
-  :group 'cpp
   :version "26.1")
 
-(defvar cpp-overlay-list nil)
-;; List of cpp overlays active in the current buffer.
-(make-variable-buffer-local 'cpp-overlay-list)
+(defvar-local cpp-overlay-list nil
+  "List of cpp overlays active in the current buffer.")
 
 (defvar cpp-callback-data)
 (defvar cpp-state-stack)
@@ -134,9 +125,8 @@ If nil, `cpp-progress-message' prints no progress messages."
 (defvar cpp-button-event nil)
 ;; This will be t in the callback for `cpp-make-button'.
 
-(defvar cpp-edit-buffer nil)
-;; Real buffer whose cpp display information we are editing.
-(make-variable-buffer-local 'cpp-edit-buffer)
+(defvar-local cpp-edit-buffer nil
+  "Real buffer whose cpp display information we are editing.")
 
 (defconst cpp-branch-list
   ;; Alist of branches.
@@ -155,36 +145,31 @@ or a cons cell (background-color . COLOR)."
 		:value-type (choice face
 				    (const invisible)
 				    (cons (const background-color)
-					  (string :tag "Color"))))
-  :group 'cpp)
+                                          (string :tag "Color")))))
 
 (defcustom cpp-face-light-name-list
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
   "Background colors useful with dark foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-dark-name-list
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
   "Background colors useful with light foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-light-list nil
   "Alist of names and faces to be used for light backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-dark-list nil
   "Alist of names and faces to be used for dark backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-mono-list
   '(("bold" . bold)
@@ -192,15 +177,13 @@ or a cons cell (background-color . COLOR)."
     ("italic" . italic)
     ("underline" . underline))
   "Alist of names and faces to be used for monochrome screens."
-  :type '(repeat (cons string face))
-  :group 'cpp)
+  :type '(repeat (cons string face)))
 
 (defcustom cpp-face-none-list
    '(("default" . default)
      ("invisible" . invisible))
    "Alist of names and faces available even if you don't use a window system."
-  :type '(repeat (cons string cpp-face))
-  :group 'cpp)
+  :type '(repeat (cons string cpp-face)))
 
 (defvar cpp-face-all-list
   (append cpp-face-light-list
@@ -211,9 +194,8 @@ or a cons cell (background-color . COLOR)."
 
 ;;; Parse Buffer:
 
-(defvar cpp-parse-symbols nil
+(defvar-local cpp-parse-symbols nil
   "List of cpp macros used in the local buffer.")
-(make-variable-buffer-local 'cpp-parse-symbols)
 
 (defconst cpp-parse-regexp
   ;; Regexp matching all tokens needed to find conditionals.
@@ -236,14 +218,15 @@ A prefix arg suppresses display of that buffer."
   (cpp-parse-reset)
   (if (null cpp-edit-list)
       (cpp-edit-load))
-  (let (cpp-state-stack)
+  (let ((reporter
+         (and cpp-message-min-time-interval
+              (make-progress-reporter "Parsing..." (point-min) (point-max)
+                                      nil nil cpp-message-min-time-interval)))
+        cpp-state-stack)
     (save-excursion
       (goto-char (point-min))
-      (cpp-progress-message "Parsing...")
       (while (re-search-forward cpp-parse-regexp nil t)
-	(cpp-progress-message "Parsing...%d%%"
-			      (floor (* 100.0 (- (point) (point-min)))
-				     (buffer-size)))
+        (when reporter (progress-reporter-update reporter (point)))
 	(let ((match (buffer-substring (match-beginning 0) (match-end 0))))
 	  (cond ((or (string-equal match "'")
 		     (string-equal match "\""))
@@ -286,7 +269,7 @@ A prefix arg suppresses display of that buffer."
 			  (cpp-parse-close from to))
 			 (t
 			  (cpp-parse-error "Parser error"))))))))
-      (cpp-progress-message "Parsing...done"))
+      (when reporter (progress-reporter-done reporter)))
     (if cpp-state-stack
       (save-excursion
 	(goto-char (nth 3 (car cpp-state-stack)))
@@ -428,52 +411,49 @@ A prefix arg suppresses display of that buffer."
 
 ;;; Edit Buffer:
 
-(defvar cpp-edit-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map [ down-mouse-2 ] 'cpp-push-button)
-    (define-key map [ mouse-2 ] 'ignore)
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map "\C-?" 'scroll-down-command)
-    (define-key map [ delete ] 'scroll-down)
-    (define-key map "\C-c\C-c" 'cpp-edit-apply)
-    (define-key map "a" 'cpp-edit-apply)
-    (define-key map "A" 'cpp-edit-apply)
-    (define-key map "r" 'cpp-edit-reset)
-    (define-key map "R" 'cpp-edit-reset)
-    (define-key map "s" 'cpp-edit-save)
-    (define-key map "S" 'cpp-edit-save)
-    (define-key map "l" 'cpp-edit-load)
-    (define-key map "L" 'cpp-edit-load)
-    (define-key map "h" 'cpp-edit-home)
-    (define-key map "H" 'cpp-edit-home)
-    (define-key map "b" 'cpp-edit-background)
-    (define-key map "B" 'cpp-edit-background)
-    (define-key map "k" 'cpp-edit-known)
-    (define-key map "K" 'cpp-edit-known)
-    (define-key map "u" 'cpp-edit-unknown)
-    (define-key map "u" 'cpp-edit-unknown)
-    (define-key map "t" 'cpp-edit-true)
-    (define-key map "T" 'cpp-edit-true)
-    (define-key map "f" 'cpp-edit-false)
-    (define-key map "F" 'cpp-edit-false)
-    (define-key map "w" 'cpp-edit-write)
-    (define-key map "W" 'cpp-edit-write)
-    (define-key map "X" 'cpp-edit-toggle-known)
-    (define-key map "x" 'cpp-edit-toggle-known)
-    (define-key map "Y" 'cpp-edit-toggle-unknown)
-    (define-key map "y" 'cpp-edit-toggle-unknown)
-    (define-key map "q" 'bury-buffer)
-    (define-key map "Q" 'bury-buffer)
-    map)
-  "Keymap for `cpp-edit-mode'.")
+(defvar-keymap cpp-edit-mode-map
+  :doc "Keymap for `cpp-edit-mode'."
+  :full t
+  :suppress t
+  "<down-mouse-2>" #'cpp-push-button
+  "<mouse-2>"      #'ignore
+  "SPC"      #'scroll-up-command
+  "S-SPC"    #'scroll-down-command
+  "DEL"      #'scroll-down-command
+  "<delete>" #'scroll-down
+  "C-c C-c"  #'cpp-edit-apply
+  "a"        #'cpp-edit-apply
+  "A"        #'cpp-edit-apply
+  "r"        #'cpp-edit-reset
+  "R"        #'cpp-edit-reset
+  "s"        #'cpp-edit-save
+  "S"        #'cpp-edit-save
+  "l"        #'cpp-edit-load
+  "L"        #'cpp-edit-load
+  "h"        #'cpp-edit-home
+  "H"        #'cpp-edit-home
+  "b"        #'cpp-edit-background
+  "B"        #'cpp-edit-background
+  "k"        #'cpp-edit-known
+  "K"        #'cpp-edit-known
+  "u"        #'cpp-edit-unknown
+  "U"        #'cpp-edit-unknown
+  "t"        #'cpp-edit-true
+  "T"        #'cpp-edit-true
+  "f"        #'cpp-edit-false
+  "F"        #'cpp-edit-false
+  "w"        #'cpp-edit-write
+  "W"        #'cpp-edit-write
+  "X"        #'cpp-edit-toggle-known
+  "x"        #'cpp-edit-toggle-known
+  "Y"        #'cpp-edit-toggle-unknown
+  "y"        #'cpp-edit-toggle-unknown
+  "q"        #'bury-buffer
+  "Q"        #'bury-buffer)
 
 
-
-(defvar cpp-edit-symbols nil)
-;; Symbols defined in the edit buffer.
-(make-variable-buffer-local 'cpp-edit-symbols)
+(defvar-local cpp-edit-symbols nil
+  "Symbols defined in the edit buffer.")
 
 (define-derived-mode cpp-edit-mode fundamental-mode "CPP Edit"
   "Major mode for editing the criteria for highlighting cpp conditionals.
@@ -721,17 +701,14 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 	  (x-popup-menu cpp-button-event
 			(list prompt (cons prompt cpp-face-default-list)))
 	(let ((name (car (rassq default cpp-face-default-list))))
-	  (cdr (assoc (completing-read (if name
-					   (concat prompt
-						   " (default " name "): ")
-					 (concat prompt ": "))
-				       cpp-face-default-list nil t)
+          (cdr (assoc (completing-read (format-prompt "%s" name prompt)
+                                       cpp-face-default-list nil t)
 		      cpp-face-all-list))))
       default))
 
 (defun cpp-choose-default-face (type)
-  ;; Choose default face list for screen of TYPE.
-  ;; Type must be one of the types defined in `cpp-face-type-list'.
+  "Choose default face list for screen of TYPE.
+Type must be one of the types defined in `cpp-face-type-list'."
   (interactive (list (if cpp-button-event
 			 (x-popup-menu cpp-button-event
 				       (list "Screen type"
@@ -808,7 +785,7 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 				 (if data (list 'cpp-data data))))))
 
 (defun cpp-push-button (event)
-  ;; Pushed a CPP button.
+  "Pushed a CPP button."
   (interactive "@e")
   (set-buffer (window-buffer (posn-window (event-start event))))
   (let ((pos (posn-point (event-start event))))
@@ -838,6 +815,7 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 
 ;;; Utilities:
 
+(make-obsolete-variable 'cpp-progress-time nil "29.1")
 (defvar cpp-progress-time 0
   "Last time `cpp-progress-message' issued a progress message.")
 
@@ -847,6 +825,7 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 Print messages at most once every `cpp-message-min-time-interval' seconds.
 If that option is nil, don't prints messages.
 ARGS are the same as for `message'."
+  (declare (obsolete make-progress-reporter "29.1"))
   (when cpp-message-min-time-interval
     (let ((time (current-time)))
       (unless (time-less-p cpp-message-min-time-interval

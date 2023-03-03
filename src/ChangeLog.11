@@ -3294,7 +3294,7 @@
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
-	(emacs_gnutls_write): Remove the debuggin fsync call.
+	(emacs_gnutls_write): Remove the debugging fsync call.
 	(emacs_gnutls_read): Return -1 if we got an error from
 	gnutls_read.  This allows us to actually read lots of data from
 	the GnuTLS stream.
@@ -7503,7 +7503,7 @@
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
-	Don't sheck SPEC if it is nil.
+	Don't check SPEC if it is nil.
 	(font_list_entities): Call font_delete_unmatched if
 	Vface_ignored_fonts is non-nil.  (Bug#6287)
 
@@ -8639,7 +8639,7 @@
 
 	* keyboard.c: QClabel is new.
 	(parse_tool_bar_item): Take out QClabel from tool bar items.
-	Try to construct a label if ther is no QClabel.
+	Try to construct a label if there is no QClabel.
 	(syms_of_keyboard): Intern :label as QClabel.
 
 	* dispextern.h (tool_bar_item_idx): TOOL_BAR_ITEM_LABEL is new.
@@ -11988,7 +11988,7 @@
 
 	* cmds.c (nonundocount): New global variable.
 	(keys_of_cmds): Initialize it.
-	(Fself_insert_command): Use it to combine upto 20 sequential chars
+	(Fself_insert_command): Use it to combine up to 20 sequential chars
 	into a single undo entry, just like the Qself_insert_command code in
 	keyboard.c does.
 	Call frame_make_pointer_invisible, also like the Qself_insert_command
@@ -14235,7 +14235,7 @@
 	ns_alternate_modifier.  (Bug#1217)
 
 	* nsmenu.m (EmacsMenu-parseKeyEquiv:, addItemWithWidgetValue:):
-	Display all shortcuts, including those w/o super modifier.
+	Display all shortcuts, including those without super modifier.
 
 	* nsfns.m (ns-read-file-name): Fix typo in assignment statement.
 
@@ -22399,7 +22399,7 @@
 	* Makefile.in (${lispsource}international/charprop.el):
 	Delete this target.
 
-	* search.c (boyer_moore): Fix incorrect synching of the trunk and
+	* search.c (boyer_moore): Fix incorrect syncing of the trunk and
 	emacs-unicode-2.
 
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -23177,7 +23177,7 @@
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (face_for_overlay_string): Call lookup_face with
-	correct arguments (fix of synching with the trunk).
+	correct arguments (fix of syncing with the trunk).
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2020 Free Software Foundation, Inc.
+  Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

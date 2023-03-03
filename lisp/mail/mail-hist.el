@@ -1,6 +1,6 @@
-;;; mail-hist.el --- headers and message body history for outgoing mail
+;;; mail-hist.el --- headers and message body history for outgoing mail  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: March, 1994
@@ -24,21 +24,15 @@
 
 ;;; Commentary:
 
-;; Thanks to Jim Blandy for mentioning ring.el.  It saved a lot of
-;; time.
+;; To use this package, add this to your init file:
 ;;
-;; To use this package, put it in a directory in your load-path, and
-;; put this in your init file:
+;;     (require 'mail-hist)
 ;;
-;; (load "mail-hist" nil t)
+;; Or you could do it with hooks in your .emacs:
 ;;
-;; Or you could do it with autoloads and hooks in your .emacs:
-;;
-;; (add-hook 'mail-mode-hook 'mail-hist-define-keys)
-;; (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history)
-;; (add-hook 'vm-mail-mode-hook 'mail-hist-define-keys) ;or rmail, etc
-;; (autoload 'mail-hist-define-keys "mail-hist")
-;; (autoload 'mail-hist-put-headers-into-history "mail-hist")
+;;     (add-hook 'mail-mode-hook 'mail-hist-define-keys)
+;;     (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history)
+;;     (add-hook 'vm-mail-mode-hook 'mail-hist-define-keys) ;or rmail, etc
 ;;
 ;; Once it's installed, use M-p and M-n from mail headers to recover
 ;; previous/next contents in the history for that header, or, in the
@@ -51,6 +45,9 @@
 ;; point, so that you can mix the histories of different messages
 ;; easily.  This might be confusing at times, but there should be no
 ;; problems that undo can't handle.
+;;
+;; Thanks to Jim Blandy for mentioning ring.el.  It saved a lot of
+;; time.
 
 ;;; Code:
 (require 'ring)
@@ -69,8 +66,8 @@
 
 ;;;###autoload
 (defun mail-hist-enable ()
-  (add-hook 'mail-mode-hook 'mail-hist-define-keys)
-  (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history))
+  (add-hook 'mail-mode-hook #'mail-hist-define-keys)
+  (add-hook 'mail-send-hook #'mail-hist-put-headers-into-history))
 
 (defvar mail-hist-header-ring-alist nil
   "Alist of form (header-name . history-ring).
@@ -80,14 +77,12 @@ previous/next input.")
 (defcustom mail-hist-history-size (or kill-ring-max 1729)
   "The maximum number of elements in a mail field's history.
 Oldest elements are dumped first."
-  :type 'integer
-  :group 'mail-hist)
+  :type 'natnum)
 
 ;;;###autoload
 (defcustom mail-hist-keep-history t
   "Non-nil means keep a history for headers and text of outgoing mail."
-  :type 'boolean
-  :group 'mail-hist)
+  :type 'boolean)
 
 ;; For handling repeated history requests
 (defvar mail-hist-access-count 0)
@@ -184,8 +179,7 @@ HEADER is a string without the colon."
 (defcustom mail-hist-text-size-limit nil
   "Don't store any header or body with more than this many characters.
 If the value is nil, that means no limit on text size."
-  :type '(choice (const nil) integer)
-  :group 'mail-hist)
+  :type '(choice (const nil) integer))
 
 (defun mail-hist-text-too-long-p (text)
   "Return non-nil if TEXT's length exceeds `mail-hist-text-size-limit'."

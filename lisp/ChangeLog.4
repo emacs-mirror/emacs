@@ -6858,7 +6858,7 @@
 1993-07-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* frame.el (frame-notice-user-settings): Don't reapply a parm
-	whose value is ot changed (as far as we know) since frame-initialize.
+	whose value is not changed (as far as we know) since frame-initialize.
 
 	* simple.el (kill-ring-save): Delete spurious `message' call.
 	(set-mark): If POS is nil, call deactivate-mark.
@@ -7238,7 +7238,8 @@
 	* ispell.el (ispell-menu-map): Add missing quote in defalias.
 	(ispell-window-configuration): Initialize to nil.
 
-	* vc-hooks.el (vc-rcs-status): Make work buffer's name start w/ space.
+	* vc-hooks.el (vc-rcs-status): Make work buffer's name start with
+	space.
 
 	* simple.el (completion-setup-function): Insert the mouse help message
 	only if non-nil `window-system'.
@@ -8934,7 +8935,7 @@ See ChangeLog.3 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+    Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

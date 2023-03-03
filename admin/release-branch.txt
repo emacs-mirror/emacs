@@ -1,0 +1,76 @@
+Instructions for cutting the Emacs release branch
+
+1.  In the clone of the Emacs Git repository, switch to the 'master'
+    branch, "git pull", and build it (using 'make bootstrap') to make
+    sure it's not broken.  Run 'make check-expensive' and ensure all
+    tests pass.  (Alternatively, verify that the automated build
+    servers are showing success for the latest revision.)
+
+2.  Create the release branch and switch to it.  Assuming that it is
+    for releasing Emacs versions XY.1, XY.2, etc., the command is:
+
+     git checkout -b emacs-XY
+
+3.  Switch the release branch to the suitable version.  The convention
+    is that release branches start with version XY.0.60, whereas the
+    master branch from which the release branch was cut was at the
+    version XY.0.50.  To change the version, do the following inside
+    Emacs:
+
+     M-x load-file RET admin/admin.el RET
+     M-x set-version RET XY.0.60 RET
+
+    Change the value of 'customize-changed-options-previous-release'
+    in cus-edit.el to reference the last release from the emacs-XY-1
+    branch (last release for the previous major version).
+
+    The above modifies several files in the tree; commit the changes
+    with the appropriate log message, something like "Bump Emacs
+    version to XY.0.60", and with header saying "Cut the emacs-XY
+    release branch".  Then push the changes:
+
+     git push --set-upstream origin emacs-XY
+
+    The "push" command should show the new branch just created.
+
+4.  Switch back to the master branch.
+
+     git checkout master
+     git pull
+
+    Set the version on the master branch to the next major release:
+
+     M-x set-version RET XY+1.0.50 RET
+
+    This creates a new file etc/NEWS.XY.  "git add" it.
+
+    Change the value of 'customize-changed-options-previous-release'
+    in cus-edit.el to reference emacs-XY.1, the next version to be
+    released from the newly-committed release branch.
+
+    Update the emacs-module sources for the new version XY+1.  This
+    entails:
+
+     . adding a new file src/module-env-XY+1.h, with contents just the
+       comment taken from the beginning of src/module-env-XY.h
+     . removing the comment from the beginning of src/module-env-XY.h
+     . adding two lines to configure.ac:
+
+       AC_SUBST_FILE([module_env_snippet_XY+1])
+       module_env_snippet_XY+1="$srcdir/src/module-env-XY+1.h"
+
+     . adding a new 'struct emacs_env_XY+1' to src/emacs-module.h.in,
+       with the contents identical to'struct emacs_env_XY', with one
+       line added:
+
+         @module_env_snippet_XY+1@
+
+     (FIXME: "M-x set-version" should do this emacs-module stuff
+     automatically when the version is NN.0.60, or when there's no
+     src/module-env-NN.h file.)
+
+    "git add" the new src/module-env-XY+1.h file.
+
+    Then rebuild Emacs.  Then commit the new/changed files and push.
+
+5.  Announce the new release branch on emacs-devel.

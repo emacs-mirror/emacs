@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Martin Lorentzson <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -57,7 +57,7 @@ is applied to the background."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (when (boundp 'vc-annotate-color-map)
-	   (with-demoted-errors
+	   (with-demoted-errors "VC color map error: %S"
 	     ;; Update the value of the dependent variable.
 	     (custom-reevaluate-setting 'vc-annotate-color-map))))
   :version "25.1"
@@ -162,22 +162,20 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
-(defvar vc-annotate-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "a" 'vc-annotate-revision-previous-to-line)
-    (define-key m "d" 'vc-annotate-show-diff-revision-at-line)
-    (define-key m "=" 'vc-annotate-show-diff-revision-at-line)
-    (define-key m "D" 'vc-annotate-show-changeset-diff-revision-at-line)
-    (define-key m "f" 'vc-annotate-find-revision-at-line)
-    (define-key m "j" 'vc-annotate-revision-at-line)
-    (define-key m "l" 'vc-annotate-show-log-revision-at-line)
-    (define-key m "n" 'vc-annotate-next-revision)
-    (define-key m "p" 'vc-annotate-prev-revision)
-    (define-key m "w" 'vc-annotate-working-revision)
-    (define-key m "v" 'vc-annotate-toggle-annotation-visibility)
-    (define-key m "\C-m" 'vc-annotate-goto-line)
-    m)
-  "Local keymap used for VC-Annotate mode.")
+(defvar-keymap vc-annotate-mode-map
+  :doc "Local keymap used for VC-Annotate mode."
+  "a"   #'vc-annotate-revision-previous-to-line
+  "d"   #'vc-annotate-show-diff-revision-at-line
+  "="   #'vc-annotate-show-diff-revision-at-line
+  "D"   #'vc-annotate-show-changeset-diff-revision-at-line
+  "f"   #'vc-annotate-find-revision-at-line
+  "j"   #'vc-annotate-revision-at-line
+  "l"   #'vc-annotate-show-log-revision-at-line
+  "n"   #'vc-annotate-next-revision
+  "p"   #'vc-annotate-prev-revision
+  "w"   #'vc-annotate-working-revision
+  "v"   #'vc-annotate-toggle-annotation-visibility
+  "RET" #'vc-annotate-goto-line)
 
 ;;; Annotate functionality
 
@@ -208,9 +206,8 @@ menu items."
   ;; it will become a list, to avoid initial annotations being invisible.
   (add-to-invisibility-spec 'foo)
   (remove-from-invisibility-spec 'foo)
-  (set (make-local-variable 'truncate-lines) t)
-  (set (make-local-variable 'font-lock-defaults)
-       '(vc-annotate-font-lock-keywords t))
+  (setq-local truncate-lines t)
+  (setq-local font-lock-defaults '(vc-annotate-font-lock-keywords t))
   (hack-dir-local-variables-non-file-buffer))
 
 (defun vc-annotate-toggle-annotation-visibility ()
@@ -278,7 +275,7 @@ cover the range from the oldest annotation to the newest."
 
 ;; Menu -- Using easymenu.el
 (easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-  "VC Annotate Display Menu"
+  "VC Annotate Display Menu."
   `("VC-Annotate"
     ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)
@@ -449,11 +446,11 @@ should be applied to the background or to the foreground."
         (with-current-buffer temp-buffer-name
           (unless (equal major-mode 'vc-annotate-mode)
             (vc-annotate-mode))
-          (set (make-local-variable 'vc-annotate-backend) backend)
-          (set (make-local-variable 'vc-annotate-parent-file) file)
-          (set (make-local-variable 'vc-annotate-parent-rev) rev)
-          (set (make-local-variable 'vc-annotate-parent-display-mode)
-               display-mode))))
+          (setq-local vc-annotate-backend backend)
+          (setq-local vc-annotate-parent-file file)
+          (setq-local vc-annotate-parent-rev rev)
+          (setq-local vc-annotate-parent-display-mode display-mode)
+          (kill-local-variable 'revert-buffer-function))))
 
     (with-current-buffer temp-buffer-name
       (vc-run-delayed
@@ -547,6 +544,7 @@ Return a cons (REV . FILENAME)."
 
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
+(defvar vc-git-print-log-follow)
 
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line.
@@ -561,6 +559,8 @@ the file in question, search for the log entry required and move point."
 	  (message "Cannot extract revision number from the current line")
 	(let ((backend vc-annotate-backend)
 	      (log-buf (get-buffer "*vc-change-log*"))
+              ;; No need to follow renames: we specify the historical file name.
+              vc-git-print-log-follow
 	      pos)
 	  (if (and
 	       log-buf
@@ -609,7 +609,8 @@ the file in question, search for the log entry required and move point."
   (vc-annotate-show-diff-revision-at-line-internal t))
 
 (defun vc-annotate-show-changeset-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
+  "Show the diffs of revision at current line relative to previous revision.
+This is done for all files in changeset."
   (interactive)
   (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
     (error "The %s backend does not support changeset diffs" vc-annotate-backend))
@@ -702,10 +703,10 @@ or OFFSET if present."
 RATIO is the expansion that should be applied to `vc-annotate-color-map'.
 The annotations are relative to the current time, unless overridden by OFFSET."
   (when (/= ratio 1.0)
-    (set (make-local-variable 'vc-annotate-color-map)
+    (setq-local vc-annotate-color-map
 	 (mapcar (lambda (elem) (cons (* (car elem) ratio) (cdr elem)))
 		 vc-annotate-color-map)))
-  (set (make-local-variable 'vc-annotate-offset) offset)
+  (setq-local vc-annotate-offset offset)
   (font-lock-mode 1))
 
 (defun vc-annotate-lines (limit)

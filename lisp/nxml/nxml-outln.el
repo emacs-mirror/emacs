@@ -1,6 +1,6 @@
 ;;; nxml-outln.el --- outline support for nXML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -40,7 +40,7 @@
 ;; For state 3 it is t.
 ;; The special display is achieved by using overlays.  The overlays
 ;; are computed from the nxml-outline-state property by
-;; `nxml-refresh-outline'. There overlays all have a category property
+;; `nxml-refresh-outline'.  There overlays all have a category property
 ;; with an nxml-outline-display property with value t.
 ;;
 ;; For a section to be recognized as such, the following conditions must
@@ -129,20 +129,18 @@ See the variable `nxml-section-element-name-regexp' for more details."
 (defvar nxml-heading-scan-distance 1000
   "Maximum distance from section to scan for heading.")
 
-(defvar nxml-outline-prefix-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-a" 'nxml-show-all)
-    (define-key map "\C-t" 'nxml-hide-all-text-content)
-    (define-key map "\C-r" 'nxml-refresh-outline)
-    (define-key map "\C-c" 'nxml-hide-direct-text-content)
-    (define-key map "\C-e" 'nxml-show-direct-text-content)
-    (define-key map "\C-d" 'nxml-hide-subheadings)
-    (define-key map "\C-s" 'nxml-show)
-    (define-key map "\C-k" 'nxml-show-subheadings)
-    (define-key map "\C-l" 'nxml-hide-text-content)
-    (define-key map "\C-i" 'nxml-show-direct-subheadings)
-    (define-key map "\C-o" 'nxml-hide-other)
-    map))
+(defvar-keymap nxml-outline-prefix-map
+  "C-a" #'nxml-show-all
+  "C-t" #'nxml-hide-all-text-content
+  "C-r" #'nxml-refresh-outline
+  "C-c" #'nxml-hide-direct-text-content
+  "C-e" #'nxml-show-direct-text-content
+  "C-d" #'nxml-hide-subheadings
+  "C-s" #'nxml-show
+  "C-k" #'nxml-show-subheadings
+  "C-l" #'nxml-hide-text-content
+  "C-i" #'nxml-show-direct-subheadings
+  "C-o" #'nxml-hide-other)
 
 ;;; Commands for changing visibility
 
@@ -445,7 +443,7 @@ non-transparent child section."
 	(cond ((not (nxml-section-tag-forward))
 	       (if (null tag-qnames)
 		   nil
-		 (nxml-outline-error "missing end-tag %s"
+                 (nxml-outline-error "Missing end-tag %s"
 				     (car tag-qnames))))
 	      ;; section end-tag
 	      ((nxml-token-end-tag-p)
@@ -455,9 +453,9 @@ non-transparent child section."
 			  xmltok-start))
 	       (let ((qname (xmltok-end-tag-qname)))
 		 (unless tag-qnames
-		   (nxml-outline-error "extra end-tag %s" qname))
+                   (nxml-outline-error "Extra end-tag %s" qname))
 		 (unless (string= (car tag-qnames) qname)
-		   (nxml-outline-error "mismatched end-tag; expected %s, got %s"
+                   (nxml-outline-error "Mismatched end-tag; expected %s, got %s"
 				       (car tag-qnames)
 				       qname)))
 	       (cond ((> transparent-depth 0)
@@ -633,7 +631,7 @@ non-transparent child section."
 				 tag-qnames))))
 
 (defun nxml-highlighted-qname (qname)
-  (let ((colon (string-match ":" qname)))
+  (let ((colon (string-search ":" qname)))
     (if colon
 	(concat (propertize (substring qname 0 colon)
 			    'face
@@ -693,11 +691,9 @@ non-transparent child section."
 			 (nxml-highlighted-qname (xmltok-end-tag-qname))
 			 nxml-highlighted-greater-than))))
 
-(defvar nxml-outline-show-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-show-map
+  "RET" #'nxml-show-direct-text-content
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content)
 
 (defvar nxml-outline-show-help "mouse-2: show")
 
@@ -724,12 +720,10 @@ non-transparent child section."
 (put 'nxml-outline-display-heading 'evaporate t)
 (put 'nxml-outline-display-heading 'face 'nxml-heading)
 
-(defvar nxml-outline-hiding-tag-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'nxml-mouse-show-direct-subheadings)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-hiding-tag-map
+  "<mouse-1>" #'nxml-mouse-show-direct-subheadings
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content
+  "RET" #'nxml-show-direct-text-content)
 
 (defvar nxml-outline-hiding-tag-help
   "mouse-1: show subheadings, mouse-2: show text content")
@@ -739,12 +733,10 @@ non-transparent child section."
 (put 'nxml-outline-display-hiding-tag 'keymap nxml-outline-hiding-tag-map)
 (put 'nxml-outline-display-hiding-tag 'help-echo nxml-outline-hiding-tag-help)
 
-(defvar nxml-outline-showing-tag-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'nxml-mouse-hide-subheadings)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-showing-tag-map
+  "<mouse-1>" #'nxml-mouse-hide-subheadings
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content
+  "RET" #'nxml-show-direct-text-content)
 
 (defvar nxml-outline-showing-tag-help
   "mouse-1: hide subheadings, mouse-2: show text content")
@@ -938,7 +930,7 @@ If unbalanced section tags are found, signal an `nxml-outline-error'."
 		       (setq found t))
 		   (let ((qname (xmltok-start-tag-qname)))
 		     (unless (string= (car open-tags) qname)
-		       (nxml-outline-error "mismatched end-tag"))
+                       (nxml-outline-error "Mismatched end-tag"))
 		     (setq open-tags (cdr open-tags)))))
 	       (goto-char section-start-pos)
 	       (and (not found)

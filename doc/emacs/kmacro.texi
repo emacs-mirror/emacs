@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros
@@ -102,7 +102,7 @@ are in the process of defining one, or calls the last macro
 otherwise.)  You can also supply @key{F4} with a numeric prefix
 argument @samp{n}, which means to invoke the macro @samp{n} times.  An
 argument of zero repeats the macro indefinitely, until it gets an
-error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{BREAK}}).
+error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{Break}}).
 
   The above example demonstrates a handy trick that you can employ
 with keyboard macros: if you wish to repeat an operation at regularly
@@ -178,6 +178,14 @@ to repeat the macro right after defining it.  The macro definition
 itself counts as the first repetition, since it is executed as you
 define it, so @kbd{C-u 4 C-x )} executes the macro immediately 3
 additional times.
+
+@findex kmacro-redisplay
+@kindex C-x C-k d
+  While executing a long-running keyboard macro, it can sometimes be
+useful to trigger a redisplay (to show how far we've gotten).  The
+@kbd{C-x C-k d} command can be used for this.  As a not very useful
+example, @kbd{C-x ( M-f C-x C-k d C-x )} will create a macro that will
+redisplay once per iteration when saying @kbd{C-u 42 C-x e}.
 
 @node Keyboard Macro Ring
 @section The Keyboard Macro Ring
@@ -431,7 +439,7 @@ name to execute the last keyboard macro, in its current form.  (If you
 later add to the definition of this macro, that does not alter the
 name's definition as a macro.)  The macro name is a Lisp symbol, and
 defining it in this way makes it a valid command name for calling with
-@kbd{M-x} or for binding a key to with @code{global-set-key}
+@kbd{M-x} or for binding a key to with @code{keymap-global-set}
 (@pxref{Keymaps}).  If you specify a name that has a prior definition
 other than a keyboard macro, an error message is shown and nothing is
 changed.

@@ -1,6 +1,6 @@
-;;; gnus-vm.el --- vm interface for Gnus
+;;; gnus-vm.el --- vm interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@gnu.ai.mit.edu>
 ;; Keywords: news, mail
@@ -72,7 +72,7 @@ If N is a positive number, save the N next articles.
 If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 save those articles instead."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (require 'gnus-art)
   (let ((gnus-default-article-saver 'gnus-summary-save-in-vm))
     (gnus-summary-save-article arg)))
@@ -80,7 +80,7 @@ save those articles instead."
 (declare-function vm-save-message "ext:vm-save" (folder &optional count))
 
 (defun gnus-summary-save-in-vm (&optional folder)
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (require 'vm)
   (setq folder
 	(gnus-read-save-file-name

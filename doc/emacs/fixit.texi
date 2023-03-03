@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -263,6 +263,13 @@ systems.
 @xref{Top, Aspell,, aspell, The Aspell Manual}.
 @end ifnottex
 
+@vindex ispell-program-name
+  If you have only one of the spelling checker programs installed,
+Emacs will find it when you invoke for the first time one of the
+commands described here.  If you have more than one of them installed,
+you can control which one is used by customizing the variable
+@code{ispell-program-name}.
+
 @table @kbd
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
@@ -365,7 +372,7 @@ Like @kbd{i}, but you can also specify dictionary completion
 information.
 
 @item u
-Insert the lower-case version of this word in your private dic@-tion@-ary
+Insert the lower-case version of this word in your private dictionary
 file.
 
 @item l @var{word} @key{RET}
@@ -455,10 +462,9 @@ use @code{flyspell-region} or @code{flyspell-buffer} for that.
   When Flyspell mode highlights a word as misspelled, you can click on
 it with @kbd{mouse-2} (@code{flyspell-correct-word}) to display a menu
 of possible corrections and actions.  If you want this menu on
-@kbd{mouse-3} instead, customize the variable
-@code{flyspell-use-mouse-3-for-menu}.  In addition, @kbd{C-.} or
-@kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
-propose various successive corrections for the word at point, and
+@kbd{mouse-3} instead, enable @code{context-menu-mode}.  In addition,
+@kbd{C-.} or @kbd{@key{ESC} @key{TAB}} (@code{flyspell-auto-correct-word})
+will propose various successive corrections for the word at point, and
 @w{@kbd{C-c $}} (@code{flyspell-correct-word-before-point}) will pop
 up a menu of possible corrections.  Of course, you can always correct
 the misspelled word by editing it manually in any way you like.

@@ -1,6 +1,6 @@
 ;;; rx-tests.el --- tests for rx.el              -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,6 +16,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'ert)
 (require 'rx)
@@ -156,6 +158,8 @@
           ".....")))
 
 (ert-deftest rx-pcase ()
+  (should (equal (pcase "i18n" ((rx (let x (+ digit))) (list 'ok x)))
+                 '(ok "18")))
   (should (equal (pcase "a 1 2 3 1 1 b"
                    ((rx (let u (+ digit)) space
                         (let v (+ digit)) space
@@ -164,10 +168,50 @@
                         (backref 1))
                     (list u v)))
                  '("1" "3")))
+  (should (equal (pcase "bz"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   (_ 'no))
+                 'no))
+  (should (equal (pcase "az"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   ((rx "b" (let x nonl)) (list 2 x))
+                   (_ 'no))
+                 '(1 "z")))
+  (should (equal (pcase "bz"
+                   ((rx "a" (let x nonl)) (list 1 x))
+                   ((rx "b" (let x nonl)) (list 2 x))
+                   (_ 'no))
+                 '(2 "z")))
   (let ((k "blue"))
     (should (equal (pcase "<blue>"
                      ((rx "<" (literal k) ">") 'ok))
-                   'ok))))
+                   'ok)))
+  (should (equal (pcase "abc"
+                   ((rx (? (let x alpha)) (?? (let y alnum)) ?c)
+                    (list x y)))
+                 '("a" "b")))
+  (should (equal (pcase 'not-a-string
+                   ((rx nonl) 'wrong)
+                   (_ 'correct))
+                 'correct))
+  (should (equal (pcase "PQR"
+                   ((and (rx (let a nonl)) (rx ?z))
+                    (list 'one a))
+                   ((rx (let b ?Q))
+                    (list 'two b)))
+                 '(two "Q")))
+  (should (equal (pcase-let (((rx ?B (let z nonl)) "ABC"))
+                   (list 'ok z))
+                 '(ok "C")))
+  (should (equal (pcase-let* (((rx ?E (let z nonl)) "DEF"))
+                   (list 'ok z))
+                 '(ok "F"))))
+
+(ert-deftest rx-let-pcase ()
+  "Test `rx-let' around `pcase' with `rx' patterns (bug#59814)."
+  (should (equal (rx-let ((tata "ab"))
+                   (pcase "abc" ((rx tata) 'toto)))
+                 'toto)))
 
 (ert-deftest rx-kleene ()
   "Test greedy and non-greedy repetition operators."
@@ -384,6 +428,8 @@
 (ert-deftest rx-regexp ()
   (should (equal (rx (regexp "abc") (regex "[de]"))
                  "\\(?:abc\\)[de]"))
+  (should (equal (rx "a" (regexp "$"))
+                 "a\\(?:$\\)"))
   (let ((x "a*"))
     (should (equal (rx (regexp x) "b")
                    "\\(?:a*\\)b"))
@@ -540,8 +586,10 @@
 (ert-deftest rx-compat ()
   "Test old symbol retained for compatibility (bug#37517)."
   (should (equal
-           (with-suppressed-warnings ((obsolete rx-submatch-n))
+           (with-no-warnings
              (rx-submatch-n '(group-n 3 (+ nonl) eol)))
            "\\(?3:.+$\\)")))
 
 (provide 'rx-tests)
+
+;;; rx-tests.el ends here

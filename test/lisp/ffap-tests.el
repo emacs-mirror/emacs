@@ -1,6 +1,6 @@
 ;;; ffap-tests.el --- Test suite for ffap.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 
@@ -25,30 +25,53 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 (require 'ffap)
+
+(ert-deftest ffap-replace-file-component ()
+  (should (equal
+           (ffap-replace-file-component "/ftp:who@foo.com:/whatever" "/new")
+           "/ftp:who@foo.com:/new")))
+
+(ert-deftest ffap-file-remote-p ()
+  (dolist (test '(("/user@foo.bar.com:/pub" .
+                   "/user@foo.bar.com:/pub")
+                  ("/cssun.mathcs.emory.edu://dir" .
+                   "/cssun.mathcs.emory.edu:/dir")
+                  ("/ffap.el:80" .
+                   "/ffap.el:80")))
+    (let ((A (car test))
+          (B (cdr test)))
+      (should (equal (ffap-file-remote-p A) B)))))
+
+(ert-deftest ffap-machine-p ()
+  (should-not (ffap-machine-p "ftp"))
+  (should-not (ffap-machine-p "nonesuch"))
+  (should (eq (ffap-machine-p "ftp.mathcs.emory.edu") 'accept))
+  (should-not (ffap-machine-p "mathcs" 5678))
+  (should-not (ffap-machine-p "foo.bonk"))
+  (should (eq (ffap-machine-p "foo.bonk.com") 'accept)))
 
 (ert-deftest ffap-tests-25243 ()
   "Test for https://debbugs.gnu.org/25243 ."
-  (let ((file (make-temp-file "test-Bug#25243")))
-    (unwind-protect
-        (with-temp-file file
-          (let ((str "diff --git b/lisp/ffap.el a/lisp/ffap.el
+  (ert-with-temp-file file
+    :suffix "-bug25243"
+    (let ((str "diff --git b/lisp/ffap.el a/lisp/ffap.el
 index 3d7cebadcf..ad4b70d737 100644
 --- b/lisp/ffap.el
 +++ a/lisp/ffap.el
 @@ -203,6 +203,9 @@ ffap-foo-at-bar-prefix
 "))
-            (transient-mark-mode 1)
-            (when (natnump ffap-max-region-length)
-              (insert
-               (concat
-                str
-                (make-string ffap-max-region-length #xa)
-                (format "%s ENDS HERE" file)))
-              (call-interactively 'mark-whole-buffer)
-              (should (equal "" (ffap-string-at-point)))
-              (should (equal '(1 1) ffap-string-at-point-region)))))
-      (and (file-exists-p file) (delete-file file)))))
+      (transient-mark-mode 1)
+      (when (natnump ffap-max-region-length)
+        (insert
+         (concat
+          str
+          (make-string ffap-max-region-length #xa)
+          (format "%s ENDS HERE" file)))
+        (call-interactively 'mark-whole-buffer)
+        (should (equal "" (ffap-string-at-point)))
+        (should (equal '(1 1) ffap-string-at-point-region))))))
 
 (ert-deftest ffap-gopher-at-point ()
   (with-temp-buffer
@@ -74,7 +97,7 @@ left alone when opening a URL in an external browser."
              (urls nil)
              (ffap-url-fetcher (lambda (url) (push url urls) nil)))
     (should-not (ffap-other-window "https://www.gnu.org"))
-    (should (compare-window-configurations (current-window-configuration) old))
+    (should (window-configuration-equal-p (current-window-configuration) old))
     (should (equal urls '("https://www.gnu.org")))))
 
 (defun ffap-test-string (space string)
@@ -122,6 +145,42 @@ left alone when opening a URL in an external browser."
    (with-temp-buffer
      (save-excursion (insert "type="))
      (ffap-guess-file-name-at-point))))
+
+(ert-deftest ffap-ido-mode ()
+  (require 'ido)
+  (with-temp-buffer
+    (let ((ido-mode t)
+          (read-file-name-function read-file-name-function)
+          (read-buffer-function read-buffer-function))
+      ;; Says ert-deftest:
+      ;; Macros in BODY are expanded when the test is defined, not when it
+      ;; is run.  If a macro (possibly with side effects) is to be tested,
+      ;; it has to be wrapped in `(eval (quote ...))'.
+      (eval (quote (ido-everywhere)) t)
+      (let ((read-file-name-function (lambda (&rest args)
+                                       (expand-file-name
+                                        (nth 4 args)
+                                        (nth 1 args)))))
+        (save-excursion (insert "ffap-tests.el"))
+        (let (kill-buffer-query-functions)
+          (kill-buffer (call-interactively #'find-file-at-point)))))))
+
+(ert-deftest ffap-test-path ()
+  (skip-unless (file-exists-p "/bin"))
+  (skip-unless (file-exists-p "/usr/bin"))
+  (with-temp-buffer
+    (insert "/usr/bin:/bin")
+    (goto-char (point-min))
+    (should (equal (ffap-file-at-point) "/usr/bin")))
+  (with-temp-buffer
+    (insert "/usr/bin:/bin")
+    (goto-char (point-min))
+    (search-forward ":")
+    (should (equal (ffap-file-at-point) "/bin")))
+  (with-temp-buffer
+    (insert ":/bin")
+    (goto-char (point-min))
+    (should (equal (ffap-file-at-point) nil))))
 
 (provide 'ffap-tests)
 

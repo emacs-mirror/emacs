@@ -1,6 +1,6 @@
-;;; pcvs-defs.el --- variable definitions for PCL-CVS
+;;; pcvs-defs.el --- variable definitions for PCL-CVS  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -71,7 +71,6 @@ versions, such as the one in SunOS-4.")
 
 (defcustom cvs-cvsrc-file (convert-standard-filename "~/.cvsrc")
   "Path to your cvsrc file."
-  :group 'pcl-cvs
   :type '(file))
 
 (defvar cvs-shared-start 4
@@ -96,24 +95,20 @@ If t, they will be removed from the *cvs* buffer after every command.
 If `delayed', they will be removed from the *cvs* buffer before every command.
 If `status', they will only be removed after a `cvs-mode-status' command.
 Else, they will never be automatically removed from the *cvs* buffer."
-  :group 'pcl-cvs
   :type '(choice (const nil) (const status) (const delayed) (const t)))
 
 (defcustom cvs-auto-remove-directories 'handled
   "If `all', directory entries will never be shown.
 If `handled', only non-handled directories will be shown.
 If `empty', only non-empty directories will be shown."
-  :group 'pcl-cvs
   :type '(choice (const :tag "No" nil) (const all) (const handled) (const empty)))
 
 (defcustom cvs-auto-revert t
   "Non-nil if changed files should automatically be reverted."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-sort-ignore-file t
   "Non-nil if `cvs-mode-ignore' should sort the .cvsignore automatically."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-force-dir-tag t
@@ -121,7 +116,6 @@ If `empty', only non-empty directories will be shown."
 Tagging should generally be applied a directory at a time, but sometimes it is
 useful to be able to tag a single file.  The normal way to do that is to use
 `cvs-mode-force-command' so as to temporarily override the restrictions."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-default-ignore-marks nil
@@ -130,7 +124,6 @@ Normally they run on the files that are marked (with `cvs-mode-mark'),
 or the file under the cursor if no files are marked.  If this variable
 is set to a non-nil value they will by default run on the file on the
 current line.  See also `cvs-invert-ignore-marks'."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-invert-ignore-marks
@@ -143,7 +136,6 @@ current line.  See also `cvs-invert-ignore-marks'."
   "List of cvs commands that invert the default ignore-mark behavior.
 Commands in this set will use the opposite default from the one set
 in `cvs-default-ignore-marks'."
-  :group 'pcl-cvs
   :type '(set (const "diff")
 	      (const "tag")
 	      (const "ignore")))
@@ -154,7 +146,6 @@ Non-nil means that PCL-CVS will ask confirmation before removing files
 except for files whose content can readily be recovered from the repository.
 A value of `list' means that the list of files to be deleted will be
 displayed when asking for confirmation."
-  :group 'pcl-cvs
   :type '(choice (const list)
 		 (const t)
 		 (const nil)))
@@ -162,7 +153,6 @@ displayed when asking for confirmation."
 (defcustom cvs-add-default-message nil
   "Default message to use when adding files.
 If set to nil, `cvs-mode-add' will always prompt for a message."
-  :group 'pcl-cvs
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
@@ -171,7 +161,6 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
 If non-nil, `cvs-mode-find-file' will place the cursor at the beginning of
 the modified area.  If the file is not locally modified, this will obviously
 have no effect."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-buffer-name-alist
@@ -193,7 +182,6 @@ POSTPROC is a function that should be executed when the command terminates
 
 The CMD used for `cvs-mode-commit' is \"message\".  For that special
   case, POSTPROC is called just after MODE with special arguments."
-  :group 'pcl-cvs
   :type '(repeat
 	  (list (choice (const "diff")
 			(const "status")
@@ -236,7 +224,6 @@ Output from cvs is placed here for asynchronous commands.")
       '(cvs-ediff-diff . cvs-ediff-merge)
     '(cvs-emerge-diff . cvs-emerge-merge))
   "Pair of functions to be used for resp. diff'ing and merg'ing interactively."
-  :group 'pcl-cvs
   :type '(choice (const :tag "Ediff" (cvs-ediff-diff . cvs-ediff-merge))
 		 (const :tag "Emerge" (cvs-emerge-diff . cvs-emerge-merge))))
 
@@ -255,7 +242,6 @@ Alternatives are:
  `samedir': reuse any cvs buffer displaying the same directory
  `subdir':  or reuse any cvs buffer displaying any sub- or super- directory
  `always':  reuse any cvs buffer."
-  :group 'pcl-cvs
   :type '(choice (const always) (const subdir) (const samedir) (const current)))
 
 (defvar cvs-temp-buffer nil
@@ -277,161 +263,6 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (defconst cvs-vendor-branch "1.1.1"
   "The default branch used by CVS for vendor code.")
-
-(easy-mmode-defmap cvs-mode-diff-map
-  '(("E" "imerge" .	cvs-mode-imerge)
-    ("=" .		cvs-mode-diff)
-    ("e" "idiff" .	cvs-mode-idiff)
-    ("2" "other" .	cvs-mode-idiff-other)
-    ("d" "diff" .	cvs-mode-diff)
-    ("b" "backup" .	cvs-mode-diff-backup)
-    ("h" "head" .	cvs-mode-diff-head)
-    ("r" "repository" .	cvs-mode-diff-repository)
-    ("y" "yesterday" .	cvs-mode-diff-yesterday)
-    ("v" "vendor" .	cvs-mode-diff-vendor))
-  "Keymap for diff-related operations in `cvs-mode'."
-  :name "Diff")
-;; This is necessary to allow correct handling of \\[cvs-mode-diff-map]
-;; in substitute-command-keys.
-(fset 'cvs-mode-diff-map cvs-mode-diff-map)
-
-(easy-mmode-defmap cvs-mode-map
-  ;;(define-prefix-command 'cvs-mode-map-diff-prefix)
-  ;;(define-prefix-command 'cvs-mode-map-control-c-prefix)
-  '(;; various
-    ;; (undo .	cvs-mode-undo)
-    ("?" .	cvs-help)
-    ("h" .	cvs-help)
-    ("q" .	cvs-bury-buffer)
-    ("z" .	kill-this-buffer)
-    ("F" .	cvs-mode-set-flags)
-    ;; ("\M-f" .	cvs-mode-force-command)
-    ("!" .	cvs-mode-force-command)
-    ("\C-c\C-c" . cvs-mode-kill-process)
-    ;; marking
-    ("m" .	cvs-mode-mark)
-    ("M" .	cvs-mode-mark-all-files)
-    ("S" .	cvs-mode-mark-on-state)
-    ("u" .	cvs-mode-unmark)
-    ("\C-?".	cvs-mode-unmark-up)
-    ("%" .	cvs-mode-mark-matching-files)
-    ("T" .	cvs-mode-toggle-marks)
-    ("\M-\C-?" .	cvs-mode-unmark-all-files)
-    ;; navigation keys
-    (" " .	cvs-mode-next-line)
-    ("n" .	cvs-mode-next-line)
-    ("p" .	cvs-mode-previous-line)
-    ("\t" .	cvs-mode-next-line)
-    ([backtab] . cvs-mode-previous-line)
-    ;; M- keys are usually those that operate on modules
-    ;;("\M-C".	cvs-mode-rcs2log) ; i.e. "Create a ChangeLog"
-    ;;("\M-t".	cvs-rtag)
-    ;;("\M-l".	cvs-rlog)
-    ("\M-c".	cvs-checkout)
-    ("\M-e".	cvs-examine)
-    ("g" .	cvs-mode-revert-buffer)
-    ("\M-u".	cvs-update)
-    ("\M-s".	cvs-status)
-    ;; diff commands
-    ("=" .	cvs-mode-diff)
-    ("d" .	cvs-mode-diff-map)
-    ;; keys that operate on individual files
-    ("\C-k" .	cvs-mode-acknowledge)
-    ("A" .	cvs-mode-add-change-log-entry-other-window)
-    ;;("B" .	cvs-mode-byte-compile-files)
-    ("C" .	cvs-mode-commit-setup)
-    ("O" .	cvs-mode-update)
-    ("U" .	cvs-mode-undo)
-    ("I" .	cvs-mode-insert)
-    ("a" .	cvs-mode-add)
-    ("b" .	cvs-set-branch-prefix)
-    ("B" .	cvs-set-secondary-branch-prefix)
-    ("c" .	cvs-mode-commit)
-    ("e" .	cvs-mode-examine)
-    ("f" .	cvs-mode-find-file)
-    ("\C-m" .	cvs-mode-find-file)
-    ("i" .	cvs-mode-ignore)
-    ("l" .	cvs-mode-log)
-    ("o" .	cvs-mode-find-file-other-window)
-    ("r" .	cvs-mode-remove)
-    ("s" .	cvs-mode-status)
-    ("t" .	cvs-mode-tag)
-    ("v" .	cvs-mode-view-file)
-    ("x" .	cvs-mode-remove-handled)
-    ;; cvstree bindings
-    ("+" .	cvs-mode-tree)
-    ;; mouse bindings
-    ([mouse-2] . cvs-mode-find-file)
-    ([follow-link] . (lambda (pos)
-		       (if (eq (get-char-property pos 'face) 'cvs-filename) t)))
-    ([(down-mouse-3)] . cvs-menu)
-    ;; dired-like bindings
-    ("\C-o" .   cvs-mode-display-file)
-    ;; Emacs-21 toolbar
-    ;;([tool-bar item1] . (menu-item "Examine" cvs-examine :image (image :file "/usr/share/icons/xpaint.xpm" :type xpm)))
-    ;;([tool-bar item2] . (menu-item "Update" cvs-update :image (image :file "/usr/share/icons/mail1.xpm" :type xpm)))
-    )
-  "Keymap for `cvs-mode'."
-  :dense t
-  :suppress t)
-
-(fset 'cvs-mode-map cvs-mode-map)
-
-(easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
-  '("CVS"
-    ["Open file"		cvs-mode-find-file	t]
-    ["Open in other window"	cvs-mode-find-file-other-window	t]
-    ["Display in other window"  cvs-mode-display-file   t]
-    ["Interactive merge"	cvs-mode-imerge		t]
-    ("View diff"
-     ["Interactive diff"	cvs-mode-idiff		t]
-     ["Current diff"		cvs-mode-diff		t]
-     ["Diff with head"		cvs-mode-diff-head	t]
-     ["Diff with vendor"	cvs-mode-diff-vendor	t]
-     ["Diff against yesterday"	cvs-mode-diff-yesterday	t]
-     ["Diff with backup"	cvs-mode-diff-backup	t])
-    ["View log"			cvs-mode-log		t]
-    ["View status"		cvs-mode-status		t]
-    ["View tag tree"		cvs-mode-tree		t]
-    "----"
-    ["Insert"			cvs-mode-insert]
-    ["Update"			cvs-mode-update		(cvs-enabledp 'update)]
-    ["Re-examine"		cvs-mode-examine	t]
-    ["Commit"			cvs-mode-commit-setup	(cvs-enabledp 'commit)]
-    ["Tag"			cvs-mode-tag		(cvs-enabledp (when cvs-force-dir-tag 'tag))]
-    ["Undo changes"		cvs-mode-undo		(cvs-enabledp 'undo)]
-    ["Add"			cvs-mode-add		(cvs-enabledp 'add)]
-    ["Remove"			cvs-mode-remove		(cvs-enabledp 'remove)]
-    ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
-    ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
-    "----"
-    ["Mark"                     cvs-mode-mark t]
-    ["Mark all"			cvs-mode-mark-all-files	t]
-    ["Mark by regexp..."        cvs-mode-mark-matching-files t]
-    ["Mark by state..."         cvs-mode-mark-on-state t]
-    ["Unmark"                   cvs-mode-unmark	t]
-    ["Unmark all"		cvs-mode-unmark-all-files t]
-    ["Hide handled"		cvs-mode-remove-handled	t]
-    "----"
-    ["PCL-CVS Manual"		(lambda () (interactive)
-				  (info "(pcl-cvs)Top")) t]
-    "----"
-    ["Quit"			cvs-mode-quit		t]))
-
-;;;;
-;;;; CVS-Minor mode
-;;;;
-
-(defcustom cvs-minor-mode-prefix "\C-xc"
-  "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
-  :type 'string
-  :group 'pcl-cvs)
-
-(easy-mmode-defmap cvs-minor-mode-map
-  `((,cvs-minor-mode-prefix . cvs-mode-map)
-    ("e" . (menu-item nil cvs-mode-edit-log
-	    :filter (lambda (x) (if (derived-mode-p 'log-view-mode) x)))))
-  "Keymap for `cvs-minor-mode', used in buffers related to PCL-CVS.")
 
 (defvar cvs-buffer nil
   "(Buffer local) The *cvs* buffer associated with this buffer.")

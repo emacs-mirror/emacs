@@ -1,10 +1,10 @@
 ;;; ob-js.el --- Babel Functions for Javascript      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -30,14 +30,18 @@
 
 ;;; Requirements:
 
-;; - a non-browser javascript engine such as node.js http://nodejs.org/
-;;   or mozrepl http://wiki.github.com/bard/mozrepl/
+;; - a non-browser javascript engine such as node.js https://nodejs.org/
+;;   or mozrepl https://wiki.github.com/bard/mozrepl/
 ;;
 ;; - for session based evaluation mozrepl and moz.el are required see
-;;   http://wiki.github.com/bard/mozrepl/emacs-integration for
+;;   https://wiki.github.com/bard/mozrepl/emacs-integration for
 ;;   configuration instructions
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (declare-function run-mozilla "ext:moz" (arg))
@@ -65,7 +69,7 @@
   :safe #'stringp)
 
 (defvar org-babel-js-function-wrapper
-  "require('sys').print(require('sys').inspect(function(){\n%s\n}()));"
+  "require('process').stdout.write(require('util').inspect(function(){%s}()));"
   "Javascript code to print value of body.")
 
 (defun org-babel-execute:js (body params)
@@ -158,8 +162,8 @@ specifying a variable of the same value."
    (org-babel--get-vars params)))
 
 (defun org-babel-js-initiate-session (&optional session _params)
-  "If there is not a current inferior-process-buffer in `SESSION'
-then create.  Return the initialized session."
+  "If there is not a current inferior-process-buffer in `SESSION' then create.
+Return the initialized session."
   (cond
    ((string= session "none")
     (warn "Session evaluation of ob-js is not supported"))
@@ -200,7 +204,5 @@ then create.  Return the initialized session."
     (error "Sessions are only supported with mozrepl add \":cmd mozrepl\""))))
 
 (provide 'ob-js)
-
-
 
 ;;; ob-js.el ends here

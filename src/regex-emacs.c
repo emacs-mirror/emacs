@@ -1,6 +1,6 @@
 /* Emacs regular expression matching and search
 
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2023 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include "buffer.h"
 #include "syntax.h"
 #include "category.h"
+#include "dispextern.h"
 
 /* Maximum number of duplicates an interval can allow.  Some systems
    define this in other header files, but we want our value, so remove
@@ -222,7 +223,7 @@ typedef enum
 	   is followed by a range table:
 	       2 bytes of flags for character sets (low 8 bits, high 8 bits)
 		   See RANGE_TABLE_WORK_BITS below.
-	       2 bytes, the number of pairs that follow (upto 32767)
+	       2 bytes, the number of pairs that follow (up to 32767)
 	       pairs, each 2 multibyte characters,
 		   each multibyte character represented as 3 bytes.  */
   charset,
@@ -1244,21 +1245,22 @@ static int analyze_first (re_char *p, re_char *pend,
       return REG_ESIZE;							\
     ptrdiff_t b_off = b - old_buffer;					\
     ptrdiff_t begalt_off = begalt - old_buffer;				\
-    bool fixup_alt_jump_set = !!fixup_alt_jump;				\
-    bool laststart_set = !!laststart;					\
-    bool pending_exact_set = !!pending_exact;				\
-    ptrdiff_t fixup_alt_jump_off, laststart_off, pending_exact_off;	\
-    if (fixup_alt_jump_set) fixup_alt_jump_off = fixup_alt_jump - old_buffer; \
-    if (laststart_set) laststart_off = laststart - old_buffer;		\
-    if (pending_exact_set) pending_exact_off = pending_exact - old_buffer; \
+    ptrdiff_t fixup_alt_jump_off =					\
+      fixup_alt_jump ? fixup_alt_jump - old_buffer : -1;		\
+    ptrdiff_t laststart_off = laststart ? laststart - old_buffer : -1;	\
+    ptrdiff_t pending_exact_off =					\
+      pending_exact ? pending_exact - old_buffer : -1;			\
     bufp->buffer = xpalloc (bufp->buffer, &bufp->allocated,		\
 			    requested_extension, MAX_BUF_SIZE, 1);	\
     unsigned char *new_buffer = bufp->buffer;				\
     b = new_buffer + b_off;						\
     begalt = new_buffer + begalt_off;					\
-    if (fixup_alt_jump_set) fixup_alt_jump = new_buffer + fixup_alt_jump_off; \
-    if (laststart_set) laststart = new_buffer + laststart_off;		\
-    if (pending_exact_set) pending_exact = new_buffer + pending_exact_off; \
+    if (0 <= fixup_alt_jump_off)					\
+      fixup_alt_jump = new_buffer + fixup_alt_jump_off;			\
+    if (0 <= laststart_off)						\
+      laststart = new_buffer + laststart_off;				\
+    if (0 <= pending_exact_off)						\
+      pending_exact = new_buffer + pending_exact_off;			\
   } while (false)
 
 
@@ -2407,7 +2409,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 
 		    if (lower_bound == 0)
 		      {
-			/* A succeed_n that starts with 0 is really a
+			/* A succeed_n that starts with 0 is really
 			   a simple on_failure_jump_loop.  */
 			INSERT_JUMP (on_failure_jump_loop, laststart,
 				     b + 3 + nbytes);
@@ -3444,14 +3446,18 @@ static bool bcmp_translate (re_char *, re_char *, ptrdiff_t,
 
 /* Call before fetching a character with *d.  This switches over to
    string2 if necessary.
+   `reset' is executed before backtracking if there are no more characters.
    Check re_match_2_internal for a discussion of why end_match_2 might
    not be within string2 (but be equal to end_match_1 instead).  */
-#define PREFETCH()							\
+#define PREFETCH(reset)							\
   while (d == dend)							\
     {									\
       /* End of string2 => fail.  */					\
       if (dend == end_match_2)						\
-	goto fail;							\
+        {								\
+	  reset;							\
+	  goto fail;							\
+	}								\
       /* End of string1 => advance to string2.  */			\
       d = string2;							\
       dend = end_match_2;						\
@@ -3575,9 +3581,11 @@ skip_noops (re_char *p, re_char *pend)
    opcode.  When the function finishes, *PP will be advanced past that opcode.
    C is character to test (possibly after translations) and CORIG is original
    character (i.e. without any translations).  UNIBYTE denotes whether c is
-   unibyte or multibyte character. */
+   unibyte or multibyte character.
+   CANON_TABLE is the canonicalisation table for case folding or Qnil.  */
 static bool
-execute_charset (re_char **pp, int c, int corig, bool unibyte)
+execute_charset (re_char **pp, int c, int corig, bool unibyte,
+                 Lisp_Object canon_table)
 {
   eassume (0 <= c && 0 <= corig);
   re_char *p = *pp, *rtp = NULL;
@@ -3617,11 +3625,9 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte)
           (class_bits & BIT_BLANK && ISBLANK (c)) ||
 	  (class_bits & BIT_WORD  && ISWORD  (c)) ||
 	  ((class_bits & BIT_UPPER) &&
-	   (ISUPPER (c) || (corig != c &&
-			    c == downcase (corig) && ISLOWER (c)))) ||
+	   (ISUPPER (corig) || (!NILP (canon_table) && ISLOWER (corig)))) ||
 	  ((class_bits & BIT_LOWER) &&
-	   (ISLOWER (c) || (corig != c &&
-			    c == upcase (corig) && ISUPPER(c)))) ||
+	   (ISLOWER (corig) || (!NILP (canon_table) && ISUPPER (corig)))) ||
 	  (class_bits & BIT_PUNCT && ISPUNCT (c)) ||
 	  (class_bits & BIT_GRAPH && ISGRAPH (c)) ||
 	  (class_bits & BIT_PRINT && ISPRINT (c)))
@@ -3647,6 +3653,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
   re_opcode_t op2;
   bool multibyte = RE_MULTIBYTE_P (bufp);
   unsigned char *pend = bufp->buffer + bufp->used;
+  re_char *p2_orig = p2;
 
   eassert (p1 >= bufp->buffer && p1 < pend
 	   && p2 >= bufp->buffer && p2 <= pend);
@@ -3696,7 +3703,8 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 	else if ((re_opcode_t) *p1 == charset
 		 || (re_opcode_t) *p1 == charset_not)
 	  {
-	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c)))
+	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
+                                  Qnil))
 	      {
 		DEBUG_PRINT ("	 No match => fast loop.\n");
 		return true;
@@ -3815,6 +3823,23 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
     case notcategoryspec:
       return ((re_opcode_t) *p1 == categoryspec && p1[1] == p2[1]);
 
+    case on_failure_jump_nastyloop:
+    case on_failure_jump_smart:
+    case on_failure_jump_loop:
+    case on_failure_keep_string_jump:
+    case on_failure_jump:
+      {
+        int mcnt;
+	p2++;
+	EXTRACT_NUMBER_AND_INCR (mcnt, p2);
+	/* Don't just test `mcnt > 0` because non-greedy loops have
+	   their test at the end with an unconditional jump at the start.  */
+	if (p2 + mcnt > p2_orig) /* Ensure forward progress.  */
+	  return (mutually_exclusive_p (bufp, p1, p2)
+		  && mutually_exclusive_p (bufp, p1, p2 + mcnt));
+	break;
+      }
+
     default:
       ;
     }
@@ -3827,7 +3852,7 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 /* Matching routines.  */
 
 /* re_match_2 matches the compiled pattern in BUFP against the
-   the (virtual) concatenation of STRING1 and STRING2 (of length SIZE1
+   (virtual) concatenation of STRING1 and STRING2 (of length SIZE1
    and SIZE2, respectively).  We start matching at POS, and stop
    matching at STOP.
 
@@ -3951,6 +3976,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      and need to test it, it's not garbage.  */
   re_char *match_end = NULL;
 
+  /* This keeps track of how many buffer/string positions we examined.  */
+  ptrdiff_t nchars = 0;
+
 #ifdef DEBUG_COMPILES_ARGUMENTS
   /* Counts the total number of registers pushed.  */
   ptrdiff_t num_regs_pushed = 0;
@@ -3962,7 +3990,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   INIT_FAIL_STACK ();
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Prevent shrinking and relocation of buffer text if GC happens
      while we are inside this function.  The calls to
@@ -4207,6 +4235,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	  unbind_to (count, Qnil);
 	  SAFE_FREE ();
+	  /* The factor of 50 below is a heuristic that needs to be tuned.  It
+	     means we consider 50 buffer positions examined by this function
+	     roughly equivalent to the display engine iterating over a single
+	     buffer position.  */
+	  if (max_redisplay_ticks > 0 && nchars > 0)
+	    update_redisplay_ticks (nchars / 50 + 1, NULL);
 	  return dcnt;
 	}
 
@@ -4240,7 +4274,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int pat_charlen, buf_charlen;
 		int pat_ch, buf_ch;
 
-		PREFETCH ();
+		PREFETCH (d = dfail);
 		if (multibyte)
 		  pat_ch = string_char_and_length (p, &pat_charlen);
 		else
@@ -4259,6 +4293,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		p += pat_charlen;
 		d += buf_charlen;
 		mcnt -= pat_charlen;
+		nchars++;
 	      }
 	    while (mcnt > 0);
 	  else
@@ -4267,7 +4302,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int pat_charlen;
 		int pat_ch, buf_ch;
 
-		PREFETCH ();
+		PREFETCH (d = dfail);
 		if (multibyte)
 		  {
 		    pat_ch = string_char_and_length (p, &pat_charlen);
@@ -4296,6 +4331,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		p += pat_charlen;
 		d++;
 		mcnt -= pat_charlen;
+		nchars++;
 	      }
 	    while (mcnt > 0);
 
@@ -4319,6 +4355,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	    DEBUG_PRINT ("  Matched \"%d\".\n", *d);
 	    d += buf_charlen;
+	    nchars++;
 	  }
 	  break;
 
@@ -4367,10 +4404,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      }
 
 	    p -= 1;
-	    if (!execute_charset (&p, c, corig, unibyte_char))
+	    if (!execute_charset (&p, c, corig, unibyte_char, translate))
 	      goto fail;
 
 	    d += len;
+	    nchars++;
 	  }
 	  break;
 
@@ -4470,7 +4508,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		if (d2 == dend2) break;
 
 		/* If necessary, advance to next segment in data.  */
-		PREFETCH ();
+		PREFETCH (d = dfail);
 
 		/* How many characters left in this segment to match.  */
 		dcnt = dend - d;
@@ -4490,6 +4528,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		    goto fail;
 		  }
 		d += dcnt, d2 += dcnt;
+		nchars++;
 	      }
 	  }
 	  break;
@@ -4771,10 +4810,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
                 ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 		UPDATE_SYNTAX_TABLE (charpos);
 		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		nchars++;
 		s1 = SYNTAX (c1);
 		UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		PREFETCH_NOLIMIT ();
 		GET_CHAR_AFTER (c2, d, dummy);
+		nchars++;
 		s2 = SYNTAX (c2);
 
 		if (/* Case 2: Only one of S1 and S2 is Sword.  */
@@ -4810,6 +4851,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      GET_CHAR_AFTER (c2, d, dummy);
+	      nchars++;
 	      s2 = SYNTAX (c2);
 
 	      /* Case 2: S2 is not Sword. */
@@ -4820,6 +4862,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if (!AT_STRINGS_BEG (d))
 		{
 		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
 		  s1 = SYNTAX (c1);
 
@@ -4850,6 +4893,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
               ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      nchars++;
 	      s1 = SYNTAX (c1);
 
 	      /* Case 2: S1 is not Sword.  */
@@ -4861,6 +4905,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		{
 		  PREFETCH_NOLIMIT ();
 		  GET_CHAR_AFTER (c2, d, dummy);
+		  nchars++;
                   UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		  s2 = SYNTAX (c2);
 
@@ -4891,6 +4936,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, target_multibyte);
+	      nchars++;
 	      s2 = SYNTAX (c2);
 
 	      /* Case 2: S2 is neither Sword nor Ssymbol. */
@@ -4901,6 +4947,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if (!AT_STRINGS_BEG (d))
 		{
 		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
 		  s1 = SYNTAX (c1);
 
@@ -4929,6 +4976,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
               ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      nchars++;
 	      s1 = SYNTAX (c1);
 
 	      /* Case 2: S1 is neither Ssymbol nor Sword.  */
@@ -4940,6 +4988,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		{
 		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, target_multibyte);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		  s2 = SYNTAX (c2);
 
@@ -4971,6 +5020,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
 		goto fail;
 	      d += len;
+	      nchars++;
 	    }
 	  }
 	  break;
@@ -4997,6 +5047,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
 		goto fail;
 	      d += len;
+	      nchars++;
 	    }
 	  }
 	  break;
@@ -5057,6 +5108,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   unbind_to (count, Qnil);
   SAFE_FREE ();
+
+  if (max_redisplay_ticks > 0 && nchars > 0)
+    update_redisplay_ticks (nchars / 50 + 1, NULL);
 
   return -1;				/* Failure to match.  */
 }

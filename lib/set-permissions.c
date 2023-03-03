@@ -1,10 +1,10 @@
 /* Set permissions of a file.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -775,7 +775,7 @@ chmod_or_fchmod (const char *name, int desc, mode_t mode)
 int
 set_permissions (struct permission_context *ctx, const char *name, int desc)
 {
-  bool acls_set _GL_UNUSED = false;
+  _GL_UNUSED bool acls_set = false;
   bool early_chmod;
   bool must_chmod = false;
   int ret = 0;

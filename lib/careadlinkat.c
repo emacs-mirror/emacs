@@ -1,19 +1,19 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2001, 2003-2004, 2007, 2009-2020 Free Software Foundation,
+   Copyright (C) 2001, 2003-2004, 2007, 2009-2023 Free Software Foundation,
    Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
@@ -21,6 +21,9 @@
 #include <config.h>
 
 #include "careadlinkat.h"
+
+#include "idx.h"
+#include "minmax.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -51,8 +54,12 @@ enum { STACK_BUF_SIZE = 1024 };
    to pacify GCC is known; even an explicit #pragma does not pacify GCC.
    When the GCC bug is fixed this workaround should be limited to the
    broken GCC versions.  */
-#if (defined GCC_LINT || defined lint) && _GL_GNUC_PREREQ (10, 1)
+#if _GL_GNUC_PREREQ (10, 1)
+# if defined GCC_LINT || defined lint
 __attribute__ ((__noinline__))
+# elif __OPTIMIZE__ && !__NO_INLINE__
+#  define GCC_BOGUS_WRETURN_LOCAL_ADDR
+# endif
 #endif
 static char *
 readlink_stk (int fd, char const *filename,
@@ -61,11 +68,6 @@ readlink_stk (int fd, char const *filename,
               ssize_t (*preadlinkat) (int, char const *, char *, size_t),
               char stack_buf[STACK_BUF_SIZE])
 {
-  char *buf;
-  size_t buf_size;
-  size_t buf_size_max =
-    SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
-
   if (! alloc)
     alloc = &stdlib_allocator;
 
@@ -75,31 +77,26 @@ readlink_stk (int fd, char const *filename,
       buffer_size = STACK_BUF_SIZE;
     }
 
-  buf = buffer;
-  buf_size = buffer_size;
+  char *buf = buffer;
+  idx_t buf_size_max = MIN (IDX_MAX, MIN (SSIZE_MAX, SIZE_MAX));
+  idx_t buf_size = MIN (buffer_size, buf_size_max);
 
   while (buf)
     {
       /* Attempt to read the link into the current buffer.  */
-      ssize_t link_length = preadlinkat (fd, filename, buf, buf_size);
-      size_t link_size;
+      idx_t link_length = preadlinkat (fd, filename, buf, buf_size);
       if (link_length < 0)
         {
-          /* On AIX 5L v5.3 and HP-UX 11i v2 04/09, readlink returns -1
-             with errno == ERANGE if the buffer is too small.  */
-          int readlinkat_errno = errno;
-          if (readlinkat_errno != ERANGE)
+          if (buf != buffer)
             {
-              if (buf != buffer)
-                {
-                  alloc->free (buf);
-                  errno = readlinkat_errno;
-                }
-              return NULL;
+              int readlinkat_errno = errno;
+              alloc->free (buf);
+              errno = readlinkat_errno;
             }
+          return NULL;
         }
 
-      link_size = link_length;
+      idx_t link_size = link_length;
 
       if (link_size < buf_size)
         {
@@ -128,17 +125,13 @@ readlink_stk (int fd, char const *filename,
       if (buf != buffer)
         alloc->free (buf);
 
-      if (buf_size < buf_size_max / 2)
-        buf_size = 2 * buf_size + 1;
-      else if (buf_size < buf_size_max)
-        buf_size = buf_size_max;
-      else if (buf_size_max < SIZE_MAX)
+      if (buf_size_max / 2 <= buf_size)
         {
           errno = ENAMETOOLONG;
           return NULL;
         }
-      else
-        break;
+
+      buf_size = 2 * buf_size + 1;
       buf = alloc->allocate (buf_size);
     }
 
@@ -180,10 +173,11 @@ careadlinkat (int fd, char const *filename,
   /* Allocate the initial buffer on the stack.  This way, in the
      common case of a symlink of small size, we get away with a
      single small malloc instead of a big malloc followed by a
-     shrinking realloc.
-
-     If GCC -Wreturn-local-addr warns about this buffer, the warning
-     is bogus; see readlink_stk.  */
+     shrinking realloc.  */
+  #ifdef GCC_BOGUS_WRETURN_LOCAL_ADDR
+   #warning "GCC might issue a bogus -Wreturn-local-addr warning here."
+   #warning "See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644>."
+  #endif
   char stack_buf[STACK_BUF_SIZE];
   return readlink_stk (fd, filename, buffer, buffer_size, alloc,
                        preadlinkat, stack_buf);

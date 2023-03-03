@@ -8,12 +8,12 @@
 ;;; Commentary:
 
 ;; This package provides a minor mode to frobnicate and/or bifurcate
-;; any flanges you desire. To activate it, type "C-M-r M-3 butterfly"
+;; any flanges you desire.  To activate it, type "C-M-r M-3 butterfly"
 ;; and all your dreams will come true.
 
 ;;; Code:
 
-(defgroup signed-good nil "Simply a file"
+(defgroup signed-good nil "Simply a file."
   :group 'lisp)
 
 (defcustom signed-good-super-sunday t
@@ -26,7 +26,7 @@
 
 ;;;###autoload
 (define-minor-mode signed-good-mode
-  "It does good things to stuff")
+  "It does good things to stuff.")
 
 (provide 'signed-good)
 

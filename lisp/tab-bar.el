@@ -1,6 +1,6 @@
 ;;; tab-bar.el --- frame-local tabs with named persistent window configurations -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: frames tabs
@@ -27,16 +27,14 @@
 ;; bindings for the global tab bar.
 
 ;; The normal global binding for [tab-bar] (below) uses the value of
-;; `tab-bar-map' as the actual keymap to define the tab bar.  Modes
-;; may either bind items under the [tab-bar] prefix key of the local
-;; map to add to the global bar or may set `tab-bar-map'
-;; buffer-locally to override it.
+;; `tab-bar-map' as the actual keymap to define the tab bar.
 
 ;;; Code:
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'seq))
+  (require 'seq)
+  (require 'icons))
 
 
 (defgroup tab-bar nil
@@ -72,12 +70,34 @@
   :version "27.1"
   :group 'tab-bar-faces)
 
+(defface tab-bar-tab-group-current
+  '((t :inherit tab-bar-tab :box nil :weight bold))
+  "Tab bar face for current group tab."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
+(defface tab-bar-tab-group-inactive
+  '((t :inherit (shadow tab-bar-tab-inactive)))
+  "Tab bar face for inactive group tab."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
+(defface tab-bar-tab-ungrouped
+  '((t :inherit (shadow tab-bar-tab-inactive)))
+  "Tab bar face for ungrouped tab when tab groups are used."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
 
 (defcustom tab-bar-select-tab-modifiers '()
-  "List of modifier keys for selecting a tab by its index digit.
+  "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  To help you to select a tab by its number, you can customize
-`tab-bar-tab-hints' that will show tab numbers alongside the tab name."
+`alt'.  Pressing one of the modifiers in the list and a digit selects the
+tab whose number equals the digit (see `tab-bar-select-tab').
+The digit 9 selects the last (rightmost) tab (see `tab-last').
+The digit 0 selects the most recently visited tab (see `tab-recent').
+For easier selection of tabs by their numbers, consider customizing
+`tab-bar-tab-hints', which will show tab numbers alongside the tab name."
   :type '(set :tag "Tab selection modifier keys"
               (const control)
               (const meta)
@@ -85,151 +105,390 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
               (const hyper)
               (const super)
               (const alt))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          ;; Reenable the tab-bar with new keybindings
-         (tab-bar-mode -1)
-         (tab-bar-mode 1))
+         (when tab-bar-mode
+           (tab-bar--undefine-keys)
+           (tab-bar--define-keys)))
   :group 'tab-bar
   :version "27.1")
 
-
+(defun tab-bar--define-keys ()
+  "Install key bindings to switch between tabs if so configured."
+  (when tab-bar-select-tab-modifiers
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
+                    #'tab-recent)
+    (dotimes (i 8)
+      (global-set-key (vector (append tab-bar-select-tab-modifiers
+                                      (list (+ i 1 ?0))))
+                      #'tab-bar-select-tab))
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?9)))
+                    #'tab-last))
+  ;; Don't override user customized key bindings
+  (unless (global-key-binding [(control tab)])
+    (global-set-key [(control tab)] #'tab-next))
+  (unless (global-key-binding [(control shift tab)])
+    (global-set-key [(control shift tab)] #'tab-previous))
+  (unless (global-key-binding [(control shift iso-lefttab)])
+    (global-set-key [(control shift iso-lefttab)] #'tab-previous))
+
+  ;; Replace default value with a condition that supports displaying
+  ;; global-mode-string in the tab bar instead of the mode line.
+  (when (and (memq 'tab-bar-format-global tab-bar-format)
+             (member '(global-mode-string ("" global-mode-string))
+                     mode-line-misc-info))
+    (setf (alist-get 'global-mode-string mode-line-misc-info)
+          '(("" (:eval (if (and tab-bar-mode
+                                (memq 'tab-bar-format-global
+                                      tab-bar-format))
+                           "" global-mode-string)))))))
+
+(defun tab-bar--undefine-keys ()
+  "Uninstall key bindings previously bound by `tab-bar--define-keys'."
+  (when (eq (global-key-binding [(control tab)]) 'tab-next)
+    (global-unset-key [(control tab)]))
+  (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
+    (global-unset-key [(control shift tab)]))
+  (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
+    (global-unset-key [(control shift iso-lefttab)])))
+
+(defun tab-bar--load-buttons ()
+  "Load the icons for the tab buttons."
+  (require 'icons)
+  (declare-function icon-string "icons" (name))
+  (declare-function iconp "icons" (object))
+  (declare-function icons--register "icons")
+  (unless (iconp 'tab-bar-new)
+    (define-icon tab-bar-new nil
+      `((image "tabs/new.xpm"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji "➕")
+        ;; (symbol "＋")
+        (text " + "))
+      "Icon for creating a new tab."
+      :version "29.1"
+      :help-echo "New tab"))
+  (setq tab-bar-new-button (icon-string 'tab-bar-new))
+
+  (unless (iconp 'tab-bar-close)
+    (define-icon tab-bar-close nil
+      `((image "tabs/close.xpm"
+               :margin ,tab-bar-button-margin
+               :ascent center)
+        ;; (emoji " ❌")
+        ;; (symbol "✕") ;; "ⓧ"
+        (text " x"))
+      "Icon for closing the clicked tab."
+      :version "29.1"
+      :help-echo "Click to close tab"))
+  (setq tab-bar-close-button (propertize (icon-string 'tab-bar-close)
+                                         'close-tab t))
+
+  (unless (iconp 'tab-bar-menu-bar)
+    (define-icon tab-bar-menu-bar nil
+      '(;; (emoji "🍔")
+        (symbol "☰")
+        (text "Menu" :face tab-bar-tab-inactive))
+      "Icon for the menu bar."
+      :version "29.1"
+      :help-echo "Menu bar"))
+  (setq tab-bar-menu-bar-button (icon-string 'tab-bar-menu-bar)))
+
+(defun tab-bar--tab-bar-lines-for-frame (frame)
+  "Determine and return the value of `tab-bar-lines' for FRAME.
+Return 0 if `tab-bar-mode' is not enabled.  Otherwise return
+either 1 or 0 depending on the value of the customizable variable
+`tab-bar-show', which see."
+  (cond
+   ((not tab-bar-mode) 0)
+   ((not tab-bar-show) 0)
+   ((eq tab-bar-show t) 1)
+   ((natnump tab-bar-show)
+    (if (> (length (funcall tab-bar-tabs-function frame)) tab-bar-show) 1 0))))
+
+(defun tab-bar--update-tab-bar-lines (&optional frames)
+  "Update the `tab-bar-lines' frame parameter in FRAMES.
+If the optional parameter FRAMES is omitted, update only
+the currently selected frame.  If it is t, update all frames
+as well as the default for new frames.  Otherwise FRAMES should be
+a list of frames to update."
+  (let ((frame-lst (cond ((null frames)
+                          (list (selected-frame)))
+                         ((eq frames t)
+                          (frame-list))
+                         (t frames))))
+    ;; Loop over all frames and update `tab-bar-lines'
+    (dolist (frame frame-lst)
+      (unless (or (frame-parameter frame 'tab-bar-lines-keep-state)
+                  (and (eq auto-resize-tab-bars 'grow-only)
+                       (> (frame-parameter frame 'tab-bar-lines) 1)))
+        (set-frame-parameter frame 'tab-bar-lines
+                             (tab-bar--tab-bar-lines-for-frame frame)))))
+  ;; Update `default-frame-alist'
+  (when (eq frames t)
+    (setq default-frame-alist
+          (cons (cons 'tab-bar-lines
+                      (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
+                (assq-delete-all 'tab-bar-lines default-frame-alist)))))
+
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode)."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
-  (let ((val (if tab-bar-mode 1 0)))
-    (dolist (frame (frame-list))
-      (set-frame-parameter frame 'tab-bar-lines val))
-    ;; If the user has given `default-frame-alist' a `tab-bar-lines'
-    ;; parameter, replace it.
-    (if (assq 'tab-bar-lines default-frame-alist)
-        (setq default-frame-alist
-              (cons (cons 'tab-bar-lines val)
-                    (assq-delete-all 'tab-bar-lines
-                                     default-frame-alist)))))
 
-  (when (and tab-bar-mode tab-bar-new-button
-             (not (get-text-property 0 'display tab-bar-new-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-new-button)
-                         `(display (image :type xpm
-                                          :file "tabs/new.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-new-button))
+  ;; Recalculate `tab-bar-lines' for all frames
+  (tab-bar--update-tab-bar-lines t)
 
-  (when (and tab-bar-mode tab-bar-close-button
-             (not (get-text-property 0 'display tab-bar-close-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-close-button)
-                         `(display (image :type xpm
-                                          :file "tabs/close.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-close-button))
-
+  (when tab-bar-mode
+    (tab-bar--load-buttons))
   (if tab-bar-mode
-      (progn
-        (when tab-bar-select-tab-modifiers
-          (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                          'tab-bar-switch-to-recent-tab)
-          (dotimes (i 9)
-            (global-set-key (vector (append tab-bar-select-tab-modifiers
-                                            (list (+ i 1 ?0))))
-                            'tab-bar-select-tab)))
-        ;; Don't override user customized key bindings
-        (unless (global-key-binding [(control tab)])
-          (global-set-key [(control tab)] 'tab-next))
-        (unless (global-key-binding [(control shift tab)])
-          (global-set-key [(control shift tab)] 'tab-previous))
-        (unless (global-key-binding [(control shift iso-lefttab)])
-          (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
-    ;; Unset only keys bound by tab-bar
-    (when (eq (global-key-binding [(control tab)]) 'tab-next)
-      (global-unset-key [(control tab)]))
-    (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
-      (global-unset-key [(control shift tab)]))
-    (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
-      (global-unset-key [(control shift iso-lefttab)]))))
+      (tab-bar--define-keys)
+    (tab-bar--undefine-keys)))
 
-(defun tab-bar-handle-mouse (event)
-  "Text-mode emulation of switching tabs on the tab bar.
-This command is used when you click the mouse in the tab bar
-on a console which has no window system but does have a mouse."
+
+;;; Key bindings
+
+(defun tab-bar--key-to-number (key)
+  "Return the tab number represented by KEY.
+If KEY is a symbol `tab-N', where N is a tab number, the value is N.
+If KEY is \\='current-tab, the value is nil.
+For any other value of KEY, the value is t."
+  (cond
+   ((null key) t)
+   ((eq key 'current-tab) nil)
+   ((let ((key-name (format "%S" key)))
+      (when (string-prefix-p "tab-" key-name)
+        (string-to-number (string-replace "tab-" "" key-name)))))
+   (t t)))
+
+(defvar tab-bar--dragging-in-progress)
+
+(defun tab-bar--event-to-item (posn)
+  "This function extracts extra info from the mouse event at position POSN.
+It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
+ KEY is a symbol representing a tab, such as \\='tab-1 or \\='current-tab;
+ KEY-BINDING is the binding of KEY;
+ CLOSE-P is non-nil if the mouse event was a click on the close button \"x\",
+   nil otherwise."
+  (setq tab-bar--dragging-in-progress nil)
+  (if (posn-window posn)
+      (let ((caption (car (posn-string posn))))
+        (when caption
+          (get-text-property 0 'menu-item caption)))
+    ;; Text-mode emulation of switching tabs on the tab bar.
+    ;; This code is used when you click the mouse in the tab bar
+    ;; on a console which has no window system but does have a mouse.
+    (let* ((x-position (car (posn-x-y posn)))
+           (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps)))
+                               [tab-bar]))
+           (column 0))
+      (when x-position
+        (catch 'done
+          (map-keymap
+           (lambda (key binding)
+             (when (eq (car-safe binding) 'menu-item)
+               (when (> (+ column (length (nth 1 binding))) x-position)
+                 (throw 'done (list key (nth 2 binding)
+                                    (get-text-property
+                                     (- x-position column)
+                                     'close-tab (nth 1 binding)))))
+               (setq column (+ column (length (nth 1 binding))))))
+           keymap))))))
+
+(defun tab-bar-mouse-down-1 (event)
+  "Select the tab at mouse click, or add a new tab on the tab bar.
+Whether this command adds a new tab or selects an existing tab
+depends on whether the click is on the \"+\" button or on an
+existing tab."
   (interactive "e")
-  (let* ((x-position (car (posn-x-y (event-start event))))
-         (keymap (lookup-key (cons 'keymap (nreverse (current-active-maps))) [tab-bar]))
-         (column 0))
-    (when x-position
-      (unless (catch 'done
-                (map-keymap
-                 (lambda (key binding)
-                   (when (eq (car-safe binding) 'menu-item)
-                     (when (> (+ column (length (nth 1 binding))) x-position)
-                       (if (get-text-property (- x-position column) 'close-tab (nth 1 binding))
-                           (let* ((close-key (vector (intern (format "C-%s" key))))
-                                  (close-def (lookup-key keymap close-key)))
-                             (when close-def
-                               (call-interactively close-def)))
-                         (call-interactively (nth 2 binding)))
-                       (throw 'done t))
-                     (setq column (+ column (length (nth 1 binding))))))
-                 keymap))
-        ;; Clicking anywhere outside existing tabs will add a new tab
-        (tab-bar-new-tab)))))
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (setq tab-bar--dragging-in-progress t)
+    ;; Don't close the tab when clicked on the close button.  Also
+    ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
+    (unless (or (memq (car item) '(add-tab history-back history-forward))
+                (nth 2 item))
+      (if (functionp (nth 1 item))
+          (call-interactively (nth 1 item))
+        (unless (eq tab-number t)
+          (tab-bar-select-tab tab-number))))))
 
-;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
+(defun tab-bar-mouse-1 (event)
+  "Close the tab whose \"x\" close button you click.
+See also `tab-bar-mouse-close-tab', which closes the tab
+regardless of where you click on it.  Also add a new tab."
+  (interactive "e")
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (cond
+     ((and (memq (car item) '(add-tab history-back history-forward))
+           (functionp (nth 1 item)))
+      (call-interactively (nth 1 item)))
+     ((and (nth 2 item) (not (eq tab-number t)))
+      (tab-bar-close-tab tab-number)))))
+
+(defun tab-bar-mouse-close-tab (event)
+  "Close the tab you click on.
+This is in contrast with `tab-bar-mouse-1' that closes a tab
+only when you click on its \"x\" close button."
+  (interactive "e")
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item))))
+    (unless (eq tab-number t)
+      (tab-bar-close-tab tab-number))))
+
+(defun tab-bar-mouse-context-menu (event)
+  "Pop up the context menu for the tab on which you click."
+  (interactive "e")
+  (let* ((item (tab-bar--event-to-item (event-start event)))
+         (tab-number (tab-bar--key-to-number (nth 0 item)))
+         (menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
+
+    (cond
+     ((eq tab-number t)
+      (define-key-after menu [new-tab]
+        '(menu-item "New tab" tab-bar-new-tab
+                    :help "Create a new tab"))
+      (when tab-bar-closed-tabs
+        (define-key-after menu [undo-close]
+          '(menu-item "Reopen closed tab" tab-bar-undo-close-tab
+                      :help "Undo closing the tab"))))
+
+     (t
+      (define-key-after menu [duplicate-tab]
+        `(menu-item "Duplicate" (lambda () (interactive)
+                                  (tab-bar-duplicate-tab
+                                   nil ,tab-number))
+                    :help "Clone the tab"))
+      (define-key-after menu [detach-tab]
+        `(menu-item "Detach" (lambda () (interactive)
+                               (tab-bar-detach-tab
+                                ,tab-number))
+                    :help "Move the tab to new frame"))
+      (define-key-after menu [close]
+        `(menu-item "Close" (lambda () (interactive)
+                              (tab-bar-close-tab ,tab-number))
+                    :help "Close the tab"))
+      (define-key-after menu [close-other]
+        `(menu-item "Close other tabs"
+                    (lambda () (interactive)
+                      (tab-bar-close-other-tabs ,tab-number))
+                    :help "Close all other tabs"))))
+
+    (popup-menu menu event)))
+
+(defun tab-bar-mouse-move-tab (event)
+  "Move a tab to a different position on the tab bar.
+This command should be bound to a drag event.  It moves the tab
+at the mouse-down event to the position at mouse-up event."
+  (interactive "e")
+  (setq tab-bar--dragging-in-progress nil)
+  (let ((from (tab-bar--key-to-number
+               (nth 0 (tab-bar--event-to-item
+                       (event-start event)))))
+        (to (tab-bar--key-to-number
+             (nth 0 (tab-bar--event-to-item
+                     (event-end event))))))
+    (unless (or (eq from to) (eq from t) (eq to t))
+      (tab-bar-move-tab-to
+       (if (null to) (1+ (tab-bar--current-tab-index)) to) from))))
+
+(defvar-keymap tab-bar-map
+  :doc "Keymap for the commands used on the tab bar."
+  "<down-mouse-1>"  #'tab-bar-mouse-down-1
+  "<drag-mouse-1>"  #'tab-bar-mouse-move-tab
+  "<mouse-1>"       #'tab-bar-mouse-1
+  "<down-mouse-2>"  #'tab-bar-mouse-close-tab
+  "<mouse-2>"       #'ignore
+  "<down-mouse-3>"  #'tab-bar-mouse-context-menu
+
+  "<mouse-4>"       #'tab-previous
+  "<mouse-5>"       #'tab-next
+  "<wheel-up>"      #'tab-previous
+  "<wheel-down>"    #'tab-next
+  "<wheel-left>"    #'tab-previous
+  "<wheel-right>"   #'tab-next
+
+  "S-<mouse-4>"     #'tab-bar-move-tab-backward
+  "S-<mouse-5>"     #'tab-bar-move-tab
+  "S-<wheel-up>"    #'tab-bar-move-tab-backward
+  "S-<wheel-down>"  #'tab-bar-move-tab
+  "S-<wheel-left>"  #'tab-bar-move-tab-backward
+  "S-<wheel-right>" #'tab-bar-move-tab)
+
+(global-set-key [tab-bar]
+                `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)
+                            :filter tab-bar-make-keymap))
+
+(defun tab-bar-make-keymap (&optional _ignore)
+  "Generate an actual keymap from `tab-bar-map'.
+Its main job is to show tabs in the tab bar
+and to bind mouse events to the commands."
+  (tab-bar-make-keymap-1))
+
+
 (defun toggle-tab-bar-mode-from-frame (&optional arg)
   "Toggle tab bar on or off, based on the status of the current frame.
+Used in the Show/Hide menu, to have the toggle reflect the current frame.
 See `tab-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)
       (tab-bar-mode (if (> (frame-parameter nil 'tab-bar-lines) 0) 0 1))
     (tab-bar-mode arg)))
 
-(defvar tab-bar-map (make-sparse-keymap)
-  "Keymap for the tab bar.
-Define this locally to override the global tab bar.")
+(defun toggle-frame-tab-bar (&optional frame)
+  "Toggle tab bar of the selected frame.
+When calling from Lisp, use the optional argument FRAME to toggle
+the tab bar on that frame.
+This is useful if you want to enable the tab bar individually
+on each new frame when the global `tab-bar-mode' is disabled,
+or if you want to disable the tab bar individually on each
+new frame when the global `tab-bar-mode' is enabled, by using
 
-(global-set-key [tab-bar]
-                `(menu-item ,(purecopy "tab bar") ignore
-                            :filter tab-bar-make-keymap))
-
-(defconst tab-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
-
-(defun tab-bar-make-keymap (&optional _ignore)
-  "Generate an actual keymap from `tab-bar-map'.
-Its main job is to show tabs in the tab bar."
-  (if (= 1 (length tab-bar-map))
-      (tab-bar-make-keymap-1)
-    (let ((key (cons (frame-terminal) tab-bar-map)))
-      (or (gethash key tab-bar-keymap-cache)
-          (puthash key tab-bar-map tab-bar-keymap-cache)))))
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
+  (interactive)
+  (set-frame-parameter frame 'tab-bar-lines
+                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
+  (set-frame-parameter frame 'tab-bar-lines-keep-state
+                       (not (frame-parameter frame 'tab-bar-lines-keep-state))))
 
 
 (defcustom tab-bar-show t
   "Defines when to show the tab bar.
-If t, enable `tab-bar-mode' automatically on using the commands that
-create new window configurations (e.g. `tab-new').
-If the value is `1', then hide the tab bar when it has only one tab,
-and show it again once more tabs are created.
+If t, the default, enable `tab-bar-mode' automatically upon using
+the commands that create new window configurations (e.g., `tab-new').
+If a non-negative integer, show the tab bar only if the number of
+the tabs exceeds the value of this variable.  In particular,
+if the value is 1, hide the tab bar when it has only one tab, and
+show it again once more tabs are created.  A value that is a
+non-negative integer also makes the tab bar appearance be different
+on different frames: the tab bar can be shown on some frames and
+hidden on others, depending on how many tab-bar tabs are on that
+frame, and whether that number is greater than the numerical value
+of this variable.
 If nil, always keep the tab bar hidden.  In this case it's still
 possible to use persistent named window configurations by relying on
-keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc."
+keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc.
+
+Setting this variable directly does not take effect; please customize
+it (see the info node `Easy Customization'), then it will automatically
+update the tab bar on all frames according to the new value.
+
+To enable or disable the tab bar individually on each frame,
+you can use the command `toggle-frame-tab-bar'."
   :type '(choice (const :tag "Always" t)
                  (const :tag "When more than one tab" 1)
                  (const :tag "Never" nil))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (tab-bar-mode
-          (if (or (eq val t)
-                  (and (natnump val)
-                       (> (length (funcall tab-bar-tabs-function)) val)))
-              1 -1)))
+         (if val
+             (tab-bar-mode 1)
+           (tab-bar--update-tab-bar-lines t)))
   :group 'tab-bar
   :version "27.1")
 
@@ -238,31 +497,50 @@ keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc."
 If t, start a new tab with the current buffer, i.e. the buffer
 that was current before calling the command that adds a new tab
 (this is the same what `make-frame' does by default).
+If the value is the symbol `window', then keep the selected
+window as a single window on the new tab, and keep all its
+window parameters except `window-atom' and `window-side'.
 If the value is a string, use it as a buffer name to switch to
 if such buffer exists, or switch to a buffer visiting the file or
 directory that the string specifies.  If the value is a function,
 call it with no arguments and switch to the buffer that it returns.
-If nil, duplicate the contents of the tab that was active
+If `clone', duplicate the contents of the tab that was active
 before calling the command that adds a new tab."
   :type '(choice (const     :tag "Current buffer" t)
+                 (const     :tag "Current window" window)
                  (string    :tag "Buffer" "*scratch*")
                  (directory :tag "Directory" :value "~/")
                  (file      :tag "File" :value "~/.emacs")
                  (function  :tag "Function")
-                 (const     :tag "Duplicate tab" nil))
+                 (const     :tag "Duplicate tab" clone))
   :group 'tab-bar
   :version "27.1")
+
+(defcustom tab-bar-new-tab-group t
+  "Defines what group to assign to a new tab.
+If nil, don't set a default group automatically.
+If t, inherit the group name from the previous tab.
+If the value is a string, use it as the group name of a new tab.
+If the value is a function, call it with no arguments
+to get the group name."
+  :type '(choice (const    :tag "No automatic group" nil)
+                 (const    :tag "Inherit group from previous tab" t)
+                 (string   :tag "Fixed group name")
+                 (function :tag "Function that returns group name"))
+  :group 'tab-bar
+  :version "28.1")
 
 (defcustom tab-bar-new-button-show t
   "If non-nil, show the \"New tab\" button in the tab bar.
 When this is nil, you can create new tabs with \\[tab-new]."
   :type 'boolean
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (force-mode-line-update))
   :group 'tab-bar
   :version "27.1")
+(make-obsolete-variable 'tab-bar-new-button-show 'tab-bar-format "28.1")
 
 (defvar tab-bar-new-button " + "
   "Button for creating a new tab.")
@@ -277,7 +555,7 @@ If nil, don't show it at all."
                  (const :tag "On selected tab" selected)
                  (const :tag "On non-selected tabs" non-selected)
                  (const :tag "None" nil))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (force-mode-line-update))
@@ -301,7 +579,7 @@ If nil, don't show it at all."
 This helps to select the tab by its number using `tab-bar-select-tab'
 and `tab-bar-select-tab-modifiers'."
   :type 'boolean
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (force-mode-line-update))
@@ -310,6 +588,10 @@ and `tab-bar-select-tab-modifiers'."
 
 (defvar tab-bar-separator nil
   "String that delimits tabs.")
+
+(defun tab-bar-separator ()
+  "Separator between tabs."
+  (or tab-bar-separator (if (window-system) " " "|")))
 
 
 (defcustom tab-bar-tab-name-function #'tab-bar-tab-name-current
@@ -327,7 +609,7 @@ from all windows in the window configuration."
                  (const :tag "All window buffers"
                         tab-bar-tab-name-all)
                  (function  :tag "Function"))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          (force-mode-line-update))
@@ -359,7 +641,7 @@ Also add the number of windows in the window configuration."
   "Maximum length of the tab name from the current buffer.
 Effective when `tab-bar-tab-name-function' is customized
 to `tab-bar-tab-name-truncated'."
-  :type 'integer
+  :type 'natnum
   :group 'tab-bar
   :version "27.1")
 
@@ -388,13 +670,13 @@ For example, \\='((tab (name . \"Tab 1\")) (current-tab (name . \"Tab 2\")))
 By default, use function `tab-bar-tabs'.")
 
 (defun tab-bar-tabs (&optional frame)
-  "Return a list of tabs belonging to the selected frame.
+  "Return a list of tabs belonging to the FRAME.
 Ensure the frame parameter `tabs' is pre-populated.
 Update the current tab name when it exists.
 Return its existing value or a new value."
   (let ((tabs (frame-parameter frame 'tabs)))
     (if tabs
-        (let* ((current-tab (assq 'current-tab tabs))
+        (let* ((current-tab (tab-bar--current-tab-find tabs))
                (current-tab-name (assq 'name current-tab))
                (current-tab-explicit-name (assq 'explicit-name current-tab)))
           (when (and current-tab-name
@@ -403,73 +685,450 @@ Return its existing value or a new value."
             (setf (cdr current-tab-name)
                   (funcall tab-bar-tab-name-function))))
       ;; Create default tabs
-      (setq tabs (list (tab-bar--current-tab)))
-      (set-frame-parameter frame 'tabs tabs))
+      (setq tabs (list (tab-bar--current-tab-make)))
+      (tab-bar-tabs-set tabs frame))
     tabs))
 
+(defun tab-bar-tabs-set (tabs &optional frame)
+  "Set a list of TABS on the FRAME."
+  (set-frame-parameter frame 'tabs tabs))
+
 
+(defcustom tab-bar-tab-face-function #'tab-bar-tab-face-default
+  "Function to define a tab face.
+Function gets one argument: a tab."
+  :type 'function
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-face-default (tab)
+  (if (eq (car tab) 'current-tab) 'tab-bar-tab 'tab-bar-tab-inactive))
+
+(defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
+  "Function to format a tab name.
+Function gets two arguments, the tab and its number, and should return
+the formatted tab name to display in the tab bar."
+  :type 'function
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-name-format-default (tab i)
+  (let ((current-p (eq (car tab) 'current-tab)))
+    (propertize
+     (concat (if tab-bar-tab-hints (format "%d " i) "")
+             (alist-get 'name tab)
+             (or (and tab-bar-close-button-show
+                      (not (eq tab-bar-close-button-show
+                               (if current-p 'non-selected 'selected)))
+                      tab-bar-close-button)
+                 ""))
+     'face (funcall tab-bar-tab-face-function tab))))
+
+(defcustom tab-bar-format '(tab-bar-format-history
+                            tab-bar-format-tabs
+                            tab-bar-separator
+                            tab-bar-format-add-tab)
+  "Template for displaying tab bar items.
+Every item in the list is a function that returns
+a string, or a list of menu-item elements, or nil.
+Adding a function to the list causes the tab bar to show
+that string, or display a tab button which, when clicked,
+will invoke the command that is the binding of the menu item.
+The menu-item binding of nil will produce a tab clicking
+on which will select that tab.  The menu-item's title is
+displayed as the label of the tab.
+If a function returns nil, it doesn't directly affect the
+tab bar appearance, but can do that by some side-effect.
+If the list ends with `tab-bar-format-align-right' and
+`tab-bar-format-global', then after enabling `display-time-mode'
+\(or any other mode that uses `global-mode-string'),
+it will display time aligned to the right on the tab bar instead
+of the mode line.  Replacing `tab-bar-format-tabs' with
+`tab-bar-format-tabs-groups' will group tabs on the tab bar."
+  :type 'hook
+  :options '(tab-bar-format-menu-bar
+             tab-bar-format-history
+             tab-bar-format-tabs
+             tab-bar-format-tabs-groups
+             tab-bar-separator
+             tab-bar-format-add-tab
+             tab-bar-format-align-right
+             tab-bar-format-global)
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-menu-bar (event)
+  "Pop up the same menu as displayed by the menu bar.
+Used by `tab-bar-format-menu-bar'."
+  (interactive "e")
+  (let ((menu (make-sparse-keymap (propertize "Menu Bar" 'hide t))))
+    (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
+    (map-keymap (lambda (key binding)
+                  (when (consp binding)
+                    (define-key-after menu (vector key)
+                      (copy-sequence binding))))
+                (menu-bar-keymap))
+    (popup-menu menu event)))
+
+(defvar tab-bar-menu-bar-button
+  (propertize "Menu" 'face 'tab-bar-tab-inactive)
+  "Button for the menu bar.")
+
+(defun tab-bar-format-menu-bar ()
+  "Produce the Menu button for the tab bar that shows the menu bar."
+  `((menu-bar menu-item ,tab-bar-menu-bar-button
+     tab-bar-menu-bar :help "Menu Bar")))
+
+(defun tab-bar-format-history ()
+  "Produce back and forward buttons for the tab bar.
+These buttons will be shown when `tab-bar-history-mode' is enabled.
+You can hide these buttons by customizing `tab-bar-format' and removing
+`tab-bar-format-history' from it."
+  (when tab-bar-history-mode
+    `((sep-history-back menu-item ,(tab-bar-separator) ignore)
+      (history-back
+       menu-item ,tab-bar-back-button tab-bar-history-back
+       :help "Click to go back in tab history")
+      (sep-history-forward menu-item ,(tab-bar-separator) ignore)
+      (history-forward
+       menu-item ,tab-bar-forward-button tab-bar-history-forward
+       :help "Click to go forward in tab history"))))
+
+(defun tab-bar--format-tab (tab i)
+  "Format TAB using its index I and return the result as a keymap."
+  (append
+   `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+   (cond
+    ((eq (car tab) 'current-tab)
+     `((current-tab
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ignore
+        :help "Current tab")))
+    (t
+     `((,(intern (format "tab-%i" i))
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ,(alist-get 'binding tab)
+        :help "Click to visit tab"))))
+   (when (alist-get 'close-binding tab)
+     `((,(if (eq (car tab) 'current-tab) 'C-current-tab
+           (intern (format "C-tab-%i" i)))
+        menu-item ""
+        ,(alist-get 'close-binding tab))))))
+
+(defun tab-bar-format-tabs ()
+  "Produce all the tabs for the tab bar."
+  (let ((i 0))
+    (mapcan
+     (lambda (tab)
+       (setq i (1+ i))
+       (tab-bar--format-tab tab i))
+     (funcall tab-bar-tabs-function))))
+
+(defcustom tab-bar-tab-group-function #'tab-bar-tab-group-default
+  "Function to get a tab group name.
+Function gets one argument: a tab."
+  :type 'function
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-default (tab)
+  (alist-get 'group tab))
+
+(defcustom tab-bar-tab-group-format-function #'tab-bar-tab-group-format-default
+  "Function to format a tab group name.
+Function gets three arguments, a tab with a group name, its number, and
+an optional value that is non-nil when the tab is from the current group.
+It should return the formatted tab group name to display in the tab bar."
+  :type 'function
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-format-default (tab i &optional current-p)
+  (propertize
+   (concat (if (and tab-bar-tab-hints (not current-p)) (format "%d " i) "")
+           (funcall tab-bar-tab-group-function tab))
+   'face (if current-p 'tab-bar-tab-group-current 'tab-bar-tab-group-inactive)))
+
+(defcustom tab-bar-tab-group-face-function #'tab-bar-tab-group-face-default
+  "Function to define a tab group face.
+Function gets one argument: a tab."
+  :type 'function
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-face-default (tab)
+  (if (not (or (eq (car tab) 'current-tab)
+               (funcall tab-bar-tab-group-function tab)))
+      'tab-bar-tab-ungrouped
+    (tab-bar-tab-face-default tab)))
+
+(defun tab-bar--format-tab-group (tab i &optional current-p)
+  "Format TAB as a tab that represents a group of tabs.
+The argument I is the tab index, and CURRENT-P is non-nil
+when the tab is current.  Return the result as a keymap."
+  (append
+   `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+   `((,(intern (format "group-%i" i))
+      menu-item
+      ,(if current-p
+           (condition-case nil
+               (funcall tab-bar-tab-group-format-function tab i current-p)
+             ;; We used to define tab-bar-tab-group-format-function as
+             ;; taking two arguments but after adding the third argument
+             ;; we need to provide backwards-compatibility.
+             (wrong-number-of-arguments
+              (propertize (funcall tab-bar-tab-group-function tab)
+                          'face 'tab-bar-tab-group-current)))
+         (funcall tab-bar-tab-group-format-function tab i))
+      ,(if current-p 'ignore
+         (or
+          (alist-get 'binding tab)
+          `(lambda ()
+             (interactive)
+             (tab-bar-select-tab ,i))))
+      :help "Click to visit group"))))
+
+(defun tab-bar-format-tabs-groups ()
+  "Produce tabs for the tab bar grouped according to their groups."
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (current-group (funcall tab-bar-tab-group-function
+                                 (tab-bar--current-tab-find tabs)))
+         (previous-group nil)
+         (i 0))
+    (mapcan
+     (lambda (tab)
+       (let ((tab-group (funcall tab-bar-tab-group-function tab)))
+         (setq i (1+ i))
+         (prog1 (cond
+                 ;; Show current group tabs and ungrouped tabs
+                 ((or (equal tab-group current-group) (not tab-group))
+                  (append
+                   ;; Prepend current group name before first tab
+                   (when (and (not (equal previous-group tab-group)) tab-group)
+                     (tab-bar--format-tab-group tab i t))
+                   ;; Override default tab faces to use group faces
+                   (let ((tab-bar-tab-face-function
+                          tab-bar-tab-group-face-function))
+                     (tab-bar--format-tab tab i))))
+                 ;; Show first tab of other groups with a group name
+                 ((not (equal previous-group tab-group))
+                  (tab-bar--format-tab-group tab i))
+                 ;; Hide other group tabs
+                 (t nil))
+           (setq previous-group tab-group))))
+     tabs)))
+
+(defun tab-bar-format-add-tab ()
+  "Button to add a new tab."
+  (when (and tab-bar-new-button-show tab-bar-new-button)
+    `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
+               :help "New tab"))))
+
+(defun tab-bar-format-align-right ()
+  "Align the rest of tab bar items to the right."
+  (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
+         (rest (tab-bar-format-list rest))
+         (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
+         (hpos (progn
+                 (add-face-text-property 0 (length rest) 'tab-bar t rest)
+                 (string-pixel-width rest)))
+         (str (propertize " " 'display
+                          ;; The `right' spec doesn't work on TTY frames
+                          ;; when windows are split horizontally (bug#59620)
+                          (if (window-system)
+                              `(space :align-to (- right (,hpos)))
+                            `(space :align-to (,(- (frame-inner-width)
+                                                   hpos)))))))
+    `((align-right menu-item ,str ignore))))
+
+(defun tab-bar-format-global ()
+  "Produce display of `global-mode-string' in the tab bar.
+When `tab-bar-format-global' is added to `tab-bar-format'
+\(possibly appended after `tab-bar-format-align-right'),
+then modes that display information on the mode line
+using `global-mode-string' will display the same text
+on the tab bar instead."
+  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
+
+(defun tab-bar-format-list (format-list)
+  (let ((i 0))
+    (apply #'append
+           (mapcar
+            (lambda (format)
+              (setq i (1+ i))
+              (cond
+               ((functionp format)
+                (let ((ret (funcall format)))
+                  (when (stringp ret)
+                    (setq ret `((,(intern (format "str-%i" i))
+                                 menu-item ,ret ignore))))
+                  ret))))
+            format-list))))
+
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
-  (let* ((separator (or tab-bar-separator (if window-system " " "|")))
-         (i 0)
-         (tabs (funcall tab-bar-tabs-function)))
-    (append
-     '(keymap (mouse-1 . tab-bar-handle-mouse))
-     (when tab-bar-history-mode
-       `((sep-history-back menu-item ,separator ignore)
-         (history-back
-          menu-item ,tab-bar-back-button tab-bar-history-back
-          :help "Click to go back in tab history")
-         (sep-history-forward menu-item ,separator ignore)
-         (history-forward
-          menu-item ,tab-bar-forward-button tab-bar-history-forward
-          :help "Click to go forward in tab history")))
-     (mapcan
-      (lambda (tab)
-        (setq i (1+ i))
-        (append
-         `((,(intern (format "sep-%i" i)) menu-item ,separator ignore))
-         (cond
-          ((eq (car tab) 'current-tab)
-           `((current-tab
-              menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'non-selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab)
-              ignore
-              :help "Current tab")))
-          (t
-           `((,(intern (format "tab-%i" i))
-              menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab-inactive)
-              ,(or
-                (alist-get 'binding tab)
-                `(lambda ()
-                   (interactive)
-                   (tab-bar-select-tab ,i)))
-              :help "Click to visit tab"))))
-         `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
-            menu-item ""
-            ,(or
-              (alist-get 'close-binding tab)
-              `(lambda ()
-                 (interactive)
-                 (tab-bar-close-tab ,i)))))))
-      tabs)
-     `((sep-add-tab menu-item ,separator ignore))
-     (when (and tab-bar-new-button-show tab-bar-new-button)
-       `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
-                  :help "New tab"))))))
+  (let ((items (tab-bar-format-list tab-bar-format)))
+    (when tab-bar-auto-width
+      (setq items (tab-bar-auto-width items)))
+    (append tab-bar-map items)))
+
+
+(defcustom tab-bar-auto-width t
+  "Automatically resize width of tabs on tab bar to fill available tab-bar space.
+When non-nil, the widths of the tabs on the tab bar are
+automatically resized so that their width is evenly distributed
+across the tab bar.  This keeps the widths of the tabs
+independent of the length of the buffer names shown on each tab;
+the tab widths change only when tabs are added or deleted, or
+when the frame's dimensions change.  This also avoids as much as
+possible wrapping a long tab bar to a second tab-bar line.
+
+The automatic resizing of tabs takes place as long as tabs are no
+wider than allowed by the value of `tab-bar-auto-width-max', and
+at least as wide as specified by the value of
+`tab-bar-auto-width-min'.
+
+When this variable is nil, the width of each tab is determined by the
+length of the tab's name."
+  :type 'boolean
+  :group 'tab-bar
+  :version "29.1")
+
+(defcustom tab-bar-auto-width-max '(220 20)
+  "Maximum width for automatic resizing of width of tab-bar tabs.
+This determines the maximum width of tabs before their names will be
+truncated on display.
+The value should be a list of two numbers: the first is the maximum
+width of tabs in pixels for GUI frames, the second is the maximum
+width of tabs in characters on TTY frames.
+If the value of this variable is nil, there is no limit on maximum
+width.
+This variable has effect only when `tab-bar-auto-width' is non-nil."
+  :type '(choice
+          (const :tag "No limit" nil)
+          (list (integer :tag "Max width (pixels)" :value 220)
+                (integer :tag "Max width (chars)" :value 20)))
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (setq tab-bar--auto-width-hash nil))
+  :group 'tab-bar
+  :version "29.1")
+
+(defvar tab-bar-auto-width-min '(20 2)
+  "Minimum width of tabs for automatic resizing under `tab-bar-auto-width'.
+The value should be a list of two numbers, giving the minimum width
+as the number of pixels for GUI frames and the number of characters
+for text-mode frames.  Tabs whose width is smaller than this will not
+be narrowed.
+It's not recommended to change this value since with larger values, the
+tab bar might wrap to the second line when it shouldn't.")
+
+(defvar tab-bar-auto-width-faces
+  '( tab-bar-tab tab-bar-tab-inactive
+     tab-bar-tab-ungrouped
+     tab-bar-tab-group-inactive)
+  "Resize tabs only with these faces.")
+
+(defvar tab-bar--auto-width-hash nil
+  "Memoization table for `tab-bar-auto-width'.")
+
+(defun tab-bar-auto-width (items)
+  "Return tab-bar items with resized tab names."
+  (unless tab-bar--auto-width-hash
+    (define-hash-table-test 'tab-bar--auto-width-hash-test
+                            #'equal-including-properties
+                            #'sxhash-equal-including-properties)
+    (setq tab-bar--auto-width-hash
+          (make-hash-table :test 'tab-bar--auto-width-hash-test)))
+  (let ((tabs nil)    ;; list of resizable tabs
+        (non-tabs "") ;; concatenated names of non-resizable tabs
+        (width 0))    ;; resize tab names to this width
+    (dolist (item items)
+      (when (and (eq (nth 1 item) 'menu-item) (stringp (nth 2 item)))
+        (if (memq (get-text-property 0 'face (nth 2 item))
+                  tab-bar-auto-width-faces)
+            (push item tabs)
+          (unless (eq (nth 0 item) 'align-right)
+            (setq non-tabs (concat non-tabs (nth 2 item)))))))
+    (when tabs
+      (add-face-text-property 0 (length non-tabs) 'tab-bar t non-tabs)
+      (setq width (/ (- (frame-inner-width)
+                        (string-pixel-width non-tabs))
+                     (length tabs)))
+      (when tab-bar-auto-width-min
+        (setq width (max width (if (window-system)
+                                   (nth 0 tab-bar-auto-width-min)
+                                 (nth 1 tab-bar-auto-width-min)))))
+      (when tab-bar-auto-width-max
+        (setq width (min width (if (window-system)
+                                   (nth 0 tab-bar-auto-width-max)
+                                 (nth 1 tab-bar-auto-width-max)))))
+      (dolist (item tabs)
+        (setf (nth 2 item)
+              (with-memoization (gethash (list (selected-frame)
+                                               width (nth 2 item))
+                                         tab-bar--auto-width-hash)
+                (let* ((name (nth 2 item))
+                       (len (length name))
+                       (close-p (get-text-property (1- len) 'close-tab name))
+                       (continue t)
+                       (prev-width (string-pixel-width name))
+                       curr-width)
+                  (cond
+                   ((< prev-width width)
+                    (let* ((space (apply #'propertize " "
+                                         (text-properties-at 0 name)))
+                           (ins-pos (- len (if close-p 1 0)))
+                           (prev-name name))
+                      (while continue
+                        (setq name (concat (substring name 0 ins-pos)
+                                           space
+                                           (substring name ins-pos)))
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (< curr-width width)
+                                 (> curr-width prev-width))
+                            (setq prev-width curr-width
+                                  prev-name name)
+                          ;; Set back a shorter name
+                          (setq name prev-name
+                                continue nil)))))
+                   ((> prev-width width)
+                    (let ((del-pos1 (if close-p -2 -1))
+                          (del-pos2 (if close-p -1 nil)))
+                      (while continue
+                        (setq name (concat (substring name 0 del-pos1)
+                                           (and del-pos2
+                                                (substring name del-pos2))))
+                        (setq curr-width (string-pixel-width name))
+                        (if (and (> curr-width width)
+                                 (< curr-width prev-width))
+                            (setq prev-width curr-width)
+                          (setq continue nil)))
+                      (let* ((len (length name))
+                             (pos (- len (if close-p 1 0))))
+                        (add-face-text-property
+                         (max 0 (- pos 2)) (max 0 pos) 'shadow nil name)))))
+                  name)))))
+    items))
 
 
 ;; Some window-configuration parameters don't need to be persistent.
@@ -483,7 +1142,8 @@ Return its existing value or a new value."
                 (if (consp current)
                     (seq-reduce (lambda (current param)
                                   (assq-delete-all param current))
-                                '(wc wc-point wc-bl wc-bbl wc-history-back wc-history-forward)
+                                '(wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward)
                                 (copy-sequence current))
                   current))
               current)
@@ -492,15 +1152,20 @@ Return its existing value or a new value."
 (push '(tabs . frameset-filter-tabs) frameset-filter-alist)
 
 (defun tab-bar--tab (&optional frame)
-  (let* ((tab (assq 'current-tab (frame-parameter frame 'tabs)))
+  "Make a new tab data structure that can be added to tabs on the FRAME."
+  (let* ((tab (tab-bar--current-tab-find nil frame))
          (tab-explicit-name (alist-get 'explicit-name tab))
-         (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
-         (bbl (seq-filter #'buffer-live-p (frame-parameter frame 'buried-buffer-list))))
+         (tab-group (alist-get 'group tab))
+         (bl  (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buffer-list)))
+         (bbl (seq-filter #'buffer-live-p (frame-parameter
+                                           frame 'buried-buffer-list))))
     `(tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
       (explicit-name . ,tab-explicit-name)
+      ,@(if tab-group `((group . ,tab-group)))
       (time . ,(float-time))
       (ws . ,(window-state-get
               (frame-root-window (or frame (selected-frame))) 'writable))
@@ -508,40 +1173,79 @@ Return its existing value or a new value."
       (wc-point . ,(point-marker))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
-      (wc-history-back . ,(gethash (or frame (selected-frame)) tab-bar-history-back))
-      (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
+      ,@(when tab-bar-history-mode
+          `((wc-history-back . ,(gethash (or frame (selected-frame))
+                                         tab-bar-history-back))
+            (wc-history-forward . ,(gethash (or frame (selected-frame))
+                                            tab-bar-history-forward))))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
 
 (defun tab-bar--current-tab (&optional tab frame)
-  ;; `tab` here is an argument meaning 'use tab as template'. This is
-  ;; necessary when switching tabs, otherwise the destination tab
-  ;; inherit the current tab's `explicit-name` parameter.
-  (let* ((tab (or tab (assq 'current-tab (frame-parameter frame 'tabs))))
-         (tab-explicit-name (alist-get 'explicit-name tab)))
+  "Make the current tab data structure from TAB on FRAME."
+  (tab-bar--current-tab-make (or tab (tab-bar--current-tab-find nil frame))))
+
+(defun tab-bar--current-tab-make (&optional tab)
+  "Make the current tab data structure from TAB.
+TAB here is an argument meaning \"use tab as template\",
+i.e. the tab is created using data from TAB.  This is
+necessary when switching tabs, otherwise the destination tab
+inherits the current tab's `explicit-name' parameter."
+  (let* ((tab-explicit-name (alist-get 'explicit-name tab))
+         (tab-group (if tab
+                        (alist-get 'group tab)
+                      (pcase tab-bar-new-tab-group
+                        ((pred stringp) tab-bar-new-tab-group)
+                        ((pred functionp) (funcall tab-bar-new-tab-group))))))
     `(current-tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
-      (explicit-name . ,tab-explicit-name))))
+      (explicit-name . ,tab-explicit-name)
+      ,@(if tab-group `((group . ,tab-group)))
+      ;; Copy other possible parameters
+      ,@(mapcan (lambda (param)
+                  (unless (memq (car param)
+                                '(name explicit-name group time
+                                  ws wc wc-point wc-bl wc-bbl
+                                  wc-history-back wc-history-forward))
+                    (list param)))
+                (cdr tab)))))
+
+(defun tab-bar--current-tab-find (&optional tabs frame)
+  ;; Find the current tab as a pointer to its data structure.
+  (assq 'current-tab (or tabs (funcall tab-bar-tabs-function frame))))
 
 (defun tab-bar--current-tab-index (&optional tabs frame)
+  ;; Return the index of the current tab.
   (seq-position (or tabs (funcall tab-bar-tabs-function frame))
                 'current-tab (lambda (a b) (eq (car a) b))))
 
 (defun tab-bar--tab-index (tab &optional tabs frame)
+  ;; Return the index of TAB.
   (seq-position (or tabs (funcall tab-bar-tabs-function frame))
                 tab #'eq))
 
 (defun tab-bar--tab-index-by-name (name &optional tabs frame)
+  ;; Return the index of TAB by the its NAME.
   (seq-position (or tabs (funcall tab-bar-tabs-function frame))
                 name (lambda (a b) (equal (alist-get 'name a) b))))
 
 (defun tab-bar--tab-index-recent (nth &optional tabs frame)
+  ;; Return the index of NTH recent tab.
   (let* ((tabs (or tabs (funcall tab-bar-tabs-function frame)))
          (sorted-tabs (tab-bar--tabs-recent tabs frame))
          (tab (nth (1- nth) sorted-tabs)))
     (tab-bar--tab-index tab tabs)))
 
 (defun tab-bar--tabs-recent (&optional tabs frame)
+  ;; Return the list of tabs sorted by recency.
   (let* ((tabs (or tabs (funcall tab-bar-tabs-function frame))))
     (seq-sort-by (lambda (tab) (alist-get 'time tab)) #'>
                  (seq-remove (lambda (tab)
@@ -549,22 +1253,31 @@ Return its existing value or a new value."
                              tabs))))
 
 
-(defun tab-bar-select-tab (&optional arg)
-  "Switch to the tab by its absolute position ARG in the tab bar.
-When this command is bound to a numeric key (with a prefix or modifier key
+(defun tab-bar-select-tab (&optional tab-number)
+  "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
+When this command is bound to a numeric key (with a key prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-ARG counts from 1."
+Also the prefix argument TAB-NUMBER can be used to override
+the numeric key, so it takes precedence over the bound digit key.
+For example, `<MODIFIER>-2' will select the second tab, but `C-u 15
+<MODIFIER>-2' will select the 15th tab.  TAB-NUMBER counts from 1.
+Negative TAB-NUMBER counts tabs from the end of the tab bar."
   (interactive "P")
-  (unless (integerp arg)
+  (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
-      (setq arg (if (and (characterp key) (>= key ?1) (<= key ?9))
-                    (- key ?0)
-                  1))))
+      (setq tab-number (if (and (characterp key) (>= key ?1) (<= key ?9))
+                           (- key ?0)
+                         0))))
 
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (tab-bar--current-tab-index tabs))
-         (to-index (1- (max 1 (min arg (length tabs))))))
+         (to-number (cond ((< tab-number 0) (+ (length tabs) (1+ tab-number)))
+                          ((zerop tab-number) (1+ from-index))
+                          (t tab-number)))
+         (to-index (1- (max 1 (min to-number (length tabs)))))
+         (minibuffer-was-active (minibuffer-window-active-p (selected-window))))
+
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
              (to-tab (nth to-index tabs))
@@ -578,14 +1291,18 @@ ARG counts from 1."
         ;; its value of window-configuration is unreadable,
         ;; so restore its saved window-state.
         (cond
-         ((window-configuration-p wc)
+         ((and (window-configuration-p wc)
+               ;; Check for such cases as cloning a frame with tabs.
+               ;; When tabs were cloned to another frame, then fall back
+               ;; to using `window-state-put' below.
+               (eq (window-configuration-frame wc) (selected-frame)))
           (let ((wc-point (alist-get 'wc-point to-tab))
                 (wc-bl  (seq-filter #'buffer-live-p (alist-get 'wc-bl to-tab)))
                 (wc-bbl (seq-filter #'buffer-live-p (alist-get 'wc-bbl to-tab)))
                 (wc-history-back (alist-get 'wc-history-back to-tab))
                 (wc-history-forward (alist-get 'wc-history-forward to-tab)))
 
-            (set-window-configuration wc)
+            (set-window-configuration wc nil t)
 
             ;; set-window-configuration does not restore the value of
             ;; point in the current buffer, so restore it separately.
@@ -602,23 +1319,42 @@ ARG counts from 1."
             (when wc-bl  (set-frame-parameter nil 'buffer-list wc-bl))
             (when wc-bbl (set-frame-parameter nil 'buried-buffer-list wc-bbl))
 
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-back)))
-                          wc-history-back)
-                     tab-bar-history-back)
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-forward)))
-                          wc-history-forward)
-                     tab-bar-history-forward)))
+            (when tab-bar-history-mode
+              (puthash (selected-frame)
+                       (and (window-configuration-p
+                             (alist-get 'wc (car wc-history-back)))
+                            wc-history-back)
+                       tab-bar-history-back)
+              (puthash (selected-frame)
+                       (and (window-configuration-p
+                             (alist-get 'wc (car wc-history-forward)))
+                            wc-history-forward)
+                       tab-bar-history-forward))))
 
          (ws
-          (window-state-put ws (frame-root-window (selected-frame)) 'safe)))
+          ;; `window-state-put' fails when called in the minibuffer
+          (when (minibuffer-selected-window)
+            (select-window (minibuffer-selected-window)))
+          (window-state-put ws nil 'safe)))
 
-        (setq tab-bar-history-omit t)
+        ;; Select the minibuffer when it was active before switching tabs
+        (when (and minibuffer-was-active (active-minibuffer-window))
+          (select-window (active-minibuffer-window)))
+
+        ;; When the minibuffer was activated in one tab, but exited in
+        ;; another tab, then after going back to the first tab, it has
+        ;; such inconsistent state that the current buffer is the minibuffer,
+        ;; but its window is not active.  So try to undo this mess.
+        (when (and (minibufferp) (not (active-minibuffer-window)))
+          (other-window 1))
+
+        (when tab-bar-history-mode
+          (setq tab-bar-history-omit t))
 
         (when from-index
           (setf (nth from-index tabs) from-tab))
-        (setf (nth to-index tabs) (tab-bar--current-tab (nth to-index tabs)))
+        (setf (nth to-index tabs)
+              (tab-bar--current-tab-make (nth to-index tabs)))
 
         (unless tab-bar-mode
           (message "Selected tab '%s'" (alist-get 'name to-tab))))
@@ -626,7 +1362,8 @@ ARG counts from 1."
       (force-mode-line-update))))
 
 (defun tab-bar-switch-to-next-tab (&optional arg)
-  "Switch to ARGth next tab."
+  "Switch to ARGth next tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
@@ -636,14 +1373,25 @@ ARG counts from 1."
     (tab-bar-select-tab (1+ to-index))))
 
 (defun tab-bar-switch-to-prev-tab (&optional arg)
-  "Switch to ARGth previous tab."
+  "Switch to ARGth previous tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
   (tab-bar-switch-to-next-tab (- arg)))
 
+(defun tab-bar-switch-to-last-tab (&optional arg)
+  "Switch to the last tab or ARGth tab from the end of the tab bar.
+Interactively, ARG is the prefix numeric argument; it defaults to 1,
+which means the last tab on the tab bar.  For example, `C-u 2
+<MODIFIER>-9' selects the tab before the last tab."
+  (interactive "p")
+  (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
+                         (1- (abs (or arg 1))))))
+
 (defun tab-bar-switch-to-recent-tab (&optional arg)
-  "Switch to ARGth most recently visited tab."
+  "Switch to ARGth most recently visited tab.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (unless (integerp arg)
     (setq arg 1))
@@ -656,7 +1404,10 @@ ARG counts from 1."
   "Switch to the tab by NAME.
 Default values are tab names sorted by recency, so you can use \
 \\<minibuffer-local-map>\\[next-history-element]
-to get the name of the last visited tab, the second last, and so on."
+to get the name of the most recently visited tab, the second
+most recent, and so on.
+When the tab with that NAME doesn't exist, create a new tab
+and rename it to NAME."
   (interactive
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
@@ -664,41 +1415,63 @@ to get the name of the last visited tab, the second last, and so on."
      (list (completing-read (format-prompt "Switch to tab by name"
                                            (car recent-tabs))
                             recent-tabs nil nil nil nil recent-tabs))))
-  (tab-bar-select-tab (1+ (or (tab-bar--tab-index-by-name name) 0))))
+  (let ((tab-index (tab-bar--tab-index-by-name name)))
+    (if tab-index
+        (tab-bar-select-tab (1+ tab-index))
+      (tab-bar-new-tab)
+      (tab-bar-rename-tab name))))
 
-(defalias 'tab-bar-select-tab-by-name 'tab-bar-switch-to-tab)
+(defalias 'tab-bar-select-tab-by-name #'tab-bar-switch-to-tab)
 
 
-(defun tab-bar-move-tab-to (to-index &optional from-index)
-  "Move tab from FROM-INDEX position to new position at TO-INDEX.
-FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1."
+(defun tab-bar-move-tab-to (to-number &optional from-number)
+  "Move tab from FROM-NUMBER position to new position at TO-NUMBER.
+FROM-NUMBER defaults to the current tab number.
+FROM-NUMBER and TO-NUMBER count from 1.
+Negative TO-NUMBER counts tabs from the end of the tab bar.
+Argument addressing is absolute in contrast to `tab-bar-move-tab'
+where argument addressing is relative."
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (from-index (or from-index (1+ (tab-bar--current-tab-index tabs))))
-         (from-tab (nth (1- from-index) tabs))
-         (to-index (max 0 (min (1- (or to-index 1)) (1- (length tabs))))))
+         (from-number (or from-number (1+ (tab-bar--current-tab-index tabs))))
+         (from-tab (nth (1- from-number) tabs))
+         (to-number (if to-number (prefix-numeric-value to-number) 1))
+         (to-number (if (< to-number 0) (+ (length tabs) (1+ to-number))
+                      to-number))
+         (to-index (max 0 (min (1- to-number) (1- (length tabs))))))
     (setq tabs (delq from-tab tabs))
     (cl-pushnew from-tab (nthcdr to-index tabs))
-    (set-frame-parameter nil 'tabs tabs)
+    (tab-bar-tabs-set tabs)
     (force-mode-line-update)))
 
 (defun tab-bar-move-tab (&optional arg)
   "Move the current tab ARG positions to the right.
-If a negative ARG, move the current tab ARG positions to the left."
+Interactively, ARG is the prefix numeric argument and defaults to 1.
+If ARG is negative, move the current tab ARG positions to the left.
+Argument addressing is relative in contrast to `tab-bar-move-tab-to',
+where argument addressing is absolute."
   (interactive "p")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (or (tab-bar--current-tab-index tabs) 0))
          (to-index (mod (+ from-index arg) (length tabs))))
     (tab-bar-move-tab-to (1+ to-index) (1+ from-index))))
 
-(defun tab-bar-move-tab-to-frame (arg &optional from-frame from-index to-frame to-index)
-  "Move tab from FROM-INDEX position to new position at TO-INDEX.
-FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1.
+(defun tab-bar-move-tab-backward (&optional arg)
+  "Move the current tab ARG positions to the left.
+Interactively, ARG is the prefix numeric argument and defaults to 1.
+Like `tab-bar-move-tab', but moves in the opposite direction."
+  (interactive "p")
+  (tab-bar-move-tab (- (or arg 1))))
+
+(defun tab-bar-move-tab-to-frame (arg &optional from-frame from-number
+                                      to-frame to-number)
+  "Move tab from FROM-NUMBER position to new position at TO-NUMBER.
+FROM-NUMBER defaults to the current tab number.
+FROM-NUMBER and TO-NUMBER count from 1.
 FROM-FRAME specifies the source frame and defaults to the selected frame.
 TO-FRAME specifies the target frame and defaults the next frame.
-Interactively, ARG selects the ARGth different frame to move to."
+Interactively, ARG selects the ARGth next frame on the same terminal,
+to which to move the tab; ARG defaults to 1."
   (interactive "P")
   (unless from-frame
     (setq from-frame (selected-frame)))
@@ -707,10 +1480,11 @@ Interactively, ARG selects the ARGth different frame to move to."
       (setq to-frame (next-frame to-frame))))
   (unless (eq from-frame to-frame)
     (let* ((from-tabs (funcall tab-bar-tabs-function from-frame))
-           (from-index (or from-index (1+ (tab-bar--current-tab-index from-tabs))))
-           (from-tab (nth (1- from-index) from-tabs))
+           (from-number (or from-number
+                            (1+ (tab-bar--current-tab-index from-tabs))))
+           (from-tab (nth (1- from-number) from-tabs))
            (to-tabs (funcall tab-bar-tabs-function to-frame))
-           (to-index (max 0 (min (1- (or to-index 1)) (1- (length to-tabs))))))
+           (to-index (max 0 (min (1- (or to-number 1)) (1- (length to-tabs))))))
       (cl-pushnew (assq-delete-all
                    'wc (if (eq (car from-tab) 'current-tab)
                            (tab-bar--tab from-frame)
@@ -718,42 +1492,74 @@ Interactively, ARG selects the ARGth different frame to move to."
                   (nthcdr to-index to-tabs))
       (with-selected-frame from-frame
         (let ((inhibit-message t) ; avoid message about deleted tab
+              (tab-bar-close-last-tab-choice 'delete-frame)
               tab-bar-closed-tabs)
-          (tab-bar-close-tab from-index)))
-      (set-frame-parameter to-frame 'tabs to-tabs)
+          (tab-bar-close-tab from-number)))
+      (tab-bar-tabs-set to-tabs to-frame)
       (force-mode-line-update t))))
+
+(defun tab-bar-detach-tab (&optional from-number)
+  "Move tab number FROM-NUMBER to a new frame.
+FROM-NUMBER defaults to the current tab (which happens interactively)."
+  (interactive (list (1+ (tab-bar--current-tab-index))))
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab-index (1- (or from-number
+                            (1+ (tab-bar--current-tab-index tabs)))))
+         (tab-name (alist-get 'name (nth tab-index tabs)))
+         ;; On some window managers, `make-frame' selects the new frame,
+         ;; so previously selected frame is saved to `from-frame'.
+         (from-frame (selected-frame))
+         (new-frame (make-frame `((name . ,tab-name)))))
+    (tab-bar-move-tab-to-frame nil from-frame from-number new-frame nil)
+    (with-selected-frame new-frame
+      (tab-bar-close-tab))))
+
+(defun tab-bar-move-window-to-tab ()
+  "Move the selected window to a new tab.
+This command removes the selected window from the configuration stored
+on the current tab, and makes a new tab with that window in its
+configuration."
+  (interactive)
+  (let ((tab-bar-new-tab-choice 'window))
+    (tab-bar-new-tab))
+  (tab-bar-switch-to-recent-tab)
+  (let ((ignore-window-parameters t))
+    (delete-window))
+  (tab-bar-switch-to-recent-tab))
 
 
 (defcustom tab-bar-new-tab-to 'right
-  "Defines where to create a new tab.
+  "Where to create a new tab.
 If `leftmost', create as the first tab.
-If `left', create to the left from the current tab.
-If `right', create to the right from the current tab.
+If `left', create to the left of the current tab.
+If `right', create to the right of the current tab.
 If `rightmost', create as the last tab.
 If the value is a function, it should return a number as a position
-on the tab bar specifying where to insert a new tab."
-  :type '(choice (const :tag "First tab" leftmost)
-                 (const :tag "To the left" left)
-                 (const :tag "To the right" right)
-                 (const :tag "Last tab" rightmost)
+on the tab bar specifying where to add a new tab."
+  :type '(choice (const :tag "Add as First" leftmost)
+                 (const :tag "Add to Left" left)
+                 (const :tag "Add to Right" right)
+                 (const :tag "Add as Last" rightmost)
                  (function :tag "Function"))
   :group 'tab-bar
   :version "27.1")
 
 (defcustom tab-bar-tab-post-open-functions nil
   "List of functions to call after creating a new tab.
-The current tab is supplied as an argument. Any modifications
-made to the tab argument will be applied after all functions are
-called."
+The current tab is supplied as an argument.  Any modifications made
+to the tab argument will be applied after all functions are called."
   :type '(repeat function)
   :group 'tab-bar
   :version "27.1")
 
-(defun tab-bar-new-tab-to (&optional to-index)
-  "Add a new tab at the absolute position TO-INDEX.
-TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
+(defun tab-bar-new-tab-to (&optional tab-number)
+  "Add a new tab at the absolute position TAB-NUMBER.
+TAB-NUMBER counts from 1.  If no TAB-NUMBER is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-
+Negative TAB-NUMBER counts tabs from the end of the tab bar,
+and -1 means the new tab will become the last one.
+Argument addressing is absolute in contrast to `tab-bar-new-tab',
+where argument addressing is relative.
 After the tab is created, the hooks in
 `tab-bar-tab-post-open-functions' are run."
   (interactive "P")
@@ -762,12 +1568,29 @@ After the tab is created, the hooks in
          (from-tab (tab-bar--tab)))
 
     (when tab-bar-new-tab-choice
-      (delete-other-windows)
-      ;; Create a new window to get rid of old window parameters
-      ;; (e.g. prev/next buffers) of old window.
-      (split-window) (delete-window)
+      ;; Handle the case when it's called in the active minibuffer.
+      (when (minibuffer-selected-window)
+        (select-window (minibuffer-selected-window)))
+      ;; Remove window parameters that can cause problems
+      ;; with `delete-other-windows' and `split-window'.
+      (unless (eq tab-bar-new-tab-choice 'clone)
+        (set-window-parameter nil 'window-atom nil)
+        (set-window-parameter nil 'window-side nil))
+      (let ((ignore-window-parameters t))
+        (if (eq tab-bar-new-tab-choice 'clone)
+            ;; Create new unique windows with the same layout
+            (window-state-put (window-state-get))
+          (delete-other-windows)
+          (if (eq tab-bar-new-tab-choice 'window)
+              ;; Create new unique window from remaining window
+              (window-state-put (window-state-get))
+            ;; Create a new window to get rid of old window parameters
+            ;; (e.g. prev/next buffers) of old window.
+            (split-window) (delete-window))))
+
       (let ((buffer
-             (if (functionp tab-bar-new-tab-choice)
+             (if (and (functionp tab-bar-new-tab-choice)
+                      (not (memq tab-bar-new-tab-choice '(clone window))))
                  (funcall tab-bar-new-tab-choice)
                (if (stringp tab-bar-new-tab-choice)
                    (or (get-buffer tab-bar-new-tab-choice)
@@ -777,42 +1600,61 @@ After the tab is created, the hooks in
 
     (when from-index
       (setf (nth from-index tabs) from-tab))
-    (let ((to-tab (tab-bar--current-tab))
-          (to-index (or (if to-index (1- to-index))
-                        (pcase tab-bar-new-tab-to
-                          ('leftmost 0)
-                          ('rightmost (length tabs))
-                          ('left (or from-index 1))
-                          ('right (1+ (or from-index 0)))
-                          ((pred functionp)
-                           (funcall tab-bar-new-tab-to))))))
+
+    (let* ((to-tab (tab-bar--current-tab-make
+                    (when (eq tab-bar-new-tab-group t)
+                      `((group . ,(alist-get 'group from-tab))))))
+           (to-number (and tab-number (prefix-numeric-value tab-number)))
+           (to-index (or (if to-number
+                             (if (< to-number 0)
+                                 (+ (length tabs) (1+ to-number))
+                               (1- to-number)))
+                         (pcase tab-bar-new-tab-to
+                           ('leftmost 0)
+                           ('rightmost (length tabs))
+                           ('left (or from-index 1))
+                           ('right (1+ (or from-index 0)))
+                           ((pred functionp)
+                            (funcall tab-bar-new-tab-to))))))
       (setq to-index (max 0 (min (or to-index 0) (length tabs))))
       (cl-pushnew to-tab (nthcdr to-index tabs))
 
       (when (eq to-index 0)
-        ;; pushnew handles the head of tabs but not frame-parameter
-        (set-frame-parameter nil 'tabs tabs))
+        ;; `pushnew' handles the head of tabs but not frame-parameter
+        (tab-bar-tabs-set tabs))
+
+      (when tab-bar-history-mode
+        (puthash (selected-frame) nil tab-bar-history-back)
+        (puthash (selected-frame) nil tab-bar-history-forward)
+        (setq tab-bar-history-omit t))
 
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
 
-    (cond
-     ((eq tab-bar-show t)
-      (tab-bar-mode 1))
-     ((and (natnump tab-bar-show)
-           (> (length (funcall tab-bar-tabs-function)) tab-bar-show)
-           (zerop (frame-parameter nil 'tab-bar-lines)))
-      (set-frame-parameter nil 'tab-bar-lines 1)))
+    (when tab-bar-show
+      (if (not tab-bar-mode)
+          ;; Turn on `tab-bar-mode' since a tab was created.
+          ;; Note: this also updates `tab-bar-lines'.
+          (tab-bar-mode 1)
+        (tab-bar--update-tab-bar-lines)))
 
     (force-mode-line-update)
     (unless tab-bar-mode
       (message "Added new tab at %s" tab-bar-new-tab-to))))
 
-(defun tab-bar-new-tab (&optional arg)
+(defun tab-bar-new-tab (&optional arg from-number)
   "Create a new tab ARG positions to the right.
 If a negative ARG, create a new tab ARG positions to the left.
-If ARG is zero, create a new tab in place of the current tab."
+If ARG is zero, create a new tab in place of the current tab.
+If no ARG is specified, then add a new tab at the position
+specified by `tab-bar-new-tab-to'.
+Argument addressing is relative in contrast to `tab-bar-new-tab-to',
+where argument addressing is absolute.
+If FROM-NUMBER is a tab number, a new tab is created from that tab."
   (interactive "P")
+  (when from-number
+    (let ((inhibit-message t))
+      (tab-bar-select-tab from-number)))
   (if arg
       (let* ((tabs (funcall tab-bar-tabs-function))
              (from-index (or (tab-bar--current-tab-index tabs) 0))
@@ -820,12 +1662,20 @@ If ARG is zero, create a new tab in place of the current tab."
         (tab-bar-new-tab-to (1+ to-index)))
     (tab-bar-new-tab-to)))
 
+(defun tab-bar-duplicate-tab (&optional arg from-number)
+  "Clone the current tab to ARG positions to the right.
+ARG and FROM-NUMBER have the same meaning as in `tab-bar-new-tab'."
+  (interactive "P")
+  (let ((tab-bar-new-tab-choice 'clone)
+        (tab-bar-new-tab-group t))
+    (tab-bar-new-tab arg from-number)))
+
 
 (defvar tab-bar-closed-tabs nil
   "A list of closed tabs to be able to undo their closing.")
 
 (defcustom tab-bar-close-tab-select 'recent
-  "Defines what tab to select after closing the specified tab.
+  "Which tab to make current after closing the specified tab.
 If `left', select the adjacent left tab.
 If `right', select the adjacent right tab.
 If `recent', select the most recently visited tab."
@@ -836,11 +1686,13 @@ If `recent', select the most recently visited tab."
   :version "27.1")
 
 (defcustom tab-bar-close-last-tab-choice nil
-  "Defines what to do when the last tab is closed.
+  "What to do when the last tab is closed.
 If nil, do nothing and show a message, like closing the last window or frame.
 If `delete-frame', delete the containing frame, as a web browser would do.
-If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show in the frame.
-If the value is a function, call that function with the tab to be closed as an argument."
+If `tab-bar-mode-disable', disable `tab-bar-mode' so that tabs no longer show
+in the frame.
+If the value is a function, call that function with the tab to be closed
+as an argument."
   :type '(choice (const    :tag "Do nothing and show message" nil)
                  (const    :tag "Close the containing frame" delete-frame)
                  (const    :tag "Disable tab-bar-mode" tab-bar-mode-disable)
@@ -851,7 +1703,7 @@ If the value is a function, call that function with the tab to be closed as an a
 (defcustom tab-bar-tab-prevent-close-functions nil
   "List of functions to call to determine whether to close a tab.
 The tab to be closed and a boolean indicating whether or not it
-is the only tab in the frame are supplied as arguments. If any
+is the only tab in the frame are supplied as arguments.  If any
 function returns a non-nil value, the tab will not be closed."
   :type '(repeat function)
   :group 'tab-bar
@@ -859,22 +1711,22 @@ function returns a non-nil value, the tab will not be closed."
 
 (defcustom tab-bar-tab-pre-close-functions nil
   "List of functions to call before closing a tab.
-The tab to be closed and a boolean indicating whether or not it
-is the only tab in the frame are supplied as arguments,
-respectively."
+Each function is called with two arguments: the tab to be closed
+and a boolean indicating whether or not it is the only tab on its frame."
   :type '(repeat function)
   :group 'tab-bar
   :version "27.1")
 
-(defun tab-bar-close-tab (&optional arg to-index)
-  "Close the tab specified by its absolute position ARG.
-If no ARG is specified, then close the current tab and switch
+(defun tab-bar-close-tab (&optional tab-number to-number)
+  "Close the tab specified by its absolute position TAB-NUMBER.
+If no TAB-NUMBER is specified, then close the current tab and switch
 to the tab specified by `tab-bar-close-tab-select'.
-ARG counts from 1.
-Optional TO-INDEX could be specified to override the value of
+Interactively, TAB-NUMBER is the prefix numeric argument, and defaults to 1.
+TAB-NUMBER counts from 1.
+Optional TO-NUMBER could be specified to override the value of
 `tab-bar-close-tab-select' programmatically with a position
 of an existing tab to select after closing the current tab.
-TO-INDEX counts from 1.
+TO-NUMBER counts from 1.
 
 The functions in `tab-bar-tab-prevent-close-functions' will be
 run to determine whether or not to close the tab.
@@ -885,7 +1737,7 @@ for the last tab on a frame is determined by
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-index (tab-bar--current-tab-index tabs))
-         (close-index (if (integerp arg) (1- arg) current-index))
+         (close-index (if (integerp tab-number) (1- tab-number) current-index))
          (last-tab-p (= 1 (length tabs)))
          (prevent-close (run-hook-with-args-until-success
                          'tab-bar-tab-prevent-close-functions
@@ -913,9 +1765,10 @@ for the last tab on a frame is determined by
         ;; More than one tab still open
         (when (eq current-index close-index)
           ;; Select another tab before deleting the current tab
-          (let ((to-index (or (if to-index (1- to-index))
+          (let ((to-index (or (if to-number (1- to-number))
                               (pcase tab-bar-close-tab-select
-                                ('left (1- (if (< current-index 1) 2 current-index)))
+                                ('left (1- (if (< current-index 1) 2
+                                             current-index)))
                                 ('right (if (> (length tabs) (1+ current-index))
                                             (1+ current-index)
                                           (1- current-index)))
@@ -933,20 +1786,19 @@ for the last tab on a frame is determined by
                               (tab-bar--tab)
                             close-tab)))
                 tab-bar-closed-tabs)
-          (set-frame-parameter nil 'tabs (delq close-tab tabs)))
+          (tab-bar-tabs-set (delq close-tab tabs)))
 
-        (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
-                   (natnump tab-bar-show)
-                   (<= (length (funcall tab-bar-tabs-function))
-                       tab-bar-show))
-          (set-frame-parameter nil 'tab-bar-lines 0))
+        ;; Recalculate `tab-bar-lines' and update frames
+        (tab-bar--update-tab-bar-lines)
 
         (force-mode-line-update)
         (unless tab-bar-mode
-          (message "Deleted tab and switched to %s" tab-bar-close-tab-select))))))
+          (message "Deleted tab and switched to %s"
+                   tab-bar-close-tab-select))))))
 
 (defun tab-bar-close-tab-by-name (name)
-  "Close the tab by NAME."
+  "Close the tab given its NAME.
+Interactively, prompt for NAME."
   (interactive
    (list (completing-read "Close tab by name: "
                           (mapcar (lambda (tab)
@@ -954,39 +1806,48 @@ for the last tab on a frame is determined by
                                   (funcall tab-bar-tabs-function)))))
   (tab-bar-close-tab (1+ (tab-bar--tab-index-by-name name))))
 
-(defun tab-bar-close-other-tabs ()
-  "Close all tabs on the selected frame, except the selected one."
+(defun tab-bar-close-other-tabs (&optional tab-number)
+  "Close all tabs on the selected frame, except the tab TAB-NUMBER.
+TAB-NUMBER counts from 1 and defaults to the current tab (which
+happens interactively)."
   (interactive)
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (current-index (tab-bar--current-tab-index tabs)))
-    (when current-index
-      (dotimes (index (length tabs))
-        (unless (or (eq index current-index)
+         (current-index (tab-bar--current-tab-index tabs))
+         (keep-index (if (integerp tab-number)
+                         (1- (max 1 (min tab-number (length tabs))))
+                       current-index))
+         (index 0))
+
+    (when (nth keep-index tabs)
+      (unless (eq keep-index current-index)
+        (tab-bar-select-tab (1+ keep-index))
+        (setq tabs (funcall tab-bar-tabs-function)))
+
+      (dolist (tab tabs)
+        (unless (or (eq index keep-index)
                     (run-hook-with-args-until-success
-                     'tab-bar-tab-prevent-close-functions
-                     (nth index tabs)
-                     ; last-tab-p logically can't ever be true if we
-                     ; make it this far
+                     'tab-bar-tab-prevent-close-functions tab
+                     ;; `last-tab-p' logically can't ever be true
+                     ;; if we make it this far
                      nil))
           (push `((frame . ,(selected-frame))
                   (index . ,index)
-                  (tab . ,(nth index tabs)))
+                  (tab . ,tab))
                 tab-bar-closed-tabs)
-          (run-hook-with-args 'tab-bar-tab-pre-close-functions (nth index tabs) nil)))
-      (set-frame-parameter nil 'tabs (list (nth current-index tabs)))
+          (run-hook-with-args 'tab-bar-tab-pre-close-functions tab nil)
+          (setq tabs (delq tab tabs)))
+        (setq index (1+ index)))
+      (tab-bar-tabs-set tabs)
 
-      (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
-                 (natnump tab-bar-show)
-                 (<= (length (funcall tab-bar-tabs-function))
-                     tab-bar-show))
-        (set-frame-parameter nil 'tab-bar-lines 0))
+      ;; Recalculate tab-bar-lines and update frames
+      (tab-bar--update-tab-bar-lines)
 
       (force-mode-line-update)
       (unless tab-bar-mode
         (message "Deleted all other tabs")))))
 
 (defun tab-bar-undo-close-tab ()
-  "Restore the last closed tab."
+  "Restore the most recently closed tab."
   (interactive)
   ;; Pop out closed tabs that were on already deleted frames
   (while (and tab-bar-closed-tabs
@@ -1005,30 +1866,35 @@ for the last tab on a frame is determined by
           (setq index (max 0 (min index (length tabs))))
           (cl-pushnew tab (nthcdr index tabs))
           (when (eq index 0)
-            ;; pushnew handles the head of tabs but not frame-parameter
-            (set-frame-parameter nil 'tabs tabs))
-          (tab-bar-select-tab (1+ index))))
+            ;; `pushnew' handles the head of tabs but not frame-parameter
+            (tab-bar-tabs-set tabs))
+          (tab-bar-select-tab (1+ index)))
+        (tab-bar--update-tab-bar-lines))
 
     (message "No more closed tabs to undo")))
 
 
-(defun tab-bar-rename-tab (name &optional arg)
-  "Rename the tab specified by its absolute position ARG.
-If no ARG is specified, then rename the current tab.
-ARG counts from 1.
+(defun tab-bar-rename-tab (name &optional tab-number)
+  "Give the tab specified by its absolute position TAB-NUMBER a new NAME.
+If no TAB-NUMBER is specified, then rename the current tab.
+Interactively, TAB-NUMBER is the prefix numeric argument, and defaults
+to the current tab.
+TAB-NUMBER counts from 1.
+Interactively, prompt for the new NAME.
 If NAME is the empty string, then use the automatic name
 function `tab-bar-tab-name-function'."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
-          (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
-          (tab-name (alist-get 'name (nth (1- tab-index) tabs))))
+          (tab-number (or current-prefix-arg
+                          (1+ (tab-bar--current-tab-index tabs))))
+          (tab-name (alist-get 'name (nth (1- tab-number) tabs))))
      (list (read-from-minibuffer
             "New name for tab (leave blank for automatic naming): "
             nil nil nil nil tab-name)
            current-prefix-arg)))
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (tab-index (if arg
-                        (1- (max 0 (min arg (length tabs))))
+         (tab-index (if (integerp tab-number)
+                        (1- (max 0 (min tab-number (length tabs))))
                       (tab-bar--current-tab-index tabs)))
          (tab-to-rename (nth tab-index tabs))
          (tab-explicit-name (> (length name) 0))
@@ -1043,7 +1909,8 @@ function `tab-bar-tab-name-function'."
       (message "Renamed tab to '%s'" tab-new-name))))
 
 (defun tab-bar-rename-tab-by-name (tab-name new-name)
-  "Rename the tab named TAB-NAME.
+  "Rename the tab named TAB-NAME to NEW-NAME.
+Interactively, prompt for TAB-NAME and NEW-NAME.
 If NEW-NAME is the empty string, then use the automatic name
 function `tab-bar-tab-name-function'."
   (interactive
@@ -1055,6 +1922,116 @@ function `tab-bar-tab-name-function'."
                      "New name for tab (leave blank for automatic naming): "
                      nil nil nil nil tab-name))))
   (tab-bar-rename-tab new-name (1+ (tab-bar--tab-index-by-name tab-name))))
+
+
+;;; Tab groups
+
+(defun tab-bar-move-tab-to-group (&optional tab)
+  "Relocate TAB (by default, the current tab) closer to its group."
+  (interactive)
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab (or tab (tab-bar--current-tab-find tabs)))
+         (tab-index (tab-bar--tab-index tab))
+         (group (alist-get 'group tab))
+         ;; Beginning position of the same group
+         (beg (seq-position tabs group
+                            (lambda (tb gr)
+                              (and (not (eq tb tab))
+                                   (equal (alist-get 'group tb) gr)))))
+         ;; Size of the same group
+         (len (when beg
+                (seq-position (nthcdr beg tabs) group
+                              (lambda (tb gr)
+                                (not (equal (alist-get 'group tb) gr))))))
+         (pos (when beg
+                (cond
+                 ;; Don't move tab when it's already inside group bounds
+                 ((and len (>= tab-index beg) (<= tab-index (+ beg len))) nil)
+                 ;; Move tab from the right to the group end
+                 ((and len (> tab-index (+ beg len))) (+ beg len 1))
+                 ;; Move tab from the left to the group beginning
+                 ((< tab-index beg) beg)))))
+    (when pos
+      (tab-bar-move-tab-to pos (1+ tab-index)))))
+
+(defcustom tab-bar-tab-post-change-group-functions '(tab-bar-move-tab-to-group)
+  "List of functions to call after changing a tab group.
+This hook is run at the end of the function `tab-bar-change-tab-group'.
+The current tab is supplied as an argument.  You can use any function,
+but by default it enables the function `tab-bar-move-tab-to-group'
+that moves the tab closer to its group."
+  :type 'hook
+  :options '(tab-bar-move-tab-to-group)
+  :group 'tab-bar
+  :version "29.1")
+
+(defun tab-bar-change-tab-group (group-name &optional tab-number)
+  "Add the tab specified by its absolute position TAB-NUMBER to GROUP-NAME.
+If no TAB-NUMBER is specified, then set the GROUP-NAME for the current tab.
+Interactively, TAB-NUMBER is the prefix numeric argument, and the command
+prompts for GROUP-NAME.
+TAB-NUMBER counts from 1.
+If GROUP-NAME is the empty string, then remove the tab from any group.
+While using this command, you might also want to replace
+`tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
+`tab-bar-format' to group tabs on the tab bar.
+Runs the hook `tab-bar-tab-post-change-group-functions' at the end."
+  (interactive
+   (let* ((tabs (funcall tab-bar-tabs-function))
+          (tab-number (or current-prefix-arg
+                         (1+ (tab-bar--current-tab-index tabs))))
+          (group-name (funcall tab-bar-tab-group-function
+                               (nth (1- tab-number) tabs))))
+     (list (completing-read
+            "Group name for tab (leave blank to remove group): "
+            (delete-dups
+             (delq nil (cons group-name
+                             (mapcar (lambda (tab)
+                                       (funcall tab-bar-tab-group-function tab))
+                                     (funcall tab-bar-tabs-function))))))
+           current-prefix-arg)))
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab-index (if tab-number
+                        (1- (max 0 (min tab-number (length tabs))))
+                      (tab-bar--current-tab-index tabs)))
+         (tab (nth tab-index tabs))
+         (group (assq 'group tab))
+         (group-new-name (and (> (length group-name) 0) group-name)))
+    (if group
+        (setcdr group group-new-name)
+      (nconc tab `((group . ,group-new-name))))
+
+    (run-hook-with-args 'tab-bar-tab-post-change-group-functions tab)
+
+    (force-mode-line-update)
+    (unless tab-bar-mode
+      (message "Set tab group to '%s'" group-new-name))))
+
+(defun tab-bar-close-group-tabs (group-name)
+  "Close all tabs that belong to GROUP-NAME on the selected frame.
+Interactively, prompt for GROUP-NAME."
+  (interactive
+   (let ((group-name (funcall tab-bar-tab-group-function
+                              (tab-bar--current-tab-find))))
+     (list (completing-read
+            "Close all tabs with group name: "
+            (delete-dups
+             (delq nil (cons group-name
+                             (mapcar (lambda (tab)
+                                       (funcall tab-bar-tab-group-function tab))
+                                     (funcall tab-bar-tabs-function)))))))))
+  (let* ((close-group (and (> (length group-name) 0) group-name))
+         (tab-bar-tab-prevent-close-functions
+          (cons (lambda (tab _last-tab-p)
+                  (not (equal (funcall tab-bar-tab-group-function tab)
+                              close-group)))
+                tab-bar-tab-prevent-close-functions)))
+    (tab-bar-close-other-tabs)
+
+    (when (equal (funcall tab-bar-tab-group-function
+                          (tab-bar--current-tab-find))
+                 close-group)
+      (tab-bar-close-tab))))
 
 
 ;;; Tab history mode
@@ -1074,29 +2051,34 @@ function `tab-bar-tab-name-function'."
 (defvar tab-bar-history-old nil
   "Window configuration before the current command.")
 
-(defvar tab-bar-history-old-minibuffer-depth 0
-  "Minibuffer depth before the current command.")
+(defvar tab-bar-history-pre-command nil
+  "Command set to `this-command' by `pre-command-hook'.")
 
-(defun tab-bar-history--pre-change ()
-  (setq tab-bar-history-old-minibuffer-depth (minibuffer-depth))
-  ;; Store wc before possibly entering the minibuffer
-  (when (zerop tab-bar-history-old-minibuffer-depth)
+(defvar tab-bar-history-done-command nil
+  "Command handled by `window-configuration-change-hook'.")
+
+(defun tab-bar--history-pre-change ()
+  ;; Reset before the command could set it
+  (setq tab-bar-history-omit nil)
+  (setq tab-bar-history-pre-command this-command)
+  (when (zerop (minibuffer-depth))
     (setq tab-bar-history-old
           `((wc . ,(current-window-configuration))
             (wc-point . ,(point-marker))))))
 
 (defun tab-bar--history-change ()
-  (when (and (not tab-bar-history-omit)
-             tab-bar-history-old
-             ;; Store wc before possibly entering the minibuffer
-             (zerop tab-bar-history-old-minibuffer-depth))
+  (when (and (not tab-bar-history-omit) tab-bar-history-old
+             ;; Don't register changes performed by the same command
+             ;; repeated in sequence, such as incremental window resizing.
+             (not (eq tab-bar-history-done-command tab-bar-history-pre-command))
+             (zerop (minibuffer-depth)))
     (puthash (selected-frame)
              (seq-take (cons tab-bar-history-old
                              (gethash (selected-frame) tab-bar-history-back))
                        tab-bar-history-limit)
-             tab-bar-history-back))
-  (when tab-bar-history-omit
-    (setq tab-bar-history-omit nil)))
+             tab-bar-history-back)
+    (setq tab-bar-history-old nil))
+  (setq tab-bar-history-done-command tab-bar-history-pre-command))
 
 (defun tab-bar-history-back ()
   "Restore a previous window configuration used in the current tab.
@@ -1112,7 +2094,7 @@ This navigates back in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-forward))
                    tab-bar-history-forward)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab back history"))))
@@ -1131,10 +2113,14 @@ This navigates forward in the history of window configurations."
                    (cons tab-bar-history-old
                          (gethash (selected-frame) tab-bar-history-back))
                    tab-bar-history-back)
-          (set-window-configuration wc)
+          (set-window-configuration wc nil t)
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab forward history"))))
+
+(defvar-keymap tab-bar-history-mode-map
+  "C-c <left>"  #'tab-bar-history-back
+  "C-c <right>" #'tab-bar-history-forward)
 
 (define-minor-mode tab-bar-history-mode
   "Toggle tab history mode for the tab bar.
@@ -1143,44 +2129,32 @@ and can restore them."
   :global t :group 'tab-bar
   (if tab-bar-history-mode
       (progn
-        (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-back-button)))
-          ;; This file is pre-loaded so only here we can use the right data-directory:
-          (add-text-properties 0 (length tab-bar-back-button)
-                               `(display (image :type xpm
-                                                :file "tabs/left-arrow.xpm"
-                                                :margin (2 . 0)
-                                                :ascent center))
-                               tab-bar-back-button))
-        (when (and tab-bar-mode (not (get-text-property 0 'display tab-bar-forward-button)))
-          ;; This file is pre-loaded so only here we can use the right data-directory:
-          (add-text-properties 0 (length tab-bar-forward-button)
-                               `(display (image :type xpm
-                                                :file "tabs/right-arrow.xpm"
-                                                :margin (2 . 0)
-                                                :ascent center))
-                               tab-bar-forward-button))
+        (require 'icons)
 
-        (add-hook 'pre-command-hook 'tab-bar-history--pre-change)
-        (add-hook 'window-configuration-change-hook 'tab-bar--history-change))
-    (remove-hook 'pre-command-hook 'tab-bar-history--pre-change)
-    (remove-hook 'window-configuration-change-hook 'tab-bar--history-change)))
+        (unless (iconp 'tab-bar-back)
+          (define-icon tab-bar-back nil
+            `((image "tabs/left-arrow.xpm"
+                     :margin ,tab-bar-button-margin
+                     :ascent center)
+              (text " < "))
+            "Icon for going back in tab history."
+            :version "29.1"))
+        (setq tab-bar-back-button (icon-string 'tab-bar-back))
 
-
-;;; Short aliases
+        (unless (iconp 'tab-bar-forward)
+          (define-icon tab-bar-forward nil
+            `((image "tabs/right-arrow.xpm"
+                     :margin ,tab-bar-button-margin
+                     :ascent center)
+              (text " > "))
+            "Icon for going forward in tab history."
+            :version "29.1"))
+        (setq tab-bar-forward-button (icon-string 'tab-bar-forward))
 
-(defalias 'tab-new         'tab-bar-new-tab)
-(defalias 'tab-new-to      'tab-bar-new-tab-to)
-(defalias 'tab-close       'tab-bar-close-tab)
-(defalias 'tab-close-other 'tab-bar-close-other-tabs)
-(defalias 'tab-undo        'tab-bar-undo-close-tab)
-(defalias 'tab-select      'tab-bar-select-tab)
-(defalias 'tab-next        'tab-bar-switch-to-next-tab)
-(defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
-(defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
-(defalias 'tab-move        'tab-bar-move-tab)
-(defalias 'tab-move-to     'tab-bar-move-tab-to)
-(defalias 'tab-rename      'tab-bar-rename-tab)
-(defalias 'tab-list        'tab-switcher)
+        (add-hook 'pre-command-hook #'tab-bar--history-pre-change)
+        (add-hook 'window-configuration-change-hook #'tab-bar--history-change))
+    (remove-hook 'pre-command-hook #'tab-bar--history-pre-change)
+    (remove-hook 'window-configuration-change-hook #'tab-bar--history-change)))
 
 
 ;;; Non-graphical access to frame-local tabs (named window configurations)
@@ -1198,18 +2172,11 @@ Type q to remove the list of window configurations from the display.
 The first column shows `D' for a window configuration you have
 marked for deletion."
   (interactive)
-  (let ((dir default-directory)
-        (minibuf (minibuffer-selected-window)))
-    (let ((tab-bar-show nil)) ; don't enable tab-bar-mode if it's disabled
+  (let ((dir default-directory))
+    (let ((tab-bar-new-tab-choice t)
+          ;; Don't enable tab-bar-mode if it's disabled
+          (tab-bar-show nil))
       (tab-bar-new-tab))
-    ;; Handle the case when it's called in the active minibuffer.
-    (when minibuf (select-window (minibuffer-selected-window)))
-    (delete-other-windows)
-    ;; Create a new window to replace the existing one, to not break the
-    ;; window parameters (e.g. prev/next buffers) of the window just saved
-    ;; to the window configuration.  So when a saved window is restored,
-    ;; its parameters left intact.
-    (split-window) (delete-window)
     (let ((switch-to-buffer-preserve-window-point nil))
       (switch-to-buffer (tab-switcher-noselect)))
     (setq default-directory dir))
@@ -1227,8 +2194,9 @@ For more information, see the function `tab-switcher'."
          (tabs (sort tabs (lambda (a b) (< (alist-get 'time b)
                                            (alist-get 'time a))))))
     (with-current-buffer (get-buffer-create
-                          (format " *Tabs*<%s>" (or (frame-parameter nil 'window-id)
-                                                    (frame-parameter nil 'name))))
+                          (format " *Tabs*<%s>"
+                                  (or (frame-parameter nil 'window-id)
+                                      (frame-parameter nil 'name))))
       (setq buffer-read-only nil)
       (erase-buffer)
       (tab-switcher-mode)
@@ -1243,7 +2211,8 @@ For more information, see the function `tab-switcher'."
                          (propertize
                           (alist-get 'name tab)
                           'mouse-face 'highlight
-                          'help-echo "mouse-2: select this window configuration"))
+                          'help-echo
+                          "mouse-2: select this window configuration"))
                  'tab tab)))
       (goto-char (point-min))
       (goto-char (or (next-single-property-change (point) 'tab) (point-min)))
@@ -1254,29 +2223,27 @@ For more information, see the function `tab-switcher'."
       (setq buffer-read-only t)
       (current-buffer))))
 
-(defvar tab-switcher-column 3)
-(make-variable-buffer-local 'tab-switcher-column)
+(defvar-local tab-switcher-column 3)
 
-(defvar tab-switcher-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map t)
-    (define-key map "q"    'quit-window)
-    (define-key map "\C-m" 'tab-switcher-select)
-    (define-key map "d"    'tab-switcher-delete)
-    (define-key map "k"    'tab-switcher-delete)
-    (define-key map "\C-d" 'tab-switcher-delete-backwards)
-    (define-key map "\C-k" 'tab-switcher-delete)
-    (define-key map "x"    'tab-switcher-execute)
-    (define-key map " "    'tab-switcher-next-line)
-    (define-key map "n"    'tab-switcher-next-line)
-    (define-key map "p"    'tab-switcher-prev-line)
-    (define-key map "\177" 'tab-switcher-backup-unmark)
-    (define-key map "?"    'describe-mode)
-    (define-key map "u"    'tab-switcher-unmark)
-    (define-key map [mouse-2] 'tab-switcher-mouse-select)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for `tab-switcher-mode' buffers.")
+(defvar-keymap tab-switcher-mode-map
+  :doc "Local keymap for `tab-switcher-mode' buffers."
+  :full t
+  :suppress t
+  "q"   #'quit-window
+  "RET" #'tab-switcher-select
+  "d"   #'tab-switcher-delete
+  "k"   #'tab-switcher-delete
+  "C-d" #'tab-switcher-delete-backwards
+  "C-k" #'tab-switcher-delete
+  "x"   #'tab-switcher-execute
+  "SPC" #'tab-switcher-next-line
+  "n"   #'tab-switcher-next-line
+  "p"   #'tab-switcher-prev-line
+  "DEL" #'tab-switcher-backup-unmark
+  "?"   #'describe-mode
+  "u"   #'tab-switcher-unmark
+  "<mouse-2>"     #'tab-switcher-mouse-select
+  "<follow-link>" 'mouse-face)
 
 (define-derived-mode tab-switcher-mode nil "Window Configurations"
   "Major mode for selecting a window configuration.
@@ -1305,20 +2272,24 @@ Letters do not insert themselves; instead, they are commands.
           nil))))
 
 (defun tab-switcher-next-line (&optional arg)
+  "Move to ARGth next line in the list of tabs.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (forward-line arg)
   (beginning-of-line)
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-prev-line (&optional arg)
+  "Move to ARGth previous line in the list of tabs.
+Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (forward-line (- arg))
   (beginning-of-line)
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-unmark (&optional backup)
-  "Cancel all requested operations on window configuration on this line and move down.
-Optional prefix arg means move up."
+  "Cancel operations on window configuration on this line and move down.
+With prefix arg BACKUP, move up instead."
   (interactive "P")
   (beginning-of-line)
   (move-to-column tab-switcher-column)
@@ -1329,7 +2300,7 @@ Optional prefix arg means move up."
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-backup-unmark ()
-  "Move up and cancel all requested operations on window configuration on line above."
+  "Move up one line and cancel operations on window configuration there."
   (interactive)
   (forward-line -1)
   (tab-switcher-unmark)
@@ -1337,9 +2308,10 @@ Optional prefix arg means move up."
   (move-to-column tab-switcher-column))
 
 (defun tab-switcher-delete (&optional arg)
-  "Mark window configuration on this line to be deleted by \\<tab-switcher-mode-map>\\[tab-switcher-execute] command.
-Prefix arg is how many window configurations to delete.
-Negative arg means delete backwards."
+  "Mark window configuration on this line to be deleted.
+Prefix arg says how many window configurations to delete.
+Negative arg means delete backwards.
+The deletion will be done by the \\<tab-switcher-mode-map>\\[tab-switcher-execute] command."
   (interactive "p")
   (let ((buffer-read-only nil))
     (if (or (null arg) (= arg 0))
@@ -1357,21 +2329,24 @@ Negative arg means delete backwards."
     (move-to-column tab-switcher-column)))
 
 (defun tab-switcher-delete-backwards (&optional arg)
-  "Mark window configuration on this line to be deleted by \\<tab-switcher-mode-map>\\[tab-switcher-execute] command.
-Then move up one line.  Prefix arg means move that many lines."
+  "Mark window configuration on this line to be deleted.
+Then move up one line.  Prefix arg means move that many lines.
+The deletion will be done by the \\<tab-switcher-mode-map>\\[tab-switcher-execute] command."
   (interactive "p")
   (tab-switcher-delete (- (or arg 1))))
 
 (defun tab-switcher-delete-from-list (tab)
-  "Delete the window configuration from both lists."
+  "Delete the window configuration from the list of tabs."
   (push `((frame . ,(selected-frame))
           (index . ,(tab-bar--tab-index tab))
           (tab . ,tab))
         tab-bar-closed-tabs)
-  (set-frame-parameter nil 'tabs (delq tab (funcall tab-bar-tabs-function))))
+  (tab-bar-tabs-set (delq tab (funcall tab-bar-tabs-function))))
 
 (defun tab-switcher-execute ()
-  "Delete window configurations marked with \\<tab-switcher-mode-map>\\[tab-switcher-delete] commands."
+  "Delete the marked window configurations.
+Use the \\<tab-switcher-mode-map>\\[tab-switcher-delete] commands
+to set those marks."
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -1391,8 +2366,8 @@ Then move up one line.  Prefix arg means move that many lines."
 
 (defun tab-switcher-select ()
   "Select this line's window configuration.
-This command deletes and replaces all the previously existing windows
-in the selected frame."
+This command replaces all the existing windows in the selected frame
+with those specified by the selected window configuration."
   (interactive)
   (let* ((to-tab (tab-switcher-current-tab t)))
     (kill-buffer (current-buffer))
@@ -1417,9 +2392,10 @@ in the selected frame."
    ((framep all-frames) (list all-frames))
    (t (list (selected-frame)))))
 
-(defun tab-bar-get-buffer-tab (buffer-or-name &optional all-frames ignore-current-tab)
-  "Return a tab owning a window whose buffer is BUFFER-OR-NAME.
-BUFFER-OR-NAME may be a buffer or a buffer name and defaults to
+(defun tab-bar-get-buffer-tab (buffer-or-name
+                               &optional all-frames ignore-current-tab all-tabs)
+  "Return the tab that owns the window whose buffer is BUFFER-OR-NAME.
+BUFFER-OR-NAME may be a buffer or a buffer name, and defaults to
 the current buffer.
 
 The optional argument ALL-FRAMES specifies the frames to consider:
@@ -1430,22 +2406,28 @@ The optional argument ALL-FRAMES specifies the frames to consider:
 
 - A frame means consider all tabs on that frame only.
 
-Any other value of ALL-FRAMES means consider all tabs on the
+- Any other value of ALL-FRAMES means consider all tabs on the
 selected frame and no others.
 
 When the optional argument IGNORE-CURRENT-TAB is non-nil,
-don't take into account the buffers in the currently selected tab."
+don't take into account the buffers in the currently selected tab.
+Otherwise, prefer buffers of the current tab.
+
+When the optional argument ALL-TABS is non-nil, return a list of all tabs
+that contain the buffer BUFFER-OR-NAME."
   (let ((buffer (if buffer-or-name
                     (get-buffer buffer-or-name)
-                  (current-buffer))))
+                  (current-buffer)))
+        buffer-tabs)
     (when (bufferp buffer)
-      (seq-some
+      (funcall
+       (if all-tabs #'seq-each #'seq-some)
        (lambda (frame)
-         (seq-some
+         (funcall
+          (if all-tabs #'seq-each #'seq-some)
           (lambda (tab)
             (when (if (eq (car tab) 'current-tab)
-                      (unless ignore-current-tab
-                        (get-buffer-window buffer frame))
+                      (get-buffer-window buffer frame)
                     (let* ((state (alist-get 'ws tab))
                            (buffers (when state
                                       (window-state-buffers state))))
@@ -1454,13 +2436,22 @@ don't take into account the buffers in the currently selected tab."
                        (memq buffer buffers)
                        ;; writable window-state
                        (member (buffer-name buffer) buffers))))
-              (append tab `((index . ,(tab-bar--tab-index tab nil frame))
-                            (frame . ,frame)))))
-          (funcall tab-bar-tabs-function frame)))
-       (tab-bar--reusable-frames all-frames)))))
+              (push (append tab `((index . ,(tab-bar--tab-index tab nil frame))
+                                  (frame . ,frame)))
+                    buffer-tabs)))
+          (let* ((tabs (funcall tab-bar-tabs-function frame))
+                 (current-tab (tab-bar--current-tab-find tabs)))
+            (setq tabs (remq current-tab tabs))
+            (if ignore-current-tab
+                ;; Use tabs without current-tab.
+                tabs
+              ;; Make sure current-tab is at the beginning of tabs.
+              (cons current-tab tabs)))))
+       (tab-bar--reusable-frames all-frames))
+      (if all-tabs (nreverse buffer-tabs) (car (last buffer-tabs))))))
 
 (defun display-buffer-in-tab (buffer alist)
-  "Display BUFFER in a tab.
+  "Display BUFFER in a tab using display actions in ALIST.
 ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
@@ -1468,25 +2459,34 @@ such alists.
 If ALIST contains a `tab-name' entry, it creates a new tab with that name and
 displays BUFFER in a new tab.  If a tab with this name already exists, it
 switches to that tab before displaying BUFFER.  The `tab-name' entry can be
-a function, then it is called with two arguments: BUFFER and ALIST, and
-should return the tab name.  When a `tab-name' entry is omitted, create
+a function, in which case it is called with two arguments: BUFFER and ALIST,
+and should return the tab name.  When a `tab-name' entry is omitted, create
 a new tab without an explicit name.
+
+The ALIST entry `tab-group' (string or function) defines the tab group.
 
 If ALIST contains a `reusable-frames' entry, its value determines
 which frames to search for a reusable tab:
-  nil -- the selected frame (actually the last non-minibuffer frame)
-  A frame   -- just that frame
-  `visible' -- all visible frames
-  0   -- all frames on the current terminal
-  t   -- all frames.
+  nil -- do not reuse any frames;
+  a frame  -- just that frame;
+  `visible' -- all visible frames;
+  0 -- all frames on the current terminal;
+  t -- all frames;
+  other non-nil values -- use the selected frame.
+
+If ALIST contains a non-nil `ignore-current-tab' entry, then the buffers
+of the current tab are skipped when searching for a reusable tab.
+Otherwise, prefer buffers of the current tab.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
   (let* ((reusable-frames (alist-get 'reusable-frames alist))
+         (ignore-current-tab (alist-get 'ignore-current-tab alist))
          (reusable-tab (when reusable-frames
-                         (tab-bar-get-buffer-tab buffer reusable-frames))))
+                         (tab-bar-get-buffer-tab buffer reusable-frames
+                                                 ignore-current-tab))))
     (if reusable-tab
         (let* ((frame (alist-get 'frame reusable-tab))
                (index (alist-get 'index reusable-tab)))
@@ -1510,7 +2510,7 @@ indirectly called by the latter."
           (display-buffer-in-new-tab buffer alist))))))
 
 (defun display-buffer-in-new-tab (buffer alist)
-  "Display BUFFER in a new tab.
+  "Display BUFFER in a new tab using display actions in ALIST.
 ALIST is an association list of action symbols and values.  See
 Info node `(elisp) Buffer Display Action Alists' for details of
 such alists.
@@ -1520,9 +2520,11 @@ without checking if a suitable tab already exists.
 
 If ALIST contains a `tab-name' entry, it creates a new tab with that name
 and displays BUFFER in a new tab.  The `tab-name' entry can be a function,
-then it is called with two arguments: BUFFER and ALIST, and should return
-the tab name.  When a `tab-name' entry is omitted, create a new tab without
-an explicit name.
+in which case it is called with two arguments: BUFFER and ALIST, and should
+return the tab name.  When a `tab-name' entry is omitted, create a new tab
+without an explicit name.
+
+The ALIST entry `tab-group' (string or function) defines the tab group.
 
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
@@ -1535,21 +2537,30 @@ indirectly called by the latter."
         (setq tab-name (funcall tab-name buffer alist)))
       (when tab-name
         (tab-bar-rename-tab tab-name)))
+    (let ((tab-group (alist-get 'tab-group alist)))
+      (when (functionp tab-group)
+        (setq tab-group (funcall tab-group buffer alist)))
+      (when tab-group
+        (tab-bar-change-tab-group tab-group)))
     (window--display-buffer buffer (selected-window) 'tab alist)))
 
-(defun switch-to-buffer-other-tab (buffer-or-name &optional norecord)
+(defun switch-to-buffer-other-tab (buffer-or-name &optional _norecord)
   "Switch to buffer BUFFER-OR-NAME in another tab.
-Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab."
+Like \\[switch-to-buffer-other-frame] (which see), but creates a new tab.
+Interactively, prompt for the buffer to switch to."
+  (declare (advertised-calling-convention (buffer-or-name) "28.1"))
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
-                  '((display-buffer-in-tab)
-                    (inhibit-same-window . nil))
-                  norecord))
+  (pop-to-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                 '((display-buffer-in-tab)
+                   (inhibit-same-window . nil))))
 
 (defun find-file-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab.
-Like \\[find-file-other-frame] (which see), but creates a new tab."
+Like \\[find-file-other-frame] (which see), but creates a new tab.
+Interactively, prompt for FILENAME.
+If WILDCARDS is non-nil, FILENAME can include widcards, and all matching
+files will be visited."
   (interactive
    (find-file-read-args "Find file in other tab: "
                         (confirm-nonexistent-file-or-buffer)))
@@ -1558,16 +2569,18 @@ Like \\[find-file-other-frame] (which see), but creates a new tab."
         (progn
           (setq value (nreverse value))
           (switch-to-buffer-other-tab (car value))
-          (mapc 'switch-to-buffer (cdr value))
+          (mapc #'switch-to-buffer (cdr value))
           value)
       (switch-to-buffer-other-tab value))))
 
 (defun find-file-read-only-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab, but don't allow changes.
 Like \\[find-file-other-frame] (which see), but creates a new tab.
-
 Like \\[find-file-other-tab], but marks buffer as read-only.
-Use \\[read-only-mode] to permit editing."
+Use \\[read-only-mode] to permit editing.
+Interactively, prompt for FILENAME.
+If WILDCARDS is non-nil, FILENAME can include widcards, and all matching
+files will be visited."
   (interactive
    (find-file-read-args "Find file read-only in other tab: "
                         (confirm-nonexistent-file-or-buffer)))
@@ -1595,18 +2608,63 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
    nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
 
-(define-key tab-prefix-map "2" 'tab-new)
-(define-key tab-prefix-map "1" 'tab-close-other)
-(define-key tab-prefix-map "0" 'tab-close)
-(define-key tab-prefix-map "o" 'tab-next)
-(define-key tab-prefix-map "m" 'tab-move)
-(define-key tab-prefix-map "r" 'tab-rename)
-(define-key tab-prefix-map "\r" 'tab-bar-select-tab-by-name)
-(define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)
-(define-key tab-prefix-map "f" 'find-file-other-tab)
-(define-key tab-prefix-map "\C-f" 'find-file-other-tab)
-(define-key tab-prefix-map "\C-r" 'find-file-read-only-other-tab)
-(define-key tab-prefix-map "t" 'other-tab-prefix)
+
+;;; Short aliases and keybindings
+
+(defalias 'tab-new             #'tab-bar-new-tab)
+(defalias 'tab-new-to          #'tab-bar-new-tab-to)
+(defalias 'tab-duplicate       #'tab-bar-duplicate-tab)
+(defalias 'tab-detach          #'tab-bar-detach-tab)
+(defalias 'tab-window-detach   #'tab-bar-move-window-to-tab)
+(defalias 'tab-close           #'tab-bar-close-tab)
+(defalias 'tab-close-other     #'tab-bar-close-other-tabs)
+(defalias 'tab-close-group     #'tab-bar-close-group-tabs)
+(defalias 'tab-undo            #'tab-bar-undo-close-tab)
+(defalias 'tab-select          #'tab-bar-select-tab)
+(defalias 'tab-switch          #'tab-bar-switch-to-tab)
+(defalias 'tab-next            #'tab-bar-switch-to-next-tab)
+(defalias 'tab-previous        #'tab-bar-switch-to-prev-tab)
+(defalias 'tab-last            #'tab-bar-switch-to-last-tab)
+(defalias 'tab-recent          #'tab-bar-switch-to-recent-tab)
+(defalias 'tab-move            #'tab-bar-move-tab)
+(defalias 'tab-move-to         #'tab-bar-move-tab-to)
+(defalias 'tab-rename          #'tab-bar-rename-tab)
+(defalias 'tab-group           #'tab-bar-change-tab-group)
+(defalias 'tab-list            #'tab-switcher)
+
+(keymap-set tab-prefix-map "n"   #'tab-duplicate)
+(keymap-set tab-prefix-map "N"   #'tab-new-to)
+(keymap-set tab-prefix-map "2"   #'tab-new)
+(keymap-set tab-prefix-map "1"   #'tab-close-other)
+(keymap-set tab-prefix-map "0"   #'tab-close)
+(keymap-set tab-prefix-map "u"   #'tab-undo)
+(keymap-set tab-prefix-map "o"   #'tab-next)
+(keymap-set tab-prefix-map "O"   #'tab-previous)
+(keymap-set tab-prefix-map "m"   #'tab-move)
+(keymap-set tab-prefix-map "M"   #'tab-move-to)
+(keymap-set tab-prefix-map "G"   #'tab-group)
+(keymap-set tab-prefix-map "r"   #'tab-rename)
+(keymap-set tab-prefix-map "^ f"  #'tab-detach)
+(keymap-set tab-prefix-map "RET" #'tab-switch)
+(keymap-set tab-prefix-map "b"   #'switch-to-buffer-other-tab)
+(keymap-set tab-prefix-map "f"   #'find-file-other-tab)
+(keymap-set tab-prefix-map "C-f" #'find-file-other-tab)
+(keymap-set tab-prefix-map "C-r" #'find-file-read-only-other-tab)
+(keymap-set tab-prefix-map "t"   #'other-tab-prefix)
+
+(defvar-keymap tab-bar-switch-repeat-map
+  :doc "Keymap to repeat tab switch commands `tab-next' and `tab-previous'.
+Used in `repeat-mode'."
+  :repeat t
+  "o" #'tab-next
+  "O" #'tab-previous)
+
+(defvar-keymap tab-bar-move-repeat-map
+  :doc "Keymap to repeat tab move commands `tab-move' and `tab-bar-move-tab-backward'.
+Used in `repeat-mode'."
+  :repeat t
+  "m" #'tab-move
+  "M" #'tab-bar-move-tab-backward)
 
 
 (provide 'tab-bar)

@@ -1,6 +1,6 @@
 ;;; em-term.el --- running visual commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -34,7 +34,6 @@
 (require 'cl-lib)
 (require 'esh-util)
 (require 'esh-ext)
-(eval-when-compile (require 'eshell))
 (require 'term)
 
 ;;;###autoload
@@ -56,7 +55,7 @@ which commands are considered visual in nature."
   :type 'hook)
 
 (defcustom eshell-visual-commands
-  '("vi"                                ; what is going on??
+  '("vi" "vim"                          ; what is going on??
     "screen" "tmux" "top" "htop"        ; ok, a valid program...
     "less" "more"                       ; M-x view-file
     "lynx" "links" "ncftp"              ; eww, ange-ftp
@@ -67,7 +66,7 @@ Commands listed here are run in a term buffer.
 
 See also `eshell-visual-subcommands' and `eshell-visual-options'."
   :type '(repeat string)
-  :version "27.1")
+  :version "29.1")
 
 (defcustom eshell-visual-subcommands
   nil
@@ -92,13 +91,13 @@ See also `eshell-visual-commands' and `eshell-visual-options'."
 
 (defcustom eshell-visual-options
   nil
-  "An alist of the form
+  "An alist of commands that present their output in a visual fashion.
+It has this form:
 
   ((COMMAND1 OPTION1 OPTION2...)
    (COMMAND2 OPTION1 ...))
 
-of commands with options that present their output in a visual
-fashion.  For example, a sensible entry would be
+For example, a sensible entry would be
 
   (\"git\" \"--help\" \"--paginate\")
 
@@ -143,8 +142,7 @@ behavior for short-lived processes, see bug#18108."
 
 (defun eshell-term-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the `term' interface code."
-  (make-local-variable 'eshell-interpreter-alist)
-  (setq eshell-interpreter-alist
+  (setq-local eshell-interpreter-alist
 	(cons (cons #'eshell-visual-command-p
 		    'eshell-exec-visual)
 	      eshell-interpreter-alist)))
@@ -154,7 +152,7 @@ behavior for short-lived processes, see bug#18108."
 If either COMMAND or a subcommand in ARGS (e.g. git log) is a
 visual command, returns non-nil."
   (let ((command (file-name-nondirectory command)))
-    (and (eshell-interactive-output-p)
+    (and (eshell-interactive-output-p 'all)
          (or (member command eshell-visual-commands)
              (member (car args)
                      (cdr (assoc command eshell-visual-subcommands)))
@@ -179,17 +177,18 @@ allowed."
     (save-current-buffer
       (switch-to-buffer term-buf)
       (term-mode)
-      (set (make-local-variable 'term-term-name) eshell-term-name)
-      (make-local-variable 'eshell-parent-buffer)
-      (setq eshell-parent-buffer eshell-buf)
+      (setq-local term-term-name eshell-term-name)
+      (setq-local eshell-parent-buffer eshell-buf)
       (term-exec term-buf program program nil args)
       (let ((proc (get-buffer-process term-buf)))
 	(if (and proc (eq 'run (process-status proc)))
 	    (set-process-sentinel proc #'eshell-term-sentinel)
 	  (error "Failed to invoke visual command")))
       (term-char-mode)
-      (if eshell-escape-control-x
-	  (term-set-escape-char ?\C-x))))
+      (when eshell-escape-control-x
+        ;; Don't drop existing escape char.
+        (let (term-escape-char)
+          (term-set-escape-char ?\C-x)))))
   nil)
 
 ;; Process sentinels receive two arguments.
@@ -226,7 +225,7 @@ the buffer."
 
 ; (defun eshell-term-send-raw-string (chars)
 ;   (goto-char eshell-last-output-end)
-;   (process-send-string (eshell-interactive-process) chars))
+;   (process-send-string (eshell-head-process) chars))
 
 ; (defun eshell-term-send-raw ()
 ;   "Send the last character typed through the terminal-emulator

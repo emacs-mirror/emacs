@@ -1,5 +1,5 @@
 /* Pre-process emacs.exe for profiling by MSVC.
-   Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
    Andrew Innes <andrewi@harlequin.co.uk>       16-Jan-1999
      based on code from addsection.c
 */
+
+#define DEFER_MS_W32_H
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>

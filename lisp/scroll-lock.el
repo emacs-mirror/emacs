@@ -1,6 +1,6 @@
 ;;; scroll-lock.el --- Scroll lock scrolling.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@iwi.uni-sb.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -30,19 +30,16 @@
 
 ;;; Code:
 
-(defvar scroll-lock-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap next-line] 'scroll-lock-next-line)
-    (define-key map [remap previous-line] 'scroll-lock-previous-line)
-    (define-key map [remap forward-paragraph] 'scroll-lock-forward-paragraph)
-    (define-key map [remap backward-paragraph] 'scroll-lock-backward-paragraph)
-    (define-key map [S-down] 'scroll-lock-next-line-always-scroll)
-    map)
-  "Keymap for Scroll Lock mode.")
+(defvar-keymap scroll-lock-mode-map
+  :doc "Keymap for Scroll Lock mode."
+  "<remap> <next-line>"          #'scroll-lock-next-line
+  "<remap> <previous-line>"      #'scroll-lock-previous-line
+  "<remap> <forward-paragraph>"  #'scroll-lock-forward-paragraph
+  "<remap> <backward-paragraph>" #'scroll-lock-backward-paragraph
+  "S-<down>"                     #'scroll-lock-next-line-always-scroll)
 
-(defvar scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
+(defvar-local scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
   "Used for saving the state of `scroll-preserve-screen-position'.")
-(make-variable-buffer-local 'scroll-lock-preserve-screen-pos-save)
 
 (defvar scroll-lock-temporary-goal-column 0
   "Like `temporary-goal-column' but for scroll-lock-* commands.")
@@ -56,7 +53,7 @@ will scroll the buffer by the respective amount of lines instead
 and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
-Note that the default key binding to Scroll_Lock will not work on
+Note that the default key binding to `scroll' will not work on
 MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
   :lighter " ScrLck"
   :keymap scroll-lock-mode-map
@@ -64,7 +61,7 @@ MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
       (progn
 	(setq scroll-lock-preserve-screen-pos-save
 	      scroll-preserve-screen-position)
-	(set (make-local-variable 'scroll-preserve-screen-position) 'always))
+        (setq-local scroll-preserve-screen-position 'always))
     (setq scroll-preserve-screen-position
 	  scroll-lock-preserve-screen-pos-save)))
 

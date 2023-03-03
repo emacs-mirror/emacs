@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2020 Free Software Foundation, Inc.
+# Copyright 2009-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -25,6 +25,7 @@
 
 # Personal customization.
 .dir-locals-2.el
+.no-advice-on-failure
 
 # Built by 'autogen.sh'.
 /aclocal.m4
@@ -53,6 +54,7 @@ src/emacs-module.h
 
 # C-level sources built by 'make'.
 lib/alloca.h
+lib/assert.h
 lib/byteswap.h
 lib/dirent.h
 lib/errno.h
@@ -65,6 +67,7 @@ lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
 lib/limits.h
+lib/malloc/*.gl.h
 lib/signal.h
 lib/std*.h
 !lib/std*.in.h
@@ -76,6 +79,7 @@ lib/unistd.h
 src/buildobj.h
 src/globals.h
 src/lisp.mk
+src/verbose.mk
 
 # Lisp-level sources built by 'make'.
 *cus-load.el
@@ -87,6 +91,7 @@ lisp/cedet/semantic/wisent/javat-wy.el
 lisp/cedet/semantic/wisent/js-wy.el
 lisp/cedet/semantic/wisent/python-wy.el
 lisp/cedet/srecode/srt-wy.el
+lisp/cedet/semantic/grammar-wy.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/leim/ja-dic/
@@ -133,6 +138,7 @@ src/gl-stamp
 *.dll
 *.core
 *.elc
+*.eln
 *.o
 *.res
 *.so
@@ -140,6 +146,7 @@ src/gl-stamp
 core
 core.*[0-9]
 gmon.out
+native-lisp/
 oo/
 oo-spd/
 src/*.map
@@ -151,8 +158,11 @@ test/manual/etags/srclist
 test/manual/etags/regexfile
 test/manual/etags/ETAGS
 test/manual/etags/CTAGS
+test/manual/etags/CTAGS*.sorted
 test/manual/indent/*.new
-test/data/mml-sec/random_seed
+test/lisp/gnus/mml-sec-resources/random_seed
+test/lisp/play/fortune-resources/fortunes.dat
+test/**/*.xml
 
 # ctags, etags.
 TAGS
@@ -176,6 +186,7 @@ ID
 # Executables.
 *.exe
 a.out
+lib-src/be-resources
 lib-src/blessmail
 lib-src/ctags
 lib-src/ebrowse
@@ -186,6 +197,7 @@ lib-src/make-docfile
 lib-src/make-fingerprint
 lib-src/movemail
 lib-src/profile
+lib-src/seccomp-filter
 lib-src/test-distrib
 lib-src/update-game-score
 nextstep/Cocoa/Emacs.base/Contents/Info.plist
@@ -196,8 +208,8 @@ nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
+src/Emacs
 src/temacs
-src/fingerprint.c
 src/dmpstruct.h
 src/*.pdmp
 
@@ -208,8 +220,11 @@ etc/charsets/*.map
 lisp/international/charprop.el
 lisp/international/charscript.el
 lisp/international/cp51932.el
+lisp/international/emoji-zwj.el
+lisp/international/emoji-labels.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
+lisp/international/idna-mapping.el
 lisp/language/pinyin.el
 
 # Documentation.
@@ -253,6 +268,8 @@ doc/*/*/*.ps
 doc/emacs/emacsver.texi
 doc/man/emacs.1
 doc/misc/cc-mode.ss
+doc/misc/modus-themes.texi
+doc/misc/org.texi
 etc/DOC
 etc/refcards/emacsver.tex
 gnustmp*
@@ -298,3 +315,26 @@ nt/emacs.rc
 nt/emacsclient.rc
 src/gdb.ini
 /var/
+
+# Seccomp filter files.
+lib-src/seccomp-filter.bpf
+lib-src/seccomp-filter.pfc
+lib-src/seccomp-filter-exec.bpf
+lib-src/seccomp-filter-exec.pfc
+
+# gsettings schema
+/etc/*.gschema.valid
+
+# Ignore directory made by admin/make-manuals.
+/manual/
+
+# Ignore Finder files on MacOS.
+.DS_Store
+
+# Ignore a directory used by dap-mode.
+.vscode
+/test/gmp.h
+
+# GDB history
+.gdb_history
+_gdb_history

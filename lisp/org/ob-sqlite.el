@@ -1,10 +1,11 @@
 ;;; ob-sqlite.el --- Babel Functions for SQLite Databases -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
+;; Maintainer: Nick Savage <nick@nicksavage.ca>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +27,12 @@
 ;; Org-Babel support for evaluating sqlite source code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
+(require 'ob-sql)
 
 (declare-function org-table-convert-region "org-table"
 		  (beg0 end0 &optional separator))
@@ -51,8 +57,8 @@
 
 (defun org-babel-expand-body:sqlite (body params)
   "Expand BODY according to the values of PARAMS."
-  (org-babel-sqlite-expand-vars
-   body (org-babel--get-vars params)))
+  (org-babel-sql-expand-vars
+   body (org-babel--get-vars params) t))
 
 (defvar org-babel-sqlite3-command "sqlite3")
 
@@ -112,32 +118,19 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-sqlite-expand-vars (body vars)
   "Expand the variables held in VARS in BODY."
-  ;; FIXME: Redundancy with org-babel-sql-expand-vars!
-  (mapc
-   (lambda (pair)
-     (setq body
-	   (replace-regexp-in-string
-	    (format "$%s" (car pair))
-	    (let ((val (cdr pair)))
-              (if (listp val)
-                  (let ((data-file (org-babel-temp-file "sqlite-data-")))
-                    (with-temp-file data-file
-                      (insert (orgtbl-to-csv val nil)))
-                    data-file)
-                (if (stringp val) val (format "%S" val))))
-	    body)))
-   vars)
-  body)
+  (declare (obsolete "use `org-babel-sql-expand-vars' instead." "9.5"))
+  (org-babel-sql-expand-vars body vars t))
 
 (defun org-babel-sqlite-table-or-scalar (result)
   "If RESULT looks like a trivial table, then unwrap it."
   (if (and (equal 1 (length result))
 	   (equal 1 (length (car result))))
-      (org-babel-read (caar result))
+      (org-babel-read (caar result) t)
     (mapcar (lambda (row)
 	      (if (eq 'hline row)
 		  'hline
-		(mapcar #'org-babel-string-read row))) result)))
+		(mapcar #'org-babel-sqlite--read-cell row)))
+	    result)))
 
 (defun org-babel-sqlite-offset-colnames (table headers-p)
   "If HEADERS-P is non-nil then offset the first row as column names."
@@ -150,8 +143,10 @@ This function is called by `org-babel-execute-src-block'."
 Prepare SESSION according to the header arguments specified in PARAMS."
   (error "SQLite sessions not yet implemented"))
 
+(defun org-babel-sqlite--read-cell (cell)
+  "Process CELL to remove unnecessary characters."
+  (org-babel-read cell t))
+
 (provide 'ob-sqlite)
-
-
 
 ;;; ob-sqlite.el ends here

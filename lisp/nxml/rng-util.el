@@ -1,6 +1,6 @@
-;;; rng-util.el --- utility functions for RELAX NG library
+;;; rng-util.el --- utility functions for RELAX NG library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -35,28 +35,6 @@
   (rng-make-datatypes-uri "http://www.w3.org/2001/XMLSchema-datatypes"))
 
 (defconst rng-builtin-datatypes-uri (rng-make-datatypes-uri ""))
-
-(defun rng-uniquify-eq (list)
-  "Destructively remove `eq' duplicates from LIST."
-  (and list
-       (let ((head list))
-	 (while (cdr head)
-	   (if (eq (car head) (cadr head))
-	       (setcdr head (cddr head)))
-	   (setq head (cdr head)))
-	 list)))
-
-(defun rng-uniquify-equal (list)
-  "Destructively remove `equal' duplicates from LIST."
-  (and list
-       (let ((head list))
-	 (while (cdr head)
-	   (if (equal (car head) (cadr head))
-	       (setcdr head (cddr head)))
-	   (setq head (cdr head)))
-	 list)))
-
-(defun rng-blank-p (str) (string-match "\\`[ \t\n\r]*\\'" str))
 
 (defun rng-substq (new old list)
   "Replace first member of LIST (if any) that is `eq' to OLD by NEW.
@@ -93,16 +71,15 @@ LIST is not modified."
 			    s
 			    t))
 
-(defun rng-collapse-space (string)
-  (setq string
-	(replace-regexp-in-string "[ \t\r\n]+" " " string t t))
-  (when (string-match "\\` " string)
-    (setq string (substring string 1)))
-  (when (string-match " \\'" string)
-    (setq string (substring string 0 -1)))
-  string)
-
 (define-error 'rng-error nil)
+
+(defun rng-uniquify-eq (list)
+  (declare (obsolete seq-uniq "28.1"))
+  (seq-uniq list #'eq))
+
+(define-obsolete-function-alias 'rng-uniquify-equal #'seq-uniq "28.1")
+(define-obsolete-function-alias 'rng-blank-p #'string-blank-p "29.1")
+(define-obsolete-function-alias 'rng-collapse-space #'string-clean-whitespace "29.1")
 
 (provide 'rng-util)
 

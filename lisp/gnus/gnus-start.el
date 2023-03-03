@@ -1,6 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -173,7 +173,7 @@ properly with all servers."
 
 Groups with levels less than `gnus-level-subscribed', which
 should be less than this variable, are subscribed.  Groups with
-levels from `gnus-level-subscribed' (exclusive) upto this
+levels from `gnus-level-subscribed' (exclusive) up to this
 variable (inclusive) are unsubscribed.  See also
 `gnus-level-zombie', `gnus-level-killed' and the Info node `(gnus)Group
 Levels' for details.")
@@ -259,7 +259,7 @@ not match this regexp will be removed before saving the list."
 		regexp))
 
 (defcustom gnus-ignored-newsgroups
-  (mapconcat 'identity
+  (mapconcat #'identity
 	     '("^to\\."			; not "real" groups
 	       "^[0-9. \t]+\\( \\|$\\)"	; all digits in name
 	       "^[\"][\"#'()]"	; bogus characters
@@ -294,8 +294,6 @@ claim them."
 		function
 		(repeat function)))
 
-(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
-  'gnus-subscribe-newsgroup-functions "24.3")
 (defcustom gnus-subscribe-newsgroup-functions nil
   "Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."
@@ -329,10 +327,10 @@ with the subscription method in this variable."
   "If non-nil, Gnus will offer to subscribe hierarchically.
 When a new hierarchy appears, Gnus will ask the user:
 
-'alt.binaries': Do you want to subscribe to this hierarchy? ([d]ys):
+Descend hierarchy alt.binaries? ([y]nsq):
 
-If the user pressed `d', Gnus will descend the hierarchy, `y' will
-subscribe to all newsgroups in the hierarchy and `s' will skip this
+If the user pressed `y', Gnus will descend the hierarchy, `s' will
+subscribe to all newsgroups in the hierarchy and `n' will skip this
 hierarchy in its entirety."
   :group 'gnus-group-new
   :type 'boolean)
@@ -518,7 +516,7 @@ Can be used to turn version control on or off."
 ;; For subscribing new newsgroup
 
 (defun gnus-subscribe-hierarchical-interactive (groups)
-  (let ((groups (sort groups 'string<))
+  (let ((groups (sort groups #'string<))
 	prefixes prefix start ans group starts)
     (while groups
       (setq prefixes (list "^"))
@@ -637,7 +635,7 @@ the first newsgroup."
     ;; We subscribe the group by changing its level to `subscribed'.
     (gnus-group-change-level
      newsgroup gnus-level-default-subscribed
-     gnus-level-killed (or next "dummy.group"))
+     gnus-level-killed next)
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
     (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
@@ -663,7 +661,7 @@ the first newsgroup."
 (defvar mail-sources)
 (defvar nnmail-scan-directory-mail-source-once)
 (defvar nnmail-split-history)
-(defvar nnmail-spool-file)
+(defvar gnus-save-newsrc-file-last-timestamp nil)
 
 (defun gnus-close-all-servers ()
   "Close all servers."
@@ -708,6 +706,7 @@ the first newsgroup."
 	gnus-current-select-method nil
 	nnmail-split-history nil
 	gnus-extended-servers nil
+        gnus-save-newsrc-file-last-timestamp nil
 	gnus-ephemeral-servers nil)
   (gnus-shutdown 'gnus)
   ;; Kill the startup file.
@@ -716,6 +715,9 @@ the first newsgroup."
        (kill-buffer (get-file-buffer gnus-current-startup-file)))
   ;; Clear the dribble buffer.
   (gnus-dribble-clear)
+  ;; Reset the level when Gnus is restarted.
+  (when (numberp gnus-group-use-permanent-levels)
+    (setq gnus-group-use-permanent-levels t))
   ;; Kill global KILL file buffer.
   (when (get-file-buffer (gnus-newsgroup-kill-file nil))
     (kill-buffer (get-file-buffer (gnus-newsgroup-kill-file nil))))
@@ -741,8 +743,7 @@ of an NNTP server to use.  As opposed to \\[gnus], this command
 will not connect to the local server."
   (let ((val (or arg (1- gnus-level-default-subscribed))))
     (gnus val t child)
-    (make-local-variable 'gnus-group-use-permanent-levels)
-    (setq gnus-group-use-permanent-levels val)))
+    (setq-local gnus-group-use-permanent-levels val)))
 
 (defun gnus-1 (&optional arg dont-connect child)
   "Read network news.
@@ -844,8 +845,7 @@ prompt the user for the name of an NNTP server to use."
 If REGEXP is given, lines that match it will be deleted."
   (when (and (not gnus-dribble-ignore)
              (buffer-live-p gnus-dribble-buffer))
-    (let ((obuf (current-buffer)))
-      (set-buffer gnus-dribble-buffer)
+    (with-current-buffer gnus-dribble-buffer
       (when regexp
 	(goto-char (point-min))
 	(let (end)
@@ -853,15 +853,14 @@ If REGEXP is given, lines that match it will be deleted."
 	    (unless (bolp) (forward-line 1))
 	    (setq end (point))
 	    (goto-char (match-beginning 0))
-	    (delete-region (point-at-bol) end))))
+            (delete-region (line-beginning-position) end))))
       (goto-char (point-max))
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
-      (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
+      (insert (string-replace "\n" "\\n" string) "\n")
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
-	(gnus-group-set-mode-line))
-      (set-buffer obuf))))
+	(gnus-group-set-mode-line)))))
 
 (defun gnus-dribble-touch ()
   "Touch the dribble buffer."
@@ -875,13 +874,13 @@ If REGEXP is given, lines that match it will be deleted."
     (with-current-buffer (setq gnus-dribble-buffer
 			       (gnus-get-buffer-create
 				(file-name-nondirectory dribble-file)))
-      (set (make-local-variable 'file-precious-flag) t)
+      (setq-local file-precious-flag t)
       (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
       ;; The buffer may be shrunk a lot when deleting old entries.
       ;; It caused the auto-saving to stop.
-      (set (make-local-variable 'auto-save-include-big-deletions) t)
+      (setq-local auto-save-include-big-deletions t)
       (auto-save-mode t)
       (buffer-disable-undo)
       (bury-buffer (current-buffer))
@@ -917,9 +916,8 @@ If REGEXP is given, lines that match it will be deleted."
 (defun gnus-dribble-eval-file ()
   (when gnus-dribble-eval-file
     (setq gnus-dribble-eval-file nil)
-    (save-excursion
-      (let ((gnus-dribble-ignore t))
-	(set-buffer gnus-dribble-buffer)
+    (let ((gnus-dribble-ignore t))
+      (with-current-buffer gnus-dribble-buffer
 	(eval-buffer (current-buffer))))))
 
 (defun gnus-dribble-delete-file ()
@@ -1070,11 +1068,11 @@ If no function returns `non-nil', call `gnus-subscribe-zombies'."
 Each new newsgroup will be treated with `gnus-subscribe-newsgroup-method'.
 The `-n' option line from .newsrc is respected.
 
-With 1 C-u, use the `ask-server' method to query the server for new
+With 1 \\[universal-argument], use the `ask-server' method to query the server for new
 groups.
-With 2 C-u's, use most complete method possible to query the server
+With 2 \\[universal-argument]'s, use most complete method possible to query the server
 for new groups, and subscribe the new groups as zombies."
-  (interactive "p")
+  (interactive "p" gnus-group-mode)
   (let* ((gnus-subscribe-newsgroup-method
 	  gnus-subscribe-newsgroup-method)
 	 (check (cond
@@ -1177,7 +1175,7 @@ for new groups, and subscribe the new groups as zombies."
 			       gnus-check-new-newsgroups)
 			  gnus-secondary-select-methods))))
 	 (groups 0)
-	 group new-newsgroups got-new method hashtb
+	 new-newsgroups got-new method hashtb ;; group
 	 gnus-override-subscribe-method)
     (unless gnus-killed-hashtb
       (gnus-make-hashtable-from-killed))
@@ -1188,10 +1186,9 @@ for new groups, and subscribe the new groups as zombies."
 	    gnus-override-subscribe-method method)
       (when (and (gnus-check-server method)
 		 (gnus-request-newgroups date method))
-	(save-excursion
-	  (setq got-new t
-		hashtb (gnus-make-hashtable 100))
-	  (set-buffer nntp-server-buffer)
+        (setq got-new t
+              hashtb (gnus-make-hashtable 100))
+	(with-current-buffer nntp-server-buffer
 	  ;; Enter all the new groups into a hashtable.
 	  (gnus-active-to-gnus-format method hashtb 'ignore))
 	;; Now all new groups from `method' are in `hashtb'.
@@ -1209,14 +1206,14 @@ for new groups, and subscribe the new groups as zombies."
 	       (cond
 		((eq do-sub 'subscribe)
 		 (cl-incf groups)
-		 (puthash g-name group gnus-killed-hashtb)
+		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (gnus-call-subscribe-functions
 		  gnus-subscribe-options-newsgroup-method g-name))
 		((eq do-sub 'ignore)
 		 nil)
 		(t
 		 (cl-incf groups)
-		 (puthash g-name group gnus-killed-hashtb)
+		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (if gnus-subscribe-hierarchical-interactive
 		     (push g-name new-newsgroups)
 		   (gnus-call-subscribe-functions
@@ -1283,7 +1280,8 @@ string name) to insert this group before."
 	(gnus-dribble-enter
 	 (format "(gnus-group-change-level %S %S %S %S %S)"
 		 group level oldlevel
-		 (cadr (member previous gnus-group-list))
+		 (when previous
+		   (cadr (member previous gnus-group-list)))
 		 fromkilled)))
 
       ;; Then we remove the newgroup from any old structures, if needed.
@@ -1342,9 +1340,10 @@ string name) to insert this group before."
 	  ;; at the head of `gnus-newsrc-alist'.
 	  (push info (cdr gnus-newsrc-alist))
 	  (puthash group (list num info) gnus-newsrc-hashtb)
-	  (when (stringp previous)
+	  (when (and previous (stringp previous))
 	    (setq previous (gnus-group-entry previous)))
-	  (let ((idx (or (seq-position gnus-group-list (caadr previous))
+	  (let ((idx (or (and previous
+			      (seq-position gnus-group-list (caadr previous)))
 			 (length gnus-group-list))))
 	    (push group (nthcdr idx gnus-group-list)))
 	  (gnus-dribble-enter
@@ -1408,7 +1407,7 @@ newsgroup."
 
 (defun gnus-check-duplicate-killed-groups ()
   "Remove duplicates from the list of killed groups."
-  (interactive)
+  (interactive nil gnus-group-mode)
   (let ((killed gnus-killed-list))
     (while killed
       (gnus-message 9 "%d" (length killed))
@@ -1811,7 +1810,7 @@ where unread is an integer count of calculated unread
 messages (or nil), and info is a regular gnus info entry.
 
 The info element is shared with the same element of
-`gnus-newrc-alist', so as to conserve space."
+`gnus-newsrc-alist', so as to conserve space."
   (let ((alist gnus-newsrc-alist)
 	(ohashtb gnus-newsrc-hashtb)
 	info method gname rest methods)
@@ -1883,13 +1882,12 @@ The info element is shared with the same element of
 	 (ranges (gnus-info-read info))
 	 news article)
     (while articles
-      (when (gnus-member-of-range
-	     (setq article (pop articles)) ranges)
+      (when (range-member-p (setq article (pop articles)) ranges)
 	(push article news)))
     (when news
       ;; Enter this list into the group info.
       (setf (gnus-info-read info)
-            (gnus-remove-from-range (gnus-info-read info) (nreverse news)))
+            (range-remove (gnus-info-read info) (nreverse news)))
 
       ;; Set the number of unread articles in gnus-newsrc-hashtb.
       (gnus-get-unread-articles-in-group info (gnus-active group))
@@ -2173,7 +2171,7 @@ The info element is shared with the same element of
 	   (unless ignore-errors
 	     (gnus-message 3 "Warning - invalid active: %s"
 			   (buffer-substring
-			    (point-at-bol) (point-at-eol))))))
+                            (line-beginning-position) (line-end-position))))))
 	(forward-line 1)))))
 
 (defun gnus-groups-to-gnus-format (method &optional hashtb real-active)
@@ -2249,9 +2247,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	;; can find there for changing the data already read -
 	;; i. e., reading the .newsrc file will not trash the data
 	;; already read (except for read articles).
-	(save-excursion
-	  (gnus-message 5 "Reading %s..." newsrc-file)
-	  (set-buffer (nnheader-find-file-noselect newsrc-file))
+        (gnus-message 5 "Reading %s..." newsrc-file)
+	(with-current-buffer (nnheader-find-file-noselect newsrc-file)
 	  (buffer-disable-undo)
 	  (gnus-newsrc-to-gnus-format)
 	  (kill-buffer (current-buffer))
@@ -2341,10 +2338,10 @@ If FORCE is non-nil, the .newsrc file is read."
 			   gnus-newsrc-file-version gnus-version)))))))
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
-  "Indicate whether CONVERTER requires gnus-convert-old-newsrc to
-  display the conversion prompt.  NO-PROMPT may be nil (prompt),
-  t (no prompt), or any form that can be called as a function.
-  The form should return either t or nil."
+  "Indicate whether CONVERTER requires `gnus-convert-old-newsrc' to
+display the conversion prompt.  NO-PROMPT may be nil (prompt),
+t (no prompt), or any form that can be called as a function.
+The form should return either t or nil."
   (put converter 'gnus-convert-no-prompt no-prompt))
 
 (defun gnus-convert-converter-needs-prompt (converter)
@@ -2362,10 +2359,10 @@ If FORCE is non-nil, the .newsrc file is read."
 	      ticked (cdr (assq 'tick marks)))
 	(when (or dormant ticked)
 	  (setf (gnus-info-read info)
-	        (gnus-add-to-range
+	        (range-add-list
 	         (gnus-info-read info)
-	         (nconc (gnus-uncompress-range dormant)
-		        (gnus-uncompress-range ticked)))))))))
+	         (nconc (range-uncompress dormant)
+		        (range-uncompress ticked)))))))))
 
 (defun gnus-load (file)
   "Load FILE, but in such a way that read errors can be reported."
@@ -2382,6 +2379,11 @@ If FORCE is non-nil, the .newsrc file is read."
 	     (ding)
 	     (unless (gnus-yes-or-no-p (concat errmsg "; continue? "))
 	       (error "%s" errmsg)))))))))
+
+;; IIUC these 3 vars were used in older .newsrc files.
+(defvar gnus-killed-assoc)
+(defvar gnus-marked-assoc)
+(defvar gnus-newsrc-assoc)
 
 (defun gnus-read-newsrc-el-file (file)
   (let ((ding-file (concat file "d")))
@@ -2452,8 +2454,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	  (unless (nthcdr 3 info)
 	    (nconc info (list nil)))
 	  (setf (gnus-info-marks info)
-		(list (cons 'tick (gnus-compress-sequence
-				   (sort (cdr m) #'<) t))))))
+		(list (cons 'tick (range-compress-list (sort (cdr m) #'<)))))))
       (setq newsrc killed)
       (while newsrc
 	(setcar newsrc (caar newsrc))
@@ -2524,10 +2525,10 @@ If FORCE is non-nil, the .newsrc file is read."
 	      ;; don't give a damn, frankly, my dear.
 	      (concat gnus-newsrc-options
 		      (buffer-substring
-		       (point-at-bol)
+                       (line-beginning-position)
 		       ;; Options may continue on the next line.
 		       (or (and (re-search-forward "^[^ \t]" nil 'move)
-				(point-at-bol))
+                                (line-beginning-position))
 			   (point)))))
 	(forward-line -1))
        (group
@@ -2589,8 +2590,8 @@ If FORCE is non-nil, the .newsrc file is read."
 		;; The line was buggy.
 		(setq group nil)
 		(gnus-error 3.1 "Mangled line: %s"
-			    (buffer-substring (point-at-bol)
-					      (point-at-eol))))
+                            (buffer-substring (line-beginning-position)
+                                              (line-end-position))))
 	      nil))
 	  ;; Skip past ", ".  Spaces are invalid in these ranges, but
 	  ;; we allow them, because it's a common mistake to put a
@@ -2699,9 +2700,9 @@ If FORCE is non-nil, the .newsrc file is read."
       (while (re-search-forward "[ \t]-n" nil t)
 	(setq eol
 	      (or (save-excursion
-		    (and (re-search-forward "[ \t]-n" (point-at-eol) t)
+                    (and (re-search-forward "[ \t]-n" (line-end-position) t)
 			 (- (point) 2)))
-		  (point-at-eol)))
+                  (line-end-position)))
 	;; Search for all "words"...
 	(while (re-search-forward "[^ \t,\n]+" eol t)
 	  (if (eq (char-after (match-beginning 0)) ?!)
@@ -2728,7 +2729,6 @@ If FORCE is non-nil, the .newsrc file is read."
       'msdos-long-file-names
       (lambda () t))))
 
-(defvar gnus-save-newsrc-file-last-timestamp nil)
 (defun gnus-save-newsrc-file (&optional force)
   "Save .newsrc file.
 Use the group string names in `gnus-group-list' to pull info
@@ -2763,8 +2763,7 @@ values from `gnus-newsrc-hashtb', and write a new value of
 
 	  ;; Save .newsrc.eld.
 	  (set-buffer (gnus-get-buffer-create " *Gnus-newsrc*"))
-	  (make-local-variable 'version-control)
-	  (setq version-control gnus-backup-startup-file)
+          (setq-local version-control gnus-backup-startup-file)
 	  (setq buffer-file-name
 		(concat gnus-current-startup-file ".eld"))
 	  (setq default-directory (file-name-directory buffer-file-name))
@@ -2866,12 +2865,6 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (princ "(setq gnus-newsrc-file-version ")
       (princ (gnus-prin1-to-string gnus-version))
       (princ ")\n"))
-    ;; Sort `gnus-newsrc-alist' according to order in
-    ;; `gnus-group-list'.
-    (setq gnus-newsrc-alist
-	  (mapcar (lambda (g)
-		    (nth 1 (gethash g gnus-newsrc-hashtb)))
-		  (delete "dummy.group" gnus-group-list)))
     (let* ((print-quoted t)
            (print-escape-multibyte nil)
            (print-escape-nonascii t)
@@ -2890,17 +2883,20 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		  ;; Remove the `gnus-killed-list' from the list of variables
 		  ;; to be saved, if required.
 		  (delq 'gnus-killed-list (copy-sequence gnus-variable-list)))))
-	   ;; Encode group names in `gnus-newsrc-alist' and
-	   ;; `gnus-topic-alist' in order to keep newsrc.eld files
-	   ;; compatible with older versions of Gnus.  At some point,
-	   ;; if/when a new version of Gnus is released, stop doing
-	   ;; this and move the corresponding decode in
-	   ;; `gnus-read-newsrc-el-file' into a conversion routine.
+           ;; Sort `gnus-newsrc-alist' according to order in
+           ;; `gnus-group-list'.  Encode group names in
+           ;; `gnus-newsrc-alist' and `gnus-topic-alist' in order to
+           ;; keep newsrc.eld files compatible with older versions of
+           ;; Gnus.  At some point, if/when a new version of Gnus is
+           ;; released, stop doing this and move the corresponding
+           ;; decode in `gnus-read-newsrc-el-file' into a conversion
+           ;; routine.
 	   (gnus-newsrc-alist
-	    (mapcar (lambda (info)
-		      (cons (encode-coding-string (car info) 'utf-8-emacs)
-			    (cdr info)))
-		    gnus-newsrc-alist))
+	    (mapcar (lambda (group)
+		      (cons (encode-coding-string group 'utf-8-emacs)
+			    (cdadr (gethash group
+			    gnus-newsrc-hashtb))))
+		    (remove "dummy.group" gnus-group-list)))
 	   (gnus-topic-alist
 	    (when (memq 'gnus-topic-alist variables)
 	     (mapcar (lambda (elt)
@@ -2932,7 +2928,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
     (nreverse olist)))
 
 (defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
-  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
+  (interactive (list (gnus-y-or-n-p "Write foreign groups too?")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((standard-output (current-buffer))
@@ -2973,8 +2969,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		(when ranges
 		  (insert ",")))))
 	  (insert "\n")))
-      (make-local-variable 'version-control)
-      (setq version-control 'never)
+      (setq-local version-control 'never)
       ;; It has been reported that sometime the modtime on the .newsrc
       ;; file seems to be off.  We really do want to overwrite it, so
       ;; we clear the modtime here before saving.  It's a bit odd,
@@ -2995,13 +2990,12 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 ;;; Child functions.
 ;;;
 
-(defvar gnus-child-mode nil)
+;; (defvar gnus-child-mode nil)
 
 (defun gnus-child-mode ()
   "Minor mode for child Gnusae."
-  ;; FIXME: gnus-child-mode appears to never be set (i.e. it'll always be nil):
-  ;; Remove, or fix and use define-minor-mode.
-  (add-minor-mode 'gnus-child-mode " Child" (make-sparse-keymap))
+  ;; FIXME: gnus-child-mode appears to never be set (i.e. it'll always be nil).
+  ;; (add-minor-mode 'gnus-child-mode " Child" (make-sparse-keymap))
   (gnus-run-hooks 'gnus-child-mode-hook))
 
 (define-obsolete-function-alias 'gnus-slave-mode #'gnus-child-mode "28.1")
@@ -3103,50 +3097,49 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (gnus-message 1 "Couldn't read newsgroups descriptions")
       nil)
      (t
-      (save-excursion
-        ;; FIXME: Shouldn't save-restriction be done after set-buffer?
-	(save-restriction
-	  (set-buffer nntp-server-buffer)
-	  (goto-char (point-min))
-	  (when (or (search-forward "\n.\n" nil t)
-		    (goto-char (point-max)))
-	    (beginning-of-line)
-	    (narrow-to-region (point-min) (point)))
-	  ;; If these are groups from a foreign select method, we insert the
-	  ;; group prefix in front of the group names.
-	  (and method (not (inline
-			     (gnus-server-equal
-			      (gnus-server-get-method nil method)
-			      (gnus-server-get-method
-			       nil gnus-select-method))))
-	       (let ((prefix (gnus-group-prefixed-name "" method)))
-		 (goto-char (point-min))
-		 (while (and (not (eobp))
-			     (progn (insert prefix)
-				    (zerop (forward-line 1)))))))
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (setq group
-		  (condition-case ()
-		      (read nntp-server-buffer)
-		    (error nil)))
-	    (skip-chars-forward " \t")
-	    (when group
-	      (setq group (if (numberp group)
-			      (number-to-string group)
-			    (symbol-name group)))
-	      (let* ((str (buffer-substring
-			   (point) (progn (end-of-line) (point))))
-		     (charset
-		      (or (gnus-group-name-charset method group)
-			  (gnus-parameter-charset group)
-			  gnus-default-charset)))
-		;; Fixme: Don't decode in unibyte mode.
-		;; Double fixme: We're not in unibyte mode, are we?
-		(when (and str charset)
-		  (setq str (decode-coding-string str charset)))
-		(puthash group str gnus-description-hashtb)))
-	    (forward-line 1))))
+      (with-current-buffer nntp-server-buffer
+	(save-excursion ;;FIXME: Not sure if it's needed!
+	  (save-restriction
+	    (goto-char (point-min))
+	    (when (or (search-forward "\n.\n" nil t)
+		      (goto-char (point-max)))
+	      (beginning-of-line)
+	      (narrow-to-region (point-min) (point)))
+	    ;; If these are groups from a foreign select method, we insert the
+	    ;; group prefix in front of the group names.
+	    (and method (not (inline
+			       (gnus-server-equal
+			        (gnus-server-get-method nil method)
+			        (gnus-server-get-method
+			         nil gnus-select-method))))
+		 (let ((prefix (gnus-group-prefixed-name "" method)))
+		   (goto-char (point-min))
+		   (while (and (not (eobp))
+			       (progn (insert prefix)
+				      (zerop (forward-line 1)))))))
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (setq group
+		    (condition-case ()
+		        (read nntp-server-buffer)
+		      (error nil)))
+	      (skip-chars-forward " \t")
+	      (when group
+		(setq group (if (numberp group)
+			        (number-to-string group)
+			      (symbol-name group)))
+		(let* ((str (buffer-substring
+			     (point) (progn (end-of-line) (point))))
+		       (charset
+			(or (gnus-group-name-charset method group)
+			    (gnus-parameter-charset group)
+			    gnus-default-charset)))
+		  ;; Fixme: Don't decode in unibyte mode.
+		  ;; Double fixme: We're not in unibyte mode, are we?
+		  (when (and str charset)
+		    (setq str (decode-coding-string str charset)))
+		  (puthash group str gnus-description-hashtb)))
+	      (forward-line 1)))))
       (gnus-message 5 "Reading descriptions file...done")
       t))))
 
@@ -3163,7 +3156,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
   "Declare back end NAME with ABILITIES as a Gnus back end."
   (setq gnus-valid-select-methods
 	(nconc gnus-valid-select-methods
-	       (list (apply 'list name abilities))))
+	       (list (apply #'list name abilities))))
   (gnus-redefine-select-method-widget))
 
 (defun gnus-set-default-directory ()

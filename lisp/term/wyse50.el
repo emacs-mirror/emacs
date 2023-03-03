@@ -1,6 +1,6 @@
-;;; wyse50.el --- terminal support code for Wyse 50
+;;; wyse50.el --- terminal support code for Wyse 50  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993-1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1989, 1993-1994, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>,
@@ -126,9 +126,9 @@
   ;; On such terminals, Emacs should sacrifice the first and last character of
   ;; each mode line, rather than a whole screen column!
   (add-hook 'kill-emacs-hook
-	    (function (lambda () (interactive)
-			(send-string-to-terminal
-			 (concat "\ea23R" (1+ (frame-width)) "C\eG0"))))))
+            (lambda () (interactive)
+              (send-string-to-terminal
+               (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
 
 (defun enable-arrow-keys ()
   "To be called by `tty-setup-hook'.  Overrides 6 Emacs standard keys

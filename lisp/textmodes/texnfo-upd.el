@@ -1,6 +1,6 @@
-;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
+;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1989-1992, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: emacs-devel@gnu.org
@@ -275,6 +275,7 @@ The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
 
+;;;###autoload
 (defun texinfo-make-menu (&optional beginning end)
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
@@ -351,6 +352,7 @@ at the level specified by LEVEL.  Point is left at the end of menu."
       (texinfo-delete-old-menu beginning first))
     (texinfo-insert-menu new-menu-list node-name)))
 
+;;;###autoload
 (defun texinfo-all-menus-update (&optional update-all-nodes-p)
   "Update every regular menu in a Texinfo file.
 Update pre-existing master menu, if there is one.
@@ -420,7 +422,7 @@ of the node if one is found; else do not move point."
 		 "\\|"			    ; or
 		 "\\(^@ifnottex[ ]*\n\\)"   ; ifnottex line, if any
 		 "\\)?"			    ; end of expression
-		 (eval (cdr (assoc level texinfo-update-menu-lower-regexps))))
+		 (eval (cdr (assoc level texinfo-update-menu-lower-regexps)) t))
 		;; the next higher level node marks the end of this
 		;; section, and no lower level node will be found beyond
 		;; this position even if region-end is farther off
@@ -454,7 +456,7 @@ if the match is found there, the value is t and point does not move."
 	      "\\|"                           ; or
 	      "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
 	      "\\)?"                          ; end of expression
-	      (eval (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	      (eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	     region-end t)
 	(beginning-of-line) t)))))
 
@@ -505,7 +507,7 @@ The function finds entries of the same type.  Thus `subsections' and
 	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
           "\\)?"                          ; end of expression
 	  (eval
-	   (cdr (assoc level texinfo-update-menu-same-level-regexps))))
+	   (cdr (assoc level texinfo-update-menu-same-level-regexps)) t))
 	 search-end
 	 t)
 	(goto-char (match-beginning 1)))))
@@ -733,6 +735,7 @@ is the menu entry name, and the cdr of P is the node name."
 
 ;;; Starting menu descriptions by inserting titles
 
+;;;###autoload
 (defun texinfo-start-menu-description ()
   "In this menu entry, insert the node's section title as a description.
 Position point at beginning of description ready for editing.
@@ -742,7 +745,7 @@ You will need to edit the inserted text since a useful description
 complements the node name rather than repeats it as a title does."
 
   (interactive)
-  (let (beginning end node-name title)
+  (let (beginning node-name title) ;; end
     (save-excursion
       (beginning-of-line)
       (if (search-forward "* " (line-end-position) t)
@@ -817,6 +820,7 @@ complements the node name rather than repeats it as a title does."
 ;; Since the make-menu functions indent descriptions, these functions
 ;; are useful primarily for indenting a single menu specially.
 
+;;;###autoload
 (defun texinfo-indent-menu-description (column &optional region-p)
   "Indent every description in menu following point to COLUMN.
 Non-nil argument (prefix, if interactive) means indent every
@@ -872,6 +876,7 @@ second and subsequent lines of a multi-line description."
 
 ;;; Making the master menu
 
+;;;###autoload
 (defun texinfo-master-menu (update-all-nodes-menus-p)
   "Make a master menu for a whole Texinfo file.
 Remove pre-existing master menu, if there is one.
@@ -889,10 +894,10 @@ be updated first using `texinfo-make-menu' or
 `texinfo-all-menus-update', which see.  Alternatively, invoke
 this function with a prefix argument, see below.
 
-Non-nil, non-numeric argument (C-u prefix, if interactive) means
+Non-nil, non-numeric argument (\\[universal-argument] prefix, if interactive) means
 first update all existing menus in the buffer (incorporating
 descriptions from pre-existing menus) before it constructs the
-master menu.  If the argument is numeric (e.g., \"C-u 2\"),
+master menu.  If the argument is numeric (e.g., \"\\[universal-argument] 2\"),
 update all existing nodes as well, by calling
 `texinfo-update-node' on the entire file.  Warning: do NOT
 invoke with a numeric argument if your Texinfo file uses @node
@@ -1033,7 +1038,7 @@ However, there does not need to be a title field."
 
   (save-excursion
     ;; `master-menu-inserted-p' is a kludge to tell
-    ;; whether to insert @end detailmenu (see bleow)
+    ;; whether to insert @end detailmenu (see below)
     (let (master-menu-inserted-p)
       ;; Handle top of menu
       (insert "\n@menu\n")
@@ -1219,7 +1224,7 @@ Only argument is a string of the general type of section."
 	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
           "\\)?"                          ; end of expression
 	  (eval
-	   (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	   (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	 nil
 	 'goto-beginning)
 	(point))))))
@@ -1243,7 +1248,7 @@ string of the general type of section."
             "\\)?"                        ; end of expression
 	    (eval
 	     ;; Never finds end of level above chapter so goes to end.
-	     (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	     (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	   nil
 	   'goto-end)
 	  (match-beginning 1)
@@ -1266,6 +1271,7 @@ end of that region; it limits the search."
 
 ;;; Updating a node
 
+;;;###autoload
 (defun texinfo-update-node (&optional beginning end)
   "Without any prefix argument, update the node in which point is located.
 Interactively, a prefix argument means to operate on the region.
@@ -1313,6 +1319,7 @@ which menu descriptions are indented. Its default value is 32."
 	  (goto-char (point-max))
 	  (message "Done...nodes updated in region.  You may save the buffer."))))))
 
+;;;###autoload
 (defun texinfo-every-node-update ()
   "Update every node in a Texinfo file.
 
@@ -1360,7 +1367,7 @@ left at the end of the node line."
 	    ;; There may be an @chapter or other such command between
 	    ;; the top node line and the next node line, as a title
 	    ;; for an `ifinfo' section. This @chapter command must
-	    ;; must be skipped.  So the procedure is to search for
+	    ;; be skipped.  So the procedure is to search for
 	    ;; the next `@node' line, and then copy its name.
 	    (if (re-search-forward "^@node" nil t)
 		(progn
@@ -1430,7 +1437,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-same-level-regexps))))
+		  (cdr (assoc level texinfo-update-menu-same-level-regexps)) t))
 		end
 		t)
 	       'normal
@@ -1451,7 +1458,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-same-level-regexps)))
+		  (cdr (assoc level texinfo-update-menu-same-level-regexps)) t)
 		 "\\|"
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
@@ -1465,7 +1472,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		  (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		 "\\|"
 		 ;; Handle `Top' node specially.
 		 "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
@@ -1489,7 +1496,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\|"
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
-		 (eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		 (eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		 "\\|"
 		 ;; Handle `Top' node specially.
 		 "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
@@ -1501,7 +1508,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-find-pointer: lack proper arguments")))))
+           (error "texinfo-find-pointer: Lack proper arguments")))))
 
 (defun texinfo-pointer-name (kind)
   "Return the node name preceding the section command.
@@ -1553,6 +1560,7 @@ towards which the pointer is directed, one of `next', `previous', or `up'."
 ;; (The subsection to which `Next' points will most likely be the first
 ;; item on the section's menu.)
 
+;;;###autoload
 (defun texinfo-sequential-node-update (&optional region-p)
   "Update one node (or many) in a Texinfo file with sequential pointers.
 
@@ -1662,13 +1670,13 @@ or `Up' pointer."
 	     'no-pointer))
 	  ((eq direction 'up)
 	   (if (re-search-backward
-		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		(point-min)
 		t)
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-sequential-find-pointer: lack proper arguments")))))
+           (error "texinfo-sequential-find-pointer: Lack proper arguments")))))
 
 
 ;;; Inserting `@node' lines
@@ -1676,6 +1684,7 @@ or `Up' pointer."
 ;; before the `@chapter', `@section', and such like lines of a region
 ;; in a Texinfo file.
 
+;;;###autoload
 (defun texinfo-insert-node-lines (beginning end &optional title-p)
   "Insert missing `@node' lines in region of Texinfo file.
 Non-nil argument (prefix, if interactive) means also to insert the
@@ -1686,7 +1695,7 @@ node names in pre-existing `@node' lines that lack names."
   ;; Use marker; after inserting node lines, leave point at end of
   ;; region and mark at beginning.
 
-  (let (beginning-marker end-marker title last-section-position)
+  (let (end-marker title last-section-position) ;; beginning-marker
 
     ;; Save current position on mark ring and set mark to end.
     (push-mark end t)
@@ -1989,6 +1998,7 @@ be the files included within it.  A main menu must already exist."
 
 ;;; The multiple-file update function
 
+;;;###autoload
 (defun texinfo-multiple-files-update
   (outer-file &optional make-master-menu update-everything)
   "Update first node pointers in each file included in OUTER-FILE;
@@ -2043,8 +2053,8 @@ chapter."
 
   (let* ((included-file-list (texinfo-multi-file-included-list outer-file))
 	 (files included-file-list)
-	 next-node-name
-	 previous-node-name
+	 ;; next-node-name
+	 ;; previous-node-name
 	 ;; Update the pointers and collect the names of the nodes and titles
 	 (main-menu-list (texinfo-multi-file-update files update-everything)))
 
@@ -2112,8 +2122,10 @@ chapter."
 
   (message "Multiple files updated."))
 
-
-;; Place `provide' at end of file.
 (provide 'texnfo-upd)
+
+;; Local Variables:
+;; generated-autoload-file: "texinfo-loaddefs.el"
+;; End:
 
 ;;; texnfo-upd.el ends here

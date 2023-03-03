@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark
@@ -8,25 +8,28 @@
 @cindex setting a mark
 @cindex region
 
-  Many Emacs commands operate on an arbitrary contiguous part of the
-current buffer.  To specify the text for such a command to operate on,
-you set @dfn{the mark} at one end of it, and move point to the other
-end.  The text between point and the mark is called @dfn{the region}.
-The region always extends between point and the mark, no matter which
-one comes earlier in the text; each time you move point, the region
-changes.
+  Emacs, like many other applications, lets you select some arbitrary
+part of the buffer text and invoke commands that operate on such
+@dfn{selected text}.  In Emacs, we call the selected text @dfn{the
+region}; its handling is very similar to that of selected text in
+other programs, but there are also important differences.
 
 @cindex active region
 @cindex activating the mark
-  Setting the mark at a position in the text also @dfn{activates} it.
-When the mark is active, we say also that the region is active; Emacs
+  The region is the portion of the buffer between @dfn{the mark} and
+the current @dfn{point}.  You define a region by setting the mark
+somewhere (with, for instance, the @kbd{C-SPC} command), and then
+moving point to where you want the region to end.  (Or you can use the
+mouse to define a region.)
+
+  The region always extends between point and the mark, no matter
+which of them comes earlier in the text; each time you move point, the
+region changes.
+
+  Setting the mark at a position in the text @dfn{activates} it.  When
+the mark is active, we say also that the region is active; Emacs
 indicates its extent by highlighting the text within it, using the
 @code{region} face (@pxref{Face Customization}).
-
-This is one of the few faces that has the @code{:extend t} attribute
-by default, which implies that the same face is used to highlight the
-text and space between end of line and the window border.  To
-highlight only the text you could set this attribute to @code{nil}.
 
 @cindex deactivating the mark
   After certain non-motion commands, including any command that
@@ -35,10 +38,22 @@ the mark; this turns off the highlighting.  You can also explicitly
 deactivate the mark at any time, by typing @kbd{C-g}
 (@pxref{Quitting}).
 
-  The above default behavior is known as Transient Mark mode.
-Disabling Transient Mark mode switches Emacs to an alternative
-behavior, in which the region is usually not highlighted.
-@xref{Disabled Transient Mark}.
+  Many commands limit the text on which they operate to the active
+region.  For instance, the @kbd{M-%} command (which replaces matching
+text) normally works on the entire accessible portion of the buffer,
+but if you have an active region, it'll work only on that region
+instead.
+
+  The mark is useful even if it is not active.  For example, you can
+move to previous mark locations using the mark ring.  @xref{Mark
+Ring}.  Additionally, some commands will have an effect even on an
+inactive region (for example @dfn{upcase-region}).  You can also
+reactivate the region with commands like @kbd{C-x C-x}.
+
+  The above behavior, which is the default in interactive sessions, is
+known as Transient Mark mode.  Disabling Transient Mark mode switches
+Emacs to an alternative behavior, in which the region is usually not
+highlighted.  @xref{Disabled Transient Mark}.
 
 @vindex highlight-nonselected-windows
   Setting the mark in one buffer has no effect on the marks in other
@@ -291,12 +306,23 @@ instead signal an error if the mark is inactive.
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
+@vindex delete-selection-temporary-region
   By default, text insertion occurs normally even if the mark is
 active---for example, typing @kbd{a} inserts the character @samp{a},
 then deactivates the mark.  Delete Selection mode, a minor mode,
 modifies this behavior: if you enable that mode, then inserting text
 while the mark is active causes the text in the region to be deleted
-first.  To toggle Delete Selection mode on or off, type @kbd{M-x
+first.  However, you can tune this behavior by customizing the
+@code{delete-selection-temporary-region} option.  Its default value is
+@code{nil}, but you can set it to @code{t}, in which case only
+temporarily-active regions will be replaced: those which are set by
+dragging the mouse (@pxref{Setting Mark}) or by shift-selection
+(@pxref{Shift Selection}), as well as by @kbd{C-u C-x C-x} when
+Transient Mark Mode is disabled.  You can further tune the behavior by
+setting @code{delete-selection-temporary-region} to @code{selection}:
+then temporary regions by @kbd{C-u C-x C-x} won't be replaced, only
+the ones activated by dragging the mouse or shift-selection.  To
+toggle Delete Selection mode on or off, type @kbd{M-x
 delete-selection-mode}.
 
 @node Mark Ring
@@ -409,9 +435,14 @@ region by dragging the mouse, you can continue to extend the region
 using shifted cursor motion commands.  In either case, any unshifted
 cursor motion command deactivates the mark.
 
+@vindex shift-select-mode
   To turn off shift-selection, set @code{shift-select-mode} to
 @code{nil}.  Doing so does not disable setting the mark via mouse
-commands.
+commands.  If you set @code{shift-select-mode} to the value
+@code{permanent}, cursor motion keys that were not shift-translated
+will not deactivate the mark, so, for example, the region set by prior
+commands can be extended by shift-selection, and unshifted cursor
+motion keys will extend the region set by shift-selection.
 
 @node Disabled Transient Mark
 @section Disabling Transient Mark Mode
@@ -424,10 +455,11 @@ commands.
 
   The default behavior of the mark and region, in which setting the
 mark activates it and highlights the region, is called Transient Mark
-mode.  This is a minor mode that is enabled by default.  It can be
-toggled with @kbd{M-x transient-mark-mode}, or with the
-@samp{Highlight Active Region} menu item in the @samp{Options} menu.
-Turning it off switches Emacs to an alternative mode of operation:
+mode.  This is a minor mode that is enabled by default in interactive
+sessions.  It can be toggled with @kbd{M-x transient-mark-mode}, or
+with the @samp{Highlight Active Region} menu item in the
+@samp{Options} menu.  Turning it off switches Emacs to an alternative
+mode of operation:
 
 @itemize @bullet
 @item

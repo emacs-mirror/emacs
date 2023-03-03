@@ -1,6 +1,6 @@
-;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
+;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1987, 1993-1994, 2001-2020 Free Software
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -81,14 +81,14 @@ This uses `rmail-output-file-alist'."
 		      (widen)
 		      (narrow-to-region beg end)
 		      (let ((tail rmail-output-file-alist)
-			    answer err)
+			    answer) ;; err
 			;; Suggest a file based on a pattern match.
 			(while (and tail (not answer))
 			  (goto-char (point-min))
 			  (if (re-search-forward (caar tail) nil t)
 			      (setq answer
 				    (condition-case err
-					(eval (cdar tail))
+					(eval (cdar tail) t)
 				      (error
 				       (display-warning
 					'rmail-output
@@ -107,9 +107,8 @@ error: %S\n"
 	 (read-file
 	  (expand-file-name
 	   (read-file-name
-	    (concat "Output message to mail file (default "
-		    (file-name-nondirectory default-file)
-		    "): ")
+            (format-prompt "Output message to mail file"
+                           (file-name-nondirectory default-file))
 	    (file-name-directory default-file)
 	    (abbreviate-file-name default-file))
 	   (file-name-directory default-file))))
@@ -197,7 +196,8 @@ display message number MSG."
 
 (defun rmail-convert-to-babyl-format ()
   "Convert the mbox message in the current buffer to Babyl format."
-  (let ((count 0) (start (point-min))
+  (let (;; (count 0)
+	(start (point-min))
 	(case-fold-search nil)
 	(buffer-undo-list t))
     (goto-char (point-min))
@@ -327,15 +327,14 @@ Replaces the From line with a \"Mail-from\" header.  Adds \"Date\" and
 		     "Date: \\2, \\4 \\3 \\9 \\5 "
 
 		     ;; The timezone could be matched by group 7 or group 10.
-		     ;; If neither of them matched, assume EST, since only
-		     ;; Easterners would be so sloppy.
+		     ;; If neither matched, use "-0000" for an unknown zone.
 		     ;; It's a shame the substitution can't use "\\10".
 		     (cond
 		      ((/= (match-beginning 7) (match-end 7)) "\\7")
 		      ((/= (match-beginning 10) (match-end 10))
 		       (buffer-substring (match-beginning 10)
 					 (match-end 10)))
-		      (t "EST"))
+		      (t "-0000"))
 		     "\n"))
 		  ;; Keep and reformat the sender if we don't
 		  ;; have a From: field.
@@ -357,7 +356,7 @@ unless NOMSG is a symbol (neither nil nor t).
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
         encrypted-file-name
-	from date)
+	) ;; from date
     (goto-char (point-min))
     ;; Preserve the Mail-From and MIME-Version fields
     ;; even if they have been pruned.
@@ -433,7 +432,7 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
 
 (defun rmail-output-to-rmail-buffer (tembuf msg)
   "Copy message in TEMBUF into the current Rmail buffer.
-Do what is necessary to make Rmail know about the new message. then
+Do what is necessary to make Rmail know about the new message, then
 display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
@@ -579,7 +578,7 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
                      (progn
                        (if rmail-delete-after-output
                            (rmail-delete-message))
-                       (if (> count 0)
+                       (if (>= count 0)
                            (let ((msgnum rmail-current-message))
                              (rmail-next-message 1)
                              (eq rmail-current-message (1+ msgnum)))))
@@ -677,9 +676,9 @@ than appending to it.  Deletes the message after writing if
 	   (or (mail-fetch-field "Subject")
 	       rmail-default-body-file)))
      (setq default-file
-	   (replace-regexp-in-string ":" "-" default-file))
+	   (string-replace ":" "-" default-file))
      (setq default-file
-	   (replace-regexp-in-string " " "-" default-file))
+	   (string-replace " " "-" default-file))
      (list (setq rmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "

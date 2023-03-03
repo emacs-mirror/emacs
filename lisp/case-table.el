@@ -1,6 +1,6 @@
 ;;; case-table.el --- code to extend the character set and support case tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: emacs-devel@gnu.org
@@ -38,26 +38,26 @@
   (interactive)
   (let ((description (make-char-table 'case-table)))
     (map-char-table
-     (function (lambda (key value)
-		 (if (not (natnump value))
-		     (if (consp key)
-			 (set-char-table-range description key "case-invariant")
-		       (aset description key "case-invariant"))
-		   (let (from to)
-		     (if (consp key)
-			 (setq from (car key) to (cdr key))
-		       (setq from (setq to key)))
-		     (while (<= from to)
-		       (aset
-			description from
-			(cond ((/= from (downcase from))
-			       (concat "uppercase, matches "
-				       (char-to-string (downcase from))))
-			      ((/= from (upcase from))
-			       (concat "lowercase, matches "
-				       (char-to-string (upcase from))))
-			      (t "case-invariant")))
-		       (setq from (1+ from)))))))
+     (lambda (key value)
+       (if (not (natnump value))
+           (if (consp key)
+               (set-char-table-range description key "case-invariant")
+             (aset description key "case-invariant"))
+         (let (from to)
+           (if (consp key)
+               (setq from (car key) to (cdr key))
+             (setq from (setq to key)))
+           (while (<= from to)
+             (aset
+              description from
+              (cond ((/= from (downcase from))
+                     (concat "uppercase, matches "
+                             (char-to-string (downcase from))))
+                    ((/= from (upcase from))
+                     (concat "lowercase, matches "
+                             (char-to-string (upcase from))))
+                    (t "case-invariant")))
+             (setq from (1+ from))))))
      (current-case-table))
     (save-excursion
      (with-output-to-temp-buffer "*Help*"

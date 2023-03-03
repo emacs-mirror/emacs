@@ -1,6 +1,6 @@
-;;; informat.el --- info support functions package for Emacs
+;;; informat.el --- info support functions package for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -140,7 +140,7 @@
 		(or (bolp)
 		    (newline))
 		(insert "\^_\f\nTag table:\n")
-		(if (eq major-mode 'info-mode)
+		(if (derived-mode-p 'info-mode)
 		    (move-marker Info-tag-table-marker (point)))
 		(setq tag-list (nreverse tag-list))
 		(while tag-list
@@ -158,7 +158,7 @@
 ;;;###autoload
 (defcustom Info-split-threshold 262144
   "The number of characters by which `Info-split' splits an info file."
-  :type 'integer
+  :type 'natnum
   :version "23.1"
   :group 'texinfo)
 
@@ -446,7 +446,7 @@ Check that every node pointer points to an existing node."
 
 ;;;###autoload
 (defun batch-info-validate ()
-  "Runs `Info-validate' on the files remaining on the command line.
+  "Run `Info-validate' on the files remaining on the command line.
 Must be used only with -batch, and kills Emacs on completion.
 Each file will be processed even if an error occurred previously.
 For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""

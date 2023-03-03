@@ -1,6 +1,6 @@
 ;;; em-smart.el --- smart display of output  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -69,7 +69,6 @@
 ;;; Code:
 
 (require 'esh-mode)
-(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn
@@ -94,13 +93,13 @@ it to get a real sense of how it works."
 
 (defcustom eshell-smart-unload-hook
   (list
-   (function
-    (lambda ()
-      (remove-hook 'window-configuration-change-hook
-		   'eshell-refresh-windows))))
+   (lambda ()
+     (remove-hook 'window-configuration-change-hook
+                  'eshell-refresh-windows)))
   "A hook that gets run when `eshell-smart' is unloaded."
   :type 'hook
   :group 'eshell-smart)
+(make-obsolete-variable 'eshell-smart-unload-hook nil "30.1")
 
 (defcustom eshell-review-quick-commands nil
   "If t, always review commands.
@@ -132,7 +131,7 @@ only if that output can be presented in its entirely in the Eshell window."
   :group 'eshell-smart)
 
 (defcustom eshell-smart-space-goes-to-end t
-  "If non-nil, space will go to end of buffer when point-max is visible.
+  "If non-nil, space will go to end of buffer when `point-max' is visible.
 That is, if a command is running and the user presses SPACE at a time
 when the end of the buffer is visible, point will go to the end of the
 buffer and smart-display will be turned off (that is, subsequently
@@ -171,9 +170,9 @@ The options are `begin', `after' or `end'."
   (unless eshell-non-interactive-p
     ;; override a few variables, since they would interfere with the
     ;; smart display functionality.
-    (set (make-local-variable 'eshell-scroll-to-bottom-on-output) nil)
-    (set (make-local-variable 'eshell-scroll-to-bottom-on-input) nil)
-    (set (make-local-variable 'eshell-scroll-show-maximum-output) t)
+    (setq-local eshell-scroll-to-bottom-on-output nil)
+    (setq-local eshell-scroll-to-bottom-on-input nil)
+    (setq-local eshell-scroll-show-maximum-output t)
 
     (add-hook 'window-scroll-functions 'eshell-smart-scroll-window nil t)
     (add-hook 'window-configuration-change-hook 'eshell-refresh-windows)
@@ -186,9 +185,8 @@ The options are `begin', `after' or `end'."
 
     (make-local-variable 'eshell-smart-command-done)
     (add-hook 'eshell-post-command-hook
-	      (function
-	       (lambda ()
-		 (setq eshell-smart-command-done t)))
+              (lambda ()
+                (setq eshell-smart-command-done t))
               t t)
 
     (unless (eq eshell-review-quick-commands t)
@@ -197,10 +195,9 @@ The options are `begin', `after' or `end'."
 
 ;; This is called by window-scroll-functions with two arguments.
 (defun eshell-smart-scroll-window (wind _start)
-  "Scroll the given Eshell window accordingly."
+  "Scroll the given Eshell window WIND accordingly."
   (unless eshell-currently-handling-window
-    (let ((inhibit-point-motion-hooks t)
-	  (eshell-currently-handling-window t))
+    (let ((eshell-currently-handling-window t))
       (with-selected-window wind
 	(eshell-smart-redisplay)))))
 
@@ -208,13 +205,12 @@ The options are `begin', `after' or `end'."
   "Refresh all visible Eshell buffers."
   (let (affected)
     (walk-windows
-     (function
-      (lambda (wind)
-	(with-current-buffer (window-buffer wind)
-	  (if eshell-mode
-	      (let (window-scroll-functions) ;;FIXME: Why?
-		(eshell-smart-scroll-window wind (window-start))
-		(setq affected t))))))
+     (lambda (wind)
+       (with-current-buffer (window-buffer wind)
+         (if eshell-mode
+             (let (window-scroll-functions) ;;FIXME: Why?
+               (eshell-smart-scroll-window wind (window-start))
+               (setq affected t)))))
      0 frame)
     (if affected
 	(let (window-scroll-functions) ;;FIXME: Why?
@@ -325,6 +321,9 @@ and the end of the buffer are still visible."
 	(goto-char (point-max)))))
     (if clear
 	(remove-hook 'pre-command-hook 'eshell-smart-display-move t))))
+
+(defun em-smart-unload-hook ()
+  (remove-hook 'window-configuration-change-hook #'eshell-refresh-windows))
 
 (provide 'em-smart)
 

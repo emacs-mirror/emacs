@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<svg xmlns:cc='http://creativecommons.org/ns#' xmlns:dc='http://purl.org/dc/elements/1.1/' sodipodi:docname='pan-up-symbolic.svg' inkscape:export-filename='/home/sam/source-symbolic.png' inkscape:export-xdpi='270' inkscape:export-ydpi='270' height='16' id='svg7384' xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape' xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#' xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd' style='enable-background:new' xmlns:svg='http://www.w3.org/2000/svg' version='1.1' inkscape:version='1.0 (4035a4fb49, 2020-05-01)' width='16' xmlns='http://www.w3.org/2000/svg'>
+  <sodipodi:namedview inkscape:bbox-nodes='true' inkscape:bbox-paths='false' bordercolor='#000000' borderlayer='false' borderopacity='0.50196078' inkscape:current-layer='layer10' inkscape:cx='11.14767' inkscape:cy='7.9625016' inkscape:document-rotation='0' gridtolerance='10' inkscape:guide-bbox='true' guidetolerance='10' id='namedview88' inkscape:measure-end='0,0' inkscape:measure-start='0,0' inkscape:object-nodes='true' inkscape:object-paths='true' objecttolerance='10' pagecolor='#e2e2e2' inkscape:pageopacity='0' inkscape:pageshadow='2' showborder='false' showgrid='true' showguides='false' inkscape:showpageshadow='false' inkscape:snap-bbox='true' inkscape:snap-bbox-edge-midpoints='false' inkscape:snap-bbox-midpoints='true' inkscape:snap-center='false' inkscape:snap-global='true' inkscape:snap-grids='true' inkscape:snap-intersection-paths='false' inkscape:snap-midpoints='true' inkscape:snap-nodes='true' inkscape:snap-object-midpoints='true' inkscape:snap-others='true' inkscape:snap-page='false' inkscape:snap-smooth-nodes='true' inkscape:snap-to-guides='true' inkscape:window-height='1205' inkscape:window-maximized='0' inkscape:window-width='1553' inkscape:window-x='26' inkscape:window-y='23' inkscape:zoom='1'>
+    <inkscape:grid color='#000000' dotted='false' empcolor='#0800ff' empopacity='0.4627451' empspacing='4' enabled='true' id='grid4866' opacity='0.16470588' originx='-132.00585' originy='-952' snapvisiblegridlinesonly='true' spacingx='1' spacingy='1' type='xygrid' visible='true'/>
+    <inkscape:grid dotted='true' empcolor='#3f3fff' empopacity='0' empspacing='4' id='grid3540' originx='-132.00585' originy='-952' spacingx='0.5' spacingy='0.5' type='xygrid'/>
+  </sodipodi:namedview>
+  <metadata id='metadata90'>
+    <rdf:RDF>
+      <cc:Work rdf:about=''>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource='http://purl.org/dc/dcmitype/StillImage'/>
+        <dc:title>Gnome Symbolic Icons</dc:title>
+        <cc:license rdf:resource='http://creativecommons.org/licenses/by-sa/4.0/'/>
+      </cc:Work>
+      <cc:License rdf:about='http://creativecommons.org/licenses/by-sa/4.0/'>
+        <cc:permits rdf:resource='http://creativecommons.org/ns#Reproduction'/>
+        <cc:permits rdf:resource='http://creativecommons.org/ns#Distribution'/>
+        <cc:requires rdf:resource='http://creativecommons.org/ns#Notice'/>
+        <cc:requires rdf:resource='http://creativecommons.org/ns#Attribution'/>
+        <cc:permits rdf:resource='http://creativecommons.org/ns#DerivativeWorks'/>
+        <cc:requires rdf:resource='http://creativecommons.org/ns#ShareAlike'/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <title id='title8473'>Gnome Symbolic Icons</title>
+  <defs id='defs7386'/>
+  <g inkscape:groupmode='layer' id='layer10' inkscape:label='ui' transform='translate(-132.00585,-952)'>
+    <path inkscape:connector-curvature='0' d='M 146,963 140.00585,956.99999 134,963 Z' id='path6418' sodipodi:nodetypes='cccc' style='fill-opacity:1;stroke:none'/>
+  </g>
+  <g inkscape:groupmode='layer' id='layer1' inkscape:label='status' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer11' inkscape:label='legacy' transform='translate(-132.00585,-952)'/>
+  <g inkscape:groupmode='layer' id='layer7' inkscape:label='places' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer6' inkscape:label='mimetypes' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer5' inkscape:label='emotes' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer9' inkscape:label='emblems' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer2' inkscape:label='devices' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer8' inkscape:label='categories' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer3' inkscape:label='apps' transform='translate(-132.00585,-888)'/>
+  <g inkscape:groupmode='layer' id='layer4' inkscape:label='actions' transform='translate(-132.00585,-888)'/>
+</svg>

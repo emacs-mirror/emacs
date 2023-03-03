@@ -1,6 +1,6 @@
 @c -*-coding: utf-8-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 2001--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1994, 2001--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @node Introduction
@@ -34,7 +34,9 @@ specifically to editing.
 
   This is
 @iftex
+@ifset VERSION
 edition @value{VERSION} of
+@end ifset
 @end iftex
 the @cite{GNU Emacs Lisp Reference Manual},
 corresponding to Emacs version @value{EMACSVER}.
@@ -89,7 +91,7 @@ you are criticizing.
 @cindex suggestions
 Please send comments and corrections using @kbd{M-x
 report-emacs-bug}.  If you wish to contribute new code (or send a
-patch to fix a problem), use @kbd{M-x submit-emacs-patch}).
+patch to fix a problem), use @kbd{M-x submit-emacs-patch}.
 
 @node Lisp History
 @section Lisp History
@@ -503,9 +505,11 @@ if the information is not available.
 @example
 @group
 emacs-build-time
-     @result{} (20614 63694 515336 438000)
+     @result{} (25194 55894 8547 617000)
 @end group
 @end example
+(This timestamp is @code{(1651169878008547617 . 1000000000)}
+if @code{current-time-list} was @code{nil} when Emacs was built.)
 @end defvar
 
 @defvar emacs-version

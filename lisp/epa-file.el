@@ -1,6 +1,6 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -21,8 +21,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
-;;; Dependencies
 
 (require 'epa)
 (require 'epa-hook)
@@ -198,7 +199,9 @@ encryption is used."
                       (mapcar #'car (epg-context-result-for
                                      context 'encrypted-to)))
 	  (if (or beg end)
-	      (setq string (substring string (or beg 0) end)))
+              (setq string (substring string
+                                      (or beg 0)
+                                      (and end (min end (length string))))))
 	  (save-excursion
 	    ;; If visiting, bind off buffer-file-name so that
 	    ;; file-locking will not ask whether we should
@@ -309,7 +312,8 @@ encryption is used."
 If no one is selected, symmetric encryption will be performed.  "
 		    recipients)
 		 (if epa-file-encrypt-to
-		     (epg-list-keys context recipients)))))
+                     (epg--filter-revoked-keys
+		      (epg-list-keys context recipients))))))
       (error
        (epa-display-error context)
        (if (setq entry (assoc file epa-file-passphrase-alist))

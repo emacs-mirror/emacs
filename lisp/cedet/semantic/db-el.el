@@ -1,6 +1,6 @@
-;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
+;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -40,7 +40,7 @@
 
 ;;; Classes:
 (defclass semanticdb-table-emacs-lisp (semanticdb-abstract-table)
-  ((major-mode :initform emacs-lisp-mode)
+  ((major-mode :initform #'emacs-lisp-mode)
    )
   "A table for returning search results from Emacs.")
 
@@ -53,7 +53,7 @@ It does not need refreshing."
   "Return nil, we never need a refresh."
   nil)
 
-(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-emacs-lisp))
+(cl-defmethod semanticdb-debug-info ((_obj semanticdb-table-emacs-lisp))
   (list "(proxy)"))
 
 (cl-defmethod cl-print-object ((obj semanticdb-table-emacs-lisp) stream)
@@ -63,7 +63,7 @@ It does not need refreshing."
 
 (defclass semanticdb-project-database-emacs-lisp
   (semanticdb-project-database eieio-singleton)
-  ((new-table-class :initform semanticdb-table-emacs-lisp
+  ((new-table-class :initform 'semanticdb-table-emacs-lisp
 		    :type class
 		    :documentation
 		    "New tables created for this database are of this class.")
@@ -195,9 +195,6 @@ If Emacs cannot resolve this symbol to a particular file, then return nil."
 	(when tab (cons tab match))))))
 
 (autoload 'help-function-arglist "help-fns")
-(defalias 'semanticdb-elisp-sym-function-arglist 'help-function-arglist)
-(make-obsolete 'semanticdb-elisp-sym-function-arglist
-	       'help-function-arglist "CEDET 1.1")
 
 (defun semanticdb-elisp-sym->tag (sym &optional toktype)
   "Convert SYM into a semantic tag.
@@ -216,9 +213,7 @@ TOKTYPE is a hint to the type of tag desired."
 	      (symbol-name sym)
 	      nil	;; return type
 	      (semantic-elisp-desymbolify arglist)
-	      :user-visible-flag (condition-case nil
-				     (interactive-form sym)
-				   (error nil)))))
+	      :user-visible-flag (commandp sym))))
 	  ((and (eq toktype 'variable) (boundp sym))
 	   (semantic-tag-new-variable
 	    (symbol-name sym)
@@ -331,7 +326,7 @@ Like `semanticdb-find-tags-for-completion-method' for Emacs Lisp."
 ;;
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method
   ((_table semanticdb-table-emacs-lisp) type &optional tags)
-  "Find all nonterminals which are child elements of TYPE
+  "Find all nonterminals which are child elements of TYPE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
   (if tags (cl-call-next-method)

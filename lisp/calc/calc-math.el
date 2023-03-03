@@ -1,6 +1,6 @@
 ;;; calc-math.el --- mathematical functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -370,18 +370,6 @@ If this can't be done, return NIL."
       (math-isqrt (math-floor a))
     (math-floor (math-sqrt a))))
 
-(defun math-zerop-bignum (a)
-  (and (eq (car a) 0)
-       (progn
-	 (while (eq (car (setq a (cdr a))) 0))
-	 (null a))))
-
-(defun math-scale-bignum-digit-size (a n)   ; [L L S]
-  (while (> n 0)
-    (setq a (cons 0 a)
-	  n (1- n)))
-  a)
-
 ;;; Compute the square root of a number.
 ;;; [T N] if possible, else [F N] if possible, else [C N].  [Public]
 (defun math-sqrt (a)
@@ -630,8 +618,9 @@ If this can't be done, return NIL."
 (defun math-nth-root-float (a nrf-n &optional guess)
   (math-inexact-result)
   (math-with-extra-prec 1
-    (let ((math-nrf-nf (math-float nrf-n))
-	  (math-nrf-nfm1 (math-float (1- nrf-n))))
+    (let ((math-nrf-n nrf-n)
+	  (math-nrf-nf (math-float nrf-n))
+          (math-nrf-nfm1 (math-float (1- nrf-n))))
       (math-nth-root-float-iter a (or guess
 				      (math-make-float
 				       1 (/ (+ (math-numdigs (nth 1 a))
@@ -666,7 +655,7 @@ If this can't be done, return NIL."
   (let* ((q (math-idivmod a (math-ipow guess (1- math-nri-n))))
 	 (s (math-add (car q) (math-mul (1- math-nri-n) guess)))
 	 (g2 (math-idivmod s math-nri-n)))
-    (if (Math-natnum-lessp (car g2) guess)
+    (if (< (car g2) guess)
 	(math-nth-root-int-iter a (car g2))
       (cons (and (equal (car g2) guess)
 		 (eq (cdr q) 0)
@@ -1615,7 +1604,7 @@ If this can't be done, return NIL."
 	   (math-natnump b) (not (eq b 0)))
       (if (eq b 1)
 	  (math-reject-arg x "*Logarithm base one")
-	(if (Math-natnum-lessp x b)
+	(if (< x b)
 	    0
 	  (cdr (math-integer-log x b))))
     (math-floor (calcFunc-log x b))))

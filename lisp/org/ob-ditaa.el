@@ -1,10 +1,10 @@
 ;;; ob-ditaa.el --- Babel Functions for ditaa        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -36,6 +36,10 @@
 ;; 4) there are no variables (at least for now)
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-compat)
 
@@ -118,7 +122,5 @@ This function is called by `org-babel-execute-src-block'."
   (error "Ditaa does not support sessions"))
 
 (provide 'ob-ditaa)
-
-
 
 ;;; ob-ditaa.el ends here

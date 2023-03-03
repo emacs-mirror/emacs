@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+PRODID:-//www.norwegian.no//iCalendar MIMEDIR//EN
+VERSION:2.0
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:RFCALITEM1
+SEQUENCE:1512040950
+DTSTAMP:20141204T095043Z
+ORGANIZER:noreply@norwegian.no
+DTSTART:20141208T173000Z
+
+DTEND:20141208T215500Z
+
+LOCATION:Stavanger-Sola
+
+DESCRIPTION:Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
+
+X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN"><html><head><META NAME="Generator" CONTENT="MS Exchange Server version 08.00.0681.000"><title></title></head><body><b><font face="Calibri" size="3">Reisereferanse</p></body></html>
+SUMMARY:Norwegian til Tromsoe-Langnes - 
+
+CATEGORIES:Appointment
+
+
+PRIORITY:5
+
+CLASS:PUBLIC
+
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR

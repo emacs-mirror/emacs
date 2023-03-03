@@ -1,10 +1,10 @@
 ;;; org-inlinetask.el --- Tasks Independent of Outline Hierarchy -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -78,6 +78,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org)
 
 (defgroup org-inlinetask nil
@@ -131,7 +134,7 @@ If there is a region wrap it inside the inline task."
   ;; before this one.
   (when (and (org-inlinetask-in-task-p)
 	     (not (and (org-inlinetask-at-task-p) (bolp))))
-    (error "Cannot nest inline tasks"))
+    (user-error "Cannot nest inline tasks"))
   (or (bolp) (newline))
   (let* ((indent (if org-odd-levels-only
 		     (1- (* 2 org-inlinetask-min-level))
@@ -189,7 +192,7 @@ The number of levels is controlled by `org-inlinetask-min-level'."
 
 (defun org-inlinetask-goto-end ()
   "Go to the end of the inline task at point.
-    Return point."
+Return point."
   (save-match-data
     (beginning-of-line)
     (let ((case-fold-search t)
@@ -225,7 +228,7 @@ If the task has an end part, promote it.  Also, prevents level from
 going below `org-inlinetask-min-level'."
   (interactive)
   (if (not (org-inlinetask-in-task-p))
-      (error "Not in an inline task")
+      (user-error "Not in an inline task")
     (save-excursion
       (let* ((lvl (org-inlinetask-get-task-level))
 	     (next-lvl (org-get-valid-level lvl -1))
@@ -233,15 +236,18 @@ going below `org-inlinetask-min-level'."
 	     (down-task (concat (make-string next-lvl ?*)))
 	     beg)
 	(if (< next-lvl org-inlinetask-min-level)
-	    (error "Cannot promote an inline task at minimum level")
+	    (user-error "Cannot promote an inline task at minimum level")
 	  (org-inlinetask-goto-beginning)
 	  (setq beg (point))
 	  (replace-match down-task nil t nil 1)
 	  (org-inlinetask-goto-end)
-	  (if (eobp) (beginning-of-line) (forward-line -1))
+          (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
+              (beginning-of-line)
+            (forward-line -1))
 	  (unless (= (point) beg)
+            (looking-at (org-inlinetask-outline-regexp))
 	    (replace-match down-task nil t nil 1)
-	    (when org-adapt-indentation
+	    (when (eq org-adapt-indentation t)
 	      (goto-char beg)
 	      (org-fixup-indentation diff))))))))
 
@@ -250,7 +256,7 @@ going below `org-inlinetask-min-level'."
 If the task has an end part, also demote it."
   (interactive)
   (if (not (org-inlinetask-in-task-p))
-      (error "Not in an inline task")
+      (user-error "Not in an inline task")
     (save-excursion
       (let* ((lvl (org-inlinetask-get-task-level))
 	     (next-lvl (org-get-valid-level lvl 1))
@@ -261,10 +267,13 @@ If the task has an end part, also demote it."
 	(setq beg (point))
 	(replace-match down-task nil t nil 1)
 	(org-inlinetask-goto-end)
-	(if (eobp) (beginning-of-line) (forward-line -1))
+        (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
+            (beginning-of-line)
+          (forward-line -1))
 	(unless (= (point) beg)
+          (looking-at (org-inlinetask-outline-regexp))
 	  (replace-match down-task nil t nil 1)
-	  (when org-adapt-indentation
+	  (when (eq org-adapt-indentation t)
 	    (goto-char beg)
 	    (org-fixup-indentation diff)))))))
 
@@ -299,21 +308,25 @@ If the task has an end part, also demote it."
       (add-text-properties (match-beginning 3) (match-end 3)
 			   '(face org-inlinetask font-lock-fontified t)))))
 
-(defun org-inlinetask-toggle-visibility ()
-  "Toggle visibility of inline task at point."
+(defun org-inlinetask-toggle-visibility (&optional state)
+  "Toggle visibility of inline task at point.
+When optional argument STATE is `fold', fold unconditionally.
+When STATE is `unfold', unfold unconditionally."
   (let ((end (save-excursion
 	       (org-inlinetask-goto-end)
 	       (if (bolp) (1- (point)) (point))))
 	(start (save-excursion
 		 (org-inlinetask-goto-beginning)
-		 (point-at-eol))))
+                 (line-end-position))))
     (cond
      ;; Nothing to show/hide.
      ((= end start))
      ;; Inlinetask was folded: expand it.
-     ((eq (get-char-property (1+ start) 'invisible) 'outline)
-      (org-flag-region start end nil 'outline))
-     (t (org-flag-region start end t 'outline)))))
+     ((and (not (eq state 'fold))
+           (or (eq state 'unfold)
+               (org-fold-get-folding-spec 'headline (1+ start))))
+      (org-fold-region start end nil 'headline))
+     (t (org-fold-region start end t 'headline)))))
 
 (defun org-inlinetask-hide-tasks (state)
   "Hide inline tasks in buffer when STATE is `contents' or `children'.
@@ -324,14 +337,14 @@ This function is meant to be used in `org-cycle-hook'."
        (save-excursion
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
-	   (org-inlinetask-toggle-visibility)
+	   (org-inlinetask-toggle-visibility 'fold)
 	   (org-inlinetask-goto-end)))))
     (`children
      (save-excursion
        (while
 	   (or (org-inlinetask-at-task-p)
 	       (and (outline-next-heading) (org-inlinetask-at-task-p)))
-	 (org-inlinetask-toggle-visibility)
+	 (org-inlinetask-toggle-visibility 'fold)
 	 (org-inlinetask-goto-end))))))
 
 (defun org-inlinetask-remove-END-maybe ()

@@ -1,6 +1,6 @@
-;;; srecode/document.el --- Documentation (comment) generation
+;;; srecode/document.el --- Documentation (comment) generation  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -29,7 +29,8 @@
 ;;
 ;;; Origins:
 ;;
-;; Document was first written w/ cparse, a custom regexp based c parser.
+;; Document was first written with cparse, a custom regexp based c
+;; parser.
 ;;
 ;; Document was then ported to cedet/semantic using sformat (super
 ;; format) as the templating engine.
@@ -88,7 +89,6 @@ versions of names.  This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -144,7 +144,6 @@ A string may end in a space, in which case, last-alist is searched to
 see how best to describe what can be returned.
 Doesn't always work correctly, but that is just because English
 doesn't always work correctly."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -175,7 +174,6 @@ versions of names.  This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -192,7 +190,6 @@ This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -213,7 +210,6 @@ This is an alist with each element of the form:
 MATCH is a regexp to match in the type field.
 RESULT is a string, which can contain %s, which is replaced with
 `match-string' 1."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -233,7 +229,6 @@ MATCH is a regexp to match in the type field.
 RESULT is a string of text to use to describe MATCH.
 When one is encountered, document-insert-parameters will automatically
 place this comment after the parameter name."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -258,7 +253,6 @@ This is an alist with each element of the form:
  (MATCH . RESULT)
 MATCH is a regexp to match in the type field.
 RESULT is a string."
-  :group 'document
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (string :tag "Doc Text"))))
 
@@ -503,7 +497,7 @@ It is assumed that the comment occurs just after VAR-IN."
 
     ;; Find any existing doc strings.
     (goto-char (semantic-tag-end var-in))
-    (skip-syntax-forward "-" (point-at-eol))
+    (skip-syntax-forward "-" (line-end-position))
     (let ((lextok (semantic-doc-snarf-comment-for-tag 'lex))
 	  )
 
@@ -528,7 +522,7 @@ It is assumed that the comment occurs just after VAR-IN."
     (end-of-line)
     (delete-horizontal-space)
     (move-to-column comment-column t)
-    (when (< (point) (point-at-eol)) (end-of-line))
+    (when (< (point) (line-end-position)) (end-of-line))
 
     ;; Perform the insertion
     (let ((srecode-semantic-selected-tag var-in)
@@ -716,7 +710,7 @@ allocating something based on its type."
 	    (setq al (cdr al)))))
     news))
 
-(defun srecode-document-parameter-comment (param &optional commentlist)
+(defun srecode-document-parameter-comment (param &optional _commentlist)
   "Convert tag or string PARAM into a name,comment pair.
 Optional COMMENTLIST is list of previously existing comments to
 use instead in alist form.  If the name doesn't appear in the list of
@@ -826,7 +820,7 @@ not account for verb parts."
   "Does TAG fit on one line with space on the end?"
   (save-excursion
     (semantic-go-to-tag tag)
-    (and (<= (semantic-tag-end tag) (point-at-eol))
+    (and (<= (semantic-tag-end tag) (line-end-position))
 	 (goto-char (semantic-tag-end tag))
 	 (< (current-column) 70))))
 

@@ -1,10 +1,10 @@
 ;;; ol-docview.el --- Links to Docview mode buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Jan Böcker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
 
 (require 'doc-view)
 (require 'ol)
@@ -68,14 +70,16 @@
        ((eq format 'ascii) (format "%s (%s)" desc path))
        (t path)))))
 
-(defun org-docview-open (link)
+(defun org-docview-open (link _)
   (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
   (let ((path (match-string 1 link))
 	(page (and (match-beginning 2)
 		   (string-to-number (match-string 2 link)))))
     ;; Let Org mode open the file (in-emacs = 1) to ensure
     ;; org-link-frame-setup is respected.
-    (org-open-file path 1)
+    (if (file-exists-p path)
+        (org-open-file path 1)
+      (error "No such file: %s" path))
     (when page (doc-view-goto-page page))))
 
 (defun org-docview-store-link ()
@@ -97,7 +101,6 @@ and append it."
   (concat (replace-regexp-in-string "^file:" "docview:" (org-link-complete-file))
 	  "::"
 	  (read-from-minibuffer "Page:" "1")))
-
 
 (provide 'ol-docview)
 

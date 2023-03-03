@@ -1,6 +1,6 @@
 ;;; calc-forms.el --- data format conversion functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -703,16 +703,19 @@ in the Gregorian calendar."
 	  fmt))))
 
 (defconst math-julian-date-beginning '(float 17214245 -1)
-  "The beginning of the Julian date calendar,
-as measured in the number of days before December 31, 1 BC (Gregorian).")
+  "The beginning of the Julian date calendar.
+This is measured in the number of days before December 31, 1
+BC (Gregorian).")
 
 (defconst math-julian-date-beginning-int 1721425
-  "The beginning of the Julian date calendar,
-as measured in the integer number of days before December 31, 1 BC (Gregorian).")
+  "The beginning of the Julian date calendar.
+This is measured in the integer number of days before December
+31, 1 BC (Gregorian).")
 
 (defconst math-unix-epoch 719163
-  "The beginning of Unix time: days from December 31, 1 BC (Gregorian)
-to Jan 1, 1970 AD.")
+  "The beginning of Unix time.
+This is measured in the integer number of days from December 31,
+1 BC (Gregorian) to Jan 1, 1970 AD.")
 
 (defun math-format-date-part (x)
   (cond ((stringp x)
@@ -2129,7 +2132,7 @@ and ends on the last Sunday of October at 2 a.m."
 	     ((memq (car n) '(+ - / vec neg))
 	      (math-normalize
 	       (cons (car n)
-		     (mapcar (function (lambda (x) (math-make-mod x m)))
+                     (mapcar (lambda (x) (math-make-mod x m))
 			     (cdr n)))))
 	     ((and (eq (car n) '*) (Math-anglep (nth 1 n)))
 	      (math-mul (math-make-mod (nth 1 n) m) (nth 2 n)))
@@ -2238,7 +2241,7 @@ and ends on the last Sunday of October at 2 a.m."
 		  (if (eq (car-safe str2) 'error)
 		      str2
 		    (append '(calcFunc-lambda) (cdr str1) (list str2)))))
-	    (if (string-match "#" str)
+	    (if (string-search "#" str)
 		(let ((calc-hashes-used 0))
 		  (and (setq str (math-read-expr str))
 		       (if (eq (car-safe str) 'error)

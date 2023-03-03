@@ -1,6 +1,6 @@
-;;; unit tests for src/fileio.c      -*- lexical-binding: t; -*-
+;;; fileio-tests.el --- unit tests for src/fileio.c      -*- lexical-binding: t; -*-
 
-;; Copyright 2017-2020 Free Software Foundation, Inc.
+;; Copyright 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,6 +16,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'ert)
 
@@ -97,7 +99,7 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-as-directory "D:/abc//") "d:/abc//")))
 
 (ert-deftest fileio-tests--relative-HOME ()
-  "Test that expand-file-name works even when HOME is relative."
+  "Test that `expand-file-name' works even when HOME is relative."
   (let ((process-environment (copy-sequence process-environment)))
     (setenv "HOME" "a/b/c")
     (should (equal (expand-file-name "~/foo")
@@ -128,7 +130,7 @@ Also check that an encoding error can appear in a symlink."
       (if f (delete-file f)))))
 
 (ert-deftest fileio-tests--relative-default-directory ()
-  "Test expand-file-name when default-directory is relative."
+  "Test `expand-file-name' when `default-directory' is relative."
   (let ((default-directory "some/relative/name"))
     (should (file-name-absolute-p (expand-file-name "foo"))))
   (let* ((default-directory "~foo")
@@ -136,8 +138,17 @@ Also check that an encoding error can appear in a symlink."
     (should (and (file-name-absolute-p name)
                  (not (eq (aref name 0) ?~))))))
 
+(ert-deftest fileio-tests--expand-file-name-null-bytes ()
+  "Test that `expand-file-name' checks for null bytes in filenames."
+  (should-error (expand-file-name (concat "file" (char-to-string ?\0) ".txt"))
+                :type 'wrong-type-argument)
+  (should-error (expand-file-name "file.txt" (concat "dir" (char-to-string ?\0)))
+                :type 'wrong-type-argument)
+  (let ((default-directory (concat "dir" (char-to-string ?\0))))
+    (should-error (expand-file-name "file.txt") :type 'wrong-type-argument)))
+
 (ert-deftest fileio-tests--file-name-absolute-p ()
-  "Test file-name-absolute-p."
+  "Test `file-name-absolute-p'."
   (dolist (suffix '("" "/" "//" "/foo" "/foo/" "/foo//" "/foo/bar"))
     (unless (string-equal suffix "")
       (should (file-name-absolute-p suffix)))
@@ -148,10 +159,62 @@ Also check that an encoding error can appear in a symlink."
       (should (not (file-name-absolute-p (concat "~nosuchuser" suffix)))))))
 
 (ert-deftest fileio-tests--circular-after-insert-file-functions ()
-  "Test after-insert-file-functions as a circular list."
+  "Test `after-insert-file-functions' as a circular list."
   (let ((f (make-temp-file "fileio"))
         (after-insert-file-functions (list 'identity)))
     (setcdr after-insert-file-functions after-insert-file-functions)
     (write-region "hello\n" nil f nil 'silent)
     (should-error (insert-file-contents f) :type 'circular-list)
     (delete-file f)))
+
+(ert-deftest fileio-tests/null-character ()
+  (should-error (file-exists-p "/foo\0bar")
+                :type 'wrong-type-argument))
+
+(ert-deftest fileio-tests/file-name-concat ()
+  (should (equal (file-name-concat "foo" "bar") "foo/bar"))
+  (should (equal (file-name-concat "foo" "bar") "foo/bar"))
+  (should (equal (file-name-concat "foo" "bar" "zot") "foo/bar/zot"))
+  (should (equal (file-name-concat "foo/" "bar") "foo/bar"))
+  (should (equal (file-name-concat "foo//" "bar") "foo//bar"))
+  (should (equal (file-name-concat "foo/" "bar/" "zot") "foo/bar/zot"))
+  (should (equal (file-name-concat "fóo" "bar") "fóo/bar"))
+  (should (equal (file-name-concat "foo" "bár") "foo/bár"))
+  (should (equal (file-name-concat "fóo" "bár") "fóo/bár"))
+  (let ((string (make-string 5 ?a)))
+    (should (not (multibyte-string-p string)))
+    (aset string 2 255)
+    (should (not (multibyte-string-p string)))
+    (should (equal (file-name-concat "fóo" string) "fóo/aa\377aa")))
+  (should (equal (file-name-concat "foo") "foo"))
+  (should (equal (file-name-concat "foo/") "foo/"))
+  (should (equal (file-name-concat "foo" "") "foo"))
+  (should (equal (file-name-concat "foo" "" "" "" nil) "foo"))
+  (should (equal (file-name-concat "" "bar") "bar"))
+  (should (equal (file-name-concat "" "") "")))
+
+(ert-deftest fileio-tests--non-regular-insert ()
+  (skip-unless (file-exists-p "/dev/urandom"))
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (should-error (insert-file-contents "/dev/urandom" nil 5 10))
+    (insert-file-contents "/dev/urandom" nil nil 10)
+    (should (= (buffer-size) 10))))
+
+(defun fileio-tests--identity-expand-handler (_ file &rest _)
+  file)
+(put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))
+
+(ert-deftest fileio--file-name-case-insensitive-p ()
+  ;; Check that we at least don't crash if given nonexisting files
+  ;; without a directory (bug#56443).
+
+  ;; Use an identity file-name handler, as if called by `ffap'.
+  (let* ((file-name-handler-alist
+          '(("^mailto:" . fileio-tests--identity-expand-handler)))
+         (file "mailto:snowball@hell.com"))
+    ;; Check that `expand-file-name' is identity for this name.
+    (should (equal (expand-file-name file nil) file))
+    (file-name-case-insensitive-p file)))
+
+;;; fileio-tests.el ends here

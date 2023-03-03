@@ -1,6 +1,6 @@
-;;; enriched.el --- read and save files in text/enriched format
+;;; enriched.el --- read and save files in text/enriched format  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -34,11 +34,11 @@
 ;; A separate file, enriched.txt, contains further documentation and other
 ;; important information about this code.  It also serves as an example
 ;; file in text/enriched format.  It should be in the etc directory of your
-;; emacs distribution.
+;; Emacs distribution.
 
 ;;; Code:
 
-(provide 'enriched)
+(require 'facemenu)
 
 ;;;
 ;;; Variables controlling the display
@@ -50,8 +50,7 @@
 
 (defcustom enriched-verbose t
   "If non-nil, give status messages when reading and writing files."
-  :type 'boolean
-  :group 'enriched)
+  :type 'boolean)
 
 ;;;
 ;;; Set up faces & display table
@@ -65,14 +64,12 @@
   "Face used for text that must be shown in fixed width.
 Currently, Emacs can only display fixed-width fonts, but this may change.
 This face is used for text specifically marked as fixed-width, for example
-in text/enriched files."
-  :group 'enriched)
+in text/enriched files.")
 
 (defface excerpt
   '((t (:slant italic)))
   "Face used for text that is an excerpt from another document.
-This is used in Enriched mode for text explicitly marked as an excerpt."
-  :group 'enriched)
+This is used in Enriched mode for text explicitly marked as an excerpt.")
 
 (defconst enriched-display-table (or (copy-sequence standard-display-table)
 				     (make-display-table)))
@@ -146,8 +143,7 @@ Any property that is neither on this list nor dealt with by
 If you set variables in this hook, you should arrange for them to be restored
 to their old values if you leave Enriched mode.  One way to do this is to add
 them and their old values to `enriched-old-bindings'."
-  :type 'hook
-  :group 'enriched)
+  :type 'hook)
 
 (defcustom enriched-allow-eval-in-display-props nil
   "If non-nil allow to evaluate arbitrary forms in display properties.
@@ -162,13 +158,11 @@ Note, however, that applying unsafe display properties could
 execute malicious Lisp code, if that code came from an external source."
   :risky t
   :type 'boolean
-  :version "26.1"
-  :group 'enriched)
+  :version "26.1")
 
-(defvar enriched-old-bindings nil
+(defvar-local enriched-old-bindings nil
   "Store old variable values that we change when entering mode.
 The value is a list of \(VAR VALUE VAR VALUE...).")
-(make-variable-buffer-local 'enriched-old-bindings)
 
 ;; The next variable is buffer local if and only if Enriched mode is
 ;; enabled.  The buffer local value records whether
@@ -187,15 +181,17 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
 
 (defvar enriched-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap move-beginning-of-line] 'beginning-of-line-text)
-    (define-key map "\C-m" 'reindent-then-newline-and-indent)
+    ;; FIXME: These newline/reindent bindings might be redundant now
+    ;; that we have `electric-indent-mode' enabled by default.
+    (define-key map "\C-m" #'reindent-then-newline-and-indent)
     (define-key map
-      [remap newline-and-indent] 'reindent-then-newline-and-indent)
+      [remap newline-and-indent] #'reindent-then-newline-and-indent)
     (define-key map "\M-j" 'facemenu-justification-menu)
-    (define-key map "\M-S" 'set-justification-center)
-    (define-key map "\C-x\t" 'increase-left-margin)
-    (define-key map "\C-c[" 'set-left-margin)
-    (define-key map "\C-c]" 'set-right-margin)
+    (define-key map "\M-S" #'set-justification-center)
+    (define-key map "\C-x\t" #'increase-left-margin)
+    (define-key map "\C-c[" #'set-left-margin)
+    (define-key map "\C-c]" #'set-right-margin)
+    (define-key map "\M-o" #'facemenu-keymap)
     map)
   "Keymap for Enriched mode.")
 
@@ -222,7 +218,7 @@ Commands:
   (cond ((null enriched-mode)
 	 ;; Turn mode off
          (remove-hook 'change-major-mode-hook
-                      'enriched-before-change-major-mode 'local)
+                      #'enriched-before-change-major-mode 'local)
 	 (setq buffer-file-format (delq 'text/enriched buffer-file-format))
 	 ;; restore old variable values
 	 (while enriched-old-bindings
@@ -239,7 +235,7 @@ Commands:
 
 	(t				; Turn mode on
          (add-hook 'change-major-mode-hook
-                   'enriched-before-change-major-mode nil 'local)
+                   #'enriched-before-change-major-mode nil 'local)
 	 (add-to-list 'buffer-file-format 'text/enriched)
 	 ;; Save old variable values before we change them.
 	 ;; These will be restored if we exit Enriched mode.
@@ -247,16 +243,17 @@ Commands:
 	       (list 'buffer-display-table buffer-display-table
 		     'default-text-properties default-text-properties
 		     'use-hard-newlines use-hard-newlines))
-	 (make-local-variable 'enriched-default-text-properties-local-flag)
-	 (setq enriched-default-text-properties-local-flag
-	       (local-variable-p 'default-text-properties))
+         (setq-local enriched-default-text-properties-local-flag
+                     (local-variable-p 'default-text-properties))
 	 (make-local-variable 'default-text-properties)
 	 (setq buffer-display-table  enriched-display-table)
 	 (use-hard-newlines 1 (if enriched-rerun-flag 'never nil))
-	 (let ((sticky (plist-get default-text-properties 'front-sticky))
-	       (p enriched-par-props))
-	   (dolist (x p)
-	     (add-to-list 'sticky x))
+	 (let* ((sticky
+	         (delete-dups
+	          (append
+	           enriched-par-props
+	           (copy-sequence
+	            (plist-get default-text-properties 'front-sticky))))))
 	   (if sticky
 	       (setq default-text-properties
 		     (plist-put default-text-properties
@@ -272,7 +269,7 @@ Commands:
     (let ((enriched-rerun-flag t))
       (enriched-mode 1))))
 
-(add-hook 'after-change-major-mode-hook 'enriched-after-change-major-mode)
+(add-hook 'after-change-major-mode-hook #'enriched-after-change-major-mode)
 
 
 (fset 'enriched-mode-map enriched-mode-map)
@@ -328,8 +325,7 @@ the region, and the START and END of each region."
 ;;;###autoload
 (defun enriched-encode (from to orig-buf)
   (if enriched-verbose (message "Enriched: encoding document..."))
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
+  (let ((inhibit-read-only t))
     (save-restriction
       (narrow-to-region from to)
       (delete-to-left-margin)
@@ -350,7 +346,7 @@ the region, and the START and END of each region."
 		  (if orig-buf (set-buffer orig-buf))
 		  (funcall enriched-initial-annotation))))
       (enriched-map-property-regions 'hard
-	(lambda (v b e)
+	(lambda (v b _e)
 	  (if (and v (= ?\n (char-after b)))
 	      (progn (goto-char b) (insert "\n"))))
 	(point) nil)
@@ -394,9 +390,11 @@ which can be the value of the `face' text property."
 	((and (listp face) (eq (car face) :background))
 	 (list (list "x-bg-color" (cadr face))))
 	((listp face)
-	 (apply 'append (mapcar 'enriched-face-ans face)))
+	 (apply #'append (mapcar #'enriched-face-ans face)))
 	((let* ((fg (face-attribute face :foreground))
 		(bg (face-attribute face :background))
+                (weight (face-attribute face :weight))
+                (slant (face-attribute face :slant))
 		(props (face-font face t))
 		(ans (cdr (format-annotate-single-property-change
 			   'face nil props enriched-translations))))
@@ -404,6 +402,10 @@ which can be the value of the `face' text property."
 	     (setq ans (cons (list "x-color" fg) ans)))
 	   (unless (eq bg 'unspecified)
 	     (setq ans (cons (list "x-bg-color" bg) ans)))
+           (if (eq weight 'bold)
+               (setq ans (cons (list "bold") ans)))
+           (if (eq slant 'italic)
+               (setq ans (cons (list "italic") ans)))
 	   ans))))
 
 ;;;
@@ -535,5 +537,31 @@ the range of text to assign text property SYMBOL with value VALUE."
     (if enriched-allow-eval-in-display-props
         (list start end 'display prop)
       (list start end 'display (list 'disable-eval prop)))))
+
+(defvar enriched--markup-shown)
+(defun enriched-toggle-markup ()
+  "Toggle whether to see markup in the current buffer."
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (with-silent-modifications
+        (if (bound-and-true-p enriched--markup-shown)
+            (progn
+              (setq-local enriched--markup-shown nil)
+              ;; Remove any faces, because they will be decoded, too.
+              (goto-char (point-min))
+              (let (match)
+                (while (setq match (text-property-search-forward 'face))
+                  (put-text-property (prop-match-beginning match)
+                                     (prop-match-end match)
+                                     'face nil)))
+              (enriched-decode (point-min) (point-max))
+              (enriched-mode 1))
+          (setq-local enriched--markup-shown t)
+          (enriched-encode (point-min) (point-max) (current-buffer))
+          (enriched-mode -1))))))
+
+(provide 'enriched)
 
 ;;; enriched.el ends here

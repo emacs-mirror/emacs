@@ -1,6 +1,6 @@
 ;;; dired-x-tests.el --- Test suite for dired-x. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +19,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'dired-x)
 
 
@@ -31,23 +32,30 @@
            (append (copy-sequence dirs)
                    (delete "c" (copy-sequence files)))
            #'string<))
-         (dir (make-temp-file "Bug25942" 'dir))
          (extension "c"))
-    (unwind-protect
-        (progn
-          (dolist (d dirs)
-            (make-directory (expand-file-name d dir)))
-          (dolist (f files)
-            (write-region nil nil (expand-file-name f dir)))
-          (dired dir)
-          (dired-mark-extension extension)
-          (should (equal '("bar.c" "foo.c")
-                         (sort (dired-get-marked-files 'local) #'string<)))
-          (dired-unmark-all-marks)
-          (dired-mark-suffix extension)
-          (should (equal all-but-c
-                         (sort (dired-get-marked-files 'local) #'string<))))
-      (delete-directory dir 'recursive))))
+    (ert-with-temp-directory dir
+      (dolist (d dirs)
+        (make-directory (expand-file-name d dir)))
+      (dolist (f files)
+        (write-region nil nil (expand-file-name f dir)))
+      (dired dir)
+      (dired-mark-extension extension)
+      (should (equal '("bar.c" "foo.c")
+                     (sort (dired-get-marked-files 'local) #'string<)))
+      (dired-unmark-all-marks)
+      (dired-mark-suffix extension)
+      (should (equal all-but-c
+                     (sort (dired-get-marked-files 'local) #'string<))))))
+
+(ert-deftest dired-x--string-to-number ()
+  (should (= (dired-x--string-to-number "2.4K") 2457.6))
+  (should (= (dired-x--string-to-number "2400") 2400))
+  (should (= (dired-x--string-to-number "123.4M") 129394278.4))
+  (should (= (dired-x--string-to-number "123.40000M") 129394278.4))
+  (should (= (dired-x--string-to-number "4.134") 4134))
+  (should (= (dired-x--string-to-number "4,134") 4134))
+  (should (= (dired-x--string-to-number "4 134") 4134))
+  (should (= (dired-x--string-to-number "41,52,134") 4152134)))
 
 (provide 'dired-x-tests)
-;; dired-x-tests.el ends here
+;;; dired-x-tests.el ends here

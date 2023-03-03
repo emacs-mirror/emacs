@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010--2020 Free Software Foundation, Inc.
+@c Copyright (C) 2010--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -16,6 +16,11 @@ install, uninstall, and upgrade it.
 put it in a @dfn{package archive} for others to download.
 @xref{Packages,,, emacs, The GNU Emacs Manual}, for a description of
 user-level features of the packaging system.
+
+  These sections are mostly directed towards package archive
+maintainers---much of this information is not relevant for package
+authors (i.e., people who write code that will be distributed via
+these archives).
 
 @menu
 * Packaging Basics::        The basic concepts of Emacs Lisp packages.
@@ -147,9 +152,9 @@ the various headers, as illustrated by the following example:
 
 @example
 @group
-;;; superfrobnicator.el --- Frobnicate and bifurcate flanges
+;;; superfrobnicator.el --- Frobnicate and bifurcate flanges  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2022 Free Software Foundation, Inc.
 @end group
 
 ;; Author: J. R. Hacker <jrh@@example.com>
@@ -283,11 +288,14 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
 @section Creating and Maintaining Package Archives
 @cindex package archive
 
+@cindex GNU ELPA
+@cindex non-GNU ELPA
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
-@code{package-archives}, whose default value contains a single entry:
-the archive hosted by the GNU project at @url{https://elpa.gnu.org}.  This
-section describes how to set up and maintain a package archive.
+@code{package-archives}, whose default value lists the archives
+hosted on @url{https://elpa.gnu.org, GNU ELPA} and
+@url{https://elpa.nongnu.org, non-GNU ELPA}.  This section describes
+how to set up and maintain a package archive.
 
 @cindex base location, package archive
 @defopt package-archives

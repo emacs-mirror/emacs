@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -232,7 +232,6 @@ backward until encountering the front of a word, rather than forward.
 @end deffn
 
 @defopt words-include-escapes
-@c Emacs 19 feature
 This variable affects the behavior of @code{forward-word} and
 @code{backward-word}, and everything that uses them.  If it is
 non-@code{nil}, then characters in the escape and character-quote
@@ -386,6 +385,16 @@ is signaled.
 @defun line-end-position &optional count
 Return the position that @code{(end-of-line @var{count})}
 would move to.
+@end defun
+
+@defun pos-bol &optional count
+Like @code{line-beginning-position}, but ignores fields (and is more
+efficient).
+@end defun
+
+@defun pos-eol &optional count
+Like @code{line-end-position}, but ignores fields (and is more
+efficient).
 @end defun
 
 @deffn Command forward-line &optional count
@@ -825,6 +834,64 @@ a defun.  The function @code{end-of-defun} calls this function instead
 of using its normal method.
 @end defvar
 
+@findex treesit-beginning-of-defun
+@findex treesit-end-of-defun
+If Emacs is compiled with tree-sitter, it can use the tree-sitter
+parser information to move across syntax constructs.  Since what
+exactly is considered a defun varies between languages, a major mode
+should set @code{treesit-defun-type-regexp} to determine that.  Then
+the mode can get navigation-by-defun functionality for free, by using
+@code{treesit-beginning-of-defun} and @code{treesit-end-of-defun}.
+
+@defvar treesit-defun-type-regexp
+The value of this variable is a regexp matching the node type of defun
+nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
+
+For example, @code{python-mode} sets this variable to a regexp that
+matches either @code{"function_definition"} or @code{"class_definition"}.
+@end defvar
+
+@defvar treesit-defun-tactic
+This variable determines how Emacs treats nested defuns.  If the
+value is @code{top-level}, navigation functions only move across
+top-level defuns, if the value is @code{nested}, navigation functions
+recognize nested defuns.
+@end defvar
+
+@defvar treesit-sentence-type-regexp
+The value of this variable is a regexp matching the node type of sentence
+nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program Source}.)
+@end defvar
+
+@findex treesit-forward-sentence
+@findex forward-sentence
+@findex backward-sentence
+If Emacs is compiled with tree-sitter, it can use the tree-sitter
+parser information to move across syntax constructs.  Since what
+exactly is considered a sentence varies between languages, a major
+mode should set @code{treesit-sentence-type-regexp} to determine that.
+Then the mode can get navigation-by-sentence functionality for free,
+by using @code{forward-sentence} and
+@code{backward-sentence}(@pxref{Moving by Sentences,,, emacs, The
+extensible self-documenting text editor}).
+
+@defvar treesit-sexp-type-regexp
+The value of this variable is a regexp matching the node type of sexp
+nodes.  (For ``node'' and ``node type'', @pxref{Parsing Program
+Source}.)
+@end defvar
+
+@findex treesit-forward-sexp
+@findex forward-sexp@r{, and tree-sitter}
+@findex backward-sexp@r{, and tree-sitter}
+If Emacs is compiled with tree-sitter, it can use the tree-sitter
+parser information to move across syntax constructs.  Since what
+exactly is considered a sexp varies between languages, a major mode
+should set @code{treesit-sexp-type-regexp} to determine that.  Then
+the mode can get navigation-by-sexp functionality for free, by using
+@code{forward-sexp} and @code{backward-sexp}(@pxref{Moving by
+Sentences,,, emacs, The extensible self-documenting text editor}).
+
 @node Skipping Characters
 @subsection Skipping Characters
 @cindex skipping characters
@@ -1003,6 +1070,14 @@ positions.
 
 In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
+
+However, when the narrowing has been set by @code{with-restriction} with
+a label argument (see below), @code{narrow-to-region} can be used only
+within the limits of that narrowing.  If @var{start} or @var{end} are
+outside these limits, the corresponding limit set by
+@code{with-restriction} is used instead.  To gain access to other
+portions of the buffer, use @code{without-restriction} with the same
+label.
 @end deffn
 
 @deffn Command narrow-to-page &optional move-count
@@ -1026,6 +1101,12 @@ It is equivalent to the following expression:
 @example
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
+
+However, when a narrowing has been set by @code{with-restriction} with a
+label argument (see below), the limits set by @code{with-restriction}
+are restored, instead of canceling the narrowing.  To gain access to
+other portions of the buffer, use @code{without-restriction} with the
+same label.
 @end deffn
 
 @defun buffer-narrowed-p
@@ -1040,6 +1121,9 @@ thus restoring the same state of narrowing (or absence thereof) formerly
 in effect.  The state of narrowing is restored even in the event of an
 abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 Therefore, this construct is a clean way to narrow a buffer temporarily.
+
+This construct also saves and restores the narrowings that were set by
+@code{with-restriction} with a label argument (see below).
 
 The value returned by @code{save-restriction} is that returned by the
 last form in @var{body}, or @code{nil} if no body forms were given.
@@ -1089,4 +1173,65 @@ This is the contents of foo@point{}
 ---------- Buffer: foo ----------
 @end group
 @end example
+@end defspec
+
+@defspec with-restriction start end [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, sets the accessible portion to start at @var{start} and
+end at @var{end}, evaluates the @var{body} forms, and restores the
+saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (narrow-to-region start end)
+  body)
+@end example
+
+@cindex labeled narrowing
+When the optional argument @var{label}, a symbol, is present, the
+narrowing is @dfn{labeled}.  A labeled narrowing differs from a
+non-labeled one in several ways:
+
+@itemize @bullet
+@item
+During the evaluation of the @var{body} form, @code{narrow-to-region}
+and @code{widen} can be used only within the @var{start} and @var{end}
+limits.
+
+@item
+To lift the restriction introduced by @code{with-restriction} and gain
+access to other portions of the buffer, use @code{without-restriction}
+with the same @var{label} argument.  (Another way to gain access to
+other portions of the buffer is to use an indirect buffer
+(@pxref{Indirect Buffers}).)
+
+@item
+Labeled narrowings can be nested.
+
+@item
+Labeled narrowings can only be used in Lisp programs: they are never
+visible on display, and never interfere with narrowings set by the
+user.
+@end itemize
+
+If you use @code{with-restriction} with the optional @var{label}
+argument, we recommend documenting the @var{label} in the doc strings
+of the functions which use it, so that other Lisp programs your code
+calls could lift the labeled narrowing if and when it needs.
+@end defspec
+
+@defspec without-restriction [:label label] body
+This special form saves the current bounds of the accessible portion
+of the buffer, widens the buffer, evaluates the @var{body} forms, and
+restores the saved bounds.  In that case it is equivalent to
+
+@example
+(save-restriction
+  (widen)
+  body)
+@end example
+
+When the optional argument @var{label} is present, the narrowing set
+by @code{with-restriction} with the same @var{label} argument is
+lifted.
 @end defspec

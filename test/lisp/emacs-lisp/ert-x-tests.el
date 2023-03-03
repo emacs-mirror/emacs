@@ -1,24 +1,24 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008, 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
 ;; 	   Christian Ohler <ohler@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -82,6 +82,60 @@
         (should-not (buffer-live-p buffer-1))
         (should (buffer-live-p buffer-2))))))
 
+(ert-deftest ert-test-with-buffer-selected/current ()
+  (let ((origbuf (current-buffer)))
+    (ert-with-test-buffer ()
+      (let ((buf (current-buffer)))
+        (should (not (eq buf origbuf)))
+        (with-current-buffer origbuf
+          (ert-with-buffer-selected buf
+            (should (eq (current-buffer) buf))))))))
+
+(ert-deftest ert-test-with-buffer-selected/selected ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (eq (window-buffer) (current-buffer))))))
+
+(ert-deftest ert-test-with-buffer-selected/nil-buffer ()
+  (ert-with-test-buffer ()
+    (let ((buf (current-buffer)))
+      (ert-with-buffer-selected nil
+        (should (eq (window-buffer) buf))))))
+
+(ert-deftest ert-test-with-buffer-selected/modification-hooks ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (null inhibit-modification-hooks)))))
+
+(ert-deftest ert-test-with-buffer-selected/read-only ()
+  (ert-with-test-buffer ()
+    (ert-with-buffer-selected (current-buffer)
+      (should (null inhibit-read-only))
+      (should (null buffer-read-only)))))
+
+(ert-deftest ert-test-with-buffer-selected/return-value ()
+  (should (equal (ert-with-buffer-selected nil "foo") "foo")))
+
+(ert-deftest ert-test-with-test-buffer-selected/selected ()
+  (ert-with-test-buffer-selected ()
+    (should (eq (window-buffer) (current-buffer)))))
+
+(ert-deftest ert-test-with-test-buffer-selected/modification-hooks ()
+  (ert-with-test-buffer-selected ()
+    (should (null inhibit-modification-hooks))))
+
+(ert-deftest ert-test-with-test-buffer-selected/read-only ()
+  (ert-with-test-buffer-selected ()
+    (should (null inhibit-read-only))
+    (should (null buffer-read-only))))
+
+(ert-deftest ert-test-with-test-buffer-selected/return-value ()
+  (should (equal (ert-with-test-buffer-selected () "foo") "foo")))
+
+(ert-deftest ert-test-with-test-buffer-selected/buffer-name ()
+  (should (equal (ert-with-test-buffer (:name "foo") (buffer-name))
+                 (ert-with-test-buffer-selected (:name "foo")
+                   (buffer-name)))))
 
 (ert-deftest ert-filter-string ()
   (should (equal (ert-filter-string "foo bar baz" "quux")
@@ -90,10 +144,10 @@
                  "foo  baz")))
 
 (ert-deftest ert-propertized-string ()
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (ert-propertized-string "a" '(a b) "b" '(c t) "cd")
            #("abcd" 1 2 (a b) 2 4 (c t))))
-  (should (ert-equal-including-properties
+  (should (equal-including-properties
            (ert-propertized-string "foo " '(face italic) "bar" " baz" nil
                                    " quux")
            #("foo bar baz quux" 4 11 (face italic)))))
@@ -103,23 +157,27 @@
 
 (ert-deftest ert-test-run-tests-interactively-2 ()
   :tags '(:causes-redisplay)
-  (let* ((passing-test (make-ert-test :name 'passing-test
-                                      :body (lambda () (ert-pass))))
-         (failing-test (make-ert-test :name 'failing-test
-                                      :body (lambda ()
-                                              (ert-info ((propertize "foo\nbar"
-                                                                     'a 'b))
-                                                (ert-fail
-                                                 "failure message")))))
-         (skipped-test (make-ert-test :name 'skipped-test
-                                      :body (lambda () (ert-skip
-							"skip message"))))
-         (ert-debug-on-error nil)
-         (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
-         (messages nil)
-         (mock-message-fn
-          (lambda (format-string &rest args)
-            (push (apply #'format format-string args) messages))))
+  (cl-letf* ((passing-test (make-ert-test
+                            :name 'passing-test
+                            :body (lambda () (ert-pass))))
+             (failing-test (make-ert-test
+                            :name 'failing-test
+                            :body (lambda ()
+                                    (ert-info ((propertize "foo\nbar"
+                                                           'a 'b))
+                                              (ert-fail
+                                               "failure message")))))
+             (skipped-test (make-ert-test
+                            :name 'skipped-test
+                            :body (lambda () (ert-skip
+					      "skip message"))))
+             (ert-debug-on-error nil)
+             (messages nil)
+             (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
+             ((symbol-function 'message)
+              (lambda (format-string &rest args)
+                (push (apply #'format format-string args) messages)))
+             (ert--output-buffer-name buffer-name))
     (cl-flet ((expected-string (with-font-lock-p)
                 (ert-propertized-string
                  "Selector: (member <passing-test> <failing-test> "
@@ -152,21 +210,19 @@
                  "failing-test"
                  nil "\n    Info: " '(a b) "foo\n"
                  nil "          " '(a b) "bar"
-                 nil "\n    (ert-test-failed \"failure message\")\n\n\n"
-                 )))
+                 nil "\n    (ert-test-failed \"failure message\")\n\n\n")))
       (save-window-excursion
         (unwind-protect
             (let ((case-fold-search nil))
               (ert-run-tests-interactively
-               `(member ,passing-test ,failing-test ,skipped-test) buffer-name
-               mock-message-fn)
+               `(member ,passing-test ,failing-test ,skipped-test))
               (should (equal messages `(,(concat
                                           "Ran 3 tests, 1 results were "
                                           "as expected, 1 unexpected, "
 					  "1 skipped"))))
               (with-current-buffer buffer-name
                 (font-lock-mode 0)
-                (should (ert-equal-including-properties
+                (should (equal-including-properties
                          (ert-filter-string (buffer-string)
                                             '("Started at:\\(.*\\)$" 1)
                                             '("Finished at:\\(.*\\)$" 1))
@@ -175,7 +231,7 @@
                 ;; pretend we are.
                 (let ((noninteractive nil))
                   (font-lock-mode 1))
-                (should (ert-equal-including-properties
+                (should (equal-including-properties
                          (ert-filter-string (buffer-string)
                                             '("Started at:\\(.*\\)$" 1)
                                             '("Finished at:\\(.*\\)$" 1))
@@ -271,6 +327,62 @@ desired effect."
     (cl-loop for x in '(0 1 2 3 4 t) do
              (should (equal (c x) (lisp x))))))
 
+(ert-deftest ert-x-tests--with-temp-file-generate-suffix ()
+  (should (equal (ert--with-temp-file-generate-suffix "foo.el") "-foo"))
+  (should (equal (ert--with-temp-file-generate-suffix "foo-test.el") "-foo"))
+  (should (equal (ert--with-temp-file-generate-suffix "foo-tests.el") "-foo"))
+  (should (equal (ert--with-temp-file-generate-suffix "foo-bar-baz.el")
+                 "-foo-bar-baz"))
+  (should (equal (ert--with-temp-file-generate-suffix "/foo/bar/baz.el")
+                 "-baz")))
+
+(ert-deftest ert-x-tests-with-temp-file ()
+  (let (saved)
+    (ert-with-temp-file fil
+      (setq saved fil)
+      (should (file-exists-p fil))
+      (should (file-regular-p fil)))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-file/handle-error ()
+  (let (saved)
+    (ignore-errors
+      (ert-with-temp-file fil
+        (setq saved fil)
+        (error "foo")))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-file/prefix-and-suffix-kwarg ()
+  (ert-with-temp-file fil
+    :prefix "foo"
+    :suffix "bar"
+    (should (string-match "foo.*bar" fil))))
+
+(ert-deftest ert-x-tests-with-temp-file/text-kwarg ()
+  (ert-with-temp-file fil
+    :text "foobar3"
+    (let ((buf (find-file-noselect fil)))
+      (unwind-protect
+          (with-current-buffer buf
+            (should (equal (buffer-string) "foobar3")))
+        (kill-buffer buf)))))
+
+(ert-deftest ert-x-tests-with-temp-file/unknown-kwarg-signals-error ()
+  (should-error
+   (ert-with-temp-file fil :foo "foo" nil)))
+
+(ert-deftest ert-x-tests-with-temp-directory ()
+  (let (saved)
+    (ert-with-temp-directory dir
+      (setq saved dir)
+      (should (file-exists-p dir))
+      (should (file-directory-p dir))
+      (should (equal dir (file-name-as-directory dir))))
+    (should-not (file-exists-p saved))))
+
+(ert-deftest ert-x-tests-with-temp-directory/text-signals-error ()
+  (should-error
+   (ert-with-temp-directory dir :text "foo" nil)))
 
 (provide 'ert-x-tests)
 

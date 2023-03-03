@@ -1,6 +1,6 @@
-;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
+;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
@@ -39,10 +39,6 @@
 ;;
 ;;	See the URL:
 ;;	`https://www.ietf.org/rfc/rfc2234.txt'
-;;	or
-;;	`http://www.faqs.org/rfcs/rfc2234.html'
-;;	or
-;;	`http://www.rnp.br/ietf/rfc/rfc2234.txt'
 ;;	("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;
@@ -534,13 +530,14 @@ See documentation for variable `ebnf-abn-lex'."
 	(let ((prose-p (= (following-char) ?<)))
 	  (when prose-p
 	    (forward-char)
-	    (or (looking-at ebnf-abn-non-terminal-letter-chars)
+	    (or (looking-at (concat "[" ebnf-abn-non-terminal-letter-chars "]"))
 		(error "Invalid prose value")))
 	  (setq ebnf-abn-lex
 		(ebnf-buffer-substring ebnf-abn-non-terminal-chars))
 	  (when prose-p
 	    (or (= (following-char) ?>)
 		(error "Invalid prose value"))
+            (forward-char)
 	    (setq ebnf-abn-lex (concat "<" ebnf-abn-lex ">"))))
 	'non-terminal)
        ;; equal: =, =/

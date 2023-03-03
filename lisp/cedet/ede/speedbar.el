@@ -1,6 +1,6 @@
-;;; ede/speedbar.el --- Speedbar viewing of EDE projects
+;;; ede/speedbar.el --- Speedbar viewing of EDE projects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2001, 2003, 2005, 2007-2020 Free Software
+;; Copyright (C) 1998-2001, 2003, 2005, 2007-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -42,27 +42,27 @@
   (setq ede-speedbar-key-map (speedbar-make-specialized-keymap))
 
   ;; General viewing things
-  (define-key ede-speedbar-key-map "\C-m" 'speedbar-edit-line)
-  (define-key ede-speedbar-key-map "+" 'speedbar-expand-line)
-  (define-key ede-speedbar-key-map "=" 'speedbar-expand-line)
-  (define-key ede-speedbar-key-map "-" 'speedbar-contract-line)
-  (define-key ede-speedbar-key-map " " 'speedbar-toggle-line-expansion)
+  (define-key ede-speedbar-key-map "\C-m" #'speedbar-edit-line)
+  (define-key ede-speedbar-key-map "+" #'speedbar-expand-line)
+  (define-key ede-speedbar-key-map "=" #'speedbar-expand-line)
+  (define-key ede-speedbar-key-map "-" #'speedbar-contract-line)
+  (define-key ede-speedbar-key-map " " #'speedbar-toggle-line-expansion)
 
   ;; Some object based things
-  (define-key ede-speedbar-key-map "C" 'eieio-speedbar-customize-line)
+  (define-key ede-speedbar-key-map "C" #'eieio-speedbar-customize-line)
 
   ;; Some project based things
-  (define-key ede-speedbar-key-map "R" 'ede-speedbar-remove-file-from-target)
-  (define-key ede-speedbar-key-map "b" 'ede-speedbar-compile-line)
-  (define-key ede-speedbar-key-map "B" 'ede-speedbar-compile-project)
-  (define-key ede-speedbar-key-map "D" 'ede-speedbar-make-distribution)
-  (define-key ede-speedbar-key-map "E" 'ede-speedbar-edit-projectfile)
+  (define-key ede-speedbar-key-map "R" #'ede-speedbar-remove-file-from-target)
+  (define-key ede-speedbar-key-map "b" #'ede-speedbar-compile-line)
+  (define-key ede-speedbar-key-map "B" #'ede-speedbar-compile-project)
+  (define-key ede-speedbar-key-map "D" #'ede-speedbar-make-distribution)
+  (define-key ede-speedbar-key-map "E" #'ede-speedbar-edit-projectfile)
   )
 
 (defvar ede-speedbar-menu
   '([ "Compile" ede-speedbar-compile-line t]
     [ "Compile Project" ede-speedbar-compile-project
-      (ede-project-child-p (speedbar-line-token)) ]
+      (cl-typep (speedbar-line-token) 'ede-project) ]
     "---"
     [ "Edit File/Tag" speedbar-edit-line
       (not (eieio-object-p (speedbar-line-token)))]
@@ -79,7 +79,7 @@
       (eieio-object-p (speedbar-line-token)) ]
     [ "Edit Project File" ede-speedbar-edit-projectfile t]
     [ "Make Distribution" ede-speedbar-make-distribution
-      (ede-project-child-p (speedbar-line-token)) ]
+      (cl-typep (speedbar-line-token) 'ede-project) ]
     )
   "Menu part in easymenu format used in speedbar while browsing objects.")
 
@@ -98,7 +98,7 @@
   (speedbar-get-focus)
   )
 
-(defun ede-speedbar-toplevel-buttons (dir)
+(defun ede-speedbar-toplevel-buttons (_dir)
   "Return a list of objects to display in speedbar.
 Argument DIR is the directory from which to derive the list of objects."
   ede-projects
@@ -175,18 +175,18 @@ Argument DIR is the directory from which to derive the list of objects."
     (beginning-of-line)
     (looking-at "^\\([0-9]+\\):")
     (let ((depth (string-to-number (match-string 1))))
-      (while (not (re-search-forward "[]] [^ ]" (point-at-eol) t))
+      (while (not (re-search-forward "[]] [^ ]" (line-end-position) t))
 	(re-search-backward (format "^%d:" (1- depth)))
 	(setq depth (1- depth)))
       (speedbar-line-token))))
 
-(cl-defmethod eieio-speedbar-derive-line-path ((obj ede-project) &optional depth)
+(cl-defmethod eieio-speedbar-derive-line-path ((obj ede-project) &optional _depth)
   "Return the path to OBJ.
 Optional DEPTH is the depth we start at."
   (file-name-directory (oref obj file))
   )
 
-(cl-defmethod eieio-speedbar-derive-line-path ((obj ede-target) &optional depth)
+(cl-defmethod eieio-speedbar-derive-line-path ((obj ede-target) &optional _depth)
   "Return the path to OBJ.
 Optional DEPTH is the depth we start at."
   (let ((proj (ede-target-parent obj)))
@@ -208,7 +208,7 @@ Optional DEPTH is the depth we start at."
   "Provide a speedbar description for OBJ."
   (ede-description obj))
 
-(cl-defmethod eieio-speedbar-child-description ((obj ede-target))
+(cl-defmethod eieio-speedbar-child-description ((_obj ede-target))
   "Provide a speedbar description for a plain-child of OBJ.
 A plain child is a child element which is not an EIEIO object."
   (or (speedbar-item-info-file-helper)
@@ -251,7 +251,7 @@ It has depth DEPTH."
 
 ;;; Generic file management for TARGETS
 ;;
-(defun ede-file-find (text token indent)
+(defun ede-file-find (_text token indent)
   "Find the file TEXT at path TOKEN.
 INDENT is the current indentation level."
   (speedbar-find-file-in-frame
@@ -276,7 +276,7 @@ INDENT is the current indentation level."
 Etags does not support this feature.  TEXT will be the button
 string.  TOKEN will be the list, and INDENT is the current indentation
 level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -284,13 +284,13 @@ level."
 	     (speedbar-insert-generic-list indent token
 					   'ede-tag-expand
 					   'ede-tag-find))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly))
 
-(defun ede-tag-find (text token indent)
+(defun ede-tag-find (_text token _indent)
   "For the tag TEXT in a file TOKEN, goto that position.
 INDENT is the current indentation level."
   (let ((file (ede-find-nearest-file-line)))
@@ -314,21 +314,21 @@ INDENT is the current indentation level."
 (defvar ede-speedbar-file-menu-additions
   '("----"
     ["Create EDE Target" ede-new-target (ede-current-project) ]
-    ["Add to project" ede-speedbar-file-add-to-project (ede-current-project) ]
+    ;; ["Add to project" ede-speedbar-file-add-to-project (ede-current-project) ]
     ["Compile project" ede-speedbar-compile-project (ede-current-project) ]
-    ["Compile file target" ede-speedbar-compile-file-target (ede-current-project) ]
+    ;; ["Compile file target" ede-speedbar-compile-file-target (ede-current-project) ]
     ["Make distribution" ede-make-dist (ede-current-project) ]
     )
   "Set of menu items to splice into the speedbar menu.")
 
 (defvar ede-speedbar-file-keymap
   (let ((km (make-sparse-keymap)))
-    (define-key km "a" 'ede-speedbar-file-add-to-project)
-    (define-key km "t" 'ede-new-target)
-    (define-key km "s" 'ede-speedbar)
-    (define-key km "C" 'ede-speedbar-compile-project)
-    (define-key km "c" 'ede-speedbar-compile-file-target)
-    (define-key km "d" 'ede-make-dist)
+    ;; (define-key km "a" #'ede-speedbar-file-add-to-project)
+    (define-key km "t" #'ede-new-target)
+    (define-key km "s" #'ede-speedbar)
+    (define-key km "C" #'ede-speedbar-compile-project)
+    ;; (define-key km "c" #'ede-speedbar-compile-file-target)
+    (define-key km "d" #'ede-make-dist)
     km)
   "Keymap spliced into the speedbar keymap.")
 

@@ -1,6 +1,6 @@
 ;;; help-mode-tests.el --- Tests for help-mode.el    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -41,11 +41,6 @@
       (should (equal (buffer-name (current-buffer))
                      (help-buffer))))))
 
-(ert-deftest help-mode-tests-help-buffer-current-buffer-error ()
-  (with-temp-buffer
-    (let ((help-xref-following t))
-      (should-error (help-buffer)))))
-
 (ert-deftest help-mode-tests-make-xrefs ()
   (with-temp-buffer
     (insert "car is a built-in function in ‘C source code’.
@@ -72,14 +67,19 @@ Lisp concepts such as car, cdr, cons cell and list.")
                   #'info)))))
 
 (ert-deftest help-mode-tests-xref-button ()
-  (with-temp-buffer
-    (insert "See also the function ‘interactive’.")
-    (string-match help-xref-symbol-regexp (buffer-string))
-    (help-xref-button 8 'help-function)
-    (should-not (button-at 22))
-    (should-not (button-at 35))
-    (let ((button (button-at 30)))
-      (should (eq (button-type button) 'help-function)))))
+  (let* ((fmt "See also the function ‘%s’.")
+         ;; 1+ translates string index to buffer position.
+         (beg (1+ (string-search "%" fmt))))
+    (with-temp-buffer
+      (dolist (fn '(interactive \` = + - * / %))
+        (erase-buffer)
+        (insert (format fmt fn))
+        (goto-char (point-min))
+        (re-search-forward help-xref-symbol-regexp)
+        (help-xref-button 9 'help-function)
+        (should-not (button-at (1- beg)))
+        (should-not (button-at (+ beg (length (symbol-name fn)))))
+        (should (eq (button-type (button-at beg)) 'help-function))))))
 
 (ert-deftest help-mode-tests-insert-xref-button ()
   (with-temp-buffer

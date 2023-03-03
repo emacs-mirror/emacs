@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -29,7 +29,7 @@
 
 ;; `parse-time-string' parses a time in a string and returns a list of
 ;; values, just like `decode-time', where unspecified elements in the
-;; string are returned as nil (except unspecfied DST is returned as -1).
+;; string are returned as nil (except unspecified DST is returned as -1).
 ;; `encode-time' may be applied on these values to obtain an internal
 ;; time value.
 
@@ -103,46 +103,46 @@ letters, digits, plus or minus signs or colons."
     ((4) parse-time-months)
     ((5) (100))
     ((2 1 0)
-     ,#'(lambda () (and (stringp parse-time-elt)
-			(= (length parse-time-elt) 8)
-			(= (aref parse-time-elt 2) ?:)
-			(= (aref parse-time-elt 5) ?:)))
+     ,(lambda () (and (stringp parse-time-elt)
+                      (= (length parse-time-elt) 8)
+                      (= (aref parse-time-elt 2) ?:)
+                      (= (aref parse-time-elt 5) ?:)))
      [0 2] [3 5] [6 8])
     ((8 7) parse-time-zoneinfo
-     ,#'(lambda () (car parse-time-val))
-     ,#'(lambda () (cadr parse-time-val)))
+     ,(lambda () (car parse-time-val))
+     ,(lambda () (cadr parse-time-val)))
     ((8)
-     ,#'(lambda ()
-	  (and (stringp parse-time-elt)
-	       (= 5 (length parse-time-elt))
-	       (or (= (aref parse-time-elt 0) ?+)
-		   (= (aref parse-time-elt 0) ?-))))
-     ,#'(lambda () (* 60 (+ (cl-parse-integer parse-time-elt :start 3 :end 5)
-			    (* 60 (cl-parse-integer parse-time-elt :start 1 :end 3)))
-		      (if (= (aref parse-time-elt 0) ?-) -1 1))))
+     ,(lambda ()
+        (and (stringp parse-time-elt)
+             (= 5 (length parse-time-elt))
+             (or (= (aref parse-time-elt 0) ?+)
+                 (= (aref parse-time-elt 0) ?-))))
+     ,(lambda () (* 60 (+ (cl-parse-integer parse-time-elt :start 3 :end 5)
+                          (* 60 (cl-parse-integer parse-time-elt :start 1 :end 3)))
+                    (if (= (aref parse-time-elt 0) ?-) -1 1))))
     ((5 4 3)
-     ,#'(lambda () (and (stringp parse-time-elt)
-			(= (length parse-time-elt) 10)
-			(= (aref parse-time-elt 4) ?-)
-			(= (aref parse-time-elt 7) ?-)))
+     ,(lambda () (and (stringp parse-time-elt)
+                      (= (length parse-time-elt) 10)
+                      (= (aref parse-time-elt 4) ?-)
+                      (= (aref parse-time-elt 7) ?-)))
      [0 4] [5 7] [8 10])
     ((2 1 0)
-     ,#'(lambda () (and (stringp parse-time-elt)
-			(= (length parse-time-elt) 5)
-			(= (aref parse-time-elt 2) ?:)))
-     [0 2] [3 5] ,#'(lambda () 0))
+     ,(lambda () (and (stringp parse-time-elt)
+                      (= (length parse-time-elt) 5)
+                      (= (aref parse-time-elt 2) ?:)))
+     [0 2] [3 5] ,(lambda () 0))
     ((2 1 0)
-     ,#'(lambda () (and (stringp parse-time-elt)
-			(= (length parse-time-elt) 4)
-			(= (aref parse-time-elt 1) ?:)))
-     [0 1] [2 4] ,#'(lambda () 0))
+     ,(lambda () (and (stringp parse-time-elt)
+                      (= (length parse-time-elt) 4)
+                      (= (aref parse-time-elt 1) ?:)))
+     [0 1] [2 4] ,(lambda () 0))
     ((2 1 0)
-     ,#'(lambda () (and (stringp parse-time-elt)
-			(= (length parse-time-elt) 7)
-			(= (aref parse-time-elt 1) ?:)))
+     ,(lambda () (and (stringp parse-time-elt)
+                      (= (length parse-time-elt) 7)
+                      (= (aref parse-time-elt 1) ?:)))
      [0 1] [2 4] [5 7])
-    ((5) (50 110) ,#'(lambda () (+ 1900 parse-time-elt)))
-    ((5) (0 49) ,#'(lambda () (+ 2000 parse-time-elt))))
+    ((5) (50 110) ,(lambda () (+ 1900 parse-time-elt)))
+    ((5) (0 49) ,(lambda () (+ 2000 parse-time-elt))))
   "(slots predicate extractor...)")
 ;;;###autoload(put 'parse-time-rules 'risky-local-variable t)
 

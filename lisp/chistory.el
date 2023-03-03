@@ -1,6 +1,6 @@
-;;; chistory.el --- list command history
+;;; chistory.el --- list command history  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -71,8 +71,7 @@ If that function is given a list whose car is an element of this list,
 then it will return non-nil (indicating the list should be discarded from
 the history).
 Initially, all commands related to the command history are discarded."
-  :type '(repeat symbol)
-  :group 'chistory)
+  :type '(repeat symbol))
 
 (defvar list-command-history-filter 'default-command-history-filter
   "Predicate to test which commands should be excluded from the history listing.
@@ -90,8 +89,7 @@ from the command history."
 
 (defcustom list-command-history-max 32
   "If non-nil, maximum length of the listing produced by `list-command-history'."
-  :type '(choice integer (const nil))
-  :group 'chistory)
+  :type '(choice integer (const nil)))
 
 ;;;###autoload
 (defun list-command-history ()
@@ -121,16 +119,14 @@ The buffer is left in Command History mode."
 	  (error "No command history")
 	(command-history-mode)))))
 
-(define-obsolete-variable-alias 'command-history-map
-  'command-history-mode-map "24.1")
 (defvar command-history-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap lisp-mode-shared-map
                                                  special-mode-map))
-    (define-key map "x" 'command-history-repeat)
-    (define-key map "\n" 'next-line)
-    (define-key map "\r" 'next-line)
-    (define-key map "\177" 'previous-line)
+    (define-key map "x" #'command-history-repeat)
+    (define-key map "\n" #'next-line)
+    (define-key map "\r" #'next-line)
+    (define-key map "\177" #'previous-line)
     map)
   "Keymap for `command-history-mode'.")
 
@@ -140,13 +136,12 @@ The buffer is left in Command History mode."
 Keybindings:
 \\{command-history-mode-map}"
   (lisp-mode-variables nil)
-  (set (make-local-variable 'revert-buffer-function) 'command-history-revert)
+  (setq-local revert-buffer-function 'command-history-revert)
   (set-syntax-table emacs-lisp-mode-syntax-table))
 
 (defcustom command-history-hook nil
   "If non-nil, its value is called on entry to `command-history-mode'."
-  :type 'hook
-  :group 'chistory)
+  :type 'hook)
 
 (defun command-history-revert (_ignore-auto _noconfirm)
   (list-command-history))
@@ -165,14 +160,14 @@ The buffer for that command is the previous current buffer."
 
 ;;;###autoload
 (defun command-history ()
-  "Examine commands from `command-history' in a buffer.
+  "Examine commands from variable `command-history' in a buffer.
 The number of commands listed is controlled by `list-command-history-max'.
 The command history is filtered by `list-command-history-filter' if non-nil.
-Use \\<command-history-map>\\[command-history-repeat] to repeat the command on the current line.
+Use \\<command-history-mode-map>\\[command-history-repeat] to repeat the command on the current line.
 
 Otherwise much like Emacs-Lisp Mode except that there is no self-insertion
 and digits provide prefix arguments.  Tab does not indent.
-\\{command-history-map}
+\\{command-history-mode-map}
 
 This command always recompiles the Command History listing
 and runs the normal hook `command-history-hook'."

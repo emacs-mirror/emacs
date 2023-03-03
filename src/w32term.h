@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -412,6 +412,27 @@ struct w32_output
      geometry when 'fullscreen' is reset to nil.  */
   WINDOWPLACEMENT normal_placement;
   int prev_fsmode;
+
+  /* The back buffer if there is an ongoing double-buffered drawing
+     operation.  */
+  HBITMAP paint_buffer;
+
+  /* The handle of the back buffer and a DC that ought to be released
+     alongside the back buffer.  */
+  HDC paint_dc, paint_buffer_handle;
+
+  /* The object previously selected into `paint_dc'.  */
+  HGDIOBJ paint_dc_object;
+
+  /* The width and height of `paint_buffer'.  */
+  int paint_buffer_width, paint_buffer_height;
+
+  /* Whether or not some painting was done to this window that has not
+     yet been drawn.  */
+  unsigned paint_buffer_dirty : 1;
+
+  /* Whether or not this frame should be double buffered.  */
+  unsigned want_paint_buffer : 1;
 };
 
 extern struct w32_output w32term_display;
@@ -761,7 +782,7 @@ extern bool w32_image_rotations_p (void);
 extern void setup_w32_kbdhook (void);
 extern void remove_w32_kbdhook (void);
 extern int check_w32_winkey_state (int);
-#define w32_kbdhook_active (os_subtype != OS_9X)
+#define w32_kbdhook_active (os_subtype != OS_SUBTYPE_9X)
 #else
 #define w32_kbdhook_active 0
 #endif
@@ -876,6 +897,8 @@ typedef char guichar_t;
 
 extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 extern void w32_arrow_cursor (void);
+extern void w32_release_paint_buffer (struct frame *);
+extern void w32_flip_buffers_if_dirty (struct frame *);
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

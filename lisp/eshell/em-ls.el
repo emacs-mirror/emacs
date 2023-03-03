@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -35,10 +35,10 @@
 ;;;###autoload
 (progn
 (defgroup eshell-ls nil
-  "This module implements the \"ls\" utility fully in Lisp.  If it is
-passed any unrecognized command switches, it will revert to the
-operating system's version.  This version of \"ls\" uses text
-properties to colorize its output based on the setting of
+  "This module implements the \"ls\" utility fully in Lisp.
+If it is passed any unrecognized command switches, it will revert
+to the operating system's version.  This version of \"ls\" uses
+text properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
   :group 'eshell-module))
@@ -62,24 +62,27 @@ This is useful for enabling human-readable format (-h), for example."
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string))
 
+(defun eshell-ls-enable-in-dired ()
+  "Use `eshell-ls' to read directories in Dired."
+  (require 'dired)
+  (advice-add 'insert-directory :around #'eshell-ls--insert-directory)
+  (advice-add 'dired :around #'eshell-ls--dired))
+
+(defun eshell-ls-disable-in-dired ()
+  "Stop using `eshell-ls' to read directories in Dired."
+  (advice-remove 'insert-directory #'eshell-ls--insert-directory)
+  (advice-remove 'dired #'eshell-ls--dired))
+
 (defcustom eshell-ls-use-in-dired nil
   "If non-nil, use `eshell-ls' to read directories in Dired.
 Changing this without using customize has no effect."
   :set (lambda (symbol value)
-	 (cond (value
-                (require 'dired)
-                (advice-add 'insert-directory :around
-                            #'eshell-ls--insert-directory)
-                (advice-add 'dired :around #'eshell-ls--dired))
-               (t
-                (advice-remove 'insert-directory
-                               #'eshell-ls--insert-directory)
-                (advice-remove 'dired #'eshell-ls--dired)))
+         (if value
+             (eshell-ls-enable-in-dired)
+           (eshell-ls-disable-in-dired))
          (set symbol value))
   :type 'boolean
   :require 'em-ls)
-(add-hook 'eshell-ls-unload-hook #'eshell-ls-unload-function)
-
 
 (defcustom eshell-ls-default-blocksize 1024
   "The default blocksize to use when display file sizes with -s."
@@ -100,15 +103,14 @@ faster and conserves more memory."
   :type 'boolean)
 
 (defface eshell-ls-directory
-  '((((class color) (background light)) (:foreground "Blue" :weight bold))
-    (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
-    (t (:weight bold)))
-  "The face used for highlighting directories.")
+  '((t (:inherit font-lock-function-name-face)))
+  "The face used for highlighting directories."
+  :version "29.1")
 
 (defface eshell-ls-symlink
-  '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
-    (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "The face used for highlighting symbolic links.")
+  '((t (:inherit font-lock-keyword-face)))
+  "The face used for highlighting symbolic links."
+  :version "29.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
@@ -270,14 +272,13 @@ instead."
               eshell-current-subjob-p
               font-lock-mode)
           ;; use the fancy highlighting in `eshell-ls' rather than font-lock
-          (when (and eshell-ls-use-colors
-                     (featurep 'font-lock))
+          (when eshell-ls-use-colors
             (font-lock-mode -1)
             (setq font-lock-defaults nil)
             (if (boundp 'font-lock-buffers)
-                (set 'font-lock-buffers
-                     (delq (current-buffer)
-                           (symbol-value 'font-lock-buffers)))))
+                (setq font-lock-buffers
+                      (delq (current-buffer)
+                            (symbol-value 'font-lock-buffers)))))
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)
@@ -477,9 +478,9 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
   fileinfo)
 
 (defun eshell-ls-file (fileinfo &optional size-width copy-fileinfo)
-  "Output FILE in long format.
-FILE may be a string, or a cons cell whose car is the filename and
-whose cdr is the list of file attributes."
+  "Output FILEINFO in long format.
+FILEINFO may be a string, or a cons cell whose car is the
+filename and whose cdr is the list of file attributes."
   (if (not (cdr fileinfo))
       (funcall error-func (format "%s: No such file or directory\n"
 				  (car fileinfo)))
@@ -631,38 +632,37 @@ In Eshell's implementation of ls, ENTRIES is always reversed."
   (if (eq sort-method 'unsorted)
       (nreverse entries)
     (sort entries
-	  (function
-	   (lambda (l r)
-	     (let ((result
-		    (cond
-		     ((eq sort-method 'by-atime)
-		      (eshell-ls-compare-entries l r 4 'time-less-p))
-		     ((eq sort-method 'by-mtime)
-		      (eshell-ls-compare-entries l r 5 'time-less-p))
-		     ((eq sort-method 'by-ctime)
-		      (eshell-ls-compare-entries l r 6 'time-less-p))
-		     ((eq sort-method 'by-size)
-		      (eshell-ls-compare-entries l r 7 '<))
-		     ((eq sort-method 'by-extension)
-		      (let ((lx (file-name-extension
-				 (directory-file-name (car l))))
-			    (rx (file-name-extension
-				 (directory-file-name (car r)))))
-			(cond
-			 ((or (and (not lx) (not rx))
-			      (equal lx rx))
-			  (string-lessp (directory-file-name (car l))
-					(directory-file-name (car r))))
-			 ((not lx) t)
-			 ((not rx) nil)
-			 (t
-			  (string-lessp lx rx)))))
-		     (t
-		      (string-lessp (directory-file-name (car l))
-				    (directory-file-name (car r)))))))
-	       (if reverse-list
-		   (not result)
-		 result)))))))
+          (lambda (l r)
+            (let ((result
+                   (cond
+                    ((eq sort-method 'by-atime)
+                     (eshell-ls-compare-entries l r 4 'time-less-p))
+                    ((eq sort-method 'by-mtime)
+                     (eshell-ls-compare-entries l r 5 'time-less-p))
+                    ((eq sort-method 'by-ctime)
+                     (eshell-ls-compare-entries l r 6 'time-less-p))
+                    ((eq sort-method 'by-size)
+                     (eshell-ls-compare-entries l r 7 '<))
+                    ((eq sort-method 'by-extension)
+                     (let ((lx (file-name-extension
+                                (directory-file-name (car l))))
+                           (rx (file-name-extension
+                                (directory-file-name (car r)))))
+                       (cond
+                        ((or (and (not lx) (not rx))
+                             (equal lx rx))
+                         (string-lessp (directory-file-name (car l))
+                                       (directory-file-name (car r))))
+                        ((not lx) t)
+                        ((not rx) nil)
+                        (t
+                         (string-lessp lx rx)))))
+                    (t
+                     (string-lessp (directory-file-name (car l))
+                                   (directory-file-name (car r)))))))
+              (if reverse-list
+                  (not result)
+                result))))))
 
 (defun eshell-ls-files (files &optional size-width copy-fileinfo)
   "Output a list of FILES.
@@ -682,12 +682,12 @@ Each member of FILES is either a string or a cons cell of the form
     (let ((f files)
 	  last-f
 	  display-files
-	  ignore)
+	  ) ;; ignore
       (while f
 	(if (cdar f)
 	    (setq last-f f
 		  f (cdr f))
-	  (unless ignore
+	  (unless nil ;; ignore
 	    (funcall error-func
 		     (format "%s: No such file or directory\n" (caar f))))
 	  (if (eq f files)
@@ -700,7 +700,7 @@ Each member of FILES is either a string or a cons cell of the form
 	      (setcar f (cadr f))
 	      (setcdr f (cddr f))))))
       (if (not show-size)
-	  (setq display-files (mapcar 'eshell-ls-annotate files))
+	  (setq display-files (mapcar #'eshell-ls-annotate files))
 	(dolist (file files)
 	  (let* ((str (eshell-ls-printable-size (file-attribute-size (cdr file)) t))
 		 (len (length str)))
@@ -799,12 +799,11 @@ to use, and each member of which is the width of that column
 	 (width 0)
 	 (widths
 	  (mapcar
-	   (function
-	    (lambda (file)
-	      (+ 2 (length (car file)))))
+           (lambda (file)
+             (+ 2 (length (car file))))
 	   files))
 	 ;; must account for the added space...
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 (best-width 0)
 	 col-widths)
 
@@ -846,11 +845,10 @@ to use, and each member of which is the width of that column
 	 (width 0)
 	 (widths
 	  (mapcar
-	   (function
-	    (lambda (file)
-	      (+ 2 (length (car file)))))
+           (lambda (file)
+             (+ 2 (length (car file))))
 	   files))
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 col-widths
 	 colw)
 
@@ -959,10 +957,8 @@ to use, and each member of which is the width of that column
 				 (car file)))))
   (car file))
 
-(defun eshell-ls-unload-function ()
-  (advice-remove 'insert-directory #'eshell-ls--insert-directory)
-  (advice-remove 'dired #'eshell-ls--dired)
-  nil)
+(defun em-ls-unload-function ()
+  (eshell-ls-disable-in-dired))
 
 (provide 'em-ls)
 

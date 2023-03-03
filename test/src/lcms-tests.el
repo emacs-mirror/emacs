@@ -1,6 +1,6 @@
 ;;; lcms-tests.el --- tests for Little CMS interface -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -28,12 +28,19 @@
 ;; https://github.com/njsmith/colorspacious
 
 ;; Other references:
-;; http://www.babelcolor.com/index_htm_files/A%20review%20of%20RGB%20color%20spaces.pdf
+;; https://www.babelcolor.com/index_htm_files/A%20review%20of%20RGB%20color%20spaces.pdf
 
 ;;; Code:
 
 (require 'ert)
 (require 'color)
+
+(declare-function lcms-jab->jch "lcms.c")
+(declare-function lcms-jch->jab "lcms.c")
+(declare-function lcms-xyz->jch "lcms.c")
+(declare-function lcms-jch->xyz "lcms.c")
+(declare-function lcms-temp->white-point "lcms.c")
+(declare-function lcms-cam02-ucs "lcms.c")
 
 (defconst lcms-colorspacious-d65 '(0.95047 1.0 1.08883)
   "D65 white point from colorspacious.")
@@ -95,7 +102,7 @@ B is considered the exact value."
     '(0.29902 0.31485 1.0))))
 
 (ert-deftest lcms-roundtrip ()
-  "Test accuracy of converting to and from different color spaces"
+  "Test accuracy of converting to and from different color spaces."
   (skip-unless (featurep 'lcms2))
   (should
    (let ((color '(.5 .3 .7)))
@@ -109,7 +116,7 @@ B is considered the exact value."
                            0.0001))))
 
 (ert-deftest lcms-ciecam02-gold ()
-  "Test CIE CAM02 JCh gold values"
+  "Test CIE CAM02 JCh gold values."
   (skip-unless (featurep 'lcms2))
   (should
    (lcms-triple-approx-p

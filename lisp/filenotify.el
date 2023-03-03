@@ -1,6 +1,6 @@
 ;;; filenotify.el --- watch files for changes on disk  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -19,7 +19,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; This package is an abstraction layer from the different low-level
 ;; file notification packages `inotify', `kqueue', `gfilenotify' and
@@ -76,16 +76,17 @@ struct.")
   "Remove DESCRIPTOR from `file-notify-descriptors'.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a `stopped' event is sent."
-  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
-    (let ((callback (file-notify--watch-callback watch)))
-      ;; Make sure this is the last time the callback is invoked.
+  (when-let ((watch (gethash descriptor file-notify-descriptors)))
+    (unwind-protect
+        ;; Send `stopped' event.
+        (file-notify-handle-event
+         (make-file-notify
+          :-event `(,descriptor stopped
+                    ,(file-notify--watch-absolute-filename watch))
+          :-callback (file-notify--watch-callback watch)))
+      ;; Make sure this is the last time the callback was invoked.
       (setf (file-notify--watch-callback watch) nil)
-      ;; Send `stopped' event.
-      (unwind-protect
-          (funcall
-           callback
-           `(,descriptor stopped ,(file-notify--watch-absolute-filename watch)))
-        (remhash descriptor file-notify-descriptors)))))
+      (remhash descriptor file-notify-descriptors))))
 
 (cl-defstruct (file-notify (:type list) :named)
   "A file system monitoring event, coming from the backends."
@@ -100,6 +101,7 @@ If it is registered in `file-notify-descriptors', a `stopped' event is sent."
   "Handle a file system monitoring event, coming from backends.
 If OBJECT is a filewatch event, call its callback.
 Otherwise, signal a `file-notify-error'."
+  (declare (completion ignore))
   (interactive "e")
   (when file-notify-debug
     (message "file-notify-handle-event %S" object))
@@ -337,6 +339,7 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
   "Add a watch for FILE in DIR with FLAGS, using inotify."
   (inotify-add-watch dir
                      (append
+                      '(dont-follow)
                       (and (memq 'change flags)
                            '(create delete delete-self modify move-self move))
                       (and (memq 'attribute-change flags)
@@ -388,7 +391,9 @@ include the following symbols:
                         permissions or modification time
 
 If FILE is a directory, `change' watches for file creation or
-deletion in that directory.  This does not work recursively.
+deletion in that directory.  Some of the file notification
+backends report also file changes.  This does not work
+recursively.
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
@@ -476,6 +481,14 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
       ;; Modify `file-notify-descriptors' and send a `stopped' event.
       (file-notify--rm-descriptor descriptor))))
 
+(defun file-notify-rm-all-watches ()
+  "Remove all existing file notification watches from Emacs."
+  (interactive)
+  (maphash
+   (lambda (key _value)
+     (file-notify-rm-watch key))
+   file-notify-descriptors))
+
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'."
@@ -504,7 +517,6 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 ;;   due to the way events are propagated during idle time.  Note: This
 ;;   may be perfectly acceptable.
 
-;; The end:
 (provide 'filenotify)
 
 ;;; filenotify.el ends here

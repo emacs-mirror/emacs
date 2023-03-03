@@ -1,6 +1,6 @@
-;;; cwarn.el --- highlight suspicious C and C++ constructions
+;;; cwarn.el --- highlight suspicious C and C++ constructions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces
@@ -104,8 +104,6 @@
 
 ;;{{{ Dependencies
 
-(require 'custom)
-(require 'font-lock)
 (require 'cc-mode)
 
 ;;}}}
@@ -130,8 +128,7 @@ on one of three forms:
 
 See variable `cwarn-font-lock-feature-keywords-alist' for available
 features."
-  :type '(repeat sexp)
-  :group 'cwarn)
+  :type '(repeat sexp))
 
 (defcustom cwarn-font-lock-feature-keywords-alist
   '((assign    . cwarn-font-lock-assignment-keywords)
@@ -144,15 +141,13 @@ keyword list."
   :type '(alist :key-type (choice (const assign)
 				  (const semicolon)
 				  (const reference))
-		:value-type (sexp :tag "Value"))
-  :group 'cwarn)
+                :value-type (sexp :tag "Value")))
 
 (defcustom cwarn-verbose t
   "When nil, CWarn mode will not generate any messages.
 
 Currently, messages are generated when the mode is activated and
 deactivated."
-  :group 'cwarn
   :type 'boolean)
 
 (defcustom cwarn-mode-text " CWarn"
@@ -160,13 +155,11 @@ deactivated."
 
 \(When the string is not empty, make sure that it has a leading space.)"
   :tag "CWarn mode text"                ; To separate it from `global-...'
-  :group 'cwarn
   :type 'string)
 
 (defcustom cwarn-load-hook nil
   "Functions to run when CWarn mode is first loaded."
   :tag "Load Hook"
-  :group 'cwarn
   :type 'hook)
 (make-obsolete-variable 'cwarn-load-hook
                         "use `with-eval-after-load' instead." "28.1")
@@ -186,9 +179,6 @@ C++ modes are included."
   :group 'cwarn :lighter cwarn-mode-text
   (cwarn-font-lock-keywords cwarn-mode)
   (font-lock-flush))
-
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 
 ;;}}}
 ;;{{{ Help functions

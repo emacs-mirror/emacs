@@ -1,6 +1,6 @@
-;;; font-core.el --- Core interface to font-lock
+;;; font-core.el --- Core interface to font-lock  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces
@@ -21,12 +21,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;; This variable is used by mode packages that support Font Lock mode by
 ;; defining their own keywords to use for `font-lock-keywords'.  (The mode
 ;; command should make it buffer-local and set it to provide the set up.)
-(defvar font-lock-defaults nil
+(defvar-local font-lock-defaults nil
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
@@ -63,10 +65,10 @@ Other variables include that for syntactic keyword fontification,
 `font-lock-syntactic-keywords' and those for buffer-specialized fontification
 functions, `font-lock-fontify-buffer-function',
 `font-lock-unfontify-buffer-function', `font-lock-fontify-region-function',
-`font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
+`font-lock-unfontify-region-function'.")
+;; Autoload if this file no longer dumped.
 ;;;###autoload
 (put 'font-lock-defaults 'risky-local-variable t)
-(make-variable-buffer-local 'font-lock-defaults)
 
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
@@ -105,8 +107,7 @@ example, put in your ~/.emacs:
 Where major modes support different levels of fontification, you
 can use the variable `font-lock-maximum-decoration' to specify
 which level you generally prefer.  When you turn Font Lock mode
-on/off the buffer is fontified/defontified, though fontification
-occurs only if the buffer is less than `font-lock-maximum-size'.
+on/off the buffer is fontified/defontified.
 
 To add your own highlighting for some major mode, and modify the
 highlighting selected automatically via the variable
@@ -127,7 +128,6 @@ buffer local value for `font-lock-defaults', via its mode hook.
 The above is the default behavior of `font-lock-mode'; you may
 specify your own function which is called when `font-lock-mode'
 is toggled via `font-lock-function'."
-  nil nil nil
   :after-hook (font-lock-initial-fontify)
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
@@ -160,8 +160,8 @@ this function onto `change-major-mode-hook'."
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
   (when mode
-    (set (make-local-variable 'char-property-alias-alist)
-	 (copy-tree char-property-alias-alist))
+    (setq-local char-property-alias-alist
+                (copy-tree char-property-alias-alist))
     ;; Add `font-lock-face' as an alias for the `face' property.
     (let ((elt (assq 'face char-property-alias-alist)))
       (if elt
@@ -171,8 +171,8 @@ this function onto `change-major-mode-hook'."
   ;; Turn off Font Lock mode.
   (unless mode
     ;; Remove `font-lock-face' as an alias for the `face' property.
-    (set (make-local-variable 'char-property-alias-alist)
-	 (copy-tree char-property-alias-alist))
+    (setq-local char-property-alias-alist
+                (copy-tree char-property-alias-alist))
     (let ((elt (assq 'face char-property-alias-alist)))
       (when elt
 	(setcdr elt (remq 'font-lock-face (cdr elt)))

@@ -1,6 +1,6 @@
 ;;; eieio-test-persist.el --- Tests for eieio-persistent class  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -99,7 +99,7 @@ This is usually a symbol that starts with `:'."
 (defclass persist-simple (eieio-persistent)
   ((slot1 :initarg :slot1
 	  :type symbol
-	  :initform moose)
+          :initform 'moose)
    (slot2 :initarg :slot2
 	  :initform "foo")
    (slot3 :initform 2))
@@ -165,9 +165,9 @@ Assume SLOTVALUE is a symbol of some sort."
   ((slot1 :initarg :slot1
 	  :initform 1)
    (slot2 :initform 2))
-  "Class for testing persistent saving of an object that isn't
-persistent.  This class is instead used as a slot value in a
-persistent class.")
+  "Class for testing persistent saving of an object that isn't persistent.
+This class is instead used as a slot value in a persistent
+class.")
 
 (defclass persistent-with-objs-slot (eieio-persistent)
   ((pnp :initarg :pnp

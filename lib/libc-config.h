@@ -1,18 +1,18 @@
 /* System definitions for code taken from the GNU C Library
 
-   Copyright 2017-2020 Free Software Foundation, Inc.
+   Copyright 2017-2023 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with this program; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -28,14 +28,17 @@
 
    When compiled as part of glibc this is a no-op; when compiled as
    part of Gnulib this includes Gnulib's <config.h> and defines macros
-   that glibc library code would normally assume.  */
+   that glibc library code would normally assume.
+
+   Note: This header file MUST NOT be included by public header files
+   of Gnulib.  */
 
 #include <config.h>
 
 /* On glibc this includes <features.h> and <sys/cdefs.h> and #defines
-   _FEATURES_H, __WORDSIZE, and __set_errno.  On FreeBSD 11 it
-   includes <sys/cdefs.h> which defines __nonnull.  Elsewhere it
-   is harmless.  */
+   _FEATURES_H, __WORDSIZE, and __set_errno.  On FreeBSD 11 and
+   DragonFlyBSD 5.9 it includes <sys/cdefs.h> which defines __nonnull.
+   Elsewhere it is harmless.  */
 #include <errno.h>
 
 /* From glibc <errno.h>.  */
@@ -71,107 +74,124 @@
 # endif
 #endif
 
-
-/* Prepare to include <cdefs.h>, which is our copy of glibc
-   <sys/cdefs.h>.  */
+#ifndef __attribute_nonnull__
+/* <sys/cdefs.h> either does not exist, or is too old for Gnulib.
+   Prepare to include <cdefs.h>, which is Gnulib's version of a
+   more-recent glibc <sys/cdefs.h>.  */
 
 /* Define _FEATURES_H so that <cdefs.h> does not include <features.h>.  */
-#ifndef _FEATURES_H
-# define _FEATURES_H 1
-#endif
-/* Define __WORDSIZE so that <cdefs.h> does not attempt to include
-   nonexistent files.  Make it a syntax error, since Gnulib does not
-   use __WORDSIZE now, and if Gnulib uses it later the syntax error
-   will let us know that __WORDSIZE needs configuring.  */
-#ifndef __WORDSIZE
-# define __WORDSIZE %%%
-#endif
+# ifndef _FEATURES_H
+#  define _FEATURES_H 1
+# endif
+/* Define __GNULIB_CDEFS so that <cdefs.h> does not attempt to include
+   nonexistent files.  */
+# define __GNULIB_CDEFS
 /* Undef the macros unconditionally defined by our copy of glibc
    <sys/cdefs.h>, so that they do not clash with any system-defined
    versions.  */
-#undef _SYS_CDEFS_H
-#undef __ASMNAME
-#undef __ASMNAME2
-#undef __BEGIN_DECLS
-#undef __CONCAT
-#undef __END_DECLS
-#undef __HAVE_GENERIC_SELECTION
-#undef __LDBL_COMPAT
-#undef __LDBL_REDIR
-#undef __LDBL_REDIR1
-#undef __LDBL_REDIR1_DECL
-#undef __LDBL_REDIR1_NTH
-#undef __LDBL_REDIR_DECL
-#undef __LDBL_REDIR_NTH
-#undef __LEAF
-#undef __LEAF_ATTR
-#undef __NTH
-#undef __NTHNL
-#undef __P
-#undef __PMT
-#undef __REDIRECT
-#undef __REDIRECT_LDBL
-#undef __REDIRECT_NTH
-#undef __REDIRECT_NTHNL
-#undef __REDIRECT_NTH_LDBL
-#undef __STRING
-#undef __THROW
-#undef __THROWNL
-#undef __always_inline
-#undef __attribute__
-#undef __attribute_alloc_size__
-#undef __attribute_artificial__
-#undef __attribute_const__
-#undef __attribute_deprecated__
-#undef __attribute_deprecated_msg__
-#undef __attribute_format_arg__
-#undef __attribute_format_strfmon__
-#undef __attribute_malloc__
-#undef __attribute_noinline__
-#undef __attribute_nonstring__
-#undef __attribute_pure__
-#undef __attribute_used__
-#undef __attribute_warn_unused_result__
-#undef __bos
-#undef __bos0
-#undef __errordecl
-#undef __extension__
-#undef __extern_always_inline
-#undef __extern_inline
-#undef __flexarr
-#undef __fortify_function
-#undef __glibc_c99_flexarr_available
-#undef __glibc_clang_has_extension
-#undef __glibc_likely
-#undef __glibc_macro_warning
-#undef __glibc_macro_warning1
-#undef __glibc_unlikely
-#undef __inline
-#undef __ptr_t
-#undef __restrict
-#undef __restrict_arr
-#undef __va_arg_pack
-#undef __va_arg_pack_len
-#undef __warnattr
-#undef __warndecl
+# undef _SYS_CDEFS_H
+# undef __ASMNAME
+# undef __ASMNAME2
+# undef __BEGIN_DECLS
+# undef __CONCAT
+# undef __END_DECLS
+# undef __HAVE_GENERIC_SELECTION
+# undef __LDBL_COMPAT
+# undef __LDBL_REDIR
+# undef __LDBL_REDIR1
+# undef __LDBL_REDIR1_DECL
+# undef __LDBL_REDIR1_NTH
+# undef __LDBL_REDIR2_DECL
+# undef __LDBL_REDIR_DECL
+# undef __LDBL_REDIR_NTH
+# undef __LEAF
+# undef __LEAF_ATTR
+# undef __NTH
+# undef __NTHNL
+# undef __REDIRECT
+# undef __REDIRECT_LDBL
+# undef __REDIRECT_NTH
+# undef __REDIRECT_NTHNL
+# undef __REDIRECT_NTH_LDBL
+# undef __STRING
+# undef __THROW
+# undef __THROWNL
+# undef __attr_access
+# undef __attr_access_none
+# undef __attr_dealloc
+# undef __attr_dealloc_free
+# undef __attribute__
+# undef __attribute_alloc_align__
+# undef __attribute_alloc_size__
+# undef __attribute_artificial__
+# undef __attribute_const__
+# undef __attribute_deprecated__
+# undef __attribute_deprecated_msg__
+# undef __attribute_format_arg__
+# undef __attribute_format_strfmon__
+# undef __attribute_malloc__
+# undef __attribute_maybe_unused__
+# undef __attribute_noinline__
+# undef __attribute_nonstring__
+# undef __attribute_pure__
+# undef __attribute_returns_twice__
+# undef __attribute_used__
+# undef __attribute_warn_unused_result__
+# undef __errordecl
+# undef __extension__
+# undef __extern_always_inline
+# undef __extern_inline
+# undef __flexarr
+# undef __fortified_attr_access
+# undef __fortify_function
+# undef __glibc_c99_flexarr_available
+# undef __glibc_has_attribute
+# undef __glibc_has_builtin
+# undef __glibc_has_extension
+# undef __glibc_likely
+# undef __glibc_macro_warning
+# undef __glibc_macro_warning1
+# undef __glibc_unlikely
+# undef __inline
+# undef __ptr_t
+# undef __restrict
+# undef __restrict_arr
+# undef __va_arg_pack
+# undef __va_arg_pack_len
+# undef __warnattr
+# undef __wur
+# ifndef __GNULIB_CDEFS
+#  undef __bos
+#  undef __bos0
+#  undef __glibc_fortify
+#  undef __glibc_fortify_n
+#  undef __glibc_objsize
+#  undef __glibc_objsize0
+#  undef __glibc_safe_len_cond
+#  undef __glibc_safe_or_unknown_len
+#  undef __glibc_unsafe_len
+#  undef __glibc_unsigned_or_positive
+# endif
 
 /* Include our copy of glibc <sys/cdefs.h>.  */
-#include <cdefs.h>
+# include <cdefs.h>
 
 /* <cdefs.h> __inline is too pessimistic for non-GCC.  */
-#undef __inline
-#ifndef HAVE___INLINE
-# if 199901 <= __STDC_VERSION__ || defined inline
-#  define __inline inline
-# else
-#  define __inline
+# undef __inline
+# ifndef HAVE___INLINE
+#  if 199901 <= __STDC_VERSION__ || defined inline
+#   define __inline inline
+#  else
+#   define __inline
+#  endif
 # endif
-#endif
+
+#endif /* defined __glibc_likely */
 
 
 /* A substitute for glibc <libc-symbols.h>, good enough for Gnulib.  */
 #define attribute_hidden
-#define libc_hidden_proto(name, ...)
+#define libc_hidden_proto(name)
 #define libc_hidden_def(name)
 #define libc_hidden_weak(name)
 #define libc_hidden_ver(local, name)

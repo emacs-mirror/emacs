@@ -1,6 +1,6 @@
 ;;; custom-tests.el --- tests for custom.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,70 +24,99 @@
 
 (require 'wid-edit)
 (require 'cus-edit)
-(require 'seq) ; For `seq-find'.
+(require 'bytecomp)
 
 (ert-deftest custom-theme--load-path ()
   "Test `custom-theme--load-path' behavior."
-  (let ((tmpdir (file-name-as-directory (make-temp-file "custom-tests-" t))))
-    (unwind-protect
-        ;; Create all temporary files under the same deletable parent.
-        (let ((temporary-file-directory tmpdir))
-          ;; Path is empty.
-          (let ((custom-theme-load-path ()))
-            (should (null (custom-theme--load-path))))
+  (ert-with-temp-directory temporary-file-directory
+    ;; Path is empty.
+    (let ((custom-theme-load-path ()))
+      (should (null (custom-theme--load-path))))
 
-          ;; Path comprises non-existent file.
-          (let* ((name (make-temp-name tmpdir))
-                 (custom-theme-load-path (list name)))
-            (should (not (file-exists-p name)))
-            (should (null (custom-theme--load-path))))
+    ;; Path comprises non-existent file.
+    (let* ((name (make-temp-name temporary-file-directory))
+           (custom-theme-load-path (list name)))
+      (should (not (file-exists-p name)))
+      (should (null (custom-theme--load-path))))
 
-          ;; Path comprises existing file.
-          (let* ((file (make-temp-file "file"))
-                 (custom-theme-load-path (list file)))
-            (should (file-exists-p file))
-            (should (not (file-directory-p file)))
-            (should (null (custom-theme--load-path))))
+    ;; Path comprises existing file.
+    (ert-with-temp-file file
+      (let* ((custom-theme-load-path (list file)))
+        (should (file-exists-p file))
+        (should (not (file-directory-p file)))
+        (should (null (custom-theme--load-path)))))
 
-          ;; Path comprises existing directory.
-          (let* ((dir (make-temp-file "dir" t))
-                 (custom-theme-load-path (list dir)))
-            (should (file-directory-p dir))
-            (should (equal (custom-theme--load-path) custom-theme-load-path)))
+    ;; Path comprises existing directory.
+    (ert-with-temp-directory dir
+      (let* ((custom-theme-load-path (list dir)))
+        (should (file-directory-p dir))
+        (should (equal (custom-theme--load-path) custom-theme-load-path))))
 
-          ;; Expand `custom-theme-directory' path element.
-          (let ((custom-theme-load-path '(custom-theme-directory)))
-            (let ((custom-theme-directory (make-temp-name tmpdir)))
-              (should (not (file-exists-p custom-theme-directory)))
-              (should (null (custom-theme--load-path))))
-            (let ((custom-theme-directory (make-temp-file "file")))
-              (should (file-exists-p custom-theme-directory))
-              (should (not (file-directory-p custom-theme-directory)))
-              (should (null (custom-theme--load-path))))
-            (let ((custom-theme-directory (make-temp-file "dir" t)))
-              (should (file-directory-p custom-theme-directory))
-              (should (equal (custom-theme--load-path)
-                             (list custom-theme-directory)))))
+    ;; Expand `custom-theme-directory' path element.
+    (let ((custom-theme-load-path '(custom-theme-directory)))
+      (let ((custom-theme-directory (make-temp-name temporary-file-directory)))
+        (should (not (file-exists-p custom-theme-directory)))
+        (should (null (custom-theme--load-path))))
+      (ert-with-temp-file custom-theme-directory
+        (should (file-exists-p custom-theme-directory))
+        (should (not (file-directory-p custom-theme-directory)))
+        (should (null (custom-theme--load-path))))
+      (ert-with-temp-directory custom-theme-directory
+        (should (file-directory-p custom-theme-directory))
+        (should (equal (custom-theme--load-path)
+                       (list custom-theme-directory)))))
 
-          ;; Expand t path element.
-          (let ((custom-theme-load-path '(t)))
-            (let ((data-directory (make-temp-name tmpdir)))
-              (should (not (file-exists-p data-directory)))
-              (should (null (custom-theme--load-path))))
-            (let ((data-directory tmpdir)
-                  (themedir (expand-file-name "themes" tmpdir)))
-              (should (not (file-exists-p themedir)))
-              (should (null (custom-theme--load-path)))
-              (with-temp-file themedir)
-              (should (file-exists-p themedir))
-              (should (not (file-directory-p themedir)))
-              (should (null (custom-theme--load-path)))
-              (delete-file themedir)
-              (make-directory themedir)
-              (should (file-directory-p themedir))
-              (should (equal (custom-theme--load-path) (list themedir))))))
-      (when (file-directory-p tmpdir)
-        (delete-directory tmpdir t)))))
+    ;; Expand t path element.
+    (let ((custom-theme-load-path '(t)))
+      (let ((data-directory (make-temp-name temporary-file-directory)))
+        (should (not (file-exists-p data-directory)))
+        (should (null (custom-theme--load-path))))
+      (let ((data-directory temporary-file-directory)
+            (themedir (expand-file-name "themes" temporary-file-directory)))
+        (should (not (file-exists-p themedir)))
+        (should (null (custom-theme--load-path)))
+        (with-temp-file themedir)
+        (should (file-exists-p themedir))
+        (should (not (file-directory-p themedir)))
+        (should (null (custom-theme--load-path)))
+        (delete-file themedir)
+        (make-directory themedir)
+        (should (file-directory-p themedir))
+        (should (equal (custom-theme--load-path) (list themedir)))))))
+
+(ert-deftest custom-tests-require-theme ()
+  "Test `require-theme'."
+  (require 'warnings)
+  (ert-with-temp-directory temporary-file-directory
+    (let* ((default-directory temporary-file-directory)
+           (custom-theme-load-path (list default-directory))
+           (load-path ()))
+      ;; Generate some `.el' and `.elc' files.
+      (with-temp-file "custom-tests--a.el"
+        (insert "(provide 'custom-tests--a)"))
+      (make-empty-file "custom-tests--b.el")
+      (with-temp-file "custom-tests--b.elc"
+        (byte-compile-insert-header nil (current-buffer))
+        (insert "(provide 'custom-tests--b)"))
+      (make-empty-file "custom-tests--c.el")
+      (with-temp-file "custom-tests--d.elc"
+        (byte-compile-insert-header nil (current-buffer)))
+      ;; Load them.
+      (dolist (feature '(a b c d e))
+        (should-not (featurep (intern (format "custom-tests--%s" feature)))))
+      (should (eq (require-theme 'custom-tests--a) 'custom-tests--a))
+      (delete-file "custom-tests--a.el")
+      (dolist (feature '(custom-tests--a custom-tests--b))
+        (should (eq (require-theme feature) feature))
+        (should (featurep feature)))
+      (dolist (feature '(custom-tests--c custom-tests--d))
+        (dolist (noerror '(nil t))
+          (let ((err (should-error (require-theme feature noerror))))
+            (should (string-search "failed to provide feature" (cadr err))))))
+      (should-error (require-theme 'custom-tests--e) :type 'file-missing)
+      (should-not (require-theme 'custom-tests--e t))
+      (dolist (feature '(custom-tests--c custom-tests--d custom-tests--e))
+        (should-not (featurep feature))))))
 
 (defcustom custom--test-user-option 'foo
   "User option for test."
@@ -145,15 +174,155 @@
                                (widget-apply field :value-to-internal origvalue)
                                "bar"))))))
 
-(defconst custom-test-admin-cus-test
-  (expand-file-name "admin/cus-test.el" source-directory))
+(ert-deftest custom-test-enable-theme-keeps-settings ()
+  "Test that enabling a theme doesn't change its settings."
+  (let* ((custom-theme-load-path `(,(ert-resource-directory)))
+         settings)
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    (setq settings (get 'custom--test 'theme-settings))
+    (enable-theme 'custom--test)
+    (should (equal settings (get 'custom--test 'theme-settings)))))
 
-(declare-function cus-test-opts custom-test-admin-cus-test)
+(defcustom custom--test-local-option 'initial
+  "Buffer-local user option for testing."
+  :group 'emacs
+  :type '(choice (const initial) (const changed))
+  :local t)
 
-(ert-deftest check-for-wrong-custom-types ()
-  :tags '(:expensive-test)
-  (skip-unless (file-readable-p custom-test-admin-cus-test))
-  (load custom-test-admin-cus-test)
-  (should (null (cus-test-opts t))))
+(defcustom custom--test-permanent-option 'initial
+  "Permanently local user option for testing."
+  :group 'emacs
+  :type '(choice (const initial) (const changed))
+  :local 'permanent)
+
+(ert-deftest custom-test-local-option ()
+  "Test :local user options."
+  ;; Initial default values.
+  (should (eq custom--test-local-option 'initial))
+  (should (eq custom--test-permanent-option 'initial))
+  (should (eq (default-value 'custom--test-local-option) 'initial))
+  (should (eq (default-value 'custom--test-permanent-option) 'initial))
+  (let ((obuf (current-buffer)))
+    (with-temp-buffer
+      ;; Changed buffer-local values.
+      (setq custom--test-local-option 'changed)
+      (setq custom--test-permanent-option 'changed)
+      (should (eq custom--test-local-option 'changed))
+      (should (eq custom--test-permanent-option 'changed))
+      (should (eq (default-value 'custom--test-local-option) 'initial))
+      (should (eq (default-value 'custom--test-permanent-option) 'initial))
+      (with-current-buffer obuf
+        (should (eq custom--test-local-option 'initial))
+        (should (eq custom--test-permanent-option 'initial)))
+      ;; Permanent variable remains unchanged.
+      (kill-all-local-variables)
+      (should (eq custom--test-local-option 'initial))
+      (should (eq custom--test-permanent-option 'changed))
+      (should (eq (default-value 'custom--test-local-option) 'initial))
+      (should (eq (default-value 'custom--test-permanent-option) 'initial)))))
+
+;; The following three tests demonstrate Bug#21355.
+;; In this one, we set an user option for the current session and then
+;; we enable a theme that doesn't have a setting for it, ending up with
+;; a non-nil saved-value property.  Since the `caar' of the theme-value
+;; property is user (i.e., the user theme setting is active), we might
+;; save the setting to the custom-file, even though it was meant for the
+;; current session only.  So there should be a nil saved-value property
+;; for this test to pass.
+(ert-deftest custom-test-no-saved-value-after-enabling-theme ()
+  "Test that we don't record a saved-value property when we shouldn't."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    (customize-option 'mark-ring-max)
+    (let* ((field (seq-find (lambda (widget)
+                              (eq mark-ring-max (widget-value widget)))
+                            widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "0")
+      (widget-apply parent :custom-set)
+      ;; Just setting for the current session should not store a saved-value
+      ;; property.
+      (should-not (get 'mark-ring-max 'saved-value))
+      ;; Now enable and disable the test theme.
+      (load-theme 'custom--test 'no-confirm)
+      (disable-theme 'custom--test)
+      ;; Since the user customized the option, this is OK.
+      (should (eq (caar (get 'mark-ring-max 'theme-value)) 'user))
+      ;; The saved-value property should still be nil.
+      (should-not (get 'mark-ring-max 'saved-value)))))
+
+;; In this second test, we load a theme that has a setting for the user option
+;; above.  We must check that we don't end up with a non-nil saved-value
+;; property and a user setting active in the theme-value property, which
+;; means we might inadvertently save the session setting in the custom-file.
+(defcustom custom--test-bug-21355-before 'foo
+  "User option for `custom-test-no-saved-value-after-enabling-theme-2'."
+  :type 'symbol :group 'emacs)
+
+(ert-deftest custom-test-no-saved-value-after-enabling-theme-2 ()
+  "Test that we don't record a saved-value property when we shouldn't."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    (customize-option 'custom--test-bug-21355-before)
+    (let* ((field (seq-find
+                   (lambda (widget)
+                     (eq custom--test-bug-21355-before (widget-value widget)))
+                   widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "bar")
+      (widget-apply parent :custom-set)
+      ;; Just setting for the current session should not store a saved-value
+      ;; property.
+      (should-not (get 'custom--test-bug-21355-before 'saved-value))
+      ;; Now load our test theme, which has a setting for
+      ;; `custom--test-bug-21355-before'.
+      (load-theme 'custom--test 'no-confirm 'no-enable)
+      (enable-theme 'custom--test)
+      ;; Since the user customized the option, this is OK.
+      (should (eq (caar (get 'custom--test-bug-21355-before 'theme-value))
+                  'user))
+      ;; But the saved-value property has to be nil, since the user didn't mark
+      ;; this variable to save for future sessions.
+      (should-not (get 'custom--test-bug-21355-before 'saved-value)))))
+
+(defvar custom--test-bug-21355-after)
+
+;; In this test, we check that stashing a theme value for a not yet defined
+;; option works, but that later on if the user customizes the option for the
+;; current session, we might save the theme setting in the custom file.
+(ert-deftest custom-test-no-saved-value-after-customizing-option ()
+  "Test for a nil saved-value after setting an option for the current session."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    ;; Check that we correctly stashed the value.
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    (enable-theme 'custom--test)
+    (should (and (not (boundp 'custom--test-bug-21355-after))
+                 (eq (eval
+                      (car (get 'custom--test-bug-21355-after 'saved-value)))
+                     'after)))
+    ;; Now Emacs finds the defcustom.
+    (defcustom custom--test-bug-21355-after 'initially "..."
+      :type 'symbol :group 'emacs)
+    ;; And we used the stashed value correctly.
+    (should (and (boundp 'custom--test-bug-21355-after)
+                 (eq custom--test-bug-21355-after 'after)))
+    ;; Now customize it.
+    (customize-option 'custom--test-bug-21355-after)
+    (let* ((field (seq-find (lambda (widget)
+                              (eq custom--test-bug-21355-after
+                                  (widget-value widget)))
+                            widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "bar")
+      (widget-apply parent :custom-set)
+      ;; The user customized the variable, so this is OK.
+      (should (eq (caar (get 'custom--test-bug-21355-after 'theme-value))
+                  'user))
+      ;; But it was only for the current session, so this should not happen.
+      (should-not (get 'custom--test-bug-21355-after 'saved-value)))))
 
 ;;; custom-tests.el ends here

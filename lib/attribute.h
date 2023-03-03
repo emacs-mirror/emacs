@@ -1,18 +1,18 @@
 /* ATTRIBUTE_* macros for using attributes in GCC and similar compilers
 
-   Copyright 2020 Free Software Foundation, Inc.
+   Copyright 2020-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published
-   by the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
@@ -32,7 +32,7 @@
 
 
 /* This file defines two types of attributes:
-   * C2X standard attributes.  These have macro names that do not begin with
+   * C23 standard attributes.  These have macro names that do not begin with
      'ATTRIBUTE_'.
    * Selected GCC attributes; see:
      https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html
@@ -76,11 +76,19 @@
 /* Applies to: function, pointer to function, function types.  */
 #define ATTRIBUTE_ALLOC_SIZE(args) _GL_ATTRIBUTE_ALLOC_SIZE (args)
 
+/* ATTRIBUTE_DEALLOC (F, I) declares that the function returns pointers
+   that can be freed by passing them as the Ith argument to the
+   function F.
+   ATTRIBUTE_DEALLOC_FREE declares that the function returns pointers that
+   can be freed via 'free'; it can be used only after declaring 'free'.  */
+/* Applies to: functions.  Cannot be used on inline functions.  */
+#define ATTRIBUTE_DEALLOC(f, i) _GL_ATTRIBUTE_DEALLOC(f, i)
+#define ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC_FREE
 
 /* Attributes for variadic functions.  */
 
 /* The variadic function expects a trailing NULL argument.
-   ATTRIBUTE_SENTINEL () - The last argument is NULL.
+   ATTRIBUTE_SENTINEL () - The last argument is NULL (requires C99).
    ATTRIBUTE_SENTINEL ((N)) - The (N+1)st argument from the end is NULL.  */
 /* Applies to: functions.  */
 #define ATTRIBUTE_SENTINEL(pos) _GL_ATTRIBUTE_SENTINEL (pos)
@@ -170,18 +178,21 @@
 /* Applies to: function.  */
 #define ATTRIBUTE_ALWAYS_INLINE _GL_ATTRIBUTE_ALWAYS_INLINE
 
-/* The function does not affect observable state, and always returns a value.
-   Compilers can omit duplicate calls with the same arguments if
-   observable state is not changed between calls.  (This attribute is
-   looser than ATTRIBUTE_CONST.)  */
-/* Applies to: functions.  */
-#define ATTRIBUTE_PURE _GL_ATTRIBUTE_PURE
-
-/* The function neither depends on nor affects observable state,
-   and always returns a value.  Compilers can omit duplicate calls with
-   the same arguments.  (This attribute is stricter than ATTRIBUTE_PURE.)  */
+/* It is OK for a compiler to omit duplicate calls with the same arguments.
+   This attribute is safe for a function that neither depends on
+   nor affects observable state, and always returns exactly once -
+   e.g., does not loop forever, and does not call longjmp.
+   (This attribute is stricter than ATTRIBUTE_PURE.)  */
 /* Applies to: functions.  */
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+
+/* It is OK for a compiler to omit duplicate calls with the same
+   arguments if observable state is not changed between calls.
+   This attribute is safe for a function that does not affect
+   observable state, and always returns exactly once.
+   (This attribute is looser than ATTRIBUTE_CONST.)  */
+/* Applies to: functions.  */
+#define ATTRIBUTE_PURE _GL_ATTRIBUTE_PURE
 
 /* The function is rarely executed.  */
 /* Applies to: functions.  */

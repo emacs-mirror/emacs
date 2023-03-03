@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -40,7 +40,16 @@
 (require 'sgml-mode)
 (require 'smie)
 (require 'thingatpt)
-(eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'subr-x)
+                   (require 'rx))
+(require 'treesit)
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+
 
 (defgroup css nil
   "Cascading Style Sheets (CSS) editing mode."
@@ -57,7 +66,7 @@
   "Identifiers for pseudo-classes.")
 
 (defconst css-pseudo-element-ids
-  '("after" "before" "first-letter" "first-line")
+  '("after" "before" "first-letter" "first-line" "selection")
   "Identifiers for pseudo-elements.")
 
 (defconst css-at-ids
@@ -71,9 +80,8 @@
     "while")
   "Additional identifiers that appear in the form @foo in SCSS.")
 
-(defvar css--at-ids css-at-ids
+(defvar-local css--at-ids css-at-ids
   "List of at-rules for the current mode.")
-(make-variable-buffer-local 'css--at-ids)
 
 (defconst css-bang-ids
   '("important")
@@ -83,9 +91,8 @@
   '("default" "global" "optional")
   "Additional identifiers that appear in the form !foo in SCSS.")
 
-(defvar css--bang-ids css-bang-ids
+(defvar-local css--bang-ids css-bang-ids
   "List of bang-rules for the current mode.")
-(make-variable-buffer-local 'css--bang-ids)
 
 (defconst css-descriptor-ids
   '("ascent" "baseline" "bbox" "cap-height" "centerline" "definition-src"
@@ -271,17 +278,22 @@
     ("resize" "none" "both" "horizontal" "vertical")
     ("text-overflow" "clip" "ellipsis" string)
 
+    ;; CSS Cascading and Inheritance Level 3
+    ;; (https://www.w3.org/TR/css-cascade-3/#property-index)
+    ("all")
+
     ;; CSS Color Module Level 3
     ;; (https://www.w3.org/TR/css3-color/#property)
     ("color" color)
     ("opacity" alphavalue)
 
-    ;; CSS Containment Module Level 1
-    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
-    ("contain" "none" "strict" "content" "size" "layout" "paint")
+    ;; CSS Containment Module Level 2
+    ;; (https://www.w3.org/TR/css-contain-2/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "style" "paint")
+    ("content-visibility" "visible" "auto" "hidden")
 
-    ;; CSS Grid Layout Module Level 1
-    ;; (https://www.w3.org/TR/css-grid-1/#property-index)
+    ;; CSS Grid Layout Module Level 2
+    ;; (https://www.w3.org/TR/css-grid-2/#property-index)
     ("grid" grid-template grid-template-rows "auto-flow" "dense"
      grid-auto-columns grid-auto-rows grid-template-columns)
     ("grid-area" grid-line)
@@ -300,17 +312,32 @@
     ("grid-template" "none" grid-template-rows grid-template-columns
      line-names string track-size line-names explicit-track-list)
     ("grid-template-areas" "none" string)
-    ("grid-template-columns" "none" track-list auto-track-list)
-    ("grid-template-rows" "none" track-list auto-track-list)
+    ("grid-template-columns" "none" track-list auto-track-list "subgrid")
+    ("grid-template-rows" "none" track-list auto-track-list "subgrid")
+
+    ;; CSS Box Alignment Module Level 3
+    ;; (https://www.w3.org/TR/css-align-3/#property-index)
+    ("align-content" baseline-position content-distribution
+     overflow-position content-position)
+    ("align-items" "normal" "stretch" baseline-position
+     overflow-position self-position)
+    ("align-self" "auto" "normal" "stretch" baseline-position
+     overflow-position self-position)
+    ("column-gap" "normal" length-percentage)
+    ("gap" row-gap column-gap)
+    ("justify-content" "normal" content-distribution overflow-position
+     content-position "left" "right")
+    ("justify-items" "normal" "stretch" baseline-position
+     overflow-position self-position "left" "right" "legacy" "center")
+    ("justify-self" "auto" "normal" "stretch" baseline-position
+     overflow-position self-position "left" "right")
+    ("place-content" align-content justify-content)
+    ("place-items" align-items justify-items)
+    ("place-self" justify-self align-self)
+    ("row-gap" "normal" length-percentage)
 
     ;; CSS Flexible Box Layout Module Level 1
     ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
-    ("align-content" "flex-start" "flex-end" "center" "space-between"
-     "space-around" "stretch")
-    ("align-items" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
-    ("align-self" "auto" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
     ("flex" "none" flex-grow flex-shrink flex-basis)
     ("flex-basis" "auto" "content" width)
     ("flex-direction" "row" "row-reverse" "column" "column-reverse")
@@ -318,8 +345,6 @@
     ("flex-grow" number)
     ("flex-shrink" number)
     ("flex-wrap" "nowrap" "wrap" "wrap-reverse")
-    ("justify-content" "flex-start" "flex-end" "center"
-     "space-between" "space-around")
     ("order" integer)
 
     ;; CSS Fonts Module Level 3
@@ -401,21 +426,20 @@
     ("mask-type" "luminance" "alpha")
     ("clip" "rect()" "auto")
 
-    ;; CSS Multi-column Layout Module
+    ;; CSS Multi-column Layout Module Level 1
     ;; (https://www.w3.org/TR/css3-multicol/#property-index)
     ;; "break-after", "break-before", and "break-inside" are left out
     ;; below, because they're already included in CSS Fragmentation
     ;; Module Level 3.
-    ("column-count" integer "auto")
-    ("column-fill" "auto" "balance")
-    ("column-gap" length "normal")
+    ("column-count" "auto" integer)
+    ("column-fill" "auto" "balance" "balance-all")
     ("column-rule" column-rule-width column-rule-style
-     column-rule-color "transparent")
+     column-rule-color)
     ("column-rule-color" color)
-    ("column-rule-style" border-style)
-    ("column-rule-width" border-width)
+    ("column-rule-style" line-style)
+    ("column-rule-width" line-width)
     ("column-span" "none" "all")
-    ("column-width" length "auto")
+    ("column-width" "auto" length)
     ("columns" column-width column-count)
 
     ;; CSS Overflow Module Level 3
@@ -429,7 +453,7 @@
      "paged-y" "paged-x-controls" "paged-y-controls" "fragments")
 
     ;; CSS Text Decoration Module Level 3
-    ;; (http://dev.w3.org/csswg/css-text-decor-3/#property-index)
+    ;; (https://dev.w3.org/csswg/css-text-decor-3/#property-index)
     ("text-decoration" text-decoration-line text-decoration-style
      text-decoration-color)
     ("text-decoration-color" color)
@@ -759,6 +783,13 @@ further value candidates, since that list would be infinite.")
     (padding-width length percentage)
     (position
      "left" "center" "right" "top" "bottom" percentage length)
+    (baseline-position "left" "right" "baseline")
+    (content-distribution
+     "space-between" "space-around" "space-evenly" "stretch")
+    (overflow-position "unsafe" "safe")
+    (content-position "center" "start" "end" "flex-start" "flex-end")
+    (self-position
+     "center" "start" "end" "self-start" "self-end" "flex-start" "flex-end")
     (radial-gradient "radial-gradient()")
     (relative-size "larger" "smaller")
     (repeat-style
@@ -853,26 +884,24 @@ cannot be completed sensibly: `custom-ident',
     (modify-syntax-entry ?? "." st)
     st))
 
-(defvar css-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap info-lookup-symbol] 'css-lookup-symbol)
-    ;; `info-complete-symbol' is not used.
-    (define-key map [remap complete-symbol] 'completion-at-point)
-    (define-key map "\C-c\C-f" 'css-cycle-color-format)
-    (easy-menu-define css-menu map "CSS mode menu"
-      '("CSS"
-        :help "CSS-specific features"
-        ["Reformat block" fill-paragraph
-         :help "Reformat declaration block or fill comment at point"]
-        ["Cycle color format" css-cycle-color-format
-         :help "Cycle color at point between different formats"]
-        "-"
-        ["Describe symbol" css-lookup-symbol
-         :help "Display documentation for a CSS symbol"]
-        ["Complete symbol" completion-at-point
-         :help "Complete symbol before point"]))
-    map)
-  "Keymap used in `css-mode'.")
+(defvar-keymap css-mode-map
+  :doc "Keymap used in `css-mode'."
+  "<remap> <info-lookup-symbol>" #'css-lookup-symbol
+  ;; `info-complete-symbol' is not used.
+  "<remap> <complete-symbol>" #'completion-at-point
+  "C-c C-f" #'css-cycle-color-format
+  :menu
+  '("CSS"
+    :help "CSS-specific features"
+    ["Reformat block" fill-paragraph
+     :help "Reformat declaration block or fill comment at point"]
+    ["Cycle color format" css-cycle-color-format
+     :help "Cycle color at point between different formats"]
+    "-"
+    ["Describe symbol" css-lookup-symbol
+     :help "Display documentation for a CSS symbol"]
+    ["Complete symbol" completion-at-point
+     :help "Complete symbol before point"]))
 
 (eval-and-compile
   (defconst css--uri-re
@@ -906,6 +935,32 @@ cannot be completed sensibly: `custom-ident',
 (defface css-proprietary-property '((t :inherit (css-property italic)))
   "Face to use for vendor-specific properties.")
 
+(defun css--selector-regexp (sassy)
+  (concat
+   "\\(?:"
+   (if (not sassy)
+       "[-_%*#.>[:alnum:]]+"
+     ;; Same as for non-sassy except we do want to allow { and }
+     ;; chars in selectors in the case of #{$foo}
+     ;; variable interpolation!
+     (concat "\\(?:[-_%*#.>&+~[:alnum:]]*" scss--hash-re
+             "\\|[-_%*#.>&+~[:alnum:]]+\\)"))
+   ;; Even though pseudo-elements should be prefixed by ::, a
+   ;; single colon is accepted for backward compatibility.
+   "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
+                                   css-pseudo-element-ids)
+                           t)
+   "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)\\)?"
+   ;; Braces after selectors.
+   "\\(?:\\[[^]\n]+\\]\\)?"
+   ;; Parentheses after selectors.
+   "\\(?:([^)]+)\\)?"
+   ;; Main bit over.  But perhaps just [target]?
+   "\\|\\[[^]\n]+\\]"
+   ;; :root, ::marker and the like.
+   "\\|::?[[:alnum:]]+\\(?:([^)]+)\\)?"
+   "\\)"))
+
 (defun css--font-lock-keywords (&optional sassy)
   `((,(concat "!\\s-*" (regexp-opt css--bang-ids))
      (0 font-lock-builtin-face))
@@ -926,28 +981,16 @@ cannot be completed sensibly: `custom-ident',
     ;; selector between [...] should simply not be highlighted.
     (,(concat
        "^[ \t]*\\("
-       (if (not sassy)
-           ;; We don't allow / as first char, so as not to
-           ;; take a comment as the beginning of a selector.
-           "[^@/:{}() \t\n][^:{}()]*"
-         ;; Same as for non-sassy except we do want to allow { and }
-         ;; chars in selectors in the case of #{$foo}
-         ;; variable interpolation!
-         (concat "\\(?:" scss--hash-re
-                 "\\|[^@/:{}() \t\n#]\\)"
-                 "[^:{}()#]*\\(?:" scss--hash-re "[^:{}()#]*\\)*"))
-       ;; Even though pseudo-elements should be prefixed by ::, a
-       ;; single colon is accepted for backward compatibility.
-       "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
-                                       css-pseudo-element-ids)
-                               t)
-       "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)"
-       "\\(?:([^)]+)\\)?"
-       (if (not sassy)
-           "[^:{}()\n]*"
-         (concat "[^:{}()\n#]*\\(?:" scss--hash-re "[^:{}()\n#]*\\)*"))
+       ;; We have at least one selector.
+       (css--selector-regexp sassy)
+       ;; And then possibly more.
+       "\\(?:"
+       ;; Separators between selectors.
+       "[ \n\t,+~>]+"
+       (css--selector-regexp sassy)
        "\\)*"
-       "\\)\\(?:\n[ \t]*\\)*{")
+       ;; And then a brace.
+       "\\)[ \n\t]*{")
      (1 'css-selector keep))
     ;; In the above rule, we allow the open-brace to be on some subsequent
     ;; line.  This will only work if we properly mark the intervening text
@@ -1137,7 +1180,7 @@ by `css--colors-regexp'.  START-POINT is the start of the color,
 and MATCH is the string matched by the regexp.
 
 This function will either return the color, as a hex RGB string;
-or `nil' if no color could be recognized.  When this function
+or nil if no color could be recognized.  When this function
 returns, point will be at the end of the recognized color."
   (cond
    ((eq (aref match 0) ?#)
@@ -1151,7 +1194,7 @@ returns, point will be at the end of the recognized color."
 
 (defcustom css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
-When non-`nil', a text representing CSS color will be fontified
+When non-nil, a text representing CSS color will be fontified
 such that its background is the color itself.  E.g., #ff0000 will
 be fontified with a red background."
   :version "26.1"
@@ -1283,6 +1326,104 @@ for determining whether point is within a selector."
      (when (smie-rule-hanging-p)
        css-indent-offset))))
 
+;;; Tree-sitter
+
+(defvar css-ts-mode-map (copy-keymap css-mode-map)
+  "Keymap used in `css-ts-mode'.")
+
+(defvar css--treesit-indent-rules
+  '((css
+     ((node-is "}") parent-bol 0)
+     ((node-is ")") parent-bol 0)
+     ((node-is "]") parent-bol 0)
+
+     ((parent-is "block") parent-bol css-indent-offset)
+     ((parent-is "arguments") parent-bol css-indent-offset)
+     ((match nil "declaration" nil 0 3) parent-bol css-indent-offset)
+     ((match nil "declaration" nil 3) (nth-sibling 2) 0)))
+  "Tree-sitter indentation rules for `css-ts-mode'.")
+
+(defvar css--treesit-settings
+  (treesit-font-lock-rules
+   :feature 'comment
+   :language 'css
+   '((comment) @font-lock-comment-face)
+
+   :feature 'string
+   :language 'css
+   '((string_value) @font-lock-string-face)
+
+   :feature 'keyword
+   :language 'css
+   '(["@media"
+      "@import"
+      "@charset"
+      "@namespace"
+      "@keyframes"] @font-lock-builtin-face
+      ["and"
+       "or"
+       "not"
+       "only"
+       "selector"] @font-lock-keyword-face)
+
+   :feature 'variable
+   :language 'css
+   '((plain_value) @font-lock-variable-name-face)
+
+   :language 'css
+   :feature 'operator
+   `(["=" "~=" "^=" "|=" "*=" "$="] @font-lock-operator-face)
+
+   :feature 'selector
+   :language 'css
+   '((class_selector) @css-selector
+     (child_selector) @css-selector
+     (id_selector) @css-selector
+     (tag_name) @css-selector
+     (class_name) @css-selector)
+
+   :feature 'property
+   :language 'css
+   `((property_name) @css-property)
+
+   :feature 'function
+   :language 'css
+   '((function_name) @font-lock-function-name-face)
+
+   :feature 'constant
+   :language 'css
+   '((integer_value) @font-lock-number-face
+     (float_value) @font-lock-number-face
+     (unit) @font-lock-constant-face
+     (important) @font-lock-builtin-face)
+
+   :feature 'query
+   :language 'css
+   '((keyword_query) @font-lock-property-use-face
+     (feature_name) @font-lock-property-use-face)
+
+   :feature 'bracket
+   :language 'css
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :feature 'error
+   :language 'css
+   '((ERROR) @error))
+  "Tree-sitter font-lock settings for `css-ts-mode'.")
+
+(defun css--treesit-defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (pcase (treesit-node-type node)
+    ("rule_set" (treesit-node-text
+                 (treesit-node-child node 0) t))
+    ("media_statement"
+     (let ((block (treesit-node-child node -1)))
+       (string-trim
+        (buffer-substring-no-properties
+         (treesit-node-start node)
+         (treesit-node-start block)))))))
+
 ;;; Completion
 
 (defun css--complete-property ()
@@ -1309,10 +1450,14 @@ for determining whether point is within a selector."
     (let ((pos (point)))
       (skip-chars-backward "-[:alnum:]")
       (when (eq (char-before) ?\:)
-        (list (point) pos
-              (if (eq (char-before (- (point) 1)) ?\:)
-                  css-pseudo-element-ids
-                css-pseudo-class-ids))))))
+        (let ((double-colon (eq (char-before (- (point) 1)) ?\:)))
+          (list (- (point) (if double-colon 2 1))
+                pos
+                (nconc
+                 (unless double-colon
+                   (mapcar (lambda (id) (concat ":" id)) css-pseudo-class-ids))
+                 (mapcar (lambda (id) (concat "::" id)) css-pseudo-element-ids))
+                :company-kind (lambda (_) 'function)))))))
 
 (defun css--complete-at-rule ()
   "Complete at-rule (statement beginning with `@') at point."
@@ -1320,7 +1465,8 @@ for determining whether point is within a selector."
     (let ((pos (point)))
       (skip-chars-backward "-[:alnum:]")
       (when (eq (char-before) ?\@)
-        (list (point) pos css--at-ids)))))
+        (list (point) pos css--at-ids
+              :company-kind (lambda (_) 'keyword))))))
 
 (defvar css--property-value-cache
   (make-hash-table :test 'equal :size (length css-property-alist))
@@ -1357,7 +1503,9 @@ the string PROPERTY."
 (defun css--complete-property-value ()
   "Complete property value at point."
   (let ((property (and (looking-back "\\([[:alnum:]-]+\\):[^/][^;]*"
-                                     (line-beginning-position) t)
+                                     (or (ppss-innermost-start (syntax-ppss))
+                                         (point))
+                                     t)
                        (member (match-string-no-properties 1)
                                css-property-ids))))
     (when property
@@ -1366,15 +1514,15 @@ the string PROPERTY."
           (skip-chars-backward "[:graph:]")
           (list (point) end
                 (append '("inherit" "initial" "unset")
-                        (css--property-values (car property)))))))))
+                        (css--property-values (car property)))
+                :company-kind (lambda (_) 'value)))))))
 
 (defvar css--html-tags (mapcar #'car html-tag-alist)
   "List of HTML tags.
 Used to provide completion of HTML tags in selectors.")
 
-(defvar css--nested-selectors-allowed nil
+(defvar-local css--nested-selectors-allowed nil
   "Non-nil if nested selectors are allowed in the current mode.")
-(make-variable-buffer-local 'css--nested-selectors-allowed)
 
 (defvar css-class-list-function #'ignore
   "Called to provide completions of class names.
@@ -1436,6 +1584,8 @@ tags, classes and IDs."
                     (list prop-beg prop-end)
                   (list sel-beg sel-end))
               ,(completion-table-merge prop-table sel-table)
+              :company-kind
+              ,(lambda (s) (if (test-completion s prop-table) 'property 'keyword))
               :exit-function
               ,(lambda (string status)
                  (and (eq status 'finished)
@@ -1612,8 +1762,76 @@ rgb()/rgba()."
               (replace-regexp-in-string "[\n ]+" " " s)))
            res)))))))
 
+(define-derived-mode css-base-mode prog-mode "CSS"
+  "Generic mode to edit Cascading Style Sheets (CSS).
+
+This is a generic major mode intended to be inherited by a
+concrete implementation.  Currently there are two concrete
+implementations: `css-mode' and `css-ts-mode'."
+  (setq-local comment-start "/*")
+  (setq-local comment-start-skip "/\\*+[ \t]*")
+  (setq-local comment-end "*/")
+  (setq-local comment-end-skip "[ \t]*\\*+/")
+  (setq-local electric-indent-chars
+              (append css-electric-keys electric-indent-chars))
+  ;; The default "." creates ambiguity with class selectors.
+  (setq-local imenu-space-replacement " "))
+
 ;;;###autoload
-(define-derived-mode css-mode prog-mode "CSS"
+(define-derived-mode css-ts-mode css-base-mode "CSS"
+  "Major mode to edit Cascading Style Sheets (CSS).
+\\<css-ts-mode-map>
+
+This mode provides syntax highlighting, indentation, completion,
+and documentation lookup for CSS, based on the tree-sitter
+library.
+
+Use `\\[completion-at-point]' to complete CSS properties,
+property values, pseudo-elements, pseudo-classes, at-rules,
+bang-rules, and HTML tags, classes and IDs.  Completion
+candidates for HTML class names and IDs are found by looking
+through open HTML mode buffers.
+
+Use `\\[info-lookup-symbol]' to look up documentation of CSS
+properties, at-rules, pseudo-classes, and pseudo-elements on the
+Mozilla Developer Network (MDN).
+
+Use `\\[fill-paragraph]' to reformat CSS declaration blocks.  It
+can also be used to fill comments.
+
+\\{css-mode-map}"
+  :syntax-table css-mode-syntax-table
+  (when (treesit-ready-p 'css)
+    ;; Borrowed from `css-mode'.
+    (setq-local syntax-propertize-function
+                css-syntax-propertize-function)
+    (add-hook 'completion-at-point-functions
+              #'css-completion-at-point nil 'local)
+    (setq-local fill-paragraph-function #'css-fill-paragraph)
+    (setq-local adaptive-fill-function #'css-adaptive-fill)
+    ;; `css--fontify-region' first calls the default function, which
+    ;; will call tree-sitter's function, then it fontifies colors.
+    (setq-local font-lock-fontify-region-function #'css--fontify-region)
+
+    ;; Tree-sitter specific setup.
+    (treesit-parser-create 'css)
+    (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
+    (setq-local treesit-defun-type-regexp "rule_set")
+    (setq-local treesit-defun-name-function #'css--treesit-defun-name)
+    (setq-local treesit-font-lock-settings css--treesit-settings)
+    (setq-local treesit-font-lock-feature-list
+                '((selector comment query keyword)
+                  (property constant string)
+                  (error variable function operator bracket)))
+    (setq-local treesit-simple-imenu-settings
+                `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+                    nil nil)))
+    (treesit-major-mode-setup)
+
+    (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
+
+;;;###autoload
+(define-derived-mode css-mode css-base-mode "CSS"
   "Major mode to edit Cascading Style Sheets (CSS).
 \\<css-mode-map>
 This mode provides syntax highlighting, indentation, completion,
@@ -1634,10 +1852,6 @@ be used to fill comments.
 
 \\{css-mode-map}"
   (setq-local font-lock-defaults css-font-lock-defaults)
-  (setq-local comment-start "/*")
-  (setq-local comment-start-skip "/\\*+[ \t]*")
-  (setq-local comment-end "*/")
-  (setq-local comment-end-skip "[ \t]*\\*+/")
   (setq-local syntax-propertize-function
               css-syntax-propertize-function)
   (setq-local fill-paragraph-function #'css-fill-paragraph)
@@ -1646,13 +1860,9 @@ be used to fill comments.
   (smie-setup css-smie-grammar #'css-smie-rules
               :forward-token #'css-smie--forward-token
               :backward-token #'css-smie--backward-token)
-  (setq-local electric-indent-chars
-              (append css-electric-keys electric-indent-chars))
   (setq-local font-lock-fontify-region-function #'css--fontify-region)
   (add-hook 'completion-at-point-functions
             #'css-completion-at-point nil 'local)
-  ;; The default "." creates ambiguity with class selectors.
-  (setq-local imenu-space-replacement " ")
   (setq-local imenu-prev-index-position-function
               #'css--prev-index-position)
   (setq-local imenu-extract-index-name-function
@@ -1666,7 +1876,7 @@ be used to fill comments.
     ;; comment.
     (when (save-excursion
             (beginning-of-line)
-            (comment-search-forward (point-at-eol) t))
+            (comment-search-forward (line-end-position) t))
       (goto-char (match-end 0)))
     (let ((ppss (syntax-ppss))
           (eol (line-end-position)))

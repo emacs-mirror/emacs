@@ -1,6 +1,6 @@
 ;;; syntax-tests.el --- tests for syntax.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -56,12 +56,8 @@
      "\\(?2:[abc]+\\)foo\\(\\2\\)" 2)
     "\\(?4:[abc]+\\)foo\\(\\4\\)"))
   ;; Emacs supports only the back-references \1,...,\9, so when a
-  ;; shift would result in \10 or more, an error must be signalled.
+  ;; shift would result in \10 or more, an error must be signaled.
   (should-error
    (syntax-propertize--shift-groups-and-backrefs "\\(a\\)\\3" 7)))
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; syntax-tests.el ends here.

@@ -1,4 +1,4 @@
-Copyright (C) 2008-2020 Free Software Foundation, Inc.
+Copyright (C) 2008-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This file contains information about GNU Emacs on "Nextstep" platforms.
@@ -27,7 +27,7 @@ the absence of any other determinant, we are using the term
 created these APIs, and because all of the classes and functions still
 begin with the letters "NS".
 
-(See http://en.wikipedia.org/wiki/Nextstep)
+(See https://en.wikipedia.org/wiki/Nextstep)
 
 This Emacs port was first released in the early 1990's on the NeXT
 computer, and was successively updated to OpenStep, Rhapsody, Mac OS
@@ -206,7 +206,7 @@ Release History
 				keys, fix border and box drawing, remove
 				glitches in modeline drawing, support
 				overstrike for unavailable bold fonts, fix XPM
-				related crasher bugs.  Incremental font
+				related crashes.  Incremental font
 				metrics caching and other performance
 				improvements.  Shared-lisp builds now possible.
 

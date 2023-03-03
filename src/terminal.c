@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -290,13 +290,13 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   keyboard_coding =
     find_symbol_value (intern ("default-keyboard-coding-system"));
   if (NILP (keyboard_coding)
-      || EQ (keyboard_coding, Qunbound)
+      || BASE_EQ (keyboard_coding, Qunbound)
       || NILP (Fcoding_system_p (keyboard_coding)))
     keyboard_coding = Qno_conversion;
   terminal_coding =
     find_symbol_value (intern ("default-terminal-coding-system"));
   if (NILP (terminal_coding)
-      || EQ (terminal_coding, Qunbound)
+      || BASE_EQ (terminal_coding, Qunbound)
       || NILP (Fcoding_system_p (terminal_coding)))
     terminal_coding = Qundecided;
 
@@ -402,7 +402,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 
 DEFUN ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
        doc: /* Return the terminal that FRAME is displayed on.
-If FRAME is nil, the selected frame is used.
+If FRAME is nil, use the selected frame.
 
 The terminal device is represented by its integer identifier.  */)
   (Lisp_Object frame)
@@ -421,10 +421,12 @@ The terminal device is represented by its integer identifier.  */)
 
 DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a terminal which has not been deleted.
-Value is nil if OBJECT is not a live display terminal.
-If object is a live display terminal, the return value indicates what
-sort of output terminal it uses.  See the documentation of `framep' for
-possible return values.  */)
+Return nil if OBJECT is not a live display terminal.
+OBJECT may be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).
+If OBJECT is a live display terminal, return what sort of output
+terminal it uses.  See the documentation of `framep' for possible
+return values.  */)
   (Lisp_Object object)
 {
   struct terminal *t = decode_terminal (object);
@@ -445,6 +447,10 @@ possible return values.  */)
       return Qpc;
     case output_ns:
       return Qns;
+    case output_pgtk:
+      return Qpgtk;
+    case output_haiku:
+      return Qhaiku;
     default:
       emacs_abort ();
     }
@@ -618,6 +624,8 @@ init_initial_terminal (void)
     emacs_abort ();
 
   initial_terminal = create_terminal (output_initial, NULL);
+  /* Note: menu-bar.el:menu-bar-update-buffers knows about this
+     special name of the initial terminal.  */
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;

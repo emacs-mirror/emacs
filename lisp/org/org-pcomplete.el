@@ -1,11 +1,11 @@
 ;;; org-pcomplete.el --- In-buffer Completion Code -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;         John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -21,20 +21,24 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
 ;;; Code:
 
 ;;;; Require other packages
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'org-macs)
 (require 'org-compat)
 (require 'pcomplete)
 
 (declare-function org-at-heading-p "org" (&optional ignored))
+(declare-function org-babel-combine-header-arg-lists "ob-core" (original &rest others))
+(declare-function org-babel-get-src-block-info "ob-core" (&optional no-eval datum))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-buffer-property-keys "org" (&optional specials defaults columns))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-property "org-element" property element)
 (declare-function org-element-type "org-element" (element))
 (declare-function org-end-of-meta-data "org" (&optional full))
@@ -46,9 +50,11 @@
 (declare-function org-get-tags "org" (&optional pos local))
 (declare-function org-link-heading-search-string "ol" (&optional string))
 (declare-function org-tag-alist-to-string "org" (alist &optional skip-key))
+(declare-function org-time-stamp-format "org" (&optional with-time inactive custom))
 
+(defvar org-babel-common-header-args-w-values)
 (defvar org-current-tag-alist)
-(defvar org-default-priority)
+(defvar org-priority-default)
 (defvar org-drawer-regexp)
 (defvar org-element-affiliated-keywords)
 (defvar org-entities)
@@ -56,16 +62,15 @@
 (defvar org-export-exclude-tags)
 (defvar org-export-select-tags)
 (defvar org-file-tags)
-(defvar org-highest-priority)
+(defvar org-priority-highest)
 (defvar org-link-abbrev-alist)
 (defvar org-link-abbrev-alist-local)
-(defvar org-lowest-priority)
+(defvar org-priority-lowest)
 (defvar org-options-keywords)
 (defvar org-outline-regexp)
 (defvar org-property-re)
 (defvar org-startup-options)
 (defvar org-tag-re)
-(defvar org-time-stamp-formats)
 (defvar org-todo-keywords-1)
 (defvar org-todo-line-regexp)
 
@@ -183,7 +188,7 @@ When completing for #+STARTUP, for example, this function returns
 	(cons (reverse args) (reverse begins))))))
 
 (defun org-pcomplete-initial ()
-  "Calls the right completion function for first argument completions."
+  "Call the right completion function for first argument completions."
   (ignore
    (funcall (or (pcomplete-find-completion-function
 		 (car (org-thing-at-point)))
@@ -225,7 +230,7 @@ When completing for #+STARTUP, for example, this function returns
 
 (defun pcomplete/org-mode/file-option/date ()
   "Complete arguments for the #+DATE file option."
-  (pcomplete-here (list (format-time-string (car org-time-stamp-formats)))))
+  (pcomplete-here (list (format-time-string (org-time-stamp-format)))))
 
 (defun pcomplete/org-mode/file-option/email ()
   "Complete arguments for the #+EMAIL file option."
@@ -236,11 +241,11 @@ When completing for #+STARTUP, for example, this function returns
   (require 'ox)
   (pcomplete-here
    (and org-export-exclude-tags
-	(list (mapconcat 'identity org-export-exclude-tags " ")))))
+	(list (mapconcat #'identity org-export-exclude-tags " ")))))
 
 (defun pcomplete/org-mode/file-option/filetags ()
   "Complete arguments for the #+FILETAGS file option."
-  (pcomplete-here (and org-file-tags (mapconcat 'identity org-file-tags " "))))
+  (pcomplete-here (and org-file-tags (mapconcat #'identity org-file-tags " "))))
 
 (defun pcomplete/org-mode/file-option/language ()
   "Complete arguments for the #+LANGUAGE file option."
@@ -252,22 +257,22 @@ When completing for #+STARTUP, for example, this function returns
 (defun pcomplete/org-mode/file-option/priorities ()
   "Complete arguments for the #+PRIORITIES file option."
   (pcomplete-here (list (format "%c %c %c"
-				org-highest-priority
-				org-lowest-priority
-				org-default-priority))))
+				org-priority-highest
+				org-priority-lowest
+				org-priority-default))))
 
 (defun pcomplete/org-mode/file-option/select_tags ()
   "Complete arguments for the #+SELECT_TAGS file option."
   (require 'ox)
   (pcomplete-here
    (and org-export-select-tags
-	(list (mapconcat 'identity org-export-select-tags " ")))))
+	(list (mapconcat #'identity org-export-select-tags " ")))))
 
 (defun pcomplete/org-mode/file-option/startup ()
   "Complete arguments for the #+STARTUP file option."
   (while (pcomplete-here
 	  (let ((opts (pcomplete-uniquify-list
-		       (mapcar 'car org-startup-options))))
+		       (mapcar #'car org-startup-options))))
 	    ;; Some options are mutually exclusive, and shouldn't be completed
 	    ;; against if certain other options have already been seen.
 	    (dolist (arg pcomplete-args)
@@ -337,7 +342,8 @@ When completing for #+STARTUP, for example, this function returns
   "Complete against TeX-style HTML entity names."
   (require 'org-entities)
   (while (pcomplete-here
-	  (pcomplete-uniquify-list (remove nil (mapcar 'car-safe org-entities)))
+	  (pcomplete-uniquify-list
+	   (remove nil (mapcar #'car-safe org-entities)))
 	  (substring pcomplete-stub 1))))
 
 (defun pcomplete/org-mode/todo ()
@@ -352,12 +358,17 @@ This needs more work, to handle headings with lots of spaces in them."
 	    (goto-char (point-min))
 	    (let (tbl)
 	      (while (re-search-forward org-outline-regexp nil t)
-		(push (org-link-heading-search-string (org-get-heading t t t t))
-		      tbl))
+		;; Remove the leading asterisk from
+		;; `org-link-heading-search-string' result.
+		(push (substring (org-link-heading-search-string) 1) tbl))
 	      (pcomplete-uniquify-list tbl)))
 	  ;; When completing a bracketed link, i.e., "[[*", argument
 	  ;; starts at the star, so remove this character.
-	  (substring pcomplete-stub 1))))
+          ;; Also, if the completion is done inside [[*head<point>]],
+          ;; drop the closing parentheses.
+          (replace-regexp-in-string
+           "\\]+$" ""
+	   (substring pcomplete-stub 1)))))
 
 (defun pcomplete/org-mode/tag ()
   "Complete a tag name.  Omit tags already set."
@@ -417,11 +428,17 @@ switches."
 				    (symbol-plist
 				     'org-babel-load-languages)
 				    'custom-type)))))))
-  (while (pcomplete-here
-	  '("-n" "-r" "-l"
-	    ":cache" ":colnames" ":comments" ":dir" ":eval" ":exports"
-	    ":file" ":hlines" ":no-expand" ":noweb" ":results" ":rownames"
-	    ":session" ":shebang" ":tangle" ":tangle-mode" ":var"))))
+  (let* ((info (org-babel-get-src-block-info 'no-eval))
+	 (lang (car info))
+	 (lang-headers (intern (concat "org-babel-header-args:" lang)))
+	 (headers (org-babel-combine-header-arg-lists
+		   org-babel-common-header-args-w-values
+		   (and (boundp lang-headers) (eval lang-headers t)))))
+    (while (pcomplete-here
+	    (append (mapcar
+		     (lambda (arg) (format ":%s" (symbol-name (car arg))))
+		     headers)
+		    '("-n" "-r" "-l"))))))
 
 (defun pcomplete/org-mode/block-option/clocktable ()
   "Complete keywords in a clocktable line."

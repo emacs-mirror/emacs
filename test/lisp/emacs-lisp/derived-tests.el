@@ -1,6 +1,6 @@
 ;;; derived-tests.el --- tests for derived.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,13 +24,13 @@
 (define-derived-mode derived-tests--parent-mode prog-mode "P"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFP=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFP=%s " (let ((x "D")) x (funcall f)))))
   (insert "PB "))
 
 (define-derived-mode derived-tests--child-mode derived-tests--parent-mode "C"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFC=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFC=%s " (let ((x "D")) x (funcall f)))))
   (insert "CB "))
 
 (ert-deftest derived-tests-after-hook-lexical ()
@@ -39,5 +39,26 @@
            (lambda () (insert "MH "))))
       (derived-tests--child-mode)
       (should (equal (buffer-string) "PB CB MH AFP=S AFC=S ")))))
+
+(declare-function mode-a "derived-tests")
+(declare-function mode-b "derived-tests")
+(declare-function mode-c "derived-tests")
+(ert-deftest test-add-font-lock ()
+  (define-derived-mode mode-a fundamental-mode "mode-a"
+    (font-lock-add-keywords nil `(("a" 0 'font-lock-keyword-face))))
+  (define-derived-mode mode-b mode-a "mode-b"
+    (font-lock-add-keywords nil `(("b" 0 'font-lock-builtin-face))))
+  (define-derived-mode mode-c mode-b "mode-c"
+    (font-lock-add-keywords nil `(("c" 0 'font-lock-constant-face))))
+
+  (with-temp-buffer
+    (mode-c)
+    (should (equal font-lock-keywords
+                   '(t (("c" 0 'font-lock-constant-face)
+                        ("b" 0 'font-lock-builtin-face)
+                        ("a" 0 'font-lock-keyword-face))
+                       ("c" (0 'font-lock-constant-face))
+                       ("b" (0 'font-lock-builtin-face))
+                       ("a" (0 'font-lock-keyword-face)))))))
 
 ;;; derived-tests.el ends here

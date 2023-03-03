@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1993, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -218,6 +218,14 @@ the Emacs executable that dumped them.
 
 If you want to use this function in an Emacs that was already dumped,
 you must run Emacs with the @samp{-batch} option.
+
+@vindex after-pdump-load-hook
+If you're including @samp{.el} files in the dumped Emacs and that
+@samp{.el} file has code that is normally run at load time, that code
+won't be run when Emacs starts after dumping.  To help work around
+that problem, you can put functions on the
+@code{after-pdump-load-hook} hook.  This hook is run when starting
+Emacs.
 @end defun
 
 @defun dump-emacs to-file from-file
@@ -337,18 +345,22 @@ by the vector allocation code while iterating over the vector blocks.
   It is quite common to use some storage for a while, then release it
 by (for example) killing a buffer or deleting the last pointer to an
 object.  Emacs provides a @dfn{garbage collector} to reclaim this
-abandoned storage.  The garbage collector operates by finding and
-marking all Lisp objects that are still accessible to Lisp programs.
-To begin with, it assumes all the symbols, their values and associated
-function definitions, and any data presently on the stack, are
-accessible.  Any objects that can be reached indirectly through other
-accessible objects are also accessible.
+abandoned storage.  The garbage collector operates, in essence, by
+finding and marking all Lisp objects that are still accessible to Lisp
+programs.  To begin with, it assumes all the symbols, their values and
+associated function definitions, and any data presently on the stack,
+are accessible.  Any objects that can be reached indirectly through
+other accessible objects are also accessible, but this calculation is
+done ``conservatively'', so it may slightly overestimate how many
+objects that are accessible.
 
   When marking is finished, all objects still unmarked are garbage.  No
 matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
-(sweep) phase of the garbage collector arranges to reuse them.
+(sweep) phase of the garbage collector arranges to reuse them.  (But
+since the marking was done ``conservatively'', not all unused objects
+are guaranteed to be garbage-collected by any one sweep.)
 
 @c ??? Maybe add something describing weak hash tables here?
 
@@ -542,12 +554,17 @@ trigger another garbage collection.  You can use the result returned by
 object type; space allocated to the contents of buffers does not count.
 
 The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
-@file{alloc.c}.  Since it's defined in @code{word_size} units, the value
-is 400,000 for the default 32-bit configuration and 800,000 for the 64-bit
-one.  If you specify a larger value, garbage collection will happen less
-often.  This reduces the amount of time spent garbage collecting, but
-increases total memory use.  You may want to do this when running a program
-that creates lots of Lisp data.
+@file{alloc.c}.  Since it's defined in @code{word_size} units, the
+value is 400,000 for the default 32-bit configuration and 800,000 for
+the 64-bit one.  If you specify a larger value, garbage collection
+will happen less often.  This reduces the amount of time spent garbage
+collecting, but increases total memory use.  You may want to do this
+when running a program that creates lots of Lisp data.  However, we
+recommend against increasing the threshold for prolonged periods of
+time, and advise that you never set it higher than needed for the
+program to run in reasonable time.  Using thresholds higher than
+necessary could potentially cause system-wide memory pressure, and
+should therefore be avoided.
 
 You can make collections more frequent by specifying a smaller value, down
 to 1/10th of @code{GC_DEFAULT_THRESHOLD}.  A value less than this minimum
@@ -564,6 +581,9 @@ garbage collection occurs only when both criteria are satisfied.
 As the heap size increases, the time to perform a garbage collection
 increases.  Thus, it can be desirable to do them less frequently in
 proportion.
+
+As with @code{gc-cons-threshold}, do not enlarge this more than
+necessary, and never for prolonged periods of time.
 @end defopt
 
   Control over the garbage collector via @code{gc-cons-threshold} and
@@ -602,6 +622,9 @@ a certain kind of object.  See the documentation string for details.
 @defun memory-info
 This functions returns an amount of total system memory and how much
 of it is free.  On an unsupported system, the value may be @code{nil}.
+
+If @code{default-directory} points to a remote host, memory
+information of that host is returned.
 @end defun
 
 @defvar gcs-done
@@ -614,6 +637,19 @@ This variable contains the total number of seconds of elapsed time
 during garbage collection so far in this Emacs session, as a
 floating-point number.
 @end defvar
+
+@defun memory-report
+It can sometimes be useful to see where Emacs is using memory (in
+various variables, buffers, and caches).  This command will open a new
+buffer (called @samp{"*Memory Report*"}) that will give an overview,
+in addition to listing the ``largest'' buffers and variables.
+
+All the data here is approximate, because there's really no consistent
+way to compute the size of a variable.  For instance, two variables
+may share parts of a data structure, and this will be counted twice,
+but this command may still give a useful high-level overview of which
+parts of Emacs are using memory.
+@end defun
 
 @node Stack-allocated Objects
 @section Stack-allocated Objects
@@ -696,14 +732,15 @@ Emacs session.
 @section C Dialect
 @cindex C programming language
 
-The C part of Emacs is portable to C99 or later: C11-specific features such
-as @samp{<stdalign.h>} and @samp{_Noreturn} are not used without a check,
+The C part of Emacs is portable to C99 or later: later C features such
+as @samp{<stdckdint.h>} and @samp{[[noreturn]]} are not used without a check,
 typically at configuration time, and the Emacs build procedure
-provides a substitute implementation if necessary.  Some C11 features,
+provides a substitute implementation if necessary.  Some later features,
 such as anonymous structures and unions, are too difficult to emulate,
 so they are avoided entirely.
 
-At some point in the future the base C dialect will no doubt change to C11.
+At some point in the future the base C dialect will no doubt change to
+something later than C99.
 
 @node Writing Emacs Primitives
 @section Writing Emacs Primitives
@@ -858,15 +895,17 @@ Currently, only the following attributes are recognized:
 @table @code
 @item noreturn
 Declares the C function as one that never returns.  This corresponds
-to the C11 keyword @code{_Noreturn} and to @w{@code{__attribute__
-((__noreturn__))}} attribute of GCC (@pxref{Function Attributes,,,
-gcc, Using the GNU Compiler Collection}).
+to C23's @code{[[noreturn]]}, to C11's @code{_Noreturn}, and to GCC's
+@w{@code{__attribute__ ((__noreturn__))}} (@pxref{Function
+Attributes,,, gcc, Using the GNU Compiler Collection}).  (Internally,
+Emacs's own C code uses @code{_Noreturn} as it can be defined as a
+macro on C platforms that do not support it.)
 
 @item const
 Declares that the function does not examine any values except its
 arguments, and has no effects except the return value.  This
-corresponds to @w{@code{__attribute__ ((__const__))}} attribute of
-GCC.
+corresponds to C23's @code{[[unsequenced]]} and to GCC's
+@w{@code{__attribute__ ((__const__))}}.
 
 @item noinline
 This corresponds to @w{@code{__attribute__ ((__noinline__))}}
@@ -1416,7 +1455,7 @@ other words, if a module function wants to call Lisp functions or
 Emacs primitives, convert @code{emacs_value} objects to and from C
 datatypes (@pxref{Module Values}), or interact with Emacs in any other
 way, some call from Emacs to @code{emacs_module_init} or to a module
-function must be in the call stack.  Module function may not interact
+function must be in the call stack.  Module functions may not interact
 with Emacs while garbage collection is running; @pxref{Garbage
 Collection}.  They may only interact with Emacs from Lisp interpreter
 threads (including the main thread) created by Emacs; @pxref{Threads}.
@@ -1612,7 +1651,7 @@ This function returns the value of a Lisp float specified by
 @var{arg}, as a C @code{double} value.
 @end deftypefn
 
-@deftypefn Function struct timespec extract_time (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {struct timespec} extract_time (emacs_env *@var{env}, emacs_value @var{arg})
 This function, which is available since Emacs 27, interprets @var{arg}
 as an Emacs Lisp time value and returns the corresponding @code{struct
 timespec}.  @xref{Time of Day}.  @code{struct timespec} represents a
@@ -1851,7 +1890,10 @@ byte, is @var{len}.  The original string in @var{str} can be either an
 it can include embedded null bytes, and doesn't have to end in a
 terminating null byte at @code{@var{str}[@var{len}]}.  The function
 raises the @code{overflow-error} error condition if @var{len} is
-negative or exceeds the maximum length of an Emacs string.
+negative or exceeds the maximum length of an Emacs string.  If
+@var{len} is zero, then @var{str} can be @code{NULL}, otherwise it
+must point to valid memory.  For nonzero @var{len}, @code{make_string}
+returns unique mutable string objects.
 @end deftypefn
 
 @deftypefn Function emacs_value make_unibyte_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{len})
@@ -1914,7 +1956,7 @@ garbage-collected.  Don't run any expensive code in a finalizer,
 because GC must finish quickly to keep Emacs responsive.
 @end deftypefn
 
-@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {void *}get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
 This function extracts the C pointer from the Lisp object represented
 by @var{arg}.
 @end deftypefn
@@ -2032,7 +2074,7 @@ to quit, use the following function, which is available since Emacs
 27.1.
 
 @anchor{process_input}
-@deftypefn Function enum emacs_process_input_result process_input (emacs_env *@var{env})
+@deftypefn Function {enum emacs_process_input_result} process_input (emacs_env *@var{env})
 This function processes pending input events.  It returns
 @code{emacs_process_input_quit} if the user wants to quit or an error
 occurred while processing signals.  In that case, we recommend that
@@ -2107,7 +2149,7 @@ Therefore, we recommend that your module functions check for nonlocal
 exit conditions and recover from them, using the functions described
 below.
 
-@deftypefn Function enum emacs_funcall_exit non_local_exit_check (emacs_env *@var{env})
+@deftypefn Function {enum emacs_funcall_exit} non_local_exit_check (emacs_env *@var{env})
 This function returns the kind of nonlocal exit condition stored in
 @var{env}.  The possible values are:
 
@@ -2122,7 +2164,7 @@ The last @acronym{API} function exited via @code{throw}.
 @end vtable
 @end deftypefn
 
-@deftypefn Function enum emacs_funcall_exit non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
+@deftypefn Function {enum emacs_funcall_exit} non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
 This function returns the kind of nonlocal exit condition stored in
 @var{env}, like @code{non_local_exit_check} does, but it also returns
 the full information about the nonlocal exit, if any.  If the return
@@ -2375,20 +2417,14 @@ This flag indicates that narrowing has changed in the buffer.
 This flag indicates that redisplay optimizations should not be used to
 display this buffer.
 
-@item overlay_center
-This field holds the current overlay center position.  @xref{Managing
-Overlays}.
-
-@item overlays_before
-@itemx overlays_after
-These fields hold, respectively, a list of overlays that end at or
-before the current overlay center, and a list of overlays that end
-after the current overlay center.  @xref{Managing Overlays}.
-@code{overlays_before} is sorted in order of decreasing end position,
-and @code{overlays_after} is sorted in order of increasing beginning
-position.
-
-@c FIXME? the following are now all Lisp_Object BUFFER_INTERNAL_FIELD (foo).
+@item inhibit_buffer_hooks
+This flag indicates that the buffer should not run the hooks
+@code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).  It is set at buffer creation (@pxref{Creating
+Buffers}), and avoids slowing down internal or temporary buffers, such
+as those created by @code{with-temp-buffer} (@pxref{Definition of
+with-temp-buffer,, Current Buffer}).
 
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.
@@ -2515,6 +2551,9 @@ These fields store the values of Lisp variables that are automatically
 buffer-local (@pxref{Buffer-Local Variables}), whose corresponding
 variable names have underscores replaced with dashes.  For instance,
 @code{mode_line_format} stores the value of @code{mode-line-format}.
+
+@item overlays
+The interval tree containing this buffer's overlays.
 
 @item last_selected_window
 This is the last window that was selected with this buffer in it, or @code{nil}
@@ -2969,8 +3008,8 @@ Using @code{bool} can make programs easier to read and a bit faster than
 using @code{int}.  Although it is also OK to use @code{int}, @code{0}
 and @code{1}, this older style is gradually being phased out.  When
 using @code{bool}, respect the limitations of the replacement
-implementation of @code{bool}, as documented in the source file
-@file{lib/stdbool.in.h}.  In particular, boolean bitfields should be of type
+implementation of @code{bool}.  In particular,
+boolean bitfields should be of type
 @code{bool_bf}, not @code{bool}, so that they work correctly even when
 compiling Objective C with standard GCC.
 

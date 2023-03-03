@@ -1,7 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -28,8 +27,6 @@
 
 (require 'url-parse)
 (require 'url-vars)
-(autoload 'timezone-parse-date "timezone")
-(autoload 'timezone-make-date-arpa-standard "timezone")
 (autoload 'mail-header-extract "mailheader")
 
 (defvar url-parse-args-syntax-table
@@ -66,9 +63,9 @@ If a list, it is a list of the types of messages to be logged."
 	  (and (listp url-debug) (memq tag url-debug)))
       (with-current-buffer (get-buffer-create "*URL-DEBUG*")
 	(goto-char (point-max))
-	(insert (symbol-name tag) " -> " (apply 'format args) "\n")
+	(insert (symbol-name tag) " -> " (apply #'format args) "\n")
 	(if (numberp url-debug)
-	    (apply 'message args)))))
+	    (apply #'message args)))))
 
 ;;;###autoload
 (defun url-parse-args (str &optional nodowncase)
@@ -128,23 +125,13 @@ conversion.  Replaces these characters as follows:
     <  ==>  &lt;
     >  ==>  &gt;
     \"  ==>  &quot;"
-  (if (string-match "[&<>\"]" string)
-      (with-current-buffer (get-buffer-create " *entity*")
-	(erase-buffer)
-	(buffer-disable-undo (current-buffer))
-	(insert string)
-	(goto-char (point-min))
-	(while (progn
-		 (skip-chars-forward "^&<>\"")
-		 (not (eobp)))
-	  (insert (cdr (assq (char-after (point))
-			     '((?\" . "&quot;")
-			       (?& . "&amp;")
-			       (?< . "&lt;")
-			       (?> . "&gt;")))))
-	  (delete-char 1))
-	(buffer-string))
-    string))
+  (replace-regexp-in-string "[&<>\"]"
+                            (lambda (c) (cdr (assq (aref c 0)
+			                      '((?\" . "&quot;")
+			                        (?& . "&amp;")
+			                        (?< . "&lt;")
+			                        (?> . "&gt;")))))
+			    string))
 
 ;;;###autoload
 (defun url-normalize-url (url)
@@ -172,7 +159,7 @@ Will not do anything if `url-show-status' is nil."
 	  (= url-lazy-message-time
 	     (setq url-lazy-message-time (time-convert nil 'integer))))
       nil
-    (apply 'message args)))
+    (apply #'message args)))
 
 ;;;###autoload
 (defun url-get-normalized-date (&optional specified-time)
@@ -181,48 +168,35 @@ Will not do anything if `url-show-status' is nil."
   (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
 ;;;###autoload
-(defun url-eat-trailing-space (x)
-  "Remove spaces/tabs at the end of a string."
-  (let ((y (1- (length x)))
-	(skip-chars (list ?  ?\t ?\n)))
-    (while (and (>= y 0) (memq (aref x y) skip-chars))
-      (setq y (1- y)))
-    (substring x 0 (1+ y))))
+(define-obsolete-function-alias 'url-eat-trailing-space
+  #'string-trim-right "29.1")
 
 ;;;###autoload
-(defun url-strip-leading-spaces (x)
-  "Remove spaces at the front of a string."
-  (let ((y (1- (length x)))
-	(z 0)
-	(skip-chars (list ?  ?\t ?\n)))
-    (while (and (<= z y) (memq (aref x z) skip-chars))
-      (setq z (1+ z)))
-    (substring x z nil)))
-
+(define-obsolete-function-alias 'url-strip-leading-spaces
+  #'string-trim-left "29.1")
 
 (define-obsolete-function-alias 'url-pretty-length
-  'file-size-human-readable "24.4")
+  #'file-size-human-readable "24.4")
 
 ;;;###autoload
-(defun url-display-percentage (fmt perc &rest args)
+(defun url-display-message (fmt &rest args)
+  "Like `message', but do nothing if `url-show-status' is nil."
   (when (and url-show-status
-	     (or (null url-current-object)
-		 (not (url-silent url-current-object))))
-    (if (null fmt)
-	(if (fboundp 'clear-progress-display)
-	    (clear-progress-display))
-      (if (and (fboundp 'progress-display) perc)
-	  (apply 'progress-display fmt perc args)
-	(apply 'message fmt args)))))
+             (not (and url-current-object (url-silent url-current-object)))
+             fmt)
+    (apply #'message fmt args)))
+
+;;;###autoload
+(defun url-display-percentage (fmt _perc &rest args)
+  (declare (obsolete url-display-message "29.1"))
+  (url-display-message fmt args))
 
 ;;;###autoload
 (defun url-percentage (x y)
-  (if (fboundp 'float)
-      (round (* 100 (/ x (float y))))
-    (/ (* x 100) y)))
+  (round (* 100 (/ x (float y)))))
 
 ;;;###autoload
-(defalias 'url-basepath 'url-file-directory)
+(defalias 'url-basepath #'url-file-directory)
 
 ;;;###autoload
 (defun url-file-directory (file)
@@ -252,7 +226,7 @@ Will not do anything if `url-show-status' is nil."
     (while pairs
       (setq cur (car pairs)
 	    pairs (cdr pairs))
-      (unless (string-match "=" cur)
+      (unless (string-search "=" cur)
         (setq cur (concat cur "=")))
 
       (when (string-match "=" cur)
@@ -282,7 +256,7 @@ Given a QUERY in the form:
 \(This is the same format as produced by `url-parse-query-string')
 
 This will return a string
-\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\". Keys may
+\"key1=val1&key2=val2&key3=val1&key3=val2&key4&key5\".  Keys may
 be strings or symbols; if they are symbols, the symbol name will
 be used.
 
@@ -335,10 +309,13 @@ instead of just \"key\" as in the example above."
 
 ;;;###autoload
 (defun url-unhex-string (str &optional allow-newlines)
-  "Remove %XX embedded spaces, etc in a URL.
+  "Decode %XX sequences in a percent-encoded URL.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
-forbidden in URL encoding."
+forbidden in URL encoding.
+
+The resulting string in general requires decoding using an
+appropriate coding-system; see `decode-coding-string'."
   (setq str (or str ""))
   (let ((tmp "")
 	(case-fold-search t))
@@ -408,8 +385,7 @@ if character N is allowed."
 		 (aref url-encoding-table byte)))
 	     (if (multibyte-string-p string)
 		 (encode-coding-string string 'utf-8)
-	       string)
-	     ""))
+	       string)))
 
 (defconst url-host-allowed-chars
   ;; Allow % to avoid re-encoding %-encoded sequences.
@@ -574,8 +550,8 @@ Has a preference for looking backward when not directly on a symbol."
   (save-excursion
     (goto-char (point-min))
     (unless url-current-mime-headers
-      (set (make-local-variable 'url-current-mime-headers)
-	   (mail-header-extract)))))
+      (setq-local url-current-mime-headers
+                  (mail-header-extract)))))
 
 (defun url-make-private-file (file)
   "Make FILE only readable and writable by the current user.

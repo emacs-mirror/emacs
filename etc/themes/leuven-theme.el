@@ -1,10 +1,10 @@
 ;;; leuven-theme.el --- Awesome Emacs color theme on white background  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; URL: https://github.com/fniessen/emacs-leuven-theme
-;; Version: 20200513.1928
+;; Version: 20221010.1209
 ;; Keywords: color theme
 
 ;; This file is part of GNU Emacs.
@@ -74,11 +74,15 @@ CONTROL can be a number, nil, or t.  When t, use DEFAULT-HEIGHT."
 
 ;;; Theme Faces.
 
+;;;###theme-autoload
 (deftheme leuven
   "Face colors with a light background.
 Basic, Font Lock, Isearch, Gnus, Message, Org mode, Diff, Ediff,
 Flyspell, Semantic, and Ansi-Color faces are included -- and much
-more...")
+more..."
+  :background-mode 'light
+  :kind 'color-scheme
+  :family 'leuven)
 
 (let ((class '((class color) (min-colors 89)))
 
@@ -286,6 +290,25 @@ more...")
    `(message-header-newsgroups ((,class (:family "Sans Serif" :foreground "#3399CC"))))
    `(message-header-xheader ((,class ,mail-header-other)))
    `(message-mml ((,class (:foreground "forest green"))))
+
+   ;; ANSI colors.
+   `(ansi-color-bold ((,class (:weight bold))))
+   `(ansi-color-black ((,class (:foreground "black" :background "black"))))
+   `(ansi-color-red ((,class (:foreground "red3" :background "red3"))))
+   `(ansi-color-green ((,class (:foreground "forest green" :background "forest green"))))
+   `(ansi-color-yellow ((,class (:foreground "yellow3" :background "yellow3"))))
+   `(ansi-color-blue ((,class (:foreground "blue" :background "blue"))))
+   `(ansi-color-magenta ((,class (:foreground "magenta3" :background "magenta3"))))
+   `(ansi-color-cyan ((,class (:foreground "deep sky blue" :background "deep sky blue"))))
+   `(ansi-color-white ((,class (:foreground "gray60" :background "gray60"))))
+   `(ansi-color-bright-black ((,class (:foreground "gray30" :background "gray30"))))
+   `(ansi-color-bright-red ((,class (:foreground "red1" :background "red1"))))
+   `(ansi-color-bright-green ((,class (:foreground "lime green" :background "lime green"))))
+   `(ansi-color-bright-yellow ((,class (:foreground "yellow2" :background "yellow2"))))
+   `(ansi-color-bright-blue ((,class (:foreground "dodger blue" :background "dodger blue"))))
+   `(ansi-color-bright-magenta ((,class (:foreground "magenta" :background "magenta"))))
+   `(ansi-color-bright-cyan ((,class (:foreground "sky blue" :background "sky blue"))))
+   `(ansi-color-bright-white ((,class (:foreground "gray80" :background "gray80"))))
 
    ;; Diff.
    `(diff-added ((,class ,diff-added)))
@@ -613,6 +636,8 @@ more...")
    `(ilog-echo-face ((,class (:height 2.0 :foreground "#006FE0"))))
    `(ilog-load-face ((,class (:foreground "#BA36A5"))))
    `(ilog-message-face ((,class (:foreground "#808080"))))
+   `(image-dired-thumb-flagged ((,class (:background "red"))))
+   `(image-dired-thumb-mark ((,class :background "#FFAAAA")))
    `(indent-guide-face ((,class (:foreground "#D3D3D3"))))
    `(info-file ((,class (:family "Sans Serif" :height 1.8 :weight bold :box (:line-width 1 :color "#0000CC") :foreground "cornflower blue" :background "LightSteelBlue1"))))
    `(info-header-node ((,class (:underline t :foreground "orange")))) ; nodes in header
@@ -1035,12 +1060,6 @@ more...")
   ;; highlight-sexp-mode.
   '(hl-sexp-background-color "#efebe9")
 
-  '(ansi-color-faces-vector
-    [default default default italic underline success warning error])
-
-  ;; Colors used in Shell mode.
-  '(ansi-color-names-vector
-    ["black" "red3" "ForestGreen" "yellow3" "blue" "magenta3" "DeepSkyBlue" "gray50"])
  )
 
 ;;;###autoload

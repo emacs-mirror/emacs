@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1996--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -83,9 +83,12 @@ addition to the standard Emacs commands.
 @kindex C-M-j
 @findex octave-indent-new-comment-line
 @vindex octave-continuation-string
+@vindex octave-string-continuation-marker
 Break Octave line at point, continuing comment if within one.  Insert
 @code{octave-continuation-string} before breaking the line unless
-inside a list.  Signal an error if within a single-quoted string.
+inside a list.  If within a double-quoted string, insert
+@code{octave-string-continuation-marker} instead.  Signal an error if
+within a single-quoted string.
 
 @item C-c ;
 @kindex C-c ;
@@ -201,9 +204,10 @@ The GNU Emacs Manual}).  Currently, function names can be indexed.
 
 @cindex ElDoc Mode Support
 @vindex octave-eldoc-message-style
-ElDoc mode (@pxref{Lisp Doc,,, emacs, The GNU Emacs Manual}) is
-supported.  By customizing @code{octave-eldoc-message-style} it can be
-changed from displaying one or multi line hints.
+ElDoc mode (@pxref{Programming Language Doc,,, emacs, The GNU Emacs
+Manual}) is supported.  By customizing
+@code{octave-eldoc-message-style} it can be changed from displaying
+one or multi line hints.
 
 @c @cindex TAGS
 @c @cindex Emacs TAGS files
@@ -237,7 +241,7 @@ entering Octave commands at the prompt.  The buffer is in Inferior
 Octave mode, which is derived from the standard Comint mode, a major
 mode for interacting with an inferior interpreter.  See the
 documentation for @code{comint-mode} for more details, and use
-@kbd{C-h b} to find out about available special keybindings.
+@kbd{C-h b} to find out about available special key bindings.
 
 You can also communicate with an inferior Octave process from within
 files with Octave code (i.e., buffers in Octave mode), using the

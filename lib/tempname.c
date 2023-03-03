@@ -1,17 +1,17 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -20,15 +20,9 @@
 # include "tempname.h"
 #endif
 
-#include <sys/types.h>
-#include <assert.h>
-
 #include <errno.h>
 
 #include <stdio.h>
-#ifndef P_tmpdir
-# define P_tmpdir "/tmp"
-#endif
 #ifndef TMP_MAX
 # define TMP_MAX 238328
 #endif
@@ -42,7 +36,6 @@
 # error report this to bug-gnulib@gnu.org
 #endif
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,110 +43,79 @@
 #include <stdint.h>
 #include <sys/random.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #if _LIBC
-# define struct_stat64 struct stat64
-# define __secure_getenv __libc_secure_getenv
+# define struct_stat64 struct __stat64_t64
 #else
 # define struct_stat64 struct stat
 # define __gen_tempname gen_tempname
 # define __mkdir mkdir
 # define __open open
-# define __lxstat64(version, file, buf) lstat (file, buf)
+# define __lstat64_time64(file, buf) lstat (file, buf)
+# define __getrandom getrandom
+# define __clock_gettime64 clock_gettime
+# define __timespec64 timespec
 #endif
 
-#ifdef _LIBC
-# include <random-bits.h>
-# define RANDOM_BITS(Var) ((Var) = random_bits ())
-typedef uint32_t random_value;
-# define RANDOM_VALUE_MAX UINT32_MAX
-# define BASE_62_DIGITS 5 /* 62**5 < UINT32_MAX */
-# define BASE_62_POWER (62 * 62 * 62 * 62 * 62) /* 2**BASE_62_DIGITS */
-#else
 /* Use getrandom if it works, falling back on a 64-bit linear
-   congruential generator that starts with whatever Var's value
-   happens to be.  */
-# define RANDOM_BITS(Var) \
-    ((void) (getrandom (&(Var), sizeof (Var), 0) == sizeof (Var) \
-             || ((Var) = 2862933555777941757 * (Var) + 3037000493)))
+   congruential generator that starts with Var's value
+   mixed in with a clock's low-order bits if available.  */
 typedef uint_fast64_t random_value;
-# define RANDOM_VALUE_MAX UINT_FAST64_MAX
-# define BASE_62_DIGITS 10 /* 62**10 < UINT_FAST64_MAX */
-# define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
+#define RANDOM_VALUE_MAX UINT_FAST64_MAX
+#define BASE_62_DIGITS 10 /* 62**10 < UINT_FAST64_MAX */
+#define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
+
+/* Return the result of mixing the entropy from R and S.
+   Assume that R and S are not particularly random,
+   and that the result should look randomish to an untrained eye.  */
+
+static random_value
+mix_random_values (random_value r, random_value s)
+{
+  /* As this code is used only when high-quality randomness is neither
+     available nor necessary, there is no need for fancier polynomials
+     such as those in the Linux kernel's 'random' driver.  */
+  return (2862933555777941757 * r + 3037000493) ^ s;
+}
+
+/* Set *R to a random value.
+   Return true if *R is set to high-quality value taken from getrandom.
+   Otherwise return false, falling back to a low-quality *R that might
+   depend on S.
+
+   This function returns false only when getrandom fails.
+   On GNU systems this should happen only early in the boot process,
+   when the fallback should be good enough for programs using tempname
+   because any attacker likely has root privileges already.  */
+
+static bool
+random_bits (random_value *r, random_value s)
+{
+  /* Without GRND_NONBLOCK it can be blocked for minutes on some systems.  */
+  if (__getrandom (r, sizeof *r, GRND_NONBLOCK) == sizeof *r)
+    return true;
+
+  /* If getrandom did not work, use ersatz entropy based on low-order
+     clock bits.  On GNU systems getrandom should fail only
+     early in booting, when ersatz should be good enough.
+     Do not use ASLR-based entropy, as that would leak ASLR info into
+     the resulting file name which is typically public.
+
+     Of course we are in a state of sin here.  */
+
+  random_value v = s;
+
+#if _LIBC || (defined CLOCK_REALTIME && HAVE_CLOCK_GETTIME)
+  struct __timespec64 tv;
+  __clock_gettime64 (CLOCK_REALTIME, &tv);
+  v = mix_random_values (v, tv.tv_sec);
+  v = mix_random_values (v, tv.tv_nsec);
 #endif
 
-#if _LIBC
-/* Return nonzero if DIR is an existent directory.  */
-static int
-direxists (const char *dir)
-{
-  struct_stat64 buf;
-  return __xstat64 (_STAT_VER, dir, &buf) == 0 && S_ISDIR (buf.st_mode);
+  *r = mix_random_values (v, clock ());
+  return false;
 }
-
-/* Path search algorithm, for tmpnam, tmpfile, etc.  If DIR is
-   non-null and exists, uses it; otherwise uses the first of $TMPDIR,
-   P_tmpdir, /tmp that exists.  Copies into TMPL a template suitable
-   for use with mk[s]temp.  Will fail (-1) if DIR is non-null and
-   doesn't exist, none of the searched dirs exists, or there's not
-   enough space in TMPL. */
-int
-__path_search (char *tmpl, size_t tmpl_len, const char *dir, const char *pfx,
-               int try_tmpdir)
-{
-  const char *d;
-  size_t dlen, plen;
-
-  if (!pfx || !pfx[0])
-    {
-      pfx = "file";
-      plen = 4;
-    }
-  else
-    {
-      plen = strlen (pfx);
-      if (plen > 5)
-        plen = 5;
-    }
-
-  if (try_tmpdir)
-    {
-      d = __secure_getenv ("TMPDIR");
-      if (d != NULL && direxists (d))
-        dir = d;
-      else if (dir != NULL && direxists (dir))
-        /* nothing */ ;
-      else
-        dir = NULL;
-    }
-  if (dir == NULL)
-    {
-      if (direxists (P_tmpdir))
-        dir = P_tmpdir;
-      else if (strcmp (P_tmpdir, "/tmp") != 0 && direxists ("/tmp"))
-        dir = "/tmp";
-      else
-        {
-          __set_errno (ENOENT);
-          return -1;
-        }
-    }
-
-  dlen = strlen (dir);
-  while (dlen > 1 && dir[dlen - 1] == '/')
-    dlen--;                     /* remove trailing slashes */
-
-  /* check we have room for "${dir}/${pfx}XXXXXX\0" */
-  if (tmpl_len < dlen + 1 + plen + 6 + 1)
-    {
-      __set_errno (EINVAL);
-      return -1;
-    }
-
-  sprintf (tmpl, "%.*s/%.*sXXXXXX", (int) dlen, dir, (int) plen, pfx);
-  return 0;
-}
-#endif /* _LIBC */
 
 #if _LIBC
 static int try_tempname_len (char *, int, void *, int (*) (char *, void *),
@@ -170,17 +132,17 @@ try_file (char *tmpl, void *flags)
 }
 
 static int
-try_dir (char *tmpl, void *flags _GL_UNUSED)
+try_dir (char *tmpl, _GL_UNUSED void *flags)
 {
   return __mkdir (tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 static int
-try_nocreate (char *tmpl, void *flags _GL_UNUSED)
+try_nocreate (char *tmpl, _GL_UNUSED void *flags)
 {
   struct_stat64 st;
 
-  if (__lxstat64 (_STAT_VER, tmpl, &st) == 0 || errno == EOVERFLOW)
+  if (__lstat64_time64 (tmpl, &st) == 0 || errno == EOVERFLOW)
     __set_errno (EEXIST);
   return errno == ENOENT ? 0 : -1;
 }
@@ -202,7 +164,7 @@ static const char letters[] =
                         and return a read-write fd.  The file is mode 0600.
    __GT_DIR:            create a directory, which will be mode 0700.
 
-   We use a clever algorithm to get hard-to-predict names. */
+   */
 #ifdef _LIBC
 static
 #endif
@@ -251,14 +213,16 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
 #endif
 
   /* A random variable.  */
-  random_value v;
+  random_value v = 0;
 
-  /* How many random base-62 digits can currently be extracted from V.  */
+  /* A value derived from the random variable, and how many random
+     base-62 digits can currently be extracted from VDIGBUF.  */
+  random_value vdigbuf;
   int vdigits = 0;
 
-  /* Least unfair value for V.  If V is less than this, V can generate
-     BASE_62_DIGITS digits fairly.  Otherwise it might be biased.  */
-  random_value const unfair_min
+  /* Least biased value for V.  If V is less than this, V can generate
+     BASE_62_DIGITS unbiased digits.  Otherwise the digits are biased.  */
+  random_value const biased_min
     = RANDOM_VALUE_MAX - RANDOM_VALUE_MAX % BASE_62_POWER;
 
   len = strlen (tmpl);
@@ -278,15 +242,16 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
         {
           if (vdigits == 0)
             {
-              do
-                RANDOM_BITS (v);
-              while (unfair_min <= v);
+              /* Worry about bias only if the bits are high quality.  */
+              while (random_bits (&v, v) && biased_min <= v)
+                continue;
 
+              vdigbuf = v;
               vdigits = BASE_62_DIGITS;
             }
 
-          XXXXXX[i] = letters[v % 62];
-          v /= 62;
+          XXXXXX[i] = letters[vdigbuf % 62];
+          vdigbuf /= 62;
           vdigits--;
         }
 

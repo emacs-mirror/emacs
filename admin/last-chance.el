@@ -1,6 +1,6 @@
 ;;; last-chance.el --- dangling deterrence     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -41,7 +41,7 @@
 ;;
 ;; will show you any references to `change-log-date-face' in the
 ;; *.el files in a new buffer (in Grep mode).  Hopefully you see
-;; only the obsolete declaration and can proceed w/ its removal.
+;; only the obsolete declaration and can proceed with its removal.
 ;; If not, please DTRT and refrain from the removal until those
 ;; references are properly transitioned.
 ;;
@@ -105,18 +105,14 @@ defaulting to the one at point."
                               "Symbol: " obarray
                               nil nil
                               one nil one)))))
-  (let ((default-directory (or (vc-root-dir)
-                               default-directory)))
-    (grep (format "%s %s"
-                  last-chance-grep-command
-                  symbol)))
-  (setf (buffer-local-value 'last-chance-symbol
-                            (process-buffer
-                             (car compilation-in-progress)))
-        symbol))
-
-(add-to-list 'compilation-finish-functions
-             'last-chance-cleanup)
+  (with-current-buffer
+      (let ((default-directory (or (vc-root-dir)
+                                   default-directory)))
+        (grep (format "%s %s"
+                      last-chance-grep-command
+                      symbol)))
+    (add-hook 'compilation-finish-functions #'last-chance-cleanup nil t)
+    (setq-local last-chance-symbol symbol)))
 
 (provide 'last-chance)
 

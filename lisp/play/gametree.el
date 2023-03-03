@@ -1,6 +1,6 @@
-;;; gametree.el --- manage game analysis trees in Emacs
+;;; gametree.el --- manage game analysis trees in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -79,7 +79,6 @@
 
 ;;; Code:
 
-(require 'derived)
 (require 'outline)
 
 ;;;; Configuration variables
@@ -98,35 +97,30 @@ numbers of moves by Black (if considered in isolation) by the ellipsis
 conflicts with the use of ellipsis by Outline mode to denote collapsed
 subtrees.  The author uses \":\" because it agrees nicely with a set of
 LaTeX macros he uses for typesetting annotated games."
-  :type 'regexp
-  :group 'gametree)
+  :type 'regexp)
 
 (defcustom gametree-full-ply-regexp (regexp-quote ".")
   "Matches ends of numbers of moves by the \"first\" player.
 For instance, it is an almost universal convention in chess to postfix
 numbers of moves by White (if considered in isolation) by the dot \".\"."
-  :type 'regexp
-  :group 'gametree)
+  :type 'regexp)
 
 (defcustom gametree-half-ply-format "%d:"
   "Output format for move numbers of moves by the \"second\" player.
 Has to contain \"%d\" to output the actual number."
-  :type 'string
-  :group 'gametree)
+  :type 'string)
 
 (defcustom gametree-full-ply-format "%d."
   "Output format for move numbers of moves by the \"first\" player.
 Has to contain \"%d\" to output the actual number."
-  :type 'string
-  :group 'gametree)
+  :type 'string)
 
 (defcustom gametree-make-heading-function
   (lambda (level)
     (insert (make-string level ?*)))
   "A function of one numeric argument, LEVEL, to insert a heading at point.
 You should change this if you change `outline-regexp'."
-  :type 'function
-  :group 'gametree)
+  :type 'function)
 
 (defvar gametree-local-layout nil
   "A list encoding the layout (i.e. the show or hide state) of the file.
@@ -138,18 +132,15 @@ the file is visited (subject to the usual restriction via
 
 (defcustom gametree-score-opener "{score="
   "The string which opens a score tag, and precedes the actual score."
-  :type 'string
-  :group 'gametree)
+  :type 'string)
 
 (defcustom gametree-score-manual-flag "!"
   "String marking the line as manually (as opposed to automatically) scored."
-  :type 'string
-  :group 'gametree)
+  :type 'string)
 
 (defcustom gametree-score-closer "}"
   "The string which closes a score tag, and follows the actual score."
-  :type 'string
-  :group 'gametree)
+  :type 'string)
 
 (defcustom gametree-score-regexp
   (concat "[^\n\^M]*\\("
@@ -167,13 +158,11 @@ line as *manually* (as opposed to automatically) scored, which
 prevents the program from recursively applying the scoring algorithm
 on the subtree headed by the marked line, and makes it use the manual
 score instead."
-  :type 'regexp
-  :group 'gametree)
+  :type 'regexp)
 
 (defcustom gametree-default-score 0
   "Score to assume for branches lacking score tags."
-  :type 'integer
-  :group 'gametree)
+  :type 'integer)
 
 ;;;; Helper functions
 
@@ -519,7 +508,7 @@ being entered automatically (and thus should lack the manual mark)."
         (insert (int-to-string (prefix-numeric-value score))))))
 
 (defun gametree-compute-and-insert-score ()
-  "Compute current node score, maybe recursively from subnodes. Insert it.
+  "Compute current node score, maybe recursively from subnodes.  Insert it.
 Subnodes which have been manually scored are honored."
   (interactive "*")
   (let ((auto (not (and (looking-at gametree-score-regexp)
@@ -565,19 +554,46 @@ buffer, it is replaced by the new value.  See the documentation for
     (gametree-hack-file-layout))
   nil)
 
+
+;;;; Mouse commands
+
+(defun gametree-mouse-break-line-here (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (gametree-break-line-here))
+
+(defun gametree-mouse-show-children-and-entry (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (gametree-show-children-and-entry))
+
+(defun gametree-mouse-show-subtree (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (outline-show-subtree))
+
+(defun gametree-mouse-hide-subtree (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (outline-hide-subtree))
+
+
 ;;;; Key bindings
-(defvar gametree-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-j" 'gametree-break-line-here)
-    (define-key map "\C-c\C-v" 'gametree-insert-new-leaf)
-    (define-key map "\C-c\C-m" 'gametree-merge-line)
-    (define-key map "\C-c\C-r " 'gametree-layout-to-register)
-    (define-key map "\C-c\C-r/" 'gametree-layout-to-register)
-    (define-key map "\C-c\C-rj" 'gametree-apply-register-layout)
-    (define-key map "\C-c\C-y" 'gametree-save-and-hack-layout)
-    (define-key map "\C-c;" 'gametree-insert-score)
-    (define-key map "\C-c^" 'gametree-compute-and-insert-score)
-    map))
+
+(defvar-keymap gametree-mode-map
+  "C-c C-j"     #'gametree-break-line-here
+  "C-c C-v"     #'gametree-insert-new-leaf
+  "C-c C-m"     #'gametree-merge-line
+  "C-c C-r SPC" #'gametree-layout-to-register
+  "C-c C-r /"   #'gametree-layout-to-register
+  "C-c C-r j"   #'gametree-apply-register-layout
+  "C-c C-y"     #'gametree-save-and-hack-layout
+  "C-c ;"       #'gametree-insert-score
+  "C-c ^"       #'gametree-compute-and-insert-score
+  "M-<down-mouse-2> M-<mouse-2>" #'gametree-mouse-break-line-here
+  "S-<down-mouse-1> S-<mouse-1>" #'gametree-mouse-show-children-and-entry
+  "S-<down-mouse-2> S-<mouse-2>" #'gametree-mouse-show-subtree
+  "S-<down-mouse-3> S-<mouse-3>" #'gametree-mouse-hide-subtree)
 
 (define-derived-mode gametree-mode outline-mode "GameTree"
   "Major mode for managing game analysis trees.
@@ -587,32 +603,6 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 \\{gametree-mode-map}"
   (auto-fill-mode 0)
   (add-hook 'write-contents-functions 'gametree-save-and-hack-layout nil t))
-
-;;;; Goodies for mousing users
-(defun gametree-mouse-break-line-here (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (gametree-break-line-here))
-(defun gametree-mouse-show-children-and-entry (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (gametree-show-children-and-entry))
-(defun gametree-mouse-show-subtree (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (outline-show-subtree))
-(defun gametree-mouse-hide-subtree (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (outline-hide-subtree))
-(define-key gametree-mode-map [M-down-mouse-2 M-mouse-2]
-  'gametree-mouse-break-line-here)
-(define-key gametree-mode-map [S-down-mouse-1 S-mouse-1]
-  'gametree-mouse-show-children-and-entry)
-(define-key gametree-mode-map [S-down-mouse-2 S-mouse-2]
-  'gametree-mouse-show-subtree)
-(define-key gametree-mode-map [S-down-mouse-3 S-mouse-3]
-  'gametree-mouse-hide-subtree)
 
 (provide 'gametree)
 

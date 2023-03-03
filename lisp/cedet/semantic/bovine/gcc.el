@@ -1,6 +1,6 @@
-;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
+;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -25,6 +25,7 @@
 ;; GCC, and set up the preprocessor and include paths.
 
 (require 'semantic/dep)
+(require 'cl-lib)
 
 (defvar semantic-lex-c-preprocessor-symbol-file)
 (defvar semantic-lex-c-preprocessor-symbol-map)
@@ -46,11 +47,11 @@ to give to the program."
       (erase-buffer)
       (setenv "LC_ALL" "C")
       (condition-case nil
-          (setq err (apply 'call-process gcc-cmd options))
+          (setq err (apply #'call-process gcc-cmd options))
         (error ;; Some bogus directory for the first time perhaps?
          (let ((default-directory (expand-file-name "~/")))
            (condition-case nil
-               (setq err (apply 'call-process gcc-cmd options))
+               (setq err (apply #'call-process gcc-cmd options))
              (error ;; gcc doesn't exist???
               nil)))))
       (setenv "LC_ALL" old-lc-messages)
@@ -88,10 +89,9 @@ to give to the program."
               (let ((path (substring line 1)))
                 (when (and (file-accessible-directory-p path)
                            (file-name-absolute-p path))
-                  (add-to-list 'inc-path
-                               (expand-file-name path)
-                               t))))))))
-    inc-path))
+                  (cl-pushnew (expand-file-name path) inc-path
+                              :test #'equal))))))))
+    (nreverse inc-path)))
 
 
 (defun semantic-cpp-defs (str)
@@ -101,7 +101,7 @@ to give to the program."
     (dolist (L lines)
       (let ((dat (split-string L)))
         (when (= (length dat) 3)
-          (add-to-list 'lst (cons (nth 1 dat) (nth 2 dat))))))
+          (push (cons (nth 1 dat) (nth 2 dat)) lst))))
     lst))
 
 (defun semantic-gcc-fields (str)
@@ -142,6 +142,8 @@ This is an alist, and should include keys of:
   `--prefix' - where GCC was installed.
 It should also include other symbols GCC was compiled with.")
 
+(defvar c++-include-path)
+
 ;;;###autoload
 (defun semantic-gcc-setup ()
   "Setup Semantic C/C++ parsing based on GCC output."
@@ -149,12 +151,12 @@ It should also include other symbols GCC was compiled with.")
   (let* ((fields (or semantic-gcc-setup-data
                      (semantic-gcc-fields (semantic-gcc-query "gcc" "-v"))))
          (cpp-options `("-E" "-dM" "-x" "c++" ,null-device))
-         (query (let ((q (apply 'semantic-gcc-query "cpp" cpp-options)))
+         (query (let ((q (apply #'semantic-gcc-query "cpp" cpp-options)))
                   (if (stringp q)
                       q
                     ;; `cpp' command in `semantic-gcc-setup' doesn't work on
                     ;; Mac, try `gcc'.
-                    (apply 'semantic-gcc-query "gcc" cpp-options))))
+                    (apply #'semantic-gcc-query "gcc" cpp-options))))
          (defines (if (stringp query)
 		      (semantic-cpp-defs query)
 		    (message (concat "Could not query gcc for defines. "

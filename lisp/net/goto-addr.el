@@ -1,6 +1,6 @@
-;;; goto-addr.el --- click to browse URL or to send to e-mail address
+;;; goto-addr.el --- click to browse URL or to send to e-mail address  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -73,19 +73,16 @@
 (defcustom goto-address-fontify-p t
   "Non-nil means URLs and e-mail addresses in buffer are fontified.
 But only if `goto-address-highlight-p' is also non-nil."
-  :type 'boolean
-  :group 'goto-address)
+  :type 'boolean)
 
 (defcustom goto-address-highlight-p t
   "Non-nil means URLs and e-mail addresses in buffer are highlighted."
-  :type 'boolean
-  :group 'goto-address)
+  :type 'boolean)
 
 (defcustom goto-address-fontify-maximum-size 30000
   "Maximum size of file in which to fontify and/or highlight URLs.
 A value of t means there is no limit--fontify regardless of the size."
-  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t))
-  :group 'goto-address)
+  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t)))
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
@@ -122,30 +119,35 @@ will have no effect.")
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "<mouse-2>") 'goto-address-at-point)
-    (define-key m (kbd "C-c RET") 'goto-address-at-point)
+    (define-key m (kbd "<mouse-2>") #'goto-address-at-point)
+    (define-key m (kbd "C-c RET") #'goto-address-at-point)
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
+(defun goto-address-context-menu (menu click)
+  "Populate MENU with `goto-address' commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'goto-address)
+    (define-key menu [goto-address-separator] menu-bar-separator)
+    (define-key menu [goto-address-at-mouse]
+      '(menu-item "Follow Link" goto-address-at-mouse
+                  :help "Follow a link where you click")))
+  menu)
+
 (defcustom goto-address-url-face 'link
   "Face to use for URLs."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-url-mouse-face 'highlight
   "Face to use for URLs when the mouse is on them."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-mail-face 'italic
   "Face to use for e-mail addresses."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-mail-mouse-face 'secondary-selection
   "Face to use for e-mail addresses when the mouse is on them."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defun goto-address-unfontify (start end)
   "Remove `goto-address' fontification from the given region."
@@ -162,52 +164,51 @@ and `goto-address-fontify-p'."
   ;; Clean up from any previous go.
   (goto-address-unfontify (or start (point-min)) (or end (point-max)))
   (save-excursion
-    (let ((inhibit-point-motion-hooks t))
+    (goto-char (or start (point-min)))
+    (when (or (eq t goto-address-fontify-maximum-size)
+	      (< (- (or end (point-max)) (point))
+                 goto-address-fontify-maximum-size))
+      (while (re-search-forward goto-address-url-regexp end t)
+	(let* ((s (match-beginning 0))
+	       (e (match-end 0))
+	       this-overlay)
+	  (when (or (not goto-address-prog-mode)
+		    ;; This tests for both comment and string
+		    ;; syntax.
+		    (nth 8 (syntax-ppss)))
+	    (setq this-overlay (make-overlay s e))
+	    (and goto-address-fontify-p
+		 (overlay-put this-overlay 'face goto-address-url-face))
+	    (overlay-put this-overlay 'evaporate t)
+	    (overlay-put this-overlay
+			 'mouse-face goto-address-url-mouse-face)
+	    (overlay-put this-overlay 'follow-link t)
+	    (overlay-put this-overlay
+			 'help-echo "mouse-2, C-c RET: follow URL")
+	    (overlay-put this-overlay
+			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
-      (when (or (eq t goto-address-fontify-maximum-size)
-		(< (- (or end (point-max)) (point))
-                   goto-address-fontify-maximum-size))
-	(while (re-search-forward goto-address-url-regexp end t)
-	  (let* ((s (match-beginning 0))
-		 (e (match-end 0))
-		 this-overlay)
-	    (when (or (not goto-address-prog-mode)
-		      ;; This tests for both comment and string
-		      ;; syntax.
-		      (nth 8 (syntax-ppss)))
-	      (setq this-overlay (make-overlay s e))
-	      (and goto-address-fontify-p
-		   (overlay-put this-overlay 'face goto-address-url-face))
-	      (overlay-put this-overlay 'evaporate t)
-	      (overlay-put this-overlay
-			   'mouse-face goto-address-url-mouse-face)
-	      (overlay-put this-overlay 'follow-link t)
-	      (overlay-put this-overlay
-			   'help-echo "mouse-2, C-c RET: follow URL")
-	      (overlay-put this-overlay
-			   'keymap goto-address-highlight-keymap)
-	      (overlay-put this-overlay 'goto-address t))))
-	(goto-char (or start (point-min)))
-	(while (re-search-forward goto-address-mail-regexp end t)
-	  (let* ((s (match-beginning 0))
-		 (e (match-end 0))
-		 this-overlay)
-	    (when (or (not goto-address-prog-mode)
-		      ;; This tests for both comment and string
-		      ;; syntax.
-		      (nth 8 (syntax-ppss)))
-	      (setq this-overlay (make-overlay s e))
-	      (and goto-address-fontify-p
-		   (overlay-put this-overlay 'face goto-address-mail-face))
-	      (overlay-put this-overlay 'evaporate t)
-	      (overlay-put this-overlay 'mouse-face
-			   goto-address-mail-mouse-face)
-	      (overlay-put this-overlay 'follow-link t)
-	      (overlay-put this-overlay
-			   'help-echo "mouse-2, C-c RET: mail this address")
-	      (overlay-put this-overlay
-			   'keymap goto-address-highlight-keymap)
-	      (overlay-put this-overlay 'goto-address t))))))))
+      (while (re-search-forward goto-address-mail-regexp end t)
+	(let* ((s (match-beginning 0))
+	       (e (match-end 0))
+	       this-overlay)
+	  (when (or (not goto-address-prog-mode)
+		    ;; This tests for both comment and string
+		    ;; syntax.
+		    (nth 8 (syntax-ppss)))
+	    (setq this-overlay (make-overlay s e))
+	    (and goto-address-fontify-p
+		 (overlay-put this-overlay 'face goto-address-mail-face))
+	    (overlay-put this-overlay 'evaporate t)
+	    (overlay-put this-overlay 'mouse-face
+			 goto-address-mail-mouse-face)
+	    (overlay-put this-overlay 'follow-link t)
+	    (overlay-put this-overlay
+			 'help-echo "mouse-2, C-c RET: mail this address")
+	    (overlay-put this-overlay
+			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'goto-address t)))))))
 
 (defun goto-address-fontify-region (start end)
   "Fontify URLs and e-mail addresses in the given region."
@@ -221,25 +222,28 @@ and `goto-address-fontify-p'."
 
 ;;;###autoload
 (defun goto-address-at-point (&optional event)
-  "Send to the e-mail address or load the URL at point.
-Send mail to address at point.  See documentation for
-`goto-address-find-address-at-point'.  If no address is found
-there, then load the URL at or before point."
+  "Compose a new message to the e-mail address or open URL at point.
+
+Compose message to address at point.  See documentation for
+`goto-address-find-address-at-point'.
+
+If no e-mail address is found at point, open the URL at or before
+point using `browse-url'.  With a prefix argument, open the URL
+using `browse-url-secondary-browser-function' instead."
   (interactive (list last-input-event))
   (save-excursion
     (if event (posn-set-point (event-end event)))
     (let ((address (save-excursion (goto-address-find-address-at-point))))
       (if (and address
-	       (save-excursion
-		 (goto-char (previous-single-char-property-change
-			     (point) 'goto-address nil
-			     (line-beginning-position)))
-		 (not (looking-at goto-address-url-regexp))))
-	  (compose-mail address)
-	(let ((url (browse-url-url-at-point)))
-	  (if url
-	      (browse-url url)
-	    (error "No e-mail address or URL found")))))))
+               (save-excursion
+                 (goto-char (previous-single-char-property-change
+                             (point) 'goto-address nil
+                             (line-beginning-position)))
+                 (not (looking-at goto-address-url-regexp))))
+          (compose-mail address)
+        (if-let ((url (browse-url-url-at-point)))
+            (browse-url-button-open-url url)
+          (error "No e-mail address or URL found"))))))
 
 (defun goto-address-find-address-at-point ()
   "Find e-mail address around or before point.
@@ -251,6 +255,11 @@ address.  If no e-mail address found, return nil."
 				  (line-end-position) 'lim)
 	       (goto-char (match-beginning 0))))
       (match-string-no-properties 0)))
+
+(defun goto-address-at-mouse (click)
+  "Send to the e-mail address or load the URL at mouse click."
+  (interactive "e")
+  (goto-address-at-point click))
 
 ;;;###autoload
 (defun goto-address ()
@@ -270,15 +279,17 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 ;;;###autoload
 (define-minor-mode goto-address-mode
   "Minor mode to buttonize URLs and e-mail addresses in the current buffer."
-  nil
-  ""
-  nil
-  (if goto-address-mode
-      (jit-lock-register #'goto-address-fontify-region)
+  :lighter ""
+  (cond
+   (goto-address-mode
+    (jit-lock-register #'goto-address-fontify-region)
+    (add-hook 'context-menu-functions 'goto-address-context-menu 10 t))
+   (t
     (jit-lock-unregister #'goto-address-fontify-region)
     (save-restriction
       (widen)
-      (goto-address-unfontify (point-min) (point-max)))))
+      (goto-address-unfontify (point-min) (point-max)))
+    (remove-hook 'context-menu-functions 'goto-address-context-menu t))))
 
 (defun goto-addr-mode--turn-on ()
   (when (not goto-address-mode)
@@ -287,15 +298,12 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 ;;;###autoload
 (define-globalized-minor-mode global-goto-address-mode
   goto-address-mode goto-addr-mode--turn-on
-  :group 'goto-address
   :version "28.1")
 
 ;;;###autoload
 (define-minor-mode goto-address-prog-mode
   "Like `goto-address-mode', but only for comments and strings."
-  nil
-  ""
-  nil
+  :lighter ""
   (if goto-address-prog-mode
       (jit-lock-register #'goto-address-fontify-region)
     (jit-lock-unregister #'goto-address-fontify-region)

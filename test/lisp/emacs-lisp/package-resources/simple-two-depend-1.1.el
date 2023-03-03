@@ -12,6 +12,6 @@
 ;;; Code:
 
 (defvar simple-two-depend "Value"
-  "Some trivial code")
+  "Some trivial code.")
 
 ;;; simple-two-depend.el ends here

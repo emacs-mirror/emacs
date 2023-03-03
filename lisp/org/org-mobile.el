@@ -1,9 +1,9 @@
 ;;; org-mobile.el --- Code for Asymmetric Sync With a Mobile Device -*- lexical-binding: t; -*-
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -30,6 +30,9 @@
 ;; Appendix B of the Org manual.  The code is not specific for the
 ;; iPhone and Android - any external viewer/flagging/editing
 ;; application that uses the same conventions could be used.
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'org)
@@ -257,6 +260,17 @@ the old and new values for the entry.")
 
 (defvar org-mobile-files-alist nil)
 (defvar org-mobile-checksum-files nil)
+
+;; Add org mobile commands to the main org menu
+(easy-menu-add-item
+ org-org-menu
+ nil
+ '("MobileOrg"
+   ["Push Files and Views" org-mobile-push t]
+   ["Get Captured and Flagged" org-mobile-pull t]
+   ["Find FLAGGED Tasks" (org-agenda nil "?") :active t :keys "\\[org-agenda] ?"]
+   "--"
+   ["Setup" (customize-group 'org-mobile) t]))
 
 (defun org-mobile-prepare-file-lists ()
   (setq org-mobile-files-alist (org-mobile-files-alist))
@@ -606,7 +620,7 @@ The table of checksums is written to the file mobile-checksums."
 	 ((looking-at "[ \t]*$")) ; keep empty lines
 	 ((looking-at "=+$")
 	  ;; remove underlining
-	  (delete-region (point) (point-at-eol)))
+          (delete-region (point) (line-end-position)))
 	 ((get-text-property (point) 'org-agenda-structural-header)
 	  (setq in-date nil)
 	  (setq app (get-text-property (point) 'org-agenda-title-append))
@@ -626,14 +640,14 @@ The table of checksums is written to the file mobile-checksums."
 		      (get-text-property (point) 'org-marker)))
 	  (setq sexp (member (get-text-property (point) 'type)
 			     '("diary" "sexp")))
-	  (if (setq pl (text-property-any (point) (point-at-eol) 'org-heading t))
+          (if (setq pl (text-property-any (point) (line-end-position) 'org-heading t))
 	      (progn
 		(setq prefix (org-trim (buffer-substring
 					(point) pl))
 		      line (org-trim (buffer-substring
 				      pl
-				      (point-at-eol))))
-		(delete-region (point-at-bol) (point-at-eol))
+                                      (line-end-position))))
+                (delete-region (line-beginning-position) (line-end-position))
 		(insert line "<before>" prefix "</before>")
 		(beginning-of-line 1))
 	    (and (looking-at "[ \t]+") (replace-match "")))
@@ -846,7 +860,7 @@ If BEG and END are given, only do this in that region."
 	    (org-mobile-timestamp-buffer (marker-buffer id-pos))
 	    (push (marker-buffer id-pos) buf-list))
 	  (unless (markerp id-pos)
-	    (goto-char (+ 2 (point-at-bol)))
+            (goto-char (+ 2 (line-beginning-position)))
 	    (if (stringp id-pos)
 		(insert id-pos " ")
 	      (insert "BAD REFERENCE "))
@@ -1053,7 +1067,7 @@ be returned that indicates what went wrong."
 	  (progn
 	    ;; Workaround a `org-insert-heading-respect-content' bug
 	    ;; which prevents correct insertion when point is invisible
-	    (org-show-subtree)
+	    (org-fold-show-subtree)
 	    (end-of-line 1)
 	    (org-insert-heading-respect-content t)
 	    (org-demote))
@@ -1082,7 +1096,7 @@ be returned that indicates what went wrong."
       (org-archive-to-archive-sibling))
 
      ((eq what 'body)
-      (setq current (buffer-substring (min (1+ (point-at-eol)) (point-max))
+      (setq current (buffer-substring (min (1+ (line-end-position)) (point-max))
 				      (save-excursion (outline-next-heading)
 						      (point))))
       (if (not (string-match "\\S-" current)) (setq current nil))

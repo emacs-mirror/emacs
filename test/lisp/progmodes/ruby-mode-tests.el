@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,13 @@
      (insert ,contents)
      (ruby-mode)
      ,@body))
+
+(defmacro ruby-with-temp-file (contents &rest body)
+  `(ruby-with-temp-buffer ,contents
+     (set-visited-file-name "ruby-mode-tests")
+     ,@body
+     (set-buffer-modified-p nil)
+     (delete-file buffer-file-name)))
 
 (defun ruby-should-indent (content column)
   "Assert indentation COLUMN on the last line of CONTENT."
@@ -350,7 +357,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (let ((ruby-align-chained-calls t))
     (ruby-should-indent-buffer
      "one.two.three
-     |       .four
+     |   .four
      |
      |my_array.select { |str| str.size > 5 }
      |        .map    { |str| str.downcase }"
@@ -399,6 +406,13 @@ VALUES-PLIST is a list with alternating index and value elements."
     (beginning-of-line)
     (ruby-toggle-block)
     (should (string= "foo { \"#{bar}\" }" (buffer-string)))))
+
+(ert-deftest ruby-toggle-block-to-brace-no-space ()
+  (ruby-with-temp-buffer "foo do |b|\n  b + 2\nend"
+    (beginning-of-line)
+    (let (ruby-toggle-block-space-before-parameters)
+      (ruby-toggle-block))
+    (should (string= "foo {|b| b + 2 }" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
   (ruby-assert-face ":@abc" 3 font-lock-constant-face))
@@ -497,7 +511,8 @@ VALUES-PLIST is a list with alternating index and value elements."
 (ert-deftest ruby-add-log-current-method-examples ()
   (let ((pairs '(("foo" . "#foo")
                  ("C.foo" . ".foo")
-                 ("self.foo" . ".foo"))))
+                 ("self.foo" . ".foo")
+                 ("<<" . "#<<"))))
     (dolist (pair pairs)
       (let ((name  (car pair))
             (value (cdr pair)))
@@ -522,9 +537,12 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |    def foo
                           |    end
                           |    _
+                          |    def bar
+                          |    end
                           |  end
                           |end")
     (search-backward "_")
+    (delete-char 1)
     (should (string= (ruby-add-log-current-method)"M::C"))))
 
 (ert-deftest ruby-add-log-current-method-in-singleton-class ()
@@ -561,6 +579,45 @@ VALUES-PLIST is a list with alternating index and value elements."
                           |  end
                           |end")
     (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "M::C#foo"))))
+
+(ert-deftest ruby-add-log-current-method-after-inner-class-outside-methods ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  class C
+                          |    class D
+                          |    end
+                          |
+                          |_
+                          |  end
+                          |end")
+    (search-backward "_")
+    (delete-char 1)
+    (should (string= (ruby-add-log-current-method) "M::C"))))
+
+(ert-deftest ruby-add-log-current-method-after-inner-class-outside-methods-with-text ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  class C
+                          |    class D
+                          |    end
+                          |
+                          |    FOO = 5
+                          |  end
+                          |end")
+    (search-backward "FOO")
+    (should (string= (ruby-add-log-current-method) "M::C"))))
+
+(ert-deftest ruby-add-log-current-method-after-endless-method ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  class C
+                          |    def foo =
+                          |      4_
+                          |  end
+                          |end")
+    (search-backward "_")
+    (delete-char 1)
     (should (string= (ruby-add-log-current-method) "M::C#foo"))))
 
 (defvar ruby-block-test-example
@@ -843,16 +900,97 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby--insert-coding-comment "utf-8")
       (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
 
-(ert-deftest ruby--indent/converted-from-manual-test ()
-  :tags '(:expensive-test)
-  ;; Converted from manual test.
-  (let ((buf (find-file-noselect (ert-resource-file "ruby.rb"))))
-    (unwind-protect
-        (with-current-buffer buf
-          (let ((orig (buffer-string)))
-            (indent-region (point-min) (point-max))
-            (should (equal (buffer-string) orig))))
-      (kill-buffer buf))))
+(ert-deftest ruby--set-encoding-when-ascii ()
+  (ruby-with-temp-file "ascii"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'us-ascii)
+      (ruby-mode-set-encoding)
+      (should (string= "ascii" (buffer-string))))))
+
+(ert-deftest ruby--set-encoding-when-utf8 ()
+  (ruby-with-temp-file "💎"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'utf-8)
+      (ruby-mode-set-encoding)
+      (should (string= "💎" (buffer-string))))))
+
+(ert-deftest ruby--set-encoding-when-latin-15 ()
+  (ruby-with-temp-file "Ⓡ"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'iso-8859-15)
+      (ruby-mode-set-encoding)
+      (should (string= "# coding: iso-8859-15\nⓇ" (buffer-string))))))
+
+(ert-deftest ruby-imenu-with-private-modifier ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class Blub
+       |  def hi
+       |    'Hi!'
+       |  end
+       |
+       |  def bye
+       |    'Bye!'
+       |  end
+       |
+       |  private def hiding
+       |    'You can't see me'
+       |  end
+       |end")
+    (should (equal (mapcar #'car (ruby-imenu-create-index))
+                   '("Blub"
+                     "Blub#hi"
+                     "Blub#bye"
+                     "Blub#hiding")))))
+
+(defmacro ruby-deftest-indent (file)
+  `(ert-deftest ,(intern (format "ruby-indent-test/%s" file)) ()
+     ;; :tags '(:expensive-test)
+     (let ((buf (find-file-noselect (ert-resource-file ,file))))
+       (unwind-protect
+           (with-current-buffer buf
+             (let ((orig (buffer-string)))
+               ;; Indent and check that we get the original text.
+               (indent-region (point-min) (point-max))
+               (should (equal (buffer-string) orig))))
+         (kill-buffer buf)))))
+
+(ruby-deftest-indent "ruby.rb")
+(ruby-deftest-indent "ruby-after-operator-indent.rb")
+(ruby-deftest-indent "ruby-block-indent.rb")
+(ruby-deftest-indent "ruby-method-call-indent.rb")
+(ruby-deftest-indent "ruby-method-params-indent.rb")
+(ruby-deftest-indent "ruby-parenless-call-arguments-indent.rb")
+
+(ert-deftest ruby--test-chained-indentation ()
+  (with-temp-buffer
+    (ruby-mode)
+    (setq-local ruby-align-chained-calls t)
+    (insert "some_variable.where
+.not(x: nil)
+.where(y: 2)
+")
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+                   "some_variable.where
+             .not(x: nil)
+             .where(y: 2)
+")))
+
+  (with-temp-buffer
+    (ruby-mode)
+    (setq-local ruby-align-chained-calls t)
+    (insert "some_variable.where.not(x: nil)
+.where(y: 2)
+")
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+                   "some_variable.where.not(x: nil)
+             .where(y: 2)
+"))))
 
 (provide 'ruby-mode-tests)
 

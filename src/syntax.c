@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2020 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2023 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -17,10 +17,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-
 #include <config.h>
 
 #include "lisp.h"
+#include "dispextern.h"
 #include "character.h"
 #include "buffer.h"
 #include "regex-emacs.h"
@@ -1075,7 +1075,7 @@ unsigned char const syntax_spec_code[0400] =
 
 /* Indexed by syntax code, give the letter that describes it.  */
 
-char const syntax_code_spec[16] =
+static char const syntax_code_spec[16] =
   {
     ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@',
     '!', '|'
@@ -1102,11 +1102,29 @@ this is probably the wrong function to use, because it can't take
 `syntax-after' instead.  */)
   (Lisp_Object character)
 {
-  int char_int;
   CHECK_CHARACTER (character);
-  char_int = XFIXNUM (character);
+  int char_int = XFIXNAT (character);
   SETUP_BUFFER_SYNTAX_TABLE ();
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+    char_int = make_char_multibyte (char_int);
   return make_fixnum (syntax_code_spec[SYNTAX (char_int)]);
+}
+
+DEFUN ("syntax-class-to-char", Fsyntax_class_to_char,
+       Ssyntax_class_to_char, 1, 1, 0,
+       doc: /* Return the syntax char of CLASS, described by an integer.
+For example, if SYNTAX is word constituent (the integer 2), the
+character `w' (119) is returned.  */)
+  (Lisp_Object syntax)
+{
+  int syn;
+  CHECK_FIXNUM (syntax);
+  syn = XFIXNUM (syntax);
+
+  if (syn < 0 || syn >= sizeof syntax_code_spec)
+    args_out_of_range (make_fixnum (sizeof syntax_code_spec - 1),
+		       syntax);
+  return make_fixnum (syntax_code_spec[syn]);
 }
 
 DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
@@ -1421,7 +1439,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
     {
       AUTO_STRING (prefixdoc,
 		   ",\n\t  is a prefix character for `backward-prefix-chars'");
-      insert1 (Fsubstitute_command_keys (prefixdoc));
+      insert1 (call1 (Qsubstitute_command_keys, prefixdoc));
     }
 
   return syntax;
@@ -3178,6 +3196,7 @@ scan_sexps_forward (struct lisp_parse_state *state,
   ptrdiff_t out_bytepos, out_charpos;
   int temp;
   unsigned short int quit_count = 0;
+  ptrdiff_t started_from = from;
 
   prev_from = from;
   prev_from_byte = from_byte;
@@ -3457,6 +3476,13 @@ do { prev_from = from;				\
                                 state->levelstarts);
   state->prev_syntax = (SYNTAX_FLAGS_COMSTARTEND_FIRST (prev_from_syntax)
                         || state->quoted) ? prev_from_syntax : Smax;
+
+  /* The factor of 10 below is a heuristic that needs to be tuned.  It
+     means we consider 10 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  if (max_redisplay_ticks > 0 && from > started_from)
+    update_redisplay_ticks ((from - started_from) / 10 + 1, NULL);
 }
 
 /* Convert a (lisp) parse state to the internal form used in
@@ -3530,8 +3556,10 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
        doc: /* Parse Lisp syntax starting at FROM until TO; return status of parse at TO.
 Parsing stops at TO or when certain criteria are met;
  point is set to where parsing stops.
-If fifth arg OLDSTATE is omitted or nil,
- parsing assumes that FROM is the beginning of a function.
+
+If OLDSTATE is omitted or nil, parsing assumes that FROM is the
+ beginning of a function.  If not, OLDSTATE should be the state at
+ FROM.
 
 Value is a list of elements describing final state of parsing:
  0. depth in parens.
@@ -3576,6 +3604,9 @@ Sixth arg COMMENTSTOP non-nil means stop after the start of a comment.
     }
   else
     target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth.  */
+
+  if (fix_position (to) < fix_position (from))
+    error ("End position is smaller than start position");
 
   validate_region (&from, &to);
   internalize_parse_state (oldstate, &state);
@@ -3782,6 +3813,7 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Scopy_syntax_table);
   defsubr (&Sset_syntax_table);
   defsubr (&Schar_syntax);
+  defsubr (&Ssyntax_class_to_char);
   defsubr (&Smatching_paren);
   defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);

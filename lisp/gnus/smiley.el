@@ -1,6 +1,6 @@
-;;; smiley.el --- displaying smiley faces
+;;; smiley.el --- displaying smiley faces  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: news mail multimedia
@@ -71,9 +71,8 @@
 	 (set-default symbol value)
 	 (setq smiley-data-directory (smiley-directory))
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :version "23.1" ;; No Gnus
-  :group 'smiley)
+  :initialize #'custom-initialize-default
+  :version "23.1") ;; No Gnus
 
 ;; For compatibility, honor the variable `smiley-data-directory' if the user
 ;; has set it.
@@ -94,9 +93,8 @@ is nil, use `smiley-style'."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :type 'directory
-  :group 'smiley)
+  :initialize #'custom-initialize-default
+  :type 'directory)
 
 (defcustom smiley-emoji-regexp-alist
   '(("\\(;-)\\)\\W" 1 "😉")
@@ -124,8 +122,7 @@ regexp to replace with EMOJI."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :group 'smiley)
+  :initialize #'custom-initialize-default)
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
@@ -154,8 +151,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :group 'smiley)
+  :initialize #'custom-initialize-default)
 
 (defcustom gnus-smiley-file-types
   (let ((types (list "pbm")))
@@ -166,8 +162,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
     types)
   "List of suffixes on smiley file names to try."
   :version "24.1"
-  :type '(repeat string)
-  :group 'smiley)
+  :type '(repeat string))
 
 (defvar smiley-cached-regexp-alist nil)
 
@@ -247,7 +242,7 @@ interactively.  If there's no argument, do it at the current buffer."
 (defun smiley-toggle-buffer (&optional arg)
   "Toggle displaying smiley faces in article buffer.
 With arg, turn displaying on if and only if arg is positive."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (if (numberp arg)
 	    (> arg 0)

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -60,6 +60,8 @@ The frame is displayed on a GNUstep or Macintosh Cocoa graphical
 terminal.
 @item pc
 The frame is displayed on an MS-DOS terminal.
+@item pgtk
+The frame is displayed using pure GTK facilities.
 @end table
 @end defun
 
@@ -105,6 +107,7 @@ window of another Emacs frame.  @xref{Child Frames}.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
+* Yanking Media::               Yanking things that aren't plain text.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::                 Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text terminals.
@@ -151,7 +154,7 @@ the window (a.k.a.@: the @dfn{dominating} monitor).
 
 This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
-On graphical terminals, however, the windowing system may select the
+On graphical terminals, however, the window system may select the
 new frame for its own reasons.
 @end deffn
 
@@ -170,7 +173,9 @@ usually not run for the initial frame, since Emacs reads the initial
 file only after creating that frame.  However, if the initial frame is
 specified to use a separate minibuffer frame (@pxref{Minibuffers and
 Frames}), the functions will be run for both, the minibuffer-less and
-the minibuffer frame.
+the minibuffer frame.  Alternatively, you can add functions to these
+hooks in your ``early init file'' (@pxref{Init File}), in which case
+they will be in effect for the initial frame as well.
 
 @defvar frame-inherited-parameters
 This variable specifies the list of frame parameters that a newly
@@ -213,7 +218,8 @@ The terminal and keyboard coding systems used on the terminal.
 @item
 The kind of display associated with the terminal.  This is the symbol
 returned by the function @code{terminal-live-p} (i.e., @code{x},
-@code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
+@code{t}, @code{w32}, @code{ns}, @code{pc}, @code{haiku}, or @code{pgtk}).
+@xref{Frames}.
 
 @item
 A list of terminal parameters.  @xref{Terminal Parameters}.
@@ -401,7 +407,7 @@ Name of the physical monitor as @var{string}.
 
 @item source
 Source of the multi-monitor information as @var{string};
-e.g., @samp{XRandr} or @samp{Xinerama}.
+e.g., @samp{XRandR 1.5}, @samp{XRandr} or @samp{Xinerama}.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.
@@ -452,6 +458,18 @@ monitor, the same string as returned by the function
 @var{display} should be the name of an X display (a string).
 @end deffn
 
+@cindex monitor change functions
+@defvar display-monitors-changed-functions
+This variable is an abnormal hook run when the monitor configuration
+changes, which can happen if a monitor is rotated, moved, added or
+removed from a multiple-monitor setup, if the primary monitor changes,
+or if the resolution of a monitor changes.  It is called with a single
+argument consisting of the terminal on which the monitor configuration
+changed.  Programs should call @code{display-monitor-attributes-list}
+with the terminal as the argument to retrieve the new monitor
+configuration on that terminal.
+@end defvar
+
 @node Frame Geometry
 @section Frame Geometry
 @cindex frame geometry
@@ -494,7 +512,8 @@ a graphical terminal:
      | |  |_____________ Title Bar ______________|  |
      | | (1)_____________ Menu Bar ______________|  | ^
      | | (2)_____________ Tool Bar ______________|  | ^
-     | | (3) _________ Internal Border ________  |  | ^
+     | | (3)_____________ Tab Bar _______________|  | ^
+     | |  |  _________ Internal Border ________  |  | ^
      | |  | |   ^                              | |  | |
      | |  | |   |                              | |  | |
 Outer  |  | | Inner                            | |  | Native
@@ -640,6 +659,15 @@ GTK+, on the other hand, never wraps the tool bar but may
 automatically increase the outer width of a frame in order to
 accommodate an overlong tool bar.
 
+@item Tab Bar
+@cindex tab bar
+The tab bar (@pxref{Tab Bars,,,emacs, The GNU Emacs Manual}) is always
+drawn by Emacs itself.  The tab bar appears above the tool bar in
+Emacs built with an internal tool bar, and below the tool bar in
+builds with an external tool bar.
+Display of the tab bar can be suppressed by setting the
+@code{tab-bar-lines} parameter (@pxref{Layout Parameters}) to zero.
+
 @item Native Frame
 @cindex native frame
 @cindex native edges
@@ -667,9 +695,9 @@ The position of the top left corner of the native frame specifies the
 indicate that position for the various builds:
 
 @itemize @w{}
-@item (1) non-toolkit and terminal frames
+@item (1) non-toolkit, Haiku, and terminal frames
 
-@item (2) Lucid, Motif and MS-Windows frames
+@item (2) Lucid, Motif, and MS-Windows frames
 
 @item (3) GTK+ and NS frames
 @end itemize
@@ -694,9 +722,17 @@ parameter (@pxref{Management Parameters}).
 
 @item Internal Border
 The internal border is a border drawn by Emacs around the inner frame
-(see below).  Its width is specified by the @code{internal-border-width}
-frame parameter (@pxref{Layout Parameters}).  Its color is specified by
-the background of the @code{internal-border} face.
+(see below).  The specification of its appearance depends on whether
+or not the given frame is a child frame (@pxref{Child Frames}).
+
+For normal frames its width is specified by the @code{internal-border-width}
+frame parameter (@pxref{Layout Parameters}), and its color is specified by the
+background of the @code{internal-border} face.
+
+For child frames its width is specified by the @code{child-frame-border-width}
+frame parameter (but will use the @code{internal-border-width} parameter as
+fallback), and its color is specified by the background of the
+@code{child-frame-border} face.
 
 @item Inner Frame
 @cindex inner frame
@@ -732,8 +768,8 @@ the internal border, one vertical scroll bar, and one left and one right
 fringe if they are specified for this frame, see @ref{Layout
 Parameters}.  Its height can be obtained by removing from that of the
 native height the widths of the internal border and the heights of the
-frame's internal menu and tool bars and one horizontal scroll bar if
-specified for this frame.
+frame's internal menu and tool bars, the tab bar and one horizontal
+scroll bar if specified for this frame.
 @end table
 
 @cindex absolute position
@@ -1112,9 +1148,9 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 refuse to truly honor the request if it does not increase/decrease the
 frame height to a multiple of its character height.
 
-When used interactively, this command will set the height of the
-currently selected frame to the number of lines specified by the
-numeric prefix.
+When used interactively, this command will ask the user for the number
+of lines to set the height of the currently selected frame.  You can
+also provide this value with a numeric prefix.
 @end defun
 
 @defun set-frame-width frame width &optional pretend pixelwise
@@ -1128,9 +1164,9 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 refuse to fully honor the request if it does not increase/decrease the
 frame width to a multiple of its character width.
 
-When used interactively, this command will set the width of the
-currently selected frame to the number of columns specified by the
-numeric prefix.
+When used interactively, this command will ask the user for the number
+of columns to set the width of the currently selected frame.  You can
+also provide this value with a numeric prefix.
 @end defun
 
 None of these three functions will make a frame smaller than needed to
@@ -1200,10 +1236,10 @@ width of one scroll bar provided this option is @code{nil} and keep it
 unchanged if this option is @code{t} or a list containing
 @code{vertical-scroll-bars}.
 
-The default value is @code{'(tab-bar-lines tool-bar-lines)} for Lucid,
+The default value is @code{(tab-bar-lines tool-bar-lines)} for Lucid,
 Motif and MS-Windows (which means that adding/removing a tool or tab
 bar there does not change the outer frame height),
-@code{'(tab-bar-lines)} on all other window systems including GTK+
+@code{(tab-bar-lines)} on all other window systems including GTK+
 (which means that changing any of the parameters listed above with the
 exception of @code{tab-bar-lines} may change the size of the outer
 frame), and @code{t} otherwise (which means the outer frame size never
@@ -1438,19 +1474,24 @@ in this frame.  Its value is @code{color}, @code{grayscale} or
 
 @vindex title@r{, a frame parameter}
 @item title
-If a frame has a non-@code{nil} title, it appears in the window
+If a frame has a non-@code{nil} title, that title appears in the window
 system's title bar at the top of the frame, and also in the mode line
 of windows in that frame if @code{mode-line-frame-identification} uses
 @samp{%F} (@pxref{%-Constructs}).  This is normally the case when
 Emacs is not using a window system, and can only display one frame at
-a time.  @xref{Frame Titles}.
+a time.  When Emacs is using a window system, this parameter, if
+non-@code{nil}, overrides the title determined by the @code{name}
+parameter and the implicit title calculated according to
+@code{frame-title-format}.  It also overrides the title determined by
+@code{icon-title-format} for iconified frames.  @xref{Frame Titles}.
 
 @vindex name@r{, a frame parameter}
 @item name
-The name of the frame.  The frame name serves as a default for the frame
-title, if the @code{title} parameter is unspecified or @code{nil}.  If
-you don't specify a name, Emacs sets the frame name automatically
-(@pxref{Frame Titles}).
+The name of the frame.  If you don't specify a name via this
+parameter, Emacs sets the frame name automatically, as specified by
+@code{frame-title-format} and @code{icon-title-format}, and that is
+the frame's title that will appear on display when Emacs uses a window
+system (unless the @code{title} parameter overrides it).
 
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
@@ -1710,15 +1751,16 @@ fit will be clipped by the window manager.
 @item fullscreen
 This parameter specifies whether to maximize the frame's width, height
 or both.  Its value can be @code{fullwidth}, @code{fullheight},
-@code{fullboth}, or @code{maximized}.  A @dfn{fullwidth} frame is as
-wide as possible, a @dfn{fullheight} frame is as tall as possible, and
-a @dfn{fullboth} frame is both as wide and as tall as possible.  A
-@dfn{maximized} frame is like a ``fullboth'' frame, except that it usually
-keeps its title bar and the buttons for resizing
-and closing the frame.  Also, maximized frames typically avoid hiding
-any task bar or panels displayed on the desktop.  A ``fullboth'' frame,
-on the other hand, usually omits the title bar and occupies the entire
-available screen space.
+@code{fullboth}, or @code{maximized}.@footnote{On PGTK frames, setting
+the values @code{fullheight} and @code{fullwidth} has no effect.}  A
+@dfn{fullwidth} frame is as wide as possible, a @dfn{fullheight} frame
+is as tall as possible, and a @dfn{fullboth} frame is both as wide and
+as tall as possible.  A @dfn{maximized} frame is like a ``fullboth''
+frame, except that it usually keeps its title bar and the buttons for
+resizing and closing the frame.  Also, maximized frames typically
+avoid hiding any task bar or panels displayed on the desktop.  A
+``fullboth'' frame, on the other hand, usually omits the title bar and
+occupies the entire available screen space.
 
 Full-height and full-width frames are more similar to maximized
 frames in this regard.  However, these typically display an external
@@ -1790,6 +1832,13 @@ The width in pixels of the frame's outer border (@pxref{Frame Geometry}).
 The width in pixels of the frame's internal border (@pxref{Frame
 Geometry}).
 
+@vindex child-frame-border-width@r{, a frame parameter}
+@item child-frame-border-width
+The width in pixels of the frame's internal border (@pxref{Frame
+Geometry}) if the given frame is a child frame (@pxref{Child Frames}).
+If this is @code{nil}, the value specified by the
+@code{internal-border-width} parameter is used instead.
+
 @vindex vertical-scroll-bars@r{, a frame parameter}
 @item vertical-scroll-bars
 Whether the frame has scroll bars (@pxref{Scroll Bars}) for vertical
@@ -1859,6 +1908,13 @@ whenever the tool bar wraps (@pxref{Frame Layout}).
 The position of the tool bar when Emacs was built with GTK+.  Its value
 can be one of @code{top}, @code{bottom} @code{left}, @code{right}.  The
 default is @code{top}.
+
+@vindex tab-bar-lines@r{, a frame parameter}
+@item tab-bar-lines
+The number of lines to use for the tab bar (@pxref{Tab Bars,,,emacs, The
+GNU Emacs Manual}).  The default is one if Tab Bar mode is enabled and
+zero otherwise.  This value may change whenever the tab bar wraps
+(@pxref{Frame Layout}).
 
 @vindex line-spacing@r{, a frame parameter}
 @item line-spacing
@@ -2008,8 +2064,8 @@ the @sc{cdr} of the cell is either @code{t} or @code{top-only}.
 
 The parameters described below provide support for resizing a frame by
 dragging its internal borders with the mouse.  They also allow moving a
-frame with the mouse by dragging the header line of its topmost or the
-mode line of its bottommost window.
+frame with the mouse by dragging the header or tab line of its topmost
+or the mode line of its bottommost window.
 
 These parameters are mostly useful for child frames (@pxref{Child
 Frames}) that come without window manager decorations.  If necessary,
@@ -2025,6 +2081,11 @@ borders, if present, with the mouse.
 @item drag-with-header-line
 If non-@code{nil}, the frame can be moved with the mouse by dragging the
 header line of its topmost window.
+
+@vindex drag-with-tab-line@r{, a frame parameter}
+@item drag-with-tab-line
+If non-@code{nil}, the frame can be moved with the mouse by dragging the
+tab line of its topmost window.
 
 @vindex drag-with-mode-line@r{, a frame parameter}
 @item drag-with-mode-line
@@ -2123,6 +2184,21 @@ prevent hanging with those window managers.
 If non-@code{nil}, the frame is visible on all virtual desktops on systems
 with virtual desktops.
 
+@vindex shaded@r{, a frame parameter}
+@item shaded
+If non-@code{nil}, tell the window manager to display the frame in a
+way that its contents are hidden, leaving only the title bar.
+
+@vindex use-frame-synchronization@r{, a frame parameter}
+@item use-frame-synchronization
+If non-@code{nil}, synchronize the frame redisplay with the refresh
+rate of the monitor to avoid graphics tearing.  At present, this is
+only implemented on Haiku and the X window system inside no-toolkit
+and X toolkit builds, does not work correctly with toolkit scroll
+bars, and requires a compositing manager supporting the relevant
+display synchronization protocols.  The @code{synchronizeResize} X
+resource must also be set to the string @code{"extended"}.
+
 @vindex inhibit-double-buffering@r{, a frame parameter}
 @item inhibit-double-buffering
 If non-@code{nil}, the frame is drawn to the screen without double
@@ -2153,7 +2229,10 @@ either via @code{focus-follows-mouse} (@pxref{Input Focus}) or
 @code{mouse-autoselect-window} (@pxref{Mouse Window Auto-selection}).
 This may have the unwanted side-effect that a user cannot scroll a
 non-selected frame with the mouse.  Some window managers may not honor
-this parameter.
+this parameter.  On Haiku, it also has the side-effect that the window
+will not be able to receive any keyboard input from the user, not even
+if the user switches to the frame using the key combination
+@kbd{Alt-@key{TAB}}.
 
 @vindex undecorated@r{, a frame parameter}
 @item undecorated
@@ -2314,7 +2393,10 @@ driver for OTF and TTF fonts with text shaping by the Uniscribe
 engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
 HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
 Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
-other systems, there is only one available font backend, so it does
+Haiku, there can be several font drivers (@pxref{Haiku Fonts,,, emacs,
+The GNU Emacs Manual}).
+
+On other systems, there is only one available font backend, so it does
 not make sense to modify this frame parameter.
 
 @vindex background-mode@r{, a frame parameter}
@@ -2382,6 +2464,16 @@ opacity when it is not selected.
 
 Some window systems do not support the @code{alpha} parameter for child
 frames (@pxref{Child Frames}).
+
+@vindex alpha-background@r{, a frame parameter}
+@item alpha-background
+@cindex opacity, frame
+@cindex transparency, frame
+Sets the background transparency of the frame.  Unlike the @code{alpha}
+frame parameter, this only controls the transparency of the background
+while keeping foreground elements such as text fully opaque.  It
+should be an integer between 0 and 100, where 0 means
+completely transparent and 100 means completely opaque (default).
 @end table
 
 The following frame parameters are semi-obsolete in that they are
@@ -2398,7 +2490,7 @@ attribute of the @code{default} face.
 
 @vindex foreground-color@r{, a frame parameter}
 @item foreground-color
-The color to use for the image of a character.  It is equivalent to
+The color to use for characters.  It is equivalent to
 the @code{:foreground} attribute of the @code{default} face.
 
 @vindex background-color@r{, a frame parameter}
@@ -2543,17 +2635,27 @@ frame name automatically based on a template stored in the variable
 frame is redisplayed.
 
 @defvar frame-title-format
-This variable specifies how to compute a name for a frame when you have
-not explicitly specified one.  The variable's value is actually a mode
+This variable specifies how to compute a name for a frame when you
+have not explicitly specified one (via the frame's parameters;
+@pxref{Basic Parameters}).  The variable's value is actually a mode
 line construct, just like @code{mode-line-format}, except that the
-@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.  @xref{Mode Line
-Data}.
+@samp{%c}, @samp{%C}, and @samp{%l} constructs are ignored.
+@xref{Mode Line Data}.
 @end defvar
 
 @defvar icon-title-format
-This variable specifies how to compute the name for an iconified frame,
-when you have not explicitly specified the frame title.  This title
-appears in the icon itself.
+This variable specifies how to compute the name for an iconified frame
+when you have not explicitly specified the frame's name via the
+frame's parameters.  The resulting title appears in the frame's icon
+itself.  If the value is a string, is should be a mode line construct
+like that of @code{frame-title-format}.  The value can also be
+@code{t}, which means to use @code{frame-title-format} instead; this
+avoids problems with some window managers and desktop environments,
+where a change in a frame's title (when a frame is iconified) is
+interpreted as a request to raise the frame and/or give it input
+focus.  It is also useful if you want the frame's title to be the same
+no matter if the frame is iconified or not.  The default value is a
+string identical to the default value of @code{frame-title-format}.
 @end defvar
 
 @defvar multiple-frames
@@ -2613,7 +2715,7 @@ When Emacs gets one of these commands, it generates a
 @code{delete-frame} event, whose normal definition is a command that
 calls the function @code{delete-frame}.  @xref{Misc Events}.
 
-@deffn Command delete-other-frames &optional frame
+@deffn Command delete-other-frames &optional frame iconify
 This command deletes all frames on @var{frame}'s terminal, except
 @var{frame}.  If @var{frame} uses another frame's minibuffer, that
 minibuffer frame is left untouched.  The argument @var{frame} must
@@ -2624,6 +2726,9 @@ this command works by calling @code{delete-frame} with @var{force}
 This function does not delete any of @var{frame}'s child frames
 (@pxref{Child Frames}).  If @var{frame} is a child frame, it deletes
 @var{frame}'s siblings only.
+
+With the prefix argument @var{iconify}, the frames are iconified rather
+than deleted.
 @end deffn
 
 
@@ -2669,18 +2774,19 @@ frame and defaults to the selected frame.  It never returns a frame
 whose @code{no-other-frame} parameter (@pxref{Frame Interaction
 Parameters}) is non-@code{nil}.
 
-The second argument, @var{minibuf}, says which frames to consider:
+The second argument, @var{minibuf}, says which frames to consider when
+deciding what the next frame should be:
 
 @table @asis
 @item @code{nil}
-Exclude minibuffer-only frames.
+Consider all frames except minibuffer-only frames.
 @item @code{visible}
-Consider all visible frames.
+Consider only visible frames.
 @item 0
-Consider all visible or iconified frames.
+Consider only visible or iconified frames.
 @item a window
 Consider only the frames using that particular window as their
-minibuffer.
+minibuffer window.
 @item anything else
 Consider all frames.
 @end table
@@ -2734,7 +2840,8 @@ Terminals}.
 @cindex selected frame
 
 At any time, one frame in Emacs is the @dfn{selected frame}.  The
-selected window always resides on the selected frame.
+selected window (@pxref{Selecting Windows}) always resides on the
+selected frame.
 
 When Emacs displays its frames on several terminals (@pxref{Multiple
 Terminals}), each terminal has its own selected frame.  But only one
@@ -2762,9 +2869,17 @@ The plural ``frames'' in the previous paragraph is deliberate: while
 Emacs itself has only one selected frame, Emacs can have frames on
 many different terminals (recall that a connection to a window system
 counts as a terminal), and each terminal has its own idea of which
-frame has input focus.  When you set the input focus to a frame, you
-set the focus for that frame's terminal, but frames on other terminals
+frame has input focus.  Under the X Window System, where user input is
+organized into individual ``seats'' of input, each seat in turn can
+have its own specific input focus.  When you set the input focus to a
+frame, you set the focus for that frame's terminal on the last seat
+which interacted with Emacs, but frames on other terminals and seats
 may still remain focused.
+
+If the input focus is set before any user interaction has occurred on
+the specified terminal, then the X server picks a random seat
+(normally the one with the lowest number) and sets the input focus
+there.
 
 Lisp programs can switch frames temporarily by calling the function
 @code{select-frame}.  This does not alter the window system's concept
@@ -2905,17 +3020,25 @@ explicit focus notifications.)
 @end defun
 
 @defvar after-focus-change-function
-This function is an extension point that code can use to receive a
-notification that focus has changed.
+This function is called with no arguments when Emacs notices that a
+frame may have gotten or lost focus.  Focus events are delivered
+asynchronously, and may not be delivered in the expected order, so
+code that wants to do something depending on the state of focused
+frames have go through all the frames and check.
 
-This function is called with no arguments when Emacs notices that the
-set of focused frames may have changed.  Code wanting to do something
-when frame focus changes should use @code{add-function} to add a
-function to this one, and in this added function, re-scan the set of
-focused frames, calling @code{frame-focus-state} to retrieve the last
-known focus state of each frame.  Focus events are delivered
-asynchronously, and frame input focus according to an external system
-may not correspond to the notion of the Emacs selected frame.
+For instance, here's a simple example function that sets the
+background color based on whether the frame has focus or not:
+
+@lisp
+(add-function :after after-focus-change-function
+              #'my-change-background)
+(defun my-change-background ()
+  (dolist (frame (frame-list))
+    (pcase (frame-focus-state frame)
+      (`t (set-face-background 'default "black" frame))
+      (`nil (set-face-background 'default "#404040" frame)))))
+@end lisp
+
 Multiple frames may appear to have input focus simultaneously due to
 focus event delivery differences, the presence of multiple Emacs
 terminals, and other factors, and code should be robust in the face of
@@ -2968,12 +3091,11 @@ Auto-selection}).
 
 Note that this option does not distinguish ``sloppy'' focus (where the
 frame that previously had focus retains focus as long as the mouse
-pointer does not move into another window manager window) from
-``strict'' focus (where a frame immediately loses focus when it's left
-by the mouse pointer).  Neither does it recognize whether your window
-manager supports delayed focusing or auto-raising where you can
-explicitly specify the time until a new frame gets focus or is
-auto-raised.
+pointer does not move into another window-system window) from ``strict''
+focus (where a frame immediately loses focus when it's left by the mouse
+pointer).  Neither does it recognize whether your window manager
+supports delayed focusing or auto-raising where you can explicitly
+specify the time until a new frame gets focus or is auto-raised.
 
 You can supply a ``focus follows mouse'' policy for individual Emacs
 windows by customizing the variable @code{mouse-autoselect-window}
@@ -3205,12 +3327,16 @@ parent frame's window-system window.
 
 @cindex reparent frame
 @cindex nest frame
-  The @code{parent-frame} parameter can be changed at any time.  Setting
-it to another frame @dfn{reparents} the child frame.  Setting it to
-another child frame makes the frame a @dfn{nested} child frame.  Setting
-it to @code{nil} restores the frame's status as a top-level frame---a
-frame whose window-system window is a child of its display's root
-window.
+  The @code{parent-frame} parameter can be changed at any time.
+Setting it to another frame @dfn{reparents} the child frame.  Setting
+it to another child frame makes the frame a @dfn{nested} child frame.
+Setting it to @code{nil} restores the frame's status as a top-level
+frame---a frame whose window-system window is a child of its display's
+root window.@footnote{On Haiku, child frames are only visible when a
+parent frame is active, owing to a limitation of the Haiku windowing
+system.  Owing to the same limitation, child frames are only
+guaranteed to appear above their top-level parent; that is to say, the
+top-most frame in the hierarchy, which does not have a parent frame.}
 
   Since child frames can be arbitrarily nested, a frame can be both a
 child and a parent frame.  Also, the relative roles of child and parent
@@ -3302,20 +3428,22 @@ are handy (@pxref{Window Parameters}).  These allow to remove an
 unwanted mode line (when @code{drag-with-header-line} is chosen) and to
 remove mouse-sensitive areas which might interfere with frame dragging.
 
-  To avoid that dragging moves a frame completely out of its parent's
-native frame, something which might happen when the mouse cursor
-overshoots and makes the frame difficult to retrieve once the mouse
-button has been released, it is advisable to set the frame's
-@code{top-visible} or @code{bottom-visible} parameter correspondingly.
+  When the user drags a frame with a mouse and overshoots, it's easy
+to drag a frame out of the screen area of its parent.  Retrieving such
+a frame can be hairy once the mouse button has been released.  To
+prevent such a situation, it is advisable to set the frame's
+@code{top-visible} or @code{bottom-visible} parameter (@pxref{Mouse
+Dragging Parameters}).
 
-  The @code{top-visible} parameter specifies the number of pixels at the
-top of the frame that always remain visible within the parent's native
-frame during dragging and should be set when specifying a non-@code{nil}
-@code{drag-with-header-line} parameter.  The @code{bottom-visible}
-parameter specifies the number of pixels at the bottom of the frame that
-always remain visible within the parent's native frame during dragging
-and should be preferred when specifying a non-@code{nil}
-@code{drag-with-mode-line} parameter.
+  Set the @code{top-visible} parameter of a child frame to a number
+when you intend to allow the user dragging that frame by its header
+line.  Setting @code{top-visible} to a number inhibits dragging the
+top edge of the child frame above the top edge of its parent.  Set the
+@code{bottom-visible} parameter to a number when you intend to drag
+that frame via its mode line; this inhibits dragging the bottom edge
+of the child frame beneath the bottom edge of its parent.  In either
+case, that number also specifies width and height (in pixels) of the
+area of the child frame that remains visible during dragging.
 
   When a child frame is used for displaying a buffer via
 @code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
@@ -3436,10 +3564,18 @@ enabled.  Typically, @var{body} would use @code{read-event} to read
 the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
-The value of @code{track-mouse} is that of the last form in @var{body}.
-You should design @var{body} to return when it sees the up-event that
-indicates the release of the button, or whatever kind of event means
-it is time to stop tracking.
+The value of @code{track-mouse} is that of the last form in
+@var{body}.  You should design @var{body} to return when it sees the
+up-event that indicates the release of the button, or whatever kind of
+event means it is time to stop tracking.  Its value also controls how
+mouse events are reported while a mouse button is held down: if it is
+@code{dropping} or @code{drag-source}, the motion events are reported
+relative to the frame underneath the pointer.  If there is no such
+frame, the events will be reported relative to the frame the mouse
+buttons were first pressed on.  In addition, the @code{posn-window} of
+the mouse position list will be @code{nil} if the value is
+@code{drag-source}.  This is useful to determine if a frame is not
+directly visible underneath the mouse pointer.
 
 The @code{track-mouse} form causes Emacs to generate mouse motion
 events by binding the variable @code{track-mouse} to a
@@ -3524,6 +3660,13 @@ sole argument, and it returns whatever this function returns to it.
 
 This abnormal hook exists for the benefit of packages like
 @file{xt-mouse.el} that need to do mouse handling at the Lisp level.
+@end defvar
+
+@defvar tty-menu-calls-mouse-position-function
+If non-@code{nil}, TTY menus will call @code{mouse-position-function}
+as described above.  This exists for cases where
+@code{mouse-position-function} is not safe to be called by the TTY
+menus, such as if it could trigger redisplay.
 @end defvar
 
 @defun set-mouse-position frame x y
@@ -3676,6 +3819,13 @@ still use a menu keymap to implement it.  To make the contents vary, add
 a hook function to @code{menu-bar-update-hook} to update the contents of
 the menu keymap as necessary.
 
+@defvar x-pre-popup-menu-hook
+  A normal hook run immediately before a pop-up menu is displayed,
+either directly by calling @code{x-popup-menu}, or through a menu
+keymap.  It won't be called if @code{x-popup-menu} returns for some
+other reason without displaying a pop-up menu.
+@end defvar
+
 @node Dialog Boxes
 @section Dialog Boxes
 @cindex dialog boxes
@@ -3741,10 +3891,31 @@ for instance using the window manager, then this produces a quit and
   You can specify the mouse pointer style for particular text or
 images using the @code{pointer} text property, and for images with the
 @code{:pointer} and @code{:map} image properties.  The values you can
-use in these properties are @code{text} (or @code{nil}), @code{arrow},
-@code{hand}, @code{vdrag}, @code{hdrag}, @code{modeline}, and
-@code{hourglass}.  @code{text} stands for the usual mouse pointer
-style used over text.
+use in these properties are in the table below.  The actual shapes
+may vary between systems; the descriptions are examples.
+
+@table @code
+@item text
+@itemx nil
+The usual mouse pointer style used over text (an ``I''-like shape).
+
+@item arrow
+@itemx vdrag
+@itemx modeline
+An arrow that points north-west.
+
+@item hand
+A hand that points upwards.
+
+@item hdrag
+A right-left arrow.
+
+@item nhdrag
+An up-down arrow.
+
+@item hourglass
+A rotating ring.
+@end table
 
   Over void parts of the window (parts that do not correspond to any
 of the buffer contents), the mouse pointer usually uses the
@@ -3758,8 +3929,9 @@ in the buffer.  The default is to use the @code{arrow} (non-text)
 pointer style.
 @end defopt
 
-  When using X, you can specify what the @code{text} pointer style
-really looks like by setting the variable @code{x-pointer-shape}.
+  When using some window systems, you can specify what the @code{text}
+pointer style really looks like by setting the variable
+@code{x-pointer-shape}.
 
 @defvar x-pointer-shape
 This variable specifies the pointer shape to use ordinarily in the
@@ -3807,11 +3979,18 @@ upper-case names, in accord with X Window System conventions.  If
 @var{type} is @code{nil}, that stands for @code{PRIMARY}.
 
 If @var{data} is @code{nil}, it means to clear out the selection.
-Otherwise, @var{data} may be a string, a symbol, an integer (or a cons
-of two integers or list of two integers), an overlay, or a cons of two
-markers pointing to the same buffer.  An overlay or a pair of markers
-stands for text in the overlay or between the markers.  The argument
-@var{data} may also be a vector of valid non-vector selection values.
+Otherwise, @var{data} may be a string, a symbol, an integer, an
+overlay, or a cons of two markers pointing to the same buffer.  An
+overlay or a pair of markers stands for text in the overlay or between
+the markers.  The argument @var{data} may also be a vector of valid
+non-vector selection values.
+
+If @var{data} is a string, then its text properties can specify values
+used for individual data types.  For example, if @var{data} has a
+property named @code{text/uri-list}, then a call to
+@code{gui-get-selection} with the data type @code{text/uri-list} will
+result in the value of that property being used instead of @var{data}
+itself.
 
 This function returns @var{data}.
 @end deffn
@@ -3854,37 +4033,339 @@ For backward compatibility, there are obsolete aliases
 names of @code{gui-get-selection} and @code{gui-set-selection} before
 Emacs 25.1.
 
+@node Yanking Media
+@section Yanking Media
+
+  If you choose, for instance, ``Copy Image'' in a web browser, that
+image is put onto the clipboard, and Emacs can access it via
+@code{gui-get-selection}.  But in general, inserting image data into
+an arbitrary buffer isn't very useful---you can't really do much with
+it by default.
+
+  So Emacs has a system to let modes register handlers for these
+``complicated'' selections.
+
+@defun yank-media-handler types handler
+@var{types} can be a @acronym{MIME} media type symbol, a regexp to
+match these, or a list of these symbols and regexps.  For instance:
+
+@example
+(yank-media-handler 'text/html #'my-html-handler)
+(yank-media-handler "image/.*" #'my-image-handler)
+@end example
+
+A mode can register as many handlers as required.
+
+  The @var{handler} function is called with two parameters: The
+@acronym{MIME} media type symbol and the data (as a string).  The
+handler should then insert the object into the buffer, or save it, or
+do whatever is appropriate for the mode.
+@end defun
+
+  The @code{yank-media} command will consult the registered handlers in
+the current buffer, compare that with the available media types on the
+clipboard, and then pass on the matching selection to the handler (if
+any).  If there's more than one matching selection, the user is
+queried first.
+
+  The @code{yank-media-types} command can be used to explore the
+clipboard/primary selection.  It lists all the media types that are
+currently available, and can be handy when creating handlers---to see
+what data is actually available.  Some applications put a surprising
+amount of different data types on the clipboard.
+
 @node Drag and Drop
 @section Drag and Drop
 @cindex drag and drop
 
+  When the user drops something from another application over Emacs,
+Emacs will try to insert any text and open any URL that was dropped.
+If text was dropped, then it will always be inserted at the location
+of the mouse pointer where the drop happened, or saved in the kill
+ring if insertion failed, which could happen if the buffer was
+read-only.  If a URL was dropped instead, then Emacs will first try to
+call an appropriate handler function by matching the URL against
+regexps defined in the variable @code{dnd-protocol-alist}, and then
+against those defined in the variables @code{browse-url-handlers} and
+@code{browse-url-default-handlers}.  Should no suitable handler be
+located, Emacs will fall back to inserting the URL as plain text.
+
+@defvar dnd-protocol-alist
+  This variable is a list of cons cells of the form
+@w{@code{(@var{pattern} . @var{action})}}.  @var{pattern} is a regexp
+that URLs are matched against after being dropped.  @var{action} is a
+function that is called with two arguments, should a URL being dropped
+match @var{pattern}: the URL being dropped, and the action being
+performed for the drop, which is one of the symbols @code{copy},
+@code{move}, @code{link}, @code{private} or @code{ask}.
+
+If @var{action} is @var{private}, then it means the program that
+initiated the drop wants Emacs to perform an unspecified action with
+the URL; a reasonable action to perform in that case is to open the URL
+or copy its contents into the current buffer.  Otherwise, @var{action}
+has the same meaning as the @var{action} argument to
+@code{dnd-begin-file-drag}.
+@end defvar
+
+@cindex drag and drop, X
+@cindex drag and drop, other formats
+  Emacs implements receiving text and URLs individually for each
+window system, and does not by default support receiving other kinds
+of data as drops.  To support receiving other kinds of data, use the
+X-specific interface described below:
+
 @vindex x-dnd-test-function
 @vindex x-dnd-known-types
-  When a user drags something from another application over Emacs, that other
-application expects Emacs to tell it if Emacs can handle the data that is
-dragged.  The variable @code{x-dnd-test-function} is used by Emacs to determine
-what to reply.  The default value is @code{x-dnd-default-test-function}
-which accepts drops if the type of the data to be dropped is present in
-@code{x-dnd-known-types}.  You can customize @code{x-dnd-test-function} and/or
-@code{x-dnd-known-types} if you want Emacs to accept or reject drops based
+  When a user drags something from another application over Emacs
+under the X Window System, that other application expects Emacs to
+tell it if Emacs understands the data being dragged.  The function in
+the variable @code{x-dnd-test-function} is called by Emacs to
+determine what to reply to any such inquiry.  The default value is
+@code{x-dnd-default-test-function}, which accepts drops if the type of
+the data to be dropped is present in @code{x-dnd-known-types}.
+Changing the variables @code{x-dnd-test-function} and
+@code{x-dnd-known-types} can make Emacs accept or reject drops based
 on some other criteria.
 
 @vindex x-dnd-types-alist
-  If you want to change the way Emacs handles drop of different types
-or add a new type, customize @code{x-dnd-types-alist}.  This requires
-detailed knowledge of what types other applications use for drag and
-drop.
+  If you want to change the way Emacs receives drops of different data
+types, or you want to enable it to understand a new type, change the variable
+@code{x-dnd-types-alist}.  Doing so correctly requires detailed
+knowledge of what data types other applications use for drag and drop.
 
-@vindex dnd-protocol-alist
-@vindex browse-url-handlers
-@vindex browse-url-default-handlers
-  When an URL is dropped on Emacs it may be a file, but it may also be
-another URL type (https, etc.).  Emacs first checks
-@code{dnd-protocol-alist} to determine what to do with the URL@.  If
-there is no match there, Emacs looks for a match in
-@code{browse-url-handlers} and @code{browse-url-default-handlers}.  If
-still no match has been found, the text for the URL is inserted.  If
-you want to alter Emacs behavior, you can customize these variables.
+  These data types are typically implemented as special data types
+that can be obtained from an X selection provided by the other
+application.  In most cases, they are either the same data types that
+are typically accepted by @code{gui-set-selection}, or MIME types,
+depending on the specific drag-and-drop protocol being used.  For
+example, the data type used for plain text may be either
+@code{"STRING"} or @code{"text/plain"}.
+
+@vindex x-dnd-direct-save-function
+@c FIXME: This description is overly-complicated and confusing.  In
+@c particular, the two calls to the function basically sound
+@c identical, so it is unclear how should the function distinguish
+@c between the first and the second one.  The description of who asks
+@c whom to do what is also very hard to understand.  Needs rewording,
+@c and needs shorter sentences.  Perhaps examples could help.
+  However, @code{x-dnd-types-alist} does not handle a special kind of
+drop sent by a program that wants Emacs to tell it where to save a
+file in a specific location determined by the user.  These drops are
+instead handled by a function that is the value of the variable
+@code{x-dnd-direct-save-function}.  This function should accept two arguments.
+If the first argument is non-@code{nil}, then the second argument is a
+file name to save (with leading directories) that the other
+program recommends, and the
+function should return the full file name under which it should be
+saved.  After the function completes, Emacs will ask the other program
+to save the file under the name that was returned, and if the file was
+successfully saved, call the function again with the first argument
+set to a non-@code{nil} value and the second argument set to the file
+name that was returned.  The function should then perform whatever
+action is appropriate (i.e., opening the file or refreshing a
+directory listing.)
+
+@cindex initiating drag-and-drop
+  On capable window systems, Emacs also supports dragging contents
+from its frames to windows of other applications.
+
+@cindex drop target, in drag-and-drop operations
+@defun dnd-begin-text-drag text &optional frame action allow-same-frame
+This function begins dragging text from @var{frame} to another program
+(known as the @dfn{drop target}), and returns the result of
+drag-and-drop operation when the text is dropped or the drag-and-drop
+operation is canceled.  @var{text} is the text that will be inserted
+by the drop target.
+
+@var{action} must be one of the symbols @code{copy} or @code{move},
+where @code{copy} means that @var{text} should be inserted by the drop
+target, and @code{move} means the same as @code{copy}, but in addition
+the caller may have to delete @var{text} from its source as explained
+below.
+
+@var{frame} is the frame where the mouse is currently held down, or
+@code{nil}, which means to use the selected frame.  This function may
+return immediately if no mouse buttons are held down, so it should be
+only called immediately after a @code{down-mouse-1} or similar event
+(@pxref{Mouse Events}), with @var{frame} set to the frame where that
+event was generated (@pxref{Click Events}).
+
+@var{allow-same-frame} specifies whether or not drops on top of
+@var{frame} itself are to be ignored.
+
+The return value specifies the action that the drop target actually
+performed, and optionally what the caller should do.  It can be one of
+the following symbols:
+
+@table @code
+@item copy
+The drop target inserted the dropped text.
+
+@item move
+The drop target inserted the dropped text, but in addition the caller
+should delete @var{text} from wherever it originated, such as its
+buffer.
+
+@item private
+The drop target performed some other unspecified action.
+
+@item nil
+The drag-and-drop operation was canceled.
+@end table
+
+@end defun
+
+@defun dnd-begin-file-drag file &optional frame action allow-same-frame
+This function begins dragging @var{file} from @var{frame} to another
+program, and returns the result of the drag-and-drop operation when
+the file is dropped or the drag-and-drop operation is canceled.
+
+If @var{file} is a remote file, then a temporary copy will be made.
+
+@var{action} must be one of the symbols @code{copy}, @code{move} or
+@code{link}, where @code{copy} means that @var{file} should be opened
+or copied by the drop target, @code{move} means the drop target should
+move the file to another location, and @code{link} means the drop
+target should create a symbolic link to @var{file}.  It is an error to
+specify @code{link} as the action if @var{file} is a remote file.
+
+@var{frame} and @var{allow-same-frame} have the same meaning as in
+@code{dnd-begin-text-drag}.
+
+The return value is the action that the drop target actually
+performed, which can be one of the following symbols:
+
+@table @code
+@item copy
+The drop target opened or copied @var{file} to a different location.
+
+@item move
+The drop target moved @var{file} to a different location.
+
+@item link
+The drop target (usually a file manager) created a symbolic link to
+@var{file}.
+
+@item private
+The drop target performed some other unspecified action.
+
+@item nil
+The drag-and-drop operation was canceled.
+@end table
+
+@end defun
+
+@defun dnd-begin-drag-files files &optional frame action allow-same-frame
+This function is like @code{dnd-begin-file-drag}, except that
+@var{files} is a list of files.  If the drop target doesn't support
+dropping multiple files, then the first file will be used instead.
+@end defun
+
+@defun dnd-direct-save file name &optional frame allow-same-frame
+This function is similar to @code{dnd-begin-file-drag} (with the
+default action of copy), but instead of specifying the action you
+specify the name of the copy created by the target program in
+@code{name}.
+@end defun
+
+@cindex initiating drag-and-drop, low-level
+  The high-level interfaces described above are implemented on top of
+a lower-level primitive.  If you need to drag content other than files
+or text, use the low-level interface @code{x-begin-drag}
+instead.  However, using it will require detailed knowledge of the
+data types and actions used by the programs to transfer content via
+drag-and-drop on each platform you want to support.
+
+@defun x-begin-drag targets &optional action frame return-frame allow-current-frame follow-tooltip
+This function begins a drag from @var{frame}, and returns when the
+drag-and-drop operation ends, either because the drop was successful,
+or because the drop was rejected.  The drop occurs when all mouse
+buttons are released on top of an X window other than @var{frame} (the
+@dfn{drop target}), or any X window if @var{allow-current-frame} is
+non-@code{nil}.  If no mouse buttons are held down when the
+drag-and-drop operation begins, this function may immediately return
+@code{nil}.
+
+@var{targets} is a list of strings describing selection targets, much
+like the @var{data-type} argument to @code{gui-get-selection}, that
+the drop target can request from Emacs (@pxref{Window System
+Selections}).
+
+@var{action} is a symbol describing the action recommended to the
+target.  It can either be @code{XdndActionCopy}, which
+means to copy the contents of the selection @code{XdndSelection} to
+the drop target; or @code{XdndActionMove}, which means copy as with
+@code{XdndActionCopy}, and in addition the caller should delete
+whatever was stored in that selection after copying it.
+
+@var{action} may also be an alist which associates between symbols
+describing the available actions, and strings that the drop target is
+expected to present to the user to choose between the available
+actions.
+
+If @var{return-frame} is non-@code{nil} and the mouse moves over an
+Emacs frame after first moving out of @var{frame}, then the frame to
+which the mouse moves will be returned immediately.  If
+@var{return-frame} is the symbol @code{now}, then any frame underneath
+the mouse pointer will be returned without waiting for the mouse to
+first move out of @var{frame}.  @var{return-frame} is useful when you
+want to treat dragging content from one frame to another specially,
+while also being able to drag content to other programs, but it is not
+guaranteed to work on all systems and with all window managers.
+
+If @var{follow-tooltip} is non-@code{nil}, the position of any tooltip
+(such as one shown by @code{tooltip-show}) will follow the location of
+the mouse pointer whenever it moves during the drag-and-drop
+operation.  The tooltip will be hidden once all mouse buttons are
+released.
+
+If the drop was rejected or no drop target was found, this function
+returns @code{nil}.  Otherwise, it returns a symbol describing the
+action the target chose to perform, which can differ from @var{action}
+if that isn't supported by the drop target.  @code{XdndActionPrivate}
+is also a valid return value in addition to @code{XdndActionCopy} and
+@code{XdndActionMove}; it means that the drop target chose to perform
+an unspecified action, and no further processing is required by the
+caller.
+
+The caller must cooperate with the target to fully perform the action
+chosen by the target.  For example, callers should delete the buffer
+text that was dragged if this function returns @code{XdndActionMove}.
+@end defun
+
+@cindex drag and drop protocols, X
+
+  On X Windows, several different drag-and-drop protocols are
+supported by @code{x-begin-drag}.  When dragging content that is known
+to not be supported by a specific drag-and-drop protocol, it might be
+desirable to turn that protocol off, by changing the values of the
+following variables:
+
+@defvar x-dnd-disable-motif-protocol
+When this is non-@code{nil}, the Motif drag and drop protocols are
+disabled, and dropping onto programs that only understand them will
+not work.
+@end defvar
+
+@defvar x-dnd-use-offix-drop
+When this is @code{nil}, the OffiX (old KDE) drag and drop protocol is
+disabled.  When this is the symbol @code{files}, the OffiX protocol
+will only be used if @code{"FILE_NAME"} is one of the targets given to
+@code{x-begin-drag}.  Any other value means to use the OffiX protocol
+to drop all supported content.
+@end defvar
+
+@defvar x-dnd-use-unsupported-drop
+When one of the @code{"STRING"}, @code{"UTF8_STRING"},
+@code{"COMPOUND_TEXT"} or @code{"TEXT"} targets is present in the list
+given to @code{x-begin-drag}, Emacs will try to use synthesized mouse
+events and the primary selection to insert the text if the drop target
+doesn't support any drag-and-drop protocol at all.
+
+A side effect is that Emacs will become the owner of the primary
+selection upon such a drop.  If that is not desired, then the drop
+emulation can be disabled by setting this variable to @code{nil}.
+@end defvar
 
 @node Color Names
 @section Color Names

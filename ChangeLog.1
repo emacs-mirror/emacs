@@ -930,7 +930,7 @@
 	(mostlyclean_dirs, clean_dirs, distclean_dirs, maintainer_clean_dirs):
 	New variables.
 	(mostlyclean, clean, distclean, bootstrap-clean, maintainer-clean)
-	(extraclean): Define using each subdirectory as a prequisite.
+	(extraclean): Define using each subdirectory as a prerequisite.
 	* lib/Makefile.am (bootstrap-clean): New.
 
 2014-06-15  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2326,7 +2326,7 @@
 2013-07-03  Christoph Egger  <christoph@debian.org>  (tiny change)
 
 	* configure.ac (emacs_broken_SIGIO): Set on gnu-kfreebsd to avoid hang.
-	http://bugs.debian.org/712974
+	https://bugs.debian.org/712974
 
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -4302,7 +4302,7 @@
 	(install-arch-indep): Don't install-etc for self-contained ns builds.
 
 	* configure.in (GCC_TEST_OPTIONS, NON_GCC_TEST_OPTIONS) <darwin>:
-	No longer unconditonally add /sw directories.  (Bug#2280)
+	No longer unconditionally add /sw directories.  (Bug#2280)
 
 	* Makefile.in (install-arch-dep): Depend on install-arch-indep.
 	(install-arch-indep): Depend on install-leim.
@@ -5685,7 +5685,7 @@
 	(__mktime_internal): Use it systematically for all isdst comparisons.
 	This completes the fix for libc BZ #6723, and removes the need for
 	normalizing tm_isdst.
-	See <http://sourceware.org/bugzilla/show_bug.cgi?id=6723>
+	See <https://sourceware.org/bugzilla/show_bug.cgi?id=6723>
 	(not_equal_tm) [DEBUG]: Use isdst_differ here, too.
 
 	mktime: fix some integer overflow issues and sidestep the rest
@@ -14700,7 +14700,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993-1999, 2001-2020 Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

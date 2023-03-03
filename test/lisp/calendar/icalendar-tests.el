@@ -1,6 +1,6 @@
-;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
+;;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005, 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2023 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'icalendar)
 
 ;; ======================================================================
@@ -50,6 +51,25 @@
   "Remove leading and trailing whitespace from STRING."
   (replace-regexp-in-string "[ \t\n]+\\'" ""
                             (replace-regexp-in-string "\\`[ \t\n]+" "" string)))
+
+(defun icalendar-tests--get-file-contents (filename)
+  "Return contents of file in test data directory named FILENAME."
+  (with-temp-buffer
+    (let ((coding-system-for-read 'raw-text)
+          (inhibit-eol-conversion t))
+      (insert-file-contents-literally
+       (ert-resource-file filename))
+      (buffer-string))))
+
+(defun icalendar-tests--get-error-string-for-export (diary-string)
+  "Call icalendar-export for DIARY-STRING and return resulting error-string."
+  (ert-with-temp-file file
+    :suffix "-export.ics"
+    (with-temp-buffer
+      (insert diary-string)
+      (icalendar-export-region (point-min) (point-max) file))
+    (with-current-buffer (get-buffer "*icalendar-errors*")
+      (buffer-string))))
 
 ;; ======================================================================
 ;; Tests of functions
@@ -77,7 +97,7 @@
   (let* ((calendar-date-style 'iso)
          result)
     (setq result (icalendar--convert-anniversary-to-ical
-                  "" "%%(diary-anniversary 1964 6 30) g"))
+                  "" "%%(diary-anniversary 1963 6 30) g"))
     (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:19640630"
@@ -343,7 +363,7 @@ END:VTIMEZONE
   (let ((calendar-date-style 'iso))
     ;; numeric iso
     (should (string= "20080511"
-		      (icalendar--datestring-to-isodate "2008 05 11")))
+		     (icalendar--datestring-to-isodate "2008 05 11")))
     (should (string= "20080531"
 		     (icalendar--datestring-to-isodate "2008 05 31")))
     (should (string= "20080602"
@@ -374,7 +394,19 @@ END:VTIMEZONE
     (should (string= "20081105"
 		     (icalendar--datestring-to-isodate "05 Nov 2008")))
     (should (string= "20081105"
-		     (icalendar--datestring-to-isodate "2008 Nov 05")))))
+		     (icalendar--datestring-to-isodate "2008 Nov 05")))
+
+    ;; non-numeric with day-shift and year-shift
+    (setq calendar-date-style nil)      ;not necessary for conversion
+    (should (string= "20210212"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" 1)))
+    (should (string= "20210131"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" -11)))
+    (should (string= "20200211"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" nil -1)))
+    (should (string= "21010211"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" nil 80)))
+    ))
 
 (ert-deftest icalendar--first-weekday-of-year ()
   "Test method for `icalendar-first-weekday-of-year'."
@@ -559,10 +591,10 @@ END:VEVENT
 
           ;; testcase: dtstart is mandatory
           (should (null (icalendar--convert-tz-offset
-                          '((TZOFFSETFROM nil "+0100")
-                            (TZOFFSETTO nil "+0200")
-                            (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
-                          t)))
+                         '((TZOFFSETFROM nil "+0100")
+                           (TZOFFSETTO nil "+0200")
+                           (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
+                         t)))
 
           ;; FIXME: rrule and rdate are NOT mandatory!  Must fix code
           ;; before activating these testcases
@@ -629,8 +661,8 @@ Argument INPUT-AMERICAN american style diary string.
 Argument EXPECTED-OUTPUT expected iCalendar result string.
 Optional argument ALARMS the value of `icalendar-export-alarms' for this test.
 
-European style input data must use german month names.  American
-and ISO style input data must use english month names."
+European style input data must use German month names.  American
+and ISO style input data must use English month names."
   (let ((tz (getenv "TZ"))
 	(calendar-date-style 'iso)
 	(icalendar-recurring-start-year 2000)
@@ -676,17 +708,18 @@ and ISO style input data must use english month names."
   "Actually perform export test.
 Argument INPUT input diary string.
 Argument EXPECTED-OUTPUT expected iCalendar result string."
-  (let ((temp-file (make-temp-file "icalendar-tests-ics")))
+  (ert-with-temp-file temp-file
+    :suffix "icalendar-tests-ics"
     (unwind-protect
-	(progn
-	  (with-temp-buffer
-	    (insert input)
-	    (icalendar-export-region (point-min) (point-max) temp-file))
-	  (save-excursion
-	    (find-file temp-file)
-	    (goto-char (point-min))
-	    (cond (expected-output
-		   (should (re-search-forward "^\\s-*BEGIN:VCALENDAR
+        (progn
+          (with-temp-buffer
+            (insert input)
+            (icalendar-export-region (point-min) (point-max) temp-file))
+          (save-excursion
+            (find-file temp-file)
+            (goto-char (point-min))
+            (cond (expected-output
+                   (should (re-search-forward "^\\s-*BEGIN:VCALENDAR
 PRODID:-//Emacs//NONSGML icalendar.el//EN
 VERSION:2.0
 BEGIN:VEVENT
@@ -695,23 +728,22 @@ UID:emacs[0-9]+
 END:VEVENT
 END:VCALENDAR
 \\s-*$"
-					      nil t))
-		   (should (string-match
-			    (concat "^\\s-*"
-				    (regexp-quote (buffer-substring-no-properties
-						   (match-beginning 1) (match-end 1)))
-				    "\\s-*$")
-			    expected-output)))
-		  (t
-		   (should (re-search-forward "^\\s-*BEGIN:VCALENDAR
+                                              nil t))
+                   (should (string-match
+                            (concat "^\\s-*"
+                                    (regexp-quote (buffer-substring-no-properties
+                                                   (match-beginning 1) (match-end 1)))
+                                    "\\s-*$")
+                            expected-output)))
+                  (t
+                   (should (re-search-forward "^\\s-*BEGIN:VCALENDAR
 PRODID:-//Emacs//NONSGML icalendar.el//EN
 VERSION:2.0
 END:VCALENDAR
 \\s-*$"
-					      nil t))))))
+                                              nil t))))))
       ;; cleanup!!
-      (kill-buffer (find-buffer-visiting temp-file))
-      (delete-file temp-file))))
+      (kill-buffer (find-buffer-visiting temp-file)))))
 
 (ert-deftest icalendar-export-ordinary-no-time ()
   "Perform export test."
@@ -820,18 +852,18 @@ SUMMARY:yearly no time
   "Perform export test."
   ;; anniversaries
   (icalendar-tests--test-export
-   "%%(diary-anniversary 1989 10 3) anniversary no time"
-   "%%(diary-anniversary 3 10 1989) anniversary no time"
-   "%%(diary-anniversary 10 3 1989) anniversary no time"
+   "%%(diary-anniversary 1988 10 3) anniversary no time"
+   "%%(diary-anniversary 3 10 1988) anniversary no time"
+   "%%(diary-anniversary 10 3 1988) anniversary no time"
    "DTSTART;VALUE=DATE:19891003
 DTEND;VALUE=DATE:19891004
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
 SUMMARY:anniversary no time
 ")
   (icalendar-tests--test-export
-   "%%(diary-anniversary 1989 10 3) 19:00-20:00 anniversary with time"
-   "%%(diary-anniversary 3 10 1989) 19:00-20:00 anniversary with time"
-   "%%(diary-anniversary 10 3 1989) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 1988 10 3) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 3 10 1988) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 10 3 1988) 19:00-20:00 anniversary with time"
    "DTSTART;VALUE=DATE-TIME:19891003T190000
 DTEND;VALUE=DATE-TIME:19891004T200000
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
@@ -881,12 +913,12 @@ SUMMARY:no alarm
 "
    nil)
 
-    ;; 10 minutes in advance, audio
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 audio alarm"
-     "17 Nov 2014 19:30 audio alarm"
-     "Nov 17 2014 19:30 audio alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 10 minutes in advance, audio
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 audio alarm"
+   "17 Nov 2014 19:30 audio alarm"
+   "Nov 17 2014 19:30 audio alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:audio alarm
 BEGIN:VALARM
@@ -894,14 +926,14 @@ ACTION:AUDIO
 TRIGGER:-PT10M
 END:VALARM
 "
-     '(10 ((audio))))
+   '(10 ((audio))))
 
-    ;; 20 minutes in advance, display
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 display alarm"
-     "17 Nov 2014 19:30 display alarm"
-     "Nov 17 2014 19:30 display alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 20 minutes in advance, display
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 display alarm"
+   "17 Nov 2014 19:30 display alarm"
+   "Nov 17 2014 19:30 display alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:display alarm
 BEGIN:VALARM
@@ -910,14 +942,14 @@ TRIGGER:-PT20M
 DESCRIPTION:display alarm
 END:VALARM
 "
-     '(20 ((display))))
+   '(20 ((display))))
 
-    ;; 66 minutes in advance, email
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 email alarm"
-     "17 Nov 2014 19:30 email alarm"
-     "Nov 17 2014 19:30 email alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 66 minutes in advance, email
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 email alarm"
+   "17 Nov 2014 19:30 email alarm"
+   "Nov 17 2014 19:30 email alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:email alarm
 BEGIN:VALARM
@@ -929,14 +961,14 @@ ATTENDEE:MAILTO:att.one@email.com
 ATTENDEE:MAILTO:att.two@email.com
 END:VALARM
 "
-     '(66 ((email ("att.one@email.com" "att.two@email.com")))))
+   '(66 ((email ("att.one@email.com" "att.two@email.com")))))
 
-    ;; 2 minutes in advance, all alarms
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 all alarms"
-     "17 Nov 2014 19:30 all alarms"
-     "Nov 17 2014 19:30 all alarms"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 2 minutes in advance, all alarms
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 all alarms"
+   "17 Nov 2014 19:30 all alarms"
+   "Nov 17 2014 19:30 all alarms"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:all alarms
 BEGIN:VALARM
@@ -957,19 +989,56 @@ TRIGGER:-PT2M
 DESCRIPTION:all alarms
 END:VALARM
 "
-     '(2 ((email ("att.one@email.com" "att.two@email.com")) (audio) (display)))))
+   '(2 ((email ("att.one@email.com" "att.two@email.com")) (audio) (display)))))
+
+;; ======================================================================
+;; #bug56241
+;; ======================================================================
+(defun icalendar-tests--diary-float (&rest args)
+  (apply #'diary-float args))
+
+(ert-deftest icalendar-export-bug-56241-dotted-pair ()
+  "See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=56241#5"
+  (let ((icalendar-export-sexp-enumeration-days 366))
+    (mapc (lambda (diary-string)
+            (should (string= "" (icalendar-tests--get-error-string-for-export
+                                 diary-string))))
+          '("%%(diary-float 7 0 1) First Sunday in July 1"
+            "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
+
+
+;; (ert-deftest icalendar-export-bug-56241-sexp-does-not-match ()
+;;   "Reported in #bug56241 -- needs to be fixed!"
+;;   (let ((icalendar-export-sexp-enumeration-days 0))
+;;     (mapc (lambda (diary-string)
+;;             (should (string= "" (icalendar-tests--get-error-string-for-export
+;;                                  diary-string))))
+;;           '("%%(diary-float 7 0 1) First Sunday in July 1"
+;;             "%%(icalendar-tests--diary-float 7 0 1) First Sunday in July 2"))))
+
+(ert-deftest icalendar-export-bug-56241-nested-sexps ()
+  "Reported in #bug56241 -- needs to be fixed!"
+  (let ((icalendar-export-sexp-enumeration-days 366))
+    (mapc (lambda (diary-string)
+            (should (string= "" (icalendar-tests--get-error-string-for-export
+                                 diary-string))))
+          '("%%(= (calendar-day-of-week date) 0) Sunday 1"
+            "%%(= 0 (calendar-day-of-week date)) Sunday 2"))))
 
 ;; ======================================================================
 ;; Import tests
 ;; ======================================================================
 
-(defun icalendar-tests--test-import (input expected-iso expected-european
-					   expected-american)
+(defun icalendar-tests--test-import (filename expected-iso expected-european
+					      expected-american)
   "Perform import test.
-Argument INPUT icalendar event string.
-Argument EXPECTED-ISO expected iso style diary string.
-Argument EXPECTED-EUROPEAN expected european style diary string.
-Argument EXPECTED-AMERICAN expected american style diary string.
+Argument FILENAME ics file to import.
+Argument EXPECTED-ISO diary-file containing expected
+iso-calendar-style result.
+Argument EXPECTED-EUROPEAN diary-file containing expected
+european-calendar-style result.
+Argument EXPECTED-AMERICAN diary-file containing expected
+american-calendar-style result.
 During import test the timezone is set to Central European Time."
   (let ((timezone (getenv "TZ")))
     (unwind-protect
@@ -978,14 +1047,7 @@ During import test the timezone is set to Central European Time."
 	  ;; Eg hydra.nixos.org.
 	  (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
 	  (with-temp-buffer
-	    (if (string-match "^BEGIN:VCALENDAR" input)
-		(insert input)
-	      (insert "BEGIN:VCALENDAR\nPRODID:-//Emacs//NONSGML icalendar.el//EN\n")
-	      (insert "VERSION:2.0\nBEGIN:VEVENT\n")
-	      (insert input)
-	      (unless (eq (char-before) ?\n)
-		(insert "\n"))
-	      (insert "END:VEVENT\nEND:VCALENDAR\n"))
+	    (insert (icalendar-tests--get-file-contents filename))
 	    (let ((icalendar-import-format "%s%d%l%o%t%u%c%U")
 		  (icalendar-import-format-summary "%s")
 		  (icalendar-import-format-location "\n Location: %s")
@@ -998,26 +1060,30 @@ During import test the timezone is set to Central European Time."
 		  calendar-date-style)
 	      (when expected-iso
 		(setq calendar-date-style 'iso)
-		(icalendar-tests--do-test-import input expected-iso))
+		(icalendar-tests--do-test-import
+                 (icalendar-tests--get-file-contents expected-iso)))
 	      (when expected-european
 		(setq calendar-date-style 'european)
-		(icalendar-tests--do-test-import input expected-european))
+		(icalendar-tests--do-test-import
+                 (icalendar-tests--get-file-contents expected-european)))
 	      (when expected-american
 		(setq calendar-date-style 'american)
-		(icalendar-tests--do-test-import input expected-american)))))
+		(icalendar-tests--do-test-import
+                 (icalendar-tests--get-file-contents expected-american))))))
       (setenv "TZ" timezone))))
 
-(defun icalendar-tests--do-test-import (_input expected-output)
+(defun icalendar-tests--do-test-import (expected-output)
   "Actually perform import test.
-Argument INPUT input icalendar string.
-Argument EXPECTED-OUTPUT expected diary string."
-  (let ((temp-file (make-temp-file "icalendar-test-diary")))
+Argument EXPECTED-OUTPUT file containing expected diary string."
+  (ert-with-temp-file temp-file
+    :suffix "icalendar-test-diary"
     ;; Test the Catch-the-mysterious-coding-header logic below.
     ;; Ruby-mode adds an after-save-hook which inserts the header!
     ;; (save-excursion
     ;;   (find-file temp-file)
     ;;   (ruby-mode))
-    (icalendar-import-buffer temp-file t t)
+    (let ((coding-system-for-write 'raw-text))
+      (icalendar-import-buffer temp-file t t))
     (save-excursion
       (find-file temp-file)
       ;; Check for the mysterious "# coding: ..." header, remove it
@@ -1040,457 +1106,139 @@ Argument EXPECTED-OUTPUT expected diary string."
 
       (let ((result (buffer-substring-no-properties (point-min) (point-max))))
         (should (string= expected-output result)))
-      (kill-buffer (find-buffer-visiting temp-file))
-      (delete-file temp-file))))
+      (kill-buffer (find-buffer-visiting temp-file)))))
 
 (ert-deftest icalendar-import-non-recurring ()
   "Perform standard import tests."
-  (icalendar-tests--test-import
-   "SUMMARY:non-recurring
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000"
-   "&2003/9/19 09:00-11:30 non-recurring\n"
-   "&19/9/2003 09:00-11:30 non-recurring\n"
-   "&9/19/2003 09:00-11:30 non-recurring\n")
-  (icalendar-tests--test-import
-   "SUMMARY:non-recurring allday
-DTSTART;VALUE=DATE-TIME:20030919"
-   "&2003/9/19 non-recurring allday\n"
-   "&19/9/2003 non-recurring allday\n"
-   "&9/19/2003 non-recurring allday\n")
-  (icalendar-tests--test-import
-   ;; Checkdoc removes trailing blanks.  Therefore: format!
-   (format "%s\n%s\n%s" "SUMMARY:long " " summary"
-           "DTSTART;VALUE=DATE:20030919")
-   "&2003/9/19 long summary\n"
-   "&19/9/2003 long summary\n"
-   "&9/19/2003 long summary\n")
-  (icalendar-tests--test-import
-   "UID:748f2da0-0d9b-11d8-97af-b4ec8686ea61
-SUMMARY:Sommerferien
-STATUS:TENTATIVE
-CLASS:PRIVATE
-X-MOZILLA-ALARM-DEFAULT-UNITS:Minuten
-X-MOZILLA-RECUR-DEFAULT-INTERVAL:0
-DTSTART;VALUE=DATE:20040719
-DTEND;VALUE=DATE:20040828
-DTSTAMP:20031103T011641Z
-"
-   "&%%(and (diary-block 2004 7 19 2004 8 27)) Sommerferien
- Status: TENTATIVE
- Class: PRIVATE
- UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
-"
-   "&%%(and (diary-block 19 7 2004 27 8 2004)) Sommerferien
- Status: TENTATIVE
- Class: PRIVATE
- UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
-"
-   "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien
- Status: TENTATIVE
- Class: PRIVATE
- UID: 748f2da0-0d9b-11d8-97af-b4ec8686ea61
-")
-  (icalendar-tests--test-import
-   "UID
- :04979712-3902-11d9-93dd-8f9f4afe08da
-SUMMARY
- :folded summary
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- :20041123T140000
-DTEND
- :20041123T143000
-DTSTAMP
- :20041118T013430Z
-LAST-MODIFIED
- :20041118T013640Z
-"
-   "&2004/11/23 14:00-14:30 folded summary
- Status: TENTATIVE
- Class: PRIVATE
- UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n"
-   "&23/11/2004 14:00-14:30 folded summary
- Status: TENTATIVE
- Class: PRIVATE
- UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n"
-   "&11/23/2004 14:00-14:30 folded summary
- Status: TENTATIVE
- Class: PRIVATE
- UID: 04979712-3902-11d9-93dd-8f9f4afe08da\n")
+  (icalendar-tests--test-import "import-non-recurring-1.ics"
+                                "import-non-recurring-1.diary-iso"
+                                "import-non-recurring-1.diary-european"
+                                "import-non-recurring-1.diary-american")
+  (icalendar-tests--test-import "import-non-recurring-all-day.ics"
+                                "import-non-recurring-all-day.diary-iso"
+                                "import-non-recurring-all-day.diary-european"
+                                "import-non-recurring-all-day.diary-american")
+  (icalendar-tests--test-import "import-non-recurring-long-summary.ics"
+                                "import-non-recurring-long-summary.diary-iso"
+                                "import-non-recurring-long-summary.diary-european"
+                                "import-non-recurring-long-summary.diary-american")
+  (icalendar-tests--test-import "import-non-recurring-block.ics"
+                                "import-non-recurring-block.diary-iso"
+                                "import-non-recurring-block.diary-european"
+                                "import-non-recurring-block.diary-american")
+  (icalendar-tests--test-import "import-non-recurring-folded-summary.ics"
+                                "import-non-recurring-folded-summary.diary-iso"
+                                "import-non-recurring-folded-summary.diary-european"
+                                "import-non-recurring-folded-summary.diary-american")
+  (icalendar-tests--test-import "import-non-recurring-another-example.ics"
+                                "import-non-recurring-another-example.diary-iso"
+                                "import-non-recurring-another-example.diary-european"
+                                "import-non-recurring-another-example.diary-american"))
 
-  (icalendar-tests--test-import
-   "UID
- :6161a312-3902-11d9-b512-f764153bb28b
-SUMMARY
- :another example
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- :20041123T144500
-DTEND
- :20041123T154500
-DTSTAMP
- :20041118T013641Z
-"
-   "&2004/11/23 14:45-15:45 another example
- Status: TENTATIVE
- Class: PRIVATE
- UID: 6161a312-3902-11d9-b512-f764153bb28b\n"
-   "&23/11/2004 14:45-15:45 another example
- Status: TENTATIVE
- Class: PRIVATE
- UID: 6161a312-3902-11d9-b512-f764153bb28b\n"
-   "&11/23/2004 14:45-15:45 another example
- Status: TENTATIVE
- Class: PRIVATE
- UID: 6161a312-3902-11d9-b512-f764153bb28b\n"))
 
 (ert-deftest icalendar-import-rrule ()
-  (icalendar-tests--test-import
-   "SUMMARY:rrule daily
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=DAILY;
-"
-   "&%%(and (diary-cyclic 1 2003 9 19)) 09:00-11:30 rrule daily\n"
-   "&%%(and (diary-cyclic 1 19 9 2003)) 09:00-11:30 rrule daily\n"
-   "&%%(and (diary-cyclic 1 9 19 2003)) 09:00-11:30 rrule daily\n")
-  ;; RRULE examples
-  (icalendar-tests--test-import
-   "SUMMARY:rrule daily
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=DAILY;INTERVAL=2
-"
-   "&%%(and (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily\n"
-   "&%%(and (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily\n"
-   "&%%(and (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule daily with exceptions
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=DAILY;INTERVAL=2
-EXDATE:20030921,20030925
-"
-   "&%%(and (not (diary-date 2003 9 25)) (not (diary-date 2003 9 21)) (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily with exceptions\n"
-   "&%%(and (not (diary-date 25 9 2003)) (not (diary-date 21 9 2003)) (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily with exceptions\n"
-   "&%%(and (not (diary-date 9 25 2003)) (not (diary-date 9 21 2003)) (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily with exceptions\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule weekly
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=WEEKLY;
-"
-   "&%%(and (diary-cyclic 7 2003 9 19)) 09:00-11:30 rrule weekly\n"
-   "&%%(and (diary-cyclic 7 19 9 2003)) 09:00-11:30 rrule weekly\n"
-   "&%%(and (diary-cyclic 7 9 19 2003)) 09:00-11:30 rrule weekly\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule monthly no end
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=MONTHLY;
-"
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 9999 1 1)) 09:00-11:30 rrule monthly no end\n"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 1 1 9999)) 09:00-11:30 rrule monthly no end\n"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 1 9999)) 09:00-11:30 rrule monthly no end\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule monthly with end
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=MONTHLY;UNTIL=20050819;
-"
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2005 8 19)) 09:00-11:30 rrule monthly with end\n"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 8 2005)) 09:00-11:30 rrule monthly with end\n"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 8 19 2005)) 09:00-11:30 rrule monthly with end\n")
-  (icalendar-tests--test-import
-   "DTSTART;VALUE=DATE:20040815
-DTEND;VALUE=DATE:20040816
-SUMMARY:Maria Himmelfahrt
-RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=8
-"
-   "&%%(and (diary-anniversary 2004 8 15))  Maria Himmelfahrt\n"
-   "&%%(and (diary-anniversary 15 8 2004))  Maria Himmelfahrt\n"
-   "&%%(and (diary-anniversary 8 15 2004))  Maria Himmelfahrt\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule yearly
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=YEARLY;INTERVAL=2
-"
-   "&%%(and (diary-anniversary 2003 9 19)) 09:00-11:30 rrule yearly\n" ;FIXME
-   "&%%(and (diary-anniversary 19 9 2003)) 09:00-11:30 rrule yearly\n" ;FIXME
-   "&%%(and (diary-anniversary 9 19 2003)) 09:00-11:30 rrule yearly\n") ;FIXME
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count daily short
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=DAILY;COUNT=1;INTERVAL=1
-"
-   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 9 19)) 09:00-11:30 rrule count daily short\n"
-   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 19 9 2003)) 09:00-11:30 rrule count daily short\n"
-   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 9 19 2003)) 09:00-11:30 rrule count daily short\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count daily long
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=DAILY;COUNT=14;INTERVAL=1
-"
-   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 10 2)) 09:00-11:30 rrule count daily long\n"
-   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 2 10 2003)) 09:00-11:30 rrule count daily long\n"
-   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 10 2 2003)) 09:00-11:30 rrule count daily long\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count bi-weekly 3 times
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=WEEKLY;COUNT=3;INTERVAL=2
-"
-   "&%%(and (diary-cyclic 14 2003 9 19) (diary-block 2003 9 19 2003 10 31)) 09:00-11:30 rrule count bi-weekly 3 times\n"
-   "&%%(and (diary-cyclic 14 19 9 2003) (diary-block 19 9 2003 31 10 2003)) 09:00-11:30 rrule count bi-weekly 3 times\n"
-   "&%%(and (diary-cyclic 14 9 19 2003) (diary-block 9 19 2003 10 31 2003)) 09:00-11:30 rrule count bi-weekly 3 times\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count monthly
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=MONTHLY;INTERVAL=1;COUNT=5
-"
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 1 19)) 09:00-11:30 rrule count monthly\n"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 1 2004)) 09:00-11:30 rrule count monthly\n"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 19 2004)) 09:00-11:30 rrule count monthly\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count every second month
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=5
-"
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 5 19)) 09:00-11:30 rrule count every second month\n" ;FIXME
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 5 2004)) 09:00-11:30 rrule count every second month\n" ;FIXME
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 5 19 2004)) 09:00-11:30 rrule count every second month\n") ;FIXME
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count yearly
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=YEARLY;INTERVAL=1;COUNT=5
-"
-   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2007 9 19)) 09:00-11:30 rrule count yearly\n"
-   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2007)) 09:00-11:30 rrule count yearly\n"
-   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2007)) 09:00-11:30 rrule count yearly\n")
-  (icalendar-tests--test-import
-   "SUMMARY:rrule count every second year
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000
-RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=5
-"
-   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2011 9 19)) 09:00-11:30 rrule count every second year\n" ;FIXME!!!
-   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2011)) 09:00-11:30 rrule count every second year\n" ;FIXME!!!
-   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2011)) 09:00-11:30 rrule count every second year\n") ;FIXME!!!
-)
+  (icalendar-tests--test-import "import-rrule-daily.ics"
+                                "import-rrule-daily.diary-iso"
+                                "import-rrule-daily.diary-european"
+                                "import-rrule-daily.diary-american")
+  (icalendar-tests--test-import "import-rrule-daily-two-day.ics"
+                                "import-rrule-daily-two-day.diary-iso"
+                                "import-rrule-daily-two-day.diary-european"
+                                "import-rrule-daily-two-day.diary-american")
+  (icalendar-tests--test-import "import-rrule-daily-with-exceptions.ics"
+                                "import-rrule-daily-with-exceptions.diary-iso"
+                                "import-rrule-daily-with-exceptions.diary-european"
+                                "import-rrule-daily-with-exceptions.diary-american")
+  (icalendar-tests--test-import "import-rrule-weekly.ics"
+                                "import-rrule-weekly.diary-iso"
+                                "import-rrule-weekly.diary-european"
+                                "import-rrule-weekly.diary-american")
+  (icalendar-tests--test-import "import-rrule-monthly-no-end.ics"
+                                "import-rrule-monthly-no-end.diary-iso"
+                                "import-rrule-monthly-no-end.diary-european"
+                                "import-rrule-monthly-no-end.diary-american")
+  (icalendar-tests--test-import "import-rrule-monthly-with-end.ics"
+                                "import-rrule-monthly-with-end.diary-iso"
+                                "import-rrule-monthly-with-end.diary-european"
+                                "import-rrule-monthly-with-end.diary-american")
+  (icalendar-tests--test-import "import-rrule-anniversary.ics"
+                                "import-rrule-anniversary.diary-iso"
+                                "import-rrule-anniversary.diary-european"
+                                "import-rrule-anniversary.diary-american")
+  (icalendar-tests--test-import "import-rrule-yearly.ics"
+                                "import-rrule-yearly.diary-iso"
+                                "import-rrule-yearly.diary-european"
+                                "import-rrule-yearly.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-daily-short.ics"
+                                "import-rrule-count-daily-short.diary-iso"
+                                "import-rrule-count-daily-short.diary-european"
+                                "import-rrule-count-daily-short.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-daily-long.ics"
+                                "import-rrule-count-daily-long.diary-iso"
+                                "import-rrule-count-daily-long.diary-european"
+                                "import-rrule-count-daily-long.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-monthly.ics"
+                                "import-rrule-count-monthly.diary-iso"
+                                "import-rrule-count-monthly.diary-european"
+                                "import-rrule-count-monthly.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-every-second-month.ics"
+                                "import-rrule-count-every-second-month.diary-iso"
+                                "import-rrule-count-every-second-month.diary-european"
+                                "import-rrule-count-every-second-month.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-yearly.ics"
+                                "import-rrule-count-yearly.diary-iso"
+                                "import-rrule-count-yearly.diary-european"
+                                "import-rrule-count-yearly.diary-american")
+  (icalendar-tests--test-import "import-rrule-count-every-second-year.ics"
+                                "import-rrule-count-every-second-year.diary-iso"
+                                "import-rrule-count-every-second-year.diary-european"
+                                "import-rrule-count-every-second-year.diary-american")
+  )
 
 (ert-deftest icalendar-import-duration ()
-  ;; duration
-  (icalendar-tests--test-import
-   "DTSTART;VALUE=DATE:20050217
-SUMMARY:duration
-DURATION:P7D
-"
-   "&%%(and (diary-block 2005 2 17 2005 2 23)) duration\n"
-   "&%%(and (diary-block 17 2 2005 23 2 2005)) duration\n"
-   "&%%(and (diary-block 2 17 2005 2 23 2005)) duration\n")
-  (icalendar-tests--test-import
-   "UID:20041127T183329Z-18215-1001-4536-49109@andromeda
-DTSTAMP:20041127T183315Z
-LAST-MODIFIED:20041127T183329
-SUMMARY:Urlaub
-DTSTART;VALUE=DATE:20011221
-DTEND;VALUE=DATE:20011221
-RRULE:FREQ=DAILY;UNTIL=20011229;INTERVAL=1;WKST=SU
-CLASS:PUBLIC
-SEQUENCE:1
-CREATED:20041127T183329
-"
-   "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub
- Class: PUBLIC
- UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"
-   "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub
- Class: PUBLIC
- UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"
-   "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub
- Class: PUBLIC
- UID: 20041127T183329Z-18215-1001-4536-49109@andromeda\n"))
+  (icalendar-tests--test-import "import-duration.ics"
+                                "import-duration.diary-iso"
+                                "import-duration.diary-european"
+                                "import-duration.diary-american")
+  ;; duration-2: this is actually an rrule test
+  (icalendar-tests--test-import "import-duration-2.ics"
+                                "import-duration-2.diary-iso"
+                                "import-duration-2.diary-european"
+                                "import-duration-2.diary-american"))
 
 (ert-deftest icalendar-import-bug-6766 ()
   ;;bug#6766 -- multiple byday values in a weekly rrule
-  (icalendar-tests--test-import
-"CLASS:PUBLIC
-DTEND;TZID=America/New_York:20100421T120000
-DTSTAMP:20100525T141214Z
-DTSTART;TZID=America/New_York:20100421T113000
-RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR
-SEQUENCE:1
-STATUS:CONFIRMED
-SUMMARY:Scrum
-TRANSP:OPAQUE
-UID:8814e3f9-7482-408f-996c-3bfe486a1262
-END:VEVENT
-BEGIN:VEVENT
-CLASS:PUBLIC
-DTSTAMP:20100525T141214Z
-DTSTART;VALUE=DATE:20100422
-DTEND;VALUE=DATE:20100423
-RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU,TH
-SEQUENCE:1
-SUMMARY:Tues + Thurs thinking
-TRANSP:OPAQUE
-UID:8814e3f9-7482-408f-996c-3bfe486a1263
-"
-"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 2010 4 21)) 11:30-12:00 Scrum
- Status: CONFIRMED
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1262
-&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 2010 4 22)) Tues + Thurs thinking
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1263
-"
-"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 21 4 2010)) 11:30-12:00 Scrum
- Status: CONFIRMED
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1262
-&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 22 4 2010)) Tues + Thurs thinking
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1263
-"
-"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 4 21 2010)) 11:30-12:00 Scrum
- Status: CONFIRMED
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1262
-&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 4 22 2010)) Tues + Thurs thinking
- Class: PUBLIC
- UID: 8814e3f9-7482-408f-996c-3bfe486a1263
-"))
+  (icalendar-tests--test-import "import-bug-6766.ics"
+                                "import-bug-6766.diary-iso"
+                                "import-bug-6766.diary-european"
+                                "import-bug-6766.diary-american"))
 
 (ert-deftest icalendar-import-bug-24199 ()
   ;;bug#24199 -- monthly rule with byday-clause
-  (icalendar-tests--test-import
-"
-SUMMARY:Summary
-DESCRIPTION:Desc
-LOCATION:Loc
-DTSTART:20151202T124600
-DTEND:20151202T160000
-RRULE:FREQ=MONTHLY;BYDAY=1WE;INTERVAL=1
-EXDATE:20160106T114600Z
-EXDATE:20160203T114600Z
-EXDATE:20160302T114600Z
-EXDATE:20160504T104600Z
-EXDATE:20160601T104600Z
-CLASS:DEFAULT
-TRANSP:OPAQUE
-BEGIN:VALARM
-ACTION:DISPLAY
-TRIGGER;VALUE=DURATION:-PT3H
-END:VALARM
-LAST-MODIFIED:20160805T191040Z
-UID:9188710a-08a7-4061-bae3-d4cf4972599a
-"
-"&%%(and (not (diary-date 2016 1 6)) (not (diary-date 2016 2 3)) (not (diary-date 2016 3 2)) (not (diary-date 2016 5 4)) (not (diary-date 2016 6 1)) (diary-float t 3 1) (diary-block 2015 12 2 9999 1 1)) 12:46-16:00 Summary
- Desc: Desc
- Location: Loc
- Class: DEFAULT
- UID: 9188710a-08a7-4061-bae3-d4cf4972599a
-"
-"&%%(and (not (diary-date 6 1 2016)) (not (diary-date 3 2 2016)) (not (diary-date 2 3 2016)) (not (diary-date 4 5 2016)) (not (diary-date 1 6 2016)) (diary-float t 3 1) (diary-block 2 12 2015 1 1 9999)) 12:46-16:00 Summary
- Desc: Desc
- Location: Loc
- Class: DEFAULT
- UID: 9188710a-08a7-4061-bae3-d4cf4972599a
-"
-"&%%(and (not (diary-date 1 6 2016)) (not (diary-date 2 3 2016)) (not (diary-date 3 2 2016)) (not (diary-date 5 4 2016)) (not (diary-date 6 1 2016)) (diary-float t 3 1) (diary-block 12 2 2015 1 1 9999)) 12:46-16:00 Summary
- Desc: Desc
- Location: Loc
- Class: DEFAULT
- UID: 9188710a-08a7-4061-bae3-d4cf4972599a
-"
-))
+  (icalendar-tests--test-import "import-bug-24199.ics"
+                                "import-bug-24199.diary-iso"
+                                "import-bug-24199.diary-european"
+                                "import-bug-24199.diary-american"))
 
 (ert-deftest icalendar-import-bug-33277 ()
   ;;bug#33277 -- start time equals end time
-  (icalendar-tests--test-import
-   "DTSTART:20181105T200000Z
-DTSTAMP:20181105T181652Z
-DESCRIPTION:
-LAST-MODIFIED:20181105T181646Z
-LOCATION:
-SEQUENCE:0
-SUMMARY:event with same start/end time
-TRANSP:OPAQUE
-"
-
-   "&2018/11/5 21:00 event with same start/end time\n"
-   "&5/11/2018 21:00 event with same start/end time\n"
-   "&11/5/2018 21:00 event with same start/end time\n"
-   ))
+  (icalendar-tests--test-import "import-bug-33277.ics"
+                                "import-bug-33277.diary-iso"
+                                "import-bug-33277.diary-european"
+                                "import-bug-33277.diary-american"))
 
 (ert-deftest icalendar-import-multiple-vcalendars ()
-  (icalendar-tests--test-import
-   "DTSTART;VALUE=DATE:20110723
-SUMMARY:event-1
-"
-   "&2011/7/23 event-1\n"
-   "&23/7/2011 event-1\n"
-   "&7/23/2011 event-1\n")
-
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-PRODID:-//Emacs//NONSGML icalendar.el//EN
-VERSION:2.0\nBEGIN:VEVENT
-DTSTART;VALUE=DATE:20110723
-SUMMARY:event-1
-END:VEVENT
-END:VCALENDAR
-BEGIN:VCALENDAR
-PRODID:-//Emacs//NONSGML icalendar.el//EN
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20110724
-SUMMARY:event-2
-END:VEVENT
-END:VCALENDAR
-BEGIN:VCALENDAR
-PRODID:-//Emacs//NONSGML icalendar.el//EN
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20110725
-SUMMARY:event-3a
-END:VEVENT
-BEGIN:VEVENT
-DTSTART;VALUE=DATE:20110725
-SUMMARY:event-3b
-END:VEVENT
-END:VCALENDAR
-"
-   "&2011/7/23 event-1\n&2011/7/24 event-2\n&2011/7/25 event-3a\n&2011/7/25 event-3b\n"
-   "&23/7/2011 event-1\n&24/7/2011 event-2\n&25/7/2011 event-3a\n&25/7/2011 event-3b\n"
-   "&7/23/2011 event-1\n&7/24/2011 event-2\n&7/25/2011 event-3a\n&7/25/2011 event-3b\n"))
+  (icalendar-tests--test-import "import-multiple-vcalendars.ics"
+                                "import-multiple-vcalendars.diary-iso"
+                                "import-multiple-vcalendars.diary-european"
+                                "import-multiple-vcalendars.diary-american"))
 
 (ert-deftest icalendar-import-with-uid ()
   "Perform import test with uid."
-  (icalendar-tests--test-import
-   "UID:1234567890uid
-SUMMARY:non-recurring
-DTSTART;VALUE=DATE-TIME:20030919T090000
-DTEND;VALUE=DATE-TIME:20030919T113000"
-   "&2003/9/19 09:00-11:30 non-recurring\n UID: 1234567890uid\n"
-   "&19/9/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"
-   "&9/19/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"))
+  (icalendar-tests--test-import "import-with-uid.ics"
+                                "import-with-uid.diary-iso"
+                                "import-with-uid.diary-european"
+                                "import-with-uid.diary-american"))
 
 (ert-deftest icalendar-import-with-timezone ()
   ;; This is known to fail on MS-Windows, because the test assumes
@@ -1499,42 +1247,13 @@ DTEND;VALUE=DATE-TIME:20030919T113000"
                        :failed
                      :passed)
   ;; bug#11473
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-BEGIN:VTIMEZONE
-TZID:fictional, nonexistent, arbitrary
-BEGIN:STANDARD
-DTSTART:20100101T000000
-TZOFFSETFROM:+0200
-TZOFFSETTO:-0200
-RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=01
-END:STANDARD
-BEGIN:DAYLIGHT
-DTSTART:20101201T000000
-TZOFFSETFROM:-0200
-TZOFFSETTO:+0200
-RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=11
-END:DAYLIGHT
-END:VTIMEZONE
-BEGIN:VEVENT
-SUMMARY:standardtime
-DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20120115T120000
-DTEND;TZID=\"fictional, nonexistent, arbitrary\":20120115T123000
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:daylightsavingtime
-DTSTART;TZID=\"fictional, nonexistent, arbitrary\":20121215T120000
-DTEND;TZID=\"fictional, nonexistent, arbitrary\":20121215T123000
-END:VEVENT
-END:VCALENDAR"
-   ;; "standardtime" begins first sunday in january and is 4 hours behind CET
-   ;; "daylightsavingtime" begins first sunday in november and is 1 hour before CET
-   "&2012/1/15 15:00-15:30 standardtime
-&2012/12/15 11:00-11:30 daylightsavingtime
-"
-   nil
-   nil)
-  )
+  ;; "standardtime" begins first sunday in january and is 4 hours behind CET
+  ;; "daylightsavingtime" begins first sunday in november and is 1 hour before CET
+  (icalendar-tests--test-import "import-with-timezone.ics"
+                                "import-with-timezone.diary-iso"
+                                nil
+                                nil))
+
 ;; ======================================================================
 ;; Cycle
 ;; ======================================================================
@@ -1565,35 +1284,33 @@ Argument INPUT icalendar event string."
 
 (defun icalendar-tests--do-test-cycle ()
   "Actually perform import/export cycle test."
-  (let ((temp-diary (make-temp-file "icalendar-test-diary"))
-        (temp-ics (make-temp-file "icalendar-test-ics"))
-        (org-input (buffer-substring-no-properties (point-min) (point-max))))
+  (ert-with-temp-file temp-diary
+    (ert-with-temp-file temp-ics
+      (let ((org-input (buffer-substring-no-properties (point-min) (point-max))))
 
-    (unwind-protect
-	(progn
-	  ;; step 1: import
-	  (icalendar-import-buffer temp-diary t t)
+        (unwind-protect
+            (progn
+              ;; step 1: import
+              (icalendar-import-buffer temp-diary t t)
 
-	  ;; step 2: export what was just imported
-	  (save-excursion
-	    (find-file temp-diary)
-	    (icalendar-export-region (point-min) (point-max) temp-ics))
+              ;; step 2: export what was just imported
+              (save-excursion
+                (find-file temp-diary)
+                (icalendar-export-region (point-min) (point-max) temp-ics))
 
-	  ;; compare the output of step 2 with the input of step 1
-	  (save-excursion
-	    (find-file temp-ics)
-	    (goto-char (point-min))
-	    ;;(when (re-search-forward "\nUID:.*\n" nil t)
-	      ;;(replace-match "\n"))
-	    (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
-	      (should (string= org-input cycled)))))
-      ;; clean up
-      (kill-buffer (find-buffer-visiting temp-diary))
-      (with-current-buffer (find-buffer-visiting temp-ics)
-	(set-buffer-modified-p nil)
-	(kill-buffer (current-buffer)))
-      (delete-file temp-diary)
-      (delete-file temp-ics))))
+              ;; compare the output of step 2 with the input of step 1
+              (save-excursion
+                (find-file temp-ics)
+                (goto-char (point-min))
+                ;;(when (re-search-forward "\nUID:.*\n" nil t)
+                ;;(replace-match "\n"))
+                (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
+                  (should (string= org-input cycled)))))
+          ;; clean up
+          (kill-buffer (find-buffer-visiting temp-diary))
+          (with-current-buffer (find-buffer-visiting temp-ics)
+            (set-buffer-modified-p nil)
+            (kill-buffer (current-buffer))))))))
 
 (ert-deftest icalendar-cycle ()
   "Perform cycling tests.
@@ -1613,8 +1330,8 @@ DESCRIPTION:beschreibung!
 LOCATION:nowhere
 ORGANIZER:ulf
 ")
-    (icalendar-tests--test-cycle
-     "UID:4711
+  (icalendar-tests--test-cycle
+   "UID:4711
 DTSTART;VALUE=DATE:19190909
 DTEND;VALUE=DATE:19190910
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=09
@@ -1632,237 +1349,27 @@ SUMMARY:and diary-anniversary
                        :failed
                      :passed)
   ;; 2003-05-29
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-METHOD:REQUEST
-PRODID:Microsoft CDO for Microsoft Exchange
-VERSION:2.0
-BEGIN:VTIMEZONE
-TZID:Kolkata, Chennai, Mumbai, New Delhi
-X-MICROSOFT-CDO-TZID:23
-BEGIN:STANDARD
-DTSTART:16010101T000000
-TZOFFSETFROM:+0530
-TZOFFSETTO:+0530
-END:STANDARD
-BEGIN:DAYLIGHT
-DTSTART:16010101T000000
-TZOFFSETFROM:+0530
-TZOFFSETTO:+0530
-END:DAYLIGHT
-END:VTIMEZONE
-BEGIN:VEVENT
-DTSTAMP:20030509T043439Z
-DTSTART;TZID=\"Kolkata, Chennai, Mumbai, New Delhi\":20030509T103000
-SUMMARY:On-Site Interview
-UID:040000008200E00074C5B7101A82E0080000000080B6DE661216C301000000000000000
- 010000000DB823520692542408ED02D7023F9DFF9
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Xxxxx
- xxx Xxxxxxxxxxxx\":MAILTO:xxxxxxxx@xxxxxxx.com
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Yyyyyyy Y
- yyyy\":MAILTO:yyyyyyy@yyyyyyy.com
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Zzzz Zzzz
- zz\":MAILTO:zzzzzz@zzzzzzz.com
-ORGANIZER;CN=\"Aaaaaa Aaaaa\":MAILTO:aaaaaaa@aaaaaaa.com
-LOCATION:Cccc
-DTEND;TZID=\"Kolkata, Chennai, Mumbai, New Delhi\":20030509T153000
-DESCRIPTION:10:30am - Blah
-SEQUENCE:0
-PRIORITY:5
-CLASS:
-CREATED:20030509T043439Z
-LAST-MODIFIED:20030509T043459Z
-STATUS:CONFIRMED
-TRANSP:OPAQUE
-X-MICROSOFT-CDO-BUSYSTATUS:BUSY
-X-MICROSOFT-CDO-INSTTYPE:0
-X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
-X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
-X-MICROSOFT-CDO-IMPORTANCE:1
-X-MICROSOFT-CDO-OWNERAPPTID:126441427
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:REMINDER
-TRIGGER;RELATED=START:-PT00H15M00S
-END:VALARM
-END:VEVENT
-END:VCALENDAR"
-   nil
-   "&9/5/2003 07:00-12:00 On-Site Interview
- Desc: 10:30am - Blah
- Location: Cccc
- Organizer: MAILTO:aaaaaaa@aaaaaaa.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E0080000000080B6DE661216C301000000000000000010000000DB823520692542408ED02D7023F9DFF9
-"
-   "&5/9/2003 07:00-12:00 On-Site Interview
- Desc: 10:30am - Blah
- Location: Cccc
- Organizer: MAILTO:aaaaaaa@aaaaaaa.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E0080000000080B6DE661216C301000000000000000010000000DB823520692542408ED02D7023F9DFF9
-")
+  (icalendar-tests--test-import "import-real-world-2003-05-29.ics"
+                                nil
+                                "import-real-world-2003-05-29.diary-european"
+                                "import-real-world-2003-05-29.diary-american")
 
-  ;; created with http://apps.marudot.com/ical/
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//www.marudot.com//iCal Event Maker
-X-WR-CALNAME:Test
-CALSCALE:GREGORIAN
-BEGIN:VTIMEZONE
-TZID:Asia/Tehran
-TZURL:http://tzurl.org/zoneinfo-outlook/Asia/Tehran
-X-LIC-LOCATION:Asia/Tehran
-BEGIN:STANDARD
-TZOFFSETFROM:+0330
-TZOFFSETTO:+0330
-TZNAME:IRST
-DTSTART:19700101T000000
-END:STANDARD
-END:VTIMEZONE
-BEGIN:VEVENT
-DTSTAMP:20141116T171439Z
-UID:20141116T171439Z-678877132@marudot.com
-DTSTART;TZID=\"Asia/Tehran\":20141116T070000
-DTEND;TZID=\"Asia/Tehran\":20141116T080000
-SUMMARY:NoDST
-DESCRIPTION:Test event from timezone without DST
-LOCATION:Everywhere
-END:VEVENT
-END:VCALENDAR"
-   nil
-   "&16/11/2014 04:30-05:30 NoDST
- Desc: Test event from timezone without DST
- Location: Everywhere
- UID: 20141116T171439Z-678877132@marudot.com
-"
-   "&11/16/2014 04:30-05:30 NoDST
- Desc: Test event from timezone without DST
- Location: Everywhere
- UID: 20141116T171439Z-678877132@marudot.com
-")
-
+  ;; created with https://apps.marudot.com/ical/
+  (icalendar-tests--test-import "import-real-world-no-dst.ics"
+                                nil
+                                "import-real-world-no-dst.diary-european"
+                                "import-real-world-no-dst.diary-american")
 
   ;; 2003-06-18 a
-  (icalendar-tests--test-import
-   "DTSTAMP:20030618T195512Z
-DTSTART;TZID=\"Mountain Time (US & Canada)\":20030623T110000
-SUMMARY:Dress Rehearsal for XXXX-XXXX
-UID:040000008200E00074C5B7101A82E00800000000608AA7DA9835C301000000000000000
- 0100000007C3A6D65EE726E40B7F3D69A23BD567E
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"AAAAA,AAA
- AA (A-AAAAAAA,ex1)\":MAILTO:aaaaa_aaaaa@aaaaa.com
-ORGANIZER;CN=\"ABCD,TECHTRAINING
- (A-Americas,exgen1)\":MAILTO:xxx@xxxxx.com
-LOCATION:555 or TN 555-5555 ID 5555 & NochWas (see below)
-DTEND;TZID=\"Mountain Time (US & Canada)\":20030623T120000
-DESCRIPTION:753 Zeichen hier radiert
-SEQUENCE:0
-PRIORITY:5
-CLASS:
-CREATED:20030618T195518Z
-LAST-MODIFIED:20030618T195527Z
-STATUS:CONFIRMED
-TRANSP:OPAQUE
-X-MICROSOFT-CDO-BUSYSTATUS:BUSY
-X-MICROSOFT-CDO-INSTTYPE:0
-X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
-X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
-X-MICROSOFT-CDO-IMPORTANCE:1
-X-MICROSOFT-CDO-OWNERAPPTID:1022519251
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:REMINDER
-TRIGGER;RELATED=START:-PT00H15M00S
-END:VALARM"
-   nil
-   "&23/6/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
- Desc: 753 Zeichen hier radiert
- Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
- Organizer: MAILTO:xxx@xxxxx.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
-"
-   "&6/23/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
- Desc: 753 Zeichen hier radiert
- Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
- Organizer: MAILTO:xxx@xxxxx.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
-")
+  (icalendar-tests--test-import "import-real-world-2003-06-18a.ics"
+                                nil
+                                "import-real-world-2003-06-18a.diary-european"
+                                "import-real-world-2003-06-18a.diary-american")
   ;; 2003-06-18 b -- uses timezone
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-METHOD:REQUEST
-PRODID:Microsoft CDO for Microsoft Exchange
-VERSION:2.0
-BEGIN:VTIMEZONE
-TZID:Mountain Time (US & Canada)
-X-MICROSOFT-CDO-TZID:12
-BEGIN:STANDARD
-DTSTART:16010101T020000
-TZOFFSETFROM:-0600
-TZOFFSETTO:-0700
-RRULE:FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=10;BYDAY=-1SU
-END:STANDARD
-BEGIN:DAYLIGHT
-DTSTART:16010101T020000
-TZOFFSETFROM:-0700
-TZOFFSETTO:-0600
-RRULE:FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=4;BYDAY=1SU
-END:DAYLIGHT
-END:VTIMEZONE
-BEGIN:VEVENT
-DTSTAMP:20030618T230323Z
-DTSTART;TZID=\"Mountain Time (US & Canada)\":20030623T090000
-SUMMARY:Updated: Dress Rehearsal for ABC01-15
-UID:040000008200E00074C5B7101A82E00800000000608AA7DA9835C301000000000000000
- 0100000007C3A6D65EE726E40B7F3D69A23BD567E
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;X-REPLYTIME=20030618T20
- 0700Z;RSVP=TRUE;CN=\"AAAAA,AAAAAA
-\(A-AAAAAAA,ex1)\":MAILTO:aaaaaa_aaaaa@aaaaa
- .com
-ORGANIZER;CN=\"ABCD,TECHTRAINING
-\(A-Americas,exgen1)\":MAILTO:bbb@bbbbb.com
-LOCATION:123 or TN 123-1234 ID abcd & SonstWo (see below)
-DTEND;TZID=\"Mountain Time (US & Canada)\":20030623T100000
-DESCRIPTION:Viele Zeichen standen hier früher
-SEQUENCE:0
-PRIORITY:5
-CLASS:
-CREATED:20030618T230326Z
-LAST-MODIFIED:20030618T230335Z
-STATUS:CONFIRMED
-TRANSP:OPAQUE
-X-MICROSOFT-CDO-BUSYSTATUS:BUSY
-X-MICROSOFT-CDO-INSTTYPE:0
-X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
-X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
-X-MICROSOFT-CDO-IMPORTANCE:1
-X-MICROSOFT-CDO-OWNERAPPTID:1022519251
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:REMINDER
-TRIGGER;RELATED=START:-PT00H15M00S
-END:VALARM
-END:VEVENT
-END:VCALENDAR"
-   nil
-   "&23/6/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
- Desc: Viele Zeichen standen hier früher
- Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
- Organizer: MAILTO:bbb@bbbbb.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
-"
-   "&6/23/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
- Desc: Viele Zeichen standen hier früher
- Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
- Organizer: MAILTO:bbb@bbbbb.com
- Status: CONFIRMED
- UID: 040000008200E00074C5B7101A82E00800000000608AA7DA9835C3010000000000000000100000007C3A6D65EE726E40B7F3D69A23BD567E
-")
+  (icalendar-tests--test-import "import-real-world-2003-06-18b.ics"
+                                nil
+                                "import-real-world-2003-06-18b.diary-european"
+                                "import-real-world-2003-06-18b.diary-american")
   ;; export 2004-10-28 block entries
   (icalendar-tests--test-export
    nil
@@ -1924,7 +1431,7 @@ SUMMARY:ff")
    "
 >>> anniversaries:
 
-%%(diary-anniversary 3 28 1991) aa birthday (%d years old)"
+%%(diary-anniversary 3 28 1990) aa birthday (%d years old)"
    "DTSTART;VALUE=DATE:19910328
 DTEND;VALUE=DATE:19910329
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=03;BYMONTHDAY=28
@@ -1934,7 +1441,7 @@ SUMMARY:aa birthday (%d years old)
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 5 17 1957) bb birthday (%d years old)"
+   "%%(diary-anniversary 5 17 1956) bb birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570517
 DTEND;VALUE=DATE:19570518
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=05;BYMONTHDAY=17
@@ -1943,7 +1450,7 @@ SUMMARY:bb birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 6 8 1997) cc birthday (%d years old)"
+   "%%(diary-anniversary 6 8 1996) cc birthday (%d years old)"
    "DTSTART;VALUE=DATE:19970608
 DTEND;VALUE=DATE:19970609
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=06;BYMONTHDAY=08
@@ -1952,7 +1459,7 @@ SUMMARY:cc birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 7 22 1983) dd (%d years ago...!)"
+   "%%(diary-anniversary 7 22 1982) dd (%d years ago...!)"
    "DTSTART;VALUE=DATE:19830722
 DTEND;VALUE=DATE:19830723
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=07;BYMONTHDAY=22
@@ -1961,7 +1468,7 @@ SUMMARY:dd (%d years ago...!)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 8 1 1988) ee birthday (%d years old)"
+   "%%(diary-anniversary 8 1 1987) ee birthday (%d years old)"
    "DTSTART;VALUE=DATE:19880801
 DTEND;VALUE=DATE:19880802
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=08;BYMONTHDAY=01
@@ -1970,11 +1477,21 @@ SUMMARY:ee birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 9 21 1957) ff birthday (%d years old)"
+   "%%(diary-anniversary 9 21 1956) ff birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570921
 DTEND;VALUE=DATE:19570922
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
 SUMMARY:ff birthday (%d years old)")
+
+  ;; FIXME: this testcase verifies that icalendar-export fails to
+  ;; export the nested sexp. After repairing bug56241 icalendar-export
+  ;; works correctly for this sexp but now the testcase fails.
+  ;; Therefore this testcase is disabled for the time being.
+  ;;  (icalendar-tests--test-export
+  ;;   nil
+  ;;   nil
+  ;;   "%%(diary-offset '(diary-float t 3 4) 1) asdf"
+  ;;   nil)
 
 
   ;; FIXME!
@@ -2078,169 +1595,10 @@ DTEND;VALUE=DATE-TIME:20041012T150000
 SUMMARY:Tue: [2004-10-12] q1")
 
   ;; 2004-11-19
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-VERSION
- :2.0
-PRODID
- :-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN
-BEGIN:VEVENT
-SUMMARY
- :Jjjjj & Wwwww
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- :20041123T140000
-DTEND
- :20041123T143000
-DTSTAMP
- :20041118T013430Z
-LAST-MODIFIED
- :20041118T013640Z
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY
- :BB Aaaaaaaa Bbbbb
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- :20041123T144500
-DTEND
- :20041123T154500
-DTSTAMP
- :20041118T013641Z
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY
- :Hhhhhhhh
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- :20041123T110000
-DTEND
- :20041123T120000
-DTSTAMP
- :20041118T013831Z
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY
- :MMM Aaaaaaaaa
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-X-MOZILLA-RECUR-DEFAULT-INTERVAL
- :2
-RRULE
- :FREQ=WEEKLY;INTERVAL=2;BYDAY=FR
-DTSTART
- :20041112T140000
-DTEND
- :20041112T183000
-DTSTAMP
- :20041118T014117Z
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY
- :Rrrr/Cccccc ii Aaaaaaaa
-DESCRIPTION
- :Vvvvv Rrrr aaa Cccccc
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-DTSTART
- ;VALUE=DATE
- :20041119
-DTEND
- ;VALUE=DATE
- :20041120
-DTSTAMP
- :20041118T013107Z
-LAST-MODIFIED
- :20041118T014203Z
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY
- :Wwww aa hhhh
-STATUS
- :TENTATIVE
-CLASS
- :PRIVATE
-X-MOZILLA-ALARM-DEFAULT-LENGTH
- :0
-RRULE
- :FREQ=WEEKLY;INTERVAL=1;BYDAY=MO
-DTSTART
- ;VALUE=DATE
- :20041101
-DTEND
- ;VALUE=DATE
- :20041102
-DTSTAMP
- :20041118T014045Z
-LAST-MODIFIED
- :20041118T023846Z
-END:VEVENT
-END:VCALENDAR
-"
-   nil
-   "&23/11/2004 14:00-14:30 Jjjjj & Wwwww
- Status: TENTATIVE
- Class: PRIVATE
-&23/11/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
- Status: TENTATIVE
- Class: PRIVATE
-&23/11/2004 11:00-12:00 Hhhhhhhh
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-cyclic 14 12 11 2004)) 14:00-18:30 MMM Aaaaaaaaa
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-block 19 11 2004 19 11 2004)) Rrrr/Cccccc ii Aaaaaaaa
- Desc: Vvvvv Rrrr aaa Cccccc
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-cyclic 7 1 11 2004)) Wwww aa hhhh
- Status: TENTATIVE
- Class: PRIVATE
-"
-   "&11/23/2004 14:00-14:30 Jjjjj & Wwwww
- Status: TENTATIVE
- Class: PRIVATE
-&11/23/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
- Status: TENTATIVE
- Class: PRIVATE
-&11/23/2004 11:00-12:00 Hhhhhhhh
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-cyclic 14 11 12 2004)) 14:00-18:30 MMM Aaaaaaaaa
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-block 11 19 2004 11 19 2004)) Rrrr/Cccccc ii Aaaaaaaa
- Desc: Vvvvv Rrrr aaa Cccccc
- Status: TENTATIVE
- Class: PRIVATE
-&%%(and (diary-cyclic 7 11 1 2004)) Wwww aa hhhh
- Status: TENTATIVE
- Class: PRIVATE
-")
+  (icalendar-tests--test-import "import-real-world-2004-11-19.ics"
+                                nil
+                                "import-real-world-2004-11-19.diary-european"
+                                "import-real-world-2004-11-19.diary-american")
 
   ;; 2004-09-09 pg
   (icalendar-tests--test-export
@@ -2270,53 +1628,16 @@ DTEND;VALUE=DATE-TIME:20041102T163000
 SUMMARY:Zahnarzt")
 
   ;; 2005-02-07 lt
-  (icalendar-tests--test-import
-   "UID
- :b60d398e-1dd1-11b2-a159-cf8cb05139f4
-SUMMARY
- :Waitangi Day
-DESCRIPTION
- :abcdef
-CATEGORIES
- :Public Holiday
-STATUS
- :CONFIRMED
-CLASS
- :PRIVATE
-DTSTART
- ;VALUE=DATE
- :20050206
-DTEND
- ;VALUE=DATE
- :20050207
-DTSTAMP
- :20050128T011209Z"
-   nil
-   "&%%(and (diary-block 6 2 2005 6 2 2005)) Waitangi Day
- Desc: abcdef
- Status: CONFIRMED
- Class: PRIVATE
- UID: b60d398e-1dd1-11b2-a159-cf8cb05139f4
-"
-   "&%%(and (diary-block 2 6 2005 2 6 2005)) Waitangi Day
- Desc: abcdef
- Status: CONFIRMED
- Class: PRIVATE
- UID: b60d398e-1dd1-11b2-a159-cf8cb05139f4
-")
+  (icalendar-tests--test-import "import-real-world-2005-02-07.ics"
+                                nil
+                                "import-real-world-2005-02-07.diary-european"
+                                "import-real-world-2005-02-07.diary-american")
 
   ;; 2005-03-01 lt
-  (icalendar-tests--test-import
-   "DTSTART;VALUE=DATE:20050217
-SUMMARY:Hhhhhh Aaaaa ii Aaaaaaaa
-UID:6AFA7558-6994-11D9-8A3A-000A95A0E830-RID
-DTSTAMP:20050118T210335Z
-DURATION:P7D"
-   nil
-   "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa
- UID: 6AFA7558-6994-11D9-8A3A-000A95A0E830-RID\n"
-   "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa
- UID: 6AFA7558-6994-11D9-8A3A-000A95A0E830-RID\n")
+  (icalendar-tests--test-import "import-real-world-2005-03-01.ics"
+                                nil
+                                "import-real-world-2005-03-01.diary-european"
+                                "import-real-world-2005-03-01.diary-american")
 
   ;; 2005-03-23 lt
   (icalendar-tests--test-export
@@ -2343,152 +1664,46 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
 ")
 
   ;; bug#11473
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR
-METHOD:REQUEST
-PRODID:Microsoft Exchange Server 2007
-VERSION:2.0
-BEGIN:VTIMEZONE
-TZID:(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
-BEGIN:STANDARD
-DTSTART:16010101T030000
-TZOFFSETFROM:+0200
-TZOFFSETTO:+0100
-RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=10
-END:STANDARD
-BEGIN:DAYLIGHT
-DTSTART:16010101T020000
-TZOFFSETFROM:+0100
-TZOFFSETTO:+0200
-RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=-1SU;BYMONTH=3
-END:DAYLIGHT
-END:VTIMEZONE
-BEGIN:VEVENT
-ORGANIZER;CN=\"A. Luser\":MAILTO:a.luser@foo.com
-ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=\"Luser, Oth
- er\":MAILTO:other.luser@foo.com
-DESCRIPTION;LANGUAGE=en-US:\nWhassup?\n\n
-SUMMARY;LANGUAGE=en-US:Query
-DTSTART;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\"
- :20120515T150000
-DTEND;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna\":2
- 0120515T153000
-UID:040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000
- 010000000575268034ECDB649A15349B1BF240F15
-RECURRENCE-ID;TZID=\"(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, V
- ienna\":20120515T170000
-CLASS:PUBLIC
-PRIORITY:5
-DTSTAMP:20120514T153645Z
-TRANSP:OPAQUE
-STATUS:CONFIRMED
-SEQUENCE:15
-LOCATION;LANGUAGE=en-US:phone
-X-MICROSOFT-CDO-APPT-SEQUENCE:15
-X-MICROSOFT-CDO-OWNERAPPTID:1907632092
-X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
-X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
-X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
-X-MICROSOFT-CDO-IMPORTANCE:1
-X-MICROSOFT-CDO-INSTTYPE:3
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:REMINDER
-TRIGGER;RELATED=START:-PT15M
-END:VALARM
-END:VEVENT
-END:VCALENDAR"
-   nil
-   "&15/5/2012 15:00-15:30 Query
- Location: phone
- Organizer: MAILTO:a.luser@foo.com
- Status: CONFIRMED
- Class: PUBLIC
- UID: 040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000010000000575268034ECDB649A15349B1BF240F15
-"     nil)
+  (icalendar-tests--test-import "import-bug-11473.ics"
+                                nil
+                                "import-bug-11473.diary-european"
+                                nil)
 
   ;; 2015-12-05, mixed line endings and empty lines, see Bug#22092.
-  (icalendar-tests--test-import
-   "BEGIN:VCALENDAR\r
-PRODID:-//www.norwegian.no//iCalendar MIMEDIR//EN\r
-VERSION:2.0\r
-METHOD:REQUEST\r
-BEGIN:VEVENT\r
-UID:RFCALITEM1\r
-SEQUENCE:1512040950\r
-DTSTAMP:20141204T095043Z\r
-ORGANIZER:noreply@norwegian.no\r
-DTSTART:20141208T173000Z\r
-
-DTEND:20141208T215500Z\r
-
-LOCATION:Stavanger-Sola\r
-
-DESCRIPTION:Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390\r
-
-X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\"><html><head><META NAME=\"Generator\" CONTENT=\"MS Exchange Server version 08.00.0681.000\"><title></title></head><body><b><font face=\"Calibri\" size=\"3\">Reisereferanse</p></body></html>
-SUMMARY:Norwegian til Tromsoe-Langnes -\r
-
-CATEGORIES:Appointment\r
-
-
-PRIORITY:5\r
-
-CLASS:PUBLIC\r
-
-TRANSP:OPAQUE\r
-END:VEVENT\r
-END:VCALENDAR
-"
-"&2014/12/8 18:30-22:55 Norwegian til Tromsoe-Langnes -
- Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
- Location: Stavanger-Sola
- Organizer: noreply@norwegian.no
- Class: PUBLIC
- UID: RFCALITEM1
-"
-"&8/12/2014 18:30-22:55 Norwegian til Tromsoe-Langnes -
- Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
- Location: Stavanger-Sola
- Organizer: noreply@norwegian.no
- Class: PUBLIC
- UID: RFCALITEM1
-"
-"&12/8/2014 18:30-22:55 Norwegian til Tromsoe-Langnes -
- Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
- Location: Stavanger-Sola
- Organizer: noreply@norwegian.no
- Class: PUBLIC
- UID: RFCALITEM1
-"
-)
-  )
+  (icalendar-tests--test-import "import-bug-22092.ics"
+                                "import-bug-22092.diary-iso"
+                                "import-bug-22092.diary-european"
+                                "import-bug-22092.diary-american"))
 
 (defun icalendar-test--format (string &optional day zone)
+  "Decode and format STRING with DAY and ZONE."
   (let ((time (icalendar--decode-isodatetime string day zone)))
     (format-time-string "%FT%T%z" (encode-time time) 0)))
 
-(defun icalendar-tests--decode-isodatetime (_ical-string)
-  (should (equal (icalendar-test--format "20040917T050910-0200")
+(ert-deftest icalendar-tests--decode-isodatetime ()
+  "Test `icalendar--decode-isodatetime'."
+  (should (equal (icalendar-test--format "20040917T050910-02:00")
                  "2004-09-17T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910")
-                 "2004-09-17T03:09:10+0000"))
+  (let ((orig (icalendar-test--format "20040917T050910")))
+    (unwind-protect
+	(let ((zone "XXX-02"))
+	  (should (equal (icalendar-test--format "20040917T050910" nil zone)
+                         "2004-09-17T03:09:10+0000"))
+	  (should (equal (icalendar-test--format "20040917T0509" nil zone)
+                         "2004-09-17T03:09:00+0000"))
+	  (should (equal (icalendar-test--format "20040917" nil zone)
+                         "2004-09-16T22:00:00+0000"))
+	  (should (equal (icalendar-test--format "20040917T050910" 1 zone)
+                         "2004-09-18T03:09:10+0000"))
+	  (should (equal (icalendar-test--format "20040917T050910" 30 zone)
+                         "2004-10-17T03:09:10+0000")))
+      (should (equal orig (icalendar-test--format "20040917T050910")))))
   (should (equal (icalendar-test--format "20040917T050910Z")
                  "2004-09-17T05:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T0509")
-                 "2004-09-17T03:09:00+0000"))
-  (should (equal (icalendar-test--format "20040917")
-                 "2004-09-16T22:00:00+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" 1)
-                 "2004-09-18T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" 30)
-                 "2004-10-17T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" -1)
-                 "2004-09-16T03:09:10+0000"))
-
+  (should (equal (icalendar-test--format "20040917T050910" -1 0)
+                 "2004-09-16T05:09:10+0000"))
   (should (equal (icalendar-test--format "20040917T050910" nil -3600)
                  "2004-09-17T06:09:10+0000")))
-
 
 (provide 'icalendar-tests)
 ;;; icalendar-tests.el ends here

@@ -1,6 +1,6 @@
-;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
+;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -218,7 +218,7 @@ URL can be a URL string, or a URL record of the type returned by
 				    "</td></tr>\n")
 			  ;; Multiple matches, slightly uglier
 			  (insert "   <tr>\n"
-				  (format "    <td valign=top>")
+				  "    <td valign=top>"
 				  (url-ldap-attribute-pretty-name (car attr)) "</td><td>"
 				  (mapconcat (lambda (x)
 					       (url-ldap-attribute-pretty-desc (car attr) x))

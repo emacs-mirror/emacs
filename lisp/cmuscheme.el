@@ -1,7 +1,6 @@
-;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
+;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1994, 1997, 2001-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988-2023 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -26,41 +25,39 @@
 
 ;;    This is a customization of comint-mode (see comint.el)
 ;;
-;; Written by Olin Shivers (olin.shivers@cs.cmu.edu). With bits and pieces
+;; Written by Olin Shivers (olin.shivers@cs.cmu.edu).  With bits and pieces
 ;; lifted from scheme.el, shell.el, clisp.el, newclisp.el, cobol.el, et al..
 ;; 8/88
 ;;
 ;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;; merge them into the master source.
 ;;
-;; The changelog is at the end of this file.
-;;
 ;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
-;; interface that communicates process state back to the superior emacs by
-;; outputting special control sequences. The Emacs package, xscheme.el, has
+;; interface that communicates process state back to the superior Emacs by
+;; outputting special control sequences.  The Emacs package, xscheme.el, has
 ;; lots and lots of special purpose code to read these control sequences, and
-;; so is very tightly integrated with the cscheme process. The cscheme
+;; so is very tightly integrated with the cscheme process.  The cscheme
 ;; interrupt handler and debugger read single character commands in cbreak
 ;; mode; when this happens, xscheme.el switches to special keymaps that bind
-;; the single letter command keys to emacs functions that directly send the
+;; the single letter command keys to Emacs functions that directly send the
 ;; character to the scheme process.  Cmuscheme mode does *not* provide this
-;; functionality. If you are a cscheme user, you may prefer to use the
+;; functionality.  If you are a cscheme user, you may prefer to use the
 ;; xscheme.el/cscheme -emacs interaction.
 ;;
 ;; Here's a summary of the pros and cons, as I see them.
 ;; xscheme: Tightly integrated with inferior cscheme process!  A few commands
-;;	     not in cmuscheme. But. Integration is a bit of a hack.  Input
-;;	     history only keeps the immediately prior input. Bizarre
+;;	     not in cmuscheme.  But.  Integration is a bit of a hack.  Input
+;;	     history only keeps the immediately prior input.  Bizarre
 ;;	     keybindings.
 ;;
 ;; cmuscheme: Not tightly integrated with inferior cscheme process.  But.
 ;;            Carefully integrated functionality with the entire suite of
-;;            comint-derived CMU process modes. Keybindings reminiscent of
-;;            Zwei and Hemlock. Good input history. A few commands not in
+;;            comint-derived CMU process modes.  Keybindings reminiscent of
+;;            Zwei and Hemlock.  Good input history.  A few commands not in
 ;;            xscheme.
 ;;
-;; It's a tradeoff. Pay your money; take your choice. If you use a Scheme
-;; that isn't Cscheme, of course, there isn't a choice. Xscheme.el is *very*
+;; It's a tradeoff.  Pay your money; take your choice.  If you use a Scheme
+;; that isn't Cscheme, of course, there isn't a choice.  Xscheme.el is *very*
 ;; Cscheme-specific; you must use cmuscheme.el.  Interested parties are
 ;; invited to port xscheme functionality on top of comint mode...
 
@@ -70,18 +67,18 @@
 ;; Created.
 ;;
 ;; 2/15/89 Olin
-;; Removed -emacs flag from process invocation. It's only useful for
+;; Removed -emacs flag from process invocation.  It's only useful for
 ;; cscheme, and makes cscheme assume it's running under xscheme.el,
-;; which messes things up royally. A bug.
+;; which messes things up royally.  A bug.
 ;;
 ;; 5/22/90 Olin
 ;; - Upgraded to use comint-send-string and comint-send-region.
 ;; - run-scheme now offers to let you edit the command line if
-;;   you invoke it with a prefix-arg. M-x scheme is redundant, and
+;;   you invoke it with a prefix-arg.  M-x scheme is redundant, and
 ;;   has been removed.
 ;; - Explicit references to process "scheme" have been replaced with
-;;   (scheme-proc). This allows better handling of multiple process bufs.
-;; - Added scheme-send-last-sexp, bound to C-x C-e. A gnu convention.
+;;   (scheme-proc).  This allows better handling of multiple process bufs.
+;; - Added scheme-send-last-sexp, bound to C-x C-e.  A gnu convention.
 ;; - Have not added process query facility a la cmulisp.el's lisp-show-arglist
 ;;   and friends, but interested hackers might find a useful application
 ;;   of this facility.
@@ -95,42 +92,37 @@
 (require 'scheme)
 (require 'comint)
 
-
 (defgroup cmuscheme nil
   "Run a scheme process in a buffer."
   :group 'scheme)
 
-;;; INFERIOR SCHEME MODE STUFF
-;;;============================================================================
-
 (defcustom inferior-scheme-mode-hook nil
   "Hook for customizing inferior-scheme mode."
-  :type 'hook
-  :group 'cmuscheme)
+  :type 'hook)
 
 (defvar inferior-scheme-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m "\M-\C-x" 'scheme-send-definition) ;gnu convention
-    (define-key m "\C-x\C-e" 'scheme-send-last-sexp)
-    (define-key m "\C-c\C-l" 'scheme-load-file)
-    (define-key m "\C-c\C-k" 'scheme-compile-file)
+    (define-key m "\M-\C-x" #'scheme-send-definition) ;gnu convention
+    (define-key m "\C-x\C-e" #'scheme-send-last-sexp)
+    (define-key m "\C-c\C-l" #'scheme-load-file)
+    (define-key m "\C-c\C-k" #'scheme-compile-file)
     (scheme-mode-commands m)
     m))
 
 ;; Install the process communication commands in the scheme-mode keymap.
-(define-key scheme-mode-map "\M-\C-x" 'scheme-send-definition);gnu convention
-(define-key scheme-mode-map "\C-x\C-e" 'scheme-send-last-sexp);gnu convention
-(define-key scheme-mode-map "\C-c\C-e" 'scheme-send-definition)
-(define-key scheme-mode-map "\C-c\M-e" 'scheme-send-definition-and-go)
-(define-key scheme-mode-map "\C-c\C-r" 'scheme-send-region)
-(define-key scheme-mode-map "\C-c\M-r" 'scheme-send-region-and-go)
-(define-key scheme-mode-map "\C-c\M-c" 'scheme-compile-definition)
-(define-key scheme-mode-map "\C-c\C-c" 'scheme-compile-definition-and-go)
-(define-key scheme-mode-map "\C-c\C-t" 'scheme-trace-procedure)
-(define-key scheme-mode-map "\C-c\C-x" 'scheme-expand-current-form)
-(define-key scheme-mode-map "\C-c\C-z" 'switch-to-scheme)
-(define-key scheme-mode-map "\C-c\C-l" 'scheme-load-file)
-(define-key scheme-mode-map "\C-c\C-k" 'scheme-compile-file) ;k for "kompile"
+(define-key scheme-mode-map "\M-\C-x" #'scheme-send-definition);gnu convention
+(define-key scheme-mode-map "\C-x\C-e" #'scheme-send-last-sexp);gnu convention
+(define-key scheme-mode-map "\C-c\C-e" #'scheme-send-definition)
+(define-key scheme-mode-map "\C-c\M-e" #'scheme-send-definition-and-go)
+(define-key scheme-mode-map "\C-c\C-r" #'scheme-send-region)
+(define-key scheme-mode-map "\C-c\M-r" #'scheme-send-region-and-go)
+(define-key scheme-mode-map "\C-c\M-c" #'scheme-compile-definition)
+(define-key scheme-mode-map "\C-c\C-c" #'scheme-compile-definition-and-go)
+(define-key scheme-mode-map "\C-c\C-t" #'scheme-trace-procedure)
+(define-key scheme-mode-map "\C-c\C-x" #'scheme-expand-current-form)
+(define-key scheme-mode-map "\C-c\C-z" #'switch-to-scheme)
+(define-key scheme-mode-map "\C-c\C-l" #'scheme-load-file)
+(define-key scheme-mode-map "\C-c\C-k" #'scheme-compile-file) ;k for "kompile"
 
 (let ((map (lookup-key scheme-mode-map [menu-bar scheme])))
   (define-key map [separator-eval] '("--"))
@@ -157,8 +149,7 @@
   (define-key map [send-region]
     '("Evaluate Region" . scheme-send-region))
   (define-key map [send-sexp]
-    '("Evaluate Last S-expression" . scheme-send-last-sexp))
-  )
+    '("Evaluate Last S-expression" . scheme-send-last-sexp)))
 
 (defvar scheme-buffer)
 
@@ -168,7 +159,7 @@
 The following commands are available:
 \\{inferior-scheme-mode-map}
 
-A Scheme process can be fired up with M-x run-scheme.
+A Scheme process can be fired up with \\[run-scheme].
 
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `inferior-scheme-mode-hook' (in that order).
@@ -195,7 +186,7 @@ Return before the end of the process' output copies the sexp ending at point
 Delete converts tabs to spaces as it moves back.
 Tab indents for Scheme; with argument, shifts rest
     of expression rigidly with the current line.
-C-M-q does Tab on each line starting within following expression.
+\\[indent-pp-sexp] does Tab on each line starting within following expression.
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
@@ -204,13 +195,13 @@ to continue it."
   (scheme-mode-variables)
   (setq mode-line-process '(":%s"))
   (setq comint-input-filter (function scheme-input-filter))
+  (setq-local comint-prompt-read-only t)
   (setq comint-get-old-input (function scheme-get-old-input)))
 
 (defcustom inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
   "Input matching this regexp are not saved on the history list.
 Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
-  :type 'regexp
-  :group 'cmuscheme)
+  :type 'regexp)
 
 (defun scheme-input-filter (str)
   "Don't save anything matching `inferior-scheme-filter-regexp'."
@@ -242,12 +233,12 @@ is run).
 			 scheme-program-name)))
   (if (not (comint-check-proc "*scheme*"))
       (let ((cmdlist (split-string-and-unquote cmd)))
-	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
+        (set-buffer (apply #'make-comint "scheme" (car cmdlist)
 			   (scheme-start-file (car cmdlist)) (cdr cmdlist)))
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (pop-to-buffer-same-window "*scheme*"))
+  (pop-to-buffer "*scheme*" display-comint-buffer-action))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.
@@ -255,7 +246,8 @@ Search in the directories \"~\" and `user-emacs-directory',
 in this order.  Return nil if no start file found."
   (let* ((progname (file-name-nondirectory prog))
 	 (start-file (concat "~/.emacs_" progname))
-	 (alt-start-file (concat user-emacs-directory "init_" progname ".scm")))
+         (alt-start-file (locate-user-emacs-file
+                          (concat "init_" progname ".scm"))))
     (if (file-exists-p start-file)
         start-file
       (and (file-exists-p alt-start-file) alt-start-file))))
@@ -282,8 +274,7 @@ in this order.  Return nil if no start file found."
 
 (defcustom scheme-compile-exp-command "(compile '%s)"
   "Template for issuing commands to compile arbitrary Scheme expressions."
-  :type 'string
-  :group 'cmuscheme)
+  :type 'string)
 
 (defun scheme-compile-region (start end)
   "Compile the current region in the inferior Scheme process.
@@ -311,15 +302,12 @@ For PLT-Scheme, e.g., one should use
    (setq scheme-trace-command \"(begin (require (lib \\\"trace.ss\\\")) (trace %s))\")
 
 For Scheme 48 and Scsh use \",trace %s\"."
-  :type 'string
-  :group 'cmuscheme)
+  :type 'string)
 
 (defcustom scheme-untrace-command "(untrace %s)"
   "Template for switching off tracing of a Scheme procedure.
 Scheme 48 and Scsh users should set this variable to \",untrace %s\"."
-
-  :type 'string
-  :group 'cmuscheme)
+  :type 'string)
 
 (defun scheme-trace-procedure (proc &optional untrace)
   "Trace procedure PROC in the inferior Scheme process.
@@ -341,8 +329,7 @@ With a prefix argument switch off tracing of procedure PROC."
 (defcustom scheme-macro-expand-command "(expand %s)"
   "Template for macro-expanding a Scheme form.
 For Scheme 48 and Scsh use \",expand %s\"."
-  :type 'string
-  :group 'cmuscheme)
+  :type 'string)
 
 (defun scheme-expand-current-form ()
   "Macro-expand the form at point in the inferior Scheme process."
@@ -371,7 +358,7 @@ With argument, position cursor at end of buffer."
   (interactive "P")
   (if (or (and scheme-buffer (get-buffer scheme-buffer))
           (scheme-interactively-start-process))
-      (pop-to-buffer-same-window scheme-buffer)
+      (pop-to-buffer scheme-buffer display-comint-buffer-action)
     (error "No current process buffer.  See variable `scheme-buffer'"))
   (when eob-p
     (push-mark)
@@ -410,8 +397,7 @@ Then switch to the process buffer."
 If it's loaded into a buffer that is in one of these major modes, it's
 considered a scheme source file by `scheme-load-file' and `scheme-compile-file'.
 Used by these commands to determine defaults."
-  :type '(repeat function)
-  :group 'cmuscheme)
+  :type '(repeat function))
 
 (defvar scheme-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
@@ -421,7 +407,7 @@ in the next one.")
 
 (defun scheme-load-file (file-name)
   "Load a Scheme file FILE-NAME into the inferior Scheme process."
-  (interactive (comint-get-source "Load Scheme file: " scheme-prev-l/c-dir/file
+  (interactive (comint-get-source "Load Scheme file" scheme-prev-l/c-dir/file
 				  scheme-source-modes t)) ; t because `load'
                                                           ; needs an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
@@ -433,7 +419,7 @@ in the next one.")
 
 (defun scheme-compile-file (file-name)
   "Compile a Scheme file FILE-NAME in the inferior Scheme process."
-  (interactive (comint-get-source "Compile Scheme file: "
+  (interactive (comint-get-source "Compile Scheme file"
 				  scheme-prev-l/c-dir/file
 				  scheme-source-modes
 				  nil)) ; nil because COMPILE doesn't
@@ -514,8 +500,7 @@ command to run."
 (defcustom cmuscheme-load-hook nil
   "This hook is run when cmuscheme is loaded in.
 This is a good place to put keybindings."
-  :type 'hook
-  :group 'cmuscheme)
+  :type 'hook)
 (make-obsolete-variable 'cmuscheme-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 

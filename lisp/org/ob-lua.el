@@ -1,10 +1,10 @@
 ;;; ob-lua.el --- Org Babel functions for Lua evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014, 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2023 Free Software Foundation, Inc.
 
 ;; Authors: Dieter Schoen
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; Org-Babel support for evaluating lua source code.
+
 ;; Requirements:
 ;; for session support, lua-mode is needed.
 ;; lua-mode is not part of GNU Emacs/orgmode, but can be obtained
@@ -30,9 +34,11 @@
 
 ;; However, sessions are not yet working.
 
-;; Org-Babel support for evaluating lua source code.
-
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 (require 'cl-lib)
@@ -107,7 +113,8 @@ VARS contains resolved variable references."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:lua (session body params)
@@ -392,11 +399,9 @@ fd:close()"
         (org-babel-lua-table-or-string results)))))
 
 (defun org-babel-lua-read-string (string)
-  "Strip 's from around Lua string."
+  "Strip single quotes from around Lua string."
   (org-unbracket-string "'" "'" string))
 
 (provide 'ob-lua)
-
-
 
 ;;; ob-lua.el ends here

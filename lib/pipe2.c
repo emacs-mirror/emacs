@@ -1,18 +1,18 @@
 /* Create a pipe, with specific opening flags.
-   Copyright (C) 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -23,7 +23,6 @@
 #include <fcntl.h>
 
 #include "binary-io.h"
-#include "verify.h"
 
 #if GNULIB_defined_O_NONBLOCK
 # include "nonblocking.h"
@@ -95,7 +94,7 @@ pipe2 (int fd[2], int flags)
     }
 # else
   {
-    verify (O_NONBLOCK == 0);
+    static_assert (O_NONBLOCK == 0);
   }
 # endif
 

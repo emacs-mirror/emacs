@@ -1,9 +1,9 @@
 /* provide a replacement openat function
-   Copyright (C) 2004-2006, 2008-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2006, 2008-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #ifndef _GL_INLINE_HEADER_BEGIN
  #error "Please include config.h first."
@@ -98,12 +97,14 @@ lchmodat (int fd, char const *file, mode_t mode)
 #  define STATAT_INLINE _GL_INLINE
 # endif
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 statat (int fd, char const *name, struct stat *st)
 {
   return fstatat (fd, name, st, 0);
 }
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 lstatat (int fd, char const *name, struct stat *st)
 {

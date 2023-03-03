@@ -1,3 +1,6 @@
+Copyright (C) 2006-2023 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
 * How developers contribute to GNU Emacs
 
 Here is how software developers can contribute to Emacs.  (Non-developers: see
@@ -15,7 +18,7 @@ To configure Git for Emacs development, you can run the following:
 
 The following shell commands then build and run Emacs from scratch:
 
-	git clone git://git.sv.gnu.org/emacs.git
+	git clone https://git.savannah.gnu.org/git/emacs.git
 	cd emacs
 	./autogen.sh
 	./configure
@@ -58,7 +61,7 @@ format and whitespace are not munged in transit by the various mail
 agents.  To send just one such patch without additional remarks, it is
 also possible to use a command like
 
-  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
 
 However, we prefer the 'git format-patch' method with attachment, as
 doing so delivers patches in the correct and easily-recognizable format
@@ -66,11 +69,18 @@ more reliably, and makes the job of applying the patches easier and less
 error-prone.  It also allows sending patches whose author is someone
 other than the email sender.
 
-Once the cumulative amount of your submissions exceeds about 15 lines
-of non-trivial changes, we will need you to assign to the FSF the
-copyright for your contributions.  Ask on emacs-devel@gnu.org, and we
-will send you the necessary form together with the instructions to
-fill and email it, in order to start this legal paperwork.
+Once the cumulative amount of your submissions exceeds a dozen or so
+lines of non-trivial changes, we will need you to assign to the FSF
+the copyright for your contributions.  (To see how many lines were
+non-trivially changed, count only added and modified lines in the
+patched code.  Consider an added or changed line non-trivial if it
+includes at least one identifier, string, or substantial comment.)
+In most cases, to start the assignment process you should download
+https://git.savannah.gnu.org/cgit/gnulib.git/plain/doc/Copyright/request-assign.future
+and return the completed information to the address at the top.
+(There are other assignment options, but they are much less commonly used.)
+If you have questions about the assignment process, you can ask the
+address listed on the form, and/or emacs-devel@gnu.org.
 
 ** Issue tracker (a.k.a. "bug tracker")
 
@@ -150,6 +160,14 @@ top-level directory.  Most tests are in the directory "test/".  From
 the "test/" directory, run "make <filename>" to run the tests for
 <filename>.el(c).  See "test/README" for more information.
 
+If you're making changes that involve the Emacs build system, please
+test 'out-of-tree' builds as well, i.e.:
+
+    mkdir emacs-build
+    cd emacs-build
+    ../path-to-emacs-sources/configure
+    make
+
 ** Commit messages
 
 Ordinarily, a change you commit should contain a log entry in its
@@ -170,20 +188,27 @@ ChangeLog file, where they can be corrected.  It saves time to get
 them right the first time, so here are guidelines for formatting them:
 
 - Start with a single unindented summary line explaining the change;
-  do not end this line with a period.  If that line starts with a
-  semicolon and a space "; ", the commit message will be ignored when
-  generating the ChangeLog file.  Use this for minor commits that do
-  not need separate ChangeLog entries, such as changes in etc/NEWS.
+  do not end this line with a period.  If possible, try to keep the
+  summary line to 50 characters or fewer; this is for compatibility
+  with certain Git commands that print that line in width-constrained
+  contexts.
 
-- After the summary line, there should be an empty line, then
-  unindented ChangeLog entries.
+  If the summary line starts with a semicolon and a space "; ", the
+  commit message will be ignored when generating the ChangeLog file.
+  Use this for minor commits that do not need separate ChangeLog
+  entries, such as changes in etc/NEWS.
 
-- Limit lines in commit messages to 78 characters, unless they consist
-  of a single word of at most 140 characters; this is enforced by a
-  commit hook.  It's nicer to limit the summary line to 50 characters;
-  this isn't enforced.  If the change can't be summarized so briefly,
-  add a paragraph after the empty line and before the individual file
-  descriptions.
+- After the summary line, there should be an empty line.
+
+- Unindented ChangeLog entries normally come next.  However, if the
+  commit couldn't be properly summarized in the brief summary line,
+  you can put a paragraph (after the empty line and before the
+  individual ChangeLog entries) that further describes the commit.
+
+- Lines in ChangeLog entries should preferably be not longer than 63
+  characters, and must not exceed 78 characters, unless they consist
+  of a single word of at most 140 characters; this 78/140 limit is
+  enforced by a commit hook.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
@@ -293,11 +318,45 @@ them right the first time, so here are guidelines for formatting them:
   with Emacs commands like 'C-x 4 a', and commit the change using the
   shell command 'vc-dwim --commit'.  Type 'vc-dwim --help' for more.
 
+** Committing your changes.
+
+When you commit changes, Git invokes several scripts that test the
+commit for validity, and may abort the commit of some of the tests
+fail.  These scripts live in the '.git/hooks/' subdirectory of the
+top-level directory of the repository, and they perform the following
+tests:
+
+- commit log message must not be empty;
+- the first line of the commit log message doesn't start with
+  whitespace characters;
+- the second line of the commit log message must be empty;
+- commit log message should include only valid printable ASCII and
+  UTF-8 characters;
+- commit log message lines must be shorter than 79 characters, unless
+  a line consists of a single long word, in which case that word can
+  be up to 140 characters long;
+- there shouldn't be any "Signed-off-by:" tags in the commit log
+  message, and "git commit" should not be invoked with the '-s' option
+  (which automatically adds "Signed-off-by:");
+- if the commit adds new files, the file names must not begin with
+  '-' and must consist of ASCII letters, digits, and characters of the
+  set [-+./_];
+- the changes don't include unresolved merge conflict markers;
+- the changes don't introduce whitespace errors: trailing whitespace,
+  lines that include nothing but whitespace characters, and indented
+  lines where a SPC character is immediately followed by a TAB in the
+  line's initial indentation
+
 ** Committing changes by others
 
 If committing changes written by someone else, commit in their name,
 not yours.  You can use 'git commit --author="AUTHOR"' to specify a
-change's author.
+change's author.  When using Emacs VC to commit, the author can be
+specified in the log-edit buffer by adding an "Author: AUTHOR" header
+line (set 'log-edit-setup-add-author' non-nil to have this header line
+added automatically).  Note that the validity checks described in the
+previous section are still applied, so you will have to correct any
+problems they uncover in the changes submitted by others.
 
 ** Branches
 
@@ -327,7 +386,9 @@ Documentation fixes (in doc strings, in manuals, in NEWS, and in
 comments) should always go to the release branch, if the documentation
 to be fixed exists and is relevant to the release-branch codebase.
 Doc fixes are always considered "safe" -- even when a release branch
-is in feature freeze, it can still receive doc fixes.
+is in feature freeze, it can still receive doc fixes.  However, this
+rule is limited to fixing real problems in the documentation; cleanups
+and stylistic changes are excluded.
 
 When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can
@@ -342,6 +403,22 @@ Some changes should not be merged to master at all, for whatever
 reasons.  These should be marked by including something like "Do not
 merge to master" or anything that matches gitmerge-skip-regexp (see
 admin/gitmerge.el) in the commit message.
+
+** Some packages in Emacs are maintained externally
+
+Sometimes a package that ships as part of GNU Emacs is maintained as a
+separate project, with its own upstream repository, its own maintainer
+group, its own development conventions, etc.  The upstream project's
+code is periodically merged into Emacs (exactly when and how such
+merges happen depends on the package).
+
+So when you are making a contribution -- such as fixing a bug or
+proposing an enhancement -- to one of these externally maintained
+packages, you sometimes need to deal with that package at its upstream
+source.
+
+In the section "Externally maintained packages" in "admin/MAINTAINERS"
+we maintain a list of such packages.
 
 ** GNU ELPA
 

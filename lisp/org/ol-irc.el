@@ -1,6 +1,6 @@
 ;;; ol-irc.el --- Links to IRC Sessions              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
@@ -39,14 +39,17 @@
 ;;
 ;; Links within an org buffer might look like this:
 ;;
-;; [[irc:/irc.freenode.net/#emacs/bob][chat with bob in #emacs on freenode]]
-;; [[irc:/irc.freenode.net/#emacs][#emacs on freenode]]
-;; [[irc:/irc.freenode.net/]]
+;; [[irc:/irc.libera.chat/#emacs/bob][chat with bob in #emacs on Libera.Chat]]
+;; [[irc:/irc.libera.chat/#emacs][#emacs on Libera.Chat]]
+;; [[irc:/irc.libera.chat/]]
 ;;
 ;; If, when the resulting link is visited, there is no connection to a
 ;; requested server then one will be created.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ol)
 
@@ -78,7 +81,7 @@
 			 :store #'org-irc-store-link
 			 :export #'org-irc-export)
 
-(defun org-irc-visit (link)
+(defun org-irc-visit (link _)
   "Parse LINK and dispatch to the correct function based on the client found."
   (let ((link (org-irc-parse-link link)))
     (cond
@@ -135,13 +138,13 @@ result is a cons of the filename and search string."
      ;; can we get a '::' part?
      (if (string= erc-line (erc-prompt))
 	 (progn
-	   (goto-char (point-at-bol))
+           (goto-char (line-beginning-position))
 	   (when (search-backward-regexp "^[^	]" nil t)
-	     (buffer-substring-no-properties (point-at-bol)
-					     (point-at-eol))))
+             (buffer-substring-no-properties (line-beginning-position)
+                                             (line-end-position))))
        (when (search-backward erc-line nil t)
-	 (buffer-substring-no-properties (point-at-bol)
-					 (point-at-eol)))))))
+         (buffer-substring-no-properties (line-beginning-position)
+                                         (line-end-position)))))))
 
 (defun org-irc-erc-store-link ()
   "Store a link to the IRC log file or the session itself.
@@ -151,7 +154,7 @@ the session itself."
   (require 'erc-log)
   (if org-irc-link-to-logs
       (let* ((erc-line (buffer-substring-no-properties
-			(point-at-bol) (point-at-eol)))
+                        (line-beginning-position) (line-end-position)))
 	     (parsed-line (org-irc-erc-get-line-from-log erc-line)))
 	(if (erc-logging-enabled nil)
 	    (progn

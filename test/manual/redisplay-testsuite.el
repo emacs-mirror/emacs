@@ -1,6 +1,6 @@
-;;; redisplay-testsuite.el --- Test suite for redisplay.
+;;; redisplay-testsuite.el --- Test suite for redisplay.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -350,3 +350,5 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (test-redisplay-4)
     (test-redisplay-5)
     (goto-char (point-min))))
+
+;;; redisplay-testsuite.el ends here

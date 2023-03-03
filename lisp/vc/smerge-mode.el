@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -23,11 +23,10 @@
 ;;; Commentary:
 
 ;; Provides a lightweight alternative to emerge/ediff.
-;; To use it, simply add to your .emacs the following lines:
 ;;
-;;   (autoload 'smerge-mode "smerge-mode" nil t)
+;; To use it, simply type `M-x smerge-mode'.
 ;;
-;; you can even have it turned on automatically with the following
+;; You can even have it turned on automatically with the following
 ;; piece of code in your .emacs:
 ;;
 ;;   (defun sm-try-smerge ()
@@ -47,6 +46,7 @@
 (require 'diff)				;For diff-check-labels.
 (require 'diff-mode)                    ;For diff-refine.
 (require 'newcomment)
+(require 'easy-mmode)
 
 ;;; The real definition comes later.
 (defvar smerge-mode)
@@ -142,39 +142,36 @@ Used in `smerge-diff-base-upper' and related functions."
   "Face used for added characters shown by `smerge-refine'."
   :version "24.3")
 
-(easy-mmode-defmap smerge-basic-map
-  `(("n" . smerge-next)
-    ("p" . smerge-prev)
-    ("r" . smerge-resolve)
-    ("a" . smerge-keep-all)
-    ("b" . smerge-keep-base)
-    ("o" . smerge-keep-lower)           ; for the obsolete keep-other
-    ("l" . smerge-keep-lower)
-    ("m" . smerge-keep-upper)           ; for the obsolete keep-mine
-    ("u" . smerge-keep-upper)
-    ("E" . smerge-ediff)
-    ("C" . smerge-combine-with-next)
-    ("R" . smerge-refine)
-    ("\C-m" . smerge-keep-current)
-    ("=" . ,(make-sparse-keymap "Diff"))
-    ("=<" "base-upper" . smerge-diff-base-upper)
-    ("=>" "base-lower" . smerge-diff-base-lower)
-    ("==" "upper-lower" . smerge-diff-upper-lower))
-  "The base keymap for `smerge-mode'.")
+(defvar-keymap smerge-basic-map
+  "n" #'smerge-next
+  "p" #'smerge-prev
+  "r" #'smerge-resolve
+  "a" #'smerge-keep-all
+  "b" #'smerge-keep-base
+  "o" #'smerge-keep-lower               ; for the obsolete keep-other
+  "l" #'smerge-keep-lower
+  "m" #'smerge-keep-upper               ; for the obsolete keep-mine
+  "u" #'smerge-keep-upper
+  "E" #'smerge-ediff
+  "C" #'smerge-combine-with-next
+  "R" #'smerge-refine
+  "C-m" #'smerge-keep-current
+  "=" (define-keymap :name "Diff"
+        "<" (cons "base-upper" #'smerge-diff-base-upper)
+        ">" (cons "base-lower" #'smerge-diff-base-lower)
+        "=" (cons "upper-lower" #'smerge-diff-upper-lower)))
 
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :type '(choice (const :tag "ESC"   "\e")
-		 (const :tag "C-c ^" "\C-c^" )
+		 (const :tag "C-c ^" "\C-c^")
 		 (const :tag "none"  "")
 		 string))
 
-(easy-mmode-defmap smerge-mode-map
-  `((,smerge-command-prefix . ,smerge-basic-map))
-  "Keymap for `smerge-mode'.")
+(defvar-keymap smerge-mode-map
+  (key-description smerge-command-prefix) smerge-basic-map)
 
-(defvar smerge-check-cache nil)
-(make-variable-buffer-local 'smerge-check-cache)
+(defvar-local smerge-check-cache nil)
 (defun smerge-check (n)
   (condition-case nil
       (let ((state (cons (point) (buffer-modified-tick))))
@@ -214,6 +211,9 @@ Used in `smerge-diff-base-upper' and related functions."
     "--"
     ["Invoke Ediff" smerge-ediff
      :help "Use Ediff to resolve the conflicts"
+     :active (smerge-check 1)]
+    ["Refine" smerge-refine
+     :help "Highlight different words of the conflict"
      :active (smerge-check 1)]
     ["Auto Resolve" smerge-resolve
      :help "Try auto-resolution heuristics"
@@ -827,7 +827,7 @@ An error is raised if not inside a conflict."
 
 	   ((re-search-backward smerge-base-re start t)
 	    ;; a 3-parts conflict
-	    (set (make-local-variable 'smerge-conflict-style) 'diff3-A)
+            (setq-local smerge-conflict-style 'diff3-A)
 	    (setq base-end upper-end)
 	    (setq upper-end (match-beginning 0))
 	    (setq base-start (match-end 0)))
@@ -835,7 +835,7 @@ An error is raised if not inside a conflict."
 	   ((string= filename (file-name-nondirectory
 			       (or buffer-file-name "")))
 	    ;; a 2-parts conflict
-	    (set (make-local-variable 'smerge-conflict-style) 'diff3-E))
+            (setq-local smerge-conflict-style 'diff3-E))
 
 	   ((and (not base-start)
 		 (or (eq smerge-conflict-style 'diff3-A)
@@ -924,8 +924,11 @@ Its behavior has mainly two restrictions:
   to `smerge-refine-regions'.
   This only matters if `smerge-refine-weight-hack' is nil.")
 
-(defvar smerge-refine-ignore-whitespace t
-  "If non-nil, indicate that `smerge-refine' should try to ignore change in whitespace.")
+(defcustom smerge-refine-ignore-whitespace t
+  "If non-nil, `smerge-refine' should try to ignore change in whitespace."
+  :type 'boolean
+  :version "29.1"
+  :group 'diff)
 
 (defvar smerge-refine-weight-hack t
   "If non-nil, pass to diff as many lines as there are chars in the region.
@@ -959,7 +962,7 @@ It has the following disadvantages:
 (defvar smerge--refine-long-words)
 
 (defun smerge--refine-chopup-region (beg end file &optional preproc)
-  "Chopup the region into small elements, one per line.
+  "Chopup the region from BEG to END into small elements, one per line.
 Save the result into FILE.
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of the text, just before chopping it up.  It can be used to replace
@@ -1350,26 +1353,28 @@ buffer names."
 
     ;; Ediff is now set up, and we are in the control buffer.
     ;; Do a few further adjustments and take precautions for exit.
-    (set (make-local-variable 'smerge-ediff-windows) config)
-    (set (make-local-variable 'smerge-ediff-buf) buf)
-    (set (make-local-variable 'ediff-quit-hook)
-	 (lambda ()
-	   (let ((buffer-A ediff-buffer-A)
-		 (buffer-B ediff-buffer-B)
-		 (buffer-C ediff-buffer-C)
-		 (buffer-Ancestor ediff-ancestor-buffer)
-		 (buf smerge-ediff-buf)
-		 (windows smerge-ediff-windows))
-	     (ediff-cleanup-mess)
-	     (with-current-buffer buf
-	       (erase-buffer)
-	       (insert-buffer-substring buffer-C)
-	       (kill-buffer buffer-A)
-	       (kill-buffer buffer-B)
-	       (kill-buffer buffer-C)
-	       (when (bufferp buffer-Ancestor) (kill-buffer buffer-Ancestor))
-	       (set-window-configuration windows)
-	       (message "Conflict resolution finished; you may save the buffer")))))
+    (setq-local smerge-ediff-windows config)
+    (setq-local smerge-ediff-buf buf)
+    (add-hook 'ediff-quit-hook
+	      (lambda ()
+		(let ((buffer-A ediff-buffer-A)
+		      (buffer-B ediff-buffer-B)
+		      (buffer-C ediff-buffer-C)
+		      (buffer-Ancestor ediff-ancestor-buffer)
+		      (buf smerge-ediff-buf)
+		      (windows smerge-ediff-windows))
+		  (ediff-cleanup-mess)
+		  (with-current-buffer buf
+		    (erase-buffer)
+		    (insert-buffer-substring buffer-C)
+		    (kill-buffer buffer-A)
+		    (kill-buffer buffer-B)
+		    (kill-buffer buffer-C)
+		    (when (bufferp buffer-Ancestor)
+		      (kill-buffer buffer-Ancestor))
+		    (set-window-configuration windows)
+		    (message "Conflict resolution finished; you may save the buffer"))))
+	      nil t)
     (message "Please resolve conflicts now; exit ediff when done")))
 
 (defun smerge-makeup-conflict (pt1 pt2 pt3 &optional pt4)
@@ -1409,7 +1414,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 
 \\{smerge-mode-map}"
   :group 'smerge :lighter " SMerge"
-  (when (and (boundp 'font-lock-mode) font-lock-mode)
+  (when font-lock-mode
     (save-excursion
       (if smerge-mode
 	  (font-lock-add-keywords nil smerge-font-lock-keywords 'append)
@@ -1420,11 +1425,11 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 	  (font-lock-fontify-region (match-beginning 0) (match-end 0) nil)))))
   (if (string-match (regexp-quote smerge-parsep-re) paragraph-separate)
       (unless smerge-mode
-        (set (make-local-variable 'paragraph-separate)
-             (replace-match "" t t paragraph-separate)))
+        (setq-local paragraph-separate
+                    (replace-match "" t t paragraph-separate)))
     (when smerge-mode
-        (set (make-local-variable 'paragraph-separate)
-             (concat smerge-parsep-re paragraph-separate))))
+        (setq-local paragraph-separate
+                    (concat smerge-parsep-re paragraph-separate))))
   (unless smerge-mode
     (smerge-remove-props (point-min) (point-max))))
 
@@ -1449,30 +1454,31 @@ If no conflict maker is found, turn off `smerge-mode'."
 First tries to go to the next conflict in the current buffer, and if not
 found, uses VC to try and find the next file with conflict."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (condition-case nil
-        ;; FIXME: Try again from BOB before moving to the next file.
-        (smerge-next)
-      (error
-       (if (and (or smerge-change-buffer-confirm
-                    (and (buffer-modified-p) buffer-file-name))
-                (not (or (eq last-command this-command)
-                         (eq ?\r last-command-event)))) ;Called via M-x!?
-           ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
-           ;; go to another file anyway (because there are no more conflicted
-           ;; files).
-           (message (if (buffer-modified-p)
-                        "No more conflicts here.  Repeat to save and go to next buffer"
-                      "No more conflicts here.  Repeat to go to next buffer"))
-         (if (and (buffer-modified-p) buffer-file-name)
-             (save-buffer))
-         (vc-find-conflicted-file)
-         (if (eq buffer (current-buffer))
-             ;; Do nothing: presumably `vc-find-conflicted-file' already
-             ;; emitted a message explaining there aren't any more conflicts.
-             nil
+  (condition-case nil
+      ;; FIXME: Try again from BOB before moving to the next file.
+      (smerge-next)
+    (error
+     (if (and (or smerge-change-buffer-confirm
+                  (and (buffer-modified-p) buffer-file-name))
+              (not (or (eq last-command this-command)
+                       (eq ?\r last-command-event)))) ;Called via M-x!?
+         ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
+         ;; go to another file anyway (because there are no more conflicted
+         ;; files).
+         (message (if (buffer-modified-p)
+                      "No more conflicts here.  Repeat to save and go to next buffer"
+                    "No more conflicts here.  Repeat to go to next buffer"))
+       (if (and (buffer-modified-p) buffer-file-name)
+           (save-buffer))
+       (vc-find-conflicted-file)
+       ;; At this point, the caret will only be at a conflict marker
+       ;; if the file did not correspond to an opened
+       ;; buffer. Otherwise we need to jump to a marker explicitly.
+       (unless (looking-at "^<<<<<<<")
+         (let ((prev-pos (point)))
            (goto-char (point-min))
-           (smerge-next)))))))
+           (unless (ignore-errors (not (smerge-next)))
+             (goto-char prev-pos))))))))
 
 (provide 'smerge-mode)
 

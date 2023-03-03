@@ -1,6 +1,6 @@
-;;; semantic/util-modes.el --- Semantic minor modes
+;;; semantic/util-modes.el --- Semantic minor modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -48,7 +48,7 @@ line."
   :group 'semantic
   :type 'boolean
   :require 'semantic/util-modes
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
          ;; Update status of all Semantic enabled buffers
@@ -60,7 +60,7 @@ line."
   :group 'semantic
   :type 'string
   :require 'semantic/util-modes
-  :initialize 'custom-initialize-default)
+  :initialize #'custom-initialize-default)
 
 (defvar semantic-minor-modes-format nil
   "Mode line format showing Semantic minor modes which are locally enabled.
@@ -93,7 +93,7 @@ Only minor modes that are locally enabled are shown in the mode line."
                           (match-string 1 semantic-mode-line-prefix)
                         "S")))
           (setq semantic-minor-modes-format
-                `((:eval (if (or ,@(mapcar 'car locals))
+                `((:eval (if (or ,@(mapcar #'car locals))
                              ,(concat " " prefix)))))
           ;; It would be easier to just put `locals' inside
           ;; semantic-minor-modes-format, but then things like
@@ -111,7 +111,7 @@ Only minor modes that are locally enabled are shown in the mode line."
                                  (cons elem minor-mode-alist)))))
             (setcdr tail (nconc locals (cdr tail)))))))))
 
-(defun semantic-desktop-ignore-this-minor-mode (buffer)
+(defun semantic-desktop-ignore-this-minor-mode (_buffer)
   "Installed as a minor-mode initializer for Desktop mode.
 BUFFER is the buffer to not initialize a Semantic minor mode in."
   nil)
@@ -133,7 +133,7 @@ symbol whose value is such a string."
                                        semantic-minor-mode-alist))))
   (semantic-mode-line-update)
 
-  ;; Semantic minor modes don't work w/ Desktop restore.
+  ;; Semantic minor modes don't work with Desktop restore.
   ;; This line will disable this minor mode from being restored
   ;; by Desktop.
   (when (boundp 'desktop-minor-mode-handlers)
@@ -162,7 +162,7 @@ too an interactive function used to toggle the mode."
   ;; Update the minor mode format.
   (semantic-mode-line-update)
   ;; Then turn MODE on or off in every Semantic enabled buffer.
-  (semantic-map-buffers #'(lambda () (funcall mode arg))))
+  (semantic-map-buffers (lambda () (funcall mode arg))))
 
 ;;;;
 ;;;; Minor mode to highlight areas that a user edits.
@@ -196,10 +196,8 @@ Argument OVERLAY is the overlay created to mark the change.
 This function will set the face property on this overlay."
   (overlay-put overlay 'face 'semantic-highlight-edits-face))
 
-(defvar semantic-highlight-edits-mode-map
-  (let ((km (make-sparse-keymap)))
-    km)
-  "Keymap for highlight-edits minor mode.")
+(defvar-keymap semantic-highlight-edits-mode-map
+  :doc "Keymap for highlight-edits minor mode.")
 
 ;;;###autoload
 (define-minor-mode semantic-highlight-edits-mode
@@ -221,10 +219,10 @@ non-nil if the minor mode is enabled."
 	    (error "Buffer %s was not set up for parsing"
 		   (buffer-name)))
 	(add-hook 'semantic-edits-new-change-functions
-		  'semantic-highlight-edits-new-change-hook-fcn nil t))
+		  #'semantic-highlight-edits-new-change-hook-fcn nil t))
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-functions
-		 'semantic-highlight-edits-new-change-hook-fcn t)))
+		 #'semantic-highlight-edits-new-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-highlight-edits-mode
                          "e")
@@ -343,11 +341,9 @@ Do not search past BOUND if non-nil."
                 (setq ol (cdr ol))))))
       ol)))
 
-(defvar semantic-show-unmatched-syntax-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-c,`" 'semantic-show-unmatched-syntax-next)
-    km)
-  "Keymap for command `semantic-show-unmatched-syntax-mode'.")
+(defvar-keymap semantic-show-unmatched-syntax-mode-map
+  :doc "Keymap for command `semantic-show-unmatched-syntax-mode'."
+  "C-c , `" #'semantic-show-unmatched-syntax-next)
 
 ;;;###autoload
 (define-minor-mode semantic-show-unmatched-syntax-mode
@@ -372,18 +368,18 @@ non-nil if the minor mode is enabled.
                    (buffer-name)))
         ;; Add hooks
         (add-hook 'semantic-unmatched-syntax-hook
-                  'semantic-show-unmatched-syntax nil t)
+                  #'semantic-show-unmatched-syntax nil t)
 	(add-hook 'semantic-pre-clean-token-hooks
-		  'semantic-clean-token-of-unmatched-syntax nil t)
+		  #'semantic-clean-token-of-unmatched-syntax nil t)
         ;; Show unmatched syntax elements
 	(if (not (semantic--umatched-syntax-needs-refresh-p))
 	    (semantic-show-unmatched-syntax
 	     (semantic-unmatched-syntax-tokens))))
     ;; Remove hooks
     (remove-hook 'semantic-unmatched-syntax-hook
-                 'semantic-show-unmatched-syntax t)
+                 #'semantic-show-unmatched-syntax t)
     (remove-hook 'semantic-pre-clean-token-hooks
-		 'semantic-clean-token-of-unmatched-syntax t)
+		 #'semantic-clean-token-of-unmatched-syntax t)
     ;; Cleanup unmatched-syntax highlighting
     (semantic-clean-unmatched-syntax-in-buffer)))
 
@@ -417,10 +413,8 @@ non-nil if the minor mode is enabled.
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-show-parser-state-mode-map
-  (let ((km (make-sparse-keymap)))
-    km)
-  "Keymap for show-parser-state minor mode.")
+(defvar-keymap semantic-show-parser-state-mode-map
+  :doc "Keymap for show-parser-state minor mode.")
 
 ;;;###autoload
 (define-minor-mode semantic-show-parser-state-mode
@@ -454,56 +448,55 @@ non-nil if the minor mode is enabled."
 			'(semantic-show-parser-state-string))))
 	;; Add hooks
         (add-hook 'semantic-edits-new-change-functions
-                  'semantic-show-parser-state-marker nil t)
+                  #'semantic-show-parser-state-marker nil t)
 	(add-hook 'semantic-edits-incremental-reparse-failed-hook
-		  'semantic-show-parser-state-marker nil t)
+		  #'semantic-show-parser-state-marker nil t)
 	(add-hook 'semantic-after-partial-cache-change-hook
-		  'semantic-show-parser-state-marker nil t)
+		  #'semantic-show-parser-state-marker nil t)
 	(add-hook 'semantic-after-toplevel-cache-change-hook
-		  'semantic-show-parser-state-marker nil t)
+		  #'semantic-show-parser-state-marker nil t)
 	(semantic-show-parser-state-marker)
 
 	(add-hook 'semantic-before-auto-parse-hooks
-		  'semantic-show-parser-state-auto-marker nil t)
+		  #'semantic-show-parser-state-auto-marker nil t)
 	(add-hook 'semantic-after-auto-parse-hooks
-		  'semantic-show-parser-state-marker nil t)
+		  #'semantic-show-parser-state-marker nil t)
 
 	(add-hook 'semantic-before-idle-scheduler-reparse-hook
-		  'semantic-show-parser-state-auto-marker nil t)
+		  #'semantic-show-parser-state-auto-marker nil t)
 	(add-hook 'semantic-after-idle-scheduler-reparse-hook
-		  'semantic-show-parser-state-marker nil t))
+		  #'semantic-show-parser-state-marker nil t))
     ;; Remove parts of mode line
     (setq mode-line-modified
 	  (delq 'semantic-show-parser-state-string mode-line-modified))
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-functions
-		 'semantic-show-parser-state-marker t)
+		 #'semantic-show-parser-state-marker t)
     (remove-hook 'semantic-edits-incremental-reparse-failed-hook
-		 'semantic-show-parser-state-marker t)
+		 #'semantic-show-parser-state-marker t)
     (remove-hook 'semantic-after-partial-cache-change-hook
-		 'semantic-show-parser-state-marker t)
+		 #'semantic-show-parser-state-marker t)
     (remove-hook 'semantic-after-toplevel-cache-change-hook
-		 'semantic-show-parser-state-marker t)
+		 #'semantic-show-parser-state-marker t)
 
     (remove-hook 'semantic-before-auto-parse-hooks
-		 'semantic-show-parser-state-auto-marker t)
+		 #'semantic-show-parser-state-auto-marker t)
     (remove-hook 'semantic-after-auto-parse-hooks
-		 'semantic-show-parser-state-marker t)
+		 #'semantic-show-parser-state-marker t)
 
     (remove-hook 'semantic-before-idle-scheduler-reparse-hook
-		 'semantic-show-parser-state-auto-marker t)
+		 #'semantic-show-parser-state-auto-marker t)
     (remove-hook 'semantic-after-idle-scheduler-reparse-hook
-		 'semantic-show-parser-state-marker t)))
+		 #'semantic-show-parser-state-marker t)))
 
 (semantic-add-minor-mode 'semantic-show-parser-state-mode
                          "")
 
-(defvar semantic-show-parser-state-string nil
+(defvar-local semantic-show-parser-state-string nil
   "String showing the parser state for this buffer.
 See `semantic-show-parser-state-marker' for details.")
-(make-variable-buffer-local 'semantic-show-parser-state-string)
 
-(defun semantic-show-parser-state-marker (&rest ignore)
+(defun semantic-show-parser-state-marker (&rest _ignore)
   "Set `semantic-show-parser-state-string' to indicate parser state.
 This marker is one of the following:
  `-'  ->  The cache is up to date.
@@ -554,11 +547,9 @@ to indicate a parse in progress."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-stickyfunc-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [ header-line down-mouse-1 ] 'semantic-stickyfunc-menu)
-    km)
-  "Keymap for stickyfunc minor mode.")
+(defvar-keymap semantic-stickyfunc-mode-map
+  :doc "Keymap for stickyfunc minor mode."
+  "<header-line> <down-mouse-1>" #'semantic-stickyfunc-menu)
 
 (defvar semantic-stickyfunc-popup-menu nil
   "Menu used if the user clicks on the header line used by stickyfunc mode.")
@@ -566,7 +557,7 @@ to indicate a parse in progress."
 (easy-menu-define
   semantic-stickyfunc-popup-menu
   semantic-stickyfunc-mode-map
-  "Stickyfunc Menu"
+  "Stickyfunc Menu."
   '("Stickyfunc Mode"  :visible (progn nil)
     [ "Copy Headerline Tag" senator-copy-tag
       :active (semantic-current-tag)
@@ -692,17 +683,13 @@ non-nil if the minor mode is enabled."
 	  ;; Disable minor mode if semantic stuff not available
 	  (setq semantic-stickyfunc-mode nil)
 	  (error "Buffer %s was not set up for parsing" (buffer-name)))
-	(unless (boundp 'header-line-format)
-	  ;; Disable if there are no header lines to use.
-	  (setq semantic-stickyfunc-mode nil)
-	  (error "Sticky Function mode requires Emacs"))
 	;; Enable the mode
 	;; Save previous buffer local value of header line format.
 	(when (and (local-variable-p 'header-line-format (current-buffer))
 		   (not (eq header-line-format
 			    semantic-stickyfunc-header-line-format)))
-	  (set (make-local-variable 'semantic-stickyfunc-old-hlf)
-	       header-line-format))
+          (setq-local semantic-stickyfunc-old-hlf
+                      header-line-format))
 	(setq header-line-format semantic-stickyfunc-header-line-format))
     ;; Disable sticky func mode
     ;; Restore previous buffer local value of header line format if
@@ -713,10 +700,9 @@ non-nil if the minor mode is enabled."
 	(setq header-line-format semantic-stickyfunc-old-hlf)
 	(kill-local-variable 'semantic-stickyfunc-old-hlf)))))
 
-(defvar semantic-stickyfunc-sticky-classes
+(defvar-local semantic-stickyfunc-sticky-classes
   '(function type)
   "List of tag classes which stickyfunc will display in the header line.")
-(make-variable-buffer-local 'semantic-stickyfunc-sticky-classes)
 
 (defcustom semantic-stickyfunc-show-only-functions-p nil
   "Non-nil means don't show lines that aren't part of a tag.
@@ -756,7 +742,7 @@ If there is no function, disable the header line."
 		    (if noshow
 			""
 		      (if semantic-stickyfunc-show-only-functions-p ""
-			(buffer-substring (point-at-bol) (point-at-eol))
+                        (buffer-substring (line-beginning-position) (line-end-position))
 			))
 		  ;; Go get the first line of this tag.
 		  (goto-char (semantic-tag-start tag))
@@ -771,7 +757,7 @@ If there is no function, disable the header line."
 		  ;; Without going to the tag-name we would get"void" in the
 		  ;; header line which is IMHO not really useful
 		  (search-forward (semantic-tag-name tag) nil t)
-		  (buffer-substring (point-at-bol) (point-at-eol))
+                  (buffer-substring (line-beginning-position) (line-end-position))
 		  ))))
 	   (start 0))
       (while (string-match "%" str start)
@@ -830,19 +816,18 @@ Argument EVENT describes the event that caused this function to be called."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-highlight-func-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [mouse-3] 'semantic-highlight-func-menu)
-    km)
-  "Keymap for highlight-func minor mode.")
+(defvar-keymap semantic-highlight-func-mode-map
+  :doc "Keymap for highlight-func minor mode."
+  "<mouse-3>" #'semantic-highlight-func-menu)
 
 (defvar semantic-highlight-func-popup-menu nil
-  "Menu used if the user clicks on the header line used by `semantic-highlight-func-mode'.")
+  "Menu used if the user clicks on the header line.
+Used by `semantic-highlight-func-mode'.")
 
 (easy-menu-define
   semantic-highlight-func-popup-menu
   semantic-highlight-func-mode-map
-  "Highlight-Func Menu"
+  "Highlight-Func Menu."
   '("Highlight-Func Mode"  :visible (progn nil)
     [ "Copy Tag" senator-copy-tag
       :active (semantic-current-tag)
@@ -885,9 +870,8 @@ Argument EVENT describes the event that caused this function to be called."
       )
     (select-window startwin)))
 
-(defvar semantic-highlight-func-ct-overlay nil
+(defvar-local semantic-highlight-func-ct-overlay nil
   "Overlay used to highlight the tag the cursor is in.")
-(make-variable-buffer-local 'semantic-highlight-func-ct-overlay)
 
 (defface semantic-highlight-func-current-tag-face
   '((((class color) (background dark))
@@ -922,10 +906,10 @@ non-nil if the minor mode is enabled."
 	  (error "Buffer %s was not set up for parsing" (buffer-name)))
 	;; Setup our hook
 	(add-hook 'post-command-hook
-                  'semantic-highlight-func-highlight-current-tag nil t))
+                  #'semantic-highlight-func-highlight-current-tag nil t))
     ;; Disable highlight func mode
     (remove-hook 'post-command-hook
-                 'semantic-highlight-func-highlight-current-tag t)
+                 #'semantic-highlight-func-highlight-current-tag t)
     (semantic-highlight-func-highlight-current-tag t)))
 
 (defun semantic-highlight-func-highlight-current-tag (&optional disable)
@@ -965,7 +949,7 @@ function was called, move the overlay."
 	    (goto-char (semantic-tag-start tag))
 	    (search-forward (semantic-tag-name tag) nil t)
 	    (overlay-put ol 'tag tag)
-	    (move-overlay ol (point-at-bol) (point-at-eol)))))))
+            (move-overlay ol (line-beginning-position) (line-end-position)))))))
   nil)
 
 (semantic-add-minor-mode 'semantic-highlight-func-mode

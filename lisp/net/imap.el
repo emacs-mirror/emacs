@@ -1,6 +1,6 @@
 ;;; imap.el --- imap library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -160,7 +160,6 @@
 %l with the value of `imap-default-user'.  The program should accept
 IMAP commands on stdin and return responses to stdout.  Each entry in
 the list is tried until a successful connection is made."
-  :group 'imap
   :type '(repeat string))
 
 (defcustom imap-gssapi-program (list
@@ -173,24 +172,21 @@ the list is tried until a successful connection is made."
 %l with the value of `imap-default-user'.  The program should accept
 IMAP commands on stdin and return responses to stdout.  Each entry in
 the list is tried until a successful connection is made."
-  :group 'imap
   :type '(repeat string))
 
 (defcustom imap-shell-program '("ssh %s imapd"
-				"rsh %s imapd"
-				"ssh %g ssh %s imapd"
-				"rsh %g rsh %s imapd")
+                                "ssh %g ssh %s imapd")
   "A list of strings, containing commands for IMAP connection.
 Within a string, %s is replaced with the server address, %p with port
 number on server, %g with `imap-shell-host', and %l with
 `imap-default-user'.  The program should read IMAP commands from stdin
 and write IMAP response to stdout.  Each entry in the list is tried
 until a successful connection is made."
-  :group 'imap
-  :type '(repeat string))
+  :type '(repeat string)
+  :version "29.1")
 
 (defcustom imap-process-connection-type nil
-  "Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell, and SSL.
+  "Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell and SSL.
 The `process-connection-type' variable controls the type of device
 used to communicate with subprocesses.  Values are nil to use a
 pipe, or t or `pty' to use a pty.  The value has no effect if the
@@ -198,7 +194,6 @@ system has no ptys or if all ptys are busy: then a pipe is used
 in any case.  The value takes effect when an IMAP server is
 opened; changing it after that has no effect."
   :version "22.1"
-  :group 'imap
   :type 'boolean)
 
 (defcustom imap-use-utf7 t
@@ -206,7 +201,6 @@ opened; changing it after that has no effect."
 Since the UTF7 decoding currently only decodes into ISO-8859-1
 characters, you may disable this decoding if you need to access UTF7
 encoded mailboxes which doesn't translate into ISO-8859-1."
-  :group 'imap
   :type 'boolean)
 
 (defcustom imap-log nil
@@ -217,7 +211,6 @@ It is not written to disk, however.  Do not enable this
 variable unless you are comfortable with that.
 
 See also `imap-debug'."
-  :group 'imap
   :type 'boolean)
 
 (defcustom imap-debug nil
@@ -232,17 +225,14 @@ variable unless you are comfortable with that.
 
 This variable only takes effect when loading the `imap' library.
 See also `imap-log'."
-  :group 'imap
   :type 'boolean)
 
 (defcustom imap-shell-host "gateway"
   "Hostname of rlogin proxy."
-  :group 'imap
   :type 'string)
 
 (defcustom imap-default-user (user-login-name)
   "Default username to use."
-  :group 'imap
   :type 'string)
 
 (defcustom imap-read-timeout (if (memq system-type '(windows-nt cygwin))
@@ -250,12 +240,10 @@ See also `imap-log'."
 			       0.1)
   "How long to wait between checking for the end of output.
 Shorter values mean quicker response, but is more CPU intensive."
-  :type 'number
-  :group 'imap)
+  :type 'number)
 
 (defcustom imap-store-password nil
   "If non-nil, store session password without prompting."
-  :group 'imap
   :type 'boolean)
 
 ;;; Various variables
@@ -737,9 +725,9 @@ sure of changing the value of `foo'."
                    :end-of-command "\r\n"
                    :success "^1 OK "
                    :starttls-function
-                   #'(lambda (capabilities)
-                       (when (string-match-p "STARTTLS" capabilities)
-                         "1 STARTTLS\r\n"))))
+                   (lambda (capabilities)
+                     (when (string-match-p "STARTTLS" capabilities)
+                       "1 STARTTLS\r\n"))))
          done)
     (when process
       (imap-log buffer)
@@ -987,8 +975,8 @@ t if it successfully authenticates, nil otherwise."
 				    "imap" buffer imap-server imap-port)
 			 ((error quit) nil)))
     (when imap-process
-      (set-process-filter imap-process 'imap-arrival-filter)
-      (set-process-sentinel imap-process 'imap-sentinel)
+      (set-process-filter imap-process #'imap-arrival-filter)
+      (set-process-sentinel imap-process #'imap-sentinel)
       (while (and (eq imap-state 'initial)
 		  (memq (process-status imap-process) '(open run)))
 	(message "Waiting for response from %s..." imap-server)
@@ -1012,7 +1000,7 @@ necessary.  If nil, the buffer name is generated."
   (with-current-buffer (get-buffer-create buffer)
     (if (imap-opened buffer)
 	(imap-close buffer))
-    (mapc 'make-local-variable imap-local-variables)
+    (mapc #'make-local-variable imap-local-variables)
     (set-buffer-multibyte nil)
     (buffer-disable-undo)
     (setq imap-server (or server imap-server))
@@ -1033,9 +1021,8 @@ necessary.  If nil, the buffer name is generated."
 	    (when (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
 	      ;; Stream changed?
 	      (if (not (eq imap-default-stream stream))
-		  (with-current-buffer (get-buffer-create
-					(generate-new-buffer-name " *temp*"))
-		    (mapc 'make-local-variable imap-local-variables)
+                  (with-current-buffer (generate-new-buffer " *temp*")
+		    (mapc #'make-local-variable imap-local-variables)
 		    (set-buffer-multibyte nil)
 		    (buffer-disable-undo)
 		    (setq imap-server (or server imap-server))
@@ -1079,7 +1066,6 @@ necessary.  If nil, the buffer name is generated."
   "If non-nil, check if IMAP is open.
 See the function `imap-ping-server'."
   :version "23.1" ;; No Gnus
-  :group 'imap
   :type 'boolean)
 
 (defun imap-opened (&optional buffer)
@@ -1347,16 +1333,16 @@ If BUFFER is nil the current buffer is assumed."
     (when imap-current-mailbox
       (if asynch
 	  (imap-add-callback (imap-send-command "CLOSE")
-			     `(lambda (tag status)
-				(message "IMAP mailbox `%s' closed... %s"
-					 imap-current-mailbox status)
-				(when (eq ,imap-current-mailbox
-					  imap-current-mailbox)
-				  ;; Don't wipe out data if another mailbox
-				  ;; was selected...
-				  (setq imap-current-mailbox nil
-					imap-message-data nil
-					imap-state 'auth))))
+			     (let ((cmb imap-current-mailbox))
+			       (lambda (_tag status)
+				 (message "IMAP mailbox `%s' closed... %s"
+					  imap-current-mailbox status)
+				 (when (eq cmb imap-current-mailbox)
+				   ;; Don't wipe out data if another mailbox
+				   ;; was selected...
+				   (setq imap-current-mailbox nil
+					 imap-message-data nil
+					 imap-state 'auth)))))
 	(when (imap-ok-p (imap-send-command-wait "CLOSE"))
 	  (setq imap-current-mailbox nil
 		imap-message-data nil
@@ -1726,8 +1712,7 @@ See `imap-enable-exchange-bug-workaround'."
 	      (string-match "The specified message set is invalid"
 			    (cadr data)))
 	 (with-current-buffer (or buffer (current-buffer))
-	   (set (make-local-variable 'imap-enable-exchange-bug-workaround)
-		t)
+           (setq-local imap-enable-exchange-bug-workaround t)
 	   (imap-fetch (cdr uids) props receive nouidfetch))
        (signal (car data) (cdr data))))))
 
@@ -1742,8 +1727,8 @@ See `imap-enable-exchange-bug-workaround'."
 	(prog1
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
-		       (apply 'max (imap-message-map
-				    (lambda (uid _prop) uid) 'UID))))
+		       (apply #'max (imap-message-map
+				     (lambda (uid _prop) uid) 'UID))))
 	  (if old-mailbox
 	      (imap-mailbox-select old-mailbox (eq state 'examine))
 	    (imap-mailbox-unselect)))))))
@@ -1788,7 +1773,7 @@ first element.  The rest of list contains the saved articles' UIDs."
 	(prog1
 	    (and (imap-fetch-safe '("*" . "*:*") "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
-		       (apply 'max (imap-message-map
+		       (apply #'max (imap-message-map
 				    (lambda (uid _prop) uid) 'UID))))
 	  (if old-mailbox
 	      (imap-mailbox-select old-mailbox (eq state 'examine))
@@ -1822,7 +1807,7 @@ on failure."
 		      (numberp (nth 9 body)))
 		 (nth 9 body))
 		(t 0))
-	(apply '+ (mapcar 'imap-body-lines body)))
+	(apply #'+ (mapcar #'imap-body-lines body)))
     0))
 
 (defun imap-envelope-from (from)
@@ -2426,7 +2411,7 @@ Return nil if no complete line has arrived."
 	 (buffer-substring (point) (1- (re-search-forward "[] ]" nil t)))))
     (if (eq (char-before) ? )
 	(prog1
-	    (mapconcat 'identity (cons section (imap-parse-header-list)) " ")
+	    (mapconcat #'identity (cons section (imap-parse-header-list)) " ")
 	  (search-forward "]" nil t))
       section)))
 
@@ -2571,7 +2556,7 @@ Return nil if no complete line has arrived."
 			      ;; next line for Courier IMAP bug.
 			      (skip-chars-forward " ")
 			      (point)))
-		(> (skip-chars-forward "^ )" (point-at-eol)) 0))
+                (> (skip-chars-forward "^ )" (line-end-position)) 0))
       (push (buffer-substring start (point)) flag-list))
     (cl-assert (eq (char-after) ?\)) nil "In imap-parse-flag-list 2")
     (imap-forward)

@@ -1,6 +1,6 @@
-;;; gs.el --- interface to Ghostscript
+;;; gs.el --- interface to Ghostscript  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -116,7 +116,7 @@ FILE is the value to substitute for the place-holder `<file>'."
     (/ (* 25.4 mm) 72.0)))
 
 (declare-function x-change-window-property "xfns.c"
-		  (prop value &optional frame type format outer-p))
+		  (prop value &optional frame type format outer-p window-id))
 
 (defun gs-set-ghostview-window-prop (frame spec img-width img-height)
   "Set the `GHOSTVIEW' window property of FRAME.
@@ -144,7 +144,7 @@ image in pixels."
 
 (defun gs-set-ghostview-colors-window-prop (frame pixel-colors)
   "Set the `GHOSTVIEW_COLORS' environment variable depending on FRAME."
-  (let ((mode (cond ((x-display-color-p frame) "Color")
+  (let ((mode (cond ((display-color-p frame) "Color")
 		    ((x-display-grayscale-p frame) "Grayscale")
 		    (t "Monochrome"))))
     (x-change-window-property "GHOSTVIEW_COLORS"
@@ -205,7 +205,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 	(gs-set-ghostview-window-prop frame spec img-width img-height)
 	(gs-set-ghostview-colors-window-prop frame pixel-colors)
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
-	(setq gs (apply 'start-process "gs" "*GS*" gs-program
+	(setq gs (apply #'start-process "gs" "*GS*" gs-program
 			(gs-options gs-device file)))
 	(set-process-query-on-exit-flag gs nil)
 	gs)

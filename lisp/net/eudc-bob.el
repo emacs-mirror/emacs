@@ -1,6 +1,6 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -41,38 +41,38 @@
 
 (defvar eudc-bob-generic-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map "s" 'eudc-bob-save-object)
-    (define-key map "!" 'eudc-bob-pipe-object-to-external-program)
-    (define-key map [down-mouse-3] 'eudc-bob-popup-menu)
+    (define-key map "s" #'eudc-bob-save-object)
+    (define-key map "!" #'eudc-bob-pipe-object-to-external-program)
+    (define-key map [down-mouse-3] #'eudc-bob-popup-menu)
     map)
   "Keymap for multimedia objects.")
 
 (defvar eudc-bob-image-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map eudc-bob-generic-keymap)
-    (define-key map "t" 'eudc-bob-toggle-inline-display)
+    (define-key map "t" #'eudc-bob-toggle-inline-display)
     map)
   "Keymap for inline images.")
 
 (defvar eudc-bob-sound-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map eudc-bob-generic-keymap)
-    (define-key map (kbd "RET") 'eudc-bob-play-sound-at-point)
-    (define-key map [down-mouse-2] 'eudc-bob-play-sound-at-mouse)
+    (define-key map (kbd "RET") #'eudc-bob-play-sound-at-point)
+    (define-key map [down-mouse-2] #'eudc-bob-play-sound-at-mouse)
     map)
   "Keymap for inline sounds.")
 
 (defvar eudc-bob-url-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'browse-url-at-point)
-    (define-key map [down-mouse-2] 'browse-url-at-mouse)
+    (define-key map (kbd "RET") #'browse-url-at-point)
+    (define-key map [down-mouse-2] #'browse-url-at-mouse)
     map)
   "Keymap for inline urls.")
 
 (defvar eudc-bob-mail-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'goto-address-at-point)
-    (define-key map [down-mouse-2] 'goto-address-at-point)
+    (define-key map (kbd "RET") #'goto-address-at-point)
+    (define-key map [down-mouse-2] #'goto-address-at-point)
     map)
   "Keymap for inline e-mail addresses.")
 
@@ -86,7 +86,7 @@
   `("EUDC Image Menu"
     ["---" nil nil]
     ["Toggle inline display" eudc-bob-toggle-inline-display
-     (eudc-bob-can-display-inline-images)]
+     (display-graphic-p)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
 
 (defvar eudc-bob-sound-menu
@@ -109,14 +109,6 @@
       (setq overlays (cdr overlays)))
     value))
 
-(defun eudc-bob-can-display-inline-images ()
-  "Return non-nil if we can display images inline."
-  (if (fboundp 'console-type)
-      (and (memq (console-type) '(x mswindows))
-	   (fboundp 'make-glyph))
-    (and (fboundp 'display-graphic-p)
-	 (display-graphic-p))))
-
 (defun eudc-bob-make-button (label keymap &optional menu plist)
   "Create a button with LABEL.
 Attach KEYMAP, MENU and properties from PLIST to a new overlay covering
@@ -124,7 +116,7 @@ LABEL."
   (let (overlay
 	(p (point))
 	prop val)
-    (insert label)
+    (insert (or label ""))
     (put-text-property p (point) 'face 'bold)
     (setq overlay (make-overlay p (point)))
     (overlay-put overlay 'mouse-face 'highlight)
@@ -142,21 +134,7 @@ LABEL."
   "Display the JPEG DATA at point.
 If INLINE is non-nil, try to inline the image otherwise simply
 display a button."
-  (cond ((fboundp 'make-glyph)
-	 (let ((glyph (if (eudc-bob-can-display-inline-images)
-			  (make-glyph (list (vector 'jpeg :data data)
-					    [string :data "[JPEG Picture]"])))))
-	   (eudc-bob-make-button "[JPEG Picture]"
-				 eudc-bob-image-keymap
-				 eudc-bob-image-menu
-				 (list 'glyph glyph
-				       'end-glyph (if inline glyph)
-				       'duplicable t
-				       'invisible inline
-				       'start-open t
-				       'end-open t
-				       'object-data data))))
-	((fboundp 'create-image)
+  (cond ((fboundp 'create-image)
 	 (let* ((image (create-image data nil t))
 		(props (list 'object-data data 'eudc-image image)))
 	   (when (and inline (image-type-available-p 'jpeg))
@@ -169,7 +147,7 @@ display a button."
 (defun eudc-bob-toggle-inline-display ()
   "Toggle inline display of an image."
   (interactive)
-  (when (eudc-bob-can-display-inline-images)
+  (when (display-graphic-p)
     (let* ((overlays (append (overlays-at (1- (point)))
 			     (overlays-at (point))))
 	   image)
@@ -192,9 +170,7 @@ display a button."
 			eudc-bob-sound-keymap
 			eudc-bob-sound-menu
 			(list 'duplicable t
-			      'start-open t
-			      'end-open t
-			      'object-data data)))
+                              'object-data data)))
 
 (defun eudc-bob-display-generic-binary (data)
   "Display a button for unidentified binary DATA."
@@ -202,9 +178,7 @@ display a button."
 			eudc-bob-generic-keymap
 			eudc-bob-generic-menu
 			(list 'duplicable t
-			      'start-open t
-			      'end-open t
-			      'object-data data)))
+                              'object-data data)))
 
 (defun eudc-bob-play-sound-at-point ()
   "Play the sound data contained in the button at point."
@@ -258,17 +232,14 @@ display a button."
 
 ;; If the first arguments can be nil here, then these 3 can be
 ;; defconsts once more.
-(easy-menu-define eudc-bob-generic-menu
-  eudc-bob-generic-keymap
-  ""
+(easy-menu-define eudc-bob-generic-menu eudc-bob-generic-keymap
+  "EUDC Binary Object Menu."
   eudc-bob-generic-menu)
-(easy-menu-define eudc-bob-image-menu
-  eudc-bob-image-keymap
-  ""
+(easy-menu-define eudc-bob-image-menu eudc-bob-image-keymap
+  "EUDC Image Menu."
   eudc-bob-image-menu)
-(easy-menu-define eudc-bob-sound-menu
-  eudc-bob-sound-keymap
-  ""
+(easy-menu-define eudc-bob-sound-menu eudc-bob-sound-keymap
+  "EUDC Sound Menu."
   eudc-bob-sound-menu)
 
 ;;;###autoload
@@ -296,11 +267,13 @@ display a button."
 ;;;###autoload
 (defun eudc-display-jpeg-inline (data)
   "Display the JPEG DATA inline at point if possible."
-  (eudc-bob-display-jpeg data (eudc-bob-can-display-inline-images)))
+  (eudc-bob-display-jpeg data (display-graphic-p)))
 
 ;;;###autoload
 (defun eudc-display-jpeg-as-button (data)
   "Display a button for the JPEG DATA."
   (eudc-bob-display-jpeg data nil))
+
+(define-obsolete-function-alias 'eudc-bob-can-display-inline-images #'display-graphic-p "29.1")
 
 ;;; eudc-bob.el ends here

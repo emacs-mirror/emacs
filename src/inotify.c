@@ -1,6 +1,6 @@
 /* Inotify support for Emacs
 
-Copyright (C) 2012-2020 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -217,7 +217,7 @@ add_watch (int wd, Lisp_Object filename,
       /* Assign a watch ID that is not already in use, by looking
 	 for a gap in the existing sorted list.  */
       for (; ! NILP (XCDR (tail)); tail = XCDR (tail), id++)
-	if (!EQ (XCAR (XCAR (XCDR (tail))), make_fixnum (id)))
+	if (!BASE_EQ (XCAR (XCAR (XCDR (tail))), make_fixnum (id)))
 	  break;
       if (MOST_POSITIVE_FIXNUM < id)
 	emacs_abort ();

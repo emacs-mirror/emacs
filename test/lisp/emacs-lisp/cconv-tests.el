@@ -1,6 +1,6 @@
-;;; cconv-tests.el -*- lexical-binding: t -*-
+;;; cconv-tests.el --- Tests for cconv.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +19,12 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (require 'ert)
 (require 'cl-lib)
+(require 'generator)
+(require 'bytecomp)
 
 (ert-deftest cconv-tests-lambda-:documentation ()
   "Docstring for lambda can be specified with :documentation."
@@ -56,7 +60,7 @@
                    "cl-defun documentation"))
   (should (eq (cconv-tests-cl-defun) 'cl-defun-result)))
 
-;; FIXME: The byte-complier croaks on this.  See Bug#28557.
+;; FIXME: The byte-compiler croaks on this.  See Bug#28557.
 ;; (defmacro cconv-tests-defmacro ()
 ;;   (:documentation (concat "defmacro" " documentation"))
 ;;   '(quote defmacro-result))
@@ -66,7 +70,7 @@
 ;;                    "defmacro documentation"))
 ;;   (should (eq (cconv-tests-defmacro) 'defmacro-result)))
 
-;; FIXME: The byte-complier croaks on this.  See Bug#28557.
+;; FIXME: The byte-compiler croaks on this.  See Bug#28557.
 ;; (cl-defmacro cconv-tests-cl-defmacro ()
 ;;   (:documentation (concat "cl-defmacro" " documentation"))
 ;;   '(quote cl-defmacro-result))
@@ -81,9 +85,6 @@
   (iter-yield 'cl-iter-defun-result))
 (ert-deftest cconv-tests-cl-iter-defun-:documentation ()
   "Docstring for cl-iter-defun can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :tags '(:unstable)
-  :expected-result :failed
   (should (string= (documentation 'cconv-tests-cl-iter-defun)
                    "cl-iter-defun documentation"))
   (should (eq (iter-next (cconv-tests-cl-iter-defun))
@@ -94,17 +95,12 @@
   (iter-yield 'iter-defun-result))
 (ert-deftest cconv-tests-iter-defun-:documentation ()
   "Docstring for iter-defun can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :tags '(:unstable)
-  :expected-result :failed
   (should (string= (documentation 'cconv-tests-iter-defun)
                    "iter-defun documentation"))
   (should (eq (iter-next (cconv-tests-iter-defun)) 'iter-defun-result)))
 
 (ert-deftest cconv-tests-iter-lambda-:documentation ()
   "Docstring for iter-lambda can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((iter-fun
          (iter-lambda ()
            (:documentation (concat "iter-lambda" " documentation"))
@@ -114,13 +110,11 @@
 
 (ert-deftest cconv-tests-cl-function-:documentation ()
   "Docstring for cl-function can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((fun (cl-function (lambda (&key arg)
                             (:documentation (concat "cl-function"
                                                     " documentation"))
                             (list arg 'cl-function-result)))))
-    (should (string= (documentation fun) "cl-function documentation"))
+    (should (string-match "\\`cl-function documentation$" (documentation fun)))
     (should (equal (funcall fun :arg t) '(t cl-function-result)))))
 
 (ert-deftest cconv-tests-function-:documentation ()
@@ -140,8 +134,6 @@
   (+ 1 n))
 (ert-deftest cconv-tests-cl-defgeneric-:documentation ()
   "Docstring for cl-defgeneric can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((descr (describe-function 'cconv-tests-cl-defgeneric)))
     (set-text-properties 0 (length descr) nil descr)
     (should (string-match-p "cl-defgeneric documentation" descr))
@@ -182,7 +174,14 @@
   (should (eq (cconv-tests-cl-defsubst) 'cl-defsubst-result)))
 
 (ert-deftest cconv-convert-lambda-lifted ()
-  "Bug#30872."
+  ;; Verify that lambda-lifting is actually performed at all.
+  (should (equal (cconv-closure-convert
+                  '#'(lambda (x) (let ((f #'(lambda () (+ x 1))))
+                                   (funcall f))))
+                 '#'(lambda (x) (let ((f #'(lambda (x) (+ x 1))))
+                                  (funcall f x)))))
+
+  ;; Bug#30872.
   (should
    (equal (funcall
            (byte-compile
@@ -196,5 +195,187 @@
            nil 99)
           42)))
 
+(defun cconv-tests--intern-all (x)
+  "Intern all symbols in X."
+  (cond ((symbolp x) (intern (symbol-name x)))
+        ((consp x) (cons (cconv-tests--intern-all (car x))
+                         (cconv-tests--intern-all (cdr x))))
+        ;; Assume we don't need to deal with vectors etc.
+        (t x)))
+
+(ert-deftest cconv-closure-convert-remap-var ()
+  ;; Verify that we correctly remap shadowed lambda-lifted variables.
+
+  ;; We intern all symbols for ease of comparison; this works because
+  ;; the `cconv-closure-convert' result should contain no pair of
+  ;; distinct symbols having the same name.
+
+  ;; Sanity check: captured variable, no lambda-lifting or shadowing:
+  (should (equal (cconv-tests--intern-all
+           (cconv-closure-convert
+            '#'(lambda (x)
+                 #'(lambda () x))))
+           '#'(lambda (x)
+                (internal-make-closure
+                 nil (x) nil
+                 (internal-get-closed-var 0)))))
+
+  ;; Basic case:
+  (should (equal (cconv-tests--intern-all
+                  (cconv-closure-convert
+                   '#'(lambda (x)
+                        (let ((f #'(lambda () x)))
+                          (let ((x 'b))
+                            (list x (funcall f)))))))
+                 '#'(lambda (x)
+                      (let ((f #'(lambda (x) x)))
+                        (let ((x 'b)
+                              (closed-x x))
+                          (list x (funcall f closed-x)))))))
+  (should (equal (cconv-tests--intern-all
+                  (cconv-closure-convert
+                   '#'(lambda (x)
+                        (let ((f #'(lambda () x)))
+                          (let* ((x 'b))
+                            (list x (funcall f)))))))
+                 '#'(lambda (x)
+                      (let ((f #'(lambda (x) x)))
+                        (let* ((closed-x x)
+                               (x 'b))
+                          (list x (funcall f closed-x)))))))
+
+  ;; With the lambda-lifted shadowed variable also being captured:
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  #'(lambda ()
+                      (let ((f #'(lambda () x)))
+                        (let ((x 'a))
+                          (list x (funcall f))))))))
+           '#'(lambda (x)
+                (internal-make-closure
+                 nil (x) nil
+                 (let ((f #'(lambda (x) x)))
+                   (let ((x 'a)
+                         (closed-x (internal-get-closed-var 0)))
+                     (list x (funcall f closed-x))))))))
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  #'(lambda ()
+                      (let ((f #'(lambda () x)))
+                        (let* ((x 'a))
+                          (list x (funcall f))))))))
+           '#'(lambda (x)
+                (internal-make-closure
+                 nil (x) nil
+                 (let ((f #'(lambda (x) x)))
+                   (let* ((closed-x (internal-get-closed-var 0))
+                          (x 'a))
+                     (list x (funcall f closed-x))))))))
+  ;; With lambda-lifted shadowed variable also being mutably captured:
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  #'(lambda ()
+                      (let ((f #'(lambda () x)))
+                        (setq x x)
+                        (let ((x 'a))
+                          (list x (funcall f))))))))
+           '#'(lambda (x)
+                (let ((x (list x)))
+                  (internal-make-closure
+                   nil (x) nil
+                   (let ((f #'(lambda (x) (car-safe x))))
+                     (setcar (internal-get-closed-var 0)
+                             (car-safe (internal-get-closed-var 0)))
+                     (let ((x 'a)
+                           (closed-x (internal-get-closed-var 0)))
+                       (list x (funcall f closed-x)))))))))
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  #'(lambda ()
+                      (let ((f #'(lambda () x)))
+                        (setq x x)
+                        (let* ((x 'a))
+                          (list x (funcall f))))))))
+           '#'(lambda (x)
+                (let ((x (list x)))
+                  (internal-make-closure
+                   nil (x) nil
+                   (let ((f #'(lambda (x) (car-safe x))))
+                     (setcar (internal-get-closed-var 0)
+                             (car-safe (internal-get-closed-var 0)))
+                     (let* ((closed-x (internal-get-closed-var 0))
+                            (x 'a))
+                       (list x (funcall f closed-x)))))))))
+  ;; Lambda-lifted variable that isn't actually captured where it is shadowed:
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  (let ((g #'(lambda () x))
+                        (h #'(lambda () (setq x x))))
+                    (let ((x 'b))
+                      (list x (funcall g) (funcall h)))))))
+           '#'(lambda (x)
+                (let ((x (list x)))
+                  (let ((g #'(lambda (x) (car-safe x)))
+                        (h #'(lambda (x) (setcar x (car-safe x)))))
+                    (let ((x 'b)
+                          (closed-x x))
+                      (list x (funcall g closed-x) (funcall h closed-x))))))))
+  (should (equal
+           (cconv-tests--intern-all
+            (cconv-closure-convert
+             '#'(lambda (x)
+                  (let ((g #'(lambda () x))
+                        (h #'(lambda () (setq x x))))
+                    (let* ((x 'b))
+                      (list x (funcall g) (funcall h)))))))
+           '#'(lambda (x)
+                (let ((x (list x)))
+                  (let ((g #'(lambda (x) (car-safe x)))
+                        (h #'(lambda (x) (setcar x (car-safe x)))))
+                    (let* ((closed-x x)
+                           (x 'b))
+                      (list x (funcall g closed-x) (funcall h closed-x))))))))
+  )
+
+(ert-deftest cconv-tests-interactive-closure-bug51695 ()
+  (let ((f (let ((d 51695))
+             (lambda (data)
+               (interactive (progn (setq d (1+ d)) (list d)))
+               (list (called-interactively-p 'any) data))))
+        (f-interp
+         (eval '(let ((d 51695))
+                  (lambda (data)
+                    (interactive (progn (setq d (1+ d)) (list d)))
+                    (list (called-interactively-p 'any) data)))
+               t)))
+    (dolist (f (list f f-interp))
+      (should (equal (list (call-interactively f)
+                           (funcall f 51695)
+                           (call-interactively f))
+                     '((t 51696) (nil 51695) (t 51697)))))))
+
+(ert-deftest cconv-safe-for-space ()
+  (let* ((magic-string "This-is-a-magic-string")
+         (safe-p (lambda (x) (not (string-match magic-string (format "%S" x))))))
+    (should (funcall safe-p (lambda (x) (+ x 1))))
+    (should (funcall safe-p (eval '(lambda (x) (+ x 1))
+                                  `((y . ,magic-string)))))
+    (should (funcall safe-p (eval '(lambda (x) :closure-dont-trim-context)
+                                  `((y . ,magic-string)))))
+    (should-not (funcall safe-p
+                         (eval '(lambda (x) :closure-dont-trim-context (+ x 1))
+                               `((y . ,magic-string)))))))
+
+
 (provide 'cconv-tests)
-;; cconv-tests.el ends here.
+;;; cconv-tests.el ends here

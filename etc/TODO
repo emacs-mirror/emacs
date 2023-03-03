@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -29,99 +29,29 @@ are the ones we consider more important, but these also may be
 difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
-* Speed up Elisp execution
+* High Priority Items
 
-** Speed up function calls
-Change src/bytecode.c so that calls from byte-code functions to byte-code
-functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
-stay within exec_byte_code.
+** Things related to elpa.gnu.org.
+We need to figure out how to best include GNU ELPA packages in the
+Emacs tarball before doing any of the items below.
 
-** Improve the byte-compiler to recognize immutable bindings
-Recognize immutable (lexical) bindings and get rid of them if they're
-used only once and/or they're bound to a constant expression.
-
-Such things aren't present in hand-written code, but macro expansion and
-defsubst can often end up generating things like
-(funcall (lambda (arg) (body)) actual) which then get optimized to
-(let ((arg actual)) (body)) but should additionally get optimized further
-when 'actual' is a constant/copyable expression.
-
-** Add an "indirect goto" byte-code
-Such a byte-code can be used for local lambda expressions.
-E.g. when you have code like
-
-   (let ((foo (lambda (x) bar)))
-     (dosomething
-      (funcall foo toto)
-      (blabla (funcall foo titi))))
-
-turn those 'funcalls' into jumps and their return into indirect jumps back.
-
-** Compile efficiently local recursive functions
-Similar to the previous point, we should be able to handle something like
-
-   (letrec ((loop () (blabla) (if (toto) (loop))))
-     (loop))
-
-which ideally should generate the same byte-code as
-
-   (while (progn (blabla) (toto)))
-
-* Things that were planned for Emacs-24
-
-** concurrency
-Including it as an "experimental" compile-time option sounds good.  Of
-course there might still be big questions around "which form of
-concurrency" we'll want.
-
-** better support for dynamic embedded graphics
-I like this idea (my mpc.el code could use it for the volume widget),
-though I wonder if the resulting efficiency will be sufficient.
-
-** Spread Semantic
-
-** Improve the "code snippets" support
-Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
-advertise/use/improve it.
-
-** Improve VC
-Yes, there's a lot of work to be done there :-(
-
-** Random things that cross my mind right now that I'd like to see
-Some of them from my local hacks, but it's not obvious at all whether
-they'll make it.
-
-*** Prog-mode could/should provide a better fill-paragraph default
-That default should use syntax-tables to recognize string/comment
-boundaries.
-
-*** Provide more completion-at-point-functions
-Make existing in-buffer completion use completion-at-point.
-
-*** "Functional" function-key-map
-It would make it easy to add (and remove) mappings like
-"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
-"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
-"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
-
-* Things related to elpa.gnu.org.
-
-** Move idlwave to elpa.gnu.org
+*** Move idlwave to elpa.gnu.org
 Need to sync up the Emacs and external versions.
 See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
+<https://debbugs.gnu.org/39992>
 
-** Move Org mode to elpa.gnu.org
+*** Move Org mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
 <https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
 
-** Move verilog-mode to elpa.gnu.org
+*** Move verilog-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
-** Move vhdl-mode to elpa.gnu.org
+*** Move vhdl-mode to elpa.gnu.org
 See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks
-These don't require much Emacs knowledge, they are suitable for anyone
+These don't require much Emacs knowledge and are suitable for anyone
 from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead
@@ -142,6 +72,17 @@ expecting such variables to always be defined, eg when they modify
 things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see eg ps-print)
+
+** Do interactive mode tagging for commands
+Change "(interactive)" to "(interactive nil foo-mode)" for command
+completion purposes.  Pick a major mode or ELisp library, and check
+all interactive commands to see if they are only relevant in one
+particular mode.  This requires care as some commands might be useful
+outside of the mode they were written for.
+
+** Convert defvar foo-mode-map to defvar-keymap
+Verify the conversion by comparing the value of the keymap before
+converting it and after (you can see the value in 'C-h v').
 
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
@@ -189,11 +130,6 @@ See also ESR's proposal for a BROWSER environment variable
 ** In Custom buffers, put the option that turns a mode on or off first
 This should use a heuristic of some kind?
 
-** Define recompute-arg and recompute-arg-if for fix_command to use
-See rms message of 11 Dec 05 in
-https://lists.gnu.org/r/emacs-pretest-bug/2005-12/msg00165.html,
-and the rest of that discussion.
-
 ** In Emacs Info, examples of using Customize should be clickable
 They should create Custom buffers when clicked.
 
@@ -235,12 +171,80 @@ https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features
 
+** Speed up Elisp execution
+
+*** Speed up function calls
+Change src/bytecode.c so that calls from byte-code functions to byte-code
+functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
+stay within exec_byte_code.
+
+*** Improve the byte-compiler to recognize immutable bindings
+Recognize immutable (lexical) bindings and get rid of them if they're
+used only once and/or they're bound to a constant expression.
+
+Such things aren't present in hand-written code, but macro expansion and
+defsubst can often end up generating things like
+(funcall (lambda (arg) (body)) actual) which then get optimized to
+(let ((arg actual)) (body)) but should additionally get optimized further
+when 'actual' is a constant/copyable expression.
+
+** Add an "indirect goto" byte-code
+Such a byte-code can be used for local lambda expressions.
+E.g. when you have code like
+
+   (let ((foo (lambda (x) bar)))
+     (dosomething
+      (funcall foo toto)
+      (blabla (funcall foo titi))))
+
+turn those 'funcalls' into jumps and their return into indirect jumps back.
+
+*** Compile efficiently local recursive functions
+Similar to the previous point, we should be able to handle something like
+
+   (letrec ((loop () (blabla) (if (toto) (loop))))
+     (loop))
+
+which ideally should generate the same byte-code as
+
+   (while (progn (blabla) (toto)))
+
 ** "Emacs as word processor"
 https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
  rms writes:
     25 years ago I hoped we would extend Emacs to do WYSIWYG word
     processing.  That is why we added text properties and variable
     width fonts.  However, more features are still needed to achieve this.
+
+Specifically, a major mode with the following features and abilities
+should be added to Emacs:
+
+ . import / export MS Office documents
+ . import / export Open Document Format (.odt) files
+ . import / export RTF files
+ . export to a PDF file
+ . select a font and its size
+ . apply a bold / italic / underline / strikethrough effect
+ . superscripts / subscripts
+ . apply a left / center / right / justified effect
+ . change the font color and the background color
+ . pixel-level text fill, justification, and indentation (so that
+   variable-pitch fonts could be freely used)
+ . create a list
+ . insert and change a table
+ . insert a picture
+ . define / use / modify styles
+ . print preview / print, in a way that is similar to what's on screen
+   (e.g., wrt the place where lines wrap)
+ . use footnotes
+ . support for "track changes" markings, including those which come
+   from Office documents
+ . multiple columns
+ . change page headers and footers
+ . save all the properties and settings mentioned above with the text
+   to a file, so that they are restored when later visiting that file
+
+The existing Enriched mode can be used as a starting point.
 
 ** Support ligatures out of the box
 For the list of frequently-used typographical ligatures, see
@@ -355,37 +359,26 @@ should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
 
+Alternatively, stylistic sets could be a font property, or a face
+property.  See this discussion:
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01597.html
+
+For some relevant use cases, see
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01652.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01701.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01772.html
+
+** Concurrency
+Stefan Monnier writes: "Including it as an 'experimental' compile-time
+option sounds good.  Of course there might still be big questions
+around 'which form of concurrency' we'll want."
+
 ** Better support for displaying Emoji
 Emacs is capable of displaying Emoji and some of the Emoji sequences,
 provided that its fontsets are configured with a suitable font.  To
 make this easier out of the box, the following should be done:
-
-*** Populate composition-function-table with Emoji rules
-The Unicode Character Database (UCD) includes several data files that
-define the valid Emoji sequences.  These files should be imported into
-the Emacs tree, and should be converted by some script at Emacs build
-time to Lisp code that populates composition-function-table with the
-corresponding composition rules.
-
-*** Augment the default fontsets with Emoji-capable fonts
-The default fontsets set up by fontest.el should include known free
-fonts that provide good support for displaying Emoji sequences.  In
-addition, the rule that the default face's font is used for symbol and
-punctuation characters, disregarding the fontsets, should be modified
-to exempt Emoji from this rule (since Emoji characters belong to the
-'symbol' script in Emacs), so that use-default-font-for-symbols would
-not have to be tweaked to have Emoji display by default with a capable
-font.
-
-*** Consider changing the default display of Variation Selectors
-Emacs by default displays the Variation Selector (VS) codepoints not
-composed with base characters as hex codes in a box.  The Unicode FAQ
-says that if variation sequences cannot be supported, the VS
-characters should not be shown, leaving just the base character of the
-sequence visible.  This could be handled via glyphless-char-display,
-by changing the entries for VS codepoints to 'zero-width'.  Or we
-could display them as a thin 1-pixel space, as we do with format
-control characters, by using 'thin-space' there.
 
 *** Special face for displaying text presentation of Emoji
 Emoji-capable fonts support Emoji sequences with the U+FE0F VARIATION
@@ -402,7 +395,7 @@ built-in.
 
 See the discussion of bug#39799 for more details about this task.
 Another relevant resource is the Unicode Technical Standard #51
-"Unicode Emoji" (http://www.unicode.org/reports/tr51/).
+"Unicode Emoji" (https://www.unicode.org/reports/tr51/).
 
 ** Extend text-properties and overlays
 
@@ -461,6 +454,25 @@ consistency checks that make sure the new code computes the same results
 as the old code.  And once that works well, we can remove the old code
 and old fields.
 
+** Implement Unicode-compliant display of "default-ignorable" characters
+See the "Characters Ignored for Display" section of paragraph 5.21 in
+the Unicode Standard for the details.
+
+The implementation would import the data from Unicode UCD file
+DerivedCoreProperties.txt, and provide a minor mode that arranges for
+the characters with the Default_Ignorable_Code_Point (DI) property to
+be hidden on display.  One way of implementing that could be via
+glyphless-char-display-control; that one is global, but maybe there's
+a way of making it buffer-local.  Alternatively, this could be
+implemented in C in the display engine.
+
+An additional aspect of this is the display of U+00AD SOFT HYPHEN as
+invisible except at line boundaries.  Note that this would need to
+support hard (physical) newlines in the buffer as well as soft
+wrapping of long lines under 'visual-line-mode'.  The algorithm for
+selecting the wrap point may also need be changed to break at the soft
+hyphen.
+
 ** FFI (foreign function interface)
 See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
@@ -469,6 +481,13 @@ to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
 ** Fix portable dumping so that you can redump without using -batch
+
+*** Redumps and native compiler "preloaded" sub-folder.
+In order to depose new .eln files being compiled into the "preloaded"
+sub-folder the native compiler needs to know in advance if this file
+will be preloaded or not.  As .eln files are not moved afterwards
+subsequent redumps might refer to .eln file out of the "preloaded"
+sub-folder.
 
 ** Imenu could be extended into a file-structure browsing mechanism
 This could use code like that of customize-groups.
@@ -490,14 +509,14 @@ Also for listing fonts, displaying a font as a sample, etc.
 
 ** Program Enriched mode to read and save in RTF
 Is there actually a decent single definition of RTF?  Maybe see info at
-http://latex2rtf.sourceforge.net/.
+https://latex2rtf.sourceforge.net/.
 
 This task seems to be addressed by
 https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
 very early stages.
 
 Another place to look is the Wikipedia article at
-http://en.wikipedia.org/wiki/Rich_Text_Format.  It currently points to
+https://en.wikipedia.org/wiki/Rich_Text_Format.  It currently points to
 the latest spec of RTF v1.9.1 at
 https://web.archive.org/web/20190708132914/http://www.kleinlercher.at/tools/Windows_Protocols/Word2007RTFSpec9.pdf
 
@@ -536,6 +555,42 @@ This should go with point, so that motion commands can also move
 through tall images.  This value would be to point as window-vscroll
 is to window-start.
 
+** Make redisplay smarter about which parts to redraw
+Currently, redisplay has only 2 levels of redrawing: either it
+redisplays only the selected window on the selected frame, or it
+redisplays all the windows on all the frames.  This doesn't scale well
+when the number of visible frames is large.
+
+Currently, two variables are used to make the decision what to
+redisplay: update_mode_lines and windows_or_buffers_changed.  These
+are set by various functions called from Lisp, and if redisplay finds
+one of them to be non-zero, it considers all the windows on all the
+frames for redisplay.
+
+The idea is to make the decision which parts need to be redrawn more
+fine-grained.  Instead of simple boolean variables, we could have a
+bitmapped variable which records the kinds of changes done by Lisp
+since the previous redisplay cycle.  Then the decision what exactly
+needs to be redrawn could be made based on the bits that are set.
+
+For example, one reason to consider all frames is that some scrolling
+command sets the update_mode_lines variable non-zero.  This is done
+because the frame title, which doesn't belong to any window, needs to
+be reconsidered when the selected window is scrolled.  But considering
+the frame title doesn't have to redisplay all the other windows on the
+frame, doesn't need to recompute the menu items and the tool-bar
+buttons, and doesn't need to consider frames other than the selected
+one.  Being selective about what parts of the Emacs display need to be
+reconsidered and redrawn given the changes since the last redisplay
+will go along way towards making redisplay more scalable.
+
+One way of making this change is to go through all the places that set
+update_mode_lines and windows_or_buffers_changed, figure out which
+portions of the Emacs display could be affected by each change, and
+then implement the bitmap which will record each of these affected
+display portions.  The logic in redisplay_internal will then need to
+be restructured so as to support this fine-grained redisplay.
+
 ** Address internationalization of symbols names
 Essentially as if they were documentation, e.g. in command names and
 Custom.
@@ -572,8 +627,6 @@ Do this for some or all errors associated with using subprocesses.
 ** Maybe reinterpret 'parse-error' as a category of errors
 Put some other errors under it.
 
-** Make byte-compiler warn when a doc string is too wide
-
 ** Make byte-optimization warnings issue accurate line numbers
 
 ** Record the sxhash of the default value for customized variables
@@ -589,6 +642,13 @@ might look like (defun foo [Function has advice] (x y) The overlay
 could also be a button that you could use to view the advice.
 
 ** Add a function to get the insertion-type of the markers in an overlay
+
+** Improve VC
+Yes, there's a lot of work to be done there :-(
+
+** Improve the "code snippets" support
+Consolidate skeleton.el, tempo.el, and expand.el (any other?) and then
+advertise/use/improve it.
 
 ** ange-ftp
 
@@ -667,8 +727,6 @@ processed the MENU_BAR_ACTIVATE_EVENT and regenerated the whole menu
 bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
-
-*** W3 (development version needs significant work)
 
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
@@ -749,18 +807,13 @@ artist, ansi-color, array, calculator, cdl, cmuscheme, completion,
 delim-col, dirtrack, double, echistory, elide-head, easymenu, expand,
 flow-ctrl, format [format-alist], generic/generic-x [various modes],
 kermit, log-edit, makesum, midnight [other than in Kill Buffer node],
-mouse-copy [?], mouse-drag, mouse-sel, net-utils, rcompile, snmp-mode
+mouse-copy [?], mouse-drag, mouse-sel, net-utils, snmp-mode
 [?], soundex [should be interactive?], strokes [start from the web
 page], talk, thingatpt [interactive functions?], type-break, vcursor,
-xscheme, zone-mode [?], mlconvert [?], iso-cvt, feedmail [?], uce,
+xscheme, zone-mode [?], mlconvert [?], iso-cvt, feedmail [?],
 gametree, page-ext, refbib, refer, scribe, texinfo, underline,
 cmacexp, hideif, pcomplete, xml, cvs-status (should be described in
 PCL-CVS manual); other progmodes, probably in separate manual.
-
-** Deprecate and remove XPM icons
-Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
-the XPMs so that the color versions work generally.  (Requires care
-with the color used for the transparent regions.)
 
 ** Convenient access to the 'values' variable
 It would be nice to have an interface that would show you the printed
@@ -832,6 +885,24 @@ The idea is to add an "X" of some kind, that when clicked deletes the
 window associated with that modeline.
 https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 
+** Random things that were planned for Emacs-24
+Stefan Monnier writes: "Random things that cross my mind right now
+that I'd like to see.  Some of them from my local hacks, but it's not
+obvious at all whether they'll make it."
+
+*** Prog-mode could/should provide a better fill-paragraph default
+That default should use syntax-tables to recognize string/comment
+boundaries.
+
+*** Provide more completion-at-point-functions
+Make existing in-buffer completion use completion-at-point.
+
+*** "Functional" function-key-map
+It would make it easy to add (and remove) mappings like
+"FOO-mouse-4 -> FOO-scroll-down",   "FOO-tab -> ?\FOO-\t",
+"uppercase -> lowercase", "[fringe KEY...] -> [KEY]",
+"H-FOO -> M-FOO", "C-x C-y FOO -> H-FOO", ...
+
 * Things to be done for specific packages or features
 
 ** NeXTstep port
@@ -839,17 +910,17 @@ https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 *** Missing features
 This sections contains features found in other official Emacs ports.
 
-**** Support for xwidgets
-Emacs 25 has support for xwidgets, a system to include operating
-system components into an Emacs buffer.  The components range from
-simple buttons to webkit (effectively, a web browser).
+**** Improved xwidgets support
+Emacs 25 has support for xwidgets, a system to include WebKit widgets
+into an Emacs buffer.
 
-Currently, xwidgets work only for the gtk+ framework but they are
-designed to be compatible with multiple Emacs ports.
+They work on NS, but not very well.  For example, trying to display a
+xwidget in the "killed" state will make Emacs crash.  This is because
+the NS code has not been updated to keep with recent changes to the
+X11 and GTK code.
 
-(See the scratch/nsxwidget branch, and the discussion around
-Objective-C code and GCC at
-https://lists.gnu.org/r/emacs-devel/2019-08/msg00072.html )
+Many features such as xwidget-webkit-edit-mode do not work correctly
+on NS either.
 
 **** Respect 'frame-inhibit-implied-resize'
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames
@@ -922,29 +993,16 @@ It has been maintained in parallel to the official Cocoa-based NS
 interface.  The Carbon interface has been enhanced, and a number of the
 features of that interface could be implemented NS.
 
-**** Smooth scrolling -- maybe not a good idea
-Today, by default, scrolling with a trackpad makes the text move in
-steps of one line.  (Scrolling with SHIFT scrolls horizontally.)
-
-The "mac" port provides smooth, pixel-based, scrolling.  This is a very
-popular feature.  However, there are drawbacks to this method: what
-happens if only a fraction of a line is visible at the top of a
-window, is the partially visible text considered part of the window or
-not?  (Technically, what should 'window-start' return.)
-
-Note: This feature might not be allowed to be implemented until also
-implemented in Emacs for a free system.
-
 **** Mouse gestures
 The "mac" port defines the gestures 'swipe-left/right/up/down',
 'magnify-up/down', and 'rotate-left/right'.
 
-It also binds the magnification commands to change the font
-size.  (This should be not be done in a specific interface, instead
-Emacs should do this binding globally.)
+The magnify gestures have now been implemented on X11 and NS.  The
+event is named differently: it is named `pinch', but it does the same
+thing.
 
-Note: This feature might not be allowed to be implemented until also
-implemented in Emacs for a free system.
+Someone needs to figure out what the other gestures do in the Mac
+port, implement them on X, and then following that, on NS.
 
 **** Synthesize bold fonts
 
@@ -1111,45 +1169,6 @@ Instead, if B has not been customized it should be re-initialized
 (on the assumption that the default value depends on A).
 See the places where we manually call custom-reevaluate-setting,
 such as for mail-host-address and user-mail-address in startup.el.
-
-** ImageMagick support
-
-*** Image priority
-'image-type-header-regexps' prioritizes the jpeg loader over the
-ImageMagick one.  This is not wrong, but how should a user go about
-preferring the ImageMagick loader?  The user might like zooming etc in jpegs.
-
-Try (setq image-type-header-regexps nil) for a quick hack to prefer
-ImageMagick over the jpg loader.
-
-*** Slow display
-For some reason it's unbearably slow to look at a page in a large
-image bundle using the :index feature.  The ImageMagick "display"
-command is also a bit slow, but nowhere near as slow as the Emacs
-code.  It seems ImageMagick tries to unpack every page when loading the
-bundle.  This feature is not the primary usecase in Emacs though.
-
-ImageMagick 6.6.2-9 introduced a bugfix for single page djvu load.  It
-is now much faster to use the :index feature, but still not very fast.
-
-*** Try to cache the num pages calculation
-It can take a while to calculate the number of pages, and if you need
-to do it for each page view, page-flipping becomes uselessly slow.
-
-*** Integrate with image-dired
-
-*** Integrate with docview
-
-*** Integrate with image-mode
-Some work has been done, e.g. "M-x image-transform-fit-to-height" will
-fit the image to the height of the Emacs window.
-
-*** Look for optimizations for handling images with low depth
-Currently the code seems to default to 24 bit RGB which is costly for
-images with lower bit depth.
-
-*** Decide what to do with some uncommitted imagemagick support
-Functions for image size etc.
 
 ** nxml mode
 
@@ -1467,6 +1486,14 @@ cannot represent in Unicode.
 
 *** Performance
 
+**** Make the implementation of markers more efficient
+Markers are implemented as a non-sorted singly linked list of markers.
+This makes them scale badly when thousands of markers are created in a
+buffer for some purpose, because some low-level primitives in Emacs
+traverse the markers' list (e.g., when converting between character
+and byte positions), and also because searching for a marker becomes
+very slow.
+
 **** Explore whether overlay-recenter can cure overlays performance problems
 
 **** Cache schemas.  Need to have list of files and mtimes
@@ -1669,12 +1696,6 @@ and the one to use when terminating the selection.
 More specifically do what's needed to make ibuffer.el the default, or
 just an extension of buff-menu.el.
 
-** Replace linum.el with nlinum.el
-https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
-
-(Since Emacs 26 introduced native line numbers, this item is
-probably obsolete.)
-
 ** Merge sendmail.el and messages.el
 Probably not a complete merge, but at least arrange for messages.el to
 be a derived mode of sendmail.el.  Or arrange for messages.el to be
@@ -1691,9 +1712,9 @@ apparently loses under Solaris, at least. [fx has mostly done this.]
 
 (Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
 
-** Rewrite make-docfile to be clean and maintainable
-It might be better to replace it with Lisp, using the byte compiler.
-https://lists.gnu.org/r/emacs-devel/2012-06/msg00037.html
+** Eliminate the etc/DOC file altogether
+We could try and eliminate the DOC file altogether.  See
+https://lists.gnu.org/r/emacs-devel/2021-05/msg00237.html
 
 ** Add an inferior-comint-minor-mode
 The purpose is to have a mode to capture the common set of operations
@@ -1716,6 +1737,17 @@ https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 It wouldn't have to be a complete replacement, just enough
 for vc-rcs-update-changelog.
 
+** Allow Emacs to use the bottom-right corner of a TTY
+Emacs doesn't use the bottom-right corner of a TTY when terminfo
+capability "am" (auto_right_margin) is defined.  It could use the
+bottom-right corner nonetheless when certain other capabilities are
+defined.  See bug#57607.
+
+** Replace tramp-archive.el by a native libarchive(3) implementation.
+The former is based on the GVFS archive backend, which makes it
+available on GNU/Linux only.  That implementation has further
+drawbacks like it doesn't support to write into archives.
+
 * Other known bugs
 
 ** 'make-frame' forgets unhandled parameters, at least for X11 frames
@@ -1723,6 +1755,39 @@ for vc-rcs-update-changelog.
 ** Problem with comment-start
 A two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
+
+** Multi-pointer X does not work very well
+Emacs is reasonably usable under a multi-pointer X (MPX) environment,
+if you turn off tooltips and mouse highlight, and don't use anything
+that calls `mouse-position'.  Otherwise, tooltips are shown next to
+the wrong pointer, mouse highlight simply goes haywire, and
+`mouse-position' returns information for the wrong pointer.
+
+This could be easily fixed in principle, but I cannot find a stable
+enough environment under which the fix can be tested.
+
+The MPX code has not been tested under X toolkit or GTK+ 2.x builds
+and is not expected to work there.
+
+** Framework for doing animations
+Emacs does animations all over the place, usually "pulse" animations.
+These currently animate by waiting for a small but fixed amount of
+time between each redisplay, which causes screen tearing by not
+synchronizing with the vertical refresh.  Frame synchronization works
+by causing redisplay to delay until the next time the monitor can
+refresh; this works, but can cause substandard frame rate when
+redisplay happens less often than the monitor refreshing, as redisplay
+will have to continually wait for missed monitor refresh.
+
+The right remedy for this problem is to define a function that returns
+the amount of time remaining before the next vertical blanking period,
+and to schedule animation redisplay within that period, using the
+information provided by the _NET_WM_FRAME_DRAWN and
+_NET_WM_FRAME_TIMINGS compositor messages on X and the
+BScreen::GetMonitorInfo function on Haiku.  Ideally, all features
+performing animations should be modified to use that method of
+scheduling redisplay.  Examples include xref-pulse-momentarily and
+pixel-scroll-precision-start-momentum.
 
 
 This file is part of GNU Emacs.

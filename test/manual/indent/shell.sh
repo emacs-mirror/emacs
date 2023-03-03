@@ -6,6 +6,13 @@ setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 toto=$(grep hello foo |
            wc)
 
+myfun () {
+    for ((it=0; it<${limit}; ++it))
+    {
+	echo "whatever $it"
+    }
+}
+
 # adsgsdg
 
 if foo; then
@@ -133,6 +140,7 @@ foo () {
         5) hello ;;
         4) hello ;&
         4) hello ;;&
+        4) hello ;|
         5) hello ;;
         5) hello ;;
     esac

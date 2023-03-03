@@ -1,6 +1,6 @@
-;;; terminal.el --- terminal emulator for GNU Emacs
+;;; terminal.el --- terminal emulator for GNU Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1989, 1993-1994, 2001-2020 Free Software
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
@@ -32,7 +32,7 @@
 
 ;; For information on US government censorship of the Internet, and
 ;; what you can do to bring back freedom of the press, see the web
-;; site http://www.vtw.org/
+;; site https://www.eff.org/ [used to be vtw.org but that link is dead]
 
 ;;; Code:
 
@@ -44,6 +44,7 @@
 ;;>>   more-processing enabled.
 
 (require 'ehelp)
+(require 'shell)
 
 (defgroup terminal nil
   "Terminal emulator for Emacs."
@@ -57,22 +58,19 @@ to the emulator program itself.  Type this character twice to send
 it through the emulator.  Type ? after typing it for a list of
 possible commands.
 This variable is local to each terminal-emulator buffer."
-  :type 'character
-  :group 'terminal)
+  :type 'character)
 
 (defcustom terminal-scrolling t ;;>> Setting this to t sort-of defeats my whole aim in writing this package...
   "If non-nil, the terminal-emulator will losingly `scroll' when output occurs
 past the bottom of the screen.  If nil, output will win and `wrap' to the top
 of the screen.
 This variable is local to each terminal-emulator buffer."
-  :type 'boolean
-  :group 'terminal)
+  :type 'boolean)
 
 (defcustom terminal-more-processing t
   "If non-nil, do more-processing.
 This variable is local to each terminal-emulator buffer."
-  :type 'boolean
-  :group 'terminal)
+  :type 'boolean)
 
 ;; If you are the sort of loser who uses scrolling without more breaks
 ;; and expects to actually see anything, you should probably set this to
@@ -83,8 +81,7 @@ terminal-emulator before a screen redisplay is forced.
 Set this to a large value for greater throughput,
 set it smaller for more frequent updates but overall slower
 performance."
-  :type 'integer
-  :group 'terminal)
+  :type 'integer)
 
 (defvar terminal-more-break-insertion
   "*** More break -- Press space to continue ***")
@@ -93,7 +90,7 @@ performance."
 (if terminal-meta-map
     nil
   (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'te-pass-through)
+    (define-key map [t] #'te-pass-through)
     (setq terminal-meta-map map)))
 
 (defvar terminal-map nil)
@@ -103,8 +100,8 @@ performance."
     ;; Prevent defining [menu-bar] as te-pass-through
     ;; so we allow the global menu bar to be visible.
     (define-key map [menu-bar] (make-sparse-keymap))
-    (define-key map [t] 'te-pass-through)
-    (define-key map [switch-frame] 'handle-switch-frame)
+    (define-key map [t] #'te-pass-through)
+    (define-key map [switch-frame] #'handle-switch-frame)
     (define-key map "\e" terminal-meta-map)
     ;;(define-key map "\C-l"
     ;;  (lambda () (interactive) (te-pass-through) (redraw-display)))
@@ -114,22 +111,21 @@ performance."
 (if terminal-escape-map
     nil
   (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'undefined)
-    (let ((s "0"))
-      (while (<= (aref s 0) ?9)
-	(define-key map s 'digit-argument)
-	(aset s 0 (1+ (aref s 0)))))
-    (define-key map "b" 'switch-to-buffer)
-    (define-key map "o" 'other-window)
-    (define-key map "e" 'te-set-escape-char)
-    (define-key map "\C-l" 'redraw-display)
-    (define-key map "\C-o" 'te-flush-pending-output)
-    (define-key map "m" 'te-toggle-more-processing)
-    (define-key map "x" 'te-escape-extended-command)
+    (define-key map [t] #'undefined)
+    (dotimes (i 10)
+      (let ((s (make-string 1 (+ ?0 i))))
+	(define-key map s #'digit-argument)))
+    (define-key map "b" #'switch-to-buffer)
+    (define-key map "o" #'other-window)
+    (define-key map "e" #'te-set-escape-char)
+    (define-key map "\C-l" #'redraw-display)
+    (define-key map "\C-o" #'te-flush-pending-output)
+    (define-key map "m" #'te-toggle-more-processing)
+    (define-key map "x" #'te-escape-extended-command)
     ;;>> What use is this?  Why is it in the default terminal-emulator map?
-    (define-key map "w" 'te-edit)
-    (define-key map "?" 'te-escape-help)
-    (define-key map (char-to-string help-char) 'te-escape-help)
+    (define-key map "w" #'te-edit)
+    (define-key map "?" #'te-escape-help)
+    (define-key map (char-to-string help-char) #'te-escape-help)
     (setq terminal-escape-map map)))
 
 (defvar te-escape-command-alist nil)
@@ -160,14 +156,14 @@ performance."
 (if terminal-more-break-map
     nil
   (let ((map (make-sparse-keymap)))
-    (define-key map [t] 'te-more-break-unread)
-    (define-key map (char-to-string help-char) 'te-more-break-help)
-    (define-key map " " 'te-more-break-resume)
-    (define-key map "\C-l" 'redraw-display)
-    (define-key map "\C-o" 'te-more-break-flush-pending-output)
+    (define-key map [t] #'te-more-break-unread)
+    (define-key map (char-to-string help-char) #'te-more-break-help)
+    (define-key map " " #'te-more-break-resume)
+    (define-key map "\C-l" #'redraw-display)
+    (define-key map "\C-o" #'te-more-break-flush-pending-output)
     ;;>>> this isn't right
-    ;(define-key map "\^?" 'te-more-break-flush-pending-output) ;DEL
-    (define-key map "\r" 'te-more-break-advance-one-line)
+    ;(define-key map "\^?" #'te-more-break-flush-pending-output) ;DEL
+    (define-key map "\r" #'te-more-break-advance-one-line)
 
     (setq terminal-more-break-map map)))
 
@@ -524,7 +520,7 @@ lets you type a terminal emulator command."
 (if terminal-edit-map
     nil
   (setq terminal-edit-map (make-sparse-keymap))
-  (define-key terminal-edit-map "\C-c\C-c" 'terminal-cease-edit))
+  (define-key terminal-edit-map "\C-c\C-c" #'terminal-cease-edit))
 
 ;; Terminal Edit mode is suitable only for specially formatted data.
 (put 'terminal-edit-mode 'mode-class 'special)
@@ -1056,12 +1052,6 @@ move to start of new line, clear to end of line."
 ;; This used to have `new' in it, but that loses outside BSD
 ;; and it's apparently not needed in BSD.
 
-(defcustom explicit-shell-file-name nil
-  "If non-nil, is file name to use for explicitly requested inferior shell."
-  :type '(choice (const :tag "None" nil)
-		 file)
-  :group 'terminal)
-
 ;;;###autoload
 (defun terminal-emulator (buffer program args &optional width height)
   "Under a display-terminal emulator in BUFFER, run PROGRAM on arguments ARGS.
@@ -1145,10 +1135,10 @@ subprocess started."
 			     ;; Then finally start the program we wanted.
 			     (format "%s; exec %s"
 				     te-stty-string
-				     (mapconcat 'te-quote-arg-for-sh
+				     (mapconcat #'te-quote-arg-for-sh
 						(cons program args) " "))))
-	(set-process-filter te-process 'te-filter)
-	(set-process-sentinel te-process 'te-sentinel))
+	(set-process-filter te-process #'te-filter)
+	(set-process-sentinel te-process #'te-sentinel))
     (error (fundamental-mode)
 	   (signal (car err) (cdr err))))
   (setq inhibit-quit t)			;sport death
@@ -1156,8 +1146,8 @@ subprocess started."
   (run-hooks 'terminal-mode-hook)
   (message "Entering Emacs terminal-emulator...  Type %s %s for help"
 	   (single-key-description terminal-escape-char)
-	   (mapconcat 'single-key-description
-		      (where-is-internal 'te-escape-help terminal-escape-map t)
+	   (mapconcat #'single-key-description
+		      (where-is-internal #'te-escape-help terminal-escape-map t)
 		      " ")))
 
 
@@ -1231,7 +1221,7 @@ of the terminal-emulator"
   (cond ((string-match "\\`[-a-zA-Z0-9+=_.@/:]+\\'"
 		       string)
 	 string)
-	((not (string-match "[$]" string))
+	((not (string-search "$" string))
 	 ;; "[\"\\]" are special to sh and the lisp reader in the same way
 	 (prin1-to-string string))
 	(t
@@ -1297,7 +1287,7 @@ in the directory specified by `te-terminfo-directory'."
 			   (directory-file-name te-terminfo-directory))
 		   process-environment)))
 	(set-process-sentinel (start-process "tic" nil "tic" file-name)
-			      'te-tic-sentinel))))
+			      #'te-tic-sentinel))))
     (directory-file-name te-terminfo-directory))
 
 (defun te-create-termcap ()

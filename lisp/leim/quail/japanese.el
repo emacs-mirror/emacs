@@ -1,6 +1,6 @@
-;;; japanese.el --- Quail package for inputting Japanese
+;;; japanese.el --- Quail package for inputting Japanese  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -113,8 +113,7 @@
     (?h . "japanese")
     (?q . ("japanese-ascii"))))
 
-(defvar quail-japanese-package-saved nil)
-(make-variable-buffer-local 'quail-japanese-package-saved)
+(defvar-local quail-japanese-package-saved nil)
 (put 'quail-japanese-package-saved 'permanent-local t)
 
 (defun quail-japanese-switch-package (key idx)
@@ -360,7 +359,7 @@ input method.
 The input method `japanese-zenkaku' is used to enter full width
 JISX0208 characters corresponding to typed ASCII characters.
 
-List of the all key sequences for Roman-Kana transliteration is shown
+List of all the key sequences for Roman-Kana transliteration is shown
 at the tail.
 
 :: Kana-Kanji conversion ::
@@ -413,7 +412,7 @@ C-h		kkc-help
 	List these key bindings.
 "
  nil t t nil nil nil nil nil
- 'quail-japanese-update-translation
+ #'quail-japanese-update-translation
  '(("K" . quail-japanese-toggle-kana)
    (" " . quail-japanese-kanji-kkc)
    ("\C-m" . quail-no-conversion)
@@ -492,7 +491,7 @@ qh:	shift to the input method `japanese',
 qq:	toggle between this input method and the input method `japanese-ascii'.
 "
  nil t t nil nil nil nil nil
- 'quail-japanese-hankaku-update-translation)
+ #'quail-japanese-hankaku-update-translation)
 
 (dolist (elt quail-japanese-transliteration-rules)
   (quail-defrule (car elt)
@@ -518,7 +517,7 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
  nil
  "Japanese hiragana input method by Roman transliteration."
  nil t t nil nil nil nil nil
- 'quail-japanese-update-translation)
+ #'quail-japanese-update-translation)
 
 ;; Use the same map as that of `japanese'.
 (setcar (cdr (cdr quail-current-package))
@@ -539,7 +538,7 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
  nil
  "Japanese katakana input method by Roman transliteration."
  nil t t nil nil nil nil nil
- 'quail-japanese-katakana-update-translation)
+ #'quail-japanese-katakana-update-translation)
 
 (dolist (elt quail-japanese-transliteration-rules)
   (quail-defrule (car elt)

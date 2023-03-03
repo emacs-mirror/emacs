@@ -1,6 +1,6 @@
 ;;; calc-mtx.el --- matrix functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -55,7 +55,7 @@
 (defun math-col-matrix (a)
   (if (and (Math-vectorp a)
 	   (not (math-matrixp a)))
-      (cons 'vec (mapcar (function (lambda (x) (list 'vec x))) (cdr a)))
+      (cons 'vec (mapcar (lambda (x) (list 'vec x)) (cdr a)))
     a))
 
 
@@ -79,8 +79,8 @@
     (cons 'vec (nreverse mat))))
 
 (defun math-mul-mat-vec (a b)
-  (cons 'vec (mapcar (function (lambda (row)
-				 (math-dot-product row b)))
+  (cons 'vec (mapcar (lambda (row)
+                       (math-dot-product row b))
 		     (cdr a))))
 
 

@@ -1,12 +1,12 @@
-# pselect.m4 serial 9
-dnl Copyright (C) 2011-2020 Free Software Foundation, Inc.
+# pselect.m4 serial 11
+dnl Copyright (C) 2011-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_FUNC_PSELECT],
 [
-  AC_REQUIRE([gl_HEADER_SYS_SELECT])
+  AC_REQUIRE([gl_SYS_SELECT_H])
   AC_REQUIRE([AC_C_RESTRICT])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CHECK_FUNCS_ONCE([pselect])
@@ -54,6 +54,8 @@ AC_DEFUN([gl_FUNC_PSELECT],
            case "$host_os" in
                              # Guess yes on Linux systems.
             linux-* | linux) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                             # Guess yes on systems that emulate the Linux system calls.
+            midipix*)        gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
                              # Guess yes on glibc systems.
             *-gnu* | gnu*)   gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
                              # If we don't know, obey --enable-cross-guesses.

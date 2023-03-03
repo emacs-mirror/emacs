@@ -1,6 +1,6 @@
-;;; cedet-utests.el --- Run all unit tests in the CEDET suite.
+;;; cedet-utests.el --- Run all unit tests in the CEDET suite.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -26,7 +26,6 @@
 ;; into one command.
 
 (require 'cedet)
-(require 'inversion)
 
 (defvar cedet-utest-directory
   (let* ((C (file-name-directory (locate-library "cedet")))
@@ -36,7 +35,6 @@
 
 (defvar cedet-utest-libs '("ede-tests"
                            "semantic-tests"
-                           "srecode-tests"
                            )
   "List of test srcs that need to be loaded.")
 
@@ -48,7 +46,7 @@
     ;;
 
     ;; Test inversion
-    ("inversion" . inversion-unit-test)
+    ;; ("inversion" . inversion-unit-test) ; moved to automated suite
 
     ;; EZ Image dumping.
     ("ezimage associations" . ezimage-image-association-dump)
@@ -60,7 +58,7 @@
     ("pulse interactive test" . (lambda () (pulse-test t)))
 
     ;; Files
-    ("cedet file conversion" . cedet-files-utest)
+    ;; ("cedet file conversion" . cedet-files-utest) ; moved to automated suite
 
     ;;
     ;; EIEIO
@@ -100,14 +98,14 @@
 	   (message " ** Skipping test in noninteractive mode.")
 	 (semantic-test-throw-on-input))))
 
-    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)  ; moved to automated suite
 
     ;;
     ;; SRECODE
     ;;
 
     ;; TODO - fix the fields test
-    ;;("srecode: fields" . srecode-field-utest)
+    ;;("srecode: fields" . srecode-field-utest)  ; moved to automated suite
     ;;("srecode: templates" . srecode-utest-template-output)
     ("srecode: show maps" . srecode-get-maps)
     ;;("srecode: getset" . srecode-utest-getset-output)
@@ -122,9 +120,9 @@
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)
-  (if (or (not (featurep 'semantic/db-mode))
-	  (not (semanticdb-minor-mode-p)))
-      (error "CEDET Tests require semantic-mode to be enabled"))
+  (unless (and (fboundp 'semanticdb-minor-mode-p)
+               (semanticdb-minor-mode-p))
+    (error "CEDET Tests require semantic-mode to be enabled"))
   (dolist (L cedet-utest-libs)
     (load-file (expand-file-name (concat L ".el") cedet-utest-directory)))
   (cedet-utest-log-setup "ALL TESTS")
@@ -172,6 +170,8 @@ of just logging the error."
   (declare (obsolete nil "27.1"))
   noninteractive)
 
+(defvar srecode-map-save-file)
+
 ;;;###autoload
 (defun cedet-utest-batch ()
   "Run the CEDET unit test in BATCH mode."
@@ -180,6 +180,7 @@ of just logging the error."
   (condition-case err
       (when (catch 'cedet-utest-exit-on-error
 	      ;; Get basic semantic features up.
+	      ;; FIXME: I can't see any such function in our code!
 	      (semantic-load-enable-minimum-features)
 	      ;; Disables all caches related to semantic DB so all
 	      ;; tests run as if we have bootstrapped CEDET for the
@@ -233,8 +234,7 @@ Optional argument TITLE is the title of this testing session."
       (setq cedet-utest-frame (make-frame cedet-utest-frame-parameters)))
     (when (or (not cedet-utest-buffer) (not (buffer-live-p cedet-utest-buffer)))
       (setq cedet-utest-buffer (get-buffer-create "*CEDET utest log*")))
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (setq cedet-utest-last-log-item nil)
       (when (not cedet-running-master-tests)
 	(erase-buffer))
@@ -252,11 +252,9 @@ Optional argument TITLE is the title of this testing session."
 (defun cedet-utest-elapsed-time (start end)
   "Copied from elp.el.  Was elp-elapsed-time.
 Argument START and END bound the time being calculated."
-  (+ (* (- (car end) (car start)) 65536.0)
-     (- (car (cdr end)) (car (cdr start)))
-     (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
+  (float-time (time-subtract start end)))
 
-(defun cedet-utest-log-shutdown (title &optional errorcondition)
+(defun cedet-utest-log-shutdown (title &optional _errorcondition)
   "Shut-down a larger test suite.
 TITLE is the section that is done.
 ERRORCONDITION is some error that may have occurred during testing."
@@ -276,8 +274,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 	(message "     Elapsed Time %.2f Seconds\n"
 		 (cedet-utest-elapsed-time startime endtime)))
 
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (insert "\n>> Test Suite " title " ended at @ "
 	      (format-time-string "%c" endtime) "\n"
@@ -307,12 +304,11 @@ ERRORCONDITION is some error that may have occurred during testing."
   "Hook run after the current log command was run."
     (if noninteractive
 	(message "")
-      (save-excursion
-	(set-buffer cedet-utest-buffer)
+      (with-current-buffer cedet-utest-buffer
 	(goto-char (point-max))
 	(insert "\n\n")))
     (setq cedet-utest-last-log-item nil)
-    (remove-hook 'post-command-hook 'cedet-utest-post-command-hook)
+    (remove-hook 'post-command-hook #'cedet-utest-post-command-hook)
     )
 
 (defun cedet-utest-add-log-item-start (item)
@@ -320,12 +316,11 @@ ERRORCONDITION is some error that may have occurred during testing."
   (unless (equal item cedet-utest-last-log-item)
     (setq cedet-utest-last-log-item item)
     ;; This next line makes sure we clear out status during logging.
-    (add-hook 'post-command-hook 'cedet-utest-post-command-hook)
+    (add-hook 'post-command-hook #'cedet-utest-post-command-hook)
 
     (if noninteractive
 	(message " - Running %s ..." item)
-      (save-excursion
-	(set-buffer cedet-utest-buffer)
+      (with-current-buffer cedet-utest-buffer
 	(goto-char (point-max))
 	(when (not (bolp)) (insert "\n"))
 	(insert "Running " item " ... ")
@@ -338,15 +333,15 @@ ERRORCONDITION is some error that may have occurred during testing."
   "Add into the log that the last item is done.
 Apply NOTES to the doneness of the log.
 Apply ERR if there was an error in previous item.
-Optional argument PRECR indicates to prefix the done msg w/ a newline."
+Optional argument PRECR indicates to prefix the done message with
+a newline."
   (if noninteractive
       ;; Non-interactive-mode - show a message.
       (if notes
 	  (message "   * %s {%s}" (or err "done") notes)
 	(message "   * %s" (or err "done")))
     ;; Interactive-mode - insert into the buffer.
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (when precr (insert "\n"))
       (if err
@@ -376,114 +371,20 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
     (cedet-utest-add-log-item-start testname)
     ))
 
-(defun cedet-utest-log(format &rest args)
+(defun cedet-utest-log (format &rest args)
   "Log the text string FORMAT.
 The rest of the ARGS are used to fill in FORMAT with `format'."
   (if noninteractive
-      (apply 'message format args)
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+      (apply #'message format args)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (when (not (bolp)) (insert "\n"))
-      (insert (apply 'format format args))
+      (insert (apply #'format format args))
       (insert "\n")
       (sit-for 0)
       ))
   (cedet-utest-show-log-end)
   )
-
-;;; Inversion tests
-
-(defun inversion-unit-test ()
-  "Test inversion to make sure it can identify different version strings."
-  (interactive)
-  (let ((c1 (inversion-package-version 'inversion))
-	(c1i (inversion-package-incompatibility-version 'inversion))
-	(c2 (inversion-decode-version  "1.3alpha2"))
-	(c3 (inversion-decode-version  "1.3beta4"))
-	(c4 (inversion-decode-version  "1.3 beta5"))
-	(c5 (inversion-decode-version  "1.3.4"))
-	(c6 (inversion-decode-version  "2.3alpha"))
-	(c7 (inversion-decode-version  "1.3"))
-	(c8 (inversion-decode-version  "1.3pre1"))
-	(c9 (inversion-decode-version  "2.4 (patch 2)"))
-	(c10 (inversion-decode-version "2.4 (patch 3)"))
-	(c11 (inversion-decode-version "2.4.2.1"))
-	(c12 (inversion-decode-version "2.4.2.2"))
-	)
-    (if (not (and
-	      (inversion-= c1 c1)
-	      (inversion-< c1i c1)
-	      (inversion-< c2 c3)
-	      (inversion-< c3 c4)
-	      (inversion-< c4 c5)
-	      (inversion-< c5 c6)
-	      (inversion-< c2 c4)
-	      (inversion-< c2 c5)
-	      (inversion-< c2 c6)
-	      (inversion-< c3 c5)
-	      (inversion-< c3 c6)
-	      (inversion-< c7 c6)
-	      (inversion-< c4 c7)
-	      (inversion-< c2 c7)
-	      (inversion-< c8 c6)
-	      (inversion-< c8 c7)
-	      (inversion-< c4 c8)
-	      (inversion-< c2 c8)
-	      (inversion-< c9 c10)
-	      (inversion-< c10 c11)
-	      (inversion-< c11 c12)
-	      ;; Negatives
-	      (not (inversion-< c3 c2))
-	      (not (inversion-< c4 c3))
-	      (not (inversion-< c5 c4))
-	      (not (inversion-< c6 c5))
-	      (not (inversion-< c7 c2))
-	      (not (inversion-< c7 c8))
-	      (not (inversion-< c12 c11))
-	      ;; Test the tester on inversion
-	      (not (inversion-test 'inversion inversion-version))
-	      ;; Test that we throw an error
-	      (inversion-test 'inversion "0.0.0")
-	      (inversion-test 'inversion "1000.0")
-	      ))
-	(error "Inversion tests failed")
-      (message "Inversion tests passed."))))
-
-;;; cedet-files unit test
-
-(defvar cedet-files-utest-list
-  '(
-    ( "/home/me/src/myproj/src/foo.c" . "!home!me!src!myproj!src!foo.c" )
-    ( "c:/work/myproj/foo.el" . "!drive_c!work!myproj!foo.el" )
-    ( "//windows/proj/foo.java" . "!!windows!proj!foo.java" )
-    ( "/home/me/proj!bang/foo.c" . "!home!me!proj!!bang!foo.c" )
-    )
-  "List of different file names to test.
-Each entry is a cons cell of ( FNAME . CONVERTED )
-where FNAME is some file name, and CONVERTED is what it should be
-converted into.")
-
-(defun cedet-files-utest ()
-  "Test out some file name conversions."
-  (interactive)
-  (let ((idx 0))
-    (dolist (FT cedet-files-utest-list)
-
-      (setq idx (+ idx 1))
-
-      (let ((dir->file (cedet-directory-name-to-file-name (car FT) t))
-	    (file->dir (cedet-file-name-to-directory-name (cdr FT) t))
-	    )
-
-	(unless (string= (cdr FT) dir->file)
-	  (error "Failed: %d.  Found: %S Wanted: %S"
-		 idx dir->file (cdr FT))
-	  )
-
-	(unless (string= file->dir (car FT))
-	  (error "Failed: %d.  Found: %S Wanted: %S"
-		 idx file->dir (car FT)))))))
 
 ;;; pulse test
 
@@ -491,11 +392,15 @@ converted into.")
   "Test the lightening function for pulsing a line.
 When optional NO-ERROR don't throw an error if we can't run tests."
   (interactive)
-  (if (or (not pulse-flag) (not (pulse-available-p)))
+  (if (not (and (bound-and-true-p pulse-flag)
+                (fboundp 'pulse-available-p)
+                (pulse-available-p)))
       (if no-error
 	  nil
 	(error (concat "Pulse test only works on versions of Emacs"
 		       " that support pulsing")))
+    (declare-function pulse-momentary-highlight-overlay
+                      "pulse.el" (o &optional face))
     ;; Run the tests
     (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse one line.")

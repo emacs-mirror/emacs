@@ -1,6 +1,6 @@
-;;; gnus-logic.el --- advanced scoring code for Gnus
+;;; gnus-logic.el --- advanced scoring code for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -224,8 +224,8 @@
           (goto-char (point-min))
           (prog1
               (funcall search-func match nil t)
-            (widen)))
-        (when handles (mm-destroy-parts handles))))))
+            (widen)
+            (when handles (mm-destroy-parts handles))))))))
 
 (provide 'gnus-logic)
 

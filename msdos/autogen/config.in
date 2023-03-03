@@ -2,7 +2,7 @@
 
 /* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2020 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* No code in Emacs #includes config.h twice, but some bits of code
@@ -217,7 +217,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    whether the gnulib module scanf shall be considered present. */
 #undef GNULIB_SCANF
 
-/* Define if ths system is compatible with GNU/Linux. */
+/* Define if this system is compatible with GNU/Linux. */
 #undef GNU_LINUX
 
 /* Define to 1 if you want to use the GNU memory allocator. */
@@ -1712,7 +1712,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   /* Suppress GCC's bogus "no previous prototype for 'FOO'"
      and "no previous declaration for 'FOO'"  diagnostics,
      when FOO is an inline function in the header; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
 # define _GL_INLINE_HEADER_BEGIN \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \

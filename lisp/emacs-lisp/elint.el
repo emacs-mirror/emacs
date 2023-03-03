@@ -1,6 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -355,15 +355,14 @@ Returns the forms."
       ;; Env is up to date
       elint-buffer-forms
     ;; Remake env
-    (set (make-local-variable 'elint-buffer-forms) (elint-get-top-forms))
-    (set (make-local-variable 'elint-features) nil)
-    (set (make-local-variable 'elint-buffer-env)
-	 (elint-init-env elint-buffer-forms))
+    (setq-local elint-buffer-forms (elint-get-top-forms))
+    (setq-local elint-features nil)
+    (setq-local elint-buffer-env (elint-init-env elint-buffer-forms))
     (if elint-preloaded-env
         ;; FIXME: This doesn't do anything!  Should we setq the result to
         ;; elint-buffer-env?
 	(elint-env-add-env elint-preloaded-env elint-buffer-env))
-    (set (make-local-variable 'elint-last-env-time) (buffer-modified-tick))
+    (setq-local elint-last-env-time (buffer-modified-tick))
     elint-buffer-forms))
 
 (defun elint-get-top-forms ()
@@ -456,8 +455,8 @@ Return nil if there are no more forms, t otherwise."
 	 (= 4 (length form))
 	 (eq (car-safe (cadr form)) 'quote)
 	 (equal (nth 2 form) '(quote error-conditions)))
-    (set (make-local-variable 'elint-extra-errors)
-	 (cons (cadr (cadr form)) elint-extra-errors)))
+    (setq-local elint-extra-errors
+                (cons (cadr (cadr form)) elint-extra-errors)))
    ((eq (car form) 'provide)
     (add-to-list 'elint-features (eval (cadr form))))
    ;; Import variable definitions
@@ -522,7 +521,7 @@ Return nil if there are no more forms, t otherwise."
   "The currently linted top form, or nil.")
 
 (defvar elint-top-form-logged nil
-  "The value t if the currently linted top form has been mentioned in the log buffer.")
+  "Non-nil if the currently linted top form has been mentioned in the log buffer.")
 
 (defun elint-top-form (form)
   "Lint a top FORM."
@@ -559,7 +558,8 @@ Return nil if there are no more forms, t otherwise."
     (when . elint-check-conditional-form)
     (unless . elint-check-conditional-form)
     (and . elint-check-conditional-form)
-    (or . elint-check-conditional-form))
+    (or . elint-check-conditional-form)
+    (require . elint-require-form))
   "Functions to call when some special form should be linted.")
 
 (defun elint-form (form env &optional nohandler)
@@ -954,6 +954,13 @@ Does basic handling of `featurep' tests."
 	   (elint-form form env t))))
   env)
 
+(defun elint-require-form (form _env)
+  "Load `require'd files."
+  (pcase form
+    (`(require ',x)
+     (require x)))
+  nil)
+
 ;;;
 ;;; Message functions
 ;;;
@@ -1028,7 +1035,7 @@ Insert HEADER followed by a blank line if non-nil."
     (sit-for 0)))
 
 (defun elint-set-mode-line (&optional on)
-  "Set the mode-line-process of the Elint log buffer."
+  "Set the `mode-line-process' of the Elint log buffer."
   (with-current-buffer (elint-get-log-buffer)
     (and (eq major-mode 'compilation-mode)
 	 (setq mode-line-process

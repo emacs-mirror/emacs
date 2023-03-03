@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -40,8 +40,8 @@
 
 (defvar gnus-current-window-configuration)
 
-(add-hook 'gnus-exit-gnus-hook 'mm-destroy-postponed-undisplay-list)
-(add-hook 'gnus-exit-gnus-hook 'mm-temp-files-delete)
+(add-hook 'gnus-exit-gnus-hook #'mm-destroy-postponed-undisplay-list)
+(add-hook 'gnus-exit-gnus-hook #'mm-temp-files-delete)
 
 (defgroup mime-display ()
   "Display of MIME in mail and news articles."
@@ -117,8 +117,8 @@
   (cond ((fboundp 'libxml-parse-html-region) 'shr)
 	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
-	((executable-find "lynx") 'lynx)
-	((locate-library "html2text") 'html2text))
+        ((executable-find "lynx") 'lynx)
+        (t 'shr))
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
@@ -127,16 +127,14 @@ The defined renderer types are:
 `w3m': use emacs-w3m;
 `w3m-standalone': use plain w3m;
 `links': use links;
-`lynx': use lynx;
-`html2text': use html2text."
-  :version "27.1"
+`lynx': use lynx."
+  :version "29.1"
   :type '(choice (const shr)
                  (const gnus-w3m)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
 		 (const lynx)
-		 (const html2text)
 		 (function))
   :group 'mime-display)
 
@@ -193,7 +191,11 @@ before the external MIME handler is invoked."
   `(("image/p?jpeg"
      mm-inline-image
      ,(lambda (handle)
-       (mm-valid-and-fit-image-p 'jpeg handle)))
+        (mm-valid-and-fit-image-p 'jpeg handle)))
+    ("image/webp"
+     mm-inline-image
+     ,(lambda (handle)
+       (mm-valid-and-fit-image-p 'webp handle)))
     ("image/png"
      mm-inline-image
      ,(lambda (handle)
@@ -446,10 +448,11 @@ If not set, `default-directory' will be used."
   :type 'integer
   :group 'mime-display)
 
-(defcustom mm-external-terminal-program "xterm"
-  "The program to start an external terminal."
-  :version "22.1"
-  :type 'string
+(defcustom mm-external-terminal-program '("xterm" "-e")
+  "The program to start an external terminal.
+This should be a list of strings."
+  :version "29.1"
+  :type '(choice string (repeat string))
   :group 'mime-display)
 
 ;;; Internal variables.
@@ -473,6 +476,7 @@ The file will be saved in the directory `mm-tmp-directory'.")
 (autoload 'mml2015-verify-test "mml2015")
 (autoload 'mml-smime-verify "mml-smime")
 (autoload 'mml-smime-verify-test "mml-smime")
+(autoload 'mm-view-pkcs7-verify "mm-view")
 
 (defvar mm-verify-function-alist
   '(("application/pgp-signature" mml2015-verify "PGP" mml2015-verify-test)
@@ -481,7 +485,15 @@ The file will be saved in the directory `mm-tmp-directory'.")
     ("application/pkcs7-signature" mml-smime-verify "S/MIME"
      mml-smime-verify-test)
     ("application/x-pkcs7-signature" mml-smime-verify "S/MIME"
-     mml-smime-verify-test)))
+     mml-smime-verify-test)
+    ("application/x-pkcs7-signature" mml-smime-verify "S/MIME"
+     mml-smime-verify-test)
+    ;; these are only used for security-buttons and contain the
+    ;; smime-type after the underscore
+    ("application/pkcs7-mime_signed-data" mm-view-pkcs7-verify "S/MIME"
+     nil)
+    ("application/x-pkcs7-mime_signed-data" mml-view-pkcs7-verify "S/MIME"
+     nil)))
 
 (defcustom mm-verify-option 'never
   "Option of verifying signed parts.
@@ -500,11 +512,17 @@ result of the verification."
 
 (autoload 'mml2015-decrypt "mml2015")
 (autoload 'mml2015-decrypt-test "mml2015")
+(autoload 'mm-view-pkcs7-decrypt "mm-view")
 
 (defvar mm-decrypt-function-alist
   '(("application/pgp-encrypted" mml2015-decrypt "PGP" mml2015-decrypt-test)
     ("application/x-gnus-pgp-encrypted" mm-uu-pgp-encrypted-extract-1 "PGP"
-     mm-uu-pgp-encrypted-test)))
+     mm-uu-pgp-encrypted-test)
+    ;; these are only used for security-buttons and contain the
+    ;; smime-type after the underscore
+    ("application/pkcs7-mime_enveloped-data" mm-view-pkcs7-decrypt "S/MIME" nil)
+    ("application/x-pkcs7-mime_enveloped-data"
+     mm-view-pkcs7-decrypt "S/MIME" nil)))
 
 (defcustom mm-decrypt-option nil
   "Option of decrypting encrypted parts.
@@ -603,7 +621,7 @@ files left at the next time."
     (if fails
 	;; Schedule the deletion of the files left at the next time.
 	(with-file-modes #o600
-	  (write-region (concat (mapconcat 'identity (nreverse fails) "\n")
+	  (write-region (concat (mapconcat #'identity (nreverse fails) "\n")
 				"\n")
 			nil cache-file nil 'silent))
       (when (file-exists-p cache-file)
@@ -649,7 +667,7 @@ MIME-Version header before proceeding."
 	      (setq description (mail-decode-encoded-word-string
 				 description)))))
       (if (or (not ctl)
-	      (not (string-match "/" (car ctl))))
+	      (not (string-search "/" (car ctl))))
 	  (mm-dissect-singlepart
 	   (list mm-dissect-default-type)
 	   (and cte (intern (downcase (mail-header-strip-cte cte))))
@@ -681,18 +699,35 @@ MIME-Version header before proceeding."
 					'start start)
 				  (car ctl))
 	     (cons (car ctl) (mm-dissect-multipart ctl from))))
-	  (t
-	   (mm-possibly-verify-or-decrypt
-	    (mm-dissect-singlepart
-	     ctl
-	     (and cte (intern (downcase (mail-header-strip-cte cte))))
-	     no-strict-mime
-	     (and cd (mail-header-parse-content-disposition cd))
-	     description id)
-	    ctl from))))
-	(when id
-	  (when (string-match " *<\\(.*\\)> *" id)
-	    (setq id (match-string 1 id)))
+          (t
+           (let* ((handle
+                   (mm-dissect-singlepart
+                    ctl
+                    (and cte (intern (downcase (mail-header-strip-cte cte))))
+                    no-strict-mime
+                    (and cd (mail-header-parse-content-disposition cd))
+                    description id))
+                  (intermediate-result
+                   (mm-possibly-verify-or-decrypt handle ctl from)))
+             (when (and (equal type "application")
+                        (or (equal subtype "pkcs7-mime")
+                            (equal subtype "x-pkcs7-mime")))
+               (add-text-properties
+                0 (length (car ctl))
+                (list 'protocol
+                      (concat (substring-no-properties (car ctl))
+                              "_"
+                              (cdr (assoc 'smime-type ctl))))
+                (car ctl))
+               ;; If this is a pkcs7-mime lets treat this special and
+               ;; more like multipart so the pkcs7-mime part does not
+               ;; get ignored.
+               (setq intermediate-result
+                     (cons (car ctl) (list intermediate-result))))
+             intermediate-result))))
+        (when id
+          (when (string-match " *<\\(.*\\)> *" id)
+            (setq id (match-string 1 id)))
 	  (push (cons id result) mm-content-id-alist))
 	result))))
 
@@ -957,10 +992,16 @@ external if displayed external."
 	      (unwind-protect
 		  (if window-system
 		      (set-process-sentinel
-		       (start-process "*display*" nil
-				      mm-external-terminal-program
-				      "-e" shell-file-name
-				      shell-command-switch command)
+		       (apply #'start-process "*display*" nil
+                              (append
+                               (if (listp mm-external-terminal-program)
+                                   mm-external-terminal-program
+                                 ;; Be backwards-compatible.
+                                 (list mm-external-terminal-program
+                                       "-e"))
+                               (list shell-file-name
+				     shell-command-switch
+                                     command)))
 		       (lambda (process _state)
 			 (if (eq 'exit (process-status process))
 			     (run-at-time
@@ -1081,7 +1122,8 @@ external if displayed external."
 	    (string= total "\"%s\""))
 	(setq uses-stdin nil)
 	(push (shell-quote-argument
-	       (gnus-map-function mm-path-name-rewrite-functions file)) out))
+	       (gnus-map-function mm-path-name-rewrite-functions file))
+	      out))
        ((string= total "%t")
 	(push (shell-quote-argument (car type-list)) out))
        (t
@@ -1092,7 +1134,7 @@ external if displayed external."
       (push (shell-quote-argument
 	     (gnus-map-function mm-path-name-rewrite-functions file))
 	    out))
-    (mapconcat 'identity (nreverse out) "")))
+    (mapconcat #'identity (nreverse out) "")))
 
 (defun mm-remove-parts (handles)
   "Remove the displayed MIME parts represented by HANDLES."
@@ -1255,6 +1297,7 @@ in HANDLE."
 
 (defmacro mm-with-part (handle &rest forms)
   "Run FORMS in the temp buffer containing the contents of HANDLE."
+  (declare (indent 1) (debug t))
   ;; The handle-buffer's content is a sequence of bytes, not a sequence of
   ;; chars, so the buffer should be unibyte.  It may happen that the
   ;; handle-buffer is multibyte for some reason, in which case now is a good
@@ -1270,8 +1313,6 @@ in HANDLE."
 	  (mm-handle-encoding handle)
 	  (mm-handle-media-type handle))
 	 ,@forms))))
-(put 'mm-with-part 'lisp-indent-function 1)
-(put 'mm-with-part 'edebug-form-spec '(body))
 
 (defun mm-get-part (handle &optional no-cache)
   "Return the contents of HANDLE as a string.
@@ -1670,44 +1711,40 @@ If RECURSIVE, search recursively."
     (cond
      ((or (equal type "application/x-pkcs7-mime")
 	  (equal type "application/pkcs7-mime"))
-      (with-temp-buffer
-	(when (and (cond
-		    ((equal smime-type "signed-data") t)
-		    ((eq mm-decrypt-option 'never) nil)
-		    ((eq mm-decrypt-option 'always) t)
-		    ((eq mm-decrypt-option 'known) t)
-		    (t (y-or-n-p
-			(format "Decrypt (S/MIME) part? "))))
-		   (mm-view-pkcs7 parts from))
-	  (goto-char (point-min))
-	  ;; The encrypted document is a MIME part, and may use either
-	  ;; CRLF (Outlook and the like) or newlines for end-of-line
-	  ;; markers.  Translate from CRLF.
-	  (while (search-forward "\r\n" nil t)
-	    (replace-match "\n"))
-	  ;; Normally there will be a Content-type header here, but
-	  ;; some mailers don't add that to the encrypted part, which
-	  ;; makes the subsequent re-dissection fail here.
-	  (save-restriction
-	    (mail-narrow-to-head)
-	    (unless (mail-fetch-field "content-type")
-	      (goto-char (point-max))
-	      (insert "Content-type: text/plain\n\n")))
-	  (setq parts
-		(if (equal smime-type "signed-data")
-		    (list (propertize
-			   "multipart/signed"
-			   'protocol "application/pkcs7-signature"
-			   'gnus-info
-			   (format
-			    "%s:%s"
-			    (get-text-property 0 'gnus-info
-					       (car mm-security-handle))
-			    (get-text-property 0 'gnus-details
-					       (car mm-security-handle))))
-			  (mm-dissect-buffer t)
-			  parts)
-		  (mm-dissect-buffer t))))))
+      (add-text-properties 0 (length (car ctl))
+                           (list 'buffer (car parts))
+                           (car ctl))
+      (let* ((envelope-p (string= smime-type "enveloped-data"))
+             (decrypt-or-verify-option (if envelope-p
+                                           mm-decrypt-option
+                                         mm-verify-option))
+             (question (if envelope-p
+                           "Decrypt (S/MIME) part? "
+                         "Verify signed (S/MIME) part? ")))
+        (with-temp-buffer
+	  (when (and (cond
+		      ((equal smime-type "signed-data") t)
+		      ((eq decrypt-or-verify-option 'never) nil)
+		      ((eq decrypt-or-verify-option 'always) t)
+		      ((eq decrypt-or-verify-option 'known) t)
+		      (t (y-or-n-p (format question))))
+                     (mm-view-pkcs7 parts from))
+
+	    (goto-char (point-min))
+	    ;; The encrypted document is a MIME part, and may use either
+	    ;; CRLF (Outlook and the like) or newlines for end-of-line
+	    ;; markers.  Translate from CRLF.
+	    (while (search-forward "\r\n" nil t)
+	      (replace-match "\n"))
+	    ;; Normally there will be a Content-type header here, but
+	    ;; some mailers don't add that to the encrypted part, which
+	    ;; makes the subsequent re-dissection fail here.
+	    (save-restriction
+	      (mail-narrow-to-head)
+	      (unless (mail-fetch-field "content-type")
+	        (goto-char (point-max))
+	        (insert "Content-type: text/plain\n\n")))
+	    (setq parts (mm-dissect-buffer t))))))
      ((equal subtype "signed")
       (unless (and (setq protocol
 			 (mm-handle-multipart-ctl-parameter ctl 'protocol))
@@ -1834,7 +1871,7 @@ If RECURSIVE, search recursively."
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((shr-width (if shr-use-fonts
-		       nil
+		       shr-width
 		     fill-column))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))

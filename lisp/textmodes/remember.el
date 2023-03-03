@@ -1,6 +1,6 @@
-;;; remember --- a mode for quickly jotting down things to remember
+;;; remember.el --- a mode for quickly jotting down things to remember  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -129,8 +129,6 @@
 ;; To map the primary remember function to the keystroke F8, do the
 ;; following.
 ;;
-;;   (autoload 'remember "remember" nil t)
-;;
 ;;   (define-key global-map [f8] 'remember)
 ;;
 ;; * Feedback
@@ -159,7 +157,8 @@
 ;;   ;; This should be before other entries that may return t
 ;;   (add-to-list 'remember-handler-functions 'remember-diary-extract-entries)
 ;;
-;; This module recognizes entries of the form
+;; This module recognizes entries of the form (defined by
+;; `remember-diary-regexp')
 ;;
 ;;   DIARY: ....
 ;;
@@ -175,13 +174,7 @@
 ;;
 ;;   2003.08.12 Sacha's birthday
 
-;;; History:
-
 ;;; Code:
-
-(defconst remember-version "2.0"
-  "This version of remember.")
-(make-obsolete-variable 'remember-version nil "28.1")
 
 (defgroup remember nil
   "A mode to remember information."
@@ -192,24 +185,20 @@
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template)
-  :group 'remember)
+  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template))
 
 (defcustom remember-in-new-frame nil
   "Non-nil means use a separate frame for capturing remember data."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 (defcustom remember-register ?R
   "The register in which the window configuration is stored."
-  :type 'character
-  :group 'remember)
+  :type 'character)
 
 (defcustom remember-filter-functions nil
   "Functions run to filter remember data.
 All functions are run in the remember buffer."
-  :type 'hook
-  :group 'remember)
+  :type 'hook)
 
 (defcustom remember-handler-functions '(remember-append-to-file)
   "Functions run to process remember data.
@@ -222,54 +211,50 @@ recorded somewhere by that function."
              remember-append-to-file
              remember-store-in-files
              remember-diary-extract-entries
-             org-remember-handler)
-  :group 'remember)
+             org-remember-handler))
 
 (defcustom remember-all-handler-functions nil
   "If non-nil every function in `remember-handler-functions' is called."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;; See below for more user variables.
 
 ;;; Internal Variables:
 
-(defvar remember-buffer "*Remember*"
-  "The name of the remember data entry buffer.")
+(defcustom remember-buffer "*Remember*"
+  "The name of the remember data entry buffer."
+  :version "28.1"
+  :type 'string)
 
 (defcustom remember-save-after-remembering t
   "Non-nil means automatically save after remembering."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;;; User Functions:
 
 (defcustom remember-annotation-functions '(buffer-file-name)
   "Hook that returns an annotation to be inserted into the remember buffer."
   :type 'hook
-  :options '(org-remember-annotation buffer-file-name)
-  :group 'remember)
+  :options '(org-remember-annotation buffer-file-name))
 
 (defvar remember-annotation nil
   "Current annotation.")
 (defvar remember-initial-contents nil
-  "Initial contents to place into *Remember* buffer.")
+  "Initial contents to place into `remember-buffer'.")
 
 (defcustom remember-before-remember-hook nil
-  "Functions run before switching to the *Remember* buffer."
-  :type 'hook
-  :group 'remember)
+  "Functions run before switching to the `remember-buffer'."
+  :type 'hook)
 
 (defcustom remember-run-all-annotation-functions-flag nil
   "Non-nil means use all annotations returned by `remember-annotation-functions'."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;;;###autoload
 (defun remember (&optional initial)
   "Remember an arbitrary piece of data.
-INITIAL is the text to initially place in the *Remember* buffer,
-or nil to bring up a blank *Remember* buffer.
+INITIAL is the text to initially place in the `remember-buffer',
+or nil to bring up a blank `remember-buffer'.
 
 With a prefix or a visible region, use the region as INITIAL."
   (interactive
@@ -279,12 +264,13 @@ With a prefix or a visible region, use the region as INITIAL."
            (buffer-substring (region-beginning) (region-end)))))
   (funcall (if remember-in-new-frame
                #'frameset-to-register
-             #'window-configuration-to-register) remember-register)
+             #'window-configuration-to-register)
+           remember-register)
   (let* ((annotation
           (if remember-run-all-annotation-functions-flag
-              (mapconcat 'identity
+              (mapconcat #'identity
                          (delq nil
-                               (mapcar 'funcall remember-annotation-functions))
+                               (mapcar #'funcall remember-annotation-functions))
                          "\n")
             (run-hook-with-args-until-success
              'remember-annotation-functions)))
@@ -292,7 +278,8 @@ With a prefix or a visible region, use the region as INITIAL."
     (run-hooks 'remember-before-remember-hook)
     (funcall (if remember-in-new-frame
                  #'switch-to-buffer-other-frame
-               #'switch-to-buffer-other-window) buf)
+               #'switch-to-buffer-other-window)
+             buf)
     (if remember-in-new-frame
         (set-window-dedicated-p
          (get-buffer-window (current-buffer) (selected-frame)) t))
@@ -307,7 +294,8 @@ With a prefix or a visible region, use the region as INITIAL."
         (insert "\n\n" annotation))
       (setq remember-initial-contents nil)
       (goto-char (point-min)))
-    (message "Use C-c C-c to remember the data.")))
+    (message (substitute-command-keys
+              "Use \\[remember-finalize] to remember the data"))))
 
 ;;;###autoload
 (defun remember-other-frame (&optional initial)
@@ -336,13 +324,11 @@ With a prefix or a visible region, use the region as INITIAL."
 
 (defcustom remember-mailbox "~/Mail/remember"
   "The file in which to store remember data as mail."
-  :type 'file
-  :group 'remember)
+  :type 'file)
 
 (defcustom remember-default-priority "medium"
   "The default priority for remembered mail messages."
-  :type 'string
-  :group 'remember)
+  :type 'string)
 
 (defun remember-store-in-mailbox ()
   "Store remember data as if it were incoming mail.
@@ -395,28 +381,35 @@ exists) might be changed."
              (with-current-buffer buf
                (set-visited-file-name
                 (expand-file-name remember-data-file))))))
-  :initialize 'custom-initialize-default
-  :group 'remember)
+  :initialize #'custom-initialize-default)
 
 (defcustom remember-leader-text "** "
   "The text used to begin each remember item."
-  :type 'string
-  :group 'remember)
+  :type 'string)
 
 (defcustom remember-time-format "%a %b %d %H:%M:%S %Y"
   "The format for time stamp, passed to `format-time-string'.
 The default emulates `current-time-string' for backward compatibility."
   :type 'string
-  :group 'remember
   :version "27.1")
+
+(defcustom remember-text-format-function nil
+  "The function to format the remembered text.
+The function receives the remembered text as argument and should
+return the text to be remembered."
+  :type '(choice (const nil) function)
+  :version "28.1")
 
 (defun remember-append-to-file ()
   "Remember, with description DESC, the given TEXT."
   (let* ((text (buffer-string))
          (desc (remember-buffer-desc))
-         (remember-text (concat "\n" remember-leader-text
-                                (format-time-string remember-time-format)
-                                " (" desc ")\n\n" text
+         (remember-text (concat "\n"
+                                (if remember-text-format-function
+                                    (funcall remember-text-format-function text)
+                                  (concat remember-leader-text
+                                          (format-time-string remember-time-format)
+                                          " (" desc ")\n\n" text))
                                 (save-excursion (goto-char (point-max))
                                                 (if (bolp) nil "\n"))))
          (buf (find-buffer-visiting remember-data-file)))
@@ -430,7 +423,7 @@ The default emulates `current-time-string' for backward compatibility."
 
 (defun remember-region (&optional beg end)
   "Remember the data from BEG to END.
-It is called from within the *Remember* buffer to save the text
+It is called from within the `remember-buffer' to save the text
 that was entered.
 
 If BEG and END are nil, the entire buffer will be remembered.
@@ -453,16 +446,14 @@ If you want to remember a region, supply a universal prefix to
   "The directory in which to store remember data as files.
 Used by `remember-store-in-files'."
   :type 'directory
-  :version "24.4"
-  :group 'remember)
+  :version "24.4")
 
 (defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
   "Format string for the file name in which to store unprocessed data.
 This is passed to `format-time-string'.
 Used by `remember-store-in-files'."
   :type 'string
-  :version "24.4"
-  :group 'remember)
+  :version "24.4")
 
 (defun remember-store-in-files ()
   "Store remember data in a file in `remember-data-directory'.
@@ -488,7 +479,7 @@ Most useful for remembering things from other applications."
   (remember-region (point-min) (point-max)))
 
 (defun remember-destroy ()
-  "Destroy the current *Remember* buffer."
+  "Destroy the current `remember-buffer'."
   (interactive)
   (when (equal remember-buffer (buffer-name))
     (kill-buffer (current-buffer))
@@ -499,8 +490,7 @@ Most useful for remembering things from other applications."
 (defcustom remember-diary-file nil
   "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
-  :type '(choice (const :tag "diary-file" nil) file)
-  :group 'remember)
+  :type '(choice (const :tag "diary-file" nil) file))
 
 (defvar calendar-date-style)            ; calendar.el
 
@@ -532,30 +522,39 @@ If this is nil, then `diary-file' will be used instead."
 
 (autoload 'diary-make-entry "diary-lib")
 
+(defcustom remember-diary-regexp "^DIARY:\\s-*\\(.+\\)"
+  "Regexp to extract diary entries."
+  :type 'regexp
+  :version "28.1")
+
+(defvar diary-file)
+
 ;;;###autoload
 (defun remember-diary-extract-entries ()
-  "Extract diary entries from the region."
+  "Extract diary entries from the region based on `remember-diary-regexp'."
   (save-excursion
     (goto-char (point-min))
     (let (list)
-      (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
+      (while (re-search-forward remember-diary-regexp nil t)
         (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
-        (diary-make-entry (mapconcat 'identity list "\n")
-                          nil remember-diary-file))
+        (diary-make-entry (mapconcat #'identity list "\n")
+                          nil remember-diary-file)
+        (when remember-save-after-remembering
+          (with-current-buffer (find-buffer-visiting (or remember-diary-file
+                                                         diary-file))
+            (save-buffer))))
       nil))) ;; Continue processing
 
 ;;; Internal Functions:
 
-(defvar remember-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'remember-finalize)
-    (define-key map "\C-c\C-c" 'remember-finalize)
-    (define-key map "\C-c\C-k" 'remember-destroy)
-    map)
-  "Keymap used in `remember-mode'.")
+(defvar-keymap remember-mode-map
+  :doc "Keymap used in `remember-mode'."
+  "C-x C-s" #'remember-finalize
+  "C-c C-c" #'remember-finalize
+  "C-c C-k" #'remember-destroy)
 
-(define-derived-mode remember-mode indented-text-mode "Remember"
+(define-derived-mode remember-mode text-mode "Remember"
   "Major mode for output from \\[remember].
 This buffer is used to collect data that you want to remember.
 \\<remember-mode-map>
@@ -595,11 +594,9 @@ If this is nil, use `initial-major-mode'."
 
 
 
-(defvar remember-notes-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'remember-notes-save-and-bury-buffer)
-    map)
-  "Keymap used in `remember-notes-mode'.")
+(defvar-keymap remember-notes-mode-map
+  :doc "Keymap used in `remember-notes-mode'."
+  "C-c C-c" #'remember-notes-save-and-bury-buffer)
 
 (define-minor-mode remember-notes-mode
   "Minor mode for the `remember-notes' buffer.
@@ -607,7 +604,7 @@ This sets `buffer-save-without-query' so that `save-some-buffers' will
 save the notes buffer without asking.
 
 \\{remember-notes-mode-map}"
-  nil nil nil
+  :lighter nil
   (cond
    (remember-notes-mode
     (add-hook 'kill-buffer-query-functions
@@ -638,15 +635,20 @@ to turn the *scratch* buffer into your notes buffer."
   (interactive "p")
   (let ((buf (or (find-buffer-visiting remember-data-file)
                  (with-current-buffer (find-file-noselect remember-data-file)
-                   (and remember-notes-buffer-name
-                        (not (get-buffer remember-notes-buffer-name))
-                        (rename-buffer remember-notes-buffer-name))
+                   (when remember-notes-buffer-name
+                     (when (and (get-buffer remember-notes-buffer-name)
+                                (equal remember-notes-buffer-name "*scratch*"))
+                       (kill-buffer remember-notes-buffer-name))
+                     ;; Rename the buffer to the requested name (if
+                     ;; it's not already in use).
+                     (unless (get-buffer remember-notes-buffer-name)
+                       (rename-buffer remember-notes-buffer-name)))
                    (funcall (or remember-notes-initial-major-mode
                                 initial-major-mode))
                    (remember-notes-mode 1)
                    (current-buffer)))))
     (when switch-to
-      (switch-to-buffer buf))
+      (pop-to-buffer-same-window buf))
     buf))
 
 (defun remember-notes--kill-buffer-query ()
@@ -661,6 +663,11 @@ is non-nil, bury it and return nil; otherwise return t."
         (bury-buffer)
         nil)
     t))
+
+;; Obsolete
+
+(defconst remember-version "2.0" "This version of remember.")
+(make-obsolete-variable 'remember-version 'emacs-version "28.1")
 
 (provide 'remember)
 

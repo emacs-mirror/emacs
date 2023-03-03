@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1995, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik
 ;; (according to ack.texi and authors.el)
@@ -31,7 +31,6 @@
 ;; buffer.
 
 ;; To make this the default, you must do
-;; (require 'ehelp)
 ;; (define-key global-map "\C-h" 'ehelp-command)
 ;; (define-key global-map [help] 'ehelp-command)
 ;; (define-key global-map [f1] 'ehelp-command)
@@ -77,7 +76,10 @@
     (define-key map [?\C-7] 'electric-help-undefined)
     (define-key map [?\C-8] 'electric-help-undefined)
     (define-key map [?\C-9] 'electric-help-undefined)
-    (define-key map (char-to-string help-char) 'electric-help-help)
+    (define-key map (if (characterp help-char)
+                        (char-to-string help-char)
+                      (vector help-char))
+                'electric-help-help)
     (define-key map "?" 'electric-help-help)
     (define-key map " " 'scroll-up)
     (define-key map [?\S-\ ] 'scroll-down)
@@ -96,8 +98,7 @@
     map)
   "Keymap defining commands available in `electric-help-mode'.")
 
-(defvar electric-help-orig-major-mode nil)
-(make-variable-buffer-local 'electric-help-orig-major-mode)
+(defvar-local electric-help-orig-major-mode nil)
 
 (defun electric-help-mode ()
   "`with-electric-help' temporarily places its buffer in this mode.

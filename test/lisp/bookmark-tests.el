@@ -1,6 +1,6 @@
 ;;; bookmark-tests.el --- Tests for bookmark.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -197,6 +197,9 @@ the lexically-bound variable `buffer'."
     (bookmark-maybe-historicize-string "foo")
     (should (equal (car bookmark-history) "foo"))))
 
+(defun bookmark-remove-last-modified (bmk)
+  (assoc-delete-all 'last-modified bmk))
+
 (ert-deftest bookmark-tests-make-record ()
   (with-bookmark-test-file
    (let* ((record `("example.txt" (filename . ,bookmark-tests-example-file)
@@ -206,9 +209,11 @@ the lexically-bound variable `buffer'."
                     (defaults "example.txt"))))
      (with-current-buffer buffer
        (goto-char 3)
-       (should (equal (bookmark-make-record) record))
+       (should (equal (bookmark-remove-last-modified (bookmark-make-record))
+                      record))
        ;; calling twice gives same record
-       (should (equal (bookmark-make-record) record))))))
+       (should (equal (bookmark-remove-last-modified (bookmark-make-record))
+                      record))))))
 
 (ert-deftest bookmark-tests-make-record-list ()
   (with-bookmark-test-file-list
@@ -219,9 +224,11 @@ the lexically-bound variable `buffer'."
                     (defaults "example.txt"))))
      (with-current-buffer buffer
        (goto-char 3)
-       (should (equal (bookmark-make-record) record))
+       (should (equal (bookmark-remove-last-modified (bookmark-make-record))
+                      record))
        ;; calling twice gives same record
-       (should (equal (bookmark-make-record) record))))))
+       (should (equal (bookmark-remove-last-modified (bookmark-make-record))
+                      record))))))
 
 (ert-deftest bookmark-tests-make-record-function ()
   (with-bookmark-test
@@ -255,15 +262,18 @@ the lexically-bound variable `buffer'."
        ;; Set first bookmark
        (goto-char (point-min))
        (bookmark-set "foo")
-       (should (equal bookmark-alist (list bmk1)))
+       (should (equal (mapcar #'bookmark-remove-last-modified bookmark-alist)
+                      (list bmk1)))
        ;; Replace that bookmark
        (goto-char (point-max))
        (bookmark-set "foo")
-       (should (equal bookmark-alist (list bmk2)))
+       (should (equal (mapcar #'bookmark-remove-last-modified bookmark-alist)
+                      (list bmk2)))
        ;; Push another bookmark with the same name
        (goto-char (point-min))
        (bookmark-set "foo" t)                   ; NO-OVERWRITE is t
-       (should (equal bookmark-alist (list bmk1 bmk2)))
+       (should (equal (mapcar #'bookmark-remove-last-modified bookmark-alist)
+                      (list bmk1 bmk2)))
 
        ;; 2. bookmark-set-no-overwrite
        ;; Don't overwrite
@@ -271,11 +281,13 @@ the lexically-bound variable `buffer'."
        ;; Set new bookmark
        (setq bookmark-alist nil)
        (bookmark-set-no-overwrite "foo")
-       (should (equal bookmark-alist (list bmk1)))
+       (should (equal (mapcar #'bookmark-remove-last-modified bookmark-alist)
+                      (list bmk1)))
        ;; Push another bookmark with the same name
        (goto-char (point-max))
        (bookmark-set-no-overwrite "foo" t)        ; PUSH-BOOKMARK is t
-       (should (equal bookmark-alist (list bmk2 bmk1)))
+       (should (equal (mapcar #'bookmark-remove-last-modified bookmark-alist)
+                      (list bmk2 bmk1)))
 
        ;; 3. bookmark-set-internal
        (should-error (bookmark-set-internal "foo" "bar" t))))))
@@ -289,7 +301,7 @@ the lexically-bound variable `buffer'."
        (bookmark-set "foo")
        (should (equal major-mode 'bookmark-edit-annotation-mode))
        ;; Should return to the original buffer
-       (bookmark-send-edited-annotation)
+       (bookmark-edit-annotation-confirm)
        (should (equal (current-buffer) buffer))))))
 
 (ert-deftest bookmark-tests-kill-line ()
@@ -322,7 +334,7 @@ the lexically-bound variable `buffer'."
   (with-bookmark-test
    (bookmark-edit-annotation "name")
    (insert "new text")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (bookmark-get-annotation "name") "new text"))))
 
 (ert-deftest bookmark-tests-jump ()
@@ -371,16 +383,14 @@ Same as `with-bookmark-test' but also sets a temporary
 `bookmark-default-file', evaluates BODY, and then runs the test
 that saves and then loads the bookmark file."
   `(with-bookmark-test
-    (let ((file (make-temp-file "bookmark-tests-")))
-      (unwind-protect
-          (let ((bookmark-default-file file)
-                (old-alist bookmark-alist))
-            ,@body
-            (bookmark-save nil file t)
-            (setq bookmark-alist nil)
-            (bookmark-load file nil t)
-            (should (equal bookmark-alist old-alist)))
-        (delete-file file)))))
+    (ert-with-temp-file file
+      (let ((bookmark-default-file file)
+            (old-alist bookmark-alist))
+        ,@body
+        (bookmark-save nil file t)
+        (setq bookmark-alist nil)
+        (bookmark-load file nil t)
+        (should (equal bookmark-alist old-alist))))))
 
 (defvar bookmark-tests-non-ascii-data
   (concat "Здра́вствуйте!" "中文,普通话,汉语" "åäöøñ"
@@ -461,7 +471,7 @@ testing `bookmark-bmenu-list'."
   (with-bookmark-bmenu-test
    (bookmark-bmenu-edit-annotation)
    (insert "foo")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (bookmark-get-annotation "name") "foo"))))
 
 (ert-deftest bookmark-test-bmenu-send-edited-annotation/restore-focus ()
@@ -469,7 +479,7 @@ testing `bookmark-bmenu-list'."
   (with-bookmark-bmenu-test
    (bookmark-bmenu-edit-annotation)
    (insert "foo")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (buffer-name (current-buffer)) bookmark-bmenu-buffer))
    (beginning-of-line)
    (forward-char 4)

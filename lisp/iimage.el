@@ -1,6 +1,6 @@
-;;; iimage.el --- Inline image minor mode.
+;;; iimage.el --- Inline image minor mode.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -50,9 +50,8 @@
   :group 'image)
 
 (defcustom iimage-mode-image-search-path nil
-  "List of directories to search for image files for iimage-mode."
-  :type '(choice (const nil) (repeat directory))
-  :group 'iimage)
+  "List of directories to search for image files for `iimage-mode'."
+  :type '(choice (const nil) (repeat directory)))
 
 (defvar iimage-mode-image-filename-regex
   (concat "[-+./_0-9a-zA-Z]+\\."
@@ -65,25 +64,27 @@
   `((,(concat "\\(`?file://\\|\\[\\[\\|<\\|`\\)?"
 	      "\\(" iimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
-  "Alist of filename REGEXP vs NUM.
-Each element looks like (REGEXP . NUM).
-NUM specifies which parenthesized expression in the regexp.
+  "Alist that specifies how to detect filenames of images to be displayed inline.
+The value should be an alist whose elements have the form
+
+      (REGEXP . NUM)
+
+where REGEXP is a regular expression to search buffer text for what
+might be a specification of an inline image, and NUM is the number
+of a parenthesized sub-expression of REGEXP which gives the name of
+the image file to look up.
 
 Examples of image filename patterns to match:
     file://foo.png
     \\=`file://foo.png\\='
     \\[\\[foo.gif]]
     <foo.png>
-     foo.JPG
-"
-  :type '(alist :key-type regexp :value-type integer)
-  :group 'iimage)
+     foo.JPG"
+  :type '(alist :key-type regexp :value-type integer))
 
-(defvar iimage-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-l" 'iimage-recenter)
-    map)
-  "Keymap used in `iimage-mode'.")
+(defvar-keymap iimage-mode-map
+  :doc "Keymap used in `iimage-mode'."
+  "C-l" #'iimage-recenter)
 
 (defun iimage-recenter (&optional arg)
   "Re-draw images and recenter."
@@ -92,16 +93,13 @@ Examples of image filename patterns to match:
   (iimage-mode-buffer t)
   (recenter-top-bottom arg))
 
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
-
 (defun turn-off-iimage-mode ()
   "Unconditionally turn off iimage mode."
   (interactive)
   (iimage-mode 0))
 
 (defun iimage-modification-hook (beg end)
-  "Remove display property if a display region is modified."
+  "Remove display property if a display region BEG..END is modified."
   ;;(debug-print "ii1 begin %d, end %d\n" beg end)
   (let ((inhibit-modification-hooks t)
         (beg (previous-single-property-change end 'display
@@ -120,8 +118,8 @@ Examples of image filename patterns to match:
 	file)
     (with-silent-modifications
       (save-excursion
-        (goto-char (point-min))
         (dolist (pair iimage-mode-image-regex-alist)
+          (goto-char (point-min))
           (while (re-search-forward (car pair) nil t)
             (when (and (setq file (match-string (cdr pair)))
                        (setq file (locate-file file image-path)))

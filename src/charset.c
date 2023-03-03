@@ -1,6 +1,6 @@
 /* Basic character set support.
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -63,7 +63,7 @@ Lisp_Object Vcharset_hash_table;
 /* Table of struct charset.  */
 struct charset *charset_table;
 int charset_table_size;
-static int charset_table_used;
+int charset_table_used;
 
 /* Special charsets corresponding to symbols.  */
 int charset_ascii;
@@ -483,10 +483,10 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   AUTO_STRING (map, ".map");
   AUTO_STRING (txt, ".txt");
   AUTO_LIST2 (suffixes, map, txt);
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
-  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false);
+  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false, false);
   fp = fd < 0 ? 0 : fdopen (fd, "r");
   if (!fp)
     {
@@ -495,7 +495,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
       report_file_errno ("Loading charset map", mapfile, open_errno);
     }
   set_unwind_protect_ptr (count, fclose_unwind, fp);
-  unbind_to (count + 1, Qnil);
+  unbind_to (specpdl_ref_add (count, 1), Qnil);
 
   /* Use record_xmalloc, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
@@ -793,14 +793,21 @@ map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object fun
 
 DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 5, 0,
        doc: /* Call FUNCTION for all characters in CHARSET.
-FUNCTION is called with an argument RANGE and the optional 3rd
-argument ARG.
+Optional 3rd argument ARG is an additional argument to be passed
+to FUNCTION, see below.
+Optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
+range of code points (in CHARSET) of target characters on which to
+map the FUNCTION.  Note that these are not character codes, but code
+points of CHARSET; for the difference see `decode-char' and
+`list-charset-chars'.  If FROM-CODE is nil or imitted, it stands for
+the first code point of CHARSET; if TO-CODE is nil or omitted, it
+stands for the last code point of CHARSET.
 
-RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
-characters contained in CHARSET.
-
-The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
-range of code points (in CHARSET) of target characters.  */)
+FUNCTION will be called with two arguments: RANGE and ARG.
+RANGE is a cons (FROM .  TO), where FROM and TO specify a range of
+characters that belong to CHARSET on which FUNCTION should do its
+job.  FROM and TO are Emacs character codes, unlike FROM-CODE and
+TO-CODE, which are CHARSET code points.  */)
   (Lisp_Object function, Lisp_Object charset, Lisp_Object arg, Lisp_Object from_code, Lisp_Object to_code)
 {
   struct charset *cs;
@@ -1845,9 +1852,8 @@ although this usage is obsolescent.  */)
 
 DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 2, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
-Return the encoded code-point, a fixnum if its value is small enough,
-otherwise a bignum.
-Return nil if CHARSET doesn't support CH.  */)
+Return the encoded code-point as an integer,
+or nil if CHARSET doesn't support CH.  */)
   (Lisp_Object ch, Lisp_Object charset)
 {
   int c, id;

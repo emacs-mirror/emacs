@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2006--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2006--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -124,10 +124,11 @@ server in a network, and servers relay messages from one to the next.
 Here's a typical example:
 
 @cindex redirection to random servers
-When you connect to the Freenode network
-(@code{http://freenode.net/}), you point your IRC client at the
-server @code{irc.freenode.net}.  That server will redirect your client
-to a random server on the network, such as @code{zelazny.freenode.net}.
+When you connect to the Libera.Chat network
+(@code{https://libera.chat}), you point your IRC client at the
+server @code{irc.libera.chat}.  That server will redirect your client
+to a random server on the network, such as
+@code{zirconium.libera.chat}.
 
 @cindex channel name
 @cindex # starts a channel name
@@ -153,8 +154,11 @@ deego: fsbot rules!
 
 @cindex nick completion
 @cindex completion of nicks
+@vindex rcirc-cycle-completion-flag
 @kindex TAB
 Since this is so common, you can use @key{TAB} to do nick completion.
+By default rcirc will use the default completion system, but you can
+enable @code{rcirc-cycle-completion-flag} to cycle nicks in place.
 
 @node Getting started with rcirc
 @section Getting started with rcirc
@@ -171,15 +175,23 @@ using a different nick.  This will prompt you for four things:
 
 @table @asis
 @cindex server, connecting
-@cindex Freenode network
+@cindex Libera.Chat network
 @item IRC Server
-What server do you want to connect to? All the servers in a particular
-network are equivalent.  Some networks use a round-robin system where a
-single server redirects new connections to a random server in the
-network.  @code{irc.freenode.net} is such a server for the Freenode
-network.  Freenode provides the network ``for the Free and Open Source
-Software communities, for not-for-profit organizations and for related
-communities and organizations.''
+What server do you want to connect to?  All the servers in a particular
+network are equivalent.  Some networks use a round-robin system where
+a single server redirects new connections to a random server in the
+network.  @code{irc.libera.chat} is such a server for the Libera.Chat
+network.  Libera.Chat's purpose is ``to provide services such as a
+community platform for free open-source software and peer directed
+projects on a volunteer basis,'' and was chosen as the official home
+of the GNU Project and the Free Software Foundation's IRC channels in
+June 2021 in the aftermath of the changes in governance and policies
+of the Freenode IRC network.  GNU and FSF's announcements about this
+are at
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html},
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html},
+and
+@uref{https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html}.
 
 @cindex port, connecting
 @cindex 6667, default IRC port
@@ -205,13 +217,13 @@ in use, you might for example get assigned the nick @code{alex`}.
 A space separated list of channels you want to join when connecting.
 You don't need to join any channels, if you just want to have one-to-one
 conversations with friends on the same network.  If you're new to the
-Freenode network, join @code{#emacs}, the channel about all things
+Libera.Chat network, join @code{#emacs}, the channel about all things
 Emacs, or join @code{#rcirc}, the channel about @code{rcirc}.
 @end table
 
 @cindex server buffer
 When you have answered these questions, @code{rcirc} will create a server
-buffer, which will be named something like @file{*irc.freenode.net*},
+buffer, which will be named something like @file{*irc.libera.chat*},
 and a channel buffer for each of the channels you wanted to join.
 
 @kindex RET
@@ -244,6 +256,10 @@ To make this permanent, add the following to your init file:
 @end example
 
 Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
+
+@vindex rcirc-track-ignore-server-buffer-flag
+If the user wishes to ignore events in the server buffer, set
+@code{rcirc-track-ignore-server-buffer-flag} to a non-@code{nil} value.
 
 @node Reference
 @chapter Reference
@@ -417,7 +433,13 @@ lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
 that this opens an @emph{additional} connection, so you'll have two
 copies of every channel buffer, one dead and one live.
 
-The real answer, therefore, is the @code{/reconnect} command.
+One option therefore, is the @code{/reconnect} command.
+
+An other approach is to set @code{rcirc-reconnect-delay} to a value
+greater than 0, and allow rcirc to reconnect when it detects that the
+connection has been closed.  By default it will try to do this three
+times (as specified by @code{rcirc-reconnect-attempts}), before giving
+up.
 @end table
 
 @node Useful IRC commands
@@ -445,7 +467,7 @@ your status as ``being back'' if you do not.  People can use the
 @cindex help about irc
 Typical IRC servers implement many more commands.  You can read more
 about the fantastic world of IRC online at
-@uref{http://www.irchelp.org/, the Internet Relay Chat (IRC) help
+@uref{https://www.irchelp.org/, the Internet Relay Chat (IRC) help
 archive}.
 
 @node Configuration
@@ -482,7 +504,7 @@ Here's an example of how to set it:
 @end example
 
 By default you will be connected to the @code{rcirc} support channel:
-@code{#rcirc} on @code{irc.freenode.net}.
+@code{#rcirc} on @code{irc.libera.chat}.
 
 @table @code
 @item :nick
@@ -509,7 +531,7 @@ This variable is used for the default nick.  It defaults to the login
 name returned by @code{user-login-name}.
 
 @example
-(setq rcirc-default-nick "kensanata")
+(setopt rcirc-default-nick "kensanata")
 @end example
 
 @item rcirc-default-port
@@ -535,7 +557,7 @@ to the name returned by @code{user-full-name}.  If you want to hide
 your full name, you might want to set it to some pseudonym.
 
 @example
-(setq rcirc-default-full-name "Curious Minds Want To Know")
+(setopt rcirc-default-full-name "Curious Minds Want To Know")
 @end example
 
 @item rcirc-authinfo
@@ -553,10 +575,10 @@ followed by the arguments this method requires.
 Here is an example to illustrate how you would set it:
 
 @example
-(setq rcirc-authinfo
-      '(("freenode" nickserv "bob" "p455w0rd")
-        ("freenode" chanserv "bob" "#bobland" "passwd99")
-        ("bitlbee" bitlbee "robert" "sekrit")))
+(setopt rcirc-authinfo
+        '(("Libera.Chat" nickserv "bob" "p455w0rd")
+          ("Libera.Chat" chanserv "bob" "#bobland" "passwd99")
+          ("bitlbee" bitlbee "robert" "sekrit")))
 @end example
 
 And here are the valid method symbols and the arguments they require:
@@ -608,6 +630,19 @@ the other instant messaging services, and Bitlbee will log you in.  All
 @code{rcirc} needs to know, is the login to your Bitlbee account.  Don't
 confuse the Bitlbee account with all the other accounts.
 
+@item sasl
+@cindex sasl authentication
+Use this symbol if you want to use @acronym{SASL} authentication.  The
+necessary arguments are the nickname you want to use this for, and the
+password to use.
+
+@item certfp
+@cindex certfp authentication
+Use this symbol if you want to use CertFP authentication.  The
+necessary arguments are the path to the key and to the client
+certificate associated with the account.  The CertFP authentication
+requires a @acronym{TLS} connection.
+
 @end table
 
 @end table
@@ -655,6 +690,12 @@ When other people say things in buffers that are currently buried (no
 window is showing them), the mode line will now show you the abbreviated
 channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch to these
 buffers.
+
+@cindex rcirc-track-abbreviate-flag
+By default the channel names are abbreviated, set
+@code{rcirc-track-abbreviate-flag} to a non-@code{nil} value.  This
+might be interesting if the IRC activities are not tracked in the mode
+line, but somewhere else.
 
 @vindex rcirc-mode-hook
 If you prefer not to load @code{rcirc} immediately, you can delay the
@@ -780,7 +821,7 @@ You can control which notices get omitted via the
 omit away messages:
 
 @example
-(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
+(setopt rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
 @end example
 
 @vindex rcirc-omit-threshold
@@ -791,6 +832,19 @@ checks recent lines in the buffer to figure out if a nick has been
 active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
+
+@vindex rcirc-omit-unless-requested
+Certain messages can be omitted by default, unless the user manual
+requests them. For example, if you don't want to display @code{TOPIC}
+and @code{NAMES} messages, after reconnecting, you can configure
+@code{rcirc-omit-unless-requested} to hide:
+
+@example
+(setopt rcirc-omit-unless-requested '("TOPIC" "NAMES"))
+@end example
+
+Now NAMES will only be displayed, after it has been requested via the
+@code{rcirc-cmd-name} command.
 
 @node Hacking and Tweaking
 @chapter Hacking and Tweaking
@@ -804,6 +858,8 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Scrolling conservatively::
 * Changing the time stamp format::
 * Defining a new command::
+* Using rcirc with bouncers::
+* Dealing with Bridge Bots::
 @end menu
 
 @node Skipping /away messages using handlers
@@ -878,8 +934,13 @@ Manual}, for details.
 how to include the date in the time stamp:
 
 @example
-(setq rcirc-time-format "%Y-%m-%d %H:%M ")
+(setopt rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
+
+@findex rcirc-when
+If you don't wish to use verbose time formatting all the time, you can
+use the @code{rcirc-when} command to display a complete timestamp for
+the message at point.
 
 @node Defining a new command
 @section Defining a new command
@@ -888,21 +949,89 @@ how to include the date in the time stamp:
 @cindex new commands, defining
 
 Here's a simple new command, @code{/sv}.  With it, you can boast about
-your IRC client.  It shows how you can use @code{defun-rcirc-command} to
+your IRC client.  It shows how you can use @code{rcirc-define-command} to
 define new commands.
 
+@findex rcirc-define-command
 We're waiting for the definition of this command until @code{rcirc} is loaded
-because @code{defun-rcirc-command} is not yet available, and without
+because @code{rcirc-define-command} is not yet available, and without
 @code{rcirc} loaded, the command wouldn't do us much good anyway.
 
 @smallexample
 (with-eval-after-load 'rcirc
-  (defun-rcirc-command sv (arg)
+  (rcirc-define-command sv ()
     "Boast about rcirc."
     (interactive "i")
-    (rcirc-send-message process target
-                         (concat "I use " rcirc-id-string))))
+    (rcirc-send-message process target "I use " rcirc-id-string)))
 @end smallexample
+
+@node Using rcirc with bouncers
+@section Using rcirc with bouncers
+@cindex bouncer
+
+Some bouncers multiplex connections to various servers, but have to
+modify nicks and channel names to make this work.  The channel
+@code{#emacs} on @code{irc.libera.chat} becomes
+@code{#emacs/irc.libera.chat}.
+
+@vindex rcirc-nick-filter
+@vindex rcirc-channel-filter
+The options @code{rcirc-nick-filter} and @code{rcirc-channel-filter}
+can be used to make this feel more natural.  When set to functions,
+these will be used to change how nicks and channel names are
+displayed.  A simple configuration to fix the above example might be:
+
+@smallexample
+(defun my/rcirc-remove-suffix (STR)
+  "Remove suffixes from STR."
+  (save-match-data
+    (if (string-match "/[[:alpha:]]+?\\'" str)
+        (substring str 0 (match-beginning 0))
+      str)))
+
+(setopt rcirc-nick-filter #'my/rcirc-remove-suffix
+        rcirc-channel-filter #'local/rcirc-soju-suffix)
+@end smallexample
+
+@node Dealing with Bridge Bots
+@section Dealing with Bridge Bots
+@cindex bridge
+
+It is increasingly common for IRC channels to be ``bridged'' onto
+other networks such as XMPP, Matrix, etc.  Sometimes the software does
+a good job at mapping each non-IRC user into an IRC user, but more
+often than not it doesn't.  In that case you might receive a message
+like:
+
+@example
+@verbatim
+09:47 <bridge> <john> I am not on IRC
+@end verbatim
+@end example
+
+where @samp{bridge} is a bot responsible for sending messages back and
+forth between networks, and @samp{john} is the user name of someone on
+a different network.  Note that the bot indicates this within the
+message (@verb{|<john> I am not on IRC|}) that appears in your chat
+buffer.
+
+@vindex rcirc-bridge-bot-alist
+If this annoys you, the user option @code{rcirc-bridge-bot-alist} may
+be of use.  It consists of descriptions of what users are these kinds
+of ``bridge bots'' and how they format their messages.  To handle the
+above example, we might set the user option to:
+
+@example
+(setopt rcirc-bridge-bot-alist
+        '(("bridge" . "<\\(.+?\\)>[[:space:]]+")))
+@end example
+
+If there is an entry for the current user, @code{rcirc} will take the
+associated regular expression and try to find a match in the message
+string.  If it manages to find anything, the matching expression is
+deleted from the message.  The regular expression must contain at
+least one group that will match the user name of the bridged message.
+This will then be used to replace the username of the bridge bot.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

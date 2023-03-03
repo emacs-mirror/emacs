@@ -1,29 +1,28 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with the GNU C Library; if not, see
-   <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef _LIBC
 # define USE_IN_EXTENDED_LOCALE_MODEL 1
 # define HAVE_STRUCT_ERA_ENTRY 1
 # define HAVE_TM_GMTOFF 1
-# define HAVE_TM_ZONE 1
+# define HAVE_STRUCT_TM_TM_ZONE 1
 # define HAVE_TZNAME 1
 # include "../locale/localeinfo.h"
 #else
-# include <config.h>
+# include <libc-config.h>
 # if FPRINTFTIME
 #  include "fprintftime.h"
 # else
@@ -66,7 +65,6 @@ extern char *tzname[];
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "attribute.h"
 #include <intprops.h>
@@ -368,10 +366,7 @@ tm_diff (const struct tm *a, const struct tm *b)
 #define ISO_WEEK1_WDAY 4 /* Thursday */
 #define YDAY_MINIMUM (-366)
 static int iso_week_days (int, int);
-#if defined __GNUC__ || defined __clang__
-__inline__
-#endif
-static int
+static __inline int
 iso_week_days (int yday, int wday)
 {
   /* Add enough to the first operand of % to make it nonnegative.  */
@@ -429,9 +424,7 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
                               0, -1, &tzset_called extra_args LOCALE_ARG);
 }
-#if defined _LIBC && ! FPRINTFTIME
 libc_hidden_def (my_strftime)
-#endif
 
 /* Just like my_strftime, above, but with more parameters.
    UPCASE indicates that the result should be converted to upper case.
@@ -499,7 +492,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
 
   zone = NULL;
-#if HAVE_TM_ZONE
+#if HAVE_STRUCT_TM_TM_ZONE
   /* The POSIX test suite assumes that setting
      the environment variable TZ to a new value before calling strftime()
      will influence the result (the %Z format) even if the information in
@@ -516,7 +509,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     }
   else
     {
-# if !HAVE_TM_ZONE
+# if !HAVE_STRUCT_TM_TM_ZONE
       /* Infer the zone name from *TZ instead of from TZNAME.  */
       tzname_vec = tz->tzname_copy;
 # endif
@@ -657,6 +650,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
 #endif /* ! DO_MULTIBYTE */
 
+      char const *percent = f;
+
       /* Check for flags that can modify a format.  */
       while (1)
         {
@@ -758,8 +753,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           while (0)
 
         case L_('%'):
-          if (modifier != 0)
-            goto bad_format;
+          if (f - 1 != percent)
+            goto bad_percent;
           add1 (*f);
           break;
 
@@ -1162,7 +1157,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
         case L_('q'):           /* GNU extension.  */
           DO_SIGNED_NUMBER (1, false, ((tp->tm_mon * 11) >> 5) + 1);
-          break;
 
         case L_('R'):
           subfmt = L_("%H:%M");
@@ -1473,6 +1467,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           }
 
         case L_('\0'):          /* GNU extension: % at end of format.  */
+        bad_percent:
             --f;
             FALLTHROUGH;
         default:
@@ -1480,12 +1475,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              since this is most likely the right thing to do if a
              multibyte string has been misparsed.  */
         bad_format:
-          {
-            int flen;
-            for (flen = 1; f[1 - flen] != L_('%'); flen++)
-              continue;
-            cpy (flen, &f[1 - flen]);
-          }
+          cpy (f - percent + 1, percent);
           break;
         }
     }

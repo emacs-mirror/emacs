@@ -1,6 +1,6 @@
 ;;; pong.el --- classical implementation of pong  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games
@@ -173,23 +173,23 @@
 
 ;;; Initialize maps
 
-(defvar pong-mode-map
-  (let ((map (make-sparse-keymap 'pong-mode-map)))
-    (define-key map [left]	 'pong-move-left)
-    (define-key map [right] 	 'pong-move-right)
-    (define-key map [up]		 'pong-move-up)
-    (define-key map [down]	 'pong-move-down)
-    (define-key map pong-left-key  'pong-move-left)
-    (define-key map pong-right-key 'pong-move-right)
-    (define-key map pong-up-key	 'pong-move-up)
-    (define-key map pong-down-key  'pong-move-down)
-    (define-key map pong-quit-key  'pong-quit)
-    (define-key map pong-pause-key 'pong-pause)
-    map)
-  "Modemap for pong-mode.")
+(defvar-keymap pong-mode-map
+  :doc "Modemap for pong-mode."
+  :name 'pong-mode-map
+  "<left>"       #'pong-move-left
+  "<right>"      #'pong-move-right
+  "<up>"         #'pong-move-up
+  "<down>"       #'pong-move-down
+  pong-left-key  #'pong-move-left
+  pong-right-key #'pong-move-right
+  pong-up-key    #'pong-move-up
+  pong-down-key  #'pong-move-down
+  pong-quit-key  #'pong-quit
+  pong-pause-key #'pong-pause)
 
-(defvar pong-null-map
-  (make-sparse-keymap 'pong-null-map) "Null map for pong-mode.")
+(defvar-keymap pong-null-map
+  :doc "Null map for pong-mode."
+  :name 'pong-null-map)
 
 
 
@@ -216,7 +216,6 @@
 
 (defun pong-init-buffer ()
   "Initialize pong buffer and draw stuff thanks to gamegrid library."
-  (interactive)
   (get-buffer-create pong-buffer-name)
   (switch-to-buffer pong-buffer-name)
   (use-local-map pong-mode-map)
@@ -249,7 +248,7 @@
   "Move bat 1 up.
 This is called left for historical reasons, since in some pong
 implementations you move with left/right paddle."
-  (interactive)
+  (interactive nil pong-mode)
   (if (> pong-bat-player1 1)
       (and
        (setq pong-bat-player1 (1- pong-bat-player1))
@@ -259,7 +258,7 @@ implementations you move with left/right paddle."
 
 (defun pong-move-right ()
   "Move bat 1 down."
-  (interactive)
+  (interactive nil pong-mode)
   (if (< (+ pong-bat-player1 pong-bat-width) (1- pong-height))
       (and
        (setq pong-bat-player1 (1+ pong-bat-player1))
@@ -269,7 +268,7 @@ implementations you move with left/right paddle."
 
 (defun pong-move-up ()
   "Move bat 2 up."
-  (interactive)
+  (interactive nil pong-mode)
   (if (> pong-bat-player2 1)
       (and
        (setq pong-bat-player2 (1- pong-bat-player2))
@@ -279,7 +278,7 @@ implementations you move with left/right paddle."
 
 (defun pong-move-down ()
   "Move bat 2 down."
-  (interactive)
+  (interactive nil pong-mode)
   (if (< (+ pong-bat-player2 pong-bat-width) (1- pong-height))
       (and
        (setq pong-bat-player2 (1+ pong-bat-player2))
@@ -412,7 +411,7 @@ detection and checks if a player scores."
 
 (defun pong-pause ()
   "Pause the game."
-  (interactive)
+  (interactive nil pong-mode)
   (gamegrid-kill-timer)
   ;; Oooohhh ugly.  I don't know why, gamegrid-kill-timer don't do the
   ;; jobs it is made for.  So I have to do it "by hand".  Anyway, next
@@ -424,7 +423,7 @@ detection and checks if a player scores."
 
 (defun pong-resume ()
   "Resume a paused game."
-  (interactive)
+  (interactive nil pong-mode)
   (define-key pong-mode-map pong-pause-key 'pong-pause)
   (gamegrid-start-timer pong-timer-delay 'pong-update-game))
 
@@ -432,7 +431,7 @@ detection and checks if a player scores."
 
 (defun pong-quit ()
   "Quit the game and kill the pong buffer."
-  (interactive)
+  (interactive nil pong-mode)
   (gamegrid-kill-timer)
   ;; Be sure not to draw things in another buffer and wait for some
   ;; time.

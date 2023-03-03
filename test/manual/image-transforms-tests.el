@@ -1,6 +1,6 @@
-;;; image-transform-tests.el --- Test suite for image transforms.
+;;; image-transforms-tests.el --- Test suite for image transforms.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Alan Third <alan@idiocy.org>
 ;; Keywords:       internal
@@ -174,3 +174,5 @@
     (test-scaling)
     (test-scaling-rotation)
     (goto-char (point-min))))
+
+;;; image-transforms-tests.el ends here

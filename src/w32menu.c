@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2020 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2023 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -155,7 +155,7 @@ w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 void
 w32_activate_menubar (struct frame *f)
 {
-  set_frame_menubar (f, false, true);
+  set_frame_menubar (f, true);
 
   /* Lock out further menubar changes while active.  */
   f->output_data.w32->menubar_active = 1;
@@ -188,7 +188,7 @@ menubar_selection_callback (struct frame *f, void * client_data)
   i = 0;
   while (i < f->menu_bar_items_used)
     {
-      if (EQ (AREF (vector, i), Qnil))
+      if (NILP (AREF (vector, i)))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
 	  prefix = entry;
@@ -258,12 +258,10 @@ menubar_selection_callback (struct frame *f, void * client_data)
 }
 
 
-/* Set the contents of the menubar widgets of frame F.
-   The argument FIRST_TIME is currently ignored;
-   it is set the first time this is called, from initialize_frame_menubar.  */
+/* Set the contents of the menubar widgets of frame F.  */
 
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -287,7 +285,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -511,7 +509,7 @@ initialize_frame_menubar (struct frame *f)
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
-  set_frame_menubar (f, true, true);
+  set_frame_menubar (f, true);
 }
 
 /* Get rid of the menu bar of frame F, and free its storage.
@@ -558,10 +556,8 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
   HMENU menu;
   POINT pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
-  Lisp_Object *subprefix_stack
-    = (Lisp_Object *) alloca (menu_items_used * word_size);
+  widget_value **submenu_stack;
+  Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   bool first_pane;
 
@@ -576,6 +572,11 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
       return Qnil;
     }
 
+  USE_SAFE_ALLOCA;
+
+  submenu_stack = SAFE_ALLOCA (menu_items_used * sizeof (widget_value *));
+  subprefix_stack = SAFE_ALLOCA (menu_items_used * word_size);
+
   block_input ();
 
   /* Create a tree of widget_value objects
@@ -589,7 +590,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -781,7 +782,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
       i = 0;
       while (i < menu_items_used)
 	{
-	  if (EQ (AREF (menu_items, i), Qnil))
+	  if (NILP (AREF (menu_items, i)))
 	    {
 	      subprefix_stack[submenu_depth++] = prefix;
 	      prefix = entry;
@@ -818,6 +819,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  unblock_input ();
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -832,6 +834,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   unblock_input ();
+  SAFE_FREE ();
   return Qnil;
 }
 
@@ -1070,7 +1073,10 @@ is_simple_dialog (Lisp_Object contents)
   if (NILP (Fstring_equal (name, other)))
     return false;
 
-  /* Check there are no more options.  */
+  /* Check there are no more options.
+
+     (FIXME: Since we use MB_YESNOCANCEL, we could also consider
+     dialogs with 3 options: Yes/No/Cancel as "simple".  */
   options = XCDR (options);
   return !(CONSP (options));
 }
@@ -1082,7 +1088,13 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   UINT type;
   Lisp_Object lispy_answer = Qnil, temp = XCAR (contents);
 
-  type = MB_YESNO;
+  /* We use MB_YESNOCANCEL to allow the user the equivalent of C-g
+     when the Yes/No question is asked vya y-or-n-p or
+     yes-or-no-p.  */
+  if (w32_yes_no_dialog_show_cancel)
+    type = MB_YESNOCANCEL;
+  else
+    type = MB_YESNO;
 
   /* Since we only handle Yes/No dialogs, and we already checked
      is_simple_dialog, we don't need to worry about checking contents

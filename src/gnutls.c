@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # endif
 
 # if GNUTLS_VERSION_NUMBER >= 0x030200
+#  define HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
 #  define HAVE_GNUTLS_CIPHER_GET_IV_SIZE
 # endif
 
@@ -121,6 +122,11 @@ DEF_DLL_FN (int, gnutls_certificate_set_x509_crl_file,
 DEF_DLL_FN (int, gnutls_certificate_set_x509_key_file,
 	    (gnutls_certificate_credentials_t, const char *, const char *,
 	     gnutls_x509_crt_fmt_t));
+#  ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+DEF_DLL_FN (int, gnutls_certificate_set_x509_key_file2,
+	    (gnutls_certificate_credentials_t, const char *, const char *,
+	     gnutls_x509_crt_fmt_t, const char *, unsigned int));
+#  endif
 #  ifdef HAVE_GNUTLS_X509_SYSTEM_TRUST
 DEF_DLL_FN (int, gnutls_certificate_set_x509_system_trust,
 	    (gnutls_certificate_credentials_t));
@@ -314,6 +320,9 @@ init_gnutls_functions (void)
   LOAD_DLL_FN (library, gnutls_certificate_set_verify_flags);
   LOAD_DLL_FN (library, gnutls_certificate_set_x509_crl_file);
   LOAD_DLL_FN (library, gnutls_certificate_set_x509_key_file);
+#  ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+  LOAD_DLL_FN (library, gnutls_certificate_set_x509_key_file2);
+#  endif
 #  ifdef HAVE_GNUTLS_X509_SYSTEM_TRUST
   LOAD_DLL_FN (library, gnutls_certificate_set_x509_system_trust);
 #  endif
@@ -455,6 +464,9 @@ init_gnutls_functions (void)
 #  define gnutls_certificate_set_verify_flags fn_gnutls_certificate_set_verify_flags
 #  define gnutls_certificate_set_x509_crl_file fn_gnutls_certificate_set_x509_crl_file
 #  define gnutls_certificate_set_x509_key_file fn_gnutls_certificate_set_x509_key_file
+#  ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+#   define gnutls_certificate_set_x509_key_file2 fn_gnutls_certificate_set_x509_key_file2
+#  endif
 #  define gnutls_certificate_set_x509_system_trust fn_gnutls_certificate_set_x509_system_trust
 #  define gnutls_certificate_set_x509_trust_file fn_gnutls_certificate_set_x509_trust_file
 #  define gnutls_certificate_type_get fn_gnutls_certificate_type_get
@@ -616,6 +628,9 @@ gnutls_try_handshake (struct Lisp_Process *proc)
   gnutls_session_t state = proc->gnutls_state;
   int ret;
   bool non_blocking = proc->is_non_blocking_client;
+  /* Sleep for ten milliseconds when busy-looping in
+     gnutls_handshake.  */
+  struct timespec delay = { 0, 1000 * 1000 * 10 };
 
   if (proc->gnutls_complete_negotiation_p)
     non_blocking = false;
@@ -625,14 +640,12 @@ gnutls_try_handshake (struct Lisp_Process *proc)
 
   while ((ret = gnutls_handshake (state)) < 0)
     {
-      do
-	ret = gnutls_handshake (state);
-      while (ret == GNUTLS_E_INTERRUPTED);
-
-      if (0 <= ret || emacs_gnutls_handle_error (state, ret) == 0
-	  || non_blocking)
+      if (emacs_gnutls_handle_error (state, ret) == 0) /* fatal */
 	break;
       maybe_quit ();
+      if (non_blocking && ret != GNUTLS_E_INTERRUPTED)
+	break;
+      nanosleep (&delay, NULL);
     }
 
   proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;
@@ -1059,7 +1072,7 @@ usage: (gnutls-error-string ERROR)  */)
 
 DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
        doc: /* Deallocate GnuTLS resources associated with process PROC.
-See also `gnutls-init'.  */)
+See also `gnutls-boot'.  */)
   (Lisp_Object proc)
 {
   return emacs_gnutls_deinit (proc);
@@ -1520,7 +1533,7 @@ returned as the :certificate entry.  */)
 /* Initialize global GnuTLS state to defaults.
    Call 'gnutls-global-deinit' when GnuTLS usage is no longer needed.
    Return zero on success.  */
-Lisp_Object
+static Lisp_Object
 emacs_gnutls_global_init (void)
 {
   int ret = GNUTLS_E_SUCCESS;
@@ -1634,10 +1647,10 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
   char *c_hostname;
 
   if (NILP (proplist))
-    proplist = Fcdr (Fplist_get (p->childp, QCtls_parameters));
+    proplist = Fcdr (plist_get (p->childp, QCtls_parameters));
 
-  verify_error = Fplist_get (proplist, QCverify_error);
-  hostname = Fplist_get (proplist, QChostname);
+  verify_error = plist_get (proplist, QCverify_error);
+  hostname = plist_get (proplist, QChostname);
 
   if (EQ (verify_error, Qt))
     verify_error_all = true;
@@ -1667,7 +1680,7 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
 
   p->gnutls_peer_verification = peer_verification;
 
-  warnings = Fplist_get (Fgnutls_peer_status (proc), intern (":warnings"));
+  warnings = plist_get (Fgnutls_peer_status (proc), intern (":warnings"));
   if (!NILP (warnings))
     {
       for (Lisp_Object tail = warnings; CONSP (tail); tail = XCDR (tail))
@@ -1773,6 +1786,88 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
   return gnutls_make_error (ret);
 }
 
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+
+/* Helper function for gnutls-boot.
+
+   The key :flags receives a list of symbols, each of which
+   corresponds to a GnuTLS C flag, the ORed result is to be passed to
+   the function `gnutls_certificate_set_x509_key_file2' as its last
+   argument.  */
+static unsigned int
+key_file2_aux (Lisp_Object flags)
+{
+  unsigned int rv = 0;
+  Lisp_Object tail = flags;
+  FOR_EACH_TAIL_SAFE (tail)
+    {
+      Lisp_Object flag = XCAR (tail);
+      if (EQ (flag, Qgnutls_pkcs_plain))
+	rv |= GNUTLS_PKCS_PLAIN;
+#ifdef GNUTLS_PKCS_PKCS12_3DES
+      else if (EQ (flag, Qgnutls_pkcs_pkcs12_3des))
+	rv |= GNUTLS_PKCS_PKCS12_3DES;
+#endif
+#ifdef GNUTLS_PKCS_PKCS12_ARCFOUR
+      else if (EQ (flag, Qgnutls_pkcs_pkcs12_arcfour))
+	rv |= GNUTLS_PKCS_PKCS12_ARCFOUR;
+#endif
+#ifdef GNUTLS_PKCS_PKCS12_RC2_40
+      else if (EQ (flag, Qgnutls_pkcs_pkcs12_rc2_40))
+	rv |= GNUTLS_PKCS_PKCS12_RC2_40;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_3DES
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_3des))
+	rv |= GNUTLS_PKCS_PBES2_3DES;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_128
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_128))
+	rv |= GNUTLS_PKCS_PBES2_AES_128;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_192
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_192))
+	rv |= GNUTLS_PKCS_PBES2_AES_192;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_AES_256
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_aes_256))
+	rv |= GNUTLS_PKCS_PBES2_AES_256;
+#endif
+      else if (EQ (flag, Qgnutls_pkcs_null_password))
+	rv |= GNUTLS_PKCS_NULL_PASSWORD;
+#ifdef GNUTLS_PKCS_PBES2_DES
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_des))
+	rv |= GNUTLS_PKCS_PBES2_DES;
+#endif
+#ifdef GNUTLS_PKCS_PBES1_DES_MD5
+      else if (EQ (flag, Qgnutls_pkcs_pbes1_des_md5))
+	rv |= GNUTLS_PKCS_PBES1_DES_MD5;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_TC26Z
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_tc26z))
+	rv |= GNUTLS_PKCS_PBES2_GOST_TC26Z;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPA
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpa))
+	rv |= GNUTLS_PKCS_PBES2_GOST_CPA;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPB
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpb))
+	rv |= GNUTLS_PKCS_PBES2_GOST_CPB;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPC
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpc))
+	rv |= GNUTLS_PKCS_PBES2_GOST_CPC;
+#endif
+#ifdef GNUTLS_PKCS_PBES2_GOST_CPD
+      else if (EQ (flag, Qgnutls_pkcs_pbes2_gost_cpd))
+	rv |= GNUTLS_PKCS_PBES2_GOST_CPD;
+#endif
+    }
+  return rv;
+}
+
+#endif /* HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2 */
+
 DEFUN ("gnutls-boot", Fgnutls_boot, Sgnutls_boot, 3, 3, 0,
        doc: /* Initialize GnuTLS client for process PROC with TYPE+PROPLIST.
 Currently only client mode is supported.  Return a success/failure
@@ -1812,6 +1907,22 @@ accept in Diffie-Hellman key exchange.
 :complete-negotiation, if non-nil, will make negotiation complete
 before returning even on non-blocking sockets.
 
+:pass, the password of the private key as per GnuTLS'
+gnutls_certificate_set_x509_key_file2.  Specify as nil to have a NULL
+password.
+
+:flags, a list of symbols relating to :pass, each specifying a flag:
+GNUTLS_PKCS_PLAIN, GNUTLS_PKCS_PKCS12_3DES,
+GNUTLS_PKCS_PKCS12_ARCFOUR, GNUTLS_PKCS_PKCS12_RC2_40,
+GNUTLS_PKCS_PBES2_3DES, GNUTLS_PKCS_PBES2_AES_128,
+GNUTLS_PKCS_PBES2_AES_192, GNUTLS_PKCS_PBES2_AES_256,
+GNUTLS_PKCS_NULL_PASSWORD, GNUTLS_PKCS_PBES2_DES,
+GNUTLS_PKCS_PBES2_DES_MD5, GNUTLS_PKCS_PBES2_GOST_TC26Z,
+GNUTLS_PKCS_PBES2_GOST_CPA, GNUTLS_PKCS_PBES2_GOST_CPB,
+GNUTLS_PKCS_PBES2_GOST_CPC, GNUTLS_PKCS_PBES2_GOST_CPD.  If not
+specified, or if nil, the bitflag with value 0 is used.
+Note that some of these are only supported since GnuTLS 3.6.3.
+
 The debug level will be set for this process AND globally for GnuTLS.
 So if you set it higher or lower at any point, it affects global
 debugging.
@@ -1823,6 +1934,9 @@ specified.
 Processes must be initialized with this function before other GnuTLS
 functions are used.  This function allocates resources which can only
 be deallocated by calling `gnutls-deinit' or by calling it again.
+
+The :pass and :flags keys are ignored with old versions of GnuTLS, and
+:flags is ignored if :pass is not specified.
 
 The callbacks alist can have a `verify' key, associated with a
 verification function (UNUSED).
@@ -1841,16 +1955,22 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object global_init;
   char const *priority_string_ptr = "NORMAL"; /* default priority string.  */
   char *c_hostname;
+  const char *c_pass;
 
   /* Placeholders for the property list elements.  */
   Lisp_Object priority_string;
   Lisp_Object trustfiles;
   Lisp_Object crlfiles;
   Lisp_Object keylist;
+  Lisp_Object pass;
+  Lisp_Object flags;
   /* Lisp_Object callbacks; */
   Lisp_Object loglevel;
   Lisp_Object hostname;
   Lisp_Object prime_bits;
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+  unsigned int aux_key_file;
+#endif
   struct Lisp_Process *p = XPROCESS (proc);
 
   CHECK_PROCESS (proc);
@@ -1869,13 +1989,20 @@ one trustfile (usually a CA bundle).  */)
       return Qnil;
     }
 
-  hostname              = Fplist_get (proplist, QChostname);
-  priority_string       = Fplist_get (proplist, QCpriority);
-  trustfiles            = Fplist_get (proplist, QCtrustfiles);
-  keylist               = Fplist_get (proplist, QCkeylist);
-  crlfiles              = Fplist_get (proplist, QCcrlfiles);
-  loglevel              = Fplist_get (proplist, QCloglevel);
-  prime_bits            = Fplist_get (proplist, QCmin_prime_bits);
+  hostname              = plist_get (proplist, QChostname);
+  priority_string       = plist_get (proplist, QCpriority);
+  trustfiles            = plist_get (proplist, QCtrustfiles);
+  keylist               = plist_get (proplist, QCkeylist);
+  crlfiles              = plist_get (proplist, QCcrlfiles);
+  loglevel              = plist_get (proplist, QCloglevel);
+  prime_bits            = plist_get (proplist, QCmin_prime_bits);
+  pass                  = plist_get (proplist, QCpass);
+  flags                 = plist_get (proplist, QCflags);
+
+  if (STRINGP (pass))
+    c_pass = SSDATA (pass);
+  else
+    c_pass = NULL;
 
   if (!STRINGP (hostname))
     {
@@ -1928,7 +2055,7 @@ one trustfile (usually a CA bundle).  */)
       check_memory_full (gnutls_certificate_allocate_credentials (&x509_cred));
       XPROCESS (proc)->gnutls_x509_cred = x509_cred;
 
-      verify_flags = Fplist_get (proplist, QCverify_flags);
+      verify_flags = plist_get (proplist, QCverify_flags);
       if (TYPE_RANGED_FIXNUMP (unsigned int, verify_flags))
 	{
 	  gnutls_verify_flags = XFIXNAT (verify_flags);
@@ -2037,6 +2164,20 @@ one trustfile (usually a CA bundle).  */)
 	      keyfile = ansi_encode_filename (keyfile);
 	      certfile = ansi_encode_filename (certfile);
 # endif
+# ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_KEY_FILE2
+	      if (!NILP (plist_member (proplist, QCpass)))
+		{
+		  aux_key_file = key_file2_aux (flags);
+		  ret
+		    = gnutls_certificate_set_x509_key_file2 (x509_cred,
+							     SSDATA (certfile),
+							     SSDATA (keyfile),
+							     file_format,
+							     c_pass,
+							     aux_key_file);
+		}
+	      else
+# endif
 	      ret = gnutls_certificate_set_x509_key_file
 		(x509_cred, SSDATA (certfile), SSDATA (keyfile), file_format);
 
@@ -2108,7 +2249,7 @@ one trustfile (usually a CA bundle).  */)
     }
 
   XPROCESS (proc)->gnutls_complete_negotiation_p =
-    !NILP (Fplist_get (proplist, QCcomplete_negotiation));
+    !NILP (plist_get (proplist, QCcomplete_negotiation));
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_SET;
   ret = emacs_gnutls_handshake (XPROCESS (proc));
   if (ret < GNUTLS_E_SUCCESS)
@@ -2264,6 +2405,9 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
       aead_auth_size = aend_byte - astart_byte;
     }
 
+  /* Only block ciphers require that ISIZE be a multiple of the block
+     size, and AEAD ciphers are not block ciphers.  */
+#if 0
   ptrdiff_t expected_remainder = encrypting ? 0 : cipher_tag_size;
   ptrdiff_t cipher_block_size = gnutls_cipher_get_block_size (gca);
 
@@ -2273,6 +2417,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
 	    "is not %"pD"d greater than a multiple of the required %"pD"d"),
            gnutls_cipher_get_name (gca), desc,
 	   isize, expected_remainder, cipher_block_size);
+#endif
 
   ret = ((encrypting ? gnutls_aead_cipher_encrypt : gnutls_aead_cipher_decrypt)
 	 (acipher, vdata, vsize, aead_auth_data, aead_auth_size,
@@ -2281,7 +2426,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
   Lisp_Object output;
   if (GNUTLS_E_SUCCESS <= ret)
     output = make_unibyte_string (storage, storage_length);
-  explicit_bzero (storage, storage_length);
+  memset_explicit (storage, 0, storage_length);
   gnutls_aead_cipher_deinit (acipher);
 
   if (ret < GNUTLS_E_SUCCESS)
@@ -2347,7 +2492,7 @@ gnutls_symmetric (bool encrypting, Lisp_Object cipher,
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCcipher_id);
+      Lisp_Object v = plist_get (info, QCcipher_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_cipher_algorithm_t, v))
         gca = XFIXNUM (v);
     }
@@ -2624,7 +2769,7 @@ itself. */)
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCmac_algorithm_id);
+      Lisp_Object v = plist_get (info, QCmac_algorithm_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_mac_algorithm_t, v))
         gma = XFIXNUM (v);
     }
@@ -2714,7 +2859,7 @@ the number itself. */)
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCdigest_algorithm_id);
+      Lisp_Object v = plist_get (info, QCdigest_algorithm_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_digest_algorithm_t, v))
         gda = XFIXNUM (v);
     }
@@ -2766,7 +2911,7 @@ GnuTLS MACs             : the list will contain `macs'.
 GnuTLS digests          : the list will contain `digests'.
 GnuTLS symmetric ciphers: the list will contain `ciphers'.
 GnuTLS AEAD ciphers     : the list will contain `AEAD-ciphers'.
-%DUMBFW                 : the list will contain `ClientHello\ Padding'.
+%DUMBFW                 : the list will contain `ClientHello\\ Padding'.
 Any GnuTLS extension with ID up to 100
                         : the list will contain its name.  */)
   (void)
@@ -2789,6 +2934,10 @@ Any GnuTLS extension with ID up to 100
 
   capabilities = Fcons (intern("gnutls"), capabilities);
 
+#  ifdef HAVE_GNUTLS_EXT__DUMBFW
+  capabilities = Fcons (intern("ClientHello Padding"), capabilities);
+#  endif
+
 # ifdef HAVE_GNUTLS3
   capabilities = Fcons (intern("gnutls3"), capabilities);
   capabilities = Fcons (intern("digests"), capabilities);
@@ -2806,15 +2955,13 @@ Any GnuTLS extension with ID up to 100
       const char* name = gnutls_ext_get_name(ext);
       if (name != NULL)
         {
-          capabilities = Fcons (intern(name), capabilities);
+          Lisp_Object cap = intern (name);
+          if (NILP (Fmemq (cap, capabilities)))
+            capabilities = Fcons (cap, capabilities);
         }
     }
 #  endif
 # endif	  /* HAVE_GNUTLS3 */
-
-#  ifdef HAVE_GNUTLS_EXT__DUMBFW
-  capabilities = Fcons (intern("ClientHello Padding"), capabilities);
-#  endif
 
 # ifdef WINDOWSNT
   Vlibrary_cache = Fcons (Fcons (Qgnutls, capabilities), Vlibrary_cache);
@@ -2859,8 +3006,26 @@ level in the ones.  For builds without libgnutls, the value is -1.  */);
   DEFSYM (QCmin_prime_bits, ":min-prime-bits");
   DEFSYM (QCloglevel, ":loglevel");
   DEFSYM (QCcomplete_negotiation, ":complete-negotiation");
+  DEFSYM (QCpass, ":pass");
+  DEFSYM (QCflags, ":flags");
   DEFSYM (QCverify_flags, ":verify-flags");
   DEFSYM (QCverify_error, ":verify-error");
+  DEFSYM (Qgnutls_pkcs_plain, "GNUTLS_PKCS_PLAIN");
+  DEFSYM (Qgnutls_pkcs_pkcs12_3des, "GNUTLS_PKCS_PKCS12_3DES");
+  DEFSYM (Qgnutls_pkcs_pkcs12_arcfour, "GNUTLS_PKCS_PKCS12_ARCFOUR");
+  DEFSYM (Qgnutls_pkcs_pkcs12_rc2_40, "GNUTLS_PKCS_PKCS12_RC2_40");
+  DEFSYM (Qgnutls_pkcs_pbes2_3des, "GNUTLS_PKCS_PBES2_3DES");
+  DEFSYM (Qgnutls_pkcs_pbes2_aes_128, "GNUTLS_PKCS_PBES2_AES_128");
+  DEFSYM (Qgnutls_pkcs_pbes2_aes_192, "GNUTLS_PKCS_PBES2_AES_192");
+  DEFSYM (Qgnutls_pkcs_pbes2_aes_256, "GNUTLS_PKCS_PBES2_AES_256");
+  DEFSYM (Qgnutls_pkcs_null_password, "GNUTLS_PKCS_NULL_PASSWORD");
+  DEFSYM (Qgnutls_pkcs_pbes2_des, "GNUTLS_PKCS_PBES2_DES");
+  DEFSYM (Qgnutls_pkcs_pbes1_des_md5, "GNUTLS_PKCS_PBES1_DES_MD5");
+  DEFSYM (Qgnutls_pkcs_pbes2_gost_tc26z, "GNUTLS_PKCS_PBES2_GOST_TC26Z");
+  DEFSYM (Qgnutls_pkcs_pbes2_gost_cpa, "GNUTLS_PKCS_PBES2_GOST_CPA");
+  DEFSYM (Qgnutls_pkcs_pbes2_gost_cpb, "GNUTLS_PKCS_PBES2_GOST_CPB");
+  DEFSYM (Qgnutls_pkcs_pbes2_gost_cpc, "GNUTLS_PKCS_PBES2_GOST_CPC");
+  DEFSYM (Qgnutls_pkcs_pbes2_gost_cpd, "GNUTLS_PKCS_PBES2_GOST_CPD");
 
   DEFSYM (QCcipher_id, ":cipher-id");
   DEFSYM (QCcipher_aead_capable, ":cipher-aead-capable");

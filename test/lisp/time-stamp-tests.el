@@ -1,6 +1,6 @@
 ;;; time-stamp-tests.el --- tests for time-stamp.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +26,7 @@
 
 (defmacro with-time-stamp-test-env (&rest body)
   "Evaluate BODY with some standard time-stamp test variables bound."
-  (declare (indent defun))
+  (declare (indent 0) (debug t))
   `(let ((user-login-name "test-logname")
          (user-full-name "100%d Tester") ;verify "%" passed unchanged
          (buffer-file-name "/emacs/test/time-stamped-file")
@@ -46,7 +46,7 @@
 
 (defmacro with-time-stamp-test-time (reference-time &rest body)
   "Force any contained time-stamp call to use time REFERENCE-TIME."
-  (declare (indent defun))
+  (declare (indent 1) (debug t))
   `(cl-letf*
          ((orig-time-stamp-string-fn (symbol-function 'time-stamp-string))
          ((symbol-function 'time-stamp-string)
@@ -56,13 +56,14 @@
 
 (defmacro with-time-stamp-system-name (name &rest body)
   "Force (system-name) to return NAME while evaluating BODY."
-  (declare (indent defun))
+  (declare (indent 1) (debug t))
   `(cl-letf (((symbol-function 'system-name)
               (lambda () ,name)))
      ,@body))
 
 (defmacro time-stamp-should-warn (form)
   "Similar to `should' but verifies that a format warning is generated."
+  (declare (debug t))
   `(let ((warning-count 0))
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
                 (lambda (_old _new)
@@ -86,13 +87,13 @@
       (should (equal (time-stamp-string "%H %Z" ref-time1) "15 GMT")))))
 
 (iter-defun time-stamp-test-pattern-sequential ()
-  "Iterate through each possibility for a part of time-stamp-pattern."
+  "Iterate through each possibility for a part of `time-stamp-pattern'."
   (let ((pattern-value-parts
-         '(("4/" "10/" "-4/" "0/" "")                     ;0: line limit
+         '(("4/" "10/" "-9/" "0/" "")                     ;0: line limit
            ("stamp<" "")                                  ;1: start
-           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%02H" "%%" "") ;2: format part 1
+           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%09z" "%%" "") ;2: format part 1
            (" " "x" ":" "\n" "")                          ;3: format part 2
-           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%02H" "%%")    ;4: format part 3
+           ("%-d" "%_H" "%^a" "%#Z" "%:A" "%09z" "%%")    ;4: format part 3
            (">end" ""))))                                 ;5: end
     (dotimes (cur (length pattern-value-parts))
       (dotimes (cur-index (length (nth cur pattern-value-parts)))
@@ -115,9 +116,9 @@
                                     (extract-part 5))))))))))
 
 (iter-defun time-stamp-test-pattern-multiply ()
-  "Iterate through every combination of parts of time-stamp-pattern."
+  "Iterate through every combination of parts of `time-stamp-pattern'."
   (let ((line-limit-values '("" "4/"))
-        (start-values '("" "stamp<"))
+        (start-values '("" "/stamp/"))
         (format-values '("%%" "%m"))
         (end-values '("" ">end")))
     ;; yield all combinations of the above
@@ -141,18 +142,16 @@
                            ts-format _format-lines _end-lines)
               ;; Verify that time-stamp parsed time-stamp-pattern and
               ;; called us with the correct pieces.
-              (let ((limit-number (string-to-number line-limit1)))
-                (if (equal line-limit1 "")
-                    (setq limit-number time-stamp-line-limit))
+              (let ((limit-number (if (equal line-limit1 "")
+                                      time-stamp-line-limit
+                                    (string-to-number line-limit1))))
                 (goto-char (point-min))
                 (if (> limit-number 0)
-                    (should (= search-limit (line-beginning-position
-                                             (1+ limit-number))))
+                    (should (= search-limit (pos-bol (1+ limit-number))))
                   (should (= search-limit (point-max))))
                 (goto-char (point-max))
                 (if (< limit-number 0)
-                    (should (= start (line-beginning-position
-                                      (1+ limit-number))))
+                    (should (= start (pos-bol (1+ limit-number))))
                   (should (= start (point-min)))))
               (if (equal start1 "")
                   (should (equal ts-start time-stamp-start))
@@ -262,40 +261,51 @@
 (ert-deftest time-stamp-format-day-of-week ()
   "Test time-stamp formats for named day of week."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1997
-    (should (equal (time-stamp-string "%3a" ref-time1) "Mon"))
-    (should (equal (time-stamp-string "%#A" ref-time1) "MONDAY"))
-    ;; documented 1997-2019
-    (should (equal (time-stamp-string "%3A" ref-time1) "MON"))
-    (should (equal (time-stamp-string "%:a" ref-time1) "Monday"))
-    ;; implemented since 2001, documented since 2019
-    (should (equal (time-stamp-string "%#a" ref-time1) "MON"))
-    (should (equal (time-stamp-string "%:A" ref-time1) "Monday"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
-    (should (equal (time-stamp-string "%^A" ref-time1) "MONDAY"))
-    ;; warned 1997-2019, changed in 2019
-    (should (equal (time-stamp-string "%a" ref-time1) "Mon"))
-    (should (equal (time-stamp-string "%^a" ref-time1) "MON"))
-    (should (equal (time-stamp-string "%A" ref-time1) "Monday"))))
+   (let ((Mon (format-time-string "%a" ref-time1 t))
+         (MON (format-time-string "%^a" ref-time1 t))
+         (Monday (format-time-string "%A" ref-time1 t))
+         (MONDAY (format-time-string "%^A" ref-time1 t)))
+     ;; implemented and documented since 1997
+     (should (equal (time-stamp-string "%3a" ref-time1) Mon))
+     (should (equal (time-stamp-string "%#A" ref-time1) MONDAY))
+     ;; documented 1997-2019
+     (should (equal (time-stamp-string "%3A" ref-time1)
+                    (substring MONDAY 0 3)))
+     (should (equal (time-stamp-string "%:a" ref-time1) Monday))
+     ;; implemented since 2001, documented since 2019
+     (should (equal (time-stamp-string "%#a" ref-time1) MON))
+     (should (equal (time-stamp-string "%:A" ref-time1) Monday))
+     ;; allowed but undocumented since 2019 (warned 1997-2019)
+     (should (equal (time-stamp-string "%^A" ref-time1) MONDAY))
+     ;; warned 1997-2019, changed in 2019
+     (should (equal (time-stamp-string "%a" ref-time1) Mon))
+     (should (equal (time-stamp-string "%^a" ref-time1) MON))
+     (should (equal (time-stamp-string "%A" ref-time1) Monday)))))
 
 (ert-deftest time-stamp-format-month-name ()
   "Test time-stamp formats for month name."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1997
-    (should (equal (time-stamp-string "%3b" ref-time1) "Jan"))
-    (should (equal (time-stamp-string "%#B" ref-time1) "JANUARY"))
-    ;; documented 1997-2019
-    (should (equal (time-stamp-string "%3B" ref-time1) "JAN"))
-    (should (equal (time-stamp-string "%:b" ref-time1) "January"))
-    ;; implemented since 2001, documented since 2019
-    (should (equal (time-stamp-string "%#b" ref-time1) "JAN"))
-    (should (equal (time-stamp-string "%:B" ref-time1) "January"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
-    (should (equal (time-stamp-string "%^B" ref-time1) "JANUARY"))
-    ;; warned 1997-2019, changed in 2019
-    (should (equal (time-stamp-string "%b" ref-time1) "Jan"))
-    (should (equal (time-stamp-string "%^b" ref-time1) "JAN"))
-    (should (equal (time-stamp-string "%B" ref-time1) "January"))))
+   (let ((Jan (format-time-string "%b" ref-time1 t))
+         (JAN (format-time-string "%^b" ref-time1 t))
+         (January (format-time-string "%B" ref-time1 t))
+         (JANUARY (format-time-string "%^B" ref-time1 t)))
+     ;; implemented and documented since 1997
+     (should (equal (time-stamp-string "%3b" ref-time1)
+                    (substring January 0 3)))
+     (should (equal (time-stamp-string "%#B" ref-time1) JANUARY))
+     ;; documented 1997-2019
+     (should (equal (time-stamp-string "%3B" ref-time1)
+                    (substring JANUARY 0 3)))
+     (should (equal (time-stamp-string "%:b" ref-time1) January))
+     ;; implemented since 2001, documented since 2019
+     (should (equal (time-stamp-string "%#b" ref-time1) JAN))
+     (should (equal (time-stamp-string "%:B" ref-time1) January))
+     ;; allowed but undocumented since 2019 (warned 1997-2019)
+     (should (equal (time-stamp-string "%^B" ref-time1) JANUARY))
+     ;; warned 1997-2019, changed in 2019
+     (should (equal (time-stamp-string "%b" ref-time1) Jan))
+     (should (equal (time-stamp-string "%^b" ref-time1) JAN))
+     (should (equal (time-stamp-string "%B" ref-time1) January)))))
 
 (ert-deftest time-stamp-format-day-of-month ()
   "Test time-stamp formats for day of month."
@@ -478,19 +488,26 @@
   "Test time-stamp format %Y."
   (with-time-stamp-test-env
     ;; implemented since 1997, documented since 2019
-    (should (equal (time-stamp-string "%Y" ref-time1) "2006"))))
+    (should (equal (time-stamp-string "%Y" ref-time1) "2006"))
+    ;; numbers do not truncate
+    (should (equal (time-stamp-string "%2Y" ref-time1) "2006"))
+    (should (equal (time-stamp-string "%02Y" ref-time1) "2006"))))
 
 (ert-deftest time-stamp-format-am-pm ()
   "Test time-stamp formats for AM and PM strings."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1997
-    (should (equal (time-stamp-string "%#p" ref-time1) "pm"))
-    (should (equal (time-stamp-string "%#p" ref-time3) "am"))
-    (should (equal (time-stamp-string "%P" ref-time1) "PM"))
-    (should (equal (time-stamp-string "%P" ref-time3) "AM"))
-    ;; warned 1997-2019, changed in 2019
-    (should (equal (time-stamp-string "%p" ref-time1) "PM"))
-    (should (equal (time-stamp-string "%p" ref-time3) "AM"))))
+    (let ((pm (format-time-string "%#p" ref-time1 t))
+          (am (format-time-string "%#p" ref-time3 t))
+          (PM (format-time-string "%p" ref-time1 t))
+          (AM (format-time-string "%p" ref-time3 t)))
+      ;; implemented and documented since 1997
+      (should (equal (time-stamp-string "%#p" ref-time1) pm))
+      (should (equal (time-stamp-string "%#p" ref-time3) am))
+      (should (equal (time-stamp-string "%P" ref-time1) PM))
+      (should (equal (time-stamp-string "%P" ref-time3) AM))
+      ;; warned 1997-2019, changed in 2019
+      (should (equal (time-stamp-string "%p" ref-time1) PM))
+      (should (equal (time-stamp-string "%p" ref-time3) AM)))))
 
 (ert-deftest time-stamp-format-day-number-in-week ()
   "Test time-stamp formats for day number in week."
@@ -510,7 +527,7 @@
       (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr)))))
 
 (ert-deftest time-stamp-format-time-zone-offset ()
-  "Test time-stamp format %z."
+  "Tests time-stamp legacy format %z and spot tests of new offset format %5z."
   (with-time-stamp-test-env
     (let ((utc-abbr (format-time-string "%#Z" ref-time1 t)))
     ;; documented 1995-2019, warned since 2019, will change
@@ -525,10 +542,12 @@
     (let ((time-stamp-time-zone "CET-1"))
       (should (equal (time-stamp-string "%5z" ref-time1) "+0100")))
     ;; implemented since 2019, verify that these don't warn
+    ;; See also the "formatz" tests below, which since 2021 test more
+    ;; variants with more offsets.
     (should (equal (time-stamp-string "%-z" ref-time1) "+00"))
-    (should (equal (time-stamp-string "%_z" ref-time1) "+0000"))
     (should (equal (time-stamp-string "%:z" ref-time1) "+00:00"))
     (should (equal (time-stamp-string "%::z" ref-time1) "+00:00:00"))
+    (should (equal (time-stamp-string "%9::z" ref-time1) "+00:00:00"))
     (should (equal (time-stamp-string "%:::z" ref-time1) "+00"))))
 
 (ert-deftest time-stamp-format-non-date-conversions ()
@@ -567,29 +586,84 @@
 (ert-deftest time-stamp-format-ignored-modifiers ()
   "Test additional args allowed (but ignored) to allow for future expansion."
   (with-time-stamp-test-env
-    ;; allowed modifiers
-    (should (equal (time-stamp-string "%.,@-+_ ^(stuff)P" ref-time3) "AM"))
-    ;; not all punctuation is allowed
-    (should-not (equal (time-stamp-string "%&P" ref-time3) "AM"))))
+   (let ((May (format-time-string "%B" ref-time3 t)))
+     ;; allowed modifiers
+     (should (equal (time-stamp-string "%.,@+ (stuff)B" ref-time3) May))
+     ;; parens nest
+     (should (equal (time-stamp-string "%(st(u)ff)B" ref-time3) May))
+     ;; escaped parens do not change the nesting level
+     (should (equal (time-stamp-string "%(st\\)u\\(ff)B" ref-time3) May))
+     ;; incorrectly nested parens do not crash us
+     (should-not (equal (time-stamp-string "%(stuffB" ref-time3) May))
+     (should-not (equal (time-stamp-string "%)B" ref-time3) May))
+     ;; unterminated format does not crash us
+     (should-not (equal (time-stamp-string "%" ref-time3) May))
+     ;; not all punctuation is allowed
+     (should-not (equal (time-stamp-string "%&B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%/B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%;B" ref-time3) May)))))
 
 (ert-deftest time-stamp-format-non-conversions ()
   "Test that without a %, the text is copied literally."
   (with-time-stamp-test-env
     (should (equal (time-stamp-string "No percent" ref-time1) "No percent"))))
 
+(ert-deftest time-stamp-format-multiple-conversions ()
+  "Tests that multiple %-conversions are independent."
+  (with-time-stamp-test-env
+    (let ((Mon (format-time-string "%a" ref-time1 t))
+          (MON (format-time-string "%^a" ref-time1 t))
+          (Monday (format-time-string "%A" ref-time1 t)))
+      ;; change-case flag is independent
+      (should (equal (time-stamp-string "%a.%#a.%a" ref-time1)
+                     (concat Mon "." MON "." Mon)))
+      ;; up-case flag is independent
+      (should (equal (time-stamp-string "%a.%^a.%a" ref-time1)
+                     (concat Mon "." MON "." Mon)))
+      ;; underscore flag is independent
+      (should (equal (time-stamp-string "%_d.%d.%_d" ref-time1) " 2.02. 2"))
+      (should (equal (time-stamp-string "%_7z.%7z.%_7z" ref-time1)
+                     "+000000.+0000  .+000000"))
+      ;; minus flag is independent
+      (should (equal (time-stamp-string "%d.%-d.%d" ref-time1) "02.2.02"))
+      (should (equal (time-stamp-string "%3z.%-3z.%3z" ref-time1)
+                     "+0000.+00.+0000"))
+      ;; 0 flag is independent
+      (should (equal (time-stamp-string "%2d.%02d.%2d" ref-time1) " 2.02. 2"))
+      (should (equal (time-stamp-string "%6:::z.%06:::z.%6:::z" ref-time1)
+                     "+00   .+00:00.+00   "))
+      ;; field width is independent
+      (should (equal
+               (time-stamp-string "%6Y.%Y.%6Y" ref-time1) "  2006.2006.  2006"))
+      ;; colon modifier is independent
+      (should (equal (time-stamp-string "%a.%:a.%a" ref-time1)
+                     (concat Mon "." Monday "." Mon)))
+      (should (equal (time-stamp-string "%5z.%5::z.%5z" ref-time1)
+                     "+0000.+00:00:00.+0000"))
+      ;; format character is independent
+      (should (equal (time-stamp-string "%H:%M%%%S" ref-time1) "15:04%05")))))
+
 (ert-deftest time-stamp-format-string-width ()
   "Test time-stamp string width modifiers."
   (with-time-stamp-test-env
-    ;; strings truncate on the right or are blank-padded on the left
-    (should (equal (time-stamp-string "%0P" ref-time3) ""))
-    (should (equal (time-stamp-string "%1P" ref-time3) "A"))
-    (should (equal (time-stamp-string "%2P" ref-time3) "AM"))
-    (should (equal (time-stamp-string "%3P" ref-time3) " AM"))
-    (should (equal (time-stamp-string "%0%" ref-time3) ""))
-    (should (equal (time-stamp-string "%1%" ref-time3) "%"))
-    (should (equal (time-stamp-string "%2%" ref-time3) " %"))
-    (should (equal (time-stamp-string "%#3a" ref-time3) "SUN"))
-    (should (equal (time-stamp-string "%#3b" ref-time2) "NOV"))))
+   (let ((May (format-time-string "%b" ref-time3 t))
+         (SUN (format-time-string "%^a" ref-time3 t))
+         (NOV (format-time-string "%^b" ref-time2 t)))
+     ;; strings truncate on the right or are blank-padded on the left
+     (should (equal (time-stamp-string "%0b" ref-time3) ""))
+     (should (equal (time-stamp-string "%1b" ref-time3) (substring May 0 1)))
+     (should (equal (time-stamp-string "%2b" ref-time3) (substring May 0 2)))
+     (should (equal (time-stamp-string "%3b" ref-time3) (substring May 0 3)))
+     (should (equal (time-stamp-string "%4b" ref-time3) (concat " " May)))
+     (should (equal (time-stamp-string "%0%" ref-time3) ""))
+     (should (equal (time-stamp-string "%1%" ref-time3) "%"))
+     (should (equal (time-stamp-string "%2%" ref-time3) " %"))
+     (should (equal (time-stamp-string "%9%" ref-time3) "        %"))
+     (should (equal (time-stamp-string "%10%" ref-time3) "         %"))
+     (should (equal (time-stamp-string "%#3a" ref-time3)
+                    (substring SUN 0 3)))
+     (should (equal (time-stamp-string "%#3b" ref-time2)
+                    (substring NOV 0 3))))))
 
 ;;; Tests of helper functions
 
@@ -633,5 +707,412 @@
   (should-not (safe-local-variable-p 'time-stamp-count t))
   (should (safe-local-variable-p 'time-stamp-pattern "a string"))
   (should-not (safe-local-variable-p 'time-stamp-pattern 17)))
+
+;;;; Setup for tests of time offset formatting with %z
+
+(defun formatz (format zone)
+  "Uses FORMAT to format the offset of ZONE, returning the result.
+FORMAT must be time format \"%z\" or some variation thereof.
+ZONE is as the ZONE argument of the `format-time-string' function.
+This function is called by 99% of the `time-stamp' \"%z\" unit tests."
+  (with-time-stamp-test-env
+   (let ((time-stamp-time-zone zone))
+     ;; Call your favorite time formatter here.
+     ;; For narrower-scope unit testing,
+     ;; instead of calling time-stamp-string here,
+     ;; we could directly call (format-time-offset format zone)
+     (time-stamp-string format)
+     )))
+
+(defun format-time-offset (format offset-secs)
+  "Uses FORMAT to format the time zone represented by OFFSET-SECS.
+FORMAT must be time format \"%z\" or some variation thereof.
+This function is a wrapper around `time-stamp-formatz-from-parsed-options'
+and is called by some low-level `time-stamp' \"%z\" unit tests."
+  ;; This wrapper adds a simple regexp-based parser that handles only
+  ;; %z and variants.  In normal use, time-stamp-formatz-from-parsed-options
+  ;; is called from a parser that handles all time string formats.
+  (string-match
+   "\\`\\([^%]*\\)%\\([-_]?\\)\\(0?\\)\\([1-9][0-9]*\\)?\\([EO]?\\)\\(:*\\)\\([^a-zA-Z]+\\)?z\\(.*\\)"
+   format)
+  (let ((leading-string (match-string 1 format))
+        (flag-minimize (seq-find (lambda (x) (eq x ?-))
+                                 (match-string 2 format)))
+        (flag-pad-with-spaces (seq-find (lambda (x) (eq x ?_))
+                                        (match-string 2 format)))
+        (flag-pad-with-zeros (equal (match-string 3 format) "0"))
+        (field-width (string-to-number (or (match-string 4 format) "")))
+        (colon-count (length (match-string 6 format)))
+        (garbage (match-string 7 format))
+        (trailing-string (match-string 8 format)))
+    (concat leading-string
+            (if garbage
+                ""
+              (time-stamp-formatz-from-parsed-options flag-minimize
+                                                      flag-pad-with-spaces
+                                                      flag-pad-with-zeros
+                                                      colon-count
+                                                      field-width
+                                                      offset-secs))
+            trailing-string)))
+
+(defun fz-make+zone (h &optional m s)
+  "Creates a non-negative offset."
+  (let ((m (or m 0))
+        (s (or s 0)))
+    (+ (* 3600 h) (* 60 m) s)))
+
+(defun fz-make-zone (h &optional m s)
+  "Creates a negative offset.  The arguments are all non-negative."
+  (- (fz-make+zone h m s)))
+
+(defmacro formatz-should-equal (zone expect)
+  "Formats ZONE and compares it to EXPECT.
+Uses the free variables `form-string' and `pattern-mod'.
+The functions in `pattern-mod' are composed left to right."
+  (declare (debug t))
+  `(let ((result ,expect))
+     (dolist (fn pattern-mod)
+       (setq result (funcall fn result)))
+     (should (equal (formatz form-string ,zone) result))))
+
+;; These test cases have zeros in all places (first, last, none, both)
+;; for hours, minutes, and seconds.
+
+(defun formatz-hours-exact-helper (form-string pattern-mod)
+  "Tests format %z with whole hours."
+  (formatz-should-equal (fz-make+zone 0) "+00") ;0 sign always +, both digits
+  (formatz-should-equal (fz-make+zone 10) "+10")
+  (formatz-should-equal (fz-make-zone 10) "-10")
+  (formatz-should-equal (fz-make+zone 2) "+02")
+  (formatz-should-equal (fz-make-zone 2) "-02")
+  (formatz-should-equal (fz-make+zone 13) "+13")
+  (formatz-should-equal (fz-make-zone 13) "-13")
+  )
+
+(defun formatz-nonzero-minutes-helper (form-string pattern-mod)
+  "Tests format %z with whole minutes."
+  (formatz-should-equal (fz-make+zone 0 30) "+00:30") ;has hours even though 0
+  (formatz-should-equal (fz-make-zone 0 30) "-00:30")
+  (formatz-should-equal (fz-make+zone 0 4) "+00:04")
+  (formatz-should-equal (fz-make-zone 0 4) "-00:04")
+  (formatz-should-equal (fz-make+zone 8 40) "+08:40")
+  (formatz-should-equal (fz-make-zone 8 40) "-08:40")
+  (formatz-should-equal (fz-make+zone 0 15) "+00:15")
+  (formatz-should-equal (fz-make-zone 0 15) "-00:15")
+  (formatz-should-equal (fz-make+zone 11 30) "+11:30")
+  (formatz-should-equal (fz-make-zone 11 30) "-11:30")
+  (formatz-should-equal (fz-make+zone 3 17) "+03:17")
+  (formatz-should-equal (fz-make-zone 3 17) "-03:17")
+  (formatz-should-equal (fz-make+zone 12 45) "+12:45")
+  (formatz-should-equal (fz-make-zone 12 45) "-12:45")
+  )
+
+(defun formatz-nonzero-seconds-helper (form-string pattern-mod)
+  "Tests format %z with non-0 seconds."
+  ;; non-0 seconds are always included
+  (formatz-should-equal (fz-make+zone 0 0 50) "+00:00:50")
+  (formatz-should-equal (fz-make-zone 0 0 50) "-00:00:50")
+  (formatz-should-equal (fz-make+zone 0 0 06) "+00:00:06")
+  (formatz-should-equal (fz-make-zone 0 0 06) "-00:00:06")
+  (formatz-should-equal (fz-make+zone 0 7 50) "+00:07:50")
+  (formatz-should-equal (fz-make-zone 0 7 50) "-00:07:50")
+  (formatz-should-equal (fz-make+zone 0 0 16) "+00:00:16")
+  (formatz-should-equal (fz-make-zone 0 0 16) "-00:00:16")
+  (formatz-should-equal (fz-make+zone 0 12 36) "+00:12:36")
+  (formatz-should-equal (fz-make-zone 0 12 36) "-00:12:36")
+  (formatz-should-equal (fz-make+zone 0 3 45) "+00:03:45")
+  (formatz-should-equal (fz-make-zone 0 3 45) "-00:03:45")
+  (formatz-should-equal (fz-make+zone 8 45 30) "+08:45:30")
+  (formatz-should-equal (fz-make-zone 8 45 30) "-08:45:30")
+  (formatz-should-equal (fz-make+zone 0 11 45) "+00:11:45")
+  (formatz-should-equal (fz-make-zone 0 11 45) "-00:11:45")
+  (formatz-should-equal (fz-make+zone 3 20 15) "+03:20:15")
+  (formatz-should-equal (fz-make-zone 3 20 15) "-03:20:15")
+  (formatz-should-equal (fz-make+zone 11 14 30) "+11:14:30")
+  (formatz-should-equal (fz-make-zone 11 14 30) "-11:14:30")
+  (formatz-should-equal (fz-make+zone 12 30 49) "+12:30:49")
+  (formatz-should-equal (fz-make-zone 12 30 49) "-12:30:49")
+  (formatz-should-equal (fz-make+zone 12 0 34) "+12:00:34")
+  (formatz-should-equal (fz-make-zone 12 0 34) "-12:00:34")
+  )
+
+(defun formatz-hours-big-helper (form-string pattern-mod)
+  "Tests format %z with hours that don't fit in two digits."
+  (formatz-should-equal (fz-make+zone 101) "+101:00")
+  (formatz-should-equal (fz-make+zone 123 10) "+123:10")
+  (formatz-should-equal (fz-make-zone 123 10) "-123:10")
+  (formatz-should-equal (fz-make+zone 123 2) "+123:02")
+  (formatz-should-equal (fz-make-zone 123 2) "-123:02")
+  )
+
+(defun formatz-seconds-big-helper (form-string pattern-mod)
+  "Tests format %z with hours greater than 99 and non-zero seconds."
+  (formatz-should-equal (fz-make+zone 123 0 30) "+123:00:30")
+  (formatz-should-equal (fz-make-zone 123 0 30) "-123:00:30")
+  (formatz-should-equal (fz-make+zone 120 0 4) "+120:00:04")
+  (formatz-should-equal (fz-make-zone 120 0 4) "-120:00:04")
+  )
+
+;; Functions that modify the expected output string, so that we can
+;; use the above test cases for multiple formats.
+
+(defun formatz-mod-del-colons (string)
+  "Returns STRING with any colons removed."
+  (string-replace ":" "" string))
+
+(defun formatz-mod-add-00 (string)
+  "Returns STRING with \"00\" appended."
+  (concat string "00"))
+
+(defun formatz-mod-add-colon00 (string)
+  "Returns STRING with \":00\" appended."
+  (concat string ":00"))
+
+(defun formatz-mod-pad-r10 (string)
+  "Returns STRING padded on the right to 10 characters."
+  (concat string (make-string (- 10 (length string)) ?\s)))
+
+(defun formatz-mod-pad-r12 (string)
+  "Returns STRING padded on the right to 12 characters."
+  (concat string (make-string (- 12 (length string)) ?\s)))
+
+;; Convenience macro for generating groups of test cases.
+
+(defmacro formatz-generate-tests
+    (form-strings hour-mod mins-mod secs-mod big-mod secbig-mod)
+  "Defines tests for time formats FORM-STRINGS.
+FORM-STRINGS is a list of formats, each \"%z\" or some variation thereof.
+
+Each of the remaining arguments is an unquoted list of the form
+(SAMPLE-OUTPUT . MODIFIERS).  SAMPLE-OUTPUT is the result of the
+FORM-STRINGS for a particular offset, detailed below for each argument.
+The remaining elements of the list, the MODIFIERS, are the names of
+functions to modify the expected results for sets of tests.
+The MODIFIERS do not modify the SAMPLE-OUTPUT.
+
+The one, literal sample output is given in the call to this macro
+to provide a visual check at the call site that the format
+behaves as expected.
+
+HOUR-MOD is the result for offset 0 and modifiers for the other
+expected results for whole hours.
+MINS-MOD is the result for offset +30 minutes and modifiers for the
+other expected results for whole minutes.
+SECS-MOD is the result for offset +30 seconds and modifiers for the
+other expected results for offsets with non-zero seconds.
+BIG-MOD is the result for offset +100 hours and modifiers for the other
+expected results for hours greater than 99 with a whole number of minutes.
+SECBIG-MOD is the result for offset +100 hours 30 seconds and modifiers for
+the other expected results for hours greater than 99 with non-zero seconds."
+  (declare (indent 1) (debug (&rest sexp)))
+  ;; Generate a form to create a list of tests to define.  When this
+  ;; macro is called, the form is evaluated, thus defining the tests.
+  ;; We will modify this list, so start with a list consed at runtime.
+  (let ((ert-test-list (list 'list)))
+    (dolist (form-string form-strings ert-test-list)
+      (nconc
+       ert-test-list
+       (list
+        `(ert-deftest ,(intern (concat "formatz-" form-string "-hhmm")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with whole hours or minutes.")
+           (should (equal (formatz ,form-string (fz-make+zone 0))
+                          ,(car hour-mod)))
+           (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
+           (should (equal (formatz ,form-string (fz-make+zone 0 30))
+                          ,(car mins-mod)))
+           (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
+        `(ert-deftest ,(intern (concat "formatz-" form-string "-seconds")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with offsets that have non-zero seconds.")
+           (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
+                          ,(car secs-mod)))
+           (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
+        `(ert-deftest ,(intern (concat "formatz-" form-string "-threedigit")) ()
+           ,(concat "Tests time-stamp format " form-string
+                   " with offsets that are 100 hours or greater.")
+           (should (equal (formatz ,form-string (fz-make+zone 100))
+                          ,(car big-mod)))
+           (formatz-hours-big-helper ,form-string ',(cdr big-mod))
+           (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
+                          ,(car secbig-mod)))
+           (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
+        )))))
+
+;;;; The actual test cases for %z
+
+;;; %z formats without colons.
+
+;; Option character "-" (minus) minimizes; it removes "00" minutes.
+(formatz-generate-tests ("%-z" "%-3z")
+  ("+00")
+  ("+0030" formatz-mod-del-colons)
+  ("+000030" formatz-mod-del-colons)
+  ("+100:00")
+  ("+100:00:30"))
+;; Tests that minus with padding pads with spaces.
+(formatz-generate-tests ("%-12z")
+  ("+00         " formatz-mod-pad-r12)
+  ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
+  ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
+  ("+100:00     " formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+;; Tests that 0 after other digits becomes padding of ten, not zero flag.
+(formatz-generate-tests ("%-10z")
+  ("+00       " formatz-mod-pad-r10)
+  ("+0030     " formatz-mod-del-colons formatz-mod-pad-r10)
+  ("+000030   " formatz-mod-del-colons formatz-mod-pad-r10)
+  ("+100:00   " formatz-mod-pad-r10)
+  ("+100:00:30"))
+
+;; Although time-stamp doesn't call us for %z, we do want to spot-check
+;; it here, to verify the implementation we will eventually use.
+;; The legacy exception for %z in time-stamp will need to remain
+;; through at least 2024 and Emacs 28.
+(ert-deftest formatz-%z-spotcheck ()
+  "Spot-checks internal implementation of time-stamp format %z."
+  (should (equal (format-time-offset "%z" (fz-make+zone 0)) "+0000"))
+  (should (equal (format-time-offset "%z" (fz-make+zone 0 30)) "+0030"))
+  (should (equal (format-time-offset "%z" (fz-make+zone 0 0 30)) "+000030"))
+  (should (equal (format-time-offset "%z" (fz-make+zone 100)) "+100:00"))
+  (should (equal (format-time-offset "%z" (fz-make+zone 100 0 30)) "+100:00:30"))
+  )
+
+;; Basic %z outputs 4 digits.
+;; Small padding values do not extend the result.
+(formatz-generate-tests (;; We don't check %z here because time-stamp
+                         ;; has a legacy behavior for it.
+                         ;;"%z"
+                         "%5z" "%0z" "%05z")
+  ("+0000" formatz-mod-add-00)
+  ("+0030" formatz-mod-del-colons)
+  ("+000030" formatz-mod-del-colons)
+  ("+100:00")
+  ("+100:00:30"))
+
+;; Tests that padding adds spaces.
+(formatz-generate-tests ("%12z")
+  ("+0000       " formatz-mod-add-00 formatz-mod-pad-r12)
+  ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
+  ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
+  ("+100:00     " formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+
+;; Requiring 0-padding to 6 adds seconds (only) as needed.
+(formatz-generate-tests ("%06z")
+  ("+000000" formatz-mod-add-00 formatz-mod-add-00)
+  ("+003000" formatz-mod-del-colons formatz-mod-add-00)
+  ("+000030" formatz-mod-del-colons)
+  ("+100:00")
+  ("+100:00:30"))
+
+;; Option character "_" always adds seconds.
+(formatz-generate-tests ("%_z" "%_7z")
+  ("+000000" formatz-mod-add-00 formatz-mod-add-00)
+  ("+003000" formatz-mod-del-colons formatz-mod-add-00)
+  ("+000030" formatz-mod-del-colons)
+  ("+100:00:00" formatz-mod-add-colon00)
+  ("+100:00:30"))
+
+;; Enough 0-padding adds seconds, then adds spaces.
+(formatz-generate-tests ("%012z" "%_12z")
+  ("+000000     " formatz-mod-add-00 formatz-mod-add-00 formatz-mod-pad-r12)
+  ("+003000     " formatz-mod-del-colons formatz-mod-add-00 formatz-mod-pad-r12)
+  ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
+  ("+100:00:00  " formatz-mod-add-colon00 formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+
+;;; %z formats with colons
+
+;; Three colons can output hours only,
+;; like %-z, but uses colons with non-zero minutes and seconds.
+(formatz-generate-tests ("%:::z" "%0:::z"
+                         "%3:::z" "%03:::z")
+  ("+00")
+  ("+00:30")
+  ("+00:00:30")
+  ("+100:00")
+  ("+100:00:30"))
+
+;; Padding with three colons adds spaces
+(formatz-generate-tests ("%12:::z")
+  ("+00         " formatz-mod-pad-r12)
+  ("+00:30      " formatz-mod-pad-r12)
+  ("+00:00:30   " formatz-mod-pad-r12)
+  ("+100:00     " formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+;; Tests that 0 after other digits becomes padding of ten, not zero flag.
+(formatz-generate-tests ("%10:::z")
+  ("+00       " formatz-mod-pad-r10)
+  ("+00:30    " formatz-mod-pad-r10)
+  ("+00:00:30 " formatz-mod-pad-r10)
+  ("+100:00   " formatz-mod-pad-r10)
+  ("+100:00:30"))
+
+;; One colon outputs minutes, like %z but with colon.
+(formatz-generate-tests ("%:z" "%6:z" "%0:z" "%06:z" "%06:::z")
+  ("+00:00" formatz-mod-add-colon00)
+  ("+00:30")
+  ("+00:00:30")
+  ("+100:00")
+  ("+100:00:30"))
+
+;; Padding with one colon adds spaces
+(formatz-generate-tests ("%12:z")
+  ("+00:00      " formatz-mod-add-colon00 formatz-mod-pad-r12)
+  ("+00:30      " formatz-mod-pad-r12)
+  ("+00:00:30   " formatz-mod-pad-r12)
+  ("+100:00     " formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+
+;; Requiring 0-padding to 7 adds seconds (only) as needed.
+(formatz-generate-tests ("%07:z" "%07:::z")
+  ("+00:00:00" formatz-mod-add-colon00 formatz-mod-add-colon00)
+  ("+00:30:00" formatz-mod-add-colon00)
+  ("+00:00:30")
+  ("+100:00")
+  ("+100:00:30"))
+
+;; Two colons outputs HH:MM:SS, like %_z but with colons.
+(formatz-generate-tests ("%::z" "%9::z" "%0::z" "%09::z")
+  ("+00:00:00" formatz-mod-add-colon00 formatz-mod-add-colon00)
+  ("+00:30:00" formatz-mod-add-colon00)
+  ("+00:00:30")
+  ("+100:00:00" formatz-mod-add-colon00)
+  ("+100:00:30"))
+
+;; Enough padding adds minutes and seconds, then adds spaces.
+(formatz-generate-tests ("%012:z" "%012::z" "%12::z" "%012:::z")
+  ("+00:00:00   " formatz-mod-add-colon00 formatz-mod-add-colon00
+                  formatz-mod-pad-r12)
+  ("+00:30:00   " formatz-mod-add-colon00 formatz-mod-pad-r12)
+  ("+00:00:30   " formatz-mod-pad-r12)
+  ("+100:00:00  " formatz-mod-add-colon00 formatz-mod-pad-r12)
+  ("+100:00:30  " formatz-mod-pad-r12))
+
+;;; Illegal %z formats
+
+(ert-deftest formatz-illegal-options ()
+  "Tests that illegal/nonsensical/ambiguous %z formats don't produce output."
+  ;; multiple options
+  (should (equal "" (formatz "%_-z" 0)))
+  (should (equal "" (formatz "%-_z" 0)))
+  (should (equal "" (formatz "%_0z" 0)))
+  (should (equal "" (formatz "%0_z" 0)))
+  (should (equal "" (formatz "%0-z" 0)))
+  (should (equal "" (formatz "%-0z" 0)))
+  ;; inconsistent to both minimize and require mins or secs
+  (should (equal "" (formatz "%-:z" 0)))
+  (should (equal "" (formatz "%-::z" 0)))
+  ;; consistent, but redundant
+  (should (equal "" (formatz "%-:::z" 0)))
+  (should (equal "" (formatz "%_::z" 0)))
+  ;; inconsistent to both pre-expand and default to hours or mins
+  (should (equal "" (formatz "%_:::z" 0)))
+  (should (equal "" (formatz "%_:z" 0)))
+  ;; options that don't make sense with %z
+  (should (equal "" (formatz "%#z" 0)))
+  )
 
 ;;; time-stamp-tests.el ends here

@@ -1,0 +1,154 @@
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (forward-sentence 1))
+
+Point-Char: |
+
+Name: forward-sentence moves over if
+
+=-=
+public class Basic {
+  public void basic() {
+    |if (x) {
+
+    }
+    log.info("some text: {}", text);
+    return;
+  }
+}
+=-=
+public class Basic {
+  public void basic() {
+    if (x) {
+
+    }|
+    log.info("some text: {}", text);
+    return;
+  }
+}
+=-=-=
+
+Name: forward-sentence moves over method invocation
+
+=-=
+public class Basic {
+  public void basic() {
+    |log.info("some text: {}", text);
+  }
+}
+=-=
+public class Basic {
+  public void basic() {
+    log.info("some text: {}", text);|
+  }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (forward-sentence 2))
+
+Name: forward-sentence moves over multiple statements
+
+=-=
+public class Basic {
+  public void basic() {
+    |return;
+    return;
+  }
+}
+=-=
+public class Basic {
+  public void basic() {
+    return;
+    return;|
+  }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (backward-sentence 1))
+
+Name: backward-sentence moves over one statement
+
+=-=
+public class Basic {
+  public void basic() {
+    return;|
+  }
+}
+=-=
+public class Basic {
+  public void basic() {
+    |return;
+  }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (beginning-of-defun))
+
+Name: beginning-of-defun moves to defun start
+
+=-=
+public class Basic {
+  public void basic() {
+    return;|
+  }
+}
+=-=
+public class Basic {
+|  public void basic() {
+    return;
+  }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (beginning-of-defun)
+    (beginning-of-defun))
+
+Name: beginning-of-defun moves to class
+
+=-=
+public class Basic {
+  public void basic() {
+    return;|
+  }
+}
+=-=
+|public class Basic {
+  public void basic() {
+    return;
+  }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (java-ts-mode)
+    (end-of-defun))
+
+Name: end-of-defun moves to defun end
+
+=-=
+public class Basic {
+  public void basic() {
+    return;|
+  }
+}
+=-=
+public class Basic {
+  public void basic() {
+    return;
+  }
+|}
+=-=-=

@@ -1,5 +1,5 @@
 /* testsppreplace.c --- unit test for CPP/SPP Replacement
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -66,7 +66,7 @@ int myFcn3 (int a, int b);
 
 MULTI_ARGS(ma_struct, moose, penguin, emu);
 
-/* TEST: Macro w/ args, but no body. */
+/* TEST: Macro with args, but no body. */
 #define NO_BODY(name)
 
 NO_BODY(Moose);
@@ -78,7 +78,7 @@ int not_with_args_fcn NOT_WITH_ARGS
 {
 }
 
-/* TEST: macro w/ continuation. */
+/* TEST: macro with continuation. */
 #define WITH_CONT \
   continuation_symbol
 

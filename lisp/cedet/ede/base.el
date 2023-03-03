@@ -1,6 +1,6 @@
-;;; ede/base.el --- Baseclasses for EDE.
+;;; ede/base.el --- Baseclasses for EDE  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -47,7 +47,7 @@
 ;; and features of those files.
 
 (defclass ede-target (eieio-speedbar-directory-button eieio-named)
-  ((buttonface :initform speedbar-file-face) ;override for superclass
+  ((buttonface :initform 'speedbar-file-face) ;override for superclass
    (name :initarg :name
 	 :type string
 	 :custom string
@@ -91,16 +91,16 @@ This is used to match target objects with the compilers they can use, and
 which files this object is interested in."
 	       :accessor ede-object-sourcecode)
    (keybindings :allocation :class
-		:initform (("D" . ede-debug-target))
+		:initform '(("D" . ede-debug-target))
 		:documentation
 "Keybindings specialized to this type of target."
 		:accessor ede-object-keybindings)
    (menu :allocation :class
-	 :initform ( [ "Debug target" ede-debug-target
-		       (ede-buffer-belongs-to-target-p) ]
-		     [ "Run target" ede-run-target
-		       (ede-buffer-belongs-to-target-p) ]
-		     )
+	 :initform '( [ "Debug target" ede-debug-target
+		        (ede-buffer-belongs-to-target-p) ]
+		      [ "Run target" ede-run-target
+		        (ede-buffer-belongs-to-target-p) ]
+		      )
 	 :documentation "Menu specialized to this type of target."
 	 :accessor ede-object-menu)
    )
@@ -141,7 +141,7 @@ For some project types, this will be the file that stores the project configurat
 In other projects types, this file is merely a unique identifier to this type of project.")
    (rootproject ; :initarg - no initarg, don't save this slot!
     :initform nil
-    :type (or null ede-project-placeholder-child)
+    :type (or null ede-project-placeholder)
     :documentation "Pointer to our root project.")
    )
   "Placeholder object for projects not loaded into memory.
@@ -160,21 +160,18 @@ and querying them will cause the actual project to get loaded.")
 ;; Projects can also affect how EDE works, by changing what appears in
 ;; the EDE menu, or how some keys are bound.
 ;;
-(unless (fboundp 'ede-target-list-p)
-  (cl-deftype ede-target-list () '(list-of ede-target)))
-
 (defclass ede-project (ede-project-placeholder)
   ((subproj :initform nil
 	    :type list
 	    :documentation "Sub projects controlled by this project.
 For Automake based projects, each directory is treated as a project.")
    (targets :initarg :targets
-	    :type ede-target-list
+	    :type (list-of ede-target)
 	    :custom (repeat (object :objectcreatefcn ede-new-target-custom))
 	    :label "Local Targets"
 	    :group (targets)
 	    :documentation "List of top level targets in this project.")
-   (locate-obj :type (or null ede-locate-base-child)
+   (locate-obj :type (or null ede-locate-base)
 	       :documentation
 	       "A locate object to use as a backup to `ede-expand-filename'.")
    (tool-cache :initarg :tool-cache
@@ -207,7 +204,7 @@ This is a URL to be sent to a web site for documentation.")
 		       :group name
 		       :documentation
 		       "A directory where web pages can be found by Emacs.
-For remote locations use a path compatible with ange-ftp or EFS.
+For remote locations use a path compatible with ange-ftp.
 You can also use TRAMP for use with rcp & scp.")
    (web-site-file :initarg :web-site-file
 		  :initform ""
@@ -215,9 +212,9 @@ You can also use TRAMP for use with rcp & scp.")
 		  :label "Web Page File"
 		  :group name
 		  :documentation
-		  "A file which contains the home page for this project.
+                  "A file which contains the website for this project.
 This file can be relative to slot `web-site-directory'.
-This can be a local file, use ange-ftp, EFS, or TRAMP.")
+This can be a local file, use ange-ftp or TRAMP.")
    (ftp-site :initarg :ftp-site
 	     :initform ""
 	     :type string
@@ -239,7 +236,7 @@ also be of a form used by TRAMP for use with scp, or rcp.")
 This FTP site should be in Emacs form as needed by `ange-ftp'.
 If this slot is nil, then use `ftp-site' instead.")
    (configurations :initarg :configurations
-		   :initform ("debug" "release")
+		   :initform '("debug" "release")
 		   :type list
 		   :custom (repeat string)
 		   :label "Configuration Options"
@@ -261,25 +258,25 @@ and target specific elements such as build variables.")
 		    :group (settings)
 		    :documentation "Project local variables")
    (keybindings :allocation :class
-		:initform (("D" . ede-debug-target)
-			   ("R" . ede-run-target))
+		:initform '(("D" . ede-debug-target)
+			    ("R" . ede-run-target))
 		:documentation "Keybindings specialized to this type of target."
 		:accessor ede-object-keybindings)
    (menu :allocation :class
 	 :initform
-	 (
-	  [ "Update Version" ede-update-version ede-object ]
-	  [ "Version Control Status" ede-vc-project-directory ede-object ]
-	  [ "Edit Project Homepage" ede-edit-web-page
-	    (and ede-object (oref (ede-toplevel) web-site-file)) ]
-	  [ "Browse Project URL" ede-web-browse-home
-	    (and ede-object
-		 (not (string= "" (oref (ede-toplevel) web-site-url)))) ]
-	  "--"
-	  [ "Rescan Project Files" ede-rescan-toplevel t ]
-	  [ "Edit Projectfile" ede-edit-file-target
-	    (ede-buffer-belongs-to-project-p) ]
-	  )
+	 '(
+	   [ "Update Version" ede-update-version ede-object ]
+	   [ "Version Control Status" ede-vc-project-directory ede-object ]
+           [ "Edit Project Website" ede-edit-web-page
+	     (and ede-object (oref (ede-toplevel) web-site-file)) ]
+	   [ "Browse Project URL" ede-web-browse-home
+	     (and ede-object
+		  (not (string= "" (oref (ede-toplevel) web-site-url)))) ]
+	   "--"
+	   [ "Rescan Project Files" ede-rescan-toplevel t ]
+	   [ "Edit Projectfile" ede-edit-file-target
+	     (ede-buffer-belongs-to-project-p) ]
+	   )
 	 :documentation "Menu specialized to this type of target."
 	 :accessor ede-object-menu)
    )
@@ -291,7 +288,7 @@ All specific project types must derive from this project."
 ;;
 (defmacro ede-with-projectfile (obj &rest forms)
   "For the project in which OBJ resides, execute FORMS."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   (unless (symbolp obj)
     (message "Beware! ede-with-projectfile's first arg is copied: %S" obj))
   `(let* ((pf (if (obj-of-class-p ,obj 'ede-target)
@@ -320,13 +317,15 @@ If set to nil, then the cache is not saved."
 (defvar ede-project-cache-files nil
   "List of project files EDE has seen before.")
 
+(defvar recentf-exclude)
+
 (defun ede-save-cache ()
   "Save a cache of EDE objects that Emacs has seen before."
   (interactive)
   (when ede-project-placeholder-cache-file
     (let ((p ede-projects)
 	  (c ede-project-cache-files)
-	  (recentf-exclude '( (lambda (f) t) ))
+	  (recentf-exclude `( ,(lambda (_) t) ))
 	  )
       (condition-case nil
 	  (progn
@@ -464,7 +463,7 @@ Not all buffers need headers, so return nil if no applicable."
       (ede-buffer-header-file ede-object (current-buffer))
     nil))
 
-(cl-defmethod ede-buffer-header-file ((this ede-project) buffer)
+(cl-defmethod ede-buffer-header-file ((_this ede-project) _buffer)
   "Return nil, projects don't have header files."
   nil)
 
@@ -490,12 +489,12 @@ Some projects may have multiple documentation files, so return a list."
       (ede-buffer-documentation-files ede-object (current-buffer))
     nil))
 
-(cl-defmethod ede-buffer-documentation-files ((this ede-project) buffer)
+(cl-defmethod ede-buffer-documentation-files ((this ede-project) _buffer)
   "Return all documentation in project THIS based on BUFFER."
   ;; Find the info node.
   (ede-documentation this))
 
-(cl-defmethod ede-buffer-documentation-files ((this ede-target) buffer)
+(cl-defmethod ede-buffer-documentation-files ((_this ede-target) buffer)
   "Check for some documentation files for THIS.
 Also do a quick check to see if there is a Documentation tag in this BUFFER."
   (with-current-buffer buffer
@@ -521,7 +520,7 @@ files in the project."
 	    proj (cdr proj)))
     found))
 
-(cl-defmethod ede-documentation ((this ede-target))
+(cl-defmethod ede-documentation ((_this ede-target))
   "Return a list of files that provide documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."
@@ -532,7 +531,7 @@ files in the project."
   (ede-html-documentation (ede-toplevel))
   )
 
-(cl-defmethod ede-html-documentation ((this ede-project))
+(cl-defmethod ede-html-documentation ((_this ede-project))
   "Return a list of HTML files provided by project THIS."
 
   )
@@ -639,18 +638,7 @@ PROJECT-FILE-NAME is a name of project file (short name, like `pom.xml', etc."
     (oset this directory (file-name-directory (oref this file))))
   )
 
-
-
 
-;;; Hooks & Autoloads
-;;
-;;  These let us watch various activities, and respond appropriately.
-
-;; (add-hook 'edebug-setup-hook
-;; 	  (lambda ()
-;; 	    (def-edebug-spec ede-with-projectfile
-;; 	      (form def-body))))
-
 (provide 'ede/base)
 
 ;; Local variables:

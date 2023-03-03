@@ -1,6 +1,6 @@
-;;; comint-tests.el  -*- lexical-binding:t -*-
+;;; comint-tests.el --- Tests for comint.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -43,7 +43,13 @@
     "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
+    "(user@host) Password: " ; openssh-8.6p1
+    "Current password:"    ; "passwd" (to change password) in Debian.
+    "Enter encryption key: " ; ccrypt
+    "Enter decryption key: " ; ccrypt
+    "Enter encryption key: (repeat) " ; ccrypt
     "Enter Auth Password:" ; OpenVPN (Bug#35724)
+    "Verify password: "    ; zip -e zipfile.zip ... (Bug#47209)
     "Mot de Passe :" ; localized (Bug#29729)
     "Passwort:") ; localized
   "List of strings that should match `comint-password-prompt-regexp'.")
@@ -53,9 +59,23 @@
   (dolist (str comint-testsuite-password-strings)
     (should (string-match comint-password-prompt-regexp str))))
 
+(declare-function w32-application-type "w32proc.c")
+(defun w32-native-executable-p (fname)
+  "Predicate to test program FNAME for being a native Windows application."
+  (and (memq (w32-application-type fname) '(w32-native dos))
+       (file-executable-p fname)))
+
+(defun w32-native-executable-find (name)
+  "Find a native MS-Windows application named NAME.
+This is needed to avoid invoking MSYS or Cygwin executables that
+happen to lurk on PATH when running the test suite."
+  (locate-file name exec-path exec-suffixes 'w32-native-executable-p))
+
 (defun comint-tests/test-password-function (password-function)
   "PASSWORD-FUNCTION can return nil or a string."
-  (when-let ((cat (executable-find "cat")))
+  (when-let ((cat (if (eq system-type 'windows-nt)
+                      (w32-native-executable-find "cat")
+                    (executable-find "cat"))))
     (let ((comint-password-function password-function))
       (cl-letf (((symbol-function 'read-passwd)
                  (lambda (&rest _args) "non-nil")))
@@ -89,8 +109,4 @@ flow.  Hook function returns alternative password."
 password flow if it returns a nil value."
   (comint-tests/test-password-function #'ignore))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
-;;; comint-testsuite.el ends here
+;;; comint-tests.el ends here

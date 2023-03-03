@@ -1,9 +1,27 @@
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
-#include "copyright.h"
+/*
+
+Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
+
+Permission to use, copy, modify, and distribute this
+software and its documentation for any purpose and without
+fee is hereby granted, provided that the above copyright
+notice appear in all copies and that both that copyright
+notice and this permission notice appear in supporting
+documentation, and that the name of M.I.T. not be used in
+advertising or publicity pertaining to distribution of the
+software without specific, written prior permission.
+M.I.T. makes no representations about the suitability of
+this software for any purpose.  It is provided "as is"
+without express or implied warranty.
+
+*/
+
+
 
 /*
-Copyright (C) 1993, 1996, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996, 2001-2023 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -534,7 +552,6 @@ _XMRecomputePane(register Display *display, register XMenu *menu, register XMPan
     register int window_y;	/* Recomputed window Y coordinate. */
 
     unsigned long change_mask;	/* Value mask to reconfigure window. */
-    XWindowChanges *changes;	/* Values to use in configure window. */
 
     register Bool config_p = False;	/* Reconfigure pane window? */
 
@@ -612,21 +629,19 @@ _XMRecomputePane(register Display *display, register XMenu *menu, register XMPan
 	 * it for creation with the new configuration.
 	 */
 	if (p_ptr->window) {
+	    XWindowChanges changes;
 	    change_mask = (CWX | CWY | CWWidth | CWHeight);
-	    changes = (XWindowChanges *)malloc(sizeof(XWindowChanges));
-	    changes->x = p_ptr->window_x;
-	    changes->y = p_ptr->window_y;
-	    changes->width = p_ptr->window_w;
-	    changes->height = p_ptr->window_h;
+	    changes.x = p_ptr->window_x;
+	    changes.y = p_ptr->window_y;
+	    changes.width = p_ptr->window_w;
+	    changes.height = p_ptr->window_h;
 
 	    XConfigureWindow(
 			     display,
 			     p_ptr->window,
 			     change_mask,
-			     changes
+			     &changes
 			     );
-	    free(changes);
-
 	}
 	else {
 	    if (_XMWinQueAddPane(display, menu, p_ptr) == _FAILURE) {
@@ -681,7 +696,6 @@ _XMRecomputeSelection(register Display *display, register XMenu *menu, register 
                        		/* Selection sequence number. */
 {
     register Bool config_s = False;	/* Reconfigure selection window? */
-    XWindowChanges *changes;		/* Values to change in configure. */
     unsigned long change_mask;		/* Value mask for XConfigureWindow. */
 
     /*
@@ -738,22 +752,19 @@ _XMRecomputeSelection(register Display *display, register XMenu *menu, register 
 	 * for creation with the new configuration.
 	 */
 	if (s_ptr->window) {
-	    changes = (XWindowChanges *)malloc(sizeof(XWindowChanges));
+	    XWindowChanges changes;
 	    change_mask = (CWX | CWY | CWWidth | CWHeight);
-	    changes = (XWindowChanges *)malloc(sizeof(XWindowChanges));
-	    changes->x = s_ptr->window_x;
-	    changes->y = s_ptr->window_y;
-	    changes->width = s_ptr->window_w;
-	    changes->height = s_ptr->window_h;
+	    changes.x = s_ptr->window_x;
+	    changes.y = s_ptr->window_y;
+	    changes.width = s_ptr->window_w;
+	    changes.height = s_ptr->window_h;
 
 	    XConfigureWindow(
 			     display,
 			     s_ptr->window,
 			     change_mask,
-			     changes
+			     &changes
 			     );
-	    free(changes);
-
 	}
 	else {
 	    if (_XMWinQueAddSelection(display, menu, s_ptr) == _FAILURE) {

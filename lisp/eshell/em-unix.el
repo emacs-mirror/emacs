@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -144,8 +144,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
-  (make-local-variable 'eshell-complex-commands)
-  (setq eshell-complex-commands
+  (setq-local eshell-complex-commands
 	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
 		  "cat" "time" "cp" "mv" "make" "du" "diff")
 		eshell-complex-commands)))
@@ -166,11 +165,13 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (put 'eshell/man 'eshell-no-numeric-conversions t)
 
 (defun eshell/info (&rest args)
-  "Run the info command in-frame with the same behavior as command-line `info', ie:
+  "Run the info command in-frame with the same behavior as command-line `info'.
+For example:
   `info'           => goes to top info window
   `info arg1'      => IF arg1 is a file, then visits arg1
   `info arg1'      => OTHERWISE goes to top info window and then menu item arg1
-  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
+  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and
+                      then menu item arg2
   etc."
   (eval-and-compile (require 'info))
   (let ((file (cond
@@ -371,12 +372,10 @@ Remove the DIRECTORY(ies), if they are empty.")
 	     (setq attr (eshell-file-attributes (car files)))
 	     (file-attribute-inode-number attr-target)
 	     (file-attribute-inode-number attr)
-	     (equal (file-attribute-inode-number attr-target)
-		    (file-attribute-inode-number attr))
 	     (file-attribute-device-number attr-target)
 	     (file-attribute-device-number attr)
-	     (equal (file-attribute-device-number attr-target)
-		    (file-attribute-device-number attr)))
+	     (equal (file-attribute-file-identifier attr-target)
+		    (file-attribute-file-identifier attr)))
 	(eshell-error (format-message "%s: `%s' and `%s' are the same file\n"
 				      command (car files) target)))
        (t
@@ -419,9 +418,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 		  (apply 'eshell-shuffle-files
 			 command action
 			 (mapcar
-			  (function
-			   (lambda (file)
-			     (concat source "/" file)))
+                          (lambda (file)
+                            (concat source "/" file))
 			  (directory-files source))
 			 target func t args)
 		  (when (eq func 'rename-file)
@@ -439,7 +437,10 @@ Remove the DIRECTORY(ies), if they are empty.")
 		       (setq link (file-symlink-p source)))
 		  (progn
 		    (apply 'eshell-funcalln 'make-symbolic-link
-			   link target args)
+			   link target
+                           ;; `make-symbolic-link' doesn't have
+                           ;; KEEP-TIME; just OK-IF-ALREADY-EXISTS.
+                           (list (car args)))
 		    (if (eq func 'rename-file)
 			(if (and (file-directory-p source)
 				 (not (file-symlink-p source)))
@@ -752,29 +753,21 @@ external command."
 				      (eshell-stringify-list
 				       (flatten-tree args)))
 			      " "))
-	     (cmd (progn
-		    (set-text-properties 0 (length args)
-					 '(invisible t) args)
-		    (format "%s -n %s"
-			    (pcase command
-			      ("egrep" "grep -E")
-			      ("fgrep" "grep -F")
-			      (x x))
-			    args)))
+	     (cmd (format "%s -n %s" command args))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
 (defun eshell/grep (&rest args)
   "Use Emacs grep facility instead of calling external grep."
-  (eshell-grep "grep" args t))
+  (eshell-grep "grep" (append '("-H") args) t))
 
 (defun eshell/egrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -E."
-  (eshell-grep "egrep" args t))
+  (eshell-grep "grep" (append '("-EH") args) t))
 
 (defun eshell/fgrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -F."
-  (eshell-grep "fgrep" args t))
+  (eshell-grep "grep" (append '("-FH") args) t))
 
 (defun eshell/agrep (&rest args)
   "Use Emacs grep facility instead of calling external agrep."
@@ -793,10 +786,14 @@ external command."
 
 (defun eshell-complete-host-reference ()
   "If there is a host reference, complete it."
-  (let ((arg (pcomplete-actual-arg))
-	index)
-    (when (setq index (string-match "@[a-z.]*\\'" arg))
-      (setq pcomplete-stub (substring arg (1+ index))
+  (let ((arg (pcomplete-actual-arg)))
+    (when (string-match
+           (rx ;; Match an "@", but not immediately following a "$".
+               (or string-start (not "$")) "@"
+               (group (* (any "a-z.")))
+               string-end)
+           arg)
+      (setq pcomplete-stub (substring arg (match-beginning 1))
 	    pcomplete-last-completion-raw t)
       (throw 'pcomplete-completions (pcomplete-read-host-names)))))
 
@@ -968,8 +965,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
   (if eshell-diff-window-config
       (set-window-configuration eshell-diff-window-config)))
 
-(defun nil-blank-string (string)
-  "Return STRING, or nil if STRING contains only non-blank characters."
+(defun eshell-nil-blank-string (string)
+  "Return STRING, or nil if STRING contains only blank characters."
   (cond
     ((string-match "[^[:blank:]]" string) string)
     (nil)))
@@ -999,23 +996,22 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	    (condition-case nil
 		(diff-no-select
 		 old new
-		 (nil-blank-string (eshell-flatten-and-stringify args)))
+                 (eshell-nil-blank-string (eshell-flatten-and-stringify args)))
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
 	  (when (fboundp 'diff-mode)
-	    (make-local-variable 'compilation-finish-functions)
 	    (add-hook
 	     'compilation-finish-functions
-	     `(lambda (buff msg)
+	     (lambda (buff _msg)
 		(with-current-buffer buff
 		  (diff-mode)
-		  (set (make-local-variable 'eshell-diff-window-config)
-		       ,config)
-		  (local-set-key [?q] 'eshell-diff-quit)
+                  (setq-local eshell-diff-window-config config)
+		  (local-set-key [?q] #'eshell-diff-quit)
 		  (if (fboundp 'turn-on-font-lock-if-enabled)
 		      (turn-on-font-lock-if-enabled))
-		  (goto-char (point-min))))))
+		  (goto-char (point-min))))
+	     nil t))
 	  (pop-to-buffer (current-buffer))))))
   nil)
 
@@ -1049,6 +1045,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
+
+(define-obsolete-function-alias 'nil-blank-string #'eshell-nil-blank-string "29.1")
 
 (provide 'em-unix)
 

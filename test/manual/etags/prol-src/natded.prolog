@@ -371,7 +371,7 @@ derived_analyses([W|Ws],[W|DerWs]):-
 
 % build(Ws:+<list(<word>)>, Right:+<int>, Left:-<int>)
 % ----------------------------------------------------------------------
-% finishes building chart with Ws as remaing word, starting from
+% finishes building chart with Ws as remaining word, starting from
 % right position Right and finishing on left position Left
 %      -- counts backwards, so Left > Right
 % ----------------------------------------------------------------------

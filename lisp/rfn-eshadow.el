@@ -1,6 +1,6 @@
-;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
+;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience minibuffer
@@ -122,7 +122,7 @@ system, `file-name-shadow-properties' is used instead."
   "Minibuffer setup functions from other packages.")
 
 (defvar rfn-eshadow-update-overlay-hook nil
-  "Customer overlay functions from other packages")
+  "Customer overlay functions from other packages.")
 
 
 ;;; Internal variables

@@ -1,7 +1,6 @@
-;;; cmacexp.el --- expand C macros in a region
+;;; cmacexp.el --- expand C macros in a region  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potortì <pot@gnu.org>
 ;; Adapted-By: ESR
@@ -33,20 +32,20 @@
 
 ;; USAGE =============================================================
 
-;; In C mode C-C C-e is bound to c-macro-expand.  The result of the
+;; In C mode C-c C-e is bound to `c-macro-expand'.  The result of the
 ;; expansion is put in a separate buffer.  A user option allows the
 ;; window displaying the buffer to be optimally sized.
 ;;
-;; When called with a C-u prefix, c-macro-expand replaces the selected
+;; When called with a C-u prefix, `c-macro-expand' replaces the selected
 ;; region with the expansion.  Both the preprocessor name and the
-;; initial flag can be set by the user.  If c-macro-prompt-flag is set
+;; initial flag can be set by the user.  If `c-macro-prompt-flag' is set
 ;; to a non-nil value the user is offered to change the options to the
-;; preprocessor each time c-macro-expand is invoked.  Preprocessor
-;; arguments default to the last ones entered.  If c-macro-prompt-flag
+;; preprocessor each time `c-macro-expand' is invoked.  Preprocessor
+;; arguments default to the last ones entered.  If `c-macro-prompt-flag'
 ;; is nil, one must use M-x set-variable to set a different value for
-;; c-macro-cppflags.
+;; `c-macro-cppflags'.
 
-;; A c-macro-expansion function is provided for non-interactive use.
+;; A `c-macro-expansion' function is provided for non-interactive use.
 
 ;; INSTALLATION ======================================================
 
@@ -54,32 +53,27 @@
 
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary:
-;;(setq c-macro-shrink-window-flag t)
+;;
+;;     (setq c-macro-shrink-window-flag t)
 ;;
 ;; If you use a preprocessor other than /lib/cpp (be careful to set a
 ;; -C option or equivalent in order to make the preprocessor not to
 ;; strip the comments):
-;;(setq c-macro-preprocessor "gpp -C")
+;;
+;;     (setq c-macro-preprocessor "gpp -C")
 ;;
 ;; If you often use a particular set of flags:
-;;(setq c-macro-cppflags "-I /usr/include/local -DDEBUG"
+;;
+;;     (setq c-macro-cppflags "-I /usr/include/local -DDEBUG"
 ;;
 ;; If you want the "Preprocessor arguments: " prompt:
-;;(setq c-macro-prompt-flag t)
+;;
+;;     (setq c-macro-prompt-flag t)
 
 ;; BUG REPORTS =======================================================
 
 ;; Please report bugs, suggestions, complaints and so on to
 ;; bug-gnu-emacs@gnu.org and pot@gnu.org (Francesco Potortì).
-
-;; IMPROVEMENTS OVER emacs 18.xx cmacexp.el ==========================
-
-;; - A lot of user and programmer visible changes.  See above.
-;; - #line directives are inserted, so __LINE__ and __FILE__ are
-;;   correctly expanded.  Works even with START inside a string, a
-;;   comment or a region #ifdef'd away by cpp. cpp is invoked with -C,
-;;   making comments visible in the expansion.
-;; - All work is done in core memory, no need for temporary files.
 
 ;; ACKNOWLEDGMENTS ===================================================
 
@@ -96,25 +90,19 @@
 
 (require 'cc-mode)
 
-(provide 'cmacexp)
-
 (defvar msdos-shells)
-
 
 (defgroup c-macro nil
   "Expand C macros in a region."
   :group 'c)
 
-
 (defcustom c-macro-shrink-window-flag nil
   "Non-nil means shrink the *Macroexpansion* window to fit its contents."
-  :type 'boolean
-  :group 'c-macro)
+  :type 'boolean)
 
 (defcustom c-macro-prompt-flag nil
-  "Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
-  :type 'boolean
-  :group 'c-macro)
+  "Non-nil means `c-macro-expand' will prompt for preprocessor arguments."
+  :type 'boolean)
 
 (defcustom c-macro-preprocessor
   (cond ;; Solaris has it in an unusual place.
@@ -138,13 +126,11 @@
 
 If you change this, be sure to preserve the `-C' (don't strip comments)
 option, or to set an equivalent one."
-  :type 'string
-  :group 'c-macro)
+  :type 'string)
 
 (defcustom c-macro-cppflags ""
   "Preprocessor flags used by `c-macro-expand'."
-  :type 'string
-  :group 'c-macro)
+  :type 'string)
 
 (defconst c-macro-buffer-name "*Macroexpansion*")
 
@@ -155,7 +141,7 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Tf the user option `c-macro-prompt-flag' is non-nil
+If the user option `c-macro-prompt-flag' is non-nil
 prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include'),
 otherwise use `c-macro-cppflags'.
 
@@ -404,5 +390,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 
       ;; Cleanup.
       (kill-buffer outbuf))))
+
+(provide 'cmacexp)
 
 ;;; cmacexp.el ends here

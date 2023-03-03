@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2020 Free Software Foundation, Inc.
+# Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -31,7 +31,8 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-abs_top_srcdir=@abs_top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
 VPATH = $(srcdir)
 
 FIND_DELETE = @FIND_DELETE@
@@ -46,37 +47,16 @@ SO = @MODULES_SUFFIX@
 
 SEPCHAR = @SEPCHAR@
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_ELC = $(am__v_ELC_@AM_V@)
-am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
-am__v_ELC_0 = @echo "  ELC     " $@;
-am__v_ELC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
-
+-include ${top_builddir}/src/verbose.mk
 
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
 # directory, we can use emacs --chdir.
 EMACS = ../src/emacs
 
-EMACS_EXTRAOPT=
+EMACS_EXTRAOPT =
 
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
@@ -84,10 +64,15 @@ EMACS_EXTRAOPT=
 EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
 
-## To run tests under a debugger, set this to eg: "gdb --args".
+# To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
+
+# Whether a timeout shall be given, writing possibly a core dump.
+ifneq (${EMACS_TEST_TIMEOUT},)
+TEST_TIMEOUT = timeout -s ABRT ${EMACS_TEST_TIMEOUT}
+endif
 
 # Set this to 'yes' to run the tests in an interactive instance.
 TEST_INTERACTIVE ?= no
@@ -122,25 +107,32 @@ MODULES_EMACSOPT :=
 endif
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= \
- EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
- $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
+# Prevent locales influencing the text of the errors we expect to receive.
+emacs = LANG=C EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
+ $(GDB) $(TEST_TIMEOUT) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
 # Set HOME to a nonexistent directory to prevent tests from accessing
 # it accidentally (e.g., popping up a gnupg dialog if ~/.authinfo.gpg
 # exists, or writing to ~/.bzr.log when running bzr commands).
+# NOTE if the '/nonexistent' name is changed `normal-top-level' in
+# startup.el must be updated too.
 TEST_HOME = /nonexistent
 
-test_module_dir := data/emacs-module
+test_module_dir := src/emacs-module-resources
 
 .PHONY: all check
 
 all: check
 
+ifeq ($(HAVE_NATIVE_COMP),yes)
 SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
 SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t
+else
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
+SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp)))
+SELECTOR_ALL = (not (tag :nativecomp))
+endif
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS
@@ -159,11 +151,15 @@ endif
 %.elc: %.el
 	$(AM_V_ELC)$(emacs) --batch -f batch-byte-compile $<
 
+ifdef EMACS_HYDRA_CI
+WRITE_LOG = 2>&1 | tee $@
+else
 ## Save logs, and show logs for failed tests.
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
-ifdef EMACS_HYDRA_CI
-## On Hydra, always show logs for certain problematic tests.
-lisp/net/tramp-tests.log \
+endif
+## On Emba, always show logs for certain problematic tests.
+ifdef EMACS_EMBA_CI
+lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
 
@@ -174,8 +170,8 @@ testloadfile = $*
 endif
 
 %.log: %.elc
-	$(AM_V_at)${MKDIR_P} $(dir $@)
-	$(AM_V_GEN)HOME=$(TEST_HOME) $(emacs) \
+	$(AM_V_GEN)${MKDIR_P} $(dir $@)
+	$(AM_V_at)HOME=$(TEST_HOME) $(emacs) \
 	  -l ert ${ert_opts} -l $(testloadfile) \
 	  $(TEST_RUN_ERT)
 
@@ -236,11 +232,27 @@ define test_template
   .PHONY: $(1) $(notdir $(1))
   $(1):
 	@test ! -f $(1).log || mv $(1).log $(1).log~
-	@$(MAKE) $(1).log WRITE_LOG=
+	+@$(MAKE) $(1).log WRITE_LOG=
   $(notdir $(1)): $(1)
 endef
 
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
+
+## Get the tests for only a specific directory.
+SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d \
+		\( -name '*resources*' -prune \
+		   -o ! -name '*auto-save-list' -print \)))
+SUBDIR_TARGETS =
+
+define subdir_template
+  SUBDIR_TARGETS += check-$(subst /,-,$(1))
+  .PHONY: check-$(subst /,-,$(1))
+  check-$(subst /,-,$(1)):
+	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
+		$(patsubst $(srcdir)/%,%,$(wildcard ${srcdir}/$(1)/*.el)))"
+endef
+
+$(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
 ifeq (@HAVE_MODULES@, yes)
 # -fPIC is a no-op on Windows, but causes a compiler warning
@@ -252,10 +264,15 @@ endif
 
 GMP_H = @GMP_H@
 LIBGMP = @LIBGMP@
+CLOCK_TIME_LIB = @CLOCK_TIME_LIB@
+NANOSLEEP_LIB = @NANOSLEEP_LIB@
 
-MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
+MODULE_CFLAGS = $(and $(GMP_H),-I.) -I../src -I$(srcdir)/../src \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
+
+gmp.h:
+	echo '#include "$(srcdir)/../lib/mini-gmp.h"' >$@
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
@@ -263,13 +280,16 @@ src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 # In the compilation command, we can't use any object or archive file
 # as source because those are not compiled with -fPIC.  Therefore we
 # use only source files.
-$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
-	$(AM_V_at)${MKDIR_P} $(dir $@)
-	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h \
+  ../src/config.h $(and $(GMP_H),gmp.h)
+	$(AM_V_CCLD)${MKDIR_P} $(dir $@)
+	$(AM_V_at)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
-	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
-	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
+	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp.c) \
+	  $(CLOCK_TIME_LIB) $(NANOSLEEP_LIB)
 endif
+
+src/emacs-tests.log: ../lib-src/seccomp-filter.c
 
 ## Check that there is no 'automated' subdirectory, which would
 ## indicate an incomplete merge from an older version of Emacs where
@@ -307,10 +327,10 @@ check-doit:
 ifeq ($(TEST_INTERACTIVE), yes)
 	HOME=$(TEST_HOME) $(emacs) \
 	  -l ert ${ert_opts} \
-	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=)))  \
+	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=))) \
 	  $(TEST_RUN_ERT)
 else
-	-@${MAKE} -k  ${LOGFILES}
+	-@${MAKE} -k ${LOGFILES}
 	@$(emacs) --batch -l ert --eval \
 	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 endif
@@ -321,10 +341,20 @@ mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
 	rm -f ./*.tmp
 
+# If 'find' supports -delete, it also supports -path.  Otherwise, use
+# -prune and $(FIND_DELETE) instead.  -prune is incompatible with -delete.
+ifeq ($(FIND_DELETE),-delete)
+CLEAN_XML_FILES = '(' -name '*.xml' -a ! -path '*resources*' ')' -delete
+else
+CLEAN_XML_FILES = -name '*resources*' -prune -o -name '*.xml' $(FIND_DELETE)
+endif
+
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
+	find . $(CLEAN_XML_FILES)
+	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
-	  $(test_module_dir)/*.dll
+	  $(test_module_dir)/*.dll gmp.h
 
 bootstrap-clean: clean
 	find $(srcdir) -name '*.elc' $(FIND_DELETE)
@@ -337,5 +367,16 @@ maintainer-clean: distclean bootstrap-clean
 .PHONY: check-declare
 
 check-declare:
-	$(emacs) -l check-declare \
+	$(emacs) --batch -l check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'
+
+.PHONY: subdirs subdir-targets generate-test-jobs
+
+subdirs:
+	@: $(info $(SUBDIRS))
+
+subdir-targets:
+	@: $(info $(SUBDIR_TARGETS))
+
+generate-test-jobs:
+	@$(MAKE) -C infra generate-test-jobs SUBDIRS="$(SUBDIRS)"

@@ -1,6 +1,6 @@
-;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
+;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevin.gal@verizon.net>
 ;; Keywords: emulations
@@ -26,7 +26,7 @@
 
 ;;  [Part of the GNU Emacs EDT Emulation.]
 
-;;  This emacs lisp program can be used to create an emacs lisp file
+;;  This Emacs Lisp program can be used to create an Emacs Lisp file
 ;;  that defines the mapping of the user's keyboard to the LK-201
 ;;  keyboard function keys and keypad keys (around which EDT has been
 ;;  designed).  Please read the "Usage" AND "Known Problems" sections
@@ -55,7 +55,7 @@
 
 ;;  Usage:
 
-;;  Simply load this file into emacs and run the function edt-mapper,
+;;  Simply load this file into Emacs and run the function edt-mapper,
 ;;  using the following command.
 
 ;;    emacs -q -l edt-mapper -f edt-mapper
@@ -82,8 +82,8 @@
 
 ;;  Sometimes, edt-mapper will ignore a key you press, and just
 ;;  continue to prompt for the same key.  This can happen when your
-;;  window manager sucks up the key and doesn't pass it on to emacs,
-;;  or it could be an emacs bug.  Either way, there's nothing that
+;;  window manager sucks up the key and doesn't pass it on to Emacs,
+;;  or it could be an Emacs bug.  Either way, there's nothing that
 ;;  edt-mapper can do about it.  You must press RETURN, to skip the
 ;;  current key and continue.  Later, you and/or your local Emacs guru
 ;;  can try to figure out why the key is being ignored.
@@ -101,6 +101,8 @@
 (define-obsolete-variable-alias 'edt-window-system 'window-system "27.1")
 
 (defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a
@@ -176,7 +178,7 @@
   (mapc
    (lambda (function-key)
      (if (not (lookup-key (current-global-map) function-key))
-	 (define-key (current-global-map) function-key 'forward-char)))
+	 (define-key (current-global-map) function-key #'forward-char)))
    '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
      [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
      [kp-space]

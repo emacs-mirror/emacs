@@ -1,9 +1,10 @@
 ;;; ox-beamer.el --- Beamer Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
+;; Maintainer: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: org, wp, tex
 
 ;; This file is part of GNU Emacs.
@@ -28,6 +29,9 @@
 ;; document.  See Org manual for more information.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'cl-lib)
 (require 'ox-latex)
@@ -149,7 +153,7 @@ which is replaced with the subtitle."
 
 (defconst org-beamer-column-widths
   "0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.0 :ETC"
-"The column widths that should be installed as allowed property values.")
+  "The column widths that should be installed as allowed property values.")
 
 (defconst org-beamer-environments-special
   '(("againframe"     "A")
@@ -379,13 +383,12 @@ used as a communication channel."
 	   :parent 'latex
 	   :transcoders
 	   (let ((protected-output
-		  (function
-		   (lambda (object contents info)
-		     (let ((code (org-export-with-backend
-				  'beamer object contents info)))
-		       (if (org-string-nw-p code) (concat "\\protect" code)
-			 code))))))
-	     (mapcar #'(lambda (type) (cons type protected-output))
+		  (lambda (object contents info)
+		    (let ((code (org-export-with-backend
+				 'beamer object contents info)))
+		      (if (org-string-nw-p code) (concat "\\protect" code)
+			code)))))
+             (mapcar (lambda (type) (cons type protected-output))
 		     '(bold footnote-reference italic strike-through timestamp
 			    underline))))
 	  headline
@@ -426,16 +429,16 @@ used as a communication channel."
 		    ;; Collect nonempty options from default value and
 		    ;; headline's properties.
 		    (cl-remove-if-not #'org-string-nw-p
-		     (append
-		      (org-split-string
-		       (plist-get info :beamer-frame-default-options) ",")
-		      (and beamer-opt
-			   (org-split-string
-			    ;; Remove square brackets if user provided
-			    ;; them.
-			    (and (string-match "^\\[?\\(.*\\)\\]?$" beamer-opt)
-				 (match-string 1 beamer-opt))
-			    ",")))))
+		                      (append
+		                       (org-split-string
+		                        (plist-get info :beamer-frame-default-options) ",")
+		                       (and beamer-opt
+			                    (org-split-string
+			                     ;; Remove square brackets if user provided
+			                     ;; them.
+			                     (and (string-match "^\\[?\\(.*\\)\\]?$" beamer-opt)
+				                  (match-string 1 beamer-opt))
+			                     ",")))))
 		   (fragile
 		    ;; Add "fragile" option if necessary.
 		    (and fragilep
@@ -731,16 +734,26 @@ channel."
   "Transcode a LINK object into Beamer code.
 CONTENTS is the description part of the link.  INFO is a plist
 used as a communication channel."
-  (or (org-export-custom-protocol-maybe link contents 'beamer)
+  (or (org-export-custom-protocol-maybe link contents 'beamer info)
       ;; Fall-back to LaTeX export.  However, prefer "\hyperlink" over
       ;; "\hyperref" since the former handles overlay specifications.
-      (let ((latex-link (org-export-with-backend 'latex link contents info)))
-	(if (string-match "\\`\\\\hyperref\\[\\(.*?\\)\\]" latex-link)
-	    (replace-match
-	     (format "\\\\hyperlink%s{\\1}"
-		     (or (org-beamer--element-has-overlay-p link) ""))
-	     nil nil latex-link)
-	  latex-link))))
+      (let* ((latex-link (org-export-with-backend 'latex link contents info))
+             (parent (org-export-get-parent-element link))
+             (attr (org-export-read-attribute :attr_beamer parent))
+             (overlay (plist-get attr :overlay)))
+        (cond ((string-match "\\`\\\\hyperref\\[\\(.*?\\)\\]" latex-link)
+               (replace-match
+                (format "\\\\hyperlink%s{\\1}"
+                        (or (org-beamer--element-has-overlay-p link) ""))
+                nil nil latex-link))
+              ((string-match "\\\\include\\(graphics\\|svg\\)\\([[{]?\\)" latex-link)
+               ;; Check for overlay specification and insert if
+               ;; present.
+               (replace-match
+                (format "\\\\include\\1%s\\2"
+                        (if overlay overlay ""))
+                nil nil latex-link))
+              (t latex-link)))))
 
 
 ;;;; Plain List
@@ -812,17 +825,16 @@ holding export options."
      (org-latex-make-preamble info)
      ;; Insert themes.
      (let ((format-theme
-	    (function
-	     (lambda (prop command)
-	       (let ((theme (plist-get info prop)))
-		 (when theme
-		   (concat command
-			   (if (not (string-match "\\[.*\\]" theme))
-			       (format "{%s}\n" theme)
-			     (format "%s{%s}\n"
-				     (match-string 0 theme)
-				     (org-trim
-				      (replace-match "" nil nil theme)))))))))))
+	    (lambda (prop command)
+	      (let ((theme (plist-get info prop)))
+		(when theme
+		  (concat command
+			  (if (not (string-match "\\[.*\\]" theme))
+			      (format "{%s}\n" theme)
+			    (format "%s{%s}\n"
+				    (match-string 0 theme)
+				    (org-trim
+				     (replace-match "" nil nil theme))))))))))
        (mapconcat (lambda (args) (apply format-theme args))
 		  '((:beamer-theme "\\usetheme")
 		    (:beamer-color-theme "\\usecolortheme")
@@ -858,6 +870,12 @@ holding export options."
      (let ((template (plist-get info :latex-hyperref-template)))
        (and (stringp template)
 	    (format-spec template (org-latex--format-spec info))))
+     ;; engrave-faces-latex preamble
+     (when (and (eq org-latex-src-block-backend 'engraved)
+                (org-element-map (plist-get info :parse-tree)
+                    '(src-block inline-src-block) #'identity
+                    info t))
+       (org-latex-generate-engraved-preamble info))
      ;; Document start.
      "\\begin{document}\n\n"
      ;; Title command.
@@ -895,14 +913,16 @@ holding export options."
 ;;; Minor Mode
 
 
-(defvar org-beamer-mode-map (make-sparse-keymap)
+(defvar org-beamer-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-b" 'org-beamer-select-environment)
+    map)
   "The keymap for `org-beamer-mode'.")
-(define-key org-beamer-mode-map "\C-c\C-b" 'org-beamer-select-environment)
 
 ;;;###autoload
 (define-minor-mode org-beamer-mode
   "Support for editing Beamer oriented Org mode files."
-  nil " Bm" 'org-beamer-mode-map)
+  :lighter " Bm")
 
 (when (fboundp 'font-lock-add-keywords)
   (font-lock-add-keywords
@@ -958,7 +978,7 @@ value."
 
 ;;;###autoload
 (defun org-beamer-export-as-latex
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer buffer.
 
 If narrowing is active in the current buffer, only export its
@@ -993,7 +1013,7 @@ is non-nil."
 
 ;;;###autoload
 (defun org-beamer-export-to-latex
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer presentation (tex).
 
 If narrowing is active in the current buffer, only export its
@@ -1027,7 +1047,7 @@ Return output file's name."
 
 ;;;###autoload
 (defun org-beamer-export-to-pdf
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer as a Beamer presentation (PDF).
 
 If narrowing is active in the current buffer, only export its
@@ -1058,7 +1078,7 @@ Return PDF file's name."
   (let ((file (org-export-output-file-name ".tex" subtreep)))
     (org-export-to-file 'beamer file
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 ;;;###autoload
 (defun org-beamer-select-environment ()
@@ -1078,7 +1098,7 @@ aid, but the tag does not have any semantic meaning."
 	 (org-current-tag-alist
 	  (append '((:startgroup))
 		  (mapcar (lambda (e) (cons (concat "B_" (car e))
-				       (string-to-char (nth 1 e))))
+				            (string-to-char (nth 1 e))))
 			  envs)
 		  '((:endgroup))
 		  '(("BMCOL" . ?|))))

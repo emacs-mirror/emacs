@@ -1,6 +1,6 @@
-;;; gnus-eform.el --- a mode for editing forms for Gnus
+;;; gnus-eform.el --- a mode for editing forms for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -37,12 +37,10 @@
 
 (defcustom gnus-edit-form-mode-hook nil
   "Hook run in `gnus-edit-form-mode' buffers."
-  :group 'gnus-edit-form
   :type 'hook)
 
 (defcustom gnus-edit-form-menu-hook nil
   "Hook run when creating menus in `gnus-edit-form-mode' buffers."
-  :group 'gnus-edit-form
   :type 'hook)
 
 ;;; Internal variables
@@ -50,13 +48,10 @@
 (defvar gnus-edit-form-buffer "*Gnus edit form*")
 (defvar gnus-edit-form-done-function nil)
 
-(defvar gnus-edit-form-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map emacs-lisp-mode-map)
-    (gnus-define-keys map
-      "\C-c\C-c" gnus-edit-form-done
-      "\C-c\C-k" gnus-edit-form-exit)
-    map))
+(defvar-keymap gnus-edit-form-mode-map
+  :parent emacs-lisp-mode-map
+  "C-c C-c" #'gnus-edit-form-done
+  "C-c C-k" #'gnus-edit-form-exit)
 
 (defun gnus-edit-form-make-menu-bar ()
   (unless (boundp 'gnus-edit-form-menu)
@@ -97,7 +92,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
       (insert ";;; ")
       (forward-line 1))
     (insert (substitute-command-keys
-	     ";; Type `C-c C-c' after you've finished editing.\n"))
+             ";; Type \\`C-c C-c' after you've finished editing.\n"))
     (insert "\n")
     (let ((p (point)))
       (gnus-pp form)
@@ -106,7 +101,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (defun gnus-edit-form-done ()
   "Update changes and kill the current buffer."
-  (interactive)
+  (interactive nil gnus-edit-form-mode)
   (goto-char (point-min))
   (let ((form (condition-case nil
 		  (read (current-buffer))
@@ -117,7 +112,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (defun gnus-edit-form-exit ()
   "Kill the current buffer."
-  (interactive)
+  (interactive nil gnus-edit-form-mode)
   (let ((winconf gnus-prev-winconf))
     (kill-buffer (current-buffer))
     (set-window-configuration winconf)))

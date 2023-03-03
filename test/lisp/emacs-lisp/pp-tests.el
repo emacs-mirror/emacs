@@ -1,6 +1,6 @@
 ;;; pp-tests.el --- Test suite for pretty printer.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'pp)
+(require 'ert-x)
 
 (ert-deftest pp-print-quote ()
   (should (string= (pp-to-string 'quote) "quote"))
@@ -31,5 +32,8 @@
   (should (string= (pp-to-string '(quote a b)) "(quote a b)\n"))
   (should (string= (pp-to-string '(quotefoo)) "(quotefoo)\n"))
   (should (string= (pp-to-string '(a b)) "(a b)\n")))
+
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "code-formats.erts")))
 
 ;;; pp-tests.el ends here.

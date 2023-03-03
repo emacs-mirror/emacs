@@ -1,22 +1,21 @@
 /* getopt (basic, portable features) gnulib wrapper header.
-   Copyright (C) 1989-2020 Free Software Foundation, Inc.
+   Copyright (C) 1989-2023 Free Software Foundation, Inc.
    This file is part of gnulib.
    Unlike most of the getopt implementation, it is NOT shared
    with the GNU C Library.
 
-   This file is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 3 of
-   the License, or (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This file is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   This file is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with gnulib; if not, see
-   <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _GETOPT_PFX_CORE_H
 #define _GETOPT_PFX_CORE_H 1
@@ -48,7 +47,7 @@
 # define optind __GETOPT_ID (optind)
 # define optopt __GETOPT_ID (optopt)
 
-/* Work around a a problem on macOS, which declares getopt with a
+/* Work around a problem on macOS, which declares getopt with a
    trailing __DARWIN_ALIAS(getopt) that would expand to something like
    __asm("_" "rpl_getopt" "$UNIX2003") were it not for the following
    hack to suppress the macOS declaration <https://bugs.gnu.org/40205>.  */

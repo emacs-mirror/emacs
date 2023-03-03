@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -83,7 +83,7 @@
 ;;;  Macros to parse the list
 
 (defconst xml-undefined-entity "?"
-  "What to substitute for undefined entities")
+  "What to substitute for undefined entities.")
 
 (defconst xml-default-ns '(("" . "")
 			   ("xml" . "http://www.w3.org/XML/1998/namespace")
@@ -612,8 +612,8 @@ references."
 	(if (setq ref (match-string 2))
 	    (progn  ; Numeric char reference
 	      (setq val (save-match-data
-			  (decode-char 'ucs (string-to-number
-					     ref (if (match-string 1) 16)))))
+                          (string-to-number
+                           ref (if (match-string 1) 16))))
 	      (and (null val)
 		   xml-validating-parser
 		   (error "XML: (Validity) Invalid character reference `%s'"
@@ -898,11 +898,11 @@ references and parameter-entity references."
 	    ref val)
 	(cond ((setq ref (match-string 1 string))
 	       ;; Decimal character reference
-	       (setq val (decode-char 'ucs (string-to-number ref)))
+               (setq val (string-to-number ref))
 	       (if val (push (string val) children)))
 	      ;; Hexadecimal character reference
 	      ((setq ref (match-string 2 string))
-	       (setq val (decode-char 'ucs (string-to-number ref 16)))
+               (setq val (string-to-number ref 16))
 	       (if val (push (string val) children)))
 	      ;; Parameter entity reference
 	      ((setq ref (match-string 3 string))
@@ -922,11 +922,11 @@ references and parameter-entity references."
 	(progn
 	  (setq elem     (match-string-no-properties 1 string)
 		modifier (match-string-no-properties 2 string))
-	  (if (string-match-p "|" elem)
+	  (if (string-search "|" elem)
 	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
 				       (split-string elem "|"))))
-	    (if (string-match-p "," elem)
+	    (if (string-search "," elem)
 		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ",")))))))
@@ -962,7 +962,7 @@ STRING is assumed to occur in an XML attribute value."
 	(if ref
 	    ;; [4.6] Character references are included as
 	    ;; character data.
-	    (let ((val (decode-char 'ucs (string-to-number ref (if is-hex 16)))))
+            (let ((val (string-to-number ref (if is-hex 16))))
 	      (push (cond (val (string val))
 			  (xml-validating-parser
 			   (error "XML: (Validity) Undefined character `x%s'" ref))

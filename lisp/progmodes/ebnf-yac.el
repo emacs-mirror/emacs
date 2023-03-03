@@ -1,6 +1,6 @@
-;;; ebnf-yac.el --- parser for Yacc/Bison
+;;; ebnf-yac.el --- parser for Yacc/Bison  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
@@ -113,7 +113,7 @@
 ;;; YACC-Code = "any C definition".
 
 (defun ebnf-yac-parser (start)
-  "yacc/Bison parser."
+  "Yacc/Bison parser."
   (let ((total (+ (- ebnf-limit start) 1))
 	(bias (1- start))
 	(origin (point))
@@ -271,13 +271,13 @@
   (let ((table (make-vector 256 'error)))
     ;; upper & lower case letters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'non-terminal))
+     (lambda (char)
+       (aset table char 'non-terminal))
      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
     ;; printable characters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'character))
+     (lambda (char)
+       (aset table char 'character))
      "!#$&()*+-.0123456789=?@[\\]^_`~")
     ;; Override space characters:
     (aset table ?\n 'space)		; [NL] linefeed

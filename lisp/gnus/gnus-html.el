@@ -1,6 +1,6 @@
-;;; gnus-html.el --- Render HTML in a buffer.
+;;; gnus-html.el --- Render HTML in a buffer.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -40,14 +40,11 @@
 (require 'help-fns)
 (require 'url-queue)
 
-(defcustom gnus-html-image-cache-ttl (days-to-time 7)
-  "Time used to determine if we should use images from the cache."
-  :version "24.1"
+(defcustom gnus-html-image-cache-ttl (time-convert (days-to-time 7) 'integer)
+  "Number of seconds used to determine if we should use images from the cache."
+  :version "29.1"
   :group 'gnus-art
-  ;; FIXME hardly the friendliest type.  The allowed value is actually
-  ;; any time value, but we are assuming no-one cares about USEC and
-  ;; PSEC here.  It would be better to eg make it a number of minutes.
-  :type '(list integer integer))
+  :type 'number)
 
 (defcustom gnus-html-image-automatic-caching t
   "Whether automatically cache retrieve images."
@@ -71,21 +68,17 @@ fit these criteria."
   :group 'gnus-art
   :type 'float)
 
-(defvar gnus-html-image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "u" 'gnus-article-copy-string)
-    (define-key map "i" 'gnus-html-insert-image)
-    (define-key map "v" 'gnus-html-browse-url)
-    map))
+(defvar-keymap gnus-html-image-map
+  "u" #'gnus-article-copy-string
+  "i" #'gnus-html-insert-image
+  "v" #'gnus-html-browse-url)
 
-(defvar gnus-html-displayed-image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'gnus-html-show-alt-text)
-    (define-key map "i" 'gnus-html-browse-image)
-    (define-key map "\r" 'gnus-html-browse-url)
-    (define-key map "u" 'gnus-article-copy-string)
-    (define-key map [tab] 'button-forward)
-    map))
+(defvar-keymap gnus-html-displayed-image-map
+  "a" #'gnus-html-show-alt-text
+  "i" #'gnus-html-browse-image
+  "RET" #'gnus-html-browse-url
+  "u" #'gnus-article-copy-string
+  "<tab>" #'forward-button)
 
 (defun gnus-html-encode-url (url)
   "Encode URL."
@@ -151,8 +144,8 @@ fit these criteria."
 
 (defun gnus-html-wash-images ()
   "Run through current buffer and replace img tags by images."
-  (let (tag parameters string start end images url alt-text
-	    inhibit-images blocked-images)
+  (let ( parameters start end ;; tag string images
+	 inhibit-images blocked-images)
     (if (buffer-live-p gnus-summary-buffer)
 	(with-current-buffer gnus-summary-buffer
 	  (setq inhibit-images gnus-inhibit-images
@@ -169,67 +162,67 @@ fit these criteria."
 	(delete-region (match-beginning 0) (match-end 0)))
       (setq end (point))
       (when (string-match "src=\"\\([^\"]+\\)" parameters)
-	(gnus-message 8 "gnus-html-wash-tags: fetching image URL %s" url)
-	(setq url (gnus-html-encode-url (match-string 1 parameters))
-	      alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
-					   parameters)
-			 (xml-substitute-special (match-string 2 parameters))))
-	(add-text-properties
-	 start end
-	 (list 'image-url url
-	       'image-displayer `(lambda (url start end)
-				   (gnus-html-display-image url start end
-							    ,alt-text))
-	       'help-echo alt-text
-	       'button t
-	       'keymap gnus-html-image-map
-	       'gnus-image (list url start end alt-text)))
-	(if (string-match "\\`cid:" url)
-	    ;; URLs with cid: have their content stashed in other
-	    ;; parts of the MIME structure, so just insert them
-	    ;; immediately.
-	    (let* ((handle (mm-get-content-id (substring url (match-end 0))))
-		   (image (when (and handle
-				     (not inhibit-images))
-			    (gnus-create-image
-			     (mm-with-part handle (buffer-string))
-			     nil t))))
-	      (if image
-		  (gnus-add-image
-		   'cid
-		   (gnus-put-image
-		    (gnus-rescale-image
-		     image (gnus-html-maximum-image-size))
-		    (gnus-string-or (prog1
-					(buffer-substring start end)
-				      (delete-region start end))
-				    "*")
-		    'cid))
+	(let ((url (gnus-html-encode-url (match-string 1 parameters)))
+	      (alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
+					    parameters)
+			  (xml-substitute-special (match-string 2 parameters)))))
+	  (gnus-message 8 "gnus-html-wash-tags: fetching image URL %s" url)
+	  (add-text-properties
+	   start end
+	   (list 'image-url url
+		 'image-displayer (lambda (url start end)
+				    (gnus-html-display-image url start end
+							     alt-text))
+		 'help-echo alt-text
+		 'button t
+		 'keymap gnus-html-image-map
+		 'gnus-image (list url start end alt-text)))
+	  (if (string-match "\\`cid:" url)
+	      ;; URLs with cid: have their content stashed in other
+	      ;; parts of the MIME structure, so just insert them
+	      ;; immediately.
+	      (let* ((handle (mm-get-content-id (substring url (match-end 0))))
+		     (image (when (and handle
+				       (not inhibit-images))
+			      (gnus-create-image
+			       (mm-with-part handle (buffer-string))
+			       nil t))))
+		(if image
+		    (gnus-add-image
+		     'cid
+		     (gnus-put-image
+		      (gnus-rescale-image
+		       image (gnus-html-maximum-image-size))
+		      (gnus-string-or (prog1
+					  (buffer-substring start end)
+					(delete-region start end))
+				      "*")
+		      'cid))
+		  (make-text-button start end
+				    'help-echo url
+				    'keymap gnus-html-image-map)))
+	    ;; Normal, external URL.
+	    (if (or inhibit-images
+		    (gnus-html-image-url-blocked-p url blocked-images))
 		(make-text-button start end
 				  'help-echo url
-				  'keymap gnus-html-image-map)))
-	  ;; Normal, external URL.
-	  (if (or inhibit-images
-		  (gnus-html-image-url-blocked-p url blocked-images))
-	      (make-text-button start end
-				'help-echo url
-				'keymap gnus-html-image-map)
-	    ;; Non-blocked url
-	    (let ((width
-		   (when (string-match "width=\"?\\([0-9]+\\)" parameters)
-		     (string-to-number (match-string 1 parameters))))
-		  (height
-		   (when (string-match "height=\"?\\([0-9]+\\)" parameters)
-		     (string-to-number (match-string 1 parameters)))))
-	      ;; Don't fetch images that are really small.  They're
-	      ;; probably tracking pictures.
-	      (when (and (or (null height)
-			     (> height 4))
-			 (or (null width)
-			     (> width 4)))
-		(gnus-html-display-image url start end alt-text)))))))))
+				  'keymap gnus-html-image-map)
+	      ;; Non-blocked url
+	      (let ((width
+		     (when (string-match "width=\"?\\([0-9]+\\)" parameters)
+		       (string-to-number (match-string 1 parameters))))
+		    (height
+		     (when (string-match "height=\"?\\([0-9]+\\)" parameters)
+		       (string-to-number (match-string 1 parameters)))))
+		;; Don't fetch images that are really small.  They're
+		;; probably tracking pictures.
+		(when (and (or (null height)
+			       (> height 4))
+			   (or (null width)
+			       (> width 4)))
+		  (gnus-html-display-image url start end alt-text))))))))))
 
-(defun gnus-html-display-image (url start end &optional alt-text)
+(defun gnus-html-display-image (url _start _end &optional alt-text)
   "Display image at URL on text from START to END.
 Use ALT-TEXT for the image string."
   (or alt-text (setq alt-text "*"))
@@ -248,7 +241,7 @@ Use ALT-TEXT for the image string."
       (gnus-html-put-image (gnus-html-get-image-data url) url alt-text))))
 
 (defun gnus-html-wash-tags ()
-  (let (tag parameters string start end images url)
+  (let (tag parameters start end url) ;; string images
     (gnus-html-pre-wash)
     (gnus-html-wash-images)
 
@@ -329,10 +322,10 @@ Use ALT-TEXT for the image string."
       (replace-match "" t t))
     (mm-url-decode-entities)))
 
-(defun gnus-html-insert-image (&rest args)
+(defun gnus-html-insert-image (&rest _args)
   "Fetch and insert the image under point."
   (interactive)
-  (apply 'gnus-html-display-image (get-text-property (point) 'gnus-image)))
+  (apply #'gnus-html-display-image (get-text-property (point) 'gnus-image)))
 
 (defun gnus-html-show-alt-text ()
   "Show the ALT text of the image under point."

@@ -1,6 +1,6 @@
 ;;; xml-tests.el --- Test suite for libxml parsing. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Ulf Jasper <ulf.jasper@web.de>
 ;; Keywords:       internal
@@ -27,6 +27,8 @@
 
 (require 'ert)
 
+(declare-function libxml-parse-xml-region "xml.c")
+
 (defvar libxml-tests--data-comments-preserved
   `(;; simple case
     ("<?xml version=\"1.0\"?><foo baz=\"true\">bar</foo>"
@@ -44,12 +46,12 @@
 
 (ert-deftest libxml-tests ()
   "Test libxml."
-  (when (fboundp 'libxml-parse-xml-region)
-    (with-temp-buffer
-      (dolist (test libxml-tests--data-comments-preserved)
-        (erase-buffer)
-        (insert (car test))
-        (should (equal (cdr test)
-                       (libxml-parse-xml-region (point-min) (point-max))))))))
+  (skip-unless (fboundp 'libxml-parse-xml-region))
+  (with-temp-buffer
+    (dolist (test libxml-tests--data-comments-preserved)
+      (erase-buffer)
+      (insert (car test))
+      (should (equal (cdr test)
+                     (libxml-parse-xml-region (point-min) (point-max)))))))
 
-;;; libxml-tests.el ends here
+;;; xml-tests.el ends here

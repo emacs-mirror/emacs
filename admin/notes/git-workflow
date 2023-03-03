@@ -16,14 +16,14 @@ Initial setup
 
 Then we want to clone the repository.  We normally want to have both
 the current master and (if there is one) the active release branch
-(eg emacs-27).
+(eg emacs-29).
 
 mkdir ~/emacs
 cd ~/emacs
 git clone <membername>@git.sv.gnu.org:/srv/git/emacs.git master
 cd master
 git config push.default current
-git worktree add ../emacs-27 emacs-27
+git worktree add ../emacs-29 emacs-29
 
 You now have both branches conveniently accessible, and you can do
 "git pull" in them once in a while to keep updated.
@@ -67,7 +67,7 @@ which will look like
 
 commit 958b768a6534ae6e77a8547a56fc31b46b63710b
 
-cd ~/emacs/emacs-27
+cd ~/emacs/emacs-29
 git cherry-pick -xe 958b768a6534ae6e77a8547a56fc31b46b63710b
 
 and add "Backport:" to the commit string.  Then
@@ -109,7 +109,7 @@ up-to-date by doing a pull.  Then start Emacs with
   emacs -l admin/gitmerge.el -f gitmerge
 
 You'll be asked for the branch to merge, which will default to
-(eg) 'origin/emacs-27', which you should accept.  Merging a local tracking
+(eg) 'origin/emacs-29', which you should accept.  Merging a local tracking
 branch is discouraged, since it might not be up-to-date, or worse,
 contain commits from you which are not yet pushed upstream.
 

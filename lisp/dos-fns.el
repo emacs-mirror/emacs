@@ -1,6 +1,6 @@
-;;; dos-fns.el --- MS-Dos specific functions
+;;; dos-fns.el --- MS-Dos specific functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 1993, 1995-1996, 2001-2020 Free Software
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -86,7 +86,7 @@ sure to obey the 8.3 limitations."
 	    ;; close to the beginning, change that to a period.  This
 	    ;; is so we could salvage more characters of the original
 	    ;; name by pushing them into the extension.
-	    (if (and (not (string-match "\\." string))
+	    (if (and (not (string-search "." string))
 		     (> (length string) 8)
 		     ;; We don't gain anything if we put the period closer
 		     ;; than 5 chars from the beginning (5 + 3 = 8).
@@ -100,21 +100,21 @@ sure to obey the 8.3 limitations."
 	    ;; If we don't have a period in the first 8 chars, insert one.
 	    ;; This enables having 3 more characters from the original
 	    ;; name in the extension.
-	    (if (> (or (string-match "\\." string) (length string))
+	    (if (> (or (string-search "." string) (length string))
 		   8)
 		(setq string
 		      (concat (substring string 0 8)
 			      "."
 			      (substring string 8))))
-	    (setq firstdot (or (string-match "\\." string)
+	    (setq firstdot (or (string-search "." string)
 			       (1- (length string))))
 	    ;; Truncate to 3 chars after the first period.
 	    (if (> (length string) (+ firstdot 4))
 		(setq string (substring string 0 (+ firstdot 4))))
 	    ;; Change all periods except the first one into underscores.
 	    ;; (DOS doesn't allow more than one period.)
-	    (while (string-match "\\." string (1+ firstdot))
-	      (setq i (string-match "\\." string (1+ firstdot)))
+	    (while (string-search "." string (1+ firstdot))
+	      (setq i (string-search "." string (1+ firstdot)))
 	      (aset string i ?_))
 	    ;; If the last character of the original filename was `~' or `#',
 	    ;; make sure the munged name ends with it also.  This is so that
@@ -160,7 +160,7 @@ sure to obey the 8.3 limitations."
 	       (strlen (length string))
 	       (lastchar (aref string (1- strlen)))
 	       firstdot)
-	  (setq firstdot (string-match "\\." string))
+	  (setq firstdot (string-search "." string))
 	  (cond
 	   (firstdot
 	    ;; Truncate the extension to 3 characters.
@@ -231,9 +231,6 @@ returned unaltered."
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
-(define-obsolete-variable-alias
-  'register-name-alist 'dos-register-name-alist "24.1")
-
 (defvar dos-register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
@@ -242,8 +239,6 @@ returned unaltered."
 
 (defun dos-make-register ()
   (make-vector 8 0))
-
-(define-obsolete-function-alias 'make-register 'dos-make-register "24.1")
 
 (defun dos-register-value (regs name)
   (let ((where (cdr (assoc name dos-register-name-alist))))
@@ -255,8 +250,6 @@ returned unaltered."
 	  ((numberp where)
 	   (aref regs where))
 	  (t nil))))
-
-(define-obsolete-function-alias 'register-value 'dos-register-value "24.1")
 
 (defun dos-set-register-value (regs name value)
   (and (numberp value)
@@ -274,9 +267,6 @@ returned unaltered."
 		(aset regs where (logand value 65535))))))
   regs)
 
-(define-obsolete-function-alias
-  'set-register-value 'dos-set-register-value "24.1")
-
 (defsubst dos-intdos (regs)
   "Issue the DOS Int 21h with registers REGS.
 
@@ -284,20 +274,16 @@ REGS should be a vector produced by `dos-make-register'
 and `dos-set-register-value', which see."
   (int86 33 regs))
 
-(define-obsolete-function-alias 'intdos 'dos-intdos "24.1")
-
 ;; Backward compatibility for obsolescent functions which
 ;; set screen size.
 
 (defun dos-mode25 ()
-  "Changes the number of screen rows to 25."
+  "Change the number of screen rows to 25."
   (interactive)
   (set-frame-size (selected-frame) 80 25))
 
-(define-obsolete-function-alias 'mode25 'dos-mode25 "24.1")
-
 (defun dos-mode4350 ()
-  "Changes the number of rows to 43 or 50.
+  "Change the number of rows to 43 or 50.
 Emacs always tries to set the screen height to 50 rows first.
 If this fails, it will try to set it to 43 rows, on the assumption
 that your video hardware might not support 50-line mode."
@@ -306,8 +292,6 @@ that your video hardware might not support 50-line mode."
   (if (eq (frame-height (selected-frame)) 50)
       nil  ; the original built-in function returned nil
     (set-frame-size (selected-frame) 80 43)))
-
-(define-obsolete-function-alias 'mode4350 'dos-mode4350 "24.1")
 
 (provide 'dos-fns)
 

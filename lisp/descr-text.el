@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -50,14 +50,16 @@
     (when (string-match-p "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
 
-    (if (and (not (string-match-p "\n" pp))
+    (if (and (not (string-search "\n" pp))
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
-       "[Show]" 'action (lambda (&rest _ignore)
-                          (with-output-to-temp-buffer
-                              "*Pp Eval Output*"
-                            (princ pp)))
+       "[Show]"
+       'follow-link t
+       'action (lambda (&rest _ignore)
+                 (with-output-to-temp-buffer
+                     "*Pp Eval Output*"
+                   (princ pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
@@ -75,8 +77,9 @@ into help buttons that call `describe-text-category' or
 					    (prin1-to-string (nth 0 b) t)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
-      (insert (propertize (format "  %-20s " key)
-			  'face 'help-argument-name))
+      (insert (format "  %-20s "
+                      (propertize (symbol-name key)
+                                  'face 'help-argument-name)))
       (cond ((eq key 'category)
 	     (insert-text-button
 	      (symbol-name value)
@@ -95,7 +98,7 @@ into help buttons that call `describe-text-category' or
 ;;; Describe-Text Commands.
 
 (defun describe-text-category (category)
-  "Describe a text property category."
+  "Describe a text property CATEGORY."
   (interactive "SCategory: ")
   (help-setup-xref (list #'describe-text-category category)
 		   (called-interactively-p 'interactive))
@@ -174,6 +177,10 @@ otherwise."
 	(insert "\n"))
       ;; Text properties
       (when properties
+        (when (plist-get properties 'invisible)
+          (insert "\nNote that character has an invisibility property,\n"
+                  "  so the character displayed at point in the buffer may\n"
+                  "  differ from the character described here.\n"))
 	(newline)
 	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
@@ -359,7 +366,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; description is added to the category name as a tooltip
 (defsubst describe-char-categories (category-set)
   (let ((mnemonics (category-set-mnemonics category-set)))
-    (unless (eq mnemonics "")
+    (unless (equal mnemonics "")
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
@@ -415,6 +422,7 @@ The character information includes:
            (display-table (or (window-display-table)
                               buffer-display-table
                               standard-display-table))
+           (composition-string nil)
            (disp-vector (and display-table (aref display-table char)))
            (multibyte-p enable-multibyte-characters)
            (overlays (mapcar (lambda (o) (overlay-properties o))
@@ -536,7 +544,8 @@ The character information includes:
                     (setcar composition nil)))
                 (setcar (cdr composition)
                         (format "composed to form \"%s\" (see below)"
-                                (buffer-substring from to)))))
+                                (setq composition-string
+                                      (buffer-substring from to))))))
             (setq composition nil)))
 
       (setq item-list
@@ -647,7 +656,9 @@ The character information includes:
               ("file code"
                ,@(if multibyte-p
                      (let* ((coding buffer-file-coding-system)
-                            (encoded (encode-coding-char char coding charset)))
+                            (encoded
+                             (and coding
+                                  (encode-coding-char char coding charset))))
                        (if encoded
                            (list (encoded-string-description encoded coding)
                                  (format "(encoded by coding system %S)"
@@ -675,11 +686,16 @@ The character information includes:
                   (let ((display (describe-char-display pos char)))
                     (if (display-graphic-p (selected-frame))
                         (if display
-                            (concat "by this font (glyph code)\n    " display)
+                            (concat "by this font (glyph code):\n    " display)
                           "no font available")
                       (if display
                           (format "terminal code %s" display)
                         "not encodable for terminal"))))))
+              ,@(when-let ((composition-name
+                            (and composition-string
+                                 (eq (aref char-script-table char) 'emoji)
+                                 (emoji-describe composition-string))))
+                  (list (list "composition name" composition-name)))
               ,@(let ((face
                        (if (not (or disp-vector composition))
                            (cond
@@ -687,7 +703,9 @@ The character information includes:
                                   (save-excursion (goto-char pos)
                                                   (looking-at-p "[ \t]+$")))
                              'trailing-whitespace)
-                            ((and nobreak-char-display char (eq char '#xa0))
+                            ((and nobreak-char-display char
+                                  (> char 127)
+                                  (eq (get-char-code-property char 'general-category) 'Zs))
                              'nobreak-space)
                             ((and nobreak-char-display char
 				  (memq char '(#xad #x2010 #x2011)))

@@ -1,6 +1,6 @@
 ;;; rng-match.el --- matching of RELAX NG patterns against XML events  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -472,7 +472,7 @@ list is nullable and whose cdr is the normalized list."
     (cons nullable
 	  (if sorted
 	      head
-	    (rng-uniquify-eq (sort head 'rng-compare-ipattern))))))
+            (seq-uniq (sort head 'rng-compare-ipattern) #'eq)))))
 
 (defun rng-compare-ipattern (p1 p2)
   (< (rng--ipattern-index p1)
@@ -1154,7 +1154,7 @@ list may contain duplicates."
 	     (if (or (rng--ipattern-nullable
 		      (rng-data-deriv child value))
 		     (and (rng--ipattern-nullable child)
-			  (rng-blank-p value)))
+                          (string-blank-p value)))
 		 (rng--ipattern-after ipattern)
 	       rng-not-allowed-ipattern)))
 	  ((eq type 'data)

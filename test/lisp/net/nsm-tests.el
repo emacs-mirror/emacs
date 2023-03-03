@@ -1,6 +1,6 @@
-;;; network-stream-tests.el --- tests for network security manager -*- lexical-binding: t; -*-
+;;; nsm-tests.el --- tests for network security manager  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Robert Pluim <rpluim@gmail.com>
 
@@ -49,15 +49,17 @@
       (should (eq nil (nsm-should-check "127.0.0.1")))
       (should (eq nil (nsm-should-check "localhost"))))))
 
-(defun nsm-ipv6-is-available ()
+;; This will need updating when IANA assign more IPv6 global ranges.
+(defun ipv6-is-available ()
   (and (featurep 'make-network-process '(:family ipv6))
        (cl-rassoc-if
         (lambda (elt)
-          (eq 9 (length elt)))
+          (and (eq 9 (length elt))
+               (= (logand (aref elt 0) #xe000) #x2000)))
         (network-interface-list))))
 
 (ert-deftest nsm-check-local-subnet-ipv6 ()
-  (skip-unless (nsm-ipv6-is-available))
+  (skip-unless (ipv6-is-available))
   (let ((local-ip '[123 456 789 11 172 26 128 160 0])
         (mask '[255 255 255 255 255 255 255 0 0])
 

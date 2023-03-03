@@ -1,6 +1,6 @@
 ;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -30,7 +30,12 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib)
-                   (require 'subr-x))
+                   (require 'subr-x)
+                   (require 'treesit))
+
+(declare-function treesit-available-p "treesit.c")
+(declare-function treesit-parser-list "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 (defgroup prog-mode nil
   "Generic programming mode, from which others derive."
@@ -41,14 +46,69 @@
   :type 'hook
   :options '(flyspell-prog-mode abbrev-mode flymake-mode
                                 display-line-numbers-mode
-                                prettify-symbols-mode)
-  :group 'prog-mode)
+                                prettify-symbols-mode))
 
-(defvar prog-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-\M-q] 'prog-indent-sexp)
-    map)
-  "Keymap used for programming modes.")
+(defun prog-context-menu (menu click)
+  "Populate MENU with xref commands at CLICK."
+  (require 'xref)
+  (define-key-after menu [prog-separator] menu-bar-separator
+    'middle-separator)
+
+  (unless (xref-forward-history-empty-p)
+    (define-key-after menu [xref-forward]
+      '(menu-item "Go Forward" xref-go-forward
+                  :help "Forward to the position gone Back from")
+      'prog-separator))
+
+  (unless (xref-marker-stack-empty-p)
+    (define-key-after menu [xref-pop]
+      '(menu-item "Go Back" xref-go-back
+                  :help "Back to the position of the last search")
+      'prog-separator))
+
+  (let ((identifier (save-excursion
+                      (mouse-set-point click)
+                      (xref-backend-identifier-at-point
+                       (xref-find-backend)))))
+    (when identifier
+      (define-key-after menu [xref-find-ref]
+        `(menu-item "Find References" xref-find-references-at-mouse
+                    :help ,(format "Find references to `%s'" identifier))
+        'prog-separator)
+      (define-key-after menu [xref-find-def]
+        `(menu-item "Find Definition" xref-find-definitions-at-mouse
+                    :help ,(format "Find definition of `%s'" identifier))
+        'prog-separator)))
+
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [select-region mark-symbol]
+      `(menu-item "Symbol"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
+                  :help "Mark the symbol at click for a subsequent cut/copy")
+      'mark-whole-buffer))
+  (define-key-after menu [select-region mark-list]
+    `(menu-item "List"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
+                :help "Mark the list at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+  (define-key-after menu [select-region mark-defun]
+    `(menu-item "Defun"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
+                :help "Mark the defun at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+
+  ;; Include text-mode select menu only in strings and comments.
+  (when (nth 8 (save-excursion
+                 (with-current-buffer (window-buffer (posn-window (event-end click)))
+                   (syntax-ppss (posn-point (event-end click))))))
+    (text-mode-context-menu menu click))
+
+  menu)
+
+(defvar-keymap prog-mode-map
+  :doc "Keymap used for programming modes."
+  "C-M-q" #'prog-indent-sexp
+  "M-q" #'prog-fill-reindent-defun)
 
 (defvar prog-indentation-context nil
   "When non-nil, provides context for indenting embedded code chunks.
@@ -86,6 +146,31 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
+(defun prog-fill-reindent-defun (&optional argument)
+  "Refill or reindent the paragraph or defun that contains point.
+
+If the point is in a string or a comment, fill the paragraph that
+contains point or follows point.
+
+Otherwise, reindent the function definition that contains point
+or follows point."
+  (interactive "P")
+  (save-excursion
+    (let ((treesit-text-node
+           (and (treesit-available-p)
+                (treesit-parser-list)
+                (string-match-p
+                 treesit-text-type-regexp
+                 (treesit-node-type (treesit-node-at (point)))))))
+      (if (or treesit-text-node
+              (nth 8 (syntax-ppss))
+              (re-search-forward "\\s-*\\s<" (line-end-position) t))
+          (fill-paragraph argument (region-active-p))
+        (beginning-of-defun)
+        (let ((start (point)))
+          (end-of-defun)
+          (indent-region start (point) nil))))))
+
 (defun prog-first-column ()
   "Return the indentation column normally used for top-level constructs."
   (or (car prog-indentation-context) 0))
@@ -101,7 +186,7 @@ which case it will be used to compose the new symbol as per the
 third argument of `compose-region'.")
 
 (defun prettify-symbols-default-compose-p (start end _match)
-  "Return true iff the symbol MATCH should be composed.
+  "Return non-nil if the symbol MATCH should be composed.
 The symbol starts at position START and ends at position END.
 This is the default for `prettify-symbols-compose-predicate'
 which is suitable for most programming languages such as C or Lisp."
@@ -119,7 +204,7 @@ which is suitable for most programming languages such as C or Lisp."
   "A predicate for deciding if the currently matched symbol is to be composed.
 The matched symbol is the car of one entry in `prettify-symbols-alist'.
 The predicate receives the match's start and end positions as well
-as the match-string as arguments.")
+as the `match-string' as arguments.")
 
 (defun prettify-symbols--compose-symbol (alist)
   "Compose a sequence of characters into a symbol.
@@ -166,8 +251,7 @@ on the symbol."
   :version "25.1"
   :type '(choice (const :tag "Never unprettify" nil)
                  (const :tag "Unprettify when point is inside" t)
-                 (const :tag "Unprettify when point is inside or at right edge" right-edge))
-  :group 'prog-mode)
+                 (const :tag "Unprettify when point is inside or at right edge" right-edge)))
 
 (defun prettify-symbols--post-command-hook ()
   (cl-labels ((get-prop-as-list
@@ -251,6 +335,7 @@ support it."
   "Major mode for editing programming language source code."
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local parse-sexp-ignore-comments t)
+  (add-hook 'context-menu-functions 'prog-context-menu 10 t)
   ;; Any programming language is always written left to right.
   (setq bidi-paragraph-direction 'left-to-right))
 

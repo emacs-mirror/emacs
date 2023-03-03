@@ -1,6 +1,6 @@
 ;;; mixal-mode.el --- Major mode for the mix asm language.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Maintainer: Jose A Ortega Ruiz <jao@gnu.org>
@@ -32,9 +32,6 @@
 ;; and debugging needs mixvm and mixvm.el from GNU MDK.  You can get
 ;; GNU MDK from `https://savannah.gnu.org/projects/mdk/' and
 ;; `https://ftp.gnu.org/pub/gnu/mdk'.
-;;
-;; To use this mode, place the following in your init file:
-;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
 ;;
 ;; When you load a file with the extension .mixal the mode will be started
 ;; automatically.  If you want to start the mode manually, use `M-x mixal-mode'.
@@ -78,16 +75,13 @@
 ;;; Code:
 (defvar compile-command)
 
-;;; Key map
-(defvar mixal-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'compile)
-    (define-key map "\C-c\C-r" 'mixal-run)
-    (define-key map "\C-c\C-d" 'mixal-debug)
-    (define-key map "\C-h\C-o" 'mixal-describe-operation-code)
-    map)
-  "Keymap for `mixal-mode'.")
-;; (makunbound 'mixal-mode-map)
+;;; Keymap
+(defvar-keymap mixal-mode-map
+  :doc "Keymap for `mixal-mode'."
+  "C-c C-c" #'compile
+  "C-c C-r" #'mixal-run
+  "C-c C-d" #'mixal-debug
+  "C-h C-o" #'mixal-describe-operation-code)
 
 ;;; Syntax table
 (defvar mixal-mode-syntax-table
@@ -1141,18 +1135,18 @@ Assumes that file has been compiled with debugging support."
 ;;;###autoload
 (define-derived-mode mixal-mode prog-mode "mixal"
   "Major mode for the mixal asm language."
-  (set (make-local-variable 'comment-start) "*")
-  (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")
-  (set (make-local-variable 'font-lock-defaults)
-       '(mixal-font-lock-keywords))
-  (set (make-local-variable 'syntax-propertize-function)
-       mixal-syntax-propertize-function)
+  (setq-local comment-start "*")
+  (setq-local comment-start-skip "^\\*[ \t]*")
+  (setq-local font-lock-defaults
+              '(mixal-font-lock-keywords))
+  (setq-local syntax-propertize-function
+              mixal-syntax-propertize-function)
   ;; might add an indent function in the future
-  ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
-  (set (make-local-variable 'compile-command)
-       (concat "mixasm "
-	       (if buffer-file-name
-		   (shell-quote-argument buffer-file-name)))))
+  ;;  (setq-local indent-line-function 'mixal-indent-line)
+  (setq-local compile-command
+              (concat "mixasm "
+                      (if buffer-file-name
+                          (shell-quote-argument buffer-file-name)))))
 
 (provide 'mixal-mode)
 

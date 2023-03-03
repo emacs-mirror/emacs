@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -135,6 +135,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_SOCKET             0x0200
 #define FILE_NDELAY             0x0400
 #define FILE_SERIAL             0x0800
+#define FILE_DONT_CLOSE         0x1000
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
@@ -155,14 +156,15 @@ extern unsigned int w32_get_short_filename (const char *, char *, int);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
-				      int err, HANDLE handles[4]);
+				      int err, HANDLE handles[3]);
 
 /* Reset our standard handles to their original state.  */
 extern void reset_standard_handles (int in, int out,
-				    int err, HANDLE handles[4]);
+				    int err, HANDLE handles[3]);
 
-/* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
+/* Query Windows Registry and return the resource associated
+   associated with KEY and NAME of type TYPE.  */
+extern LPBYTE w32_get_resource (const char * key, const char * name, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);
@@ -187,6 +189,7 @@ extern DWORD multiByteToWideCharFlags;
 
 extern char *w32_my_exename (void);
 extern const char *w32_relocate (const char *);
+extern char *realpath (const char *, char *);
 
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
@@ -216,7 +219,7 @@ extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int pipe2 (int *, int);
 extern void register_aux_fd (int);
 
-extern void set_process_dir (char *);
+extern void set_process_dir (const char *);
 extern int sys_spawnve (int, char *, char **, char **);
 extern void register_child (pid_t, int);
 
@@ -225,6 +228,8 @@ extern int sys_link (const char *, const char *);
 extern int openat (int, const char *, int, int);
 extern int fchmodat (int, char const *, mode_t, int);
 extern int lchmod (char const *, mode_t);
+extern bool symlinks_supported (const char *);
+
 
 /* Return total and free memory info.  */
 extern int w32_memory_info (unsigned long long *, unsigned long long *,
@@ -233,10 +238,16 @@ extern int w32_memory_info (unsigned long long *, unsigned long long *,
 /* Compare 2 UTF-8 strings in locale-dependent fashion.  */
 extern int w32_compare_strings (const char *, const char *, char *, int);
 
+/* Return the number of processor execution units on this system.  */
+extern unsigned w32_get_nproc (void);
+
 /* Return a cryptographically secure seed for PRNG.  */
 extern int w32_init_random (void *, ptrdiff_t);
 
 extern Lisp_Object w32_read_registry (HKEY, Lisp_Object, Lisp_Object);
+
+/* Used instead of execvp to restart Emacs.  */
+extern int w32_reexec_emacs (char *, const char *);
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

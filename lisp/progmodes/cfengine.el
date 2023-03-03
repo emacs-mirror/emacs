@@ -1,6 +1,6 @@
-;;; cfengine.el --- mode for editing Cfengine files
+;;; cfengine.el --- mode for editing Cfengine files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -47,8 +47,8 @@
 ;; (add-hook 'cfengine3-mode-hook 'eldoc-mode)
 
 ;; You may also find the command `cfengine3-reformat-json-string'
-;; useful, just bind it to a key you prefer. It will take the current
-;; string and reformat it as JSON. So if you're editing JSON inside
+;; useful, just bind it to a key you prefer.  It will take the current
+;; string and reformat it as JSON.  So if you're editing JSON inside
 ;; the policy, it's a quick way to make it more legible without
 ;; manually reindenting it.  For instance:
 
@@ -69,7 +69,6 @@
 
 (defcustom cfengine-indent 2
   "Size of a CFEngine indentation step in columns."
-  :group 'cfengine
   :type 'integer)
 
 (defcustom cfengine-cf-promises
@@ -86,7 +85,6 @@ Used for syntax discovery and checking.  Set to nil to disable
 the `compile-command' override.  In that case, the ElDoc support
 will use a fallback syntax definition."
   :version "24.4"
-  :group 'cfengine
   :type '(choice file (const nil)))
 
 (defcustom cfengine-parameters-indent '(promise pname 2)
@@ -142,10 +140,8 @@ bundle agent rcfiles
       \"/tmp/netrc\"
               comment => \"my netrc\",
                 perms => mog(\"600\", \"tzz\", \"tzz\");
-}
-"
+}"
   :version "24.4"
-  :group 'cfengine
   :type '(list
           (choice (const :tag "Anchor at beginning of promise" promise)
                   (const :tag "Anchor at beginning of line" bol))
@@ -797,15 +793,6 @@ bundle agent rcfiles
                       (cdr (assq 'functions cfengine3-fallback-syntax)))
               'symbols))
 
-(defcustom cfengine-mode-abbrevs nil
-  "Abbrevs for CFEngine2 mode."
-  :group 'cfengine
-  :type '(repeat (list (string :tag "Name")
-		       (string :tag "Expansion")
-		       (choice  :tag "Hook" (const nil) function))))
-
-(make-obsolete-variable 'cfengine-mode-abbrevs 'edit-abbrevs "24.1")
-
 ;; Taken from the doc for pre-release 2.1.
 (eval-and-compile
   (defconst cfengine2-actions
@@ -991,18 +978,10 @@ Intended as the value of `indent-line-function'."
     (if (> (- (point-max) pos) (point))
 	(goto-char (- (point-max) pos)))))
 
-;; This doesn't work too well in Emacs 21.2.  See 22.1 development
-;; code.
 (defun cfengine-fill-paragraph (&optional justify)
   "Fill `paragraphs' in Cfengine code."
   (interactive "P")
-  (or (if (fboundp 'fill-comment-paragraph)
-	  (fill-comment-paragraph justify) ; post Emacs 21.3
-	;; else do nothing in a comment
-	(nth 4 (parse-partial-sexp (save-excursion
-				     (beginning-of-defun)
-				     (point))
-				   (point))))
+  (or (fill-comment-paragraph justify)
       (let ((paragraph-start
 	     ;; Include start of parenthesized block.
 	     "\f\\|[ \t]*$\\|.*(")
@@ -1199,7 +1178,7 @@ Intended as the value of `indent-line-function'."
 ;; CATEGORY: [a-zA-Z_]+:
 
 (defun cfengine3--current-function ()
-  "Look up current CFEngine 3 function"
+  "Look up current CFEngine 3 function."
   (let* ((syntax (cfengine3-make-syntax-cache))
          (flist (assq 'functions syntax)))
     (when flist
@@ -1207,7 +1186,7 @@ Intended as the value of `indent-line-function'."
                  (skip-syntax-forward "w_")
                  (when (search-backward-regexp
                         cfengine-mode-syntax-functions-regex
-                        (point-at-bol)
+                        (line-beginning-position)
                         t)
                    (match-string 1)))))
         (and w (assq (intern w) flist))))))
@@ -1306,7 +1285,7 @@ see.  Use it by enabling `eldoc-mode'."
   "Return completions for function name around or before point."
   (let* ((bounds (save-excursion
                    (let ((p (point)))
-                     (skip-syntax-backward "w_" (point-at-bol))
+                     (skip-syntax-backward "w_" (line-beginning-position))
                      (list (point) p))))
          (syntax (cfengine3-make-syntax-cache))
          (flist (assq 'functions syntax)))
@@ -1314,19 +1293,19 @@ see.  Use it by enabling `eldoc-mode'."
       (append bounds (list (cdr flist))))))
 
 (defun cfengine-common-settings ()
-  (set (make-local-variable 'syntax-propertize-function)
-       ;; In the main syntax-table, \ is marked as a punctuation, because
-       ;; of its use in DOS-style directory separators.  Here we try to
-       ;; recognize the cases where \ is used as an escape inside strings.
-       (syntax-propertize-rules ("\\(\\(?:\\\\\\)+\\)\"" (1 "\\"))))
-  (set (make-local-variable 'parens-require-spaces) nil)
-  (set (make-local-variable 'comment-start)  "# ")
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(?:^\\|[^\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
+  (setq-local syntax-propertize-function
+              ;; In the main syntax-table, \ is marked as a punctuation, because
+              ;; of its use in DOS-style directory separators.  Here we try to
+              ;; recognize the cases where \ is used as an escape inside strings.
+              (syntax-propertize-rules ("\\(\\(?:\\\\\\)+\\)\"" (1 "\\"))))
+  (setq-local parens-require-spaces nil)
+  (setq-local comment-start  "# ")
+  (setq-local comment-start-skip
+              "\\(\\(?:^\\|[^\\\n]\\)\\(?:\\\\\\\\\\)*\\)#+[ \t]*")
   ;; Like Lisp mode.  Without this, we lose with, say,
   ;; `backward-up-list' when there's an unbalanced quote in a
   ;; preceding comment.
-  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+  (setq-local parse-sexp-ignore-comments t))
 
 (defun cfengine-common-syntax (table)
   ;; The syntax defaults seem OK to give reasonable word movement.
@@ -1374,7 +1353,7 @@ to the action header."
   (cfengine-common-settings)
   (cfengine-common-syntax cfengine3-mode-syntax-table)
 
-  (set (make-local-variable 'indent-line-function) #'cfengine3-indent-line)
+  (setq-local indent-line-function #'cfengine3-indent-line)
 
   (setq font-lock-defaults
         '(cfengine3-font-lock-keywords
@@ -1384,11 +1363,11 @@ to the action header."
   ;; `compile-command' is almost never a `make' call with CFEngine so
   ;; we override it
   (when cfengine-cf-promises
-    (set (make-local-variable 'compile-command)
-         (concat cfengine-cf-promises
-                 " -f "
-                 (when buffer-file-name
-                   (shell-quote-argument buffer-file-name)))))
+    (setq-local compile-command
+                (concat cfengine-cf-promises
+                        " -f "
+                        (when buffer-file-name
+                          (shell-quote-argument buffer-file-name)))))
 
   (add-hook 'eldoc-documentation-functions
             #'cfengine3-documentation-function nil t)
@@ -1418,20 +1397,17 @@ to the action header."
   ;; should avoid potential confusion in some cases.
   (modify-syntax-entry ?\` "\"" cfengine2-mode-syntax-table)
 
-  (set (make-local-variable 'indent-line-function) #'cfengine2-indent-line)
-  (set (make-local-variable 'outline-regexp) "[ \t]*\\(\\sw\\|\\s_\\)+:+")
-  (set (make-local-variable 'outline-level) #'cfengine2-outline-level)
-  (set (make-local-variable 'fill-paragraph-function)
-       #'cfengine-fill-paragraph)
-  (define-abbrev-table 'cfengine2-mode-abbrev-table cfengine-mode-abbrevs)
+  (setq-local indent-line-function #'cfengine2-indent-line)
+  (setq-local outline-regexp "[ \t]*\\(\\sw\\|\\s_\\)+:+")
+  (setq-local outline-level #'cfengine2-outline-level)
+  (setq-local fill-paragraph-function #'cfengine-fill-paragraph)
   (setq font-lock-defaults
         '(cfengine2-font-lock-keywords nil nil nil beginning-of-line))
   ;; Fixme: set the args of functions in evaluated classes to string
   ;; syntax, and then obey syntax properties.
   (setq imenu-generic-expression cfengine2-imenu-expression)
-  (set (make-local-variable 'beginning-of-defun-function)
-       #'cfengine2-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) #'cfengine2-end-of-defun))
+  (setq-local beginning-of-defun-function #'cfengine2-beginning-of-defun)
+  (setq-local end-of-defun-function #'cfengine2-end-of-defun))
 
 ;;;###autoload
 (defun cfengine-auto-mode ()
@@ -1448,7 +1424,7 @@ to the action header."
       (cfengine3-mode)
     (cfengine2-mode)))
 
-(defalias 'cfengine-mode 'cfengine3-mode)
+(defalias 'cfengine-mode #'cfengine3-mode)
 
 (provide 'cfengine3)
 (provide 'cfengine)

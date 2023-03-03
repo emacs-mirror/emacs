@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -131,16 +131,21 @@ This exists as a variable so it can be set locally in certain buffers.")
 			(((class grayscale color)
 			  (background light))
 			 :background "gray85"
+                         ;; We use negative thickness of the horizontal box border line to
+                         ;; avoid making lines taller when fields become visible.
+                         :box (:line-width (1 . -1) :color "gray80")
 			 :extend t)
 			(((class grayscale color)
 			  (background dark))
 			 :background "dim gray"
+                         :box (:line-width (1 . -1) :color "gray46")
 			 :extend t)
 			(t
 			 :slant italic
 			 :extend t))
   "Face used for editable fields."
-  :group 'widget-faces)
+  :group 'widget-faces
+  :version "28.1")
 
 (defface widget-single-line-field '((((type tty))
 				     :background "green3"
@@ -185,7 +190,7 @@ the contents of strings."
   (buffer-enable-undo))
 
 (defcustom widget-menu-max-size 40
-  "Largest number of items allowed in a popup-menu.
+  "Largest number of items allowed in a popup menu.
 Larger menus are read through the minibuffer."
   :group 'widgets
   :type 'integer)
@@ -197,9 +202,8 @@ For a larger number of items, the minibuffer is used."
   :type 'integer)
 
 (defcustom widget-menu-minibuffer-flag nil
-  "Control how to ask for a choice from the keyboard.
-Non-nil means use the minibuffer;
-nil means read a single character."
+  "Non-nil means use the minibuffer; to ask for a choice from the keyboard.
+If nil, read a single character."
   :group 'widgets
   :type 'boolean)
 
@@ -338,7 +342,7 @@ in the key vector, as in the argument of `define-key'."
                                  '(display-buffer-in-direction
                                    (direction . bottom)
                                    (window-height . fit-window-to-buffer)))
-               (setq value (read-char-from-minibuffer
+               (setq value (read-char-choice
                             (format "%s: " title)
                             (mapcar #'car alist)))))
 	   (cdr (assoc value alist))))))
@@ -433,8 +437,9 @@ the :notify function can't know the new value.")
 	(follow-link (widget-get widget :follow-link))
 	(help-echo (widget-get widget :help-echo)))
     (widget-put widget :button-overlay overlay)
-    (if (functionp help-echo)
+    (when (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
+    (overlay-put overlay 'before-string #(" " 0 1 (invisible t)))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
     (overlay-put overlay 'evaporate t)
@@ -591,9 +596,25 @@ Otherwise, just return the value."
 			  (widget-put widget :args args)))
 		      (widget-apply widget :default-get)))))
 
+(defun widget-inline-p (widget &optional bubblep)
+  "Non-nil if the widget WIDGET is inline.
+
+With BUBBLEP non-nil, check also if WIDGET has a member that bubbles its inline
+property (if any), up to WIDGET, so that WIDGET can act as an inline widget."
+  (or (widget-get widget :inline)
+      (and bubblep
+           (widget-get widget :inline-bubbles-p)
+           (widget-apply widget :inline-bubbles-p))))
+
 (defun widget-match-inline (widget vals)
-  "In WIDGET, match the start of VALS."
-  (cond ((widget-get widget :inline)
+  "In WIDGET, match the start of VALS.
+
+For an inline widget or for a widget that acts like one (see `widget-inline-p'),
+try to match elements in VALS as far as possible.  Otherwise, match the first
+element of the list VALS.
+
+Return a list whose car contains all members of VALS that matched WIDGET."
+  (cond ((widget-inline-p widget t)
 	 (widget-apply widget :match-inline vals))
 	((and (listp vals)
 	      (widget-apply widget :match (car vals)))
@@ -729,7 +750,7 @@ automatically."
   :type 'boolean)
 
 (defcustom widget-image-conversion
-  '((xpm ".xpm") (gif ".gif") (png ".png") (jpeg ".jpg" ".jpeg")
+  '((svg ".svg") (xpm ".xpm") (gif ".gif") (png ".png") (jpeg ".jpg" ".jpeg")
     (xbm ".xbm"))
   "Conversion alist from image formats to file name suffixes."
   :group 'widgets
@@ -859,6 +880,7 @@ The child is converted, using the keyword arguments ARGS."
   "Make a deep copy of WIDGET."
   (widget-apply (copy-sequence widget) :copy))
 
+;;;###autoload
 (defun widget-convert (type &rest args)
   "Convert TYPE to a widget without inserting it in the buffer.
 The optional ARGS are additional keyword arguments."
@@ -1003,9 +1025,8 @@ button end points."
 Recommended as a parent keymap for modes using widgets.
 Note that such modes will need to require wid-edit.")
 
-(defvar widget-global-map global-map
+(defvar-local widget-global-map global-map
   "Keymap used for events a widget does not handle itself.")
-(make-variable-buffer-local 'widget-global-map)
 
 (defvar widget-field-keymap
   (let ((map (copy-keymap widget-keymap)))
@@ -1088,7 +1109,7 @@ If nothing was called, return non-nil."
 		  (unless (widget-apply button :mouse-down-action event)
 		    (let ((track-mouse t))
 		      (while (not (widget-button-release-event-p event))
-		        (setq event (read-event))
+                        (setq event (read--potential-mouse-event))
 		        (when (and mouse-1 (mouse-movement-p event))
 			  (push event unread-command-events)
 			  (setq event oevent)
@@ -1153,7 +1174,7 @@ If nothing was called, return non-nil."
 	    (when up
 	      ;; Don't execute up events twice.
 	      (while (not (widget-button-release-event-p event))
-		(setq event (read-event))))
+		(setq event (read--potential-mouse-event))))
 	    (when command
 	      (call-interactively command)))))
     (message "You clicked somewhere weird.")))
@@ -1188,7 +1209,6 @@ This is much faster.")
 ARG may be negative to move backward.
 When the second optional argument is non-nil,
 nothing is shown in the echo area."
-  (or (bobp) (> arg 0) (backward-char))
   (let ((wrapped 0)
 	(number arg)
 	(old (widget-tabable-at)))
@@ -1311,13 +1331,11 @@ When not inside a field, signal an error."
 
 ;;; Setting up the buffer.
 
-(defvar widget-field-new nil
+(defvar-local widget-field-new nil
   "List of all newly created editable fields in the buffer.")
-(make-variable-buffer-local 'widget-field-new)
 
-(defvar widget-field-list nil
+(defvar-local widget-field-list nil
   "List of all editable fields in the buffer.")
-(make-variable-buffer-local 'widget-field-list)
 
 (defun widget-at (&optional pos)
   "The button or field at POS (default, point)."
@@ -1344,13 +1362,11 @@ When not inside a field, signal an error."
   (widget-clear-undo)
   (widget-add-change))
 
-(defvar widget-field-last nil)
-;; Last field containing point.
-(make-variable-buffer-local 'widget-field-last)
+(defvar-local widget-field-last nil
+  "Last field containing point.")
 
-(defvar widget-field-was nil)
-;; The widget data before the change.
-(make-variable-buffer-local 'widget-field-was)
+(defvar-local widget-field-was nil
+  "The widget data before the change.")
 
 (defun widget-field-at (pos)
   "Return the widget field at POS, or nil if none."
@@ -1863,20 +1879,9 @@ as the argument to `documentation-property'."
   (let ((value (widget-get widget :value)))
     (and (listp value)
 	 (<= (length value) (length vals))
-	 (let ((head (widget-sublist vals 0 (length value))))
+         (let ((head (seq-subseq vals 0 (length value))))
 	   (and (equal head value)
-		(cons head (widget-sublist vals (length value))))))))
-
-(defun widget-sublist (list start &optional end)
-  "Return the sublist of LIST from START to END.
-If END is omitted, it defaults to the length of LIST."
-  (if (> start 0) (setq list (nthcdr start list)))
-  (if end
-      (unless (<= end start)
-	(setq list (copy-sequence list))
-	(setcdr (nthcdr (- end start 1) list) nil)
-	list)
-    (copy-sequence list)))
+                (cons head (seq-subseq vals (length value))))))))
 
 (defun widget-item-action (widget &optional event)
   ;; Just notify itself.
@@ -2198,7 +2203,7 @@ But if NO-TRUNCATE is non-nil, include them."
   (let ((value (widget-get widget :value))
 	(args (widget-get widget :args))
 	(explicit (widget-get widget :explicit-choice))
-	current)
+        current val inline-p fun)
     (if explicit
 	(progn
 	  ;; If the user specified the choice for this value,
@@ -2207,15 +2212,26 @@ But if NO-TRUNCATE is non-nil, include them."
 					      widget explicit value)))
 	  (widget-put widget :choice explicit)
 	  (widget-put widget :explicit-choice nil))
+      (setq inline-p (widget-inline-p widget t))
       (while args
 	(setq current (car args)
 	      args (cdr args))
-	(when (widget-apply current :match value)
-	  (widget-put widget :children (list (widget-create-child-value
-					      widget current value)))
-	  (widget-put widget :choice current)
-	  (setq args nil
-		current nil)))
+        (if inline-p
+            (if (widget-get current :inline)
+                (setq val value
+                      fun :match-inline)
+              (setq val (if (consp value)
+                            (car value)
+                          value)
+                    fun :match))
+          (setq val value
+                fun :match))
+        (when (widget-apply current fun val)
+          (widget-put widget :children (list (widget-create-child-value
+                                              widget current val)))
+          (widget-put widget :choice current)
+          (setq args nil
+                current nil)))
       (when current
 	(let ((void (widget-get widget :void)))
 	  (widget-put widget :children (list (widget-create-child-and-convert
@@ -2438,7 +2454,7 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 			     (let ((child (widget-create-child widget type)))
 			       (widget-apply child :deactivate)
 			       child))
-			    ((widget-get type :inline)
+                            ((widget-inline-p type t)
 			     (widget-create-child-value
 			      widget type (cdr chosen)))
 			    (t
@@ -2551,9 +2567,9 @@ Return an alist of (TYPE MATCH)."
   :button-suffix ""
   :button-prefix ""
   :on "(*)"
-  :on-glyph "radio1"
+  :on-glyph "radio-checked"
   :off "( )"
-  :off-glyph "radio0")
+  :off-glyph "radio")
 
 (defun widget-radio-button-notify (widget _child &optional event)
   ;; Tell daddy.
@@ -2721,7 +2737,10 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'insert-button 'push-button
   "An insert button for the `editable-list' widget."
   :tag "INS"
-  :help-echo "Insert a new item into the list at this position."
+  :help-echo (lambda (widget)
+               (if (widget-get (widget-get widget :parent) :last-deleted)
+                   "Insert back the last deleted item from this list, at this position."
+                 "Insert a new item into the list at this position."))
   :action 'widget-insert-button-action)
 
 (defun widget-insert-button-action (widget &optional _event)
@@ -2734,7 +2753,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'delete-button 'push-button
   "A delete button for the `editable-list' widget."
   :tag "DEL"
-  :help-echo "Delete this item from the list."
+  :help-echo "Delete this item from the list, saving it for later reinsertion."
   :action 'widget-delete-button-action)
 
 (defun widget-delete-button-action (widget &optional _event)
@@ -2792,7 +2811,7 @@ Return an alist of (TYPE MATCH)."
 	(if answer
 	    (setq children (cons (widget-editable-list-entry-create
 				  widget
-				  (if (widget-get type :inline)
+                                  (if (widget-inline-p type t)
 				      (car answer)
 				    (car (car answer)))
 				  t)
@@ -2824,9 +2843,18 @@ Return an alist of (TYPE MATCH)."
     (cons found value)))
 
 (defun widget-editable-list-insert-before (widget before)
-  ;; Insert a new child in the list of children.
+  "Insert a new widget as a child of WIDGET.
+
+If there is a recently deleted child, the new widget is that deleted child.
+Otherwise, the new widget is the default child of WIDGET.
+
+The new widget gets inserted at the position of the BEFORE child."
   (save-excursion
     (let ((children (widget-get widget :children))
+          (last-deleted (when-let ((lst (widget-get widget :last-deleted)))
+                          (prog1
+                              (pop lst)
+                            (widget-put widget :last-deleted lst))))
 	  (inhibit-read-only t)
 	  (inhibit-modification-hooks t))
       (cond (before
@@ -2834,7 +2862,11 @@ Return an alist of (TYPE MATCH)."
 	    (t
 	     (goto-char (widget-get widget :value-pos))))
       (let ((child (widget-editable-list-entry-create
-		    widget nil nil)))
+                    widget (and last-deleted
+                                (widget-apply last-deleted
+                                              :value-to-external
+                                              (widget-get last-deleted :value)))
+                    last-deleted)))
 	(when (< (widget-get child :entry-from) (widget-get widget :from))
 	  (set-marker (widget-get widget :from)
 		      (widget-get child :entry-from)))
@@ -2847,6 +2879,15 @@ Return an alist of (TYPE MATCH)."
   (widget-apply widget :notify widget))
 
 (defun widget-editable-list-delete-at (widget child)
+  "Delete the widget CHILD from the known children of widget WIDGET.
+
+Save CHILD into the :last-deleted list, so it can be inserted later."
+  ;; Save the current value of CHILD, to use if the user later inserts the
+  ;; widget.
+  (widget-put child :value (widget-apply child :value-get))
+  (let ((lst (widget-get widget :last-deleted)))
+    (push child lst)
+    (widget-put widget :last-deleted lst))
   ;; Delete child from list of children.
   (save-excursion
     (let ((buttons (copy-sequence (widget-get widget :buttons)))
@@ -2931,7 +2972,8 @@ Return an alist of (TYPE MATCH)."
   "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
   :copy 'widget-types-copy
-  :format ":\n%v"
+  :format (concat (propertize ":" 'display "")
+                  "\n%v")
   :value-create 'widget-group-value-create
   :value-get 'widget-editable-list-value-get
   :default-get 'widget-group-default-get
@@ -2954,7 +2996,7 @@ Return an alist of (TYPE MATCH)."
 	   (insert-char ?\s (widget-get widget :indent)))
       (push (cond ((null answer)
 		   (widget-create-child widget arg))
-		  ((widget-get arg :inline)
+                  ((widget-inline-p arg t)
 		   (widget-create-child-value widget arg (car answer)))
 		  (t
 		   (widget-create-child-value widget arg (car (car answer)))))
@@ -3003,11 +3045,9 @@ The following properties have special meanings for this widget:
   :on "Hide"
   :off-glyph "right"
   :off "Show"
-  :value-create 'widget-visibility-value-create
+  :value-create 'widget-toggle-value-create
   :action 'widget-toggle-action
   :match (lambda (_widget _value) t))
-
-(defalias 'widget-visibility-value-create 'widget-toggle-value-create)
 
 ;;; The `documentation-link' Widget.
 ;;
@@ -3288,7 +3328,7 @@ It reads a file name from an editable text field."
 ;;;	 (file (file-name-nondirectory value))
 ;;;	 (menu-tag (widget-apply widget :menu-tag-get))
 ;;;	 (must-match (widget-get widget :must-match))
-;;;	 (answer (read-file-name (concat menu-tag " (default " value "): ")
+;;;	 (answer (read-file-name (format-prompt menu-tag value)
 ;;;				 dir nil must-match file)))
 ;;;    (widget-value-set widget (abbreviate-file-name answer))
 ;;;    (widget-setup)
@@ -3414,14 +3454,12 @@ It reads a directory name from an editable text field."
 (defvar widget-key-sequence-default-value [ignore]
   "Default value for an empty key sequence.")
 
-(defvar widget-key-sequence-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-field-keymap)
-    (define-key map [(control ?q)] 'widget-key-sequence-read-event)
-    map))
+(defvar-keymap widget-key-sequence-map
+  :parent widget-field-keymap
+  "C-q" #'widget-key-sequence-read-event)
 
 (define-widget 'key-sequence 'restricted-sexp
-  "A key sequence."
+  "A key sequence.  This is obsolete; use the `key' type instead."
   :prompt-value 'widget-field-prompt-value
   :prompt-internal 'widget-symbol-prompt-internal
 ; :prompt-match 'fboundp   ;; What was this good for?  KFS
@@ -3437,14 +3475,16 @@ It reads a directory name from an editable text field."
   :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
   :tag "Key sequence")
 
+;; FIXME: Consider combining this with help--read-key-sequence which
+;; can also read double and triple mouse events.
 (defun widget-key-sequence-read-event (ev)
   (interactive (list
 		(let ((inhibit-quit t) quit-flag)
-		  (read-event "Insert KEY, EVENT, or CODE: "))))
+		  (read-key "Insert KEY, EVENT, or CODE: " t))))
   (let ((ev2 (and (memq 'down (event-modifiers ev))
-		  (read-event)))
-	(tr (and (keymapp function-key-map)
-		 (lookup-key function-key-map (vector ev)))))
+		  (read-key nil t)))
+	(tr (and (keymapp local-function-key-map)
+		 (lookup-key local-function-key-map (vector ev)))))
     (when (and (integerp ev)
 	       (or (and (<= ?0 ev) (< ev (+ ?0 (min 10 read-quoted-char-radix))))
 		   (and (<= ?a (downcase ev))
@@ -3483,6 +3523,31 @@ It reads a directory name from an editable text field."
 	  widget-key-sequence-default-value
 	(read-kbd-macro value))
     value))
+
+
+(defvar widget-key-prompt-value-history nil
+  "History of input to `widget-key-prompt-value'.")
+
+(define-widget 'key 'editable-field
+  "A key sequence."
+  :prompt-value 'widget-field-prompt-value
+  :match #'widget-key-valid-p
+  :format "%{%t%}: %v"
+  :validate 'widget-key-validate
+  :keymap widget-key-sequence-map
+  :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
+  :tag "Key")
+
+(defun widget-key-valid-p (_widget value)
+  "Non-nil if VALUE is a valid value for the key widget WIDGET."
+  (key-valid-p value))
+
+(defun widget-key-validate (widget)
+  (unless (and (stringp (widget-value widget))
+               (key-valid-p (widget-value widget)))
+    (widget-put widget :error (format "Invalid key: %S"
+                                      (widget-value widget)))
+    widget))
 
 
 (define-widget 'sexp 'editable-field
@@ -3559,8 +3624,31 @@ To use this type, you must define :match or :match-alternatives."
   :match 'widget-restricted-sexp-match
   :value-to-internal (lambda (widget value)
 		       (if (widget-apply widget :match value)
-			   (prin1-to-string value)
-			 value)))
+                           (widget-sexp-value-to-internal widget value)
+                         value))
+  :value-to-external (lambda (widget value)
+                       ;; We expect VALUE to be a string, so we can convert it
+                       ;; into the external format just by `read'ing it.
+                       ;; But for a restricted-sexp widget with a bad default
+                       ;; value, we might end up calling read with a nil
+                       ;; argument, resulting in an undesired prompt to the
+                       ;; user.  A bad default value is not always a big
+                       ;; problem, but might end up in a messed up buffer,
+                       ;; so display a warning here.  (Bug#25152)
+                       (unless (stringp value)
+                         (display-warning
+                          'widget-bad-default-value
+                          (format-message
+                           "\nA widget of type %S has a bad default value.
+value: %S
+match function: %S
+match-alternatives: %S"
+                           (widget-type widget)
+                           value
+                           (widget-get widget :match)
+                           (widget-get widget :match-alternatives))
+                          :warning))
+                       (read value)))
 
 (defun widget-restricted-sexp-match (widget value)
   (let ((alternatives (widget-get widget :match-alternatives))
@@ -3581,6 +3669,13 @@ To use this type, you must define :match or :match-alternatives."
   :value 0
   :type-error "This field should contain an integer"
   :match-alternatives '(integerp))
+
+(define-widget 'natnum 'restricted-sexp
+  "A nonnegative integer."
+  :tag "Integer (positive or zero)"
+  :value 0
+  :type-error "This field should contain a nonnegative integer"
+  :match-alternatives '(natnump))
 
 (define-widget 'number 'restricted-sexp
   "A number (floating point or integer)."
@@ -3723,7 +3818,7 @@ thus allowing recursive data structures to be described.
 The :type parameter takes the same arguments as the defcustom
 parameter with the same name.
 
-Most composite widgets, i.e. widgets containing other widgets, does
+Most composite widgets, i.e. widgets containing other widgets, do
 not allow recursion.  That is, when you define a new widget type, none
 of the inferior widgets may be of the same type you are currently
 defining.
@@ -3852,12 +3947,17 @@ example:
     `(cons :format "Key: %v" ,key-type ,value-type)))
 
 (define-widget 'choice 'menu-choice
-  "A union of several sexp types."
+  "A union of several sexp types.
+
+If one of the choices of a choice widget has an :inline t property,
+then the choice widget can act as an inline widget on its own if the
+current choice is inline."
   :tag "Choice"
   :format "%{%t%}: %[Value Menu%] %v"
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
-  :prompt-value 'widget-choice-prompt-value)
+  :prompt-value 'widget-choice-prompt-value
+  :inline-bubbles-p #'widget-choice-inline-bubbles-p)
 
 (defun widget-choice-prompt-value (widget prompt value _unbound)
   "Make a choice."
@@ -3900,6 +4000,20 @@ example:
     (if current
 	(widget-prompt-value current prompt nil t)
       value)))
+
+(defun widget-choice-inline-bubbles-p (widget)
+  "Non-nil if the choice WIDGET has at least one choice that is inline.
+This is used when matching values, because a choice widget needs to
+match a value inline rather than just match it if at least one of its choices
+is inline."
+  (let ((args (widget-get widget :args))
+        cur found)
+    (while (and args (not found))
+      (setq cur (car args)
+            args (cdr args)
+            found (widget-get cur :inline)))
+    found))
+
 
 (define-widget 'radio 'radio-button-choice
   "A union of several sexp types."
@@ -3929,21 +4043,26 @@ example:
 
 (defun widget-boolean-prompt-value (_widget prompt _value _unbound)
   ;; Toggle a boolean.
-  (y-or-n-p prompt))
+  ;; Say what "y" means.  A la
+  ;; "Set customized value for bar to true: (y or n)"
+  (y-or-n-p (concat (replace-regexp-in-string ": ?\\'" "" prompt)
+                    " true: ")))
 
 ;;; The `color' Widget.
 
-;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%{%t%}: %v (%{sample%})\n"
   :value-create 'widget-color-value-create
-  :size 10
+  :size (1+ (apply #'max 13 ; Longest RGB hex string.
+                   (mapcar #'length (defined-colors))))
   :tag "Color"
   :value "black"
-  :completions (or facemenu-color-alist (defined-colors))
+  :completions (defined-colors)
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
+  :match #'widget-color-match
+  :validate #'widget-color-validate
   :action 'widget-color-action)
 
 (defun widget-color-value-create (widget)
@@ -3954,7 +4073,10 @@ example:
    :tag " Choose " :action 'widget-color--choose-action)
   (widget-insert " "))
 
+(declare-function list-colors-display "facemenu")
+
 (defun widget-color--choose-action (widget &optional _event)
+  (require 'facemenu)
   (list-colors-display
    nil nil
    (let ((cbuf (current-buffer))
@@ -3977,8 +4099,11 @@ example:
 	(list (cons 'foreground-color value))
       'default)))
 
+(declare-function facemenu-read-color "facemenu")
+
 (defun widget-color-action (widget &optional event)
   "Prompt for a color."
+  (require 'facemenu)
   (let* ((tag (widget-apply widget :menu-tag-get))
 	 (prompt (concat tag ": "))
 	 (answer (facemenu-read-color prompt)))
@@ -3992,6 +4117,19 @@ example:
   (overlay-put (widget-get widget :sample-overlay)
 	       'face (widget-apply widget :sample-face-get))
   (widget-default-notify widget child event))
+
+(defun widget-color-match (_widget value)
+  "Non-nil if VALUE is a defined color or a RGB hex string."
+  (and (stringp value)
+       (or (color-defined-p value)
+           (string-match-p "^#\\(?:[[:xdigit:]]\\{3\\}\\)\\{1,4\\}$" value))))
+
+(defun widget-color-validate (widget)
+  "Check that WIDGET's value is a valid color."
+  (let ((value (widget-value widget)))
+    (unless (widget-color-match widget value)
+      (widget-put widget :error (format "Invalid color: %S" value))
+      widget)))
 
 ;;; The Help Echo
 
@@ -4003,7 +4141,18 @@ example:
 	(setq help-echo (funcall help-echo widget)))
     (if help-echo (message "%s" (eval help-echo)))))
 
-;;; The End:
+(define-obsolete-function-alias 'widget-sublist #'seq-subseq "28.1")
+(define-obsolete-function-alias 'widget-visibility-value-create
+  #'widget-toggle-value-create "29.1")
+
+;;; Buffer predicates.
+(define-widget 'buffer-predicate 'lazy
+  "A buffer predicate."
+  :tag "Buffer predicate"
+  :type '(choice (const :tag "All buffers" t)
+                 (const :tag "No buffers" nil)
+                 ;; FIXME: This should be expanded somehow.
+                 sexp))
 
 (provide 'wid-edit)
 

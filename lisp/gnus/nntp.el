@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -36,6 +36,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -216,25 +217,6 @@ then use this hook to rsh to the remote machine and start a proxy NNTP
 server there that you can connect to.  See also
 `nntp-open-connection-function'")
 
-(defcustom nntp-authinfo-file "~/.authinfo"
-  ".netrc-like file that holds nntp authinfo passwords."
-  :type
-  '(choice file
-	   (repeat :tag "Entries"
-		   :menu-tag "Inline"
-		   (list :format "%v"
-			 :value ("" ("login" . "") ("password" . ""))
-			 (string :tag "Host")
-			 (checklist :inline t
-				    (cons :format "%v"
-					  (const :format "" "login")
-					  (string :format "Login: %v"))
-				    (cons :format "%v"
-					  (const :format "" "password")
-					  (string :format "Password: %v")))))))
-
-(make-obsolete 'nntp-authinfo-file nil "Emacs 24.1")
-
 
 
 (defvoo nntp-connection-timeout nil
@@ -277,6 +259,7 @@ update their active files often, this can help.")
 (defvoo nntp-connection-alist nil)
 (defvoo nntp-status-string "")
 (defconst nntp-version "nntp 5.0")
+(make-obsolete-variable 'nntp-version 'emacs-version "29.1")
 (defvoo nntp-inhibit-erase nil)
 (defvoo nntp-inhibit-output nil)
 
@@ -305,7 +288,7 @@ backend doesn't catch this error.")
     (nntp-record-command string))
   (process-send-string process (concat string nntp-end-of-line))
   (or (memq (process-status process) '(open run))
-      (nntp-report "Server closed connection")))
+      (nntp-report "NNTP server %S closed connection" nntp-address)))
 
 (defun nntp-record-command (string)
   "Record the command STRING."
@@ -331,20 +314,18 @@ retried once before actually displaying the error report."
     (when nntp-record-commands
       (nntp-record-command "*** CALLED nntp-report ***"))
 
-    (nnheader-report 'nntp args)
+    (nnheader-report 'nntp args)))
 
-    (apply #'error args)))
-
-(defmacro nntp-copy-to-buffer (buffer start end)
+(defsubst nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
-  `(let ((string (buffer-substring ,start ,end)))
-     (with-current-buffer ,buffer
+  (let ((string (buffer-substring start end)))
+     (with-current-buffer buffer
        (erase-buffer)
        (insert string)
        (goto-char (point-min))
        nil)))
 
-(defsubst nntp-wait-for (process wait-for buffer &optional decode discard)
+(defun nntp-wait-for (process wait-for buffer &optional decode discard)
   "Wait for WAIT-FOR to arrive from PROCESS."
 
   (with-current-buffer (process-buffer process)
@@ -370,7 +351,7 @@ retried once before actually displaying the error report."
 	    (nntp-snarf-error-message)
 	    nil))
 	 ((not (memq (process-status process) '(open run)))
-	  (nntp-report "Server closed connection"))
+	  (nntp-report "NNTP server %S closed connection" nntp-address))
 	 (t
 	  (goto-char (point-max))
 	  (let ((limit (point-min))
@@ -436,7 +417,7 @@ retried once before actually displaying the error report."
     (when process
       (process-buffer process))))
 
-(defsubst nntp-retrieve-data (command address _port buffer
+(defun nntp-retrieve-data (command address _port buffer
 				      &optional wait-for callback decode)
   "Use COMMAND to retrieve data into BUFFER from PORT on ADDRESS."
   (let ((process (or (nntp-find-connection buffer)
@@ -469,7 +450,7 @@ retried once before actually displaying the error report."
              nil)))
       (nnheader-report 'nntp "Couldn't open connection to %s" address))))
 
-(defsubst nntp-send-command (wait-for &rest strings)
+(defun nntp-send-command (wait-for &rest strings)
   "Send STRINGS to server and wait until WAIT-FOR returns."
   (when (not (or nnheader-callback-function
                  nntp-inhibit-output))
@@ -499,7 +480,7 @@ retried once before actually displaying the error report."
 	      (goto-char pos)
 	      (if (looking-at (regexp-quote command))
 		  (delete-region pos (progn (forward-line 1)
-					    (point-at-bol)))))))
+                                            (line-beginning-position)))))))
       (nnheader-report 'nntp "Couldn't open connection to %s."
 		       nntp-address))))
 
@@ -522,7 +503,7 @@ retried once before actually displaying the error report."
 	      (goto-char pos)
 	      (if (looking-at (regexp-quote command))
 		  (delete-region pos (progn (forward-line 1)
-					    (point-at-bol)))))))
+                                            (line-beginning-position)))))))
       (nnheader-report 'nntp "Couldn't open connection to %s."
 		       nntp-address))))
 
@@ -547,7 +528,8 @@ retried once before actually displaying the error report."
 	    (with-current-buffer buffer
 	      (goto-char pos)
 	      (if (looking-at (regexp-quote command))
-		  (delete-region pos (progn (forward-line 1) (point-at-bol))))
+                  (delete-region pos (progn (forward-line 1)
+                                            (line-beginning-position))))
 	      )))
       (nnheader-report 'nntp "Couldn't open connection to %s."
 		       nntp-address))))
@@ -600,7 +582,7 @@ retried once before actually displaying the error report."
     nil)))
 
 (defun nntp-with-open-group-function (group server connectionless bodyfun)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated
@@ -651,7 +633,7 @@ command whose response triggered the error."
     nntp-with-open-group-internal))
 
 (defmacro nntp-with-open-group (group server &optional connectionless &rest forms)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated
@@ -1153,11 +1135,6 @@ It will make innd servers spawn an nnrpd process to allow actual article
 reading."
   (nntp-send-command "^.*\n" "MODE READER"))
 
-(declare-function netrc-parse "netrc" (&optional file))
-(declare-function netrc-machine "netrc"
-		  (list machine &optional port defaultport))
-(declare-function netrc-get "netrc" (alist type))
-
 (defun nntp-send-authinfo (&optional send-if-force)
   "Send the AUTHINFO to the nntp server.
 It will look in the \"~/.authinfo\" file for matching entries.  If
@@ -1166,33 +1143,16 @@ and a password.
 
 If SEND-IF-FORCE, only send authinfo to the server if the
 .authinfo file has the FORCE token."
-  (require 'netrc)
-  (let* ((list (netrc-parse nntp-authinfo-file))
-	 (alist (netrc-machine list nntp-address "nntp"))
-         (auth-info
+  (let* ((auth-info
           (nth 0 (auth-source-search
 		  :max 1
 		  :host (list nntp-address (nnoo-current-server 'nntp))
 		  :port `("119" "nntp" ,(format "%s" nntp-port-number)
 			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
-         (auth-force (plist-get auth-info :force))
-         (auth-passwd (plist-get auth-info :secret))
-         (auth-passwd (if (functionp auth-passwd)
-                          (funcall auth-passwd)
-                        auth-passwd))
-	 (force (or (netrc-get alist "force")
-                    nntp-authinfo-force
-                    auth-force))
-	 (user (or
-		;; this is preferred to netrc-*
-		auth-user
-		(netrc-get alist "login")
-		nntp-authinfo-user))
-	 (passwd (or
-		  ;; this is preferred to netrc-*
-		  auth-passwd
-		  (netrc-get alist "password"))))
+         (passwd (auth-info-password auth-info))
+	 (force (or nntp-authinfo-force (plist-get auth-info :force)))
+	 (user (or auth-user nntp-authinfo-user)))
     (when (or (not send-if-force)
 	      force)
       (unless user
@@ -1209,7 +1169,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			  (read-passwd (format "NNTP (%s@%s) password: "
 					       user nntp-address)))))))
 	  (if (not result)
-	      (signal 'nntp-authinfo-rejected "Password rejected")
+	      (error "Password rejected")
 	    result))))))
 
 ;;; Internal functions.
@@ -1229,6 +1189,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (generate-new-buffer
        (format " *server %s %s %s*"
                nntp-address nntp-port-number buffer))
+    (gnus-add-buffer)
     (mm-disable-multibyte)
     (setq-local after-change-functions nil
 		nntp-process-wait-for nil
@@ -1330,7 +1291,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
     (dolist (entry nntp-server-action-alist)
       (when (string-match (car entry) nntp-server-type)
 	(if (not (functionp (cadr entry)))
-	    (eval (cadr entry))
+	    (eval (cadr entry) t)
 	  (funcall (cadr entry)))))))
 
 (defun nntp-async-wait (process wait-for buffer decode callback)
@@ -1435,7 +1396,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       ;; be the process's former output buffer (i.e. now killed)
       (or (and process
 	       (memq (process-status process) '(open run)))
-          (nntp-report "Server closed connection")))))
+          (nntp-report "NNTP server %S closed connection" nntp-address)))))
 
 (defun nntp-accept-response ()
   "Wait for output from the process that outputs to BUFFER."
@@ -1454,7 +1415,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (when group
     (let ((entry (nntp-find-connection-entry nntp-server-buffer)))
       (cond ((not entry)
-             (nntp-report "Server closed connection"))
+             (nntp-report "NNTP server %S closed connection" nntp-address))
             ((not (equal group (caddr entry)))
              (with-current-buffer (process-buffer (car entry))
                (erase-buffer)
@@ -1697,7 +1658,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		   ;; article comes from that group, I'd say.
 		   ((and (setq newsgroups
 			       (mail-fetch-field "newsgroups"))
-			 (not (string-match "," newsgroups)))
+			 (not (string-search "," newsgroups)))
 		    newsgroups)
 		   ;; If there is more than one group in the
 		   ;; Newsgroups header, then the Xref header should
@@ -1725,7 +1686,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		  number (string-to-number (match-string 2 xref))))
 	   ((and (setq newsgroups
 		       (mail-fetch-field "newsgroups"))
-		 (not (string-match "," newsgroups)))
+		 (not (string-search "," newsgroups)))
 	    (setq group newsgroups))
 	   (group)
 	   (t (setq group ""))))
@@ -1751,7 +1712,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 ;; ==========================================================================
 
 (defvoo nntp-open-telnet-envuser nil
-  "If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
+  "If non-nil, telnet session supports the ENVIRON option.
+Don't prompt for login name.  This applies to both client and server.")
 
 (defvoo nntp-telnet-shell-prompt "bash\\|[$>] *\r?$"
   "Regular expression to match the shell prompt on the remote machine.")

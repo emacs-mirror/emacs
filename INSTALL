@@ -1,14 +1,16 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2020 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2023 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
 
-This file contains general information on building GNU Emacs.
-For more information specific to the MS-Windows, GNUstep/macOS, and
-MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
-msdos/INSTALL.  For information about building from a repository checkout
-(rather than a release), also read the file INSTALL.REPO.
+This file contains general information on building GNU Emacs.  For
+more information specific to the MS-Windows, GNUstep/macOS, and MS-DOS
+ports, also read the files nt/INSTALL, nextstep/INSTALL, and
+msdos/INSTALL.
+
+For information about building from a Git checkout (rather than an
+Emacs release), read the INSTALL.REPO file first.
 
 
 BASIC INSTALLATION
@@ -113,23 +115,30 @@ sections if you need to.
 
                 make help
 
+
 ADDITIONAL DISTRIBUTION FILES
 
 * Complex Text Layout support libraries
 
-On GNU and Unix systems, Emacs needs the optional libraries "m17n-db",
-"libm17n-flt", "libotf" to correctly display such complex scripts as
-Indic and Khmer, and also for scripts that require Arabic shaping
-support (Arabic and Farsi).  On some systems, particularly GNU/Linux,
-these libraries may be already present or available as additional
-packages.  Note that if there is a separate 'dev' or 'devel' package,
-for use at compilation time rather than run time, you will need that
-as well as the corresponding run time package; typically the dev
-package will contain header files and a library archive.  Otherwise,
-you can download the libraries from <https://www.nongnu.org/m17n/>.
+On GNU and Unix systems, Emacs needs optional libraries to correctly
+display such complex scripts as Indic and Khmer, and also for scripts
+that require Arabic shaping support (Arabic and Farsi).  If the
+HarfBuzz library is installed, Emacs will build with it and use it for
+this purpose.  HarfBuzz is the preferred shaping engine, both on Posix
+hosts and on MS-Windows, so we recommend installing it before building
+Emacs.  The alternative for GNU/Linux and Posix systems is to use the
+"m17n-db", "libm17n-flt", and "libotf" libraries.  (On some systems,
+particularly GNU/Linux, these libraries may be already present or
+available as additional packages.)  Note that if there is a separate
+'dev' or 'devel' package, for use at compilation time rather than run
+time, you will need that as well as the corresponding run time
+package; typically the dev package will contain header files and a
+library archive.  On MS-Windows, if HarfBuzz is not available, Emacs
+will use the Uniscribe shaping engine that is part of the OS.
 
 Note that Emacs cannot support complex scripts on a TTY, unless the
-terminal includes such a support.
+terminal includes such a support.  However, most modern terminal
+emulators, such as xterm, do support such scripts.
 
 * intlfonts-VERSION.tar.gz
 
@@ -147,7 +156,9 @@ lisp/ps-mule.el defines the *.bdf font files required for printing
 each character set.
 
 The intlfonts distribution contains its own installation instructions,
-in the intlfonts/README file.
+in the intlfonts/README file.  See also the Emacs Frequently Asked
+Questions info pages "(efaq) How to add fonts" for installation
+instructions.
 
 * Image support libraries
 
@@ -176,8 +187,9 @@ X11 is being used.
     libz (for PNG):   https://www.zlib.net/
   X libjpeg for JPEG: https://www.ijg.org/
   X libtiff for TIFF: http://www.simplesystems.org/libtiff/
-  X libgif for GIF:   http://giflib.sourceforge.net/
+  X libgif for GIF:   https://giflib.sourceforge.net/
     librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
+    libwebp for WebP: https://developers.google.com/speed/webp/
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -211,9 +223,43 @@ GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
 like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
-eg 'emacs25').  On Red Hat-based systems, the corresponding command is
+e.g. 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
+On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.
+
+* Alternative window systems
+
+If you want to use Emacs on one of the alternative window systems
+available on GNU/Linux and some Unix systems, such as Wayland or
+Broadway, you can build the PGTK ("Pure GTK") port of Emacs, which
+utilizes the GTK+ toolkit to support those window systems.  To this
+end, invoke the configure script with the '--with-pgtk' option, like
+this:
+
+	./configure --with-pgtk
+
+This build is only supported with GTK+ version 3, and it is an error
+to specify any other X-specific configuration option when PGTK is
+enabled.
+
+If you use exclusively X, do not use the PGTK port.  There are a
+number of respects in which the regular --with-x-toolkit=gtk build
+works better.  The PGTK port should not be considered a simple upgrade
+from --with-x-toolkit=gtk.
+
+With the PGTK build, you will be able to switch between running Emacs
+on X, Wayland and Broadway using the 'GDK_BACKEND' environment
+variable.  GTK+ should automatically detect and use the correct value
+for your system, but you can also specify it manually.  For example,
+to force GTK+ to run under Broadway, start Emacs like this:
+
+	GDK_BACKEND=broadway emacs ...
+
+(where '...' denotes any further options you may want to pass to Emacs).
+
+The GNUstep build also supports the Wayland window system.  If that is
+what you want, see nextstep/INSTALL.
 
 DETAILED BUILDING AND INSTALLATION:
 
@@ -302,6 +348,7 @@ or more of these options:
   --without-gif          for GIF image support
   --without-png          for PNG image support
   --without-rsvg         for SVG image support
+  --without-webp         for WebP image support
 
 Although ImageMagick support is disabled by default due to security
 and stability concerns, you can enable it with --with-imagemagick.
@@ -311,8 +358,15 @@ Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --disable-largefile to omit support for files larger than 2GB on
-systems which support that.
+Use --without-xinput2 to disable the use of version 2 of the X Input
+Extension.  This disables support for touchscreens, pinch gestures,
+and scroll wheels that report scroll deltas at pixel-level precision.
+
+Use --disable-largefile to omit support for files larger than 2GB, and
+--disable-year2038 to omit support for timestamps past the year 2038,
+on systems which allow omitting such support.  This may help when
+linking Emacs to a library with an ABI that requires a particular
+width for off_t or for time_t.
 
 Use --without-sound to disable sound support.
 

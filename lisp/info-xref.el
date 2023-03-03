@@ -1,6 +1,6 @@
 ;;; info-xref.el --- check external references in an Info document -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
@@ -95,7 +95,7 @@ about local variables or possible weirdness in a major mode.
 `lm-with-file' does a similar thing, but it sets
 `emacs-lisp-mode' which is not wanted here."
 
-  (declare (debug t) (indent 1))
+  (declare (debug (form def-body)) (indent 1))
   `(let* ((info-xref-with-file--filename ,filename)
           (info-xref-with-file--body     (lambda () ,@body))
           (info-xref-with-file--existing
@@ -242,18 +242,18 @@ buffer's line and column of point."
                                        node t t))
 
   (if (not (string-match "\\`([^)]*)" node))
-      (info-xref-output-error "no `(file)' part at start of node: %s\n" node)
+      (info-xref-output-error "No `(file)' part at start of node: %s\n" node)
     (let ((file (match-string 0 node)))
 
       (if (string-equal "()" file)
-          (info-xref-output-error "empty filename part: %s" node)
+          (info-xref-output-error "Empty filename part: %s" node)
 
         ;; see if the file exists, if haven't looked before
         (unless (assoc file info-xref-xfile-alist)
           (let ((found (info-xref-goto-node-p file)))
             (push (cons file found) info-xref-xfile-alist)
             (unless found
-              (info-xref-output-error "not available to check: %s\n    (this reported once per file)" file))))
+              (info-xref-output-error "Not available to check: %s\n    (this reported once per file)" file))))
 
         ;; if the file exists, try the node
         (cond ((not (cdr (assoc file info-xref-xfile-alist)))
@@ -262,7 +262,7 @@ buffer's line and column of point."
                (cl-incf info-xref-good))
               (t
                (cl-incf info-xref-bad)
-               (info-xref-output-error "no such node: %s" node)))))))
+               (info-xref-output-error "No such node: %s" node)))))))
 
 
 ;;-----------------------------------------------------------------------------
@@ -547,7 +547,7 @@ the sources handy."
 
              ;; skip nodes with "%" as probably `format' strings such as in
              ;; info-look.el
-             (unless (string-match "%" node)
+             (unless (string-search "%" node)
 
                ;; "(emacs)" is the default manual for docstring hyperlinks,
                ;; per `help-make-xrefs'

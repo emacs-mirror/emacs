@@ -1,6 +1,6 @@
 ;;; text-property-search-tests.el --- Testing text-property-search  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords:
@@ -152,6 +152,23 @@
    (text-property-search-backward 'face 'italic nil)
    46 57 nil
    (point-max)))
+
+
+;;;; Position after search.
+
+(ert-deftest text-property-search-forward/point-at-beginning ()
+  (with-temp-buffer
+    (insert (concat "1234" (propertize "567" 'x t) "890"))
+    (goto-char (point-min))
+    (text-property-search-forward 'x t)
+    (should (= (point) 5))))
+
+(ert-deftest text-property-search-backward/point-at-end ()
+  (with-temp-buffer
+    (insert (concat "1234" (propertize "567" 'x t) "890"))
+    (goto-char (point-max))
+    (text-property-search-backward 'x t)
+    (should (= (point) 8))))
 
 (provide 'text-property-search-tests)
 

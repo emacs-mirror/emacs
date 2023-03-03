@@ -1,6 +1,6 @@
-;;; icon.el --- mode for editing Icon code
+;;; icon.el --- mode for editing Icon code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
@@ -31,53 +31,47 @@
   "Abbrev table in use in Icon-mode buffers.")
 (define-abbrev-table 'icon-mode-abbrev-table ())
 
-(defvar icon-mode-map ()
-  "Keymap used in Icon mode.")
-(if icon-mode-map
-    ()
-  (let ((map (make-sparse-keymap "Icon")))
-    (setq icon-mode-map (make-sparse-keymap))
-    (define-key icon-mode-map "{" 'electric-icon-brace)
-    (define-key icon-mode-map "}" 'electric-icon-brace)
-    (define-key icon-mode-map "\e\C-h" 'mark-icon-function)
-    (define-key icon-mode-map "\e\C-a" 'beginning-of-icon-defun)
-    (define-key icon-mode-map "\e\C-e" 'end-of-icon-defun)
-    (define-key icon-mode-map "\e\C-q" 'indent-icon-exp)
-    (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
+(defvar-keymap icon-mode-map
+  :doc "Keymap used in Icon mode."
+  :name "Icon"
+  "{"     #'electric-icon-brace
+  "}"     #'electric-icon-brace
+  "C-M-h" #'mark-icon-function
+  "C-M-a" #'beginning-of-icon-defun
+  "C-M-e" #'end-of-icon-defun
+  "C-M-q" #'indent-icon-exp
+  "DEL"   #'backward-delete-char-untabify)
 
-    (define-key icon-mode-map [menu-bar] (make-sparse-keymap "Icon"))
-    (define-key icon-mode-map [menu-bar icon]
-      (cons "Icon" map))
-    (define-key map [beginning-of-icon-defun] '("Beginning of function" . beginning-of-icon-defun))
-    (define-key map [end-of-icon-defun] '("End of function" . end-of-icon-defun))
-    (define-key map [comment-region] '("Comment Out Region" . comment-region))
-    (define-key map [indent-region] '("Indent Region" . indent-region))
-    (define-key map [indent-line] '("Indent Line" . icon-indent-command))
-    (put 'eval-region 'menu-enable 'mark-active)
-    (put 'comment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)))
+(easy-menu-define icon-mode-menu icon-mode-map
+  "Menu for Icon mode."
+  '("Icon"
+    ["Beginning of function" beginning-of-icon-defun]
+    ["Comment Out Region" comment-region
+     :enable mark-active]
+    ["End of function" end-of-icon-defun]
+    ["Indent Line" icon-indent-command]
+    ["Indent Region" indent-region
+     :enable mark-active]))
 
-(defvar icon-mode-syntax-table nil
+(defvar icon-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?# "<" table)
+    (modify-syntax-entry ?\n ">" table)
+    (modify-syntax-entry ?$ "." table)
+    (modify-syntax-entry ?/ "." table)
+    (modify-syntax-entry ?* "." table)
+    (modify-syntax-entry ?+ "." table)
+    (modify-syntax-entry ?- "." table)
+    (modify-syntax-entry ?= "." table)
+    (modify-syntax-entry ?% "." table)
+    (modify-syntax-entry ?< "." table)
+    (modify-syntax-entry ?> "." table)
+    (modify-syntax-entry ?& "." table)
+    (modify-syntax-entry ?| "." table)
+    (modify-syntax-entry ?\' "\"" table)
+    table)
   "Syntax table in use in Icon-mode buffers.")
-
-(if icon-mode-syntax-table
-    ()
-  (setq icon-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\ "\\" icon-mode-syntax-table)
-  (modify-syntax-entry ?# "<" icon-mode-syntax-table)
-  (modify-syntax-entry ?\n ">" icon-mode-syntax-table)
-  (modify-syntax-entry ?$ "." icon-mode-syntax-table)
-  (modify-syntax-entry ?/ "." icon-mode-syntax-table)
-  (modify-syntax-entry ?* "." icon-mode-syntax-table)
-  (modify-syntax-entry ?+ "." icon-mode-syntax-table)
-  (modify-syntax-entry ?- "." icon-mode-syntax-table)
-  (modify-syntax-entry ?= "." icon-mode-syntax-table)
-  (modify-syntax-entry ?% "." icon-mode-syntax-table)
-  (modify-syntax-entry ?< "." icon-mode-syntax-table)
-  (modify-syntax-entry ?> "." icon-mode-syntax-table)
-  (modify-syntax-entry ?& "." icon-mode-syntax-table)
-  (modify-syntax-entry ?| "." icon-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"" icon-mode-syntax-table))
 
 (defgroup icon nil
   "Mode for editing Icon code."
@@ -86,42 +80,35 @@
 
 (defcustom icon-indent-level 4
   "Indentation of Icon statements with respect to containing block."
-  :type 'integer
-  :group 'icon)
+  :type 'integer)
 
 (defcustom icon-brace-imaginary-offset 0
   "Imagined indentation of an Icon open brace that actually follows a statement."
-  :type 'integer
-  :group 'icon)
+  :type 'integer)
 
 (defcustom icon-brace-offset 0
   "Extra indentation for braces, compared with other text in same context."
-  :type 'integer
-  :group 'icon)
+  :type 'integer)
 
 (defcustom icon-continued-statement-offset 4
   "Extra indent for Icon lines not starting new statements."
-  :type 'integer
-  :group 'icon)
+  :type 'integer)
 
 (defcustom icon-continued-brace-offset 0
   "Extra indent for Icon substatements that start with open-braces.
 This is in addition to `icon-continued-statement-offset'."
-  :type 'integer
-  :group 'icon)
+  :type 'integer)
 
 (defcustom icon-auto-newline nil
   "Non-nil means automatically newline before and after braces Icon code.
 This applies when braces are inserted."
-  :type 'boolean
-  :group 'icon)
+  :type 'boolean)
 
 (defcustom icon-tab-always-indent t
   "Non-nil means TAB in Icon mode should always reindent the current line.
 It will then reindent, regardless of where in the line point is
 when the TAB command is used."
-  :type 'boolean
-  :group 'icon)
+  :type 'boolean)
 
 (defvar icon-imenu-generic-expression
       '((nil "^[ \t]*procedure[ \t]+\\(\\sw+\\)[ \t]*("  1))
@@ -163,25 +150,22 @@ Variables controlling indentation style:
 Turning on Icon mode calls the value of the variable `icon-mode-hook'
 with no args, if that value is non-nil."
   :abbrev-table icon-mode-abbrev-table
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'indent-line-function) #'icon-indent-line)
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "# *")
-  (set (make-local-variable 'comment-indent-function) 'icon-comment-indent)
-  (set (make-local-variable 'indent-line-function) 'icon-indent-line)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local indent-line-function #'icon-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-start-skip "# *")
+  (setq-local comment-indent-function 'icon-comment-indent)
+  (setq-local indent-line-function 'icon-indent-line)
   ;; font-lock support
-  (set (make-local-variable 'font-lock-defaults)
-       '((icon-font-lock-keywords
-          icon-font-lock-keywords-1 icon-font-lock-keywords-2)
-         nil nil ((?_ . "w")) beginning-of-defun
-         ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
-         ;;(font-lock-comment-start-regexp . "#")
-         (font-lock-mark-block-function . mark-defun)))
+  (setq-local font-lock-defaults
+              '((icon-font-lock-keywords
+                 icon-font-lock-keywords-1 icon-font-lock-keywords-2)
+                nil nil ((?_ . "w")) beginning-of-defun
+                (font-lock-mark-block-function . mark-defun)))
   ;; imenu support
-  (set (make-local-variable 'imenu-generic-expression)
-       icon-imenu-generic-expression)
+  (setq-local imenu-generic-expression icon-imenu-generic-expression)
   ;; hideshow support
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
   (unless (assq 'icon-mode hs-special-modes-alist)
@@ -210,12 +194,11 @@ with no args, if that value is non-nil."
 	(progn
 	  (insert last-command-event)
 	  (icon-indent-line)
-	  (if icon-auto-newline
-	      (progn
-		(newline)
-		;; (newline) may have done auto-fill
-		(setq insertpos (- (point) 2))
-		(icon-indent-line)))
+          (when icon-auto-newline
+            (newline)
+            ;; (newline) may have done auto-fill
+            (setq insertpos (- (point) 2))
+            (icon-indent-line))
 	  (save-excursion
 	    (if insertpos (goto-char (1+ insertpos)))
 	    (delete-char -1))))

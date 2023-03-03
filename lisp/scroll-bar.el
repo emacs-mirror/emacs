@@ -1,6 +1,6 @@
-;;; scroll-bar.el --- window system-independent scroll bar support
+;;; scroll-bar.el --- window system-independent scroll bar support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
@@ -132,8 +132,11 @@ Setting the variable with a customization buffer also takes effect."
 (define-minor-mode scroll-bar-mode
   "Toggle vertical scroll bars on all frames (Scroll Bar mode).
 
-This command applies to all frames that exist and frames to be
-created in the future."
+This command applies to all frames that exist, as well as new
+frames to be created in the future.  This is done by altering the
+frame parameters, so if you (re-)set `default-frame-alist' after
+toggling the scroll bars on or off with this command, the scroll
+bars may reappear on new frames."
   :variable ((get-scroll-bar-mode)
              . (lambda (v) (set-scroll-bar-mode
 			    (if v (or previous-scroll-bar-mode
@@ -387,7 +390,7 @@ EVENT should be a scroll bar click."
 	(setq point-before-scroll before-scroll)))))
 
 
-;;; Tookit scroll bars.
+;;; Toolkit scroll bars.
 
 (defun scroll-bar-toolkit-scroll (event)
   "Handle event EVENT on vertical scroll bar."

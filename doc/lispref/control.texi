@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
@@ -294,6 +294,48 @@ For example:
 @end group
 @end example
 
+It can be convenient to bind variables in conjunction with using a
+conditional.  It's often the case that you compute a value, and then
+want to do something with that value if it's non-@code{nil}.  The
+straightforward way to do that is to just write, for instance:
+
+@example
+(let ((result1 (do-computation)))
+  (when result1
+    (let ((result2 (do-more result1)))
+      (when result2
+        (do-something result2)))))
+@end example
+
+Since this is a very common pattern, Emacs provides a number of macros
+to make this easier and more readable.  The above can be written the
+following way instead:
+
+@example
+(when-let ((result1 (do-computation))
+           (result2 (do-more result1)))
+  (do-something result2))
+@end example
+
+There's a number of variations on this theme, and they're briefly
+described below.
+
+@defmac if-let spec then-form else-forms...
+Evaluate each binding in @var{spec} in turn, like in @code{let*}
+(@pxref{Local Variables}, stopping if a binding value is @code{nil}.
+If all are non-@code{nil}, return the value of @var{then-form},
+otherwise the last form in @var{else-forms}.
+@end defmac
+
+@defmac when-let spec then-forms...
+Like @code{if-let}, but without @var{else-forms}.
+@end defmac
+
+@defmac while-let spec then-forms...
+Like @code{when-let}, but repeat until a binding in @var{spec} is
+@code{nil}.  The return value is always @code{nil}.
+@end defmac
+
 @node Combining Conditions
 @section Constructs for Combining Conditions
 @cindex combining conditions
@@ -525,7 +567,7 @@ core pattern can have the following forms:
 
 @table @code
 
-@item _
+@item _@r{ (underscore)}
 Matches any @var{expval}.
 This is also known as @dfn{don't care} or @dfn{wildcard}.
 
@@ -555,10 +597,21 @@ Two symbols to avoid are @code{t}, which behaves like @code{_}
 Likewise, it makes no sense to bind keyword symbols
 (@pxref{Constant Variables}).
 
+@item (cl-type @var{type})
+Matches if @var{expval} is of type @var{type}, which is a type
+descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
+Lisp Extensions}).  Examples:
+
+@lisp
+(cl-type integer)
+(cl-type (integer 0 10))
+@end lisp
+
 @item (pred @var{function})
 Matches if the predicate @var{function} returns non-@code{nil}
-when called on @var{expval}.
-the predicate @var{function} can have one of the following forms:
+when called on @var{expval}.  The test can be negated with the syntax
+@code{(pred (not @var{function}))}.
+The predicate @var{function} can have one of the following forms:
 
 @table @asis
 @item function name (a symbol)
@@ -616,17 +669,16 @@ match, @code{and} matches.
 @item (or @var{pattern1} @var{pattern2}@dots{})
 Attempts to match @var{pattern1}, @var{pattern2}, @dots{}, in order,
 until one of them succeeds.  In that case, @code{or} likewise matches,
-and the rest of the sub-patterns are not tested.  (Note that there
-must be at least two sub-patterns.
-Simply @w{@code{(or @var{pattern1})}} signals error.)
-@c Issue: Is this correct and intended?
-@c        Are there exceptions, qualifications?
-@c        (Btw, ``Please avoid it'' is a poor error message.)
+and the rest of the sub-patterns are not tested.
 
-To present a consistent environment (@pxref{Intro Eval})
+To present a consistent environment
+@ifnottex
+(@pxref{Intro Eval})
+@end ifnottex
 to @var{body-forms} (thus avoiding an evaluation error on match),
-if any of the sub-patterns let-binds a set of symbols,
-they @emph{must} all bind the same set of symbols.
+the set of variables bound by the pattern is the union of the
+variables bound by each sub-pattern.  If a variable is not bound by
+the sub-pattern that matched, then it is bound to @code{nil}.
 
 @ifnottex
 @anchor{rx in pcase}
@@ -1276,6 +1328,15 @@ bindings that can then be used inside @var{body}.  The variable
 bindings are produced by destructuring binding of elements of
 @var{pattern} to the values of the corresponding elements of the
 evaluated @var{exp}.
+
+Here's a trivial example:
+
+@example
+(pcase-let ((`(,major ,minor)
+	     (split-string "image/png" "/")))
+  minor)
+     @result{} "png"
+@end example
 @end defmac
 
 @defmac pcase-let* bindings body@dots{}
@@ -1305,6 +1366,24 @@ element of @var{list}.  The bindings are performed as if by
 up being equivalent to @code{dolist} (@pxref{Iteration}).
 @end defmac
 
+@defmac pcase-setq pattern value@dots{}
+Assign values to variables in a @code{setq} form, destructuring each
+@var{value} according to its respective @var{pattern}.
+@end defmac
+
+@defmac pcase-lambda lambda-list &rest body
+This is like @code{lambda}, but allows each argument to be a pattern.
+For instance, here's a simple function that takes a cons cell as the
+argument:
+
+@example
+(setq fun
+      (pcase-lambda (`(,key . ,val))
+        (vector key (* val 10))))
+(funcall fun '(foo . 2))
+    @result{} [foo 20]
+@end example
+@end defmac
 
 @node Iteration
 @section Iteration
@@ -1455,7 +1534,7 @@ iterator with @code{iter-next} for anything interesting to happen.
 Each call to a generator function produces a @emph{different}
 iterator, each with its own state.
 
-@defun iter-next iterator value
+@defun iter-next iterator &optional value
 Retrieve the next value from @var{iterator}.  If there are no more
 values to be generated (because @var{iterator}'s generator function
 returned), @code{iter-next} signals the @code{iter-end-of-sequence}
@@ -2015,7 +2094,8 @@ that can be handled).
 This special form establishes the error handlers @var{handlers} around
 the execution of @var{protected-form}.  If @var{protected-form} executes
 without error, the value it returns becomes the value of the
-@code{condition-case} form; in this case, the @code{condition-case} has
+@code{condition-case} form (in the absence of a success handler; see below).
+In this case, the @code{condition-case} has
 no effect.  The @code{condition-case} form makes a difference when an
 error occurs during @var{protected-form}.
 
@@ -2064,6 +2144,12 @@ error description.
 
 If @var{var} is @code{nil}, that means no variable is bound.  Then the
 error symbol and associated data are not available to the handler.
+
+@cindex success handler
+As a special case, one of the @var{handlers} can be a list of the
+form @code{(:success @var{body}@dots{})}, where @var{body} is executed
+with @var{var} (if non-@code{nil}) bound to the return value of
+@var{protected-form} when that expression terminates without error.
 
 @cindex rethrow a signal
 Sometimes it is necessary to re-throw a signal caught by
@@ -2322,11 +2408,6 @@ of the @var{cleanup-forms} themselves exits nonlocally (via a
 guaranteed to evaluate the rest of them.  If the failure of one of the
 @var{cleanup-forms} has the potential to cause trouble, then protect
 it with another @code{unwind-protect} around that form.
-
-The number of currently active @code{unwind-protect} forms counts,
-together with the number of local variable bindings, against the limit
-@code{max-specpdl-size} (@pxref{Definition of max-specpdl-size,, Local
-Variables}).
 @end defspec
 
   For example, here we make an invisible buffer for temporary use, and

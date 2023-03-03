@@ -1,6 +1,6 @@
 /* emacs-module.h - GNU Emacs module API.
 
-Copyright (C) 2015-2020 Free Software Foundation, Inc.
+Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,7 +30,8 @@ information how to write modules and use this header file.
 #include <stdint.h>
 #include <time.h>
 
-#ifndef __cplusplus
+#if ((defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 202311 \
+     && !defined __bool_true_false_are_defined && !defined __cplusplus)
 #include <stdbool.h>
 #endif
 
@@ -51,7 +52,9 @@ information how to write modules and use this header file.
 #if 3 < __GNUC__ + (3 <= __GNUC_MINOR__)
 # define EMACS_ATTRIBUTE_NONNULL(...) \
    __attribute__ ((__nonnull__ (__VA_ARGS__)))
-#elif defined __has_attribute
+#elif (defined __has_attribute \
+       && (!defined __clang_minor__ \
+	   || 3 < __clang_major__ + (5 <= __clang_minor__)))
 # if __has_attribute (__nonnull__)
 #  define EMACS_ATTRIBUTE_NONNULL(...) \
     __attribute__ ((__nonnull__ (__VA_ARGS__)))
@@ -113,7 +116,7 @@ enum emacs_funcall_exit
   /* Function has signaled an error using `signal'.  */
   emacs_funcall_exit_signal = 1,
 
-  /* Function has exit using `throw'.  */
+  /* Function has exited using `throw'.  */
   emacs_funcall_exit_throw = 2
 };
 
@@ -165,6 +168,34 @@ struct emacs_env_28
 @module_env_snippet_27@
 
 @module_env_snippet_28@
+};
+
+struct emacs_env_29
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+};
+
+struct emacs_env_30
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+
+@module_env_snippet_30@
 };
 
 /* Every module should define a function as follows.  */

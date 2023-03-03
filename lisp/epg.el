@@ -1,6 +1,6 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -21,10 +21,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 ;;; Prelude
 
 (require 'epg-config)
+(require 'rfc6068)
 (eval-when-compile (require 'cl-lib))
 
 (define-error 'epg-error "GPG error")
@@ -331,8 +334,8 @@ callback data (if any)."
 
 (cl-defstruct (epg-key
                (:constructor nil)
+               (:copier epg--copy-key)
                (:constructor epg-make-key (owner-trust))
-               (:copier nil)
                (:predicate nil))
   (owner-trust nil :read-only t)
   sub-key-list user-id-list)
@@ -433,7 +436,11 @@ callback data (if any)."
      (and user-id
 	  (concat " "
 		  (if (stringp user-id)
-		      (epg--decode-percent-escape-as-utf-8 user-id)
+                      (if (= (length user-id) (string-bytes user-id))
+                          ;; This is ASCII, possibly %-encoded.
+		          (rfc6068-unhexify-string user-id)
+                        ;; Non-ASCII, return as is.
+                        user-id)
 		    (epg-decode-dn user-id))))
      (and (epg-signature-validity signature)
 	  (format " (trust %s)"  (epg-signature-validity signature)))
@@ -475,7 +482,7 @@ callback data (if any)."
 	      (format "      skipped new keys: %d\n"
 		      (epg-import-result-not-imported import-result)))
 	  (if (> (epg-import-result-no-user-id import-result) 0)
-	      (format "          w/o user IDs: %d\n"
+	      (format "          without user IDs: %d\n"
 		      (epg-import-result-no-user-id import-result)))
 	  (if (> (epg-import-result-imported import-result) 0)
 	      (concat (format "              imported: %d"
@@ -574,7 +581,7 @@ callback data (if any)."
 			     "--status-fd" "1"
 			     "--yes")
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
-				(string-match ":" (or agent-info "")))
+				(string-search ":" (or agent-info "")))
 			   '("--use-agent"))
 		       (if (and (not (eq (epg-context-protocol context) 'CMS))
 				(epg-context-progress-callback context))
@@ -599,7 +606,7 @@ callback data (if any)."
 	 process
 	 terminal-name
 	 agent-file
-	 (agent-mtime '(0 0 0 0)))
+	 (agent-mtime 0))
     ;; Set GPG_TTY and TERM for pinentry-curses.  Note that we can't
     ;; use `terminal-name' here to get the real pty name for the child
     ;; process, though /dev/fd/0" is not portable.
@@ -626,7 +633,7 @@ callback data (if any)."
       (setq agent-file (match-string 1 agent-info)
 	    agent-mtime (or (file-attribute-modification-time
 			     (file-attributes agent-file))
-			    '(0 0 0 0))))
+			    0)))
     (if epg-debug
 	(save-excursion
 	  (unless epg-debug-buffer
@@ -642,22 +649,14 @@ callback data (if any)."
     (with-current-buffer buffer
       (if (fboundp 'set-buffer-multibyte)
 	  (set-buffer-multibyte nil))
-      (make-local-variable 'epg-last-status)
-      (setq epg-last-status nil)
-      (make-local-variable 'epg-read-point)
-      (setq epg-read-point (point-min))
-      (make-local-variable 'epg-process-filter-running)
-      (setq epg-process-filter-running nil)
-      (make-local-variable 'epg-pending-status-list)
-      (setq epg-pending-status-list nil)
-      (make-local-variable 'epg-key-id)
-      (setq epg-key-id nil)
-      (make-local-variable 'epg-context)
-      (setq epg-context context)
-      (make-local-variable 'epg-agent-file)
-      (setq epg-agent-file agent-file)
-      (make-local-variable 'epg-agent-mtime)
-      (setq epg-agent-mtime agent-mtime))
+      (setq-local epg-last-status nil)
+      (setq-local epg-read-point (point-min))
+      (setq-local epg-process-filter-running nil)
+      (setq-local epg-pending-status-list nil)
+      (setq-local epg-key-id nil)
+      (setq-local epg-context context)
+      (setq-local epg-agent-file agent-file)
+      (setq-local epg-agent-mtime agent-mtime))
     (setq error-process
 	  (make-pipe-process :name "epg-error"
 			     :buffer (generate-new-buffer " *epg-error*")
@@ -665,16 +664,17 @@ callback data (if any)."
 			     :sentinel #'ignore
 			     :noquery t))
     (setf (epg-context-error-buffer context) (process-buffer error-process))
-    (with-file-modes 448
-      (setq process (make-process :name "epg"
-				  :buffer buffer
-				  :command (cons (epg-context-program context)
-						 args)
-				  :connection-type 'pipe
-				  :coding 'raw-text
-				  :filter #'epg--process-filter
-				  :stderr error-process
-				  :noquery t)))
+    (with-existing-directory
+      (with-file-modes 448
+        (setq process (make-process :name "epg"
+				    :buffer buffer
+				    :command (cons (epg-context-program context)
+						   args)
+				    :connection-type 'pipe
+				    :coding 'raw-text
+				    :filter #'epg--process-filter
+				    :stderr error-process
+				    :noquery t))))
     (setf (epg-context-process context) process)))
 
 (defun epg--process-filter (process input)
@@ -786,7 +786,7 @@ callback data (if any)."
 	     (user-id (match-string 2 string))
 	     (entry (assoc key-id epg-user-id-alist)))
 	(condition-case nil
-	    (setq user-id (epg--decode-percent-escape-as-utf-8 user-id))
+	    (setq user-id (rfc6068-unhexify-string user-id))
 	  (error))
 	(if entry
 	    (setcdr entry user-id)
@@ -807,7 +807,7 @@ callback data (if any)."
   (when (and epg-key-id
 	     (string-match "\\`passphrase\\." string))
     (unless (epg-context-passphrase-callback context)
-      (error "passphrase-callback not set"))
+      (error "Variable `passphrase-callback' not set"))
     (let (inhibit-quit
 	  passphrase
 	  passphrase-with-new-line
@@ -915,7 +915,7 @@ callback data (if any)."
 	(condition-case nil
 	    (if (eq (epg-context-protocol context) 'CMS)
 		(setq user-id (epg-dn-from-string user-id))
-	      (setq user-id (epg--decode-percent-escape-as-utf-8 user-id)))
+	      (setq user-id (rfc6068-unhexify-string user-id)))
 	  (error))
 	(if entry
 	    (setcdr entry user-id)
@@ -1191,7 +1191,7 @@ callback data (if any)."
 	     (user-id (match-string 2 string))
 	     (entry (assoc key-id epg-user-id-alist)))
 	(condition-case nil
-	    (setq user-id (epg--decode-percent-escape-as-utf-8 user-id))
+	    (setq user-id (rfc6068-unhexify-string user-id))
 	  (error))
 	(if entry
 	    (setcdr entry user-id)
@@ -1382,6 +1382,24 @@ NAME is either a string or a list of strings."
       (setq pointer (cdr pointer)))
     keys))
 
+(defun epg--filter-revoked-keys (keys)
+  (mapcar
+   (lambda (key)
+     ;; We have something revoked, so copy the key and remove the
+     ;; revoked bits.
+     (if (seq-find (lambda (user)
+                     (eq (epg-user-id-validity user) 'revoked))
+                   (epg-key-user-id-list key))
+         (let ((copy (epg--copy-key key)))
+           (setf (epg-key-user-id-list copy)
+                 (seq-remove (lambda (user)
+                               (eq (epg-user-id-validity user) 'revoked))
+                             (epg-key-user-id-list copy)))
+           copy)
+       ;; Nothing to delete; return the key.
+       key))
+   keys))
+
 (defun epg--args-from-sig-notations (notations)
   (apply #'nconc
 	 (mapcar
@@ -1501,12 +1519,8 @@ If you are unsure, use synchronous version of this function
 	    (process-send-eof (epg-context-process context))))
     ;; Normal (or cleartext) signature.
     (if (epg-data-file signature)
-	(epg--start context (if (eq (epg-context-protocol context) 'CMS)
-				(list "--verify" "--" (epg-data-file signature))
-			      (list "--" (epg-data-file signature))))
-      (epg--start context (if (eq (epg-context-protocol context) 'CMS)
-			      '("--verify" "-")
-			    '("-")))
+	(epg--start context (list "--verify" "--" (epg-data-file signature)))
+	(epg--start context '("--verify" "-"))
       (if (eq (process-status (epg-context-process context)) 'run)
 	  (process-send-string (epg-context-process context)
 			       (epg-data-string signature)))
@@ -2052,9 +2066,11 @@ If you are unsure, use synchronous version of this function
     string))
 
 (defun epg--decode-percent-escape-as-utf-8 (string)
+  (declare (obsolete rfc6068-unhexify-string "28.1"))
   (decode-coding-string (epg--decode-percent-escape string) 'utf-8))
 
 (defun epg--decode-hexstring (string)
+  (declare (obsolete rfc6068-unhexify-string "28.1"))
   (let ((index 0))
     (while (eq index (string-match "[[:xdigit:]][[:xdigit:]]" string index))
       (setq string (replace-match (string (string-to-number
@@ -2105,7 +2121,7 @@ The return value is an alist mapping from types to values."
 		value (epg--decode-quotedstring (match-string 0 string)))
 	(if (eq index (string-match "#\\([[:xdigit:]]+\\)" string index))
 	    (setq index (match-end 0)
-		  value (epg--decode-hexstring (match-string 1 string)))
+		  value (rfc6068-unhexify-string (match-string 1 string) t))
 	  (if (eq index (string-match "\"\\([^\\\"]\\|\\\\.\\)*\""
 				      string index))
 	      (setq index (match-end 0)

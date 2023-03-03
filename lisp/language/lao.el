@@ -1,6 +1,6 @@
-;;; lao.el --- support for Lao -*- coding: utf-8 -*-
+;;; lao.el --- support for Lao -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -59,14 +59,14 @@
     (let* ((chars (car l))
 	   (len (length chars))
 	   ;; Replace `c', `t', `v' to consonant, tone, and vowel.
-	   (regexp (mapconcat #'(lambda (c)
-				  (cond ((= c ?c) consonant)
-					((= c ?t) tone)
-					((= c ?v) vowel-upper-lower)
-					(t (string c))))
+           (regexp (mapconcat (lambda (c)
+                                (cond ((eq c ?c) consonant)
+                                      ((eq c ?t) tone)
+                                      ((eq c ?v) vowel-upper-lower)
+                                      (t (string c))))
 			      (cdr l) ""))
 	   ;; Element of composition-function-table.
-	   (elt (list (vector regexp 1 'lao-composition-function)
+	   (elt (list (vector regexp 1 #'lao-composition-function)
 		      fallback-rule))
 	   ch)
       (dotimes (i len)

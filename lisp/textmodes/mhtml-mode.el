@@ -1,6 +1,6 @@
 ;;; mhtml-mode.el --- HTML editing mode that handles CSS and JS -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Keywords: wp, hypermedia, comm, languages
 
@@ -19,9 +19,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'pcase))
 (require 'sgml-mode)
 (require 'js)
 (require 'css-mode)
@@ -302,6 +305,17 @@ This is used by `mhtml--pre-command'.")
     (if submode
         (flyspell-generic-progmode-verify)
       t)))
+
+;; Support for hideshow.el (see `hs-special-modes-alist').
+(defun mhtml-forward (arg)
+  "Move point forward past a structured expression.
+If point is on a tag, move to the end of the tag.
+Otherwise, this calls `forward-sexp'.
+Prefix arg specifies how many times to move (default 1)."
+  (interactive "P")
+  (pcase (get-text-property (point) 'mhtml-submode)
+    ('nil (sgml-skip-tag-forward arg))
+    (_submode (forward-sexp arg))))
 
 ;;;###autoload
 (define-derived-mode mhtml-mode html-mode

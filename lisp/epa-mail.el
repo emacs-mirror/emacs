@@ -1,6 +1,6 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -21,29 +21,28 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
-;;; Dependencies
 
 (require 'epa)
 (require 'mail-utils)
 
 ;;; Local Mode
 
-(defvar epa-mail-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "\C-c\C-ed" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-ev" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-es" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-ee" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-ei" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-eo" 'epa-insert-keys)
-    (define-key keymap "\C-c\C-e\C-d" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-e\C-v" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-e\C-s" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-e\C-e" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-e\C-i" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-e\C-o" 'epa-insert-keys)
-    keymap))
+(defvar-keymap epa-mail-mode-map
+  "C-c C-e d"   #'epa-mail-decrypt
+  "C-c C-e v"   #'epa-mail-verify
+  "C-c C-e s"   #'epa-mail-sign
+  "C-c C-e e"   #'epa-mail-encrypt
+  "C-c C-e i"   #'epa-mail-import-keys
+  "C-c C-e o"   #'epa-insert-keys
+  "C-c C-e C-d" #'epa-mail-decrypt
+  "C-c C-e C-v" #'epa-mail-verify
+  "C-c C-e C-s" #'epa-mail-sign
+  "C-c C-e C-e" #'epa-mail-encrypt
+  "C-c C-e C-i" #'epa-mail-import-keys
+  "C-c C-e C-o" #'epa-insert-keys)
 
 (defvar epa-mail-mode-hook nil)
 (defvar epa-mail-mode-on-hook nil)
@@ -59,7 +58,7 @@ Otherwise, signal an error."
 ;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
-  nil " epa-mail" epa-mail-mode-map)
+  :lighter " epa-mail")
 
 ;;; Utilities
 
@@ -108,8 +107,9 @@ use from your key ring."
   (interactive
    (save-excursion
      (goto-char (point-min))
-     (if (search-forward mail-header-separator nil t)
-	 (forward-line))
+     (rfc822-goto-eoh)
+     (unless (eobp)
+       (forward-line))
      (setq epa-last-coding-system-specified
 	   (or coding-system-for-write
 	       (select-safe-coding-system (point) (point-max))))
@@ -135,9 +135,7 @@ If no one is selected, default secret key is used.  "
       (goto-char (point-min))
       (save-restriction
 	(narrow-to-region (point)
-			  (if (search-forward mail-header-separator nil 0)
-			      (match-beginning 0)
-			    (point)))
+                          (progn (rfc822-goto-eoh) (point)))
 	(setq recipients-string
 	      (mapconcat #'identity
 			 (nconc (mail-fetch-field "to" nil nil t)
@@ -170,7 +168,7 @@ If no one is selected, default secret key is used.  "
 	    (apply #'nconc
 		   (mapcar
 		    (lambda (recipient)
-		      (let ((tem (assoc recipient epa-mail-aliases)))
+		      (let ((tem (assoc (downcase recipient) epa-mail-aliases)))
 			(if tem (copy-sequence (cdr tem))
 			  (list recipient))))
 		    real-recipients)))
@@ -220,7 +218,7 @@ If no one is selected, symmetric encryption will be performed.  "
 			      (epa-mail--find-usable-key
 			       (epg-list-keys
 				(epg-make-context epa-protocol)
-				(if (string-match "@" recipient)
+				(if (string-search "@" recipient)
 				    (concat "<" recipient ">")
 				  recipient))
 			       'encrypt)))
@@ -236,14 +234,15 @@ If no one is selected, symmetric encryption will be performed.  "
 		       default-recipients)))))
 
       (goto-char (point-min))
-      (if (search-forward mail-header-separator nil t)
-	  (forward-line))
+      (rfc822-goto-eoh)
+      (unless (eobp)
+	(forward-line))
       (setq start (point))
 
       (setq epa-last-coding-system-specified
 	    (or coding-system-for-write
 		(select-safe-coding-system (point) (point-max)))))
- 
+
     ;; Insert contents of requested attachments, if any.
     (when (and (eq major-mode 'mail-mode) mail-encode-mml)
       (mml-to-mime)

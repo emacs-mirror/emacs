@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -74,8 +74,12 @@ ns_can_use_native_image_api (Lisp_Object type)
     imageType = @"com.compuserve.gif";
   else if (EQ (type, Qtiff))
     imageType = @"public.tiff";
+#ifndef HAVE_RSVG
   else if (EQ (type, Qsvg))
     imageType = @"public.svg-image";
+#endif
+  else if (EQ (type, Qheic))
+    imageType = @"public.heic";
 
   /* NSImage also supports a host of other types such as PDF and BMP,
      but we don't yet support these in image.c.  */
@@ -140,7 +144,7 @@ ns_load_image (struct frame *f, struct image *img,
 
   eassert (valid_image_p (img->spec));
 
-  lisp_index = Fplist_get (XCDR (img->spec), QCindex);
+  lisp_index = plist_get (XCDR (img->spec), QCindex);
   index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
 
   if (STRINGP (spec_file))
@@ -235,6 +239,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   [(EmacsImage *)img setAlphaAtX: x Y: y to: a];
 }
 
+size_t
+ns_image_size_in_bytes (void *img)
+{
+  return [(EmacsImage *)img sizeInBytes];
+}
 
 /* ==========================================================================
 
@@ -249,31 +258,26 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   NSImageRep *imgRep;
   Lisp_Object found;
   EmacsImage *image;
+  NSString *filename;
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   found = image_find_image_file (file);
   if (!STRINGP (found))
     return nil;
-  found = ENCODE_FILE (found);
+  filename = [NSString stringWithLispString:found];
 
-  image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithUTF8String: SSDATA (found)]];
+  image = [[EmacsImage alloc] initByReferencingFile:filename];
 
   image->bmRep = nil;
-#ifdef NS_IMPL_COCOA
-  imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
-#else
-  imgRep = [image bestRepresentationForDevice: nil];
-#endif
-  if (imgRep == nil)
+  if (![image isValid])
     {
       [image release];
       return nil;
     }
+  imgRep = [[image representations] firstObject];
 
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
-
-  [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
+  [image setName:filename];
 
   return image;
 }
@@ -285,6 +289,18 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   [bmRep release];
   [transform release];
   [super dealloc];
+}
+
+
+- (id)copyWithZone:(NSZone *)zone
+{
+  EmacsImage *copy = [super copyWithZone:zone];
+
+  copy->stippleMask = [stippleMask copyWithZone:zone];
+  copy->bmRep = [bmRep copyWithZone:zone];
+  copy->transform = [transform copyWithZone:zone];
+
+  return copy;
 }
 
 
@@ -365,48 +381,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
         }
   }
 
-  xbm_fg = fg;
   [self addRepresentation: bmRep];
-  return self;
-}
-
-/* Set color for a bitmap image.  */
-- (instancetype)setXBMColor: (NSColor *)color
-{
-  NSSize s = [self size];
-  unsigned char *planes[5];
-  EmacsCGFloat r, g, b, a;
-  NSColor *rgbColor;
-
-  if (bmRep == nil || color == nil)
-    return self;
-
-  if ([color colorSpace] != [NSColorSpace genericRGBColorSpace])
-    rgbColor = [color colorUsingColorSpace:[NSColorSpace genericRGBColorSpace]];
-  else
-    rgbColor = color;
-
-  [rgbColor getRed: &r green: &g blue: &b alpha: &a];
-
-  [bmRep getBitmapDataPlanes: planes];
-
-  {
-    int i, len = s.width*s.height;
-    int rr = r * 0xff, gg = g * 0xff, bb = b * 0xff;
-    unsigned char fgr = (xbm_fg >> 16) & 0xff;
-    unsigned char fgg = (xbm_fg >> 8) & 0xff;
-    unsigned char fgb = xbm_fg & 0xff;
-
-    for (i = 0; i < len; ++i)
-      if (planes[0][i] == fgr && planes[1][i] == fgg && planes[2][i] == fgb)
-        {
-          planes[0][i] = rr;
-          planes[1][i] = gg;
-          planes[2][i] = bb;
-        }
-    xbm_fg = ((rr << 16) & 0xff0000) + ((gg << 8) & 0xff00) + (bb & 0xff);
-  }
-
   return self;
 }
 
@@ -608,6 +583,23 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 - (void)setSmoothing: (BOOL) s
 {
   smoothing = s;
+}
+
+/* Approximate allocated size of image in bytes.  */
+- (size_t) sizeInBytes
+{
+  size_t bytes = 0;
+  NSImageRep *rep;
+  NSEnumerator *reps = [[self representations] objectEnumerator];
+  while ((rep = (NSImageRep *) [reps nextObject]))
+    {
+      if ([rep respondsToSelector: @selector (bytesPerRow)])
+        {
+          NSBitmapImageRep *bmr = (NSBitmapImageRep *) rep;
+          bytes += [bmr bytesPerRow] * [bmr numberOfPlanes] * [bmr pixelsHigh];
+        }
+    }
+  return bytes;
 }
 
 

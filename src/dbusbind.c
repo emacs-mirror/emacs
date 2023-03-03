@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -132,23 +132,36 @@ static bool xd_in_read_queued_messages = 0;
 #define XD_BASIC_DBUS_TYPE(type)					\
   (dbus_type_is_valid (type) && dbus_type_is_basic (type))
 #else
-#define XD_BASIC_DBUS_TYPE(type)					\
-  ((type == DBUS_TYPE_BYTE)						\
-   || (type == DBUS_TYPE_BOOLEAN)					\
-   || (type == DBUS_TYPE_INT16)						\
-   || (type == DBUS_TYPE_UINT16)					\
-   || (type == DBUS_TYPE_INT32)						\
-   || (type == DBUS_TYPE_UINT32)					\
-   || (type == DBUS_TYPE_INT64)						\
-   || (type == DBUS_TYPE_UINT64)					\
-   || (type == DBUS_TYPE_DOUBLE)					\
-   || (type == DBUS_TYPE_STRING)					\
-   || (type == DBUS_TYPE_OBJECT_PATH)					\
-   || (type == DBUS_TYPE_SIGNATURE)					\
 #ifdef DBUS_TYPE_UNIX_FD
-   || (type == DBUS_TYPE_UNIX_FD)					\
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE)					\
+   || (type ==  DBUS_TYPE_UNIX_FD))
+#else
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE))
 #endif
-   )
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for
@@ -385,7 +398,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_BOOLEAN:
       /* There must be an argument.  */
       if (EQ (QCboolean, object))
-	wrong_type_argument (intern ("booleanp"), object);
+	wrong_type_argument (Qbooleanp, object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -409,9 +422,12 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE:
-      /* We dont check the syntax of object path and signature.  This
-	 will be done by libdbus.  */
-      CHECK_STRING (object);
+      /* We don't check the syntax of signature.  This will be done by
+	 libdbus.  */
+      if (dtype == DBUS_TYPE_OBJECT_PATH)
+	XD_DBUS_VALIDATE_PATH (object)
+      else
+	CHECK_STRING (object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -633,7 +649,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_BOOLEAN:
 	/* There must be an argument.  */
 	if (EQ (QCboolean, object))
-	  wrong_type_argument (intern ("booleanp"), object);
+	  wrong_type_argument (Qbooleanp, object);
 	{
 	  dbus_bool_t val = (NILP (object)) ? FALSE : TRUE;
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
@@ -732,9 +748,12 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
-	/* We dont check the syntax of object path and signature.
-	   This will be done by libdbus.  */
-	CHECK_STRING (object);
+	/* We don't check the syntax of signature.  This will be done
+	   by libdbus.  */
+	if (dtype == DBUS_TYPE_OBJECT_PATH)
+	  XD_DBUS_VALIDATE_PATH (object)
+	else
+	  CHECK_STRING (object);
 	{
 	  /* We need to send a valid UTF-8 string.  We could encode `object'
 	     but by not encoding it, we guarantee it's valid utf-8, even if
@@ -1671,29 +1690,30 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* Loop over the registered functions.  Construct an event.  */
-      while (!NILP (value))
+      for (; !NILP (value); value = CDR_SAFE (value))
 	{
 	  key = CAR_SAFE (value);
+	  Lisp_Object key_uname = CAR_SAFE (key);
 	  /* key has the structure (UNAME SERVICE PATH HANDLER).  */
-	  if (((uname == NULL)
-	       || (NILP (CAR_SAFE (key)))
-	       || (strcmp (uname, SSDATA (CAR_SAFE (key))) == 0))
-	      && ((path == NULL)
-		  || (NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
-		  || (strcmp (path,
-			      SSDATA (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
-		      == 0))
-	      && (!NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))))))
-	    {
-	      EVENT_INIT (event);
-	      event.kind = DBUS_EVENT;
-	      event.frame_or_window = Qnil;
-	      /* Handler.  */
-	      event.arg
-		= Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))), args);
-	      break;
-	    }
-	  value = CDR_SAFE (value);
+	  if (uname && !NILP (key_uname)
+	      && strcmp (uname, SSDATA (key_uname)) != 0)
+	    continue;
+	  Lisp_Object key_service_etc = CDR_SAFE (key);
+	  Lisp_Object key_path_etc = CDR_SAFE (key_service_etc);
+	  Lisp_Object key_path = CAR_SAFE (key_path_etc);
+	  if (path && !NILP (key_path)
+	      && strcmp (path, SSDATA (key_path)) != 0)
+	    continue;
+	  Lisp_Object handler = CAR_SAFE (CDR_SAFE (key_path_etc));
+	  if (NILP (handler))
+	    continue;
+
+	  /* Construct an event and exit the loop.  */
+	  EVENT_INIT (event);
+	  event.kind = DBUS_EVENT;
+	  event.frame_or_window = Qnil;
+	  event.arg = Fcons (handler, args);
+	  break;
 	}
 
       if (NILP (value))

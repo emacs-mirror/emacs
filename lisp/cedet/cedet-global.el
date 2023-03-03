@@ -1,6 +1,6 @@
-;;; cedet-global.el --- GNU Global support for CEDET.
+;;; cedet-global.el --- GNU Global support for CEDET.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
@@ -23,8 +23,6 @@
 ;;; Commentary:
 ;;
 ;; Basic support for calling GNU Global, and testing version numbers.
-
-(declare-function inversion-check-version "inversion")
 
 (defvar cedet-global-min-version "5.0"
   "Minimum version of GNU Global required.")
@@ -77,7 +75,7 @@ SCOPE is the scope of the search, such as `project' or `subdirs'."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-global-command
+    (apply #'call-process cedet-global-command
 	   nil b nil
 	   flags)
     b))
@@ -90,7 +88,7 @@ SCOPE is the scope of the search, such as `project' or `subdirs'."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-global-gtags-command
+    (apply #'call-process cedet-global-gtags-command
 	   nil b nil
 	   flags)
 
@@ -135,7 +133,7 @@ DIR defaults to `default-directory'."
       (goto-char (point-min))
       (when (not (eobp))
 	(file-name-as-directory
-	 (buffer-substring (point) (point-at-eol)))))))
+         (buffer-substring (point) (line-end-position)))))))
 
 (defun cedet-gnu-global-version-check (&optional noerror)
   "Check the version of the installed GNU Global command.
@@ -143,7 +141,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-gnu-global-call (list "--version"))
 	     (error nil)))
@@ -157,7 +154,7 @@ return nil."
 	(goto-char (point-min))
 	(re-search-forward "(?GNU GLOBAL)? \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
-	(if (inversion-check-version rev nil cedet-global-min-version)
+        (if (version< rev cedet-global-min-version)
 	    (if noerror
 		nil
 	      (error "Version of GNU Global is %s.  Need at least %s"

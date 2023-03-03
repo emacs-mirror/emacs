@@ -1,6 +1,6 @@
 ;;; st.el --- terminal initialization for st  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;;; Commentary:
 
@@ -11,10 +11,18 @@
 
 (require 'term/xterm)
 
+(defcustom xterm-st-extra-capabilities '(modifyOtherKeys)
+  "Extra capabilities supported under \"stterm\"."
+  :version "28.1"
+  :type xterm--extra-capabilities-type
+  :group 'xterm)
+
 (defun terminal-init-st ()
   "Terminal initialization function for st."
-  (tty-run-terminal-initialization (selected-frame) "xterm"))
+  ;; Using `check' leads to a two-second timeout.
+  (let ((xterm-extra-capabilities xterm-st-extra-capabilities))
+    (tty-run-terminal-initialization (selected-frame) "xterm")))
 
 (provide 'term/st)
 
-;; st.el ends here
+;;; st.el ends here

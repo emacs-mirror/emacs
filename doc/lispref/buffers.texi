@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -89,11 +89,12 @@ in which most editing takes place.  Most of the primitives for
 examining or changing text operate implicitly on the current buffer
 (@pxref{Text}).
 
-  Normally, the buffer displayed in the selected window is the current
-buffer, but this is not always so: a Lisp program can temporarily
-designate any buffer as current in order to operate on its contents,
-without changing what is displayed on the screen.  The most basic
-function for designating a current buffer is @code{set-buffer}.
+  Normally, the buffer displayed in the selected window
+(@pxref{Selecting Windows}) is the current buffer, but this is not
+always so: a Lisp program can temporarily designate any buffer as
+current in order to operate on its contents, without changing what is
+displayed on the screen.  The most basic function for designating a
+current buffer is @code{set-buffer}.
 
 @defun current-buffer
 This function returns the current buffer.
@@ -118,12 +119,12 @@ on it.
 
   When an editing command returns to the editor command loop, Emacs
 automatically calls @code{set-buffer} on the buffer shown in the
-selected window.  This is to prevent confusion: it ensures that the
-buffer that the cursor is in, when Emacs reads a command, is the
-buffer to which that command applies (@pxref{Command Loop}).  Thus,
-you should not use @code{set-buffer} to switch visibly to a different
-buffer; for that, use the functions described in @ref{Switching
-Buffers}.
+selected window (@pxref{Selecting Windows}).  This is to prevent
+confusion: it ensures that the buffer that the cursor is in, when Emacs
+reads a command, is the buffer to which that command applies
+(@pxref{Command Loop}).  Thus, you should not use @code{set-buffer} to
+switch visibly to a different buffer; for that, use the functions
+described in @ref{Switching Buffers}.
 
   When writing a Lisp function, do @emph{not} rely on this behavior of
 the command loop to restore the current buffer after an operation.
@@ -225,13 +226,22 @@ current buffer is restored even in case of an abnormal exit via
 
 @defmac with-temp-buffer body@dots{}
 @anchor{Definition of with-temp-buffer}
-The @code{with-temp-buffer} macro evaluates the @var{body} forms
-with a temporary buffer as the current buffer.  It saves the identity of
+The @code{with-temp-buffer} macro evaluates the @var{body} forms with
+a temporary buffer as the current buffer.  It saves the identity of
 the current buffer, creates a temporary buffer and makes it current,
 evaluates the @var{body} forms, and finally restores the previous
-current buffer while killing the temporary buffer.  By default, undo
-information (@pxref{Undo}) is not recorded in the buffer created by
-this macro (but @var{body} can enable that, if needed).
+current buffer while killing the temporary buffer.
+
+@cindex undo in temporary buffers
+@cindex @code{kill-buffer-hook} in temporary buffers
+@cindex @code{kill-buffer-query-functions} in temporary buffers
+@cindex @code{buffer-list-update-hook} in temporary buffers
+By default, undo information (@pxref{Undo}) is not recorded in the
+buffer created by this macro (but @var{body} can enable that, if
+needed).  The temporary buffer also does not run the hooks
+@code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).
 
 The return value is the value of the last form in @var{body}.  You can
 return the contents of the temporary buffer by using
@@ -300,7 +310,6 @@ foo
 This function renames the current buffer to @var{newname}.  An error
 is signaled if @var{newname} is not a string.
 
-@c Emacs 19 feature
 Ordinarily, @code{rename-buffer} signals an error if @var{newname} is
 already in use.  However, if @var{unique} is non-@code{nil}, it modifies
 @var{newname} to make a name that is not in use.  Interactively, you can
@@ -335,7 +344,6 @@ a name.  For example:
 See also the function @code{get-buffer-create} in @ref{Creating Buffers}.
 @end defun
 
-@c Emacs 19 feature
 @defun generate-new-buffer-name starting-name &optional ignore
 This function returns a name that would be unique for a new buffer---but
 does not create the buffer.  It starts with @var{starting-name}, and
@@ -345,9 +353,9 @@ incrementing the number until it is not the name of an existing buffer.
 
 If the optional second argument @var{ignore} is non-@code{nil}, it
 should be a string, a potential buffer name.  It means to consider
-that potential buffer acceptable, if it is tried, even it is the name
-of an existing buffer (which would normally be rejected).  Thus, if
-buffers named @samp{foo}, @samp{foo<2>}, @samp{foo<3>} and
+that potential buffer acceptable, if it is tried, even if it is the
+name of an existing buffer (which would normally be rejected).  Thus,
+if buffers named @samp{foo}, @samp{foo<2>}, @samp{foo<3>} and
 @samp{foo<4>} exist,
 
 @example
@@ -419,19 +427,19 @@ It is a permanent local, unaffected by
 @end defvar
 
 @defvar buffer-file-number
-This buffer-local variable holds the file number and directory device
-number of the file visited in the current buffer, or @code{nil} if no
+This buffer-local variable holds the inode number and device
+identifier of the file visited in the current buffer, or @code{nil} if no
 file or a nonexistent file is visited.  It is a permanent local,
 unaffected by @code{kill-all-local-variables}.
 
-The value is normally a list of the form @code{(@var{filenum}
-@var{devnum})}.  This pair of numbers uniquely identifies the file among
+The value is normally a list of the form @code{(@var{inodenum}
+@var{device})}.  This tuple uniquely identifies the file among
 all files accessible on the system.  See the function
 @code{file-attributes}, in @ref{File Attributes}, for more information
 about them.
 
 If @code{buffer-file-name} is the name of a symbolic link, then both
-numbers refer to the recursive target.
+@var{inodenum} and @var{device} refer to the recursive target of the link.
 @end defvar
 
 @defun get-file-buffer filename
@@ -533,10 +541,12 @@ file formerly visited.
 @ref{Text}.
 
 @defun buffer-modified-p &optional buffer
-This function returns @code{t} if the buffer @var{buffer} has been modified
-since it was last read in from a file or saved, or @code{nil}
-otherwise.  If @var{buffer} is not supplied, the current buffer
-is tested.
+This function returns non-@code{nil} if @var{buffer} has
+been modified since it was last read in from a file or saved, or
+@code{nil} otherwise.  If @var{buffer} has been auto-saved since the
+time it was last modified, this function returns the symbol
+@code{autosaved}.  If @var{buffer} is @code{nil} or omitted, it
+defaults to the current buffer.
 @end defun
 
 @defun set-buffer-modified-p flag
@@ -555,8 +565,10 @@ function @code{force-mode-line-update} works by doing this:
 @end defun
 
 @defun restore-buffer-modified-p flag
-Like @code{set-buffer-modified-p}, but does not force redisplay
-of mode lines.
+Like @code{set-buffer-modified-p}, but does not force redisplay of
+mode lines.  This function also allows @var{flag}'s value to be
+the symbol @code{autosaved}, which marks the buffer as modified and
+auto-saved after the last modification.
 @end defun
 
 @deffn Command not-modified &optional arg
@@ -870,7 +882,6 @@ then @code{other-buffer} uses that predicate to decide which buffers to
 consider.  It calls the predicate once for each buffer, and if the value
 is @code{nil}, that buffer is ignored.  @xref{Buffer Parameters}.
 
-@c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
 a buffer visible in any window on any visible frame, except as a last
 resort.  If @var{visible-ok} is non-@code{nil}, then it does not matter
@@ -906,16 +917,17 @@ History}) provided it is shown in that window.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
 current buffer.  In addition, if the current buffer is displayed in the
-selected window, this makes sure that the window is either deleted or
-another buffer is shown in it.  More precisely, if the selected window
-is dedicated (@pxref{Dedicated Windows}) and there are other windows on
-its frame, the window is deleted.  If it is the only window on its frame
-and that frame is not the only frame on its terminal, the frame is
-dismissed by calling the function specified by
-@code{frame-auto-hide-function} (@pxref{Quitting Windows}).  Otherwise,
-it calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show
-another buffer in that window.  If @var{buffer-or-name} is displayed in
-some other window, it remains displayed there.
+selected window (@pxref{Selecting Windows}), this makes sure that the
+window is either deleted or another buffer is shown in it.  More
+precisely, if the selected window is dedicated (@pxref{Dedicated
+Windows}) and there are other windows on its frame, the window is
+deleted.  If it is the only window on its frame and that frame is not
+the only frame on its terminal, the frame is dismissed by calling the
+function specified by @code{frame-auto-hide-function} (@pxref{Quitting
+Windows}).  Otherwise, it calls @code{switch-to-prev-buffer}
+(@pxref{Window History}) to show another buffer in that window.  If
+@var{buffer-or-name} is displayed in some other window, it remains
+displayed there.
 
 To replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}, @xref{Buffers and Windows}.
@@ -932,14 +944,68 @@ window.
 @defvar buffer-list-update-hook
 This is a normal hook run whenever the buffer list changes.  Functions
 (implicitly) running this hook are @code{get-buffer-create}
-(@pxref{Creating Buffers}), @code{rename-buffer} (@pxref{Buffer Names}),
-@code{kill-buffer} (@pxref{Killing Buffers}), @code{bury-buffer} (see
-above) and @code{select-window} (@pxref{Selecting Windows}).
+(@pxref{Creating Buffers}), @code{rename-buffer} (@pxref{Buffer
+Names}), @code{kill-buffer} (@pxref{Killing Buffers}),
+@code{bury-buffer} (see above), and @code{select-window}
+(@pxref{Selecting Windows}).  This hook is not run for internal or
+temporary buffers created by @code{get-buffer-create} or
+@code{generate-new-buffer} with a non-@code{nil} argument
+@var{inhibit-buffer-hooks}.
 
 Functions run by this hook should avoid calling @code{select-window}
-with a nil @var{norecord} argument or @code{with-temp-buffer} since
-either may lead to infinite recursion.
+with a @code{nil} @var{norecord} argument since this may lead to
+infinite recursion.
 @end defvar
+
+@defun buffer-match-p condition buffer-or-name &optional arg
+This function checks if a buffer designated by @code{buffer-or-name}
+satisfies a @code{condition}.  Optional third argument @var{arg} is
+passed to the predicate function in @var{condition}.  A condition can
+be one of the following:
+@itemize @bullet{}
+@item
+A string, interpreted as a regular expression.  The buffer
+satisfies the condition if the regular expression matches the buffer
+name.
+@item
+A predicate function, which should return non-@code{nil} if the buffer
+matches.  If the function expects one argument, it is called with
+@var{buffer-or-name} as the argument; if it expects 2 arguments, the
+first argument is @var{buffer-or-name} and the second is @var{arg}
+(or @code{nil} if @var{arg} is omitted).
+@item
+A cons-cell @code{(@var{oper} . @var{expr})} where @var{oper} is one
+of
+@table @code
+@item (not @var{cond})
+Satisfied if @var{cond} doesn't satisfy @code{buffer-match-p} with
+the same buffer and @code{arg}.
+@item (or @var{conds}@dots{})
+Satisfied if @emph{any} condition in @var{conds} satisfies
+@code{buffer-match-p}, with the same buffer and @code{arg}.
+@item (and @var{conds}@dots{})
+Satisfied if @emph{all} the conditions in @var{conds} satisfy
+@code{buffer-match-p}, with the same buffer and @code{arg}.
+@item derived-mode
+Satisfied if the buffer's major mode derives from @var{expr}.
+@item major-mode
+Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
+using @code{derived-mode} instead when both can work.
+@end table
+@item t
+Satisfied by any buffer.  A convenient alternative to @code{""} (empty
+string), @code{(and)} (empty conjunction) or @code{always}.
+@end itemize
+@end defun
+
+@defun match-buffers condition &optional buffer-list arg
+This function returns a list of all buffers that satisfy a
+@code{condition}, as defined for @code{buffer-match-p}.  By default
+all buffers are considered, but this can be restricted via the second
+optional @code{buffer-list} argument.  Optional third argument
+@var{arg} will be used by @var{condition} in the same way as
+@code{buffer-match-p} does.
+@end defun
 
 @node Creating Buffers
 @section Creating Buffers
@@ -947,16 +1013,24 @@ either may lead to infinite recursion.
 @cindex buffers, creating
 
   This section describes the two primitives for creating buffers.
-@code{get-buffer-create} creates a buffer if it finds no existing buffer
-with the specified name; @code{generate-new-buffer} always creates a new
-buffer and gives it a unique name.
+@code{get-buffer-create} creates a buffer if it finds no existing
+buffer with the specified name; @code{generate-new-buffer} always
+creates a new buffer and gives it a unique name.
+
+  Both functions accept an optional argument @var{inhibit-buffer-hooks}.
+If it is non-@code{nil}, the buffer they create does not run the hooks
+@code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).  This avoids slowing down internal or temporary
+buffers that are never presented to users or passed on to other
+applications.
 
   Other functions you can use to create buffers include
 @code{with-output-to-temp-buffer} (@pxref{Temporary Displays}) and
 @code{create-file-buffer} (@pxref{Visiting Files}).  Starting a
 subprocess can also create a buffer (@pxref{Processes}).
 
-@defun get-buffer-create buffer-or-name
+@defun get-buffer-create buffer-or-name &optional inhibit-buffer-hooks
 This function returns a buffer named @var{buffer-or-name}.  The buffer
 returned does not become the current buffer---this function does not
 change which buffer is current.
@@ -980,7 +1054,7 @@ level; see @ref{Auto Major Mode}.)  If the name begins with a space, the
 buffer initially disables undo information recording (@pxref{Undo}).
 @end defun
 
-@defun generate-new-buffer name
+@defun generate-new-buffer name &optional inhibit-buffer-hooks
 This function returns a newly created, empty buffer, but does not make
 it current.  The name of the buffer is generated by passing @var{name}
 to the function @code{generate-new-buffer-name} (@pxref{Buffer
@@ -1092,6 +1166,10 @@ with no arguments.  The buffer being killed is the current buffer when
 they are called.  The idea of this feature is that these functions will
 ask for confirmation from the user.  If any of them returns @code{nil},
 @code{kill-buffer} spares the buffer's life.
+
+This hook is not run for internal or temporary buffers created by
+@code{get-buffer-create} or @code{generate-new-buffer} with a
+non-@code{nil} argument @var{inhibit-buffer-hooks}.
 @end defvar
 
 @defvar kill-buffer-hook
@@ -1100,6 +1178,10 @@ questions it is going to ask, just before actually killing the buffer.
 The buffer to be killed is current when the hook functions run.
 @xref{Hooks}.  This variable is a permanent local, so its local binding
 is not cleared by changing major modes.
+
+This hook is not run for internal or temporary buffers created by
+@code{get-buffer-create} or @code{generate-new-buffer} with a
+non-@code{nil} argument @var{inhibit-buffer-hooks}.
 @end defvar
 
 @defopt buffer-offer-save
@@ -1157,7 +1239,7 @@ buffer.
 the base buffer effectively kills the indirect buffer in that it cannot
 ever again be the current buffer.
 
-@deffn Command make-indirect-buffer base-buffer name &optional clone
+@deffn Command make-indirect-buffer base-buffer name &optional clone inhibit-buffer-hooks
 This creates and returns an indirect buffer named @var{name} whose
 base buffer is @var{base-buffer}.  The argument @var{base-buffer} may
 be a live buffer or the name (a string) of an existing buffer.  If
@@ -1173,6 +1255,8 @@ If @var{base-buffer} is an indirect buffer, its base buffer is used as
 the base for the new buffer.  If, in addition, @var{clone} is
 non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
+
+@xref{Creating Buffers}, for the meaning of @var{inhibit-buffer-hooks}.
 @end deffn
 
 @deffn Command clone-indirect-buffer newname display-flag &optional norecord

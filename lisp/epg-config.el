@@ -1,6 +1,6 @@
-;;; epg-config.el --- configuration of the EasyPG Library
+;;; epg-config.el --- configuration of the EasyPG Library  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -20,6 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;; Code:
 ;;; Prelude
@@ -157,7 +159,7 @@ version requirement is met."
     (setq program-alist epg-config--program-alist))
   (let ((entry (assq protocol program-alist)))
     (unless entry
-      (error "Unknown protocol %S" protocol))
+      (error "Unknown protocol `%S'" protocol))
     (cl-destructuring-bind (symbol . alist)
         (cdr entry)
       (let ((constructor
@@ -244,9 +246,9 @@ version requirement is met."
       (goto-char (match-end 0))
       (backward-char)
       (forward-sexp)
-      (skip-syntax-forward "-" (point-at-eol))
+      (skip-syntax-forward "-" (line-end-position))
       (list (cons 'program program)
-            (cons 'version (buffer-substring (point) (point-at-eol)))))))
+            (cons 'version (buffer-substring (point) (line-end-position)))))))
 
 ;;;###autoload
 (defun epg-configuration ()

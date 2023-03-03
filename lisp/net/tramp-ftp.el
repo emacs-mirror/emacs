@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -31,7 +31,6 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
-(eval-when-compile (require 'custom))
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)
@@ -98,9 +97,9 @@ present for backward compatibility."
 
  ;; Add some defaults for `tramp-default-method-alist'.
  (add-to-list 'tramp-default-method-alist
-	      (list "\\`ftp\\." nil tramp-ftp-method))
+	      (list (rx bos "ftp.") nil tramp-ftp-method))
  (add-to-list 'tramp-default-method-alist
-	      (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
+	      (list nil (rx bos (| "anonymous" "ftp") eos) tramp-ftp-method))
 
  ;; Add completion function for FTP method.
  (tramp-set-completion-function
@@ -121,27 +120,36 @@ pass to the OPERATION."
 		 (nth 2 tramp-file-name-structure)
 		 (nth 4 tramp-file-name-structure)))
 	  ;; ange-ftp uses `ange-ftp-ftp-name-arg' and `ange-ftp-ftp-name-res'
-	  ;; for optimization in `ange-ftp-ftp-name'. If Tramp wasn't active,
+	  ;; for optimization in `ange-ftp-ftp-name'.  If Tramp wasn't active,
 	  ;; there could be incorrect values from previous calls in case the
-	  ;; "ftp" method is used in the Tramp file name. So we unset
+	  ;; "ftp" method is used in the Tramp file name.  So we unset
 	  ;; those values.
 	  (ange-ftp-ftp-name-arg "")
-	  (ange-ftp-ftp-name-res nil))
+	  ange-ftp-ftp-name-res)
       (cond
        ;; If argument is a symlink, `file-directory-p' and
-       ;; `file-exists-p' call the traversed file recursively. So we
+       ;; `file-exists-p' call the traversed file recursively.  So we
        ;; cannot disable the file-name-handler this case.  We set the
        ;; connection property "started" in order to put the remote
        ;; location into the cache, which is helpful for further
        ;; completion.  We don't use `with-parsed-tramp-file-name',
        ;; because this returns another user but the one declared in
        ;; "~/.netrc".
+       ;; For file names which look like Tramp archive files like
+       ;; "/ftp:anonymous@ftp.gnu.org:/gnu/tramp/tramp-2.0.39.tar.gz",
+       ;; we must disable tramp-archive.el, because in
+       ;; `ange-ftp-get-files' this is "normalized" by
+       ;; `file-name-as-directory' with unwelcome side side-effects.
+       ;; This disables the file archive functionality, perhaps we
+       ;; could fix this otherwise.  (Bug#56078)
        ((memq operation '(file-directory-p file-exists-p))
-	(if (apply #'ange-ftp-hook-function operation args)
+	(cl-letf (((symbol-function #'tramp-archive-file-name-handler)
+		   (lambda (operation &rest args)
+		     (tramp-archive-run-real-handler operation args))))
+	  (prog1 (apply #'ange-ftp-hook-function operation args)
 	    (let ((v (tramp-dissect-file-name (car args) t)))
 	      (setf (tramp-file-name-method v) tramp-ftp-method)
-	      (tramp-set-connection-property v "started" t))
-	  nil))
+	      (tramp-set-connection-property v "started" t)))))
 
        ;; If the second argument of `copy-file' or `rename-file' is a
        ;; remote file name but via FTP, ange-ftp doesn't check this.
@@ -176,11 +184,10 @@ pass to the OPERATION."
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-ftp-file-name-p (filename)
-  "Check if it's a FILENAME that should be forwarded to Ange-FTP."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-ftp-method)))
+(defsubst tramp-ftp-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME that should be forwarded to Ange-FTP."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-ftp-method)))
 
 ;;;###tramp-autoload
 (tramp--with-startup

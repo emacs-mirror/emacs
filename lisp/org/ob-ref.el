@@ -1,11 +1,11 @@
 ;;; ob-ref.el --- Babel Functions for Referencing External Data -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -49,12 +49,16 @@
 ;;  #+end_src
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob-core)
 (require 'org-macs)
 (require 'cl-lib)
 
-(declare-function org-babel-lob-get-info "ob-lob" (&optional datum))
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-babel-lob-get-info "ob-lob" (&optional datum no-eval))
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-end-of-meta-data "org" (&optional full))
@@ -62,8 +66,8 @@
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
-(declare-function org-narrow-to-subtree "org" ())
-(declare-function org-show-context "org" (&optional key))
+(declare-function org-narrow-to-subtree "org" (&optional element))
+(declare-function org-fold-show-context "org-fold" (&optional key))
 
 (defvar org-babel-update-intermediate nil
   "Update the in-buffer results of code blocks executed to resolve references.")
@@ -104,7 +108,7 @@ Emacs Lisp representation of the value of the variable."
 	  (pop-to-buffer-same-window (marker-buffer m))
 	  (goto-char m)
 	  (move-marker m nil)
-	  (org-show-context)
+	  (org-fold-show-context)
 	  t))))
 
 (defun org-babel-ref-headline-body ()
@@ -124,12 +128,14 @@ Emacs Lisp representation of the value of the variable."
       (save-excursion
 	(let ((case-fold-search t)
 	      args new-refere new-header-args new-referent split-file split-ref
-	      index)
+	      index contents)
 	  ;; if ref is indexed grab the indices -- beware nested indices
-	  (when (and (string-match "\\[\\([^\\[]+\\)\\]$" ref)
+	  (when (and (string-match "\\[\\([^\\[]*\\)\\]$" ref)
 		     (let ((str (substring ref 0 (match-beginning 0))))
 		       (= (cl-count ?\( str) (cl-count ?\) str))))
-	    (setq index (match-string 1 ref))
+            (if (> (length (match-string 1 ref)) 0)
+	        (setq index (match-string 1 ref))
+              (setq contents t))
 	    (setq ref (substring ref 0 (match-beginning 0))))
 	  ;; assign any arguments to pass to source block
 	  (when (string-match
@@ -143,7 +149,8 @@ Emacs Lisp representation of the value of the variable."
 				   (org-babel-ref-split-args new-referent))))
 	      (when (> (length new-header-args) 0)
 		(setq args (append (org-babel-parse-header-arguments
-				    new-header-args) args)))
+				    new-header-args)
+				   args)))
 	      (setq ref new-refere)))
 	  (when (string-match "^\\(.+\\):\\(.+\\)$" ref)
 	    (setq split-file (match-string 1 ref))
@@ -152,7 +159,7 @@ Emacs Lisp representation of the value of the variable."
 	    (setq ref split-ref))
 	  (org-with-wide-buffer
 	   (goto-char (point-min))
-	   (let* ((params (append args '((:results . "silent"))))
+	   (let* ((params (append args '((:results . "none"))))
 		  (regexp (org-babel-named-data-regexp-for-name ref))
 		  (result
 		   (catch :found
@@ -170,7 +177,7 @@ Emacs Lisp representation of the value of the variable."
 				(throw :found
 				       (org-babel-execute-src-block
 					nil (org-babel-lob-get-info e) params)))
-			       (`src-block
+			       ((and `src-block (guard (not contents)))
 				(throw :found
 				       (org-babel-execute-src-block
 					nil nil
@@ -192,7 +199,7 @@ Emacs Lisp representation of the value of the variable."
 				(org-babel-execute-src-block nil info params))))
 		     (error "Reference `%s' not found in this buffer" ref))))
 	     (cond
-	      ((symbolp result) (format "%S" result))
+	      ((and result (symbolp result)) (format "%S" result))
 	      ((and index (listp result))
 	       (org-babel-ref-index-list index result))
 	      (t result)))))))))
@@ -239,7 +246,6 @@ to \"0:-1\"."
 (defun org-babel-ref-split-args (arg-string)
   "Split ARG-STRING into top-level arguments of balanced parenthesis."
   (mapcar #'org-trim (org-babel-balanced-split arg-string 44)))
-
 
 (provide 'ob-ref)
 

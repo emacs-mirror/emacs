@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -24,9 +24,7 @@
 
 ;;; Code:
 
-
 (require 'diff-mode) ; For `diff-file-junk-re'.
-
 
 (defgroup ediff-ptch nil
   "Ediff patch support."
@@ -128,18 +126,19 @@ You probably don't want to change that, unless you are using an obscure patch
 program."
   :type 'regexp)
 
-;; The buffer of the patch file.  Local to control buffer.
-(ediff-defvar-local ediff-patchbufer nil "")
+(ediff-defvar-local ediff-patchbufer nil
+  "The buffer of the patch file.  Local to control buffer.")
 
-;; The buffer where patch displays its diagnostics.
-(ediff-defvar-local ediff-patch-diagnostics nil "")
+(ediff-defvar-local ediff-patch-diagnostics nil
+  "The buffer where patch displays its diagnostics.")
 
-;; Map of patch buffer.  Has the form:
-;;    ((filename1 marker1 marker2) (filename2 marker1 marker2) ...)
-;; where filenames are files to which patch would have applied the patch;
-;; marker1 delimits the beginning of the corresponding patch and marker2 does
-;; it for the end.
-(ediff-defvar-local ediff-patch-map nil "")
+(ediff-defvar-local ediff-patch-map nil
+  "Map of patch buffer.
+Has the form:
+   ((filename1 marker1 marker2) (filename2 marker1 marker2) ...)
+where filenames are files to which patch would have applied the patch;
+marker1 delimits the beginning of the corresponding patch and marker2 does
+it for the end.")
 
 ;; strip prefix from filename
 ;; returns /dev/null, if can't strip prefix
@@ -193,7 +192,7 @@ program."
     (let ((count 0)
 	  (mark1 (point-min-marker))
 	  (mark1-end (point-min))
-	  (possible-file-names '("/dev/null" . "/dev/null"))
+	  (possible-file-names `(,null-device . ,null-device))
 	  mark2-end mark2 filenames
 	  beg1 beg2 end1 end2
 	  patch-map opoint)
@@ -217,10 +216,10 @@ program."
 	    (setq possible-file-names
 		  (cons (if (and beg1 end1)
 			    (buffer-substring beg1 end1)
-			  "/dev/null")
+			  null-device)
 			(if (and beg2 end2)
 			    (buffer-substring beg2 end2)
-			  "/dev/null")))
+			  null-device)))
             ;; Remove file junk (Bug#26084).
             (while (re-search-backward
                     (concat "^\\(?:" diff-file-junk-re "\\)") mark1-end t)
@@ -309,12 +308,12 @@ program."
 				   (file-exists-p (cdr m2)))
 			  (setq base-dir1 (car m1)
 				base-dir2 (car m2))))))))
-	      (or (string= (car proposed-file-names) "/dev/null")
+	      (or (string= (car proposed-file-names) null-device)
 		  (setcar proposed-file-names
 			  (ediff-file-name-sans-prefix
 			   (car proposed-file-names) base-dir1)))
 	      (or (string=
-		   (cdr proposed-file-names) "/dev/null")
+		   (cdr proposed-file-names) null-device)
 		  (setcdr proposed-file-names
 			  (ediff-file-name-sans-prefix
 			   (cdr proposed-file-names) base-dir2)))
@@ -323,7 +322,7 @@ program."
 
     ;; take the given file name into account
     (or (file-directory-p filename)
-	(string= "/dev/null" filename)
+	(string= null-device filename)
 	(setcar (ediff-get-session-objA (car ediff-patch-map))
 		(cons (file-name-nondirectory filename)
 		      (file-name-nondirectory filename))))
@@ -414,7 +413,9 @@ other files, enter `/dev/null'.
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
 		      (fundamental-mode))
-		    (princ (format-message "
+                    (with-current-buffer standard-output
+                      (insert (format-message
+                              (substitute-command-keys "
 Ediff has inferred that
 	%s
 	%s
@@ -422,10 +423,10 @@ are two possible targets for applying the patch.
 Both files seem to be plausible alternatives.
 
 Please advise:
-    Type `y' to use %s as the target;
-    Type `n' to use %s as the target.
-"
-				   file1 file2 file1 file2)))
+    Type \\`y' to use %s as the target;
+    Type \\`n' to use %s as the target.
+")
+                                            file1 file2 file1 file2))))
 		  (setcar session-file-object
 			  (if (y-or-n-p (format "Use %s ? " file1))
 			      (progn
@@ -465,6 +466,9 @@ are two possible targets for this %spatch.  However, these files do not exist."
 				     file1 file2 (if multi-patch-p "multi-" ""))))
 		    (princ "
 \nPlease enter an alternative patch target ...\n"))
+                  (when (and (string= file1 file2)
+                             (y-or-n-p (format "Create %s?" file1)))
+                    (write-region (point-min) (point-min) file1))
 		  (let ((directory t)
 			target)
 		    (while directory
@@ -499,15 +503,11 @@ are two possible targets for this %spatch.  However, these files do not exist."
 	patch-file-name)
     (setq patch-file-name
 	  (read-file-name
-	   (format "Patch is in file%s: "
-		   (cond ((and buffer-file-name
-			       (equal (expand-file-name dir)
-				      (file-name-directory buffer-file-name)))
-			  (concat
-			   " (default "
-			   (file-name-nondirectory buffer-file-name)
-			   ")"))
-			 (t "")))
+           (format-prompt "Patch is in file"
+                          (and buffer-file-name
+                               (equal (expand-file-name dir)
+                                      (file-name-directory buffer-file-name))
+                               (file-name-nondirectory buffer-file-name)))
 	   dir buffer-file-name 'must-match))
     (if (file-directory-p patch-file-name)
 	(error "Patch file cannot be a directory: %s" patch-file-name)
@@ -582,7 +582,7 @@ optional argument, then use it."
 	 patch-buf
 	 (if (and ediff-patch-map
 		  (not (string-match-p
-			"^/dev/null"
+			(concat "^" null-device)
 			;; this is the file to patch
 			(ediff-get-session-objA-name (car ediff-patch-map))))
 		  (> (length
@@ -796,7 +796,7 @@ you can still examine the changes via M-x ediff-files"
       ;; the orig file.
       (setq target-filename
 	    (concat
-	     (if (ediff-file-remote-p (file-truename source-filename))
+             (if (file-remote-p (file-truename source-filename))
 		 magic-file-name
 	       source-filename)
 	     "_patched"))
@@ -823,7 +823,8 @@ you can still examine the changes via M-x ediff-files"
 	    ediff-patch-diagnostics patch-diagnostics))
 
     (bury-buffer patch-diagnostics)
-    (message "Type `P', if you need to see patch diagnostics")
+    (message (substitute-command-keys
+              "Type \\`P', if you need to see patch diagnostics"))
     ctl-buf))
 
 (defun ediff-multi-patch-internal (patch-buf &optional startup-hooks)

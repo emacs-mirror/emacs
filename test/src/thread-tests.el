@@ -1,6 +1,6 @@
-;;; threads.el --- tests for threads. -*- lexical-binding: t -*-
+;;; thread-tests.el --- tests for threads. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -70,12 +70,12 @@
    (thread-live-p (make-thread #'ignore))))
 
 (ert-deftest threads-all-threads ()
-  "Simple test for all-threads."
+  "Simple test for `all-threads'."
   (skip-unless (featurep 'threads))
   (should (listp (all-threads))))
 
 (ert-deftest threads-main-thread ()
-  "Simple test for all-threads."
+  "Simple test for `all-threads'."
   (skip-unless (featurep 'threads))
   (should (eq main-thread (car (all-threads)))))
 
@@ -155,7 +155,7 @@
   (should (eq (type-of (make-mutex)) 'mutex)))
 
 (ert-deftest threads-mutex-lock-unlock ()
-  "Test mutex-lock and unlock."
+  "Test `mutex-lock' and unlock."
   (skip-unless (featurep 'threads))
   (should
    (let ((mx (make-mutex)))
@@ -217,7 +217,7 @@
        (while (not threads-mutex-key)
 	 (thread-yield))
        (thread-signal thr 'quit nil)
-       ;; `quit' is not catched by `should-error'.  We must indicate it.
+       ;; `quit' is not caught by `should-error'.  We must indicate it.
        (condition-case nil
            (thread-join thr)
          (quit (signal 'error nil)))))))
@@ -315,8 +315,8 @@
   "Test signaling a thread as soon as it is started by the OS."
   (skip-unless (featurep 'threads))
   (let ((thread
-         (make-thread #'(lambda ()
-                          (while t (thread-yield))))))
+         (make-thread (lambda ()
+                        (while t (thread-yield))))))
     (thread-signal thread 'error nil)
     (sit-for 1)
     (should-not (thread-live-p thread))
@@ -331,7 +331,7 @@
     (let (buffer-read-only)
       (erase-buffer))
     (let ((thread
-           (make-thread #'(lambda () (thread-signal main-thread 'error nil)))))
+           (make-thread (lambda () (thread-signal main-thread 'error nil)))))
       (while (thread-live-p thread)
         (thread-yield))
       (read-event nil nil 0.1)
@@ -389,7 +389,33 @@
     (should (equal (thread-last-error) '(error "Die, die, die!")))))
 
 (ert-deftest threads-test-bug33073 ()
+  (skip-unless (fboundp 'make-thread))
   (let ((th (make-thread 'ignore)))
     (should-not (equal th main-thread))))
 
-;;; threads.el ends here
+(defvar threads-test--var 'global)
+
+(ert-deftest threads-test-bug48990 ()
+  (skip-unless (fboundp 'make-thread))
+  (let ((buf1 (generate-new-buffer " thread-test"))
+        (buf2 (generate-new-buffer " thread-test")))
+    (with-current-buffer buf1
+      (setq-local threads-test--var 'local1))
+    (with-current-buffer buf2
+      (setq-local threads-test--var 'local2))
+    (let ((seen nil))
+      (with-current-buffer buf1
+        (should (eq threads-test--var 'local1))
+        (make-thread (lambda () (setq seen threads-test--var))))
+      (with-current-buffer buf2
+        (should (eq threads-test--var 'local2))
+        (let ((threads-test--var 'let2))
+          (should (eq threads-test--var 'let2))
+          (while (not seen)
+            (thread-yield))
+          (should (eq threads-test--var 'let2))
+          (should (eq seen 'local1)))
+        (should (eq threads-test--var 'local2)))
+      (should (eq threads-test--var 'global)))))
+
+;;; thread-tests.el ends here
