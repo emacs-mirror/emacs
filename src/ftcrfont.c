@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include <time.h>
 
 #include <config.h>
 #include <math.h>
@@ -40,6 +41,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_PGTK
 #include "xsettings.h"
 #endif
+
+#include "xcairo.h"
 
 #ifdef USE_BE_CAIRO
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
@@ -529,314 +532,6 @@ ftcrfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 }
 #endif	/* HAVE_OTF_GET_VARIATION_GLYPHS || HAVE_FT_FACE_GETCHARVARIANTINDEX */
 
-static float* create_kernel(float radius, float deviation) {
-  static float last_radius = -1.0;
-  static float last_dev = -1.0;
-  static float *kernel = NULL;
-
-  if (last_radius == radius && last_dev == deviation)
-    return kernel;
-
-  if (kernel) free(kernel);
-
-  int size = 2 * (int)(radius) + 1;
-  kernel = (float*)(malloc(sizeof(float) * (size + 1)));
-  float radiusf = fabs(radius) + 1.0f;
-  float value = -radius;
-  float sum = 0.0f;
-  int i;
-
-  if(!kernel) return 0;
-
-  if(deviation == 0.0f)
-    deviation = sqrt(-(radiusf * radiusf) / (2.0f * log(1.0f / 255.0f)));
-
-  kernel[0] = size;
-
-  for(i = 0; i < size; i++) {
-    kernel[1 + i] =
-      1.0f / (2.506628275f * deviation) *
-      exp(-((value * value) / (2.0f * (deviation * deviation))))
-      ;
-
-    sum += kernel[1 + i];
-    value += 1.0f;
-  }
-
-  for(i = 0; i < size; i++) kernel[1 + i] /= sum;
-
-  return kernel;
-}
-
-
-/* FIXME: this is WAYYYYYYYY TOOOOO SLOOOWW */
-cairo_bool_t cairou_gaussian_blur(
-                                  cairo_surface_t* surface,
-                                  float radius,
-                                  float deviation
-                                  ) {
-  float* horzBlur = 0;
-  float* vertBlur = 0;
-  float* kernel = 0;
-  unsigned char* data = 0;
-  cairo_format_t format;
-  int width;
-  int height;
-  int stride;
-  unsigned int channels;
-  int iY;
-  int iX;
-
-  if(cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
-    return false;
-
-  data = cairo_image_surface_get_data(surface);
-  format = cairo_image_surface_get_format(surface);
-  width = cairo_image_surface_get_width(surface);
-  height = cairo_image_surface_get_height(surface);
-  stride = cairo_image_surface_get_stride(surface);
-  channels = 4;
-
-  horzBlur = (float*)(malloc(sizeof(float) * height * stride));
-  vertBlur = (float*)(malloc(sizeof(float) * height * stride));
-  kernel = create_kernel(radius, deviation);
-
-  if(!horzBlur || !vertBlur || !kernel) return false;
-
-  /* Horizontal pass. */
-  for(iY = 0; iY < height; iY++) {
-    for(iX = 0; iX < width; iX++) {
-      float red = 0.0f;
-      float green = 0.0f;
-      float blue = 0.0f;
-      float alpha = 0.0f;
-      int offset = (int)(kernel[0]) / -2;
-      int baseOffset;
-      int i;
-
-      for(i = 0; i < (int)(kernel[0]); i++) {
-        unsigned char* dataPtr = 0;
-        int x = iX + offset;
-        float kernip1;
-
-        if(x < 0 || x >= width) continue;
-
-        dataPtr = &data[iY * stride + x * channels];
-        kernip1 = kernel[i + 1];
-
-        if(channels == 1) alpha += kernip1 * dataPtr[0];
-
-        else {
-          if(channels == 4) alpha += kernip1 * dataPtr[3];
-
-          red += kernip1 * dataPtr[2];
-          green += kernip1 * dataPtr[1];
-          blue+= kernip1 * dataPtr[0];
-        }
-
-        offset++;
-      }
-
-      baseOffset = iY * stride + iX * channels;
-
-      if(channels == 1) horzBlur[baseOffset] = alpha;
-
-      else {
-        if(channels == 4) horzBlur[baseOffset + 3] = alpha;
-
-        horzBlur[baseOffset + 2] = red;
-        horzBlur[baseOffset + 1] = green;
-        horzBlur[baseOffset] = blue;
-      }
-    }
-  }
-
-  /* Vertical pass. */
-  for(iY = 0; iY < height; iY++) {
-    for(iX = 0; iX < width; iX++) {
-      float red = 0.0f;
-      float green = 0.0f;
-      float blue = 0.0f;
-      float alpha = 0.0f;
-      int offset = (int)(kernel[0]) / -2;
-      int baseOffset;
-      int i;
-
-      for(i = 0; i < (int)(kernel[0]); i++) {
-        float* dataPtr = 0;
-        int y = iY + offset;
-        float kernip1;
-
-        if(y < 0 || y >= height) {
-          offset++;
-
-          continue;
-        }
-
-        dataPtr = &horzBlur[y * stride + iX * channels];
-        kernip1 = kernel[i + 1];
-
-        if(channels == 1) alpha += kernip1 * dataPtr[0];
-
-        else {
-          if(channels == 4) alpha += kernip1 * dataPtr[3];
-
-          red += kernip1 * dataPtr[2];
-          green += kernip1 * dataPtr[1];
-          blue += kernip1 * dataPtr[0];
-        }
-
-        offset++;
-      }
-
-      baseOffset = iY * stride + iX * channels;
-
-      if(channels == 1) vertBlur[baseOffset] = alpha;
-
-      else {
-        if(channels == 4) vertBlur[baseOffset + 3] = alpha;
-
-        vertBlur[baseOffset + 2] = red;
-        vertBlur[baseOffset + 1] = green;
-        vertBlur[baseOffset] = blue;
-      }
-    }
-  }
-
-  for(iY = 0; iY < height; iY++) {
-    for(iX = 0; iX < width; iX++) {
-      int i = iY * stride + iX * channels;
-
-      if(channels == 1) data[i] = (unsigned char)(vertBlur[i]);
-
-      else {
-        if(channels == 4) data[i + 3] = (unsigned char)(
-                                                        vertBlur[i + 3]
-                                                        );
-
-        data[i + 2] = (unsigned char)(vertBlur[i + 2]);
-        data[i + 1] = (unsigned char)(vertBlur[i + 1]);
-        data[i] = (unsigned char)(vertBlur[i]);
-      }
-    }
-  }
-
-  free(horzBlur);
-  free(vertBlur);
-
-  return true;
-}
-
-inline uint32_t
-plus4(uint32_t x, uint32_t y)
-{
-  uint8_t a, b, c, d;
-  a = (x >> 24) & 0xff;
-  b = (x >> 16) & 0xff;
-  c = (x >> 8 ) & 0xff;
-  d = x         & 0xff;
-  a += (y >> 24) & 0xff;
-  b += (y >> 16) & 0xff;
-  c += (y >> 8 ) & 0xff;
-  d += y         & 0xff;
-  return (a << 24) | (b << 16) | (c << 8) | d;
-}
-
-inline uint32_t
-minus4(uint32_t x, uint32_t y)
-{
-  uint8_t a, b, c, d;
-  a = (x >> 24) & 0xff;
-  b = (x >> 16) & 0xff;
-  c = (x >> 8 ) & 0xff;
-  d = x         & 0xff;
-  a -= (y >> 24) & 0xff;
-  b -= (y >> 16) & 0xff;
-  c -= (y >> 8 ) & 0xff;
-  d -= y         & 0xff;
-  return (a << 24) | (b << 16) | (c << 8) | d;
-}
-
-inline uint32_t
-div4(uint32_t x, uint32_t y)
-{
-  uint8_t a, b, c, d;
-  a = (x >> 24) & 0xff;
-  b = (x >> 16) & 0xff;
-  c = (x >> 8 ) & 0xff;
-  d = x         & 0xff;
-  return (a / y << 24) | (b / y << 16) | (c / y << 8) | d / y;
-}
-
-static void
-box_blur (cairo_surface_t *surface, int iteration)
-{
-  uint8_t *data, *blur;
-  int width, height, stride, x, y;
-
-  if (cairo_surface_status (surface) != CAIRO_STATUS_SUCCESS)
-    return;
-  eassert (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_IMAGE);
-  eassert (cairo_image_surface_get_format (surface) == CAIRO_FORMAT_ARGB32);
-
-  if (iteration <= 0)
-    return;
-
-  cairo_surface_flush (surface);
-  width = cairo_image_surface_get_width (surface);
-  height = cairo_image_surface_get_height (surface);
-  stride = cairo_image_surface_get_stride (surface);
-  blur = malloc (height * width * sizeof (uint32_t));
-  memset (blur, 0, sizeof (height * width * sizeof (uint32_t)));
-
-  while (--iteration >= 0)
-    {
-      uint32_t *src, *dst;
-      data = cairo_image_surface_get_data (surface);
-
-      // Horizontal, data -> blur
-      for (y = 0; y < height; y++)
-        {
-          uint32_t acc = 0;
-          src = (uint32_t *)&data[y * stride];
-          dst = (uint32_t *)&blur[y * stride];
-          if (width < 3)
-            break;
-          acc = plus4(src[0], src[1]);
-          for (x = 2; x < width; x++)
-            {
-              acc = plus4(acc, src[x]);
-              dst[x-1] = div4(acc, 3);
-              acc = minus4(acc, src[x-2]);
-            }
-        }
-
-      // Vertical, blur -> data
-      if (height < 2)
-        break;
-      uint32_t *row = (uint32_t *) malloc(width * sizeof(uint32_t));
-      memcpy (row, blur, width * sizeof(uint32_t));
-      for (x = 0; x < width; x++)
-        row[x] = plus4(row[x], *(uint32_t*)(blur+stride+x));
-      for (y = 2; y < height; y++)
-        {
-          uint32_t *src = (uint32_t *)(blur + y * stride);
-          uint32_t *dst1 = (uint32_t *)(data + (y-1) * stride);
-          uint32_t *src2 = (uint32_t *)(blur + (y-2) * stride);
-          for (x = 0; x < width; x++)
-            {
-              row[x] = plus4(row[x], src[x]);
-              dst1[x] = div4(row[x], 3);
-              row[x] = minus4(row[x], src2[x]);
-            }
-        }
-      free (row);
-    }
-
-  cairo_surface_mark_dirty (surface);
-  free (blur);
-}
-
 static int
 ftcrfont_draw (struct glyph_string *s,
                int from, int to, int x, int y, bool with_background)
@@ -922,8 +617,13 @@ ftcrfont_draw (struct glyph_string *s,
 #endif
 #else
   uint32_t col = be_foreground;
-  
-  if (face->shadow_p)
+
+  cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
+			GREEN_FROM_ULONG (col) / 255.0,
+			BLUE_FROM_ULONG (col) / 255.0);
+#endif
+
+  if (s->face->shadow_p)
     {
       double x1, y1, w1, h1;
       cairo_surface_t *surface;
@@ -932,29 +632,31 @@ ftcrfont_draw (struct glyph_string *s,
       cairo_clip_extents (cr, &x1, &y1, &w1, &h1);
       surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
       dc = cairo_create (surface);
-      cairo_translate (dc, -x1 + face->shadow_offset.x,
-                       -y1 + face->shadow_offset.y);
+      cairo_translate (dc, s->face->shadow_offset.x,
+                       s->face->shadow_offset.y);
       cairo_set_source_rgb (dc, 0, 0, 0);
       cairo_set_scaled_font (dc, ftcrfont_info->cr_scaled_font);
       cairo_show_glyphs (dc, glyphs, len);
-      box_blur (surface, ceil (face->shadow_blur));
-      if (face->shadow_color_defaulted_p)
-        x_set_cr_source_with_gc_foreground (f, s->gc);
+
+      clock_t begin = clock();
+      gaussian_blur (surface, w1, h1, s->face->shadow_blur);
+      clock_t end = clock();
+      double secs = (double)(end-begin)/CLOCKS_PER_SEC;
+      printf("gaussian %g %g %g = %g, ie. %g ns per pixel\n", w1, h1, s->face->shadow_blur, secs, secs * 1e9 / w1 / h1);
+
+      if (s->face->shadow_color_defaulted_p)
+	pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
       else
         {
           // TODO: get color RGB
-          x_set_cr_source_with_gc_foreground (f, s->gc);
+	  pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
         }
-      cairo_mask_surface (cr, surface, x1, y1);
+      cairo_mask_surface (cr, surface, 0, 0);
 
       cairo_destroy (dc);
       cairo_surface_destroy (surface);
     }
 
-  cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
-			GREEN_FROM_ULONG (col) / 255.0,
-			BLUE_FROM_ULONG (col) / 255.0);
-#endif
   cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
   cairo_show_glyphs (cr, glyphs, len);
 #ifndef USE_BE_CAIRO

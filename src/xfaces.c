@@ -6330,6 +6330,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       if (STRINGP (rest))
         {
           color = rest;
+	  offset = Qnil;
           rest = Qnil;
         }
       else if (CONSP (rest))
@@ -6337,6 +6338,11 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
           color = CAR (rest);
           offset = CDR (rest);
         }
+      else
+	{
+	  color = Qnil;
+	  offset = Qnil;
+	}
 
       if (NILP (color))
           face->shadow_color_defaulted_p = true;

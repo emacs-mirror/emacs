@@ -3551,6 +3551,7 @@ if test "${HAVE_X11}" = "yes"; then
 fi
 
 HAVE_CAIRO=no
+CAIRO_OBJ=
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_cairo}" != "no"; then
     CAIRO_REQUIRED=1.8.0
@@ -3568,8 +3569,10 @@ if test "${HAVE_X11}" = "yes"; then
       AC_DEFINE([USE_CAIRO], [1], [Define to 1 if using cairo.])
       CFLAGS="$CFLAGS $CAIRO_CFLAGS"
       LIBS="$LIBS $CAIRO_LIBS"
+      CAIRO_OBJ="xcairo.o"
       AC_SUBST([CAIRO_CFLAGS])
       AC_SUBST([CAIRO_LIBS])
+      AC_SUBST([CAIRO_OBJ])
     else
       AC_MSG_WARN([cairo requested but not found.])
     fi
