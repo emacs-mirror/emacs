@@ -873,6 +873,11 @@ the new frame according to its own rules."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
          (w (cond
+             ;; When running in a batch session, don't create a GUI
+             ;; frame.  (Batch sessions don't set a SIGIO handler on
+             ;; relevant platforms, so attempting this would terminate
+             ;; Emacs.)
+             (noninteractive nil)
              ((assq 'terminal parameters)
               (let ((type (terminal-live-p
                            (cdr (assq 'terminal parameters)))))
