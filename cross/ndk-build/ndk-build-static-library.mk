@@ -34,7 +34,7 @@ else
 ifeq (x$(suffix $(1)),x.$(or $(LOCAL_CPP_EXTENSION),cpp))
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1),$(2))
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS_CXX) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+	$(NDK_BUILD_CXX) -c $$< -o $$@ $(NDK_BUILD_CFLAGS_CXX) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 ifneq ($(or $(call eq,x$(suffix $(1)),x.s),$(call eq,x$(suffix $(1)),x.S)),)
@@ -47,7 +47,7 @@ ifneq (x$(suffix $(1)),x.asm)
 ifeq (x$(suffix $(1)),x.cc)
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1),$(2))
-	$(NDK_BUILD_CC) -c $$< -o $$@ $(NDK_BUILD_CFLAGS_CXX) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
+	$(NDK_BUILD_CXX) -c $$< -o $$@ $(NDK_BUILD_CFLAGS_CXX) $(NDK_CFLAGS_$(LOCAL_MODULE)) $(NDK_CXXFLAGS_$(LOCAL_MODULE))
 
 else
 $$(error Unsupported suffix: $(suffix $(1)))

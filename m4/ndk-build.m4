@@ -25,6 +25,10 @@ AC_ARG_WITH([ndk_cxx_shared],
   [AS_HELP_STRING([--with-ndk-cxx-shared],
     [name of the C++ standard library included with the NDK])])
 
+AC_ARG_WITH([ndk_cxx],
+  [AS_HELP_STRING([--with-ndk-cxx],
+    [name of the C++ compiler included with the NDK])])
+
 # ndk_INIT(ABI, API, DIR, CFLAGS)
 # -------------------------------
 # Initialize the Android NDK.  ABI is the ABI being built for.
@@ -54,6 +58,7 @@ ndk_API=$2
 ndk_DIR=$3
 ndk_ANY_CXX=
 ndk_BUILD_CFLAGS="$4"
+ndk_working_cxx=no
 
 AS_CASE(["$ndk_ABI"],
   [*arm64*], [ndk_ARCH=arm64],
@@ -169,6 +174,10 @@ that could not be found in the list of directories specified in \
     [AC_MSG_ERROR([The module [$]1 requires the C++ standard library \
 (libc++_shared.so), but it was not found.])])
 
+  AS_IF([test "$ndk_ANY_CXX" = "yes" && test "$ndk_working_cxx" != "yes"],
+    [AC_MSG_ERROR([The module [$]1 requires the C++ standard library \
+(libc++_shared.so), but a working C++ compiler was not found.])])
+
   AC_MSG_RESULT([yes])
 
   # Make sure the module is prepended.
@@ -178,6 +187,44 @@ that could not be found in the list of directories specified in \
   # Now recursively resolve this module's imports.
   for ndk_module in $module_imports; do
     ndk_resolve_import_module $ndk_module
+  done
+}
+
+# ndk_filter_cc_for_cxx
+# ---------------------
+# Run through $CC, removing any options that are not suitable for
+# use in a C++ compiler.
+
+ndk_filter_cc_for_cxx () {
+  for ndk_word in $CC; do
+    AS_CASE([$ndk_word], [*-std=*], [],
+      [AS_ECHO_N(["$ndk_word "])])
+  done
+}
+
+# ndk_subst_cc_onto_cxx
+# ---------------------
+# Print the value of $CXX, followed by any innocent looking options
+# in $CC.
+
+ndk_subst_cc_onto_cxx () {
+  AS_ECHO_N(["$CXX "])
+  ndk_flag=
+  for ndk_word in `AS_ECHO_N(["$CC"]) | cut -s -f2- -d' '`; do
+    AS_IF([test "$ndk_flag" = "yes"],
+      [AS_ECHO_N(["$ndk_word "])],
+      [AS_CASE([$ndk_word],
+        [*-sysroot=*],
+          [AS_ECHO_N(["$ndk_word "])],
+	[*-isystem*],
+          [AS_ECHO_N(["$ndk_word "])
+	   ndk_flag=yes],
+	[*-sysroot*],
+	  [AS_ECHO_N(["$ndk_word "])
+	   ndk_flag=yes],
+	[-D__ANDROID_API__*],
+	  [AS_ECHO_N(["$ndk_word "])])])
+    ndk_flag=no
   done
 }
 
@@ -209,7 +256,7 @@ ndk_where_toolchain=
 AS_IF([test -z "$with_ndk_cxx_shared" && test -n "$ndk_where_cc"],[
   # Find the NDK root directory.  Go to $ndk_where_cc.
   SAVE_PWD=`pwd`
-  cd `dirname "$ndk_where_cc"`
+  cd `AS_DIRNAME(["$ndk_where_cc"])`
 
   # Now, keep moving backwards until pwd ends with ``toolchains''.
   while :; do
@@ -264,7 +311,37 @@ name of an appropriate ``libc++_shared.so'' binary.])],
 
 ndk_CXX_SHARED=$with_ndk_cxx_shared
 
-# These variables have now been found.
+# These variables have now been found.  Now look for a C++ compiler.
+# Upon failure, pretend the C compiler is a C++ compiler and use that
+# instead.
+
+ndk_cc_name=`AS_BASENAME(["${ndk_cc_firstword}"])`
+ndk_cxx_name=
+
+AS_CASE([$ndk_cc_name], [*-gcc],
+  [ndk_cxx_name=`AS_ECHO([$ndk_cc_name]) | sed 's/gcc/g++/'`],
+  [ndk_cxx_name="${ndk_cc_name}++"])
+
+AS_IF([test -n "$with_ndk_cxx"], [CXX=$with_ndk_cxx],
+  [AC_PATH_PROGS([CXX], [$ndk_cxx_name],
+     [], [`AS_DIRNAME(["$ndk_where_cc"])`:$PATH])
+   AS_IF([test -z "$CXX"], [CXX=`ndk_filter_cc_for_cxx`],
+     [CXX=`ndk_subst_cc_onto_cxx`])])
+])
+
+# ndk_LATE
+# --------
+# Perform late initialization of the ndk-build system by checking for
+# required C and C++ headers.
+
+AC_DEFUN([ndk_LATE],
+[
+AS_IF([test "$ndk_INITIALIZED" = "yes"],[
+  AS_IF([test -n "$CXX"], [AC_LANG_PUSH([C++])
+    AC_CHECK_HEADER([string], [ndk_working_cxx=yes],
+      [AC_MSG_WARN([Your C++ compiler is not properly set up, and\
+ the standard library headers could not be found.])])
+    AC_LANG_POP([C++])])])
 ])
 
 # ndk_SEARCH_MODULE(MODULE, NAME, ACTION-IF-FOUND, [ACTION-IF-NOT-FOUND])
@@ -303,10 +380,13 @@ else
     ndk_ANY_CXX=yes
   fi
 
-  if test "$ndk_ANY_CXX" = "yes" && test -z "$with_ndk_cxx_shared"; then
-    AC_MSG_ERROR([The module $1 requires the C++ standard library \
-(libc++_shared.so), but it was not found.])
-  fi
+  AS_IF([test "$ndk_ANY_CXX" = "yes" && test -z "$with_ndk_cxx_shared"],
+    [AC_MSG_ERROR([The module $1 requires the C++ standard library \
+(libc++_shared.so), but it was not found.])])
+
+  AS_IF([test "$ndk_ANY_CXX" = "yes" && test "$ndk_working_cxx" != "yes"],
+    [AC_MSG_ERROR([The module [$]1 requires the C++ standard library \
+(libc++_shared.so), but a working C++ compiler was not found.])])
 
   $2[]_CFLAGS="[$]$2[]_CFLAGS $module_cflags $module_includes"
   $2[]_LIBS="[$]$2[]_LIBS $module_ldflags"
@@ -357,6 +437,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     NDK_BUILD_ABI=$ndk_ABI
     NDK_BUILD_SDK=$ndk_API
     NDK_BUILD_CC=$CC
+    NDK_BUILD_CXX=$CXX
     NDK_BUILD_AR=$AR
     NDK_BUILD_MODULES="$ndk_MODULES"
     NDK_BUILD_CXX_SHARED="$ndk_CXX_SHARED"
@@ -368,6 +449,7 @@ AC_DEFUN_ONCE([ndk_CONFIG_FILES],
     AC_SUBST([NDK_BUILD_ABI])
     AC_SUBST([NDK_BUILD_SDK])
     AC_SUBST([NDK_BUILD_CC])
+    AC_SUBST([NDK_BUILD_CXX])
     AC_SUBST([NDK_BUILD_AR])
     AC_SUBST([NDK_BUILD_NASM])
     AC_SUBST([NDK_BUILD_MODULES])

@@ -173,6 +173,7 @@ if test "$XCONFIGURE" = "android"; then
   # NDK require them to be able to find system includes.
   with_ndk_path="$android_ndk_path"
   with_ndk_cxx_shared="$android_ndk_cxx_shared"
+  with_ndk_cxx="$android_ndk_cxx"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],\
            [$ANDROID_CFLAGS])
 fi
@@ -1155,6 +1156,7 @@ package will likely install on older systems but crash on startup.])
          ANDROID_SDK="$android_sdk" android_abi=$android_abi	\
 	 android_ndk_path="$with_ndk_path"		     	\
 	 android_ndk_cxx_shared="$with_ndk_cxx_shared"	     	\
+	 android_ndk_cxx="$android_ndk_cxx"			\
 	 $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
@@ -1472,6 +1474,7 @@ AC_DEFUN([gt_TYPE_WINT_T],
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
 gl_EARLY
+ndk_LATE
 
 if test "$ac_test_CFLAGS" != set; then
   # It's helpful to have C macros available to GDB, so prefer -g3 to -g

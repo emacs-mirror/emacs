@@ -112,6 +112,24 @@ result, the Emacs package will be approximately 100 megabytes larger
 than a compressed package for a newer version of Android.
 
 
+BUILDING C++ DEPENDENCIES
+
+With a new version of the NDK, dependencies containing C++ code should
+build without any futher configuration.  However, older versions
+require that you use the ``make_standalone_toolchain.py'' script in
+the NDK distribution to create a ``standalone toolchain'', and use
+that instead, in order for C++ headers to be found.
+
+See https://developer.android.com/ndk/guides/standalone_toolchain for
+more details; when a ``standalone toolchain'' is specified, the
+configure script will try to determine the location of the C++
+compiler based on the C compiler specified.  If that automatic
+detection does not work, you can specify a C++ compiler yourself, like
+so:
+
+  ./configure --with-ndk-cxx=/path/to/toolchain/bin/i686-linux-android-g++
+
+
 DEBUG AND RELEASE BUILDS
 
 Android makes a distinction between ``debug'' and ``release'' builds
