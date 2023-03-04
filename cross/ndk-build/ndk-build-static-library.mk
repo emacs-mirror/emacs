@@ -65,7 +65,7 @@ $$(error Trying to build nasm file on non-Intel platform!)
 else
 
 $(call objname,$(LOCAL_MODULE),$(basename $(1))): $(call maybe-absolute,$(1),$(2))
-	$(NDK_BUILD_NASM) -o $$@ -i $(LOCAL_PATH) -i $$(dir $$<) $(NDK_ASFLAGS_$(LOCAL_MODULE)) $$<
+	$(NDK_BUILD_NASM) -felf -o $$@ -i $(LOCAL_PATH) -i $$(dir $$<) $(NDK_ASFLAGS_$(LOCAL_MODULE)) $$<
 
 endif
 endif
