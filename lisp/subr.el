@@ -2406,8 +2406,9 @@ If the variable `delay-mode-hooks' is non-nil, does not do anything,
 just adds the HOOKS to the list `delayed-mode-hooks'.
 Otherwise, runs hooks in the sequence: `change-major-mode-after-body-hook',
 `delayed-mode-hooks' (in reverse order), HOOKS, then runs
-`hack-local-variables', runs the hook `after-change-major-mode-hook', and
-finally evaluates the functions in `delayed-after-hook-functions' (see
+`hack-local-variables' (if the buffer is visiting a file),
+runs the hook `after-change-major-mode-hook', and finally
+evaluates the functions in `delayed-after-hook-functions' (see
 `define-derived-mode').
 
 Major mode functions should use this instead of `run-hooks' when
