@@ -212,7 +212,8 @@ ndk_subst_cc_onto_cxx () {
   ndk_flag=
   for ndk_word in `AS_ECHO_N(["$CC"]) | cut -s -f2- -d' '`; do
     AS_IF([test "$ndk_flag" = "yes"],
-      [AS_ECHO_N(["$ndk_word "])],
+      [AS_ECHO_N(["$ndk_word "])
+       ndk_flag=no],
       [AS_CASE([$ndk_word],
         [*-sysroot=*],
           [AS_ECHO_N(["$ndk_word "])],
@@ -224,7 +225,6 @@ ndk_subst_cc_onto_cxx () {
 	   ndk_flag=yes],
 	[-D__ANDROID_API__*],
 	  [AS_ECHO_N(["$ndk_word "])])])
-    ndk_flag=no
   done
 }
 
