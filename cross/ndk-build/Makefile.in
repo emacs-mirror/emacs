@@ -56,6 +56,10 @@ NDK_BUILD_ANDROID_MK := $(call uniqify,$(NDK_BUILD_ANDROID_MK))
 # LOCAL_SHARED_LIBRARIES.
 NDK_BUILD_MODULES := $(call uniqify,$(NDK_BUILD_MODULES))
 
+# Define CFLAGS for compiling C++ code; this involves removing all
+# -std=NNN options.
+NDK_BUILD_CFLAGS_CXX := $(filter-out -std=%,$(NDK_BUILD_CFLAGS))
+
 define subr-1
 
 # Define ndk-build functions.  Many of these are identical to those in
