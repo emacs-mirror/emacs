@@ -299,6 +299,23 @@ PARENT and BOL are like other anchor functions."
     ;; prev-sibling doesn't have a child.
     (treesit-node-start prev-sibling)))
 
+(defun c-ts-mode--standalone-parent-skip-preproc (_n parent &rest _)
+  "Like the standalone-parent anchor but skips preproc nodes.
+PARENT is the same as other anchor functions."
+  (save-excursion
+    (treesit-node-start
+     (treesit-parent-until
+      ;; Use PARENT rather than NODE, to handle the case where NODE is
+      ;; nil.
+      parent (lambda (node)
+               (and node
+                    (not (string-match "preproc" (treesit-node-type node)))
+                    (progn
+                      (goto-char (treesit-node-start node))
+                      (looking-back (rx bol (* whitespace))
+                                    (line-beginning-position)))))
+      t))))
+
 (defun c-ts-mode--standalone-grandparent (_node parent bol &rest args)
   "Like the standalone-parent anchor but pass it the grandparent.
 PARENT, BOL, ARGS are the same as other anchor functions."
@@ -330,13 +347,28 @@ MODE is either `c' or `cpp'."
            ((parent-is "labeled_statement")
             c-ts-mode--standalone-grandparent c-ts-mode-indent-offset)
 
+           ;; Preproc directives
            ((node-is "preproc") column-0 0)
            ((node-is "#endif") column-0 0)
            ((match "preproc_call" "compound_statement") column-0 0)
 
+           ;; Top-level things under a preproc directive.  Note that
+           ;; "preproc" matches more than one type: it matches
+           ;; preproc_if, preproc_elif, etc.
            ((n-p-gp nil "preproc" "translation_unit") column-0 0)
-           ((n-p-gp nil "\n" "preproc") great-grand-parent c-ts-mode--preproc-offset)
-           ((parent-is "preproc") grand-parent c-ts-mode-indent-offset)
+           ;; Indent rule for an empty line after a preproc directive.
+           ((and no-node (parent-is ,(rx (or "\n" "preproc"))))
+            c-ts-mode--standalone-parent-skip-preproc c-ts-mode--preproc-offset)
+           ;; Statement under a preproc directive, the first statement
+           ;; indents against parent, the rest statements indent to
+           ;; their prev-sibling.
+           ((match nil ,(rx "preproc_" (or "if" "elif")) nil 3 3)
+            c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+           ((match nil "preproc_ifdef" nil 2 2)
+            c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+           ((match nil "preproc_else" nil 1 1)
+            c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+           ((parent-is "preproc") c-ts-mode--anchor-prev-sibling 0)
 
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "conditional_expression") first-sibling 0)
