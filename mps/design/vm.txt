@@ -269,7 +269,7 @@ Unix implementation
 
 _`.impl.ix`: In ``vmix.c``.
 
-_`.impl.ix.page.size`: The page size is given by ``getpagesize()``.
+_`.impl.ix.page.size`: The page size is given by ``sysconf(_SC_PAGESIZE)``.
 
 _`.impl.ix.param`: Decodes no keyword arguments.
 
