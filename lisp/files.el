@@ -3944,7 +3944,7 @@ If HANDLE-MODE is t, the function only checks whether a \"mode:\"
 is specified, and returns the corresponding mode symbol, or nil.
 In this case, try to ignore minor-modes, and return only a major-mode.
 If HANDLE-MODE is nil, the function gathers all the specified local
-variables.  If HANDLE-MODE is neither nil nor t, the functions gathers
+variables.  If HANDLE-MODE is neither nil nor t, the function gathers
 all the specified local variables, but ignores any settings of \"mode:\"."
   ;; We don't let inhibit-local-variables-p influence the value of
   ;; enable-local-variables, because then it would affect dir-local
