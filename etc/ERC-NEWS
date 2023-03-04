@@ -44,8 +44,13 @@ The 'networks' module is now all but required for everyday interactive
 use.  A default member of 'erc-modules' since ERC 5.3, 'networks' has
 grown increasingly integral to core client operations over the years.
 From now on, only the most essential operations will be officially
-supported in its absence, and users will see a warning upon
-entry-point invocation when it's not present.
+supported in its absence, and users will see a warning upon invoking
+an entry point, like 'erc-tls', when that's the case.
+
+On a related note, the function 'erc-network' now always returns
+non-nil in buffers created by a successfully established IRC
+connection, even after that connection has been closed.  This was done
+to aid the overall effort to improve buffer association.
 
 ** Tighter auth-source integration.
 The days of hit-and-miss auth-source queries are hopefully behind us.
@@ -77,12 +82,14 @@ now avoids any hijacking of the active window as well.
 
 Beyond this, additional flexibility is now available for controlling
 the behavior of newly created target buffers during reconnection.
+See the option 'erc-reconnect-display' for more.
 
 ** Improved handling of multiline prompt input.
 This means better detection and handling of intervening and trailing
 blanks when 'erc-send-whitespace-lines' is active.  New options have
 also been added for warning when input spans multiple lines.  Although
-off by default, new users are encouraged to enable them.
+off by default, new users are encouraged to enable them.  See options
+'erc-inhibit-multiline-input' and 'erc-ask-about-multiline-input'.
 
 ** URL handling has improved.
 Clicking on 'irc://' and 'ircs://' links elsewhere in Emacs now does
@@ -90,6 +97,21 @@ the right thing most of the time.  However, for security reasons,
 users are now prompted to confirm connection parameters prior to lift
 off.  See the new '(erc) Integrations' section in the Info manual for
 details.
+
+** ERC's major-mode hook now runs slightly later.
+The function 'erc-open' now delays running 'erc-mode-hook' until ERC's
+prompt and its bounding markers and many essential local variables
+have been initialized.  Those essentials include the familiar
+'erc-default-recipients', 'erc-server-users', and 'erc-network', as
+well as the various "session" variables, like 'erc-session-connector'.
+ERC activates "local modules" immediately afterward, just before
+running 'erc-connect-pre-hook', which is still useful for gaining a
+full accounting of what's been set.
+
+In similar news, 'erc-open' no longer calls 'erc-update-modules'.
+However, it still activates modules in a similar fashion, meaning,
+among other things, global-module setup still occurs before major-mode
+activation (something that's here to stay for compatibility reasons).
 
 ** Miscellaneous behavioral changes impacting the user experience.
 A bug has been fixed that saw prompts being mangled, doubled, or
@@ -99,58 +121,61 @@ now collapse into an alternate form designated by the option
 but can be fine-tuned via the repurposed, formerly abandoned option
 'erc-hide-prompt'.
 
-Certain commands provided by the 'erc-match' module, such as
-'erc-add-keyword', 'erc-add-pal', and others, now optionally ask
-whether to 'regexp-quote' the current input.  A new option,
-'erc-match-quote-when-adding', has been added to allow for retaining
-the old behavior, if desired.
+Another fix-turned-feature involves certain commands provided by the
+'erc-match' module, such as 'erc-add-keyword', 'erc-add-pal', and
+others, which now optionally offer to 'regexp-quote' the current
+input.  The old behavior, if desired, can still be had via the new
+option 'erc-match-quote-when-adding'.
 
-A bug has been fixed affecting users of the Soju bouncer: outgoing
-messages during periods of heavy traffic no longer disappear.
-
-Although rare, server passwords containing white space are now handled
-correctly.
-
-** Miscellaneous behavioral changes in the library API.
-A number of core macros and other definitions have been moved to a new
-file called erc-common.el.  This was done to further lessen the
-various complications arising from the mutual dependency between 'erc'
-and 'erc-backend'.
-
-ERC now relies on the Compat library from GNU ELPA to supply forward
-compatibility shims for users running older versions of Emacs.  The
-required Compat version resides atop ERC's main library file, in the
-'Package-Requires' header.  Third-party ERC modules will benefit
-automatically from this adoption.
-
-The function 'erc-network' always returns non-nil in server and target
-buffers belonging to a successfully established IRC connection, even
-after that connection has been closed.  (Also see the note in the
-section above about the 'networks' module basically being mandatory.)
-
-In 5.4, support for network symbols as keys was added for
+In 5.4, support for using network symbols as keys was added for
 'erc-autojoin-channels-alist'.  This has been extended to include
 explicit symbols passed to 'erc-tls' and 'erc' as so-called
 network-context identifiers via a new ':id' keyword.  The latter
 carries wider significance beyond autojoin and can be used for
 unequivocally identifying a connection in a human-readable way.
 
-The function 'erc-auto-query' was deemed too difficult to reason
-through and has thus been deprecated with no public replacement; it
-has also been removed from the client code path.
+A number of UX-centric bug fixes accompany this release.  For example,
+spaces are now possible in server passwords, and users of the Soju
+bouncer should no longer see outgoing messages pile up during periods
+of heavy traffic.  See the Emacs change log for the full complement.
 
-The function 'erc-open' now delays running 'erc-mode-hook' members
-until most local session variables have been initialized (minus those
-connection-related ones in erc-backend).  'erc-open' also no longer
-calls 'erc-update-modules', although modules are still activated
-in an identical fashion.
+** Miscellaneous behavioral changes in the library API.
+A number of core macros and other definitions have been moved to a new
+file called erc-common.el.  This was done to help mitigate various
+complications arising from the mutual dependency between 'erc' and
+'erc-backend'.
 
-Some groundwork has been laid for what may become a new breed of ERC
-module, namely, "connection-local" (or simply "local") modules.
+Also on the maintainability front, ERC now relies on the Compat
+library from GNU ELPA to supply forward compatibility shims for users
+running older versions of Emacs.  The required Compat version resides
+atop ERC's main library file, in the 'Package-Requires' header.
+Third-party modules should benefit automatically from its adoption.
 
-A few internal variables have been introduced that could just as well
-have been made public, possibly as user options.  Likewise for some
-internal functions.  As always, users needing such functionality
+In an effort to help further tame ERC's complexity, the variable
+'erc-default-recipients' is now expected to hold but a single target.
+As a consequence, functions like 'erc-add-default-channel' that
+imagine an alternate, aspirational model of buffer-target relations
+have been deprecated.  See Emacs change-log entries from around July
+of 2022 for specifics.
+
+A number of less consequential deprecations also debut in this
+release.  For example, the function 'erc-auto-query' was deemed too
+difficult to understand, behavior wise, and has thus been stricken
+from the client code path with no public replacement.  Although likely
+uncontroversial, such changes may still spell disruption for some.  If
+you find yourself among them and in need of explanations, please see
+related entries in the change log and discussions on the bug tracker.
+
+Although this release is light on API features, some groundwork has
+been laid for what may become a new breed of ERC module, namely,
+"connection-local" (or simply "local") modules.  This marks a small
+but crucial step forward toward a more flexible and granular revamping
+of ERC's long touted extensibility.  See the Info node "(erc) Local
+Modules" for details.
+
+Lastly, a few internal variables have been introduced that could just
+as well have been made public, possibly as user options.  Likewise for
+some internal functions.  As always, users needing such functionality
 officially exposed are encouraged to write to emacs-erc@gnu.org.
 
 

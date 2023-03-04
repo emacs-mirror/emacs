@@ -427,7 +427,7 @@ what the parent of the node would be if it were a node."
 
     (treesit-major-mode-setup)))
 
-(if (treesit-language-available-p 'gomod)
+(if (treesit-ready-p 'gomod)
     (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
 
 (provide 'go-ts-mode)

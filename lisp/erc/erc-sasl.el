@@ -405,7 +405,7 @@ This doesn't solicit or validate a suite of supported mechanisms."
   (erc-sasl--destroy proc))
 
 (define-erc-response-handler (908)
-  "Handle a RPL_SASLALREADY response." nil
+  "Handle a RPL_SASLMECHS response." nil
   (erc-display-message parsed '(notice error) 'active 's908
                        ?m (alist-get 'mechanism erc-sasl--options)
                        ?s (string-join (cdr (erc-response.command-args parsed))
@@ -426,7 +426,8 @@ Otherwise, expect it to disappear in subsequent versions.")
         (erc-server-send (if erc-sasl--send-cap-ls "CAP LS" "CAP REQ :sasl"))
         (let ((erc-session-password
                (and erc-session-password
-                    (not (eq :password (alist-get 'password erc-sasl--options)))
+                    (not (eq :password
+                             (alist-get 'password erc-sasl--options)))
                     erc-session-password))
               (erc-session-username
                ;; The username may contain a colon or a space

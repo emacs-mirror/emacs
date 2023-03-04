@@ -1924,7 +1924,6 @@ If it is activated, also signal textDocument/didOpen."
       ;; about the buffer.
       (run-hooks 'eglot-managed-mode-hook))))
 
-(add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
 
 (defun eglot-clear-status (server)
@@ -3603,8 +3602,10 @@ If NOERROR, return predicate, else erroring function."
             (goto-char (eglot--lsp-position-to-point position))
             (when (or (> (point) to) (< (point) from)) (cl-return))
             (let ((left-pad (and paddingLeft
+                                 (not (eq paddingLeft :json-false))
                                  (not (memq (char-before) '(32 9))) " "))
                   (right-pad (and paddingRight
+                                  (not (eq paddingRight :json-false))
                                   (not (memq (char-after) '(32 9))) " ")))
               (cl-flet
                   ((do-it (text lpad rpad)
