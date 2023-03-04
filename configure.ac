@@ -7383,6 +7383,35 @@ fi
 
 AC_SUBST([WINDOW_SYSTEM_OBJ])
 
+# Some systems have MB_CUR_MAX defined to a call to
+# __ctype_get_mb_cur_max, but do not have __ctype_get_mb_cur_max in
+# libc.  Check for that situation and define MB_CUR_MAX to something
+# sane.
+
+AC_CHECK_FUNC([__ctype_get_mb_cur_max])
+
+AC_CACHE_CHECK([whether MB_CUR_MAX is defined to function that won't link],
+  [emacs_cv_broken_mb_cur_max],
+  [AC_EGREP_CPP(__ctype_get_mb_cur_max, [
+#include <stdlib.h>
+#ifndef MB_CUR_MAX
+#define MB_CUR_MAX -1
+#endif
+static int foo = MB_CUR_MAX;
+], [AS_IF([test "$ac_cv_func___ctype_get_mb_cur_max" = "yes"],
+     [emacs_cv_broken_mb_cur_max=no],
+     [emacs_cv_broken_mb_cur_max=yes])],
+  [emacs_cv_broken_mb_cur_max=no])])
+
+AS_IF([test "$emacs_cv_broken_mb_cur_max" = "yes"],
+ # Define this to 4, which is right for Android.
+ [AS_CASE([$opsys], [android],
+   [AC_DEFINE([REPLACEMENT_MB_CUR_MAX], [4],
+      [Define to MB_CUR_MAX if stdlib.h is broken.])],
+   [AC_MSG_ERROR([MB_CUR_MAX does not work on your system.
+Please modify configure.ac to set an appropriate value, then
+send your change to bug-gnu-emacs@gnu.org])])])
+
 AH_TOP([/* GNU Emacs site configuration template file.
 
 Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2021

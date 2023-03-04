@@ -129,6 +129,15 @@ so:
 
   ./configure --with-ndk-cxx=/path/to/toolchain/bin/i686-linux-android-g++
 
+Some versions of the NDK have a bug, where GCC fails to locate
+``stddef.h'' after being copied to a standalone toolchain.  To work
+around this problem (which normally exhibits itself when building C++
+code), add:
+
+   -isystem /path/to/toolchain/include/c++/4.9.x
+
+to ANDROID_CFLAGS.
+
 
 DEBUG AND RELEASE BUILDS
 
