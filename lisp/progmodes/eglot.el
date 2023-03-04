@@ -1079,7 +1079,8 @@ variable (which see) can query the value `eglot-lsp-context' to
 decide whether a given directory is a project containing a
 suitable root directory for a given LSP server's purposes."
   (let ((eglot-lsp-context t))
-    (or (project-current) `(transient . ,default-directory))))
+    (or (project-current)
+        `(transient . ,(expand-file-name default-directory)))))
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
