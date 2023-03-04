@@ -137,10 +137,11 @@ See `icomplete-delay-completions-threshold'."
   "Maximum number of initial chars to apply `icomplete-compute-delay'."
   :type 'integer)
 
-(defvar icomplete-in-buffer nil
+(defcustom icomplete-in-buffer nil
   "If non-nil, also use Icomplete when completing in non-mini buffers.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup.")
+that use their own completions setup."
+  :type 'boolean)
 
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
