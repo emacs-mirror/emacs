@@ -61,7 +61,8 @@ Size PageSize(void)
 {
   long pageSize;
 
-  /* Find out the operating system page size */
+  /* Find out the operating system page size
+     (see design.mps.vm.impl.ix.page.size) */
   pageSize = sysconf(_SC_PAGESIZE);
 
   /* Check the page size will fit in a Size. */
