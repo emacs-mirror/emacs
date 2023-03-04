@@ -69,7 +69,7 @@
   "Rules used for indentation.
 Argument LANGUAGE is either `typescript' or `tsx'."
   `((,language
-     ((parent-is "program") point-min 0)
+     ((parent-is "program") column-0 0)
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)

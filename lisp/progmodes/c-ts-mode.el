@@ -309,8 +309,8 @@ PARENT, BOL, ARGS are the same as other anchor functions."
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
   (let ((common
-         `(((parent-is "translation_unit") point-min 0)
-           ((query "(ERROR (ERROR)) @indent") point-min 0)
+         `(((parent-is "translation_unit") column-0 0)
+           ((query "(ERROR (ERROR)) @indent") column-0 0)
            ((node-is ")") parent 1)
            ((node-is "]") parent-bol 0)
            ((node-is "else") parent-bol 0)
@@ -330,11 +330,11 @@ MODE is either `c' or `cpp'."
            ((parent-is "labeled_statement")
             c-ts-mode--standalone-grandparent c-ts-mode-indent-offset)
 
-           ((node-is "preproc") point-min 0)
-           ((node-is "#endif") point-min 0)
-           ((match "preproc_call" "compound_statement") point-min 0)
+           ((node-is "preproc") column-0 0)
+           ((node-is "#endif") column-0 0)
+           ((match "preproc_call" "compound_statement") column-0 0)
 
-           ((n-p-gp nil "preproc" "translation_unit") point-min 0)
+           ((n-p-gp nil "preproc" "translation_unit") column-0 0)
            ((n-p-gp nil "\n" "preproc") great-grand-parent c-ts-mode--preproc-offset)
            ((parent-is "preproc") grand-parent c-ts-mode-indent-offset)
 
@@ -392,14 +392,14 @@ MODE is either `c' or `cpp'."
     `((gnu
        ;; Prepend rules to set highest priority
        ((match "while" "do_statement") parent 0)
-       (c-ts-mode--top-level-label-matcher point-min 1)
+       (c-ts-mode--top-level-label-matcher column-0 1)
        ,@common)
       (k&r ,@common)
       (linux
        ;; Reference:
        ;; https://www.kernel.org/doc/html/latest/process/coding-style.html,
        ;; and script/Lindent in Linux kernel repository.
-       ((node-is "labeled_statement") point-min 0)
+       ((node-is "labeled_statement") column-0 0)
        ,@common)
       (bsd
        ((node-is "}") parent-bol 0)
