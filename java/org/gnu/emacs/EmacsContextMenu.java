@@ -58,6 +58,7 @@ public final class EmacsContextMenu
     public String itemName, tooltip;
     public EmacsContextMenu subMenu;
     public boolean isEnabled, isCheckable, isChecked;
+    public EmacsView inflatedView;
 
     @Override
     public boolean
@@ -67,6 +68,34 @@ public final class EmacsContextMenu
 
       if (subMenu != null)
 	{
+	  /* Android 6.0 and earlier don't support nested submenus
+	     properly, so display the submenu popup by hand.  */
+
+	  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+	    {
+	      Log.d (TAG, "onMenuItemClick: displaying submenu " + subMenu);
+
+	      /* Still set wasSubmenuSelected -- if not set, the
+		 dismissal of this context menu will result in a
+		 context menu event being sent.  */
+	      wasSubmenuSelected = true;
+
+	      /* Running a popup menu from inside a click handler
+		 doesn't work, so make sure it is displayed
+		 outside.  */
+
+	      inflatedView.post (new Runnable () {
+		  @Override
+		  public void
+		  run ()
+		  {
+		    inflatedView.popupMenu (subMenu, 0, 0, true);
+		  }
+		});
+
+	      return true;
+	    }
+
 	  /* After opening a submenu within a submenu, Android will
 	     send onContextMenuClosed for a ContextMenuBuilder.  This
 	     will normally confuse Emacs into thinking that the
@@ -164,10 +193,11 @@ public final class EmacsContextMenu
     return item.subMenu;
   }
 
-  /* Add the contents of this menu to MENU.  */
+  /* Add the contents of this menu to MENU.  Assume MENU will be
+     displayed in INFLATEDVIEW.  */
 
   private void
-  inflateMenuItems (Menu menu)
+  inflateMenuItems (Menu menu, EmacsView inflatedView)
   {
     Intent intent;
     MenuItem menuItem;
@@ -177,26 +207,26 @@ public final class EmacsContextMenu
       {
 	if (item.subMenu != null)
 	  {
-	    try
-	      {
-		/* This is a submenu.  On versions of Android which
-		   support doing so, create the submenu and add the
-		   contents of the menu to it.  */
-		submenu = menu.addSubMenu (item.itemName);
-		item.subMenu.inflateMenuItems (submenu);
-	      }
-	    catch (UnsupportedOperationException exception)
-	      {
-		/* This version of Android has a restriction
-		   preventing submenus from being added to submenus.
-		   Inflate everything into the parent menu
-		   instead.  */
-		item.subMenu.inflateMenuItems (menu);
-		continue;
-	      }
+	    /* This is a submenu.  On versions of Android which
+	       support doing so, create the submenu and add the
+	       contents of the menu to it.
 
-	    /* This is still needed to set wasSubmenuSelected.  */
-	    menuItem = submenu.getItem ();
+	       Note that Android 4.0 and later technically supports
+	       having multiple layers of nested submenus, but if they
+	       are used, onContextMenuClosed becomes unreliable.  */
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+	      {
+		submenu = menu.addSubMenu (item.itemName);
+		item.subMenu.inflateMenuItems (submenu, inflatedView);
+
+		/* This is still needed to set wasSubmenuSelected.  */
+		menuItem = submenu.getItem ();
+	      }
+	    else
+	      menuItem = menu.add (item.itemName);
+
+	    item.inflatedView = inflatedView;
 	    menuItem.setOnMenuItemClickListener (item);
 	  }
 	else
@@ -227,16 +257,14 @@ public final class EmacsContextMenu
       }
   }
 
-  /* Enter the items in this context menu to MENU.  Create each menu
-     item with an Intent containing a Bundle, where the key
-     "emacs:menu_item_hi" maps to the high 16 bits of the
-     corresponding item ID, and the key "emacs:menu_item_low" maps to
-     the low 16 bits of the item ID.  */
+  /* Enter the items in this context menu to MENU.
+     Assume that MENU will be displayed in VIEW; this may lead to
+     popupMenu being called on VIEW if a submenu is selected.  */
 
   public void
-  expandTo (Menu menu)
+  expandTo (Menu menu, EmacsView view)
   {
-    inflateMenuItems (menu);
+    inflateMenuItems (menu, view);
   }
 
   /* Return the parent or NULL.  */
@@ -260,7 +288,8 @@ public final class EmacsContextMenu
     /* No submenu has been selected yet.  */
     wasSubmenuSelected = false;
 
-    return window.view.popupMenu (this, xPosition, yPosition);
+    return window.view.popupMenu (this, xPosition, yPosition,
+				  false);
   }
 
   /* Display this context menu on WINDOW, at xPosition and

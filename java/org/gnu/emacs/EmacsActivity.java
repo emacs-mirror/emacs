@@ -65,6 +65,9 @@ public class EmacsActivity extends Activity
   /* Whether or not this activity is fullscreen.  */
   private boolean isFullscreen;
 
+  /* The last context menu to be closed.  */
+  private Menu lastClosedMenu;
+
   static
   {
     focusedActivities = new ArrayList<EmacsActivity> ();
@@ -308,9 +311,19 @@ public class EmacsActivity extends Activity
     Log.d (TAG, "onContextMenuClosed: " + menu);
 
     /* See the comment inside onMenuItemClick.  */
+
     if (EmacsContextMenu.wasSubmenuSelected
-	&& menu.toString ().contains ("ContextMenuBuilder"))
-      return;
+	|| menu == lastClosedMenu)
+      {
+	EmacsContextMenu.wasSubmenuSelected = false;
+	lastClosedMenu = menu;
+	return;
+      }
+
+    /* lastClosedMenu is set because Android apparently calls this
+       function twice.  */
+
+    lastClosedMenu = null;
 
     /* Send a context menu event given that no menu item has already
        been selected.  */

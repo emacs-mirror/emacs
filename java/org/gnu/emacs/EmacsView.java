@@ -464,18 +464,21 @@ public final class EmacsView extends ViewGroup
     if (contextMenu == null)
       return;
 
-    contextMenu.expandTo (menu);
+    contextMenu.expandTo (menu, this);
   }
 
   public boolean
   popupMenu (EmacsContextMenu menu, int xPosition,
-	     int yPosition)
+	     int yPosition, boolean force)
   {
-    if (popupActive)
+    if (popupActive && !force)
       return false;
 
     contextMenu = menu;
     popupActive = true;
+
+    Log.d (TAG, "popupMenu: " + menu + " @" + xPosition
+	   + ", " + yPosition + " " + force);
 
     /* Use showContextMenu (float, float) on N to get actual popup
        behavior.  */
