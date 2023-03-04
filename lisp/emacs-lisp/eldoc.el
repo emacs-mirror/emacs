@@ -296,13 +296,9 @@ reflect the change."
 This function displays the message produced by formatting ARGS
 with FORMAT-STRING on the mode line when the current buffer is a minibuffer.
 Otherwise, it displays the message like `message' would."
-  (if (minibufferp)
+  (if (or (bound-and-true-p edebug-mode) (minibufferp))
       (progn
-	(add-hook 'minibuffer-exit-hook
-		  (lambda () (setq eldoc-mode-line-string nil
-			      ;; https://debbugs.gnu.org/16920
-			      eldoc-last-message nil))
-		  nil t)
+        (add-hook 'post-command-hook #'eldoc-minibuffer--cleanup)
 	(with-current-buffer
 	    (window-buffer
 	     (or (window-in-direction 'above (minibuffer-window))
@@ -320,6 +316,13 @@ Otherwise, it displays the message like `message' would."
                   (apply #'format-message format-string args)))
           (force-mode-line-update)))
     (apply #'message format-string args)))
+
+(defun eldoc-minibuffer--cleanup ()
+  (unless (or (bound-and-true-p edebug-mode) (minibufferp))
+    (setq eldoc-mode-line-string nil
+          ;; https://debbugs.gnu.org/16920
+          eldoc-last-message nil)
+    (remove-hook 'post-command-hook #'eldoc-minibuffer--cleanup)))
 
 (make-obsolete
  'eldoc-message "use `eldoc-documentation-functions' instead." "eldoc-1.1.0")
