@@ -1924,7 +1924,6 @@ If it is activated, also signal textDocument/didOpen."
       ;; about the buffer.
       (run-hooks 'eglot-managed-mode-hook))))
 
-(add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
 
 (defun eglot-clear-status (server)
