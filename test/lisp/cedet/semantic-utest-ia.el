@@ -1,6 +1,6 @@
-;;; semantic-utest-ia.el --- Analyzer unit tests
+;;; semantic-utest-ia.el --- Analyzer unit tests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -30,119 +30,94 @@
 ;; (Replace // with contents of comment-start for the language being tested.)
 
 ;;; Code:
+(require 'ert)
+(require 'ert-x)
 (require 'semantic)
 (require 'semantic/analyze)
 (require 'semantic/analyze/refs)
 (require 'semantic/symref)
 (require 'semantic/symref/filter)
 
-(defvar cedet-utest-directory
-  (let* ((C (file-name-directory (locate-library "cedet")))
-         (D (expand-file-name "../../test/manual/cedet/" C)))
-    D)
-  "Location of test files for this test suite.")
-
-(defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
-  "Location of test files.")
-
 (ert-deftest semantic-utest-ia-doublens.cpp ()
-  (let ((tst (expand-file-name "testdoublens.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testdoublens.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-subclass.cpp ()
-  (let ((tst (expand-file-name "testsubclass.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testsubclass.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-typedefs.cpp ()
-  (let ((tst (expand-file-name "testtypedefs.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testtypedefs.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-struct.cpp ()
-  (let ((tst (expand-file-name "teststruct.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "teststruct.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-union.cpp ()
-;;  (let ((tst (expand-file-name "testunion.cpp" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testunion.cpp")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-templates.cpp ()
-  (let ((tst (expand-file-name "testtemplates.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testtemplates.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-friends.cpp ()
-;;  (let ((tst (expand-file-name "testfriends.cpp" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testfriends.cpp")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-using.cpp ()
-  (let ((tst (expand-file-name "testusing.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testusing.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-nsp.cpp ()
-  (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (skip-unless (executable-find "g++"))
+  (let ((tst (ert-resource-file "testnsp.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-localvars.cpp ()
-  (let ((tst (expand-file-name "testlocalvars.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testlocalvars.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-namespace.cpp ()
-  (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (skip-unless (executable-find "g++"))
+  (let ((tst (ert-resource-file "testnsp.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-sppcomplete.c ()
-  (let ((tst (expand-file-name "testsppcomplete.c" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testsppcomplete.c")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-varnames.c ()
-  (let ((tst (expand-file-name "testvarnames.c" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testvarnames.c")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-javacomp.java ()
-  (let ((tst (expand-file-name "testjavacomp.java" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testjavacomp.java")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-varnames.java ()
-  (let ((tst (expand-file-name "testvarnames.java" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testvarnames.java")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-f90.f90 ()
-;;  (let ((tst (expand-file-name "testf90.f90" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testf90.f90")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-wisent.wy ()
-  (let ((tst (expand-file-name "testwisent.wy" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testwisent.wy")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-texi ()
-  (let ((tst (expand-file-name "test.texi" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.texi")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-make ()
-  (let ((tst (expand-file-name "test.mk" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.mk")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-srecoder ()
-  (let ((tst (expand-file-name "test.srt" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.srt")))
     (should-not (semantic-ia-utest tst))))
 
 ;;; Core testing utility
@@ -211,7 +186,7 @@
                ;; completions, then remove the below debug-on-error setting.
                (debug-on-error nil)
 	       (acomp
-		(condition-case err
+		(condition-case _err
 		    (semantic-analyze-possible-completions ctxt)
                   ((error user-error) nil))
                 ))
@@ -219,7 +194,7 @@
 
 	(goto-char a)
 
-	(let ((bss (buffer-substring-no-properties (point) (point-at-eol))))
+        (let ((bss (buffer-substring-no-properties (point) (pos-eol))))
 	  (condition-case nil
 	      (setq desired (read bss))
 	    (error (setq desired (format "  FAILED TO PARSE: %S"
@@ -240,8 +215,8 @@
                        )
                       fail)))
 
-      (setq p nil a nil)
-      (setq idx (1+ idx)))
+        (setq p nil a nil)
+        (setq idx (1+ idx)))
       )
 
     (when fail
@@ -378,7 +353,7 @@
 	       (when (re-search-forward regex-p nil t)
 		 (setq tag (semantic-current-tag))
 		 (goto-char (match-end 0))
-		 (setq desired (read (buffer-substring (point) (point-at-eol))))
+                 (setq desired (read (buffer-substring (point) (pos-eol))))
 		 ))
 	     tag)
 
@@ -438,11 +413,10 @@ tag that contains point, and return that."
   (let* ((ctxt (semantic-analyze-current-context))
 	 (target (car (reverse (oref ctxt prefix))))
 	 (tag (semantic-current-tag))
-	 (start (current-time))
 	 (Lcount 0))
     (when (semantic-tag-p target)
       (semantic-symref-hits-in-region
-       target (lambda (start end prefix) (setq Lcount (1+ Lcount)))
+       target (lambda (_start _end _prefix) (setq Lcount (1+ Lcount)))
        (semantic-tag-start tag)
        (semantic-tag-end tag))
       Lcount)))
@@ -477,7 +451,7 @@ tag that contains point, and return that."
 	       (when (re-search-forward regex-p nil t)
 		 (goto-char (match-end 0))
 		 (skip-syntax-backward "w")
-		 (setq desired (read (buffer-substring (point) (point-at-eol))))
+                 (setq desired (read (buffer-substring (point) (pos-eol))))
 		 (setq start (match-beginning 0))
 		 (goto-char start)
 		 (setq actual (semantic-symref-test-count-hits-in-tag))
@@ -489,7 +463,7 @@ tag that contains point, and return that."
                         (list
 	                 (format
 	                  "Symref id %d: No results." idx))
-                         fail))
+                        fail))
 
 	    )
 
@@ -515,4 +489,4 @@ tag that contains point, and return that."
 
 (provide 'semantic-ia-utest)
 
-;;; semantic-ia-utest.el ends here
+;;; semantic-utest-ia.el ends here

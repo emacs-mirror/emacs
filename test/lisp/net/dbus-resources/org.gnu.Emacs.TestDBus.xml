@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg name="xml" type="s" direction="out"/>
+    </method>
+  </interface>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg name="interface" type="s" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="value" type="v" direction="out"/>
+    </method>
+    <method name="Set">
+      <arg name="interface" type="s" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="value" type="v" direction="in"/>
+    </method>
+    <method name="GetAll">
+      <arg name="interface" type="s" direction="in"/>
+      <arg name="properties" type="a{sv}" direction="out"/>
+    </method>
+    <signal name="PropertiesChanged">
+      <arg name="interface" type="s"/>
+      <arg name="changed_properties" type="a{sv}"/>
+      <arg name="invalidated_properties" type="as"/>
+    </signal>
+  </interface>
+  <interface name="org.gnu.Emacs.TestDBus.Interface">
+    <method name="Connect">
+      <arg name="uuid" type="s" direction="in"/>
+      <arg name="mode" type="y" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="interface" type="s" direction="out"/>
+    </method>
+    <method name="DeprecatedMethod0">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </method>
+    <method name="DeprecatedMethod1">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </method>
+    <property name="Connected" type="b" access="read"/>
+    <property name="Player" type="o" access="read"/>
+    <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+  </interface>
+  <node name="node0"/>
+  <node name="node1"/>
+</node>

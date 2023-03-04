@@ -1,5 +1,6 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -20,35 +21,46 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'epa)
 (require 'mail-utils)
 
-(defvar epa-mail-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "\C-c\C-ed" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-ev" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-es" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-ee" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-ei" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-eo" 'epa-insert-keys)
-    (define-key keymap "\C-c\C-e\C-d" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-e\C-v" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-e\C-s" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-e\C-e" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-e\C-i" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-e\C-o" 'epa-insert-keys)
-    keymap))
+;;; Local Mode
+
+(defvar-keymap epa-mail-mode-map
+  "C-c C-e d"   #'epa-mail-decrypt
+  "C-c C-e v"   #'epa-mail-verify
+  "C-c C-e s"   #'epa-mail-sign
+  "C-c C-e e"   #'epa-mail-encrypt
+  "C-c C-e i"   #'epa-mail-import-keys
+  "C-c C-e o"   #'epa-insert-keys
+  "C-c C-e C-d" #'epa-mail-decrypt
+  "C-c C-e C-v" #'epa-mail-verify
+  "C-c C-e C-s" #'epa-mail-sign
+  "C-c C-e C-e" #'epa-mail-encrypt
+  "C-c C-e C-i" #'epa-mail-import-keys
+  "C-c C-e C-o" #'epa-insert-keys)
 
 (defvar epa-mail-mode-hook nil)
 (defvar epa-mail-mode-on-hook nil)
 (defvar epa-mail-mode-off-hook nil)
 
+(defcustom epa-mail-offer-skip t
+  "If non-nil, when a recipient has no key, ask whether to skip it.
+Otherwise, signal an error."
+  :type 'boolean
+  :version "28.1"
+  :group 'epa-mail)
+
 ;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
-  nil " epa-mail" epa-mail-mode-map)
+  :lighter " epa-mail")
+
+;;; Utilities
 
 (defun epa-mail--find-usable-key (keys usage)
   "Find a usable key from KEYS for USAGE.
@@ -63,6 +75,8 @@ USAGE would be `sign' or `encrypt'."
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+;;; Commands
 
 ;;;###autoload
 (defun epa-mail-decrypt ()
@@ -85,13 +99,17 @@ The buffer is expected to contain a mail message."
 ;;;###autoload
 (defun epa-mail-sign (start end signers mode)
   "Sign the current buffer.
-The buffer is expected to contain a mail message."
+The buffer is expected to contain a mail message, and signing is
+performed with your default key.
+With prefix argument, asks you to select interactively the key to
+use from your key ring."
   (declare (interactive-only t))
   (interactive
    (save-excursion
      (goto-char (point-min))
-     (if (search-forward mail-header-separator nil t)
-	 (forward-line))
+     (rfc822-goto-eoh)
+     (unless (eobp)
+       (forward-line))
      (setq epa-last-coding-system-specified
 	   (or coding-system-for-write
 	       (select-safe-coding-system (point) (point-max))))
@@ -117,9 +135,7 @@ If no one is selected, default secret key is used.  "
       (goto-char (point-min))
       (save-restriction
 	(narrow-to-region (point)
-			  (if (search-forward mail-header-separator nil 0)
-			      (match-beginning 0)
-			    (point)))
+                          (progn (rfc822-goto-eoh) (point)))
 	(setq recipients-string
 	      (mapconcat #'identity
 			 (nconc (mail-fetch-field "to" nil nil t)
@@ -152,7 +168,7 @@ If no one is selected, default secret key is used.  "
 	    (apply #'nconc
 		   (mapcar
 		    (lambda (recipient)
-		      (let ((tem (assoc recipient epa-mail-aliases)))
+		      (let ((tem (assoc (downcase recipient) epa-mail-aliases)))
 			(if tem (copy-sequence (cdr tem))
 			  (list recipient))))
 		    real-recipients)))
@@ -202,27 +218,35 @@ If no one is selected, symmetric encryption will be performed.  "
 			      (epa-mail--find-usable-key
 			       (epg-list-keys
 				(epg-make-context epa-protocol)
-				(if (string-match "@" recipient)
+				(if (string-search "@" recipient)
 				    (concat "<" recipient ">")
 				  recipient))
 			       'encrypt)))
 			 (unless (or recipient-key
-				     (y-or-n-p
-				      (format
-				       "No public key for %s; skip it? "
-				       recipient)))
+                                     (and epa-mail-offer-skip
+				          (y-or-n-p
+                                           (format
+                                            "No public key for %s; skip it? "
+                                            recipient)))
+                                     )
 			   (error "No public key for %s" recipient))
 			 (if recipient-key (list recipient-key))))
 		       default-recipients)))))
 
       (goto-char (point-min))
-      (if (search-forward mail-header-separator nil t)
-	  (forward-line))
+      (rfc822-goto-eoh)
+      (unless (eobp)
+	(forward-line))
       (setq start (point))
 
       (setq epa-last-coding-system-specified
 	    (or coding-system-for-write
 		(select-safe-coding-system (point) (point-max)))))
+
+    ;; Insert contents of requested attachments, if any.
+    (when (and (eq major-mode 'mail-mode) mail-encode-mml)
+      (mml-to-mime)
+      (setq mail-encode-mml nil))
 
     ;; Don't let some read-only text stop us from encrypting.
     (let ((inhibit-read-only t))
@@ -237,6 +261,8 @@ The buffer is expected to contain a mail message."
   (declare (interactive-only t))
   (interactive)
   (epa-import-armor-in-region (point-min) (point-max)))
+
+;;; Global Mode
 
 ;;;###autoload
 (define-minor-mode epa-global-mail-mode

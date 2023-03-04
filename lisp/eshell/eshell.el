@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -33,15 +33,15 @@
 ;; @ A high degree of configurability
 ;;
 ;; @ The ability to have the same shell on every system Emacs has been
-;;   ported to. Since Eshell imposes no external requirements, and
+;;   ported to.  Since Eshell imposes no external requirements, and
 ;;   relies upon only the Lisp functions exposed by Emacs, it is quite
-;;   operating system independent. Several of the common UNIX
+;;   operating system independent.  Several of the common UNIX
 ;;   commands, such as ls, mv, rm, ln, etc., have been implemented in
 ;;   Lisp in order to provide a more consistent work environment.
 ;;
 ;; For those who might be using an older version of Eshell, version
-;; 2.1 represents an entirely new, module-based architecture. It
-;; supports most of the features offered by modern shells. Here is a
+;; 2.1 represents an entirely new, module-based architecture.  It
+;; supports most of the features offered by modern shells.  Here is a
 ;; brief list of some of its more visible features:
 ;;
 ;; @ Command argument completion (tcsh, zsh)
@@ -136,7 +136,7 @@
 ;;   errors, such as 'dri' for `dir'.  Since executing non-existent
 ;;   programs is rarely the intention of the user, eshell could prompt
 ;;   for the replacement string, and then record that in a database of
-;;   known misspellings. (Note: The typo at the beginning of this
+;;   known misspellings.  (Note: The typo at the beginning of this
 ;;   paragraph wasn't discovered until two months after I wrote the
 ;;   text; it was not intentional).
 ;;
@@ -194,26 +194,16 @@ shells such as bash, zsh, rc, 4dos."
 ;; The following user options modify the behavior of Eshell overall.
 (defvar eshell-buffer-name)
 
-(defun eshell-add-to-window-buffer-names ()
-  "Add `eshell-buffer-name' to `same-window-buffer-names'."
-  (declare (obsolete nil "24.3"))
-  (add-to-list 'same-window-buffer-names eshell-buffer-name))
-
-(defun eshell-remove-from-window-buffer-names ()
-  "Remove `eshell-buffer-name' from `same-window-buffer-names'."
-  (declare (obsolete nil "24.3"))
-  (setq same-window-buffer-names
-	(delete eshell-buffer-name same-window-buffer-names)))
-
 (defcustom eshell-load-hook nil
   "A hook run once Eshell has been loaded."
   :type 'hook
   :group 'eshell)
 
-(defcustom eshell-unload-hook '(eshell-unload-all-modules)
+(defcustom eshell-unload-hook nil
   "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
+(make-obsolete-variable 'eshell-unload-hook nil "30.1")
 
 (defcustom eshell-buffer-name "*eshell*"
   "The basename used for Eshell buffers.
@@ -240,7 +230,7 @@ session.  Return the buffer selected (or created).
 
 With a nonnumeric prefix arg, create a new session.
 
-With a numeric prefix arg (as in `C-u 42 M-x eshell RET'), switch
+With a numeric prefix arg (as in `\\[universal-argument] 42 \\[eshell]'), switch
 to the session with that number, or create it if it doesn't
 already exist.
 
@@ -260,24 +250,25 @@ information on Eshell, see Info node `(eshell)Top'."
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
     (cl-assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer-same-window buf)
+    (pop-to-buffer buf display-comint-buffer-action)
     (unless (derived-mode-p 'eshell-mode)
       (eshell-mode))
     buf))
 
-(defun eshell-return-exits-minibuffer ()
-  ;; This is supposedly run after enabling esh-mode, when eshell-mode-map
-  ;; already exists.
-  (defvar eshell-mode-map)
-  (define-key eshell-mode-map [(control ?g)] 'abort-recursive-edit)
-  (define-key eshell-mode-map [(control ?m)] 'exit-minibuffer)
-  (define-key eshell-mode-map [(control ?j)] 'exit-minibuffer)
-  (define-key eshell-mode-map [(meta control ?m)] 'exit-minibuffer))
+(define-minor-mode eshell-command-mode
+  "Minor mode for `eshell-command' input.
+\\{eshell-command-mode-map}"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map [(control ?g)] 'abort-recursive-edit)
+            (define-key map [(control ?m)] 'exit-minibuffer)
+            (define-key map [(control ?j)] 'exit-minibuffer)
+            (define-key map [(meta control ?m)] 'exit-minibuffer)
+            map))
 
-(defvar eshell-non-interactive-p nil
-  "A variable which is non-nil when Eshell is not running interactively.
-Modules should use this variable so that they don't clutter
-non-interactive sessions, such as when using `eshell-command'.")
+(define-obsolete-function-alias 'eshell-return-exits-minibuffer
+  #'eshell-command-mode "28.1")
+
+(defvar eshell-non-interactive-p)       ; Defined in esh-mode.el.
 
 (declare-function eshell-add-input-to-history "em-hist" (input))
 
@@ -290,9 +281,9 @@ With prefix ARG, insert output into the current buffer at point."
     (setq arg current-prefix-arg))
   (let ((eshell-non-interactive-p t))
     ;; Enable `eshell-mode' only in this minibuffer.
-    (minibuffer-with-setup-hook #'(lambda ()
-                                    (eshell-mode)
-                                    (eshell-return-exits-minibuffer))
+    (minibuffer-with-setup-hook (lambda ()
+                                  (eshell-mode)
+                                  (eshell-command-mode +1))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
 	(if (eshell-using-module 'eshell-hist)
@@ -328,9 +319,9 @@ With prefix ARG, insert output into the current buffer at point."
 	;; make the output as attractive as possible, with no
 	;; extraneous newlines
 	(when intr
-	  (if (eshell-interactive-process)
-	      (eshell-wait-for-process (eshell-interactive-process)))
-	  (cl-assert (not (eshell-interactive-process)))
+	  (if (eshell-interactive-process-p)
+	      (eshell-wait-for-process (eshell-tail-process)))
+	  (cl-assert (not (eshell-interactive-process-p)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
@@ -380,37 +371,14 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-;;;_* Reporting bugs
-;;
-;; If you do encounter a bug, on any system, please report
-;; it -- in addition to any particular oddities in your configuration
-;; -- so that the problem may be corrected for the benefit of others.
-
-;;;###autoload
-(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug "23.1")
-
-;;; Code:
-
-(defun eshell-unload-all-modules ()
-  "Unload all modules that were loaded by Eshell, if possible.
-If the user has require'd in any of the modules, or customized a
-variable with a :require tag (such as `eshell-prefer-to-shell'), it
-will be impossible to unload Eshell completely without restarting
-Emacs."
-  ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
-  ;; Eshell, then `eshell-subgroups' will be unbound
-  (when (fboundp 'eshell-subgroups)
-    (dolist (module (eshell-subgroups 'eshell))
-      ;; this really only unloads as many modules as possible,
-      ;; since other `require' references (such as by customizing
-      ;; `eshell-prefer-to-shell' to a non-nil value) might make it
-      ;; impossible to unload Eshell completely
-      (if (featurep module)
-	  (ignore-errors
-	    (message "Unloading %s..." (symbol-name module))
-	    (unload-feature module)
-	    (message "Unloading %s...done" (symbol-name module)))))
-    (message "Unloading eshell...done")))
+(defun eshell-unload-function ()
+  (eshell-unload-extension-modules)
+  ;; Wait to unload core modules until after `eshell' has finished
+  ;; unloading.  `eshell' depends on several of them, so they can't be
+  ;; unloaded immediately.
+  (run-at-time 0 nil #'eshell-unload-modules
+               (reverse (eshell-subgroups 'eshell)) 'core)
+  nil)
 
 (run-hooks 'eshell-load-hook)
 

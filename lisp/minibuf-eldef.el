@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -36,10 +36,24 @@
 (defvar minibuffer-eldef-shorten-default)
 
 (defun minibuffer-default--in-prompt-regexps ()
-  `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
-     1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
-    ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
-    ("\\( \\[.*\\]\\):? *\\'" 1)))
+  (cons
+   (list
+    (concat
+     "\\("
+     (if (string-match "%s" minibuffer-default-prompt-format)
+         (concat
+          (regexp-quote (substring minibuffer-default-prompt-format
+                                   0 (match-beginning 0)))
+          "\\(.*?\\)"
+          (regexp-quote (substring minibuffer-default-prompt-format
+                                   (match-end 0))))
+       (regexp-quote minibuffer-default-prompt-format))
+     "\\): ")
+    1 (and minibuffer-eldef-shorten-default " [\\2]"))
+   `(("\\( (default\\(?: is\\)? \\(.*\\))\\):? \\'"
+      1 ,(if minibuffer-eldef-shorten-default " [\\2]"))
+     ("([^(]+?\\(, default\\(?: is\\)? \\(.*\\)\\)):? \\'" 1)
+     ("\\( \\[.*\\]\\):? *\\'" 1))))
 
 (defcustom minibuffer-eldef-shorten-default nil
   "If non-nil, shorten \"(default ...)\" to \"[...]\" in minibuffer prompts."
@@ -50,6 +64,8 @@
   :type 'boolean
   :group 'minibuffer
   :version "24.3")
+(make-obsolete-variable 'minibuffer-eldef-shorten-default
+                        'minibuffer-default-prompt-format "29.1")
 
 (defvar minibuffer-default-in-prompt-regexps
   (minibuffer-default--in-prompt-regexps)
@@ -94,8 +110,7 @@ should be displayed in its place.")
   "Set up a minibuffer for `minibuffer-electric-default-mode'.
 The prompt and initial input should already have been inserted."
   (let ((regexps minibuffer-default-in-prompt-regexps)
-	(match nil)
-	(inhibit-point-motion-hooks t))
+	(match nil))
     (save-excursion
       (save-restriction
 	;; Narrow to only the prompt.
@@ -146,7 +161,7 @@ The prompt and initial input should already have been inserted."
 ;; post-command-hook to swap prompts when necessary
 (defun minibuf-eldef-update-minibuffer ()
   "Update a minibuffer's prompt to include a default only when applicable.
-This is intended to be used as a minibuffer post-command-hook for
+This is intended to be used as a minibuffer `post-command-hook' for
 `minibuffer-electric-default-mode'; the minibuffer should have already
 been set up by `minibuf-eldef-setup-minibuffer'."
   (unless (eq minibuf-eldef-showing-default-in-prompt

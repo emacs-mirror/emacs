@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -189,6 +189,24 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     return Qnil;
   if (FcPatternGetInteger (p, FC_INDEX, 0, &idx) != FcResultMatch)
     return Qnil;
+#ifdef FC_VARIABLE
+  /* This is a virtual/meta FcPattern for a variable weight font, from
+     which it is possible to extract an FcRange value specifying the
+     minimum and maximum weights available in this file.  We don't
+     need to know that information explicitly, so skip it.  We will be
+     called with an FcPattern for each actually available, non-virtual
+     weight.
+
+     Fontconfig started generating virtual/meta patterns for variable
+     weight fonts in the same release that FC_VARIABLE was added, so
+     we conditionalize on that constant.  This also ensures that
+     FcPatternGetRange is available.  */
+  FcRange *range;
+  if (FcPatternGetRange (p, FC_WEIGHT, 0, &range) == FcResultMatch
+      && FcPatternGetBool (p, FC_VARIABLE, 0, &b) == FcResultMatch
+      && b == FcTrue)
+    return Qnil;
+#endif	/* FC_VARIABLE */
 
   file = (char *) str;
   key = Fcons (build_unibyte_string (file), make_fixnum (idx));
@@ -225,8 +243,6 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     }
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
-      if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)
-	numeric = FC_WEIGHT_MEDIUM;
       FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX, make_fixnum (numeric));
     }
   if (FcPatternGetInteger (p, FC_SLANT, 0, &numeric) == FcResultMatch)
@@ -346,18 +362,15 @@ struct ftfont_cache_data
 static Lisp_Object
 ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
 {
-  Lisp_Object cache, val, entity;
+  Lisp_Object cache, val;
   struct ftfont_cache_data *cache_data;
 
   if (FONT_ENTITY_P (key))
     {
-      entity = key;
-      val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+      val = assq_no_quit (QCfont_entity, AREF (key, FONT_EXTRA_INDEX));
       eassert (CONSP (val));
       key = XCDR (val);
     }
-  else
-    entity = Qnil;
 
   if (NILP (ft_face_cache))
     cache = Qnil;
@@ -632,8 +645,29 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   return spec;
 }
 
+#if defined HAVE_XFT && defined FC_COLOR
+static bool
+xft_color_font_whitelisted_p (const char *family)
+{
+  Lisp_Object tem, name;
+
+  tem = Vxft_color_font_whitelist;
+
+  FOR_EACH_TAIL_SAFE (tem)
+    {
+      name = XCAR (tem);
+
+      if (STRINGP (name) && !strcmp (family, SSDATA (name)))
+	return true;
+    }
+
+  return false;
+}
+#endif
+
 static FcPattern *
-ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **otspec, const char **langname)
+ftfont_spec_pattern (Lisp_Object spec, char *otlayout,
+		     struct OpenTypeSpec **otspec, const char **langname)
 {
   Lisp_Object tmp, extra;
   FcPattern *pattern = NULL;
@@ -771,7 +805,9 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 #if defined HAVE_XFT && defined FC_COLOR
   /* We really don't like color fonts, they cause Xft crashes.  See
      Bug#30874.  */
-  if (Vxft_ignore_color_fonts
+  if (xft_ignore_color_fonts
+      && (NILP (AREF (spec, FONT_FAMILY_INDEX))
+	  || NILP (Vxft_color_font_whitelist))
       && ! FcPatternAddBool (pattern, FC_COLOR, FcFalse))
     goto err;
 #endif
@@ -868,6 +904,9 @@ ftfont_list (struct frame *f, Lisp_Object spec)
 #if defined HAVE_XFT && defined FC_COLOR
                              FC_COLOR,
 #endif
+#ifdef FC_VARIABLE
+			     FC_VARIABLE,
+#endif	/* FC_VARIABLE */
 			     NULL);
   if (! objset)
     goto err;
@@ -914,7 +953,12 @@ ftfont_list (struct frame *f, Lisp_Object spec)
            returns them even when it shouldn't really do so, so we
            need to manually skip them here (Bug#37786).  */
         FcBool b;
-        if (Vxft_ignore_color_fonts
+	FcChar8 *str;
+
+        if (xft_ignore_color_fonts
+	    && (FcPatternGetString (fontset->fonts[i], FC_FAMILY,
+				    0, &str) != FcResultMatch
+		|| !xft_color_font_whitelisted_p ((char *) str))
             && FcPatternGetBool (fontset->fonts[i], FC_COLOR, 0, &b)
             == FcResultMatch && b != FcFalse)
             continue;
@@ -2801,10 +2845,31 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;
+
+  /* mflt_run may fail to set g->g.to (which must be a valid index
+     into lgstring) correctly if the font has an OTF table that is
+     different from what the m17n library expects. */
   for (i = 0; i < gstring.used; i++)
     {
       MFLTGlyphFT *g = (MFLTGlyphFT *) (gstring.glyphs) + i;
+      if (g->g.to >= len)
+	{
+	  /* Invalid g->g.to. */
+	  g->g.to = len - 1;
+	  int from = g->g.from;
+	  /* Fix remaining glyphs. */
+	  for (++i; i < gstring.used; i++)
+	    {
+	      g = (MFLTGlyphFT *) (gstring.glyphs) + i;
+	      g->g.from = from;
+	      g->g.to = len - 1;
+	    }
+	}
+    }
 
+  for (i = 0; i < gstring.used; i++)
+    {
+      MFLTGlyphFT *g = (MFLTGlyphFT *) (gstring.glyphs) + i;
       g->g.from = LGLYPH_FROM (LGSTRING_GLYPH (lgstring, g->g.from));
       g->g.to = LGLYPH_TO (LGSTRING_GLYPH (lgstring, g->g.to));
     }
@@ -2829,14 +2894,10 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       LGLYPH_SET_ASCENT (lglyph, g->g.ascent >> 6);
       LGLYPH_SET_DESCENT (lglyph, g->g.descent >> 6);
       if (g->g.adjusted)
-	{
-	  Lisp_Object vec = make_uninit_vector (3);
-
-	  ASET (vec, 0, make_fixnum (g->g.xoff >> 6));
-	  ASET (vec, 1, make_fixnum (g->g.yoff >> 6));
-	  ASET (vec, 2, make_fixnum (g->g.xadv >> 6));
-	  LGLYPH_SET_ADJUSTMENT (lglyph, vec);
-	}
+	LGLYPH_SET_ADJUSTMENT (lglyph, CALLN (Fvector,
+					      make_fixnum (g->g.xoff >> 6),
+					      make_fixnum (g->g.yoff >> 6),
+					      make_fixnum (g->g.xadv >> 6)));
     }
   return make_fixnum (i);
 }
@@ -3095,6 +3156,10 @@ syms_of_ftfont (void)
   DEFSYM (Qfreetypehb, "freetypehb");
   Fput (Qfreetype, Qfont_driver_superseded_by, Qfreetypehb);
 #endif	/* HAVE_HARFBUZZ */
+
+#ifdef HAVE_HAIKU
+  DEFSYM (Qmono, "mono");
+#endif
 
   /* Fontconfig's generic families and their aliases.  */
   DEFSYM (Qmonospace, "monospace");

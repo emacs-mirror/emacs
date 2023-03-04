@@ -1,6 +1,6 @@
-;;; coding-tests.el --- tests for text encoding and decoding
+;;; coding-tests.el --- tests for text encoding and decoding -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Author: Kenichi Handa <handa@gnu.org>
@@ -56,21 +56,22 @@
     (set-buffer-multibyte nil)
     (insert (encode-coding-string "あ" 'euc-jp) "\xd" "\n")
     (decode-coding-region (point-min) (point-max) 'euc-jp-dos)
-    (should-not (string-match-p "\^M" (buffer-string)))))
+    (should-not (string-search "\^M" (buffer-string)))))
 
 ;; Return the contents (specified by CONTENT-TYPE; ascii, latin, or
 ;; binary) of a test file.
 (defun coding-tests-file-contents (content-type)
-  (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
-	 (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
-	 (binary (string-to-multibyte
-		  (concat (string-as-unibyte latin)
-			  (unibyte-string #xC0 #xC1 ?\n)))))
-    (cond ((eq content-type 'ascii) ascii)
-	  ((eq content-type 'latin) latin)
-	  ((eq content-type 'binary) binary)
-	  (t
-	   (error "Invalid file content type: %s" content-type)))))
+  (with-suppressed-warnings ((obsolete string-as-unibyte))
+    (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
+           (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
+           (binary (string-to-multibyte
+                    (concat (string-as-unibyte latin)
+                            (unibyte-string #xC0 #xC1 ?\n)))))
+      (cond ((eq content-type 'ascii) ascii)
+            ((eq content-type 'latin) latin)
+            ((eq content-type 'binary) binary)
+            (t
+             (error "Invalid file content type: %s" content-type))))))
 
 ;; Generate FILE with CONTENTS encoded by CODING-SYSTEM.
 ;; whose encoding specified by CODING-SYSTEM.
@@ -143,25 +144,25 @@
 ;; Optional 5th arg TRANSLATOR is a function to translate the original
 ;; file contents to match with the expected result of decoding.  For
 ;; instance, when a file of dos eol-type is read by unix eol-type,
-;; `decode-test-lf-to-crlf' must be specified.
+;; `coding-tests-lf-to-crlf' must be specified.
 
 (defun coding-tests (content-type write-coding read-coding detected-coding
 				   &optional translator)
-  (prefer-coding-system 'utf-8-auto)
-  (let ((filename (coding-tests-filename content-type write-coding)))
-    (with-temp-buffer
-      (let ((coding-system-for-read read-coding)
-	    (contents (coding-tests-file-contents content-type))
-	    (disable-ascii-optimization nil))
-	(if translator
-	    (setq contents (funcall translator contents)))
-	(insert-file-contents filename)
-	(if (and (coding-system-equal buffer-file-coding-system detected-coding)
-		 (string= (buffer-string) contents))
-	    nil
-	  (list buffer-file-coding-system
-		(string-to-list (buffer-string))
-		(string-to-list contents)))))))
+  (with-coding-priority '(utf-8-auto)
+    (let ((filename (coding-tests-filename content-type write-coding)))
+      (with-temp-buffer
+        (let ((coding-system-for-read read-coding)
+	      (contents (coding-tests-file-contents content-type))
+	      (disable-ascii-optimization nil))
+	  (if translator
+	      (setq contents (funcall translator contents)))
+	  (insert-file-contents filename)
+	  (if (and (coding-system-equal buffer-file-coding-system detected-coding)
+		   (string= (buffer-string) contents))
+	      nil
+	    (list buffer-file-coding-system
+		  (string-to-list (buffer-string))
+		  (string-to-list contents))))))))
 
 (ert-deftest ert-test-coding-ascii ()
   (unwind-protect
@@ -296,7 +297,7 @@
 ;;; decoder, not for regression testing.
 
 (defun generate-ascii-file ()
-  (dotimes (i 100000)
+  (dotimes (_i 100000)
     (insert-char ?a 80)
     (insert "\n")))
 
@@ -309,13 +310,13 @@
     (insert "\n")))
 
 (defun generate-mostly-nonascii-file ()
-  (dotimes (i 30000)
+  (dotimes (_i 30000)
     (insert-char ?a 80)
     (insert "\n"))
-  (dotimes (i 20000)
+  (dotimes (_i 20000)
     (insert-char ?À 80)
     (insert "\n"))
-  (dotimes (i 10000)
+  (dotimes (_i 10000)
     (insert-char ?あ 80)
     (insert "\n")))
 
@@ -359,7 +360,7 @@
 	(delete-region (point-min) (point))))))
 
 (defun benchmark-decoder ()
-  (let ((gc-cons-threshold 4000000))
+  (let ((gc-cons-threshold (max gc-cons-threshold 4000000)))
     (insert "Without optimization:\n")
     (dolist (files test-file-list)
       (dolist (file (cdr files))
@@ -375,9 +376,59 @@
 			 (with-temp-buffer (insert-file-contents (car file))))))
 	  (insert (format "%s: %s\n" (car file) result)))))))
 
-;; Local Variables:
-;; byte-compile-warnings: (not obsolete)
-;; End:
+(ert-deftest coding-nocopy-trivial ()
+  "Check that the NOCOPY parameter works for the trivial coding system."
+  (let ((s "abc"))
+    (should-not (eq (decode-coding-string s nil nil) s))
+    (should (eq (decode-coding-string s nil t) s))
+    (should-not (eq (encode-coding-string s nil nil) s))
+    (should (eq (encode-coding-string s nil t) s))))
+
+(ert-deftest coding-nocopy-ascii ()
+  "Check that the NOCOPY parameter works for ASCII-only strings."
+  (let* ((uni (apply #'string (number-sequence 0 127)))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      ;; Encodings without EOL conversion.
+      (dolist (coding '(us-ascii-unix iso-latin-1-unix utf-8-unix))
+        (should-not (eq (decode-coding-string s coding nil) s))
+        (should-not (eq (encode-coding-string s coding nil) s))
+        (should (eq (decode-coding-string s coding t) s))
+        (should (eq (encode-coding-string s coding t) s))
+        (should (eq last-coding-system-used coding)))
+
+      ;; With EOL conversion inhibited.
+      (let ((inhibit-eol-conversion t))
+        (dolist (coding '(us-ascii iso-latin-1 utf-8))
+          (should-not (eq (decode-coding-string s coding nil) s))
+          (should-not (eq (encode-coding-string s coding nil) s))
+          (should (eq (decode-coding-string s coding t) s))
+          (should (eq (encode-coding-string s coding t) s))))))
+
+  ;; Check identity decoding with EOL conversion for ASCII except CR.
+  (let* ((uni (apply #'string (delq ?\r (number-sequence 0 127))))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      (dolist (coding '(us-ascii-dos iso-latin-1-dos utf-8-dos mac-roman-mac))
+        (should-not (eq (decode-coding-string s coding nil) s))
+        (should (eq (decode-coding-string s coding t) s)))))
+
+  ;; Check identity encoding with EOL conversion for ASCII except LF.
+  (let* ((uni (apply #'string (delq ?\n (number-sequence 0 127))))
+         (multi (string-to-multibyte uni)))
+    (dolist (s (list uni multi))
+      (dolist (coding '(us-ascii-dos iso-latin-1-dos utf-8-dos mac-roman-mac))
+        (should-not (eq (encode-coding-string s coding nil) s))
+        (should (eq (encode-coding-string s coding t) s))))))
+
+
+(ert-deftest coding-check-coding-systems-region ()
+  (should (equal (check-coding-systems-region "aå" nil '(utf-8))
+                 nil))
+  (should (equal (check-coding-systems-region "aåbγc" nil
+                                              '(utf-8 iso-latin-1 us-ascii))
+                 '((iso-latin-1 3) (us-ascii 1 3))))
+  (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
 
 (provide 'coding-tests)
-;; coding-tests.el ends here
+;;; coding-tests.el ends here

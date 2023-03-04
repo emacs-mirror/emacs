@@ -1,6 +1,6 @@
 ;;; ede/templates/autoconf.srt --- Templates for autoconf used by EDE
 
-;; Copyright (C) 2010, 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -38,16 +38,16 @@ template ede-empty :project
 {{comment_prefix}} by EDE when this file is updated.
 {{comment_prefix}}
 {{comment_prefix}} EDE is the Emacs Development Environment.
-{{comment_prefix}} http://cedet.sourceforge.net/ede.shtml
+{{comment_prefix}} https://cedet.sourceforge.net/ede.shtml
 {{comment_prefix}}
 {{comment_prefix}} Process this file with autoconf to produce a configure script
 
 AC_INIT({{PROJECT_NAME}}, {{PROJECT_VERSION}})
 AM_INIT_AUTOMAKE([{{PROGRAM}}], 0)
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER([config.h])
 
 {{comment_prefix}} End the configure script.
-AC_OUTPUT(Makefile, [date > stamp-h] )
+AC_OUTPUT([Makefile], [date > stamp-h] )
 ----
 
 

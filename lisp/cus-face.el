@@ -1,6 +1,6 @@
-;;; cus-face.el --- customization support for faces
+;;; cus-face.el --- customization support for faces  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -27,12 +27,13 @@
 
 ;;; Code:
 
-(defalias 'custom-facep 'facep)
-
 ;;; Declaring a face.
 
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but with FACE evaluated as a normal argument."
+  (when (and doc
+             (not (stringp doc)))
+    (error "Invalid (or missing) doc string %S" doc))
   (unless (get face 'face-defface-spec)
     (face-spec-set face (purecopy spec) 'face-defface-spec)
     (push (cons 'defface face) current-load-list)
@@ -45,7 +46,7 @@
 ;;; Face attributes.
 
 (defconst custom-face-attributes
-  '((:family
+  `((:family
      (string :tag "Font Family"
 	     :help-echo "Font family or fontset alias name."))
 
@@ -53,6 +54,7 @@
      (string :tag "Font Foundry"
 	     :help-echo "Font foundry name."))
 
+    ;; The width, weight, and slant should be in sync with font.c.
     (:width
      (choice :tag "Width"
 	     :help-echo "Font width."
@@ -62,44 +64,60 @@
 	     (const :tag "demiexpanded" semi-expanded)
 	     (const :tag "expanded" expanded)
 	     (const :tag "extracondensed" extra-condensed)
+	     (const :tag "extra-condensed" extra-condensed)
 	     (const :tag "extraexpanded" extra-expanded)
-	     (const :tag "medium" normal)
+	     (const :tag "extra-expanded" extra-expanded)
 	     (const :tag "narrow" condensed)
 	     (const :tag "normal" normal)
+	     (const :tag "medium" normal)
 	     (const :tag "regular" normal)
 	     (const :tag "semicondensed" semi-condensed)
+	     (const :tag "demicondensed" semi-condensed)
+	     (const :tag "semi-condensed" semi-condensed)
 	     (const :tag "semiexpanded" semi-expanded)
 	     (const :tag "ultracondensed" ultra-condensed)
+	     (const :tag "ultra-condensed" ultra-condensed)
 	     (const :tag "ultraexpanded" ultra-expanded)
+	     (const :tag "ultra-expanded" ultra-expanded)
 	     (const :tag "wide" extra-expanded)))
 
     (:height
      (choice :tag "Height"
-	     :help-echo "Face's font height."
+             :help-echo "Face's font size."
 	     :value 1.0			; default
-	     (integer :tag "Height in 1/10 pt")
+             (integer :tag "Font size in 1/10 pt")
 	     (number :tag "Scale" 1.0)))
 
     (:weight
      (choice :tag "Weight"
 	     :help-echo "Font weight."
 	     :value normal		; default
-	     (const :tag "ultralight" ultra-light)
-	     (const :tag "extralight" extra-light)
-	     (const :tag "light" light)
 	     (const :tag "thin" thin)
+	     (const :tag "ultralight" ultra-light)
+	     (const :tag "ultra-light" ultra-light)
+	     (const :tag "extralight" ultra-light)
+	     (const :tag "extra-light" ultra-light)
+	     (const :tag "light" light)
 	     (const :tag "semilight" semi-light)
-	     (const :tag "book" semi-light)
+	     (const :tag "semi-light" semi-light)
+	     (const :tag "demilight" semi-light)
 	     (const :tag "normal" normal)
-	     (const :tag "regular" normal)
-	     (const :tag "medium" normal)
+	     (const :tag "regular" regular)
+	     (const :tag "book" normal)
+	     (const :tag "medium" medium)
 	     (const :tag "semibold" semi-bold)
+	     (const :tag "semi-bold" semi-bold)
 	     (const :tag "demibold" semi-bold)
+	     (const :tag "demi-bold" semi-bold)
 	     (const :tag "bold" bold)
 	     (const :tag "extrabold" extra-bold)
-	     (const :tag "heavy" extra-bold)
-	     (const :tag "ultrabold" ultra-bold)
-	     (const :tag "black" ultra-bold)))
+	     (const :tag "extra-bold" extra-bold)
+	     (const :tag "ultrabold" extra-bold)
+	     (const :tag "ultra-bold" extra-bold)
+	     (const :tag "heavy" heavy)
+	     (const :tag "black" heavy)
+             (const :tag "ultra-heavy" ultra-heavy)
+             (const :tag "ultraheavy" ultra-heavy)))
 
     (:slant
      (choice :tag "Slant"
@@ -115,7 +133,7 @@
 	     :help-echo "Control text underlining."
 	     (const :tag "Off" nil)
 	     (list :tag "On"
-		   :value (:color foreground-color :style line)
+		   :value (:color foreground-color :style line :position nil)
 		   (const :format "" :value :color)
 		   (choice :tag "Color"
 			   (const :tag "Foreground Color" foreground-color)
@@ -123,28 +141,36 @@
 		   (const :format "" :value :style)
 		   (choice :tag "Style"
 			   (const :tag "Line" line)
-			   (const :tag "Wave" wave))))
+			   (const :tag "Wave" wave))
+                   (const :format "" :value :position)
+                   (choice :tag "Position"
+                           (const :tag "At Default Position" nil)
+                           (const :tag "At Bottom Of Text" t)
+                           (integer :tag "Pixels Above Bottom Of Text"))))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (and real-value
-	    (let ((color
-		   (or (and (consp real-value) (plist-get real-value :color))
-		       (and (stringp real-value) real-value)
-		       'foreground-color))
-		  (style
-		   (or (and (consp real-value) (plist-get real-value :style))
-		       'line)))
-	      (list :color color :style style))))
+     ,(lambda (real-value)
+	(and real-value
+	     (let ((color
+		    (or (and (consp real-value) (plist-get real-value :color))
+		        (and (stringp real-value) real-value)
+		        'foreground-color))
+		   (style
+		    (or (and (consp real-value) (plist-get real-value :style))
+		        'line))
+                   (position (and (consp real-value)
+                                  (plist-get real-value :style))))
+	       (list :color color :style style :position position))))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (and cus-value
-	    (let ((color (plist-get cus-value :color))
-		  (style (plist-get cus-value :style)))
-	      (cond ((eq style 'line)
-		     ;; Use simple value for default style
-		     (if (eq color 'foreground-color) t color))
-		    (t
-		     `(:color ,color :style ,style)))))))
+     ,(lambda (cus-value)
+	(and cus-value
+	     (let ((color (plist-get cus-value :color))
+		   (style (plist-get cus-value :style))
+                   (position (plist-get cus-value :position)))
+	       (cond ((and (eq style 'line) (not position))
+		      ;; Use simple value for default style
+		      (if (eq color 'foreground-color) t color))
+		     (t
+		      `(:color ,color :style ,style :position ,position)))))))
 
     (:overline
      (choice :tag "Overline"
@@ -166,47 +192,54 @@
 	     :help-echo "Control box around text."
 	     (const :tag "Off" nil)
 	     (list :tag "Box"
-		   :value (:line-width 2 :color "grey75" :style released-button)
-		   (const :format "" :value :line-width)
-		   (integer :tag "Width")
+                   :value (:line-width (2 . 2) :color "grey75" :style released-button)
+                   (const :format "" :value :line-width)
+                   (cons :tag "Width" :extra-offset 2
+                         (integer :tag "Vertical")
+                         (integer :tag "Horizontal"))
 		   (const :format "" :value :color)
 		   (choice :tag "Color" (const :tag "*" nil) color)
 		   (const :format "" :value :style)
 		   (choice :tag "Style"
 			   (const :tag "Raised" released-button)
 			   (const :tag "Sunken" pressed-button)
+			   (const :tag "Flat"   flat-button)
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (and real-value
-	    (let ((lwidth
-		   (or (and (consp real-value)
-			    (plist-get real-value :line-width))
-		       (and (integerp real-value) real-value)
-		       1))
-		  (color
-		   (or (and (consp real-value) (plist-get real-value :color))
-		       (and (stringp real-value) real-value)
-		       nil))
-		  (style
-		   (and (consp real-value) (plist-get real-value :style))))
-	      (list :line-width lwidth :color color :style style))))
+     ,(lambda (real-value)
+	(and real-value
+	     (let ((lwidth
+		    (or (and (consp real-value)
+                             (if (listp (cdr real-value))
+                                 (plist-get real-value :line-width)
+                               real-value))
+		        (and (integerp real-value) real-value)
+		        '(1 . 1)))
+		   (color
+		    (or (and (consp real-value) (plist-get real-value :color))
+		        (and (stringp real-value) real-value)
+		        nil))
+		   (style
+		    (and (consp real-value) (plist-get real-value :style))))
+               (if (integerp lwidth)
+                   (setq lwidth (cons (abs lwidth) lwidth)))
+	       (list :line-width lwidth :color color :style style))))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (and cus-value
-	    (let ((lwidth (plist-get cus-value :line-width))
-		  (color (plist-get cus-value :color))
-		  (style (plist-get cus-value :style)))
-	      (cond ((and (null color) (null style))
-		     lwidth)
-		    ((and (null lwidth) (null style))
-		     ;; actually can't happen, because LWIDTH is always an int
-		     color)
-		    (t
-		     ;; Keep as a plist, but remove null entries
-		     (nconc (and lwidth `(:line-width ,lwidth))
-			    (and color  `(:color ,color))
-			    (and style  `(:style ,style)))))))))
+     ,(lambda (cus-value)
+	(and cus-value
+	     (let ((lwidth (plist-get cus-value :line-width))
+		   (color (plist-get cus-value :color))
+		   (style (plist-get cus-value :style)))
+	       (cond ((and (null color) (null style))
+		      lwidth)
+		     ((and (null lwidth) (null style))
+		      ;; actually can't happen, because LWIDTH is always an int
+		      color)
+		     (t
+		      ;; Keep as a plist, but remove null entries
+		      (nconc (and lwidth `(:line-width ,lwidth))
+			     (and color  `(:color ,color))
+			     (and style  `(:style ,style)))))))))
 
     (:inverse-video
      (choice :tag "Inverse-video"
@@ -243,18 +276,18 @@
 	     :help-echo "List of faces to inherit attributes from."
 	     (face :Tag "Face" default))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (cond ((or (null real-value) (eq real-value 'unspecified))
-	      nil)
-	     ((symbolp real-value)
-	      (list real-value))
-	     (t
-	      real-value)))
+     ,(lambda (real-value)
+	(cond ((or (null real-value) (eq real-value 'unspecified))
+	       nil)
+	      ((symbolp real-value)
+	       (list real-value))
+	      (t
+	       real-value)))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (if (and (consp cus-value) (null (cdr cus-value)))
-	   (car cus-value)
-	 cus-value))))
+     ,(lambda (cus-value)
+	(if (and (consp cus-value) (null (cdr cus-value)))
+	    (car cus-value)
+	  cus-value))))
 
   "Alist of face attributes.
 
@@ -296,12 +329,12 @@ If FRAME is nil, use the global defaults for FACE."
   "Apply a list of face specs for user customizations.
 This works by calling `custom-theme-set-faces' for the `user'
 theme, a special theme referring to settings made via Customize.
-The arguments should be a list where each entry has the form:
+The arguments ARGS should be a list where each entry has the form:
 
   (FACE SPEC [NOW [COMMENT]])
 
 See the documentation of `custom-theme-set-faces' for details."
-  (apply 'custom-theme-set-faces 'user args))
+  (apply #'custom-theme-set-faces 'user args))
 
 (defun custom-theme-set-faces (theme &rest args)
   "Apply a list of face specs associated with theme THEME.
@@ -386,9 +419,9 @@ Each of the arguments ARGS has this form:
     (FACE FROM-THEME)
 
 This means reset FACE to its value in FROM-THEME."
-  (apply 'custom-theme-reset-faces 'user args))
+  (apply #'custom-theme-reset-faces 'user args))
 
-;;; The End.
+(define-obsolete-function-alias 'custom-facep #'facep "28.1")
 
 (provide 'cus-face)
 

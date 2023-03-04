@@ -1,6 +1,6 @@
 ;;; less-css-mode.el --- Major mode for editing Less CSS files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; This mode provides syntax highlighting for Less CSS files
-;; (http://lesscss.org/), plus optional support for compilation of
+;; (https://lesscss.org/), plus optional support for compilation of
 ;; .less files to .css files at the time they are saved: use
 ;; `less-css-compile-at-save' to enable this.
 ;;
@@ -73,7 +73,6 @@
 
 (require 'compile)
 (require 'css-mode)
-(require 'derived)
 (eval-when-compile (require 'subr-x))
 
 (defgroup less-css nil
@@ -92,7 +91,7 @@ executable, e.g.: \"~/.gem/ruby/1.8/bin/lessc\"."
   "If non-nil, Less buffers are compiled to CSS after each save."
   :type 'boolean)
 ;;;###autoload
-(put 'less-css-compile-at-save 'safe-local-variable 'booleanp)
+(put 'less-css-compile-at-save 'safe-local-variable #'booleanp)
 
 (defcustom less-css-lessc-options '("--no-color")
   "Command line options for Less executable.
@@ -108,7 +107,7 @@ using `expand-file-name', so both relative and absolute paths
 will work as expected."
   :type '(choice (const :tag "Same as Less file" nil) directory))
 ;;;###autoload
-(put 'less-css-output-directory 'safe-local-variable 'stringp)
+(put 'less-css-output-directory 'safe-local-variable #'stringp)
 
 (defcustom less-css-output-file-name nil
   "File name in which to save CSS, or nil to use <name>.css for <name>.less.
@@ -134,7 +133,7 @@ the path is relative, it will be relative to the current
 directory by default."
   :type '(choice (const nil) file))
 ;;;###autoload
-(put 'less-css-input-file-name 'safe-local-variable 'stringp)
+(put 'less-css-input-file-name 'safe-local-variable #'stringp)
 (make-variable-buffer-local 'less-css-input-file-name)
 
 (defconst less-css-default-error-regex
@@ -210,10 +209,8 @@ directory by default."
     (modify-syntax-entry ?. "'" st)
     st))
 
-(defvar less-css-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'less-css-compile)
-    map))
+(defvar-keymap less-css-mode-map
+  "C-c C-c" #'less-css-compile)
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
 ;;;###autoload
@@ -227,7 +224,7 @@ Special commands:
   (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
-  (add-hook 'after-save-hook 'less-css-compile-maybe nil t))
+  (add-hook 'after-save-hook #'less-css-compile-maybe nil t))
 
 (provide 'less-css-mode)
 ;;; less-css-mode.el ends here

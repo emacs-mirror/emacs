@@ -31,7 +31,7 @@
 # already been mapped to 1 or 3.
 
 BEGIN {
-  print ";;; cp51932.el -- translation table for CP51932";
+  print ";;; cp51932.el -- translation table for CP51932  -*- lexical-binding:t -*-";
   print ";;; Automatically generated from CP932-2BYTE.map";
   print "(let ((map";
   printf "       '(;JISEXT<->UNICODE";
@@ -43,13 +43,14 @@ BEGIN {
 
 END {
   print ")))";
-  print "  (mapc #'(lambda (x)";
-  print "	    (setcar x (decode-char 'japanese-jisx0208 (car x))))";
-  print "	map)";
+  print "  (setq map (mapcar (lambda (x)";
+  print "		      (cons (decode-char 'japanese-jisx0208 (car x))";
+  print "			    (cdr x)))";
+  print "		    map))";
   print "  (define-translation-table 'cp51932-decode map)";
-  print "  (mapc #'(lambda (x)";
-  print "	    (let ((tmp (car x)))";
-  print "	      (setcar x (cdr x)) (setcdr x tmp)))";
+  print "  (mapc (lambda (x)";
+  print "	  (let ((tmp (car x)))";
+  print "	    (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
   print "";

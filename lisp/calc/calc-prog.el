@@ -1,6 +1,6 @@
-;;; calc-prog.el --- user programmability functions for Calc
+;;; calc-prog.el --- user programmability functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -111,15 +111,20 @@
 	      "Not reporting timing of commands"))))
 
 (defun calc-pass-errors ()
+  ;; FIXME: This is broken at least since Emacs-26.
+  ;; AFAICT the immediate purpose of this code is to hack the
+  ;; `condition-case' in `calc-do' so it doesn't catch errors any
+  ;; more.  I'm not sure why/whatfor this was designed, but I suspect
+  ;; that `condition-case-unless-debug' would cover the same needs.
   (interactive)
   ;; The following two cases are for the new, optimizing byte compiler
   ;; or the standard 18.57 byte compiler, respectively.
-  (condition-case err
+  (condition-case nil
       (let ((place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 15)))
 	(or (memq (car-safe (car-safe place)) '(error xxxerror))
 	    (setq place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 27)))
 	(or (memq (car (car place)) '(error xxxerror))
-	    (error "foo"))
+            (error "Foo"))
 	(setcar (car place) 'xxxerror))
     (error (error "The calc-do function has been modified; unable to patch"))))
 
@@ -165,6 +170,7 @@
 ;; calc-user-define-composition and calc-finish-formula-edit,
 ;; but is used by calc-fix-user-formula.
 (defvar calc-user-formula-alist)
+(defvar math-arglist)		    ; dynamically bound in all callers
 
 (defun calc-user-define-formula ()
   (interactive)
@@ -176,7 +182,7 @@
 	  odef key keyname cmd cmd-base cmd-base-default
           func calc-user-formula-alist is-symb)
      (if is-lambda
-	 (setq math-arglist (mapcar (function (lambda (x) (nth 1 x)))
+         (setq math-arglist (mapcar (lambda (x) (nth 1 x))
 			       (nreverse (cdr (reverse (cdr form)))))
 	       form (nth (1- (length form)) form))
        (calc-default-formula-arglist form)
@@ -199,9 +205,8 @@
 	 (progn
 	   (setq cmd-base-default (concat "User-" keyname))
            (setq cmd (completing-read
-                      (concat "Define M-x command name (default calc-"
-                              cmd-base-default
-                              "): ")
+                      (format-prompt "Define M-x command name"
+                                     (concat "calc-" cmd-base-default))
                       obarray 'commandp nil
                       (if (and odef (symbolp (cdr odef)))
                           (symbol-name (cdr odef))
@@ -235,8 +240,8 @@
 	   (setq func
                  (concat "calcFunc-"
                          (completing-read
-                          (concat "Define algebraic function name (default "
-                                  cmd-base-default "): ")
+                          (format-prompt "Define algebraic function name"
+                                         cmd-base-default)
                           (mapcar (lambda (x) (substring x 9))
                                   (all-completions "calcFunc-"
                                                    obarray))
@@ -284,10 +289,10 @@
 			(y-or-n-p
 			 "Leave it symbolic for non-constant arguments? ")))
      (setq calc-user-formula-alist
-           (mapcar (function (lambda (x)
-                               (or (cdr (assq x '((nil . arg-nil)
-                                                  (t . arg-t))))
-                                   x))) calc-user-formula-alist))
+           (mapcar (lambda (x)
+                     (or (cdr (assq x '((nil . arg-nil)
+                                        (t . arg-t))))
+                         x)) calc-user-formula-alist))
      (if cmd
 	 (progn
 	   (require 'calc-macs)
@@ -313,8 +318,8 @@
 	     (append
 	      (list 'lambda calc-user-formula-alist)
 	      (and is-symb
-		   (mapcar (function (lambda (v)
-				       (list 'math-check-const v t)))
+                   (mapcar (lambda (v)
+                             (list 'math-check-const v t))
 			   calc-user-formula-alist))
 	      (list body))))
      (put func 'calc-user-defn form)
@@ -328,7 +333,6 @@
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
    (message "")))
 
-(defvar math-arglist)		    ; dynamically bound in all callers
 (defun calc-default-formula-arglist (form)
   (if (consp form)
       (if (eq (car form) 'var)
@@ -478,13 +482,13 @@
   (interactive)
   (calc-wrapper
    (let ((lang calc-language))
-     (calc-edit-mode (list 'calc-finish-user-syntax-edit (list 'quote lang))
-		     t
-		     (format "Editing %s-Mode Syntax Table. "
-			     (cond ((null lang) "Normal")
-				   ((eq lang 'tex) "TeX")
-                                   ((eq lang 'latex) "LaTeX")
-				   (t (capitalize (symbol-name lang))))))
+     (calc--edit-mode (lambda () (calc-finish-user-syntax-edit lang))
+		      t
+		      (format "Editing %s-Mode Syntax Table. "
+			      (cond ((null lang) "Normal")
+				    ((eq lang 'tex) "TeX")
+                                    ((eq lang 'latex) "LaTeX")
+				    (t (capitalize (symbol-name lang))))))
      (calc-write-parse-table (cdr (assq lang calc-user-parse-tables))
 			     lang)))
   (calc-show-edit-buffer))
@@ -511,8 +515,9 @@
 ;; is called (indirectly) by calc-read-parse-table.
 (defvar calc-lang)
 
-(defun calc-write-parse-table (tab calc-lang)
-  (let ((p tab))
+(defun calc-write-parse-table (tab lang)
+  (let ((calc-lang lang)
+        (p tab))
     (while p
       (calc-write-parse-table-part (car (car p)))
       (insert ":= "
@@ -551,8 +556,9 @@
 	     (insert " "))))
     (setq p (cdr p))))
 
-(defun calc-read-parse-table (calc-buf calc-lang)
-  (let ((tab nil))
+(defun calc-read-parse-table (calc-buf lang)
+  (let ((calc-lang lang)
+        (tab nil))
     (while (progn
 	     (skip-chars-forward "\n\t ")
 	     (not (eobp)))
@@ -597,7 +603,7 @@
 	((equal name "#")
 	 (search-backward "#")
 	 (error "Token `#' is reserved"))
-	((and unquoted (string-match "#" name))
+	((and unquoted (string-search "#" name))
 	 (error "Tokens containing `#' must be quoted"))
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
@@ -672,7 +678,7 @@
   (or last-kbd-macro
       (error "No keyboard macro defined"))
   (setq calc-invocation-macro last-kbd-macro)
-  (message "Use `C-x * Z' to invoke this macro"))
+  (message (substitute-command-keys "Use \\`C-x * Z' to invoke this macro")))
 
 (defun calc-user-define-edit ()
   (interactive)  ; but no calc-wrapper!
@@ -689,12 +695,13 @@
       (setq cmd (symbol-function cmd)))
     (cond ((or (stringp cmd)
 	       (and (consp cmd)
-		    (eq (car-safe (nth 3 cmd)) 'calc-execute-kbd-macro)))
+		    (eq (car-safe (nth 3 cmd)) #'calc-execute-kbd-macro)))
+           ;; FIXME: Won't (nth 3 cmd) fail when (stringp cmd)?
            (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
                   (str (edmacro-format-keys mac t))
                   (kys (nth 3 (nth 3 cmd))))
-             (calc-edit-mode
-              (list 'calc-edit-macro-finish-edit cmdname kys)
+             (calc--edit-mode
+              (lambda () (calc-edit-macro-finish-edit cmdname kys))
               t (format (concat
                          "Editing keyboard macro (%s, bound to %s).\n"
                          "Original keys: %s \n")
@@ -712,8 +719,8 @@
 	       (if (and defn (calc-valid-formula-func func))
 		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
-		      (calc-edit-mode
-                       (list 'calc-finish-formula-edit (list 'quote func))
+		      (calc--edit-mode
+                       (lambda () (calc-finish-formula-edit func))
                        nil
                        (format (concat
                                 "Editing formula (%s, %s, bound to %s).\n"
@@ -794,8 +801,8 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string "SPC" " SPC "
-                  (replace-regexp-in-string " " "" line)))
+    (setq line (string-replace "SPC" " SPC "
+                               (string-replace " " "" line)))
     (insert line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -822,7 +829,7 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string " " "" line))
+    (setq line (string-replace " " "" line))
     (insert cmdbeg " " line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -849,7 +856,7 @@
       (when match
         (kill-line 1)
         (setq line (concat line (substring curline 0 match))))
-      (setq line (replace-regexp-in-string " " "" line))
+      (setq line (string-replace " " "" line))
       (insert line "\t\t\t")
       (if (> (current-column) 24)
           (delete-char -1))
@@ -860,7 +867,7 @@
 (defun calc-edit-macro-combine-digits ()
   "Put an entire sequence of digits on a single line."
   (let ((line (calc-edit-macro-command))
-        curline)
+        ) ;; curline
     (goto-char (line-beginning-position))
     (kill-line 1)
     (while (string-equal (calc-edit-macro-command-type) "calcDigit-start")
@@ -1038,7 +1045,7 @@ Redefine the corresponding command."
      (let* ((cmd (cdr def))
 	    (fcmd (and cmd (symbolp cmd) (symbol-function cmd)))
 	    (func nil)
-	    (pt (point))
+	    ;; (pt (point))
 	    (fill-column 70)
 	    (fill-prefix nil)
 	    str q-ok)
@@ -1060,7 +1067,7 @@ Redefine the corresponding command."
 	     (insert (setq str (prin1-to-string
 				(cons 'defun (cons cmd (cdr fcmd)))))
 		     "\n")
-	     (or (and (string-match "\"" str) (not q-ok))
+	     (or (and (string-search "\"" str) (not q-ok))
 		 (fill-region pt (point)))
 	     (indent-rigidly pt (point) 2)
 	     (delete-region pt (1+ pt))
@@ -1079,7 +1086,7 @@ Redefine the corresponding command."
 					 (cons 'defun (cons func
 							    (cdr ffunc)))))
 			      "\n")
-		      (or (and (string-match "\"" str) (not q-ok))
+		      (or (and (string-search "\"" str) (not q-ok))
 			  (fill-region pt (point)))
 		      (indent-rigidly pt (point) 2)
 		      (delete-region pt (1+ pt))
@@ -1440,7 +1447,8 @@ Redefine the corresponding command."
 	   (let ((calc-kbd-push-level 0))
 	     (execute-kbd-macro (substring body 0 -2))))
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
-	 (message "%s" "Saving modes; type Z' to restore")
+         ;; Avoid substituting the "'" character:
+         (message "%s" "Saving modes; type Z' to restore")
 	 (recursive-edit))))))
 
 (defun calc-kbd-pop ()
@@ -1451,11 +1459,6 @@ Redefine the corresponding command."
 	(exit-recursive-edit))
     (error "%s" "Unbalanced Z' in keyboard macro")))
 
-
-;; (defun calc-kbd-report (msg)
-;;   (interactive "sMessage: ")
-;;   (calc-wrapper
-;;    (math-working msg (calc-top-n 1))))
 
 (defun calc-kbd-query ()
   (interactive)
@@ -1878,9 +1881,9 @@ Redefine the corresponding command."
 	  (if (fboundp (setq chk (intern (concat "math-" qual-name))))
 	      (append rest
 		      (if is-rest
-			  `((mapcar #'(lambda (x)
-					(or (,chk x)
-					    (math-reject-arg x ',qual)))
+                          `((mapcar (lambda (x)
+                                      (or (,chk x)
+                                          (math-reject-arg x ',qual)))
 				    ,var))
 			`((or (,chk ,var)
 			      (math-reject-arg ,var ',qual)))))
@@ -1891,9 +1894,9 @@ Redefine the corresponding command."
 						  qual-name 1))))))
 		(append rest
 			(if is-rest
-			    `((mapcar #'(lambda (x)
-					  (and (,chk x)
-					       (math-reject-arg x ',qual)))
+                            `((mapcar (lambda (x)
+                                        (and (,chk x)
+                                             (math-reject-arg x ',qual)))
 				      ,var))
 			  `((and
 			     (,chk ,var)
@@ -1947,11 +1950,12 @@ Redefine the corresponding command."
 
 ;; The variable math-exp-env is local to math-define-body, but is
 ;; used by math-define-exp, which is called (indirectly) by
-;; by math-define-body.
+;; math-define-body.
 (defvar math-exp-env)
 
-(defun math-define-body (body math-exp-env)
-  (math-define-list body))
+(defun math-define-body (body exp-env)
+  (let ((math-exp-env exp-env))
+    (math-define-list body)))
 
 (defun math-define-list (body &optional quote)
   (cond ((null body)
@@ -1981,22 +1985,37 @@ Redefine the corresponding command."
 		      (cons 'quote
 			    (math-define-lambda (nth 1 exp) math-exp-env))
 		    exp))
-		 ((memq func '(let let* for foreach))
-		  (let ((head (nth 1 exp))
-			(body (cdr (cdr exp))))
-		    (if (memq func '(let let*))
-			()
-		      (setq func (cdr (assq func '((for . math-for)
-						   (foreach . math-foreach)))))
-		      (if (not (listp (car head)))
-			  (setq head (list head))))
-		    (macroexpand
-		     (cons func
-			   (cons (math-define-let head)
-				 (math-define-body body
-						   (nconc
-						    (math-define-let-env head)
-						    math-exp-env)))))))
+                 ((eq func 'let)
+                  (let ((bindings (nth 1 exp))
+                        (body (cddr exp)))
+                    `(let ,(math-define-let bindings)
+                       ,@(math-define-body
+                          body (append (math-define-let-env bindings)
+                                       math-exp-env)))))
+                 ((eq func 'let*)
+                  ;; Rewrite in terms of `let'.
+                  (let ((bindings (nth 1 exp))
+                        (body (cddr exp)))
+                    (math-define-exp
+                     (if (> (length bindings) 1)
+                         `(let ,(list (car bindings))
+                            (let* ,(cdr bindings) ,@body))
+                       `(let ,bindings ,@body)))))
+		 ((memq func '(for foreach))
+		  (let ((bindings (nth 1 exp))
+			(body (cddr exp)))
+                    (if (> (length bindings) 1)
+                        ;; Rewrite as nested loops.
+                        (math-define-exp
+                         `(,func ,(list (car bindings))
+                                 (,func ,(cdr bindings) ,@body)))
+                      (let ((mac (cdr (assq func '((for . math-for)
+                                                   (foreach . math-foreach))))))
+                        (macroexpand
+                         `(,mac ,(math-define-let bindings)
+                                ,@(math-define-body
+                                   body (append (math-define-let-env bindings)
+					        math-exp-env))))))))
 		 ((and (memq func '(setq setf))
 		       (math-complicated-lhs (cdr exp)))
 		  (if (> (length exp) 3)
@@ -2013,7 +2032,7 @@ Redefine the corresponding command."
 			(math-define-cond (cdr exp))))
 		 ((and (consp func)   ; ('spam a b) == force use of plain spam
 		       (eq (car func) 'quote))
-		  (cons func (math-define-list (cdr exp))))
+		  (cons (cadr func) (math-define-list (cdr exp))))
 		 ((symbolp func)
 		  (let ((args (math-define-list (cdr exp)))
 			(prim (assq func math-prim-funcs)))
@@ -2113,7 +2132,7 @@ Redefine the corresponding command."
 		  (cdr prim))
 		 ((memq exp math-exp-env)
 		  exp)
-		 ((string-match "-" name)
+		 ((string-search "-" name)
 		  exp)
 		 (t
 		  (intern (concat "var-" name))))))
@@ -2272,20 +2291,16 @@ Redefine the corresponding command."
 
 (defun math-handle-foreach (head body)
   (let ((var (nth 0 (car head)))
+        (loop-var (gensym "foreach"))
 	(data (nth 1 (car head)))
 	(body (if (cdr head)
 		  (list (math-handle-foreach (cdr head) body))
 		body)))
-    (cons 'let
-	  (cons (list (list var data))
-		(list
-		 (cons 'while
-		       (cons var
-			     (append body
-				     (list (list 'setq
-						 var
-						 (list 'cdr var)))))))))))
-
+    `(let ((,loop-var ,data))
+       (while ,loop-var
+         (let ((,var (car ,loop-var)))
+           ,@(append body
+                     `((setq ,loop-var (cdr ,loop-var)))))))))
 
 (defun math-body-refers-to (body thing)
   (or (equal body thing)

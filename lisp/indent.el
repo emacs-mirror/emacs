@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -39,8 +39,8 @@
 (defvar indent-line-function 'indent-relative
   "Function to indent the current line.
 This function will be called with no arguments.
-If it is called somewhere where auto-indentation cannot be done
-\(e.g. inside a string), the function should simply return `noindent'.
+If it is called somewhere where it cannot auto-indent, the function
+should return `noindent' to signal that it didn't.
 Setting this function is all you need to make TAB indent appropriately.
 Don't rebind TAB unless you really need to.")
 
@@ -52,6 +52,8 @@ or in the line's indentation, otherwise it inserts a \"real\" TAB character.
 If `complete', TAB first tries to indent the current line, and if the line
 was already indented, then try to complete the thing at point.
 
+Also see `tab-first-completion'.
+
 Some programming language modes have their own variable to control this,
 e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
@@ -60,22 +62,49 @@ e.g., `c-tab-always-indent', and do not respect this variable."
 	  (const :tag "Indent if inside indentation, else TAB" nil)
 	  (const :tag "Indent, or if already indented complete" complete)))
 
+(defcustom tab-first-completion nil
+  "Governs the behavior of TAB completion on the first press of the key.
+When nil, complete.  When `eol', only complete if point is at the
+end of a line.  When `word', complete unless the next character
+has word syntax (according to `syntax-after').  When
+`word-or-paren', complete unless the next character is part of a
+word or a parenthesis.  When `word-or-paren-or-punct', complete
+unless the next character is part of a word, parenthesis, or
+punctuation.  Typing TAB a second time always results in
+completion.
 
-(defun indent-according-to-mode ()
+This variable has no effect unless `tab-always-indent' is `complete'."
+  :group 'indent
+  :type '(choice
+          (const :tag "Always complete" nil)
+          (const :tag "Only complete at the end of a line" eol)
+          (const :tag "Unless looking at a word" word)
+          (const :tag "Unless at a word or parenthesis" word-or-paren)
+          (const :tag "Unless at a word, parenthesis, or punctuation."
+                 word-or-paren-or-punct))
+  :version "28.1")
+
+(defvar indent-line-ignored-functions '(indent-relative
+                                        indent-relative-maybe
+                                        indent-relative-first-indent-point)
+  "Values that are ignored by `indent-according-to-mode'.")
+
+(defun indent-according-to-mode (&optional inhibit-widen)
   "Indent line in proper way for current major mode.
 Normally, this is done by calling the function specified by the
 variable `indent-line-function'.  However, if the value of that
-variable is `indent-relative' or `indent-relative-first-indent-point',
+variable is present in the `indent-line-ignored-functions' variable,
 handle it specially (since those functions are used for tabbing);
-in that case, indent by aligning to the previous non-blank line."
+in that case, indent by aligning to the previous non-blank line.
+
+Ignore restriction, unless the optional argument INHIBIT-WIDEN is
+non-nil."
   (interactive)
   (save-restriction
-    (widen)
+    (unless inhibit-widen
+      (widen))
   (syntax-propertize (line-end-position))
-  (if (memq indent-line-function
-            '(indent-relative
-              indent-relative-maybe
-              indent-relative-first-indent-point))
+  (if (memq indent-line-function indent-line-ignored-functions)
       ;; These functions are used for tabbing, but can't be used for
       ;; indenting.  Replace with something ad-hoc.
       (let ((column (save-excursion
@@ -113,7 +142,7 @@ or performs symbol completion, depending on `tab-always-indent'.
 The function called to actually indent the line or insert a tab
 is given by the variable `indent-line-function'.
 
-If a prefix argument is given, after this function indents the
+If a prefix argument is given (ARG), after this function indents the
 current line or inserts a tab, it also rigidly indents the entire
 balanced expression which starts at the beginning of the current
 line, to reflect the current line's indentation.
@@ -141,7 +170,8 @@ prefix argument is ignored."
    (t
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
-	  (old-indent (current-indentation)))
+	  (old-indent (current-indentation))
+          (syn (syntax-after (point))))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -153,8 +183,21 @@ prefix argument is ignored."
       (cond
        ;; If the text was already indented right, try completion.
        ((and (eq tab-always-indent 'complete)
-             (eq old-point (point))
-             (eq old-tick (buffer-chars-modified-tick)))
+             (eql old-point (point))
+             (eql old-tick (buffer-chars-modified-tick))
+             (or (null tab-first-completion)
+                 (eq last-command this-command)
+                 (and (eq tab-first-completion 'eol)
+                      (eolp))
+                 (and (memq tab-first-completion
+                            '(word word-or-paren word-or-paren-or-punct))
+                      (not (eql 2 syn)))
+                 (and (memq tab-first-completion
+                            '(word-or-paren word-or-paren-or-punct))
+                      (not (or (eql 4 syn)
+                               (eql 5 syn))))
+                 (and (eq tab-first-completion 'word-or-paren-or-punct)
+                      (not (eql 1 syn)))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following
@@ -197,22 +240,26 @@ Blank lines are ignored."
                             (current-indentation))))
         indent))))
 
-(defvar indent-rigidly-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [left]  'indent-rigidly-left)
-    (define-key map [right] 'indent-rigidly-right)
-    (define-key map [S-left]  'indent-rigidly-left-to-tab-stop)
-    (define-key map [S-right] 'indent-rigidly-right-to-tab-stop)
-    map)
-  "Transient keymap for adjusting indentation interactively.
-It is activated by calling `indent-rigidly' interactively.")
+(defvar-keymap indent-rigidly-map
+  :doc   "Transient keymap for adjusting indentation interactively.
+It is activated by calling `indent-rigidly' interactively."
+  "TAB"       #'indent-rigidly-right
+  "<left>"    #'indent-rigidly-left
+  "<right>"   #'indent-rigidly-right
+  "S-<left>"  #'indent-rigidly-left-to-tab-stop
+  "S-<right>" #'indent-rigidly-right-to-tab-stop)
+(put 'indent-rigidly-right :advertised-binding (kbd "<right>"))
 
 (defun indent-rigidly (start end arg &optional interactive)
   "Indent all lines starting in the region.
 If called interactively with no prefix argument, activate a
 transient mode in which the indentation can be adjusted interactively
 by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
-Typing any other key deactivates the transient mode.
+In addition, \\`TAB' is also bound (and calls `indent-rigidly-right').
+
+Typing any other key exits this mode, and this key is then
+acted upon as normally.  If `transient-mark-mode' is enabled,
+exiting also deactivates the mark.
 
 If called from a program, or interactively with prefix ARG,
 indent all lines starting in the region forward by ARG columns.
@@ -223,11 +270,8 @@ Negative values of ARG indent backward, so you can remove all
 indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
-      (progn
-        (message
-	 (substitute-command-keys
-	  "Indent region with \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop]."))
-        (set-transient-map indent-rigidly-map t #'deactivate-mark))
+      (set-transient-map indent-rigidly-map t #'deactivate-mark
+                         "Indent region with %k")
     (save-excursion
       (goto-char end)
       (setq end (point-marker))
@@ -423,7 +467,7 @@ Optional fifth argument OBJECT specifies the string or buffer to operate on."
 	(put-text-property begin to prop (funcall func val) object))))
 
 (defun increase-left-margin (from to inc)
-  "Increase or decrease the left-margin of the region.
+  "Increase or decrease the `left-margin' of the region.
 With no prefix argument, this adds `standard-indent' of indentation.
 A prefix arg (optional third arg INC noninteractively) specifies the amount
 to change the margin by, in characters.
@@ -480,12 +524,15 @@ If `auto-fill-mode' is active, re-fills region to fit in new margin."
 
 (defun beginning-of-line-text (&optional n)
   "Move to the beginning of the text on this line.
-With optional argument, move forward N-1 lines first.
-From the beginning of the line, moves past the left-margin indentation, the
-fill-prefix, and any indentation used for centering or right-justifying the
-line, but does not move past any whitespace that was explicitly inserted
-\(such as a tab used to indent the first line of a paragraph)."
-  (interactive "p")
+
+With optional argument N, move forward N-1 lines first.
+
+From the beginning of the line, moves past the `left-margin'
+indentation, the `fill-prefix', and any indentation used for
+centering or right-justifying the line, but does not move past
+any whitespace that was explicitly inserted (such as a tab used
+to indent the first line of a paragraph)."
+  (interactive "^p")
   (beginning-of-line n)
   (skip-chars-forward " \t")
   ;; Skip over fill-prefix.
@@ -558,7 +605,10 @@ column to indent to; if it is nil, use one of the three methods above."
       (funcall indent-region-function start end)))
    ;; Else, use a default implementation that calls indent-line-function on
    ;; each line.
-   (t (indent-region-line-by-line start end)))
+   (t
+    (save-restriction
+      (widen)
+      (indent-region-line-by-line start end))))
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark
   ;; by hand.
@@ -572,7 +622,7 @@ column to indent to; if it is nil, use one of the three methods above."
                 (make-progress-reporter "Indenting region..." (point) end))))
       (while (< (point) end)
         (or (and (bolp) (eolp))
-            (indent-according-to-mode))
+            (indent-according-to-mode t))
         (forward-line 1)
         (and pr (progress-reporter-update pr (point))))
       (and pr (progress-reporter-done pr))
@@ -645,12 +695,10 @@ A value of nil means a tab stop every `tab-width' columns."
   :safe 'listp
   :type '(repeat integer))
 
-(defvar edit-tab-stops-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'edit-tab-stops-note-changes)
-    (define-key map "\C-c\C-c" 'edit-tab-stops-note-changes)
-    map)
-  "Keymap used in `edit-tab-stops'.")
+(defvar-keymap edit-tab-stops-map
+  :doc "Keymap used in `edit-tab-stops'."
+  "C-x C-s" #'edit-tab-stops-note-changes
+  "C-c C-c" #'edit-tab-stops-note-changes)
 
 (defvar edit-tab-stops-buffer nil
   "Buffer whose tab stops are being edited.
@@ -684,7 +732,9 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
     (while (> count 0)
       (insert "0123456789")
       (setq count (1- count))))
-  (insert "\nTo install changes, type C-c C-c")
+  (insert (substitute-command-keys
+           (concat "\nTo install changes, type \\<edit-tab-stops-map>"
+                   "\\[edit-tab-stops-note-changes]")))
   (goto-char (point-min)))
 
 (defun edit-tab-stops-note-changes ()
@@ -734,7 +784,8 @@ If PREV is non-nil, return the previous one instead."
 (defun tab-to-tab-stop ()
   "Insert spaces or tabs to next defined tab-stop column.
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
-Use \\[edit-tab-stops] to edit them interactively."
+Use \\[edit-tab-stops] to edit them interactively.
+Whether this inserts tabs or spaces depends on `indent-tabs-mode'."
   (interactive)
   (and abbrev-mode (= (char-syntax (preceding-char)) ?w)
        (expand-abbrev))

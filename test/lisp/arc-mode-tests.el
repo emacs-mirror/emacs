@@ -1,6 +1,6 @@
 ;;; arc-mode-tests.el --- Test suite for arc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,11 +28,11 @@
   (let ((alist (list (cons 448 "-rwx------")
                      (cons 420 "-rw-r--r--")
                      (cons 292 "-r--r--r--")
-                     (cons 512 "----------")
+                     (cons 512 "---------T")
                      (cons 1024 "------S---") ; Bug#28092
                      (cons 2048 "---S------"))))
     (dolist (x alist)
-      (should (equal (cdr x) (archive-int-to-mode (car x)))))))
+      (should (equal (cdr x) (file-modes-number-to-symbolic (car x)))))))
 
 (ert-deftest arc-mode-test-zip-extract-gz ()
   (skip-unless (and archive-zip-extract (executable-find (car archive-zip-extract))))
@@ -48,4 +48,4 @@
 
 (provide 'arc-mode-tests)
 
-;; arc-mode-tests.el ends here
+;;; arc-mode-tests.el ends here

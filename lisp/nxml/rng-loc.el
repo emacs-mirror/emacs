@@ -1,6 +1,6 @@
 ;;; rng-loc.el --- Locate the schema to use for validation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -182,7 +182,7 @@ If TYPE-ID is non-nil, then locate the schema for this TYPE-ID."
     (while files
       (setq type-ids (rng-possible-type-ids-using (car files) type-ids))
       (setq files (cdr files)))
-    (rng-uniquify-equal (sort type-ids 'string<))))
+    (seq-uniq (sort type-ids 'string<))))
 
 (defun rng-locate-schema-file-using (files)
   "Locate a schema using the schema locating files FILES.
@@ -354,7 +354,7 @@ NS is t if the document has a non-nil, but not otherwise known namespace."
   (or (cdr (assq 'uri props))
       (let ((type-id (cdr (assq 'typeId props))))
 	(and type-id
-	     (cons (rng-collapse-space type-id) nil)))))
+             (cons (string-clean-whitespace type-id) nil)))))
 
 (defun rng-possible-type-ids-using (file type-ids)
   (let ((rules (rng-get-parsed-schema-locating-file file))
@@ -366,7 +366,7 @@ NS is t if the document has a non-nil, but not otherwise known namespace."
 	     (let ((id (cdr (assq 'id (cdr rule)))))
 	       (when id
 		 (setq type-ids
-		       (cons (rng-collapse-space id)
+                       (cons (string-clean-whitespace id)
 			     type-ids)))))
 	    ((eq (car rule) 'include)
 	     (let ((uri (cdr (assq 'rules (cdr rule)))))
@@ -390,7 +390,7 @@ or nil."
       (cond ((and (eq (car rule) 'typeId)
 		  (let ((id (assq 'id (cdr rule))))
 		    (and id
-			 (string= (rng-collapse-space (cdr id)) type-id))))
+                         (string= (string-clean-whitespace (cdr id)) type-id))))
 	     (setq schema (rng-match-default-rule (cdr rule))))
 	    ((eq (car rule) 'include)
 	     (let ((uri (cdr (assq 'rules (cdr rule)))))
@@ -414,7 +414,7 @@ or nil."
 	     (setq rng-schema-locating-file-alist
 		   (delq cached rng-schema-locating-file-alist)))
 	   nil)
-	  ((and cached (equal (nth 1 cached) mtime))
+	  ((and cached (time-equal-p (nth 1 cached) mtime))
 	   (nth 2 cached))
 	  (t
 	   (setq parsed (rng-parse-schema-locating-file file))
@@ -501,7 +501,7 @@ saved to the first writable file in `rng-schema-locating-files'."
 	       nil
 	     (error "Buffer does not have a filename")))
 	  ((and prompt
-		(not (y-or-n-p (format "Save %s to %s "
+                (not (y-or-n-p (format "Save %s to %s?"
 				       (if type-id
 					   "type identifier"
 					 "schema location")
@@ -539,7 +539,7 @@ saved to the first writable file in `rng-schema-locating-files'."
 				       locating-file-uri))))))
 	       (indent-according-to-mode)
 	       (when (or (not modified)
-			 (y-or-n-p (format "Save file %s "
+                         (y-or-n-p (format "Save file %s?"
 					   (buffer-file-name))))
 		 (save-buffer))))))))
 

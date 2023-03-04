@@ -1,8 +1,10 @@
 ;;; sasl-scram-rfc-tests.el --- tests for SCRAM       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

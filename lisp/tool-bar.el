@@ -1,6 +1,6 @@
-;;; tool-bar.el --- setting up the tool bar
+;;; tool-bar.el --- setting up the tool bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -75,8 +75,8 @@ See `tool-bar-mode' for more information."
       (tool-bar-mode (if (> (frame-parameter nil 'tool-bar-lines) 0) 0 1))
     (tool-bar-mode arg)))
 
-(defvar tool-bar-map (make-sparse-keymap)
-  "Keymap for the tool bar.
+(defvar-keymap tool-bar-map
+  :doc "Keymap for the tool bar.
 
 To override the global tool bar, define this variable
 buffer-locally and add the items you want to it with
@@ -89,15 +89,29 @@ functions.")
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 
-(defconst tool-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
+(defconst tool-bar-keymap-cache (make-hash-table :test #'equal))
+
+(defun tool-bar--cache-key ()
+  (cons (frame-terminal) (sxhash-eq tool-bar-map)))
+
+(defun tool-bar--flush-cache ()
+  "Remove all cached entries that refer to the current `tool-bar-map'."
+  (let ((id (sxhash-eq tool-bar-map))
+        (entries nil))
+    (maphash (lambda (k _)
+               (when (equal (cdr k) id)
+                 (push k entries)))
+             tool-bar-keymap-cache)
+    (dolist (k entries)
+      (remhash k tool-bar-keymap-cache))))
 
 (defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
 color capability and based on the available image libraries."
-  (let ((key (cons (frame-terminal) tool-bar-map)))
-    (or (gethash key tool-bar-keymap-cache)
-	(puthash key (tool-bar-make-keymap-1) tool-bar-keymap-cache))))
+  (or (gethash (tool-bar--cache-key) tool-bar-keymap-cache)
+      (setf (gethash (tool-bar--cache-key) tool-bar-keymap-cache)
+            (tool-bar-make-keymap-1))))
 
 (defun tool-bar-make-keymap-1 ()
   "Generate an actual keymap from `tool-bar-map', without caching."
@@ -139,7 +153,8 @@ ICON.xbm, using `find-image'.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item'."
-  (apply 'tool-bar-local-item icon def key tool-bar-map props))
+  (apply #'tool-bar-local-item icon def key tool-bar-map props)
+  (tool-bar--flush-cache))
 
 (defun tool-bar--image-expression (icon)
   "Return an expression that evaluates to an image spec for ICON."
@@ -159,7 +174,8 @@ To define items in any other map, use `tool-bar-local-item'."
 		       ((< (display-color-cells) 256)
 			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
 		       (t
-			',(list xpm-spec pbm-spec xbm-spec))))))
+			',(list xpm-spec pbm-spec xbm-spec)))
+                 t)))
 
 ;;;###autoload
 (defun tool-bar-local-item (icon def key map &rest props)
@@ -176,6 +192,7 @@ ICON.xbm, using `find-image'."
   (let* ((image-exp (tool-bar--image-expression icon)))
     (define-key-after map (vector key)
       `(menu-item ,(symbol-name key) ,def :image ,image-exp ,@props))
+    (tool-bar--flush-cache)
     (force-mode-line-update)))
 
 ;;;###autoload
@@ -191,7 +208,7 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item-from-menu'."
-  (apply 'tool-bar-local-item-from-menu command icon
+  (apply #'tool-bar-local-item-from-menu command icon
 	 (default-value 'tool-bar-map) map props))
 
 ;;;###autoload
@@ -242,6 +259,7 @@ holds a keymap."
                 (setq rest (cdr rest)))
             (append `(menu-item ,(car defn) ,rest)
                     (list :image image-exp) props))))
+      (tool-bar--flush-cache)
       (force-mode-line-update))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
@@ -289,6 +307,8 @@ holds a keymap."
       "Specify on which side the tool bar shall be.
 Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
 `left' (tool bar on left) and `right' (tool bar on right).
+This option has effect only on graphical frames and only
+if Emacs was built with GTK.
 Customize `tool-bar-mode' if you want to show or hide the tool bar."
       :version "24.1"
       :type '(choice (const top)

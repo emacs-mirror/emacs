@@ -1,0 +1,1 @@
+machine localhost port http user ntlm password ntlm

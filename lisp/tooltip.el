@@ -1,6 +1,6 @@
-;;; tooltip.el --- show tooltip windows
+;;; tooltip.el --- show tooltip windows  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -58,9 +58,11 @@ echo area, instead of making a pop-up window."
   (if (and tooltip-mode (fboundp 'x-show-tip))
       (progn
 	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-functions 'tooltip-help-tips))
+	(add-hook 'tooltip-functions 'tooltip-help-tips)
+        (add-hook 'x-pre-popup-menu-hook 'tooltip-hide))
     (unless (and (boundp 'gud-tooltip-mode) gud-tooltip-mode)
-      (remove-hook 'pre-command-hook 'tooltip-hide))
+      (remove-hook 'pre-command-hook 'tooltip-hide)
+      (remove-hook 'x-pre-popup-menu-hook 'tooltip-hide))
     (remove-hook 'tooltip-functions 'tooltip-help-tips))
   (setq show-help-function
 	(if tooltip-mode 'tooltip-show-help 'tooltip-show-help-non-mode)))
@@ -70,24 +72,20 @@ echo area, instead of making a pop-up window."
 
 (defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-short-delay 0.1
   "Seconds to wait between subsequent tooltips on different items."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-recent-seconds 1
   "Display tooltips if changing tip items within this many seconds.
 Do so after `tooltip-short-delay'."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-hide-delay 10
   "Hide tooltips automatically after this many seconds."
-  :type 'number
-  :group 'tooltip)
+  :type 'number)
 
 (defcustom tooltip-x-offset 5
   "X offset, in pixels, for the display of tooltips.
@@ -98,8 +96,7 @@ interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `left' parameter,
 the value of `tooltip-x-offset' is ignored."
-  :type 'integer
-  :group 'tooltip)
+  :type 'integer)
 
 (defcustom tooltip-y-offset +20
   "Y offset, in pixels, for the display of tooltips.
@@ -110,8 +107,7 @@ interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `top' parameter,
 the value of `tooltip-y-offset' is ignored."
-  :type 'integer
-  :group 'tooltip)
+  :type 'integer)
 
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
@@ -127,8 +123,7 @@ Note that font and color parameters are ignored, and the attributes
 of the `tooltip' face are used instead."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
-  :group 'tooltip
+                       (sexp :tag "Value")))
   :version "26.1")
 
 (defface tooltip
@@ -138,19 +133,12 @@ of the `tooltip' face are used instead."
      :inherit variable-pitch)
     (t
      :inherit variable-pitch))
-  "Face for tooltips."
+  "Face for tooltips.
+
+When using the GTK toolkit, this face will only be used if
+`x-gtk-use-system-tooltips' is non-nil."
   :group 'tooltip
   :group 'basic-faces)
-
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames for help and GUD tooltips.
-This variable is obsolete; instead of setting it to t, disable
-`tooltip-mode' (which has a similar effect)."
-  :type 'boolean
-  :group 'tooltip)
-
-(make-obsolete-variable 'tooltip-use-echo-area
-			"disable Tooltip mode instead" "24.1" 'set)
 
 (defcustom tooltip-resize-echo-area nil
   "If non-nil, using the echo area for tooltips will resize the echo area.
@@ -161,13 +149,10 @@ the echo area is resized as needed to accommodate the full text
 of the tooltip.
 This variable has effect only on GUI frames."
   :type 'boolean
-  :group 'tooltip
   :version "27.1")
 
 
 ;;; Variables that are not customizable.
-
-(define-obsolete-variable-alias 'tooltip-hook 'tooltip-functions "23.1")
 
 (defvar tooltip-functions nil
   "Functions to call to display tooltips.
@@ -236,31 +221,54 @@ change the existing association.  Value is the resulting alist."
 (declare-function x-show-tip "xfns.c"
 		  (string &optional frame parms timeout dx dy))
 
-(defun tooltip-show (text &optional use-echo-area)
+(defun tooltip-show (text &optional use-echo-area text-face default-face)
   "Show a tooltip window displaying TEXT.
 
 Text larger than `x-max-tooltip-size' is clipped.
 
-If the alist in `tooltip-frame-parameters' includes `left' and `top'
-parameters, they determine the x and y position where the tooltip
-is displayed.  Otherwise, the tooltip pops at offsets specified by
-`tooltip-x-offset' and `tooltip-y-offset' from the current mouse
-position.
+If the alist in `tooltip-frame-parameters' includes `left' and
+`top' parameters, they determine the x and y position where the
+tooltip is displayed.  Otherwise, the tooltip pops at offsets
+specified by `tooltip-x-offset' and `tooltip-y-offset' from the
+current mouse position.
+
+The text properties of TEXT are also modified to add the
+appropriate faces before displaying the tooltip.  If your code
+depends on them, you should copy the tooltip string before
+passing it to this function.
 
 Optional second arg USE-ECHO-AREA non-nil means to show tooltip
-in echo area."
+in echo area.
+
+The third and fourth args TEXT-FACE and DEFAULT-FACE specify
+faces used to display the tooltip, and default to `tooltip' if
+not specified.  TEXT-FACE specifies a face used to display text
+in the tooltip, while DEFAULT-FACE specifies a face that provides
+the background, foreground and border colors of the tooltip
+frame.
+
+Note that the last two arguments are not respected when
+`use-system-tooltips' is non-nil and Emacs is built with support
+for system tooltips, such as on NS, Haiku, and with the GTK
+toolkit."
   (if use-echo-area
       (tooltip-show-help-non-mode text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
-	      (fg (face-attribute 'tooltip :foreground))
-	      (bg (face-attribute 'tooltip :background)))
+	      (fg (face-attribute (or default-face 'tooltip) :foreground))
+	      (bg (face-attribute (or default-face 'tooltip) :background)))
 	  (when (stringp fg)
 	    (setf (alist-get 'foreground-color params) fg)
 	    (setf (alist-get 'border-color params) fg))
 	  (when (stringp bg)
 	    (setf (alist-get 'background-color params) bg))
-	  (x-show-tip (propertize text 'face 'tooltip)
+          ;; Use non-nil APPEND argument below to avoid overriding any
+          ;; faces used in our TEXT.  Among other things, this allows
+          ;; tooltips to use the `help-key-binding' face used in
+          ;; `substitute-command-keys' substitutions.
+          (add-face-text-property 0 (length text)
+                                  (or text-face 'tooltip) t text)
+          (x-show-tip text
 		      (selected-frame)
 		      params
 		      tooltip-hide-delay
@@ -342,6 +350,8 @@ This is used by `tooltip-show-help' and
 (defvar tooltip-previous-message nil
   "The previous content of the echo area.")
 
+(defvar haiku-use-system-tooltips)
+
 (defun tooltip-show-help-non-mode (help)
   "Function installed as `show-help-function' when Tooltip mode is off.
 It is also called if Tooltip mode is on, for text-only displays."
@@ -349,7 +359,7 @@ It is also called if Tooltip mode is on, for text-only displays."
              (not cursor-in-echo-area))  ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (setq help (replace-regexp-in-string "\n" ", " help))
+      (setq help (string-replace "\n" ", " help))
       (unless (or tooltip-previous-message
 		  (equal-including-properties help (current-message))
 		  (and (stringp tooltip-help-message)
@@ -371,19 +381,28 @@ It is also called if Tooltip mode is on, for text-only displays."
      ((equal-including-properties tooltip-help-message (current-message))
       (message nil)))))
 
+(declare-function menu-or-popup-active-p "xmenu.c" ())
+
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (if (display-graphic-p)
+  (if (and (display-graphic-p)
+           ;; Tooltips can't be displayed on top of the global menu
+           ;; bar on NS.
+           (or (not (eq window-system 'ns))
+               (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)
 	       ;; Cancel display.  This also cancels a delayed tip, if
 	       ;; there is one.
 	       (tooltip-hide))
-	      ((equal-including-properties previous-help msg)
-	       ;; Same help as before (but possibly the mouse has moved).
-	       ;; Keep what we have.
+	      ((equal previous-help msg)
+	       ;; Same help as before (but possibly the mouse has
+	       ;; moved or the text properties have changed).  Keep
+	       ;; what we have.  If only text properties have changed,
+	       ;; the tooltip won't be updated, but that shouldn't
+	       ;; occur.
 	       )
 	      (t
 	       ;; A different help.  Remove a previous tooltip, and
@@ -399,7 +418,7 @@ This is installed on the hook `tooltip-functions', which
 is run when the timer with id `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message tooltip-use-echo-area)
+    (tooltip-show tooltip-help-message (not tooltip-mode))
     t))
 
 (provide 'tooltip)

@@ -1,5 +1,5 @@
 /* hbfont.c -- Platform-independent support for HarfBuzz font driver.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "dispextern.h"
+#include "buffer.h"
 
 #ifdef HAVE_NTGUI
 
@@ -248,7 +249,7 @@ uni_combining (hb_unicode_funcs_t *funcs, hb_codepoint_t ch, void *user_data)
   if (!combining_class_loaded)
     {
       canonical_combining_class_table =
-	uniprop_table (intern ("canonical-combining-class"));
+	uniprop_table (Qcanonical_combining_class);
       if (NILP (canonical_combining_class_table))
 	emacs_abort ();
       staticpro (&canonical_combining_class_table);
@@ -438,7 +439,11 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 
   /* If the caller didn't provide a meaningful DIRECTION, let HarfBuzz
      guess it. */
-  if (!NILP (direction))
+  if (!NILP (direction)
+      /* If they bind bidi-display-reordering to nil, the DIRECTION
+	 they provide is meaningless, and we should let HarfBuzz guess
+	 the real direction.  */
+      && !NILP (BVAR (current_buffer, bidi_display_reordering)))
     {
       hb_direction_t dir = HB_DIRECTION_LTR;
       if (EQ (direction, QL2R))
@@ -589,13 +594,10 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
       yoff = - lround (pos[i].y_offset * position_unit);
       wadjust = lround (pos[i].x_advance * position_unit);
       if (xoff || yoff || wadjust != metrics.width)
-	{
-	  Lisp_Object vec = make_uninit_vector (3);
-	  ASET (vec, 0, make_fixnum (xoff));
-	  ASET (vec, 1, make_fixnum (yoff));
-	  ASET (vec, 2, make_fixnum (wadjust));
-	  LGLYPH_SET_ADJUSTMENT (lglyph, vec);
-	}
+	LGLYPH_SET_ADJUSTMENT (lglyph, CALLN (Fvector,
+					      make_fixnum (xoff),
+					      make_fixnum (yoff),
+					      make_fixnum (wadjust)));
     }
 
   return make_fixnum (glyph_len);

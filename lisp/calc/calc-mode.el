@@ -1,6 +1,6 @@
-;;; calc-mode.el --- calculator modes for Calc
+;;; calc-mode.el --- calculator modes for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -109,11 +109,14 @@
      (setq n (and (not (eq calc-auto-why t)) (if calc-auto-why t 1))))
    (calc-change-mode 'calc-auto-why n nil)
    (cond ((null n)
-	  (message "User must press `w' to explain unsimplified results"))
+	  (message (substitute-command-keys
+                    "User must press \\`w' to explain unsimplified results")))
 	 ((eq n t)
-	  (message "Automatically doing `w' to explain unsimplified results"))
+          (message (substitute-command-keys
+                    "Automatically doing \\`w' to explain unsimplified results")))
 	 (t
-	  (message "Automatically doing `w' only for unusual messages")))))
+          (message (substitute-command-keys
+                    "Automatically doing \\`w' only for unusual messages"))))))
 
 (defun calc-group-digits (n)
   (interactive "P")
@@ -268,7 +271,7 @@
   (interactive)
   (calc-wrapper
    (let (pos
-	 (vals (mapcar (function (lambda (v) (symbol-value (car v))))
+         (vals (mapcar (lambda (v) (symbol-value (car v)))
 		       calc-mode-var-list)))
      (unless calc-settings-file
        (error "No `calc-settings-file' specified"))
@@ -424,8 +427,8 @@
 		  (t
 		   "Not recording mode changes permanently")))))
 
-(defun calc-total-algebraic-mode (flag)
-  (interactive "P")
+(defun calc-total-algebraic-mode (&optional _flag)
+  (interactive)
   (calc-wrapper
    (if (eq calc-algebraic-mode 'total)
        (calc-algebraic-mode nil)

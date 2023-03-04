@@ -1,8 +1,9 @@
-;;; check-declare.el --- Check declare-function statements
+;;; check-declare.el --- Check declare-function statements  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, tools, maint
 
 ;; This file is part of GNU Emacs.
@@ -118,7 +119,7 @@ don't know how to recognize (e.g. some macros)."
 (autoload 'byte-compile-arglist-signature "bytecomp")
 
 (defgroup check-declare nil
-  "Check declare-function statements."
+  "Check `declare-function' statements."
   :group 'tools)
 
 (defcustom check-declare-ext-errors nil
@@ -229,8 +230,8 @@ fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
     errlist))
 
 (defun check-declare-sort (alist)
-  "Sort a list with elements FILE (FNFILE ...).
-Returned list has elements FNFILE (FILE ...)."
+  "Sort list ALIST with elements FILE (FNFILE ...).
+Return list with elements FNFILE (FILE ...)."
   (let (file fnfile rest sort a)
     (dolist (e alist)
       (setq file (car e))
@@ -248,7 +249,7 @@ TYPE is a string giving the nature of the error.
 Optional LINE is the claim's line number; otherwise, search for the claim.
 Display warning in `check-declare-warning-buffer'."
   (let ((warning-prefix-function
-         (lambda (level entry)
+         (lambda (_level entry)
 	   (insert (format "%s:%d:" (file-relative-name file) (or line 0)))
            entry))
         (warning-fill-prefix "    "))
@@ -318,13 +319,10 @@ Returns non-nil if any false statements are found."
   (setq root (directory-file-name (file-relative-name root)))
   (or (file-directory-p root)
       (error "Directory `%s' not found" root))
-  (let ((files (process-lines find-program root
-                              "-name" "*.el"
-                              "-exec" grep-program
-                              "-l" "^[ \t]*(declare-function" "{}" "+")))
+  (let ((files (directory-files-recursively root "\\.el\\'")))
     (when files
       (apply #'check-declare-files files))))
 
 (provide 'check-declare)
 
-;;; check-declare.el ends here.
+;;; check-declare.el ends here

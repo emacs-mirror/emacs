@@ -1,6 +1,6 @@
 ;;; rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -255,9 +255,9 @@ Left-fold the list L, starting with X, by the binary function F."
   x)
 
 (defun rx--normalise-or-arg (form)
-  "Normalise the `or' argument FORM.
+  "Normalize the `or' argument FORM.
 Characters become strings, user-definitions and `eval' forms are expanded,
-and `or' forms are normalised recursively."
+and `or' forms are normalized recursively."
   (cond ((characterp form)
          (char-to-string form))
         ((and (consp form) (memq (car form) '(or |)))
@@ -890,7 +890,7 @@ Return (REGEXP . PRECEDENCE)."
                                (* (or (seq "[:" (+ (any "a-z")) ":]")
                                       (not (any "]"))))
                                "]")
-                          anything
+                          (not (any "*+?^$[\\"))
                           (seq "\\"
                                (or anything
                                    (seq (any "sScC_") anything)
@@ -1110,6 +1110,15 @@ can expand to any number of values."
   (append rx--builtin-forms rx--builtin-symbols)
   "List of built-in rx names.  These cannot be redefined by the user.")
 
+;; Declare Lisp indentation rules for constructs that take 1 or 2
+;; parameters before a body of RX forms.
+;; (`>=' and `=' are omitted because they are more likely to be used
+;; as Lisp functions than RX constructs; `repeat' is a `defcustom' type.)
+(put 'group-n 'lisp-indent-function 1)
+(put 'submatch-n 'lisp-indent-function 1)
+(put '** 'lisp-indent-function 2)
+
+
 (defun rx--translate (item)
   "Translate the rx-expression ITEM.  Return (REGEXP . PRECEDENCE)."
   (cond
@@ -1143,7 +1152,12 @@ For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
 
 (defun rx--to-expr (form)
   "Translate the rx-expression FORM to a Lisp expression yielding a regexp."
-  (let* ((rx--delayed-evaluation t)
+  (let* ((rx--local-definitions
+          ;; Retrieve local definitions from the macroexpansion environment.
+          ;; (It's unclear whether the previous value of `rx--local-definitions'
+          ;; should be included, and if so, in which order.)
+          (cdr (assq :rx-locals macroexpand-all-environment)))
+         (rx--delayed-evaluation t)
          (elems (car (rx--translate form)))
          (args nil))
     ;; Merge adjacent strings.
@@ -1210,7 +1224,7 @@ unmatchable     Never match anything at all.
 CHARCLASS       Match a character from a character class.  One of:
  alpha, alphabetic, letter   Alphabetic characters (defined by Unicode).
  alnum, alphanumeric         Alphabetic or decimal digit chars (Unicode).
- digit numeric, num          0-9.
+ digit, numeric, num         0-9.
  xdigit, hex-digit, hex      0-9, A-F, a-f.
  cntrl, control              ASCII codes 0-31.
  blank                       Horizontal whitespace (Unicode).
@@ -1266,18 +1280,14 @@ Zero-width assertions: these all match the empty string in specific places.
 
 (literal EXPR) Match the literal string from evaluating EXPR at run time.
 (regexp EXPR)  Match the string regexp from evaluating EXPR at run time.
-(eval EXPR)    Match the rx sexp from evaluating EXPR at compile time.
+(eval EXPR)    Match the rx sexp from evaluating EXPR at macro-expansion
+                (compile) time.
 
 Additional constructs can be defined using `rx-define' and `rx-let',
 which see.
 
 \(fn REGEXPS...)"
-  ;; Retrieve local definitions from the macroexpansion environment.
-  ;; (It's unclear whether the previous value of `rx--local-definitions'
-  ;; should be included, and if so, in which order.)
-  (let ((rx--local-definitions
-         (cdr (assq :rx-locals macroexpand-all-environment))))
-    (rx--to-expr (cons 'seq regexps))))
+  (rx--to-expr (cons 'seq regexps)))
 
 (defun rx--make-binding (name tail)
   "Make a definitions entry out of TAIL.
@@ -1381,7 +1391,7 @@ To make local rx extensions, use `rx-let' for `rx',
 For more details, see Info node `(elisp) Extending Rx'.
 
 \(fn NAME [(ARGS...)] RX)"
-  (declare (indent 1))
+  (declare (indent defun))
   `(eval-and-compile
      (put ',name 'rx-definition ',(rx--make-binding name definition))
      ',name))
@@ -1413,11 +1423,18 @@ into a plain rx-expression, collecting names into `rx--pcase-vars'."
                 (mapconcat #'symbol-name rx--pcase-vars " ")))
        `(backref ,index)))
     ((and `(,head . ,rest)
-          (guard (and (symbolp head)
+          (guard (and (or (symbolp head) (memq head '(?\s ??)))
                       (not (memq head '(literal regexp regex eval))))))
      (cons head (mapcar #'rx--pcase-transform rest)))
     (_ rx)))
 
+(defun rx--reduce-right (f l)
+  "Right-reduction on L by F.  L must be non-empty."
+  (if (cdr l)
+      (funcall f (car l) (rx--reduce-right f (cdr l)))
+    (car l)))
+
+;;;###autoload
 (pcase-defmacro rx (&rest regexps)
   "A pattern that matches strings against `rx' REGEXPS in sexp form.
 REGEXPS are interpreted as in `rx'.  The pattern matches any
@@ -1434,14 +1451,45 @@ following constructs:
                    REF can be a number, as usual, or a name
                    introduced by a previous (let REF ...)
                    construct."
+  (rx--pcase-expand regexps))
+
+;; Autoloaded because it's referred to by the pcase rx macro above,
+;; whose body ends up in loaddefs.el.
+;;;###autoload
+(defun rx--pcase-expand (regexps)
   (let* ((rx--pcase-vars nil)
          (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
-    `(and (pred (string-match ,regexp))
-          ,@(let ((i 0))
-              (mapcar (lambda (name)
-                        (setq i (1+ i))
-                        `(app (match-string ,i) ,name))
-                      (reverse rx--pcase-vars))))))
+    `(and (pred stringp)
+          ,(pcase (length rx--pcase-vars)
+            (0
+             ;; No variables bound: a single predicate suffices.
+             `(pred (string-match ,regexp)))
+            (1
+             ;; Create a match value that on a successful regexp match
+             ;; is the submatch value, 0 on failure.  We can't use nil
+             ;; for failure because it is a valid submatch value.
+             `(app (lambda (s)
+                     (if (string-match ,regexp s)
+                         (match-string 1 s)
+                       0))
+                   (and ,(car rx--pcase-vars) (pred (not numberp)))))
+            (nvars
+             ;; Pack the submatches into a dotted list which is then
+             ;; immediately destructured into individual variables again.
+             ;; This is of course slightly inefficient.
+             ;; A dotted list is used to reduce the number of conses
+             ;; to create and take apart.
+             `(app (lambda (s)
+                     (and (string-match ,regexp s)
+                          ,(rx--reduce-right
+                            (lambda (a b) `(cons ,a ,b))
+                            (mapcar (lambda (i) `(match-string ,i s))
+                                    (number-sequence 1 nvars)))))
+                   ,(list '\`
+                          (rx--reduce-right
+                           #'cons
+                           (mapcar (lambda (name) (list '\, name))
+                                   (reverse rx--pcase-vars))))))))))
 
 ;; Obsolete internal symbol, used in old versions of the `flycheck' package.
 (define-obsolete-function-alias 'rx-submatch-n 'rx-to-string "27.1")

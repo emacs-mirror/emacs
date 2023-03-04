@@ -1,6 +1,6 @@
-;;; mule-conf.el --- configure multilingual environment
+;;; mule-conf.el --- configure multilingual environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -39,9 +39,9 @@
 ;; Society of Japan/Information Technology Standards Commission of
 ;; Japan (IPSJ/ITSCJ) at https://www.itscj.ipsj.or.jp/itscj_english/.
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
-;; http://www.ecma.ch/.
+;; https://www.ecma.ch/.
 
-;; FWIW, http://www.microsoft.com/globaldev/ lists the following for
+;; FWIW, https://www.microsoft.com/globaldev/ lists the following for
 ;; MS Windows, which are presumably the only charsets we really need
 ;; to worry about on such systems:
 ;; `OEM codepages': 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866
@@ -148,6 +148,7 @@
 (defmacro define-iso-single-byte-charset (symbol iso-symbol name nickname
 						 iso-ir iso-final
 						 emacs-mule-id map)
+  (declare (indent defun))
   `(progn
      (define-charset ,symbol
        ,name
@@ -358,7 +359,7 @@
   :code-offset #x130000
   :unify-map "BIG5")
 ;; Fixme: AKA cp950 according to
-;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
+;; <URL:https://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
 ;; that correct?
 
 (define-charset 'chinese-big5-1
@@ -708,7 +709,7 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
 
-;; Fixme: C.f. iconv, http://czyborra.com/charsets/codepages.html
+;; Fixme: C.f. iconv, https://czyborra.com/charsets/codepages.html
 ;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437
@@ -1075,6 +1076,90 @@
 (define-charset-alias 'ebcdic-int 'ibm038)
 (define-charset-alias 'cp038 'ibm038)
 
+(define-charset 'ibm256
+  "Netherlands version of EBCDIC"
+  :short-name "IBM256"
+  :code-space [0 255]
+  :mime-charset 'ibm256
+  :map "IBM256")
+
+(define-charset 'ibm273
+  "Austrian / German version of EBCDIC"
+  :short-name "IBM273"
+  :code-space [0 255]
+  :mime-charset 'ibm273
+  :map "IBM273")
+
+(define-charset 'ibm274
+  "Belgian version of EBCDIC"
+  :short-name "IBM274"
+  :code-space [0 255]
+  :mime-charset 'ibm274
+  :map "IBM274")
+
+(define-charset 'ibm275
+  "Brazilian version of EBCDIC"
+  :short-name "IBM275"
+  :code-space [0 255]
+  :mime-charset 'ibm275
+  :map "IBM275")
+
+(define-charset 'ibm277
+  "Danish / Norwegian version of EBCDIC"
+  :short-name "IBM277"
+  :code-space [0 255]
+  :mime-charset 'ibm277
+  :map "IBM277")
+
+(define-charset 'ibm278
+  "Finnish / Swedish version of EBCDIC"
+  :short-name "IBM278"
+  :code-space [0 255]
+  :mime-charset 'ibm278
+  :map "IBM278")
+
+(define-charset 'ibm280
+  "Italian version of EBCDIC"
+  :short-name "IBM280"
+  :code-space [0 255]
+  :mime-charset 'ibm270
+  :map "IBM280")
+
+(define-charset 'ibm281
+  "Japanese-E version of EBCDIC"
+  :short-name "IBM281"
+  :code-space [0 255]
+  :mime-charset 'ibm281
+  :map "IBM281")
+
+(define-charset 'ibm284
+  "Spanish version of EBCDIC"
+  :short-name "IBM284"
+  :code-space [0 255]
+  :mime-charset 'ibm284
+  :map "IBM284")
+
+(define-charset 'ibm285
+  "UK english version of EBCDIC"
+  :short-name "IBM285"
+  :code-space [0 255]
+  :mime-charset 'ibm285
+  :map "IBM285")
+
+(define-charset 'ibm290
+  "Japanese katakana version of EBCDIC"
+  :short-name "IBM290"
+  :code-space [0 255]
+  :mime-charset 'ibm290
+  :map "IBM290")
+
+(define-charset 'ibm297
+  "French version of EBCDIC"
+  :short-name "IBM297"
+  :code-space [0 255]
+  :mime-charset 'ibm297
+  :map "IBM297")
+
 (define-charset 'ibm1047
   ;; Says groff:
   "IBM1047, `EBCDIC Latin 1/Open Systems' used by OS/390 Unix."
@@ -1183,7 +1268,7 @@
   :short-name  "CNS11643-15"
   :long-name "CNS11643-15 (Chinese traditional)"
   :code-space [33 126 33 126]
-  :code-offset #x27A000
+  :code-offset #x28083A                 ; Right after 'big5-hkscs.
   :unify-map "CNS-F")
 
 (unify-charset 'chinese-gb2312)
@@ -1251,7 +1336,9 @@ by UTF-8."
   :coding-type 'undecided
   :mnemonic ?-
   :charset-list '(emacs)
-  :prefer-utf-8 t)
+  :prefer-utf-8 t
+  :inhibit-null-byte-detection 0
+  :inhibit-iso-escape-detection 0)
 
 (define-coding-system 'raw-text
   "Raw text, which means text contains random 8-bit codes.
@@ -1508,6 +1595,7 @@ for decoding and encoding files, process I/O, etc."
   :mime-charset 'us-ascii)
 
 (define-coding-system-alias 'iso-safe 'us-ascii)
+(define-coding-system-alias 'ascii 'us-ascii)
 
 (define-coding-system 'utf-7
   "UTF-7 encoding of Unicode (RFC 2152)."
@@ -1517,6 +1605,10 @@ for decoding and encoding files, process I/O, etc."
   :charset-list '(unicode)
   :pre-write-conversion 'utf-7-pre-write-conversion
   :post-read-conversion 'utf-7-post-read-conversion)
+;; FIXME: 'define-coding-system' automatically sets :ascii-compatible-p,
+;; to any encoding whose :coding-type is 'utf-8', but UTF-7 is not ASCII
+;; compatible, so we override that here (bug#40407).
+(coding-system-put 'utf-7 :ascii-compatible-p nil)
 
 (define-coding-system 'utf-7-imap
   "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
@@ -1525,6 +1617,8 @@ for decoding and encoding files, process I/O, etc."
   :charset-list '(unicode)
   :pre-write-conversion 'utf-7-imap-pre-write-conversion
   :post-read-conversion 'utf-7-imap-post-read-conversion)
+;; See comment for utf-7 above.
+(coding-system-put 'utf-7-imap :ascii-compatible-p nil)
 
 ;; Use us-ascii for terminal output if some other coding system is not
 ;; specified explicitly.
@@ -1586,6 +1680,7 @@ for decoding and encoding files, process I/O, etc."
 
 (defcustom password-word-equivalents
   '("password" "passcode" "passphrase" "pass phrase" "pin"
+    "decryption key" "encryption key" ; From ccrypt.
     ; These are sorted according to the GNU en_US locale.
     "암호"		; ko
     "パスワード"	; ja
@@ -1637,6 +1732,20 @@ English.  Different case choices should not be assumed to be
 included; callers should bind `case-fold-search' to t."
   :type '(repeat string)
   :version "27.1"
+  :group 'processes)
+
+;; (describe-char-fold-equivalences ?:)
+;; The last entry is taken from history.
+(defcustom password-colon-equivalents
+  '(?\u003a ; ?\N{COLON}
+    ?\uff1a ; ?\N{FULLWIDTH COLON}
+    ?\ufe55 ; ?\N{SMALL COLON}
+    ?\ufe13 ; ?\N{PRESENTATION FORM FOR VERTICAL COLON}
+    ?\u17d6 ; ?\N{KHMER SIGN CAMNUC PII KUUH}
+    )
+  "List of characters equivalent to trailing colon in \"password\" prompts."
+  :type '(repeat character)
+  :version "30.1"
   :group 'processes)
 
 ;; The old code-pages library is obsoleted by coding systems based on

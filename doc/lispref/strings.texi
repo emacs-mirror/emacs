@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -28,6 +28,7 @@ keyboard character events.
 * Text Comparison::           Comparing characters or strings.
 * String Conversion::         Converting to and from characters and strings.
 * Formatting Strings::        @code{format}: Emacs's analogue of @code{printf}.
+* Custom Format Strings::     Formatting custom @code{format} specifications.
 * Case Conversion::           Case conversion functions.
 * Case Tables::               Customizing case conversion.
 @end menu
@@ -49,12 +50,9 @@ by a distinguished character code.
 
   Since strings are arrays, and therefore sequences as well, you can
 operate on them with the general array and sequence functions documented
-in @ref{Sequences Arrays Vectors}.  For example, you can access or
-change individual characters in a string using the functions @code{aref}
-and @code{aset} (@pxref{Array Functions}).  However, note that
-@code{length} should @emph{not} be used for computing the width of a
-string on display; use @code{string-width} (@pxref{Size of Displayed
-Text}) instead.
+in @ref{Sequences Arrays Vectors}.  For example, you can access
+individual characters in a string using the function @code{aref}
+(@pxref{Array Functions}).
 
   There are two text representations for non-@acronym{ASCII}
 characters in Emacs strings (and in buffers): unibyte and multibyte.
@@ -89,6 +87,9 @@ copy them into buffers.  @xref{Character Type}, and @ref{String Type},
 for information about the syntax of characters and strings.
 @xref{Non-ASCII Characters}, for functions to convert between text
 representations and to encode and decode character codes.
+Also, note that @code{length} should @emph{not} be used for computing
+the width of a string on display; use @code{string-width} (@pxref{Size
+of Displayed Text}) instead.
 
 @node Predicates for Strings
 @section Predicates for Strings
@@ -119,7 +120,10 @@ character (i.e., an integer), @code{nil} otherwise.
 @cindex string creation
 
   The following functions create strings, either from scratch, or by
-putting strings together, or by taking them apart.
+putting strings together, or by taking them apart.  (For functions
+that create strings based on the modified contents of other strings,
+like @code{string-replace} and @code{replace-regexp-in-string}, see
+@ref{Search and Replace}.)
 
 @defun make-string count character &optional multibyte
 This function returns a string made up of @var{count} repetitions of
@@ -247,7 +251,7 @@ properties removed.
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings
-This function returns a new string consisting of the characters in the
+This function returns a string consisting of the characters in the
 arguments passed to it (along with their text properties, if any).  The
 arguments may be strings, lists of numbers, or vectors of numbers; they
 are not themselves changed.  If @code{concat} receives no arguments, it
@@ -268,9 +272,14 @@ returns an empty string.
 @end example
 
 @noindent
-This function always constructs a new string that is not @code{eq} to
-any existing string, except when the result is the empty string (to
-save space, Emacs makes only one empty multibyte string).
+This function does not always allocate a new string.  Callers are
+advised not rely on the result being a new string nor on it being
+@code{eq} to an existing string.
+
+In particular, mutating the returned value may inadvertently change
+another string, alter a constant string in the program, or even raise
+an error.  To obtain a string that you can safely mutate, use
+@code{copy-sequence} on the result.
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
@@ -375,29 +384,109 @@ The default value of @var{separators} for @code{split-string}.  Its
 usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
+@defun string-clean-whitespace string
+Clean up the whitespace in @var{string} by collapsing stretches of
+whitespace to a single space character, as well as removing all
+whitespace from the start and the end of @var{string}.
+@end defun
+
+@defun string-trim-left string &optional regexp
+Remove the leading text that matches @var{regexp} from @var{string}.
+@var{regexp} defaults to @samp{[ \t\n\r]+}.
+@end defun
+
+@defun string-trim-right string &optional regexp
+Remove the trailing text that matches @var{regexp} from @var{string}.
+@var{regexp} defaults to @samp{[ \t\n\r]+}.
+@end defun
+
+@defun string-trim string &optional trim-left trim-right
+Remove the leading text that matches @var{trim-left} and trailing text
+that matches @var{trim-right} from @var{string}.  Both regexps
+default to @samp{[ \t\n\r]+}.
+@end defun
+
+@defun string-fill string length
+Attempt to Word-wrap @var{string} so that no lines are longer than
+@var{length}.  Filling is done on whitespace boundaries only.  If
+there are individual words that are longer than @var{length}, these
+will not be shortened.
+@end defun
+
+@defun string-limit string length &optional end coding-system
+If @var{string} is shorter than @var{length} characters, @var{string}
+is returned as is.  Otherwise, return a substring of @var{string}
+consisting of the first @var{length} characters.  If the optional
+@var{end} parameter is given, return a string of the @var{length} last
+characters instead.
+
+If @var{coding-system} is non-@code{nil}, @var{string} will be encoded
+before limiting, and the result will be a unibyte string that's
+shorter than @code{length} bytes.  If @var{string} contains characters
+that are encoded into several bytes (for instance, when using
+@code{utf-8}), the resulting unibyte string is never truncated in the
+middle of a character representation.
+
+This function measures the string length in characters or bytes, and
+thus is generally inappropriate if you need to shorten strings for
+display purposes; use @code{truncate-string-to-width} or
+@code{window-text-pixel-size} or @code{string-glyph-split} instead
+(@pxref{Size of Displayed Text}).
+@end defun
+
+@defun string-lines string &optional omit-nulls keep-newlines
+Split @var{string} into a list of strings on newline boundaries.  If
+the optional argument @var{omit-nulls} is non-@code{nil}, remove empty
+lines from the results.  If the optional argument @var{keep-newlines}
+is non-@code{nil}, don't remove the trailing newlines from the result
+strings.
+@end defun
+
+@defun string-pad string length &optional padding start
+Pad @var{string} to be of the given @var{length} using @var{padding}
+as the padding character.  @var{padding} defaults to the space
+character.  If @var{string} is longer than @var{length}, no padding is
+done.  If @var{start} is @code{nil} or omitted, the padding is
+appended to the characters of @var{string}, and if it's
+non-@code{nil}, the padding is prepended to @var{string}'s characters.
+@end defun
+
+@defun string-chop-newline string
+Remove the final newline, if any, from @var{string}.
+@end defun
+
 @node Modifying Strings
 @section Modifying Strings
 @cindex modifying strings
 @cindex string modification
 
+  You can alter the contents of a mutable string via operations
+described in this section.  @xref{Mutability}.
+
   The most basic way to alter the contents of an existing string is with
-@code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}
-@var{idx} @var{char})} stores @var{char} into @var{string} at index
-@var{idx}.  Each character occupies one or more bytes, and if @var{char}
-needs a different number of bytes from the character already present at
-that index, @code{aset} signals an error.
+@code{aset} (@pxref{Array Functions}).  @w{@code{(aset @var{string}
+@var{idx} @var{char})}} stores @var{char} into @var{string} at character
+index @var{idx}.  It will automatically convert a pure-@acronym{ASCII}
+@var{string} to a multibyte string (@pxref{Text Representations}) if
+needed, but we recommend to always make sure @var{string} is multibyte
+(e.g., by using @code{string-to-multibyte}, @pxref{Converting
+Representations}), if @var{char} is a non-@acronym{ASCII} character, not
+a raw byte.
 
   A more powerful function is @code{store-substring}:
 
 @defun store-substring string idx obj
-This function alters part of the contents of the string @var{string}, by
-storing @var{obj} starting at index @var{idx}.  The argument @var{obj}
-may be either a character or a (smaller) string.
+This function alters part of the contents of the specified @var{string},
+by storing @var{obj} starting at character index @var{idx}.  The
+argument @var{obj} may be either a character (in which case the function
+behaves exactly as @code{aset}) or a (smaller) string.  If @var{obj}
+is a multibyte string, we recommend to make sure @var{string} is also
+multibyte, even if it's pure-@acronym{ASCII}.
 
-Since it is impossible to change the length of an existing string, it is
-an error if @var{obj} doesn't fit within @var{string}'s actual length,
-or if any new character requires a different number of bytes from the
-character currently present at that point in @var{string}.
+Since it is impossible to change the number of characters in an
+existing string, it is an error if @var{obj} consists of more
+characters than would fit in @var{string} starting at character index
+@var{idx}.
 @end defun
 
   To clear out a string that contained a password, use
@@ -450,39 +539,44 @@ string or symbol, @code{string=} signals an error.
      @result{} nil
 @end example
 
-For technical reasons, a unibyte and a multibyte string are
-@code{equal} if and only if they contain the same sequence of
-character codes and all these codes are either in the range 0 through
-127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
-However, when a unibyte string is converted to a multibyte string, all
-characters with codes in the range 160 through 255 are converted to
-characters with higher codes, whereas @acronym{ASCII} characters
-remain unchanged.  Thus, a unibyte string and its conversion to
-multibyte are only @code{equal} if the string is all @acronym{ASCII}.
-Character codes 160 through 255 are not entirely proper in multibyte
-text, even though they can occur.  As a consequence, the situation
-where a unibyte and a multibyte string are @code{equal} without both
-being all @acronym{ASCII} is a technical oddity that very few Emacs
-Lisp programmers ever get confronted with.  @xref{Text
-Representations}.
+A unibyte and a multibyte string are equal in the sense of
+@code{string=} if and only if they contain the same sequence of
+character codes all being in the range 0--127 (@acronym{ASCII}).
+@xref{Text Representations}.
 @end defun
 
 @defun string-equal string1 string2
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@defun string-equal-ignore-case string1 string2
+@code{string-equal-ignore-case} compares strings ignoring case
+differences, like @code{char-equal} when @code{case-fold-search} is
+@code{t}.
+@end defun
+
 @cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} and @var{string2} are
-equal with respect to collation rules.  A collation rule is not only
+equal with respect to the collation rules of the specified
+@var{locale}, which defaults to your current system locale.  A
+collation rule is not only
 determined by the lexicographic order of the characters contained in
-@var{string1} and @var{string2}, but also further rules about
+@var{string1} and @var{string2}, but also by further rules about
 relations between these characters.  Usually, it is defined by the
-@var{locale} environment Emacs is running with.
+locale environment with which Emacs is running and by the Standard C
+library against which Emacs was linked@footnote{
+For more information about collation rules and their locale
+dependencies, see @uref{https://unicode.org/reports/tr10/, The Unicode
+Collation Algorithm}.  Some Standard C libraries, such as the
+@acronym{GNU} C Library (a.k.a.@: @dfn{glibc}) implement large
+portions of the Unicode Collation Algorithm and use the associated
+locale data, Common Locale Data Repository, or @acronym{CLDR}.
+}.
 
-For example, characters with different coding points but
-the same meaning might be considered as equal, like different grave
-accent Unicode characters:
+For example, characters with different code points but the same
+meaning, like different grave accent Unicode characters, might, in
+some locales, be considered as equal:
 
 @example
 @group
@@ -497,8 +591,12 @@ dependent; a @var{locale} @code{"en_US.UTF-8"} is applicable on POSIX
 systems, while it would be, e.g., @code{"enu_USA.1252"} on MS-Windows
 systems.
 
-If @var{ignore-case} is non-@code{nil}, characters are converted to lower-case
-before comparing them.
+If @var{ignore-case} is non-@code{nil}, characters are compared
+case-insensitively, by converting them to lower-case.  However, if the
+underlying system library doesn't provide locale-specific collation
+rules, this function falls back to @code{string-equal}, in which case
+the @var{ignore-case} argument is ignored, and the comparison will
+always be case-sensitive.
 
 @vindex w32-collate-ignore-punctuation
 To emulate Unicode-compliant collation on MS-Windows systems,
@@ -580,18 +678,20 @@ This function returns the result of comparing @var{string1} and
 @cindex locale-dependent string comparison
 @defun string-collate-lessp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} is less than
-@var{string2} in collation order.  A collation order is not only
+@var{string2} in collation order of the specified @var{locale}, which
+defaults to your current system locale.  A collation order is not only
 determined by the lexicographic order of the characters contained in
-@var{string1} and @var{string2}, but also further rules about
+@var{string1} and @var{string2}, but also by further rules about
 relations between these characters.  Usually, it is defined by the
-@var{locale} environment Emacs is running with.
+locale environment with which Emacs is running, and by the Standard C
+library against which Emacs was linked.
 
 For example, punctuation and whitespace characters might be ignored
 for sorting (@pxref{Sequence Functions}):
 
 @example
 @group
-(sort '("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
      @result{} ("11" "1 1" "1.1" "12" "1 2" "1.2")
 @end group
 @end example
@@ -608,14 +708,18 @@ systems.  The @var{locale} value of @code{"POSIX"} or @code{"C"} lets
 
 @example
 @group
-(sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+(sort (list "11" "12" "1 1" "1 2" "1.1" "1.2")
       (lambda (s1 s2) (string-collate-lessp s1 s2 "POSIX")))
      @result{} ("1 1" "1 2" "1.1" "1.2" "11" "12")
 @end group
 @end example
 
-If @var{ignore-case} is non-@code{nil}, characters are converted to lower-case
-before comparing them.
+If @var{ignore-case} is non-@code{nil}, characters are compared
+case-insensitively, by converting them to lower-case.  However, if the
+underlying system library doesn't provide locale-specific collation
+rules, this function falls back to @code{string-lessp}, in which case
+the @var{ignore-case} argument is ignored, and the comparison will
+always be case-sensitive.
 
 To emulate Unicode-compliant collation on MS-Windows systems,
 bind @code{w32-collate-ignore-punctuation} to a non-@code{nil} value, since
@@ -647,6 +751,16 @@ optional argument @var{ignore-case} is non-@code{nil}, the comparison
 ignores case differences.
 @end defun
 
+@defun string-search needle haystack &optional start-pos
+Return the position of the first instance of @var{needle} in
+@var{haystack}, both of which are strings.  If @var{start-pos} is
+non-@code{nil}, start searching from that position in @var{needle}.
+Return @code{nil} if no match was found.
+This function only considers the characters in the strings when doing
+the comparison; text properties are ignored.  Matching is always
+case-sensitive.
+@end defun
+
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
 This function compares a specified part of @var{string1} with a
 specified part of @var{string2}.  The specified part of @var{string1}
@@ -660,7 +774,8 @@ The strings are compared by the numeric values of their characters.
 For instance, @var{str1} is considered less than @var{str2} if
 its first differing character has a smaller numeric value.  If
 @var{ignore-case} is non-@code{nil}, characters are converted to
-upper-case before comparing them.  Unibyte strings are converted to
+upper-case, using the current buffer's case-table (@pxref{Case
+Tables}), before comparing them.  Unibyte strings are converted to
 multibyte for comparison (@pxref{Text Representations}), so that a
 unibyte string and its conversion to multibyte are always regarded as
 equal.
@@ -763,9 +878,7 @@ between 2 and 16 (inclusive), and integers are converted in that base.
 If @var{base} is @code{nil}, then base ten is used.  Floating-point
 conversion only works in base ten; we have not implemented other
 radices for floating-point numbers, because that would be much more
-work and does not seem useful.  If @var{string} looks like an integer
-but its value is too large to fit into a Lisp integer,
-@code{string-to-number} returns a floating-point result.
+work and does not seem useful.
 
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
@@ -798,8 +911,8 @@ This function returns a new string containing one character,
 @end defun
 
 @defun string-to-char string
-  This function returns the first character in @var{string}.  This
-mostly identical to @code{(aref string 0)}, except that it returns 0
+  This function returns the first character in @var{string}.  This is
+mostly identical to @w{@code{(aref string 0)}}, except that it returns 0
 if the string is empty.  (The value is also 0 when the first character
 of @var{string} is the null character, @acronym{ASCII} code 0.)  This
 function may be eliminated in the future if it does not seem useful
@@ -1118,6 +1231,213 @@ integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
 may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
 NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
 can mishandle negative integers.  @xref{Input Functions}.
+
+The functions described in this section accept a fixed set of
+specification characters.  The next section describes a function
+@code{format-spec} which can accept custom specification characters,
+such as @samp{%a} or @samp{%z}.
+
+@node Custom Format Strings
+@section Custom Format Strings
+@cindex custom format string
+@cindex custom @samp{%}-sequence in format
+
+Sometimes it is useful to allow users and Lisp programs alike to
+control how certain text is generated via custom format control
+strings.  For example, a format string could control how to display
+someone's forename, surname, and email address.  Using the function
+@code{format} described in the previous section, the format string
+could be something like @w{@code{"%s %s <%s>"}}.  This approach
+quickly becomes impractical, however, as it can be unclear which
+specification character corresponds to which piece of information.
+
+A more convenient format string for such cases would be something like
+@w{@code{"%f %l <%e>"}}, where each specification character carries
+more semantic information and can easily be rearranged relative to
+other specification characters, making such format strings more easily
+customizable by the user.
+
+The function @code{format-spec} described in this section performs a
+similar function to @code{format}, except it operates on format
+control strings that use arbitrary specification characters.
+
+@defun format-spec template spec-alist &optional ignore-missing split
+This function returns a string produced from the format string
+@var{template} according to conversions specified in @var{spec-alist},
+which is an alist (@pxref{Association Lists}) of the form
+@w{@code{(@var{letter} . @var{replacement})}}.  Each specification
+@code{%@var{letter}} in @var{template} will be replaced by
+@var{replacement} when formatting the resulting string.
+
+The characters in @var{template}, other than the format
+specifications, are copied directly into the output, including their
+text properties, if any.  Any text properties of the format
+specifications are copied to their replacements.
+
+Using an alist to specify conversions gives rise to some useful
+properties:
+
+@itemize @bullet
+@item
+If @var{spec-alist} contains more unique @var{letter} keys than there
+are unique specification characters in @var{template}, the unused keys
+are simply ignored.
+@item
+If @var{spec-alist} contains more than one association with the same
+@var{letter}, the closest one to the start of the list is used.
+@item
+If @var{template} contains the same specification character more than
+once, then the same @var{replacement} found in @var{spec-alist} is
+used as a basis for all of that character's substitutions.
+@item
+The order of specifications in @var{template} need not correspond to
+the order of associations in @var{spec-alist}.
+@end itemize
+
+REPLACEMENT can also be a function taking no arguments, and returning
+a string to be used for the replacement.  It will only be called when
+the corresponding LETTER is used in the TEMPLATE.  This is useful, for
+example, to avoid prompting for input unless it is needed.
+
+The optional argument @var{ignore-missing} indicates how to handle
+specification characters in @var{template} that are not found in
+@var{spec-alist}.  If it is @code{nil} or omitted, the function
+signals an error; if it is @code{ignore}, those format specifications
+are left verbatim in the output, including their text properties, if
+any; if it is @code{delete}, those format specifications are removed
+from the output; any other non-@code{nil} value is handled like
+@code{ignore}, but any occurrences of @samp{%%} are also left verbatim
+in the output.
+
+If the optional argument @var{split} is non-@code{nil}, instead of
+returning a single string, @code{format-spec} will split the result
+into a list of strings, based on where the substitutions were
+performed.  For instance:
+
+@example
+(format-spec "foo %b bar" '((?b . "zot")) nil t)
+     @result{} ("foo " "zot" " bar")
+@end example
+@end defun
+
+The syntax of format specifications accepted by @code{format-spec} is
+similar, but not identical, to that accepted by @code{format}.  In
+both cases, a format specification is a sequence of characters
+beginning with @samp{%} and ending with an alphabetic letter such as
+@samp{s}.
+
+Unlike @code{format}, which assigns specific meanings to a fixed set
+of specification characters, @code{format-spec} accepts arbitrary
+specification characters and treats them all equally.  For example:
+
+@example
+@group
+(setq my-site-info
+      (list (cons ?s system-name)
+            (cons ?t (symbol-name system-type))
+            (cons ?c system-configuration)
+            (cons ?v emacs-version)
+            (cons ?e invocation-name)
+            (cons ?p (number-to-string (emacs-pid)))
+            (cons ?a user-mail-address)
+            (cons ?n user-full-name)))
+
+(format-spec "%e %v (%c)" my-site-info)
+     @result{} "emacs 27.1 (x86_64-pc-linux-gnu)"
+
+(format-spec "%n <%a>" my-site-info)
+     @result{} "Emacs Developers <emacs-devel@@gnu.org>"
+@end group
+@end example
+
+A format specification can include any number of the following flag
+characters immediately after the @samp{%} to modify aspects of the
+substitution.
+
+@table @samp
+@item 0
+This flag causes any padding specified by the width to consist of
+@samp{0} characters instead of spaces.
+
+@item -
+This flag causes any padding specified by the width to be inserted on
+the right rather than the left.
+
+@item <
+This flag causes the substitution to be truncated on the left to the
+given width and precision, if specified.
+
+@item >
+This flag causes the substitution to be truncated on the right to the
+given width, if specified.
+
+@item ^
+This flag converts the substituted text to upper case (@pxref{Case
+Conversion}).
+
+@item _@r{ (underscore)}
+This flag converts the substituted text to lower case (@pxref{Case
+Conversion}).
+@end table
+
+The result of using contradictory flags (for instance, both upper and
+lower case) is undefined.
+
+As is the case with @code{format}, a format specification can include
+a width, which is a decimal number that appears after any flags, and a
+precision, which is a decimal-point @samp{.} followed by a decimal
+number that appears after any flags and width.
+
+If a substitution contains fewer characters than its specified width,
+it is padded on the left:
+
+@example
+@group
+(format-spec "%8a is padded on the left with spaces"
+             '((?a . "alpha")))
+     @result{} "   alpha is padded on the left with spaces"
+@end group
+@end example
+
+If a substitution contains more characters than its specified
+precision, it is truncated on the right:
+
+@example
+@group
+(format-spec "%.2a is truncated on the right"
+             '((?a . "alpha")))
+     @result{} "al is truncated on the right"
+@end group
+@end example
+
+Here is a more complicated example that combines several
+aforementioned features:
+
+@example
+@group
+(setq my-battery-info
+      (list (cons ?p "73")      ; Percentage
+            (cons ?L "Battery") ; Status
+            (cons ?t "2:23")    ; Remaining time
+            (cons ?c "24330")   ; Capacity
+            (cons ?r "10.6")))  ; Rate of discharge
+
+(format-spec "%>^-3L : %3p%% (%05t left)" my-battery-info)
+     @result{} "BAT :  73% (02:23 left)"
+
+(format-spec "%>^-3L : %3p%% (%05t left)"
+             (cons (cons ?L "AC")
+                   my-battery-info))
+     @result{} "AC  :  73% (02:23 left)"
+@end group
+@end example
+
+As the examples in this section illustrate, @code{format-spec} is
+often used for selectively formatting an assortment of different
+pieces of information.  This is useful in programs that provide
+user-customizable format strings, as the user can choose to format
+with a regular syntax and in any desired order only a subset of the
+information that the program makes available.
 
 @node Case Conversion
 @section Case Conversion in Lisp

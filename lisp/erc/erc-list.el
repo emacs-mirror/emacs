@@ -1,9 +1,9 @@
 ;;; erc-list.el --- /list support for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Old-Version: 0.1
 ;; URL: https://www.emacswiki.org/emacs/ErcList
 ;; Keywords: comm
@@ -59,25 +59,25 @@
 ;;;###autoload(autoload 'erc-list-mode "erc-list")
 (define-erc-module list nil
   "List channels nicely in a separate buffer."
-  ((remove-hook 'erc-server-321-functions 'erc-server-321-message)
-   (remove-hook 'erc-server-322-functions 'erc-server-322-message))
+  ((remove-hook 'erc-server-321-functions #'erc-server-321-message)
+   (remove-hook 'erc-server-322-functions #'erc-server-322-message))
   ((erc-with-all-buffers-of-server nil
      #'erc-open-server-buffer-p
-     (remove-hook 'erc-server-322-functions 'erc-list-handle-322 t))
-   (add-hook 'erc-server-321-functions 'erc-server-321-message t)
-   (add-hook 'erc-server-322-functions 'erc-server-322-message t)))
+     (remove-hook 'erc-server-322-functions #'erc-list-handle-322 t))
+   (add-hook 'erc-server-321-functions #'erc-server-321-message t)
+   (add-hook 'erc-server-322-functions #'erc-server-322-message t)))
 
 ;; Format a record for display.
 (defun erc-list-make-string (channel users topic)
   (concat
    channel
-   (erc-propertize " "
-		   'display (list 'space :align-to erc-list-nusers-column)
-		   'face 'fixed-pitch)
+   (propertize " "
+	       'display (list 'space :align-to erc-list-nusers-column)
+	       'face 'fixed-pitch)
    users
-   (erc-propertize " "
-		   'display (list 'space :align-to erc-list-topic-column)
-		   'face 'fixed-pitch)
+   (propertize " "
+	       'display (list 'space :align-to erc-list-topic-column)
+	       'face 'fixed-pitch)
    topic))
 
 ;; Insert a record into the list buffer.
@@ -126,36 +126,36 @@
 (defvar erc-list-menu-mode-map
   (let ((map (make-keymap)))
     (set-keymap-parent map special-mode-map)
-    (define-key map "k" 'erc-list-kill)
-    (define-key map "j" 'erc-list-join)
-    (define-key map "g" 'erc-list-revert)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
+    (define-key map "k" #'erc-list-kill)
+    (define-key map "j" #'erc-list-join)
+    (define-key map "g" #'erc-list-revert)
+    (define-key map "n" #'next-line)
+    (define-key map "p" #'previous-line)
     map)
   "Local keymap for `erc-list-mode' buffers.")
 
 (defvar erc-list-menu-sort-button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1] 'erc-list-menu-sort-by-column)
+    (define-key map [header-line mouse-1] #'erc-list-menu-sort-by-column)
     (define-key map [follow-link] 'mouse-face)
     map)
   "Local keymap for ERC list menu mode sorting buttons.")
 
 ;; Helper function that makes a buttonized column header.
 (defun erc-list-button (title column)
-  (erc-propertize title
-		  'column-number column
-		  'help-echo "mouse-1: sort by column"
-		  'mouse-face 'header-line-highlight
-		  'keymap erc-list-menu-sort-button-map))
+  (propertize title
+	      'column-number column
+	      'help-echo "mouse-1: sort by column"
+	      'mouse-face 'header-line-highlight
+	      'keymap erc-list-menu-sort-button-map))
 
 (define-derived-mode erc-list-menu-mode special-mode "ERC-List"
   "Major mode for editing a list of irc channels."
   (setq header-line-format
 	(concat
-	 (erc-propertize " "
-			 'display '(space :align-to 0)
-			 'face 'fixed-pitch)
+	 (propertize " "
+		     'display '(space :align-to 0)
+		     'face 'fixed-pitch)
 	 (erc-list-make-string (erc-list-button "Channel" 1)
 			       (erc-list-button "# Users" 2)
 			       "Topic")))
@@ -181,22 +181,22 @@
 (defun erc-list-install-322-handler (server-buffer)
   (with-current-buffer server-buffer
     ;; Arrange for 322 responses to insert into our buffer.
-    (add-hook 'erc-server-322-functions 'erc-list-handle-322 t t)
+    (add-hook 'erc-server-322-functions #'erc-list-handle-322 t t)
     ;; Arrange for 323 (end of list) to end this.
     (erc-once-with-server-event
      323
      (lambda (_proc _parsed)
-	(remove-hook 'erc-server-322-functions 'erc-list-handle-322 t)))
+	(remove-hook 'erc-server-322-functions #'erc-list-handle-322 t)))
     ;; Find the list buffer, empty it, and display it.
-    (set (make-local-variable 'erc-list-buffer)
-	 (get-buffer-create (concat "*Channels of "
-				    erc-server-announced-name
-				    "*")))
+    (setq-local erc-list-buffer
+                (get-buffer-create (concat "*Channels of "
+                                           erc-server-announced-name
+                                           "*")))
     (with-current-buffer erc-list-buffer
       (erc-list-menu-mode)
       (setq buffer-read-only nil)
       (erase-buffer)
-      (set (make-local-variable 'erc-list-server-buffer) server-buffer)
+      (setq-local erc-list-server-buffer server-buffer)
       (setq buffer-read-only t))
     (pop-to-buffer erc-list-buffer))
   t)
@@ -211,7 +211,7 @@ should usually be one or more channels, separated by commas.
 Please note that this function only works with IRC servers which conform
 to RFC and send the LIST header (#321) at start of list transmission."
   (erc-with-server-buffer
-   (set (make-local-variable 'erc-list-last-argument) line)
+   (setq-local erc-list-last-argument line)
    (erc-once-with-server-event
     321
     (let ((buf (current-buffer)))

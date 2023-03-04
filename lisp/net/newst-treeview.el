@@ -1,6 +1,6 @@
 ;;; newst-treeview.el --- Treeview frontend for newsticker.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el
@@ -31,10 +31,6 @@
 ;; See newsticker.el
 
 ;; ======================================================================
-;;; History:
-;;
-
-;; ======================================================================
 ;;; Code:
 (require 'cl-lib)
 (require 'newst-reader)
@@ -52,72 +48,73 @@
 (defface newsticker-treeview-face
   '((((class color) (background dark))  :foreground "white")
     (((class color) (background light)) :foreground "black"))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-new-face
   '((t :inherit newsticker-treeview-face :weight bold))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-old-face
   '((t :inherit newsticker-treeview-face))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-immortal-face
   '((default :inherit newsticker-treeview-face :slant italic)
     (((class color) (background dark))  :foreground "orange")
     (((class color) (background light)) :foreground "blue"))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-obsolete-face
   '((t :inherit newsticker-treeview-face :strike-through t))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-selection-face
   '((((class color) (background dark))  :background "#4444aa")
     (((class color) (background light)) :background "#bbbbff"))
-  "Face for newsticker selection."
-  :group 'newsticker-treeview)
+  "Face for newsticker selection.")
 
 (defcustom newsticker-treeview-date-format
   "%d.%m.%y, %H:%M"
   "Format for the date column in the treeview list buffer.
 See `format-time-string' for a list of valid specifiers."
   :version "25.1"
-  :type 'string
-  :group 'newsticker-treeview)
+  :type 'string)
 
 (defcustom newsticker-treeview-own-frame
   nil
   "Decides whether newsticker treeview creates and uses its own frame."
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
 
 (defcustom newsticker-treeview-treewindow-width
   30
   "Width of tree window in treeview layout.
 See also `newsticker-treeview-listwindow-height'."
-  :type 'integer
-  :group 'newsticker-treeview)
+  :type 'integer)
 
 (defcustom newsticker-treeview-listwindow-height
   10
   "Height of list window in treeview layout.
 See also `newsticker-treeview-treewindow-width'."
-  :type 'integer
-  :group 'newsticker-treeview)
+  :type 'integer)
 
 (defcustom newsticker-treeview-automatically-mark-displayed-items-as-old
   t
   "Decides whether to automatically mark displayed items as old.
 If t an item is marked as old as soon as it is displayed.  This
 applies to newsticker only."
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
+
+(defcustom newsticker-treeview-use-feed-name-from-url-list-in-treeview
+  t
+  "Use the feed names from `newsticker-url-list' for display in treeview."
+  :version "28.1"
+  :type 'boolean)
+
+(defcustom newsticker-treeview-use-feed-name-from-url-list-in-itemview
+  t
+  "Use feed names from `newsticker-url-list' in itemview."
+  :version "28.1"
+  :type 'boolean)
 
 (defvar newsticker-groups
   '("Feeds")
@@ -130,14 +127,6 @@ groupcontent := feedname | groupdefinition)
 
 Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 \"feed3\")")
-
-(defcustom newsticker-groups-filename
-  nil
-  "Name of the newsticker groups settings file."
-  :version "25.1"                       ; changed default value to nil
-  :type '(choice (const nil) string)
-  :group 'newsticker-treeview)
-(make-obsolete-variable 'newsticker-groups-filename 'newsticker-dir "23.1")
 
 ;; ======================================================================
 ;;; internal variables
@@ -160,14 +149,16 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 (defvar newsticker--treeview-feed-tree nil)
 (defvar newsticker--treeview-vfeed-tree nil)
 
+(declare-function newsticker-handle-url "newst-plainview" ())
+
 ;; maps for the clickable portions
 (defvar newsticker--treeview-url-keymap
   (let ((map (make-sparse-keymap 'newsticker--treeview-url-keymap)))
-    (define-key map [mouse-1] 'newsticker-treeview-mouse-browse-url)
-    (define-key map [mouse-2] 'newsticker-treeview-mouse-browse-url)
-    (define-key map "\n" 'newsticker-treeview-browse-url)
-    (define-key map "\C-m" 'newsticker-treeview-browse-url)
-    (define-key map [(control return)] 'newsticker-handle-url)
+    (define-key map [mouse-1] #'newsticker-treeview-mouse-browse-url)
+    (define-key map [mouse-2] #'newsticker-treeview-mouse-browse-url)
+    (define-key map "\n" #'newsticker-treeview-browse-url)
+    (define-key map "\C-m" #'newsticker-treeview-browse-url)
+    (define-key map [(control return)] #'newsticker-handle-url)
     map)
   "Key map for click-able headings in the newsticker treeview buffers.")
 
@@ -261,7 +252,6 @@ their id stays constant."
 
 (declare-function w3m-toggle-inline-images "ext:w3m" (&optional force no-cache))
 (defvar w3m-fill-column)
-(defvar w3-maximum-line-length)
 
 (defun newsticker--treeview-render-text (start end)
   "Render text between markers START and END."
@@ -281,17 +271,13 @@ their id stays constant."
                      "</?[A-Za-z1-6]*\\|&#?[A-Za-z0-9]+;" end t)
                 ;; (message "%s" (newsticker--title item))
                 (let ((w3m-fill-column (if newsticker-use-full-width
-                                           -1 fill-column))
-                      (w3-maximum-line-length
-                       (if newsticker-use-full-width nil fill-column)))
+                                           -1 fill-column)))
                   (select-window (newsticker--treeview-item-window))
                   (save-excursion
                     (funcall newsticker-html-renderer start end)))
                 ;;(cond ((eq newsticker-html-renderer 'w3m-region)
                 ;;     (add-text-properties start end (list 'keymap
                 ;;                                        w3m-minor-mode-map)))
-                ;;((eq newsticker-html-renderer 'w3-region)
-                ;;(add-text-properties start end (list 'keymap w3-mode-map))))
                 (if (eq newsticker-html-renderer 'w3m-region)
                     (w3m-toggle-inline-images t))
                 t)))
@@ -336,9 +322,9 @@ If string SHOW-FEED is non-nil it is shown in the item string."
         (replace-match " "))
       (let ((map (make-sparse-keymap)))
         (dolist (key'([mouse-1] [mouse-3]))
-                    (define-key map key 'newsticker-treeview-tree-click))
-        (define-key map "\n" 'newsticker-treeview-show-item)
-        (define-key map "\C-m" 'newsticker-treeview-show-item)
+          (define-key map key #'newsticker-treeview-tree-click))
+        (define-key map "\n" #'newsticker-treeview-show-item)
+        (define-key map "\C-m" #'newsticker-treeview-show-item)
         (add-text-properties pos1 (point-max)
                              (list :nt-item item
                                    :nt-feed feed
@@ -375,7 +361,8 @@ AGES is the list of ages that are to be shown."
   (mapc (lambda (feed)
           (let ((feed-name-symbol (intern (car feed))))
             (mapc (lambda (item)
-                    (when (memq (newsticker--age item) ages)
+                    (when (or (memq 'all ages)
+                              (memq (newsticker--age item) ages))
                       (newsticker--treeview-list-add-item
                        item feed-name-symbol t)))
                   (newsticker--treeview-list-sort-items
@@ -554,7 +541,7 @@ The sort function is chosen according to the value of
         (let ((inhibit-read-only t))
           (goto-char (point-min))
           (while (not (eobp))
-            (let* ((pos (point-at-eol))
+            (let* ((pos (line-end-position))
                    (item (get-text-property (point) :nt-item))
                    (age (newsticker--age item))
                    (selected (get-text-property (point) :nt-selected))
@@ -592,7 +579,8 @@ The sort function is chosen according to the value of
   (newsticker--treeview-list-clear-highlight)
   (with-current-buffer (newsticker--treeview-list-buffer)
     (let ((inhibit-read-only t))
-      (put-text-property (point-at-bol) (point-at-eol) :nt-selected t))
+      (put-text-property (line-beginning-position) (line-end-position)
+                         :nt-selected t))
     (newsticker--treeview-list-update-faces)))
 
 (defun newsticker--treeview-list-highlight-start ()
@@ -617,14 +605,10 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
     (newsticker--treeview-list-update-faces)
     (goto-char (point-min))))
 
-(defvar newsticker-treeview-list-sort-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1]
-      'newsticker--treeview-list-sort-by-column)
-    (define-key map [header-line mouse-2]
-      'newsticker--treeview-list-sort-by-column)
-    map)
-  "Local keymap for newsticker treeview list window sort buttons.")
+(defvar-keymap newsticker-treeview-list-sort-button-map
+  :doc "Local keymap for newsticker treeview list window sort buttons."
+  "<header-line> <mouse-1>" #'newsticker--treeview-list-sort-by-column
+  "<header-line> <mouse-2>" #'newsticker--treeview-list-sort-by-column)
 
 (defun newsticker--treeview-list-sort-by-column (&optional event)
   "Sort the newsticker list window buffer by the column clicked on.
@@ -727,9 +711,8 @@ for the button."
                               (window-width (newsticker--treeview-item-window))
                             fill-column))))
           (if newsticker-use-full-width
-              (set (make-local-variable 'fill-column) wwidth))
-          (set (make-local-variable 'fill-column) (min fill-column
-                                                       wwidth)))
+              (setq-local fill-column wwidth))
+          (setq-local fill-column (min fill-column wwidth)))
         (let ((desc (newsticker--desc item)))
           (insert "\n" (or desc "[No Description]")))
         (set-marker marker1 (1+ (point-min)))
@@ -747,11 +730,14 @@ for the button."
                (img (newsticker--image-read feed-name-symbol nil 40)))
           (if (and (display-images-p) img)
               (newsticker--insert-image img (car item))
-            (insert (newsticker--real-feed-name feed-name-symbol))))
+            (insert (if newsticker-treeview-use-feed-name-from-url-list-in-itemview
+                        (symbol-name feed-name-symbol)
+                      (newsticker--real-feed-name feed-name-symbol)))))
         (add-text-properties (point-min) (point)
                              (list 'face 'newsticker-feed-face
                                    'mouse-face 'highlight
-                                   'help-echo "Visit in web browser."
+                                   'help-echo (concat (newsticker--real-feed-name feed-name-symbol)
+                                                      "\nClick to visit in web browser.")
                                    :nt-link (newsticker--link item)
                                    'keymap newsticker--treeview-url-keymap))
         (setq pos (point))
@@ -942,31 +928,31 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
     (newsticker-treeview-mode)))
 
 (defun newsticker--treeview-propertize-tag (tag &optional num-new nt-id feed
-                                                vfeed)
+                                                vfeed tooltip)
   "Return propertized copy of string TAG.
 Optional argument NUM-NEW is used for choosing face, other
-arguments NT-ID, FEED, and VFEED are added as properties."
+arguments NT-ID, FEED, VFEED and TOOLTIP are added as properties."
   ;;(message "newsticker--treeview-propertize-tag `%s' %s" feed nt-id)
   (let ((face 'newsticker-treeview-face)
         (map (make-sparse-keymap)))
     (if (and num-new (> num-new 0))
         (setq face 'newsticker-treeview-new-face))
     (dolist (key '([mouse-1] [mouse-3]))
-                 (define-key map key 'newsticker-treeview-tree-click))
-    (define-key map "\n" 'newsticker-treeview-tree-do-click)
-    (define-key map "\C-m" 'newsticker-treeview-tree-do-click)
+      (define-key map key #'newsticker-treeview-tree-click))
+    (define-key map "\n" #'newsticker-treeview-tree-do-click)
+    (define-key map "\C-m" #'newsticker-treeview-tree-do-click)
     (propertize tag 'face face 'keymap map
                 :nt-id nt-id
                 :nt-feed feed
                 :nt-vfeed vfeed
-                'help-echo tag
+                'help-echo tooltip
                 'mouse-face 'highlight)))
 
 (defun newsticker--treeview-tree-get-tag (feed-name vfeed-name
                                                     &optional nt-id)
   "Return a tag string for either FEED-NAME or, if it is nil, for VFEED-NAME.
 Optional argument NT-ID is added to the tag's properties."
-  (let (tag (num-new 0))
+  (let (tag tooltip (num-new 0))
     (cond (vfeed-name
            (cond ((string= vfeed-name "new")
                   (setq num-new (newsticker--stat-num-items-total 'new))
@@ -979,18 +965,29 @@ Optional argument NT-ID is added to the tag's properties."
                   (setq tag (format "Obsolete items (%d)" num-new)))
                  ((string= vfeed-name "all")
                   (setq num-new (newsticker--stat-num-items-total))
-                  (setq tag (format "All items (%d)" num-new)))))
+                  (setq tag (format "All items (%d)" num-new))))
+           (setq tooltip tag))
           (feed-name
            (setq num-new (newsticker--stat-num-items-for-group
                           (intern feed-name) 'new 'immortal))
            (setq tag
                  (format "%s (%d)"
-                         (newsticker--real-feed-name (intern feed-name))
-                         num-new))))
+                         (if newsticker-treeview-use-feed-name-from-url-list-in-itemview
+                             feed-name
+                           (newsticker--real-feed-name (intern feed-name)))
+                         num-new))
+           (setq tooltip
+                 (if (newsticker--group-get-group feed-name)
+                     tag
+                   (format "%s (%d)\n%s"
+                           feed-name
+                           num-new
+                           (newsticker--real-feed-name (intern feed-name)))))))
     (if tag
         (newsticker--treeview-propertize-tag tag num-new
                                              nt-id
-                                             feed-name vfeed-name))))
+                                             feed-name vfeed-name
+                                             tooltip))))
 
 (defun newsticker--stat-num-items-for-group (feed-name-symbol &rest ages)
   "Count number of items in feed FEED-NAME-SYMBOL that have an age matching AGES."
@@ -1084,7 +1081,7 @@ Arguments are ignored."
       (with-current-buffer (newsticker--treeview-tree-buffer)
         (goto-char pos)
         (move-overlay newsticker--tree-selection-overlay
-                      (point-at-bol) (1+ (point-at-eol))
+                      (line-beginning-position) (1+ (line-end-position))
                       (current-buffer)))
       (if (window-live-p (newsticker--treeview-tree-window))
           (set-window-point (newsticker--treeview-tree-window) pos)))))
@@ -1094,6 +1091,7 @@ Arguments are ignored."
 ;; ======================================================================
 (defvar newsticker-treeview-tool-bar-map
   (when (boundp 'tool-bar-map)
+    (defvar tool-bar-map)
     (let ((tool-bar-map (make-sparse-keymap)))
       (tool-bar-add-item "newsticker/prev-feed"
                          'newsticker-treeview-prev-feed
@@ -1222,11 +1220,11 @@ Note: does not update the layout."
     (newsticker--treeview-list-update t)
     (newsticker--treeview-item-update)
     (newsticker--treeview-tree-update-tags)
-    (cond (newsticker--treeview-current-feed
-           (newsticker--treeview-list-items newsticker--treeview-current-feed))
-          (newsticker--treeview-current-vfeed
+    (cond (newsticker--treeview-current-vfeed
            (newsticker--treeview-list-items-with-age
-            (intern newsticker--treeview-current-vfeed))))
+            (intern newsticker--treeview-current-vfeed)))
+          (newsticker--treeview-current-feed
+           (newsticker--treeview-list-items newsticker--treeview-current-feed)))
     (newsticker--treeview-tree-update-highlight)
     (newsticker--treeview-list-update-highlight)
     (let ((cur-feed (or newsticker--treeview-current-feed
@@ -1252,42 +1250,22 @@ Note: does not update the layout."
   "Save treeview group settings."
   (interactive)
   (let ((coding-system-for-write 'utf-8)
-        (buf (find-file-noselect (concat newsticker-dir "/groups"))))
+        (buf (find-file-noselect (expand-file-name "groups" newsticker-dir))))
     (when buf
       (with-current-buffer buf
         (setq buffer-undo-list t)
         (erase-buffer)
         (insert ";; -*- coding: utf-8 -*-\n")
-        (insert (prin1-to-string newsticker-groups))
+        (prin1 newsticker-groups (current-buffer) t)
         (save-buffer)
         (kill-buffer)))))
 
 (defun newsticker--treeview-load ()
   "Load treeview settings."
   (let* ((coding-system-for-read 'utf-8)
-         (filename
-          (or (and newsticker-groups-filename
-                   (not (string=
-                         (expand-file-name newsticker-groups-filename)
-                         (expand-file-name (concat newsticker-dir "/groups"))))
-                   (file-exists-p newsticker-groups-filename)
-                   (y-or-n-p
-                    (format-message
-                     (concat "Obsolete variable `newsticker-groups-filename' "
-                             "points to existing file \"%s\".\n"
-                             "Read it? ")
-                     newsticker-groups-filename))
-                   newsticker-groups-filename)
-              (concat newsticker-dir "/groups")))
+         (filename (expand-file-name "groups" newsticker-dir))
          (buf (and (file-exists-p filename)
                    (find-file-noselect filename))))
-    (and newsticker-groups-filename
-         (file-exists-p newsticker-groups-filename)
-	 (y-or-n-p (format-message
-                    (concat "Delete the file \"%s\",\nto which the obsolete "
-                            "variable `newsticker-groups-filename' points ? ")
-                    newsticker-groups-filename))
-	 (delete-file newsticker-groups-filename))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))
@@ -1297,7 +1275,6 @@ Note: does not update the layout."
          (message "Error while reading newsticker groups file!")
          (setq newsticker-groups nil)))
       (kill-buffer buf))))
-
 
 (defun newsticker-treeview-scroll-item ()
   "Scroll current item."
@@ -1462,6 +1439,15 @@ Move to next item unless DONT-PROCEED is non-nil."
   (newsticker-browse-url-item (or newsticker--treeview-current-feed
                                   newsticker--treeview-current-vfeed)
                               (newsticker--treeview-get-selected-item)))
+
+(defun newsticker-treeview-customize-current-feed ()
+  "Open customization buffer for `newsticker-url-list' and move to current feed."
+  (interactive)
+  (let ((cur-feed (or newsticker--treeview-current-feed
+                      newsticker--treeview-current-vfeed)))
+    (if (newsticker--group-get-group cur-feed)
+        (message "Cannot customize groups.  Please select a feed.")
+      (newsticker-customize-feed cur-feed))))
 
 (defun newsticker--treeview-set-current-node (node)
   "Make NODE the current node."
@@ -1655,7 +1641,7 @@ Return t if a new feed was activated, nil otherwise."
   (interactive
    (list (let ((completion-ignore-case t))
            (completing-read
-            "Jump to feed: "
+            "Jump to feed/group: "
             (append '("new" "obsolete" "immortal" "all")
                     (mapcar #'car (append newsticker-url-list
                                           newsticker-url-list-defaults)))
@@ -1881,28 +1867,34 @@ of the shift.  If MOVE-GROUP is nil the currently selected feed
 `newsticker--treeview-current-feed' is shifted, if it is t then
 the current feed's parent group is shifted.."
   (let* ((cur-feed newsticker--treeview-current-feed)
-         (thing (if move-group
-                    (newsticker--group-find-parent-group cur-feed)
+         (thing (if (and move-group
+                         (not (newsticker--group-get-group cur-feed)))
+                    (car (newsticker--group-find-parent-group cur-feed))
                   cur-feed))
          (parent-group (newsticker--group-find-parent-group
-                        (if move-group (car thing) thing))))
+                        ;;(if move-group (car thing) thing)
+                        thing)))
     (unless parent-group
       (error "Group not found!"))
     (let* ((siblings (cdr parent-group))
-           (pos (cl-position thing siblings :test 'equal))
+           (pos (cl-position thing siblings :test
+                             (lambda (o1 o2)
+                               (equal (if (listp o1) (car o1) o1)
+                                      (if (listp o2) (car o2) o2)))))
            (tpos (+ pos delta ))
            (new-pos (max 0 (min (length siblings) tpos)))
            (beg (cl-subseq siblings 0 (min pos new-pos)))
            (end (cl-subseq siblings (+ 1 (max pos new-pos))))
            (p (elt siblings new-pos)))
       (when (not (= pos new-pos))
-        (setcdr parent-group
-                (cl-concatenate 'list
-                                beg
-                                (if (> delta 0)
-                                    (list p thing)
-                                  (list thing p))
-                                end))
+        (let ((th (or (newsticker--group-get-group thing) thing)))
+          (setcdr parent-group
+                  (cl-concatenate 'list
+                                  beg
+                                  (if (> delta 0)
+                                      (list p th)
+                                    (list th p))
+                                  end)))
         (newsticker--treeview-tree-update)
         (newsticker-treeview-update)
         (newsticker-treeview-jump cur-feed)))))
@@ -2013,47 +2005,46 @@ Return t if groups have changed, nil otherwise."
     menu)
   "Map for newsticker item menu.")
 
-(defvar newsticker-treeview-mode-map
-  (let ((map (make-sparse-keymap 'newsticker-treeview-mode-map)))
-    (define-key map " " 'newsticker-treeview-next-page)
-    (define-key map "a" 'newsticker-add-url)
-    (define-key map "b" 'newsticker-treeview-browse-url-item)
-    (define-key map "F" 'newsticker-treeview-prev-feed)
-    (define-key map "f" 'newsticker-treeview-next-feed)
-    (define-key map "g" 'newsticker-treeview-get-news)
-    (define-key map "G" 'newsticker-get-all-news)
-    (define-key map "i" 'newsticker-treeview-toggle-item-immortal)
-    (define-key map "j" 'newsticker-treeview-jump)
-    (define-key map "n" 'newsticker-treeview-next-item)
-    (define-key map "N" 'newsticker-treeview-next-new-or-immortal-item)
-    (define-key map "O" 'newsticker-treeview-mark-list-items-old)
-    (define-key map "o" 'newsticker-treeview-mark-item-old)
-    (define-key map "p" 'newsticker-treeview-prev-item)
-    (define-key map "P" 'newsticker-treeview-prev-new-or-immortal-item)
-    (define-key map "q" 'newsticker-treeview-quit)
-    (define-key map "S" 'newsticker-treeview-save-item)
-    (define-key map "s" 'newsticker-treeview-save)
-    (define-key map "u" 'newsticker-treeview-update)
-    (define-key map "v" 'newsticker-treeview-browse-url)
-    ;;(define-key map "\n" 'newsticker-treeview-scroll-item)
-    ;;(define-key map "\C-m" 'newsticker-treeview-scroll-item)
-    (define-key map "\M-m" 'newsticker-group-move-feed)
-    (define-key map "\M-a" 'newsticker-group-add-group)
-    (define-key map "\M-d" 'newsticker-group-delete-group)
-    (define-key map "\M-r" 'newsticker-group-rename-group)
-    (define-key map [M-down] 'newsticker-group-shift-feed-down)
-    (define-key map [M-up] 'newsticker-group-shift-feed-up)
-    (define-key map [M-S-down] 'newsticker-group-shift-group-down)
-    (define-key map [M-S-up] 'newsticker-group-shift-group-up)
-    map)
-  "Mode map for newsticker treeview.")
+(defvar-keymap newsticker-treeview-mode-map
+  :doc "Mode map for newsticker treeview."
+  "SPC"        #'newsticker-treeview-next-page
+  "a"          #'newsticker-add-url
+  "b"          #'newsticker-treeview-browse-url-item
+  "c"          #'newsticker-treeview-customize-current-feed
+  "F"          #'newsticker-treeview-prev-feed
+  "f"          #'newsticker-treeview-next-feed
+  "g"          #'newsticker-treeview-get-news
+  "G"          #'newsticker-get-all-news
+  "i"          #'newsticker-treeview-toggle-item-immortal
+  "j"          #'newsticker-treeview-jump
+  "n"          #'newsticker-treeview-next-item
+  "N"          #'newsticker-treeview-next-new-or-immortal-item
+  "O"          #'newsticker-treeview-mark-list-items-old
+  "o"          #'newsticker-treeview-mark-item-old
+  "p"          #'newsticker-treeview-prev-item
+  "P"          #'newsticker-treeview-prev-new-or-immortal-item
+  "q"          #'newsticker-treeview-quit
+  "S"          #'newsticker-treeview-save-item
+  "s"          #'newsticker-treeview-save
+  "u"          #'newsticker-treeview-update
+  "v"          #'newsticker-treeview-browse-url
+  ;;"C-j"      #'newsticker-treeview-scroll-item
+  ;;"RET"      #'newsticker-treeview-scroll-item
+  "M-m"        #'newsticker-group-move-feed
+  "M-a"        #'newsticker-group-add-group
+  "M-d"        #'newsticker-group-delete-group
+  "M-r"        #'newsticker-group-rename-group
+  "M-<down>"   #'newsticker-group-shift-feed-down
+  "M-<up>"     #'newsticker-group-shift-feed-up
+  "M-S-<down>" #'newsticker-group-shift-group-down
+  "M-S-<up>"   #'newsticker-group-shift-group-up)
 
 (define-derived-mode newsticker-treeview-mode fundamental-mode "Newsticker TV"
   "Major mode for Newsticker Treeview.
 \\{newsticker-treeview-mode-map}"
   (if (boundp 'tool-bar-map)
-      (set (make-local-variable 'tool-bar-map)
-           newsticker-treeview-tool-bar-map))
+      (setq-local tool-bar-map
+                  newsticker-treeview-tool-bar-map))
   (setq buffer-read-only t
         truncate-lines t))
 

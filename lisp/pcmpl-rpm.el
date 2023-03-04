@@ -1,6 +1,6 @@
-;;; pcmpl-rpm.el --- functions for dealing with rpm completions
+;;; pcmpl-rpm.el --- functions for dealing with rpm completions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -21,7 +21,8 @@
 
 ;;; Commentary:
 
-;; These functions provide completion rules for the `rpm' command.
+;; These functions provide completion rules for the `rpm' command and
+;; related tools.
 
 ;;; Code:
 
@@ -47,14 +48,12 @@
   :version "24.3"
   :type '(choice (const :tag "No options" nil)
                  (string :tag "Single option")
-                 (repeat :tag "List of options" string))
-  :group 'pcmpl-rpm)
+                 (repeat :tag "List of options" string)))
 
 (defcustom pcmpl-rpm-cache t
   "Whether to cache the list of installed packages."
   :version "24.3"
-  :type 'boolean
-  :group 'pcmpl-rpm)
+  :type 'boolean)
 
 (defconst pcmpl-rpm-cache-stamp-file "/var/lib/rpm/Packages"
   "File used to check that the list of installed packages is up-to-date.")
@@ -78,7 +77,7 @@
     (message "Getting list of installed rpms...")
     (setq pcmpl-rpm-cache-time (current-time)
           pcmpl-rpm-packages
-          (split-string (apply 'pcomplete-process-result "rpm"
+          (split-string (apply #'pcomplete-process-result "rpm"
                                (append '("-q" "-a")
                                        (if (stringp pcmpl-rpm-query-options)
                                            (list pcmpl-rpm-query-options)
@@ -379,6 +378,46 @@
                                           "\\.spec\\'"))))))
        (t
 	(error "You must select a mode: -q, -i, -U, --verify, etc"))))))
+
+;;; DNF
+
+(defvar pcmpl-rpm-dnf-cache-file "/var/cache/dnf/packages.db"
+  "Location of the DNF cache.")
+
+(defun pcmpl-rpm--dnf-packages (status)
+  (when (and (file-exists-p pcmpl-rpm-dnf-cache-file)
+             (executable-find "sqlite3"))
+    (with-temp-message
+        "Getting list of packages..."
+      (process-lines "sqlite3" "-batch" "-init" "/dev/null"
+                     pcmpl-rpm-dnf-cache-file
+                     (pcase-exhaustive status
+                       ('available "select pkg from available")
+                       ('installed "select pkg from installed")
+                       ('not-installed "\
+select pkg from available where pkg not in (select pkg from installed)"))))))
+
+;;;###autoload
+(defun pcomplete/dnf ()
+  "Completion for the `dnf' command."
+  (let ((subcmds (pcomplete-from-help "dnf help"
+                                      :margin "^\\(\\)[a-z-]+  "
+                                      :argument "[a-z-]+")))
+    (while (not (member (pcomplete-arg 1) subcmds))
+      (pcomplete-here (completion-table-merge
+                       subcmds
+                       (pcomplete-from-help "dnf help"))))
+    (let ((subcmd (pcomplete-arg 1)))
+      (while (pcase subcmd
+               ((guard (pcomplete-match "\\`-" 0))
+                (pcomplete-here
+                 (pcomplete-from-help `("dnf" "help" ,subcmd))))
+               ((or "downgrade" "reinstall" "remove")
+                (pcomplete-here (pcmpl-rpm--dnf-packages 'installed)))
+               ((or "install" "mark" "reinstall" "upgrade")
+                (pcomplete-here (pcmpl-rpm--dnf-packages 'not-installed)))
+               ((or "builddep" "changelog" "info" "list" "repoquery" "updateinfo")
+                (pcomplete-here (pcmpl-rpm--dnf-packages 'available))))))))
 
 (provide 'pcmpl-rpm)
 

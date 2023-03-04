@@ -1,6 +1,6 @@
-;;; ede/autoconf-edit.el --- Keymap for autoconf
+;;; ede/autoconf-edit.el --- Keymap for autoconf  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2000, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2000, 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -34,8 +34,7 @@
   "Initialize a new configure.ac in ROOTDIR for PROGRAM using TESTFILE.
 ROOTDIR is the root directory of a given autoconf controlled project.
 PROGRAM is the program to be configured.
-TESTFILE is the file used with AC_INIT.
-Configure the initial configure script using `autoconf-new-automake-string'."
+TESTFILE is the file used with AC_INIT."
   (interactive "DRoot Dir: \nsProgram: \nsTest File: ")
   (require 'ede/srecode)
   (if (bufferp rootdir)
@@ -215,7 +214,7 @@ the ordering list `autoconf-preferred-macro-order'."
 (defun autoconf-insert-new-macro (macro &optional param)
   "Add a call to MACRO in the current autoconf file.
 Deals with macro order.  See `autoconf-preferred-macro-order' and
-`autoconf-multi-macros'.
+`autoconf-multiple-macros'.
 Optional argument PARAM is the parameter to pass to the macro as one string."
   (cond ((member macro autoconf-multiple-macros)
 	 ;; This occurs multiple times
@@ -383,16 +382,16 @@ Optional argument BODY is the code to execute which edits the autoconf file."
     (beginning-of-line)
     (let* ((end-of-cmd
 	    (save-excursion
-	      (if (re-search-forward "(" (point-at-eol) t)
+              (if (re-search-forward "(" (line-end-position) t)
 		  (progn
 		    (forward-char -1)
 		    (forward-sexp 1)
 		    (point))
 		;; Else, just return EOL.
-		(point-at-eol))))
+                (line-end-position))))
 	   (cnt 0))
       (save-restriction
-	(narrow-to-region (point-at-bol) end-of-cmd)
+        (narrow-to-region (line-beginning-position) end-of-cmd)
 	(condition-case nil
 	    (progn
 	      (down-list 1)
@@ -417,7 +416,7 @@ INDEX starts at 1."
   (down-list 1)
   (re-search-forward ", ?" nil nil (1- index))
   (let ((end (save-excursion
-	       (re-search-forward ",\\|)" (point-at-eol))
+               (re-search-forward ",\\|)" (line-end-position))
 	       (forward-char -1)
 	       (point))))
     (setq autoconf-deleted-text (buffer-substring (point) end))

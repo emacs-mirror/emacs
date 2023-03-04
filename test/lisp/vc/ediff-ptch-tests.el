@@ -1,25 +1,28 @@
-;;; ediff-ptch-tests.el --- Tests for ediff-ptch.el
+;;; ediff-ptch-tests.el --- Tests for ediff-ptch.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 
-;; This program is free software: you can redistribute it and/or
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation, either version 3 of the
 ;; License, or (at your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful, but
+;; GNU Emacs is distributed in the hope that it will be useful, but
 ;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ediff-ptch)
 
 (ert-deftest ediff-ptch-test-bug25010 ()
@@ -43,34 +46,33 @@ index 6a07f80..6e8e947 100644
   "Test for https://debbugs.gnu.org/26084 ."
   (skip-unless (executable-find "git"))
   (skip-unless (executable-find ediff-patch-program))
-  (let* ((tmpdir (make-temp-file "ediff-ptch-test" t))
-         (default-directory (file-name-as-directory tmpdir))
-         (patch (make-temp-file "ediff-ptch-test"))
-         (qux (expand-file-name "qux.txt" tmpdir))
-         (bar (expand-file-name "bar.txt" tmpdir))
-         (git-program (executable-find "git")))
-    ;; Create repository.
-    (with-temp-buffer
-      (insert "qux here\n")
-      (write-region nil nil qux nil 'silent)
-      (erase-buffer)
-      (insert "bar here\n")
-      (write-region nil nil bar nil 'silent))
-    (call-process git-program nil nil nil "init")
-    (call-process git-program nil nil nil "add" ".")
-    (call-process git-program nil nil nil "commit" "-m" "Test repository.")
-    ;; Update repo., save the diff and reset to initial state.
-    (with-temp-buffer
-      (insert "foo here\n")
-      (write-region nil nil qux nil 'silent)
-      (write-region nil nil bar nil 'silent))
-    (call-process git-program nil `(:file ,patch) nil "diff")
-    (call-process git-program nil nil nil "reset" "--hard" "HEAD")
-    ;; Visit the diff file i.e., patch; extract from it the parts
-    ;; affecting just each of the files: store in patch-bar the part
-    ;; affecting 'bar', and in patch-qux the part affecting 'qux'.
-    (find-file patch)
-    (unwind-protect
+  (ert-with-temp-directory tmpdir
+    (ert-with-temp-file patch
+      (let* ((default-directory (file-name-as-directory tmpdir))
+             (qux (expand-file-name "qux.txt" tmpdir))
+             (bar (expand-file-name "bar.txt" tmpdir))
+             (git-program (executable-find "git")))
+        ;; Create repository.
+        (with-temp-buffer
+          (insert "qux here\n")
+          (write-region nil nil qux nil 'silent)
+          (erase-buffer)
+          (insert "bar here\n")
+          (write-region nil nil bar nil 'silent))
+        (call-process git-program nil nil nil "init")
+        (call-process git-program nil nil nil "add" ".")
+        (call-process git-program nil nil nil "commit" "-m" "Test repository.")
+        ;; Update repo., save the diff and reset to initial state.
+        (with-temp-buffer
+          (insert "foo here\n")
+          (write-region nil nil qux nil 'silent)
+          (write-region nil nil bar nil 'silent))
+        (call-process git-program nil `(:file ,patch) nil "diff")
+        (call-process git-program nil nil nil "reset" "--hard" "HEAD")
+        ;; Visit the diff file i.e., patch; extract from it the parts
+        ;; affecting just each of the files: store in patch-bar the part
+        ;; affecting 'bar', and in patch-qux the part affecting 'qux'.
+        (find-file patch)
         (let* ((info
                 (progn (ediff-map-patch-buffer (current-buffer)) ediff-patch-map))
                (patch-bar
@@ -114,9 +116,7 @@ index 6a07f80..6e8e947 100644
                             (buffer-string))
                           (with-temp-buffer
                             (insert-file-contents backup)
-                            (buffer-string)))))))
-          (delete-directory tmpdir 'recursive)
-          (delete-file patch)))))
+                            (buffer-string))))))))))))
 
 
 (provide 'ediff-ptch-tests)

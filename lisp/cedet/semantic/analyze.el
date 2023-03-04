@@ -1,6 +1,6 @@
-;;; semantic/analyze.el --- Analyze semantic tags against local context
+;;; semantic/analyze.el --- Analyze semantic tags against local context  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -167,7 +167,7 @@ of the parent function.")
 ;; Simple methods against the context classes.
 ;;
 (cl-defmethod semantic-analyze-type-constraint
-  ((context semantic-analyze-context) &optional desired-type)
+  ((_context semantic-analyze-context) &optional desired-type)
   "Return a type constraint for completing :prefix in CONTEXT.
 Optional argument DESIRED-TYPE may be a non-type tag to analyze."
   (when (semantic-tag-p desired-type)
@@ -235,7 +235,8 @@ scoped.  These are not local variables, but symbols available in a structure
 which doesn't need to be dereferenced.
 Optional argument TYPERETURN is a symbol in which the types of all found
 will be stored.  If nil, that data is thrown away.
-Optional argument THROWSYM specifies a symbol the throw on non-recoverable error.
+Optional argument THROWSYM specifies a symbol the throw on non-recoverable
+error.
 Remaining arguments FLAGS are additional flags to apply when searching.")
 
 (defun semantic-analyze-find-tag-sequence-default
@@ -246,7 +247,8 @@ Remaining arguments FLAGS are additional flags to apply when searching.")
 SCOPE are extra tags which are in scope.
 TYPERETURN is a symbol in which to place a list of tag classes that
 are found in SEQUENCE.
-Optional argument THROWSYM specifies a symbol the throw on non-recoverable error.
+Optional argument THROWSYM specifies a symbol the throw on non-recoverable
+error.
 Remaining arguments FLAGS are additional flags to apply when searching.
 This function knows of flags:
   `mustbeclassvariable'"
@@ -342,8 +344,8 @@ This function knows of flags:
 	(setq tagtype (cons tmptype tagtype))
 	(when miniscope
 	  (let ((rawscope
-		 (apply 'append
-			(mapcar 'semantic-tag-type-members tagtype))))
+		 (apply #'append
+			(mapcar #'semantic-tag-type-members tagtype))))
 	    (oset miniscope fullscope rawscope)))
 	)
       (setq s (cdr s)))
@@ -435,6 +437,8 @@ to provide a large number of non-cached analysis for filtering symbols."
       (:override)))
   )
 
+(defvar semantic--prefixtypes)
+
 (defun semantic-analyze-current-symbol-default (analyzehookfcn position)
   "Call ANALYZEHOOKFCN on the analyzed symbol at POSITION."
   (let* ((semantic-analyze-error-stack nil)
@@ -451,14 +455,14 @@ to provide a large number of non-cached analysis for filtering symbols."
 	  (catch 'unfindable
 	    ;; If debug on error is on, allow debugging in this fcn.
 	    (setq prefix (semantic-analyze-find-tag-sequence
-			  prefix scope 'prefixtypes 'unfindable)))
+			  prefix scope 'semantic--prefixtypes 'unfindable)))
 	;; Debug on error is off.  Capture errors and move on
 	(condition-case err
 	    ;; NOTE: This line is duplicated in
 	    ;;       semantic-analyzer-debug-global-symbol
 	    ;;       You will need to update both places.
 	    (setq prefix (semantic-analyze-find-tag-sequence
-			  prefix scope 'prefixtypes))
+			  prefix scope 'semantic--prefixtypes))
 	  (error (semantic-analyze-push-error err))))
 
       ;;(message "Analysis took %.2f sec" (semantic-elapsed-time LLstart nil))
@@ -529,7 +533,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 	 (bounds (nth 2 prefixandbounds))
 	 ;; @todo - vv too early to really know this answer! vv
 	 (prefixclass (semantic-ctxt-current-class-list))
-	 (prefixtypes nil)
+	 (semantic--prefixtypes nil)
 	 (scope (semantic-calculate-scope position))
 	 (function nil)
 	 (fntag nil)
@@ -609,13 +613,13 @@ Returns an object based on symbol `semantic-analyze-context'."
       (if debug-on-error
 	  (catch 'unfindable
 	    (setq prefix (semantic-analyze-find-tag-sequence
-			  prefix scope 'prefixtypes 'unfindable))
+			  prefix scope 'semantic--prefixtypes 'unfindable))
 	    ;; If there's an alias, dereference it and analyze
 	    ;; sequence again.
 	    (when (setq newseq
 			(semantic-analyze-dereference-alias prefix))
 	      (setq prefix (semantic-analyze-find-tag-sequence
-			    newseq scope 'prefixtypes 'unfindable))))
+			    newseq scope 'semantic--prefixtypes 'unfindable))))
 	;; Debug on error is off.  Capture errors and move on
 	(condition-case err
 	    ;; NOTE: This line is duplicated in
@@ -623,11 +627,11 @@ Returns an object based on symbol `semantic-analyze-context'."
 	    ;;       You will need to update both places.
 	    (progn
 	      (setq prefix (semantic-analyze-find-tag-sequence
-			    prefix scope 'prefixtypes))
+			    prefix scope 'semantic--prefixtypes))
 	      (when (setq newseq
 			  (semantic-analyze-dereference-alias prefix))
 		(setq prefix (semantic-analyze-find-tag-sequence
-			      newseq scope 'prefixtypes))))
+			      newseq scope 'semantic--prefixtypes))))
 	  (error (semantic-analyze-push-error err))))
       )
 
@@ -648,7 +652,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 	     :prefix prefix
 	     :prefixclass prefixclass
 	     :bounds bounds
-	     :prefixtypes prefixtypes
+	     :prefixtypes semantic--prefixtypes
 	     :errors semantic-analyze-error-stack)))
 
       ;; No function, try assignment
@@ -668,7 +672,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 	     :bounds bounds
 	     :prefix prefix
 	     :prefixclass prefixclass
-	     :prefixtypes prefixtypes
+	     :prefixtypes semantic--prefixtypes
 	     :errors semantic-analyze-error-stack)))
 
      ;; TODO: Identify return value condition.
@@ -684,7 +688,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 	     :bounds bounds
 	     :prefix prefix
 	     :prefixclass prefixclass
-	     :prefixtypes prefixtypes
+	     :prefixtypes semantic--prefixtypes
 	     :errors semantic-analyze-error-stack)))
 
      (t (setq context-return nil))
@@ -748,7 +752,7 @@ Some useful functions are found in `semantic-format-tag-functions'."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
-(defun semantic-analyze-princ-sequence (sequence &optional prefix buff)
+(defun semantic-analyze-princ-sequence (sequence &optional prefix _buff)
   "Send the tag SEQUENCE to standard out.
 Use PREFIX as a label.
 Use BUFF as a source of override methods."

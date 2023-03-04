@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2020 Free Software Foundation, Inc.
+Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,7 +26,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <byteswap.h>
 
 #include "lisp.h"
+#ifndef HAVE_PGTK
 #include "xterm.h"
+#else
+#include "gtkutil.h"
+#endif
 #include "xsettings.h"
 #include "frame.h"
 #include "keyboard.h"
@@ -34,7 +38,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "pdumper.h"
 
+#ifndef HAVE_PGTK
 #include <X11/Xproto.h>
+#else
+typedef unsigned short CARD16;
+typedef unsigned int CARD32;
+#endif
 
 #ifdef HAVE_GSETTINGS
 #include <glib-object.h>
@@ -45,17 +54,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gconf/gconf-client.h>
 #endif
 
-#if defined USE_CAIRO || defined HAVE_XFT
 #ifdef USE_CAIRO
 #include <fontconfig/fontconfig.h>
-#else  /* HAVE_XFT */
+#include "ftfont.h"
+#elif defined HAVE_XFT
 #include <X11/Xft/Xft.h>
 #endif
+
+#if defined USE_CAIRO && defined CAIRO_HAS_FT_FONT
+#include <cairo/cairo-ft.h>
 #endif
 
 static char *current_mono_font;
 static char *current_font;
-static struct x_display_info *first_dpyinfo;
+static Display_Info *first_dpyinfo;
 static Lisp_Object current_tool_bar_style;
 
 /* Store a config changed event in to the event queue.  */
@@ -73,14 +85,18 @@ store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 
 /* Return true if DPYINFO is still valid.  */
 static bool
-dpyinfo_valid (struct x_display_info *dpyinfo)
+dpyinfo_valid (Display_Info *dpyinfo)
 {
   bool found = false;
   if (dpyinfo != NULL)
     {
-      struct x_display_info *d;
+      Display_Info *d;
       for (d = x_display_list; !found && d; d = d->next)
+#ifndef HAVE_PGTK
         found = d == dpyinfo && d->display == dpyinfo->display;
+#else
+        found = d == dpyinfo && d->gdpy == dpyinfo->gdpy;
+#endif
     }
   return found;
 }
@@ -149,7 +165,7 @@ map_tool_bar_style (const char *tool_bar_style)
 
 static void
 store_tool_bar_style_changed (const char *newstyle,
-                              struct x_display_info *dpyinfo)
+                              Display_Info *dpyinfo)
 {
   Lisp_Object style = map_tool_bar_style (newstyle);
   if (EQ (current_tool_bar_style, style))
@@ -161,10 +177,12 @@ store_tool_bar_style_changed (const char *newstyle,
                                 XCAR (dpyinfo->name_list_element));
 }
 
+#ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
 #endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
+#endif
 
 enum {
   SEEN_AA         = 0x01,
@@ -191,6 +209,11 @@ struct xsettings
   unsigned seen;
 };
 
+#ifdef HAVE_PGTK
+/* The cairo font_options as obtained using gsettings.  */
+static cairo_font_options_t *font_options;
+#endif
+
 #ifdef HAVE_GSETTINGS
 #define GSETTINGS_SCHEMA         "org.gnome.desktop.interface"
 #define GSETTINGS_TOOL_BAR_STYLE "toolbar-style"
@@ -200,10 +223,161 @@ struct xsettings
 #define GSETTINGS_FONT_NAME  "font-name"
 #endif
 
+#ifdef HAVE_PGTK
+#define GSETTINGS_FONT_ANTIALIASING  "font-antialiasing"
+#define GSETTINGS_FONT_RGBA_ORDER    "font-rgba-order"
+#define GSETTINGS_FONT_HINTING       "font-hinting"
+#endif
 
 /* The single GSettings instance, or NULL if not connected to GSettings.  */
 
 static GSettings *gsettings_client;
+
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+
+static bool
+xg_settings_key_valid_p (GSettings *settings, const char *key)
+{
+#ifdef GLIB_VERSION_2_32
+  GSettingsSchema *schema;
+  bool rc;
+
+  g_object_get (G_OBJECT (settings),
+		"settings-schema", &schema,
+		NULL);
+
+  if (!schema)
+    return false;
+
+  rc = g_settings_schema_has_key (schema, key);
+  g_settings_schema_unref (schema);
+
+  return rc;
+#else
+  return false;
+#endif
+}
+
+#endif
+
+#ifdef HAVE_PGTK
+/* Store an event for re-rendering of the fonts.  */
+static void
+store_font_options_changed (void)
+{
+  if (dpyinfo_valid (first_dpyinfo))
+    store_config_changed_event (Qfont_render,
+				XCAR (first_dpyinfo->name_list_element));
+}
+
+/* Apply changes in the hinting system setting.  */
+static void
+apply_gsettings_font_hinting (GSettings *settings)
+{
+  GVariant *val;
+  const char *hinting;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_HINTING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_HINTING);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  hinting = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (hinting, "full"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_FULL);
+	  else if (!strcmp (hinting, "medium"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_MEDIUM);
+	  else if (!strcmp (hinting, "slight"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_SLIGHT);
+	  else if (!strcmp (hinting, "none"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_NONE);
+	}
+      g_variant_unref (val);
+    }
+}
+
+/* Apply changes in the antialiasing system setting.  */
+static void
+apply_gsettings_font_antialias (GSettings *settings)
+{
+  GVariant *val;
+  const char *antialias;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_ANTIALIASING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_ANTIALIASING);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  antialias = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (antialias, "none"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_NONE);
+	  else if (!strcmp (antialias, "grayscale"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_GRAY);
+	  else if (!strcmp (antialias, "rgba"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_SUBPIXEL);
+	}
+      g_variant_unref (val);
+    }
+}
+
+/* Apply the settings for the rgb element ordering.  */
+static void
+apply_gsettings_font_rgba_order (GSettings *settings)
+{
+  GVariant *val;
+  const char *rgba_order;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_RGBA_ORDER))
+    return;
+
+  val = g_settings_get_value (settings,
+			      GSETTINGS_FONT_RGBA_ORDER);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  rgba_order = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (rgba_order, "rgb"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_RGB);
+	  else if (!strcmp (rgba_order, "bgr"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_BGR);
+	  else if (!strcmp (rgba_order, "vrgb"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_VRGB);
+	  else if (!strcmp (rgba_order, "vbgr"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_VBGR);
+	}
+      g_variant_unref (val);
+    }
+}
+#endif /* HAVE_PGTK */
 
 /* Callback called when something changed in GSettings.  */
 
@@ -258,6 +432,23 @@ something_changed_gsettingsCB (GSettings *settings,
         }
     }
 #endif /* USE_CAIRO || HAVE_XFT */
+#ifdef HAVE_PGTK
+  else if (!strcmp (key, GSETTINGS_FONT_ANTIALIASING))
+    {
+      apply_gsettings_font_antialias (settings);
+      store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_FONT_HINTING))
+    {
+      apply_gsettings_font_hinting (settings);
+      store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_FONT_RGBA_ORDER))
+    {
+      apply_gsettings_font_rgba_order (settings);
+      store_font_options_changed ();
+    }
+#endif /* HAVE_PGTK */
 }
 
 #endif /* HAVE_GSETTINGS */
@@ -321,10 +512,11 @@ something_changed_gconfCB (GConfClient *client,
 
 #endif /* USE_CAIRO || HAVE_XFT */
 
+#ifndef HAVE_PGTK
 /* Find the window that contains the XSETTINGS property values.  */
 
 static void
-get_prop_window (struct x_display_info *dpyinfo)
+get_prop_window (Display_Info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
@@ -339,6 +531,9 @@ get_prop_window (struct x_display_info *dpyinfo)
 
   XUngrabServer (dpy);
 }
+#endif
+
+#ifndef HAVE_PGTK
 
 #define PAD(nr)    (((nr) + 3) & ~3)
 
@@ -566,13 +761,15 @@ parse_settings (unsigned char *prop,
 
   return settings_seen;
 }
+#endif
 
+#ifndef HAVE_PGTK
 /* Read settings from the XSettings property window on display for DPYINFO.
    Store settings read in SETTINGS.
-   Return true iff successful.  */
+   Return true if successful.  */
 
 static bool
-read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
+read_settings (Display_Info *dpyinfo, struct xsettings *settings)
 {
   Atom act_type;
   int act_form;
@@ -600,24 +797,41 @@ read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 
   return got_settings;
 }
+#endif
 
+#ifndef HAVE_PGTK
 /* Apply Xft settings in SETTINGS to the Xft library.
    Store a Lisp event that Xft settings changed.  */
 
 static void
-apply_xft_settings (struct x_display_info *dpyinfo,
+apply_xft_settings (Display_Info *dpyinfo,
                     struct xsettings *settings)
 {
-#ifdef HAVE_XFT
+#if defined HAVE_XFT					\
+  || (defined USE_CAIRO && defined CAIRO_HAS_FC_FONT	\
+      && defined CAIRO_HAS_FT_FONT)
   FcPattern *pat;
   struct xsettings oldsettings;
   bool changed = false;
+#ifndef HAVE_XFT
+  cairo_font_options_t *options;
+#endif
+
 
   memset (&oldsettings, 0, sizeof (oldsettings));
   pat = FcPatternCreate ();
+#ifdef HAVE_XFT
   XftDefaultSubstitute (dpyinfo->display,
                         XScreenNumberOfScreen (dpyinfo->screen),
                         pat);
+#else
+  FcConfigSubstitute (NULL, pat, FcMatchPattern);
+  options = cairo_font_options_create ();
+  ftcrfont_get_default_font_options (dpyinfo, options);
+  cairo_ft_font_options_substitute (options, pat);
+  cairo_font_options_destroy (options);
+  FcDefaultSubstitute (pat);
+#endif
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
 #ifdef FC_HINT_STYLE
@@ -672,6 +886,14 @@ apply_xft_settings (struct x_display_info *dpyinfo,
     }
 #endif
 
+#ifdef USE_CAIRO
+  /* When Cairo is being used, set oldsettings.dpi to dpyinfo->resx.
+     This is a gross hack, but seeing as Cairo fails to report
+     anything reasonable, just use it to avoid config-changed events
+     being sent at startup.  */
+  oldsettings.dpi = dpyinfo->resx;
+#endif
+
   if ((settings->seen & SEEN_DPI) != 0
       && settings->dpi > 0
       /* The following conjunct avoids setting `changed' to true when
@@ -716,8 +938,11 @@ apply_xft_settings (struct x_display_info *dpyinfo,
 		     - sizeof "%f")
       };
       char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
-
+#ifdef HAVE_XFT
       XftDefaultSet (dpyinfo->display, pat);
+#else
+      FcPatternDestroy (pat);
+#endif
       store_config_changed_event (Qfont_render,
 				  XCAR (dpyinfo->name_list_element));
       Vxft_settings
@@ -729,14 +954,16 @@ apply_xft_settings (struct x_display_info *dpyinfo,
     }
   else
     FcPatternDestroy (pat);
-#endif /* HAVE_XFT */
+#endif /* HAVE_XFT || (USE_CAIRO && CAIRO_HAS_FC_FONT && CAIRO_HAS_FT_FONT) */
 }
+#endif
 
+#ifndef HAVE_PGTK
 /* Read XSettings from the display for DPYINFO.
    If SEND_EVENT_P store a Lisp event settings that changed.  */
 
 static void
-read_and_apply_settings (struct x_display_info *dpyinfo, bool send_event_p)
+read_and_apply_settings (Display_Info *dpyinfo, bool send_event_p)
 {
   struct xsettings settings;
 
@@ -763,11 +990,14 @@ read_and_apply_settings (struct x_display_info *dpyinfo, bool send_event_p)
     }
 #endif
 }
+#endif
 
-/* Check if EVENT for the display in DPYINFO is XSettings related.  */
+#ifndef HAVE_PGTK
+/* Check if EVENT for the display in DPYINFO is XSettings related.
+   Return true if it is, after performing associated side effects.  */
 
-void
-xft_settings_event (struct x_display_info *dpyinfo, const XEvent *event)
+bool
+xft_settings_event (Display_Info *dpyinfo, const XEvent *event)
 {
   bool check_window_p = false, apply_settings_p = false;
 
@@ -804,7 +1034,10 @@ xft_settings_event (struct x_display_info *dpyinfo, const XEvent *event)
 
   if (apply_settings_p)
     read_and_apply_settings (dpyinfo, true);
+
+  return check_window_p || apply_settings_p;
 }
+#endif
 
 /* Initialize GSettings and read startup values.  */
 
@@ -872,6 +1105,16 @@ init_gsettings (void)
         dupstring (&current_font, g_variant_get_string (val, NULL));
       g_variant_unref (val);
     }
+
+  /* Only use the gsettings font entries for the Cairo backend
+     running on PGTK.  */
+#ifdef HAVE_PGTK
+  font_options = cairo_font_options_create ();
+  apply_gsettings_font_antialias (gsettings_client);
+  apply_gsettings_font_hinting (gsettings_client);
+  apply_gsettings_font_rgba_order (gsettings_client);
+#endif /* HAVE_PGTK */
+
 #endif /* USE_CAIRO || HAVE_XFT */
 
 #endif /* HAVE_GSETTINGS */
@@ -940,10 +1183,11 @@ init_gconf (void)
 #endif /* HAVE_GCONF */
 }
 
+#ifndef HAVE_PGTK
 /* Init Xsettings and read startup values.  */
 
 static void
-init_xsettings (struct x_display_info *dpyinfo)
+init_xsettings (Display_Info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
@@ -959,13 +1203,16 @@ init_xsettings (struct x_display_info *dpyinfo)
 
   unblock_input ();
 }
+#endif
 
 void
-xsettings_initialize (struct x_display_info *dpyinfo)
+xsettings_initialize (Display_Info *dpyinfo)
 {
   if (first_dpyinfo == NULL) first_dpyinfo = dpyinfo;
   init_gconf ();
+#ifndef HAVE_PGTK
   init_xsettings (dpyinfo);
+#endif
   init_gsettings ();
 }
 
@@ -989,10 +1236,26 @@ xsettings_get_system_normal_font (void)
 }
 #endif
 
+#ifdef HAVE_PGTK
+/* Return the cairo font options, updated from the gsettings font
+   config entries.  The caller should call cairo_font_options_destroy
+   on the result.  */
+cairo_font_options_t *
+xsettings_get_font_options (void)
+{
+  if (font_options != NULL)
+    return cairo_font_options_copy (font_options);
+  else
+    /* GSettings is not configured.  */
+    return cairo_font_options_create ();
+}
+#endif
+
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
-       doc: /* Get the system default application font. */)
+       doc: /* Get the system default application font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_font ? build_string (current_font) : Qnil;
@@ -1000,7 +1263,8 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
-       doc: /* Get the system default fixed width font. */)
+       doc: /* Get the system default fixed width font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_mono_font ? build_string (current_mono_font) : Qnil;
@@ -1041,10 +1305,18 @@ syms_of_xsettings (void)
   gconf_client = NULL;
   PDUMPER_IGNORE (gconf_client);
 #endif
+#ifdef HAVE_PGTK
+  font_options = NULL;
+  PDUMPER_IGNORE (font_options);
+#endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");
   DEFSYM (Qfont_name, "font-name");
   DEFSYM (Qfont_render, "font-render");
+  DEFSYM (Qdynamic_setting, "dynamic-setting");
+  DEFSYM (Qfont_render_setting, "font-render-setting");
+  DEFSYM (Qsystem_font_setting, "system-font-setting");
+
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
@@ -1060,9 +1332,9 @@ If this variable is nil, Emacs ignores system font changes.  */);
   Vxft_settings = empty_unibyte_string;
 
 #if defined USE_CAIRO || defined HAVE_XFT
-  Fprovide (intern_c_string ("font-render-setting"), Qnil);
+  Fprovide (Qfont_render_setting, Qnil);
 #if defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-  Fprovide (intern_c_string ("system-font-setting"), Qnil);
+  Fprovide (Qsystem_font_setting, Qnil);
 #endif
 #endif
 
@@ -1070,5 +1342,5 @@ If this variable is nil, Emacs ignores system font changes.  */);
   DEFSYM (Qtool_bar_style, "tool-bar-style");
   defsubr (&Stool_bar_get_system_style);
 
-  Fprovide (intern_c_string ("dynamic-setting"), Qnil);
+  Fprovide (Qdynamic_setting, Qnil);
 }

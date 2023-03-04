@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -23,12 +23,15 @@ otherwise.
 @end defun
 
 @menu
-* Symbol Components::        Symbols have names, values, function definitions
+* Symbol Components::           Symbols have names, values, function definitions
                                and property lists.
-* Definitions::              A definition says how a symbol will be used.
-* Creating Symbols::         How symbols are kept unique.
-* Symbol Properties::        Each symbol has a property list
+* Definitions::                 A definition says how a symbol will be used.
+* Creating Symbols::            How symbols are kept unique.
+* Symbol Properties::           Each symbol has a property list
                                for recording miscellaneous information.
+* Shorthands::                  Properly organize your symbol names but
+                               type less of them.
+* Symbols with Position::       Symbol variants containing integer positions
 @end menu
 
 @node Symbol Components
@@ -67,7 +70,10 @@ important not to have two symbols with the same name.  The Lisp reader
 ensures this: every time it reads a symbol, it looks for an existing
 symbol with the specified name before it creates a new one.  To get a
 symbol's name, use the function @code{symbol-name} (@pxref{Creating
-Symbols}).
+Symbols}).  However, although each symbol has only one unique
+@emph{print name}, it is nevertheless possible to refer to that same
+symbol via different alias names called ``shorthands''
+(@pxref{Shorthands}).
 
   The value cell holds a symbol's value as a variable, which is what
 you get if the symbol itself is evaluated as a Lisp expression.
@@ -132,7 +138,7 @@ variables.  To define a customizable variable, use the
 (@pxref{Customization}).
 
   In principle, you can assign a variable value to any symbol with
-@code{setq}, whether not it has first been defined as a variable.
+@code{setq}, whether or not it has first been defined as a variable.
 However, you ought to write a variable definition for each global
 variable that you want to use; otherwise, your Lisp program may not
 act correctly if it is evaluated with lexical scoping enabled
@@ -166,26 +172,39 @@ definitions.  @xref{Name Help,,, emacs, The GNU Emacs Manual}.
 @section Creating and Interning Symbols
 @cindex reading symbols
 
-  To understand how symbols are created in GNU Emacs Lisp, you must know
-how Lisp reads them.  Lisp must ensure that it finds the same symbol
-every time it reads the same set of characters.  Failure to do so would
-cause complete confusion.
+  To understand how symbols are created in GNU Emacs Lisp, you must
+know how Lisp reads them.  Lisp must ensure that it finds the same
+symbol every time it reads the same sequence of characters in the same
+context.  Failure to do so would cause complete confusion.
 
 @cindex symbol name hashing
 @cindex hashing
 @cindex obarray
 @cindex bucket (in obarray)
-  When the Lisp reader encounters a symbol, it reads all the characters
-of the name.  Then it hashes those characters to find an index in a
-table called an @dfn{obarray}.  Hashing is an efficient method of
-looking something up.  For example, instead of searching a telephone
-book cover to cover when looking up Jan Jones, you start with the J's
-and go from there.  That is a simple version of hashing.  Each element
-of the obarray is a @dfn{bucket} which holds all the symbols with a
-given hash code; to look for a given name, it is sufficient to look
-through all the symbols in the bucket for that name's hash code.  (The
-same idea is used for general Emacs hash tables, but they are a
-different data type; see @ref{Hash Tables}.)
+  When the Lisp reader encounters a name that references a symbol in
+the source code, it reads all the characters of that name.  Then it
+looks up that name in a table called an @dfn{obarray} to find the
+symbol that the programmer meant.  The technique used in this lookup
+is called ``hashing'', an efficient method of looking something up by
+converting a sequence of characters to a number, known as a ``hash
+code''.  For example, instead of searching a telephone book cover to
+cover when looking up Jan Jones, you start with the J's and go from
+there.  That is a simple version of hashing.  Each element of the
+obarray is a @dfn{bucket} which holds all the symbols with a given
+hash code; to look for a given name, it is sufficient to look through
+all the symbols in the bucket for that name's hash code.  (The same
+idea is used for general Emacs hash tables, but they are a different
+data type; see @ref{Hash Tables}.)
+
+When looking up names, the Lisp reader also considers ``shorthands''.
+If the programmer supplied them, this allows the reader to find a
+symbol even if its name isn't present in its full form in the source
+code.  Of course, the reader needs to be aware of some pre-established
+context about such shorthands, much as one needs context to be to able
+to refer uniquely to Jan Jones by just the name ``Jan'': it's probably
+fine when amongst the Joneses, or when Jan has been mentioned
+recently, but very ambiguous in any other situation.
+@xref{Shorthands}.
 
 @cindex interning
   If a symbol with the desired name is found, the reader uses that
@@ -200,9 +219,13 @@ same obarray.  Thus, the reader gets the same symbols for the same
 names, as long as you keep reading with the same obarray.
 
   Interning usually happens automatically in the reader, but sometimes
-other programs need to do it.  For example, after the @kbd{M-x} command
-obtains the command name as a string using the minibuffer, it then
-interns the string, to get the interned symbol with that name.
+other programs may want to do it.  For example, after the @kbd{M-x}
+command obtains the command name as a string using the minibuffer, it
+then interns the string, to get the interned symbol with that name.
+As another example, a hypothetical telephone book program could intern
+the name of each looked up person's name as a symbol, even if the
+obarray did not contain it, so that it could attach information to
+that new symbol, such as the last time someone looked it up.
 
 @cindex symbol equality
 @cindex uninterned symbol
@@ -210,11 +233,8 @@ interns the string, to get the interned symbol with that name.
 obarray.  They are called @dfn{uninterned symbols}.  An uninterned
 symbol has the same four cells as other symbols; however, the only way
 to gain access to it is by finding it in some other object or as the
-value of a variable.
-
-  Creating an uninterned symbol is useful in generating Lisp code,
-because an uninterned symbol used as a variable in the code you generate
-cannot clash with any variables used in other Lisp programs.
+value of a variable.  Uninterned symbols are sometimes useful in
+generating Lisp code, see below.
 
   In Emacs Lisp, an obarray is actually a vector.  Each element of the
 vector is a bucket; its value is either an interned symbol whose name
@@ -236,7 +256,10 @@ not work---only @code{intern} can enter a symbol in an obarray properly.
 @cindex CL note---symbol in obarrays
 @quotation
 @b{Common Lisp note:} Unlike Common Lisp, Emacs Lisp does not provide
-for interning a single symbol in several obarrays.
+for interning the same name in several different ``packages'', thus
+creating multiple symbols with the same name but different packages.
+Emacs Lisp provides a different namespacing system called
+``shorthands'' (@pxref{Shorthands}).
 @end quotation
 
   Most of the functions below take a name and sometimes an obarray as
@@ -258,6 +281,11 @@ change the name of the symbol, but fails to update the obarray, so don't
 do it!
 @end defun
 
+@cindex uninterned symbol, and generating Lisp code
+Creating an uninterned symbol is useful in generating Lisp code,
+because an uninterned symbol used as a variable in the code you
+generate cannot clash with any variables used in other Lisp programs.
+
 @defun make-symbol name
 This function returns a newly-allocated, uninterned symbol whose name is
 @var{name} (which must be a string).  Its value and function definition
@@ -275,9 +303,15 @@ distinct uninterned symbol whose name is also @samp{foo}.
 
 @defun gensym &optional prefix
 This function returns a symbol using @code{make-symbol}, whose name is
-made by appending @code{gensym-counter} to @var{prefix}.  The prefix
-defaults to @code{"g"}.
+made by appending @code{gensym-counter} to @var{prefix} and incrementing
+that counter, guaranteeing that no two calls to this function will
+generate a symbol with the same name.  The prefix defaults to
+@code{"g"}.
 @end defun
+
+To avoid problems when accidentally interning printed representation
+of generated code (@pxref{Printed Representation}), it is recommended
+to use @code{gensym} instead of @code{make-symbol}.
 
 @defun intern name &optional obarray
 This function returns the interned symbol whose name is @var{name}.  If
@@ -398,8 +432,8 @@ symbol's property list cell (@pxref{Symbol Components}), in the form
 of a property list (@pxref{Property Lists}).
 
 @menu
-* Symbol Plists::        Accessing symbol properties.
-* Standard Properties::  Standard meanings of symbol properties.
+* Symbol Plists::               Accessing symbol properties.
+* Standard Properties::         Standard meanings of symbol properties.
 @end menu
 
 @node Symbol Plists
@@ -521,6 +555,23 @@ value, saved value, customized-but-unsaved value, and themed values.
 Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
+@item definition-name
+This property is used to find the definition of a symbol in the source
+code, when it might be hard to find the definition by textual search
+of the source file.  For example, a @code{define-derived-mode}
+(@pxref{Derived Modes}) might define a mode-specific function or a
+variable implicitly; or your Lisp program might generate a run-time
+call to @code{defun} to define a function (@pxref{Defining
+Functions}).  In these and similar cases, the @code{definition-name}
+property of the symbol should be another symbol whose definition can
+be found by textual search and whose code defines the original symbol.
+In the example with @code{define-derived-mode}, the value of this
+property of the functions and variables it defines should be the mode
+symbol.  The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
+emacs, The GNU Emacs Manual}) use this property to show the definition
+of a symbol via a button in the @file{*Help*} buffer where the
+symbol's documentation is shown.
+
 @item disabled
 If the value is non-@code{nil}, the named function is disabled as a
 command.  @xref{Disabling Commands}.
@@ -579,7 +630,10 @@ file-local evaluation forms.  @xref{File Local Variables}.
 
 @item safe-local-variable
 The value specifies a function for determining safe file-local values
-for the named variable.  @xref{File Local Variables}.
+for the named variable.  @xref{File Local Variables}.  Since this
+value is consulted when loading files, the function should be
+efficient and should ideally not lead to loading any libraries to
+determine the safeness (e.g., it should not be an autoloaded function).
 
 @item side-effect-free
 @cindex @code{side-effect-free} property
@@ -600,3 +654,187 @@ If non-@code{nil}, this specifies the named variable's documentation
 string.  This is set automatically by @code{defvar} and related
 functions.  @xref{Defining Faces}.
 @end table
+
+@node Shorthands
+@section Shorthands
+@cindex shorthands
+@cindex symbolic shorthands
+@cindex namespacing
+@cindex namespaces
+
+  The symbol @dfn{shorthands}, sometimes known as ``renamed symbols'', are
+symbolic forms found in Lisp source.  They're just like regular
+symbolic forms, except that when the Lisp reader encounters them, it
+produces symbols which have a different and usually longer @dfn{print
+name} (@pxref{Symbol Components}).
+
+It is useful to think of shorthands as @emph{abbreviating} the full
+names of intended symbols.  Despite this, do not confuse shorthands with the
+Abbrev system @pxref{Abbrevs}.
+
+@cindex namespace etiquette
+Shorthands make Emacs Lisp's @dfn{namespacing etiquette} easier to work
+with.  Since all symbols are stored in a single obarray
+(@pxref{Creating Symbols}), programmers commonly prefix each symbol
+name with the name of the library where it originates.  For example,
+the functions @code{text-property-search-forward} and
+@code{text-property-search-backward} both belong to the
+@file{text-property-search.el} library (@pxref{Loading}).  By properly
+prefixing symbol names, one effectively prevents clashes between
+similarly named symbols which belong to different libraries and thus do
+different things.  However, this practice commonly originates very
+long symbols names, which are inconvenient to type and read after a
+while.  Shorthands solve these issues in a clean way.
+
+@defvar read-symbol-shorthands
+This variable's value is an alist whose elements have the form
+@code{(@var{shorthand-prefix} . @var{longhand-prefix})}.  Each element
+instructs the Lisp reader to read every symbol form which starts with
+@var{shorthand-prefix} as if it started with @var{longhand-prefix}
+instead.
+
+This variable may only be set in file-local variables (@pxref{File Variables, ,
+Local Variables in Files, emacs, The GNU Emacs Manual}).
+@end defvar
+
+Here's an example of shorthands usage in a hypothetical string
+manipulating library @file{some-nice-string-utils.el}.
+
+@smalllisp
+(defun some-nice-string-utils-split (separator s &optional omit-nulls)
+  "A match-data saving variant of `split-string'."
+  (save-match-data (split-string s separator omit-nulls)))
+
+(defun some-nice-string-utils-lines (s)
+  "Split string S at newline characters into a list of strings."
+  (some-nice-string-utils-split "\\(\r\n\\|[\n\r]\\)" s))
+@end smalllisp
+
+As can be seen, it's quite tedious to read or develop this code since
+the symbol names to type are so long.  We can use shorthands to
+alleviate that.
+
+@lisp
+(defun snu-split (separator s &optional omit-nulls)
+  "A match-data saving variation on `split-string'."
+  (save-match-data (split-string s separator omit-nulls)))
+
+(defun snu-lines (s)
+  "Split string S into a list of strings on newline characters."
+  (snu-split "\\(\r\n\\|[\n\r]\\)" s))
+
+;; Local Variables:
+;; read-symbol-shorthands: (("snu-" . "some-nice-string-utils-"))
+;; End:
+@end lisp
+
+Even though the two excerpts look different, they are quite identical
+after the Lisp reader processes them.  Both will lead to the very same
+symbols being interned (@pxref{Creating Symbols}).  Thus loading or
+byte-compiling any of the two files has equivalent results.  The
+shorthands @code{snu-split} and @code{snu-lines} used in the second
+version are @emph{not} interned in the obarray.  This is easily seen
+by moving point to the location where the shorthands are used and
+waiting for ElDoc (@pxref{Programming Language Doc, , Local Variables
+in Files, emacs, The GNU Emacs Manual}) to hint at the true full name
+of the symbol under point in the echo area.
+
+Since @code{read-symbol-shorthands} is a file-local variable, it is
+possible that multiple libraries depending on
+@file{some-nice-string-utils-lines.el} refer to the same symbols under
+@emph{different} shorthands, or not using shorthands at all.  In the
+next example, the @file{my-tricks.el} library refers to the symbol
+@code{some-nice-string-utils-lines} using the @code{sns-} prefix
+instead of @code{snu-}.
+
+@example
+(defun t-reverse-lines (s) (string-join (reverse (sns-lines s)) "\n")
+
+;; Local Variables:
+;; read-symbol-shorthands: (("t-" . "my-tricks-")
+;;                          ("sns-" . "some-nice-string-utils-"))
+;; End:
+@end example
+
+@subsection Exceptions
+
+There are two exceptions to rules governing Shorthand transformations:
+
+@itemize @bullet
+@item
+Symbol forms comprised entirely of characters in the Emacs Lisp symbol
+constituent class (@pxref{Syntax Class Table}) are not transformed.
+For example, it's possible to use @code{-} or @code{/=} as shorthand
+prefixes, but that won't shadow the arithmetic @emph{functions} of
+those names.
+
+@item
+Symbol forms whose names start with @samp{#_} are not transformed.
+@end itemize
+
+@node Symbols with Position
+@section Symbols with Position
+@cindex symbol with position
+
+@cindex bare symbol
+A @dfn{symbol with position} is a symbol, the @dfn{bare symbol},
+together with an unsigned integer called the @dfn{position}.  These
+objects are intended for use by the byte compiler, which records in
+them the position of each symbol occurrence and uses those positions
+in warning and error messages.
+
+The printed representation of a symbol with position uses the hash
+notation outlined in @ref{Printed Representation}.  It looks like
+@samp{#<symbol foo at 12345>}.  It has no read syntax.  You can cause
+just the bare symbol to be printed by binding the variable
+@code{print-symbols-bare} to non-@code{nil} around the print
+operation.  The byte compiler does this before writing its output to
+the compiled Lisp file.
+
+For most purposes, when the flag variable
+@code{symbols-with-pos-enabled} is non-@code{nil}, symbols with
+positions behave just as bare symbols do.  For example, @samp{(eq
+#<symbol foo at 12345> foo)} has a value @code{t} when that variable
+is set (but @code{nil} when it isn't set).  Most of the time in Emacs this
+variable is @code{nil}, but the byte compiler binds it to @code{t}
+when it runs.
+
+Typically, symbols with position are created by the byte compiler
+calling the reader function @code{read-positioning-symbols}
+(@pxref{Input Functions}).  One can also be created with the function
+@code{position-symbol}.
+
+@defvar symbols-with-pos-enabled
+When this variable is non-@code{nil}, symbols with position behave
+like the contained bare symbol.  Emacs runs a little more slowly in
+this case.
+@end defvar
+
+@defvar print-symbols-bare
+When bound to non-@code{nil}, the Lisp printer prints only the bare symbol of
+a symbol with position, ignoring the position.
+@end defvar
+
+@defun symbol-with-pos-p symbol.
+This function returns @code{t} if @var{symbol} is a symbol with
+position, @code{nil} otherwise.
+@end defun
+
+@defun bare-symbol symbol
+This function returns the bare symbol contained in @var{symbol}, or
+@var{symbol} itself if it is already a bare symbol.  For any other
+type of object, it signals an error.
+@end defun
+
+@defun symbol-with-pos-pos symbol
+This function returns the position, a number, from a symbol with
+position.  For any other type of object, it signals an error.
+@end defun
+
+@defun position-symbol sym pos
+Make a new symbol with position.  @var{sym} is either a bare symbol or
+a symbol with position, and supplies the symbol part of the new
+object.  @var{pos} is either an integer which becomes the number part
+of the new object, or a symbol with position whose position is used.
+Emacs signals an error if either argument is invalid.
+@end defun

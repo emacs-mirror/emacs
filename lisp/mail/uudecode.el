@@ -1,6 +1,6 @@
-;;; uudecode.el -- elisp native uudecode  -*- lexical-binding:t -*-
+;;; uudecode.el --- elisp native uudecode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -23,11 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(defalias 'uudecode-char-int
-  (if (fboundp 'char-int)
-      'char-int
-    'identity))
 
 (defgroup uudecode nil
   "Decoding of uuencoded data."
@@ -61,10 +56,8 @@ input and write the converted data to its standard output."
       (setq str (concat str "[^a-z]")))
     (concat str ".?$")))
 
-(defvar uudecode-temporary-file-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp")))
+(make-obsolete-variable 'uudecode-temporary-file-directory
+                        'temporary-file-directory "28.1")
 
 ;;;###autoload
 (defun uudecode-decode-region-external (start end &optional file-name)
@@ -86,13 +79,7 @@ used is specified by `uudecode-decoder-program'."
 					       (match-string 1)))))
 	(setq tempfile (if file-name
 			   (expand-file-name file-name)
-			   (if (fboundp 'make-temp-file)
-			       (let ((temporary-file-directory
-				      uudecode-temporary-file-directory))
-				 (make-temp-file "uu"))
-			     (expand-file-name
-			      (make-temp-name "uu")
-			      uudecode-temporary-file-directory))))
+			 (make-temp-file "uu")))
 	(let ((cdir default-directory)
 	      (default-process-coding-system nil))
 	  (unwind-protect
@@ -148,7 +135,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	   ((> (skip-chars-forward uudecode-alphabet end) 0)
 	    (setq lim (point))
 	    (setq remain
-		  (logand (- (uudecode-char-int (char-after inputpos)) 32)
+                  (logand (- (char-after inputpos) 32)
 			  63))
 	    (setq inputpos (1+ inputpos))
 	    (if (= remain 0) (setq done t))
@@ -156,18 +143,16 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (setq bits (+ bits
 			    (logand
 			     (-
-			      (uudecode-char-int (char-after inputpos)) 32)
+                              (char-after inputpos) 32)
 			     63)))
 	      (if (/= counter 0) (setq remain (1- remain)))
 	      (setq counter (1+ counter)
 		    inputpos (1+ inputpos))
 	      (cond ((= counter 4)
-		     (setq result (cons
-				   (concat
-				    (char-to-string (ash bits -16))
-				    (char-to-string (logand (ash bits -8) 255))
-				    (char-to-string (logand bits 255)))
-				   result))
+		     (setq result (cons (logand bits 255)
+					(cons (logand (ash bits -8) 255)
+					      (cons (ash bits -16)
+						    result))))
 		     (setq bits 0 counter 0))
 		    (t (setq bits (ash bits 6)))))))
 	  (cond
@@ -179,26 +164,26 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	    ;;(error "uucode ends unexpectedly")
 	    (setq done t))
 	   ((= counter 3)
-	    (setq result (cons
-			  (concat
-			   (char-to-string (logand (ash bits -16) 255))
-			   (char-to-string (logand (ash bits -8) 255)))
-			  result)))
+	    (setq result (cons (logand (ash bits -8) 255)
+			       (cons (logand (ash bits -16) 255)
+				     result))))
 	   ((= counter 2)
-	    (setq result (cons
-			  (char-to-string (logand (ash bits -10) 255))
-			  result))))
+	    (setq result (cons (logand (ash bits -10) 255)
+			       result))))
 	  (skip-chars-forward non-data-chars end))
 	(if file-name
             (with-temp-file file-name
               (set-buffer-multibyte nil)
-              (insert (apply #'concat (nreverse result))))
+              (apply #'insert (nreverse result)))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
-	  (if enable-multibyte-characters
-	      (dolist (x (nreverse result))
-                (insert (decode-coding-string x 'binary)))
-	    (insert (apply #'concat (nreverse result))))
+          (apply #'insert
+                 (nreverse
+                  (if enable-multibyte-characters
+                      (mapcar (lambda (ch)
+                                (or (decode-char 'eight-bit ch) ch))
+                              result)
+                    result)))
 	  (delete-region (point) end))))))
 
 ;;;###autoload
@@ -208,6 +193,8 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
   (if uudecode-use-external
       (uudecode-decode-region-external start end file-name)
     (uudecode-decode-region-internal start end file-name)))
+
+(define-obsolete-function-alias 'uudecode-char-int #'identity "28.1")
 
 (provide 'uudecode)
 

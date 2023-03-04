@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -227,6 +227,9 @@ you are using.  On all computers supported by Emacs, this is
 and is discussed further in David Goldberg's paper
 ``@url{https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html,
 What Every Computer Scientist Should Know About Floating-Point Arithmetic}''.
+On modern platforms, floating-point operations follow the IEEE-754
+standard closely; however, results are not always rounded correctly on
+some obsolescent platforms, notably 32-bit x86.
 
   The read syntax for floating-point numbers requires either a decimal
 point, an exponent, or both.  Optional signs (@samp{+} or @samp{-})
@@ -234,7 +237,8 @@ precede the number and its exponent.  For example, @samp{1500.0},
 @samp{+15e2}, @samp{15.0e+2}, @samp{+1500000e-3}, and @samp{.15e4} are
 five ways of writing a floating-point number whose value is 1500.
 They are all equivalent.  Like Common Lisp, Emacs Lisp requires at
-least one digit after any decimal point in a floating-point number;
+least one digit after a decimal point in a floating-point number that
+does not have an exponent;
 @samp{1500.} is an integer, not a floating-point number.
 
   Emacs Lisp treats @code{-0.0} as numerically equal to ordinary zero
@@ -447,6 +451,10 @@ numbers.  It compares numbers by type and numeric value, so that
 @code{(eql 1.0 1)} returns @code{nil}, but @code{(eql 1.0 1.0)} and
 @code{(eql 1 1)} both return @code{t}.  This can be used to compare
 large integers as well as small ones.
+Floating-point values with the same sign, exponent and fraction are @code{eql}.
+This differs from numeric comparison: @code{(eql 0.0 -0.0)} returns
+@code{nil} and @code{(eql 0.0e+NaN 0.0e+NaN)} returns @code{t},
+whereas @code{=} does the opposite.
 @end defun
 
 @defun /= number-or-marker1 number-or-marker2
@@ -1230,6 +1238,9 @@ any given seed, the @code{random} function always generates the same
 sequence of numbers.  By default, Emacs initializes the random seed at
 startup, in such a way that the sequence of values of @code{random}
 (with overwhelming likelihood) differs in each Emacs run.
+The random seed is typically initialized from system entropy;
+however, on obsolescent platforms lacking entropy pools,
+the seed is taken from less-random volatile data such as the current time.
 
   Sometimes you want the random number sequence to be repeatable.  For
 example, when debugging a program whose behavior depends on the random
@@ -1243,17 +1254,50 @@ other strings to choose various seed values.
 This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
-If @var{limit} is a positive fixnum, the value is chosen to be
+If @var{limit} is a positive integer, the value is chosen to be
 nonnegative and less than @var{limit}.  Otherwise, the value might be
 any fixnum, i.e., any integer from @code{most-negative-fixnum} through
 @code{most-positive-fixnum} (@pxref{Integer Basics}).
 
-If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
-were restarting, typically from the system entropy.  On systems
-lacking entropy pools, choose the seed from less-random volatile data
-such as the current time.
-
 If @var{limit} is a string, it means to choose a new seed based on the
-string's contents.
+string's contents.  This causes later calls to @code{random} to return
+a reproducible sequence of results.
+
+If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
+were restarting.  This causes later calls to @code{random} to return
+an unpredictable sequence of results.
 
 @end defun
+
+If you need a random nonce for cryptographic purposes, using
+@code{random} is typically not the best approach, for several reasons:
+
+@itemize @bullet
+@item
+Although you can use @code{(random t)} to consult system entropy,
+doing so can adversely affect other parts of your program that benefit
+from reproducible results.
+
+@item
+The system-dependent pseudo-random number generator (PRNG) used by
+@code{random} is not necessarily suitable for cryptography.
+
+@item
+A call to @code{(random t)} does not give direct access to system
+entropy; the entropy is passed through the system-dependent PRNG, thus
+possibly biasing the results.
+
+@item
+On typical platforms the random seed contains only 32 bits, which is
+typically narrower than an Emacs fixnum, and is not nearly enough for
+cryptographic purposes.
+
+@item
+A @code{(random t)} call leaves information about the nonce scattered
+about Emacs's internal state, increasing the size of the internal
+attack surface.
+
+@item
+On obsolescent platforms lacking entropy pools, @code{(random t)} is
+seeded from a cryptographically weak source.
+@end itemize

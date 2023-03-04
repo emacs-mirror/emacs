@@ -1,6 +1,6 @@
-;;; ede/emacs.el --- Special project for Emacs
+;;; ede/emacs.el --- Special project for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -54,37 +54,12 @@ Return a tuple of ( EMACSNAME . VERSION )."
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
       (cond
-       ;; Maybe XEmacs?
-       ((file-exists-p "version.sh")
-	(setq emacs "XEmacs")
-	(insert-file-contents "version.sh")
-	(goto-char (point-min))
-	(re-search-forward "emacs_major_version=\\([0-9]+\\)
-emacs_minor_version=\\([0-9]+\\)
-emacs_beta_version=\\([0-9]+\\)")
-	(setq ver (concat (match-string 1) "."
-			  (match-string 2) "."
-			  (match-string 3)))
-	)
-       ((file-exists-p "sxemacs.pc.in")
-	(setq emacs "SXEmacs")
-	(insert-file-contents "sxemacs_version.m4")
-	(goto-char (point-min))
-	(re-search-forward "m4_define(\\[SXEM4CS_MAJOR_VERSION\\], \\[\\([0-9]+\\)\\])
-m4_define(\\[SXEM4CS_MINOR_VERSION\\], \\[\\([0-9]+\\)\\])
-m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
-	(setq ver (concat (match-string 1) "."
-			  (match-string 2) "."
-			  (match-string 3)))
-	)
-       ;; Insert other Emacs here...
-
        ;; Vaguely recent version of GNU Emacs?
        ((or (file-exists-p configure_ac)
 	    (file-exists-p (setq configure_ac "configure.in")))
 	(insert-file-contents configure_ac)
 	(goto-char (point-min))
-	(re-search-forward "AC_INIT(\\(?:GNU \\)?[eE]macs,\\s-*\\([0-9.]+\\)\\s-*[,)]")
+	(re-search-forward "AC_INIT(\\[?\\(?:GNU \\)?[eE]macs]?,\\s-*\\[?\\([0-9.]+\\)]?\\s-*[,)]")
 	(setq ver (match-string 1))
 	)
        )
@@ -105,7 +80,6 @@ ROOTPROJ is nil, since there is only one project."
   ;; Doesn't already exist, so let's make one.
   (let* ((vertuple (ede-emacs-version dir)))
     (ede-emacs-project
-     (car vertuple)
      :name (car vertuple)
      :version (cdr vertuple)
      :directory (file-name-as-directory dir)
@@ -234,20 +208,19 @@ All files need the macros from lisp.h!"
       (let* ((D (car dirs))
 	     (ed (expand-file-name D base))
 	     (ef (expand-file-name name ed)))
-	(if (file-exists-p ef)
-	    (setq ans ef)
-	  ;; Not in this dir?  How about subdirs?
-	  (let ((dirfile (directory-files ed t))
-		(moredirs nil)
-		)
-	    ;; Get all the subdirs.
-	    (dolist (DF dirfile)
-	      (when (and (file-directory-p DF)
-			 (not (string-match "\\.$" DF)))
-		(push DF moredirs)))
-	    ;; Try again.
-	    (setq ans (ede-emacs-find-in-directories name ed moredirs))
-	    ))
+	(when (file-exists-p ed)
+          (if (file-exists-p ef)
+	      (setq ans ef)
+	    ;; Not in this dir?  How about subdirs?
+	    (let ((dirfile (directory-files ed t))
+		  (moredirs nil))
+	      ;; Get all the subdirs.
+	      (dolist (DF dirfile)
+	        (when (and (file-directory-p DF)
+			   (not (string-match "\\.$" DF)))
+		  (push DF moredirs)))
+	      ;; Try again.
+	      (setq ans (ede-emacs-find-in-directories name ed moredirs)))))
 	(setq dirs (cdr dirs))))
     ans))
 

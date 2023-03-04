@@ -1,6 +1,6 @@
-;;; semantic/db-find.el --- Searching through semantic databases.
+;;; semantic/db-find.el --- Searching through semantic databases.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -209,14 +209,14 @@ This class will cache data derived during various searches.")
   )
 
 (cl-defmethod semanticdb-synchronize ((idx semanticdb-find-search-index)
-				   new-tags)
+				      _new-tags)
   "Synchronize the search index IDX with some NEW-TAGS."
   ;; Reset our parts.
   (semantic-reset idx)
   ;; Notify dependants by clearing their indices.
   (semanticdb-notify-references
    (oref idx table)
-   (lambda (tab me)
+   (lambda (tab _me)
      (semantic-reset (semanticdb-get-table-index tab))))
   )
 
@@ -230,7 +230,7 @@ This class will cache data derived during various searches.")
 	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
-	 (lambda (tab me)
+	 (lambda (tab _me)
 	   (semantic-reset (semanticdb-get-table-index tab))))
 	)
     ;; Else, not an include, by just a type.
@@ -240,7 +240,7 @@ This class will cache data derived during various searches.")
 	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
-	 (lambda (tab me)
+	 (lambda (tab _me)
 	   (let ((tab-idx (semanticdb-get-table-index tab)))
 	     ;; Not a full reset?
 	     (when (oref tab-idx type-cache)
@@ -315,7 +315,7 @@ Default action as described in `semanticdb-find-translate-path'."
 
 ;;;###autoload
 (define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
-  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
+  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object.
 INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute."
@@ -426,17 +426,15 @@ Default action as described in `semanticdb-find-translate-path'."
       ;; searchable item, then instead do the regular thing without caching.
       (semanticdb-find-translate-path-includes--internal path))))
 
-(defvar semanticdb-find-lost-includes nil
+(defvar-local semanticdb-find-lost-includes nil
   "Include files that we cannot find associated with this buffer.")
-(make-variable-buffer-local 'semanticdb-find-lost-includes)
 
-(defvar semanticdb-find-scanned-include-tags nil
+(defvar-local semanticdb-find-scanned-include-tags nil
   "All include tags scanned, plus action taken on the tag.
 Each entry is an alist:
   (ACTION . TAG)
 where ACTION is one of `scanned', `duplicate', `lost'
 and TAG is a clone of the include tag that was found.")
-(make-variable-buffer-local 'semanticdb-find-scanned-include-tags)
 
 (defvar semanticdb-implied-include-tags nil
   "Include tags implied for all files of a given mode.
@@ -793,7 +791,8 @@ PREBUTTONTEXT is some text between prefix and the overlay button."
 	 (file (semantic-tag-file-name tag))
 	 (str1 (format "%S %s" mode name))
 	 (str2 (format " : %s" file))
-	 (tip nil))
+	 ;; (tip nil)
+	 )
     (insert prefix prebuttontext str1)
     (setq end (point))
     (insert str2)
@@ -809,7 +808,7 @@ PREBUTTONTEXT is some text between prefix and the overlay button."
     (put-text-property start end 'ddebug (cdr consdata))
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-tag-parts-from-point)
     (insert "\n")
@@ -915,7 +914,7 @@ but should be good enough for debugging assertions."
 	   (null (car (cdr (car resultp)))))))
 
 (defun semanticdb-find-result-prin1-to-string (result)
-  "Presuming RESULT satisfies `semanticdb-find-results-p', provide a short PRIN1 output."
+  "If RESULT satisfies `semanticdb-find-results-p', provide a short PRIN1 output."
   (if (< (length result) 2)
       (concat "#<FIND RESULT "
 	      (mapconcat (lambda (a)
@@ -1011,7 +1010,7 @@ is still made current."
 	  (when norm
 	    ;; The normalized tags can now be found based on that
 	    ;; tags table.
-	    (condition-case foo
+	    (condition-case nil
 		(progn
 		  (semanticdb-set-buffer (car norm))
 		  ;; Now reset ans
@@ -1245,7 +1244,7 @@ See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
 FIND-FILE-MATCH indicates that any time a match is found, the file
-associated wit that tag should be loaded into a buffer."
+associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-deep-find-tags-by-name-method table name tags))
@@ -1257,7 +1256,7 @@ See `semanticdb-find-translate-path' for details on PATH.
 The argument BRUTISH will be set so that searching includes all tables
 in the current project.
 FIND-FILE-MATCH indicates that any time a match is found, the file
-associated wit that tag should be loaded into a buffer."
+associated with that tag should be loaded into a buffer."
   (semanticdb-find-tags-collector
    (lambda (table tags)
      (semanticdb-deep-find-tags-for-completion-method table prefix tags))
@@ -1278,7 +1277,7 @@ associated with that tag should be loaded into a buffer."
 ;;; Specialty Search Routines
 (defun semanticdb-find-tags-external-children-of-type
   (type &optional path find-file-match)
-  "Search for all tags defined outside of TYPE w/ TYPE as a parent.
+  "Search for all tags defined outside of TYPE with TYPE as a parent.
 See `semanticdb-find-translate-path' for details on PATH.
 FIND-FILE-MATCH indicates that any time a match is found, the file
 associated with that tag should be loaded into a buffer."

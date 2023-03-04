@@ -1,10 +1,10 @@
 ;;; ob-table.el --- Support for Calling Babel Functions from Tables -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -53,6 +53,10 @@
 ;; are optional.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob-core)
 (require 'org-macs)
 
@@ -62,7 +66,8 @@ If STRING ends in a newline character, then remove the newline
 character and replace it with ellipses."
   (if (and (stringp string) (string-match "[\n\r]\\(.\\)?" string))
       (concat (substring string 0 (match-beginning 0))
-	      (when (match-string 1 string) "...")) string))
+	      (when (match-string 1 string) "..."))
+    string))
 
 (defmacro org-sbe (source-block &rest variables)
   "Return the results of calling SOURCE-BLOCK with VARIABLES.
@@ -77,12 +82,13 @@ So this `org-sbe' construct
 
 is the equivalent of the following source code block:
 
- #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) :results silent
+ #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) \\
+     :results silent
  results
  #+end_src
 
 NOTE: The quotation marks around the function name,
-'source-block', are optional.
+`source-block', are optional.
 
 NOTE: By default, string variable names are interpreted as
 references to source-code blocks, to force interpretation of a
@@ -106,47 +112,44 @@ as shown in the example below.
 	       ;; ensure that all cells prefixed with $'s are strings
 	       (cons (car var)
 		     (delq nil (mapcar
-				(lambda (el)
-				  (if (eq '$ el)
-				      (prog1 nil (setq quote t))
-				    (prog1
-					(cond
-					 (quote (format "\"%s\"" el))
-					 ((stringp el) (org-no-properties el))
-					 (t el))
-				      (setq quote nil))))
-				(cdr var)))))
+			      (lambda (el)
+				(if (eq '$ el)
+				    (prog1 nil (setq quote t))
+				  (prog1
+				      (cond
+				       (quote (format "\"%s\"" el))
+				       ((stringp el) (org-no-properties el))
+				       (t el))
+				    (setq quote nil))))
+			      (cdr var)))))
 	     variables)))
       (unless (stringp source-block)
 	(setq source-block (symbol-name source-block)))
-      (let ((result
-             (if (and source-block (> (length source-block) 0))
-                 (let ((params
-                        ;; FIXME: Why `eval'?!?!?
-                        (eval `(org-babel-parse-header-arguments
-                                (concat
-                                 ":var results="
-                                 ,source-block
-                                 "[" ,header-args "]"
-                                 "("
-                                 (mapconcat
-                                  (lambda (var-spec)
-                                    (if (> (length (cdr var-spec)) 1)
-                                        (format "%S='%S"
-                                                (car var-spec)
-                                                (mapcar #'read (cdr var-spec)))
-                                      (format "%S=%s"
-                                              (car var-spec) (cadr var-spec))))
-                                  ',variables ", ")
-                                 ")")))))
-                   (org-babel-execute-src-block
-                    nil (list "emacs-lisp" "results" params)
-                    '((:results . "silent"))))
-               "")))
-        (org-trim (if (stringp result) result (format "%S" result)))))))
+      `(let ((result
+              (if ,(and source-block (> (length source-block) 0))
+                  (let ((params
+                         ',(org-babel-parse-header-arguments
+                            (concat
+                             ":var results="
+                             source-block
+                             "[" header-args "]"
+                             "("
+                             (mapconcat
+                              (lambda (var-spec)
+                                (if (> (length (cdr var-spec)) 1)
+                                    (format "%S='%S"
+                                            (car var-spec)
+                                            (mapcar #'read (cdr var-spec)))
+                                  (format "%S=%s"
+                                          (car var-spec) (cadr var-spec))))
+                              variables ", ")
+                             ")"))))
+                    (org-babel-execute-src-block
+                     nil (list "emacs-lisp" "results" params)
+                     '((:results . "silent"))))
+                "")))
+         (org-trim (if (stringp result) result (format "%S" result)))))))
 
 (provide 'ob-table)
-
-
 
 ;;; ob-table.el ends here

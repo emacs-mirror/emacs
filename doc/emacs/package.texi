@@ -1,27 +1,41 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
 @chapter Emacs Lisp Packages
 @cindex Package
-@cindex Emacs Lisp package archive
 @cindex Package archive
 
-Emacs includes a facility that lets you easily download and install
-@dfn{packages} that implement additional features.  Each package is a
-separate Emacs Lisp program, sometimes including other components such
-as an Info manual.
+  Emacs is extended by implementing additional features in
+@dfn{packages}, which are Emacs Lisp libraries.  These could be
+written by you or provided by someone else.  If you want to install
+such a package so it is available in your future Emacs session, you
+need to compile it and put it in a directory where Emacs looks for
+Lisp libraries.  @xref{Lisp Libraries}, for more details about this
+manual installation method.  Many packages provide installation and
+usage instructions in the large commentary near the beginning of the
+Lisp file; you can use those instructions for installing and
+fine-tuning your use of the package.
 
-  @kbd{M-x list-packages} brings up a buffer named @file{*Packages*}
-with a list of all packages.  You can install or uninstall packages
-via this buffer.  @xref{Package Menu}.
+@cindex Emacs Lisp package archive
+  Packages can also be provided by @dfn{package archives}, which are
+large collections of Emacs Lisp packages.  Each package is a separate
+Emacs Lisp program, sometimes including other components such as an
+Info manual.  Emacs includes a facility that lets you easily download
+and install packages from such archives.  The rest of this chapter
+describes this facility.
+
+  To list the packages available for installation from package
+archives, type @w{@kbd{M-x list-packages @key{RET}}}.  It brings up a
+buffer named @file{*Packages*} with a list of all packages.  You can
+install or uninstall packages via this buffer.  @xref{Package Menu}.
 
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-  By default, Emacs downloads packages from a @dfn{package archive}
+  By default, Emacs downloads packages from a package archive
 maintained by the Emacs developers and hosted by the GNU project.
 Optionally, you can also download packages from archives maintained by
 third parties.  @xref{Package Installation}.
@@ -35,6 +49,7 @@ Manual}.
 * Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
+* Fetching Package Sources::  Managing packages directly from source.
 @end menu
 
 @node Package Menu
@@ -75,6 +90,11 @@ list of available packages from package archive servers.  If the
 network is unavailable, it falls back on the most recently retrieved
 list.
 
+The main command to use in the package list buffer is the @key{x}
+command.  If the package under point isn't installed already, this
+command will install it.  If the package under point is already
+installed, this command will delete it.
+
 The following commands are available in the package menu:
 
 @table @kbd
@@ -112,6 +132,13 @@ line; typing @kbd{x} (see below) will delete the package.
 @xref{Package Files}, for information about what package deletion
 entails.
 
+@item w
+@kindex w @r{(Package Menu)}
+@findex package-browse-url
+Open the package website on the current line in a browser
+(@code{package-browse-url}).  @code{browse-url} is used to open the
+browser.
+
 @item ~
 @kindex ~ @r{(Package Menu)}
 @findex package-menu-mark-obsolete-for-deletion
@@ -141,7 +168,10 @@ installed versions (marked with status @samp{obsolete}).
 @findex package-menu-execute
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
-(@code{package-menu-execute}).  This also removes the marks.
+(@code{package-menu-execute}).  This also removes the marks.  If no
+packages are marked, this command will install the package under point
+(if it isn't installed already), or delete the package under point (if
+it's already installed).
 
 @item g
 @item r
@@ -173,12 +203,28 @@ Filter package list by archive (@code{package-menu-filter-by-archive}).
 This prompts for a package archive (e.g., @samp{gnu}), then shows only
 packages from that archive.
 
+@item / d
+@kindex / d @r{(Package Menu)}
+@findex package-menu-filter-by-description
+Filter package list by description
+(@code{package-menu-filter-by-description}).  This prompts for a
+regular expression, then shows only packages with descriptions
+matching that regexp.
+
 @item / k
 @kindex / k @r{(Package Menu)}
 @findex package-menu-filter-by-keyword
 Filter package list by keyword (@code{package-menu-filter-by-keyword}).
 This prompts for a keyword (e.g., @samp{games}), then shows only
 packages with that keyword.
+
+@item / N
+@kindex / N @r{(Package Menu)}
+@findex package-menu-filter-by-name-or-description
+Filter package list by name or description
+(@code{package-menu-filter-by-name-or-description}).  This prompts for
+a regular expression, then shows only packages with a name or
+description matching that regexp.
 
 @item / n
 @kindex / n @r{(Package Menu)}
@@ -201,6 +247,18 @@ Filter package list by version (@code{package-menu-filter-by-version}).
 This prompts first for one of the qualifiers @samp{<}, @samp{>} or
 @samp{=}, and then a package version, and shows packages that has a
 lower, equal or higher version than the one specified.
+
+@item / m
+@kindex / m @r{(Package Menu)}
+@findex package-menu-filter-marked
+Filter package list by non-empty mark (@code{package-menu-filter-marked}).
+This shows only the packages that have been marked to be installed or deleted.
+
+@item / u
+@kindex / u @r{(Package Menu)}
+@findex package-menu-filter-upgradable
+Filter package list to show only packages for which there are
+available upgrades (@code{package-menu-filter-upgradable}).
 
 @item / /
 @kindex / / @r{(Package Menu)}
@@ -271,10 +329,15 @@ version of the package, a newer version is also installed.
 @section Package Installation
 
 @findex package-install
+@findex package-update
+@findex package-update-all
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
-@samp{available} status, then downloads and installs it.
+@samp{available} status, then downloads and installs it.  Similarly,
+if you want to update a package, you can use the @kbd{M-x
+package-update} command, and if you just want to update all the
+packages, you can use the @kbd{M-x package-update-all} command.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,
@@ -359,20 +422,20 @@ lower-priority archives will not be shown in the menu, if the same
 package is available from a higher-priority archive.  (This is
 controlled by the value of @code{package-menu-hide-low-priority}.)
 
-  Once a package is downloaded and installed, it is made available to
-the current Emacs session.  Making a package available adds its
-directory to @code{load-path} and loads its autoloads.  The effect of
-a package's autoloads varies from package to package.  Most packages
-just make some new commands available, while others have more
-wide-ranging effects on the Emacs session.  For such information,
-consult the package's help buffer.
+  Once a package is downloaded, byte-compiled and installed, it is
+made available to the current Emacs session.  Making a package
+available adds its directory to @code{load-path} and loads its
+autoloads.  The effect of a package's autoloads varies from package to
+package.  Most packages just make some new commands available, while
+others have more wide-ranging effects on the Emacs session.  For such
+information, consult the package's help buffer.
 
-  After a package is installed, it is automatically made available by
-Emacs in all subsequent sessions.  This happens at startup, before
-processing the init file but after processing the early init file
-(@pxref{Early Init File}).  As an exception, Emacs does not make
-packages available at startup if invoked with the @samp{-q} or
-@samp{--no-init-file} options (@pxref{Initial Options}).
+  Installed packages are automatically made available by Emacs in all
+subsequent sessions.  This happens at startup, before processing the
+init file but after processing the early init file (@pxref{Early Init
+File}).  As an exception, Emacs does not make packages available at
+startup if invoked with the @samp{-q} or @samp{--no-init-file} options
+(@pxref{Initial Options}).
 
 @vindex package-enable-at-startup
   To keep Emacs from automatically making packages available at
@@ -380,6 +443,17 @@ startup, change the variable @code{package-enable-at-startup} to
 @code{nil}.  You must do this in the early init file, as the variable
 is read before loading the regular init file.  Currently this variable
 cannot be set via Customize.
+
+@findex package-quickstart-refresh
+@vindex package-quickstart
+  If you have many packages installed, you can improve startup times
+by setting the user option @code{package-quickstart} to @code{t}.
+Setting this option will make Emacs precompute many things instead of
+re-computing them on every Emacs startup.  However, if you do this,
+then you have to manually run the command
+@code{package-quickstart-refresh} when the activations need to be
+changed, such as when you change the value of
+@code{package-load-list}.
 
 @findex package-activate-all
   If you have set @code{package-enable-at-startup} to @code{nil}, you
@@ -409,6 +483,16 @@ The default value is just @code{'(all)}.
 @samp{muse}.  Any other version of @samp{muse} that happens to be
 installed will be ignored.  The @samp{muse} package will be listed in
 the package menu with the @samp{held} status.
+
+@findex package-recompile
+@findex package-recompile-all
+  Emacs byte code is quite stable, but it's possible for byte code to
+become outdated, or for the compiled files to rely on macros that have
+changed in new versions of Emacs.  You can use the command @w{@kbd{M-x
+package-recompile}} to recompile a particular package, or
+@w{@kbd{M-x package-recompile-all}} to recompile all the packages.  (The
+latter command might take quite a while to run if you have many
+installed packages.)
 
 @node Package Files
 @section Package Files and Directory Layout
@@ -447,3 +531,73 @@ are laid out in the same way as in @code{package-user-dir}.
 corresponding package subdirectory.  This only works for packages
 installed in @code{package-user-dir}; if told to act on a package in a
 system-wide package directory, the deletion command signals an error.
+
+@node Fetching Package Sources
+@section Fetching Package Sources
+@cindex package development source
+@cindex upstream source, for packages
+@cindex git source of package @c "git" is not technically correct
+
+  By default @code{package-install} downloads a Tarball from a package
+archive and installs its files.  This might be inadequate if you wish
+to hack on the package sources and share your changes with others.  In
+that case, you may prefer to directly fetch and work on the upstream
+source.  This often makes it easier to develop patches and report
+bugs.
+
+@findex package-vc-install
+@findex package-vc-checkout
+  One way to do this is to use @code{package-vc-install}, to fetch the
+source code for a package directly from source.  The command will also
+automatically ensure that all files are byte-compiled and auto-loaded,
+just like with a regular package.  Packages installed this way behave
+just like any other package.  You can update them using
+@code{package-update} or @code{package-update-all} and delete them
+again using @code{package-delete}.  They are even displayed in the
+regular package listing.  If you just wish to clone the source of a
+package, without adding it to the package list, use
+@code{package-vc-checkout}.
+
+@vindex package-vc-selected-packages
+@findex package-vc-install-selected-packages
+  An alternative way to use @code{package-vc-install} is via the
+@code{package-vc-selected-packages} user option.  This is an alist of
+packages to install, where each key is a package name and the value is
+@code{nil}, indicating that any revision is to install, a string,
+indicating a specific revision or a package specification plist.  The
+side effect of setting the user option is to install the package, but
+the process can also be manually triggered using the function
+@code{package-vc-install-selected-packages}.  Here is an example of
+how the user option:
+
+@example
+@group
+(setopt package-vc-selected-packages
+        '((modus-themes . "0f39eb3fd9") ;specific revision
+          (auctex . nil)                ;any revision
+          (foo                          ;a package specification
+           :url "https://git.sv.gnu.org/r/foo-mode.git"
+           :branch "trunk")))
+@end group
+@end example
+
+@findex package-report-bug
+@findex package-vc-prepare-patch
+  With the source checkout, you might want to reproduce a bug against
+the current development head or implement a new feature to scratch an
+itch.  If the package metadata indicates how to contact the
+maintainer, you can use the command @code{package-report-bug} to
+report a bug via Email.  This report will include all the user options
+that you have customized.  If you have made a change you wish to share
+with the maintainers, first commit your changes then use the command
+@code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
+
+@findex package-vc-install-from-checkout
+@findex package-vc-rebuild
+  If you maintain your own packages you might want to use a local
+checkout instead of cloning a remote repository.  You can do this by
+using @code{package-vc-install-from-checkout}, which creates a symbolic link
+from the package directory (@pxref{Package Files}) to your checkout
+and initializes the code.  Note that you might have to use
+@code{package-vc-refresh} to repeat the initialization and update the
+autoloads.

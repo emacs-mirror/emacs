@@ -1,6 +1,6 @@
-;;; solitaire.el --- game of solitaire in Emacs Lisp
+;;; solitaire.el --- game of solitaire in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -38,51 +38,48 @@
 
 (defcustom solitaire-mode-hook nil
   "Hook to run upon entry to Solitaire."
-  :type 'hook
-  :group 'solitaire)
+  :type 'hook)
 
-(defvar solitaire-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
+(defvar-keymap solitaire-mode-map
+  :doc "Keymap for playing Solitaire."
+  :parent special-mode-map
+  "C-f"        #'solitaire-right
+  "C-b"        #'solitaire-left
+  "C-p"        #'solitaire-up
+  "C-n"        #'solitaire-down
+  "RET"        #'solitaire-move
+  "SPC"        #'solitaire-do-check
 
-    (define-key map "\C-f" 'solitaire-right)
-    (define-key map "\C-b" 'solitaire-left)
-    (define-key map "\C-p" 'solitaire-up)
-    (define-key map "\C-n" 'solitaire-down)
-    (define-key map "\r" 'solitaire-move)
-    (define-key map [remap undo] 'solitaire-undo)
-    (define-key map " " 'solitaire-do-check)
+  "<right>"    #'solitaire-right
+  "<left>"     #'solitaire-left
+  "<up>"       #'solitaire-up
+  "<down>"     #'solitaire-down
 
-    (define-key map [right] 'solitaire-right)
-    (define-key map [left] 'solitaire-left)
-    (define-key map [up] 'solitaire-up)
-    (define-key map [down] 'solitaire-down)
+  "S-<right>"  #'solitaire-move-right
+  "S-<left>"   #'solitaire-move-left
+  "S-<up>"     #'solitaire-move-up
+  "S-<down>"   #'solitaire-move-down
 
-    (define-key map [S-right] 'solitaire-move-right)
-    (define-key map [S-left]  'solitaire-move-left)
-    (define-key map [S-up]    'solitaire-move-up)
-    (define-key map [S-down]  'solitaire-move-down)
+  "<kp-6>"     #'solitaire-right
+  "<kp-4>"     #'solitaire-left
+  "<kp-8>"     #'solitaire-up
+  "<kp-2>"     #'solitaire-down
+  "<kp-5>"     #'solitaire-center-point
 
-    (define-key map [kp-6] 'solitaire-right)
-    (define-key map [kp-4] 'solitaire-left)
-    (define-key map [kp-8] 'solitaire-up)
-    (define-key map [kp-2] 'solitaire-down)
-    (define-key map [kp-5] 'solitaire-center-point)
+  "S-<kp-6>"   #'solitaire-move-right
+  "S-<kp-4>"   #'solitaire-move-left
+  "S-<kp-8>"   #'solitaire-move-up
+  "S-<kp-2>"   #'solitaire-move-down
 
-    (define-key map [S-kp-6] 'solitaire-move-right)
-    (define-key map [S-kp-4] 'solitaire-move-left)
-    (define-key map [S-kp-8] 'solitaire-move-up)
-    (define-key map [S-kp-2] 'solitaire-move-down)
+  "<kp-enter>" #'solitaire-move
+  "<kp-0>"     #'solitaire-undo
+  "<remap> <undo>" #'solitaire-undo
 
-    (define-key map [kp-enter] 'solitaire-move)
-    (define-key map [kp-0] 'solitaire-undo)
+  ;; spoil it with s ;)
+  "s"          #'solitaire-solve
 
-    ;; spoil it with s ;)
-    (define-key map [?s] 'solitaire-solve)
-
-    ;;  (define-key map [kp-0] 'solitaire-hint) - Not yet provided ;)
-    map)
-  "Keymap for playing Solitaire.")
+  ;; "[kp-0]" #'solitaire-hint - Not yet provided ;)
+  )
 
 ;; Solitaire mode is suitable only for specially formatted data.
 (put 'solitaire-mode 'mode-class 'special)
@@ -94,6 +91,7 @@ To learn how to play Solitaire, see the documentation for function
 \\<solitaire-mode-map>
 The usual mnemonic keys move the cursor around the board; in addition,
 \\[solitaire-move] is a prefix character for actually moving a stone on the board."
+  :interactive nil
   (setq truncate-lines t)
   (setq show-trailing-whitespace nil))
 
@@ -119,8 +117,7 @@ The usual mnemonic keys move the cursor around the board; in addition,
   "Non-nil means check for possible moves after each major change.
 This takes a while, so switch this on if you like to be informed when
 the game is over, or off, if you are working on a slow machine."
-  :type 'boolean
-  :group 'solitaire)
+  :type 'boolean)
 
 (defconst solitaire-valid-directions
   '(solitaire-left solitaire-right solitaire-up solitaire-down))
@@ -250,7 +247,7 @@ Pick your favorite shortcuts:
     (setq solitaire-end-y (solitaire-current-line))))
 
 (defun solitaire-right ()
-  (interactive)
+  (interactive nil solitaire-mode)
   (let ((start (point)))
     (forward-char)
     (while (= ?\s (following-char))
@@ -261,7 +258,7 @@ Pick your favorite shortcuts:
       (goto-char start))))
 
 (defun solitaire-left ()
-  (interactive)
+  (interactive nil solitaire-mode)
   (let ((start (point)))
     (backward-char)
     (while (= ?\s (following-char))
@@ -272,7 +269,7 @@ Pick your favorite shortcuts:
       (goto-char start))))
 
 (defun solitaire-up ()
-  (interactive)
+  (interactive nil solitaire-mode)
   (let ((start (point))
 	(c (current-column)))
     (forward-line -1)
@@ -288,7 +285,7 @@ Pick your favorite shortcuts:
       (goto-char start))))
 
 (defun solitaire-down ()
-  (interactive)
+  (interactive nil solitaire-mode)
   (let ((start (point))
 	(c (current-column)))
     (forward-line 1)
@@ -303,13 +300,13 @@ Pick your favorite shortcuts:
       (goto-char start))))
 
 (defun solitaire-center-point ()
-  (interactive)
+  (interactive nil solitaire-mode)
   (goto-char solitaire-center))
 
-(defun solitaire-move-right () (interactive) (solitaire-move '[right]))
-(defun solitaire-move-left () (interactive) (solitaire-move '[left]))
-(defun solitaire-move-up () (interactive) (solitaire-move '[up]))
-(defun solitaire-move-down () (interactive) (solitaire-move '[down]))
+(defun solitaire-move-right () (interactive nil solitaire-mode) (solitaire-move '[right]))
+(defun solitaire-move-left () (interactive nil solitaire-mode) (solitaire-move '[left]))
+(defun solitaire-move-up () (interactive nil solitaire-mode) (solitaire-move '[up]))
+(defun solitaire-move-down () (interactive nil solitaire-mode) (solitaire-move '[down]))
 
 (defun solitaire-possible-move (movesymbol)
   "Check if a move is possible from current point in the specified direction.
@@ -334,7 +331,7 @@ which a stone will be taken away) and target."
 
 (defun solitaire-move (dir)
   "Pseudo-prefix command to move a stone in Solitaire."
-  (interactive "kMove where? ")
+  (interactive "kMove where? " solitaire-mode)
   (let* ((class (solitaire-possible-move (lookup-key solitaire-mode-map dir)))
 	 (buffer-read-only nil))
     (if (stringp class)
@@ -358,7 +355,7 @@ which a stone will be taken away) and target."
 
 (defun solitaire-undo (arg)
   "Undo a move in Solitaire."
-  (interactive "P")
+  (interactive "P" solitaire-mode)
   (let ((buffer-read-only nil))
     (undo arg))
   (save-excursion
@@ -395,7 +392,7 @@ which a stone will be taken away) and target."
 
 (defun solitaire-do-check (&optional _arg)
   "Check for any possible moves in Solitaire."
-  (interactive "P")
+  (interactive "P" solitaire-mode)
   (let ((moves (solitaire-check)))
     (cond ((= 1 solitaire-stones)
 	   (message "Yeah! You made it! Only the King is left!"))
@@ -416,7 +413,7 @@ Seen in info on text lines."
 (defun solitaire-solve ()
   "Spoil Solitaire by solving the game for you - nearly ...
 ... stops with five stones left ;)"
-  (interactive)
+  (interactive nil solitaire-mode)
   (when (< solitaire-stones 32)
     (error "Cannot solve game in progress"))
   (let ((allmoves [up up S-down up left left S-right up up left S-down

@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -37,14 +37,14 @@
 ;;; Updated April 2002 by Jochen Küpper
 
 ;;; Updated August 2007, using
-;;;     CODATA (http://physics.nist.gov/cuu/Constants/index.html)
-;;;     NIST   (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+;;;     CODATA (https://physics.nist.gov/cuu/Constants/index.html)
+;;;     NIST   (https://physics.nist.gov/Pubs/SP811/appenB9.html)
 ;;;     ESUWM  (Encyclopaedia of Scientific Units, Weights and
 ;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
 ;; CODATA values updated February 2016, using 2014 adjustment
-;; http://arxiv.org/pdf/1507.07956.pdf
+;; https://arxiv.org/pdf/1507.07956.pdf
 
 ;; Updated November 2018 for the redefinition of the SI
 ;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
@@ -59,7 +59,7 @@
     ( mi      "5280 ft"              "Mile" )
     ( au      "149597870691. m"      "Astronomical Unit" nil
               "149597870691 m (*)")
-              ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
+              ;; (approx) NASA JPL (https://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
     ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
               "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
@@ -317,30 +317,35 @@ If you change this, be sure to set `math-units-table' to nil to ensure
 that the combined units table will be rebuilt.")
 
 (defvar math-unit-prefixes
-  '( ( ?Y  (^ 10 24)  "Yotta"  )
-     ( ?Z  (^ 10 21)  "Zetta"  )
-     ( ?E  (^ 10 18)  "Exa"    )
-     ( ?P  (^ 10 15)  "Peta"   )
-     ( ?T  (^ 10 12)  "Tera"   )
-     ( ?G  (^ 10 9)   "Giga"   )
-     ( ?M  (^ 10 6)   "Mega"   )
-     ( ?k  (^ 10 3)   "Kilo"   )
-     ( ?K  (^ 10 3)   "Kilo"   )
-     ( ?h  (^ 10 2)   "Hecto"  )
-     ( ?H  (^ 10 2)   "Hecto"  )
-     ( ?D  (^ 10 1)   "Deka"   )
+  '( ( ?Q  (^ 10 30)  "quetta"  )
+     ( ?R  (^ 10 27)  "ronna"  )
+     ( ?Y  (^ 10 24)  "yotta"  )
+     ( ?Z  (^ 10 21)  "zetta"  )
+     ( ?E  (^ 10 18)  "exa"    )
+     ( ?P  (^ 10 15)  "peta"   )
+     ( ?T  (^ 10 12)  "tera"   )
+     ( ?G  (^ 10 9)   "giga"   )
+     ( ?M  (^ 10 6)   "mega"   )
+     ( ?k  (^ 10 3)   "kilo"   )
+     ( ?K  (^ 10 3)   "kilo"   )
+     ( ?h  (^ 10 2)   "hecto"  )
+     ( ?H  (^ 10 2)   "hecto"  )
+     ( ?D  (^ 10 1)   "deka"   )
      ( 0   (^ 10 0)    nil     )
-     ( ?d  (^ 10 -1)  "Deci"   )
-     ( ?c  (^ 10 -2)  "Centi"  )
-     ( ?m  (^ 10 -3)  "Milli"  )
-     ( ?u  (^ 10 -6)  "Micro"  )
-     ( ?μ  (^ 10 -6)  "Micro"  )
-     ( ?n  (^ 10 -9)  "Nano"   )
-     ( ?p  (^ 10 -12) "Pico"   )
-     ( ?f  (^ 10 -15) "Femto"  )
-     ( ?a  (^ 10 -18) "Atto"   )
+     ( ?d  (^ 10 -1)  "deci"   )
+     ( ?c  (^ 10 -2)  "centi"  )
+     ( ?m  (^ 10 -3)  "milli"  )
+     ( ?u  (^ 10 -6)  "micro"  )
+     ( ?μ  (^ 10 -6)  "micro"  )
+     ( ?n  (^ 10 -9)  "nano"   )
+     ( ?p  (^ 10 -12) "pico"   )
+     ( ?f  (^ 10 -15) "femto"  )
+     ( ?a  (^ 10 -18) "atto"   )
      ( ?z  (^ 10 -21) "zepto"  )
-     ( ?y  (^ 10 -24) "yocto"  )))
+     ( ?y  (^ 10 -24) "yocto"  )
+     ( ?r  (^ 10 -27) "ronto"  )
+     ( ?q  (^ 10 -30) "quecto"  )
+     ))
 
 (defvar math-standard-units-systems
   '( ( base  nil )
@@ -406,7 +411,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 If EXPR is nil, return nil."
   (if expr
       (let ((cexpr (math-compose-expr expr 0)))
-        (replace-regexp-in-string
+        (string-replace
          " / " "/"
          (if (stringp cexpr)
              cexpr
@@ -486,18 +491,13 @@ If COMP or STD is non-nil, put that in the units table instead."
      (setq defunits (math-get-default-units expr))
      (unless new-units
        (setq new-units
-             (read-string (concat
+             (read-string (format-prompt
                            (if (and uoldname (not nouold))
                                (concat "Old units: "
                                        uoldname
                                        ", new units")
                              "New units")
-                           (if defunits
-                               (concat
-                                " (default "
-                                defunits
-                                "): ")
-                             ": "))))
+                           defunits)))
        (if (and
             (string= new-units "")
             defunits)
@@ -529,18 +529,11 @@ If COMP or STD is non-nil, put that in the units table instead."
   (calc-slow-wrapper
    (let* ((expr (calc-top-n 1)))
      (unless (math-units-in-expr-p expr t)
-       (error "No units in expression."))
+       (error "No units in expression"))
      (let* ((old-units (math-extract-units expr))
             (defunits (math-get-default-units expr))
             units
-            (new-units
-             (read-string (concat "New units"
-                                  (if defunits
-                                     (concat
-                                      " (default "
-                                      defunits
-                                      "): ")
-                                   ": ")))))
+            (new-units (read-string (format-prompt "New units" defunits))))
        (if (and
             (string= new-units "")
             defunits)
@@ -596,19 +589,14 @@ If COMP or STD is non-nil, put that in the units table instead."
 	 (setq expr (math-mul expr uold)))
      (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
-                    (completing-read
-                     (concat
-                      (if uoldname
-                          (concat "Old temperature units: "
-                                  uoldname
-                                  ", new units")
-                        "New temperature units")
-                      (if defunits
-                          (concat " (default "
-                                  defunits
-                                  "): ")
-                        ": "))
-                     tempunits)))
+                    (completing-read (format-prompt
+                                      (if uoldname
+                                          (concat "Old temperature units: "
+                                                  uoldname
+                                                  ", new units")
+                                        "New temperature units")
+                                      defunits)
+                                     tempunits)))
      (setq unew (math-read-expr (if (string= unew "") defunits unew)))
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))
@@ -860,23 +848,22 @@ If COMP or STD is non-nil, put that in the units table instead."
 	     tab)
 	(message "Building units table...")
 	(setq math-units-table-buffer-valid nil)
-	(setq tab (mapcar (function
-			   (lambda (x)
-			     (list (car x)
-				   (and (nth 1 x)
-					(if (stringp (nth 1 x))
-					    (let ((exp (math-read-plain-expr
-							(nth 1 x))))
-					      (if (eq (car-safe exp) 'error)
-						  (error "Format error in definition of %s in units table: %s"
-							 (car x) (nth 2 exp))
-						exp))
-					  (nth 1 x)))
-				   (nth 2 x)
-				   (nth 3 x)
-				   (and (not (nth 1 x))
-					(list (cons (car x) 1)))
-                                   (nth 4 x))))
+        (setq tab (mapcar (lambda (x)
+                            (list (car x)
+                                  (and (nth 1 x)
+                                       (if (stringp (nth 1 x))
+                                           (let ((exp (math-read-plain-expr
+                                                       (nth 1 x))))
+                                             (if (eq (car-safe exp) 'error)
+                                                 (error "Format error in definition of %s in units table: %s"
+                                                        (car x) (nth 2 exp))
+                                               exp))
+                                         (nth 1 x)))
+                                  (nth 2 x)
+                                  (nth 3 x)
+                                  (and (not (nth 1 x))
+                                       (list (cons (car x) 1)))
+                                  (nth 4 x)))
 			  combined-units))
 	(let ((math-units-table tab))
 	  (mapc #'math-find-base-units tab))
@@ -1100,10 +1087,9 @@ If COMP or STD is non-nil, put that in the units table instead."
 	       (setq math-decompose-units-cache
 		     (cons entry
 			   (sort ulist
-				 (function
-				  (lambda (x y)
-				    (not (Math-lessp (nth 1 x)
-						     (nth 1 y))))))))))
+                                 (lambda (x y)
+                                   (not (Math-lessp (nth 1 x)
+                                                    (nth 1 y)))))))))
 	 (cdr math-decompose-units-cache))))
 
 (defun math-decompose-unit-part (unit)
@@ -2159,7 +2145,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
    (calc-unary-op "midi" 'calcFunc-midi arg)))
 
 (defun calc-spn (arg)
-  "Return the scientific pitch notation corresponding to the expression on the stack."
+  "Return scientific pitch notation corresponding to the expression on the stack."
   (interactive "P")
   (calc-slow-wrapper
    (calc-unary-op "spn" 'calcFunc-spn arg)))

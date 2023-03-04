@@ -1,6 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -24,16 +24,16 @@
 ;;; Commentary:
 
 ;; This mode was written by Eric S. Raymond <esr@snark.thyrsus.com>,
-;; inspired by an earlier asm-mode by Martin Neitzel.
+;; inspired by an earlier `asm-mode' by Martin Neitzel.
 
-;; This major mode is based on prog mode.  It defines a private abbrev table
-;; that can be used to save abbrevs for assembler mnemonics.  It binds just
-;; five keys:
+;; This major mode is based on `prog-mode'.  It defines a private
+;; abbrev table that can be used to save abbrevs for assembler
+;; mnemonics.  It binds just five keys:
 ;;
 ;;	TAB		tab to next tab stop
 ;;	:		outdent preceding label, tab to tab stop
 ;;	comment char	place or move comment
-;;			asm-comment-char specifies which character this is;
+;;			`asm-comment-char' specifies which character this is;
 ;;			you can use a different character in different
 ;;			Asm mode buffers.
 ;;	C-j, C-m	newline and tab to tab stop
@@ -41,9 +41,9 @@
 ;; Code is indented to the first tab stop level.
 
 ;; This mode runs two hooks:
-;;   1) An asm-mode-set-comment-hook before the part of the initialization
-;; depending on asm-comment-char, and
-;;   2) an asm-mode-hook at the end of initialization.
+;;   1) `asm-mode-set-comment-hook' before the part of the initialization
+;;      depending on `asm-comment-char', and
+;;   2) `asm-mode-hook' at the end of initialization.
 
 ;;; Code:
 
@@ -68,23 +68,21 @@
   "Abbrev table used while in Asm mode.")
 (define-abbrev-table 'asm-mode-abbrev-table ())
 
-(defvar asm-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Note that the comment character isn't set up until asm-mode is called.
-    (define-key map ":"		'asm-colon)
-    (define-key map "\C-c;"	'comment-region)
-    (define-key map [menu-bar asm-mode] (cons "Asm" (make-sparse-keymap)))
-    (define-key map [menu-bar asm-mode comment-region]
-      '(menu-item "Comment Region" comment-region
-		  :help "Comment or uncomment each line in the region"))
-    (define-key map [menu-bar asm-mode newline-and-indent]
-      '(menu-item "Insert Newline and Indent" newline-and-indent
-		  :help "Insert a newline, then indent according to major mode"))
-    (define-key map [menu-bar asm-mode asm-colon]
-      '(menu-item "Insert Colon" asm-colon
-		  :help "Insert a colon; if it follows a label, delete the label's indentation"))
-    map)
-  "Keymap for Asm mode.")
+(defvar-keymap asm-mode-map
+  :doc "Keymap for Asm mode."
+  ;; Note that the comment character isn't set up until asm-mode is called.
+  ":"     #'asm-colon
+  "C-c ;" #'comment-region)
+
+(easy-menu-define asm-mode-menu asm-mode-map
+  "Menu for Asm mode."
+  '("Asm"
+    ["Insert Colon" asm-colon
+     :help "Insert a colon; if it follows a label, delete the label's indentation"]
+    ["Insert Newline and Indent" newline-and-indent
+     :help "Insert a newline, then indent according to major mode"]
+    ["Comment Region" comment-region
+     :help "Comment or uncomment each line in the region"]))
 
 (defconst asm-font-lock-keywords
   (append
@@ -130,7 +128,7 @@ Special commands:
   (setq-local tab-always-indent nil)
 
   (run-hooks 'asm-mode-set-comment-hook)
-  ;; Make our own local child of asm-mode-map
+  ;; Make our own local child of `asm-mode-map'
   ;; so we can define our own comment character.
   (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
   (local-set-key (vector asm-comment-char) #'asm-comment)
@@ -141,8 +139,7 @@ Special commands:
   (setq-local comment-add 1)
   (setq-local comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
-  (setq-local comment-end "")
-  (setq fill-prefix "\t"))
+  (setq-local comment-end ""))
 
 (defun asm-indent-line ()
   "Auto-indent the current line."
@@ -212,7 +209,7 @@ repeatedly until you are satisfied with the kind of comment."
     (indent-according-to-mode)
     (insert asm-comment-char asm-comment-char ?\ ))
 
-   ;; Nonblank line w/o comment => start a comment at comment-column.
+   ;; Nonblank line without comment => start a comment at comment-column.
    ;; Also: point before the comment => jump inside.
    ((or (null comment) (< (point) comment))
     (indent-for-comment))

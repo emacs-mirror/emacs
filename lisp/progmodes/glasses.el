@@ -1,6 +1,6 @@
-;;; glasses.el --- make cantReadThis readable
+;;; glasses.el --- make cantReadThis readable  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Keywords: tools
@@ -66,7 +66,6 @@ defined by `glasses-original-separator'.  If you don't want to add missing
 separators, set `glasses-separator' to an empty string.  If you don't want to
 replace existent separators, set `glasses-original-separator' to an empty
 string."
-  :group 'glasses
   :type 'string
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -78,7 +77,6 @@ For instance, if you set it to \"_\" and set `glasses-separator' to \"-\",
 underscore separators are displayed as hyphens.
 If `glasses-original-separator' is an empty string, no such display change is
 performed."
-  :group 'glasses
   :type 'string
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default
@@ -86,13 +84,22 @@ performed."
 
 
 (defcustom glasses-face nil
-  "Face to be put on capitals of an identifier looked through glasses.
-If it is nil, no face is placed at the capitalized letter.
+  "Face to use for capital letters of identifiers where separators were added.
+If it is nil, the capital letters will display with their usual faces.
 
 For example, you can set `glasses-separator' to an empty string and
 `glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
-but will have their capitals in bold."
-  :group 'glasses
+but will have their capitals in bold.
+
+As another example, you may wish to have a clear visual indication of
+where the `glasses-separator' string was inserted by `glasses-mode',
+as opposed to where they are part of the original identifiers.  This
+can be useful when the program source code uses mixed CamelCase and
+normal_readable identifiers, and you want to know which underscores
+were added by this mode.  Customizing this face to something like `bold'
+will show the capital letters following the inserted `glasses-separator'
+in a distinct face.  Note that you must use `customize-variable' for
+changing the face; just assigning the value has no effect."
   :type '(choice (const :tag "None" nil) face)
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -100,7 +107,6 @@ but will have their capitals in bold."
 
 (defcustom glasses-separate-parentheses-p t
   "If non-nil, ensure space between an identifier and an opening parenthesis."
-  :group 'glasses
   :type 'boolean)
 
 (defcustom glasses-separate-parentheses-exceptions
@@ -108,7 +114,6 @@ but will have their capitals in bold."
   "List of regexp that are exceptions for `glasses-separate-parentheses-p'.
 They are matched to the current line truncated to the point where the
 parenthesis expression starts."
-  :group 'glasses
   :type '(repeat regexp))
 
 (defcustom glasses-separate-capital-groups t
@@ -116,7 +121,6 @@ parenthesis expression starts."
 When the value is non-nil, HTMLSomething and IPv6 are displayed
 as HTML_Something and I_Pv6 respectively.  Set the value to nil
 if you prefer to display them unchanged."
-  :group 'glasses
   :type 'boolean
   :version "24.1")
 
@@ -124,7 +128,6 @@ if you prefer to display them unchanged."
   "If non-nil, downcase embedded capital letters in identifiers.
 Only identifiers starting with lower case letters are affected, letters inside
 other identifiers are unchanged."
-  :group 'glasses
   :type 'boolean
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -135,7 +138,6 @@ other identifiers are unchanged."
 Only words starting with this regexp are uncapitalized.
 The regexp is case sensitive.
 It has any effect only when `glasses-uncapitalize-p' is non-nil."
-  :group 'glasses
   :type 'regexp
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -149,7 +151,6 @@ file write then.
 
 Note the removal action does not try to be much clever, so it can remove real
 separators too."
-  :group 'glasses
   :type 'boolean)
 
 
@@ -252,7 +253,8 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
 	  (while (re-search-forward "[a-zA-Z]_*\\((\\)" end t)
-	    (unless (glasses-parenthesis-exception-p (point-at-bol) (match-end 1))
+            (unless (glasses-parenthesis-exception-p (line-beginning-position)
+                                                     (match-end 1))
 	      (glasses-make-overlay (match-beginning 1) (match-end 1)
 				    'glasses-parenthesis))))))))
 
@@ -291,7 +293,8 @@ recognized according to the current value of the variable `glasses-separator'."
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)(" nil t)
-	    (unless (glasses-parenthesis-exception-p (point-at-bol) (1+ (match-end 1)))
+            (unless (glasses-parenthesis-exception-p (line-beginning-position)
+                                                     (1+ (match-end 1)))
 	      (replace-match "" t nil nil 1)))))))
   ;; nil must be returned to allow use in write file hooks
   nil)
@@ -330,10 +333,6 @@ separators (like underscores) at places they belong to."
 	(remove-hook 'write-file-functions
 		     'glasses-convert-to-unreadable t)))))
 
-
-;;; Announce
-
 (provide 'glasses)
-
 
 ;;; glasses.el ends here

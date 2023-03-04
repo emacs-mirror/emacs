@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2020 Free Software
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2023 Free Software
 ## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -279,7 +279,7 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
    dispextern.h lisp.h globals.h $(config_h) coding.h composite.h xterm.h \
    msdos.h
 floatfns.o: floatfns.c syssignal.h lisp.h globals.h $(config_h)
-fns.o: fns.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
+fns.o: fns.c sort.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
    keyboard.h keymap.h window.h $(INTERVALS_H) coding.h ../lib/md5.h \
    ../lib/sha1.h ../lib/sha256.h ../lib/sha512.h blockinput.h atimer.h \
    systime.h xterm.h ../lib/unistd.h globals.h

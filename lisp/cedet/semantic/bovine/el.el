@@ -1,6 +1,6 @@
-;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp
+;;; semantic/bovine/el.el --- Semantic details for Emacs Lisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -169,10 +169,10 @@ where:
 - FORM is an Elisp form read from the current buffer.
 - START and END are the beginning and end location of the
   corresponding data in the current buffer."
+  (declare (indent 1))
   (let ((sym (make-symbol "sym")))
     `(dolist (,sym ',symbols)
        (put ,sym 'semantic-elisp-form-parser #',parser))))
-(put 'semantic-elisp-setup-form-parser 'lisp-indent-function 1)
 
 (defmacro semantic-elisp-reuse-form-parser (symbol &rest symbols)
   "Reuse the form parser of SYMBOL for forms identified by SYMBOLS.
@@ -210,7 +210,7 @@ Return a bovination list to use."
 ;;; Form parsers
 ;;
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-function
        (symbol-name (nth 2 form))
        nil
@@ -234,7 +234,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-function
        (symbol-name (nth 1 form))
        nil
@@ -256,7 +256,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((doc (semantic-elisp-form-to-doc-string (nth 3 form))))
         (semantic-tag-new-variable
          (symbol-name (nth 1 form))
@@ -274,7 +274,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((doc (semantic-elisp-form-to-doc-string (nth 3 form))))
         (semantic-tag-new-variable
          (symbol-name (nth 1 form))
@@ -290,7 +290,7 @@ Return a bovination list to use."
 
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((doc (semantic-elisp-form-to-doc-string (nth 3 form))))
         (semantic-tag-new-variable
          (symbol-name (nth 1 form))
@@ -307,7 +307,7 @@ Return a bovination list to use."
 
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((doc (semantic-elisp-form-to-doc-string (nth 3 form))))
         (semantic-tag
          (symbol-name (nth 1 form))
@@ -321,7 +321,7 @@ Return a bovination list to use."
 
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-function
        (symbol-name (cadr (cadr form)))
        nil nil
@@ -333,7 +333,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let* ((a2 (nth 2 form))
              (a3 (nth 3 form))
              (args (if (listp a2) a2 a3))
@@ -353,7 +353,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-function
        (symbol-name (nth 1 form))
        nil
@@ -363,7 +363,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((docpart (nthcdr 4 form)))
 	(semantic-tag-new-type
 	 (symbol-name (nth 1 form))
@@ -381,7 +381,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((slots (nthcdr 2 form)))
         ;; Skip doc string if present.
         (and (stringp (car slots))
@@ -399,7 +399,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-function
        (symbol-name (nth 1 form))
        nil nil
@@ -410,7 +410,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((args (nth 3 form)))
 	(semantic-tag-new-function
 	 (symbol-name (nth 1 form))
@@ -420,12 +420,11 @@ Return a bovination list to use."
 	 :parent (symbol-name (nth 2 form))
 	 :documentation (semantic-elisp-do-doc (nth 4 form))
 	 )))
-  define-mode-overload-implementation ;; obsoleted
   define-mode-local-override
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (semantic-tag-new-variable
        (symbol-name (nth 2 form))
        nil
@@ -438,7 +437,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((name (nth 1 form)))
         (semantic-tag-new-include
          (symbol-name (if (eq (car-safe name) 'quote)
@@ -450,7 +449,7 @@ Return a bovination list to use."
   )
 
 (semantic-elisp-setup-form-parser
-    (lambda (form start end)
+    (lambda (form _start _end)
       (let ((name (nth 1 form)))
         (semantic-tag-new-package
          (symbol-name (if (eq (car-safe name) 'quote)
@@ -465,27 +464,11 @@ Return a bovination list to use."
 (define-mode-local-override semantic-dependency-tag-file
   emacs-lisp-mode (tag)
   "Find the file BUFFER depends on described by TAG."
-  (if (fboundp 'find-library-name)
-      (condition-case nil
-	  ;; Try an Emacs 22 fcn.  This throws errors.
-	  (find-library-name (semantic-tag-name tag))
-	(error
-	 (message "semantic: cannot find source file %s"
-		  (semantic-tag-name tag))))
-    ;; No handy function available.  (Older Emacsen)
-    (let* ((lib (locate-library (semantic-tag-name tag)))
-	   (name (if lib (file-name-sans-extension lib) nil))
-	   (nameel (concat name ".el")))
-      (cond
-       ((and name (file-exists-p nameel)) nameel)
-       ((and name (file-exists-p (concat name ".el.gz")))
-	;; This is the linux distro case.
-	(concat name ".el.gz"))
-       ;; Source file does not exist.
-       (name
-	(message "semantic: cannot find source file %s" (concat name ".el")))
-       (t
-	nil)))))
+  (condition-case nil
+      (find-library-name (semantic-tag-name tag))
+    (error
+     (message "semantic: cannot find source file %s"
+              (semantic-tag-name tag)))))
 
 ;;; DOC Strings
 ;;
@@ -517,7 +500,7 @@ into Emacs Lisp's memory."
 	""))))
 
 (define-mode-local-override semantic-documentation-for-tag
-  emacs-lisp-mode (tag &optional nosnarf)
+  emacs-lisp-mode (tag &optional _nosnarf)
   "Return the documentation string for TAG.
 Optional argument NOSNARF is ignored."
   (let ((d (semantic-tag-docstring tag)))
@@ -594,7 +577,7 @@ Override function for `semantic-tag-protection'."
      ((string= prot "protected") 'protected))))
 
 (define-mode-local-override semantic-tag-static-p
-  emacs-lisp-mode (tag &optional parent)
+  emacs-lisp-mode (tag &optional _parent)
   "Return non-nil if TAG is static in PARENT class.
 Overrides `semantic-nonterminal-static'."
   ;; This can only be true (theoretically) in a class where it is assigned.
@@ -602,10 +585,10 @@ Overrides `semantic-nonterminal-static'."
 
 ;;; Context parsing
 ;;
-;; Emacs lisp is very different from C,C++ which most context parsing
+;; Emacs Lisp is very different from C,C++ which most context parsing
 ;; functions are written.  Support them here.
 (define-mode-local-override semantic-up-context emacs-lisp-mode
-  (&optional point bounds-type)
+  (&optional _point _bounds-type)
   "Move up one context in an Emacs Lisp function.
 A Context in many languages is a block with its own local variables.
 In Emacs, we will move up lists and stop when one starts with one of
@@ -650,7 +633,7 @@ define-mode-overload\\)\
 		 ))
 	(when fun
 	  ;; Do not return FUN IFF the cursor is on FUN.
-	  ;; Huh?  Thats because if cursor is on fun, it is
+	  ;; Huh?  That's because if cursor is on fun, it is
 	  ;; the current symbol, and not the current function.
 	  (if (save-excursion
 		(condition-case nil
@@ -669,7 +652,7 @@ define-mode-overload\\)\
 
 
 (define-mode-local-override semantic-get-local-variables emacs-lisp-mode
-  (&optional point)
+  (&optional _point)
   "Return a list of local variables for POINT.
 Scan backwards from point at each successive function.  For all occurrences
 of `let' or `let*', grab those variable names."
@@ -957,7 +940,7 @@ ELisp variables can be pretty long, so track this one too.")
   ;; loaded into Emacs.
   )
 
-(add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
+(add-hook 'emacs-lisp-mode-hook #'semantic-default-elisp-setup)
 
 ;;; LISP MODE
 ;;
@@ -967,7 +950,7 @@ ELisp variables can be pretty long, so track this one too.")
 ;; See this syntax:
 ;; (defun foo () /#A)
 ;;
-(add-hook 'lisp-mode-hook 'semantic-default-elisp-setup)
+(add-hook 'lisp-mode-hook #'semantic-default-elisp-setup)
 
 (eval-after-load "semantic/db"
   '(require 'semantic/db-el)

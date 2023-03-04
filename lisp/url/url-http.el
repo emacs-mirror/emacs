@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -36,6 +36,7 @@
 (defvar url-current-object)
 (defvar url-http-after-change-function)
 (defvar url-http-chunked-counter)
+(defvar url-http-chunked-last-crlf-missing)
 (defvar url-http-chunked-length)
 (defvar url-http-chunked-start)
 (defvar url-http-connection-opened)
@@ -66,7 +67,7 @@
 
 (defconst url-http-default-port 80 "Default HTTP port.")
 (defconst url-http-asynchronous-p t "HTTP retrievals are asynchronous.")
-(defalias 'url-http-expand-file-name 'url-default-expander)
+(defalias 'url-http-expand-file-name #'url-default-expander)
 
 (defvar url-http-real-basic-auth-storage nil)
 (defvar url-http-proxy-basic-auth-storage nil)
@@ -150,7 +151,7 @@ request.")
 ;; These routines will allow us to implement persistent HTTP
 ;; connections.
 (defsubst url-http-debug (&rest args)
-  (apply 'url-debug 'http args))
+  (apply #'url-debug 'http args))
 
 (defun url-http-mark-connection-as-busy (host port proc)
   (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
@@ -225,7 +226,7 @@ request.")
         (os-info (unless (and (listp url-privacy-level)
                               (memq 'os url-privacy-level))
                    (format "(%s; %s)" url-system-type url-os-type)))
-        (url-info (format "URL/Emacs")))
+        (url-info "URL/Emacs"))
     (string-join (delq nil (list package-info url-info
                                  emacs-info os-info))
                  " ")))
@@ -332,7 +333,10 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
               (if (and using-proxy
                        ;; Bug#35969.
                        (not (equal "https" (url-type url-http-target-url))))
-                  (url-recreate-url url-http-target-url) real-fname))
+                  (let ((url (copy-sequence url-http-target-url)))
+                    (setf (url-host url) (puny-encode-domain (url-host url)))
+                    (url-recreate-url url))
+                real-fname))
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
              "MIME-Version: 1.0\r\n"
@@ -461,52 +465,52 @@ Return the number of characters removed."
     ;; headers, then this means that we've already tried sending
     ;; credentials to the server, and they were wrong, so just give
     ;; up.
-    (when (assoc "Authorization" url-http-extra-headers)
-      (error "Wrong authorization used for %s" url))
+    (let ((authorization (assoc "Authorization" url-http-extra-headers)))
+      (if (and authorization
+               (not (string-match "^NTLM " (cdr authorization)))) ;Bug#43566
+          t ;; Instruct caller to signal an error.  Bug#50511
+        ;; Find strongest supported auth.
+        (dolist (this-auth auths)
+          (setq this-auth (string-trim this-auth))
+          (let* ((this-type
+                  (downcase (if (string-match "[ \t]" this-auth)
+                                (substring this-auth 0 (match-beginning 0))
+                              this-auth)))
+                 (registered (url-auth-registered this-type))
+                 (this-strength (cddr registered)))
+            (when (and registered (> this-strength strength))
+              (setq auth this-auth
+                    type this-type
+                    strength this-strength))))
 
-    ;; find strongest supported auth
-    (dolist (this-auth auths)
-      (setq this-auth (url-eat-trailing-space
-		       (url-strip-leading-spaces
-			this-auth)))
-      (let* ((this-type
-	      (downcase (if (string-match "[ \t]" this-auth)
-                            (substring this-auth 0 (match-beginning 0))
-                          this-auth)))
-	     (registered (url-auth-registered this-type))
-	     (this-strength (cddr registered)))
-	(when (and registered (> this-strength strength))
-	  (setq auth this-auth
-		type this-type
-		strength this-strength))))
+        (if (not (url-auth-registered type))
+            (progn
+              (widen)
+              (goto-char (point-max))
+              (insert "<hr>Sorry, but I do not know how to handle "
+                      (or type auth url "")
+                      " authentication.  If you'd like to write it,"
+                      " please use M-x report-emacs-bug RET.<hr>")
+              ;; We used to set a `status' var (declared "special") but I can't
+              ;; find the corresponding let-binding, so it's probably an error.
+              ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
+              ;; (setq status t)
+              nil) ;; Not success yet.
 
-    (if (not (url-auth-registered type))
-	(progn
-	  (widen)
-	  (goto-char (point-max))
-	  (insert "<hr>Sorry, but I do not know how to handle " (or type auth url "")
-		  " authentication.  If you'd like to write it,"
-		  " please use M-x report-emacs-bug RET.<hr>")
-          ;; We used to set a `status' var (declared "special") but I can't
-          ;; find the corresponding let-binding, so it's probably an error.
-          ;; FIXME: Maybe it was supposed to set `success', i.e. to return t?
-          ;; (setq status t)
-          nil) ;; Not success yet.
-
-      (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
-	     (auth (url-get-authentication auth-url
-					   (cdr-safe (assoc "realm" args))
-					   type t args)))
-	(if (not auth)
-            t                           ;Success.
-	  (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
-		url-http-extra-headers)
-	  (let ((url-request-method url-http-method)
-		(url-request-data url-http-data)
-		(url-request-extra-headers url-http-extra-headers))
-	    (url-retrieve-internal url url-callback-function
-				   url-callback-arguments))
-          nil))))) ;; Not success yet.
+          (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
+                 (auth (url-get-authentication auth-url
+                                               (cdr-safe (assoc "realm" args))
+                                               type t args)))
+            (if (not auth)
+                t                           ;Success.
+              (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
+                    url-http-extra-headers)
+              (let ((url-request-method url-http-method)
+                    (url-request-data url-http-data)
+                    (url-request-extra-headers url-http-extra-headers))
+                (url-retrieve-internal url url-callback-function
+                                       url-callback-arguments))
+              nil))))))) ;; Not success yet.
 
 (defun url-http-parse-response ()
   "Parse just the response code."
@@ -583,6 +587,13 @@ should be shown to the user."
   (url-http-debug "url-http-parse-headers called in (%s)" (buffer-name))
   (url-http-parse-response)
   (mail-narrow-to-head)
+  (when url-debug
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (url-http-debug "Response: %s"
+                        (buffer-substring (point) (line-end-position)))
+        (forward-line 1))))
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
   (let ((connection (mail-fetch-field "Connection")))
     ;; In HTTP 1.0, keep the connection only if there is a
@@ -696,21 +707,13 @@ should be shown to the user."
 	    ;; gives the URI of the proxy.  The recipient is expected
 	    ;; to repeat this single request via the proxy.  305
 	    ;; responses MUST only be generated by origin servers.
-	    (error "Redirection thru a proxy server not supported: %s"
+	    (error "Redirection through a proxy server not supported: %s"
 		   redirect-uri))
 	   (_
 	    ;; Treat everything like '300'
 	    nil))
 	 (when redirect-uri
-	   ;; Clean off any whitespace and/or <...> cruft.
-	   (if (string-match "\\([^ \t]+\\)[ \t]" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-	   (if (string-match "^<\\(.*\\)>$" redirect-uri)
-	       (setq redirect-uri (match-string 1 redirect-uri)))
-
-	   ;; Some stupid sites (like sourceforge) send a
-	   ;; non-fully-qualified URL (ie: /), which royally confuses
-	   ;; the URL library.
+	   ;; Handle relative redirect URIs.
 	   (if (not (string-match url-nonrelative-link redirect-uri))
                ;; Be careful to use the real target URL, otherwise we may
                ;; compute the redirection relative to the URL of the proxy.
@@ -749,12 +752,12 @@ should be shown to the user."
 		   ;; without changing the API.  Instead url-retrieve should
 		   ;; either simply not return the "destination" buffer, or it
 		   ;; should take an optional `dest-buf' argument.
-		   (set (make-local-variable 'url-redirect-buffer)
-			(url-retrieve-internal
-			 redirect-uri url-callback-function
-			 url-callback-arguments
-			 (url-silent url-current-object)
-			 (not (url-use-cookies url-current-object))))
+                   (setq-local url-redirect-buffer
+                               (url-retrieve-internal
+                                redirect-uri url-callback-function
+                                url-callback-arguments
+                                (url-silent url-current-object)
+                                (not (url-use-cookies url-current-object))))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
@@ -1043,19 +1046,15 @@ More sophisticated percentage downloaded, etc.
 Also does minimal parsing of HTTP headers and will actually cause
 the callback to be triggered."
   (if url-http-content-type
-      (url-display-percentage
+      (url-display-message
        "Reading [%s]... %s of %s (%d%%)"
-       (url-percentage (- nd url-http-end-of-headers)
-		       url-http-content-length)
        url-http-content-type
        (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
        (funcall byte-count-to-string-function url-http-content-length)
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length))
-    (url-display-percentage
+    (url-display-message
      "Reading... %s of %s (%d%%)"
-     (url-percentage (- nd url-http-end-of-headers)
-		     url-http-content-length)
      (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
      (funcall byte-count-to-string-function url-http-content-length)
      (url-percentage (- nd url-http-end-of-headers)
@@ -1064,7 +1063,6 @@ the callback to be triggered."
   (if (> (- nd url-http-end-of-headers) url-http-content-length)
       (progn
 	;; Found the end of the document!  Wheee!
-	(url-display-percentage nil nil)
 	(url-lazy-message "Reading... done.")
 	(if (url-http-parse-headers)
 	    (url-http-activate-callback)))))
@@ -1074,92 +1072,97 @@ the callback to be triggered."
 Cannot give a sophisticated percentage, but we need a different
 function to look for the special 0-length chunk that signifies
 the end of the document."
-  (save-excursion
-    (goto-char st)
-    (let ((read-next-chunk t)
-	  (case-fold-search t)
-	  (regexp nil)
-	  (no-initial-crlf nil))
-      ;; We need to loop thru looking for more chunks even within
-      ;; one after-change-function call.
-      (while read-next-chunk
-	(setq no-initial-crlf (= 0 url-http-chunked-counter))
-	(if url-http-content-type
-	    (url-display-percentage nil
-	     "Reading [%s]... chunk #%d"
-	     url-http-content-type url-http-chunked-counter)
-	  (url-display-percentage nil
-	   "Reading... chunk #%d"
-	   url-http-chunked-counter))
-	(url-http-debug "Reading chunk %d (%d %d %d)"
-			url-http-chunked-counter st nd length)
-	(setq regexp (if no-initial-crlf
-			 "\\([0-9a-z]+\\).*\r?\n"
-		       "\r?\n\\([0-9a-z]+\\).*\r?\n"))
+  (if url-http-chunked-last-crlf-missing
+      (progn
+        (goto-char url-http-chunked-last-crlf-missing)
+        (if (not (looking-at "\r\n"))
+	    (url-http-debug
+             "Still spinning for the terminator of last chunk...")
+          (url-http-debug "Saw the last CRLF.")
+          (delete-region (match-beginning 0) (match-end 0))
+          (when (url-http-parse-headers)
+	    (url-http-activate-callback))))
+    (save-excursion
+      (goto-char st)
+      (let ((read-next-chunk t)
+	    (case-fold-search t)
+	    (regexp nil)
+	    (no-initial-crlf nil))
+        ;; We need to loop thru looking for more chunks even within
+        ;; one after-change-function call.
+        (while read-next-chunk
+	  (setq no-initial-crlf (= 0 url-http-chunked-counter))
+	  (url-http-debug "Reading chunk %d (%d %d %d)"
+			  url-http-chunked-counter st nd length)
+	  (setq regexp (if no-initial-crlf
+			   "\\([0-9a-z]+\\).*\r?\n"
+		         "\r?\n\\([0-9a-z]+\\).*\r?\n"))
 
-	(if url-http-chunked-start
-	    ;; We know how long the chunk is supposed to be, skip over
-	    ;; leading crap if possible.
-	    (if (> nd (+ url-http-chunked-start url-http-chunked-length))
-		(progn
-		  (url-http-debug "Got to the end of chunk #%d!"
-				  url-http-chunked-counter)
-		  (goto-char (+ url-http-chunked-start
-				url-http-chunked-length)))
-	      (url-http-debug "Still need %d bytes to hit end of chunk"
-			      (- (+ url-http-chunked-start
-				    url-http-chunked-length)
-				 nd))
-	      (setq read-next-chunk nil)))
-	(if (not read-next-chunk)
-	    (url-http-debug "Still spinning for next chunk...")
-	  (if no-initial-crlf (skip-chars-forward "\r\n"))
-	  (if (not (looking-at regexp))
-	      (progn
-	        ;; Must not have received the entirety of the chunk header,
-		;; need to spin some more.
-		(url-http-debug "Did not see start of chunk @ %d!" (point))
-		(setq read-next-chunk nil))
-            ;; The data we got may have started in the middle of the
-            ;; initial chunk header, so move back to the start of the
-            ;; line and re-compute.
-            (when (= url-http-chunked-counter 0)
-              (beginning-of-line)
-              (looking-at regexp))
- 	    (add-text-properties (match-beginning 0) (match-end 0)
-				 (list 'start-open t
-				       'end-open t
-				       'chunked-encoding t
-				       'face 'cursor
-				       'invisible t))
-	    (setq url-http-chunked-length (string-to-number (buffer-substring
-                                                             (match-beginning 1)
-                                                             (match-end 1))
-                                                            16)
-		  url-http-chunked-counter (1+ url-http-chunked-counter)
-		  url-http-chunked-start (set-marker
-					  (or url-http-chunked-start
-					      (make-marker))
-					  (match-end 0)))
-	    (delete-region (match-beginning 0) (match-end 0))
-	    (url-http-debug "Saw start of chunk %d (length=%d, start=%d"
-			    url-http-chunked-counter url-http-chunked-length
-			    (marker-position url-http-chunked-start))
-	    (if (= 0 url-http-chunked-length)
-		(progn
-		  ;; Found the end of the document!  Wheee!
-		  (url-http-debug "Saw end of stream chunk!")
-		  (setq read-next-chunk nil)
-		  (url-display-percentage nil nil)
-		  ;; Every chunk, even the last 0-length one, is
-		  ;; terminated by CRLF.  Skip it.
-		  (when (looking-at "\r?\n")
-		    (url-http-debug "Removing terminator of last chunk")
-		    (delete-region (match-beginning 0) (match-end 0)))
-		  (if (re-search-forward "^\r?\n" nil t)
-		      (url-http-debug "Saw end of trailers..."))
-		  (if (url-http-parse-headers)
-		      (url-http-activate-callback))))))))))
+	  (if url-http-chunked-start
+	      ;; We know how long the chunk is supposed to be, skip over
+	      ;; leading crap if possible.
+	      (if (> nd (+ url-http-chunked-start url-http-chunked-length))
+		  (progn
+		    (url-http-debug "Got to the end of chunk #%d!"
+				    url-http-chunked-counter)
+		    (goto-char (+ url-http-chunked-start
+				  url-http-chunked-length)))
+	        (url-http-debug "Still need %d bytes to hit end of chunk"
+			        (- (+ url-http-chunked-start
+				      url-http-chunked-length)
+				   nd))
+	        (setq read-next-chunk nil)))
+	  (if (not read-next-chunk)
+	      (url-http-debug "Still spinning for next chunk...")
+	    (if no-initial-crlf (skip-chars-forward "\r\n"))
+	    (if (not (looking-at regexp))
+	        (progn
+	          ;; Must not have received the entirety of the chunk header,
+		  ;; need to spin some more.
+		  (url-http-debug "Did not see start of chunk @ %d!" (point))
+		  (setq read-next-chunk nil))
+              ;; The data we got may have started in the middle of the
+              ;; initial chunk header, so move back to the start of the
+              ;; line and re-compute.
+              (when (= url-http-chunked-counter 0)
+                (beginning-of-line)
+                (looking-at regexp))
+              (add-text-properties (match-beginning 0) (match-end 0)
+                                   (list 'chunked-encoding t
+				         'face 'cursor
+				         'invisible t))
+	      (setq url-http-chunked-length
+                    (string-to-number (buffer-substring (match-beginning 1)
+                                                        (match-end 1))
+                                      16)
+		    url-http-chunked-counter (1+ url-http-chunked-counter)
+		    url-http-chunked-start (set-marker
+					    (or url-http-chunked-start
+					        (make-marker))
+					    (match-end 0)))
+	      (delete-region (match-beginning 0) (match-end 0))
+	      (url-http-debug "Saw start of chunk %d (length=%d, start=%d"
+			      url-http-chunked-counter url-http-chunked-length
+			      (marker-position url-http-chunked-start))
+	      (if (= 0 url-http-chunked-length)
+		  (progn
+		    ;; Found the end of the document!  Wheee!
+		    (url-http-debug "Saw end of stream chunk!")
+		    (setq read-next-chunk nil)
+		    ;; Every chunk, even the last 0-length one, is
+		    ;; terminated by CRLF.  Skip it.
+		    (if (not (looking-at "\r?\n"))
+                        (progn
+	                  (url-http-debug
+                           "Spinning for the terminator of last chunk...")
+                          (setq url-http-chunked-last-crlf-missing
+                                      (point)))
+		      (url-http-debug "Removing terminator of last chunk")
+		      (delete-region (match-beginning 0) (match-end 0))
+		      (when (re-search-forward "^\r?\n" nil t)
+		        (url-http-debug "Saw end of trailers..."))
+		      (when (url-http-parse-headers)
+		        (url-http-activate-callback))))))))))))
 
 (defun url-http-wait-for-headers-change-function (_st nd _length)
   ;; This will wait for the headers to arrive and then splice in the
@@ -1213,8 +1216,7 @@ the end of the document."
 	  ;; We got back a headerless malformed response from the
 	  ;; server.
 	  (url-http-activate-callback))
-	 ((or (= url-http-response-status 204)
-	      (= url-http-response-status 205))
+	 ((memq url-http-response-status '(204 205))
 	  (url-http-debug "%d response must have headers only (%s)."
 			  url-http-response-status (buffer-name))
 	  (when (url-http-parse-headers)
@@ -1249,11 +1251,11 @@ the end of the document."
 	  (url-http-debug
 	   "Saw HTTP/0.9 response, connection closed means end of document.")
 	  (setq url-http-after-change-function
-		'url-http-simple-after-change-function))
+		#'url-http-simple-after-change-function))
 	 ((equal url-http-transfer-encoding "chunked")
 	  (url-http-debug "Saw chunked encoding.")
 	  (setq url-http-after-change-function
-		'url-http-chunked-encoding-after-change-function)
+		#'url-http-chunked-encoding-after-change-function)
 	  (when (> nd url-http-end-of-headers)
 	    (url-http-debug
 	     "Calling initial chunked-encoding for extra data at end of headers")
@@ -1264,7 +1266,7 @@ the end of the document."
 	  (url-http-debug
 	   "Got a content-length, being smart about document end.")
 	  (setq url-http-after-change-function
-		'url-http-content-length-after-change-function)
+		#'url-http-content-length-after-change-function)
 	  (cond
 	   ((= 0 url-http-content-length)
 	    ;; We got a NULL body!  Activate the callback
@@ -1285,7 +1287,7 @@ the end of the document."
 	 (t
 	  (url-http-debug "No content-length, being dumb.")
 	  (setq url-http-after-change-function
-		'url-http-simple-after-change-function)))))
+		#'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
     (url-http-debug "Spinning waiting for headers...")
@@ -1301,7 +1303,7 @@ passing it an updated value of CBARGS as arguments.  The first
 element in CBARGS should be a plist describing what has happened
 so far during the request, as described in the docstring of
 `url-retrieve' (if in doubt, specify nil).  The current buffer
-then CALLBACK is executed is the retrieval buffer.
+when CALLBACK is executed is the retrieval buffer.
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted.
@@ -1313,9 +1315,7 @@ The return value of this function is the retrieval buffer."
   (cl-check-type url url "Need a pre-parsed URL.")
   (let* (;; (host (url-host (or url-using-proxy url)))
 	 ;; (port (url-port (or url-using-proxy url)))
-	 (nsm-noninteractive (or url-request-noninteractive
-				 (and (boundp 'url-http-noninteractive)
-				      url-http-noninteractive)))
+	 (nsm-noninteractive (not (url-interactive-p)))
          ;; The following binding is needed in url-open-stream, which
          ;; is called from url-http-find-free-connection.
          (url-current-object url)
@@ -1346,6 +1346,7 @@ The return value of this function is the retrieval buffer."
 		       url-http-after-change-function
 		       url-http-response-version
 		       url-http-response-status
+                       url-http-chunked-last-crlf-missing
 		       url-http-chunked-length
 		       url-http-chunked-counter
 		       url-http-chunked-start
@@ -1370,6 +1371,7 @@ The return value of this function is the retrieval buffer."
 	      url-http-noninteractive url-request-noninteractive
 	      url-http-data url-request-data
 	      url-http-process connection
+              url-http-chunked-last-crlf-missing nil
 	      url-http-chunked-length nil
 	      url-http-chunked-start nil
 	      url-http-chunked-counter 0
@@ -1384,7 +1386,7 @@ The return value of this function is the retrieval buffer."
               url-http-referer referer)
 
 	(set-process-buffer connection buffer)
-	(set-process-filter connection 'url-http-generic-filter)
+	(set-process-filter connection #'url-http-generic-filter)
 	(pcase (process-status connection)
           ('connect
            ;; Asynchronous connection
@@ -1398,19 +1400,28 @@ The return value of this function is the retrieval buffer."
                                             (url-type url-current-object)))
                (url-https-proxy-connect connection)
              (set-process-sentinel connection
-                                   'url-http-end-of-document-sentinel)
+                                   #'url-http-end-of-document-sentinel)
              (process-send-string connection (url-http-create-request)))))))
     buffer))
 
 (defun url-https-proxy-connect (connection)
-  (setq url-http-after-change-function 'url-https-proxy-after-change-function)
-  (process-send-string connection (format (concat "CONNECT %s:%d HTTP/1.1\r\n"
-                                                  "Host: %s\r\n"
-                                                  "\r\n")
-                                          (url-host url-current-object)
-                                          (or (url-port url-current-object)
-                                              url-https-default-port)
-                                          (url-host url-current-object))))
+  (setq url-http-after-change-function #'url-https-proxy-after-change-function)
+  (process-send-string
+   connection
+   (format
+    (concat "CONNECT %s:%d HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            (let ((proxy-auth (let ((url-basic-auth-storage
+                                     'url-http-proxy-basic-auth-storage))
+                                (url-get-authentication url-http-proxy nil
+                                                        'any nil))))
+              (and proxy-auth
+                   (concat "Proxy-Authorization: " proxy-auth "\r\n")))
+            "\r\n")
+    (puny-encode-domain (url-host url-current-object))
+    (or (url-port url-current-object)
+        url-https-default-port)
+    (puny-encode-domain (url-host url-current-object)))))
 
 (defun url-https-proxy-after-change-function (_st _nd _length)
   (let* ((process-buffer (current-buffer))
@@ -1432,17 +1443,17 @@ The return value of this function is the retrieval buffer."
             (condition-case e
                 (let ((tls-connection (gnutls-negotiate
                                        :process proc
-                                       :hostname (url-host url-current-object)
+                                       :hostname (puny-encode-domain (url-host url-current-object))
                                        :verify-error nil)))
                   ;; check certificate validity
                   (setq tls-connection
                         (nsm-verify-connection tls-connection
-                                               (url-host url-current-object)
+                                               (puny-encode-domain (url-host url-current-object))
                                                (url-port url-current-object)))
                   (with-current-buffer process-buffer (erase-buffer))
                   (set-process-buffer tls-connection process-buffer)
                   (setq url-http-after-change-function
-                        'url-http-wait-for-headers-change-function)
+                        #'url-http-wait-for-headers-change-function)
                   (set-process-filter tls-connection 'url-http-generic-filter)
                   (process-send-string tls-connection
                                        (url-http-create-request)))
@@ -1451,8 +1462,8 @@ The return value of this function is the retrieval buffer."
                (error "gnutls-error: %s" e))
               (error
                (url-http-activate-callback)
-               (error "error: %s" e)))
-          (error "error: gnutls support needed!")))
+               (error "Error: %s" e)))
+          (error "Error: gnutls support needed!")))
        (t
         (url-http-debug "error response: %d" url-http-response-status)
         (url-http-activate-callback))))))
@@ -1494,24 +1505,25 @@ The return value of this function is the retrieval buffer."
   ;; Sometimes we get a zero-length data chunk after the process has
   ;; been changed to 'free', which means it has no buffer associated
   ;; with it.  Do nothing if there is no buffer, or 0 length data.
-  (and (process-buffer proc)
-       (/= (length data) 0)
-       (with-current-buffer (process-buffer proc)
-	 (url-http-debug "Calling after change function `%s' for `%S'" url-http-after-change-function proc)
-	 (funcall url-http-after-change-function
-		  (point-max)
-		  (progn
-		    (goto-char (point-max))
-		    (insert data)
-		    (point-max))
-		  (length data)))))
+  (let ((b (process-buffer proc)))
+    (when (and (buffer-live-p b) (not (zerop (length data))))
+      (with-current-buffer b
+        (url-http-debug "Calling after change function `%s' for `%S'"
+                        url-http-after-change-function proc)
+        (funcall url-http-after-change-function
+                 (point-max)
+                 (progn
+                   (goto-char (point-max))
+                   (insert data)
+                   (point-max))
+                 (length data))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; file-name-handler stuff from here on out
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defalias 'url-http-symbol-value-in-buffer
   (if (fboundp 'symbol-value-in-buffer)
-      'symbol-value-in-buffer
+      #'symbol-value-in-buffer
     (lambda (symbol buffer &optional unbound-value)
       "Return the value of SYMBOL in BUFFER, or UNBOUND-VALUE if it is unbound."
       (with-current-buffer buffer

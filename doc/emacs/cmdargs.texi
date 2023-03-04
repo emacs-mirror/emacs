@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -185,6 +185,11 @@ successfully.
 @item --version
 @opindex --version
 Print Emacs version, then exit successfully.
+
+@item --fingerprint
+@opindex --fingerprint
+Print the Emacs ``fingerprint'', which is used to uniquely identify
+the compiled version of Emacs.
 @end table
 
 @node Initial Options
@@ -266,6 +271,11 @@ disables auto-saving except in buffers for which auto-saving is
 explicitly requested, and when saving files it omits the @code{fsync}
 system call unless otherwise requested.
 
+@vindex backtrace-on-error-noninteractive
+Errors that occur when running a @samp{--batch} Emacs will result in
+an Emacs Lisp backtrace being printed.  To disable this behavior, set
+@code{backtrace-on-error-noninteractive} to @code{nil}.
+
 @item --script @var{file}
 @opindex --script
 @cindex script mode
@@ -283,6 +293,22 @@ Emacs.  They can start with this text on the first line
 which will invoke Emacs with @samp{--script} and supply the name of
 the script file as @var{file}.  Emacs Lisp then treats the @samp{#!}
 on this first line as a comment delimiter.
+
+@item -x
+@opindex -x
+This option can only be used in executable script files, and should be
+invoked like this:
+
+@example
+#!/usr/bin/emacs -x
+@end example
+
+This is like @samp{--script}, but suppresses loading the init files
+(like @code{--quick}), and can't be used on a normal command line
+(since it doesn't specify the script to load).  In addition, when it
+reaches the end of the script, it exits Emacs and uses the value of
+the final form as the exit value from the script (if the final value
+is numerical).  Otherwise, it will always exit with a zero value.
 
 @item --no-build-details
 @opindex --no-build-details
@@ -319,6 +345,10 @@ option does this too, but other options like @samp{-q} do not.
 Do not include the @file{site-lisp} directories in @code{load-path}
 (@pxref{Init File}).  The @samp{-Q} option does this too.
 
+@item --init-directory
+@opindex --init-directory
+Specify the directory to use when looking for the Emacs init files.
+
 @item --no-splash
 @opindex --no-splash
 @cindex splash screen
@@ -340,7 +370,7 @@ initialization file (@pxref{Resources}).
 @opindex --quick
 Start Emacs with minimum customizations.  This is similar to using
 @samp{-q}, @samp{--no-site-file}, @samp{--no-site-lisp},
-@samp{--no-x-resources}, and @samp{--no-splash} together..
+@samp{--no-x-resources}, and @samp{--no-splash} together.
 
 @item -daemon
 @opindex -daemon
@@ -495,7 +525,14 @@ variables to be set, but it uses their values if they are set.
 @item CDPATH
 @vindex CDPATH@r{, environment variable}
 Used by the @code{cd} command to search for the directory you specify,
-when you specify a relative directory,
+when you specify a relative directory.
+@item COLORTERM
+@vindex COLORTERM@r{, environment variable}
+If this variable is set to the value @samp{truecolor}, it tells Emacs
+to use 24-bit true color on text-mode displays even if the terminfo
+database is not installed.  Emacs will use built-in commands to
+request true color by RGB values instead of the missing terminfo
+information.
 @item DBUS_SESSION_BUS_ADDRESS
 @vindex DBUS_SESSION_BUS_ADDRESS@r{, environment variable}
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
@@ -647,7 +684,8 @@ Used by the Gnus package.
 @item SHELL
 @vindex SHELL@r{, environment variable}
 The name of an interpreter used to parse and execute programs run from
-inside Emacs.
+inside Emacs.  This is used to initialize the variable
+@code{shell-file-name} (@pxref{Single Shell}).
 @item SMTPSERVER
 @vindex SMTPSERVER@r{, environment variable}
 The name of the outgoing mail server.  This is used to initialize the
@@ -738,6 +776,10 @@ On MS-Windows, if you set this variable, Emacs will load and initialize
 the network library at startup, instead of waiting until the first
 time it is required.
 
+@item WAYLAND_DISPLAY
+Pgtk Emacs (built with @option{--with-pgtk}) can run on Wayland natively.
+@env{WAYLAND_DISPLAY} specifies the connection to the compositor.
+
 @item emacs_dir
 On MS-Windows, @env{emacs_dir} is a special environment variable, which
 indicates the full path of the directory in which Emacs is installed.
@@ -758,29 +800,45 @@ changing any environment or registry settings.
 @pindex addpm, MS-Windows installation program
 @cindex registry, setting environment variables (MS-Windows)
 
-On MS-Windows, the installation program @command{addpm.exe} adds
-values for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
-@env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
-@file{HKEY_LOCAL_MACHINE} section of the system registry, under
-@file{/Software/GNU/Emacs}.  It does this because there is no standard
-place to set environment variables across different versions of
-Windows.  Running @command{addpm.exe} is no longer strictly necessary
-in recent versions of Emacs, but if you are upgrading from an older
-version, running @command{addpm.exe} ensures that you do not have
-older registry entries from a previous installation, which may not be
-compatible with the latest version of Emacs.
-
-When Emacs starts, as well as checking the environment, it also checks
-the System Registry for those variables and for @env{HOME}, @env{LANG}
-and @env{PRELOAD_WINSOCK}.
+On MS-Windows, the environment variables @env{emacs_dir},
+@env{EMACSLOADPATH}, @env{EMACSDATA}, @env{EMACSPATH}, @env{EMACSDOC},
+@env{SHELL}, @env{TERM}, @env{HOME}, @env{LANG}, and
+@env{PRELOAD_WINSOCK} can also be set in the @file{HKEY_CURRENT_USER}
+or the @file{HKEY_LOCAL_MACHINE} section of the system registry, under
+the @file{/Software/GNU/Emacs} key.  When Emacs starts, as well as
+checking the environment, it also checks the system registry for those
+variables.
 
 To determine the value of those variables, Emacs goes through the
-following procedure.  First, the environment is checked.  If the
-variable is not found there, Emacs looks for registry keys by that
-name under @file{/Software/GNU/Emacs}; first in the
+following procedure.  First, it checks the environment.  If the
+variable is not found there, Emacs looks for a registry key by the
+name of the variable under @file{/Software/GNU/Emacs}; first in the
 @file{HKEY_CURRENT_USER} section of the registry, and if not found
 there, in the @file{HKEY_LOCAL_MACHINE} section.  Finally, if Emacs
-still cannot determine the values, compiled-in defaults are used.
+still cannot determine the values, it uses the compiled-in defaults.
+
+Note that the registry settings have global system-wide effect: they
+will affect all Emacs sessions run on the system.  Thus, if you run
+different Emacs versions, or use both installed and un-installed Emacs
+executables, or build newer versions of Emacs, the settings in the
+registry will cause all of them to use the same directories, which is
+probably not what you want.  For this reason, @emph{we recommend
+against setting these variables in the registry}.  If you have such
+settings in the registry, we recommend that you remove them.
+
+If you run the Emacs MS-Windows installation program
+@command{addpm.exe}, it will update any existing registry settings of
+the @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
+@env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL}, and @env{TERM} variables
+to have the values suitable for the installed Emacs version with which
+@command{addpm.exe} came.  Note that @command{addpm.exe} will
+@emph{not} create any registry setting that didn't exist, it will only
+update existing settings, which are most probably inherited from an
+old Emacs installation, so that they are compatible with the newly
+installed Emacs version.  Running @command{addpm.exe} is no longer
+necessary when installing recent versions of Emacs, so we only
+recommend doing that if you are upgrading from an older version, and
+cannot remove these settings from the registry for some reason.
 
 In addition to the environment variables above, you can also add
 settings to the @file{/Software/GNU/Emacs} registry key to specify X

@@ -1,5 +1,5 @@
 /* Thread definitions
-Copyright (C) 2012-2020 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,11 +26,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef MSDOS
+#include <time.h>               /* struct rpl_timespec */
 #include <signal.h>		/* sigset_t */
 #endif
 
 #include "sysselect.h"		/* FIXME */
 #include "systhread.h"
+
+INLINE_HEADER_BEGIN
+
+/* Byte-code interpreter thread state.  */
+struct bc_thread_state {
+  struct bc_frame *fp;   /* current frame pointer */
+
+  /* start and end of allocated bytecode stack */
+  char *stack;
+  char *stack_end;
+};
 
 struct thread_state
 {
@@ -91,13 +103,13 @@ struct thread_state
   struct handler *m_handlerlist_sentinel;
 #define handlerlist_sentinel (current_thread->m_handlerlist_sentinel)
 
-  /* Current number of specbindings allocated in specpdl.  */
-  ptrdiff_t m_specpdl_size;
-#define specpdl_size (current_thread->m_specpdl_size)
-
   /* Pointer to beginning of specpdl.  */
   union specbinding *m_specpdl;
 #define specpdl (current_thread->m_specpdl)
+
+  /* End of specpld (just beyond the last element).  */
+  union specbinding *m_specpdl_end;
+#define specpdl_end (current_thread->m_specpdl_end)
 
   /* Pointer to first unused element in specpdl.  */
   union specbinding *m_specpdl_ptr;
@@ -140,7 +152,6 @@ struct thread_state
      for user-input when that process-filter was called.
      waiting_for_input cannot be used as that is by definition 0 when
      lisp code is being evalled.
-     This is also used in record_asynch_buffer_change.
      For that purpose, this must be 0
      when not inside wait_reading_process_output.  */
   int m_waiting_for_user_input_p;
@@ -181,6 +192,8 @@ struct thread_state
 
   /* Threads are kept on a linked list.  */
   struct thread_state *next_thread;
+
+  struct bc_thread_state bc;
 } GCALIGNED_STRUCT;
 
 INLINE bool
@@ -303,5 +316,7 @@ int thread_select  (select_func *func, int max_fds, fd_set *rfds,
 		    sigset_t *sigmask);
 
 bool thread_check_current_buffer (struct buffer *);
+
+INLINE_HEADER_END
 
 #endif /* THREAD_H */

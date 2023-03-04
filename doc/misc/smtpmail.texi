@@ -4,7 +4,7 @@
 @include docstyle.texi
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -264,13 +264,17 @@ file, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
 @cindex CRAM-MD5
 @cindex PLAIN
 @cindex LOGIN
-The process by which the SMTP library authenticates you to the server
-is known as ``Simple Authentication and Security Layer'' (SASL).
-There are various SASL mechanisms, and this library supports three of
-them: CRAM-MD5, PLAIN, and LOGIN@.  It tries each of them, in that order,
-until one succeeds.  The first uses a form of encryption to obscure
-your password, while the other two do not.
-
+The process by which the @acronym{SMTP} library authenticates you to
+the server is known as ``Simple Authentication and Security Layer''
+(@acronym{SASL}).  There are various @acronym{SASL} mechanisms, and
+this library supports three of them: @code{cram-md5}, @code{plain},
+@code{login} and @code{xoauth2}, where the first uses a form of
+encryption to obscure your password, while the other two do not.  It
+tries each of them, in that order, until one succeeds.
+(@code{xoauth2} requires using the @file{oauth2.el} library.  You can
+override this by assigning a specific authentication mechanism to a
+server by including a key @code{smtp-auth} with the value of your
+preferred mechanism in the appropriate @file{~/.authinfo} entry.
 
 @node Encryption
 @chapter Encryption
@@ -335,6 +339,16 @@ not sent immediately but rather queued in the directory
 @code{smtpmail-queue-dir} and can be later sent manually by invoking
 @code{smtpmail-send-queued-mail} (typically when you connect to the
 internet).
+
+@item smtpmail-store-queue-variables
+@vindex smtpmail-store-queue-variables
+  Normally the queue will be dispatched with the values of the
+@acronym{SMTP} variables that are in effect when @kbd{M-x
+smtpmail-send-queued-mail} is executed, but if
+@code{smtpmail-store-queue-variables} is non-@code{nil}, the values
+for @code{smtpmail-smtp-server} (etc.@:) will be stored when the mail is
+queued, and then used when actually sending the mail.  This can be
+useful if you have a complex outgoing mail setup.
 
 @item smtpmail-queue-dir
 @vindex smtpmail-queue-dir

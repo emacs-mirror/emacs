@@ -1,6 +1,6 @@
-;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode
+;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -33,7 +33,7 @@
 ;; hidden under one of these headings.  Normally you'd do C-c C-e (show-entry)
 ;; to expose the body or C-c C-i to expose the child (level-2) headings.
 ;;
-;; With foldout, you do C-c C-z (foldout-zoom-subtree).  This exposes the body
+;; With foldout, you do C-c C-z (`foldout-zoom-subtree').  This exposes the body
 ;; and child subheadings and narrows the buffer so that only the level-1
 ;; heading, the body and the level-2 headings are visible.  If you now want to
 ;; look under one of the level-2 headings, position the cursor on it and do C-c
@@ -57,7 +57,7 @@
 ;; zoomed-in heading.  This is useful for restricting changes to a particular
 ;; chapter or section of your document.
 ;;
-;; You unzoom (exit) a fold by doing C-c C-x (foldout-exit-fold).  This hides
+;; You unzoom (exit) a fold by doing C-c C-x (`foldout-exit-fold').  This hides
 ;; all the text and subheadings under the top-level heading and returns you to
 ;; the previous view of the buffer.  Specifying a numeric argument exits that
 ;; many folds.  Specifying a zero argument exits *all* folds.
@@ -209,14 +209,14 @@
 
 (require 'outline)
 
-(defvar foldout-fold-list nil
+(defvar-local foldout-fold-list nil
   "List of start and end markers for the folds currently entered.
 An end marker of nil means the fold ends after (point-max).")
-(make-variable-buffer-local 'foldout-fold-list)
 
-(defvar foldout-mode-line-string nil
+(defvar-local foldout-mode-line-string nil
   "Mode line string announcing that we are in an outline fold.")
-(make-variable-buffer-local 'foldout-mode-line-string)
+
+;; FIXME: This should be rewritten as a proper minor mode.
 
 ;; put our minor mode string immediately following outline-minor-mode's
 (or (assq 'foldout-mode-line-string minor-mode-alist)
@@ -229,17 +229,8 @@ An end marker of nil means the fold ends after (point-max).")
 	  (error "Can't find outline-minor-mode in minor-mode-alist"))
 
       ;; slip our fold announcement into the list
-      (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))
-      ))
+      (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))))
 
-;; outline-flag-region has different `flag' values in outline.el and
-;; noutline.el for hiding and showing text.
-
-(defconst foldout-hide-flag
-  (if (featurep 'noutline) t ?\^M))
-
-(defconst foldout-show-flag
-  (if (featurep 'noutline) nil ?\n))
 
 
 (defun foldout-zoom-subtree (&optional exposure)
@@ -248,7 +239,7 @@ An end marker of nil means the fold ends after (point-max).")
 Normally the body and the immediate subheadings are exposed, but
 optional arg EXPOSURE \(interactively with prefix arg) changes this:-
 
-	EXPOSURE > 0	exposes n levels of subheadings (c.f. show-children)
+        EXPOSURE > 0	exposes n levels of subheadings (c.f. `show-children')
 	EXPOSURE < 0	exposes only the body
 	EXPOSURE = 0	exposes the entire subtree"
   (interactive "P")
@@ -285,16 +276,14 @@ optional arg EXPOSURE \(interactively with prefix arg) changes this:-
        ((> exposure-value 0)
 	(outline-show-children exposure-value))
        (t
-	(outline-show-subtree))
-       )
+        (outline-show-subtree)))
 
       ;; save the location of the fold we are entering
       (setq foldout-fold-list (cons (cons start-marker end-marker)
 				    foldout-fold-list))
 
       ;; update the mode line
-      (foldout-update-mode-line)
-      )))
+      (foldout-update-mode-line))))
 
 
 (defun foldout-exit-fold (&optional num-folds)
@@ -318,8 +307,7 @@ exited and text is left visible."
      ;; have we been told not to hide the fold?
      ((< num-folds 0)
       (setq hide-fold nil
-	    num-folds (- num-folds)))
-     )
+            num-folds (- num-folds))))
 
     ;; limit the number of folds if we've been told to exit too many
     (setq num-folds (min num-folds (length foldout-fold-list)))
@@ -366,8 +354,7 @@ exited and text is left visible."
 
 	;; make sure the next heading is exposed
 	(if end-marker
-	    (outline-flag-region end-of-subtree beginning-of-heading
-				 foldout-show-flag)))
+            (outline-flag-region end-of-subtree beginning-of-heading nil)))
 
       ;; zap the markers so they don't slow down editing
       (set-marker start-marker nil)
@@ -486,15 +473,15 @@ What happens depends on the number of mouse clicks:-
   "Swallow intervening mouse events so we only get the final click-count.
 Signal an error if the final event isn't the same type as the first one."
   (let ((initial-event-type (event-basic-type event)))
-    (while (null (sit-for (/ double-click-time 1000.0) 'nodisplay))
-      (setq event (read-event)))
+    (while (null (sit-for (/ (mouse-double-click-time) 1000.0) 'nodisplay))
+      (setq event (read--potential-mouse-event)))
     (or (eq initial-event-type (event-basic-type event))
 	(error "")))
   event)
 
 (defun foldout-mouse-goto-heading (event)
-  "Go to the heading where the mouse event started.  Signal an error
-if the event didn't occur on a heading."
+  "Go to the heading where the mouse EVENT started.
+Signal an error if the event didn't occur on a heading."
   (goto-char (posn-point (event-start event)))
   (or (outline-on-heading-p)
       ;; outline.el sometimes treats beginning-of-buffer as a heading
@@ -516,43 +503,48 @@ M-C-down-mouse-{1,2,3}.
 
 Valid modifiers are shift, control, meta, alt, hyper and super.")
 
-(if foldout-inhibit-key-bindings
-    ()
-  (define-key outline-mode-map "\C-c\C-z" 'foldout-zoom-subtree)
-  (define-key outline-mode-map "\C-c\C-x" 'foldout-exit-fold)
+(unless foldout-inhibit-key-bindings
+  (define-key outline-mode-map "\C-c\C-z" #'foldout-zoom-subtree)
+  (define-key outline-mode-map "\C-c\C-x" #'foldout-exit-fold)
   (let ((map (lookup-key outline-minor-mode-map outline-minor-mode-prefix)))
     (unless map
       (setq map (make-sparse-keymap))
       (define-key outline-minor-mode-map outline-minor-mode-prefix map))
-    (define-key map "\C-z" 'foldout-zoom-subtree)
-    (define-key map "\C-x" 'foldout-exit-fold))
-  (let* ((modifiers (apply 'concat
-			   (mapcar (function
-				    (lambda (modifier)
-				      (vector
-				       (cond
-					 ((eq modifier 'shift) ?S)
-					 ((eq modifier 'control) ?C)
-					 ((eq modifier 'meta) ?M)
-					 ((eq modifier 'alt) ?A)
-					 ((eq modifier 'hyper) ?H)
-					 ((eq modifier 'super) ?s)
-					 (t (error "invalid mouse modifier %s"
-						   modifier)))
-				       ?-)))
+    (define-key map "\C-z" #'foldout-zoom-subtree)
+    (define-key map "\C-x" #'foldout-exit-fold))
+  (let* ((modifiers (apply #'concat
+                           (mapcar (lambda (modifier)
+                                     (vector
+                                      (cond
+                                       ((eq modifier 'shift) ?S)
+                                       ((eq modifier 'control) ?C)
+                                       ((eq modifier 'meta) ?M)
+                                       ((eq modifier 'alt) ?A)
+                                       ((eq modifier 'hyper) ?H)
+                                       ((eq modifier 'super) ?s)
+                                       (t (error "Invalid mouse modifier %s"
+                                                 modifier)))
+                                      ?-))
 				   foldout-mouse-modifiers)))
 	 (mouse-1 (vector (intern (concat modifiers "down-mouse-1"))))
 	 (mouse-2 (vector (intern (concat modifiers "down-mouse-2"))))
 	 (mouse-3 (vector (intern (concat modifiers "down-mouse-3")))))
 
-    (define-key outline-mode-map mouse-1 'foldout-mouse-zoom)
-    (define-key outline-mode-map mouse-2 'foldout-mouse-show)
-    (define-key outline-mode-map mouse-3 'foldout-mouse-hide-or-exit)
+    (define-key outline-mode-map mouse-1 #'foldout-mouse-zoom)
+    (define-key outline-mode-map mouse-2 #'foldout-mouse-show)
+    (define-key outline-mode-map mouse-3 #'foldout-mouse-hide-or-exit)
 
-    (define-key outline-minor-mode-map mouse-1 'foldout-mouse-zoom)
-    (define-key outline-minor-mode-map mouse-2 'foldout-mouse-show)
-    (define-key outline-minor-mode-map mouse-3 'foldout-mouse-hide-or-exit)
-    ))
+    (define-key outline-minor-mode-map mouse-1 #'foldout-mouse-zoom)
+    (define-key outline-minor-mode-map mouse-2 #'foldout-mouse-show)
+    (define-key outline-minor-mode-map mouse-3 #'foldout-mouse-hide-or-exit)))
+
+;; Obsolete.
+
+(defconst foldout-hide-flag t)
+(make-obsolete-variable 'foldout-hide-flag nil "28.1")
+
+(defconst foldout-show-flag nil)
+(make-obsolete-variable 'foldout-show-flag nil "28.1")
 
 (provide 'foldout)
 

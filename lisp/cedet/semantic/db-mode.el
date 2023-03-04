@@ -1,6 +1,6 @@
-;;; semantic/db-mode.el --- Semanticdb Minor Mode
+;;; semantic/db-mode.el --- Semanticdb Minor Mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -68,10 +68,6 @@ database, which can be saved for future Emacs sessions."
     ;; Disable
     (dolist (elt semanticdb-hooks)
       (remove-hook (cadr elt) (car elt)))))
-
-(semantic-varalias-obsolete 'semanticdb-mode-hooks
-			    'global-semanticdb-minor-mode-hook "23.2")
-
 
 (defun semanticdb-toggle-global-mode ()
   "Toggle use of the Semantic Database feature.

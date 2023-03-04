@@ -2,4 +2,6 @@
 
 strange;
 
+int frob(char);
+
 sint main();

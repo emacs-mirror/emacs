@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1994, 1999, 2001--2020 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1999, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Abbrevs
@@ -370,9 +370,9 @@ definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
       (funcall expand))))
 
 (add-hook 'foo-mode-hook
-          #'(lambda ()
-              (add-function :around (local 'abbrev-expand-function)
-                            #'foo-mode-abbrev-expand-function)))
+          (lambda ()
+            (add-function :around (local 'abbrev-expand-function)
+                          #'foo-mode-abbrev-expand-function)))
 @end smallexample
 
 @node Standard Abbrev Tables

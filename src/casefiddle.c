@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2020 Free Software Foundation,
+Copyright (C) 1985, 1994, 1997-1999, 2001-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -30,6 +30,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "keymap.h"
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 
 /* State for casing individual characters.  */
@@ -54,6 +58,9 @@ struct casing_context
 
   /* Whether the context is within a word.  */
   bool inword;
+
+  /* What the last operation was.  */
+  bool downcase_last;
 };
 
 /* Initialize CTX structure for casing characters.  */
@@ -143,10 +150,14 @@ case_character_impl (struct casing_str_buf *buf,
 
   /* Handle simple, one-to-one case.  */
   if (flag == CASE_DOWN)
-    cased = downcase (ch);
+    {
+      cased = downcase (ch);
+      ctx->downcase_last = true;
+    }
   else
     {
       bool cased_is_set = false;
+      ctx->downcase_last = false;
       if (!NILP (ctx->titlecase_char_table))
 	{
 	  prop = CHAR_TABLE_REF (ctx->titlecase_char_table, ch);
@@ -220,6 +231,13 @@ case_character (struct casing_str_buf *buf, struct casing_context *ctx,
   return changed;
 }
 
+/* If C is not ASCII, make it unibyte. */
+static inline int
+make_char_unibyte (int c)
+{
+  return ASCII_CHAR_P (c) ? c : CHAR_TO_BYTE8 (c);
+}
+
 static Lisp_Object
 do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 {
@@ -229,7 +247,7 @@ do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 
   /* If the character has higher bits set above the flags, return it unchanged.
      It is not a real character.  */
-  if (UNSIGNED_CMP (ch, >, flagbits))
+  if (! (0 <= ch && ch <= flagbits))
     return obj;
 
   int flags = ch & flagbits;
@@ -243,13 +261,13 @@ do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 		    || !NILP (BVAR (current_buffer,
 				    enable_multibyte_characters)));
   if (! multibyte)
-    MAKE_CHAR_MULTIBYTE (ch);
+    ch = make_char_multibyte (ch);
   int cased = case_single_character (ctx, ch);
   if (cased == ch)
     return obj;
 
   if (! multibyte)
-    MAKE_CHAR_UNIBYTE (cased);
+    cased = make_char_unibyte (cased);
   return make_fixed_natnum (cased | flags);
 }
 
@@ -278,7 +296,7 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
     {
       if (dst_end - o < sizeof (struct casing_str_buf))
 	string_overflow ();
-      int ch = STRING_CHAR_ADVANCE (src);
+      int ch = string_char_advance (&src);
       case_character ((struct casing_str_buf *) o, ctx, ch,
 		      size > 1 ? src : NULL);
       n += ((struct casing_str_buf *) o)->len_chars;
@@ -290,6 +308,16 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
   return obj;
 }
 
+static int
+ascii_casify_character (bool downcase, int c)
+{
+  Lisp_Object cased = CHAR_TABLE_REF (downcase?
+				      uniprop_table (Qlowercase) :
+				      uniprop_table (Quppercase),
+				      c);
+  return FIXNATP (cased) ? XFIXNAT (cased) : c;
+}
+
 static Lisp_Object
 do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
 {
@@ -299,16 +327,16 @@ do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
   obj = Fcopy_sequence (obj);
   for (i = 0; i < size; i++)
     {
-      ch = SREF (obj, i);
-      MAKE_CHAR_MULTIBYTE (ch);
+      ch = make_char_multibyte (SREF (obj, i));
       cased = case_single_character (ctx, ch);
       if (ch == cased)
 	continue;
-      MAKE_CHAR_UNIBYTE (cased);
-      /* If the char can't be converted to a valid byte, just don't
-	 change it.  */
-      if (cased >= 0 && cased < 256)
-	SSET (obj, i, cased);
+      /* If down/upcasing changed an ASCII character into a non-ASCII
+	 character (this can happen in some locales, like the Turkish
+	 "I"), downcase using the ASCII char table.  */
+      if (ASCII_CHAR_P (ch) && !SINGLE_BYTE_CHAR_P (cased))
+	cased = ascii_casify_character (ctx->downcase_last, ch);
+      SSET (obj, i, make_char_unibyte (cased));
     }
   return obj;
 }
@@ -333,10 +361,13 @@ casify_object (enum case_action flag, Lisp_Object obj)
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
        doc: /* Convert argument to upper case and return that.
-The argument may be a character or string.  The result has the same type.
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.
+
 See also `capitalize', `downcase' and `upcase-initials'.  */)
   (Lisp_Object obj)
 {
@@ -345,7 +376,15 @@ See also `capitalize', `downcase' and `upcase-initials'.  */)
 
 DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
        doc: /* Convert argument to lower case and return that.
-The argument may be a character or string.  The result has the same type.
+The argument may be a character or string.  The result has the same type,
+including the multibyteness of the string.
+
+This means that if this function is called with a unibyte string
+argument, and downcasing it would turn it into a multibyte string
+(according to the current locale), the downcasing is done using ASCII
+\"C\" rules instead.  To accurately downcase according to the current
+locale, the string must be converted into multibyte first.
+
 The argument object is not altered--the value is a copy.  */)
   (Lisp_Object obj)
 {
@@ -356,7 +395,10 @@ DEFUN ("capitalize", Fcapitalize, Scapitalize, 1, 1, 0,
        doc: /* Convert argument to capitalized form and return that.
 This means that each word's first character is converted to either
 title case or upper case, and the rest to lower case.
-The argument may be a character or string.  The result has the same type.
+
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.  */)
@@ -371,7 +413,10 @@ DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
        doc: /* Convert the initial of each word in the argument to upper case.
 This means that each word's first character is converted to either
 title case or upper case, and the rest are left unchanged.
-The argument may be a character or string.  The result has the same type.
+
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.  */)
@@ -397,9 +442,7 @@ do_casify_unibyte_region (struct casing_context *ctx,
 
   for (ptrdiff_t pos = *startp; pos < end; ++pos)
     {
-      int ch = FETCH_BYTE (pos);
-      MAKE_CHAR_MULTIBYTE (ch);
-
+      int ch = make_char_multibyte (FETCH_BYTE (pos));
       int cased = case_single_character (ctx, ch);
       if (cased == ch)
 	continue;
@@ -408,8 +451,7 @@ do_casify_unibyte_region (struct casing_context *ctx,
       if (first < 0)
 	first = pos;
 
-      MAKE_CHAR_UNIBYTE (cased);
-      FETCH_BYTE (pos) = cased;
+      FETCH_BYTE (pos) = make_char_unibyte (cased);
     }
 
   *startp = first;
@@ -433,8 +475,7 @@ do_casify_multibyte_region (struct casing_context *ctx,
 
   for (; size; --size)
     {
-      int len;
-      int ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (pos_byte), len);
+      int len, ch = string_char_and_length (BYTE_POS_ADDR (pos_byte), &len);
       struct casing_str_buf buf;
       if (!case_character (&buf, ctx, ch,
 			   size > 1 ? BYTE_POS_ADDR (pos_byte + len) : NULL))
@@ -493,6 +534,11 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   modify_text (start, end);
   prepare_casing_context (&ctx, flag, true);
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t start_byte = CHAR_TO_BYTE (start);
+  ptrdiff_t old_end_byte = CHAR_TO_BYTE (end);
+#endif
+
   ptrdiff_t orig_end = end;
   record_delete (start, make_buffer_string (start, end, true), false);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
@@ -512,6 +558,10 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
       signal_after_change (start, end - start - added, end - start);
       update_compositions (start, end, CHECK_ALL);
     }
+#ifdef HAVE_TREE_SITTER
+      treesit_record_change (start_byte, old_end_byte,
+			     CHAR_TO_BYTE (orig_end + added));
+#endif
 
   return orig_end + added;
 }
@@ -649,6 +699,8 @@ syms_of_casefiddle (void)
   DEFSYM (Qbounds, "bounds");
   DEFSYM (Qidentity, "identity");
   DEFSYM (Qtitlecase, "titlecase");
+  DEFSYM (Qlowercase, "lowercase");
+  DEFSYM (Quppercase, "uppercase");
   DEFSYM (Qspecial_uppercase, "special-uppercase");
   DEFSYM (Qspecial_lowercase, "special-lowercase");
   DEFSYM (Qspecial_titlecase, "special-titlecase");
@@ -679,17 +731,4 @@ Called with one argument METHOD which can be:
   defsubr (&Supcase_word);
   defsubr (&Sdowncase_word);
   defsubr (&Scapitalize_word);
-}
-
-void
-keys_of_casefiddle (void)
-{
-  initial_define_key (control_x_map, Ctl ('U'), "upcase-region");
-  Fput (intern ("upcase-region"), Qdisabled, Qt);
-  initial_define_key (control_x_map, Ctl ('L'), "downcase-region");
-  Fput (intern ("downcase-region"), Qdisabled, Qt);
-
-  initial_define_key (meta_map, 'u', "upcase-word");
-  initial_define_key (meta_map, 'l', "downcase-word");
-  initial_define_key (meta_map, 'c', "capitalize-word");
 }

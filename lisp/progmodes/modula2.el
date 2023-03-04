@@ -1,4 +1,4 @@
-;;; modula2.el --- Modula-2 editing support package
+;;; modula2.el --- Modula-2 editing support package  -*- lexical-binding: t -*-
 
 ;; Author: Michael Schmidt <michael@pbinfo.UUCP>
 ;;	Tom Perrine <Perrin@LOGICON.ARPA>
@@ -51,64 +51,55 @@
 
 (defcustom m2-compile-command "m2c"
   "Command to compile Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-command "m2l"
   "Command to link Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-name nil
   "Name of the Modula-2 executable."
-  :type '(choice (const nil) string)
-  :group 'modula2)
+  :type '(choice (const nil) string))
 
 (defcustom m2-end-comment-column 75
   "Column for aligning the end of a comment, in Modula-2."
-  :type 'integer
-  :group 'modula2)
+  :type 'integer)
 
-;;; Added by TEP
-(defvar m2-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; FIXME: Many of those bindings are contrary to coding conventions.
-    (define-key map "\C-cb" 'm2-begin)
-    (define-key map "\C-cc" 'm2-case)
-    (define-key map "\C-cd" 'm2-definition)
-    (define-key map "\C-ce" 'm2-else)
-    (define-key map "\C-cf" 'm2-for)
-    (define-key map "\C-ch" 'm2-header)
-    (define-key map "\C-ci" 'm2-if)
-    (define-key map "\C-cm" 'm2-module)
-    (define-key map "\C-cl" 'm2-loop)
-    (define-key map "\C-co" 'm2-or)
-    (define-key map "\C-cp" 'm2-procedure)
-    (define-key map "\C-c\C-w" 'm2-with)
-    (define-key map "\C-cr" 'm2-record)
-    (define-key map "\C-cs" 'm2-stdio)
-    (define-key map "\C-ct" 'm2-type)
-    (define-key map "\C-cu" 'm2-until)
-    (define-key map "\C-cv" 'm2-var)
-    (define-key map "\C-cw" 'm2-while)
-    (define-key map "\C-cx" 'm2-export)
-    (define-key map "\C-cy" 'm2-import)
-    (define-key map "\C-c{" 'm2-begin-comment)
-    (define-key map "\C-c}" 'm2-end-comment)
-    (define-key map "\C-c\C-z" 'suspend-emacs)
-    (define-key map "\C-c\C-v" 'm2-visit)
-    (define-key map "\C-c\C-t" 'm2-toggle)
-    (define-key map "\C-c\C-l" 'm2-link)
-    (define-key map "\C-c\C-c" 'm2-compile)
-    map)
-  "Keymap used in Modula-2 mode.")
+(defvar-keymap m2-mode-map
+  :doc "Keymap used in Modula-2 mode."
+  ;; FIXME: Many of those bindings are contrary to coding conventions.
+  "C-c b"   #'m2-begin
+  "C-c c"   #'m2-case
+  "C-c d"   #'m2-definition
+  "C-c e"   #'m2-else
+  "C-c f"   #'m2-for
+  "C-c h"   #'m2-header
+  "C-c i"   #'m2-if
+  "C-c m"   #'m2-module
+  "C-c l"   #'m2-loop
+  "C-c o"   #'m2-or
+  "C-c p"   #'m2-procedure
+  "C-c C-w" #'m2-with
+  "C-c r"   #'m2-record
+  "C-c s"   #'m2-stdio
+  "C-c t"   #'m2-type
+  "C-c u"   #'m2-until
+  "C-c v"   #'m2-var
+  "C-c w"   #'m2-while
+  "C-c x"   #'m2-export
+  "C-c y"   #'m2-import
+  "C-c {"   #'m2-begin-comment
+  "C-c }"   #'m2-end-comment
+  "C-c C-z" #'suspend-emacs
+  "C-c C-v" #'m2-visit
+  "C-c C-t" #'m2-toggle
+  "C-c C-l" #'m2-link
+  "C-c C-c" #'m2-compile)
 
 (defcustom m2-indent 5
   "This variable gives the indentation in Modula-2 mode."
   :type 'integer
-  :group 'modula2)
-(put 'm2-indent 'safe-local-variable
-     (lambda (v) (or (null v) (integerp v))))
+  :safe (lambda (v) (or (null v) (integerp v))))
 
 (defconst m2-smie-grammar
   ;; An official definition can be found as "M2R10.pdf".  This grammar does
@@ -206,7 +197,10 @@
          ((zerop (length tok))
           (let ((forward-sexp-function nil))
             (condition-case nil
-                (forward-sexp -1)
+                (let ((p (point)))
+                  (forward-sexp -1)
+                  (when (= p (point))
+                    (setq res ":")))
               (scan-error (setq res ":")))))
          ((member tok '("|" "OF" "..")) (setq res ":-case"))
          ((member tok '(":" "END" ";" "BEGIN" "VAR" "RECORD" "PROCEDURE"))
@@ -308,14 +302,14 @@ followed by the first character of the construct.
    `m2-indent' controls the number of spaces for each indentation.
    `m2-compile-command' holds the command to compile a Modula-2 program.
    `m2-link-command' holds the command to link a Modula-2 program."
-  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'comment-start) "(* ")
-  (set (make-local-variable 'comment-end) " *)")
-  (set (make-local-variable 'comment-start-skip) "\\(?:(\\*+\\|//+\\) *")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'font-lock-defaults)
+  (setq-local paragraph-start (concat "$\\|" page-delimiter))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local paragraph-ignore-fill-prefix t)
+  (setq-local comment-start "(* ")
+  (setq-local comment-end " *)")
+  (setq-local comment-start-skip "\\(?:(\\*+\\|//+\\) *")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local font-lock-defaults
 	'((m3-font-lock-keywords
 	   m3-font-lock-keywords-1 m3-font-lock-keywords-2)
 	  nil nil ((?_ . "w") (?. . "w") (?< . ". 1") (?> . ". 4")) nil

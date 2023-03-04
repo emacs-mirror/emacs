@@ -1,19 +1,19 @@
 /* Time zone functions such as tzalloc and localtime_rz
 
-   Copyright 2015-2020 Free Software Foundation, Inc.
+   Copyright 2015-2023 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -27,18 +27,13 @@
 #include <time.h>
 
 #include <errno.h>
-#include <limits.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "flexmember.h"
+#include "idx.h"
 #include "time-internal.h"
-
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
 
 /* The approximate size to use for small allocation requests.  This is
    the largest "small" request for the GNU C library malloc.  */
@@ -53,31 +48,6 @@ enum { ABBR_SIZE_MIN = DEFAULT_MXFAST - offsetof (struct tm_zone, abbrs) };
    NULL and from all other timezone_t values.  Only the address
    matters; the pointer is never dereferenced.  */
 static timezone_t const local_tz = (timezone_t) 1;
-
-#if HAVE_TM_ZONE || HAVE_TZNAME
-
-/* Return true if the values A and B differ according to the rules for
-   tm_isdst: A and B differ if one is zero and the other positive.  */
-static bool
-isdst_differ (int a, int b)
-{
-  return !a != !b && 0 <= a && 0 <= b;
-}
-
-/* Return true if A and B are equal.  */
-static int
-equal_tm (const struct tm *a, const struct tm *b)
-{
-  return ! ((a->tm_sec ^ b->tm_sec)
-            | (a->tm_min ^ b->tm_min)
-            | (a->tm_hour ^ b->tm_hour)
-            | (a->tm_mday ^ b->tm_mday)
-            | (a->tm_mon ^ b->tm_mon)
-            | (a->tm_year ^ b->tm_year)
-            | isdst_differ (a->tm_isdst, b->tm_isdst));
-}
-
-#endif
 
 /* Copy to ABBRS the abbreviation at ABBR with size ABBR_SIZE (this
    includes its trailing null byte).  Append an extra null byte to
@@ -100,7 +70,7 @@ tzalloc (char const *name)
   if (tz)
     {
       tz->next = NULL;
-#if HAVE_TZNAME && !HAVE_TM_ZONE
+#if HAVE_TZNAME && !HAVE_STRUCT_TM_TM_ZONE
       tz->tzname_copy[0] = tz->tzname_copy[1] = NULL;
 #endif
       tz->tz_is_set = !!name;
@@ -112,13 +82,13 @@ tzalloc (char const *name)
 }
 
 /* Save into TZ any nontrivial time zone abbreviation used by TM, and
-   update *TM (if HAVE_TM_ZONE) or *TZ (if !HAVE_TM_ZONE &&
-   HAVE_TZNAME) if they use the abbreviation.  Return true if
-   successful, false (setting errno) otherwise.  */
+   update *TM (if HAVE_STRUCT_TM_TM_ZONE) or *TZ (if
+   !HAVE_STRUCT_TM_TM_ZONE && HAVE_TZNAME) if they use the abbreviation.
+   Return true if successful, false (setting errno) otherwise.  */
 static bool
 save_abbr (timezone_t tz, struct tm *tm)
 {
-#if HAVE_TM_ZONE || HAVE_TZNAME
+#if HAVE_STRUCT_TM_TM_ZONE || HAVE_TZNAME
   char const *zone = NULL;
   char *zone_copy = (char *) "";
 
@@ -126,7 +96,7 @@ save_abbr (timezone_t tz, struct tm *tm)
   int tzname_index = -1;
 # endif
 
-# if HAVE_TM_ZONE
+# if HAVE_STRUCT_TM_TM_ZONE
   zone = tm->tm_zone;
 # endif
 
@@ -150,14 +120,8 @@ save_abbr (timezone_t tz, struct tm *tm)
         {
           if (! (*zone_copy || (zone_copy == tz->abbrs && tz->tz_is_set)))
             {
-              size_t zone_size = strlen (zone) + 1;
-              size_t zone_used = zone_copy - tz->abbrs;
-              if (SIZE_MAX - zone_used < zone_size)
-                {
-                  errno = ENOMEM;
-                  return false;
-                }
-              if (zone_used + zone_size < ABBR_SIZE_MIN)
+              idx_t zone_size = strlen (zone) + 1;
+              if (zone_size < tz->abbrs + ABBR_SIZE_MIN - zone_copy)
                 extend_abbrs (zone_copy, zone, zone_size);
               else
                 {
@@ -180,7 +144,7 @@ save_abbr (timezone_t tz, struct tm *tm)
     }
 
   /* Replace the zone name so that its lifetime matches that of TZ.  */
-# if HAVE_TM_ZONE
+# if HAVE_STRUCT_TM_TM_ZONE
   tm->tm_zone = zone_copy;
 # else
   if (0 <= tzname_index)
@@ -327,17 +291,25 @@ mktime_z (timezone_t tz, struct tm *tm)
       timezone_t old_tz = set_tz (tz);
       if (old_tz)
         {
-          time_t t = mktime (tm);
-#if HAVE_TM_ZONE || HAVE_TZNAME
-          time_t badtime = -1;
           struct tm tm_1;
-          if ((t != badtime
-               || (localtime_r (&t, &tm_1) && equal_tm (tm, &tm_1)))
-              && !save_abbr (tz, tm))
-            t = badtime;
+          tm_1.tm_sec = tm->tm_sec;
+          tm_1.tm_min = tm->tm_min;
+          tm_1.tm_hour = tm->tm_hour;
+          tm_1.tm_mday = tm->tm_mday;
+          tm_1.tm_mon = tm->tm_mon;
+          tm_1.tm_year = tm->tm_year;
+          tm_1.tm_yday = -1;
+          tm_1.tm_isdst = tm->tm_isdst;
+          time_t t = mktime (&tm_1);
+          bool ok = 0 <= tm_1.tm_yday;
+#if HAVE_STRUCT_TM_TM_ZONE || HAVE_TZNAME
+          ok = ok && save_abbr (tz, &tm_1);
 #endif
-          if (revert_tz (old_tz))
-            return t;
+          if (revert_tz (old_tz) && ok)
+            {
+              *tm = tm_1;
+              return t;
+            }
         }
       return -1;
     }

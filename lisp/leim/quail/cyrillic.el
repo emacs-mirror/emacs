@@ -1,6 +1,6 @@
-;;; cyrillic.el --- Quail package for inputting Cyrillic characters
+;;; cyrillic.el --- Quail package for inputting Cyrillic characters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1711,6 +1711,138 @@ as follows.
  ("/N" ?Ң)
  ("/T" ?Ө)
  ("/Y" ?Ү))
+
+
+;; Chuvash layout based on russian-computer.
+(quail-define-package
+ "cyrillic-chuvash" "Chuvash" "CV" t
+ "Input method for cyrillic Chuvash with a postfix modifier.
+
+  А* -> Ӑ
+  а* -> ӑ
+  Е* -> Ӗ
+  Е* -> ӗ
+  С* -> Ҫ
+  с* -> ҫ
+  У* -> Ӳ
+  у* -> ӳ
+
+Doubling the postfix separates the letter and postfix
+"
+	nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+	("1" ?1)
+	("2" ?2)
+	("3" ?3)
+	("4" ?4)
+	("5" ?5)
+	("6" ?6)
+	("7" ?7)
+	("8" ?8)
+	("9" ?9)
+	("0" ?0)
+	("-" ?-)
+	("=" ?=)
+	("|" ?/)
+	("`" ?ё)
+	("q" ?й)
+	("w" ?ц)
+	("e" ?у)
+	("r" ?к)
+	("t" ?е)
+	("y" ?н)
+	("u" ?г)
+	("i" ?ш)
+	("o" ?щ)
+	("p" ?з)
+	("[" ?х)
+	("]" ?ъ)
+	("a" ?ф)
+	("s" ?ы)
+	("d" ?в)
+	("f" ?а)
+	("g" ?п)
+	("h" ?р)
+	("j" ?о)
+	("k" ?л)
+	("l" ?д)
+	(";" ?ж)
+	("'" ?э)
+	("\\" ?\\)
+	("z" ?я)
+	("x" ?ч)
+	("c" ?с)
+	("v" ?м)
+	("b" ?и)
+	("n" ?т)
+	("m" ?ь)
+	("," ?б)
+	("." ?ю)
+	("/" ?.)
+	("!" ?!)
+	("@" ?\")
+	("#" ?№)
+	("$" ?\;)
+	("%" ?%)
+	("^" ?:)
+	("&" ??)
+	("*" ?*)
+	("(" ?\()
+	(")" ?\))
+	("_" ?_)
+	("+" ?+)
+	("~" ?Ё)
+	("Q" ?Й)
+	("W" ?Ц)
+	("E" ?У)
+	("R" ?К)
+	("T" ?Е)
+	("Y" ?Н)
+	("U" ?Г)
+	("I" ?Ш)
+	("O" ?Щ)
+	("P" ?З)
+	("{" ?Х)
+	("}" ?Ъ)
+	("A" ?Ф)
+	("S" ?Ы)
+	("D" ?В)
+	("F" ?А)
+	("G" ?П)
+	("H" ?Р)
+	("J" ?О)
+	("K" ?Л)
+	("L" ?Д)
+	(":" ?Ж)
+	("\"" ?Э)
+	("|" ?|)
+	("Z" ?Я)
+	("X" ?Ч)
+	("C" ?С)
+	("V" ?М)
+	("B" ?И)
+	("N" ?Т)
+	("M" ?Ь)
+	("<" ?Б)
+	(">" ?Ю)
+	("?" ?,)
+	("F*" ?Ӑ)
+	("f*" ?ӑ)
+	("T*" ?Ӗ)
+	("t*" ?ӗ)
+	("C*" ?Ҫ)
+	("c*" ?ҫ)
+	("E*" ?Ӳ)
+	("e*" ?ӳ)
+	("F**" ["А*"])
+	("f**" ["а*"])
+	("T**" ["Е*"])
+	("t**" ["е*"])
+	("C**" ["С*"])
+	("c**" ["с*"])
+	("E**" ["У*"])
+	("e**" ["у*"]))
 
 ;; Local Variables:
 ;; coding: utf-8

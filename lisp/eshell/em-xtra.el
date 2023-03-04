@@ -1,6 +1,6 @@
 ;;; em-xtra.el --- extra alias functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,13 +23,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'esh-util)
-(eval-when-compile
-  (require 'eshell))
-;; Strictly speaking, should only be needed at compile time.
-;; Require at run-time too to silence compiler.
-(require 'pcomplete)
-(require 'compile)
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.
@@ -49,80 +44,45 @@ naturally accessible within Emacs."
 
 (defun eshell/expr (&rest args)
   "Implementation of expr, using the calc package."
-  (if (not (fboundp 'calc-eval))
-      (throw 'eshell-replace-command
-	     (eshell-parse-command "*expr" (flatten-tree args)))
-    ;; to fool the byte-compiler...
-    (let ((func 'calc-eval))
-      (funcall func (eshell-flatten-and-stringify args)))))
+  (calc-eval (eshell-flatten-and-stringify args)))
 
 (defun eshell/substitute (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'substitute (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-substitute', for comparing lists of strings."
+  (apply #'cl-substitute (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/count (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'count (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-count', for comparing lists of strings."
+  (apply #'cl-count (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/mismatch (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'mismatch (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-mismatch', for comparing lists of strings."
+  (apply #'cl-mismatch (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/union (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'union (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-union', for comparing lists of strings."
+  (apply #'cl-union (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/intersection (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'intersection (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-intersection', for comparing lists of strings."
+  (apply #'cl-intersection (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/set-difference (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'set-difference (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-set-difference', for comparing lists of strings."
+  (apply #'cl-set-difference (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/set-exclusive-or (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'set-exclusive-or (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-set-exclusive-or', for comparing lists of strings."
+  (apply #'cl-set-exclusive-or (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
-(defalias 'eshell/ff 'find-name-dired)
-(defalias 'eshell/gf 'find-grep-dired)
-
-(defun pcomplete/bcc32 ()
-  "Completion function for Borland's C++ compiler."
-  (let ((cur (pcomplete-arg 0)))
-    (cond
-     ((string-match "\\`-w\\([^;]+;\\)*\\([^;]*\\)\\'" cur)
-      (pcomplete-here
-       '("ali" "amb" "amp" "asc" "asm" "aus" "bbf" "bei" "big" "ccc"
-	 "cln" "cod" "com" "cpt" "csu" "def" "dig" "dpu" "dsz" "dup"
-	 "eas" "eff" "ext" "hch" "hid" "ias" "ibc" "ifr" "ill" "nil"
-	 "lin" "lvc" "mcs" "mes" "mpc" "mpd" "msg" "nak" "ncf" "nci"
-	 "ncl" "nfd" "ngu" "nin" "nma" "nmu" "nod" "nop" "npp" "nsf"
-	 "nst" "ntd" "nto" "nvf" "obi" "obs" "ofp" "osh" "ovf" "par"
-	 "pch" "pck" "pia" "pin" "pow" "prc" "pre" "pro" "rch" "ret"
-	 "rng" "rpt" "rvl" "sig" "spa" "stl" "stu" "stv" "sus" "tai"
-	 "tes" "thr" "ucp" "use" "voi" "zdi") (match-string 2 cur)))
-     ((string-match "\\`-[LIn]\\([^;]+;\\)*\\([^;]*\\)\\'" cur)
-      (pcomplete-here (pcomplete-dirs) (match-string 2 cur)))
-     ((string-match "\\`-[Ee]\\(.*\\)\\'" cur)
-      (pcomplete-here (pcomplete-dirs-or-entries "\\.[Ee][Xx][Ee]\\'")
-		      (match-string 1 cur)))
-     ((string-match "\\`-o\\(.*\\)\\'" cur)
-      (pcomplete-here (pcomplete-dirs-or-entries "\\.[Oo][Bb][Jj]\\'")
-		      (match-string 1 cur)))
-     (t
-      (pcomplete-opt "3456ABCDEHIKLMNOPRSTUVXabcdefgijklnoptuvwxyz"))))
-  (while (pcomplete-here
-	  (pcomplete-dirs-or-entries "\\.[iCc]\\([Pp][Pp]\\)?\\'"))))
-
-(defalias 'pcomplete/bcc 'pcomplete/bcc32)
+(defalias 'eshell/ff #'find-name-dired)
+(defalias 'eshell/gf #'find-grep-dired)
 
 (provide 'em-xtra)
 

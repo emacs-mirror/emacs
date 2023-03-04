@@ -1,6 +1,6 @@
-;;; erc-track-tests.el --- Tests for erc-track.
+;;; erc-track-tests.el --- Tests for erc-track.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
@@ -24,7 +24,6 @@
 
 (require 'ert)
 (require 'erc-track)
-(require 'font-core)
 
 (ert-deftest erc-track--shorten-aggressive-nil ()
   "Test non-aggressive erc track buffer name shortening."
@@ -107,8 +106,8 @@
 
 (ert-deftest erc-track--erc-faces-in ()
   "`erc-faces-in' should pick up both 'face and 'font-lock-face properties."
-  (let ((str0 "is bold")
-        (str1 "is bold"))
+  (let ((str0 (copy-sequence "is bold"))
+        (str1 (copy-sequence "is bold")))
     ;; Turn on Font Lock mode: this initialize `char-property-alias-alist'
     ;; to '((face font-lock-face)).  Note that `font-lock-mode' don't
     ;; turn on the mode if the test is run on batch mode or if the
@@ -120,3 +119,5 @@
                        '(bold erc-current-nick-face) str1)
     (should (erc-faces-in str0))
     (should (erc-faces-in str1)) ))
+
+;;; erc-track-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; ls-lisp-tests.el --- tests for ls-lisp.el  -*- lexical-binding: t-*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -25,6 +25,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'ls-lisp)
 (require 'dired)
 
@@ -53,28 +54,29 @@
           (kill-buffer buf)
           (setq buf (dired (nconc (list dir) files)))
           (should (looking-at "src"))
-          (next-line) ; File names must be aligned.
+          (with-suppressed-warnings ((interactive-only next-line))
+            (next-line)) ; File names must be aligned.
           (should (looking-at "src")))
       (when (buffer-live-p buf) (kill-buffer buf)))))
 
 (ert-deftest ls-lisp-test-bug27631 ()
   "Test for https://debbugs.gnu.org/27631 ."
-  (let* ((dir (make-temp-file "bug27631" 'dir))
-         (dir1 (expand-file-name "dir1" dir))
-         (dir2 (expand-file-name "dir2" dir))
-         (default-directory dir)
-         ls-lisp-use-insert-directory-program buf)
-    (unwind-protect
-        (progn
-          (make-directory dir1)
-          (make-directory dir2)
-          (with-temp-file (expand-file-name "a.txt" dir1))
-          (with-temp-file (expand-file-name "b.txt" dir2))
-          (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
-          (dired-toggle-marks)
-          (should (cdr (dired-get-marked-files))))
-      (delete-directory dir 'recursive)
-      (when (buffer-live-p buf) (kill-buffer buf)))))
+  (ert-with-temp-directory dir
+    :suffix "bug27631"
+    (let* ((dir1 (expand-file-name "dir1" dir))
+           (dir2 (expand-file-name "dir2" dir))
+           (default-directory dir)
+           ls-lisp-use-insert-directory-program buf)
+      (unwind-protect
+          (progn
+            (make-directory dir1)
+            (make-directory dir2)
+            (with-temp-file (expand-file-name "a.txt" dir1))
+            (with-temp-file (expand-file-name "b.txt" dir2))
+            (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
+            (dired-toggle-marks)
+            (should (cdr (dired-get-marked-files))))
+        (when (buffer-live-p buf) (kill-buffer buf))))))
 
 (ert-deftest ls-lisp-test-bug27693 ()
   "Test for https://debbugs.gnu.org/27693 ."
@@ -90,6 +92,45 @@
           (search-backward-regexp size nil t)
           (should (looking-back "[[:space:]]" (1- (point)))))
       (when (buffer-live-p buf) (kill-buffer buf)))))
+
+(ert-deftest ls-lisp-test-bug55787 ()
+  "Test proper sorting by version."
+  (let ((files1 (vector "34 klmn-300dpi.jpg"
+                        "34 klmn-300dpi.png"
+                        "054_xyz.jpg"
+                        "054_xyz.png"
+                        "91 opqrs.jpg"
+                        "91 opqrs.png"
+                        "0717-abcd.jpg"
+                        "0717-abcd.png"
+                        "1935 uv.jpg"
+                        "1935 uv.png"
+                        "FFFF_fghk.jpg"
+                        "FFFF_fghk.png"
+                        "hhhh.jpg"
+		        "hhhh.png"))
+        (files2 (vector "01.0" "10" "010" "01.2")))
+    (should (equal (sort files1
+                         (lambda (x y)
+                           (ls-lisp-version-lessp x y)))
+                   '["0717-abcd.jpg"
+                     "0717-abcd.png"
+                     "054_xyz.jpg"
+                     "054_xyz.png"
+                     "34 klmn-300dpi.jpg"
+                     "34 klmn-300dpi.png"
+                     "91 opqrs.jpg"
+                     "91 opqrs.png"
+                     "1935 uv.jpg"
+                     "1935 uv.png"
+                     "FFFF_fghk.jpg"
+                     "FFFF_fghk.png"
+                     "hhhh.jpg"
+                     "hhhh.png"]))
+    (should (equal (sort files2
+                         (lambda (x y)
+                           (ls-lisp-version-lessp x y)))
+                   '["01.0" "01.2" "010" "10"]))))
 
 (provide 'ls-lisp-tests)
 ;;; ls-lisp-tests.el ends here

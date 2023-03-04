@@ -1,6 +1,6 @@
 ;;; cl-seq-tests.el --- Tests for cl-seq.el functionality  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 
@@ -294,6 +294,7 @@ Body are forms defining the test."
 
 (ert-deftest cl-seq-test-bug24264 ()
   "Test for https://debbugs.gnu.org/24264 ."
+  :tags '(:expensive-test)
   (let ((list  (append (make-list 8000005 1) '(8)))
         (list2 (make-list 8000005 2)))
     (should (cl-position 8 list))

@@ -1,10 +1,10 @@
 ;;; ob-latex.el --- Babel Functions for LaTeX        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,10 @@
 ;; be created directly form the latex source code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 
@@ -37,6 +41,9 @@
 (declare-function org-latex-compile "ox-latex" (texfile &optional snippet))
 (declare-function org-latex-guess-inputenc "ox-latex" (header))
 (declare-function org-splice-latex-header "org" (tpl def-pkg pkg snippets-p &optional extra))
+(declare-function org-at-heading-p "org" (&optional _))
+(declare-function org-back-to-heading "org" (&optional invisible-ok))
+(declare-function org-next-visible-heading "org" (arg))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("latex" . "tex"))
@@ -61,14 +68,59 @@
     (pdfpng       . :any)
     (pdfwidth     . :any)
     (headers      . :any)
-    (packages     . :any)
     (buffer       . ((yes no))))
   "LaTeX-specific header arguments.")
 
 (defcustom org-babel-latex-htlatex "htlatex"
-  "The htlatex command to enable conversion of latex to SVG or HTML."
+  "The htlatex command to enable conversion of LaTeX to SVG or HTML."
   :group 'org-babel
   :type 'string)
+
+(defcustom org-babel-latex-preamble
+  (lambda (_)
+    "\\documentclass[preview]{standalone}
+\\def\\pgfsysdriver{pgfsys-tex4ht.def}
+")
+  "Closure which evaluates at runtime to the LaTeX preamble.
+
+It takes 1 argument which is the parameters of the source block."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-begin-env
+  (lambda (_)
+    "\\begin{document}")
+  "Function that evaluates to the begin part of the document environment.
+
+It takes 1 argument which is the parameters of the source block.
+This allows adding additional code that will be ignored when
+exporting the literal LaTeX source."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-end-env
+  (lambda (_)
+    "\\end{document}")
+  "Closure which evaluates at runtime to the end part of the document environment.
+
+It takes 1 argument which is the parameters of the source block.
+This allows adding additional code that will be ignored when
+exporting the literal LaTeX source."
+  :group 'org-babel
+  :type 'function)
+
+(defcustom org-babel-latex-pdf-svg-process
+  "inkscape \
+--pdf-poppler \
+--export-area-drawing \
+--export-text-to-path \
+--export-plain-svg \
+--export-filename=%O \
+%f"
+  "Command to convert a PDF file to an SVG file."
+  :group 'org-babel
+  :type 'string
+  :package-version '(Org . "9.6"))
 
 (defcustom org-babel-latex-htlatex-packages
   '("[usenames]{color}" "{tikz}" "{color}" "{listings}" "{amsmath}")
@@ -84,7 +136,8 @@
                  (regexp-quote (format "%S" (car pair)))
                  (if (stringp (cdr pair))
                      (cdr pair) (format "%S" (cdr pair)))
-                 body))) (org-babel--get-vars params))
+                 body)))
+	(org-babel--get-vars params))
   (org-trim body))
 
 (defun org-babel-execute:latex (body params)
@@ -108,14 +161,31 @@ This function is called by `org-babel-execute-src-block'."
 	      (append (cdr (assq :packages params)) org-latex-packages-alist)))
         (cond
          ((and (string-suffix-p ".png" out-file) (not imagemagick))
-          (org-create-formula-image
-           body out-file org-format-latex-options in-buffer))
+          (let ((org-format-latex-header
+		 (concat org-format-latex-header "\n"
+			 (mapconcat #'identity headers "\n"))))
+	    (org-create-formula-image
+             body out-file org-format-latex-options in-buffer)))
+	 ((string= "svg" extension)
+	  (with-temp-file tex-file
+	    (insert (concat (funcall org-babel-latex-preamble params)
+			    (mapconcat #'identity headers "\n")
+			    (funcall org-babel-latex-begin-env params)
+			    body
+			    (funcall org-babel-latex-end-env params))))
+	  (let ((tmp-pdf (org-babel-latex-tex-to-pdf tex-file)))
+            (let* ((log-buf (get-buffer-create "*Org Babel LaTeX Output*"))
+                   (err-msg "org babel latex failed")
+                   (img-out (org-compile-file
+	                     tmp-pdf
+                             (list org-babel-latex-pdf-svg-process)
+                             extension err-msg log-buf)))
+              (shell-command (format "mv %s %s" img-out out-file)))))
          ((string-suffix-p ".tikz" out-file)
 	  (when (file-exists-p out-file) (delete-file out-file))
 	  (with-temp-file out-file
 	    (insert body)))
-	 ((and (or (string= "svg" extension)
-		   (string= "html" extension))
+	 ((and (string= "html" extension)
 	       (executable-find org-babel-latex-htlatex))
 	  ;; TODO: this is a very different way of generating the
 	  ;; frame latex document than in the pdf case.  Ideally, both
@@ -221,6 +291,6 @@ This function is called by `org-babel-execute-src-block'."
   "Return an error because LaTeX doesn't support sessions."
   (error "LaTeX does not support sessions"))
 
-
 (provide 'ob-latex)
+
 ;;; ob-latex.el ends here

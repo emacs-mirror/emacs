@@ -1,6 +1,6 @@
-;;; mh-thread.el --- MH-E threading support
+;;; mh-thread.el --- MH-E threading support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -26,10 +26,10 @@
 
 ;; The threading portion of this files tries to implement the
 ;; algorithm described at:
-;;   http://www.jwz.org/doc/threading.html
+;;   https://www.jwz.org/doc/threading.html
 ;; It also begins to implement the threading section of the IMAP -
 ;; SORT and THREAD Extensions RFC at:
-;;   http://tools.ietf.org/html/rfc5256
+;;   https://tools.ietf.org/html/rfc5256
 ;; The implementation lacks the reference and subject canonicalization
 ;; of the RFC.
 
@@ -69,8 +69,6 @@
 ;;  (5) Better canonicalizing for message identifier and subject
 ;;      strings.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
@@ -88,41 +86,33 @@
   message parent children
   (real-child-p t))
 
-(defvar mh-thread-id-hash nil
+(defvar-local mh-thread-id-hash nil
   "Hash table used to canonicalize message identifiers.")
-(make-variable-buffer-local 'mh-thread-id-hash)
 
-(defvar mh-thread-subject-hash nil
+(defvar-local mh-thread-subject-hash nil
   "Hash table used to canonicalize subject strings.")
-(make-variable-buffer-local 'mh-thread-subject-hash)
 
-(defvar mh-thread-id-table nil
+(defvar-local mh-thread-id-table nil
   "Thread ID table maps from message identifiers to message containers.")
-(make-variable-buffer-local 'mh-thread-id-table)
 
-(defvar mh-thread-index-id-map nil
+(defvar-local mh-thread-index-id-map nil
   "Table to look up message identifier from message index.")
-(make-variable-buffer-local 'mh-thread-index-id-map)
 
-(defvar mh-thread-id-index-map nil
+(defvar-local mh-thread-id-index-map nil
   "Table to look up message index number from message identifier.")
-(make-variable-buffer-local 'mh-thread-id-index-map)
 
-(defvar mh-thread-subject-container-hash nil
+(defvar-local mh-thread-subject-container-hash nil
   "Hash table used to group messages by subject.")
-(make-variable-buffer-local 'mh-thread-subject-container-hash)
 
-(defvar mh-thread-duplicates nil
+(defvar-local mh-thread-duplicates nil
   "Hash table used to associate messages with the same message identifier.")
-(make-variable-buffer-local 'mh-thread-duplicates)
 
-(defvar mh-thread-history ()
+(defvar-local mh-thread-history ()
   "Variable to remember the transformations to the thread tree.
 When new messages are added, these transformations are rewound,
 then the links are added from the newly seen messages. Finally
 the transformations are redone to get the new thread tree. This
 makes incremental threading easier.")
-(make-variable-buffer-local 'mh-thread-history)
 
 (defvar mh-thread-body-width nil
   "Width of scan substring that contains subject and body of message.")
@@ -149,7 +139,7 @@ to the message that started everything."
     (cond (thread-root-flag
            (while (mh-thread-immediate-ancestor))
            (mh-maybe-show))
-          ((equal current-level 1)
+          ((equal current-level 0)
            (message "Message has no ancestor"))
           (t (mh-thread-immediate-ancestor)
              (mh-maybe-show)))))
@@ -233,7 +223,7 @@ sibling."
                    (push index msg-list)))
                (forward-line))
              (mh-scan-folder mh-current-folder
-                             (mapcar #'(lambda (x) (format "%s" x))
+                             (mapcar (lambda (x) (format "%s" x))
                                      (mh-coalesce-msg-list msg-list))
                              t))
            (when mh-index-data
@@ -252,8 +242,8 @@ sibling."
 (defun mh-thread-current-indentation-level ()
   "Find the number of spaces by which current message is indented."
   (save-excursion
-    (let ((address-start-offset (+ mh-cmd-note mh-scan-date-flag-width
-                                   mh-scan-date-width 1))
+    (let ((address-start-offset (+ mh-cmd-note
+                                   mh-scan-field-from-start-offset))
           (level 0))
       (beginning-of-line)
       (forward-char address-start-offset)
@@ -285,8 +275,8 @@ at the end."
   (beginning-of-line)
   (if (eobp)
       nil
-    (let ((address-start-offset (+ mh-cmd-note mh-scan-date-flag-width
-                                   mh-scan-date-width 1))
+    (let ((address-start-offset (+ mh-cmd-note
+                                   mh-scan-field-from-start-offset))
           (level (mh-thread-current-indentation-level))
           spaces begin)
       (setq begin (point))
@@ -296,7 +286,7 @@ at the end."
         (while (not (eobp))
           (forward-char address-start-offset)
           (unless (equal (string-match spaces (buffer-substring-no-properties
-                                               (point) (mh-line-end-position)))
+                                               (point) (line-end-position)))
                          0)
             (beginning-of-line)
             (backward-char)
@@ -457,8 +447,8 @@ If optional argument STRING is given then that is assumed to be
 the scan line. Otherwise uses the line at point as the scan line
 to parse."
   (let* ((string (or string (buffer-substring-no-properties
-                             (mh-line-beginning-position)
-                             (mh-line-end-position))))
+                             (line-beginning-position)
+                             (line-end-position))))
          (address-start (+ mh-cmd-note mh-scan-field-from-start-offset))
          (body-start (+ mh-cmd-note mh-scan-field-from-end-offset))
          (first-string (substring string 0 address-start)))
@@ -591,7 +581,7 @@ Only information about messages in MSG-LIST are added to the tree."
        #'call-process (expand-file-name mh-scan-prog mh-progs) nil '(t nil) nil
        "-width" "10000" "-format"
        "%(msg)\n%{message-id}\n%{references}\n%{in-reply-to}\n%{subject}\n"
-       folder (mapcar #'(lambda (x) (format "%s" x)) msg-list)))
+       folder (mapcar (lambda (x) (format "%s" x)) msg-list)))
     (goto-char (point-min))
     (let ((roots ())
           (case-fold-search t))
@@ -599,20 +589,20 @@ Only information about messages in MSG-LIST are added to the tree."
         (while (not (eobp))
           (cl-block process-message
             (let* ((index-line
-                    (prog1 (buffer-substring (point) (mh-line-end-position))
+                    (prog1 (buffer-substring (point) (line-end-position))
                       (forward-line)))
                    (index (string-to-number index-line))
-                   (id (prog1 (buffer-substring (point) (mh-line-end-position))
+                   (id (prog1 (buffer-substring (point) (line-end-position))
                          (forward-line)))
                    (refs (prog1
-                             (buffer-substring (point) (mh-line-end-position))
+                             (buffer-substring (point) (line-end-position))
                            (forward-line)))
                    (in-reply-to (prog1 (buffer-substring (point)
-                                                         (mh-line-end-position))
+                                                         (line-end-position))
                                   (forward-line)))
                    (subject (prog1
                                 (buffer-substring
-                                 (point) (mh-line-end-position))
+                                 (point) (line-end-position))
                               (forward-line)))
                    (subject-re-p nil))
               (unless (gethash index mh-thread-scan-line-map)
@@ -635,9 +625,9 @@ Only information about messages in MSG-LIST are added to the tree."
                      (mh-thread-remove-parent-link id)
                      (mh-thread-add-link (car ancestors) id)))
                 (mh-thread-add-link (car ancestors) (cadr ancestors)))))))
-      (maphash #'(lambda (_k v)
-                   (when (null (mh-container-parent v))
-                     (push v roots)))
+      (maphash (lambda (_k v)
+                 (when (null (mh-container-parent v))
+                   (push v roots)))
                mh-thread-id-table)
       (setq roots (mh-thread-prune-containers roots))
       (prog1 (setq roots (mh-thread-group-by-subject roots))
@@ -720,25 +710,25 @@ For now it will take the last string inside angles."
                      mh-thread-history)
                (mh-thread-remove-parent-link node)))))
     (let ((results ()))
-      (maphash #'(lambda (_k v)
-                   (when (and (null (mh-container-parent v))
-                              (gethash (mh-message-id (mh-container-message v))
-                                       mh-thread-id-index-map))
-                     (push v results)))
+      (maphash (lambda (_k v)
+                 (when (and (null (mh-container-parent v))
+                            (gethash (mh-message-id (mh-container-message v))
+                                     mh-thread-id-index-map))
+                   (push v results)))
                mh-thread-id-table)
       (mh-thread-sort-containers results))))
 
 (defun mh-thread-sort-containers (containers)
   "Sort a list of message CONTAINERS to be in ascending order wrt index."
   (sort containers
-        #'(lambda (x y)
-            (when (and (mh-container-message x) (mh-container-message y))
-              (let* ((id-x (mh-message-id (mh-container-message x)))
-                     (id-y (mh-message-id (mh-container-message y)))
-                     (index-x (gethash id-x mh-thread-id-index-map))
-                     (index-y (gethash id-y mh-thread-id-index-map)))
-                (and (integerp index-x) (integerp index-y)
-                     (< index-x index-y)))))))
+        (lambda (x y)
+          (when (and (mh-container-message x) (mh-container-message y))
+            (let* ((id-x (mh-message-id (mh-container-message x)))
+                   (id-y (mh-message-id (mh-container-message y)))
+                   (index-x (gethash id-x mh-thread-id-index-map))
+                   (index-y (gethash id-y mh-thread-id-index-map)))
+              (and (integerp index-x) (integerp index-y)
+                   (< index-x index-y)))))))
 
 (defvar mh-thread-last-ancestor)
 
@@ -875,7 +865,6 @@ This function can only be used the folder is threaded."
 (provide 'mh-thread)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

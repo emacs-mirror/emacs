@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
 
-Copyright (C) 2009-2020 Free Software Foundation, Inc.
+Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,6 +28,66 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "blockinput.h"
 #include "systime.h"
+#include "process.h"
+
+static ptrdiff_t threads_holding_glib_lock;
+static GMainContext *glib_main_context;
+
+/* The depth of xg_select suppression.  */
+static int xg_select_suppress_count;
+
+void
+release_select_lock (void)
+{
+#if GNUC_PREREQ (4, 7, 0)
+  if (__atomic_sub_fetch (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
+    g_main_context_release (glib_main_context);
+#else
+  if (--threads_holding_glib_lock == 0)
+    g_main_context_release (glib_main_context);
+#endif
+}
+
+static void
+acquire_select_lock (GMainContext *context)
+{
+#if GNUC_PREREQ (4, 7, 0)
+  if (__atomic_fetch_add (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
+    {
+      glib_main_context = context;
+      while (!g_main_context_acquire (context))
+	{
+	  /* Spin. */
+	}
+    }
+#else
+  if (threads_holding_glib_lock++ == 0)
+    {
+      glib_main_context = context;
+      while (!g_main_context_acquire (context))
+	{
+	  /* Spin. */
+	}
+    }
+#endif
+}
+
+/* Call this to not use xg_select when using it would be a bad idea,
+   i.e. during drag-and-drop.  */
+void
+suppress_xg_select (void)
+{
+  ++xg_select_suppress_count;
+}
+
+void
+release_xg_select (void)
+{
+  if (!xg_select_suppress_count)
+    emacs_abort ();
+
+  --xg_select_suppress_count;
+}
 
 /* `xg_select' is a `pselect' replacement.  Why do we need a separate function?
    1. Timeouts.  Glib and Gtk rely on timer events.  If we did pselect
@@ -54,26 +114,32 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   GPollFD *gfds = gfds_buf;
   int gfds_size = ARRAYELTS (gfds_buf);
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
-  bool context_acquired = false;
   int i, nfds, tmo_in_millisec, must_free = 0;
   bool need_to_dispatch;
+#ifdef USE_GTK
+  bool already_has_events;
+#endif
+
+  if (xg_select_suppress_count)
+    return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
 
   context = g_main_context_default ();
-  context_acquired = g_main_context_acquire (context);
-  /* FIXME: If we couldn't acquire the context, we just silently proceed
-     because this function handles more than just glib file descriptors.
-     Note that, as implemented, this failure is completely silent: there is
-     no feedback to the caller.  */
+  acquire_select_lock (context);
+
+#ifdef USE_GTK
+  already_has_events = g_main_context_pending (context);
+#ifndef HAVE_PGTK
+  already_has_events = already_has_events && x_gtk_use_native_input;
+#endif
+#endif
 
   if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
   if (wfds) all_wfds = *wfds;
   else FD_ZERO (&all_wfds);
 
-  n_gfds = (context_acquired
-	    ? g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
-				    gfds, gfds_size)
-	    : -1);
+  n_gfds = g_main_context_query (context, G_PRIORITY_LOW, &tmo_in_millisec,
+				 gfds, gfds_size);
 
   if (gfds_size < n_gfds)
     {
@@ -113,10 +179,46 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	tmop = &tmo;
     }
 
+#ifndef USE_GTK
   fds_lim = max_fds + 1;
   nfds = thread_select (pselect, fds_lim,
 			&all_rfds, have_wfds ? &all_wfds : NULL, efds,
 			tmop, sigmask);
+#else
+  /* On PGTK, when you type a key, the key press event are received,
+     and one more key press event seems to be received internally.
+
+     The same can happen with GTK native input, which makes input
+     slow.
+
+     The second event is not sent via the display connection, so the
+     following is the case:
+
+       - socket read buffer is empty
+       - a key press event is pending
+
+     In that case, we should not sleep in pselect, and dispatch the
+     event immediately.  (Bug#52761) */
+  if (!already_has_events)
+    {
+      fds_lim = max_fds + 1;
+      nfds = thread_select (pselect, fds_lim,
+			    &all_rfds, have_wfds ? &all_wfds : NULL, efds,
+			    tmop, sigmask);
+    }
+  else
+    {
+      /* Emulate return values */
+      nfds = 1;
+      FD_ZERO (&all_rfds);
+      if (have_wfds)
+	FD_ZERO (&all_wfds);
+      if (efds)
+	FD_ZERO (efds);
+      our_fds++;
+    }
+#endif
+
   if (nfds < 0)
     retval = nfds;
   else if (nfds > 0)
@@ -151,8 +253,25 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 #else
   need_to_dispatch = true;
 #endif
-  if (need_to_dispatch && context_acquired)
+
+  /* xwidgets make heavy use of GLib subprocesses, which add their own
+     SIGCHLD handler at arbitrary locations.  That doesn't play well
+     with Emacs's own handler, so once GLib does its thing with its
+     subprocesses we restore our own SIGCHLD handler (which chains the
+     GLib handler) here.
+
+     There is an obvious race condition, but we can't really do
+     anything about that, except hope a SIGCHLD arrives soon to clear
+     up the situation.  */
+
+#ifdef HAVE_XWIDGETS
+  catch_child_signal ();
+#endif
+
+  if (need_to_dispatch)
     {
+      acquire_select_lock (context);
+
       int pselect_errno = errno;
       /* Prevent g_main_dispatch recursion, that would occur without
          block_input wrapper, because event handlers call
@@ -162,10 +281,8 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
         g_main_context_dispatch (context);
       unblock_input ();
       errno = pselect_errno;
+      release_select_lock ();
     }
-
-  if (context_acquired)
-    g_main_context_release (context);
 
   /* To not have to recalculate timeout, return like this.  */
   if ((our_fds > 0 || (nfds == 0 && tmop == &tmo)) && (retval == 0))

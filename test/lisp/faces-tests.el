@@ -1,34 +1,31 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
-(require 'faces)
+(require 'ert-x)
 
-(defvar faces--test-data-dir
-  (expand-file-name "../data/"
-                    (file-name-directory (or load-file-name
-                                             buffer-file-name))))
-
-(defgroup faces--test nil ""
+(defgroup faces--test nil "Group to test faces."
   :group 'faces--test)
 
 (defface faces--test1
@@ -120,7 +117,7 @@
   (should (equal (face-attribute 'spiff-changed-face :extend) t))
   (should (equal (face-attribute 'spiff-added :extend) 'unspecified))
   (should (equal (face-attribute 'spiff-file-header-face :extend) nil))
-  (add-to-list 'custom-theme-load-path (concat faces--test-data-dir "themes"))
+  (add-to-list 'custom-theme-load-path (ert-resource-directory))
   (load-theme 'faces-test-dark t t)
   (load-theme 'faces-test-light t t)
   (should (equal (face-attribute 'faces--test-inherit-extend :extend)
@@ -219,6 +216,14 @@
         (should (equal (face-attribute 'faces--test-face3 :extend nil t) 'unspecified))
         ))
   )
+
+(ert-deftest test-tty-find-type ()
+  (let ((pred (lambda (string)
+                (locate-library (concat "term/" string ".el")))))
+    (should (tty-find-type pred "cygwin"))
+    (should (tty-find-type pred "cygwin-foo"))
+    (should (equal (tty-find-type pred "xterm") "xterm"))
+    (should (equal (tty-find-type pred "screen.xterm") "screen"))))
 
 (provide 'faces-tests)
 ;;; faces-tests.el ends here

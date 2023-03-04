@@ -1,10 +1,10 @@
-#+TITLE: The Location of Emacs-Lisp Tests
+#+TITLE: The Location of Emacs Lisp Tests
 
 
 
 * The Main Emacs Repository
 
-The Emacs repository contains a very large number of Emacs-Lisp files, many of
+The Emacs repository contains a very large number of Emacs Lisp files, many of
 which pre-date both formal package support for Emacs and automated unit
 testing.
 
@@ -17,13 +17,15 @@ Sub-directories are in many cases themed after packages (~gnus~, ~org~,
 ~calc~), related functionality (~net~, ~emacs-lisp~, ~progmodes~) or status
 (~obsolete~).
 
-C source is stored in the ~src~ directory, which is flat.
+C source is stored in the ~src~ directory, which is flat.  Source for
+utility programs is stored in the ~lib-src~ directory.
 
 ** Test Files
 
 Automated tests should be stored in the ~test/lisp~ directory for
-tests of functionality implemented in Lisp, and in the ~test/src~
-directory for functionality implemented in C.  Tests should reflect
+tests of functionality implemented in Lisp, in the ~test/src~
+directory for functionality implemented in C, and in the
+~test/lib-src~ directory for utility programs.  Tests should reflect
 the directory structure of the source tree; so tests for files in the
 ~lisp/emacs-lisp~ source directory should reside in the
 ~test/lisp/emacs-lisp~ directory.
@@ -36,10 +38,14 @@ files of any name which are themselves placed in a directory named
 after the feature with ~-tests~ appended, such as
 ~/test/lisp/emacs-lisp/eieio-tests~
 
-Similarly, features implemented in C should reside in ~/test/src~ and
-be named after the C file with ~-tests.el~ added to the base-name of
-the tested source file.  Thus, tests for ~src/fileio.c~ should be in
-~test/src/fileio-tests.el~.
+Similarly, tests of features implemented in C should reside in
+~/test/src~ or in ~test/lib-src~ and be named after the C file with
+~-tests.el~ added to the base-name of the tested source file.  Thus,
+tests for ~src/fileio.c~ should be in ~test/src/fileio-tests.el~.
+
+Some tests do not belong to any one particular file.  Such tests
+should be put in the ~misc~ directory and be given a descriptive name
+that does /not/ end with ~-tests.el~.
 
 There are also some test materials that cannot be run automatically
 (i.e. via ert).  These should be placed in ~/test/manual~; they are
@@ -57,3 +63,8 @@ directory called ~test/lisp/progmodes/flymake-resources~.
 No guidance is given for the organization of resource files inside the
 ~-resources~ directory; files can be organized at the author's
 discretion.
+
+** Testing Infrastructure Files
+
+Files used to support testing infrastructure such as EMBA should be
+placed in ~infra~.

@@ -1,6 +1,6 @@
-;;; semantic-utest-c.el --- C based parsing tests.
+;;; semantic-utest-c.el --- C based parsing tests.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -40,11 +40,12 @@
 (defvar semantic-utest-c-test-directory (expand-file-name "tests" cedet-utest-directory)
   "Location of test files.")
 
+(defvar semantic-lex-c-nested-namespace-ignore-second)
+
 ;;; Code:
-;;;###autoload
 (ert-deftest semantic-test-c-preprocessor-simulation ()
   "Run parsing test for C from the test directory."
-  (interactive)
+  :tags '(:expensive-test)
   (semantic-mode 1)
   (dolist (fp semantic-utest-c-comparisons)
     (let* ((semantic-lex-c-nested-namespace-ignore-second nil)
@@ -59,7 +60,7 @@
 	      (semantic-fetch-tags))))
       (when (or (not tags-expected) (not tags-actual))
         (message "Tried to find test files in: %s" semantic-utest-c-test-directory)
-        (error "Failed:  Discovered no tags in test files or test file not found."))
+        (error "Failed:  Discovered no tags in test files or test file not found"))
 
       ;; Now that we have the tags, compare them for SPP accuracy.
       (dolist (tag tags-actual)
@@ -93,7 +94,7 @@ Target: i486-linux-gnu
 Configured with: ../src/configure -v --with-pkgversion='Ubuntu 4.3.1-9ubuntu1' --with-bugurl=file:///usr/share/doc/gcc-4.3/README.Bugs --enable-languages=c,c++,fortran,objc,obj-c++ --prefix=/usr --enable-shared --with-system-zlib --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --enable-nls --with-gxx-include-dir=/usr/include/c++/4.3 --program-suffix=-4.3 --enable-clocale=gnu --enable-libstdcxx-debug --enable-objc-gc --enable-mpfr --enable-targets=all --enable-checking=release --build=i486-linux-gnu --host=i486-linux-gnu --target=i486-linux-gnu
 Thread model: posix
 gcc version 4.3.1 (Ubuntu 4.3.1-9ubuntu1)"
-    ;; My debian box:
+    ;; My Debian box:
     "Using built-in specs.
 Target: x86_64-unknown-linux-gnu
 Configured with: ../../../sources/gcc/configure --prefix=/usr/local/glibc-2.3.6/x86_64/apps/gcc-4.2.3 --with-gmp=/usr/local/gcc/gmp --with-mpfr=/usr/local/gcc/mpfr --enable-languages=c,c++,fortran --with-as=/usr/local/glibc-2.3.6/x86_64/apps/gcc-4.2.3/bin/as --with-ld=/usr/local/glibc-2.3.6/x86_64/apps/gcc-4.2.3/bin/ld --disable-multilib
@@ -122,13 +123,13 @@ Target: x86_64-redhat-linux
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-libgcj-multifile --enable-languages=c,c++,objc,obj-c++,java,fortran,ada --enable-java-awt=gtk --disable-dssi --enable-plugin --with-java-home=/usr/lib/jvm/java-1.4.2-gcj-1.4.2.0/jre --with-cpu=generic --host=x86_64-redhat-linux
 Thread model: posix
 gcc version 4.1.2 20080704 (Red Hat 4.1.2-44)"
-    ;; David Engster's german gcc on ubuntu 4.3
+    ;; David Engster's German gcc on Ubuntu 4.3
     "Es werden eingebaute Spezifikationen verwendet.
 Ziel: i486-linux-gnu
 Konfiguriert mit: ../src/configure -v --with-pkgversion='Ubuntu 4.3.2-1ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-4.3/README.Bugs --enable-languages=c,c++,fortran,objc,obj-c++ --prefix=/usr --enable-shared --with-system-zlib --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --enable-nls --with-gxx-include-dir=/usr/include/c++/4.3 --program-suffix=-4.3 --enable-clocale=gnu --enable-libstdcxx-debug --enable-objc-gc --enable-mpfr --enable-targets=all --enable-checking=release --build=i486-linux-gnu --host=i486-linux-gnu --target=i486-linux-gnu
 Thread-Modell: posix
 gcc-Version 4.3.2 (Ubuntu 4.3.2-1ubuntu12)"
-    ;; Damien Deville bsd
+    ;; Damien Deville BSD
     "Using built-in specs.
 Target: i386-undermydesk-freebsd
 Configured with: FreeBSD/i386 system compiler
@@ -138,7 +139,7 @@ gcc version 4.2.1 20070719  [FreeBSD]"
   "A bunch of sample gcc -v outputs from different machines.")
 
 (defvar semantic-gcc-test-strings-fail
-  '(;; A really old solaris box I found
+  '(;; A really old Solaris box I found
     "Reading specs from /usr/local/gcc-2.95.2/lib/gcc-lib/sparc-sun-solaris2.6/2.95.2/specs
 gcc version 2.95.2 19991024 (release)"
     )
@@ -146,33 +147,32 @@ gcc version 2.95.2 19991024 (release)"
 
 (ert-deftest semantic-test-gcc-output-parser ()
   "Test the output parser against some collected strings."
-  (let ((fail nil))
-    (dolist (S semantic-gcc-test-strings)
-      (let* ((fields (semantic-gcc-fields S))
-             (v (cdr (assoc 'version fields)))
-             (h (or (cdr (assoc 'target fields))
-                    (cdr (assoc '--target fields))
-                    (cdr (assoc '--host fields))))
-             (p (cdr (assoc '--prefix fields)))
-             )
-	;; No longer test for prefixes.
-        (when (not (and v h))
-          (let ((strs (split-string S "\n")))
-            (message "Test failed on %S\nV H P:\n%S %S %S" (car strs) v h p)
-            ))
-        (should (and v h))
-        ))
-    (dolist (S semantic-gcc-test-strings-fail)
-      (let* ((fields (semantic-gcc-fields S))
-             (v (cdr (assoc 'version fields)))
-             (h (or (cdr (assoc '--host fields))
-                    (cdr (assoc 'target fields))))
-             (p (cdr (assoc '--prefix fields)))
-             )
-        ;; negative test
-        (should-not (and v h p))
-        ))
-    ))
+  (dolist (S semantic-gcc-test-strings)
+    (let* ((fields (semantic-gcc-fields S))
+           (v (cdr (assoc 'version fields)))
+           (h (or (cdr (assoc 'target fields))
+                  (cdr (assoc '--target fields))
+                  (cdr (assoc '--host fields))))
+           (p (cdr (assoc '--prefix fields)))
+           )
+      ;; No longer test for prefixes.
+      (when (not (and v h))
+        (let ((strs (split-string S "\n")))
+          (message "Test failed on %S\nV H P:\n%S %S %S" (car strs) v h p)
+          ))
+      (should (and v h))
+      ))
+  (dolist (S semantic-gcc-test-strings-fail)
+    (let* ((fields (semantic-gcc-fields S))
+           (v (cdr (assoc 'version fields)))
+           (h (or (cdr (assoc '--host fields))
+                  (cdr (assoc 'target fields))))
+           (p (cdr (assoc '--prefix fields)))
+           )
+      ;; negative test
+      (should-not (and v h p))
+      ))
+  )
 
 
 (provide 'semantic-utest-c)

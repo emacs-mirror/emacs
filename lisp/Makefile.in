@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2000-2020 Free Software Foundation, Inc.
+# Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -21,6 +21,7 @@ SHELL = @SHELL@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
 EXEEXT = @EXEEXT@
@@ -29,24 +30,20 @@ EXEEXT = @EXEEXT@
 # limitation.
 XARGS_LIMIT = @XARGS_LIMIT@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
+ifeq ($(HAVE_NATIVE_COMP),yes)
+# Environment variable to enable Ahead-Of-Time compilation.
+ifndef NATIVE_FULL_AOT
+NATIVE_SKIP_NONDUMP = 1
+endif
+# Configured for Ahead-Of-Time compilation.
+ifeq ($(NATIVE_COMPILATION_AOT),yes)
+NATIVE_SKIP_NONDUMP = ""
+endif
+endif
 
-AM_V_ELC = $(am__v_ELC_@AM_V@)
-am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
-am__v_ELC_0 = @echo "  ELC     " $@;
-am__v_ELC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
-
+-include ${top_builddir}/src/verbose.mk
 
 FIND_DELETE = @FIND_DELETE@
 
@@ -68,15 +65,6 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
 
-# Those automatically generated autoload files that need special rules
-# to build; ie not including things created via generated-autoload-file
-# (eg calc/calc-loaddefs.el).
-LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
-	$(lisp)/calendar/diary-loaddefs.el \
-	$(lisp)/calendar/hol-loaddefs.el \
-	$(lisp)/mh-e/mh-loaddefs.el \
-	$(lisp)/net/tramp-loaddefs.el
-
 # All generated autoload files.
 loaddefs = $(shell find ${srcdir} -name '*loaddefs.el' ! -name '.*')
 # Elisp files auto-generated.
@@ -85,32 +73,46 @@ AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
 BYTE_COMPILE_FLAGS = \
-  --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
+  --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
+	$(BYTE_COMPILE_EXTRA_FLAGS)
+# ... but we must prefer .elc files for those in the early bootstrap.
+compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
-# the slowest-compiler on the smallest file and move to larger files as the
-# compiler gets faster.  'autoload.elc' comes last because it is not used by
-# the compiler (so its compilation does not speed up subsequent compilations),
-# it's only placed here so as to speed up generation of the loaddefs.el file.
+# the slowest-compiler on the smallest file and move to larger files
+# as the compiler gets faster.  'loaddefs-gen.elc'/'radix-tree.el'
+# comes last because they're not used by the compiler (so its
+# compilation does not speed up subsequent compilations), it's only
+# placed here so as to speed up generation of the loaddefs.el files.
 
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/cconv.elc    \
 	$(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/emacs-lisp/bytecomp.elc \
-	$(lisp)/emacs-lisp/autoload.elc
+	$(lisp)/emacs-lisp/bytecomp.elc
+ifeq ($(HAVE_NATIVE_COMP),yes)
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
+endif
+COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
+# Also compile the ja-dic file used to convert the Japanese dictionary
+# to speed things up.  The org files are used to convert org files to
+# texi files.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
-  ./cedet/semantic/db.el
+  ./cedet/semantic/db.el ./emacs-lisp/cconv.el \
+  ./international/ja-dic-cnv.el \
+  ./org/ox.el ./org/ox-texinfo.el ./org/org-macro.el ./org/org-element.el \
+  ./org/oc.el ./org/ol.el ./emacs-lisp/cl-lib.el
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
+emacs = '$(EMACS)' $(EMACSOPT)
 
 ## Subdirectories, relative to builddir.
 SUBDIRS = $(sort $(shell find ${srcdir} -type d -print))
@@ -125,12 +127,14 @@ SUBDIRS_FINDER = $(filter-out ${srcdir}/leim%,${SUBDIRS_ALMOST})
 ## All subdirectories in which we might want to create subdirs.el.
 SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
-# cus-load and finder-inf are not explicitly requested by anything, so
-# we add them here to make sure they get built.
-all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
+# cus-load, finder-inf and autoloads are not explicitly requested by
+# anything, so we add them here to make sure they get built.
+all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el generate-ja-dic \
+	org-manuals autoloads
 
 PHONY_EXTRAS =
-.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS)
+.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS) \
+	generate-ja-dic org-manuals
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -161,55 +165,52 @@ $(lisp)/finder-inf.el:
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
 
+# This is the OKURO-NASI compilation trigger.
+generate-ja-dic: main-first
+	$(AM_V_at)$(MAKE) -C ../leim generate-ja-dic EMACS="$(EMACS)"
+	$(AM_V_at)$(MAKE) compile-targets TARGETS="./leim/ja-dic/ja-dic.elc"
+
+org-manuals: main-first
+	$(AM_V_at)$(MAKE) -C ../doc/misc org.texi modus-themes.texi
+
 ## Comments on loaddefs generation:
 
-# loaddefs depends on gen-lisp for two reasons:
-# 1) In ../src, the emacs target depends on loaddefs but not on eg leim-list.
-# So having leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
+# loaddefs depends on gen-lisp because in ../src, the emacs target
+# depends on loaddefs, but not on, for instance, leim-list.  So having
+# leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
 # gets created before the final emacs is dumped.  Having leim
-# dependencies in ../src as well would create a parallel race condition.
+# dependencies in ../src as well would create a parallel race
+# condition.
 #
-# 2) Files that are marked no-update-autoloads still get recorded in loaddefs.
-# So those files should be generated before we make autoloads, if we
-# don't want a successive make autoloads to change the output file.
-# Said changes are trivial (only comments in the "files without autoloads"
-# section), but still can be annoying.  Of course, if generated lisp files
-# do contain autoloads, it is essential they be built before make autoloads.
-# (Also, if a generated file is not written atomically, it is possible that
-# in a parallel build, make autoloads could read a partial version of it.)
+# FIXME: Is the following true any more?
 #
-# We'd really like to add "make -C ../admin/unidata all" to gen-lisp
-# because of 2) above, but it causes a race condition in parallel
-# builds because ../src also runs that rule.  Given the limitations of
-# recursive make, the only way to fix that would be to remove unidata
-# from ../src rules, but that doesn't seem possible due to the various
-# non-trivial dependencies.
+# We'd really like to add "make -C ../admin/unidata all" to gen-lisp,
+# but it causes a race condition in parallel builds because ../src
+# also runs that rule.  Given the limitations of recursive make, the
+# only way to fix that would be to remove unidata from ../src rules,
+# but that doesn't seem possible due to the various non-trivial
+# dependencies.
 
-# We make $(lisp)/loaddefs.el a dependency of .PHONY to cause Make to
-# ignore its time stamp.  That's because the real dependencies of
-# loaddefs.el aren't known to Make, they are implemented in
-# batch-update-autoloads, which only updates the autoloads whose
-# sources have changed.
+# The real dependencies of loaddefs.el aren't known to Make, they are
+# implemented in loaddefs-generate--emacs-batch, so autoloads is an
+# "all" dependency.  "leim" isn't really a dependency here, but we
+# need leim-list.el at about the same time, so ensure that it's
+# generated, too.
+autoloads: $(lisp)/emacs-lisp/loaddefs-gen.elc gen-lisp
+	$(AM_V_GEN)$(emacs) \
+            -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
+	    -f loaddefs-generate--emacs-batch ${SUBDIRS_ALMOST}
 
-# Use expand-file-name rather than $abs_scrdir so that Emacs does not
-# get confused when it compares file-names for equality.
-
-autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
-	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
-	$(AM_V_GEN)$(emacs) -l autoload \
-	    --eval '(setq autoload-ensure-writable t)' \
-	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
-	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
-
-# autoloads only runs when loaddefs.el is nonexistent, although it
-# generates a number of different files. Provide a force option to enable
-# regeneration of all these files.
+# autoloads always runs, but only updates when there's something new.
+# Provide a force option to enable regeneration of all loaddefs files.
 .PHONY: autoloads-force
 autoloads-force:
-	rm loaddefs.el
+	rm -f $(lisp)/loaddefs.el
 	$(MAKE) autoloads
+
+ldefs-boot.el: autoloads-force
+	sed '/^;; Local Variables:/a ;; no-byte-compile: t'\
+		< $(lisp)/loaddefs.el > $(lisp)/ldefs-boot.el
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -258,9 +259,9 @@ ${ETAGS}: FORCE
 ## compile-main.  But maybe this is not even necessary any more now
 ## that this uses relative filenames.
 TAGS: ${ETAGS} ${tagsfiles}
-	$(AM_V_at)rm -f $@
+	$(AM_V_GEN)rm -f $@
 	$(AM_V_at)touch $@
-	$(AM_V_GEN)ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
+	$(AM_V_at)ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
 
 
 # The src/Makefile.in has its own set of dependencies and when they decide
@@ -277,9 +278,23 @@ TAGS: ${ETAGS} ${tagsfiles}
 THEFILE = no-such-file
 .PHONY: $(THEFILE)c
 $(THEFILE)c:
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l comp -f byte-compile-refresh-preloaded \
+		-f batch-byte+native-compile $(THEFILE)
+else
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l bytecomp -f byte-compile-refresh-preloaded \
 		-f batch-byte-compile $(THEFILE)
+endif
+
+ifeq ($(HAVE_NATIVE_COMP),yes)
+.PHONY: $(THEFILE)n
+$(THEFILE)n:
+	$(AM_V_ELN)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l comp -f byte-compile-refresh-preloaded \
+		--eval '(batch-native-compile t)' $(THEFILE)
+endif
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -292,8 +307,30 @@ $(THEFILE)c:
 
 # An old-fashioned suffix rule, which, according to the GNU Make manual,
 # cannot have prerequisites.
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(ANCIENT),yes)
+# The first compilation of compile-first, using an interpreted compiler:
+# The resulting .elc files get given a timestamp of the Unix epoch,
+# 1970-01-01, so that their timestamps are earlier than the source files,
+# causing these to be compiled into native code at the second recursive
+# invocation of this $(MAKE), using these .elc's.  This is faster than just
+# compiling the native code directly using the interpreted compile-first
+# files.  Note that the epoch date is hard-coded into Fload in src/lread.c
+# which uses it to avoid displaying certain messages which might be
+# irritating/misleading during a bootstrap.
+.el.elc:
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	-l comp -f batch-byte-compile $<
+	TZ=UTC0 touch -t 197001010000 $@
+else
+.el.elc:
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	-l comp -f batch-byte+native-compile $<
+endif
+else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
+endif
 
 .PHONY: compile-first compile-main compile compile-always
 
@@ -311,22 +348,46 @@ compile-first: $(COMPILE_FIRST)
 
 .PHONY: compile-targets
 # TARGETS is set dynamically in the recursive call from 'compile-main'.
+# Do not build comp.el unless necessary not to exceed max-lisp-eval-depth
+# in normal builds.
+ifneq ($(HAVE_NATIVE_COMP),yes)
+compile-targets: $(filter-out ./emacs-lisp/comp-cstr.elc,$(filter-out ./emacs-lisp/comp.elc,$(TARGETS)))
+else
 compile-targets: $(TARGETS)
+endif
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # 'no-byte-compile', so watch out for false-positives!
-compile-main: gen-lisp compile-clean
+
+# The "autoloads" target has to run first, because it may generate new
+# loaddefs files.  But don't depend on it, because that might trigger
+# unnecessary rebuilds.
+compile-main: gen-lisp compile-clean main-first | autoloads
 	@(cd $(lisp) && 			     \
 	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
-	for el in ${MAIN_FIRST} $$els; do            \
+	for el in $$els; do            \
 	  test -f $$el || continue; 		     \
 	  test ! -f $${el}c && 			     \
 	      GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
 	      continue; 			     \
 	  echo "$${el}c";                            \
-	done | xargs $(XARGS_LIMIT) echo) | 	     \
-	while read chunk; do 			     \
-	  $(MAKE) compile-targets TARGETS="$$chunk"; \
+	done | xargs $(XARGS_LIMIT) echo) |	     \
+	while read chunk; do			     \
+	  $(MAKE) compile-targets		     \
+		  NATIVE_DISABLED=$(NATIVE_SKIP_NONDUMP) \
+		  TARGETS="$$chunk";		     \
+	done
+
+# Compile some important files first.
+main-first:
+	@(cd $(lisp) && 			     \
+	for el in ${MAIN_FIRST}; do                  \
+	  echo "$${el}c";                            \
+	done | xargs $(XARGS_LIMIT) echo) |	     \
+	while read chunk; do			     \
+	  $(MAKE) compile-targets		     \
+		  NATIVE_DISABLED=$(NATIVE_SKIP_NONDUMP) \
+		  TARGETS="$$chunk";		     \
 	done
 
 .PHONY: compile-clean
@@ -369,6 +430,12 @@ compile-always:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	$(MAKE) compile
 
+.PHONY: trampolines
+trampolines: compile
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(emacs) -l comp -f comp-compile-all-trampolines
+endif
+
 .PHONY: backup-compiled-files compile-after-backup
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -402,72 +469,17 @@ compile-one-process: $(LOADDEFS) compile-first
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
-# Update MH-E internal autoloads. These are not to be confused with
-# the autoloads for the MH-E entry points, which are already in loaddefs.el.
-MH_E_DIR = $(lisp)/mh-e
-MH_E_SRC = $(sort $(wildcard ${MH_E_DIR}/mh*.el))
-MH_E_SRC := $(filter-out ${MH_E_DIR}/mh-loaddefs.el,${MH_E_SRC})
-
-.PHONY: mh-autoloads
-mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
-$(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(MH_E_DIR)
-
-# Update TRAMP internal autoloads. Maybe we could move tramp*.el into
-# an own subdirectory. OTOH, it does not hurt to keep them in
-# lisp/net.
-TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(sort $(wildcard ${TRAMP_DIR}/tramp*.el))
-TRAMP_SRC := $(filter-out ${TRAMP_DIR}/tramp-loaddefs.el,${TRAMP_SRC})
-
-$(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(TRAMP_DIR)
-
-CAL_DIR = $(lisp)/calendar
-## Those files that may contain internal calendar autoload cookies.
-CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
-CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal-*.el))
-CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
-
-$(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
-
-$(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/cal-loaddefs.el
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
-
-$(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
-
-.PHONY: bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	rm -f $(AUTOGENEL)
 
 distclean:
-	-rm -f ./Makefile $(lisp)/loaddefs.el
+	-rm -f ./Makefile $(lisp)/loaddefs.el $(lisp)/loaddefs.elc
 
 maintainer-clean: distclean bootstrap-clean
 	rm -f TAGS
-
-extraclean: bootstrap-clean distclean
-	-for file in $(LOADDEFS); do rm -f $${file}~; done
-	-rm -f $(lisp)/loaddefs.el~
 
 .PHONY: check-declare
 
@@ -524,5 +536,11 @@ $(lisp)/progmodes/cc-mode.elc: $(lisp)/progmodes/cc-langs.elc \
 
 $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
    $(lisp)/progmodes/cc-align.elc
+
+# https://debbugs.gnu.org/43037
+# js.elc (like all modes using CC Mode's compile time macros) needs to
+# be compiled under the same version of CC Mode it will run with.
+$(lisp)/progmodes/js.elc: $(lisp)/progmodes/cc-defs.elc \
+   $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-mode.elc
 
 # Makefile ends here.

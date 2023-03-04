@@ -1,6 +1,6 @@
-;;; w32-fns.el --- Lisp routines for 32-bit Windows
+;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -55,7 +55,7 @@
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return non-nil if the interactive shell being used expects MS-DOS shell semantics."
+  "Return non-nil if current interactive shell expects MS-DOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
@@ -202,8 +202,7 @@ This function is provided for backward compatibility, since
   (interactive
    (list (let ((default locale-coding-system))
            (read-coding-system
-            (format "Coding system for system calls (default %s): "
-                    default)
+            (format-prompt "Coding system for system calls" default)
             default))))
   (check-coding-system coding-system)
   (setq locale-coding-system coding-system))
@@ -256,6 +255,7 @@ bit output with no translation."
   (w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
   (w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
   (w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
+  (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
   (w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
   (w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
   (w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)
@@ -312,8 +312,8 @@ names."
 
 ;;;; System name and version for emacsbug.el
 
-(declare-function w32-version "w32-win" ())
-(declare-function w32-read-registry "w32fns" (root key name))
+(declare-function w32-version "term/w32-win" ())
+(declare-function w32-read-registry "w32fns.c" (root key name))
 
 (defun w32--os-description ()
   "Return a string describing the underlying OS and its version."
@@ -359,23 +359,6 @@ names."
 
 ;;;; Support for build process
 
-;; From autoload.el
-(defvar autoload-make-program)
-(defvar generated-autoload-file)
-
-(defun w32-batch-update-autoloads ()
-  "Like `batch-update-autoloads', but takes the name of the autoloads file
-from the command line.
-
-This is required because some Windows build environments, such as MSYS,
-munge command-line arguments that include file names to a horrible mess
-that Emacs is unable to cope with."
-  (let ((generated-autoload-file
-	 (expand-file-name (pop command-line-args-left)))
-	;; I can only assume the same considerations may apply here...
-	(autoload-make-program (pop command-line-args-left)))
-    (batch-update-autoloads)))
-
 (defun w32-append-code-lines (orig extra)
   "Append non-empty non-comment lines in the file EXTRA to the file ORIG.
 
@@ -384,10 +367,10 @@ for any permissions.
 
 This is required because the Windows build environment is not required
 to include Sed, which is used by leim/Makefile.in to do the job."
-  (find-file orig)
-  (goto-char (point-max))
-  (insert-file-contents extra)
-  (delete-matching-lines "^$\\|^;")
-  (save-buffers-kill-emacs t))
+  (with-current-buffer (find-file-noselect orig)
+    (goto-char (point-max))
+    (insert-file-contents extra)
+    (delete-matching-lines "^$\\|^;")
+    (save-buffers-kill-emacs t)))
 
 ;;; w32-fns.el ends here

@@ -1,6 +1,6 @@
-;;; gnus-draft.el --- draft message support for Gnus
+;;; gnus-draft.el --- draft message support for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -33,15 +33,12 @@
 
 ;;; Draft minor mode
 
-(defvar gnus-draft-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-     "Dt" gnus-draft-toggle-sending
-     "e"  gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
-     "De" gnus-draft-edit-message
-     "Ds" gnus-draft-send-message
-     "DS" gnus-draft-send-all-messages)
-    map))
+(defvar-keymap gnus-draft-mode-map
+  "D t" #'gnus-draft-toggle-sending
+  "e" #' gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
+  "D e" #'gnus-draft-edit-message
+  "D s" #'gnus-draft-send-message
+  "D S" #'gnus-draft-send-all-messages)
 
 (defun gnus-draft-make-menu-bar ()
   (unless (boundp 'gnus-draft-menu)
@@ -65,13 +62,13 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'draft-menu 'menu)
       (gnus-draft-make-menu-bar))
-    (add-hook 'gnus-summary-prepare-exit-hook 'gnus-draft-clear-marks t t))))
+    (add-hook 'gnus-summary-prepare-exit-hook #'gnus-draft-clear-marks t t))))
 
 ;;; Commands
 
 (defun gnus-draft-toggle-sending (article)
   "Toggle whether to send an article or not."
-  (interactive (list (gnus-summary-article-number)))
+  (interactive (list (gnus-summary-article-number)) gnus-summary-mode)
   (if (gnus-draft-article-sendable-p article)
       (progn
 	(push article gnus-newsgroup-unsendable)
@@ -83,7 +80,7 @@
 
 (defun gnus-draft-edit-message ()
   "Enter a mail/post buffer to edit and send the draft."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((article (gnus-summary-article-number))
 	(group gnus-newsgroup-name))
     (gnus-draft-check-draft-articles (list article))
@@ -99,17 +96,17 @@
     (let ((gnus-verbose-backends nil))
       (gnus-request-expire-articles (list article) group t))
     (push
-     `((lambda ()
-         (when (gnus-buffer-live-p ,gnus-summary-buffer)
-	   (save-excursion
-	     (set-buffer ,gnus-summary-buffer)
-	     (gnus-cache-possibly-remove-article ,article nil nil nil t)))))
+     (let ((buf gnus-summary-buffer))
+       (lambda ()
+         (when (gnus-buffer-live-p buf)
+	   (with-current-buffer buf
+	     (gnus-cache-possibly-remove-article article nil nil nil t)))))
      message-send-actions)))
 
 (defun gnus-draft-send-message (&optional n)
   "Send the current draft(s).
 Obeys the standard process/prefix convention."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (let* ((articles (gnus-summary-work-articles n))
 	 (total (length articles))
 	 article)
@@ -153,7 +150,7 @@ Obeys the standard process/prefix convention."
 	     (concat "^" (regexp-quote gnus-agent-target-move-group-header)
 		     ":") nil t)
 	(skip-syntax-forward "-")
-	(setq move-to (buffer-substring (point) (point-at-eol)))
+        (setq move-to (buffer-substring (point) (line-end-position)))
 	(message-remove-header gnus-agent-target-move-group-header))
       (goto-char (point-min))
       (when (re-search-forward
@@ -203,7 +200,7 @@ Obeys the standard process/prefix convention."
     (gnus-activate-group "nndraft:queue")
     (save-excursion
       (let* ((articles (nndraft-articles))
-	     (unsendable (gnus-uncompress-range
+	     (unsendable (range-uncompress
 			  (cdr (assq 'unsend
 				     (gnus-info-marks
 				      (gnus-get-info "nndraft:queue"))))))
@@ -275,8 +272,7 @@ If DONT-POP is nil, display the buffer after setting it up."
       (gnus-configure-posting-styles)
       (setq gnus-message-group-art (cons gnus-newsgroup-name (cadr ga)))
       (setq message-post-method
-            `(lambda (arg)
-               (gnus-post-method arg ,(car ga))))
+            (lambda (arg) (gnus-post-method arg (car ga))))
       (unless (equal (cadr ga) "")
         (dolist (article (cdr ga))
           (message-add-action

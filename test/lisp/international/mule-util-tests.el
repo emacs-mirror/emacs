@@ -1,6 +1,6 @@
-;;; mule-util --- tests for international/mule-util.el
+;;; mule-util-tests.el --- tests for international/mule-util.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'mule-util)
 
 (defconst mule-util-test-truncate-data
@@ -75,10 +76,50 @@
     (eval
      `(ert-deftest ,testname ()
         ,testdoc
-        (should (equal (apply 'truncate-string-to-width ',(car testdata))
-                              ,(cdr testdata)))))))
+        (let ((truncate-string-ellipsis "..."))
+          (should (equal (apply 'truncate-string-to-width ',(car testdata))
+                         ,(cdr testdata))))))))
 
 (dotimes (i (length mule-util-test-truncate-data))
   (mule-util-test-truncate-create i))
 
-;;; mule-util.el ends here
+(ert-deftest filepos/bufferpos-tests-utf-8 ()
+  (let ((coding-system-for-read 'utf-8-unix))
+    (with-temp-buffer
+      (insert-file-contents (ert-resource-file "utf-8.txt"))
+      (should (eq buffer-file-coding-system 'utf-8-unix))
+      ;; First line is "Thís is a test line 1.".
+      ;; Bytes start counting at 0; chars at 1.
+      (should (= (filepos-to-bufferpos 1 'exact) 2))
+      (should (= (bufferpos-to-filepos 2 'exact) 1))
+      ;; After non-ASCII.
+      (should (= (filepos-to-bufferpos 4 'exact) 4))
+      (should (= (bufferpos-to-filepos 4 'exact) 4)))))
+
+(ert-deftest filepos/bufferpos-tests-binary ()
+  (let ((coding-system-for-read 'binary))
+    (with-temp-buffer
+      (insert-file-contents (ert-resource-file "utf-8.txt"))
+      (should (eq buffer-file-coding-system 'no-conversion))
+      ;; First line is "Thís is a test line 1.".
+      ;; Bytes start counting at 0; chars at 1.
+      (should (= (filepos-to-bufferpos 1 'exact) 2))
+      (should (= (bufferpos-to-filepos 2 'exact) 1))
+      ;; After non-ASCII.
+      (should (= (filepos-to-bufferpos 4 'exact) 5))
+      (should (= (bufferpos-to-filepos 5 'exact) 4)))))
+
+(ert-deftest filepos/bufferpos-tests-undecided ()
+  (let ((coding-system-for-read 'binary))
+    (with-temp-buffer
+      (insert-file-contents (ert-resource-file "utf-8.txt"))
+      (setq buffer-file-coding-system 'undecided)
+      (should-error (filepos-to-bufferpos 1 'exact))
+      (should-error (bufferpos-to-filepos 2 'exact))
+      (should (= (filepos-to-bufferpos 1 'approximate) 2))
+      (should (= (bufferpos-to-filepos 2 'approximate) 1))
+      ;; After non-ASCII.
+      (should (= (filepos-to-bufferpos 4 'approximate) 5))
+      (should (= (bufferpos-to-filepos 5 'approximate) 4)))))
+
+;;; mule-util-tests.el ends here

@@ -1,7 +1,7 @@
 						-*- text -*-
             GNU Emacs availability information
 
-Copyright (C) 1986-1993, 1995, 1998, 2000-2020 Free Software Foundation,
+Copyright (C) 1986-1993, 1995, 1998, 2000-2023 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -73,8 +73,7 @@ you can contribute.
 Your donations will help to support the development of additional GNU
 software.  GNU/Linux systems (variants of GNU, based on the kernel
 Linux) have millions of users, but there is still much to be done.
-For more information on GNU, see the file 'GNU' in this directory (see
-above).
+For more information on GNU, visit https://www.gnu.org/.
 
 			Richard M Stallman
 			Chief GNUisance, Founder of the FSF

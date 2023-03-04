@@ -1,9 +1,11 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
 @chapter Maintaining Large Programs
+@cindex maintaining large programs
+@cindex large programming projects, maintaining
 
   This chapter describes Emacs features for maintaining medium- to
 large-size programs and packages.  These features include:
@@ -32,6 +34,10 @@ symbols (a.k.a.@: ``identifiers'') and their references.
 A mode for merging changes to program sources made on separate
 branches of development.
 @end ifnottex
+
+@item
+A minor-mode for highlighting bug references and visiting the
+referenced bug reports in their issue tracker.
 @end itemize
 
 If you are maintaining a large Lisp program, then in addition to the
@@ -49,6 +55,8 @@ Lisp Regression Testing}).
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
+* Bug Reference::       Highlighting references to bug reports and browsing
+                          them in their issue trackers.
 @end menu
 
 @node Version Control
@@ -85,6 +93,20 @@ is useful when you perform version control commands outside Emacs
 (e.g., from the shell prompt), or if you put the buffer's file under a
 different version control system, or remove it from version control
 entirely.
+
+@cindex VC commands, in Dired buffers
+@cindex filesets, VC, in Dired buffers
+  VC is also enabled automatically in Dired buffers (@pxref{Dired})
+showing directories whose files are controlled by a VCS@.  All VC
+commands described in this section can be invoked from any Dired
+buffer showing a directory with VC-controlled files; any files that
+are marked in a Dired buffer (@pxref{Marks vs Flags}) are considered
+to belong to the current fileset, and VC commands operate on the files
+in this fileset.  This allows you to construct VC filesets including
+any files you want, regardless of their VC state.  (If no files are
+marked when a VC command is invoked from a Dired buffer, the file
+shown on the current line in the buffer is considered the only file in
+the fileset.)
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -164,6 +186,30 @@ which it refers to as @dfn{back ends}:
 
 @itemize @bullet
 
+@cindex git
+@item
+Git is a decentralized version control system originally invented by
+Linus Torvalds to support development of Linux (his kernel).  VC
+supports many common Git operations, but others, such as repository
+syncing, must be done from the command line.
+
+@cindex CVS
+@item
+CVS is the free version control system that was, until circa 2008,
+used by the majority of free software projects.  Since then, it has
+been superseded by newer systems.  CVS allows concurrent multi-user
+development either locally or over the network.  Unlike newer systems,
+it lacks support for atomic commits and file moving/renaming.  VC
+supports all basic editing operations under CVS.
+
+@cindex SVN
+@cindex Subversion
+@item
+Subversion (svn) is a free version control system designed to be
+similar to CVS but without its problems (e.g., it supports atomic
+commits of filesets, and versioning of directories, symbolic links,
+meta-data, renames, copies, and deletes).
+
 @cindex SCCS
 @item
 SCCS was the first version control system ever built, and was long ago
@@ -184,30 +230,6 @@ RCS is the free version control system around which VC was initially
 built.  It is relatively primitive: it cannot be used over the
 network, and works at the level of individual files.  Almost
 everything you can do with RCS can be done through VC.
-
-@cindex CVS
-@item
-CVS is the free version control system that was, until circa 2008,
-used by the majority of free software projects.  Since then, it has
-been superseded by newer systems.  CVS allows concurrent multi-user
-development either locally or over the network.  Unlike newer systems,
-it lacks support for atomic commits and file moving/renaming.  VC
-supports all basic editing operations under CVS.
-
-@cindex SVN
-@cindex Subversion
-@item
-Subversion (svn) is a free version control system designed to be
-similar to CVS but without its problems (e.g., it supports atomic
-commits of filesets, and versioning of directories, symbolic links,
-meta-data, renames, copies, and deletes).
-
-@cindex git
-@item
-Git is a decentralized version control system originally invented by
-Linus Torvalds to support development of Linux (his kernel).  VC
-supports many common Git operations, but others, such as repository
-syncing, must be done from the command line.
 
 @cindex hg
 @cindex Mercurial
@@ -463,7 +485,10 @@ collection of one or more files that a VC operation acts on.  When you
 type VC commands in a buffer visiting a version-controlled file, the
 VC fileset is simply that one file.  When you type them in a VC
 Directory buffer, and some files in it are marked, the VC fileset
-consists of the marked files (@pxref{VC Directory Mode}).
+consists of the marked files (@pxref{VC Directory Mode}).  Likewise,
+when you invoke a VC command from a Dired buffer, the VC fileset
+consists of the marked files (@pxref{Marks vs Flags}), defaulting to
+the file shown on the current line if no files are marked.
 
   On modern changeset-based version control systems (@pxref{VCS
 Changesets}), VC commands handle multi-file VC filesets as a group.
@@ -487,7 +512,9 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer; in the latter
+two cases the command operates on the fileset consisting of the marked
+files.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
@@ -684,11 +711,15 @@ started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
 
 @kindex C-c C-w @r{(Log Edit mode)}
 @findex log-edit-generate-changelog-from-diff
+@vindex diff-add-log-use-relative-names
   To help generate ChangeLog entries, type @kbd{C-c C-w}
 (@code{log-edit-generate-changelog-from-diff}), to generate skeleton
 ChangeLog entries, listing all changed file and function names based
 on the diff of the VC fileset.  Consecutive entries left empty will be
-combined by @kbd{C-q} (@code{fill-paragraph}).
+combined by @kbd{C-q} (@code{fill-paragraph}).  By default the
+skeleton will just include the file name, without any leading
+directories.  If you wish to prepend the leading directories up to the
+VC root, customize @code{diff-add-log-use-relative-names}.
 
 @kindex C-c C-a @r{(Log Edit mode)}
 @findex log-edit-insert-changelog
@@ -828,7 +859,7 @@ details.
 
   If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a Dired buffer
 (@pxref{Dired}), the file listed on the current line is treated as the
-current VC fileset.
+current VC fileset.  The VC fileset can also include several marked files.
 
 @ifnottex
 @findex vc-ediff
@@ -891,7 +922,14 @@ is non-@code{nil}, the colors expressing the age of each line are
 applied to the background color, leaving the foreground at its default
 color.
 
-  When you give a prefix argument to this command, Emacs reads two
+@vindex vc-annotate-switches
+  You can customize the @code{annotate} options that @kbd{C-x v g}
+uses by customizing @code{vc-@var{backend}-annotate-switches} and
+@code{vc-annotate-switches}.  They function similarly to
+@code{vc-@var{backend}-diff-switches} and @code{vc-diff-switches},
+described above.
+
+  When you give a prefix argument to @kbd{C-x v g}, Emacs reads two
 arguments using the minibuffer: the revision to display and annotate
 (instead of the current file contents), and the time span in days the
 color range should cover.
@@ -939,7 +977,7 @@ the author's description of the changes in the revision on the current
 line.
 
 @item w
-Annotate the working revision--the one you are editing.  If you used
+Annotate the working revision---the one you are editing.  If you used
 @kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
 
@@ -981,16 +1019,25 @@ Search the change history for a specified pattern.
 @findex vc-print-log
   @kbd{C-x v l} (@code{vc-print-log}) displays a buffer named
 @file{*vc-change-log*}, showing the history of changes made to the
-current file, including who made the changes, the dates, and the log
-entry for each change (these are the same log entries you would enter
-via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
-centered at the revision of the file currently being visited.  With a
-prefix argument, the command prompts for the revision to center on,
-and the maximum number of revisions to display.
+current fileset in the long form, including who made the changes, the
+dates, and the log entry for each change (these are the same log
+entries you would enter via the @file{*vc-log*} buffer; @pxref{Log
+Buffer}).  When invoked from a buffer visiting a file, the current
+fileset consists of that single file, and point in the displayed
+@file{*vc-change-log*} buffer is centered at the revision of that
+file.  When invoked from a VC Directory buffer (@pxref{VC Directory
+Mode}) or from a Dired buffer (@pxref{Dired}), the fileset consists of
+all the marked files, defaulting to the file shown on the current line
+in the directory buffer if no file is marked.
 
-  If you call @kbd{C-x v l} from a VC Directory buffer (@pxref{VC
-Directory Mode}) or a Dired buffer (@pxref{Dired}), it applies to the
-file listed on the current line.
+  If the fileset includes one or more directories, the resulting
+@file{*vc-change-log*} buffer shows a short log of changes (one line
+for each change), if the VC backend supports that; otherwise it shows
+the log in the long form.
+
+  With a prefix argument, the command prompts for the revision to
+center on in the @file{*vc-change-log*} buffer and for the maximum
+number of revisions to display.
 
 @kindex C-x v L
 @findex vc-print-root-log
@@ -1024,13 +1071,14 @@ revision at point.  A second @key{RET} hides it again.
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
 control system's pull command to get new revisions from another
-repository (@pxref{Pulling / Pushing}).  This other repository is the default
+remote location (@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
-specific repository.  Similarly, @kbd{C-x v O}
+specific remote location.  Similarly, @kbd{C-x v O}
 (@code{vc-log-outgoing}) shows the changes that will be sent to
-another repository, the next time you run the push command; with a
-prefix argument, it prompts for a specific destination repository.
+another remote location, the next time you run the push command; with a
+prefix argument, it prompts for a specific destination that
+in case of some version control system can be a branch name.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer
@@ -1048,15 +1096,6 @@ prefix argument is a repeat count.
 @item n
 Move to the next revision entry.  A numeric prefix argument is a
 repeat count.
-
-@item P
-Move to the log of the previous file, if showing logs for a multi-file
-VC fileset.  Otherwise, just move to the beginning of the log.  A
-numeric prefix argument is a repeat count.
-
-@item N
-Move to the log of the next file, if showing logs for a multi-file VC
-fileset.  A numeric prefix argument is a repeat count.
 
 @item a
 Annotate the revision on the current line (@pxref{Old Revisions}).
@@ -1130,13 +1169,17 @@ Revert the work file(s) in the current VC fileset to the last revision
 @findex vc-revert
 @vindex vc-revert-show-diff
   If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This shows
-you a diff between the work file(s) and the revision from which you
-started editing, and asks for confirmation for discarding the changes.
-If you agree, the fileset is reverted.  If you don't want @kbd{C-x v
-u} to show a diff, set the variable @code{vc-revert-show-diff} to
-@code{nil} (you can still view the diff directly with @kbd{C-x v =};
-@pxref{Old Revisions}).
+VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
+for confirmation before discarding the changes.  If you agree, the
+fileset is reverted.
+
+  If @code{vc-revert-show-diff} is non-@code{nil}, this command will
+show you a diff between the work file(s) and the revision from which
+you started editing.  Afterwards, the diff buffer will either be
+killed (if this variable is @code{kill}), or the buffer will be buried
+(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
+show a diff, set this variable to @code{nil} (you can still view the
+diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
   On locking-based version control systems, @kbd{C-x v u} leaves files
 unlocked; you must lock again to resume editing.  You can also use
@@ -1199,6 +1242,11 @@ the version control system which the VC Directory buffer should use.
 called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
 PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
 @end ifnottex
+
+  You can also invoke VC commands from Dired buffers (@pxref{Dired}).
+In that case, any VC command you invoke considers the marked files as
+the current fileset (@pxref{Basic VC Editing}), defaulting to the file
+on the current line if no files are marked.
 
 @menu
 * Buffer: VC Directory Buffer.      What the buffer looks like and means.
@@ -1315,6 +1363,19 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
+@findex vc-dir-mark-by-regexp
+@item % m
+@itemx * %
+You can use this command to mark files by regexp
+(@code{vc-dir-mark-by-regexp}).  If given a prefix, unmark files
+instead.
+
+@findex vc-dir-mark-registered-files
+@item * r
+You can use this command to mark files that are in one of registered
+states, including edited, added or removed.
+(@code{vc-dir-mark-registered-files}).
+
 @item G
 Add the file under point to the list of files that the VC should
 ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it
@@ -1387,18 +1448,19 @@ Apart from acting on multiple files, these commands behave much like
 their single-buffer counterparts (@pxref{Search}).
 
   The VC Directory buffer additionally defines some branch-related
-commands starting with the prefix @kbd{B}:
+commands starting with the prefix @kbd{b}:
 
 @table @kbd
-@item B c
-Create a new branch (@code{vc-create-tag}).
+@item b c
+Create a new branch (@code{vc-create-branch}).  @xref{Creating
+Branches}.
 
-@item B l
+@item b l
 Prompt for the name of a branch and display the change history of that
 branch (@code{vc-print-branch-log}).
 
-@item B s
-Switch to a branch (@code{vc-retrieve-tag}).  @xref{Switching
+@item b s
+Switch to a branch (@code{vc-switch-branch}).  @xref{Switching
 Branches}.
 
 @item d
@@ -1458,11 +1520,11 @@ working tree to match the branch you switch to.  Bazaar also supports
 co-located branches, in which case the @kbd{bzr switch} command
 will switch branches in the current directory.  With Subversion, you
 switch to another branch using the @kbd{svn switch} command.  With
-Mercurial, command @kbd{hg update} is used to swith to another
+Mercurial, command @kbd{hg update} is used to switch to another
 branch.
 
   The VC command to switch to another branch in the current directory
-is @kbd{C-x v r @var{branch-name} @key{RET}} (@code{vc-retrieve-tag}).
+is @kbd{C-x v b s @var{branch-name} @key{RET}} (@code{vc-switch-branch}).
 
   On centralized version control systems, you can also switch between
 branches by typing @kbd{C-u C-x v v} in an up-to-date work file
@@ -1611,6 +1673,10 @@ branch ID for a branch starting at the current revision.  For example,
 if the current revision is 2.5, the branch ID should be 2.5.1, 2.5.2,
 and so on, depending on the number of existing branches at that point.
 
+  This procedure will not work for distributed version control systems
+like git or Mercurial.  For those systems you should use the command
+@code{vc-create-branch} (@kbd{C-x v b c}) instead.
+
   To create a new branch at an older revision (one that is no longer
 the head of a branch), first select that revision (@pxref{Switching
 Branches}).  Your procedure will then differ depending on whether you
@@ -1647,17 +1713,66 @@ is known as the @dfn{project root}.
 @cindex project back-end
   Whether a given directory is a root of some project is determined by
 the project-specific infrastructure, known as @dfn{project back-end}.
-Emacs currently supports two such back-ends: VC (@pxref{Version
+Emacs currently supports two such back-ends: VC-aware (@pxref{Version
 Control}), whereby a VCS repository is considered a project; and EDE
 (@pxref{EDE}).  This is expected to be extended in the future to
 support additional types of projects.
 
   Which files do or don't belong to a project is also determined by
-the project back-end.  For example, the VC back-end doesn't consider
-``ignored'' files (@pxref{VC Ignore}) to be part of the project.
+the project back-end.  For example, the VC-aware back-end doesn't
+consider ``ignored'' files (@pxref{VC Ignore}) to be part of the
+project.  Also, the VC-aware Project back-end considers ``untracked''
+files by default.  That behavior is controllable with the variable
+@code{project-vc-include-untracked}.
+
+@menu
+* Project File Commands::   Commands for handling project files.
+* Project Buffer Commands:: Commands for handling project buffers.
+* Switching Projects::      Switching between projects.
+* Managing Projects::       Managing the project list file.
+@end menu
+
+@node Project File Commands
+@subsection Project Commands That Operate on Files
+
+@table @kbd
+@item C-x p f
+Visit a file that belongs to the current project
+(@code{project-find-file}).
+@item C-x p g
+Find matches for a regexp in all files that belong to the current
+project (@code{project-find-regexp}).
+@item M-x project-search
+Interactively search for regexp matches in all files that belong to
+the current project.
+@item C-x p r
+Perform query-replace for a regexp in all files that belong to the
+current project (@code{project-query-replace-regexp}).
+@item C-x p d
+Run Dired in the current project's root directory
+(@code{project-dired}).
+@item C-x p v
+Run @code{vc-dir} in the current project's root directory
+(@code{project-vc-dir}).
+@item C-x p s
+Start an inferior shell in the current project's root directory
+(@code{project-shell}).
+@item C-x p e
+Start Eshell in the current project's root directory
+(@code{project-eshell}).
+@item C-x p c
+Run compilation in the current project's root directory
+(@code{project-compile}).
+@item C-x p !
+Run shell command in the current project's root directory
+(@code{project-shell-command}).
+@item C-x p &
+Run shell command asynchronously in the current project's root
+directory (@code{project-async-shell-command}).
+@end table
 
   Emacs provides commands for handling project files conveniently.
-This section describes these commands.
+This subsection describes these commands.
 
 @cindex current project
   All of the commands described here share the notion of the
@@ -1668,28 +1783,35 @@ doesn't seem to belong to a recognizable project, these commands
 prompt you for the project directory.
 
 @findex project-find-file
-  The command @code{project-find-file} is a convenient way of visiting
-files (@pxref{Visiting}) that belong to the current project.  Unlike
-@kbd{C-x C-f}, this command doesn't require to type the full file name
-of the file to visit, you can type only the file's base name (i.e.,
-omit the leading directories).  In addition, the completion candidates
-considered by the command include only the files belonging to the
-current project, and nothing else.  If there's a file name at point,
-this command offers that file as the default to visit.
+@vindex vc-directory-exclusion-list
+  The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
+way of visiting files (@pxref{Visiting}) that belong to the current
+project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
+the full file name of the file to visit, you can type only the file's
+base name (i.e., omit the leading directories).  In addition, the
+completion candidates considered by the command include only the files
+belonging to the current project, and nothing else.  If there's a file
+name at point, this command offers that file as the first element of
+the ``future history''.  If given a prefix, include all files under
+the project root, except for @acronym{VCS} directories listed in
+@code{vc-directory-exclusion-list}.
 
 @findex project-find-regexp
-  The command @code{project-find-regexp} is similar to @code{rgrep}
-(@pxref{Grep Searching}), but it searches only the files that belong
-to the current project.  The command prompts for the regular
-expression to search, and pops up an Xref mode buffer with the search
-results, where you can select a match using the Xref mode commands
-(@pxref{Xref Commands}).  When invoked with a prefix argument, this
-command additionally prompts for the base directory from which to
-start the search; this allows, for example, to limit the search only
-to project files under a certain subdirectory of the project root.
+  The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to
+@code{rgrep} (@pxref{Grep Searching}), but it searches only the files
+that belong to the current project.  The command prompts for the
+regular expression to search, and pops up an Xref mode buffer with the
+search results, where you can select a match using the Xref mode
+commands (@pxref{Xref Commands}).  When invoked with a prefix
+argument, this command additionally prompts for the base directory
+from which to start the search; this allows, for example, to limit the
+search only to project files under a certain subdirectory of the
+project root.  The way this command displays the matches is affected
+by the value of @code{xref-auto-jump-to-first-xref} (@pxref{Identifier
+Search}).
 
 @findex project-search
-  @kbd{M-x project-search} is an interactive variant of
+  @kbd{M-x project-search} is a sequential variant of
 @code{project-find-regexp}.  It prompts for a regular expression to
 search in the current project's files, but instead of finding all the
 matches and displaying them, it stops when it finds a match and visits
@@ -1698,12 +1820,130 @@ matched file.  To find the rest of the matches, type @w{@kbd{M-x
 fileloop-continue @key{RET}}}.
 
 @findex project-query-replace-regexp
-  @kbd{M-x project-query-replace-regexp} is similar to
+  @kbd{C-x p r} (@code{project-query-replace-regexp}) is similar to
 @code{project-search}, but it prompts you for whether to replace each
 match it finds, like @code{query-replace} does (@pxref{Query
 Replace}), and continues to the next match after you respond.  If your
 response causes Emacs to exit the query-replace loop, you can later
 continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
+
+@findex project-find-dir
+  The command @kbd{C-x p d} (@code{project-find-dir}) prompts you to
+choose a directory inside the current project, with completion.
+And opens a Dired buffer (@pxref{Dired}) listing the files in it.
+
+@findex project-dired
+  The command @kbd{C-x p D} (@code{project-dired}) opens a Dired
+buffer (@pxref{Dired}) listing the files in the current project's root
+directory.
+
+@findex project-vc-dir
+  The command @kbd{C-x p v} (@code{project-vc-dir}) opens a VC
+Directory buffer (@pxref{VC Directory Mode}) listing the version
+control statuses of the files in a directory tree under the current
+project's root directory.
+
+@findex project-shell
+  The command @kbd{C-x p s} (@code{project-shell}) starts a shell
+session (@pxref{Shell}) in a new buffer with the current project's
+root as the working directory.
+
+@findex project-eshell
+  The command @kbd{C-x p e} (@code{project-eshell}) starts an Eshell
+session in a new buffer with the current project's root as the working
+directory.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
+
+@findex project-compile
+  The command @kbd{C-x p c} (@code{project-compile}) runs compilation
+(@pxref{Compilation}) in the current project's root directory.
+
+@findex project-shell-command
+  The command @kbd{C-x p !} (@code{project-shell-command}) runs
+@code{shell-command} in the current project's root directory.
+
+@findex project-async-shell-command
+  The command @kbd{C-x p &} (@code{project-async-shell-command}) runs
+@code{async-shell-command} in the current project's root directory.
+
+@node Project Buffer Commands
+@subsection Project Commands That Operate on Buffers
+
+@table @kbd
+@item C-x p b
+Switch to another buffer belonging to the current project
+(@code{project-switch-to-buffer}).
+@item C-x p C-b
+List the project buffers (@code{project-list-buffers}).
+@item C-x p k
+Kill all live buffers that belong to the current project
+(@code{project-kill-buffers}).
+@end table
+
+@findex project-switch-to-buffer
+  Working on a project could potentially involve having many buffers
+visiting files that belong to the project, and also buffers that
+belong to the project, but don't visit any files (like the
+@file{*compilation*} buffer created by @code{project-compile}).  The
+command @kbd{C-x p b} (@code{project-switch-to-buffer}) helps you
+switch between buffers that belong to the current project by prompting
+for a buffer to switch and considering only the current project's
+buffers as candidates for completion.
+
+@findex project-list-buffers
+  Like the command @code{list-buffers} (@pxref{List Buffers}), the
+command @kbd{C-x p C-b} (@code{project-list-buffers}) displays a list
+of existing buffers, but only belonging to the current project.
+
+@findex project-kill-buffers
+@vindex project-kill-buffer-conditions
+@vindex project-kill-buffers-display-buffer-list
+  When you finish working on the project, you may wish to kill all the
+buffers that belong to the project, to keep your Emacs session
+smaller.  The command @kbd{C-x p k} (@code{project-kill-buffers})
+accomplishes that: it kills all the buffers that belong to the current
+project that satisfy any of @code{project-kill-buffer-conditions}.  If
+@code{project-kill-buffers-display-buffer-list} is non-@code{nil}, the
+buffers to be killed will be displayed first.
+
+@node Switching Projects
+@subsection Switching Projects
+
+@table @kbd
+@item C-x p p
+Run an Emacs command for another project (@code{project-switch-project}).
+@end table
+
+@findex project-switch-project
+@vindex project-switch-commands
+  Commands that operate on project files (@pxref{Project File
+Commands}) will conveniently prompt you for a project directory when
+no project is current.  When you are inside some project, but you want
+to operate on a different project, use the @kbd{C-x p p} command
+(@code{project-switch-project}).  This command prompts you to choose a
+directory among known project roots, and then displays the menu of
+available commands to operate on the project you choose.  The variable
+@code{project-switch-commands} controls which commands are available
+in the menu, and which key invokes each command.
+
+@vindex project-list-file
+  The variable @code{project-list-file} names the file in which Emacs
+records the list of known projects.  It defaults to the file
+@file{projects} in @code{user-emacs-directory} (@pxref{Find Init}).
+
+@node Managing Projects
+@subsection Managing the Project List File
+
+@table @kbd
+@item M-x project-forget-project
+Remove a known project from the @code{project-list-file}.
+@end table
+
+@findex project-forget-project
+  Normally Emacs automatically adds and removes projects to and from the
+@code{project-list-file}, but sometimes you may want to manually edit
+the available projects.  @kbd{M-x project-forget-project}
+prompts you to choose one of the available projects, and then removes
+it from the file.
 
 @node Change Log
 @section Change Logs
@@ -1860,19 +2100,21 @@ Of course, you should substitute the proper years and copyright holder.
 @section Find Identifier References
 @cindex xref
 
+@cindex tag
   An @dfn{identifier} is a name of a syntactical subunit of the
 program: a function, a subroutine, a method, a class, a data type, a
 macro, etc.  In a programming language, each identifier is a symbol in
-the language's syntax.  Program development and maintenance requires
-capabilities to quickly find where each identifier was defined and
-referenced, to rename identifiers across the entire project, etc.
+the language's syntax.  Identifiers are also known as @dfn{tags}.
 
-These capabilities are also useful for finding references in major
-modes other than those defined to support programming languages.  For
-example, chapters, sections, appendices, etc.@: of a text or a @TeX{}
-document can be treated as subunits as well, and their names can be
-used as identifiers.  In this chapter, we use the term ``identifiers''
-to collectively refer to the names of any kind of subunits, in program
+Program development and maintenance requires capabilities to quickly
+find where each identifier was defined and referenced, to rename
+identifiers across the entire project, etc.  These capabilities are
+also useful for finding references in major modes other than those
+defined to support programming languages.  For example, chapters,
+sections, appendices, etc.@: of a text or a @TeX{} document can be
+treated as subunits as well, and their names can be used as
+identifiers.  In this chapter, we use the term ``identifiers'' to
+collectively refer to the names of any kind of subunits, in program
 source and in other kinds of text alike.
 
 Emacs provides a unified interface to these capabilities, called
@@ -1900,6 +2142,13 @@ Emacs Lisp mode uses these facilities in its backend to allow finding
 definitions of symbols.  (One disadvantage of this kind of backend is
 that it only knows about subunits that were loaded into the
 interpreter.)
+
+@item
+If Eglot is activated for the current buffer's project
+(@pxref{Projects}) and the current buffer's major mode, Eglot consults
+an external language server program and provides the data supplied by
+the server regarding the definitions of the identifiers in the
+project.  @xref{Eglot Features,,, eglot, Eglot: The Emacs LSP Client}.
 
 @item
 An external program can extract references by scanning the relevant
@@ -1965,7 +2214,10 @@ Find definition of identifier, and display it in a new frame
 Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
-(@code{xref-pop-marker-stack}).
+(@code{xref-go-back}).
+@item C-M-,
+Go forward to where you previously invoked @kbd{M-,}
+(@code{xref-go-forward}).
 @item M-x xref-etags-mode
 Switch @code{xref} to use the @code{etags} backend.
 @end table
@@ -1973,24 +2225,15 @@ Switch @code{xref} to use the @code{etags} backend.
 @kindex M-.
 @findex xref-find-definitions
 @vindex xref-prompt-for-identifier
-  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definitions of
+  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definition of
 the identifier at point.  With a prefix argument, or if there's no
 identifier at point, it prompts for the identifier.  (If you want it
 to always prompt, customize @code{xref-prompt-for-identifier} to
 @code{t}.)
 
-If the specified identifier has only one definition, the command jumps
-to it.  If the identifier has more than one possible definition (e.g.,
-in an object-oriented language, or if there's a function and a
-variable by the same name), the command shows the candidate
-definitions in the @file{*xref*} buffer, together with the files in
-which these definitions are found.  Selecting one of these candidates
-by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
-showing the corresponding definition.
-
-  When entering the identifier argument to @kbd{M-.}, the usual
-minibuffer completion commands can be used (@pxref{Completion}), with
-the known identifier names as completion candidates.
+  When entering the identifier argument to @kbd{M-.}, you can use the
+usual minibuffer completion commands (@pxref{Completion}), with the
+known identifier names being the completion candidates.
 
 @kindex C-x 4 .
 @findex xref-find-definitions-other-window
@@ -2008,29 +2251,48 @@ former is @w{@kbd{C-x 4 .}}
 or around the place of a mouse event.  This command is intended to be
 bound to a mouse event, such as @kbd{C-M-mouse-1}, for example.
 
-@findex xref-find-apropos
 @kindex C-M-.
-  The command @kbd{C-M-.} (@code{xref-find-apropos}) finds the
-definitions of one or more identifiers that match a specified regular
-expression.  It is just like @kbd{M-.} except that it does regexp
+@findex xref-find-apropos
+@vindex tags-apropos-additional-actions
+  The command @kbd{C-M-.}@: (@code{xref-find-apropos}) is like
+@code{apropos} for tags (@pxref{Apropos}).  It displays a list of
+identifiers in the selected tags table whose names match the specified
+@var{regexp}.  This is just like @kbd{M-.}, except that it does regexp
 matching of identifiers instead of matching symbol names as fixed
-strings.
+strings.  By default, the command pops up the @file{*xref*} buffer,
+like @kbd{M-.}, but you can display additional output by customizing
+the variable @code{tags-apropos-additional-actions}; see its
+documentation for details.
 
-  When any of the above commands finds more than one definition, it
-presents the @file{*xref*} buffer showing the definition candidates.
-In that buffer, you have several specialized commands, described in
-@ref{Xref Commands}.
+@vindex xref-auto-jump-to-first-definition
+  If any of the above commands finds more than one matching
+definition, it by default pops up the @file{*xref*} buffer showing the
+matching candidates.  (@kbd{C-M-.}@: @emph{always} pops up the
+@file{*xref*} buffer if it finds at least one match.)  The candidates
+are normally shown in that buffer as the name of a file and the
+matching identifier(s) in that file.  In that buffer, you can select
+any of the candidates for display, and you have several additional
+commands, described in @ref{Xref Commands}.  However, if the value of
+the variable @code{xref-auto-jump-to-first-definition} is @code{move},
+the first of these candidates is automatically selected in the
+@file{*xref*} buffer, and if it's @code{t} or @code{show}, the first
+candidate is automatically shown in its own window; @code{t} also
+selects the window showing the first candidate.  The default value is
+@code{nil}, which just shows the candidates in the @file{*xref*}
+buffer, but doesn't select any of them.
 
 @kindex M-,
-@findex xref-pop-marker-stack
-@vindex xref-marker-ring-length
-  To go back to places @emph{from where} you found the definition,
-use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
+@findex xref-go-back
+  To go back to places @emph{from where} you've displayed the definition,
+use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace your
-steps to a depth determined by the variable
-@code{xref-marker-ring-length}, which defaults to 16.
+where you were with @kbd{M-,}.
+
+@kindex C-M-,
+@findex xref-go-forward
+  If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
+(@code{xref-go-forward}) can be used to go forward again.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
@@ -2056,8 +2318,15 @@ the special XREF mode:
 
 @table @kbd
 @item @key{RET}
-@itemx mouse-2
-Display the reference on the current line.
+@itemx mouse-1
+Display the reference on the current line (@code{xref-goto-xref}).
+With prefix argument, also bury the @file{*xref*} buffer.
+
+@item mouse-2
+@findex xref-select-and-show-xref
+The same as @code{mouse-1}, but make the window displaying the
+@file{*xref*} buffer the selected window
+(@code{xref-select-and-show-xref}).
 
 @item n
 @itemx .
@@ -2065,34 +2334,46 @@ Display the reference on the current line.
 Move to the next reference and display it in the other window
 (@code{xref-next-line}).
 
+@item N
+@findex xref-next-group
+Move to the first reference of the next reference group and display it
+in the other window (@code{xref-next-group}).
+
 @item p
 @itemx ,
 @findex xref-prev-line
 Move to the previous reference and display it in the other window
 (@code{xref-prev-line}).
 
+@item P
+@findex xref-prev-group
+Move to the first reference of the previous reference group and
+display it in the other window (@code{xref-prev-group}).
+
 @item C-o
 @findex xref-show-location-at-point
 Display the reference on the current line in the other window
 (@code{xref-show-location-at-point}).
 
-@item @key{TAB}
-@findex xref-quit-and-goto-xref
-Display the reference on the current line and bury the @file{*xref*}
-buffer (@code{xref-quit-and-goto-xref}).
-
 @item r @var{pattern} @key{RET} @var{replacement} @key{RET}
 Perform interactive query-replace on references that match
 @var{pattern} (@code{xref-query-replace-in-results}), replacing
-the match with @var{replacement}.  @xref{Identifier Search}.
+the match with @var{replacement}.  This command can only be used in
+@file{*xref*} buffers that show all the matches for an identifier in
+all the relevant files.  @xref{Identifier Search}.
 
 @item g
 @findex xref-revert-buffer
 Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}.
+(@code{xref-revert-buffer}).
 
-@findex xref-quit
+@item M-,
+@findex xref-quit-and-pop-marker-stack
+Quit the window showing the @file{*xref*} buffer, and then jump to the
+previous Xref stack location (@code{xref-quit-and-pop-marker-stack}).
+
 @item q
+@findex xref-quit
 Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
 @end table
 
@@ -2113,9 +2394,15 @@ them.
 @item M-?
 Find all the references for the identifier at point.
 
-@item M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
+@item r
+@itemx M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
+@itemx C-u M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Interactively replace @var{regexp} with @var{replacement} in the names
 of all the identifiers shown in the @file{*xref*} buffer.
+
+@item M-x xref-find-references-and-replace @key{RET} @var{from} @key{RET} @var{to} @key{RET}
+Interactively rename all instances of the identifier @var{from} to the
+new name @var{to}.
 
 @item M-x tags-search @key{RET} @var{regexp} @key{RET}
 Search for @var{regexp} through the files in the selected tags
@@ -2143,14 +2430,34 @@ identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
 @ref{Xref Commands}.
 
+@vindex xref-auto-jump-to-first-xref
+  If the value of the variable @code{xref-auto-jump-to-first-xref} is
+@code{t}, @code{xref-find-references} automatically jumps to the first
+result and selects the window where it is displayed.  If the value is
+@code{show}, the first result is shown, but the window showing the
+@file{*xref*} buffer is left selected.  If the value is @code{move},
+the first result is selected in the @file{*xref*} buffer, but is not
+shown.  The default value is @code{nil}, which just shows the results
+in the @file{*xref*} buffer, but doesn't select any of them.
+
 @findex xref-query-replace-in-results
-  @kbd{M-x xref-query-replace-in-results} reads a regexp to match identifier
-names and a replacement string, just like ordinary @kbd{M-x
-query-replace-regexp}.  It then performs the specified replacement in
-the names of the matching identifiers in all the places in all the
-files where these identifiers are referenced.  This is useful when you
+  @kbd{r} (@code{xref-query-replace-in-results}) reads a @var{replacement}
+string, just like ordinary @kbd{M-x query-replace-regexp}.  It then
+renames the identifiers shown in the @file{*xref*} buffer in all the
+places in all the files where these identifiers are referenced, such
+that their new name is @var{replacement}.  This is useful when you
 rename your identifiers as part of refactoring.  This command should
-be invoked in the @file{*xref*} buffer generated by @kbd{M-?}.
+be invoked in the @file{*xref*} buffer generated by @kbd{M-?}.  By
+default, the command replaces the entire name of each identifier with
+@var{replacement}, but if invoked with a prefix argument, the command
+prompts for a regexp to match identifier names, and replaces only the
+matches of that regexp in the names of the identifiers with
+@var{replacement}.
+
+@findex xref-find-references-and-replace
+  @kbd{M-x xref-find-references-and-replace} works similarly to
+@code{xref-query-replace-in-results}, but is more convenient when you
+want to rename a single identifier specified by its name @var{from}.
 
 @findex tags-search
   @kbd{M-x tags-search} reads a regexp using the minibuffer, then
@@ -2213,12 +2520,13 @@ Searching}.
 Perform completion on the text around point, possibly using the
 selected tags table if one is loaded (@code{completion-at-point}).
 
-@item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
-Display a list of all known identifiers matching @var{regexp}.
-
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the identifiers defined in the program file
 @var{file}.
+
+@item C-M-. @var{regexp} @key{RET}
+Display a list of all identifiers matching @var{regexp}
+(@code{xref-find-apropos}).  @xref{Looking Up Identifiers}.
 
 @item M-x tags-next-file
 Visit files recorded in the selected tags table.
@@ -2240,26 +2548,6 @@ command works only with the etags backend, and requires a tags table
 for the project to be available.  @xref{Tags Tables}.  If used
 interactively, the default tag is file name of the current buffer if
 used interactively.
-
-@c Sadly, the new-and-improved Xref feature doesn't provide anything
-@c close to the described below features of the now-obsoleted
-@c tags-apropos.  I'm leaving this here to encourage enhancements to
-@c xref.el.
-@ignore
-@findex tags-apropos
-@vindex tags-apropos-verbose
-@vindex tags-tag-face
-@vindex tags-apropos-additional-actions
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It displays a list of tags in the selected tags
-table whose entries match @var{regexp}.  If the variable
-@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
-of the tags files together with the tag names.  You can customize the
-appearance of the output by setting the variable @code{tags-tag-face}
-to a face.  You can display additional output by customizing the
-variable @code{tags-apropos-additional-actions}; see its documentation
-for details.
-@end ignore
 
 @findex tags-next-file
   @kbd{M-x tags-next-file} visits files covered by the selected tags table.
@@ -2495,6 +2783,10 @@ generate a tag.
 @item
 In Ruby code, @code{def} or @code{class} or @code{module} at the
 beginning of a line generate a tag.  Constants also generate tags.
+
+@item
+In Rust code, tags anything defined with @code{fn}, @code{enum},
+@code{struct} or @code{macro_rules!}.
 @end itemize
 
   You can also generate tags based on regexp matching (@pxref{Etags
@@ -2607,6 +2899,13 @@ calling @command{etags} from programs.  It can be used (only once) in
 place of a file name on the command line.  @command{etags} will read from
 standard input and mark the produced tags as belonging to the file
 @var{file}.
+
+  For C and C++, if the source files don't observe the GNU Coding
+Standards' convention if having braces (@samp{@{} and @samp{@}}) in
+column zero only for top-level definitions, like functions and
+@code{struct} definitions, we advise that you use the
+@samp{--ignore-indentation} option, to prevent @command{etags} from
+incorrectly interpreting closing braces in column zero.
 
   @samp{etags --help} outputs the list of the languages @command{etags}
 knows, and the file name rules for guessing the language.  It also prints
@@ -2780,11 +3079,12 @@ etags --language=none \
 
 @findex visit-tags-table
   Emacs has at any time at most one @dfn{selected} tags table.  All
-the commands for working with tags tables use the selected one.  To
-select a tags table, type @kbd{M-x visit-tags-table}, which reads the
-tags table file name as an argument, with @file{TAGS} defaulting to
-the first directory that contains a file named @file{TAGS} encountered
-when recursively searching upward from the default directory.
+the commands for working with tags tables use the selected one first.
+To select a tags table, type @kbd{M-x visit-tags-table}, which reads
+the tags table file name as an argument, with @file{TAGS} defaulting
+to the first directory that contains a file named @file{TAGS}
+encountered when recursively searching upward from the default
+directory.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
@@ -2794,16 +3094,25 @@ variable's initial value is @code{nil}; that value tells all the
 commands for working with tags tables that they must ask for a tags
 table file name to use.
 
-  Using @code{visit-tags-table} when a tags table is already loaded
-gives you a choice: you can add the new tags table to the current list
-of tags tables, or start a new list.  The tags commands use all the tags
-tables in the current list.  If you start a new list, the new tags table
-is used @emph{instead} of others.  If you add the new table to the
-current list, it is used @emph{as well as} the others.
+  In addition to the selected tags table, Emacs maintains the list of
+several tags tables that you use together.  For example, if you are
+working on a program that uses a library, you may wish to have the
+tags tables of both the program and the library available, so that
+Emacs could easily find identifiers from both.  If the selected tags
+table doesn't have the identifier or doesn't mention the source file a
+tags command needs, the command will try using all the other tags
+tables in the current list of tags tables.
+
+  Using @code{visit-tags-table} to load a new tags table when another
+tags table is already loaded gives you a choice: you can add the new
+tags table to the current list of tags tables, or discard the current
+list and start a new list.  If you start a new list, the new tags
+table is used @emph{instead} of others.  If you add the new table to
+the current list, it is used @emph{as well as} the others.
 
 @vindex tags-table-list
   You can specify a precise list of tags tables by setting the variable
-@code{tags-table-list} to a list of strings, like this:
+@code{tags-table-list} to a list of directory names, like this:
 
 @c keep this on two lines for formatting in smallbook
 @example
@@ -2887,3 +3196,178 @@ the target should be built.
 @ifnottex
 @include emerge-xtra.texi
 @end ifnottex
+
+
+@node Bug Reference
+@section Bug Reference
+@cindex bug reference
+
+Most projects with a certain amount of users track bug reports in some
+issue tracking software which assigns each report a unique and short
+number or identifier.  Those are used to reference a given bug, e.g.,
+in a source code comment above the code fixing some bug, in
+documentation files, or in discussions on some mailing list or IRC
+channel.
+
+@findex bug-reference-mode
+@findex bug-reference-prog-mode
+  The minor modes @code{bug-reference-mode} and
+@code{bug-reference-prog-mode} highlight such bug references and make
+it possible to follow them to the corresponding bug report on the
+project's issue tracker.  @code{bug-reference-prog-mode} is a variant
+of @code{bug-reference-mode} which highlights bug references only
+inside source code comments and strings.
+
+@vindex bug-reference-bug-regexp
+@vindex bug-reference-url-format
+  For its working, bug reference mode needs to know the syntax of bug
+references (@code{bug-reference-bug-regexp}), and the URL of the
+tracker where bug reports can be looked up
+(@code{bug-reference-url-format}).  Since those are typically
+different from project to project, it makes sense to specify them in
+@pxref{Directory Variables} or @pxref{File Variables}.
+
+For example, let's assume in our project, we usually write references
+to bug reports as bug#1234, or Bug-1234 and that this bug's page on
+the issue tracker is @url{https://project.org/issues/1234}, then
+these local variables section would do.
+
+@smallexample
+;; Local Variables:
+;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\([0-9]+\\)\\)"
+;; bug-reference-url-format: "https://project.org/issues/%s"
+;; End:
+@end smallexample
+
+The string captured by the first regexp group defines the bounds of
+the overlay bug-reference creates, i.e., the part which is highlighted
+and made clickable.
+
+The string captured by the second regexp group in
+@code{bug-reference-bug-regexp} is used to replace the @code{%s}
+template in the @code{bug-reference-url-format}.
+
+Note that @code{bug-reference-url-format} may also be a function in
+order to cater for more complex scenarios, e.g., when different parts
+of the bug reference have to be used to distinguish between issues and
+merge requests resulting in different URLs.
+
+
+@heading Automatic Setup
+
+@vindex bug-reference-auto-setup-functions
+If @code{bug-reference-mode} is activated,
+@code{bug-reference-mode-hook} has been run and still
+@code{bug-reference-bug-regexp}, and @code{bug-reference-url-format}
+aren't both set, it'll try to setup suitable values for these two
+variables itself by calling the functions in
+@code{bug-reference-auto-setup-functions} one after the other until
+one is able to set the variables.
+
+@vindex bug-reference-setup-from-vc-alist
+@vindex bug-reference-forge-alist
+@vindex bug-reference-setup-from-mail-alist
+@vindex bug-reference-setup-from-irc-alist
+  Right now, there are three types of setup functions.
+@enumerate
+@item
+Setup for version-controlled files configurable by the variables
+@code{bug-reference-forge-alist}, and
+@code{bug-reference-setup-from-vc-alist}.  The defaults are able to
+setup GNU projects where @url{https://debbugs.gnu.org} is used as
+issue tracker and issues are usually referenced as @code{bug#13} (but
+many different notations are considered, too), and several kinds of
+modern software forges such as GitLab, Gitea, SourceHut, or GitHub.
+If you deploy a self-hosted instance of such a forge, the easiest way
+to tell bug-reference about it is through
+@code{bug-reference-forge-alist}.
+
+@item
+Setup for email guessing from mail folder/mbox names, and mail header
+values configurable by the variable
+@code{bug-reference-setup-from-mail-alist}.  The built-in news- and
+mailreader @ref{Gnus} and @ref{Rmail} are supported.
+
+@item
+Setup for IRC channels configurable by the variable
+@code{bug-reference-setup-from-irc-alist}.  The built-in IRC clients
+Rcirc, @xref{Top, Rcirc,, rcirc, The Rcirc Manual}, and ERC,
+@xref{Top, ERC,, erc, The ERC Manual}, are supported.
+@end enumerate
+
+For almost all of those modes, it's enough to simply enable
+@code{bug-reference-mode}, only Rmail requires a slightly different
+setup.
+
+@smallexample
+;; Use VC-based setup if file is under version control.
+(add-hook 'prog-mode-hook #'bug-reference-prog-mode)
+
+;; Gnus (summary & article buffers)
+(add-hook 'gnus-mode-hook #'bug-reference-mode)
+
+;; Rmail
+(add-hook 'rmail-show-message-hook #'bug-reference-mode-force-auto-setup)
+
+;; Rcirc
+(add-hook 'rcirc-mode-hook #'bug-reference-mode)
+
+;; ERC
+(add-hook 'erc-mode-hook #'bug-reference-mode)
+@end smallexample
+
+In the Rmail case, instead of the mode hook, the
+@code{rmail-show-message-hook} has to be used in combination with the
+function @code{bug-reference-mode-force-auto-setup} which activates
+@code{bug-reference-mode} and forces auto-setup.  The reason is that
+with Rmail all messages reside in the same buffer but the setup needs
+to be performed whenever another messages is displayed.
+
+
+@heading Adding support for third-party packages
+
+@vindex bug-reference-auto-setup-functions
+Adding support for bug-reference' auto-setup is usually quite
+straight-forward: write a setup function of zero arguments which
+gathers the required information (e.g., List-Id/To/From/Cc mail header
+values in the case of a MUA), and then calls one of the following
+helper functions:
+@itemize @bullet
+@item
+@code{bug-reference-maybe-setup-from-vc} which does the setup
+according to @code{bug-reference-setup-from-vc-alist},
+
+@item
+@code{bug-reference-maybe-setup-from-mail} which does the setup
+according to @code{bug-reference-setup-from-mail-alist},
+
+@item
+and @code{bug-reference-maybe-setup-from-irc} which does the setup
+according to @code{bug-reference-setup-from-irc-alist}.
+@end itemize
+A setup function should return non-@code{nil} if it could setup bug-reference
+mode which is the case if the last thing the function does is calling
+one of the helper functions above.
+
+Finally, the setup function has to be added to
+@code{bug-reference-auto-setup-functions}.
+
+Note that these auto-setup functions should check as a first step if
+they are applicable, e.g., by checking the @code{major-mode} value.
+
+
+@heading Integration with the debbugs package
+
+@findex debbugs-browse-mode
+If your project's issues are tracked on the server
+@url{https://debbugs.gnu.org}, you can browse and reply to reports
+directly in Emacs using the @code{debbugs} package, which can be
+downloaded via the Package Menu (@pxref{Packages}).  This package adds
+the minor mode @code{debbugs-browse-mode}, which can be activated on
+top of @code{bug-reference-mode} and @code{bug-reference-prog-mode} as
+follows:
+
+@smallexample
+(add-hook 'bug-reference-mode-hook 'debbugs-browse-mode)
+(add-hook 'bug-reference-prog-mode-hook 'debbugs-browse-mode)
+@end smallexample

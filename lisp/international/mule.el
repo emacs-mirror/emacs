@@ -1,6 +1,6 @@
-;;; mule.el --- basic commands for multilingual environment
+;;; mule.el --- basic commands for multilingual environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -32,7 +32,7 @@
 
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
-(make-obsolete-variable 'mule-version nil "28.1")
+(make-obsolete-variable 'mule-version 'emacs-version "28.1")
 
 (defconst mule-version-date "2003.9.1" "\
 Distribution date of this version of MULE (multilingual environment).")
@@ -218,6 +218,7 @@ corresponding Unicode character code.
 If it is a string, it is a name of file that contains the above
 information.  The file format is the same as what described for `:map'
 attribute."
+  (declare (indent defun))
   (when (vectorp (car props))
     ;; Old style code:
     ;;   (define-charset CHARSET-ID CHARSET-SYMBOL INFO-VECTOR)
@@ -294,25 +295,32 @@ attribute."
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
+(defvar hack-read-symbol-shorthands-function nil
+  "Holds function to compute `read-symbol-shorthands'.")
 
-(defun load-with-code-conversion (fullname file &optional noerror nomessage)
+(defun load-with-code-conversion (fullname file &optional noerror nomessage
+                                           eval-function)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
 The file contents are decoded before evaluation if necessary.
-If optional third arg NOERROR is non-nil,
- report no error if FILE doesn't exist.
-Print messages at start and end of loading unless
- optional fourth arg NOMESSAGE is non-nil.
+
+If optional third arg NOERROR is non-nil, report no error if FILE
+doesn't exist.
+
+Print messages at start and end of loading unless optional fourth
+arg NOMESSAGE is non-nil.
+
+If EVAL-FUNCTION, call that instead of calling `eval-buffer'
+directly.  It is called with two parameters: The buffer object
+and the file name.
+
 Return t if file exists."
   (if (null (file-readable-p fullname))
       (and (null noerror)
 	   (signal 'file-error (list "Cannot open load file" file)))
     ;; Read file with code conversion, and then eval.
-    (let* ((buffer
-            ;; We can't use `generate-new-buffer' because files.el
-            ;; is not yet loaded.
-            (get-buffer-create (generate-new-buffer-name " *load*")))
-	   (load-in-progress t)
-	   (source (save-match-data (string-match "\\.el\\'" fullname))))
+    (let ((buffer (generate-new-buffer " *load*"))
+          (load-in-progress t)
+          (source (string-suffix-p ".el" fullname)))
       (unless nomessage
 	(if source
 	    (message "Loading %s (source)..." file)
@@ -320,9 +328,11 @@ Return t if file exists."
       (when purify-flag
 	(push (purecopy file) preloaded-file-list))
       (unwind-protect
-	  (let ((load-file-name fullname)
-		(set-auto-coding-for-load t)
-		(inhibit-file-name-operation nil))
+	  (let ((load-true-file-name fullname)
+                (load-file-name fullname)
+                (set-auto-coding-for-load t)
+		(inhibit-file-name-operation nil)
+                shorthands)
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
@@ -331,6 +341,13 @@ Return t if file exists."
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
+              (setq shorthands
+                    ;; We need this indirection because hacking local
+                    ;; variables in too early seems to have cause
+                    ;; recursive load loops (bug#50946).  Thus it
+                    ;; remains nil until it is save to do so.
+                    (and hack-read-symbol-shorthands-function
+                         (funcall hack-read-symbol-shorthands-function)))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -341,11 +358,16 @@ Return t if file exists."
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
-	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil
-			 ;; This is compatible with what `load' does.
-                         (if dump-mode file fullname)
-			 nil t))
+	    ;; Have the original buffer current while we eval,
+            ;; but consider shorthands of the eval'ed one.
+	    (let ((read-symbol-shorthands shorthands))
+              (if eval-function
+                  (funcall eval-function buffer
+                           (if dump-mode file fullname))
+                (eval-buffer buffer nil
+			     ;; This is compatible with what `load' does.
+                             (if dump-mode file fullname)
+			     nil t))))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
@@ -408,16 +430,6 @@ PLIST (property list) may contain any type of information a user
 ;; because that makes a bootstrapping problem
 ;; if you need to recompile all the Lisp files using interpreted code.
 
-(defun charset-id (_charset)
-  "Always return 0.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  0)
-
-(defmacro charset-bytes (_charset)
-  "Always return 0.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  0)
-
 (defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
 This is the last value stored with
@@ -463,19 +475,8 @@ Return -1 if charset isn't an ISO 2022 one."
   "Return long name of CHARSET."
   (plist-get (charset-plist charset) :long-name))
 
-(defun charset-list ()
-  "Return list of all charsets ever defined."
-  (declare (obsolete charset-list "23.1"))
-  charset-list)
-
 
 ;;; CHARACTER
-(define-obsolete-function-alias 'char-valid-p 'characterp "23.1")
-
-(defun generic-char-p (_char)
-  "Always return nil.  This is provided for backward compatibility."
-  (declare (obsolete nil "23.1"))
-  nil)
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -514,27 +515,27 @@ per-character basis, this may not be accurate."
 		   (cond
 		    ((listp cs-list)
 		     (catch 'tag
-		       (mapc #'(lambda (charset)
-				 (if (encode-char char charset)
-				     (throw 'tag charset)))
+                       (mapc (lambda (charset)
+                               (if (encode-char char charset)
+                                   (throw 'tag charset)))
 			     cs-list)
 		       nil))
 		    ((eq cs-list 'iso-2022)
 		     (catch 'tag2
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :iso-final-char)
-					  (encode-char char charset))
-				     (throw 'tag2 charset)))
+                       (mapc (lambda (charset)
+                               (if (and (plist-get (charset-plist charset)
+                                                   :iso-final-char)
+                                        (encode-char char charset))
+                                   (throw 'tag2 charset)))
 			     charset-list)
 		       nil))
 		    ((eq cs-list 'emacs-mule)
 		     (catch 'tag3
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :emacs-mule-id)
-					  (encode-char char charset))
-				     (throw 'tag3 charset)))
+                       (mapc (lambda (charset)
+                               (if (and (plist-get (charset-plist charset)
+                                                   :emacs-mule-id)
+                                        (encode-char char charset))
+                                   (throw 'tag3 charset)))
 			     charset-list)
 		       nil)))))))))))
 
@@ -766,14 +767,15 @@ VALUE must be a translation table to use on encoding.
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
-`after-insert-functions' are called.  This function is passed one
+`after-insert-file-functions' are called.  This function is passed one
 argument: the number of characters in the text to convert, with
 point at the start of the text.  The function should leave point
-unchanged, and should return the new character count.  Note that
-this function should avoid reading from files or receiving text
-from subprocesses -- anything that could invoke decoding; if it
-must do so, it should bind `coding-system-for-read' to a value
-other than the current coding-system, to avoid infinite recursion.
+and the match data unchanged, and should return the new character
+count.  Note that this function should avoid reading from files
+or receiving text from subprocesses -- anything that could invoke
+decoding; if it must do so, it should bind
+`coding-system-for-read' to a value other than the current
+coding-system, to avoid infinite recursion.
 
 `:pre-write-conversion'
 
@@ -781,13 +783,13 @@ VALUE must be a function to call after all functions in
 `write-region-annotate-functions' and `buffer-file-format' are
 called, and before the text is encoded by the coding system
 itself.  This function should convert the whole text in the
-current buffer.  For backward compatibility, this function is
-passed two arguments which can be ignored.  Note that this
-function should avoid writing to files or sending text to
-subprocesses -- anything that could invoke encoding; if it
-must do so, it should bind `coding-system-for-write' to a
-value other than the current coding-system, to avoid infinite
-recursion.
+current buffer, and leave the match data unchanged.  For backward
+compatibility, this function is passed two arguments which can be
+ignored.  Note that this function should avoid writing to files
+or sending text to subprocesses -- anything that could invoke
+encoding; if it must do so, it should bind
+`coding-system-for-write' to a value other than the current
+coding-system, to avoid infinite recursion.
 
 `:default-char'
 
@@ -861,7 +863,8 @@ This attribute is meaningful only when `:coding-type' is `utf-16' or
 VALUE must be `big' or `little' specifying big-endian and
 little-endian respectively.  The default value is `big'.
 
-This attribute is meaningful only when `:coding-type' is `utf-16'.
+Changing this attribute is only meaningful when `:coding-type'
+is `utf-16'.
 
 `:ccl-decoder' (required if :coding-type is `ccl')
 
@@ -875,24 +878,32 @@ VALUE is a CCL program name defined by `define-ccl-program'.  The
 CCL program reads a character sequence and writes a byte sequence
 as an encoding result.
 
-`:inhibit-nul-byte-detection'
+`:inhibit-null-byte-detection'
 
-VALUE non-nil means Emacs ignore null bytes on code detection.
-See the variable `inhibit-nul-byte-detection'.  This attribute
+VALUE non-nil means Emacs should ignore null bytes on code detection.
+See the variable `inhibit-null-byte-detection'.  This attribute
 is meaningful only when `:coding-type' is `undecided'.
+If VALUE is t, Emacs will ignore null bytes unconditionally while
+detecting encoding.  If VALUE is non-nil and not t, Emacs will
+ignore null bytes if `inhibit-null-byte-detection' is non-nil.
 
 `:inhibit-iso-escape-detection'
 
-VALUE non-nil means Emacs ignores ISO-2022 escape sequences on
+VALUE non-nil means Emacs should ignore ISO-2022 escape sequences on
 code detection.  See the variable `inhibit-iso-escape-detection'.
 This attribute is meaningful only when `:coding-type' is
 `undecided'.
+If VALUE is t, Emacs will ignore escape sequences unconditionally
+while detecting encoding.  If VALUE is non-nil and not t, Emacs
+will ignore escape sequences if `inhibit-iso-escape-detection' is
+non-nil.
 
 `:prefer-utf-8'
 
 VALUE non-nil means Emacs prefers UTF-8 on code detection for
 non-ASCII files.  This attribute is meaningful only when
 `:coding-type' is `undecided'."
+  (declare (indent defun))
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -923,7 +934,7 @@ non-ASCII files.  This attribute is meaningful only when
 				      :ccl-encoder
 				      :valids))
 				   ((eq coding-type 'undecided)
-				    '(:inhibit-nul-byte-detection
+				    '(:inhibit-null-byte-detection
 				      :inhibit-iso-escape-detection
 				      :prefer-utf-8))))))
 
@@ -1084,14 +1095,11 @@ formats (e.g. iso-latin-1-unix, koi8-r-dos)."
 	      (setq codings (cons alias codings))))))
     codings))
 
-(defconst char-coding-system-table nil
-  "It exists just for backward compatibility, and the value is always nil.")
-(make-obsolete-variable 'char-coding-system-table nil "23.1")
-
 (defun transform-make-coding-system-args (name type &optional doc-string props)
   "For internal use only.
 Transform XEmacs style args for `make-coding-system' to Emacs style.
 Value is a list of transformed arguments."
+  (declare (obsolete nil "28.1"))
   (let ((mnemonic (string-to-char (or (plist-get props 'mnemonic) "?")))
 	(eol-type (plist-get props 'eol-type))
 	properties tmp)
@@ -1166,108 +1174,8 @@ Value is a list of transformed arguments."
 	      (,(plist-get props 'decode) . ,(plist-get props 'encode))
 	      ,properties ,eol-type))
      (t
-      (error "unsupported XEmacs style make-coding-style arguments: %S"
+      (error "Unsupported XEmacs style make-coding-style arguments: %S"
 	     `(,name ,type ,doc-string ,props))))))
-
-(defun make-coding-system (coding-system type mnemonic doc-string
-					 &optional
-					 flags
-					 properties
-					 eol-type)
-  "Define a new coding system CODING-SYSTEM (symbol).
-This function is provided for backward compatibility."
-  (declare (obsolete define-coding-system "23.1"))
-  ;; For compatibility with XEmacs, we check the type of TYPE.  If it
-  ;; is a symbol, perhaps, this function is called with XEmacs-style
-  ;; arguments.  Here, try to transform that kind of arguments to
-  ;; Emacs style.
-  (if (symbolp type)
-      (let ((args (transform-make-coding-system-args coding-system type
-						     mnemonic doc-string)))
-	(setq coding-system (car args)
-	      type (nth 1 args)
-	      mnemonic (nth 2 args)
-	      doc-string (nth 3 args)
-	      flags (nth 4 args)
-	      properties (nth 5 args)
-	      eol-type (nth 6 args))))
-
-  (setq type
-	(cond ((eq type 0) 'emacs-mule)
-	      ((eq type 1) 'shift-jis)
-	      ((eq type 2) 'iso2022)
-	      ((eq type 3) 'big5)
-	      ((eq type 4) 'ccl)
-	      ((eq type 5) 'raw-text)
-	      (t
-	       (error "Invalid coding system type: %s" type))))
-
-  (setq properties
-	(let ((plist nil) key)
-	  (dolist (elt properties)
-	    (setq key (car elt))
-	    (cond ((eq key 'post-read-conversion)
-		   (setq key :post-read-conversion))
-		  ((eq key 'pre-write-conversion)
-		   (setq key :pre-write-conversion))
-		  ((eq key 'translation-table-for-decode)
-		   (setq key :decode-translation-table))
-		  ((eq key 'translation-table-for-encode)
-		   (setq key :encode-translation-table))
-		  ((eq key 'safe-charsets)
-		   (setq key :charset-list))
-		  ((eq key 'mime-charset)
-		   (setq key :mime-charset))
-		  ((eq key 'valid-codes)
-		   (setq key :valids)))
-	    (setq plist (plist-put plist key (cdr elt))))
-	  plist))
-  (setq properties (plist-put properties :mnemonic mnemonic))
-  (plist-put properties :coding-type type)
-  (cond ((eq eol-type 0) (setq eol-type 'unix))
-	((eq eol-type 1) (setq eol-type 'dos))
-	((eq eol-type 2) (setq eol-type 'mac))
-	((vectorp eol-type) (setq eol-type nil)))
-  (plist-put properties :eol-type eol-type)
-
-  (cond
-   ((eq type 'iso2022)
-    (plist-put properties :flags
-	       (list (and (or (consp (nth 0 flags))
-			      (consp (nth 1 flags))
-			      (consp (nth 2 flags))
-			      (consp (nth 3 flags))) 'designation)
-		     (or (nth 4 flags) 'long-form)
-		     (and (nth 5 flags) 'ascii-at-eol)
-		     (and (nth 6 flags) 'ascii-at-cntl)
-		     (and (nth 7 flags) '7-bit)
-		     (and (nth 8 flags) 'locking-shift)
-		     (and (nth 9 flags) 'single-shift)
-		     (and (nth 10 flags) 'use-roman)
-		     (and (nth 11 flags) 'use-oldjis)
-		     (or (nth 12 flags) 'direction)
-		     (and (nth 13 flags) 'init-at-bol)
-		     (and (nth 14 flags) 'designate-at-bol)
-		     (and (nth 15 flags) 'safe)
-		     (and (nth 16 flags) 'latin-extra)))
-    (plist-put properties :designation
-	       (let ((vec (make-vector 4 nil)))
-		 (dotimes (i 4)
-		   (let ((spec (nth i flags)))
-		     (if (eq spec t)
-			 (aset vec i '(94 96))
-		     (if (consp spec)
-			 (progn
-			   (if (memq t spec)
-			       (setq spec (append (delq t spec) '(94 96))))
-			   (aset vec i spec))))))
-		 vec)))
-
-   ((eq type 'ccl)
-    (plist-put properties :ccl-decoder (car flags))
-    (plist-put properties :ccl-encoder (cdr flags))))
-
-  (apply 'define-coding-system coding-system doc-string properties))
 
 (defun merge-coding-systems (first second)
   "Fill in any unspecified aspects of coding system FIRST from SECOND.
@@ -1310,12 +1218,11 @@ FORM is a form to evaluate to define the coding-system."
 ;; `last-coding-system-used'.  (It used to set it unconditionally, but
 ;; that seems unnecessary; see Bug#4533.)
 
-(defvar buffer-file-coding-system-explicit nil
+(defvar-local buffer-file-coding-system-explicit nil
   "The file coding system explicitly specified for the current buffer.
 The value is a cons of coding systems for reading (decoding) and
 writing (encoding).
 Internal use only.")
-(make-variable-buffer-local 'buffer-file-coding-system-explicit)
 (put 'buffer-file-coding-system-explicit 'permanent-local t)
 
 (defun read-buffer-file-coding-system ()
@@ -1370,7 +1277,7 @@ Internal use only.")
           (concat "\\(?:" completion-pcm--delim-wild-regex
                   "\\|\\([[:alpha:]]\\)[[:digit:]]\\)"))
          (cs (completing-read
-              (format "Coding system for saving file (default %s): " default)
+              (format-prompt "Coding system for saving file" default)
               combined-table
               nil t nil 'coding-system-history
               (if default (symbol-name default)))))
@@ -1456,7 +1363,8 @@ to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system &optional terminal)
+(defun set-terminal-coding-system (coding-system &optional terminal
+                                                 inhibit-refresh)
   "Set coding system of terminal output to CODING-SYSTEM.
 All text output to TERMINAL will be encoded
 with the specified coding system.
@@ -1465,16 +1373,18 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-TERMINAL may be a terminal object, a frame, or nil for the
-selected frame's terminal.  The setting has no effect on
-graphical terminals."
+Optional argument TERMINAL may be a terminal object or a frame,
+and defaults to the selected frame's terminal.  The setting has no
+effect on graphical terminals.
+
+By default, this function will redraw the current frame;
+optional argument INHIBIT-REFRESH, if non-nil, prevents that."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
 			    default-terminal-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for terminal display (default %s): "
-		    default)
+	    (format-prompt "Coding system for terminal display" default)
 	    default))))
   (if (and (not coding-system)
 	   (not (terminal-coding-system)))
@@ -1482,7 +1392,8 @@ graphical terminals."
   (if coding-system
       (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system terminal)
-  (redraw-frame))
+  (unless inhibit-refresh
+    (redraw-frame)))
 
 (defvar default-keyboard-coding-system nil
   "Default value of the keyboard coding system.
@@ -1500,15 +1411,17 @@ If CODING-SYSTEM is nil or the coding-type of CODING-SYSTEM is
 `raw-text', the decoding of keyboard input is disabled.
 
 TERMINAL may be a terminal object, a frame, or nil for the
-selected frame's terminal.  The setting has no effect on
-graphical terminals."
+selected frame's terminal.
+
+The setting has no effect on graphical terminals.  It also
+has no effect on MS-Windows text-mode terminals, except on
+Windows 9X systems.  For Windows 9X, see also `w32-set-console-codepage'."
   (interactive
    (list (let* ((coding (keyboard-coding-system nil))
 		(default (if (eq (coding-system-type coding) 'raw-text)
 			     default-keyboard-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for keyboard input (default %s): "
-		    default)
+	    (format-prompt "Coding system for keyboard input" default)
 	    default))))
   (let ((coding-type (coding-system-type coding-system))
 	(saved-meta-mode
@@ -1603,10 +1516,8 @@ the text is encoded or decoded by CODING-SYSTEM."
 This setting is effective for the next communication only."
   (interactive
    (list (read-coding-system
-	  (if last-next-selection-coding-system
-	      (format "Coding system for the next selection (default %S): "
-		      last-next-selection-coding-system)
-	    "Coding system for the next selection: ")
+	  (format-prompt "Coding system for the next selection"
+		         last-next-selection-coding-system)
 	  last-next-selection-coding-system)))
   (if coding-system
       (setq last-next-selection-coding-system coding-system)
@@ -1614,15 +1525,6 @@ This setting is effective for the next communication only."
   (check-coding-system coding-system)
 
   (setq next-selection-coding-system coding-system))
-
-(defun set-coding-priority (arg)
-  "Set priority of coding categories according to ARG.
-ARG is a list of coding categories ordered by priority.
-
-This function is provided for backward compatibility."
-  (declare (obsolete set-coding-system-priority "23.1"))
-  (apply 'set-coding-system-priority
-	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
 
 ;;; X selections
 
@@ -1846,8 +1748,8 @@ in-place."
   ;; self-extracting exe archives.
   (mapcar (lambda (arg) (cons (purecopy (car arg)) (cdr arg)))
 	  '(("\\.\\(\
-arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|\
-ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|7z\\|squashfs\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\|SQUASHFS\\)\\'"
      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|t[bg]z\\)\\'" . no-conversion)
@@ -2302,8 +2204,7 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	 (read-coding-system "Text was really in: ")
 	 (let ((coding (or buffer-file-coding-system last-coding-system-used)))
 	   (read-coding-system
-	    (concat "But was interpreted as"
-		    (if coding (format " (default %S): " coding) ": "))
+	    (format-prompt "But was interpreted as" coding)
 	    coding))))
   (or (and new-coding coding)
       (error "Coding system not specified"))
@@ -2438,6 +2339,7 @@ This function sets properties `translation-table' and
 `translation-table-id' of SYMBOL to the created table itself and the
 identification number of the table respectively.  It also registers
 the table in `translation-table-vector'."
+  (declare (indent defun))
   (let ((table (if (and (char-table-p (car args))
 			(eq (char-table-subtype (car args))
 			    'translation-table))
@@ -2512,6 +2414,7 @@ Value is what BODY returns."
 Analogous to `define-translation-table', but updates
 `translation-hash-table-vector' and the table is for use in the CCL
 `lookup-integer' and `lookup-character' functions."
+  (declare (indent defun))
   (unless (and (symbolp symbol)
 	       (hash-table-p table))
     (error "Bad args to define-translation-hash-table"))
@@ -2637,6 +2540,11 @@ This function is intended to be added to `auto-coding-functions'."
                   (bfcs-type
                    (coding-system-type buffer-file-coding-system)))
               (if (and enable-multibyte-characters
+                       ;; 'charset' will signal an error in
+                       ;; coding-system-equal, since it isn't a
+                       ;; coding-system.  So test that up front.
+                       (not (equal sym-type 'charset))
+                       (not (equal bfcs-type 'charset))
                        (coding-system-equal 'utf-8 sym-type)
                        (coding-system-equal 'utf-8 bfcs-type))
                   buffer-file-coding-system

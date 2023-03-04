@@ -1,6 +1,6 @@
-;;; calc-misc.el --- miscellaneous functions for Calc
+;;; calc-misc.el --- miscellaneous functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -61,49 +61,48 @@
 
 ;;;###autoload
 (defun calc-dispatch-help (arg)
-  "C-x* is a prefix key sequence; follow it with one of these letters:
+  "\\`C-x *' is a prefix key sequence; follow it with one of these letters:
 
 For turning Calc on and off:
-  C  calc.  Start the Calculator in a window at the bottom of the screen.
-  O  calc-other-window.  Start the Calculator but don't select its window.
-  B  calc-big-or-small.  Control whether to use the full Emacs screen for Calc.
-  Q  quick-calc.  Use the Calculator in the minibuffer.
-  K  calc-keypad.  Start the Calculator in keypad mode (X window system only).
-  E  calc-embedded.  Use the Calculator on a formula in this editing buffer.
-  J  calc-embedded-select.  Like E, but select appropriate half of => or :=.
-  W  calc-embedded-word.  Like E, but activate a single word, i.e., a number.
-  Z  calc-user-invocation.  Invoke Calc in the way you defined with `Z I' cmd.
-  X  calc-quit.  Turn Calc off.
+  \\`C'  calc.  Start the Calculator in a window at the bottom of the screen.
+  \\`O'  calc-other-window.  Start the Calculator but don't select its window.
+  \\`B'  calc-big-or-small.  Toggle using the full Emacs screen for Calc.
+  \\`Q'  quick-calc.  Use the Calculator in the minibuffer.
+  \\`K'  calc-keypad.  Start the Calculator in keypad mode (X window system only).
+  \\`E'  calc-embedded.  Use the Calculator on a formula in this editing buffer.
+  \\`J'  calc-embedded-select.  Like \\`E', but select appropriate half of => or :=.
+  \\`W'  calc-embedded-word.  Like \\`E', but activate a single word, i.e., a number.
+  \\`Z'  calc-user-invocation.  Invoke Calc in the way you defined with `Z I' cmd.
+  \\`X'  calc-quit.  Turn Calc off.
 
 For moving data into and out of Calc:
-  G  calc-grab-region.  Grab the region defined by mark and point into Calc.
-  R  calc-grab-rectangle.  Grab the rectangle defined by mark, point into Calc.
-  :  calc-grab-sum-down.  Grab a rectangle and sum the columns.
-  _  calc-grab-sum-across.  Grab a rectangle and sum the rows.
-  Y  calc-copy-to-buffer.  Copy a value from the stack into the editing buffer.
+  \\`G'  calc-grab-region.  Grab the region defined by mark and point into Calc.
+  \\`R'  calc-grab-rectangle.  Grab the rectangle defined by mark, point into Calc.
+  \\`:'  calc-grab-sum-down.  Grab a rectangle and sum the columns.
+  \\`_'  calc-grab-sum-across.  Grab a rectangle and sum the rows.
+  \\`Y'  calc-copy-to-buffer.  Copy a value from the stack into the editing buffer.
 
 For use with Embedded mode:
-  A  calc-embedded-activate.  Find and activate all :='s and =>'s in buffer.
-  D  calc-embedded-duplicate.  Make a copy of this formula and select it.
-  F  calc-embedded-new-formula.  Insert a new formula at current point.
-  N  calc-embedded-next.  Advance cursor to next known formula in buffer.
-  P  calc-embedded-previous.  Advance cursor to previous known formula.
-  U  calc-embedded-update-formula.  Re-evaluate formula at point.
-  \\=`  calc-embedded-edit.  Use calc-edit to edit formula at point.
+  \\`A'  calc-embedded-activate.  Find and activate all :='s and =>'s in buffer.
+  \\`D'  calc-embedded-duplicate.  Make a copy of this formula and select it.
+  \\`F'  calc-embedded-new-formula.  Insert a new formula at current point.
+  \\`N'  calc-embedded-next.  Advance cursor to next known formula in buffer.
+  \\`P'  calc-embedded-previous.  Advance cursor to previous known formula.
+  \\`U'  calc-embedded-update-formula.  Re-evaluate formula at point.
+  \\``'  calc-embedded-edit.  Use calc-edit to edit formula at point.
 
 Documentation:
-  I  calc-info.  Read the Calculator manual in the Emacs Info system.
-  T  calc-tutorial.  Run the Calculator Tutorial using the Emacs Info system.
-  S  calc-summary.  Read the Summary from the Calculator manual in Info.
+  \\`I'  calc-info.  Read the Calculator manual in the Emacs Info system.
+  \\`T'  calc-tutorial.  Run the Calculator Tutorial using the Emacs Info system.
+  \\`S'  calc-summary.  Read the Summary from the Calculator manual in Info.
 
 Miscellaneous:
-  L  calc-load-everything.  Load all parts of the Calculator into memory.
-  M  read-kbd-macro.  Read a region of keystroke names as a keyboard macro.
-  0  (zero) calc-reset.  Reset Calc stack and modes to default state.
+  \\`L'  calc-load-everything.  Load all parts of the Calculator into memory.
+  \\`M'  read-kbd-macro.  Read a region of keystroke names as a keyboard macro.
+  \\`0'  (zero) calc-reset.  Reset Calc stack and modes to default state.
 
-Press `*' twice (`C-x * *') to turn Calc on or off using the same
-Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
-"
+Press \\`*' twice (\\`C-x * *') to turn Calc on or off using the same
+Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C-x * C')."
   (interactive "P")
   (calc-check-defines)
   (if calc-dispatch-help
@@ -115,8 +114,11 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 		(let (key)
 		  (select-window win)
 		  (while (progn
-			   (message "Calc options: Calc, Keypad, ...  %s"
-				    "press SPC, DEL to scroll, C-g to cancel")
+			   (message
+                            (substitute-command-keys
+                             (concat
+                              "Calc options: \\`c'alc, \\`k'eypad, ...  "
+			      "press \\`SPC', \\`DEL' to scroll, \\`C-g' to cancel")))
 			   (memq (setq key (read-event))
 				 '(?  ?\C-h ?\C-? ?\C-v ?\M-v)))
 		    (condition-case nil
@@ -176,9 +178,9 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
   "Create another, independent Calculator buffer."
   (interactive)
   (if (eq major-mode 'calc-mode)
-      (mapc (function
-	     (lambda (v)
-	      (set-default v (symbol-value v)))) calc-local-var-list))
+      (mapc (lambda (v)
+              (set-default v (symbol-value v)))
+            calc-local-var-list))
   (set-buffer (generate-new-buffer "*Calculator*"))
   (pop-to-buffer (current-buffer))
   (calc-mode))
@@ -217,26 +219,27 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 (defun calc-help ()
   (interactive)
   (let ((msgs
-	 '("Press `h' for complete help; press `?' repeatedly for a summary"
-	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
-	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
-	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
-	   "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
-	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
-	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
-	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-	   "Other keys: \\=' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
-	   "Other keys: SPC/RET (enter/dup), LFD (over); < > (scroll horiz)"
-	   "Other keys: DEL (drop), M-DEL (drop-above); { } (scroll vert)"
-	   "Other keys: TAB (swap/roll-dn), M-TAB (roll-up)"
-	   "Other keys: [ , ; ] (vector), ( , ) (complex), ( ; ) (polar)"
-	   "Prefix keys: Algebra, Binary/business, Convert, Display"
-	   "Prefix keys: Functions, Graphics, Help, J (select)"
-	   "Prefix keys: Kombinatorics/statistics, Modes, Store/recall"
-	   "Prefix keys: Trail/time, Units/statistics, Vector/matrix"
-	   "Prefix keys: Z (user), SHIFT + Z (define)"
-	   "Prefix keys: prefix + ? gives further help for that prefix"
-           "  Calc by Dave Gillespie, daveg@synaptics.com")))
+         (mapcar #'substitute-command-keys
+          '("Press \\`h' for complete help; press \\`?' repeatedly for a summary"
+            "Letter keys: \\`n'egate; \\`p'recision; \\`y'ank; \\`w'hy; \\`x'tended cmd; \\`q'uit"
+            "Letter keys: \\`U'ndo, re\\`D'o; \\`I'nverse, \\`H'yperbolic, \\`O'ption"
+            "Letter keys: s\\`Q'rt; \\`S'in, \\`C'os, \\`T'an; \\`E'xp, \\`L'n, log\\`B'"
+            "Letter keys: \\`F'loor, \\`R'ound; \\`A'bs, con\\`J', ar\\`G'; \\`P'i"
+            "Letter keys: \\`N'um-eval; \\`M'ore-recn; e\\`X'ec-kbd-macro; \\`K'eep-args"
+            "Other keys: \\`+', \\`-', \\`*', \\`/', \\`^', \\`\\' (int div), \\`:' (frac div)"
+            "Other keys: \\`&' (1/x), \\`|' (concat), \\`%' (modulo), \\`!' (factorial)"
+            "Other keys: \\=' (alg-entry), \\`=' (eval), \\=` (edit); \\`M-RET' (last-args)"
+            "Other keys: \\`SPC'/\\`RET' (enter/dup), \\`LFD' (over); \\`<' \\`>' (scroll horiz)"
+            "Other keys: \\`DEL' (drop), \\`M-DEL' (drop-above); \\`{' \\`}' (scroll vert)"
+            "Other keys: \\`TAB' (swap/roll-dn), \\`M-TAB' (roll-up)"
+            "Other keys: \\`[' \\`,' \\`;' \\`]' (vector), \\`(' \\`,' \\`)' (complex), \\`(' \\`;' \\`)' (polar)"
+            "Prefix keys: \\`a'lgebra, \\`b'inary/business, \\`c'onvert, \\`d'isplay"
+            "Prefix keys: \\`f'unctions, \\`g'raphics, \\`h'elp, \\`j' (select)"
+            "Prefix keys: \\`k'ombinatorics/statistics, \\`m'odes, \\`s'tore/recall"
+            "Prefix keys: \\`t'rail/time, \\`u'nits/statistics, \\`v'ector/matrix"
+            "Prefix keys: \\`z' (user), \\`Z' (define)"
+            "Prefix keys: prefix + \\`?' gives further help for that prefix"
+            "  Calc by Dave Gillespie, daveg@synaptics.com"))))
     (if calc-full-help-flag
 	msgs
       (if (or calc-inverse-flag calc-hyperbolic-flag)
@@ -259,7 +262,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
                                                                      msgs))
                                                       (length msg))
 						   ?\ )
-                                      "  [?=MORE]")
+                                      (substitute-command-keys "  [\\`?'=MORE]"))
                             ""))))))))
 
 
@@ -274,9 +277,8 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 ;;;###autoload
 (defun calc-do-handle-whys ()
   (setq calc-why (sort calc-next-why
-		       (function
-			(lambda (x y)
-			  (and (eq (car x) '*) (not (eq (car y) '*))))))
+                       (lambda (x y)
+                         (and (eq (car x) '*) (not (eq (car y) '*)))))
 	calc-next-why nil)
   (if (and calc-why (or (eq calc-auto-why t)
 			(and (eq (car (car calc-why)) '*)
@@ -505,7 +507,7 @@ With argument 0, switch line point is in with line mark is in."
        ;; 3 <-- mid-line = 3
        ;; 4 <-- point
        ;; 5 <-- bot-line = 5
-       (dotimes (i mid-line)
+       (dotimes (_ mid-line)
          (setq mid-cell old-top-list
                old-top-list (cdr old-top-list))
          (setcdr mid-cell new-top-list)
@@ -519,7 +521,7 @@ With argument 0, switch line point is in with line mark is in."
        ;; 2
        ;; 1
        (setq  prev-mid-cell old-top-list)
-       (dotimes (i (- bot-line mid-line))
+       (dotimes (_ (- bot-line mid-line))
          (setq bot-cell old-top-list
                old-top-list (cdr old-top-list))
          (setcdr bot-cell new-top-list)
@@ -757,19 +759,21 @@ loaded and the keystroke automatically re-typed."
 
 ;; The variable math-trunc-prec is local to math-trunc, but used by
 ;; math-trunc-fancy in calc-arith.el, which is called by math-trunc.
+(defvar math-trunc-prec)
 
 ;;;###autoload
-(defun math-trunc (a &optional math-trunc-prec)
-  (cond (math-trunc-prec
+(defun math-trunc (a &optional trunc-prec)
+  (cond (trunc-prec
 	 (require 'calc-ext)
-	 (math-trunc-special a math-trunc-prec))
+	 (math-trunc-special a trunc-prec))
 	((Math-integerp a) a)
 	((Math-looks-negp a)
 	 (math-neg (math-trunc (math-neg a))))
 	((eq (car a) 'float)
 	 (math-scale-int (nth 1 a) (nth 2 a)))
 	(t (require 'calc-ext)
-	   (math-trunc-fancy a))))
+	   (let ((math-trunc-prec trunc-prec))
+	     (math-trunc-fancy a)))))
 ;;;###autoload
 (defalias 'calcFunc-trunc 'math-trunc)
 
@@ -777,12 +781,13 @@ loaded and the keystroke automatically re-typed."
 
 ;; The variable math-floor-prec is local to math-floor, but used by
 ;; math-floor-fancy in calc-arith.el, which is called by math-floor.
+(defvar math-floor-prec)
 
 ;;;###autoload
-(defun math-floor (a &optional math-floor-prec)    ;  [Public]
-  (cond (math-floor-prec
+(defun math-floor (a &optional floor-prec)    ;  [Public]
+  (cond (floor-prec
 	 (require 'calc-ext)
-	 (math-floor-special a math-floor-prec))
+	 (math-floor-special a floor-prec))
 	((Math-integerp a) a)
 	((Math-messy-integerp a) (math-trunc a))
 	((Math-realp a)
@@ -790,7 +795,9 @@ loaded and the keystroke automatically re-typed."
 	     (math-add (math-trunc a) -1)
 	   (math-trunc a)))
 	(t (require 'calc-ext)
-	   (math-floor-fancy a))))
+	   (let ((math-floor-prec floor-prec))
+	     (math-floor-fancy a)))))
+
 ;;;###autoload
 (defalias 'calcFunc-floor 'math-floor)
 

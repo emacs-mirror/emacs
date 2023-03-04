@@ -1,6 +1,6 @@
-;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime
+;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2002-2007, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 30 January 2002
@@ -34,9 +34,6 @@
 ;;
 ;; For more details on Wisent itself read the Wisent manual.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (defgroup wisent nil
@@ -55,11 +52,8 @@
 ;;;; Runtime stuff
 ;;;; -------------
 
-;;; Compatibility
-(eval-and-compile
-  (if (fboundp 'char-valid-p)
-      (defalias 'wisent-char-p 'char-valid-p)
-    (defalias 'wisent-char-p 'char-or-char-int-p)))
+(define-obsolete-function-alias 'wisent-char-p
+  #'characterp "28.1")
 
 ;;; Printed representation of terminals and nonterminals
 (defconst wisent-escape-sequence-strings
@@ -80,7 +74,7 @@
 (defsubst wisent-item-to-string (item)
   "Return a printed representation of ITEM.
 ITEM can be a nonterminal or terminal symbol, or a character literal."
-  (if (wisent-char-p item)
+  (if (characterp item)
         (or (cdr (assq item wisent-escape-sequence-strings))
             (format "'%c'" item))
     (symbol-name item)))
@@ -142,7 +136,7 @@ POSITIONS are available."
   "Print a one-line message if `wisent-parse-verbose-flag' is set.
 Pass STRING and ARGS arguments to `message'."
   (and wisent-parse-verbose-flag
-       (apply 'message string args)))
+       (apply #'message string args)))
 
 ;;;; --------------------
 ;;;; The LR parser engine
@@ -150,13 +144,11 @@ Pass STRING and ARGS arguments to `message'."
 
 (defcustom wisent-parse-max-stack-size 500
   "The parser stack size."
-  :type 'integer
-  :group 'wisent)
+  :type 'integer)
 
 (defcustom wisent-parse-max-recover 3
   "Number of tokens to shift before turning off error status."
-  :type 'integer
-  :group 'wisent)
+  :type 'integer)
 
 (defvar wisent-discarding-token-functions nil
   "List of functions to be called when discarding a lexical token.
@@ -400,9 +392,9 @@ automaton has only one entry point."
             (wisent-error
              (format "Syntax error, unexpected %s, expecting %s"
                      (wisent-token-to-string wisent-input)
-                     (mapconcat 'wisent-item-to-string
+                     (mapconcat #'wisent-item-to-string
                                 (delq wisent-error-term
-                                      (mapcar 'car (cdr choices)))
+                                      (mapcar #'car (cdr choices)))
                                 ", "))))
         ;; Increment the error counter
         (setq wisent-nerrs (1+ wisent-nerrs))

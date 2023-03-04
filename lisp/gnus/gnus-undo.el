@@ -1,6 +1,6 @@
-;;; gnus-undo.el --- minor mode for undoing in Gnus
+;;; gnus-undo.el --- minor mode for undoing in Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -52,8 +52,7 @@
 
 (defcustom gnus-undo-limit 2000
   "The number of undoable actions recorded."
-  :type 'integer
-  :group 'gnus-undo)
+  :type 'integer)
 
 (defcustom gnus-undo-mode nil
   ;; FIXME: This is a buffer-local minor mode which requires running
@@ -61,13 +60,11 @@
   ;; doesn't seem very useful: setting it to non-nil via Customize
   ;; probably won't do the right thing.
   "Minor mode for undoing in Gnus buffers."
-  :type 'boolean
-  :group 'gnus-undo)
+  :type 'boolean)
 
 (defcustom gnus-undo-mode-hook nil
   "Hook called in all `gnus-undo-mode' buffers."
-  :type 'hook
-  :group 'gnus-undo)
+  :type 'hook)
 
 ;;; Internal variables.
 
@@ -78,15 +75,12 @@
 
 ;;; Minor mode definition.
 
-(defvar gnus-undo-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      "\M-\C-_"     gnus-undo
-      "\C-_"        gnus-undo
-      "\C-xu"       gnus-undo
-      ;; many people are used to type `C-/' on X terminals and get `C-_'.
-      [(control /)] gnus-undo)
-    map))
+(defvar-keymap gnus-undo-mode-map
+  "C-M-_" #'gnus-undo
+  "C-_" #'gnus-undo
+  "C-x u" #'gnus-undo
+  ;; many people are used to type `C-/' on GUI frames and get `C-_'.
+  "C-/" #'gnus-undo)
 
 (defun gnus-undo-make-menu-bar ()
   ;; This is disabled for the time being.
@@ -100,13 +94,13 @@
 
 \\{gnus-undo-mode-map}"
   :keymap gnus-undo-mode-map
-  (set (make-local-variable 'gnus-undo-actions) nil)
-  (set (make-local-variable 'gnus-undo-boundary) t)
+  (setq-local gnus-undo-actions nil)
+  (setq-local gnus-undo-boundary t)
   (when gnus-undo-mode
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
-    (add-hook 'post-command-hook 'gnus-undo-boundary nil t)))
+    (add-hook 'post-command-hook #'gnus-undo-boundary nil t)))
 
 ;;; Interface functions.
 
@@ -130,15 +124,10 @@
 	gnus-undo-boundary t))
 
 (defun gnus-undo-register (form)
-  "Register FORMS as something to be performed to undo a change.
-FORMS may use backtick quote syntax."
+  "Register FORMS as something to be performed to undo a change."
   (when gnus-undo-mode
     (gnus-undo-register-1
-     `(lambda ()
-	,form))))
-
-(put 'gnus-undo-register 'lisp-indent-function 0)
-(put 'gnus-undo-register 'edebug-form-spec '(body))
+     `(lambda () ,form))))
 
 (defun gnus-undo-register-1 (function)
   "Register FUNCTION as something to be performed to undo a change."
@@ -161,23 +150,23 @@ FORMS may use backtick quote syntax."
     ;; We are not at a boundary...
     (setq gnus-undo-boundary-inhibit t)))
 
-(defun gnus-undo (n)
+(defun gnus-undo (_n)
   "Undo some previous changes in Gnus buffers.
-Repeat this command to undo more changes.
-A numeric argument serves as a repeat count."
+Repeat this command to undo more changes."
+  ;; FIXME: A numeric argument should serve as a repeat count.
   (interactive "p")
   (unless gnus-undo-mode
     (error "Undoing is not enabled in this buffer"))
   (message "%s" last-command)
-  (when (or (not (eq last-command 'gnus-undo))
-	    (not gnus-undo-last))
+  (unless (and (eq last-command 'gnus-undo)
+               gnus-undo-last)
     (setq gnus-undo-last gnus-undo-actions))
   (let ((action (pop gnus-undo-last)))
     (unless action
       (error "Nothing further to undo"))
     (setq gnus-undo-actions (delq action gnus-undo-actions))
     (setq gnus-undo-boundary t)
-    (mapc 'funcall action)))
+    (mapc #'funcall action)))
 
 (provide 'gnus-undo)
 

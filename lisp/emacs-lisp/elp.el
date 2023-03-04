@@ -1,7 +1,6 @@
 ;;; elp.el --- Emacs Lisp Profiler  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997-1998, 2001-2020 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
 ;; Maintainer: emacs-devel@gnu.org
@@ -30,8 +29,8 @@
 ;; hacks those functions so that profiling information is recorded
 ;; whenever they are called.  To print out the current results, use
 ;; M-x elp-results.  If you want output to go to standard-output
-;; instead of a separate buffer, setq elp-use-standard-output to
-;; non-nil.  With elp-reset-after-results set to non-nil, profiling
+;; instead of a separate buffer, set `elp-use-standard-output' to
+;; non-nil.  With `elp-reset-after-results' set to non-nil, profiling
 ;; information will be reset whenever the results are displayed.  You
 ;; can also reset all profiling info at any time with M-x
 ;; elp-reset-all.
@@ -40,12 +39,12 @@
 ;; the package follows the GNU coding standard of a common textual
 ;; prefix.  Use M-x elp-instrument-package for this.
 ;;
-;; If you want to sort the results, set elp-sort-by-function to some
+;; If you want to sort the results, set `elp-sort-by-function' to some
 ;; predicate function.  The three most obvious choices are predefined:
-;; elp-sort-by-call-count, elp-sort-by-average-time, and
-;; elp-sort-by-total-time.  Also, you can prune from the output, all
+;; `elp-sort-by-call-count', `elp-sort-by-average-time', and
+;; `elp-sort-by-total-time'.  Also, you can prune from the output, all
 ;; functions that have been called fewer than a given number of times
-;; by setting elp-report-limit.
+;; by setting `elp-report-limit'.
 ;;
 ;; Elp can instrument byte-compiled functions just as easily as
 ;; interpreted functions, but it cannot instrument macros.  However,
@@ -95,11 +94,11 @@
 
 ;; Note that there are plenty of factors that could make the times
 ;; reported unreliable, including the accuracy and granularity of your
-;; system clock, and the overhead spent in lisp calculating and
+;; system clock, and the overhead spent in Lisp calculating and
 ;; recording the intervals.  I figure the latter is pretty constant,
 ;; so while the times may not be entirely accurate, I think they'll
 ;; give you a good feel for the relative amount of work spent in the
-;; various lisp routines you are profiling.  Note further that times
+;; various Lisp routines you are profiling.  Note further that times
 ;; are calculated using wall-clock time, so other system load will
 ;; affect accuracy too.
 
@@ -110,10 +109,9 @@
 ;; Boy Jim's profiler.el. Both were written for Emacs 18 and both were
 ;; pretty good first shots at profiling, but I found that they didn't
 ;; provide the functionality or interface that I wanted, so I wrote
-;; this.  I've tested elp in XEmacs 19 and Emacs 19.  There's no point
-;; in even trying to make this work with Emacs 18.
+;; this.
 
-;; Unlike previous profilers, elp uses Emacs 19's built-in function
+;; Unlike previous profilers, elp uses the built-in function
 ;; current-time to return interval times.  This obviates the need for
 ;; both an external C program and Emacs processes to communicate with
 ;; such a program, and thus simplifies the package as a whole.
@@ -204,14 +202,13 @@ This variable is set by the master function.")
 (defvar elp-not-profilable
   ;; First, the functions used inside each instrumented function:
   '(called-interactively-p
-    ;; Then the functions used by the above functions.  I used
-    ;; (delq nil (mapcar (lambda (x) (and (symbolp x) (fboundp x) x))
-    ;;                   (aref (symbol-function 'elp-wrapper) 2)))
-    ;; to help me find this list.
-    error call-interactively apply current-time
+    ;; (delq
+    ;;  nil (mapcar
+    ;;       (lambda (x) (and (symbolp x) (fboundp x) x))
+    ;;       (aref (aref (aref (symbol-function 'elp--make-wrapper) 2) 1) 2)))
+    error apply current-time float-time time-subtract
     ;; Andreas Politz reports problems profiling these (Bug#4233):
-    + byte-code-function-p functionp byte-code subrp
-    indirect-function fboundp)
+    + byte-code-function-p functionp byte-code subrp fboundp)
   "List of functions that cannot be profiled.
 Those functions are used internally by the profiling code and profiling
 them would thus lead to infinite recursion.")
@@ -238,7 +235,7 @@ FUNSYM must be a symbol of a defined function."
     ;; The info vector data structure is a 2 element vector.  The 0th
     ;; element is the call-count, i.e. the total number of times this
     ;; function has been entered.  This value is bumped up on entry to
-    ;; the function so that non-local exists are still recorded. TBD:
+    ;; the function so that non-local exits are still recorded. TBD:
     ;; I haven't tested non-local exits at all, so no guarantees.
     ;;
     ;; The 1st element is the total amount of time in seconds that has
@@ -290,7 +287,12 @@ type \"nil\" to use `elp-function-list'."
   "Instrument for profiling, all functions which start with PREFIX.
 For example, to instrument all ELP functions, do the following:
 
-    \\[elp-instrument-package] RET elp- RET"
+    \\[elp-instrument-package] RET elp- RET
+
+Note that only functions that are currently loaded will be
+instrumented.  If you run this function, and then later load
+further functions that start with PREFIX, they will not be
+instrumented automatically."
   (interactive
    (list (completing-read "Prefix of package to instrument: "
                           obarray 'elp-profilable-p)))
@@ -301,10 +303,18 @@ For example, to instrument all ELP functions, do the following:
     'intern
     (all-completions prefix obarray 'elp-profilable-p))))
 
+(defun elp-restore-package (prefix)
+  "Remove instrumentation from functions with names starting with PREFIX."
+  (interactive "SPrefix: ")
+  (elp-restore-list
+   (mapcar #'intern
+           (all-completions (symbol-name prefix)
+                            obarray 'elp-profilable-p))))
+
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to restore: ") ;FIXME: Doesn't work!?
+  (interactive)
   (mapcar #'elp-restore-function (or list elp-function-list)))
 
 (defun elp-restore-all ()
@@ -326,7 +336,7 @@ Use optional LIST if provided instead."
 (defun elp-reset-list (&optional list)
   "Reset the profiling information for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to reset: ") ;FIXME: Doesn't work!?
+  (interactive)
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-reset-function list)))
 
@@ -342,9 +352,9 @@ Use optional LIST if provided instead."
   (interactive
    (list
     (intern
-     (completing-read "Master function: " obarray
-                      #'elp--instrumented-p
-                      t nil nil (if elp-master (symbol-name elp-master))))))
+     (let ((default (if elp-master (symbol-name elp-master))))
+       (completing-read (format-prompt "Master function" default)
+                        obarray #'elp--instrumented-p t nil nil default)))))
   ;; When there's a master function, recording is turned off by default.
   (setq elp-master funsym
 	elp-record-p nil)
@@ -405,15 +415,15 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 (defvar elp-et-len nil)
 
 (defun elp-sort-by-call-count (vec1 vec2)
-  ;; sort by highest call count.  See `sort'.
+  "Predicate to sort by highest call count.  See `sort'."
   (>= (aref vec1 0) (aref vec2 0)))
 
 (defun elp-sort-by-total-time (vec1 vec2)
-  ;; sort by highest total time spent in function. See `sort'.
+  "Predicate to sort by highest total time spent in function.  See `sort'."
   (>= (aref vec1 1) (aref vec2 1)))
 
 (defun elp-sort-by-average-time (vec1 vec2)
-  ;; sort by highest average time spent in function. See `sort'.
+  "Predicate to sort by highest average time spent in function.  See `sort'."
   (>= (aref vec1 2) (aref vec2 2)))
 
 (defsubst elp-pack-number (number width)
@@ -462,28 +472,30 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert atstr))
       (insert "\n"))))
 
-(defvar elp-results-symname-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'elp-results-jump-to-definition)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map "\C-m" 'elp-results-jump-to-definition)
-    map)
-  "Keymap used on the function name column." )
+(defvar-keymap elp-results-symname-map
+  :doc "Keymap used on the function name column."
+  "<mouse-2>"     #'elp-results-jump-to-definition
+  "<follow-link>" 'mouse-face
+  "RET"           #'elp-results-jump-to-definition)
 
 (defun elp-results-jump-to-definition (&optional event)
-  "Jump to the definition of the function under the point."
+  "Jump to the definition of the function at point."
   (interactive (list last-nonmenu-event))
   (if event (posn-set-point (event-end event)))
   (find-function (get-text-property (point) 'elp-symname)))
 
 (defun elp-output-insert-symname (symname)
-  ;; Insert SYMNAME with text properties.
+  "Insert SYMNAME with text properties."
   (insert (propertize symname
 		      'elp-symname (intern symname)
 		      'keymap elp-results-symname-map
 		      'mouse-face 'highlight
 		      'face 'link
 		      'help-echo "mouse-2 or RET jumps to definition")))
+
+(define-derived-mode elp-results-mode special-mode "ELP"
+  "Mode for ELP results."
+  :interactive nil)
 
 ;;;###autoload
 (defun elp-results ()
@@ -492,11 +504,12 @@ If `elp-reset-after-results' is non-nil, then current profiling
 information for all instrumented functions is reset after results are
 displayed."
   (interactive)
-  (let ((curbuf (current-buffer))
-	(resultsbuf (if elp-recycle-buffers-p
-			(get-buffer-create elp-results-buffer)
-		      (generate-new-buffer elp-results-buffer))))
-    (set-buffer resultsbuf)
+  (pop-to-buffer
+   (if elp-recycle-buffers-p
+       (get-buffer-create elp-results-buffer)
+     (generate-new-buffer elp-results-buffer)))
+  (elp-results-mode)
+  (let ((inhibit-read-only t))
     (erase-buffer)
     ;; get the length of the longest function name being profiled
     (let* ((longest 0)
@@ -567,9 +580,6 @@ displayed."
       (if elp-sort-by-function
 	  (setq resvec (sort resvec elp-sort-by-function)))
       (mapc 'elp-output-result resvec))
-    ;; now pop up results buffer
-    (set-buffer curbuf)
-    (pop-to-buffer resultsbuf)
     ;; copy results to standard-output?
     (if (or elp-use-standard-output noninteractive)
         (princ (buffer-substring (point-min) (point-max)))
@@ -584,11 +594,10 @@ displayed."
   ;; continue standard unloading
   nil)
 
-(cl-defmethod loadhist-unload-element :before :extra "elp" ((x (head defun)))
+(cl-defmethod loadhist-unload-element :extra "elp" :before ((x (head defun)))
   "Un-instrument before unloading a function."
   (elp-restore-function (cdr x)))
 
-
 (provide 'elp)
 
 ;;; elp.el ends here

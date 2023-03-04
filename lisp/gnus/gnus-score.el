@@ -1,6 +1,6 @@
-;;; gnus-score.el --- scoring code for Gnus
+;;; gnus-score.el --- scoring code for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
 (require 'gnus)
 (require 'gnus-sum)
 (require 'gnus-art)
@@ -35,6 +33,7 @@
 (require 'message)
 (require 'score-mode)
 (require 'gmm-utils)
+(require 'cl-lib)
 
 (defcustom gnus-global-score-files nil
   "List of global score files and directories.
@@ -249,7 +248,7 @@ If you use score decays, you might want to set values higher than
 				     (integer :tag "Score"))))))
 
 (defcustom gnus-adaptive-word-length-limit nil
-  "Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  "Words shorter than this limit will be ignored when doing adaptive scoring."
   :version "22.1"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
@@ -497,24 +496,26 @@ of the last successful match.")
     ("head" -1 gnus-score-body)
     ("body" -1 gnus-score-body)
     ("all" -1 gnus-score-body)
+    (score-fn -1 nil)
     ("followup" 2 gnus-score-followup)
     ("thread" 5 gnus-score-thread)))
 
 ;;; Summary mode score maps.
 
-(gnus-define-keys (gnus-summary-score-map "V" gnus-summary-mode-map)
-  "s" gnus-summary-set-score
-  "S" gnus-summary-current-score
-  "c" gnus-score-change-score-file
-  "C" gnus-score-customize
-  "m" gnus-score-set-mark-below
-  "x" gnus-score-set-expunge-below
-  "R" gnus-summary-rescore
-  "e" gnus-score-edit-current-scores
-  "f" gnus-score-edit-file
-  "F" gnus-score-flush-cache
-  "t" gnus-score-find-trace
-  "w" gnus-score-find-favorite-words)
+(define-key gnus-summary-mode-map "V"
+  (define-keymap :prefix 'gnus-summary-score-map
+    "s" #'gnus-summary-set-score
+    "S" #'gnus-summary-current-score
+    "c" #'gnus-score-change-score-file
+    "C" #'gnus-score-customize
+    "m" #'gnus-score-set-mark-below
+    "x" #'gnus-score-set-expunge-below
+    "R" #'gnus-summary-rescore
+    "e" #'gnus-score-edit-current-scores
+    "f" #'gnus-score-edit-file
+    "F" #'gnus-score-flush-cache
+    "t" #'gnus-score-find-trace
+    "w" #'gnus-score-find-favorite-words))
 
 ;; Summary score file commands
 
@@ -528,7 +529,8 @@ permanence, and the string to be used.  The numerical prefix will
 be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
 says to use the `all.SCORE' file for the command instead of the
 current score file."
-  (interactive (gnus-interactive "P\ny"))
+  (interactive (gnus-interactive "P\ny")
+	       gnus-article-mode gnus-summary-mode)
   (gnus-summary-increase-score (- (gnus-score-delta-default score)) symp))
 
 (defun gnus-score-kill-help-buffer ()
@@ -544,7 +546,8 @@ permanence, and the string to be used.  The numerical prefix will
 be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
 says to use the `all.SCORE' file for the command instead of the
 current score file."
-  (interactive (gnus-interactive "P\ny"))
+  (interactive (gnus-interactive "P\ny")
+	       gnus-article-mode gnus-summary-mode)
   (let* ((nscore (gnus-score-delta-default score))
 	 (prefix (if (< nscore 0) ?L ?I))
 	 (increase (> nscore 0))
@@ -683,7 +686,7 @@ current score file."
 	  (and gnus-extra-headers
 	       (equal (nth 1 entry) "extra")
 	       (intern			; need symbol
-                (let ((collection (mapcar 'symbol-name gnus-extra-headers)))
+                (let ((collection (mapcar #'symbol-name gnus-extra-headers)))
                   (gnus-completing-read
                    "Score extra header"  ; prompt
                    collection            ; completion list
@@ -862,6 +865,18 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
 	    (setq match (string-to-number match)))
       (set-text-properties 0 (length match) nil match))
 
+    ;; Modify match and type for article age scoring.
+    (if (string= "date" (nth 0 (assoc header gnus-header-index)))
+	(let ((age (string-to-number match)))
+	  (if (or (< age 0)
+		  (string= "0" match))
+	      (user-error "Article age must be a positive number"))
+	  (setq match age
+		type (cond ((eq type 'after)
+			    '<)
+			   ((eq type 'before)
+			    '>)))))
+
     (unless (eq date 'now)
       ;; Add the score entry to the score file.
       (when (= score gnus-score-interactive-default-score)
@@ -919,15 +934,16 @@ TYPE is the score type.
 SCORE is the score to add.
 EXTRA is the possible non-standard header."
   (interactive (list (gnus-completing-read "Header"
-                                           (mapcar
-                                            'car
+					   (mapcar
+                                            #'car
                                             (seq-filter
                                              (lambda (x) (fboundp (nth 2 x)))
                                              gnus-header-index))
-                                           t)
+					   t)
 		     (read-string "Match: ")
 		     (if (y-or-n-p "Use regexp match? ") 'r 's)
-		     (string-to-number (read-string "Score: "))))
+		     (string-to-number (read-string "Score: ")))
+	       gnus-article-mode gnus-summary-mode)
   (save-excursion
     (unless (and (stringp match) (> (length match) 0))
       (error "No match"))
@@ -962,7 +978,8 @@ EXTRA is the possible non-standard header."
   "Automatically mark articles with score below SCORE as read."
   (interactive
    (list (or (and current-prefix-arg (prefix-numeric-value current-prefix-arg))
-	     (string-to-number (read-string "Mark below: ")))))
+	     (string-to-number (read-string "Mark below: "))))
+   gnus-article-mode gnus-summary-mode)
   (setq score (or score gnus-summary-default-score 0))
   (gnus-score-set 'mark (list score))
   (gnus-score-set 'touched '(t))
@@ -996,14 +1013,15 @@ EXTRA is the possible non-standard header."
   "Automatically expunge articles with score below SCORE."
   (interactive
    (list (or (and current-prefix-arg (prefix-numeric-value current-prefix-arg))
-	     (string-to-number (read-string "Set expunge below: ")))))
+	     (string-to-number (read-string "Set expunge below: "))))
+   gnus-article-mode gnus-summary-mode)
   (setq score (or score gnus-summary-default-score 0))
   (gnus-score-set 'expunge (list score))
   (gnus-score-set 'touched '(t)))
 
 (defun gnus-score-followup-article (&optional score)
   "Add SCORE to all followups to the article in the current buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (setq score (gnus-score-delta-default score))
   (when (gnus-buffer-live-p gnus-summary-buffer)
     (save-excursion
@@ -1018,7 +1036,7 @@ EXTRA is the possible non-standard header."
 
 (defun gnus-score-followup-thread (&optional score)
   "Add SCORE to all later articles in the thread the current buffer is part of."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (setq score (gnus-score-delta-default score))
   (when (gnus-buffer-live-p gnus-summary-buffer)
     (save-excursion
@@ -1052,13 +1070,13 @@ EXTRA is the possible non-standard header."
 
 (defun gnus-summary-raise-score (n)
   "Raise the score of the current article by N."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-summary-set-score (+ (gnus-summary-article-score)
 			     (or n gnus-score-interactive-default-score ))))
 
 (defun gnus-summary-set-score (n)
   "Set the score of the current article to N."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (save-excursion
     (gnus-summary-show-thread)
     (let ((buffer-read-only nil))
@@ -1076,8 +1094,8 @@ EXTRA is the possible non-standard header."
 
 (defun gnus-summary-current-score (arg)
   "Return the score of the current article.
-  With prefix ARG, return the total score of the current (sub)thread."
-  (interactive "P")
+With prefix ARG, return the total score of the current (sub)thread."
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (message "%s" (if arg
 		    (gnus-thread-total-score
 		     (gnus-id-to-thread
@@ -1087,14 +1105,16 @@ EXTRA is the possible non-standard header."
 (defun gnus-score-change-score-file (file)
   "Change current score alist."
   (interactive
-   (list (read-file-name "Change to score file: " gnus-kill-files-directory)))
+   (list (read-file-name "Change to score file: " gnus-kill-files-directory))
+   gnus-article-mode gnus-summary-mode)
   (gnus-score-load-file file)
   (gnus-set-mode-line 'summary))
 
 (defvar gnus-score-edit-exit-function)
 (defun gnus-score-edit-current-scores (file)
   "Edit the current score alist."
-  (interactive (list gnus-current-score-file))
+  (interactive (list gnus-current-score-file)
+	       gnus-article-mode gnus-summary-mode)
   (if (not gnus-current-score-file)
       (error "No current score file")
     (let ((winconf (current-window-configuration)))
@@ -1105,8 +1125,7 @@ EXTRA is the possible non-standard header."
       (gnus-configure-windows 'edit-score)
       (gnus-score-mode)
       (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-      (make-local-variable 'gnus-prev-winconf)
-      (setq gnus-prev-winconf winconf))
+      (setq-local gnus-prev-winconf winconf))
     (gnus-message
      4 "%s" (substitute-command-keys
 	     "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
@@ -1133,8 +1152,7 @@ EXTRA is the possible non-standard header."
     (gnus-configure-windows 'edit-score)
     (gnus-score-mode)
     (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-    (make-local-variable 'gnus-prev-winconf)
-    (setq gnus-prev-winconf winconf))
+    (setq-local gnus-prev-winconf winconf))
   (gnus-message
    4 "%s" (substitute-command-keys
 	   "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))
@@ -1150,9 +1168,9 @@ If FORMAT, also format the current score file."
 	 (reg " -> +")
 	 (file (save-excursion
 		 (end-of-line)
-		 (if (and (re-search-backward reg (point-at-bol) t)
-			  (re-search-forward  reg (point-at-eol) t))
-		     (buffer-substring (point) (point-at-eol))
+                 (if (and (re-search-backward reg (line-beginning-position) t)
+                          (re-search-forward  reg (line-end-position) t))
+                     (buffer-substring (point) (line-end-position))
 		   nil))))
     (if (or (not file)
 	    (string-match "\\<\\(non-file rule\\|A file\\)\\>" file)
@@ -1163,14 +1181,19 @@ If FORMAT, also format the current score file."
       (when format
 	(gnus-score-pretty-print))
       (when (consp rule) ;; the rule exists
-	(setq rule (mapconcat #'(lambda (obj)
-				  (regexp-quote (format "%S" obj)))
-			      rule
-			      sep))
+	(setq rule (if (symbolp (car rule))
+		       (format "(%S)" (car rule))
+                     (mapconcat (lambda (obj)
+                                  (regexp-quote (format "%S" obj)))
+				rule
+				sep)))
 	(goto-char (point-min))
-	(re-search-forward rule nil t)
-	;; make it easy to use `kill-sexp':
-	(goto-char (1- (match-beginning 0)))))))
+	(let ((move (if (string-match "(.*)" rule)
+			0
+		      -1)))
+	  (re-search-forward rule nil t)
+	  ;; make it easy to use `kill-sexp':
+	  (goto-char (+ move (match-beginning 0))))))))
 
 (defun gnus-score-load-file (file)
   ;; Load score file FILE.  Returns a list a retrieved score-alists.
@@ -1220,6 +1243,7 @@ If FORMAT, also format the current score file."
     (let ((mark (car (gnus-score-get 'mark alist)))
 	  (expunge (car (gnus-score-get 'expunge alist)))
 	  (mark-and-expunge (car (gnus-score-get 'mark-and-expunge alist)))
+	  ;; (score-fn (car (gnus-score-get 'score-fn alist)))
 	  (files (gnus-score-get 'files alist))
 	  (exclude-files (gnus-score-get 'exclude-files alist))
 	  (orphan (car (gnus-score-get 'orphan alist)))
@@ -1242,17 +1266,17 @@ If FORMAT, also format the current score file."
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (when (and files (not global))
-	(setq lists (apply 'append lists
-			   (mapcar 'gnus-score-load-file
+	(setq lists (apply #'append lists
+			   (mapcar #'gnus-score-load-file
 				   (if adapt-file (cons adapt-file files)
 				     files)))))
       (when (and eval (not global))
-	(eval eval))
+	(eval eval t))
       ;; We then expand any exclude-file directives.
       (setq gnus-scores-exclude-files
 	    (nconc
 	     (apply
-	      'nconc
+	      #'nconc
 	      (mapcar
 	       (lambda (sfile)
 		 (list
@@ -1370,9 +1394,12 @@ If FORMAT, also format the current score file."
 	       (setq
 		err
 		(cond
-		 ((if (member (downcase type) '("lines" "chars"))
-		      (not (numberp (car s)))
-		    (not (stringp (car s))))
+		 ((cond ((member (downcase type) '("lines" "chars"))
+			 (not (numberp (car s))))
+			((string= (downcase type) "date")
+			 (not (or (numberp (car s))
+				  (stringp (car s)))))
+			(t (not (stringp (car s)))))
 		  (format "Invalid match %s in %s" (car s) file))
 		 ((and (cadr s) (not (integerp (cadr s))))
 		  (format "Non-integer score %s in %s" (cadr s) file))
@@ -1535,10 +1562,10 @@ If FORMAT, also format the current score file."
 	      (setq entry (pop entries)
 		    header (nth 0 entry)
 		    gnus-score-index (nth 1 (assoc header gnus-header-index)))
-	      (when (< 0 (apply 'max (mapcar
-				      (lambda (score)
-					(length (gnus-score-get header score)))
-				      scores)))
+	      (when (< 0 (apply #'max (mapcar
+				       (lambda (score)
+					 (length (gnus-score-get header score)))
+				       scores)))
 		(when (if (and gnus-inhibit-slow-scoring
 			       (or (eq gnus-inhibit-slow-scoring t)
 				   (and (stringp gnus-inhibit-slow-scoring)
@@ -1552,10 +1579,14 @@ If FORMAT, also format the current score file."
 			    (gnus-message
 			     7 "Scoring on headers or body skipped.")
 			    nil)
-			;; Call the scoring function for this type of "header".
-			(setq new (funcall (nth 2 entry) scores header
-					   now expire trace)))
+			;; Run score-fn
+			(if (eq header 'score-fn)
+			    (setq new (gnus-score-func scores trace))
+			  ;; Call the scoring function for this type of "header".
+			  (setq new (funcall (nth 2 entry) scores header
+					     now expire trace))))
 		  (push new news))))
+
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
 	      (let ((scored gnus-newsgroup-scored))
 		(with-current-buffer gnus-summary-buffer
@@ -1620,6 +1651,30 @@ score in `gnus-newsgroup-scored' by SCORE."
       (when (and id
 		 (not (string= id "")))
 	(gnus-score-lower-thread thread score)))))
+
+(defun gnus-score-func (scores &optional trace)
+  (dolist (alist scores)
+    (let ((articles gnus-scores-articles)
+	  (entries (assoc 'score-fn alist)))
+      (dolist (score-fn (cdr entries))
+	(let ((score-fn (car score-fn))
+	      article-alist score fn-score)
+	  (dolist (art articles)
+	    (setq article-alist
+		  (cl-pairlis
+		   '(number subject from date id
+			    refs chars lines xref extra)
+		   (car art))
+		  score (cdr art))
+	    (when (integerp (setq fn-score (funcall score-fn
+						    article-alist score)))
+	      (setcdr art (+ score fn-score)))
+	    (setq score (cdr art))
+	    (when (and trace
+		       (integerp fn-score))
+	      (push (cons (car-safe (rassq alist gnus-score-cache))
+			  (list score-fn fn-score))
+		    gnus-score-trace))))))))
 
 (defun gnus-score-integer (scores header now expire &optional trace)
   (let ((gnus-score-index (nth 1 (assoc header gnus-header-index)))
@@ -1690,9 +1745,21 @@ score in `gnus-newsgroup-scored' by SCORE."
 	   ((eq type 'after)
 	    (setq match-func 'string<
 		  match (gnus-date-iso8601 (nth 0 kill))))
+	   ((eq type '<)
+	    (setq type 'after
+		  match-func 'string<
+		  match (gnus-time-iso8601
+			 (time-subtract nil
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
 		  match (gnus-date-iso8601 (nth 0 kill))))
+	   ((eq type '>)
+	    (setq type 'before
+		  match-func 'gnus-string>
+		  match (gnus-time-iso8601
+			 (time-subtract nil
+					(* 86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=
 		  match (gnus-date-iso8601 (nth 0 kill))))
@@ -1759,45 +1826,44 @@ score in `gnus-newsgroup-scored' by SCORE."
 	handles))))
 
 (defun gnus-score-body (scores header now expire &optional trace)
-    (if gnus-agent-fetching
-       nil
-     (save-excursion
-       (setq gnus-scores-articles
-             (sort gnus-scores-articles
-                   (lambda (a1 a2)
-                     (< (mail-header-number (car a1))
-                        (mail-header-number (car a2))))))
-       (set-buffer nntp-server-buffer)
-       (save-restriction
-         (let* ((buffer-read-only nil)
-                (articles gnus-scores-articles)
-                (all-scores scores)
-                (request-func (cond ((string= "head" header)
-                                     'gnus-request-head)
-                                    ((string= "body" header)
-                                     'gnus-request-body)
-                                    (t 'gnus-request-article)))
-                entries alist ofunc article last)
-           (when articles
-             (setq last (mail-header-number (caar (last articles))))
-             ;; Not all backends support partial fetching.  In that case,
-             ;; we just fetch the entire article.
-             ;; When scoring by body, we need to peek at the headers to detect
-             ;; the content encoding
-             (unless (or (gnus-check-backend-function
-                          (and (string-match "^gnus-" (symbol-name request-func))
-                               (intern (substring (symbol-name request-func)
-                                                  (match-end 0))))
-                          gnus-newsgroup-name)
-                         (string= "body" header))
-               (setq ofunc request-func)
-               (setq request-func 'gnus-request-article))
-             (while articles
-               (setq article (mail-header-number (caar articles)))
-               (gnus-message 7 "Scoring article %s of %s..." article last)
-               (widen)
-               (let (handles)
-                 (when (funcall request-func article gnus-newsgroup-name)
+  (if gnus-agent-fetching
+      nil
+    (setq gnus-scores-articles
+          (sort gnus-scores-articles
+                (lambda (a1 a2)
+                  (< (mail-header-number (car a1))
+                     (mail-header-number (car a2))))))
+    (with-current-buffer nntp-server-buffer
+      (save-restriction
+        (let* ((buffer-read-only nil)
+               (articles gnus-scores-articles)
+               (all-scores scores)
+               (request-func (cond ((string= "head" header)
+                                    'gnus-request-head)
+                                   ((string= "body" header)
+                                    'gnus-request-body)
+                                   (t 'gnus-request-article)))
+               entries alist ofunc article last)
+          (when articles
+            (setq last (mail-header-number (caar (last articles))))
+            ;; Not all backends support partial fetching.  In that case,
+            ;; we just fetch the entire article.
+            ;; When scoring by body, we need to peek at the headers to detect
+            ;; the content encoding
+            (unless (or (gnus-check-backend-function
+                         (and (string-match "^gnus-" (symbol-name request-func))
+                              (intern (substring (symbol-name request-func)
+                                                 (match-end 0))))
+                         gnus-newsgroup-name)
+                        (string= "body" header))
+              (setq ofunc request-func)
+              (setq request-func 'gnus-request-article))
+            (while articles
+              (setq article (mail-header-number (caar articles)))
+              (gnus-message 7 "Scoring article %s of %s..." article last)
+              (widen)
+              (let (handles)
+                (when (funcall request-func article gnus-newsgroup-name)
                   (when (string= "body" header)
                     (setq handles (gnus-score-decode-text-parts)))
                   (goto-char (point-min))
@@ -1862,8 +1928,8 @@ score in `gnus-newsgroup-scored' by SCORE."
                             (setq rest entries))))
                         (setq entries rest))))
                   (when handles (mm-destroy-parts handles))))
-               (setq articles (cdr articles)))))))
-     nil))
+              (setq articles (cdr articles)))))))
+    nil))
 
 (defun gnus-score-thread (scores header now expire &optional trace)
   (gnus-score-followup scores header now expire trace t))
@@ -1889,7 +1955,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	      gnus-newsgroup-name gnus-adaptive-file-suffix))))
 
       (setq gnus-scores-articles (sort gnus-scores-articles
-				       'gnus-score-string<)
+				       #'gnus-score-string<)
 	    articles gnus-scores-articles)
 
       (erase-buffer)
@@ -1933,7 +1999,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (goto-char (point-min))
 	    (if (= dmt ?e)
 		(while (funcall search-func match nil t)
-		  (and (= (point-at-bol)
+                  (and (= (line-beginning-position)
 			  (match-beginning 0))
 		       (= (progn (end-of-line) (point))
 			  (match-end 0))
@@ -2018,7 +2084,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  ;; We cannot string-sort the extra headers list.  *sigh*
 	  (if (= gnus-score-index 9)
 	      gnus-scores-articles
-	    (sort gnus-scores-articles 'gnus-score-string<))
+	    (sort gnus-scores-articles #'gnus-score-string<))
 	  articles gnus-scores-articles)
 
     (erase-buffer)
@@ -2104,7 +2170,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 			(funcall search-func match nil t))
 	      ;; Is it really exact?
 	      (and (eolp)
-		   (= (point-at-bol) (match-beginning 0))
+                   (= (line-beginning-position) (match-beginning 0))
 		   ;; Yup.
 		   (progn
 		     (setq found (setq arts (get-text-property
@@ -2194,7 +2260,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  (goto-char (point-min))
 	  (while (and (not (eobp))
 		      (search-forward match nil t))
-	    (when (and (= (point-at-bol) (match-beginning 0))
+            (when (and (= (line-beginning-position) (match-beginning 0))
 		       (eolp))
 	      (setq found (setq arts (get-text-property (point) 'articles)))
 	      (if trace
@@ -2278,7 +2344,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	       hashtb))
 	(puthash
 	 word
-	 (append (get-text-property (point-at-eol) 'articles) val)
+         (append (get-text-property (line-end-position) 'articles) val)
 	 hashtb)))
     ;; Make all the ignorable words ignored.
     (let ((ignored (append gnus-ignored-adaptive-words
@@ -2438,7 +2504,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 
 (defun gnus-score-find-trace ()
   "Find all score rules that applies to the current article."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((old-scored gnus-newsgroup-scored))
     (let ((gnus-newsgroup-headers
 	   (list (gnus-summary-article-header)))
@@ -2491,21 +2557,22 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (abbreviate-file-name file))))
 	(insert
 	 (format "\nTotal score: %d"
-		 (apply '+ (mapcar
-			    (lambda (s)
-			      (or (caddr s)
-				  gnus-score-interactive-default-score))
-			    trace))))
-	(insert
-	 "\n\nQuick help:
+		 (apply #'+ (mapcar
+			     (lambda (s)
+			       (or (caddr s)
+				   gnus-score-interactive-default-score))
+			     trace))))
+        (insert
+         (substitute-command-keys
+          "\n\nQuick help:
 
-Type `e' to edit score file corresponding to the score rule on current line,
-`f' to format (pretty print) the score file and edit it,
-`t' toggle to truncate long lines in this buffer,
-`q' to quit, `k' to kill score trace buffer.
+Type \\`e' to edit score file corresponding to the score rule on current line,
+\\`f' to format (pretty print) the score file and edit it,
+\\`t' toggle to truncate long lines in this buffer,
+\\`q' to quit, \\`k' to kill score trace buffer.
 
 The first sexp on each line is the score rule, followed by the file name of
-the score file and its full name, including the directory.")
+the score file and its full name, including the directory."))
 	(goto-char (point-min))
 	(gnus-configure-windows 'score-trace)))
     (set-buffer gnus-summary-buffer)
@@ -2553,7 +2620,7 @@ the score file and its full name, including the directory.")
 
 (defun gnus-summary-rescore ()
   "Redo the entire scoring process in the current summary."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-score-save)
   (setq gnus-score-cache nil)
   (setq gnus-newsgroup-scored nil)
@@ -2584,7 +2651,7 @@ the score file and its full name, including the directory.")
 
 (defun gnus-summary-raise-same-subject-and-select (score)
   "Raise articles which has the same subject with SCORE and select the next."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (let ((subject (gnus-summary-article-subject)))
     (gnus-summary-raise-score score)
     (while (gnus-summary-find-subject subject)
@@ -2593,7 +2660,7 @@ the score file and its full name, including the directory.")
 
 (defun gnus-summary-raise-same-subject (score)
   "Raise articles which has the same subject with SCORE."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (let ((subject (gnus-summary-article-subject)))
     (gnus-summary-raise-score score)
     (while (gnus-summary-find-subject subject)
@@ -2606,7 +2673,7 @@ the score file and its full name, including the directory.")
 
 (defun gnus-summary-raise-thread (&optional score)
   "Raise the score of the articles in the current thread with SCORE."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (setq score (gnus-score-delta-default score))
   (let (e)
     (save-excursion
@@ -2625,22 +2692,22 @@ the score file and its full name, including the directory.")
 
 (defun gnus-summary-lower-same-subject-and-select (score)
   "Raise articles which has the same subject with SCORE and select the next."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-summary-raise-same-subject-and-select (- score)))
 
 (defun gnus-summary-lower-same-subject (score)
   "Raise articles which has the same subject with SCORE."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-summary-raise-same-subject (- score)))
 
 (defun gnus-summary-lower-thread (&optional score)
   "Lower score of articles in the current thread with SCORE."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-summary-raise-thread (- (gnus-score-delta-default score))))
 
 ;;; Finding score files.
 
-(defun gnus-score-score-files (group)
+(defun gnus-score-score-files (_group)
   "Return a list of all possible score files."
   ;; Search and set any global score files.
   (when gnus-global-score-files
@@ -2813,7 +2880,7 @@ This includes the score file for the group and all its parents."
 	   (mapcar (lambda (group)
 		     (gnus-score-file-name group gnus-adaptive-file-suffix))
 		   (setq all (nreverse all)))
-	   (mapcar 'gnus-score-file-name all)))
+	   (mapcar #'gnus-score-file-name all)))
     (if (equal prefix "")
 	all
       (mapcar
@@ -2853,7 +2920,7 @@ Destroys the current buffer."
 	    (lambda (file)
 	      (cons (inline (gnus-score-file-rank file)) file))
 	    files)))
-      (mapcar 'cdr (sort alist 'car-less-than-car)))))
+      (mapcar #'cdr (sort alist #'car-less-than-car)))))
 
 (defun gnus-score-find-alist (group)
   "Return list of score files for GROUP.
@@ -2981,7 +3048,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       (if (file-directory-p (car files))
 	  (setq out (nconc (directory-files
 			    (car files) t
-			    (concat (gnus-score-file-regexp) "$"))))
+			    (concat (gnus-score-file-regexp) "\\'"))))
 	(push (car files) out))
       (setq files (cdr files)))
     (setq gnus-internal-global-score-files out)))
@@ -3050,7 +3117,9 @@ If ADAPT, return the home adaptive file instead."
 ;;;
 
 (defun gnus-decay-score (score)
-  "Decay SCORE according to `gnus-score-decay-constant' and `gnus-score-decay-scale'."
+  "Decay SCORE according to decay variables.
+The decay variables are `gnus-score-decay-constant' and
+`gnus-score-decay-scale'."
   (floor (- score
 	    (* (if (< score 0) -1 1)
 	       (min (abs score)

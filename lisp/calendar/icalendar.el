@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -66,7 +66,7 @@
 ;;  0.02:
 ;;  - Should work in XEmacs now.  Thanks to Len Trigg for the XEmacs patches!
 ;;  - Added exporting from Emacs diary to ical.
-;;  - Some bugfixes, after testing with calendars from http://icalshare.com.
+;;  - Some bugfixes, after testing with calendars from https://icalshare.com.
 ;;  - Tested with Emacs 21.3.2 and XEmacs 21.4.12
 
 ;;  0.01: (2003-03-21)
@@ -104,10 +104,6 @@
 
 
 ;;; Code:
-
-(defconst icalendar-version "0.19"
-  "Version number of icalendar.el.")
-(make-obsolete-variable 'icalendar-version nil "28.1")
 
 ;; ======================================================================
 ;; Customizables
@@ -515,9 +511,10 @@ The strings are suitable for assembling into a TZ variable."
   (let* ((offsetto (car (cddr (assq 'TZOFFSETTO alist))))
 	 (offsetfrom (car (cddr (assq 'TZOFFSETFROM alist))))
 	 (rrule-value (car (cddr (assq 'RRULE alist))))
+         (rdate-p (and (assq 'RDATE alist) t))
 	 (dtstart (car (cddr (assq 'DTSTART alist))))
-	 (no-dst (equal offsetto offsetfrom)))
-    ;; FIXME: for now we only handle RRULE and not RDATE here.
+	 (no-dst (or rdate-p (equal offsetto offsetfrom))))
+    ;; FIXME: the presence of an RDATE is assumed to denote the first day of the year
     (when (and offsetto dtstart (or rrule-value no-dst))
       (let* ((rrule (icalendar--split-value rrule-value))
 	     (freq (cadr (assq 'FREQ rrule)))
@@ -561,12 +558,13 @@ The strings are suitable for assembling into a TZ variable."
 
 (defun icalendar--parse-vtimezone (alist)
   "Turn a VTIMEZONE ALIST into a cons (ID . TZ-STRING).
+Consider only the most recent date specification.
 Return nil if timezone cannot be parsed."
   (let* ((tz-id (icalendar--convert-string-for-import
                  (icalendar--get-event-property alist 'TZID)))
-	 (daylight (cadr (cdar (icalendar--get-children alist 'DAYLIGHT))))
+	 (daylight (cadr (cdar (icalendar--get-most-recent-observance alist 'DAYLIGHT))))
 	 (day (and daylight (icalendar--convert-tz-offset daylight t)))
-	 (standard (cadr (cdar (icalendar--get-children alist 'STANDARD))))
+	 (standard (cadr (cdar (icalendar--get-most-recent-observance alist 'STANDARD))))
 	 (std (and standard (icalendar--convert-tz-offset standard nil))))
     (if (and tz-id std)
 	(cons tz-id
@@ -574,6 +572,28 @@ Return nil if timezone cannot be parsed."
 		  (concat (car std) (car day)
 			  "," (cdr day) "," (cdr std))
 		(car std))))))
+
+(defun icalendar--get-most-recent-observance (alist sub-comp)
+  "Return the latest observance for SUB-COMP DAYLIGHT or STANDARD.
+ALIST is a VTIMEZONE potentially containing historical records."
+;FIXME?: "most recent" should be relative to a given date
+  (let ((components (icalendar--get-children alist sub-comp)))
+    (list
+     (car
+      (sort components
+            (lambda (a b)
+              (let* ((get-recent (lambda (n)
+                                   (car
+                                    (sort
+                                     (delq nil
+                                           (mapcar (lambda (p)
+                                                     (and (memq (car p) '(DTSTART RDATE))
+                                                          (car (cddr p))))
+                                                   n))
+                                     'string-greaterp))))
+                     (a-recent (funcall get-recent (car (cddr a))))
+                     (b-recent (funcall get-recent (car (cddr b)))))
+                (string-greaterp a-recent b-recent))))))))
 
 (defun icalendar--convert-all-timezones (icalendar)
   "Convert all timezones in the ICALENDAR into an alist.
@@ -594,15 +614,18 @@ ZONE-MAP is a timezone alist as returned by `icalendar--convert-all-timezones'."
 	(cdr (assoc id zone-map)))))
 
 (defun icalendar--decode-isodatetime (isodatetimestring &optional day-shift
-                                                        zone)
+                                                        source-zone
+                                                        result-zone)
   "Return ISODATETIMESTRING in format like `decode-time'.
 Converts from ISO-8601 to Emacs representation.  If
 ISODATETIMESTRING specifies UTC time (trailing letter Z) the
 decoded time is given in the local time zone!  If optional
 parameter DAY-SHIFT is non-nil the result is shifted by DAY-SHIFT
 days.
-ZONE, if provided, is the timezone, in any format understood by `encode-time'.
-
+SOURCE-ZONE, if provided, is the timezone for decoding the time,
+in any format understood by `encode-time'.
+RESULT-ZONE, if provided, is the timezone for encoding the result
+in any format understood by `decode-time'.
 FIXME: multiple comma-separated values should be allowed!"
   (icalendar--dmsg isodatetimestring)
   (if isodatetimestring
@@ -621,10 +644,13 @@ FIXME: multiple comma-separated values should be allowed!"
           ;; seconds present
           (setq second (read (substring isodatetimestring 13 15))))
 	;; FIXME: Support subseconds.
-        (when (and (> (length isodatetimestring) 15)
-                   ;; UTC specifier present
-                   (char-equal ?Z (aref isodatetimestring 15)))
-          (setq zone t))
+        (when (> (length isodatetimestring) 15)
+	  (pcase (aref isodatetimestring 15)
+            (?Z
+             (setq source-zone t))
+	    ((or ?- ?+)
+             (setq source-zone
+                   (concat "UTC" (substring isodatetimestring 15))))))
         ;; shift if necessary
         (if day-shift
             (let ((mdy (calendar-gregorian-from-absolute
@@ -637,9 +663,9 @@ FIXME: multiple comma-separated values should be allowed!"
         ;; create the decoded date-time
         ;; FIXME!?!
 	(let ((decoded-time (list second minute hour day month year
-				  nil -1 zone)))
+				  nil -1 source-zone)))
 	  (condition-case nil
-	      (decode-time (encode-time decoded-time))
+	      (decode-time (encode-time decoded-time) result-zone)
 	    (error
 	     (message "Cannot decode \"%s\"" isodatetimestring)
 	     ;; Hope for the best....
@@ -685,9 +711,9 @@ FIXME: multiple comma-separated values should be allowed!"
               (setq days (1- days))))
            ((match-beginning 4)         ;days and time
             (if (match-beginning 5)
-                (setq days (* 7 (read (substring isodurationstring
-                                                 (match-beginning 6)
-                                                 (match-end 6))))))
+                (setq days (read (substring isodurationstring
+                                            (match-beginning 6)
+                                            (match-end 6)))))
             (if (match-beginning 7)
                 (setq hours (read (substring isodurationstring
                                              (match-beginning 8)
@@ -742,9 +768,6 @@ American format: \"month day year\"."
               (nth 5 datetime))         ;year
     ;; datetime == nil
     nil))
-
-(define-obsolete-function-alias 'icalendar--datetime-to-noneuropean-date
-  'icalendar--datetime-to-american-date "icalendar 0.19")
 
 (defun icalendar--datetime-to-european-date (datetime &optional separator)
   "Convert the decoded DATETIME to European format.
@@ -859,12 +882,14 @@ If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days."
     (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy))))
 
 
-(defun icalendar--datestring-to-isodate (datestring &optional day-shift)
+(defun icalendar--datestring-to-isodate (datestring &optional day-shift year-shift)
   "Convert diary-style DATESTRING to iso-style date.
 If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days
--- DAY-SHIFT must be either nil or an integer.  This function
-tries to figure the date style from DATESTRING itself.  If that
-is not possible it uses the current calendar date style."
+-- DAY-SHIFT must be either nil or an integer.  If YEAR-SHIFT is
+non-nil, the result is shifted by YEAR-SHIFT years -- YEAR-SHIFT
+must be either nil or an integer.  This function tries to figure
+the date style from DATESTRING itself.  If that is not possible
+it uses the current calendar date style."
   (let ((day -1) month year)
     (save-match-data
       (cond ( ;; iso-style numeric date
@@ -874,7 +899,7 @@ is not possible it uses the current calendar date style."
                                    "0?\\([1-9][0-9]?\\)")
                            datestring)
              (setq year (read (substring datestring (match-beginning 1)
-                                         (match-end 1))))
+                                            (match-end 1))))
              (setq month (read (substring datestring (match-beginning 2)
                                           (match-end 2))))
              (setq day (read (substring datestring (match-beginning 3)
@@ -937,6 +962,9 @@ is not possible it uses the current calendar date style."
                                          (match-end 3)))))
             (t
              nil)))
+    (when year-shift
+      (setq year (+ year year-shift)))
+
     (if (> day 0)
         (let ((mdy (calendar-gregorian-from-absolute
                     (+ (calendar-absolute-from-gregorian (list month day
@@ -970,15 +998,15 @@ TIMESTRING and has the same result as \"9:00\"."
 
 (defun icalendar--convert-string-for-export (string)
   "Escape comma and other critical characters in STRING."
-  (replace-regexp-in-string "," "\\\\," string))
+  (string-replace "," "\\," string))
 
 (defun icalendar--convert-string-for-import (string)
   "Remove escape chars for comma, semicolon etc. from STRING."
-  (replace-regexp-in-string
-   "\\\\n" "\n " (replace-regexp-in-string
-                  "\\\\\"" "\"" (replace-regexp-in-string
-                                 "\\\\;" ";" (replace-regexp-in-string
-                                              "\\\\," "," string)))))
+  (string-replace
+   "\\n" "\n " (string-replace
+                "\\\"" "\"" (string-replace
+                             "\\;" ";" (string-replace
+                                        "\\," "," string)))))
 
 ;; ======================================================================
 ;; Export -- convert emacs-diary to iCalendar
@@ -1116,7 +1144,8 @@ FExport diary data into iCalendar file: ")
                                      (cdr contents-n-summary))))
                       (setq result (concat result header contents alarm
                                            "\nEND:VEVENT")))
-                    (if (consp cns-cons-or-list)
+                    (if (and (consp cns-cons-or-list)
+                             (not (listp (cdr cns-cons-or-list))))
                         (list cns-cons-or-list)
                       cns-cons-or-list)))
           ;; handle errors
@@ -1245,7 +1274,7 @@ Returns an alist."
                      (concat "\\(" icalendar-import-format-uid "\\)??"))))
 	;; Need the \' regexp in order to detect multi-line items
         (setq s (concat "\\`"
-                        (replace-regexp-in-string "%s" "\\(.*?\\)" s nil t)
+                        (replace-regexp-in-string "%s" "\\([^z-a]*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
             (let (cla des loc org sta url uid) ;; sum
@@ -1612,9 +1641,11 @@ enumeration, given as a Lisp time value -- used for test purposes."
                        entry-main)
          ;; regular sexp entry
          (icalendar--dmsg "diary-sexp %s" entry-main)
-         (let ((p1 (substring entry-main (match-beginning 1) (match-end 1)))
-               (p2 (substring entry-main (match-beginning 2) (match-end 2)))
-               (now (or start (current-time))))
+         (let* ((entry-main (substring entry-main 2))
+                (res (read-from-string entry-main))
+                (p1 (prin1-to-string (car res)))
+                (p2 (substring entry-main (cdr res)))
+                (now (or start (current-time))))
            (delete nil
                    (mapcar
                     (lambda (offset)
@@ -1721,7 +1752,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 (defun icalendar--convert-float-to-ical (nonmarker entry-main)
   "Convert float diary entry to iCalendar format -- partially unsupported!
 
-  FIXME! DAY from diary-float yet unimplemented.
+  FIXME! DAY from `diary-float' yet unimplemented.
 
   NONMARKER is a regular expression matching the start of non-marking
   entries.  ENTRY-MAIN is the first line of the diary entry."
@@ -1755,8 +1786,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                  ;;BUT remove today if `diary-float'
                  ;;expression does not hold true for today:
                  (when
-                     (null (calendar-dlet* ((date (calendar-current-date))
-                                            (entry entry-main))
+                     (null (calendar-dlet ((date (calendar-current-date))
+                                           (entry entry-main))
                              (diary-float month dayname n)))
                    (concat
                     "\nEXDATE;VALUE=DATE:"
@@ -1886,9 +1917,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
       (let* ((datetime (substring entry-main (match-beginning 1)
                                   (match-end 1)))
              (startisostring (icalendar--datestring-to-isodate
-                              datetime))
+                              datetime nil 1))
              (endisostring (icalendar--datestring-to-isodate
-                            datetime 1))
+                            datetime 1 1))
              (starttimestring (icalendar--diarytime-to-isotime
                                (if (match-beginning 3)
                                    (substring entry-main
@@ -1957,9 +1988,7 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: \n\
-Finto diary file:
-P")
+  (interactive "fImport iCalendar data from file: \nFInto diary file: \nP")
   ;; clean up the diary file
   (save-current-buffer
     ;; now load and convert from the ical file
@@ -2156,8 +2185,7 @@ written into the buffer `*icalendar-errors*'."
               (setq diary-string "")
               (mapc (lambda (_datestring)
 		      (setq diary-string
-			    (concat diary-string
-				    (format "......"))))
+			    (concat diary-string "......")))
 		    (icalendar--split-value rdate)))
              ;; non-recurring event
              ;; all-day event
@@ -2372,8 +2400,11 @@ END-T is the event's end time in diary format."
                                       (if end-t "-" "")
                                       (or end-t ""))))
              (setq result (format
-                           "%%%%(and (diary-anniversary %s)) %s%s%s"
-                           dtstart-conv
+                           "%%%%(diary-anniversary %s) %s%s%s"
+                           (let* ((year (nth 5 dtstart-dec))
+                                  (dtstart-1y-dec (copy-sequence dtstart-dec)))
+                             (setf (nth 5 dtstart-1y-dec) (1- year))
+                             (icalendar--datetime-to-diary-date dtstart-1y-dec))
                            (or start-t "")
                            (if end-t "-" "") (or end-t "")))))
           ;; monthly
@@ -2499,7 +2530,7 @@ the entry."
                                       summary)))
     (when summary
       (setq non-marking
-            (y-or-n-p (format "Make appointment non-marking? "))))
+            (y-or-n-p "Make appointment non-marking? ")))
     (unless diary-filename
       (setq diary-filename
             (read-file-name "Add appointment to this diary file: ")))
@@ -2521,6 +2552,11 @@ the entry."
           (or (icalendar--get-event-property event 'STATUS) "")
           (or (icalendar--get-event-property event 'URL) "")
           (or (icalendar--get-event-property event 'CLASS) "")))
+
+;; Obsolete
+
+(defconst icalendar-version "0.19" "Version number of icalendar.el.")
+(make-obsolete-variable 'icalendar-version 'emacs-version "28.1")
 
 (provide 'icalendar)
 

@@ -1,22 +1,24 @@
 ;;; jsonrpc-tests.el --- tests for jsonrpc.el        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -114,7 +116,7 @@
     (condition-case err
         (progn
           (jsonrpc-request conn 'delete-directory "~/tmp")
-          (ert-fail "A `jsonrpc-error' should have been signalled!"))
+          (ert-fail "A `jsonrpc-error' should have been signaled!"))
       (jsonrpc-error
        (should (= -32601 (cdr (assoc 'jsonrpc-error-code (cdr err)))))))))
 
@@ -124,7 +126,7 @@
     (condition-case err
         (progn
           (jsonrpc-request conn '+ ["a" 2])
-          (ert-fail "A `jsonrpc-error' should have been signalled!"))
+          (ert-fail "A `jsonrpc-error' should have been signaled!"))
       (jsonrpc-error
        (should (= -32603 (cdr (assoc 'jsonrpc-error-code (cdr err)))))))))
 
@@ -165,7 +167,7 @@
 
 (ert-deftest deferred-action-toolate ()
   :tags '(:expensive-test)
-  "Deferred request fails because noone clears the flag."
+  "Deferred request fails because no one clears the flag."
   (jsonrpc--with-emacsrpc-fixture (conn)
     (should-error
      (jsonrpc-request conn '+ [1 2]
@@ -242,7 +244,7 @@
                        :timeout 1)
       ;; Wait another 0.5 secs just in case the success handlers of
       ;; one of these last two requests didn't quite have a chance to
-      ;; run (Emacs 25.2 apparentely needs this).
+      ;; run (Emacs 25.2 apparently needs this).
       (accept-process-output nil 0.5)
       (should second-deferred-went-through-p)
       (should (eq 1 n-deferred-1))

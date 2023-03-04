@@ -1,18 +1,18 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Eric Blake <ebb9@byu.net>.  */
@@ -70,14 +70,14 @@ dupfd (int oldfd, int newfd, int flags)
       return -1;
     }
   if (old_handle == INVALID_HANDLE_VALUE
-      || (mode = setmode (oldfd, O_BINARY)) == -1)
+      || (mode = _setmode (oldfd, O_BINARY)) == -1)
     {
       /* oldfd is not open, or is an unassigned standard file
          descriptor.  */
       errno = EBADF;
       return -1;
     }
-  setmode (oldfd, mode);
+  _setmode (oldfd, mode);
   flags |= mode;
 
   for (;;)
@@ -491,7 +491,9 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #if !HAVE_FCNTL
   result = dupfd (fd, target, O_CLOEXEC);
 #else /* HAVE_FCNTL */
-# if defined __HAIKU__
+# if defined __NetBSD__ || defined __HAIKU__
+  /* On NetBSD 9.0, the system fcntl (fd, F_DUPFD_CLOEXEC, target)
+     has only the same effect as fcntl (fd, F_DUPFD, target).  */
   /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
      the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
      system fcntl in this case.  */

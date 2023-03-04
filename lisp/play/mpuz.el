@@ -1,6 +1,6 @@
-;;; mpuz.el --- multiplication puzzle for GNU Emacs
+;;; mpuz.el --- multiplication puzzle for GNU Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1990, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>
@@ -40,63 +40,51 @@
 The value t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
-		 (const :tag "If correct" error))
-  :group 'mpuz)
+                 (const :tag "If correct" error)))
 
 (defcustom mpuz-solve-when-trivial t
   "Solve any row that can be trivially calculated from what you've found."
-  :type 'boolean
-  :group 'mpuz)
+  :type 'boolean)
 
 (defcustom mpuz-allow-double-multiplicator nil
   "Allow 2nd factors like 33 or 77."
-  :type 'boolean
-  :group 'mpuz)
+  :type 'boolean)
 
 (defface mpuz-unsolved
   '((default :weight bold)
     (((class color)) :foreground "red1"))
-  "Face for letters to be solved."
-  :group 'mpuz)
+  "Face for letters to be solved.")
 
 (defface mpuz-solved
   '((default :weight bold)
     (((class color)) :foreground "green1"))
-  "Face for solved digits."
-  :group 'mpuz)
+  "Face for solved digits.")
 
 (defface mpuz-trivial
   '((default :weight bold)
     (((class color)) :foreground "blue"))
-  "Face for trivial digits solved for you."
-  :group 'mpuz)
+  "Face for trivial digits solved for you.")
 
 (defface mpuz-text
   '((t :inherit variable-pitch))
-  "Face for text on right."
-  :group 'mpuz)
+  "Face for text on right.")
 
 
 ;; Mpuz mode and keymaps
 ;;----------------------
 (defcustom mpuz-mode-hook nil
   "Hook to run upon entry to mpuz."
-  :type 'hook
-  :group 'mpuz)
+  :type 'hook)
 
-(defvar mpuz-mode-map
-  (let ((map (make-sparse-keymap)))
-    (mapc (lambda (ch)
-            (define-key map (char-to-string ch) 'mpuz-try-letter))
-          "abcdefghijABCDEFGHIJ")
-    (define-key map "\C-g" 'mpuz-offer-abort)
-    (define-key map "?" 'describe-mode)
-    map)
-  "Local keymap to use in Mult Puzzle.")
-
-
+(defvar-keymap mpuz-mode-map
+  :doc "Local keymap to use in Mult Puzzle."
+  "C-g" #'mpuz-offer-abort
+  "?"   #'describe-mode)
+(dolist (ch (mapcar #'char-to-string "abcdefghijABCDEFGHIJ"))
+  (keymap-set mpuz-mode-map ch #'mpuz-try-letter))
 
 (define-derived-mode mpuz-mode fundamental-mode "Mult Puzzle"
+  :interactive nil
   "Multiplication puzzle mode.
 
 You have to guess which letters stand for which digits in the
@@ -106,7 +94,7 @@ You may enter a guess for a letter's value by typing first the letter,
 then the digit.  Thus, to guess that A=3, type `A 3'.
 
 To leave the game to do other editing work, just switch buffers.
-Then you may resume the game with M-x mpuz.
+Then you may resume the game with \\[mpuz].
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (setq tab-width 30))
 
@@ -126,7 +114,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 ;; Some variables for game tracking
 ;;---------------------------------
 (defvar mpuz-in-progress nil
-  "True if a game is currently in progress.")
+  "Non-nil if a game is currently in progress.")
 
 (defvar mpuz-found-digits (make-bool-vector 10 nil)
   "A vector recording which digits have been decrypted.")
@@ -160,7 +148,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(index 10)
 	elem)
     (while letters
-      (setq elem    (nth (random index) letters)
+      (setq elem    (seq-random-elt letters)
 	    letters (delq elem letters)
 	    index   (1- index))
       (aset mpuz-digit-to-letter index elem)
@@ -168,7 +156,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 
 ;; A puzzle also uses a board displaying a multiplication.
-;; Every digit appears in the board, crypted or not.
+;; Every digit appears in the board, encrypted or not.
 ;;------------------------------------------------------
 (defvar mpuz-board (make-vector 10 nil)
   "The board associates to any digit the list of squares where it appears.")
@@ -341,8 +329,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-switch-to-window ()
   "Find or create the Mult-Puzzle buffer, and display it."
-  (let ((buf (mpuz-get-buffer)))
-    (or buf (setq buf (mpuz-create-buffer)))
+  (let ((buf (or (mpuz-get-buffer)
+                 (mpuz-create-buffer))))
     (switch-to-buffer buf)
     (setq buffer-read-only t)
     (mpuz-mode)))
@@ -375,7 +363,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-offer-abort ()
   "Ask if user wants to abort current puzzle."
-  (interactive)
+  (interactive nil mpuz-mode)
   (if (y-or-n-p "Abort game? ")
       (let ((buf (mpuz-get-buffer)))
 	(message "Mult Puzzle aborted.")
@@ -397,7 +385,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-try-letter ()
   "Propose a digit for a letter in puzzle."
-  (interactive)
+  (interactive nil mpuz-mode)
   (if mpuz-in-progress
       (let (letter-char digit digit-char)
 	(setq letter-char (upcase last-command-event)
@@ -482,7 +470,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-show-solution (row)
   "Display solution for debugging purposes."
-  (interactive "P")
+  (interactive "P" mpuz-mode)
   (mpuz-switch-to-window)
   (mpuz-solve (if row (* 2 (prefix-numeric-value row))))
   (mpuz-paint-board)

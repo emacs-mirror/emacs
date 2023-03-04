@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -35,10 +35,11 @@ user.  For related topics such as keymaps and syntax tables, see
 @section Hooks
 @cindex hooks
 
-  A @dfn{hook} is a variable where you can store a function or functions
-to be called on a particular occasion by an existing program.  Emacs
-provides hooks for the sake of customization.  Most often, hooks are set
-up in the init file (@pxref{Init File}), but Lisp programs can set them also.
+  A @dfn{hook} is a variable where you can store a function or
+functions (@pxref{What Is a Function}) to be called on a particular
+occasion by an existing program.  Emacs provides hooks for the sake of
+customization.  Most often, hooks are set up in the init file
+(@pxref{Init File}), but Lisp programs can set them also.
 @xref{Standard Hooks}, for a list of some standard hook variables.
 
 @cindex normal hook
@@ -56,27 +57,37 @@ minor mode functions also run a mode hook at the end.  But hooks are
 used in other contexts too.  For example, the hook @code{suspend-hook}
 runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
-  The recommended way to add a hook function to a hook is by calling
-@code{add-hook} (@pxref{Setting Hooks}).  The hook functions may be any
-of the valid kinds of functions that @code{funcall} accepts (@pxref{What
-Is a Function}).  Most normal hook variables are initially void;
-@code{add-hook} knows how to deal with this.  You can add hooks either
-globally or buffer-locally with @code{add-hook}.
-
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
-indicates it is probably an @dfn{abnormal hook}.  That means the hook
-functions are called with arguments, or their return values are used
-in some way.  The hook's documentation says how the functions are
-called.  You can use @code{add-hook} to add a function to an abnormal
-hook, but you must write the function to follow the hook's calling
-convention.  By convention, abnormal hook names end in @samp{-functions}.
+indicates it is probably an @dfn{abnormal hook}.  These differ from
+normal hooks in two ways: they can be called with one or more
+arguments, and their return values can be used in some way.  The
+hook's documentation says how the functions are called and how their
+return values are used.  Any functions added to an abnormal hook must
+follow the hook's calling convention.  By convention, abnormal hook
+names end in @samp{-functions}.
 
 @cindex single-function hook
-If the variable's name ends in @samp{-function}, then its value is
-just a single function, not a list of functions.  @code{add-hook} cannot be
-used to modify such a @emph{single function hook}, and you have to use
-@code{add-function} instead (@pxref{Advising Functions}).
+If the name of the variable ends in @samp{-predicate} or
+@samp{-function} (singular) then its value must be a function, not a
+list of functions.  As with abnormal hooks, the expected arguments and
+meaning of the return value vary across such @emph{single function
+hooks}.  The details are explained in each variable's docstring.
+
+  Since hooks (both multi and single function) are variables, their
+values can be modified with @code{setq} or temporarily with
+@code{let}.  However, it is often useful to add or remove a particular
+function from a hook while preserving any other functions it might
+have.  For multi function hooks, the recommended way of doing this is
+with @code{add-hook} and @code{remove-hook} (@pxref{Setting Hooks}).
+Most normal hook variables are initially void; @code{add-hook} knows
+how to deal with this.  You can add hooks either globally or
+buffer-locally with @code{add-hook}.  For hooks which hold only a
+single function, @code{add-hook} is not appropriate, but you can use
+@code{add-function} (@pxref{Advising Functions}) to combine new
+functions with the hook.  Note that some single function hooks may be
+@code{nil} which @code{add-function} cannot deal with, so you must
+check for that before calling @code{add-function}.
 
 @menu
 * Running Hooks::    How to run a hook.
@@ -187,7 +198,7 @@ on the hook.  The optional argument @var{depth} lets you indicate where the
 function should be inserted in the list: it should then be a number
 between -100 and 100 where the higher the value, the closer to the end of the
 list the function should go.  The @var{depth} defaults to 0 and for backward
-compatibility when @var{depth} is a non-nil symbol it is interpreted as a depth
+compatibility when @var{depth} is a non-@code{nil} symbol it is interpreted as a depth
 of 90.  Furthermore, when @var{depth} is strictly greater than 0 the function
 is added @emph{after} rather than before functions of the same depth.
 One should never use a depth of 100 (or -100), because one can never be
@@ -256,6 +267,18 @@ This function restores the major mode recorded by
 function calls @code{normal-mode} (@pxref{Auto Major Mode,
 normal-mode}), but tries to force it not to choose any modes in
 @var{avoided-modes}, if that argument is non-@code{nil}.
+@end defun
+
+@defun clean-mode
+Changing the major mode clears out most local variables, but it
+doesn't remove all artifacts in the buffer (like text properties and
+overlays).  It's rare to change a buffer from one major mode to
+another (except from @code{fundamental-mode} to everything else), so
+this is usually not a concern.  It can sometimes be convenient (mostly
+when debugging a problem in a buffer) to do a ``full reset'' of the
+buffer, and that's what the @code{clean-mode} major mode offers.  It
+will kill all local variables (even the permanently local ones), and
+also removes all overlays and text properties.
 @end defun
 
   The easiest way to write a major mode is to use the macro
@@ -461,6 +484,22 @@ Each face that the mode defines should, if possible, inherit from an
 existing Emacs face.  @xref{Basic Faces}, and @ref{Faces for Font Lock}.
 
 @item
+Consider adding a mode-specific menu to the menu bar.  This should
+preferably include the most important menu-specific settings and
+commands that will allow users discovering the main features quickly
+and efficiently.
+
+@item
+@cindex context menus, for a major mode
+@vindex context-menu-functions
+Consider adding mode-specific context menus for the mode, to be used
+if and when users activate the @code{context-menu-mode} (@pxref{Menu
+Mouse Clicks,,, emacs, The Emacs Manual}).  To this end, define a
+mode-specific function which builds one or more menus depending on the
+location of the @kbd{mouse-3} click in the buffer, and then add that
+function to the buffer-local value of @code{context-menu-functions}.
+
+@item
 The mode should specify how Imenu should find the definitions or
 sections of a buffer, by setting up a buffer-local value for the
 variable @code{imenu-generic-expression}, for the two variables
@@ -469,9 +508,10 @@ variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
-The mode can specify a local value for
-@code{eldoc-documentation-function} to tell ElDoc mode how to handle
-this mode.
+The mode can tell ElDoc mode how to retrieve different types of
+documentation for whatever is at point, by adding one or more
+buffer-local entries to the special hook
+@code{eldoc-documentation-functions}.
 
 @item
 The mode can specify how to complete various keywords by adding one or
@@ -722,6 +762,9 @@ uncompression packages: an entry of the form @code{("\\.gz\\'"
 @var{function} t)} can uncompress the file and then put the uncompressed
 file in the proper mode according to the name sans @samp{.gz}.
 
+If @code{auto-mode-alist} has more than one element whose @var{regexp}
+matches the file name, Emacs will use the first match.
+
 Here is an example of how to prepend several pattern pairs to
 @code{auto-mode-alist}.  (You might use this sort of expression in your
 init file.)
@@ -850,6 +893,13 @@ abbrev table as @var{parent}, or @code{fundamental-mode-abbrev-table}
 if @var{parent} is @code{nil}.  (Again, a @code{nil} value is
 @emph{not} equivalent to not specifying this keyword.)
 
+@item :interactive
+Modes are interactive commands by default.  If you specify a
+@code{nil} value, the mode defined here won't be interactive.  This is
+useful for modes that are never meant to be activated by users
+manually, but are only supposed to be used in some specially-formatted
+buffer.
+
 @item :group
 If this is specified, the value should be the customization group for
 this mode.  (Not all major modes have one.)  The command
@@ -869,10 +919,8 @@ which in turn may have been changed in a mode hook.
 Here is a hypothetical example:
 
 @example
-(defvar hypertext-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-3] 'do-hyper-link)
-    map))
+(defvar-keymap hypertext-mode-map
+  "<down-mouse-3>" #'do-hyper-link)
 
 (define-derived-mode hypertext-mode
   text-mode "Hypertext"
@@ -1013,11 +1061,21 @@ very end of every properly-written major mode command.
 @cindex Tabulated List mode
 
   Tabulated List mode is a major mode for displaying tabulated data,
-i.e., data consisting of @dfn{entries}, each entry occupying one row of
-text with its contents divided into columns.  Tabulated List mode
+i.e., data consisting of @dfn{entries}, each entry occupying one row
+of text with its contents divided into columns.  Tabulated List mode
 provides facilities for pretty-printing rows and columns, and sorting
 the rows according to the values in each column.  It is derived from
 Special mode (@pxref{Basic Major Modes}).
+
+@findex make-vtable
+@cindex variable pitch tables
+  Tabulated List mode is geared towards displaying text using
+monospaced fonts, using a single font and text size.  If you want to
+display a table using variable pitch fonts or images,
+@code{make-vtable} can be used instead.  vtable also support having
+more than a single table in a buffer, or having a buffer that contains
+both a table and additional text in it.  @xref{Introduction,,, vtable},
+for more information.
 
   Tabulated List mode is intended to be used as a parent mode by a more
 specialized major mode.  Examples include Process Menu mode
@@ -1103,10 +1161,11 @@ re-sorting entries.  Comparison is done with @code{equal}.
 @item
 @var{contents} is a vector with the same number of elements as
 @code{tabulated-list-format}.  Each vector element is either a string,
-which is inserted into the buffer as-is, or a list @code{(@var{label}
-. @var{properties})}, which means to insert a text button by calling
-@code{insert-text-button} with @var{label} and @var{properties} as
-arguments (@pxref{Making Buttons}).
+which is inserted into the buffer as-is; an image descriptor, which is
+used to insert an image (@pxref{Image Descriptors}); or a list
+@w{@code{(@var{label} . @var{properties})}}, which means to insert a
+text button by calling @code{insert-text-button} with @var{label} and
+@var{properties} as arguments (@pxref{Making Buttons}).
 
 There should be no newlines in any of these strings.
 @end itemize
@@ -1197,7 +1256,7 @@ will be a vector for the ID at @var{pos}.  If there is no entry at
 
 @vindex tabulated-list-use-header-line
 @defun tabulated-list-header-overlay-p &optional POS
-This @code{defsubst} returns non-nil if there is a fake header at
+This @code{defsubst} returns non-@code{nil} if there is a fake header at
 @var{pos}.  A fake header is used if
 @code{tabulated-list-use-header-line} is @code{nil} to put the column
 names at the beginning of the buffer.  If omitted or @code{nil},
@@ -1210,7 +1269,7 @@ This function puts @var{tag} in the padding area of the current line.
 The padding area can be empty space at the beginning of the line, the
 width of which is governed by @code{tabulated-list-padding}.
 @var{tag} should be a string, with a length less than or equal to
-@code{tabulated-list-padding}.  If @var{advance} is non-nil, this
+@code{tabulated-list-padding}.  If @var{advance} is non-@code{nil}, this
 function advances point by one line.
 @end defun
 
@@ -1225,7 +1284,7 @@ This function changes the tabulated list entry at point, setting
 the name of the column to change.  @var{desc} is the new column
 descriptor, which is inserted via @code{tabulated-list-print-col}.
 
-If @var{change-entry-data} is non-nil, this function modifies the
+If @var{change-entry-data} is non-@code{nil}, this function modifies the
 underlying data (usually the column descriptor in the list
 @code{tabulated-list-entries}) by setting the column descriptor of the
 vector to @code{desc}.
@@ -1296,14 +1355,11 @@ the conventions listed above:
 
 ;; @r{Create the keymap for this mode.}
 @group
-(defvar text-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\t" 'ispell-complete-word)
-    @dots{}
-    map)
-  "Keymap for `text-mode'.
-Many other modes, such as `mail-mode', `outline-mode' and
-`indented-text-mode', inherit all the commands defined in this map.")
+(defvar-keymap text-mode-map
+  :doc "Keymap for `text-mode'.
+Many other modes, such as `mail-mode' and `outline-mode', inherit all
+the commands defined in this map."
+  "C-M-i" #'ispell-complete-word)
 @end group
 @end smallexample
 
@@ -1352,19 +1408,11 @@ illustrate how these modes are written.
 @end smallexample
 
   The three modes for Lisp share much of their code.  For instance,
-each calls the following function to set various variables:
-
-@smallexample
-@group
-(defun lisp-mode-variables (&optional syntax keywords-case-insensitive elisp)
-  (when syntax
-    (set-syntax-table lisp-mode-syntax-table))
-  @dots{}
-@end group
-@end smallexample
+Lisp mode and Emacs Lisp mode inherit from Lisp Data mode and Lisp
+Interaction Mode inherits from Emacs Lisp mode.
 
 @noindent
-Amongst other things, this function sets up the @code{comment-start}
+Amongst other things, Lisp Data mode sets up the @code{comment-start}
 variable to handle Lisp comments:
 
 @smallexample
@@ -1381,13 +1429,11 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar lisp-mode-shared-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map prog-mode-map)
-    (define-key map "\e\C-q" 'indent-sexp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    map)
-  "Keymap for commands shared by all sorts of Lisp modes.")
+(defvar-keymap lisp-mode-shared-map
+  :parent prog-mode-map
+  :doc "Keymap for commands shared by all sorts of Lisp modes."
+  "C-M-q" #'indent-sexp
+  "DEL" #'backward-delete-char-untabify)
 @end group
 @end smallexample
 
@@ -1396,16 +1442,12 @@ And here is the code to set up the keymap for Lisp mode:
 
 @smallexample
 @group
-(defvar lisp-mode-map
-  (let ((map (make-sparse-keymap))
-        (menu-map (make-sparse-keymap "Lisp")))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\C-x" 'lisp-eval-defun)
-    (define-key map "\C-c\C-z" 'run-lisp)
-    @dots{}
-    map)
-  "Keymap for ordinary Lisp mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap lisp-mode-map
+  :doc "Keymap for ordinary Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map
+  "C-M-x" #'lisp-eval-defun
+  "C-c C-z" #'run-lisp)
 @end group
 @end smallexample
 
@@ -1414,7 +1456,7 @@ Finally, here is the major mode command for Lisp mode:
 
 @smallexample
 @group
-(define-derived-mode lisp-mode prog-mode "Lisp"
+(define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -1425,7 +1467,6 @@ Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
 @end group
 @group
-  (lisp-mode-variables nil t)
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
               "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
@@ -1451,6 +1492,16 @@ used only with Diff mode.
   Ideally, a minor mode should have its desired effect regardless of the
 other minor modes in effect.  It should be possible to activate and
 deactivate minor modes in any order.
+
+@defvar local-minor-modes
+This buffer-local variable lists the currently enabled minor modes in
+the current buffer, and is a list of symbols.
+@end defvar
+
+@defvar global-minor-modes
+This variable lists the currently enabled global minor modes, and is a
+list of symbols.
+@end defvar
 
 @defvar minor-mode-list
 The value of this variable is a list of all minor mode commands.
@@ -1641,7 +1692,7 @@ reserved for users.  @xref{Key Binding Conventions}.
   The macro @code{define-minor-mode} offers a convenient way of
 implementing a mode in one self-contained definition.
 
-@defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
+@defmac define-minor-mode mode doc keyword-args@dots{} body@dots{}
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.
@@ -1656,14 +1707,36 @@ If @var{doc} is @code{nil}, the macro supplies a default documentation string
 explaining the above.
 
 By default, it also defines a variable named @var{mode}, which is set to
-@code{t} or @code{nil} by enabling or disabling the mode.  The variable
-is initialized to @var{init-value}.  Except in unusual circumstances
-(see below), this value must be @code{nil}.
+@code{t} or @code{nil} by enabling or disabling the mode.
 
+The @var{keyword-args} consist of keywords followed by
+corresponding values.  A few keywords have special meanings:
+
+@table @code
+@item :global @var{global}
+If non-@code{nil}, this specifies that the minor mode should be global
+rather than buffer-local.  It defaults to @code{nil}.
+
+One of the effects of making a minor mode global is that the
+@var{mode} variable becomes a customization variable.  Toggling it
+through the Customize interface turns the mode on and off, and its
+value can be saved for future Emacs sessions (@pxref{Saving
+Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
+variable to work, you should ensure that the minor mode function
+is available each time Emacs starts; usually this is done by
+marking the @code{define-minor-mode} form as autoloaded.
+
+@item :init-value @var{init-value}
+This is the value to which the @var{mode} variable is initialized.
+Except in unusual circumstances (see below), this value must be
+@code{nil}.
+
+@item :lighter @var{lighter}
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
 in the mode line.
 
+@item :keymap @var{keymap}
 The optional argument @var{keymap} specifies the keymap for the minor
 mode.  If non-@code{nil}, it should be a variable name (whose value is
 a keymap), a keymap, or an alist of the form
@@ -1678,42 +1751,6 @@ suitable for passing to @code{define-key} (@pxref{Changing Key
 Bindings}).  If @var{keymap} is a keymap or an alist, this also
 defines the variable @code{@var{mode}-map}.
 
-The above three arguments @var{init-value}, @var{lighter}, and
-@var{keymap} can be (partially) omitted when @var{keyword-args} are
-used.  The @var{keyword-args} consist of keywords followed by
-corresponding values.  A few keywords have special meanings:
-
-@table @code
-@item :group @var{group}
-Custom group name to use in all generated @code{defcustom} forms.
-Defaults to @var{mode} without the possible trailing @samp{-mode}.
-@strong{Warning:} don't use this default group name unless you have
-written a @code{defgroup} to define that group properly.  @xref{Group
-Definitions}.
-
-@item :global @var{global}
-If non-@code{nil}, this specifies that the minor mode should be global
-rather than buffer-local.  It defaults to @code{nil}.
-
-One of the effects of making a minor mode global is that the
-@var{mode} variable becomes a customization variable.  Toggling it
-through the Customize interface turns the mode on and off, and its
-value can be saved for future Emacs sessions (@pxref{Saving
-Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
-variable to work, you should ensure that the @code{define-minor-mode}
-form is evaluated each time Emacs starts; for packages that are not
-part of Emacs, the easiest way to do this is to specify a
-@code{:require} keyword.
-
-@item :init-value @var{init-value}
-This is equivalent to specifying @var{init-value} positionally.
-
-@item :lighter @var{lighter}
-This is equivalent to specifying @var{lighter} positionally.
-
-@item :keymap @var{keymap}
-This is equivalent to specifying @var{keymap} positionally.
-
 @item :variable @var{place}
 This replaces the default variable @var{mode}, used to store the state
 of the mode.  If you specify this, the @var{mode} variable is not
@@ -1723,11 +1760,17 @@ anything that can be used with the @code{setf} function
 (@pxref{Generalized Variables}).
 @var{place} can also be a cons @code{(@var{get} . @var{set})},
 where @var{get} is an expression that returns the current state,
-and @var{set} is a function of one argument (a state) that sets it.
+and @var{set} is a function of one argument (a state) which should be
+assigned to @var{place}.
 
 @item :after-hook @var{after-hook}
 This defines a single Lisp form which is evaluated after the mode hooks
 have run.  It should not be quoted.
+
+@item :interactive @var{value}
+Minor modes are interactive commands by default.  If @var{value} is
+@code{nil}, this is inhibited.  If @var{value} is a list of symbols,
+it's used to say which major modes this minor mode is useful in.
 @end table
 
 Any other keyword arguments are passed directly to the
@@ -1737,7 +1780,8 @@ The command named @var{mode} first performs the standard actions such as
 setting the variable named @var{mode} and then executes the @var{body}
 forms, if any.  It then runs the mode hook variable
 @code{@var{mode}-hook} and finishes by evaluating any form in
-@code{:after-hook}.
+@code{:after-hook}.  (Note that all of this, including running the
+hook, is done both when the mode is enabled and disabled.)
 @end defmac
 
   The initial value must be @code{nil} except in cases where (1) the
@@ -1803,10 +1847,13 @@ don't need any.
 
 @defmac define-globalized-minor-mode global-mode mode turn-on keyword-args@dots{} body@dots{}
 This defines a global toggle named @var{global-mode} whose meaning is
-to enable or disable the buffer-local minor mode @var{mode} in all
-buffers.  It also executes the @var{body} forms.  To turn on the minor
-mode in a buffer, it uses the function @var{turn-on}; to turn off the
-minor mode, it calls @var{mode} with @minus{}1 as argument.
+to enable or disable the buffer-local minor mode @var{mode} in all (or
+some; see below) buffers.  It also executes the @var{body} forms.  To
+turn on the minor mode in a buffer, it uses the function
+@var{turn-on}; to turn off the minor mode, it calls @var{mode} with
+@minus{}1 as argument.  (The function @var{turn-on} is a separate
+function so it could determine whether to enable the minor mode or not
+when it is not a priori clear that it should always be enabled.)
 
 Globally enabling the mode also affects buffers subsequently created
 by visiting files, and buffers that use a major mode other than
@@ -1822,13 +1869,60 @@ starts, for example by providing a @code{:require} keyword.
 Use @code{:group @var{group}} in @var{keyword-args} to specify the
 custom group for the mode variable of the global minor mode.
 
+By default, the buffer-local minor mode variable that says whether the
+mode is switched on or off is the same as the name of the mode itself.
+Use @code{:variable @var{variable}} if that's not the case--some minor
+modes use a different variable to store this state information.
+
 Generally speaking, when you define a globalized minor mode, you should
 also define a non-globalized version, so that people can use (or
 disable) it in individual buffers.  This also allows them to disable a
 globally enabled minor mode in a specific major mode, by using that
 mode's hook.
+
+If given a @code{:predicate} keyword, a user option called the same as
+the global mode variable, but with @code{-modes} instead of
+@code{-mode} at the end will be created.  The variable is used as a
+predicate that specifies which major modes the minor mode should be
+activated in.  Valid values include @code{t} (use in all major modes,
+@code{nil} (use in no major modes), or a list of mode names (or
+@code{(not mode-name ...)}) elements (as well as @code{t} and
+@code{nil}).
+
+@example
+(c-mode (not mail-mode message-mode) text-mode)
+@end example
+
+This means ``use in modes derived from @code{c-mode}, and not in
+modes derived from @code{message-mode} or @code{mail-mode}, but do use
+in modes derived from @code{text-mode}, and otherwise no other
+modes''.
+
+@example
+((not c-mode) t)
+@end example
+
+This means ``don't use modes derived from @code{c-mode}, but use
+everywhere else''.
+
+@example
+(text-mode)
+@end example
+
+This means ``use in modes derived from @code{text-mode}, but nowhere
+else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
 
+@findex buffer-local-restore-state
+@defmac buffer-local-set-state variable value...
+Minor modes often set buffer-local variables that affect some features
+in Emacs.  When a minor mode is switched off, the mode is expected to
+restore the previous state of these variables.  This convenience macro
+helps with doing that: It works much like @code{setq-local}, but
+returns an object that can be used to restore these values back to
+their previous values/states (using the companion function
+@code{buffer-local-restore-state}).
+@end defmac
 
 @node Mode Line Format
 @section Mode Line Format
@@ -1891,8 +1985,37 @@ This function also forces an update of the menu bar and frame title.
 @end defun
 
   The selected window's mode line is usually displayed in a different
-color using the face @code{mode-line}.  Other windows' mode lines appear
-in the face @code{mode-line-inactive} instead.  @xref{Faces}.
+color using the face @code{mode-line-active}.  Other windows' mode
+lines appear in the face @code{mode-line-inactive} instead.
+@xref{Faces}.
+
+@defun mode-line-window-selected-p
+If you want to have more extensive differences between the mode lines
+in selected and non-selected windows, you can use this predicate in an
+@code{:eval} construct.  For instance, if you want to display the
+buffer name in bold in selected windows, but in italics in the other
+windows, you can say something like:
+
+@lisp
+(setq-default
+ mode-line-buffer-identification
+ '(:eval (propertize "%12b"
+		     'face (if (mode-line-window-selected-p)
+			       'bold
+			     'italic))))
+@end lisp
+@end defun
+
+@vindex mode-line-compact
+  Some modes put a lot of data in the mode line, pushing elements at
+the end of the mode line off to the right.  Emacs can ``compress'' the
+mode line if the @code{mode-line-compact} variable is non-@code{nil}
+by turning stretches of spaces into a single space.  If this variable
+is @code{long}, this is only done when the mode line is wider than the
+currently selected window.  (This computation is approximate, based on
+the number of characters, and not their displayed width.)  This
+variable can be buffer-local to only compress mode-lines in certain
+buffers.
 
 @node Mode Line Data
 @subsection The Data Structure of the Mode Line
@@ -1946,9 +2069,15 @@ variables without prompting the user.)
 
 @item (@var{string} @var{rest}@dots{})
 @itemx (@var{list} @var{rest}@dots{})
-A list whose first element is a string or list means to process all the
-elements recursively and concatenate the results.  This is the most
-common form of mode line construct.
+A list whose first element is a string or list means to process all
+the elements recursively and concatenate the results.  This is the
+most common form of mode line construct.  (Note that text properties
+are handled specially (for reasons of efficiency) when displaying
+strings in the mode line: Only the text property on the first
+character of the string are considered, and they are then used over
+the entire string.  If you need a string with different text
+properties, you have to use the special @code{:propertize} mode line
+construct.)
 
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
@@ -2047,7 +2176,7 @@ be useful for Shell mode (in reality, Shell mode does not set
    "%n"
    ")%]--"
 @group
-   '(which-func-mode ("" which-func-format "--"))
+   '(which-function-mode ("" which-func-format "--"))
    '(line-number-mode "L%l--")
    '(column-number-mode "C%c--")
    '(-3 "%p")))
@@ -2055,8 +2184,8 @@ be useful for Shell mode (in reality, Shell mode does not set
 @end example
 
 @noindent
-(The variables @code{line-number-mode}, @code{column-number-mode}
-and @code{which-func-mode} enable particular minor modes; as usual,
+(The variables @code{line-number-mode}, @code{column-number-mode} and
+@code{which-function-mode} enable particular minor modes; as usual,
 these variable names are also the minor mode command names.)
 
 @node Mode Line Variables
@@ -2174,6 +2303,28 @@ Mode line construct for miscellaneous information.  By default, this
 shows the information specified by @code{global-mode-string}.
 @end defvar
 
+@defvar mode-line-position-line-format
+The format used to display line numbers when @code{line-number-mode}
+(@pxref{Optional Mode Line,,, emacs, The GNU Emacs Manual}) is
+switched on.  @samp{%l} in the format will be replaced with the line
+number.
+@end defvar
+
+@defvar mode-line-position-column-format
+The format used to display column numbers when
+@code{column-number-mode} (@pxref{Optional Mode Line,,, emacs, The GNU
+Emacs Manual}) is switched on.  @samp{%c} in the format will be
+replaced with a zero-based column number, and @samp{%C} will be
+replaced with a one-based column number.
+@end defvar
+
+@defvar mode-line-position-column-line-format
+The format used to display column numbers when both
+@code{line-number-mode} and @code{column-number-mode} are switched on.
+See the previous two variables for the meaning of the @samp{%l},
+@samp{%c} and @samp{%C} format specs.
+@end defvar
+
 @defvar minor-mode-alist
 @anchor{Definition of minor-mode-alist}
 This variable holds an association list whose elements specify how the
@@ -2198,11 +2349,14 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-func-mode} minor mode if set,
-else after @code{mode-line-modes}.  The command @code{display-time} sets
+the mode line just after the @code{which-function-mode} minor mode if
+set, else after @code{mode-line-modes}.  Elements that are added to
+this construct should normally end in a space (to ensure that
+consecutive @code{global-mode-string} elements display properly).  For
+instance, the command @code{display-time} sets
 @code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time and
-load information.
+@code{display-time-string}, which holds a string containing the time
+and load information.
 
 The @samp{%M} construct substitutes the value of
 @code{global-mode-string}, but that is obsolete, since the variable is
@@ -2227,7 +2381,7 @@ specifies addition of text properties.
  "   "
 @group
  mode-line-modes
- (which-func-mode ("" which-func-format "--"))
+ (which-function-mode ("" which-func-format "--"))
  (global-mode-string ("--" global-mode-string))
  "-%-")
 @end group
@@ -2335,6 +2489,10 @@ read-only buffer.  @xref{Buffer Modification}.
 @item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
+@item %@@
+@samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
+Expansion}) is on a remote machine, and @samp{-} otherwise.
+
 @item %[
 An indication of the depth of recursive editing levels (not counting
 minibuffer levels): one @samp{[} for each editing level.
@@ -2352,16 +2510,13 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following two @code{%}-constructs are still supported, but they are
-obsolete, since you can get the same results with the variables
-@code{mode-name} and @code{global-mode-string}.
+The following @code{%}-construct is still supported, but it is
+obsolete, since you can get the same result using the variable
+@code{mode-name}.
 
 @table @code
 @item %m
 The value of @code{mode-name}.
-
-@item %M
-The value of @code{global-mode-string}.
 @end table
 
 @node Properties in Mode
@@ -2379,7 +2534,7 @@ line:
 @enumerate
 @item
 Put a string with a text property directly into the mode line data
-structure.
+structure, but see @ref{Mode Line Data} for caveats for that.
 
 @item
 Put a text property on a mode line %-construct such as @samp{%12b}; then
@@ -2421,7 +2576,72 @@ mode line feature, except that it's controlled by
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
-It is normally @code{nil}, so that ordinary buffers have no header line.
+It is normally @code{nil}, so that ordinary buffers have no header
+line.
+@end defvar
+
+If @code{display-line-numbers-mode} is turned on in a buffer
+(@pxref{Display Custom, display-line-numbers-mode,, emacs, The GNU
+Emacs Manual}), the buffer text is indented on display by the amount
+of screen space needed to show the line numbers.  By contrast, text of
+the header line is not automatically indented, because a header line
+never displays a line number, and because the text of the header line
+is not necessarily directly related to buffer text below it.  If a
+Lisp program needs the header-line text to be aligned with buffer text
+(for example, if the buffer displays columnar data, like
+@code{tabulated-list-mode} does, @pxref{Tabulated List Mode}), it
+should turn on the minor mode @code{header-line-indent-mode}.
+
+@deffn Command header-line-indent-mode
+This buffer-local minor mode tracks the changes of the width of the
+line-number display on screen (which may vary depending on the range
+of line numbers shown in the window), and allows Lisp programs to
+arrange that header-line text is always aligned with buffer text when
+the line-number width changes.  Such Lisp programs should turn on this
+mode in the buffer, and use the variables @code{header-line-indent}
+and @code{header-line-indent-width} in the @code{header-line-format}
+to ensure it is adjusted to the text indentation at all times.
+@end deffn
+
+@defvar header-line-indent
+This variable's value is a whitespace string whose width is kept equal
+to the current width of line-numbers on display, provided that
+@code{header-line-indent-mode} is turned on in the buffer shown in the
+window.  The number of spaces is calculated under the assumption that
+the face of the header-line text uses the same font, including size,
+as the frame's default font; if that assumption is false, use
+@code{header-line-indent-width}, described below, instead.  This
+variable is intended to be used in simple situations where the
+header-line text needs to be indented as a whole to be realigned with
+buffer text, by prepending this variable's value to the actual
+header-line text.  For example, the following definition of
+@code{header-line-format}:
+
+@lisp
+(setq header-line-format
+      `("" header-line-indent ,my-header-line))
+@end lisp
+
+@noindent
+where @code{my-header-line} is the format string that produces the
+actual text of the header line, will make sure the header-line text
+is always indented like the buffer text below it.
+@end defvar
+
+@defvar header-line-indent-width
+This variable's value is kept updated to provide the current width, in
+units of the frame's canonical character width, used for displaying
+the line numbers, provided that @code{header-line-indent-mode} is
+turned on in the buffer shown in the window.  It can be used for
+aligning the header-line text with the buffer text when
+@code{header-line-indent} is not flexible enough.  For example, if the
+header line uses a font whose metrics is different from the default
+face's font, your Lisp program can calculate the width of line-number
+display in pixels, by multiplying the value of this variable by the
+value returned by @code{frame-char-width} (@pxref{Frame Font}), and
+then use the result to align header-line text using the
+@code{:align-to} display property spec (@pxref{Specified Space}) in
+pixels on the relevant parts of @code{header-line-frormat}.
 @end defvar
 
 @defun window-header-line-height &optional window
@@ -2670,6 +2890,35 @@ function uses @code{imenu-generic-expression} instead.
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
+If built with tree-sitter, Emacs can automatically generate an Imenu
+index if the major mode sets relevant variables.
+
+@defvar treesit-simple-imenu-settings
+This variable instructs Emacs how to generate Imenu indexes.  It
+should be a list of @w{(@var{category} @var{regexp} @var{pred}
+@var{name-fn})}.
+
+@var{category} should be the name of a category, like "Function",
+"Class", etc.  @var{regexp} should be a regexp matching the type of
+nodes that belong to @var{category}.  @var{pred} should be either
+@code{nil} or a function that takes a node as the argument.  It should
+return non-@code{nil} if the node is a valid node for @var{category},
+or @code{nil} if not.
+
+@var{category} could also be @code{nil}.  In which case the entries
+matched by @var{regexp} and @var{pred} are not grouped under
+@var{category}.
+
+@var{name-fn} should be either @var{nil} or a function that takes a
+defun node and returns the name of that defun, e.g., the function name
+for a function definition.  If @var{name-fn} is @var{nil},
+@code{treesit-defun-name} (@pxref{Tree-sitter Major Modes}) is used
+instead.
+
+@code{treesit-major-mode-setup} (@pxref{Tree-sitter Major Modes})
+automatically sets up Imenu if this variable is non-@code{nil}.
+@end defvar
+
 @node Font Lock Mode
 @section Font Lock Mode
 @cindex Font Lock mode
@@ -2682,11 +2931,14 @@ mode; most major modes define syntactic criteria for which faces to use
 in which contexts.  This section explains how to customize Font Lock for
 a particular major mode.
 
-  Font Lock mode finds text to highlight in two ways: through
-syntactic parsing based on the syntax table, and through searching
-(usually for regular expressions).  Syntactic fontification happens
-first; it finds comments and string constants and highlights them.
-Search-based fontification happens second.
+  Font Lock mode finds text to highlight in three ways: through
+parsing based on a full-blown parser (usually, via an external library
+or program), through syntactic parsing based on the Emacs's built-in
+syntax table, or through searching (usually for regular expressions).
+If enabled, parser-based fontification happens first
+(@pxref{Parser-based Font Lock}).  Syntactic fontification happens
+next; it finds comments and string constants and highlights them.
+Search-based fontification happens last.
 
 @menu
 * Font Lock Basics::            Overview of customizing Font Lock.
@@ -2701,6 +2953,7 @@ Search-based fontification happens second.
 * Syntactic Font Lock::         Fontification based on syntax tables.
 * Multiline Font Lock::         How to coerce Font Lock into properly
                                   highlighting multiline constructs.
+* Parser-based Font Lock::      Use parse data for fontification.
 @end menu
 
 @node Font Lock Basics
@@ -2895,10 +3148,6 @@ highlighted (instead of the entire text that @var{matcher} matched).
 ("fu\\(bar\\)" . 1)
 @end example
 
-If you use @code{regexp-opt} to produce the regular expression
-@var{matcher}, you can use @code{regexp-opt-depth} (@pxref{Regexp
-Functions}) to calculate the value for @var{subexp}.
-
 @item (@var{matcher} . @var{facespec})
 In this kind of element, @var{facespec} is an expression whose value
 specifies the face to use for highlighting.  In the simplest case,
@@ -2914,7 +3163,8 @@ name.
 However, @var{facespec} can also evaluate to a list of this form:
 
 @example
-(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
+(@var{subexp}
+(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
 @end example
 
 @noindent
@@ -2980,9 +3230,10 @@ match found by @var{matcher} acts as the anchor for further searches
 specified by @var{anchored-highlighter}.  @var{anchored-highlighter}
 is a list of the following form:
 
+@c Don't wrap the line in the next @example, because that tends to
+@c produce ugly indentation in Info
 @example
-(@var{anchored-matcher} @var{pre-form} @var{post-form}
-                        @var{subexp-highlighters}@dots{})
+(@var{anchored-matcher} @var{pre-form} @var{post-form} @var{subexp-highlighters}@dots{})
 @end example
 
 Here, @var{anchored-matcher}, like @var{matcher}, is either a regular
@@ -3063,7 +3314,9 @@ Non-@code{nil} means that regular expression matching for the sake of
 
   You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
-@code{font-lock-remove-keywords} to remove rules.
+@code{font-lock-remove-keywords} to remove rules.  You can also
+customize the @code{font-lock-ignore} option to selectively disable
+fontification rules for keywords that match certain criteria.
 
 @defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer
@@ -3133,6 +3386,99 @@ mode @emph{and} all modes derived from it, do this instead:
       font-lock-keyword-face)))))
 @end smallexample
 
+@defopt font-lock-ignore
+@cindex selectively disabling font-lock fontifications
+This option defines conditions for selectively disabling
+fontifications due to certain Font Lock keywords.  If non-@code{nil},
+its value is a list of elements of the following form:
+
+@example
+(@var{symbol} @var{condition} @dots{})
+@end example
+
+Here, @var{symbol} is a symbol, usually a major or minor mode.  The
+subsequent @var{condition}s of a @var{symbol}'s list element will be in
+effect if @var{symbol} is bound and its value is non-@code{nil}.  For
+a mode's symbol, it means that the current major mode is derived from
+that mode, or that minor mode is enabled in the buffer.  When a
+@var{condition} is in effect, any fontifications caused by
+@code{font-lock-keywords} elements that match the @var{condition} will
+be disabled.
+
+Each @var{condition} can be one of the following:
+
+@table @asis
+@item a symbol
+This condition matches any element of Font Lock keywords that
+references the symbol.  This is usually a face, but can be any symbol
+referenced by an element of the @code{font-lock-keywords} list.  The
+symbol can contain wildcards: @code{*} matches any string in the
+symbol'ss name, @code{?} matches a single character, and
+@code{[@var{char-set}]}, where @var{char-set} is a string of one or
+more characters, matches a single character from the set.
+
+@item a string
+This condition matches any element of Font Lock keywords whose
+@var{matcher} is a regexp which matches the string.  In other words,
+this condition matches a Font Lock rule which highlights the string.
+Thus, the string could be a specific program keyword whose
+highlighting you want to disable.
+
+@item @code{(pred @var{function})}
+This condition matches any element of Font Lock keywords for which
+@var{function}, when called with the element as the argument, returns
+non-@code{nil}.
+
+@item @code{(not @var{condition})}
+This matches if @var{condition} doesn’t.
+
+@item @code{(and @var{condition} @dots{})}
+This matches if each of the @var{condition}s matches.
+
+@item @code{(or @var{condition} @dots{})}
+This matches if at least one of the @var{condition}s matches.
+
+@item @code{(except @var{condition})}
+This condition can only be used at top level or inside an
+@code{or} clause.  It undoes the effect of a previously matching
+condition on the same level.
+@end table
+@end defopt
+
+As an example, consider the following setting:
+
+@smallexample
+(setq font-lock-ignore
+      '((prog-mode font-lock-*-face
+                   (except help-echo))
+        (emacs-lisp-mode (except ";;;###autoload)")
+        (whitespace-mode whitespace-empty-at-bob-regexp)
+        (makefile-mode (except *))))
+@end smallexample
+
+Line by line, this does the following:
+
+@enumerate
+@item
+In all programming modes, disable fontifications due to all font-lock
+keywords that apply one of the standard font-lock faces (excluding
+strings and comments, which are covered by syntactic Font Lock).
+
+@item
+However, keep any keywords that add a @code{help-echo} text property.
+
+@item
+In Emacs Lisp mode, also keep the highlighting of autoload cookies,
+which would have been excluded by the first condition.
+
+@item
+When @code{whitespace-mode} (a minor mode) is enabled, also don't
+highlight an empty line at beginning of buffer.
+
+@item
+Finally, in Makefile mode, don't apply any conditions.
+@end enumerate
+
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables
 
@@ -3143,8 +3489,7 @@ set by means of @var{other-vars} in @code{font-lock-defaults}
 @defvar font-lock-mark-block-function
 If this variable is non-@code{nil}, it should be a function that is
 called with no arguments, to choose an enclosing range of text for
-refontification for the command @kbd{M-o M-o}
-(@code{font-lock-fontify-block}).
+refontification for the command @kbd{M-x font-lock-fontify-block}.
 
 The function should report its choice by placing the region around it.
 A good choice is a range of text large enough to give proper results,
@@ -3210,17 +3555,41 @@ This function tells Font Lock mode to run the Lisp function
 current buffer.  It calls @var{function} before calling the default
 fontification functions, and gives it two arguments, @var{start} and
 @var{end}, which specify the region to be fontified or refontified.
+If @var{function} performs fontifications, it can return a list of the
+form @w{@code{(jit-lock-bounds @var{beg} . @var{end})}}, to indicate
+the bounds of the region it actually fontified; Just-In-Time (a.k.a.@:
+@acronym{``JIT''}) font-lock will use
+this information to optimize subsequent redisplay cycles and regions
+of buffer text it will pass to future calls to @var{function}.
 
 The optional argument @var{contextual}, if non-@code{nil}, forces Font
 Lock mode to always refontify a syntactically relevant part of the
 buffer, and not just the modified lines.  This argument can usually be
 omitted.
+
+When Font Lock is activated in a buffer, it calls this function with a
+non-@code{nil} value of @var{contextual} if the value of
+@code{font-lock-keywords-only} (@pxref{Syntactic Font Lock}) is
+@code{nil}.
 @end defun
 
 @defun jit-lock-unregister function
 If @var{function} was previously registered as a fontification
 function using @code{jit-lock-register}, this function unregisters it.
 @end defun
+
+@cindex debugging font-lock
+@cindex jit-lock functions, debugging
+@deffn Command jit-lock-debug-mode &optional arg
+This is a minor mode whose purpose is to help in debugging code that
+is run by JIT font-lock.  When this mode is enabled, most of the code
+that JIT font-lock normally runs during redisplay cycles, where Lisp
+errors are suppressed, is instead run by a timer.  Thus, this mode
+allows using debugging aids such as @code{debug-on-error}
+(@pxref{Error Debugging}) and Edebug (@pxref{Edebug}) for finding and
+fixing problems in font-lock code and any other code run by JIT
+font-lock.
+@end deffn
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
@@ -3272,7 +3641,7 @@ is disabled, @code{font-lock-face} has no effect on the display.
 also use the normal Font Lock machinery.  But if the mode does not use
 the normal Font Lock machinery, it should not set the variable
 @code{font-lock-defaults}.  In this case the @code{face} property will
-not be overriden, so using the @code{face} property could work too.
+not be overridden, so using the @code{face} property could work too.
 However, using @code{font-lock-face} is generally preferable as it
 allows the user to control the fontification by toggling
 @code{font-lock-mode}, and lets the code work regardless of whether
@@ -3310,9 +3679,19 @@ in C.
 @vindex font-lock-function-name-face
 for the name of a function being defined or declared.
 
+@item font-lock-function-call-face
+@vindex font-lock-function-call-face
+for the name of a function being called.  This face inherits, by
+default, from @code{font-lock-function-name-face}.
+
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face
 for the name of a variable being defined or declared.
+
+@item font-lock-variable-use-face
+@vindex font-lock-variable-use-face
+for the name of a variable being referenced.  This face inherits, by
+default, from @code{font-lock-variable-name-face}.
 
 @item font-lock-keyword-face
 @vindex font-lock-keyword-face
@@ -3351,12 +3730,90 @@ for string constants.
 
 @item font-lock-doc-face
 @vindex font-lock-doc-face
-for documentation strings in the code.  This inherits, by default, from
+for documentation embedded in program code inside specially-formed
+comments or strings.  This face inherits, by default, from
 @code{font-lock-string-face}.
+
+@item font-lock-doc-markup-face
+@vindex font-lock-doc-markup-face
+for mark-up elements in text using @code{font-lock-doc-face}.
+It is typically used for the mark-up constructs in documentation embedded
+in program code, following conventions such as Haddock, Javadoc or Doxygen.
+This face inherits, by default, from @code{font-lock-constant-face}.
 
 @item font-lock-negation-char-face
 @vindex font-lock-negation-char-face
 for easily-overlooked negation characters.
+
+@item font-lock-escape-face
+@vindex font-lock-escape-face
+for escape sequences in strings.
+This face inherits, by default, from @code{font-lock-regexp-grouping-backslash}.
+
+Here is an example in Python, where the escape sequence @code{\n} is used:
+
+@smallexample
+@group
+print('Hello world!\n')
+@end group
+@end smallexample
+
+@item font-lock-number-face
+@vindex font-lock-number-face
+for numbers.
+
+@item font-lock-operator-face
+@vindex font-lock-operator-face
+for operators.
+
+@item font-lock-property-name-face
+@vindex font-lock-property-name-face
+for properties of an object, such as the declaration of fields in a
+struct.  This face inherits, by default, from
+@code{font-lock-variable-name-face}.
+
+@item font-lock-property-use-face
+@vindex font-lock-property-use-face
+for properties of an object, such as use of fields in a struct.  This
+face inherits, by default, from @code{font-lock-property-name-face}.
+
+For example,
+
+@smallexample
+@group
+typedef struct
+@{
+  int prop;
+//    ^ property
+@} obj;
+
+int main()
+@{
+  obj o;
+  o.prop = 3;
+//  ^ property
+@}
+@end group
+@end smallexample
+
+@item font-lock-punctuation-face
+@vindex font-lock-punctuation-face
+for punctuation such as brackets and delimiters.
+
+@item font-lock-bracket-face
+@vindex font-lock-bracket-face
+for brackets (e.g., @code{()}, @code{[]}, @code{@{@}}).
+This face inherits, by default, from @code{font-lock-punctuation-face}.
+
+@item font-lock-delimiter-face
+@vindex font-lock-delimiter-face
+for delimiters (e.g., @code{;}, @code{:}, @code{,}).
+This face inherits, by default, from @code{font-lock-punctuation-face}.
+
+@item font-lock-misc-punctuation-face
+@vindex font-lock-misc-punctuation-face
+for punctuation that is not a bracket or delimiter.
+This face inherits, by default, from @code{font-lock-punctuation-face}.
 @end table
 
 @node Syntactic Font Lock
@@ -3381,7 +3838,15 @@ table in special cases.  @xref{Syntax Properties}.
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
 @code{font-lock-keywords}.  It is normally set by Font Lock mode based
-on the @var{keywords-only} element in @code{font-lock-defaults}.
+on the @var{keywords-only} element in @code{font-lock-defaults}.  If
+the value is @code{nil}, Font Lock will call @code{jit-lock-register}
+(@pxref{Other Font Lock Variables}) to set up for automatic
+refontification of buffer text following a modified line to reflect
+the new syntactic context due to the change.
+
+To use only syntactic fontification, this variable should
+be non-@code{nil}, while @code{font-lock-keywords} should be set to
+@code{nil} (@pxref{Font Lock Basics}).
 @end defvar
 
 @defvar font-lock-syntax-table
@@ -3456,7 +3921,7 @@ which will instruct font-lock not to start or end the scan in the
 middle of the construct.
 @end itemize
 
-  There are three ways to do rehighlighting of multiline constructs:
+  There are several ways to do rehighlighting of multiline constructs:
 
 @itemize
 @item
@@ -3478,6 +3943,17 @@ This works only if @code{jit-lock-contextually} is used, and with the
 same delay before rehighlighting, but like @code{font-lock-multiline},
 it also handles the case where highlighting depends on
 subsequent lines.
+@item
+If parsing the @emph{syntax} of a construct depends on it being parsed in one
+single chunk, you can add the @code{syntax-multiline} text property
+over the construct in question.  The most common use for this is when
+the syntax property to apply to @samp{FOO} depend on some later text
+@samp{BAR}: By placing this text property over the whole of
+@samp{FOO...BAR}, you make sure that any change of @samp{BAR} will
+also cause the syntax property of @samp{FOO} to be recomputed.
+Note: For this to work, the mode needs to add
+@code{syntax-propertize-multiline} to
+@code{syntax-propertize-extend-region-functions}.
 @end itemize
 
 @menu
@@ -3562,6 +4038,193 @@ Since this function is called after every buffer change, it should be
 reasonably fast.
 @end defvar
 
+@node Parser-based Font Lock
+@subsection Parser-based Font Lock
+@cindex parser-based font-lock
+
+@c This node is written when the only parser Emacs has is tree-sitter;
+@c if in the future more parser are supported, this should be
+@c reorganized and rewritten to describe multiple parsers in parallel.
+
+Besides simple syntactic font lock and regexp-based font lock, Emacs
+also provides complete syntactic font lock with the help of a parser.
+Currently, Emacs uses the tree-sitter library (@pxref{Parsing Program
+Source}) for this purpose.
+
+Parser-based font lock and other font lock mechanisms are not mutually
+exclusive.  By default, if enabled, parser-based font lock runs first,
+replacing syntactic font lock, then the regexp-based font lock.
+
+Although parser-based font lock doesn't share the same customization
+variables with regexp-based font lock, it uses similar customization
+schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
+@var{treesit-font-lock-settings}.
+
+@cindex tree-sitter fontifications, overview
+@cindex fontifications with tree-sitter, overview
+In general, tree-sitter fontification works as follows:
+
+@itemize @bullet
+@item
+A Lisp program (usually, part of a major mode) provides a @dfn{query}
+consisting of @dfn{patterns}, each pattern associated with a
+@dfn{capture name}.
+
+@item
+The tree-sitter library finds the nodes in the parse tree
+that match these patterns, tags the nodes with the corresponding
+capture names, and returns them to the Lisp program.
+
+@item
+The Lisp program uses the returned nodes to highlight the portions of
+buffer text corresponding to each node as appropriate, using the
+tagged capture names of the nodes to determine the correct
+fontification.  For example, a node tagged @code{font-lock-keyword}
+would be highlighted in @code{font-lock-keyword} face.
+@end itemize
+
+For more information about queries, patterns, and capture names, see
+@ref{Pattern Matching}.
+
+To setup tree-sitter fontification, a major mode should first set
+@code{treesit-font-lock-settings} with the output of
+@code{treesit-font-lock-rules}, then call
+@code{treesit-major-mode-setup}.
+
+@defun treesit-font-lock-rules &rest query-specs
+This function is used to set @var{treesit-font-lock-settings}.  It
+takes care of compiling queries and other post-processing, and outputs
+a value that @var{treesit-font-lock-settings} accepts.  Here's an
+example:
+
+@example
+@group
+(treesit-font-lock-rules
+ :language 'javascript
+ :feature 'constant
+ :override t
+ '((true) @@font-lock-constant-face
+   (false) @@font-lock-constant-face)
+ :language 'html
+ :feature 'script
+ "(script_element) @@font-lock-builtin-face")
+@end group
+@end example
+
+This function takes a series of @var{query-spec}s, where each
+@var{query-spec} is a @var{query} preceded by one or more
+@var{:keyword}/@var{value} pairs.  Each @var{query} is a
+tree-sitter query in either the string, s-expression or compiled form.
+
+@c FIXME: Cross-ref treesit-font-lock-level to user manual.
+For each @var{query}, the @var{:keyword}/@var{value} pairs that
+precede it add meta information to it.  The @code{:language} keyword
+declares @var{query}'s language.  The @code{:feature} keyword sets the
+feature name of @var{query}.  Users can control which features are
+enabled with @code{treesit-font-lock-level} and
+@code{treesit-font-lock-feature-list} (described below).  These two
+keywords are mandatory.
+
+Other keywords are optional:
+
+@multitable @columnfractions .15 .15 .6
+@headitem Keyword @tab Value @tab Description
+@item @code{:override} @tab nil
+@tab If the region already has a face, discard the new face
+@item @tab t @tab Always apply the new face
+@item @tab @code{append} @tab Append the new face to existing ones
+@item @tab @code{prepend} @tab Prepend the new face to existing ones
+@item @tab @code{keep} @tab Fill-in regions without an existing face
+@end multitable
+
+Lisp programs mark patterns in @var{query} with capture names (names
+that starts with @code{@@}), and tree-sitter will return matched nodes
+tagged with those same capture names.  For the purpose of
+fontification, capture names in @var{query} should be face names like
+@code{font-lock-keyword-face}.  The captured node will be fontified
+with that face.
+
+@findex treesit-fontify-with-override
+Capture names can also be function names, in which case the function
+is called with 4 arguments: @var{node} and @var{override}, @var{start}
+and @var{end}, where @var{node} is the node itself, @var{override} is
+the override property of the rule which captured this node, and
+@var{start} and @var{end} limits the region in which this function
+should fontify.  (If this function wants to respect the @var{override}
+argument, it can use @code{treesit-fontify-with-override}.)
+
+Beyond the 4 arguments presented, this function should accept more
+arguments as optional arguments for future extensibility.
+
+If a capture name is both a face and a function, the face takes
+priority.  If a capture name is neither a face nor a function, it is
+ignored.
+@end defun
+
+@c FIXME: Cross-ref treesit-font-lock-level to user manual.
+@defvar treesit-font-lock-feature-list
+This is a list of lists of feature symbols.  Each element of the list
+is a list that represents a decoration level.
+@code{treesit-font-lock-level} controls which levels are
+activated.
+
+Each element of the list is a list of the form @w{@code{(@var{feature}
+@dots{})}}, where each @var{feature} corresponds to the
+@code{:feature} value of a query defined in
+@code{treesit-font-lock-rules}.  Removing a feature symbol from this
+list disables the corresponding query during font-lock.
+
+Common feature names, for many programming languages, include
+@code{definition}, @code{type}, @code{assignment}, @code{builtin},
+@code{constant}, @code{keyword}, @code{string-interpolation},
+@code{comment}, @code{doc}, @code{string}, @code{operator},
+@code{preprocessor}, @code{escape-sequence}, and @code{key}.  Major
+modes are free to subdivide or extend these common features.
+
+Some of these features warrant some explanation: @code{definition}
+highlights whatever is being defined, e.g., the function name in a
+function definition, the struct name in a struct definition, the
+variable name in a variable definition; @code{assignment} highlights
+the whatever is being assigned to, e.g., the variable or field in an
+assignment statement; @code{key} highlights keys in key-value pairs,
+e.g., keys in a JSON object, or a Python dictionary; @code{doc}
+highlights docstrings or doc-comments.
+
+For example, the value of this variable could be:
+@example
+@group
+((comment string doc) ; level 1
+ (function-name keyword type builtin constant) ; level 2
+ (variable-name string-interpolation key)) ; level 3
+@end group
+@end example
+
+Major modes should set this variable before calling
+@code{treesit-major-mode-setup}.
+
+@findex treesit-font-lock-recompute-features
+For this variable to take effect, a Lisp program should call
+@code{treesit-font-lock-recompute-features} (which resets
+@code{treesit-font-lock-settings} accordingly), or
+@code{treesit-major-mode-setup} (which calls
+@code{treesit-font-lock-recompute-features}).
+@end defvar
+
+@defvar treesit-font-lock-settings
+A list of settings for tree-sitter based font lock.  The exact format
+of each setting is considered internal.  One should always use
+@code{treesit-font-lock-rules} to set this variable.
+
+@c Because the format is internal, we don't document them here.  Though
+@c we do have it explained in the docstring.  We also expose the fact
+@c that it is a list of settings, so one could combine two of them with
+@c append.
+@end defvar
+
+Multi-language major modes should provide range functions in
+@code{treesit-range-functions}, and Emacs will set the ranges
+accordingly before fontifing a region (@pxref{Multiple Languages}).
+
 @node Auto-Indentation
 @section Automatic Indentation of code
 
@@ -3618,10 +4281,12 @@ and a few other such modes) has been made more generic over the years,
 so if your language seems somewhat similar to one of those languages,
 you might try to use that engine.  @c FIXME: documentation?
 Another one is SMIE which takes an approach in the spirit
-of Lisp sexps and adapts it to non-Lisp languages.
+of Lisp sexps and adapts it to non-Lisp languages. Yet another one is
+to rely on a full-blown parser, for example, the tree-sitter library.
 
 @menu
 * SMIE::                        A simple minded indentation engine.
+* Parser-based Indentation::    Parser-based indentation engine.
 @end menu
 
 @node SMIE
@@ -4155,7 +4820,7 @@ Here is an example of an indentation function:
     (`(:elem . basic) sample-indent-basic)
     (`(,_ . ",") (smie-rule-separator kind))
     (`(:after . ":=") sample-indent-basic)
-    (`(:before . ,(or `"begin" `"(" `"@{")))
+    (`(:before . ,(or `"begin" `"(" `"@{"))
      (if (smie-rule-hanging-p) (smie-rule-parent)))
     (`(:before . "if")
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
@@ -4281,6 +4946,220 @@ to the file's local variables of the form:
 @code{eval: (smie-config-local '(@var{rules}))}.
 @end defun
 
+@node Parser-based Indentation
+@subsection Parser-based Indentation
+@cindex parser-based indentation
+
+@c This node is written when the only parser Emacs has is tree-sitter;
+@c if in the future more parsers are supported, this should be
+@c reorganized and rewritten to describe multiple parsers in parallel.
+
+When built with the tree-sitter library (@pxref{Parsing Program
+Source}), Emacs is capable of parsing the program source and producing
+a syntax tree.  This syntax tree can be used for guiding the program
+source indentation commands.  For maximum flexibility, it is possible
+to write a custom indentation function that queries the syntax tree
+and indents accordingly for each language, but that is a lot of work.
+It is more convenient to use the simple indentation engine described
+below: then the major mode needs only to write some indentation rules
+and the engine takes care of the rest.
+
+To enable the parser-based indentation engine, either set
+@var{treesit-simple-indent-rules} and call
+@code{treesit-major-mode-setup}, or equivalently, set the value of
+@code{indent-line-function} to @code{treesit-indent}.
+
+@defvar treesit-indent-function
+This variable stores the actual function called by
+@code{treesit-indent}.  By default, its value is
+@code{treesit-simple-indent}.  In the future we might add other,
+more complex indentation engines.
+@end defvar
+
+@heading Writing indentation rules
+@cindex indentation rules, for parser-based indentation
+
+@defvar treesit-simple-indent-rules
+This local variable stores indentation rules for every language.  It is
+a list of the form: @w{@code{(@var{language} . @var{rules})}}, where
+@var{language} is a language symbol, and @var{rules} is a list of the
+form @w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
+
+First, Emacs passes the smallest tree-sitter node at the beginning of
+the current line to @var{matcher}; if it returns non-@code{nil}, this
+rule is applicable.  Then Emacs passes the node to @var{anchor}, which
+returns a buffer position.  Emacs takes the column number of that
+position, adds @var{offset} to it, and the result is the indentation
+column for the current line.
+
+The @var{matcher} and @var{anchor} are functions, and Emacs provides
+convenient defaults for them.
+
+Each @var{matcher} or @var{anchor} is a function that takes three
+arguments: @var{node}, @var{parent}, and @var{bol}.  The argument
+@var{bol} is the buffer position whose indentation is required: the
+position of the first non-whitespace character after the beginning of
+the line.  The argument @var{node} is the largest node that starts at
+that position (and is not a root node); and @var{parent} is the parent
+of @var{node}.  However, when that position is in a whitespace or
+inside a multi-line string, no node can start at that position, so
+@var{node} is @code{nil}.  In that case, @var{parent} would be the
+smallest node that spans that position.
+
+@var{matcher} should return non-@code{nil} if the rule is applicable,
+and @var{anchor} should return a buffer position.
+
+@var{offset} can be an integer, a variable whose value is an integer,
+or a function that returns an integer.  If it is a function, it is
+passed @var{node}, @var{parent}, and @var{bol}, like matchers and
+anchors.
+@end defvar
+
+@defvar treesit-simple-indent-presets
+This is a list of defaults for @var{matcher}s and @var{anchor}s in
+@code{treesit-simple-indent-rules}.  Each of them represents a function
+that takes 3 arguments: @var{node}, @var{parent} and @var{bol}.  The
+available default functions are:
+
+@ftable @code
+@item no-node
+This matcher is a function that is called with 3 arguments:
+@var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil},
+indicating a match, if @var{node} is @code{nil}, i.e., there is no
+node that starts at @var{bol}.  This is the case when @var{bol} is on
+an empty line or inside a multi-line string, etc.
+
+@item parent-is
+This matcher is a function of one argument, @var{type}; it returns a
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} (i.e., a match) if
+@var{parent}'s type matches regexp @var{type}.
+
+@item node-is
+This matcher is a function of one argument, @var{type}; it returns a
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if @var{node}'s type matches
+regexp @var{type}.
+
+@item query
+This matcher is a function of one argument, @var{query}; it returns a
+function that is called with 3 arguments: @var{node}, @var{parent},
+and @var{bol}, and returns non-@code{nil} if querying @var{parent}
+with @var{query} captures @var{node} (@pxref{Pattern Matching}).
+
+@item match
+This matcher is a function of 5 arguments: @var{node-type},
+@var{parent-type}, @var{node-field}, @var{node-index-min}, and
+@var{node-index-max}).  It returns a function that is called with 3
+arguments: @var{node}, @var{parent}, and @var{bol}, and returns
+non-@code{nil} if @var{node}'s type matches regexp @var{node-type},
+@var{parent}'s type matches regexp @var{parent-type}, @var{node}'s
+field name in @var{parent} matches regexp @var{node-field}, and
+@var{node}'s index among its siblings is between @var{node-index-min}
+and @var{node-index-max}.  If the value of an argument is @code{nil},
+this matcher doesn't check that argument.  For example, to match the
+first child where parent is @code{argument_list}, use
+
+@example
+(match nil "argument_list" nil nil 0 0)
+@end example
+
+@item n-p-gp
+Short for ``node-parent-grandparent'', this matcher is a function of 3
+arguments: @var{node-type}, @var{parent-type}, and
+@var{grandparent-type}.  It returns a function that is called with 3
+arguments: @var{node}, @var{parent}, and @var{bol}, and returns
+non-@code{nil} if: (1) @var{node-type} matches @var{node}'s type, and
+(2) @var{parent-type} matches @var{parent}'s type, and (3)
+@var{grandparent-type} matches @var{parent}'s parent's type.  If any
+of @var{node-type}, @var{parent-type}, and @var{grandparent-type} is
+@code{nil}, this function doesn't check for it.
+
+@item comment-end
+This matcher is a function that is called with 3 arguments:
+@var{node}, @var{parent}, and @var{bol}, and returns non-@code{nil} if
+point is before a comment ending token.  Comment ending tokens are
+defined by regular expression @code{comment-end-skip}
+
+@item first-sibling
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of the first child
+of @var{parent}.
+
+@item parent
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{parent}.
+
+@item parent-bol
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the first non-space character
+on the line which @var{parent}'s start is on.
+
+@item parent-bol
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}.  It finds the first ancestor node
+(parent, grandparent, etc) of @var{node} that starts on its own line,
+and return the start of that node.  ``Starting on its own line'' means
+there is only whitespace character before the node on the line which
+the node's start is on.
+
+@item prev-sibling
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of the previous
+sibling of @var{node}.
+
+@item no-indent
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the start of @var{node}.
+
+@item prev-line
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the first non-whitespace
+character on the previous line.
+
+@item point-min
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the beginning of the buffer.
+This is useful as the beginning of the buffer is always at column 0.
+
+@item comment-start
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}, and returns the position after the
+comment-start token.  Comment-start tokens are defined by regular
+expression @code{comment-start-skip}.  This function assumes
+@var{parent} is the comment node.
+
+@item prev-adaptive-prefix
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}.  It tries to go to the beginning of the
+previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
+there is a match, this function returns the end of the match,
+otherwise it returns nil.  However, if the current line begins with a
+prefix (e.g., ``-''), return the beginning of the prefix of the
+previous line instead, so that the two prefixes aligns.  This anchor
+is useful for a @code{indent-relative}-like indent behavior for block
+comments.
+
+@end ftable
+@end defvar
+
+@heading Indentation utilities
+@cindex utility functions for parser-based indentation
+
+Here are some utility functions that can help writing parser-based
+indentation rules.
+
+@defun treesit-check-indent mode
+This function checks the current buffer's indentation against major
+mode @var{mode}.  It indents the current buffer according to
+@var{mode} and compares the results with the current indentation.
+Then it pops up a buffer showing the differences.  Correct
+indentation (target) is shown in green color, current indentation is
+shown in red color.  @c Are colors customizable? faces?
+@end defun
+
+It is also helpful to use @code{treesit-inspect-mode} (@pxref{Language
+Grammar}) when writing indentation rules.
 
 @node Desktop Save Mode
 @section Desktop Save Mode

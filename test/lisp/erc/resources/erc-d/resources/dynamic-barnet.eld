@@ -1,0 +1,33 @@
+;;; -*- mode: lisp-data -*-
+((fake 0 "FAKE noop"))
+
+((nick 1.2 "NICK tester"))
+
+((user 2.2 "USER user 0 * :tester")
+ (0. ":irc.barnet.org 001 tester :Welcome to the BAR Network tester")
+ (0. ":irc.barnet.org 002 tester :Your host is irc.barnet.org")
+ (0. ":irc.barnet.org 003 tester :This server was created just now")
+ (0. ":irc.barnet.org 004 tester irc.barnet.org BERios CEIRabehiklmnoqstv Iabehkloqv")
+ (0. ":irc.barnet.org 005 tester MODES NETWORK=BarNet NICKLEN=32 PREFIX=(qaohv)~&@%+ :are supported by this server")
+ (0. ":irc.barnet.org 251 tester :There are 3 users and 0 invisible on 1 server(s)")
+ (0. ":irc.barnet.org 252 tester 0 :IRC Operators online")
+ (0. ":irc.barnet.org 253 tester 0 :unregistered connections")
+ (0. ":irc.barnet.org 254 tester 1 :channels formed")
+ (0. ":irc.barnet.org 255 tester :I have 3 clients and 0 servers")
+ (0. ":irc.barnet.org 265 tester 3 3 :Current local users 3, max 3")
+ (0. ":irc.barnet.org 266 tester 3 3 :Current global users 3, max 3")
+ (0. ":irc.barnet.org 422 tester :MOTD File is missing"))
+
+((mode-user 1.2 "MODE tester +i")
+ (0. ":irc.barnet.org 221 tester +Zi")
+ (0. ":irc.barnet.org 306 tester :You have been marked as being away")
+ (0 ":tester!~u@awyxgybtkx7uq.irc JOIN #chan")
+ (0 ":irc.barnet.org 353 joe = #chan :+joe!~joe@example.com @%+mike!~mike@example.org")
+ (0 ":irc.barnet.org 366 joe #chan :End of NAMES list"))
+
+((mode 1 "MODE #chan")
+ (0 ":irc.barnet.org 324 tester #chan +nt")
+ (0 ":irc.barnet.org 329 tester #chan 1620805269")
+ (0.1 ":joe!~u@awyxgybtkx7uq.irc PRIVMSG #chan :mike: Yes, a dozen; and as many to the vantage, as would store the world they played for.")
+ (0.05 ":mike!~u@awyxgybtkx7uq.irc PRIVMSG #chan :joe: As he regards his aged father's life.")
+ (0.05 ":joe!~u@awyxgybtkx7uq.irc PRIVMSG #chan :mike: It is a rupture that you may easily heal; and the cure of it not only saves your brother, but keeps you from dishonor in doing it."))

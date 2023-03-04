@@ -1,6 +1,6 @@
-;;; hanja-util.el --- Korean Hanja util module  -*- coding: utf-8 -*-
+;;; hanja-util.el --- Korean Hanja util module  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This file defines korean hanja table and symbol table.
+;; This file defines the Korean Hanja table and symbol table.
 
 ;;; Code:
 
@@ -31,7 +31,7 @@
 
 (defvar hanja-table nil
   "A char table for Hanja characters.
-It maps a hangul character to a list of the corresponding Hanja characters.
+It maps a Hangul character to a list of the corresponding Hanja characters.
 Each element of the list has the form CHAR or (CHAR . STRING)
 where CHAR is a Hanja character and STRING is the meaning of that
 character.  This variable is initialized by `hanja-init-load'.")
@@ -6573,8 +6573,8 @@ The value is a hanja character that is selected interactively."
            (hanja-filter (lambda (x) (car x))
                          (mapcar (lambda (c)
                                    (if (listp c)
-                                       (cons (decode-char 'ucs (car c)) (cdr c))
-				     (list (decode-char 'ucs c))))
+                                       (cons (car c) (cdr c))
+                                     (list c)))
                                  (aref hanja-table char)))))
     (unwind-protect
 	(when (aref hanja-conversions 2)

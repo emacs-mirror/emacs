@@ -1,6 +1,6 @@
-;;; package-x.el --- Package extras
+;;; package-x.el --- Package extras  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
@@ -34,7 +34,7 @@
 ;; (possibly one on a remote machine, accessed via Tramp).
 
 ;; Then call M-x package-upload-file, which prompts for a file to
-;; upload. Alternatively, M-x package-upload-buffer uploads the
+;; upload.  Alternatively, M-x package-upload-buffer uploads the
 ;; current buffer, if it's visiting a package file.
 
 ;; Once a package is uploaded, users can access it via the Package
@@ -182,8 +182,7 @@ if it exists."
     ;; Check if `package-archive-upload-base' is valid.
     (when (or (not (stringp package-archive-upload-base))
 	      (equal package-archive-upload-base
-		     (car-safe
-		      (get 'package-archive-upload-base 'standard-value))))
+		     (custom--standard-value 'package-archive-upload-base)))
       (setq package-archive-upload-base
 	    (read-directory-name
 	     "Base directory for package archive: ")))

@@ -1,6 +1,6 @@
-;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)
+;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2003, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, vc
@@ -34,7 +34,7 @@
 
 ;;;###autoload
 (defun ede-web-browse-home ()
-  "Browse the home page of the current project."
+  "Browse the website of the current project."
   (interactive)
   (if (not (ede-toplevel))
       (error "No project"))
@@ -133,7 +133,7 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 (defun ede-vc-project-directory ()
   "Run `vc-dir' on the current project."
   (interactive)
-  (let ((top (ede-toplevel-project-or-nil default-directory)))
+  (let ((top (ede-toplevel-project default-directory)))
     (vc-dir top nil)))
 
 (provide 'ede/system)

@@ -1,5 +1,5 @@
 /* Interface to Little CMS
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -254,8 +254,7 @@ parse_viewing_conditions (Lisp_Object view, const cmsCIEXYZ *wp,
 #define PARSE_VIEW_CONDITION_INT(field)					\
   if (CONSP (view) && FIXNATP (XCAR (view)))				\
     {									\
-      CHECK_RANGED_INTEGER (XCAR (view), 1, 4);				\
-      vc->field = XFIXNUM (XCAR (view));					\
+      vc->field = check_integer_range (XCAR (view), 1, 4);		\
       view = XCDR (view);						\
     }									\
   else									\

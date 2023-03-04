@@ -1,6 +1,6 @@
-;;; calc-arith.el --- arithmetic functions for Calc
+;;; calc-arith.el --- arithmetic functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -250,44 +250,43 @@
 	     (while (setq p (cdr p))
 	       (and (eq (car-safe (car p)) 'vec)
 		    (setq vec (nth 2 (car p)))
-		    (condition-case err
-			(let ((v (nth 1 (car p))))
-			  (setq type nil range nil)
-			  (or (eq (car-safe vec) 'vec)
-			      (setq vec (list 'vec vec)))
-			  (while (and (setq vec (cdr vec))
-				      (not (Math-objectp (car vec))))
-			    (and (eq (car-safe (car vec)) 'var)
-				 (let ((st (assq (nth 1 (car vec))
-						 math-super-types)))
-				   (cond (st (setq type (append type st)))
-					 ((eq (nth 1 (car vec)) 'pos)
-					  (setq type (append type
-							     '(real number))
-						range
-						'(intv 1 0 (var inf var-inf))))
-					 ((eq (nth 1 (car vec)) 'nonneg)
-					  (setq type (append type
-							     '(real number))
-						range
-						'(intv 3 0
-						       (var inf var-inf))))))))
-			  (if vec
-			      (setq type (append type '(real number))
-				    range (math-prepare-set (cons 'vec vec))))
-			  (setq type (list type range))
-			  (or (eq (car-safe v) 'vec)
-			      (setq v (list 'vec v)))
-			  (while (setq v (cdr v))
-			    (if (or (eq (car-safe (car v)) 'var)
-				    (not (Math-primp (car v))))
-				(setq math-decls-cache
-				      (cons (cons (if (eq (car (car v)) 'var)
-						      (nth 2 (car v))
-						    (car (car v)))
-						  type)
-					    math-decls-cache)))))
-		      (error nil)))))
+		    (ignore-errors
+		      (let ((v (nth 1 (car p))))
+			(setq type nil range nil)
+			(or (eq (car-safe vec) 'vec)
+			    (setq vec (list 'vec vec)))
+			(while (and (setq vec (cdr vec))
+				    (not (Math-objectp (car vec))))
+			  (and (eq (car-safe (car vec)) 'var)
+			       (let ((st (assq (nth 1 (car vec))
+					       math-super-types)))
+				 (cond (st (setq type (append type st)))
+				       ((eq (nth 1 (car vec)) 'pos)
+					(setq type (append type
+							   '(real number))
+					      range
+					      '(intv 1 0 (var inf var-inf))))
+				       ((eq (nth 1 (car vec)) 'nonneg)
+					(setq type (append type
+							   '(real number))
+					      range
+					      '(intv 3 0
+						(var inf var-inf))))))))
+			(if vec
+			    (setq type (append type '(real number))
+				  range (math-prepare-set (cons 'vec vec))))
+			(setq type (list type range))
+			(or (eq (car-safe v) 'vec)
+			    (setq v (list 'vec v)))
+			(while (setq v (cdr v))
+			  (if (or (eq (car-safe (car v)) 'var)
+				  (not (Math-primp (car v))))
+			      (setq math-decls-cache
+				    (cons (cons (if (eq (car (car v)) 'var)
+						    (nth 2 (car v))
+						  (car (car v)))
+						type)
+					  math-decls-cache)))))))))
 	(setq math-decls-all (assq 'var-All math-decls-cache)))))
 
 (defun math-known-scalarp (a &optional assume-scalar)
@@ -2391,7 +2390,7 @@
 			   (math-trunc (nth 3 a)))))
 	((math-provably-integerp a) a)
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-trunc x math-trunc-prec))) a))
+         (math-map-vec (lambda (x) (math-trunc x math-trunc-prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2454,7 +2453,7 @@
 			     (math-add (math-floor (nth 3 a)) -1)
 			   (math-floor (nth 3 a)))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-floor x math-floor-prec))) a))
+         (math-map-vec (lambda (x) (math-floor x math-floor-prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2521,7 +2520,7 @@
 			   (math-ceiling (nth 2 a)))
 			 (math-ceiling (nth 3 a))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-ceiling x prec))) a))
+         (math-map-vec (lambda (x) (math-ceiling x prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2574,7 +2573,7 @@
 	((eq (car a) 'intv)
 	 (math-floor (math-add a '(frac 1 2))))
 	((Math-vectorp a)
-	 (math-map-vec (function (lambda (x) (math-round x prec))) a))
+         (math-map-vec (lambda (x) (math-round x prec)) a))
 	((math-infinitep a)
 	 (if (or (math-posp a) (math-negp a))
 	     a
@@ -2657,7 +2656,7 @@
 		    (calcFunc-scf (nth 2 x) n)
 		    (calcFunc-scf (nth 3 x) n))))
 	    ((eq (car x) 'vec)
-	     (math-map-vec (function (lambda (x) (calcFunc-scf x n))) x))
+             (math-map-vec (lambda (x) (calcFunc-scf x n)) x))
 	    ((math-infinitep x)
 	     x)
 	    (t
@@ -2892,7 +2891,7 @@
 				      (eq a b))
 				 (list 'calcFunc-exp sumpow))
 				(t
-				 (condition-case err
+				 (condition-case nil
 				     (math-pow a sumpow)
 				   (inexact-result (list '^ a sumpow)))))))))
 	    (and math-simplifying-units
@@ -2927,7 +2926,7 @@
 			(math-div 1 (list 'calcFunc-sqrt (math-mul a b))))
 		       (t
 			(setq a (math-mul a b))
-			(condition-case err
+			(condition-case nil
 			    (math-pow a apow)
 			  (inexact-result (list '^ a apow)))))))))))
 

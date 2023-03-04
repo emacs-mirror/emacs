@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000--2020 Free Software Foundation, Inc.
+@c Copyright (C) 2000--2023 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep
 @appendix Emacs and macOS / GNUstep
@@ -154,12 +154,12 @@ titlebar.
 @vindex ns-confirm-quit
 @item ns-confirm-quit
 This variable specifies whether to display a graphical confirmation
-dialogue on quitting.
+dialog on quitting.
 
 @vindex ns-auto-hide-menu-bar
 @item ns-auto-hide-menu-bar
 This variable specifies whether the macOS menu bar is hidden when an
-Emacs frame is selected.  If non-nil the menu bar is not shown unless
+Emacs frame is selected.  If non-@code{nil} the menu bar is not shown unless
 the mouse pointer is moved near to the top of the screen.
 
 @vindex ns-use-native-fullscreen
@@ -178,14 +178,14 @@ These variables only apply to macOS 10.7 (Lion) and above.
 @item ns-use-mwheel-acceleration
 This variable controls whether Emacs ignores the system mousewheel
 acceleration.  When nil each `click' of the mousewheel will correspond
-exactly with one mousewheel event.  When non-nil, the default, each
+exactly with one mousewheel event.  When non-@code{nil}, the default, each
 `click' may correspond with more than one mousewheel event, depending
 on the user's input.
 
 @vindex ns-use-mwheel-momentum
 @item ns-use-mwheel-momentum
 This variable controls whether Emacs ignores the system `momentum'
-when scrolling using a trackpad.  When non-nil, the default, scrolling
+when scrolling using a trackpad.  When non-@code{nil}, the default, scrolling
 rapidly may result in the buffer continuing to scroll for a short
 while after the user has lifted their fingers off the trackpad.
 
@@ -223,6 +223,7 @@ keystrokes.  Here is a list of these events.
 
 @table @key
 @item ns-open-file
+@cindex ns-open-file event
 @vindex ns-pop-up-frames
 This event occurs when another Nextstep application requests that
 Emacs open a file.  A typical reason for this would be a user
@@ -239,58 +240,35 @@ means to always visit the file in a new frame.  A value of @code{nil}
 means to always visit the file in the selected frame.
 
 @item ns-open-temp-file
+@cindex ns-open-temp-file event
 This event occurs when another application requests that Emacs open a
 temporary file.  By default, this is handled by just generating a
 @code{ns-open-file} event, the results of which are described above.
 
 @item ns-open-file-line
+@cindex ns-open-file-line event
 Some applications, such as ProjectBuilder and gdb, request not only a
 particular file, but also a particular line or sequence of lines in
 the file.  Emacs handles this by visiting that file and highlighting
 the requested line (@code{ns-open-file-select-line}).
 
-@item ns-drag-n-drop
-This event occurs when a user drags an object from another application
-into an Emacs frame.  The default behavior is to open a file in the
-window under the mouse, or to insert text at point of the window under
-the mouse.
-
-The sending application has some limited ability to decide how Emacs
-handles the sent object, but the user may override the default
-behavior by holding one or more modifier key.
-
-@table @kbd
-@item control
-Insert as text in the current buffer.  If the object is a file, this
-will insert the filename.
-@item alt/option
-Attempt to open the object as though it is a file or URL.
-@item super/command
-Perform the default action for the type.  This can be useful when an
-application is overriding the default behavior.
-@end table
-
-The modifier keys listed above are defined by macOS and are unaffected
-by user changes to the modifiers in Emacs.
-
-@item ns-change-font
-This event occurs when the user selects a font in a Nextstep font
-panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
-to adjust the font of the selected frame
-(@code{ns-respond-to-changefont}).  The name and size of the selected
-font are stored in the variables @code{ns-input-font} and
-@code{ns-input-fontsize}, respectively.
-
 @item ns-power-off
+@cindex ns-power-off event
 This event occurs when the user logs out and Emacs is still running, or when
 ``Quit Emacs'' is chosen from the application menu.
 The default behavior is to save all file-visiting buffers.
+
+@item ns-show-prefs
+@cindex ns-show-prefs event
+This event occurs when the user selects ``Preferences'' from the
+application menu.  By default, it is bound to the command
+@code{customize}.
 @end table
 
 @cindex using Nextstep services (macOS)
   Emacs also allows users to make use of Nextstep services, via a set
 of commands whose names begin with @samp{ns-service-} and end with the
-name of the service.  Type @kbd{M-x ns-service-@key{TAB}} to
+name of the service.  Type @kbd{M-x ns-service- @key{TAB}} to
 see a list of these commands.  These functions either operate on
 marked text (replacing it with the result) or take a string argument
 and return the result as a string.  You can also use the Lisp function

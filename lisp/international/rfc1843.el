@@ -1,6 +1,6 @@
-;;; rfc1843.el --- HZ (rfc1843) decoding  -*- lexical-binding:t -*-
+;;; rfc1843.el --- HZ (RFC 1843) decoding  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news HZ HZ+ mail i18n
@@ -22,6 +22,9 @@
 
 ;;; Commentary:
 
+;; HZ (RFC 1843) decoding.  HZ is a data format for exchanging files
+;; of arbitrarily mixed Chinese and ASCII characters.
+;;
 ;; Test:
 ;; (rfc1843-decode-string  "~{<:Ky2;S{#,NpJ)l6HK!#~}")
 

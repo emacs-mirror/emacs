@@ -170,7 +170,7 @@
 2015-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-convert-shr-links): Don't overwrite the faces from
-	shr, beacause that breaks folding.
+	shr, because that breaks folding.
 	(mm-shr): Don't shorten the width when using fonts.
 
 2015-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -596,7 +596,7 @@
 
 2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.
+	* gnus-art.el (gnus-article-edit-part): Don't modify markers.
 	(gnus-article-read-summary-keys):
 	Don't bug out when there is no article in the summary buffer.
 	(gnus-mime-buttonize-attachments-in-header):
@@ -655,7 +655,7 @@
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-fun.el (gnus-grab-cam-face):
-	Do not use predictable temp-file name.  (http://bugs.debian.org/747100)
+	Do not use predictable temp-file name.  (https://bugs.debian.org/747100)
 	This is CVE-2014-3421.
 
 2014-05-04  Glenn Morris  <rgm@gnu.org>
@@ -1318,7 +1318,7 @@
 2013-08-06  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event-from-ical): Replace pcase
-	with cond for backwards compatability.
+	with cond for backwards compatibility.
 
 2013-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -2221,7 +2221,7 @@
 
 2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mml.el (mml-minibuffer-read-description): Use `default' insted of
+	* mml.el (mml-minibuffer-read-description): Use `default' instead of
 	`initial-input' for the argument name.
 	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 
@@ -4243,7 +4243,7 @@
 	* gnus-msg.el (gnus-inews-do-gcc):
 	* message.el (message-send-mail):
 	* mml.el (mml-generate-mime): Share the value of the buffer-local
-	`message-options' variable between a draft buffer and temprary working
+	`message-options' variable between a draft buffer and temporary working
 	buffers.
 
 2011-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4902,7 +4902,7 @@
 2011-07-31  Marcus Harnisch  <marcus.harnisch@gmx.net>  (tiny change)
 
 	* gnus-art.el (gnus-article-stop-animations): Use `elt' instead of
-	`aref' for XEmacs compatibiltiy.
+	`aref' for XEmacs compatibility.
 
 2011-07-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -5541,7 +5541,7 @@
 	(registry-prune-hard): Use it.
 
 	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
-	0.1 expicitly.
+	0.1 explicitly.
 
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
@@ -6032,7 +6032,7 @@
 	Make `default' the default, for compatibility with open-network-stream.
 	Handle the no-parameter case exactly as open-network-stream, with no
 	additional stream processing.  Search plists using plist-get.
-	Explicitly add :end-of-commend parameter if it is missing.
+	Explicitly add :end-of-comment parameter if it is missing.
 	(proto-stream-open-default): Rename from
 	proto-stream-open-network-only.  Return 'default as the type.
 	(proto-stream-open-starttls): Rename from proto-stream-open-network.
@@ -7385,7 +7385,7 @@
 2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
-	backends after sanitising on entry, because this never makes sense:
+	backends after sanitizing on entry, because this never makes sense:
 	If the articles have gone missing, then the data no longer exists on
 	the backend, and if they haven't, then Gnus is wrong, and shouldn't
 	overwrite anything anyway.
@@ -8758,7 +8758,7 @@
 
 	* shr.el (shr-generic): The text nodes should be text, not :text.
 
-	* nnir.el (nnir-search-engine): Ressurect variable, since it's used
+	* nnir.el (nnir-search-engine): Resurrect variable, since it's used
 	later in the file.
 
 2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
@@ -9481,7 +9481,7 @@
 	nil.
 
 	* gnus-start.el (gnus-get-unread-articles): Require gnus-agent before
-	bidning gnus-agent variables.
+	binding gnus-agent variables.
 
 	* shr.el (shr-render-td): Use a cache for the table rendering function
 	to avoid getting an exponential rendering behavior in nested tables.
@@ -10876,7 +10876,7 @@
 2010-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-line-format-alist): Have the ?U (unseen)
-	spec inser "*" if the group isn't active instead of 0.
+	spec insert "*" if the group isn't active instead of 0.
 
 	* nnimap.el (nnimap-request-group): Don't select the imap buffer before
 	opening the server.
@@ -11763,7 +11763,7 @@
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Ensure that the directory
-	where the dribbel file lives exists.
+	where the dribble file lives exists.
 
 	* message.el (message-send-mail-partially-limit): Change the default to
 	nil, since most people don't want this.
@@ -11849,7 +11849,7 @@
 
 2010-08-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	Doc fixes and keep unknown groups (ammended for nunion bug fix).
+	Doc fixes and keep unknown groups (amended for nunion bug fix).
 
 	* gnus-sync.el: Fix docs.
 	(gnus-sync-save): Keep unknown groups in `gnus-sync-newsrc-loader'.
@@ -17348,7 +17348,7 @@
 	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
 	New function.
 	(rfc2047-encode-message-header, rfc2047-encode-region): Use it.
-	(rfc2047-strip-backslashes-in-quoted-strings): New fnction.
+	(rfc2047-strip-backslashes-in-quoted-strings): New function.
 	(rfc2047-decode-region): Use it; add optional argument `address-mime'.
 	(rfc2047-decode-string): Ditto.
 	(rfc2047-decode-address-region): New function.
@@ -18925,7 +18925,7 @@
 	* message.el: Autoload gmm-image-load-path.
 	(message-tool-bar-retro): Prepend "gnus/" subdirectory to some
 	icon file names.  Use old Emacs 21 "mail_send.xpm" icon for
-	consitency.
+	consistency.
 
 	* gmm-utils.el (gmm-image-load-path): Also search in
 	"../etc/images".  Don't set gmm-image-load-path if we don't find
@@ -19523,7 +19523,7 @@
 
 	* nnml.el: Don't require gnus-bcklg.  Autoload it.
 	(nnml-use-compressed-files, nnml-save-mail): Support other
-	comression programs such as bzip2.
+	compression programs such as bzip2.
 
 2005-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -21227,7 +21227,7 @@
 	(nntp-with-open-group): Allow debugging.
 
 	* nnheader.el (mail-header-set-extra): Make into a function
-	because I just could't understand how to quote the list properly.
+	because I just couldn't understand how to quote the list properly.
 
 	* dns.el (query-dns-cached): New function.
 
@@ -21361,7 +21361,7 @@
 	to get all the groups a message ID is in.
 
 	* spam-stat.el (spam-stat-split-fancy-spam-threshold)
-	(spam-stat-split-fancy): Change "threshhold" to "threshold".
+	(spam-stat-split-fancy): Fix typo for "threshold".
 	(spam-stat-score-buffer-user-functions): Add :number custom type.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -22675,7 +22675,8 @@
 	* nnspool.el (nnspool-spool-directory): Use news-directory instead
 	of news-path.
 
-	* spam-stat.el (spam-stat-unload-hook): Set as a variable w/ add-hook.
+	* spam-stat.el (spam-stat-unload-hook): Set as a variable with
+	add-hook.
 
 	* spam.el: Delete duplicate `provide'.
 	(spam-unload-hook): Set as a variable with add-hook.
@@ -23276,7 +23277,7 @@
 	Signal a specific `search-failed' rather than a generic `error'.
 
 	* gnus-salt.el (gnus-pick-mouse-pick-region): Switch 1 => point-min.
-	(gnus-generate-vertical-tree): Usue `bobp' rather than compare to 1.
+	(gnus-generate-vertical-tree): Use `bobp' rather than compare to 1.
 	(gnus-highlight-selected-tree): Use point-min rather than 1 and 2.
 
 2004-09-10  Simon Josefsson  <jas@extundo.com>
@@ -24966,7 +24967,7 @@
 	functions as needing (default), or not needing,
 	gnus-convert-old-newsrc's "backup before upgrading warning".
 	(gnus-convert-converter-needs-prompt): Tests whether the user
-	should be protected from potentially irreversable changes by the
+	should be protected from potentially irreversible changes by the
 	function.
 
 	* legacy-gnus-agent.el: New.  Provides converters that are only
@@ -26325,7 +26326,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2020 Free Software Foundation, Inc.
+  Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

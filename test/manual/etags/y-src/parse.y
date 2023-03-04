@@ -1,5 +1,5 @@
 %{
-/*	Copyright (C) 1990, 1992-1993, 2016-2020 Free Software Foundation,
+/*	Copyright (C) 1990, 1992-1993, 2016-2023 Free Software Foundation,
  *	Inc.
 
 This file is part of Oleo, the GNU Spreadsheet.
@@ -556,7 +556,7 @@ yylex FUN0()
 			}
 #ifdef TEST
 			if(nn==n_usr_funs) {
-				io_error_msg("Couln't turn fp into a ##");
+				io_error_msg("Couldn't turn fp into a ##");
 				parse_error=BAD_FUNC;
 				return ERROR;
 			}

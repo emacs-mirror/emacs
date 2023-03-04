@@ -1,4 +1,4 @@
-;;; sinhala.el --- support for Sinhala -*- coding: utf-8 -*-
+;;; sinhala.el --- support for Sinhala -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -20,6 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -43,6 +45,6 @@
 	 "[\u0D85-\u0D96][\u0D82-\u0D83]?\\|"
 	 ;; any other singleton characters
 	 "[\u0D80-\u0DFF]")
-	0 'font-shape-gstring)))
+	0 #'font-shape-gstring)))
 
-;; sinhala.el ends here
+;;; sinhala.el ends here

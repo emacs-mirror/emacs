@@ -1,6 +1,6 @@
-;;; gnus-picon.el --- displaying pretty icons in Gnus
+;;; gnus-picon.el --- displaying pretty icons in Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news xpm annotation glyph faces
@@ -112,7 +112,7 @@ List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")
   (let* ((address (gnus-picon-split-address address))
 	 (user (pop address))
 	 (faddress address)
-	 database directory result instance base)
+	 result base) ;; database directory instance
     (catch 'found
       (dolist (database gnus-picon-databases)
 	(dolist (directory directories)
@@ -120,7 +120,7 @@ List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")
 		base (expand-file-name directory database))
 	  (while address
 	    (when (setq result (gnus-picon-find-image
-				(concat base "/" (mapconcat 'downcase
+				(concat base "/" (mapconcat #'downcase
 							    (reverse address)
 							    "/")
 					"/" (downcase user) "/")))
@@ -158,7 +158,7 @@ replacement is added."
 
 (defun gnus-picon-create-glyph (file)
   (or (cdr (assoc file gnus-picon-glyph-alist))
-      (cdar (push (cons file (apply 'gnus-create-image
+      (cdar (push (cons file (apply #'gnus-create-image
 				    file nil nil
 				    gnus-picon-properties))
 		  gnus-picon-glyph-alist))))
@@ -190,7 +190,7 @@ replacement is added."
 				(gnus-picon-find-face
 				 (concat "unknown@"
 					 (mapconcat
-					  'identity (cdr spec) "."))
+					  #'identity (cdr spec) "."))
 				 gnus-picon-user-directories)))
 	     (setcar spec (cons (gnus-picon-create-glyph file)
 				(car spec))))
@@ -201,7 +201,7 @@ replacement is added."
 	     (when (setq file (gnus-picon-find-face
 			       (concat "unknown@"
 				       (mapconcat
-					'identity (nthcdr (1+ i) spec) "."))
+					#'identity (nthcdr (1+ i) spec) "."))
 			       gnus-picon-domain-directories t))
 	       (setcar (nthcdr (1+ i) spec)
 		       (cons (gnus-picon-create-glyph file)
@@ -214,18 +214,19 @@ replacement is added."
 	 (cl-case gnus-picon-style
 	       (right
 		(when (= (length addresses) 1)
-		  (setq len (apply '+ (mapcar (lambda (x)
-						(condition-case nil
-						    (car (image-size (car x)))
-						  (error 0))) spec)))
+		  (setq len (apply #'+ (mapcar (lambda (x)
+						 (condition-case nil
+						     (car (image-size (car x)))
+						   (error 0)))
+					       spec)))
 		  (when (> len 0)
-		    (goto-char (point-at-eol))
+                    (goto-char (line-end-position))
 		    (insert (propertize
 			     " " 'display
 			     (cons 'space
 				   (list :align-to (- (window-width) 1 len))))))
-		  (goto-char (point-at-eol))
-		  (setq point (point-at-eol))
+                  (goto-char (line-end-position))
+                  (setq point (line-end-position))
 		  (dolist (image spec)
 		    (unless (stringp image)
 		      (goto-char point)
@@ -243,12 +244,12 @@ replacement is added."
 		     (gnus-picon-insert-glyph (pop spec) category))))))))))
 
 (defun gnus-picon-transform-newsgroups (header)
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-with-article-headers
    (gnus-article-goto-header header)
    (mail-header-narrow-to-field)
    (let ((groups (message-tokenize-header (mail-fetch-field header)))
-	 spec file point)
+	 spec file) ;; point
      (dolist (group groups)
        (unless (setq spec (cdr (assoc group gnus-picon-cache)))
 	 (setq spec (nreverse (split-string group "[.]")))
@@ -256,7 +257,7 @@ replacement is added."
 	   (when (setq file (gnus-picon-find-face
 			     (concat "unknown@"
 				     (mapconcat
-				      'identity (nthcdr i spec) "."))
+				      #'identity (nthcdr i spec) "."))
 			     gnus-picon-news-directories t))
 	     (setcar (nthcdr i spec)
 		     (cons (gnus-picon-create-glyph file)
@@ -282,7 +283,7 @@ replacement is added."
 (defun gnus-treat-from-picon ()
   "Display picons in the From header.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'from-picon gnus-article-wash-types))
@@ -293,7 +294,7 @@ If picons are already displayed, remove them."
 (defun gnus-treat-mail-picon ()
   "Display picons in the Cc and To headers.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'mail-picon gnus-article-wash-types))
@@ -305,7 +306,7 @@ If picons are already displayed, remove them."
 (defun gnus-treat-newsgroups-picon ()
   "Display picons in the Newsgroups and Followup-To headers.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'newsgroups-picon gnus-article-wash-types))

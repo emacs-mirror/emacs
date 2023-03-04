@@ -1,17 +1,17 @@
 /* Open a descriptor to a file.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>, 2007.  */
@@ -30,7 +30,11 @@
 static int
 orig_open (const char *filename, int flags, mode_t mode)
 {
+#if defined _WIN32 && !defined __CYGWIN__
+  return _open (filename, flags, mode);
+#else
   return open (filename, flags, mode);
+#endif
 }
 
 /* Specification.  */
@@ -124,7 +128,7 @@ open (const char *filename, int flags, ...)
 #endif
 
   fd = orig_open (filename,
-                  flags & ~(have_cloexec <= 0 ? O_CLOEXEC : 0), mode);
+                  flags & ~(have_cloexec < 0 ? O_CLOEXEC : 0), mode);
 
   if (flags & O_CLOEXEC)
     {

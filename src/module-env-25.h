@@ -80,13 +80,13 @@
     EMACS_ATTRIBUTE_NONNULL(1);
 
   /* Copy the content of the Lisp string VALUE to BUFFER as an utf8
-     NUL-terminated string.
+     null-terminated string.
 
      SIZE must point to the total size of the buffer.  If BUFFER is
      NULL or if SIZE is not big enough, write the required buffer size
      to SIZE and return true.
 
-     Note that SIZE must include the last NUL byte (e.g. "abc" needs
+     Note that SIZE must include the last null byte (e.g. "abc" needs
      a buffer of size 4).
 
      Return true if the string was successfully copied.  */

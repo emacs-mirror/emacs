@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1991--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -524,8 +524,8 @@ you can use in PCL-CVS@.  They are grouped together by type.
 Most commands in PCL-CVS require that you have a @file{*cvs*}
 buffer.  The commands that you use to get one are listed below.
 For each, a @samp{cvs} process will be run, the output will be parsed by
-PCL-CVS, and the result will be printed in the @file{*cvs*} buffer (see
-@ref{Buffer contents}, for a description of the buffer's contents).
+PCL-CVS, and the result will be printed in the @file{*cvs*} buffer
+(@pxref{Buffer contents}, for a description of the buffer's contents).
 
 @table @kbd
 @item M-x cvs-update
@@ -839,7 +839,7 @@ files.
 @item f
 Find the file that the cursor points to (@code{cvs-mode-find-file}).  If
 the cursor points to a directory, run @code{dired} on that directory;
-@inforef{Dired, , emacs}.
+@pxref{Dired, Emacs Manual, , emacs}.
 
 @item o
 Like @kbd{f}, but use another window
@@ -1389,7 +1389,7 @@ bugs, please report them separately.
 If you have problems using PCL-CVS or other questions, send them to
 the @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
 help-gnu-emacs mailing list}.  This is a good place to get help, as is
-the @url{http://lists.nongnu.org/mailman/listinfo/info-cvs, info-cvs list}.
+the @url{https://lists.nongnu.org/mailman/listinfo/info-cvs, info-cvs list}.
 
 If you have ideas for improvements, or if you have written some
 extensions to this package, we would like to hear from you.  We hope that

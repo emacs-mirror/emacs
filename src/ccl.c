@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -33,6 +33,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
+#include "keyboard.h"
+
+/* Avoid GCC 12 bug <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105784>.  */
+#if GNUC_PREREQ (12, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
+#endif
 
 /* Table of registered CCL programs.  Each element is a vector of
    NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the
@@ -855,6 +861,13 @@ struct ccl_prog_stack
 /* For the moment, we only support depth 256 of stack.  */
 static struct ccl_prog_stack ccl_prog_stack_struct[256];
 
+/* Return a translation table of id number ID.  */
+static inline Lisp_Object
+GET_TRANSLATION_TABLE (int id)
+{
+  return XCDR (XVECTOR (Vtranslation_table_vector)->contents[id]);
+}
+
 void
 ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size, int dst_size, Lisp_Object charset_list)
 {
@@ -1135,19 +1148,52 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_expr_self:
 	  switch (op)
 	    {
-	    case CCL_PLUS: reg[rrr] += i; break;
-	    case CCL_MINUS: reg[rrr] -= i; break;
-	    case CCL_MUL: reg[rrr] *= i; break;
-	    case CCL_DIV: reg[rrr] /= i; break;
-	    case CCL_MOD: reg[rrr] %= i; break;
+	    case CCL_PLUS: INT_ADD_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_MINUS: INT_SUBTRACT_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_MUL: INT_MULTIPLY_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_DIV:
+	      if (!i)
+		CCL_INVALID_CMD;
+	      if (!INT_DIVIDE_OVERFLOW (reg[rrr], i))
+		reg[rrr] /= i;
+	      break;
+	    case CCL_MOD:
+	      if (!i)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i == -1 ? 0 : reg[rrr] % i;
+	      break;
 	    case CCL_AND: reg[rrr] &= i; break;
 	    case CCL_OR: reg[rrr] |= i; break;
 	    case CCL_XOR: reg[rrr] ^= i; break;
-	    case CCL_LSH: reg[rrr] <<= i; break;
-	    case CCL_RSH: reg[rrr] >>= i; break;
-	    case CCL_LSH8: reg[rrr] <<= 8; reg[rrr] |= i; break;
+	    case CCL_LSH:
+	      if (i < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i < UINT_WIDTH ? (unsigned) reg[rrr] << i : 0;
+	      break;
+	    case CCL_RSH:
+	      if (i < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = reg[rrr] >> min (i, INT_WIDTH - 1);
+	      break;
+	    case CCL_LSH8:
+	      reg[rrr] = (unsigned) reg[rrr] << 8;
+	      reg[rrr] |= i;
+	      break;
 	    case CCL_RSH8: reg[7] = reg[rrr] & 0xFF; reg[rrr] >>= 8; break;
-	    case CCL_DIVMOD: reg[7] = reg[rrr] % i; reg[rrr] /= i; break;
+	    case CCL_DIVMOD:
+	      if (!i)
+		CCL_INVALID_CMD;
+	      if (i == -1)
+		{
+		  reg[7] = 0;
+		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		}
+	      else
+		{
+		  reg[7] = reg[rrr] % i;
+		  reg[rrr] /= i;
+		}
+	      break;
 	    case CCL_LS: reg[rrr] = reg[rrr] < i; break;
 	    case CCL_GT: reg[rrr] = reg[rrr] > i; break;
 	    case CCL_EQ: reg[rrr] = reg[rrr] == i; break;
@@ -1197,19 +1243,52 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_set_expr:
 	  switch (op)
 	    {
-	    case CCL_PLUS: reg[rrr] = i + j; break;
-	    case CCL_MINUS: reg[rrr] = i - j; break;
-	    case CCL_MUL: reg[rrr] = i * j; break;
-	    case CCL_DIV: reg[rrr] = i / j; break;
-	    case CCL_MOD: reg[rrr] = i % j; break;
+	    case CCL_PLUS: INT_ADD_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_MINUS: INT_SUBTRACT_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_MUL: INT_MULTIPLY_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_DIV:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      if (!INT_DIVIDE_OVERFLOW (i, j))
+		i /= j;
+	      reg[rrr] = i;
+	      break;
+	    case CCL_MOD:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      reg[rrr] = j == -1 ? 0 : i % j;
+	      break;
 	    case CCL_AND: reg[rrr] = i & j; break;
 	    case CCL_OR: reg[rrr] = i | j; break;
 	    case CCL_XOR: reg[rrr] = i ^ j; break;
-	    case CCL_LSH: reg[rrr] = i << j; break;
-	    case CCL_RSH: reg[rrr] = i >> j; break;
-	    case CCL_LSH8: reg[rrr] = (i << 8) | j; break;
+	    case CCL_LSH:
+	      if (j < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = j < UINT_WIDTH ? (unsigned) i << j : 0;
+	      break;
+	    case CCL_RSH:
+	      if (j < 0)
+		CCL_INVALID_CMD;
+	      reg[rrr] = i >> min (j, INT_WIDTH - 1);
+	      break;
+	    case CCL_LSH8:
+	      reg[rrr] = ((unsigned) i << 8) | j;
+	      break;
 	    case CCL_RSH8: reg[rrr] = i >> 8; reg[7] = i & 0xFF; break;
-	    case CCL_DIVMOD: reg[rrr] = i / j; reg[7] = i % j; break;
+	    case CCL_DIVMOD:
+	      if (!j)
+		CCL_INVALID_CMD;
+	      if (j == -1)
+		{
+		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  reg[7] = 0;
+		}
+	      else
+		{
+		  reg[rrr] = i / j;
+		  reg[7] = i % j;
+		}
+	      break;
 	    case CCL_LS: reg[rrr] = i < j; break;
 	    case CCL_GT: reg[rrr] = i > j; break;
 	    case CCL_EQ: reg[rrr] = i == j; break;
@@ -1218,7 +1297,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    case CCL_NE: reg[rrr] = i != j; break;
 	    case CCL_DECODE_SJIS:
 	      {
-		i = (i << 8) | j;
+		i = ((unsigned) i << 8) | j;
 		SJIS_TO_JIS (i);
 		reg[rrr] = i >> 8;
 		reg[7] = i & 0xFF;
@@ -1226,7 +1305,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      }
 	    case CCL_ENCODE_SJIS:
 	      {
-		i = (i << 8) | j;
+		i = ((unsigned) i << 8) | j;
 		JIS_TO_SJIS (i);
 		reg[rrr] = i >> 8;
 		reg[7] = i & 0xFF;
@@ -1301,7 +1380,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    if (! (IN_INT_RANGE (eop) && CHARACTERP (opl)))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = charset_unicode;
-		    reg[rrr] = eop;
+		    reg[rrr] = XFIXNUM (opl);
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
@@ -1908,7 +1987,7 @@ ccl_get_compiled_code (Lisp_Object ccl_prog, ptrdiff_t *idx)
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of CCL program CCL_PROG.  CCL_PROG is the name (symbol)
    of the CCL program or the already compiled code (vector).
-   Return true iff successful.
+   Return true if successful.
 
    If CCL_PROG is nil, just reset the structure pointed by CCL.  */
 bool
@@ -2101,7 +2180,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  source[j++] = *p++;
       else
 	while (j < CCL_EXECUTE_BUF_SIZE && p < endp)
-	  source[j++] = STRING_CHAR_ADVANCE (p);
+	  source[j++] = string_char_advance (&p);
       consumed_chars += j;
       consumed_bytes = p - SDATA (str);
 
@@ -2126,7 +2205,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  if (NILP (unibyte_p))
 	    {
 	      for (j = 0; j < ccl.produced; j++)
-		CHAR_STRING_ADVANCE (destination[j], outp);
+		outp += CHAR_STRING (destination[j], outp);
 	    }
 	  else
 	    {
@@ -2212,15 +2291,8 @@ Return index number of the registered CCL program.  */)
     /* Extend the table.  */
     Vccl_program_table = larger_vector (Vccl_program_table, 1, -1);
 
-  {
-    Lisp_Object elt = make_uninit_vector (4);
-
-    ASET (elt, 0, name);
-    ASET (elt, 1, ccl_prog);
-    ASET (elt, 2, resolved);
-    ASET (elt, 3, Qt);
-    ASET (Vccl_program_table, idx, elt);
-  }
+  ASET (Vccl_program_table, idx,
+	CALLN (Fvector, name, ccl_prog, resolved, Qt));
 
   Fput (name, Qccl_program_idx, make_fixnum (idx));
   return make_fixnum (idx);

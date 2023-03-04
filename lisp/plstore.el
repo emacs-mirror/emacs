@@ -1,5 +1,6 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: PGP, GnuPG
@@ -19,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; Plist based data store providing search and partial encryption.
 ;;
@@ -82,7 +83,7 @@
 (require 'epg)
 
 (defgroup plstore nil
-  "Searchable, partially encrypted, persistent plist store"
+  "Searchable, partially encrypted, persistent plist store."
   :version "24.1"
   :group 'files)
 
@@ -106,6 +107,7 @@ symmetric encryption will be used."
   :type '(choice (const nil) (repeat :tag "Recipient(s)" string))
   :group 'plstore)
 
+;;;###autoload
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)
        (or (stringp val)

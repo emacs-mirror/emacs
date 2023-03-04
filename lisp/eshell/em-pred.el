@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -63,43 +63,42 @@ ordinary strings."
 (defcustom eshell-pred-load-hook nil
   "A list of functions to run when `eshell-pred' is loaded."
   :version "24.1"			; removed eshell-pred-initialize
-  :type 'hook
-  :group 'eshell-pred)
+  :type 'hook)
 
 (defcustom eshell-predicate-alist
   '((?/ . (eshell-pred-file-type ?d))   ; directories
     (?. . (eshell-pred-file-type ?-))   ; regular files
-    (?s . (eshell-pred-file-type ?s))   ; sockets
+    (?= . (eshell-pred-file-type ?s))   ; sockets
     (?p . (eshell-pred-file-type ?p))   ; named pipes
     (?@ . (eshell-pred-file-type ?l))   ; symbolic links
     (?% . (eshell-pred-file-type ?%))   ; allow user to specify (c def.)
-    (?r . (eshell-pred-file-mode 0400)) ; owner-readable
-    (?w . (eshell-pred-file-mode 0200)) ; owner-writable
-    (?x . (eshell-pred-file-mode 0100)) ; owner-executable
-    (?A . (eshell-pred-file-mode 0040)) ; group-readable
-    (?I . (eshell-pred-file-mode 0020)) ; group-writable
-    (?E . (eshell-pred-file-mode 0010)) ; group-executable
-    (?R . (eshell-pred-file-mode 0004)) ; world-readable
-    (?W . (eshell-pred-file-mode 0002)) ; world-writable
-    (?X . (eshell-pred-file-mode 0001)) ; world-executable
-    (?s . (eshell-pred-file-mode 4000)) ; setuid
-    (?S . (eshell-pred-file-mode 2000)) ; setgid
-    (?t . (eshell-pred-file-mode 1000)) ; sticky bit
-    (?U . #'(lambda (file)                   ; owned by effective uid
-              (if (file-exists-p file)
-                  (= (file-attribute-user-id (file-attributes file))
-		     (user-uid)))))
-    ;; (?G . #'(lambda (file)               ; owned by effective gid
-    ;;          (if (file-exists-p file)
-    ;;              (= (file-attribute-user-id (file-attributes file))
-    ;;                 (user-uid)))))
-    (?* . #'(lambda (file)
-              (and (file-regular-p file)
-                   (not (file-symlink-p file))
-                   (file-executable-p file))))
+    (?r . (eshell-pred-file-mode #o0400)) ; owner-readable
+    (?w . (eshell-pred-file-mode #o0200)) ; owner-writable
+    (?x . (eshell-pred-file-mode #o0100)) ; owner-executable
+    (?A . (eshell-pred-file-mode #o0040)) ; group-readable
+    (?I . (eshell-pred-file-mode #o0020)) ; group-writable
+    (?E . (eshell-pred-file-mode #o0010)) ; group-executable
+    (?R . (eshell-pred-file-mode #o0004)) ; world-readable
+    (?W . (eshell-pred-file-mode #o0002)) ; world-writable
+    (?X . (eshell-pred-file-mode #o0001)) ; world-executable
+    (?s . (eshell-pred-file-mode #o4000)) ; setuid
+    (?S . (eshell-pred-file-mode #o2000)) ; setgid
+    (?t . (eshell-pred-file-mode #o1000)) ; sticky bit
+    (?U . (lambda (file)                   ; owned by effective uid
+            (if (file-exists-p file)
+                (= (file-attribute-user-id (file-attributes file))
+                   (user-uid)))))
+    (?G . (lambda (file)               ; owned by effective gid
+            (if (file-exists-p file)
+                (= (file-attribute-group-id (file-attributes file))
+                   (group-gid)))))
+    (?* . (lambda (file)
+            (and (file-regular-p file)
+                 (not (file-symlink-p file))
+                 (file-executable-p file))))
     (?l . (eshell-pred-file-links))
-    (?u . (eshell-pred-user-or-group ?u "user" 2 'eshell-user-id))
-    (?g . (eshell-pred-user-or-group ?g "group" 3 'eshell-group-id))
+    (?u . (eshell-pred-user-or-group ?u "user" 2 #'eshell-user-id))
+    (?g . (eshell-pred-user-or-group ?g "group" 3 #'eshell-group-id))
     (?a . (eshell-pred-file-time ?a "access" 4))
     (?m . (eshell-pred-file-time ?m "modification" 5))
     (?c . (eshell-pred-file-time ?c "change" 6))
@@ -109,34 +108,26 @@ The format of each entry is
 
   (CHAR . PREDICATE-FUNC-SEXP)"
   :type '(repeat (cons character sexp))
-  :group 'eshell-pred)
-
-(put 'eshell-predicate-alist 'risky-local-variable t)
+  :risky t)
 
 (defcustom eshell-modifier-alist
-  '((?E . #'(lambda (lst)
-              (mapcar
-               (function
-                (lambda (str)
-                  (eshell-stringify
-                   (car (eshell-parse-argument str)))))
-               lst)))
-    (?L . #'(lambda (lst) (mapcar 'downcase lst)))
-    (?U . #'(lambda (lst) (mapcar 'upcase lst)))
-    (?C . #'(lambda (lst) (mapcar 'capitalize lst)))
-    (?h . #'(lambda (lst) (mapcar 'file-name-directory lst)))
-    (?i . (eshell-include-members))
-    (?x . (eshell-include-members t))
-    (?r . #'(lambda (lst) (mapcar 'file-name-sans-extension lst)))
-    (?e . #'(lambda (lst) (mapcar 'file-name-extension lst)))
-    (?t . #'(lambda (lst) (mapcar 'file-name-nondirectory lst)))
-    (?q . #'(lambda (lst) (mapcar 'eshell-escape-arg lst)))
-    (?u . #'(lambda (lst) (eshell-uniquify-list lst)))
-    (?o . #'(lambda (lst) (sort lst 'string-lessp)))
-    (?O . #'(lambda (lst) (nreverse (sort lst 'string-lessp))))
+  '((?E . (lambda (lst) (mapcar #'eshell-eval-argument lst)))
+    (?L . (lambda (lst) (mapcar #'downcase lst)))
+    (?U . (lambda (lst) (mapcar #'upcase lst)))
+    (?C . (lambda (lst) (mapcar #'capitalize lst)))
+    (?h . (lambda (lst) (mapcar #'file-name-directory lst)))
+    (?i . (eshell-include-members ?i))
+    (?x . (eshell-include-members ?x t))
+    (?r . (lambda (lst) (mapcar #'file-name-sans-extension lst)))
+    (?e . (lambda (lst) (mapcar #'file-name-extension lst)))
+    (?t . (lambda (lst) (mapcar #'file-name-nondirectory lst)))
+    (?q . (lambda (lst) (mapcar #'eshell-escape-arg lst)))
+    (?u . (lambda (lst) (seq-uniq lst)))
+    (?o . (lambda (lst) (sort lst #'string-lessp)))
+    (?O . (lambda (lst) (sort lst #'string-greaterp)))
     (?j . (eshell-join-members))
     (?S . (eshell-split-members))
-    (?R . 'reverse)
+    (?R . #'reverse)
     (?g . (progn
 	    (forward-char)
 	    (if (eq (char-before) ?s)
@@ -146,11 +137,9 @@ The format of each entry is
   "A list of modifiers than can be applied to an argument expansion.
 The format of each entry is
 
-  (CHAR ENTRYWISE-P MODIFIER-FUNC-SEXP)"
+  (CHAR . MODIFIER-FUNC-SEXP)"
   :type '(repeat (cons character sexp))
-  :group 'eshell-pred)
-
-(put 'eshell-modifier-alist 'risky-local-variable t)
+  :risky t)
 
 (defvar eshell-predicate-help-string
   "Eshell predicate quick reference:
@@ -172,6 +161,7 @@ PERMISSION BITS (for owner/group/world):
 
 OWNERSHIP:
   U               owned by effective uid
+  G               owned by effective gid
   u(UID|\\='user\\=')   owned by UID/user
   g(GID|\\='group\\=')  owned by GID/group
 
@@ -223,33 +213,45 @@ FOR LISTS OF ARGUMENTS:
   i/PAT/  exclude all members not matching PAT
   x/PAT/  exclude all members matching PAT
 
-  s/pat/match/  substitute PAT with MATCH
-  g/pat/match/  substitute PAT with MATCH for all occurrences
+  s/pat/match/   substitute PAT with MATCH
+  gs/pat/match/  substitute PAT with MATCH for all occurrences
 
 EXAMPLES:
   *.c(:o)  sorted list of .c files")
 
-(defvar eshell-pred-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-q") #'eshell-display-predicate-help)
-    (define-key map (kbd "C-c M-m") #'eshell-display-modifier-help)
-    map))
+(defvar eshell-pred-delimiter-pairs
+  '((?\( . ?\))
+    (?\[ . ?\])
+    (?\< . ?\>)
+    (?\{ . ?\})
+    (?\' . ?\')
+    (?\" . ?\")
+    (?/  . ?/)
+    (?|  . ?|))
+  "A list of delimiter pairs that can be used in argument predicates/modifiers.
+Each element is of the form (OPEN . CLOSE), where OPEN and CLOSE
+are characters representing the opening and closing delimiter,
+respectively.")
+
+(defvar eshell-error-if-no-glob)        ; Defined in em-glob.el.
+
+(defvar-keymap eshell-pred-mode-map
+  "C-c M-q" #'eshell-display-predicate-help
+  "C-c M-m" #'eshell-display-modifier-help)
 
 ;;; Functions:
 
 (defun eshell-display-predicate-help ()
   (interactive)
   (with-electric-help
-   (function
-    (lambda ()
-      (insert eshell-predicate-help-string)))))
+   (lambda ()
+     (insert eshell-predicate-help-string))))
 
 (defun eshell-display-modifier-help ()
   (interactive)
   (with-electric-help
-   (function
-    (lambda ()
-      (insert eshell-modifier-help-string)))))
+   (lambda ()
+     (insert eshell-modifier-help-string))))
 
 (define-minor-mode eshell-pred-mode
   "Minor mode for the eshell-pred module.
@@ -263,14 +265,19 @@ EXAMPLES:
 	    #'eshell-parse-arg-modifier t t)
   (eshell-pred-mode))
 
-(defun eshell-apply-modifiers (lst predicates modifiers)
-  "Apply to LIST a series of PREDICATES and MODIFIERS."
+(defun eshell-apply-modifiers (lst predicates modifiers string-desc)
+  "Apply to list LST a series of PREDICATES and MODIFIERS.
+STRING-DESC is the original string defining these predicates and
+modifiers."
   (let (stringified)
     (if (stringp lst)
 	(setq lst (list lst)
 	      stringified t))
     (when (listp lst)
-      (setq lst (eshell-winnow-list lst nil predicates))
+      (when lst
+        (setq lst (or (eshell-winnow-list lst nil predicates)
+                      (when eshell-error-if-no-glob
+                        (error "No matches found: (%s)" string-desc)))))
       (while modifiers
 	(setq lst (funcall (car modifiers) lst)
 	      modifiers (cdr modifiers)))
@@ -286,11 +293,12 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
     (forward-char)
     (let ((end (eshell-find-delimiter ?\( ?\))))
       (if (not end)
-	  (throw 'eshell-incomplete ?\()
+          (throw 'eshell-incomplete "(")
 	(when (eshell-arg-delimiter (1+ end))
 	  (save-restriction
 	    (narrow-to-region (point) end)
-	    (let* ((modifiers (eshell-parse-modifiers))
+	    (let* ((modifier-string (buffer-string))
+                   (modifiers (eshell-parse-modifiers))
 		   (preds (car modifiers))
 		   (mods (cdr modifiers)))
 	      (if (or preds mods)
@@ -300,9 +308,9 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
 			(append
 			 eshell-current-modifiers
 			 (list
-			  `(lambda (lst)
-			     (eshell-apply-modifiers
-			      lst (quote ,preds) (quote ,mods)))))))))
+			  (lambda (lst)
+			    (eshell-apply-modifiers
+			     lst preds mods modifier-string))))))))
 	  (goto-char (1+ end))
 	  (eshell-finish-arg))))))
 
@@ -327,7 +335,7 @@ resultant list of strings."
 	      (if (looking-at "[^|':]")
 		  (let ((func (read (current-buffer))))
 		    (if (and func (functionp func))
-			(setq preds (eshell-add-pred-func func preds
+			(setq preds (eshell-add-pred-func (eval func t) preds
 							  negate follow))
 		      (error "Invalid function predicate `%s'"
 			     (eshell-stringify func))))
@@ -344,8 +352,7 @@ resultant list of strings."
 		  (let ((func (read (current-buffer))))
 		    (if (and func (functionp func))
 			(setq mods
-			      (cons `(lambda (lst)
-				       (mapcar (function ,func) lst))
+			      (cons (lambda (lst) (mapcar func lst))
 				    mods))
 		      (error "Invalid function modifier `%s'"
 			     (eshell-stringify func))))
@@ -356,14 +363,14 @@ resultant list of strings."
 		(if (not mod)
 		    (error "Unknown modifier character `%c'" (char-after))
 		  (forward-char)
-		  (setq mods (cons (eval (cdr mod)) mods)))))
+		  (setq mods (cons (eval (cdr mod) t) mods)))))
 	     (t
 	      (let ((pred (assq char eshell-predicate-alist)))
 		(if (not pred)
 		    (error "Unknown predicate character `%c'" char)
 		  (forward-char)
 		  (setq preds
-			(eshell-add-pred-func (eval (cdr pred)) preds
+			(eshell-add-pred-func (eval (cdr pred) t) preds
 					      negate follow))))))))
       (end-of-buffer
        (error "Predicate or modifier ended prematurely")))
@@ -371,46 +378,78 @@ resultant list of strings."
 
 (defun eshell-add-pred-func (pred funcs negate follow)
   "Add the predicate function PRED to FUNCS."
-  (if negate
-      (setq pred `(lambda (file)
-		    (not (funcall ,pred file)))))
-  (if follow
-      (setq pred `(lambda (file)
-		    (funcall ,pred (file-truename file)))))
+  (when negate
+    (setq pred (let ((pred pred))
+                 (lambda (file) (not (funcall pred file))))))
+  (when follow
+    (setq pred (let ((pred pred))
+                 (lambda (file) (funcall pred (file-truename file))))))
   (cons pred funcs))
+
+(defun eshell-get-comparison-modifier-argument (&optional functions)
+  "Starting at point, get the comparison modifier argument, if any.
+These are the -/+ characters, corresponding to `<' and `>',
+respectively.  If no comparison modifier is at point, return `='.
+
+FUNCTIONS, if non-nil, is a list of comparison functions,
+specified as (LESS-THAN GREATER-THAN EQUAL-TO)."
+  (let ((functions (or functions (list #'< #'> #'=))))
+    (if (memq (char-after) '(?- ?+))
+        (prog1
+            (if (eq (char-after) ?-) (nth 0 functions) (nth 1 functions))
+          (forward-char))
+      (nth 2 functions))))
+
+(defun eshell-get-numeric-modifier-argument ()
+  "Starting at point, get the numeric modifier argument, if any.
+If a number is found, update point to just after the number."
+  (when (looking-at "[0-9]+")
+    (prog1
+	(string-to-number (match-string 0))
+      (goto-char (match-end 0)))))
+
+(defun eshell-get-delimited-modifier-argument (&optional chained-p)
+  "Starting at point, get the delimited modifier argument, if any.
+If the character after point is a predicate/modifier
+delimiter (see `eshell-pred-delimiter-pairs', read the value of
+the argument and update point to be just after the closing
+delimiter.
+
+If CHAINED-P is true, then another delimited modifier argument
+will immediately follow this one.  In this case, when the opening
+and closing delimiters are the same, update point to be just
+before the closing delimiter. This allows modifiers like
+`:s/match/repl' to work as expected."
+  (when-let* ((open (char-after))
+              (close (cdr (assoc open eshell-pred-delimiter-pairs)))
+              (end (eshell-find-delimiter open close nil nil t)))
+    (prog1
+        (replace-regexp-in-string
+         (rx-to-string `(seq "\\" (group (or "\\" ,open ,close)))) "\\1"
+         (buffer-substring-no-properties (1+ (point)) end))
+      (goto-char (if (and chained-p (eq open close))
+                     end
+                   (1+ end))))))
 
 (defun eshell-pred-user-or-group (mod-char mod-type attr-index get-id-func)
   "Return a predicate to test whether a file match a given user/group id."
-  (let (ugid open close end)
-    (if (looking-at "[0-9]+")
-	(progn
-	  (setq ugid (string-to-number (match-string 0)))
-	  (goto-char (match-end 0)))
-      (setq open (char-after))
-      (if (setq close (memq open '(?\( ?\[ ?\< ?\{)))
-	  (setq close (car (last '(?\) ?\] ?\> ?\})
-				 (length close))))
-	(setq close open))
-      (forward-char)
-      (setq end (eshell-find-delimiter open close))
-      (unless end
-	(error "Malformed %s name string for modifier `%c'"
-	       mod-type mod-char))
-      (setq ugid
-	    (funcall get-id-func (buffer-substring (point) end)))
-      (goto-char (1+ end)))
+  (let ((ugid (eshell-get-numeric-modifier-argument)))
+    (unless ugid
+      (let ((ugname (or (eshell-get-delimited-modifier-argument)
+                        (error "Malformed %s name string for modifier `%c'"
+                               mod-type mod-char))))
+        (setq ugid (funcall get-id-func ugname))))
     (unless ugid
       (error "Unknown %s name specified for modifier `%c'"
 	     mod-type mod-char))
-    `(lambda (file)
-       (let ((attrs (file-attributes file)))
-	 (if attrs
-	     (= (nth ,attr-index attrs) ,ugid))))))
+    (lambda (file)
+      (when-let ((attrs (file-attributes file)))
+	(= (nth attr-index attrs) ugid)))))
 
 (defun eshell-pred-file-time (mod-char mod-type attr-index)
   "Return a predicate to test whether a file matches a certain time."
   (let* ((quantum 86400)
-	 qual when open close end)
+	 qual when)
     (when (memq (char-after) '(?M ?w ?h ?m ?s))
       (setq quantum (char-after))
       (cond
@@ -425,38 +464,21 @@ resultant list of strings."
        ((eq quantum ?s)
 	(setq quantum 1)))
       (forward-char))
-    (when (memq (char-after) '(?+ ?-))
-      (setq qual (char-after))
-      (forward-char))
-    (if (looking-at "[0-9]+")
-	(progn
-	  (setq when (time-since (* (string-to-number (match-string 0))
-				    quantum)))
-	  (goto-char (match-end 0)))
-      (setq open (char-after))
-      (if (setq close (memq open '(?\( ?\[ ?\< ?\{)))
-	  (setq close (car (last '(?\) ?\] ?\> ?\})
-				 (length close))))
-	(setq close open))
-      (forward-char)
-      (setq end (eshell-find-delimiter open close))
-      (unless end
-	(error "Malformed %s time modifier `%c'" mod-type mod-char))
-      (let* ((file (buffer-substring (point) end))
-	     (attrs (file-attributes file)))
-	(unless attrs
-	  (error "Cannot stat file `%s'" file))
-	(setq when (nth attr-index attrs)))
-      (goto-char (1+ end)))
-    `(lambda (file)
-       (let ((attrs (file-attributes file)))
-	 (if attrs
-	     (,(if (eq qual ?-)
-		   'time-less-p
-		 (if (eq qual ?+)
-		     '(lambda (a b) (time-less-p b a))
-		   'time-equal-p))
-	      ,when (nth ,attr-index attrs)))))))
+    (setq qual (eshell-get-comparison-modifier-argument
+                (list #'time-less-p
+                      (lambda (a b) (time-less-p b a))
+                      #'time-equal-p)))
+    (if-let ((number (eshell-get-numeric-modifier-argument)))
+        (setq when (time-since (* number quantum)))
+      (let* ((file (or (eshell-get-delimited-modifier-argument)
+                       (error "Malformed %s time modifier `%c'"
+                              mod-type mod-char)))
+             (attrs (or (file-attributes file)
+                        (error "Cannot stat file `%s'" file))))
+        (setq when (nth attr-index attrs))))
+    (lambda (file)
+      (when-let ((attrs (file-attributes file)))
+        (funcall qual when (nth attr-index attrs))))))
 
 (defun eshell-pred-file-type (type)
   "Return a test which tests that the file is of a certain TYPE.
@@ -467,40 +489,27 @@ that `ls -l' will show in the first column of its display."
     (if (memq type '(?b ?c))
 	(forward-char)
       (setq type ?%)))
-  `(lambda (file)
-     (let ((attrs (eshell-file-attributes (directory-file-name file))))
-       (if attrs
-	   (memq (aref (file-attribute-modes attrs) 0)
-		 ,(if (eq type ?%)
-		      '(?b ?c)
-		    (list 'quote (list type))))))))
+  (let ((set (if (eq type ?%)
+		 '(?b ?c)
+	       (list type))))
+    (lambda (file)
+      (when-let ((attrs (eshell-file-attributes (directory-file-name file))))
+	(memq (aref (file-attribute-modes attrs) 0) set)))))
 
 (defsubst eshell-pred-file-mode (mode)
   "Return a test which tests that MODE pertains to the file."
-  `(lambda (file)
-     (let ((modes (file-modes file 'nofollow)))
-       (if modes
-	   (logand ,mode modes)))))
+  (lambda (file)
+    (when-let ((modes (file-modes file 'nofollow)))
+      (not (zerop (logand mode modes))))))
 
 (defun eshell-pred-file-links ()
   "Return a predicate to test whether a file has a given number of links."
-  (let (qual amount)
-    (when (memq (char-after) '(?- ?+))
-      (setq qual (char-after))
-      (forward-char))
-    (unless (looking-at "[0-9]+")
-      (error "Invalid file link count modifier `l'"))
-    (setq amount (string-to-number (match-string 0)))
-    (goto-char (match-end 0))
-    `(lambda (file)
-       (let ((attrs (eshell-file-attributes file)))
-	 (if attrs
-	     (,(if (eq qual ?-)
-		   '<
-		 (if (eq qual ?+)
-		     '>
-		   '=))
-	      (file-attribute-link-number attrs) ,amount))))))
+  (let ((qual (eshell-get-comparison-modifier-argument))
+        (amount (or (eshell-get-numeric-modifier-argument)
+                    (error "Invalid file link count modifier `l'"))))
+    (lambda (file)
+      (when-let ((attrs (eshell-file-attributes file)))
+	  (funcall qual (file-attribute-link-number attrs) amount)))))
 
 (defun eshell-pred-file-size ()
   "Return a predicate to test whether a file is of a given size."
@@ -515,94 +524,57 @@ that `ls -l' will show in the first column of its display."
        ((eq qual ?p)
 	(setq quantum 512)))
       (forward-char))
-    (when (memq (char-after) '(?- ?+))
-      (setq qual (char-after))
-      (forward-char))
-    (unless (looking-at "[0-9]+")
-      (error "Invalid file size modifier `L'"))
-    (setq amount (* (string-to-number (match-string 0)) quantum))
-    (goto-char (match-end 0))
-    `(lambda (file)
-       (let ((attrs (eshell-file-attributes file)))
-	 (if attrs
-	     (,(if (eq qual ?-)
-		   '<
-		 (if (eq qual ?+)
-		     '>
-		   '=))
-	      (file-attribute-size attrs) ,amount))))))
+    (setq qual (eshell-get-comparison-modifier-argument))
+    (setq amount (* (or (eshell-get-numeric-modifier-argument)
+                        (error "Invalid file size modifier `L'"))
+                    quantum))
+    (lambda (file)
+      (when-let ((attrs (eshell-file-attributes file)))
+	(funcall qual (file-attribute-size attrs) amount)))))
 
 (defun eshell-pred-substitute (&optional repeat)
   "Return a modifier function that will substitute matches."
-  (let ((delim (char-after))
-	match replace end)
-    (forward-char)
-    (setq end (eshell-find-delimiter delim delim nil nil t)
-	  match (buffer-substring-no-properties (point) end))
-    (goto-char (1+ end))
-    (setq end (eshell-find-delimiter delim delim nil nil t)
-	  replace (buffer-substring-no-properties (point) end))
-    (goto-char (1+ end))
-    (if repeat
-	`(lambda (lst)
-	   (mapcar
-	    (function
-	     (lambda (str)
-	       (let ((i 0))
-		 (while (setq i (string-match ,match str i))
-		   (setq str (replace-match ,replace t nil str))))
-	       str)) lst))
-      `(lambda (lst)
-	 (mapcar
-	  (function
-	   (lambda (str)
-	     (if (string-match ,match str)
-		 (setq str (replace-match ,replace t nil str))
-	       (error (concat str ": substitution failed")))
-	     str)) lst)))))
+  (let* ((match (or (eshell-get-delimited-modifier-argument t)
+                    (error "Malformed pattern string for modifier `s'")))
+         (replace (or (eshell-get-delimited-modifier-argument)
+                      (error "Malformed replace string for modifier `s'")))
+         (function (if repeat
+                       (lambda (str)
+                         (replace-regexp-in-string match replace str t))
+                     (lambda (str)
+                       (if (string-match match str)
+                           (replace-match replace t nil str)
+                         (error (concat str ": substitution failed")))))))
+    (lambda (lst) (mapcar function lst))))
 
-(defun eshell-include-members (&optional invert-p)
-  "Include only lisp members matching a regexp."
-  (let ((delim (char-after))
-	regexp end)
-    (forward-char)
-    (setq end (eshell-find-delimiter delim delim nil nil t)
-	  regexp (buffer-substring-no-properties (point) end))
-    (goto-char (1+ end))
-    `(lambda (lst)
-       (eshell-winnow-list
-	lst nil '((lambda (elem)
-		    ,(if invert-p
-			 `(not (string-match ,regexp elem))
-		       `(string-match ,regexp elem))))))))
+(defun eshell-include-members (mod-char &optional invert-p)
+  "Include only Lisp members matching a regexp.
+If INVERT-P is non-nil, include only members not matching a regexp."
+  (let* ((regexp (or (eshell-get-delimited-modifier-argument)
+                     (error "Malformed pattern string for modifier `%c'"
+                            mod-char)))
+         (predicates
+	  (list (if invert-p
+		    (lambda (elem) (not (string-match regexp elem)))
+		  (lambda (elem) (string-match regexp elem))))))
+    (lambda (lst)
+      (eshell-winnow-list lst nil predicates))))
 
 (defun eshell-join-members ()
   "Return a modifier function that join matches."
-  (let ((delim (char-after))
-	str end)
-    (if (not (memq delim '(?' ?/)))
-	(setq delim " ")
-      (forward-char)
-      (setq end (eshell-find-delimiter delim delim nil nil t)
-	    str (buffer-substring-no-properties (point) end))
-      (goto-char (1+ end)))
-    `(lambda (lst)
-       (mapconcat 'identity lst ,str))))
+  (let ((str (or (eshell-get-delimited-modifier-argument)
+                 " ")))
+    (lambda (lst)
+      (mapconcat #'identity lst str))))
 
 (defun eshell-split-members ()
   "Return a modifier function that splits members."
-  (let ((delim (char-after))
-	sep end)
-    (when (memq delim '(?' ?/))
-      (forward-char)
-      (setq end (eshell-find-delimiter delim delim nil nil t)
-	    sep (buffer-substring-no-properties (point) end))
-      (goto-char (1+ end)))
-    `(lambda (lst)
-       (mapcar
-	(function
-	 (lambda (str)
-	   (split-string str ,sep))) lst))))
+  (let ((sep (eshell-get-delimited-modifier-argument)))
+    (lambda (lst)
+      (mapcar
+       (lambda (str)
+         (split-string str sep))
+       lst))))
 
 (provide 'em-pred)
 

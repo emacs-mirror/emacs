@@ -1,6 +1,6 @@
-;;; semantic/fw.el --- Framework for Semantic
+;;; semantic/fw.el --- Framework for Semantic  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -34,29 +34,29 @@
 
 ;;; Compatibility
 ;;
-(define-obsolete-function-alias 'semantic-overlay-live-p 'overlay-buffer "27.1")
-(define-obsolete-function-alias 'semantic-make-overlay 'make-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlay-put 'overlay-put "27.1")
-(define-obsolete-function-alias 'semantic-overlay-get 'overlay-get "27.1")
+(define-obsolete-function-alias 'semantic-overlay-live-p #'overlay-buffer "27.1")
+(define-obsolete-function-alias 'semantic-make-overlay #'make-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlay-put #'overlay-put "27.1")
+(define-obsolete-function-alias 'semantic-overlay-get #'overlay-get "27.1")
 (define-obsolete-function-alias 'semantic-overlay-properties
-  'overlay-properties "27.1")
-(define-obsolete-function-alias 'semantic-overlay-move 'move-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlay-delete 'delete-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlays-at 'overlays-at "27.1")
-(define-obsolete-function-alias 'semantic-overlays-in 'overlays-in "27.1")
-(define-obsolete-function-alias 'semantic-overlay-buffer 'overlay-buffer "27.1")
-(define-obsolete-function-alias 'semantic-overlay-start 'overlay-start "27.1")
-(define-obsolete-function-alias 'semantic-overlay-end 'overlay-end "27.1")
+  #'overlay-properties "27.1")
+(define-obsolete-function-alias 'semantic-overlay-move #'move-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlay-delete #'delete-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlays-at #'overlays-at "27.1")
+(define-obsolete-function-alias 'semantic-overlays-in #'overlays-in "27.1")
+(define-obsolete-function-alias 'semantic-overlay-buffer #'overlay-buffer "27.1")
+(define-obsolete-function-alias 'semantic-overlay-start #'overlay-start "27.1")
+(define-obsolete-function-alias 'semantic-overlay-end #'overlay-end "27.1")
 (define-obsolete-function-alias 'semantic-overlay-next-change
-  'next-overlay-change "27.1")
+  #'next-overlay-change "27.1")
 (define-obsolete-function-alias 'semantic-overlay-previous-change
-  'previous-overlay-change "27.1")
-(define-obsolete-function-alias 'semantic-overlay-lists 'overlay-lists "27.1")
-(define-obsolete-function-alias 'semantic-overlay-p 'overlayp "27.1")
-(define-obsolete-function-alias 'semantic-read-event 'read-event "27.1")
-(define-obsolete-function-alias 'semantic-popup-menu 'popup-menu "27.1")
+  #'previous-overlay-change "27.1")
+(define-obsolete-function-alias 'semantic-overlay-lists #'overlay-lists "27.1")
+(define-obsolete-function-alias 'semantic-overlay-p #'overlayp "27.1")
+(define-obsolete-function-alias 'semantic-read-event #'read-event "27.1")
+(define-obsolete-function-alias 'semantic-popup-menu #'popup-menu "27.1")
 (define-obsolete-function-alias 'semantic-buffer-local-value
-  'buffer-local-value "27.1")
+  #'buffer-local-value "27.1")
 
 (defun semantic-event-window (event)
   "Extract the window from EVENT."
@@ -66,15 +66,11 @@
 
 (defalias 'semantic-mode-line-update #'force-mode-line-update)
 
-;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
-;; run major mode hooks.
-(defalias 'semantic-run-mode-hooks
-  (if (fboundp 'run-mode-hooks)
-      'run-mode-hooks
-    'run-hooks))
+(define-obsolete-function-alias 'semantic-run-mode-hooks #'run-mode-hooks "28.1")
 
-  ;; Fancy compat usage now handled in cedet-compat
-(defalias 'semantic-subst-char-in-string 'subst-char-in-string)
+;; Fancy compat usage now handled in cedet-compat
+(define-obsolete-function-alias 'semantic-subst-char-in-string
+  #'subst-char-in-string "28.1")
 
 (defun semantic-delete-overlay-maybe (overlay)
   "Delete OVERLAY if it is a semantic token overlay."
@@ -113,7 +109,7 @@ Possible Lifespans are:
     (setq semantic-cache-data-overlays
           (cons o semantic-cache-data-overlays))
     ;;(message "Adding to cache: %s" o)
-    (add-hook 'post-command-hook 'semantic-cache-data-post-command-hook)
+    (add-hook 'post-command-hook #'semantic-cache-data-post-command-hook)
     ))
 
 (defun semantic-cache-data-post-command-hook ()
@@ -139,7 +135,7 @@ Remove self from `post-command-hook' if it is empty."
   ;; Remove ourselves if we have removed all overlays.
   (unless semantic-cache-data-overlays
     (remove-hook 'post-command-hook
-                 'semantic-cache-data-post-command-hook)))
+                 #'semantic-cache-data-post-command-hook)))
 
 (defun semantic-get-cache-data (name &optional point)
   "Get cached data with NAME from optional POINT."
@@ -175,6 +171,7 @@ Remove self from `post-command-hook' if it is empty."
 ;;
 (defun semantic-overload-symbol-from-function (name)
   "Return the symbol for overload used by NAME, the defined symbol."
+  (declare (obsolete define-obsolete-function-alias "28.1"))
   (let ((sym-name (symbol-name name)))
     (if (string-match "^semantic-" sym-name)
 	(intern (substring sym-name (match-end 0)))
@@ -184,38 +181,50 @@ Remove self from `post-command-hook' if it is empty."
   "Make OLDFNALIAS an alias for NEWFN.
 Mark OLDFNALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
+  (declare (obsolete define-obsolete-function-alias "28.1"))
   (defalias oldfnalias newfn)
   (make-obsolete oldfnalias newfn when)
   (when (and (mode-local--function-overload-p newfn)
              (not (mode-local--overload-obsoleted-by newfn))
              ;; Only throw this warning when byte compiling things.
-             (boundp 'byte-compile-current-file)
-             byte-compile-current-file
-	     (not (string-match "cedet" byte-compile-current-file))
+             (macroexp-compiling-p)
+	     (not (string-match "cedet" (macroexp-file-name)))
 	     )
     (make-obsolete-overload oldfnalias newfn when)
-    (byte-compile-warn
-     "%s: `%s' obsoletes overload `%s'"
-     byte-compile-current-file
-     newfn
-     (semantic-overload-symbol-from-function oldfnalias))
-    ))
+    (if (fboundp 'byte-compile-warn-x)
+        (byte-compile-warn-x
+         newfn
+         "%s: `%s' obsoletes overload `%s'"
+         (macroexp-file-name)
+         newfn
+         (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
+           (semantic-overload-symbol-from-function oldfnalias)))
+      (byte-compile-warn
+       "%s: `%s' obsoletes overload `%s'"
+       (macroexp-file-name)
+       newfn
+       (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
+         (semantic-overload-symbol-from-function oldfnalias))))))
 
 (defun semantic-varalias-obsolete (oldvaralias newvar when)
   "Make OLDVARALIAS an alias for variable NEWVAR.
 Mark OLDVARALIAS as obsolete, such that the byte compiler
 will throw a warning when it encounters this symbol."
+  (declare (obsolete define-obsolete-variable-alias "28.1"))
   (make-obsolete-variable oldvaralias newvar when)
   (condition-case nil
       (defvaralias oldvaralias newvar)
     (error
      ;; Only throw this warning when byte compiling things.
-     (when (and (boundp 'byte-compile-current-file)
-                byte-compile-current-file)
-       (byte-compile-warn
-        "variable `%s' obsoletes, but isn't alias of `%s'"
-        newvar oldvaralias)
-     ))))
+     (when (macroexp-compiling-p)
+       (if (fboundp 'byte-compile-warn-x)
+           (byte-compile-warn-x
+            newvar
+            "variable `%s' obsoletes, but isn't alias of `%s'"
+            newvar oldvaralias)
+         (byte-compile-warn
+          "variable `%s' obsoletes, but isn't alias of `%s'"
+          newvar oldvaralias))))))
 
 ;;; Help debugging
 ;;
@@ -242,9 +251,8 @@ Avoid using a large BODY since it is duplicated."
 ;;; Misc utilities
 ;;
 
-(defvar semantic-new-buffer-fcn-was-run nil
+(defvar-local semantic-new-buffer-fcn-was-run nil
   "Non-nil after `semantic-new-buffer-fcn' has been executed.")
-(make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
 
 (defsubst semantic-active-p ()
   "Return non-nil if the current buffer was set up for parsing."
@@ -256,10 +264,7 @@ FUNCTION does not have arguments.  When FUNCTION is entered
 `current-buffer' is a selected Semantic enabled buffer."
   (mode-local-map-file-buffers function #'semantic-active-p))
 
-(defalias 'semantic-map-mode-buffers 'mode-local-map-mode-buffers)
-
-(semantic-alias-obsolete 'define-mode-overload-implementation
-                         'define-mode-local-override "23.2")
+(defalias 'semantic-map-mode-buffers #'mode-local-map-mode-buffers)
 
 (defun semantic-install-function-overrides (overrides &optional transient)
   "Install the function OVERRIDES in the specified environment.
@@ -275,21 +280,22 @@ later installation should be done in MODE hook."
   (mode-local-bind
    ;; Add the semantic- prefix to OVERLOAD short names.
    (mapcar
-    #'(lambda (e)
-        (let ((name (symbol-name (car e))))
-          (if (string-match "^semantic-" name)
-              e
-            (cons (intern (format "semantic-%s" name)) (cdr e)))))
+    (lambda (e)
+      (let ((name (symbol-name (car e))))
+        (if (string-match "^semantic-" name)
+            e
+          (cons (intern (format "semantic-%s" name)) (cdr e)))))
     overrides)
    (list 'constant-flag (not transient)
-         'override-flag t)))
+         'override-flag t)
+   nil))
 
 ;;; User Interrupt handling
 ;;
 (defvar semantic-current-input-throw-symbol nil
   "The current throw symbol for `semantic-exit-on-input'.")
 (defvar semantic--on-input-start-marker nil
-  "The marker when starting a semantic-exit-on-input form.")
+  "The marker when starting a `semantic-exit-on-input' form.")
 
 (defmacro semantic-exit-on-input (symbol &rest forms)
   "Using SYMBOL as an argument to `throw', execute FORMS.
@@ -323,21 +329,17 @@ calling this one."
 
 ;;; Special versions of Find File
 ;;
+(defvar recentf-exclude)
+(defvar semantic-init-hook)
+(defvar ede-auto-add-method)
+(defvar flymake-start-syntax-check-on-find-file)
+(defvar auto-insert)
+
 (defun semantic-find-file-noselect (file &optional nowarn rawfile wildcards)
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.
 FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
-  ;; Hack -
-  ;; Check if we are in set-auto-mode, and if so, warn about this.
-  (when (boundp 'keep-mode-if-same)
-    (let ((filename (or (and (boundp 'filename) filename)
-			"(unknown)")))
-      (message "WARNING: semantic-find-file-noselect called for \
-%s while in set-auto-mode for %s.  You should call the responsible function \
-into `mode-local-init-hook'." file filename)
-      (sit-for 1)))
-
-  (let* ((recentf-exclude '( (lambda (f) t) ))
+  (let* ((recentf-exclude '(always))
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
 	 ;; of time for a buffer we intend to kill.
@@ -398,13 +400,10 @@ into `mode-local-init-hook'." file filename)
 ;; 		 "define-lex-regex-type-analyzer"
 ;; 		 "define-lex-string-type-analyzer"
 ;; 		 "define-lex-block-type-analyzer"
-;; 		 ;;"define-mode-overload-implementation"
 ;; 		 ;;"define-semantic-child-mode"
 ;; 		 "define-semantic-idle-service"
 ;; 		 "define-semantic-decoration-style"
 ;; 		 "define-wisent-lexer"
-;; 		 "semantic-alias-obsolete"
-;; 		 "semantic-varalias-obsolete"
 ;; 		 "semantic-make-obsolete-overload"
 ;; 		 "defcustom-mode-local-semantic-dependency-system-include-path"
 ;; 		 ))

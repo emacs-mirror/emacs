@@ -1,6 +1,6 @@
 ;;; calculator.el --- a calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -20,23 +20,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;;=====================================================================
 ;;; Commentary:
-;;
+
 ;; A calculator for Emacs.
 ;; Why should you reach for your mouse to get xcalc (calc.exe, gcalc or
 ;; whatever), when you have Emacs running already?
 ;;
-;; If this is not part of your Emacs distribution, then simply bind
-;; `calculator' to a key and make it an autoloaded function, e.g.:
-;;   (autoload 'calculator "calculator"
-;;     "Run the Emacs calculator." t)
+;; You can bind this to a key by adding this to your Init file:
+;;
 ;;   (global-set-key [(control return)] 'calculator)
 ;;
 ;; Written by Eli Barzilay, eli@barzilay.org
-;;
 
-;;;=====================================================================
 ;;; Customization:
 
 (defgroup calculator nil
@@ -50,19 +45,16 @@
   "Run `calculator' electrically, in the echo area.
 Electric mode saves some place but changes the way you interact with the
 calculator."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-use-menu t
   "Make `calculator' create a menu.
 Note that this requires easymenu.  Must be set before loading."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-bind-escape nil
   "If non-nil, set escape to exit the calculator."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-unary-style 'postfix
   "Value is either `prefix' or `postfix'.
@@ -75,44 +67,38 @@ This determines the default behavior of unary operators."
 It should contain a \"%s\" somewhere that will indicate the i/o radixes;
 this will be a two-character string as described in the documentation
 for `calculator-mode'."
-  :type  'string
-  :group 'calculator)
+  :type  'string)
 
 (defcustom calculator-number-digits 3
   "The calculator's number of digits used for standard display.
 Used by the `calculator-standard-display' function - it will use the
 format string \"%.NC\" where this number is N and C is a character given
 at runtime."
-  :type  'integer
-  :group 'calculator)
+  :type  'integer)
 
 (defcustom calculator-radix-grouping-mode t
   "Use digit grouping in radix output mode.
 If this is set, chunks of `calculator-radix-grouping-digits' characters
 will be separated by `calculator-radix-grouping-separator' when in radix
 output mode is active (determined by `calculator-output-radix')."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-radix-grouping-digits 4
   "The number of digits used for grouping display in radix modes.
 See `calculator-radix-grouping-mode'."
-  :type  'integer
-  :group 'calculator)
+  :type  'integer)
 
 (defcustom calculator-radix-grouping-separator "'"
   "The separator used in radix grouping display.
 See `calculator-radix-grouping-mode'."
-  :type  'string
-  :group 'calculator)
+  :type  'string)
 
 (defcustom calculator-remove-zeros t
   "Non-nil value means delete all redundant zero decimal digits.
 If this value is not t and not nil, redundant zeros are removed except
 for one.
 Used by the `calculator-remove-zeros' function."
-  :type  '(choice (const t) (const leave-decimal) (const nil))
-  :group 'calculator)
+  :type  '(choice (const t) (const leave-decimal) (const nil)))
 
 (defcustom calculator-displayer '(std ?n)
   "A displayer specification for numerical values.
@@ -135,8 +121,7 @@ a character and G is an optional boolean, in this case the
 arguments."
   :type '(choice (function) (string) (sexp)
                  (list (const std) character)
-                 (list (const std) character boolean))
-  :group 'calculator)
+                 (list (const std) character boolean)))
 
 (defcustom calculator-displayers
   '(((std ?n) "Standard display, decimal point or scientific")
@@ -152,15 +137,13 @@ specification is the same as the values that can be stored in
 `calculator-displayer'.
 
 `calculator-rotate-displayer' rotates this list."
-  :type  'sexp
-  :group 'calculator)
+  :type  'sexp)
 
 (defcustom calculator-paste-decimals t
   "If non-nil, convert pasted integers so they have a decimal point.
 This makes it possible to paste big integers since they will be read as
 floats, otherwise the Emacs reader will fail on them."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 (make-obsolete-variable 'calculator-paste-decimals
                         "it is no longer used." "26.1")
 
@@ -169,14 +152,12 @@ floats, otherwise the Emacs reader will fail on them."
 `calculator-displayer', to format a string before copying it with
 `calculator-copy'.  If nil, then `calculator-displayer's normal value is
 used."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-2s-complement nil
   "If non-nil, show negative numbers in 2s complement in radix modes.
 Otherwise show as a negative number."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-mode-hook nil
   "List of hook functions for `calculator-mode' to run.
@@ -184,8 +165,7 @@ Note: if `calculator-electric-mode' is on, then this hook will get
 activated in the minibuffer -- in that case it should not do much more
 than local key settings and other effects that will change things
 outside the scope of calculator related code."
-  :type  'hook
-  :group 'calculator)
+  :type  'hook)
 
 (defcustom calculator-user-registers nil
   "An association list of user-defined register bindings.
@@ -200,8 +180,7 @@ before you load calculator."
            (when (boundp 'calculator-registers)
              (setq calculator-registers
                    (append val calculator-registers)))
-           (setq calculator-user-registers val))
-  :group 'calculator)
+           (setq calculator-user-registers val)))
 
 (defcustom calculator-user-operators nil
   "A list of additional operators.
@@ -234,8 +213,7 @@ Examples:
 
   Note that this will be either postfix or prefix, according to
   `calculator-unary-style'."
-  :type  '(repeat (list string symbol sexp integer integer))
-  :group 'calculator)
+  :type  '(repeat (list string symbol sexp integer integer)))
 
 ;;;=====================================================================
 ;;; Code:
@@ -313,7 +291,7 @@ user-defined operators, use `calculator-user-operators' instead.")
 5. The function's precedence -- should be in the range of 1 (lowest) to
    9 (highest) (optional, defaults to 1);
 
-It it possible have a unary prefix version of a binary operator if it
+It is possible have a unary prefix version of a binary operator if it
 comes later in this list.  If the list begins with the symbol `nobind',
 then no key binding will take place -- this is only used for predefined
 keys.
@@ -615,15 +593,15 @@ except when using a non-decimal radix mode for input (in this case `e'
 will be the hexadecimal digit).
 
 Here are the editing keys:
-* `RET' `='      evaluate the current expression
-* `C-insert'     copy the whole current expression to the `kill-ring'
-* `C-return'     evaluate, save result the `kill-ring' and exit
-* `insert'       paste a number if the one was copied (normally)
-* `delete' `C-d' clear last argument or whole expression (hit twice)
-* `backspace'    delete a digit or a previous expression element
-* `h' `?'        pop-up a quick reference help
-* `ESC' `q'      exit (`ESC' can be used if `calculator-bind-escape' is
-                 non-nil, otherwise use three consecutive `ESC's)
+* \\`RET' \\`='          evaluate the current expression
+* \\`C-<insert>'     copy the whole current expression to the `kill-ring'
+* \\`C-<return>'     evaluate, save result the `kill-ring' and exit
+* \\`<insert>'       paste a number if the one was copied (normally)
+* \\`<delete>' \\`C-d'   clear last argument or whole expression (hit twice)
+* \\`<backspace>'    delete a digit or a previous expression element
+* \\`h' \\`?'            pop-up a quick reference help
+* \\`ESC' \\`q'          exit (\\`ESC' can be used if `calculator-bind-escape' is
+                 non-nil, otherwise use three consecutive \\`ESC's)
 
 These operators are pre-defined:
 * `+' `-' `*' `/' the common binary operators
@@ -645,10 +623,10 @@ argument.
 hex/oct/bin modes can be set for input and for display separately.
 Another toggle-able mode is for using degrees instead of radians for
 trigonometric functions.
-The keys to switch modes are (both `H' and `X' are for hex):
-* `D'             switch to all-decimal mode, or toggle degrees/radians
-* `B' `O' `H' `X' binary/octal/hexadecimal modes for input & display
-* `i' `o'         followed by one of `D' `B' `O' `H' `X' (case
+The keys to switch modes are (both \\`H' and \\`X' are for hex):
+* \\`D'             switch to all-decimal mode, or toggle degrees/radians
+* \\`B' \\`O' \\`H' \\`X'       binary/octal/hexadecimal modes for input & display
+* \\`i' \\`o'         followed by one of \\`D' \\`B' \\`O' \\`H' \\`X' (case
                   insensitive) sets only the input or display radix mode
 The prompt indicates the current modes:
 * \"==\": decimal mode (using radians);
@@ -671,17 +649,17 @@ collected data.  It is possible to navigate in this list, and if the
 value shown is the current one on the list, an indication is displayed
 as \"[N]\" if this is the last number and there are N numbers, or
 \"[M/N]\" if the M-th value is shown.
-* `SPC'            evaluate the current value as usual, but also adds
+* \\`SPC'            evaluate the current value as usual, but also adds
                    the result to the list of saved values
-* `l' `v'          computes total / average of saved values
-* `up' `C-p'       browse to the previous value in the list
-* `down' `C-n'     browse to the next value in the list
-* `delete' `C-d'   remove current value from the list (if it is on it)
-* `C-delete' `C-c' delete the whole list
+* \\`l' \\`v'            computes total / average of saved values
+* \\`<up>' \\`C-p'       browse to the previous value in the list
+* \\`<down>' \\`C-n'     browse to the next value in the list
+* \\`<delete>' \\`C-d'   remove current value from the list (if it is on it)
+* \\`C-<delete>' \\`C-c' delete the whole list
 
 Registers are variable-like place-holders for values:
-* `s' followed by a character attach the current value to that character
-* `g' followed by a character fetches the attached value
+* \\`s' followed by a character attach the current value to that character
+* \\`g' followed by a character fetches the attached value
 
 There are many variables that can be used to customize the calculator.
 Some interesting customization variables are:
@@ -855,16 +833,14 @@ The result should not exceed the screen width."
     (concat prompt (if (<= trim 0) expr (substring expr trim)))))
 
 (defun calculator-string-to-number (str)
-  "Convert the given STR to a number, according to the value of
-`calculator-input-radix'."
+  "Convert STR to number according to `calculator-input-radix'."
   (if calculator-input-radix
     (string-to-number str (cadr (assq calculator-input-radix
                                       '((bin 2) (oct 8) (hex 16)))))
-    (let* ((str (replace-regexp-in-string
-                 "\\.\\([^0-9].*\\)?$" ".0\\1" str))
-           (str (replace-regexp-in-string
-                 "[eE][+-]?\\([^0-9].*\\)?$" "e0\\1" str)))
-      (string-to-number str))))
+    ;; parse numbers similarly to calculators
+    ;; (see tests in test/lisp/calculator-tests.el)
+    (let ((str (replace-regexp-in-string "\\.\\([^0-9].*\\)?$" ".0\\1" str)))
+      (float (string-to-number str)))))
 
 (defun calculator-push-curnum ()
   "Push the numeric value of the displayed number to the stack."
@@ -1194,9 +1170,9 @@ arguments."
 ;;; Input interaction
 
 (defun calculator-last-input (&optional keys)
-  "Return the last key sequence that was used to invoke this command, or
-the input KEYS.  Uses the `function-key-map' translate keypad numbers to
-plain ones."
+  "Return the last key sequence used to invoke this command, or the input KEYS.
+Uses the `function-key-map' translate keypad numbers to plain
+ones."
   (let* ((inp (or keys (this-command-keys)))
          (inp (or (and (arrayp inp) (not (stringp inp))
                        (lookup-key function-key-map inp))
@@ -1498,8 +1474,7 @@ a multiplication."
       (calculator-put-value (calculator-string-to-number str)))))
 
 (defun calculator-register-read-with-preview (prompt)
-  "Similar to `register-read-with-preview' but for calculator
-registers."
+  "Similar to `register-read-with-preview' but for calculator registers."
   (let ((register-alist calculator-registers)
         (register-preview-delay 1)
         (register-preview-function
@@ -1622,7 +1597,7 @@ To use this, apply a binary operator (evaluate it), then call this."
     (overflow-error
      ;; X and Y must be integers, as expt silently returns floating-point
      ;; infinity on floating-point overflow.
-     (if (or (natnump x) (zerop (logand x 1)))
+     (if (or (natnump x) (zerop (logand y 1)))
 	 1.0e+INF
        -1.0e+INF))))
 

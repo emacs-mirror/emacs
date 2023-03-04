@@ -15,4 +15,5 @@
 @hyphenation{work-a-round}
 @hyphenation{work-a-rounds}
 @hyphenation{un-marked}
+@hyphenation{dic-tion-ary}
 @end iftex

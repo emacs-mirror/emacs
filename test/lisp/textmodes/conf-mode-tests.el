@@ -1,24 +1,24 @@
 ;;; conf-mode-tests.el --- Test suite for conf mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: J. Alexander Branham <alex.branham@gmail.com>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -74,8 +74,7 @@ PersistMoniker=file://Folder.htt")
 (ert-deftest conf-test-javaprop-mode ()
   (with-temp-buffer
     ;; From `conf-javaprop-mode' docstring
-    (insert "// another kind of comment
-/* yet another */
+    (insert "# comment
 
 name:value
 name=value
@@ -90,8 +89,6 @@ x.2.y.1.z.2.zz =")
     (should (equal (face-at-point) 'font-lock-comment-delimiter-face))
     (forward-char 3)
     (should (equal (face-at-point) 'font-lock-comment-face))
-    (search-forward "*")
-    (should (equal (face-at-point) 'font-lock-comment-delimiter-face))
     (while (search-forward "nam" nil t)
       (should (equal (face-at-point) 'font-lock-variable-name-face))
       (search-forward "val")

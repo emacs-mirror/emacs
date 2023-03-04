@@ -1,6 +1,6 @@
-;;; semantic/edit.el --- Edit Management for Semantic
+;;; semantic/edit.el --- Edit Management for Semantic  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -40,7 +40,7 @@
 ;;    of themselves that can be edited w/out affecting the definition of
 ;;    that tag.
 ;;
-;; 2. Tags w/ positioned children could have a property of an
+;; 2. Tags with positioned children could have a property of an
 ;;    overlay marking the region in themselves that contain the
 ;;    children.  This could be used to better improve splicing near
 ;;    the beginning and end of the child lists.
@@ -72,8 +72,6 @@ updated in the current buffer.
 
 For language specific hooks, make sure you define this as a local hook.")
 
-(define-obsolete-variable-alias 'semantic-change-hooks
-  'semantic-change-functions "24.3")
 (defvar semantic-change-functions
   '(semantic-edits-change-function-handle-changes)
   "Abnormal hook run when semantic detects a change in a buffer.
@@ -91,14 +89,10 @@ If the hook returns non-nil, then declare that a reparse is needed.
 For language specific hooks, make sure you define this as a local hook.
 Not used yet; part of the next generation reparse mechanism.")
 
-(define-obsolete-variable-alias 'semantic-edits-new-change-hooks
-  'semantic-edits-new-change-functions "24.3")
 (defvar semantic-edits-new-change-functions nil
   "Abnormal hook run when a new change is found.
 Functions must take one argument representing an overlay on that change.")
 
-(define-obsolete-variable-alias 'semantic-edits-delete-change-hooks
-  'semantic-edits-delete-change-functions "24.3")
 (defvar semantic-edits-delete-change-functions nil
   "Abnormal hook run before a change overlay is deleted.
 Deleted changes occur when multiple changes are merged.
@@ -110,8 +104,6 @@ Changes move when a new change overlaps an old change.  The old change
 will be moved.
 Functions must take one argument representing an overlay being moved.")
 
-(define-obsolete-variable-alias 'semantic-edits-reparse-change-hooks
-  'semantic-edits-reparse-change-functions "24.3")
 (defvar semantic-edits-reparse-change-functions nil
   "Abnormal hook run after a change results in a reparse.
 Functions are called before the overlay is deleted, and after the
@@ -120,9 +112,6 @@ incremental reparse.")
 (defvar semantic-edits-incremental-reparse-failed-hook nil
   "Hook run after the incremental parser fails.
 When this happens, the buffer is marked as needing a full reparse.")
-
-(semantic-varalias-obsolete 'semantic-edits-incremental-reparse-failed-hooks
-			    'semantic-edits-incremental-reparse-failed-hook "23.2")
 
 (defcustom semantic-edits-verbose-flag nil
   "Non-nil means the incremental parser is verbose.
@@ -139,11 +128,9 @@ If nil, errors are still displayed, but informative messages are not."
   "Provide a mechanism for semantic tag management.
 Argument START, END, and LENGTH specify the bounds of the change."
    (setq semantic-unmatched-syntax-cache-check t)
-   (let ((inhibit-point-motion-hooks t)
-	 )
-     (save-match-data
-       (run-hook-with-args 'semantic-change-functions start end length)
-       )))
+   (save-match-data
+     (run-hook-with-args 'semantic-change-functions start end length)
+     ))
 
 (defun semantic-changes-in-region (start end &optional buffer)
   "Find change overlays which exist in whole or in part between START and END.
@@ -157,10 +144,10 @@ Optional argument BUFFER is the buffer to search for changes in."
 	(when (overlay-get (car ol) 'semantic-change)
 	  (setq ret (cons (car ol) ret)))
 	(setq ol (cdr ol)))
-      (sort ret #'(lambda (a b) (< (overlay-start a)
-				   (overlay-start b)))))))
+      (sort ret (lambda (a b) (< (overlay-start a)
+                                 (overlay-start b)))))))
 
-(defun semantic-edits-change-function-handle-changes  (start end length)
+(defun semantic-edits-change-function-handle-changes  (start end _length)
   "Run whenever a buffer controlled by `semantic-mode' change.
 Tracks when and how the buffer is re-parsed.
 Argument START, END, and LENGTH specify the bounds of the change."
@@ -359,7 +346,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		   start end)))
 	 (parent nil)
 	 (overlapped-tags nil)
-	 inner-start inner-end
+	 inner-end ;; inner-start
 	 (list-to-search nil))
     ;; By the time this is already called, we know that it is
     ;; not a leaf change, nor a between tag change.  That leaves
@@ -373,7 +360,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	(progn
 	  ;; We encompass one whole change.
 	  (setq overlapped-tags (list (car tags))
-		inner-start (semantic-tag-start (car tags))
+		;; inner-start (semantic-tag-start (car tags))
 		inner-end (semantic-tag-end (car tags))
 		tags (cdr tags))
 	  ;; Keep looping while tags are inside the change.
@@ -389,13 +376,14 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		;; This is a parent.  Drop the children found
 		;; so far.
 		(setq overlapped-tags (list (car tags))
-		      inner-start (semantic-tag-start (car tags))
+		      ;; inner-start (semantic-tag-start (car tags))
 		      inner-end (semantic-tag-end (car tags))
 		      )
 	      ;; It is not a parent encompassing tag
 	      (setq overlapped-tags (cons (car tags)
 					    overlapped-tags)
-		    inner-start (semantic-tag-start (car tags))))
+		    ;; inner-start (semantic-tag-start (car tags))
+		    ))
 	    (setq tags (cdr tags)))
 	  (if (not tags)
 	      ;; There are no tags left, and all tags originally
@@ -536,6 +524,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 					;query this when debugging to find
 					;source of bugs.
          )
+    (ignore last-cond) ;; Don't warn about the var not being used.
     (or changes
         ;; If we were called, and there are no changes, then we
         ;; don't know what to do.  Force a full reparse.
@@ -611,7 +600,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 		(setq last-cond "Beginning of buffer")
                 (setq parse-start
                       ;; Don't worry about parents since
-                      ;; there there would be an exact
+                      ;; there would be an exact
                       ;; match in the tag list otherwise
                       ;; and the routine would fail.
                       (point-min)
@@ -831,8 +820,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 
 ;; Make it the default changes parser
 ;;;###autoload
-(defalias 'semantic-parse-changes-default
-  'semantic-edits-incremental-parser)
+(defalias 'semantic-parse-changes-default #'semantic-edits-incremental-parser)
 
 ;;; Cache Splicing
 ;;

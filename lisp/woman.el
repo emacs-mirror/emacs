@@ -1,6 +1,6 @@
-;;; woman.el --- browse UN*X manual pages `wo (without) man'
+;;; woman.el --- browse UN*X manual pages `wo (without) man'  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -69,13 +69,7 @@
 ;; Recommended use
 ;; ===============
 
-;; Put this in your .emacs:
-;;   (autoload 'woman "woman"
-;;             "Decode and browse a UN*X man page." t)
-;;   (autoload 'woman-find-file "woman"
-;;             "Find, decode and browse a specific UN*X man-page file." t)
-
-;; Then either (1 -- *RECOMMENDED*): If the `MANPATH' environment
+;; Either (1 -- *RECOMMENDED*): If the `MANPATH' environment
 ;; variable is set then WoMan will use it; otherwise you may need to
 ;; reset the Lisp variable `woman-manpath', and you may also want to
 ;; set the Lisp variable `woman-path'.  Please see the online
@@ -90,9 +84,7 @@
 ;; for temporary files outside the standard UN*X manual directory
 ;; structure.
 
-;; Or (3): Put the next two sexpr's in your .emacs:
-;; (autoload 'woman-dired-find-file "woman"
-;;   "In dired, run the WoMan man-page browser on this file." t)
+;; Or (3): Put this in your init file:
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
@@ -139,14 +131,8 @@
 ;; ==============================
 
 ;; WoMan supports the GNU Emacs customization facility, and puts
-;; a customization group called `WoMan' in the `Help' group under the
-;; top-level `Emacs' group.  In order to be able to customize WoMan
-;; without first loading it, add the following sexp to your .emacs:
-
-;;  (defgroup woman nil
-;;     "Browse UNIX manual pages `wo (without) man'."
-;;     :tag "WoMan" :group 'help :load "woman")
-
+;; a customization group called `woman' in the `help' group under the
+;; top-level `emacs' group.
 
 ;; WoMan currently runs two hooks: `woman-pre-format-hook' immediately
 ;; before formatting a buffer and `woman-post-format-hook' immediately
@@ -400,11 +386,9 @@
 
 ;;; Code:
 
-(defvar woman-version "0.551 (beta)" "WoMan version information.")
-(make-obsolete-variable 'woman-version nil "28.1")
+(eval-when-compile (require 'cl-lib))
 
 (require 'man)
-(require 'button)
 (define-button-type 'WoMan-xref-man-page
   :supertype 'Man-abstract-xref-man-page
   'func (lambda (arg)
@@ -431,14 +415,14 @@ As a special case, if PATHS is nil then replace it by calling
   ;; an empty substring of MANPATH denotes the default list.
   (if (memq system-type '(windows-nt ms-dos))
       (cond ((null paths)
-	     (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf)))
-	    ((string-match-p ";" paths)
+	     (mapcar #'woman-Cyg-to-Win (woman-parse-man.conf)))
+	    ((string-search ";" paths)
 	     ;; Assume DOS-style path-list...
 	     (mapcan			; splice list into list
 	      (lambda (x)
 		(if x
 		    (list x)
-		  (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf))))
+		  (mapcar #'woman-Cyg-to-Win (woman-parse-man.conf))))
 	      (parse-colon-path paths)))
 	    ((string-match-p "\\`[a-zA-Z]:" paths)
 	     ;; Assume single DOS-style path...
@@ -447,7 +431,7 @@ As a special case, if PATHS is nil then replace it by calling
 	     ;; Assume UNIX/Cygwin-style path-list...
 	     (mapcan			; splice list into list
 	      (lambda (x)
-		(mapcar 'woman-Cyg-to-Win
+		(mapcar #'woman-Cyg-to-Win
 			(if x (list x) (woman-parse-man.conf))))
 	      (let ((path-separator ":"))
 		(parse-colon-path paths)))))
@@ -522,7 +506,7 @@ Change only via `Customization' or the function `add-hook'."
 (defcustom woman-man.conf-path
   (let ((path '("/usr/lib" "/etc")))
     (cond ((eq system-type 'windows-nt)
-	   (mapcar 'woman-Cyg-to-Win path))
+	   (mapcar #'woman-Cyg-to-Win path))
 	  ((eq system-type 'darwin)
 	   (cons "/usr/share/misc" path))
 	  (t path)))
@@ -797,7 +781,7 @@ Built automatically from the customizable user options
 (defvar woman-uncompressed-file-regexp)	; for the compiler
 (defvar woman-file-compression-regexp)	; for the compiler
 
-(defun set-woman-file-regexp (symbol value)
+(defun woman-set-file-regexp (symbol value)
   "Bind SYMBOL to VALUE and set `woman-file-regexp' as per user customizations.
 Used as :set cookie by Customize when customizing the user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'."
@@ -822,7 +806,7 @@ in the ncurses package include `toe.1m', `form.3x', etc.
 Note: an optional compression regexp will be appended, so this regexp
 MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
-  :set 'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-file-compression-regexp
@@ -838,7 +822,7 @@ Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; not loaded by default!
   :version "24.1"                       ; added xz
   :type 'regexp
-  :set 'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-use-own-frame nil
@@ -855,10 +839,12 @@ Only useful when run on a graphic display such as X or MS-Windows."
   :tag "WoMan Formatting"
   :group 'woman)
 
-(defcustom woman-fill-column 65
-  "Right margin for formatted text -- default is 65."
-  :type 'integer
-  :group 'woman-formatting)
+;; This could probably be 80 to match 'Man-width'.
+(defcustom woman-fill-column 70
+  "Right margin for formatted text -- default is 70."
+  :type 'natnum
+  :group 'woman-formatting
+  :version "29.1")
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
@@ -914,9 +900,9 @@ Troff emulation is experimental and largely untested.
   :group 'faces)
 
 (defcustom woman-fontify
-  (or (and (fboundp 'display-color-p) (display-color-p))
-      (and (fboundp 'display-graphic-p) (display-graphic-p))
-      (x-display-color-p))
+  (or (display-color-p)
+      (display-graphic-p)
+      (display-color-p))
   "If non-nil then WoMan assumes that face support is available.
 It defaults to a non-nil value if the display supports either colors
 or different fonts."
@@ -1079,9 +1065,8 @@ Set by `.ns' request; reset by any output or `.rs' request")
   ;; Could end with "\\( +\\|$\\)" instead of " *"
   "Regexp to match a ?roff request plus trailing white space.")
 
-(defvar woman-imenu-done nil
+(defvar-local woman-imenu-done nil
   "Buffer-local: set to true if function `woman-imenu' has been called.")
-(make-variable-buffer-local 'woman-imenu-done)
 
 ;; From imenu.el -- needed when reformatting a file in its old buffer.
 ;; The latest buffer index used to update the menu bar menu.
@@ -1166,7 +1151,7 @@ updated (e.g. to re-interpret the current directory).
 Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
-  ;; The following test is for non-interactive calls via gnudoit etc.
+  ;; The following test is for non-interactive calls via emacsclient, etc.
   (if (or (not (stringp topic)) (string-match-p "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
@@ -1200,7 +1185,7 @@ Called both to generate and to check the cache!"
 	      (setq dir (and (member (car dir) path) (cdr dir))))
 	    (when dir
               (cl-pushnew (substitute-in-file-name dir) lst :test #'equal))))
-	(mapcar 'substitute-in-file-name woman-path)))
+	(mapcar #'substitute-in-file-name woman-path)))
 
 (defun woman-read-directory-cache ()
   "Load the directory and topic cache.
@@ -1277,14 +1262,11 @@ cache to be re-read."
 				  (test-completion
 				   word-at-point woman-topic-all-completions))
 			 word-at-point)))
-		(completing-read
-		 (if default
-		     (format "Manual entry (default %s): " default)
-		   "Manual entry: ")
-		 woman-topic-all-completions nil 1
-		 nil
-		 'woman-topic-history
-		 default))))
+		(completing-read (format-prompt "Manual entry" default)
+		                 woman-topic-all-completions nil 1
+		                 nil
+		                 'woman-topic-history
+		                 default))))
     ;; Note that completing-read always returns a string.
     (unless (= (length topic) 0)
       (cond
@@ -1292,9 +1274,11 @@ cache to be re-read."
        ;; Complete topic more carefully, i.e. use the completion
        ;; rather than the string entered by the user:
        ((setq files (all-completions topic woman-topic-all-completions))
-	(while (/= (length topic) (length (car files)))
+	(while (and files
+                    (/= (length topic) (length (car files))))
 	  (setq files (cdr files)))
-	(setq files (woman-file-name-all-completions (car files)))))
+        (when files
+	  (setq files (woman-file-name-all-completions (car files))))))
       (cond
        ((null files) nil)		; no file found for topic.
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.
@@ -1518,14 +1502,14 @@ Also make each path-info component into a list.
 	(if (woman-not-member dir path)	; use each directory only once!
 	    (setq files (nconc files
 			       (directory-files dir t topic-regexp))))))
-    (mapcar 'list files)))
+    (mapcar #'list files)))
 
 
 ;;; dired support
 
 (defun woman-dired-define-key (key)
   "Bind the argument KEY to the command `woman-dired-find-file'."
-  (define-key dired-mode-map key 'woman-dired-find-file))
+  (define-key dired-mode-map key #'woman-dired-find-file))
 
 (defsubst woman-dired-define-key-maybe (key)
   "If KEY is undefined in Dired, bind it to command `woman-dired-find-file'."
@@ -1537,7 +1521,7 @@ Also make each path-info component into a list.
   "Define dired keys to run WoMan according to `woman-dired-keys'."
   (if woman-dired-keys
       (if (listp woman-dired-keys)
-	  (mapc 'woman-dired-define-key woman-dired-keys)
+	  (mapc #'woman-dired-define-key woman-dired-keys)
 	(woman-dired-define-key-maybe "w")
 	(woman-dired-define-key-maybe "W")))
   (define-key-after (lookup-key dired-mode-map [menu-bar immediate])
@@ -1545,7 +1529,7 @@ Also make each path-info component into a list.
 
 (if (featurep 'dired)
     (woman-dired-define-keys)
-  (add-hook 'dired-mode-hook 'woman-dired-define-keys))
+  (add-hook 'dired-mode-hook #'woman-dired-define-keys))
 
 (declare-function dired-get-filename "dired"
                   (&optional localp no-error-if-not-filep))
@@ -1706,11 +1690,11 @@ Do not call directly!"
       (progn
 	(goto-char (point-min))
 	(while (search-forward "__\b\b" nil t)
-	  (backward-delete-char 4)
+	  (delete-char -4)
 	  (woman-set-face (point) (1+ (point)) 'woman-italic))
 	(goto-char (point-min))
 	(while (search-forward "\b\b__" nil t)
-	  (backward-delete-char 4)
+	  (delete-char -4)
 	  (woman-set-face (1- (point)) (point) 'woman-italic))))
 
   ;; Interpret overprinting to indicate bold face:
@@ -1767,21 +1751,17 @@ Leave point at end of new text.  Return length of inserted text."
 
 ;;; Major mode (Man) interface:
 
-(defvar woman-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map Man-mode-map)
-
-    (define-key map "R" 'woman-reformat-last-file)
-    (define-key map "w" 'woman)
-    (define-key map "\en" 'WoMan-next-manpage)
-    (define-key map "\ep" 'WoMan-previous-manpage)
-    (define-key map [M-mouse-2] 'woman-follow-word)
-
-    ;; We don't need to call `man' when we are in `woman-mode'.
-    (define-key map [remap man] 'woman)
-    (define-key map [remap man-follow] 'woman-follow)
-    map)
-  "Keymap for `woman-mode'.")
+(defvar-keymap woman-mode-map
+  :doc "Keymap for `woman-mode'."
+  :parent Man-mode-map
+  "R"   #'woman-reformat-last-file
+  "w"   #'woman
+  "M-n" #'WoMan-next-manpage
+  "M-p" #'WoMan-previous-manpage
+  "M-<mouse-2>"          #'woman-follow-word
+  ;; We don't need to call `man' when we are in `woman-mode'.
+  "<remap> <man>"        #'woman
+  "<remap> <man-follow>" #'woman-follow)
 
 (defun woman-follow (topic)
   "Get a Un*x manual page of the item under point and put it in a buffer."
@@ -1806,7 +1786,7 @@ Argument EVENT is the invoking mouse event."
   ;; That comment was moved after the symbol `woman-menu' to make
   ;; find-function-search-for-symbol work. -- rost
  woman-mode-map
- "WoMan Menu"
+ "WoMan Menu."
  `("WoMan"
    ["WoMan..." woman t]			; [NAME CALLBACK ENABLE]
    "--"
@@ -1829,8 +1809,7 @@ Argument EVENT is the invoking mouse event."
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
    ["Mini Help" woman-mini-help t]
-   ,@(if (fboundp 'customize-group)
-	 '(["Customize..." (customize-group 'woman) t]))
+   ["Customize..." (customize-group 'woman) t]
    "--"
    ("Advanced"
     ["View Source" (view-file woman-last-file-name) woman-last-file-name]
@@ -1873,30 +1852,22 @@ Argument EVENT is the invoking mouse event."
 
 (defvar bookmark-make-record-function)
 
-(define-derived-mode woman-mode special-mode "WoMan"
+(define-derived-mode woman-mode man-common "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
 WoMan is an ELisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
 See `Man-mode' for additional details.
 \\{woman-mode-map}"
-  (let ((Man-build-page-list (symbol-function 'Man-build-page-list))
-	(Man-strip-page-headers (symbol-function 'Man-strip-page-headers))
-	(Man-unindent (symbol-function 'Man-unindent))
-	(Man-goto-page (symbol-function 'Man-goto-page)))
+  ;; FIXME: Should all this just be re-arranged so that this can just
+  ;; inherit `man-common' and be done with it?
+  (cl-letf (((symbol-function 'Man-build-page-list) #'ignore)
+	    ((symbol-function 'Man-strip-page-headers) #'ignore)
+	    ((symbol-function 'Man-unindent) #'ignore)
+	    ((symbol-function 'Man-goto-page) #'ignore))
     ;; Prevent inappropriate operations:
-    (fset 'Man-build-page-list 'ignore)
-    (fset 'Man-strip-page-headers 'ignore)
-    (fset 'Man-unindent 'ignore)
-    (fset 'Man-goto-page 'ignore)
-    (unwind-protect
-	(delay-mode-hooks (Man-mode))
-      ;; Restore the status quo:
-      (fset 'Man-build-page-list Man-build-page-list)
-      (fset 'Man-strip-page-headers Man-strip-page-headers)
-      (fset 'Man-unindent Man-unindent)
-      (fset 'Man-goto-page Man-goto-page)
-      (setq tab-width woman-tab-width)))
+    (delay-mode-hooks (Man-mode)))
+  (setq tab-width woman-tab-width)
   (setq major-mode 'woman-mode
 	mode-name "WoMan")
   ;; Don't show page numbers like Man-mode does.  (Online documents do
@@ -1907,7 +1878,7 @@ See `Man-mode' for additional details.
   (setq imenu-generic-expression woman-imenu-generic-expression)
   (setq-local imenu-space-replacement " ")
   ;; Bookmark support.
-  (setq-local bookmark-make-record-function 'woman-bookmark-make-record)
+  (setq-local bookmark-make-record-function #'woman-bookmark-make-record)
   ;; For reformat ...
   ;; necessary when reformatting a file in its old buffer:
   (setq imenu--last-menubar-index-alist nil)
@@ -1963,12 +1934,12 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 		   (setq symbol (car p)) ; 1. name
 		   (if (functionp symbol) ; 2. command doc
 		       (if (setq doc (documentation symbol t))
-			   (substring doc 0 (string-match "\n" doc))
+			   (substring doc 0 (string-search "\n" doc))
 			 "(not documented)"))
 		   (if (custom-variable-p symbol)	; 3. variable doc
 		       (if (setq doc (documentation-property
 				      symbol 'variable-documentation t))
-			   (substring doc 0 (string-match "\n" doc))))))
+			   (substring doc 0 (string-search "\n" doc))))))
 	(setq p (cdr p))))
     ;; Output the result:
     (and (apropos-print t nil)
@@ -1979,7 +1950,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defun WoMan-getpage-in-background (topic)
   "Use TOPIC to start WoMan from `Man-follow-manual-reference'."
   ;; topic is a string, generally of the form "section topic"
-  (let ((s (string-match " " topic)))
+  (let ((s (string-search " " topic)))
     (if s (setq topic (substring topic (1+ s))))
     (woman topic)))
 
@@ -2119,7 +2090,7 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
-  (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
+  (and font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))
 	time)
@@ -2206,7 +2177,7 @@ To be called on original buffer and any .so insertions."
 ;; variable.  zsoelim is always run as the very first preprocessor.
 
 (defvar woman-emulate-tbl nil
-  "True if WoMan should emulate the tbl preprocessor.
+  "Non-nil if WoMan should emulate the tbl preprocessor.
 This applies to text between .TE and .TS directives.
 Currently set only from \\='\\\" t in the first line of the source file.")
 
@@ -2292,15 +2263,21 @@ Currently set only from \\='\\\" t in the first line of the source file.")
     (setq fill-column woman-fill-column
 	  tab-width woman-tab-width)
 
+    ;; Ignore the \, and \/ kerning operators.  See
+    ;; https://www.gnu.org/software/groff/manual/groff.html#Ligatures-and-Kerning
+    (goto-char (point-min))
+    (while (re-search-forward "\\\\[,/]" nil t)
+      (replace-match "" t t))
+
     ;; Hide unpaddable and digit-width spaces \(space) and \0:
     (goto-char from)
     (while (re-search-forward "\\\\[ 0]" nil t)
       (replace-match woman-unpadded-space-string t t))
 
     ;; Discard optional hyphen \%; concealed newlines \<newline>;
-    ;; point-size change function \sN,\s+N, \s-N:
+    ;; kerning \/, \,; point-size change function \sN,\s+N, \s-N:
     (goto-char from)
-    (while (re-search-forward "\\\\\\([%\n]\\|s[-+]?[0-9]+\\)" nil t)
+    (while (re-search-forward "\\\\\\([%\n/,]\\|s[-+]?[0-9]+\\)" nil t)
       (woman-delete-match 0))
 
     ;; BEWARE: THIS SHOULD PROBABLY ALL BE DONE MUCH LATER!!!!!
@@ -2378,7 +2355,7 @@ Currently set only from \\='\\\" t in the first line of the source file.")
     (point-max)))
 
 (defun woman-horizontal-escapes (to)
-  "Process \\h'+/-N' local horizontal motion escapes upto TO.
+  "Process \\h'+/-N' local horizontal motion escapes up to TO.
 Implements arbitrary forward and non-overlapping backward motion.
 Preserves location of `point'."
   ;; Moved from `woman-decode-region' for version 0.50.
@@ -2439,6 +2416,10 @@ Preserves location of `point'."
 ;; Alternatively, force maximal match (Posix?)
 
 (defvar woman0-rename-alist)		; bound in woman0-roff-buffer
+
+;; Bound locally by woman[012]-roff-buffer, and woman0-macro.
+;; Use dynamically in woman-unquote and woman-forward-arg.
+(defvar woman-request)
 
 (defun woman0-roff-buffer (from)
   "Process conditional-type requests and user-defined macros.
@@ -2759,15 +2740,16 @@ Optional argument APPEND, if non-nil, means append macro."
 
 ;; request may be used dynamically (woman-interpolate-macro calls
 ;; woman-forward-arg).
-(defun woman0-macro (woman-request)
-  "Process the macro call named WOMAN-REQUEST."
+(defun woman0-macro (request)
+  "Process the macro call named REQUEST."
   ;; Leaves point at start of new text.
-  (let ((macro (assoc woman-request woman0-macro-alist)))
+  (let ((woman-request request)
+        (macro (assoc request woman0-macro-alist)))
     (if macro
 	(woman-interpolate-macro (cdr macro))
       ;; SHOULD DELETE THE UNINTERPRETED REQUEST!!!!!
       ;; Output this message once only per call (cf. strings)?
-      (WoMan-warn "Undefined macro %s not interpolated!" woman-request))))
+      (WoMan-warn "Undefined macro %s not interpolated!" request))))
 
 (defun woman-interpolate-macro (macro)
   "Interpolate (.de) or append (.am) expansion of MACRO into the buffer."
@@ -2991,11 +2973,6 @@ Useful for constructing the alist variable `woman-special-characters'."
 
 ;;; Formatting macros that do not cause a break:
 
-;; Bound locally by woman[012]-roff-buffer, and also, annoyingly and
-;; confusingly, as a function argument.  Use dynamically in
-;; woman-unquote and woman-forward-arg.
-(defvar woman-request)
-
 (defun woman-unquote (to)
   "Delete any double-quote characters between point and TO.
 Leave point at TO (which should be a marker)."
@@ -3076,7 +3053,7 @@ B-OR-I is the appropriate complete control line."
   ".SM -- Set the current line in small font, i.e. IGNORE!"
   nil)
 
-(defalias 'woman1-SB 'woman1-B)
+(defalias 'woman1-SB #'woman1-B)
 ;; .SB -- Set the current line in small bold font, i.e. just embolden!
 ;; (This is what /usr/local/share/groff/tmac/tmac.an does.  The
 ;; Linux man.7 is wrong about this!)
@@ -3206,27 +3183,27 @@ If optional arg CONCAT is non-nil then join arguments."
 ;;; Other non-breaking requests correctly ignored by nroff:
 
 (put 'woman1-ps 'notfont t)
-(defalias 'woman1-ps 'woman-delete-whole-line)
+(defalias 'woman1-ps #'woman-delete-whole-line)
   ;; .ps -- Point size -- IGNORE!
 
 (put 'woman1-ss 'notfont t)
-(defalias 'woman1-ss 'woman-delete-whole-line)
+(defalias 'woman1-ss #'woman-delete-whole-line)
   ;; .ss -- Space-character size -- IGNORE!
 
 (put 'woman1-cs 'notfont t)
-(defalias 'woman1-cs 'woman-delete-whole-line)
+(defalias 'woman1-cs #'woman-delete-whole-line)
   ;; .cs -- Constant character space (width) mode -- IGNORE!
 
 (put 'woman1-ne 'notfont t)
-(defalias 'woman1-ne 'woman-delete-whole-line)
+(defalias 'woman1-ne #'woman-delete-whole-line)
   ;; .ne -- Need vertical space -- IGNORE!
 
 (put 'woman1-vs 'notfont t)
-(defalias 'woman1-vs 'woman-delete-whole-line)
+(defalias 'woman1-vs #'woman-delete-whole-line)
   ;; .vs -- Vertical base line spacing -- IGNORE!
 
 (put 'woman1-bd 'notfont t)
-(defalias 'woman1-bd 'woman-delete-whole-line)
+(defalias 'woman1-bd #'woman-delete-whole-line)
   ;; .bd -- Embolden font -- IGNORE!
 
 ;;; Non-breaking SunOS-specific macros:
@@ -3237,7 +3214,7 @@ If optional arg CONCAT is non-nil then join arguments."
   (woman-forward-arg 'unquote 'concat))
 
 (put 'woman1-IX 'notfont t)
-(defalias 'woman1-IX 'woman-delete-whole-line)
+(defalias 'woman1-IX #'woman-delete-whole-line)
   ;; .IX -- Index macro, for Sun internal use -- IGNORE!
 
 
@@ -3369,7 +3346,7 @@ Ignore the default face and underline only word characters."
 
 (defun woman2-tr (to)
   ".tr abcde -- Translate a -> b, c -> d, ..., e -> space.
-Format paragraphs upto TO.  Supports special chars.
+Format paragraphs up to TO.  Supports special chars.
 \(Breaks, but should not.)"
   ;; This should be an update, but consing onto the front of the alist
   ;; has the same effect and match duplicates should not matter.
@@ -3425,7 +3402,7 @@ Format paragraphs upto TO.  Supports special chars.
 (defvar woman-registers			; these are all read-only
   '((".H" 24) (".V" 48)			; resolution in basic units
     (".g" 0)				; not groff
-    ;; (Iff emulating groff need to implement groff italic correction
+    ;; (If emulating groff need to implement groff italic correction
     ;; \/, e.g. for pic.1)
     (".i" left-margin)			; current indent
     (".j" woman-adjust)			; current adjustment
@@ -3455,7 +3432,7 @@ Handle numeric arguments specially if optional argument NUMERIC is non-nil."
 (defun woman2-nr (to)
   ".nr R +/-N M -- Assign +/-N (wrt to previous value, if any) to register R.
 The increment for auto-incrementing is set to M.
-Format paragraphs upto TO.  (Breaks, but should not!)"
+Format paragraphs up to TO.  (Breaks, but should not!)"
   (let* ((name (buffer-substring
 		(point)
 		(progn (skip-syntax-forward "^ ") (point))))
@@ -3586,7 +3563,7 @@ expression in parentheses.  Leaves point after the value."
 				  inc (cdr value)
 				  ;; eval internal (.X) registers
 				  ;; stored as lisp variable names:
-				  value (eval (car value)))
+				  value (eval (car value) t))
 			    (if (and pm inc) ; auto-increment
 				(setq value
 				      (funcall (intern-soft pm) value inc)
@@ -3646,64 +3623,55 @@ expression in parentheses.  Leaves point after the value."
   "Process breaks.  Format paragraphs and headings."
   (let ((case-fold-search t)
 	(to (make-marker))
-	(canonically-space-region
-	 (symbol-function 'canonically-space-region))
-	(insert-and-inherit (symbol-function 'insert-and-inherit))
-	(set-text-properties (symbol-function 'set-text-properties))
 	(woman-registers woman-registers)
 	fn woman-request woman-translations
 	tab-stop-list)
     (set-marker-insertion-type to t)
     ;; ?roff does not squeeze multiple spaces, but does fill, so...
-    (fset 'canonically-space-region 'ignore)
-    ;; Try to avoid spaces inheriting underlines from preceding text!
-    (fset 'insert-and-inherit (symbol-function 'insert))
-    (fset 'set-text-properties 'ignore)
-    (unwind-protect
-        (progn
-          (while
-              ;; Find next control line:
-              (re-search-forward woman-request-regexp nil t)
-            (cond
-             ;; Construct woman function to call:
-             ((setq fn (intern-soft
-                        (concat "woman2-"
-                                (setq woman-request (match-string 1)))))
-              ;; Delete request or macro name:
-              (woman-delete-match 0))
-             ;; Unrecognized request:
-             ((prog1 nil
-                ;; (WoMan-warn ".%s request ignored!" woman-request)
-                (WoMan-warn-ignored woman-request "ignored!")
-                ;; (setq fn 'woman2-LP)
-                ;; AVOID LEAVING A BLANK LINE!
-                ;; (setq fn 'woman2-format-paragraphs)
-                ))
-             ;; .LP assumes it is at eol and leaves a (blank) line,
-             ;; so leave point at end of line before paragraph:
-             ((or (looking-at "[ \t]*$") ; no argument
-                  woman-ignore)          ; ignore all
-              ;; (beginning-of-line) (kill-line)
-              ;; AVOID LEAVING A BLANK LINE!
-              (beginning-of-line) (woman-delete-line 1))
-             (t (end-of-line) (insert ?\n)))
-            (if (not (or fn
-                         (and (not (memq (following-char) '(?. ?')))
-                              (setq fn 'woman2-format-paragraphs))))
-                ()
-              ;; Find next control line:
-              (if (equal woman-request "TS")
-                  (set-marker to (woman-find-next-control-line "TE"))
-                (set-marker to (woman-find-next-control-line)))
-              ;; Call the appropriate function:
-              (funcall fn to)))
-          (if (not (eobp))             ; This should not happen, but ...
-              (woman2-format-paragraphs (copy-marker (point-max) t)
-                                        woman-left-margin)))
-      (fset 'canonically-space-region canonically-space-region)
-      (fset 'set-text-properties set-text-properties)
-      (fset 'insert-and-inherit insert-and-inherit)
-      (set-marker to nil))))
+    (cl-letf (((symbol-function 'canonically-space-region) #'ignore)
+              ;; Try to avoid spaces inheriting underlines from preceding text!
+              ((symbol-function 'insert-and-inherit) #'insert)
+              ((symbol-function 'set-text-properties) #'ignore))
+      (while
+          ;; Find next control line:
+          (re-search-forward woman-request-regexp nil t)
+        (cond
+         ;; Construct woman function to call:
+         ((setq fn (intern-soft
+                    (concat "woman2-"
+                            (setq woman-request (match-string 1)))))
+          ;; Delete request or macro name:
+          (woman-delete-match 0))
+         ;; Unrecognized request:
+         ((prog1 nil
+            ;; (WoMan-warn ".%s request ignored!" woman-request)
+            (WoMan-warn-ignored woman-request "ignored!")
+            ;; (setq fn 'woman2-LP)
+            ;; AVOID LEAVING A BLANK LINE!
+            ;; (setq fn 'woman2-format-paragraphs)
+            ))
+         ;; .LP assumes it is at eol and leaves a (blank) line,
+         ;; so leave point at end of line before paragraph:
+         ((or (looking-at "[ \t]*$")    ; no argument
+              woman-ignore)             ; ignore all
+          ;; (beginning-of-line) (kill-line)
+          ;; AVOID LEAVING A BLANK LINE!
+          (beginning-of-line) (woman-delete-line 1))
+         (t (end-of-line) (insert ?\n)))
+        (if (not (or fn
+                     (and (not (memq (following-char) '(?. ?')))
+                          (setq fn 'woman2-format-paragraphs))))
+            ()
+          ;; Find next control line:
+          (if (equal woman-request "TS")
+              (set-marker to (woman-find-next-control-line "TE"))
+            (set-marker to (woman-find-next-control-line)))
+          ;; Call the appropriate function:
+          (funcall fn to)))
+      (if (not (eobp))             ; This should not happen, but ...
+          (woman2-format-paragraphs (copy-marker (point-max) t)
+                                    woman-left-margin)))
+    (set-marker to nil)))
 
 (defun woman-find-next-control-line (&optional pat)
   "Find and return start of next control line.
@@ -3731,7 +3699,7 @@ regexp, \"\\(\\\\c\\)?\\n[.\\=']\"."
 
 (defun woman2-PD (to)
   ".PD d -- Set the interparagraph distance to d.
-Round to whole lines, default 1 line.  Format paragraphs upto TO.
+Round to whole lines, default 1 line.  Format paragraphs up to TO.
 \(Breaks, but should not.)"
   ;; .ie \\n[.$] .nr PD (v;\\$1)
   ;; .el .nr PD .4v>?\n[.V]
@@ -3750,7 +3718,7 @@ Round to whole lines, default 1 line.  Format paragraphs upto TO.
   (setq woman-leave-blank-lines woman-interparagraph-distance))
 
 (defun woman2-TH (to)
-  ".TH n c x v m -- Begin a man page.  Format paragraphs upto TO.
+  ".TH n c x v m -- Begin a man page.  Format paragraphs up to TO.
 n is the name of the page in chapter c; x is extra commentary;
 v alters page foot left; m alters page head center.
 \(Should set prevailing indent and tabs to 5.)"
@@ -3780,7 +3748,7 @@ v alters page foot left; m alters page head center.
 
 (defun woman2-SH (to)
   ".SH -- Sub-head.  Leave blank line and subhead.
-Format paragraphs upto TO.  Set prevailing indent to 5."
+Format paragraphs up to TO.  Set prevailing indent to 5."
   (if (eolp)				; If no args then
       (delete-char 1)			; apply to next line
     (woman-unquote-args)		; else unquote to end of heading
@@ -3799,7 +3767,7 @@ Format paragraphs upto TO.  Set prevailing indent to 5."
 
 (defun woman2-SS (to)
   ".SS -- Sub-sub-head.  Like .SH but indent heading 3 spaces.
-Format paragraphs upto TO."
+Format paragraphs up to TO."
   (if (eolp)				; If no args then
       (delete-char 1))			; apply to next line.
   (insert "   ")
@@ -3808,31 +3776,31 @@ Format paragraphs upto TO."
 
 (defun woman2-LP (to)
   ".LP,.PP -- Begin paragraph.  Set prevailing indent to 5.
-Leave 1 blank line.  Format paragraphs upto TO."
+Leave 1 blank line.  Format paragraphs up to TO."
   (woman-delete-line 1)			; ignore any arguments
   (woman-interparagraph-space)
   (setq woman-prevailing-indent woman-default-indent)
   (woman2-format-paragraphs to woman-left-margin))
 
-(defalias 'woman2-PP 'woman2-LP)
-(defalias 'woman2-P 'woman2-LP)
+(defalias 'woman2-PP #'woman2-LP)
+(defalias 'woman2-P #'woman2-LP)
 
 (defun woman2-ns (to)
-  ".ns -- Turn on no-space mode.  Format paragraphs upto TO."
+  ".ns -- Turn on no-space mode.  Format paragraphs up to TO."
   ;; Should not cause a break!
   (woman-delete-line 1)			; ignore argument(s)
   (setq woman-nospace t)
   (woman2-format-paragraphs to))
 
 (defun woman2-rs (to)
-  ".rs -- Turn off no-space mode.  Format paragraphs upto TO."
+  ".rs -- Turn off no-space mode.  Format paragraphs up to TO."
   ;; Should not cause a break!
   (woman-delete-line 1)			; ignore argument(s)
   (setq woman-nospace nil)
   (woman2-format-paragraphs to))
 
 (defun woman2-sp (to)
-  ".sp N -- If N > 0 then leave 1 blank line.  Format paragraphs upto TO."
+  ".sp N -- If N > 0 then leave 1 blank line.  Format paragraphs up to TO."
   (let ((N (if (eolp) 1 (woman-get-numeric-arg))))
     (if (>= N 0)
 	(woman-delete-line 1)		; ignore argument(s)
@@ -3867,7 +3835,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 		((eolp)			; extend line
 		 ;; Insert character INCLUDING TEXT PROPERTIES:
 		 ;; (insert (substring overlap i (1+ i)))
-		 (let ((eol (string-match "\n" overlap i)))
+		 (let ((eol (string-search "\n" overlap i)))
 		   (insert (substring overlap i eol))
 		   (setq i (or eol imax)))
 		 )
@@ -3987,13 +3955,13 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
 ;;; 4. Text Filling, Adjusting, and Centering
 
 (defun woman2-br (to)
-  ".br -- Break.  Leave no blank line.  Format paragraphs upto TO."
+  ".br -- Break.  Leave no blank line.  Format paragraphs up to TO."
   (woman-delete-line 1)			; ignore any arguments
   (woman2-format-paragraphs to))
 
 (defun woman2-fi (to)
   ".fi -- Fill subsequent output lines.  Leave no blank line.
-Format paragraphs upto TO."
+Format paragraphs up to TO."
   (setq woman-nofill nil)
   (woman-delete-line 1)			; ignore any arguments
   ;; Preserve any final blank line in the nofill region:
@@ -4013,7 +3981,7 @@ for the current line length.  Format paragraphs up to TO."
 (defun woman2-ad (to)
   ".ad c -- Line adjustment is begun (once fill mode is on).
 Set justification mode to c if specified.
-Format paragraphs upto TO.  (Breaks, but should not.)"
+Format paragraphs up to TO.  (Breaks, but should not.)"
   ;; c = l -- left, r -- right, c -- center, b or n -- both,
   ;; absent -- unchanged.  Initial mode adj,both.
   (setq woman-adjust
@@ -4029,7 +3997,7 @@ Format paragraphs upto TO.  (Breaks, but should not.)"
   (woman2-format-paragraphs to))
 
 (defun woman2-na (to)
-  ".na -- No adjusting.  Format paragraphs upto TO.
+  ".na -- No adjusting.  Format paragraphs up to TO.
 \(Breaks, but should not.)"
   (setq woman-adjust-previous woman-adjust
 	woman-justify-previous woman-justify
@@ -4069,7 +4037,7 @@ non-nil and non-zero."
 (defvar woman-temp-indent nil)
 
 (defun woman2-format-paragraphs (to &optional new-left)
-  "Indent, fill and adjust paragraphs upto TO to current left margin.
+  "Indent, fill and adjust paragraphs up to TO to current left margin.
 If optional arg NEW-LEFT is non-nil then reset current left margin.
 If `woman-nofill' is non-nil then indent without filling or adjusting."
   ;; Blank space should only ever be output before text.
@@ -4135,7 +4103,7 @@ If `woman-nofill' is non-nil then indent without filling or adjusting."
 ;;; Tagged, indented and hanging paragraphs:
 
 (defun woman2-TP (to)
-  ".TP i -- Set prevailing indent to i.  Format paragraphs upto TO.
+  ".TP i -- Set prevailing indent to i.  Format paragraphs up to TO.
 Begin indented paragraph with hanging tag given by next text line.
 If tag doesn't fit, place it on a separate line."
   (let ((i (woman2-get-prevailing-indent)))
@@ -4143,7 +4111,7 @@ If tag doesn't fit, place it on a separate line."
     (woman2-tagged-paragraph to i)))
 
 (defun woman2-IP (to)
-  ".IP x i -- Same as .TP with tag x.  Format paragraphs upto TO."
+  ".IP x i -- Same as .TP with tag x.  Format paragraphs up to TO."
   (woman-interparagraph-space)
   (if (eolp)				; no args
       ;; Like LP without resetting prevailing indent
@@ -4184,7 +4152,7 @@ If tag doesn't fit, place it on a separate line."
 (defun woman2-tagged-paragraph (to i)
   "Begin indented paragraph with hanging tag given by current text line.
 If tag doesn't fit, leave it on separate line.
-Format paragraphs upto TO.  Set prevailing indent to I."
+Format paragraphs up to TO.  Set prevailing indent to I."
   (if (not (looking-at "\\s *$"))	; non-empty tag
       (setq woman-leave-blank-lines nil))
 
@@ -4238,7 +4206,7 @@ Format paragraphs upto TO.  Set prevailing indent to I."
 	   (goto-char to)))))
 
 (defun woman2-HP (to)
-  ".HP i -- Set prevailing indent to i.  Format paragraphs upto TO.
+  ".HP i -- Set prevailing indent to i.  Format paragraphs up to TO.
 Begin paragraph with hanging indent."
   (let ((i (woman2-get-prevailing-indent)))
     (woman-interparagraph-space)
@@ -4260,7 +4228,7 @@ Delete line from point and eol unless LEAVE-EOL is non-nil."
 
 (defun woman2-RS (to)
   ".RS i -- Start relative indent, move left margin in distance i.
-Set prevailing indent to 5 for nested indents.  Format paragraphs upto TO."
+Set prevailing indent to 5 for nested indents.  Format paragraphs up to TO."
   (push woman-left-margin woman-RS-left-margin)
   (push woman-prevailing-indent woman-RS-prevailing-indent)
   (setq woman-left-margin (+ woman-left-margin
@@ -4269,7 +4237,7 @@ Set prevailing indent to 5 for nested indents.  Format paragraphs upto TO."
   (woman2-format-paragraphs to woman-left-margin))
 
 (defun woman2-RE (to)
-  ".RE -- End of relative indent.  Format paragraphs upto TO.
+  ".RE -- End of relative indent.  Format paragraphs up to TO.
 Set prevailing indent to amount of starting .RS."
   (when woman-RS-left-margin
     (setq woman-left-margin (pop woman-RS-left-margin)))
@@ -4286,16 +4254,16 @@ Set prevailing indent to amount of starting .RS."
 If no argument then use value of optional arg PREVIOUS if non-nil,
 otherwise set PREVIOUS.  Delete the whole remaining control line."
   (if (eolp)				; space already skipped
-      (set arg (if previous (eval previous) 0))
-    (if previous (set previous (eval arg)))
+      (set arg (if previous (symbol-value previous) 0))
+    (if previous (set previous (symbol-value arg)))
     (woman2-process-escapes-to-eol 'numeric)
     (let ((pm (if (looking-at "[+-]")
 		(prog1 (following-char)
 		  (forward-char 1))))
 	(i (woman-parse-numeric-arg)))
     (cond ((null pm) (set arg i))
-	  ((= pm ?+) (set arg (+ (eval arg) i)))
-	  ((= pm ?-) (set arg (- (eval arg) i)))
+	  ((= pm ?+) (set arg (+ (symbol-value arg) i)))
+	  ((= pm ?-) (set arg (- (symbol-value arg) i)))
 	  ))
     (beginning-of-line))
   (woman-delete-line 1))		; ignore any remaining arguments
@@ -4306,18 +4274,18 @@ otherwise set PREVIOUS.  Delete the whole remaining control line."
 
 (defun woman2-ll (to)
   ".ll +/-N -- Set, increment or decrement line length.
-Format paragraphs upto TO.  (Breaks, but should not.)"
+Format paragraphs up to TO.  (Breaks, but should not.)"
   (woman-set-arg 'fill-column 'woman-ll-fill-column)
   (woman2-format-paragraphs to))
 
 (defun woman2-in (to)
   ".in +/-N -- Set, increment or decrement the indent.
-Format paragraphs upto TO."
+Format paragraphs up to TO."
   (woman-set-arg 'left-margin 'woman-in-left-margin)
   (woman2-format-paragraphs to))
 
 (defun woman2-ti (to)
-  ".ti +/-N -- Temporary indent.  Format paragraphs upto TO."
+  ".ti +/-N -- Temporary indent.  Format paragraphs up to TO."
   ;; Ignore if no argument.
   ;; Indent next output line only wrt current indent.
   ;; Current indent is not changed.
@@ -4332,7 +4300,7 @@ Format paragraphs upto TO."
   ".ta Nt ... -- Set tabs, left type, unless t=R(right), C(centered).
 \(Breaks, but should not.)  The tab stops are separated by spaces;
 a value preceded by + represents an increment to the previous stop value.
-Format paragraphs upto TO."
+Format paragraphs up to TO."
   (setq tab-stop-list nil)
   (woman2-process-escapes-to-eol 'numeric)
   (save-excursion
@@ -4382,7 +4350,7 @@ tab stop columns or pairs (COLUMN . TYPE) where TYPE is R or C."
       (insert ?\s))))
 
 (defun woman2-DT (to)
-  ".DT -- Restore default tabs.  Format paragraphs upto TO.
+  ".DT -- Restore default tabs.  Format paragraphs up to TO.
 \(Breaks, but should not.)"
   ;; Currently just terminates special tab processing.
   (setq tab-stop-list nil)
@@ -4391,7 +4359,7 @@ tab stop columns or pairs (COLUMN . TYPE) where TYPE is R or C."
 
 (defun woman2-fc (to)
   ".fc a b -- Set field delimiter a and pad character b.
-Format paragraphs upto TO.
+Format paragraphs up to TO.
 A VERY FIRST ATTEMPT to make fields at least readable!
 Needs doing properly!"
   (if (eolp)
@@ -4427,7 +4395,7 @@ Needs doing properly!"
 
 (defun woman2-TS (to)
   ".TS -- Start of table code for the tbl processor.
-Format paragraphs upto TO."
+Format paragraphs up to TO."
   (when woman-emulate-tbl
     ;; Assumes column separator is \t and intercolumn spacing is 3.
     ;; The first line may optionally be a list of options terminated by
@@ -4492,7 +4460,7 @@ Format paragraphs upto TO."
   (setq woman-nofill t)
   (woman2-format-paragraphs to))
 
-(defalias 'woman2-TE 'woman2-fi)
+(defalias 'woman2-TE #'woman2-fi)
   ;; ".TE -- End of table code for the tbl processor."
   ;; Turn filling and adjusting back on.
 
@@ -4605,6 +4573,13 @@ logging the message."
                  (woman-find-file file) (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
+
+(put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
+
+(defvar woman-version "0.551 (beta)" "WoMan version information.")
+(make-obsolete-variable 'woman-version 'emacs-version "28.1")
+
+(define-obsolete-function-alias 'set-woman-file-regexp 'woman-set-file-regexp "29.1")
 
 (provide 'woman)
 

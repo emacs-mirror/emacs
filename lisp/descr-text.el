@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -50,14 +50,16 @@
     (when (string-match-p "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
 
-    (if (and (not (string-match-p "\n" pp))
+    (if (and (not (string-search "\n" pp))
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
-       "[Show]" 'action (lambda (&rest _ignore)
-                          (with-output-to-temp-buffer
-                              "*Pp Eval Output*"
-                            (princ pp)))
+       "[Show]"
+       'follow-link t
+       'action (lambda (&rest _ignore)
+                 (with-output-to-temp-buffer
+                     "*Pp Eval Output*"
+                   (princ pp)))
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
@@ -75,8 +77,9 @@ into help buttons that call `describe-text-category' or
 					    (prin1-to-string (nth 0 b) t)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
-      (insert (propertize (format "  %-20s " key)
-			  'face 'help-argument-name))
+      (insert (format "  %-20s "
+                      (propertize (symbol-name key)
+                                  'face 'help-argument-name)))
       (cond ((eq key 'category)
 	     (insert-text-button
 	      (symbol-name value)
@@ -95,7 +98,7 @@ into help buttons that call `describe-text-category' or
 ;;; Describe-Text Commands.
 
 (defun describe-text-category (category)
-  "Describe a text property category."
+  "Describe a text property CATEGORY."
   (interactive "SCategory: ")
   (help-setup-xref (list #'describe-text-category category)
 		   (called-interactively-p 'interactive))
@@ -141,8 +144,7 @@ otherwise."
 	 (wid-field (get-char-property pos 'field))
 	 (wid-button (get-char-property pos 'button))
 	 (wid-doc (get-char-property pos 'widget-doc))
-	 ;; If button.el is not loaded, we have no buttons in the text.
-	 (button (and (fboundp 'button-at) (button-at pos)))
+	 (button (button-at pos))
 	 (button-type (and button (button-type button)))
 	 (button-label (and button (button-label button)))
 	 (widget (or wid-field wid-button wid-doc)))
@@ -175,6 +177,10 @@ otherwise."
 	(insert "\n"))
       ;; Text properties
       (when properties
+        (when (plist-get properties 'invisible)
+          (insert "\nNote that character has an invisibility property,\n"
+                  "  so the character displayed at point in the buffer may\n"
+                  "  differ from the character described here.\n"))
 	(newline)
 	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
@@ -211,7 +217,7 @@ multilingual development.
 
 This is a fairly large file, not typically present on GNU systems.
 At the time of writing it is at the URL
-`http://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
+`https://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
   :group 'mule
   :version "22.1"
   :type '(choice (const :tag "None" nil)
@@ -360,7 +366,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;; description is added to the category name as a tooltip
 (defsubst describe-char-categories (category-set)
   (let ((mnemonics (category-set-mnemonics category-set)))
-    (unless (eq mnemonics "")
+    (unless (equal mnemonics "")
       (list (mapconcat
 	     (lambda (x)
 	       (let* ((c (category-docstring x))
@@ -416,6 +422,7 @@ The character information includes:
            (display-table (or (window-display-table)
                               buffer-display-table
                               standard-display-table))
+           (composition-string nil)
            (disp-vector (and display-table (aref display-table char)))
            (multibyte-p enable-multibyte-characters)
            (overlays (mapcar (lambda (o) (overlay-properties o))
@@ -537,7 +544,8 @@ The character information includes:
                     (setcar composition nil)))
                 (setcar (cdr composition)
                         (format "composed to form \"%s\" (see below)"
-                                (buffer-substring from to)))))
+                                (setq composition-string
+                                      (buffer-substring from to))))))
             (setq composition nil)))
 
       (setq item-list
@@ -648,7 +656,9 @@ The character information includes:
               ("file code"
                ,@(if multibyte-p
                      (let* ((coding buffer-file-coding-system)
-                            (encoded (encode-coding-char char coding charset)))
+                            (encoded
+                             (and coding
+                                  (encode-coding-char char coding charset))))
                        (if encoded
                            (list (encoded-string-description encoded coding)
                                  (format "(encoded by coding system %S)"
@@ -676,11 +686,16 @@ The character information includes:
                   (let ((display (describe-char-display pos char)))
                     (if (display-graphic-p (selected-frame))
                         (if display
-                            (concat "by this font (glyph code)\n    " display)
+                            (concat "by this font (glyph code):\n    " display)
                           "no font available")
                       (if display
                           (format "terminal code %s" display)
                         "not encodable for terminal"))))))
+              ,@(when-let ((composition-name
+                            (and composition-string
+                                 (eq (aref char-script-table char) 'emoji)
+                                 (emoji-describe composition-string))))
+                  (list (list "composition name" composition-name)))
               ,@(let ((face
                        (if (not (or disp-vector composition))
                            (cond
@@ -688,7 +703,9 @@ The character information includes:
                                   (save-excursion (goto-char pos)
                                                   (looking-at-p "[ \t]+$")))
                              'trailing-whitespace)
-                            ((and nobreak-char-display char (eq char '#xa0))
+                            ((and nobreak-char-display char
+                                  (> char 127)
+                                  (eq (get-char-code-property char 'general-category) 'Zs))
                              'nobreak-space)
                             ((and nobreak-char-display char
 				  (memq char '(#xad #x2010 #x2011)))
@@ -763,6 +780,8 @@ The character information includes:
                        (to (nth 4 composition))
                        glyph)
                   (if (fontp font)
+                      ;; GUI frame: show composition in terms of
+                      ;; font glyphs and characters.
                       (progn
                         (insert " using this font:\n  "
                                 (symbol-name (font-get font :type))
@@ -772,12 +791,25 @@ The character information includes:
                         (while (and (<= from to)
                                     (setq glyph (lgstring-glyph gstring from)))
                           (insert (format "  %S\n" glyph))
-                          (setq from (1+ from))))
+                          (setq from (1+ from)))
+                        (when (and (stringp (car composition))
+                                   (string-match "\"\\([^\"]+\\)\"" (car composition)))
+                          (insert "with these character(s):\n")
+                          (let ((chars (match-string 1 (car composition))))
+                            (dotimes (i (length chars))
+                              (let ((char (aref chars i)))
+                                (insert (format "  %s (#x%x) %s\n"
+                                                (describe-char-padded-string char) char
+                                                (get-char-code-property
+                                                 char 'name))))))))
+                    ;; TTY frame: show composition in terms of characters.
                     (insert " by these characters:\n")
                     (while (and (<= from to)
                                 (setq glyph (lgstring-glyph gstring from)))
-                      (insert (format " %c (#x%x)\n"
-                                      (lglyph-char glyph) (lglyph-char glyph)))
+                      (insert (format " %c (#x%x) %s\n"
+                                      (lglyph-char glyph) (lglyph-char glyph)
+                                      (get-char-code-property
+                                       (lglyph-char glyph) 'name)))
                       (setq from (1+ from)))))
               (insert " by the rule:\n\t(")
               (let ((first t))
@@ -919,7 +951,7 @@ condition, the function may return string longer than WIDTH, see
            (t name)))))))
 
 ;;;###autoload
-(defun describe-char-eldoc ()
+(defun describe-char-eldoc (_callback &rest _)
   "Return a description of character at point for use by ElDoc mode.
 
 Return nil if character at point is a printable ASCII
@@ -929,10 +961,17 @@ Otherwise return a description formatted by
 of `eldoc-echo-area-use-multiline-p' variable and width of
 minibuffer window for width limit.
 
-This function is meant to be used as a value of
-`eldoc-documentation-function' variable."
+This function can be used as a value of
+`eldoc-documentation-functions' variable."
   (let ((ch (following-char)))
     (when (and (not (zerop ch)) (or (< ch 32) (> ch 127)))
+      ;; TODO: investigate if the new `eldoc-documentation-functions'
+      ;; API could significantly improve this.  JT@2020-07-07: Indeed,
+      ;; instead of returning a string tailored here for the echo area
+      ;; exclusively, we could call the (now unused) argument
+      ;; _CALLBACK with hints on how to shorten the string if needed,
+      ;; or with multiple usable strings which ElDoc picks according
+      ;; to its space constraints.
       (describe-char-eldoc--format
        ch
        (unless (eq eldoc-echo-area-use-multiline-p t)

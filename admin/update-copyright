@@ -7,7 +7,7 @@
 # By default, this script uses the local-time calendar year.
 # Set the UPDATE_COPYRIGHT_YEAR environment variable to override the default.
 
-# Copyright 2013-2020 Free Software Foundation, Inc.
+# Copyright 2013-2023 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -30,6 +30,8 @@
 # should be updated, but by inspection it appears that some should be
 # updated and some should not be, due to registration numbers, so
 # this script leaves these copyright years alone for now.
+
+set -o nounset
 
 : ${UPDATE_COPYRIGHT_USE_INTERVALS=1}
 export UPDATE_COPYRIGHT_USE_INTERVALS

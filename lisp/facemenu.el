@@ -1,6 +1,6 @@
-;;; facemenu.el --- create a face menu for interactively adding fonts to text
+;;; facemenu.el --- create a face menu for interactively adding fonts to text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -85,26 +85,17 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'help)
-  (require 'button))
-
-;; Global bindings:
-(define-key global-map [C-down-mouse-2] 'facemenu-menu)
-(define-key global-map "\M-o" 'facemenu-keymap)
-
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text."
   :group 'faces
   :prefix "facemenu-")
 
 (defcustom facemenu-keybindings
-  (mapcar 'purecopy
   '((default     . "d")
     (bold        . "b")
     (italic      . "i")
-    (bold-italic . "l") ; {bold} intersect {italic} = {l}
-    (underline   . "u")))
+    (bold-italic . "l")              ; {bold} intersect {italic} = {l}
+    (underline   . "u"))
   "Alist of interesting faces and keybindings.
 Each element is itself a list: the car is the name of the face,
 the next element is the key to use as a keyboard equivalent of the menu item;
@@ -155,7 +146,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-face-menu
   (let ((map (make-sparse-keymap "Face")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
+    (define-key map "o" (cons "Other..." 'facemenu-set-face))
     map)
   "Menu keymap for faces.")
 (defalias 'facemenu-face-menu facemenu-face-menu)
@@ -163,7 +154,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-foreground-menu
   (let ((map (make-sparse-keymap "Foreground Color")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-foreground))
+    (define-key map "o" (cons "Other..." 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
@@ -171,11 +162,19 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-background))
+    (define-key map "o" (cons "Other..." 'facemenu-set-background))
     map)
   "Menu keymap for background colors.")
 (defalias 'facemenu-background-menu facemenu-background-menu)
 (put 'facemenu-background-menu 'menu-enable '(facemenu-enable-faces-p))
+
+(defcustom facemenu-add-face-function nil
+  "Function called at beginning of text to change or nil.
+This function is passed the FACE to set and END of text to change, and must
+return a string which is inserted.  It may set `facemenu-end-add-face'."
+  :type '(choice (const :tag "None" nil)
+		 function)
+  :group 'facemenu)
 
 ;;; Condition for enabling menu items that set faces.
 (defun facemenu-enable-faces-p ()
@@ -186,27 +185,22 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-special-menu
   (let ((map (make-sparse-keymap "Special")))
-    (define-key map [?s] (cons (purecopy "Remove Special")
-			       'facemenu-remove-special))
-    (define-key map [?c] (cons (purecopy "Charset")
-			       'facemenu-set-charset))
-    (define-key map [?t] (cons (purecopy "Intangible")
-			       'facemenu-set-intangible))
-    (define-key map [?v] (cons (purecopy "Invisible")
-			       'facemenu-set-invisible))
-    (define-key map [?r] (cons (purecopy "Read-Only")
-			       'facemenu-set-read-only))
+    (define-key map [?s] (cons "Remove Special" 'facemenu-remove-special))
+    (define-key map [?c] (cons "Charset" 'facemenu-set-charset))
+    (define-key map [?t] (cons "Intangible" 'facemenu-set-intangible))
+    (define-key map [?v] (cons "Invisible" 'facemenu-set-invisible))
+    (define-key map [?r] (cons "Read-Only" 'facemenu-set-read-only))
     map)
   "Menu keymap for non-face text-properties.")
 (defalias 'facemenu-special-menu facemenu-special-menu)
 
 (defvar facemenu-justification-menu
   (let ((map (make-sparse-keymap "Justification")))
-    (define-key map [?c] (cons (purecopy "Center") 'set-justification-center))
-    (define-key map [?b] (cons (purecopy "Full") 'set-justification-full))
-    (define-key map [?r] (cons (purecopy "Right") 'set-justification-right))
-    (define-key map [?l] (cons (purecopy "Left") 'set-justification-left))
-    (define-key map [?u] (cons (purecopy "Unfilled") 'set-justification-none))
+    (define-key map [?c] (cons "Center" 'set-justification-center))
+    (define-key map [?b] (cons "Full" 'set-justification-full))
+    (define-key map [?r] (cons "Right" 'set-justification-right))
+    (define-key map [?l] (cons "Left" 'set-justification-left))
+    (define-key map [?u] (cons "Unfilled" 'set-justification-none))
     map)
   "Submenu for text justification commands.")
 (defalias 'facemenu-justification-menu facemenu-justification-menu)
@@ -214,13 +208,13 @@ it will remove any faces not explicitly in the list."
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
     (define-key map [decrease-right-margin]
-      (cons (purecopy "Indent Right Less") 'decrease-right-margin))
+      (cons "Indent Right Less" 'decrease-right-margin))
     (define-key map [increase-right-margin]
-      (cons (purecopy "Indent Right More") 'increase-right-margin))
+      (cons "Indent Right More" 'increase-right-margin))
     (define-key map [decrease-left-margin]
-      (cons (purecopy "Indent Less") 'decrease-left-margin))
+      (cons "Indent Less" 'decrease-left-margin))
     (define-key map [increase-left-margin]
-      (cons (purecopy "Indent More") 'increase-left-margin))
+      (cons "Indent More" 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
 (defalias 'facemenu-indentation-menu facemenu-indentation-menu)
@@ -230,36 +224,37 @@ it will remove any faces not explicitly in the list."
   "Facemenu top-level menu keymap.")
 (setq facemenu-menu (make-sparse-keymap "Text Properties"))
 (let ((map facemenu-menu))
-  (define-key map [dc] (cons (purecopy "Display Colors") 'list-colors-display))
-  (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
-  (define-key map [dp] (cons (purecopy "Describe Properties")
-			     'describe-text-properties))
-  (define-key map [ra] (list 'menu-item (purecopy "Remove Text Properties")
+  (define-key map [dc] (cons "Display Colors" 'list-colors-display))
+  (define-key map [df] (cons "Display Faces" 'list-faces-display))
+  (define-key map [dp] (cons "Describe Properties" 'describe-text-properties))
+  (define-key map [ra] (list 'menu-item "Remove Text Properties"
 			     'facemenu-remove-all
 			     :enable 'mark-active))
-  (define-key map [rm] (list 'menu-item (purecopy "Remove Face Properties")
+  (define-key map [rm] (list 'menu-item "Remove Face Properties"
 			     'facemenu-remove-face-props
 			     :enable 'mark-active))
-  (define-key map [s1] (list (purecopy "--"))))
+  (define-key map [s1] (list "--")))
 (let ((map facemenu-menu))
-  (define-key map [in] (cons (purecopy "Indentation")
-			     'facemenu-indentation-menu))
-  (define-key map [ju] (cons (purecopy "Justification")
-			     'facemenu-justification-menu))
-  (define-key map [s2] (list (purecopy "--")))
-  (define-key map [sp] (cons (purecopy "Special Properties")
-			     'facemenu-special-menu))
-  (define-key map [bg] (cons (purecopy "Background Color")
-			     'facemenu-background-menu))
-  (define-key map [fg] (cons (purecopy "Foreground Color")
-			     'facemenu-foreground-menu))
-  (define-key map [fc] (cons (purecopy "Face")
-			     'facemenu-face-menu)))
+  (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
+  (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
+  (define-key map [s2] (list "--"))
+  (define-key map [sp] (cons "Special Properties" 'facemenu-special-menu))
+  (define-key map [bg] (cons "Background Color" 'facemenu-background-menu))
+  (define-key map [fg] (cons "Foreground Color" 'facemenu-foreground-menu))
+  (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
 (defalias 'facemenu-menu facemenu-menu)
+
+;;;###autoload (autoload 'facemenu-menu "facemenu" nil nil 'keymap)
+;;;###autoload
+(define-key global-map [C-down-mouse-2] 'facemenu-menu)
+
+(easy-menu-add-item
+ menu-bar-edit-menu nil
+ ["Text Properties" facemenu-menu])
 
 (defvar facemenu-keymap
   (let ((map (make-sparse-keymap "Set face")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
+    (define-key map "o" (cons "Other..." 'facemenu-set-face))
     (define-key map "\M-o" 'font-lock-fontify-block)
     map)
   "Keymap for face-changing commands.
@@ -267,14 +262,6 @@ it will remove any faces not explicitly in the list."
 requested in `facemenu-keybindings'.")
 (defalias 'facemenu-keymap facemenu-keymap)
 
-
-(defcustom facemenu-add-face-function nil
-  "Function called at beginning of text to change or nil.
-This function is passed the FACE to set and END of text to change, and must
-return a string which is inserted.  It may set `facemenu-end-add-face'."
-  :type '(choice (const :tag "None" nil)
-		 function)
-  :group 'facemenu)
 
 (defcustom facemenu-end-add-face nil
   "String to insert or function called at end of text to change or nil.
@@ -299,6 +286,7 @@ May also be t meaning to use `facemenu-add-face-function'."
 (defvar facemenu-color-alist nil
   "Alist of colors, used for completion.
 If this is nil, then the value of (defined-colors) is used.")
+(make-obsolete-variable 'facemenu-color-alist nil "28.1")
 
 (defun facemenu-update ()
   "Add or update the \"Face\" menu in the menu bar.
@@ -445,7 +433,7 @@ sets the CHARSET property of the character at point."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
 		       (read-charset
-                        (format "Use charset (default %s): " (charset-after))
+                        (format-prompt "Use charset" (charset-after))
                         (charset-after)))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))
@@ -546,23 +534,25 @@ filter out the color from the output."
 This is installed as a `revert-buffer-function' in the *Colors* buffer."
   (list-colors-display nil (buffer-name) list-colors-callback))
 
+;;;###autoload
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
 colors that the current display can handle.  Customize
 `list-colors-sort' to change the order in which colors are shown.
-Type `g' or \\[revert-buffer] after customizing `list-colors-sort'
-to redisplay colors in the new order.
+Type \\<help-mode-map>\\[revert-buffer] after customizing \
+`list-colors-sort' to redisplay colors in
+the new order.
 
-If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
+If the optional argument BUFFER-NAME is nil, it defaults to \"*Colors*\".
 
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
 color.  The function should accept a single argument, the color name."
   (interactive)
-  (when (and (null list) (> (display-color-cells) 0))
-    (setq list (list-colors-duplicates (defined-colors)))
+  (when (> (display-color-cells) 0)
+    (setq list (list-colors-duplicates (or list (defined-colors))))
     (when list-colors-sort
       ;; Schwartzian transform with `(color key1 key2 key3 ...)'.
       (setq list (mapcar
@@ -610,9 +600,14 @@ color.  The function should accept a single argument, the color name."
 
 (defun list-colors-print (list &optional callback)
   (let ((callback-fn
-	 (if callback
-	     `(lambda (button)
-		(funcall ,callback (button-get button 'color-name))))))
+         ;; Expect CALLBACK to be a function, but allow it to be a form that
+         ;; evaluates to a function, for backward-compatibility.  (Bug#45831)
+         (cond ((functionp callback)
+                (lambda (button)
+                  (funcall callback (button-get button 'color-name))))
+               (callback
+                `(lambda (button)
+                  (funcall ,callback (button-get button 'color-name)))))))
     (dolist (color list)
       (if (consp color)
 	  (if (cdr color)
@@ -621,12 +616,11 @@ color.  The function should accept a single argument, the color name."
 						 (downcase b))))))
 	(setq color (list color)))
       (let* ((opoint (point))
-	     (color-values (color-values (car color)))
-	     (light-p (>= (apply 'max color-values)
-			  (* (car (color-values "white")) .5))))
+             (fg (readable-foreground-color (car color))))
 	(insert (car color))
 	(indent-to 22)
-	(put-text-property opoint (point) 'face `(:background ,(car color)))
+	(put-text-property opoint (point) 'face `(:background ,(car color)
+                                                  :foreground ,fg))
 	(put-text-property
 	 (prog1 (point)
 	   (insert " ")
@@ -639,7 +633,7 @@ color.  The function should accept a single argument, the color name."
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
 			(mapcar (lambda (c) (ash c -8))
-				color-values))
+				(color-values (car color))))
 		 'mouse-face 'highlight
 		 'help-echo
 		 (let ((hsv (apply 'color-rgb-to-hsv
@@ -651,7 +645,7 @@ color.  The function should accept a single argument, the color name."
 	   opoint (point)
 	   'follow-link t
 	   'mouse-face (list :background (car color)
-			     :foreground (if light-p "black" "white"))
+			     :foreground fg)
 	   'color-name (car color)
 	   'action callback-fn)))
       (insert "\n"))
@@ -725,7 +719,13 @@ they are used to set the face information.
 As a special case, if FACE is `default', then the region is left with NO face
 text property.  Otherwise, selecting the default face would not have any
 effect.  See `facemenu-remove-face-function'."
-  (interactive "*xFace: \nr")
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (read-face-name "Use face" (face-at-point t)))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
   (cond
    ((and (eq face 'default)
          (not (eq facemenu-remove-face-function t)))
@@ -821,11 +821,11 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (purecopy (format "Select face `%s' for subsequent insertion.
+	  (format "Select face `%s' for subsequent insertion.
 If the mark is active and there is no prefix argument,
 apply face `%s' to the region instead.
 This command was defined by `facemenu-add-new-face'."
-		  name name)))
+		  name name))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))
@@ -838,15 +838,15 @@ This command was defined by `facemenu-add-new-face'."
 	  (key
 	   (setq function (intern (concat "facemenu-set-" name)))
 	   (fset function
-		 `(lambda ()
-		    ,docstring
-		    (interactive)
-		    (facemenu-set-face
-		     (quote ,symbol)
-		     (if (and mark-active (not current-prefix-arg))
-			 (region-beginning))
-		     (if (and mark-active (not current-prefix-arg))
-			 (region-end)))))
+		 (lambda ()
+		   (:documentation docstring)
+		   (interactive)
+		   (facemenu-set-face
+		    symbol
+		    (if (and mark-active (not current-prefix-arg))
+			(region-beginning))
+		    (if (and mark-active (not current-prefix-arg))
+			(region-end)))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ;; Faces with no keyboard equivalent.  Figure out where to put it:

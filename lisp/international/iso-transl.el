@@ -1,6 +1,6 @@
-;;; iso-transl.el --- keyboard input for ISO 10646 chars -*- coding: utf-8 -*-
+;;; iso-transl.el --- keyboard input for ISO 10646 chars -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 1987, 1993-1999, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1987, 1993-1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Howard Gayle
@@ -30,21 +30,11 @@
 ;; A-umlaut as `C-x 8 " A' or `Alt-" A' (if you have an Alt key) or
 ;; `umlaut A' (if you have an umlaut/diaeresis key).
 
-;; C-x 8 is set up to autoload this package,
-;; but Alt keys and dead accent keys are only defined
-;; once you have loaded the package.  It is nontrivial
-;; to make all of the Alt keys autoload, and it is not clear
-;; that the dead accent keys SHOULD autoload this package.
-
 ;; This package supports all characters defined by ISO 8859-1, along
 ;; with a few other ISO 10646 characters commonly used in English and
 ;; basic math.
 
 ;;; Code:
-
-;;; Provide some binding for startup:
-;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
-;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
 
 (defvar iso-transl-dead-key-alist
   '((?\' . mute-acute)
@@ -86,6 +76,7 @@
     ("\"E"  . [?Ë])
     ("\"I"  . [?Ï])
     ("\"O"  . [?Ö])
+    ("\"S"  . [?ẞ])
     ("\"U"  . [?Ü])
     ("\"a"  . [?ä])
     ("\"e"  . [?ë])
@@ -96,33 +87,50 @@
     ("\"y"  . [?ÿ])
     ("''"   . [?´])
     ("'A"   . [?Á])
+    ("'C"   . [?Ć])
     ("'E"   . [?É])
     ("'I"   . [?Í])
+    ("'N"   . [?Ń])
     ("'O"   . [?Ó])
+    ("'S"   . [?Ś])
     ("'U"   . [?Ú])
     ("'Y"   . [?Ý])
+    ("'Z"   . [?Ź])
     ("'a"   . [?á])
+    ("'c"   . [?ć])
     ("'e"   . [?é])
     ("'i"   . [?í])
+    ("'n"   . [?ń])
     ("'o"   . [?ó])
+    ("'s"   . [?ś])
     ("'u"   . [?ú])
     ("'y"   . [?ý])
+    ("'z"   . [?ź])
     ("*$"   . [?¤])
     ("$"    . [?¤])
     ("*+"   . [?±])
     ("+"    . [?±])
     (",,"   . [?¸])
+    (",A"   . [?Ą])
     (",C"   . [?Ç])
+    (",N"   . [?Ņ])
+    (",S"   . [?Ş])
+    (",a"   . [?ą])
     (",c"   . [?ç])
+    (",n"   . [?ņ])
+    (",s"   . [?ş])
     ("*-"   . [?­])
     ("-"    . [?­])
     ("*."   . [?·])
-    ("."    . [?·])
+    (".."   . [?·])
+    (".z"   . [?ż])
     ("//"   . [?÷])
     ("/A"   . [?Å])
+    ("/L"   . [?Ł])
     ("/E"   . [?Æ])
     ("/O"   . [?Ø])
     ("/a"   . [?å])
+    ("/l"   . [?ł])
     ("/e"   . [?æ])
     ("/o"   . [?ø])
     ("1/2"  . [?½])
@@ -131,7 +139,23 @@
     ("*<"   . [?«])
     ("<"    . [?«])
     ("*="   . [?¯])
-    ("="    . [?¯])
+    ("=="   . [?¯])
+    ("=A"   . [?Ā])
+    ("=a"   . [?ā])
+    ("=E"   . [?Ē])
+    ("=e"   . [?ē])
+    ("=/E"  . [?Ǣ])
+    ("=/e"  . [?ǣ])
+    ("=G"   . [?Ḡ])
+    ("=g"   . [?ḡ])
+    ("=I"   . [?Ī])
+    ("=i"   . [?ī])
+    ("=O"   . [?Ō])
+    ("=o"   . [?ō])
+    ("=U"   . [?Ū])
+    ("=u"   . [?ū])
+    ("=Y"   . [?Ȳ])
+    ("=y"   . [?ȳ])
     ("*>"   . [?»])
     (">"    . [?»])
     ("*?"   . [?¿])
@@ -146,11 +170,34 @@
     ("R"    . [?®])
     ("*S"   . [?§])
     ("S"    . [?§])
+    ("*T"   . [?™])
+    ("T"    . [?™])
     ("*Y"   . [?¥])
     ("Y"    . [?¥])
+    ("^0"   . [?⁰])
     ("^1"   . [?¹])
     ("^2"   . [?²])
     ("^3"   . [?³])
+    ("^4"   . [?⁴])
+    ("^5"   . [?⁵])
+    ("^6"   . [?⁶])
+    ("^7"   . [?⁷])
+    ("^8"   . [?⁸])
+    ("^9"   . [?⁹])
+    ("^+"   . [?⁺])
+    ("^-"   . [?⁻])
+    ("_0"   . [?₀])
+    ("_1"   . [?₁])
+    ("_2"   . [?₂])
+    ("_3"   . [?₃])
+    ("_4"   . [?₄])
+    ("_5"   . [?₅])
+    ("_6"   . [?₆])
+    ("_7"   . [?₇])
+    ("_8"   . [?₈])
+    ("_9"   . [?₉])
+    ("_+"   . [?₊])
+    ("_-"   . [?₋])
     ("^A"   . [?Â])
     ("^E"   . [?Ê])
     ("^I"   . [?Î])
@@ -161,6 +208,30 @@
     ("^i"   . [?î])
     ("^o"   . [?ô])
     ("^u"   . [?û])
+    ("^^A"  . [?Ǎ])
+    ("^^C"  . [?Č])
+    ("^^E"  . [?Ě])
+    ("^^G"  . [?Ǧ])
+    ("^^I"  . [?Ǐ])
+    ("^^K"  . [?Ǩ])
+    ("^^N"  . [?Ň])
+    ("^^O"  . [?Ǒ])
+    ("^^R"  . [?Ř])
+    ("^^S"  . [?Š])
+    ("^^U"  . [?Ǔ])
+    ("^^Z"  . [?Ž])
+    ("^^a"  . [?ǎ])
+    ("^^c"  . [?č])
+    ("^^e"  . [?ě])
+    ("^^g"  . [?ǧ])
+    ("^^i"  . [?ǐ])
+    ("^^k"  . [?ǩ])
+    ("^^n"  . [?ň])
+    ("^^o"  . [?ǒ])
+    ("^^r"  . [?ř])
+    ("^^s"  . [?š])
+    ("^^u"  . [?ǔ])
+    ("^^z"  . [?ž])
     ("_a"   . [?ª])
     ("_o"   . [?º])
     ("`A"   . [?À])
@@ -179,10 +250,10 @@
     ("o"    . [?°])
     ("Oe"   . [?œ])
     ("OE"   . [?Œ])
-    ("*u"   . [?µ])
-    ("u"    . [?µ])
-    ("*m"   . [?µ])
-    ("m"    . [?µ])
+    ("*u"   . [?μ])
+    ("u"    . [?μ])
+    ("*m"   . [?μ])
+    ("m"    . [?μ])
     ("*x"   . [?×])
     ("x"    . [?×])
     ("*|"   . [?¦])
@@ -254,6 +325,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
     ("German"
      ("A"  . [?Ä])
      ("O"  . [?Ö])
+     ("S"  . [?ẞ])
      ("U"  . [?Ü])
      ("a"  . [?ä])
      ("o"  . [?ö])
@@ -304,6 +376,14 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
     (setq alist (cdr alist))))
 
 (defun iso-transl-set-language (lang)
+  "Set shorter key bindings for some characters relevant for LANG.
+This affects the \\`C-x 8' prefix.
+
+Note that only a few languages are supported, and for more
+rigorous support it is recommended to use an input method
+instead.  Also note that many of these characters can be input
+with the regular \\`C-x 8' map without having to specify a language
+here."
   (interactive (list (let ((completion-ignore-case t))
 		       (completing-read "Set which language? "
 					iso-transl-language-alist nil t))))

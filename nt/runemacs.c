@@ -1,6 +1,6 @@
 /* runemacs --- Simple program to start Emacs with its console window hidden.
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,6 +39,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 */
 
 /* #define CHOOSE_NEWEST_EXE */
+
+#define DEFER_MS_W32_H
+#include <config.h>
 
 #include <windows.h>
 #include <string.h>

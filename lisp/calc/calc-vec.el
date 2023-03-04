@@ -1,6 +1,6 @@
-;;; calc-vec.el --- vector functions for Calc
+;;; calc-vec.el --- vector functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -647,9 +647,7 @@
 (defun calcFunc-rhead (vec)
   (if (and (Math-vectorp vec)
 	   (cdr vec))
-      (let ((vec (copy-sequence vec)))
-	(setcdr (nthcdr (- (length vec) 2) vec) nil)
-	vec)
+      (butlast vec)
     (calc-record-why 'vectorp vec)
     (list 'calcFunc-rhead vec)))
 
@@ -744,7 +742,7 @@
 ;;; Get the Nth row of a matrix.
 (defun calcFunc-mrow (mat n)   ; [Public]
   (if (Math-vectorp n)
-      (math-map-vec (function (lambda (x) (calcFunc-mrow mat x))) n)
+      (math-map-vec (lambda (x) (calcFunc-mrow mat x)) n)
     (if (and (eq (car-safe n) 'intv) (math-constp n))
 	(calcFunc-subvec mat
 			 (math-add (nth 2 n) (if (memq (nth 1 n) '(2 3)) 0 1))
@@ -768,15 +766,15 @@
 
 ;;; Get the Nth column of a matrix.
 (defun math-mat-col (mat n)
-  (cons 'vec (mapcar (function (lambda (x) (elt x n))) (cdr mat))))
+  (cons 'vec (mapcar (lambda (x) (elt x n)) (cdr mat))))
 
 (defun calcFunc-mcol (mat n)   ; [Public]
   (if (Math-vectorp n)
       (calcFunc-trn
-       (math-map-vec (function (lambda (x) (calcFunc-mcol mat x))) n))
+       (math-map-vec (lambda (x) (calcFunc-mcol mat x)) n))
     (if (and (eq (car-safe n) 'intv) (math-constp n))
 	(if (math-matrixp mat)
-	    (math-map-vec (function (lambda (x) (calcFunc-mrow x n))) mat)
+            (math-map-vec (lambda (x) (calcFunc-mrow x n)) mat)
 	  (calcFunc-mrow mat n))
       (or (and (integerp (setq n (math-check-integer n)))
 	       (> n 0))
@@ -804,7 +802,7 @@
 
 ;;; Remove the Nth column from a matrix.
 (defun math-mat-less-col (mat n)
-  (cons 'vec (mapcar (function (lambda (x) (math-mat-less-row x n)))
+  (cons 'vec (mapcar (lambda (x) (math-mat-less-row x n))
 		     (cdr mat))))
 
 (defun calcFunc-mrcol (mat n)   ; [Public]
@@ -939,10 +937,10 @@
       (calcFunc-idn a (1- (length m)))
     (if (math-vectorp m)
 	(if (math-zerop a)
-	    (cons 'vec (mapcar (function (lambda (x)
-					   (if (math-vectorp x)
-					       (math-mimic-ident a x)
-					     a)))
+            (cons 'vec (mapcar (lambda (x)
+                                 (if (math-vectorp x)
+                                     (math-mimic-ident a x)
+                                   a))
 			       (cdr m)))
 	  (math-dimension-error))
       (calcFunc-idn a))))
@@ -1111,18 +1109,20 @@
 ;; by calcFunc-grade and calcFunc-rgrade.
 (defvar math-grade-vec)
 
-(defun calcFunc-grade (math-grade-vec)
-  (if (math-vectorp math-grade-vec)
-      (let* ((len (1- (length math-grade-vec))))
-	(cons 'vec (sort (cdr (calcFunc-index len)) 'math-grade-beforep)))
-    (math-reject-arg math-grade-vec 'vectorp)))
+(defun calcFunc-grade (grade-vec)
+  (if (math-vectorp grade-vec)
+      (let* ((math-grade-vec grade-vec)
+             (len (1- (length grade-vec))))
+	(cons 'vec (sort (cdr (calcFunc-index len)) #'math-grade-beforep)))
+    (math-reject-arg grade-vec #'vectorp)))
 
-(defun calcFunc-rgrade (math-grade-vec)
-  (if (math-vectorp math-grade-vec)
-      (let* ((len (1- (length math-grade-vec))))
+(defun calcFunc-rgrade (grade-vec)
+  (if (math-vectorp grade-vec)
+      (let* ((math-grade-vec grade-vec)
+	     (len (1- (length grade-vec))))
 	(cons 'vec (nreverse (sort (cdr (calcFunc-index len))
-				   'math-grade-beforep))))
-    (math-reject-arg math-grade-vec 'vectorp)))
+				   #'math-grade-beforep))))
+    (math-reject-arg grade-vec #'vectorp)))
 
 (defun math-grade-beforep (i j)
   (math-beforep (nth i math-grade-vec) (nth j math-grade-vec)))
@@ -1556,7 +1556,8 @@ of two matrices is a matrix."
 (defvar math-exp-keep-spaces)
 (defvar math-expr-data)
 
-(defun math-read-brackets (space-sep math-rb-close)
+(defun math-read-brackets (space-sep rb-close)
+  (let ((math-rb-close rb-close))
   (and space-sep (setq space-sep (not (math-check-for-commas))))
   (math-read-token)
   (while (eq math-exp-token 'space)
@@ -1624,7 +1625,7 @@ of two matrices is a matrix."
 	    (throw 'syntax "Expected `]'")))
       (or (eq math-exp-token 'end)
 	  (math-read-token))
-      vals)))
+      vals))))
 
 (defun math-check-for-commas (&optional balancing)
   (let ((count 0)

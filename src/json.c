@@ -1,6 +1,6 @@
 /* JSON parsing and serialization.
 
-Copyright (C) 2017-2020 Free Software Foundation, Inc.
+Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -279,10 +279,10 @@ json_release_object (void *object)
 }
 
 /* Signal an error if OBJECT is not a string, or if OBJECT contains
-   embedded NUL characters.  */
+   embedded null characters.  */
 
 static void
-check_string_without_embedded_nuls (Lisp_Object object)
+check_string_without_embedded_nulls (Lisp_Object object)
 {
   CHECK_STRING (object);
   CHECK_TYPE (memchr (SDATA (object), '\0', SBYTES (object)) == NULL,
@@ -327,16 +327,17 @@ struct json_configuration {
   Lisp_Object false_object;
 };
 
-static json_t *lisp_to_json (Lisp_Object, struct json_configuration *conf);
+static json_t *lisp_to_json (Lisp_Object,
+                             const struct json_configuration *conf);
 
-/* Convert a Lisp object to a toplevel JSON object (array or object).  */
+/* Convert a Lisp object to a nonscalar JSON object (array or object).  */
 
 static json_t *
-lisp_to_json_toplevel_1 (Lisp_Object lisp,
-                         struct json_configuration *conf)
+lisp_to_json_nonscalar_1 (Lisp_Object lisp,
+                          const struct json_configuration *conf)
 {
   json_t *json;
-  ptrdiff_t count;
+  specpdl_ref count;
 
   if (VECTORP (lisp))
     {
@@ -363,15 +364,16 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
       for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
         {
           Lisp_Object key = HASH_KEY (h, i);
-          if (!EQ (key, Qunbound))
+          if (!BASE_EQ (key, Qunbound))
             {
+              CHECK_STRING (key);
               Lisp_Object ekey = json_encode (key);
               /* We can't specify the length, so the string must be
-               NUL-terminated.  */
-              check_string_without_embedded_nuls (ekey);
+		 null-terminated.  */
+              check_string_without_embedded_nulls (ekey);
               const char *key_str = SSDATA (ekey);
               /* Reject duplicate keys.  These are possible if the hash
-               table test is not `equal'.  */
+		 table test is not `equal'.  */
               if (json_object_get (json, key_str) != NULL)
                 wrong_type_argument (Qjson_value_p, lisp);
               int status
@@ -418,8 +420,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           CHECK_SYMBOL (key_symbol);
           Lisp_Object key = SYMBOL_NAME (key_symbol);
           /* We can't specify the length, so the string must be
-             NUL-terminated.  */
-          check_string_without_embedded_nuls (key);
+             null-terminated.  */
+          check_string_without_embedded_nulls (key);
           key_str = SSDATA (key);
           /* In plists, ensure leading ":" in keys is stripped.  It
              will be reconstructed later in `json_to_lisp'.*/
@@ -447,16 +449,17 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
   return json;
 }
 
-/* Convert LISP to a toplevel JSON object (array or object).  Signal
+/* Convert LISP to a nonscalar JSON object (array or object).  Signal
    an error of type `wrong-type-argument' if LISP is not a vector,
    hashtable, alist, or plist.  */
 
 static json_t *
-lisp_to_json_toplevel (Lisp_Object lisp, struct json_configuration *conf)
+lisp_to_json_nonscalar (Lisp_Object lisp,
+                        const struct json_configuration *conf)
 {
   if (++lisp_eval_depth > max_lisp_eval_depth)
     xsignal0 (Qjson_object_too_deep);
-  json_t *json = lisp_to_json_toplevel_1 (lisp, conf);
+  json_t *json = lisp_to_json_nonscalar_1 (lisp, conf);
   --lisp_eval_depth;
   return json;
 }
@@ -466,7 +469,7 @@ lisp_to_json_toplevel (Lisp_Object lisp, struct json_configuration *conf)
    JSON object.  */
 
 static json_t *
-lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
+lisp_to_json (Lisp_Object lisp, const struct json_configuration *conf)
 {
   if (EQ (lisp, conf->null_object))
     return json_check (json_null ());
@@ -478,9 +481,7 @@ lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
     {
       intmax_t low = TYPE_MINIMUM (json_int_t);
       intmax_t high = TYPE_MAXIMUM (json_int_t);
-      intmax_t value;
-      if (! (integer_to_intmax (lisp, &value) && low <= value && value <= high))
-        args_out_of_range_3 (lisp, make_int (low), make_int (high));
+      intmax_t value = check_integer_range (lisp, low, high);
       return json_check (json_integer (value));
     }
   else if (FLOATP (lisp))
@@ -500,7 +501,7 @@ lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
     }
 
   /* LISP now must be a vector, hashtable, alist, or plist.  */
-  return lisp_to_json_toplevel (lisp, conf);
+  return lisp_to_json_nonscalar (lisp, conf);
 }
 
 static void
@@ -554,19 +555,53 @@ json_parse_args (ptrdiff_t nargs,
   }
 }
 
+static bool
+json_available_p (void)
+{
+#ifdef WINDOWSNT
+  if (!json_initialized)
+    {
+      Lisp_Object status;
+      json_initialized = init_json_functions ();
+      status = json_initialized ? Qt : Qnil;
+      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
+    }
+  return json_initialized;
+#else  /* !WINDOWSNT */
+  return true;
+#endif
+}
+
+#ifdef WINDOWSNT
+static void
+ensure_json_available (void)
+{
+  if (!json_available_p ())
+    Fsignal (Qjson_unavailable,
+	     list1 (build_unibyte_string ("jansson library not found")));
+}
+#endif
+
+DEFUN ("json--available-p", Fjson__available_p, Sjson__available_p, 0, 0, NULL,
+       doc: /* Return non-nil if libjansson is available (internal use only).  */)
+  (void)
+{
+  return json_available_p () ? Qt : Qnil;
+}
+
 DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
        NULL,
        doc: /* Return the JSON representation of OBJECT as a string.
 
-OBJECT must be a vector, hashtable, alist, or plist and its elements
-can recursively contain the Lisp equivalents to the JSON null and
-false values, t, numbers, strings, or other vectors hashtables, alists
-or plists.  t will be converted to the JSON true value.  Vectors will
-be converted to JSON arrays, whereas hashtables, alists and plists are
-converted to JSON objects.  Hashtable keys must be strings without
-embedded NUL characters and must be unique within each object.  Alist
-and plist keys must be symbols; if a key is duplicate, the first
-instance is used.
+OBJECT must be t, a number, string, vector, hashtable, alist, plist,
+or the Lisp equivalents to the JSON null and false values, and its
+elements must recursively consist of the same kinds of values.  t will
+be converted to the JSON true value.  Vectors will be converted to
+JSON arrays, whereas hashtables, alists and plists are converted to
+JSON objects.  Hashtable keys must be strings without embedded null
+characters and must be unique within each object.  Alist and plist
+keys must be symbols; if a key is duplicate, the first instance is
+used.
 
 The Lisp equivalents to the JSON null and false values are
 configurable in the arguments ARGS, a list of keyword/argument pairs:
@@ -583,33 +618,20 @@ any JSON false values.
 usage: (json-serialize OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
-  if (!json_initialized)
-    {
-      Lisp_Object status;
-      json_initialized = init_json_functions ();
-      status = json_initialized ? Qt : Qnil;
-      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
-    }
-  if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+  ensure_json_available ();
 #endif
 
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
   json_parse_args (nargs - 1, args + 1, &conf, false);
 
-  json_t *json = lisp_to_json_toplevel (args[0], &conf);
+  json_t *json = lisp_to_json (args[0], &conf);
   record_unwind_protect_ptr (json_release_object, json);
 
-  /* If desired, we might want to add the following flags:
-     JSON_DECODE_ANY, JSON_ALLOW_NUL.  */
-  char *string = json_dumps (json, JSON_COMPACT);
+  char *string = json_dumps (json, JSON_COMPACT | JSON_ENCODE_ANY);
   if (string == NULL)
     json_out_of_memory ();
   record_unwind_protect_ptr (json_free, string);
@@ -696,21 +718,10 @@ OBJECT.
 usage: (json-insert OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
-  if (!json_initialized)
-    {
-      Lisp_Object status;
-      json_initialized = init_json_functions ();
-      status = json_initialized ? Qt : Qnil;
-      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
-    }
-  if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+  ensure_json_available ();
 #endif
 
   struct json_configuration conf =
@@ -724,12 +735,10 @@ usage: (json-insert OBJECT &rest ARGS)  */)
   move_gap_both (PT, PT_BYTE);
   struct json_insert_data data;
   data.inserted_bytes = 0;
-  /* If desired, we might want to add the following flags:
-     JSON_DECODE_ANY, JSON_ALLOW_NUL.  */
-  int status
-    /* Could have used json_dumpb, but that became available only in
-       Jansson 2.10, whereas we want to support 2.7 and upward.  */
-    = json_dump_callback (json, json_insert_callback, &data, JSON_COMPACT);
+  /* Could have used json_dumpb, but that became available only in
+     Jansson 2.10, whereas we want to support 2.7 and upward.  */
+  int status = json_dump_callback (json, json_insert_callback, &data,
+                                   JSON_COMPACT | JSON_ENCODE_ANY);
   if (status == -1)
     {
       if (CONSP (data.error))
@@ -792,7 +801,7 @@ usage: (json-insert OBJECT &rest ARGS)  */)
 /* Convert a JSON object to a Lisp object.  */
 
 static Lisp_Object ARG_NONNULL ((1))
-json_to_lisp (json_t *json, struct json_configuration *conf)
+json_to_lisp (json_t *json, const struct json_configuration *conf)
 {
   switch (json_typeof (json))
     {
@@ -933,12 +942,12 @@ DEFUN ("json-parse-string", Fjson_parse_string, Sjson_parse_string, 1, MANY,
        NULL,
        doc: /* Parse the JSON STRING into a Lisp object.
 This is essentially the reverse operation of `json-serialize', which
-see.  The returned object will be a vector, list, hashtable, alist, or
-plist.  Its elements will be the JSON null value, the JSON false
-value, t, numbers, strings, or further vectors, hashtables, alists, or
-plists.  If there are duplicate keys in an object, all but the last
-one are ignored.  If STRING doesn't contain a valid JSON object, this
-function signals an error of type `json-parse-error'.
+see.  The returned object will be the JSON null value, the JSON false
+value, t, a number, a string, a vector, a list, a hashtable, an alist,
+or a plist.  Its elements will be further objects of these types.  If
+there are duplicate keys in an object, all but the last one are
+ignored.  If STRING doesn't contain a valid JSON object, this function
+signals an error of type `json-parse-error'.
 
 The arguments ARGS are a list of keyword/argument pairs:
 
@@ -957,32 +966,23 @@ represent a JSON false value.  It defaults to `:false'.
 usage: (json-parse-string STRING &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
-  if (!json_initialized)
-    {
-      Lisp_Object status;
-      json_initialized = init_json_functions ();
-      status = json_initialized ? Qt : Qnil;
-      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
-    }
-  if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+  ensure_json_available ();
 #endif
 
   Lisp_Object string = args[0];
+  CHECK_STRING (string);
   Lisp_Object encoded = json_encode (string);
-  check_string_without_embedded_nuls (encoded);
+  check_string_without_embedded_nulls (encoded);
   struct json_configuration conf =
     {json_object_hashtable, json_array_array, QCnull, QCfalse};
   json_parse_args (nargs - 1, args + 1, &conf, true);
 
   json_error_t error;
-  json_t *object = json_loads (SSDATA (encoded), 0, &error);
+  json_t *object
+    = json_loads (SSDATA (encoded), JSON_DECODE_ANY | JSON_ALLOW_NUL, &error);
   if (object == NULL)
     json_parse_error (&error);
 
@@ -1054,21 +1054,10 @@ represent a JSON false value.  It defaults to `:false'.
 usage: (json-parse-buffer &rest args) */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
-  if (!json_initialized)
-    {
-      Lisp_Object status;
-      json_initialized = init_json_functions ();
-      status = json_initialized ? Qt : Qnil;
-      Vlibrary_cache = Fcons (Fcons (Qjson, status), Vlibrary_cache);
-    }
-  if (!json_initialized)
-    {
-      message1 ("jansson library not found");
-      return Qnil;
-    }
+  ensure_json_available ();
 #endif
 
   struct json_configuration conf =
@@ -1078,8 +1067,12 @@ usage: (json-parse-buffer &rest args) */)
   ptrdiff_t point = PT_BYTE;
   struct json_read_buffer_data data = {.point = point};
   json_error_t error;
-  json_t *object = json_load_callback (json_read_buffer_callback, &data,
-                                       JSON_DISABLE_EOF_CHECK, &error);
+  json_t *object
+    = json_load_callback (json_read_buffer_callback, &data,
+                          JSON_DECODE_ANY
+			  | JSON_DISABLE_EOF_CHECK
+			  | JSON_ALLOW_NUL,
+                          &error);
 
   if (object == NULL)
     json_parse_error (&error);
@@ -1097,22 +1090,6 @@ usage: (json-parse-buffer &rest args) */)
   return unbind_to (count, lisp);
 }
 
-/* Simplified version of 'define-error' that works with pure
-   objects.  */
-
-static void
-define_error (Lisp_Object name, const char *message, Lisp_Object parent)
-{
-  eassert (SYMBOLP (name));
-  eassert (SYMBOLP (parent));
-  Lisp_Object parent_conditions = Fget (parent, Qerror_conditions);
-  eassert (CONSP (parent_conditions));
-  eassert (!NILP (Fmemq (parent, parent_conditions)));
-  eassert (NILP (Fmemq (name, parent_conditions)));
-  Fput (name, Qerror_conditions, pure_cons (name, parent_conditions));
-  Fput (name, Qerror_message, build_pure_c_string (message));
-}
-
 void
 syms_of_json (void)
 {
@@ -1128,6 +1105,7 @@ syms_of_json (void)
   DEFSYM (Qjson_end_of_file, "json-end-of-file");
   DEFSYM (Qjson_trailing_content, "json-trailing-content");
   DEFSYM (Qjson_object_too_deep, "json-object-too-deep");
+  DEFSYM (Qjson_unavailable, "json-unavailable");
   define_error (Qjson_error, "generic JSON error", Qerror);
   define_error (Qjson_out_of_memory,
                 "not enough memory for creating JSON object", Qjson_error);
@@ -1157,6 +1135,7 @@ syms_of_json (void)
   DEFSYM (Qplist, "plist");
   DEFSYM (Qarray, "array");
 
+  defsubr (&Sjson__available_p);
   defsubr (&Sjson_serialize);
   defsubr (&Sjson_insert);
   defsubr (&Sjson_parse_string);

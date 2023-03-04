@@ -1,6 +1,6 @@
-;;; url-domsuf.el --- Say what domain names can have cookies set.
+;;; url-domsuf.el --- Say what domain names can have cookies set.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -24,20 +24,32 @@
 ;;; Commentary:
 
 ;; The rules for what domains can have cookies set is defined here:
-;; http://publicsuffix.org/list/
+;; https://publicsuffix.org/list/
 
 ;;; Code:
 
 (defvar url-domsuf-domains nil)
 
+(defun url-domsuf--public-suffix-file ()
+  "Look for and return a  file name for a recent \"public_suffix_list.dat\".
+Emacs ships with a copy of this file, but some systems might have
+a newer version available.  Look for it in some standard
+locations, and if a newer file was found, then return that."
+  (car (sort
+        (seq-filter
+         #'file-readable-p
+         (list (expand-file-name "publicsuffix.txt.gz" data-directory)
+               (expand-file-name "publicsuffix.txt" data-directory)
+               ;; Debian and Fedora
+               "/usr/share/publicsuffix/public_suffix_list.dat"
+               ;; FreeBSD port
+               "/usr/local/share/public_suffix_list/public_suffix_list.dat"))
+        #'file-newer-than-file-p)))
+
 (defun url-domsuf-parse-file ()
   (with-temp-buffer
     (with-auto-compression-mode
-      (insert-file-contents
-       (let* ((suffixfile (expand-file-name "publicsuffix.txt" data-directory))
-	      (compressed-file (concat suffixfile ".gz")))
-	 (or (and (file-readable-p compressed-file) compressed-file)
-	     suffixfile))))
+      (insert-file-contents (url-domsuf--public-suffix-file)))
     (let ((domains nil)
 	  domain exception)
       (while (not (eobp))
@@ -86,17 +98,6 @@
 	     (string= entry upper-domain))
 	(setq allowedp nil))))
     allowedp))
-
-;; Tests:
-
-;; TODO convert to a proper test.
-;; (url-domsuf-cookie-allowed-p "com") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.bd") => t
-;; (url-domsuf-cookie-allowed-p "bar.bd") => nil
-;; (url-domsuf-cookie-allowed-p "co.uk") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.hokkaido.jo") => t
-;; (url-domsuf-cookie-allowed-p "bar.yokohama.jp") => nil
-;; (url-domsuf-cookie-allowed-p "city.yokohama.jp") => t
 
 (provide 'url-domsuf)
 

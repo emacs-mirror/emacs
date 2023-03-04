@@ -1,7 +1,7 @@
-;;; wid-browse.el --- functions for browsing widgets
-;;
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
-;;
+;;; wid-browse.el --- functions for browsing widgets  -*- lexical-binding: t -*-
+
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
+
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
 ;; Package: emacs
@@ -22,13 +22,11 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Widget browser.  See `widget.el'.
 
 ;;; Code:
 
-(require 'easymenu)
-(require 'custom)
 (require 'wid-edit)
 
 (defgroup widget-browse nil
@@ -37,12 +35,10 @@
 
 ;;; The Mode.
 
-(defvar widget-browse-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map "q" 'bury-buffer)
-    map)
-  "Keymap for `widget-browse-mode'.")
+(defvar-keymap widget-browse-mode-map
+  :doc "Keymap for `widget-browse-mode'."
+  :parent widget-keymap
+  "q" #'bury-buffer)
 
 (easy-menu-define widget-browse-mode-customize-menu
     widget-browse-mode-map
@@ -57,11 +53,10 @@
     ["Browse At" widget-browse-at t]))
 
 (defcustom widget-browse-mode-hook nil
-  "Hook called when entering widget-browse-mode."
-  :type 'hook
-  :group 'widget-browse)
+  "Hook run after entering `widget-browse-mode'."
+  :type 'hook)
 
-(defun widget-browse-mode ()
+(define-derived-mode widget-browse-mode special-mode "Widget Browse"
   "Major mode for widget browser buffers.
 
 The following commands are available:
@@ -69,17 +64,7 @@ The following commands are available:
 \\[widget-forward]		Move to next button or editable field.
 \\[widget-backward]		Move to previous button or editable field.
 \\[widget-button-click]		Activate button under the mouse pointer.
-\\[widget-button-press]		Activate button under point.
-
-Entry to this mode calls the value of `widget-browse-mode-hook'
-if that value is non-nil."
-  (kill-all-local-variables)
-  (setq major-mode 'widget-browse-mode
-	mode-name "Widget")
-  (use-local-map widget-browse-mode-map)
-  (easy-menu-add widget-browse-mode-customize-menu)
-  (easy-menu-add widget-browse-mode-menu)
-  (run-mode-hooks 'widget-browse-mode-hook))
+\\[widget-button-press]		Activate button under point.")
 
 (put 'widget-browse-mode 'mode-class 'special)
 
@@ -131,13 +116,6 @@ if that value is non-nil."
     (switch-to-buffer (get-buffer-create "*Browse Widget*")))
   (widget-browse-mode)
 
-  ;; Quick way to get out.
-;;  (widget-create 'push-button
-;;		 :action (lambda (widget &optional event)
-;;			   (bury-buffer))
-;;		 "Quit")
-;;  (widget-insert "\n")
-
   ;; Top text indicating whether it is a class or object browser.
   (if (listp widget)
       (widget-insert "Widget object browser.\n\nClass: ")
@@ -187,17 +165,17 @@ if that value is non-nil."
 
 (define-widget 'widget-browse 'push-button
   "Button for creating a widget browser.
-The :value of the widget shuld be the widget to be browsed."
+The :value of the widget should be the widget to be browsed."
   :format "%[[%v]%]"
   :value-create 'widget-browse-value-create
   :action 'widget-browse-action)
 
 (defun widget-browse-action (widget &optional _event)
-  ;; Create widget browser for WIDGET's :value.
+  "Create widget browser for :value of WIDGET."
   (widget-browse (widget-get widget :value)))
 
 (defun widget-browse-value-create (widget)
-  ;; Insert type name.
+  "Insert type name for WIDGET."
   (let ((value (widget-get widget :value)))
     (cond ((symbolp value)
 	   (insert (symbol-name value)))
@@ -231,7 +209,7 @@ Nothing is assumed about value."
 	      (error (prin1-to-string signal)))))
     (when (string-match "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
-    (if (cond ((string-match "\n" pp)
+    (if (cond ((string-search "\n" pp)
 	       nil)
 	      ((> (length pp) (- (window-width) (current-column)))
 	       nil)
@@ -265,18 +243,14 @@ VALUE is assumed to be a list of widgets."
 
 ;;; Widget Minor Mode.
 
-(defvar widget-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    map)
-  "Keymap used in Widget Minor Mode.")
+(defvar-keymap widget-minor-mode-map
+  :doc "Keymap used in Widget Minor Mode."
+  :parent widget-keymap)
 
 ;;;###autoload
 (define-minor-mode widget-minor-mode
   "Minor mode for traversing widgets."
   :lighter " Widget")
-
-;;; The End:
 
 (provide 'wid-browse)
 

@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2020 Free
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2023 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -162,7 +162,7 @@ tgetst1 (char *ptr, char **area)
   else
     ret = *area;
 
-  /* Copy the string value, stopping at NUL or colon.
+  /* Copy the string value, stopping at null or colon.
      Also process ^ and \ abbreviations.  */
   p = ptr;
   r = ret;
@@ -424,7 +424,7 @@ tgetent (char *bp, const char *name)
     return -1;
 
   buf.size = BUFSIZE;
-  /* Add 1 to size to ensure room for terminating NUL.  */
+  /* Add 1 to size to ensure room for terminating null.  */
   buf.beg = xmalloc (buf.size + 1);
   term = indirect ? indirect : (char *)name;
 
@@ -480,7 +480,7 @@ tgetent (char *bp, const char *name)
       *bp1 = '\0';
 
       /* Does this entry refer to another terminal type's entry?
-	 If something is found, copy it into heap and NUL-terminate it.  */
+	 If something is found, copy it into heap and null-terminate it.  */
       tc_search_point = find_capability (tc_search_point, "tc");
       term = tgetst1 (tc_search_point, 0);
     }
@@ -618,7 +618,7 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 	    {
 	      ptrdiff_t ptr_offset = bufp->ptr - buf;
 	      ptrdiff_t append_end_offset = append_end - buf;
-	      /* Add 1 to size to ensure room for terminating NUL.  */
+	      /* Add 1 to size to ensure room for terminating null.  */
 	      ptrdiff_t size = bufp->size + 1;
 	      bufp->beg = buf = xpalloc (buf, &size, 1, -1, 1);
 	      bufp->size = size - 1;

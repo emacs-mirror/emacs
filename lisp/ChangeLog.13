@@ -1070,7 +1070,7 @@
 	* international/mule-cmds.el (char-code-property-alist): New variable.
 	(define-char-code-property): New function.
 	(get-char-code-property, put-char-code-property): Handle a
-	char-table registerd in char-code-property-alist.
+	char-table registered in char-code-property-alist.
 	(set-language-environment): Check :ascii-compatible-p property of
 	nonascii charset instead of its dimension.
 
@@ -4765,7 +4765,7 @@
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-name-owner-changed-handler): Make the function
-	resistent towards wrong parameters.
+	resistant towards wrong parameters.
 	(dbus-handle-event): Propagate D-Bus errors only in the debug case.
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
@@ -5001,7 +5001,7 @@
 
 	* vc.el (vc-dired-ignorable-p, vc-dired-hook): Speed optimization;
 	use completion-ignored-extensions to detect files that should be
-	ignorted in VC-Dired listings, heading off lots of expensive calls
+	ignored in VC-Dired listings, heading off lots of expensive calls
 	to (vc-state).
 
 	* vc.el (vc-dired-hook): Show unregistered file status as "?" in
@@ -13901,7 +13901,7 @@
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
-	underlying file is uptodate.
+	underlying file is up-to-date.
 
 2007-07-23  Christopher J. Madsen  <cjm@cjmweb.net>
 
@@ -15245,7 +15245,7 @@
 2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-modified-buffers): New var.
-	(autoload-find-destination): Keep it uptodate.
+	(autoload-find-destination): Keep it up-to-date.
 	(autoload-save-buffers): New fun.
 	(update-file-autoloads): Use it.  Re-add the "up to date" message.
 
@@ -16697,7 +16697,7 @@ See ChangeLog.12 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2020 Free Software Foundation, Inc.
+  Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

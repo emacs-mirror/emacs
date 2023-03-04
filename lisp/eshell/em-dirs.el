@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -172,34 +172,36 @@ Thus, this does not include the current directory.")
 
 (defun eshell-dirs-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the builtin functions for Eshell."
-  (make-local-variable 'eshell-variable-aliases-list)
-  (setq eshell-variable-aliases-list
+  (setq-local eshell-variable-aliases-list
 	(append
 	 eshell-variable-aliases-list
-         `(("-" ,(lambda (indices)
-		   (if (not indices)
-		       (unless (ring-empty-p eshell-last-dir-ring)
-			 (expand-file-name
-			  (ring-ref eshell-last-dir-ring 0)))
-		     (expand-file-name
-		      (eshell-apply-indices eshell-last-dir-ring indices)))))
-	   ("+" "PWD")
-	   ("PWD" ,(lambda (_indices)
-		     (expand-file-name (eshell/pwd)))
-            t)
-	   ("OLDPWD" ,(lambda (_indices)
-		        (unless (ring-empty-p eshell-last-dir-ring)
-			  (expand-file-name
-			   (ring-ref eshell-last-dir-ring 0))))
-            t))))
+         `(("-" ,(lambda (indices quoted)
+                   (if (not indices)
+                       (unless (ring-empty-p eshell-last-dir-ring)
+                         (expand-file-name
+                          (ring-ref eshell-last-dir-ring 0)))
+                     ;; Apply the first index, expand the file name,
+                     ;; and then apply the rest of the indices.
+                     (eshell-apply-indices
+                      (expand-file-name
+                       (eshell-apply-indices eshell-last-dir-ring
+                                             (list (car indices)) quoted))
+                      (cdr indices) quoted))))
+           ("+" "PWD")
+           ("PWD" ,(lambda () (expand-file-name (eshell/pwd)))
+            t t)
+           ("OLDPWD" ,(lambda ()
+                       (unless (ring-empty-p eshell-last-dir-ring)
+                         (expand-file-name
+                          (ring-ref eshell-last-dir-ring 0))))
+            t t))))
 
   (when eshell-cd-on-directory
-    (make-local-variable 'eshell-interpreter-alist)
-    (setq eshell-interpreter-alist
-	  (cons (cons #'(lambda (file _args)
-                          (eshell-lone-directory-p file))
-		      'eshell-dirs-substitute-cd)
-		eshell-interpreter-alist)))
+    (setq-local eshell-interpreter-alist
+                (cons (cons (lambda (file _args)
+                              (eshell-lone-directory-p file))
+                            'eshell-dirs-substitute-cd)
+                      eshell-interpreter-alist)))
 
   (add-hook 'eshell-parse-argument-hook
 	    #'eshell-parse-user-reference nil t)
@@ -221,7 +223,7 @@ Thus, this does not include the current directory.")
 
   (add-hook 'eshell-exit-hook #'eshell-write-last-dir-ring nil t)
 
-  (add-hook 'kill-emacs-hook #'eshell-save-some-last-dir))
+  (add-hook 'kill-emacs-query-functions #'eshell-save-some-last-dir))
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
@@ -235,7 +237,8 @@ Thus, this does not include the current directory.")
 			(format-message
 			 "Save last dir ring for Eshell buffer `%s'? "
 			 (buffer-name buf)))))
-	      (eshell-write-last-dir-ring))))))
+	      (eshell-write-last-dir-ring)))))
+  t)
 
 (defun eshell-lone-directory-p (file)
   "Test whether FILE is just a directory name, and not a command name."
@@ -278,16 +281,32 @@ Thus, this does not include the current directory.")
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match "\\`~[a-z]*\\'" arg)
       (setq pcomplete-stub (substring arg 1)
-	    pcomplete-last-completion-raw t)
-      (throw 'pcomplete-completions
-	     (progn
-	       (eshell-read-user-names)
-	       (pcomplete-uniquify-list
-		(mapcar
-		 (function
-		  (lambda (user)
-		    (file-name-as-directory (cdr user))))
-		 eshell-user-names)))))))
+            pcomplete-last-completion-raw t)
+      (eshell-read-user-names)
+      (let ((names (pcomplete-uniquify-list
+                    (mapcar (lambda (user)
+                              (file-name-as-directory (cdr user)))
+                            eshell-user-names))))
+        (throw 'pcomplete-completions
+               ;; Provide a programmed completion table.  This works
+               ;; just like completing over the list of names, except
+               ;; it always returns the completed string for
+               ;; `try-completion', never `t'.  That's because this is
+               ;; only completing a directory name, and so the
+               ;; completion isn't actually finished yet.
+               (lambda (string pred action)
+                 (pcase action
+                   ('nil                  ; try-completion
+                    (let ((result (try-completion string names pred)))
+                      (if (eq result t) string result)))
+                   ('t                    ; all-completions
+                    (all-completions string names pred))
+                   ('lambda               ; test-completion
+                    (test-completion string names pred))
+                   ('metadata
+                    '(metadata (category . file)))
+                   (`(boundaries . ,suffix)
+                    `(boundaries 0 . ,(string-search "/" suffix))))))))))
 
 (defun eshell/pwd (&rest _args)
   "Change output from `pwd' to be cleaner."
@@ -310,7 +329,7 @@ With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
 in the minibuffer:
 
-    (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
+    (advice-add \\='expand-file-name :around #\\='my-expand-multiple-dots)
     (defun my-expand-multiple-dots (orig-fun filename &rest args)
       (apply orig-fun (eshell-expand-multiple-dots filename) args))"
   (while (string-match "\\(?:\\`\\|/\\)\\.\\.\\(\\.+\\)\\(?:\\'\\|/\\)"
@@ -388,6 +407,10 @@ in the minibuffer:
 	(unless (equal curdir newdir)
 	  (eshell-add-to-dir-ring curdir))
 	(let ((result (cd newdir)))
+          ;; If we're in "/" and cd to ".." or the like, make things
+          ;; less confusing by changing "/.." to "/".
+          (when (equal (file-truename result) "/")
+            (setq result (cd "/")))
 	  (and eshell-cd-shows-directory
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)

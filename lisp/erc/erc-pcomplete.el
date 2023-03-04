@@ -1,10 +1,10 @@
-;;; erc-pcomplete.el --- Provides programmable completion for ERC
+;;; erc-pcomplete.el --- Provides programmable completion for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, convenience
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 
 ;; This file is part of GNU Emacs.
@@ -41,33 +41,29 @@
 
 (require 'pcomplete)
 (require 'erc)
-(require 'erc-compat)
 (require 'time-date)
 
 (defgroup erc-pcomplete nil
-  "Programmable completion for ERC"
+  "Programmable completion for ERC."
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"
   "When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
-  :group 'erc-pcomplete
   :type 'string)
 
 (defcustom erc-pcomplete-order-nickname-completions t
-  "If t, channel nickname completions will be ordered such that
-the most recent speakers are listed first."
-  :group 'erc-pcomplete
+  "If t, order nickname completions with the most recent speakers first."
   :type 'boolean)
 
 ;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
-  ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (add-hook 'erc-complete-functions 'erc-pcompletions-at-point)
+  ((add-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (add-hook 'erc-complete-functions #'erc-pcompletions-at-point)
    (erc-buffer-list #'pcomplete-erc-setup))
-  ((remove-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (remove-hook 'erc-complete-functions 'erc-pcompletions-at-point)))
+  ((remove-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (remove-hook 'erc-complete-functions #'erc-pcompletions-at-point)))
 
 (defun erc-pcompletions-at-point ()
   "ERC completion data from pcomplete.
@@ -90,18 +86,16 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete-erc-setup ()
   "Setup `erc-mode' to use pcomplete."
-  (set (make-local-variable 'pcomplete-ignore-case)
-       t)
-  (set (make-local-variable 'pcomplete-use-paring)
-       nil)
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'pcomplete-erc-parse-arguments)
-  (set (make-local-variable 'pcomplete-command-completion-function)
-       'pcomplete/erc-mode/complete-command)
-  (set (make-local-variable 'pcomplete-command-name-function)
-       'pcomplete-erc-command-name)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
+  (setq-local completion-ignore-case t)
+  (setq-local pcomplete-use-paring nil)
+  (setq-local pcomplete-parse-arguments-function
+              #'pcomplete-erc-parse-arguments)
+  (setq-local pcomplete-command-completion-function
+              #'pcomplete/erc-mode/complete-command)
+  (setq-local pcomplete-command-name-function
+              #'pcomplete-erc-command-name)
+  (setq-local pcomplete-default-completion-function
+              (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
 
 ;;; Programmable completion logic
 
@@ -157,7 +151,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/NAMES ()
   (while (pcomplete-here (pcomplete-erc-channels))))
 
-(defalias 'pcomplete/erc-mode/NOTICE 'pcomplete/erc-mode/MSG)
+(defalias 'pcomplete/erc-mode/NOTICE #'pcomplete/erc-mode/MSG)
 
 (defun pcomplete/erc-mode/OP ()
   (while (pcomplete-here (pcomplete-erc-not-ops))))
@@ -165,7 +159,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/PART ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defalias 'pcomplete/erc-mode/LEAVE 'pcomplete/erc-mode/PART)
+(defalias 'pcomplete/erc-mode/LEAVE #'pcomplete/erc-mode/PART)
 
 (defun pcomplete/erc-mode/QUERY ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)
@@ -184,6 +178,10 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete/erc-mode/UNIGNORE ()
   (pcomplete-here (erc-with-server-buffer erc-ignore-list)))
+
+(defun pcomplete/erc-mode/RECONNECT ()
+  (pcomplete-here '("cancel"))
+  (pcomplete-opt "a"))
 
 ;;; Functions that provide possible completions.
 

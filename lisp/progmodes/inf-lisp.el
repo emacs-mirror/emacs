@@ -1,7 +1,6 @@
-;;; inf-lisp.el --- an inferior-lisp mode
+;;; inf-lisp.el --- an inferior-lisp mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1994, 2001-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1988-2023 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -23,13 +22,13 @@
 
 ;;; Commentary:
 
-;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
+;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu).  8/88
 
 ;; This file defines a lisp-in-a-buffer package (inferior-lisp mode)
 ;; built on top of comint mode.  This version is more featureful,
 ;; robust, and uniform than the Emacs 18 version.  The key bindings are
 ;; also more compatible with the bindings of Hemlock and Zwei (the
-;; Lisp Machine emacs).
+;; Lisp Machine Emacs).
 
 ;; Since this mode is built on top of the general command-interpreter-in-
 ;; a-buffer mode (comint mode), it shares a common base functionality,
@@ -40,19 +39,19 @@
 ;; the hooks available for customizing it, see the file comint.el.
 ;; For further information on inferior-lisp mode, see the comments below.
 
-;; Needs fixin:
+;; Needs fixing:
 ;; The load-file/compile-file default mechanism could be smarter -- it
 ;; doesn't know about the relationship between filename extensions and
-;; whether the file is source or executable. If you compile foo.lisp
+;; whether the file is source or executable.  If you compile foo.lisp
 ;; with compile-file, then the next load-file should use foo.bin for
-;; the default, not foo.lisp. This is tricky to do right, particularly
+;; the default, not foo.lisp.  This is tricky to do right, particularly
 ;; because the extension for executable files varies so much (.o, .bin,
 ;; .lbin, .mo, .vo, .ao, ...).
 ;;
 ;; It would be nice if inferior-lisp (and inferior scheme, T, ...) modes
 ;; had a verbose minor mode wherein sending or compiling defuns, etc.
 ;; would be reflected in the transcript with suitable comments, e.g.
-;; ";;; redefining fact". Several ways to do this. Which is right?
+;; ";;; redefining fact".  Several ways to do this.  Which is right?
 ;;
 ;; When sending text from a source file to a subprocess, the process-mark can
 ;; move off the window, so you can lose sight of the process interactions.
@@ -63,6 +62,7 @@
 
 (require 'comint)
 (require 'lisp-mode)
+(require 'shell)
 
 
 (defgroup inferior-lisp nil
@@ -76,25 +76,24 @@
 Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 \(as in :a, :c, etc.)"
-  :type 'regexp
-  :group 'inferior-lisp)
+  :type 'regexp)
 
 (defvar inferior-lisp-mode-map
   (let ((map (copy-keymap comint-mode-map)))
     (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\C-x\C-e" 'lisp-eval-last-sexp)
-    (define-key map "\C-c\C-l" 'lisp-load-file)
-    (define-key map "\C-c\C-k" 'lisp-compile-file)
-    (define-key map "\C-c\C-a" 'lisp-show-arglist)
-    (define-key map "\C-c\C-d" 'lisp-describe-sym)
-    (define-key map "\C-c\C-f" 'lisp-show-function-documentation)
-    (define-key map "\C-c\C-v" 'lisp-show-variable-documentation)
+    (define-key map "\C-x\C-e" #'lisp-eval-last-sexp)
+    (define-key map "\C-c\C-l" #'lisp-load-file)
+    (define-key map "\C-c\C-k" #'lisp-compile-file)
+    (define-key map "\C-c\C-a" #'lisp-show-arglist)
+    (define-key map "\C-c\C-d" #'lisp-describe-sym)
+    (define-key map "\C-c\C-f" #'lisp-show-function-documentation)
+    (define-key map "\C-c\C-v" #'lisp-show-variable-documentation)
     map))
 
 (easy-menu-define
   inferior-lisp-menu
   inferior-lisp-mode-map
-  "Inferior Lisp Menu"
+  "Inferior Lisp Menu."
   '("Inf-Lisp"
     ["Eval Last Sexp" lisp-eval-last-sexp t]
     "--"
@@ -108,25 +107,25 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
-(define-key lisp-mode-map "\M-\C-x"  'lisp-eval-defun)     ; GNU convention
-(define-key lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp) ; GNU convention
-(define-key lisp-mode-map "\C-c\C-e" 'lisp-eval-defun)
-(define-key lisp-mode-map "\C-c\C-r" 'lisp-eval-region)
-(define-key lisp-mode-map "\C-c\C-n" 'lisp-eval-form-and-next)
-(define-key lisp-mode-map "\C-c\C-p" 'lisp-eval-paragraph)
-(define-key lisp-mode-map "\C-c\C-c" 'lisp-compile-defun)
-(define-key lisp-mode-map "\C-c\C-z" 'switch-to-lisp)
-(define-key lisp-mode-map "\C-c\C-l" 'lisp-load-file)
-(define-key lisp-mode-map "\C-c\C-k" 'lisp-compile-file)  ; "kompile" file
-(define-key lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
-(define-key lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
-(define-key lisp-mode-map "\C-c\C-f" 'lisp-show-function-documentation)
-(define-key lisp-mode-map "\C-c\C-v" 'lisp-show-variable-documentation)
+(define-key lisp-mode-map "\M-\C-x"  #'lisp-eval-defun)     ; GNU convention
+(define-key lisp-mode-map "\C-x\C-e" #'lisp-eval-last-sexp) ; GNU convention
+(define-key lisp-mode-map "\C-c\C-e" #'lisp-eval-defun)
+(define-key lisp-mode-map "\C-c\C-r" #'lisp-eval-region)
+(define-key lisp-mode-map "\C-c\C-n" #'lisp-eval-form-and-next)
+(define-key lisp-mode-map "\C-c\C-p" #'lisp-eval-paragraph)
+(define-key lisp-mode-map "\C-c\C-c" #'lisp-compile-defun)
+(define-key lisp-mode-map "\C-c\C-z" #'switch-to-lisp)
+(define-key lisp-mode-map "\C-c\C-l" #'lisp-load-file)
+(define-key lisp-mode-map "\C-c\C-k" #'lisp-compile-file)  ; "kompile" file
+(define-key lisp-mode-map "\C-c\C-a" #'lisp-show-arglist)
+(define-key lisp-mode-map "\C-c\C-d" #'lisp-describe-sym)
+(define-key lisp-mode-map "\C-c\C-f" #'lisp-show-function-documentation)
+(define-key lisp-mode-map "\C-c\C-v" #'lisp-show-variable-documentation)
 
 
-;;; This function exists for backwards compatibility.
-;;; Previous versions of this package bound commands to C-c <letter>
-;;; bindings, which is not allowed by the Emacs standard.
+;; This function exists for backwards compatibility.
+;; Previous versions of this package bound commands to C-c <letter>
+;; bindings, which is not allowed by the Emacs standard.
 
 ;;;  "This function binds many inferior-lisp commands to C-c <letter> bindings,
 ;;;where they are more accessible. C-c <letter> bindings are reserved for the
@@ -134,29 +133,27 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 ;;;  (with-eval-after-load 'inf-lisp 'inferior-lisp-install-letter-bindings)
 ;;;You can modify this function to install just the bindings you want."
 (defun inferior-lisp-install-letter-bindings ()
-  (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
-  (define-key lisp-mode-map "\C-cr" 'lisp-eval-region-and-go)
-  (define-key lisp-mode-map "\C-cc" 'lisp-compile-defun-and-go)
-  (define-key lisp-mode-map "\C-cz" 'switch-to-lisp)
-  (define-key lisp-mode-map "\C-cl" 'lisp-load-file)
-  (define-key lisp-mode-map "\C-ck" 'lisp-compile-file)
-  (define-key lisp-mode-map "\C-ca" 'lisp-show-arglist)
-  (define-key lisp-mode-map "\C-cd" 'lisp-describe-sym)
-  (define-key lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
-  (define-key lisp-mode-map "\C-cv" 'lisp-show-variable-documentation)
+  (define-key lisp-mode-map "\C-ce" #'lisp-eval-defun-and-go)
+  (define-key lisp-mode-map "\C-cr" #'lisp-eval-region-and-go)
+  (define-key lisp-mode-map "\C-cc" #'lisp-compile-defun-and-go)
+  (define-key lisp-mode-map "\C-cz" #'switch-to-lisp)
+  (define-key lisp-mode-map "\C-cl" #'lisp-load-file)
+  (define-key lisp-mode-map "\C-ck" #'lisp-compile-file)
+  (define-key lisp-mode-map "\C-ca" #'lisp-show-arglist)
+  (define-key lisp-mode-map "\C-cd" #'lisp-describe-sym)
+  (define-key lisp-mode-map "\C-cf" #'lisp-show-function-documentation)
+  (define-key lisp-mode-map "\C-cv" #'lisp-show-variable-documentation)
 
-  (define-key inferior-lisp-mode-map "\C-cl" 'lisp-load-file)
-  (define-key inferior-lisp-mode-map "\C-ck" 'lisp-compile-file)
-  (define-key inferior-lisp-mode-map "\C-ca" 'lisp-show-arglist)
-  (define-key inferior-lisp-mode-map "\C-cd" 'lisp-describe-sym)
-  (define-key inferior-lisp-mode-map "\C-cf" 'lisp-show-function-documentation)
-  (define-key inferior-lisp-mode-map "\C-cv"
-    'lisp-show-variable-documentation))
+  (define-key inferior-lisp-mode-map "\C-cl" #'lisp-load-file)
+  (define-key inferior-lisp-mode-map "\C-ck" #'lisp-compile-file)
+  (define-key inferior-lisp-mode-map "\C-ca" #'lisp-show-arglist)
+  (define-key inferior-lisp-mode-map "\C-cd" #'lisp-describe-sym)
+  (define-key inferior-lisp-mode-map "\C-cf" #'lisp-show-function-documentation)
+  (define-key inferior-lisp-mode-map "\C-cv" #'lisp-show-variable-documentation))
 
 (defcustom inferior-lisp-program "lisp"
   "Program name for invoking an inferior Lisp in Inferior Lisp mode."
-  :type 'string
-  :group 'inferior-lisp)
+  :type 'string)
 
 (defcustom inferior-lisp-load-command "(load \"%s\")\n"
   "Format-string for building a Lisp expression to load a file.
@@ -166,8 +163,7 @@ to load that file.  The default works acceptably on most Lisps.
 The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\n\"
 produces cosmetically superior output for this application,
 but it works only in Common Lisp."
-  :type 'string
-  :group 'inferior-lisp)
+  :type 'string)
 
 (defcustom inferior-lisp-prompt "^[^> \n]*>+:? *"
   "Regexp to recognize prompts in the Inferior Lisp mode.
@@ -182,10 +178,9 @@ More precise choices:
 Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
 franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
 kcl: \"^>+ *\""
-  :type 'regexp
-  :group 'inferior-lisp)
+  :type 'regexp)
 
-(defvar inferior-lisp-buffer nil "*The current inferior-lisp process buffer.
+(defvar inferior-lisp-buffer nil "*The current `inferior-lisp' process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
@@ -274,7 +269,8 @@ If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
   (setq comint-prompt-regexp inferior-lisp-prompt)
   (setq mode-line-process '(":%s"))
-  (lisp-mode-variables t)
+  (lisp-mode-variables)
+  (set-syntax-table lisp-mode-syntax-table)
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter)))
 
@@ -294,20 +290,25 @@ to continue it."
   "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'.
 If there is a process already running in `*inferior-lisp*', just switch
 to that buffer.
+
 With argument, allows you to edit the command line (default is value
 of `inferior-lisp-program').  Runs the hooks from
 `inferior-lisp-mode-hook' (after the `comint-mode-hook' is run).
+
+If any parts of the command name contains spaces, they should be
+quoted using shell quote syntax.
+
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (interactive (list (if current-prefix-arg
 			 (read-string "Run lisp: " inferior-lisp-program)
 		       inferior-lisp-program)))
   (if (not (comint-check-proc "*inferior-lisp*"))
-      (let ((cmdlist (split-string cmd)))
+      (let ((cmdlist (split-string-shell-command cmd)))
 	(set-buffer (apply (function make-comint)
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (pop-to-buffer-same-window "*inferior-lisp*"))
+  (pop-to-buffer "*inferior-lisp*" display-comint-buffer-action))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)
@@ -329,18 +330,18 @@ Prefix argument means switch to the Lisp buffer afterwards."
   (if and-go (switch-to-lisp t)))
 
 (defun lisp-compile-string (string)
-  "Send the string to the inferior Lisp process to be compiled and executed."
+  "Send STRING to the inferior Lisp process to be compiled and executed."
   (comint-send-string
    (inferior-lisp-proc)
    (format "(funcall (compile nil (lambda () %s)))\n" string)))
 
 (defun lisp-eval-string (string)
-  "Send the string to the inferior Lisp process to be executed."
+  "Send STRING to the inferior Lisp process to be executed."
   (comint-send-string (inferior-lisp-proc) (concat string "\n")))
 
 (defun lisp-do-defun (do-string do-region)
   "Send the current defun to the inferior Lisp process.
-The actually processing is done by `do-string' and `do-region'
+The actually processing is done by DO-STRING and DO-REGION
  which determine whether the code is compiled before evaluation.
 DEFVAR forms reset the variables to the init values."
   (save-excursion
@@ -447,7 +448,7 @@ With argument, positions cursor at end of buffer."
 ;;; 	 (let ((name-start (point)))
 ;;; 	   (forward-sexp 1)
 ;;; 	   (process-send-string "inferior-lisp"
-;;; 				(format "(compile '%s #'(lambda "
+;;; 				(format "(compile '%s (lambda "
 ;;; 					(buffer-substring name-start
 ;;; 							  (point)))))
 ;;; 	 (let ((body-start (point)))
@@ -463,7 +464,7 @@ With argument, positions cursor at end of buffer."
 ;;;   (interactive "r")
 ;;;   (save-excursion
 ;;;     (goto-char start) (end-of-defun) (beginning-of-defun) ; error check
-;;;     (if (< (point) start) (error "region begins in middle of defun"))
+;;;     (if (< (point) start) (error "Region begins in middle of defun"))
 ;;;     (goto-char start)
 ;;;     (let ((s start))
 ;;;       (end-of-defun)
@@ -486,12 +487,11 @@ describing the last `lisp-load-file' or `lisp-compile-file' command.")
 If it's loaded into a buffer that is in one of these major modes, it's
 considered a Lisp source file by `lisp-load-file' and `lisp-compile-file'.
 Used by these commands to determine defaults."
-  :type '(repeat symbol)
-  :group 'inferior-lisp)
+  :type '(repeat symbol))
 
 (defun lisp-load-file (file-name)
   "Load a Lisp file into the inferior Lisp process."
-  (interactive (comint-get-source "Load Lisp file: " lisp-prev-l/c-dir/file
+  (interactive (comint-get-source "Load Lisp file" lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; nil because LOAD
 					; doesn't need an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
@@ -504,7 +504,7 @@ Used by these commands to determine defaults."
 
 (defun lisp-compile-file (file-name)
   "Compile a Lisp file in the inferior Lisp process."
-  (interactive (comint-get-source "Compile Lisp file: " lisp-prev-l/c-dir/file
+  (interactive (comint-get-source "Compile Lisp file" lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; nil = don't need
 					; suffix .lisp
   (comint-check-source file-name) ; Check to see if buffer needs saved.
@@ -554,10 +554,7 @@ Used by these commands to determine defaults."
 
 ;;; Reads a string from the user.
 (defun lisp-symprompt (prompt default)
-  (list (let* ((prompt (if default
-			   (format "%s (default %s): " prompt default)
-			 (concat prompt ": ")))
-	       (ans (read-string prompt)))
+  (list (let ((ans (read-string (format-prompt prompt default))))
 	  (if (zerop (length ans)) default ans))))
 
 
@@ -598,7 +595,7 @@ See variable `lisp-function-doc-command'."
 		     (format lisp-function-doc-command fn)))
 
 (defun lisp-show-variable-documentation (var)
-  "Send a command to the inferior Lisp to give documentation for function FN.
+  "Send a command to the inferior Lisp to give documentation for variable VAR.
 See variable `lisp-var-doc-command'."
   (interactive (lisp-symprompt "Variable doc" (lisp-var-at-pt)))
   (comint-proc-query (inferior-lisp-proc) (format lisp-var-doc-command var)))
@@ -627,8 +624,8 @@ See variable `lisp-describe-sym-command'."
 	(error "No Lisp subprocess; see variable `inferior-lisp-buffer'"))))
 
 
-;;; Do the user's customization...
-;;;===============================
+;; Obsolete.
+
 (defvar inferior-lisp-load-hook nil
   "This hook is run when the library `inf-lisp' is loaded.")
 (make-obsolete-variable 'inferior-lisp-load-hook

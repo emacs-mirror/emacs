@@ -1,6 +1,6 @@
-;;; calc-keypd.el --- mouse-capable keypad input for Calc
+;;; calc-keypd.el --- mouse-capable keypad input for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -35,17 +35,17 @@
 (defvar calc-keypad-prev-input nil)
 (defvar calc-keypad-said-hello nil)
 
-;;; |----+----+----+----+----+----|
-;;; |  ENTER  |+/- |EEX |UNDO| <- |
-;;; |-----+---+-+--+--+-+---++----|
-;;; | INV |  7  |  8  |  9  |  /  |
-;;; |-----+-----+-----+-----+-----|
-;;; | HYP |  4  |  5  |  6  |  *  |
-;;; |-----+-----+-----+-----+-----|
-;;; |EXEC |  1  |  2  |  3  |  -  |
-;;; |-----+-----+-----+-----+-----|
-;;; | OFF |  0  |  .  | PI  |  +  |
-;;; |-----+-----+-----+-----+-----|
+;; |----+----+----+----+----+----|
+;; |  ENTER  |+/- |EEX |UNDO| <- |
+;; |-----+---+-+--+--+-+---++----|
+;; | INV |  7  |  8  |  9  |  /  |
+;; |-----+-----+-----+-----+-----|
+;; | HYP |  4  |  5  |  6  |  *  |
+;; |-----+-----+-----+-----+-----|
+;; |EXEC |  1  |  2  |  3  |  -  |
+;; |-----+-----+-----+-----+-----|
+;; | OFF |  0  |  .  | PI  |  +  |
+;; |-----+-----+-----+-----+-----|
 (defvar calc-keypad-layout
   '( ( ( "ENTER" calc-enter calc-roll-down calc-roll-up calc-over )
        ( "ENTER" calc-enter calc-roll-down calc-roll-up calc-over )
@@ -83,12 +83,12 @@
 			     calc-keypad-modes-menu
 			     calc-keypad-user-menu ) )
 
-;;; |----+----+----+----+----+----|
-;;; |FLR |CEIL|RND |TRNC|CLN2|FLT |
-;;; |----+----+----+----+----+----|
-;;; | LN |EXP |    |ABS |IDIV|MOD |
-;;; |----+----+----+----+----+----|
-;;; |SIN |COS |TAN |SQRT|y^x |1/x |
+;; |----+----+----+----+----+----|
+;; |FLR |CEIL|RND |TRNC|CLN2|FLT |
+;; |----+----+----+----+----+----|
+;; | LN |EXP |    |ABS |IDIV|MOD |
+;; |----+----+----+----+----+----|
+;; |SIN |COS |TAN |SQRT|y^x |1/x |
 
 (defvar calc-keypad-math-menu
   '( ( ( "FLR"   calc-floor )
@@ -110,12 +110,12 @@
        ( "y^x"   calc-power )
        ( "1/x"   calc-inv ) ) ))
 
-;;; |----+----+----+----+----+----|
-;;; |IGAM|BETA|IBET|ERF |BESJ|BESY|
-;;; |----+----+----+----+----+----|
-;;; |IMAG|CONJ| RE |ATN2|RAND|RAGN|
-;;; |----+----+----+----+----+----|
-;;; |GCD |FACT|DFCT|BNOM|PERM|NXTP|
+;; |----+----+----+----+----+----|
+;; |IGAM|BETA|IBET|ERF |BESJ|BESY|
+;; |----+----+----+----+----+----|
+;; |IMAG|CONJ| RE |ATN2|RAND|RAGN|
+;; |----+----+----+----+----+----|
+;; |GCD |FACT|DFCT|BNOM|PERM|NXTP|
 
 (defvar calc-keypad-funcs-menu
   '( ( ( "IGAM"  calc-inc-gamma )
@@ -137,12 +137,12 @@
        ( "PERM"  calc-perm )
        ( "NXTP"	 calc-next-prime calc-prev-prime ) ) ))
 
-;;; |----+----+----+----+----+----|
-;;; |AND | OR |XOR |NOT |LSH |RSH |
-;;; |----+----+----+----+----+----|
-;;; |DEC |HEX |OCT |BIN |WSIZ|ARSH|
-;;; |----+----+----+----+----+----|
-;;; | A  | B  | C  | D  | E  | F  |
+;; |----+----+----+----+----+----|
+;; |AND | OR |XOR |NOT |LSH |RSH |
+;; |----+----+----+----+----+----|
+;; |DEC |HEX |OCT |BIN |WSIZ|ARSH|
+;; |----+----+----+----+----+----|
+;; | A  | B  | C  | D  | E  | F  |
 
 (defvar calc-keypad-binary-menu
   '( ( ( "AND"   calc-and calc-diff )
@@ -164,12 +164,12 @@
        ( "E"     ("E") )
        ( "F"     ("F") ) ) ))
 
-;;; |----+----+----+----+----+----|
-;;; |SUM |PROD|MAX |MAP*|MAP^|MAP$|
-;;; |----+----+----+----+----+----|
-;;; |INV |DET |TRN |IDNT|CRSS|"x" |
-;;; |----+----+----+----+----+----|
-;;; |PACK|UNPK|INDX|BLD |LEN |... |
+;; |----+----+----+----+----+----|
+;; |SUM |PROD|MAX |MAP*|MAP^|MAP$|
+;; |----+----+----+----+----+----|
+;; |INV |DET |TRN |IDNT|CRSS|"x" |
+;; |----+----+----+----+----+----|
+;; |PACK|UNPK|INDX|BLD |LEN |... |
 
 (defvar calc-keypad-vector-menu
   '( ( ( "SUM"   calc-vector-sum calc-vector-alt-sum calc-vector-mean )
@@ -196,12 +196,12 @@
        ( "LEN"   calc-vlength )
        ( "..."   calc-full-vectors ) ) ))
 
-;;; |----+----+----+----+----+----|
-;;; |FLT |FIX |SCI |ENG |GRP |    |
-;;; |----+----+----+----+----+----|
-;;; |RAD |DEG |FRAC|POLR|SYMB|PREC|
-;;; |----+----+----+----+----+----|
-;;; |SWAP|RLL3|RLL4|OVER|STO |RCL |
+;; |----+----+----+----+----+----|
+;; |FLT |FIX |SCI |ENG |GRP |    |
+;; |----+----+----+----+----+----|
+;; |RAD |DEG |FRAC|POLR|SYMB|PREC|
+;; |----+----+----+----+----+----|
+;; |SWAP|RLL3|RLL4|OVER|STO |RCL |
 
 (defvar calc-keypad-modes-menu
   '( ( ( "FLT"   calc-normal-notation
@@ -387,7 +387,7 @@
   (interactive)
   (unless (eq major-mode 'calc-keypad-mode)
     (error "Must be in *Calc Keypad* buffer for this command"))
-  (let* ((row (count-lines (point-min) (point-at-bol)))
+  (let* ((row (count-lines (point-min) (line-beginning-position)))
 	 (y (/ row 2))
 	 (x (/ (current-column) (if (>= y 4) 6 5)))
 	 radix frac inv
@@ -481,7 +481,7 @@
 					      ":"
 					    (if (and (equal cmd "e")
 						     (or (not input)
-							 (string-match
+							 (string-search
 							  "#" input))
 						     (> radix 14))
 						(format "*%d.^" radix)

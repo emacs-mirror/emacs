@@ -1,21 +1,23 @@
-;;; chartab-tests.el --- Tests for char-tab.c
+;;; chartab-tests.el --- Tests for char-tab.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -46,6 +48,26 @@
           (#x20000 . #x30000)
           (#xe0e00 . #xe0ef6)
           )))
+
+(ert-deftest chartab-test-char-table-p ()
+  (should (char-table-p (make-char-table 'foo)))
+  (should (not (char-table-p (make-hash-table)))))
+
+(ert-deftest chartab-test-char-table-subtype ()
+  (should (eq (char-table-subtype (make-char-table 'foo)) 'foo)))
+
+(ert-deftest chartab-test-char-table-parent ()
+  (should (eq (char-table-parent (make-char-table 'foo)) nil))
+  (let ((parent (make-char-table 'foo))
+        (child (make-char-table 'bar)))
+    (set-char-table-parent child parent)
+    (should (eq (char-table-parent child) parent))))
+
+(ert-deftest chartab-test-char-table-extra-slot ()
+  ;; Use any type with extra slots, e.g. 'case-table.
+  (let ((tbl (make-char-table 'case-table)))
+    (set-char-table-extra-slot tbl 1 'bar)
+    (should (eq (char-table-extra-slot tbl 1) 'bar))))
 
 (provide 'chartab-tests)
 ;;; chartab-tests.el ends here

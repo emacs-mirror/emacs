@@ -1,6 +1,6 @@
-;;; srecode/texi.el --- Srecode texinfo support.
+;;; srecode/texi.el --- Srecode texinfo support.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -224,7 +224,7 @@ Takes a few very generic guesses as to what the formatting is."
     ;; Return our modified doc string.
     docstring))
 
-(defun srecode-texi-massage-to-texinfo (tag buffer string)
+(defun srecode-texi-massage-to-texinfo (_tag buffer string)
   "Massage TAG's documentation from BUFFER as STRING.
 This is to take advantage of TeXinfo's markup symbols."
   (save-excursion
@@ -246,7 +246,7 @@ that class.
  class      => @code{class} @xref{class}
  unknown    => @code{unknown}
  \"text\"     => \\=`\\=`text\\='\\='
- 'quoteme   => @code{quoteme}
+ \\='quoteme   => @code{quoteme}
  non-nil    => non-@code{nil}
  t          => @code{t}
  :tag       => @code{:tag}

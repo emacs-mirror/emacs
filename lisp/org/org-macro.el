@@ -1,6 +1,6 @@
 ;;; org-macro.el --- Macro Replacement Code for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -30,7 +30,7 @@
 ;; `org-macro-initialize-templates', which recursively calls
 ;; `org-macro--collect-macros' in order to read setup files.
 
-;; Argument in macros are separated with commas. Proper escaping rules
+;; Argument in macros are separated with commas.  Proper escaping rules
 ;; are implemented in `org-macro-escape-arguments' and arguments can
 ;; be extracted from a string with `org-macro-extract-arguments'.
 
@@ -46,27 +46,33 @@
 ;; {{{email}}} and {{{title}}} macros.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'cl-lib)
 (require 'org-macs)
 (require 'org-compat)
 
-(declare-function org-element-at-point "org-element" ())
+(declare-function org-collect-keywords "org" (keywords &optional unique directory))
+(declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-copy "org-element" (datum))
 (declare-function org-element-macro-parser "org-element" ())
+(declare-function org-element-keyword-parser "org-element" (limit affiliated))
+(declare-function org-element-put-property "org-element" (element property value))
 (declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
 (declare-function org-element-property "org-element" (property element))
 (declare-function org-element-restriction "org-element" (element))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-file-contents "org" (file &optional noerror nocache))
-(declare-function org-file-url-p "org" (file))
-(declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
+(declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
 (declare-function org-link-search "ol" (s &optional avoid-pos stealth))
 (declare-function org-mode "org" ())
 (declare-function vc-backend "vc-hooks" (f))
 (declare-function vc-call "vc-hooks" (fun file &rest args) t)
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defvar org-link-search-must-match-exact-headline)
 
@@ -83,67 +89,67 @@ directly, use instead:
 
 ;;; Functions
 
-(defun org-macro--set-template (name value templates)
+(defun org-macro--makeargs (template)
+  "Compute the formal arglist to use for TEMPLATE."
+  (let ((max 0) (i 0))
+    (while (string-match "\\$\\([0-9]+\\)" template i)
+      (setq i (match-end 0))
+      (setq max (max max (string-to-number (match-string 1 template)))))
+    (let ((args '(&rest _)))
+      (if (< max 1) args ;Avoid `&optional &rest', refused by Emacs-26!
+        (while (> max 0)
+          (push (intern (format "$%d" max)) args)
+          (setq max (1- max)))
+        (cons '&optional args)))))
+
+(defun org-macro--set-templates (templates)
   "Set template for the macro NAME.
 VALUE is the template of the macro.  The new value override the
-previous one, unless VALUE is nil.  TEMPLATES is the list of
-templates.  Return the updated list."
-  (when value
-    (let ((old-definition (assoc name templates)))
-      (if old-definition
-	  (setcdr old-definition value)
-	(push (cons name value) templates))))
-  templates)
+previous one, unless VALUE is nil.  Return the updated list."
+  (let ((new-templates nil))
+    (pcase-dolist (`(,name . ,value) templates)
+      (let ((old-definition (assoc name new-templates)))
+        (when (and (stringp value) (string-match-p "\\`(eval\\>" value))
+          ;; Pre-process the evaluation form for faster macro expansion.
+          (let* ((args (org-macro--makeargs value))
+                 (body
+                  (condition-case nil
+                      ;; `value' is of the form "(eval ...)" but we
+                      ;; don't want this to mean to pass the result to
+                      ;; `eval' (which would cause double evaluation),
+                      ;; so we strip the `eval' away with `cadr'.
+		      (cadr (read value))
+		    (error
+                     (user-error "Invalid definition for macro %S" name)))))
+	    (setq value (eval (macroexpand-all `(lambda ,args ,body)) t))))
+        (cond ((and value old-definition) (setcdr old-definition value))
+	      (old-definition)
+	      (t (push (cons name (or value "")) new-templates)))))
+    new-templates))
 
-(defun org-macro--collect-macros (&optional files templates)
+(defun org-macro--collect-macros ()
   "Collect macro definitions in current buffer and setup files.
-Return an alist containing all macro templates found.
-
-FILES is a list of setup files names read so far, used to avoid
-circular dependencies.  TEMPLATES is the alist collected so far.
-The two arguments are used in recursive calls."
-  (let ((case-fold-search t))
-    (org-with-point-at 1
-      (while (re-search-forward "^[ \t]*#\\+\\(MACRO\\|SETUPFILE\\):" nil t)
-	(let ((element (org-element-at-point)))
-	  (when (eq (org-element-type element) 'keyword)
-	    (let ((val (org-element-property :value element)))
-	      (if (equal "MACRO" (org-element-property :key element))
-		  ;; Install macro in TEMPLATES.
-		  (when (string-match "^\\(\\S-+\\)[ \t]*" val)
-		    (let ((name (match-string 1 val))
-			  (value (substring val (match-end 0))))
-		      (setq templates
-			    (org-macro--set-template name value templates))))
-		;; Enter setup file.
-		(let* ((uri (org-strip-quotes val))
-		       (uri-is-url (org-file-url-p uri))
-		       (uri (if uri-is-url
-				uri
-			      (expand-file-name uri))))
-		  ;; Avoid circular dependencies.
-		  (unless (member uri files)
-		    (with-temp-buffer
-		      (unless uri-is-url
-			(setq default-directory (file-name-directory uri)))
-		      (org-mode)
-		      (insert (org-file-contents uri 'noerror))
-		      (setq templates
-			    (org-macro--collect-macros
-			     (cons uri files) templates)))))))))))
-    (let ((macros `(("author" . ,(org-macro--find-keyword-value "AUTHOR"))
-		    ("email" . ,(org-macro--find-keyword-value "EMAIL"))
-		    ("title" . ,(org-macro--find-keyword-value "TITLE" t))
-		    ("date" . ,(org-macro--find-date)))))
-      (pcase-dolist (`(,name . ,value) macros)
-	(setq templates (org-macro--set-template name value templates))))
+Return an alist containing all macro templates found."
+  (let ((templates
+         `(("author" . ,(org-macro--find-keyword-value "AUTHOR" t))
+	   ("email" . ,(org-macro--find-keyword-value "EMAIL"))
+	   ("title" . ,(org-macro--find-keyword-value "TITLE" t))
+	   ("date" . ,(org-macro--find-date)))))
+    (pcase (org-collect-keywords '("MACRO"))
+      (`(("MACRO" . ,values))
+       (dolist (value values)
+	 (when (string-match "^\\(\\S-+\\)[ \t]*" value)
+	   (let ((name (match-string 1 value))
+		 (definition (substring value (match-end 0))))
+             (push (cons name definition) templates))))))
     templates))
 
-(defun org-macro-initialize-templates ()
+(defun org-macro-initialize-templates (&optional default)
   "Collect macro templates defined in current buffer.
 
-Templates are stored in buffer-local variable
-`org-macro-templates'.
+DEFAULT is a list of globally available templates.
+
+Templates are stored in buffer-local variable `org-macro-templates'.
 
 In addition to buffer-defined macros, the function installs the
 following ones: \"n\", \"author\", \"email\", \"keyword\",
@@ -153,8 +159,9 @@ a file, \"input-file\" and \"modification-time\"."
   (org-macro--counter-initialize)	;for "n" macro
   (setq org-macro-templates
 	(nconc
-	 ;; Install user-defined macros.
-	 (org-macro--collect-macros)
+	 ;; Install user-defined macros.  Local macros have higher
+         ;; precedence than global ones.
+         (org-macro--set-templates (append default (org-macro--collect-macros)))
 	 ;; Install file-specific macros.
 	 (let ((visited-file (buffer-file-name (buffer-base-buffer))))
 	   (and visited-file
@@ -162,21 +169,23 @@ a file, \"input-file\" and \"modification-time\"."
 		(list
 		 `("input-file" . ,(file-name-nondirectory visited-file))
 		 `("modification-time" .
-		   ,(format "(eval
-\(format-time-string $1
-                     (or (and (org-string-nw-p $2)
-                              (org-macro--vc-modified-time %s))
-                     '%s)))"
-			    (prin1-to-string visited-file)
-			    (prin1-to-string
-			     (file-attribute-modification-time
-			      (file-attributes visited-file))))))))
+		   ,(let ((modtime (file-attribute-modification-time
+			            (file-attributes visited-file))))
+		      (lambda (arg1 &optional arg2 &rest _)
+		        (format-time-string
+                         arg1
+                         (or (and (org-string-nw-p arg2)
+                                  (org-macro--vc-modified-time visited-file))
+                             modtime))))))))
 	 ;; Install generic macros.
-	 (list
-	  '("n" . "(eval (org-macro--counter-increment $1 $2))")
-	  '("keyword" . "(eval (org-macro--find-keyword-value $1))")
-	  '("time" . "(eval (format-time-string $1))")
-	  '("property" . "(eval (org-macro--get-property $1 $2))")))))
+	 '(("keyword" . (lambda (arg1 &rest _)
+                          (org-macro--find-keyword-value arg1 t)))
+	   ("n" . (lambda (&optional arg1 arg2 &rest _)
+                    (org-macro--counter-increment arg1 arg2)))
+           ("property" . (lambda (arg1 &optional arg2 &rest _)
+                           (org-macro--get-property arg1 arg2)))
+	   ("time" . (lambda (arg1 &rest _)
+                       (format-time-string arg1)))))))
 
 (defun org-macro-expand (macro templates)
   "Return expanded MACRO, as a string.
@@ -188,21 +197,17 @@ default value.  Return nil if no template was found."
 	 ;; Macro names are case-insensitive.
 	 (cdr (assoc-string (org-element-property :key macro) templates t))))
     (when template
-      (let* ((eval? (string-match-p "\\`(eval\\>" template))
-	     (value
-	      (replace-regexp-in-string
-	       "\\$[0-9]+"
-	       (lambda (m)
-		 (let ((arg (or (nth (1- (string-to-number (substring m 1)))
-				     (org-element-property :args macro))
-				;; No argument: remove place-holder.
-				"")))
-		   ;; `eval' implies arguments are strings.
-		   (if eval? (format "%S" arg) arg)))
-	       template nil 'literal)))
-        (when eval?
-          (setq value (eval (condition-case nil (read value)
-			      (error (debug))))))
+      (let* ((value
+	      (if (functionp template)
+	          (apply template (org-element-property :args macro))
+	        (replace-regexp-in-string
+	         "\\$[0-9]+"
+	         (lambda (m)
+		   (or (nth (1- (string-to-number (substring m 1)))
+			    (org-element-property :args macro))
+		       ;; No argument: remove place-holder.
+		       ""))
+		 template nil 'literal))))
         ;; Force return value to be a string.
         (format "%s" (or value ""))))))
 
@@ -240,6 +245,13 @@ a definition in TEMPLATES."
 		     (goto-char (match-beginning 0))
 		     (org-element-macro-parser))))))
 	   (when macro
+             ;; `:parent' property might change as we modify buffer.
+             ;; We do not care about it when checking for circular
+             ;; dependencies.  So, setting `:parent' to nil making sure
+             ;; that actual macro element (if org-element-cache is
+             ;; active) is unchanged.
+             (setq macro (cl-copy-list macro))
+             (org-element-put-property macro :parent nil)
 	     (let* ((key (org-element-property :key macro))
 		    (value (org-macro-expand macro templates))
 		    (begin (org-element-property :begin macro))
@@ -339,7 +351,7 @@ in the buffer."
 	  (result nil))
       (catch :exit
 	(while (re-search-forward regexp nil t)
-	  (let ((element (org-element-at-point)))
+	  (let ((element (org-with-point-at (match-beginning 0) (org-element-keyword-parser (line-end-position) (list (match-beginning 0))))))
 	    (when (eq 'keyword (org-element-type element))
 	      (let ((value (org-element-property :value element)))
 		(if (not collect) (throw :exit value)
@@ -356,12 +368,13 @@ Return value as a string."
 	     (not (cdr date))
 	     (eq 'timestamp (org-element-type (car date))))
 	(format "(eval (if (org-string-nw-p $1) %s %S))"
-		(format "(org-timestamp-format '%S $1)"
+		(format "(org-format-timestamp '%S $1)"
 			(org-element-copy (car date)))
 		value)
       value)))
 
 (defun org-macro--vc-modified-time (file)
+  (require 'vc) ; Not everything we need is autoloaded.
   (save-window-excursion
     (when (vc-backend file)
       (let ((buf (get-buffer-create " *org-vc*"))
@@ -369,7 +382,7 @@ Return value as a string."
 	    date)
 	(unwind-protect
 	    (progn
-	      (vc-call print-log file buf nil nil 1)
+	      (vc-call print-log (list file) buf nil nil 1)
 	      (with-current-buffer buf
 		(vc-exec-after
 		 (lambda ()
@@ -379,7 +392,7 @@ Return value as a string."
 				  (buffer-substring
 				   (point) (line-end-position)))))
 		       (when (cl-some #'identity time)
-			 (setq date (apply #'encode-time time))))))))
+			 (setq date (org-encode-time time))))))))
 	      (let ((proc (get-buffer-process buf)))
 		(while (and proc (accept-process-output proc .5 nil t)))))
 	  (kill-buffer buf))
@@ -404,7 +417,7 @@ value, i.e. do not increment.
 If the string represents an integer, set the counter to this number.
 
 Any other non-empty string resets the counter to 1."
-  (let ((name-trimmed (org-trim name))
+  (let ((name-trimmed (if (stringp name) (org-trim name) ""))
         (action-trimmed (when (org-string-nw-p action)
                           (org-trim action))))
     (puthash name-trimmed
@@ -417,6 +430,6 @@ Any other non-empty string resets the counter to 1."
                    (t 1))
              org-macro--counter-table)))
 
-
 (provide 'org-macro)
+
 ;;; org-macro.el ends here

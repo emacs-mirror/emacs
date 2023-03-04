@@ -1,15 +1,15 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.1.5
+;; Version: 3.2.1
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
-;; Homepage: https://github.com/alex-hhh/emacs-soap-client
-;; Package-Requires: ((cl-lib "0.6.1"))
+;; URL: https://github.com/alex-hhh/emacs-soap-client
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -551,30 +551,77 @@ This is a specialization of `soap-encode-value' for
         (soap-validate-xs-basic-type value-string type)
         (insert value-string)))))
 
-;; Inspired by rng-xsd-convert-date-time.
-(defun soap-decode-date-time (date-time-string datatype)
+(defun soap-decode-date-time (date-time-string &optional datatype)
   "Decode DATE-TIME-STRING as DATATYPE.
 DATE-TIME-STRING should be in ISO 8601 basic or extended format.
-DATATYPE is one of dateTime, time, date, gYearMonth, gYear,
-gMonthDay, gDay or gMonth.
+DATATYPE can be omitted, or one of the symbols dateTime, time,
+date, gYearMonth, gYear, gMonthDay, gDay, or gMonth.  If Emacs is
+a version that supports fractional seconds, DATATYPE can also be
+dateTime-subsecond, or time-subsecond.  On older versions of
+Emacs (prior to 27.1), which do not support fractional seconds,
+leaving DATATYPE nil means that subseconds in DATE-TIME-STRING
+will be ignored.
 
-Return a list in a format (SEC MINUTE HOUR DAY MONTH YEAR
-SEC-FRACTION DATATYPE ZONE).  This format is meant to be similar
-to that returned by `decode-time' (and compatible with
-`encode-time').  The differences are the SEC (seconds)
-field is always an integer, the DOW (day-of-week) field
-is replaced with SEC-FRACTION, a float representing the
-fractional seconds, and the DST (daylight savings time) field is
-replaced with DATATYPE, a symbol representing the XSD primitive
-datatype.  This symbol can be used to determine which fields
-apply and which don't when it's not already clear from context.
-For example a datatype of `time' means the year, month and day
+Return a list in a format identical or similar to that returned
+by `decode-time'.  The returned format is always compatible with
+`encode-time'.  If DATATYPE is omitted or nil, this function will
+return a list that has exactly the same format as that returned
+by `decode-time'.
+
+Note that on versions of Emacs that predate support for
+fractional seconds, `encode-time' will not notice the SUBSECOND
+field so it must be handled specially.
+
+The formats returned by this function are as follows, where _
+means \"should be ignored\":
+
+ DATATYPE   | Return format
+------------+----------------------------------------------------------------
+ nil        | (SECOND MINUTE HOUR DAY MONTH YEAR DOW       DST        UTCOFF)
+ dateTime   | (SECOND MINUTE HOUR DAY MONTH YEAR SUBSECOND dateTime   UTCOFF)
+ time       | (SECOND MINUTE HOUR _   _     _    SUBSECOND time       _)
+ date       | (_      _      _    DAY MONTH YEAR _         date       _)
+ gYearMonth | (_      _      _    _   MONTH YEAR _         gYearMonth _)
+ gYear      | (_      _      _    _   _     YEAR _         gYear      _)
+ gMonthDay  | (_      _      _    DAY MONTH _    _         gMonthDay  _)
+ gDay       | (_      _      _    DAY _     _    _         gDay       _)
+ gMonth     | (_      _      _    _   MONTH _    _         gMonth     _)
+
+When DATATYPE is dateTime or time, the DOW (day-of-week) field is
+replaced with SUBSECOND, a float representing the fractional
+seconds, and the DST (daylight savings time) field is replaced
+with DATATYPE, a symbol representing the XSD primitive datatype.
+This symbol can be used to determine which fields apply and which
+do not, when it is not already clear from context.  For example a
+datatype of `time' means the year, month, day and time zone
 fields should be ignored.
 
-This function will throw an error if DATE-TIME-STRING represents
-a leap second, since the XML Schema 1.1 standard explicitly
-disallows them."
-  (let* ((datetime-regexp (cadr (get datatype 'rng-xsd-convert)))
+New code that depends on Emacs 27.1 or newer anyway, and that
+wants dateTime or time but with the first argument with subsecond
+resolution, i.e., (TICKS . HZ), can set DATATYPE to
+dateTime-subsecond or time-subsecond respectively.  This function
+throws an error if dateTime-subsecond or time-subsecond is
+specified when Emacs does not support subsecond resolution.
+
+This function throws an error if DATE-TIME-STRING represents a
+leap second, since the XML Schema 1.1 standard does not support
+representing leap seconds."
+  (let* ((new-decode-time (condition-case nil
+                              (not (null
+                                    (with-no-warnings (decode-time nil nil t))))
+                            (wrong-number-of-arguments)))
+         (new-decode-time-second nil)
+         (no-support "This Emacs version does not support %s")
+         (datetime-regexp-type
+          (cl-case datatype
+            ((dateTime-subsecond time-subsecond)
+             (if new-decode-time
+                 (intern (replace-regexp-in-string
+                          "-subsecond" "" (symbol-name datatype)))
+               (error (format no-support (symbol-name datatype)))))
+            ((nil) 'dateTime)
+            (otherwise datatype)))
+         (datetime-regexp (cadr (get datetime-regexp-type 'rng-xsd-convert)))
          (year-sign (progn
                       (string-match datetime-regexp date-time-string)
                       (match-string 1 date-time-string)))
@@ -585,6 +632,7 @@ disallows them."
          (minute (match-string 6 date-time-string))
          (second (match-string 7 date-time-string))
          (second-fraction (match-string 8 date-time-string))
+         (time-zone nil)
          (has-time-zone (match-string 9 date-time-string))
          (time-zone-sign (match-string 10 date-time-string))
          (time-zone-hour (match-string 11 date-time-string))
@@ -605,11 +653,28 @@ disallows them."
           (if hour (string-to-number hour) 0))
     (setq minute
           (if minute (string-to-number minute) 0))
+    (when new-decode-time
+      (setq new-decode-time-second
+            (if second
+                (if second-fraction
+                    (let* ((second-fraction-significand
+                            (replace-regexp-in-string "\\." "" second-fraction))
+                           (hertz
+                            (expt 10 (length second-fraction-significand)))
+                           (ticks (+ (* hertz (string-to-number second))
+                                     (string-to-number
+                                      second-fraction-significand))))
+                      (cons ticks hertz))
+                  (cons second 1)))))
     (setq second
           (if second (string-to-number second) 0))
     (setq second-fraction
           (if second-fraction
-              (float (string-to-number second-fraction))
+              (progn
+                (when (and (not datatype) (not new-decode-time))
+                  (message
+                   "soap-decode-date-time: Discarding fractional seconds"))
+                (float (string-to-number second-fraction)))
             0.0))
     (setq has-time-zone (and has-time-zone t))
     (setq time-zone-sign
@@ -618,6 +683,14 @@ disallows them."
           (if time-zone-hour (string-to-number time-zone-hour) 0))
     (setq time-zone-minute
           (if time-zone-minute (string-to-number time-zone-minute) 0))
+    (setq time-zone (if has-time-zone
+                        (* (rng-xsd-time-to-seconds
+                            time-zone-hour
+                            time-zone-minute
+                            0)
+                           time-zone-sign)
+                      ;; UTC.
+                      0))
     (unless (and
              ;; XSD does not allow year 0.
              (> year 0)
@@ -635,18 +708,21 @@ disallows them."
              (>= time-zone-minute 0)
              (<= time-zone-minute 59))
       (error "Invalid or unsupported time: %s" date-time-string))
-    ;; Return a value in a format similar to that returned by decode-time, and
-    ;; suitable for (apply #'encode-time ...).
-    ;; FIXME: Nobody uses this idiosyncratic value.  Perhaps stop returning it?
-    (list second minute hour day month year second-fraction datatype
-          (if has-time-zone
-              (* (rng-xsd-time-to-seconds
-                  time-zone-hour
-                  time-zone-minute
-                  0)
-                 time-zone-sign)
-            ;; UTC.
-            0))))
+    ;; Return a value in a format identical or similar to that
+    ;; returned by decode-time, and always suitable for (apply
+    ;; #'encode-time ...).
+    (if datatype
+        (list (if (memq datatype '(dateTime-subsecond time-subsecond))
+                  new-decode-time-second
+                second)
+              minute hour day month year second-fraction datatype time-zone)
+      (let ((time
+	     (encode-time (list
+			   (if new-decode-time new-decode-time-second second)
+			   minute hour day month year nil nil time-zone))))
+        (if new-decode-time
+            (with-no-warnings (decode-time time nil t))
+          (decode-time time))))))
 
 (defun soap-decode-xs-basic-type (type node)
   "Use TYPE, a `soap-xs-basic-type', to decode the contents of NODE.
@@ -694,6 +770,8 @@ This is a specialization of `soap-decode-type' for
         (Array (soap-decode-array node))))))
 
 (defalias 'soap-type-of
+  ;; FIXME: Once we drop support for Emacs<25, use generic functions
+  ;; via `cl-defmethod' instead of our own ad-hoc version of it.
   (if (eq 'soap-xs-basic-type (type-of (make-soap-xs-basic-type)))
       ;; `type-of' in Emacs ≥ 26 already does what we need.
       #'type-of
@@ -780,7 +858,7 @@ contains a reference, retrieve the type of the reference."
             (if complex-type
                 (setq type (soap-xs-parse-complex-type (car complex-type)))
               ;; else
-              (error "Soap-xs-parse-element: missing type or ref"))))))
+              (error "soap-xs-parse-element: Missing type or ref"))))))
 
     (make-soap-xs-element :name name
                           ;; Use the full namespace name for now, we will
@@ -1186,7 +1264,7 @@ See also `soap-wsdl-resolve-references'."
              (soap-l2wk (xml-node-name node)))
 
   (setf (soap-xs-simple-type-base type)
-        (mapcar 'soap-l2fq
+        (mapcar #'soap-l2fq
                 (split-string
                  (or (xml-get-attribute-or-nil node 'memberTypes) ""))))
 
@@ -1239,7 +1317,7 @@ See also `soap-wsdl-resolve-references'."
   "Validate VALUE against the basic type TYPE."
   (let* ((kind (soap-xs-basic-type-kind type)))
     (cl-case kind
-      ((anyType Array byte[])
+      ((anyType Array byte\[\])
        value)
       (t
        (let ((convert (get kind 'rng-xsd-convert)))
@@ -1266,7 +1344,7 @@ See also `soap-wsdl-resolve-references'."
                               (soap-validate-xs-basic-type value base))))
               (error (push (cadr error-object) messages))))
           (when messages
-            (error (mapconcat 'identity (nreverse messages) "; and: "))))
+            (error (mapconcat #'identity (nreverse messages) "; and: "))))
       (cl-labels ((fail-with-message (format value)
                                      (push (format format value) messages)
                                      (throw 'invalid nil)))
@@ -1716,6 +1794,7 @@ This is a specialization of `soap-encode-value' for
                      ((and (not (eq indicator 'choice))
                            (= instance-count 0)
                            (not (soap-xs-element-optional? element))
+                           (not (soap-xs-complex-type-optional? type))
                            (and (soap-xs-complex-type-p element-type)
                                 (not (soap-xs-complex-type-optional-p
                                       element-type))))
@@ -2000,7 +2079,7 @@ This is a specialization of `soap-decode-type' for
   soap-headers                          ; list of (message part use)
   soap-body                             ;  message parts present in the body
   use                                   ; 'literal or 'encoded, see
-                                        ; http://www.w3.org/TR/wsdl#_soap:body
+                                        ; https://www.w3.org/TR/wsdl#_soap:body
   )
 
 (cl-defstruct (soap-binding (:include soap-element))
@@ -2033,6 +2112,8 @@ This is a specialization of `soap-decode-type' for
 
     ;; Add the XSD types to the wsdl document
     (let ((ns (soap-make-xs-basic-types
+               ;; The following string is a name and not an URL, so
+               ;; the "http:" should not be changed.
                "http://www.w3.org/2001/XMLSchema" "xsd")))
       (soap-wsdl-add-namespace ns wsdl)
       (soap-wsdl-add-alias "xsd" (soap-namespace-name ns) wsdl))
@@ -2265,8 +2346,8 @@ See also `soap-resolve-references' and
 
   (when (= (length (soap-operation-parameter-order operation)) 0)
     (setf (soap-operation-parameter-order operation)
-          (mapcar 'car (soap-message-parts
-                        (cdr (soap-operation-input operation))))))
+          (mapcar #'car (soap-message-parts
+                         (cdr (soap-operation-input operation))))))
 
   (setf (soap-operation-parameter-order operation)
         (mapcar (lambda (p)
@@ -2311,13 +2392,13 @@ See also `soap-wsdl-resolve-references'."
 ;; Install resolvers for our types
 (progn
   (put (soap-type-of (make-soap-message)) 'soap-resolve-references
-       'soap-resolve-references-for-message)
+       #'soap-resolve-references-for-message)
   (put (soap-type-of (make-soap-operation)) 'soap-resolve-references
-       'soap-resolve-references-for-operation)
+       #'soap-resolve-references-for-operation)
   (put (soap-type-of (make-soap-binding)) 'soap-resolve-references
-       'soap-resolve-references-for-binding)
+       #'soap-resolve-references-for-binding)
   (put (soap-type-of (make-soap-port)) 'soap-resolve-references
-       'soap-resolve-references-for-port))
+       #'soap-resolve-references-for-port))
 
 (defun soap-wsdl-resolve-references (wsdl)
   "Resolve all references inside the WSDL structure.
@@ -2431,7 +2512,7 @@ Build on WSDL if it is provided."
     (soap-wsdl-resolve-references (soap-parse-wsdl xml wsdl))
     wsdl))
 
-(defalias 'soap-load-wsdl-from-url 'soap-load-wsdl)
+(defalias 'soap-load-wsdl-from-url #'soap-load-wsdl)
 
 (defun soap-parse-wsdl-phase-validate-node (node)
   "Assert that NODE is valid."
@@ -2791,7 +2872,7 @@ decode function to perform the actual decoding."
       (unless wtype
         ;; The node has type info encoded in it, but we don't know how to
         ;; decode it...
-        (error "Soap-decode-array: node has unknown type: %s" type)))
+        (error "soap-decode-array: Node has unknown type: %s" type)))
     (dolist (e contents)
       (when (consp e)
         (push (if wtype
@@ -2804,7 +2885,7 @@ decode function to perform the actual decoding."
 
 (if (fboundp 'define-error)
     (define-error 'soap-error "SOAP error")
-  ;; Support older Emacs versions that do not have define-error, so
+  ;; Support Emacs<24.4 that do not have define-error, so
   ;; that soap-client can remain unchanged in GNU ELPA.
   (put 'soap-error
        'error-conditions
@@ -2918,8 +2999,6 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
 ;;;; SOAP type encoding
 
-;; FIXME: Use `cl-defmethod' (but this requires Emacs-25).
-
 (defun soap-encode-attributes (value type)
   "Encode XML attributes for VALUE according to TYPE.
 This is a generic function which determines the attribute encoder
@@ -3027,7 +3106,7 @@ SERVICE-URL should be provided when WS-Addressing is being used."
       (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope\n")
       (when (eq use 'encoded)
         (insert "    soapenc:encodingStyle=\"\
-https://schemas.xmlsoap.org/soap/encoding/\"\n"))
+http://schemas.xmlsoap.org/soap/encoding/\"\n"))
       (dolist (nstag soap-encoded-namespaces)
         (insert "    xmlns:" nstag "=\"")
         (let ((nsname (cdr (assoc nstag soap-well-known-xmlns))))
@@ -3045,8 +3124,7 @@ https://schemas.xmlsoap.org/soap/encoding/\"\n"))
 
 (defcustom soap-debug nil
   "When t, enable some debugging facilities."
-  :type 'boolean
-  :group 'soap-client)
+  :type 'boolean)
 
 (defun soap-find-port (wsdl service)
   "Return the WSDL port having SERVICE name.

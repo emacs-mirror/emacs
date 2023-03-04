@@ -1,0 +1,9 @@
+audio/ogg; mpv %s
+audio/flac; mpv %s
+audio/x-wav; aplay %s
+text/*; emacsclient -t %s
+application/pdf; acroread %s; test=false
+application/pdf; evince %s
+application/pdf; okular %s
+image/*; eog %s
+image/svg+xml; inkscape %s

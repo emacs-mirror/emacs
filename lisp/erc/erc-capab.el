@@ -1,10 +1,10 @@
-;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB
+;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 
-; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@
 ;; disable this module, it will continue removing message flags, but the
 ;; unidentified nickname prefix will not be added to messages.
 
-;; Visit <http://freenode.net/faq.shtml#spoofing> and
-;; <http://freenode.net/faq.shtml#registering> to find further
+;; Visit <https://freenode.net/kb/answer/cloaks> and
+;; <https://freenode.net/kb/answer/registration> to find further
 ;; explanations of this capability.
 
 ;; From freenode.net's web site (not there anymore) on how to mark
@@ -62,7 +62,7 @@
 ;; You can customize the prefix and the face used to display it,
 ;; `erc-capab-identify-unidentified'.  If the value of
 ;; `erc-capab-identify-prefix' is nil or you disable this module (see
-;; `erc-capab-identify-disable'), no prefix will be inserted, but the
+;; `erc-capab-identify-activated'), no prefix will be inserted, but the
 ;; flag sent by the server will still be stripped.
 
 ;;; Code:
@@ -80,12 +80,10 @@
 
 If you change this from the default \"*\", be sure to use a
 character not found in IRC nicknames to avoid confusion."
-  :group 'erc-capab
   :type '(choice string (const nil)))
 
 (defface erc-capab-identify-unidentified '((t)) ; same as `erc-default-face'
   "Face to use for `erc-capab-identify-prefix'."
-  :group 'erc-capab
   :group 'erc-faces)
 
 ;;; Define module:
@@ -94,36 +92,34 @@ character not found in IRC nicknames to avoid confusion."
 (define-erc-module capab-identify nil
   "Handle dancer-ircd's CAPAB IDENTIFY-MSG and IDENTIFY-CTCP."
   ;; append so that `erc-server-parameters' is already set by `erc-server-005'
-  ((add-hook 'erc-server-005-functions 'erc-capab-identify-setup t)
-   (add-hook 'erc-server-290-functions 'erc-capab-identify-activate)
+  ((add-hook 'erc-server-005-functions #'erc-capab-identify-setup t)
+   (add-hook 'erc-server-290-functions #'erc-capab-identify-activate)
    (add-hook 'erc-server-PRIVMSG-functions
-             'erc-capab-identify-remove/set-identified-flag)
+             #'erc-capab-identify-remove/set-identified-flag)
    (add-hook 'erc-server-NOTICE-functions
-             'erc-capab-identify-remove/set-identified-flag)
-   (add-hook 'erc-insert-modify-hook 'erc-capab-identify-add-prefix t)
+             #'erc-capab-identify-remove/set-identified-flag)
+   (add-hook 'erc-insert-modify-hook #'erc-capab-identify-add-prefix t)
    (mapc (lambda (buffer)
            (when buffer
              (with-current-buffer buffer (erc-capab-identify-setup))))
-         (erc-buffer-list 'erc-open-server-buffer-p)))
-  ((remove-hook 'erc-server-005-functions 'erc-capab-identify-setup)
-   (remove-hook 'erc-server-290-functions 'erc-capab-identify-activate)
+         (erc-buffer-list #'erc-open-server-buffer-p)))
+  ((remove-hook 'erc-server-005-functions #'erc-capab-identify-setup)
+   (remove-hook 'erc-server-290-functions #'erc-capab-identify-activate)
    ;; we don't remove the `erc-capab-identify-remove/set-identified-flag' hooks
    ;; because there doesn't seem to be a way to tell the server to turn it off
-   (remove-hook 'erc-insert-modify-hook 'erc-capab-identify-add-prefix)))
+   (remove-hook 'erc-insert-modify-hook #'erc-capab-identify-add-prefix)))
 
 ;;; Variables:
 
-(defvar erc-capab-identify-activated nil
+(defvar-local erc-capab-identify-activated nil
   "CAPAB IDENTIFY-MSG has been activated.")
-(make-variable-buffer-local 'erc-capab-identify-activated)
 
-(defvar erc-capab-identify-sent nil
+(defvar-local erc-capab-identify-sent nil
   "CAPAB IDENTIFY-MSG and IDENTIFY-CTCP messages have been sent.")
-(make-variable-buffer-local 'erc-capab-identify-sent)
 
 ;;; Functions:
 
-(defun erc-capab-identify-setup (&optional proc parsed)
+(defun erc-capab-identify-setup (&optional _proc _parsed)
   "Set up CAPAB IDENTIFY on the current server.
 
 Optional argument PROC is the current server's process.
@@ -141,26 +137,26 @@ These arguments are sent to this function when called as a hook in
              ;; could possibly check for '("IRCD" . "dancer") in
              ;; `erc-server-parameters' instead of looking for a specific name
              ;; in `erc-server-version'
-             (assoc "CAPAB" erc-server-parameters))
+             (erc--get-isupport-entry 'CAPAB))
     (erc-log "Sending CAPAB IDENTIFY-MSG and IDENTIFY-CTCP")
     (erc-server-send "CAPAB IDENTIFY-MSG")
     (erc-server-send "CAPAB IDENTIFY-CTCP")
     (setq erc-capab-identify-sent t)))
 
 
-(defun erc-capab-identify-activate (proc parsed)
+(defun erc-capab-identify-activate (_proc parsed)
   "Set `erc-capab-identify-activated' and display an activation message.
 
 PROC is the current server's process.
 PARSED is an `erc-parsed' response struct."
-  (when (or (string= "IDENTIFY-MSG" (erc-response.contents parsed))
-            (string= "IDENTIFY-CTCP" (erc-response.contents parsed)))
+  (when (member (erc-response.contents parsed)
+                '("IDENTIFY-MSG" "IDENTIFY-CTCP"))
     (setq erc-capab-identify-activated t)
     (erc-display-message
      parsed 'notice 'active (format "%s activated"
                                     (erc-response.contents parsed)))))
 
-(defun erc-capab-identify-remove/set-identified-flag (proc parsed)
+(defun erc-capab-identify-remove/set-identified-flag (_proc parsed)
   "Remove PARSED message's id flag and add the `erc-identified' text property.
 
 PROC is the current server's process.
@@ -170,11 +166,11 @@ PARSED is an `erc-parsed' response struct."
                (string-match "^\\([-\\+]\\)\\(.+\\)$" msg))
       (setf (erc-response.contents parsed)
             (if erc-capab-identify-mode
-                (erc-propertize (match-string 2 msg)
-                                'erc-identified
-                                (if (string= (match-string 1 msg) "+")
-                                    1
-                                  0))
+                (propertize (match-string 2 msg)
+                            'erc-identified
+                            (if (string= (match-string 1 msg) "+")
+                                1
+                              0))
               (match-string 2 msg)))
       nil)))
 
@@ -190,9 +186,9 @@ PARSED is an `erc-parsed' response struct."
                  ;; assuming the first use of `nickname' is the sender's nick
                  (re-search-forward (regexp-quote nickname) nil t))
         (goto-char (match-beginning 0))
-        (insert (erc-propertize erc-capab-identify-prefix
-                                'font-lock-face
-                                'erc-capab-identify-unidentified))))))
+        (insert (propertize erc-capab-identify-prefix
+                            'font-lock-face
+                            'erc-capab-identify-unidentified))))))
 
 (defun erc-capab-identify-get-unidentified-nickname (parsed)
   "Return the nickname of the user if unidentified.

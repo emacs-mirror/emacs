@@ -1,6 +1,6 @@
-;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
+;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993-1995, 1997, 2000-2020 Free Software
+;; Copyright (C) 1989, 1993-1995, 1997, 2000-2023 Free Software
 ;; Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 
 ;; A template in a file can be updated with a new time stamp when
 ;; you save the file.  For example:
-;;     static char *ts = "sdmain.c Time-stamp: <2001-08-13 10:20:51 gildea>";
+;;     static char *ts = "sdmain.c Time-stamp: <2020-04-18 14:10:21 gildea>";
 
 ;; To use time-stamping, add this line to your init file:
 ;;     (add-hook 'before-save-hook 'time-stamp)
@@ -41,13 +41,11 @@
   :group 'data
   :group 'extensions)
 
+
 (defcustom time-stamp-format "%Y-%02m-%02d %02H:%02M:%02S %l"
   "Format of the string inserted by \\[time-stamp].
 This is a string, used verbatim except for character sequences beginning
-with %, as follows.  The values of non-numeric formatted items depend
-on the locale setting recorded in `system-time-locale' and
-`locale-coding-system'.  The examples here are for the default
-\(`C') locale.
+with %, as follows.
 
 %:A  weekday name: `Monday'             %#A gives uppercase: `MONDAY'
 %3a  abbreviated weekday: `Mon'         %#a gives uppercase: `MON'
@@ -61,13 +59,13 @@ on the locale setting recorded in `system-time-locale' and
 %#p  `am' or `pm'                       %P  gives uppercase: `AM' or `PM'
 %02S seconds
 %w   day number of week, Sunday is 0
-%02y 2-digit year: `03'                 %Y  4-digit year: `2003'
+%02y 2-digit year                       %Y  4-digit year
 %Z   time zone name: `EST'              %#Z gives lowercase: `est'
 %5z  time zone offset: `-0500' (since Emacs 27; see note below)
 
 Non-date items:
 %%   a literal percent character: `%'
-%f   file name without directory        %F  gives absolute pathname
+%f   file name without directory        %F  absolute file name
 %l   login name                         %L  full name of logged-in user
 %q   unqualified host name              %Q  fully-qualified host name
 %h   mail host name
@@ -79,6 +77,11 @@ A leading zero in the field width zero-fills a number.
 For example, to get the format used by the `date' command,
 use \"%3a %3b %2d %02H:%02M:%02S %Z %Y\".
 
+The values of non-numeric formatted items depend on the locale
+setting recorded in `system-time-locale' and `locale-coding-system'.
+The examples here are for the default (`C') locale.
+`time-stamp-time-zone' controls the time zone used.
+
 The default padding of some formats has changed to be more compatible
 with format-time-string.  To be compatible with older versions of Emacs,
 specify a padding width (as shown) or use the : modifier to request the
@@ -87,9 +90,9 @@ transitional behavior (again, as shown).
 The behavior of `%5z' is new in Emacs 27.  If your files might be
 edited by older versions of Emacs also, do not use this format yet."
   :type 'string
-  :group 'time-stamp
   :version "27.1")
 ;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
+
 
 (defcustom time-stamp-active t
   "Non-nil to enable time-stamping of buffers by \\[time-stamp].
@@ -101,9 +104,13 @@ when they are saved, either add this line to your init file:
     (add-hook \\='before-save-hook \\='time-stamp)
 or customize option `before-save-hook'.
 
+To enable automatic time-stamping for only a specific file, add this
+line to a local variables list near the end of the file:
+    eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
+
 See also the variable `time-stamp-warn-inactive'."
-  :type 'boolean
-  :group 'time-stamp)
+  :type 'boolean)
+
 
 (defcustom time-stamp-warn-inactive t
   "Have \\[time-stamp] warn if a buffer did not get time-stamped.
@@ -111,8 +118,8 @@ If non-nil, a warning is displayed if `time-stamp-active' has
 deactivated time stamping and the buffer contains a template that
 otherwise would have been updated."
   :type 'boolean
-  :group 'time-stamp
   :version "19.29")
+
 
 (defcustom time-stamp-time-zone nil
   "The time zone to be used by \\[time-stamp].
@@ -125,13 +132,13 @@ Its format is that of the ZONE argument of the `format-time-string' function."
                        (integer :tag "Offset (seconds east of UTC)")
                        (string :tag "Time zone abbreviation"))
                  (integer :tag "Offset (seconds east of UTC)"))
-  :group 'time-stamp
   :version "20.1")
 ;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
 
+
 ;;;###autoload
 (defun time-stamp-zone-type-p (zone)
-  "Return whether or not ZONE is of the correct type for a timezone rule.
+  "Return non-nil if ZONE is of the correct type for a timezone rule.
 Valid ZONE values are described in the documentation of `format-time-string'."
   (or (memq zone '(nil t wall))
       (stringp zone)
@@ -140,6 +147,7 @@ Valid ZONE values are described in the documentation of `format-time-string'."
            (consp (cdr zone))
            (stringp (cadr zone)))
       (integerp zone)))
+
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
 ;;; time-stamp-end, time-stamp-pattern, time-stamp-inserts-lines,
@@ -155,27 +163,30 @@ the first (last) `time-stamp-line-limit' lines of the file for the
 file to be time-stamped by \\[time-stamp].  A value of 0 searches the
 entire buffer (use with care).
 
-This value can also be set with the variable `time-stamp-pattern'.
+It may be more convenient to use `time-stamp-pattern' if you set more
+than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+or `time-stamp-format'.
 
-Do not change `time-stamp-line-limit', `time-stamp-start',
-`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
-incompatible with other people's files!  If you must change them for some
-application, do so in the local variables section of the time-stamped file
-itself.")
+These variables are best changed with file-local variables.
+If you were to change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' in your init file, you
+would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
+
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
-See also the variables `time-stamp-end' and `time-stamp-line-limit'.
 
-This value can also be set with the variable `time-stamp-pattern'.
+It may be more convenient to use `time-stamp-pattern' if you set more
+than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+or `time-stamp-format'.
 
-Do not change `time-stamp-line-limit', `time-stamp-start',
-`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
-incompatible with other people's files!  If you must change them for some
-application, do so in the local variables section of the time-stamped file
-itself.")
+These variables are best changed with file-local variables.
+If you were to change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' in your init file, you
+would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
+
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
   "Regexp marking the text after the time stamp.
@@ -183,18 +194,20 @@ itself.")
 and the following match of `time-stamp-end', then writes the
 time stamp specified by `time-stamp-format' between them.
 
-This value can also be set with the variable `time-stamp-pattern'.
+It may be more convenient to use `time-stamp-pattern' if you set more
+than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+or `time-stamp-format'.
 
 The end text normally starts on the same line as the start text ends,
 but if there are any newlines in `time-stamp-format', the same number
-of newlines must separate the start and end.  \\[time-stamp] tries
-to not change the number of lines in the buffer.  `time-stamp-inserts-lines'
+of newlines must separate the start and end.  Thus \\[time-stamp] tries
+to not change the number of lines in the buffer; `time-stamp-inserts-lines'
 controls this behavior.
 
-Do not change `time-stamp-start', `time-stamp-end', `time-stamp-pattern',
-or `time-stamp-inserts-lines' for yourself or you will be incompatible
-with other people's files!  If you must change them for some application,
-do so in the local variables section of the time-stamped file itself.")
+These variables are best changed with file-local variables.
+If you were to change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', `time-stamp-pattern', or `time-stamp-inserts-lines' in
+your init file, you would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-end 'safe-local-variable 'stringp)
 
 
@@ -208,10 +221,9 @@ immediately after the start pattern.  This behavior can cause
 unexpected changes in the buffer if used carelessly, but it is useful
 for generating repeated time stamps.
 
-Do not change `time-stamp-end' or `time-stamp-inserts-lines' for
-yourself or you will be incompatible with other people's files!
-If you must change them for some application, do so in the local
-variables section of the time-stamped file itself.")
+These variables are best changed with file-local variables.
+If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
+your init file, you would be incompatible with other people's files.")
 ;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'symbolp)
 
 
@@ -219,10 +231,9 @@ variables section of the time-stamped file itself.")
   "How many templates \\[time-stamp] will look for in a buffer.
 The same time stamp will be written in each case.
 
-Do not change `time-stamp-count' for yourself or you will be
-incompatible with other people's files!  If you must change it for
-some application, do so in the local variables section of the
-time-stamped file itself.")
+`time-stamp-count' is best changed with a file-local variable.
+If you were to change it in your init file, you would be incompatible
+with other people's files.")
 ;;;###autoload(put 'time-stamp-count 'safe-local-variable 'integerp)
 
 
@@ -248,6 +259,15 @@ part as \"%%\" to use the normal format.
 The fourth part is a regexp identifying the pattern following the time stamp.
 This part may be omitted to use the normal pattern.
 
+The pattern does not need to match the entire line of the time stamp.
+
+These variables are best changed with file-local variables.
+If you were to change `time-stamp-pattern', `time-stamp-line-limit',
+`time-stamp-start', or `time-stamp-end' in your init file, you
+would be incompatible with other people's files.
+
+See also `time-stamp-count' and `time-stamp-inserts-lines'.
+
 Examples:
 
 \"-10/\" (sets only `time-stamp-line-limit')
@@ -259,38 +279,44 @@ Examples:
 `time-stamp-format' and `time-stamp-end')
 
 \"newcommand{\\\\\\\\timestamp}{%%}\" (sets `time-stamp-start'
-and `time-stamp-end')
-
-Do not change `time-stamp-pattern' `time-stamp-line-limit',
-`time-stamp-start', or `time-stamp-end' for yourself or you will be
-incompatible with other people's files!  If you must change them for
-some application, do so only in the local variables section of the
-time-stamped file itself.")
+and `time-stamp-end')")
 ;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
 
 
 
 ;;;###autoload
 (defun time-stamp ()
-  "Update the time stamp string(s) in the buffer.
-A template in a file can be automatically updated with a new time stamp
-every time you save the file.  Add this line to your init file:
-    (add-hook \\='before-save-hook \\='time-stamp)
-or customize option `before-save-hook'.
-Normally the template must appear in the first 8 lines of a file and
-look like one of the following:
+  "Update any time stamp string(s) in the buffer.
+This function looks for a time stamp template and updates it with
+the current date, time, and/or other info.
+
+The template, which you manually create on one of the first 8 lines
+of the file before running this function, by default can look like
+one of the following (your choice):
       Time-stamp: <>
       Time-stamp: \" \"
-The time stamp is written between the brackets or quotes:
-      Time-stamp: <2001-02-18 10:20:51 gildea>
+This function writes the current time between the brackets or quotes,
+by default formatted like this:
+      Time-stamp: <2020-08-07 17:10:21 gildea>
 
-The time stamp is updated only if the variable
-`time-stamp-active' is non-nil.
-The format of the time stamp is set by the variable
-`time-stamp-pattern' or `time-stamp-format'.
-The variables `time-stamp-pattern', `time-stamp-line-limit',
-`time-stamp-start', `time-stamp-end', `time-stamp-count', and
-`time-stamp-inserts-lines' control finding the template."
+Although you can run this function manually to update a time stamp
+once, usually you want automatic time stamp updating.
+
+A time stamp can be automatically updated with current information
+every time you save a file.  To enable time-stamping for all files,
+customize option `before-save-hook' or add this line to your init file:
+    (add-hook \\='before-save-hook \\='time-stamp)
+
+To enable automatic time-stamping for only a specific file, add
+this line to a local variables list near the end of the file:
+    eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
+
+If the file has no time-stamp template, this function does nothing.
+
+You can set `time-stamp-pattern' in a file's local variables list
+to customize the information in the time stamp and where it is written.
+
+The time stamp is updated only if `time-stamp-active' is non-nil."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -426,7 +452,7 @@ Returns the end point, which is where `time-stamp' begins the next search."
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
   "Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
-With ARG, turn time stamping on if and only if arg is positive."
+With ARG, turn time stamping on if and only if ARG is positive."
   (interactive "P")
   (setq time-stamp-active
 	(if (null arg)
@@ -435,6 +461,8 @@ With ARG, turn time stamping on if and only if arg is positive."
   (message "time-stamp is now %s." (if time-stamp-active "active" "off")))
 
 (defun time-stamp--format (format time)
+  "FORMAT a TIME in zone `time-stamp-time-zone'.
+Internal helper used by `time-stamp-string-preprocess'."
   (format-time-string format time time-stamp-time-zone))
 
 (defun time-stamp-string (&optional ts-format time)
@@ -449,9 +477,8 @@ normally the current time is used."
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
 
-;;; time-stamp is transitioning to be compatible with format-time-string.
-;;; During the process, this function implements
-;;; intermediate, compatible formats.
+;;; time-stamp is transitioning to be more compatible with format-time-string.
+;;; This function implements the differences.
 ;;;      At all times, all the formats recommended in the doc string
 ;;; of time-stamp-format will work not only in the current version of
 ;;; Emacs, but in all versions that have been released within the past
@@ -461,214 +488,241 @@ normally the current time is used."
 (defun time-stamp-string-preprocess (format &optional time)
   "Use a FORMAT to format date, time, file, and user information.
 Optional second argument TIME is only for testing.
-Implements non-time extensions to `format-time-string'
+This is an internal routine implementing extensions to `format-time-string'
 and all `time-stamp-format' compatibility."
   (let ((fmt-len (length format))
 	(ind 0)
 	cur-char
-	(prev-char nil)
-	(result "")
-	field-width
-	field-result
-	alt-form change-case upcase
-	(paren-level 0))
+	(result ""))
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
       (setq
        result
-       (concat result
-      (cond
-       ((eq cur-char ?%)
-	;; eat any additional args to allow for future expansion
-	(setq alt-form 0 change-case nil upcase nil field-width "")
-	(while (progn
-		 (setq ind (1+ ind))
-		 (setq cur-char (if (< ind fmt-len)
-				    (aref format ind)
-				  ?\0))
-		 (or (eq ?. cur-char)
-		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
-		     (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
-		     (and (eq ?\( cur-char)
-			  (not (eq prev-char ?\\))
-			  (setq paren-level (1+ paren-level)))
-		     (if (and (eq ?\) cur-char)
+       (concat
+        result
+        (cond
+         ((eq cur-char ?%)
+	  (let ((prev-char nil)
+		(field-width "")
+		field-result
+		(alt-form 0)
+		(change-case nil)
+		(upcase nil)
+		(flag-pad-with-spaces nil)
+		(flag-pad-with-zeros nil)
+		(flag-minimize nil)
+		(paren-level 0))
+	    ;; eat any additional args to allow for future expansion
+	    (while (progn
+		     (setq ind (1+ ind))
+		     (setq cur-char (if (< ind fmt-len)
+				        (aref format ind)
+				      ?\0))
+		     (or (eq ?. cur-char)
+		         (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
+		         (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
+		         (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		         (and (eq ?\( cur-char)
 			      (not (eq prev-char ?\\))
-			      (> paren-level 0))
-			 (setq paren-level (1- paren-level))
-		       (and (> paren-level 0)
-			    (< ind fmt-len)))
-		     (if (and (<= ?0 cur-char) (>= ?9 cur-char))
-			 ;; get format width
-			 (let ((field-index ind))
-			   (while (progn
-				    (setq ind (1+ ind))
-				    (setq cur-char (if (< ind fmt-len)
-						       (aref format ind)
-						     ?\0))
-				    (and (<= ?0 cur-char) (>= ?9 cur-char))))
-			   (setq field-width (substring format field-index ind))
-			   (setq ind (1- ind))
-			   t))))
-	  (setq prev-char cur-char)
-	  ;; some characters we actually use
-	  (cond ((eq cur-char ?:)
-		 (setq alt-form (1+ alt-form)))
-		((eq cur-char ?#)
-		 (setq change-case t))
-		((eq cur-char ?^)
-		 (setq upcase t))
-		((eq cur-char ?-)
-		 (setq field-width "1"))
-		((eq cur-char ?_)
-		 (setq field-width "2"))))
-	(setq field-result
-	(cond
-	 ((eq cur-char ?%)
-	  "%")
-	 ((eq cur-char ?a)		;day of week
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%A" time)
-                 "")			;discourage "%:3a"
-            (if (or change-case upcase)
-                (time-stamp--format "%#a" time)
-	      (time-stamp--format "%a" time))))
-	 ((eq cur-char ?A)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#A" time)
-	    (time-stamp--format "%A" time)))
-	 ((eq cur-char ?b)		;month name
-          (if (> alt-form 0)
-               (if (string-equal field-width "")
-                   (time-stamp--format "%B" time)
-                 "")			;discourage "%:3b"
-            (if (or change-case upcase)
-                (time-stamp--format "%#b" time)
-	      (time-stamp--format "%b" time))))
-	 ((eq cur-char ?B)
-	  (if (or change-case upcase (not (string-equal field-width "")))
-	      (time-stamp--format "%#B" time)
-	    (time-stamp--format "%B" time)))
-	 ((eq cur-char ?d)		;day of month, 1-31
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?H)		;hour, 0-23
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?I)		;hour, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?m)		;month number, 1-12
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?M)		;minute, 0-59
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?p)		;am or pm
-	  (if change-case
-              (time-stamp--format "%#p" time)
-            (time-stamp--format "%p" time)))
-	 ((eq cur-char ?P)		;AM or PM
-	  (time-stamp--format "%p" time))
-	 ((eq cur-char ?S)		;seconds, 00-60
-	  (time-stamp-do-number cur-char alt-form field-width time))
-	 ((eq cur-char ?w)		;weekday number, Sunday is 0
-	  (time-stamp--format "%w" time))
-	 ((eq cur-char ?y)		;year
-          (if (> alt-form 0)
-              (string-to-number (time-stamp--format "%Y" time))
-            (if (or (string-equal field-width "")
-                    (<= (string-to-number field-width) 2))
-                (string-to-number (time-stamp--format "%y" time))
-              (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
-              (string-to-number (time-stamp--format "%Y" time)))))
-	 ((eq cur-char ?Y)		;4-digit year
-	  (string-to-number (time-stamp--format "%Y" time)))
-	 ((eq cur-char ?z)		;time zone offset
-	  (if change-case
-	      ""			;discourage %z variations
-            (cond ((= alt-form 0)
-                   (if (string-equal field-width "")
-                       (progn
-                         (time-stamp-conv-warn "%z" "%#Z")
-                         (time-stamp--format "%#Z" time))
-                     (cond ((string-equal field-width "1")
-                            (setq field-width "3")) ;%-z -> "+00"
-                           ((string-equal field-width "2")
-                            (setq field-width "5")) ;%_z -> "+0000"
-                           ((string-equal field-width "4")
-                            (setq field-width "0"))) ;discourage %4z
-                     (time-stamp--format "%z" time)))
-                  ((= alt-form 1)
-                   (time-stamp--format "%:z" time))
-                  ((= alt-form 2)
-                   (time-stamp--format "%::z" time))
-                  ((= alt-form 3)
-                   (time-stamp--format "%:::z" time)))))
-	 ((eq cur-char ?Z)              ;time zone name
-	  (if change-case
-	      (time-stamp--format "%#Z" time)
-	    (time-stamp--format "%Z" time)))
-	 ((eq cur-char ?f)		;buffer-file-name, base name only
-	  (if buffer-file-name
-	      (file-name-nondirectory buffer-file-name)
-	    time-stamp-no-file))
-	 ((eq cur-char ?F)		;buffer-file-name, full path
-	  (or buffer-file-name
-	      time-stamp-no-file))
-	 ((eq cur-char ?s)		;system name, legacy
-	  (system-name))
-	 ((eq cur-char ?u)		;user name, legacy
-	  (user-login-name))
-	 ((eq cur-char ?U)		;user full name, legacy
-	  (user-full-name))
-	 ((eq cur-char ?l)		;login name
-	  (user-login-name))
-	 ((eq cur-char ?L)		;full name of logged-in user
-	  (user-full-name))
-	 ((eq cur-char ?h)		;mail host name
-	  (or mail-host-address (system-name)))
-	 ((eq cur-char ?q)		;unqualified host name
-	  (let ((qualname (system-name)))
-	    (if (string-match "\\." qualname)
-		(substring qualname 0 (match-beginning 0))
-	      qualname)))
-	 ((eq cur-char ?Q)		;fully-qualified host name
-	  (system-name))
-	 ))
-        (and (numberp field-result)
-             (= alt-form 0)
-             (string-equal field-width "")
-             ;; no width provided; set width for default
-             (setq field-width "02"))
-	(let ((padded-result
-	       (format (format "%%%s%c"
-			       field-width
-			       (if (numberp field-result) ?d ?s))
-		       (or field-result ""))))
-	  (let* ((initial-length (length padded-result))
-		 (desired-length (if (string-equal field-width "")
-				     initial-length
-				   (string-to-number field-width))))
-	    (if (> initial-length desired-length)
-		;; truncate strings on right
-		(if (stringp field-result)
-		    (substring padded-result 0 desired-length)
-                  padded-result)	;numbers don't truncate
-	      padded-result))))
-       (t
-	(char-to-string cur-char)))))
+			      (setq paren-level (1+ paren-level)))
+		         (if (and (eq ?\) cur-char)
+			          (not (eq prev-char ?\\))
+			          (> paren-level 0))
+			     (setq paren-level (1- paren-level))
+		           (and (> paren-level 0)
+			        (< ind fmt-len)))
+		         (if (and (<= ?0 cur-char) (>= ?9 cur-char))
+			     ;; get format width
+			     (let ((field-index ind)
+			           (first-digit cur-char))
+			       (while (progn
+				        (setq ind (1+ ind))
+				        (setq cur-char (if (< ind fmt-len)
+						           (aref format ind)
+						         ?\0))
+					(and (<= ?0 cur-char)
+					     (>= ?9 cur-char))))
+			       (setq field-width
+				     (substring format field-index ind))
+			       (setq ind (1- ind))
+			       (setq cur-char first-digit)
+			       t))))
+	      (setq prev-char cur-char)
+	      ;; some characters we actually use
+	      (cond ((eq cur-char ?:)
+		     (setq alt-form (1+ alt-form)))
+		    ((eq cur-char ?#)
+		     (setq change-case t))
+		    ((eq cur-char ?^)
+		     (setq upcase t))
+		    ((eq cur-char ?0)
+		     (setq flag-pad-with-zeros t))
+		    ((eq cur-char ?-)
+		     (setq field-width "1" flag-minimize t))
+		    ((eq cur-char ?_)
+		     (setq field-width "2" flag-pad-with-spaces t))))
+	    (setq field-result
+	          (cond
+	           ((eq cur-char ?%)
+	            "%")
+	           ((eq cur-char ?a)    ;day of week
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%A" time)
+                          "")           ;discourage "%:3a"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#a" time)
+	                (time-stamp--format "%a" time))))
+	           ((eq cur-char ?A)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#A" time)
+	              (time-stamp--format "%A" time)))
+	           ((eq cur-char ?b)    ;month name
+                    (if (> alt-form 0)
+                        (if (string-equal field-width "")
+                            (time-stamp--format "%B" time)
+                          "")           ;discourage "%:3b"
+                      (if (or change-case upcase)
+                          (time-stamp--format "%#b" time)
+	                (time-stamp--format "%b" time))))
+		   ((eq cur-char ?B)
+		    (if (or change-case upcase (not (string-equal field-width
+								  "")))
+			(time-stamp--format "%#B" time)
+	              (time-stamp--format "%B" time)))
+	           ((eq cur-char ?d)    ;day of month, 1-31
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?H)    ;hour, 0-23
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?I)    ;hour, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?m)    ;month number, 1-12
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?M)    ;minute, 0-59
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?p)    ;am or pm
+	            (if change-case
+                        (time-stamp--format "%#p" time)
+                      (time-stamp--format "%p" time)))
+	           ((eq cur-char ?P)    ;AM or PM
+	            (time-stamp--format "%p" time))
+	           ((eq cur-char ?S)    ;seconds, 00-60
+	            (time-stamp-do-number cur-char alt-form field-width time))
+	           ((eq cur-char ?w)    ;weekday number, Sunday is 0
+	            (time-stamp--format "%w" time))
+	           ((eq cur-char ?y)    ;year
+                    (if (> alt-form 0)
+                        (string-to-number (time-stamp--format "%Y" time))
+                      (if (or (string-equal field-width "")
+                              (<= (string-to-number field-width) 2))
+                          (string-to-number (time-stamp--format "%y" time))
+                        (time-stamp-conv-warn (format "%%%sy" field-width) "%Y")
+                        (string-to-number (time-stamp--format "%Y" time)))))
+	           ((eq cur-char ?Y)    ;4-digit year
+	            (string-to-number (time-stamp--format "%Y" time)))
+	           ((eq cur-char ?z)    ;time zone offset
+                    (let ((field-width-num (string-to-number field-width))
+                          ;; Handle numeric time zone ourselves, because
+                          ;; current-time-zone cannot handle offsets
+                          ;; greater than 24 hours.
+                          (offset-secs
+                           (cond ((numberp time-stamp-time-zone)
+                                  time-stamp-time-zone)
+                                 ((and (consp time-stamp-time-zone)
+                                       (numberp (car time-stamp-time-zone)))
+                                  (car time-stamp-time-zone))
+                                 ;; interpret text time zone
+                                 (t (car (current-time-zone
+                                          time time-stamp-time-zone))))))
+	              ;; we do our own padding; do not let it be updated further
+	              (setq field-width "")
+	              (cond (change-case
+		             "")        ;discourage %z variations
+		            ((and (= alt-form 0)
+			          (not flag-minimize)
+			          (not flag-pad-with-spaces)
+			          (not flag-pad-with-zeros)
+			          (= field-width-num 0))
+		             (time-stamp-conv-warn "%z" "%#Z")
+		             (time-stamp--format "%#Z" time))
+			    (t (time-stamp-formatz-from-parsed-options
+				flag-minimize
+				flag-pad-with-spaces
+				flag-pad-with-zeros
+				alt-form
+				field-width-num
+				offset-secs)))))
+	           ((eq cur-char ?Z)    ;time zone name
+	            (if change-case
+	                (time-stamp--format "%#Z" time)
+	              (time-stamp--format "%Z" time)))
+	           ((eq cur-char ?f)    ;buffer-file-name, base name only
+	            (if buffer-file-name
+	                (file-name-nondirectory buffer-file-name)
+	              time-stamp-no-file))
+	           ((eq cur-char ?F)    ;buffer-file-name, absolute name
+	            (or buffer-file-name
+	                time-stamp-no-file))
+	           ((eq cur-char ?s)    ;system name, legacy
+	            (system-name))
+	           ((eq cur-char ?u)    ;user name, legacy
+	            (user-login-name))
+	           ((eq cur-char ?U)    ;user full name, legacy
+	            (user-full-name))
+	           ((eq cur-char ?l)    ;login name
+	            (user-login-name))
+	           ((eq cur-char ?L)    ;full name of logged-in user
+	            (user-full-name))
+	           ((eq cur-char ?h)    ;mail host name
+	            (or mail-host-address (system-name)))
+	           ((eq cur-char ?q)    ;unqualified host name
+	            (let ((qualname (system-name)))
+	              (if (string-match "\\." qualname)
+		          (substring qualname 0 (match-beginning 0))
+	                qualname)))
+	           ((eq cur-char ?Q)    ;fully-qualified host name
+	            (system-name))
+	           ))
+            (and (numberp field-result)
+                 (= alt-form 0)
+                 (string-equal field-width "")
+                 ;; no width provided; set width for default
+                 (setq field-width "02"))
+	    (let ((padded-result
+	           (format (format "%%%s%c"
+			           field-width
+			           (if (numberp field-result) ?d ?s))
+		           (or field-result ""))))
+	      (let* ((initial-length (length padded-result))
+		     (desired-length (if (string-equal field-width "")
+				         initial-length
+				       (string-to-number field-width))))
+	        (if (> initial-length desired-length)
+		    ;; truncate strings on right
+		    (if (and (stringp field-result)
+			     (not (eq cur-char ?z))) ;offset does not truncate
+		        (substring padded-result 0 desired-length)
+                      padded-result)	;numbers don't truncate
+	          padded-result)))))
+         (t
+	  (char-to-string cur-char)))))
       (setq ind (1+ ind)))
     result))
 
 (defun time-stamp-do-number (format-char alt-form field-width time)
   "Handle compatible FORMAT-CHAR where only default width/padding will change.
-ALT-FORM is whether `#' specified.  FIELD-WIDTH is the string
-width specification or \"\".  TIME is the time to convert."
+ALT-FORM is whether `#' was specified.  FIELD-WIDTH is the string
+width specification or \"\".  TIME is the time to convert.
+This is an internal helper for `time-stamp-string-preprocess'."
   (let ((format-string (concat "%" (char-to-string format-char))))
     (if (and (> alt-form 0) (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
       (string-to-number (time-stamp--format format-string time)))))
 
+
 (defvar time-stamp-conversion-warn t
-  "Warn about soon-to-be-unsupported forms in `time-stamp-format'.
+  "Enable warnings about soon-to-be-unsupported forms in `time-stamp-format'.
 If nil, these warnings are disabled, which would be a bad idea!
 You really need to update your files instead.
 
@@ -693,6 +747,180 @@ Suggests replacing OLD-FORM with NEW-FORM."
 	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
       (insert "\"" old-form "\" -- use " new-form "\n"))
     (display-buffer "*Time-stamp-compatibility*"))))
+
+
+;;; A principled, expressive implementation of time zone offset
+;;; formatting ("%z" and variants).
+
+;;; * Overarching principle for %z
+
+;; The output should be clear and complete.
+;;
+;; That is,
+;; a) it should be unambiguous what offset is represented, and
+;; b) it should be possible to exactly recreate the offset.
+
+;;; * Principles for %z
+
+;; - The numeric fields are HHMMSS.
+;; - The fixed point is at the left.  The first 2 digits are always
+;;   hours, the next 2 (if they exist) minutes, and next 2 (if they
+;;   exist) seconds.  "+11" is 11 hours (not 11 minutes, not 11 seconds).
+;;   "+1015" is 10 hours 15 minutes (not 10 minutes 15 seconds).
+;; - Each of the three numeric fields is two digits.
+;;   "+1" and "+100" are illegal.  (Is that 1 hour? 10 hours? 100 hours?)
+;; - The MMSS fields may be omitted only if both are 00.  Thus, the width
+;;   of the field depends on the data.  (This is similar to how
+;;   %B is always long enough to spell the entire month name.)
+;; - The SS field may be omitted only if it is 00.
+;; - Colons between the numeric fields are an option, unless the hours
+;;   field is greater than 99, when colons are needed to prevent ambiguity.
+;; - If padding with zeros, we must pad on the right, because the
+;;   fixed point is at the left.  (This is similar to how %N,
+;;   fractional seconds, must add its zeros on the right.)
+;; - After zero-padding has filled out minutes and seconds with zeros,
+;;   further padding can be blanks only.
+;;   Any additional zeros would be confusing.
+
+;;; * Padding for %z
+
+;; Padding is under-specified, so we had to make choices.
+;;
+;; Principles guiding our choices:
+;;
+;; - The syntax should be easy to remember and the effect predictable.
+;; - The syntax should enable as many useful effects as possible.
+;;
+;; Padding choices:
+;;
+;; - By default, pad with spaces, as other formats with non-digits do.
+;;   The "0" flag pads first with zeros, until seconds are filled out.
+;; - If padding with spaces, pad on the right.  This is consistent with
+;;   how zero-padding works.  Padding on the right also keeps the fixed
+;;   point in the same place, as other formats do for any given width.
+;; - The %_z format always outputs seconds, allowing all added padding
+;;   to be spaces.  Without this rule, there would be no way to
+;;   request seconds that worked for both 2- and 3-digit hours.
+;; - Conflicting options are rejected, lest users depend
+;;   on incidental behavior.
+;;
+;; Padding combos that make no sense and are thus disallowed:
+;;
+;; %-:z   - minus minimizes to hours, : expands to minutes
+;; %-::z  - minus minimizes to hours, :: expands to seconds
+;; %_:z   - underscore requires seconds, : displays minutes
+;; %_:::z - underscore requires seconds, ::: minimizes to hours
+;;
+;; Example padding effects (with offsets of 99 and 100 hours):
+;;
+;; %-7z   "+99    "   "+100:00"
+;;  %7z   "+9900  "   "+100:00"
+;; %07z   "+990000"   "+100:00"
+;; %_7z   "+990000"   "+100:00:00"
+;;
+;; %7:::z "+99    "   "+100:00"
+;; %7:z   "+99:00 "   "+100:00"
+;; %07:z  "+99:00:00" "+100:00"
+;; %7::z  "+99:00:00" "+100:00:00"
+
+;;; * ABNF syntax of the offset string produced by %z
+
+;; offset = sign ( hours [minutes [seconds]] /
+;;                 hours [":" minutes [":" seconds]] /
+;;                 bighours ":" minutes [":" seconds] ) padding
+;; sign = "+" / "-"
+;; hours = digitpair
+;; minutes = digitpair
+;; seconds = digitpair
+;; digitpair = digit digit
+;; digit = "0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+;; bighours = 1*digit digitpair
+;; padding = *" "
+
+(defun time-stamp-formatz-from-parsed-options (flag-minimize
+                                               flag-pad-spaces-only
+                                               flag-pad-zeros-first
+                                               colon-count
+                                               field-width
+                                               offset-secs)
+  "Formats a time offset according to a %z variation.
+
+With no flags, the output includes hours and minutes: +-HHMM
+unless there is a non-zero seconds part, in which case the seconds
+are included: +-HHMMSS
+
+FLAG-MINIMIZE is whether \"-\" was specified.  If non-nil, the
+output may be limited to hours if minutes and seconds are zero.
+
+FLAG-PAD-SPACES-ONLY is whether \"_\" was specified.  If non-nil,
+seconds must be output, so that any padding can be spaces only.
+
+FLAG-PAD-ZEROS-FIRST is whether \"0\" was specified.  If non-nil,
+padding to the requested FIELD-WIDTH (if any) is done by adding
+00 seconds before padding with spaces.
+
+COLON-COUNT is the number of colons preceding the \"z\" (0-3).  One or
+two colons put that many colons in the output (+-HH:MM or +-HH:MM:SS).
+Three colons outputs only hours if minutes and seconds are zero and
+includes colon separators if minutes and seconds are output.
+
+FIELD-WIDTH is a whole number giving the minimum number of characters
+in the output; 0 specifies no minimum.  Additional characters will be
+added on the right if necessary.  The added characters will be spaces
+unless FLAG-PAD-ZEROS-FIRST is non-nil.
+
+OFFSET-SECS is the time zone offset (in seconds east of UTC) to be
+formatted according to the preceding parameters.
+
+This is an internal function used by `time-stamp'."
+  ;; The caller of this function must have already parsed the %z
+  ;; format string; this function accepts just the parts of the format.
+  ;; `time-stamp-string-preprocess' is the full-fledged parser normally
+  ;; used.  The unit test (in time-stamp-tests.el) defines the simpler
+  ;; parser `format-time-offset'.
+  (let ((hrs (/ (abs offset-secs) 3600))
+        (mins (/ (% (abs offset-secs) 3600) 60))
+        (secs (% (abs offset-secs) 60))
+        (result ""))
+    ;; valid option combo?
+    (cond
+     ((not (or (and flag-minimize (> colon-count 0))
+               (and flag-pad-spaces-only (> colon-count 0))
+               (and flag-pad-spaces-only flag-minimize)
+               (and flag-pad-spaces-only flag-pad-zeros-first)
+               (and flag-pad-zeros-first flag-minimize)))
+      (setq result (concat result (if (>= offset-secs 0) "+" "-")))
+      (setq result (concat result (format "%02d" hrs)))
+      ;; Need minutes?
+      (cond
+       ((or (> hrs 99)
+            (> mins 0)
+            (> secs 0)
+            (not (or flag-minimize (= colon-count 3)))
+            (and (> field-width (length result))
+                 flag-pad-zeros-first))
+        ;; Need colon before minutes?
+        (if (or (> colon-count 0)
+                (> hrs 99))
+            (setq result (concat result ":")))
+        (setq result (concat result (format "%02d" mins)))
+        ;; Need seconds, too?
+        (cond
+         ((or (> secs 0)
+              (= colon-count 2)
+              flag-pad-spaces-only
+              (and (> field-width (length result))
+                   flag-pad-zeros-first))
+          ;; Need colon before seconds?
+          (if (or (> colon-count 0)
+                  (> hrs 99))
+              (setq result (concat result ":")))
+          (setq result (concat result (format "%02d" secs)))))))
+      ;; Need padding?
+      (let ((needed-padding (- field-width (length result))))
+        (if (> needed-padding 0)
+            (setq result (concat result (make-string needed-padding ?\s)))))))
+    result))
 
 (provide 'time-stamp)
 

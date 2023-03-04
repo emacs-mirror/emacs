@@ -1,0 +1,20 @@
+From: example <example@example.org>
+To: example <example@example.org>
+Content-Type: multipart/alternative; boundary="===============2877195075946974246=="
+Date: Thu, 29 Oct 2020 14:47:55 +0100
+MIME-Version: 1.0
+Subject: test
+
+--===============2877195075946974246==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+ääää
+
+--===============2877195075946974246==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<!doctype html><html><head><meta http-equiv="content-type" content="text/html; charset=UTF-8"></head><body>ääää</body></html>
+
+--===============2877195075946974246==--

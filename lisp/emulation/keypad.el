@@ -1,6 +1,6 @@
-;;; keypad.el --- simplified keypad bindings
+;;; keypad.el --- simplified keypad bindings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -27,7 +27,7 @@
 ;;
 ;; With the following setup, the keypad can be used for numeric data
 ;; entry when NumLock is off, and to give numeric prefix arguments to
-;; emacs commands, when NumLock is on.
+;; Emacs commands, when NumLock is on.
 ;;
 ;;  keypad-setup         => Plain Numeric Keypad
 ;;  keypad-numlock-setup => Prefix numeric args
@@ -101,10 +101,10 @@
   "Specifies the keypad setup for unshifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value nil nil value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -124,10 +124,10 @@ decimal key must be specified."
   "Specifies the keypad setup for unshifted keypad keys when NumLock is on.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value t nil value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -147,10 +147,10 @@ decimal key must be specified."
   "Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value nil t value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -170,10 +170,10 @@ decimal key must be specified."
   "Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value t t value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -203,7 +203,7 @@ keys are bound.
  `S-cursor' Bind shifted keypad keys to the shifted cursor movement keys.
  `cursor'   Bind keypad keys to the cursor movement keys.
  `numeric'  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
- `none'     Removes all bindings for keypad keys in function-key-map;
+ `none'     Removes all bindings for keypad keys in `function-key-map';
             this enables any user-defined bindings for the keypad keys
             in the global and local keymaps.
 

@@ -1,19 +1,19 @@
 /* Definitions for data structures and routines for the regular
    expression library.
-   Copyright (C) 1985, 1989-2020 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989-2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
+   modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
@@ -522,6 +522,30 @@ typedef struct
 
 /* Declarations for routines.  */
 
+#ifndef _REGEX_NELTS
+# if (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__ \
+	&& !defined __STDC_NO_VLA__)
+#  define _REGEX_NELTS(n) n
+# else
+#  define _REGEX_NELTS(n)
+# endif
+#endif
+
+#if defined __GNUC__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wvla"
+#endif
+
+#ifndef _Attr_access_
+# ifdef __attr_access
+#  define _Attr_access_(arg) __attr_access (arg)
+# elif defined __GNUC__ && 10 <= __GNUC__
+#  define _Attr_access_(x) __attribute__ ((__access__ x))
+# else
+#  define _Attr_access_(x)
+# endif
+#endif
+
 #ifdef __USE_GNU
 /* Sets the current default syntax to SYNTAX, and return the old syntax.
    You can also simply assign to the 're_syntax_options' variable.  */
@@ -536,7 +560,8 @@ extern reg_syntax_t re_set_syntax (reg_syntax_t __syntax);
    'regcomp', with a malloc'ed value, or set to NULL before calling
    'regfree'.  */
 extern const char *re_compile_pattern (const char *__pattern, size_t __length,
-				       struct re_pattern_buffer *__buffer);
+				       struct re_pattern_buffer *__buffer)
+    _Attr_access_ ((__read_only__, 1, 2));
 
 
 /* Compile a fastmap for the compiled pattern in BUFFER; used to
@@ -553,7 +578,8 @@ extern int re_compile_fastmap (struct re_pattern_buffer *__buffer);
 extern regoff_t re_search (struct re_pattern_buffer *__buffer,
 			   const char *__String, regoff_t __length,
 			   regoff_t __start, regoff_t __range,
-			   struct re_registers *__regs);
+			   struct re_registers *__regs)
+    _Attr_access_ ((__read_only__, 2, 3));
 
 
 /* Like 're_search', but search in the concatenation of STRING1 and
@@ -563,14 +589,17 @@ extern regoff_t re_search_2 (struct re_pattern_buffer *__buffer,
 			     const char *__string2, regoff_t __length2,
 			     regoff_t __start, regoff_t __range,
 			     struct re_registers *__regs,
-			     regoff_t __stop);
+			     regoff_t __stop)
+    _Attr_access_ ((__read_only__, 2, 3))
+    _Attr_access_ ((__read_only__, 4, 5));
 
 
 /* Like 're_search', but return how many characters in STRING the regexp
    in BUFFER matched, starting at position START.  */
 extern regoff_t re_match (struct re_pattern_buffer *__buffer,
 			  const char *__String, regoff_t __length,
-			  regoff_t __start, struct re_registers *__regs);
+			  regoff_t __start, struct re_registers *__regs)
+    _Attr_access_ ((__read_only__, 2, 3));
 
 
 /* Relates to 're_match' as 're_search_2' relates to 're_search'.  */
@@ -578,7 +607,9 @@ extern regoff_t re_match_2 (struct re_pattern_buffer *__buffer,
 			    const char *__string1, regoff_t __length1,
 			    const char *__string2, regoff_t __length2,
 			    regoff_t __start, struct re_registers *__regs,
-			    regoff_t __stop);
+			    regoff_t __stop)
+    _Attr_access_ ((__read_only__, 2, 3))
+    _Attr_access_ ((__read_only__, 4, 5));
 
 
 /* Set REGS to hold NUM_REGS registers, storing them in STARTS and
@@ -600,11 +631,9 @@ extern void re_set_registers (struct re_pattern_buffer *__buffer,
 #endif	/* Use GNU */
 
 #if defined _REGEX_RE_COMP || (defined _LIBC && defined __USE_MISC)
-# ifndef _CRAY
 /* 4.2 bsd compatibility.  */
 extern char *re_comp (const char *);
 extern int re_exec (const char *);
-# endif
 #endif
 
 /* For plain 'restrict', use glibc's __restrict if defined.
@@ -614,7 +643,9 @@ extern int re_exec (const char *);
    'configure' might #define 'restrict' to those words, so pick a
    different name.  */
 #ifndef _Restrict_
-# if defined __restrict || 2 < __GNUC__ + (95 <= __GNUC_MINOR__)
+# if defined __restrict \
+     || 2 < __GNUC__ + (95 <= __GNUC_MINOR__) \
+     || __clang_major__ >= 3
 #  define _Restrict_ __restrict
 # elif 199901L <= __STDC_VERSION__ || defined restrict
 #  define _Restrict_ restrict
@@ -622,13 +653,18 @@ extern int re_exec (const char *);
 #  define _Restrict_
 # endif
 #endif
-/* For [restrict], use glibc's __restrict_arr if available.
-   Otherwise, GCC 3.1 (not in C++ mode) and C99 support [restrict].  */
+/* For the ISO C99 syntax
+     array_name[restrict]
+   use glibc's __restrict_arr if available.
+   Otherwise, GCC 3.1 and clang support this syntax (but not in C++ mode).
+   Other ISO C99 compilers support it as well.  */
 #ifndef _Restrict_arr_
 # ifdef __restrict_arr
 #  define _Restrict_arr_ __restrict_arr
-# elif ((199901L <= __STDC_VERSION__ || 3 < __GNUC__ + (1 <= __GNUC_MINOR__)) \
-        && !defined __GNUG__)
+# elif ((199901L <= __STDC_VERSION__ \
+         || 3 < __GNUC__ + (1 <= __GNUC_MINOR__) \
+         || __clang_major__ >= 3) \
+        && !defined __cplusplus)
 #  define _Restrict_arr_ _Restrict_
 # else
 #  define _Restrict_arr_
@@ -642,14 +678,19 @@ extern int regcomp (regex_t *_Restrict_ __preg,
 
 extern int regexec (const regex_t *_Restrict_ __preg,
 		    const char *_Restrict_ __String, size_t __nmatch,
-		    regmatch_t __pmatch[_Restrict_arr_],
+		    regmatch_t __pmatch[_Restrict_arr_
+					_REGEX_NELTS (__nmatch)],
 		    int __eflags);
 
 extern size_t regerror (int __errcode, const regex_t *_Restrict_ __preg,
-			char *_Restrict_ __errbuf, size_t __errbuf_size);
+			char *_Restrict_ __errbuf, size_t __errbuf_size)
+    _Attr_access_ ((__write_only__, 3, 4));
 
 extern void regfree (regex_t *__preg);
 
+#if defined __GNUC__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+# pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 }

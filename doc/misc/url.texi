@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2020 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2023 Free Software
 Foundation, Inc.
 
 @quotation
@@ -90,7 +90,7 @@ can be accessed (usually over a network) in a specific way.
 
 @example
 ftp://ftp.is.co.za/rfc/rfc1808.txt
-http://www.ietf.org/rfc/rfc2396.txt
+https://www.ietf.org/rfc/rfc2396.txt
 ldap://[2001:db8::7]/c=GB?objectClass?one
 mailto:John.Doe@@example.com
 news:comp.infosystems.www.servers.unix
@@ -268,7 +268,7 @@ argument is @code{nil}, the allowed characters are those specified as
 @dfn{unreserved characters} by RFC 3986 (see the variable
 @code{url-unreserved-chars}).  Otherwise, @var{allowed-chars} should
 be either a list of allowed chars, or a vector whose Nth element is
-non-nil if character N is allowed.
+non-@code{nil} if character N is allowed.
 @end defun
 
 @defun url-unhex-string string &optional allow-newlines
@@ -380,7 +380,7 @@ for specific schemes.
 * info::                        Emacs "Info" pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
-* rlogin/telnet/tn3270::        Remote host connectivity.
+* telnet/tn3270::               Remote host connectivity.
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
 * nfs::                         Networked File System.
@@ -675,9 +675,8 @@ environment variable @samp{NNTPSERVER}, or @samp{news} if that
 environment variable is unset.
 @end defopt
 
-@node rlogin/telnet/tn3270
-@section rlogin, telnet and tn3270
-@cindex rlogin
+@node telnet/tn3270
+@section telnet and tn3270
 @cindex telnet
 @cindex tn3270
 @cindex terminal emulation
@@ -694,10 +693,10 @@ telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 but the @var{password} component is ignored.  By default, the
 @code{telnet} scheme is handled via Tramp (@pxref{Tramp}).
 
-To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
-@code{telnet} or @code{tn3270} (the program names and arguments are
-hardcoded) session is run in a @code{terminal-emulator} buffer.
-Well-known ports are used if the URL does not specify a port.
+To handle telnet and tn3270 URLs, a @code{telnet} or @code{tn3270}
+(the program names and arguments are hardcoded) session is run in a
+@code{terminal-emulator} buffer.  Well-known ports are used if the URL
+does not specify a port.
 
 @node irc
 @section irc
@@ -708,7 +707,7 @@ Well-known ports are used if the URL does not specify a port.
 @cindex rcirc
 
   The @code{irc} scheme is defined in the Internet Draft at
-@url{http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
+@url{https://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
 was never approved as an RFC).  Such URLs have the form
 
 @example
@@ -950,7 +949,6 @@ containing the data cached for that URL.
 @node Proxies
 @section Proxies and Gatewaying
 
-@c fixme: check/document url-ns stuff
 @cindex proxy servers
 @cindex proxies
 @cindex environment variables
@@ -1040,12 +1038,6 @@ a list of symbols.  Possible values are:
 Use this method if you must first telnet and log into a gateway host,
 and then run telnet from that host to connect to outside machines.
 
-@item rlogin
-@cindex @command{rlogin}
-This method is identical to @code{telnet}, but uses @command{rlogin}
-to log into the remote machine without having to send the username and
-password over the wire every time.
-
 @item socks
 @cindex @sc{socks}
 Use if the firewall has a @sc{socks} gateway running on it.  The
@@ -1083,19 +1075,6 @@ The username to log in with.
 @end defopt
 @defopt url-gateway-telnet-password
 The password to send when logging in.
-@end defopt
-@defopt url-gateway-prompt-pattern
-This is a regular expression that matches the shell prompt.
-@end defopt
-
-@defopt url-gateway-rlogin-host
-Host to @samp{rlogin} to before telnetting out.
-@end defopt
-@defopt url-gateway-rlogin-parameters
-Parameters to pass to @samp{rsh}.
-@end defopt
-@defopt url-gateway-rlogin-user-name
-User name to use when logging in to the gateway.
 @end defopt
 @defopt url-gateway-prompt-pattern
 This is a regular expression that matches the shell prompt.
@@ -1181,7 +1160,7 @@ opened by the URL library.
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
 @c (@url{http://129.79.254.191/} works, but
-@c @url{http://www.cs.indiana.edu/} doesn't).  This used to happen on
+@c @url{https://www.cs.indiana.edu/} doesn't).  This used to happen on
 @c SunOS4 and Ultrix, but is now probably now rare.  If Emacs can't be
 @c rebuilt linked against the resolver library, it can use the external
 @c @command{nslookup} program instead.
@@ -1312,8 +1291,6 @@ repeated visits do not require repeated domain lookups.
 @end defopt
 @defopt url-max-password-attempts
 @end defopt
-@defopt url-temporary-directory
-@end defopt
 @defopt url-show-status
 @end defopt
 @defopt url-confirmation-func
@@ -1330,8 +1307,6 @@ from the local machine.  The supported methods are:
 @table @code
 @item telnet
 Run telnet in a subprocess to connect;
-@item rlogin
-Rlogin to another machine to connect;
 @item socks
 Connect through a socks server;
 @item ssl

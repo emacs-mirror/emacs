@@ -1,22 +1,24 @@
-;;; text-property-search-tests.el --- Testing text-property-search
+;;; text-property-search-tests.el --- Testing text-property-search  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords:
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -150,6 +152,23 @@
    (text-property-search-backward 'face 'italic nil)
    46 57 nil
    (point-max)))
+
+
+;;;; Position after search.
+
+(ert-deftest text-property-search-forward/point-at-beginning ()
+  (with-temp-buffer
+    (insert (concat "1234" (propertize "567" 'x t) "890"))
+    (goto-char (point-min))
+    (text-property-search-forward 'x t)
+    (should (= (point) 5))))
+
+(ert-deftest text-property-search-backward/point-at-end ()
+  (with-temp-buffer
+    (insert (concat "1234" (propertize "567" 'x t) "890"))
+    (goto-char (point-max))
+    (text-property-search-backward 'x t)
+    (should (= (point) 8))))
 
 (provide 'text-property-search-tests)
 

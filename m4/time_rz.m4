@@ -1,6 +1,6 @@
 dnl Time zone functions: tzalloc, localtime_rz, etc.
 
-dnl Copyright (C) 2015-2020 Free Software Foundation, Inc.
+dnl Copyright (C) 2015-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -10,15 +10,15 @@ dnl Written by Paul Eggert.
 AC_DEFUN([gl_TIME_RZ],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+  AC_REQUIRE([gl_TIME_H_DEFAULTS])
   AC_REQUIRE([AC_STRUCT_TIMEZONE])
 
-  # Mac OS X 10.6 loops forever with some time_t values.
+  # On Mac OS X 10.6, localtime loops forever with some time_t values.
   # See Bug#27706, Bug#27736, and
   # https://lists.gnu.org/r/bug-gnulib/2017-07/msg00142.html
-  AC_CACHE_CHECK([whether localtime loops forever near extrema],
-    [gl_cv_func_localtime_infloop_bug],
-    [gl_cv_func_localtime_infloop_bug=no
+  AC_CACHE_CHECK([whether localtime works even near extrema],
+    [gl_cv_func_localtime_works],
+    [gl_cv_func_localtime_works=yes
      AC_RUN_IFELSE(
        [AC_LANG_PROGRAM(
           [[#include <stdlib.h>
@@ -37,10 +37,10 @@ AC_DEFUN([gl_TIME_RZ],
             return tm && tm->tm_isdst;
           ]])],
        [(TZ=QQQ0 ./conftest$EXEEXT) >/dev/null 2>&1 ||
-           gl_cv_func_localtime_infloop_bug=yes],
+           gl_cv_func_localtime_works=no],
        [],
-       [gl_cv_func_localtime_infloop_bug="guessing no"])])
-  if test "$gl_cv_func_localtime_infloop_bug" = yes; then
+       [gl_cv_func_localtime_works="guessing yes"])])
+  if test "$gl_cv_func_localtime_works" = no; then
       AC_DEFINE([HAVE_LOCALTIME_INFLOOP_BUG], 1,
         [Define if localtime-like functions can loop forever on
          extreme arguments.])

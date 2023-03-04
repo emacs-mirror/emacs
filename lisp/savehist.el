@@ -1,11 +1,11 @@
 ;;; savehist.el --- Save minibuffer history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: minibuffer
-;; Version: 24
+;; Keywords: convenience, minibuffer
+;; Old-Version: 24
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +27,7 @@
 ;; Many editors (e.g. Vim) have the feature of saving minibuffer
 ;; history to an external file after exit.  This package provides the
 ;; same feature in Emacs.  When set up, it saves recorded minibuffer
-;; histories to a file (`~/.emacs-history' by default).  Additional
+;; histories to a file (`~/.emacs.d/history' by default).  Additional
 ;; variables may be specified by customizing
 ;; `savehist-additional-variables'.
 
@@ -41,13 +41,7 @@
 ;; You can also explicitly save history with `M-x savehist-save' and
 ;; load it by loading the `savehist-file' with `M-x load-file'.
 
-;; If you are using a version of Emacs that does not ship with this
-;; package, be sure to have `savehist.el' in a directory that is in
-;; your load-path, and to byte-compile it.
-
 ;;; Code:
-
-(require 'custom)
 
 ;; User variables
 
@@ -62,14 +56,19 @@ If you want to save only specific histories, use `savehist-save-hook'
 to modify the value of `savehist-minibuffer-history-variables'."
   :type 'boolean)
 
-(defcustom savehist-additional-variables ()
+(defcustom savehist-additional-variables nil
   "List of additional variables to save.
-Each element is a symbol whose value will be persisted across Emacs
-sessions that use Savehist.  The contents of variables should be
-printable with the Lisp printer.  You don't need to add minibuffer
-history variables to this list, all minibuffer histories will be
-saved automatically as long as `savehist-save-minibuffer-history' is
-non-nil.
+Each element is a variable that will be persisted across Emacs
+sessions that use Savehist.
+
+An element may be variable name (a symbol) or a cons cell of the form
+\(VAR . MAX-SIZE), which means to truncate VAR's value to at most
+MAX-SIZE elements (if the value is a list) before saving the value.
+
+The contents of variables should be printable with the Lisp
+printer.  You don't need to add minibuffer history variables to
+this list, all minibuffer histories will be saved automatically
+as long as `savehist-save-minibuffer-history' is non-nil.
 
 User options should be saved with the Customize interface.  This
 list is useful for saving automatically updated variables that are not
@@ -94,7 +93,8 @@ This is decimal, not octal.  The default is 384 (0600 in octal).
 Set to nil to use the default permissions that Emacs uses, typically
 mandated by umask.  The default is a bit more restrictive to protect
 the user's privacy."
-  :type 'integer)
+  :type '(choice (natnum :tag "Specify")
+                 (const :tag "Use default" :value nil)))
 
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
@@ -215,6 +215,7 @@ Normally invoked by calling `savehist-mode' to unset the minor mode."
     (cancel-timer savehist-timer)
     (setq savehist-timer nil)))
 
+(defvar savehist--has-given-file-warning nil)
 (defun savehist-save (&optional auto-save)
   "Save the values of minibuffer history variables.
 Unbound symbols referenced in `savehist-additional-variables' are ignored.
@@ -279,32 +280,47 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		      (delete-region (point) (1+ (point)))))
 		(insert "))\n"))))))
       ;; Save the additional variables.
-      (dolist (symbol savehist-additional-variables)
-	(when (boundp symbol)
-	  (let ((value (symbol-value symbol)))
-	    (when (savehist-printable value)
-	      (prin1 `(setq ,symbol ',value) (current-buffer))
-	      (insert ?\n))))))
+      (dolist (elem savehist-additional-variables)
+        (let ((symbol (if (consp elem)
+                          (car elem)
+                        elem)))
+	  (when (boundp symbol)
+	    (let ((value (symbol-value symbol)))
+	      (when (savehist-printable value)
+                ;; When we have a max-size, chop off the last elements.
+                (when (and (consp elem)
+                           (listp value)
+                           (length> value (cdr elem)))
+                  (setq value (copy-sequence value))
+                  (setcdr (nthcdr (cdr elem) value) nil))
+	        (prin1 `(setq ,symbol ',value) (current-buffer))
+	        (insert ?\n)))))))
     ;; If autosaving, avoid writing if nothing has changed since the
     ;; last write.
     (let ((checksum (md5 (current-buffer) nil nil savehist-coding-system)))
-      (unless (and auto-save (equal checksum savehist-last-checksum))
-	;; Set file-precious-flag when saving the buffer because we
-	;; don't want a half-finished write ruining the entire
-	;; history.  Remember that this is run from a timer and from
-	;; kill-emacs-hook, and also that multiple Emacs instances
-	;; could write to this file at once.
-	(let ((file-precious-flag t)
-	      (coding-system-for-write savehist-coding-system)
-              (dir (file-name-directory savehist-file)))
-          ;; Ensure that the directory exists before saving.
-          (unless (file-exists-p dir)
-            (make-directory dir t))
-	  (write-region (point-min) (point-max) savehist-file nil
-			(unless (called-interactively-p 'interactive) 'quiet)))
-	(when savehist-file-modes
-	  (set-file-modes savehist-file savehist-file-modes))
-	(setq savehist-last-checksum checksum)))))
+      (condition-case err
+        (unless (and auto-save (equal checksum savehist-last-checksum))
+	  ;; Set file-precious-flag when saving the buffer because we
+	  ;; don't want a half-finished write ruining the entire
+	  ;; history.  Remember that this is run from a timer and from
+	  ;; kill-emacs-hook, and also that multiple Emacs instances
+	  ;; could write to this file at once.
+	  (let ((file-precious-flag t)
+	        (coding-system-for-write savehist-coding-system)
+                (dir (file-name-directory savehist-file)))
+            ;; Ensure that the directory exists before saving.
+            (unless (file-exists-p dir)
+              (make-directory dir t))
+	    (write-region (point-min) (point-max) savehist-file nil
+			  (unless (called-interactively-p 'interactive) 'quiet)))
+	  (when savehist-file-modes
+	    (set-file-modes savehist-file savehist-file-modes))
+	  (setq savehist-last-checksum checksum))
+        (file-error
+         (unless savehist--has-given-file-warning
+          (lwarn '(savehist-file) :warning "Error writing `%s': %s"
+                 savehist-file (caddr err))
+          (setq savehist--has-given-file-warning t)))))))
 
 (defun savehist-autosave ()
   "Save the minibuffer history if it has been modified since the last save.

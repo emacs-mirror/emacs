@@ -1,18 +1,18 @@
 /* Set file access and modification times.
 
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 3 of the License, or any
-   later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
@@ -26,7 +26,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -52,7 +52,9 @@
 
 /* Avoid recursion with rpl_futimens or rpl_utimensat.  */
 #undef futimens
-#undef utimensat
+#if !HAVE_NEARLY_WORKING_UTIMENSAT
+# undef utimensat
+#endif
 
 /* Solaris 9 mistakenly succeeds when given a non-directory with a
    trailing slash.  Force the use of rpl_stat for a fix.  */
@@ -123,14 +125,14 @@ validate_timespec (struct timespec timespec[2])
   return result + (utime_omit_count == 1);
 }
 
-/* Normalize any UTIME_NOW or UTIME_OMIT values in *TS, using stat
-   buffer STATBUF to obtain the current timestamps of the file.  If
+/* Normalize any UTIME_NOW or UTIME_OMIT values in (*TS)[0] and (*TS)[1],
+   using STATBUF to obtain the current timestamps of the file.  If
    both times are UTIME_NOW, set *TS to NULL (as this can avoid some
    permissions issues).  If both times are UTIME_OMIT, return true
    (nothing further beyond the prior collection of STATBUF is
    necessary); otherwise return false.  */
 static bool
-update_timespec (struct stat const *statbuf, struct timespec *ts[2])
+update_timespec (struct stat const *statbuf, struct timespec **ts)
 {
   struct timespec *timespec = *ts;
   if (timespec[0].tv_nsec == UTIME_OMIT
@@ -246,6 +248,20 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
 # if HAVE_UTIMENSAT
       if (fd < 0)
         {
+#  if defined __APPLE__ && defined __MACH__
+          size_t len = strlen (file);
+          if (len > 0 && file[len - 1] == '/')
+            {
+              struct stat statbuf;
+              if (stat (file, &statbuf) < 0)
+                return -1;
+              if (!S_ISDIR (statbuf.st_mode))
+                {
+                  errno = ENOTDIR;
+                  return -1;
+                }
+            }
+#  endif
           result = utimensat (AT_FDCWD, file, ts, 0);
 #  ifdef __linux__
           /* Work around a kernel bug:

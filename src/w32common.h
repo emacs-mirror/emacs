@@ -1,5 +1,5 @@
 /* Common functions for Microsoft Windows builds of Emacs
-   Copyright (C) 2012-2020 Free Software Foundation, Inc.
+   Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,14 +41,19 @@ extern int    	      w32_minor_version;
 extern int    	      w32_build_number;
 
 enum {
-  OS_9X = 1,
-  OS_NT
+  OS_SUBTYPE_9X = 1,
+  OS_SUBTYPE_NT
 };
 
 extern int os_subtype;
 
 /* Cache system info, e.g., the NT page size.  */
 extern void cache_system_info (void);
+
+#ifdef WINDOWSNT
+/* Return a static buffer with the MS-Windows version string.  */
+extern char * w32_version_string (void);
+#endif
 
 typedef void (* VOIDFNPTR) (void);
 
@@ -78,6 +83,14 @@ get_proc_addr (HINSTANCE handle, LPCSTR fname)
       fn_##func = (W32_PFN_##func) get_proc_addr (lib, #func);		\
       if (!fn_##func)							\
 	return false;							\
+    }									\
+  while (false)
+
+/* Load a function from the DLL, and don't fail if it does not exist.  */
+#define LOAD_DLL_FN_OPT(lib, func)                                      \
+  do									\
+    {									\
+      fn_##func = (W32_PFN_##func) get_proc_addr (lib, #func);		\
     }									\
   while (false)
 

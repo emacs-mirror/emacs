@@ -1,0 +1,112 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (setq java-ts-mode-indent-offset 4)
+    (java-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+public class Basic {
+    public void basic() {
+        return;
+    }
+}
+=-=-=
+
+Name: Empty Line
+
+=-=
+public class EmptyLine {
+    public void emptyLine() {
+        |
+    }
+}
+=-=-=
+
+Name: Statements
+
+=-=
+if (x) {
+    for (var foo : foos) {
+        |
+    }
+} else if (y) {
+    for (int i = 0; x < foos.size(); i++) {
+        return;
+    }
+} else {
+    return;
+}
+=-=-=
+
+Name: Field declaration without access modifier (bug#61115)
+
+=-=
+public class T {
+    @Autowired
+    String a;
+}
+=-=-=
+
+Name: Array initializer
+
+=-=
+public class Java {
+    void foo() {
+        return new String[]{
+            "foo", // These
+            "bar"
+        }
+    }
+}
+=-=-=
+
+Name: Advanced bracket matching indentation (bug#61142)
+
+=-=
+public class Java {
+
+    public Java(
+        String foo) {
+        this.foo = foo;
+    }
+
+    void foo(
+        String foo) {
+
+        for (var f : rs)
+            return new String[]{
+                "foo",
+                "bar"
+            };
+        if (a == 0
+            && b == 1
+            && foo) {
+            return 0;
+        } else if (a == 1) {
+            return 1;
+        } else if (true)
+            return 5;
+        else {
+            if (a == 0
+                && b == 1
+                && foo)
+                while (true)
+                    for (
+                        ;;)
+                        if (true)
+                            return 5;
+                        else if (false) {
+                            return 6;
+                        } else
+                            if (true
+                                && false)
+                                return 6;
+        }
+    }
+}
+=-=-=

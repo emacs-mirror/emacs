@@ -1,18 +1,9 @@
-;;; speedbar --- quick access to files and tags in a frame
+;;; speedbar.el --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-
-(defvar speedbar-version "1.0"
-  "The current version of speedbar.")
-(make-obsolete-variable 'speedbar-version nil "28.1")
-(defvar speedbar-incompatible-version "0.14beta4"
-  "This version of speedbar is incompatible with this version.
-Due to massive API changes (removing the use of the word PATH)
-this version is not backward compatible to 0.14 or earlier.")
-(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
 
 ;; This file is part of GNU Emacs.
 
@@ -115,7 +106,6 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
 
-(require 'easymenu)
 (require 'dframe)
 (require 'ezimage)
 
@@ -150,25 +140,6 @@ this version is not backward compatible to 0.14 or earlier.")
   :type 'boolean)
 
 ;;; Code:
-
-;; Note: `inversion-test' requires parts of the CEDET package that are
-;; not included with Emacs.
-;;
-;; (defun speedbar-require-version (major minor &optional beta)
-;;   "Non-nil if this version of SPEEDBAR does not satisfy a specific version.
-;; Arguments can be:
-;;
-;;   (MAJOR MINOR &optional BETA)
-;;
-;;   Values MAJOR and MINOR must be integers.  BETA can be an integer, or
-;; excluded if a released version is required.
-;;
-;; It is assumed that if the current version is newer than that specified,
-;; everything passes.  Exceptions occur when known incompatibilities are
-;; introduced."
-;;   (inversion-test 'speedbar
-;; 		  (concat major "." minor
-;; 			  (when beta (concat "beta" beta)))))
 
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
@@ -318,22 +289,6 @@ A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
 
-;;; EVENTUALLY REMOVE THESE
-
-;; When I moved to a repeating timer, I had the horrible misfortune
-;; of losing the ability for adaptive speed choice.  This update
-;; speed currently causes long delays when it should have been turned off.
-(defvar speedbar-update-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-update-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-
-(defvar speedbar-navigating-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-navigating-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-;;; END REMOVE THESE
-
 (defcustom speedbar-frame-parameters '((minibuffer . nil)
 				       (width . 20)
 				       (border-width . 0)
@@ -351,10 +306,9 @@ attached to and added to this list before the new frame is initialized."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
+(defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
-XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
-use etags instead.  Etags support is not as robust as imenu support."
+Etags support is not as robust as imenu support." ; See Bug#51102
   :tag "Use Imenu for tags"
   :group 'speedbar
   :type 'boolean)
@@ -395,7 +349,7 @@ determined automatically."
 
 (defcustom speedbar-sort-tags nil
   "If non-nil, sort tags in the speedbar display.  *Obsolete*.
-Use `semantic-tag-hierarchy-method' instead."
+Use `speedbar-tag-hierarchy-method' instead."
   :group 'speedbar
   :type 'boolean)
 
@@ -749,8 +703,6 @@ If you want to change this while speedbar is active, either use
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
-(define-obsolete-variable-alias
-  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 (defvar speedbar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Turn off paren matching around here.
@@ -765,8 +717,6 @@ If you want to change this while speedbar is active, either use
     st)
   "Syntax-table used on the speedbar.")
 
-
-(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
@@ -845,15 +795,10 @@ This basically creates a sparse keymap, and makes its parent be
      ["Auto Update" speedbar-toggle-updates
       :active (not speedbar-update-flag-disable)
       :style toggle :selected speedbar-update-flag])
-   (if (and (or (fboundp 'defimage)
-		(fboundp 'make-image-specifier))
-	    (if (fboundp 'display-graphic-p)
-		(display-graphic-p)
-	      window-system))
-       (list
-	["Use Images" speedbar-toggle-images
-	 :style toggle :selected speedbar-use-images]))
-   )
+   (when (and (fboundp 'defimage) (display-graphic-p))
+     (list
+      ["Use Images" speedbar-toggle-images
+       :style toggle :selected speedbar-use-images])))
   "Base part of the speedbar menu.")
 
 (defvar speedbar-easymenu-definition-special
@@ -899,12 +844,9 @@ This basically creates a sparse keymap, and makes its parent be
   "Additional menu items while in file-mode.")
 
 (defvar speedbar-easymenu-definition-trailer
-  (append
-   (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-       (list ["Customize..." speedbar-customize t]))
-   (list
+  '(["Customize..." speedbar-customize t]
     ["Close" dframe-close-frame t]
-    ["Quit" delete-frame t] ))
+    ["Quit" delete-frame t])
   "Menu items appearing at the end of the speedbar menu.")
 
 (defvar speedbar-desired-buffer nil
@@ -982,12 +924,14 @@ supported at a time.
     (speedbar-set-timer dframe-update-speed)
     )
   ;; Frame modifications
-  (set (make-local-variable 'dframe-delete-frame-function)
-       'speedbar-handle-delete-frame)
+  (setq-local dframe-delete-frame-function 'speedbar-handle-delete-frame)
   ;; hscroll
-  (set (make-local-variable 'auto-hscroll-mode) nil)
+  (setq-local auto-hscroll-mode nil)
   ;; reset the selection variable
-  (setq speedbar-last-selected-file nil))
+  (setq speedbar-last-selected-file nil)
+  (unless (display-graphic-p)
+    (message (substitute-command-keys
+              "Use \\[speedbar-get-focus] to see the speedbar window"))))
 
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
@@ -1078,9 +1022,8 @@ in the selected file.
   (save-excursion
     (setq font-lock-keywords nil) ;; no font-locking please
     (setq truncate-lines t)
-    (make-local-variable 'frame-title-format)
-    (setq frame-title-format "Speedbar"
-	  case-fold-search nil
+    (setq-local frame-title-format "Speedbar")
+    (setq case-fold-search nil
 	  buffer-read-only t)
     (speedbar-set-mode-line-format)
     ;; Add in our dframe hooks.
@@ -1147,6 +1090,7 @@ frame and window to be the currently active frame and window."
 
 (defvar speedbar-previous-menu nil
   "The menu before the last `speedbar-reconfigure-keymaps' was called.")
+(make-obsolete-variable 'speedbar-previous-menu "no longer used." "28.1")
 
 (defun speedbar-reconfigure-keymaps ()
   "Reconfigure the menu-bar in a speedbar frame.
@@ -1198,10 +1142,7 @@ and the existence of packages."
 			 (speedbar-initial-keymap)
 			 ;; This creates a small keymap we can glom the
 			 ;; menu adjustments into.
-			 (speedbar-make-specialized-keymap)))
-      ;; Delete the old menu if applicable.
-      (if speedbar-previous-menu (easy-menu-remove speedbar-previous-menu))
-      (setq speedbar-previous-menu md)
+                         (speedbar-make-specialized-keymap)))
       ;; Now add the new menu
       (easy-menu-define speedbar-menu-map (current-local-map)
         "Speedbar menu" md))
@@ -1392,7 +1333,7 @@ Argument ARG represents to force a refresh past any caches that may exist."
     (if (and (file-exists-p f) (string-match "\\.el\\'" f))
 	(progn
 	  (dframe-select-attached-frame speedbar-frame)
-	  (byte-compile-file f nil)
+          (byte-compile-file f)
 	  (select-frame sf)
 	  (speedbar-reset-scanners)))
     ))
@@ -1656,7 +1597,7 @@ variable `speedbar-obj-alist'."
 
 (defmacro speedbar-with-writable (&rest forms)
   "Allow the buffer to be writable and evaluate FORMS."
-  (declare (indent 0))
+  (declare (indent 0) (debug t))
   `(let ((inhibit-read-only t))
      ,@forms))
 
@@ -1759,8 +1700,9 @@ This is based on `speedbar-initial-expansion-list-name' referencing
   "Change speedbar's default expansion list to NEW-DEFAULT."
   (interactive
    (list
-    (completing-read (format "Speedbar Mode (default %s): "
-			     speedbar-previously-used-expansion-list-name)
+    (completing-read (format-prompt
+                      "Speedbar Mode"
+		      speedbar-previously-used-expansion-list-name)
 		     speedbar-initial-expansion-mode-alist
 		     nil t "" nil
 		     speedbar-previously-used-expansion-list-name)))
@@ -1818,16 +1760,13 @@ of the special mode functions."
 	      (setq v (intern-soft (concat ms "-speedbar-key-map")))
 	      (if (not v)
 		  nil ;; don't add special keymap
-		(make-local-variable 'speedbar-special-mode-key-map)
-		(setq speedbar-special-mode-key-map
-		      (symbol-value v)))
+                (setq-local speedbar-special-mode-key-map
+                            (symbol-value v)))
 	      (setq v (intern-soft (concat ms "-speedbar-menu-items")))
 	      (if (not v)
 		  nil ;; don't add special menus
-		(make-local-variable 'speedbar-easymenu-definition-special)
-		(setq speedbar-easymenu-definition-special
-		      (symbol-value v)))
-	      )))))))
+                (setq-local speedbar-easymenu-definition-special
+                            (symbol-value v))))))))))
 
 (defun speedbar-remove-localized-speedbar-support (buffer)
   "Remove any traces that BUFFER supports speedbar in a specialized way."
@@ -2213,10 +2152,13 @@ passes some tests."
 			  ;; way by displaying the range over which we
 			  ;; have grouped them.
 			  (setq work-list
-				(cons (cons (concat short-start-name
-						    " to "
-						    short-end-name)
-					    short-group-list)
+				(cons (cons
+                                       (concat short-start-name
+					       " to " short-end-name)
+                                       (sort (copy-sequence short-group-list)
+                                             (lambda (e1 e2)
+                                               (string< (car e1)
+                                                        (car e2)))))
 				      work-list))))
 		     ;; Reset short group list information every time.
 			(setq short-group-list nil
@@ -2325,9 +2267,7 @@ the list."
 		      (with-current-buffer (get-file-buffer f)
                         speedbar-tag-hierarchy-method)
 		    speedbar-tag-hierarchy-method))
-	 (lst (if (fboundp 'copy-tree)
-		  (copy-tree lst)
-		lst)))
+         (lst (copy-tree lst)))
     (while methods
       (setq lst (funcall (car methods) lst)
 	    methods (cdr methods)))
@@ -2849,15 +2789,7 @@ to add more types of version control systems."
 	     (not (or (and (featurep 'ange-ftp)
 			   (string-match
 			    (car (symbol-value 'ange-ftp-name-format))
-			    (expand-file-name default-directory)))
-		      ;; efs support: Bob Weiner
-		      (and (featurep 'efs)
-			   (string-match
-			    (let ((reg (symbol-value 'efs-directory-regexp)))
-			      (if (stringp reg)
-				  reg
-				(car reg)))
-			    (expand-file-name default-directory))))))
+                            (expand-file-name default-directory))))))
 	(setq speedbar-vc-to-do-point 0))
     (if (numberp speedbar-vc-to-do-point)
 	(progn
@@ -3240,19 +3172,21 @@ With universal argument ARG, flush cached data."
   "Expand the line under the cursor and all descendants.
 Optional argument ARG indicates that any cache should be flushed."
   (interactive "P")
-  (speedbar-expand-line arg)
-  ;; Now, inside the area expanded here, expand all subnodes of
-  ;; the same descendant type.
-  (save-excursion
-    (speedbar-next 1) ;; Move into the list.
-    (let ((err nil))
-      (while (not err)
-	(condition-case nil
-	    (progn
-	      (speedbar-expand-line-descendants arg)
-	      (speedbar-restricted-next 1))
-	  (error (setq err t))))))
-  )
+  (save-restriction
+    (narrow-to-region (line-beginning-position)
+                      (line-beginning-position 2))
+    (speedbar-expand-line arg)
+    ;; Now, inside the area expanded here, expand all subnodes of
+    ;; the same descendant type.
+    (save-excursion
+      (speedbar-next 1) ;; Move into the list.
+      (let ((err nil))
+        (while (not err)
+	  (condition-case nil
+	      (progn
+	        (speedbar-expand-line-descendants arg)
+	        (speedbar-restricted-next 1))
+	    (error (setq err t))))))))
 
 (defun speedbar-contract-line-descendants ()
   "Expand the line under the cursor and all descendants."
@@ -3296,7 +3230,7 @@ subdirectory chosen will be at INDENT level."
   ;; in case.
   (let ((speedbar-smart-directory-expand-flag nil))
     (speedbar-update-contents))
-  (speedbar-set-timer speedbar-navigating-speed)
+  (speedbar-set-timer dframe-update-speed)
   (setq speedbar-last-selected-file nil)
   (speedbar-stealthy-updates))
 
@@ -3319,7 +3253,7 @@ Handles end-of-sublist smartly."
 Clicking this button expands or contracts a directory.  TEXT is the
 button clicked which has either a + or -.  TOKEN is the directory to be
 expanded.  INDENT is the current indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this dir
+  (cond ((string-search "+" text)	;we have to expand this dir
 	 (setq speedbar-shown-directories
 	       (cons (expand-file-name
 		      (concat (speedbar-line-directory indent) token "/"))
@@ -3332,7 +3266,7 @@ expanded.  INDENT is the current indentation level."
 	     (speedbar-default-directory-list
 	      (concat (speedbar-line-directory indent) token "/")
 	      (1+ indent)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-reset-scanners)
 	 (let ((oldl speedbar-shown-directories)
 	       (newl nil)
@@ -3359,14 +3293,14 @@ INDENT is the current indentation level and is unused."
   ;; update contents will change directory without
   ;; having to touch the attached frame.
   (speedbar-update-contents)
-  (speedbar-set-timer speedbar-navigating-speed))
+  (speedbar-set-timer dframe-update-speed))
 
 (defun speedbar-tag-file (text token indent)
   "The cursor is on a selected line.  Expand the tags in the specified file.
 The parameter TEXT and TOKEN are required, where TEXT is the button
 clicked, and TOKEN is the file to expand.  INDENT is the current
 indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (let* ((fn (expand-file-name (concat (speedbar-line-directory indent)
 					      token)))
 		(lst (speedbar-fetch-dynamic-tags fn)))
@@ -3378,7 +3312,7 @@ indentation level."
 	       (save-excursion
 		 (end-of-line) (forward-char 1)
 		 (funcall (car lst) indent (cdr lst)))))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
@@ -3407,14 +3341,14 @@ INDENT is the current indentation level."
   "Expand a tag sublist.  Imenu will return sub-lists of specialized tag types.
 Etags does not support this feature.  TEXT will be the button string.
 TOKEN will be the list, and INDENT is the current indentation level."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
 	     (speedbar-insert-generic-list indent token 'speedbar-tag-expand
 					   'speedbar-tag-find))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
@@ -3575,7 +3509,7 @@ Returns the tag list, or t for an error."
     (error t)))
 )
 
-;;; Tag Management -- etags  (old XEmacs compatibility part)
+;;; Tag Management -- etags
 ;;
 (defvar speedbar-fetch-etags-parse-list
   '(;; Note that java has the same parse-group as c
@@ -3618,10 +3552,7 @@ This variable is ignored if `speedbar-use-imenu-flag' is t."
 FLAG then becomes a member of etags command line arguments.  If flag
 is \"sort\", then toggle the value of `speedbar-sort-tags'.  If its
 value is \"show\" then toggle the value of
-`speedbar-show-unknown-files'.
-
-  This function is a convenience function for XEmacs menu created by
-Farzin Guilak <farzin@protocol.com>."
+`speedbar-show-unknown-files'."
   (interactive)
   (cond
    ((equal flag "sort")
@@ -3743,26 +3674,20 @@ regular expression EXPR."
 
 ;;; BUFFER DISPLAY mode.
 ;;
-(defvar speedbar-buffers-key-map nil
+(defvar speedbar-buffers-key-map
+  (let ((map (speedbar-make-specialized-keymap)))
+    ;; Basic tree features
+    (define-key map "e" #'speedbar-edit-line)
+    (define-key map "\C-m" #'speedbar-edit-line)
+    (define-key map "+" #'speedbar-expand-line)
+    (define-key map "=" #'speedbar-expand-line)
+    (define-key map "-" #'speedbar-contract-line)
+    (define-key map " " #'speedbar-toggle-line-expansion)
+    ;; Buffer specific keybindings
+    (define-key map "k" #'speedbar-buffer-kill-buffer)
+    (define-key map "r" #'speedbar-buffer-revert-buffer)
+    map)
   "Keymap used when in the buffers display mode.")
-
-(if speedbar-buffers-key-map
-    nil
-  (setq speedbar-buffers-key-map (speedbar-make-specialized-keymap))
-
-  ;; Basic tree features
-  (define-key speedbar-buffers-key-map "e" 'speedbar-edit-line)
-  (define-key speedbar-buffers-key-map "\C-m" 'speedbar-edit-line)
-  (define-key speedbar-buffers-key-map "+" 'speedbar-expand-line)
-  (define-key speedbar-buffers-key-map "=" 'speedbar-expand-line)
-  (define-key speedbar-buffers-key-map "-" 'speedbar-contract-line)
-  (define-key speedbar-buffers-key-map " " 'speedbar-toggle-line-expansion)
-
-  ;; Buffer specific keybindings
-  (define-key speedbar-buffers-key-map "k" 'speedbar-buffer-kill-buffer)
-  (define-key speedbar-buffers-key-map "r" 'speedbar-buffer-revert-buffer)
-
-  )
 
 (defvar speedbar-buffer-easymenu-definition
   '(["Jump to buffer" speedbar-edit-line t]
@@ -4017,11 +3942,6 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
   "Speedbar face for separator labels in a display."
   :group 'speedbar-faces)
 
-;; some edebug hooks
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec speedbar-with-writable def-body)))
-
 ;; Fix a font lock problem for some versions of Emacs
 (and (boundp 'font-lock-global-modes)
      font-lock-global-modes
@@ -4094,9 +4014,21 @@ See `speedbar-expand-image-button-alist' for details."
 	  (setq ia (cdr ia)))))))
 
 
+;; Obsolete
+
+(defvar speedbar-version "1.0"
+  "The current version of speedbar.")
+(make-obsolete-variable 'speedbar-version 'emacs-version "28.1")
+
+(defvar speedbar-incompatible-version "0.14beta4"
+  "This version of speedbar is incompatible with this version.
+Due to massive API changes (removing the use of the word PATH)
+this version is not backward compatible to 0.14 or earlier.")
+(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
+
+
 (provide 'speedbar)
 
-;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
 
-;;; speedbar ends here
+;;; speedbar.el ends here

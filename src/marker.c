@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2020 Free Software Foundation,
+   Copyright (C) 1985, 1997-1998, 2001-2023 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -214,14 +214,15 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
      We have one known above and one known below.
      Scan, counting characters, from whichever one is closer.  */
 
+  eassert (best_below <= charpos && charpos <= best_above);
   if (charpos - best_below < best_above - charpos)
     {
       bool record = charpos - best_below > 5000;
 
-      while (best_below != charpos)
+      while (best_below < charpos)
 	{
 	  best_below++;
-	  BUF_INC_POS (b, best_below_byte);
+	  best_below_byte += buf_next_char_len (b, best_below_byte);
 	}
 
       /* If this position is quite far from the nearest known position,
@@ -243,10 +244,10 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     {
       bool record = best_above - charpos > 5000;
 
-      while (best_above != charpos)
+      while (best_above > charpos)
 	{
 	  best_above--;
-	  BUF_DEC_POS (b, best_above_byte);
+	  best_above_byte -= buf_prev_char_len (b, best_above_byte);
 	}
 
       /* If this position is quite far from the nearest known position,
@@ -372,7 +373,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       while (best_below_byte < bytepos)
 	{
 	  best_below++;
-	  BUF_INC_POS (b, best_below_byte);
+	  best_below_byte += buf_next_char_len (b, best_below_byte);
 	}
 
       /* If this position is quite far from the nearest known position,
@@ -399,7 +400,7 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
       while (best_above_byte > bytepos)
 	{
 	  best_above--;
-	  BUF_DEC_POS (b, best_above_byte);
+	  best_above_byte -= buf_prev_char_len (b, best_above_byte);
 	}
 
       /* If this position is quite far from the nearest known position,
@@ -634,16 +635,15 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 /* Detach a marker so that it no longer points anywhere and no longer
    slows down editing.  Do not free the marker, though, as a change
    function could have inserted it into an undo list (Bug#30931).  */
+
 void
 detach_marker (Lisp_Object marker)
 {
   Fset_marker (marker, Qnil, Qnil);
 }
 
-/* Remove MARKER from the chain of whatever buffer it is in,
-   leaving it points to nowhere.  This is called during garbage
-   collection, so we must be careful to ignore and preserve
-   mark bits, including those in chain fields of markers.  */
+/* Remove MARKER from the chain of whatever buffer it is in.  Set its
+   buffer NULL.  */
 
 void
 unchain_marker (register struct Lisp_Marker *marker)
@@ -759,23 +759,6 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
   return type;
 }
 
-DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
-       1, 1, 0,
-       doc: /* Return t if there are markers pointing at POSITION in the current buffer.  */)
-  (Lisp_Object position)
-{
-  register struct Lisp_Marker *tail;
-  register ptrdiff_t charpos;
-
-  charpos = clip_to_bounds (BEG, XFIXNUM (position), Z);
-
-  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-    if (tail->charpos == charpos)
-      return Qt;
-
-  return Qnil;
-}
-
 #ifdef MARKER_DEBUG
 
 /* For debugging -- count the markers in buffer BUF.  */
@@ -804,7 +787,7 @@ verify_bytepos (ptrdiff_t charpos)
   while (below != charpos)
     {
       below++;
-      BUF_INC_POS (current_buffer, below_byte);
+      below_byte += buf_next_char_len (current_buffer, below_byte);
     }
 
   return below_byte;
@@ -821,5 +804,4 @@ syms_of_marker (void)
   defsubr (&Scopy_marker);
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
-  defsubr (&Sbuffer_has_markers_at);
 }

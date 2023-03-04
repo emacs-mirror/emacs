@@ -1,4 +1,4 @@
-;;; new-pkg.el --- A package only seen after "updating" archive-contents
+;;; new-pkg.el --- A package only seen after "updating" archive-contents  -*- lexical-binding:t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.0

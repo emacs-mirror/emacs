@@ -1,6 +1,6 @@
-;;; find-gc.el --- detect functions that call the garbage collector
+;;; find-gc.el --- detect functions that call the garbage collector  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -42,14 +42,14 @@ Each entry has the form (FUNCTION . FUNCTIONS-THAT-CALL-IT).")
 Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
 
 
-;;; Functions on this list are safe, even if they appear to be able
-;;; to call the target.
+;; Functions on this list are safe, even if they appear to be able
+;; to call the target.
 
 (defvar find-gc-noreturn-list '(Fsignal Fthrow wrong_type_argument))
 
-;;; This was originally generated directory-files, but there were
-;;; too many files there that were not actually compiled.  The
-;;; list below was created for a HP-UX 7.0 system.
+;; This was originally generated directory-files, but there were
+;; too many files there that were not actually compiled.  The
+;; list below was created for a HP-UX 7.0 system.
 
 (defvar find-gc-source-files
   '("dispnew.c" "scroll.c" "xdisp.c" "window.c"
@@ -73,14 +73,14 @@ Also store it in `find-gc-unsafe-list'."
   (find-unsafe-funcs 'Fgarbage_collect)
   (setq find-gc-unsafe-list
 	(sort find-gc-unsafe-list
-	      (function (lambda (x y)
-			  (string-lessp (car x) (car y)))))))
+              (lambda (x y)
+                (string-lessp (car x) (car y))))))
 
-;;; This does a depth-first search to find all functions that can
-;;; ultimately call the function "target".  The result is an a-list
-;;; in find-gc-unsafe-list; the cars are the unsafe functions, and the cdrs
-;;; are (one of) the unsafe functions that these functions directly
-;;; call.
+;; This does a depth-first search to find all functions that can
+;; ultimately call the function "target".  The result is an a-list
+;; in find-gc-unsafe-list; the cars are the unsafe functions, and the cdrs
+;; are (one of) the unsafe functions that these functions directly
+;; call.
 
 (defun find-unsafe-funcs (target)
   (setq find-gc-unsafe-list (list (list target)))
@@ -100,7 +100,7 @@ Also store it in `find-gc-unsafe-list'."
 
 
 
-(defun trace-call-tree (&optional ignored)
+(defun trace-call-tree (&optional _ignored)
   (message "Setting up directories...")
   (setq find-gc-subrs-called nil)
   (let ((case-fold-search nil)
@@ -134,7 +134,8 @@ Also store it in `find-gc-unsafe-list'."
 			(setcdr entry (cons name (cdr entry)))))))))))))
 
 (defun trace-use-tree ()
-  (setq find-gc-subrs-callers (mapcar 'list (mapcar 'car find-gc-subrs-called)))
+  (setq find-gc-subrs-callers
+        (mapcar #'list (mapcar #'car find-gc-subrs-called)))
   (let ((ptr find-gc-subrs-called)
 	p2 found)
     (while ptr

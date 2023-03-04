@@ -1,6 +1,6 @@
-;;; gnus-dired.el --- utility functions where gnus and dired meet
+;;; gnus-dired.el --- utility functions where gnus and dired meet  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -29,7 +29,7 @@
 ;; following in your ~/.gnus:
 
 ;; (require 'gnus-dired) ;, isn't needed due to autoload cookies
-;; (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+;; (add-hook 'dired-mode-hook #'turn-on-gnus-dired-mode)
 
 ;; Note that if you visit dired buffers before your ~/.gnus file has
 ;; been read, those dired buffers won't have the keybindings in
@@ -40,7 +40,6 @@
 
 (require 'dired)
 (autoload 'mml-attach-file "mml")
-(autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
 (autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
@@ -54,12 +53,10 @@
 (autoload 'message-buffers "message")
 (autoload 'gnus-print-buffer "gnus-sum")
 
-(defvar gnus-dired-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-m\C-a" 'gnus-dired-attach)
-    (define-key map "\C-c\C-m\C-l" 'gnus-dired-find-file-mailcap)
-    (define-key map "\C-c\C-m\C-p" 'gnus-dired-print)
-    map))
+(defvar-keymap gnus-dired-mode-map
+  "C-c C-m C-a" #'gnus-dired-attach
+  "C-c C-m C-l" #'gnus-dired-find-file-mailcap
+  "C-c C-m C-p" #'gnus-dired-print)
 
 ;; FIXME: Make it customizable, change the default to `mail-user-agent' when
 ;; this file is renamed (e.g. to `dired-mime.el').
@@ -93,7 +90,7 @@ See `mail-user-agent' for more information."
 
 ;;;###autoload
 (defun turn-on-gnus-dired-mode ()
-  "Convenience method to turn on gnus-dired-mode."
+  "Convenience method to turn on `gnus-dired-mode'."
   (interactive)
   (gnus-dired-mode 1))
 
@@ -125,7 +122,8 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
+	   (nreverse (dired-map-over-marks (dired-get-filename) nil)))))
+   dired-mode)
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))
@@ -166,8 +164,9 @@ filenames."
       (goto-char (point-max))		;attach at end of buffer
       (while files-to-attach
 	(mml-attach-file (car files-to-attach)
-			 (or (mm-default-file-encoding (car files-to-attach))
-			     "application/octet-stream") nil)
+			 (or (mm-default-file-type (car files-to-attach))
+			     "application/octet-stream")
+			 nil)
 	(setq files-to-attach (cdr files-to-attach)))
       (message "Attached file(s) %s" files-str))))
 
@@ -178,7 +177,8 @@ filenames."
 If ARG is non-nil, open it in a new buffer."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
-		current-prefix-arg))
+		current-prefix-arg)
+	       dired-mode)
   (mailcap-parse-mailcaps)
   (if (file-exists-p file-name)
       (let (mime-type method)
@@ -204,7 +204,8 @@ If ARG is non-nil, open it in a new buffer."
 	  (find-file file-name)))
     (if (file-symlink-p file-name)
 	(error "File is a symlink to a nonexistent target")
-      (error "File no longer exists; type `g' to update Dired buffer"))))
+      (error (substitute-command-keys
+              "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (defun gnus-dired-print (&optional file-name print-to)
   "In dired, print FILE-NAME according to the mailcap file.
@@ -216,7 +217,8 @@ that name.  If PRINT-TO is a number, prompt the user for the name
 of the file to save in."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
-		(ps-print-preprint current-prefix-arg)))
+		(ps-print-preprint current-prefix-arg))
+	       dired-mode)
   (mailcap-parse-mailcaps)
   (cond
    ((file-directory-p file-name)
@@ -243,9 +245,10 @@ of the file to save in."
 	    (error "MIME print only implemented via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
-     (error "File is a symlink to a nonexistent target"))
-    (t
-     (error "File no longer exists; type `g' to update Dired buffer"))))
+    (error "File is a symlink to a nonexistent target"))
+   (t
+    (error (substitute-command-keys
+            "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (provide 'gnus-dired)
 

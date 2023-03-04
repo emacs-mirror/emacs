@@ -1,4 +1,4 @@
-;;; cygwin.el --- support for the Cygwin terminal
+;;; cygwin.el --- support for the Cygwin terminal  -*- lexical-binding:t -*-
 
 ;;; The Cygwin terminal can't really display underlines.
 

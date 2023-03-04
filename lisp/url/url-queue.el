@@ -1,6 +1,6 @@
 ;;; url-queue.el --- Fetching web pages in parallel   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: comm
@@ -31,17 +31,18 @@
 (eval-when-compile (require 'cl-lib))
 (require 'browse-url)
 (require 'url-parse)
+(require 'url-file)
 
 (defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-queue-timeout 5
   "How long to let a job live once it's started (in seconds)."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 ;;; Internal variables.
@@ -123,17 +124,24 @@ The variable `url-queue-timeout' sets a timeout."
       (setq url-queue-progress-timer nil))))
 
 (defun url-queue-callback-function (status job)
-  (setq url-queue (delq job url-queue))
-  (when (and (eq (car status) :error)
-	     (eq (cadr (cadr status)) 'connection-failed))
-    ;; If we get a connection error, then flush all other jobs from
-    ;; the host from the queue.  This particularly makes sense if the
-    ;; error really is a DNS resolver issue, which happens
-    ;; synchronously and totally halts Emacs.
-    (url-queue-remove-jobs-from-host
-     (plist-get (nthcdr 3 (cadr status)) :host)))
-  (url-queue-run-queue)
-  (apply (url-queue-callback job) (cons status (url-queue-cbargs job))))
+  (let ((buffer (current-buffer)))
+    (setq url-queue (delq job url-queue))
+    (when (and (eq (car status) :error)
+	       (eq (cadr (cadr status)) 'connection-failed))
+      ;; If we get a connection error, then flush all other jobs from
+      ;; the host from the queue.  This particularly makes sense if the
+      ;; error really is a DNS resolver issue, which happens
+      ;; synchronously and totally halts Emacs.
+      (url-queue-remove-jobs-from-host
+       (plist-get (nthcdr 3 (cadr status)) :host)))
+    (url-queue-run-queue)
+    ;; Somehow something deep in the bowels in the URL library may
+    ;; have killed off the current buffer.  So check that it's still
+    ;; alive before doing anything, and if not, just create a dummy
+    ;; buffer and do the callback anyway.
+    (unless (buffer-live-p buffer)
+      (set-buffer (generate-new-buffer " *temp*")))
+    (apply (url-queue-callback job) (cons status (url-queue-cbargs job)))))
 
 (defun url-queue-remove-jobs-from-host (host)
   (let ((jobs nil))
@@ -148,14 +156,16 @@ The variable `url-queue-timeout' sets a timeout."
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
-          (with-current-buffer (if (buffer-live-p (url-queue-context-buffer job))
+          (with-current-buffer (if (buffer-live-p
+                                    (url-queue-context-buffer job))
                                    (url-queue-context-buffer job)
                                  (current-buffer))
-	   (let ((url-request-noninteractive t))
-             (url-retrieve (url-queue-url job)
-                           #'url-queue-callback-function (list job)
-                           (url-queue-silentp job)
-                           (url-queue-inhibit-cookiesp job)))))))
+	    (let ((url-request-noninteractive t)
+                  (url-allow-non-local-files t))
+              (url-retrieve (url-queue-url job)
+                            #'url-queue-callback-function (list job)
+                            (url-queue-silentp job)
+                            (url-queue-inhibit-cookiesp job)))))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)

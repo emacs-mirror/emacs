@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 	Benjamin Riefenstahl
@@ -631,7 +631,7 @@ validate_coding_system (Lisp_Object coding_system)
   eol_type = Fcoding_system_eol_type (coding_system);
 
   /* Already a DOS coding system? */
-  if (EQ (eol_type, make_fixnum (1)))
+  if (BASE_EQ (eol_type, make_fixnum (1)))
     return coding_system;
 
   /* Get EOL_TYPE vector of the base of CODING_SYSTEM.  */
@@ -803,7 +803,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
   (void) ignored;
 
   /* Don't pass our own text from the clipboard (which might be
-     troublesome if the killed text includes NUL characters).  */
+     troublesome if the killed text includes null characters).  */
   if (!NILP (current_text))
     return ret;
 
@@ -956,7 +956,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 
 	truelen = nbytes;
 	dst = src;
-	/* avoid using strchr because it recomputes the length everytime */
+	/* avoid using strchr because it recomputes the length every time */
 	while ((dst = memchr (dst, '\r', nbytes - (dst - src))) != NULL)
 	  {
 	    if (dst[1] == '\n')	/* safe because of trailing '\0' */
@@ -1207,7 +1207,7 @@ globals_of_w32select (void)
   QANSICP = coding_from_cp (ANSICP);
   QOEMCP = coding_from_cp (OEMCP);
 
-  if (os_subtype == OS_NT)
+  if (os_subtype == OS_SUBTYPE_NT)
     Vselection_coding_system = Qutf_16le_dos;
   else if (inhibit_window_system)
     Vselection_coding_system = QOEMCP;

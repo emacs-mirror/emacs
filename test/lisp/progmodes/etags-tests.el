@@ -1,6 +1,6 @@
-;;; etags-tests.el --- Test suite for etags.el.
+;;; etags-tests.el --- Test suite for etags.el.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'etags)
 (eval-when-compile (require 'cl-lib))
 
@@ -95,19 +96,19 @@
 
 (ert-deftest etags-buffer-local-tags-table-list ()
   "Test that a buffer-local value of `tags-table-list' is used."
-  (let ((file (make-temp-file "etag-test-tmpfile")))
-    (unwind-protect
-        (progn
-          (set-buffer (find-file-noselect file))
-          (fundamental-mode)
-          (setq-local tags-table-list
-                      (list (expand-file-name "manual/etags/ETAGS.good_3"
-                                              etags-tests--test-dir)))
-          (cl-letf ((tag-tables tags-table-list)
-                    (tags-file-name nil)
-                    ((symbol-function 'read-file-name)
-                     (lambda (&rest _)
-                       (error "We should not prompt the user"))))
-            (should (visit-tags-table-buffer))
-            (should (equal tags-file-name (car tag-tables)))))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :suffix "etag-test-tmpfile"
+    (set-buffer (find-file-noselect file))
+    (fundamental-mode)
+    (setq-local tags-table-list
+                (list (expand-file-name "manual/etags/ETAGS.good_3"
+                                        etags-tests--test-dir)))
+    (cl-letf ((tag-tables tags-table-list)
+              (tags-file-name nil)
+              ((symbol-function 'read-file-name)
+               (lambda (&rest _)
+                 (error "We should not prompt the user"))))
+      (should (visit-tags-table-buffer))
+      (should (equal tags-file-name (car tag-tables))))))
+
+;;; etags-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; tty-colors-tests.el --- tests for tty-colors.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,4 +35,4 @@
 
 (provide 'term-tests)
 
-;;; term-tests.el ends here
+;;; tty-colors-tests.el ends here

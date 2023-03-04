@@ -1,6 +1,6 @@
-;;; nneething.el --- arbitrary file access for Gnus
+;;; nneething.el --- arbitrary file access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -57,6 +57,7 @@ included.")
 
 (defconst nneething-version "nneething 1.0"
   "nneething version.")
+(make-obsolete-variable 'nneething-version 'emacs-version "29.1")
 
 (defvoo nneething-current-directory nil
   "Current news group directory.")
@@ -77,7 +78,7 @@ included.")
 
 (nnoo-define-basics nneething)
 
-(deffoo nneething-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nneething-retrieve-headers (articles &optional group _server _fetch-old)
   (nneething-possibly-change-directory group)
 
   (with-current-buffer nntp-server-buffer
@@ -114,7 +115,7 @@ included.")
 	(nnheader-fold-continuation-lines)
 	'headers))))
 
-(deffoo nneething-request-article (id &optional group server buffer)
+(deffoo nneething-request-article (id &optional group _server buffer)
   (nneething-possibly-change-directory group)
   (let ((file (unless (stringp id)
 		(nneething-file-name id)))
@@ -143,7 +144,7 @@ included.")
 	     (insert "\n"))
 	   t))))
 
-(deffoo nneething-request-group (group &optional server dont-check info)
+(deffoo nneething-request-group (group &optional server dont-check _info)
   (nneething-possibly-change-directory group server)
   (unless dont-check
     (nneething-create-mapping)
@@ -156,16 +157,16 @@ included.")
        group)))
   t)
 
-(deffoo nneething-request-list (&optional server dir)
+(deffoo nneething-request-list (&optional _server _dir)
   (nnheader-report 'nneething "LIST is not implemented."))
 
-(deffoo nneething-request-newgroups (date &optional server)
+(deffoo nneething-request-newgroups (_date &optional _server)
   (nnheader-report 'nneething "NEWSGROUPS is not implemented."))
 
-(deffoo nneething-request-type (group &optional article)
+(deffoo nneething-request-type (_group &optional _article)
   'unknown)
 
-(deffoo nneething-close-group (group &optional server)
+(deffoo nneething-close-group (_group &optional _server)
   (setq nneething-current-directory nil)
   t)
 
@@ -245,7 +246,8 @@ included.")
 	(while map
 	  (if (and (member (cadr (car map)) files)
 		  ;; We also remove files that have changed mod times.
-		   (equal (file-attribute-modification-time (file-attributes
+		   (time-equal-p
+			  (file-attribute-modification-time (file-attributes
 				  (nneething-file-name (cadr (car map)))))
 			  (cadr (cdar map))))
 	      (progn

@@ -1,6 +1,6 @@
-;;; forms-d2.el --- demo forms-mode
+;;; forms-d2.el --- demo forms-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 1994-1997, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1991, 1994-1997, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>

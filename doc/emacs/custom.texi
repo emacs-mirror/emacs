@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -195,7 +195,7 @@ the customization buffer:
 
   The first line shows that the variable is named
 @code{kill-ring-max}, formatted as @samp{Kill Ring Max} for easier
-viewing.  Its value is @samp{60}.  The button labeled @samp{[Hide]},
+viewing.  Its value is @samp{120}.  The button labeled @samp{[Hide]},
 if activated, hides the variable's value and state; this is useful to
 avoid cluttering up the customization buffer with very long values
 (for this reason, variables that have very long values may start out
@@ -388,15 +388,15 @@ file.  For example:
 Emacs versions, like this:
 
 @example
-(cond ((< emacs-major-version 22)
-       ;; @r{Emacs 21 customization.}
-       (setq custom-file "~/.config/custom-21.el"))
-      ((and (= emacs-major-version 22)
+(cond ((< emacs-major-version 28)
+       ;; @r{Emacs 27 customization.}
+       (setq custom-file "~/.config/custom-27.el"))
+      ((and (= emacs-major-version 26)
             (< emacs-minor-version 3))
-       ;; @r{Emacs 22 customization, before version 22.3.}
-       (setq custom-file "~/.config/custom-22.el"))
+       ;; @r{Emacs 26 customization, before version 26.3.}
+       (setq custom-file "~/.config/custom-26.el"))
       (t
-       ;; @r{Emacs version 22.3 or later.}
+       ;; @r{Emacs version 28.1 or later.}
        (setq custom-file "~/.config/emacs-custom.el")))
 
 (load custom-file)
@@ -511,6 +511,9 @@ Set up a customization buffer for just one user option, @var{option}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer for just one face, @var{face}.
 
+@item M-x customize-icon @key{RET} @var{face} @key{RET}
+Set up a customization buffer for just one icon, @var{icon}.
+
 @item M-x customize-group @key{RET} @var{group} @key{RET}
 Set up a customization buffer for just one group, @var{group}.
 
@@ -519,12 +522,9 @@ Set up a customization buffer for all the settings and groups that
 match @var{regexp}.
 
 @item M-x customize-changed @key{RET} @var{version} @key{RET}
-Set up a customization buffer with all the settings and groups
-whose meaning has changed since Emacs version @var{version}.
-
-@item M-x customize-changed-options @key{RET} @var{version} @key{RET}
-Set up a customization buffer with all the options whose meaning or
-default values have changed since Emacs version @var{version}.
+Set up a customization buffer with all the user options, faces and
+groups whose meaning has changed since (or been added after) Emacs
+version @var{version}.
 
 @item M-x customize-saved
 Set up a customization buffer containing all settings that you
@@ -626,7 +626,7 @@ button.
 the theme file and asks if you really want to load it.  Because
 loading a Custom theme can execute arbitrary Lisp code, you should
 only say yes if you know that the theme is safe; in that case, Emacs
-offers to remember in the future that the theme is safe (this is done
+offers to remember in the future that the theme is safe(this is done
 by saving the theme file's SHA-256 hash to the variable
 @code{custom-safe-themes}; if you want to treat all themes as safe,
 change its value to @code{t}).  Themes that come with Emacs (in the
@@ -666,6 +666,16 @@ type @kbd{M-x disable-theme}.
   To see a description of a Custom theme, type @kbd{?} on its line in
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
 anywhere in Emacs and enter the theme name.
+
+@findex theme-choose-variant
+Some themes have variants (most often just two: light and dark).  You
+can switch to another variant using @kbd{M-x theme-choose-variant}.
+If the currently active theme has only one other variant, it will be
+selected; if there are more variants, the command will prompt you
+which one to switch to.
+
+Note that @code{theme-choose-variant} only works if a single theme
+is active.
 
 @node Creating Custom Themes
 @subsection Creating Custom Themes
@@ -755,7 +765,7 @@ non-@code{nil} value).  If you set a variable using the customization
 buffer, you need not worry about giving it an invalid type: the
 customization buffer usually only allows you to enter meaningful
 values.  When in doubt, use @kbd{C-h v} (@code{describe-variable}) to
-check the variable's documentation string to see kind of value it
+check the variable's documentation string to see what kind of value it
 expects (@pxref{Examining}).
 
 @menu
@@ -795,12 +805,12 @@ C-h v fill-column @key{RET}
 displays something like this:
 
 @example
-fill-column is a variable defined in ‘C source code’.
+fill-column is a variable defined in @quoteleft{}C source code@quoteright{}.
 Its value is 70
 
   Automatically becomes buffer-local when set.
   This variable is safe as a file local variable if its value
-  satisfies the predicate ‘integerp’.
+  satisfies the predicate @quoteleft{}integerp@quoteright{}.
   Probably introduced at or before Emacs version 18.
 
 Documentation:
@@ -846,6 +856,21 @@ expression, and then type @kbd{C-j} (@pxref{Lisp Interaction}).
 otherwise stated, affects only the current Emacs session.  The only
 way to alter the variable in future sessions is to put something in
 your initialization file (@pxref{Init File}).
+
+  If you're setting a customizable variable in your initialization
+file, and you don't want to use the Customize interface, you can use
+the @code{setopt} macro.  For instance:
+
+@findex setopt
+@example
+(setopt fill-column 75)
+@end example
+
+This works the same as @code{setq}, but if the variable has any
+special setter functions, they will be run automatically when using
+@code{setopt}.  You can also use @code{setopt} on other,
+non-customizable variables, but this is less efficient than using
+@code{setq}.
 
 @node Hooks
 @subsection Hooks
@@ -1087,8 +1112,9 @@ first line:
 @noindent
 You can specify any number of variable/value pairs in this way, each
 pair with a colon and semicolon.  The special variable/value pair
-@code{mode: @var{modename};}, if present, specifies a major mode.  The
-@var{value}s are used literally, and not evaluated.
+@code{mode: @var{modename};}, if present, specifies a major mode
+(without the ``-mode'' suffix).  The @var{value}s are used literally,
+and not evaluated.
 
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
@@ -1219,11 +1245,33 @@ Manual}.
 These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
+  If you're editing a file across Emacs versions, and a new mode has
+been introduced to handle a file in a newer Emacs version, you can use
+several @code{mode} entries to use the new mode (called
+@code{my-new-mode}) in the new Emacs, and fall back to the old mode
+(called @code{my-old-mode}) in older Emacs versions.  If you're
+enabling the modes in the first line of the file, can say:
+
+@example
+-*- mode: my-old; mode: my-new -*-
+@end example
+
+  Emacs will use the final defined mode it finds, so in older Emacs
+versions it will ignore @code{my-new-mode}, while in Emacs versions
+where @code{my-new-mode} is defined, it'll ignore @code{my-old-mode}.
+Similarly, in a local variable block at the end of the file:
+
+@example
+Local variables:
+mode: my-old
+mode: my-new
+@end example
+
   Do not use the @code{mode} keyword for minor modes.  To enable or
 disable a minor mode in a local variables list, use the @code{eval}
 keyword with a Lisp expression that runs the mode command
 (@pxref{Minor Modes}).  For example, the following local variables
-list enables Eldoc mode (@pxref{Lisp Doc}) by calling
+list enables ElDoc mode (@pxref{Programming Language Doc}) by calling
 @code{eldoc-mode} with no argument (calling it with an argument of 1
 would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
 calling @code{font-lock-mode} with an argument of @minus{}1.
@@ -1274,7 +1322,13 @@ confirmation prompt.  When Emacs encounters these variable/value pairs
 subsequently, in the same file or others, it will assume they are
 safe.
 
+  You can also tell Emacs to permanently ignore all the variable/value
+pairs in the file, by typing @kbd{i} at the confirmation prompt --
+these pairs will thereafter be ignored in this file and in all other
+files.
+
 @vindex safe-local-variable-values
+@vindex ignored-local-variable-values
 @cindex risky variable
   Some variables, such as @code{load-path}, are considered
 particularly @dfn{risky}: there is seldom any reason to specify them
@@ -1286,6 +1340,8 @@ can enter @kbd{!} at the prompt.  It applies all the variables, but only
 marks the non-risky ones as safe for the future.  If you really want to
 record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
+Similarly, if you want to record values of risky variables that should
+be permanently ignored, customize @code{ignored-local-variable-values}.
 
 @vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the
@@ -1410,6 +1466,16 @@ meanings as they would have in file local variables.  @code{coding}
 cannot be specified as a directory local variable.  @xref{File
 Variables}.
 
+The special key @code{auto-mode-alist} in a @file{.dir-locals.el} lets
+you set a file's major mode.  It works much like the variable
+@code{auto-mode-alist} (@pxref{Choosing Modes}).  For example, here is
+how you can tell Emacs that @file{.def} source files in this directory
+should be in C mode:
+
+@example
+((auto-mode-alist . (("\\.def\\'" . c-mode))))
+@end example
+
 @findex add-dir-local-variable
 @findex delete-dir-local-variable
 @findex copy-file-locals-to-dir-locals
@@ -1458,9 +1524,10 @@ as Dired buffers (@pxref{Dired}).
 
   Most of the variables reflect the situation on the local machine.
 Often, they must use a different value when you operate in buffers
-with a remote default directory.  Think about the shell to be applied
-when calling @code{shell} -- it might be @file{/bin/bash} on your
-local machine, and @file{/bin/ksh} on a remote machine.
+with a remote default directory.  Think about the behavior when
+calling @code{shell} -- on your local machine, you might use
+@file{/bin/bash} and rely on termcap, but on a remote machine, it may
+be @file{/bin/ksh} and terminfo.
 
   This can be accomplished with @dfn{connection-local variables}.
 Directory and file local variables override connection-local
@@ -1476,6 +1543,10 @@ variables/value pairs in a @dfn{profile}, using the
 criteria, identifying a remote machine:
 
 @example
+(connection-local-set-profile-variables 'remote-terminfo
+   '((system-uses-terminfo . t)
+     (comint-terminfo-terminal . "dumb-emacs-ansi")))
+
 (connection-local-set-profile-variables 'remote-ksh
    '((shell-file-name . "/bin/ksh")
      (shell-command-switch . "-c")))
@@ -1485,13 +1556,15 @@ criteria, identifying a remote machine:
      (shell-command-switch . "-c")))
 
 (connection-local-set-profiles
-   '(:application tramp :machine "remotemachine") 'remote-ksh)
+   '(:application tramp :machine "remotemachine")
+   'remote-terminfo 'remote-ksh)
 @end example
 
-  This code declares two different profiles, @code{remote-ksh} and
-@code{remote-bash}. The profile @code{remote-ksh} is applied to all
+  This code declares three different profiles, @code{remote-terminfo},
+@code{remote-ksh}, and @code{remote-bash}.  The profiles
+@code{remote-terminfo} and @code{remote-ksh} are applied to all
 buffers which have a remote default directory matching the regexp
-@code{"remotemachine} as host name.  Such a criteria can also
+@code{"remotemachine"} as host name.  Such a criteria can also
 discriminate for the properties @code{:protocol} (this is the Tramp
 method) or @code{:user} (a remote user name).  The @code{nil} criteria
 matches all buffers with a remote default directory.
@@ -1561,7 +1634,7 @@ which overrides the global definitions of some keys.
 self-inserting because the global keymap binds it to the command
 @code{self-insert-command}.  The standard Emacs editing characters
 such as @kbd{C-a} also get their standard meanings from the global
-keymap.  Commands to rebind keys, such as @kbd{M-x global-set-key},
+keymap.  Commands to rebind keys, such as @kbd{M-x keymap-global-set},
 work by storing the new binding in the proper place in the global map
 (@pxref{Rebinding}).  To view the current key bindings, use the
 @kbd{C-h b} command.
@@ -1581,6 +1654,13 @@ on the function key and on the terminal type.  (Often the sequence
 starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
 type properly, it automatically handles such sequences as single input
 events.
+
+  Key sequences that consist of @kbd{C-c} followed by a letter (upper
+or lower case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved
+for users.  Emacs itself will never bind those key sequences, and
+Emacs extensions should avoid binding them.  In other words, users can
+bind key sequences like @kbd{C-c a} or @kbd{C-c @,{c}} and rely on these
+never being shadowed by other Emacs bindings.
 
 @node Prefix Keymaps
 @subsection Prefix Keymaps
@@ -1630,6 +1710,10 @@ characters are actually defined by this map.
 @item
 @vindex mode-specific-map
 @code{mode-specific-map} is for characters that follow @kbd{C-c}.
+@item
+@vindex project-prefix-map
+@code{project-prefix-map} is for characters that follow @kbd{C-x p},
+used for project-related commands (@pxref{Projects}).
 @end itemize
 
 @node Local Keymaps
@@ -1673,7 +1757,6 @@ circumstances.
 @vindex minibuffer-local-completion-map
 @vindex minibuffer-local-must-match-map
 @vindex minibuffer-local-filename-completion-map
-@vindex minibuffer-local-filename-must-match-map
   The minibuffer has its own set of local keymaps; they contain various
 completion and exit commands.
 
@@ -1689,11 +1772,21 @@ just like @key{RET}.
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
 @item
-@code{minibuffer-local-filename-completion-map} and
-@code{minibuffer-local-filename-must-match-map} are like the two
-previous ones, but they are specifically for file name completion.
-They do not bind @key{SPC}.
+@code{minibuffer-local-filename-completion-map} is like the two
+previous ones, but specifically for file name completion.
+It does not bind @key{SPC}.
 @end itemize
+
+By default, @key{TAB}, @key{SPC} and @key{?} do completion in
+@code{minibuffer-local-completion-map}.  If you commonly complete over
+collections that have elements with space or question mark characters in
+them, it may be convenient to disable completion on those keys by
+putting this in your init file:
+
+@lisp
+(keymap-set minibuffer-local-completion-map "SPC" 'self-insert-command)
+(keymap-set minibuffer-local-completion-map "?" 'self-insert-command)
+@end lisp
 
 @node Rebinding
 @subsection Changing Key Bindings Interactively
@@ -1711,19 +1804,19 @@ local keymap, which affects all buffers using the same major mode.
 Emacs session.  @xref{Init Rebinding}, for a description of how to
 make key rebindings affect future Emacs sessions.
 
-@findex global-set-key
-@findex local-set-key
-@findex global-unset-key
-@findex local-unset-key
+@findex keymap-global-set
+@findex keymap-local-set
+@findex keymap-global-unset
+@findex keymap-local-unset
 @table @kbd
-@item M-x global-set-key @key{RET} @var{key} @var{cmd} @key{RET}
+@item M-x keymap-global-set @key{RET} @var{key} @var{cmd} @key{RET}
 Define @var{key} globally to run @var{cmd}.
-@item M-x local-set-key @key{RET} @var{key} @var{cmd} @key{RET}
+@item M-x keymap-local-set @key{RET} @var{key} @var{cmd} @key{RET}
 Define @var{key} locally (in the major mode now in effect) to run
 @var{cmd}.
-@item M-x global-unset-key @key{RET} @var{key}
+@item M-x keymap-global-unset @key{RET} @var{key}
 Make @var{key} undefined in the global map.
-@item M-x local-unset-key @key{RET} @var{key}
+@item M-x keymap-local-unset @key{RET} @var{key}
 Make @var{key} undefined locally (in the major mode now in effect).
 @end table
 
@@ -1732,11 +1825,11 @@ command (@pxref{Interactive Shell}), replacing the normal global
 definition of @kbd{C-z}:
 
 @example
-M-x global-set-key @key{RET} C-z shell @key{RET}
+M-x keymap-global-set @key{RET} C-z shell @key{RET}
 @end example
 
 @noindent
-The @code{global-set-key} command reads the command name after the
+The @code{keymap-global-set} command reads the command name after the
 key.  After you press the key, a message like this appears so that you
 can confirm that you are binding the key you want:
 
@@ -1757,7 +1850,7 @@ reads another character; if that is @kbd{4}, another prefix character,
 it reads one more character, and so on.  For example,
 
 @example
-M-x global-set-key @key{RET} C-x 4 $ spell-other-window @key{RET}
+M-x keymap-global-set @key{RET} C-x 4 $ spell-other-window @key{RET}
 @end example
 
 @noindent
@@ -1765,8 +1858,8 @@ redefines @kbd{C-x 4 $} to run the (fictitious) command
 @code{spell-other-window}.
 
   You can remove the global definition of a key with
-@code{global-unset-key}.  This makes the key @dfn{undefined}; if you
-type it, Emacs will just beep.  Similarly, @code{local-unset-key} makes
+@code{keymap-global-unset}.  This makes the key @dfn{undefined}; if you
+type it, Emacs will just beep.  Similarly, @code{keymap-local-unset} makes
 a key undefined in the current major mode keymap, which makes the global
 definition (or lack of one) come back into effect in that major mode.
 
@@ -1794,95 +1887,79 @@ command is less work to invoke when you really want to.
 you can specify them in your initialization file by writing Lisp code.
 @xref{Init File}, for a description of the initialization file.
 
-@findex kbd
-  There are several ways to write a key binding using Lisp.  The
-simplest is to use the @code{kbd} function, which converts a textual
-representation of a key sequence---similar to how we have written key
-sequences in this manual---into a form that can be passed as an
-argument to @code{global-set-key}.  For example, here's how to bind
-@kbd{C-z} to the @code{shell} command (@pxref{Interactive Shell}):
+@findex keymap-global-set
+  The recommended way to write a key binding using Lisp is to use
+either the @code{keymap-global-set} or the @code{keymap-set}
+functions.  For example, here's how to bind @kbd{C-z} to the
+@code{shell} command in the global keymap (@pxref{Interactive Shell}):
 
 @example
-(global-set-key (kbd "C-z") 'shell)
+(keymap-global-set "C-z" 'shell)
 @end example
 
+@cindex key sequence syntax
 @noindent
-The single-quote before the command name, @code{shell}, marks it as a
+The first argument to @code{keymap-global-set} describes the key
+sequence.  It is a string made of a series of characters separated
+by spaces, with each character corresponding to a key.  Keys with
+modifiers can be specified by prepending the modifier, such as
+@samp{C-} for Control, or @samp{M-} for Meta.  Special keys, such as
+@key{TAB} and @key{RET}, can be specified within angle brackets as in
+@kbd{@key{TAB}} and @kbd{@key{RET}}.
+
+  The single-quote before the command name that is being bound to the
+key sequence, @code{shell} in the above example, marks it as a
 constant symbol rather than a variable.  If you omit the quote, Emacs
-would try to evaluate @code{shell} as a variable.  This probably
-causes an error; it certainly isn't what you want.
+would try to evaluate @code{shell} as a variable.  This will probably
+cause an error; it certainly isn't what you want.
 
   Here are some additional examples, including binding function keys
 and mouse events:
 
 @example
-(global-set-key (kbd "C-c y") 'clipboard-yank)
-(global-set-key (kbd "C-M-q") 'query-replace)
-(global-set-key (kbd "<f5>") 'flyspell-mode)
-(global-set-key (kbd "C-<f5>") 'display-line-numbers-mode)
-(global-set-key (kbd "C-<right>") 'forward-sentence)
-(global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
-@end example
-
-  Instead of using @code{kbd}, you can use a Lisp string or vector to
-specify the key sequence.  Using a string is simpler, but only works
-for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
-characters.  For example, here's how to bind @kbd{C-x M-l} to
-@code{make-symbolic-link} (@pxref{Copying and Naming}):
-
-@example
-(global-set-key "\C-x\M-l" 'make-symbolic-link)
-@end example
-
-  To bind a key sequence including @key{TAB}, @key{RET}, @key{ESC}, or
-@key{DEL}, the string should contain the Emacs Lisp escape sequence
-@samp{\t}, @samp{\r}, @samp{\e}, or @samp{\d} respectively.  Here is
-an example which binds @kbd{C-x @key{TAB}} to @code{indent-rigidly}
-(@pxref{Indentation}):
-
-@example
-(global-set-key "\C-x\t" 'indent-rigidly)
-@end example
-
-  When the key sequence includes function keys or mouse button events,
-or non-@acronym{ASCII} characters such as @code{C-=} or @code{H-a},
-you can use a vector to specify the key sequence.  Each element in the
-vector stands for an input event; the elements are separated by spaces
-and surrounded by a pair of square brackets.  If a vector element is a
-character, write it as a Lisp character constant: @samp{?} followed by
-the character as it would appear in a string.  Function keys are
-represented by symbols (@pxref{Function Keys}); simply write the
-symbol's name, with no other delimiters or punctuation.  Here are some
-examples:
-
-@example
-(global-set-key [?\C-=] 'make-symbolic-link)
-(global-set-key [?\M-\C-=] 'make-symbolic-link)
-(global-set-key [?\H-a] 'make-symbolic-link)
-(global-set-key [f7] 'make-symbolic-link)
-(global-set-key [C-mouse-1] 'make-symbolic-link)
-@end example
-
-@noindent
-You can use a vector for the simple cases too:
-
-@example
-(global-set-key [?\C-z ?\M-l] 'make-symbolic-link)
+(keymap-global-set "C-c y" 'clipboard-yank)
+(keymap-global-set "C-M-q" 'query-replace)
+(keymap-global-set "<f5>" 'flyspell-mode)
+(keymap-global-set "C-<f5>" 'display-line-numbers-mode)
+(keymap-global-set "C-<right>" 'forward-sentence)
+(keymap-global-set "<mouse-2>" 'mouse-save-then-kill)
 @end example
 
   Language and coding systems may cause problems with key bindings for
 non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
+@findex global-set-key
 @findex define-key
+  Alternatively, you can use the low level functions @code{define-key}
+and @code{global-set-key}.  For example, to bind @kbd{C-z} to the
+@code{shell} command, as in the above example, using these low-level
+functions, use:
+
+@example
+(global-set-key (kbd "C-z") 'shell)
+@end example
+
+@findex kbd
+@noindent
+There are various ways to specify the key sequence but the simplest is
+to use the function @code{kbd} as shown in the example above.
+@code{kbd} takes a single string argument that is a textual
+representation of a key sequence, and converts it into a form suitable
+for low-level functions such as @code{global-set-key}.  For more
+details about binding keys using Lisp, @pxref{Keymaps,,, elisp, The
+Emacs Lisp Reference Manual}.
+
+@findex keymap-set
+@findex keymap-unset
   As described in @ref{Local Keymaps}, major modes and minor modes can
 define local keymaps.  These keymaps are constructed when the mode is
-loaded for the first time in a session.  The function @code{define-key}
-can be used to make changes in a specific keymap.  This function can
-also unset keys, when passed @code{nil} as the binding.
+loaded for the first time in a session.  The function @code{keymap-set}
+can be used to make changes in a specific keymap.  To remove a key
+binding, use @code{keymap-unset}.
 
   Since a mode's keymaps are not constructed until it has been loaded,
 you must delay running code which modifies them, e.g., by putting it
-on a @dfn{mode hook} (@pxref{(Hooks)}).  For example, Texinfo mode
+on a @dfn{mode hook} (@pxref{Hooks}).  For example, Texinfo mode
 runs the hook @code{texinfo-mode-hook}.  Here's how you can use the
 hook to add local bindings for @kbd{C-c n} and @kbd{C-c p}, and remove
 the one for @kbd{C-c C-x x} in Texinfo mode:
@@ -1890,11 +1967,11 @@ the one for @kbd{C-c C-x x} in Texinfo mode:
 @example
 (add-hook 'texinfo-mode-hook
           (lambda ()
-            (define-key texinfo-mode-map "\C-cp"
+            (keymap-set texinfo-mode-map "C-c p"
                         'backward-paragraph)
-            (define-key texinfo-mode-map "\C-cn"
+            (keymap-set texinfo-mode-map "C-c n"
                         'forward-paragraph)))
-            (define-key texinfo-mode-map "\C-c\C-xx" nil)
+            (keymap-set texinfo-mode-map "C-c C-x x" nil)
 @end example
 
 @node Modifier Keys
@@ -1916,7 +1993,7 @@ between those keystrokes.  However, you can bind shifted @key{Control}
 alphabetical keystrokes in GUI frames:
 
 @lisp
-(global-set-key (kbd "C-S-n") #'previous-line)
+(keymap-global-set "C-S-n" #'previous-line)
 @end lisp
 
   For all other modifiers, you can make the modified alphabetical
@@ -1942,13 +2019,17 @@ to assign meanings to key bindings that use these modifiers.  The
 modifier bits are labeled as @samp{s-}, @samp{H-} and @samp{A-}
 respectively.
 
+@cindex modifier keys unsupported by keyboard
   Even if your keyboard lacks these additional modifier keys, you can
-enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
+enter them using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
 the next character, @kbd{C-x @@ s} adds the Super flag, and
 @kbd{C-x @@ a} adds the Alt flag.  For instance, @kbd{C-x @@ h
 C-a} is a way to enter @kbd{Hyper-Control-a}.  (Unfortunately, there
 is no way to add two modifiers by using @kbd{C-x @@} twice for the
 same character, because the first one goes to work on the @kbd{C-x}.)
+You can similarly enter the Shift, Control, and Meta modifiers by
+using @kbd{C-x @ S}, @kbd{C-x @ c}, and @kbd{C-x @ m}, respectively,
+although this is rarely needed.
 
 @node Function Keys
 @subsection Rebinding Function Keys
@@ -2070,7 +2151,7 @@ button, @code{mouse-2} for the next, and so on.  Here is how you can
 redefine the second mouse button to split the current window:
 
 @example
-(global-set-key [mouse-2] 'split-window-below)
+(keymap-global-set "<mouse-2>" 'split-window-below)
 @end example
 
   The symbols for drag events are similar, but have the prefix
@@ -2153,7 +2234,7 @@ Thus, here is how to define the command for clicking the first button in
 a mode line to run @code{scroll-up-command}:
 
 @example
-(global-set-key [mode-line mouse-1] 'scroll-up-command)
+(keymap-global-set "<mode-line> <mouse-1>" 'scroll-up-command)
 @end example
 
   Here is the complete list of these dummy prefix keys and their
@@ -2221,6 +2302,22 @@ is included in the message displayed when the command is used:
      "It's better to use `kill-region' instead.\n")
 @end example
 
+@findex command-query
+  As a less heavy-handed alternative to disabling commands, you may
+want to be queried before executing a command.  For instance, to be
+queried before executing the @kbd{M->} (@code{end-of-buffer})
+command, you could put something like the following in your init file:
+
+@example
+(command-query
+ 'end-of-buffer
+ "Do you really want to go to the end of the buffer?")
+@end example
+
+By default, you'll be queried with a @kbd{y}/@kbd{n} question, but if
+you give a non-@code{nil} value to the third, optional argument,
+you'll be queried with @kbd{yes}/@kbd{no} instead.
+
 @findex disable-command
 @findex enable-command
   You can make a command disabled either by editing the initialization
@@ -2249,13 +2346,18 @@ as a function from Lisp programs.
 @cindex startup (init file)
 @cindex XDG_CONFIG_HOME
 
+@c When updating this, also update ``Setting up a customization file''
+@c in efaq.texi.
   When Emacs is started, it normally tries to load a Lisp program from
 an @dfn{initialization file}, or @dfn{init file} for short.  This
 file, if it exists, specifies how to initialize Emacs for you.
-If the file @file{~/.config/emacs/init.el} exists, it is used as the
-init file; otherwise Emacs may look at @file{~/.emacs.el},
-@file{~/.emacs}, @file{~/.emacs.d/init.el}, or other locations.
-@xref{Find Init}.
+Traditionally, file @file{~/.emacs} is used as the init file, although
+Emacs also looks at @file{~/.emacs.el}, @file{~/.emacs.d/init.el},
+@file{~/.config/emacs/init.el}, or other locations.  @xref{Find Init}.
+
+You may find it convenient to have all your Emacs configuration in one
+directory, in which case you should use @file{~/.emacs.d/init.el} or
+the XDG-compatible @file{~/.config/emacs/init.el}.
 
   You can use the command line switch @samp{-q} to prevent loading
 your init file, and @samp{-u} (or @samp{--user}) to specify a
@@ -2326,14 +2428,19 @@ function @code{setq} to set the variable @code{fill-column}
 (@pxref{Filling}) to 60.
 
   You can set any Lisp variable with @code{setq}, but with certain
-variables @code{setq} won't do what you probably want in the
-init file.  Some variables automatically become buffer-local
-when set with @code{setq}; what you want in the init file is to set
-the default value, using @code{setq-default}.  Some customizable minor
-mode variables do special things to enable the mode when you set them
-with Customize, but ordinary @code{setq} won't do that; to enable the
-mode in your init file, call the minor mode command.  The
-following section has examples of both of these methods.
+variables @code{setq} won't do what you probably want in the init
+file.  Some variables automatically become buffer-local when set with
+@code{setq}; what you want in the init file is to set the default
+value, using @code{setq-default}.  (The following section has examples
+of both of these methods.)
+
+Some customizable minor mode variables do special things to enable the
+mode when you set them with Customize, but ordinary @code{setq} won't
+do that; to enable the mode in your init file, call the minor mode
+command.  Finally, a few customizable user options are initialized in
+complex ways, and these have to be set either via the customize
+interface (@pxref{Customization}), or by using
+@code{customize-set-variable}/@code{setopt} (@pxref{Examining}).
 
   The second argument to @code{setq} is an expression for the new
 value of the variable.  This can be a constant, a variable, or a
@@ -2389,6 +2496,9 @@ keys which send non-@acronym{ASCII} characters.
 @cindex Lisp object syntax
 Write a single-quote (@code{'}) followed by the Lisp object you want.
 @end table
+
+  For more information on the Emacs Lisp syntax, @pxref{Introduction,,,
+elisp, The Emacs Lisp Reference Manual}.
 
 @node Init Examples
 @subsection Init File Examples
@@ -2482,6 +2592,14 @@ Turn on Auto Fill mode automatically in Text mode and related modes
 @end example
 
 @item
+Change the coding system used when using the clipboard
+(@pxref{Communication Coding}).
+
+@example
+(setopt selection-coding-system 'utf-8)
+@end example
+
+@item
 Load the installed Lisp library named @file{foo} (actually a file
 @file{foo.elc} or @file{foo.el} in a standard Emacs directory).
 
@@ -2528,13 +2646,13 @@ Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}
 (@pxref{Init Rebinding}).
 
 @example
-(global-set-key "\C-xl" 'make-symbolic-link)
+(keymap-global-set "C-x l" 'make-symbolic-link)
 @end example
 
 or
 
 @example
-(define-key global-map "\C-xl" 'make-symbolic-link)
+(keymap-set global-map "C-x l" 'make-symbolic-link)
 @end example
 
 Note once again the single-quote used to refer to the symbol
@@ -2544,24 +2662,23 @@ Note once again the single-quote used to refer to the symbol
 Do the same thing for Lisp mode only.
 
 @example
-(define-key lisp-mode-map "\C-xl" 'make-symbolic-link)
+(keymap-set lisp-mode-map "C-x l" 'make-symbolic-link)
 @end example
 
 @item
 Redefine all keys which now run @code{next-line} in Fundamental mode
 so that they run @code{forward-line} instead.
 
-@findex substitute-key-definition
+@findex keymap-substitute
 @example
-(substitute-key-definition 'next-line 'forward-line
-                           global-map)
+(keymap-substitute global-map 'next-line 'forward-line)
 @end example
 
 @item
 Make @kbd{C-x C-v} undefined.
 
 @example
-(global-unset-key "\C-x\C-v")
+(keymap-global-unset "C-x C-v")
 @end example
 
 One reason to undefine a key is so that you can make it a prefix.
@@ -2598,6 +2715,7 @@ the function or facility is available, like this:
 (if (fboundp 'blink-cursor-mode)
     (blink-cursor-mode 0))
 
+@c FIXME: Find better example since `set-coding-priority' is removed.
 (if (boundp 'coding-category-utf-8)
     (set-coding-priority '(coding-category-utf-8)))
 @end example
@@ -2612,6 +2730,28 @@ function is not defined.
 
 A @code{setq} on a variable which does not exist is generally
 harmless, so those do not need a conditional.
+
+@item
+Using @code{use-package} to automatically load and configure a
+package.
+
+@example
+(use-package hi-lock
+  :defer t
+  :init (add-hook 'some-hook 'hi-lock-mode)
+  :config (use-package my-hi-lock)
+  :bind (("M-o l" . highlight-lines-matching-regexp)
+         ("M-o r" . highlight-regexp)
+         ("M-o w" . highlight-phrase)))
+@end example
+
+@noindent
+This will load @code{hi-lock} when some of its commands or variables
+are first used, bind 3 keys to its commands, and additionally load the
+@code{my-hi-lock} package (presumably further customizing
+@code{hi-lock}) after loading @code{hi-lock}.  The @code{use-package}
+facility is fully documented in its own manual, @pxref{Top,,,
+use-package, use-package User manual}.
 @end itemize
 
 @node Terminal Init
@@ -2661,23 +2801,21 @@ library.  @xref{Hooks}.
 @subsection How Emacs Finds Your Init File
 
   Emacs normally finds your init file in a location under your home
-directory.  @xref{Init File}.  By default this location is
-@file{~/.emacs.d/init.el} where @file{~/} stands for your home directory.
-This default can be overridden as described below.
+directory.  @xref{Init File}.
 
-Emacs looks for your init file
-using the filenames @file{~/.emacs.el}, @file{~/.emacs}, or
-@file{~/.emacs.d/init.el}; you can choose to use any one of these
-names.  (Note that only the locations directly in your home directory
-have a leading dot in the location's basename.)
+  Emacs looks for your init file using the filenames @file{~/.emacs.el},
+@file{~/.emacs}, or @file{~/.emacs.d/init.el} in that order; you can
+choose to use any one of these names.  (Note that only the locations
+directly in your home directory have a leading dot in the location's
+basename.)
 
 Emacs can also look in an XDG-compatible location for @file{init.el},
 the default is the directory @file{~/.config/emacs}.  This can be
-overriden by setting @env{XDG_CONFIG_HOME} in your environment, its
+overridden by setting @env{XDG_CONFIG_HOME} in your environment, its
 value replaces @file{~/.config} in the name of the default XDG init
-file.  However @file{~/.emacs.d} and @file{~/.emacs} are always
-preferred if they exist, which means that you must delete or rename
-them in order to use the XDG location.
+file.  However @file{~/.emacs.d}, @file{~/.emacs}, and
+@file{~/.emacs.el} are always preferred if they exist, which means
+that you must delete or rename them in order to use the XDG location.
 
 Note also that if neither the XDG location nor @file{~/.emacs.d}
 exist, then Emacs will create @file{~/.emacs.d} (and therefore use it
@@ -2738,6 +2876,12 @@ strings incorrectly.  You should then avoid adding Emacs Lisp code
 that modifies the coding system in other ways, such as calls to
 @code{set-language-environment}.
 
+  An alternative to using non-@acronym{ASCII} characters directly is
+to use one of the character escape syntaxes described in
+@pxref{General Escape Syntax,,, elisp, The Emacs Lisp Reference
+Manual}, as they allow all Unicode codepoints to be specified using
+only @acronym{ASCII} characters.
+
   To bind non-@acronym{ASCII} keys, you must use a vector (@pxref{Init
 Rebinding}).  The string syntax cannot be used, since the
 non-@acronym{ASCII} characters will be interpreted as meta keys.  For
@@ -2755,12 +2899,12 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @cindex early init file
 
   Most customizations for Emacs should be put in the normal init file.
-@xref{Init File}.  However, it is sometimes desirable
-to have customizations that take effect during Emacs startup earlier than the
+@xref{Init File}.  However, it is sometimes necessary
+to have customizations take effect during Emacs startup earlier than the
 normal init file is processed.  Such customizations can be put in the early
 init file, @file{~/.config/emacs/early-init.el} or @file{~/.emacs.d/early-init.el}.  This file is loaded before the
 package system and GUI is initialized, so in it you can customize variables
-that affect frame appearance as well as the package initialization process,
+that affect the package initialization process,
 such as @code{package-enable-at-startup}, @code{package-load-list}, and
 @code{package-user-dir}.  Note that variables like @code{package-archives}
 which only affect the installation of new packages, and not the process of

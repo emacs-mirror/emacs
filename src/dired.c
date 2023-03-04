@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2020 Free Software
+   Copyright (C) 1985-1986, 1993-1994, 1999-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -165,8 +165,16 @@ read_dirent (DIR *dir, Lisp_Object dirname)
 Lisp_Object
 directory_files_internal (Lisp_Object directory, Lisp_Object full,
 			  Lisp_Object match, Lisp_Object nosort, bool attrs,
-			  Lisp_Object id_format)
+			  Lisp_Object id_format, Lisp_Object return_count)
 {
+  EMACS_INT ind = 0, last = MOST_POSITIVE_FIXNUM;
+
+  if (!NILP (return_count))
+    {
+      CHECK_FIXNAT (return_count);
+      last = XFIXNAT (return_count);
+    }
+
   if (!NILP (match))
     CHECK_STRING (match);
 
@@ -187,7 +195,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   /* Unfortunately, we can now invoke expand-file-name and
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (directory_files_internal_unwind, d);
 
 #ifdef WINDOWSNT
@@ -210,6 +218,13 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	}
     }
 #endif
+
+  if (!NILP (full) && !STRING_MULTIBYTE (directory))
+    { /* We will be concatenating 'directory' with local file name.
+         We always decode local file names, so in order to safely concatenate
+         them we need 'directory' to be decoded as well (bug#56469).  */
+      directory = DECODE_FILE (directory);
+    }
 
   ptrdiff_t directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
@@ -255,9 +270,20 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	  ptrdiff_t name_nbytes = SBYTES (name);
 	  ptrdiff_t nbytes = directory_nbytes + needsep + name_nbytes;
 	  ptrdiff_t nchars = SCHARS (directory) + needsep + SCHARS (name);
-	  finalname = make_uninit_multibyte_string (nchars, nbytes);
-	  if (nchars == nbytes)
-	    STRING_SET_UNIBYTE (finalname);
+	  /* DECODE_FILE may return non-ASCII unibyte strings (e.g. when
+             file-name-coding-system is 'binary'), so we don't know for sure
+             that the bytes we have follow our internal utf-8 representation
+             for multibyte strings.  If nchars == nbytes we don't need to
+             care and just return a unibyte string; and if not, that means
+             one of 'name' or 'directory' is multibyte, in which case we
+             presume that the other one would also be multibyte if it
+             contained non-ASCII.
+             FIXME: This last presumption is broken when 'directory' is
+             multibyte (with non-ASCII), and 'name' is unibyte with non-ASCII
+             (because file-name-coding-system is 'binary').  */
+	  finalname = (nchars == nbytes)
+	              ? make_uninit_string (nbytes)
+	              : make_uninit_multibyte_string (nchars, nbytes);
 	  memcpy (SDATA (finalname), SDATA (directory), directory_nbytes);
 	  if (needsep)
 	    SSET (finalname, directory_nbytes, DIRECTORY_SEP);
@@ -266,6 +292,10 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	}
       else
 	finalname = name;
+
+      if (ind == last)
+          break;
+      ind ++;
 
       list = Fcons (attrs ? Fcons (finalname, fileattrs) : finalname, list);
     }
@@ -277,7 +307,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 #endif
 
   /* Discard the unwind protect.  */
-  specpdl_ptr = specpdl + count;
+  specpdl_ptr = specpdl_ref_to_ptr (count);
 
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
@@ -288,17 +318,20 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 }
 
 
-DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
+DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 5, 0,
        doc: /* Return a list of names of files in DIRECTORY.
-There are three optional arguments:
+There are four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If MATCH is non-nil, mention only file names whose non-directory part
+ matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
- NOSORT is useful if you plan to sort the result yourself.  */)
+ NOSORT is useful if you plan to sort the result yourself.
+If COUNT is non-nil and a natural number, the function will return
+ COUNT number of file names (if so many are present).  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
-   Lisp_Object nosort)
+   Lisp_Object nosort, Lisp_Object count)
 {
   directory = Fexpand_file_name (directory, Qnil);
 
@@ -306,14 +339,15 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    return call5 (handler, Qdirectory_files, directory,
-                  full, match, nosort);
+    return call6 (handler, Qdirectory_files, directory,
+                  full, match, nosort, count);
 
-  return directory_files_internal (directory, full, match, nosort, false, Qnil);
+  return directory_files_internal (directory, full, match, nosort,
+                                   false, Qnil, count);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
-       Sdirectory_files_and_attributes, 1, 5, 0,
+       Sdirectory_files_and_attributes, 1, 6, 0,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
 Value is a list of the form:
 
@@ -322,18 +356,21 @@ Value is a list of the form:
 where each FILEn-ATTRS is the attributes of FILEn as returned
 by `file-attributes'.
 
-This function accepts four optional arguments:
+This function accepts five optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
-If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If MATCH is non-nil, mention only file names whose non-directory part
+ matches the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  NOSORT is useful if you plan to sort the result yourself.
 ID-FORMAT specifies the preferred format of attributes uid and gid, see
-`file-attributes' for further documentation.
+ `file-attributes' for further documentation.
+If COUNT is non-nil and a natural number, the function will return
+ COUNT number of file names (if so many are present).
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
   (Lisp_Object directory, Lisp_Object full, Lisp_Object match,
-   Lisp_Object nosort, Lisp_Object id_format)
+   Lisp_Object nosort, Lisp_Object id_format, Lisp_Object count)
 {
   directory = Fexpand_file_name (directory, Qnil);
 
@@ -342,11 +379,11 @@ which see.  */)
   Lisp_Object handler
     = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    return call6 (handler, Qdirectory_files_and_attributes,
-                  directory, full, match, nosort, id_format);
+    return call7 (handler, Qdirectory_files_and_attributes,
+                  directory, full, match, nosort, id_format, count);
 
   return directory_files_internal (directory, full, match, nosort,
-				   true, id_format);
+				   true, id_format, count);
 }
 
 
@@ -436,7 +473,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      anything.  */
   bool includeall = 1;
   bool check_decoded = false;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   elt = Qnil;
 
@@ -463,8 +500,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      decoded names in order to filter false positives, such as "a"
      falsely matching "a-ring".  */
   if (!NILP (file_encoding)
-      && !NILP (Fplist_get (Fcoding_system_plist (file_encoding),
-			    Qdecomposed_characters)))
+      && !NILP (plist_get (Fcoding_system_plist (file_encoding),
+			   Qdecomposed_characters)))
     {
       check_decoded = true;
       if (STRING_MULTIBYTE (file))
@@ -502,9 +539,9 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       name = DECODE_FILE (name);
       ptrdiff_t name_blen = SBYTES (name), name_len = SCHARS (name);
       if (completion_ignore_case
-	  && !EQ (Fcompare_strings (name, zero, file_len, file, zero, file_len,
-				    Qt),
-		  Qt))
+	  && !BASE_EQ (Fcompare_strings (name, zero, file_len, file, zero,
+					 file_len, Qt),
+		       Qt))
 	    continue;
 
       switch (dirent_type (dp))
@@ -584,10 +621,12 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 			skip = name_len - elt_len;
 			cmp_len = make_fixnum (elt_len);
 			if (skip < 0
-			    || !EQ (Fcompare_strings (name, make_fixnum (skip),
-						      Qnil,
-						      elt, zero, cmp_len, Qt),
-				    Qt))
+			    || !BASE_EQ (Fcompare_strings (name,
+							   make_fixnum (skip),
+							   Qnil,
+							   elt, zero, cmp_len,
+							   Qt),
+					 Qt))
 			  continue;
 		      }
 		    break;
@@ -618,10 +657,12 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 			skip = name_len - elt_len;
 			cmp_len = make_fixnum (elt_len);
 			if (skip < 0
-			    || !EQ (Fcompare_strings (name, make_fixnum (skip),
-						      Qnil,
-						      elt, zero, cmp_len, Qt),
-				    Qt))
+			    || !BASE_EQ (Fcompare_strings (name,
+							   make_fixnum (skip),
+							   Qnil,
+							   elt, zero, cmp_len,
+							   Qt),
+					 Qt))
 			  continue;
 		      }
 		    break;
@@ -680,7 +721,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	    = Fcompare_strings (name, zero, make_fixnum (compare),
 				file, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  if (!EQ (cmp, Qt))
+	  if (!BASE_EQ (cmp, Qt))
 	    continue;
 	}
 
@@ -703,7 +744,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	    = Fcompare_strings (bestmatch, zero, make_fixnum (compare),
 				name, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XFIXNUM (cmp)) - 1;
+	  ptrdiff_t matchsize = BASE_EQ (cmp, Qt)
+	                        ? compare : eabs (XFIXNUM (cmp)) - 1;
 
 	  if (completion_ignore_case)
 	    {
@@ -732,13 +774,13 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       EQ (Qt, cmp))
+		       BASE_EQ (Qt, cmp))
 		   && (cmp = Fcompare_strings (bestmatch, zero,
 					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       ! EQ (Qt, cmp))))
+		       ! BASE_EQ (Qt, cmp))))
 		bestmatch = name;
 	    }
 	  bestmatchsize = matchsize;
@@ -881,11 +923,12 @@ Elements of the attribute list are:
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
 10. inode number, as a nonnegative integer.
-11. Filesystem device number, as an integer.
+11. Filesystem device identifier, as an integer or a cons cell of integers.
 
 Large integers are bignums, so `eq' might not work on them.
 On most filesystems, the combination of the inode and the device
-number uniquely identifies the file.
+identifier uniquely identifies the file.  This unique file identification
+is provided by the access function `file-attribute-file-identifier'.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.
@@ -925,11 +968,11 @@ file_attributes (int fd, char const *name,
 		 Lisp_Object dirname, Lisp_Object filename,
 		 Lisp_Object id_format)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct stat s;
 
   /* An array to hold the mode string generated by filemodestring,
-     including its terminating space and NUL byte.  */
+     including its terminating space and null byte.  */
   char modes[sizeof "-rwxr-xr-x "];
 
   char *uname = NULL, *gname = NULL;

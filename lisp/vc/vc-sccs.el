@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -27,6 +27,7 @@
 
 (eval-when-compile
   (require 'vc))
+(require 'log-view)
 
 ;;;
 ;;; Customization options
@@ -55,8 +56,7 @@ If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-sccs)
+  :version "21.1")
 
 (defcustom vc-sccs-diff-switches nil
   "String or list of strings specifying switches for SCCS diff under VC.
@@ -65,14 +65,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-sccs)
+  :version "21.1")
 
 (defcustom vc-sccs-header '("%W%")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
-  :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc-sccs)
+  :version "24.1")     ; no longer consult the obsolete vc-header-alist
 
 ;; This needs to be autoloaded because vc-sccs-registered uses it (via
 ;; vc-default-registered), and vc-hooks needs to be able to check
@@ -87,8 +85,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
-  :version "21.1"
-  :group 'vc-sccs)
+  :version "21.1")
 
 
 ;;;
@@ -163,7 +160,7 @@ For a description of possible values, see `vc-check-master-templates'."
   "Write the SCCS version of input file FILE to output file OUTFILE.
 Optional string REV is a revision."
   (with-temp-buffer
-    (apply 'vc-sccs-do-command t 0 "get" (vc-master-name file)
+    (apply #'vc-sccs-do-command t 0 "get" (vc-master-name file)
 	   (append '("-s" "-p" "-k") ; -k: no keyword expansion
 		   (if rev (list (concat "-r" rev)))))
     (write-region nil nil outfile nil 'silent)))
@@ -185,7 +182,7 @@ Optional string REV is a revision."
 (defun vc-sccs-do-command (buffer okstatus command file-or-list &rest flags)
   ;; (let ((load-path (append vc-sccs-path load-path)))
   ;;   (apply 'vc-do-command buffer okstatus command file-or-list flags))
-  (apply 'vc-do-command (or buffer "*vc*") okstatus "sccs" file-or-list command flags))
+  (apply #'vc-do-command (or buffer "*vc*") okstatus "sccs" file-or-list command flags))
 
 (defun vc-sccs-create-repo ()
   "Create a new SCCS repository."
@@ -195,7 +192,7 @@ Optional string REV is a revision."
 (autoload 'vc-switches "vc")
 
 (defun vc-sccs-register (files &optional comment)
-  "Register FILES into the SCCS version-control system.
+  "Register FILES into the SCCS version control system.
 Automatically retrieve a read-only version of the files with keywords expanded.
 COMMENT can be used to provide an initial description of FILES.
 Passes either `vc-sccs-register-switches' or `vc-register-switches'
@@ -207,7 +204,7 @@ to the SCCS command."
       (let ((vc-master-name
 	     (or project-file
 		 (format (car vc-sccs-master-templates) dirname basename))))
-	(apply 'vc-sccs-do-command nil 0 "admin" vc-master-name
+	(apply #'vc-sccs-do-command nil 0 "admin" vc-master-name
 	       "-fb"
 	       (concat "-i" (file-relative-name file))
 	       (and comment (concat "-y" comment))
@@ -216,23 +213,27 @@ to the SCCS command."
       (vc-sccs-do-command nil 0 "get" (vc-master-name file)))))
 
 (defun vc-sccs-responsible-p (file)
-  "Return non-nil if SCCS thinks it would be responsible for registering FILE."
+  "Return the directory if SCCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-sccs-master-templates
-  (or (file-directory-p (expand-file-name "SCCS" (file-name-directory file)))
-      (stringp (vc-sccs-search-project-dir (or (file-name-directory file) "")
-					   (file-name-nondirectory file)))))
+  (or (and (file-directory-p
+            (expand-file-name "SCCS" (file-name-directory file)))
+           (file-name-directory file))
+      (let ((dir (vc-sccs-search-project-dir (or (file-name-directory file) "")
+					     (file-name-nondirectory file))))
+        (and (stringp dir)
+             dir))))
 
 (defun vc-sccs-checkin (files comment &optional rev)
   "SCCS-specific version of `vc-backend-checkin'."
   (dolist (file (vc-expand-dirs files 'SCCS))
-    (apply 'vc-sccs-do-command nil 0 "delta" (vc-master-name file)
+    (apply #'vc-sccs-do-command nil 0 "delta" (vc-master-name file)
            (if rev (concat "-r" rev))
 	   (concat "-y" comment)
 	   (vc-switches 'SCCS 'checkin))
 	(vc-sccs-do-command nil 0 "get" (vc-master-name file))))
 
 (defun vc-sccs-find-revision (file rev buffer)
-  (apply 'vc-sccs-do-command
+  (apply #'vc-sccs-do-command
 	 buffer 0 "get" (vc-master-name file)
 	 "-s" ;; suppress diagnostic output
 	 "-p"
@@ -247,7 +248,7 @@ If FILE is a directory, all version-controlled files beneath are checked out.
 EDITABLE non-nil means that the file should be writable and
 locked.  REV is the revision to check out."
   (if (file-directory-p file)
-      (mapc 'vc-sccs-checkout (vc-expand-dirs (list file) 'SCCS))
+      (mapc #'vc-sccs-checkout (vc-expand-dirs (list file) 'SCCS))
     (let ((file-buffer (get-file-buffer file))
 	  switches)
       (message "Checking out %s..." file)
@@ -267,17 +268,17 @@ locked.  REV is the revision to check out."
 	    (and rev (or (string= rev "")
 			 (not (stringp rev)))
 		 (setq rev nil))
-	    (apply 'vc-sccs-do-command nil 0 "get" (vc-master-name file)
+	    (apply #'vc-sccs-do-command nil 0 "get" (vc-master-name file)
 		   "-e"
 		   (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
 		   switches))))
       (message "Checking out %s...done" file))))
 
 (defun vc-sccs-revert (file &optional _contents-done)
-  "Revert FILE to the version it was based on. If FILE is a directory,
-revert all subfiles."
+  "Revert FILE to the version it was based on.
+If FILE is a directory, revert all subfiles."
   (if (file-directory-p file)
-      (mapc 'vc-sccs-revert (vc-expand-dirs (list file) 'SCCS))
+      (mapc #'vc-sccs-revert (vc-expand-dirs (list file) 'SCCS))
     (vc-sccs-do-command nil 0 "unget" (vc-master-name file))
     (vc-sccs-do-command nil 0 "get" (vc-master-name file))
     ;; Checking out explicit revisions is not supported under SCCS, yet.
@@ -288,7 +289,7 @@ revert all subfiles."
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
   (if (file-directory-p file)
-      (mapc 'vc-sccs-steal-lock (vc-expand-dirs (list file) 'SCCS))
+      (mapc #'vc-sccs-steal-lock (vc-expand-dirs (list file) 'SCCS))
     (vc-sccs-do-command nil 0 "unget"
 			(vc-master-name file) "-n" (if rev (concat "-r" rev)))
     (vc-sccs-do-command nil 0 "get"
@@ -309,7 +310,7 @@ revert all subfiles."
   "Print commit log associated with FILES into specified BUFFER.
 Remaining arguments are ignored."
   (setq files (vc-expand-dirs files 'SCCS))
-  (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-master-name files))
+  (vc-sccs-do-command buffer 0 "prs" (mapcar #'vc-master-name files))
   (when limit 'limit-unsupported))
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
@@ -338,7 +339,7 @@ Remaining arguments are ignored."
 	   (fake-command
 	    (format "diff%s %s"
 		    (if fake-flags
-			(concat " " (mapconcat 'identity fake-flags " "))
+			(concat " " (mapconcat #'identity fake-flags " "))
 		      "")
 		    (vc-delistify files)))
 	   (status 0)
@@ -362,7 +363,7 @@ Remaining arguments are ignored."
 		      (cons "LC_MESSAGES=C" process-environment))
 		     (w32-quote-process-args t)
 		     (this-status
-		      (apply 'process-file "diff" nil t nil
+		      (apply #'process-file "diff" nil t nil
 			     (append (vc-switches 'SCCS 'diff)
 				     (list (file-local-name oldfile)
 					   (or newfile
@@ -517,6 +518,14 @@ If NAME is nil or a revision number string it's just passed through."
        (expand-file-name vc-sccs-name-assoc-file
 			 (file-name-directory (vc-master-name file))))
       (vc-parse-buffer (concat name "\t:\t" file "\t\\(.+\\)") 1))))
+
+(defvar-keymap vc-sccs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-sccs-log-view-mode log-view-mode "SCCS-Log-View")
 
 (provide 'vc-sccs)
 

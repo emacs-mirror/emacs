@@ -1,6 +1,6 @@
-;;; chinese.el --- support for Chinese -*- coding: utf-8; -*-
+;;; chinese.el --- support for Chinese -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -102,6 +102,11 @@
 
 (define-coding-system-alias 'hz-gb-2312 'chinese-hz)
 (define-coding-system-alias 'hz 'chinese-hz)
+
+;; FIXME: 'define-coding-system' automatically sets :ascii-compatible-p,
+;; to any encoding whose :coding-type is 'utf-8', but UTF-7 is not ASCII
+;; compatible, so we override that here (bug#40407).
+(coding-system-put 'chinese-hz :ascii-compatible-p nil)
 
 (set-language-info-alist
  "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)

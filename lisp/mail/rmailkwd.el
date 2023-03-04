@@ -1,6 +1,6 @@
-;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs
+;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985, 1988, 1994, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -73,13 +73,10 @@ according to the choice made, and returns a symbol."
 	    (or (eq major-mode 'rmail-summary-mode)
 		(rmail-summary-exists)
 		(and (setq old (rmail-get-keywords))
-		     (mapc 'rmail-make-label (split-string old ", "))))
-	    (completing-read (concat prompt
-				     (if rmail-last-label
-					 (concat " (default "
-						 (symbol-name rmail-last-label)
-						 "): ")
-				       ": "))
+		     (mapc #'rmail-make-label (split-string old ", "))))
+            (completing-read (format-prompt prompt
+                                            (and rmail-last-label
+                                                 (symbol-name rmail-last-label)))
 			     rmail-label-obarray
 			     nil
 			     nil))))
@@ -93,7 +90,7 @@ according to the choice made, and returns a symbol."
   "Set LABEL as present or absent according to STATE in message MSG.
 LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
-  (if (string-match "," label)
+  (if (string-search "," label)
       (error "More than one label specified"))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
@@ -190,9 +187,5 @@ With prefix argument N moves forward N messages with these labels."
 	(rmail-show-message-1 lastwin)))))
 
 (provide 'rmailkwd)
-
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
 
 ;;; rmailkwd.el ends here

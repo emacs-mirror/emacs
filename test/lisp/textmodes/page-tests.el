@@ -1,6 +1,6 @@
 ;;; page-tests.el --- Tests for page.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -80,6 +80,17 @@
     (narrow-to-page 2)
     (should (equal (buffer-string) "baz"))
     (narrow-to-page -1)
+    (should (equal (buffer-string) "bar\n"))
+
+    (widen)
+    (goto-char (point-min))
+    (narrow-to-page)
+    (should (equal (buffer-string) "foo\n"))
+    (goto-char (point-max))
+    (narrow-to-page 2)
+    (should (equal (buffer-string) "baz"))
+    (goto-char (point-max))
+    (narrow-to-page -1)
     (should (equal (buffer-string) "bar\n"))))
 
 (ert-deftest page-tests-count-lines-page ()
@@ -99,5 +110,6 @@
     (should (equal (page--what-page) '(2 2)))
     (forward-page)
     (should (equal (page--what-page) '(3 4)))))
+
 
 ;;; page-tests.el ends here

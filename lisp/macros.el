@@ -1,6 +1,6 @@
 ;;; macros.el --- non-primitive commands for keyboard macros -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2020 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -26,7 +26,7 @@
 
 ;; Extension commands for keyboard macros.  These permit you to assign
 ;; a name to the last-defined keyboard macro, expand and insert the
-;; lisp corresponding to a macro, query the user from within a macro,
+;; Lisp corresponding to a macro, query the user from within a macro,
 ;; or apply a macro to each line in the reason.
 
 ;;; Code:
@@ -72,70 +72,34 @@ use this command, and then save the file."
 	  (setq macroname 'last-kbd-macro definition last-kbd-macro)
 	  (insert "(setq "))
       (setq definition (symbol-function macroname))
-      (insert "(fset '"))
+      ;; Prefer `defalias' over `fset' since it additionally keeps
+      ;; track of the file where the users added it, and it interacts
+      ;; better with `advice-add' (and hence things like ELP).
+      (insert "(defalias '"))
     (prin1 macroname (current-buffer))
     (insert "\n   ")
-    (if (stringp definition)
-	(let ((beg (point)) end)
-	  (prin1 definition (current-buffer))
-	  (setq end (point-marker))
-	  (goto-char beg)
-	  (while (< (point) end)
-	    (let ((char (following-char)))
-	      (cond ((= char 0)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\C-@"))
-		    ((< char 27)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\C-" (+ 96 char)))
-		    ((= char ?\C-\\)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\C-\\\\"))
-		    ((< char 32)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\C-" (+ 64 char)))
-		    ((< char 127)
-		     (forward-char 1))
-		    ((= char 127)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\C-?"))
-		    ((= char 128)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\C-@"))
-		    ((= char (aref "\M-\C-\\" 0))
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\C-\\\\"))
-		    ((< char 155)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\C-" (- char 32)))
-		    ((< char 160)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\C-" (- char 64)))
-		    ((= char (aref "\M-\\" 0))
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\\\"))
-		    ((< char 255)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-" (- char 128)))
-		    ((= char 255)
-		     (delete-region (point) (1+ (point)))
-		     (insert "\\M-\\C-?"))))))
-      (if (vectorp definition)
-          (macros--insert-vector-macro definition)
-        (pcase (kmacro-extract-lambda definition)
-          (`(,vecdef ,counter ,format)
-           (insert "(kmacro-lambda-form ")
-           (macros--insert-vector-macro vecdef)
-           (insert " ")
-           (prin1 counter (current-buffer))
-           (insert " ")
-           (prin1 format (current-buffer))
-           (insert ")"))
-          (_ (prin1 definition (current-buffer))))))
+    (when (or (stringp definition) (vectorp definition))
+      (setq definition (kmacro (kmacro--to-vector definition))))
+    (if (kmacro-p definition)
+        (let ((vecdef  (kmacro--keys     definition))
+              (counter (kmacro--counter definition))
+              (format  (kmacro--format  definition)))
+          (insert "(kmacro ")
+          (prin1 (key-description vecdef) (current-buffer))
+          ;; FIXME: Do we really want to store the counter?
+          (unless (and (equal counter 0) (equal format "%d"))
+            (insert " ")
+            (prin1 counter (current-buffer))
+            (insert " ")
+            (prin1 format (current-buffer)))
+          (insert ")"))
+      ;; FIXME: Shouldn't this signal an error?
+      (prin1 definition (current-buffer)))
     (insert ")\n")
     (if keys
-        (let ((keys (or (where-is-internal (symbol-function macroname)
-                                           '(keymap))
+        (let ((keys (or (and (symbol-function macroname)
+                             (where-is-internal (symbol-function macroname)
+                                                '(keymap)))
                         (where-is-internal macroname '(keymap)))))
 	  (while keys
 	    (insert "(global-set-key ")
@@ -148,11 +112,16 @@ use this command, and then save the file."
 ;;;###autoload
 (defun kbd-macro-query (flag)
   "Query user during kbd macro execution.
-  With prefix argument, enters recursive edit, reading keyboard
-commands even within a kbd macro.  You can give different commands
-each time the macro executes.
-  Without prefix argument, asks whether to continue running the macro.
+
+With prefix argument FLAG, enter recursive edit, reading
+keyboard commands even within a kbd macro.  You can give
+different commands each time the macro executes.
+
+Without prefix argument, ask whether to continue running the
+macro.
+
 Your options are: \\<query-replace-map>
+
 \\[act]	Finish this iteration normally and continue with the next.
 \\[skip]	Skip the rest of this iteration, and start the next.
 \\[exit]	Stop the macro entirely right now.

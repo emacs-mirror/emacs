@@ -1,6 +1,6 @@
-;;; pgg-gpg.el --- GnuPG support for PGG.
+;;; pgg-gpg.el --- GnuPG support for PGG.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption and gpg-agent support added by:
@@ -37,23 +37,19 @@
 
 (defcustom pgg-gpg-program "gpg"
   "The GnuPG executable."
-  :group 'pgg-gpg
   :type 'string)
 
 (defcustom pgg-gpg-extra-args nil
   "Extra arguments for every GnuPG invocation."
-  :group 'pgg-gpg
   :type '(repeat (string :tag "Argument")))
 
 (defcustom pgg-gpg-recipient-argument "--recipient"
   "GnuPG option to specify recipient."
-  :group 'pgg-gpg
   :type '(choice (const :tag "New `--recipient' option" "--recipient")
 		 (const :tag "Old `--remote-user' option" "--remote-user")))
 
 (defcustom pgg-gpg-use-agent t
   "Whether to use gnupg agent for key caching."
-  :group 'pgg-gpg
   :type 'boolean)
 
 (defvar pgg-gpg-user-id nil
@@ -97,7 +93,7 @@
 			 passphrase-with-newline
 			 (coding-system-change-eol-conversion
 			  pgg-passphrase-coding-system 'unix)))
-		  (pgg-clear-string passphrase-with-newline))
+		  (clear-string passphrase-with-newline))
 	      (setq encoded-passphrase-with-new-line passphrase-with-newline
 		    passphrase-with-newline nil))
 	    (process-send-string process encoded-passphrase-with-new-line))
@@ -125,9 +121,9 @@
 	    (if (= 127 exit-status)
 		(error "%s could not be found" program))))
       (if passphrase-with-newline
-	  (pgg-clear-string passphrase-with-newline))
+	  (clear-string passphrase-with-newline))
       (if encoded-passphrase-with-new-line
-	  (pgg-clear-string encoded-passphrase-with-new-line))
+	  (clear-string encoded-passphrase-with-new-line))
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (if (file-exists-p output-file-name)

@@ -1,6 +1,6 @@
 ;;; thunk.el --- Lazy form evaluation  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
@@ -30,7 +30,7 @@
 ;; forms.
 ;;
 ;; Use `thunk-delay' to delay the evaluation of a form (requires
-;; lexical-binding), and `thunk-force' to evaluate it. The result of
+;; lexical-binding), and `thunk-force' to evaluate it.  The result of
 ;; the evaluation is cached, and only happens once.
 ;;
 ;; Here is an example of a form which evaluation is delayed:
@@ -52,7 +52,7 @@
 
 (defmacro thunk-delay (&rest body)
   "Delay the evaluation of BODY."
-  (declare (debug t))
+  (declare (debug (def-body)))
   (cl-assert lexical-binding)
   `(let (forced
          (val (lambda () ,@body)))
@@ -122,7 +122,7 @@ Using `thunk-let' and `thunk-let*' requires `lexical-binding'."
   (declare (indent 1) (debug let))
   (cl-reduce
    (lambda (expr binding) `(thunk-let (,binding) ,expr))
-   (nreverse bindings)
+   (reverse bindings)
    :initial-value (macroexp-progn body)))
 
 ;; (defalias 'lazy-let  #'thunk-let)

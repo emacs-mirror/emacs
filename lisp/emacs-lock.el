@@ -1,6 +1,6 @@
 ;;; emacs-lock.el --- protect buffers against killing or exiting -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Inspired by emacs-lock.el by Tom Wurgler <twurgler@goodyear.com>
@@ -88,9 +88,6 @@ The functions get one argument, the first locked buffer found."
   :group 'emacs-lock
   :version "24.3")
 
-(define-obsolete-variable-alias 'emacs-lock-from-exiting
-  'emacs-lock-mode "24.1")
-
 (defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
 It can be one of the following values:
@@ -168,19 +165,21 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
     (message "Buffer %S is locked and cannot be killed" (buffer-name))
     nil))
 
-(defun emacs-lock--set-mode (mode arg)
+(defun emacs-lock--set-mode (mode arg prefix)
   "Setter function for `emacs-lock-mode'."
   (setq emacs-lock-mode
         (cond ((memq arg '(all exit kill))
                ;; explicit locking mode arg, use it
                arg)
-              ((and (eq arg current-prefix-arg) (consp current-prefix-arg))
+              ;; kludgy, but commit 2a4b0da28c converts arg to number
+              ((and (eq arg 4) (equal prefix '(4)))
                ;; called with C-u M-x emacs-lock-mode, so ask the user
-               (intern (completing-read "Locking mode: "
-                                        '("all" "exit" "kill")
-                                        nil t nil nil
-                                        (symbol-name
-                                         emacs-lock-default-locking-mode))))
+               (intern (completing-read
+                        (format-prompt "Locking mode"
+                                       emacs-lock-default-locking-mode)
+                        '("all" "exit" "kill")
+                        nil t nil nil
+                        (symbol-name emacs-lock-default-locking-mode))))
               ((eq mode t)
                ;; turn on, so use previous setting, or customized default
                (or emacs-lock--old-mode emacs-lock-default-locking-mode))
@@ -216,7 +215,7 @@ some major modes from being locked under some circumstances."
   :group 'emacs-lock
   :variable (emacs-lock-mode .
                              (lambda (mode)
-                               (emacs-lock--set-mode mode arg)))
+                               (emacs-lock--set-mode mode arg current-prefix-arg)))
   (when emacs-lock-mode
     (setq emacs-lock--old-mode emacs-lock-mode)
     (setq emacs-lock--try-unlocking
@@ -245,14 +244,6 @@ some major modes from being locked under some circumstances."
           (throw :continue t))))
     ;; continue standard unloading
     nil))
-
-;;; Compatibility
-
-(defun toggle-emacs-lock ()
-  "Toggle `emacs-lock-from-exiting' for the current buffer."
-  (declare (obsolete emacs-lock-mode "24.1"))
-  (interactive)
-  (call-interactively 'emacs-lock-mode))
 
 (provide 'emacs-lock)
 

@@ -1,6 +1,6 @@
-;;; cua-rect.el --- CUA unified rectangle support
+;;; cua-rect.el --- CUA unified rectangle support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -37,32 +37,60 @@
 
 (require 'rect)
 
-;; If non-nil, restrict current region to this rectangle.
-;; Value is a vector [top bot left right corner ins virt select].
-;; CORNER specifies currently active corner 0=t/l 1=t/r 2=b/l 3=b/r.
-;; INS specifies whether to insert on left(nil) or right(t) side.
-;; If VIRT is non-nil, virtual straight edges are enabled.
-;; If SELECT is a regexp, only lines starting with that regexp are affected.")
-(defvar cua--rectangle nil)
-(make-variable-buffer-local 'cua--rectangle)
+(defvar-local cua--rectangle nil
+  "If non-nil, restrict current region to this rectangle.
+A cua-rectangle definition is a vector used for all actions in
+`cua-rectangle-mark-mode', of the form:
 
-;; Most recent rectangle geometry.  Note: car is buffer.
-(defvar cua--last-rectangle nil)
+  [top bot left right corner ins virt select]
 
-;; Rectangle restored by undo.
-(defvar cua--restored-rectangle nil)
+TOP is the upper-left corner point.
+
+BOTTOM is the point at the end of line after the lower-right
+corner point.
+
+LEFT and RIGHT are column numbers.
+
+CORNER specifies currently active corner 0=t/l 1=t/r 2=b/l 3=b/r.
+
+INS specifies whether to insert on left(nil) or right(t) side.
+
+If VIRT is non-nil, virtual straight edges are enabled.
+
+If SELECT is a regexp, only lines starting with that regexp are
+affected.")
+
+(defvar cua--last-rectangle nil
+  "Most recent rectangle geometry.
+A CONS cell, the car of which is the rectangle's buffer, and the
+cdr of which is a cua-rectangle definition.
+See `cua--rectangle'.")
+
+
+(defvar cua--restored-rectangle nil
+  "Rectangle restored by undo.")
 
 ;; Last rectangle copied/killed; nil if last kill was not a rectangle.
+;; FIXME: The above seems to be incorrect:
+;; + It seems to be the two most recent killed rectangles, and is not
+;;   reset upon either a `kill-region' or `kill-line'
+;; + In the following example, the rectangle full of question marks
+;;   was killed prior to the rectangle with the string "active".
+;;      (#("???e\n??? \n???i\n???," 0 19
+;;         (yank-handler
+;;          (rectangle--insert-for-yank
+;;           ("???e" "??? " "???i" "???,")
+;;           t)))
+;;       "active " "sert on" " straig" " lines ")
 (defvar cua--last-killed-rectangle nil)
 
-;; List of overlays used to display current rectangle.
-(defvar cua--rectangle-overlays nil)
-(make-variable-buffer-local 'cua--rectangle-overlays)
+(defvar-local cua--rectangle-overlays nil
+  "List of overlays used to display current rectangle.")
 (put 'cua--rectangle-overlays 'permanent-local t)
 
 (defvar cua--overlay-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'cua-rotate-rectangle)))
+    (define-key map "\r" #'cua-rotate-rectangle)))
 
 (defvar cua--virtual-edges-debug nil)
 
@@ -76,7 +104,7 @@
 	  (e (cua--rect-end-position)))
       (undo-boundary)
       (push (list 'apply 0 s e
-		  'cua--rect-undo-handler
+		  #'cua--rect-undo-handler
 		  (copy-sequence cua--rectangle) t s e)
             buffer-undo-list))))
 
@@ -86,7 +114,7 @@
     (setq cua--restored-rectangle (copy-sequence rect))
     (setq cua--buffer-and-point-before-command nil))
   (push (list 'apply 0 s (if on e s)
-	      'cua--rect-undo-handler rect on s e)
+	      #'cua--rect-undo-handler rect on s e)
 	buffer-undo-list))
 
 ;;;###autoload
@@ -458,10 +486,8 @@ Activates the region if needed.  Only lasts until the region is deactivated."
     (cua--deactivate t))
   (setq cua--last-rectangle nil)
   (mouse-set-point event)
-  ;; FIX ME -- need to calculate virtual column.
-  (cua-set-rectangle-mark)
-  (setq cua--buffer-and-point-before-command nil)
-  (setq cua--mouse-last-pos nil))
+  (activate-mark)
+  (cua-rectangle-mark-mode))
 
 (defun cua-mouse-save-then-kill-rectangle (event arg)
   "Expand rectangle to mouse click position and copy rectangle.
@@ -522,7 +548,7 @@ If command is repeated at same position, delete the rectangle."
 ;;; Operations on current rectangle
 
 (defun cua--tabify-start (start end)
-  ;; Return position where auto-tabify should start (or nil if not required).
+  "Return position where auto-tabify should start (or nil if not required)."
   (save-excursion
     (save-restriction
       (widen)
@@ -538,15 +564,16 @@ If command is repeated at same position, delete the rectangle."
 	       start)))))
 
 (defun cua--rectangle-operation (keep-clear visible undo pad tabify &optional fct post-fct)
-  ;; Call FCT for each line of region with 4 parameters:
-  ;; Region start, end, left-col, right-col
-  ;; Point is at start when FCT is called
-  ;; Call fct with (s,e) = whole lines if VISIBLE non-nil.
-  ;; Only call fct for visible lines if VISIBLE==t.
-  ;; Set undo boundary if UNDO is non-nil.
-  ;; Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
-  ;; Perform auto-tabify after operation if TABIFY is non-nil.
-  ;; Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear.
+  "Call FCT for each line of region with 4 parameters:
+Region start, end, left-col, right-col.
+Point is at start when FCT is called.
+Call fct with (s,e) = whole lines if VISIBLE non-nil.
+Only call fct for visible lines if VISIBLE==t.
+Set undo boundary if UNDO is non-nil.
+Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
+Perform auto-tabify after operation if TABIFY is non-nil.
+Mark is kept if keep-clear is `keep' and cleared if keep-clear is `clear'."
+  (declare (indent 4))
   (let* ((inhibit-field-text-motion t)
 	 (start (cua--rectangle-top))
          (end   (cua--rectangle-bot))
@@ -617,8 +644,6 @@ If command is repeated at same position, delete the rectangle."
       (cua--keep-active)))
     (setq cua--buffer-and-point-before-command nil)))
 
-(put 'cua--rectangle-operation 'lisp-indent-function 4)
-
 (defun cua--delete-rectangle ()
   (let ((lines 0))
     (if (not (cua--rectangle-virtual-edges))
@@ -683,9 +708,11 @@ If command is repeated at same position, delete the rectangle."
     (nreverse rect)))
 
 (defun cua--insert-rectangle (rect &optional below paste-column line-count)
-  ;; Insert rectangle as insert-rectangle, but don't set mark and exit with
-  ;; point at either next to top right or below bottom left corner
-  ;; Notice: In overwrite mode, the rectangle is inserted as separate text lines.
+  "Insert rectangle RECT similarly to `insert-rectangle'.
+In contrast to `insert-rectangle', don't set mark and exit with
+point at either next to top right or below bottom left corner
+
+Note: In overwrite mode, the rectangle is inserted as separate text lines."
   (if (eq below 'auto)
       (setq below (and (bolp)
                        (or (eolp) (eobp) (= (1+ (point)) (point-max))))))
@@ -735,7 +762,7 @@ If command is repeated at same position, delete the rectangle."
     (setq cua--last-killed-rectangle (cons (and kill-ring (car kill-ring)) killed-rectangle))
     (if ring
         (kill-new (mapconcat
-                   (function (lambda (row) (concat row "\n")))
+                   (lambda (row) (concat row "\n"))
                    killed-rectangle "")))))
 
 (defun cua--activate-rectangle ()
@@ -1071,7 +1098,7 @@ The text previously in the rectangle is overwritten by the blanks."
         (cua--copy-rectangle-to-global-mark t))
     (let* ((rect (cua--extract-rectangle))
            (text (mapconcat
-                  (function (lambda (row) (concat row "\n")))
+                  (lambda (row) (concat row "\n"))
                   rect "")))
       (setq arg (cua--prefix-arg arg))
       (if cua--register
@@ -1150,9 +1177,9 @@ The numbers are formatted according to the FORMAT string."
    (list (if current-prefix-arg
              (prefix-numeric-value current-prefix-arg)
            (string-to-number
-            (read-string "Start value: (0) " nil nil "0")))
+            (read-string (format-prompt "Start value" 0) nil nil "0")))
          (string-to-number
-          (read-string "Increment: (1) " nil nil "1"))
+          (read-string (format-prompt "Increment" 1) nil nil "1"))
          (read-string (concat "Format: (" cua--rectangle-seq-format ") "))))
   (if (= (length format) 0)
       (setq format cua--rectangle-seq-format)
@@ -1192,6 +1219,7 @@ The numbers are formatted according to the FORMAT string."
 ;;; Replace/rearrange text in current rectangle
 
 (defun cua--rectangle-aux-replace (width adjust keep replace pad format-fct &optional setup-fct)
+  (declare (indent 4))
   ;; Process text inserted by calling SETUP-FCT or current rectangle if nil.
   ;; Then call FORMAT-FCT on text (if non-nil); takes two args: start and end.
   ;; Fill to WIDTH characters if > 0 or fill to current width if == 0.
@@ -1250,8 +1278,6 @@ The numbers are formatted according to the FORMAT string."
           (cua--rectangle-right (+ (cua--rectangle-left) w -1)))
       (if keep
           (cua--rectangle-resized)))))
-
-(put 'cua--rectangle-aux-replace 'lisp-indent-function 4)
 
 (defun cua--left-fill-rectangle (_start _end)
   (beginning-of-line)
@@ -1412,7 +1438,7 @@ With prefix arg, indent to that column."
 (add-function :around region-extract-function
               #'cua--rectangle-region-extract)
 (add-function :around region-insert-function
-              #'cua--insert-rectangle)
+              #'cua--rectangle-region-insert)
 (add-function :around redisplay-highlight-region-function
               #'cua--rectangle-highlight-for-redisplay)
 
@@ -1421,6 +1447,10 @@ With prefix arg, indent to that column."
     ;; When cua--rectangle is active, just don't highlight at all, since we
     ;; already do it elsewhere.
     (funcall redisplay-unhighlight-region-function (nth 3 args))))
+
+(defun cua--rectangle-region-insert (orig &rest args)
+  (if (not cua--rectangle) (apply orig args)
+    (funcall #'cua--insert-rectangle (car args))))
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond
@@ -1453,79 +1483,79 @@ With prefix arg, indent to that column."
   (cua--M/H-key cua--rectangle-keymap key cmd))
 
 (defun cua--init-rectangles ()
-  (define-key cua--rectangle-keymap cua-rectangle-mark-key 'cua-clear-rectangle-mark)
-  (define-key cua--region-keymap    cua-rectangle-mark-key 'cua-toggle-rectangle-mark)
+  (define-key cua--rectangle-keymap cua-rectangle-mark-key #'cua-clear-rectangle-mark)
+  (define-key cua--region-keymap    cua-rectangle-mark-key #'cua-toggle-rectangle-mark)
   (unless (eq cua--rectangle-modifier-key 'meta)
-    (cua--rect-M/H-key ?\s			       'cua-clear-rectangle-mark)
-    (cua--M/H-key cua--region-keymap ?\s	       'cua-toggle-rectangle-mark))
+    (cua--rect-M/H-key ?\s			       #'cua-clear-rectangle-mark)
+    (cua--M/H-key cua--region-keymap ?\s	       #'cua-toggle-rectangle-mark))
 
-  (define-key cua--rectangle-keymap [remap set-mark-command]    'cua-toggle-rectangle-mark)
+  (define-key cua--rectangle-keymap [remap set-mark-command]    #'cua-toggle-rectangle-mark)
 
-  (define-key cua--rectangle-keymap [remap forward-char]        'cua-resize-rectangle-right)
-  (define-key cua--rectangle-keymap [remap right-char]          'cua-resize-rectangle-right)
-  (define-key cua--rectangle-keymap [remap backward-char]       'cua-resize-rectangle-left)
-  (define-key cua--rectangle-keymap [remap left-char]           'cua-resize-rectangle-left)
-  (define-key cua--rectangle-keymap [remap next-line]           'cua-resize-rectangle-down)
-  (define-key cua--rectangle-keymap [remap previous-line]       'cua-resize-rectangle-up)
-  (define-key cua--rectangle-keymap [remap end-of-line]         'cua-resize-rectangle-eol)
-  (define-key cua--rectangle-keymap [remap beginning-of-line]   'cua-resize-rectangle-bol)
-  (define-key cua--rectangle-keymap [remap end-of-buffer]       'cua-resize-rectangle-bot)
-  (define-key cua--rectangle-keymap [remap beginning-of-buffer] 'cua-resize-rectangle-top)
-  (define-key cua--rectangle-keymap [remap scroll-down]         'cua-resize-rectangle-page-up)
-  (define-key cua--rectangle-keymap [remap scroll-up]           'cua-resize-rectangle-page-down)
-  (define-key cua--rectangle-keymap [remap scroll-down-command] 'cua-resize-rectangle-page-up)
-  (define-key cua--rectangle-keymap [remap scroll-up-command]   'cua-resize-rectangle-page-down)
+  (define-key cua--rectangle-keymap [remap forward-char]        #'cua-resize-rectangle-right)
+  (define-key cua--rectangle-keymap [remap right-char]          #'cua-resize-rectangle-right)
+  (define-key cua--rectangle-keymap [remap backward-char]       #'cua-resize-rectangle-left)
+  (define-key cua--rectangle-keymap [remap left-char]           #'cua-resize-rectangle-left)
+  (define-key cua--rectangle-keymap [remap next-line]           #'cua-resize-rectangle-down)
+  (define-key cua--rectangle-keymap [remap previous-line]       #'cua-resize-rectangle-up)
+  (define-key cua--rectangle-keymap [remap end-of-line]         #'cua-resize-rectangle-eol)
+  (define-key cua--rectangle-keymap [remap beginning-of-line]   #'cua-resize-rectangle-bol)
+  (define-key cua--rectangle-keymap [remap end-of-buffer]       #'cua-resize-rectangle-bot)
+  (define-key cua--rectangle-keymap [remap beginning-of-buffer] #'cua-resize-rectangle-top)
+  (define-key cua--rectangle-keymap [remap scroll-down]         #'cua-resize-rectangle-page-up)
+  (define-key cua--rectangle-keymap [remap scroll-up]           #'cua-resize-rectangle-page-down)
+  (define-key cua--rectangle-keymap [remap scroll-down-command] #'cua-resize-rectangle-page-up)
+  (define-key cua--rectangle-keymap [remap scroll-up-command]   #'cua-resize-rectangle-page-down)
 
-  (define-key cua--rectangle-keymap [remap delete-backward-char] 'cua-delete-char-rectangle)
-  (define-key cua--rectangle-keymap [remap backward-delete-char] 'cua-delete-char-rectangle)
-  (define-key cua--rectangle-keymap [remap backward-delete-char-untabify] 'cua-delete-char-rectangle)
-  (define-key cua--rectangle-keymap [remap self-insert-command]	 'cua-insert-char-rectangle)
+  (define-key cua--rectangle-keymap [remap delete-backward-char] #'cua-delete-char-rectangle)
+  (define-key cua--rectangle-keymap [remap backward-delete-char] #'cua-delete-char-rectangle)
+  (define-key cua--rectangle-keymap [remap backward-delete-char-untabify] #'cua-delete-char-rectangle)
+  (define-key cua--rectangle-keymap [remap self-insert-command]	 #'cua-insert-char-rectangle)
 
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--rectangle-keymap [t]
     '(menu-item "sic" cua-insert-char-rectangle :filter cua--self-insert-char-p))
 
-  (define-key cua--rectangle-keymap "\r"     'cua-rotate-rectangle)
-  (define-key cua--rectangle-keymap "\t"     'cua-indent-rectangle)
+  (define-key cua--rectangle-keymap "\r"     #'cua-rotate-rectangle)
+  (define-key cua--rectangle-keymap "\t"     #'cua-indent-rectangle)
 
-  (define-key cua--rectangle-keymap [(control ??)] 'cua-help-for-rectangle)
+  (define-key cua--rectangle-keymap [(control ??)] #'cua-help-for-rectangle)
 
-  (define-key cua--rectangle-keymap [mouse-1]	   'cua-mouse-set-rectangle-mark)
-  (define-key cua--rectangle-keymap [down-mouse-1] 'cua--mouse-ignore)
-  (define-key cua--rectangle-keymap [drag-mouse-1] 'cua--mouse-ignore)
-  (define-key cua--rectangle-keymap [mouse-3]	   'cua-mouse-save-then-kill-rectangle)
-  (define-key cua--rectangle-keymap [down-mouse-3] 'cua--mouse-ignore)
-  (define-key cua--rectangle-keymap [drag-mouse-3] 'cua--mouse-ignore)
+  (define-key cua--rectangle-keymap [mouse-1]	   #'cua-mouse-set-rectangle-mark)
+  (define-key cua--rectangle-keymap [down-mouse-1] #'cua--mouse-ignore)
+  (define-key cua--rectangle-keymap [drag-mouse-1] #'cua--mouse-ignore)
+  (define-key cua--rectangle-keymap [mouse-3]	   #'cua-mouse-save-then-kill-rectangle)
+  (define-key cua--rectangle-keymap [down-mouse-3] #'cua--mouse-ignore)
+  (define-key cua--rectangle-keymap [drag-mouse-3] #'cua--mouse-ignore)
 
-  (cua--rect-M/H-key 'up    'cua-move-rectangle-up)
-  (cua--rect-M/H-key 'down  'cua-move-rectangle-down)
-  (cua--rect-M/H-key 'left  'cua-move-rectangle-left)
-  (cua--rect-M/H-key 'right 'cua-move-rectangle-right)
+  (cua--rect-M/H-key 'up    #'cua-move-rectangle-up)
+  (cua--rect-M/H-key 'down  #'cua-move-rectangle-down)
+  (cua--rect-M/H-key 'left  #'cua-move-rectangle-left)
+  (cua--rect-M/H-key 'right #'cua-move-rectangle-right)
 
-  (cua--rect-M/H-key '(control up)   'cua-scroll-rectangle-up)
-  (cua--rect-M/H-key '(control down) 'cua-scroll-rectangle-down)
+  (cua--rect-M/H-key '(control up)   #'cua-scroll-rectangle-up)
+  (cua--rect-M/H-key '(control down) #'cua-scroll-rectangle-down)
 
-  (cua--rect-M/H-key ?a	'cua-align-rectangle)
-  (cua--rect-M/H-key ?b	'cua-blank-rectangle)
-  (cua--rect-M/H-key ?c	'cua-close-rectangle)
-  (cua--rect-M/H-key ?f	'cua-fill-char-rectangle)
-  (cua--rect-M/H-key ?i	'cua-incr-rectangle)
-  (cua--rect-M/H-key ?k	'cua-cut-rectangle-as-text)
-  (cua--rect-M/H-key ?l	'cua-downcase-rectangle)
-  (cua--rect-M/H-key ?m	'cua-copy-rectangle-as-text)
-  (cua--rect-M/H-key ?n	'cua-sequence-rectangle)
-  (cua--rect-M/H-key ?o	'cua-open-rectangle)
-  (cua--rect-M/H-key ?p	'cua-toggle-rectangle-virtual-edges)
-  (cua--rect-M/H-key ?P	'cua-do-rectangle-padding)
-  (cua--rect-M/H-key ?q	'cua-refill-rectangle)
-  (cua--rect-M/H-key ?r	'cua-replace-in-rectangle)
-  (cua--rect-M/H-key ?R	'cua-reverse-rectangle)
-  (cua--rect-M/H-key ?s	'cua-string-rectangle)
-  (cua--rect-M/H-key ?t	'cua-text-fill-rectangle)
-  (cua--rect-M/H-key ?u	'cua-upcase-rectangle)
-  (cua--rect-M/H-key ?|	'cua-shell-command-on-rectangle)
-  (cua--rect-M/H-key ?'	'cua-restrict-prefix-rectangle)
-  (cua--rect-M/H-key ?/	'cua-restrict-regexp-rectangle)
+  (cua--rect-M/H-key ?a	#'cua-align-rectangle)
+  (cua--rect-M/H-key ?b	#'cua-blank-rectangle)
+  (cua--rect-M/H-key ?c	#'cua-close-rectangle)
+  (cua--rect-M/H-key ?f	#'cua-fill-char-rectangle)
+  (cua--rect-M/H-key ?i	#'cua-incr-rectangle)
+  (cua--rect-M/H-key ?k	#'cua-cut-rectangle-as-text)
+  (cua--rect-M/H-key ?l	#'cua-downcase-rectangle)
+  (cua--rect-M/H-key ?m	#'cua-copy-rectangle-as-text)
+  (cua--rect-M/H-key ?n	#'cua-sequence-rectangle)
+  (cua--rect-M/H-key ?o	#'cua-open-rectangle)
+  (cua--rect-M/H-key ?p	#'cua-toggle-rectangle-virtual-edges)
+  (cua--rect-M/H-key ?P	#'cua-do-rectangle-padding)
+  (cua--rect-M/H-key ?q	#'cua-refill-rectangle)
+  (cua--rect-M/H-key ?r	#'cua-replace-in-rectangle)
+  (cua--rect-M/H-key ?R	#'cua-reverse-rectangle)
+  (cua--rect-M/H-key ?s	#'cua-string-rectangle)
+  (cua--rect-M/H-key ?t	#'cua-text-fill-rectangle)
+  (cua--rect-M/H-key ?u	#'cua-upcase-rectangle)
+  (cua--rect-M/H-key ?|	#'cua-shell-command-on-rectangle)
+  (cua--rect-M/H-key ?'	#'cua-restrict-prefix-rectangle)
+  (cua--rect-M/H-key ?/	#'cua-restrict-regexp-rectangle)
 
   (setq cua--rectangle-initialized t))
 

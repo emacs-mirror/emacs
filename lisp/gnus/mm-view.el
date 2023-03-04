@@ -1,6 +1,6 @@
-;;; mm-view.el --- functions for viewing MIME objects
+;;; mm-view.el --- functions for viewing MIME objects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -50,19 +50,22 @@
     (w3m . mm-inline-text-html-render-with-w3m)
     (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
     (gnus-w3m . gnus-article-html)
-    (links mm-inline-render-with-file
-	   mm-links-remove-leading-blank
-	   "links" "-dump" file)
+    (links . mm-inline-render-with-links)
     (lynx mm-inline-render-with-stdin nil
 	  "lynx" "-dump" "-force_html" "-stdin" "-nolist")
     (html2text mm-inline-render-with-function html2text))
   "The attributes of renderer types for text/html.")
 
 (defcustom mm-fill-flowed t
-  "If non-nil a format=flowed article will be displayed flowed."
+  "If non-nil, format=flowed articles will be displayed flowed."
   :type 'boolean
   :version "22.1"
   :group 'mime-display)
+
+;; Not a defcustom, since it's usually overridden by the callers of
+;; the mm functions.
+(defvar mm-inline-font-lock t
+  "If non-nil, do font locking of inline media types that support it.")
 
 (defcustom mm-inline-large-images-proportion 0.9
   "Maximum proportion large images can occupy in the buffer.
@@ -83,7 +86,7 @@ This is only used if `mm-inline-large-images' is set to
 (defun mm-inline-image (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
-    (put-image
+    (insert-image
      (let ((image (mm-get-image handle)))
        (if (eq mm-inline-large-images 'resize)
            (gnus-rescale-image
@@ -95,15 +98,14 @@ This is only used if `mm-inline-large-images' is set to
 		    (truncate (* mm-inline-large-images-proportion
 				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
-     b)
+     " ")
     (insert "\n")
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((b ,b)
-	      (inhibit-read-only t))
-	  (remove-images b b)
-	  (delete-region b (1+ b)))))))
+     (lambda ()
+       (let ((inhibit-read-only t))
+	 (remove-images b b)
+	 (delete-region b (1+ b)))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -132,7 +134,7 @@ This is only used if `mm-inline-large-images' is set to
 		 (equal "multipart" (mm-handle-media-supertype elem)))
 	(mm-w3m-cid-retrieve-1 url elem)))))
 
-(defun mm-w3m-cid-retrieve (url &rest args)
+(defun mm-w3m-cid-retrieve (url &rest _args)
   "Insert a content pointed by URL if it has the cid: scheme."
   (when (string-match "\\`cid:" url)
     (or (catch 'found-handle
@@ -143,6 +145,9 @@ This is only used if `mm-inline-large-images' is set to
 	(prog1
 	    nil
 	  (message "Failed to find \"Content-ID: %s\"" url)))))
+
+(defvar w3m-force-redisplay)
+(defvar w3m-safe-url-regexp)
 
 (defun mm-inline-text-html-render-with-w3m (handle)
   "Render a text/html part using emacs-w3m."
@@ -194,10 +199,11 @@ This is only used if `mm-inline-large-images' is set to
 			       'keymap w3m-minor-mode-map)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defcustom mm-w3m-standalone-supports-m17n-p 'undecided
   "T means the w3m command supports the m17n feature."
@@ -256,6 +262,7 @@ This is only used if `mm-inline-large-images' is set to
     (mm-inline-render-with-stdin handle nil "w3m" "-dump" "-T" "text/html")))
 
 (defun mm-links-remove-leading-blank ()
+  (declare (obsolete nil "28.1"))
   ;; Delete the annoying three spaces preceding each line of links
   ;; output.
   (goto-char (point-min))
@@ -263,29 +270,61 @@ This is only used if `mm-inline-large-images' is set to
     (delete-region (match-beginning 0) (match-end 0))))
 
 (defun mm-inline-wash-with-file (post-func cmd &rest args)
-  (let ((file (make-temp-file
-	       (expand-file-name "mm" mm-tmp-directory))))
-    (let ((coding-system-for-write 'binary))
-      (write-region (point-min) (point-max) file nil 'silent))
-    (delete-region (point-min) (point-max))
-    (unwind-protect
-	(apply 'call-process cmd nil t nil (mapcar 'eval args))
-      (delete-file file))
-    (and post-func (funcall post-func))))
+  (declare (obsolete nil "28.1"))
+  (with-suppressed-warnings ((lexical file))
+    (dlet ((file (make-temp-file
+	          (expand-file-name "mm" mm-tmp-directory))))
+      (let ((coding-system-for-write 'binary))
+        (write-region (point-min) (point-max) file nil 'silent))
+      (delete-region (point-min) (point-max))
+      (unwind-protect
+	  (apply #'call-process cmd nil t nil
+                 (mapcar (lambda (e) (eval e t)) args))
+        (delete-file file))
+      (and post-func (funcall post-func)))))
 
 (defun mm-inline-wash-with-stdin (post-func cmd &rest args)
   (let ((coding-system-for-write 'binary))
-    (apply 'call-process-region (point-min) (point-max)
+    (apply #'call-process-region (point-min) (point-max)
 	   cmd t t nil args))
   (and post-func (funcall post-func)))
 
 (defun mm-inline-render-with-file (handle post-func cmd &rest args)
+  (declare (obsolete nil "28.1"))
   (let ((source (mm-get-part handle)))
     (mm-insert-inline
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-file post-func cmd args)
+       (with-suppressed-warnings ((obsolete mm-inline-wash-with-file))
+         (apply #'mm-inline-wash-with-file post-func cmd args))
+       (buffer-string)))))
+
+(defun mm-inline-render-with-links (handle)
+  (let ((source (mm-get-part handle))
+        file charset)
+    (mm-insert-inline
+     handle
+     (with-temp-buffer
+       (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
+       (insert source)
+       (unwind-protect
+           (progn
+             (setq file (make-temp-file (expand-file-name
+                                         "mm" mm-tmp-directory)))
+             (let ((coding-system-for-write 'binary))
+               (write-region (point-min) (point-max) file nil 'silent))
+             (delete-region (point-min) (point-max))
+             (if charset
+                 (with-environment-variables (("LANG" (format "en-US.%s"
+                                                              charset)))
+	           (call-process "links" nil t nil "-dump" file))
+               (call-process "links" nil t nil "-dump" file))
+             (goto-char (point-min))
+             (while (re-search-forward "^   " nil t)
+               (delete-region (match-beginning 0) (match-end 0))))
+         (when (and file (file-exists-p file))
+           (delete-file file)))
        (buffer-string)))))
 
 (defun mm-inline-render-with-stdin (handle post-func cmd &rest args)
@@ -294,7 +333,7 @@ This is only used if `mm-inline-large-images' is set to
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-stdin post-func cmd args)
+       (apply #'mm-inline-wash-with-stdin post-func cmd args)
        (buffer-string)))))
 
 (defun mm-inline-render-with-function (handle func &rest args)
@@ -312,7 +351,7 @@ This is only used if `mm-inline-large-images' is set to
 
 (defun mm-inline-text-html (handle)
   (if (stringp (car handle))
-      (mapcar 'mm-inline-text-html (cdr handle))
+      (mapcar #'mm-inline-text-html (cdr handle))
     (let* ((func mm-text-html-renderer)
 	   (entry (assq func mm-text-html-renderer-alist))
 	   (inhibit-read-only t))
@@ -373,10 +412,11 @@ This is only used if `mm-inline-large-images' is set to
        handle
        (if (= (point-min) (point-max))
 	   #'ignore
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(copy-marker (point-min) t)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (copy-marker (point-min) t))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -386,12 +426,13 @@ This is only used if `mm-inline-large-images' is set to
       (insert "\n"))
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((inhibit-read-only t))
-	  (delete-region ,(copy-marker b t)
-			 ,(point-marker)))))))
+     (let ((beg (copy-marker b t))
+           (end (point-marker)))
+       (lambda ()
+	 (let ((inhibit-read-only t))
+	   (delete-region beg end)))))))
 
-(defun mm-inline-audio (handle)
+(defun mm-inline-audio (_handle)
   (message "Not implemented"))
 
 (defun mm-view-message ()
@@ -408,12 +449,18 @@ This is only used if `mm-inline-large-images' is set to
   (fundamental-mode)
   (goto-char (point-min)))
 
+(defvar mm-inline-message-prepare-function nil
+  "Function called by `mm-inline-message' to do client specific setup.
+It is called with two parameters -- the MIME handle and the charset.")
+
 (defun mm-inline-message (handle)
+  "Insert HANDLE (a message/rfc822 part) into the current buffer.
+This function will call `mm-inline-message-prepare-function'
+after inserting the part."
   (let ((b (point))
 	(bolp (bolp))
 	(charset (mail-content-type-get
-		  (mm-handle-type handle) 'charset))
-	gnus-displaying-mime handles)
+		  (mm-handle-type handle) 'charset)))
     (when (and charset
 	       (stringp charset))
       (setq charset (intern (downcase charset)))
@@ -423,16 +470,8 @@ This is only used if `mm-inline-large-images' is set to
       (save-restriction
 	(narrow-to-region b b)
 	(mm-insert-part handle)
-	(let (gnus-article-mime-handles
-	      ;; disable prepare hook
-	      gnus-article-prepare-hook
-	      (gnus-newsgroup-charset
-	       (unless (eq charset 'gnus-decoded) ;; mm-uu might set it.
-		 (or charset gnus-newsgroup-charset))))
-	  (let ((gnus-original-article-buffer (mm-handle-buffer handle)))
-	    (run-hooks 'gnus-article-decode-hook))
-	  (gnus-article-prepare-display)
-	  (setq handles gnus-article-mime-handles))
+        (when mm-inline-message-prepare-function
+	  (funcall mm-inline-message-prepare-function handle charset))
 	(goto-char (point-min))
 	(unless bolp
 	  (insert "\n"))
@@ -440,14 +479,13 @@ This is only used if `mm-inline-large-images' is set to
 	(unless (bolp)
 	  (insert "\n"))
 	(insert "----------\n\n")
-	(when handles
-	  (setq gnus-article-mime-handles
-		(mm-merge-handles gnus-article-mime-handles handles)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 ;; Shut up byte-compiler.
 (defvar font-lock-mode-hook)
@@ -466,8 +504,6 @@ If MODE is not set, try to find mode automatically."
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
 	(setq text (buffer-string))))
     (with-temp-buffer
-      (buffer-disable-undo)
-      (mm-enable-multibyte)
       (insert (cond ((eq charset 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))
@@ -481,19 +517,19 @@ If MODE is not set, try to find mode automatically."
         ;; support modes, but now that we use font-lock-ensure, support modes
         ;; aren't a problem any more.  So we could probably get rid of this
         ;; setting now, but it seems harmless and potentially still useful.
-	(set (make-local-variable 'font-lock-mode-hook) nil)
+	(setq-local font-lock-mode-hook nil)
         (setq buffer-file-name (mm-handle-filename handle))
-	(with-demoted-errors
-	    (if mode
-                (save-window-excursion
-                  ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
-                  ;; requires the buffer to be temporarily displayed here, but
-                  ;; I could not reproduce this problem.  Furthermore, if
-                  ;; there's such a problem, we should fix org-mode rather than
-                  ;; use switch-to-buffer which can have undesirable
-                  ;; side-effects!
-                  ;;(switch-to-buffer (current-buffer))
-	          (funcall mode))
+	(with-demoted-errors "Error setting mode: %S"
+	  (if mode
+              (save-window-excursion
+                ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
+                ;; requires the buffer to be temporarily displayed here, but
+                ;; I could not reproduce this problem.  Furthermore, if
+                ;; there's such a problem, we should fix org-mode rather than
+                ;; use switch-to-buffer which can have undesirable
+                ;; side-effects!
+                ;;(switch-to-buffer (current-buffer))
+	        (funcall mode))
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))
@@ -502,7 +538,8 @@ If MODE is not set, try to find mode automatically."
 	      (delay-mode-hooks (set-auto-mode))
 	      (setq mode major-mode)))
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (eq major-mode 'fundamental-mode)
+	  (when (and (not (eq major-mode 'fundamental-mode))
+		     mm-inline-font-lock)
 	    (font-lock-ensure))))
       (setq text (buffer-string))
       (when (eq mode 'diff-mode)
@@ -540,7 +577,7 @@ If MODE is not set, try to find mode automatically."
   (mm-display-inline-fontify handle 'shell-script-mode))
 
 (defun mm-display-javascript-inline (handle)
-  "Show JavsScript code from HANDLE inline."
+  "Show JavaScript code from HANDLE inline."
   (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
@@ -591,8 +628,13 @@ If MODE is not set, try to find mode automatically."
 	 (with-temp-buffer
 	   (insert-buffer-substring (mm-handle-buffer handle))
 	   (goto-char (point-min))
-	   (let ((part (base64-decode-string (buffer-string))))
-	     (epg-verify-string (epg-make-context 'CMS) part))))
+	   (let ((part (base64-decode-string (buffer-string)))
+		 (context (epg-make-context 'CMS)))
+	     (prog1
+		 (epg-verify-string context part)
+	       (let ((result (epg-context-result-for context 'verify)))
+		 (mm-sec-status
+		  'gnus-info (epg-verify-result-to-string result)))))))
       (with-temp-buffer
 	(insert "MIME-Version: 1.0\n")
 	(mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
@@ -612,7 +654,11 @@ If MODE is not set, try to find mode automatically."
       ;; Use EPG/gpgsm
       (let ((part (base64-decode-string (buffer-string))))
 	(erase-buffer)
-	(insert (epg-decrypt-string (epg-make-context 'CMS) part)))
+	(insert
+         (let ((context (epg-make-context 'CMS)))
+           (prog1
+               (epg-decrypt-string context part)
+             (mm-sec-status 'gnus-info "OK")))))
     ;; Use openssl
     (insert "MIME-Version: 1.0\n")
     (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")

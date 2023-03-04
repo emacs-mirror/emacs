@@ -1,6 +1,6 @@
-;;; nndraft.el --- draft article access for Gnus
+;;; nndraft.el --- draft article access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -56,6 +56,7 @@ are generated if and only if they are also in `message-draft-headers'."
 (defvoo nndraft-current-directory nil nil nnmh-current-directory)
 
 (defconst nndraft-version "nndraft 1.0")
+(make-obsolete-variable 'nndraft-version 'emacs-version "29.1")
 (defvoo nndraft-status-string "" nil nnmh-status-string)
 
 
@@ -79,7 +80,7 @@ are generated if and only if they are also in `message-draft-headers'."
 		     server nndraft-directory)
     t)))
 
-(deffoo nndraft-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nndraft-retrieve-headers (articles &optional group server _fetch-old)
   (nndraft-possibly-change-group group)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -108,7 +109,7 @@ are generated if and only if they are also in `message-draft-headers'."
 	(nnheader-fold-continuation-lines)
 	'headers))))
 
-(deffoo nndraft-request-article (id &optional group server buffer)
+(deffoo nndraft-request-article (id &optional group _server buffer)
   (nndraft-possibly-change-group group)
   (when (numberp id)
     ;; We get the newest file of the auto-saved file and the
@@ -145,7 +146,7 @@ are generated if and only if they are also in `message-draft-headers'."
     ;;(message-remove-header "date")
     t))
 
-(deffoo nndraft-request-update-info (group info &optional server)
+(deffoo nndraft-request-update-info (group info &optional _server)
   (nndraft-possibly-change-group group)
   (setf (gnus-info-read info)
 	(gnus-update-read-articles
@@ -204,13 +205,13 @@ are generated if and only if they are also in `message-draft-headers'."
     (setq buffer-file-name (expand-file-name file)
 	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
-    (add-hook 'write-contents-functions 'nndraft-generate-headers nil t)
-    (add-hook 'after-save-hook 'nndraft-update-unread-articles nil t)
+    (add-hook 'write-contents-functions #'nndraft-generate-headers nil t)
+    (add-hook 'after-save-hook #'nndraft-update-unread-articles nil t)
     (message-add-action '(nndraft-update-unread-articles)
 			'exit 'postpone 'kill)
     article))
 
-(deffoo nndraft-request-group (group &optional server dont-check info)
+(deffoo nndraft-request-group (group &optional server dont-check _info)
   (nndraft-possibly-change-group group)
   (unless dont-check
     (let* ((pathname (nnmail-group-pathname group nndraft-directory))
@@ -219,7 +220,7 @@ are generated if and only if they are also in `message-draft-headers'."
       (nnheader-re-read-dir pathname)
       (setq dir (mapcar (lambda (name) (string-to-number (substring name 1)))
 			(ignore-errors (directory-files
-					pathname nil "^#[0-9]+#$" t))))
+					pathname nil "\\`#[0-9]+#\\'" t))))
       (dolist (n dir)
 	(unless (file-exists-p
 		 (setq file (expand-file-name (int-to-string n) pathname)))
@@ -229,7 +230,7 @@ are generated if and only if they are also in `message-draft-headers'."
 			(list group server dont-check)))
 
 (deffoo nndraft-request-move-article (article group server accept-form
-				      &optional last move-is-internal)
+				      &optional _last _move-is-internal)
   (nndraft-possibly-change-group group)
   (let ((buf (gnus-get-buffer-create " *nndraft move*"))
 	result)
@@ -238,7 +239,7 @@ are generated if and only if they are also in `message-draft-headers'."
      (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
-       (setq result (eval accept-form))
+       (setq result (eval accept-form t))
        (kill-buffer (current-buffer))
        result)
      (null (nndraft-request-expire-articles (list article) group server 'force))
@@ -292,7 +293,7 @@ are generated if and only if they are also in `message-draft-headers'."
     (nnoo-parent-function 'nndraft 'nnmh-request-replace-article
 			  (list article group buffer))))
 
-(deffoo nndraft-request-create-group (group &optional server args)
+(deffoo nndraft-request-create-group (group &optional _server _args)
   (nndraft-possibly-change-group group)
   (if (file-exists-p nndraft-current-directory)
       (if (file-directory-p nndraft-current-directory)
@@ -316,27 +317,25 @@ are generated if and only if they are also in `message-draft-headers'."
 	  (nnheader-concat nndraft-directory group))))
 
 (defun nndraft-article-filename (article &rest args)
-  (apply 'concat
+  (apply #'concat
 	 (file-name-as-directory nndraft-current-directory)
 	 (int-to-string article)
 	 args))
 
 (defun nndraft-auto-save-file-name (file)
-  (save-excursion
+  (with-current-buffer (gnus-get-buffer-create " *draft tmp*")
+    (setq buffer-file-name file)
     (prog1
-	(progn
-	  (set-buffer (gnus-get-buffer-create " *draft tmp*"))
-	  (setq buffer-file-name file)
-	  (make-auto-save-file-name))
+        (make-auto-save-file-name)
       (kill-buffer (current-buffer)))))
 
 (defun nndraft-articles ()
   "Return the list of messages in the group."
   (gnus-make-directory nndraft-current-directory)
   (sort
-   (mapcar 'string-to-number
+   (mapcar #'string-to-number
 	   (directory-files nndraft-current-directory nil "\\`[0-9]+\\'" t))
-   '<))
+   #'<))
 
 (nnoo-import nndraft
   (nnmh

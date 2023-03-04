@@ -1,21 +1,23 @@
-;;; timefns-tests.el -- tests for timefns.c
+;;; timefns-tests.el --- tests for timefns.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Code:
 
 (require 'ert)
 
@@ -91,7 +93,6 @@
 			   most-negative-fixnum most-positive-fixnum
 			   (1- most-negative-fixnum)
 			   (1+ most-positive-fixnum)
-			   1e+INF -1e+INF 1e+NaN -1e+NaN
 			   '(0 1 0 0) '(1 0 0 0) '(-1 0 0 0)
 			   '(123456789000000 . 1000000)
 			   (cons (1+ most-positive-fixnum) 1000000000000)
@@ -178,7 +179,6 @@ a fixed place on the right and are padded on the left."
 			   1e10 -1e10 1e-10 -1e-10
 			   1e16 -1e16 1e-16 -1e-16
 			   1e37 -1e37 1e-37 -1e-37
-			   1e+INF -1e+INF 1e+NaN -1e+NaN
 			   '(0 0 0 1) '(0 0 1 0) '(0 1 0 0) '(1 0 0 0)
 			   '(-1 0 0 0) '(1 2 3 4) '(-1 2 3 4)
 			   '(-123456789 . 100000) '(123456789 . 1000000)
@@ -219,6 +219,15 @@ a fixed place on the right and are padded on the left."
              (encode-time '(29 31 17 30 4 2019 2 t 7200))
              '(23752 27217))))
 
+(ert-deftest encode-time-alternate-apis ()
+  (let* ((time '(30 30 12 15 6 1970))
+	 (time-1 (append time '(nil -1 nil)))
+	 (etime (encode-time time)))
+    (should (time-equal-p etime (encode-time time-1)))
+    (should (time-equal-p etime (apply #'encode-time time)))
+    (should (time-equal-p etime (apply #'encode-time time-1)))
+    (should (time-equal-p etime (apply #'encode-time (append time '(nil)))))))
+
 (ert-deftest float-time-precision ()
   (should (= (float-time '(0 1 0 4025)) 1.000000004025))
   (should (= (float-time '(1000000004025 . 1000000000000)) 1.000000004025))
@@ -239,3 +248,17 @@ a fixed place on the right and are padded on the left."
         (let ((xdiv (/ x divisor)))
           (should (= xdiv (float-time (time-convert xdiv t))))))
       (setq x (* x 2)))))
+
+(ert-deftest time-convert-forms ()
+  ;; These computations involve numbers that should have exact
+  ;; representations on any Emacs platform.
+  (dolist (time '(-86400 -1 0 1 86400))
+    (dolist (delta '(0 0.0 0.25 3.25 1000 1000.25))
+      (let ((time+ (+ time delta))
+	    (time- (- time delta)))
+	(dolist (form '(nil t list 4 1000 1000000 1000000000))
+	  (should (time-equal-p time (time-convert time form)))
+	  (should (time-equal-p time- (time-convert time- form)))
+	  (should (time-equal-p time+ (time-convert time+ form))))))))
+
+;;; timefns-tests.el ends here

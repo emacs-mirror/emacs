@@ -1,6 +1,6 @@
 ;;; secrets.el --- Client interface to gnome-keyring and kwallet. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This package provides an implementation of the Secret Service API
-;; <http://www.freedesktop.org/wiki/Specifications/secret-storage-spec>.
+;; <https://www.freedesktop.org/wiki/Specifications/secret-storage-spec>.
 ;; This API is meant to make GNOME-Keyring- and KWallet-like daemons
 ;; available under a common D-BUS interface and thus increase
 ;; interoperability between GNOME, KDE and other applications having
@@ -77,15 +77,17 @@
 ;;   (secrets-delete-collection "my collection")
 ;;   (secrets-create-collection "my collection")
 
-;; There exists a special collection called "session", which has the
-;; lifetime of the corresponding client session (aka Emacs's
-;; lifetime).  It is created automatically when Emacs uses the Secret
-;; Service interface, and it is deleted when Emacs is killed.
+;; With GNOME Keyring, there exists a special collection called
+;; "session", which has the lifetime of the user being logged in.  Its
+;; data are not stored on disk and go away when the user logs out.
 ;; Therefore, it can be used to store and retrieve secret items
-;; temporarily.  This shall be preferred over creation of a persistent
-;; collection, when the information shall not live longer than Emacs.
-;; The session collection can be addressed either by the string
-;; "session", or by nil, whenever a collection parameter is needed.
+;; temporarily.  The "session" collection can be addressed either by
+;; the string "session", or by nil, whenever a collection parameter is
+;; needed.
+
+;; However, other Secret Service provider don't create this temporary
+;; "session" collection.  You shall check first that this collection
+;; exists, before you use it.
 
 ;; As already said, a collection is a group of secret items.  A secret
 ;; item has a label, the "secret" (which is a string), and a set of
@@ -98,8 +100,7 @@
 ;;    => ("this item" "another item")
 
 ;; Secret items can be added or deleted to a collection.  In the
-;; following examples, we use the special collection "session", which
-;; is bound to Emacs's lifetime.
+;; following examples, we use the special collection "session".
 ;;
 ;;   (secrets-delete-item "session" "my item")
 ;;   (secrets-create-item "session" "my item" "geheim"
@@ -137,7 +138,7 @@
 ;; It has been tested with GNOME Keyring 2.29.92.  An implementation
 ;; for KWallet will be available at
 ;; svn://anonsvn.kde.org/home/kde/trunk/playground/base/ksecretservice;
-;; not tested yet.
+;; not tested yet.  This package has also been tested with KeePassXC 2.6.6.
 
 ;; Pacify byte-compiler.  D-Bus support in the Emacs core can be
 ;; disabled with configuration option "--without-dbus".  Declare used
@@ -159,7 +160,7 @@
   "Whether there is a daemon offering the Secret Service API.")
 
 (defvar secrets-debug nil
-  "Write debug messages")
+  "Write debug messages.")
 
 (defconst secrets-service "org.freedesktop.secrets"
   "The D-Bus name used to talk to Secret Service.")
@@ -263,6 +264,7 @@ It returns t if not."
 ;;   </signal>
 ;; </interface>
 
+;; This exist only for GNOME Keyring.
 (defconst secrets-session-collection-path
   "/org/freedesktop/secrets/collection/session"
   "The D-Bus temporary session collection object path.")
@@ -311,43 +313,8 @@ It returns t if not."
 (defconst secrets-interface-item-type-generic "org.freedesktop.Secret.Generic"
   "The default item type we are using.")
 
-;; We cannot use introspection, because some servers, like
-;; mate-keyring-daemon, don't provide relevant data.  Once the dust
-;; has settled, we shall assume the new interface, and get rid of the test.
-(defconst secrets-struct-secret-content-type
-  (ignore-errors
-    (let ((content-type "text/plain")
-	  (path (cadr
-		 (dbus-call-method
-		  :session secrets-service secrets-path
-		  secrets-interface-service
-		  "OpenSession" "plain" '(:variant ""))))
-	  result)
-      ;; Create a dummy item.
-      (setq result
-	    (dbus-call-method
-	     :session secrets-service secrets-session-collection-path
-	     secrets-interface-collection "CreateItem"
-	     ;; Properties.
-	     `(:array
-	       (:dict-entry ,(concat secrets-interface-item ".Label")
-			    (:variant " ")))
-	     ;; Secret.
-	     `(:struct :object-path ,path
-		       (:array :signature "y")
-		       ,(dbus-string-to-byte-array " ")
-		       :string ,content-type)
-	     ;; Don't replace.
-	     nil))
-      ;; Remove it.
-      (dbus-call-method
-       :session secrets-service (car result)
-       secrets-interface-item "Delete")
-      ;; Result.
-      `(,content-type)))
-  "The content_type of a secret struct.
-It must be wrapped as list, because we add it via `append'.  This
-is an interface introduced in 2011.")
+(defconst secrets-struct-secret-content-type "text/plain"
+  "The content_type of a secret struct.")
 
 (defconst secrets-interface-session "org.freedesktop.Secret.Session"
   "A session tracks state between the service and a client application.")
@@ -643,7 +610,7 @@ starting with a colon.  Example:
 The object labels of the found items are returned as list."
   (mapcar
    (lambda (item-path) (secrets-get-item-property item-path "Label"))
-   (apply 'secrets-search-item-paths collection attributes)))
+   (apply #'secrets-search-item-paths collection attributes)))
 
 (defun secrets-create-item (collection item password &rest attributes)
   "Create a new item in COLLECTION with label ITEM and password PASSWORD.
@@ -696,13 +663,10 @@ The object path of the created item is returned."
 		`((:dict-entry ,(concat secrets-interface-item ".Attributes")
 			       (:variant ,(append '(:array) props))))))
 	     ;; Secret.
-	     (append
-	      `(:struct :object-path ,secrets-session-path
-			(:array :signature "y") ;; No parameters.
-			,(dbus-string-to-byte-array password))
-	      ;; We add the content_type.  In backward compatibility
-	      ;; mode, nil is appended, which means nothing.
-	      secrets-struct-secret-content-type)
+	     `(:struct :object-path ,secrets-session-path
+		       (:array :signature "y") ;; No parameters.
+		       ,(dbus-string-to-byte-array password)
+                       ,secrets-struct-secret-content-type)
 	     ;; Do not replace. Replace does not seem to work.
 	     nil))
       (secrets-prompt (cadr result))
@@ -777,14 +741,13 @@ ITEM can also be an object path, which is used if contained in COLLECTION."
 
 ;;; Visualization.
 
-(defvar secrets-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap special-mode-map widget-keymap))
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "z" 'kill-current-buffer)
-    map)
-  "Keymap used in `secrets-mode' buffers.")
+(defvar-keymap secrets-mode-map
+  :doc "Keymap used in `secrets-mode' buffers."
+  :parent (make-composed-keymap special-mode-map
+                                widget-keymap)
+  "n" #'next-line
+  "p" #'previous-line
+  "z" #'kill-current-buffer)
 
 (define-derived-mode secrets-mode special-mode "Secrets"
   "Major mode for presenting password entries retrieved by Security Service.
@@ -792,11 +755,11 @@ In this mode, widgets represent the search results.
 
 \\{secrets-mode-map}"
   (setq buffer-undo-list t)
-  (set (make-local-variable 'revert-buffer-function)
-       #'secrets-show-collections)
+  (setq-local revert-buffer-function
+              #'secrets-show-collections)
   ;; When we toggle, we must set temporary widgets.
-  (set (make-local-variable 'tree-widget-after-toggle-functions)
-       '(secrets-tree-widget-after-toggle-function)))
+  (add-hook 'tree-widget-after-toggle-functions
+            #'secrets-tree-widget-after-toggle-function nil t))
 
 ;; It doesn't make sense to call it interactively.
 (put 'secrets-mode 'disabled t)
@@ -859,7 +822,7 @@ to their attributes."
 	 ;; padding is needed to format attribute names.
 	 (padding
 	  (apply
-	   'max
+	   #'max
 	   (cons
 	    (1+ (length "password"))
 	    (mapcar
@@ -943,7 +906,7 @@ to their attributes."
    secrets-interface-service "CollectionDeleted"
    'secrets-collection-handler)
 
-  ;; We shall inform, whether the secret service is enabled on this
+  ;; We shall inform, that the secret service is enabled on this
   ;; machine.
   (setq secrets-enabled t))
 
@@ -954,6 +917,9 @@ to their attributes."
 ;; * secrets-debug should be structured like auth-source-debug to
 ;;   prevent leaking sensitive information.  Right now I don't see
 ;;   anything sensitive though.
+
 ;; * Check, whether the dh-ietf1024-aes128-cbc-pkcs7 algorithm can be
 ;;   used for the transfer of the secrets.  Currently, we use the
 ;;   plain algorithm.
+
+;;; secrets.el ends here

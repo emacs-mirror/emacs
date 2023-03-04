@@ -1,6 +1,6 @@
-;;; double.el --- support for keyboard remapping with double clicking
+;;; double.el --- support for keyboard remapping with double clicking  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 1997-1998, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -67,7 +67,6 @@ Each entry is a list with three elements:
 1. The key activating the translation.
 2. The string to be inserted when the key is pressed once.
 3. The string to be inserted when the key is pressed twice."
-  :group 'double
   :type '(repeat (list (character :tag "Key")
 		       (string :tag "Once")
 		       (string :tag "Twice"))))
@@ -76,7 +75,6 @@ Each entry is a list with three elements:
   "Non-nil means that Double mode mapping only works for prefix keys.
 That is, for any key `X' in `double-map', `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key."
-  :group 'double
   :type 'boolean)
 
 ;;; Read Event
@@ -95,11 +93,10 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 (global-set-key [ignore] 'ignore)
 
-(or (boundp 'isearch-mode-map)
-    (load-library "isearch"))
+(require 'isearch)
 
 (define-key isearch-mode-map [ignore]
-  (function (lambda () (interactive) (isearch-update))))
+  (lambda () (interactive) (isearch-update)))
 
 (defun double-translate-key (prompt)
   ;; Translate input events using double map.
@@ -140,12 +137,6 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	     (vector (aref exp 0)))))))
 
 ;;; Mode
-
-;; This feature seemed useless and it confused describe-mode,
-;; so I deleted it.
-;; (defvar double-mode-name "Double")
-;; ;; Name of current double mode.
-;; (make-variable-buffer-local 'double-mode-name)
 
 ;;;###autoload
 (define-minor-mode double-mode

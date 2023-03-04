@@ -1,6 +1,6 @@
 ;;; paren.el --- highlight matching paren  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993, 1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: emacs-devel@gnu.org
@@ -88,6 +88,28 @@ is not highlighted, the cursor being regarded as adequate to mark
 its position."
   :type 'boolean)
 
+(defcustom show-paren-context-when-offscreen nil
+  "If non-nil, show context around the opening paren if it is offscreen.
+The context is usually the line that contains the openparen,
+except if the openparen is on its own line, in which case the
+context includes the previous nonblank line.
+
+By default, the context is shown in the echo area.
+
+If set to the symbol `overlay', the context is shown in an
+overlay at the top-left of the window.
+
+If set to the symbol `child-frame', the context is shown in a
+child frame at the top-left of the window.  You might want to
+customize the `child-frame-border' face (especially the
+background color) to give the child frame a distinguished border.
+On non-graphical frames, the context is shown in the echo area."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "In echo area" t)
+                 (const :tag "In overlay" overlay)
+                 (const :tag "In child-frame" child-frame))
+  :version "29.1")
+
 (defvar show-paren--idle-timer nil)
 (defvar show-paren--overlay
   (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
@@ -96,15 +118,31 @@ its position."
   (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
   "Overlay used to highlight the paren at point.")
 
+(defcustom show-paren-predicate '(not (derived-mode . special-mode))
+  "Whether to use `show-paren-mode' in a buffer.
+The default is to enable the mode in all buffers that don't
+derive from `special-mode', which means that it's on (by default)
+in all editing buffers.
+The predicate is passed as argument to `buffer-match-p', which see."
+  :type 'buffer-predicate
+  :safe #'booleanp
+  :version "29.1")
 
 ;;;###autoload
 (define-minor-mode show-paren-mode
   "Toggle visualization of matching parens (Show Paren mode).
 
-Show Paren mode is a global minor mode.  When enabled, any
-matching parenthesis is highlighted in `show-paren-style' after
-`show-paren-delay' seconds of Emacs idle time."
+When enabled, any matching parenthesis is highlighted in `show-paren-style'
+after `show-paren-delay' seconds of Emacs idle time.
+
+Also see `show-paren-predicate', which controls which buffers
+this mode is enabled in.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `show-paren-local-mode'."
   :global t :group 'paren-showing
+  :initialize 'custom-initialize-delay
+  :init-value t
   ;; Enable or disable the mechanism.
   ;; First get rid of the old idle timer.
   (when show-paren--idle-timer
@@ -114,8 +152,30 @@ matching parenthesis is highlighted in `show-paren-style' after
                                 show-paren-delay t
                                 #'show-paren-function))
   (unless show-paren-mode
-    (delete-overlay show-paren--overlay)
-    (delete-overlay show-paren--overlay-1)))
+    (show-paren--delete-overlays)))
+
+(defun show-paren--delete-overlays ()
+  (delete-overlay show-paren--overlay)
+  (delete-overlay show-paren--overlay-1))
+
+;;;###autoload
+(define-minor-mode show-paren-local-mode
+  "Toggle `show-paren-mode' only in this buffer."
+  :variable ((show-paren--enabled-p)
+             .
+             (lambda (val) (setq-local show-paren-mode val)))
+  (cond
+   ((eq show-paren-mode (default-value 'show-paren-mode))
+    (unless show-paren-mode
+      (show-paren--delete-overlays)
+      (kill-local-variable 'show-paren-mode)))
+   ((not (default-value 'show-paren-mode))
+    ;; Locally enabled, but globally disabled.
+    (show-paren-mode 1)                ; Setup the timer.
+    (setq-default show-paren-mode nil) ; But keep it globally disabled.
+    )
+   (t ;; Locally disabled only.
+    (show-paren--delete-overlays))))
 
 (defun show-paren--unescaped-p (pos)
   "Determine whether the paren after POS is unescaped."
@@ -179,6 +239,13 @@ It is the default value of `show-paren-data-function'."
   (let* ((temp (show-paren--locate-near-paren))
 	 (dir (car temp))
 	 (outside (cdr temp))
+         ;; If we're inside a comment, then we probably want to blink
+         ;; a matching parentheses in the comment.  So don't ignore
+         ;; comments in that case.
+         (parse-sexp-ignore-comments
+          (if (ppss-comment-depth (syntax-ppss))
+              nil
+            parse-sexp-ignore-comments))
 	 pos mismatch here-beg here-end)
     ;;
     ;; Find the other end of the sexp.
@@ -228,15 +295,159 @@ It is the default value of `show-paren-data-function'."
 		  (if (= dir 1) pos (1+ pos))
 		  mismatch)))))))
 
+(defvar show-paren--context-child-frame nil)
+
+(defun show-paren--context-child-frame-redirect-focus ()
+  "Redirect focus from child frame."
+  (redirect-frame-focus
+   show-paren--context-child-frame
+   (frame-parent show-paren--context-child-frame)))
+
+(defun show-paren--context-child-frame-buffer (text)
+  (with-current-buffer
+      (get-buffer-create " *show-paren context*")
+    ;; Redirect focus to parent.
+    (add-hook 'pre-command-hook
+              #'show-paren--delete-context-child-frame
+              nil t)
+    ;; Use an empty keymap.
+    (use-local-map (make-keymap))
+    (dolist (var '((mode-line-format . nil)
+                   (header-line-format . nil)
+                   (tab-line-format . nil)
+                   (tab-bar-format . nil) ;; Emacs 28 tab-bar-format
+                   (frame-title-format . "")
+                   (truncate-lines . t)
+                   (cursor-in-non-selected-windows . nil)
+                   (cursor-type . nil)
+                   (show-trailing-whitespace . nil)
+                   (display-line-numbers . nil)
+                   (left-fringe-width . nil)
+                   (right-fringe-width . nil)
+                   (left-margin-width . 0)
+                   (right-margin-width . 0)
+                   (fringes-outside-margins . 0)
+                   (buffer-read-only . t)))
+      (set (make-local-variable (car var)) (cdr var)))
+    (let ((inhibit-modification-hooks t)
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert text)
+      (goto-char (point-min)))
+    (current-buffer)))
+
+(defvar show-paren--context-child-frame-parameters
+  `((visibility . nil)
+    (width . 0) (height . 0)
+    (min-width . t) (min-height . t)
+    (no-accept-focus . t)
+    (no-focus-on-map . t)
+    (border-width . 0)
+    (child-frame-border-width . 1)
+    (left-fringe . 0)
+    (right-fringe . 0)
+    (vertical-scroll-bars . nil)
+    (horizontal-scroll-bars . nil)
+    (menu-bar-lines . 0)
+    (tool-bar-lines . 0)
+    (tab-bar-lines . 0)
+    (no-other-frame . t)
+    (no-other-window . t)
+    (no-delete-other-windows . t)
+    (unsplittable . t)
+    (undecorated . t)
+    (cursor-type . nil)
+    (no-special-glyphs . t)
+    (desktop-dont-save . t)))
+
+(defun show-paren--delete-context-child-frame ()
+  (when show-paren--context-child-frame
+    (delete-frame show-paren--context-child-frame)
+    (setq show-paren--context-child-frame nil))
+  (remove-hook 'post-command-hook
+               #'show-paren--delete-context-child-frame))
+
+(defun show-paren--show-context-in-child-frame (text)
+  "Show TEXT in a child-frame at the top-left of the current window."
+  (let ((minibuffer (minibuffer-window (window-frame)))
+        (buffer (show-paren--context-child-frame-buffer text))
+        (x (window-pixel-left))
+        (y (window-pixel-top))
+        (window-min-height 1)
+        (window-min-width 1)
+        after-make-frame-functions)
+    (show-paren--delete-context-child-frame)
+    (setq show-paren--context-child-frame
+          (make-frame
+           `((parent-frame . ,(window-frame))
+             (minibuffer . ,minibuffer)
+             ,@show-paren--context-child-frame-parameters)))
+    (let ((win (frame-root-window show-paren--context-child-frame)))
+      (set-window-buffer win buffer)
+      (set-window-dedicated-p win t)
+      (set-frame-size show-paren--context-child-frame
+                      (string-width text)
+                      (length (string-lines text)))
+      (set-frame-position show-paren--context-child-frame x y)
+      (make-frame-visible show-paren--context-child-frame)
+      (add-hook 'post-command-hook
+                #'show-paren--delete-context-child-frame))))
+
+(defvar-local show-paren--context-overlay nil)
+
+(defun show-paren--delete-context-overlay ()
+  (when show-paren--context-overlay
+    (delete-overlay show-paren--context-overlay)
+    (setq show-paren--context-overlay nil))
+  (remove-hook 'post-command-hook #'show-paren--delete-overlays
+               'local))
+
+(defun show-paren--show-context-in-overlay (text)
+  "Show TEXT in an overlay at the top-left of the current window."
+  (setq text (replace-regexp-in-string "\n" " " text))
+  (show-paren--delete-context-overlay)
+  (let* ((beg (window-start))
+         (end (save-excursion
+                (goto-char beg)
+                (line-end-position))))
+    (setq show-paren--context-overlay (make-overlay beg end)))
+  (overlay-put show-paren--context-overlay 'display text)
+  ;; Use the (default very high) `show-paren-priority' ensuring that
+  ;; not other overlays shine through (bug#59527).
+  (overlay-put show-paren--context-overlay 'priority
+               show-paren-priority)
+  (overlay-put show-paren--context-overlay
+               'face `(:box
+                       ( :line-width (1 . -1)
+                         :color ,(face-attribute 'shadow :foreground))))
+  (add-hook 'post-command-hook #'show-paren--delete-context-overlay
+            nil 'local))
+
+;; The last position of point for which `show-paren-function' was
+;; called.  We track it in order to C-g away a context overlay or
+;; child-frame without having it pop up again after
+;; `show-paren-delay'.
+(defvar-local show-paren--last-pos nil)
+
+(defun show-paren--enabled-p ()
+  (and show-paren-mode
+       ;; If we're using `show-paren-local-mode', then
+       ;; always heed the value.
+       (or (local-variable-p 'show-paren-mode)
+           ;; If not, check that the predicate matches.
+           (buffer-match-p show-paren-predicate (current-buffer)))))
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
-  (let ((data (and show-paren-mode (funcall show-paren-data-function))))
+  (let ((data (and (show-paren--enabled-p)
+                   (funcall show-paren-data-function))))
     (if (not data)
         (progn
           ;; If show-paren-mode is nil in this buffer or if not at a paren that
           ;; has a match, turn off any previous paren highlighting.
           (delete-overlay show-paren--overlay)
-          (delete-overlay show-paren--overlay-1))
+          (delete-overlay show-paren--overlay-1)
+          (setq show-paren--last-pos (point)))
 
       ;; Found something to highlight.
       (let* ((here-beg (nth 0 data))
@@ -267,8 +478,8 @@ It is the default value of `show-paren-data-function'."
         ;; Otherwise, turn off any such highlighting.
         (if (or (not here-beg)
                 (and (not show-paren-highlight-openparen)
-		     (> here-end (point))
-		     (<= here-beg (point))
+                     (> here-end (point))
+                     (<= here-beg (point))
                      (integerp there-beg)))
             (delete-overlay show-paren--overlay-1)
           (move-overlay show-paren--overlay-1
@@ -283,11 +494,32 @@ It is the default value of `show-paren-data-function'."
             (delete-overlay show-paren--overlay)
           (if highlight-expression
               (move-overlay show-paren--overlay
-			    (if (< there-beg here-beg) here-end here-beg)
+                            (if (< there-beg here-beg) here-end here-beg)
                             (if (< there-beg here-beg) there-beg there-end)
                             (current-buffer))
             (move-overlay show-paren--overlay
                           there-beg there-end (current-buffer)))
+          ;; If `show-paren-context-when-offscreen' is non-nil and
+          ;; point is at a closing paren, show the context around the
+          ;; opening paren.
+          (let ((openparen (min here-beg there-beg)))
+            (when (and show-paren-context-when-offscreen
+                       (not (eql show-paren--last-pos (point)))
+                       (< there-beg here-beg)
+                       (not (pos-visible-in-window-p openparen)))
+              (let ((context (blink-paren-open-paren-line-string
+                              openparen))
+                    (message-log-max nil))
+                (cond
+                 ((and
+                   (eq show-paren-context-when-offscreen 'child-frame)
+                   (display-graphic-p))
+                  (show-paren--show-context-in-child-frame context))
+                 ((eq show-paren-context-when-offscreen 'overlay)
+                  (show-paren--show-context-in-overlay context))
+                 (show-paren-context-when-offscreen
+                  (minibuffer-message "Matches %s" context))))))
+          (setq show-paren--last-pos (point))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))

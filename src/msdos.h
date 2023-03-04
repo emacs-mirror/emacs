@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +22,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 
 #include "termhooks.h"		/* struct terminal */
+struct terminal;
+
+extern unsigned int _dos_commit(int);
+#define tcdrain(f) _dos_commit(f)
 
 int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked (void);
@@ -57,6 +61,11 @@ ssize_t readlinkat (int, const char *, char *, size_t);
 int fstatat (int, char const *, struct stat *, int);
 int unsetenv (const char *);
 int faccessat (int, const char *, int, int);
+int openat (int, const char *, int, int);
+int fchmodat (int, const char *, mode_t, int);
+int futimens (int, const struct timespec[2]);
+int utimensat (int, const char *, const struct timespec[2], int);
+
 void msdos_fatal_signal (int);
 void syms_of_msdos (void);
 int pthread_sigmask (int, const sigset_t *, sigset_t *);
@@ -86,6 +95,8 @@ typedef int GC;
 typedef int Pixmap;
 typedef int Display;
 typedef int Window;
+
+#define FRAME_X_DISPLAY(ignored) NULL
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 
@@ -112,7 +123,6 @@ extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
 #define DisplayWidth(p1,p2) (SELECTED_FRAME()->text_cols)
 #define DisplayHeight(p1,p2) (SELECTED_FRAME()->text_lines)
-#define XMenuSetAEQ (void)
 #define XMenuSetFreeze (void)
 #define XMenuRecompute (void)
 #define XM_FAILURE -1

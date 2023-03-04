@@ -1,6 +1,6 @@
-;;; gnus-cache.el --- cache interface for Gnus
+;;; gnus-cache.el --- cache interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -29,9 +29,7 @@
 (require 'gnus)
 (require 'gnus-sum)
 
-(eval-when-compile
-  (unless (fboundp 'gnus-agent-load-alist)
-    (defun gnus-agent-load-alist (group))))
+(declare-function gnus-agent-load-alist "gnus-agent" (group))
 
 (defcustom gnus-cache-active-file
   (expand-file-name "active" gnus-cache-directory)
@@ -55,7 +53,7 @@
 If you only want to cache your nntp groups, you could set this
 variable to \"^nntp\".
 
-If a group matches both gnus-cacheable-groups and gnus-uncacheable-groups
+If a group matches both `gnus-cacheable-groups' and `gnus-uncacheable-groups'
 it's not cached."
   :group 'gnus-cache
   :type '(choice (const :tag "off" nil)
@@ -93,6 +91,8 @@ it's not cached."
 
 (autoload 'nnml-generate-nov-databases-directory "nnml")
 (autoload 'nnvirtual-find-group-art "nnvirtual")
+(autoload 'nnselect-article-group "nnselect")
+(autoload 'nnselect-article-number  "nnselect")
 
 
 
@@ -137,7 +137,7 @@ it's not cached."
 	      ;; If possible, remove group's cache subdirectory.
 	      (condition-case nil
 		  ;; FIXME: we can detect the error type and warn the user
-		  ;; of any inconsistencies (articles w/o nov entries?).
+		  ;; of any inconsistencies (articles without nov entries?).
 		  ;; for now, just be conservative...delete only if safe -- sj
 		  (delete-directory (file-name-directory overview-file))
 		(error))))
@@ -147,6 +147,8 @@ it's not cached."
       ;; Kill the buffer -- it's either unmodified or saved.
       (gnus-kill-buffer buffer)
       (setq gnus-cache-buffer nil))))
+
+(defvar gnus-article-decode-hook)
 
 (defun gnus-cache-possibly-enter-article
   (group article ticked dormant unread &optional force)
@@ -158,8 +160,12 @@ it's not cached."
 	  (file-name-coding-system nnmail-pathname-coding-system))
       ;; If this is a virtual group, we find the real group.
       (when (gnus-virtual-group-p group)
-	(let ((result (nnvirtual-find-group-art
-		       (gnus-group-real-name group) article)))
+	(let ((result (if (gnus-nnselect-group-p group)
+			  (with-current-buffer gnus-summary-buffer
+			    (cons (nnselect-article-group article)
+				  (nnselect-article-number article)))
+			(nnvirtual-find-group-art
+			 (gnus-group-real-name group) article))))
 	  (setq group (car result)
 		number (cdr result))))
       (when (and number
@@ -186,7 +192,7 @@ it's not cached."
 		(gnus-cache-update-file-total-fetched-for group file))
 	      (setq lines-chars (nnheader-get-lines-and-char))
 	      (nnheader-remove-body)
-	      (setq headers (nnheader-parse-naked-head))
+	      (setq headers (nnheader-parse-head t))
 	      (setf (mail-header-number headers) number)
 	      (setf (mail-header-lines headers) (car lines-chars))
 	      (setf (mail-header-chars headers) (cadr lines-chars))
@@ -232,8 +238,14 @@ it's not cached."
     (let ((arts gnus-cache-removable-articles)
 	  ga)
       (while arts
-	(when (setq ga (nnvirtual-find-group-art
-			(gnus-group-real-name gnus-newsgroup-name) (pop arts)))
+	(when (setq ga
+		    (if (gnus-nnselect-group-p gnus-newsgroup-name)
+			(with-current-buffer gnus-summary-buffer
+			  (let ((article (pop arts)))
+			    (cons (nnselect-article-group article)
+				  (nnselect-article-number article))))
+		      (nnvirtual-find-group-art
+		       (gnus-group-real-name gnus-newsgroup-name) (pop arts))))
 	  (let ((gnus-cache-removable-articles (list (cdr ga)))
 		(gnus-newsgroup-name (car ga)))
 	    (gnus-cache-possibly-remove-articles-1)))))
@@ -330,7 +342,7 @@ it's not cached."
   "Enter the next N articles into the cache.
 If not given a prefix, use the process marked articles instead.
 Returns the list of articles entered."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (let (out)
     (dolist (article (gnus-summary-work-articles n))
       (gnus-summary-remove-process-mark article)
@@ -351,7 +363,7 @@ Returns the list of articles entered."
   "Remove the next N articles from the cache.
 If not given a prefix, use the process marked articles instead.
 Returns the list of articles removed."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (gnus-cache-change-buffer gnus-newsgroup-name)
   (let (out)
     (dolist (article (gnus-summary-work-articles n))
@@ -376,7 +388,7 @@ Returns the list of articles removed."
 
 (defun gnus-summary-insert-cached-articles ()
   "Insert all the articles cached for this group into the current buffer."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (cond
      ((not gnus-newsgroup-cached)
@@ -389,7 +401,7 @@ Returns the list of articles removed."
 
 (defun gnus-summary-limit-include-cached ()
   "Limit the summary buffer to articles that are cached."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (if gnus-newsgroup-cached
 	(progn
@@ -467,8 +479,12 @@ Returns the list of articles removed."
 	(file-name-coding-system nnmail-pathname-coding-system))
     ;; If this is a virtual group, we find the real group.
     (when (gnus-virtual-group-p group)
-      (let ((result (nnvirtual-find-group-art
-		     (gnus-group-real-name group) article)))
+      (let ((result (if (gnus-nnselect-group-p group)
+			(with-current-buffer gnus-summary-buffer
+			  (cons (nnselect-article-group article)
+				(nnselect-article-number article)))
+		      (nnvirtual-find-group-art
+		       (gnus-group-real-name group) article))))
 	(setq group (car result)
 	      number (cdr result))))
     (setq file (gnus-cache-file-name group number))
@@ -501,8 +517,8 @@ Returns the list of articles removed."
     (when (file-exists-p dir)
       (setq articles
 	    (sort (mapcar (lambda (name) (string-to-number name))
-			  (directory-files dir nil "^[0-9]+$" t))
-		  '<))
+			  (directory-files dir nil "\\`[0-9]+\\'" t))
+		  #'<))
       ;; Update the cache active file, just to synch more.
       (if articles
 	  (progn
@@ -536,7 +552,7 @@ Returns the list of articles removed."
       (set-buffer cache-buf)
       (if (search-forward (concat "\n" (int-to-string (car cached)) "\t")
 			  nil t)
-	  (setq beg (point-at-bol)
+          (setq beg (line-beginning-position)
 		end (progn (end-of-line) (point)))
 	(setq beg nil))
       (set-buffer nntp-server-buffer)
@@ -698,7 +714,7 @@ If LOW, update the lower bound instead."
 	  (push (string-to-number (file-name-nondirectory (pop files))) nums)
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
-    (when (setq nums (sort nums '<))
+    (when (setq nums (sort nums #'<))
       (puthash group
 	       (cons (car nums) (car (last nums)))
 	       gnus-cache-active-hashtb))
@@ -713,6 +729,8 @@ If LOW, update the lower bound instead."
     (when top
       (gnus-cache-write-active t)
       (gnus-message 5 "Generating the cache active file...done"))))
+
+(defvar nnml-generate-active-function)
 
 ;;;###autoload
 (defun gnus-cache-generate-nov-databases (dir)
@@ -868,7 +886,7 @@ supported."
       (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1000)))
     (let* ((entry (gethash group gnus-cache-total-fetched-hashtb)))
       (if entry
-	  (apply '+ entry)
+	  (apply #'+ entry)
 	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))
 	  (+
 	   (gnus-cache-update-overview-total-fetched-for group nil)

@@ -1,6 +1,8 @@
 ;;; lisp-mode-tests.el --- Test Lisp editing commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -153,7 +155,7 @@ noindent\" 3
       (should (equal (buffer-string) str)))))
 
 (ert-deftest indent-sexp-stop-before-eol-non-lisp ()
-  "`indent-sexp' shouldn't be too agressive in non-Lisp modes."
+  "`indent-sexp' shouldn't be too aggressive in non-Lisp modes."
   ;; See https://debbugs.gnu.org/35286#13.
   (with-temp-buffer
     (prolog-mode)
@@ -294,6 +296,18 @@ Expected initialization file: `%s'\"
     (insert "\"\n")
     (lisp-indent-region (point-min) (point-max))))
 
+(ert-deftest lisp-indent-defun ()
+  (with-temp-buffer
+    (lisp-mode)
+    (let ((orig "(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))"))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
 
 ;;; Fontification
 
@@ -315,6 +329,31 @@ Expected initialization file: `%s'\"
     (let ((faceup (buffer-string)))
       (faceup-clean-buffer)
       (should (faceup-test-font-lock-buffer 'emacs-lisp-mode faceup)))))
+
+(ert-deftest test-lisp-current-defun-name ()
+  (require 'edebug)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(defun foo ()\n'bar)\n")
+    (goto-char 5)
+    (should (equal (lisp-current-defun-name) "foo")))
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(define-flabbergast-test zot ()\n'bar)\n")
+    (goto-char 5)
+    (should (equal (lisp-current-defun-name) "zot")))
+  ;; These tests should probably work after bug#49592 has been fixed.
+  ;; (with-temp-buffer
+  ;;   (emacs-lisp-mode)
+  ;;   (insert "(progn\n ;; comment\n ;; about that\n (define-key ...)\n )")
+  ;;   (goto-char 5)
+  ;;   (should (equal (lisp-current-defun-name) "progn")))
+  ;; (with-temp-buffer
+  ;;   (emacs-lisp-mode)
+  ;;   (insert "(defblarg \"a\" 'b)")
+  ;;   (goto-char 5)
+  ;;   (should (equal (lisp-current-defun-name) "defblarg")))
+  )
 
 (provide 'lisp-mode-tests)
 ;;; lisp-mode-tests.el ends here

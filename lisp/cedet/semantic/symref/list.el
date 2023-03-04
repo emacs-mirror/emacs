@@ -1,6 +1,6 @@
-;;; semantic/symref/list.el --- Symref Output List UI.
+;;; semantic/symref/list.el --- Symref Output List UI  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -51,7 +51,7 @@ Display the references in `semantic-symref-results-mode'."
   (let ((ct (semantic-current-tag)))
     ;; Must have a tag...
     (when (not ct) (error "Place cursor inside tag to be searched for"))
-    ;; Check w/ user.
+    ;; Check with user.
     (when (not (y-or-n-p (format "Find references for %s? "
                                  (semantic-tag-name ct))))
       (error "Quit"))
@@ -85,10 +85,12 @@ current project to find references to the input SYM.  The
 references are the organized by file and the name of the function
 they are used in.
 Display the references in `semantic-symref-results-mode'."
-  (interactive (list (let ((tag (semantic-current-tag)))
-                       (read-string " Symrefs for: " nil nil
-                                    (when tag
-                                      (regexp-quote (semantic-tag-name tag)))))))
+  (interactive (list (let* ((tag (semantic-current-tag))
+                            (default (when tag
+                                       (regexp-quote
+                                        (semantic-tag-name tag)))))
+                       (read-string (format-prompt " Symrefs for" default)
+                                    nil nil default))))
   ;; FIXME: Shouldn't the input be in Emacs regexp format, for
   ;; consistency? Converting it to extended is not hard.
   (semantic-fetch-tags)
@@ -106,20 +108,20 @@ Display the references in `semantic-symref-results-mode'."
 (defvar semantic-symref-results-mode-map
   (let ((km (make-sparse-keymap)))
     (suppress-keymap km)
-    (define-key km "\C-i" 'forward-button)
-    (define-key km "\M-C-i" 'backward-button)
-    (define-key km " " 'push-button)
-    (define-key km "-" 'semantic-symref-list-toggle-showing)
-    (define-key km "=" 'semantic-symref-list-toggle-showing)
-    (define-key km "+" 'semantic-symref-list-toggle-showing)
-    (define-key km "n" 'semantic-symref-list-next-line)
-    (define-key km "p" 'semantic-symref-list-prev-line)
-    (define-key km "q" 'quit-window)
-    (define-key km "\C-c\C-e" 'semantic-symref-list-expand-all)
-    (define-key km "\C-c\C-r" 'semantic-symref-list-contract-all)
-    (define-key km "R" 'semantic-symref-list-rename-open-hits)
-    (define-key km "(" 'semantic-symref-list-create-macro-on-open-hit)
-    (define-key km "E" 'semantic-symref-list-call-macro-on-open-hits)
+    (define-key km "\C-i" #'forward-button)
+    (define-key km "\M-C-i" #'backward-button)
+    (define-key km " " #'push-button)
+    (define-key km "-" #'semantic-symref-list-toggle-showing)
+    (define-key km "=" #'semantic-symref-list-toggle-showing)
+    (define-key km "+" #'semantic-symref-list-toggle-showing)
+    (define-key km "n" #'semantic-symref-list-next-line)
+    (define-key km "p" #'semantic-symref-list-prev-line)
+    (define-key km "q" #'quit-window)
+    (define-key km "\C-c\C-e" #'semantic-symref-list-expand-all)
+    (define-key km "\C-c\C-r" #'semantic-symref-list-contract-all)
+    (define-key km "R" #'semantic-symref-list-rename-open-hits)
+    (define-key km "(" #'semantic-symref-list-create-macro-on-open-hit)
+    (define-key km "E" #'semantic-symref-list-call-macro-on-open-hits)
     km)
   "Keymap used in `semantic-symref-results-mode'.")
 
@@ -150,7 +152,7 @@ Display the references in `semantic-symref-results-mode'."
 
 (easy-menu-define semantic-symref-list-menu
   semantic-symref-results-mode-map
-  "Symref Mode Menu"
+  "Symref Mode Menu."
   semantic-symref-list-menu-entries)
 
 (defcustom semantic-symref-auto-expand-results nil
@@ -174,7 +176,7 @@ Display the references in `semantic-symref-results-mode'."
     (switch-to-buffer-other-window buff)
     (set-buffer buff)
     (semantic-symref-results-mode)
-    (set (make-local-variable 'semantic-symref-current-results) res)
+    (setq-local semantic-symref-current-results res)
     (semantic-symref-results-dump res)
     (goto-char (point-min))))
 
@@ -182,7 +184,7 @@ Display the references in `semantic-symref-results-mode'."
   "Major-mode for displaying Semantic Symbol Reference results."
   (buffer-disable-undo)
   ;; FIXME: Why bother turning off font-lock?
-  (set (make-local-variable 'font-lock-global-modes) nil)
+  (setq-local font-lock-global-modes nil)
   (font-lock-mode -1))
 
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype
@@ -232,7 +234,7 @@ Some useful functions are found in `semantic-format-tag-functions'."
   "Toggle showing the contents below the current line."
   (interactive)
   (beginning-of-line)
-  (when (re-search-forward "\\[[-+]\\]" (point-at-eol) t)
+  (when (re-search-forward "\\[[-+]\\]" (line-end-position) t)
     (forward-char -1)
     (push-button)))
 
@@ -253,7 +255,7 @@ BUTTON is the button that was clicked."
 	  (forward-line (1- H))
 	  (beginning-of-line)
 	  (back-to-indentation)
-	  (setq text (cons (buffer-substring (point) (point-at-eol)) text)))
+          (setq text (cons (buffer-substring (point) (line-end-position)) text)))
 	(setq text (nreverse text)))
       (goto-char (button-start button))
       (forward-char 1)
@@ -376,7 +378,8 @@ BUTTON is the button that was clicked."
 
 (defun semantic-symref-list-on-hit-p ()
   "Return the line number if the cursor is on a buffer line with a hit.
-Hits are the line of code from the buffer, not the tag summar or file lines."
+Hits are the line of code from the buffer, not the tag summary or
+file lines."
   (save-excursion
     (end-of-line)
     (let* ((ol (car (overlays-at (1- (point)))))) ;; trust this for now
@@ -407,7 +410,7 @@ cursor to the beginning of that symbol, then record a macro as if
     (switch-to-buffer-other-window (semantic-tag-buffer tag))
     (goto-char (point-min))
     (forward-line (1- line))
-    (when (not (re-search-forward (regexp-quote oldsym) (point-at-eol) t))
+    (when (not (re-search-forward (regexp-quote oldsym) (line-end-position) t))
       (error "Cannot find hit.  Cannot record macro"))
     (goto-char (match-beginning 0))
     ;; Cursor is now in the right location.  Start recording a macro.
@@ -477,7 +480,7 @@ Return the number of occurrences FUNCTION was operated upon."
 	      (goto-char (point-min))
 	      (forward-line (1- line))
 	      (beginning-of-line)
-	      (while (re-search-forward (regexp-quote oldsym) (point-at-eol) t)
+              (while (re-search-forward (regexp-quote oldsym) (line-end-position) t)
 		(setq count (1+ count))
 		(save-excursion ;; Leave cursor after the matched name.
 		  (goto-char (match-beginning 0)) ;; Go to beginning of that sym

@@ -1,6 +1,6 @@
 ;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>
@@ -49,13 +49,13 @@
 ;;
 ;; Ewoc is a package that implements a connection between an
 ;; dll (a doubly linked list) and the contents of a buffer.
-;; Possible uses are dired (have all files in a list, and show them),
+;; Possible uses are Dired (have all files in a list, and show them),
 ;; buffer-list, kom-prioritize (in the LysKOM elisp client) and
 ;; others.  pcl-cvs.el and vc.el use ewoc.el.
 ;;
 ;; Ewoc can be considered as the `view' part of a model-view-controller.
 ;;
-;; A `element' can be any lisp object.  When you use the ewoc
+;; An `element' can be any Lisp object.  When you use the ewoc
 ;; package you specify a pretty-printer, a function that inserts
 ;; a printable representation of the element in the buffer.  (The
 ;; pretty-printer should use "insert" and not
@@ -67,7 +67,7 @@
 ;; fixed when the ewoc is created).  The header and the footer
 ;; are constant strings.  They appear before and after the elements.
 ;;
-;; Ewoc does not affect the mode of the buffer in any way. It
+;; Ewoc does not affect the mode of the buffer in any way.  It
 ;; merely makes it easy to connect an underlying data representation
 ;; to the buffer contents.
 ;;
@@ -117,7 +117,7 @@
     (unless (eq dll L) L)))
 
 (defun ewoc--node-nth (dll n)
-  "Return the Nth node from the doubly linked list `dll'.
+  "Return the Nth node from the doubly linked list DLL.
 N counts from zero.  If N is negative, return the -(N+1)th last element.
 If N is out of range, return nil.
 Thus, (ewoc--node-nth dll 0) returns the first node,
@@ -147,7 +147,7 @@ and (ewoc--node-nth dll -1) returns the last node."
   buffer pretty-printer header footer dll last-node hf-pp)
 
 (defmacro ewoc--set-buffer-bind-dll-let* (ewoc varlist &rest forms)
-  "Execute FORMS with ewoc--buffer selected as current buffer,
+  "Execute FORMS with `ewoc--buffer' selected as current buffer,
 `dll' bound to the dll, and VARLIST bound as in a let*.
 `dll' will be bound when VARLIST is initialized, but
 the current buffer will *not* have been changed.
@@ -205,15 +205,26 @@ NODE and leaving the new node's start there.  Return the new node."
 
 (defun ewoc--refresh-node (pp node dll)
   "Redisplay the element represented by NODE using the pretty-printer PP."
-  (let ((inhibit-read-only t)
-        (m (ewoc--node-start-marker node))
-        (R (ewoc--node-right node)))
-    ;; First, remove the string from the buffer:
-    (delete-region m (ewoc--node-start-marker R))
-    ;; Calculate and insert the string.
-    (goto-char m)
-    (funcall pp (ewoc--node-data node))
-    (ewoc--adjust m (point) R dll)))
+  (let* ((m (ewoc--node-start-marker node))
+         (R (ewoc--node-right node))
+         (end (ewoc--node-start-marker R))
+         (inhibit-read-only t)
+         (offset (if (= (point) end)
+                     'end
+                   (when (< m (point) end)
+                     (- (point) m)))))
+    (save-excursion
+      ;; First, remove the string from the buffer:
+      (delete-region m end)
+      ;; Calculate and insert the string.
+      (goto-char m)
+      (funcall pp (ewoc--node-data node))
+      (setq end (point))
+      (ewoc--adjust m (point) R dll))
+    (when offset
+      (goto-char (if (eq offset 'end)
+                     end
+                   (min (+ m offset) (1- end)))))))
 
 (defun ewoc--wrap (func)
   (lambda (data)
@@ -342,11 +353,10 @@ arguments will be passed to MAP-FUNCTION."
       ((footer (ewoc--footer ewoc))
        (pp (ewoc--pretty-printer ewoc))
        (node (ewoc--node-nth dll 1)))
-    (save-excursion
-      (while (not (eq node footer))
-        (if (apply map-function (ewoc--node-data node) args)
-            (ewoc--refresh-node pp node dll))
-        (setq node (ewoc--node-next dll node))))))
+    (while (not (eq node footer))
+      (if (apply map-function (ewoc--node-data node) args)
+          (ewoc--refresh-node pp node dll))
+      (setq node (ewoc--node-next dll node)))))
 
 (defun ewoc-delete (ewoc &rest nodes)
   "Delete NODES from EWOC."
@@ -371,7 +381,7 @@ arguments will be passed to MAP-FUNCTION."
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
-Note that the buffer for EWOC will be current-buffer when PREDICATE
+Note that the buffer for EWOC will be the current buffer when PREDICATE
 is called.  PREDICATE must restore the current buffer before it returns
 if it changes it.
 The PREDICATE is called with the element as its first argument.  If any
@@ -461,9 +471,8 @@ If the EWOC is empty, nil is returned."
 Delete current text first, thus effecting a \"refresh\"."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((pp (ewoc--pretty-printer ewoc)))
-    (save-excursion
-      (dolist (node nodes)
-        (ewoc--refresh-node pp node dll)))))
+    (dolist (node nodes)
+      (ewoc--refresh-node pp node dll))))
 
 (defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element in EWOC.
@@ -566,9 +575,8 @@ Return nil if the buffer has been deleted."
        (hf-pp (ewoc--hf-pp ewoc)))
     (setf (ewoc--node-data head) header
           (ewoc--node-data foot) footer)
-    (save-excursion
-      (ewoc--refresh-node hf-pp head dll)
-      (ewoc--refresh-node hf-pp foot dll))))
+    (ewoc--refresh-node hf-pp head dll)
+    (ewoc--refresh-node hf-pp foot dll)))
 
 
 (provide 'ewoc)

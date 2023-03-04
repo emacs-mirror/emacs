@@ -1,6 +1,6 @@
 ;;; cl-generic-tests.el --- Tests for cl-generic.el functionality  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -23,8 +23,15 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'ert)) ;Don't indirectly require cl-lib at run-time.
 (require 'cl-generic)
+(require 'edebug)
+
+;; Don't indirectly require `cl-lib' at run-time.
+(require 'ert)
+(declare-function ert--should-signal-hook "ert")
+(declare-function ert--signal-should-execution "ert")
+(declare-function ert-fail "ert")
+(declare-function ert-set-test "ert")
 
 (fmakunbound 'cl--generic-1)
 (cl-defgeneric cl--generic-1 (x y))
@@ -49,7 +56,14 @@
   (should (equal (cl--generic-1 'a nil) '(a)))
   (should (equal (cl--generic-1 4 nil) '("quatre" 4)))
   (should (equal (cl--generic-1 5 nil) '("cinq" 5)))
-  (should (equal (cl--generic-1 6 nil) '("six" a))))
+  (should (equal (cl--generic-1 6 nil) '("six" a)))
+  (defvar cl--generic-fooval 41)
+  (cl-defmethod cl--generic-1 ((_x (eql (+ cl--generic-fooval 1))) _y)
+    "forty-two")
+  (cl-defmethod cl--generic-1 (_x (_y (eql 42)))
+    "FORTY-TWO")
+  (should (equal (cl--generic-1 42 nil) "forty-two"))
+  (should (equal (cl--generic-1 nil 42) "FORTY-TWO")))
 
 (cl-defstruct cl-generic-struct-parent a b)
 (cl-defstruct (cl-generic-struct-child1 (:include cl-generic-struct-parent)) c)
@@ -186,9 +200,14 @@
   (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y))
   (cl-defmethod cl--generic-1 ((x t) y)
-    (list x y (cl-next-method-p)))
+    (list x y
+          (with-suppressed-warnings ((obsolete cl-next-method-p))
+            (cl-next-method-p))))
   (cl-defmethod cl--generic-1 ((_x (eql 4)) _y)
-    (cl-list* "quatre" (cl-next-method-p) (cl-call-next-method)))
+    (cl-list* "quatre"
+              (with-suppressed-warnings ((obsolete cl-next-method-p))
+                (cl-next-method-p))
+              (cl-call-next-method)))
   (should (equal (cl--generic-1 4 5) '("quatre" t 4 5 nil))))
 
 (ert-deftest cl-generic-test-12-context ()
@@ -233,7 +252,7 @@
   (let ((retval (cl--generic-method-files 'cl-generic-tests--generic)))
     (should (equal (length retval) 2))
     (mapc (lambda (x)
-            (should (equal (car x) cl-generic-tests--this-file))
+            (should (equal (file-truename (car x)) cl-generic-tests--this-file))
             (should (equal (cadr x) 'cl-generic-tests--generic)))
           retval)
     (should-not (equal (nth 0 retval) (nth 1 retval)))))
@@ -242,6 +261,63 @@
   "`method-files' returns nil if asked to find a method which doesn't exist."
   (should-not (cl--generic-method-files 'cl-generic-tests--undefined-generic))
   (should-not (cl--generic-method-files 'cl-generic-tests--generic-without-methods)))
+
+(ert-deftest cl-defgeneric/edebug/method ()
+  "Check that `:method' forms in `cl-defgeneric' create unique
+Edebug symbols (Bug#42672)."
+  (with-temp-buffer
+    (dolist (form '((cl-defgeneric cl-defgeneric/edebug/method/1 (_)
+                      (:method ((_ number)) 1)
+                      (:method ((_ string)) 2)
+                      (:method :around ((_ number)) 3))
+                    (cl-defgeneric cl-defgeneric/edebug/method/2 (_)
+                      (:method ((_ number)) 3))))
+      (print form (current-buffer)))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name))))
+      (eval-buffer)
+      (should (equal
+               (reverse instrumented-names)
+               ;; The generic function definitions come after the
+               ;; method definitions because their body ends later.
+               ;; FIXME: We'd rather have names such as
+               ;; `cl-defgeneric/edebug/method/1 ((_ number))', but
+               ;; that requires further changes to Edebug.
+               (list (intern "cl-defgeneric/edebug/method/1 (number)")
+                     (intern "cl-defgeneric/edebug/method/1 (string)")
+                     (intern "cl-defgeneric/edebug/method/1 :around (number)")
+                     'cl-defgeneric/edebug/method/1
+                     (intern "cl-defgeneric/edebug/method/2 (number)")
+                     'cl-defgeneric/edebug/method/2))))))
+
+(cl-defgeneric cl-generic-tests--acc (x &optional y)
+  (declare (advertised-calling-convention (x) "671.2")))
+
+(cl-defmethod cl-generic-tests--acc ((x float)) (+ x 5.0))
+
+(ert-deftest cl-generic-tests--advertised-calling-convention-bug58563 ()
+  (should (equal (get-advertised-calling-convention
+                  (indirect-function 'cl-generic-tests--acc))
+                 '(x)))
+  (should
+   (condition-case err
+       (let ((lexical-binding t)
+             (byte-compile-debug t)
+             (byte-compile-error-on-warn t))
+         (byte-compile '(cl-defmethod cl-generic-tests--acc ((x list))
+                          (declare (advertised-calling-convention (y) "1.1"))
+                          (cons x '(5 5 5 5 5))))
+         nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Stray.*declare" (cadr err)))))))
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

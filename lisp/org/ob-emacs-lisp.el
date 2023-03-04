@@ -1,10 +1,10 @@
 ;;; ob-emacs-lisp.el --- Babel Functions for Emacs-lisp Code -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -26,6 +26,9 @@
 ;; Org-Babel support for evaluating emacs-lisp code
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
 
 (require 'ob-core)
 
@@ -55,37 +58,36 @@ by `org-edit-src-code'.")
       (format "(let (%s)\n%s\n)"
 	      (mapconcat
 	       (lambda (var)
-		 (format "%S" (print `(,(car var) ',(cdr var)))))
+		 (format "%S" `(,(car var) ',(cdr var))))
 	       vars "\n      ")
 	      body))))
 
 (defun org-babel-execute:emacs-lisp (body params)
   "Execute a block of emacs-lisp code with Babel."
-  (save-window-excursion
-    (let* ((lexical (cdr (assq :lexical params)))
-	   (result-params (cdr (assq :result-params params)))
-	   (body (format (if (member "output" result-params)
-			     "(with-output-to-string %s\n)"
-			   "(progn %s\n)")
-			 (org-babel-expand-body:emacs-lisp body params)))
-	   (result (eval (read (if (or (member "code" result-params)
-				       (member "pp" result-params))
-				   (concat "(pp " body ")")
-				 body))
-			 (org-babel-emacs-lisp-lexical lexical))))
-      (org-babel-result-cond result-params
-	(let ((print-level nil)
-              (print-length nil))
-          (if (or (member "scalar" result-params)
-                  (member "verbatim" result-params))
-              (format "%S" result)
-            (format "%s" result)))
-	(org-babel-reassemble-table
-	 result
-         (org-babel-pick-name (cdr (assq :colname-names params))
-                              (cdr (assq :colnames params)))
-         (org-babel-pick-name (cdr (assq :rowname-names params))
-                              (cdr (assq :rownames params))))))))
+  (let* ((lexical (cdr (assq :lexical params)))
+	 (result-params (cdr (assq :result-params params)))
+	 (body (format (if (member "output" result-params)
+			   "(with-output-to-string %s\n)"
+			 "(progn %s\n)")
+		       (org-babel-expand-body:emacs-lisp body params)))
+	 (result (eval (read (if (or (member "code" result-params)
+				     (member "pp" result-params))
+				 (concat "(pp " body ")")
+			       body))
+		       (org-babel-emacs-lisp-lexical lexical))))
+    (org-babel-result-cond result-params
+      (let ((print-level nil)
+            (print-length nil))
+        (if (or (member "scalar" result-params)
+                (member "verbatim" result-params))
+            (format "%S" result)
+          (format "%s" result)))
+      (org-babel-reassemble-table
+       result
+       (org-babel-pick-name (cdr (assq :colname-names params))
+                            (cdr (assq :colnames params)))
+       (org-babel-pick-name (cdr (assq :rowname-names params))
+                            (cdr (assq :rownames params)))))))
 
 (defun org-babel-emacs-lisp-lexical (lexical)
   "Interpret :lexical source block argument.
@@ -107,7 +109,5 @@ corresponding :lexical source block argument."
 (org-babel-make-language-alias "elisp" "emacs-lisp")
 
 (provide 'ob-emacs-lisp)
-
-
 
 ;;; ob-emacs-lisp.el ends here

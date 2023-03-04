@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -560,7 +560,9 @@ deactivate the mark.  If the value is @w{@code{(only . @var{oldval})}},
 then @code{transient-mark-mode} is set to the value @var{oldval} after
 any subsequent command that moves point and is not shift-translated
 (@pxref{Key Sequence Input, shift-translation}), or after any other
-action that would normally deactivate the mark.
+action that would normally deactivate the mark.  (Marking a region
+with the mouse will temporarily enable @code{transient-mark-mode} in
+this way.)
 @end defopt
 
 @defopt mark-even-if-inactive
@@ -607,8 +609,8 @@ the function @code{use-region-p} for that (@pxref{The Region}).
 @defvarx deactivate-mark-hook
 These normal hooks are run, respectively, when the mark becomes active
 and when it becomes inactive.  The hook @code{activate-mark-hook} is
-also run at the end of the command loop if the mark is active and it
-is possible that the region may have changed.
+also run when the region is reactivated, for instance after using a
+command that switches back to a buffer that has an active mark.
 @ignore
 This piece of command_loop_1, run unless deactivating the mark:
   if (current_buffer != prev_buffer || MODIFF != prev_modiff)

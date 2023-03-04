@@ -1,6 +1,6 @@
-;;; skeleton.el --- Lisp language extension for writing statement skeletons
+;;; skeleton.el --- Lisp language extension for writing statement skeletons  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -37,7 +37,8 @@
 ;; page 2:	paired insertion
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
-(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
+(define-obsolete-variable-alias 'skeleton-transformation
+  'skeleton-transformation-function "29.1")
 
 (defvar skeleton-transformation-function 'identity
   "If non-nil, function applied to literal strings before they are inserted.
@@ -65,7 +66,8 @@ region.")
   "Hook called at end of skeleton but before going to point of interest.
 The variables `v1' and `v2' are still set when calling this.")
 
-(defvaralias 'skeleton-filter 'skeleton-filter-function)
+(define-obsolete-variable-alias 'skeleton-filter
+  'skeleton-filter-function "29.1")
 
 ;;;###autoload
 (defvar skeleton-filter-function 'identity
@@ -104,16 +106,17 @@ are integer buffer positions in the reverse order of the insertion order.")
 (defvar skeleton-point)
 (defvar skeleton-regions)
 
-(def-edebug-spec skeleton-edebug-spec
-  ([&or null stringp (stringp &rest stringp) [[&not atom] sexp]]
-   &rest &or "n" "_" "-" ">" "@" "&" "!" "|" "resume:"
-   ("quote" def-form) skeleton-edebug-spec def-form))
+(def-edebug-elem-spec 'skeleton-edebug-spec
+  '([&or null stringp (stringp &rest stringp) [[&not atom] sexp]]
+    &rest &or "n" "_" "-" ">" "@" "&" "!" "|" "resume:"
+    ("quote" def-form) skeleton-edebug-spec def-form))
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
   "Define a user-configurable COMMAND that enters a statement skeleton.
 DOCUMENTATION is that of the command.
 SKELETON is as defined under `skeleton-insert'."
-  (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec)))
+  (declare (doc-string 2) (debug (&define name stringp skeleton-edebug-spec))
+           (indent defun))
   (if skeleton-debug
       (set command skeleton))
   `(progn
@@ -135,7 +138,8 @@ A prefix argument of -1 says to wrap around region, even if not highlighted.
 A prefix argument of zero says to wrap around zero words---that is, nothing.
 This is a way of overriding the use of a highlighted region.")
        (interactive "*P\nP")
-       (skeleton-proxy-new ',skeleton str arg))))
+       (atomic-change-group
+         (skeleton-proxy-new ',skeleton str arg)))))
 
 ;;;###autoload
 (defun skeleton-proxy-new (skeleton &optional str arg)
@@ -154,8 +158,7 @@ of `str' whereas the skeleton's interactor is then ignored."
 		       (prefix-numeric-value (or arg
 						 current-prefix-arg))
 		     (and skeleton-autowrap
-			  (or (eq last-command 'mouse-drag-region)
-			      (and transient-mark-mode mark-active))
+			  (use-region-p)
 			  ;; Deactivate the mark, in case one of the
 			  ;; elements of the skeleton is sensitive
 			  ;; to such situations (e.g. it is itself a
@@ -258,23 +261,25 @@ available:
 	 (goto-char (car skeleton-regions))
 	 (setq skeleton-regions (cdr skeleton-regions)))
     (let ((beg (point))
-	  skeleton-modified skeleton-point resume: help input v1 v2)
-      (setq skeleton-positions nil)
-      (unwind-protect
-	  (cl-progv
-              (mapcar #'car skeleton-further-elements)
-              (mapcar (lambda (x) (eval (cadr x))) skeleton-further-elements)
-            (skeleton-internal-list skeleton str))
-	(or (eolp) (not skeleton-end-newline) (newline-and-indent))
-	(run-hooks 'skeleton-end-hook)
-	(sit-for 0)
-	(or (not (eq (window-buffer) (current-buffer)))
-            (pos-visible-in-window-p beg)
-	    (progn
-	      (goto-char beg)
-	      (recenter 0)))
-	(if skeleton-point
-	    (goto-char skeleton-point))))))
+	  skeleton-modified skeleton-point) ;; resume:
+      (with-suppressed-warnings ((lexical help input v1 v2))
+        (dlet (help input v1 v2)
+          (setq skeleton-positions nil)
+          (unwind-protect
+	      (cl-progv
+	          (mapcar #'car skeleton-further-elements)
+	          (mapcar (lambda (x) (eval (cadr x) t)) skeleton-further-elements)
+	        (skeleton-internal-list skeleton str))
+	    (or (eolp) (not skeleton-end-newline) (newline-and-indent))
+	    (run-hooks 'skeleton-end-hook)
+	    (sit-for 0)
+	    (or (not (eq (window-buffer) (current-buffer)))
+	        (pos-visible-in-window-p beg)
+	        (progn
+	          (goto-char beg)
+	          (recenter 0)))
+	    (if skeleton-point
+	        (goto-char skeleton-point))))))))
 
 (defun skeleton-read (prompt &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
@@ -288,7 +293,8 @@ i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
 is non-nil or a default string."
-  (let ((minibuffer-help-form (or (if (boundp 'help) (symbol-value 'help))
+  (with-suppressed-warnings ((lexical help)) (defvar help)) ;FIXME: Prefix!
+  (let ((minibuffer-help-form (or (bound-and-true-p help)
 				  (if recursive "\
 As long as you provide input you will insert another subskeleton.
 
@@ -310,10 +316,15 @@ automatically, and you are prompted to fill in the variable parts.")))
         (save-excursion (insert "\n")))
     (unwind-protect
 	(setq prompt (cond ((stringp prompt)
-                            (read-string (format prompt skeleton-subprompt)
-                                         (setq initial-input
-                                               (or initial-input
-                                                   (symbol-value 'input)))))
+                            ;; The user may issue commands to move
+                            ;; around (like `C-M-v').  Ensure that we
+                            ;; insert the skeleton at the correct
+                            ;; (initial) point.
+                            (save-excursion
+                              (read-string (format prompt skeleton-subprompt)
+                                           (setq initial-input
+                                                 (or initial-input
+                                                     (symbol-value 'input))))))
                            ((functionp prompt)
                             (funcall prompt))
                            (t (eval prompt))))
@@ -327,36 +338,40 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit t)
     prompt))
 
-(defun skeleton-internal-list (skeleton-il &optional str recursive)
+(defun skeleton-internal-list (skeleton &optional str recursive)
   (let* ((start (line-beginning-position))
 	 (column (current-column))
 	 (line (buffer-substring start (line-end-position)))
-	 opoint)
-    (or str
-	(setq str `(setq str
-			 (skeleton-read ',(car skeleton-il) nil ,recursive))))
-    (when (and (eq (cadr skeleton-il) '\n) (not recursive)
-	       (save-excursion (skip-chars-backward " \t") (bolp)))
-      (setq skeleton-il (cons nil (cons '> (cddr skeleton-il)))))
-    (while (setq skeleton-modified (eq opoint (point))
-		 opoint (point)
-		 skeleton-il (cdr skeleton-il))
-      (condition-case quit
-	  (skeleton-internal-1 (car skeleton-il) nil recursive)
-	(quit
-	 (if (eq (cdr quit) 'recursive)
-	     (setq recursive 'quit
-		   skeleton-il (memq 'resume: skeleton-il))
-	   ;; Remove the subskeleton as far as it has been shown
-	   ;; the subskeleton shouldn't have deleted outside current line.
-	   (end-of-line)
-	   (delete-region start (point))
-	   (insert line)
-	   (move-to-column column)
-	   (if (cdr quit)
-	       (setq skeleton-il ()
-		     recursive nil)
-	     (signal 'quit 'recursive)))))))
+         (skeleton-il skeleton)
+         opoint)
+    (with-suppressed-warnings ((lexical str))
+      (dlet ((str (or str
+                      `(setq str
+			     (skeleton-read ',(car skeleton-il)
+			                    nil ,recursive))))
+             resume:)
+	(when (and (eq (cadr skeleton-il) '\n) (not recursive)
+	           (save-excursion (skip-chars-backward " \t") (bolp)))
+	  (setq skeleton-il (cons nil (cons '> (cddr skeleton-il)))))
+	(while (setq skeleton-modified (eq opoint (point))
+		     opoint (point)
+		     skeleton-il (cdr skeleton-il))
+	  (condition-case quit
+	      (skeleton-internal-1 (car skeleton-il) nil recursive)
+	    (quit
+	     (if (eq (cdr quit) 'recursive)
+		 (setq recursive 'quit
+		       skeleton-il (memq 'resume: skeleton-il))
+	       ;; Remove the subskeleton as far as it has been shown
+	       ;; the subskeleton shouldn't have deleted outside current line.
+	       (end-of-line)
+	       (delete-region start (point))
+	       (insert line)
+	       (move-to-column column)
+	       (if (cdr quit)
+		   (setq skeleton-il ()
+		         recursive nil)
+		 (signal 'quit 'recursive)))))))))
   ;; maybe continue loop or go on to next outer resume: section
   (if (eq recursive 'quit)
       (signal 'quit 'recursive)

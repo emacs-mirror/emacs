@@ -1,11 +1,11 @@
 ;;; ob-scheme.el --- Babel Functions for Scheme      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2023 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	    Michael Gauland
 ;; Keywords: literate programming, reproducible research, scheme
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -38,11 +38,16 @@
 ;;   ELPA.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'geiser nil t)
 (require 'geiser-impl nil t)
 (defvar geiser-repl--repl)             ; Defined in geiser-repl.el
 (defvar geiser-impl--implementation)   ; Defined in geiser-impl.el
+(defvar geiser-scheme-implementation)  ; Defined in geiser-impl.el
 (defvar geiser-default-implementation) ; Defined in geiser-impl.el
 (defvar geiser-active-implementations) ; Defined in geiser-impl.el
 (defvar geiser-debug-show-debug-p)     ; Defined in geiser-debug.el
@@ -51,9 +56,12 @@
 (defvar geiser-repl-window-allow-split)	; Defined in geiser-repl.el
 
 (declare-function run-geiser "ext:geiser-repl" (impl))
+(declare-function geiser "ext:geiser-repl" (impl))
 (declare-function geiser-mode "ext:geiser-mode" ())
 (declare-function geiser-eval-region "ext:geiser-mode"
                   (start end &optional and-go raw nomsg))
+(declare-function geiser-eval-region/wait "ext:geiser-mode"
+                  (start end &optional timeout))
 (declare-function geiser-repl-exit "ext:geiser-repl" (&optional arg))
 (declare-function geiser-eval--retort-output "ext:geiser-eval" (ret))
 (declare-function geiser-eval--retort-result-str "ext:geiser-eval" (ret prefix))
@@ -71,7 +79,8 @@
 (defun org-babel-expand-body:scheme (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (let ((vars (org-babel--get-vars params))
-	(prepends (cdr (assq :prologue params))))
+	(prepends (cdr (assq :prologue params)))
+	(postpends (cdr (assq :epilogue params))))
     (concat (and prepends (concat prepends "\n"))
 	    (if (null vars) body
 	      (format "(let (%s)\n%s\n)"
@@ -80,7 +89,8 @@
 			 (format "%S" (print `(,(car var) ',(cdr var)))))
 		       vars
 		       "\n      ")
-		      body)))))
+		      body))
+	    (and postpends (concat "\n" postpends)))))
 
 
 (defvar org-babel-scheme-repl-map (make-hash-table :test #'equal)
@@ -107,11 +117,14 @@
     geiser-impl--implementation))
 
 (defun org-babel-scheme-get-repl (impl name)
-  "Switch to a scheme REPL, creating it if it doesn't exist:"
+  "Switch to a scheme REPL, creating it if it doesn't exist."
   (let ((buffer (org-babel-scheme-get-session-buffer name)))
     (or buffer
 	(progn
-	  (run-geiser impl)
+          (if (fboundp 'geiser)
+              (geiser impl)
+            ;; Obsolete since Geiser 0.26.
+	    (run-geiser impl))
 	  (when name
 	    (rename-buffer name t)
 	    (org-babel-scheme-set-session-buffer name (current-buffer)))
@@ -173,9 +186,16 @@ is true; otherwise returns the last value."
 	  (setq geiser-impl--implementation nil)
 	  (let ((geiser-debug-jump-to-debug-p nil)
 		(geiser-debug-show-debug-p nil))
-	    (let ((ret (geiser-eval-region (point-min) (point-max))))
+            ;; `geiser-eval-region/wait' was introduced to await the
+            ;; result of async evaluation in geiser version 0.22.
+	    (let ((ret (funcall (if (fboundp 'geiser-eval-region/wait)
+                                    #'geiser-eval-region/wait
+                                  #'geiser-eval-region)
+                                (point-min)
+                                (point-max))))
 	      (setq result (if output
-			       (geiser-eval--retort-output ret)
+			       (or (geiser-eval--retort-output ret)
+				   "Geiser Interpreter produced no output")
 			     (geiser-eval--retort-result-str ret "")))))
 	  (when (not repl)
 	    (save-current-buffer (set-buffer repl-buffer)
@@ -208,6 +228,7 @@ This function is called by `org-babel-execute-src-block'."
       (let* ((result-type (cdr (assq :result-type params)))
 	     (impl (or (when (cdr (assq :scheme params))
 			 (intern (cdr (assq :scheme params))))
+		       geiser-scheme-implementation
 		       geiser-default-implementation
 		       (car geiser-active-implementations)))
 	     (session (org-babel-scheme-make-session-name

@@ -1,7 +1,7 @@
 ### @configure_input@
 
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -26,6 +26,7 @@ all: liblw.a
 .PHONY: all
 
 srcdir=@srcdir@
+top_builddir=@top_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
@@ -56,29 +57,13 @@ TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
 OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+-include ${top_builddir}/src/verbose.mk
 
 AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
   DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
-  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
+  -include $(OBJS:%.o=$(DEPDIR)/%.d)
 else
   DEPFLAGS =
   include $(srcdir)/deps.mk

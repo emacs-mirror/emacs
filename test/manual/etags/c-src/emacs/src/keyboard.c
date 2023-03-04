@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2020 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2023 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -759,7 +759,7 @@ force_auto_save_soon (void)
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
 To get out of the recursive edit, a command can throw to `exit' -- for
-instance `(throw 'exit nil)'.
+instance `(throw \\='exit nil)'.
 If you throw a value other than t, `recursive-edit' returns normally
 to the function that called it.  Throwing a t value causes
 `recursive-edit' to quit, so that control returns to the command loop
@@ -5754,7 +5754,7 @@ make_lispy_event (struct input_event *event)
 	    ignore_mouse_drag_p = 0;
 	  }
 
-	/* Now we're releasing a button - check the co-ordinates to
+	/* Now we're releasing a button - check the coordinates to
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {

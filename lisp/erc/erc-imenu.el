@@ -1,10 +1,9 @@
-;;; erc-imenu.el -- Imenu support for ERC
+;;; erc-imenu.el --- Imenu support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2002, 2004, 2006-2020 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcImenu
 
@@ -71,15 +70,13 @@ Don't rely on this function, read it first!"
 	(message-alist '())
 	(mode-change-alist '())
 	(topic-change-alist '())
-	prev-pos)
+	) ;; prev-pos
     (goto-char (point-max))
-    (imenu-progress-message prev-pos 0)
     (while (if (bolp)
 	       (> (forward-line -1)
 		  -1)
 	     (progn (forward-line 0)
 		    t))
-      (imenu-progress-message prev-pos nil t)
       (save-match-data
 	(when (looking-at (concat (regexp-quote erc-notice-prefix)
 				  "\\(.+\\)$"))
@@ -108,7 +105,8 @@ Don't rely on this function, read it first!"
 		    "^\\(\\S-+\\) (.+) has set the topic for \\S-+: \\(.*\\)$"
 		    notice-text)
 	       (push (cons (concat (match-string 1 notice-text) ": "
-				   (match-string 2 notice-text)) pos)
+				   (match-string 2 notice-text))
+			   pos)
 		     topic-change-alist)))))
 	(when (looking-at "<\\(\\S-+\\)> \\(.+\\)$")
 	  (let ((from (match-string 1))

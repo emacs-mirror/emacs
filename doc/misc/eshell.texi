@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2023 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -64,10 +64,11 @@ modify this GNU manual.''
 
 Eshell is a shell-like command interpreter implemented in Emacs Lisp.
 It invokes no external processes except for those requested by the
-user.  It is intended to be an alternative to the IELM (@pxref{Lisp Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
-REPL for Emacs @emph{and} with an interface similar to command shells
-such as @command{bash}, @command{zsh}, @command{rc}, or
-@command{4dos}.
+user.  It is intended to be an alternative to the IELM (@pxref{Lisp
+Interaction, Emacs Lisp Interaction, , emacs, The Emacs Editor})
+REPL@footnote{Short for ``Read-Eval-Print Loop''.} for Emacs
+@emph{and} with an interface similar to command shells such as
+@command{bash}, @command{zsh}, @command{rc}, or @command{4dos}.
 @c This manual is updated to release 2.4 of Eshell.
 
 @insertcopying
@@ -159,6 +160,9 @@ The following persons have made contributions to Eshell.
 
 @itemize @bullet
 @item
+John Wiegley is the original author of Eshell.
+
+@item
 Eli Zaretskii made it possible for Eshell to run without requiring
 asynchronous subprocess support.  This is important for MS-DOS, which
 does not have such support.
@@ -190,6 +194,13 @@ In a command shell, everything is done by invoking commands.  This
 chapter covers command invocations in Eshell, including the command
 history and invoking commands in a script file.
 
+Unlike regular system shells, Eshell never invokes kernel functions
+directly, such as @code{exec(3)}.  Instead, it uses the Lisp functions
+available in the Emacs Lisp library.  It does this by transforming the
+input line into a callable Lisp form.@footnote{To see the Lisp form
+that will be invoked, type this as the Eshell prompt:
+@kbd{eshell-parse-command 'echo hello'}}
+
 @menu
 * Invocation::
 * Arguments::
@@ -198,42 +209,194 @@ history and invoking commands in a script file.
 * Aliases::
 * History::
 * Completion::
-* for loop::
+* Control Flow::
 * Scripts::
 @end menu
 
 @node Invocation
 @section Invocation
-Unlike regular system shells, Eshell never invokes kernel functions
-directly, such as @code{exec(3)}.  Instead, it uses the Lisp functions
-available in the Emacs Lisp library.  It does this by transforming the
-input line into a callable Lisp form.@footnote{To see the Lisp form that will be invoked, type: @samp{eshell-parse-command "echo hello"}}
+Eshell is both a command shell and an Emacs Lisp @acronym{REPL}.  As a
+result, you can invoke commands in two different ways: in @dfn{command
+form} or in @dfn{lisp form}.
 
+You can use the semicolon (@code{;}) to separate multiple command
+invocations on a single line, executing each in turn.  You can also
+separate commands with @code{&&} or @code{||}. When using @code{&&},
+Eshell will execute the second command only if the first succeeds
+(i.e.@: has an exit status of 0); with @code{||}, Eshell will execute
+the second command only if the first fails.
+
+A command invocation followed by an ampersand (@code{&}) will be run
+in the background.  Eshell has no job control, so you can not suspend
+or background the current process, or bring a background process into
+the foreground.  That said, background processes invoked from Eshell
+can be controlled the same way as any other background process in
+Emacs.
+
+@subsection Command form
+Command form looks much the same as in other shells.  A command
+consists of arguments separated by spaces; the first argument is the
+command to run, with any subsequent arguments being passed to that
+command.
+
+@example
+~ $ echo hello
+hello
+@end example
+
+@cindex order of looking for commands
+@cindex command lookup order
 The command can be either an Elisp function or an external command.
-Eshell looks first for an alias (@pxref{Aliases}) with the same name as the
-command, then a built-in (@pxref{Built-ins}) or a function with the
-same name; if there is no match, it then tries to execute it as an
-external command.
+Eshell looks for the command in the following order:
 
-The semicolon (@code{;}) can be used to separate multiple command
-invocations on a single line.  A command invocation followed by an
-ampersand (@code{&}) will be run in the background.  Eshell has no job
-control, so you can not suspend or background the current process, or
-bring a background process into the foreground.  That said, background
-processes invoked from Eshell can be controlled the same way as any
-other background process in Emacs.
+@enumerate
+@item
+As a command alias (@pxref{Aliases})
+
+@item
+As a built-in command (@pxref{Built-ins})
+
+@item
+As an external program
+
+@item
+As an ordinary Lisp function
+@end enumerate
+
+@vindex eshell-prefer-lisp-functions
+If you would prefer to use ordinary Lisp functions over external
+programs, set the option @code{eshell-prefer-lisp-functions} to
+@code{t}.  This will swap the lookup order of the last two items.
+
+You can also group command forms together into a subcommand with curly
+braces (@code{@{@}}).  This lets you use the output of a subcommand as
+an argument to another command, or within control flow statements
+(@pxref{Control Flow}).
+
+@example
+~ $ echo @{echo hello; echo there@}
+hellothere
+@end example
+
+@subsection Lisp form
+Lisp form looks like ordinary Emacs Lisp code, because that's what it
+is.  As a result, you can use any syntax normally available to an
+Emacs Lisp program (@pxref{Top, , , elisp, The Emacs Lisp Reference
+Manual}).
+
+@example
+~ $ (format "hello, %s" user-login-name)
+hello, user
+@end example
+
+In addition, you can @emph{combine} command forms and Lisp forms
+together into single statements, letting you use whatever form is the
+most convenient for expressing your intentions.
+
+@example
+~ $ ls *.patch > (format-time-string "%F.log")
+@end example
+
+This command writes a list of all files matching the glob pattern
+@code{*.patch} (@pxref{Globbing}) to a file named
+@code{@var{current-date}.log} (@pxref{Redirection}).
 
 @node Arguments
 @section Arguments
-Command arguments are passed to the functions as either strings or
-numbers, depending on what the parser thinks they look like.  If you
-need to use a function that takes some other data type, you will need to
-call it in an Elisp expression (which can also be used with
-@ref{Expansion, expansions}).  As with other shells, you can
-escape special characters and spaces with the backslash (@code{\}) and
-apostrophes (@code{''}) and double quotes (@code{""}).  This is needed
-especially for file names with special characters like pipe
-(@code{|}), which could be part of remote file names.
+Ordinarily, Eshell parses arguments in command form as either strings
+or numbers, depending on what the parser thinks they look like.  To
+specify an argument of some other data type, you can use a Lisp form
+(@pxref{Invocation}):
+
+@example
+~ $ echo (list 1 2 3)
+(1 2 3)
+@end example
+
+Additionally, many built-in Eshell commands (@pxref{Built-ins, Eshell
+commands}) will flatten the arguments they receive, so passing a list
+as an argument will ``spread'' the elements into multiple arguments:
+
+@example
+~ $ printnl (list 1 2) 3
+1
+2
+3
+@end example
+
+@subsection Quoting and escaping
+As with other shells, you can escape special characters and spaces by
+prefixing the character with a backslash (@samp{\}), or by surrounding
+the string with apostrophes (@samp{''}) or double quotes (@samp{""}).
+This is needed especially for file names with special characters like
+pipe (@samp{|}), which could be part of remote file names.
+
+When you escape a character with @samp{\} outside of any quotes, the
+result is the literal character immediately following it.  For
+example, @code{\$10} means the literal string @code{$10}.
+
+Inside of double quotes, most characters have no special meaning.
+However, @samp{\}, @samp{"}, and @samp{$} are still special; to escape
+them, use backslash as above.  Thus, if the value of the variable
+@var{answer} is @code{42}, then @code{"The answer is: \"$answer\""}
+returns the string @code{The answer is: "42"}.  However, when escaping
+characters with no special meaning, the result is the full
+@code{\@var{c}} sequence.  For example, @code{"foo\bar"} means the
+literal string @code{foo\bar}.
+
+Additionally, when escaping a newline, the whole escape sequence is
+removed by the parser.  This lets you continue commands across
+multiple lines:
+
+@example
+~ $ echo "foo\
+bar"
+foobar
+@end example
+
+Inside apostrophes, escaping works differently.  All characters
+between the apostrophes have their literal meaning except @samp{'},
+which ends the quoted string.  To insert a literal apostrophe, you can
+use @samp{''}, so @code{'It''s me'} means the literal string
+@code{It's me}.
+
+When using expansions (@pxref{Expansion}) in an Eshell command, the
+result may potentially be of any data type.  To ensure that the result
+is always a string, the expansion can be surrounded by double quotes.
+
+@subsection Special argument types
+In addition to strings and numbers, Eshell supports a number of
+special argument types.  These let you refer to various other Emacs
+Lisp data types, such as lists or buffers.
+
+@table @code
+
+@item #'@var{lisp-form}
+This refers to the quoted Emacs Lisp form @var{lisp-form}.  Though
+this looks similar to the ``sharp quote'' syntax for functions
+(@pxref{Special Read Syntax, , , elisp, The Emacs Lisp Reference
+Manual}), it instead corresponds to @code{quote} and can be used for
+any quoted form.@footnote{Eshell would interpret a bare apostrophe
+(@code{'}) as the start of a single-quoted string.}
+
+@item `@var{lisp-form}
+This refers to the backquoted Emacs Lisp form @var{lisp-form}
+(@pxref{Backquote, , , elisp, The Emacs Lisp Reference Manual}).  As
+in Emacs Lisp, you can use @samp{,} and @samp{,@@} to refer to
+non-constant values.
+
+@item #<buffer @var{name}>
+@itemx #<@var{name}>
+Return the buffer named @var{name}.  This is equivalent to
+@samp{$(get-buffer-create "@var{name}")} (@pxref{Creating Buffers, , ,
+elisp, The Emacs Lisp Reference Manual}).
+
+@item #<process @var{name}>
+Return the process named @var{name}.  This is equivalent to
+@samp{$(get-process "@var{name}")}  (@pxref{Process Information, , ,
+elisp, The Emacs Lisp Reference Manual}).
+
+@end table
 
 @node Built-ins
 @section Built-in commands
@@ -255,20 +418,38 @@ alias (@pxref{Aliases}).  Example:
 @example
 ~ $ which sudo
 eshell/sudo is a compiled Lisp function in `em-tramp.el'.
-~ $ alias sudo '*sudo $*'
+~ $ alias sudo '*sudo $@@*'
 ~ $ which sudo
-sudo is an alias, defined as "*sudo $*"
+sudo is an alias, defined as "*sudo $@@*"
 @end example
-
-@vindex eshell-prefer-lisp-functions
-If you would prefer to use the built-in commands instead of the external
-commands, set @code{eshell-prefer-lisp-functions} to @code{t}.
 
 Some of the built-in commands have different behavior from their
 external counterparts, and some have no external counterpart.  Most of
 these will print a usage message when given the @code{--help} option.
 
+In some cases, a built-in command's behavior can be configured via
+user settings, some of which are mentioned below.  For example,
+certain commands have two user settings to allow them to overwrite
+files without warning and to ensure that they always prompt before
+overwriting files.  If both settings are non-@code{nil}, the commands
+always prompt.  If both settings are @code{nil} (the default), the
+commands signal an error.
+
+Several commands observe the value of
+@code{eshell-default-target-is-dot}.  If non-@code{nil}, then the
+default target for the commands @command{cp}, @command{mv}, and
+@command{ln} is the current directory.
+
+A few commands are wrappers for more niche Emacs features, and can be
+loaded as part of the eshell-xtra module.  @xref{Extension modules}.
+
 @table @code
+
+@item .
+@cmindex .
+Source an Eshell file in the current environment.  This is not to be
+confused with the command @command{source}, which sources a file in a
+subshell environment.
 
 @item addpath
 @cmindex addpath
@@ -279,26 +460,139 @@ with no arguments, prints the current paths in this variable.
 @cmindex alias
 Define an alias (@pxref{Aliases}).  This adds it to the aliases file.
 
+@item basename
+@cmindex basename
+Return a file name without its directory.
+
+@item cat
+@cmindex cat
+Concatenate file contents into standard output.  If in a pipeline, or
+if the file is not a regular file, directory, or symlink, then this
+command reverts to the system's definition of @command{cat}.
+
+@item cd
+@cmindex cd
+This command changes the current working directory.  Usually, it is
+invoked as @kbd{cd @var{dir}} where @file{@var{dir}} is the new
+working directory.  But @command{cd} knows about a few special
+arguments:
+
+@itemize @minus{}
+@item
+When it receives no argument at all, it changes to the home directory.
+
+@item
+Giving the command @kbd{cd -} changes back to the previous working
+directory (this is the same as @kbd{cd $-}).
+
+@item
+The command @kbd{cd =} shows the directory ring.  Each line is
+numbered.
+
+@item
+With @kbd{cd =foo}, Eshell searches the directory ring for a directory
+matching the regular expression @samp{foo}, and changes to that
+directory.
+
+@item
+With @kbd{cd -42}, you can access the directory stack slots by number.
+
+@item
+If @code{eshell-cd-shows-directory} is non-@code{nil}, @command{cd}
+will report the directory it changes to.  If
+@code{eshell-list-files-after-cd} is non-@code{nil}, then @command{ls}
+is called with any remaining arguments after changing directories.
+@end itemize
+
 @item clear
 @cmindex clear
-Scrolls the contents of the eshell window out of sight, leaving a blank window.
-If provided with an optional non-nil argument, the scrollback contents are
-cleared instead.
+Scrolls the contents of the Eshell window out of sight, leaving a
+blank window.  If provided with an optional non-@code{nil} argument,
+the scrollback contents are cleared instead.
+
+@item clear-scrollback
+@cmindex clear-scrollback
+Clear the scrollback contents of the Eshell window.  Unlike the
+command @command{clear}, this command deletes content in the Eshell
+buffer.
+
+@item cp
+@cmindex cp
+Copy a file to a new location or copy multiple files to the same
+directory.
+
+If @code{eshell-cp-overwrite-files} is non-@code{nil}, then
+@command{cp} will overwrite files without warning.  If
+@code{eshell-cp-interactive-query} is non-@code{nil}, then
+@command{cp} will ask before overwriting anything.
 
 @item date
 @cmindex date
-Similar to, but slightly different from, the GNU Coreutils
+Print the current local time as a human-readable string.  This command
+is similar to, but slightly different from, the GNU Coreutils
 @command{date} command.
-
-@item define
-@cmindex define
-Define a varalias.
-@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
 
 @item diff
 @cmindex diff
-Use Emacs's internal @code{diff} (not to be confused with
-@code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs Manual}.
+Compare files using Emacs's internal @code{diff} (not to be confused
+with @code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs
+Manual}.
+
+If @code{eshell-plain-diff-behavior} is non-@code{nil}, then this
+command does not use Emacs's internal @code{diff}.  This is the same
+as using @samp{alias diff '*diff $@@*'}.
+
+@item dirname
+@cmindex dirname
+Return the directory component of a file name.
+
+@item dirs
+@cmindex dirs
+Prints the directory stack.  Directories can be added or removed from
+the stack using the commands @command{pushd} and @command{popd},
+respectively.
+
+@item du
+@cmindex du
+Summarize disk usage for each file.
+
+@item echo
+@cmindex echo
+Echoes its input.  By default, this prints in a Lisp-friendly fashion
+(so that the value is useful to a Lisp command using the result of
+@command{echo} as an argument).  If a single argument is passed,
+@command{echo} prints that; if multiple arguments are passed, it
+prints a list of all the arguments; otherwise, it prints the empty
+string.
+
+If @code{eshell-plain-echo-behavior} is non-@code{nil}, @command{echo}
+will try to behave more like a plain shell's @command{echo}, printing
+each argument as a string, separated by a space.
+
+@item env
+@cmindex env
+Prints the current environment variables.  Unlike in Bash, this
+command does not yet support running commands with a modified
+environment.
+
+@item exit
+@cmindex exit
+Exit Eshell and save the history.  By default, this command kills the
+Eshell buffer, but if @code{eshell-kill-on-exit} is @code{nil}, then
+the buffer is merely buried instead.
+
+@item export
+@cmindex export
+Set environment variables using input like Bash's @command{export}, as
+in @samp{export @var{var1}=@var{val1} @var{var2}=@var{val2} @dots{}}.
+
+@item expr
+@cmindex expr
+An implementation of @command{expr} using the Calc package.
+@xref{Top,,, calc, The GNU Emacs Calculator}.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
 
 @item grep
 @cmindex grep
@@ -310,13 +604,36 @@ Use Emacs's internal @code{diff} (not to be confused with
 @cmindex fgrep
 @itemx glimpse
 @cmindex glimpse
-The @command{grep} commands are compatible with GNU @command{grep}, but
-use Emacs's internal @code{grep} instead.
+The @command{grep} commands are compatible with GNU @command{grep},
+but use Emacs's internal @code{grep} instead.
+@xref{Grep Searching, , , emacs, The GNU Emacs Manual}.
+
+If @code{eshell-plain-grep-behavior} is non-@code{nil}, then these
+commands do not use Emacs's internal @code{grep}.  This is the same as
+using @samp{alias grep '*grep $@@*'}, though this setting applies to
+all of the built-in commands for which you would need to create a
+separate alias.
+
+@item history
+@cmindex history
+Prints Eshell's input history.  With a numeric argument @var{N}, this
+command prints the @var{N} most recent items in the history.
 
 @item info
 @cmindex info
-Same as the external @command{info} command, but uses Emacs's internal
-Info reader.
+Browse the available Info documentation.  This command is the same as
+the external @command{info} command, but uses Emacs's internal Info
+reader.
+@xref{Misc Help, , , emacs, The GNU Emacs Manual}.
+
+@item intersection
+@cmindex intersection
+A wrapper around the function @code{cl-intersection} (@pxref{Lists as
+Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
+can be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
 
 @item jobs
 @cmindex jobs
@@ -334,11 +651,47 @@ Eshell version of @code{list}.  Allows you to create a list using Eshell
 syntax, rather than Elisp syntax.  For example, @samp{listify foo bar}
 and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
 
+@item ln
+@cmindex ln
+Create links to files.
+
+If @code{eshell-ln-overwrite-files} is non-@code{nil}, @command{ln}
+will overwrite files without warning.  If
+@code{eshell-ln-interactive-query} is non-@code{nil}, then
+@command{ln} will ask before overwriting files.
+
 @item locate
 @cmindex locate
 Alias to Emacs's @code{locate} function, which simply runs the external
 @command{locate} command and parses the results.
 @xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
+
+If @code{eshell-plain-locate-behavior} is non-@code{nil}, then Emacs's
+internal @code{locate} is not used.  This is the same as using
+@samp{alias locate '*locate $@@*'}.
+
+@item ls
+@cmindex ls
+Lists the contents of directories.
+
+If @code{eshell-ls-use-colors} is non-@code{nil}, the contents of a
+directory is color-coded according to file type and status.  These
+colors and the regexps used to identify their corresponding files can
+be customized via @w{@kbd{M-x customize-group @key{RET} eshell-ls @key{RET}}}.
+
+The user option @code{eshell-ls-date-format} determines how the date
+is displayed when using the @option{-l} option.  The date is produced
+using the function @code{format-time-string} (@pxref{Time Parsing,,,
+elisp, GNU Emacs Lisp Reference Manual}).
+
+The user option @code{eshell-ls-initial-args} contains a list of
+arguments to include with any call to @command{ls}.  For example, you
+can include the option @option{-h} to always use a more human-readable
+format.
+
+The user option @code{eshell-ls-default-blocksize} determines the
+default blocksize used when displaying file sizes with the option
+@option{-s}.
 
 @item make
 @cmindex make
@@ -346,105 +699,448 @@ Run @command{make} through @code{compile} when run asynchronously
 (e.g., @samp{make &}).  @xref{Compilation, , , emacs, The GNU Emacs
 Manual}.  Otherwise call the external @command{make} command.
 
+@item man
+@cmindex man
+Display Man pages using the Emacs @code{man} command.
+@xref{Man Page, , , emacs, The GNU Emacs Manual}.
+
+@item mismatch
+@cmindex mismatch
+A wrapper around the function @code{cl-mismatch} (@pxref{Searching
+Sequences,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item mkdir
+@cmindex mkdir
+Make new directories.
+
+@item mv
+@cmindex mv
+Move or rename files.
+
+If @code{eshell-mv-overwrite-files} is non-@code{nil}, @command{mv}
+will overwrite files without warning.  If
+@code{eshell-mv-interactive-query} is non-@code{nil}, @command{mv}
+will prompt before overwriting anything.
+
 @item occur
 @cmindex occur
 Alias to Emacs's @code{occur}.
 @xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
 
+@item popd
+@cmindex popd
+Pop a directory from the directory stack and switch to a another place
+in the stack.
+
 @item printnl
 @cmindex printnl
 Print the arguments separated by newlines.
 
-@item cd
-@cmindex cd
-This command changes the current working directory.  Usually, it is
-invoked as @samp{cd foo} where @file{foo} is the new working directory.
-But @command{cd} knows about a few special arguments:
+@item pushd
+@cmindex pushd
+Push the current directory onto the directory stack, then change to
+another directory.
 
-When it receives no argument at all, it changes to the home directory.
+If @code{eshell-pushd-dunique} is non-@code{nil}, then only unique
+directories will be added to the stack.  If
+@code{eshell-pushd-dextract} is non-@code{nil}, then @samp{pushd
++@var{n}} will pop the @var{n}th directory to the top of the stack.
 
-Giving the command @samp{cd -} changes back to the previous working
-directory (this is the same as @samp{cd $-}).
+@item pwd
+@cmindex pwd
+Prints the current working directory.
 
-The command @samp{cd =} shows the directory stack.  Each line is
-numbered.
+@item rm
+@cmindex rm
+Removes files, buffers, processes, or Emacs Lisp symbols, depending on
+the argument.
 
-With @samp{cd =foo}, Eshell searches the directory stack for a directory
-matching the regular expression @samp{foo} and changes to that
-directory.
+If @code{eshell-rm-interactive-query} is non-@code{nil}, @command{rm}
+will prompt before removing anything.  If
+@code{eshell-rm-removes-directories} is non-@code{nil}, then
+@command{rm} can also remove directories.  Otherwise, @command{rmdir}
+is required.
 
-With @samp{cd -42}, you can access the directory stack by number.
+@item rmdir
+@cmindex rmdir
+Removes directories if they are empty.
+
+@item set-difference
+@cmindex set-difference
+A wrapper around the function @code{cl-set-difference} (@pxref{Lists as
+Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
+can be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item set-exclusive-or
+@cmindex set-exclusive-or
+A wrapper around the function @code{cl-set-exclusive-or} (@pxref{Lists
+as Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command can be
+used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item set
+@cmindex set
+Set variable values, using the function @code{set} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
+A variable name can be a symbol, in which case it refers to a Lisp
+variable, or a string, referring to an environment variable
+(@pxref{Arguments}).
+
+@item setq
+@cmindex setq
+Set variable values, using the function @code{setq} like a command
+(@pxref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
+
+@item source
+@cmindex source
+Source an Eshell file in a subshell environment.  This is not to be
+confused with the command @command{.}, which sources a file in the
+current environment.
 
 @item su
 @cmindex su
 @itemx sudo
 @cmindex sudo
-Uses TRAMP's @command{su} or @command{sudo} method @pxref{Inline methods, , , tramp}
-to run a command via @command{su} or @command{sudo}.  These commands
-are in the eshell-tramp module, which is disabled by default.
+@itemx doas
+@cmindex doas
+Uses TRAMP's @command{su}, @command{sudo}, or @command{doas} method
+@pxref{Inline methods, , , tramp} to run a command via @command{su},
+@command{sudo}, or @command{doas}.  These commands are in the
+eshell-tramp module, which is disabled by default.
 
+
+@item substitute
+@cmindex substitute
+A wrapper around the function @code{cl-substitute} (@pxref{Sequence
+Functions,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item time
+@cmindex time
+Show the time elapsed during a command's execution.
+
+@item umask
+@cmindex umask
+Set or view the default file permissions for newly created files and
+directories.
+
+@item union
+@cmindex union
+A wrapper around the function @code{cl-union} (@pxref{Lists as Sets,,,
+cl, GNU Emacs Common Lisp Emulation}).  This command can be used for
+comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item unset
+@cmindex unset
+Unset one or more variables.  As with @command{set}, a variable name
+can be a symbol, in which case it refers to a Lisp variable, or a
+string, referring to an environment variable.
+
+@item wait
+@cmindex wait
+Wait until a process has successfully completed.
+
+@item which
+@cmindex which
+Identify a command and its location.
+
+@item whoami
+@cmindex whoami
+Print the current user.  This Eshell version of @command{whoami}
+supports Tramp.
 @end table
+
+@subsection Defining new built-in commands
+While Eshell can run Lisp functions directly as commands, it may be
+more convenient to provide a special built-in command for
+Eshell.  Built-in commands are just ordinary Lisp functions designed
+to be called from Eshell.  When defining an Eshell-specific version of
+an existing function, you can give that function a name starting with
+@code{eshell/} so that Eshell knows to use it.
+
+@defmac eshell-eval-using-options name macro-args options body@dots{}
+This macro processes a list of @var{macro-args} for the command
+@var{name} using a set of command line @var{options}.  If the
+arguments are parsed successfully, it will store the resulting values
+in local symbols and execute @var{body}; any remaining arguments will
+be available in the locally let-bound variable @code{args}.  The
+return value is the value of the last form in @var{body}.
+
+If an unknown option was passed in @var{macro-args} and an external
+command was specified (see below), this macro will start a process for
+that command and throw the tag @code{eshell-external} with the new
+process as its value.
+
+@var{options} should be a list beginning with one or more elements of
+the following form, with each element representing a particular
+command-line switch:
+
+@example
+(@var{short} @var{long} @var{value} @var{symbol} @var{help-string})
+@end example
+
+@table @var
+@item short
+This element, if non-@code{nil}, should be a character to be used as a short
+switch, like @code{-@var{short}}.  At least one of this element and
+@var{long} must be non-@code{nil}.
+
+@item long
+This element, if non-@code{nil}, should be a string to be used as a long
+switch, like @code{--@var{long}}.
+
+@item value
+This element is the value associated with the option.  It can be
+either:
+
+@table @asis
+@item @code{t}
+The option needs a value to be specified after the switch.
+
+@item @code{nil}
+The option is given the value @code{t}.
+
+@item anything else
+The option is given the specified value.
+@end table
+
+@item symbol
+This element is the Lisp symbol that will be bound to @var{value}.  If
+@var{symbol} is @code{nil}, specifying this switch will instead call
+@code{eshell-show-usage}, and so is appropriate for an option like
+@code{--help}.
+
+@item help-string
+This element is a documentation string for the option, which will be
+displayed when @code{eshell-show-usage} is invoked.
+@end table
+
+After the list of command-line switch elements, @var{options} can
+include additional keyword arguments to control how
+@code{eshell-eval-using-options} behaves.  Some of these take
+arguments, while others don't.  The recognized keywords are:
+
+@table @code
+@item :external @var{string}
+Specify @var{string} as an external command to run if there are
+unknown switches in @var{macro-args}.
+
+@item :usage @var{string}
+Set @var{string} as the initial part of the command's documentation
+string.  It appears before the options are listed.
+
+@item :post-usage @var{string}
+Set @var{string} to be the (optional) trailing part of the command's
+documentation string.  It appears after the list of options, but
+before the final part of the documentation about the associated
+external command, if there is one.
+
+@item :show-usage
+If present, then show the usage message if the command is called with
+no arguments.
+
+@item :preserve-args
+Normally, @code{eshell-eval-using-options} flattens the list of
+arguments in @var{macro-args} and converts each to a string.  If this
+keyword is present, avoid doing that, instead preserving the original
+arguments.  This is useful for commands which want to accept arbitrary
+Lisp objects.
+
+@item :parse-leading-options-only
+If present, do not parse dash or switch arguments after the first
+positional argument.  Instead, treat them as positional arguments
+themselves.
+@end table
+
+For example, you could handle a subset of the options for the
+@code{ls} command like this:
+
+@example
+(eshell-eval-using-options
+ "ls" macro-args
+ '((?a  nil      nil show-all       "show all files")
+   (?I  "ignore" t   ignore-pattern "ignore files matching pattern")
+   (nil "help"   nil nil            "show this help message")
+ :external "ls"
+ :usage "[OPTION]... [FILE]...
+  List information about FILEs (the current directory by default).")
+ ;; List the files in ARGS somehow...
+ )
+@end example
+
+@end defmac
+
+@node Variables
+@section Variables
+@vindex eshell-prefer-lisp-variables
+Since Eshell is a combination of an Emacs @acronym{REPL} and a command
+shell, it can refer to variables from two different sources: ordinary
+Emacs Lisp variables, as well as environment variables.  By default,
+when using a variable in Eshell, it will first look in the list of
+built-in variables, then in the list of environment variables, and
+finally in the list of Lisp variables.  If you would prefer to use
+Lisp variables over environment variables, you can set
+@code{eshell-prefer-lisp-variables} to @code{t}.
+
+You can set variables in a few different ways.  To set a Lisp
+variable, you can use the command @samp{setq @var{name} @var{value}},
+which works much like its Lisp counterpart (@pxref{Setting Variables,
+, , elisp, The Emacs Lisp Reference Manual}).  To set an environment
+variable, use @samp{export @var{name}=@var{value}}.  You can also use
+@samp{set @var{variable} @var{value}}, which sets a Lisp variable if
+@var{variable} is a symbol, or an environment variable if it's a
+string (@pxref{Arguments}).  Finally, you can temporarily set
+environment variables for a single command with
+@samp{@var{name}=@var{value} @var{command} @dots{}}.  This is
+equivalent to:
+
+@example
+@{
+  export @var{name}=@var{value}
+  @var{command} @dots{}
+@}
+@end example
 
 @subsection Built-in variables
 Eshell knows a few built-in variables:
 
 @table @code
 
-@item $+
+@vindex $PWD
 @vindex $+
+@item $PWD
+@itemx $+
 This variable always contains the current working directory.
 
-@item $-
+@vindex $OLDPWD
 @vindex $-
+@item $OLDPWD
+@itemx $-
 This variable always contains the previous working directory (the
 current working directory from before the last @code{cd} command).
+When using @code{$-}, you can also access older directories in the
+directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
+working directory @emph{before} the previous one.
 
-@item $_
+@vindex $PATH
+@item $PATH
+This specifies the directories to search for executable programs.  Its
+value is a string, separated by @code{":"} for Unix and GNU systems,
+and @code{";"} for MS systems.  This variable is connection-aware, so
+whenever you change the current directory to a different host
+(@pxref{Remote Files, , , emacs, The GNU Emacs Manual}),
+the value will automatically update to reflect the search path on that
+host.
+
+@vindex $UID
+@item $UID
+This returns the effective @acronym{UID} for the current user.  This
+variable is connection-aware, so when the current directory is remote,
+its value will be @acronym{UID} for the user associated with that
+remote connection.
+
 @vindex $_
-It refers to the last argument of the last command.
+@item $_
+This refers to the last argument of the last command.  With a
+subscript, you can access any argument of the last command.  For
+example, @samp{$_[1]} refers to the second argument of the last
+command (excluding the command name itself).  To get all arguments of
+the last command, you can use an index range like @samp{$_[..]}
+(@pxref{Dollars Expansion}).
 
-@item $$
 @vindex $$
-This is the result of the last command.  In case of an external
-command, it is @code{t} or @code{nil}.
+@item $$
+This is the result of the last command.  For external commands, it is
+@code{t} if the exit code was 0 or @code{nil} otherwise.
 
-@item $?
+@vindex eshell-lisp-form-nil-is-failure
 @vindex $?
-This variable contains the exit code of the last command (0 or 1 for
-Lisp functions, based on successful completion).
+@item $?
+This variable contains the exit code of the last command.  If the last
+command was a Lisp function, it is 0 for successful completion or 1
+otherwise.  If @code{eshell-lisp-form-nil-is-failure} is
+non-@code{nil}, then a command with a Lisp form, like
+@samp{(@var{command} @var{args}@dots{})}, that returns @code{nil} will
+set this variable to 2.
+
+@vindex $COLUMNS
+@vindex $LINES
+@item $COLUMNS
+@itemx $LINES
+These variables tell the number of columns and lines, respectively,
+that are currently visible in the Eshell window.  They are both
+copied to the environment, so external commands invoked from
+Eshell can consult them to do the right thing.
+
+@vindex $INSIDE_EMACS
+@item $INSIDE_EMACS
+This variable indicates to external commands that they are being
+invoked from within Emacs so they can adjust their behavior if
+necessary.  Its value is @code{@var{emacs-version},eshell}.
 
 @end table
 
 @xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
 @samp{$2}, @dots{}, in alias definitions.
 
-@node Variables
-@section Variables
-Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
-does not have its own scope, and simply stores variables the same you
-would in an Elisp program.  Eshell provides a command version of
-@code{setq} for convenience.
-
 @node Aliases
 @section Aliases
 
-@vindex $*
+@findex eshell-read-aliases-list
 Aliases are commands that expand to a longer input line.  For example,
-@command{ll} is a common alias for @code{ls -l}, and would be defined
-with the command invocation @kbd{alias ll 'ls -l $*'}; with this defined,
-running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
-Aliases defined (or deleted) by the @command{alias} command are
-automatically written to the file named by @code{eshell-aliases-file},
-which you can also edit directly (although you will have to manually
-reload it).
+@command{ll} is a common alias for @code{ls -l}.  To define this alias
+in Eshell, you can use the command invocation @kbd{alias ll 'ls -l
+$@@*'}; with this defined, running @samp{ll foo} in Eshell will
+actually run @samp{ls -l foo}.  Aliases defined (or deleted) by the
+@command{alias} command are automatically written to the file named by
+@code{eshell-aliases-file}, which you can also edit directly.  After
+doing so, use @w{@kbd{M-x eshell-read-aliases-list}} to load the
+edited aliases.
 
-@vindex $1, $2, @dots{}
 Note that unlike aliases in Bash, arguments must be handled
-explicitly.  Typically the alias definition would end in @samp{$*} to
-pass all arguments along.  More selective use of arguments via
-@samp{$1}, @samp{$2}, etc., is also possible.  For example,
+explicitly.  Within aliases, you can use the special variables
+@samp{$*}, @samp{$0}, @samp{$1}, @samp{$2}, etc. to refer to the
+arguments passed to the alias.
+
+@table @code
+
+@vindex $*
+@item $*
+This expands to the list of arguments passed to the alias.  For
+example, if you run @code{my-alias 1 2 3}, then @samp{$*} would be the
+list @code{(1 2 3)}.  Note that since this variable is a list, using
+@samp{$*} in an alias will pass this list as a single argument to the
+aliased command.  Therefore, when defining an alias, you should
+usually use @samp{$@@*} to pass all arguments along, splicing them
+into your argument list (@pxref{Dollars Expansion}).
+
+@vindex $0
+@item $0
+This expands to the name of the alias currently being executed.
+
+@vindex $1, $2, @dots{}, $9
+@item $1, $2, @dots{}, $9
+These variables expand to the nth argument (starting at 1) passed to
+the alias.  This lets you selectively use an alias's arguments, so
 @kbd{alias mcd 'mkdir $1 && cd $1'} would cause @kbd{mcd foo} to
 create and switch to a directory called @samp{foo}.
+
+@end table
 
 @node History
 @section History
@@ -512,8 +1208,8 @@ below the @code{completion-cycle-threshold}), press @kbd{M-?}.
 @subsection pcomplete
 Pcomplete, short for programmable completion, is the completion
 library originally written for Eshell, but usable for command
-completion@footnote{Command completion as opposed to code completion,
-which is a beyond the scope of pcomplete.}  in other modes.
+completion@footnote{Command completion, as opposed to code completion,
+which is beyond the scope of pcomplete.} in other modes.
 
 Completions are defined as functions (with @code{defun}) named
 @code{pcomplete/COMMAND}, where @code{COMMAND} is the name of the
@@ -521,19 +1217,46 @@ command for which this function provides completions; you can also name
 the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
 for a specific major mode.
 
-@node for loop
-@section @code{for} loop
+@node Control Flow
+@section Control Flow
 Because Eshell commands can not (easily) be combined with lisp forms,
-Eshell provides a command-oriented @command{for}-loop for convenience.
-The syntax is as follows:
+Eshell provides command-oriented control flow statements for
+convenience.
 
-@example
-@code{for VAR in TOKENS @{ command invocation(s) @}}
-@end example
+Most of Eshell's control flow statements accept a @var{conditional}.
+This can take a few different forms.  If @var{conditional} is a dollar
+expansion, the condition is satisfied if the result is a
+non-@code{nil} value.  If @var{conditional} is a @samp{@{
+@var{subcommand} @}} or @samp{(@var{lisp form})}, the condition is
+satisfied if the command's exit status is 0.
 
-where @samp{TOKENS} is a space-separated sequence of values of
-@var{VAR} for each iteration.  This can even be the output of a
-command if @samp{TOKENS} is replaced with @samp{@{ command invocation @}}.
+@table @code
+
+@item if @var{conditional} @{ @var{true-commands} @}
+@itemx if @var{conditional} @{ @var{true-commands} @} @{ @var{false-commands} @}
+Evaluate @var{true-commands} if @var{conditional} is satisfied;
+otherwise, evaluate @var{false-commands}.
+
+@item unless @var{conditional} @{ @var{false-commands} @}
+@itemx unless @var{conditional} @{ @var{false-commands} @} @{ @var{true-commands} @}
+Evaluate @var{false-commands} if @var{conditional} is not satisfied;
+otherwise, evaluate @var{true-commands}.
+
+@item while @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional} is
+satisfied.
+
+@item until @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} until @var{conditional} is
+satisfied.
+
+@item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
+Iterate over each element of @var{list}, storing the element in
+@var{var} and evaluating @var{commands}.  If @var{list} is not a list,
+treat it as a list of one element.  If you specify multiple
+@var{lists}, this will iterate over each of them in turn.
+
+@end table
 
 @node Scripts
 @section Scripts
@@ -557,15 +1280,42 @@ parsers (such as @command{cpp} and @command{m4}), but in a command
 shell, they are less often used for constants, and usually for using
 variables and string manipulation.@footnote{Eshell has no
 string-manipulation expansions because the Elisp library already
-provides many functions for this.}  For example, @code{$var} on a line
-expands to the value of the variable @code{var} when the line is
+provides many functions for this.}  For example, @code{$@var{var}} on
+a line expands to the value of the variable @var{var} when the line is
 executed.  Expansions are usually passed as arguments, but may also be
-used as commands.@footnote{E.g., entering just @samp{$var} at the prompt
-is equivalent to entering the value of @code{var} at the prompt.}
+used as commands.@footnote{E.g., entering just @samp{$@var{var}} at
+the prompt is equivalent to entering the value of @var{var} at the
+prompt.}
+
+You can concatenate expansions with regular string arguments or even
+other expansions.  In the simplest case, when the expansion returns a
+string value, this is equivalent to ordinary string concatenation; for
+example, @samp{$@{echo "foo"@}bar} returns @samp{foobar}.  The exact
+behavior depends on the types of each value being concatenated:
+
+@table @asis
+
+@item both strings
+Concatenate both values together.
+
+@item one or both numbers
+Concatenate the string representation of each value, converting back to
+a number if possible.
+
+@item one or both (non-@code{nil}) lists
+Concatenate ``adjacent'' elements of each value (possibly converting
+back to a number as above).  For example, @samp{$(list "a" "b")c}
+returns @samp{("a" "bc")}.
+
+@item anything else
+Concatenate the string representation of each value.
+
+@end table
 
 @menu
 * Dollars Expansion::
 * Globbing::
+* Argument Predication and Modification::
 @end menu
 
 @node Dollars Expansion
@@ -576,71 +1326,483 @@ of familiarity.
 
 @table @code
 
-@item $var
-Expands to the value bound to @code{var}.  This is the main way to use
+@item $@var{var}
+Expands to the value bound to @var{var}.  This is the main way to use
 variables in command invocations.
 
-@item $#var
-Expands to the length of the value bound to @code{var}.  Raises an error
-if the value is not a sequence
-(@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
+@item $"@var{var}"
+@item $'@var{var}'
+Expands to the value bound to @var{var}.  This is useful to
+disambiguate the variable name when concatenating it with another
+value, such as @samp{$"@var{var}"-suffix}.
 
-@item $(lisp)
-Expands to the result of evaluating the S-expression @code{(lisp)}.  On
-its own, this is identical to just @code{(lisp)}, but with the @code{$},
-it can be used in a string, such as @samp{/some/path/$(lisp).txt}.
+@item $(@var{lisp})
+Expands to the result of evaluating the S-expression @code{(@var{lisp})}.  On
+its own, this is identical to just @code{(@var{lisp})}, but with the @code{$},
+it can be used inside double quotes or within a longer string, such as
+@samp{/some/path/$(@var{lisp}).txt}.
 
-@item $@{command@}
-Returns the output of @command{command}, which can be any valid Eshell
-command invocation, and may even contain expansions.
+@item $@{@var{command}@}
+Returns the output of @command{@var{command}}, which can be any valid
+Eshell command invocation, and may even contain expansions.  Similar
+to @code{$(@var{lisp})}, this is identical to @code{@{@var{command}@}}
+when on its own, but the @code{$} allows it to be used inside double
+quotes or as part of a string.
 
-@item $var[i]
-Expands to the @code{i}th element of the value bound to @code{var}.  If
-the value is a string, it will be split at whitespace to make it a list.
-Again, raises an error if the value is not a sequence.
+Normally, the output is split line-by-line, returning a list (or the
+first element if there's only one line of output); if
+@code{eshell-convert-numeric-arguments} is non-@code{nil} and every
+line of output looks like a number, convert each line to a number.
+However, when this expansion is surrounded by double quotes, it
+returns the output as a single string instead.
 
-@item $var[: i]
-As above, but now splitting occurs at the colon character.
+@item $<@var{command}>
+As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation
+@command{@var{command}}, but writes the output to a temporary file and
+returns the file name.
 
-@item $var[: i j]
-As above, but instead of returning just a string, it now returns a list
-of two strings.  If the result is being interpolated into a larger
-string, this list will be flattened into one big string, with each
-element separated by a space.
+@item $@var{expr}[@var{i...}]
+Expands to the @var{i}th element of the result of @var{expr}, an
+expression in one of the above forms listed here.  If multiple indices
+are supplied, this will return a list containing the elements for each
+index.  The exact behavior depends on the type of @var{expr}'s value:
 
-@item $var["\\\\" i]
-Separate on backslash characters.  Actually, the first argument -- if it
-doesn't have the form of a number, or a plain variable name -- can be
-any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}.
+@table @asis
 
-@item $var[hello]
-Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
-an alist (@pxref{Association List Type, Association Lists, , elisp,
-The Emacs Lisp Reference Manual}).
+@item a sequence
+Expands to the element at the (zero-based) index @var{i} of the
+sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
+Emacs Lisp Reference Manual}).  If @var{i} is negative, @var{i} counts
+from the end, so -1 refers to the last element of the sequence.
 
-@item $#var[hello]
-Returns the length of the cdr of the element of @code{var} who car is equal
-to @code{"hello"}.
+If @var{i} is a range like @code{@var{start}..@var{end}}, this expands
+to a subsequence from the indices @var{start} to @var{end}, where
+@var{end} is excluded@footnote{This behavior is different from ranges
+in Bash (where both the start and end are included in the range), but
+matches the behavior of similar Emacs Lisp functions, like
+@code{substring} (@pxref{Creating Strings, , , elisp, The Emacs Lisp
+Reference Manual}).}.  @var{start} and/or @var{end} can also be
+omitted, which is equivalent to the start and/or end of the entire
+list.  For example, @samp{$@var{expr}[-2..]} expands to the last two
+values of @var{expr}.
+
+@item a string
+Split the string at whitespace, and then expand to the @var{i}th
+element of the resulting sequence.  As above, @var{i} can be a range
+like @code{@var{start}..@var{end}}.
+
+@item an alist
+If @var{i} is a non-numeric value, expand to the value associated with
+the key @code{"@var{i}"} in the alist.  For example, if @var{var} is
+@samp{(("dog" . "fido") ("cat" . "felix"))}, then
+@samp{$@var{var}[dog]} expands to @code{"fido"}.  Otherwise, this
+behaves as with sequences; e.g., @samp{$@var{var}[0]} expands to
+@code{("dog" . "fido")}.  @xref{Association List Type, Association
+Lists, , elisp, The Emacs Lisp Reference Manual}.
+
+@item anything else
+Signals an error.
+
+@end table
+
+Multiple sets of indices can also be specified.  For example, if
+@var{var} is @samp{((1 2) (3 4))}, then @samp{$@var{var}[0][1]} will
+expand to @code{2}, i.e.@: the second element of the first list member
+(all indices are zero-based).
+
+@item $@var{expr}[@var{regexp} @var{i...}]
+As above (when @var{expr} expands to a string), but use @var{regexp}
+to split the string.  @var{regexp} can be any form other than a
+number.  For example, @samp{$@var{var}[: 0]} will return the first
+element of a colon-delimited string.
+
+@cindex length operator, in variable expansion
+@item $#@var{expr}
+This is the @dfn{length operator}.  It expands to the length of the
+result of @var{expr}, an expression in one of the above forms.  For
+example, @samp{$#@var{var}} returns the length of the variable
+@var{var} and @samp{$#@var{var}[0]} returns the length of the first
+element of @var{var}.  Again, signals an error if the result of
+@var{expr} is not a string or a sequence.
+
+@cindex splice operator, in variable expansion
+@item $@@@var{expr}
+This is the @dfn{splice operator}.  It ``splices'' the elements of
+@var{expr} (an expression of one of the above forms) into the
+resulting list of arguments, much like the @samp{,@@} marker in Emacs
+Lisp (@pxref{Backquote, , , elisp, The Emacs Lisp Reference Manual}).
+The elements of @var{expr} become arguments at the same level as the
+other arguments around it.  For example, if @var{numbers} is the list
+@code{(1 2 3)}, then:
+
+@example
+@group
+~ $ echo 0 $numbers
+(0
+ (1 2 3))
+@end group
+@group
+~ $ echo 0 $@@numbers
+(0 1 2 3)
+@end group
+@end example
 
 @end table
 
 @node Globbing
 @section Globbing
-Eshell's globbing syntax is very similar to that of Zsh.  Users coming
-from Bash can still use Bash-style globbing, as there are no
-incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  @xref{Filename Generation, , ,
-zsh, The Z Shell Manual},
-for full syntax.  To customize the syntax and behavior of globbing in
-Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
-The GNU Emacs Manual}.}
-groups ``eshell-glob'' and ``eshell-pred''.
+@vindex eshell-glob-case-insensitive
+Eshell's globbing syntax is very similar to that of Zsh
+(@pxref{Filename Generation, , , zsh, The Z Shell Manual}).  Users
+coming from Bash can still use Bash-style globbing, as there are no
+incompatibilities.
+
+By default, globs are case sensitive, except on MS-DOS/MS-Windows
+systems.  You can control this behavior via the
+@code{eshell-glob-case-insensitive} option.  You can further customize
+the syntax and behavior of globbing in Eshell via the Customize group
+``eshell-glob'' (@pxref{Easy Customization, , , emacs, The GNU Emacs
+Manual}).
+
+@table @samp
+
+@item *
+Matches any string (including the empty string).  For example,
+@samp{*.el} matches any file with the @file{.el} extension.
+
+@item ?
+Matches any single character.  For example, @samp{?at} matches
+@file{cat} and @file{bat}, but not @file{goat}.
+
+@item **/
+Matches zero or more subdirectories in a file name.  For example,
+@samp{**/foo.el} matches @file{foo.el}, @file{bar/foo.el},
+@file{bar/baz/foo.el}, etc.  Note that this cannot be combined with
+any other patterns in the same file name segment, so while
+@samp{foo/**/bar.el} is allowed, @samp{foo**/bar.el} is not.
+
+@item ***/
+Like @samp{**/}, but follows symlinks as well.
+
+@cindex character sets, in Eshell glob patterns
+@cindex character classes, in Eshell glob patterns
+@item [ @dots{} ]
+Defines a @dfn{character set} (@pxref{Regexps, , , emacs, The GNU
+Emacs Manual}).  A character set matches characters between the two
+brackets; for example, @samp{[ad]} matches @file{a} and @file{d}.  You
+can also include ranges of characters in the set by separating the
+start and end with @samp{-}.  Thus, @samp{[a-z]} matches any
+lower-case @acronym{ASCII} letter.  Note that, unlike in Zsh,
+character ranges are interpreted in the Unicode codepoint order, not
+in the locale-dependent collation order.
+
+Additionally, you can include @dfn{character classes} in a character
+set.  A @samp{[:} and balancing @samp{:]} enclose a character class
+inside a character set.  For instance, @samp{[[:alnum:]]}
+matches any letter or digit.  @xref{Char Classes, , , elisp, The Emacs
+Lisp Reference Manual}, for a list of character classes.
+
+@cindex complemented character sets, in Eshell glob patterns
+@item [^ @dots{} ]
+Defines a @dfn{complemented character set}.  This behaves just like a
+character set, but matches any character @emph{except} the ones
+specified.
+
+@cindex groups, in Eshell glob patterns
+@item ( @dots{} )
+Defines a @dfn{group}.  A group matches the pattern between @samp{(}
+and @samp{)}.  Note that a group can only match a single file name
+component, so a @samp{/} inside a group will signal an error.
+
+@item @var{x}|@var{y}
+Inside of a group, matches either @var{x} or @var{y}.  For example,
+@samp{e(m|sh)-*} matches any file beginning with @file{em-} or
+@file{esh-}.
+
+@item @var{x}#
+Matches zero or more copies of the glob pattern @var{x}.  For example,
+@samp{fo#.el} matches @file{f.el}, @file{fo.el}, @file{foo.el}, etc.
+
+@item @var{x}##
+Matches one or more copies of the glob pattern @var{x}.  Thus,
+@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+etc.
+
+@item @var{x}~@var{y}
+Matches anything that matches the pattern @var{x} but not @var{y}. For
+example, @samp{[[:digit:]]#~4?} matches @file{1} and @file{12}, but
+not @file{42}.  Note that unlike in Zsh, only a single @samp{~}
+operator can be used in a pattern, and it cannot be inside of a group
+like @samp{(@var{x}~@var{y})}.
+
+@end table
+
+@node Argument Predication and Modification
+@section Argument Predication and Modification
+@cindex argument predication
+@cindex argument modification
+Eshell supports @dfn{argument predication}, to filter elements of a
+glob, and @dfn{argument modification}, to manipulate argument values.
+These are similar to glob qualifiers in Zsh (@pxref{Glob Qualifiers, ,
+, zsh, The Z Shell Manual}).
+
+Predicates and modifiers are introduced with @samp{(@var{filters})}
+after any list argument, where @var{filters} is a list of predicates
+or modifiers.  For example, @samp{*(.)} expands to all regular files
+in the current directory and @samp{*(^@@:U^u0)} expands to all
+non-symlinks not owned by @code{root}, upper-cased.
+
+Some predicates and modifiers accept string parameters, such as
+@samp{*(u'@var{user}')}, which matches all files owned by @var{user}.
+These parameters must be surrounded by delimiters; you can use any of
+the following pairs of delimiters: @code{"@dots{}"}, @code{'@dots{}'},
+@code{/@dots{}/}, @code{|@dots{}|}, @code{(@dots{})},
+@code{[@dots{}]}, @code{<@dots{}>}, or @code{@{@dots{}@}}.
+
+You can customize the syntax and behavior of predicates and modifiers
+in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
+Customization, , , emacs, The GNU Emacs Manual}).
+
+@menu
+* Argument Predicates::
+* Argument Modifiers::
+@end menu
+
+@node Argument Predicates
+@subsection Argument Predicates
+You can use argument predicates to filter lists of file names based on
+various properties of those files.  This is most useful when combined
+with globbing, but can be used on any list of files names.  Eshell
+supports the following argument predicates:
+
+@table @asis
+
+@item @samp{/}
+Matches directories.
+
+@item @samp{.} @r{(Period)}
+Matches regular files.
+
+@item @samp{@@}
+Matches symbolic links.
+
+@item @samp{=}
+Matches sockets.
+
+@item @samp{p}
+Matches named pipes.
+
+@item @samp{%}
+Matches block or character devices.
+
+@item @samp{%b}
+Matches block devices.
+
+@item @samp{%c}
+Matches character devices.
+
+@item @samp{*}
+Matches regular files that can be executed by the current user.
+
+@item @samp{r}
+@item @samp{A}
+@item @samp{R}
+Matches files that are readable by their owners (@samp{r}), their
+groups (@samp{A}), or the world (@samp{R}).
+
+@item @samp{w}
+@item @samp{I}
+@item @samp{W}
+Matches files that are writable by their owners (@samp{w}), their
+groups (@samp{I}), or the world (@samp{W}).
+
+@item @samp{x}
+@item @samp{E}
+@item @samp{X}
+Matches files that are executable by their owners (@samp{x}), their
+groups (@samp{E}), or the world (@samp{X}).
+
+@item @samp{s}
+Matches files with the setuid flag set.
+
+@item @samp{S}
+Matches files with the setgid flag set.
+
+@item @samp{t}
+Matches files with the sticky bit set.
+
+@item @samp{U}
+Matches files owned by the current effective user ID.
+
+@item @samp{G}
+Matches files owned by the current effective group ID.
+
+@item @samp{l@option{[+-]}@var{n}}
+Matches files with @var{n} links.  With @option{+} (or @option{-}),
+matches files with more than (or less than) @var{n} links,
+respectively.
+
+@item @samp{u@var{uid}}
+@item @samp{u'@var{user-name}'}
+Matches files owned by user ID @var{uid} or user name @var{user-name}.
+
+@item @samp{g@var{gid}}
+@item @samp{g'@var{group-name}'}
+Matches files owned by group ID @var{gid} or group name
+@var{group-name}.
+
+@item @samp{a@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{a@option{[+-]}'@var{file}'}
+Matches files last accessed exactly @var{n} days ago.  With @option{+}
+(or @option{-}), matches files accessed more than (or less than)
+@var{n} days ago, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of time, so
+@samp{aw-1} matches files last accessed within one week.  @var{unit}
+can be @samp{M} (30-day months), @samp{w} (weeks), @samp{h} (hours),
+@samp{m} (minutes), or @samp{s} (seconds).
+
+If @var{file} is specified instead, compare against the modification
+time of @file{file}.  Thus, @samp{a-'hello.txt'} matches all files
+accessed after @file{hello.txt} was last accessed.
+
+@item @samp{m@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{m@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines modification time.
+
+@item @samp{c@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{c@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines status change time.
+
+@item @samp{L@option{[@var{unit}]}@option{[+-]}@var{n}}
+Matches files exactly @var{n} bytes in size.  With @option{+} (or
+@option{-}), matches files larger than (or smaller than) @var{n}
+bytes, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of size, so
+@samp{Lm+5} matches files larger than 5 MiB in size.  @var{unit} can
+be one of the following (case-insensitive) characters: @samp{m}
+(megabytes), @samp{k} (kilobytes), or @samp{p} (512-byte blocks).
+
+@end table
+
+The @samp{^} and @samp{-} operators are not argument predicates
+themselves, but they modify the behavior of all subsequent predicates.
+@samp{^} inverts the meaning of subsequent predicates, so
+@samp{*(^RWX)} expands to all files whose permissions disallow the
+world from accessing them in any way (i.e., reading, writing to, or
+modifying them).  When examining a symbolic link, @samp{-} applies the
+subsequent predicates to the link's target instead of the link itself.
+
+@node Argument Modifiers
+@subsection Argument Modifiers
+You can use argument modifiers to manipulate argument values.  For
+example, you can sort lists, remove duplicate values, capitalize
+words, etc.  All argument modifiers are prefixed by @samp{:}, so
+@samp{$exec-path(:h:u:x/^\/home/)} lists all of the unique parent
+directories of the elements in @code{exec-path}, excluding those in
+@file{/home}.
+
+@table @samp
+
+@item E
+Re-evaluates the value as an Eshell argument.  For example, if
+@var{foo} is @code{"$@{echo hi@}"}, then the result of @samp{$foo(:E)}
+is @code{hi}.
+
+@item L
+Converts the value to lower case.
+
+@item U
+Converts the value to upper case.
+
+@item C
+Capitalizes the value.
+
+@item h
+Treating the value as a file name, gets the directory name (the
+``head'').  For example, @samp{foo/bar/baz.el(:h)} expands to
+@samp{foo/bar/}.
+
+@item t
+Treating the value as a file name, gets the base name (the ``tail'').
+For example, @samp{foo/bar/baz.el(:h)} expands to @samp{baz.el}.
+
+@item e
+Treating the value as a file name, gets the final extension of the
+file, excluding the dot.  For example, @samp{foo.tar.gz(:e)}
+expands to @code{gz}.
+
+@item r
+Treating the value as a file name, gets the file name excluding the
+final extension.  For example, @samp{foo/bar/baz.tar.gz(:r)} expands
+to @samp{foo/bar/baz.tar}.
+
+@item q
+Marks that the value should be interpreted by Eshell literally, so
+that any special characters like @samp{$} no longer have any special
+meaning.
+
+@item s/@var{pattern}/@var{replace}/
+Replaces the first instance of the regular expression @var{pattern}
+with @var{replace}.  Signals an error if no match is found.
+
+As with other modifiers taking string parameters, you can use
+different delimiters to separate @var{pattern} and @var{replace}, such
+as @samp{s'@dots{}'@dots{}'}, @samp{s[@dots{}][@dots{}]}, or even
+@samp{s[@dots{}]/@dots{}/}.
+
+@item gs/@var{pattern}/@var{replace}/
+Replaces all instances of the regular expression @var{pattern} with
+@var{replace}.
+
+@item i/@var{pattern}/
+Filters a list of values to include only the elements matching the
+regular expression @var{pattern}.
+
+@item x/@var{pattern}/
+Filters a list of values to exclude all the elements matching the
+regular expression @var{pattern}.
+
+@item S
+@item S/@var{pattern}/
+Splits the value using the regular expression @var{pattern} as a
+delimiter.  If @var{pattern} is omitted, split on spaces.
+
+@item j
+@item j/@var{delim}/
+Joins a list of values, inserting the string @var{delim} between each
+value.  If @var{delim} is omitted, use a single space as the
+delimiter.
+
+@item o
+Sorts a list of strings in ascending lexicographic order, comparing
+pairs of characters according to their character codes (@pxref{Text
+Comparison, , , elisp, The Emacs Lisp Reference Manual}).
+
+@item O
+Sorts a list of strings in descending lexicographic order.
+
+@item u
+Removes any duplicate elements from a list of values.
+
+@item R
+Reverses the order of a list of values.
+
+@end table
 
 @node Input/Output
 @chapter Input/Output
 Since Eshell does not communicate with a terminal like most command
 shells, IO is a little different.
 
+@menu
+* Visual Commands::
+* Redirection::
+* Pipelines::
+@end menu
+
+@node Visual Commands
 @section Visual Commands
 If you try to run programs from within Eshell that are not
 line-oriented, such as programs that use ncurses, you will just get
@@ -649,7 +1811,7 @@ Eshell solves this problem by running such programs in Emacs's
 terminal emulator.
 
 Programs that need a terminal to display output properly are referred
-to in this manual as ``visual commands,'' because they are not simply
+to in this manual as ``visual commands'', because they are not simply
 line-oriented.  You must tell Eshell which commands are visual, by
 adding them to @code{eshell-visual-commands}; for commands that are
 visual for only certain @emph{sub}-commands -- e.g., @samp{git log} but
@@ -673,38 +1835,182 @@ program exits, customize the variable
 @code{eshell-destroy-buffer-when-process-dies} to a non-@code{nil}
 value; the default is @code{nil}.
 
+@node Redirection
 @section Redirection
-Redirection is mostly the same in Eshell as it is in other command
-shells.  The output redirection operators @code{>} and @code{>>} as
-well as pipes are supported, but there is not yet any support for
-input redirection.  Output can also be redirected to buffers, using
-the @code{>>>} redirection operator, and Elisp functions, using
-virtual devices.
+Redirection in Eshell is similar to that of other command shells.  You
+can use the output redirection operators @code{>} and @code{>>}, but
+there is not yet any support for input redirection.  In the cases
+below, @var{fd} specifies the file descriptor to redirect; if not
+specified, file descriptor 1 (standard output) will be used by
+default.
 
-The buffer redirection operator, @code{>>>}, expects a buffer object
-on the right-hand side, into which it inserts the output of the
-left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
-inserts the string @code{"hello"} into the @file{*scratch*} buffer.
-The convenience shorthand variant @samp{#<@var{buffer-name}>}, as in
-@samp{#<*scratch*>}, is also accepted.
+@table @code
 
-@code{eshell-virtual-targets} is a list of mappings of virtual device
-names to functions.  Eshell comes with two virtual devices:
-@file{/dev/kill}, which sends the text to the kill ring, and
-@file{/dev/clip}, which sends text to the clipboard.
+@item > @var{dest}
+@itemx @var{fd}> @var{dest}
+Redirect output to @var{dest}, overwriting its contents with the new
+output.
 
+@item >> @var{dest}
+@itemx @var{fd}>> @var{dest}
+Redirect output to @var{dest}, appending it to the existing contents
+of @var{dest}.
+
+@item >>> @var{buffer}
+@itemx @var{fd}>>> @var{buffer}
+Redirect output to @var{dest}, inserting it at the current mark if
+@var{dest} is a buffer, at the beginning of the file if @var{dest} is
+a file, or otherwise behaving the same as @code{>>}.
+
+@item &> @var{file}
+@itemx >& @var{file}
+Redirect both standard output and standard error to @var{dest},
+overwriting its contents with the new output.
+
+@item &>> @var{file}
+@itemx >>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+appending it to the existing contents of @var{dest}.
+
+@item &>>> @var{file}
+@itemx >>>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+inserting it like with @code{>>> @var{file}}.
+
+@item >&@var{other-fd}
+@itemx @var{fd}>&@var{other-fd}
+Duplicate the file descriptor @var{other-fd} to @var{fd} (or 1 if
+unspecified).  The order in which this is used is significant, so
+
+@example
+@var{command} > @var{file} 2>&1
+@end example
+
+redirects both standard output and standard error to @var{file},
+whereas
+
+@example
+@var{command} 2>&1 > @var{file}
+@end example
+
+only redirects standard output to @var{file} (and sends standard error
+to the display via standard output's original handle).
+
+@end table
+
+Eshell supports redirecting output to several different types of
+targets:
+
+@itemize @bullet
+
+@item
+files, including virtual targets (see below);
+
+@item
+buffers (@pxref{Buffers, , , elisp, GNU Emacs Lisp Reference Manual});
+
+@item
+markers (@pxref{Markers, , , elisp, GNU Emacs Lisp Reference Manual});
+
+@item
+processes (@pxref{Processes, , , elisp, GNU Emacs Lisp Reference
+Manual}); and
+
+@item
+symbols (@pxref{Symbols, , , elisp, GNU Emacs Lisp Reference Manual}).
+
+@end itemize
+
+@subsection Virtual Targets
+Virtual targets are mapping of device names to functions.  Eshell
+comes with four virtual devices:
+
+@table @file
+
+@item /dev/null
+Does nothing with the output passed to it.
+
+@item /dev/eshell
+Writes the text passed to it to the display.
+
+@item /dev/kill
+Adds the text passed to it to the kill ring.
+
+@item /dev/clip
+Adds the text passed to it to the clipboard.
+
+@end table
+
+@vindex eshell-virtual-targets
 You can, of course, define your own virtual targets.  They are defined
-by adding a list of the form @samp{("/dev/name" @var{function} @var{mode})} to
-@code{eshell-virtual-targets}.  The first element is the device name;
-@var{function} may be either a lambda or a function name.  If
-@var{mode} is @code{nil}, then the function is the output function; if it is
-non-@code{nil}, then the function is passed the redirection mode as a
-symbol--@code{overwrite} for @code{>}, @code{append} for @code{>>}, or
-@code{insert} for @code{>>>}--and the function is expected to return
-the output function.
+by adding a list of the form @samp{("/dev/name" @var{function}
+@var{mode})} to @code{eshell-virtual-targets}.  The first element is
+the device name; @var{function} may be either a lambda or a function
+name.  If @var{mode} is @code{nil}, then the function is the output
+function; if it is non-@code{nil}, then the function is passed the
+redirection mode as a symbol--@code{overwrite} for @code{>},
+@code{append} for @code{>>}, or @code{insert} for @code{>>>}--and the
+function is expected to return the output function.
 
 The output function is called once on each line of output until
 @code{nil} is passed, indicating end of output.
+
+@node Pipelines
+@section Pipelines
+As with most other shells, Eshell supports pipelines to pass the
+output of one command the input of the next command.  You can send the
+standard output of one command to the standard input of another using
+the @code{|} operator.  For example,
+
+@example
+~ $ echo hello | rev
+olleh
+@end example
+
+To send both the standard output and standard error of a command to
+another command's input, you can use the @code{|&} operator.
+
+@subsection Running Shell Pipelines Natively
+When constructing shell pipelines that will move a lot of data, it is
+a good idea to bypass Eshell's own pipelining support and use the
+operating system shell's instead.  This is especially relevant when
+executing commands on a remote machine using Eshell's Tramp
+integration: using the remote shell's pipelining avoids copying the
+data which will flow through the pipeline to local Emacs buffers and
+then right back again.
+
+Eshell recognizes a special syntax to make it easier to convert
+pipelines so as to bypass Eshell's pipelining.  Prefixing at least one
+@code{|}, @code{<} or @code{>} with an asterisk marks a command as
+intended for the operating system shell.  To make it harder to invoke
+this functionality accidentally, it is also required that the asterisk
+be preceded by whitespace or located at the start of input.  For
+example,
+
+@example
+ cat *.ogg *| my-cool-decoder >file
+@end example
+
+Executing this command will not copy all the data in the *.ogg files,
+nor the decoded data, into Emacs buffers, as would normally happen.
+
+The command is interpreted as extending up to the next @code{|}
+character which is not preceded by an unescaped asterisk following
+whitespace, or the end of the input if there is no such character.
+Thus, all @code{<} and @code{>} redirections occurring before the next
+asterisk-unprefixed @code{|} are implicitly prefixed with (whitespace
+and) asterisks.  An exception is that Eshell-specific redirects right
+at the end of the command are excluded.  This allows input like this:
+
+@example
+ foo *| baz >#<buffer quux>
+@end example
+
+@noindent which is equivalent to input like this:
+
+@example
+ sh -c "foo | baz" >#<buffer quux>
+@end example
 
 @node Extension modules
 @chapter Extension modules
@@ -736,25 +2042,93 @@ Eshell module.}  You also need to load the following as shown:
 * Key rebinding::
 * Smart scrolling::
 * Terminal emulation::
+* Electric forward slash::
 @end menu
 
 @node Writing a module
 @section Writing a module
 
+This section is not yet written.
+
 @node Module testing
 @section Module testing
+
+This section is not yet written.
 
 @node Directory handling
 @section Directory handling
 
+This section is not yet written.
+
 @node Key rebinding
 @section Key rebinding
+
+This section is not yet written.
 
 @node Smart scrolling
 @section Smart scrolling
 
+This section is not yet written.
+
 @node Terminal emulation
 @section Terminal emulation
+
+This section is not yet written.
+
+@node Electric forward slash
+@section Electric forward slash
+
+To help with supplying absolute file name arguments to remote
+commands, you can add the @code{eshell-elecslash} module to
+@code{eshell-modules-list}.  Then, typing @kbd{/} as the first
+character of a command line argument will automatically insert the
+Tramp prefix @file{/method:host:}.  If this is not what you want
+(e.g.@: because you want to refer to a local file), you can type
+another @kbd{/} to undo the automatic insertion.  Typing @kbd{~/} also
+inserts the Tramp prefix.  The automatic insertion applies only when
+@code{default-directory} is remote and the command is a Lisp function.
+In particular, typing arguments to external commands doesn't insert
+the prefix.
+
+The result is that in most cases of supplying absolute file name
+arguments to commands you should see the Tramp prefix inserted
+automatically only when that's what you'd reasonably expect.  This
+frees you from having to keep track of whether commands are Lisp
+functions or external when typing command line arguments.  For
+example, suppose you execute
+
+@example
+ cd /ssh:root@@example.com:
+ find /etc -name "*gnu*"
+@end example
+
+@noindent and in reviewing the output of the command, you identify a
+file @file{/etc/gnugnu} that should be moved somewhere else.  So you
+type
+
+@example
+ mv /etc/gnugnu /tmp
+@end example
+
+@noindent But since @command{mv} refers to the local Lisp function
+@code{eshell/mv}, not a remote shell command, to say this is to
+request that the local file @file{/etc/gnugnu} be moved into the local
+@file{/tmp} directory.  After you add @code{eshell-elecslash} to
+@code{eshell-modules-list}, then when you type the above @command{mv}
+invocation you will get the following input, which is what you
+intended:
+
+@example
+ mv /ssh:root@@example.com:/etc/gnugnu /ssh:root@@example.com:/tmp
+@end example
+
+The code that determines whether or not the Tramp prefix should be
+inserted uses simple heuristics.  A limitation of the current
+implementation is that it inspects whether only the command at the
+very beginning of input is a Lisp function or external program.  Thus
+when chaining commands with the operators @code{&&}, @code{||},
+@code{|} and @code{;}, the electric forward slash is active only
+within the first command.
 
 @node Bugs and ideas
 @chapter Bugs and ideas
@@ -790,16 +2164,8 @@ Allow for a Bash-compatible syntax, such as:
 
 @example
 alias arg=blah
-function arg () @{ blah $* @}
+function arg () @{ blah $@@* @}
 @end example
-
-@item @samp{for i in 1 2 3 @{ grep -q a b && *echo has it @} | wc -l} outputs result after prompt
-
-In fact, piping to a process from a looping construct doesn't work in
-general.  If I change the call to @code{eshell-copy-handles} in
-@code{eshell-rewrite-for-command} to use @code{eshell-protect}, it seems
-to work, but the output occurs after the prompt is displayed.  The whole
-structured command thing is too complicated at present.
 
 @item Pcomplete sometimes gets stuck
 
@@ -823,14 +2189,7 @@ Hitting space during a process invocation, such as @command{make}, will
 cause it to track the bottom of the output; but backspace no longer
 scrolls back.
 
-@item It's not possible to fully @code{unload-feature} Eshell
-
 @item Menu support was removed, but never put back
-
-@item Using C-p and C-n with rebind gets into a locked state
-
-This happened a few times in Emacs 21, but has been irreproducible
-since.
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work
 
@@ -888,11 +2247,6 @@ So that @kbd{M-@key{DEL}} acts in a predictable manner, etc.
 
 @item Allow all Eshell buffers to share the same history and list-dir
 
-@item There is a problem with script commands that output to @file{/dev/null}
-
-If a script file, somewhere in the middle, uses @samp{> /dev/null},
-output from all subsequent commands is swallowed.
-
 @item Split up parsing of text after @samp{$} in @file{esh-var.el}
 
 Make it similar to the way that @file{esh-arg.el} is structured.
@@ -944,11 +2298,6 @@ glob match.
 @item A comma in a predicate list should mean OR
 
 At the moment, this is not supported.
-
-@item Error if a glob doesn't expand due to a predicate
-
-An error should be generated only if @code{eshell-error-if-no-glob} is
-non-@code{nil}.
 
 @item @samp{(+ @key{RET} @key{SPC} @key{TAB}} does not cause @code{indent-according-to-mode} to occur
 
@@ -1102,17 +2451,9 @@ current being used.
 
 @item How can Eshell learn if a background process has requested input?
 
-@item Support @samp{2>&1} and @samp{>&} and @samp{2>} and @samp{|&}
+@item Make a customizable syntax table for redirects
 
-The syntax table for parsing these should be customizable, such that the
-user could change it to use rc syntax: @samp{>[2=1]}.
-
-@item Allow @samp{$_[-1]}, which would indicate the last element of the array
-
-@item Make @samp{$x[*]} equal to listing out the full contents of @samp{x}
-
-Return them as a list, so that @samp{$_[*]} is all the arguments of the
-last command.
+This way, the user could change it to use rc syntax: @samp{>[2=1]}.
 
 @item Copy ANSI code handling from @file{term.el} into @file{em-term.el}
 
@@ -1125,11 +2466,10 @@ it).
 
 @item Make the shell spawning commands be visual
 
-That is, make (@command{su}, @command{bash}, @command{telnet},
-@command{rlogin}, @command{rsh}, etc.)@: be part of
-@code{eshell-visual-commands}.  The only exception is if the shell is
-being used to invoke a single command.  Then, the behavior should be
-based on what that command is.
+That is, make (@command{su}, @command{bash}, @command{ssh}, etc.)@: be
+part of @code{eshell-visual-commands}.  The only exception is if the
+shell is being used to invoke a single command.  Then, the behavior
+should be based on what that command is.
 
 @item Create a smart viewing command named @command{open}
 
@@ -1159,11 +2499,12 @@ only.  That way, it could be listed as a login shell.
 @item The first keypress after @kbd{M-x watson} triggers
 @code{eshell-send-input}
 
-@item Make @kbd{/} electric
+@item Make @kbd{/} more electric
 
-So that it automatically expands and corrects pathnames.  Or make
-pathname completion for Pcomplete auto-expand @samp{/u/i/std@key{TAB}} to
-@samp{/usr/include/std@key{TAB}}.
+@noindent so that it automatically expands and corrects file names,
+beyond what the @code{em-elecslash} module is able to do.  Or make
+file name completion for Pcomplete auto-expand
+@samp{/u/i/std@key{TAB}} to @samp{/usr/include/std@key{TAB}}.
 
 @item Write the @command{pushd} stack to disk along with @code{last-dir-ring}
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1998, 2001--2020 Free Software Foundation,
+@c Copyright (C) 1990--1993, 1998, 2001--2023 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
@@ -18,11 +18,13 @@ arguments and their values are completely ignored.  The recommended way
 to put a new function on such a hook is to call @code{add-hook}.
 @xref{Hooks}, for more information about using hooks.
 
-The variables whose names end in @samp{-functions} are usually @dfn{abnormal
-hooks} (some old code may also use the deprecated @samp{-hooks} suffix); their
-values are lists of functions, but these functions are called in a special way
-(they are passed arguments, or their return values are used).  The variables
-whose names end in @samp{-function} have single functions as their values.
+The variables whose names end in @samp{-functions} are usually
+@dfn{abnormal hooks} (some old code may also use the deprecated
+@samp{-hooks} suffix).  Their values are lists of functions, but these
+functions are called in a special way: they are either passed
+arguments, or their return values are used in some way.  The variables
+whose names end in @samp{-function} have single functions as their
+values.
 
 This is not an exhaustive list, it only covers the more general hooks.
 For example, every major mode defines a hook named
@@ -184,7 +186,7 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 
 @item mouse-leave-buffer-hook
 @vindex mouse-leave-buffer-hook
-Hook run when about to switch windows with a mouse command.
+Hook run when the user mouse-clicks in a window.
 
 @item mouse-position-function
 @xref{Mouse Position}.
@@ -262,7 +264,6 @@ after-set-visited-file-name-hook
 auto-coding-functions
 choose-completion-string-functions
 completing-read-function
-completion-annotate-function
 completion-at-point-functions
 completion-list-insert-choice-function
 deactivate-current-input-method-function
@@ -279,7 +280,6 @@ kbd-macro-termination-hook
 signal-hook-function
 
 C functions:
-redisplay-end-trigger-functions
 x-lost-selection-functions
 x-sent-selection-functions
 
@@ -289,7 +289,6 @@ auto-fill-function
 command-error-function
 compose-chars-after-function
 composition-function-table
-deferred-action-function
 input-method-function
 load-read-function
 load-source-file-function

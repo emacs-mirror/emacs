@@ -1,0 +1,1 @@
+&%%(and (diary-date t t 19) (diary-block 2003 9 19 9999 1 1)) 09:00-11:30 rrule monthly no end

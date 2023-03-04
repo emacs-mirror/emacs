@@ -1,9 +1,9 @@
-;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
+;;; erc-desktop-notifications.el --- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -31,6 +31,7 @@
 (require 'erc)
 (require 'xml)
 (require 'notifications)
+(require 'erc-goodies)
 (require 'erc-match)
 (require 'dbus)
 
@@ -44,13 +45,11 @@
 
 (defcustom erc-notifications-icon nil
   "Icon to use for notification."
-  :group 'erc-notifications
   :type '(choice (const :tag "No icon" nil) file))
 
 (defcustom erc-notifications-bus :session
   "D-Bus bus to use for notification."
   :version "25.1"
-  :group 'erc-notifications
   :type '(choice (const :tag "Session bus" :session) string))
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
@@ -62,12 +61,12 @@ This will replace the last notification sent with this function."
   ;; setting the current buffer to the existing query buffer)
   (dbus-ignore-errors
     (setq erc-notifications-last-notification
-          (let ((channel (if privp (erc-get-buffer nick) (current-buffer))))
+          (let* ((channel (if privp (erc-get-buffer nick) (current-buffer)))
+                 (title (format "%s in %s" (xml-escape-string nick t) channel))
+                 (body (xml-escape-string (erc-controls-strip msg) t)))
             (notifications-notify :bus erc-notifications-bus
-                                  :title (format "%s in %s"
-                                                 (xml-escape-string nick)
-                                                 channel)
-                                  :body (xml-escape-string msg)
+                                  :title title
+                                  :body body
                                   :replaces-id erc-notifications-last-notification
                                   :app-icon erc-notifications-icon
                                   :actions '("default" "Switch to buffer")
@@ -98,11 +97,11 @@ This will replace the last notification sent with this function."
 (define-erc-module notifications nil
   "Send notifications on private message reception and mentions."
   ;; Enable
-  ((add-hook 'erc-server-PRIVMSG-functions 'erc-notifications-PRIVMSG)
-   (add-hook 'erc-text-matched-hook 'erc-notifications-notify-on-match))
+  ((add-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
+   (add-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match))
   ;; Disable
-  ((remove-hook 'erc-server-PRIVMSG-functions 'erc-notifications-PRIVMSG)
-   (remove-hook 'erc-text-matched-hook 'erc-notifications-notify-on-match)))
+  ((remove-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
+   (remove-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match)))
 
 (provide 'erc-desktop-notifications)
 

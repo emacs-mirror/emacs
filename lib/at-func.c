@@ -1,9 +1,9 @@
 /* Define at-style functions like fstatat, unlinkat, fchownat, etc.
-   Copyright (C) 2006, 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2023 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -16,7 +16,7 @@
 
 /* written by Jim Meyering */
 
-#include "dosname.h" /* solely for definition of IS_ABSOLUTE_FILE_NAME */
+#include "filename.h" /* solely for definition of IS_ABSOLUTE_FILE_NAME */
 
 #ifdef GNULIB_SUPPORT_ONLY_AT_FDCWD
 # include <errno.h>

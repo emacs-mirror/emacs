@@ -1,6 +1,6 @@
-;;; cal-menu.el --- calendar functions for menu bar and popup menu support
+;;; cal-menu.el --- calendar functions for menu bar and popup menu support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -104,9 +104,9 @@
         ;; The bug has since been fixed.
         (dotimes (i 11)
           (push (vector (format "hol-year-%d" i)
-                        `(lambda ()
-                           (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))))
+                        (lambda ()
+                          (interactive)
+                          (holiday-list (+ displayed-year (- i 5))))
                         :label `(format "For Year %d"
                                        (+ displayed-year ,(- i 5))))
                 l))
@@ -182,6 +182,8 @@ Signals an error if popups are unavailable."
 (autoload 'diary-list-entries "diary-lib")
 ;; Autoloaded in diary-lib.
 (declare-function calendar-check-holidays "holidays" (date))
+
+(defvar diary-list-include-blanks)
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.

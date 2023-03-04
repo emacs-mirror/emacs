@@ -1,6 +1,6 @@
 ;;; exif-tests.el --- tests for exif.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,7 +21,6 @@
 
 (require 'ert)
 (require 'exif)
-(require 'seq)
 
 (defun test-image-file (name)
   (expand-file-name
@@ -29,27 +28,22 @@
                           (or (getenv "EMACS_TEST_DIRECTORY")
                               "../../"))))
 
-(defun exif-elem (exif elem)
-  (plist-get (seq-find (lambda (e)
-                         (eq elem (plist-get e :tag-name)))
-                       exif)
-             :value))
-
 (ert-deftest test-exif-parse ()
   (let ((exif (exif-parse-file (test-image-file "black.jpg"))))
-    (should (equal (exif-elem exif 'make) "Panasonic"))
-    (should (equal (exif-elem exif 'orientation) 1))
-    (should (equal (exif-elem exif 'x-resolution) '(180 . 1)))))
+    (should (equal (exif-field 'make exif) "Panasonic"))
+    (should (equal (exif-field 'orientation exif) 1))
+    (should (equal (exif-field 'x-resolution exif) '(180 . 1)))
+    (should (equal (exif-field 'date-time exif) "2019:09:21 16:22:13"))))
 
 (ert-deftest test-exif-parse-short ()
   (let ((exif (exif-parse-file (test-image-file "black-short.jpg"))))
-    (should (equal (exif-elem exif 'make) "thr"))
-    (should (equal (exif-elem exif 'model) "four"))
-    (should (equal (exif-elem exif 'software) "em"))
-    (should (equal (exif-elem exif 'artist) "z"))))
+    (should (equal (exif-field 'make exif) "thr"))
+    (should (equal (exif-field 'model exif) "four"))
+    (should (equal (exif-field 'software exif) "em"))
+    (should (equal (exif-field 'artist exif) "z"))))
 
 (ert-deftest test-exit-direct-ascii-value ()
-  (equal (exif--direct-ascii-value 28005 2 t) (string ?e ?m 0))
-  (equal (exif--direct-ascii-value 28005 2 nil) (string ?m ?e 0)))
+  (should (equal (exif--direct-ascii-value 28005 2 t) (string ?e ?m 0)))
+  (should (equal (exif--direct-ascii-value 28005 2 nil) (string ?m ?e 0))))
 
 ;;; exif-tests.el ends here

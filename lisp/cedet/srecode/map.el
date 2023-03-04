@@ -1,6 +1,6 @@
-;;; srecode/map.el --- Manage a template file map
+;;; srecode/map.el --- Manage a template file map  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -245,7 +245,7 @@ Optional argument RESET forces a reset of the current map."
     (princ "\n")
     ))
 
-(defun srecode-map-file-still-valid-p (filename map)
+(defun srecode-map-file-still-valid-p (filename _map)
   "Return t if FILENAME should be in MAP still."
   (let ((valid nil))
     (and (file-exists-p filename)
@@ -327,7 +327,7 @@ if that file is NEW, otherwise assume the mode has not changed."
     ;; 4) - Find new files and add them to the map.
     (dolist (dir srecode-map-load-path)
       (when (file-exists-p dir)
-	(dolist (f (directory-files dir t "\\.srt$"))
+	(dolist (f (directory-files dir t "\\.srt\\'"))
 	  (when (and (not (backup-file-name-p f))
 		     (not (auto-save-file-name-p f))
 		     (file-readable-p f))
@@ -407,7 +407,7 @@ Return non-nil if the map changed."
   "Global load path for SRecode template files."
   :group 'srecode
   :type '(repeat file)
-  :set 'srecode-map-load-path-set)
+  :set #'srecode-map-load-path-set)
 
 (provide 'srecode/map)
 

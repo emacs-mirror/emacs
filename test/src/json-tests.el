@@ -1,6 +1,6 @@
 ;;; json-tests.el --- unit tests for json.c          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -50,6 +50,34 @@
       (goto-char 1)
       (should (equal (json-parse-buffer) lisp))
       (should (eobp)))))
+
+(ert-deftest json-serialize/roundtrip-scalars ()
+  "Check that Bug#42994 is fixed."
+  (skip-unless (fboundp 'json-serialize))
+  (dolist (case '((:null "null")
+                  (:false "false")
+                  (t "true")
+                  (0 "0")
+                  (123 "123")
+                  (-456 "-456")
+                  (3.75 "3.75")
+                  ;; The noncharacter U+FFFF should be passed through,
+                  ;; cf. https://www.unicode.org/faq/private_use.html#noncharacters.
+                  ("abc\uFFFFαβγ𝔸𝐁𝖢\"\\"
+                   "\"abc\uFFFFαβγ𝔸𝐁𝖢\\\"\\\\\"")))
+    (cl-destructuring-bind (lisp json) case
+      (ert-info ((format "%S ↔ %S" lisp json))
+        (should (equal (json-serialize lisp) json))
+        (with-temp-buffer
+          (json-insert lisp)
+          (should (equal (buffer-string) json))
+          (should (eobp)))
+        (should (equal (json-parse-string json) lisp))
+        (with-temp-buffer
+          (insert json)
+          (goto-char 1)
+          (should (equal (json-parse-buffer) lisp))
+          (should (eobp)))))))
 
 (ert-deftest json-serialize/object ()
   (skip-unless (fboundp 'json-serialize))
@@ -159,8 +187,11 @@
 (ert-deftest json-parse-string/null ()
   (skip-unless (fboundp 'json-parse-string))
   (should-error (json-parse-string "\x00") :type 'wrong-type-argument)
-  ;; FIXME: Reconsider whether this is the right behavior.
-  (should-error (json-parse-string "[\"a\\u0000b\"]") :type 'json-parse-error))
+  (should (json-parse-string "[\"a\\u0000b\"]"))
+  (let* ((string "{\"foo\":\"this is a string including a literal \\u0000\"}")
+         (data (json-parse-string string)))
+    (should (hash-table-p data))
+    (should (equal string (json-serialize data)))))
 
 (ert-deftest json-parse-string/invalid-unicode ()
   "Some examples from
@@ -224,7 +255,7 @@ Test with both unibyte and multibyte strings."
   (let* ((input
           "{ \"abc\" : [9, false] , \"def\" : null }")
          (output
-          (replace-regexp-in-string " " "" input)))
+          (string-replace " " "" input)))
     (should (equal (json-parse-string input
                                       :object-type 'plist
                                       :null-object :json-null
@@ -295,6 +326,18 @@ Test with both unibyte and multibyte strings."
                  (format "[%d,%d]"
                          (1+ most-positive-fixnum)
                          (1- most-negative-fixnum)))))
+
+(ert-deftest json-parse-string/wrong-type ()
+  "Check that Bug#42113 is fixed."
+  (skip-unless (fboundp 'json-parse-string))
+  (should-error (json-parse-string 1) :type 'wrong-type-argument))
+
+(ert-deftest json-serialize/wrong-hash-key-type ()
+  "Check that Bug#42113 is fixed."
+  (skip-unless (fboundp 'json-serialize))
+  (let ((table (make-hash-table :test #'eq)))
+    (puthash 1 2 table)
+    (should-error (json-serialize table) :type 'wrong-type-argument)))
 
 (provide 'json-tests)
 ;;; json-tests.el ends here

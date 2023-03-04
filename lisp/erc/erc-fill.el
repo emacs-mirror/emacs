@@ -1,10 +1,10 @@
-;;; erc-fill.el --- Filling IRC messages in various ways
+;;; erc-fill.el --- Filling IRC messages in various ways  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;;         Mario Lang <mlang@delysid.org>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcFilling
 
 ;; This file is part of GNU Emacs.
@@ -38,7 +38,7 @@
   :group 'erc)
 
 ;;;###autoload(autoload 'erc-fill-mode "erc-fill" nil t)
-(erc-define-minor-mode erc-fill-mode
+(define-minor-mode erc-fill-mode
   "Toggle ERC fill mode.
 With a prefix argument ARG, enable ERC fill mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
@@ -46,8 +46,7 @@ the mode if ARG is omitted or nil.
 
 ERC fill mode is a global minor mode.  When enabled, messages in
 the channel buffers are filled."
-  nil nil nil
-  :global t :group 'erc-fill
+  :global t
   (if erc-fill-mode
       (erc-fill-enable)
     (erc-fill-disable)))
@@ -55,19 +54,18 @@ the channel buffers are filled."
 (defun erc-fill-enable ()
   "Setup hooks for `erc-fill-mode'."
   (interactive)
-  (add-hook 'erc-insert-modify-hook 'erc-fill)
-  (add-hook 'erc-send-modify-hook 'erc-fill))
+  (add-hook 'erc-insert-modify-hook #'erc-fill)
+  (add-hook 'erc-send-modify-hook #'erc-fill))
 
 (defun erc-fill-disable ()
   "Cleanup hooks, disable `erc-fill-mode'."
   (interactive)
-  (remove-hook 'erc-insert-modify-hook 'erc-fill)
-  (remove-hook 'erc-send-modify-hook 'erc-fill))
+  (remove-hook 'erc-insert-modify-hook #'erc-fill)
+  (remove-hook 'erc-send-modify-hook #'erc-fill))
 
 (defcustom erc-fill-prefix nil
   "Values used as `fill-prefix' for `erc-fill-variable'.
 nil means fill with space, a string means fill with this string."
-  :group 'erc-fill
   :type '(choice (const nil) string))
 
 (defcustom erc-fill-function 'erc-fill-variable
@@ -94,28 +92,24 @@ These two styles are implemented using `erc-fill-variable' and
 `erc-fill-static'.  You can, of course, define your own filling
 function.  Narrowing to the region in question is in effect while your
 function is called."
-  :group 'erc-fill
   :type '(choice (const :tag "Variable Filling" erc-fill-variable)
                  (const :tag "Static Filling" erc-fill-static)
                  function))
 
 (defcustom erc-fill-static-center 27
-  "Column around which all statically filled messages will be
-centered.  This column denotes the point where the ` ' character
-between <nickname> and the entered text will be put, thus aligning
-nick names right and text left."
-  :group 'erc-fill
+  "Column around which all statically filled messages will be centered.
+This column denotes the point where the ` ' character between
+<nickname> and the entered text will be put, thus aligning nick
+names right and text left."
   :type 'integer)
 
 (defcustom erc-fill-variable-maximum-indentation 17
-  "If we indent a line after a long nick, don't indent more then this
-characters.  Set to nil to disable."
-  :group 'erc-fill
+  "Don't indent a line after a long nick more than this many characters.
+Set to nil to disable."
   :type 'integer)
 
 (defcustom erc-fill-column 78
   "The column at which a filled paragraph is broken."
-  :group 'erc-fill
   :type 'integer)
 
 ;;;###autoload

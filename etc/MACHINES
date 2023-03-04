@@ -1,6 +1,6 @@
 Emacs machines list
 
-Copyright (C) 1989-1990, 1992-1993, 1998, 2001-2020 Free Software
+Copyright (C) 1989-1990, 1992-1993, 1998, 2001-2023 Free Software
 Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -66,8 +66,9 @@ the list at the end of this file.
 
 ** macOS
 
-  Mac OS X 10.6 or newer.  PowerPC is not supported.
-  For installation instructions see the file nextstep/INSTALL.
+  Mac OS X 10.6 or newer.  Both AArch64 (Arm) and x86-64 systems are
+  supported, but PowerPC is not supported.  For installation
+  instructions see the file nextstep/INSTALL.
 
 ** Microsoft Windows
 
@@ -81,25 +82,54 @@ the list at the end of this file.
 
 ** Solaris
 
-  On Solaris it is also possible to use either GCC or Solaris Studio
-  to build Emacs, by pointing ./configure to the right compiler:
+  On Solaris it is also possible to use either GCC or Oracle Developer
+  Studio to build Emacs, by pointing ./configure to the right compiler:
 
-    ./configure CC='/usr/sfw/bin/gcc'  # GCC
-    ./configure CC='cc'                # Solaris Studio
+    ./configure                # Defaults to 'gcc' if available.
+    ./configure CC='cc'        # Oracle Developer Studio
 
-  On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
-  sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
-  /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)  With this compiler, use '/opt/SUNWspro/bin/cc -E' as the
+  On Solaris, do not use /usr/ucb/cc.  Use Oracle Developer Studio.
+  Make sure that /usr/ccs/bin and the Oracle Developer Studio bin
+  directory (e.g., /opt/developerstudio12.6/bin) are in your PATH
+  before /usr/ucb.  (Most free software packages have the same
+  requirement on Solaris.)  With this compiler, use 'cc -E' as the
   preprocessor.  If this inserts extra whitespace into its output (see
-  the PROBLEMS file) then add the option '-Xs'.
+  the PROBLEMS file), add the option '-Xs'.
 
   To build a 64-bit Emacs (with larger maximum buffer size) on a
-  Solaris system which supports 64-bit executables, specify the -m64
+  Solaris system that defaults to 32-bit executables, specify the -m64
   compiler option.  For example:
 
-    ./configure CC='/usr/sfw/bin/gcc -m64'  # GCC
-    ./configure CC='cc -m64'                # Solaris Studio
+    ./configure CC='gcc -m64'  # GCC
+    ./configure CC='cc -m64'   # Oracle Developer Studio
+
+** Haiku
+
+  On 32-bit Haiku it is required that the newer GCC 8 be used, instead
+  of the legacy GCC 2 used by default.  This can be achieved by
+  invoking configure inside a shell launched by the 'setarch' program
+  invoked as 'setarch x86'.
+
+  When building with packages discovered through pkg-config, such as
+  libpng, on a GCC 2/GCC 8 hybrid system, simply evaluating 'setarch
+  x86' is insufficient to ensure that all required libraries are found
+  at their correct locations.  To avoid this problem, set the
+  environment variable 'PKG_CONFIG_PATH' to the GCC 8 pkg-config
+  directory at '/system/develop/lib/x86/pkgconfig/' before configuring
+  Emacs.
+
+  If GCC complains about not being able to resolve symbols such as
+  "BHandler::LockLooper", you are almost certainly experiencing this
+  problem.
+
+  Haiku running on non-x86 systems has not been tested.  It is
+  anticipated that Haiku running on big-endian systems will experience
+  problems when Emacs is built with Haiku windowing support, but there
+  doesn't seem to be any reliable way to get Haiku running on a
+  big-endian system at present.
+
+  The earliest release of Haiku that will successfully compile Emacs
+  is R1/Beta2.  For windowing support, R1/Beta3 or later is required.
 
 
 * Obsolete platforms

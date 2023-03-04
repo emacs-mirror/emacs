@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -79,12 +79,11 @@
   "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
   "Regexp used by `subword-backward-internal'.")
 
-(defvar subword-mode-map
+(defvar-keymap subword-mode-map
   ;; We originally remapped motion keys here, but now use Emacs core
   ;; hooks.  Leave this keymap around so that user additions to it
   ;; keep working.
-  (make-sparse-keymap)
-  "Keymap used in `subword-mode' minor mode.")
+  :doc "Keymap used in `subword-mode' minor mode.")
 
 ;;;###autoload
 (define-obsolete-function-alias
@@ -115,6 +114,8 @@ treat nomenclature boundaries as word boundaries."
     (when subword-mode (superword-mode -1))
     (subword-setup-buffer))
 
+;; This is defined also in cc-cmds.el, but as obsolete since 24.3.
+;; Let's keep this until the other one can also be removed.
 (define-obsolete-function-alias 'c-subword-mode 'subword-mode "23.2")
 
 ;;;###autoload
@@ -262,8 +263,8 @@ Optional argument ARG is the same as for `capitalize-word'."
   "Toggle superword movement and editing (Superword mode).
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
-the definition of words such that symbols characters are treated
-as parts of words: e.g., in `superword-mode',
+the definition of words such that characters which have symbol
+syntax are treated as parts of words: e.g., in `superword-mode',
 \"this_is_a_symbol\" counts as one word.
 
 \\{superword-mode-map}"
@@ -330,7 +331,7 @@ as parts of words: e.g., in `superword-mode',
 searching subwords in order to avoid unwanted reentrancy.")
 
 (defun subword-setup-buffer ()
-  (set (make-local-variable 'find-word-boundary-function-table)
+  (setq-local find-word-boundary-function-table
        (if (or subword-mode superword-mode)
            subword-find-word-boundary-function-table
          subword-empty-char-table)))

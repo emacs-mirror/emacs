@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lisp Data Types
@@ -59,6 +59,7 @@ to use these types can be found in later chapters.
 * Circular Objects::            Read syntax for circular structure.
 * Type Predicates::             Tests related to types.
 * Equality Predicates::         Tests of equality between any two objects.
+* Mutability::                  Some objects should not be modified.
 @end menu
 
 @node Printed Representation
@@ -147,9 +148,6 @@ starting list count:
 object, so when reading back the object, they will be the same object
 instead of copies (@pxref{Circular Objects}).
 
-@item #@@N
-Skip the next @samp{N} characters (@pxref{Comments}).
-
 @item #xN
 @samp{N} represented as a hexadecimal number (@samp{#x2a}).
 
@@ -180,6 +178,12 @@ files.
 Skip the next @samp{N} characters (@pxref{Comments}).  This is used in
 byte-compiled files, and is not meant to be used in Emacs Lisp source
 files.
+
+@item #f
+Indicates that the following form isn't readable by the Emacs Lisp
+reader.  This is only in text for display purposes (when that would
+look prettier than alternative ways of indicating an unreadable form)
+and will never appear in any Lisp file.
 @end table
 
 
@@ -518,9 +522,9 @@ codes for these non-@acronym{ASCII} control characters include the
 2**26
 @end ifnottex
 bit as well as the code for the corresponding non-control character.
-Ordinary text terminals have no way of generating non-@acronym{ASCII}
-control characters, but you can generate them straightforwardly using
-X and other window systems.
+Not all text terminals can generate non-@acronym{ASCII} control
+characters, but it is straightforward to generate them using X and
+other window systems.
 
   For historical reasons, Emacs treats the @key{DEL} character as
 the control equivalent of @kbd{?}:
@@ -590,8 +594,8 @@ character is upper case or lower case.  Emacs uses the
 2**25
 @end ifnottex
 bit to indicate that the shift key was used in typing a control
-character.  This distinction is possible only when you use X terminals
-or other special terminals; ordinary text terminals do not report the
+character.  This distinction is possible only on a graphical display
+such as a GUI display on X; text terminals do not report the
 distinction.  The Lisp syntax for the shift bit is @samp{\S-}; thus,
 @samp{?\C-\S-o} or @samp{?\C-\S-O} represents the shifted-control-o
 character.
@@ -1002,6 +1006,13 @@ It looks like this:
 @end group
 @end example
 @end ifnottex
+
+  As a somewhat peculiar side effect of @code{(a b . c)} and
+@code{(a . (b . c))} being equivalent, for consistency this means
+that if you replace @code{b} here with the empty sequence, then it
+follows that @code{(a . c)} and @code{(a . ( . c))} are equivalent,
+too.  This also means that @code{( .  c)} is equivalent to @code{c},
+but this is seldom used.
 
 @node Association List Type
 @subsubsection Association List Type
@@ -1530,6 +1541,7 @@ editing.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
 * Font Type::           Fonts for displaying text.
+* Xwidget Type::        Embeddable widgets.
 @end menu
 
 @node Buffer Type
@@ -1620,19 +1632,18 @@ markers.
 @node Window Type
 @subsection Window Type
 
-  A @dfn{window} describes the portion of the terminal screen that Emacs
-uses to display a buffer.  Every window has one associated buffer, whose
-contents appear in the window.  By contrast, a given buffer may appear
-in one window, no window, or several windows.
+  A @dfn{window} describes the portion of the screen that Emacs uses to
+display buffers.  Every live window (@pxref{Basic Windows}) has one
+associated buffer, whose contents appear in that window.  By contrast, a
+given buffer may appear in one window, no window, or several windows.
+Windows are grouped on the screen into frames; each window belongs to
+one and only one frame.  @xref{Frame Type}.
 
   Though many windows may exist simultaneously, at any time one window
-is designated the @dfn{selected window}.  This is the window where the
-cursor is (usually) displayed when Emacs is ready for a command.  The
-selected window usually displays the current buffer (@pxref{Current
-Buffer}), but this is not necessarily the case.
-
-  Windows are grouped on the screen into frames; each window belongs to
-one and only one frame.  @xref{Frame Type}.
+is designated the @dfn{selected window} (@pxref{Selecting Windows}).
+This is the window where the cursor is (usually) displayed when Emacs is
+ready for a command.  The selected window usually displays the current
+buffer (@pxref{Current Buffer}), but this is not necessarily the case.
 
   Windows have no read syntax.  They print in hash notation, giving the
 window number and the name of the buffer being displayed.  The window
@@ -1856,6 +1867,20 @@ syntax looks like @samp{#<font-object>}, @samp{#<font-spec>}, and
 @samp{#<font-entity>} respectively.  @xref{Low-Level Font}, for a
 description of these Lisp objects.
 
+@node Xwidget Type
+@subsection Xwidget Type
+@cindex xwidget type
+@cindex xwidget-view type
+
+  An @dfn{xwidget} is a special display element, such as a web
+browser, that can be embedded inside a buffer.  Each window that
+displays an xwidget will also have an @dfn{xwidget view}, which on
+X-Windows corresponds to a single X window used to display the widget.
+
+Neither of these objects are readable; their print syntaxes look like
+@samp{#<xwidget>} and @samp{#<xwidget-view>}, respectively.
+@xref{Xwidgets}, for a more detailed description of xwidgets.
+
 @node Circular Objects
 @section Read Syntax for Circular Objects
 @cindex circular structure, read syntax
@@ -1996,6 +2021,9 @@ with references to further information.
 
 @item byte-code-function-p
 @xref{Byte-Code Type, byte-code-function-p}.
+
+@item compiled-function-p
+@xref{Byte-Code Type, compiled-function-p}.
 
 @item case-table-p
 @xref{Case Tables, case-table-p}.
@@ -2377,3 +2405,59 @@ that for two strings to be equal, they have the same text properties.
 @end group
 @end example
 @end defun
+
+@node Mutability
+@section Mutability
+@cindex mutable objects
+
+  Some Lisp objects should never change.  For example, the Lisp
+expression @code{"aaa"} yields a string, but you should not change
+its contents.  And some objects cannot be changed; for example,
+although you can create a new number by calculating one, Lisp provides
+no operation to change the value of an existing number.
+
+  Other Lisp objects are @dfn{mutable}: it is safe to change their
+values via destructive operations involving side effects.  For
+example, an existing marker can be changed by moving the marker to
+point to somewhere else.
+
+  Although numbers never change and all markers are mutable,
+some types have members some of which are mutable and others not.  These
+types include conses, vectors, and strings.  For example,
+although @code{"cons"} and @code{(symbol-name 'cons)} both yield
+strings that should not be changed, @code{(copy-sequence "cons")} and
+@code{(make-string 3 ?a)} both yield mutable strings that can be
+changed via later calls to @code{aset}.
+
+  A mutable object stops being mutable if it is part of an expression
+that is evaluated.  For example:
+
+@example
+(let* ((x (list 0.5))
+       (y (eval (list 'quote x))))
+  (setcar x 1.5) ;; The program should not do this.
+  y)
+@end example
+
+@noindent
+Although the list @code{(0.5)} was mutable when it was created, it should not
+have been changed via @code{setcar} because it was given to @code{eval}.  The
+reverse does not occur: an object that should not be changed never
+becomes mutable afterwards.
+
+  If a program attempts to change objects that should not be
+changed, the resulting behavior is undefined: the Lisp interpreter
+might signal an error, or it might crash or behave unpredictably in
+other ways.@footnote{This is the behavior specified for languages like
+Common Lisp and C for constants, and this differs from languages like
+JavaScript and Python where an interpreter is required to signal an
+error if a program attempts to change an immutable object.  Ideally the Emacs
+Lisp interpreter will evolve in latter direction.}
+
+  When similar constants occur as parts of a program, the Lisp
+interpreter might save time or space by reusing existing constants or
+their components.  For example, @code{(eq "abc" "abc")} returns
+@code{t} if the interpreter creates only one instance of the string
+literal @code{"abc"}, and returns @code{nil} if it creates two
+instances.  Lisp programs should be written so that they work
+regardless of whether this optimization is in use.

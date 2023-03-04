@@ -1,6 +1,6 @@
-;;; calcalg2.el --- more algebraic functions for Calc
+;;; calcalg2.el --- more algebraic functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -158,7 +158,7 @@
 					   (calc-top-n 2)
 					   (calc-top-n 1)))
        (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			   (not (string-match "\\[" var)))
+			   (not (string-search "[" var)))
 		      (math-read-expr (concat "[" var "]"))
 		    (math-read-expr var))))
 	 (if (eq (car-safe var) 'error)
@@ -175,7 +175,7 @@
 					 (calc-top-n 2)
 					 (calc-top-n 1)))
      (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			 (not (string-match "\\[" var)))
+			 (not (string-search "[" var)))
 		    (math-read-expr (concat "[" var "]"))
 		  (math-read-expr var))))
        (if (eq (car-safe var) 'error)
@@ -333,8 +333,10 @@
 		     (setq n (1+ n)))
 		   accum))))))
 
-(defun calcFunc-deriv (expr math-deriv-var &optional deriv-value math-deriv-symb)
-  (let* ((math-deriv-total nil)
+(defun calcFunc-deriv (expr deriv-var &optional deriv-value deriv-symb)
+  (let* ((math-deriv-var deriv-var)
+	 (math-deriv-symb deriv-symb)
+	 (math-deriv-total nil)
 	 (res (catch 'math-deriv (math-derivative expr))))
     (or (eq (car-safe res) 'calcFunc-deriv)
 	(null res)
@@ -344,9 +346,11 @@
 	     (math-expr-subst res math-deriv-var deriv-value)
 	   res))))
 
-(defun calcFunc-tderiv (expr math-deriv-var &optional deriv-value math-deriv-symb)
+(defun calcFunc-tderiv (expr deriv-var &optional deriv-value deriv-symb)
   (math-setup-declarations)
-  (let* ((math-deriv-total t)
+  (let* ((math-deriv-var deriv-var)
+	 (math-deriv-symb deriv-symb)
+	 (math-deriv-total t)
 	 (res (catch 'math-deriv (math-derivative expr))))
     (or (eq (car-safe res) 'calcFunc-tderiv)
 	(null res)
@@ -357,175 +361,175 @@
 	   res))))
 
 (put 'calcFunc-inv\' 'math-derivative-1
-     (function (lambda (u) (math-neg (math-div 1 (math-sqr u))))))
+     (lambda (u) (math-neg (math-div 1 (math-sqr u)))))
 
 (put 'calcFunc-sqrt\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 (math-mul 2 (list 'calcFunc-sqrt u))))))
+     (lambda (u) (math-div 1 (math-mul 2 (list 'calcFunc-sqrt u)))))
 
 (put 'calcFunc-deg\' 'math-derivative-1
-     (function (lambda (u) (math-div-float '(float 18 1) (math-pi)))))
+     (lambda (_) (math-div-float '(float 18 1) (math-pi))))
 
 (put 'calcFunc-rad\' 'math-derivative-1
-     (function (lambda (u) (math-pi-over-180))))
+     (lambda (_) (math-pi-over-180)))
 
 (put 'calcFunc-ln\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 u))))
+     (lambda (u) (math-div 1 u)))
 
 (put 'calcFunc-log10\' 'math-derivative-1
-     (function (lambda (u)
-		 (math-div (math-div 1 (math-normalize '(calcFunc-ln 10)))
-			   u))))
+     (lambda (u)
+       (math-div (math-div 1 (math-normalize '(calcFunc-ln 10)))
+                 u)))
 
 (put 'calcFunc-lnp1\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 (math-add u 1)))))
+     (lambda (u) (math-div 1 (math-add u 1))))
 
 (put 'calcFunc-log\' 'math-derivative-2
-     (function (lambda (x b)
-		 (and (not (Math-zerop b))
-		      (let ((lnv (math-normalize
-				  (list 'calcFunc-ln b))))
-			(math-div 1 (math-mul lnv x)))))))
+     (lambda (x b)
+       (and (not (Math-zerop b))
+            (let ((lnv (math-normalize
+                        (list 'calcFunc-ln b))))
+              (math-div 1 (math-mul lnv x))))))
 
 (put 'calcFunc-log\'2 'math-derivative-2
-     (function (lambda (x b)
-		 (let ((lnv (list 'calcFunc-ln b)))
-		   (math-neg (math-div (list 'calcFunc-log x b)
-				       (math-mul lnv b)))))))
+     (lambda (x b)
+       (let ((lnv (list 'calcFunc-ln b)))
+         (math-neg (math-div (list 'calcFunc-log x b)
+                             (math-mul lnv b))))))
 
 (put 'calcFunc-exp\' 'math-derivative-1
-     (function (lambda (u) (math-normalize (list 'calcFunc-exp u)))))
+     (lambda (u) (math-normalize (list 'calcFunc-exp u))))
 
 (put 'calcFunc-expm1\' 'math-derivative-1
-     (function (lambda (u) (math-normalize (list 'calcFunc-expm1 u)))))
+     (lambda (u) (math-normalize (list 'calcFunc-expm1 u))))
 
 (put 'calcFunc-sin\' 'math-derivative-1
-     (function (lambda (u) (math-to-radians-2 (math-normalize
-					       (list 'calcFunc-cos u)) t))))
+     (lambda (u) (math-to-radians-2 (math-normalize
+                                (list 'calcFunc-cos u)) t)))
 
 (put 'calcFunc-cos\' 'math-derivative-1
-     (function (lambda (u) (math-neg (math-to-radians-2
-				      (math-normalize
-				       (list 'calcFunc-sin u)) t)))))
+     (lambda (u) (math-neg (math-to-radians-2
+                       (math-normalize
+                        (list 'calcFunc-sin u)) t))))
 
 (put 'calcFunc-tan\' 'math-derivative-1
-     (function (lambda (u) (math-to-radians-2
-			    (math-sqr
-                             (math-normalize
-                              (list 'calcFunc-sec u))) t))))
+     (lambda (u) (math-to-radians-2
+             (math-sqr
+              (math-normalize
+               (list 'calcFunc-sec u))) t)))
 
 (put 'calcFunc-sec\' 'math-derivative-1
-     (function (lambda (u) (math-to-radians-2
-                            (math-mul
-                             (math-normalize
-                              (list 'calcFunc-sec u))
-                             (math-normalize
-                              (list 'calcFunc-tan u))) t))))
+     (lambda (u) (math-to-radians-2
+             (math-mul
+              (math-normalize
+               (list 'calcFunc-sec u))
+              (math-normalize
+               (list 'calcFunc-tan u))) t)))
 
 (put 'calcFunc-csc\' 'math-derivative-1
-     (function (lambda (u) (math-neg
-                            (math-to-radians-2
-                             (math-mul
-                              (math-normalize
-                               (list 'calcFunc-csc u))
-                              (math-normalize
-                               (list 'calcFunc-cot u))) t)))))
+     (lambda (u) (math-neg
+             (math-to-radians-2
+              (math-mul
+               (math-normalize
+                (list 'calcFunc-csc u))
+               (math-normalize
+                (list 'calcFunc-cot u))) t))))
 
 (put 'calcFunc-cot\' 'math-derivative-1
-     (function (lambda (u) (math-neg
-                            (math-to-radians-2
-                             (math-sqr
-                              (math-normalize
-                               (list 'calcFunc-csc u))) t)))))
+     (lambda (u) (math-neg
+             (math-to-radians-2
+              (math-sqr
+               (math-normalize
+                (list 'calcFunc-csc u))) t))))
 
 (put 'calcFunc-arcsin\' 'math-derivative-1
-     (function (lambda (u)
-		 (math-from-radians-2
-		  (math-div 1 (math-normalize
-			       (list 'calcFunc-sqrt
-				     (math-sub 1 (math-sqr u))))) t))))
+     (lambda (u)
+       (math-from-radians-2
+        (math-div 1 (math-normalize
+                     (list 'calcFunc-sqrt
+                           (math-sub 1 (math-sqr u))))) t)))
 
 (put 'calcFunc-arccos\' 'math-derivative-1
-     (function (lambda (u)
-		 (math-from-radians-2
-		  (math-div -1 (math-normalize
-				(list 'calcFunc-sqrt
-				      (math-sub 1 (math-sqr u))))) t))))
+     (lambda (u)
+       (math-from-radians-2
+        (math-div -1 (math-normalize
+                      (list 'calcFunc-sqrt
+                            (math-sub 1 (math-sqr u))))) t)))
 
 (put 'calcFunc-arctan\' 'math-derivative-1
-     (function (lambda (u) (math-from-radians-2
-			    (math-div 1 (math-add 1 (math-sqr u))) t))))
+     (lambda (u) (math-from-radians-2
+             (math-div 1 (math-add 1 (math-sqr u))) t)))
 
 (put 'calcFunc-sinh\' 'math-derivative-1
-     (function (lambda (u) (math-normalize (list 'calcFunc-cosh u)))))
+     (lambda (u) (math-normalize (list 'calcFunc-cosh u))))
 
 (put 'calcFunc-cosh\' 'math-derivative-1
-     (function (lambda (u) (math-normalize (list 'calcFunc-sinh u)))))
+     (lambda (u) (math-normalize (list 'calcFunc-sinh u))))
 
 (put 'calcFunc-tanh\' 'math-derivative-1
-     (function (lambda (u) (math-sqr
-                            (math-normalize
-                             (list 'calcFunc-sech u))))))
+     (lambda (u) (math-sqr
+             (math-normalize
+              (list 'calcFunc-sech u)))))
 
 (put 'calcFunc-sech\' 'math-derivative-1
-     (function (lambda (u) (math-neg
-                            (math-mul
-                             (math-normalize (list 'calcFunc-sech u))
-                             (math-normalize (list 'calcFunc-tanh u)))))))
+     (lambda (u) (math-neg
+             (math-mul
+              (math-normalize (list 'calcFunc-sech u))
+              (math-normalize (list 'calcFunc-tanh u))))))
 
 (put 'calcFunc-csch\' 'math-derivative-1
-     (function (lambda (u) (math-neg
-                            (math-mul
-                             (math-normalize (list 'calcFunc-csch u))
-                             (math-normalize (list 'calcFunc-coth u)))))))
+     (lambda (u) (math-neg
+             (math-mul
+              (math-normalize (list 'calcFunc-csch u))
+              (math-normalize (list 'calcFunc-coth u))))))
 
 (put 'calcFunc-coth\' 'math-derivative-1
-     (function (lambda (u) (math-neg
-                            (math-sqr
-                             (math-normalize
-                              (list 'calcFunc-csch u)))))))
+     (lambda (u) (math-neg
+             (math-sqr
+              (math-normalize
+               (list 'calcFunc-csch u))))))
 
 (put 'calcFunc-arcsinh\' 'math-derivative-1
-     (function (lambda (u)
-		 (math-div 1 (math-normalize
-			      (list 'calcFunc-sqrt
-				    (math-add (math-sqr u) 1)))))))
+     (lambda (u)
+       (math-div 1 (math-normalize
+                    (list 'calcFunc-sqrt
+                          (math-add (math-sqr u) 1))))))
 
 (put 'calcFunc-arccosh\' 'math-derivative-1
-     (function (lambda (u)
-		  (math-div 1 (math-normalize
-			       (list 'calcFunc-sqrt
-				     (math-add (math-sqr u) -1)))))))
+     (lambda (u)
+       (math-div 1 (math-normalize
+                    (list 'calcFunc-sqrt
+                          (math-add (math-sqr u) -1))))))
 
 (put 'calcFunc-arctanh\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 (math-sub 1 (math-sqr u))))))
+     (lambda (u) (math-div 1 (math-sub 1 (math-sqr u)))))
 
 (put 'calcFunc-bern\'2 'math-derivative-2
-     (function (lambda (n x)
-		 (math-mul n (list 'calcFunc-bern (math-add n -1) x)))))
+     (lambda (n x)
+       (math-mul n (list 'calcFunc-bern (math-add n -1) x))))
 
 (put 'calcFunc-euler\'2 'math-derivative-2
-     (function (lambda (n x)
-		 (math-mul n (list 'calcFunc-euler (math-add n -1) x)))))
+     (lambda (n x)
+       (math-mul n (list 'calcFunc-euler (math-add n -1) x))))
 
 (put 'calcFunc-gammag\'2 'math-derivative-2
-     (function (lambda (a x) (math-deriv-gamma a x 1))))
+     (lambda (a x) (math-deriv-gamma a x 1)))
 
 (put 'calcFunc-gammaG\'2 'math-derivative-2
-     (function (lambda (a x) (math-deriv-gamma a x -1))))
+     (lambda (a x) (math-deriv-gamma a x -1)))
 
 (put 'calcFunc-gammaP\'2 'math-derivative-2
-     (function (lambda (a x) (math-deriv-gamma a x
-					       (math-div
-						1 (math-normalize
-						   (list 'calcFunc-gamma
-							 a)))))))
+     (lambda (a x) (math-deriv-gamma a x
+                                (math-div
+                                 1 (math-normalize
+                                    (list 'calcFunc-gamma
+                                          a))))))
 
 (put 'calcFunc-gammaQ\'2 'math-derivative-2
-     (function (lambda (a x) (math-deriv-gamma a x
-					       (math-div
-						-1 (math-normalize
-						    (list 'calcFunc-gamma
-							  a)))))))
+     (lambda (a x) (math-deriv-gamma a x
+                                (math-div
+                                 -1 (math-normalize
+                                     (list 'calcFunc-gamma
+                                           a))))))
 
 (defun math-deriv-gamma (a x scale)
   (math-mul scale
@@ -533,13 +537,13 @@
 		      (list 'calcFunc-exp (math-neg x)))))
 
 (put 'calcFunc-betaB\' 'math-derivative-3
-     (function (lambda (x a b) (math-deriv-beta x a b 1))))
+     (lambda (x a b) (math-deriv-beta x a b 1)))
 
 (put 'calcFunc-betaI\' 'math-derivative-3
-     (function (lambda (x a b) (math-deriv-beta x a b
-						(math-div
-						 1 (list 'calcFunc-beta
-							 a b))))))
+     (lambda (x a b) (math-deriv-beta x a b
+                                 (math-div
+                                  1 (list 'calcFunc-beta
+                                          a b)))))
 
 (defun math-deriv-beta (x a b scale)
   (math-mul (math-mul (math-pow x (math-add a -1))
@@ -547,101 +551,96 @@
 	    scale))
 
 (put 'calcFunc-erf\' 'math-derivative-1
-     (function (lambda (x) (math-div 2
-				     (math-mul (list 'calcFunc-exp
-						     (math-sqr x))
-					       (if calc-symbolic-mode
-						   '(calcFunc-sqrt
-						     (var pi var-pi))
-						 (math-sqrt-pi)))))))
+     (lambda (x) (math-div 2
+                      (math-mul (list 'calcFunc-exp
+                                      (math-sqr x))
+                                (if calc-symbolic-mode
+                                    '(calcFunc-sqrt
+                                      (var pi var-pi))
+                                  (math-sqrt-pi))))))
 
 (put 'calcFunc-erfc\' 'math-derivative-1
-     (function (lambda (x) (math-div -2
-				     (math-mul (list 'calcFunc-exp
-						     (math-sqr x))
-					       (if calc-symbolic-mode
-						   '(calcFunc-sqrt
-						     (var pi var-pi))
-						 (math-sqrt-pi)))))))
+     (lambda (x) (math-div -2
+                      (math-mul (list 'calcFunc-exp
+                                      (math-sqr x))
+                                (if calc-symbolic-mode
+                                    '(calcFunc-sqrt
+                                      (var pi var-pi))
+                                  (math-sqrt-pi))))))
 
 (put 'calcFunc-besJ\'2 'math-derivative-2
-     (function (lambda (v z) (math-div (math-sub (list 'calcFunc-besJ
-						       (math-add v -1)
-						       z)
-						 (list 'calcFunc-besJ
-						       (math-add v 1)
-						       z))
-				       2))))
+     (lambda (v z) (math-div (math-sub (list 'calcFunc-besJ
+                                        (math-add v -1)
+                                        z)
+                                  (list 'calcFunc-besJ
+                                        (math-add v 1)
+                                        z))
+                        2)))
 
 (put 'calcFunc-besY\'2 'math-derivative-2
-     (function (lambda (v z) (math-div (math-sub (list 'calcFunc-besY
-						       (math-add v -1)
-						       z)
-						 (list 'calcFunc-besY
-						       (math-add v 1)
-						       z))
-				       2))))
+     (lambda (v z) (math-div (math-sub (list 'calcFunc-besY
+                                        (math-add v -1)
+                                        z)
+                                  (list 'calcFunc-besY
+                                        (math-add v 1)
+                                        z))
+                        2)))
 
 (put 'calcFunc-sum 'math-derivative-n
-     (function
-      (lambda (expr)
-	(if (math-expr-contains (cons 'vec (cdr (cdr expr))) math-deriv-var)
-	    (throw 'math-deriv nil)
-	  (cons 'calcFunc-sum
-		(cons (math-derivative (nth 1 expr))
-		      (cdr (cdr expr))))))))
+     (lambda (expr)
+       (if (math-expr-contains (cons 'vec (cdr (cdr expr))) math-deriv-var)
+           (throw 'math-deriv nil)
+         (cons 'calcFunc-sum
+               (cons (math-derivative (nth 1 expr))
+                     (cdr (cdr expr)))))))
 
 (put 'calcFunc-prod 'math-derivative-n
-     (function
-      (lambda (expr)
-	(if (math-expr-contains (cons 'vec (cdr (cdr expr))) math-deriv-var)
-	    (throw 'math-deriv nil)
-	  (math-mul expr
-		    (cons 'calcFunc-sum
-			  (cons (math-div (math-derivative (nth 1 expr))
-					  (nth 1 expr))
-				(cdr (cdr expr)))))))))
+     (lambda (expr)
+       (if (math-expr-contains (cons 'vec (cdr (cdr expr))) math-deriv-var)
+           (throw 'math-deriv nil)
+         (math-mul expr
+                   (cons 'calcFunc-sum
+                         (cons (math-div (math-derivative (nth 1 expr))
+                                         (nth 1 expr))
+                               (cdr (cdr expr))))))))
 
 (put 'calcFunc-integ 'math-derivative-n
-     (function
-      (lambda (expr)
-	(if (= (length expr) 3)
-	    (if (equal (nth 2 expr) math-deriv-var)
-		(nth 1 expr)
-	      (math-normalize
-	       (list 'calcFunc-integ
-		     (math-derivative (nth 1 expr))
-		     (nth 2 expr))))
-	  (if (= (length expr) 5)
-	      (let ((lower (math-expr-subst (nth 1 expr) (nth 2 expr)
-					    (nth 3 expr)))
-		    (upper (math-expr-subst (nth 1 expr) (nth 2 expr)
-					    (nth 4 expr))))
-		(math-add (math-sub (math-mul upper
-					      (math-derivative (nth 4 expr)))
-				    (math-mul lower
-					      (math-derivative (nth 3 expr))))
-			  (if (equal (nth 2 expr) math-deriv-var)
-			      0
-			    (math-normalize
-			     (list 'calcFunc-integ
-				   (math-derivative (nth 1 expr)) (nth 2 expr)
-				   (nth 3 expr) (nth 4 expr)))))))))))
+     (lambda (expr)
+       (if (= (length expr) 3)
+           (if (equal (nth 2 expr) math-deriv-var)
+               (nth 1 expr)
+             (math-normalize
+              (list 'calcFunc-integ
+                    (math-derivative (nth 1 expr))
+                    (nth 2 expr))))
+         (if (= (length expr) 5)
+             (let ((lower (math-expr-subst (nth 1 expr) (nth 2 expr)
+                                           (nth 3 expr)))
+                   (upper (math-expr-subst (nth 1 expr) (nth 2 expr)
+                                           (nth 4 expr))))
+               (math-add (math-sub (math-mul upper
+                                             (math-derivative (nth 4 expr)))
+                                   (math-mul lower
+                                             (math-derivative (nth 3 expr))))
+                         (if (equal (nth 2 expr) math-deriv-var)
+                             0
+                           (math-normalize
+                            (list 'calcFunc-integ
+                                  (math-derivative (nth 1 expr)) (nth 2 expr)
+                                  (nth 3 expr) (nth 4 expr))))))))))
 
 (put 'calcFunc-if 'math-derivative-n
-     (function
-      (lambda (expr)
-	(and (= (length expr) 4)
-	     (list 'calcFunc-if (nth 1 expr)
-		   (math-derivative (nth 2 expr))
-		   (math-derivative (nth 3 expr)))))))
+     (lambda (expr)
+       (and (= (length expr) 4)
+            (list 'calcFunc-if (nth 1 expr)
+                  (math-derivative (nth 2 expr))
+                  (math-derivative (nth 3 expr))))))
 
 (put 'calcFunc-subscr 'math-derivative-n
-     (function
-      (lambda (expr)
-	(and (= (length expr) 3)
-	     (list 'calcFunc-subscr (nth 1 expr)
-		   (math-derivative (nth 2 expr)))))))
+     (lambda (expr)
+       (and (= (length expr) 3)
+            (list 'calcFunc-subscr (nth 1 expr)
+                  (math-derivative (nth 2 expr))))))
 
 
 (defvar math-integ-var '(var X ---))
@@ -1011,11 +1010,10 @@
 					  res '(calcFunc-integsubst)))
 			      (and (memq (length part) '(3 4 5))
 				   (let ((parts (mapcar
-						 (function
-						  (lambda (x)
-						    (math-expr-subst
-						     x (nth 2 part)
-						     math-integ-var)))
+                                                 (lambda (x)
+                                                   (math-expr-subst
+                                                    x (nth 2 part)
+                                                    math-integ-var))
 						 (cdr part))))
 				     (math-integrate-by-substitution
 				      expr (car parts) t
@@ -1030,7 +1028,7 @@
 		 (fset 'calcFunc-integ math-old-integ))))
 
 	;; See if the function is a symbolic derivative.
-	(and (string-match "'" (symbol-name (car expr)))
+	(and (string-search "'" (symbol-name (car expr)))
 	     (let ((name (symbol-name (car expr)))
 		   (p expr) (n 0) (which nil) (bad nil))
 	       (while (setq n (1+ n) p (cdr p))
@@ -1079,8 +1077,9 @@
 ;; math-integ-try-substitutions.
 (defvar math-integ-expr)
 
-(defun math-do-integral-methods (math-integ-expr)
-  (let ((math-so-far math-integ-var-list-list)
+(defun math-do-integral-methods (integ-expr)
+  (let ((math-integ-expr integ-expr)
+	(math-so-far math-integ-var-list-list)
 	rat-in)
 
     ;; Integration by substitution, for various likely sub-expressions.
@@ -1195,10 +1194,11 @@
 (defvar math-good-parts)
 
 
-(defun math-integ-try-parts (expr &optional math-good-parts)
+(defun math-integ-try-parts (expr &optional good-parts)
   ;; Integration by parts:
   ;;   integ(f(x) g(x),x) = f(x) h(x) - integ(h(x) f'(x),x)
   ;;     where h(x) = integ(g(x),x).
+  (let ((math-good-parts good-parts))
   (or (let ((exp (calcFunc-expand expr)))
 	(and (not (equal exp expr))
 	     (math-integral exp)))
@@ -1219,14 +1219,14 @@
       (and (eq (car expr) '^)
 	   (math-integrate-by-parts (math-pow (nth 1 expr)
 					      (math-sub (nth 2 expr) 1))
-				    (nth 1 expr)))))
+				    (nth 1 expr))))))
 
 (defun math-integrate-by-parts (u vprime)
   (let ((math-integ-level (if (or math-good-parts
 				  (math-polynomial-p u math-integ-var))
 			      math-integ-level
 			    (1- math-integ-level)))
-	(math-doing-parts t)
+	;; (math-doing-parts t) ;Unused
 	v temp)
     (and (>= math-integ-level 0)
 	 (unwind-protect
@@ -1510,7 +1510,7 @@
 			      var low high)
 	      (nth 2 (nth 2 expr))))
    ((eq (car-safe expr) 'vec)
-    (cons 'vec (mapcar (function (lambda (x) (calcFunc-integ x var low high)))
+    (cons 'vec (mapcar (lambda (x) (calcFunc-integ x var low high))
 		       (cdr expr))))
    (t
     (let ((state (list calc-angle-mode
@@ -1532,7 +1532,7 @@
 	   (math-any-substs t)
 	   (math-enable-subst nil)
 	   (math-prev-parts-v nil)
-	   (math-doing-parts nil)
+	   ;; (math-doing-parts nil) ;Unused
 	   (math-good-parts nil)
 	   (res
 	    (if trace-buffer
@@ -1545,9 +1545,7 @@
 			(set-buffer trace-buffer)
 			(goto-char (point-max))
 			(or (assq 'scroll-stop (buffer-local-variables))
-			    (progn
-			      (make-local-variable 'scroll-step)
-			      (setq scroll-step 3)))
+                            (setq-local scroll-step 3))
 			(insert "\n\n\n")
 			(set-buffer calcbuf)
 			(math-try-integral sexpr))
@@ -1883,7 +1881,10 @@
 (defvar calc-high)
 (defvar math-var)
 
-(defun calcFunc-table (expr math-var &optional calc-low calc-high step)
+(defun calcFunc-table (expr var &optional low high step)
+  (let ((math-var var)
+        (calc-high high)
+        (calc-low low))
   (or calc-low
       (setq calc-low '(neg (var inf var-inf)) calc-high '(var inf var-inf)))
   (or calc-high (setq calc-high calc-low calc-low 1))
@@ -1894,8 +1895,7 @@
   (let ((known (+ (if (Math-objectp calc-low) 1 0)
 		  (if (Math-objectp calc-high) 1 0)
 		  (if (or (null step) (Math-objectp step)) 1 0)))
-	(count '(var inf var-inf))
-	vec)
+	(count '(var inf var-inf))) ;; vec
     (or (= known 2)   ; handy optimization
 	(equal calc-high '(var inf var-inf))
 	(progn
@@ -1906,6 +1906,7 @@
 	      (setq count (math-trunc count)))))
     (if (Math-negp count)
 	(setq count -1))
+    (defvar var-DUMMY)
     (if (integerp count)
 	(let ((var-DUMMY nil)
 	      (vec math-tabulate-initial)
@@ -1939,7 +1940,7 @@
 	      (and (not (and (equal calc-low '(neg (var inf var-inf)))
 			     (equal calc-high '(var inf var-inf))))
 		   (list calc-low calc-high))
-	      (and step (list step))))))
+	      (and step (list step)))))))
 
 (defun math-scan-for-limits (x)
   (cond ((Math-primp x))
@@ -1951,8 +1952,10 @@
 		(high-val (math-solve-for (nth 2 x) (1- (length (nth 1 x)))
 					  math-var nil))
 		temp)
-	   (and low-val (math-realp low-val)
-		high-val (math-realp high-val))
+	   ;; FIXME: The below is a no-op, but I suspect its result
+	   ;; was meant to be used, tho I don't know what for.
+	   ;; (and low-val (math-realp low-val)
+	   ;;      high-val (math-realp high-val))
 	   (and (Math-lessp high-val low-val)
 		(setq temp low-val low-val high-val high-val temp))
 	   (setq calc-low (math-max calc-low (math-ceiling low-val))
@@ -2361,8 +2364,11 @@
 (defvar math-try-solve-sign)
 
 (defun math-try-solve-for
-  (math-solve-lhs math-solve-rhs &optional math-try-solve-sign no-poly)
-  (let (math-t1 math-t2 math-t3)
+  (solve-lhs solve-rhs &optional try-solve-sign no-poly)
+  (let ((math-solve-lhs solve-lhs)
+        (math-solve-rhs solve-rhs)
+        (math-try-solve-sign try-solve-sign)
+        math-t1 math-t2 math-t3)
     (cond ((equal math-solve-lhs math-solve-var)
 	   (setq math-solve-sign math-try-solve-sign)
 	   (if (eq math-solve-full 'all)
@@ -2721,32 +2727,34 @@
 	(cons 'vec d)
       (math-reject-arg expr "Expected a polynomial"))))
 
-(defun math-decompose-poly (math-solve-lhs math-solve-var degree sub-rhs)
-  (let ((math-solve-rhs (or sub-rhs 1))
+(defun math-decompose-poly (solve-lhs solve-var degree sub-rhs)
+  (let ((math-solve-lhs solve-lhs)
+	(math-solve-var solve-var)
+	(math-solve-rhs (or sub-rhs 1))
 	math-t1 math-t2 math-t3)
     (setq math-t2 (math-polynomial-base
 	      math-solve-lhs
-	      (function
-	       (lambda (math-solve-b)
-		 (let ((math-poly-neg-powers '(1))
-		       (math-poly-mult-powers nil)
-		       (math-poly-frac-powers 1)
-		       (math-poly-exp-base t))
-		   (and (not (equal math-solve-b math-solve-lhs))
-			(or (not (memq (car-safe math-solve-b) '(+ -))) sub-rhs)
-			(setq math-t3 '(1 0) math-t2 1
-			      math-t1 (math-is-polynomial math-solve-lhs
-                                                          math-solve-b 50))
-			(if (and (equal math-poly-neg-powers '(1))
-				 (memq math-poly-mult-powers '(nil 1))
-				 (eq math-poly-frac-powers 1)
-				 sub-rhs)
-			    (setq math-t1 (cons (math-sub (car math-t1) math-solve-rhs)
-					   (cdr math-t1)))
-			  (math-solve-poly-funny-powers sub-rhs))
-			(math-solve-crunch-poly degree)
-			(or (math-expr-contains math-solve-b math-solve-var)
-			    (math-expr-contains (car math-t3) math-solve-var))))))))
+              (lambda (solve-b)
+                (let ((math-solve-b solve-b)
+                      (math-poly-neg-powers '(1))
+                      (math-poly-mult-powers nil)
+                      (math-poly-frac-powers 1)
+                      (math-poly-exp-base t))
+                  (and (not (equal math-solve-b math-solve-lhs))
+                       (or (not (memq (car-safe math-solve-b) '(+ -))) sub-rhs)
+                       (setq math-t3 '(1 0) math-t2 1
+                             math-t1 (math-is-polynomial math-solve-lhs
+                                                         math-solve-b 50))
+                       (if (and (equal math-poly-neg-powers '(1))
+                                (memq math-poly-mult-powers '(nil 1))
+                                (eq math-poly-frac-powers 1)
+                                sub-rhs)
+                           (setq math-t1 (cons (math-sub (car math-t1) math-solve-rhs)
+                                               (cdr math-t1)))
+                         (math-solve-poly-funny-powers sub-rhs))
+                       (math-solve-crunch-poly degree)
+                       (or (math-expr-contains math-solve-b math-solve-var)
+                           (math-expr-contains (car math-t3) math-solve-var)))))))
     (if math-t2
 	(list (math-pow math-t2 (car math-t3))
 	      (cons 'vec math-t1)
@@ -2964,7 +2972,7 @@
 	      (math-poly-integer-root (car roots))
 	      (setq roots (cdr roots)))
 	    (list math-int-factors (nreverse math-int-coefs) math-int-scale))
-	(let ((vec nil) res)
+	(let ((vec nil)) ;; res
 	  (while roots
 	    (let ((root (car roots))
 		  (math-solve-full (and math-solve-full 'all)))
@@ -3109,7 +3117,7 @@
 	 (iters 0)
 	 (m (1- (length p)))
 	 (try-newt (not polish))
-	 (tried-newt nil)
+	 ;; (tried-newt nil)
 	 b d f x1 dx dxold)
     (while
 	(and (or (< (setq iters (1+ iters)) 50)
@@ -3146,7 +3154,7 @@
 			(math-lessp (math-abs-approx dx)
 				    (calcFunc-scf (math-abs-approx x) -3)))
 		   (let ((newt (math-poly-newton-root p x1 7)))
-		     (setq tried-newt t
+		     (setq ;; tried-newt t
 			   try-newt nil)
 		     (if (math-zerop (cdr newt))
 			 (setq x (car newt) x1 x)
@@ -3160,7 +3168,8 @@
 			(math-nearly-equal x x1))))
 	     (let ((cdx (math-abs-approx dx)))
 	       (setq x x1
-		     tried-newt nil)
+		     ;; tried-newt nil
+		     )
 	       (prog1
 		   (or (<= iters 6)
 		       (math-lessp cdx dxold)
@@ -3227,7 +3236,9 @@
 ;; and math-solve-system-rec, but is used by math-solve-system-subst.
 (defvar math-solve-simplifying)
 
-(defun math-solve-system (exprs math-solve-vars math-solve-full)
+(defun math-solve-system (exprs solve-vars solve-full)
+  (let ((math-solve-vars solve-vars)
+        (math-solve-full solve-full))
   (setq exprs (mapcar 'list (if (Math-vectorp exprs)
 				(cdr exprs)
 			      (list exprs)))
@@ -3237,18 +3248,18 @@
   (or (let ((math-solve-simplifying nil))
 	(math-solve-system-rec exprs math-solve-vars nil))
       (let ((math-solve-simplifying t))
-	(math-solve-system-rec exprs math-solve-vars nil))))
+	(math-solve-system-rec exprs math-solve-vars nil)))))
 
-;;; The following backtracking solver works by choosing a variable
-;;; and equation, and trying to solve the equation for the variable.
-;;; If it succeeds it calls itself recursively with that variable and
-;;; equation removed from their respective lists, and with the solution
-;;; added to solns as well as being substituted into all existing
-;;; equations.  The algorithm terminates when any solution path
-;;; manages to remove all the variables from var-list.
+;; The following backtracking solver works by choosing a variable
+;; and equation, and trying to solve the equation for the variable.
+;; If it succeeds it calls itself recursively with that variable and
+;; equation removed from their respective lists, and with the solution
+;; added to solns as well as being substituted into all existing
+;; equations.  The algorithm terminates when any solution path
+;; manages to remove all the variables from `var-list'.
 
-;;; To support calcFunc-roots, entries in eqn-list and solns are
-;;; actually lists of equations.
+;; To support calcFunc-roots, entries in eqn-list and solns are
+;; actually lists of equations.
 
 ;; The variables math-solve-system-res and math-solve-system-vv are
 ;; local to math-solve-system-rec, but are used by math-solve-system-subst.
@@ -3306,12 +3317,11 @@
 				   (delq (car v) (copy-sequence var-list))
 				   (let ((math-solve-simplifying nil)
 					 (s (mapcar
-					     (function
-					      (lambda (x)
-						(cons
-						 (car x)
-						 (math-solve-system-subst
-						  (cdr x)))))
+                                             (lambda (x)
+                                               (cons
+                                                (car x)
+                                                (math-solve-system-subst
+                                                 (cdr x))))
 					     solns)))
 				     (if elim
 					 s
@@ -3327,35 +3337,33 @@
 
     ;; Eliminated all variables, so now put solution into the proper format.
     (setq solns (sort solns
-		      (function
-		       (lambda (x y)
-			 (not (memq (car x) (memq (car y) math-solve-vars)))))))
+                      (lambda (x y)
+                        (not (memq (car x) (memq (car y) math-solve-vars))))))
     (if (eq math-solve-full 'all)
 	(math-transpose
 	 (math-normalize
 	  (cons 'vec
 		(if solns
-		    (mapcar (function (lambda (x) (cons 'vec (cdr x)))) solns)
-		  (mapcar (function (lambda (x) (cons 'vec x))) eqn-list)))))
+                    (mapcar (lambda (x) (cons 'vec (cdr x))) solns)
+                  (mapcar (lambda (x) (cons 'vec x)) eqn-list)))))
       (math-normalize
        (cons 'vec
 	     (if solns
-		 (mapcar (function (lambda (x) (cons 'calcFunc-eq x))) solns)
-	       (mapcar 'car eqn-list)))))))
+                 (mapcar (lambda (x) (cons 'calcFunc-eq x)) solns)
+               (mapcar #'car eqn-list)))))))
 
 (defun math-solve-system-subst (x)    ; uses "res" and "v"
   (let ((accum nil)
 	(res2 math-solve-system-res))
     (while x
       (setq accum (nconc accum
-			 (mapcar (function
-				  (lambda (r)
-				    (if math-solve-simplifying
-					(math-simplify
-					 (math-expr-subst
-                                          (car x) math-solve-system-vv r))
-				      (math-expr-subst
-                                       (car x) math-solve-system-vv r))))
+                         (mapcar (lambda (r)
+                                   (if math-solve-simplifying
+                                       (math-simplify
+                                        (math-expr-subst
+                                         (car x) math-solve-system-vv r))
+                                     (math-expr-subst
+                                      (car x) math-solve-system-vv r)))
 				 (car res2)))
 	    x (cdr x)
 	    res2 (cdr res2)))
@@ -3437,10 +3445,12 @@
     (if (memq (car expr) '(* /))
 	(math-looks-evenp (nth 1 expr)))))
 
-(defun math-solve-for (lhs rhs math-solve-var math-solve-full &optional sign)
-  (if (math-expr-contains rhs math-solve-var)
-      (math-solve-for (math-sub lhs rhs) 0 math-solve-var math-solve-full)
-    (and (math-expr-contains lhs math-solve-var)
+(defun math-solve-for (lhs rhs solve-var solve-full &optional sign)
+  (let ((math-solve-var solve-var)
+        (math-solve-full solve-full))
+  (if (math-expr-contains rhs solve-var)
+      (math-solve-for (math-sub lhs rhs) 0 solve-var solve-full)
+    (and (math-expr-contains lhs solve-var)
 	 (math-with-extra-prec 1
 	   (let* ((math-poly-base-variable math-solve-var)
 		  (res (math-try-solve-for lhs rhs sign)))
@@ -3449,11 +3459,10 @@
 		 (let ((old-len (length res))
 		       new-len)
 		   (setq res (delq nil
-				   (mapcar (function
-					    (lambda (x)
-					      (and (not (memq (car-safe x)
-							      '(cplx polar)))
-						   x)))
+                                   (mapcar (lambda (x)
+                                             (and (not (memq (car-safe x)
+                                                             '(cplx polar)))
+                                                  x))
 					   res))
 			 new-len (length res))
 		   (if (< new-len old-len)
@@ -3462,7 +3471,7 @@
 					  (format
 					   "*Omitted %d complex solutions"
 					   (- old-len new-len)))))))
-	     res)))))
+	     res))))))
 
 (defun math-solve-eqn (expr var full)
   (if (memq (car-safe expr) '(calcFunc-neq calcFunc-lt calcFunc-gt
@@ -3523,119 +3532,119 @@
 
 
 (put 'calcFunc-inv 'math-inverse
-     (function (lambda (x) (math-div 1 x))))
+     (lambda (x) (math-div 1 x)))
 (put 'calcFunc-inv 'math-inverse-sign -1)
 
 (put 'calcFunc-sqrt 'math-inverse
-     (function (lambda (x) (math-sqr x))))
+     (lambda (x) (math-sqr x)))
 
 (put 'calcFunc-conj 'math-inverse
-     (function (lambda (x) (list 'calcFunc-conj x))))
+     (lambda (x) (list 'calcFunc-conj x)))
 
 (put 'calcFunc-abs 'math-inverse
-     (function (lambda (x) (math-solve-get-sign x))))
+     (lambda (x) (math-solve-get-sign x)))
 
 (put 'calcFunc-deg 'math-inverse
-     (function (lambda (x) (list 'calcFunc-rad x))))
+     (lambda (x) (list 'calcFunc-rad x)))
 (put 'calcFunc-deg 'math-inverse-sign 1)
 
 (put 'calcFunc-rad 'math-inverse
-     (function (lambda (x) (list 'calcFunc-deg x))))
+     (lambda (x) (list 'calcFunc-deg x)))
 (put 'calcFunc-rad 'math-inverse-sign 1)
 
 (put 'calcFunc-ln 'math-inverse
-     (function (lambda (x) (list 'calcFunc-exp x))))
+     (lambda (x) (list 'calcFunc-exp x)))
 (put 'calcFunc-ln 'math-inverse-sign 1)
 
 (put 'calcFunc-log10 'math-inverse
-     (function (lambda (x) (list 'calcFunc-exp10 x))))
+     (lambda (x) (list 'calcFunc-exp10 x)))
 (put 'calcFunc-log10 'math-inverse-sign 1)
 
 (put 'calcFunc-lnp1 'math-inverse
-     (function (lambda (x) (list 'calcFunc-expm1 x))))
+     (lambda (x) (list 'calcFunc-expm1 x)))
 (put 'calcFunc-lnp1 'math-inverse-sign 1)
 
 (put 'calcFunc-exp 'math-inverse
-     (function (lambda (x) (math-add (math-normalize (list 'calcFunc-ln x))
-				     (math-mul 2
-					       (math-mul '(var pi var-pi)
-							 (math-solve-get-int
-							  '(var i var-i))))))))
+     (lambda (x) (math-add (math-normalize (list 'calcFunc-ln x))
+                      (math-mul 2
+                                (math-mul '(var pi var-pi)
+                                          (math-solve-get-int
+                                           '(var i var-i)))))))
 (put 'calcFunc-exp 'math-inverse-sign 1)
 
 (put 'calcFunc-expm1 'math-inverse
-     (function (lambda (x) (math-add (math-normalize (list 'calcFunc-lnp1 x))
-				     (math-mul 2
-					       (math-mul '(var pi var-pi)
-							 (math-solve-get-int
-							  '(var i var-i))))))))
+     (lambda (x) (math-add (math-normalize (list 'calcFunc-lnp1 x))
+                      (math-mul 2
+                                (math-mul '(var pi var-pi)
+                                          (math-solve-get-int
+                                           '(var i var-i)))))))
 (put 'calcFunc-expm1 'math-inverse-sign 1)
 
 (put 'calcFunc-sin 'math-inverse
-     (function (lambda (x) (let ((n (math-solve-get-int 1)))
-			     (math-add (math-mul (math-normalize
-						  (list 'calcFunc-arcsin x))
-						 (math-pow -1 n))
-				       (math-mul (math-half-circle t)
-						 n))))))
+     (lambda (x) (let ((n (math-solve-get-int 1)))
+              (math-add (math-mul (math-normalize
+                                   (list 'calcFunc-arcsin x))
+                                  (math-pow -1 n))
+                        (math-mul (math-half-circle t)
+                                  n)))))
 
 (put 'calcFunc-cos 'math-inverse
-     (function (lambda (x) (math-add (math-solve-get-sign
-				      (math-normalize
-				       (list 'calcFunc-arccos x)))
-				     (math-solve-get-int
-				      (math-full-circle t))))))
+     (lambda (x) (math-add (math-solve-get-sign
+                       (math-normalize
+                        (list 'calcFunc-arccos x)))
+                      (math-solve-get-int
+                       (math-full-circle t)))))
 
 (put 'calcFunc-tan 'math-inverse
-     (function (lambda (x) (math-add (math-normalize (list 'calcFunc-arctan x))
-				     (math-solve-get-int
-				      (math-half-circle t))))))
+     (lambda (x) (math-add (math-normalize (list 'calcFunc-arctan x))
+                      (math-solve-get-int
+                       (math-half-circle t)))))
 
 (put 'calcFunc-arcsin 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-sin x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-sin x))))
 
 (put 'calcFunc-arccos 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-cos x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-cos x))))
 
 (put 'calcFunc-arctan 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-tan x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-tan x))))
 
 (put 'calcFunc-sinh 'math-inverse
-     (function (lambda (x) (let ((n (math-solve-get-int 1)))
-			     (math-add (math-mul (math-normalize
-						  (list 'calcFunc-arcsinh x))
-						 (math-pow -1 n))
-				       (math-mul (math-half-circle t)
-						 (math-mul
-						  '(var i var-i)
-						  n)))))))
+     (lambda (x) (let ((n (math-solve-get-int 1)))
+              (math-add (math-mul (math-normalize
+                                   (list 'calcFunc-arcsinh x))
+                                  (math-pow -1 n))
+                        (math-mul (math-half-circle t)
+                                  (math-mul
+                                   '(var i var-i)
+                                   n))))))
 (put 'calcFunc-sinh 'math-inverse-sign 1)
 
 (put 'calcFunc-cosh 'math-inverse
-     (function (lambda (x) (math-add (math-solve-get-sign
-				      (math-normalize
-				       (list 'calcFunc-arccosh x)))
-				     (math-mul (math-full-circle t)
-					       (math-solve-get-int
-						'(var i var-i)))))))
+     (lambda (x) (math-add (math-solve-get-sign
+                       (math-normalize
+                        (list 'calcFunc-arccosh x)))
+                      (math-mul (math-full-circle t)
+                                (math-solve-get-int
+                                 '(var i var-i))))))
 
 (put 'calcFunc-tanh 'math-inverse
-     (function (lambda (x) (math-add (math-normalize
-				      (list 'calcFunc-arctanh x))
-				     (math-mul (math-half-circle t)
-					       (math-solve-get-int
-						'(var i var-i)))))))
+     (lambda (x) (math-add (math-normalize
+                       (list 'calcFunc-arctanh x))
+                      (math-mul (math-half-circle t)
+                                (math-solve-get-int
+                                 '(var i var-i))))))
 (put 'calcFunc-tanh 'math-inverse-sign 1)
 
 (put 'calcFunc-arcsinh 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-sinh x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-sinh x))))
 (put 'calcFunc-arcsinh 'math-inverse-sign 1)
 
 (put 'calcFunc-arccosh 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-cosh x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-cosh x))))
 
 (put 'calcFunc-arctanh 'math-inverse
-     (function (lambda (x) (math-normalize (list 'calcFunc-tanh x)))))
+     (lambda (x) (math-normalize (list 'calcFunc-tanh x))))
 (put 'calcFunc-arctanh 'math-inverse-sign 1)
 
 

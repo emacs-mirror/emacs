@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2020 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -92,13 +92,14 @@ developing GNU and promoting software freedom.''
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA @*
-ISBN 978-0-9831592-5-4
+ISBN 978-0-9831592-8-5
 
 @sp 2
-Cover art by Etienne Suvasa; cover design by Matt Lee.
+Cover art by Etienne Suvasa; cover design by FSF staff.
 
 @end titlepage
 
+@headings double
 
 @summarycontents
 @contents
@@ -108,15 +109,14 @@ Cover art by Etienne Suvasa; cover design by Matt Lee.
 @node Top
 @top The Emacs Editor
 
-Emacs is the extensible, customizable, self-documenting real-time
-display editor.  This manual describes how to edit with Emacs and
-some of the ways to customize it; it corresponds to GNU Emacs version
-@value{EMACSVER}.
+Emacs is the advanced, extensible, customizable, self-documenting
+editor.  This manual describes how to edit with Emacs and some of the
+ways to customize it; it corresponds to GNU Emacs version @value{EMACSVER}.
 
 @c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
-The homepage for GNU Emacs is at
+The GNU Emacs website is at
 <a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 To view this manual in other formats, click
 <a href="/software/emacs/manual/emacs.html">here</a>.<br>
@@ -148,6 +148,7 @@ Important General Concepts
                           function keys).
 * Keys::                Key sequences: what you type to request one
                           editing action.
+* Mouse Input::         Using the mouse and keypads.
 * Commands::            Named functions run by key sequences to do editing.
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::             Stopping or killing Emacs.
@@ -160,7 +161,7 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::                The mark: how to delimit a region of text.
-* Killing::             Killing (cutting) and yanking (copying) text.
+* Killing::             Killing (cutting) and yanking (pasting) text.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
 * Search::              Finding or replacing occurrences of a string.
@@ -219,8 +220,9 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 26.
+* Antinews::            Information about Emacs version 28.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
+* Haiku::               Using Emacs on Haiku.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
@@ -344,14 +346,14 @@ Cut and Paste Operations on Graphical Displays
 
 Registers
 
-* Position Registers::       Saving positions in registers.
-* Text Registers::           Saving text in registers.
-* Rectangle Registers::      Saving rectangles in registers.
-* Configuration Registers::  Saving window configurations in registers.
-* Number Registers::         Numbers in registers.
-* File Registers::           File names in registers.
-* Keyboard Macro Registers:: Keyboard macros in registers.
-* Bookmarks::                Bookmarks are like registers, but persistent.
+* Position Registers::        Saving positions in registers.
+* Text Registers::            Saving text in registers.
+* Rectangle Registers::       Saving rectangles in registers.
+* Configuration Registers::   Saving window configurations in registers.
+* Number Registers::          Numbers in registers.
+* File and Buffer Registers:: File and buffer names in registers.
+* Keyboard Macro Registers::  Keyboard macros in registers.
+* Bookmarks::                 Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
@@ -380,6 +382,10 @@ Controlling the Display
                              of continuing them to multiple screen lines.
 * Visual Line Mode::       Word wrap and screen line-based editing.
 * Display Custom::         Information on variables for customizing display.
+
+Font Lock
+* Traditional Font Lock::  Font Lock based on regexps and syntax tables.
+* Parser-based Font Lock:: Font Lock based on external parser.
 
 Searching and Replacement
 
@@ -455,7 +461,8 @@ File Handling
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
-* File Conveniences::   Convenience Features for Finding Files.
+* File Conveniences::   Convenience features for finding files.
+* Image Mode::          Viewing image files.
 * Filesets::            Handling sets of files.
 
 Saving Files
@@ -516,6 +523,7 @@ Multiple Windows
 * Displaying Buffers::  How Emacs picks a window for displaying a buffer.
 * Temporary Displays::  Displaying non-editable buffers.
 * Window Convenience::  Convenience functions for window handling.
+* Tab Line::            Window tab line.
 
 Displaying a Buffer in a Window
 
@@ -714,7 +722,7 @@ Documentation Lookup
 
 * Info Lookup::        Looking up library functions and commands in Info files.
 * Man Page::           Looking up man pages of library functions and commands.
-* Lisp Doc::           Looking up Emacs Lisp functions, etc.
+* Programming Language Doc:: Looking up program functions, variables, etc.
 
 C and Related Modes
 
@@ -793,6 +801,8 @@ Maintaining Large Programs
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
+* Bug Reference::       Highlighting references to bug reports and browsing
+                          them in their issue trackers.
 
 Version Control
 
@@ -847,6 +857,7 @@ Miscellaneous Commands and Features of VC
 * VC Delete/Rename::      Deleting and renaming version-controlled files.
 * Revision Tags::         Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
+* Editing VC Commands:: Editing the VC shell commands that Emacs will run.
 
 Customizing VC
 
@@ -854,6 +865,13 @@ Customizing VC
 * RCS and SCCS::          Options for RCS and SCCS.
 * CVS Options::           Options for CVS.
 @end ifnottex
+
+Projects
+
+* Project File Commands::   Commands for handling project files.
+* Project Buffer Commands:: Commands for handling project buffers.
+* Switching Projects::      Switching between projects.
+* Managing Projects::       Managing the project list file.
 
 Change Logs
 
@@ -900,6 +918,7 @@ Abbrevs
 * Abbrev Concepts::     Fundamentals of defined abbrevs.
 * Defining Abbrevs::    Defining an abbrev, so it will expand when typed.
 * Expanding Abbrevs::   Controlling expansion: prefixes, canceling expansion.
+* Abbrevs Suggestions:: Get automatic suggestions about defined abbrevs.
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
@@ -1170,7 +1189,6 @@ The Emacs Initialization File
 
 Dealing with Emacs Trouble
 
-* DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::     '[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
@@ -1178,7 +1196,7 @@ Dealing with Emacs Trouble
 * Crashing::            What Emacs does when it crashes.
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    What to do if Emacs stops responding.
-* Long Lines::          Mitigating slowness due to extremely long lines.
+* DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
 
 Reporting Bugs
 
@@ -1237,6 +1255,11 @@ Emacs and macOS / GNUstep
 * Mac / GNUstep Events::        How window system events are handled.
 * GNUstep Support::             Details on status of GNUstep support.
 
+Emacs and Haiku
+
+* Haiku Basics::        Basic Emacs usage and installation under Haiku.
+* Haiku Fonts::         The various options for displaying fonts on Haiku.
+
 Emacs and Microsoft Windows/MS-DOS
 
 * Windows Startup::     How to start Emacs on Windows.
@@ -1277,11 +1300,12 @@ programmer, but if you are not interested in customizing, you can
 ignore the customization hints.
 
   This is primarily a reference manual, but can also be used as a
-primer.  If you are new to Emacs, we recommend you start with
-the integrated, learn-by-doing tutorial, before reading the manual.  To
-run the tutorial, start Emacs and type @kbd{C-h t}.  The tutorial
-describes commands, tells you when to try them, and explains the
-results.  The tutorial is available in several languages.
+primer.  If you are new to Emacs, we recommend you start with the
+integrated, learn-by-doing tutorial, before reading the manual.  To
+run the tutorial, start Emacs and type @kbd{C-h t} (which is ``control
+h and then t'').  The tutorial describes commands, tells you when to
+try them, and explains the results.  The tutorial is available in
+several languages.
 
   On first reading, just skim chapters 1 and 2, which describe the
 notational conventions of the manual and the general appearance of the
@@ -1396,23 +1420,23 @@ USA
 
 @c It's hard to update this fairly.
 @c I wonder if it would be better to drop it in favor of AUTHORS?
-Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
+Contributors to GNU Emacs include Jari Aalto, Eric Abrahamsen, Per Abrahamsen, Tomas
 Abrahamsson, Jay K. Adams, Alon Albert, Michael Albinus, Nagy
 Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Åström,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L. Baur, Jay Belanger, Alexander L. Belikoff,
-Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Stephen Berman, Karl
+Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Stephen Berman, Jonas Bernoulli, Karl
 Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
 Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Ken Brown, Stefan Bruda,
-Daniel Colascione,
+Damien Cassou, Daniel Colascione,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl, Tino Calancha,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
-Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
+Clark, Mike Clarkson, Glynn Clements, Andrea Corallo, Andrew Cohen, Daniel Colascione,
 Christoph Conrad, Ludovic Courtès, Andrew Csillag,
-Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
+Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Yue Daian, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
 Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
 Ding, Jan Djärv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
@@ -1420,36 +1444,36 @@ Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
 Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
 Eglen, Christian Egli, Torbjörn Einarsson, Tsugutomo Enami, David
 Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
-Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
+Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Thomas Fitzsimmons, Karl Fogel, Gary
 Foster, Eric S. Fraga, Romain Francoise, Noah Friedman, Andreas
 Fuchs, Shigeru Fukaya, Xue Fuqiao, Hallvard Furuseth, Keith Gabryelski, Peter S.
 Galbraith, Kevin Gallagher, Fabián E. Gallina, Kevin Gallo, Juan León Lahoz García,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
-Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
+Gillespie, Bob Glickstein, Nicolas Goaziou, Deepak Goel, David De La Harpe Golden, Boris
 Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
 Gripenstam, Kai Großjohann, Michael Gschwind, Bastien Guerry, Henry
 Guillaume, Dmitry Gutov, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
-Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Anders Holst,
-Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
+Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Torsten Hilbrich, Anders Holst,
+Jeffrey C. Honig, Jürgen Hötzel, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
 Josefsson, Alexandre Julliard, Arne Jørgensen, Tomoji Kagatani,
-Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
+Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Stefan Kangas, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
 Klíč, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
 M. Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian Kremer,
-Ryszard Kubiak, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
-Landstrom, Mario Lang, Aaron Larson, James R. Larus, Vinicius Jose
+Ryszard Kubiak, Tak Kunihiro, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
+Landstrom, Mario Lang, Aaron Larson, James R. Larus, Gemini Lasswell, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Sergey Litvinov, Leo Liu, Emilio C. Lopes,
-Martin Lorentzon, Dave Love, Eric Ludlam, Károly Lőrentey, Sascha
+Martin Lorentzson, Dave Love, Eric Ludlam, Károly Lőrentey, Sascha
 Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
-Christopher J. Madsen, Neil M. Mager, Artur Malabarba, Ken Manheimer, Bill Mann,
+Christopher J. Madsen, Neil M. Mager, Arni Magnusson, Artur Malabarba, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Jimmy Aguilar Mena, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
@@ -1465,7 +1489,7 @@ Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
 Persson, Jens Petersen, Nicolas Petton, Daniel Pfeiffer, Justus Piater, Richard L.
 Pieri, Fred Pierresteguy, François Pinard, Daniel Pittman, Christian
 Plaunt, Alexander Pohoyda, David Ponce, Noam Postavsky, Francesco A. Potortì,
-Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
+Michael D. Prange, Mukesh Prasad, Steve Purcell, Ken Raeburn, Marko Rahamaa, Ashwin
 Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, David
 Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
 Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
@@ -1479,7 +1503,7 @@ Rainer Schöpf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
 Schwartz, Oliver Seidel, Manuel Serrano, Paul Sexton, Hovav Shacham,
 Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Tibor
 Šimko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
-David Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
+David Smith, JD Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
 South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Philipp Stephani, Peter Stephenson, Ken
 Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
@@ -1605,6 +1629,7 @@ Lisp programming.
 
 @include anti.texi
 @include macos.texi
+@include haiku.texi
 @c Includes msdos-xtra.
 @include msdos.texi
 @include gnu.texi

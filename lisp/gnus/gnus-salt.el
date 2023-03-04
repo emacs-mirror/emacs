@@ -1,6 +1,6 @@
-;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
+;;; gnus-salt.el --- alternate summary mode interfaces for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -51,7 +51,7 @@
 
 (defcustom gnus-pick-elegant-flow t
   "If non-nil, `gnus-pick-start-reading' runs
- `gnus-summary-next-group' when no articles have been picked."
+`gnus-summary-next-group' when no articles have been picked."
   :type 'boolean
   :group 'gnus-summary-pick)
 
@@ -64,15 +64,12 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 
 ;;; Internal variables.
 
-(defvar gnus-pick-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      " " gnus-pick-next-page
-      "u" gnus-pick-unmark-article-or-thread
-      "." gnus-pick-article-or-thread
-      [down-mouse-2] gnus-pick-mouse-pick-region
-      "\r" gnus-pick-start-reading)
-    map))
+(defvar-keymap gnus-pick-mode-map
+  "SPC" #'gnus-pick-next-page
+  "u" #'gnus-pick-unmark-article-or-thread
+  "." #'gnus-pick-article-or-thread
+  "<down-mouse-2>" #'gnus-pick-mouse-pick-region
+  "RET" #'gnus-pick-start-reading)
 
 (defun gnus-pick-make-menu-bar ()
   (unless (boundp 'gnus-pick-menu)
@@ -103,18 +100,18 @@ It accepts the same format specs that `gnus-summary-line-format' does."
    ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-pick-mode nil))
    ((not gnus-pick-mode)
     ;; FIXME: a buffer-local minor mode removing globally from a hook??
-    (remove-hook 'gnus-message-setup-hook 'gnus-pick-setup-message))
+    (remove-hook 'gnus-message-setup-hook #'gnus-pick-setup-message))
    (t
     ;; Make sure that we don't select any articles upon group entry.
-    (set (make-local-variable 'gnus-auto-select-first) nil)
+    (setq-local gnus-auto-select-first nil)
     ;; Change line format.
     (setq gnus-summary-line-format gnus-summary-pick-line-format)
     (setq gnus-summary-line-format-spec nil)
     (gnus-update-format-specifications nil 'summary)
     (gnus-update-summary-mark-positions)
     ;; FIXME: a buffer-local minor mode adding globally to a hook??
-    (add-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
-    (set (make-local-variable 'gnus-summary-goto-unread) 'never)
+    (add-hook 'gnus-message-setup-hook #'gnus-pick-setup-message)
+    (setq-local gnus-summary-goto-unread 'never)
     ;; Set up the menu.
     (when (gnus-visual-p 'pick-menu 'menu)
       (gnus-pick-make-menu-bar)))))
@@ -136,7 +133,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.
 If given a prefix, mark all unpicked articles as read."
-  (interactive "P")
+  (interactive "P" gnus-pick-mode)
   (if gnus-newsgroup-processable
       (progn
 	(gnus-summary-limit-to-articles nil)
@@ -313,11 +310,8 @@ This must be bound to a button-down mouse event."
 (defvar gnus-binary-mode-hook nil
   "Hook run in summary binary mode buffers.")
 
-(defvar gnus-binary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      "g" gnus-binary-show-article)
-    map))
+(defvar-keymap gnus-binary-mode-map
+  "g" #'gnus-binary-show-article)
 
 (defun gnus-binary-make-menu-bar ()
   (unless (boundp 'gnus-binary-menu)
@@ -333,10 +327,8 @@ This must be bound to a button-down mouse event."
    ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-binary-mode nil))
    (gnus-binary-mode
     ;; Make sure that we don't select any articles upon group entry.
-    (make-local-variable 'gnus-auto-select-first)
-    (setq gnus-auto-select-first nil)
-    (make-local-variable 'gnus-summary-display-article-function)
-    (setq gnus-summary-display-article-function 'gnus-binary-display-article)
+    (setq-local gnus-auto-select-first nil)
+    (setq-local gnus-summary-display-article-function 'gnus-binary-display-article)
     ;; Set up the menu.
     (when (gnus-visual-p 'binary-menu 'menu)
       (gnus-binary-make-menu-bar)))))
@@ -424,21 +416,17 @@ Two predefined functions are available:
 (defvar gnus-tree-displayed-thread nil)
 (defvar gnus-tree-inhibit nil)
 
-(defvar gnus-tree-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (gnus-define-keys
-        map
-      "\r" gnus-tree-select-article
-      [mouse-2] gnus-tree-pick-article
-      "\C-?" gnus-tree-read-summary-keys
-      "h" gnus-tree-show-summary
+(defvar-keymap gnus-tree-mode-map
+  :full t :suppress t
+  "RET" #'gnus-tree-select-article
+  "<mouse-2>" #'gnus-tree-pick-article
+  "DEL" #'gnus-tree-read-summary-keys
+  "h" #'gnus-tree-show-summary
 
-      "\C-c\C-i" gnus-info-find-node)
+  "C-c C-i" #'gnus-info-find-node)
 
-    (substitute-key-definition
-     'undefined 'gnus-tree-read-summary-keys map)
-    map))
+(substitute-key-definition 'undefined #'gnus-tree-read-summary-keys
+                           gnus-tree-mode-map)
 
 (defun gnus-tree-make-menu-bar ()
   (unless (boundp 'gnus-tree-menu)
@@ -464,7 +452,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-read-summary-keys (&optional arg)
   "Read a summary buffer key sequence and execute it."
-  (interactive "P")
+  (interactive "P" gnus-tree-mode)
   (unless gnus-tree-inhibit
     (let ((buf (current-buffer))
 	  (gnus-tree-inhibit t)
@@ -479,7 +467,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-show-summary ()
   "Reconfigure windows to show summary buffer."
-  (interactive)
+  (interactive nil gnus-tree-mode)
   (if (not (gnus-buffer-live-p gnus-summary-buffer))
       (error "There is no summary buffer for this tree buffer")
     (gnus-configure-windows 'article)
@@ -487,7 +475,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-select-article (article)
   "Select the article under point, if any."
-  (interactive (list (gnus-tree-article-number)))
+  (interactive (list (gnus-tree-article-number)) gnus-tree-mode)
   (let ((buf (current-buffer)))
     (when article
       (with-current-buffer gnus-summary-buffer
@@ -496,7 +484,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-pick-article (e)
   "Select the article under the mouse pointer."
-  (interactive "e")
+  (interactive "e" gnus-tree-mode)
   (mouse-set-point e)
   (gnus-tree-select-article (gnus-tree-article-number)))
 
@@ -611,7 +599,7 @@ Two predefined functions are available:
 	 beg end)
     (add-text-properties
      (setq beg (point))
-     (setq end (progn (eval gnus-tree-line-format-spec) (point)))
+     (setq end (progn (eval gnus-tree-line-format-spec t) (point)))
      (list 'gnus-number gnus-tmp-number))
     (when (or t (gnus-visual-p 'tree-highlight 'highlight))
       (gnus-tree-highlight-node gnus-tmp-number beg end))))
@@ -698,7 +686,7 @@ it in the environment specified by BINDINGS."
 	(unless (zerop level)
 	  (gnus-tree-indent level)
 	  (insert (cadr gnus-tree-parent-child-edges))
-	  (setq col (- (setq beg (point)) (point-at-bol) 1))
+          (setq col (- (setq beg (point)) (line-beginning-position) 1))
 	  ;; Draw "|" lines upwards.
 	  (while (progn
 		   (forward-line -1)
@@ -722,7 +710,7 @@ it in the environment specified by BINDINGS."
 
 (defsubst gnus-tree-indent-vertical ()
   (let ((len (- (* (1+ gnus-tree-node-length) gnus-tmp-indent)
-		(- (point) (point-at-bol)))))
+                (- (point) (line-beginning-position)))))
     (when (> len 0)
       (insert (make-string len ? )))))
 

@@ -1,10 +1,10 @@
-;;; erc-match.el --- Highlight messages matching certain regexps
+;;; erc-match.el --- Highlight messages matching certain regexps  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, faces
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcMatch
 
 ;; This file is part of GNU Emacs.
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This file includes stuff to work with pattern matching in ERC. If
+;; This file includes stuff to work with pattern matching in ERC.  If
 ;; you were used to customizing erc-fools, erc-keywords, erc-pals,
 ;; erc-dangerous-hosts and the like, this file contains these
 ;; customizable variables.
@@ -52,19 +52,17 @@ they are hidden or highlighted.  This is controlled via the variables
 `erc-current-nick-highlight-type'.  For all these highlighting types,
 you can decide whether the entire message or only the sending nick is
 highlighted."
-  ((add-hook 'erc-insert-modify-hook 'erc-match-message 'append))
-  ((remove-hook 'erc-insert-modify-hook 'erc-match-message)))
+  ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append))
+  ((remove-hook 'erc-insert-modify-hook #'erc-match-message)))
 
 ;; Remaining customizations
 
 (defcustom erc-pals nil
   "List of pals on IRC."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-fools nil
   "List of fools on IRC."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-keywords nil
@@ -72,18 +70,16 @@ highlighted."
 Each entry in the list is either a regexp, or a cons cell with the
 regexp in the car and the face to use in the cdr.  If no face is
 specified, `erc-keyword-face' is used."
-  :group 'erc-match
   :type '(repeat (choice regexp
 			 (list regexp face))))
 
 (defcustom erc-dangerous-hosts nil
   "List of regexps for hosts to highlight.
 Useful to mark nicks from dangerous hosts."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-current-nick-highlight-type 'keyword
-  "Determines how to highlight text in which your current nickname appears
+  "Determine how to highlight text in which your current nickname appears
 \(does not apply to text sent by you).
 
 The following values are allowed:
@@ -94,14 +90,16 @@ The following values are allowed:
  `nick-or-keyword' - highlight the nick of the user who typed your nickname,
                      or all instances of the current nickname if there was
                      no sending user
- `all'             - highlight the entire message where current nickname occurs
+ `message'         - highlight the entire message where current nickname occurs
+ `all'             - highlight the entire message (including the nick) where
+                     current nickname occurs
 
 Any other value disables highlighting of current nickname altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
 		 (const keyword)
 		 (const nick-or-keyword)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-pal-highlight-type 'nick
@@ -110,14 +108,16 @@ See `erc-pals'.
 
 The following values are allowed:
 
-    nil    - do not highlight the message at all
-    `nick' - highlight pal's nickname only
-    `all'  - highlight the entire message from pal
+    nil       - do not highlight the message at all
+    `nick'    - highlight pal's nickname only
+    `message' - highlight the entire message from pal
+    `all'     - highlight the entire message (including the nick)
+                from pal
 
 Any other value disables pal highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-fool-highlight-type 'nick
@@ -126,14 +126,16 @@ See `erc-fools'.
 
 The following values are allowed:
 
-    nil    - do not highlight the message at all
-    `nick' - highlight fool's nickname only
-    `all'  - highlight the entire message from fool
+    nil       - do not highlight the message at all
+    `nick'    - highlight fool's nickname only
+    `message' - highlight the entire message from fool
+    `all'     - highlight the entire message (including the nick)
+                from fool
 
 Any other value disables fool highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-keyword-highlight-type 'keyword
@@ -143,12 +145,14 @@ See variable `erc-keywords'.
 The following values are allowed:
 
     `keyword' - highlight keyword only
-    `all'     - highlight the entire message containing keyword
+    `message' - highlight the entire message containing keyword
+    `all'     - highlight the entire message (including the nick)
+                containing keyword
 
 Any other value disables keyword highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const keyword)
+                 (const message)
 		 (const all)))
 
 (defcustom erc-dangerous-host-highlight-type 'nick
@@ -157,13 +161,15 @@ See `erc-dangerous-hosts'.
 
 The following values are allowed:
 
-    `nick' - highlight nick from dangerous-host only
-    `all'  - highlight the entire message from dangerous-host
+    `nick'    - highlight nick from dangerous-host only
+    `message' - highlight the entire message from dangerous-host
+    `all'     - highlight the entire message (including the nick)
+                from dangerous-host
 
 Any other value disables dangerous-host highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
+                 (const message)
 		 (const all)))
 
 
@@ -178,7 +184,6 @@ Valid match type keys are:
 
 The other element of each cons pair in this list is the buffer name to
 use for the logged message."
-  :group 'erc-match
   :type '(repeat (cons (choice :tag "Key"
 			       (const keyword)
 			       (const pal)
@@ -192,7 +197,6 @@ use for the logged message."
 When nil, don't log any matched messages.
 When t, log messages.
 When `away', log messages only when away."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const away)
 		 (const t)))
@@ -207,14 +211,12 @@ will be formatted.  The various format specs are:
 %u Nickname!user@host of sender
 %c Channel in which this was received
 %m Message"
-  :group 'erc-match
   :type 'string)
 
 (defcustom erc-beep-match-types '(current-nick)
   "Types of matches to beep for when a match occurs.
 The function `erc-beep-on-match' needs to be added to `erc-text-matched-hook'
 for beeping to work."
-  :group 'erc-match
   :type '(choice (repeat :tag "Beep on match" (choice
 					       (const current-nick)
 					       (const keyword)
@@ -229,16 +231,23 @@ Functions in this hook are passed as arguments:
 \(match-type nick!user@host message) where MATCH-TYPE is a symbol of:
 current-nick, keyword, pal, dangerous-host, fool."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
-  :group 'erc-match
   :type 'hook)
 
 (defcustom erc-match-exclude-server-buffer nil
-  "If true, don't perform match on the server buffer; this is
-useful for excluding all the things like MOTDs from the server
-and other miscellaneous functions."
-  :group 'erc-match
+  "If true, don't perform match on the server buffer.
+This is useful for excluding all the things like MOTDs from the
+server and other miscellaneous functions."
   :version "24.3"
   :type 'boolean)
+
+(defcustom erc-match-quote-when-adding 'ask
+  "Whether to `regexp-quote' when adding to a match list interactively.
+When the value is a boolean, the opposite behavior will be made
+available via universal argument."
+  :package-version '(ERC . "5.5")
+  :type '(choice (const ask)
+                 (const t)
+                 (const nil)))
 
 ;; Internal variables:
 
@@ -290,7 +299,7 @@ Note that this is the default face to use if
 
 ;; Functions:
 
-(defun erc-add-entry-to-list (list prompt &optional completions)
+(defun erc-add-entry-to-list (list prompt &optional completions alt)
   "Add an entry interactively to a list.
 LIST must be passed as a symbol
 The query happens using PROMPT.
@@ -299,7 +308,16 @@ Completion is performed on the optional alist COMPLETIONS."
 		prompt
 		completions
 		(lambda (x)
-		  (not (erc-member-ignore-case (car x) (symbol-value list)))))))
+                  (not (erc-member-ignore-case (car x) (symbol-value list))))))
+        quoted)
+    (setq quoted (regexp-quote entry))
+    (when (pcase erc-match-quote-when-adding
+            ('ask (unless (string= quoted entry)
+                    (y-or-n-p
+                     (format "Use regexp-quoted form (%s) instead? " quoted))))
+            ('t (not alt))
+            ('nil alt))
+      (setq entry quoted))
     (if (erc-member-ignore-case entry (symbol-value list))
 	(error "\"%s\" is already on the list" entry)
       (set list (cons entry (symbol-value list))))))
@@ -327,10 +345,11 @@ car is the string."
 			(symbol-value list))))))
 
 ;;;###autoload
-(defun erc-add-pal ()
+(defun erc-add-pal (&optional arg)
   "Add pal interactively to `erc-pals'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-pals "Add pal: " (erc-get-server-nickname-alist)))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-pals "Add pal: "
+                         (erc-get-server-nickname-alist) arg))
 
 ;;;###autoload
 (defun erc-delete-pal ()
@@ -339,11 +358,11 @@ car is the string."
   (erc-remove-entry-from-list 'erc-pals "Delete pal: "))
 
 ;;;###autoload
-(defun erc-add-fool ()
+(defun erc-add-fool (&optional arg)
   "Add fool interactively to `erc-fools'."
-  (interactive)
+  (interactive "P")
   (erc-add-entry-to-list 'erc-fools "Add fool: "
-			 (erc-get-server-nickname-alist)))
+                         (erc-get-server-nickname-alist) arg))
 
 ;;;###autoload
 (defun erc-delete-fool ()
@@ -352,10 +371,10 @@ car is the string."
   (erc-remove-entry-from-list 'erc-fools "Delete fool: "))
 
 ;;;###autoload
-(defun erc-add-keyword ()
+(defun erc-add-keyword (&optional arg)
   "Add keyword interactively to `erc-keywords'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-keywords "Add keyword: "))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-keywords "Add keyword: " nil arg))
 
 ;;;###autoload
 (defun erc-delete-keyword ()
@@ -364,10 +383,10 @@ car is the string."
   (erc-remove-entry-from-list 'erc-keywords "Delete keyword: "))
 
 ;;;###autoload
-(defun erc-add-dangerous-host ()
+(defun erc-add-dangerous-host (&optional arg)
   "Add dangerous-host interactively to `erc-dangerous-hosts'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-dangerous-hosts "Add dangerous-host: "))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-dangerous-hosts "Add dangerous-host: " nil arg))
 
 ;;;###autoload
 (defun erc-delete-dangerous-host ()
@@ -375,7 +394,7 @@ car is the string."
   (interactive)
   (erc-remove-entry-from-list 'erc-dangerous-hosts "Delete dangerous-host: "))
 
-(defun erc-match-current-nick-p (nickuserhost msg)
+(defun erc-match-current-nick-p (_nickuserhost msg)
   "Check whether the current nickname is in MSG.
 NICKUSERHOST will be ignored."
   (with-syntax-table erc-match-syntax-table
@@ -385,22 +404,22 @@ NICKUSERHOST will be ignored."
 			       "\\b")
 		       msg))))
 
-(defun erc-match-pal-p (nickuserhost msg)
+(defun erc-match-pal-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-pals'.
 MSG will be ignored."
-  (and nickuserhost
+  (and nickuserhost erc-pals
        (erc-list-match erc-pals nickuserhost)))
 
 (defun erc-match-fool-p (nickuserhost msg)
   "Check whether NICKUSERHOST is in `erc-fools' or MSG is directed at a fool."
-  (and msg nickuserhost
+  (and msg nickuserhost erc-fools
        (or (erc-list-match erc-fools nickuserhost)
 	   (erc-match-directed-at-fool-p msg))))
 
-(defun erc-match-keyword-p (nickuserhost msg)
+(defun erc-match-keyword-p (_nickuserhost msg)
   "Check whether any keyword of `erc-keywords' matches for MSG.
 NICKUSERHOST will be ignored."
-  (and msg
+  (and msg erc-keywords
        (erc-list-match
 	(mapcar (lambda (x)
 		  (if (listp x)
@@ -409,10 +428,10 @@ NICKUSERHOST will be ignored."
 		erc-keywords)
 	msg)))
 
-(defun erc-match-dangerous-host-p (nickuserhost msg)
+(defun erc-match-dangerous-host-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-dangerous-hosts'.
 MSG will be ignored."
-  (and nickuserhost
+  (and nickuserhost erc-dangerous-hosts
        (erc-list-match erc-dangerous-hosts nickuserhost)))
 
 (defun erc-match-directed-at-fool-p (msg)
@@ -442,26 +461,25 @@ Use this defun with `erc-insert-modify-hook'."
 	 (nickuserhost (erc-get-parsed-vector-nick vector))
 	 (nickname (and nickuserhost
 			(nth 0 (erc-parse-user nickuserhost))))
-	 (old-pt (point))
+	 ;; (old-pt (point))
 	 (nick-beg (and nickname
 			(re-search-forward (regexp-quote nickname)
 					   (point-max) t)
 			(match-beginning 0)))
 	 (nick-end (when nick-beg
 		     (match-end 0)))
-	 (message (buffer-substring
-		   (if (and nick-end
-			    (<= (+ 2 nick-end) (point-max)))
-		       ;; Message starts 2 characters after the nick
-		       ;; except for CTCP ACTION messages.  Nick
-		       ;; surrounded by angle brackets only in normal
-		       ;; messages.
-		       (+ nick-end
-			  (if (eq ?> (char-after nick-end))
-			      2
-			    1))
-		     (point-min))
-		   (point-max))))
+         (message-beg (if (and nick-end
+                               (<= (+ 2 nick-end) (point-max)))
+                          ;; Message starts 2 characters after the
+                          ;; nick except for CTCP ACTION messages.
+                          ;; Nick surrounded by angle brackets only in
+                          ;; normal messages.
+                          (+ nick-end
+                             (if (eq ?> (char-after nick-end))
+                                 2
+                               1))
+                        (point-min)))
+         (message (buffer-substring message-beg (point-max))))
     (when (and vector
 	       (not (and erc-match-exclude-server-buffer
 			 (erc-server-buffer-p))))
@@ -470,11 +488,12 @@ Use this defun with `erc-insert-modify-hook'."
 	 (goto-char (point-min))
 	 (let* ((match-prefix (concat "erc-" match-type))
 		(match-pred (intern (concat "erc-match-" match-type "-p")))
-		(match-htype (eval (intern (concat match-prefix
-						   "-highlight-type"))))
+		(match-htype (symbol-value (intern (concat match-prefix
+						           "-highlight-type"))))
 		(match-regex (if (string= match-type "current-nick")
 				 (regexp-quote (erc-current-nick))
-			       (eval (intern (concat match-prefix "s")))))
+			       (symbol-value
+			        (intern (concat match-prefix "s")))))
 		(match-face (intern (concat match-prefix "-face"))))
 	   (when (funcall match-pred nickuserhost message)
 	     (cond
@@ -498,7 +517,12 @@ Use this defun with `erc-insert-modify-hook'."
 		 (while (re-search-forward match-regex nil t)
 		   (erc-put-text-property (match-beginning 0) (match-end 0)
 					  'font-lock-face match-face))))
-	      ;; Highlight the whole message
+              ;; Highlight the whole message (not including the nick)
+              ((eq match-htype 'message)
+               (erc-put-text-property
+                message-beg (point-max)
+                'font-lock-face match-face (current-buffer)))
+	      ;; Highlight the whole message (including the nick)
 	      ((eq match-htype 'all)
 	       (erc-put-text-property
 		(point-min) (point-max)
@@ -555,16 +579,15 @@ See `erc-log-match-format'."
 	       (and (eq erc-log-matches-flag 'away)
 		    (erc-away-time)))
 	   match-buffer-name)
-      (let ((line (format-spec erc-log-match-format
-		   (format-spec-make
-		    ?n nick
-		    ?t (format-time-string
-			(or (and (boundp 'erc-timestamp-format)
-				 erc-timestamp-format)
-			    "[%Y-%m-%d %H:%M] "))
-		    ?c (or (erc-default-target) "")
-		    ?m message
-		    ?u nickuserhost))))
+      (let ((line (format-spec
+                   erc-log-match-format
+                   `((?n . ,nick)
+                     (?t . ,(format-time-string
+                             (or (bound-and-true-p erc-timestamp-format)
+                                 "[%Y-%m-%d %H:%M] ")))
+                     (?c . ,(or (erc-default-target) ""))
+                     (?m . ,message)
+                     (?u . ,nickuserhost)))))
 	(with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
 	  (let ((inhibit-read-only t))
 	    (goto-char (point-max))
@@ -578,12 +601,12 @@ See `erc-log-match-format'."
     (with-current-buffer buffer
       (unless buffer-already
 	(insert " == Type \"q\" to dismiss messages ==\n")
-	(erc-view-mode-enter nil (lambda (buffer)
-				   (when (y-or-n-p "Discard messages? ")
-				     (kill-buffer buffer)))))
+	(view-mode-enter nil (lambda (buffer)
+			       (when (y-or-n-p "Discard messages? ")
+				 (kill-buffer buffer)))))
       buffer)))
 
-(defun erc-log-matches-come-back (proc parsed)
+(defun erc-log-matches-come-back (_proc _parsed)
   "Display a notice that messages were logged while away."
   (when (and (erc-away-time)
 	     (eq erc-log-matches-flag 'away))
@@ -611,7 +634,7 @@ See `erc-log-match-format'."
   nil)
 
 ; This handler must be run _before_ erc-process-away is.
-(add-hook 'erc-server-305-functions 'erc-log-matches-come-back nil)
+(add-hook 'erc-server-305-functions #'erc-log-matches-come-back nil)
 
 (defun erc-go-to-log-matches-buffer ()
   "Interactively open an erc-log-matches buffer."
@@ -624,9 +647,9 @@ See `erc-log-match-format'."
 					(get-buffer (car buffer-cons))))))
     (switch-to-buffer buffer-name)))
 
-(define-key erc-mode-map "\C-c\C-k" 'erc-go-to-log-matches-buffer)
+(define-key erc-mode-map "\C-c\C-k" #'erc-go-to-log-matches-buffer)
 
-(defun erc-hide-fools (match-type nickuserhost message)
+(defun erc-hide-fools (match-type _nickuserhost _message)
  "Hide foolish comments.
 This function should be called from `erc-text-matched-hook'."
  (when (eq match-type 'fool)
@@ -634,7 +657,7 @@ This function should be called from `erc-text-matched-hook'."
 			    '(invisible intangible)
 			    (current-buffer))))
 
-(defun erc-beep-on-match (match-type nickuserhost message)
+(defun erc-beep-on-match (match-type _nickuserhost _message)
   "Beep when text matches.
 This function is meant to be called from `erc-text-matched-hook'."
   (when (member match-type erc-beep-match-types)

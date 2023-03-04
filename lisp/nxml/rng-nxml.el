@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (require 'xmltok)
 (require 'nxml-util)
 (require 'nxml-ns)
@@ -36,7 +35,7 @@
 (require 'sgml-mode)
 
 (defcustom rng-nxml-auto-validate-flag t
-  "Non-nil means automatically turn on validation with nxml-mode."
+  "Non-nil means automatically turn on validation with `nxml-mode'."
   :type 'boolean
   :group 'relax-ng)
 
@@ -180,7 +179,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                    ;; attributes are required
                    (insert " "))))
               ((member completion extra-strings)
-               (insert ">")))))))))
+               (insert ">"))))
+          :company-kind ,(lambda () 'property))))))
 
 (defconst rng-in-end-tag-name-regex
   (replace-regexp-in-string
@@ -255,7 +255,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                   (when (and (eq status 'finished)
                              (not (looking-at "=")))
                     (insert "=\"\"")
-                    (forward-char -1)))))))))
+                    (forward-char -1)))
+               :company-kind ,(lambda (_) 'enum-member)))))))
 
 (defconst rng-in-attribute-value-regex
   (replace-regexp-in-string
@@ -280,7 +281,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
             (lambda (_completion status)
               (when (eq status 'finished)
                 (let ((delim (char-before value-start)))
-                  (unless (eq (char-after) delim) (insert delim)))))))
+                  (unless (eq (char-after) delim) (insert delim))))))
+           (kind-function (lambda (_) 'value)))
       (and (rng-adjust-state-for-attribute lt-pos
 					   name-start)
 	   (if (string= (buffer-substring-no-properties name-start
@@ -291,14 +293,16 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                    (rng-possible-namespace-uris
                     (and colon
                          (buffer-substring-no-properties (1+ colon) name-end))))
-                 :exit-function ,exit-function)
+                 :exit-function ,exit-function
+                 :company-kind ,kind-function)
 	     (rng-adjust-state-for-attribute-value name-start
 						   colon
 						   name-end)
              `(,value-start ,(point)
                ,(rng-strings-to-completion-table
                  (rng-match-possible-value-strings))
-               :exit-function ,exit-function))))))
+               :exit-function ,exit-function
+               :company-kind ,kind-function))))))
 
 (defun rng-possible-namespace-uris (prefix)
   (let ((ns (if prefix (nxml-ns-get-prefix prefix)
@@ -362,45 +366,44 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
   (save-excursion
     (save-restriction
       (widen)
-      (nxml-with-invisible-motion
-	(if (= pos (point-min))
-	    (rng-set-initial-state)
-	  (let ((state (get-text-property (1- pos) 'rng-state)))
-	    (cond (state
-		   (rng-restore-state state)
-		   (goto-char pos))
-		  (t
-		   (let ((start (previous-single-property-change pos
-								 'rng-state)))
-		     (cond (start
-			    (rng-restore-state (get-text-property (1- start)
-								  'rng-state))
-			    (goto-char start))
-			   (t (rng-set-initial-state))))))))
-	(xmltok-save
-	  (if (= (point) 1)
-	      (xmltok-forward-prolog)
-	    (setq xmltok-dtd rng-dtd))
-	  (cond ((and (< pos (point))
-		      ;; This handles the case where the prolog ends
-		      ;; with a < without any following name-start
-		      ;; character. This will be treated by the parser
-		      ;; as part of the prolog, but we want to treat
-		      ;; it as the start of the instance.
-		      (eq (char-after pos) ?<)
-		      (<= (point)
-			  (save-excursion
-			    (goto-char (1+ pos))
-			    (skip-chars-forward " \t\r\n")
-			    (point))))
-		 pos)
-		((< (point) pos)
-		 (let ((rng-dt-namespace-context-getter
-			'(nxml-ns-get-context))
-		       (rng-parsing-for-state t))
-		   (rng-forward pos))
-		 (point))
-		(t pos)))))))
+      (if (= pos (point-min))
+	  (rng-set-initial-state)
+	(let ((state (get-text-property (1- pos) 'rng-state)))
+	  (cond (state
+		 (rng-restore-state state)
+		 (goto-char pos))
+		(t
+		 (let ((start (previous-single-property-change pos
+							       'rng-state)))
+		   (cond (start
+			  (rng-restore-state (get-text-property (1- start)
+								'rng-state))
+			  (goto-char start))
+			 (t (rng-set-initial-state))))))))
+      (xmltok-save
+	(if (= (point) 1)
+	    (xmltok-forward-prolog)
+	  (setq xmltok-dtd rng-dtd))
+	(cond ((and (< pos (point))
+		    ;; This handles the case where the prolog ends
+		    ;; with a < without any following name-start
+		    ;; character. This will be treated by the parser
+		    ;; as part of the prolog, but we want to treat
+		    ;; it as the start of the instance.
+		    (eq (char-after pos) ?<)
+		    (<= (point)
+			(save-excursion
+			  (goto-char (1+ pos))
+			  (skip-chars-forward " \t\r\n")
+			  (point))))
+	       pos)
+	      ((< (point) pos)
+	       (let ((rng-dt-namespace-context-getter
+		      '(nxml-ns-get-context))
+		     (rng-parsing-for-state t))
+		 (rng-forward pos))
+	       (point))
+	      (t pos))))))
 
 (defun rng-adjust-state-for-attribute (lt-pos start)
   (xmltok-save
@@ -523,7 +526,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 	  (unless attribute-flag
 	    (setcdr ns-prefixes (cons nil (cdr ns-prefixes))))))
       (setq iter (cdr iter)))
-    (rng-uniquify-equal
+    (seq-uniq
      (sort (apply #'append
 		  (cons extra-strings
 			(mapcar (lambda (name)

@@ -1,11 +1,10 @@
-;;; regi.el --- REGular expression Interpreting engine
+;;; regi.el --- REGular expression Interpreting engine  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Created:       24-Feb-1993
-;; Version:       1.8
-;; Last Modified: 1993/06/01 21:33:00
+;; Old-Version:   1.8
 ;; Keywords:      extensions, matching
 
 ;; This file is part of GNU Emacs.
@@ -153,7 +152,7 @@ useful information:
 	;; set up the narrowed region
 	(and start
 	     end
-	     (let* ((tstart start)
+	     (let* (;; (tstart start)
 		    (start (min start end))
 		    (end   (max start end)))
 	       (narrow-to-region
@@ -163,18 +162,15 @@ useful information:
 	;; let's find the special tags and remove them from the working
 	;; frame. note that only the last special tag is used.
 	(mapc
-	 (function
-	  (lambda (entry)
-	    (let ((pred (car entry))
-		  (func (car (cdr entry))))
-	      (cond
-	       ((eq pred 'begin) (setq begin-tag func))
-	       ((eq pred 'end)   (setq end-tag func))
-	       ((eq pred 'every) (setq every-tag func))
-	       (t
-		(setq working-frame (append working-frame (list entry))))
-	       ) ; end-cond
-	      )))
+         (lambda (entry)
+           (let ((pred (car entry))
+                 (func (car (cdr entry))))
+             (cond
+              ((eq pred 'begin) (setq begin-tag func))
+              ((eq pred 'end)   (setq end-tag func))
+              ((eq pred 'every) (setq every-tag func))
+              (t
+               (setq working-frame (append working-frame (list entry)))))))
 	 frame) ; end-mapcar
 
 	;; execute the begin entry
@@ -209,30 +205,33 @@ useful information:
 	      ;; if the line matched, package up the argument list and
 	      ;; funcall the FUNC
 	      (if match-p
-		   (let* ((curline (buffer-substring
-				    (regi-pos 'bol)
-				    (regi-pos 'eol)))
-			  (curframe current-frame)
-			  (curentry entry)
-			  (result (eval func))
-			  (step (or (cdr (assq 'step result)) 1))
-			  )
-		     ;; changing frame on the fly?
-		     (if (assq 'frame result)
-			 (setq working-frame (cdr (assq 'frame result))))
+		  (with-suppressed-warnings
+		      ((lexical curframe curentry curline))
+		    (defvar curframe) (defvar curentry) (defvar curline)
+		    (let* ((curline (buffer-substring
+				     (regi-pos 'bol)
+				     (regi-pos 'eol)))
+			   (curframe current-frame)
+			   (curentry entry)
+			   (result (eval func))
+			   (step (or (cdr (assq 'step result)) 1))
+			   )
+		      ;; changing frame on the fly?
+		      (if (assq 'frame result)
+			  (setq working-frame (cdr (assq 'frame result))))
 
-		     ;; continue processing current frame?
-		     (if (memq 'continue result)
-			 (setq current-frame (cdr current-frame))
-		       (forward-line step)
-		       (setq current-frame working-frame))
+		      ;; continue processing current frame?
+		      (if (memq 'continue result)
+			  (setq current-frame (cdr current-frame))
+			(forward-line step)
+			(setq current-frame working-frame))
 
-		     ;; abort current frame?
-		     (if (memq 'abort result)
-			 (progn
-			   (setq donep t)
-			   (throw 'regi-throw-top t)))
-		     ) ; end-let
+		      ;; abort current frame?
+		      (if (memq 'abort result)
+			  (progn
+			    (setq donep t)
+			    (throw 'regi-throw-top t)))
+		      ))                   ; end-let
 
 		;; else if no match occurred, then process the next
 		;; frame-entry on the current line

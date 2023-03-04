@@ -947,7 +947,7 @@
 	(c_string_pos, number_of_chars, message_dolog):
 	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
 	(display_mode_element, display_string):
-	Switch between char * and unsigned char * to stay compatible wth
+	Switch between char * and unsigned char * to stay compatible with
 	C89 pointer rules.
 
 	* regex.c: Conform to C89 pointer rules.
@@ -3294,7 +3294,7 @@
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
-	(emacs_gnutls_write): Remove the debuggin fsync call.
+	(emacs_gnutls_write): Remove the debugging fsync call.
 	(emacs_gnutls_read): Return -1 if we got an error from
 	gnutls_read.  This allows us to actually read lots of data from
 	the GnuTLS stream.
@@ -7503,7 +7503,7 @@
 2010-05-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
-	Don't sheck SPEC if it is nil.
+	Don't check SPEC if it is nil.
 	(font_list_entities): Call font_delete_unmatched if
 	Vface_ignored_fonts is non-nil.  (Bug#6287)
 
@@ -8639,7 +8639,7 @@
 
 	* keyboard.c: QClabel is new.
 	(parse_tool_bar_item): Take out QClabel from tool bar items.
-	Try to construct a label if ther is no QClabel.
+	Try to construct a label if there is no QClabel.
 	(syms_of_keyboard): Intern :label as QClabel.
 
 	* dispextern.h (tool_bar_item_idx): TOOL_BAR_ITEM_LABEL is new.
@@ -9492,7 +9492,7 @@
 	* coding.c (decode_coding_ccl): Fix previous change for the
 	multibyte case.
 	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
-	case that the output buffer is fullfilled.
+	case that the output buffer is fulfilled.
 	(encode_coding): Setup ccl program here.
 
 2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -9772,10 +9772,10 @@
 2010-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_ccl): Don't setup ccl program here.
-	Fix for the case that the output buffer is fullfilled.
+	Fix for the case that the output buffer is fulfilled.
 	(decode_coding): Setup ccl program here.  Keep looping when the
 	decoder stopped because the output buffer is
-	fullfilled (bug#5534).
+	fulfilled (bug#5534).
 
 	* ccl.c (ccl_driver): Never reset ic to CCL_HEADER_MAIN.
 
@@ -10126,7 +10126,7 @@
 
 2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* font.c (font_open_entity): Enable chache and call cached_font_ok
+	* font.c (font_open_entity): Enable cache and call cached_font_ok
 	for the driver if defined.
 	(QCuser_spec): New symbol.
 	(font_spec_from_name): Save name as user-spec.
@@ -11988,7 +11988,7 @@
 
 	* cmds.c (nonundocount): New global variable.
 	(keys_of_cmds): Initialize it.
-	(Fself_insert_command): Use it to combine upto 20 sequential chars
+	(Fself_insert_command): Use it to combine up to 20 sequential chars
 	into a single undo entry, just like the Qself_insert_command code in
 	keyboard.c does.
 	Call frame_make_pointer_invisible, also like the Qself_insert_command
@@ -14235,7 +14235,7 @@
 	ns_alternate_modifier.  (Bug#1217)
 
 	* nsmenu.m (EmacsMenu-parseKeyEquiv:, addItemWithWidgetValue:):
-	Display all shortcuts, including those w/o super modifier.
+	Display all shortcuts, including those without super modifier.
 
 	* nsfns.m (ns-read-file-name): Fix typo in assignment statement.
 
@@ -22399,7 +22399,7 @@
 	* Makefile.in (${lispsource}international/charprop.el):
 	Delete this target.
 
-	* search.c (boyer_moore): Fix incorrect synching of the trunk and
+	* search.c (boyer_moore): Fix incorrect syncing of the trunk and
 	emacs-unicode-2.
 
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -23177,7 +23177,7 @@
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (face_for_overlay_string): Call lookup_face with
-	correct arguments (fix of synching with the trunk).
+	correct arguments (fix of syncing with the trunk).
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -23923,7 +23923,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (NSTATICS): Increas to 0x600.
+	* alloc.c (NSTATICS): Increase to 0x600.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -25309,12 +25309,12 @@
 
 	* coding.c (enum iso_code_class_type): Delete ISO_carriage_return.
 	(CODING_GET_INFO): Delete argument eol_type.  Change callers.
-	(decode_coding_utf_8): Don't do eol converion.
+	(decode_coding_utf_8): Don't do eol conversion.
 	(detect_coding_utf_16): Check coding->src_chars, not
 	coding->src_bytes.  Add heuristics for those that have no signature.
 	(decode_coding_emacs_mule, decode_coding_iso_2022)
 	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
-	Don't do eol converion.
+	Don't do eol conversion.
 	(adjust_coding_eol_type): Return a new coding system.
 	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
 	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
@@ -25952,7 +25952,7 @@
 	(font_list): The argument REGISTRY is now a list of registry names.
 	(choose_face_font): If we are choosing an ASCII font, and ATTRS
 	specifies an explicit font name, return the name as is.  Make a
-	list of registy names.
+	list of registry names.
 
 	* xfns.c (x_set_font, x_create_tip_frame): Adjust for the change
 	of x_new_fontset.
@@ -26647,7 +26647,7 @@
 	(fontset_set): Delete.
 	(fontset_face): New arg FACE.  Return face ID, not face.
 	Complete re-write to handle new fontset structure.  Change caller.
-	(free_face_fontset): Use ASET istead of AREF (X) = Y.
+	(free_face_fontset): Use ASET instead of AREF (X) = Y.
 	(face_for_char): Don't call lookup_face.
 	(make_fontset_for_ascii_face): New arg FACE.
 	(fs_load_font): New arg CHARSET_ID.  Don't check
@@ -31141,7 +31141,7 @@
 	* term.c (term_mouse_highlight): Remove unused variables.
 	(Fterm_open_connection): Set gpm_zerobased to 1.
 	(term_mouse_movement, term_mouse_click, handle_one_term_event):
-	Use zero based co-ordinates.
+	Use zero based coordinates.
 	(handle_one_term_event): Report a drag as mouse movement too.
 
 	* Makefile.in (MOUSE_SUPPORT): Define for HAVE_GPM.
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2020 Free Software Foundation, Inc.
+  Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

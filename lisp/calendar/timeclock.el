@@ -1,10 +1,10 @@
 ;;; timeclock.el --- mode for keeping track of how much you work  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.6.1
+;; Old-Version: 2.6.1
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
@@ -35,16 +35,14 @@
 ;; working day), and `timeclock-when-to-leave' to calculate when you're free.
 
 ;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-x t is unused:
+;; keystrokes.  Assuming C-c t is unbound, you might use:
 ;;
-;;   (require 'timeclock)
-;;
-;;   (define-key ctl-x-map "ti" 'timeclock-in)
-;;   (define-key ctl-x-map "to" 'timeclock-out)
-;;   (define-key ctl-x-map "tc" 'timeclock-change)
-;;   (define-key ctl-x-map "tr" 'timeclock-reread-log)
-;;   (define-key ctl-x-map "tu" 'timeclock-update-mode-line)
-;;   (define-key ctl-x-map "tw" 'timeclock-when-to-leave-string)
+;;   (define-key (kbd "C-c t i") 'timeclock-in)
+;;   (define-key (kbd "C-c t o") 'timeclock-out)
+;;   (define-key (kbd "C-c t c") 'timeclock-change)
+;;   (define-key (kbd "C-c t r") 'timeclock-reread-log)
+;;   (define-key (kbd "C-c t u") 'timeclock-update-mode-line)
+;;   (define-key (kbd "C-c t w") 'timeclock-when-to-leave-string)
 
 ;; If you want Emacs to display the amount of time "left" to your
 ;; workday in the mode-line, you can either set the value of
@@ -71,8 +69,6 @@
 ;; your average working time, and will make sure that the various
 ;; display functions return the correct value.
 
-;;; History:
-
 ;;; Code:
 
 (require 'cl-lib)
@@ -90,7 +86,9 @@
 
 (defcustom timeclock-workday (* 8 60 60)
   "The length of a work period in seconds."
-  :type 'integer)
+  :type 'natnum)
+
+(defvar timeclock--previous-workday nil)
 
 (defcustom timeclock-relative t
   "Whether to make reported time relative to `timeclock-workday'.
@@ -138,9 +136,6 @@ This variable only has effect if set with \\[customize]."
 
 (defvar timeclock-update-timer nil
   "The timer used to update `timeclock-mode-string'.")
-
-(define-obsolete-variable-alias 'timeclock-modeline-display
-  'timeclock-mode-line-display "24.3")
 
 ;; For byte-compiler.
 (defvar display-time-hook)
@@ -261,9 +256,6 @@ The time is bracketed by <> if you are clocked in, otherwise by [].")
 
 ;;; User Functions:
 
-(define-obsolete-function-alias 'timeclock-modeline-display
-  'timeclock-mode-line-display "24.3")
-
 ;;;###autoload
 (define-minor-mode timeclock-mode-line-display
   "Toggle display of the amount of time left today in the mode line.
@@ -273,7 +265,10 @@ will be updated whenever the time display is updated.  Otherwise,
 the timeclock will use its own sixty second timer to do its
 updating.  With prefix ARG, turn mode line display on if and only
 if ARG is positive.  Returns the new status of timeclock mode line
-display (non-nil means on)."
+display (non-nil means on).
+
+If using a customized `timeclock-workday' value, this should be
+set before switching this mode on."
   :global t
   ;; cf display-time-mode.
   (setq timeclock-mode-string "")
@@ -555,7 +550,7 @@ relative only to the time worked today, and not to past time."
 OLD-DEFAULT hours are set for every day that has no number indicated."
   (interactive "P")
   (if old-default (setq old-default (prefix-numeric-value old-default))
-    (error "`timelog-make-hours-explicit' requires an explicit argument"))
+    (error "`timeclock-make-hours-explicit' requires an explicit argument"))
   (let ((extant-timelog (find-buffer-visiting timeclock-file))
 	current-date)
     (with-current-buffer (find-file-noselect timeclock-file t)
@@ -597,9 +592,9 @@ arguments of `completing-read'."
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
   (completing-read
-   (format "Clock into which project (default %s): "
-	   (or timeclock-last-project
-	       (car timeclock-project-list)))
+   (format-prompt "Clock into which project"
+	          (or timeclock-last-project
+	              (car timeclock-project-list)))
    timeclock-project-list
    nil nil nil nil
    (or timeclock-last-project
@@ -610,9 +605,6 @@ arguments of `completing-read'."
 (defun timeclock-ask-for-reason ()
   "Ask the user for the reason they are clocking out."
   (completing-read "Reason for clocking out: " timeclock-reason-list))
-
-(define-obsolete-function-alias 'timeclock-update-modeline
-  'timeclock-update-mode-line "24.3")
 
 (defun timeclock-update-mode-line ()
   "Update the `timeclock-mode-string' displayed in the mode line.
@@ -1062,7 +1054,9 @@ discrepancy, today's discrepancy, and the time worked today."
 	 (first t) (accum 0) (elapsed 0)
 	 event beg last-date
 	 last-date-limited last-date-seconds)
-    (unless timeclock-discrepancy
+    (when (or (not timeclock-discrepancy)
+              ;; The length of the workday has changed, so recompute.
+              (not (equal timeclock-workday timeclock--previous-workday)))
       (when (file-readable-p timeclock-file)
 	(setq timeclock-project-list nil
 	      timeclock-last-project nil
@@ -1118,7 +1112,8 @@ discrepancy, today's discrepancy, and the time worked today."
 		      last-date-seconds
 		    timeclock-workday))
 	    (forward-line))
-	  (setq timeclock-discrepancy accum))))
+	  (setq timeclock-discrepancy accum
+                timeclock--previous-workday timeclock-workday))))
     (unless timeclock-last-event-workday
       (setq timeclock-last-event-workday timeclock-workday))
     (setq accum (or timeclock-discrepancy 0)
@@ -1243,7 +1238,7 @@ HTML-P is non-nil, HTML markup is added."
 	       (time-out (vector (list t) (list t) (list t) (list t) (list t)))
 	       (breaks   (vector (list t) (list t) (list t) (list t) (list t)))
 	       (workday  (vector (list t) (list t) (list t) (list t) (list t)))
-	       (lengths  (vector '(0 0) thirty-days-ago three-months-ago
+	       (lengths  (vector 0 thirty-days-ago three-months-ago
 				 six-months-ago one-year-ago)))
 	  ;; collect statistics from complete timelog
 	  (dolist (day day-list)

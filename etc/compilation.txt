@@ -153,7 +153,7 @@ Failing Scenarios:
 cucumber foo/cucumber.feature:6 # Scenario: assertion false (Test::Unit)
 cucumber foo/cucumber.feature:9 # Scenario: assertion false (RSpec)
 cucumber foo/cucumber.feature:12 # Scenario: backtrace in step definition
-cucumber foo/cucumber.feature:15 # Scenario: deeep backtrace in step definition
+cucumber foo/cucumber.feature:15 # Scenario: deep backtrace in step definition
 
 5 scenarios (4 failed, 1 undefined)
 5 steps (4 failed, 1 undefined)
@@ -192,6 +192,15 @@ symbol: gradle-kotlin
 
 e: /src/Test.kt: (34, 15): foo: bar
 w: /src/Test.kt: (34, 15): foo: bar
+
+* Gradle Android resource linking
+
+symbol: gradle-android
+
+Execution failed for task ':app:processDebugResources'.
+> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
+   > Android resource linking failed
+     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension.
 
 
 * IAR Systems C Compiler
@@ -235,6 +244,20 @@ Register 6 contains wrong type
 ==1332== Invalid write of size 1
 ==1332==    at 0x4040743C: System::getErrorString() (../src/Lib/System.cpp:217)
 ==1332==    by 0x8008621: main (vtest.c:180)
+
+
+* javac Java compiler
+
+symbol: javac
+
+Should also work when compiling Java with Gradle.  We use the position
+of "^" in the third line as column number because no explicit value is
+present.
+
+Test.java:5: error: ';' expected
+        foo foo
+               ^
+1 error
 
 
 * IBM jikes
@@ -296,6 +319,9 @@ G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 {standard input}:27041: Warning: end of file not at end of a line; newline inserted
 boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contexts, use -ftemplate-backtrace-limit=0 to disable ]
+   |
+   |board.h:60:21:
+   |   60 | #define I(b, C) ((C).y * (b)->width + (C).x)
 
 
 * Guile backtrace, 2.0.11
@@ -367,6 +393,7 @@ made it more strict about the error message that follows.
 keyboard handler.c(537) : warning C4005: 'min' : macro redefinition
 d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
 d:\tmp\test.c(1145) : see declaration of 'nsRefPtr'
+c:\tmp\test.cpp(101,11): error C4101: 'bias0123': unreferenced local variable [c:\tmp\project.vcxproj]
 1>test_main.cpp(29): error C2144: syntax error : 'int' should be preceded by ';'
 1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
 1>
@@ -406,7 +433,7 @@ symbol: oracle
 
 This stupid precompiler wraps lines at column 80 in the middle of a file name.
 There is no obvious way of detecting this or turning it off.  But if you
-delete the newline (probably needs M-x toggle-read-only), the file name will
+delete the newline (probably needs M-x read-only-mode), the file name will
 automatically be reparsed, so that you can then go there.
 
 Semantic error at line 528, column 5, file erosacqdb.pc:
@@ -521,6 +548,14 @@ cc-1070 cc: WARNING File = linkl.c, Line = 38
 cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
 
 
+* ShellCheck
+
+In autogen.sh line 38:
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\[\([0-9\.]*\)]).*/\1/p' configure.ac`
+^----------^ SC2034: autoconf_min appears unused. Verify use (or export if used externally).
+             ^-- SC2006: Use $(...) notation instead of legacy backticked `...`.
+
+
 * Sun Ada (VADS, Solaris)
 
 symbol: sun-ada
@@ -604,6 +639,20 @@ symbol: weblint
 index.html (13:1) Unknown element <fdjsk>
 
 
+* Typescript prior to tsc version 2.7, "plain" format
+
+symbol: typescript-tsc-plain
+
+greeter.ts(30,12): error TS2339: Property 'foo' does not exist.
+
+
+* Typescript after tsc version 2.7, "pretty" format
+
+symbol: typescript-tsc-pretty
+
+src/resources/document.ts:140:22 - error TS2362: something.
+
+
 * Directory tracking
 
 Directories are matched via 'compilation-directory-matcher'.  Files which are
@@ -653,7 +702,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004-2020 Free Software Foundation, Inc.
+Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 
@@ -669,3 +718,11 @@ COPYING PERMISSIONS:
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+;;; Local Variables:
+;;; outline-regexp: "\\*\\_>"
+;;; outline-minor-mode-cycle: t
+;;; outline-minor-mode-highlight: t
+;;; eval: (outline-minor-mode 1)
+;;; End:

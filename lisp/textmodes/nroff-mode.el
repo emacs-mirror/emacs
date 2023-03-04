@@ -1,7 +1,6 @@
-;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
+;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2020 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp
@@ -43,41 +42,34 @@
 
 (defcustom nroff-electric-mode nil
   "Non-nil means automatically closing requests when you insert an open."
-  :group 'nroff
   :type 'boolean)
 
-(defvar nroff-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
-    (define-key map "\t"  'tab-to-tab-stop)
-    (define-key map "\e?" 'nroff-count-text-lines)
-    (define-key map "\n"  'nroff-electric-newline)
-    (define-key map "\en" 'nroff-forward-text-line)
-    (define-key map "\ep" 'nroff-backward-text-line)
-    (define-key map "\C-c\C-c" 'nroff-view)
-    (define-key map [menu-bar nroff-mode] (cons "Nroff" menu-map))
-    (define-key menu-map [nn]
-      '(menu-item "Newline" nroff-electric-newline
-		  :help "Insert newline for nroff mode; special if nroff-electric mode"))
-    (define-key menu-map [nc]
-      '(menu-item "Count text lines" nroff-count-text-lines
-		  :help "Count lines in region, except for nroff request lines."))
-    (define-key menu-map [nf]
-      '(menu-item "Forward text line" nroff-forward-text-line
-		  :help "Go forward one nroff text line, skipping lines of nroff requests"))
-    (define-key menu-map [nb]
-      '(menu-item "Backward text line" nroff-backward-text-line
-		  :help "Go backward one nroff text line, skipping lines of nroff requests"))
-    (define-key menu-map [ne]
-      '(menu-item "Electric newline mode"
-		  nroff-electric-mode
-		  :help "Auto insert closing requests if necessary"
-		  :button (:toggle . nroff-electric-mode)))
-    (define-key menu-map [npm]
-      '(menu-item "Preview as man page" nroff-view
-		  :help "Run man on this file."))
-    map)
-  "Major mode keymap for `nroff-mode'.")
+(defvar-keymap nroff-mode-map
+  :doc "Major mode keymap for `nroff-mode'."
+  "TAB"     #'tab-to-tab-stop
+  "M-?"     #'nroff-count-text-lines
+  "C-j"     #'nroff-electric-newline
+  "M-n"     #'nroff-forward-text-line
+  "M-p"     #'nroff-backward-text-line
+  "C-c C-c" #'nroff-view)
+
+(easy-menu-define nroff-mode-menu nroff-mode-map
+  "Menu for `nroff-mode'."
+  '("Nroff"
+    ["Preview as man page" nroff-view
+     :help "Run man on this file."]
+    ["Electric newline mode" nroff-electric-mode
+     :help "Auto insert closing requests if necessary"
+     :style toggle
+     :selected nroff-electric-mode]
+    ["Backward text line" nroff-backward-text-line
+     :help "Go backward one nroff text line, skipping lines of nroff requests"]
+    ["Forward text line" nroff-forward-text-line
+     :help "Go forward one nroff text line, skipping lines of nroff requests"]
+    ["Count text lines" nroff-count-text-lines
+     :help "Count lines in region, except for nroff request lines."]
+    ["Newline" nroff-electric-newline
+     :help "Insert newline for nroff mode; special if nroff-electric mode"]))
 
 (defvar nroff-mode-syntax-table
   (let ((st (copy-syntax-table text-mode-syntax-table)))
@@ -111,7 +103,7 @@
    ;; arguments in common cases, like \f.
    (concat "\\\\"		      ; backslash
 	 "\\("			      ; followed by various possibilities
-	 (mapconcat 'identity
+         (mapconcat #'identity
 		    '("[f*n]*\\[.+?]" ; some groff extensions
 		      "(.."	      ; two chars after (
 		      "[^(\"#]"	      ; single char escape
@@ -119,13 +111,11 @@
 	 "\\)")
    )
   "Font-lock highlighting control in `nroff-mode'."
-  :group 'nroff
   :type '(repeat regexp))
 
 (defcustom nroff-mode-hook nil
   "Hook run by function `nroff-mode'."
-  :type 'hook
-  :group 'nroff)
+  :type 'hook)
 
 ;;;###autoload
 (define-derived-mode nroff-mode text-mode "Nroff"
@@ -134,35 +124,32 @@
 Turning on Nroff mode runs `text-mode-hook', then `nroff-mode-hook'.
 Also, try `nroff-electric-mode', for automatically inserting
 closing requests for requests that are used in matched pairs."
-  (set (make-local-variable 'font-lock-defaults)
-       ;; SYNTAX-BEGIN is set to backward-paragraph to avoid slow-down
-       ;; near the end of large buffers due to searching to buffer's
-       ;; beginning.
-       '(nroff-font-lock-keywords nil t nil backward-paragraph))
-  (set (make-local-variable 'outline-regexp) "\\.H[ ]+[1-7]+ ")
-  (set (make-local-variable 'outline-level) 'nroff-outline-level)
+  (setq-local font-lock-defaults
+              ;; SYNTAX-BEGIN is set to backward-paragraph to avoid slow-down
+              ;; near the end of large buffers due to searching to buffer's
+              ;; beginning.
+              '(nroff-font-lock-keywords nil t nil backward-paragraph))
+  (setq-local outline-regexp "\\.H[ ]+[1-7]+ ")
+  (setq-local outline-level 'nroff-outline-level)
   ;; now define a bunch of variables for use by commands in this mode
-  (set (make-local-variable 'page-delimiter) "^\\.\\(bp\\|SK\\|OP\\)")
-  (set (make-local-variable 'paragraph-start)
-       (concat "[.']\\|" paragraph-start))
-  (set (make-local-variable 'paragraph-separate)
-       (concat "[.']\\|" paragraph-separate))
+  (setq-local page-delimiter "^\\.\\(bp\\|SK\\|OP\\)")
+  (setq-local paragraph-start (concat "[.']\\|" paragraph-start))
+  (setq-local paragraph-separate (concat "[.']\\|" paragraph-separate))
   ;; Don't auto-fill directive lines starting . or ' since they normally
   ;; have to be one line.  But do auto-fill comments .\" .\# and '''.
   ;; Comment directives (those starting . or ') are [.'][ \t]*\\[#"]
   ;; or ''', and this regexp is everything except those.  So [.']
   ;; followed by not backslash and not ' or followed by backslash but
   ;; then not # or "
-  (set (make-local-variable 'auto-fill-inhibit-regexp)
-       "[.'][ \t]*\\([^ \t\\']\\|\\\\[^#\"]\\)")
+  (setq-local auto-fill-inhibit-regexp
+              "[.'][ \t]*\\([^ \t\\']\\|\\\\[^#\"]\\)")
   ;; comment syntax added by mit-erl!gildea 18 Apr 86
-  (set (make-local-variable 'comment-start) "\\\" ")
-  (set (make-local-variable 'comment-start-skip) "\\\\[\"#][ \t]*")
-  (set (make-local-variable 'comment-column) 24)
-  (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent)
-  (set (make-local-variable 'comment-insert-comment-function)
-       'nroff-insert-comment-function)
-  (set (make-local-variable 'imenu-generic-expression) nroff-imenu-expression))
+  (setq-local comment-start "\\\" ")
+  (setq-local comment-start-skip "\\\\[\"#][ \t]*")
+  (setq-local comment-column 24)
+  (setq-local comment-indent-function #'nroff-comment-indent)
+  (setq-local comment-insert-comment-function #'nroff-insert-comment-function)
+  (setq-local imenu-generic-expression nroff-imenu-expression))
 
 (defun nroff-outline-level ()
   (save-excursion
@@ -170,8 +157,6 @@ closing requests for requests that are used in matched pairs."
     (skip-chars-forward ".H ")
     (string-to-number (buffer-substring (point) (+ 1 (point))))))
 
-;; Compute how much to indent a comment in nroff/troff source.
-;; By mit-erl!gildea April 86
 (defun nroff-comment-indent ()
   "Compute indent for an nroff/troff comment.
 Puts a full-stop before comments on a line by themselves."
@@ -322,7 +307,7 @@ otherwise off."
 	 (save-buffer))
     (if viewbuf
 	(kill-buffer viewbuf))
-    (Man-getpage-in-background file)))
+    (Man-getpage-in-background (shell-quote-argument file))))
 
 (provide 'nroff-mode)
 

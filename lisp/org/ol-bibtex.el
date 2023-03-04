@@ -1,6 +1,6 @@
 ;;; ol-bibtex.el --- Links to BibTeX entries        -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2023 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
@@ -88,14 +88,14 @@
 ;;
 ;; - All Bibtex information is taken from the document compiled by
 ;;   Andrew Roberts from the Bibtex manual, available at
-;;   http://www.andy-roberts.net/res/writing/latex/bibentries.pdf
+;;   https://www.andy-roberts.net/res/writing/latex/bibentries.pdf
 ;;
 ;;; History:
 ;;
 ;; The link creation part has been part of Org for a long time.
 ;;
 ;; Creating better capture template information was inspired by a request
-;; of Austin Frank: http://article.gmane.org/gmane.emacs.orgmode/4112
+;; of Austin Frank: https://orgmode.org/list/m0myu03vbx.fsf@gmail.com
 ;; and then implemented by Bastien Guerry.
 ;;
 ;; Eric Schulte eventually added the functions for translating between
@@ -107,6 +107,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'bibtex)
 (require 'cl-lib)
 (require 'org-compat)
@@ -115,7 +118,7 @@
 
 (defvar org-agenda-overriding-header)
 (defvar org-agenda-search-view-always-boolean)
-(defvar org-bibtex-description nil) ; dynamically scoped from org.el
+(defvar org-bibtex-description nil)
 (defvar org-id-locations)
 (defvar org-property-end-re)
 (defvar org-special-properties)
@@ -133,10 +136,12 @@
 (declare-function org-heading-components "org" ())
 (declare-function org-insert-heading "org" (&optional arg invisible-ok top))
 (declare-function org-map-entries "org" (func &optional match scope &rest skip))
-(declare-function org-narrow-to-subtree "org" ())
-(declare-function org-open-file "org" (path &optional in-emacs line search))
+(declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-set-property "org" (property value))
 (declare-function org-toggle-tag "org" (tag &optional onoff))
+(declare-function org-indent-region "org" (start end))
+
+(declare-function org-search-view "org-agenda" (&optional todo-only string edit-at))
 
 
 ;;; Bibtex data
@@ -144,59 +149,59 @@
   '((:article
      (:description . "An article from a journal or magazine")
      (:required :author :title :journal :year)
-     (:optional :volume :number :pages :month :note))
+     (:optional :volume :number :pages :month :note :doi))
     (:book
      (:description . "A book with an explicit publisher")
      (:required (:editor :author) :title :publisher :year)
-     (:optional (:volume :number) :series :address :edition :month :note))
+     (:optional (:volume :number) :series :address :edition :month :note :doi))
     (:booklet
      (:description . "A work that is printed and bound, but without a named publisher or sponsoring institution.")
      (:required :title)
-     (:optional :author :howpublished :address :month :year :note))
+     (:optional :author :howpublished :address :month :year :note :doi :url))
     (:conference
      (:description . "")
      (:required :author :title :booktitle :year)
-     (:optional :editor :pages :organization :publisher :address :month :note))
+     (:optional :editor :pages :organization :publisher :address :month :note :doi :url))
     (:inbook
      (:description . "A part of a book, which may be a chapter (or section or whatever) and/or a range of pages.")
      (:required (:author :editor) :title (:chapter :pages) :publisher :year)
-     (:optional :crossref (:volume :number) :series :type :address :edition :month :note))
+     (:optional :crossref (:volume :number) :series :type :address :edition :month :note :doi))
     (:incollection
      (:description . "A part of a book having its own title.")
      (:required :author :title :booktitle :publisher :year)
-     (:optional :crossref :editor (:volume :number) :series :type :chapter :pages :address :edition :month :note))
+     (:optional :crossref :editor (:volume :number) :series :type :chapter :pages :address :edition :month :note :doi))
     (:inproceedings
      (:description . "An article in a conference proceedings")
      (:required :author :title :booktitle :year)
-     (:optional :crossref :editor (:volume :number) :series :pages :address :month :organization :publisher :note))
+     (:optional :crossref :editor (:volume :number) :series :pages :address :month :organization :publisher :note :doi))
     (:manual
      (:description . "Technical documentation.")
      (:required :title)
-     (:optional :author :organization :address :edition :month :year :note))
+     (:optional :author :organization :address :edition :month :year :note :doi :url))
     (:mastersthesis
      (:description . "A Master’s thesis.")
      (:required :author :title :school :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:misc
      (:description . "Use this type when nothing else fits.")
      (:required)
-     (:optional :author :title :howpublished :month :year :note))
+     (:optional :author :title :howpublished :month :year :note :doi :url))
     (:phdthesis
      (:description . "A PhD thesis.")
      (:required :author :title :school :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:proceedings
      (:description . "The proceedings of a conference.")
      (:required :title :year)
-     (:optional :editor (:volume :number) :series :address :month :organization :publisher :note))
+     (:optional :editor (:volume :number) :series :address :month :organization :publisher :note :doi))
     (:techreport
      (:description . "A report published by a school or other institution.")
      (:required :author :title :institution :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:unpublished
      (:description . "A document having an author and title, but not formally published.")
      (:required :author :title :note)
-     (:optional :month :year)))
+     (:optional :month :year :doi :url)))
   "Bibtex entry types with required and optional parameters.")
 
 (defvar org-bibtex-fields
@@ -206,6 +211,7 @@
     (:booktitle    . "Title of a book, part of which is being cited.  See the LaTeX book for how to type titles.  For book entries, use the title field instead.")
     (:chapter      . "A chapter (or section or whatever) number.")
     (:crossref     . "The database key of the entry being cross referenced.")
+    (:doi          . "The digital object identifier.")
     (:edition      . "The edition of a book for example, 'Second'.  This should be an ordinal, and should have the first letter capitalized, as shown here; the standard styles convert to lower case when necessary.")
     (:editor       . "Name(s) of editor(s), typed as indicated in the LaTeX book.  If there is also an author field, then the editor field gives the editor of the book or collection in which the reference appears.")
     (:howpublished . "How something strange has been published.  The first word should be capitalized.")
@@ -222,12 +228,18 @@
     (:series       . "The name of a series or set of books.  When citing an entire book, the title field gives its title and an optional series field gives the name of a series or multi-volume set in which the book is published.")
     (:title        . "The work’s title, typed as explained in the LaTeX book.")
     (:type         . "The type of a technical report for example, 'Research Note'.")
+    (:url          . "Uniform resource locator.")
     (:volume       . "The volume of a journal or multi-volume book.")
     (:year         . "The year of publication or, for an unpublished work, the year it was written.  Generally it should consist of four numerals, such as 1984, although the standard styles can handle any year whose last four nonpunctuation characters are numerals, such as '(about 1984)'"))
   "Bibtex fields with descriptions.")
 
 (defvar org-bibtex-entries nil
   "List to hold parsed bibtex entries.")
+
+(defgroup org-bibtex nil
+  "Options for translating between Org headlines and BibTeX entries."
+  :tag "Org BibTeX"
+  :group 'org)
 
 (defcustom org-bibtex-autogen-keys nil
   "Set to a truth value to use `bibtex-generate-autokey' to generate keys."
@@ -318,7 +330,7 @@ is non-nil."
   "Controls whether inherited tags are converted to bibtex keywords.
 It is relevant only if `org-bibtex-tags-are-keywords' is non-nil.
 Tag inheritance itself is controlled by `org-use-tag-inheritance'
-and `org-exclude-tags-from-inheritance'."
+and `org-tags-exclude-from-inheritance'."
   :group 'org-bibtex
   :version "26.1"
   :package-version '(Org . "8.3")
@@ -341,14 +353,20 @@ and `org-exclude-tags-from-inheritance'."
                                               (upcase property)))))))
     (when it (org-trim it))))
 
-(defun org-bibtex-put (property value)
-  (let ((prop (upcase (if (keywordp property)
-                          (substring (symbol-name property) 1)
-                        property))))
-    (org-set-property
-     (concat (unless (string= org-bibtex-key-property prop) org-bibtex-prefix)
-	     prop)
-     value)))
+(defun org-bibtex-put (property value &optional insert-raw)
+  "Set PROPERTY of headline at point to VALUE.
+The PROPERTY will be prefixed with `org-bibtex-prefix' when necessary.
+With non-nil optional argument INSERT-RAW, insert node property string
+at point."
+  (let* ((prop (upcase (if (keywordp property)
+                           (substring (symbol-name property) 1)
+                         property)))
+         (prop (concat (unless (string= org-bibtex-key-property prop)
+                         org-bibtex-prefix)
+	               prop)))
+    (if insert-raw
+        (insert (format ":%s: %s\n" prop value))
+      (org-set-property prop value))))
 
 (defun org-bibtex-headline ()
   "Return a bibtex entry of the given headline as a string."
@@ -483,12 +501,11 @@ With optional argument OPTIONAL, also prompt for optional fields."
 			 :follow #'org-bibtex-open
 			 :store #'org-bibtex-store-link)
 
-(defun org-bibtex-open (path)
-  "Visit the bibliography entry on PATH."
-  (let* ((search (when (string-match "::\\(.+\\)\\'" path)
-		   (match-string 1 path)))
-	 (path (substring path 0 (match-beginning 0))))
-    (org-open-file path t nil search)))
+(defun org-bibtex-open (path arg)
+  "Visit the bibliography entry on PATH.
+ARG, when non-nil, is a universal prefix argument.  See
+`org-open-file' for details."
+  (org-link-open-as-file path arg))
 
 (defun org-bibtex-store-link ()
   "Store a link to a BibTeX entry."
@@ -507,6 +524,7 @@ With optional argument OPTIONAL, also prompt for optional fields."
       (org-link-store-props
        :key (cdr (assoc "=key=" entry))
        :author (or (cdr (assoc "author" entry)) "[no author]")
+       :doi (or (cdr (assoc "doi" entry)) "[no doi]")
        :editor (or (cdr (assoc "editor" entry)) "[no editor]")
        :title (or (cdr (assoc "title" entry)) "[no title]")
        :booktitle (or (cdr (assoc "booktitle" entry)) "[no booktitle]")
@@ -556,7 +574,8 @@ With optional argument OPTIONAL, also prompt for optional fields."
     ;; We construct a regexp that searches for "@entrytype{" followed by the key
     (goto-char (point-min))
     (and (re-search-forward (concat "@[a-zA-Z]+[ \t\n]*{[ \t\n]*"
-				    (regexp-quote s) "[ \t\n]*,") nil t)
+				    (regexp-quote s) "[ \t\n]*,")
+			    nil t)
 	 (goto-char (match-beginning 0)))
     (if (and (match-beginning 0) (equal current-prefix-arg '(16)))
 	;; Use double prefix to indicate that any web link should be browsed
@@ -596,7 +615,8 @@ Headlines are exported using `org-bibtex-headline'."
              (with-temp-file filename
                (insert (mapconcat #'identity bibtex-entries "\n")))
              (message "Successfully exported %d BibTeX entries to %s"
-                      (length bibtex-entries) filename) nil))))
+                      (length bibtex-entries) filename)
+	     nil))))
     (when error-point
       (goto-char error-point)
       (message "Bibtex error at %S" (nth 4 (org-heading-components))))))
@@ -650,18 +670,20 @@ With a prefix arg, query for optional fields."
 
 (defun org-bibtex-read ()
   "Read a bibtex entry and save to `org-bibtex-entries'.
-This uses `bibtex-parse-entry'."
+This uses `bibtex-parse-entry'.
+Return the new value of `org-bibtex-entries'."
   (interactive)
   (let ((keyword (lambda (str) (intern (concat ":" (downcase str)))))
 	(clean-space (lambda (str) (replace-regexp-in-string
-			       "[[:space:]\n\r]+" " " str)))
+			            "[[:space:]\n\r]+" " " str)))
 	(strip-delim
 	 (lambda (str)		     ; strip enclosing "..." and {...}
 	   (dolist (pair '((34 . 34) (123 . 125)))
 	     (when (and (> (length str) 1)
 			(= (aref str 0) (car pair))
 			(= (aref str (1- (length str))) (cdr pair)))
-	       (setf str (substring str 1 (1- (length str)))))) str)))
+	       (setf str (substring str 1 (1- (length str))))))
+	   str)))
     (push (mapcar
            (lambda (pair)
              (cons (let ((field (funcall keyword (car pair))))
@@ -671,7 +693,9 @@ This uses `bibtex-parse-entry'."
                        (_ field)))
                    (funcall clean-space (funcall strip-delim (cdr pair)))))
            (save-excursion (bibtex-beginning-of-entry) (bibtex-parse-entry)))
-          org-bibtex-entries)))
+          org-bibtex-entries)
+    (unless (car org-bibtex-entries) (pop org-bibtex-entries))
+    org-bibtex-entries))
 
 (defun org-bibtex-read-buffer (buffer)
   "Read all bibtex entries in BUFFER and save to `org-bibtex-entries'.
@@ -694,10 +718,12 @@ Return the number of saved entries."
   (interactive "fFile: ")
   (org-bibtex-read-buffer (find-file-noselect file 'nowarn 'rawfile)))
 
-(defun org-bibtex-write ()
-  "Insert a heading built from the first element of `org-bibtex-entries'."
+(defun org-bibtex-write (&optional noindent)
+  "Insert a heading built from the first element of `org-bibtex-entries'.
+When optional argument NOINDENT is non-nil, do not indent the properties
+drawer."
   (interactive)
-  (when (= (length org-bibtex-entries) 0)
+  (unless org-bibtex-entries
     (error "No entries in `org-bibtex-entries'"))
   (let* ((entry (pop org-bibtex-entries))
 	 (org-special-properties nil) ; avoids errors with `org-entry-put'
@@ -705,14 +731,16 @@ Return the number of saved entries."
 	 (togtag (lambda (tag) (org-toggle-tag tag 'on))))
     (org-insert-heading)
     (insert (funcall org-bibtex-headline-format-function entry))
-    (org-bibtex-put "TITLE" (funcall val :title))
+    (insert "\n:PROPERTIES:\n")
+    (org-bibtex-put "TITLE" (funcall val :title) 'insert)
     (org-bibtex-put org-bibtex-type-property-name
-		    (downcase (funcall val :type)))
+		    (downcase (funcall val :type))
+                    'insert)
     (dolist (pair entry)
       (pcase (car pair)
 	(:title    nil)
 	(:type     nil)
-	(:key      (org-bibtex-put org-bibtex-key-property (cdr pair)))
+	(:key      (org-bibtex-put org-bibtex-key-property (cdr pair) 'insert))
 	(:keywords (if org-bibtex-tags-are-keywords
 		       (dolist (kw (split-string (cdr pair) ", *"))
 			 (funcall
@@ -720,9 +748,14 @@ Return the number of saved entries."
 			  (replace-regexp-in-string
 			   "[^[:alnum:]_@#%]" ""
 			   (replace-regexp-in-string "[ \t]+" "_" kw))))
-		     (org-bibtex-put (car pair) (cdr pair))))
-	(_ (org-bibtex-put (car pair) (cdr pair)))))
-    (mapc togtag org-bibtex-tags)))
+		     (org-bibtex-put (car pair) (cdr pair) 'insert)))
+	(_ (org-bibtex-put (car pair) (cdr pair) 'insert))))
+    (insert ":END:\n")
+    (mapc togtag org-bibtex-tags)
+    (unless noindent
+      (org-indent-region
+       (save-excursion (org-back-to-heading t) (point))
+       (point)))))
 
 (defun org-bibtex-yank ()
   "If kill ring holds a bibtex entry yank it as an Org headline."
@@ -736,10 +769,12 @@ Return the number of saved entries."
 (defun org-bibtex-import-from-file (file)
   "Read bibtex entries from FILE and insert as Org headlines after point."
   (interactive "fFile: ")
-  (dotimes (_ (org-bibtex-read-file file))
-    (save-excursion (org-bibtex-write))
-    (re-search-forward org-property-end-re)
-    (open-line 1) (forward-char 1)))
+  (let ((pos (point)))
+    (dotimes (_ (org-bibtex-read-file file))
+      (save-excursion (org-bibtex-write 'noindent))
+      (re-search-forward org-property-end-re)
+      (insert "\n"))
+    (org-indent-region pos (point))))
 
 (defun org-bibtex-export-to-kill-ring ()
   "Export current headline to kill ring as bibtex entry."

@@ -1,23 +1,23 @@
 ;;;; testcases.el -- Test cases for testcover-tests.el
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software: you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation, either version 3 of the
-;; License, or (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -77,12 +77,12 @@
 "Testcover doesn't prevent testing of defcustom values."
 ;; ====
 (defgroup testcover-testcase nil
-  "Test case for testcover"
+  "Test case for testcover."
   :group 'lisp
   :prefix "testcover-testcase-"
   :version "26.0")
 (defcustom testcover-testcase-flag t
-  "Test value used by testcover-tests.el"
+  "Test value used by testcover-tests.el."
   :type 'boolean
   :group 'testcover-testcase)
 (defun testcover-testcase-get-flag ()
@@ -111,7 +111,7 @@
 "Wrapping a form with noreturn prevents splotching."
 ;; ====
 (defun testcover-testcase-cancel (spacecraft)
-  (error "no destination for %s" spacecraft))
+  (error "No destination for %s" spacecraft))
 (defun testcover-testcase-launch (spacecraft planet)
   (if (null planet)
       (noreturn (testcover-testcase-cancel spacecraft%%%))
@@ -220,7 +220,7 @@
 (defun testcover-testcase-cc (arg)
   (condition-case nil
       (if (null arg%%%)%%%
-        (error "foo")
+        (error "Foo")
         "0")!!!
         (error nil)))
 (should-not (testcover-testcase-cc nil))
@@ -424,7 +424,7 @@
 (defmacro testcover-testcase-nth-case (arg vec)
   (declare (indent 1)
            (debug (form (vector &rest form))))
-  `(eval (aref ,vec%%% ,arg%%%))%%%)
+  `(eval (aref ,vec%%% ,arg%%%) t)%%%)
 
 (defun testcover-testcase-use-nth-case (choice val)
   (testcover-testcase-nth-case choice
@@ -510,4 +510,4 @@ regarding the odd-looking coverage result for the quoted form."
 (testcover-testcase-cyc2 1 2)
 (testcover-testcase-cyc2 1 4)
 
-;; testcases.el ends here.
+;;; testcases.el ends here

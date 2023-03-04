@@ -1,6 +1,6 @@
 ;;; iso8601-tests.el --- tests for calendar/iso8601.el    -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -82,9 +82,9 @@
   (should (equal (iso8601-parse "2008-03-02T13:47:30Z")
                  '(30 47 13 2 3 2008 nil nil 0)))
   (should (equal (iso8601-parse "2008-03-02T13:47:30+01:00")
-                 '(30 47 13 2 3 2008 nil nil 3600)))
+                 '(30 47 13 2 3 2008 nil -1 3600)))
   (should (equal (iso8601-parse "2008-03-02T13:47:30-01")
-                 '(30 47 13 2 3 2008 nil nil -3600))))
+                 '(30 47 13 2 3 2008 nil -1 -3600))))
 
 (ert-deftest test-iso8601-duration ()
   (should (equal (iso8601-parse-duration "P3Y6M4DT12H30M5S")
@@ -183,7 +183,15 @@
   (should (equal (iso8601-parse-time "15:27:35.123" t)
 		  '((35123 . 1000) 27 15 nil nil nil nil -1 nil)))
   (should (equal (iso8601-parse-time "15:27:35.123456789" t)
-		  '((35123456789 . 1000000000) 27 15 nil nil nil nil -1 nil))))
+		 '((35123456789 . 1000000000) 27 15 nil nil nil nil -1 nil)))
+  (should (equal (iso8601-parse-time "15:27:35.012345678" t)
+		 '((35012345678 . 1000000000) 27 15 nil nil nil nil -1 nil)))
+  (should (equal (iso8601-parse-time "15:27:35.00001" t)
+                 '((3500001 . 100000) 27 15 nil nil nil nil -1 nil)))
+  (should (equal (iso8601-parse-time "15:27:35.0000100" t)
+                 '((3500001 . 100000) 27 15 nil nil nil nil -1 nil)))
+  (should (equal (iso8601-parse-time "15:27:35.0" t)
+                 '(35 27 15 nil nil nil nil -1 nil))))
 
 (ert-deftest standard-test-time-of-day-beginning-of-day ()
   (should (equal (iso8601-parse-time "000000")
@@ -213,24 +221,55 @@
 
 (ert-deftest standard-test-time-of-day-zone ()
   (should (equal (iso8601-parse-time "152746+0100")
-                 '(46 27 15 nil nil nil nil nil 3600)))
+                 '(46 27 15 nil nil nil nil -1 3600)))
   (should (equal (iso8601-parse-time "15:27:46+0100")
-                 '(46 27 15 nil nil nil nil nil 3600)))
+                 '(46 27 15 nil nil nil nil -1 3600)))
 
   (should (equal (iso8601-parse-time "152746+01")
-                 '(46 27 15 nil nil nil nil nil 3600)))
+                 '(46 27 15 nil nil nil nil -1 3600)))
   (should (equal (iso8601-parse-time "15:27:46+01")
-                 '(46 27 15 nil nil nil nil nil 3600)))
+                 '(46 27 15 nil nil nil nil -1 3600)))
 
   (should (equal (iso8601-parse-time "152746-0500")
-                 '(46 27 15 nil nil nil nil nil -18000)))
+                 '(46 27 15 nil nil nil nil -1 -18000)))
   (should (equal (iso8601-parse-time "15:27:46-0500")
-                 '(46 27 15 nil nil nil nil nil -18000)))
+                 '(46 27 15 nil nil nil nil -1 -18000)))
 
   (should (equal (iso8601-parse-time "152746-05")
-                 '(46 27 15 nil nil nil nil nil -18000)))
+                 '(46 27 15 nil nil nil nil -1 -18000)))
   (should (equal (iso8601-parse-time "15:27:46-05")
-                 '(46 27 15 nil nil nil nil nil -18000))))
+                 '(46 27 15 nil nil nil nil -1 -18000))))
+
+
+(defun test-iso8601-format-time-string-zone-round-trip (offset-minutes z-format)
+  "Pass OFFSET-MINUTES to format-time-string with Z-FORMAT, a %z variation,
+and then to iso8601-parse-zone.  The result should be the original offset."
+  (let* ((offset-seconds (* 60 offset-minutes))
+         (zone-string (format-time-string z-format 0 offset-seconds))
+         (offset-rt
+          (condition-case nil
+              (iso8601-parse-zone zone-string)
+            (wrong-type-argument (format "(failed to parse %S)" zone-string))))
+         ;; compare strings that contain enough info to debug failures
+         (success (format "%s(%s) -> %S -> %s"
+                          z-format offset-minutes zone-string offset-minutes))
+         (actual (format "%s(%s) -> %S -> %s"
+                         z-format offset-minutes zone-string offset-rt)))
+    (should (equal success actual))))
+
+(ert-deftest iso8601-format-time-string-zone-round-trip ()
+  "Round trip zone offsets through format-time-string and iso8601-parse-zone.
+Passing a time zone created by format-time-string %z to
+iso8601-parse-zone should yield the original offset."
+  (dolist (offset-minutes
+           (list
+            ;; compare hours (1- and 2-digit), minutes, both, neither
+            (* 5 60) (* 11 60) 5 11 (+ (* 5 60) 30) (+ (* 11 60) 30) 0
+            ;; do negative values, too
+            (* -5 60) (* -11 60) -5 -11 (- (* -5 60) 30) (- (* -11 60) 30)))
+    (dolist (z-format '("%z" "%:z" "%:::z"))
+      (test-iso8601-format-time-string-zone-round-trip
+       offset-minutes z-format))))
 
 (ert-deftest standard-test-date-and-time-of-day ()
   (should (equal (iso8601-parse "19850412T101530")

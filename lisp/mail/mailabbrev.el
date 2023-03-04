@@ -1,6 +1,6 @@
-;;; mailabbrev.el --- abbrev-expansion of mail aliases
+;;; mailabbrev.el --- abbrev-expansion of mail aliases  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2020 Free
+;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2023 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
@@ -76,10 +76,10 @@
 ;; should make sure your version does before including verbose addresses like
 ;; this.  One solution to this, if you are on a system whose /bin/mail doesn't
 ;; work that way, (and you still want to be able to /bin/mail to send mail in
-;; addition to emacs) is to define minimal aliases (without full names) in
+;; addition to Emacs) is to define minimal aliases (without full names) in
 ;; your .mailrc file, and use define-mail-abbrev to redefine them when sending
-;; mail from emacs; this way, mail sent from /bin/mail will work, and mail
-;; sent from emacs will be pretty.
+;; mail from Emacs; this way, mail sent from /bin/mail will work, and mail
+;; sent from Emacs will be pretty.
 ;;
 ;; Aliases in the mailrc file may be nested.  If you define aliases like
 ;;     alias group1 fred ethel
@@ -98,7 +98,7 @@
 ;; normally cannot contain hyphens, but this code works around that for the
 ;; specific case of mail-alias word-abbrevs.
 ;;
-;; To read in the contents of another .mailrc-type file from emacs, use the
+;; To read in the contents of another .mailrc-type file from Emacs, use the
 ;; command Meta-X merge-mail-abbrevs.  The rebuild-mail-abbrevs command is
 ;; similar, but will delete existing aliases first.
 ;;
@@ -140,15 +140,13 @@ abbrev-like expansion is performed when editing certain mail
 headers (those specified by `mail-abbrev-mode-regexp'), based on
 the entries in your `mail-personal-alias-file'."
   :global t
-  :group 'mail-abbrev
   :version "20.3"
   (if mail-abbrevs-mode (mail-abbrevs-enable) (mail-abbrevs-disable)))
 
 (defcustom mail-abbrevs-only nil
   "Non-nil means only mail abbrevs should expand automatically.
 Other abbrevs expand only when you explicitly use `expand-abbrev'."
-  :type 'boolean
-  :group 'mail-abbrev)
+  :type 'boolean)
 
 ;; originally defined in sendmail.el - used to be an alist, now is a table.
 (defvar mail-abbrevs nil
@@ -165,7 +163,7 @@ no aliases, which is represented by this being a table with no entries.)")
     (if (file-exists-p mail-personal-alias-file)
 	(let ((modtime (file-attribute-modification-time
 			(file-attributes mail-personal-alias-file))))
-	  (if (not (equal mail-abbrev-modtime modtime))
+	  (if (not (time-equal-p mail-abbrev-modtime modtime))
 	      (progn
 		(setq mail-abbrev-modtime modtime)
 		(build-mail-abbrevs)))))))
@@ -186,11 +184,11 @@ no aliases, which is represented by this being a table with no entries.)")
   (abbrev-mode 1))
 
 (defun mail-abbrevs-enable ()
-  (add-hook 'mail-mode-hook 'mail-abbrevs-setup))
+  (add-hook 'mail-mode-hook #'mail-abbrevs-setup))
 
 (defun mail-abbrevs-disable ()
   "Turn off use of the `mailabbrev' package."
-  (remove-hook 'mail-mode-hook 'mail-abbrevs-setup)
+  (remove-hook 'mail-mode-hook #'mail-abbrevs-setup)
   (abbrev-mode (if (default-value 'abbrev-mode) 1 -1)))
 
 ;;;###autoload
@@ -258,8 +256,7 @@ By default this is the file specified by `mail-personal-alias-file'."
   "String inserted between addresses in multi-address mail aliases.
 This has to contain a comma, so \", \" is a reasonable value.  You might
 also want something like \",\\n    \" to get each address on its own line."
-  :type 'string
-  :group 'mail-abbrev)
+  :type 'string)
 
 ;; define-mail-abbrev sets this flag, which causes mail-resolve-all-aliases
 ;; to be called before expanding abbrevs if it's necessary.
@@ -366,8 +363,8 @@ double-quotes."
 
 (defun mail-resolve-all-aliases-1 (sym &optional so-far)
   (if (memq sym so-far)
-      (error "mail alias loop detected: %s"
-	     (mapconcat 'symbol-name (cons sym so-far) " <- ")))
+      (error "Mail alias loop detected: %s"
+	     (mapconcat #'symbol-name (cons sym so-far) " <- ")))
   (let ((definition (and (boundp sym) (symbol-value sym))))
     (if definition
 	(let ((result '())
@@ -377,11 +374,11 @@ double-quotes."
 	      (setq result (cons (substring definition start end) result)
 		    start (and end (match-end 0)))))
 	  (setq definition
-		(mapconcat (function (lambda (x)
+                (mapconcat (lambda (x)
 			     (or (mail-resolve-all-aliases-1
-				   (intern-soft (downcase x) mail-abbrevs)
-				   (cons sym so-far))
-				 x)))
+                                  (intern-soft (downcase x) mail-abbrevs)
+                                  (cons sym so-far))
+                                 x))
 			   (nreverse result)
 			   mail-alias-separator-string))
 	  (set sym definition))))
@@ -391,13 +388,13 @@ double-quotes."
 (defun mail-abbrev-expand-hook ()
   "For use as the fourth arg to `define-abbrev'.
 After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
-fill-column, break the line at the previous comma, and indent the next line
+`fill-column', break the line at the previous comma, and indent the next line
 with a space."
   (when auto-fill-function
     (let (p)
       (save-excursion
 	(while (>= (current-column) fill-column)
-	  (while (and (search-backward "," (point-at-bol) 'move)
+          (while (and (search-backward "," (line-beginning-position) 'move)
 		      (>= (current-column) (1- fill-column))
 		      (setq p (point))))
 	  (when (or (not (bolp))
@@ -420,8 +417,7 @@ of the current line; if it matches, abbrev mode will be turned on, otherwise
 it will be turned off.  (You don't need to worry about continuation lines.)
 This should be set to match those mail fields in which you want abbreviations
 turned on."
-  :type 'regexp
-  :group 'mail-abbrev)
+  :type 'regexp)
 
 (defvar mail-abbrev-syntax-table nil
   "The syntax-table used for abbrev-expansion purposes.
@@ -433,15 +429,15 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
   (make-local-variable 'mail-abbrev-syntax-table)
   (unless mail-abbrev-syntax-table
     (let ((tab (copy-syntax-table (syntax-table)))
-	  (_ (aref (standard-syntax-table) ?_))
+	  (syntax-_ (aref (standard-syntax-table) ?_))
 	  (w (aref (standard-syntax-table) ?w)))
       (map-char-table
-       (function (lambda (key value)
-		   (if (null value)
-		       ;; Fetch the inherited value
-		       (setq value (aref tab key)))
-		   (if (equal value _)
-		       (set-char-table-range tab key w))))
+       (lambda (key value)
+         (if (null value)
+             ;; Fetch the inherited value
+             (setq value (aref tab key)))
+         (if (equal value syntax-_)
+             (set-char-table-range tab key w)))
        tab)
       (modify-syntax-entry ?@ "w" tab)
       (modify-syntax-entry ?% "w" tab)
@@ -534,8 +530,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		   (format "Read additional aliases from file (default %s): "
-			    def)
+		   (format-prompt "Read additional aliases from file" def)
 		    default-directory
 		    (expand-file-name def default-directory)
 		    t))))
@@ -548,7 +543,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		      (default-directory (expand-file-name "~/"))
 		      (def mail-personal-alias-file))
 		  (read-file-name
-		   (format "Read mail aliases from file (default %s): " def)
+		   (format-prompt "Read mail aliases from file" def)
 		   default-directory
 		   (expand-file-name def default-directory)
 		   t))))
@@ -601,12 +596,12 @@ In other respects, this behaves like `end-of-buffer', which see."
 
 (eval-after-load "sendmail"
   '(progn
-     (define-key mail-mode-map "\C-c\C-a" 'mail-abbrev-insert-alias)
+     (define-key mail-mode-map "\C-c\C-a" #'mail-abbrev-insert-alias)
      (define-key mail-mode-map "\e\t"	; like completion-at-point
-       'mail-abbrev-complete-alias)))
+       #'mail-abbrev-complete-alias))) ;; FIXME: Use `completion-at-point'.
 
-;;(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
-;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
+;;(define-key mail-mode-map "\C-n" #'mail-abbrev-next-line)
+;;(define-key mail-mode-map "\M->" #'mail-abbrev-end-of-buffer)
 
 (provide 'mailabbrev)
 

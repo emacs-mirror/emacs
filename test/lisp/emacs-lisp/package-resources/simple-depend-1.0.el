@@ -1,4 +1,4 @@
-;;; simple-depend.el --- A single-file package with a dependency.
+;;; simple-depend.el --- A single-file package with a dependency.  -*- lexical-binding:t -*-
 
 ;; Author: J. R. Hacker <jrh@example.com>
 ;; Version: 1.0
@@ -12,6 +12,6 @@
 ;;; Code:
 
 (defvar simple-depend "Value"
-  "Some trivial code")
+  "Some trivial code.")
 
 ;;; simple-depend.el ends here

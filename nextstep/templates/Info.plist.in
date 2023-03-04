@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (C) 2008-2020 Free Software Foundation, Inc.
+Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -555,7 +555,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 			<key>UTTypeIdentifier</key>
 			<string>org.orgmode.org</string>
 			<key>UTTypeReferenceURL</key>
-			<string>http://orgmode.org</string>
+			<string>https://orgmode.org</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -675,8 +675,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	</array>
 	<key>NSAppleScriptEnabled</key>
 	<string>YES</string>
-        <key>NSAppleEventsUsageDescription</key>
-        <string>Emacs requires permission to send AppleEvents to other applications.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Emacs requires permission to send AppleEvents to other applications.</string>
+	<!-- For xwidget webkit to browse remote url,
+	     but this set no restriction at all.  Consult apple's documentation
+	     for detail information about `NSApplicationDefinedMask'. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
         <key>NSDesktopFolderUsageDescription</key>
         <string>Emacs requires permission to access the Desktop folder.</string>
         <key>NSDocumentsFolderUsageDescription</key>

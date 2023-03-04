@@ -1,5 +1,5 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -133,7 +133,7 @@ compare_font_names (const void *name1, const void *name2)
 
 /* Decode XLFD as iso-8859-1 into OUTPUT, and return the byte length
    of the decoding result.  LEN is the byte length of XLFD, or -1 if
-   XLFD is NUL terminated.  The caller must assure that OUTPUT is at
+   XLFD is NULL terminated.  The caller must assure that OUTPUT is at
    least twice (plus 1) as large as XLFD.  */
 
 static ptrdiff_t
@@ -166,7 +166,7 @@ xfont_encode_coding_xlfd (char *xlfd)
 
   while (*p0)
     {
-      int c = STRING_CHAR_ADVANCE (p0);
+      int c = string_char_advance (&p0);
 
       if (c >= 0x100)
 	return -1;
@@ -253,9 +253,9 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
 
   /* Two special cases to avoid opening rather big fonts.  */
   if (EQ (AREF (props, 2), Qja))
-    return list2 (intern ("kana"), intern ("han"));
+    return list2 (Qkana, Qhan);
   if (EQ (AREF (props, 2), Qko))
-    return list1 (intern ("hangul"));
+    return list1 (Qhangul);
   scripts = Fgethash (props, xfont_scripts_cache, Qt);
   if (EQ (scripts, Qt))
     {
@@ -295,7 +295,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 {
   Lisp_Object list = Qnil;
   Lisp_Object chars = Qnil;
-  struct charset *encoding, *repertory = NULL;
+  struct charset *encoding = NULL, *repertory = NULL;
   int i, limit, num_fonts;
   char **names;
   /* Large enough to decode the longest XLFD (255 bytes). */
@@ -596,7 +596,10 @@ xfont_list_family (struct frame *f)
   char **names;
   int num_fonts, i;
   Lisp_Object list;
-  char *last_family UNINIT;
+  char const *last_family;
+#if defined GCC_LINT || defined lint
+  last_family = "";
+#endif
   int last_len;
 
   block_input ();
@@ -1000,6 +1003,32 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       unblock_input ();
     }
 
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+  if (with_background
+      && FRAME_DISPLAY_INFO (s->f)->alpha_bits
+      && FRAME_CHECK_XR_VERSION (s->f, 0, 2))
+    {
+      x_xr_ensure_picture (s->f);
+
+      if (FRAME_X_PICTURE (s->f) != None)
+	{
+	  XRenderColor xc;
+	  int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
+
+	  x_xr_apply_ext_clip (s->f, gc);
+	  x_xrender_color_from_gc_background (s->f, gc, &xc,
+					      s->hl != DRAW_CURSOR);
+	  XRenderFillRectangle (FRAME_X_DISPLAY (s->f),
+				PictOpSrc, FRAME_X_PICTURE (s->f),
+				&xc, x, y - ascent, s->width, height);
+	  x_xr_reset_ext_clip (s->f);
+	  x_mark_frame_dirty (s->f);
+
+	  with_background = false;
+	}
+    }
+#endif
+
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {
       USE_SAFE_ALLOCA;
@@ -1101,19 +1130,19 @@ static void syms_of_xfont_for_pdumper (void);
 
 struct font_driver const xfont_driver =
   {
-  .type = LISPSYM_INITIALLY (Qx),
-  .get_cache = xfont_get_cache,
-  .list = xfont_list,
-  .match = xfont_match,
-  .list_family = xfont_list_family,
-  .open_font = xfont_open,
-  .close_font = xfont_close,
-  .prepare_face = xfont_prepare_face,
-  .has_char = xfont_has_char,
-  .encode_char = xfont_encode_char,
-  .text_extents = xfont_text_extents,
-  .draw = xfont_draw,
-  .check = xfont_check,
+    .type = LISPSYM_INITIALLY (Qx),
+    .get_cache = xfont_get_cache,
+    .list = xfont_list,
+    .match = xfont_match,
+    .list_family = xfont_list_family,
+    .open_font = xfont_open,
+    .close_font = xfont_close,
+    .prepare_face = xfont_prepare_face,
+    .has_char = xfont_has_char,
+    .encode_char = xfont_encode_char,
+    .text_extents = xfont_text_extents,
+    .draw = xfont_draw,
+    .check = xfont_check,
   };
 
 void
@@ -1124,6 +1153,10 @@ syms_of_xfont (void)
   staticpro (&xfont_scratch_props);
   xfont_scratch_props = make_nil_vector (8);
   pdumper_do_now_and_after_load (syms_of_xfont_for_pdumper);
+
+  DEFSYM (Qkana, "kana");
+  DEFSYM (Qhan, "han");
+  DEFSYM (Qhangul, "hangul");
 }
 
 static void

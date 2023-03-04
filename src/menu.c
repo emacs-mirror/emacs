@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2020 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "coding.h"
+#include "dispextern.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
@@ -31,10 +32,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "blockinput.h"
 #include "buffer.h"
-
-#ifdef USE_X_TOOLKIT
-#include "../lwlib/lwlib.h"
-#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -50,7 +47,8 @@ extern AppendMenuW_Proc unicode_append_menu;
 static bool
 have_boxes (void)
 {
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) || defined(HAVE_NS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) || defined (HAVE_NS) \
+  || defined (HAVE_HAIKU)
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame)))
     return 1;
 #endif
@@ -422,7 +420,8 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  AREF (item_properties, ITEM_PROPERTY_SELECTED),
 		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) \
+  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
   /* Display a submenu using the toolkit.  */
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
       && ! (NILP (map) || NILP (enabled)))
@@ -872,6 +871,10 @@ update_submenu_strings (widget_value *first_wv)
     }
 }
 
+#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI */
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) \
+  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
+
 /* Find the menu selection and store it in the keyboard buffer.
    F is the frame the menu is on.
    MENU_BAR_ITEMS_USED is the length of VECTOR.
@@ -959,7 +962,7 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
   SAFE_FREE ();
 }
 
-#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI */
+#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || HAVE_NTGUI || HAVE_HAIKU */
 
 #ifdef HAVE_NS
 /* As above, but return the menu selection instead of storing in kb buffer.
@@ -1036,9 +1039,7 @@ menu_item_width (const unsigned char *str)
 
   for (len = 0, p = str; *p; )
     {
-      int ch_len;
-      int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
-
+      int ch_len, ch = string_char_and_length (p, &ch_len);
       len += CHARACTER_WIDTH (ch);
       p += ch_len;
     }
@@ -1109,15 +1110,15 @@ into menu items.  */)
 Lisp_Object
 x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
-  Lisp_Object keymap, tem, tem2;
+  Lisp_Object keymap, tem, tem2 = Qnil;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
   const char *error_name = NULL;
   Lisp_Object selection = Qnil;
-  struct frame *f = NULL;
+  struct frame *f;
   Lisp_Object x, y, window;
   int menuflags = 0;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   if (NILP (position))
     /* This is an obsolete call, which wants us to precompute the
@@ -1129,9 +1130,12 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)
-	|| (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-				 || EQ (XCAR (position), Qtab_bar)
-				 || EQ (XCAR (position), Qtool_bar))))
+	|| (CONSP (position)
+	    && (EQ (XCAR (position), Qmenu_bar)
+		|| EQ (XCAR (position), Qtab_bar)
+		|| (CONSP (XCDR (position))
+		    && EQ (XCAR (XCDR (position)), Qtab_bar))
+		|| EQ (XCAR (position), Qtool_bar))))
       {
 	get_current_pos_p = 1;
       }
@@ -1245,26 +1249,37 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	CHECK_LIVE_WINDOW (window);
 	f = XFRAME (WINDOW_FRAME (win));
 
-	xpos = WINDOW_LEFT_EDGE_X (win);
-	ypos = WINDOW_TOP_EDGE_Y (win);
+	if (FIXNUMP (tem2))
+	  {
+	    /* Clicks in the text area, where TEM2 is a buffer
+	       position, are relative to the top-left edge of the text
+	       area, see keyboard.c:make_lispy_position.  */
+	    xpos = window_box_left (win, TEXT_AREA);
+	    ypos = (WINDOW_TOP_EDGE_Y (win)
+		    + WINDOW_TAB_LINE_HEIGHT (win)
+		    + WINDOW_HEADER_LINE_HEIGHT (win));
+	  }
+	else
+	  {
+	    xpos = WINDOW_LEFT_EDGE_X (win);
+	    ypos = WINDOW_TOP_EDGE_Y (win);
+	  }
       }
     else
-      /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+      /* ??? Not really clean; should be Qwindow_or_framep
 	 but I don't want to make one now.  */
-      CHECK_WINDOW (window);
+      wrong_type_argument (Qwindowp, window);
 
-    CHECK_RANGED_INTEGER (x,
-			  (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - xpos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - xpos);
-    CHECK_RANGED_INTEGER (y,
-			  (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
-			   ? (EMACS_INT) INT_MIN - ypos
-			   : MOST_NEGATIVE_FIXNUM),
-			  INT_MAX - ypos);
-    xpos += XFIXNUM (x);
-    ypos += XFIXNUM (y);
+    xpos += check_integer_range (x,
+				 (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - xpos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - xpos);
+    ypos += check_integer_range (y,
+				 (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
+				  ? (EMACS_INT) INT_MIN - ypos
+				  : MOST_NEGATIVE_FIXNUM),
+				 INT_MAX - ypos);
 
     XSETFRAME (Vmenu_updating_frame, f);
   }
@@ -1288,12 +1303,16 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
       prompt = Fkeymap_prompt (keymap);
+
+#if defined (USE_GTK) || defined (HAVE_NS)
+      if (STRINGP (prompt)
+	  && SCHARS (prompt) > 0
+	  && !NILP (Fget_text_property (make_fixnum (0), Qhide, prompt)))
+	title = Qnil;
+      else
+#endif
       if (!NILP (prompt))
 	title = prompt;
-#ifdef HAVE_NS		/* Is that needed and NS-specific?  --Stef  */
-      else
-	title = build_string ("Select");
-#endif
 
       /* Make that be the pane title of the first pane.  */
       if (!NILP (prompt) && menu_items_n_panes >= 0)
@@ -1369,8 +1388,19 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     }
 #endif
 
-#ifdef HAVE_NS			/* FIXME: ns-specific, why? --Stef  */
   record_unwind_protect_void (discard_menu_items);
+
+  run_hook (Qx_pre_popup_menu_hook);
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Cancel the hourglass timer.  Depending on how the show_menu_hook
+     is implemented, the hourglass window can either be mapped (or on
+     non-X systems, the hourglass cursor can be defined) either while
+     the menu is active, or while it is deactivated.  Both situations
+     lead to annoying cursor and/or screen flicker and a failure to
+     detect input immediately after a popup menu generated by Custom
+     is unmapped.  */
+  cancel_hourglass ();
 #endif
 
   /* Display them in a menu, but not if F is the initial frame that
@@ -1380,13 +1410,13 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
 						    title, &error_name);
 
-#ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);
-#else
-  discard_menu_items ();
-#endif
 
-#ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
+#ifdef HAVE_NTGUI     /* W32 specific because other terminals clear
+			 the grab inside their `menu_show_hook's if
+			 it's actually required (i.e. there isn't a
+			 way to query the buttons currently held down
+			 after XMenuActivate). */
   if (FRAME_W32_P (f))
     FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
@@ -1578,6 +1608,16 @@ syms_of_menu (void)
 {
   menu_items = Qnil;
   staticpro (&menu_items);
+
+  DEFSYM (Qhide, "hide");
+  DEFSYM (Qx_pre_popup_menu_hook, "x-pre-popup-menu-hook");
+
+  DEFVAR_LISP ("x-pre-popup-menu-hook", Vx_pre_popup_menu_hook,
+	       doc: /* Hook run before `x-popup-menu' displays a popup menu.
+It is only run before the menu is really going to be displayed.  It
+won't be run if `x-popup-menu' fails or returns for some other reason
+(such as the keymap is invalid).  */);
+  Vx_pre_popup_menu_hook = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);

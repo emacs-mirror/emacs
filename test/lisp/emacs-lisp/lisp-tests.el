@@ -1,12 +1,14 @@
 ;;; lisp-tests.el --- Test Lisp editing commands     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2023 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Author: Marcin Borkowski <mbork@mbork.pl>
 ;; Keywords: internal
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -136,8 +138,7 @@
     (text-mode)
     (insert "\"foo\"")
     (goto-char (point-min))
-    (delete-pair)
-    (should (string-equal "fo\"" (buffer-string)))))
+    (should-error (delete-pair))))
 
 (ert-deftest lisp-delete-pair-quotes-text-mode-syntax-table ()
   "Test \\[delete-pair] with modified Text Mode syntax for #15014."
@@ -212,6 +213,7 @@
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
 
 ;; Test some core Elisp rules.
+(defvar c-e-x)
 (ert-deftest core-elisp-tests-1-defvar-in-let ()
   "Test some core Elisp rules."
   (with-temp-buffer
@@ -234,7 +236,7 @@
     (should (or (not mark-active) (mark)))))
 
 (ert-deftest core-elisp-tests-3-backquote ()
-  (should (eq 3 (eval ``,,'(+ 1 2)))))
+  (should (eq 3 (eval ``,,'(+ 1 2) t))))
 
 ;; Test up-list and backward-up-list.
 (defun lisp-run-up-list-test (fn data start instructions)
@@ -296,7 +298,7 @@
   (lambda () (up-list 1 t t))
   (or "(1 '2 ( 2' 1 '2 ) 2' 1)")
   ;;   abcdefghijklmnopqrstuvwxy
-  i k x scan-error)
+  i k x user-error)
 
 (define-lisp-up-list-test backward-up-list-basic
   (lambda () (backward-up-list))
@@ -323,7 +325,7 @@ start."
   (declare (indent 1) (debug (def-form body)))
   (let* ((var-pos nil)
          (text (with-temp-buffer
-                 (insert (eval contents))
+                 (insert (eval contents t))
                  (goto-char (point-min))
                  (while (re-search-forward elisp-test-point-position-regex nil t)
                    (push (list (intern (match-string-no-properties 1))
@@ -366,6 +368,61 @@ start."
 ;; end
 "
     "Test buffer for `mark-defun'."))
+
+;;; end-of-defun
+
+(ert-deftest end-of-defun-twice ()
+  "Test behavior of prefix arg for `end-of-defun' (Bug#24427).
+Calling `end-of-defun' twice should be the same as a prefix arg
+of two."
+  (setq last-command nil)
+  (cl-flet ((eod2 (lambda ()
+                    (goto-char (point-min))
+                    (end-of-defun)
+                    (end-of-defun)
+                    (let ((pt-eod2 (point)))
+                      (goto-char (point-min))
+                      (end-of-defun 2)
+                      (should (= (point) pt-eod2))))))
+    (with-temp-buffer
+      (insert "\
+\(defun a ())
+
+\(defun b ())
+
+\(defun c ())")
+      (eod2))
+    (with-temp-buffer
+      (insert "\
+\(defun a ())
+\(defun b ())
+\(defun c ())")
+      (eod2)))
+  (elisp-tests-with-temp-buffer ";; Comment header
+
+\(defun func-1 (arg)
+  \"docstring\"
+  body)
+=!p1=
+;; Comment before a defun
+\(defun func-2 (arg)
+  \"docstring\"
+  body)
+
+\(defun func-3 (arg)
+  \"docstring\"
+  body)
+=!p2=(defun func-4 (arg)
+  \"docstring\"
+  body)
+
+;; end
+"
+    (goto-char p1)
+    (end-of-defun 2)
+    (should (= (point) p2))))
+
+;;; mark-defun
 
 (ert-deftest mark-defun-no-arg-region-inactive ()
   "Test `mark-defun' with no prefix argument and inactive

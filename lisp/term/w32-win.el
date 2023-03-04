@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -72,21 +72,15 @@
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
-(require 'faces)
 (require 'select)
 (require 'menu-bar)
 (require 'dnd)
 (require 'w32-vars)
 
-;; Keep an obsolete alias for w32-focus-frame and w32-select-font in case
-;; they are used by code outside Emacs.
-(define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
 (declare-function x-select-font "w32font.c"
                   (&optional frame exclude-proportional))
-(define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
 (defvar w32-color-map) ;; defined in w32fns.c
-(make-obsolete 'w32-default-color-map nil "24.1")
 
 (declare-function w32-send-sys-command "w32fns.c")
 (declare-function set-message-beep "w32fns.c")
@@ -231,6 +225,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
+       '(gdiplus "gdiplus.dll")
+       '(shlwapi "shlwapi.dll")
        '(xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
        ;; Versions of libpng 1.4.x and later are incompatible with
        ;; earlier versions.  Set up the list of libraries according to
@@ -277,6 +273,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	     '(gif "libgif-6.dll" "giflib5.dll" "gif.dll")
 	 '(gif "libgif-5.dll" "giflib4.dll" "libungif4.dll" "libungif.dll")))
        '(svg "librsvg-2-2.dll")
+       '(webp "libwebp-7.dll" "libwebp.dll")
+       '(webpdemux "libwebpdemux-2.dll" "libwebpdemux.dll")
+       '(sqlite3 "libsqlite3-0.dll")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")
        '(gio "libgio-2.0-0.dll")
@@ -287,7 +286,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(libxml2 "libxml2-2.dll" "libxml2.dll")
        '(zlib "zlib1.dll" "libz-1.dll")
        '(lcms2 "liblcms2-2.dll")
-       '(json "libjansson-4.dll")))
+       '(json "libjansson-4.dll")
+       '(gccjit "libgccjit-0.dll")
+       ;; MSYS2 distributes libtree-sitter.dll, without API version
+       ;; number...
+       '(tree-sitter "libtree-sitter.dll" "libtree-sitter-0.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil
@@ -412,7 +415,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;; Fix interface to (X-specific) mouse.el
 (defun w32--set-selection (type value)
   (if (eq type 'CLIPBOARD)
-      (w32-set-clipboard-data (replace-regexp-in-string "\0" "\\0" value t t))
+      (w32-set-clipboard-data (string-replace "\0" "\\0" value))
     (put 'x-selections (or type 'PRIMARY) value)))
 
 (defun w32--get-selection  (&optional type data-type)
@@ -534,7 +537,7 @@ characters from these blocks.")
   (let (val)
     (dolist (elt script-representative-chars)
       (let ((subranges w32-no-usb-subranges)
-            (chars (cdr elt))
+            (chars (append (cdr elt) nil)) ; handle vectors as well
             ch found subrange)
         (while (and (consp chars) (not found))
           (setq ch (car chars)
@@ -558,6 +561,9 @@ be found in this alist.
 This alist is used by w32font.c when it looks for fonts that can display
 characters from scripts for which no USBs are defined.")
 
+(declare-function x-list-fonts "xfaces.c"
+                  (pattern &optional face frame maximum width))
+
 (defun w32-find-non-USB-fonts (&optional frame size)
   "Compute the value of `w32-non-USB-fonts' for specified SIZE and FRAME.
 FRAME defaults to the selected frame.
@@ -569,46 +575,49 @@ default font on FRAME, or its best approximation."
            (x-list-fonts "-*-*-medium-r-normal-*-*-*-*-*-*-iso10646-1"
                          'default frame)))
          val)
-    (mapc (function
-           (lambda (script-desc)
-             (let* ((script (car script-desc))
-                    (script-chars (vconcat (cdr script-desc)))
-                    (nchars (length script-chars))
-                    (fntlist all-fonts)
-                    (entry (list script))
-                    fspec ffont font-obj glyphs idx)
-               ;; For each font in FNTLIST, determine whether it
-               ;; supports the representative character(s) of any
-               ;; scripts that have no USBs defined for it.
-               (dolist (fnt fntlist)
-                 (setq fspec (ignore-errors (font-spec :name fnt)))
-                 (if fspec
-                     (setq ffont (find-font fspec frame)))
-                 (when ffont
-                   (setq font-obj
-                         (open-font ffont size frame))
-                   ;; Ignore fonts for which open-font returns nil:
-                   ;; they are buggy fonts that we cannot use anyway.
-                   (setq glyphs
-                         (if font-obj
-                             (font-get-glyphs font-obj
-                                              0 nchars script-chars)
-                           '[nil]))
-                   ;; Does this font support ALL of the script's
-                   ;; representative characters?
-                   (setq idx 0)
-                   (while (and (< idx nchars) (not (null (aref glyphs idx))))
-                     (setq idx (1+ idx)))
-                   (if (= idx nchars)
-                       ;; It does; add this font to the script's entry in alist.
-                       (let ((font-family (font-get font-obj :family)))
-                         ;; Unifont is an ugly font, and it is already
-                         ;; present in the default fontset.
-                         (unless (string= (downcase (symbol-name font-family))
-                                          "unifont")
-                           (push font-family entry))))))
-                 (if (> (length entry) 1)
-                     (push (nreverse entry) val)))))
+    (mapc (lambda (script-desc)
+            (let* ((script (car script-desc))
+                   (script-chars (vconcat (cdr script-desc)))
+                   (nchars (length script-chars))
+                   (fntlist all-fonts)
+                   (entry (list script))
+                   fspec ffont font-obj glyphs idx)
+              ;; For each font in FNTLIST, determine whether it
+              ;; supports the representative character(s) of any
+              ;; scripts that have no USBs defined for it.
+              (dolist (fnt fntlist)
+                (setq fspec (ignore-errors (font-spec :name fnt)))
+                (if fspec
+                    (setq ffont (find-font fspec frame)))
+                (when ffont
+                  (setq font-obj
+                        (open-font ffont size frame))
+                  ;; Ignore fonts for which open-font returns nil:
+                  ;; they are buggy fonts that we cannot use anyway.
+                  (setq glyphs
+                        (if font-obj
+                            (font-get-glyphs font-obj
+                                             0 nchars script-chars)
+                          '[nil]))
+                  ;; Does this font support ALL of the script's
+                  ;; representative characters?  Note that, when the
+                  ;; representative characters are specified as a
+                  ;; vector, this is a more stringent test than font
+                  ;; selection does, because supporting _any_
+                  ;; character from the vector is enough.
+                  (setq idx 0)
+                  (while (and (< idx nchars) (not (null (aref glyphs idx))))
+                    (setq idx (1+ idx)))
+                  (if (= idx nchars)
+                      ;; It does; add this font to the script's entry in alist.
+                      (let ((font-family (font-get font-obj :family)))
+                        ;; Unifont is an ugly font, and it is already
+                        ;; present in the default fontset.
+                        (unless (string= (downcase (symbol-name font-family))
+                                         "unifont")
+                          (push font-family entry))))))
+              (if (> (length entry) 1)
+                  (push (nreverse entry) val))))
           (w32--filter-USB-scripts))
     ;; We've opened a lot of fonts, so clear the font caches to free
     ;; some memory.

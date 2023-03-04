@@ -1,10 +1,10 @@
 ;;; org-datetree.el --- Create date entries in a tree -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -30,6 +30,9 @@
 
 ;;; Code:
 
+(require 'org-macs)
+(org-assert-version)
+
 (require 'org)
 
 (defvar org-datetree-base-level 1
@@ -51,11 +54,29 @@ Added time stamp is active unless value is `inactive'."
 
 ;;;###autoload
 (defun org-datetree-find-date-create (d &optional keep-restriction)
-  "Find or create an entry for date D.
+  "Find or create a day entry for date D.
 If KEEP-RESTRICTION is non-nil, do not widen the buffer.
 When it is nil, the buffer will be widened to make sure an existing date
 tree can be found.  If it is the symbol `subtree-at-point', then the tree
 will be built under the headline at point."
+  (org-datetree--find-create-group d 'day keep-restriction))
+
+;;;###autoload
+(defun org-datetree-find-month-create (d &optional keep-restriction)
+  "Find or create a month entry for date D.
+Compared to `org-datetree-find-date-create' this function creates
+entries grouped by month instead of days.
+If KEEP-RESTRICTION is non-nil, do not widen the buffer.
+When it is nil, the buffer will be widened to make sure an existing date
+tree can be found.  If it is the symbol `subtree-at-point', then the tree
+will be built under the headline at point."
+  (org-datetree--find-create-group d 'month keep-restriction))
+
+(defun org-datetree--find-create-group
+    (d time-grouping &optional keep-restriction)
+  "Find or create an entry for date D.
+If time-period is day, group entries by day.
+If time-period is month, then group entries by month."
   (setq-local org-datetree-base-level 1)
   (save-restriction
     (if (eq keep-restriction 'subtree-at-point)
@@ -84,9 +105,10 @@ will be built under the headline at point."
       (org-datetree--find-create
        "^\\*+[ \t]+%d-\\([01][0-9]\\) \\w+$"
        year month)
-      (org-datetree--find-create
-       "^\\*+[ \t]+%d-%02d-\\([0123][0-9]\\) \\w+$"
-       year month day))))
+      (when (eq time-grouping 'day)
+	(org-datetree--find-create
+	 "^\\*+[ \t]+%d-%02d-\\([0123][0-9]\\) \\w+$"
+	 year month day)))))
 
 ;;;###autoload
 (defun org-datetree-find-iso-week-create (d &optional keep-restriction)
@@ -118,7 +140,7 @@ will be built under the headline at point."
     (let* ((year (calendar-extract-year d))
 	   (month (calendar-extract-month d))
 	   (day (calendar-extract-day d))
-	   (time (encode-time 0 0 0 day month year))
+	   (time (org-encode-time 0 0 0 day month year))
 	   (iso-date (calendar-iso-from-absolute
 		      (calendar-absolute-from-gregorian d)))
 	   (weekyear (nth 2 iso-date))
@@ -166,6 +188,7 @@ inserted into the buffer."
 
 (defun org-datetree-insert-line (year &optional month day text)
   (delete-region (save-excursion (skip-chars-backward " \t\n") (point)) (point))
+  (when (org--blank-before-heading-p) (insert "\n"))
   (insert "\n" (make-string org-datetree-base-level ?*) " \n")
   (backward-char)
   (when month (org-do-demote))
@@ -176,14 +199,14 @@ inserted into the buffer."
     (when month
       (insert
        (if day
-	   (format-time-string "-%m-%d %A" (encode-time 0 0 0 day month year))
-	 (format-time-string "-%m %B" (encode-time 0 0 0 1 month year))))))
+	   (format-time-string "-%m-%d %A" (org-encode-time 0 0 0 day month year))
+	 (format-time-string "-%m %B" (org-encode-time 0 0 0 1 month year))))))
   (when (and day org-datetree-add-timestamp)
     (save-excursion
       (insert "\n")
       (org-indent-line)
       (org-insert-time-stamp
-       (encode-time 0 0 0 day month year)
+       (org-encode-time 0 0 0 day month year)
        nil
        (eq org-datetree-add-timestamp 'inactive))))
   (beginning-of-line))

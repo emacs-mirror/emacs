@@ -1,6 +1,6 @@
-;;; calcsel2.el --- selection functions for Calc
+;;; calcsel2.el --- selection functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -34,6 +34,7 @@
 ;; The variable calc-sel-reselect is local to the methods below,
 ;; but is used by some functions in calc-sel.el which are called
 ;; by the functions below.
+(defvar calc-sel-reselect)
 
 (defun calc-commute-left (arg)
   (interactive "p")

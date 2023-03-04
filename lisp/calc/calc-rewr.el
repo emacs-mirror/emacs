@@ -1,6 +1,6 @@
-;;; calc-rewr.el --- rewriting functions for Calc
+;;; calc-rewr.el --- rewriting functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -142,7 +142,7 @@
      (calc-pop-push-record-list n "rwrt" (list expr)))
    (calc-handle-whys)))
 
-(defun calc-match (pat &optional interactive)
+(defun calc-match (pat &optional _interactive)
   (interactive "sPattern: \np")
   (calc-slow-wrapper
    (let (n expr)
@@ -158,9 +158,9 @@
        (setq expr (calc-top-n 1)
 	     n 1))
      (or (math-vectorp expr) (error "Argument must be a vector"))
-     (if (calc-is-inverse)
-	 (calc-enter-result n "mtcn" (math-match-patterns pat expr t))
-       (calc-enter-result n "mtch" (math-match-patterns pat expr nil))))))
+     (calc-enter-result n "mtcn"
+                        (math-match-patterns pat expr
+                                             (not (not (calc-is-inverse))))))))
 
 
 (defvar math-mt-many)
@@ -169,8 +169,10 @@
 ;; but is used by math-rewrite-phase
 (defvar math-rewrite-whole-expr)
 
-(defun math-rewrite (math-rewrite-whole-expr rules &optional math-mt-many)
-  (let* ((crules (math-compile-rewrites rules))
+(defun math-rewrite (rewrite-whole-expr rules &optional mt-many)
+  (let* ((math-rewrite-whole-expr rewrite-whole-expr)
+         (math-mt-many mt-many)
+         (crules (math-compile-rewrites rules))
          (heads (math-rewrite-heads math-rewrite-whole-expr))
          (trace-buffer (get-buffer "*Trace*"))
          (calc-display-just 'center)
@@ -179,19 +181,18 @@
          (calc-line-numbering nil)
          (calc-show-selections t)
          (calc-why nil)
-         (math-mt-func (function
-                        (lambda (x)
-                          (let ((result (math-apply-rewrites x (cdr crules)
-                                                             heads crules)))
-                            (if result
-                                (progn
-                                  (if trace-buffer
-                                      (let ((fmt (math-format-stack-value
-                                                  (list result nil nil))))
-                                        (with-current-buffer trace-buffer
-                                          (insert "\nrewrite to\n" fmt "\n"))))
-                                  (setq heads (math-rewrite-heads result heads t))))
-                            result)))))
+         (math-mt-func (lambda (x)
+                         (let ((result (math-apply-rewrites x (cdr crules)
+                                                            heads crules)))
+                           (if result
+                               (progn
+                                 (if trace-buffer
+                                     (let ((fmt (math-format-stack-value
+                                                 (list result nil nil))))
+                                       (with-current-buffer trace-buffer
+                                         (insert "\nrewrite to\n" fmt "\n"))))
+                                 (setq heads (math-rewrite-heads result heads t))))
+                           result))))
     (if trace-buffer
 	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
 	  (with-current-buffer trace-buffer
@@ -210,6 +211,8 @@
 		    (if (= math-mt-many 0) " (reached iteration limit)" "")
 		    ":\n" fmt "\n"))))
     math-rewrite-whole-expr))
+
+(defvar math-rewrite-phase 1)
 
 (defun math-rewrite-phase (sched)
   (while (and sched (/= math-mt-many 0))
@@ -464,6 +467,8 @@
 ;;;    whole match the name v.  Beware of circular structures!
 ;;;
 
+(defvar math-rewrite-whole nil)
+
 (defun math-compile-patterns (pats)
   (if (and (eq (car-safe pats) 'var)
 	   (calc-var-value (nth 2 pats)))
@@ -479,13 +484,12 @@
     (let ((math-rewrite-whole t))
       (cdr (math-compile-rewrites (cons
 				   'vec
-				   (mapcar (function (lambda (x)
-						       (list 'vec x t)))
+                                   (mapcar (lambda (x)
+                                             (list 'vec x t))
 					   (if (eq (car-safe pats) 'vec)
 					       (cdr pats)
 					     (list pats)))))))))
 
-(defvar math-rewrite-whole nil)
 (defvar math-make-import-list nil)
 
 ;; The variable math-import-list is local to part of math-compile-rewrites,
@@ -580,7 +584,7 @@
     (let ((rule-set nil)
 	  (all-heads nil)
 	  (nil-rules nil)
-	  (rule-count 0)
+	  ;; (rule-count 0)
 	  (math-schedule nil)
 	  (math-iterations nil)
 	  (math-phases nil)
@@ -651,15 +655,14 @@
 					  nil
 					  (nreverse
 					   (mapcar
-					    (function
-					     (lambda (v)
-					       (and (car v)
-						    (list
-						     'calcFunc-assign
-						     (math-build-var-name
-						      (car v))
-						     (math-rwcomp-register-expr
-						      (nth 1 v))))))
+                                            (lambda (v)
+                                              (and (car v)
+                                                   (list
+                                                    'calcFunc-assign
+                                                    (math-build-var-name
+                                                     (car v))
+                                                    (math-rwcomp-register-expr
+                                                     (nth 1 v)))))
 					    math-regs))))
 				 (math-rwcomp-match-vars math-rhs))
 			       math-remembering)
@@ -667,7 +670,7 @@
 	    (let* ((heads (math-rewrite-heads math-pattern))
 		   (rule (list (vconcat
 				(nreverse
-				 (mapcar (function (lambda (x) (nth 3 x)))
+                                 (mapcar (lambda (x) (nth 3 x))
 					 math-regs)))
 			       math-prog
 			       heads
@@ -719,10 +722,9 @@
 	(setq rules (cdr rules)))
       (if nil-rules
 	  (setq rule-set (cons (cons nil nil-rules) rule-set)))
-      (setq all-heads (mapcar 'car
-			      (sort all-heads (function
-					       (lambda (x y)
-						 (< (cdr x) (cdr y)))))))
+      (setq all-heads (mapcar #'car
+                              (sort all-heads (lambda (x y)
+                                                (< (cdr x) (cdr y))))))
       (let ((set rule-set)
 	    rule heads ptr)
 	(while set
@@ -785,15 +787,14 @@
 	      (math-rewrite-heads-rec (car expr)))))))
 
 (defun math-parse-schedule (sched)
-  (mapcar (function
-	   (lambda (s)
-	     (if (integerp s)
-		 s
-	       (if (math-vectorp s)
-		   (math-parse-schedule (cdr s))
-		 (if (eq (car-safe s) 'var)
-		     (math-var-to-calcFunc s)
-		   (error "Improper component in rewrite schedule"))))))
+  (mapcar (lambda (s)
+            (if (integerp s)
+                s
+              (if (math-vectorp s)
+                  (math-parse-schedule (cdr s))
+                (if (eq (car-safe s) 'var)
+                    (math-var-to-calcFunc s)
+                  (error "Improper component in rewrite schedule")))))
 	  sched))
 
 (defun math-rwcomp-match-vars (expr)
@@ -831,14 +832,16 @@
 (defvar math-rwcomp-subst-new-func)
 (defvar math-rwcomp-subst-old-func)
 
-(defun math-rwcomp-substitute (expr math-rwcomp-subst-old math-rwcomp-subst-new)
-  (if (and (eq (car-safe math-rwcomp-subst-old) 'var)
-	   (memq (car-safe math-rwcomp-subst-new) '(var calcFunc-lambda)))
-      (let ((math-rwcomp-subst-old-func (math-var-to-calcFunc math-rwcomp-subst-old))
-	    (math-rwcomp-subst-new-func (math-var-to-calcFunc math-rwcomp-subst-new)))
+(defun math-rwcomp-substitute (expr rwcomp-subst-old rwcomp-subst-new)
+  (let ((math-rwcomp-subst-old rwcomp-subst-old)
+        (math-rwcomp-subst-new rwcomp-subst-new))
+  (if (and (eq (car-safe rwcomp-subst-old) 'var)
+	   (memq (car-safe rwcomp-subst-new) '(var calcFunc-lambda)))
+      (let ((math-rwcomp-subst-old-func (math-var-to-calcFunc rwcomp-subst-old))
+	    (math-rwcomp-subst-new-func (math-var-to-calcFunc rwcomp-subst-new)))
 	(math-rwcomp-subst-rec expr))
     (let ((math-rwcomp-subst-old-func nil))
-      (math-rwcomp-subst-rec expr))))
+      (math-rwcomp-subst-rec expr)))))
 
 (defun math-rwcomp-subst-rec (expr)
   (cond ((equal expr math-rwcomp-subst-old) math-rwcomp-subst-new)
@@ -1173,9 +1176,8 @@
  						(list 'calcFunc-register
  						      reg2))))
  		       (math-rwcomp-pattern (car arg2) (cdr arg2))))
- 		 (let* ((args (mapcar (function
- 				       (lambda (x)
- 					 (cons x (math-rwcomp-best-reg x))))
+                 (let* ((args (mapcar (lambda (x)
+                                        (cons x (math-rwcomp-best-reg x)))
  				      (cdr expr)))
  			(args2 (copy-sequence args))
  			(argp (reverse args2))
@@ -1452,8 +1454,6 @@
 	 ,form
        (setcar rules orig))))
 
-(defvar math-rewrite-phase 1)
-
 ;; The variable math-apply-rw-regs is local to math-apply-rewrites,
 ;; but is used by math-rwapply-replace-regs and math-rwapply-reg-looks-negp
 ;; which are called by math-apply-rewrites.
@@ -1463,11 +1463,12 @@
 ;; but is used by math-rwapply-remember.
 (defvar math-apply-rw-ruleset)
 
-(defun math-apply-rewrites (expr rules &optional heads math-apply-rw-ruleset)
+(defun math-apply-rewrites (expr rules &optional heads apply-rw-ruleset)
   (and
    (setq rules (cdr (or (assq (car-safe expr) rules)
 			(assq nil rules))))
-   (let ((result nil)
+   (let ((math-apply-rw-ruleset apply-rw-ruleset)
+	 (result nil)
 	 op math-apply-rw-regs inst part pc mark btrack
 	 (tracing math-rwcomp-tracing)
 	 (phase math-rewrite-phase))

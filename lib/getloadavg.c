@@ -1,6 +1,6 @@
 /* Get the system load averages.
 
-   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2020 Free Software
+   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2023 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with gnulib.
@@ -8,7 +8,7 @@
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -82,7 +82,6 @@
 #include <stdlib.h>
 
 #include <errno.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 # include <sys/types.h>
@@ -512,7 +511,7 @@ getloadavg (double loadavg[], int nelem)
   char const *ptr = ldavgbuf;
   int fd, count, saved_errno;
 
-  fd = open (LINUX_LDAV_FILE, O_RDONLY);
+  fd = open (LINUX_LDAV_FILE, O_RDONLY | O_CLOEXEC);
   if (fd == -1)
     return -1;
   count = read (fd, ldavgbuf, sizeof ldavgbuf - 1);
@@ -550,7 +549,7 @@ getloadavg (double loadavg[], int nelem)
         for (ptr++; '0' <= *ptr && *ptr <= '9'; ptr++)
           numerator = 10 * numerator + (*ptr - '0'), denominator *= 10;
 
-      loadavg[elem++] = numerator / denominator;
+      loadavg[elem] = numerator / denominator;
     }
 
   return elem;
@@ -567,15 +566,22 @@ getloadavg (double loadavg[], int nelem)
 
   unsigned long int load_ave[3], scale;
   int count;
-  FILE *fp;
-
-  fp = fopen (NETBSD_LDAV_FILE, "r");
-  if (fp == NULL)
-    return -1;
-  count = fscanf (fp, "%lu %lu %lu %lu\n",
+  char readbuf[4 * INT_BUFSIZE_BOUND (unsigned long int) + 1];
+  int fd = open (NETBSD_LDAV_FILE, O_RDONLY | O_CLOEXEC);
+  if (fd < 0)
+    return fd;
+  int nread = read (fd, readbuf, sizeof readbuf - 1);
+  int err = errno;
+  close (fd);
+  if (nread < 0)
+    {
+      errno = err;
+      return -1;
+    }
+  readbuf[nread] = '\0';
+  count = sscanf (readbuf, "%lu %lu %lu %lu\n",
                   &load_ave[0], &load_ave[1], &load_ave[2],
                   &scale);
-  (void) fclose (fp);
   if (count != 4)
     {
       errno = ENOTSUP;
@@ -869,27 +875,11 @@ getloadavg (double loadavg[], int nelem)
   if (!getloadavg_initialized)
     {
 #  ifndef SUNOS_5
-      /* Set the channel to close on exec, so it does not
-         litter any child's descriptor table.  */
-#   ifndef O_CLOEXEC
-#    define O_CLOEXEC 0
-#   endif
       int fd = open ("/dev/kmem", O_RDONLY | O_CLOEXEC);
       if (0 <= fd)
         {
-#   if F_DUPFD_CLOEXEC
-          if (fd <= STDERR_FILENO)
-            {
-              int fd1 = fcntl (fd, F_DUPFD_CLOEXEC, STDERR_FILENO + 1);
-              close (fd);
-              fd = fd1;
-            }
-#   endif
-          if (0 <= fd)
-            {
-              channel = fd;
-              getloadavg_initialized = true;
-            }
+          channel = fd;
+          getloadavg_initialized = true;
         }
 #  else /* SUNOS_5 */
       /* We pass 0 for the kernel, corefile, and swapfile names

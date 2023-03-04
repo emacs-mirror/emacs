@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -61,12 +61,12 @@ must never cause a Lisp error."
 	 ;; make it parsable.  Let's try...
 	 (error
 	  (let (mod)
-	    (when (and (string-match "\\\\\"" string)
+	    (when (and (string-search "\\\"" string)
 		       (not (string-match "\\`\"\\|[^\\]\"" string)))
-	      (setq string (replace-regexp-in-string "\\\\\"" "\"" string)
+	      (setq string (string-replace "\\\"" "\"" string)
 		    mod t))
-	    (when (and (string-match "\\\\(" string)
-		       (string-match "\\\\)" string)
+	    (when (and (string-search "\\(" string)
+		       (string-search "\\)" string)
 		       (not (string-match "\\`(\\|[^\\][()]" string)))
 	      (setq string (replace-regexp-in-string
 			    "\\\\\\([()]\\)" "\\1" string)
@@ -215,23 +215,25 @@ These look like:
  \"\\='en-us\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\",
  \"\\='\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
-  (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
-  (let ((coding-system (mm-charset-to-coding-system
-			(match-string 1 string) nil t))
-	;;(language (match-string 2 string))
-	(value (match-string 3 string)))
-    (mm-with-unibyte-buffer
-      (insert value)
-      (goto-char (point-min))
-      (while (re-search-forward "%\\([[:xdigit:]][[:xdigit:]]\\)" nil t)
-	(insert
-	 (prog1
-	     (string-to-number (match-string 1) 16)
-	   (delete-region (match-beginning 0) (match-end 0)))))
-      ;; Decode using the charset, if any.
-      (if (memq coding-system '(nil ascii))
-	  (buffer-string)
-	(decode-coding-string (buffer-string) coding-system)))))
+  (if (not (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)\\'"
+                         string))
+      (error "Unrecognized RFC2231 format: %S" string)
+    (let ((value (match-string 3 string))
+	  ;;(language (match-string 2 string))
+	  (coding-system (mm-charset-to-coding-system
+			  (match-string 1 string) nil t)))
+      (mm-with-unibyte-buffer
+        (insert value)
+        (goto-char (point-min))
+        (while (re-search-forward "%\\([[:xdigit:]][[:xdigit:]]\\)" nil t)
+	  (insert
+	   (prog1
+	       (string-to-number (match-string 1) 16)
+	     (delete-region (match-beginning 0) (match-end 0)))))
+	;; Decode using the charset, if any.
+	(if (memq coding-system '(nil ascii))
+	    (buffer-string)
+	  (decode-coding-string (buffer-string) coding-system))))))
 
 (defun rfc2231-encode-string (param value)
   "Return a PARAM=VALUE string encoded according to RFC2231.

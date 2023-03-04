@@ -1,9 +1,9 @@
-;;; tetris.el --- implementation of Tetris for Emacs
+;;; tetris.el --- implementation of Tetris for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
-;; Version: 2.01
+;; Old-Version: 2.01
 ;; Created: 1997-08-13
 ;; Keywords: games
 
@@ -39,22 +39,18 @@
 
 (defcustom tetris-use-glyphs t
   "Non-nil means use glyphs when available."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-use-color t
   "Non-nil means use color when available."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-draw-border-with-glyphs t
   "Non-nil means draw a border even when using glyphs."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-default-tick-period 0.3
   "The default time taken for a shape to drop one row."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-update-speed-function
@@ -65,18 +61,15 @@ SHAPES is the number of shapes which have been dropped.
 ROWS is the number of rows which have been completed.
 
 If the return value is a number, it is used as the timer period."
-  :group 'tetris
   :type 'function)
 
 (defcustom tetris-mode-hook nil
   "Hook run upon starting Tetris."
-  :group 'tetris
   :type 'hook)
 
 (defcustom tetris-tty-colors
   ["blue" "white" "yellow" "magenta" "cyan" "green" "red"]
   "Vector of colors of the various shapes in text mode."
-  :group 'tetris
   :type '(vector (color :tag "Shape 1")
 		 (color :tag "Shape 2")
 		 (color :tag "Shape 3")
@@ -88,7 +81,6 @@ If the return value is a number, it is used as the timer period."
 (defcustom tetris-x-colors
   [[0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]
   "Vector of RGB colors of the various shapes."
-  :group 'tetris
   :type '(vector (vector :tag "Shape 1" number number number)
                  (vector :tag "Shape 2" number number number)
                  (vector :tag "Shape 3" number number number)
@@ -99,38 +91,38 @@ If the return value is a number, it is used as the timer period."
 
 (defcustom tetris-buffer-name "*Tetris*"
   "Name used for Tetris buffer."
-  :group 'tetris
   :type 'string)
 
 (defcustom tetris-buffer-width 30
   "Width of used portion of buffer."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-buffer-height 22
   "Height of used portion of buffer."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-width 10
   "Width of playing area."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-height 20
   "Height of playing area."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-top-left-x 3
   "X position of top left of playing area."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-top-left-y 1
   "Y position of top left of playing area."
-  :group 'tetris
-  :type 'number)
+  :type 'natnum)
+
+(defcustom tetris-allow-repetitions t
+  "If non-nil, use a random selection for each shape.
+If nil, put the shapes into a bag and select without putting
+back (until empty, when the bag is repopulated."
+  :type 'boolean
+  :version "29.1")
 
 (defvar tetris-next-x (+ (* 2 tetris-top-left-x) tetris-width)
   "X position of next shape.")
@@ -239,48 +231,37 @@ each one of its four blocks.")
 
 ;; ;;;;;;;;;;;;; variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-shape 0)
-(defvar tetris-rot 0)
-(defvar tetris-next-shape 0)
-(defvar tetris-n-shapes 0)
-(defvar tetris-n-rows 0)
-(defvar tetris-score 0)
-(defvar tetris-pos-x 0)
-(defvar tetris-pos-y 0)
-(defvar tetris-paused nil)
-
-(make-variable-buffer-local 'tetris-shape)
-(make-variable-buffer-local 'tetris-rot)
-(make-variable-buffer-local 'tetris-next-shape)
-(make-variable-buffer-local 'tetris-n-shapes)
-(make-variable-buffer-local 'tetris-n-rows)
-(make-variable-buffer-local 'tetris-score)
-(make-variable-buffer-local 'tetris-pos-x)
-(make-variable-buffer-local 'tetris-pos-y)
-(make-variable-buffer-local 'tetris-paused)
+(defvar-local tetris-shape 0)
+(defvar-local tetris-rot 0)
+(defvar-local tetris-next-shape 0)
+(defvar-local tetris-n-shapes 0)
+(defvar-local tetris-n-rows 0)
+(defvar-local tetris-score 0)
+(defvar-local tetris-pos-x 0)
+(defvar-local tetris-pos-y 0)
+(defvar-local tetris-paused nil)
+(defvar-local tetris--bag nil)
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-mode-map
-  (let ((map (make-sparse-keymap 'tetris-mode-map)))
-    (define-key map "n"		'tetris-start-game)
-    (define-key map "q"		'tetris-end-game)
-    (define-key map "p"		'tetris-pause-game)
+(defvar-keymap tetris-mode-map
+  :doc "Keymap for Tetris games."
+  :name 'tetris-mode-map
+  "n"       #'tetris-start-game
+  "q"       #'tetris-end-game
+  "p"       #'tetris-pause-game
 
-    (define-key map " "		'tetris-move-bottom)
-    (define-key map [left]	'tetris-move-left)
-    (define-key map [right]	'tetris-move-right)
-    (define-key map [up]	'tetris-rotate-prev)
-    (define-key map [down]	'tetris-move-down)
-    map)
-  "Keymap for Tetris games.")
+  "SPC"     #'tetris-move-bottom
+  "<left>"  #'tetris-move-left
+  "<right>" #'tetris-move-right
+  "<up>"    #'tetris-rotate-prev
+  "<down>"  #'tetris-move-down)
 
-(defvar tetris-null-map
-  (let ((map (make-sparse-keymap 'tetris-null-map)))
-    (define-key map "n"		'tetris-start-game)
-    (define-key map "q"         'quit-window)
-    map)
-  "Keymap for finished Tetris games.")
+(defvar-keymap tetris-null-map
+  :doc "Keymap for finished Tetris games."
+  :name 'tetris-null-map
+  "n"       #'tetris-start-game
+  "q"       #'quit-window)
 
 (defconst tetris--menu-def
   '("Tetris"
@@ -335,11 +316,10 @@ each one of its four blocks.")
     options))
 
 (defun tetris-get-tick-period ()
-  (if (boundp 'tetris-update-speed-function)
-      (let ((period (apply tetris-update-speed-function
-			   tetris-n-shapes
-			   tetris-n-rows nil)))
-	(and (numberp period) period))))
+  (let ((period (apply tetris-update-speed-function
+                       tetris-n-shapes
+                       tetris-n-rows nil)))
+    (and (numberp period) period)))
 
 (defun tetris-get-shape-cell (block)
   (aref (aref  (aref tetris-shapes
@@ -369,10 +349,23 @@ each one of its four blocks.")
   (let ((period (tetris-get-tick-period)))
     (if period (gamegrid-set-timer period))))
 
+(defun tetris--shuffle (sequence)
+  (cl-loop for i from (length sequence) downto 2
+           do (cl-rotatef (elt sequence (random i))
+                          (elt sequence (1- i))))
+  sequence)
+
+(defun tetris--seven-bag ()
+  (when (not tetris--bag)
+    (setq tetris--bag (tetris--shuffle (list 0 1 2 3 4 5 6))))
+  (pop tetris--bag))
+
 (defun tetris-new-shape ()
   (setq tetris-shape tetris-next-shape)
   (setq tetris-rot 0)
-  (setq tetris-next-shape (random 7))
+  (setq tetris-next-shape (if tetris-allow-repetitions
+                              (random 7)
+                            (tetris--seven-bag)))
   (setq tetris-pos-x (/ (- tetris-width (tetris-shape-width)) 2))
   (setq tetris-pos-y 0)
   (if (tetris-test-shape)
@@ -532,7 +525,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-move-bottom ()
   "Drop the shape to the bottom of the playing area."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
     (let ((hit nil))
       (tetris-erase-shape)
@@ -545,7 +538,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-move-left ()
   "Move the shape one square to the left."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
     (tetris-erase-shape)
     (setq tetris-pos-x (1- tetris-pos-x))
@@ -555,7 +548,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-move-right ()
   "Move the shape one square to the right."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
     (tetris-erase-shape)
     (setq tetris-pos-x (1+ tetris-pos-x))
@@ -565,7 +558,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-move-down ()
   "Move the shape one square to the bottom."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
     (tetris-erase-shape)
     (setq tetris-pos-y (1+ tetris-pos-y))
@@ -575,7 +568,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-rotate-prev ()
   "Rotate the shape clockwise."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
       (tetris-erase-shape)
       (setq tetris-rot (% (+ 1 tetris-rot)
@@ -587,7 +580,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-rotate-next ()
   "Rotate the shape anticlockwise."
-  (interactive)
+  (interactive nil tetris-mode)
   (unless tetris-paused
         (tetris-erase-shape)
         (setq tetris-rot (% (+ 3 tetris-rot)
@@ -599,14 +592,14 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-end-game ()
   "Terminate the current game."
-  (interactive)
+  (interactive nil tetris-mode)
   (gamegrid-kill-timer)
   (use-local-map tetris-null-map)
   (gamegrid-add-score tetris-score-file tetris-score))
 
 (defun tetris-start-game ()
   "Start a new game of Tetris."
-  (interactive)
+  (interactive nil tetris-mode)
   (tetris-reset-game)
   (use-local-map tetris-mode-map)
   (let ((period (or (tetris-get-tick-period)
@@ -615,7 +608,7 @@ Drops the shape one square, testing for collision."
 
 (defun tetris-pause-game ()
   "Pause (or resume) the current game."
-  (interactive)
+  (interactive nil tetris-mode)
   (setq tetris-paused (not tetris-paused))
   (message (and tetris-paused "Game paused (press p to resume)")))
 
@@ -626,6 +619,7 @@ Drops the shape one square, testing for collision."
 
 (define-derived-mode tetris-mode nil "Tetris"
   "A mode for playing Tetris."
+  :interactive nil
 
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
@@ -645,18 +639,16 @@ Shapes drop from the top of the screen, and the user has to move and
 rotate the shape to fit in with those at the bottom of the screen so
 as to form complete rows.
 
-tetris-mode keybindings:
-   \\<tetris-mode-map>
-\\[tetris-start-game]	Starts a new game of Tetris
-\\[tetris-end-game]	Terminates the current game
-\\[tetris-pause-game]	Pauses (or resumes) the current game
-\\[tetris-move-left]	Moves the shape one square to the left
-\\[tetris-move-right]	Moves the shape one square to the right
-\\[tetris-rotate-prev]	Rotates the shape clockwise
-\\[tetris-rotate-next]	Rotates the shape anticlockwise
-\\[tetris-move-bottom]	Drops the shape to the bottom of the playing area
-
-"
+`tetris-mode' keybindings:
+\\<tetris-mode-map>
+\\[tetris-start-game]	Start a new game of Tetris
+\\[tetris-end-game]	Terminate the current game
+\\[tetris-pause-game]	Pause (or resume) the current game
+\\[tetris-move-left]	Move the shape one square to the left
+\\[tetris-move-right]	Move the shape one square to the right
+\\[tetris-rotate-prev]	Rotate the shape clockwise
+\\[tetris-rotate-next]	Rotate the shape anticlockwise
+\\[tetris-move-bottom]	Drop the shape to the bottom of the playing area"
   (interactive)
 
   (select-window (or (get-buffer-window tetris-buffer-name)

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -136,8 +136,8 @@ this transient mode is active, typing @kbd{@key{LEFT}} or
 @kbd{@key{RIGHT}} indents leftward and rightward, respectively, by one
 space.  You can also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to
 indent leftward or rightward to the next tab stop (@pxref{Tab Stops}).
-Typing any other key disables the transient mode, and resumes normal
-editing.
+Typing any other key disables the transient mode, and this key is then
+acted upon as normally.
 
 If called with a prefix argument @var{n}, this command indents the
 lines forward by @var{n} spaces (without enabling the transient mode).
@@ -249,6 +249,13 @@ indented, it tries to complete the text at point (@pxref{Symbol
 Completion}).  If the value is @code{nil}, then @key{TAB} indents the
 current line only if point is at the left margin or in the line's
 indentation; otherwise, it inserts a tab character.
+
+@vindex tab-first-completion
+  If @code{tab-always-indent} is @code{complete}, whether to expand or
+indent can be further customized via the @code{tab-first-completion}
+variable.  For instance, if that variable is @code{eol}, only complete
+if point is at the end of a line.  @xref{Mode-Specific Indent,,,
+elisp, The Emacs Lisp Reference Manual}, for further details.
 
 @cindex Electric Indent mode
 @cindex mode, Electric Indent

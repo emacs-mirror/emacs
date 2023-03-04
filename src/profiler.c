@@ -1,6 +1,6 @@
 /* Profiler implementation.
 
-Copyright (C) 2012-2020 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@ static void evict_lower_half (log_t *log)
 	  XSET_HASH_TABLE (tmp, log); /* FIXME: Use make_lisp_ptr.  */
 	  Fremhash (key, tmp);
 	}
-        eassert (EQ (Qunbound, HASH_KEY (log, i)));
+        eassert (BASE_EQ (Qunbound, HASH_KEY (log, i)));
 	eassert (log->next_free == i);
 
 	eassert (VECTORP (key));
@@ -158,7 +158,7 @@ record_backtrace (log_t *log, EMACS_INT count)
 
   /* Get a "working memory" vector.  */
   Lisp_Object backtrace = HASH_VALUE (log, index);
-  eassert (EQ (Qunbound, HASH_KEY (log, index)));
+  eassert (BASE_EQ (Qunbound, HASH_KEY (log, index)));
   get_backtrace (backtrace);
 
   { /* We basically do a `gethash+puthash' here, except that we have to be
@@ -505,6 +505,9 @@ Before returning, a new log is allocated for future samples.  */)
 void
 malloc_probe (size_t size)
 {
+  if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
+    /* FIXME: We should do something like what we did with `cpu_gc_count`.  */
+    return;
   eassert (HASH_TABLE_P (memory_log));
   record_backtrace (XHASH_TABLE (memory_log), min (size, MOST_POSITIVE_FIXNUM));
 }

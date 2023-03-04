@@ -1,6 +1,6 @@
 ;;; gv-tests.el --- tests for gv.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,23 +19,23 @@
 
 ;;; Code:
 
+(require 'edebug)
 (require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (cl-defmacro gv-tests--in-temp-dir ((elvar elcvar)
                                     (&rest filebody)
                                     &rest body)
   (declare (indent 2))
-  `(let ((default-directory (make-temp-file "gv-test" t)))
-     (unwind-protect
-         (let ((,elvar "gv-test-deffoo.el")
-               (,elcvar "gv-test-deffoo.elc"))
-           (with-temp-file ,elvar
-             (insert ";; -*- lexical-binding: t; -*-\n")
-             (dolist (form ',filebody)
-               (pp form (current-buffer))))
-           ,@body)
-       (delete-directory default-directory t))))
+  `(ert-with-temp-directory default-directory
+     (let ((,elvar "gv-test-deffoo.el")
+           (,elcvar "gv-test-deffoo.elc"))
+       (with-temp-file ,elvar
+         (insert ";; -*- lexical-binding: t; -*-\n")
+         (dolist (form ',filebody)
+           (pp form (current-buffer))))
+       ,@body)))
 
 (ert-deftest gv-define-expander-in-file ()
   (gv-tests--in-temp-dir (el elc)
@@ -82,7 +82,10 @@
     (with-temp-buffer
       (call-process (concat invocation-directory invocation-name)
                     nil '(t t) nil
-                    "-Q" "-batch" "--eval" (prin1-to-string `(byte-compile-file ,el))
+                    "-Q" "-batch"
+                    "--eval" (prin1-to-string
+                              `(let ((backtrace-on-error-noninteractive nil))
+                                 (byte-compile-file ,el)))
                     "-l" elc)
       (should (equal (buffer-string)
                      "Symbol's function definition is void: \\(setf\\ gv-test-foo\\)\n")))))
@@ -132,16 +135,64 @@
                     "-Q" "-batch" "--eval" (prin1-to-string `(byte-compile-file ,el))
                     "-l" elc
                     "--eval"
-                    (prin1-to-string '(progn (setf (gv-test-foo gv-test-pair) 99)
-                                             (message "%d" (car gv-test-pair)))))
-      (should (equal (buffer-string)
-                     "Symbol's function definition is void: \\(setf\\ gv-test-foo\\)\n")))))
+                    (prin1-to-string
+                     '(let ((backtrace-on-error-noninteractive nil))
+                        (setf (gv-test-foo gv-test-pair) 99)
+                        (message "%d" (car gv-test-pair)))))
+      (should (string-match
+               "\\`Symbol.s function definition is void: \\\\(setf\\\\ gv-test-foo\\\\)\n\\'"
+               (buffer-string))))))
 
-;; `ert-deftest' messes up macroexpansion when the test file itself is
-;; compiled (see Bug #24402).
+(ert-deftest gv-setter-edebug ()
+  "Check that a setter can be defined and edebugged together with
+its getter (Bug#41853)."
+  (with-temp-buffer
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      (dolist (form '((defun gv-setter-edebug-help (b) b)
+                      (defun gv-setter-edebug-get (a b)
+                        (get a (gv-setter-edebug-help b)))
+                      (gv-define-setter gv-setter-edebug-get (x a b)
+                        `(setf (get ,a (gv-setter-edebug-help ,b)) ,x))
+                      (push 123 (gv-setter-edebug-get 'gv-setter-edebug
+                                                      'gv-setter-edebug-prop))))
+        (print form (current-buffer)))
+      ;; Silence "Edebug: foo" messages.
+      (let ((inhibit-message t))
+        ;; Only check whether evaluation works in general.
+        (eval-buffer))))
+  (should (equal (get 'gv-setter-edebug 'gv-setter-edebug-prop) '(123))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(ert-deftest gv-plist-get ()
+  ;; Simple `setf' usage for `plist-get'.
+  (let ((target (list :a "a" :b "b" :c "c")))
+    (setf (plist-get target :b) "modify")
+    (should (equal target '(:a "a" :b "modify" :c "c")))
+    (setf (plist-get target ":a" #'string=) "mogrify")
+    (should (equal target '(:a "mogrify" :b "modify" :c "c"))))
+
+  ;; Other function (`cl-rotatef') usage for `plist-get'.
+  (let ((target (list :a "a" :b "b" :c "c")))
+    (cl-rotatef (plist-get target :b) (plist-get target :c))
+    (should (equal target '(:a "a" :b "c" :c "b")))
+    (cl-rotatef (plist-get target ":a" #'string=)
+                (plist-get target ":b" #'string=))
+    (should (equal target '(:a "c" :b "a" :c "b"))))
+
+  ;; Add new key value pair at top of list if `setf' for missing key.
+  (let ((target (list :a "a" :b "b" :c "c")))
+    (setf (plist-get target :d) "modify")
+    (should (equal target '(:d "modify" :a "a" :b "b" :c "c")))
+    (setf (plist-get target :e #'string=) "mogrify")
+    (should (equal target '(:e "mogrify" :d "modify" :a "a" :b "b" :c "c"))))
+
+  ;; Rotate with missing value.
+  ;; The value corresponding to the missing key is assumed to be nil.
+  (let ((target (list :a "a" :b "b" :c "c")))
+    (cl-rotatef (plist-get target :b) (plist-get target :d))
+    (should (equal target '(:d "b" :a "a" :b nil :c "c")))
+    (cl-rotatef (plist-get target ":e" #'string=)
+                (plist-get target ":d" #'string=))
+    (should (equal target '(":e" "b" :d nil :a "a" :b nil :c "c")))))
 
 ;;; gv-tests.el ends here

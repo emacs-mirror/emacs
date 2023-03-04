@@ -1,6 +1,6 @@
-;;; semantic/wisent.el --- Wisent - Semantic gateway
+;;; semantic/wisent.el --- Wisent - Semantic gateway  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2007, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2007, 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 30 Aug 2001
@@ -22,12 +22,9 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Here are functions necessary to use the Wisent LALR parser from
 ;; Semantic environment.
-
-;;; History:
-;;
 
 ;;; Code:
 
@@ -41,12 +38,7 @@
 
 (defvar wisent-lex-lookahead nil
   "Extra lookahead token.
-When non-nil it is directly returned by `wisent-lex-function'.")
-
-;; Maintain this alias for compatibility until all WY grammars have
-;; been translated again to Elisp code.
-(semantic-alias-obsolete 'wisent-lex-make-token-table
-                         'semantic-lex-make-type-table "23.2")
+When non-nil it is directly returned by `wisent-lexer-function'.")
 
 (defmacro wisent-lex-eoi ()
   "Return an End-Of-Input lexical token.
@@ -74,6 +66,7 @@ Returned tokens must have the form:
   (TOKSYM VALUE START . END)
 
 where VALUE is the buffer substring between START and END positions."
+  (declare (debug (&define name stringp def-body)) (indent 1))
   `(defun
      ,name () ,doc
      (cond
@@ -98,15 +91,13 @@ it to a form suitable for the Wisent's parser."
 
 ;;; Syntax analysis
 ;;
-(defvar wisent-error-function nil
+(defvar-local wisent-error-function nil
   "Function used to report parse error.
 By default use the function `wisent-message'.")
-(make-variable-buffer-local 'wisent-error-function)
 
-(defvar wisent-lexer-function 'wisent-lex
+(defvar-local wisent-lexer-function 'wisent-lex
   "Function used to obtain the next lexical token in input.
 Should be a lexical analyzer created with `define-wisent-lexer'.")
-(make-variable-buffer-local 'wisent-lexer-function)
 
 ;; Tag production
 ;;
@@ -230,7 +221,7 @@ the standard function `semantic-parse-stream'."
                                     (error-message-string error-to-filter))
                            (message "wisent-parse-max-stack-size \
 might need to be increased"))
-                       (apply 'signal error-to-filter))))))
+                       (apply #'signal error-to-filter))))))
     ;; Manage returned lookahead token
     (if wisent-lookahead
         (if (eq (caar la-elt) wisent-lookahead)
@@ -257,6 +248,17 @@ might need to be increased"))
     (list wisent-lex-istream
           (if (consp cache) cache '(nil))
           )))
+
+(defmacro wisent-compiled-grammar (grammar &optional start-list)
+  "Return a compiled form of the LALR(1) Wisent GRAMMAR.
+See `wisent--compile-grammar' for a description of the arguments
+and return value."
+  ;; Ensure that the grammar compiler is available.
+  (require 'semantic/wisent/comp)
+  (declare-function wisent-automaton-lisp-form "semantic/wisent/comp" (x))
+  (declare-function wisent--compile-grammar "semantic/wisent/comp" (grm st))
+  (wisent-automaton-lisp-form
+   (wisent--compile-grammar grammar start-list)))
 
 (defun wisent-parse-region (start end &optional goal depth returnonerror)
   "Parse the area between START and END using the Wisent LALR parser.
@@ -326,18 +328,6 @@ the standard function `semantic-parse-region'."
 		       (point-max))))))
     ;; Return parse tree
     (nreverse ptree)))
-
-;;; Interfacing with edebug
-;;
-(add-hook
- 'edebug-setup-hook
- #'(lambda ()
-
-     (def-edebug-spec define-wisent-lexer
-       (&define name stringp def-body)
-       )
-
-     ))
 
 (provide 'semantic/wisent)
 

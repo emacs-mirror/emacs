@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1997-1998, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
@@ -64,6 +64,19 @@
   "If non-nil, deleted region text is stored in this register.
 Value must be the register (key) to use.")
 
+(defcustom delete-selection-temporary-region nil
+  "Whether to delete only temporary regions.
+When non-nil, typed text replaces only the regions set by
+mouse-dragging, shift-selection, and \"\\[universal-argument] \\[exchange-point-and-mark]\" when
+`transient-mark-mode' is turned off.  If the value is the symbol
+`selection', then replace only the regions set by mouse-dragging
+and shift-selection."
+  :version "29.1"
+  :group 'editing-basics
+  :type '(choice (const :tag "Replace all regions" nil)
+                 (const :tag "Replace region from mouse, shift-selection, and \"C-u C-x C-x\"" t)
+                 (const :tag "Replace region from mouse and shift-selection" selection)))
+
 ;;;###autoload
 (defalias 'pending-delete-mode 'delete-selection-mode)
 
@@ -84,9 +97,12 @@ information on adapting behavior of commands in Delete Selection mode."
 
 (defvar delsel--replace-text-or-position nil)
 
+;;;###autoload
 (defun delete-active-region (&optional killp)
   "Delete the active region.
-If KILLP in not-nil, the active region is killed instead of deleted."
+If KILLP is non-nil, or if called interactively with a prefix argument,
+the active region is killed instead of deleted."
+  (interactive "P")
   (cond
    (killp
     ;; Don't allow `kill-region' to change the value of `this-command'.
@@ -105,7 +121,8 @@ If KILLP in not-nil, the active region is killed instead of deleted."
   "Repeat replacing text of highlighted region with typed text.
 Search for the next stretch of text identical to the region last replaced
 by typing text over it and replaces it with the same stretch of text.
-With ARG, repeat that many times.  `C-u' means until end of buffer."
+With ARG (interactively, prefix numeric argument), repeat that many times.
+Just `\\[universal-argument]' means repeat until the end of the buffer's accessible portion."
   (interactive "P")
   (let ((old-text (and delete-selection-save-to-register
                        (get-register delete-selection-save-to-register)))
@@ -217,6 +234,10 @@ With ARG, repeat that many times.  `C-u' means until end of buffer."
 		   (self-insert-command
 		    (prefix-numeric-value current-prefix-arg))
 		   (setq this-command 'ignore)))))
+    ;; If the user has quit here (for instance, if the user is
+    ;; presented with a "changed on disk; really edit the buffer?"
+    ;; prompt, but hit `C-g'), just ding.
+    (quit (ding))
     ;; If ask-user-about-supersession-threat signals an error,
     ;; stop safe_run_hooks from clearing out pre-command-hook.
     (file-supersession (message "%s" (cadr data)) (ding))
@@ -244,7 +265,13 @@ property on their symbol; commands which insert text but don't
 have this property won't delete the selection.
 See `delete-selection-helper'."
   (when (and delete-selection-mode (use-region-p)
-	     (not buffer-read-only))
+	     (not buffer-read-only)
+             (or (null delete-selection-temporary-region)
+                 (and delete-selection-temporary-region
+                      (consp transient-mark-mode)
+                      (eq (car transient-mark-mode) 'only))
+                 (and (not (eq delete-selection-temporary-region 'selection))
+                      (eq transient-mark-mode 'lambda))))
     (delete-selection-helper (and (symbolp this-command)
                                   (get this-command 'delete-selection)))))
 
@@ -270,6 +297,8 @@ to `delete-selection-mode'."
 (put 'quoted-insert 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)
+(put 'yank-pop 'delete-selection 'yank)
+(put 'yank-from-kill-ring 'delete-selection 'yank)
 (put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
 ;; delete-backward-char and delete-forward-char already delete the selection by
@@ -291,7 +320,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode (region-active-p))
       (setq deactivate-mark t)
-    (abort-recursive-edit)))
+    (abort-minibuffers)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
 

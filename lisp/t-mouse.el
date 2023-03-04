@@ -1,10 +1,10 @@
-;;; t-mouse.el --- mouse support within the text terminal
+;;; t-mouse.el --- mouse support within the text terminal  -*- lexical-binding:t -*-
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994-1995, 1998, 2006-2020 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1998, 2006-2023 Free Software Foundation,
 ;; Inc.
 
 ;; This file is part of GNU Emacs.
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package provides access to mouse event as reported by the gpm-Linux
-;; package. It tries to reproduce the functionality offered by Emacs under X.
+;; package.  It tries to reproduce the functionality offered by Emacs under X.
 ;; The "gpm" server runs under Linux, so this package is rather
 ;; Linux-dependent.
 
@@ -62,8 +62,9 @@
     (gpm-mouse-stop))
   (set-terminal-parameter nil 'gpm-mouse-active nil))
 
-;;;###autoload
-(define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")
+(defun gpm-mouse-tty-setup ()
+  (if gpm-mouse-mode (gpm-mouse-enable) (gpm-mouse-disable)))
+
 ;;;###autoload
 (define-minor-mode gpm-mouse-mode
   "Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
@@ -82,7 +83,9 @@ GPM.  This is due to limitations in GPM and the Linux kernel."
                         (terminal-parameter terminal 'gpm-mouse-active))))
       ;; Simulate selecting a terminal by selecting one of its frames ;-(
       (with-selected-frame (car (frames-on-display-list terminal))
-        (if gpm-mouse-mode (gpm-mouse-enable) (gpm-mouse-disable))))))
+        (gpm-mouse-tty-setup))))
+  (when gpm-mouse-mode
+    (add-hook 'tty-setup-hook #'gpm-mouse-tty-setup)))
 
 (provide 't-mouse)
 

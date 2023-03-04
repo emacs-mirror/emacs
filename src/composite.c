@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2023 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#include <stdlib.h>		/* for qsort */
 
 #include "lisp.h"
 #include "character.h"
@@ -170,7 +172,6 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
   ptrdiff_t hash_index;
   enum composition_method method;
   struct composition *cmp;
-  ptrdiff_t i;
   int ch;
 
   /* Maximum length of a string of glyphs.  XftGlyphExtents limits
@@ -224,15 +225,15 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     {
       key = make_uninit_vector (nchars);
       if (STRINGP (string))
-	for (i = 0; i < nchars; i++)
+	for (ptrdiff_t i = 0; i < nchars; i++)
 	  {
-	    FETCH_STRING_CHAR_ADVANCE (ch, string, charpos, bytepos);
+	    ch = fetch_string_char_advance (string, &charpos, &bytepos);
 	    ASET (key, i, make_fixnum (ch));
 	  }
       else
-	for (i = 0; i < nchars; i++)
+	for (ptrdiff_t i = 0; i < nchars; i++)
 	  {
-	    FETCH_CHAR_ADVANCE (ch, charpos, bytepos);
+	    ch = fetch_char_advance (&charpos, &bytepos);
 	    ASET (key, i, make_fixnum (ch));
 	  }
     }
@@ -273,7 +274,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
       /* COMPONENTS is a glyph-string.  */
       ptrdiff_t len = ASIZE (key);
 
-      for (i = 1; i < len; i++)
+      for (ptrdiff_t i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
 	  goto invalid_composition;
     }
@@ -286,7 +287,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	goto invalid_composition;
       /* All elements should be integers (character or encoded
          composition rule).  */
-      for (i = 0; i < len; i++)
+      for (ptrdiff_t i = 0; i < len; i++)
 	{
 	  if (!FIXNUMP (key_contents[i]))
 	    goto invalid_composition;
@@ -328,7 +329,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     {
       /* Relative composition.  */
       cmp->width = 0;
-      for (i = 0; i < glyph_len; i++)
+      for (ptrdiff_t i = 0; i < glyph_len; i++)
 	{
 	  int this_width;
 	  ch = XFIXNUM (key_contents[i]);
@@ -347,7 +348,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
       ch = XFIXNUM (key_contents[0]);
       rightmost = ch != '\t' ? CHARACTER_WIDTH (ch) : 1;
 
-      for (i = 1; i < glyph_len; i += 2)
+      for (ptrdiff_t i = 1; i < glyph_len; i += 2)
 	{
 	  int rule, gref, nref;
 	  int this_width;
@@ -576,7 +577,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
     }
   if (min_pos < max_pos)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       specbind (Qinhibit_read_only, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -638,10 +639,8 @@ compose_text (ptrdiff_t start, ptrdiff_t end, Lisp_Object components,
 
 static Lisp_Object gstring_hash_table;
 
-static Lisp_Object gstring_lookup_cache (Lisp_Object);
-
-static Lisp_Object
-gstring_lookup_cache (Lisp_Object header)
+Lisp_Object
+composition_gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   ptrdiff_t i = hash_lookup (h, header, NULL);
@@ -653,7 +652,6 @@ Lisp_Object
 composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  hash_rehash_if_needed (h);
   Lisp_Object header = LGSTRING_HEADER (gstring);
   Lisp_Object hash = h->test.hashfn (header, h);
   if (len < 0)
@@ -681,14 +679,35 @@ composition_gstring_from_id (ptrdiff_t id)
   return HASH_VALUE (h, id);
 }
 
+/* Remove from the composition hash table every lgstring that
+   references the given FONT_OBJECT.  */
+void
+composition_gstring_cache_clear_font (Lisp_Object font_object)
+{
+  struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
+
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+    {
+      Lisp_Object k = HASH_KEY (h, i);
+
+      if (!BASE_EQ (k, Qunbound))
+	{
+	  Lisp_Object gstring = HASH_VALUE (h, i);
+
+	  if (EQ (LGSTRING_FONT (gstring), font_object))
+	    hash_remove_from_table (h, k);
+	}
+    }
+}
+
 DEFUN ("clear-composition-cache", Fclear_composition_cache,
        Sclear_composition_cache, 0, 0, 0,
        doc: /* Internal use only.
 Clear composition cache.  */)
   (void)
 {
-  Lisp_Object args[] = {QCtest, Qequal, QCsize, make_fixnum (311)};
-  gstring_hash_table = CALLMANY (Fmake_hash_table, args);
+  gstring_hash_table = CALLN (Fmake_hash_table, QCtest, Qequal,
+			      QCsize, make_fixnum (311));
   /* Fixme: We call Fclear_face_cache to force complete re-building of
      display glyphs.  But, it may be better to call this function from
      Fclear_face_cache instead.  */
@@ -781,6 +800,53 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
   return width;
 }
 
+/* Adjust the width of each grapheme cluster of GSTRING because
+   zero-width grapheme clusters are not displayed.  If the width is
+   zero, then the width of the last glyph in the cluster is
+   incremented.  */
+
+void
+composition_gstring_adjust_zero_width (Lisp_Object gstring)
+{
+  ptrdiff_t from = 0;
+  int width = 0;
+
+  for (ptrdiff_t i = 0; ; i++)
+    {
+      Lisp_Object glyph;
+
+      if (i < LGSTRING_GLYPH_LEN (gstring))
+	glyph = LGSTRING_GLYPH (gstring, i);
+      else
+	glyph = Qnil;
+
+      if (NILP (glyph) || from != LGLYPH_FROM (glyph))
+	{
+	  eassert (i > 0);
+	  Lisp_Object last = LGSTRING_GLYPH (gstring, i - 1);
+
+	  if (width == 0)
+	    {
+	      if (NILP (LGLYPH_ADJUSTMENT (last)))
+		LGLYPH_SET_ADJUSTMENT (last,
+				       CALLN (Fvector,
+					      make_fixnum (0), make_fixnum (0),
+					      make_fixnum (LGLYPH_WIDTH (last)
+							   + 1)));
+	      else
+		ASET (LGLYPH_ADJUSTMENT (last), 2,
+		      make_fixnum (LGLYPH_WADJUST (last) + 1));
+	    }
+	  if (NILP (glyph))
+	    break;
+	  from = LGLYPH_FROM (glyph);
+	  width = 0;
+	}
+      width += (NILP (LGLYPH_ADJUSTMENT (glyph))
+		? LGLYPH_WIDTH (glyph) : LGLYPH_WADJUST (glyph));
+    }
+}
+
 
 static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
@@ -800,12 +866,10 @@ fill_gstring_header (ptrdiff_t from, ptrdiff_t from_byte,
   ASET (header, 0, font_object);
   for (ptrdiff_t i = 0; i < len; i++)
     {
-      int c;
-
-      if (NILP (string))
-	FETCH_CHAR_ADVANCE_NO_CHECK (c, from, from_byte);
-      else
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, from, from_byte);
+      int c
+	= (NILP (string)
+	   ? fetch_char_advance_no_check (&from, &from_byte)
+	   : fetch_string_char_advance_no_check (string, &from, &from_byte));
       ASET (header, i + 1, make_fixnum (c));
     }
   return header;
@@ -859,7 +923,8 @@ fill_gstring_body (Lisp_Object gstring)
 	}
       LGLYPH_SET_ADJUSTMENT (g, Qnil);
     }
-  if (i < LGSTRING_GLYPH_LEN (gstring))
+  len = LGSTRING_GLYPH_LEN (gstring);
+  for (; i < len; i++)
     LGSTRING_SET_GLYPH (gstring, i, Qnil);
 }
 
@@ -867,16 +932,17 @@ fill_gstring_body (Lisp_Object gstring)
 /* Try to compose the characters at CHARPOS according to composition
    rule RULE ([PATTERN PREV-CHARS FUNC]).  LIMIT limits the characters
    to compose.  STRING, if not nil, is a target string.  WIN is a
-   window where the characters are being displayed.  If characters are
+   window where the characters are being displayed.  CH is the
+   character that triggered the composition check.  If characters are
    successfully composed, return the composition as a glyph-string
    object.  Otherwise return nil.  */
 
 static Lisp_Object
 autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       ptrdiff_t limit, struct window *win, struct face *face,
-	       Lisp_Object string, Lisp_Object direction)
+	       Lisp_Object string, Lisp_Object direction, int ch)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -905,7 +971,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   struct frame *f = XFRAME (font_object);
   if (FRAME_WINDOW_P (f))
     {
-      font_object = font_range (charpos, bytepos, &to, win, face, string);
+      font_object = font_range (charpos, bytepos, &to, win, face, string, ch);
       if (! FONT_OBJECT_P (font_object)
 	  || (! NILP (re)
 	      && to < limit
@@ -938,8 +1004,32 @@ char_composable_p (int c)
   Lisp_Object val;
   return (c >= ' '
 	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
-	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
-		  (FIXNUMP (val) && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs)))));
+	      /* Per Unicode TR51, these tag characters can be part of
+		 Emoji sequences.  */
+	      || (TAG_SPACE <= c && c <= CANCEL_TAG)
+	      /* unicode-category-table may not be available during
+		 dumping.  */
+	      || (CHAR_TABLE_P (Vunicode_category_table)
+		  && (val = CHAR_TABLE_REF (Vunicode_category_table, c),
+		      (FIXNUMP (val)
+		       && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs))))));
+}
+
+static inline bool
+inhibit_auto_composition (void)
+{
+  if (NILP (Vauto_composition_mode))
+    return true;
+
+  if (STRINGP (Vauto_composition_mode))
+    {
+      char *name = tty_type_name (Qnil);
+
+      if (name && ! strcmp (SSDATA (Vauto_composition_mode), name))
+	return true;
+    }
+
+  return false;
 }
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
@@ -948,7 +1038,9 @@ char_composable_p (int c)
    less than CHARPOS, search backward to ENDPOS+1 assuming that
    set_iterator_to_next works in reverse order.  In this case, if a
    composition closest to CHARPOS is found, set cmp_it->stop_pos to
-   the last character of the composition.
+   the last character of the composition.  STRING, if non-nil, is
+   the string (as opposed to a buffer) whose characters should be
+   tested for being composable.
 
    If no composition is found, set cmp_it->ch to -2.  If a static
    composition is found, set cmp_it->ch to -1.  Otherwise, set
@@ -956,7 +1048,9 @@ char_composable_p (int c)
    composition.  */
 
 void
-composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, Lisp_Object string)
+composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
+			      ptrdiff_t bytepos, ptrdiff_t endpos,
+			      Lisp_Object string)
 {
   ptrdiff_t start, end;
   int c;
@@ -977,7 +1071,11 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	  /* But we don't know where to stop the searching.  */
 	  endpos = NILP (string) ? BEGV - 1 : -1;
 	  /* Usually we don't reach ENDPOS because we stop searching
-	     at an uncomposable character (NL, LRE, etc).  */
+	     at an uncomposable character (NL, LRE, etc).  In buffers
+	     with long lines, however, NL might be far away, so
+	     pretend that the buffer is smaller.  */
+	  if (current_buffer->long_line_optimizations_p)
+	    endpos = get_closer_narrowed_begv (cmp_it->parent_it->w, charpos);
 	}
     }
   cmp_it->id = -1;
@@ -995,8 +1093,10 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+  if ((NILP (string)
+       && NILP (BVAR (current_buffer, enable_multibyte_characters)))
+      || (STRINGP (string) && !STRING_MULTIBYTE (string))
+      || inhibit_auto_composition ())
     return;
   if (bytepos < 0)
     {
@@ -1012,10 +1112,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       /* Forward search.  */
       while (charpos < endpos)
 	{
-	  if (STRINGP (string))
-	    FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
-	  else
-	    FETCH_CHAR_ADVANCE (c, charpos, bytepos);
+	  c = (STRINGP (string)
+	       ? fetch_string_char_advance (string, &charpos, &bytepos)
+	       : fetch_char_advance (&charpos, &bytepos));
 	  if (c == '\n')
 	    {
 	      cmp_it->ch = -2;
@@ -1070,7 +1169,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	p = BYTE_POS_ADDR (bytepos);
       else
 	p = SDATA (string) + bytepos;
-      c = STRING_CHAR_AND_LENGTH (p, len);
+      c = string_char_and_length (p, &len);
       limit = bytepos + len;
       while (char_composable_p (c))
 	{
@@ -1132,7 +1231,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	    }
 	  else
 	    {
-	      DEC_BOTH (charpos, bytepos);
+	      dec_both (&charpos, &bytepos);
 	      p = BYTE_POS_ADDR (bytepos);
 	    }
 	  c = STRING_CHAR (p);
@@ -1145,7 +1244,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
 	{
 	  while (charpos - 1 > endpos && ! char_composable_p (c))
 	    {
-	      DEC_BOTH (charpos, bytepos);
+	      dec_both (&charpos, &bytepos);
 	      c = FETCH_MULTIBYTE_CHAR (bytepos);
 	    }
 	}
@@ -1171,7 +1270,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
    character to check, and CHARPOS and BYTEPOS are indices in the
    string.  In that case, FACE must not be NULL.  BIDI_LEVEL is the bidi
    embedding level of the current paragraph, and is used to calculate the
-   direction argument to pass to the font shaper.
+   direction argument to pass to the font shaper; value of -1 means the
+   caller doesn't know the embedding level (used by callers which didn't
+   invoke the display routines that perform bidi-display-reordering).
 
    If the character is composed, setup members of CMP_IT (id, nglyphs,
    from, to, reversed_p), and return true.  Otherwise, update
@@ -1217,7 +1318,9 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	continue;
       if (charpos < endpos)
 	{
-	  if ((bidi_level & 1) == 0)
+	  if (bidi_level < 0)
+	    direction = Qnil;
+	  else if ((bidi_level & 1) == 0)
 	    direction = QL2R;
 	  else
 	    direction = QR2L;
@@ -1230,7 +1333,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	      if (XFIXNAT (AREF (elt, 1)) != cmp_it->lookback)
 		goto no_composition;
 	      lgstring = autocmp_chars (elt, charpos, bytepos, endpos,
-					w, face, string, direction);
+					w, face, string, direction, cmp_it->ch);
 	      if (composition_gstring_p (lgstring))
 		break;
 	      lgstring = Qnil;
@@ -1249,17 +1352,36 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  if (cmp_it->lookback > 0)
 	    {
 	      cpos = charpos - cmp_it->lookback;
+	      /* Reject the composition if it starts before ENDPOS,
+		 which here can only happen if
+		 composition-break-at-point is non-nil and point is
+		 inside the composition.  */
+	      if (cpos < endpos)
+		{
+		  eassert (composition_break_at_point);
+		  eassert (endpos == PT);
+		  goto no_composition;
+		}
 	      if (STRINGP (string))
 		bpos = string_char_to_byte (string, cpos);
 	      else
 		bpos = CHAR_TO_BYTE (cpos);
 	    }
-	  if ((bidi_level & 1) == 0)
+	  /* The bidi_level < 0 case below strictly speaking should
+	     never happen, since we get here when bidi scan direction
+	     is backward in the buffer, which can only happen if the
+	     display routines were called to perform the bidi
+	     reordering.  But it doesn't harm to test for that, and
+	     avoid someone raising their brows and thinking it's a
+	     subtle bug...  */
+	  if (bidi_level < 0)
+	    direction = Qnil;
+	  else if ((bidi_level & 1) == 0)
 	    direction = QL2R;
 	  else
 	    direction = QR2L;
 	  lgstring = autocmp_chars (elt, cpos, bpos, charpos + 1, w, face,
-				    string, direction);
+				    string, direction, cmp_it->ch);
 	  if (! composition_gstring_p (lgstring)
 	      || cpos + LGSTRING_CHAR_LEN (lgstring) - 1 != charpos)
 	    /* Composition failed or didn't cover the current
@@ -1290,7 +1412,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
     {
       charpos++;
       if (NILP (string))
-	INC_POS (bytepos);
+	bytepos += next_char_len (bytepos);
       else
 	bytepos += BYTES_BY_CHAR_HEAD (*(SDATA (string) + bytepos));
     }
@@ -1442,14 +1564,64 @@ struct position_record
     (POSITION).pos--;				\
   } while (0)
 
-/* This is like find_composition, but find an automatic composition
-   instead.  It is assured that POS is not within a static
-   composition.  If found, set *GSTRING to the glyph-string
-   representing the composition, and return true.  Otherwise, *GSTRING to
-   Qnil, and return false.  */
+/* Similar to find_composition, but find an automatic composition instead.
 
-static bool
-find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
+   This function looks for automatic composition at or near position
+   POS of STRING object, either a buffer or a Lisp string.  If STRING
+   is nil, it defaults to the current buffer.  It must be assured that
+   POS is not within a static composition.  Also, the current buffer
+   must be displayed in some window, otherwise the function will
+   return FALSE.
+
+   If LIMIT is negative, and there's no composition that includes POS
+   (i.e. starts at or before POS and ends at or after POS), return
+   FALSE.  In this case, the function is allowed to look from POS as
+   far back as BACKLIM, and as far forward as POS+1 plus
+   MAX_AUTO_COMPOSITION_LOOKBACK, the maximum number of look-back for
+   automatic compositions (3) -- this is a limitation imposed by
+   composition rules in composition-function-table, which see.  If
+   BACKLIM is negative, it stands for the beginning of STRING object:
+   BEGV for a buffer or position zero for a string.
+
+   If LIMIT is positive, search for a composition forward (LIMIT >
+   POS) or backward (LIMIT < POS).  In this case, LIMIT bounds the
+   search for the first character of a composed sequence.
+   (LIMIT == POS is the same as LIMIT < 0.)  If LIMIT > POS, the
+   function can find a composition that starts after POS.
+
+   BACKLIM limits how far back is the function allowed to look in
+   STRING object while trying to find a position where it is safe to
+   start searching forward for compositions.  Such a safe place is
+   generally the position after a character that can never be
+   composed.
+
+   If BACKLIM is negative, that means the first character position of
+   STRING object; this is useful when calling the function for the
+   first time for a given buffer or string, since it is possible that
+   a composition begins before POS.  However, if POS is very far from
+   the beginning of STRING object, a negative value of BACKLIM could
+   make the function slow.  For that reason, when STRING is a buffer
+   or nil, we restrict the search back to the first newline before
+   POS.  Also, in this case the function may return START and END that
+   do not include POS, something that is not necessarily wanted, and
+   needs to be explicitly checked by the caller.
+
+   When calling the function in a loop for the same buffer/string, the
+   caller should generally set BACKLIM equal to POS, to avoid costly
+   repeated searches backward.  This is because if the previous
+   positions were already checked for compositions, there should be no
+   reason to re-check them.
+
+   If BACKLIM is positive, it must be less or equal to LIMIT.
+
+   If an automatic composition satisfying the above conditions is
+   found, set *GSTRING to the Lispy glyph-string representing the
+   composition, set *START and *END to the start and end of the
+   composed sequence, and return TRUE.  Otherwise, set *GSTRING to
+   nil, and return FALSE.  */
+
+bool
+find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 			    ptrdiff_t *start, ptrdiff_t *end,
 			    Lisp_Object *gstring, Lisp_Object string)
 {
@@ -1471,13 +1643,29 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
   cur.pos = pos;
   if (NILP (string))
     {
-      head = BEGV, tail = ZV, stop = GPT;
+      if (backlim < 0)
+	{
+	  /* This assumes a newline can never be composed.  */
+	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false);
+	}
+      else
+	head = backlim;
+      if (current_buffer->long_line_optimizations_p)
+	{
+	  /* In buffers with very long lines, this function becomes very
+	     slow.  Pretend that the buffer is narrowed to make it fast.  */
+	  ptrdiff_t begv = get_closer_narrowed_begv (w, window_point (w));
+	  if (pos > begv)
+	    head = begv;
+	}
+      tail = ZV;
+      stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);
       cur.p = BYTE_POS_ADDR (cur.pos_byte);
     }
   else
     {
-      head = 0, tail = SCHARS (string), stop = -1;
+      head = backlim < 0 ? 0 : backlim, tail = SCHARS (string), stop = -1;
       cur.pos_byte = string_char_to_byte (string, cur.pos);
       cur.p = SDATA (string) + cur.pos_byte;
     }
@@ -1485,6 +1673,9 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
     /* Finding a composition covering the character after POS is the
        same as setting LIMIT to POS.  */
     limit = pos;
+
+  eassert (backlim < 0 || backlim <= limit);
+
   if (limit <= pos)
     fore_check_limit = min (tail, pos + 1 + MAX_AUTO_COMPOSITION_LOOKBACK);
   else
@@ -1579,7 +1770,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit,
 		  for (check = cur; check_pos < check.pos; )
 		    BACKWARD_CHAR (check, stop);
 		  *gstring = autocmp_chars (elt, check.pos, check.pos_byte,
-					    tail, w, NULL, string, Qnil);
+					    tail, w, NULL, string, Qnil, c);
 		  need_adjustment = 1;
 		  if (NILP (*gstring))
 		    {
@@ -1661,12 +1852,12 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
     }
 
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+      || inhibit_auto_composition ())
     return new_pt;
 
   /* Next check the automatic composition.  */
-  if (! find_automatic_composition (new_pt, (ptrdiff_t) -1, &beg, &end, &val,
-				    Qnil)
+  if (! find_automatic_composition (new_pt, (ptrdiff_t) -1, (ptrdiff_t) -1,
+				    &beg, &end, &val, Qnil)
       || beg == new_pt)
     return new_pt;
   for (i = 0; i < LGSTRING_GLYPH_LEN (val); i++)
@@ -1754,7 +1945,8 @@ should be ignored.  */)
   else
     {
       CHECK_STRING (string);
-      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
+      ptrdiff_t chars = SCHARS (string);
+      validate_subarray (string, from, to, chars, &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	{
 	  ptrdiff_t i;
@@ -1764,16 +1956,17 @@ should be ignored.  */)
 	      error ("Attempt to shape unibyte text");
 	  /* STRING is a pure-ASCII string, so we can convert it (or,
 	     rather, its copy) to multibyte and use that thereafter.  */
-	  Lisp_Object string_copy = Fconcat (1, &string);
-	  STRING_SET_MULTIBYTE (string_copy);
-	  string = string_copy;
+	  /* FIXME: Not clear why we need to do that: AFAICT the rest of
+             the code should work on an ASCII-only unibyte string just
+             as well (bug#56347).  */
+	  string = make_multibyte_string (SSDATA (string), chars, chars);
 	}
       frombyte = string_char_to_byte (string, frompos);
     }
 
   header = fill_gstring_header (frompos, frombyte,
 				topos, font_object, string);
-  gstring = gstring_lookup_cache (header);
+  gstring = composition_gstring_lookup_cache (header);
   if (! NILP (gstring))
     return gstring;
 
@@ -1860,10 +2053,12 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
-	  && ! NILP (Vauto_composition_mode)
-	  && find_automatic_composition (from, to, &start, &end, &gstring,
-					 string))
+      if (((NILP (string)
+	    && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	   || (!NILP (string) && STRING_MULTIBYTE (string)))
+	  && ! inhibit_auto_composition ()
+	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
+					 &start, &end, &gstring, string))
 	return list3 (make_fixnum (start), make_fixnum (end), gstring);
       return Qnil;
     }
@@ -1871,7 +2066,8 @@ See `find-composition' for more details.  */)
     {
       ptrdiff_t s, e;
 
-      if (find_automatic_composition (from, to, &s, &e, &gstring, string)
+      if (find_automatic_composition (from, to, (ptrdiff_t) -1,
+				      &s, &e, &gstring, string)
 	  && (e <= fixed_pos ? e > end : s < start))
 	return list3 (make_fixnum (s), make_fixnum (e), gstring);
     }
@@ -1908,6 +2104,54 @@ See `find-composition' for more details.  */)
   return Fcons (make_fixnum (start), Fcons (make_fixnum (end), tail));
 }
 
+static int
+compare_composition_rules (const void *r1, const void *r2)
+{
+  Lisp_Object vec1 = *(Lisp_Object *)r1, vec2 = *(Lisp_Object *)r2;
+
+  return XFIXNAT (AREF (vec2, 1)) - XFIXNAT (AREF (vec1, 1));
+}
+
+DEFUN ("composition-sort-rules", Fcomposition_sort_rules,
+       Scomposition_sort_rules, 1, 1, 0,
+       doc: /* Sort composition RULES by their LOOKBACK parameter.
+
+If RULES include just one rule, return RULES.
+Otherwise, return a new list of rules where all the rules are
+arranged in decreasing order of the LOOKBACK parameter of the
+rules (the second element of the rule's vector).  This is required
+when combining composition rules from different sources, because
+of the way buffer text is examined for matching one of the rules.  */)
+  (Lisp_Object rules)
+{
+  ptrdiff_t nrules;
+  USE_SAFE_ALLOCA;
+
+  CHECK_LIST (rules);
+  nrules = list_length (rules);
+  if (nrules > 1)
+    {
+      ptrdiff_t i;
+      Lisp_Object *sortvec;
+
+      SAFE_NALLOCA (sortvec, 1, nrules);
+      for (i = 0; i < nrules; i++)
+	{
+	  Lisp_Object elt = XCAR (rules);
+	  if (VECTORP (elt) && ASIZE (elt) == 3 && FIXNATP (AREF (elt, 1)))
+	    sortvec[i] = elt;
+	  else
+	    error ("Invalid composition rule in RULES argument");
+	  rules = XCDR (rules);
+	}
+      qsort (sortvec, nrules, sizeof (Lisp_Object), compare_composition_rules);
+      rules = Flist (nrules, sortvec);
+      SAFE_FREE ();
+    }
+
+  return rules;
+}
+
 
 void
 syms_of_composite (void)
@@ -1931,7 +2175,7 @@ syms_of_composite (void)
   staticpro (&gstring_hash_table);
 
   staticpro (&gstring_work_headers);
-  gstring_work_headers = make_uninit_vector (8);
+  gstring_work_headers = make_nil_vector (8);
   for (i = 0; i < 8; i++)
     ASET (gstring_work_headers, i, make_nil_vector (i + 2));
   staticpro (&gstring_work);
@@ -1959,7 +2203,11 @@ The default value is the function `compose-chars-after'.  */);
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
-Use the command `auto-composition-mode' to change this variable. */);
+Use the command `auto-composition-mode' to change this variable.
+
+If this variable is a string, `auto-composition-mode' will be disabled in
+buffers displayed on a terminal whose type, as reported by `tty-type',
+compares equal to that string.  */);
   Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
@@ -1991,7 +2239,9 @@ preceding and/or following characters, this char-table contains
 a function to call to compose that character.
 
 The element at index C in the table, if non-nil, is a list of
-composition rules of this form: ([PATTERN PREV-CHARS FUNC] ...)
+composition rules of the form ([PATTERN PREV-CHARS FUNC] ...);
+the rules must be specified in the descending order of PREV-CHARS
+values.
 
 PATTERN is a regular expression which C and the surrounding
 characters must match.
@@ -2017,9 +2267,21 @@ GSTRING, or modify GSTRING itself and return it.
 See also the documentation of `auto-composition-mode'.  */);
   Vcomposition_function_table = Fmake_char_table (Qnil, Qnil);
 
+  DEFVAR_LISP ("auto-composition-emoji-eligible-codepoints", Vauto_composition_emoji_eligible_codepoints,
+	       doc: /* List of codepoints for which auto-composition will check for an emoji font.
+
+These are codepoints which have Emoji_Presentation = No, and thus by
+default are not displayed as emoji.  In certain circumstances, such as
+when followed by U+FE0F (VS-16) the emoji font should be used for
+them anyway.
+
+This list is auto-generated, you should not need to modify it.  */);
+  Vauto_composition_emoji_eligible_codepoints = Qnil;
+
   defsubr (&Scompose_region_internal);
   defsubr (&Scompose_string_internal);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
   defsubr (&Sclear_composition_cache);
+  defsubr (&Scomposition_sort_rules);
 }

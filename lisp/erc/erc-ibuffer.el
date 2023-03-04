@@ -1,9 +1,9 @@
-;;; erc-ibuffer.el --- ibuffer integration with ERC
+;;; erc-ibuffer.el --- ibuffer integration with ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -38,21 +38,16 @@
   :group 'erc)
 
 (defcustom erc-ibuffer-keyword-char ?k
-  "Char used to indicate a channel which had keyword traffic lately (hidden)."
-  :group 'erc-ibuffer
+  "Char indicating a channel which had keyword traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-pal-char ?p
-  "Char used to indicate a channel which had pal traffic lately (hidden)."
-  :group 'erc-ibuffer
+  "Char indicating a channel which had pal traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-fool-char ?f
-  "Char used to indicate a channel which had fool traffic lately (hidden)."
-  :group 'erc-ibuffer
+  "Char indicating a channel which had fool traffic lately (hidden)."
   :type 'character)
 (defcustom erc-ibuffer-dangerous-host-char ?d
-  "Char used to indicate a channel which had dangerous-host traffic lately
-\(hidden)."
-  :group 'erc-ibuffer
+  "Char indicating a channel which had dangerous-host traffic lately (hidden)."
   :type 'character)
 
 (define-ibuffer-filter erc-server
@@ -77,7 +72,7 @@
 	   erc-track-mode)
       (let ((entry (assq (current-buffer) erc-modified-channels-alist)))
 	(if entry
-	    (if (> (length entry) 1)
+	    (if (cdr entry)
 		(cond ((eq 'pal (nth 1 entry))
 		       (string erc-ibuffer-pal-char))
 		      ((eq 'fool (nth 1 entry))
@@ -92,10 +87,14 @@
     " "))
 
 (define-ibuffer-column erc-server-name (:name "Server")
-  (if (and erc-server-process (processp erc-server-process))
-      (with-current-buffer (process-buffer erc-server-process)
-	(or erc-server-announced-name erc-session-server))
-    ""))
+  (or
+   (when (and erc-server-process (processp erc-server-process))
+     (let ((buffer (process-buffer erc-server-process)))
+       (if (buffer-live-p buffer)
+         (with-current-buffer buffer
+           (or erc-server-announced-name erc-session-server))
+         "(closed)")))
+   ""))
 
 (define-ibuffer-column erc-target (:name "Target")
   (if (eq major-mode 'erc-mode)
@@ -149,7 +148,7 @@
   (if (and (eq major-mode 'erc-mode)
 	   (or (> (length erc-channel-modes) 0)
 	       erc-channel-user-limit))
-      (concat (apply 'concat
+      (concat (apply #'concat
 		     "(+" erc-channel-modes)
 	      (if erc-channel-user-limit
 		  (format "l %d" erc-channel-user-limit)
@@ -177,6 +176,7 @@
 (defvar erc-ibuffer-limit-map nil
   "Prefix keymap to use for ERC related limiting.")
 (define-prefix-command 'erc-ibuffer-limit-map)
+;; FIXME: Where is `ibuffer-limit-by-erc-server' defined?
 (define-key 'erc-ibuffer-limit-map (kbd "s") 'ibuffer-limit-by-erc-server)
 (define-key ibuffer-mode-map (kbd "/ \C-e") 'erc-ibuffer-limit-map)
 

@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2020 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -209,7 +209,6 @@ Returns nil if nothing was entered."
 
 (defun solar-setup ()
   "Prompt for `calendar-longitude', `calendar-latitude', `calendar-time-zone'."
-  (beep)
   (or calendar-longitude
       (setq calendar-longitude
             (solar-get-number
@@ -491,8 +490,8 @@ Uses binary search."
          (utmin (+ ut (* direction 12.0)))
          (utmax ut)     ; the time searched is between utmin and utmax
          ;; utmin and utmax are in hours.
-         (utmoment-old 0.0)             ; rise or set approximation
-         (utmoment 1.0)                 ; rise or set approximation
+         (utmoment-old utmin)           ; rise or set approximation
+         (utmoment utmax)               ; rise or set approximation
          (hut 0)                        ; sun height at utmoment
          (t0 (car time))
          (hmin (cadr (solar-horizontal-coordinates (list t0 utmin)
@@ -553,7 +552,7 @@ degrees to find out if polar regions have 24 hours of sun or only night."
 Format used is given by `calendar-time-display-form'."
   (let* ((time (round (* 60 time)))
          (24-hours (/ time 60)))
-    (calendar-dlet*
+    (calendar-dlet
         ((time-zone time-zone)
          (minutes (format "%02d" (% time 60)))
          (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
@@ -840,10 +839,10 @@ This function is suitable for execution in an init file."
                             "E" "W"))))))
          (calendar-standard-time-zone-name
           (if (< arg 16) calendar-standard-time-zone-name
-            (cond ((zerop calendar-time-zone) "UTC")
-                  ((< calendar-time-zone 0)
-                   (format "UTC%dmin" calendar-time-zone))
-                  (t  (format "UTC+%dmin" calendar-time-zone)))))
+	    (if (and (zerop calendar-time-zone)
+		     (not (eq calendar-time-zone-style 'numeric)))
+		"UTC"
+	      (format-time-string "%z" 0 (* 60 calendar-time-zone)))))
          (calendar-daylight-savings-starts
           (if (< arg 16) calendar-daylight-savings-starts))
          (calendar-daylight-savings-ends
@@ -1013,7 +1012,10 @@ Requires floating point."
   (let* ((m displayed-month)
          (y displayed-year)
          (calendar-standard-time-zone-name
-          (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
+          (cond
+           (calendar-time-zone calendar-standard-time-zone-name)
+           ((eq calendar-time-zone-style 'numeric) "+0000")
+           (t "UTC")))
          (calendar-daylight-savings-starts
           (if calendar-time-zone calendar-daylight-savings-starts))
          (calendar-daylight-savings-ends

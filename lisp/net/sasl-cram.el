@@ -1,6 +1,6 @@
-;;; sasl-cram.el --- CRAM-MD5 module for the SASL client framework
+;;; sasl-cram.el --- CRAM-MD5 module for the SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
@@ -23,6 +23,8 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;;; Code:
 
 (require 'sasl)
 (require 'hmac-md5)

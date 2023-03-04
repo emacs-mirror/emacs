@@ -1,6 +1,6 @@
 ;;; nsm.el --- Network Security Manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: encryption, security, network
@@ -34,7 +34,7 @@
 (defvar nsm-temporary-host-settings nil)
 
 (defgroup nsm nil
-  "Network Security Manager"
+  "Network Security Manager."
   :version "25.1"
   :group 'comm)
 
@@ -79,8 +79,7 @@ option."
                  (const :tag "Off" nil)
                  (function :tag "Custom function")))
 
-(defcustom nsm-settings-file (expand-file-name "network-security.data"
-						 user-emacs-directory)
+(defcustom nsm-settings-file (locate-user-emacs-file "network-security.data")
   "The file the security manager settings will be stored in."
   :version "25.1"
   :type 'file)
@@ -164,7 +163,7 @@ STATUS SETTINGS.  HOST is the host domain, PORT is a TCP port
 number, STATUS is the peer status returned by
 `gnutls-peer-status', and SETTINGS is the persistent and session
 settings for the host HOST.  Please refer to the contents of
-`nsm-setting-file' for details.  If a problem is found, the check
+`nsm-settings-file' for details.  If a problem is found, the check
 function is required to return an error message, and nil
 otherwise.
 
@@ -239,7 +238,7 @@ otherwise."
         (mapc
          (lambda (info)
            (let ((local-ip (nth 1 info))
-                 (mask (nth 2 info)))
+                 (mask (nth 3 info)))
              (when
                  (nsm-network-same-subnet (substring local-ip 0 -1)
                                           (substring mask 0 -1)
@@ -446,8 +445,8 @@ this check has no effect on GnuTLS >= 3.2.0.
 
 Reference:
 
-[1]: Schneier, Bruce (1996). Applied Cryptography (Second ed.). John
-Wiley & Sons. ISBN 0-471-11709-9.
+[1]: Schneier, Bruce (1996).  Applied Cryptography (Second ed.).
+John Wiley & Sons.  ISBN 0-471-11709-9.
 [2]: N. Mavrogiannopoulos, FSF (Apr 2015).  \"GnuTLS NEWS -- History
 of user-visible changes.\" Version 3.4.0,
 `https://gitlab.com/gnutls/gnutls/blob/master/NEWS'"
@@ -466,7 +465,7 @@ man-in-the-middle attacks.
 
 Reference:
 
-GnuTLS authors (2018). \"GnuTLS Manual 4.3.3 Anonymous
+GnuTLS authors (2018).  \"GnuTLS Manual 4.3.3 Anonymous
 authentication\",
 `https://www.gnutls.org/manual/gnutls.html#Anonymous-authentication'"
   (let ((kx (plist-get status :key-exchange)))
@@ -640,7 +639,7 @@ References:
 
 [1]: Sotirov A, Stevens M et al (2008).  \"MD5 considered harmful today
 - Creating a rogue CA certificate\",
-`http://www.win.tue.nl/hashclash/rogue-ca/'
+`https://www.win.tue.nl/hashclash/rogue-ca/'
 [2]: Turner S, Chen L (2011).  \"Updated Security Considerations for
 the MD5 Message-Digest and the HMAC-MD5 Algorithms\",
 `https://tools.ietf.org/html/rfc6151'"
@@ -964,6 +963,7 @@ protocol."
 
 (defun nsm-write-settings ()
   (with-temp-file nsm-settings-file
+    (insert ";;;; -*- mode: lisp-data -*-\n")
     (insert "(\n")
     (dolist (setting nsm-permanent-host-settings)
       (insert " ")

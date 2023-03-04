@@ -1,6 +1,6 @@
-;;; smiley.el --- displaying smiley faces
+;;; smiley.el --- displaying smiley faces  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: news mail multimedia
@@ -44,6 +44,7 @@
 ;; cry               ;-(
 ;; dead              X-)
 ;; grin              :-D
+;; halo              O:-)
 
 ;;; Code:
 
@@ -56,25 +57,22 @@
 
 (defvar smiley-data-directory)
 
-(defcustom smiley-style
-  (if (and (fboundp 'face-attribute)
-	   ;; In batch mode, attributes can be unspecified.
-	   (condition-case nil
-	       (>= (face-attribute 'default :height) 160)
-	     (error nil)))
-      'medium
-    'low-color)
+;; In batch mode, attributes can be unspecified.
+(defcustom smiley-style (if (ignore-errors
+			      (>= (face-attribute 'default :height) 160))
+			    'medium
+			  'low-color)
   "Smiley style."
   :type '(choice (const :tag "small, 3 colors" low-color)  ;; 13x14
 		 (const :tag "medium, ~10 colors" medium)  ;; 16x16
-		 (const :tag "dull, grayscale" grayscale)) ;; 14x14
+		 (const :tag "dull, grayscale" grayscale)  ;; 14x14
+                 (const :tag "emoji, full color" emoji))
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (setq smiley-data-directory (smiley-directory))
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :version "23.1" ;; No Gnus
-  :group 'smiley)
+  :initialize #'custom-initialize-default
+  :version "23.1") ;; No Gnus
 
 ;; For compatibility, honor the variable `smiley-data-directory' if the user
 ;; has set it.
@@ -95,9 +93,36 @@ is nil, use `smiley-style'."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :type 'directory
-  :group 'smiley)
+  :initialize #'custom-initialize-default
+  :type 'directory)
+
+(defcustom smiley-emoji-regexp-alist
+  '(("\\(;-)\\)\\W" 1 "😉")
+    ("[^;]\\(;)\\)\\W" 1 "😉")
+    ("\\(:-]\\)\\W" 1 "😬")
+    ("\\(8-)\\)\\W" 1 "🥴")
+    ("\\(:-|\\)\\W" 1 "😐")
+    ("\\(:-[/\\]\\)\\W" 1 "😕")
+    ("\\(:-(\\)\\W" 1 "😠")
+    ("\\(X-)\\)\\W" 1 "😵") ; 💀
+    ("\\(:-{\\)\\W" 1 "😦")
+    ("\\(>:-)\\)\\W" 1 "😈")
+    ("\\(;-(\\)\\W" 1 "😢")
+    ("\\(:-D\\)\\W" 1 "😀")
+    ("\\(O:-)\\)\\W" 1 "😇")
+    ;; "smile" must be come after "evil"
+    ("\\(\\^?:-?)\\)\\W" 1 "🙂"))
+  "A list of regexps to map smilies to emoji.
+The elements are (REGEXP MATCH EMOJI), where MATCH is the submatch in
+regexp to replace with EMOJI."
+  :version "28.1"
+  :type '(repeat (list regexp
+		       (integer :tag "Regexp match number")
+		       (string :tag "Emoji")))
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (smiley-update-cache))
+  :initialize #'custom-initialize-default)
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
@@ -126,8 +151,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
-  :initialize 'custom-initialize-default
-  :group 'smiley)
+  :initialize #'custom-initialize-default)
 
 (defcustom gnus-smiley-file-types
   (let ((types (list "pbm")))
@@ -138,30 +162,31 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
     types)
   "List of suffixes on smiley file names to try."
   :version "24.1"
-  :type '(repeat string)
-  :group 'smiley)
+  :type '(repeat string))
 
 (defvar smiley-cached-regexp-alist nil)
 
 (defun smiley-update-cache ()
   (setq smiley-cached-regexp-alist nil)
-  (dolist (elt (if (symbolp smiley-regexp-alist)
-		   (symbol-value smiley-regexp-alist)
-		 smiley-regexp-alist))
-    (let ((types gnus-smiley-file-types)
-	  file type)
-      (while (and (not file)
-		  (setq type (pop types)))
-	(unless (file-exists-p
-		 (setq file (expand-file-name (concat (nth 2 elt) "." type)
-					      smiley-data-directory)))
-	  (setq file nil)))
-      (when type
-	(let ((image (gnus-create-image file (intern type) nil
-					:ascent 'center)))
-	  (when image
-	    (push (list (car elt) (cadr elt) image)
-		  smiley-cached-regexp-alist)))))))
+  (if (eq smiley-style 'emoji)
+      (setq smiley-cached-regexp-alist smiley-emoji-regexp-alist)
+    (dolist (elt (if (symbolp smiley-regexp-alist)
+		     (symbol-value smiley-regexp-alist)
+		   smiley-regexp-alist))
+      (let ((types gnus-smiley-file-types)
+	    file type)
+        (while (and (not file)
+		    (setq type (pop types)))
+	  (unless (file-exists-p
+		   (setq file (expand-file-name (concat (nth 2 elt) "." type)
+					        smiley-data-directory)))
+	    (setq file nil)))
+        (when type
+	  (let ((image (gnus-create-image file (intern type) nil
+					  :ascent 'center)))
+	    (when image
+	      (push (list (car elt) (cadr elt) image)
+		    smiley-cached-regexp-alist))))))))
 
 ;; Not implemented:
 ;; (defvar smiley-mouse-map
@@ -193,8 +218,15 @@ A list of images is returned."
 	    (when image
 	      (push image images)
 	      (gnus-add-wash-type 'smiley)
-	      (gnus-add-image 'smiley image)
-	      (gnus-put-image image string 'smiley))))
+              (if (symbolp image)
+                  (progn
+	            (gnus-add-image 'smiley image)
+	            (gnus-put-image image string 'smiley))
+		;; This is a string, but mark the property for
+		;; deletion if the washing method is switched off.
+                (insert (propertize string
+				    'display image
+				    'gnus-image-category 'smiley))))))
 	images))))
 
 ;;;###autoload
@@ -210,7 +242,7 @@ interactively.  If there's no argument, do it at the current buffer."
 (defun smiley-toggle-buffer (&optional arg)
   "Toggle displaying smiley faces in article buffer.
 With arg, turn displaying on if and only if arg is positive."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (if (numberp arg)
 	    (> arg 0)

@@ -1,6 +1,6 @@
 ;;; vc-src.el --- support for SRC version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -97,13 +97,11 @@
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
-		 (const :tag "Unknown" unknown))
-  :group 'vc-src)
+		 (const :tag "Unknown" unknown)))
 
 (defcustom vc-src-program "src"
   "Name of the SRC executable (excluding any arguments)."
-  :type 'string
-  :group 'vc-src)
+  :type 'string)
 
 (defcustom vc-src-diff-switches nil
   "String or list of strings specifying switches for SRC diff under VC.
@@ -111,8 +109,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (const :tag "Unspecified" nil)
                  (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-src)
+		 (repeat :tag "Argument List" :value ("") string)))
 
 ;; This needs to be autoloaded because vc-src-registered uses it (via
 ;; vc-default-registered), and vc-hooks needs to be able to check
@@ -123,11 +120,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Where to look for SRC master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SRC file names"
-			'("%s.src/%s,v"))
+			("%s.src/%s,v"))
 		 (repeat :tag "User-specified"
 			 (choice string
-				 function)))
-  :group 'vc-src)
+				 function))))
 
 
 ;;; Properties of the backend
@@ -146,6 +142,20 @@ For a description of possible values, see `vc-check-master-templates'."
 (progn
 (defun vc-src-registered (f) (vc-default-registered 'src f)))
 
+(defun vc-src--parse-state (out)
+  (when (null (string-match "does not exist or is unreadable" out))
+    (let ((state (aref out 0)))
+      (cond
+       ;; FIXME: What to do about L code?
+       ((eq state ?.) 'up-to-date)
+       ((eq state ?A) 'added)
+       ((eq state ?M) 'edited)
+       ((eq state ?I) 'ignored)
+       ((eq state ?R) 'removed)
+       ((eq state ?!) 'missing)
+       ((eq state ??) 'unregistered)
+       (t 'up-to-date)))))
+
 (defun vc-src-state (file)
   "SRC-specific version of `vc-state'."
   (let*
@@ -163,32 +173,41 @@ For a description of possible values, see `vc-check-master-templates'."
 		       "status" "-a" (file-relative-name file))
 		    (error nil)))))))
     (when (eq 0 status)
-      (when (null (string-match "does not exist or is unreadable" out))
-	(let ((state (aref out 0)))
-	  (cond
-	   ;; FIXME: What to do about A and L codes?
-	   ((eq state ?.) 'up-to-date)
-	   ((eq state ?A) 'added)
-	   ((eq state ?M) 'edited)
-	   ((eq state ?I) 'ignored)
-	   ((eq state ?R) 'removed)
-	   ((eq state ?!) 'missing)
-	   ((eq state ??) 'unregistered)
-	   (t 'up-to-date)))))))
+      (vc-src--parse-state out))))
 
 (autoload 'vc-expand-dirs "vc")
 
 (defun vc-src-dir-status-files (dir files update-function)
-  ;; FIXME: Use one src status -a call for this
-  (if (not files) (setq files (vc-expand-dirs (list dir) 'SRC)))
-  (let ((result nil))
-    (dolist (file files)
-      (let ((state (vc-state file))
-	    (frel (file-relative-name file)))
-	(when (and (eq (vc-backend file) 'SRC)
-		   (not (eq state 'up-to-date)))
-	  (push (list frel state) result))))
-    (funcall update-function result)))
+  (let* ((result nil)
+         (status nil)
+         (default-directory (or dir default-directory))
+         (out
+          (with-output-to-string
+            (with-current-buffer standard-output
+              (setq status
+                    (ignore-errors
+                      (apply
+                       #'process-file vc-src-program nil t nil
+                       "status" "-a"
+                       (mapcar #'file-relative-name files)))))))
+         dlist)
+    (when (eq 0 status)
+      (dolist (line (split-string out "[\n\r]" t))
+        (let* ((pair (split-string line "[\t]" t))
+               (state (vc-src--parse-state (car pair)))
+               (frel (cadr pair)))
+          (if (file-directory-p frel)
+              (push frel dlist)
+            (when (not (eq state 'up-to-date))
+              (push (list frel state) result)))))
+      (dolist (drel dlist)
+        (let ((dresult (vc-src-dir-status-files
+                        (expand-file-name drel) nil #'identity)))
+          (dolist (dres dresult)
+            (push (list (concat (file-name-as-directory drel) (car dres))
+                        (cadr dres))
+                  result))))
+      (funcall update-function result))))
 
 (defun vc-src-command (buffer file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-src.el.
@@ -198,7 +217,7 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
 	   (setq file-list (list "--" file-or-list)))
 	  (file-or-list
 	   (setq file-list (cons "--" file-or-list))))
-    (apply 'vc-do-command (or buffer "*vc*") 0 vc-src-program file-list flags)))
+    (apply #'vc-do-command (or buffer "*vc*") 0 vc-src-program file-list flags)))
 
 (defun vc-src-working-revision (file)
   "SRC-specific version of `vc-working-revision'."
@@ -219,15 +238,17 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
 (autoload 'vc-switches "vc")
 
 (defun vc-src-register (files &optional _comment)
-  "Register FILES under src. COMMENT is ignored."
+  "Register FILES under src.  COMMENT is ignored."
   (vc-src-command nil files "add"))
 
 (defun vc-src-responsible-p (file)
-  "Return non-nil if SRC thinks it would be responsible for registering FILE."
-  (file-directory-p (expand-file-name ".src"
-                                      (if (file-directory-p file)
-                                          file
-                                        (file-name-directory file)))))
+  "Return the directory if SRC thinks it would be responsible for FILE."
+  (let ((dir (expand-file-name ".src"
+                               (if (file-directory-p file)
+                                   file
+                                 (file-name-directory file)))))
+    (and (file-directory-p dir)
+         dir)))
 
 (defun vc-src-checkin (files comment &optional _rev)
   "SRC-specific version of `vc-backend-checkin'.
@@ -249,15 +270,16 @@ REV is the revision to check out into WORKFILE."
     (vc-src-command nil file "co")))
 
 (defun vc-src-revert (file &optional _contents-done)
-  "Revert FILE to the version it was based on.  If FILE is a directory,
-revert all registered files beneath it."
+  "Revert FILE to the version it was based on.
+If FILE is a directory, revert all registered files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-src-revert (vc-expand-dirs (list file) 'SRC))
+      (mapc #'vc-src-revert (vc-expand-dirs (list file) 'SRC))
     (vc-src-command nil file "co")))
 
 (defun vc-src-modify-change-comment (files rev comment)
-  "Modify the change comments change on FILES on a specified REV.  If FILE is a
-directory the operation is applied to all registered files beneath it."
+  "Modify the change comments change on FILES on a specified REV.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
   (dolist (file (vc-expand-dirs files 'SRC))
     (vc-src-command nil file "amend" "-m" comment rev)))
 
@@ -267,8 +289,7 @@ directory the operation is applied to all registered files beneath it."
   "String or list of strings specifying switches for src log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
-                 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-src)
+                 (repeat :tag "Argument List" :value ("") string)))
 
 (defun vc-src-print-log (files buffer &optional shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -284,7 +305,7 @@ If LIMIT is non-nil, show no more than this many entries."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (apply 'vc-src-command buffer files (if shortlog "list" "log")
+      (apply #'vc-src-command buffer files (if shortlog "list" "log")
 	     (nconc
 	      ;;(when start-revision (list (format "%s-1" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))

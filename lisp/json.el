@@ -1,9 +1,9 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
@@ -26,19 +26,30 @@
 ;; This is a library for parsing and generating JSON (JavaScript Object
 ;; Notation).
 
-;; Learn all about JSON here: <URL:http://json.org/>.
+;; Learn all about JSON here: <URL:https://json.org/>.
 
 ;; The user-serviceable entry points for the parser are the functions
-;; `json-read' and `json-read-from-string'. The encoder has a single
+;; `json-read' and `json-read-from-string'.  The encoder has a single
 ;; entry point, `json-encode'.
 
 ;; Since there are several natural representations of key-value pair
-;; mappings in elisp (alist, plist, hash-table), `json-read' allows you
+;; mappings in Elisp (alist, plist, hash-table), `json-read' allows you
 ;; to specify which you'd prefer (see `json-object-type' and
 ;; `json-array-type').
 
 ;; Similarly, since `false' and `null' are distinct in JSON, you can
 ;; distinguish them by binding `json-false' and `json-null' as desired.
+
+;;; Organization:
+
+;; Historically json.el used the prefix `json-read-' for decoding and
+;; the prefix `json-encode-' for encoding.  Many of these definitions
+;; are used by external packages since few were marked as internal.
+;; Optimizing the encoder to manipulate a buffer rather than strings
+;; while minimizing code duplication therefore necessitated a new
+;; namespace `json--print-'.  This rendered many encoding functions
+;; obsolete and unused, but those considered externally useful are
+;; kept for backward compatibility and as a public API.
 
 ;;; History:
 
@@ -57,7 +68,7 @@
 (require 'map)
 (require 'subr-x)
 
-;; Parameters
+;;;; Parameters
 
 (defvar json-object-type 'alist
   "Type to convert JSON objects to.
@@ -102,19 +113,30 @@ this around your call to `json-read' instead of `setq'ing it.")
   "Value to use as an element separator when encoding.")
 
 (defvar json-encoding-default-indentation "  "
-  "The default indentation level for encoding.
+  "String used for a single indentation level during encoding.
+This value is repeated for each further nested element.
 Used only when `json-encoding-pretty-print' is non-nil.")
 
-(defvar json--encoding-current-indentation "\n"
-  "Internally used to keep track of the current indentation level of encoding.
+(defvar json--print-indentation-prefix "\n"
+  "String used to start indentation during encoding.
 Used only when `json-encoding-pretty-print' is non-nil.")
+
+(defvar json--print-indentation-depth 0
+  "Current indentation level during encoding.
+Dictates repetitions of `json-encoding-default-indentation'.
+Used only when `json-encoding-pretty-print' is non-nil.")
+
+(defvar json--print-keyval-separator ":"
+  "String used to separate key-value pairs during encoding.")
 
 (defvar json-encoding-pretty-print nil
   "If non-nil, then the output of `json-encode' will be pretty-printed.")
 
 (defvar json-encoding-lisp-style-closings nil
-  "If non-nil, ] and } closings will be formatted lisp-style,
-without indentation.")
+  "If non-nil, delimiters ] and } will be formatted Lisp-style.
+This means they will be placed on the same line as the last
+element of the respective array or object, without indentation.
+Used only when `json-encoding-pretty-print' is non-nil.")
 
 (defvar json-encoding-object-sort-predicate nil
   "Sorting predicate for JSON object keys during encoding.
@@ -124,88 +146,101 @@ instance, setting this to `string<' will have JSON object keys
 ordered alphabetically.")
 
 (defvar json-pre-element-read-function nil
-  "Function called (if non-nil) by `json-read-array' and
-`json-read-object' right before reading a JSON array or object,
-respectively.  The function is called with one argument, which is
-the current JSON key.")
+  "If non-nil, a function to call before reading a JSON array or object.
+It is called by `json-read-array' and `json-read-object',
+respectively, with one argument, which is the current JSON key.")
 
 (defvar json-post-element-read-function nil
-  "Function called (if non-nil) by `json-read-array' and
-`json-read-object' right after reading a JSON array or object,
-respectively.")
+  "If non-nil, a function to call after reading a JSON array or object.
+It is called by `json-read-array' and `json-read-object',
+respectively, with no arguments.")
 
 
 
-;;; Utilities
+;;;; Utilities
 
-(defun json-join (strings separator)
-  "Join STRINGS with SEPARATOR."
-  (mapconcat 'identity strings separator))
+(define-obsolete-function-alias 'json-join #'string-join "28.1")
 
 (defun json-alist-p (list)
-  "Non-null if and only if LIST is an alist with simple keys."
-  (while (consp list)
-    (setq list (if (and (consp (car list))
-                        (atom (caar list)))
-                   (cdr list)
-                 'not-alist)))
+  "Non-nil if and only if LIST is an alist with simple keys."
+  (declare (pure t) (side-effect-free error-free))
+  (while (and (consp (car-safe list))
+              (atom (caar list))
+              (setq list (cdr list))))
   (null list))
 
 (defun json-plist-p (list)
-  "Non-null if and only if LIST is a plist with keyword keys."
-  (while (consp list)
-    (setq list (if (and (keywordp (car list))
-                        (consp (cdr list)))
-                   (cddr list)
-                 'not-plist)))
+  "Non-nil if and only if LIST is a plist with keyword keys."
+  (declare (pure t) (side-effect-free error-free))
+  (while (and (keywordp (car-safe list))
+              (consp (cdr list))
+              (setq list (cddr list))))
   (null list))
 
-(defun json--plist-reverse (plist)
-  "Return a copy of PLIST in reverse order.
-Unlike `reverse', this keeps the property-value pairs intact."
-  (let (res)
-    (while plist
-      (let ((prop (pop plist))
-            (val (pop plist)))
-        (push val res)
-        (push prop res)))
-    res))
+(defun json--plist-nreverse (plist)
+  "Return PLIST in reverse order.
+Unlike `nreverse', this keeps the ordering of each property
+relative to its value intact.  Like `nreverse', this function may
+destructively modify PLIST to produce the result."
+  (let (prev (next (cddr plist)))
+    (while next
+      (setcdr (cdr plist) prev)
+      (setq prev plist plist next next (cddr next))
+      (setcdr (cdr plist) prev)))
+  plist)
 
-(defun json--plist-to-alist (plist)
-  "Return an alist of the property-value pairs in PLIST."
-  (let (res)
-    (while plist
-      (let ((prop (pop plist))
-            (val (pop plist)))
-        (push (cons prop val) res)))
-    (nreverse res)))
+;; Encoder utilities
 
-(defmacro json--with-indentation (body)
-  `(let ((json--encoding-current-indentation
-          (if json-encoding-pretty-print
-              (concat json--encoding-current-indentation
-                      json-encoding-default-indentation)
-            "")))
-     ,body))
+(defmacro json--with-output-to-string (&rest body)
+  "Eval BODY in a temporary buffer bound to `standard-output'.
+Return the resulting buffer contents as a string."
+  (declare (indent 0) (debug t))
+  `(with-output-to-string
+     (with-current-buffer standard-output
+       ;; This affords decent performance gains.
+       (setq-local inhibit-modification-hooks t)
+       ,@body)))
+
+(defmacro json--with-indentation (&rest body)
+  "Eval BODY with the JSON encoding nesting incremented by one step.
+This macro sets up appropriate variable bindings for
+`json--print-indentation' to produce the correct indentation when
+`json-encoding-pretty-print' is non-nil."
+  (declare (debug t) (indent 0))
+  `(let ((json--print-indentation-prefix
+          (if json-encoding-pretty-print json--print-indentation-prefix ""))
+         (json--print-keyval-separator (if json-encoding-pretty-print ": " ":"))
+         (json--print-indentation-depth (1+ json--print-indentation-depth)))
+     ,@body))
+
+(defun json--print-indentation ()
+  "Insert the current indentation for JSON encoding at point.
+Has no effect if `json-encoding-pretty-print' is nil."
+  (when json-encoding-pretty-print
+    (insert json--print-indentation-prefix)
+    (dotimes (_ json--print-indentation-depth)
+      (insert json-encoding-default-indentation))))
 
 ;; Reader utilities
 
 (define-inline json-advance (&optional n)
-  "Advance N characters forward."
+  "Advance N characters forward, or 1 character if N is nil.
+On reaching the end of the accessible region of the buffer, stop
+and signal an error."
   (inline-quote (forward-char ,n)))
 
 (define-inline json-peek ()
-  "Return the character at point."
+  "Return the character at point.
+At the end of the accessible region of the buffer, return 0."
   (inline-quote (following-char)))
 
 (define-inline json-pop ()
-  "Advance past the character at point, returning it."
+  "Advance past the character at point, returning it.
+Signal `json-end-of-file' if called at the end of the buffer."
   (inline-quote
-   (let ((char (json-peek)))
-     (if (zerop char)
-         (signal 'json-end-of-file nil)
-       (json-advance)
-       char))))
+   (prog1 (or (char-after)
+              (signal 'json-end-of-file ()))
+     (json-advance))))
 
 (define-inline json-skip-whitespace ()
   "Skip past the whitespace at point."
@@ -213,9 +248,7 @@ Unlike `reverse', this keeps the property-value pairs intact."
   ;; https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
   ;; or https://tools.ietf.org/html/rfc7159#section-2 for the
   ;; definition of whitespace in JSON.
-  (inline-quote (skip-chars-forward "\t\r\n ")))
-
-
+  (inline-quote (skip-chars-forward "\t\n\r ")))
 
 ;; Error conditions
 
@@ -233,11 +266,11 @@ Unlike `reverse', this keeps the property-value pairs intact."
 
 
 
-;;; Paths
+;;;; Paths
 
 (defvar json--path '()
-  "Used internally by `json-path-to-position' to keep track of
-the path during recursive calls to `json-read'.")
+  "Keeps track of the path during recursive calls to `json-read'.
+Used internally by `json-path-to-position'.")
 
 (defun json--record-path (key)
   "Record the KEY to the current JSON path.
@@ -248,7 +281,7 @@ Used internally by `json-path-to-position'."
   "Check if the last parsed JSON structure passed POSITION.
 Used internally by `json-path-to-position'."
   (let ((start (caar json--path)))
-    (when (< start position (+ (point) 1))
+    (when (< start position (1+ (point)))
       (throw :json-path (list :path (nreverse (mapcar #'cdr json--path))
                               :match-start start
                               :match-end (point)))))
@@ -266,13 +299,13 @@ properties:
 :path        -- A list of strings and numbers forming the path to
                 the JSON element at the given position.  Strings
                 denote object names, while numbers denote array
-                indexes.
+                indices.
 
 :match-start -- Position where the matched JSON element begins.
 
 :match-end   -- Position where the matched JSON element ends.
 
-This can for instance be useful to determine the path to a JSON
+This can, for instance, be useful to determine the path to a JSON
 element in a deeply nested structure."
   (save-excursion
     (unless string
@@ -280,7 +313,7 @@ element in a deeply nested structure."
     (let* ((json--path '())
            (json-pre-element-read-function #'json--record-path)
            (json-post-element-read-function
-            (apply-partially #'json--check-position position))
+            (lambda () (json--check-position position)))
            (path (catch :json-path
                    (if string
                        (json-read-from-string string)
@@ -288,79 +321,75 @@ element in a deeply nested structure."
       (when (plist-get path :path)
         path))))
 
-;;; Keywords
+
 
-(defvar json-keywords '("true" "false" "null")
+;;;; Keywords
+
+(defconst json-keywords '("true" "false" "null")
   "List of JSON keywords.")
+(make-obsolete-variable 'json-keywords "it is no longer used." "28.1")
 
 ;; Keyword parsing
 
+;; Characters that can follow a JSON value.
+(rx-define json--post-value (| (in "\t\n\r ,]}") eos))
+
 (defun json-read-keyword (keyword)
-  "Read a JSON keyword at point.
-KEYWORD is the keyword expected."
-  (unless (member keyword json-keywords)
-    (signal 'json-unknown-keyword (list keyword)))
-  (mapc (lambda (char)
-          (when (/= char (json-peek))
-            (signal 'json-unknown-keyword
-                    (list (save-excursion
-                            (backward-word-strictly 1)
-                            (thing-at-point 'word)))))
-          (json-advance))
-        keyword)
-  (json-skip-whitespace)
-  (unless (looking-at "\\([],}]\\|$\\)")
-    (signal 'json-unknown-keyword
-            (list (save-excursion
-                    (backward-word-strictly 1)
-                    (thing-at-point 'word)))))
-  (cond ((string-equal keyword "true") t)
-        ((string-equal keyword "false") json-false)
-        ((string-equal keyword "null") json-null)))
+  "Read the expected JSON KEYWORD at point."
+  (prog1 (cond ((equal keyword "true")  t)
+               ((equal keyword "false") json-false)
+               ((equal keyword "null")  json-null)
+               (t (signal 'json-unknown-keyword (list keyword))))
+    (or (looking-at-p keyword)
+        (signal 'json-unknown-keyword (list (thing-at-point 'word))))
+    (json-advance (length keyword))
+    (or (looking-at-p (rx json--post-value))
+        (signal 'json-unknown-keyword (list (thing-at-point 'word))))
+    (json-skip-whitespace)))
 
 ;; Keyword encoding
 
 (defun json-encode-keyword (keyword)
   "Encode KEYWORD as a JSON value."
+  (declare (side-effect-free t))
   (cond ((eq keyword t)          "true")
         ((eq keyword json-false) "false")
         ((eq keyword json-null)  "null")))
 
-;;; Numbers
+(defun json--print-keyword (keyword)
+  "Insert KEYWORD as a JSON value at point.
+Return nil if KEYWORD is not recognized as a JSON keyword."
+  (prog1 (setq keyword (json-encode-keyword keyword))
+    (and keyword (insert keyword))))
+
+;;;; Numbers
 
 ;; Number parsing
 
-(defun json-read-number (&optional sign)
- "Read the JSON number following point.
-The optional SIGN argument is for internal use.
+(rx-define json--number
+  (: (? ?-)                                   ; Sign.
+     (| (: (in "1-9") (* digit)) ?0)          ; Integer.
+     (? ?. (+ digit))                         ; Fraction.
+     (? (in "Ee") (? (in ?+ ?-)) (+ digit)))) ; Exponent.
 
-N.B.: Only numbers which can fit in Emacs Lisp's native number
-representation will be parsed correctly."
- ;; If SIGN is non-nil, the number is explicitly signed.
- (let ((number-regexp
-        "\\([0-9]+\\)?\\(\\.[0-9]+\\)?\\([Ee][+-]?[0-9]+\\)?"))
-   (cond ((and (null sign) (= (json-peek) ?-))
-          (json-advance)
-          (- (json-read-number t)))
-         ((and (null sign) (= (json-peek) ?+))
-          (json-advance)
-          (json-read-number t))
-         ((and (looking-at number-regexp)
-               (or (match-beginning 1)
-                   (match-beginning 2)))
-          (goto-char (match-end 0))
-          (string-to-number (match-string 0)))
-         (t (signal 'json-number-format (list (point)))))))
+(defun json-read-number (&optional _sign)
+  "Read the JSON number following point."
+  (declare (advertised-calling-convention () "28.1"))
+  (or (looking-at (rx json--number))
+      (signal 'json-number-format (list (point))))
+  (goto-char (match-end 0))
+  (prog1 (string-to-number (match-string 0))
+    (or (looking-at-p (rx json--post-value))
+        (signal 'json-number-format (list (point))))
+    (json-skip-whitespace)))
 
 ;; Number encoding
 
-(defun json-encode-number (number)
-  "Return a JSON representation of NUMBER."
-  (format "%s" number))
+(define-obsolete-function-alias 'json-encode-number #'json-encode "28.1")
 
-;;; Strings
+;;;; Strings
 
-(defvar json-special-chars
+(defconst json-special-chars
   '((?\" . ?\")
     (?\\ . ?\\)
     (?b . ?\b)
@@ -368,7 +397,7 @@ representation will be parsed correctly."
     (?n . ?\n)
     (?r . ?\r)
     (?t . ?\t))
-  "Characters which are escaped in JSON, with their elisp counterparts.")
+  "Characters which are escaped in JSON, with their Elisp counterparts.")
 
 ;; String parsing
 
@@ -378,48 +407,47 @@ representation will be parsed correctly."
 
 (defun json-read-escaped-char ()
   "Read the JSON string escaped character at point."
-  ;; Skip over the '\'
+  ;; Skip over the '\'.
   (json-advance)
-  (let* ((char (json-pop))
-         (special (assq char json-special-chars)))
+  (let ((char (json-pop)))
     (cond
-     (special (cdr special))
-     ((not (eq char ?u)) char)
+     ((cdr (assq char json-special-chars)))
+     ((/= char ?u) char)
      ;; Special-case UTF-16 surrogate pairs,
      ;; cf. <https://tools.ietf.org/html/rfc7159#section-7>.  Note that
      ;; this clause overlaps with the next one and therefore has to
      ;; come first.
      ((looking-at
-       (rx (group (any "Dd") (any "89ABab") (= 2 (any xdigit)))
-           "\\u" (group (any "Dd") (any "C-Fc-f") (= 2 (any xdigit)))))
+       (rx (group (any "Dd") (any "89ABab") (= 2 xdigit))
+           "\\u" (group (any "Dd") (any "C-Fc-f") (= 2 xdigit))))
       (json-advance 10)
       (json--decode-utf-16-surrogates
        (string-to-number (match-string 1) 16)
        (string-to-number (match-string 2) 16)))
      ((looking-at (rx (= 4 xdigit)))
-      (let ((hex (match-string 0)))
-        (json-advance 4)
-        (string-to-number hex 16)))
+      (json-advance 4)
+      (string-to-number (match-string 0) 16))
      (t
       (signal 'json-string-escape (list (point)))))))
 
 (defun json-read-string ()
   "Read the JSON string at point."
-  (unless (= (json-peek) ?\")
-    (signal 'json-string-format (list "doesn't start with `\"'!")))
-  ;; Skip over the '"'
+  ;; Skip over the '"'.
   (json-advance)
   (let ((characters '())
         (char (json-peek)))
-    (while (not (= char ?\"))
+    (while (/= char ?\")
       (when (< char 32)
-        (signal 'json-string-format (list (prin1-char char))))
+        (if (zerop char)
+            (signal 'json-end-of-file ())
+          (signal 'json-string-format (list char))))
       (push (if (= char ?\\)
                 (json-read-escaped-char)
-              (json-pop))
+              (json-advance)
+              char)
             characters)
       (setq char (json-peek)))
-    ;; Skip over the '"'
+    ;; Skip over the '"'.
     (json-advance)
     (if characters
         (concat (nreverse characters))
@@ -427,48 +455,58 @@ representation will be parsed correctly."
 
 ;; String encoding
 
+(defun json--print-string (string &optional from)
+  "Insert a JSON representation of STRING at point.
+FROM is the index of STRING to start from and defaults to 0."
+  (insert ?\")
+  (goto-char (prog1 (point) (princ string)))
+  (and from (delete-char from))
+  ;; Escape only quotation mark, backslash, and the control
+  ;; characters U+0000 to U+001F (RFC 4627, ECMA-404).
+  (while (re-search-forward (rx (in ?\" ?\\ cntrl)) nil 'move)
+    (let ((char (preceding-char)))
+      (delete-char -1)
+      (insert ?\\ (or
+                   ;; Special JSON character (\n, \r, etc.).
+                   (car (rassq char json-special-chars))
+                   ;; Fallback: UCS code point in \uNNNN form.
+                   (format "u%04x" char)))))
+  (insert ?\")
+  string)
+
 (defun json-encode-string (string)
   "Return a JSON representation of STRING."
-  ;; Reimplement the meat of `replace-regexp-in-string', for
-  ;; performance (bug#20154).
-  (let ((l (length string))
-        (start 0)
-        res mb)
-    ;; Only escape quotation mark, backslash and the control
-    ;; characters U+0000 to U+001F (RFC 4627, ECMA-404).
-    (while (setq mb (string-match "[\"\\[:cntrl:]]" string start))
-      (let* ((c (aref string mb))
-             (special (rassq c json-special-chars)))
-        (push (substring string start mb) res)
-        (push (if special
-                  ;; Special JSON character (\n, \r, etc.).
-                  (string ?\\ (car special))
-                ;; Fallback: UCS code point in \uNNNN form.
-                (format "\\u%04x" c))
-              res)
-        (setq start (1+ mb))))
-    (push (substring string start l) res)
-    (push "\"" res)
-    (apply #'concat "\"" (nreverse res))))
+  (json--with-output-to-string (json--print-string string)))
+
+(defun json--print-stringlike (object)
+  "Insert OBJECT encoded as a JSON string at point.
+Return nil if OBJECT cannot be encoded as a JSON string."
+  (cond ((stringp object)  (json--print-string object))
+        ((keywordp object) (json--print-string (symbol-name object) 1))
+        ((symbolp object)  (json--print-string (symbol-name object)))))
+
+(defun json--print-key (object)
+  "Insert a JSON key representation of OBJECT at point.
+Signal `json-key-format' if it cannot be encoded as a string."
+  (or (json--print-stringlike object)
+      (signal 'json-key-format (list object))))
 
 (defun json-encode-key (object)
   "Return a JSON representation of OBJECT.
 If the resulting JSON object isn't a valid JSON object key,
 this signals `json-key-format'."
-  (let ((encoded (json-encode object)))
-    (unless (stringp (json-read-from-string encoded))
-      (signal 'json-key-format (list object)))
-    encoded))
+  (declare (obsolete json-encode "28.1"))
+  (json--with-output-to-string (json--print-key object)))
 
-;;; JSON Objects
+;;;; Objects
+
+;; JSON object parsing
 
 (defun json-new-object ()
-  "Create a new Elisp object corresponding to a JSON object.
+  "Create a new Elisp object corresponding to an empty JSON object.
 Please see the documentation of `json-object-type'."
-  (cond ((eq json-object-type 'hash-table)
-         (make-hash-table :test 'equal))
-        (t
-         ())))
+  (and (eq json-object-type 'hash-table)
+       (make-hash-table :test #'equal)))
 
 (defun json-add-to-object (object key value)
   "Add a new KEY -> VALUE association to OBJECT.
@@ -476,10 +514,10 @@ Returns the updated object, which you should save, e.g.:
     (setq obj (json-add-to-object obj \"foo\" \"bar\"))
 Please see the documentation of `json-object-type' and `json-key-type'."
   (let ((json-key-type
-         (or json-key-type
-             (cdr (assq json-object-type '((hash-table . string)
-                                           (alist . symbol)
-                                           (plist . keyword)))))))
+         (cond (json-key-type)
+               ((eq json-object-type 'hash-table) 'string)
+               ((eq json-object-type 'alist)      'symbol)
+               ((eq json-object-type 'plist)      'keyword))))
     (setq key
           (cond ((eq json-key-type 'string)
                  key)
@@ -495,17 +533,15 @@ Please see the documentation of `json-object-type' and `json-key-type'."
           ((eq json-object-type 'plist)
            (cons key (cons value object))))))
 
-;; JSON object parsing
-
 (defun json-read-object ()
   "Read the JSON object at point."
-  ;; Skip over the "{"
+  ;; Skip over the '{'.
   (json-advance)
   (json-skip-whitespace)
-  ;; read key/value pairs until "}"
+  ;; Read key/value pairs until '}'.
   (let ((elements (json-new-object))
         key value)
-    (while (not (= (json-peek) ?}))
+    (while (/= (json-peek) ?\})
       (json-skip-whitespace)
       (setq key (json-read-string))
       (json-skip-whitespace)
@@ -520,120 +556,108 @@ Please see the documentation of `json-object-type' and `json-key-type'."
         (funcall json-post-element-read-function))
       (setq elements (json-add-to-object elements key value))
       (json-skip-whitespace)
-      (when (/= (json-peek) ?})
+      (when (/= (json-peek) ?\})
         (if (= (json-peek) ?,)
             (json-advance)
           (signal 'json-object-format (list "," (json-peek))))))
-    ;; Skip over the "}"
+    ;; Skip over the '}'.
     (json-advance)
     (pcase json-object-type
       ('alist (nreverse elements))
-      ('plist (json--plist-reverse elements))
+      ('plist (json--plist-nreverse elements))
       (_ elements))))
+
+;; JSON object encoding
+
+(defun json--print-pair (key val)
+  "Insert JSON representation of KEY-VAL pair at point.
+This always inserts a trailing `json-encoding-separator'."
+  (json--print-indentation)
+  (json--print-key key)
+  (insert json--print-keyval-separator)
+  (json--print val)
+  (insert json-encoding-separator))
+
+(defun json--print-map (map)
+  "Insert JSON object representation of MAP at point.
+This works for any MAP satisfying `mapp'."
+  (insert ?\{)
+  (unless (map-empty-p map)
+    (json--with-indentation
+      (map-do #'json--print-pair map)
+      (delete-char (- (length json-encoding-separator))))
+    (or json-encoding-lisp-style-closings
+        (json--print-indentation)))
+  (insert ?\}))
+
+(defun json--print-unordered-map (map)
+  "Like `json--print-map', but optionally sort MAP first.
+If `json-encoding-object-sort-predicate' is non-nil, this first
+transforms an unsortable MAP into a sortable alist."
+  (if (and json-encoding-object-sort-predicate
+           (not (map-empty-p map)))
+      (json--print-alist (map-pairs map) t)
+    (json--print-map map)))
 
 ;; Hash table encoding
 
-(defun json-encode-hash-table (hash-table)
-  "Return a JSON representation of HASH-TABLE."
-  (if json-encoding-object-sort-predicate
-      (json-encode-alist (map-into hash-table 'list))
-    (format "{%s%s}"
-            (json-join
-             (let (r)
-               (json--with-indentation
-                (maphash
-                 (lambda (k v)
-                   (push (format
-                          (if json-encoding-pretty-print
-                              "%s%s: %s"
-                            "%s%s:%s")
-                          json--encoding-current-indentation
-                          (json-encode-key k)
-                          (json-encode v))
-                         r))
-                 hash-table))
-               r)
-             json-encoding-separator)
-            (if (or (not json-encoding-pretty-print)
-                    json-encoding-lisp-style-closings)
-                ""
-              json--encoding-current-indentation))))
+(define-obsolete-function-alias 'json-encode-hash-table #'json-encode "28.1")
 
 ;; List encoding (including alists and plists)
 
+(defun json--print-alist (alist &optional destructive)
+  "Insert a JSON representation of ALIST at point.
+Sort ALIST first if `json-encoding-object-sort-predicate' is
+non-nil.  Sorting can optionally be DESTRUCTIVE for speed."
+  (json--print-map (if (and json-encoding-object-sort-predicate alist)
+                       (sort (if destructive alist (copy-sequence alist))
+                             (lambda (a b)
+                               (funcall json-encoding-object-sort-predicate
+                                        (car a) (car b))))
+                     alist)))
+
+;; The following two are unused but useful to keep around due to the
+;; inherent ambiguity of lists.
+
 (defun json-encode-alist (alist)
   "Return a JSON representation of ALIST."
-  (when json-encoding-object-sort-predicate
-    (setq alist
-          (sort alist (lambda (a b)
-                        (funcall json-encoding-object-sort-predicate
-                                 (car a) (car b))))))
-  (format "{%s%s}"
-          (json-join
-           (json--with-indentation
-            (mapcar (lambda (cons)
-                      (format (if json-encoding-pretty-print
-                                  "%s%s: %s"
-                                "%s%s:%s")
-                              json--encoding-current-indentation
-                              (json-encode-key (car cons))
-                              (json-encode (cdr cons))))
-                    alist))
-           json-encoding-separator)
-          (if (or (not json-encoding-pretty-print)
-                  json-encoding-lisp-style-closings)
-              ""
-            json--encoding-current-indentation)))
+  (json--with-output-to-string (json--print-alist alist)))
 
 (defun json-encode-plist (plist)
   "Return a JSON representation of PLIST."
-  (if json-encoding-object-sort-predicate
-      (json-encode-alist (json--plist-to-alist plist))
-    (let (result)
-      (json--with-indentation
-       (while plist
-         (push (concat
-                json--encoding-current-indentation
-                (json-encode-key (car plist))
-                (if json-encoding-pretty-print
-                    ": "
-                  ":")
-                (json-encode (cadr plist)))
-               result)
-         (setq plist (cddr plist))))
-      (concat "{"
-              (json-join (nreverse result) json-encoding-separator)
-              (if (and json-encoding-pretty-print
-                       (not json-encoding-lisp-style-closings))
-                  json--encoding-current-indentation
-                "")
-              "}"))))
+  (json--with-output-to-string (json--print-unordered-map plist)))
+
+(defun json--print-list (list)
+  "Like `json-encode-list', but insert the JSON at point."
+  (cond ((json-alist-p list) (json--print-alist list))
+        ((json-plist-p list) (json--print-unordered-map list))
+        ((listp list)        (json--print-array list))
+        ((signal 'json-error (list list)))))
 
 (defun json-encode-list (list)
   "Return a JSON representation of LIST.
-Tries to DWIM: simple lists become JSON arrays, while alists and plists
-become JSON objects."
-  (cond ((json-alist-p list) (json-encode-alist list))
-        ((json-plist-p list) (json-encode-plist list))
-        ((listp list)        (json-encode-array list))
-        (t
-         (signal 'json-error (list list)))))
+Tries to DWIM: alists and plists become JSON objects, while
+simple lists become JSON arrays."
+  (declare (obsolete json-encode "28.1"))
+  (json--with-output-to-string (json--print-list list)))
 
-;;; Arrays
+;;;; Arrays
 
 ;; Array parsing
 
 (defun json-read-array ()
   "Read the JSON array at point."
-  ;; Skip over the "["
+  ;; Skip over the '['.
   (json-advance)
   (json-skip-whitespace)
-  ;; read values until "]"
-  (let (elements)
-    (while (not (= (json-peek) ?\]))
+  ;; Read values until ']'.
+  (let (elements
+        (len 0))
+    (while (/= (json-peek) ?\])
       (json-skip-whitespace)
       (when json-pre-element-read-function
-        (funcall json-pre-element-read-function (length elements)))
+        (funcall json-pre-element-read-function len)
+        (setq len (1+ len)))
       (push (json-read) elements)
       (when json-post-element-read-function
         (funcall json-post-element-read-function))
@@ -641,8 +665,8 @@ become JSON objects."
       (when (/= (json-peek) ?\])
         (if (= (json-peek) ?,)
             (json-advance)
-          (signal 'json-array-format (list ?, (json-peek))))))
-    ;; Skip over the "]"
+          (signal 'json-array-format (list "," (json-peek))))))
+    ;; Skip over the ']'.
     (json-advance)
     (pcase json-array-type
       ('vector (nreverse (vconcat elements)))
@@ -650,45 +674,51 @@ become JSON objects."
 
 ;; Array encoding
 
+(defun json--print-array (array)
+  "Like `json-encode-array', but insert the JSON at point."
+  (insert ?\[)
+  (unless (length= array 0)
+    (json--with-indentation
+      (json--print-indentation)
+      (let ((first t))
+        (mapc (lambda (elt)
+                (if first
+                    (setq first nil)
+                  (insert json-encoding-separator)
+                  (json--print-indentation))
+                (json--print elt))
+              array)))
+    (or json-encoding-lisp-style-closings
+        (json--print-indentation)))
+  (insert ?\]))
+
 (defun json-encode-array (array)
-  "Return a JSON representation of ARRAY."
-  (if (and json-encoding-pretty-print
-           (> (length array) 0))
-      (concat
-       (json--with-indentation
-         (concat (format "[%s" json--encoding-current-indentation)
-                 (json-join (mapcar 'json-encode array)
-                            (format "%s%s"
-                                    json-encoding-separator
-                                    json--encoding-current-indentation))))
-       (format "%s]"
-               (if json-encoding-lisp-style-closings
-                   ""
-                 json--encoding-current-indentation)))
-    (concat "["
-            (mapconcat 'json-encode array json-encoding-separator)
-            "]")))
+  "Return a JSON representation of ARRAY.
+ARRAY can also be a list."
+  (json--with-output-to-string (json--print-array array)))
 
 
 
-;;; JSON reader.
+;;;; Reader
 
 (defmacro json-readtable-dispatch (char)
-  "Dispatch reader function for CHAR."
-  (declare (debug (symbolp)))
-  (let ((table
-         '((?t json-read-keyword "true")
-           (?f json-read-keyword "false")
-           (?n json-read-keyword "null")
-           (?{ json-read-object)
-           (?\[ json-read-array)
-           (?\" json-read-string)))
-        res)
-    (dolist (c '(?- ?+ ?. ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-      (push (list c 'json-read-number) table))
-    (pcase-dolist (`(,c . ,rest) table)
-      (push `((eq ,char ,c) (,@rest)) res))
-    `(cond ,@res (t (signal 'json-readtable-error (list ,char))))))
+  "Dispatch reader function for CHAR at point.
+If CHAR is nil, signal `json-end-of-file'."
+  (declare (debug t))
+  (macroexp-let2 nil char char
+    `(cond ,@(map-apply
+              (lambda (key expr)
+                `((eq ,char ,key) ,expr))
+              `((?\" ,#'json-read-string)
+                (?\[ ,#'json-read-array)
+                (?\{ ,#'json-read-object)
+                (?n  ,#'json-read-keyword "null")
+                (?f  ,#'json-read-keyword "false")
+                (?t  ,#'json-read-keyword "true")
+                ,@(mapcar (lambda (c) (list c #'json-read-number))
+                          '(?- ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))))
+           (,char (signal 'json-readtable-error (list ,char)))
+           (t     (signal 'json-end-of-file ())))))
 
 (defun json-read ()
   "Parse and return the JSON object following point.
@@ -706,10 +736,7 @@ you will get the following structure returned:
          ((c . :json-false))])
    (b . \"foo\"))"
   (json-skip-whitespace)
-  (let ((char (json-peek)))
-    (if (zerop char)
-        (signal 'json-end-of-file nil)
-      (json-readtable-dispatch char))))
+  (json-readtable-dispatch (char-after)))
 
 ;; Syntactic sugar for the reader
 
@@ -724,33 +751,31 @@ you will get the following structure returned:
   "Read the first JSON object contained in FILE and return it."
   (with-temp-buffer
     (insert-file-contents file)
-    (goto-char (point-min))
     (json-read)))
 
 
 
-;;; JSON encoder
+;;;; Encoder
+
+(defun json--print (object)
+  "Like `json-encode', but insert or print the JSON at point."
+  (cond ((json--print-keyword object))
+        ((listp object)         (json--print-list object))
+        ((json--print-stringlike object))
+        ((numberp object)       (prin1 object))
+        ((arrayp object)        (json--print-array object))
+        ((hash-table-p object)  (json--print-unordered-map object))
+        ((signal 'json-error (list object)))))
 
 (defun json-encode (object)
   "Return a JSON representation of OBJECT as a string.
 
 OBJECT should have a structure like one returned by `json-read'.
 If an error is detected during encoding, an error based on
-`json-error' is signalled."
-  (cond ((memq object (list t json-null json-false))
-         (json-encode-keyword object))
-        ((stringp object)      (json-encode-string object))
-        ((keywordp object)     (json-encode-string
-                                (substring (symbol-name object) 1)))
-        ((listp object)        (json-encode-list object))
-        ((symbolp object)      (json-encode-string
-                                (symbol-name object)))
-        ((numberp object)      (json-encode-number object))
-        ((arrayp object)       (json-encode-array object))
-        ((hash-table-p object) (json-encode-hash-table object))
-        (t                     (signal 'json-error (list object)))))
+`json-error' is signaled."
+  (json--with-output-to-string (json--print object)))
 
-;; Pretty printing & minimizing
+;;;; Pretty printing & minimizing
 
 (defun json-pretty-print-buffer (&optional minimize)
   "Pretty-print current buffer.
@@ -761,7 +786,7 @@ With prefix argument MINIMIZE, minimize it instead."
 (defvar json-pretty-print-max-secs 2.0
   "Maximum time for `json-pretty-print's comparison.
 The function `json-pretty-print' uses `replace-region-contents'
-(which see) passing the value of this variable as argument
+\(which see) passing the value of this variable as argument
 MAX-SECS.")
 
 (defun json-pretty-print (begin end &optional minimize)
@@ -769,10 +794,12 @@ MAX-SECS.")
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "r\nP")
   (let ((json-encoding-pretty-print (null minimize))
-        ;; Distinguish an empty objects from 'null'
+        ;; Distinguish an empty object from 'null'.
         (json-null :json-null)
-        ;; Ensure that ordering is maintained
+        ;; Ensure that ordering is maintained.
         (json-object-type 'alist)
+        ;; Ensure that keys survive roundtrip (bug#24252, bug#42545).
+        (json-key-type 'string)
         (orig-buf (current-buffer))
         error)
     ;; Strategy: Repeatedly `json-read' from the original buffer and
@@ -800,9 +827,7 @@ With prefix argument MINIMIZE, minimize it instead."
                    ;; them.
                    (let ((space (buffer-substring
                                  (point)
-                                 (+ (point)
-                                    (skip-chars-forward
-                                     " \t\n" (point-max)))))
+                                 (+ (point) (skip-chars-forward " \t\n"))))
                          (json (json-read)))
                      (setq pos (point)) ; End of last good json-read.
                      (set-buffer tmp-buf)
@@ -832,14 +857,14 @@ With prefix argument MINIMIZE, minimize it instead."
   "Pretty-print current buffer with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "P")
-  (let ((json-encoding-object-sort-predicate 'string<))
+  (let ((json-encoding-object-sort-predicate #'string<))
     (json-pretty-print-buffer minimize)))
 
 (defun json-pretty-print-ordered (begin end &optional minimize)
   "Pretty-print the region with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "r\nP")
-  (let ((json-encoding-object-sort-predicate 'string<))
+  (let ((json-encoding-object-sort-predicate #'string<))
     (json-pretty-print begin end minimize)))
 
 (provide 'json)

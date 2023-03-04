@@ -155,7 +155,7 @@
 
 	* epa.el (epa-decrypt-region): Detect encoding if
 	coding-system-for-read is not specified.
-	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=17018>
+	<https://sourceforge.jp/ticket/browse.php?group_id=2267&tid=17018>
 	(epa-verify-region): Ditto.
 
 2009-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -540,7 +540,7 @@
 
 	* epa-file.el (epa-file-decode-and-insert):
 	Use string-to-multibyte instead of set-buffer-multibyte.
-	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
+	<https://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
 
 2009-04-18  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
 
@@ -6103,7 +6103,7 @@
 	* international/quail.el (quail-show-guidance): Don't create
 	a guidance-frame if current buffer is not a minibuffer, since even if
 	selected-window is mini-p, the buffer will never be displayed in it, so
-	it wil be usable for guidance.
+	it will be usable for guidance.
 
 2008-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6299,7 +6299,7 @@
 
 2008-10-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el: Deal with page sizes for label printes.  Suggested by
+	* ps-print.el: Deal with page sizes for label printers.  Suggested by
 	Friedrich Delgado Friedrichs <friedel@nomaden.org>.
 	(ps-print-version): New version 7.3.3.
 	(ps-page-dimensions-database): New page sizes for label printers.
@@ -6371,7 +6371,7 @@
 
 	* replace.el (query-replace, query-replace-regexp)
 	(replace-string, replace-regexp, perform-replace): Add "word"
-	indicatiors to the prompt for word delimited replacements.
+	indicators to the prompt for word delimited replacements.
 
 	* replace.el (read-regexp): Rename arg `default' to `default-value'.
 	Doc fix.
@@ -10889,7 +10889,7 @@
 
 	* menu-bar.el (menu-set-font): New function.  Bind "Set Default
 	Font" menu item to it.  Apply selected font to all frames, and
-	make it savable.
+	make it saveable.
 	(menu-bar-options-save): Save `default' font if changed.
 
 2008-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -13625,7 +13625,7 @@
 	(completion-emacs22-try-completion): Place cursor after the /, as was
 	done in Emacs-22's minibuffer-complete-word.
 	Fix bug reported by David Hansen <david.hansen@gmx.net>.
-	(completion-emacs22-try-completion): Merge all mergable text rather
+	(completion-emacs22-try-completion): Merge all mergeable text rather
 	than just /.
 	(completion-pcm--delim-wild-regex): New var.
 	(completion-pcm-word-delimiters): New custom.
@@ -20218,7 +20218,7 @@
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-display): Change file arg to buffer arg, so it
-	works also for buffers w/o buffer-file-name.  Update callers.
+	works also for buffers without buffer-file-name.  Update callers.
 	(doc-view-clone-buffer-hook): New fun.
 	(doc-view-mode): Use it for indirect clones.  Mark the overlays with
 	the `doc-view' property so they can be recognized.
@@ -20547,7 +20547,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2020 Free Software Foundation, Inc.
+    Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
-;;; semantic/bovine.el --- LL Parser/Analyzer core.
+;;; semantic/bovine.el --- LL Parser/Analyzer core  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2004, 2006-2007, 2009-2020 Free Software
+;; Copyright (C) 1999-2004, 2006-2007, 2009-2023 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -41,10 +41,9 @@
 
 ;;; Variables
 ;;
-(defvar semantic-bovinate-nonterminal-check-obarray nil
+(defvar-local semantic-bovinate-nonterminal-check-map nil
   "Obarray of streams already parsed for nonterminal symbols.
 Use this to detect infinite recursion during a parse.")
-(make-variable-buffer-local 'semantic-bovinate-nonterminal-check-obarray)
 
 
 
@@ -55,6 +54,7 @@ Use this to detect infinite recursion during a parse.")
   "Create a lambda expression to return a list including RETURN-VAL.
 The return list is a lambda expression to be used in a bovine table."
   `(lambda (vals start end)
+     (ignore vals)
      (append ,@return-val (list start end))))
 
 ;;; Semantic Bovination
@@ -79,21 +79,18 @@ environment of `semantic-bovinate-stream'."
 (defun semantic-bovinate-nonterminal-check (stream nonterminal)
   "Check if STREAM not already parsed for NONTERMINAL.
 If so abort because an infinite recursive parse is suspected."
-  (or (vectorp semantic-bovinate-nonterminal-check-obarray)
-      (setq semantic-bovinate-nonterminal-check-obarray
-            (make-vector 13 nil)))
-  (let* ((nt (symbol-name nonterminal))
-         (vs (symbol-value
-              (intern-soft
-               nt semantic-bovinate-nonterminal-check-obarray))))
+  (or (hash-table-p semantic-bovinate-nonterminal-check-map)
+      (setq semantic-bovinate-nonterminal-check-map
+            (make-hash-table :test #'eq)))
+  (let* ((vs (gethash nonterminal semantic-bovinate-nonterminal-check-map)))
     (if (memq stream vs)
         ;; Always enter debugger to see the backtrace
         (let ((debug-on-signal t)
               (debug-on-error  t))
-          (setq semantic-bovinate-nonterminal-check-obarray nil)
-          (error "Infinite recursive parse suspected on %s" nt))
-      (set (intern nt semantic-bovinate-nonterminal-check-obarray)
-           (cons stream vs)))))
+          (setq semantic-bovinate-nonterminal-check-map nil)
+          (error "Infinite recursive parse suspected on %s" nonterminal))
+      (push stream
+            (gethash nonterminal semantic-bovinate-nonterminal-check-map)))))
 
 ;;;###autoload
 (defun semantic-bovinate-stream (stream &optional nonterminal)
@@ -110,6 +107,9 @@ list of semantic tokens found."
   (or semantic--buffer-cache
       (semantic-bovinate-nonterminal-check stream nonterminal))
 
+  ;; FIXME: `semantic-parse-region-c-mode' inspects `lse' to try and
+  ;; detect a recursive call (used with macroexpansion, to avoid inf-loops).
+  (with-suppressed-warnings ((lexical lse)) (defvar lse))
   (let* ((table semantic--parse-table)
 	 (matchlist (cdr (assq nonterminal table)))
 	 (starting-stream stream)
@@ -143,14 +143,14 @@ list of semantic tokens found."
                         cvl nil     ;re-init the collected value list.
                         lte (car matchlist) ;Get the local matchlist entry.
                         )
-                  (if (or (byte-code-function-p (car lte))
+                  (if (or (compiled-function-p (car lte))
                           (listp (car lte)))
                       ;; In this case, we have an EMPTY match!  Make
                       ;; stuff up.
                       (setq cvl (list nil))))
 
                 (while (and lte
-                            (not (byte-code-function-p (car lte)))
+                            (not (compiled-function-p (car lte)))
                             (not (listp (car lte))))
 
                   ;; GRAMMAR SOURCE DEBUGGING!
@@ -216,7 +216,8 @@ list of semantic tokens found."
                             (setq cvl (cons
                                        (if (memq (semantic-lex-token-class lse)
                                                  '(comment semantic-list))
-                                           valdot val) cvl))) ;append unchecked value.
+                                           valdot val)
+                                       cvl))) ;append unchecked value.
                           (setq end (semantic-lex-token-end lse))
                           )
                       (setq lte nil cvl nil)) ;No more matches, exit
@@ -284,7 +285,7 @@ list of semantic tokens found."
 
 ;; Make it the default parser
 ;;;###autoload
-(defalias 'semantic-parse-stream-default 'semantic-bovinate-stream)
+(defalias 'semantic-parse-stream-default #'semantic-bovinate-stream)
 
 (provide 'semantic/bovine)
 

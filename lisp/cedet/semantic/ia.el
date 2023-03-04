@@ -1,6 +1,6 @@
-;;; semantic/ia.el --- Interactive Analysis functions
+;;; semantic/ia.el --- Interactive Analysis functions  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -79,15 +79,9 @@
 	   (insert "("))
 	  (t nil))))
 
-(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated
-  "`Semantic-ia-get-completions' is obsolete.
-Use `semantic-analyze-possible-completions' instead.")
-
-(defun semantic-ia-get-completions-deprecated (context point)
-  "A function to help transition away from `semantic-ia-get-completions'.
-Return completions based on CONTEXT at POINT.
-You should not use this, nor the aliased version.
-Use `semantic-analyze-possible-completions' instead."
+(defun semantic-ia-get-completions (context _point)
+  "Fetch the completion of CONTEXT at POINT."
+  (declare (obsolete semantic-analyze-possible-completions "28.1"))
   (semantic-analyze-possible-completions context))
 
 ;;;###autoload
@@ -463,7 +457,7 @@ parts of the parent classes are displayed."
   ;; it.  The simple `semanticdb-find-tag-by-...' are simple, and
   ;; you need to pass it the exact name you want.
   ;;
-  ;; The analyzer function `semantic-analyze-tag-name' will take
+  ;; The analyzer function `semantic-analyze-find-tag' will take
   ;; more complex names, such as the cpp symbol foo::bar::baz,
   ;; and break it up, and dive through the namespaces.
   (let ((class (semantic-analyze-find-tag typename)))

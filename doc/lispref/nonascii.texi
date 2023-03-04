@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998--1999, 2001--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1998--1999, 2001--2023 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -280,11 +280,12 @@ to the codepoints @code{#x3FFF80} through @code{#x3FFFFF}, inclusive
 
 @defun string-to-unibyte string
 This function returns a unibyte string containing the same sequence of
-characters as @var{string}.  It signals an error if @var{string}
-contains a non-@acronym{ASCII} character.  If @var{string} is a
-unibyte string, it is returned unchanged.  Use this function for
-@var{string} arguments that contain only @acronym{ASCII} and eight-bit
-characters.
+characters as @var{string}.  If @var{string} is a unibyte string, it
+is returned unchanged.  Otherwise, @acronym{ASCII} characters and
+characters in the @code{eight-bit} charset are converted to their
+corresponding byte values.  Use this function for @var{string}
+arguments that contain only @acronym{ASCII} and eight-bit characters;
+the function signals an error if any other characters are encountered.
 @end defun
 
 @defun byte-to-string byte
@@ -301,7 +302,7 @@ character, and returns that character.  If @var{char} is neither
 @end defun
 
 @defun unibyte-char-to-multibyte char
-This convert the unibyte character @var{char} to a multibyte
+This converts the unibyte character @var{char} to a multibyte
 character, assuming @var{char} is either @acronym{ASCII} or raw 8-bit
 byte.
 @end defun
@@ -403,9 +404,12 @@ This returns @code{t} if @var{charcode} is a valid character, and
 
 @cindex maximum value of character codepoint
 @cindex codepoint, largest value
-@defun max-char
+@defun max-char &optional unicode
 This function returns the largest value that a valid character
-codepoint can have.
+codepoint can have in Emacs.  If the optional argument @var{unicode}
+is non-@code{nil}, it returns the largest character codepoint defined
+by the Unicode Standard (which is smaller than the maximum codepoint
+supported by Emacs).
 
 @example
 @group
@@ -459,7 +463,7 @@ of character properties.  In particular, Emacs supports the
 @uref{https://www.unicode.org/reports/tr23/, Unicode Character Property
 Model}, and the Emacs character property database is derived from the
 Unicode Character Database (@acronym{UCD}).  See the
-@uref{https://www.unicode.org/versions/Unicode12.1.0/ch04.pdf, Character
+@uref{https://www.unicode.org/versions/Unicode15.0.0/ch04.pdf, Character
 Properties chapter of the Unicode Standard}, for a detailed
 description of Unicode character properties and their meaning.  This
 section assumes you are already familiar with that chapter of the
@@ -676,7 +680,7 @@ This function returns the value of @var{char}'s @var{propname} property.
 @end group
 @group
 (get-char-code-property ?\( 'paired-bracket)
-     @result{} 41  ;; closing parenthesis
+     @result{} 41  ; closing parenthesis
 @end group
 @group
 (get-char-code-property ?\) 'bracket-type)
@@ -722,7 +726,10 @@ The value of this variable is a char-table that specifies, for each
 character, a symbol whose name is the script to which the character
 belongs, according to the Unicode Standard classification of the
 Unicode code space into script-specific blocks.  This char-table has a
-single extra slot whose value is the list of all script symbols.
+single extra slot whose value is the list of all script symbols.  Note
+that Emacs' classification of characters into scripts is not a 1-for-1
+reflection of the Unicode standard, e.g. there is no @samp{symbol}
+script in Unicode.
 @end defvar
 
 @defvar char-width-table
@@ -852,15 +859,24 @@ function to all or part of the characters in a charset:
 Call @var{function} for characters in @var{charset}.  @var{function}
 is called with two arguments.  The first one is a cons cell
 @code{(@var{from} .  @var{to})}, where @var{from} and @var{to}
-indicate a range of characters contained in charset.  The second
-argument passed to @var{function} is @var{arg}.
+indicate a range of characters contained in @var{charset}.  The second
+argument passed to @var{function} is @var{arg}, or @code{nil} if
+@var{arg} is omitted.
 
 By default, the range of codepoints passed to @var{function} includes
 all the characters in @var{charset}, but optional arguments
 @var{from-code} and @var{to-code} limit that to the range of
 characters between these two codepoints of @var{charset}.  If either
 of them is @code{nil}, it defaults to the first or last codepoint of
-@var{charset}, respectively.
+@var{charset}, respectively.  Note that @var{from-code} and
+@var{to-code} are @var{charset}'s codepoints, not the Emacs codes of
+characters; by contrast, the values @var{from} and @var{to} in the
+cons cell passed to @var{function} @emph{are} Emacs character codes.
+Those Emacs character codes are either Unicode code points, or Emacs
+internal code points that extend Unicode and are beyond the Unicode
+range of characters @code{0..#x10FFFF} (@pxref{Text Representations}).
+The latter happens rarely, with legacy CJK charsets for codepoints of
+@var{charset} which specify characters not yet unified with Unicode.
 @end defun
 
 @node Scanning Charsets
@@ -952,13 +968,13 @@ translating the result.
 
 @defvar standard-translation-table-for-decode
 This is the default translation table for decoding.  If a coding
-systems specifies its own translation tables, the table that is the
+system specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
 @defvar standard-translation-table-for-encode
 This is the default translation table for encoding.  If a coding
-systems specifies its own translation tables, the table that is the
+system specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
@@ -1045,9 +1061,9 @@ Alternativnyj, and KOI8.
   Every coding system specifies a particular set of character code
 conversions, but the coding system @code{undecided} is special: it
 leaves the choice unspecified, to be chosen heuristically for each
-file, based on the file's data.  The coding system @code{prefer-utf-8}
-is like @code{undecided}, but it prefers to choose @code{utf-8} when
-possible.
+file or string, based on the file's or string's data, when they are
+decoded or encoded.  The coding system @code{prefer-utf-8} is like
+@code{undecided}, but it prefers to choose @code{utf-8} when possible.
 
   In general, a coding system doesn't guarantee roundtrip identity:
 decoding a byte sequence using a coding system, then encoding the
@@ -1255,7 +1271,7 @@ name or @code{nil}.
 @defun check-coding-system coding-system
 This function checks the validity of @var{coding-system}.  If that is
 valid, it returns @var{coding-system}.  If @var{coding-system} is
-@code{nil}, the function return @code{nil}.  For any other values, it
+@code{nil}, the function returns @code{nil}.  For any other values, it
 signals an error whose @code{error-symbol} is @code{coding-system-error}
 (@pxref{Signaling Errors, signal}).
 @end defun
@@ -1379,7 +1395,7 @@ operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
 @cindex null bytes, and decoding text
-@defvar inhibit-nul-byte-detection
+@defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows the
 encoding of text that contains null bytes to be correctly detected,
@@ -1823,9 +1839,9 @@ than all the rest.
 
 @defmac with-coding-priority coding-systems &rest body
 This macro executes @var{body}, like @code{progn} does
-(@pxref{Sequencing}), with @var{coding-systems} at the front of the
-priority list for coding systems.  @var{coding-systems} should be a
-list of coding systems to prefer during execution of @var{body}.
+(@pxref{Sequencing, progn}), with @var{coding-systems} at the front of
+the priority list for coding systems.  @var{coding-systems} should be
+a list of coding systems to prefer during execution of @var{body}.
 @end defmac
 
 @node Explicit Encoding
@@ -1918,9 +1934,24 @@ length of the decoded text.  If that buffer is a unibyte buffer
 the decoded text (@pxref{Text Representations}) is inserted into the
 buffer as individual bytes.
 
+@cindex @code{charset}, text property on buffer text
 This command puts a @code{charset} text property on the decoded text.
 The value of the property states the character set used to decode the
 original text.
+
+@cindex undecided coding-system, when decoding
+This command detects the encoding of the text if necessary.  If
+@var{coding-system} is @code{undecided}, the command detects the
+encoding of the text based on the byte sequences it finds in the text,
+and also detects the type of end-of-line convention used by the text
+(@pxref{Lisp and Coding Systems, eol type}).  If @var{coding-system}
+is @code{undecided-@var{eol-type}}, where @var{eol-type} is
+@code{unix}, @code{dos}, or @code{mac}, then the command detects only
+the encoding of the text.  Any @var{coding-system} that doesn't
+specify @var{eol-type}, as in @code{utf-8}, causes the command to
+detect the end-of-line convention; specify the encoding completely, as
+in @code{utf-8-unix}, if the EOL convention used by the text is known
+in advance, to prevent any automatic detection.
 @end deffn
 
 @defun decode-coding-string string coding-system &optional nocopy buffer
@@ -1933,13 +1964,16 @@ trivial.  To make explicit decoding useful, the contents of
 values, but a multibyte string is also acceptable (assuming it
 contains 8-bit bytes in their multibyte form).
 
+This function detects the encoding of the string if needed, like
+@code{decode-coding-region} does.
+
 If optional argument @var{buffer} specifies a buffer, the decoded text
 is inserted in that buffer after point (point does not move).  In this
 case, the return value is the length of the decoded text.  If that
 buffer is a unibyte buffer, the internal representation of the decoded
 text is inserted into it as individual bytes.
 
-@cindex @code{charset}, text property
+@cindex @code{charset}, text property on strings
 This function puts a @code{charset} text property on the decoded text.
 The value of the property states the character set used to decode the
 original text:
@@ -1985,7 +2019,9 @@ for decoding keyboard input from @var{terminal}.  If
 @var{coding-system} is @code{nil}, that means not to decode keyboard
 input.  If @var{terminal} is a frame, it means that frame's terminal;
 if it is @code{nil}, that means the currently selected frame's
-terminal.  @xref{Multiple Terminals}.
+terminal.  @xref{Multiple Terminals}.  Note that on modern MS-Windows
+systems Emacs always uses Unicode input when decoding keyboard input,
+so the encoding set by this command has no effect on Windows.
 @end deffn
 
 @defun terminal-coding-system &optional terminal

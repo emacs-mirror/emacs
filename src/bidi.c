@@ -1,6 +1,6 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
 
-Copyright (C) 2000-2001, 2004-2005, 2009-2020 Free Software Foundation,
+Copyright (C) 2000-2001, 2004-2005, 2009-2023 Free Software Foundation,
 Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
@@ -109,7 +109,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    -------------------
 
    In a nutshell, fetching the next character boils down to calling
-   STRING_CHAR_AND_LENGTH, passing it the address of a buffer or
+   string_char_and_length, passing it the address of a buffer or
    string position.  See bidi_fetch_char.  However, if the next
    character is "covered" by a display property of some kind,
    bidi_fetch_char returns the u+FFFC "object replacement character"
@@ -1126,6 +1126,7 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
   bidi_it->invalid_levels = 0;
   bidi_it->invalid_isolates = 0;
   bidi_it->stack_idx = 0;
+  bidi_it->isolate_level = 0;
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
 }
 
@@ -1269,7 +1270,6 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
   ptrdiff_t endpos
     = (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
-  int len;
 
   /* If we got past the last known position of display string, compute
      the position of the next one.  That position could be at CHARPOS.  */
@@ -1278,6 +1278,12 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
       SET_TEXT_POS (pos, charpos, bytepos);
       *disp_pos = compute_display_string_pos (&pos, string, w, frame_window_p,
 					      disp_prop);
+      /* The factor of 100 below is a heuristic that needs to be
+	 tuned.  It means we consider 100 buffer positions examined by
+	 the above call roughly equivalent to the display engine
+	 iterating over a single buffer position.  */
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos)
+	update_redisplay_ticks ((*disp_pos - charpos) / 100 + 1, w);
     }
 
   /* Fetch the character at BYTEPOS.  */
@@ -1341,10 +1347,10 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
     normal_char:
       if (string->s)
 	{
-
 	  if (!string->unibyte)
 	    {
-	      ch = STRING_CHAR_AND_LENGTH (string->s + bytepos, len);
+	      int len;
+	      ch = string_char_and_length (string->s + bytepos, &len);
 	      *ch_len = len;
 	    }
 	  else
@@ -1357,8 +1363,9 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	{
 	  if (!string->unibyte)
 	    {
-	      ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos,
-					   len);
+	      int len;
+	      ch = string_char_and_length (SDATA (string->lstring) + bytepos,
+					   &len);
 	      *ch_len = len;
 	    }
 	  else
@@ -1369,9 +1376,11 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	}
       else
 	{
-	  ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (bytepos), len);
+	  int len;
+	  ch = string_char_and_length (BYTE_POS_ADDR (bytepos), &len);
 	  *ch_len = len;
 	}
+
       *nchars = 1;
     }
 
@@ -1383,6 +1392,8 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
       SET_TEXT_POS (pos, charpos + *nchars, bytepos + *ch_len);
       *disp_pos = compute_display_string_pos (&pos, string, w, frame_window_p,
 					      disp_prop);
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos + *nchars)
+	update_redisplay_ticks ((*disp_pos - charpos - *nchars) / 100 + 1, w);
     }
 
   return ch;
@@ -1458,6 +1469,11 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
   else
     start_re = paragraph_start_re;
 
+  /* Prevent quitting inside re_match_2, as redisplay_window could
+     have temporarily moved point.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
   val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
   if (val < 0)
     {
@@ -1467,6 +1483,7 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
 	val = -2;
     }
 
+  unbind_to (count, Qnil);
   return val;
 }
 
@@ -1542,6 +1559,11 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   if (cache_buffer->base_buffer)
     cache_buffer = cache_buffer->base_buffer;
 
+  /* Prevent quitting inside re_match_2, as redisplay_window could
+     have temporarily moved point.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
   while (pos_byte > BEGV_BYTE
 	 && n++ < MAX_PARAGRAPH_SEARCH
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
@@ -1550,7 +1572,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 	 display string?  And what if a display string covering some
 	 of the text over which we scan back includes
 	 paragraph_start_re?  */
-      DEC_BOTH (pos, pos_byte);
+      dec_both (&pos, &pos_byte);
       if (bpc && region_cache_backward (cache_buffer, bpc, pos, &next))
 	{
 	  pos = next, pos_byte = CHAR_TO_BYTE (pos);
@@ -1559,6 +1581,7 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
       else
 	pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
     }
+  unbind_to (count, Qnil);
   if (n >= MAX_PARAGRAPH_SEARCH)
     pos = BEGV, pos_byte = BEGV_BYTE;
   if (bpc)
@@ -1568,6 +1591,9 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   pos_byte = clip_to_bounds (BEGV_BYTE, pos_byte, ZV_BYTE);
   return pos_byte;
 }
+
+/* This tracks how far we needed to search for first strong character.  */
+static ptrdiff_t nsearch_for_strong;
 
 /* On a 3.4 GHz machine, searching forward for a strong directional
    character in a long paragraph full of weaks or neutrals takes about
@@ -1638,6 +1664,8 @@ find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
       pos += *nchars;
       bytepos += *ch_len;
     }
+
+  nsearch_for_strong += pos - pos1;
   return type;
 }
 
@@ -1667,6 +1695,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
      calls to BYTE_TO_CHAR and its ilk.  */
   ptrdiff_t begbyte = string_p ? 0 : BEGV_BYTE;
   ptrdiff_t end = string_p ? bidi_it->string.schars : ZV;
+  ptrdiff_t pos = bidi_it->charpos;
+
+  nsearch_for_strong = 0;
 
   /* Special case for an empty buffer. */
   if (bytepos == begbyte && bidi_it->charpos == end)
@@ -1688,7 +1719,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
       ptrdiff_t ch_len, nchars;
-      ptrdiff_t pos, disp_pos = -1;
+      ptrdiff_t disp_pos = -1;
       int disp_prop = 0;
       bidi_type_t type;
       const unsigned char *s;
@@ -1763,7 +1794,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
 		    /* FXIME: What if p is covered by a display
 		       string?  See also a FIXME inside
 		       bidi_find_paragraph_start.  */
-		    DEC_BOTH (p, pbyte);
+		    dec_both (&p, &pbyte);
 		    prevpbyte = bidi_find_paragraph_start (p, pbyte);
 		  }
 		pstartbyte = prevpbyte;
@@ -1786,6 +1817,14 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
     bidi_it->level_stack[0].level = 0;
 
   bidi_line_init (bidi_it);
+
+  /* The factor of 50 below is a heuristic that needs to be tuned.  It
+     means we consider 50 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  ptrdiff_t nexamined = bidi_it->charpos - pos + nsearch_for_strong;
+  if (max_redisplay_ticks > 0 && nexamined > 0)
+    update_redisplay_ticks (nexamined / 50, bidi_it->w);
 }
 
 
@@ -2336,7 +2375,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		      and make it L right away, to avoid the
 		      potentially costly loop below.  This is
 		      important when the buffer has a long series of
-		      control characters, like binary NULs, and no
+		      control characters, like binary nulls, and no
 		      R2L characters at all.  */
 		   && new_level == 0
 		   && !bidi_explicit_dir_char (bidi_it->ch)
@@ -2552,6 +2591,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
   bidi_bracket_type_t btype;
   bidi_type_t type = bidi_it->type;
   bool retval = false;
+  ptrdiff_t n = 0;
 
   /* When scanning backwards, we don't expect any unresolved bidi
      bracket characters.  */
@@ -2681,6 +2721,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	    }
 	  old_sidx = bidi_it->stack_idx;
 	  type = bidi_resolve_weak (bidi_it);
+	  n++;
 	  /* Skip level runs excluded from this isolating run sequence.  */
 	  new_sidx = bidi_it->stack_idx;
 	  if (bidi_it->level_stack[new_sidx].level > current_level
@@ -2704,6 +2745,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 		      goto give_up;
 		    }
 		  type = bidi_resolve_weak (bidi_it);
+		  n++;
 		}
 	    }
 	  if (type == NEUTRAL_B
@@ -2744,6 +2786,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	 (which requires the display engine to copy the cache back and
 	 forth many times).  */
       if (maxlevel == base_level
+	  && (l2r_seen || r2l_seen) /* N0d */
 	  && ((base_level == 0 && !r2l_seen)
 	      || (base_level == 1 && !l2r_seen)))
 	{
@@ -2779,6 +2822,12 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
     }
 
  give_up:
+  /* The factor of 20 below is a heuristic that needs to be tuned.  It
+     means we consider 20 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  if (max_redisplay_ticks > 0 && n > 0)
+    update_redisplay_ticks (n / 20 + 1, bidi_it->w);
   return retval;
 }
 
@@ -2906,13 +2955,17 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       int embedding_level = bidi_it->level_stack[bidi_it->stack_idx].level;
       bidi_type_t embedding_type = (embedding_level & 1) ? STRONG_R : STRONG_L;
 
-      eassert (bidi_it->prev_for_neutral.type != UNKNOWN_BT);
       eassert (bidi_it->bracket_pairing_pos > bidi_it->charpos);
       if (bidi_it->bracket_enclosed_type == embedding_type) /* N0b */
 	type = embedding_type;
-      else
+      else if (bidi_it->bracket_enclosed_type == STRONG_L   /* N0c, N0d */
+	       || bidi_it->bracket_enclosed_type == STRONG_R)
 	{
-	  switch (bidi_it->prev_for_neutral.type)
+	  bidi_type_t prev_type_for_neutral = bidi_it->prev_for_neutral.type;
+
+	  if (prev_type_for_neutral == UNKNOWN_BT)
+	    prev_type_for_neutral = embedding_type;
+	  switch (prev_type_for_neutral)
 	    {
 	    case STRONG_R:
 	    case WEAK_EN:
@@ -2994,7 +3047,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	}
       /* The next two "else if" clauses are shortcuts for the
 	 important special case when we have a long sequence of
-	 neutral or WEAK_BN characters, such as whitespace or NULs or
+	 neutral or WEAK_BN characters, such as whitespace or nulls or
 	 other control characters, on the base embedding level of the
 	 paragraph, and that sequence goes all the way to the end of
 	 the paragraph and follows a character whose resolved
@@ -3248,12 +3301,15 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
      it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
   if ((bidi_it->orig_type == NEUTRAL_WS
-       || bidi_it->orig_type == WEAK_BN
+       || (bidi_it->orig_type == WEAK_BN
+	   /* If this BN character is already at base level, we don't
+	      need to consider resetting it, since I1 and I2 below
+	      will not change the level, so avoid the potentially
+	      costly loop below.  */
+	   && level != bidi_it->level_stack[0].level)
        || bidi_isolate_fmt_char (bidi_it->orig_type))
-      && bidi_it->next_for_ws.charpos < bidi_it->charpos
-      /* If this character is already at base level, we don't need to
-	 reset it, so avoid the potentially costly loop below.  */
-      && level != bidi_it->level_stack[0].level)
+      /* This means the informaition about WS resolution is not valid.  */
+      && bidi_it->next_for_ws.charpos < bidi_it->charpos)
     {
       int ch;
       ptrdiff_t clen = bidi_it->ch_len;
@@ -3288,7 +3344,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       || bidi_it->orig_type == NEUTRAL_S
       || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
       || ((bidi_it->orig_type == NEUTRAL_WS
-	   || bidi_it->orig_type == WEAK_BN
+	   || bidi_it->orig_type == WEAK_BN /* L1/Retaining */
 	   || bidi_isolate_fmt_char (bidi_it->orig_type)
 	   || bidi_explicit_dir_char (bidi_it->ch))
 	  && (bidi_it->next_for_ws.type == NEUTRAL_B
@@ -3344,6 +3400,7 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
   else
     {
       int new_level;
+      ptrdiff_t pos0 = bidi_it->charpos;
 
       /* If we are at end of level, its edges must be cached.  */
       if (end_flag)
@@ -3379,6 +3436,12 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
 	    bidi_cache_iterator_state (bidi_it, 1, 1);
 	  }
       } while (new_level >= level);
+      /* The factor of 50 below is a heuristic that needs to be
+	 tuned.  It means we consider 50 buffer positions examined by
+	 the above call roughly equivalent to the display engine
+	 iterating over a single buffer position.  */
+      if (max_redisplay_ticks > 0 && bidi_it->charpos > pos0)
+	update_redisplay_ticks ((bidi_it->charpos - pos0) / 50 + 1, bidi_it->w);
     }
 }
 
@@ -3550,11 +3613,21 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 }
 
 /* Utility function for looking for strong directional characters
-   whose bidi type was overridden by a directional override.  */
+   whose bidi type was overridden by directional override or embedding
+   or isolate control characters.  */
 ptrdiff_t
 bidi_find_first_overridden (struct bidi_it *bidi_it)
 {
-  ptrdiff_t found_pos = ZV;
+  ptrdiff_t eob
+    = STRINGP (bidi_it->string.lstring) ? bidi_it->string.schars : ZV;
+  ptrdiff_t found_pos = eob;
+  /* Maximum bidi levels we allow for L2R and R2L characters.  Note
+     that these are levels after resolving explicit embeddings,
+     overrides, and isolates, i.e. before resolving implicit levels.  */
+  int max_l2r = bidi_it->paragraph_dir == L2R ? 0 : 2;
+  int max_r2l = 1;
+  /* Same for WEAK and NEUTRAL_ON types.  */
+  int max_weak = bidi_it->paragraph_dir == L2R ? 1 : 2;
 
   do
     {
@@ -3562,14 +3635,31 @@ bidi_find_first_overridden (struct bidi_it *bidi_it)
 	 because the directional overrides are applied by the
 	 former.  */
       bidi_type_t type = bidi_resolve_weak (bidi_it);
+      unsigned level = bidi_it->level_stack[bidi_it->stack_idx].level;
+      bidi_category_t category = bidi_get_category (bidi_it->orig_type);
 
+      /* Detect strong L or R types that have been overridden by
+	 explicit overrides.  */
       if ((type == STRONG_R && bidi_it->orig_type == STRONG_L)
 	  || (type == STRONG_L
 	      && (bidi_it->orig_type == STRONG_R
-		  || bidi_it->orig_type == STRONG_AL)))
+		  || bidi_it->orig_type == STRONG_AL))
+	  /* Detect strong L or R types or WEAK_EN types that were
+	     pushed into higher embedding levels (and will thus
+	     reorder) by explicit embeddings and isolates.  */
+	  || ((bidi_it->orig_type == STRONG_L
+	       || bidi_it->orig_type == WEAK_EN)
+	      && level > max_l2r)
+	  || ((bidi_it->orig_type == STRONG_R
+	       || bidi_it->orig_type == STRONG_AL)
+	      && level > max_r2l)
+	  /* Detect other weak or neutral types whose level was
+	     tweaked by explicit embeddings and isolates.  */
+	  || ((category == WEAK || bidi_it->orig_type == NEUTRAL_ON)
+	      && level > max_weak))
 	found_pos = bidi_it->charpos;
-    } while (found_pos == ZV
-	     && bidi_it->charpos < ZV
+    } while (found_pos == eob
+	     && bidi_it->charpos < eob
 	     && bidi_it->ch != BIDI_EOB
 	     && bidi_it->ch != '\n');
 

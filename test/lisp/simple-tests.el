@@ -1,21 +1,23 @@
-;;; simple-test.el --- Tests for simple.el           -*- lexical-binding: t; -*-
+;;; simple-tests.el --- Tests for simple.el           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -37,6 +39,62 @@
      (save-excursion (insert " c d)"))
      ,@body
      (with-no-warnings (simple-test--buffer-substrings))))
+
+
+;;; `count-words'
+(ert-deftest simple-test-count-words-bug-41761 ()
+  (with-temp-buffer
+    (dotimes (_i 10) (insert (propertize "test " 'field (cons nil nil))))
+    (should (= (count-words (point-min) (point-max)) 10))))
+
+
+;;; `count-lines'
+
+(ert-deftest simple-test-count-lines ()
+  (with-temp-buffer
+    (should (= (count-lines (point-min) (point-max)) 0))
+    (insert "foo")
+    (should (= (count-lines (point-min) (point-max)) 1))
+    (insert "\nbar\nbaz\n")
+    (should (= (count-lines (point-min) (point-max)) 3))
+    (insert "r\n")
+    (should (= (count-lines (point-min) (point-max)) 4))))
+
+(ert-deftest simple-test-count-lines/ignore-invisible-lines ()
+  (with-temp-buffer
+    (insert "foo\nbar")
+    (should (= (count-lines (point-min) (point-max) t) 2))
+    (insert (propertize "\nbar\nbaz\nzut" 'invisible t))
+    (should (= (count-lines (point-min) (point-max) t) 2))))
+
+(ert-deftest simple-text-count-lines-non-ascii ()
+  (with-temp-buffer
+    (insert "あ\nい\nう\nえ\nお\n")
+    (should (= (count-lines (point) (point)) 0))))
+
+
+;;; `execute-extended-command'
+
+(ert-deftest simple-execute-extended-command--shorter ()
+  ;; This test can be flaky with completion frameworks other than the
+  ;; default, so just skip it in interactive sessions.
+  (skip-unless noninteractive)
+  (should (equal (execute-extended-command--shorter
+                  "display-line-numbers-mode"
+                  "display-line")
+                 "di-n")))
+
+(ert-deftest simple-execute-extended-command--describe-binding-msg ()
+  (let ((text-quoting-style 'grave))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'foo "m" nil)
+                   "You can run the command `foo' with m"))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'foo [14] nil)
+                   "You can run the command `foo' with C-n"))
+    (should (equal (execute-extended-command--describe-binding-msg
+                    'display-line-numbers-mode nil "di-n")
+                   "You can run the command `display-line-numbers-mode' with M-x di-n"))))
 
 
 ;;; `transpose-sexps'
@@ -287,7 +345,7 @@ See bug#35036."
     ;; Stay at BOB.
     (forward-line -1)
     (save-restriction
-      (narrow-to-region (point) (line-end-position))
+      (narrow-to-region (point) (pos-eol))
       (should-not (delete-indentation))
       (should (equal (simple-test--buffer-substrings)
                      '("" . " second ")))
@@ -310,27 +368,23 @@ See bug#35036."
     (should (equal (simple-test--buffer-substrings)
                    '(" first " . "")))
     ;; Single line.
-    (should-not (delete-indentation
-                 nil (line-beginning-position) (1- (point))))
+    (should-not (delete-indentation nil (pos-bol) (1- (point))))
     (should (equal (simple-test--buffer-substrings)
                    '("" . " first ")))
-    (should-not (delete-indentation nil (1+ (point)) (line-end-position)))
+    (should-not (delete-indentation nil (1+ (point)) (pos-eol)))
     (should (equal (simple-test--buffer-substrings)
                    '(" " . "first ")))
-    (should-not (delete-indentation
-                 nil (line-beginning-position) (line-end-position)))
+    (should-not (delete-indentation nil (pos-bol) (pos-eol)))
     (should (equal (simple-test--buffer-substrings)
                    '("" . " first ")))
     ;; Multiple lines.
     (goto-char (point-max))
     (insert "\n second \n third \n fourth ")
     (goto-char (point-min))
-    (should-not (delete-indentation
-                 nil (line-end-position) (line-beginning-position 2)))
+    (should-not (delete-indentation nil (pos-eol) (pos-bol 2)))
     (should (equal (simple-test--buffer-substrings)
                    '(" first" . " second \n third \n fourth ")))
-    (should-not (delete-indentation
-                 nil (point) (1+ (line-beginning-position 2))))
+    (should-not (delete-indentation nil (point) (1+ (pos-bol 2))))
     (should (equal (simple-test--buffer-substrings)
                    '(" first second" . " third \n fourth ")))
     ;; Prefix argument overrides region.
@@ -431,8 +485,124 @@ See bug#35036."
     (simple-tests--exec '(backward-char undo-redo undo-redo))
     (should (equal (buffer-string) "abc"))
     (simple-tests--exec '(backward-char undo-redo undo-redo))
+    (should (equal (buffer-string) "abcde"))))
+
+(ert-deftest simple-tests--undo-in-region ()
+  ;; Test undo/redo in region.
+  (with-temp-buffer
+    ;; Enable `transient-mark-mode' so `region-active-p' works as
+    ;; expected. `region-active-p' is used to determine whether to
+    ;; perform regional undo in `undo'.
+    (transient-mark-mode)
+    (buffer-enable-undo)
+    (dolist (x '("a" "b" "c" "d" "e"))
+      (insert x)
+      (undo-boundary))
     (should (equal (buffer-string) "abcde"))
-    ))
+    ;; The test does this: activate region, `undo', break the undo
+    ;; chain (by deactivating and reactivating the region), then
+    ;; `undo-only'.  There used to be a bug in
+    ;; `undo-make-selective-list' that makes `undo-only' error out in
+    ;; that case, which is fixed by in the same commit as this change.
+    (simple-tests--exec '(move-beginning-of-line
+                          push-mark-command
+                          forward-char
+                          forward-char
+                          undo))
+    (should (equal (buffer-string) "acde"))
+    (simple-tests--exec '(move-beginning-of-line
+                          push-mark-command
+                          forward-char
+                          forward-char
+                          undo-only))
+    (should (equal (buffer-string) "abcde"))
+    ;; Rest are simple redo in region tests.
+    (simple-tests--exec '(undo-redo))
+    (should (equal (buffer-string) "acde"))
+    (simple-tests--exec '(undo-redo))
+    (should (equal (buffer-string) "abcde"))))
+
+(defun simple-tests--sans-leading-nil (lst)
+  "Return LST sans the leading nils."
+  (while (and (consp lst) (null (car lst)))
+    (setq lst (cdr lst)))
+  lst)
+
+(ert-deftest simple-tests--undo-equiv-table ()
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (transient-mark-mode)
+    (let ((ul-hash-table (make-hash-table :test #'equal)))
+      (dolist (x '("a" "b" "c"))
+        (insert x)
+        (puthash x (simple-tests--sans-leading-nil buffer-undo-list)
+                 ul-hash-table)
+        (undo-boundary))
+      (should (equal (buffer-string) "abc"))
+      ;; Tests mappings in `undo-equiv-table'.
+      (simple-tests--exec '(undo))
+      (should (equal (buffer-string) "ab"))
+      (should (eq (gethash (simple-tests--sans-leading-nil
+                            buffer-undo-list)
+                           undo-equiv-table)
+                  (gethash "b" ul-hash-table)))
+      (simple-tests--exec '(backward-char undo))
+      (should (equal (buffer-string) "abc"))
+      (should (eq (gethash (simple-tests--sans-leading-nil
+                            buffer-undo-list)
+                           undo-equiv-table)
+                  (gethash "c" ul-hash-table)))
+      ;; Undo in region should map to 'undo-in-region.
+      (simple-tests--exec '(backward-char
+                            push-mark-command
+                            move-end-of-line
+                            undo))
+      (should (equal (buffer-string) "ab"))
+      (should (eq (gethash (simple-tests--sans-leading-nil
+                            buffer-undo-list)
+                           undo-equiv-table)
+                  'undo-in-region))
+      ;; The undo that undoes to the beginning should map to t.
+      (deactivate-mark 'force)
+      (simple-tests--exec '(backward-char
+                            undo undo undo
+                            undo undo undo))
+      (should (equal (buffer-string) ""))
+      (should (eq (gethash (simple-tests--sans-leading-nil
+                            buffer-undo-list)
+                           undo-equiv-table)
+                  t))
+      ;; Erroneous nil undo should map to 'empty.
+      (insert "a")
+      (undo-boundary)
+      (push nil buffer-undo-list)
+      (simple-tests--exec '(backward-char undo))
+      (should (equal (buffer-string) "a"))
+      (should (eq (gethash (simple-tests--sans-leading-nil
+                            buffer-undo-list)
+                           undo-equiv-table)
+                  'empty))
+      ;; But if the previous record is a redo record, its mapping
+      ;; shouldn't change.
+      (insert "e")
+      (undo-boundary)
+      (should (equal (buffer-string) "ea"))
+      (puthash "e" (simple-tests--sans-leading-nil buffer-undo-list)
+               ul-hash-table)
+      (insert "a")
+      (undo-boundary)
+      (simple-tests--exec '(backward-char undo))
+      (should (equal (buffer-string) "ea"))
+      (push nil buffer-undo-list)
+      (simple-tests--exec '(forward-char undo))
+      ;; Buffer content should change since we just undid a nil
+      ;; record.
+      (should (equal (buffer-string) "ea"))
+      ;; The previous redo record shouldn't map to empty.
+      (should (equal (gethash (simple-tests--sans-leading-nil
+                               buffer-undo-list)
+                              undo-equiv-table)
+                     (gethash "e" ul-hash-table))))))
 
 ;;; undo auto-boundary tests
 (ert-deftest undo-auto-boundary-timer ()
@@ -658,7 +828,7 @@ See Bug#21722."
       (insert "a\nb\nc\nd\n")
       (goto-char (point-min))
       (forward-line (1- target-line))
-      (narrow-to-region (line-beginning-position) (line-end-position))
+      (narrow-to-region (pos-bol) (pos-eol))
       (should (equal (line-number-at-pos) 1))
       (should (equal (line-number-at-pos nil t) target-line)))))
 
@@ -667,7 +837,7 @@ See Bug#21722."
     (insert "a\nb\nc\nd\n")
     (goto-char (point-min))
     (forward-line 2)
-    (narrow-to-region (line-beginning-position) (line-end-position))
+    (narrow-to-region (pos-bol) (pos-eol))
     (should (equal (line-number-at-pos) 1))
     (line-number-at-pos nil t)
     (should (equal (line-number-at-pos) 1))))
@@ -757,17 +927,17 @@ See Bug#21722."
 ;;; Tests for shell-command-dont-erase-buffer
 
 (defmacro with-shell-command-dont-erase-buffer (str output-buffer-is-current &rest body)
-  (declare (debug (form &body)) (indent 2))
-  (let ((expected (make-symbol "expected"))
-        (command (make-symbol "command"))
+  (declare (debug (sexp form body)) (indent 2))
+  (let ((command (make-symbol "command"))
         (caller-buf (make-symbol "caller-buf"))
         (output-buf (make-symbol "output-buf")))
     `(let* ((,caller-buf (generate-new-buffer "caller-buf"))
             (,output-buf (if ,output-buffer-is-current ,caller-buf
                            (generate-new-buffer "output-buf")))
             (emacs (expand-file-name invocation-name invocation-directory))
-            (,command (format "%s -Q --batch --eval '(princ \"%s\")'"
-                              emacs ,str))
+            (,command
+             (format "%s -Q --batch --eval %s"
+                     emacs (shell-quote-argument (format "(princ %S)" ,str))))
             (inhibit-message t))
        (unwind-protect
            ;; Feature must work the same regardless how we specify the 2nd arg of `shell-command', ie,
@@ -787,7 +957,7 @@ See Bug#21722."
 
 (ert-deftest simple-tests-shell-command-39067 ()
   "The output buffer is erased or not according to `shell-command-dont-erase-buffer'."
-  (let ((str "foo\n"))
+  (let ((str "foo\\n"))
     (dolist (output-current '(t nil))
       (with-shell-command-dont-erase-buffer str output-current
         (let ((expected (cond ((eq shell-command-dont-erase-buffer 'erase) str)
@@ -799,15 +969,82 @@ See Bug#21722."
 
 (ert-deftest simple-tests-shell-command-dont-erase-buffer ()
   "The point is set at the expected position after execution of the command."
-  (let* ((str "foo\n")
+  (let* ((str "foo\\n")
          (expected-point `((beg-last-out . ,(1+ (length str)))
                            (end-last-out . ,(1+ (* 2 (length str))))
-                           (save-point . 1))))
-    (dolist (output-buffer-is-current '(t ni))
+                           (save-point . 1)
+                           (erase . ,(1+ (length str)))
+                           (nil . ,(1+ (length str))))))
+    (dolist (output-buffer-is-current '(nil))
       (with-shell-command-dont-erase-buffer str output-buffer-is-current
-        (when (memq shell-command-dont-erase-buffer '(beg-last-out end-last-out save-point))
-          (should (= (point) (alist-get shell-command-dont-erase-buffer expected-point))))))))
+        (should (= (point) (alist-get shell-command-dont-erase-buffer expected-point)))))))
 
+(ert-deftest test-undo-region ()
+  (with-temp-buffer
+    (insert "This is a test\n")
+    (goto-char (point-min))
+    (setq buffer-undo-list nil)
+    (downcase-word 1)
+    (should (= (length (delq nil (undo-make-selective-list 1 9))) 2))
+    ;; FIXME: These should give 0, but currently give 1.
+    ;;(should (= (length (delq nil (undo-make-selective-list 4 9))) 0))
+    ;;(should (= (length (delq nil (undo-make-selective-list 5 9))) 0))
+    (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
+
+(ert-deftest test-yank-in-context ()
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "\"bar\"")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f\\\"bar\\\"oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f'bar'oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo 'foo'")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo 'f'\\''bar'\\''oo'")))
+
+;;; Tests for `zap-to-char'
+
+(defmacro with-zap-to-char-test (original result &rest body)
+  (declare (indent 2) (debug (stringp stringp body)))
+  `(with-temp-buffer
+     (insert ,original)
+     (goto-char (point-min))
+     ,@body
+     (should (equal (buffer-string) ,result))))
+
+(ert-deftest simple-tests-zap-to-char ()
+  (with-zap-to-char-test "abcde" "de"
+    (zap-to-char 1 ?c))
+  (with-zap-to-char-test "abcde abc123" "123"
+    (zap-to-char 2 ?c))
+  (let ((case-fold-search t))
+    (with-zap-to-char-test "abcdeCXYZ" "deCXYZ"
+      (zap-to-char 1 ?C))
+    (with-zap-to-char-test "abcdeCXYZ" "XYZ"
+      (zap-to-char 1 ?C 'interactive))))
 
 (provide 'simple-test)
-;;; simple-test.el ends here
+;;; simple-tests.el ends here

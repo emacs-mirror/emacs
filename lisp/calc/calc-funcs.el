@@ -1,6 +1,6 @@
-;;; calc-funcs.el --- well-known functions for Calc
+;;; calc-funcs.el --- well-known functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -410,7 +410,7 @@
    ((and (math-num-integerp b)
 	 (if (math-negp b)
 	     (math-reject-arg b 'range)
-	   (Math-natnum-lessp (setq b (math-trunc b)) 20)))
+	   (< (setq b (math-trunc b)) 20)))
     (and calc-symbolic-mode (or (math-floatp a) (math-floatp b))
 	 (math-inexact-result))
     (math-mul
@@ -427,7 +427,7 @@
    ((and (math-num-integerp a)
 	 (if (math-negp a)
 	     (math-reject-arg a 'range)
-	   (Math-natnum-lessp (setq a (math-trunc a)) 20)))
+	   (< (setq a (math-trunc a)) 20)))
     (math-sub (or math-current-beta-value (calcFunc-beta a b))
 	      (calcFunc-betaB (math-sub 1 x) b a)))
    (t
@@ -797,12 +797,11 @@
 	   (math-reduce-vec
 	    'math-add
 	    (cons 'vec
-		  (mapcar (function
-			   (lambda (c)
-			     (setq k (1+ k))
-			     (math-mul (math-mul fac c)
-				       (math-sub (math-pow x1 k)
-						 (math-pow x2 k)))))
+                  (mapcar (lambda (c)
+                            (setq k (1+ k))
+                            (math-mul (math-mul fac c)
+                                      (math-sub (math-pow x1 k)
+                                                (math-pow x2 k))))
 			  coefs)))
 	   x)))
     (math-mul (math-pow 2 n)
@@ -816,25 +815,25 @@
   (list
    (list 'frac
          -174611
-         (math-read-number-simple "802857662698291200000"))
+         802857662698291200000)
    (list 'frac
          43867
-         (math-read-number-simple "5109094217170944000"))
+         5109094217170944000)
    (list 'frac
          -3617
-         (math-read-number-simple "10670622842880000"))
+         10670622842880000)
    (list 'frac
          1
-         (math-read-number-simple "74724249600"))
+         74724249600)
    (list 'frac
          -691
-         (math-read-number-simple "1307674368000"))
+         1307674368000)
    (list 'frac
          1
-         (math-read-number-simple "47900160"))
+         47900160)
    (list 'frac
          -1
-         (math-read-number-simple "1209600"))
+         1209600)
    (list 'frac
          1
          30240)

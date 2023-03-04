@@ -1,6 +1,6 @@
 /* Declarations having to do with GNU Emacs syntax tables.
 
-Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2020 Free Software
+Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -146,10 +146,6 @@ extern bool syntax_prefix_flag_p (int c);
    For example, syntax_spec_code['w'] == Sword.  */
 
 extern unsigned char const syntax_spec_code[0400];
-
-/* Indexed by syntax code, give the letter that describes it.  */
-
-extern char const syntax_code_spec[16];
 
 /* Convert the byte offset BYTEPOS into a character position,
    for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.

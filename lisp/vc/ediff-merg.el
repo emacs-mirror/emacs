@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2023 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -53,8 +53,8 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
   "Pattern to be used for combining difference regions in buffers A and B.
 The value must be a list of the form
 \(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
-where bufspec is the symbol A, B, or Ancestor. For instance, if the value is
-'(STRING1 A  STRING2 Ancestor STRING3 B STRING4) then the
+where bufspec is the symbol A, B, or Ancestor.  For instance, if the value is
+`(STRING1 A  STRING2 Ancestor STRING3 B STRING4)' then the
 combined text will look like this:
 
 STRING1
@@ -63,14 +63,13 @@ STRING2
 diff region from the ancestor
 STRING3
 diff region from variant B
-STRING4
-"
+STRING4"
   :type '(choice (list string symbol string symbol string)
 		 (list string symbol string symbol string symbol string))
   :group 'ediff-merge)
 
 (defcustom ediff-show-clashes-only nil
-  "If t, show only those diff regions where both buffers disagree with the ancestor.
+  "If t, show only diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
 skipped over.  A value of nil means show all regions."
   :type 'boolean
@@ -194,7 +193,7 @@ Buffer B."
 
 (defun ediff-set-merge-mode ()
   (normal-mode t)
-  (remove-hook 'write-file-functions 'ediff-set-merge-mode t))
+  (remove-hook 'write-file-functions #'ediff-set-merge-mode t))
 
 
 ;; Go over all diffs starting with DIFF-NUM and copy regions into buffer C
@@ -258,7 +257,8 @@ Buffer B."
 
 
 (defun ediff-re-merge ()
-  "Remerge unmodified diff regions using a new default.  Start with the current region."
+  "Remerge unmodified diff regions using a new default.
+Start with the current region."
   (interactive)
   (let* ((default-variant-alist
 	   (list '("default-A") '("default-B") '("combined")))

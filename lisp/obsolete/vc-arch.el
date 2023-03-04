@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2023 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 
-;; The home page of the Arch version control system is at
+;; The Arch version control system website is at
 ;;
-;;      http://www.gnuarch.org/
+;;      https://www.gnu.org/software/gnu-arch/
 ;;
 ;; This is derived from vc-mcvs.el as follows:
 ;; - cp vc-mcvs.el vc-arch.el and then M-% mcvs RET arch RET
@@ -81,10 +81,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "23.1"
-  :group 'vc-arch)
-
-(define-obsolete-variable-alias 'vc-arch-command 'vc-arch-program "23.1")
+  :version "23.1")
 
 (defcustom vc-arch-program
   (let ((candidates '("tla" "baz")))
@@ -92,8 +89,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       (setq candidates (cdr candidates)))
     (or (car candidates) "tla"))
   "Name of the Arch executable."
-  :type 'string
-  :group 'vc-arch)
+  :type 'string)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -315,7 +311,7 @@ Only the value `maybe' can be trusted :-(."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defun vc-arch-dir-status-files (dir _files callback)
   "Run `tla inventory' for DIR and pass results to CALLBACK.
@@ -341,7 +337,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 		      ("--" . permissions-changed)
 		      ("-/" . permissions-changed) ;directory
 		      ))
-	 (state-map-regexp (regexp-opt (mapcar 'car state-map) t))
+	 (state-map-regexp (regexp-opt (mapcar #'car state-map) t))
 	 (entry-regexp (concat "^" state-map-regexp " \\(.*\\)$"))
 	 result)
     (goto-char (point-min))
@@ -387,8 +383,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 (defcustom vc-arch-mode-line-rewrite
   '(("\\`.*--\\(.*--.*\\)--\\(v?\\).*-\\([0-9]+\\)\\'" . "\\2\\3[\\1]"))
   "Rewrite rules to shorten Arch's revision names on the mode-line."
-  :type '(repeat (cons regexp string))
-  :group 'vc-arch)
+  :type '(repeat (cons regexp string)))
 
 (defun vc-arch-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
@@ -420,7 +415,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	  ;; The .rej file is obsolete.
 	  (condition-case nil (delete-file rej) (error nil))
 	  ;; Remove the hook so that it is not called multiple times.
-	  (remove-hook 'after-save-hook 'vc-arch-delete-rej-if-obsolete t))))))
+	  (remove-hook 'after-save-hook #'vc-arch-delete-rej-if-obsolete t))))))
 
 (defun vc-arch-find-file-hook ()
   (let ((rej (concat buffer-file-name ".rej")))
@@ -433,7 +428,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 		(condition-case nil (delete-file rej) (error nil))
 	      (smerge-mode 1)
 	      (add-hook 'after-save-hook
-			'vc-arch-delete-rej-if-obsolete nil t)
+			#'vc-arch-delete-rej-if-obsolete nil t)
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
@@ -488,11 +483,11 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 (defun vc-arch-rename-file (old new)
   (vc-arch-command nil 0 new "mv" (file-relative-name old)))
 
-(defalias 'vc-arch-responsible-p 'vc-arch-root)
+(defalias 'vc-arch-responsible-p #'vc-arch-root)
 
 (defun vc-arch-command (buffer okstatus file &rest flags)
   "A wrapper around `vc-do-command' for use in vc-arch.el."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-arch-program file flags))
+  (apply #'vc-do-command (or buffer "*vc*") okstatus vc-arch-program file flags))
 
 ;;; Completion of versions and revisions.
 
@@ -571,7 +566,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
                         (when (string-match "-\\([0-9]+\\)\\'" f)
                           (cons (string-to-number (match-string 1 f)) f)))
                       (directory-files dir nil nil 'nosort)))
-               'car-less-than-car))
+               #'car-less-than-car))
         (subdirs nil))
     (when (cddr revs)
       (dotimes (_i (/ (length revs) 2))
@@ -597,26 +592,29 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
     (unless (file-writable-p rl-dir)
       (error "No writable revlib directory found"))
     (message "Revlib at %s" rl-dir)
-    (let* ((archives (directory-files rl-dir 'full "[^.]\\|..."))
+    (let* ((archives (directory-files rl-dir 'full
+                                      directory-files-no-dot-files-regexp))
            (categories
-            (apply 'append
+            (apply #'append
                    (mapcar (lambda (dir)
                              (when (file-directory-p dir)
-                               (directory-files dir 'full "[^.]\\|...")))
+                               (directory-files
+                                dir 'full directory-files-no-dot-files-regexp)))
                            archives)))
            (branches
-            (apply 'append
+            (apply #'append
                    (mapcar (lambda (dir)
                              (when (file-directory-p dir)
-                               (directory-files dir 'full "[^.]\\|...")))
+                               (directory-files
+                                dir 'full directory-files-no-dot-files-regexp)))
                            categories)))
            (versions
-            (apply 'append
+            (apply #'append
                    (mapcar (lambda (dir)
                              (when (file-directory-p dir)
                                (directory-files dir 'full "--.*--")))
                            branches))))
-      (mapc 'vc-arch-trim-one-revlib versions))
+      (mapc #'vc-arch-trim-one-revlib versions))
     ))
 
 (defvar vc-arch-extra-menu-map

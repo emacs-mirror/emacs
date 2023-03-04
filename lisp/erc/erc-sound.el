@@ -1,8 +1,8 @@
-;;; erc-sound.el --- CTCP SOUND support for ERC
+;;; erc-sound.el --- CTCP SOUND support for ERC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2023 Free Software Foundation, Inc.
 
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcSound
 
 ;; This file is part of GNU Emacs.
@@ -52,11 +52,11 @@
   "In ERC sound mode, the client will respond to CTCP SOUND requests
 and play sound files as requested."
   ;; Enable:
-  ((add-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
-   (define-key erc-mode-map "\C-c\C-s" 'erc-toggle-sound))
+  ((add-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" #'erc-toggle-sound))
   ;; Disable:
-  ((remove-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
-   (define-key erc-mode-map "\C-c\C-s" 'undefined)))
+  ((remove-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" #'undefined)))
 
 (erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
 
@@ -66,18 +66,15 @@ and play sound files as requested."
 
 (defcustom erc-play-sound t
   "Play sounds when you receive CTCP SOUND requests."
-  :group 'erc-sound
   :type 'boolean)
 
 (defcustom erc-sound-path nil
   "List of directories that contain sound samples to play on SOUND events."
-  :group 'erc-sound
   :type '(repeat directory))
 
 (defcustom erc-default-sound nil
   "Play this sound if the requested file was not found.
 If this is set to nil or the file doesn't exist a beep will sound."
-  :group 'erc-sound
   :type '(choice (const nil)
 		 file))
 
@@ -108,7 +105,7 @@ LINE is the text entered, including the command."
       t))
    (t nil)))
 
-(defun erc-ctcp-query-SOUND (proc nick login host to msg)
+(defun erc-ctcp-query-SOUND (_proc nick login host _to msg)
   "Display a CTCP SOUND message and play sound if `erc-play-sound' is non-nil."
   (when (string-match "^SOUND\\s-+\\(\\S-+\\)\\(\\(\\s-+.*\\)\\|\\(\\s-*\\)\\)$" msg)
     (let ((sound (match-string 1 msg))
@@ -131,8 +128,9 @@ See also `play-sound-file'."
     (erc-log (format "Playing sound file %S" filepath))))
 
 (defun erc-toggle-sound (&optional arg)
-  "Toggles playing sounds on and off.  With positive argument,
-  turns them on.  With any other argument turns sounds off."
+  "Toggle playing sounds on and off.
+With positive argument, turns them on.  With any other argument
+turns sounds off."
   (interactive "P")
   (cond ((and (numberp arg) (> arg 0))
 	 (setq erc-play-sound t))

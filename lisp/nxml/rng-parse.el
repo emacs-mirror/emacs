@@ -1,6 +1,6 @@
 ;;; rng-parse.el --- parse an XML file and validate it against a schema  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -62,7 +62,7 @@ be signaled in the same way as when it is not well-formed."
 	 (unless (rng-match-element-value (or text ""))
 	   (cons "Invalid data" (and text 'text))))
 	((and text
-	      (not (rng-blank-p text))
+              (not (string-blank-p text))
 	      (not (rng-match-mixed-text)))
 	 (cons "Text not allowed" 'text))
 	((not start-tag)

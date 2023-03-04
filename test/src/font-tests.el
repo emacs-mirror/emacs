@@ -1,6 +1,6 @@
-;;; font-tests.el --- Test suite for font-related functions.
+;;; font-tests.el --- Test suite for font-related functions. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -96,8 +96,7 @@ expected font properties from parsing NAME.")
 (put 'font-parse-check 'ert-explainer 'font-parse-explain)
 
 (defun font-parse-explain (name prop expected)
-  (let ((result (font-get (font-spec :name name) prop))
-	(propname (symbol-name prop)))
+  (let ((propname (symbol-name prop)))
     (format "Parsing `%s': expected %s `%s', got `%s'."
 	    name (substring propname 1) expected
 	    (font-get (font-spec :name name) prop))))
@@ -116,7 +115,7 @@ expected font properties from parsing NAME.")
 (defun test-font-parse ()
   "Test font name parsing."
   (interactive)
-  (switch-to-buffer (generate-new-buffer "*Font Pase Test*"))
+  (switch-to-buffer (generate-new-buffer "*Font Parse Test*"))
   (setq show-trailing-whitespace nil)
   (let ((pass-face '((t :foreground "green")))
 	(fail-face '((t :foreground "red"))))
@@ -159,9 +158,30 @@ expected font properties from parsing NAME.")
 	(insert "\n"))))
   (goto-char (point-min)))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(ert-deftest font-parse-xlfd-test ()
+  ;; Normal number of segments.
+  (should (equal (font-get
+                  (font-spec :name "-GNU -FreeSans-semibold-italic-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'FreeSans))
+  (should (equal (font-get
+                  (font-spec :name "-GNU -FreeSans-semibold-italic-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :foundry)
+                 'GNU\ ))
+  ;; Dash in the family name.
+  (should (equal (font-get
+                  (font-spec :name "-Take-mikachan-PS-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'mikachan-PS))
+  (should (equal (font-get
+                  (font-spec :name "-Take-mikachan-PS-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :weight)
+                 'normal))
+  ;; Synthetic test.
+  (should (equal (font-get
+                  (font-spec :name "-foundry-name-with-lots-of-dashes-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
+                  :family)
+                 'name-with-lots-of-dashes)))
 
 (provide 'font-tests)
 ;;; font-tests.el ends here.

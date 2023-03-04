@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1540,6 +1540,19 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
     || physical_font->ntmFontSig.fsUsb[1]
     || physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff;
 
+  /* Kludgey fix for Arial Unicode MS font that claims support for
+     scripts it doesn't actually cover.  */
+  if (strncmp (logical_font->elfLogFont.lfFaceName,
+	       "Arial Unicode MS", 16) == 0)
+    {
+      /* Reset bits 4 (Phonetic), 12 (Vai), 14 (Nko), 27 (Balinese).  */
+      physical_font->ntmFontSig.fsUsb[0] &= 0xf7ffafef;
+      /* Reset bits 53 (Phags-pa) and 58 (Phoenician).  */
+      physical_font->ntmFontSig.fsUsb[1] &= 0xfbdfffff;
+      /* Set bit 70 (Tibetan).  */
+      physical_font->ntmFontSig.fsUsb[2] |= 0x00000040;
+    }
+
   /* Skip non matching fonts.  */
 
   /* For uniscribe backend, consider only truetype or opentype fonts
@@ -1974,10 +1987,11 @@ w32_decode_weight (int fnweight)
   if (fnweight >= FW_EXTRABOLD)  return 205;
   if (fnweight >= FW_BOLD)       return 200;
   if (fnweight >= FW_SEMIBOLD)   return 180;
-  if (fnweight >= FW_NORMAL)     return 100;
-  if (fnweight >= FW_LIGHT)      return 50;
-  if (fnweight >= FW_EXTRALIGHT) return 40;
-  if (fnweight >  FW_THIN)       return 20;
+  if (fnweight >= FW_MEDIUM)     return 100;
+  if (fnweight >= FW_NORMAL)     return  80;
+  if (fnweight >= FW_LIGHT)      return  50;
+  if (fnweight >= FW_EXTRALIGHT) return  40;
+  if (fnweight >= FW_THIN)       return  20;
   return 0;
 }
 
@@ -1988,10 +2002,11 @@ w32_encode_weight (int n)
   if (n >= 205) return FW_EXTRABOLD;
   if (n >= 200) return FW_BOLD;
   if (n >= 180) return FW_SEMIBOLD;
-  if (n >= 100) return FW_NORMAL;
-  if (n >= 50)  return FW_LIGHT;
-  if (n >= 40)  return FW_EXTRALIGHT;
-  if (n >= 20)  return FW_THIN;
+  if (n >= 100) return FW_MEDIUM;
+  if (n >=  80) return FW_NORMAL;
+  if (n >=  50) return FW_LIGHT;
+  if (n >=  40) return FW_EXTRALIGHT;
+  if (n >=  20) return FW_THIN;
   return 0;
 }
 
@@ -2000,14 +2015,15 @@ w32_encode_weight (int n)
 static Lisp_Object
 w32_to_fc_weight (int n)
 {
-  if (n >= FW_HEAVY)     return intern ("black");
-  if (n >= FW_EXTRABOLD) return Qextra_bold;
-  if (n >= FW_BOLD)      return Qbold;
-  if (n >= FW_SEMIBOLD)  return intern ("demibold");
-  if (n >= FW_NORMAL)    return intern ("medium");
-  if (n >= FW_LIGHT)     return Qlight;
+  if (n >= FW_HEAVY)      return Qblack;
+  if (n >= FW_EXTRABOLD)  return Qextra_bold;
+  if (n >= FW_BOLD)       return Qbold;
+  if (n >= FW_SEMIBOLD)   return Qsemi_bold;
+  if (n >= FW_MEDIUM)     return Qmedium;
+  if (n >= FW_NORMAL)     return Qnormal;
+  if (n >= FW_LIGHT)      return Qlight;
   if (n >= FW_EXTRALIGHT) return Qextra_light;
-  return intern ("thin");
+  return Qthin;
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */
@@ -2019,13 +2035,9 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (FIXNUMP (tmp))
-    {
-      dpi = XFIXNUM (tmp);
-    }
+    dpi = XFIXNUM (tmp);
   else if (FLOATP (tmp))
-    {
-      dpi = (int) (XFLOAT_DATA (tmp) + 0.5);
-    }
+    dpi = (int) (XFLOAT_DATA (tmp) + 0.5);
 
   /* Height  */
   tmp = AREF (font_spec, FONT_SIZE_INDEX);
@@ -2386,7 +2398,6 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (108, Qkharoshthi);
   SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
-  SUBRANGE (111, Qcuneiform_numbers_and_punctuation);
   SUBRANGE (111, Qcounting_rod_numeral);
   SUBRANGE (112, Qsundanese);
   SUBRANGE (113, Qlepcha);
@@ -2662,7 +2673,7 @@ in the font selection dialog. */)
   ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 
   {
-    int count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     Lisp_Object value = Qnil;
 
     w32_dialog_in_progress (Qt);
@@ -2829,8 +2840,6 @@ syms_of_w32font (void)
   DEFSYM (Qbuginese, "buginese");
   DEFSYM (Qbuhid, "buhid");
   DEFSYM (Qcuneiform, "cuneiform");
-  DEFSYM (Qcuneiform_numbers_and_punctuation,
-	  "cuneiform-numbers-and-punctuation");
   DEFSYM (Qcypriot, "cypriot");
   DEFSYM (Qdeseret, "deseret");
   DEFSYM (Qglagolitic, "glagolitic");
@@ -2838,18 +2847,18 @@ syms_of_w32font (void)
   DEFSYM (Qhanunoo, "hanunoo");
   DEFSYM (Qkharoshthi, "kharoshthi");
   DEFSYM (Qlimbu, "limbu");
-  DEFSYM (Qlinear_b, "linear_b");
+  DEFSYM (Qlinear_b, "linear-b");
   DEFSYM (Qaegean_number, "aegean-number");
-  DEFSYM (Qold_italic, "old_italic");
-  DEFSYM (Qold_persian, "old_persian");
+  DEFSYM (Qold_italic, "old-italic");
+  DEFSYM (Qold_persian, "old-persian");
   DEFSYM (Qosmanya, "osmanya");
   DEFSYM (Qphags_pa, "phags-pa");
   DEFSYM (Qphoenician, "phoenician");
   DEFSYM (Qshavian, "shavian");
-  DEFSYM (Qsyloti_nagri, "syloti_nagri");
+  DEFSYM (Qsyloti_nagri, "syloti-nagri");
   DEFSYM (Qtagalog, "tagalog");
   DEFSYM (Qtagbanwa, "tagbanwa");
-  DEFSYM (Qtai_le, "tai_le");
+  DEFSYM (Qtai_le, "tai-le");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
   DEFSYM (Qlycian, "lycian");

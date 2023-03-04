@@ -1,6 +1,6 @@
-;;; japanese.el --- support for Japanese
+;;; japanese.el --- support for Japanese  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -82,9 +82,7 @@
 	 (#x00A6 . #xFFE4)	; BROKEN LINE		FULLWIDTH BROKEN LINE
 	 )))
   (define-translation-table 'japanese-ucs-jis-to-cp932-map map)
-  (mapc #'(lambda (x) (let ((tmp (car x)))
-			(setcar x (cdr x)) (setcdr x tmp)))
-	map)
+  (setq map (mapcar (lambda (x) (cons (cdr x) (car x))) map))
   (define-translation-table 'japanese-ucs-cp932-to-jis-map map))
 
 ;; U+2014 (EM DASH) vs U+2015 (HORIZONTAL BAR)
@@ -190,6 +188,22 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 
 (define-coding-system-alias 'shift_jis-2004 'japanese-shift-jis-2004)
 
+(define-coding-system 'ibm281
+  "Japanese-E version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm281)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-e 'ibm281)
+(define-coding-system-alias 'cp281 'ibm281)
+
+(define-coding-system 'ibm290
+  "Japanese katakana version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm290)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-kana 'ibm290)
+(define-coding-system-alias 'cp290 'ibm290)
+
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (exit-function . use-default-char-width-table)
@@ -241,35 +255,14 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 	 (#x2b65 . [#x02E9 #x02E5])
 	 (#x2b66 . [#x02E5 #x02E9])))
       table)
-  (dolist (elt map)
-    (setcar elt (decode-char 'japanese-jisx0213-1 (car elt))))
+  (setq map
+        (mapcar (lambda (x) (cons (decode-char 'japanese-jisx0213-1 (car x))
+                                  (cdr x)))
+                map))
   (setq table (make-translation-table-from-alist map))
   (define-translation-table 'jisx0213-to-unicode table)
   (define-translation-table 'unicode-to-jisx0213
     (char-table-extra-slot table 0)))
-
-(defun compose-gstring-for-variation-glyph (gstring _direction)
-  "Compose glyph-string GSTRING for graphic display.
-GSTRING must have two glyphs; the first is a glyph for a han character,
-and the second is a glyph for a variation selector."
-  (let* ((font (lgstring-font gstring))
-	 (han (lgstring-char gstring 0))
-	 (vs (lgstring-char gstring 1))
-	 (glyphs (font-variation-glyphs font han))
-	 (g0 (lgstring-glyph gstring 0))
-	 (g1 (lgstring-glyph gstring 1)))
-    (catch 'tag
-      (dolist (elt glyphs)
-	(if (= (car elt) vs)
-	    (progn
-	      (lglyph-set-code g0 (cdr elt))
-	      (lglyph-set-from-to g0 (lglyph-from g0) (lglyph-to g1))
-	      (lgstring-set-glyph gstring 1 nil)
-	      (throw 'tag gstring)))))))
-
-(let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
-  (set-char-table-range composition-function-table '(#xFE00 . #xFE0F) elt)
-  (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (provide 'japanese)
 

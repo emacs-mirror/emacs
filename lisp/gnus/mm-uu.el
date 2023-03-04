@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2023 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -145,6 +145,14 @@ This can be either \"inline\" or \"attachment\".")
      ,#'mm-uu-pgp-key-extract
      ,#'mm-uu-gpg-key-skip-to-last
      nil)
+    (markdown-emacs-sources
+     "^```\\(?:elisp\\|emacs-lisp\\|\n(\\)"
+     "^```$"
+     ,#'mm-uu-emacs-sources-extract)
+    (markdown-diff ;; this should be higher than `git-format-patch'
+     "^```\\(?:diff\\|patch\\|\ndiff --git \\)"
+     "^```$"
+     ,#'mm-uu-diff-extract)
     (emacs-sources
      "^;;;?[ \t]*[^ \t]+\\.el[ \t]*--"
      "^;;;?[ \t]*\\([^ \t]+\\.el\\)[ \t]+ends here"
@@ -186,7 +194,7 @@ This can be either \"inline\" or \"attachment\".")
      nil)
     (verbatim-marks
      ;; slrn-style verbatim marks, see
-     ;; http://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
+     ;; https://slrn.sourceforge.net/docs/slrn-manual-6.html#process_verbatim_marks
      "^#v\\+"
      "^#v\\-$"
      ,(lambda () (mm-uu-verbatim-marks-extract 0 0))
@@ -206,7 +214,7 @@ This can be either \"inline\" or \"attachment\".")
      "$"
      ,#'mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
-Each element consist of a `mm-uu-entry'.
+Each element consists of a `mm-uu-entry'.
 The functions in the last 3 slots of this type can make use of the following
 dynamically-scoped variables:
 `file-name', `start-point', and `end-point'.
@@ -511,7 +519,7 @@ apply the face `mm-uu-extract'."
       (list (mm-make-handle buf mm-uu-text-plain-type)))))
 
 (defun mm-uu-pgp-signed-extract ()
-  (let ((mm-security-handle (list (format "multipart/signed"))))
+  (let ((mm-security-handle (list (substring "multipart/signed"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-signature")
     (save-restriction
@@ -579,7 +587,7 @@ apply the face `mm-uu-extract'."
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 
 (defun mm-uu-pgp-encrypted-extract ()
-  (let ((mm-security-handle (list (format "multipart/encrypted"))))
+  (let ((mm-security-handle (list (substring "multipart/encrypted"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-encrypted")
     (save-restriction

@@ -1272,7 +1272,7 @@
 
 	* xdisp.c (display_line): Set charpos of first glyph in blank
 	lines not corresponding to any text to -1, even if no glyphs are
-	filled in in that line.
+	filled in on that line.
 
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
@@ -1572,7 +1572,7 @@
 	(wait_reading_process_input): Use emacs_strerror, not strerror.
 
 	* process.c (status_message, sigchld_handler): Synchronize locale,
-	then use strsignal istead of sys_siglist.
+	then use strsignal instead of sys_siglist.
 	* w32proc.c (sys_wait): Likewise.
 
 	* s/aix3-1.h, s/bsd4-1.h, s/dgux.h, s/gnu-linux.h, s/hiuxmpp.h:
@@ -3155,7 +3155,7 @@
 
 	* xdisp.c (resize_mini_window): Don't resize if
 	Vmax_mini_window_height is nil.  Otherwise, use a default if
-	Vmax_mini_window_height is not ot a number.
+	Vmax_mini_window_height is not a number.
 	(syms_of_xdisp): Extend documentation of Vmax_mini_window_height.
 
 1999-08-25  Alexandre Oliva  <oliva@dcc.unicamp.br>
@@ -5704,7 +5704,7 @@
 	(x_scroll_bar_expose): Make no-op for toolkit scroll bars.
 	(x_scroll_bar_create): Create and show a scroll bar widget
 	if using toolkit scroll bars.
-	(x_scroll_bar_move): Handle tookit scroll bars.
+	(x_scroll_bar_move): Handle toolkit scroll bars.
 
 	* Makefile.in (LIBW): Use Xaw3d if present.
 
@@ -7560,7 +7560,7 @@
 	(recompute_basic_faces): Realize basic faces only if face cache is
 	allocated, i.e. after init_frame_faces has been called.
 
-	* frame.c (make_frame): Initialze face cache with null.
+	* frame.c (make_frame): Initialize face cache with null.
 
 	* xfaces.c (same_size_fonts): Remove.
 
@@ -9810,7 +9810,7 @@
 1997-10-13  Gerd Moellmann  <gerd@acm.org>
 
 	* xdisp.c (redisplay_window): Use available current matrix to
-	skip faster when only point is moved withing the window.
+	skip faster when only point is moved within the window.
 
 	* intervals.c: Include stdio.h.
 	(find_interval): Trace to stderr to catch some nasty error
@@ -9859,7 +9859,7 @@
 	* emacs.c: FreeBSD headers for profiling removed.
 
 	* dispnew.c (direct_output_for_insert): Don't use PT-1 for
-	display cursor, use DEC_POS instread.
+	display cursor, use DEC_POS instead.
 
 	* xfaces.c (load_font): Use x_load_font to load fonts so that
 	all fonts are in the font table.
@@ -11940,7 +11940,7 @@
 	This avoids a conflict with a system header file paths.h on GNU/Linux.
 
 	* callproc.c, lread.c, w32fns.c, xfns.c, xrdb.c:
-	Use epaths.h istead of paths.h.
+	Use epaths.h instead of paths.h.
 
 1999-02-26  Andreas Schwab  <schwab@gnu.org>
 
@@ -13979,7 +13979,7 @@
 
 See ChangeLog.7 for earlier changes.
 
-  Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
+  Copyright (C) 1999, 2001-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

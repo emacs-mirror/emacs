@@ -1,6 +1,6 @@
 ;;; url-cookie.el --- URL cookie support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -26,6 +26,7 @@
 (require 'url-util)
 (require 'url-parse)
 (require 'url-domsuf)
+(require 'generate-lisp-file)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -60,7 +61,7 @@
 
 (defcustom url-cookie-multiple-line nil
   "If nil, HTTP requests put all cookies for the server on one line.
-Some web servers, such as http://www.hotmail.com/, only accept cookies
+Some web servers, such as https://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behavior, but just try
 telling Microsoft that."
   :type 'boolean
@@ -158,11 +159,8 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 	(insert ")\n(setq url-cookie-secure-storage\n '")
 	(pp url-cookie-secure-storage (current-buffer)))
       (insert ")\n")
-      (insert "\n;; Local Variables:\n"
-              ";; version-control: never\n"
-              ";; no-byte-compile: t\n"
-              ";; End:\n")
-      (set (make-local-variable 'version-control) 'never)
+      (generate-lisp-file-trailer fname :inhibit-provide t :autoloads t)
+      (setq-local version-control 'never)
       (write-file fname))
     (setq url-cookies-changed-since-last-save nil))))
 
@@ -319,7 +317,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 	(pop untrusted)))
     (and trusted untrusted
 	 ;; Choose the more specific match.
-	 (set (if (> trusted untrusted) 'untrusted 'trusted) nil))
+	 (if (> trusted untrusted) (setq untrusted nil) (setq trusted nil)))
     (cond
      (untrusted
       ;; The site was explicitly marked as untrusted by the user.
@@ -358,11 +356,11 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-cookie-setup-save-timer' function manually."
-  :set #'(lambda (var val)
-	   (set-default var val)
-	   (if (bound-and-true-p url-setup-done)
-	       (url-cookie-setup-save-timer)))
-  :type 'integer
+  :set (lambda (var val)
+         (set-default var val)
+         (if (bound-and-true-p url-setup-done)
+             (url-cookie-setup-save-timer)))
+  :type 'natnum
   :group 'url-cookie)
 
 (defun url-cookie-setup-save-timer ()
@@ -494,12 +492,10 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
       (url-cookie--generate-buffer)
       (goto-char point))))
 
-(defvar url-cookie-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [delete] 'url-cookie-delete)
-    (define-key map [(control k)] 'url-cookie-delete)
-    (define-key map [(control _)] 'url-cookie-undo)
-    map))
+(defvar-keymap url-cookie-mode-map
+  "<delete>" #'url-cookie-delete
+  "C-k"      #'url-cookie-delete
+  "C-_"      #'url-cookie-undo)
 
 (define-derived-mode url-cookie-mode special-mode "URL Cookie"
   "Mode for listing cookies.

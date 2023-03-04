@@ -1,6 +1,6 @@
-;;; gnutls-tests.el --- Test suite for gnutls.el
+;;; gnutls-tests.el --- Test suite for gnutls.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 
@@ -29,6 +29,14 @@
 (require 'cl-lib)
 (require 'gnutls)
 (require 'hex-util)
+
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-symmetric-encrypt "gnutls.c")
+(declare-function gnutls-hash-mac "gnutls.c")
+(declare-function gnutls-hash-digest "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
+(declare-function gnutls-digests "gnutls.c")
+(declare-function gnutls-macs "gnutls.c")
 
 (defvar gnutls-tests-message-prefix "")
 
@@ -241,6 +249,7 @@
 
 (ert-deftest test-gnutls-005-aead-ciphers ()
   "Test the GnuTLS AEAD ciphers"
+  :tags '(:expensive-test)
   (skip-unless (memq 'AEAD-ciphers (gnutls-available-p)))
   (setq gnutls-tests-message-prefix "AEAD verification: ")
   (let ((keys '("mykey" "mykey2"))

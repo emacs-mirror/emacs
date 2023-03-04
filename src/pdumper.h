@@ -1,6 +1,6 @@
 /* Header file for the portable dumper.
 
-Copyright (C) 2016, 2018-2020 Free Software Foundation, Inc.
+Copyright (C) 2016, 2018-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_PDUMPER_H
 #define EMACS_PDUMPER_H
 
+#include <stdio.h>
+#include "fingerprint.h"
 #include "lisp.h"
 
 INLINE_HEADER_BEGIN
@@ -49,6 +51,9 @@ enum { PDUMPER_NO_OBJECT = -1 };
    valid across dump and load.  */
 #define PDUMPER_REMEMBER_SCALAR(thing)                  \
   pdumper_remember_scalar (&(thing), sizeof (thing))
+
+extern void dump_fingerprint (FILE *output, const char *label,
+                              unsigned char const fingerp[sizeof fingerprint]);
 
 extern void pdumper_remember_scalar_impl (void *data, ptrdiff_t nbytes);
 
@@ -81,12 +86,25 @@ pdumper_remember_lv_ptr_raw (void *ptr, enum Lisp_Type type)
 
 typedef void (*pdumper_hook)(void);
 extern void pdumper_do_now_and_after_load_impl (pdumper_hook hook);
+extern void pdumper_do_now_and_after_late_load_impl (pdumper_hook hook);
 
 INLINE void
 pdumper_do_now_and_after_load (pdumper_hook hook)
 {
 #ifdef HAVE_PDUMPER
   pdumper_do_now_and_after_load_impl (hook);
+#else
+  hook ();
+#endif
+}
+
+/* Same as 'pdumper_do_now_and_after_load' but for hooks running code
+   that can call into Lisp.  */
+INLINE void
+pdumper_do_now_and_after_late_load (pdumper_hook hook)
+{
+#ifdef HAVE_PDUMPER
+  pdumper_do_now_and_after_late_load_impl (hook);
 #else
   hook ();
 #endif
@@ -127,7 +145,7 @@ enum pdumper_load_result
     PDUMPER_LOAD_ERROR /* Must be last, as errno may be added.  */
   };
 
-int pdumper_load (const char *dump_filename);
+int pdumper_load (const char *dump_filename, char *argv0);
 
 struct pdumper_loaded_dump
 {
@@ -256,6 +274,7 @@ pdumper_clear_marks (void)
    file was loaded.  */
 extern void pdumper_record_wd (const char *);
 
+void init_pdumper_once (void);
 void syms_of_pdumper (void);
 
 INLINE_HEADER_END

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -206,40 +206,40 @@ format, that effectively converts the file to Unix EOL style, like the
 @code{dos2unix} program.
 
 @cindex untranslated file system
-@findex add-untranslated-filesystem
+@findex w32-add-untranslated-filesystem
   When you use NFS, Samba, or some other similar method to access file
 systems that reside on computers using GNU or Unix systems, Emacs
 should not perform end-of-line translation on any files in these file
 systems---not even when you create a new file.  To request this,
 designate these file systems as @dfn{untranslated} file systems by
-calling the function @code{add-untranslated-filesystem}.  It takes one
-argument: the file system name, including a drive letter and
+calling the function @code{w32-add-untranslated-filesystem}.  It takes
+one argument: the file system name, including a drive letter and
 optionally a directory.  For example,
 
 @example
-(add-untranslated-filesystem "Z:")
+(w32-add-untranslated-filesystem "Z:")
 @end example
 
 @noindent
 designates drive Z as an untranslated file system, and
 
 @example
-(add-untranslated-filesystem "Z:\\foo")
+(w32-add-untranslated-filesystem "Z:\\foo")
 @end example
 
 @noindent
 designates directory @file{\foo} on drive Z as an untranslated file
 system.
 
-  Most often you would use @code{add-untranslated-filesystem} in your
+  Most often you would use @code{w32-add-untranslated-filesystem} in your
 @file{.emacs} or @file{init.el} init file, or in @file{site-start.el}
 so that all the users at your site get the benefit of it.
 
-@findex remove-untranslated-filesystem
-  To countermand the effect of @code{add-untranslated-filesystem}, use
-the function @code{remove-untranslated-filesystem}.  This function takes
-one argument, which should be a string just like the one that was used
-previously with @code{add-untranslated-filesystem}.
+@findex w32-remove-untranslated-filesystem
+  To countermand the effect of @code{w32-add-untranslated-filesystem},
+use the function @code{w32-remove-untranslated-filesystem}.  This
+function takes one argument, which should be a string just like the
+one that was used previously with @code{w32-add-untranslated-filesystem}.
 
   Designating a file system as untranslated does not affect character
 set conversion, only end-of-line conversion.  Essentially, it directs
@@ -543,16 +543,12 @@ keyboard input in Emacs.
 conventional uses in MS-Windows programs conflict with traditional
 Emacs key bindings.  (These Emacs key bindings were established years
 before Microsoft was founded.)  Examples of conflicts include
-@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
+@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, and @kbd{C-a}.
 You can redefine some of them with meanings more like the MS-Windows
 meanings by enabling CUA Mode (@pxref{CUA Bindings}).  Another
 optional feature which will make Emacs behave like other Windows
 applications is Delete Selection mode (@pxref{Using Region}).
 
-@iftex
-@inforef{Windows Keyboard, , emacs}, for information about additional
-Windows-specific variables in this category.
-@end iftex
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
@@ -712,6 +708,21 @@ is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
 be interpreted as the combination of @key{Ctrl} and @key{Meta}
 modifiers.
+
+@cindex IME, MS-Windows
+@findex w32-set-ime-open-status
+  Some versions of MS-Windows, typically East Asian localized Windows,
+enable the Input Method Manager (@acronym{IMM}) that allows
+applications to communicate with the Input Method Editor
+(@acronym{IME}), the native Windows input method service.  Emacs uses
+the @acronym{IME} when available to allow users to input East Asian
+non-@acronym{ASCII} characters, similarly to Emacs's built-in input
+methods (@pxref{Input Methods}).  However, in some situations the
+@acronym{IME} can get in the way if it interprets simple
+@acronym{ASCII} keys you input as part of a key sequence that
+designates a non-@acronym{ASCII} character.  The @acronym{IME} can be
+temporarily turned off and then on again by using the
+@code{w32-set-ime-open-status} function.
 @end ifnottex
 
 @node Windows Mouse
@@ -975,9 +986,9 @@ printer, put this in your @file{.emacs} file:
 @section Specifying Fonts on MS-Windows
 @cindex font specification (MS Windows)
 
-  Starting with Emacs 23, fonts are specified by their name, size
-and optional properties.  The format for specifying fonts comes from the
-fontconfig library used in modern Free desktops:
+  Fonts are specified by their name, size and optional properties.
+The format for specifying fonts comes from the fontconfig library used
+in modern Free desktops:
 
 @example
   [Family[-PointSize]][:Option1=Value1[:Option2=Value2[...]]]
@@ -1161,11 +1172,6 @@ the default when such software is detected when running Emacs.
 When this variable is non-@code{nil}, other variables affecting the
 cursor display have no effect.
 
-@iftex
-@inforef{Windows Misc, , emacs}, for information about additional
-Windows-specific variables in this category.
-@end iftex
-
 @ifnottex
 @vindex w32-grab-focus-on-raise
 @cindex frame focus policy, MS-Windows
@@ -1174,6 +1180,14 @@ non-@code{nil} value causes a frame to grab focus when it is raised.
 The default is @code{t}, which fits well with the Windows default
 click-to-focus policy.
 @end ifnottex
+
+  On Windows 10 (version 1809 and higher) and Windows 11, Emacs title
+bars and scroll bars will follow the system's Light or Dark mode,
+similar to other programs such as Explorer and Command Prompt.  To
+change the color mode, select @code{Personalization} from
+@w{@code{Windows Settings}}, then
+@w{@code{Colors->Choose your color}} (or @w{@code{Choose your default
+app mode}}); then restart Emacs.
 
 @ifnottex
 @include msdos-xtra.texi

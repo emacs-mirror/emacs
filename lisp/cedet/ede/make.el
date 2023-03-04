@@ -1,6 +1,6 @@
-;;; ede/make.el --- General information about "make"
+;;; ede/make.el --- General information about "make"  -*- lexical-binding: t -*-
 
-;;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -30,31 +30,15 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
-(if (fboundp 'locate-file)
-    (defsubst ede--find-executable (exec)
-      "Return an expanded file name for a program EXEC on the exec path."
-      (locate-file exec exec-path))
-
-  ;; Else, older version of Emacs.
-
-  (defsubst ede--find-executable (exec)
-    "Return an expanded file name for a program EXEC on the exec path."
-    (let ((p exec-path)
-	  (found nil))
-      (while (and p (not found))
-        (let ((f (expand-file-name exec (car p))))
-	  (if (file-exists-p f)
-	      (setq found f)))
-        (setq p (cdr p)))
-      found))
-  )
+(defsubst ede--find-executable (exec)
+  "Return an expanded file name for a program EXEC on the exec path."
+  (declare (obsolete locate-file "28.1"))
+  (locate-file exec exec-path))
 
 (defvar ede-make-min-version "3.0"
   "Minimum version of GNU make required.")
 
-(defcustom ede-make-command (cond ((ede--find-executable "gmake")
+(defcustom ede-make-command (cond ((executable-find "gmake")
 				   "gmake")
 				  (t "make")) ;; What to do?
   "The MAKE command to use for EDE when compiling.
@@ -74,8 +58,7 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
   (let ((b (get-buffer-create "*EDE Make Version*"))
 	(cd default-directory)
 	(rev nil)
-	(ans nil)
-	)
+        (ans nil))
     (with-current-buffer b
       ;; Setup, and execute make.
       (setq default-directory cd)
@@ -84,18 +67,18 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 		    "--version")
       ;; Check the buffer for the string
       (goto-char (point-min))
-      (when (looking-at "GNU Make\\(?: version\\)? \\([0-9][^,]+\\),")
+      (when (looking-at "GNU Make\\(?: version\\)? \\([0-9][^,[:space:]]+\\),?")
 	(setq rev (match-string 1))
-	(require 'inversion)
-	(setq ans (not (inversion-check-version rev nil ede-make-min-version))))
+        (setq ans (not (version< rev ede-make-min-version))))
 
       ;; Answer reporting.
       (when (and (called-interactively-p 'interactive) ans)
 	(message "GNU Make version %s.  Good enough for CEDET." rev))
 
       (when (and (not noerror) (not ans))
-	(error "EDE requires GNU Make version %s or later.  Configure `ede-make-command' to fix"
-	       ede-make-min-version))
+        (error "EDE requires GNU Make version %s or later (found %s).  Configure `ede-make-command' to fix"
+               ede-make-min-version
+               rev))
       ans)))
 
 (provide 'ede/make)

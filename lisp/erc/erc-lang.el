@@ -1,12 +1,12 @@
-;;; erc-lang.el --- provide the LANG command to ERC
+;;; erc-lang.el --- provide the LANG command to ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Old-Version: 1.0.0
 ;; URL: https://www.emacswiki.org/emacs/ErcLang
-;; Keywords: comm languages processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
@@ -32,10 +32,8 @@
 
 (require 'erc)
 
-;; FIXME: It's ISO 639-1, not ISO 638.  ISO 638 is for paper, board and pulps.
-;; The Lisp variable should be renamed.
-
-(defvar iso-638-languages
+(define-obsolete-variable-alias 'iso-638-languages 'iso-639-1-languages "29.1")
+(defvar iso-639-1-languages
   '(("aa" . "Afar")
     ("ab" . "Abkhazian")
     ("af" . "Afrikaans")
@@ -197,12 +195,12 @@ Normungsinstitut (ON), Postfach 130, A-1021 Vienna, Austria.")
 (defun language (code)
   "Return the language name for the ISO CODE."
   (interactive (list (completing-read "ISO language code: "
-				      iso-638-languages)))
-  (message "%s" (cdr (assoc code iso-638-languages))))
+				      iso-639-1-languages)))
+  (message "%s" (cdr (assoc code iso-639-1-languages))))
 
 (defun erc-cmd-LANG (language)
   "Display the language name for the language code given by LANGUAGE."
-  (let ((lang (cdr (assoc language iso-638-languages))))
+  (let ((lang (cdr (assoc language iso-639-1-languages))))
     (erc-display-message
      nil 'notice 'active
      (or lang (concat language ": No such domain"))))

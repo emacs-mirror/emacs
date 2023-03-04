@@ -120,7 +120,7 @@ ord_intersect(>, Head1, Tail1, _, [Head2|Tail2]) :-
 
 
 %   ord_intersection(+Set1, +Set2, ?Intersection)
-%   is true when Intersection is the intersecton of Set1
+%   is true when Intersection is the intersection of Set1
 %   and Set2, provided that Set1 and Set2 are ordered sets.
 
 ord_intersection([], _, []).
@@ -144,7 +144,7 @@ ord_intersection3([Head2|Tail2], Head1, Tail1, Intersection) :-
 
 %   ord_intersection(+Set1, +Set2, ?Intersection, ?Difference)
 %   is true when Intersection is the intersection of Set1 and Set2, 
-%   and Differens is Set2 \ Set1 (like in ord_union/4),
+%   and Difference is Set2 \ Set1 (like in ord_union/4),
 %    provided that Set1 and Set2 are ordered sets.
 
 ord_intersection([], Set2, [], Set2).

@@ -1,6 +1,6 @@
-;;; cedet.el --- Setup CEDET environment
+;;; cedet.el --- Setup CEDET environment  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam <zappo@gnu.org>
@@ -25,15 +25,12 @@
 ;;; Commentary:
 
 ;;; Code:
-;;
-;; This file depends on the major components of CEDET, so that you can
-;; load them all by doing (require 'cedet).  This is mostly for
-;; compatibility with the upstream, stand-alone CEDET distribution.
 
 (declare-function inversion-find-version "inversion")
 
 (defconst cedet-version "2.0"
   "Current version of CEDET.")
+(make-obsolete-variable 'cedet-version 'emacs-version "29.1")
 
 (defconst cedet-packages
   `(
@@ -45,28 +42,29 @@
     (ede           "1.2"           nil       "ede"         )
     )
   "Table of CEDET packages to install.")
+(make-obsolete-variable 'cedet-packages 'package-built-in-p "29.1")
 
 (defvar cedet-menu-map ;(make-sparse-keymap "CEDET menu")
   (let ((map (make-sparse-keymap "CEDET menu")))
-    (define-key map [semantic-force-refresh]     'undefined)
-    (define-key map [semantic-edit-menu]         'undefined)
-    (define-key map [navigate-menu]              'undefined)
-    (define-key map [semantic-options-separator] 'undefined)
-    (define-key map [global-semantic-highlight-func-mode]   'undefined)
-    (define-key map [global-semantic-stickyfunc-mode]   'undefined)
-    (define-key map [global-semantic-decoration-mode]       'undefined)
-    (define-key map [global-semantic-idle-completions-mode] 'undefined)
-    (define-key map [global-semantic-idle-summary-mode]     'undefined)
-    (define-key map [global-semantic-idle-scheduler-mode]   'undefined)
-    (define-key map [global-semanticdb-minor-mode]          'undefined)
-    (define-key map [cedet-menu-separator] 'undefined)
-    (define-key map [ede-find-file]        'undefined)
-    (define-key map [ede-speedbar]         'undefined)
-    (define-key map [ede] 'undefined)
-    (define-key map [ede-new]              'undefined)
-    (define-key map [ede-target-options]   'undefined)
-    (define-key map [ede-project-options]  'undefined)
-    (define-key map [ede-build-forms-menu] 'undefined)
+    (define-key map [semantic-force-refresh]     #'undefined)
+    (define-key map [semantic-edit-menu]         #'undefined)
+    (define-key map [navigate-menu]              #'undefined)
+    (define-key map [semantic-options-separator] #'undefined)
+    (define-key map [global-semantic-highlight-func-mode]   #'undefined)
+    (define-key map [global-semantic-stickyfunc-mode]       #'undefined)
+    (define-key map [global-semantic-decoration-mode]       #'undefined)
+    (define-key map [global-semantic-idle-completions-mode] #'undefined)
+    (define-key map [global-semantic-idle-summary-mode]     #'undefined)
+    (define-key map [global-semantic-idle-scheduler-mode]   #'undefined)
+    (define-key map [global-semanticdb-minor-mode]          #'undefined)
+    (define-key map [cedet-menu-separator] #'undefined)
+    (define-key map [ede-find-file]        #'undefined)
+    (define-key map [ede-speedbar]         #'undefined)
+    (define-key map [ede]                  #'undefined)
+    (define-key map [ede-new]              #'undefined)
+    (define-key map [ede-target-options]   #'undefined)
+    (define-key map [ede-project-options]  #'undefined)
+    (define-key map [ede-build-forms-menu] #'undefined)
     map)
   "Menu keymap for the CEDET package.
 This is used by `semantic-mode' and `global-ede-mode'.")
@@ -85,6 +83,7 @@ for the specified PACKAGE.
 LOADED VERSION is the version of PACKAGE currently loaded in Emacs
 memory and (presumably) running in this Emacs instance.  Value is X
 if the package has not been loaded."
+  (declare (obsolete emacs-version "28.1"))
   (interactive)
   (require 'inversion)
   (with-output-to-temp-buffer "*CEDET*"

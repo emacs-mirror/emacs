@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -65,14 +65,14 @@
   "Find all zipped or unzipped files: the inverse of UNZIP-P."
   (pcomplete-entries
    nil
-   (function
-    (lambda (entry)
-      (when (and (file-readable-p entry)
-		 (file-regular-p entry))
-	(let ((zipped (string-match "\\.\\(t?gz\\|\\(ta\\)?Z\\)\\'"
-				    entry)))
-	  (or (and unzip-p zipped)
-	      (and (not unzip-p) (not zipped)))))))))
+   (lambda (entry)
+     (or (file-directory-p entry)
+         (when (and (file-readable-p entry)
+                    (file-regular-p entry))
+           (let ((zipped (string-match "\\.\\(t?gz\\|\\(ta\\)?Z\\)\\'"
+                                       entry)))
+             (or (and unzip-p zipped)
+                 (and (not unzip-p) (not zipped)))))))))
 
 ;;;###autoload
 (defun pcomplete/bzip2 ()
@@ -91,13 +91,12 @@
   "Find all zipped or unzipped files: the inverse of UNZIP-P."
   (pcomplete-entries
    nil
-   (function
-    (lambda (entry)
-      (when (and (file-readable-p entry)
-		 (file-regular-p entry))
-	(let ((zipped (string-match "\\.\\(t?z2\\|bz2\\)\\'" entry)))
-	  (or (and unzip-p zipped)
-	      (and (not unzip-p) (not zipped)))))))))
+   (lambda (entry)
+     (when (and (file-readable-p entry)
+                (file-regular-p entry))
+       (let ((zipped (string-match "\\.\\(t?z2\\|bz2\\)\\'" entry)))
+         (or (and unzip-p zipped)
+             (and (not unzip-p) (not zipped))))))))
 
 ;;;###autoload
 (defun pcomplete/make ()
@@ -107,7 +106,7 @@
     (while (pcomplete-here (completion-table-in-turn
                             (pcmpl-gnu-make-rule-names)
                             (pcomplete-entries))
-                           nil 'identity))))
+                           nil #'identity))))
 
 (defun pcmpl-gnu-makefile-names ()
   "Return a list of possible makefile names."
@@ -118,7 +117,7 @@
 Return the new list."
   (goto-char (point-min))
   (while (re-search-forward
-	  "^\\s-*\\([^\n#%.$][^:=\n]*\\)\\s-*:[^=]" nil t)
+          "^\\([^\t\n#%.$][^:=\n]*\\)\\s-*:[^=]" nil t)
     (setq targets (nconc (split-string (match-string-no-properties 1))
                          targets)))
   targets)
@@ -135,7 +134,7 @@ Return the new list."
   "Add to TARGETS the list of target names in MAKEFILE and files it includes.
 Return the new list."
   (with-temp-buffer
-    (with-demoted-errors			;Could be a directory or something.
+    (with-demoted-errors "Error inserting makefile: %S"
         (insert-file-contents makefile))
 
     (let ((filenames (when pcmpl-gnu-makefile-includes (pcmpl-gnu-make-includes))))
@@ -337,7 +336,7 @@ Return the new list."
                          (pcomplete-match-string 1 0)))))
     (unless saw-option
       (pcomplete-here
-       (mapcar 'char-to-string
+       (mapcar #'char-to-string
 	       (string-to-list
 		"01234567ABCFGIKLMNOPRSTUVWXZbcdfghiklmoprstuvwxz")))
       (if (pcomplete-match "[xt]" 'first 1)
@@ -356,7 +355,7 @@ Return the new list."
                      (pcmpl-gnu-with-file-buffer
                       file (mapcar #'tar-header-name tar-parse-info)))))
 	      (pcomplete-entries))
-	    nil 'identity))))
+	    nil #'identity))))
 
 ;;;###autoload
 
@@ -392,9 +391,43 @@ Return the new list."
                (string= prec "-execdir"))
            (while (pcomplete-here* (funcall pcomplete-command-completion-function)
                                    (pcomplete-arg 'last) t))))
-    (while (pcomplete-here (pcomplete-dirs) nil 'identity))))
+    (while (pcomplete-here (pcomplete-dirs) nil #'identity))))
 
 ;;;###autoload
-(defalias 'pcomplete/gdb 'pcomplete/xargs)
+(defun pcomplete/awk ()
+  "Completion for the `awk' command."
+  (pcomplete-here-using-help "awk --help"
+                             :margin "\t"
+                             :separator "  +"
+                             :description "\0"
+                             :metavar "[=a-z]+"))
+
+;;;###autoload
+(defun pcomplete/gpg ()
+  "Completion for the `gpg` command."
+  (pcomplete-here-using-help "gpg --help" :narrow-end "^ -se"))
+
+;;;###autoload
+(defun pcomplete/gdb ()
+  "Completion for the `gdb' command."
+  (while
+      (cond
+       ((string= "--args" (pcomplete-arg 1))
+        (funcall pcomplete-command-completion-function)
+        (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	             pcomplete-default-completion-function)))
+       ((string-prefix-p "-" (pcomplete-arg 0))
+        (pcomplete-here (pcomplete-from-help "gdb --help")))
+       (t (pcomplete-here (pcomplete-entries))))))
+
+;;;###autoload
+(defun pcomplete/emacs ()
+  "Completion for the `emacs' command."
+  (pcomplete-here-using-help "emacs --help" :margin "^\\(\\)-"))
+
+;;;###autoload
+(defun pcomplete/emacsclient ()
+  "Completion for the `emacsclient' command."
+  (pcomplete-here-using-help "emacsclient --help" :margin "^\\(\\)-"))
 
 ;;; pcmpl-gnu.el ends here

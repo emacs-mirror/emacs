@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2020 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2023 Free Software Foundation,
 Inc.
 
 @quotation
@@ -161,7 +161,7 @@ Cover art by Etienne Suvasa.
 
 @ifset WWW_GNU_ORG
 @html
-<p>The homepage for GNU Emacs is at
+<p>The GNU Emacs website is at
 <a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 For information on using Emacs, refer to the
 <a href="/software/emacs/manual/emacs.html">Emacs Manual</a>.<br>
@@ -197,6 +197,7 @@ To view this manual in other formats, click
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
+* Native Compilation::      Compile Lisp into native machine code.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -221,6 +222,7 @@ To view this manual in other formats, click
 * Non-ASCII Characters::    Non-ASCII text in buffers and strings.
 * Searching and Matching::  Searching buffers for strings or regexps.
 * Syntax Tables::           The syntax table controls word and list parsing.
+* Parsing Program Source::  Generate syntax tree for program sources.
 * Abbrevs::                 How Abbrev mode works, and its data structures.
 
 * Threads::                 Concurrency in Emacs Lisp.
@@ -233,7 +235,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 26.
+* Antinews::                Info for users downgrading to Emacs 28.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -297,6 +299,7 @@ Lisp Data Types
 * Circular Objects::        Read syntax for circular structure.
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
+* Mutability::              Some objects should not be modified.
 
 Programming Types
 
@@ -363,6 +366,7 @@ Editing Types
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
 * Font Type::               Fonts for displaying text.
+* Xwidget Type::            Embeddable widgets.
 
 Numbers
 
@@ -445,6 +449,9 @@ Symbols
 * Creating Symbols::        How symbols are kept unique.
 * Symbol Properties::       Each symbol has a property list
                               for recording miscellaneous information.
+* Shorthands::              Properly organize your symbol names but
+                              type less of them.
+* Symbols with Position::   Symbol variants containing integer positions
 
 Symbol Properties
 
@@ -523,6 +530,7 @@ Variables
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 * Generalized Variables::   Extending the concept of variables.
+* Multisession Variables::  Variables that survive restarting Emacs.
 
 Scoping Rules for Variable Bindings
 
@@ -530,6 +538,7 @@ Scoping Rules for Variable Bindings
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
 * Lexical Binding::         A different type of local variable binding.
 * Using Lexical Binding::   How to enable lexical binding.
+* Converting to Lexical Binding:: Convert existing code to lexical binding.
 
 Buffer-Local Variables
 
@@ -542,6 +551,10 @@ Generalized Variables
 
 * Setting Generalized Variables::   The @code{setf} macro.
 * Adding Generalized Variables::    Defining new @code{setf} forms.
+
+Multisession Variables
+
+* Multisession Variables::      Variables that survive restarting Emacs.
 
 Functions
 
@@ -580,6 +593,7 @@ Advising Emacs Lisp Functions
 * Advising Named Functions::  Advising named functions.
 * Advice Combinators::        Ways to compose advice.
 * Porting Old Advice::        Adapting code using the old defadvice.
+* Advice and Byte Code::      Not all functions can be advised.
 
 Macros
 
@@ -643,6 +657,11 @@ Byte Compilation
 * Compiler Errors::         Handling compiler error messages.
 * Byte-Code Objects::       The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
+
+Native Compilation
+
+* Native-Compilation Functions::  Functions to natively-compile Lisp.
+* Native-Compilation Variables::  Variables controlling native compilation.
 
 Debugging Lisp Programs
 
@@ -721,6 +740,7 @@ Reading and Printing Lisp Objects
 * Output Functions::        Functions to print Lisp objects as text.
 * Output Variables::        Variables that control what the printing
                               functions do.
+* Output Overrides::        Overriding output variables.
 
 Minibuffers
 
@@ -738,6 +758,7 @@ Minibuffers
 * Minibuffer Windows::      Operating on the special minibuffer windows.
 * Minibuffer Contents::     How such commands access the minibuffer text.
 * Recursive Mini::          Whether recursive entry to minibuffer is allowed.
+* Inhibiting Interaction::  Running Emacs when no interaction is possible.
 * Minibuffer Misc::         Various customization hooks and variables.
 
 Completion
@@ -780,6 +801,7 @@ Defining Commands
 * Interactive Codes::       The standard letter-codes for reading arguments
                               in various ways.
 * Interactive Examples::    Examples of how to read interactive arguments.
+* Command Modes::           Specifying that commands are for a specific mode.
 * Generic Commands::        Select among command alternatives.
 
 
@@ -830,6 +852,7 @@ Keymaps
 * Key Lookup::              Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::   Redefining a key in a keymap.
+* Low-Level Key Binding::   Legacy key syntax description.
 * Remapping Commands::      A keymap can translate one command to another.
 * Translation Keymaps::     Keymaps for translating sequences of events.
 * Key Binding Commands::    Interactive interfaces for redefining keys.
@@ -916,6 +939,7 @@ Font Lock Mode
 * Syntactic Font Lock::     Fontification based on syntax tables.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
+* Parser-based Font Lock::  Use parse data for fontification.
 
 Multiline Font Lock Constructs
 
@@ -926,6 +950,7 @@ Multiline Font Lock Constructs
 Automatic Indentation of code
 
 * SMIE::                    A simple minded indentation engine.
+* Parser-based Indentation:: Parser-based indentation engine.
 
 Simple Minded Indentation Engine
 
@@ -1039,6 +1064,7 @@ Windows
 
 * Basic Windows::           Basic information on using windows.
 * Windows and Frames::      Relating windows to the frame they appear on.
+* Selecting Windows::       The selected window is the one that you edit in.
 * Window Sizes::            Accessing a window's size.
 * Resizing Windows::        Changing the sizes of windows.
 * Preserving Window Sizes:: Preserving the size of windows.
@@ -1046,7 +1072,6 @@ Windows
 * Deleting Windows::        Deleting a window gives its space to other windows.
 * Recombining Windows::     Preserving the frame layout when splitting and
                               deleting windows.
-* Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
@@ -1114,6 +1139,7 @@ Frames
 * Dialog Boxes::            Displaying a box to ask yes or no.
 * Pointer Shape::           Specifying the shape of the mouse pointer.
 * Window System Selections::Transferring text to and from other X clients.
+* Yanking Media::           Yanking things that aren't plain text.
 * Drag and Drop::           Internals of Drag-and-Drop implementation.
 * Color Names::             Getting the definitions of color names.
 * Text Terminal Colors::    Defining colors for text terminals.
@@ -1211,7 +1237,9 @@ Text
 * Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
+* Suspicious Text::         Determining whether a string is suspicious.
 * GnuTLS Cryptography::     Cryptographic algorithms imported from GnuTLS.
+* Database::                Interacting with an SQL database.
 * Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes atomically.
 * Change Hooks::            Supplying functions to be run when text is changed.
@@ -1307,6 +1335,7 @@ Regular Expressions
 * Rx Notation::             An alternative, structured regexp notation.
 @end ifnottex
 * Regexp Functions::        Functions for operating on regular expressions.
+* Regexp Problems::         Some problems and how they may be avoided.
 
 Syntax of Regular Expressions
 
@@ -1333,6 +1362,17 @@ Syntax Tables
                               using the syntax table.
 * Syntax Table Internals::  How syntax table information is stored.
 * Categories::              Another way of classifying character syntax.
+
+Parsing Program Source
+
+* Language Grammar::         Loading tree-sitter language grammar.
+* Using Parser::             Introduction to parsers.
+* Retrieving Nodes::         Retrieving nodes from a syntax tree.
+* Accessing Node Information:: Accessing node information.
+* Pattern Matching::         Pattern matching with query patterns.
+* Multiple Languages::       Parse text written in multiple languages.
+* Tree-sitter Major Modes::  Develop major modes using tree-sitter.
+* Tree-sitter C API::        Compare the C API and the ELisp API.
 
 Syntax Descriptors
 
@@ -1407,8 +1447,9 @@ Low-Level Network Access
 
 Packing and Unpacking Byte Arrays
 
-* Bindat Spec::             Describing data layout.
+* Bindat Types::            Describing data layout.
 * Bindat Functions::        Doing the unpacking and packing.
+* Bindat Computed Types::   Advanced data layout specifications.
 
 Emacs Display
 
@@ -1677,6 +1718,7 @@ Object Internals
 
 @include searching.texi
 @include syntax.texi
+@include parsing.texi
 @include abbrevs.texi
 @include threads.texi
 @include processes.texi

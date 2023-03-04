@@ -1,11 +1,11 @@
 ;;; footnote.el --- footnote support for message mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org> (1997-2011)
 ;;         Boruch Baum <boruch_baum@gmx.com> (2017-)
 ;; Keywords: mail, news
-;; Version: 0.19
+;; Old-Version: 0.19
 
 ;; This file is part of GNU Emacs.
 
@@ -39,15 +39,15 @@
 ;;     commands.
 ;; + more language styles.
 ;; + The key sequence 'C-c ! a C-y C-c ! b' should auto-fill the
-;;   footnote in adaptive fill mode. This does not seem to be a bug in
+;;   footnote in adaptive fill mode.  This does not seem to be a bug in
 ;;   `adaptive-fill' because it behaves that way on all point movements
-;; + Handle footmode mode elegantly in all modes, even if that means refuses to
-;;   accept the burden. For example, in a programming language mode, footnotes
+;; + Handle footnote mode elegantly in all modes, even if that means refusing to
+;;   accept the burden.  For example, in a programming language mode, footnotes
 ;;   should be commented.
-;; + Manually autofilling the a first footnote should not cause it to
-;;   wrap into the footnote section tag
+;; + Manually autofilling the first footnote should not cause it to
+;;   wrap into the footnote section tag.
 ;;   + Current solution adds a second newline after the section tag, so it is
-;;     clearly a separate paragraph. There may be stylistic objections to this.
+;;     clearly a separate paragraph.  There may be stylistic objections to this.
 ;; + Footnotes with multiple paragraphs should not have their first
 ;;   line out-dented.
 ;; + Upon leaving footnote area, perform an auto-fill on an entire
@@ -55,7 +55,7 @@
 ;;   + fill-paragraph takes arg REGION, but seemingly only when called
 ;;     interactively.
 ;; + At some point, it became necessary to change `footnote-section-tag-regexp'
-;;   to remove its trailing space. (Adaptive fill side-effect?)
+;;   to remove its trailing space.  (Adaptive fill side-effect?)
 ;; + useful for lazy testing
 ;;   (setq footnote-narrow-to-footnotes-when-editing t)
 ;;   (setq footnote-section-tag "Footnotes: ")
@@ -93,6 +93,7 @@ displaying footnotes."
 (defcustom footnote-use-message-mode t ; Nowhere used.
   "If non-nil, assume Footnoting will be done in `message-mode'."
   :type 'boolean)
+(make-obsolete-variable 'footnote-use-message-mode "it does nothing." "29.1")
 
 (defcustom footnote-body-tag-spacing 2
   "Number of spaces separating a footnote body tag and its text.
@@ -151,7 +152,7 @@ has no effect on buffers already displaying footnotes."
 (defcustom footnote-align-to-fn-text t
   "How to left-align footnote text.
 If nil, footnote text is to be aligned flush left with left side
-of the footnote number. If non-nil, footnote text is to be aligned
+of the footnote number.  If non-nil, footnote text is to be aligned
 left with the first character of footnote text."
   :type  'boolean)
 
@@ -243,7 +244,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
   "List of roman numerals with their values.")
 
 (defconst footnote-roman-upper-regexp (upcase footnote-roman-lower-regexp)
-  "Regexp of roman numerals.  Not complete")
+  "Regexp of roman numerals.  Not complete.")
 
 (defun footnote--roman-upper (n)
   "Generic Roman number footnoting."
@@ -380,8 +381,8 @@ Use Unicode characters for footnoting."
   (concat "[" (apply #'concat footnote-hebrew-symbolic) "]"))
 
 (defun footnote--hebrew-symbolic (n)
-  "Only 22 elements, per the style of eg. 'פירוש שפתי חכמים על רש״י'.
-Proceeds from `י' to `כ', from `צ' to `ק'. After `ת', rolls over to `א'."
+  "Only 22 elements, per the style of e.g. 'פירוש שפתי חכמים על רש״י'.
+Proceeds from `י' to `כ', from `צ' to `ק'.  After `ת', rolls over to `א'."
   (nth (mod (1- n) 22) footnote-hebrew-symbolic))
 
 ;;; list of all footnote styles
@@ -679,7 +680,7 @@ instead, if applicable."
 (defun footnote--get-area-point-max ()
   "Return the end of footnote area.
 This is either `point-max' or the start of a `.signature' string, as
-defined by variable `footnote-signature-separator'. If there is no
+defined by variable `footnote-signature-separator'.  If there is no
 footnote area, returns `point-max'."
   (save-excursion (footnote--goto-char-point-max)))
 
@@ -713,7 +714,7 @@ Return the footnote number to use."
   (save-excursion
     (let (rc)
       (dolist (alist-elem footnote--markers-alist)
-	(when (<= (point) (cl-caddr alist-elem))
+        (when (<= (point) (caddr alist-elem))
 	  (unless rc
 	    (setq rc (car alist-elem)))
 	  (save-excursion
@@ -835,26 +836,22 @@ being set it is automatically widened."
     (when note
       (when footnote-narrow-to-footnotes-when-editing
 	(widen))
-      (goto-char (cl-caddr (assq note footnote--markers-alist)))
+      (goto-char (caddr (assq note footnote--markers-alist)))
       (when (looking-at (footnote--current-regexp))
         (goto-char (match-end 0))))))
 
-(defvar footnote-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'footnote-add-footnote)
-    (define-key map "b" #'footnote-back-to-message)
-    (define-key map "c" #'footnote-cycle-style)
-    (define-key map "d" #'footnote-delete-footnote)
-    (define-key map "g" #'footnote-goto-footnote)
-    (define-key map "r" #'footnote-renumber-footnotes)
-    (define-key map "s" #'footnote-set-style)
-    map))
+(defvar-keymap footnote-mode-map
+  "a" #'footnote-add-footnote
+  "b" #'footnote-back-to-message
+  "c" #'footnote-cycle-style
+  "d" #'footnote-delete-footnote
+  "g" #'footnote-goto-footnote
+  "r" #'footnote-renumber-footnotes
+  "s" #'footnote-set-style)
 
-(defvar footnote-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map footnote-prefix footnote-mode-map)
-    map)
-  "Keymap used for binding footnote minor mode.")
+(defvar-keymap footnote-minor-mode-map
+  :doc "Keymap used for binding footnote minor mode."
+  (key-description footnote-prefix) footnote-mode-map)
 
 (defmacro footnote--local-advice (mode variable function)
   "Add advice to a variable holding buffer-local functions.
@@ -888,7 +885,6 @@ play around with the following keys:
   (footnote--local-advice footnote-mode fill-paragraph-function
                           footnote--fill-paragraph)
   (when footnote-mode
-    ;; (footnote-setup-keybindings)
     (make-local-variable 'footnote-style)
     (make-local-variable 'footnote-body-tag-spacing)
     (make-local-variable 'footnote-spaced-footnotes)
@@ -898,7 +894,7 @@ play around with the following keys:
     (make-local-variable 'footnote-end-tag)
     (make-local-variable 'adaptive-fill-function)
 
-    ;; Filladapt was an XEmacs package which is now in GNU ELPA.
+    ;; Filladapt is a GNU ELPA package.
     (when (boundp 'filladapt-token-table)
       ;; add tokens to filladapt to match footnotes
       ;; 1] xxxxxxxxxxx x x x or [1] x x x x x x x
@@ -910,7 +906,31 @@ play around with the following keys:
 	(unless (assoc bullet-regexp filladapt-token-table)
 	  (setq filladapt-token-table
 		(append filladapt-token-table
-			(list (list bullet-regexp 'bullet)))))))))
+			(list (list bullet-regexp 'bullet)))))))
+    (footnote--regenerate-alist)))
+
+(defun footnote--regenerate-alist ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward footnote-section-tag-regexp nil t)
+      (setq footnote--markers-alist
+            (cl-loop
+             with start-of-footnotes = (match-beginning 0)
+             with regexp = (footnote--current-regexp)
+             for (note text) in
+             (cl-loop for pos = (re-search-forward regexp nil t)
+                      while pos
+                      collect (list (match-string 1)
+                                    (copy-marker (match-beginning 0) t)))
+             do (goto-char (point-min))
+             collect (cl-list*
+                      (string-to-number note)
+                      text
+                      (cl-loop
+                       for pos = (re-search-forward regexp start-of-footnotes t)
+                       while pos
+                       when (equal note (match-string 1))
+                       collect (copy-marker (match-beginning 0) t))))))))
 
 (provide 'footnote)
 

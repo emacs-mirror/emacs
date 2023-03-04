@@ -3,11 +3,11 @@
 
 # Update an FSF copyright year list to include the current year.
 
-# Copyright (C) 2009-2020 Free Software Foundation, Inc.
+# Copyright (C) 2009-2023 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
+# the Free Software Foundation, either version 3, or (at your option)
 # any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -133,11 +133,11 @@
 # are valid code in both sh and perl.  When executed by sh, they re-execute
 # the script through the perl program found in $PATH.  The '-x' option
 # is essential as well; without it, perl would re-execute the script
-# through /bin/sh.  When executed by  perl, the next two lines are a no-op.
+# through /bin/sh.  When executed by perl, the next two lines are a no-op.
 eval 'exec perl -wSx -0777 -pi "$0" "$@"'
      if 0;
 
-my $VERSION = '2018-03-07.03:47'; # UTC
+my $VERSION = '2023-01-11.04:24'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -280,7 +280,7 @@ if (defined $stmt_re)
           }
 
         # Replace the old copyright statement.
-        s/$stmt_re/$stmt_wrapped/;
+        s/$stmt_re/$stmt_wrapped/g;
       }
   }
 else

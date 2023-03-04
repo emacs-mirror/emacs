@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2020 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2023 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -37,7 +37,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>
@@ -49,6 +48,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "nsterm.h"
 #include "systime.h"
 #include "character.h"
+#include "xwidget.h"
 #include "fontset.h"
 #include "composite.h"
 #include "ccl.h"
@@ -64,17 +64,22 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #ifdef NS_IMPL_GNUSTEP
 #include "process.h"
+#import <GNUstepGUI/GSDisplayServer.h>
 #endif
 
 #ifdef NS_IMPL_COCOA
 #include "macfont.h"
 #include <Carbon/Carbon.h>
+#include <IOSurface/IOSurface.h>
 #endif
 
 static EmacsMenu *dockMenu;
 #ifdef NS_IMPL_COCOA
 static EmacsMenu *mainMenu;
 #endif
+
+/* The last known monitor attributes list.  */
+static Lisp_Object last_known_monitors;
 
 /* ==========================================================================
 
@@ -86,8 +91,8 @@ static EmacsMenu *mainMenu;
 
 /* The following use "volatile" since they can be accessed from
    parallel threads.  */
-volatile int nstrace_num = 0;
-volatile int nstrace_depth = 0;
+volatile int nstrace_num;
+volatile int nstrace_depth;
 
 /* When 0, no trace is emitted.  This is used by NSTRACE_WHEN and
    NSTRACE_UNLESS to silence functions called.
@@ -98,33 +103,41 @@ volatile int nstrace_depth = 0;
 volatile int nstrace_enabled_global = 1;
 
 /* Called when nstrace_enabled goes out of scope.  */
-void nstrace_leave(int * pointer_to_nstrace_enabled)
+void
+nstrace_leave (int *pointer_to_nstrace_enabled)
 {
   if (*pointer_to_nstrace_enabled)
-    {
-      --nstrace_depth;
-    }
+    --nstrace_depth;
 }
 
 
 /* Called when nstrace_saved_enabled_global goes out of scope.  */
-void nstrace_restore_global_trace_state(int * pointer_to_saved_enabled_global)
+void
+nstrace_restore_global_trace_state (int *pointer_to_saved_enabled_global)
 {
   nstrace_enabled_global = *pointer_to_saved_enabled_global;
 }
 
 
-char const * nstrace_fullscreen_type_name (int fs_type)
+const char *
+nstrace_fullscreen_type_name (int fs_type)
 {
   switch (fs_type)
     {
-    case -1:                   return "-1";
-    case FULLSCREEN_NONE:      return "FULLSCREEN_NONE";
-    case FULLSCREEN_WIDTH:     return "FULLSCREEN_WIDTH";
-    case FULLSCREEN_HEIGHT:    return "FULLSCREEN_HEIGHT";
-    case FULLSCREEN_BOTH:      return "FULLSCREEN_BOTH";
-    case FULLSCREEN_MAXIMIZED: return "FULLSCREEN_MAXIMIZED";
-    default:                   return "FULLSCREEN_?????";
+    case -1:
+      return "-1";
+    case FULLSCREEN_NONE:
+      return "FULLSCREEN_NONE";
+    case FULLSCREEN_WIDTH:
+      return "FULLSCREEN_WIDTH";
+    case FULLSCREEN_HEIGHT:
+      return "FULLSCREEN_HEIGHT";
+    case FULLSCREEN_BOTH:
+      return "FULLSCREEN_BOTH";
+    case FULLSCREEN_MAXIMIZED:
+      return "FULLSCREEN_MAXIMIZED";
+    default:
+      return "FULLSCREEN_?????";
     }
 }
 #endif
@@ -139,14 +152,9 @@ char const * nstrace_fullscreen_type_name (int fs_type)
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha
 {
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   if (ns_use_srgb_colorspace
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      && [NSColor respondsToSelector:
-                    @selector(colorWithSRGBRed:green:blue:alpha:)]
-#endif
-      )
+      && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
     return [NSColor colorWithSRGBRed: red
                                green: green
                                 blue: blue
@@ -160,28 +168,33 @@ char const * nstrace_fullscreen_type_name (int fs_type)
 
 - (NSColor *)colorUsingDefaultColorSpace
 {
-  /* FIXME: We're checking for colorWithSRGBRed here so this will only
-     work in the same place as in the method above.  It should really
-     be a check whether we're on macOS 10.7 or above.  */
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  if ([NSColor respondsToSelector:
-                 @selector(colorWithSRGBRed:green:blue:alpha:)])
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+  if (ns_use_srgb_colorspace
+      && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
+    return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
 #endif
-    {
-      if (ns_use_srgb_colorspace)
-        return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
-      else
-        return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  else
-#endif
-#endif /* NS_IMPL_COCOA && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070  */
-#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  return [self colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-#endif
+  return [self colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
+}
+
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c
+{
+  EmacsCGFloat a = (double)((c >> 24) & 0xff) / 255.0;
+  EmacsCGFloat r = (double)((c >> 16) & 0xff) / 255.0;
+  EmacsCGFloat g = (double)((c >> 8) & 0xff) / 255.0;
+  EmacsCGFloat b = (double)(c & 0xff) / 255.0;
+
+  return [NSColor colorForEmacsRed:r green:g blue:b alpha:a];
+}
+
+- (unsigned long)unsignedLong
+{
+  EmacsCGFloat r, g, b, a;
+  [self getRed:&r green:&g blue:&b alpha:&a];
+
+  return (((unsigned long) (a * 255)) << 24)
+    | (((unsigned long) (r * 255)) << 16)
+    | (((unsigned long) (g * 255)) << 8)
+    | ((unsigned long) (b * 255));
 }
 
 @end
@@ -288,14 +301,11 @@ long context_menu_value = 0;
 
 /* display update */
 static struct frame *ns_updating_frame;
-static NSView *focus_view = NULL;
 static int ns_window_num = 0;
 static BOOL gsaved = NO;
-static BOOL ns_fake_keydown = NO;
 #ifdef NS_IMPL_COCOA
 static BOOL ns_menu_bar_is_hidden = NO;
 #endif
-/* static int debug_lock = 0; */
 
 /* event loop */
 static BOOL send_appdefined = YES;
@@ -330,24 +340,6 @@ static struct {
   NULL, 0, 0
 };
 
-#ifdef NS_IMPL_COCOA
-/*
- * State for pending menu activation:
- * MENU_NONE     Normal state
- * MENU_PENDING  A menu has been clicked on, but has been canceled so we can
- *               run lisp to update the menu.
- * MENU_OPENING  Menu is up to date, and the click event is redone so the menu
- *               will open.
- */
-#define MENU_NONE 0
-#define MENU_PENDING 1
-#define MENU_OPENING 2
-static int menu_will_open_state = MENU_NONE;
-
-/* Saved position for menu click.  */
-static CGPoint menu_mouse_point;
-#endif
-
 /* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSEventModifierFlagControl)
@@ -365,7 +357,7 @@ mod_of_kind (Lisp_Object modifier, Lisp_Object kind)
     return modifier;
   else
     {
-      Lisp_Object val = Fplist_get (modifier, kind);
+      Lisp_Object val = plist_get (modifier, kind);
       return SYMBOLP (val) ? val : Qnil;
     }
 }
@@ -447,37 +439,29 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
-#define EV_TRAILER(e)                                                   \
-  {                                                                     \
-    XSETFRAME (emacs_event->frame_or_window, emacsframe);               \
-    EV_TRAILER2 (e);                                                    \
+#define EV_TRAILER(e)						\
+  {								\
+    XSETFRAME (emacs_event->frame_or_window, emacsframe);	\
+    EV_TRAILER2 (e);						\
   }
 
 #define EV_TRAILER2(e)                                                  \
   {                                                                     \
-      if (e) emacs_event->timestamp = EV_TIMESTAMP (e);                 \
-      if (q_event_ptr)                                                  \
-        {                                                               \
-          Lisp_Object tem = Vinhibit_quit;                              \
-          Vinhibit_quit = Qt;                                           \
-          n_emacs_events_pending++;                                     \
-          kbd_buffer_store_event_hold (emacs_event, q_event_ptr);       \
-          Vinhibit_quit = tem;                                          \
-        }                                                               \
-      else                                                              \
-        hold_event (emacs_event);                                       \
-      EVENT_INIT (*emacs_event);                                        \
-      ns_send_appdefined (-1);                                          \
-    }
+    if (e) emacs_event->timestamp = EV_TIMESTAMP (e);			\
+    if (q_event_ptr)							\
+      {									\
+	Lisp_Object tem = Vinhibit_quit;				\
+	Vinhibit_quit = Qt;						\
+	n_emacs_events_pending++;					\
+	kbd_buffer_store_event_hold (emacs_event, q_event_ptr);		\
+	Vinhibit_quit = tem;						\
+      }									\
+    else								\
+      hold_event (emacs_event);						\
+    EVENT_INIT (*emacs_event);						\
+    ns_send_appdefined (-1);						\
+  }
 
-
-/* These flags will be OR'd or XOR'd with the NSWindow's styleMask
-   property depending on what we're doing.  */
-#define FRAME_DECORATED_FLAGS (NSWindowStyleMaskTitled              \
-                               | NSWindowStyleMaskResizable         \
-                               | NSWindowStyleMaskMiniaturizable    \
-                               | NSWindowStyleMaskClosable)
-#define FRAME_UNDECORATED_FLAGS NSWindowStyleMaskBorderless
 
 /* TODO: Get rid of need for these forward declarations.  */
 static void ns_condemn_scroll_bars (struct frame *f);
@@ -531,118 +515,37 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 
 const char *
-ns_etc_directory (void)
-/* If running as a self-contained app bundle, return as a string the
-   filename of the etc directory, if present; else nil.  */
+ns_relocate (const char *epath)
+/* If we're running in a self-contained app bundle some hard-coded
+   paths are relative to the root of the bundle, so work out the full
+   path.
+
+   FIXME: I think this should be able to handle cases where multiple
+   directories are separated by colons.  */
 {
+#ifdef NS_SELF_CONTAINED
   NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *resourcePath;
+  NSString *root = [bundle bundlePath];
+  NSString *original = [NSString stringWithUTF8String:epath];
+  NSString *fixedPath = [NSString pathWithComponents:
+                                    [NSArray arrayWithObjects:
+                                               root, original, nil]];
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  BOOL isDir;
 
-  resourcePath = [resourceDir stringByAppendingPathComponent: @"etc"];
-  if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-    {
-      if (isDir) return [resourcePath UTF8String];
-    }
-  return NULL;
-}
+  if (![original isAbsolutePath]
+      && [fileManager fileExistsAtPath:fixedPath isDirectory:NULL])
+    return [fixedPath UTF8String];
 
+  /* If we reach here either the path is absolute and therefore we
+     don't need to complete it, or we're unable to relocate the
+     file/directory.  If it's the latter it may be because the user is
+     trying to use a bundled app as though it's a Unix style install
+     and we have no way to guess what was intended, so return the
+     original string unaltered.  */
 
-const char *
-ns_exec_path (void)
-/* If running as a self-contained app bundle, return as a path string
-   the filenames of the libexec and bin directories, ie libexec:bin.
-   Otherwise, return nil.
-   Normally, Emacs does not add its own bin/ directory to the PATH.
-   However, a self-contained NS build has a different layout, with
-   bin/ and libexec/ subdirectories in the directory that contains
-   Emacs.app itself.
-   We put libexec first, because init_callproc_1 uses the first
-   element to initialize exec-directory.  An alternative would be
-   for init_callproc to check for invocation-directory/libexec.
-*/
-{
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *binDir = [bundle bundlePath];
-  NSString *resourcePath, *resourcePaths;
-  NSRange range;
-  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSArray *paths;
-  NSEnumerator *pathEnum;
-  BOOL isDir;
-
-  range = [resourceDir rangeOfString: @"Contents"];
-  if (range.location != NSNotFound)
-    {
-      binDir = [binDir stringByAppendingPathComponent: @"Contents"];
-#ifdef NS_IMPL_COCOA
-      binDir = [binDir stringByAppendingPathComponent: @"MacOS"];
 #endif
-    }
 
-  paths = [binDir stringsByAppendingPaths:
-                [NSArray arrayWithObjects: @"libexec", @"bin", nil]];
-  pathEnum = [paths objectEnumerator];
-  resourcePaths = @"";
-
-  while ((resourcePath = [pathEnum nextObject]))
-    {
-      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-        if (isDir)
-          {
-            if ([resourcePaths length] > 0)
-              resourcePaths
-                = [resourcePaths stringByAppendingString: pathSeparator];
-            resourcePaths
-              = [resourcePaths stringByAppendingString: resourcePath];
-          }
-    }
-  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
-
-  return NULL;
-}
-
-
-const char *
-ns_load_path (void)
-/* If running as a self-contained app bundle, return as a path string
-   the filenames of the site-lisp and lisp directories.
-   Ie, site-lisp:lisp.  Otherwise, return nil.  */
-{
-  NSBundle *bundle = [NSBundle mainBundle];
-  NSString *resourceDir = [bundle resourcePath];
-  NSString *resourcePath, *resourcePaths;
-  NSString *pathSeparator = [NSString stringWithFormat: @"%c", SEPCHAR];
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  BOOL isDir;
-  NSArray *paths = [resourceDir stringsByAppendingPaths:
-                              [NSArray arrayWithObjects:
-                                         @"site-lisp", @"lisp", nil]];
-  NSEnumerator *pathEnum = [paths objectEnumerator];
-  resourcePaths = @"";
-
-  /* Hack to skip site-lisp.  */
-  if (no_site_lisp) resourcePath = [pathEnum nextObject];
-
-  while ((resourcePath = [pathEnum nextObject]))
-    {
-      if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
-        if (isDir)
-          {
-            if ([resourcePaths length] > 0)
-              resourcePaths
-                = [resourcePaths stringByAppendingString: pathSeparator];
-            resourcePaths
-              = [resourcePaths stringByAppendingString: resourcePath];
-          }
-    }
-  if ([resourcePaths length] > 0) return [resourcePaths UTF8String];
-
-  return NULL;
+  return epath;
 }
 
 
@@ -655,8 +558,11 @@ ns_init_locale (void)
 
   NSTRACE ("ns_init_locale");
 
-  @try
+  /* If we were run from a terminal then assume an unset LANG variable
+     is intentional and don't try to "fix" it.  */
+  if (!isatty (STDIN_FILENO))
     {
+      char *oldLocale = setlocale (LC_ALL, NULL);
       /* It seems macOS should probably use UTF-8 everywhere.
          'localeIdentifier' does not specify the encoding, and I can't
          find any way to get the OS to tell us which encoding to use,
@@ -664,12 +570,12 @@ ns_init_locale (void)
       NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
                                      [locale localeIdentifier]];
 
-      /* Set LANG to locale, but not if LANG is already set.  */
-      setenv("LANG", [localeID UTF8String], 0);
-    }
-  @catch (NSException *e)
-    {
-      NSLog (@"Locale detection failed: %@: %@", [e name], [e reason]);
+      /* Check the locale ID is valid and if so set LANG, but not if
+         it is already set.  */
+      if (setlocale (LC_ALL, [localeID UTF8String]))
+        setenv("LANG", [localeID UTF8String], 0);
+
+      setlocale (LC_ALL, oldLocale);
     }
 }
 
@@ -843,6 +749,43 @@ ns_menu_bar_height (NSScreen *screen)
 }
 
 
+/* Get the frame rect, in system coordinates, of the parent window or,
+   if there is no parent window, the main screen.  */
+static inline NSRect
+ns_parent_window_rect (struct frame *f)
+{
+  NSRect parentRect;
+
+  if (FRAME_PARENT_FRAME (f) != NULL)
+    {
+      EmacsView *parentView = FRAME_NS_VIEW (FRAME_PARENT_FRAME (f));
+      parentRect = [parentView convertRect:[parentView frame]
+                                    toView:nil];
+
+#if defined (NS_IMPL_COCOA) && !defined (MAC_OS_X_VERSION_10_7)
+      parentRect.origin = [[parentView window] convertBaseToScreen:parentRect.origin];
+#elif defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([[parentView window]
+             respondsToSelector:@selector(convertRectToScreen:)])
+        parentRect = [[parentView window] convertRectToScreen:parentRect];
+      else
+        parentRect.origin = [[parentView window] convertBaseToScreen:parentRect.origin];
+#else
+      parentRect = [[parentView window] convertRectToScreen:parentRect];
+#endif
+    }
+  else
+    parentRect = [[[NSScreen screens] objectAtIndex:0] frame];
+
+  return parentRect;
+}
+
+/* Calculate system coordinates of the left and top of the parent
+   window or, if there is no parent window, the main screen.  */
+#define NS_PARENT_WINDOW_LEFT_POS(f) NSMinX (ns_parent_window_rect (f))
+#define NS_PARENT_WINDOW_TOP_POS(f) NSMaxY (ns_parent_window_rect (f))
+
+
 static NSRect
 ns_row_rect (struct window *w, struct glyph_row *row,
                enum glyph_row_area area)
@@ -860,6 +803,23 @@ ns_row_rect (struct window *w, struct glyph_row *row,
   rect.size.height = row->visible_height;
 
   return rect;
+}
+
+
+double
+ns_frame_scale_factor (struct frame *f)
+{
+#if defined (NS_IMPL_GNUSTEP) || !defined (MAC_OS_X_VERSION_10_7)
+  return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#elif MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+  if ([[FRAME_NS_VIEW (f) window]
+            respondsToSelector:@selector(backingScaleFactor:)])
+    return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
+  else
+    return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#else
+  return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
+#endif
 }
 
 
@@ -1105,23 +1065,8 @@ ns_update_begin (struct frame *f)
 
   ns_update_auto_hide_menu_bar ();
 
-#ifdef NS_IMPL_COCOA
-  if ([view isFullscreen] && [view fsIsNative])
-  {
-    // Fix reappearing tool bar in fullscreen for Mac OS X 10.7
-    BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (f) ? YES : NO;
-    NSToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
-    if (! tbar_visible != ! [toolbar isVisible])
-      [toolbar setVisible: tbar_visible];
-  }
-#endif
-
   ns_updating_frame = f;
-#ifdef NS_DRAW_TO_BUFFER
-  [view focusOnDrawingBuffer];
-#else
   [view lockFocus];
-#endif
 }
 
 
@@ -1139,17 +1084,14 @@ ns_update_end (struct frame *f)
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
-#ifdef NS_DRAW_TO_BUFFER
-  [NSGraphicsContext setCurrentContext:nil];
-  [view setNeedsDisplay:YES];
-#else
   block_input ();
 
   [view unlockFocus];
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
   [[view window] flushWindow];
+#endif
 
   unblock_input ();
-#endif
   ns_updating_frame = NULL;
 }
 
@@ -1164,8 +1106,6 @@ ns_focus (struct frame *f, NSRect *r, int n)
      the entire window.
    -------------------------------------------------------------------------- */
 {
-  EmacsView *view = FRAME_NS_VIEW (f);
-
   NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "ns_focus");
   if (r != NULL)
     {
@@ -1173,33 +1113,24 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 
   if (f != ns_updating_frame)
-#ifdef NS_DRAW_TO_BUFFER
-    [view focusOnDrawingBuffer];
-#else
     {
-      if (view != focus_view)
-        {
-          if (focus_view != NULL)
-            {
-              [focus_view unlockFocus];
-              [[focus_view window] flushWindow];
-            }
-
-          if (view)
-            [view lockFocus];
-          focus_view = view;
-        }
+      EmacsView *view = FRAME_NS_VIEW (f);
+      [view lockFocus];
     }
-#endif
 
   /* clipping */
   if (r)
     {
-      [[NSGraphicsContext currentContext] saveGraphicsState];
+      NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
+      [ctx saveGraphicsState];
+#ifdef NS_IMPL_COCOA
       if (n == 2)
         NSRectClipList (r, 2);
       else
         NSRectClip (*r);
+#else
+      GSRectClipList (ctx, r, n);
+#endif
       gsaved = YES;
     }
 }
@@ -1219,19 +1150,14 @@ ns_unfocus (struct frame *f)
       gsaved = NO;
     }
 
-#ifdef NS_DRAW_TO_BUFFER
-  [FRAME_NS_VIEW (f) setNeedsDisplay:YES];
-#else
   if (f != ns_updating_frame)
     {
-      if (focus_view != NULL)
-        {
-          [focus_view unlockFocus];
-          [[focus_view window] flushWindow];
-          focus_view = NULL;
-        }
-    }
+      EmacsView *view = FRAME_NS_VIEW (f);
+      [view unlockFocus];
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+      [[view window] flushWindow];
 #endif
+    }
 }
 
 
@@ -1398,7 +1324,7 @@ ns_ring_bell (struct frame *f)
     }
 }
 
-
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 static void
 hide_bell (void)
 /* --------------------------------------------------------------------------
@@ -1412,6 +1338,7 @@ hide_bell (void)
       [bell_view remove];
     }
 }
+#endif
 
 
 /* ==========================================================================
@@ -1564,7 +1491,7 @@ ns_make_frame_visible (struct frame *f)
   if (!FRAME_VISIBLE_P (f))
     {
       EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-      NSWindow *window = [view window];
+      EmacsWindow *window = (EmacsWindow *)[view window];
 
       SET_FRAME_VISIBLE (f, 1);
       ns_raise_frame (f, ! FRAME_NO_FOCUS_ON_MAP (f));
@@ -1573,8 +1500,6 @@ ns_make_frame_visible (struct frame *f)
          fullscreen also.  So skip handleFS as this will print an error.  */
       if ([view fsIsNative] && [view isFullscreen])
         {
-          // maybe it is not necessary to wait
-          [view waitFullScreenTransition];
           return;
         }
 
@@ -1589,11 +1514,8 @@ ns_make_frame_visible (struct frame *f)
          relationship, so reinstate it.  */
       if ([window parentWindow] == nil && FRAME_PARENT_FRAME (f) != NULL)
         {
-          NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-
           block_input ();
-          [parent addChildWindow: window
-                         ordered: NSWindowAbove];
+          [window setParentChildRelationships];
           unblock_input ();
 
           /* If the parent frame moved while the child frame was
@@ -1605,7 +1527,7 @@ ns_make_frame_visible (struct frame *f)
 }
 
 
-static void
+void
 ns_make_frame_invisible (struct frame *f)
 /* --------------------------------------------------------------------------
      Hide the window (X11 semantics)
@@ -1718,17 +1640,26 @@ ns_destroy_window (struct frame *f)
 {
   NSTRACE ("ns_destroy_window");
 
+  check_window_system (f);
+
   /* If this frame has a parent window, detach it as not doing so can
      cause a crash in GNUStep.  */
-  if (FRAME_PARENT_FRAME (f) != NULL)
+  if (FRAME_PARENT_FRAME (f))
     {
       NSWindow *child = [FRAME_NS_VIEW (f) window];
-      NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      NSWindow *parent;
+
+      /* Pacify a incorrect GCC warning about FRAME_PARENT_FRAME (f)
+	 being NULL. */
+      if (FRAME_PARENT_FRAME (f))
+	parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      else
+	emacs_abort ();
 
       [parent removeChildWindow: child];
     }
 
-  check_window_system (f);
+  [[FRAME_NS_VIEW (f) window] close];
   ns_free_frame_resources (f);
   ns_window_num--;
 }
@@ -1741,134 +1672,94 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
-  NSScreen *screen = [[view window] screen];
+  NSRect windowFrame = [[view window] frame];
+  NSPoint topLeft;
 
   NSTRACE ("ns_set_offset");
 
   block_input ();
 
-  f->left_pos = xoff;
-  f->top_pos = yoff;
+  /* If there is no parent frame then just convert to screen
+     coordinates, UNLESS we have negative values, in which case I
+     think it's best to position from the bottom and right of the
+     current screen rather than the main screen or whole display.  */
 
-  if (view != nil)
-    {
-      if (FRAME_PARENT_FRAME (f) == NULL && screen)
-        {
-          f->left_pos = f->size_hint_flags & XNegative
-            ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
-            : f->left_pos;
-          /* We use visibleFrame here to take menu bar into account.
-             Ideally we should also adjust left/top with visibleFrame.origin.  */
+  NSRect parentRect = ns_parent_window_rect (f);
 
-          f->top_pos = f->size_hint_flags & YNegative
-            ? ([screen visibleFrame].size.height + f->top_pos
-               - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
-               - FRAME_TOOLBAR_HEIGHT (f))
-            : f->top_pos;
+  if (f->size_hint_flags & XNegative)
+    topLeft.x = NSMaxX (parentRect) - NSWidth (windowFrame) + xoff;
+  else if (FRAME_PARENT_FRAME (f))
+    topLeft.x = NSMinX (parentRect) + xoff;
+  else
+    topLeft.x = xoff;
+
+  if (f->size_hint_flags & YNegative)
+    topLeft.y = NSMinY (parentRect) + NSHeight (windowFrame) - yoff;
+  else if (FRAME_PARENT_FRAME (f))
+    topLeft.y = NSMaxY (parentRect) - yoff;
+  else
+    topLeft.y = NSMaxY ([[[NSScreen screens] objectAtIndex:0] frame]) - yoff;
+
 #ifdef NS_IMPL_GNUSTEP
-	  if (f->left_pos < 100)
-	    f->left_pos = 100;  /* don't overlap menu */
+  /* Don't overlap the menu.
+
+     FIXME: Surely there's a better way than just hardcoding 100 in
+     here?  */
+  if (topLeft.x < 100)
+    topLeft.x = 100;
 #endif
-        }
-      else if (FRAME_PARENT_FRAME (f) != NULL)
-        {
-          struct frame *parent = FRAME_PARENT_FRAME (f);
 
-          /* On X negative values for child frames always result in
-             positioning relative to the bottom right corner of the
-             parent frame.  */
-          if (f->left_pos < 0)
-            f->left_pos = FRAME_PIXEL_WIDTH (parent) - FRAME_PIXEL_WIDTH (f) + f->left_pos;
-
-          if (f->top_pos < 0)
-            f->top_pos = FRAME_PIXEL_HEIGHT (parent) + FRAME_TOOLBAR_HEIGHT (parent)
-              - FRAME_PIXEL_HEIGHT (f) + f->top_pos;
-        }
-
-      /* Constrain the setFrameTopLeftPoint so we don't move behind the
-         menu bar.  */
-      NSPoint pt = NSMakePoint (SCREENMAXBOUND (f->left_pos
-                                                + NS_PARENT_WINDOW_LEFT_POS (f)),
-                                SCREENMAXBOUND (NS_PARENT_WINDOW_TOP_POS (f)
-                                                - f->top_pos));
-      NSTRACE_POINT ("setFrameTopLeftPoint", pt);
-      [[view window] setFrameTopLeftPoint: pt];
-      f->size_hint_flags &= ~(XNegative|YNegative);
-    }
+  NSTRACE_POINT ("setFrameTopLeftPoint", topLeft);
+  [[view window] setFrameTopLeftPoint:topLeft];
+  f->size_hint_flags &= ~(XNegative|YNegative);
 
   unblock_input ();
 }
 
 
 static void
-ns_set_window_size (struct frame *f,
-                    bool change_gravity,
-                    int width,
-                    int height,
-                    bool pixelwise)
+ns_set_window_size (struct frame *f, bool change_gravity,
+                    int width, int height)
 /* --------------------------------------------------------------------------
-     Adjust window pixel size based on given character grid size
+     Adjust window pixel size based on native sizes WIDTH and HEIGHT.
      Impl is a bit more complex than other terms, need to do some
      internal clipping.
    -------------------------------------------------------------------------- */
 {
   EmacsView *view = FRAME_NS_VIEW (f);
   NSWindow *window = [view window];
-  NSRect wr = [window frame];
-  int pixelwidth, pixelheight;
-  int orig_height = wr.size.height;
+  NSRect frameRect;
 
   NSTRACE ("ns_set_window_size");
 
   if (view == nil)
     return;
 
-  NSTRACE_RECT ("current", wr);
-  NSTRACE_MSG ("Width:%d Height:%d Pixelwise:%d", width, height, pixelwise);
+  NSTRACE_RECT ("current", [window frame]);
+  NSTRACE_MSG ("Width:%d Height:%d", width, height);
   NSTRACE_MSG ("Font %d x %d", FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f));
 
   block_input ();
 
-  if (pixelwise)
-    {
-      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
-    }
-  else
-    {
-      pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, width);
-      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
-    }
+  frameRect = [window frameRectForContentRect:NSMakeRect (0, 0, width, height)];
 
-  wr.size.width = pixelwidth + f->border_width;
-  wr.size.height = pixelheight;
-  if (! [view isFullscreen])
-    wr.size.height += FRAME_NS_TITLEBAR_HEIGHT (f)
-      + FRAME_TOOLBAR_HEIGHT (f);
+  /* Set the origin so the top left of the frame doesn't move.  */
+  frameRect.origin = [window frame].origin;
+  frameRect.origin.y += NSHeight ([view frame]) - height;
 
-  /* Do not try to constrain to this screen.  We may have multiple
-     screens, and want Emacs to span those.  Constraining to screen
-     prevents that, and that is not nice to the user.  */
- if (f->output_data.ns->zooming)
-   f->output_data.ns->zooming = 0;
- else
-   wr.origin.y += orig_height - wr.size.height;
+  if (f->output_data.ns->zooming)
+    f->output_data.ns->zooming = 0;
 
- frame_size_history_add
-   (f, Qx_set_window_size_1, width, height,
-    list5 (Fcons (make_fixnum (pixelwidth), make_fixnum (pixelheight)),
-	   Fcons (make_fixnum (wr.size.width), make_fixnum (wr.size.height)),
-	   make_fixnum (f->border_width),
-	   make_fixnum (FRAME_NS_TITLEBAR_HEIGHT (f)),
-	   make_fixnum (FRAME_TOOLBAR_HEIGHT (f))));
+  /* Usually it seems safe to delay changing the frame size, but when a
+     series of actions are taken with no redisplay between them then we
+     can end up using old values so don't delay here.  */
+  change_frame_size (f, width, height, false, NO, false);
 
-  [window setFrame: wr display: YES];
+  [window setFrame:frameRect display:NO];
 
-  [view updateFrameSize: NO];
   unblock_input ();
 }
 
-#ifdef NS_IMPL_COCOA
 void
 ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 /* --------------------------------------------------------------------------
@@ -1878,46 +1769,34 @@ ns_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
      dragged, resized, iconified, maximized or deleted with the mouse.  If
      nil, draw the frame with all the elements listed above unless these
      have been suspended via window manager settings.
-
-     GNUStep cannot change an existing window's style.
    -------------------------------------------------------------------------- */
 {
-  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
-
   NSTRACE ("ns_set_undecorated");
 
   if (!EQ (new_value, old_value))
     {
+      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+      NSWindow *oldWindow = [view window];
+      NSWindow *newWindow;
+
       block_input ();
 
-      if (NILP (new_value))
-        {
-          FRAME_UNDECORATED (f) = false;
-          [window setStyleMask: ((window.styleMask | FRAME_DECORATED_FLAGS)
-                                  ^ FRAME_UNDECORATED_FLAGS)];
+      FRAME_UNDECORATED (f) = !NILP (new_value);
 
-          [view createToolbar: f];
-        }
-      else
-        {
-          [window setToolbar: nil];
-          /* Do I need to release the toolbar here?  */
+      newWindow = [[EmacsWindow alloc] initWithEmacsFrame:f];
 
-          FRAME_UNDECORATED (f) = true;
-          [window setStyleMask: ((window.styleMask | FRAME_UNDECORATED_FLAGS)
-                                 ^ FRAME_DECORATED_FLAGS)];
-        }
+      if ([oldWindow isKeyWindow])
+        [newWindow makeKeyAndOrderFront:NSApp];
 
-      /* At this point it seems we don't have an active NSResponder,
-         so some key presses (TAB) are swallowed by the system.  */
-      [window makeFirstResponder: view];
+      [newWindow setIsVisible:[oldWindow isVisible]];
+      if ([oldWindow isMiniaturized])
+        [newWindow miniaturize:NSApp];
 
-      [view updateFrameSize: NO];
+      [oldWindow close];
+
       unblock_input ();
     }
 }
-#endif /* NS_IMPL_COCOA */
 
 void
 ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
@@ -1944,7 +1823,6 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
    -------------------------------------------------------------------------- */
 {
   struct frame *p = NULL;
-  NSWindow *parent, *child;
 
   NSTRACE ("ns_set_parent_frame");
 
@@ -1957,76 +1835,11 @@ ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_val
       error ("Invalid specification of `parent-frame'");
     }
 
-  if (p != FRAME_PARENT_FRAME (f))
-    {
-      block_input ();
-      child = [FRAME_NS_VIEW (f) window];
+  fset_parent_frame (f, new_value);
 
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-#endif
-
-      if ([child parentWindow] != nil)
-        {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          parent = [child parentWindow];
-#endif
-
-          [[child parentWindow] removeChildWindow:child];
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
-#endif
-              [child setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
-#endif
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          if (NILP (new_value))
-            {
-              NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary");
-              [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-              // if current parent in fullscreen and no new parent make child fullscreen
-              while (parent) {
-                if (([parent styleMask] & NSWindowStyleMaskFullScreen) != 0)
-                  {
-                    [view toggleFullScreen:child];
-                    break;
-                  }
-                // check all parents
-                parent = [parent parentWindow];
-              }
-            }
-#endif
-        }
-
-      if (!NILP (new_value))
-        {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-          // child frame must not be in fullscreen
-          if ([view fsIsNative] && [view isFullscreen])
-            {
-              // in case child is going fullscreen
-              [view waitFullScreenTransition];
-              [view toggleFullScreen:child];
-            }
-          NSTRACE ("child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary");
-          [child setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-#endif
-          parent = [FRAME_NS_VIEW (p) window];
-
-          [parent addChildWindow: child
-                         ordered: NSWindowAbove];
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
-#endif
-              [child setAccessibilitySubrole:NSAccessibilityFloatingWindowSubrole];
-#endif
-        }
-
-      unblock_input ();
-
-      fset_parent_frame (f, new_value);
-    }
+  block_input ();
+  [(EmacsWindow *)[FRAME_NS_VIEW (f) window] setParentChildRelationships];
+  unblock_input ();
 }
 
 void
@@ -2115,10 +1928,6 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 
   NSTRACE ("ns_set_appearance");
 
-#ifndef NSAppKitVersionNumber10_10
-#define NSAppKitVersionNumber10_10 1343
-#endif
-
   if (NSAppKitVersionNumber < NSAppKitVersionNumber10_10)
     return;
 
@@ -2185,59 +1994,6 @@ ns_fullscreen_hook (struct frame *f)
    ========================================================================== */
 
 
-NSColor *
-ns_lookup_indexed_color (unsigned long idx, struct frame *f)
-{
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  if (idx < 1 || idx >= color_table->avail)
-    return nil;
-  return color_table->colors[idx];
-}
-
-
-unsigned long
-ns_index_color (NSColor *color, struct frame *f)
-{
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  ptrdiff_t idx;
-  ptrdiff_t i;
-
-  if (!color_table->colors)
-    {
-      color_table->size = NS_COLOR_CAPACITY;
-      color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors = xmalloc (color_table->size * sizeof (NSColor *));
-      color_table->colors[0] = nil;
-      color_table->empty_indices = [[NSMutableSet alloc] init];
-    }
-
-  /* Do we already have this color?  */
-  for (i = 1; i < color_table->avail; i++)
-    if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
-      return i;
-
-  if ([color_table->empty_indices count] > 0)
-    {
-      NSNumber *index = [color_table->empty_indices anyObject];
-      [color_table->empty_indices removeObject: index];
-      idx = [index unsignedLongValue];
-    }
-  else
-    {
-      if (color_table->avail == color_table->size)
-	color_table->colors =
-	  xpalloc (color_table->colors, &color_table->size, 1,
-		   min (ULONG_MAX, PTRDIFF_MAX), sizeof *color_table->colors);
-      idx = color_table->avail++;
-    }
-
-  color_table->colors[idx] = color;
-  [color retain];
-  /* fprintf(stderr, "color_table: allocated %d\n",idx); */
-  return idx;
-}
-
-
 static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
@@ -2248,9 +2004,6 @@ ns_get_color (const char *name, NSColor **col)
    See https://lists.gnu.org/r/emacs-devel/2009-07/msg01203.html.  */
 {
   NSColor *new = nil;
-  static char hex[20];
-  int scaling = 0;
-  float r = -1.0, g, b;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
   NSTRACE ("ns_get_color(%s, **)", name);
@@ -2293,46 +2046,29 @@ ns_get_color (const char *name, NSColor **col)
     }
 
   /* First, check for some sort of numeric specification.  */
-  hex[0] = '\0';
-
-  if (name[0] == '0' || name[0] == '1' || name[0] == '.')  /* RGB decimal */
+  unsigned short r16, g16, b16;
+  if (parse_color_spec (name, &r16, &g16, &b16))
     {
-      NSScanner *scanner = [NSScanner scannerWithString: nsname];
-      [scanner scanFloat: &r];
-      [scanner scanFloat: &g];
-      [scanner scanFloat: &b];
-    }
-  else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
-    scaling = (snprintf (hex, sizeof hex, "%s", name + 4) - 2) / 3;
-  else if (name[0] == '#')        /* An old X11 format; convert to newer */
-    {
-      int len = (strlen(name) - 1);
-      int start = (len % 3 == 0) ? 1 : len / 4 + 1;
-      int i;
-      scaling = strlen(name+start) / 3;
-      for (i = 0; i < 3; i++)
-	sprintf (hex + i * (scaling + 1), "%.*s/", scaling,
-		 name + start + i * scaling);
-      hex[3 * (scaling + 1) - 1] = '\0';
-    }
-
-  if (hex[0])
-    {
-      unsigned int rr, gg, bb;
-      float fscale = scaling == 4 ? 65535.0 : (scaling == 2 ? 255.0 : 15.0);
-      if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
-        {
-          r = rr / fscale;
-          g = gg / fscale;
-          b = bb / fscale;
-        }
-    }
-
-  if (r >= 0.0F)
-    {
-      *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
+      *col = [NSColor colorForEmacsRed: r16 / 65535.0
+                                 green: g16 / 65535.0
+                                  blue: b16 / 65535.0
+                                 alpha: 1.0];
       unblock_input ();
       return 0;
+    }
+  else if (name[0] == '0' || name[0] == '1' || name[0] == '.')
+    {
+      /* RGB decimal */
+      NSScanner *scanner = [NSScanner scannerWithString: nsname];
+      float r, g, b;
+      if (   [scanner scanFloat: &r] && r >= 0 && r <= 1
+          && [scanner scanFloat: &g] && g >= 0 && g <= 1
+          && [scanner scanFloat: &b] && b >= 0 && b <= 1)
+        {
+          *col = [NSColor colorForEmacsRed: r green: g blue: b alpha: 1.0];
+          unblock_input ();
+          return 0;
+        }
     }
 
   /* Otherwise, color is expected to be from a list */
@@ -2382,31 +2118,11 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   return 1;
 }
 
-/* Convert an index into the color table into an RGBA value.  Used in
-   xdisp.c:extend_face_to_end_of_line when comparing faces and frame
-   color values.  */
-
-unsigned long
-ns_color_index_to_rgba(int idx, struct frame *f)
-{
-  NSColor *col;
-  col = ns_lookup_indexed_color (idx, f);
-
-  EmacsCGFloat r, g, b, a;
-  [col getRed: &r green: &g blue: &b alpha: &a];
-
-  return ARGB_TO_ULONG((unsigned long) (a * 255),
-                       (unsigned long) (r * 255),
-                       (unsigned long) (g * 255),
-                       (unsigned long) (b * 255));
-}
-
-void
-ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
+static void
+ns_query_color (void *col, Emacs_Color *color_def)
 /* --------------------------------------------------------------------------
-         Get ARGB values out of NSColor col and put them into color_def.
-         If setPixel, set the pixel to a concatenated version.
-         and set color_def pixel to the resulting index.
+         Get ARGB values out of NSColor col and put them into color_def
+         and set color_def pixel to the ARGB color.
    -------------------------------------------------------------------------- */
 {
   EmacsCGFloat r, g, b, a;
@@ -2416,12 +2132,7 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
   color_def->green = g * 65535;
   color_def->blue  = b * 65535;
 
-  if (setPixel == YES)
-    color_def->pixel
-      = ARGB_TO_ULONG((unsigned long) (a * 255),
-                      (unsigned long) (r * 255),
-                      (unsigned long) (g * 255),
-                      (unsigned long) (b * 255));
+  color_def->pixel = [(NSColor *)col unsignedLong];
 }
 
 bool
@@ -2429,12 +2140,9 @@ ns_defined_color (struct frame *f,
                   const char *name,
                   Emacs_Color *color_def,
                   bool alloc,
-                  bool makeIndex)
+                  bool _makeIndex)
 /* --------------------------------------------------------------------------
          Return true if named color found, and set color_def rgb accordingly.
-         If makeIndex and alloc are nonzero put the color in the color_table,
-         and set color_def pixel to the resulting index.
-         If makeIndex is zero, set color_def pixel to ARGB.
          Return false if not found.
    -------------------------------------------------------------------------- */
 {
@@ -2447,9 +2155,7 @@ ns_defined_color (struct frame *f,
       unblock_input ();
       return 0;
     }
-  if (makeIndex && alloc)
-    color_def->pixel = ns_index_color (col, f);
-  ns_query_color (col, color_def, !makeIndex);
+  ns_query_color (col, color_def);
   unblock_input ();
   return 1;
 }
@@ -2460,7 +2166,7 @@ ns_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
      External (hook): Store F's background color into *BGCOLOR
    -------------------------------------------------------------------------- */
 {
-  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor, true);
+  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor);
 }
 
 static void
@@ -2492,12 +2198,10 @@ ns_set_frame_alpha (struct frame *f)
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-#ifdef NS_IMPL_COCOA
   {
     EmacsView *view = FRAME_NS_VIEW (f);
-  [[view window] setAlphaValue: alpha];
+    [[view window] setAlphaValue: alpha];
   }
-#endif
 }
 
 
@@ -2516,18 +2220,25 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
   NSTRACE ("frame_set_mouse_pixel_position");
 
-  /* FIXME: what about GNUstep?  */
 #ifdef NS_IMPL_COCOA
   CGPoint mouse_pos =
     CGPointMake(f->left_pos + pix_x,
                 f->top_pos + pix_y +
                 FRAME_NS_TITLEBAR_HEIGHT(f) + FRAME_TOOLBAR_HEIGHT(f));
   CGWarpMouseCursorPosition (mouse_pos);
+#else
+  GSDisplayServer *server = GSServerForWindow ([FRAME_NS_VIEW (f) window]);
+  [server setMouseLocation: NSMakePoint (f->left_pos + pix_x,
+					 f->top_pos + pix_y
+					 + FRAME_NS_TITLEBAR_HEIGHT(f)
+					 + FRAME_TOOLBAR_HEIGHT(f))
+		  onScreen: [[[FRAME_NS_VIEW (f) window] screen] screenNumber]];
 #endif
 }
 
 static int
-ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
+ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y,
+			BOOL dragging)
 /*   ------------------------------------------------------------------------
      Called by EmacsView on mouseMovement events.  Passes on
      to emacs mainstream code if we moved off of a rect of interest
@@ -2536,17 +2247,24 @@ ns_note_mouse_movement (struct frame *frame, CGFloat x, CGFloat y)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   NSRect *r;
+  BOOL force_update = NO;
 
   // NSTRACE ("note_mouse_movement");
 
   dpyinfo->last_mouse_motion_frame = frame;
   r = &dpyinfo->last_mouse_glyph;
 
+  /* If the last rect is too large (ex, xwidget webkit), update at
+     every move, or resizing by dragging modeline or vertical split is
+     very hard to make its way.  */
+  if (dragging && (r->size.width > 32 || r->size.height > 32))
+    force_update = YES;
+
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods.  */
 
   /* Has movement gone beyond last rect we were tracking?  */
-  if (x < r->origin.x || x >= r->origin.x + r->size.width
+  if (force_update || x < r->origin.x || x >= r->origin.x + r->size.width
       || y < r->origin.y || y >= r->origin.y + r->size.height)
     {
       ns_update_begin (frame);
@@ -2577,6 +2295,12 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   Lisp_Object frame, tail;
   struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
+  bool return_no_frame_flag = false;
+#ifdef NS_IMPL_COCOA
+  NSPoint screen_position;
+  NSInteger window_number;
+  NSWindow *w;
+#endif
 
   NSTRACE ("ns_mouse_position");
 
@@ -2603,32 +2327,56 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
      This doesn't work on GNUstep, although in recent versions there
      is compatibility code that makes it a noop.  */
 
-  NSPoint screen_position = [NSEvent mouseLocation];
-  NSInteger window_number = 0;
+  screen_position = [NSEvent mouseLocation];
+  window_number = 0;
+
   do
     {
-      NSWindow *w;
+      window_number = [NSWindow windowNumberAtPoint: screen_position
+                        belowWindowWithWindowNumber: window_number];
+      w = [NSApp windowWithWindowNumber: window_number];
 
-      window_number = [NSWindow windowNumberAtPoint:screen_position
-                        belowWindowWithWindowNumber:window_number];
-      w = [NSApp windowWithWindowNumber:window_number];
+      if ((EQ (track_mouse, Qdrag_source)
+	   || EQ (track_mouse, Qdropping))
+	  && w && [[w delegate] isKindOfClass: [EmacsTooltip class]])
+	continue;
 
-      if (w && [[w delegate] isKindOfClass:[EmacsView class]])
-        f = ((EmacsView *)[w delegate])->emacsframe;
+      if (w && [[w delegate] isKindOfClass: [EmacsView class]])
+        f = ((EmacsView *) [w delegate])->emacsframe;
+      else if (EQ (track_mouse, Qdrag_source))
+	break;
+
+      if (f && (EQ (track_mouse, Qdrag_source)
+		|| EQ (track_mouse, Qdropping))
+	  && FRAME_TOOLTIP_P (f))
+	continue;
     }
   while (window_number > 0 && !f);
 #endif
 
   if (!f)
-    f = dpyinfo->ns_focus_frame ? dpyinfo->ns_focus_frame : SELECTED_FRAME ();
+    {
+      f = (dpyinfo->ns_focus_frame
+	   ? dpyinfo->ns_focus_frame : SELECTED_FRAME ());
+      return_no_frame_flag = EQ (track_mouse, Qdrag_source);
+    }
+
+  if (!FRAME_NS_P (f))
+    f = NULL;
+
+  if (f && FRAME_TOOLTIP_P (f))
+    f = dpyinfo->last_mouse_frame;
 
   /* While dropping, use the last mouse frame only if there is no
      currently focused frame.  */
-  if (!f
-      && EQ (track_mouse, Qdropping)
+  if (!f && (EQ (track_mouse, Qdropping)
+	     || EQ (track_mouse, Qdrag_source))
       && dpyinfo->last_mouse_frame
       && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
-    f = dpyinfo->last_mouse_frame;
+    {
+      f = dpyinfo->last_mouse_frame;
+      return_no_frame_flag = EQ (track_mouse, Qdrag_source);
+    }
 
   if (f && FRAME_NS_P (f))
     {
@@ -2647,7 +2395,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       if (y) XSETINT (*y, lrint (view_position.y));
       if (time)
         *time = dpyinfo->last_mouse_movement_time;
-      *fp = f;
+      *fp = return_no_frame_flag ? NULL : f;
     }
 
   unblock_input ();
@@ -2692,9 +2440,6 @@ ns_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
       EmacsView *view = FRAME_NS_VIEW (f);
       FRAME_POINTER_TYPE (f) = cursor;
       [[view window] invalidateCursorRectsForView: view];
-      /* Redisplay assumes this function also draws the changed frame
-         cursor, but this function doesn't, so do it explicitly.  */
-      gui_update_cursor (f, 1);
     }
 }
 
@@ -2734,7 +2479,7 @@ get_keysym_name (int keysym)
 {
   static char value[16];
   NSTRACE ("get_keysym_name");
-  sprintf (value, "%d", keysym);
+  snprintf (value, 16, "%d", keysym);
   return value;
 }
 
@@ -2830,6 +2575,7 @@ ns_get_shifted_character (NSEvent *event)
    ========================================================================== */
 
 
+#ifdef NS_IMPL_GNUSTEP
 static void
 ns_redraw_scroll_bars (struct frame *f)
 {
@@ -2844,6 +2590,7 @@ ns_redraw_scroll_bars (struct frame *f)
       [view display];
     }
 }
+#endif
 
 
 void
@@ -2868,15 +2615,14 @@ ns_clear_frame (struct frame *f)
 
   block_input ();
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-			    (FACE_FROM_ID (f, DEFAULT_FACE_ID)), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+			    (FACE_FROM_ID (f, DEFAULT_FACE_ID))] set];
   NSRectFill (r);
   ns_unfocus (f);
 
-  /* as of 2006/11 or so this is now needed */
-  /* FIXME: I don't see any reason for this and removing it makes no
-     difference here.  Do we need it for GNUstep?  */
-  //ns_redraw_scroll_bars (f);
+#ifdef NS_IMPL_GNUSTEP
+  ns_redraw_scroll_bars (f);
+#endif
   unblock_input ();
 }
 
@@ -2898,7 +2644,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 
   r = NSIntersectionRect (r, [view frame]);
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   NSRectFill (r);
 
@@ -2957,16 +2703,58 @@ ns_scroll_run (struct window *w, struct run *run)
 
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
-    NSRect dstRect = NSMakeRect (x, to_y, width, height);
+    NSPoint dest = NSMakePoint (x, to_y);
     EmacsView *view = FRAME_NS_VIEW (f);
 
-    [view copyRect:srcRect to:dstRect];
+    [view copyRect:srcRect to:dest];
 #ifdef NS_IMPL_COCOA
     [view setNeedsDisplayInRect:srcRect];
 #endif
   }
 
   unblock_input ();
+}
+
+
+static void
+ns_clear_under_internal_border (struct frame *f)
+{
+  NSTRACE ("ns_clear_under_internal_border");
+
+  if (FRAME_LIVE_P (f) && FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+    {
+      int border = FRAME_INTERNAL_BORDER_WIDTH (f);
+      int width = FRAME_PIXEL_WIDTH (f);
+      int height = FRAME_PIXEL_HEIGHT (f);
+      int margin = FRAME_TOP_MARGIN_HEIGHT (f);
+      int face_id =
+        (FRAME_PARENT_FRAME (f)
+         ? (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+            : CHILD_FRAME_BORDER_FACE_ID)
+         : (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+            : INTERNAL_BORDER_FACE_ID));
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
+
+      if (!face)
+        face = FRAME_DEFAULT_FACE (f);
+
+      /* Sometimes with new frames we reach this point and have no
+         face.  I'm not sure why we have a live frame but no face, so
+         just give up.  */
+      if (!face)
+        return;
+
+      ns_focus (f, NULL, 1);
+      [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
+      NSRectFill (NSMakeRect (0, margin, width, border));
+      NSRectFill (NSMakeRect (0, 0, border, height));
+      NSRectFill (NSMakeRect (0, margin, width, border));
+      NSRectFill (NSMakeRect (width - border, 0, border, height));
+      NSRectFill (NSMakeRect (0, height - border, width, border));
+      ns_unfocus (f);
+    }
 }
 
 
@@ -2998,12 +2786,32 @@ ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  height > 0))
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+      int face_id =
+        !NILP (Vface_remapping_alist)
+        ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+        : INTERNAL_BORDER_FACE_ID;
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
-      ns_clear_frame_area (f, 0, y, width, height);
-      ns_clear_frame_area (f,
-                           FRAME_PIXEL_WIDTH (f) - width,
-                           y, width, height);
+      if (face)
+        {
+          NSRect r = NSMakeRect (0, y, FRAME_PIXEL_WIDTH (f), height);
+          ns_focus (f, &r, 1);
+
+          [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
+          NSRectFill (NSMakeRect (0, y, width, height));
+          NSRectFill (NSMakeRect (FRAME_PIXEL_WIDTH (f) - width,
+                                  y, width, height));
+
+          ns_unfocus (f);
+        }
+      else
+        {
+          ns_clear_frame_area (f, 0, y, width, height);
+          ns_clear_frame_area (f,
+                               FRAME_PIXEL_WIDTH (f) - width,
+                               y, width, height);
+        }
       unblock_input ();
     }
 }
@@ -3018,11 +2826,11 @@ ns_shift_glyphs_for_insert (struct frame *f,
    -------------------------------------------------------------------------- */
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
-  NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
+  NSPoint dest = NSMakePoint (x+shift_by, y);
 
   NSTRACE ("ns_shift_glyphs_for_insert");
 
-  [FRAME_NS_VIEW (f) copyRect:srcRect to:dstRect];
+  [FRAME_NS_VIEW (f) copyRect:srcRect to:dest];
 }
 
 
@@ -3040,29 +2848,31 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
      External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
-  struct font *font = s->font;
-
-  if (s->char2b)
+  if (s->cmp == NULL
+      && (s->first_glyph->type == CHAR_GLYPH
+	  || s->first_glyph->type == COMPOSITE_GLYPH))
     {
       struct font_metrics metrics;
-      unsigned int codes[2];
-      codes[0] = *(s->char2b);
-      codes[1] = *(s->char2b + s->nchars - 1);
 
-      font->driver->text_extents (font, codes, 2, &metrics);
-      s->left_overhang = -metrics.lbearing;
-      s->right_overhang
-	= metrics.rbearing > metrics.width
-	? metrics.rbearing - metrics.width : 0;
-    }
-  else
-    {
-      s->left_overhang = 0;
-      if (EQ (font->driver->type, Qns))
-        s->right_overhang = ((struct nsfont_info *)font)->ital ?
-          FONT_HEIGHT (font) * 0.2 : 0;
+      if (s->first_glyph->type == CHAR_GLYPH)
+	{
+	  struct font *font = s->font;
+	  font->driver->text_extents (font, s->char2b, s->nchars, &metrics);
+	}
       else
-        s->right_overhang = 0;
+	{
+	  Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+
+	  composition_gstring_width (gstring, s->cmp_from, s->cmp_to, &metrics);
+	}
+      s->right_overhang = (metrics.rbearing > metrics.width
+			   ? metrics.rbearing - metrics.width : 0);
+      s->left_overhang = metrics.lbearing < 0 ? - metrics.lbearing : 0;
+    }
+  else if (s->cmp)
+    {
+      s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
+      s->left_overhang = - s->cmp->lbearing;
     }
 }
 
@@ -3074,8 +2884,37 @@ ns_compute_glyph_string_overhangs (struct glyph_string *s)
 
    ========================================================================== */
 
+static NSMutableDictionary *fringe_bmp;
 
-extern int max_used_fringe_bitmap;
+static void
+ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
+{
+  NSBezierPath *p = [NSBezierPath bezierPath];
+
+  if (!fringe_bmp)
+    fringe_bmp = [[NSMutableDictionary alloc] initWithCapacity:25];
+
+  [p moveToPoint:NSMakePoint (0, 0)];
+
+  for (int y = 0 ; y < h ; y++)
+    for (int x = 0 ; x < w ; x++)
+      {
+        bool bit = bits[y] & (1 << (w - x - 1));
+        if (bit)
+          [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
+      }
+
+  [fringe_bmp setObject:p forKey:[NSNumber numberWithInt:which]];
+}
+
+
+static void
+ns_destroy_fringe_bitmap (int which)
+{
+  [fringe_bmp removeObjectForKey:[NSNumber numberWithInt:which]];
+}
+
+
 static void
 ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
                       struct draw_fringe_bitmap_params *p)
@@ -3101,41 +2940,18 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face = p->face;
-  static EmacsImage **bimgs = NULL;
-  static int nBimgs = 0;
   NSRect clearRect = NSZeroRect;
-  NSRect imageRect = NSZeroRect;
   NSRect rowRect = ns_row_rect (w, row, ANY_AREA);
 
   NSTRACE_WHEN (NSTRACE_GROUP_FRINGE, "ns_draw_fringe_bitmap");
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
-  /* grow bimgs if needed */
-  if (nBimgs < max_used_fringe_bitmap)
-    {
-      bimgs = xrealloc (bimgs, max_used_fringe_bitmap * sizeof *bimgs);
-      memset (bimgs + nBimgs, 0,
-	      (max_used_fringe_bitmap - nBimgs) * sizeof *bimgs);
-      nBimgs = max_used_fringe_bitmap;
-    }
+  /* Work out the rectangle we will need to clear.  */
+  clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
 
-  /* Work out the rectangle we will composite into.  */
-  if (p->which)
-    imageRect = NSMakeRect (p->x, p->y, p->wd, p->h);
-
-  /* Work out the rectangle we will need to clear.  Because we're
-     compositing rather than blitting, we need to clear the area under
-     the image regardless of anything else.  */
   if (p->bx >= 0 && !p->overlay_p)
-    {
-      clearRect = NSMakeRect (p->bx, p->by, p->nx, p->ny);
-      clearRect = NSUnionRect (clearRect, imageRect);
-    }
-  else
-    {
-      clearRect = imageRect;
-    }
+    clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
 
   /* Handle partially visible rows.  */
   clearRect = NSIntersectionRect (clearRect, rowRect);
@@ -3147,57 +2963,41 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       NSTRACE_RECT ("clearRect", clearRect);
 
-      [ns_lookup_indexed_color(face->background, f) set];
+      [[NSColor colorWithUnsignedLong:face->background] set];
       NSRectFill (clearRect);
     }
 
-  if (p->which)
+  NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
+
+  if (bmp == nil
+      && p->which < max_used_fringe_bitmap)
     {
-      EmacsImage *img = bimgs[p->which - 1];
+      gui_define_fringe_bitmap (f, p->which);
+      bmp = [fringe_bmp objectForKey: [NSNumber numberWithInt: p->which]];
+    }
 
-      if (!img)
-        {
-          // Note: For "periodic" images, allocate one EmacsImage for
-          // the base image, and use it for all dh:s.
-          unsigned short *bits = p->bits;
-          int full_height = p->h + p->dh;
-          int i;
-          unsigned char *cbits = xmalloc (full_height);
+  if (bmp)
+    {
+      NSAffineTransform *transform = [NSAffineTransform transform];
+      NSColor *bm_color;
 
-          for (i = 0; i < full_height; i++)
-            cbits[i] = bits[i];
-          img = [[EmacsImage alloc] initFromXBM: cbits width: 8
-                                         height: full_height
-                                             fg: 0 bg: 0
-                                   reverseBytes: NO];
-          bimgs[p->which - 1] = img;
-          xfree (cbits);
-        }
+      /* Because the image is defined at (0, 0) we need to take a copy
+         and then transform that copy to the new origin.  */
+      bmp = [bmp copy];
+      [transform translateXBy:p->x yBy:p->y - p->dh];
+      [bmp transformUsingAffineTransform:transform];
 
+      if (!p->cursor_p)
+        bm_color = [NSColor colorWithUnsignedLong:face->foreground];
+      else if (p->overlay_p)
+        bm_color = [NSColor colorWithUnsignedLong:face->background];
+      else
+        bm_color = f->output_data.ns->cursor_color;
 
-      {
-        NSColor *bm_color;
-        if (!p->cursor_p)
-          bm_color = ns_lookup_indexed_color(face->foreground, f);
-        else if (p->overlay_p)
-          bm_color = ns_lookup_indexed_color(face->background, f);
-        else
-          bm_color = f->output_data.ns->cursor_color;
-        [img setXBMColor: bm_color];
-      }
+      [bm_color set];
+      [bmp fill];
 
-      // Note: For periodic images, the full image height is "h + hd".
-      // By using the height h, a suitable part of the image is used.
-      NSRect fromRect = NSMakeRect(0, 0, p->wd, p->h);
-
-      NSTRACE_RECT ("fromRect", fromRect);
-
-      [img drawInRect: imageRect
-             fromRect: fromRect
-            operation: NSCompositingOperationSourceOver
-             fraction: 1.0
-           respectFlipped: YES
-                hints: nil];
+      [bmp release];
     }
   ns_unfocus (f);
 }
@@ -3217,14 +3017,13 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   struct glyph *cursor_glyph;
-  struct face *face;
-  NSColor *hollow_color = FRAME_BACKGROUND_COLOR (f);
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
      and mini-buffer.  */
 
-  NSTRACE ("ns_draw_window_cursor");
+  NSTRACE ("ns_draw_window_cursor (on = %d, cursor_type = %d)",
+	   on_p, cursor_type);
 
   if (!on_p)
     return;
@@ -3240,6 +3039,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   if ((phys_cursor_glyph = get_phys_cursor_glyph (w)) == NULL)
     {
+      NSTRACE_MSG ("No phys cursor glyph was found!");
+
       if (glyph_row->exact_window_width_line_p
           && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
         {
@@ -3249,10 +3050,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       return;
     }
 
-  /* We draw the cursor (with NSRectFill), then draw the glyph on top
-     (other terminals do it the other way round).  We must set
-     w->phys_cursor_width to the cursor width.  For bar cursors, that
-     is CURSOR_WIDTH; for box cursors, it is the glyph width.  */
   get_phys_cursor_geometry (w, glyph_row, phys_cursor_glyph, &fx, &fy, &h);
 
   /* The above get_phys_cursor_geometry call set w->phys_cursor_width
@@ -3284,17 +3081,17 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* Prevent the cursor from being drawn outside the text area.  */
   r = NSIntersectionRect (r, ns_row_rect (w, glyph_row, TEXT_AREA));
 
-  face = FACE_FROM_ID_OR_NULL (f, phys_cursor_glyph->face_id);
-  if (face && NS_FACE_BACKGROUND (face)
-      == ns_index_color (FRAME_CURSOR_COLOR (f), f))
-    {
-      [ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), f) set];
-      hollow_color = FRAME_CURSOR_COLOR (f);
-    }
-  else
-    [FRAME_CURSOR_COLOR (f) set];
+  ns_focus (f, NULL, 0);
 
-  ns_focus (f, &r, 1);
+  NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
+  [ctx saveGraphicsState];
+#ifdef NS_IMPL_GNUSTEP
+  GSRectClipList (ctx, &r, 1);
+#else
+  NSRectClip (r);
+#endif
+
+  [FRAME_CURSOR_COLOR (f) set];
 
   switch (cursor_type)
     {
@@ -3302,16 +3099,21 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case NO_CURSOR:
       break;
     case FILLED_BOX_CURSOR:
-      NSRectFill (r);
+      /* The call to draw_phys_cursor_glyph can end up undoing the
+	 ns_focus, so unfocus here and regain focus later.  */
+      [ctx restoreGraphicsState];
+      ns_unfocus (f);
+      draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+      ns_focus (f, &r, 1);
       break;
     case HOLLOW_BOX_CURSOR:
-      NSRectFill (r);
-      [hollow_color set];
-      NSRectFill (NSInsetRect (r, 1, 1));
-      [FRAME_CURSOR_COLOR (f) set];
+      /* This works like it does in PostScript, not X Windows.  */
+      [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
+      [ctx restoreGraphicsState];
       break;
     case HBAR_CURSOR:
       NSRectFill (r);
+      [ctx restoreGraphicsState];
       break;
     case BAR_CURSOR:
       s = r;
@@ -3322,14 +3124,11 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
         s.origin.x += cursor_glyph->pixel_width - s.size.width;
 
       NSRectFill (s);
+      [ctx restoreGraphicsState];
       break;
     }
-  ns_unfocus (f);
 
-  /* Draw the character under the cursor.  Other terms only draw
-     the character on top of box cursors, so do the same here.  */
-  if (cursor_type == FILLED_BOX_CURSOR || cursor_type == HOLLOW_BOX_CURSOR)
-    draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+  ns_unfocus (f);
 }
 
 
@@ -3349,7 +3148,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 
   ns_focus (f, &r, 1);
   if (face)
-    [ns_lookup_indexed_color(face->foreground, f) set];
+    [[NSColor colorWithUnsignedLong:face->foreground] set];
 
   NSRectFill(r);
   ns_unfocus (f);
@@ -3385,29 +3184,29 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     /* A vertical divider, at least three pixels wide: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, 1, y1 - y0));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0 + 1, y0, x1 - x0 - 2, y1 - y0));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x1 - 1, y0, 1, y1 - y0));
     }
   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
     /* A horizontal divider, at least three pixels high: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, x1 - x0, 1));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0, y0 + 1, x1 - x0, y1 - y0 - 2));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x0, y1 - 1, x1 - x0, 1));
     }
   else
     {
       /* In any other case do not draw the first and last pixels
          differently.  */
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(divider);
     }
 
@@ -3509,15 +3308,18 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
   if (s->for_overlaps)
     return;
 
+  if (s->hl == DRAW_CURSOR)
+    [FRAME_BACKGROUND_COLOR (s->f) set];
+  else
+    [defaultCol set];
+
   /* Do underline.  */
   if (face->underline)
     {
       if (s->face->underline == FACE_UNDER_WAVE)
         {
-          if (face->underline_defaulted_p)
-            [defaultCol set];
-          else
-            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+          if (!face->underline_defaulted_p)
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
 
           ns_draw_underwave (s, width, x);
         }
@@ -3530,7 +3332,11 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           /* If the prev was underlined, match its appearance.  */
           if (s->prev
 	      && s->prev->face->underline == FACE_UNDER_LINE
-              && s->prev->underline_thickness > 0)
+              && s->prev->underline_thickness > 0
+	      && (s->prev->face->underline_at_descent_line_p
+		  == s->face->underline_at_descent_line_p)
+	      && (s->prev->face->underline_pixels_above_descent_line
+		  == s->face->underline_pixels_above_descent_line))
             {
               thickness = s->prev->underline_thickness;
               position = s->prev->underline_position;
@@ -3551,7 +3357,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_underline_at_descent_line, s->w));
-	      underline_at_descent_line = !(NILP (val) || EQ (val, Qunbound));
+	      underline_at_descent_line = (!(NILP (val) || EQ (val, Qunbound))
+					   || s->face->underline_at_descent_line_p);
 
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_use_underline_position_properties, s->w));
@@ -3564,7 +3371,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
               /* Determine the offset of underlining from the baseline.  */
               if (underline_at_descent_line)
-                position = descent - thickness;
+                position = (descent - thickness
+			    - s->face->underline_pixels_above_descent_line);
               else if (use_underline_position_properties
                        && font && font->underline_position >= 0)
                 position = font->underline_position;
@@ -3573,7 +3381,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
               else
                 position = minimum_offset;
 
-              position = max (position, minimum_offset);
+	      if (!s->face->underline_pixels_above_descent_line)
+		position = max (position, minimum_offset);
 
               /* Ensure underlining is not cropped.  */
               if (descent <= position)
@@ -3590,10 +3399,9 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
           r = NSMakeRect (x, s->ybase + position, width, thickness);
 
-          if (face->underline_defaulted_p)
-            [defaultCol set];
-          else
-            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+          if (!face->underline_defaulted_p)
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
+
           NSRectFill (r);
         }
     }
@@ -3604,10 +3412,9 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
       NSRect r;
       r = NSMakeRect (x, s->y, width, 1);
 
-      if (face->overline_color_defaulted_p)
-        [defaultCol set];
-      else
-        [ns_lookup_indexed_color (face->overline_color, s->f) set];
+      if (!face->overline_color_defaulted_p)
+        [[NSColor colorWithUnsignedLong:face->overline_color] set];
+
       NSRectFill (r);
     }
 
@@ -3630,17 +3437,16 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
       dy = lrint ((glyph_height - h) / 2);
       r = NSMakeRect (x, glyph_y + dy, width, 1);
 
-      if (face->strike_through_color_defaulted_p)
-        [defaultCol set];
-      else
-        [ns_lookup_indexed_color (face->strike_through_color, s->f) set];
+      if (!face->strike_through_color_defaulted_p)
+        [[NSColor colorWithUnsignedLong:face->strike_through_color] set];
+
       NSRectFill (r);
     }
 }
 
 static void
-ns_draw_box (NSRect r, CGFloat thickness, NSColor *col,
-             char left_p, char right_p)
+ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
+             NSColor *col, char left_p, char right_p)
 /* --------------------------------------------------------------------------
     Draw an unfilled rect inside r, optionally leaving left and/or right open.
     Note we can't just use an NSDrawRect command, because of the possibility
@@ -3651,99 +3457,207 @@ ns_draw_box (NSRect r, CGFloat thickness, NSColor *col,
   [col set];
 
   /* top, bottom */
-  s.size.height = thickness;
+  s.size.height = hthickness;
   NSRectFill (s);
-  s.origin.y += r.size.height - thickness;
+  s.origin.y += r.size.height - hthickness;
   NSRectFill (s);
 
   s.size.height = r.size.height;
   s.origin.y = r.origin.y;
 
   /* left, right (optional) */
-  s.size.width = thickness;
+  s.size.width = vthickness;
   if (left_p)
     NSRectFill (s);
   if (right_p)
     {
-      s.origin.x += r.size.width - thickness;
+      s.origin.x += r.size.width - vthickness;
       NSRectFill (s);
     }
 }
 
+/* Set up colors for the relief lines around glyph string S.  */
 
 static void
-ns_draw_relief (NSRect r, int thickness, char raised_p,
-               char top_p, char bottom_p, char left_p, char right_p,
-               struct glyph_string *s)
+ns_setup_relief_colors (struct glyph_string *s)
+{
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+  NSColor *color;
+
+  if (s->face->use_box_color_for_shadows_p)
+    color = [NSColor colorWithUnsignedLong: s->face->box_color];
+  else
+    color = [NSColor colorWithUnsignedLong: s->face->background];
+
+  if (s->hl == DRAW_CURSOR)
+    color = FRAME_CURSOR_COLOR (s->f);
+
+  if (color == nil)
+    color = [NSColor grayColor];
+
+  if (color != di->relief_background_color)
+    {
+      [di->relief_background_color release];
+      di->relief_background_color = [color retain];
+      [di->light_relief_color release];
+      di->light_relief_color = [[color highlightWithLevel: 0.4] retain];
+      [di->dark_relief_color release];
+      di->dark_relief_color = [[color shadowWithLevel: 0.4] retain];
+    }
+}
+
+static void
+ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
+		char top_p, char bottom_p, char left_p, char right_p,
+		struct glyph_string *s)
 /* --------------------------------------------------------------------------
     Draw a relief rect inside r, optionally leaving some sides open.
     Note we can't just use an NSDrawBezel command, because of the possibility
     of some sides not being drawn, and because the rect will be filled.
    -------------------------------------------------------------------------- */
 {
-  static NSColor *baseCol = nil, *lightCol = nil, *darkCol = nil;
-  NSColor *newBaseCol = nil;
-  NSRect sr = r;
+  NSRect inner;
+  NSBezierPath *p = nil;
 
   NSTRACE ("ns_draw_relief");
 
   /* set up colors */
+  ns_setup_relief_colors (s);
 
-  if (s->face->use_box_color_for_shadows_p)
+  /* Calculate the inner rectangle.  */
+  inner = outer;
+
+  if (left_p)
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->box_color, s->f);
+      inner.origin.x += vthickness;
+      inner.size.width -= vthickness;
     }
-/*     else if (s->first_glyph->type == IMAGE_GLYPH
-	   && s->img->pixmap
-   	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
-       {
-         newBaseCol = IMAGE_BACKGROUND  (s->img, s->f, 0);
-       } */
+
+  if (right_p)
+    inner.size.width -= vthickness;
+
+  if (top_p)
+    {
+      inner.origin.y += hthickness;
+      inner.size.height -= hthickness;
+    }
+
+  if (bottom_p)
+    inner.size.height -= hthickness;
+
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+
+  [(raised_p ? di->light_relief_color : di->dark_relief_color) set];
+
+  if (top_p || left_p)
+    {
+      p = [NSBezierPath bezierPath];
+
+      [p moveToPoint: NSMakePoint (NSMinX (outer), NSMinY (outer))];
+      if (top_p)
+        {
+          [p lineToPoint: NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint: NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+        }
+      [p lineToPoint: NSMakePoint (NSMinX (inner), NSMinY (inner))];
+      if (left_p)
+        {
+          [p lineToPoint: NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint: NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+        }
+      [p closePath];
+      [p fill];
+    }
+
+  [(raised_p ? di->dark_relief_color : di->light_relief_color) set];
+
+  if (bottom_p || right_p)
+    {
+      p = [NSBezierPath bezierPath];
+
+      [p moveToPoint: NSMakePoint (NSMaxX (outer), NSMaxY (outer))];
+      if (right_p)
+        {
+          [p lineToPoint: NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint: NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+        }
+      [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMaxY (inner))];
+      if (bottom_p)
+        {
+          [p lineToPoint: NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint: NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+        }
+      [p closePath];
+      [p fill];
+    }
+
+  /* If one of h/vthickness are more than 1, draw the outermost line
+     on the respective sides in the black relief color.  */
+
+  if (p)
+    [p removeAllPoints];
   else
+    p = [NSBezierPath bezierPath];
+
+  if (hthickness > 1 && top_p)
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->background, s->f);
+      [p moveToPoint: NSMakePoint (NSMinX (outer),
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMaxX (outer),
+				   NSMinY (outer) + 0.5)];
     }
 
-  if (newBaseCol == nil)
-    newBaseCol = [NSColor grayColor];
-
-  if (newBaseCol != baseCol)  /* TODO: better check */
+  if (hthickness > 1 && bottom_p)
     {
-      [baseCol release];
-      baseCol = [newBaseCol retain];
-      [lightCol release];
-      lightCol = [[baseCol highlightWithLevel: 0.2] retain];
-      [darkCol release];
-      darkCol = [[baseCol shadowWithLevel: 0.3] retain];
+      [p moveToPoint: NSMakePoint (NSMinX (outer),
+				   NSMaxY (outer) - 0.5)];
+      [p lineToPoint: NSMakePoint (NSMaxX (outer),
+				   NSMaxY (outer) - 0.5)];
     }
 
-  [(raised_p ? lightCol : darkCol) set];
+  if (vthickness > 1 && left_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMaxY (outer) - 0.5)];
+    }
 
-  /* TODO: mitering. Using NSBezierPath doesn't work because of color switch.  */
+  if (vthickness > 1 && left_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMaxY (outer) - 0.5)];
+    }
 
-  /* top */
-  sr.size.height = thickness;
-  if (top_p) NSRectFill (sr);
+  [di->dark_relief_color set];
+  [p stroke];
 
-  /* left */
-  sr.size.height = r.size.height;
-  sr.size.width = thickness;
-  if (left_p) NSRectFill (sr);
+  if (vthickness > 1 && hthickness > 1)
+    {
+      [FRAME_BACKGROUND_COLOR (s->f) set];
 
-  [(raised_p ? darkCol : lightCol) set];
+      if (left_p && top_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMinX (outer),
+					    NSMinY (outer),
+					    1, 1)];
 
-  /* bottom */
-  sr.size.width = r.size.width;
-  sr.size.height = thickness;
-  sr.origin.y += r.size.height - thickness;
-  if (bottom_p) NSRectFill (sr);
+      if (right_p && top_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMaxX (outer) - 1,
+					    NSMinY (outer),
+					    1, 1)];
 
-  /* right */
-  sr.size.height = r.size.height;
-  sr.origin.y = r.origin.y;
-  sr.size.width = thickness;
-  sr.origin.x += r.size.width - thickness;
-  if (right_p) NSRectFill (sr);
+      if (right_p && bottom_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMaxX (outer) - 1,
+					    NSMaxY (outer) - 1,
+					    1, 1)];
+
+      if (left_p && bottom_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMinX (outer),
+					    NSMaxY (outer) - 1,
+					    1, 1)];
+    }
 }
 
 
@@ -3758,28 +3672,32 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   char left_p, right_p;
   struct glyph *last_glyph;
   NSRect r;
-  int thickness;
-  struct face *face;
+  int hthickness, vthickness;
+  struct face *face = s->face;
 
-  if (s->hl == DRAW_MOUSE_FACE)
-    {
-      face = FACE_FROM_ID_OR_NULL (s->f,
-				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-      if (!face)
-        face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-    }
-  else
-    face = s->face;
-
-  thickness = face->box_line_width;
+  vthickness = face->box_vertical_line_width;
+  hthickness = face->box_horizontal_line_width;
 
   NSTRACE ("ns_dumpglyphs_box_or_relief");
 
   last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
 	    ? WINDOW_RIGHT_EDGE_X (s->w)
 	    : window_box_right (s->w, s->area));
-  last_glyph = (s->cmp || s->img
-                ? s->first_glyph : s->first_glyph + s->nchars-1);
+  if (s->cmp || s->img)
+    last_glyph = s->first_glyph;
+  else if (s->first_glyph->type == COMPOSITE_GLYPH
+	   && s->first_glyph->u.cmp.automatic)
+    {
+        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
+	struct glyph *g = s->first_glyph;
+	for (last_glyph = g++;
+	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
+	       && g->slice.cmp.to < s->cmp_to;
+	     last_glyph = g++)
+	  ;
+    }
+  else
+    last_glyph = s->first_glyph + s->nchars - 1;
 
   right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
 	      ? last_x - 1 : min (last_x, s->x + s->background_width) - 1));
@@ -3796,14 +3714,15 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   /* TODO: Sometimes box_color is 0 and this seems wrong; should investigate.  */
   if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
-      ns_draw_box (r, abs (thickness),
-                   ns_lookup_indexed_color (face->box_color, s->f),
-                  left_p, right_p);
+      ns_draw_box (r, abs (hthickness), abs (vthickness),
+                   [NSColor colorWithUnsignedLong:face->box_color],
+                   left_p, right_p);
     }
   else
     {
-      ns_draw_relief (r, abs (thickness), s->face->box == FACE_RAISED_BOX,
-                     1, 1, left_p, right_p, s);
+      ns_draw_relief (r, abs (hthickness), abs (vthickness),
+                      s->face->box == FACE_RAISED_BOX,
+                      1, 1, left_p, right_p, s);
     }
 }
 
@@ -3819,7 +3738,8 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 
   if (!s->background_filled_p/* || s->hl == DRAW_MOUSE_FACE*/)
     {
-      int box_line_width = max (s->face->box_line_width, 0);
+      int box_line_width = max (s->face->box_horizontal_line_width, 0);
+
       if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
 	     dimensions, since the actual glyphs might be much
@@ -3828,40 +3748,118 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	  || FONT_TOO_HIGH (s->font)
           || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
 	{
-          struct face *face;
-          if (s->hl == DRAW_MOUSE_FACE)
-            {
-              face
-		= FACE_FROM_ID_OR_NULL (s->f,
-					MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-              if (!face)
-                face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-            }
-          else
-            face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+          struct face *face = s->face;
           if (!face->stipple)
-            [(NS_FACE_BACKGROUND (face) != 0
-              ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
-              : FRAME_BACKGROUND_COLOR (s->f)) set];
+	    {
+	      if (s->hl != DRAW_CURSOR)
+		[(NS_FACE_BACKGROUND (face) != 0
+		  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+		  : FRAME_BACKGROUND_COLOR (s->f)) set];
+	      else
+		[FRAME_CURSOR_COLOR (s->f) set];
+	    }
           else
             {
               struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
               [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
             }
 
-          if (s->hl != DRAW_CURSOR)
-            {
-              NSRect r = NSMakeRect (s->x, s->y + box_line_width,
-                                    s->background_width,
-                                    s->height-2*box_line_width);
-              NSRectFill (r);
-            }
+	  NSRect r = NSMakeRect (s->x, s->y + box_line_width,
+				 s->background_width,
+				 s->height - 2 * box_line_width);
+	  NSRectFill (r);
 
 	  s->background_filled_p = 1;
 	}
     }
 }
 
+static void
+ns_draw_image_relief (struct glyph_string *s)
+{
+  int x1, y1, thick;
+  bool raised_p, top_p, bot_p, left_p, right_p;
+  int extra_x, extra_y;
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
+
+  /* If first glyph of S has a left box line, start drawing it to the
+     right of that line.  */
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += max (s->face->box_vertical_line_width, 0);
+
+  /* If there is a margin around the image, adjust x- and y-position
+     by that margin.  */
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
+
+  if (s->hl == DRAW_IMAGE_SUNKEN
+      || s->hl == DRAW_IMAGE_RAISED)
+    {
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
+      raised_p = s->hl == DRAW_IMAGE_RAISED;
+    }
+  else
+    {
+      thick = eabs (s->img->relief);
+      raised_p = s->img->relief > 0;
+    }
+
+  x1 = x + s->slice.width - 1;
+  y1 = y + s->slice.height - 1;
+
+  extra_x = extra_y = 0;
+  if (s->face->id == TAB_BAR_FACE_ID)
+    {
+      if (CONSP (Vtab_bar_button_margin)
+	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
+	{
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
+	}
+      else if (FIXNUMP (Vtab_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
+    }
+
+  if (s->face->id == TOOL_BAR_FACE_ID)
+    {
+      if (CONSP (Vtool_bar_button_margin)
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
+	{
+	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
+	}
+      else if (FIXNUMP (Vtool_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
+    }
+
+  top_p = bot_p = left_p = right_p = false;
+
+  if (s->slice.x == 0)
+    x -= thick + extra_x, left_p = true;
+  if (s->slice.y == 0)
+    y -= thick + extra_y, top_p = true;
+  if (s->slice.x + s->slice.width == s->img->width)
+    x1 += thick + extra_x, right_p = true;
+  if (s->slice.y + s->slice.height == s->img->height)
+    y1 += thick + extra_y, bot_p = true;
+
+  ns_draw_relief (NSMakeRect (x, y, x1 - x + 1, y1 - y + 1), thick,
+		  thick, raised_p, top_p, bot_p, left_p, right_p, s);
+}
 
 static void
 ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
@@ -3870,20 +3868,18 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
    -------------------------------------------------------------------------- */
 {
   EmacsImage *img = s->img->pixmap;
-  int box_line_vwidth = max (s->face->box_line_width, 0);
+  int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
   int x = s->x, y = s->ybase - image_ascent (s->img, s->face, &s->slice);
   int bg_x, bg_y, bg_height;
-  int th;
-  char raised_p;
   NSRect br;
-  struct face *face;
+  struct face *face = s->face;
   NSColor *tdCol;
 
   NSTRACE ("ns_dumpglyphs_image");
 
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += max (s->face->box_vertical_line_width, 0);
 
   bg_x = x;
   bg_y =  s->slice.y == 0 ? s->y : s->y + box_line_vwidth;
@@ -3897,17 +3893,8 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   /* Draw BG: if we need larger area than image itself cleared, do that,
      otherwise, since we composite the image under NS (instead of mucking
      with its background color), we must clear just the image area.  */
-  if (s->hl == DRAW_MOUSE_FACE)
-    {
-      face = FACE_FROM_ID_OR_NULL (s->f,
-				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-      if (!face)
-       face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-    }
-  else
-    face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
 
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -3955,164 +3942,188 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
       [doTransform concat];
 
+      /* Smoothing is the default, so if we don't want smoothing we
+         have to turn it off.  */
+      if (! img->smoothing)
+        [[NSGraphicsContext currentContext]
+          setImageInterpolation:NSImageInterpolationNone];
+
       [img drawInRect:ir fromRect:ir
             operation:NSCompositingOperationSourceOver
              fraction:1.0 respectFlipped:YES hints:nil];
+
+      /* Apparently image interpolation is not reset with
+         restoreGraphicsState, so we have to manually reset it.  */
+      if (! img->smoothing)
+        [[NSGraphicsContext currentContext]
+          setImageInterpolation:NSImageInterpolationDefault];
 
       [[NSGraphicsContext currentContext] restoreGraphicsState];
     }
 
   if (s->hl == DRAW_CURSOR)
     {
-    [FRAME_CURSOR_COLOR (s->f) set];
-    if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
-      tdCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
-    else
-      /* Currently on NS img->mask is always 0.  Since
-         get_window_cursor_type specifies a hollow box cursor when on
-         a non-masked image we never reach this clause.  But we put it
-         in, in anticipation of better support for image masks on
-         NS.  */
-      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+      [FRAME_CURSOR_COLOR (s->f) set];
+      tdCol = [NSColor colorWithUnsignedLong: NS_FACE_BACKGROUND (face)];
     }
   else
-    {
-      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
-    }
+    tdCol = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (face)];
 
   /* Draw underline, overline, strike-through.  */
   ns_draw_text_decoration (s, face, tdCol, br.size.width, br.origin.x);
 
-  /* Draw relief, if requested */
-  if (s->img->relief || s->hl ==DRAW_IMAGE_RAISED || s->hl ==DRAW_IMAGE_SUNKEN)
-    {
-      if (s->hl == DRAW_IMAGE_SUNKEN || s->hl == DRAW_IMAGE_RAISED)
-        {
-          th = (tool_bar_button_relief < 0
-		? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		: min (tool_bar_button_relief, 1000000));
-          raised_p = (s->hl == DRAW_IMAGE_RAISED);
-        }
-      else
-        {
-          th = abs (s->img->relief);
-          raised_p = (s->img->relief > 0);
-        }
+  /* If we must draw a relief around the image, do it.  */
+  if (s->img->relief
+      || s->hl == DRAW_IMAGE_RAISED
+      || s->hl == DRAW_IMAGE_SUNKEN)
+    ns_draw_image_relief (s);
 
-      r.origin.x = x - th;
-      r.origin.y = y - th;
-      r.size.width = s->slice.width + 2*th-1;
-      r.size.height = s->slice.height + 2*th-1;
-      ns_draw_relief (r, th, raised_p,
-                      s->slice.y == 0,
-                      s->slice.y + s->slice.height == s->img->height,
-                      s->slice.x == 0,
-                      s->slice.x + s->slice.width == s->img->width, s);
-    }
-
-  /* If there is no mask, the background won't be seen,
-     so draw a rectangle on the image for the cursor.
-     Do this for all images, getting transparency right is not reliable.  */
+  /* If there is no mask, the background won't be seen, so draw a
+     rectangle on the image for the cursor.  Do this for all images,
+     getting transparency right is not reliable.  */
   if (s->hl == DRAW_CURSOR)
     {
       int thickness = abs (s->img->relief);
       if (thickness == 0) thickness = 1;
-      ns_draw_box (br, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
+      ns_draw_box (br, thickness, thickness,
+		   FRAME_CURSOR_COLOR (s->f), 1, 1);
     }
 }
 
 
 static void
-ns_dumpglyphs_stretch (struct glyph_string *s)
+ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  NSRect r[2];
-  NSRect glyphRect;
-  int n;
   struct face *face;
-  NSColor *fgCol, *bgCol;
+  NSColor *fg_color;
 
-  if (!s->background_filled_p)
+  if (s->hl == DRAW_CURSOR
+      && !x_stretch_cursor_p)
     {
-      n = ns_get_glyph_string_clip_rect (s, r);
-      ns_focus (s->f, r, n);
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
+      int width, background_width = s->background_width;
+      int x = s->x;
 
-      if (s->hl == DRAW_MOUSE_FACE)
-        {
-          face = FACE_FROM_ID_OR_NULL (s->f,
-                                       MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-          if (!face)
-            face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-        }
+      if (!s->row->reversed_p)
+	{
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
       else
-        face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right (s->w, TEXT_AREA);
 
-      bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
-      fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
+	}
 
-      glyphRect = NSMakeRect (s->x, s->y, s->background_width, s->height);
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
-      [bgCol set];
-
-      /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
-         overwriting cursor (usually when cursor on a tab) */
       if (s->hl == DRAW_CURSOR)
-        {
-          CGFloat x, width;
-
-          /* FIXME: This looks like it will only work for left to
-             right languages.  */
-          x = NSMinX (glyphRect);
-          width = s->w->phys_cursor_width;
-          glyphRect.size.width -= width;
-          glyphRect.origin.x += width;
-
-          NSRectFill (glyphRect);
-
-          /* Draw overlining, etc. on the cursor. */
-          if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
-            ns_draw_text_decoration (s, face, bgCol, width, x);
-          else
-            ns_draw_text_decoration (s, face, fgCol, width, x);
-        }
+	[FRAME_CURSOR_COLOR (s->f) set];
       else
-        {
-          NSRectFill (glyphRect);
-        }
+	[[NSColor colorWithUnsignedLong: s->face->foreground] set];
 
-      /* Draw overlining, etc. on the stretch glyph (or the part
-         of the stretch glyph after the cursor). */
-      ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
-                               NSMinX (glyphRect));
+      NSRectFill (NSMakeRect (x, s->y, width, s->height));
 
-      ns_unfocus (s->f);
-      s->background_filled_p = 1;
+      /* Clear rest using the GC of the original non-cursor face.  */
+      if (width < background_width)
+	{
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
+
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
+
+	  if (s->row->mouse_face_p
+	      && cursor_in_mouse_face_p (s->w))
+	    {
+	      face = FACE_FROM_ID_OR_NULL (s->f,
+					   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+
+	      if (!s->face)
+		face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+	      prepare_face_for_display (s->f, face);
+
+	      [[NSColor colorWithUnsignedLong: face->background] set];
+	    }
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+	  NSRectFill (NSMakeRect (x, y, w, h));
+	}
+    }
+  else if (!s->background_filled_p)
+    {
+      int background_width = s->background_width;
+      int x = s->x, text_left_x = window_box_left (s->w, TEXT_AREA);
+
+      /* Don't draw into left fringe or scrollbar area except for
+         header line and mode line.  */
+      if (s->area == TEXT_AREA
+	  && x < text_left_x && !s->row->mode_line_p)
+	{
+	  background_width -= text_left_x - x;
+	  x = text_left_x;
+	}
+
+      if (!s->row->stipple_p)
+	s->row->stipple_p = s->stippled_p;
+
+      if (background_width > 0)
+	{
+	  if (s->hl == DRAW_CURSOR)
+	    [FRAME_CURSOR_COLOR (s->f) set];
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+
+	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
+	}
+    }
+
+  /* Draw overlining, etc. on the stretch glyph (or the part of the
+     stretch glyph after the cursor).  If the glyph has a box, then
+     decorations will be drawn after drawing the box in
+     ns_draw_glyph_string, in order to prevent them from being
+     overwritten by the box.  */
+  if (s->face->box == FACE_NO_BOX)
+    {
+      fg_color = [NSColor colorWithUnsignedLong:
+			    NS_FACE_FOREGROUND (s->face)];
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
     }
 }
-
 
 static void
 ns_draw_glyph_string_foreground (struct glyph_string *s)
 {
-  int x, flags;
+  int x;
   struct font *font = s->font;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
-  flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
-    (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
-     (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
-      NS_DUMPGLYPH_NORMAL));
-
   font->driver->draw
     (s, s->cmp_from, s->nchars, x, s->ybase,
-     (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-     || flags == NS_DUMPGLYPH_MOUSEFACE);
+     !s->for_overlaps && !s->background_filled_p);
 }
 
 
@@ -4126,7 +4137,7 @@ ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + eabs (s->face->box_line_width);
+    x = s->x + max (s->face->box_vertical_line_width, 0);
   else
     x = s->x;
 
@@ -4142,7 +4153,7 @@ ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
       if (s->cmp_from == 0)
         {
           NSRect r = NSMakeRect (s->x, s->y, s->width-1, s->height -1);
-          ns_draw_box (r, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
+          ns_draw_box (r, 1, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
         }
     }
   else if (! s->first_glyph->u.cmp.automatic)
@@ -4206,6 +4217,92 @@ ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
     }
 }
 
+/* Draw the foreground of glyph string S for glyphless characters.  */
+static void
+ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
+{
+  struct glyph *glyph = s->first_glyph;
+  NSGlyph char2b[8];
+  int x, i, j;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + max (s->face->box_vertical_line_width, 0);
+  else
+    x = s->x;
+
+  s->char2b = char2b;
+
+  for (i = 0; i < s->nchars; i++, glyph++)
+    {
+#ifdef GCC_LINT
+      enum { PACIFY_GCC_BUG_81401 = 1 };
+#else
+      enum { PACIFY_GCC_BUG_81401 = 0 };
+#endif
+      char buf[8 + PACIFY_GCC_BUG_81401];
+      char *str = NULL;
+      int len = glyph->u.glyphless.len;
+
+      if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
+	{
+	  if (len > 0
+	      && CHAR_TABLE_P (Vglyphless_char_display)
+	      && (CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display))
+		  >= 1))
+	    {
+	      Lisp_Object acronym
+		= (! glyph->u.glyphless.for_no_font
+		   ? CHAR_TABLE_REF (Vglyphless_char_display,
+				     glyph->u.glyphless.ch)
+		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (CONSP (acronym))
+		acronym = XCAR (acronym);
+	      if (STRINGP (acronym))
+		str = SSDATA (acronym);
+	    }
+	}
+      else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
+	{
+	  unsigned int ch = glyph->u.glyphless.ch;
+	  eassume (ch <= MAX_CHAR);
+	  snprintf (buf, 8, "%0*X", ch < 0x10000 ? 4 : 6, ch);
+	  str = buf;
+	}
+
+      if (str)
+	{
+	  int upper_len = (len + 1) / 2;
+
+	  /* It is assured that all LEN characters in STR is ASCII.  */
+	  for (j = 0; j < len; j++)
+            char2b[j] = s->font->driver->encode_char (s->font, str[j]) & 0xFFFF;
+	  s->font->driver->draw (s, 0, upper_len,
+				 x + glyph->slice.glyphless.upper_xoff,
+				 s->ybase + glyph->slice.glyphless.upper_yoff,
+				 false);
+	  s->font->driver->draw (s, upper_len, len,
+				 x + glyph->slice.glyphless.lower_xoff,
+				 s->ybase + glyph->slice.glyphless.lower_yoff,
+				 false);
+	}
+      if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
+        ns_draw_box (NSMakeRect (x, s->ybase - glyph->ascent,
+                                 glyph->pixel_width - 1,
+                                 glyph->ascent + glyph->descent - 1),
+                     1, 1,
+                     [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)],
+                     YES, YES);
+      x += glyph->pixel_width;
+   }
+
+  /* GCC 12 complains even though nothing ever uses s->char2b after
+     this function returns.  */
+  s->char2b = NULL;
+}
+
 static void
 ns_draw_glyph_string (struct glyph_string *s)
 /* --------------------------------------------------------------------------
@@ -4219,9 +4316,9 @@ ns_draw_glyph_string (struct glyph_string *s)
   struct font *font = s->face->font;
   if (! font) font = FRAME_FONT (s->f);
 
-  NSTRACE_WHEN (NSTRACE_GROUP_GLYPHS, "ns_draw_glyph_string");
+  NSTRACE ("ns_draw_glyph_string (hl = %u)", s->hl);
 
-  if (s->next && s->right_overhang && !s->for_overlaps/*&&s->hl!=DRAW_CURSOR*/)
+  if (s->next && s->right_overhang && !s->for_overlaps)
     {
       int width;
       struct glyph_string *next;
@@ -4231,17 +4328,13 @@ ns_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
+	    n = ns_get_glyph_string_clip_rect (s->next, r);
+	    ns_focus (s->f, r, n);
             if (next->first_glyph->type != STRETCH_GLYPH)
-              {
-                n = ns_get_glyph_string_clip_rect (s->next, r);
-                ns_focus (s->f, r, n);
-                ns_maybe_dumpglyphs_background (s->next, 1);
-                ns_unfocus (s->f);
-              }
-            else
-              {
-                ns_dumpglyphs_stretch (s->next);
-              }
+	      ns_maybe_dumpglyphs_background (s->next, 1);
+	    else
+	      ns_draw_stretch_glyph_string (s->next);
+	    ns_unfocus (s->f);
             next->num_clips = 0;
           }
     }
@@ -4258,83 +4351,68 @@ ns_draw_glyph_string (struct glyph_string *s)
       box_drawn_p = 1;
     }
 
+  n = ns_get_glyph_string_clip_rect (s, r);
+
+  if (!s->clip_head /* draw_glyphs didn't specify a clip mask. */
+      && !s->clip_tail
+      && ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	  || (s->next && s->next->hl != s->hl && s->right_overhang)))
+    r[0] = NSIntersectionRect (r[0], NSMakeRect (s->x, s->y, s->width, s->height));
+
+  ns_focus (s->f, r, n);
+
   switch (s->first_glyph->type)
     {
 
     case IMAGE_GLYPH:
-      n = ns_get_glyph_string_clip_rect (s, r);
-      ns_focus (s->f, r, n);
       ns_dumpglyphs_image (s, r[0]);
-      ns_unfocus (s->f);
+      break;
+
+    case XWIDGET_GLYPH:
+      x_draw_xwidget_glyph_string (s);
       break;
 
     case STRETCH_GLYPH:
-      ns_dumpglyphs_stretch (s);
+      ns_draw_stretch_glyph_string (s);
       break;
 
     case CHAR_GLYPH:
     case COMPOSITE_GLYPH:
-      n = ns_get_glyph_string_clip_rect (s, r);
-      ns_focus (s->f, r, n);
-
-      if (s->for_overlaps || (s->cmp_from > 0
-			      && ! s->first_glyph->u.cmp.automatic))
-        s->background_filled_p = 1;
-      else
-        ns_maybe_dumpglyphs_background
-          (s, s->first_glyph->type == COMPOSITE_GLYPH);
-
-      if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
-        {
-          unsigned long tmp = NS_FACE_BACKGROUND (s->face);
-          NS_FACE_BACKGROUND (s->face) = NS_FACE_FOREGROUND (s->face);
-          NS_FACE_FOREGROUND (s->face) = tmp;
-        }
-
       {
-        BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
+	BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
+	if (s->for_overlaps || (isComposite
+				&& (s->cmp_from > 0
+				    && ! s->first_glyph->u.cmp.automatic)))
+	  s->background_filled_p = 1;
+	else
+	  ns_maybe_dumpglyphs_background
+	    (s, s->first_glyph->type == COMPOSITE_GLYPH);
 
-        if (isComposite)
-          ns_draw_composite_glyph_string_foreground (s);
-        else
-          ns_draw_glyph_string_foreground (s);
+	if (isComposite)
+	  ns_draw_composite_glyph_string_foreground (s);
+	else
+	  ns_draw_glyph_string_foreground (s);
+
+	{
+	  NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
+			  ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)]
+			  : FRAME_FOREGROUND_COLOR (s->f));
+
+	  /* Draw underline, overline, strike-through. */
+	  ns_draw_text_decoration (s, s->face, col, s->width, s->x);
+	}
       }
 
-      {
-        NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
-                        ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face),
-                                                   s->f)
-                        : FRAME_FOREGROUND_COLOR (s->f));
-        [col set];
-
-        /* Draw underline, overline, strike-through. */
-        ns_draw_text_decoration (s, s->face, col, s->width, s->x);
-      }
-
-      if (s->hl == DRAW_CURSOR && s->w->phys_cursor_type == FILLED_BOX_CURSOR)
-        {
-          unsigned long tmp = NS_FACE_BACKGROUND (s->face);
-          NS_FACE_BACKGROUND (s->face) = NS_FACE_FOREGROUND (s->face);
-          NS_FACE_FOREGROUND (s->face) = tmp;
-        }
-
-      ns_unfocus (s->f);
       break;
 
     case GLYPHLESS_GLYPH:
-      n = ns_get_glyph_string_clip_rect (s, r);
-      ns_focus (s->f, r, n);
-
       if (s->for_overlaps || (s->cmp_from > 0
 			      && ! s->first_glyph->u.cmp.automatic))
         s->background_filled_p = 1;
       else
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
-      /* ... */
-      /* Not yet implemented.  */
-      /* ... */
-      ns_unfocus (s->f);
+      ns_draw_glyphless_glyph_string_foreground (s);
       break;
 
     default:
@@ -4343,13 +4421,103 @@ ns_draw_glyph_string (struct glyph_string *s)
 
   /* Draw box if not done already.  */
   if (!s->for_overlaps && !box_drawn_p && s->face->box != FACE_NO_BOX)
+    ns_dumpglyphs_box_or_relief (s);
+
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->type == STRETCH_GLYPH)
     {
-      n = ns_get_glyph_string_clip_rect (s, r);
-      ns_focus (s->f, r, n);
-      ns_dumpglyphs_box_or_relief (s);
+      NSColor *fg_color;
+
+      fg_color = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (s->face)];
+
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
+
+  ns_unfocus (s->f);
+
+  /* Draw surrounding overhangs. */
+  if (s->prev)
+    {
+      ns_focus (s->f, NULL, 0);
+      struct glyph_string *prev;
+
+      for (prev = s->prev; prev; prev = prev->prev)
+	if (prev->hl != s->hl
+	    && prev->x + prev->width + prev->right_overhang > s->x)
+	  {
+	    /* As prev was drawn while clipped to its own area, we
+	       must draw the right_overhang part using s->hl now.  */
+	    enum draw_glyphs_face save = prev->hl;
+
+	    prev->hl = s->hl;
+	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
+	    [[NSGraphicsContext currentContext] saveGraphicsState];
+	    NSRectClip (r);
+	    if (n)
+	      NSRectClip (rc);
+#ifdef NS_IMPL_GNUSTEP
+	    DPSgsave ([NSGraphicsContext currentContext]);
+	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
+			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
+#endif
+	    if (prev->first_glyph->type == CHAR_GLYPH)
+	      ns_draw_glyph_string_foreground (prev);
+	    else
+	      ns_draw_composite_glyph_string_foreground (prev);
+#ifdef NS_IMPL_GNUSTEP
+	    DPSgrestore ([NSGraphicsContext currentContext]);
+#endif
+	    [[NSGraphicsContext currentContext] restoreGraphicsState];
+	    prev->hl = save;
+	  }
       ns_unfocus (s->f);
     }
 
+  if (s->next)
+    {
+      ns_focus (s->f, NULL, 0);
+      struct glyph_string *next;
+
+      for (next = s->next; next; next = next->next)
+	if (next->hl != s->hl
+	    && next->x - next->left_overhang < s->x + s->width)
+	  {
+	    /* As next will be drawn while clipped to its own area,
+	       we must draw the left_overhang part using s->hl now.  */
+	    enum draw_glyphs_face save = next->hl;
+
+	    next->hl = s->hl;
+	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
+	    [[NSGraphicsContext currentContext] saveGraphicsState];
+	    NSRectClip (r);
+	    NSRectClip (rc);
+#ifdef NS_IMPL_GNUSTEP
+	    DPSgsave ([NSGraphicsContext currentContext]);
+	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
+			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
+#endif
+	    if (next->first_glyph->type == CHAR_GLYPH)
+	      ns_draw_glyph_string_foreground (next);
+	    else
+	      ns_draw_composite_glyph_string_foreground (next);
+#ifdef NS_IMPL_GNUSTEP
+	    DPSgrestore ([NSGraphicsContext currentContext]);
+#endif
+	    [[NSGraphicsContext currentContext] restoreGraphicsState];
+	    next->hl = save;
+	    next->clip_head = s->next;
+	  }
+      ns_unfocus (s->f);
+    }
   s->num_clips = 0;
 }
 
@@ -4456,86 +4624,16 @@ check_native_fs ()
 }
 #endif
 
-/* GNUstep does not have cancelTracking.  */
-#ifdef NS_IMPL_COCOA
-/* Check if menu open should be canceled or continued as normal.  */
-void
-ns_check_menu_open (NSMenu *menu)
-{
-  /* Click in menu bar?  */
-  NSArray *a = [[NSApp mainMenu] itemArray];
-  int i;
-  BOOL found = NO;
-
-  if (menu == nil) // Menu tracking ended.
-    {
-      if (menu_will_open_state == MENU_OPENING)
-        menu_will_open_state = MENU_NONE;
-      return;
-    }
-
-  for (i = 0; ! found && i < [a count]; i++)
-    found = menu == [[a objectAtIndex:i] submenu];
-  if (found)
-    {
-      if (menu_will_open_state == MENU_NONE && emacs_event)
-        {
-          NSEvent *theEvent = [NSApp currentEvent];
-          struct frame *emacsframe = SELECTED_FRAME ();
-
-          /* On macOS, the following can cause an event loop when the
-             Spotlight for Help search field is populated.  Avoid this by
-             not postponing mouse drag and non-user-generated mouse down
-             events (Bug#31371).  */
-          if (([theEvent type] == NSEventTypeLeftMouseDown)
-              && [theEvent eventNumber])
-            {
-              [menu cancelTracking];
-              menu_will_open_state = MENU_PENDING;
-              emacs_event->kind = MENU_BAR_ACTIVATE_EVENT;
-              EV_TRAILER (theEvent);
-
-              CGEventRef ourEvent = CGEventCreate (NULL);
-              menu_mouse_point = CGEventGetLocation (ourEvent);
-              CFRelease (ourEvent);
-            }
-        }
-      else if (menu_will_open_state == MENU_OPENING)
-        {
-          menu_will_open_state = MENU_NONE;
-        }
-    }
-}
-
-/* Redo saved menu click if state is MENU_PENDING.  */
-void
-ns_check_pending_open_menu ()
-{
-  if (menu_will_open_state == MENU_PENDING)
-    {
-      CGEventSourceRef source
-        = CGEventSourceCreate (kCGEventSourceStateHIDSystemState);
-
-      CGEventRef event = CGEventCreateMouseEvent (source,
-                                                  kCGEventLeftMouseDown,
-                                                  menu_mouse_point,
-                                                  kCGMouseButtonLeft);
-      CGEventSetType (event, kCGEventLeftMouseDown);
-      CGEventPost (kCGHIDEventTap, event);
-      CFRelease (event);
-      CFRelease (source);
-
-      menu_will_open_state = MENU_OPENING;
-    }
-}
-#endif /* NS_IMPL_COCOA */
 
 static int
-ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
+ns_read_socket_1 (struct terminal *terminal, struct input_event *hold_quit,
+		  BOOL no_release)
 /* --------------------------------------------------------------------------
      External (hook): Post an event to ourself and keep reading events until
      we read it back again.  In effect process all events which were waiting.
      From 21+ we have to manage the event buffer ourselves.
+
+     NO_RELEASE means not to touch the global autorelease pool.
    -------------------------------------------------------------------------- */
 {
   struct input_event ev;
@@ -4566,11 +4664,14 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       ns_init_events (&ev);
       q_event_ptr = hold_quit;
 
-      /* We manage autorelease pools by allocate/reallocate each time around
-         the loop; strict nesting is occasionally violated but seems not to
-         matter... earlier methods using full nesting caused major memory leaks.  */
-      [outerpool release];
-      outerpool = [[NSAutoreleasePool alloc] init];
+      if (!no_release)
+	{
+	  /* We manage autorelease pools by allocate/reallocate each time around
+	     the loop; strict nesting is occasionally violated but seems not to
+	     matter... earlier methods using full nesting caused major memory leaks.  */
+	  [outerpool release];
+	  outerpool = [[NSAutoreleasePool alloc] init];
+	}
 
       /* If have pending open-file requests, attend to the next one of those.  */
       if (ns_pending_files && [ns_pending_files count] != 0
@@ -4609,11 +4710,17 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   return nevents;
 }
 
+static int
+ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
+{
+  return ns_read_socket_1 (terminal, hold_quit, NO);
+}
 
-int
-ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-	   fd_set *exceptfds, struct timespec *timeout,
-	   sigset_t *sigmask)
+
+static int
+ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
+	     fd_set *exceptfds, struct timespec *timeout,
+	     sigset_t *sigmask, BOOL run_loop_only)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -4629,7 +4736,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   check_native_fs ();
 #endif
 
-  if (hold_event_q.nr > 0)
+  if (hold_event_q.nr > 0 && !run_loop_only)
     {
       /* We already have events pending.  */
       raise (SIGIO);
@@ -4637,7 +4744,8 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       return -1;
     }
 
-  for (k = 0; k < nfds+1; k++)
+  eassert (nfds <= FD_SETSIZE);
+  for (k = 0; k < nfds; k++)
     {
       if (readfds && FD_ISSET(k, readfds)) ++nr;
       if (writefds && FD_ISSET(k, writefds)) ++nr;
@@ -4646,16 +4754,30 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (NSApp == nil
       || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
-    return thread_select(pselect, nfds, readfds, writefds,
-                         exceptfds, timeout, sigmask);
+    return thread_select (pselect, nfds, readfds, writefds,
+			  exceptfds, timeout, sigmask);
   else
     {
       struct timespec t = {0, 0};
-      thread_select(pselect, 0, NULL, NULL, NULL, &t, sigmask);
+      thread_select (pselect, 0, NULL, NULL, NULL, &t, sigmask);
     }
 
-  [outerpool release];
-  outerpool = [[NSAutoreleasePool alloc] init];
+  /* FIXME: This draining of outerpool causes a crash when a buffer
+     running over tramp is displayed and the user tries to use the
+     menus.  I believe some other autorelease pool's lifetime
+     straddles this call causing a violation of autorelease pool
+     nesting.  There's no good reason to keep these here since the
+     pool will be drained some other time anyway, but removing them
+     leaves the menus sometimes not opening until the user moves their
+     mouse pointer, but that's better than a crash.
+
+     There must be something about running external processes like
+     tramp that interferes with the modal menu code.
+
+     See bugs 24472, 37557, 37922.  */
+
+  // [outerpool release];
+  // outerpool = [[NSAutoreleasePool alloc] init];
 
 
   send_appdefined = YES;
@@ -4755,9 +4877,18 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   return result;
 }
 
+int
+ns_select (int nfds, fd_set *readfds, fd_set *writefds,
+	   fd_set *exceptfds, struct timespec *timeout,
+	   sigset_t *sigmask)
+{
+  return ns_select_1 (nfds, readfds, writefds, exceptfds,
+		      timeout, sigmask, NO);
+}
+
 #ifdef HAVE_PTHREAD
 void
-ns_run_loop_break ()
+ns_run_loop_break (void)
 /* Break out of the NS run loop in ns_select or ns_read_socket.  */
 {
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_run_loop_break");
@@ -4835,8 +4966,8 @@ ns_set_vertical_scroll_bar (struct window *window,
           [bar removeFromSuperview];
           wset_vertical_scroll_bar (window, Qnil);
           [bar release];
+          ns_clear_frame_area (f, left, top, width, height);
         }
-      ns_clear_frame_area (f, left, top, width, height);
       unblock_input ();
       return;
     }
@@ -4858,7 +4989,7 @@ ns_set_vertical_scroll_bar (struct window *window,
       r.size.width = oldRect.size.width;
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
-          if (oldRect.origin.x != r.origin.x)
+          if (! NSEqualRects (oldRect, r))
               ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
         }
@@ -4936,8 +5067,7 @@ ns_set_horizontal_scroll_bar (struct window *window,
       oldRect = [bar frame];
       if (FRAME_LIVE_P (f) && !NSEqualRects (oldRect, r))
         {
-          if (oldRect.origin.y != r.origin.y)
-            ns_clear_frame_area (f, left, top, width, height);
+          ns_clear_frame_area (f, left, top, width, height);
           [bar setFrame: r];
           update_p = YES;
         }
@@ -5014,19 +5144,14 @@ ns_judge_scroll_bars (struct frame *f)
   id view;
   EmacsView *eview = FRAME_NS_VIEW (f);
   NSArray *subviews = [[eview superview] subviews];
-  BOOL removed = NO;
 
   NSTRACE ("ns_judge_scroll_bars");
   for (i = [subviews count]-1; i >= 0; --i)
     {
       view = [subviews objectAtIndex: i];
       if (![view isKindOfClass: [EmacsScroller class]]) continue;
-      if ([view judge])
-        removed = YES;
+      [view judge];
     }
-
-  if (removed)
-    [eview updateFrameSize: NO];
 }
 
 /* ==========================================================================
@@ -5144,8 +5269,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
-    dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
-    dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* A placeholder.  */
     dpyinfo->highlight_frame = dpyinfo->ns_focus_frame = NULL;
     dpyinfo->n_fonts = 0;
@@ -5163,11 +5286,33 @@ ns_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
 }
 
-/* This and next define (many of the) public functions in this file.  */
-/* gui_* are generic versions in xdisp.c that we, and other terms, get away
-         with using despite presence in the "system dependent" redisplay
-         interface.  In addition, many of the ns_ methods have code that is
-         shared with all terms, indicating need for further refactoring.  */
+#ifdef NS_IMPL_GNUSTEP
+static void
+ns_update_window_end (struct window *w, bool cursor_on_p,
+		      bool mouse_face_overwritten_p)
+{
+  NSTRACE ("ns_update_window_end (cursor_on_p = %d)", cursor_on_p);
+
+  ns_redraw_scroll_bars (WINDOW_XFRAME (w));
+}
+#endif
+
+static void
+ns_flush_display (struct frame *f)
+{
+  struct input_event ie;
+
+  EVENT_INIT (ie);
+  ns_read_socket_1 (FRAME_TERMINAL (f), &ie, YES);
+}
+
+/* This and next define (many of the) public functions in this
+   file.  */
+/* gui_* are generic versions in xdisp.c that we, and other terms, get
+   away with using despite presence in the "system dependent"
+   redisplay interface.  In addition, many of the ns_ methods have
+   code that is shared with all terms, indicating need for further
+   refactoring.  */
 extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
@@ -5179,19 +5324,23 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_scroll_run,
   ns_after_update_window_line,
   NULL, /* update_window_begin */
+#ifndef NS_IMPL_GNUSTEP
   NULL, /* update_window_end   */
-  0, /* flush_display */
+#else
+  ns_update_window_end,
+#endif
+  ns_flush_display,
   gui_clear_window_mouse_face,
   gui_get_glyph_overhangs,
   gui_fix_overlapping_area,
   ns_draw_fringe_bitmap,
-  0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
-  0, /* destroy_fringe_bitmap */
+  ns_define_fringe_bitmap,
+  ns_destroy_fringe_bitmap,
   ns_compute_glyph_string_overhangs,
   ns_draw_glyph_string,
   ns_define_frame_cursor,
   ns_clear_frame_area,
-  0, /* clear_under_internal_border */
+  ns_clear_under_internal_border, /* clear_under_internal_border */
   ns_draw_window_cursor,
   ns_draw_vertical_window_border,
   ns_draw_window_divider,
@@ -5201,6 +5350,39 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_default_font_parameter
 };
 
+#ifdef NS_IMPL_COCOA
+static void
+ns_displays_reconfigured (CGDirectDisplayID display,
+			  CGDisplayChangeSummaryFlags flags,
+			  void *user_info)
+{
+  struct input_event ie;
+  union buffered_input_event *ev;
+  Lisp_Object new_monitors;
+
+  EVENT_INIT (ie);
+
+  new_monitors = Fns_display_monitor_attributes_list (Qnil);
+
+  if (!NILP (Fequal (new_monitors, last_known_monitors)))
+    return;
+
+  last_known_monitors = new_monitors;
+
+  ev = (kbd_store_ptr == kbd_buffer
+	? kbd_buffer + KBD_BUFFER_SIZE - 1
+	: kbd_store_ptr - 1);
+
+  if (kbd_store_ptr != kbd_fetch_ptr
+      && ev->ie.kind == MONITORS_CHANGED_EVENT)
+    return;
+
+  ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (ie.arg, x_display_list->terminal);
+
+  kbd_buffer_store_event (&ie);
+}
+#endif
 
 static void
 ns_delete_display (struct ns_display_info *dpyinfo)
@@ -5223,6 +5405,12 @@ ns_delete_terminal (struct terminal *terminal)
     return;
 
   block_input ();
+
+#ifdef NS_IMPL_COCOA
+  /* Rather than try to clean up the NS environment we can just
+     disable the app and leave it waiting for any new frames.  */
+  [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
+#endif
 
   image_destroy_all_bitmaps (dpyinfo);
   ns_delete_display (dpyinfo);
@@ -5269,7 +5457,6 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->set_new_font_hook = ns_new_font;
   terminal->implicit_set_name_hook = ns_implicitly_set_name;
   terminal->menu_show_hook = ns_menu_show;
-  terminal->activate_menubar_hook = ns_activate_menubar;
   terminal->popup_dialog_hook = ns_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->set_horizontal_scroll_bar_hook = ns_set_horizontal_scroll_bar;
@@ -5282,6 +5469,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->free_pixmap = ns_free_pixmap;
   terminal->delete_frame_hook = ns_destroy_window;
   terminal->delete_terminal_hook = ns_delete_terminal;
+  terminal->change_tab_bar_height_hook = ns_change_tab_bar_height;
   /* Other hooks are NULL by default.  */
 
   return terminal;
@@ -5373,6 +5561,8 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->name = xlispstrdup (display_name);
 
+  gui_init_fringe (terminal->rif);
+
   unblock_input ();
 
   if (!inhibit_x_resources)
@@ -5391,11 +5581,11 @@ ns_term_init (Lisp_Object display_name)
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
-    if ( cl == nil )
+    /* There are 752 colors defined in rgb.txt.  */
+    if ( cl == nil || [[cl allKeys] count] < 752)
       {
-        Lisp_Object color_file, color_map, color;
+        Lisp_Object color_file, color_map, color, name;
         unsigned long c;
-        char *name;
 
         color_file = Fexpand_file_name (build_string ("rgb.txt"),
                          Fsymbol_value (intern ("data-directory")));
@@ -5408,14 +5598,12 @@ ns_term_init (Lisp_Object display_name)
         for ( ; CONSP (color_map); color_map = XCDR (color_map))
           {
             color = XCAR (color_map);
-            name = SSDATA (XCAR (color));
+            name = XCAR (color);
             c = XFIXNUM (XCDR (color));
+            c |= 0xFF000000;
             [cl setColor:
-                  [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
-                                      green: GREEN_FROM_ULONG (c) / 255.0
-                                       blue: BLUE_FROM_ULONG (c) / 255.0
-                                      alpha: 1.0]
-                  forKey: [NSString stringWithUTF8String: name]];
+                  [NSColor colorWithUnsignedLong:c]
+                  forKey: [NSString stringWithLispString: name]];
           }
 
         /* FIXME: Report any errors writing the color file below.  */
@@ -5436,17 +5624,6 @@ ns_term_init (Lisp_Object display_name)
   }
 
   NSTRACE_MSG ("Versions");
-
-  {
-#ifdef NS_IMPL_GNUSTEP
-    Vwindow_system_version = build_string (gnustep_base_version);
-#else
-    /* PSnextrelease (128, c); */
-    char c[DBL_BUFSIZE_BOUND];
-    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
-    Vwindow_system_version = make_unibyte_string (c, len);
-#endif
-  }
 
   delete_keyboard_wait_descriptor (0);
 
@@ -5514,15 +5691,6 @@ ns_term_init (Lisp_Object display_name)
     [NSApp setServicesMenu: svcsMenu];
     /* Needed at least on Cocoa, to get dock menu to show windows */
     [NSApp setWindowsMenu: [[NSMenu alloc] init]];
-
-    [[NSNotificationCenter defaultCenter]
-      addObserver: mainMenu
-         selector: @selector (trackingNotification:)
-             name: NSMenuDidBeginTrackingNotification object: mainMenu];
-    [[NSNotificationCenter defaultCenter]
-      addObserver: mainMenu
-         selector: @selector (trackingNotification:)
-             name: NSMenuDidEndTrackingNotification object: mainMenu];
   }
 #endif /* macOS menu setup */
 
@@ -5537,7 +5705,11 @@ ns_term_init (Lisp_Object display_name)
   ns_drag_types = [[NSArray arrayWithObjects:
                             NSPasteboardTypeString,
                             NSPasteboardTypeTabularText,
+#if NS_USE_NSPasteboardTypeFileURL != 0
+                            NSPasteboardTypeFileURL,
+#else
                             NSFilenamesPboardType,
+#endif
                             NSPasteboardTypeURL, nil] retain];
 
   /* If fullscreen is in init/default-frame-alist, focus isn't set
@@ -5555,6 +5727,16 @@ ns_term_init (Lisp_Object display_name)
   catch_child_signal ();
 #endif
 
+#ifdef NS_IMPL_COCOA
+  /* Begin listening for display reconfiguration, so we can run the
+     appropriate hooks.  FIXME: is this called when the resolution of
+     a monitor changes?  */
+
+  CGDisplayRegisterReconfigurationCallback (ns_displays_reconfigured,
+					    NULL);
+#endif
+  last_known_monitors = Fns_display_monitor_attributes_list (Qnil);
+
   NSTRACE_MSG ("ns_term_init done");
 
   unblock_input ();
@@ -5566,20 +5748,21 @@ ns_term_init (Lisp_Object display_name)
 void
 ns_term_shutdown (int sig)
 {
+  NSAutoreleasePool *pool;
+  /* We also need an autorelease pool here, since this can be called
+     during dumping.  */
+  pool = [[NSAutoreleasePool alloc] init];
   [[NSUserDefaults standardUserDefaults] synchronize];
+  [pool release];
 
   /* code not reached in emacs.c after this is called by shut_down_emacs: */
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
   if (sig == 0 || sig == SIGTERM)
-    {
-      [NSApp terminate: NSApp];
-    }
-  else // force a stack trace to happen
-    {
-      emacs_abort ();
-    }
+    [NSApp terminate: NSApp];
+  else /* Force a stack trace to happen.  */
+    emacs_abort ();
 }
 
 
@@ -5594,6 +5777,10 @@ ns_term_shutdown (int sig)
 
 - (id)init
 {
+#ifdef NS_IMPL_GNUSTEP
+  NSNotificationCenter *notification_center;
+#endif
+
   NSTRACE ("[EmacsApp init]");
 
   if ((self = [super init]))
@@ -5605,6 +5792,14 @@ ns_term_shutdown (int sig)
       self->applicationDidFinishLaunchingCalled = NO;
 #endif
     }
+
+#ifdef NS_IMPL_GNUSTEP
+  notification_center = [NSNotificationCenter defaultCenter];
+  [notification_center addObserver: self
+			  selector: @selector(updateMonitors:)
+			      name: NSApplicationDidChangeScreenParametersNotification
+			    object: nil];
+#endif
 
   return self;
 }
@@ -5618,11 +5813,11 @@ ns_term_shutdown (int sig)
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
-    if ((int)NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
-      {
-        [super run];
-        return;
-      }
+  if ((int) NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
+    {
+      [super run];
+      return;
+    }
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -5798,7 +5993,7 @@ ns_term_shutdown (int sig)
 
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_OPEN_FILE_LINE;
-  ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
+  ns_input_file = append2 (ns_input_file, [fileName lispString]);
   ns_input_line = Qnil; /* can be start or cons start,end */
   emacs_event->modifiers =0;
   EV_TRAILER (theEvent);
@@ -5806,6 +6001,36 @@ ns_term_shutdown (int sig)
   return YES;
 }
 
+#ifdef NS_IMPL_GNUSTEP
+- (void) updateMonitors: (NSNotification *) notification
+{
+  struct input_event ie;
+  union buffered_input_event *ev;
+  Lisp_Object new_monitors;
+
+  EVENT_INIT (ie);
+
+  new_monitors = Fns_display_monitor_attributes_list (Qnil);
+
+  if (!NILP (Fequal (new_monitors, last_known_monitors)))
+    return;
+
+  last_known_monitors = new_monitors;
+
+  ev = (kbd_store_ptr == kbd_buffer
+	? kbd_buffer + KBD_BUFFER_SIZE - 1
+	: kbd_store_ptr - 1);
+
+  if (kbd_store_ptr != kbd_fetch_ptr
+      && ev->ie.kind == MONITORS_CHANGED_EVENT)
+    return;
+
+  ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (ie.arg, x_display_list->terminal);
+
+  kbd_buffer_store_event (&ie);
+}
+#endif
 
 /* **************************************************************************
 
@@ -5835,6 +6060,21 @@ ns_term_shutdown (int sig)
 #endif
 
 #ifdef NS_IMPL_COCOA
+  /* Some functions/methods in CoreFoundation/Foundation increase the
+     maximum number of open files for the process in their first call.
+     We make dummy calls to them and then reduce the resource limit
+     here, since pselect cannot handle file descriptors that are
+     greater than or equal to FD_SETSIZE.  */
+  CFSocketGetTypeID ();
+  CFFileDescriptorGetTypeID ();
+  [[NSFileHandle alloc] init];
+  struct rlimit rlim;
+  if (getrlimit (RLIMIT_NOFILE, &rlim) == 0
+      && rlim.rlim_cur > FD_SETSIZE)
+    {
+      rlim.rlim_cur = FD_SETSIZE;
+      setrlimit (RLIMIT_NOFILE, &rlim);
+    }
   if ([NSApp activationPolicy] == NSApplicationActivationPolicyProhibited) {
     /* Set the app's activation policy to regular when we run outside
        of a bundle.  This is already done for us by Info.plist when we
@@ -5881,17 +6121,20 @@ ns_term_shutdown (int sig)
 
 - (void) terminate: (id)sender
 {
+  struct input_event ie;
+  struct frame *f;
+
   NSTRACE ("[EmacsApp terminate:]");
 
-  struct frame *emacsframe = SELECTED_FRAME ();
+  f = SELECTED_FRAME ();
+  EVENT_INIT (ie);
 
-  if (!emacs_event)
-    return;
+  ie.kind = NS_NONKEY_EVENT;
+  ie.code = KEY_NS_POWER_OFF;
+  ie.arg = Qt; /* mark as non-key event */
+  XSETFRAME (ie.frame_or_window, f);
 
-  emacs_event->kind = NS_NONKEY_EVENT;
-  emacs_event->code = KEY_NS_POWER_OFF;
-  emacs_event->arg = Qt; /* mark as non-key event */
-  EV_TRAILER ((id)nil);
+  kbd_buffer_store_event (&ie);
 }
 
 static bool
@@ -6069,7 +6312,7 @@ not_in_argv (NSString *arg)
           fd_set fds;
           FD_ZERO (&fds);
           FD_SET (selfds[0], &fds);
-          result = select (selfds[0]+1, &fds, NULL, NULL, NULL);
+          result = pselect (selfds[0]+1, &fds, NULL, NULL, NULL, NULL);
           if (result > 0 && read (selfds[0], &c, 1) == 1 && c == 'g')
 	    waiting = 0;
         }
@@ -6147,8 +6390,7 @@ not_in_argv (NSString *arg)
                  error: (NSString **)error
 {
   [ns_pending_service_names addObject: userData];
-  [ns_pending_service_args addObject: [NSString stringWithUTF8String:
-      SSDATA (ns_string_from_pasteboard (pboard))]];
+  [ns_pending_service_args addObject: [NSString stringWithLispString:ns_string_from_pasteboard (pboard)]];
 }
 
 
@@ -6165,8 +6407,8 @@ not_in_argv (NSString *arg)
 
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_SPI_SERVICE_CALL;
-  ns_input_spi_name = build_string ([name UTF8String]);
-  ns_input_spi_arg = build_string ([arg UTF8String]);
+  ns_input_spi_name = [name lispString];
+  ns_input_spi_arg = [arg lispString];
   emacs_event->modifiers = EV_MODIFIERS (theEvent);
   EV_TRAILER (theEvent);
 
@@ -6176,6 +6418,123 @@ not_in_argv (NSString *arg)
 
 @end  /* EmacsApp */
 
+static Lisp_Object
+ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
+{
+  NSFontSymbolicTraits traits = [desc symbolicTraits];
+  NSDictionary *dict = [desc objectForKey: NSFontTraitsAttribute];
+  NSString *family = [font familyName];
+  Lisp_Object lwidth, lslant, lweight, lheight;
+  NSNumber *tem;
+
+  lwidth = Qnil;
+  lslant = Qnil;
+  lweight = Qnil;
+  lheight = Qnil;
+
+  if (traits & NSFontBoldTrait)
+    lweight = Qbold;
+
+  if (traits & NSFontItalicTrait)
+    lslant = Qitalic;
+
+  if (traits & NSFontCondensedTrait)
+    lwidth = Qcondensed;
+  else if (traits & NSFontExpandedTrait)
+    lwidth = Qexpanded;
+
+  if (dict != nil)
+    {
+      tem = [dict objectForKey: NSFontSlantTrait];
+
+      if (tem != nil)
+	lslant = ([tem floatValue] > 0
+		  ? Qitalic : ([tem floatValue] < 0
+			       ? Qreverse_italic
+			       : Qnormal));
+
+      tem = [dict objectForKey: NSFontWeightTrait];
+
+#ifdef NS_IMPL_GNUSTEP
+      if (tem != nil)
+	lweight = ([tem floatValue] > 0
+		   ? Qbold : ([tem floatValue] < -0.4f
+			      ? Qlight : Qnormal));
+#else
+      if (tem != nil)
+	{
+	  if ([tem floatValue] >= 0.4)
+	    lweight = Qbold;
+	  else if ([tem floatValue] >= 0.24)
+	    lweight = Qmedium;
+	  else if ([tem floatValue] >= 0)
+	    lweight = Qnormal;
+	  else if ([tem floatValue] >= -0.24)
+	    lweight = Qsemi_light;
+	  else
+	    lweight = Qlight;
+	}
+#endif
+
+      tem = [dict objectForKey: NSFontWidthTrait];
+
+      if (tem != nil)
+	lwidth = ([tem floatValue] > 0
+		  ? Qexpanded : ([tem floatValue] < 0
+				 ? Qcondensed : Qnormal));
+    }
+
+  lheight = make_float ([font pointSize]);
+
+  return CALLN (Ffont_spec,
+		QCwidth, lwidth, QCslant, lslant,
+		QCweight, lweight, QCsize, lheight,
+		QCfamily, (family
+			   ? [family lispString]
+			   : Qnil));
+}
+
+#ifdef NS_IMPL_COCOA
+static NSView *
+ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
+{
+  NSMatrix *matrix;
+  NSButtonCell *prototype;
+  NSSize cell_size;
+  NSRect frame;
+  NSButtonCell *cancel, *ok;
+
+  prototype = [[NSButtonCell alloc] init];
+  [prototype setBezelStyle: NSBezelStyleRounded];
+  [prototype setTitle: @"Cancel"];
+  cell_size = [prototype cellSize];
+  frame = NSMakeRect (0, 0, cell_size.width * 2,
+		      cell_size.height);
+  matrix = [[NSMatrix alloc] initWithFrame: frame
+				      mode: NSTrackModeMatrix
+				 prototype: prototype
+			      numberOfRows: 1
+			   numberOfColumns: 2];
+  [prototype release];
+
+  ok = (NSButtonCell *) [matrix cellAtRow: 0 column: 0];
+  cancel = (NSButtonCell *) [matrix cellAtRow: 0 column: 1];
+
+  [ok setTitle: @"OK"];
+  [ok setTarget: target];
+  [ok setAction: select];
+  [ok setButtonType: NSButtonTypeMomentaryPushIn];
+
+  [cancel setTitle: @"Cancel"];
+  [cancel setTarget: target];
+  [cancel setAction: cancel_action];
+  [cancel setButtonType: NSButtonTypeMomentaryPushIn];
+
+  [matrix selectCell: ok];
+
+  return matrix;
+}
+#endif
 
 /* ==========================================================================
 
@@ -6198,7 +6557,13 @@ not_in_argv (NSString *arg)
 - (void)dealloc
 {
   NSTRACE ("[EmacsView dealloc]");
-  [toolbar release];
+
+  /* Clear the view resize notification.  */
+  [[NSNotificationCenter defaultCenter]
+    removeObserver:self
+              name:NSViewFrameDidChangeNotification
+            object:nil];
+
   if (fs_state == FULLSCREEN_BOTH)
     [nonfs_window release];
   [super dealloc];
@@ -6206,49 +6571,135 @@ not_in_argv (NSString *arg)
 
 
 /* Called on font panel selection.  */
-- (void)changeFont: (id)sender
+- (void) changeFont: (id) sender
 {
-  NSEvent *e = [[self window] currentEvent];
-  struct face *face = FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID);
-  struct font *font = face->font;
-  id newFont;
-  CGFloat size;
+  struct font *font = FRAME_OUTPUT_DATA (emacsframe)->font;
   NSFont *nsfont;
 
-  NSTRACE ("[EmacsView changeFont:]");
-
-  if (!emacs_event)
-    return;
-
 #ifdef NS_IMPL_GNUSTEP
-  nsfont = ((struct nsfont_info *)font)->nsfont;
-#endif
-#ifdef NS_IMPL_COCOA
+  nsfont = ((struct nsfont_info *) font)->nsfont;
+#else
   nsfont = (NSFont *) macfont_get_nsctfont (font);
 #endif
 
-  if ((newFont = [sender convertFont: nsfont]))
-    {
-      SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
+  if (!font_panel_active)
+    return;
 
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->modifiers = 0;
-      emacs_event->code = KEY_NS_CHANGE_FONT;
+  if (font_panel_result)
+    [font_panel_result release];
 
-      size = [newFont pointSize];
-      ns_input_fontsize = make_fixnum (lrint (size));
-      ns_input_font = build_string ([[newFont familyName] UTF8String]);
-      EV_TRAILER (e);
-    }
+  font_panel_result = (NSFont *) [sender convertFont: nsfont];
+
+  if (font_panel_result)
+    [font_panel_result retain];
+
+#ifndef NS_IMPL_COCOA
+  font_panel_active = NO;
+  [NSApp stop: self];
+#endif
 }
 
+#ifdef NS_IMPL_COCOA
+- (void) noteUserSelectedFont
+{
+  font_panel_active = NO;
+
+  /* If no font was previously selected, use the currently selected
+     font.  */
+
+  if (!font_panel_result && FRAME_FONT (emacsframe))
+    {
+      font_panel_result
+	= macfont_get_nsctfont (FRAME_FONT (emacsframe));
+
+      if (font_panel_result)
+	[font_panel_result retain];
+    }
+
+  [NSApp stop: self];
+}
+
+- (void) noteUserCancelledSelection
+{
+  font_panel_active = NO;
+
+  if (font_panel_result)
+    [font_panel_result release];
+  font_panel_result = nil;
+
+  [NSApp stop: self];
+}
+#endif
+
+- (Lisp_Object) showFontPanel
+{
+  id fm = [NSFontManager sharedFontManager];
+  struct font *font = FRAME_OUTPUT_DATA (emacsframe)->font;
+  NSFont *nsfont, *result;
+  struct timespec timeout;
+#ifdef NS_IMPL_COCOA
+  NSView *buttons;
+  BOOL canceled;
+#endif
+
+#ifdef NS_IMPL_GNUSTEP
+  nsfont = ((struct nsfont_info *) font)->nsfont;
+#else
+  nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+
+#ifdef NS_IMPL_COCOA
+  buttons
+    = ns_create_font_panel_buttons (self,
+				    @selector (noteUserSelectedFont),
+				    @selector (noteUserCancelledSelection));
+  [[fm fontPanel: YES] setAccessoryView: buttons];
+  [buttons release];
+#endif
+
+  [fm setSelectedFont: nsfont isMultiple: NO];
+  [fm orderFrontFontPanel: NSApp];
+
+  font_panel_active = YES;
+  timeout = make_timespec (0, 100000000);
+
+  block_input ();
+  while (font_panel_active
+#ifdef NS_IMPL_COCOA
+	 && (canceled = [[fm fontPanel: YES] isVisible])
+#else
+	 && [[fm fontPanel: YES] isVisible]
+#endif
+	 )
+    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL, YES);
+  unblock_input ();
+
+  if (font_panel_result)
+    [font_panel_result autorelease];
+
+#ifdef NS_IMPL_COCOA
+  if (!canceled)
+    font_panel_result = nil;
+#endif
+
+  result = font_panel_result;
+  font_panel_result = nil;
+
+  [[fm fontPanel: YES] setIsVisible: NO];
+  font_panel_active = NO;
+
+  if (result)
+    return ns_font_desc_to_font_spec ([result fontDescriptor],
+				      result);
+
+  return Qnil;
+}
 
 - (BOOL)acceptsFirstResponder
 {
   NSTRACE ("[EmacsView acceptsFirstResponder]");
   return YES;
 }
-
 
 - (void)resetCursorRects
 {
@@ -6287,9 +6738,7 @@ not_in_argv (NSString *arg)
   NSTRACE ("[EmacsView keyDown:]");
 
   /* Rhapsody and macOS give up and down events for the arrow keys.  */
-  if (ns_fake_keydown == YES)
-    ns_fake_keydown = NO;
-  else if ([theEvent type] != NSEventTypeKeyDown)
+  if ([theEvent type] != NSEventTypeKeyDown)
     return;
 
   if (!emacs_event)
@@ -6313,7 +6762,7 @@ not_in_argv (NSString *arg)
   if (nsEvArray == nil)
     nsEvArray = [[NSMutableArray alloc] initWithCapacity: 1];
 
-  [NSCursor setHiddenUntilMouseMoves: YES];
+  [NSCursor setHiddenUntilMouseMoves:! NILP (Vmake_pointer_invisible)];
 
   if (hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight))
     {
@@ -6356,6 +6805,14 @@ not_in_argv (NSString *arg)
             code = 0xFF08; /* backspace */
           else
             code = fnKeysym;
+
+          /* Function keys (such as the F-keys, arrow keys, etc.) set
+             modifiers as though the fn key has been pressed when it
+             hasn't.  Also some combinations of fn and a function key
+             return a different key than was pressed (e.g. fn-<left>
+             gives <home>).  We need to unset the fn key flag in these
+             cases.  */
+          flags &= ~NS_FUNCTION_KEY_MASK;
         }
 
       /* The ⌘ and ⌥ modifiers can be either shift-like (for alternate
@@ -6377,20 +6834,11 @@ not_in_argv (NSString *arg)
       Lisp_Object kind = fnKeysym ? QCfunction : QCordinary;
       emacs_event->modifiers = EV_MODIFIERS2 (flags, kind);
 
-      /* Function keys (such as the F-keys, arrow keys, etc.) set
-         modifiers as though the fn key has been pressed when it
-         hasn't.  Also some combinations of fn and a function key
-         return a different key than was pressed (e.g. fn-<left> gives
-         <home>).  We need to unset the fn modifier in these cases.
-         FIXME: Can we avoid setting it in the first place?  */
-      if (fnKeysym && (flags & NS_FUNCTION_KEY_MASK))
-        emacs_event->modifiers
-          ^= parse_solitary_modifier (mod_of_kind (ns_function_modifier,
-                                                   QCfunction));
-
+#ifndef NS_IMPL_GNUSTEP
       if (NS_KEYLOG)
         fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
                  code, fnKeysym, flags, emacs_event->modifiers);
+#endif
 
       /* If it was a function key or had control-like modifiers, pass
          it directly to Emacs.  */
@@ -6548,7 +6996,7 @@ not_in_argv (NSString *arg)
   processingCompose = YES;
   [workingText release];
   workingText = [str copy];
-  ns_working_text = build_string ([workingText UTF8String]);
+  ns_working_text = [workingText lispString];
 
   emacs_event->kind = NS_TEXT_EVENT;
   emacs_event->code = KEY_NS_PUT_WORKING_TEXT;
@@ -6608,6 +7056,36 @@ not_in_argv (NSString *arg)
   processingCompose = NO;
 }
 
+static Lisp_Object
+ns_in_echo_area_1 (void *ptr)
+{
+  Lisp_Object in_echo_area;
+  specpdl_ref count;
+
+  count = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+  in_echo_area = safe_call (1, Qns_in_echo_area);
+
+  return unbind_to (count, in_echo_area);
+}
+
+static Lisp_Object
+ns_in_echo_area_2 (enum nonlocal_exit exit, Lisp_Object error)
+{
+  return Qnil;
+}
+
+static bool
+ns_in_echo_area (void)
+{
+  Lisp_Object in_echo_area;
+
+  in_echo_area
+    = internal_catch_all (ns_in_echo_area_1, NULL,
+			  ns_in_echo_area_2);
+
+  return !NILP (in_echo_area);
+}
 
 /* Used to position char selection windows, etc.  */
 - (NSRect)firstRectForCharacterRange: (NSRange)theRange
@@ -6621,7 +7099,7 @@ not_in_argv (NSString *arg)
   if (NS_KEYLOG)
     NSLog (@"firstRectForCharRange request");
 
-  if (WINDOWP (echo_area_window) && ! NILP (call0 (intern ("ns-in-echo-area"))))
+  if (WINDOWP (echo_area_window) && ns_in_echo_area ())
     win = XWINDOW (echo_area_window);
   else
     win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
@@ -6729,16 +7207,23 @@ not_in_argv (NSString *arg)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
+  EmacsWindow *window;
 
   NSTRACE ("[EmacsView mouseDown:]");
 
   if (!emacs_event)
     return;
 
+  if (FRAME_TOOLTIP_P (emacsframe))
+    return;
+
   dpyinfo->last_mouse_frame = emacsframe;
   /* Appears to be needed to prevent spurious movement events generated on
      button clicks.  */
   emacsframe->mouse_moved = 0;
+
+  window = (EmacsWindow *) [self window];
+  [window setLastDragEvent: theEvent];
 
   if ([theEvent type] == NSEventTypeScrollWheel)
     {
@@ -6760,7 +7245,24 @@ not_in_argv (NSString *arg)
            */
           bool horizontal;
           int lines = 0;
+          int x = 0, y = 0;
           int scrollUp = NO;
+
+	  static bool end_flag = false;
+
+	  if (!ns_use_mwheel_momentum && !end_flag
+	      && [theEvent momentumPhase] != NSEventPhaseNone)
+	    {
+	      emacs_event->kind = TOUCH_END_EVENT;
+	      emacs_event->arg = Qnil;
+	      end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
+	      XSETINT (emacs_event->x, lrint (p.x));
+	      XSETINT (emacs_event->y, lrint (p.y));
+	      EV_TRAILER (theEvent);
+	      return;
+	    }
+
+	  end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
 
           /* FIXME: At the top or bottom of the buffer we should
            * ignore momentum-phase events.  */
@@ -6795,23 +7297,33 @@ not_in_argv (NSString *arg)
                * reset the total delta for the direction we're NOT
                * scrolling so that small movements don't add up.  */
               if (abs (totalDeltaX) > abs (totalDeltaY)
-                  && abs (totalDeltaX) > lineHeight)
+                  && (!mwheel_coalesce_scroll_events
+		      || abs (totalDeltaX) > lineHeight))
                 {
                   horizontal = YES;
                   scrollUp = totalDeltaX > 0;
 
                   lines = abs (totalDeltaX / lineHeight);
-                  totalDeltaX = totalDeltaX % lineHeight;
+		  x = totalDeltaX;
+		  if (!mwheel_coalesce_scroll_events)
+		    totalDeltaX = 0;
+		  else
+		    totalDeltaX = totalDeltaX % lineHeight;
                   totalDeltaY = 0;
                 }
               else if (abs (totalDeltaY) >= abs (totalDeltaX)
-                       && abs (totalDeltaY) > lineHeight)
+                       && (!mwheel_coalesce_scroll_events
+			   || abs (totalDeltaY) > lineHeight))
                 {
                   horizontal = NO;
                   scrollUp = totalDeltaY > 0;
 
                   lines = abs (totalDeltaY / lineHeight);
-                  totalDeltaY = totalDeltaY % lineHeight;
+		  y = totalDeltaY;
+		  if (!mwheel_coalesce_scroll_events)
+		    totalDeltaY = 0;
+		  else
+		    totalDeltaY = totalDeltaY % lineHeight;
                   totalDeltaX = 0;
                 }
 
@@ -6837,13 +7349,25 @@ not_in_argv (NSString *arg)
                 ? ceil (fabs (delta)) : 1;
 
               scrollUp = delta > 0;
+	      x = ([theEvent scrollingDeltaX]
+		   * FRAME_COLUMN_WIDTH (emacsframe));
+	      y = ([theEvent scrollingDeltaY]
+		   * FRAME_LINE_HEIGHT (emacsframe));
             }
 
-          if (lines == 0)
+          if (lines == 0 && mwheel_coalesce_scroll_events)
             return;
 
+	  if (NUMBERP (Vns_scroll_event_delta_factor))
+	    {
+	      x *= XFLOATINT (Vns_scroll_event_delta_factor);
+	      y *= XFLOATINT (Vns_scroll_event_delta_factor);
+	    }
+
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
-          emacs_event->arg = (make_fixnum (lines));
+          emacs_event->arg = list3 (make_fixnum (lines),
+				    make_float (x),
+				    make_float (y));
 
           emacs_event->code = 0;
           emacs_event->modifiers = EV_MODIFIERS (theEvent) |
@@ -6879,10 +7403,36 @@ not_in_argv (NSString *arg)
     }
   else
     {
-      emacs_event->kind = MOUSE_CLICK_EVENT;
+      Lisp_Object tab_bar_arg = Qnil;
+      bool tab_bar_p = false;
+
+      if (WINDOWP (emacsframe->tab_bar_window)
+	  && WINDOW_TOTAL_LINES (XWINDOW (emacsframe->tab_bar_window)))
+	{
+	  Lisp_Object window;
+	  int x = lrint (p.x);
+	  int y = lrint (p.y);
+
+	  window = window_from_coordinates (emacsframe, x, y, 0, true, true);
+	  tab_bar_p = EQ (window, emacsframe->tab_bar_window);
+
+	  if (tab_bar_p)
+	    tab_bar_arg = handle_tab_bar_click (emacsframe, x, y,
+						EV_UDMODIFIERS (theEvent) & down_modifier,
+						EV_MODIFIERS (theEvent) | EV_UDMODIFIERS (theEvent));
+	}
+
+      if (!(tab_bar_p && NILP (tab_bar_arg)))
+	emacs_event->kind = MOUSE_CLICK_EVENT;
+      emacs_event->arg = tab_bar_arg;
       emacs_event->code = EV_BUTTON (theEvent);
       emacs_event->modifiers = EV_MODIFIERS (theEvent)
                              | EV_UDMODIFIERS (theEvent);
+
+      if (emacs_event->modifiers & down_modifier)
+	FRAME_DISPLAY_INFO (emacsframe)->grabbed |= 1 << EV_BUTTON (theEvent);
+      else
+	FRAME_DISPLAY_INFO (emacsframe)->grabbed &= ~(1 << EV_BUTTON (theEvent));
     }
 
   XSETINT (emacs_event->x, lrint (p.x));
@@ -6941,6 +7491,10 @@ not_in_argv (NSString *arg)
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   Lisp_Object frame;
   NSPoint pt;
+  BOOL dragging;
+
+  if (FRAME_TOOLTIP_P (emacsframe))
+    return;
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "[EmacsView mouseMoved:]");
 
@@ -6970,6 +7524,7 @@ not_in_argv (NSString *arg)
       if (WINDOWP (window)
           && !EQ (window, last_mouse_window)
           && !EQ (window, selected_window)
+	  && !MINI_WINDOW_P (XWINDOW (selected_window))
           && (!NILP (focus_follows_mouse)
               || (EQ (XWINDOW (window)->frame,
                       XWINDOW (selected_window)->frame))))
@@ -6983,7 +7538,8 @@ not_in_argv (NSString *arg)
       last_mouse_window = window;
     }
 
-  if (!ns_note_mouse_movement (emacsframe, pt.x, pt.y))
+  dragging = (e.type == NSEventTypeLeftMouseDragged);
+  if (!ns_note_mouse_movement (emacsframe, pt.x, pt.y, dragging))
     help_echo_string = previous_help_echo_string;
 
   XSETFRAME (frame, emacsframe);
@@ -7022,6 +7578,42 @@ not_in_argv (NSString *arg)
   [self mouseMoved: e];
 }
 
+#if defined NS_IMPL_COCOA && defined MAC_OS_X_VERSION_10_7
+- (void) magnifyWithEvent: (NSEvent *) event
+{
+  NSPoint pt = [self convertPoint: [event locationInWindow] fromView: nil];
+  static CGFloat last_scale;
+
+  NSTRACE ("[EmacsView magnifyWithEvent]");
+  if (emacs_event)
+    {
+      emacs_event->kind = PINCH_EVENT;
+      emacs_event->modifiers = EV_MODIFIERS (event);
+      XSETINT (emacs_event->x, lrint (pt.x));
+      XSETINT (emacs_event->y, lrint (pt.y));
+      XSETFRAME (emacs_event->frame_or_window, emacsframe);
+
+      if ([event phase] == NSEventPhaseBegan)
+	{
+	  last_scale = 1.0 + [event magnification];
+	  emacs_event->arg = list4 (make_float (0.0),
+				    make_float (0.0),
+				    make_float (last_scale),
+				    make_float (0.0));
+	}
+      else
+	/* Report a tiny change so that Lisp code doesn't think this
+	   is the beginning of an event sequence.  This is the best we
+	   can do because NS doesn't report pinch events in as much
+	   detail as XInput 2 or GTK+ do.  */
+	emacs_event->arg = list4 (make_float (0.01),
+				  make_float (0.0),
+				  make_float (last_scale += [event magnification]),
+				  make_float (0.0));
+      EV_TRAILER (event);
+    }
+}
+#endif
 
 - (BOOL)windowShouldClose: (id)sender
 {
@@ -7039,108 +7631,12 @@ not_in_argv (NSString *arg)
   return NO;
 }
 
-- (void) updateFrameSize: (BOOL) delay
-{
-  NSWindow *window = [self window];
-  NSRect wr = [window frame];
-  int extra = 0;
-  int oldc = cols, oldr = rows;
-  int oldw = FRAME_PIXEL_WIDTH (emacsframe);
-  int oldh = FRAME_PIXEL_HEIGHT (emacsframe);
-  int neww, newh;
-
-  NSTRACE ("[EmacsView updateFrameSize:]");
-  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
-  NSTRACE_RECT ("Original frame", wr);
-  NSTRACE_MSG  ("Original columns: %d", cols);
-  NSTRACE_MSG  ("Original rows: %d", rows);
-
-  if (! [self isFullscreen])
-    {
-      int toolbar_height;
-#ifdef NS_IMPL_GNUSTEP
-      // GNUstep does not always update the tool bar height.  Force it.
-      if (toolbar && [toolbar isVisible])
-          update_frame_tool_bar (emacsframe);
-#endif
-
-      toolbar_height = FRAME_TOOLBAR_HEIGHT (emacsframe);
-      if (toolbar_height < 0)
-        toolbar_height = 35;
-
-      extra = FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        + toolbar_height;
-    }
-
-  if (wait_for_tool_bar)
-    {
-      /* The toolbar height is always 0 in fullscreen and undecorated
-         frames, so don't wait for it to become available.  */
-      if (FRAME_TOOLBAR_HEIGHT (emacsframe) == 0
-          && FRAME_UNDECORATED (emacsframe) == false
-          && ! [self isFullscreen])
-        {
-          NSTRACE_MSG ("Waiting for toolbar");
-          return;
-        }
-      wait_for_tool_bar = NO;
-    }
-
-  neww = (int)wr.size.width - emacsframe->border_width;
-  newh = (int)wr.size.height - extra;
-
-  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
-  NSTRACE_MSG ("FRAME_TOOLBAR_HEIGHT: %d", FRAME_TOOLBAR_HEIGHT (emacsframe));
-  NSTRACE_MSG ("FRAME_NS_TITLEBAR_HEIGHT: %d", FRAME_NS_TITLEBAR_HEIGHT (emacsframe));
-
-  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (emacsframe, neww);
-  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, newh);
-
-  if (cols < MINWIDTH)
-    cols = MINWIDTH;
-
-  if (rows < MINHEIGHT)
-    rows = MINHEIGHT;
-
-  NSTRACE_MSG ("New columns: %d", cols);
-  NSTRACE_MSG ("New rows: %d", rows);
-
-  if (oldr != rows || oldc != cols || neww != oldw || newh != oldh)
-    {
-      NSView *view = FRAME_NS_VIEW (emacsframe);
-
-      change_frame_size (emacsframe,
-                         FRAME_PIXEL_TO_TEXT_WIDTH (emacsframe, neww),
-                         FRAME_PIXEL_TO_TEXT_HEIGHT (emacsframe, newh),
-                         0, delay, 0, 1);
-      SET_FRAME_GARBAGED (emacsframe);
-      cancel_mouse_face (emacsframe);
-
-      /* The next two lines set the frame to the same size as we've
-         already set above.  We need to do this when we switch back
-         from non-native fullscreen, in other circumstances it appears
-         to be a noop.  (bug#28872) */
-      wr = NSMakeRect (0, 0, neww, newh);
-      [view setFrame: wr];
-#ifdef NS_DRAW_TO_BUFFER
-      [self createDrawingBuffer];
-#endif
-
-      // To do: consider using [NSNotificationCenter postNotificationName:].
-      [self windowDidMove: // Update top/left.
-	      [NSNotification notificationWithName:NSWindowDidMoveNotification
-					    object:[view window]]];
-    }
-  else
-    {
-      NSTRACE_MSG ("No change");
-    }
-}
 
 - (NSSize)windowWillResize: (NSWindow *)sender toSize: (NSSize)frameSize
 /* Normalize frame to gridded text size.  */
 {
   int extra = 0;
+  int cols, rows;
 
   NSTRACE ("[EmacsView windowWillResize:toSize: " NSTRACE_FMT_SIZE "]",
            NSTRACE_ARG_SIZE (frameSize));
@@ -7204,7 +7700,7 @@ not_in_argv (NSString *arg)
             old_title = t;
           }
         size_title = xmalloc (strlen (old_title) + 40);
-	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
+	esprintf (size_title, "%s  —  (%d × %d)", old_title, cols, rows);
         [window setTitle: [NSString stringWithUTF8String: size_title]];
         [window display];
         xfree (size_title);
@@ -7243,48 +7739,6 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void)windowDidResize: (NSNotification *)notification
-{
-  NSTRACE ("[EmacsView windowDidResize:]");
-  if (!FRAME_LIVE_P (emacsframe))
-    {
-      NSTRACE_MSG ("Ignored (frame dead)");
-      return;
-    }
-  if (emacsframe->output_data.ns->in_animation)
-    {
-      NSTRACE_MSG ("Ignored (in animation)");
-      return;
-    }
-
-  if (! [self fsIsNative])
-    {
-      NSWindow *theWindow = [notification object];
-      /* We can get notification on the non-FS window when in
-         fullscreen mode.  */
-      if ([self window] != theWindow) return;
-    }
-
-  NSTRACE_RECT ("frame", [[notification object] frame]);
-
-#ifdef NS_IMPL_GNUSTEP
-  NSWindow *theWindow = [notification object];
-
-   /* In GNUstep, at least currently, it's possible to get a didResize
-      without getting a willResize, therefore we need to act as if we got
-      the willResize now.  */
-  NSSize sz = [theWindow frame].size;
-  sz = [self windowWillResize: theWindow toSize: sz];
-#endif /* NS_IMPL_GNUSTEP */
-
-  if (cols > 0 && rows > 0)
-    {
-      [self updateFrameSize: YES];
-    }
-
-  ns_send_appdefined (-1);
-}
-
 #ifdef NS_IMPL_COCOA
 - (void)viewDidEndLiveResize
 {
@@ -7302,6 +7756,37 @@ not_in_argv (NSString *arg)
 #endif /* NS_IMPL_COCOA */
 
 
+- (void)resizeWithOldSuperviewSize: (NSSize)oldSize
+{
+  NSRect frame;
+  int width, height;
+
+  NSTRACE ("[EmacsView resizeWithOldSuperviewSize:]");
+
+  [super resizeWithOldSuperviewSize:oldSize];
+
+  if (! FRAME_LIVE_P (emacsframe))
+    return;
+
+  frame = [[self superview] bounds];
+  width = (int)NSWidth (frame);
+  height = (int)NSHeight (frame);
+
+  NSTRACE_SIZE ("New size", NSMakeSize (width, height));
+
+  /* Reset the frame size to match the bounds of the superview (the
+     NSWindow's contentView).  We need to do this as sometimes the
+     view's frame isn't resized correctly, or can end up with the
+     wrong origin.  */
+  [self setFrame:frame];
+  change_frame_size (emacsframe, width, height, false, YES, false);
+
+  SET_FRAME_GARBAGED (emacsframe);
+  cancel_mouse_face (emacsframe);
+  ns_send_appdefined (-1);
+}
+
+
 - (void)windowDidBecomeKey: (NSNotification *)notification
 /* cf. x_detect_focus_change(), x_focus_changed(), x_new_focus_frame() */
 {
@@ -7313,6 +7798,9 @@ not_in_argv (NSString *arg)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   struct frame *old_focus = dpyinfo->ns_focus_frame;
+  struct input_event event;
+
+  EVENT_INIT (event);
 
   NSTRACE ("[EmacsView windowDidBecomeKey]");
 
@@ -7321,11 +7809,9 @@ not_in_argv (NSString *arg)
 
   ns_frame_rehighlight (emacsframe);
 
-  if (emacs_event)
-    {
-      emacs_event->kind = FOCUS_IN_EVENT;
-      EV_TRAILER ((id)nil);
-    }
+  event.kind = FOCUS_IN_EVENT;
+  XSETFRAME (event.frame_or_window, emacsframe);
+  kbd_buffer_store_event (&event);
 }
 
 
@@ -7356,6 +7842,7 @@ not_in_argv (NSString *arg)
       XSETFRAME (frame, emacsframe);
       help_echo_string = Qnil;
       gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+      any_help_event_p = NO;
     }
 
   if (emacs_event && is_focus_frame)
@@ -7393,42 +7880,8 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void)createToolbar: (struct frame *)f
-{
-  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-  NSWindow *window = [view window];
-
-  toolbar = [[EmacsToolbar alloc] initForView: self withIdentifier:
-                   [NSString stringWithFormat: @"Emacs Frame %d",
-                             ns_window_num]];
-  [toolbar setVisible: NO];
-  [window setToolbar: toolbar];
-
-  /* Don't set frame garbaged until tool bar is up to date?
-     This avoids an extra clear and redraw (flicker) at frame creation.  */
-  if (FRAME_EXTERNAL_TOOL_BAR (f)) wait_for_tool_bar = YES;
-  else wait_for_tool_bar = NO;
-
-
-#ifdef NS_IMPL_COCOA
-  {
-    NSButton *toggleButton;
-    toggleButton = [window standardWindowButton: NSWindowToolbarButton];
-    [toggleButton setTarget: self];
-    [toggleButton setAction: @selector (toggleToolbar: )];
-  }
-#endif
-}
-
-
 - (instancetype) initFrameFromEmacs: (struct frame *)f
 {
-  NSRect r, wr;
-  Lisp_Object tem;
-  EmacsWindow *win;
-  NSColor *col;
-  NSString *name;
-
   NSTRACE ("[EmacsView initFrameFromEmacs:]");
   NSTRACE_MSG ("cols:%d lines:%d", f->text_cols, f->text_lines);
 
@@ -7445,15 +7898,14 @@ not_in_argv (NSString *arg)
 #endif
     fs_is_native = ns_use_native_fullscreen;
 #endif
-  in_fullscreen_transition = NO;
 
   maximized_width = maximized_height = -1;
   nonfs_window = nil;
 
   ns_userRect = NSMakeRect (0, 0, 0, 0);
-  r = NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
-                 FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
-  [self initWithFrame: r];
+  [self initWithFrame:
+          NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
+                      FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines))];
   [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 
   FRAME_NS_VIEW (f) = self;
@@ -7463,104 +7915,21 @@ not_in_argv (NSString *arg)
   maximizing_resize = NO;
 #endif
 
-#ifdef NS_DRAW_TO_BUFFER
-  [self createDrawingBuffer];
-#endif
+  [[EmacsWindow alloc] initWithEmacsFrame:f];
 
-  win = [[EmacsWindow alloc]
-            initWithContentRect: r
-                      styleMask: (FRAME_UNDECORATED (f)
-                                  ? FRAME_UNDECORATED_FLAGS
-                                  : FRAME_DECORATED_FLAGS)
-                        backing: NSBackingStoreBuffered
-                          defer: YES];
-
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  /* These settings mean AppKit will retain the contents of the frame
+     on resize.  Unfortunately it also means the frame will not be
+     automatically marked for display, but we can do that ourselves in
+     resizeWithOldSuperviewSize.  */
+  [self setWantsLayer:YES];
+  [self setLayerContentsRedrawPolicy:
+          NSViewLayerContentsRedrawOnSetNeedsDisplay];
+  [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
 #endif
-    if (FRAME_PARENT_FRAME (f))
-      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-    else
-      [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-#endif
-
-  wr = [win frame];
-  bwidth = f->border_width = wr.size.width - r.size.width;
-
-  [win setAcceptsMouseMovedEvents: YES];
-  [win setDelegate: self];
-#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
-#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
-  if ([win respondsToSelector: @selector(useOptimizedDrawing:)])
-#endif
-    [win useOptimizedDrawing: YES];
-#endif
-
-  [[win contentView] addSubview: self];
 
   if (ns_drag_types)
     [self registerForDraggedTypes: ns_drag_types];
-
-  tem = f->name;
-  name = [NSString stringWithUTF8String:
-                   NILP (tem) ? "Emacs" : SSDATA (tem)];
-  [win setTitle: name];
-
-  /* toolbar support */
-  if (! FRAME_UNDECORATED (f))
-    [self createToolbar: f];
-
-
-  [win setAppearance];
-
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
-  if ([win respondsToSelector: @selector(titlebarAppearsTransparent)])
-    win.titlebarAppearsTransparent = FRAME_NS_TRANSPARENT_TITLEBAR (f);
-#endif
-
-  tem = f->icon_name;
-  if (!NILP (tem))
-    [win setMiniwindowTitle:
-           [NSString stringWithUTF8String: SSDATA (tem)]];
-
-  if (FRAME_PARENT_FRAME (f) != NULL)
-    {
-      NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-      [parent addChildWindow: win
-                     ordered: NSWindowAbove];
-    }
-
-  if (FRAME_Z_GROUP (f) != z_group_none)
-      win.level = NSNormalWindowLevel
-        + (FRAME_Z_GROUP_BELOW (f) ? -1 : 1);
-
-  {
-    NSScreen *screen = [win screen];
-
-    if (screen != 0)
-      {
-        NSPoint pt = NSMakePoint
-          (IN_BOUND (-SCREENMAX, f->left_pos
-                     + NS_PARENT_WINDOW_LEFT_POS (f), SCREENMAX),
-           IN_BOUND (-SCREENMAX,
-                     NS_PARENT_WINDOW_TOP_POS (f) - f->top_pos,
-                     SCREENMAX));
-
-        [win setFrameTopLeftPoint: pt];
-
-        NSTRACE_RECT ("new frame", [win frame]);
-      }
-  }
-
-  [win makeFirstResponder: self];
-
-  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-				 (FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID)),
-				 emacsframe);
-  [win setBackgroundColor: col];
-  if ([col alphaComponent] != (EmacsCGFloat) 1.0)
-    [win setOpaque: NO];
 
 #if !defined (NS_IMPL_COCOA) \
   || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
@@ -7571,17 +7940,6 @@ not_in_argv (NSString *arg)
 #endif
   [NSApp registerServicesMenuSendTypes: ns_send_types
                            returnTypes: [NSArray array]];
-
-  /* macOS Sierra automatically enables tabbed windows.  We can't
-     allow this to be enabled until it's available on a Free system.
-     Currently it only happens by accident and is buggy anyway.  */
-#if defined (NS_IMPL_COCOA) \
-  && MAC_OS_X_VERSION_MAX_ALLOWED >= 101200
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101200
-  if ([win respondsToSelector: @selector(setTabbingMode:)])
-#endif
-    [win setTabbingMode: NSWindowTabbingModeDisallowed];
-#endif
 
   ns_window_num++;
   return self;
@@ -7599,18 +7957,24 @@ not_in_argv (NSString *arg)
 
   if (!emacsframe->output_data.ns)
     return;
+
   if (screen != nil)
     {
-      emacsframe->left_pos = r.origin.x - NS_PARENT_WINDOW_LEFT_POS (emacsframe);
-      emacsframe->top_pos =
-        NS_PARENT_WINDOW_TOP_POS (emacsframe) - (r.origin.y + r.size.height);
+      emacsframe->left_pos = (NSMinX (r)
+			      - NS_PARENT_WINDOW_LEFT_POS (emacsframe));
+      emacsframe->top_pos = (NS_PARENT_WINDOW_TOP_POS (emacsframe)
+			     - NSMaxY (r));
 
-      // FIXME: after event part below didExitFullScreen is not received
-      // if (emacs_event)
-      //   {
-      //     emacs_event->kind = MOVE_FRAME_EVENT;
-      //     EV_TRAILER ((id)nil);
-      //   }
+      if (emacs_event)
+	{
+	  struct input_event ie;
+	  EVENT_INIT (ie);
+	  ie.kind = MOVE_FRAME_EVENT;
+	  XSETFRAME (ie.frame_or_window, emacsframe);
+	  XSETINT (ie.x, emacsframe->left_pos);
+	  XSETINT (ie.y, emacsframe->top_pos);
+	  kbd_buffer_store_event (&ie);
+	}
     }
 }
 
@@ -7810,7 +8174,6 @@ not_in_argv (NSString *arg)
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillEnterFullScreen:]");
-  in_fullscreen_transition = YES;
   [self windowWillEnterFullScreen];
 }
 - (void)windowWillEnterFullScreen /* provided for direct calls */
@@ -7823,7 +8186,6 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidEnterFullScreen:]");
   [self windowDidEnterFullScreen];
-  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidEnterFullScreen /* provided for direct calls */
@@ -7837,7 +8199,6 @@ not_in_argv (NSString *arg)
     }
   else
     {
-      BOOL tbar_visible = FRAME_EXTERNAL_TOOL_BAR (emacsframe) ? YES : NO;
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070 \
   && MAC_OS_X_VERSION_MIN_REQUIRED <= 1070
       unsigned val = (unsigned)[NSApp presentationOptions];
@@ -7855,14 +8216,12 @@ not_in_argv (NSString *arg)
           [NSApp setPresentationOptions: options];
         }
 #endif
-      [toolbar setVisible:tbar_visible];
     }
 }
 
 - (void)windowWillExitFullScreen:(NSNotification *)notification
 {
   NSTRACE ("[EmacsView windowWillExitFullScreen:]");
-  in_fullscreen_transition = YES;
   [self windowWillExitFullScreen];
 }
 
@@ -7882,7 +8241,6 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView windowDidExitFullScreen:]");
   [self windowDidExitFullScreen];
-  in_fullscreen_transition = NO;
 }
 
 - (void)windowDidExitFullScreen /* provided for direct calls */
@@ -7898,34 +8256,9 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   [self updateCollectionBehavior];
 #endif
-  if (FRAME_EXTERNAL_TOOL_BAR (emacsframe))
-    {
-      [toolbar setVisible:YES];
-      update_frame_tool_bar (emacsframe);
-      [self updateFrameSize:YES];
-      [[self window] display];
-    }
-  else
-    [toolbar setVisible:NO];
 
   if (next_maximized != -1)
     [[self window] performZoom:self];
-}
-
-- (BOOL)inFullScreenTransition
-{
-  return in_fullscreen_transition;
-}
-
-- (void)waitFullScreenTransition
-{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-  while ([self inFullScreenTransition])
-    {
-      NSTRACE ("wait for fullscreen");
-      wait_reading_process_output (0, 300000000, 0, 1, Qnil, NULL, 0);
-    }
-#endif
 }
 
 - (BOOL)fsIsNative
@@ -7967,7 +8300,7 @@ not_in_argv (NSString *arg)
       NSWindowCollectionBehavior b = [win collectionBehavior];
       if (ns_use_native_fullscreen)
         {
-          if ([win parentWindow])
+          if (FRAME_PARENT_FRAME (emacsframe))
             {
               b &= ~NSWindowCollectionBehaviorFullScreenPrimary;
               b |= NSWindowCollectionBehaviorFullScreenAuxiliary;
@@ -7994,10 +8327,10 @@ not_in_argv (NSString *arg)
 
 - (void)toggleFullScreen: (id)sender
 {
-  NSWindow *w, *fw;
+  EmacsWindow *w, *fw;
   BOOL onFirstScreen;
   struct frame *f;
-  NSRect r, wr;
+  NSRect r;
   NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
@@ -8007,25 +8340,17 @@ not_in_argv (NSString *arg)
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
       if ([[self window] respondsToSelector: @selector(toggleFullScreen:)])
-        {
 #endif
-          [[self window] toggleFullScreen:sender];
-          // wait for fullscreen animation complete (bug#28496)
-          [self waitFullScreenTransition];
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-        }
-#endif
+        [[self window] toggleFullScreen:sender];
 #endif
       return;
     }
 
-  w = [self window];
+  w = (EmacsWindow *)[self window];
   onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
   f = emacsframe;
-  wr = [w frame];
-  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-				 (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
-                                 f);
+  col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+				 (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
 
   if (fs_state != FULLSCREEN_BOTH)
     {
@@ -8054,27 +8379,9 @@ not_in_argv (NSString *arg)
 #endif
         }
 
-      fw = [[EmacsFSWindow alloc]
-                       initWithContentRect:[w contentRectForFrameRect:wr]
-                                 styleMask:NSWindowStyleMaskBorderless
-                                   backing:NSBackingStoreBuffered
-                                     defer:YES
-                                    screen:screen];
-
-      [fw setContentView:[w contentView]];
-      [fw setTitle:[w title]];
-      [fw setDelegate:self];
-      [fw setAcceptsMouseMovedEvents: YES];
-#if !defined (NS_IMPL_COCOA) \
-  || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
-#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
-      if ([fw respondsToSelector: @selector(useOptimizedDrawing:)])
-#endif
-        [fw useOptimizedDrawing: YES];
-#endif
-      [fw setBackgroundColor: col];
-      if ([col alphaComponent] != (EmacsCGFloat) 1.0)
-        [fw setOpaque: NO];
+      fw = [[EmacsWindow alloc] initWithEmacsFrame:emacsframe
+                                        fullscreen:YES
+                                            screen:screen];
 
       f->border_width = 0;
 
@@ -8082,7 +8389,6 @@ not_in_argv (NSString *arg)
 
       [self windowWillEnterFullScreen];
       [fw makeKeyAndOrderFront:NSApp];
-      [fw makeFirstResponder:self];
       [w orderOut:self];
       r = [fw frameRectForContentRect:[screen frame]];
       [fw setFrame: r display:YES animate:ns_use_fullscreen_animation];
@@ -8109,17 +8415,17 @@ not_in_argv (NSString *arg)
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
         [w setOpaque: NO];
 
-      f->border_width = bwidth;
+      f->border_width = [w borderWidth];
 
       // To do: consider using [NSNotificationCenter postNotificationName:] to
       // send notifications.
 
       [self windowWillExitFullScreen];
-      [fw setFrame: [w frame] display:YES animate:ns_use_fullscreen_animation];
+      [fw setFrame:[[w contentView] frame]
+                    display:YES animate:ns_use_fullscreen_animation];
       [fw close];
       [w makeKeyAndOrderFront:NSApp];
       [self windowDidExitFullScreen];
-      [self updateFrameSize:YES];
     }
 }
 
@@ -8246,12 +8552,6 @@ not_in_argv (NSString *arg)
 }
 
 
-- (EmacsToolbar *)toolbar
-{
-  return toolbar;
-}
-
-
 /* This gets called on toolbar button click.  */
 - (instancetype)toolbarClicked: (id)item
 {
@@ -8288,101 +8588,92 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_DRAW_TO_BUFFER
-- (void)createDrawingBuffer
-  /* Create and store a new CGGraphicsContext for Emacs to draw into.
-
-     We can't do this in GNUstep as there's no equivalent, so under
-     GNUstep we retain the old method of drawing direct to the
-     EmacsView.  */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+- (CALayer *)makeBackingLayer
 {
-  NSTRACE ("EmacsView createDrawingBuffer]");
+  EmacsLayer *l = [[EmacsLayer alloc]
+                    initWithColorSpace:[[[self window] colorSpace] CGColorSpace]];
+  [l setDelegate:(id)self];
+  [l setContentsScale:[[self window] backingScaleFactor]];
 
-  NSGraphicsContext *screen;
-  CGColorSpaceRef colorSpace = [[[self window] colorSpace] CGColorSpace];
-  CGFloat scale = [[self window] backingScaleFactor];
-  NSRect frame = [self frame];
-
-  if (drawingBuffer != nil)
-    CGContextRelease (drawingBuffer);
-
-  drawingBuffer = CGBitmapContextCreate (nil, NSWidth (frame) * scale, NSHeight (frame) * scale,
-                                         8, 0, colorSpace,
-                                         kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host);
-
-  /* This fixes the scale to match the backing scale factor, and flips the image.  */
-  CGContextTranslateCTM(drawingBuffer, 0, NSHeight (frame) * scale);
-  CGContextScaleCTM(drawingBuffer, scale, -scale);
+  return l;
 }
 
 
-- (void)focusOnDrawingBuffer
+- (void)lockFocus
 {
-  NSTRACE ("EmacsView focusOnDrawingBuffer]");
+  NSTRACE ("[EmacsView lockFocus]");
 
-  NSGraphicsContext *buf =
-    [NSGraphicsContext
-        graphicsContextWithCGContext:drawingBuffer flipped:YES];
+  CGContextRef context = [(EmacsLayer*)[self layer] getContext];
 
-  [NSGraphicsContext setCurrentContext:buf];
+  [NSGraphicsContext
+        setCurrentContext:[NSGraphicsContext
+                            graphicsContextWithCGContext:context
+                                                 flipped:YES]];
+}
+
+
+- (void)unlockFocus
+{
+  NSTRACE ("[EmacsView unlockFocus]");
+
+  [NSGraphicsContext setCurrentContext:nil];
+  [self setNeedsDisplay:YES];
 }
 
 
 - (void)windowDidChangeBackingProperties:(NSNotification *)notification
-  /* Update the drawing buffer when the backing scale factor changes.  */
+  /* Update the drawing buffer when the backing properties change.  */
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
-  CGFloat old = [[[notification userInfo]
-                    objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
-                  doubleValue];
-  CGFloat new = [[self window] backingScaleFactor];
+  NSRect frame = [self frame];
+  EmacsLayer *layer = (EmacsLayer *)[self layer];
 
-  if (old != new)
-    {
-      NSRect frame = [self frame];
-      [self createDrawingBuffer];
-      ns_clear_frame (emacsframe);
-      expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
-    }
+  [layer setContentsScale:[[notification object] backingScaleFactor]];
+  [layer setColorSpace:[(id) [[notification object] colorSpace] CGColorSpace]];
+
+  ns_clear_frame (emacsframe);
+  expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
 }
-#endif /* NS_DRAW_TO_BUFFER */
+#endif
 
 
-- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest
 {
   NSTRACE ("[EmacsView copyRect:To:]");
   NSTRACE_RECT ("Source", srcRect);
-  NSTRACE_RECT ("Destination", dstRect);
+  NSTRACE_POINT ("Destination", dest);
 
-#ifdef NS_DRAW_TO_BUFFER
-  CGImageRef copy;
-  NSRect frame = [self frame];
-  NSAffineTransform *setOrigin = [NSAffineTransform transform];
+  NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
+                               NSHeight (srcRect));
 
-  [[NSGraphicsContext currentContext] saveGraphicsState];
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  double scale = [[self window] backingScaleFactor];
+  CGContextRef context = [(EmacsLayer *)[self layer] getContext];
+  int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
+  void *pixels = CGBitmapContextGetData (context);
+  int rowSize = CGBitmapContextGetBytesPerRow (context);
+  int srcRowSize = NSWidth (srcRect) * scale * bpp;
+  void *srcPixels = (char *) pixels
+    + (int) (NSMinY (srcRect) * scale * rowSize
+             + NSMinX (srcRect) * scale * bpp);
+  void *dstPixels = (char *) pixels
+    + (int) (dest.y * scale * rowSize
+             + dest.x * scale * bpp);
 
-  /* Set the clipping before messing with the buffer's
-     orientation.  */
-  NSRectClip (dstRect);
+  if (NSIntersectsRect (srcRect, dstRect)
+      && NSMinY (srcRect) < NSMinY (dstRect))
+    for (int y = NSHeight (srcRect) * scale - 1 ; y >= 0 ; y--)
+      memmove ((char *) dstPixels + y * rowSize,
+               (char *) srcPixels + y * rowSize,
+               srcRowSize);
+  else
+    for (int y = 0 ; y < NSHeight (srcRect) * scale ; y++)
+      memmove ((char *) dstPixels + y * rowSize,
+               (char *) srcPixels + y * rowSize,
+               srcRowSize);
 
-  /* Unflip the buffer as the copied image will be unflipped, and
-     offset the top left so when we draw back into the buffer the
-     correct part of the image is drawn.  */
-  CGContextScaleCTM(drawingBuffer, 1, -1);
-  CGContextTranslateCTM(drawingBuffer,
-                        NSMinX (dstRect) - NSMinX (srcRect),
-                        -NSHeight (frame) - (NSMinY (dstRect) - NSMinY (srcRect)));
-
-  /* Take a copy of the buffer and then draw it back to the buffer,
-     limited by the clipping rectangle.  */
-  copy = CGBitmapContextCreateImage (drawingBuffer);
-  CGContextDrawImage (drawingBuffer, frame, copy);
-
-  CGImageRelease (copy);
-
-  [[NSGraphicsContext currentContext] restoreGraphicsState];
-  [self setNeedsDisplayInRect:dstRect];
 #else
   hide_bell();              // Ensure the bell image isn't scrolled.
 
@@ -8395,23 +8686,37 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_DRAW_TO_BUFFER
-- (BOOL)wantsUpdateLayer
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+/* If the frame has been garbaged but the toolkit wants to draw, for
+   example when resizing the frame, we end up with a blank screen.
+   Sometimes this results in an unpleasant flicker, so try to
+   redisplay before drawing.
+
+   This used to be done in viewWillDraw, but with the custom layer
+   that method is not called.  We cannot call redisplay directly from
+   [NSView layout], because it may trigger another round of layout by
+   changing the frame size and recursive layout calls are banned.  It
+   appears to be safe to call redisplay here.  */
+- (void)layoutSublayersOfLayer:(CALayer *)layer
 {
-    return YES;
-}
+  if (!redisplaying_p && FRAME_GARBAGED_P (emacsframe))
+    {
+      /* If there is IO going on when redisplay is run here Emacs
+         crashes.  I think it's because this code will always be run
+         within the run loop and for whatever reason processing input
+         is dangerous.  This technique was stolen wholesale from
+         nsmenu.m and seems to work.  */
+      bool owfi = waiting_for_input;
+      waiting_for_input = 0;
+      block_input ();
 
+      redisplay ();
 
-- (void)updateLayer
-{
-  NSTRACE ("[EmacsView updateLayer]");
-
-  CGImageRef contentsImage = CGBitmapContextCreateImage(drawingBuffer);
-  [[self layer] setContents:(id)contentsImage];
-  CGImageRelease(contentsImage);
+      unblock_input ();
+      waiting_for_input = owfi;
+    }
 }
 #endif
-
 
 - (void)drawRect: (NSRect)rect
 {
@@ -8436,36 +8741,113 @@ not_in_argv (NSString *arg)
 
 -(NSDragOperation) draggingEntered: (id <NSDraggingInfo>) sender
 {
+  id source;
+
   NSTRACE ("[EmacsView draggingEntered:]");
+
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
+    return NSDragOperationNone;
+
   return NSDragOperationGeneric;
 }
 
 
--(BOOL)prepareForDragOperation: (id <NSDraggingInfo>) sender
+-(BOOL) prepareForDragOperation: (id <NSDraggingInfo>) sender
+{
+  id source;
+
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
+    return NO;
+
+  return YES;
+}
+
+- (BOOL) wantsPeriodicDraggingUpdates
 {
   return YES;
 }
 
-
--(BOOL)performDragOperation: (id <NSDraggingInfo>) sender
+- (NSDragOperation) draggingUpdated: (id <NSDraggingInfo>) sender
 {
-  id pb;
+#ifdef NS_IMPL_GNUSTEP
+  struct input_event ie;
+#else
+  Lisp_Object frame;
+#endif
+  NSPoint position;
+  int x, y;
+  NSAutoreleasePool *ap;
+  specpdl_ref count;
+
+  ap = [[NSAutoreleasePool alloc] init];
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (ns_release_autorelease_pool, ap);
+
+#ifdef NS_IMPL_GNUSTEP
+  EVENT_INIT (ie);
+  ie.kind = DRAG_N_DROP_EVENT;
+#endif
+
+  /* Get rid of mouse face.  */
+  [self mouseExited: [[self window] currentEvent]];
+
+  position = [self convertPoint: [sender draggingLocation]
+		       fromView: nil];
+  x = lrint (position.x);
+  y = lrint (position.y);
+
+#ifdef NS_IMPL_GNUSTEP
+  XSETINT (ie.x, x);
+  XSETINT (ie.y, y);
+  XSETFRAME (ie.frame_or_window, emacsframe);
+  ie.arg = Qlambda;
+  ie.modifiers = 0;
+
+  kbd_buffer_store_event (&ie);
+#else
+  /* Input events won't be processed until the drop happens on macOS,
+     so call this function instead.  */
+  XSETFRAME (frame, emacsframe);
+
+  safe_call (4, Vns_drag_motion_function, frame,
+	     make_fixnum (x), make_fixnum (y));
+
+  redisplay ();
+#endif
+
+  unbind_to (count, Qnil);
+  return NSDragOperationGeneric;
+}
+
+- (BOOL) performDragOperation: (id <NSDraggingInfo>) sender
+{
+  id pb, source;
   int x, y;
   NSString *type;
-  NSEvent *theEvent = [[self window] currentEvent];
   NSPoint position;
   NSDragOperation op = [sender draggingSourceOperationMask];
   Lisp_Object operations = Qnil;
   Lisp_Object strings = Qnil;
   Lisp_Object type_sym;
+  struct input_event ie;
 
-  NSTRACE ("[EmacsView performDragOperation:]");
+  NSTRACE (@"[EmacsView performDragOperation:]");
 
-  if (!emacs_event)
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
     return NO;
 
   position = [self convertPoint: [sender draggingLocation] fromView: nil];
-  x = lrint (position.x);  y = lrint (position.y);
+  x = lrint (position.x);
+  y = lrint (position.y);
 
   pb = [sender draggingPasteboard];
   type = [pb availableTypeFromArray: ns_drag_types];
@@ -8481,65 +8863,82 @@ not_in_argv (NSString *arg)
   if (op & NSDragOperationGeneric || NILP (operations))
     operations = Fcons (Qns_drag_operation_generic, operations);
 
-  if (type == 0)
+  if (!type)
+    return NO;
+#if NS_USE_NSPasteboardTypeFileURL
+  else if ([type isEqualToString: NSPasteboardTypeFileURL])
     {
-      return NO;
+      type_sym = Qfile;
+
+      NSArray *urls = [pb readObjectsForClasses: @[[NSURL self]]
+                                        options: nil];
+      NSEnumerator *uenum = [urls objectEnumerator];
+      NSURL *url;
+      while ((url = [uenum nextObject]))
+        strings = Fcons ([[url path] lispString], strings);
     }
-  /* FIXME: NSFilenamesPboardType is deprecated in 10.14, but the
-     NSURL method can only handle one file at a time.  Stick with the
-     existing code at the moment.  */
+#else  // !NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSFilenamesPboardType])
     {
-      NSArray *files;
+      id files;
       NSEnumerator *fenum;
       NSString *file;
 
-      if (!(files = [pb propertyListForType: type]))
+      files = [pb propertyListForType: type];
+
+      if (!files)
         return NO;
 
       type_sym = Qfile;
 
-      fenum = [files objectEnumerator];
-      while ( (file = [fenum nextObject]) )
-        strings = Fcons (build_string ([file UTF8String]), strings);
+      /* On GNUstep, files might be a string.  */
+
+      if ([files respondsToSelector: @selector (objectEnumerator:)])
+	{
+	  fenum = [files objectEnumerator];
+
+	  while ((file = [fenum nextObject]))
+	    strings = Fcons ([file lispString], strings);
+	}
+      else
+	/* Then `files' is an NSString.  */
+	strings = list1 ([files lispString]);
     }
-  else if ([type isEqualToString: NSURLPboardType])
+#endif   // !NS_USE_NSPasteboardTypeFileURL
+  else if ([type isEqualToString: NSPasteboardTypeURL])
     {
       NSURL *url = [NSURL URLFromPasteboard: pb];
       if (url == nil) return NO;
 
       type_sym = Qurl;
 
-      strings = list1 (build_string ([[url absoluteString] UTF8String]));
+      strings = list1 ([[url absoluteString] lispString]);
     }
-  else if ([type isEqualToString: NSStringPboardType]
-           || [type isEqualToString: NSTabularTextPboardType])
+  else if ([type isEqualToString: NSPasteboardTypeString]
+           || [type isEqualToString: NSPasteboardTypeTabularText])
     {
       NSString *data;
 
-      if (! (data = [pb stringForType: type]))
+      data = [pb stringForType: type];
+
+      if (!data)
         return NO;
 
       type_sym = Qnil;
-
-      strings = list1 (build_string ([data UTF8String]));
+      strings = list1 ([data lispString]);
     }
   else
-    {
-      fputs ("Invalid data type in dragging pasteboard\n", stderr);
-      return NO;
-    }
+    return NO;
 
-  emacs_event->kind = DRAG_N_DROP_EVENT;
-  XSETINT (emacs_event->x, x);
-  XSETINT (emacs_event->y, y);
-  emacs_event->modifiers = 0;
+  EVENT_INIT (ie);
+  ie.kind = DRAG_N_DROP_EVENT;
+  ie.arg = Fcons (type_sym, Fcons (operations,
+				   strings));
+  XSETINT (ie.x, x);
+  XSETINT (ie.y, y);
+  XSETFRAME (ie.frame_or_window, emacsframe);
 
-  emacs_event->arg = Fcons (type_sym,
-                            Fcons (operations,
-                                   strings));
-  EV_TRAILER (theEvent);
-
+  kbd_buffer_store_event (&ie);
   return YES;
 }
 
@@ -8628,13 +9027,6 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void) setRows: (int) r andColumns: (int) c
-{
-  NSTRACE ("[EmacsView setRows:%d andColumns:%d]", r, c);
-  rows = r;
-  cols = c;
-}
-
 - (int) fullscreenState
 {
   return fs_state;
@@ -8651,6 +9043,387 @@ not_in_argv (NSString *arg)
    ========================================================================== */
 
 @implementation EmacsWindow
+
+
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+{
+  return [self initWithEmacsFrame:f fullscreen:NO screen:nil];
+}
+
+
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+                         fullscreen: (BOOL) fullscreen
+                             screen: (NSScreen *) screen
+{
+  NSWindowStyleMask styleMask;
+  int width, height;
+
+  NSTRACE ("[EmacsWindow initWithEmacsFrame:fullscreen:screen:]");
+
+  if (fullscreen)
+    styleMask = NSWindowStyleMaskBorderless;
+  else if (FRAME_UNDECORATED (f))
+    {
+      styleMask = NSWindowStyleMaskBorderless;
+#ifdef NS_IMPL_COCOA
+      styleMask |= NSWindowStyleMaskResizable;
+#endif
+    }
+  else if (f->tooltip)
+    styleMask = 0;
+  else
+    styleMask = (NSWindowStyleMaskTitled
+		 | NSWindowStyleMaskResizable
+		 | NSWindowStyleMaskMiniaturizable
+		 | NSWindowStyleMaskClosable);
+
+  last_drag_event = nil;
+
+  width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols);
+  height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines);
+
+  self = [super initWithContentRect: NSMakeRect (0, 0, width, height)
+                          styleMask: styleMask
+                            backing: NSBackingStoreBuffered
+                              defer: YES
+                             screen: screen];
+  if (self)
+    {
+      NSString *name;
+      NSColor *col;
+      NSScreen *screen = [self screen];
+      EmacsView *view = FRAME_NS_VIEW (f);
+
+      [self setDelegate:view];
+      [[self contentView] addSubview:view];
+      [self makeFirstResponder:view];
+
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED <= 1090
+#if MAC_OS_X_VERSION_MAX_ALLOWED > 1090
+      if ([self respondsToSelector: @selector(useOptimizedDrawing:)])
+#endif
+        [self useOptimizedDrawing:YES];
+#endif
+
+      [self setAcceptsMouseMovedEvents:YES];
+
+      name = NILP (f->name) ? @"Emacs" : [NSString stringWithLispString:f->name];
+      [self setTitle:name];
+
+      if (!NILP (f->icon_name))
+        [self setMiniwindowTitle:
+                [NSString stringWithLispString:f->icon_name]];
+
+      [self setAppearance];
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+      if ([self respondsToSelector:@selector(titlebarAppearsTransparent)])
+        [self setTitlebarAppearsTransparent:FRAME_NS_TRANSPARENT_TITLEBAR (f)];
+#endif
+
+      [self setParentChildRelationships];
+
+      if (FRAME_Z_GROUP (f) != z_group_none)
+        [self setLevel:NSNormalWindowLevel + (FRAME_Z_GROUP_BELOW (f) ? -1 : 1)];
+
+      if (screen != 0)
+        {
+          NSPoint pt = NSMakePoint
+            (IN_BOUND (-SCREENMAX, f->left_pos
+                       + NS_PARENT_WINDOW_LEFT_POS (f), SCREENMAX),
+             IN_BOUND (-SCREENMAX,
+                       NS_PARENT_WINDOW_TOP_POS (f) - f->top_pos,
+                       SCREENMAX));
+
+          [self setFrameTopLeftPoint:pt];
+
+          NSTRACE_RECT ("new frame", [self frame]);
+        }
+
+      f->border_width = [self borderWidth];
+
+      col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
+      [self setBackgroundColor:col];
+      if ([col alphaComponent] != (EmacsCGFloat) 1.0)
+        [self setOpaque:NO];
+
+      /* toolbar support */
+      [self createToolbar:f];
+
+      /* macOS Sierra automatically enables tabbed windows.  We can't
+         allow this to be enabled until it's available on a Free system.
+         Currently it only happens by accident and is buggy anyway.  */
+#ifdef NS_IMPL_COCOA
+      if ([self respondsToSelector:@selector(setTabbingMode:)])
+        [self setTabbingMode:NSWindowTabbingModeDisallowed];
+#endif
+    }
+
+  return self;
+}
+
+
+- (void)createToolbar: (struct frame *)f
+{
+  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f))
+    return;
+
+  EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+
+  EmacsToolbar *toolbar = [[EmacsToolbar alloc]
+                            initForView:view
+                            withIdentifier:[NSString stringWithFormat:@"%p", f]];
+
+  [self setToolbar:toolbar];
+  update_frame_tool_bar_1 (f, toolbar);
+
+#ifdef NS_IMPL_COCOA
+  {
+    NSButton *toggleButton;
+    toggleButton = [self standardWindowButton:NSWindowToolbarButton];
+    [toggleButton setTarget:view];
+    [toggleButton setAction:@selector (toggleToolbar:)];
+  }
+#endif
+}
+
+- (void)dealloc
+{
+  NSTRACE ("[EmacsWindow dealloc]");
+
+  /* We need to release the toolbar ourselves.  */
+  [self setToolbar: nil];
+  [[self toolbar] release];
+
+  /* Also the last button press event .  */
+  if (last_drag_event)
+    [last_drag_event release];
+
+  [super dealloc];
+}
+
+- (NSInteger) borderWidth
+{
+  return NSWidth ([self frame]) - NSWidth ([[self contentView] frame]);
+}
+
+
+- (void)setParentChildRelationships
+  /* After certain operations, for example making a frame visible or
+     resetting the NSWindow through modifying the undecorated status,
+     the parent/child relationship may be broken.  We can also use
+     this method to set them, as long as the frame struct already has
+     the correct relationship set.  */
+{
+  NSTRACE ("[EmacsWindow setParentChildRelationships]");
+
+  Lisp_Object frame, tail;
+  EmacsView *ourView = (EmacsView *)[self delegate];
+  struct frame *ourFrame = ourView->emacsframe;
+  struct frame *parentFrame = FRAME_PARENT_FRAME (ourFrame);
+  EmacsWindow *oldParentWindow = (EmacsWindow *)[self parentWindow];
+
+
+#ifdef NS_IMPL_COCOA
+  /* We have to set the accessibility subroles and/or the collection
+     behaviors early otherwise child windows may not go fullscreen as
+     expected later.  */
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
+  if ([self respondsToSelector:@selector(setAccessibilitySubrole:)])
+#endif
+    /* Set the accessibility subroles.  */
+    if (parentFrame)
+      [self setAccessibilitySubrole:NSAccessibilityFloatingWindowSubrole];
+    else
+      [self setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+  [ourView updateCollectionBehavior];
+#endif
+
+  /* Child frames are often used in ways that may mean they should
+     "disappear" into the contents of the parent frame.  macOs's
+     drop-shadows break this effect, so remove them on undecorated
+     child frames.  */
+  if (parentFrame && FRAME_UNDECORATED (ourFrame))
+    [self setHasShadow:NO];
+  else
+    [self setHasShadow:YES];
+#endif
+
+
+  /* Check if we have an incorrectly set parent.  */
+  if ((! parentFrame && oldParentWindow)
+      || (parentFrame && oldParentWindow
+          && ((EmacsView *)[oldParentWindow delegate])->emacsframe != parentFrame))
+    {
+      [[self parentWindow] removeChildWindow:self];
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
+#endif
+          /* If we are the descendent of a fullscreen window and we
+             have no new parent, go fullscreen.  */
+          {
+            NSWindow *parent = (NSWindow *)oldParentWindow;
+            while (parent)
+              {
+                if (([parent styleMask] & NSWindowStyleMaskFullScreen) != 0)
+                  {
+                    [ourView toggleFullScreen:self];
+                    break;
+                  }
+                parent = [parent parentWindow];
+              }
+          }
+#endif
+    }
+
+  if (parentFrame)
+    {
+      NSWindow *parentWindow = [FRAME_NS_VIEW (parentFrame) window];
+
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
+#endif
+	/* Child frames must not be fullscreen.  */
+	if ([ourView fsIsNative] && [ourView isFullscreen])
+	  [ourView toggleFullScreen:self];
+#endif
+
+      [parentWindow addChildWindow:self
+                           ordered:NSWindowAbove];
+    }
+
+  /* Check our child windows are configured correctly.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (FRAME_PARENT_FRAME (XFRAME (frame)) == ourFrame)
+        [(EmacsWindow *)[FRAME_NS_VIEW (XFRAME (frame)) window] setParentChildRelationships];
+    }
+}
+
+
+/* It seems the only way to reorder child frames is by removing them
+   from the parent and then reattaching them in the correct order.  */
+
+- (void)orderFront:(id)sender
+{
+  NSTRACE ("[EmacsWindow orderFront:]");
+
+  NSWindow *parent = [self parentWindow];
+  if (parent)
+    {
+      [parent removeChildWindow:self];
+      [parent addChildWindow:self ordered:NSWindowAbove];
+    }
+  else
+    [super orderFront:sender];
+}
+
+- (void)makeKeyAndOrderFront:(id)sender
+{
+  NSTRACE ("[EmacsWindow makeKeyAndOrderFront:]");
+
+  if ([self parentWindow])
+    {
+      [self orderFront:sender];
+      [self makeKeyWindow];
+    }
+  else
+    [super makeKeyAndOrderFront:sender];
+}
+
+
+#ifdef NS_IMPL_GNUSTEP
+/* orderedIndex isn't yet available in GNUstep, but it seems pretty
+   easy to implement.  */
+- (NSInteger) orderedIndex
+{
+  return [[NSApp orderedWindows] indexOfObjectIdenticalTo:self];
+}
+#endif
+
+
+/* The array returned by [NSWindow parentWindow] may already be
+   sorted, but the documentation doesn't tell us whether or not it is,
+   so to be safe we'll sort it.  */
+static NSInteger
+nswindow_orderedIndex_sort (id w1, id w2, void *c)
+{
+  NSInteger i1 = [w1 orderedIndex];
+  NSInteger i2 = [w2 orderedIndex];
+
+  if (i1 > i2)
+    return NSOrderedAscending;
+  if (i1 < i2)
+    return NSOrderedDescending;
+
+  return NSOrderedSame;
+}
+
+- (void)orderBack:(id)sender
+{
+  NSTRACE ("[EmacsWindow orderBack:]");
+
+  NSWindow *parent = [self parentWindow];
+  if (parent)
+    {
+      NSArray *children = [[parent childWindows]
+                            sortedArrayUsingFunction:nswindow_orderedIndex_sort
+                                              context:nil];
+      [parent removeChildWindow:self];
+      [parent addChildWindow:self ordered:NSWindowAbove];
+
+      for (NSWindow *win in children)
+        {
+          if (win != self)
+            {
+              [parent removeChildWindow:win];
+              [parent addChildWindow:win ordered:NSWindowAbove];
+            }
+        }
+    }
+  else
+    [super orderBack:sender];
+}
+
+- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above
+{
+  NSTRACE ("[EmacsWindow restackWindow:above:]");
+
+  /* If parent windows don't match we can't restack these frames
+     without changing the parents.  */
+  if ([self parentWindow] != [win parentWindow])
+    return NO;
+  else if (![self parentWindow])
+    [self orderWindow:(above ? NSWindowAbove : NSWindowBelow)
+           relativeTo:[win windowNumber]];
+  else
+    {
+      NSInteger index;
+      NSWindow *parent = [self parentWindow];
+      NSMutableArray *children = [[[parent childWindows]
+                                   sortedArrayUsingFunction:nswindow_orderedIndex_sort
+                                                    context:nil]
+                                   mutableCopy];
+      [children removeObject:self];
+      index = [children indexOfObject:win];
+      [children insertObject:self atIndex:(above ? index+1 : index)];
+
+      for (NSWindow *w in children)
+        {
+          [parent removeChildWindow:w];
+          [parent addChildWindow:w ordered:NSWindowAbove];
+        }
+    }
+
+  return YES;
+}
 
 #ifdef NS_IMPL_COCOA
 - (id)accessibilityAttributeValue:(NSString *)attribute
@@ -8701,9 +9474,7 @@ not_in_argv (NSString *arg)
         }
       if (STRINGP (str))
         {
-          const char *utfStr = SSDATA (str);
-          NSString *nsStr = [NSString stringWithUTF8String: utfStr];
-          return nsStr;
+          return [NSString stringWithLispString:str];
         }
     }
 
@@ -8946,22 +9717,162 @@ not_in_argv (NSString *arg)
 {
   return !FRAME_NO_ACCEPT_FOCUS (((EmacsView *)[self delegate])->emacsframe);
 }
-@end /* EmacsWindow */
-
-
-@implementation EmacsFSWindow
-
-- (BOOL)canBecomeKeyWindow
-{
-  return YES;
-}
 
 - (BOOL)canBecomeMainWindow
+  /* Required for fullscreen and undecorated windows.  */
 {
   return YES;
 }
 
-@end
+- (void) setLastDragEvent: (NSEvent *) event
+{
+  if (last_drag_event)
+    [last_drag_event release];
+  last_drag_event = [event copy];
+}
+
+- (NSDragOperation) draggingSourceOperationMaskForLocal: (BOOL) is_local
+{
+  return drag_op;
+}
+
+- (void) draggedImage: (NSImage *) image
+	      endedAt: (NSPoint) screen_point
+	    operation: (NSDragOperation) operation
+{
+  selected_op = operation;
+}
+
+- (void) draggedImage: (NSImage *) dragged_image
+	      movedTo: (NSPoint) screen_point
+{
+  NSPoint mouse_loc;
+#ifdef NS_IMPL_COCOA
+  NSInteger window_number;
+  NSWindow *w;
+#endif
+
+  mouse_loc = [NSEvent mouseLocation];
+
+#ifdef NS_IMPL_COCOA
+  if (dnd_mode != RETURN_FRAME_NEVER)
+    {
+      window_number = [NSWindow windowNumberAtPoint: mouse_loc
+			belowWindowWithWindowNumber: 0];
+      w = [NSApp windowWithWindowNumber: window_number];
+
+      if (!w || w != self)
+	dnd_mode = RETURN_FRAME_NOW;
+
+      if (dnd_mode != RETURN_FRAME_NOW
+	  || ![[w delegate] isKindOfClass: [EmacsView class]]
+	  || ((EmacsView *) [w delegate])->emacsframe->tooltip)
+	goto out;
+
+      dnd_return_frame = ((EmacsView *) [w delegate])->emacsframe;
+
+      /* FIXME: there must be a better way to leave the event loop.  */
+      [NSException raise: @""
+		  format: @"Must return DND frame"];
+    }
+
+ out:
+#endif
+
+  if (dnd_move_tooltip_with_frame)
+    ns_move_tooltip_to_mouse_location (mouse_loc);
+}
+
+- (BOOL) mustNotDropOn: (NSView *) receiver
+{
+  return ([receiver window] == self
+	  ? !dnd_allow_same_frame : NO);
+}
+
+- (NSDragOperation) beginDrag: (NSDragOperation) op
+		forPasteboard: (NSPasteboard *) pasteboard
+		     withMode: (enum ns_return_frame_mode) mode
+		returnFrameTo: (struct frame **) frame_return
+		 prohibitSame: (BOOL) prohibit_same_frame
+		followTooltip: (BOOL) follow_tooltip
+{
+  NSImage *image;
+#ifdef NS_IMPL_COCOA
+  NSInteger window_number;
+  NSWindow *w;
+#endif
+  drag_op = op;
+  selected_op = NSDragOperationNone;
+  image = [[NSImage alloc] initWithSize: NSMakeSize (1.0, 1.0)];
+  dnd_mode = mode;
+  dnd_return_frame = NULL;
+  dnd_allow_same_frame = !prohibit_same_frame;
+  dnd_move_tooltip_with_frame = follow_tooltip;
+
+  /* Now draw transparency onto the image.  */
+  [image lockFocus];
+  [[NSColor colorWithUnsignedLong: 0] set];
+  NSRectFillUsingOperation (NSMakeRect (0, 0, 1, 1),
+			    NSCompositingOperationCopy);
+  [image unlockFocus];
+
+  block_input ();
+#ifdef NS_IMPL_COCOA
+  if (mode == RETURN_FRAME_NOW)
+    {
+      window_number = [NSWindow windowNumberAtPoint: [NSEvent mouseLocation]
+			belowWindowWithWindowNumber: 0];
+      w = [NSApp windowWithWindowNumber: window_number];
+
+      if (w && [[w delegate] isKindOfClass: [EmacsView class]]
+	  && !((EmacsView *) [w delegate])->emacsframe->tooltip)
+	{
+	  *frame_return = ((EmacsView *) [w delegate])->emacsframe;
+	  [image release];
+	  unblock_input ();
+
+	  return NSDragOperationNone;
+	}
+    }
+
+  @try
+    {
+#endif
+      if (last_drag_event)
+	[self dragImage: image
+		     at: NSMakePoint (0, 0)
+		 offset: NSMakeSize (0, 0)
+		  event: last_drag_event
+	     pasteboard: pasteboard
+		 source: self
+	      slideBack: NO];
+#ifdef NS_IMPL_COCOA
+    }
+  @catch (NSException *e)
+    {
+      /* Ignore.  This is probably the wrong way to leave the
+	 drag-and-drop run loop.  */
+    }
+#endif
+  unblock_input ();
+
+  /* The drop happened, so delete the tooltip.  */
+  if (follow_tooltip)
+    Fx_hide_tip ();
+
+  /* Assume all buttons have been released since the drag-and-drop
+     operation is now over.  */
+  if (!dnd_return_frame)
+    x_display_list->grabbed = 0;
+
+  [image release];
+
+  *frame_return = dnd_return_frame;
+  return selected_op;
+}
+
+@end /* EmacsWindow */
+
 
 /* ==========================================================================
 
@@ -9125,6 +10036,16 @@ not_in_argv (NSString *arg)
       unblock_input ();
     }
   return ret;
+}
+
+- (void) mark
+{
+  if (window)
+    {
+      Lisp_Object win;
+      XSETWINDOW (win, window);
+      mark_object (win);
+    }
 }
 
 
@@ -9460,6 +10381,288 @@ not_in_argv (NSString *arg)
 @end  /* EmacsScroller */
 
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+
+/* ==========================================================================
+
+   A class to handle the screen buffer.
+
+   ========================================================================== */
+
+@implementation EmacsLayer
+
+
+/* An IOSurface is a pixel buffer that is efficiently copied to VRAM
+   for display.  In order to use an IOSurface we must first lock it,
+   write to it, then unlock it.  At this point it is transferred to
+   VRAM and if we modify it during this transfer we may see corruption
+   of the output.  To avoid this problem we can check if the surface
+   is "in use", and if it is then avoid using it.  Unfortunately to
+   avoid writing to a surface that's in use, but still maintain the
+   ability to draw to the screen at any time, we need to keep a cache
+   of multiple surfaces that we can use at will.
+
+   The EmacsLayer class maintains this cache of surfaces, and
+   handles the conversion to a CGGraphicsContext that AppKit can use
+   to draw on.
+
+   The cache is simple: if a free surface is found it is removed from
+   the cache and set as the "current" surface.  Emacs draws to the
+   surface and when the layer wants to update the screen we set it's
+   contents to the surface and then add it back on to the end of the
+   cache.  If no free surfaces are found in the cache then a new one
+   is created.  */
+
+#define CACHE_MAX_SIZE 2
+
+- (id) initWithColorSpace: (CGColorSpaceRef)cs
+{
+  NSTRACE ("[EmacsLayer initWithColorSpace:]");
+
+  self = [super init];
+  if (self)
+    {
+      cache = [[NSMutableArray arrayWithCapacity:CACHE_MAX_SIZE] retain];
+      [self setColorSpace:cs];
+    }
+  else
+    {
+      return nil;
+    }
+
+  return self;
+}
+
+
+- (void) setColorSpace: (CGColorSpaceRef)cs
+{
+  /* We don't need to clear the cache because the new colorspace will
+     be used next time we create a new context.  */
+  if (cs)
+    colorSpace = cs;
+  else
+    colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+}
+
+
+- (void) dealloc
+{
+  [self releaseSurfaces];
+  [cache release];
+
+  [super dealloc];
+}
+
+
+- (void) releaseSurfaces
+{
+  [self setContents:nil];
+  [self releaseContext];
+
+  if (currentSurface)
+    {
+      CFRelease (currentSurface);
+      currentSurface = nil;
+    }
+
+  if (cache)
+    {
+      for (id object in cache)
+        CFRelease ((IOSurfaceRef)object);
+
+      [cache removeAllObjects];
+    }
+}
+
+
+/* Check whether the current bounds match the IOSurfaces we are using.
+   If they do return YES, otherwise NO.  */
+- (BOOL) checkDimensions
+{
+  int width = NSWidth ([self bounds]) * [self contentsScale];
+  int height = NSHeight ([self bounds]) * [self contentsScale];
+  IOSurfaceRef s = currentSurface ? currentSurface
+    : (IOSurfaceRef)[cache firstObject];
+
+  return !s || (IOSurfaceGetWidth (s) == width
+                && IOSurfaceGetHeight (s) == height);
+}
+
+
+/* Return a CGContextRef that can be used for drawing to the screen.  */
+- (CGContextRef) getContext
+{
+  CGFloat scale = [self contentsScale];
+
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer getContext]");
+  NSTRACE_MSG ("IOSurface count: %lu", [cache count] + (currentSurface ? 1 : 0));
+
+  if (![self checkDimensions])
+    [self releaseSurfaces];
+
+  if (!context)
+    {
+      IOSurfaceRef surface = NULL;
+      int width = NSWidth ([self bounds]) * scale;
+      int height = NSHeight ([self bounds]) * scale;
+
+      for (id object in cache)
+        {
+          if (!IOSurfaceIsInUse ((IOSurfaceRef)object))
+            {
+              surface = (IOSurfaceRef)object;
+              [cache removeObject:object];
+              break;
+            }
+        }
+
+      if (!surface && [cache count] >= CACHE_MAX_SIZE)
+        {
+          /* Just grab the first one off the cache.  This may result
+             in tearing effects.  The alternative is to wait for one
+             of the surfaces to become free.  */
+          surface = (IOSurfaceRef)[cache firstObject];
+          [cache removeObject:(id)surface];
+        }
+      else if (!surface)
+        {
+          int bytesPerRow = IOSurfaceAlignProperty (kIOSurfaceBytesPerRow,
+                                                    width * 4);
+
+          surface = IOSurfaceCreate
+            ((CFDictionaryRef)@{(id)kIOSurfaceWidth:[NSNumber numberWithInt:width],
+                (id)kIOSurfaceHeight:[NSNumber numberWithInt:height],
+                (id)kIOSurfaceBytesPerRow:[NSNumber numberWithInt:bytesPerRow],
+                (id)kIOSurfaceBytesPerElement:[NSNumber numberWithInt:4],
+                (id)kIOSurfacePixelFormat:[NSNumber numberWithUnsignedInt:'BGRA']});
+        }
+
+      if (!surface)
+        {
+          NSLog (@"Failed to create IOSurface for frame %@", [self delegate]);
+          return nil;
+        }
+
+      IOReturn lockStatus = IOSurfaceLock (surface, 0, nil);
+      if (lockStatus != kIOReturnSuccess)
+        NSLog (@"Failed to lock surface: %x", lockStatus);
+
+      [self copyContentsTo:surface];
+
+      currentSurface = surface;
+
+      context = CGBitmapContextCreate (IOSurfaceGetBaseAddress (currentSurface),
+                                       IOSurfaceGetWidth (currentSurface),
+                                       IOSurfaceGetHeight (currentSurface),
+                                       8,
+                                       IOSurfaceGetBytesPerRow (currentSurface),
+                                       colorSpace,
+                                       (kCGImageAlphaPremultipliedFirst
+                                        | kCGBitmapByteOrder32Host));
+
+      if (!context)
+        {
+          NSLog (@"Failed to create context for frame %@", [self delegate]);
+          IOSurfaceUnlock (currentSurface, 0, nil);
+          CFRelease (currentSurface);
+          currentSurface = nil;
+          return nil;
+        }
+
+      CGContextTranslateCTM(context, 0, IOSurfaceGetHeight (currentSurface));
+      CGContextScaleCTM(context, scale, -scale);
+    }
+
+  return context;
+}
+
+
+/* Releases the CGGraphicsContext and unlocks the associated
+   IOSurface, so it will be sent to VRAM.  */
+- (void) releaseContext
+{
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer releaseContext]");
+
+  if (!context)
+    return;
+
+  CGContextRelease (context);
+  context = NULL;
+
+  IOReturn lockStatus = IOSurfaceUnlock (currentSurface, 0, nil);
+  if (lockStatus != kIOReturnSuccess)
+    NSLog (@"Failed to unlock surface: %x", lockStatus);
+}
+
+
+- (void) display
+{
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer display]");
+
+  if (context)
+    {
+      [self releaseContext];
+
+#if CACHE_MAX_SIZE == 1
+      /* This forces the layer to see the surface as updated.  */
+      [self setContents:nil];
+#endif
+
+      [self setContents:(id)currentSurface];
+
+      /* Put currentSurface back on the end of the cache.  */
+      [cache addObject:(id)currentSurface];
+      currentSurface = NULL;
+
+      /* Schedule a run of getContext so that if Emacs is idle it will
+         perform the buffer copy, etc.  */
+      [self performSelectorOnMainThread:@selector (getContext)
+                             withObject:nil
+                          waitUntilDone:NO];
+    }
+}
+
+
+/* Copy the contents of lastSurface to DESTINATION.  This is required
+   every time we want to use an IOSurface as its contents are probably
+   blanks (if it's new), or stale.  */
+- (void) copyContentsTo: (IOSurfaceRef) destination
+{
+  IOReturn lockStatus;
+  IOSurfaceRef source = (IOSurfaceRef)[self contents];
+  void *sourceData, *destinationData;
+  int numBytes = IOSurfaceGetAllocSize (destination);
+
+  NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "[EmacsLayer copyContentsTo:]");
+
+  if (!source || source == destination)
+    return;
+
+  lockStatus = IOSurfaceLock (source, kIOSurfaceLockReadOnly, nil);
+  if (lockStatus != kIOReturnSuccess)
+    NSLog (@"Failed to lock source surface: %x", lockStatus);
+
+  sourceData = IOSurfaceGetBaseAddress (source);
+  destinationData = IOSurfaceGetBaseAddress (destination);
+
+  /* Since every IOSurface should have the exact same settings, a
+     memcpy seems like the fastest way to copy the data from one to
+     the other.  */
+  memcpy (destinationData, sourceData, numBytes);
+
+  lockStatus = IOSurfaceUnlock (source, kIOSurfaceLockReadOnly, nil);
+  if (lockStatus != kIOReturnSuccess)
+    NSLog (@"Failed to unlock source surface: %x", lockStatus);
+}
+
+#undef CACHE_MAX_SIZE
+
+@end /* EmacsLayer */
+
+
+#endif /* NS_IMPL_COCOA */
+
+
 #ifdef NS_IMPL_GNUSTEP
 /* Dummy class to get rid of startup warnings.  */
 @implementation EmacsDocument
@@ -9586,6 +10789,26 @@ ns_xlfd_to_fontname (const char *xlfd)
   return ret;
 }
 
+void
+mark_nsterm (void)
+{
+  NSTRACE ("mark_nsterm");
+  Lisp_Object tail, frame;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_NS_P (f))
+	{
+	  NSArray *subviews = [[FRAME_NS_VIEW (f) superview] subviews];
+	  for (int i = [subviews count] - 1; i >= 0; --i)
+	    {
+	      id scroller = [subviews objectAtIndex: i];
+	      if ([scroller isKindOfClass: [EmacsScroller class]])
+                  [scroller mark];
+	    }
+	}
+    }
+}
 
 void
 syms_of_nsterm (void)
@@ -9610,6 +10833,7 @@ syms_of_nsterm (void)
   DEFSYM (Qns_drag_operation_copy, "ns-drag-operation-copy");
   DEFSYM (Qns_drag_operation_link, "ns-drag-operation-link");
   DEFSYM (Qns_drag_operation_generic, "ns-drag-operation-generic");
+  DEFSYM (Qns_handle_drag_motion, "ns-handle-drag-motion");
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
@@ -9617,117 +10841,117 @@ syms_of_nsterm (void)
   Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
   Fput (Qcontrol, Qmodifier_value, make_fixnum (ctrl_modifier));
 
+ DEFVAR_LISP ("ns-input-font", ns_input_font,
+   doc: /* The font specified in the last NS event. */);
+ ns_input_font = Qnil;
+
+ DEFVAR_LISP ("ns-input-fontsize", ns_input_fontsize,
+   doc: /* The fontsize specified in the last NS event. */);
+ ns_input_fontsize = Qnil;
+
+ DEFVAR_LISP ("ns-input-line", ns_input_line,
+   doc: /* The line specified in the last NS event. */);
+ ns_input_line = Qnil;
+
+ DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
+   doc: /* The service name specified in the last NS event. */);
+ ns_input_spi_name = Qnil;
+
+ DEFVAR_LISP ("ns-input-spi-arg", ns_input_spi_arg,
+   doc: /* The service argument specified in the last NS event. */);
+  ns_input_spi_arg = Qnil;
+
   DEFVAR_LISP ("ns-input-file", ns_input_file,
-              "The file specified in the last NS event.");
-  ns_input_file =Qnil;
+    doc: /* The file specified in the last NS event.  */);
+  ns_input_file = Qnil;
 
   DEFVAR_LISP ("ns-working-text", ns_working_text,
-              "String for visualizing working composition sequence.");
-  ns_working_text =Qnil;
-
-  DEFVAR_LISP ("ns-input-font", ns_input_font,
-              "The font specified in the last NS event.");
-  ns_input_font =Qnil;
-
-  DEFVAR_LISP ("ns-input-fontsize", ns_input_fontsize,
-              "The fontsize specified in the last NS event.");
-  ns_input_fontsize =Qnil;
-
-  DEFVAR_LISP ("ns-input-line", ns_input_line,
-               "The line specified in the last NS event.");
-  ns_input_line =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
-               "The service name specified in the last NS event.");
-  ns_input_spi_name =Qnil;
-
-  DEFVAR_LISP ("ns-input-spi-arg", ns_input_spi_arg,
-               "The service argument specified in the last NS event.");
-  ns_input_spi_arg =Qnil;
+    doc: /* String for visualizing working composition sequence.  */);
+  ns_working_text = Qnil;
 
   DEFVAR_LISP ("ns-alternate-modifier", ns_alternate_modifier,
-               "This variable describes the behavior of the alternate or option key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the alternate or option key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_alternate_modifier = Qmeta;
 
   DEFVAR_LISP ("ns-right-alternate-modifier", ns_right_alternate_modifier,
-               "This variable describes the behavior of the right alternate or option key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-It can also be `left' to use the value of `ns-alternate-modifier' instead.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the right alternate or option key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+It can also be `left' to use the value of `ns-alternate-modifier' instead.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_right_alternate_modifier = Qleft;
 
   DEFVAR_LISP ("ns-command-modifier", ns_command_modifier,
-               "This variable describes the behavior of the command key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the command key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_command_modifier = Qsuper;
 
   DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
-               "This variable describes the behavior of the right command key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-It can also be `left' to use the value of `ns-command-modifier' instead.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the right command key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+It can also be `left' to use the value of `ns-command-modifier' instead.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_right_command_modifier = Qleft;
 
   DEFVAR_LISP ("ns-control-modifier", ns_control_modifier,
-               "This variable describes the behavior of the control key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the control key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_control_modifier = Qcontrol;
 
   DEFVAR_LISP ("ns-right-control-modifier", ns_right_control_modifier,
-               "This variable describes the behavior of the right control key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-It can also be `left' to use the value of `ns-control-modifier' instead.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the right control key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+It can also be `left' to use the value of `ns-control-modifier' instead.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_right_control_modifier = Qleft;
 
   DEFVAR_LISP ("ns-function-modifier", ns_function_modifier,
-               "This variable describes the behavior of the function (fn) key.\n\
-Either SYMBOL, describing the behavior for any event,\n\
-or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior\n\
-separately for ordinary keys, function keys, and mouse events.\n\
-\n\
-Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.\n\
-If `none', the key is ignored by Emacs and retains its standard meaning.");
+    doc: /* This variable describes the behavior of the function (fn) key.
+Either SYMBOL, describing the behavior for any event,
+or (:ordinary SYMBOL :function SYMBOL :mouse SYMBOL), describing behavior
+separately for ordinary keys, function keys, and mouse events.
+
+Each SYMBOL is `control', `meta', `alt', `super', `hyper' or `none'.
+If `none', the key is ignored by Emacs and retains its standard meaning.  */);
   ns_function_modifier = Qnone;
 
   DEFVAR_LISP ("ns-antialias-text", ns_antialias_text,
-               "Non-nil (the default) means to render text antialiased.");
+    doc: /* Non-nil (the default) means to render text antialiased.  */);
   ns_antialias_text = Qt;
 
   DEFVAR_LISP ("ns-use-thin-smoothing", ns_use_thin_smoothing,
-               "Non-nil turns on a font smoothing method that produces thinner strokes.");
+    doc: /* Non-nil turns on a font smoothing method that produces thinner strokes.  */);
   ns_use_thin_smoothing = Qnil;
 
   DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,
-               "Whether to confirm application quit using dialog.");
+    doc: /* Whether to confirm application quit using dialog.  */);
   ns_confirm_quit = Qnil;
 
   DEFVAR_LISP ("ns-auto-hide-menu-bar", ns_auto_hide_menu_bar,
@@ -9788,7 +11012,24 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
+
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  DEFVAR_LISP ("ns-scroll-event-delta-factor", Vns_scroll_event_delta_factor,
+	       doc: /* A factor to apply to pixel deltas reported in scroll events.
+ This is only effective for pixel deltas generated from touch pads or
+ mice with smooth scrolling capability.  */);
+  Vns_scroll_event_delta_factor = make_float (1.0);
+
+  DEFVAR_LISP ("ns-drag-motion-function", Vns_drag_motion_function,
+    doc: /* Function called when another program drags items over Emacs.
+
+It is called with three arguments FRAME, X, and Y, whenever the user
+moves the mouse over an Emacs frame as part of a drag-and-drop
+operation.  FRAME is the frame the mouse is on top of, and X and Y are
+the frame-relative positions of the mouse in the X and Y axes
+respectively.  */);
+  Vns_drag_motion_function = Qns_handle_drag_motion;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);
@@ -9798,6 +11039,10 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   DEFSYM (QCordinary, ":ordinary");
   DEFSYM (QCfunction, ":function");
   DEFSYM (QCmouse, ":mouse");
+  DEFSYM (Qcondensed, "condensed");
+  DEFSYM (Qreverse_italic, "reverse-italic");
+  DEFSYM (Qexpanded, "expanded");
+  DEFSYM (Qns_in_echo_area, "ns-in-echo-area");
 
 #ifdef NS_IMPL_COCOA
   Fprovide (Qcocoa, Qnil);
@@ -9807,4 +11052,6 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   syms_of_nsfont ();
 #endif
 
+  last_known_monitors = Qnil;
+  staticpro (&last_known_monitors);
 }

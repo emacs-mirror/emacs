@@ -1,6 +1,6 @@
 ;;; calc-macs.el --- important macros for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -29,16 +29,15 @@
 (declare-function math-looks-negp "calc-misc" (a))
 (declare-function math-posp "calc-misc" (a))
 (declare-function math-compare "calc-ext" (a b))
-(declare-function math-compare-bignum "calc-ext" (a b))
 
 
 (defmacro calc-wrapper (&rest body)
-  `(calc-do (function (lambda ()
-			,@body))))
+  `(calc-do (lambda ()
+              ,@body)))
 
 (defmacro calc-slow-wrapper (&rest body)
   `(calc-do
-    (function (lambda () ,@body)) (point)))
+    (lambda () ,@body) (point)))
 
 (defmacro math-showing-full-precision (form)
   `(let ((calc-float-format calc-full-float-format))
@@ -61,6 +60,7 @@
 (defmacro calc-with-trail-buffer (&rest body)
   `(let ((save-buf (current-buffer))
 	 (calc-command-flags nil))
+     (ignore save-buf)              ;FIXME: Use a name less conflict-prone!
      (with-current-buffer (calc-trail-display t)
        (progn
 	 (goto-char calc-trail-pointer)
@@ -161,8 +161,9 @@
 		      hms date mod var))))
 
 (defsubst Math-num-integerp (a)
-  (or (not (consp a))
-      (and (eq (car a) 'float)
+  (or (integerp a)
+      (and (consp a)
+           (eq (car a) 'float)
 	   (>= (nth 2 a) 0))))
 
 (defsubst Math-equal-int (a b)
@@ -171,13 +172,6 @@
 	   (eq (car a) 'float)
 	   (eq (nth 1 a) b)
 	   (= (nth 2 a) 0))))
-
-(defsubst Math-natnum-lessp (a b)
-  (if (consp a)
-      (and (consp b)
-	   (= (math-compare-bignum (cdr a) (cdr b)) -1))
-    (or (consp b)
-	(< a b))))
 
 (provide 'calc-macs)
 

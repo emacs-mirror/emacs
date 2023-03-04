@@ -1,6 +1,6 @@
-;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t -*-
+;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t; lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -27,7 +27,7 @@
 ;; which (on systems that need it) is used during installation
 ;; to give appropriate permissions to movemail.
 ;;
-;; It has to be done from lisp in order to be sure of getting the
+;; It has to be done from Lisp in order to be sure of getting the
 ;; correct value of rmail-spool-directory.
 
 ;;; Code:

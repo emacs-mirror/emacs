@@ -1,6 +1,6 @@
-;;; semantic/tag-ls.el --- Language Specific override functions for tags
+;;; semantic/tag-ls.el --- Language Specific override functions for tags  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -93,10 +93,11 @@ for a given mode at a more granular level.
 Note that :type, :name, and anything in IGNORABLE-ATTRIBUTES will
 not be passed to this function.
 
-Modes that override this function can call `semantic--tag-attribute-similar-p-default'
-to do the default equality tests if ATTR is not special for that mode.")
+Modes that override this function can call
+`semantic--tag-attribute-similar-p-default' to do the default equality tests if
+ATTR is not special for that mode.")
 
-(defun semantic--tag-attribute-similar-p-default (attr value1 value2 ignorable-attributes)
+(defun semantic--tag-attribute-similar-p-default (_attr value1 value2 ignorable-attributes)
   "For ATTR, VALUE1, VALUE2 and IGNORABLE-ATTRIBUTES, test for similarity."
   (cond
    ;; Tag sublists require special testing.
@@ -108,7 +109,7 @@ to do the default equality tests if ATTR is not special for that mode.")
       (when (not (eq (length taglist1) (length taglist2)))
 	(setq ans nil))
       (while (and ans taglist1 taglist2)
-	(setq ans (apply 'semantic-tag-similar-p
+	(setq ans (apply #'semantic-tag-similar-p
 			 (car taglist1) (car taglist2)
 			 ignorable-attributes)
 	      taglist1 (cdr taglist1)
@@ -129,7 +130,10 @@ are the same.
 
 Similar tags that have sub-tags such as arg lists or type members,
 are similar w/out checking the sub-list of tags.
-Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing similarity.
+
+Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing
+similarity.
+
 By default, `semantic-tag-similar-ignorable-attributes' is referenced for
 attributes, and IGNORABLE-ATTRIBUTES will augment this list.
 
@@ -190,11 +194,14 @@ See `semantic-tag-similar-p' for details."
 ;; will contain the info needed to determine the full name.
 (define-overloadable-function semantic-tag-full-package (tag &optional stream-or-buffer)
   "Return the fully qualified package name of TAG in a package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
-but must be a toplevel semantic tag stream that contains TAG.
+STREAM-OR-BUFFER can be anything convertible by
+`semantic-something-to-tag-table', but must be a toplevel
+semantic tag stream that contains TAG.
+
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
 class can be accessed via it's fully qualified name, (such as Java.)
+
 Other languages qualify names within a Namespace (such as C++) which
 result in a different package like structure.
 
@@ -204,7 +211,7 @@ stream for a tag of class `package', and return that."
                  (or stream-or-buffer tag))))
     (:override-with-args (tag stream))))
 
-(defun semantic-tag-full-package-default (tag stream)
+(defun semantic-tag-full-package-default (_tag stream)
   "Default method for `semantic-tag-full-package' for TAG.
 Return the name of the first tag of class `package' in STREAM."
   (let ((pack (car-safe (semantic-find-tags-by-class 'package stream))))
@@ -213,11 +220,14 @@ Return the name of the first tag of class `package' in STREAM."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-stream',
-but must be a toplevel semantic tag stream that contains TAG.
+STREAM-OR-BUFFER can be anything convertible by
+`semantic-something-to-tag-table', but must be a toplevel
+semantic tag stream that contains TAG.
+
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
 class can be accessed via it's fully qualified name, (such as Java.)
+
 Other languages qualify names within a Namespace (such as C++) which
 result in a different package like structure.
 
@@ -232,9 +242,6 @@ resolve issues where a method in a class in a package is present."
   (let ((stream (semantic-something-to-tag-table
                  (or stream-or-buffer tag))))
     (:override-with-args (tag stream))))
-
-(make-obsolete-overload 'semantic-nonterminal-full-name
-                        'semantic-tag-full-name "23.2")
 
 (defun semantic-tag-full-name-default (tag stream)
   "Default method for `semantic-tag-full-name'.
@@ -287,10 +294,7 @@ is to return a symbol based on type modifiers."
        (setq parent (semantic-tag-calculate-parent tag)))
   (:override))
 
-(make-obsolete-overload 'semantic-nonterminal-protection
-                        'semantic-tag-protection "23.2")
-
-(defun semantic-tag-protection-default (tag &optional parent)
+(defun semantic-tag-protection-default (tag &optional _parent)
   "Return the protection of TAG as a child of PARENT default action.
 See `semantic-tag-protection'."
   (let ((mods (semantic-tag-modifiers tag))
@@ -300,9 +304,7 @@ See `semantic-tag-protection'."
 	  (let ((s (car mods)))
 	    (setq prot
 		  ;; A few silly defaults to get things started.
-		  (cond ((or (string= s "public")
-			     (string= s "extern")
-			     (string= s "export"))
+		  (cond ((member s '("public" "extern" "export"))
 			 'public)
 			((string= s "private")
 			 'private)
@@ -377,18 +379,14 @@ in how methods are overridden.  In UML, abstract methods are italicized.
 The default behavior (if not overridden with `tag-abstract-p'
 is to return true if `abstract' is in the type modifiers.")
 
-(make-obsolete-overload 'semantic-nonterminal-abstract
-                        'semantic-tag-abstract-p "23.2")
-
-(defun semantic-tag-abstract-p-default (tag &optional parent)
+(defun semantic-tag-abstract-p-default (tag &optional _parent)
   "Return non-nil if TAG is abstract as a child of PARENT default action.
 See `semantic-tag-abstract-p'."
   (let ((mods (semantic-tag-modifiers tag))
 	(abs nil))
     (while (and (not abs) mods)
       (if (stringp (car mods))
-	  (setq abs (or (string= (car mods) "abstract")
-			(string= (car mods) "virtual"))))
+	  (setq abs (member (car mods) '("abstract" "virtual"))))
       (setq mods (cdr mods)))
     abs))
 
@@ -400,10 +398,7 @@ In UML, leaf methods and classes have special meaning and behavior.
 The default behavior (if not overridden with `tag-leaf-p'
 is to return true if `leaf' is in the type modifiers.")
 
-(make-obsolete-overload 'semantic-nonterminal-leaf
-                        'semantic-tag-leaf-p "23.2")
-
-(defun semantic-tag-leaf-p-default (tag &optional parent)
+(defun semantic-tag-leaf-p-default (tag &optional _parent)
   "Return non-nil if TAG is leaf as a child of PARENT default action.
 See `semantic-tag-leaf-p'."
   (let ((mods (semantic-tag-modifiers tag))
@@ -423,7 +418,7 @@ In UML, static methods and attributes mean that they are allocated
 in the parent class, and are not instance specific.
 UML notation specifies that STATIC entries are underlined.")
 
-(defun semantic-tag-static-p-default (tag &optional parent)
+(defun semantic-tag-static-p-default (tag &optional _parent)
   "Return non-nil if TAG is static as a child of PARENT default action.
 See `semantic-tag-static-p'."
   (let ((mods (semantic-tag-modifiers tag))

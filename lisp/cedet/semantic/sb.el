@@ -1,6 +1,6 @@
-;;; semantic/sb.el --- Semantic tag display for speedbar
+;;; semantic/sb.el --- Semantic tag display for speedbar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -73,10 +73,10 @@ use the `speedbar-line-file' to get this info if needed."
 (defmacro semantic-sb-with-tag-buffer (tag &rest forms)
   "Set the current buffer to the origin of TAG and execute FORMS.
 Restore the old current buffer when completed."
+  (declare (indent 1) (debug t))
   `(save-excursion
      (semantic-sb-tag-set-buffer ,tag)
      ,@forms))
-(put 'semantic-sb-with-tag-buffer 'lisp-indent-function 1)
 
 ;;; Button Generation
 ;;
@@ -279,7 +279,7 @@ Optional MODIFIERS is additional text needed for variables."
 (defun semantic-sb-show-extra (text token indent)
   "Display additional information about the token as an expansion.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -288,13 +288,13 @@ TEXT TOKEN and INDENT are the details."
 	       (narrow-to-region (point) (point))
 	       ;; Add in stuff specific to this type of token.
 	       (semantic-sb-insert-details token (1+ indent))))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly))
 
-(defun semantic-sb-token-jump (text token indent)
+(defun semantic-sb-token-jump (_text token indent)
   "Jump to the location specified in token.
 TEXT TOKEN and INDENT are the details."
   (let ((file
@@ -325,7 +325,7 @@ TEXT TOKEN and INDENT are the details."
 (defun semantic-sb-expand-group (text token indent)
   "Expand a group which has semantic tokens.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -333,7 +333,7 @@ TEXT TOKEN and INDENT are the details."
 	     (save-restriction
 	       (narrow-to-region (point-min) (point))
 	       (semantic-sb-buttons-plain (1+ indent) token)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))

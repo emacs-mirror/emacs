@@ -1,24 +1,26 @@
 ;;; css-mode-tests.el --- Test suite for CSS mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,6 +28,7 @@
 
 (require 'css-mode)
 (require 'ert)
+(require 'ert-x)
 (require 'seq)
 
 (ert-deftest css-test-property-values ()
@@ -140,20 +143,20 @@
     (css-mode)
     (insert "body:a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "active" completions))
-      (should-not (member "disabled" completions))
+      (should (member ":active" completions))
+      (should-not (member ":disabled" completions))
       ;; Don't include pseudo-elements
-      (should-not (member "after" completions)))))
+      (should-not (member "::after" completions)))))
 
 (ert-deftest css-test-complete-pseudo-element ()
   (with-temp-buffer
     (css-mode)
     (insert "body::a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "after" completions))
-      (should-not (member "disabled" completions))
+      (should (member "::after" completions))
+      (should-not (member "::disabled" completions))
       ;; Don't include pseudo-classes
-      (should-not (member "active" completions)))))
+      (should-not (member ":active" completions)))))
 
 (ert-deftest css-test-complete-at-rule ()
   (with-temp-buffer
@@ -408,6 +411,82 @@
                                       (backward-word)
                                       (point))
                                     "black")))))
+
+(ert-deftest css-mode-test-indent ()
+  (with-current-buffer
+      (find-file-noselect (ert-resource-file "test-indent.css"))
+    (let ((orig (buffer-string)))
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
+(ert-deftest css-mode-test-selectors ()
+  (let ((selectors
+         (with-temp-buffer
+           (insert-file-contents (ert-resource-file "css-selectors.txt"))
+           (string-lines (buffer-string)))))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " {\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol)))))))
+      ;; Test many selectors.
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " ")
+          (dotimes (_ (random 5))
+            (insert (seq-random-elt '(" , " " > " " + "))
+                    (seq-random-elt selectors)))
+          (insert "{\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol)))))))
+      ;; Test wrong separators.
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " ")
+          (dotimes (_ (1+ (random 5)))
+            (insert (seq-random-elt '("=" " @ "))
+                    (seq-random-elt selectors)))
+          (insert "{\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (when (eq (get-text-property (point) 'face)
+                    'css-selector)
+            (should-not (format "Recognized %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol))))))))))
+
+(ert-deftest scss-mode-test-selectors ()
+  (let ((selectors
+         (with-temp-buffer
+           (insert-file-contents (ert-resource-file "scss-selectors.txt"))
+           (string-lines (buffer-string)))))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (scss-mode)
+          (insert selector " {\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol))))))))))
+
 
 (provide 'css-mode-tests)
 ;;; css-mode-tests.el ends here

@@ -1,5 +1,5 @@
 /* System thread definitions
-Copyright (C) 2012-2020 Free Software Foundation, Inc.
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,13 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef SYSTHREAD_H
 #define SYSTHREAD_H
 
-#include <stdbool.h>
-
-#if __has_attribute (warn_unused_result)
-# define ATTRIBUTE_WARN_UNUSED_RESULT __attribute__ ((warn_unused_result))
-#else
-# define ATTRIBUTE_WARN_UNUSED_RESULT
-#endif
+#include <attribute.h>
 
 #ifdef THREADS_ENABLED
 
@@ -107,14 +101,11 @@ extern void sys_cond_signal (sys_cond_t *);
 extern void sys_cond_broadcast (sys_cond_t *);
 extern void sys_cond_destroy (sys_cond_t *);
 
-extern sys_thread_t sys_thread_self (void)
-  ATTRIBUTE_WARN_UNUSED_RESULT;
-extern bool sys_thread_equal (sys_thread_t, sys_thread_t)
-  ATTRIBUTE_WARN_UNUSED_RESULT;
+NODISCARD extern sys_thread_t sys_thread_self (void);
+NODISCARD extern bool sys_thread_equal (sys_thread_t, sys_thread_t);
 
-extern bool sys_thread_create (sys_thread_t *, thread_creation_function *,
-                               void *)
-  ATTRIBUTE_WARN_UNUSED_RESULT;
+NODISCARD extern bool sys_thread_create (sys_thread_t *,
+					 thread_creation_function *, void *);
 
 extern void sys_thread_yield (void);
 extern void sys_thread_set_name (const char *);

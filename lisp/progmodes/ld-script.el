@@ -1,6 +1,6 @@
-;;; ld-script.el --- GNU linker script editing mode for Emacs
+;;; ld-script.el --- GNU linker script editing mode for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: languages, faces
@@ -35,8 +35,7 @@
 (defvar ld-script-location-counter-face 'ld-script-location-counter)
 (defface ld-script-location-counter
   '((t :weight bold :inherit font-lock-builtin-face))
-  "Face for location counter in GNU ld script."
-  :group 'ld-script)
+  "Face for location counter in GNU ld script.")
 
 ;; Syntax rules
 (defvar ld-script-mode-syntax-table
@@ -168,15 +167,14 @@
      ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
      )
    cpp-font-lock-keywords)
-  "Default font-lock-keywords for `ld-script-mode'.")
+  "Default `font-lock-keywords' for `ld-script-mode'.")
 
 ;;;###autoload
 (define-derived-mode ld-script-mode prog-mode "LD-Script"
-   "A major mode to edit GNU ld script files"
-  (set (make-local-variable 'comment-start) "/* ")
-  (set (make-local-variable 'comment-end)   " */")
-  (set (make-local-variable 'font-lock-defaults)
-       '(ld-script-font-lock-keywords nil)))
+   "A major mode to edit GNU ld script files."
+  (setq-local comment-start "/* ")
+  (setq-local comment-end   " */")
+  (setq-local font-lock-defaults '(ld-script-font-lock-keywords nil)))
 
 (provide 'ld-script)
 

@@ -1,7 +1,6 @@
-;;; telnet.el --- run a telnet session from within an Emacs buffer
+;;; telnet.el --- run a telnet session from within an Emacs buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2020 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2023 Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: emacs-devel@gnu.org
@@ -24,11 +23,11 @@
 
 ;;; Commentary:
 
-;; This mode is intended to be used for telnet or rsh to a remote host;
-;; `telnet' and `rsh' are the two entry points.  Multiple telnet or rsh
-;; sessions are supported.
+;; This mode is intended to be used for telnet to a remote host;
+;; `telnet' is the entry point.  Multiple telnet sessions are
+;; supported.
 ;;
-;; Normally, input is sent to the remote telnet/rsh line-by-line, as you
+;; Normally, input is sent to the remote telnet line-by-line, as you
 ;; type RET or LFD.  C-c C-c sends a C-c to the remote immediately;
 ;; C-c C-z sends C-z immediately.  C-c C-q followed by any character
 ;; sends that character immediately.
@@ -61,33 +60,31 @@ PROGRAM says which program to run, to talk to that machine.
 LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-new-line "\r")
-(defvar telnet-mode-map
-  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key map "\C-m" 'telnet-send-input)
-    ;; (define-key map "\C-j" 'telnet-send-input)
-    (define-key map "\C-c\C-q" 'send-process-next-char)
-    (define-key map "\C-c\C-c" 'telnet-interrupt-subjob)
-    (define-key map "\C-c\C-z" 'telnet-c-z)
-    map))
+(defvar-keymap telnet-mode-map
+  :parent comint-mode-map
+  "RET"     #'telnet-send-input
+  ;; "C-j"  #'telnet-send-input
+  "C-c C-q" #'send-process-next-char
+  "C-c C-c" #'telnet-interrupt-subjob
+  "C-c C-z" #'telnet-c-z)
 
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
-(make-variable-buffer-local
- (defvar telnet-remote-echoes t
-   "True if the telnet process will echo input."))
-(make-variable-buffer-local
- (defvar telnet-interrupt-string "\C-c" "String sent by C-c."))
+(defvar-local telnet-remote-echoes t
+  "Non-nil if the telnet process will echo input.")
+(defvar-local telnet-interrupt-string "\C-c"
+  "String sent by C-c.")
 
-(defvar telnet-count 0
+(defvar-local telnet-count 0
   "Number of output strings from telnet process while looking for password.")
-(make-variable-buffer-local 'telnet-count)
 
 (defvar telnet-program "telnet"
   "Program to run to open a telnet connection.")
 
 (defvar telnet-initial-count -50
-  "Initial value of `telnet-count'.  Should be set to the negative of the
-number of terminal writes telnet will make setting up the host connection.")
+  "Initial value of `telnet-count'.
+Should be set to the negative of the number of terminal writes
+telnet will make setting up the host connection.")
 
 (defvar telnet-maximum-count 4
   "Maximum value `telnet-count' can have.
@@ -96,7 +93,7 @@ Should be set to the number of terminal writes telnet will make
 rejecting one login and prompting again for a username and password.")
 
 (defvar telnet-connect-command nil
-  "Command used to start the `telnet' (or `rsh') connection.")
+  "Command used to start the `telnet' connection.")
 
 (defun telnet-interrupt-subjob ()
   "Interrupt the program running through telnet on the remote host."
@@ -108,7 +105,7 @@ rejecting one login and prompting again for a username and password.")
       (let (revert-buffer-function)
         (revert-buffer ignore-auto noconfirm))
     (if (or noconfirm
-            (yes-or-no-p (format "Restart connection? ")))
+            (yes-or-no-p "Restart connection? "))
         (apply telnet-connect-command))))
 
 (defun telnet-c-z ()
@@ -125,7 +122,7 @@ rejecting one login and prompting again for a username and password.")
 
 ;;maybe should have a flag for when have found type
 (defun telnet-check-software-type-initialize (string)
-  "Tries to put correct initializations in.  Needs work."
+  "Try to put correct initializations in.  Needs work."
   (let ((case-fold-search t))
     (cond ((string-match "unix" string)
 	 (setq telnet-prompt-pattern comint-prompt-regexp)
@@ -149,13 +146,13 @@ rejecting one login and prompting again for a username and password.")
 	    ((string-match "passw" string)
 	     (telnet-filter proc string)
 	     (setq telnet-count 0)
-	     (process-send-string proc (concat (comint-read-noecho "Password: " t)
+	     (process-send-string proc (concat (read-passwd "Password: ")
                                                telnet-new-line))
 	     (clear-this-command-keys))
 	    (t (telnet-check-software-type-initialize string)
 	       (telnet-filter proc string)
 	       (cond ((> telnet-count telnet-maximum-count)
-		      (set-process-filter proc 'telnet-filter))
+		      (set-process-filter proc #'telnet-filter))
 		     (t (setq telnet-count (1+ telnet-count)))))))))
 
 ;; Identical to comint-simple-send, except that it sends telnet-new-line
@@ -230,9 +227,9 @@ Normally input is edited in Emacs and sent a line at a time."
     (if (and buffer (get-buffer-process buffer))
 	(switch-to-buffer (concat "*" name "*"))
       (switch-to-buffer
-       (apply 'make-comint name telnet-program nil telnet-options))
+       (apply #'make-comint name telnet-program nil telnet-options))
       (setq process (get-buffer-process (current-buffer)))
-      (set-process-filter process 'telnet-initial-filter)
+      (set-process-filter process #'telnet-initial-filter)
       ;; Don't send the `open' cmd till telnet is ready for it.
       (accept-process-output process)
       (erase-buffer)
@@ -247,26 +244,27 @@ Normally input is edited in Emacs and sent a line at a time."
 (put 'telnet-mode 'mode-class 'special)
 
 (define-derived-mode telnet-mode comint-mode "Telnet"
-  "This mode is for using telnet (or rsh) from a buffer to another host.
-It has most of the same commands as comint-mode.
+  "This mode is for using telnet from a buffer to another host.
+It has most of the same commands as `comint-mode'.
 There is a variable `telnet-interrupt-string' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."
   (setq-local revert-buffer-function 'telnet-revert-buffer)
-  (set (make-local-variable 'window-point-insertion-type) t)
-  (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern)
-  (set (make-local-variable 'comint-use-prompt-regexp) t))
+  (setq-local window-point-insertion-type t)
+  (setq-local comint-prompt-regexp telnet-prompt-pattern)
+  (setq-local comint-use-prompt-regexp t))
 
 ;;;###autoload
 (defun rsh (host)
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer `*rsh-HOST*'.
 Normally input is edited in Emacs and sent a line at a time."
+  (declare (obsolete nil "29.1"))
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat "rsh-" host )))
     (switch-to-buffer (make-comint name remote-shell-program nil host))
-    (set-process-filter (get-process name) 'telnet-initial-filter)
+    (set-process-filter (get-process name) #'telnet-initial-filter)
     (telnet-mode)
     (setq-local telnet-connect-command (list 'rsh host))
     (setq telnet-count -16)))

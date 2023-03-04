@@ -1,6 +1,6 @@
-;;;; testcover.el -- Visual code-coverage tool  -*- lexical-binding:t -*-
+;;; testcover.el --- Visual code-coverage tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2023 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: lisp utility
@@ -19,7 +19,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
 
 ;;; Commentary:
 
@@ -62,9 +61,10 @@
 ;;   error if these "potentially" 1-valued forms actually return differing
 ;;   values.
 
+;;; Code:
+
 (eval-when-compile (require 'cl-lib))
 (require 'edebug)
-(provide 'testcover)
 
 
 ;;;==========================================================================
@@ -80,8 +80,9 @@
 (defcustom testcover-constants
   '(nil t emacs-build-time emacs-version emacs-major-version
     emacs-minor-version)
-  "Variables whose values never change.  No brown splotch is shown for
-these.  This list is quite incomplete!"
+  "Variables whose values never change.
+No brown splotch is shown for these.  This list is quite
+incomplete!"
   :group 'testcover
   :type '(repeat variable))
 
@@ -103,8 +104,8 @@ incomplete!  Notes: Nobody ever changes the current global map."
 
 (defcustom testcover-noreturn-functions
   '(error noreturn throw signal)
-  "Subset of `testcover-1value-functions' -- these never return.  We mark
-them as having returned nil just before calling them."
+  "Subset of `testcover-1value-functions' -- these never return.
+We mark them as having returned nil just before calling them."
   :group 'testcover
   :type '(repeat symbol))
 
@@ -126,25 +127,26 @@ side-effect-free functions should be here."
     set set-default set-marker-insertion-type setq setq-default
     with-current-buffer with-output-to-temp-buffer with-syntax-table
     with-temp-buffer with-temp-file with-temp-message with-timeout)
-  "Functions whose return value is the same as their last argument.  No
-brown splotch is shown for these if the last argument is a constant or a
-call to one of the `testcover-1value-functions'.  This list is probably
-incomplete!"
+  "Functions whose return value is the same as their last argument.
+No brown splotch is shown for these if the last argument is a
+constant or a call to one of the `testcover-1value-functions'.
+This list is probably incomplete!"
   :group 'testcover
   :type '(repeat symbol))
 
 (defcustom testcover-prog1-functions
   '(prog1 unwind-protect)
-  "Functions whose return value is the same as their first argument.  No
-brown splotch is shown for these if the first argument is a constant or a
-call to one of the `testcover-1value-functions'."
+  "Functions whose return value is the same as their first argument.
+No brown splotch is shown for these if the first argument is a
+constant or a call to one of the `testcover-1value-functions'."
   :group 'testcover
   :type '(repeat symbol))
 
 (defcustom testcover-potentially-1value-functions
   '(add-hook and beep or remove-hook unless when)
-  "Functions that are potentially 1-valued.  No brown splotch if actually
-1-valued, no error if actually multi-valued."
+  "Functions that are potentially 1-valued.
+No brown splotch if actually 1-valued, no error if actually
+multi-valued."
   :group 'testcover
   :type '(repeat symbol))
 
@@ -164,8 +166,7 @@ call to one of the `testcover-1value-functions'."
 ;;;=========================================================================
 
 (defvar testcover-module-constants nil
-  "Symbols declared with defconst in the last file processed by
-`testcover-start'.")
+  "Symbols declared with defconst in the last file processed by `testcover-start'.")
 
 (defvar testcover-module-1value-functions nil
   "Symbols declared with defun in the last file processed by
@@ -258,10 +259,10 @@ vector.  Return VALUE."
       (aset testcover-vector after-index (testcover--copy-object value)))
      ((eq 'maybe old-result)
       (aset testcover-vector after-index 'edebug-ok-coverage))
-     ((eq '1value old-result)
+     ((eq 'testcover-1value old-result)
       (aset testcover-vector after-index
             (cons old-result (testcover--copy-object value))))
-     ((and (eq (car-safe old-result) '1value)
+     ((and (eq (car-safe old-result) 'testcover-1value)
            (not (condition-case ()
                     (equal (cdr old-result) value)
                   (circular-list t))))
@@ -331,7 +332,7 @@ vectors as well as conses."
 ;;;=========================================================================
 
 (defun testcover-mark (def)
-  "Marks one DEF (a function or macro symbol) to highlight its contained forms
+  "Mark one DEF (a function or macro symbol) to highlight its contained forms
 that did not get completely tested during coverage tests.
   A marking with the face `testcover-nohits' (default = red) indicates that the
 form was never evaluated.  A marking using the `testcover-1value' face
@@ -358,11 +359,11 @@ eliminated by adding more test cases."
 	      data (aref coverage len))
         (when (and (not (eq data 'edebug-ok-coverage))
                    (not (memq (car-safe data)
-                              '(1value maybe noreturn)))
+                              '(testcover-1value maybe noreturn)))
                    (setq j (+ def-mark (aref points len))))
 	  (setq ov (make-overlay (1- j) j))
 	  (overlay-put ov 'face
-                       (if (memq data '(edebug-unknown maybe 1value))
+                       (if (memq data '(edebug-unknown maybe testcover-1value))
 			   'testcover-nohits
 			 'testcover-1value))))
       (set-buffer-modified-p changed))))
@@ -388,7 +389,7 @@ coverage tests.  This function creates many overlays."
     (error nil)))  ;Ignore "No such buffer" errors
 
 (defun testcover-next-mark ()
-  "Moves point to next line in current buffer that has a splotch."
+  "Move point to next line in current buffer that has a splotch."
   (interactive)
   (goto-char (next-overlay-change (point)))
   (end-of-line))
@@ -450,12 +451,12 @@ or return multiple values."
     (`(defconst ,sym . ,args)
      (push sym testcover-module-constants)
      (testcover-analyze-coverage-progn args)
-     '1value)
+     'testcover-1value)
 
     (`(defun ,name ,_ . ,doc-and-body)
      (let ((val (testcover-analyze-coverage-progn doc-and-body)))
        (cl-case val
-         ((1value) (push name testcover-module-1value-functions))
+         ((testcover-1value) (push name testcover-module-1value-functions))
          ((maybe) (push name testcover-module-potentially-1value-functions)))
        nil))
 
@@ -466,13 +467,13 @@ or return multiple values."
      ;; To avoid infinite recursion, don't examine quoted objects.
      ;; This will cause the coverage marks on an instrumented quoted
      ;; form to look odd. See bug#25316.
-     '1value)
+     'testcover-1value)
 
     (`(\` ,bq-form)
      (testcover-analyze-coverage-backquote-form bq-form))
 
     ((or 't 'nil (pred keywordp))
-     '1value)
+     'testcover-1value)
 
     ((pred vectorp)
      (testcover-analyze-coverage-compose (append form nil)
@@ -482,7 +483,7 @@ or return multiple values."
      nil)
 
     ((pred atom)
-     '1value)
+     'testcover-1value)
 
     (_
      ;; Whatever we have here, it's not wrapped, so treat it as a list of forms.
@@ -494,7 +495,7 @@ Analyze all the forms in FORMS and return 1value, maybe or nil
 depending on the analysis of the last one.  Find the coverage
 vectors referenced by `edebug-enter' forms nested within FORMS and
 update them with the results of the analysis."
-  (let ((result '1value))
+  (let ((result 'testcover-1value))
     (while (consp forms)
       (setq result (testcover-analyze-coverage (pop forms))))
     result))
@@ -518,7 +519,7 @@ form to be treated accordingly."
     (setq val (testcover-analyze-coverage-wrapped-form wrapped-form))
     (when (or (eq wrapper '1value) val)
       ;; The form is 1-valued or potentially 1-valued.
-      (aset testcover-vector after-id (or val '1value)))
+      (aset testcover-vector after-id (or val 'testcover-1value)))
 
     (cond
      ((or (eq wrapper 'noreturn)
@@ -526,13 +527,13 @@ form to be treated accordingly."
       ;; This function won't return, so indicate to testcover-before that
       ;; it should record coverage.
       (aset testcover-vector before-id (cons 'noreturn after-id))
-      (aset testcover-vector after-id '1value)
-      (setq val '1value))
+      (aset testcover-vector after-id 'testcover-1value)
+      (setq val 'testcover-1value))
 
      ((eq (car-safe wrapped-form) '1value)
       ;; This function is always supposed to return the same value.
-      (setq val '1value)
-      (aset testcover-vector after-id '1value)))
+      (setq val 'testcover-1value)
+      (aset testcover-vector after-id 'testcover-1value)))
     val))
 
 (defun testcover-analyze-coverage-wrapped-form (form)
@@ -540,26 +541,26 @@ form to be treated accordingly."
 FORM is treated as if it will be evaluated."
   (pcase form
     ((pred keywordp)
-     '1value)
+     'testcover-1value)
     ((pred symbolp)
      (when (or (memq form testcover-constants)
                (memq form testcover-module-constants))
-       '1value))
+       'testcover-1value))
     ((pred atom)
-     '1value)
+     'testcover-1value)
     (`(\` ,bq-form)
      (testcover-analyze-coverage-backquote-form bq-form))
     (`(defconst ,sym ,val . ,_)
      (push sym testcover-module-constants)
      (testcover-analyze-coverage val)
-     '1value)
+     'testcover-1value)
     (`(,(or 'dotimes 'dolist) (,_ ,expr . ,result) . ,body)
      ;; These always return RESULT if provided.
      (testcover-analyze-coverage expr)
      (testcover-analyze-coverage-progn body)
      (let ((val (testcover-analyze-coverage-progn result)))
        ;; If the third value is not present, the loop always returns nil.
-       (if result val '1value)))
+       (if result val 'testcover-1value)))
     (`(,(or 'let 'let*) ,bindings . ,body)
      (testcover-analyze-coverage-progn bindings)
      (testcover-analyze-coverage-progn body))
@@ -604,12 +605,12 @@ FORM is treated as if it will be evaluated."
 (defun testcover-analyze-coverage-wrapped-application (func args)
   "Analyze the application of FUNC to ARGS for code coverage."
   (cond
-   ((eq func 'quote) '1value)
+   ((eq func 'quote) 'testcover-1value)
    ((or (memq func testcover-1value-functions)
         (memq func testcover-module-1value-functions))
     ;; The function should always return the same value.
     (testcover-analyze-coverage-progn args)
-    '1value)
+    'testcover-1value)
    ((or (memq func testcover-potentially-1value-functions)
         (memq func testcover-module-potentially-1value-functions))
     ;; The function might always return the same value.
@@ -635,14 +636,13 @@ If either argument is nil, return nil, otherwise if either
 argument is maybe, return maybe.  Return 1value only if both arguments
 are 1value."
   (cl-case val
-    (1value result)
-    (maybe (and result 'maybe))
-    (nil nil)))
+    (testcover-1value result)
+    (maybe (and result 'maybe))))
 
 (defun testcover-analyze-coverage-compose (forms func)
   "Analyze a list of FORMS for code coverage using FUNC.
 The list is 1valued if all of its constituent elements are also 1valued."
-  (let ((result '1value))
+  (let ((result 'testcover-1value))
     (while (consp forms)
       (setq result (testcover-coverage-combine result (funcall func (car forms))))
       (setq forms (cdr forms)))
@@ -652,7 +652,7 @@ The list is 1valued if all of its constituent elements are also 1valued."
 
 (defun testcover-analyze-coverage-backquote (bq-list)
   "Analyze BQ-LIST, the body of a backquoted list, for code coverage."
-  (let ((result '1value))
+  (let ((result 'testcover-1value))
     (while (consp bq-list)
       (let ((form (car bq-list))
             val)
@@ -670,9 +670,11 @@ The list is 1valued if all of its constituent elements are also 1valued."
   "Analyze a single FORM from a backquoted list for code coverage."
   (cond
    ((vectorp form) (testcover-analyze-coverage-backquote (append form nil)))
-   ((atom form) '1value)
+   ((atom form) 'testcover-1value)
    ((memq (car form) (list '\, '\,@))
     (testcover-analyze-coverage (cadr form)))
    (t (testcover-analyze-coverage-backquote form))))
 
-;; testcover.el ends here.
+(provide 'testcover)
+
+;;; testcover.el ends here

@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@cs.ucla.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -200,7 +200,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
                    (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
          new-rules)
-    (calendar-dlet* ((year (1+ y)))
+    (calendar-dlet ((year (1+ y)))
       ;; Scan through the next few years until only one rule remains.
       (while (cdr candidate-rules)
         (dolist (rule candidate-rules)
@@ -350,17 +350,31 @@ If the locale never uses daylight saving time, set this to 0."
   :group 'calendar-dst)
 
 (defcustom calendar-standard-time-zone-name
-  (or (nth 2 calendar-current-time-zone-cache) "EST")
+  (if (eq calendar-time-zone-style 'numeric)
+      (if calendar-current-time-zone-cache
+          (format-time-string
+           "%z" 0 (* 60 (car calendar-current-time-zone-cache)))
+        "-0000")
+    (or (nth 2 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"EST\" in New York City, \"PST\" for Los Angeles."
+For example, \"-0500\" or \"EST\" in New York City."
   :type 'string
+  :version "28.1"
+  :set-after '(calendar-time-zone-style)
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-time-zone-name
-  (or (nth 3 calendar-current-time-zone-cache) "EDT")
+  (if (eq calendar-time-zone-style 'numeric)
+      (if calendar-current-time-zone-cache
+          (format-time-string
+           "%z" 0 (* 60 (cadr calendar-current-time-zone-cache)))
+        "-0000")
+    (or (nth 3 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of daylight saving time zone at `calendar-location-name'.
-For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
+For example, \"-0400\" or \"EDT\" in New York City."
   :type 'string
+  :version "28.1"
+  :set-after '(calendar-time-zone-style)
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-savings-starts-time
@@ -383,7 +397,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
-        (calendar-dlet* ((year year))
+        (calendar-dlet ((year year))
           (if expr (eval expr))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
@@ -395,7 +409,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
-        (calendar-dlet* ((year year))
+        (calendar-dlet ((year year))
           (if expr (eval expr))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
@@ -405,7 +419,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
 Fractional part of DATE is local standard time of day."
-  (calendar-dlet* ((year (calendar-extract-year
+  (calendar-dlet ((year (calendar-extract-year
                           (calendar-gregorian-from-absolute (floor date)))))
     (let* ((dst-starts-gregorian (eval calendar-daylight-savings-starts))
            (dst-ends-gregorian (eval calendar-daylight-savings-ends))

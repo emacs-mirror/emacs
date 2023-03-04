@@ -1,6 +1,6 @@
-;;; japan-util.el --- utilities for Japanese
+;;; japan-util.el --- utilities for Japanese  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -96,9 +96,9 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
 	  (put-char-code-property jisx0201 'jisx0208 katakana)))))
 
 (defconst japanese-symbol-table
-  '((?\　 ?\ ) (?， ?, ?､) (?． ?. ?｡) (?、 ?, ?､) (?。 ?. ?｡) (?・ nil ?･)
+  '((?\　 ?\ ) (?， ?,) (?． ?.) (?、 nil ?､) (?。 nil ?｡) (?・ nil ?･)
     (?： ?:) (?； ?\;) (?？ ??) (?！ ?!) (?゛ nil ?ﾞ) (?゜ nil ?ﾟ)
-    (?´ ?') (?｀ ?`) (?＾ ?^) (?＿ ?_) (?ー ?- ?ｰ) (?— ?-) (?‐ ?-)
+    (?´ ?') (?｀ ?`) (?＾ ?^) (?＿ ?_) (?ー nil ?ｰ) (?— ?-) (?‐ ?-)
     (?／ ?/) (?＼ ?\\) (?〜 ?~)  (?｜ ?|) (?‘ ?`) (?’ ?') (?“ ?\") (?” ?\")
     (?\（ ?\() (?\） ?\)) (?\［ ?\[) (?\］ ?\]) (?\｛ ?{) (?\｝ ?})
     (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣)
@@ -108,7 +108,7 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     ;; cp932-2-byte
     (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
   "Japanese JISX0208 and CP932 symbol character table.
-  Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
+Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
 belongs to `japanese-jisx0208' or `cp932', ASCII belongs to `ascii',
 and HANKAKU belongs to `japanese-jisx0201-kana'.")
 
@@ -145,7 +145,7 @@ and HANKAKU belongs to `japanese-jisx0201-kana'.")
     (?ｐ . ?p) (?ｑ . ?q) (?ｒ . ?r) (?ｓ . ?s) (?ｔ . ?t)
     (?ｕ . ?u) (?ｖ . ?v) (?ｗ . ?w) (?ｘ . ?x) (?ｙ . ?y) (?ｚ . ?z))
   "Japanese JISX0208 alpha numeric character table.
-Each element is of the form (ALPHA-NUMERIC . ASCII), where ALPHA-NUMERIC
+Each element is of the form (ALPHANUMERIC . ASCII), where ALPHANUMERIC
 belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 
 ;; Put properties 'jisx0208 and 'ascii to each Japanese alpha numeric
@@ -236,7 +236,7 @@ of which charset is `japanese-jisx0201-kana'."
 	       (composition
 		(and (not hankaku)
 		     (get-char-code-property kana 'kana-composition)))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (cdr slot))
@@ -258,7 +258,7 @@ of which charset is `japanese-jisx0201-kana'."
       (while (re-search-forward "\\cK\\|\\ck" nil t)
 	(let* ((kata (preceding-char))
 	       (composition (get-char-code-property kata 'kana-composition))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (get-char-code-property
@@ -305,7 +305,7 @@ Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char."
 		      (re-search-forward "\\ca\\|\\ck" nil t)))
 	(let* ((hankaku (preceding-char))
 	       (composition (get-char-code-property hankaku 'kana-composition))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (cdr slot))

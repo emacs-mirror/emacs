@@ -1,6 +1,6 @@
-;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support
+;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -36,7 +36,7 @@
    (keybindings :initform nil)
    (phony :initform t)
    (sourcetype :initform '(ede-source-emacs))
-   (availablecompilers :initform '(ede-emacs-compiler ede-xemacs-compiler))
+   (availablecompilers :initform '(ede-emacs-compiler))
    (aux-packages :initarg :aux-packages
 		 :initform nil
 		 :type list
@@ -54,8 +54,8 @@ load path."
 Each package name will be loaded with `require'.
 Each package's directory should also appear in :aux-packages via a package name.")
    )
-  "This target consists of a group of lisp files.
-A lisp target may be one general program with many separate lisp files in it.")
+  "This target consists of a group of Lisp files.
+A Lisp target may be one general program with many separate Lisp files in it.")
 
 (cl-defmethod ede-proj-makefile-insert-rules :after ((this ede-proj-target-elisp))
     "Insert rules needed by THIS target.
@@ -64,7 +64,7 @@ This inserts the PRELOADS target-local variable."
       (when preloads
 	(insert (format "%s: PRELOADS=%s\n"
 			(oref this name)
-			(mapconcat 'identity preloads " ")))))
+			(mapconcat #'identity preloads " ")))))
     (insert "\n"))
 
 (cl-defmethod ede-proj-makefile-dependencies ((this ede-proj-target-elisp))
@@ -104,6 +104,7 @@ For Emacs Lisp, return addsuffix command on source files."
 	 :name "xemacs"
 	 :variables '(("EMACS" . "xemacs")))
   "Compile Emacs Lisp programs with XEmacs.")
+(make-obsolete-variable 'ede-xemacs-compiler 'ede-emacs-compiler "28.1")
 
 ;;; Claiming files
 (cl-defmethod ede-buffer-mine ((this ede-proj-target-elisp) buffer)
@@ -151,20 +152,11 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE)."
 	 (utd 0))
     (mapc (lambda (src)
 	    (let* ((fsrc (expand-file-name src dir))
-		   (elc (concat (file-name-sans-extension fsrc) ".elc")))
+		   ) ;; (elc (concat (file-name-sans-extension fsrc) ".elc"))
 	      (with-no-warnings
-		(if (< emacs-major-version 24)
-		    ;; Does not have `byte-recompile-file'
-		    (if (or (not (file-exists-p elc))
-			    (file-newer-than-file-p fsrc elc))
-			(progn
-			  (setq comp (1+ comp))
-			  (byte-compile-file fsrc))
-		      (setq utd (1+ utd)))
-
-		  (if (eq (byte-recompile-file fsrc nil 0) t)
-		      (setq comp (1+ comp))
-		    (setq utd (1+ utd)))))))
+                (if (eq (byte-recompile-file fsrc nil 0) t)
+                    (setq comp (1+ comp))
+                  (setq utd (1+ utd))))))
 
 	    (oref obj source))
     (message "All Emacs Lisp sources are up to date in %s" (eieio-object-name obj))
@@ -177,7 +169,7 @@ is found, such as a `-version' variable, or the standard header."
   (if (and (slot-boundp this 'versionsource)
 	   (oref this versionsource))
       (let ((vs (oref this versionsource))
-	    (match nil))
+	    ) ;; (match nil)
 	(while vs
 	  (with-current-buffer (find-file-noselect
                                 (ede-expand-filename this (car vs)))
@@ -185,7 +177,7 @@ is found, such as a `-version' variable, or the standard header."
 	    (let ((case-fold-search t))
 	      (if (re-search-forward "-version\\s-+\"\\([^\"]+\\)\"" nil t)
 		  (progn
-		    (setq match t)
+		    ;; (setq match t)
 		    (delete-region (match-beginning 1)
 				   (match-end 1))
 		    (goto-char (match-beginning 1))
@@ -280,7 +272,8 @@ is found, such as a `-version' variable, or the standard header."
 	    (let ((path (match-string 1)))
 	      (if (string= path "nil")
 		  nil
-		(delete-region (point-at-bol) (point-at-bol 2)))))))))
+                (delete-region (line-beginning-position)
+                               (line-beginning-position 2)))))))))
 
 ;;;
 ;; Autoload generators
@@ -327,8 +320,7 @@ Lays claim to all .elc files that match .el files in this target."
 		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
    :commands
    '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
---eval '(setq generated-autoload-file \"$(abspath $(LOADDEFS))\")' \
--f batch-update-autoloads $(abspath $(LOADDIRS))")
+-f loaddefs-generate-batch $(abspath $(LOADDEFS)) $(abspath $(LOADDIRS))")
    :rules (list (ede-makefile-rule :target "clean-autoloads" :phony t :rules '("rm -f $(LOADDEFS)")))
    :sourcetype '(ede-source-emacs)
    )
@@ -339,27 +331,27 @@ Lays claim to all .elc files that match .el files in this target."
 If the `compiler' slot is empty, get the car of the compilers list."
   (let ((comp (oref obj compiler)))
     (if comp
-	(if (listp comp)
-	    (setq comp (mapcar 'symbol-value comp))
-	  (setq comp (list (symbol-value comp))))
+	(setq comp (if (listp comp)
+	               (mapcar #'symbol-value comp)
+	             (list (symbol-value comp))))
       ;; Get the first element from our list of compilers.
-      (let ((avail (mapcar 'symbol-value (oref obj availablecompilers))))
+      (let ((avail (mapcar #'symbol-value (oref obj availablecompilers))))
 	(setq comp (list (car avail)))))
     comp))
 
-(cl-defmethod ede-proj-makefile-insert-source-variables ((this ede-proj-target-elisp-autoloads)
-						      &optional
-						      moresource)
+(cl-defmethod ede-proj-makefile-insert-source-variables ((_this ede-proj-target-elisp-autoloads)
+						         &optional
+						         _moresource)
   "Insert the source variables needed by THIS.
 Optional argument MORESOURCE is a list of additional sources to add to the
 sources variable."
   nil)
 
-(cl-defmethod ede-proj-makefile-sourcevar ((this ede-proj-target-elisp-autoloads))
+(cl-defmethod ede-proj-makefile-sourcevar ((_this ede-proj-target-elisp-autoloads))
   "Return the variable name for THIS's sources."
   nil) ; "LOADDEFS")
 
-(cl-defmethod ede-proj-makefile-dependencies ((this ede-proj-target-elisp-autoloads))
+(cl-defmethod ede-proj-makefile-dependencies ((_this ede-proj-target-elisp-autoloads))
   "Return a string representing the dependencies for THIS.
 Always return an empty string for an autoloads generator."
   "")
@@ -369,21 +361,22 @@ Always return an empty string for an autoloads generator."
   (ede-pmake-insert-variable-shared "LOADDEFS"
     (insert (oref this autoload-file)))
   (ede-pmake-insert-variable-shared "LOADDIRS"
-    (insert (mapconcat 'identity
+    (insert (mapconcat #'identity
                        (or (oref this autoload-dirs) '("."))
                        " ")))
   )
 
 (cl-defmethod project-compile-target ((obj ede-proj-target-elisp-autoloads))
   "Create or update the autoload target."
-  (require 'cedet-autogen)
+  (require 'cedet-autogen)              ;FIXME: We don't have this file!
+  (declare-function cedet-update-autoloads "cedet-autogen")
   (let ((default-directory (ede-expand-filename obj ".")))
-    (apply 'cedet-update-autoloads
+    (apply #'cedet-update-autoloads
 	   (oref obj autoload-file)
 	   (oref obj autoload-dirs))
     ))
 
-(cl-defmethod ede-update-version-in-source ((this ede-proj-target-elisp-autoloads) version)
+(cl-defmethod ede-update-version-in-source ((_this ede-proj-target-elisp-autoloads) _version)
   "In a Lisp file, updated a version string for THIS to VERSION.
 There are standards in Elisp files specifying how the version string
 is found, such as a `-version' variable, or the standard header."
@@ -405,11 +398,11 @@ Argument THIS is the target which needs to insert an info file."
   (insert " " (oref this autoload-file))
   )
 
-(cl-defmethod ede-proj-tweak-autoconf ((this ede-proj-target-elisp-autoloads))
+(cl-defmethod ede-proj-tweak-autoconf ((_this ede-proj-target-elisp-autoloads))
   "Tweak the configure file (current buffer) to accommodate THIS."
   (error "Autoloads not supported in autoconf yet"))
 
-(cl-defmethod ede-proj-flush-autoconf ((this ede-proj-target-elisp-autoloads))
+(cl-defmethod ede-proj-flush-autoconf ((_this ede-proj-target-elisp-autoloads))
   "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 

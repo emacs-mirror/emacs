@@ -1,6 +1,6 @@
-;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)
+;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
@@ -38,12 +38,12 @@
 ;; ------------
 ;;
 ;;	See the URL:
-;;	`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+;;	`https://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 ;;	(Extensible Markup Language (XML) 1.0 (Third Edition))
 ;;
 ;;
 ;; rule ::= symbol '::=' expression
-;; /* rules are separated by at least one blank line. */
+;; /* rules are separated by at least one blank line.  */
 ;;
 ;; expression ::= concatenation ('|' concatenation)*
 ;;

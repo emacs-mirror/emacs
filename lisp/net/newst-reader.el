@@ -1,10 +1,10 @@
-;;; newst-reader.el --- Generic RSS reader functions.
+;;; newst-reader.el --- Generic RSS reader functions.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2023 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
-;; URL:         http://www.nongnu.org/newsticker
+;; URL:         https://www.nongnu.org/newsticker
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -94,7 +94,7 @@ done."
                  (const :tag "Right"      right)
                  (const :tag "Center"     center)
                  (const :tag "Full"       full))
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defcustom newsticker-use-full-width
@@ -103,7 +103,7 @@ done."
 If non-nil newsticker sets `fill-column' so that the whole
 window is used when filling.  See also `newsticker-justification'."
   :type 'boolean
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defcustom newsticker-html-renderer
@@ -112,25 +112,25 @@ window is used when filling.  See also `newsticker-justification'."
   "Function for rendering HTML contents.
 If non-nil, newsticker.el will call this function whenever it
 finds HTML-like tags in item descriptions.
-Possible functions include `shr-render-region', `w3m-region', `w3-region', and
+Possible functions include `shr-render-region', `w3m-region', and
 `newsticker-htmlr-render'.
-Newsticker automatically loads the respective package w3m, w3, or
+Newsticker automatically loads the respective package w3m, or
 htmlr if this option is set."
   :type '(choice :tag "Function"
                  (const :tag "None" nil)
                  (const :tag "SHR" shr-render-region)
-                 (const :tag "w3" w3-region)
                  (const :tag "w3m" w3m-region)
                  (const :tag "htmlr" newsticker-htmlr-render))
-  :set 'newsticker--set-customvar-formatting
-  :group 'newsticker-reader)
+  :set #'newsticker--set-customvar-formatting
+  :group 'newsticker-reader
+  :version "29.1")
 
 (defcustom newsticker-date-format
   "(%A, %H:%M)"
   "Format for the date part in item and feed lines.
 See `format-time-string' for a list of valid specifiers."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defgroup newsticker-faces nil
@@ -315,8 +315,6 @@ Return the image."
   (if newsticker-html-renderer
       (cond ((eq newsticker-html-renderer 'w3m-region)
              (require 'w3m))
-            ((eq newsticker-html-renderer 'w3-region)
-             (require 'w3-auto))
             ((eq newsticker-html-renderer 'newsticker-htmlr-render)
              (require 'htmlr))))
   (funcall newsticker-frontend))

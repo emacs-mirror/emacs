@@ -1,6 +1,6 @@
 ;;; url-expand.el --- expand-file-name for URLs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2023 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -18,6 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -65,10 +67,10 @@ path components followed by `..' are removed, along with the `..' itself."
   (if (and url (not (string-match "^#" url)))
       ;; Need to nuke newlines and spaces in the URL, or we open
       ;; ourselves up to potential security holes.
-      (setq url (mapconcat (function (lambda (x)
-				       (if (memq x '(?  ?\n ?\r))
-					   ""
-					 (char-to-string x))))
+      (setq url (mapconcat (lambda (x)
+                             (if (memq x '(?\s ?\n ?\r))
+                                 ""
+                               (char-to-string x)))
 			   url "")))
 
   ;; Need to figure out how/where to expand the fragment relative to
@@ -120,7 +122,7 @@ path components followed by `..' are removed, along with the `..' itself."
       ;; Well, they told us the scheme, let's just go with it.
       nil
     (setf (url-type urlobj) (or (url-type urlobj) (url-type defobj)))
-    (setf (url-port urlobj) (or (url-portspec urlobj)
+    (setf (url-portspec urlobj) (or (url-portspec urlobj)
                                 (and (string= (url-type urlobj)
                                               (url-type defobj))
 				     (url-port defobj))))

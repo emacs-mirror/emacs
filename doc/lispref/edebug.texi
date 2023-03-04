@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992--1994, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1992--1994, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
@@ -171,14 +171,13 @@ of the variable @code{edebug-all-defs}.
 
 @findex eval-region @r{(Edebug)}
 @findex eval-buffer @r{(Edebug)}
-@findex eval-current-buffer @r{(Edebug)}
   If @code{edebug-all-defs} is non-@code{nil}, then the commands
-@code{eval-region}, @code{eval-current-buffer}, and @code{eval-buffer}
-also instrument any definitions they evaluate.  Similarly,
-@code{edebug-all-forms} controls whether @code{eval-region} should
-instrument @emph{any} form, even non-defining forms.  This doesn't apply
-to loading or evaluations in the minibuffer.  The command @kbd{M-x
-edebug-all-forms} toggles this option.
+@code{eval-region}, and @code{eval-buffer} also instrument any
+definitions they evaluate.  Similarly, @code{edebug-all-forms}
+controls whether @code{eval-region} should instrument @emph{any} form,
+even non-defining forms.  This doesn't apply to loading or evaluations
+in the minibuffer.  The command @kbd{M-x edebug-all-forms} toggles
+this option.
 
 @findex edebug-eval-top-level-form
 @findex edebug-defun
@@ -425,7 +424,8 @@ arrange to deinstrument it.
 @item ?
 Display the help message for Edebug (@code{edebug-help}).
 
-@item C-]
+@item a
+@itemx C-]
 Abort one level back to the previous command level
 (@code{abort-recursive-edit}).
 
@@ -446,7 +446,7 @@ Redisplay the most recently known expression result in the echo area
 
 @item d
 Display a backtrace, excluding Edebug's own functions for clarity
-(@code{edebug-backtrace}).
+(@code{edebug-pop-to-backtrace}).
 
 @xref{Backtraces}, for a description of backtraces
 and the commands which work on them.
@@ -640,7 +640,8 @@ configuration is the collection of windows and contents that were in
 effect outside of Edebug.
 
 @table @kbd
-@item v
+@item P
+@itemx v
 Switch to viewing the outside window configuration
 (@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
@@ -663,7 +664,7 @@ definition in the future.
 Toggle whether Edebug saves and restores the outside window
 configuration (@code{edebug-toggle-save-windows}).
 
-With a prefix argument, @code{W} only toggles saving and restoring of
+With a prefix argument, @kbd{W} only toggles saving and restoring of
 the selected window.  To specify a window that is not displaying the
 source code buffer, you must use @kbd{C-x X W} from the global keymap.
 @end table
@@ -698,8 +699,16 @@ on this process.
 @table @kbd
 @item e @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context outside of Edebug
-(@code{edebug-eval-expression}).  That is, Edebug tries to minimize its
-interference with the evaluation.
+(@code{edebug-eval-expression}).  That is, Edebug tries to minimize
+its interference with the evaluation.  The result is shown in the echo
+area, or, if this command is given a prefix, pop up a new buffer and
+pretty-print the result there.
+
+By default, this command
+suppresses the debugger during evaluation, so that an error in the
+evaluated expression won't add a new error on top of the existing one.
+Set the @code{debug-allow-recursive-debug} user option to a
+non-@code{nil} value to override this.
 
 @item M-: @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context of Edebug itself
@@ -709,7 +718,8 @@ Evaluate expression @var{exp} in the context of Edebug itself
 Evaluate the expression before point, in the context outside of Edebug
 (@code{edebug-eval-last-sexp}).  With the prefix argument of zero
 (@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
-lists).
+lists).  Any other prefix will result in the value being
+pretty-printed in a separate buffer.
 @end table
 
 @cindex lexical binding (Edebug)
@@ -830,7 +840,6 @@ you continue execution, and recreated next time it is needed.
 
 @cindex printing (Edebug)
 @cindex printing circular structures
-@pindex cust-print
   If an expression in your program produces a value containing circular
 list structure, you may get an error when Edebug attempts to print it.
 
@@ -858,24 +867,25 @@ to a non-@code{nil} value.
   Here is an example of code that creates a circular structure:
 
 @example
-(setq a '(x y))
+(setq a (list 'x 'y))
 (setcar a a)
 @end example
 
 @noindent
-Custom printing prints this as @samp{Result: #1=(#1# y)}.  The
-@samp{#1=} notation labels the structure that follows it with the label
-@samp{1}, and the @samp{#1#} notation references the previously labeled
-structure.  This notation is used for any shared elements of lists or
-vectors.
+If @code{print-circle} is non-@code{nil}, printing functions (e.g.,
+@code{prin1}) will print @code{a} as @samp{#1=(#1# y)}.  The
+@samp{#1=} notation labels the structure that follows it with the
+label @samp{1}, and the @samp{#1#} notation references the previously
+labeled structure.  This notation is used for any shared elements of
+lists or vectors.
 
 @defopt edebug-print-circle
 If non-@code{nil}, Edebug binds @code{print-circle} to this value while
 printing results.  The default value is @code{t}.
 @end defopt
 
-  Other programs can also use custom printing; see @file{cust-print.el}
-for details.
+  For further details about how printing can be customized, see
+@pxref{Output Functions}.
 
 @node Trace Buffer
 @subsection Trace Buffer
@@ -1021,9 +1031,8 @@ program.
 @itemize @bullet
 @item
 @vindex edebug-max-depth
-@code{max-lisp-eval-depth} (@pxref{Eval}) and @code{max-specpdl-size}
-(@pxref{Local Variables}) are both increased to reduce Edebug's impact
-on the stack.  You could, however, still run out of stack space when
+@code{max-lisp-eval-depth} (@pxref{Eval}) is increased to reduce Edebug's
+impact on the stack.  You could, however, still run out of stack space when
 using Edebug.  You can also enlarge the value of
 @code{edebug-max-depth} if Edebug reaches the limit of recursion depth
 instrumenting code that contains very large quoted lists.
@@ -1066,15 +1075,24 @@ current buffer, are saved and restored.
 @cindex window configuration (Edebug)
 The outside window configuration is saved and restored if
 @code{edebug-save-windows} is non-@code{nil} (@pxref{Edebug Options}).
+If the value of @code{edebug-save-windows} is a list, only the listed
+windows are saved and restored.
 
 The window configuration is not restored on error or quit, but the
 outside selected window @emph{is} reselected even on error or quit in
-case a @code{save-excursion} is active.  If the value of
-@code{edebug-save-windows} is a list, only the listed windows are saved
-and restored.
+case a @code{save-excursion} is active.
 
 The window start and horizontal scrolling of the source code buffer are
 not restored, however, so that the display remains coherent within Edebug.
+
+@cindex buffer point changed by Edebug
+@cindex edebug overwrites buffer point position
+Saving and restoring the outside window configuration can sometimes
+change the positions of point in the buffers on which the Lisp program
+you are debugging operates, especially if your program moves point.
+If this happens and interferes with your debugging, we recommend to
+set @code{edebug-save-windows} to @code{nil}
+(@pxref{Edebug Options}).
 
 @item
 The value of point in each displayed buffer is saved and restored if
@@ -1200,7 +1218,7 @@ define Edebug specifications for special forms implemented in C.
 
 @defmac def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
-evaluated.  @var{specification} should be the edebug specification.
+evaluated.  @var{specification} should be the Edebug specification.
 Neither argument is evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
@@ -1213,9 +1231,7 @@ directs processing of arguments.
 @table @asis
 @item @code{t}
 All arguments are instrumented for evaluation.
-
-@item @code{0}
-None of the arguments is instrumented.
+This is short for @code{(body)}.
 
 @item a symbol
 The symbol must have an Edebug specification, which is used instead.
@@ -1266,7 +1282,7 @@ balanced parentheses, recursive processing of forms, and recursion via
 indirect specifications.
 
 Here's a table of the possible elements of a specification list, with
-their meanings (see @ref{Specification Examples}, for the referenced
+their meanings (@pxref{Specification Examples}, for the referenced
 examples):
 
 @table @code
@@ -1286,14 +1302,6 @@ A generalized variable.  @xref{Generalized Variables}.
 Short for @code{&rest form}.  See @code{&rest} below.  If your macro
 wraps its body of code with @code{lambda} before it is evaluated, use
 @code{def-body} instead.  See @code{def-body} below.
-
-@item function-form
-A function form: either a quoted function symbol, a quoted lambda
-expression, or a form (that should evaluate to a function symbol or
-lambda expression).  This is useful when an argument that's a lambda
-expression might be quoted with @code{quote} rather than
-@code{function}, since it instruments the body of the lambda expression
-either way.
 
 @item lambda-expr
 A lambda expression with no quoting.
@@ -1367,6 +1375,21 @@ is primarily used to generate more specific syntax error messages.  See
 edebug-spec; it aborts the instrumentation, displaying the message in
 the minibuffer.
 
+@item &interpose
+Lets a function control the parsing of the remaining code.
+It takes the form @code{&interpose @var{spec} @var{fun} @var{args...}}
+and means that Edebug will first match @var{spec} against the code and
+then call @var{fun} with the code that matched @code{spec}, a parsing
+function @var{pf}, and finally @var{args...}.  The parsing
+function expects a single argument indicating the specification list
+to use to parse the remaining code.  It should be called exactly once
+and returns the instrumented code that @var{fun} is expected to return.
+For example @code{(&interpose symbolp pcase--match-pat-args)} matches
+sexps whose first element is a symbol and then lets
+@code{pcase--match-pat-args} lookup the specs associated
+with that head symbol according to @code{pcase--match-pat-args} and
+pass them to the @var{pf} it received as argument.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an
@@ -1375,8 +1398,13 @@ indirect specification.
 If the symbol has an Edebug specification, this @dfn{indirect
 specification} should be either a list specification that is used in
 place of the symbol, or a function that is called to process the
-arguments.  The specification may be defined with @code{def-edebug-spec}
-just as for macros.  See the @code{defun} example.
+arguments.  The specification may be defined with
+@code{def-edebug-elem-spec}:
+
+@defun def-edebug-elem-spec element specification
+Define the @var{specification} to use in place of the symbol @var{element}.
+@var{specification} has to be a list.
+@end defun
 
 Otherwise, the symbol should be a predicate.  The predicate is called
 with the argument, and if the predicate returns @code{nil}, the
@@ -1425,18 +1453,22 @@ Here is a list of additional specifications that may appear only after
 @code{&define}.  See the @code{defun} example.
 
 @table @code
+@item &name
+Extracts the name of the current defining form from the code.
+It takes the form @code{&name [@var{prestring}] @var{spec}
+[@var{poststring}] @var{fun} @var{args...}} and means that Edebug will
+match @var{spec} against the code and then call @var{fun} with the
+concatenation of the current name, @var{args...}, @var{prestring},
+the code that matched @code{spec}, and @var{poststring}.  If @var{fun}
+is absent, it defaults to a function that concatenates the arguments
+(with an @code{@@} between the previous name and the new).
+
 @item name
 The argument, a symbol, is the name of the defining form.
+Shorthand for @code{[&name symbolp]}.
 
 A defining form is not required to have a name field; and it may have
 multiple name fields.
-
-@item :name
-This construct does not actually match an argument.  The element
-following @code{:name} should be a symbol; it is used as an additional
-name component for the definition.  You can use this to add a unique,
-static component to the name of the definition.  It may be used more
-than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.
@@ -1491,11 +1523,11 @@ form specifications (that is, @code{form}, @code{body}, @code{def-form}, and
 must be in the form itself rather than at a higher level.
 
 Backtracking is also disabled after successfully matching a quoted
-symbol or string specification, since this usually indicates a
-recognized construct.  But if you have a set of alternative constructs that
-all begin with the same symbol, you can usually work around this
-constraint by factoring the symbol out of the alternatives, e.g.,
-@code{["foo" &or [first case] [second case] ...]}.
+symbol, string specification, or @code{&define} keyword, since this
+usually indicates a recognized construct.  But if you have a set of
+alternative constructs that all begin with the same symbol, you can
+usually work around this constraint by factoring the symbol out of the
+alternatives, e.g., @code{["foo" &or [first case] [second case] ...]}.
 
 Most needs are satisfied by these two ways that backtracking is
 automatically disabled, but occasionally it is useful to explicitly
@@ -1508,6 +1540,16 @@ example of the @code{let} specification.
 
 It may be easier to understand Edebug specifications by studying
 the examples provided here.
+
+Consider a hypothetical macro @code{my-test-generator} that runs
+tests on supplied lists of data.  Although it is Edebug's default
+behavior to not instrument arguments as code, as controlled by
+@code{edebug-eval-macro-args} (@pxref{Instrumenting Macro Calls}),
+it can be useful to explicitly document that the arguments are data:
+
+@example
+(def-edebug-spec my-test-generator (&rest sexp))
+@end example
 
 A @code{let} special form has a sequence of bindings and a body.  Each
 of the bindings is either a symbol or a sublist with a symbol and
@@ -1544,14 +1586,14 @@ specification for @code{defmacro} is very similar to that for
            [&optional ("interactive" interactive)]
            def-body))
 
-(def-edebug-spec lambda-list
-  (([&rest arg]
-    [&optional ["&optional" arg &rest arg]]
-    &optional ["&rest" arg]
-    )))
+(def-edebug-elem-spec 'lambda-list
+  '(([&rest arg]
+     [&optional ["&optional" arg &rest arg]]
+     &optional ["&rest" arg]
+     )))
 
-(def-edebug-spec interactive
-  (&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
+(def-edebug-elem-spec 'interactive
+  '(&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
 @end smallexample
 
 The specification for backquote below illustrates how to match
@@ -1564,11 +1606,11 @@ could fail.)
 @smallexample
 (def-edebug-spec \` (backquote-form))   ; @r{Alias just for clarity.}
 
-(def-edebug-spec backquote-form
-  (&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
-       (backquote-form . [&or nil backquote-form])
-       (vector &rest backquote-form)
-       sexp))
+(def-edebug-elem-spec 'backquote-form
+  '(&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
+        (backquote-form . [&or nil backquote-form])
+        (vector &rest backquote-form)
+        sexp))
 @end smallexample
 
 
@@ -1592,8 +1634,8 @@ but only when you also use Edebug.
 @defopt edebug-all-defs
 If this is non-@code{nil}, normal evaluation of defining forms such as
 @code{defun} and @code{defmacro} instruments them for Edebug.  This
-applies to @code{eval-defun}, @code{eval-region}, @code{eval-buffer},
-and @code{eval-current-buffer}.
+applies to @code{eval-defun}, @code{eval-region} and
+@code{eval-buffer}.
 
 Use the command @kbd{M-x edebug-all-defs} to toggle the value of this
 option.  @xref{Instrumenting}.
@@ -1601,9 +1643,9 @@ option.  @xref{Instrumenting}.
 
 @defopt edebug-all-forms
 If this is non-@code{nil}, the commands @code{eval-defun},
-@code{eval-region}, @code{eval-buffer}, and @code{eval-current-buffer}
-instrument all forms, even those that don't define anything.
-This doesn't apply to loading or evaluations in the minibuffer.
+@code{eval-region} and @code{eval-buffer} instrument all forms, even
+those that don't define anything.  This doesn't apply to loading or
+evaluations in the minibuffer.
 
 Use the command @kbd{M-x edebug-all-forms} to toggle the value of this
 option.  @xref{Instrumenting}.
@@ -1611,20 +1653,26 @@ option.  @xref{Instrumenting}.
 
 @defopt edebug-eval-macro-args
 When this is non-@code{nil}, all macro arguments will be instrumented
-in the generated code.  For any macro, an @code{edebug-form-spec}
+in the generated code.  For any macro, the @code{debug} declaration
 overrides this option.  So to specify exceptions for macros that have
-some arguments evaluated and some not, use @code{def-edebug-spec} to
-specify an @code{edebug-form-spec}.
+some arguments evaluated and some not, use the @code{debug} declaration
+specify an Edebug form specification.
 @end defopt
 
 @defopt edebug-save-windows
 If this is non-@code{nil}, Edebug saves and restores the window
 configuration.  That takes some time, so if your program does not care
 what happens to the window configurations, it is better to set this
-variable to @code{nil}.
+variable to @code{nil}.  We also recommend to set this to @code{nil}
+if the default value causes Edebug to overwrite the positions of point
+in buffers that are involved in the program you are debugging, as
+result of saving and restoring the window configuration; this could
+happen if your program moves point in one or more of those buffers.
+Another option to try to customize in this case is
+@code{edebug-save-displayed-buffer-points}, described below.
 
-If the value is a list, only the listed windows are saved and
-restored.
+If the value of @code{edebug-save-windows} is a list, only the listed
+windows are saved and restored.
 
 You can use the @kbd{W} command in Edebug to change this variable
 interactively.  @xref{Edebug Display Update}.

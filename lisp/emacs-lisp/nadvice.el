@@ -1,22 +1,25 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
+;; Version: 1.0
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,90 +38,110 @@
 
 ;;; Code:
 
-;; The autoloads.el mechanism which adds package--builtin-versions
-;; maintenance to loaddefs.el doesn't work for preloaded packages (such
-;; as this one), so we have to do it by hand!
-(push (purecopy '(nadvice 1 0)) package--builtin-versions)
+(oclosure-define (advice
+                  (:predicate advice--p)
+                  (:copier advice--cons (cdr))
+                  (:copier advice--copy (car cdr how props)))
+  car cdr how props)
+
+(eval-when-compile
+  (defmacro advice--make-how-alist (&rest args)
+    `(list
+      ,@(mapcar
+         (lambda (arg)
+           (pcase-let ((`(,how . ,body) arg))
+             `(list ,how
+                    (oclosure-lambda (advice (how ,how)) (&rest r)
+                      ,@body)
+                    ,(replace-regexp-in-string
+                      "\\<car\\>" "FUNCTION"
+                      (replace-regexp-in-string
+                       "\\<cdr\\>" "OLDFUN"
+                       (format "%S" `(lambda (&rest r) ,@body))
+                       t t)
+                      t t))))
+         args))))
 
 ;;;; Lightweight advice/hook
-(defvar advice--where-alist
-  '((:around "\300\301\302\003#\207" 5)
-    (:before "\300\301\002\"\210\300\302\002\"\207" 4)
-    (:after "\300\302\002\"\300\301\003\"\210\207" 5)
-    (:override "\300\301\002\"\207" 4)
-    (:after-until "\300\302\002\"\206\013\000\300\301\002\"\207" 4)
-    (:after-while "\300\302\002\"\205\013\000\300\301\002\"\207" 4)
-    (:before-until "\300\301\002\"\206\013\000\300\302\002\"\207" 4)
-    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4)
-    (:filter-args "\300\302\301\003!\"\207" 5)
-    (:filter-return "\301\300\302\003\"!\207" 5))
+(defvar advice--how-alist
+  (advice--make-how-alist
+   (:around (apply car cdr r))
+   (:before (apply car r) (apply cdr r))
+   (:after (prog1 (apply cdr r) (apply car r)))
+   (:override (apply car r))
+   (:after-until (or (apply cdr r) (apply car r)))
+   (:after-while (and (apply cdr r) (apply car r)))
+   (:before-until (or (apply car r) (apply cdr r)))
+   (:before-while (and (apply car r) (apply cdr r)))
+   (:filter-args (apply cdr (funcall car r)))
+   (:filter-return (funcall car (apply cdr r))))
   "List of descriptions of how to add a function.
-Each element has the form (WHERE BYTECODE STACK) where:
-  WHERE is a keyword indicating where the function is added.
-  BYTECODE is the corresponding byte-code that will be used.
-  STACK is the amount of stack space needed by the byte-code.")
-
-(defvar advice--bytecodes (mapcar #'cadr advice--where-alist))
-
-(defun advice--p (object)
-  (and (byte-code-function-p object)
-       (eq 128 (aref object 0))
-       (memq (length object) '(5 6))
-       (memq (aref object 1) advice--bytecodes)
-       (eq #'apply (aref (aref object 2) 0))))
-
-(defsubst advice--car   (f) (aref (aref f 2) 1))
-(defsubst advice--cdr   (f) (aref (aref f 2) 2))
-(defsubst advice--props (f) (aref (aref f 2) 3))
+Each element has the form (HOW OCL DOC) where HOW is a keyword,
+OCL is a \"prototype\" function of type `advice', and
+DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
 
 (defun advice--cd*r (f)
   (while (advice--p f)
     (setq f (advice--cdr f)))
   f)
 
-(defun advice--where (f)
-  (let ((bytecode (aref f 1))
-        (where nil))
-    (dolist (elem advice--where-alist)
-      (if (eq bytecode (cadr elem)) (setq where (car elem))))
-    where))
+(define-obsolete-function-alias 'advice--where #'advice--how "29.1")
+
+(defun advice--make-single-doc (flist function macrop)
+  (let ((how (advice--how flist)))
+    (concat
+     (format "This %s has %s advice: "
+             (if macrop "macro" "function")
+             how)
+     (let ((fun (advice--car flist)))
+       (if (symbolp fun) (format-message "`%S'." fun)
+         (let* ((name (cdr (assq 'name (advice--props flist))))
+                (doc (documentation fun t))
+                (usage (help-split-fundoc doc function)))
+           (if usage (setq doc (cdr usage)))
+           (if name
+               (if doc
+                   (format "%s\n%s" name doc)
+                 (format "%s" name))
+             (or doc "No documentation")))))
+     "\n"
+     (and
+      (eq how :override)
+      (concat
+       (format-message
+        "\nThis is an :override advice, which means that `%s' isn't\n" function)
+       "run at all, and the documentation below may be irrelevant.\n")))))
 
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
   (let* ((flist (indirect-function function))
          (docfun nil)
          (macrop (eq 'macro (car-safe flist)))
-         (docstring nil))
-    (if macrop (setq flist (cdr flist)))
-    (while (advice--p flist)
-      (let ((doc (aref flist 4))
-            (where (advice--where flist)))
+         (before nil)
+         (after nil))
+    (when macrop
+      (setq flist (cdr flist)))
+    (if (and (autoloadp flist)
+             (get function 'advice--pending))
+        (setq after
+              (advice--make-single-doc (get function 'advice--pending)
+                                       function macrop))
+      (while (advice--p flist)
         ;; Hack attack!  For advices installed before calling
         ;; Snarf-documentation, the integer offset into the DOC file will not
         ;; be installed in the "core unadvised function" but in the advice
         ;; object instead!  So here we try to undo the damage.
-        (if (integerp doc) (setq docfun flist))
-        (setq docstring
-              (concat
-               docstring
-               (format "This %s has %s advice: "
-                       (if macrop "macro" "function")
-                       where)
-               (let ((fun (advice--car flist)))
-                 (if (symbolp fun) (format-message "`%S'." fun)
-                   (let* ((name (cdr (assq 'name (advice--props flist))))
-                          (doc (documentation fun t))
-                          (usage (help-split-fundoc doc function)))
-                     (if usage (setq doc (cdr usage)))
-                     (if name
-                         (if doc
-                             (format "%s\n%s" name doc)
-                           (format "%s" name))
-                       (or doc "No documentation")))))
-               "\n")))
-      (setq flist (advice--cdr flist)))
-    (if docstring (setq docstring (concat docstring "\n")))
-    (unless docfun (setq docfun flist))
+        (when (integerp (aref flist 4))
+          (setq docfun flist))
+        (let ((doc-bit (advice--make-single-doc flist function macrop)))
+          ;; We want :overrides to go to the front, because they mean
+          ;; that the doc string may be irrelevant.
+          (if (eq (advice--how flist) :override)
+              (setq before (concat before doc-bit))
+            (setq after (concat after doc-bit))))
+        (setq flist (advice--cdr flist))))
+    (unless docfun
+      (setq docfun flist))
     (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
                       (documentation docfun t)))
            (usage (help-split-fundoc origdoc function)))
@@ -129,7 +152,18 @@ Each element has the form (WHERE BYTECODE STACK) where:
                         (if (stringp arglist) t
                           (help--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
-      (help-add-fundoc-usage (concat docstring origdoc) usage))))
+      (help-add-fundoc-usage
+       (with-temp-buffer
+         (when before
+           (insert before)
+           (ensure-empty-lines 1))
+         (when origdoc
+           (insert origdoc))
+         (when after
+           (ensure-empty-lines 1)
+           (insert after))
+         (buffer-string))
+       usage))))
 
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
@@ -144,54 +178,80 @@ Each element has the form (WHERE BYTECODE STACK) where:
    ;; ((functionp spec) (funcall spec))
    (t (eval spec))))
 
-(defun advice--interactive-form (function)
-  ;; Like `interactive-form' but tries to avoid autoloading functions.
-  (when (commandp function)
-    (if (not (and (symbolp function) (autoloadp (indirect-function function))))
-        (interactive-form function)
-      `(interactive (advice-eval-interactive-spec
-                     (cadr (interactive-form ',function)))))))
+(defun advice--interactive-form-1 (function)
+  "Like `interactive-form' but preserves the static context if needed."
+  (let ((if (interactive-form function)))
+    (if (or (null if) (not (eq 'closure (car-safe function))))
+        if
+      (cl-assert (eq 'interactive (car if)))
+      (let ((form (cadr if)))
+        (if (macroexp-const-p form)
+            if
+          ;; The interactive is expected to be run in the static context
+          ;; that the function captured.
+          (let ((ctx (nth 1 function)))
+            `(interactive
+              ,(let* ((f (if (eq 'function (car-safe form)) (cadr form) form)))
+                 ;; If the form jut returns a function, preserve the fact that
+                 ;; it just returns a function, which is an info we use in
+                 ;; `advice--make-interactive-form'.
+                 (if (eq 'lambda (car-safe f))
+                     `',(eval form ctx)
+                   `(eval ',form ',ctx))))))))))
 
-(defun advice--make-interactive-form (function main)
-  ;; TODO: make it so that interactive spec can be a constant which
-  ;; dynamically checks the advice--car/cdr to do its job.
-  ;; For that, advice-eval-interactive-spec needs to be more faithful.
-  (let* ((iff (advice--interactive-form function))
-         (ifm (advice--interactive-form main))
-         (fspec (cadr iff)))
-    (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
-      (setq fspec (nth 1 fspec)))
+(defun advice--interactive-form (function)
+  "Like `interactive-form' but tries to avoid autoloading functions."
+  (if (not (and (symbolp function) (autoloadp (indirect-function function))))
+      (advice--interactive-form-1 function)
+    (when (commandp function)
+      `(interactive (advice-eval-interactive-spec
+                     (cadr (advice--interactive-form-1 ',function)))))))
+
+(defun advice--make-interactive-form (iff ifm)
+  (let* ((fspec (cadr iff)))
+    (when (memq (car-safe fspec) '(function quote)) ;; Macroexpanded lambda?
+      (setq fspec (eval fspec t)))
     (if (functionp fspec)
         `(funcall ',fspec ',(cadr ifm))
       (cadr (or iff ifm)))))
 
-(defun advice--make-1 (byte-code stack-depth function main props)
-  "Build a function value that adds FUNCTION to MAIN."
-  (let ((adv-sig (gethash main advertised-signature-table))
-        (advice
-         (apply #'make-byte-code 128 byte-code
-                (vector #'apply function main props) stack-depth nil
-                (and (or (commandp function) (commandp main))
-                     (list (advice--make-interactive-form
-                            function main))))))
-    (when adv-sig (puthash advice adv-sig advertised-signature-table))
-    advice))
 
-(defun advice--make (where function main props)
-  "Build a function value that adds FUNCTION to MAIN at WHERE.
-WHERE is a symbol to select an entry in `advice--where-alist'."
+(cl-defmethod oclosure-interactive-form ((ad advice) &optional _)
+  (let* ((car (advice--car ad))
+         (cdr (advice--cdr ad))
+         (ifa (advice--interactive-form car))
+         (ifd (advice--interactive-form cdr)))
+    (when (or ifa ifd)
+      `(interactive ,(advice--make-interactive-form ifa ifd)))))
+
+(cl-defmethod cl-print-object ((object advice) stream)
+  (cl-assert (advice--p object))
+  (princ "#f(advice " stream)
+  (cl-print-object (advice--car object) stream)
+  (princ " " stream)
+  (princ (advice--how object) stream)
+  (princ " " stream)
+  (cl-print-object (advice--cdr object) stream)
+  (let ((props (advice--props object)))
+    (when props
+      (princ " " stream)
+      (cl-print-object props stream)))
+  (princ ")" stream))
+
+(defun advice--make (how function main props)
+  "Build a function value that adds FUNCTION to MAIN at HOW.
+HOW is a symbol to select an entry in `advice--how-alist'."
   (let ((fd (or (cdr (assq 'depth props)) 0))
         (md (if (advice--p main)
                 (or (cdr (assq 'depth (advice--props main))) 0))))
     (if (and md (> fd md))
         ;; `function' should go deeper.
-        (let ((rest (advice--make where function (advice--cdr main) props)))
-          (advice--make-1 (aref main 1) (aref main 3)
-                          (advice--car main) rest (advice--props main)))
-      (let ((desc (assq where advice--where-alist)))
-        (unless desc (error "Unknown add-function location `%S'" where))
-        (advice--make-1 (nth 1 desc) (nth 2 desc)
-                        function main props)))))
+        (let ((rest (advice--make how function (advice--cdr main) props)))
+          (advice--cons main rest))
+      (let ((proto (assq how advice--how-alist)))
+        (unless proto (error "Unknown add-function location `%S'" how))
+        (advice--copy (cadr proto)
+                      function main how props)))))
 
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
@@ -217,8 +277,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (if val (car val)
           (let ((nrest (advice--tweak rest tweaker)))
             (if (eq rest nrest) flist
-              (advice--make-1 (aref flist 1) (aref flist 3)
-                              first nrest props))))))))
+              (advice--cons flist nrest))))))))
 
 ;;;###autoload
 (defun advice--remove-function (flist function)
@@ -230,7 +289,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
                           (list (advice--remove-function rest function)))))))
 
 (defvar advice--buffer-local-function-sample nil
-  "keeps an example of the special \"run the default value\" functions.
+  "Keeps an example of the special \"run the default value\" functions.
 These functions play the same role as t in buffer-local hooks, and to recognize
 them, we keep a sample here against which to compare.  Each instance is
 different, but `function-equal' will hopefully ignore those differences.")
@@ -258,11 +317,34 @@ different, but `function-equal' will hopefully ignore those differences.")
           ((symbolp place)              `(default-value ',place))
           (t place))))
 
+(defun nadvice--make-docstring (sym)
+  (let* ((main (documentation (symbol-function sym) 'raw))
+         (ud (help-split-fundoc main 'pcase))
+         (doc (or (cdr ud) main))
+         (col1width (apply #'max (mapcar (lambda (x)
+                                           (string-width (symbol-name (car x))))
+                                         advice--how-alist)))
+         (table (mapconcat (lambda (x)
+                             (format (format " %%-%ds %%s" col1width)
+                                     (car x) (nth 2 x)))
+                           advice--how-alist "\n"))
+         (table (if global-prettify-symbols-mode
+                    (replace-regexp-in-string "(lambda\\>" "(λ" table t t)
+                  table))
+         (combined-doc
+          (if (not (string-match "<<>>" doc))
+              doc
+            (replace-match table t t doc))))
+    (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))
+
+(put 'add-function 'function-documentation
+     '(nadvice--make-docstring 'add-function))
+
 ;;;###autoload
-(defmacro add-function (where place function &optional props)
+(defmacro add-function (how place function &optional props)
   ;; TODO:
-  ;; - maybe let `where' specify some kind of predicate and use it
-  ;;   to implement things like mode-local or eieio-defmethod.
+  ;; - maybe let `how' specify some kind of predicate and use it
+  ;;   to implement things like mode-local or cl-defmethod.
   ;;   Of course, that only makes sense if the predicates of all advices can
   ;;   be combined and made more efficient.
   ;; :before is like a normal add-hook on a normal hook.
@@ -270,20 +352,11 @@ different, but `function-equal' will hopefully ignore those differences.")
   ;; :before-until is like add-hook on run-hook-with-args-until-success.
   ;; Same with :after-* but for (add-hook ... 'append).
   "Add a piece of advice on the function stored at PLACE.
-FUNCTION describes the code to add.  WHERE describes where to add it.
-WHERE can be explained by showing the resulting new function, as the
+FUNCTION describes the code to add.  HOW describes how to add it.
+HOW can be explained by showing the resulting new function, as the
 result of combining FUNCTION and the previous value of PLACE, which we
 call OLDFUN here:
-`:before'	(lambda (&rest r) (apply FUNCTION r) (apply OLDFUN r))
-`:after'	(lambda (&rest r) (prog1 (apply OLDFUN r) (apply FUNCTION r)))
-`:around'	(lambda (&rest r) (apply FUNCTION OLDFUN r))
-`:override'	(lambda (&rest r) (apply FUNCTION r))
-`:before-while'	(lambda (&rest r) (and (apply FUNCTION r) (apply OLDFUN r)))
-`:before-until'	(lambda (&rest r) (or  (apply FUNCTION r) (apply OLDFUN r)))
-`:after-while'	(lambda (&rest r) (and (apply OLDFUN r) (apply FUNCTION r)))
-`:after-until'	(lambda (&rest r) (or  (apply OLDFUN r) (apply FUNCTION r)))
-`:filter-args'	(lambda (&rest r) (apply OLDFUN (funcall FUNCTION r)))
-`:filter-return'(lambda (&rest r) (funcall FUNCTION (apply OLDFUN r)))
+<<>>
 If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
@@ -310,12 +383,30 @@ is also interactive.  There are 3 cases:
   (declare
    ;;(indent 2)
    (debug (form [&or symbolp ("local" form) ("var" sexp) gv-place]
-           form &optional form)))
-  `(advice--add-function ,where (gv-ref ,(advice--normalize-place place))
+                form &optional form)))
+  `(advice--add-function ,how (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
+(declare-function comp-subr-trampoline-install "comp")
+
 ;;;###autoload
-(defun advice--add-function (where ref function props)
+(defun advice--add-function (how ref function props)
+  (when (and (featurep 'native-compile)
+             (subr-primitive-p (gv-deref ref)))
+    (let ((subr-name (intern (subr-name (gv-deref ref)))))
+      ;; Requiring the native compiler to advice `macroexpand' cause a
+      ;; circular dependency in eager macro expansion.  uniquify is
+      ;; advising `rename-buffer' while being loaded in loadup.el.
+      ;; This would require the whole native compiler machinery but we
+      ;; don't want to include it in the dump.  Because these two
+      ;; functions are already handled in
+      ;; `native-comp-never-optimize-functions' we hack the problem
+      ;; this way for now :/
+      (unless (memq subr-name '(macroexpand rename-buffer))
+        ;; Must require explicitly as during bootstrap we have no
+        ;; autoloads.
+        (require 'comp)
+        (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a
@@ -324,7 +415,7 @@ is also interactive.  There are 3 cases:
             (advice--remove-function (gv-deref ref)
                                      (or name (advice--car a)))))
     (setf (gv-deref ref)
-          (advice--make where function (gv-deref ref) props))))
+          (advice--make how function (gv-deref ref) props))))
 
 ;;;###autoload
 (defmacro remove-function (place function)
@@ -422,11 +513,16 @@ of the piece of advice."
         (put symbol 'advice--pending (advice--subst-main oldadv nil)))
       (funcall fsetfun symbol newdef))))
 
+(put 'advice-add 'function-documentation
+     '(nadvice--make-docstring 'advice-add))
+
 ;;;###autoload
-(defun advice-add (symbol where function &optional props)
+(defun advice-add (symbol how function &optional props)
   "Like `add-function' but for the function named SYMBOL.
 Contrary to `add-function', this will properly handle the cases where SYMBOL
-is defined as a macro, alias, command, ..."
+is defined as a macro, alias, command, ...
+HOW can be one of:
+<<>>"
   ;; TODO:
   ;; - record the advice location, to display in describe-function.
   ;; - change all defadvice in lisp/**/*.el.
@@ -434,19 +530,21 @@ is defined as a macro, alias, command, ..."
   (let* ((f (symbol-function symbol))
 	 (nf (advice--normalize symbol f)))
     (unless (eq f nf) (fset symbol nf))
-    (add-function where (cond
-                         ((eq (car-safe nf) 'macro) (cdr nf))
-                         ;; Reasons to delay installation of the advice:
-                         ;; - If the function is not yet defined, installing
-                         ;;   the advice would affect `fboundp'ness.
-                         ;; - the symbol-function slot of an autoloaded
-                         ;;   function is not itself a function value.
-                         ;; - `autoload' does nothing if the function is
-                         ;;   not an autoload or undefined.
-                         ((or (not nf) (autoloadp nf))
-                          (get symbol 'advice--pending))
-                         (t (symbol-function symbol)))
+    (add-function how (cond
+                       ((eq (car-safe nf) 'macro) (cdr nf))
+                       ;; Reasons to delay installation of the advice:
+                       ;; - If the function is not yet defined, installing
+                       ;;   the advice would affect `fboundp'ness.
+                       ;; - the symbol-function slot of an autoloaded
+                       ;;   function is not itself a function value.
+                       ;; - `autoload' does nothing if the function is
+                       ;;   not an autoload or undefined.
+                       ((or (not nf) (autoloadp nf))
+                        (get symbol 'advice--pending))
+                       (t (symbol-function symbol)))
                   function props)
+    ;; FIXME: We could use a defmethod on `function-documentation' instead,
+    ;; except when (autoloadp nf)!
     (put symbol 'function-documentation `(advice--make-docstring ',symbol))
     (add-function :around (get symbol 'defalias-fset-function)
                   #'advice--defalias-fset))
@@ -482,12 +580,12 @@ See `advice-add' and `add-function' for explanation on the
 arguments.  Note if NAME is nil the advice is anonymous;
 otherwise it is named `SYMBOL@NAME'.
 
-\(fn SYMBOL (WHERE LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
-  (declare (indent 2) (doc-string 3) (debug (sexp sexp body)))
+\(fn SYMBOL (HOW LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
+  (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
   (or (listp args) (signal 'wrong-type-argument (list 'listp args)))
   (or (<= 2 (length args) 4)
       (signal 'wrong-number-of-arguments (list 2 4 (length args))))
-  (let* ((where         (nth 0 args))
+  (let* ((how           (nth 0 args))
          (lambda-list   (nth 1 args))
          (name          (nth 2 args))
          (depth         (nth 3 args))
@@ -497,7 +595,7 @@ otherwise it is named `SYMBOL@NAME'.
                         (intern (format "%s@%s" symbol name)))
                        (t (error "Unrecognized name spec `%S'" name)))))
     `(prog1 ,@(and (symbolp advice) `((defun ,advice ,lambda-list ,@body)))
-       (advice-add ',symbol ,where #',advice ,@(and props `(',props))))))
+       (advice-add ',symbol ,how #',advice ,@(and props `(',props))))))
 
 (defun advice-mapc (fun symbol)
   "Apply FUN to every advice function in SYMBOL.

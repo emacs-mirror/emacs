@@ -1,10 +1,10 @@
 ;;; ob-shell.el --- Babel Functions for Shell Evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -26,6 +26,10 @@
 ;; Org-Babel support for evaluating shell source code.
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 (require 'org-macs)
 (require 'shell)
@@ -42,6 +46,28 @@
 (defvar org-babel-default-header-args:shell '())
 (defvar org-babel-shell-names)
 
+(defconst org-babel-shell-set-prompt-commands
+  '(;; Fish has no PS2 equivalent.
+    ("fish" . "function fish_prompt\n\techo \"%s\"\nend")
+    ;; prompt2 is like PS2 in POSIX shells.
+    ("csh" . "set prompt=\"%s\"\nset prompt2=\"\"")
+    ;; PowerShell, similar to fish, does not have PS2 equivalent.
+    ("posh" . "function prompt { \"%s\" }")
+    ;; PROMPT_COMMAND can override PS1 settings.  Disable it.
+    ;; Disable PS2 to avoid garbage in multi-line inputs.
+    (t . "PROMPT_COMMAND=;PS1=\"%s\";PS2="))
+  "Alist assigning shells with their prompt setting command.
+
+Each element of the alist associates a shell type from
+`org-babel-shell-names' with a template used to create a command to
+change the default prompt.  The template is an argument to `format'
+that will be called with a single additional argument: prompt string.
+
+The fallback association template is defined in (t . \"template\")
+alist element.")
+
+(defvar org-babel-prompt-command)
+
 (defun org-babel-shell-initialize ()
   "Define execution functions associated to shell names.
 This function has to be called whenever `org-babel-shell-names'
@@ -51,7 +77,10 @@ is modified outside the Customize interface."
     (eval `(defun ,(intern (concat "org-babel-execute:" name))
 	       (body params)
 	     ,(format "Execute a block of %s commands with Babel." name)
-	     (let ((shell-file-name ,name))
+	     (let ((shell-file-name ,name)
+                   (org-babel-prompt-command
+                    (or (cdr (assoc ,name org-babel-shell-set-prompt-commands))
+                        (alist-get t org-babel-shell-set-prompt-commands))))
 	       (org-babel-execute:shell body params))))
     (eval `(defalias ',(intern (concat "org-babel-variable-assignments:" name))
 	     'org-babel-variable-assignments:shell
@@ -68,8 +97,21 @@ outside the Customize interface."
   :group 'org-babel
   :type '(repeat (string :tag "Shell name: "))
   :set (lambda (symbol value)
-	 (set-default symbol value)
+	 (set-default-toplevel-value symbol value)
 	 (org-babel-shell-initialize)))
+
+(defcustom org-babel-shell-results-defaults-to-output t
+  "Let shell execution defaults to \":results output\".
+
+When set to t, use \":results output\" when no :results setting
+is set.  This is especially useful for inline source blocks.
+
+When set to nil, stick to the convention of using :results value
+as the default setting when no :results is set, the \"value\" of
+a shell execution being its exit code."
+  :group 'org-babel
+  :type 'boolean
+  :package-version '(Org . "9.4"))
 
 (defun org-babel-execute:shell (body params)
   "Execute a block of Shell commands with Babel.
@@ -79,9 +121,17 @@ This function is called by `org-babel-execute-src-block'."
 	 (stdin (let ((stdin (cdr (assq :stdin params))))
                   (when stdin (org-babel-sh-var-to-string
                                (org-babel-ref-resolve stdin)))))
+	 (results-params (cdr (assq :result-params params)))
+	 (value-is-exit-status
+	  (or (and
+	       (equal '("replace") results-params)
+	       (not org-babel-shell-results-defaults-to-output))
+	      (member "value" results-params)))
 	 (cmdline (cdr (assq :cmdline params)))
-         (full-body (org-babel-expand-body:generic
-		     body params (org-babel-variable-assignments:shell params))))
+         (full-body (concat
+		     (org-babel-expand-body:generic
+		      body params (org-babel-variable-assignments:shell params))
+		     (when value-is-exit-status "\necho $?"))))
     (org-babel-reassemble-table
      (org-babel-sh-evaluate session full-body params stdin cmdline)
      (org-babel-pick-name
@@ -96,7 +146,8 @@ This function is called by `org-babel-execute-src-block'."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (insert var) (comint-send-input nil t)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:shell (session body params)
@@ -129,15 +180,15 @@ This function is called by `org-babel-execute-src-block'."
     (varname values &optional sep hline)
   "Return a list of statements declaring the values as bash associative array."
   (format "unset %s\ndeclare -A %s\n%s"
-    varname varname
-    (mapconcat
-     (lambda (items)
-       (format "%s[%s]=%s"
-	       varname
-	       (org-babel-sh-var-to-sh (car items) sep hline)
-	       (org-babel-sh-var-to-sh (cdr items) sep hline)))
-     values
-     "\n")))
+	  varname varname
+	  (mapconcat
+	   (lambda (items)
+	     (format "%s[%s]=%s"
+		     varname
+		     (org-babel-sh-var-to-sh (car items) sep hline)
+		     (org-babel-sh-var-to-sh (cdr items) sep hline)))
+	   values
+	   "\n")))
 
 (defun org-babel--variable-assignments:bash (varname values &optional sep hline)
   "Represent the parameters as useful Bash shell variables."
@@ -184,6 +235,13 @@ var of the same value."
       (mapconcat echo-var var "\n"))
      (t (funcall echo-var var)))))
 
+(defvar org-babel-sh-eoe-indicator "echo 'org_babel_sh_eoe'"
+  "String to indicate that evaluation has completed.")
+(defvar org-babel-sh-eoe-output "org_babel_sh_eoe"
+  "String to indicate that evaluation has completed.")
+(defvar org-babel-sh-prompt "org_babel_sh_prompt> "
+  "String to set prompt in session shell.")
+
 (defun org-babel-sh-initiate-session (&optional session _params)
   "Initiate a session named SESSION according to PARAMS."
   (when (and session (not (string= session "none")))
@@ -191,16 +249,19 @@ var of the same value."
       (or (org-babel-comint-buffer-livep session)
           (progn
 	    (shell session)
+            ;; Set unique prompt for easier analysis of the output.
+            (org-babel-comint-wait-for-output (current-buffer))
+            (org-babel-comint-input-command
+             (current-buffer)
+             (format org-babel-prompt-command org-babel-sh-prompt))
+            (setq-local comint-prompt-regexp
+                        (concat "^" (regexp-quote org-babel-sh-prompt)
+                                " *"))
 	    ;; Needed for Emacs 23 since the marker is initially
 	    ;; undefined and the filter functions try to use it without
 	    ;; checking.
 	    (set-marker comint-last-output-start (point))
 	    (get-buffer (current-buffer)))))))
-
-(defvar org-babel-sh-eoe-indicator "echo 'org_babel_sh_eoe'"
-  "String to indicate that evaluation has completed.")
-(defvar org-babel-sh-eoe-output "org_babel_sh_eoe"
-  "String to indicate that evaluation has completed.")
 
 (defun org-babel-sh-evaluate (session body &optional params stdin cmdline)
   "Pass BODY to the Shell process in BUFFER.
@@ -208,6 +269,12 @@ If RESULT-TYPE equals `output' then return a list of the outputs
 of the statements in BODY, if RESULT-TYPE equals `value' then
 return the value of the last statement in BODY."
   (let* ((shebang (cdr (assq :shebang params)))
+	 (results-params (cdr (assq :result-params params)))
+	 (value-is-exit-status
+	  (or (and
+	       (equal '("replace") results-params)
+	       (not org-babel-shell-results-defaults-to-output))
+	      (member "value" results-params)))
 	 (results
 	  (cond
 	   ((or stdin cmdline)	       ; external shell script w/STDIN
@@ -221,32 +288,30 @@ return the value of the last statement in BODY."
 	      (set-file-modes script-file #o755)
 	      (with-temp-file stdin-file (insert (or stdin "")))
 	      (with-temp-buffer
-		(call-process-shell-command
-		 (concat (if shebang script-file
-			   (format "%s %s" shell-file-name script-file))
-			 (and cmdline (concat " " cmdline)))
-		 stdin-file
-		 (current-buffer))
+                (with-connection-local-variables
+                 (apply #'process-file
+                        (if shebang (file-local-name script-file)
+                          shell-file-name)
+		        stdin-file
+                        (current-buffer)
+                        nil
+                        (if shebang (when cmdline (list cmdline))
+                          (list shell-command-switch
+                                (concat (file-local-name script-file)  " " cmdline)))))
 		(buffer-string))))
 	   (session			; session evaluation
 	    (mapconcat
 	     #'org-babel-sh-strip-weird-long-prompt
 	     (mapcar
 	      #'org-trim
-	      (butlast
+	      (butlast ; Remove eoe indicator
 	       (org-babel-comint-with-output
 		   (session org-babel-sh-eoe-output t body)
-		 (dolist (line (append (split-string (org-trim body) "\n")
-				       (list org-babel-sh-eoe-indicator)))
-		   (insert line)
-		   (comint-send-input nil t)
-		   (while (save-excursion
-			    (goto-char comint-last-input-end)
-			    (not (re-search-forward
-				  comint-prompt-regexp nil t)))
-		     (accept-process-output
-		      (get-buffer-process (current-buffer))))))
-	       2))
+                 (insert (org-trim body) "\n"
+                         org-babel-sh-eoe-indicator)
+		 (comint-send-input nil t))
+               ;; Remove `org-babel-sh-eoe-indicator' output line.
+	       1))
 	     "\n"))
 	   ;; External shell script, with or without a predefined
 	   ;; shebang.
@@ -259,8 +324,9 @@ return the value of the last statement in BODY."
 		(insert body))
 	      (set-file-modes script-file #o755)
 	      (org-babel-eval script-file "")))
-	   (t
-	    (org-babel-eval shell-file-name (org-trim body))))))
+	   (t (org-babel-eval shell-file-name (org-trim body))))))
+    (when (and results value-is-exit-status)
+      (setq results (car (reverse (split-string results "\n" t)))))
     (when results
       (let ((result-params (cdr (assq :result-params params))))
         (org-babel-result-cond result-params
@@ -276,7 +342,5 @@ return the value of the last statement in BODY."
   string)
 
 (provide 'ob-shell)
-
-
 
 ;;; ob-shell.el ends here

@@ -1,6 +1,6 @@
 ;;; backtrace.el --- generic major mode for Elisp backtraces -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 ;; Keywords: lisp, tools, maint
@@ -55,10 +55,11 @@ order to debug the code that does fontification."
 (defcustom backtrace-line-length 5000
   "Target length for lines in Backtrace buffers.
 Backtrace mode will attempt to abbreviate printing of backtrace
-frames to make them shorter than this, but success is not
-guaranteed.  If set to nil or zero, Backtrace mode will not
-abbreviate the forms it prints."
-  :type 'integer
+frames by setting `print-level' and `print-length' to make them
+shorter than this, but success is not guaranteed.  If set to nil
+or zero, backtrace mode will not abbreviate the forms it prints."
+  :type '(choice natnum
+                 (const :value nil :tag "Don't abbreviate"))
   :group 'backtrace
   :version "27.1")
 
@@ -190,7 +191,7 @@ This is commonly used to recompute `backtrace-frames'.")
 (defvar-local backtrace-print-function #'cl-prin1
   "Function used to print values in the current Backtrace buffer.")
 
-(defvar-local backtrace-goto-source-functions nil
+(defvar backtrace-goto-source-functions nil
   "Abnormal hook used to jump to the source code for the current frame.
 Each hook function is called with no argument, and should return
 non-nil if it is able to switch to the buffer containing the
@@ -199,63 +200,62 @@ functions returns non-nil.  When adding a function to this hook,
 you should also set the :source-available flag for the backtrace
 frames where the source code location is known.")
 
-(defvar backtrace-mode-map
-  (let ((map (copy-keymap special-mode-map)))
-    (set-keymap-parent map button-buffer-map)
-    (define-key map "n" 'backtrace-forward-frame)
-    (define-key map "p" 'backtrace-backward-frame)
-    (define-key map "v" 'backtrace-toggle-locals)
-    (define-key map "#" 'backtrace-toggle-print-circle)
-    (define-key map ":" 'backtrace-toggle-print-gensym)
-    (define-key map "s" 'backtrace-goto-source)
-    (define-key map "\C-m" 'backtrace-help-follow-symbol)
-    (define-key map "+" 'backtrace-multi-line)
-    (define-key map "-" 'backtrace-single-line)
-    (define-key map "." 'backtrace-expand-ellipses)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'mouse-select-window)
-    (easy-menu-define nil map ""
-      '("Backtrace"
-        ["Next Frame" backtrace-forward-frame
-         :help "Move cursor forwards to the start of a backtrace frame"]
-        ["Previous Frame" backtrace-backward-frame
-         :help "Move cursor backwards to the start of a backtrace frame"]
-        "--"
-        ["Show Variables" backtrace-toggle-locals
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :show-locals)
-         :help "Show or hide the local variables for the frame at point"]
-        ["Show Circular Structures" backtrace-toggle-print-circle
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :print-circle)
-         :help
-         "Condense or expand shared or circular structures in the frame at point"]
-        ["Show Uninterned Symbols" backtrace-toggle-print-gensym
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :print-gensym)
-         :help
-         "Toggle unique printing of uninterned symbols in the frame at point"]
-        ["Expand \"...\"s" backtrace-expand-ellipses
-         :help "Expand all the abbreviated forms in the current frame"]
-        ["Show on Multiple Lines" backtrace-multi-line
-         :help "Use line breaks and indentation to make a form more readable"]
-        ["Show on Single Line" backtrace-single-line]
-        "--"
-        ["Go to Source" backtrace-goto-source
-         :active (and (backtrace-get-index)
-                      (plist-get (backtrace-frame-flags
-                                  (nth (backtrace-get-index) backtrace-frames))
-                                 :source-available))
-         :help "Show the source code for the current frame"]
-        ["Help for Symbol" backtrace-help-follow-symbol
-         :help "Show help for symbol at point"]
-        ["Describe Backtrace Mode" describe-mode
-         :help "Display documentation for backtrace-mode"]))
-    map)
-  "Local keymap for `backtrace-mode' buffers.")
+(defvar-keymap backtrace-mode-map
+  :doc "Local keymap for `backtrace-mode' buffers."
+  :parent (make-composed-keymap special-mode-map
+                                button-buffer-map)
+  "n"   #'backtrace-forward-frame
+  "p"   #'backtrace-backward-frame
+  "v"   #'backtrace-toggle-locals
+  "#"   #'backtrace-toggle-print-circle
+  ":"   #'backtrace-toggle-print-gensym
+  "RET" #'backtrace-help-follow-symbol
+  "+"   #'backtrace-multi-line
+  "-"   #'backtrace-single-line
+  "."   #'backtrace-expand-ellipses
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'mouse-select-window
+
+  :menu
+  '("Backtrace"
+    ["Next Frame" backtrace-forward-frame
+     :help "Move cursor forwards to the start of a backtrace frame"]
+    ["Previous Frame" backtrace-backward-frame
+     :help "Move cursor backwards to the start of a backtrace frame"]
+    "--"
+    ["Show Variables" backtrace-toggle-locals
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :show-locals)
+     :help "Show or hide the local variables for the frame at point"]
+    ["Show Circular Structures" backtrace-toggle-print-circle
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :print-circle)
+     :help
+     "Condense or expand shared or circular structures in the frame at point"]
+    ["Show Uninterned Symbols" backtrace-toggle-print-gensym
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :print-gensym)
+     :help
+     "Toggle unique printing of uninterned symbols in the frame at point"]
+    ["Expand \"...\"s" backtrace-expand-ellipses
+     :help "Expand all the abbreviated forms in the current frame"]
+    ["Show on Multiple Lines" backtrace-multi-line
+     :help "Use line breaks and indentation to make a form more readable"]
+    ["Show on Single Line" backtrace-single-line]
+    "--"
+    ["Go to Source" backtrace-goto-source
+     :active (and (backtrace-get-index)
+                  (plist-get (backtrace-frame-flags
+                              (nth (backtrace-get-index) backtrace-frames))
+                             :source-available))
+     :help "Show the source code for the current frame"]
+    ["Help for Symbol" backtrace-help-follow-symbol
+     :help "Show help for symbol at point"]
+    ["Describe Backtrace Mode" describe-mode
+     :help "Display documentation for backtrace-mode"]))
 
 (defconst backtrace--flags-width 2
   "Width in characters of the flags for a backtrace frame.")
@@ -590,7 +590,7 @@ content of the sexp."
          (begin (previous-single-property-change end 'backtrace-form
                                                  nil (point-min))))
     (unless tag
-      (when (or (= end (point-max)) (> end (point-at-eol)))
+      (when (or (= end (point-max)) (> end (line-end-position)))
         (user-error "No form here to reformat"))
       (goto-char end)
       (setq pos end
@@ -638,10 +638,8 @@ content of the sexp."
          (source-available (plist-get (backtrace-frame-flags frame)
                                       :source-available)))
     (unless (and source-available
-                 (catch 'done
-                   (dolist (func backtrace-goto-source-functions)
-                     (when (funcall func)
-                       (throw 'done t)))))
+                 (run-hook-with-args-until-success
+                  'backtrace-goto-source-functions))
       (user-error "Source code location not known"))))
 
 (defun backtrace-help-follow-symbol (&optional pos)
@@ -753,6 +751,13 @@ property for use by navigation."
     (insert (make-string (- backtrace--flags-width (- (point) beg)) ?\s))
     (put-text-property beg (point) 'backtrace-section 'func)))
 
+(defun backtrace--line-length-or-nil ()
+  "Return `backtrace-line-length' if valid, nil else."
+  ;; mirror the logic in `cl-print-to-string-with-limit'
+  (and (natnump backtrace-line-length)
+       (not (zerop backtrace-line-length))
+       backtrace-line-length))
+
 (defun backtrace--print-func-and-args (frame _view)
   "Print the function, arguments and buffer position of a backtrace FRAME.
 Format it according to VIEW."
@@ -771,11 +776,16 @@ Format it according to VIEW."
       (if (atom fun)
           (funcall backtrace-print-function fun)
         (insert
-         (backtrace--print-to-string fun (when args (/ backtrace-line-length 2)))))
+         (backtrace--print-to-string
+          fun
+          (when (and args (backtrace--line-length-or-nil))
+            (/ backtrace-line-length 2)))))
       (if args
           (insert (backtrace--print-to-string
-                   args (max (truncate (/ backtrace-line-length 5))
-                             (- backtrace-line-length (- (point) beg)))))
+                   args
+                   (if (backtrace--line-length-or-nil)
+                       (max (truncate (/ backtrace-line-length 5))
+                            (- backtrace-line-length (- (point) beg))))))
         ;; The backtrace-form property is so that backtrace-multi-line
         ;; will find it.  backtrace-multi-line doesn't do anything
         ;; useful with it, just being consistent.
@@ -870,7 +880,7 @@ commands.
 \\{backtrace-mode-map}
 
 A mode which inherits from Backtrace mode, or a command which
-creates a backtrace-mode buffer, should usually do the following:
+creates a `backtrace-mode' buffer, should usually do the following:
 
  - Set `backtrace-revert-hook', if the buffer contents need
    to be specially recomputed prior to `revert-buffer'.
@@ -922,11 +932,15 @@ Output stream used is value of `standard-output'."
   (princ (backtrace-to-string (backtrace-get-frames 'backtrace)))
   nil)
 
-(defun backtrace-to-string(&optional frames)
+(defun backtrace-to-string (&optional frames)
   "Format FRAMES, a list of `backtrace-frame' objects, for output.
 Return the result as a string.  If FRAMES is nil, use all
 function calls currently active."
-  (unless frames (setq frames (backtrace-get-frames 'backtrace-to-string)))
+  (substring-no-properties
+   (backtrace--to-string
+    (or frames (backtrace-get-frames 'backtrace-to-string)))))
+
+(defun backtrace--to-string (frames)
   (let ((backtrace-fontify nil))
     (with-temp-buffer
       (backtrace-mode)
@@ -934,8 +948,7 @@ function calls currently active."
             backtrace-frames frames
             backtrace-print-function #'cl-prin1)
       (backtrace-print)
-      (substring-no-properties (filter-buffer-substring (point-min)
-                                                        (point-max))))))
+      (filter-buffer-substring (point-min) (point-max)))))
 
 (provide 'backtrace)
 

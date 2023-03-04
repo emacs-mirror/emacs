@@ -1,11 +1,11 @@
 ;;; svg.el --- SVG image creation functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Felix E. Klee <felix.klee@inka.de>
 ;; Keywords: image
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((emacs "25"))
 
 ;; This file is part of GNU Emacs.
@@ -41,7 +41,7 @@
 ;; into the buffer:
 ;;
 ;;     (setq svg (svg-create 800 800 :stroke "orange" :stroke-width 5))
-;;     (svg-gradient svg "gradient" 'linear '(0 . "red") '(100 . "blue"))
+;;     (svg-gradient svg "gradient" 'linear '((0 . "red") (100 . "blue")))
 ;;     (save-excursion (goto-char (point-max)) (svg-insert-image svg))
 
 ;; Then add various elements to the structure:
@@ -81,7 +81,7 @@ STOPS is a list of percentage/color pairs."
   (svg--def
    svg
    (apply
-    'dom-node
+    #'dom-node
     (if (eq type 'linear)
 	'linearGradient
       'radialGradient)
@@ -182,6 +182,19 @@ otherwise.  IMAGE-TYPE should be a MIME image type, like
    (dom-node
     'image
     `((xlink:href . ,(svg--image-data image image-type datap))
+      ,@(svg--arguments svg args)))))
+
+(defun svg-embed-base-uri-image (svg relative-filename &rest args)
+  "Insert image placed at RELATIVE-FILENAME into the SVG structure.
+RELATIVE-FILENAME will be searched in `file-name-directory' of the
+image's `:base-uri' property.  If `:base-uri' is not specified for the
+image, then embedding won't work.  Embedding large images using this
+function is much faster than `svg-embed'."
+  (svg--append
+   svg
+   (dom-node
+    'image
+    `((xlink:href . ,relative-filename)
       ,@(svg--arguments svg args)))))
 
 (defun svg-text (svg text &rest args)
@@ -345,8 +358,7 @@ This is in contrast to merely setting it to 0."
                     (plist-get command-args :default-relative))))
     (intern (if relative (downcase char) (upcase char)))))
 
-(defun svg--elliptical-arc-coordinates
-    (rx ry x y &rest args)
+(defun svg--elliptical-arc-coordinates (rx ry x y &rest args)
   (list
    rx ry
    (or (plist-get args :x-axis-rotation) 0)
@@ -357,21 +369,19 @@ This is in contrast to merely setting it to 0."
 (defun svg--elliptical-arc-command (coordinates-list &rest args)
   (cons
    (svg--path-command-symbol 'a args)
-   (apply 'append
-          (mapcar
-           (lambda (coordinates)
-             (apply 'svg--elliptical-arc-coordinates
-                    coordinates))
-           coordinates-list))))
+   (mapcan
+    (lambda (coordinates)
+      (apply #'svg--elliptical-arc-coordinates
+             coordinates))
+    coordinates-list)))
 
 (defun svg--moveto-command (coordinates-list &rest args)
   (cons
    (svg--path-command-symbol 'm args)
-   (apply 'append
-          (mapcar
-           (lambda (coordinates)
-             (list (car coordinates) (cdr coordinates)))
-           coordinates-list))))
+   (mapcan
+    (lambda (coordinates)
+      (list (car coordinates) (cdr coordinates)))
+    coordinates-list)))
 
 (defun svg--closepath-command (&rest args)
   (list (svg--path-command-symbol 'z args)))
@@ -379,11 +389,10 @@ This is in contrast to merely setting it to 0."
 (defun svg--lineto-command (coordinates-list &rest args)
   (cons
    (svg--path-command-symbol 'l args)
-   (apply 'append
-          (mapcar
-           (lambda (coordinates)
-             (list (car coordinates) (cdr coordinates)))
-           coordinates-list))))
+   (mapcan
+    (lambda (coordinates)
+      (list (car coordinates) (cdr coordinates)))
+    coordinates-list)))
 
 (defun svg--horizontal-lineto-command (coordinate-list &rest args)
   (cons
@@ -398,24 +407,24 @@ This is in contrast to merely setting it to 0."
 (defun svg--curveto-command (coordinates-list &rest args)
   (cons
    (svg--path-command-symbol 'c args)
-   (apply 'append coordinates-list)))
+   (apply #'append coordinates-list)))
 
 (defun svg--smooth-curveto-command (coordinates-list &rest args)
   (cons
    (svg--path-command-symbol 's args)
-   (apply 'append coordinates-list)))
+   (apply #'append coordinates-list)))
 
 (defun svg--quadratic-bezier-curveto-command (coordinates-list
                                               &rest args)
   (cons
    (svg--path-command-symbol 'q args)
-   (apply 'append coordinates-list)))
+   (apply #'append coordinates-list)))
 
 (defun svg--smooth-quadratic-bezier-curveto-command (coordinates-list
                                                      &rest args)
   (cons
    (svg--path-command-symbol 't args)
-   (apply 'append coordinates-list)))
+   (apply #'append coordinates-list)))
 
 (defun svg--eval-path-command (command default-relative)
   (cl-letf
@@ -437,7 +446,7 @@ This is in contrast to merely setting it to 0."
         #'svg--elliptical-arc-command)
        (extended-command (append command (list :default-relative
                                                default-relative))))
-    (mapconcat 'prin1-to-string (apply extended-command) " ")))
+    (mapconcat #'prin1-to-string (apply extended-command) " ")))
 
 (defun svg-path (svg commands &rest args)
   "Add the outline of a shape to SVG according to COMMANDS.
@@ -446,7 +455,7 @@ modifiers.  If :relative is t, then coordinates are relative to
 the last position, or -- initially -- to the origin."
   (let* ((default-relative (plist-get args :relative))
          (stripped-args (svg--plist-delete args :relative))
-         (d (mapconcat 'identity
+         (d (mapconcat #'identity
                        (mapcar
                         (lambda (command)
                           (svg--eval-path-command command

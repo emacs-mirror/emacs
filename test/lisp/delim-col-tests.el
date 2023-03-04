@@ -1,6 +1,6 @@
 ;;; delim-col-tests.el --- Tests for delim-col.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 
@@ -100,7 +100,7 @@
                             "aaa	[ bbb, cccc    ]	dddd\n"
                             "aa	[ bb,  ccccccc ]	ddd\n"))))))
 
-(ert-deftest delim-col-tests-delimit-colummns-before-after ()
+(ert-deftest delim-col-tests-delimit-columns-before-after ()
   (let ((delimit-columns-before "<")
         (delimit-columns-after ">"))
     (with-temp-buffer

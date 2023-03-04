@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2020 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2023 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -105,14 +105,14 @@ struct tty_display_info *tty_list;
 
 enum no_color_bit
 {
-  NC_STANDOUT	 = 1 << 0,
-  NC_UNDERLINE	 = 1 << 1,
-  NC_REVERSE	 = 1 << 2,
-  NC_ITALIC	 = 1 << 3,
-  NC_DIM	 = 1 << 4,
-  NC_BOLD	 = 1 << 5,
-  NC_INVIS	 = 1 << 6,
-  NC_PROTECT	 = 1 << 7
+  NC_STANDOUT		 = 1 << 0,
+  NC_UNDERLINE		 = 1 << 1,
+  NC_REVERSE		 = 1 << 2,
+  NC_ITALIC		 = 1 << 3,
+  NC_DIM		 = 1 << 4,
+  NC_BOLD		 = 1 << 5,
+  NC_STRIKE_THROUGH	 = 1 << 6,
+  NC_PROTECT		 = 1 << 7
 };
 
 /* internal state */
@@ -549,13 +549,14 @@ encode_terminal_code (struct glyph *src, int src_len,
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp UNINIT;
+	  struct composition *cmp;
 	  Lisp_Object gstring UNINIT;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
 	  if (src->u.cmp.automatic)
 	    {
+	      cmp = NULL;
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
 	      required = src->slice.cmp.to - src->slice.cmp.from + 1;
 	    }
@@ -563,8 +564,8 @@ encode_terminal_code (struct glyph *src, int src_len,
 	    {
 	      cmp = composition_table[src->u.cmp.id];
 	      required = cmp->glyph_len;
-	      required *= MAX_MULTIBYTE_LENGTH;
 	    }
+	  required *= MAX_MULTIBYTE_LENGTH;
 
 	  if (encode_terminal_src_size - nbytes < required)
 	    {
@@ -575,7 +576,7 @@ encode_terminal_code (struct glyph *src, int src_len,
 	      buf = encode_terminal_src + nbytes;
 	    }
 
-	  if (src->u.cmp.automatic)
+	  if (!cmp)
 	    for (i = src->slice.cmp.from; i <= src->slice.cmp.to; i++)
 	      {
 		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
@@ -790,7 +791,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   cmcheckmagic (tty);
 }
 
-#ifdef HAVE_GPM			/* Only used by GPM code.  */
+#ifndef DOS_NT
 
 static void
 tty_write_glyphs_with_face (register struct frame *f, register struct glyph *string,
@@ -847,6 +848,7 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
 
   cmcheckmagic (tty);
 }
+
 #endif
 
 /* An implementation of insert_glyphs for termcap frames. */
@@ -1356,7 +1358,7 @@ term_get_fkeys_1 (void)
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-		     make_vector (1, intern (keys[i].name)));
+		     make_vector (1, intern (keys[i].name)), Qnil);
     }
 
   /* The uses of the "k0" capability are inconsistent; sometimes it
@@ -1375,13 +1377,13 @@ term_get_fkeys_1 (void)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
 	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		       make_vector (1, intern ("f0")));
+		       make_vector (1, intern ("f0")), Qnil);
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
-		     make_vector (1, intern ("f10")));
+		     make_vector (1, intern ("f10")), Qnil);
       }
     else if (k0)
       Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		   make_vector (1, intern (k0_name)));
+		   make_vector (1, intern (k0_name)), Qnil);
   }
 
   /* Set up cookies for numbered function keys above f10. */
@@ -1403,8 +1405,10 @@ term_get_fkeys_1 (void)
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-			   make_vector (1, intern (fkey)));
+	      Fdefine_key (KVAR (kboard, Vinput_decode_map),
+			   build_string (sequence),
+			   make_vector (1, intern (fkey)),
+			   Qnil);
 	    }
 	}
       }
@@ -1420,7 +1424,7 @@ term_get_fkeys_1 (void)
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
 	    Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence), \
-			 make_vector (1, intern (sym)));		\
+			 make_vector (1, intern (sym)), Qnil);		\
 	}
 
       /* if there's no key_next keycap, map key_npage to `next' keysym */
@@ -1628,9 +1632,13 @@ produce_glyphs (struct it *it)
     }
   else
     {
-      Lisp_Object charset_list = FRAME_TERMINAL (it->f)->charset_list;
+      struct terminal *t = FRAME_TERMINAL (it->f);
+      Lisp_Object charset_list = t->charset_list, char_glyph;
 
-      if (char_charset (it->char_to_display, charset_list, NULL))
+      if (char_charset (it->char_to_display, charset_list, NULL)
+	  && (char_glyph = terminal_glyph_code (t, it->char_to_display),
+	      NILP (char_glyph)
+	      || (FIXNUMP (char_glyph) && XFIXNUM (char_glyph) >= 0)))
 	{
 	  it->pixel_width = CHARACTER_WIDTH (it->char_to_display);
 	  it->nglyphs = it->pixel_width;
@@ -1854,12 +1862,24 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
 	  if (CONSP (acronym))
 	    acronym = XCDR (acronym);
-	  buf[0] = '[';
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
-	  for (len = 0; len < 6 && str[len] && ASCII_CHAR_P (str[len]); len++)
-	    buf[1 + len] = str[len];
-	  buf[1 + len] = ']';
-	  len += 2;
+	  /* A special kludgey feature for single-character acronyms:
+	     don't put them in a box, effectively treating them as a
+	     replacement character.  */
+	  if (STRINGP (acronym) && SCHARS (acronym) == 1)
+	    {
+	      buf[0] = str[0];
+	      len = 1;
+	    }
+	  else
+	    {
+	      buf[0] = '[';
+	      for (len = 0;
+		   len < 6 && str[len] && ASCII_CHAR_P (str[len]); len++)
+		buf[1 + len] = str[len];
+	      buf[1 + len] = ']';
+	      len += 2;
+	    }
 	}
       else
 	{
@@ -1931,6 +1951,10 @@ turn_on_face (struct frame *f, int face_id)
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (tty, NC_UNDERLINE))
     OUTPUT1_IF (tty, tty->TS_enter_underline_mode);
 
+  if (face->tty_strike_through_p
+      && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
+    OUTPUT1_IF (tty, tty->TS_enter_strike_through_mode);
+
   if (tty->TN_max_colors > 0)
     {
       const char *ts;
@@ -1971,7 +1995,8 @@ turn_off_face (struct frame *f, int face_id)
       if (face->tty_bold_p
 	  || face->tty_italic_p
 	  || face->tty_reverse_p
-	  || face->tty_underline_p)
+	  || face->tty_underline_p
+	  || face->tty_strike_through_p)
 	{
 	  OUTPUT1_IF (tty, tty->TS_exit_attribute_mode);
 	  if (strcmp (tty->TS_exit_attribute_mode, tty->TS_end_standout_mode) == 0)
@@ -2006,11 +2031,20 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps)
   if ((caps & (cap)) && (!(TS) || !MAY_USE_WITH_COLORS_P(tty, NC_bit)))	\
     return 0;
 
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_INVERSE,	tty->TS_standout_mode, 	 	NC_REVERSE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_UNDERLINE, 	tty->TS_enter_underline_mode, 	NC_UNDERLINE);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_BOLD, 	tty->TS_enter_bold_mode, 	NC_BOLD);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_DIM, 		tty->TS_enter_dim_mode, 	NC_DIM);
-  TTY_CAPABLE_P_TRY (tty, TTY_CAP_ITALIC, 	tty->TS_enter_italic_mode, 	NC_ITALIC);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_INVERSE,	  tty->TS_standout_mode, NC_REVERSE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_UNDERLINE,	  tty->TS_enter_underline_mode,
+		     NC_UNDERLINE);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_BOLD,	  tty->TS_enter_bold_mode, NC_BOLD);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_DIM,	  tty->TS_enter_dim_mode, NC_DIM);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_ITALIC,	  tty->TS_enter_italic_mode, NC_ITALIC);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_STRIKE_THROUGH, tty->TS_enter_strike_through_mode,
+		     NC_STRIKE_THROUGH);
 
   /* We can do it!  */
   return 1;
@@ -2154,6 +2188,14 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 #endif /* !DOS_NT */
 
+char *
+tty_type_name (Lisp_Object terminal)
+{
+  struct terminal *t = decode_tty_terminal (terminal);
+
+  return t? t->display_info.tty->type: NULL;
+}
+
 DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
@@ -2162,10 +2204,9 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = decode_tty_terminal (terminal);
+  char *name = tty_type_name (terminal);
 
-  return (t && t->display_info.tty->type
-	  ? build_string (t->display_info.tty->type) : Qnil);
+  return (name? build_string (name) : Qnil);
 }
 
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
@@ -2258,9 +2299,9 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       delete_keyboard_wait_descriptor (fileno (f));
 
 #ifndef MSDOS
-      fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
+      fclose (f);
 #endif
 
       t->display_info.tty->input = 0;
@@ -2341,9 +2382,7 @@ frame's terminal). */)
 	     was suspended.  */
 	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
 	  if (width != old_width || height != old_height)
-	    change_frame_size (f, width, height - FRAME_MENU_BAR_LINES (f)
-			       - FRAME_TAB_BAR_LINES (f),
-			       0, 0, 0, 0);
+	    change_frame_size (f, width, height, false, false, false);
 	  SET_FRAME_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
@@ -2361,30 +2400,52 @@ frame's terminal). */)
   return Qnil;
 }
 
+DEFUN ("tty--set-output-buffer-size", Ftty__set_output_buffer_size,
+       Stty__set_output_buffer_size, 1, 2, 0, doc:
+       /* Set the output buffer size for a TTY.
+
+SIZE zero means use the system's default value.  If SIZE is
+non-zero, this also avoids flushing the output stream.
+
+TTY may be a terminal object, a frame, or nil (meaning the selected
+frame's terminal).
+
+This function temporarily suspends and resumes the terminal
+device.  */)
+  (Lisp_Object size, Lisp_Object tty)
+{
+  if (!TYPE_RANGED_FIXNUMP (size_t, size))
+    error ("Invalid output buffer size");
+  Fsuspend_tty (tty);
+  struct terminal *terminal = decode_tty_terminal (tty);
+  terminal->display_info.tty->output_buffer_size = XFIXNUM (size);
+  return Fresume_tty (tty);
+}
+
+DEFUN ("tty--output-buffer-size", Ftty__output_buffer_size,
+       Stty__output_buffer_size, 0, 1, 0, doc:
+       /* Return the output buffer size of TTY.
+
+TTY may be a terminal object, a frame, or nil (meaning the selected
+frame's terminal).
+
+A value of zero means TTY uses the system's default value.  */)
+  (Lisp_Object tty)
+{
+  struct terminal *terminal = decode_tty_terminal (tty);
+  if (terminal)
+    return make_fixnum (terminal->display_info.tty->output_buffer_size);
+  error ("Not a tty terminal");
+}
+
 
 /***********************************************************************
 			       Mouse
  ***********************************************************************/
 
-#ifdef HAVE_GPM
+#ifndef DOS_NT
 
-#ifndef HAVE_WINDOW_SYSTEM
-void
-term_mouse_moveto (int x, int y)
-{
-  /* TODO: how to set mouse position?
-  const char *name;
-  int fd;
-  name = (const char *) ttyname (0);
-  fd = emacs_open (name, O_WRONLY, 0);
-     SOME_FUNCTION (x, y, fd);
-  emacs_close (fd);
-  last_mouse_x = x;
-  last_mouse_y = y;  */
-}
-#endif /* HAVE_WINDOW_SYSTEM */
-
-/* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
+/* Implementation of draw_row_with_mouse_face for TTY/GPM and macOS.  */
 void
 tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 			      int start_hpos, int end_hpos,
@@ -2402,7 +2463,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
   pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
 
-  /* Save current cursor co-ordinates.  */
+  /* Save current cursor coordinates.  */
   save_y = curY (tty);
   save_x = curX (tty);
   cursor_to (f, pos_y, pos_x);
@@ -2416,20 +2477,22 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   cursor_to (f, save_y, save_x);
 }
 
-static bool
-term_mouse_movement (struct frame *frame, Gpm_Event *event)
+#endif
+
+#ifdef HAVE_GPM
+
+void
+term_mouse_moveto (int x, int y)
 {
-  /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (event->x != last_mouse_x || event->y != last_mouse_y)
-    {
-      frame->mouse_moved = 1;
-      note_mouse_highlight (frame, event->x, event->y);
-      /* Remember which glyph we're now on.  */
-      last_mouse_x = event->x;
-      last_mouse_y = event->y;
-      return 1;
-    }
-  return 0;
+  /* TODO: how to set mouse position?
+  const char *name;
+  int fd;
+  name = (const char *) ttyname (0);
+  fd = emacs_open (name, O_WRONLY, 0);
+     SOME_FUNCTION (x, y, fd);
+  emacs_close (fd);
+  last_mouse_x = x;
+  last_mouse_y = y;  */
 }
 
 /* Return the current time, as a Time value.  Wrap around on overflow.  */
@@ -2483,7 +2546,7 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 {
   int i, j;
 
-  result->kind = GPM_CLICK_EVENT;
+  result->kind = MOUSE_CLICK_EVENT;
   for (i = 0, j = GPM_B_LEFT; i < 3; i++, j >>= 1 )
     {
       if (event->buttons & j) {
@@ -2536,67 +2599,42 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 }
 
 int
-handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event,
-		       struct input_event *hold_quit)
+handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
 {
   struct frame *f = XFRAME (tty->top_frame);
   struct input_event ie;
-  bool do_help = 0;
   int count = 0;
 
   EVENT_INIT (ie);
   ie.kind = NO_EVENT;
   ie.arg = Qnil;
 
-  if (event->type & (GPM_MOVE | GPM_DRAG)) {
-    previous_help_echo_string = help_echo_string;
-    help_echo_string = Qnil;
-
-    Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
-
-    if (!term_mouse_movement (f, event))
-      help_echo_string = previous_help_echo_string;
-
-    /* If the contents of the global variable help_echo_string
-       has changed, generate a HELP_EVENT.  */
-    if (!NILP (help_echo_string)
-	|| !NILP (previous_help_echo_string))
-      do_help = 1;
-
-    goto done;
-  }
-  else {
-    f->mouse_moved = 0;
-    term_mouse_click (&ie, event, f);
-    if (tty_handle_tab_bar_click (f, event->x, event->y,
-                                 (ie.modifiers & down_modifier) != 0, &ie))
-      {
-       /* tty_handle_tab_bar_click stores 2 events in the event
-          queue, so we are done here.  */
-       count += 2;
-       return count;
-      }
-  }
-
- done:
-  if (ie.kind != NO_EVENT)
+  if (event->type & (GPM_MOVE | GPM_DRAG))
     {
-      kbd_buffer_store_event_hold (&ie, hold_quit);
-      count++;
+      Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
+
+      /* Has the mouse moved off the glyph it was on at the last
+         sighting?  */
+      if (event->x != last_mouse_x || event->y != last_mouse_y)
+        {
+          /* FIXME: These three lines can not be moved into
+             update_mouse_position unless xterm-mouse gets updated to
+             generate mouse events via C code.  See
+             https://lists.gnu.org/archive/html/emacs-devel/2020-11/msg00163.html */
+          last_mouse_x = event->x;
+          last_mouse_y = event->y;
+          f->mouse_moved = 1;
+
+          count += update_mouse_position (f, event->x, event->y);
+        }
     }
-
-  if (do_help
-      && !(hold_quit && hold_quit->kind != NO_EVENT))
+  else
     {
-      Lisp_Object frame;
-
-      if (f)
-	XSETFRAME (frame, f);
-      else
-	frame = Qnil;
-
-      gen_help_event (help_echo_string, frame, help_echo_window,
-		      help_echo_object, help_echo_pos);
+      f->mouse_moved = 0;
+      term_mouse_click (&ie, event, f);
+      ie.arg = tty_handle_tab_bar_click (f, event->x, event->y,
+					 (ie.modifiers & down_modifier) != 0, &ie);
+      kbd_buffer_store_event (&ie);
       count++;
     }
 
@@ -2790,16 +2828,15 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 static void
 mouse_get_xy (int *x, int *y)
 {
-  struct frame *sf = SELECTED_FRAME ();
-  Lisp_Object lmx = Qnil, lmy = Qnil, lisp_dummy;
-  enum scroll_bar_part part_dummy;
-  Time time_dummy;
+  Lisp_Object lmx = Qnil, lmy = Qnil;
+  Lisp_Object mouse = mouse_position (tty_menu_calls_mouse_position_function);
 
-  if (FRAME_TERMINAL (sf)->mouse_position_hook)
-    (*FRAME_TERMINAL (sf)->mouse_position_hook) (&sf, -1,
-                                                 &lisp_dummy, &part_dummy,
-						 &lmx, &lmy,
-						 &time_dummy);
+  if (EQ (selected_frame, XCAR (mouse)))
+    {
+      lmx = XCAR (XCDR (mouse));
+      lmy = XCDR (XCDR (mouse));
+    }
+
   if (!NILP (lmx))
     {
       *x = XFIXNUM (lmx);
@@ -3517,7 +3554,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   int dispwidth, dispheight;
   int i, j, lines, maxlines;
   int maxwidth;
-  ptrdiff_t specpdl_count;
+  specpdl_ref specpdl_count;
 
   eassert (FRAME_TERMCAP_P (f));
 
@@ -3842,7 +3879,9 @@ clear_tty_hooks (struct terminal *terminal)
   terminal->update_begin_hook = 0;
   terminal->update_end_hook = 0;
   terminal->set_terminal_window_hook = 0;
-  terminal->defined_color_hook = 0;
+  /* Don't clear the defined_color_hook, as that makes it impossible
+     to unload or load a theme when some TTY frame is suspended.  */
+  /* terminal->defined_color_hook = 0; */
   terminal->mouse_position_hook = 0;
   terminal->frame_rehighlight_hook = 0;
   terminal->frame_raise_lower_hook = 0;
@@ -4124,6 +4163,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_enter_alt_charset_mode = tgetstr ("as", address);
   tty->TS_exit_alt_charset_mode = tgetstr ("ae", address);
   tty->TS_exit_attribute_mode = tgetstr ("me", address);
+  tty->TS_enter_strike_through_mode = tgetstr ("smxx", address);
 
   MultiUp (tty) = tgetstr ("UP", address);
   MultiDown (tty) = tgetstr ("DO", address);
@@ -4166,6 +4206,17 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	    /* If the used Terminfo library supports only 16-bit
 	       signed values, tgetnum("Co") and tigetnum("colors")
 	       could return 32767.  */
+	    tty->TN_max_colors = 16777216;
+	  }
+	/* Fall back to xterm+direct (semicolon version) if Tc is set
+	   (de-facto standard introduced by tmux) or if	requested by
+	   the COLORTERM environment variable.  */
+	else if ((tigetflag ("Tc") > 0)
+		 || ((bg = getenv ("COLORTERM")) != NULL
+		     && strcasecmp (bg, "truecolor") == 0))
+	  {
+	    tty->TS_set_foreground = "\033[%?%p1%{8}%<%t3%p1%d%e38;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
+	    tty->TS_set_background = "\033[%?%p1%{8}%<%t4%p1%d%e48;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
 	    tty->TN_max_colors = 16777216;
 	  }
       }
@@ -4249,8 +4300,8 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 
 #ifdef HAVE_GPM
   terminal->mouse_position_hook = term_mouse_position;
-  tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
+  tty->mouse_highlight.mouse_face_window = Qnil;
 
   terminal->kboard = allocate_kboard (Qnil);
   terminal->kboard->reference_count++;
@@ -4528,6 +4579,13 @@ What means \"very visible\" is up to your terminal.  It may make the cursor
 bigger, or it may make it blink, or it may do nothing at all.  */);
   visible_cursor = 1;
 
+  DEFVAR_BOOL ("tty-menu-calls-mouse-position-function",
+               tty_menu_calls_mouse_position_function,
+    doc: /* Non-nil means TTY menu code will call `mouse-position-function'.
+This should be set if the function in `mouse-position-function' does not
+trigger redisplay.  */);
+  tty_menu_calls_mouse_position_function = 0;
+
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
@@ -4536,6 +4594,8 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Stty_top_frame);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
+  defsubr (&Stty__set_output_buffer_size);
+  defsubr (&Stty__output_buffer_size);
 #ifdef HAVE_GPM
   defsubr (&Sgpm_mouse_start);
   defsubr (&Sgpm_mouse_stop);

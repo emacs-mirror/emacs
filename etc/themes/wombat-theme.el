@@ -1,6 +1,6 @@
-;;; wombat-theme.el --- Custom face theme for Emacs
+;;; wombat-theme.el --- Custom face theme for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Kristoffer Grönlund <krig@koru.se>
 
@@ -21,11 +21,14 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme wombat
   "Medium-contrast faces with a dark gray background.
 Adapted, with permission, from a Vim color scheme by Lars H. Nielsen.
 Basic, Font Lock, Isearch, Gnus, Message, and Ansi-Color faces
-are included.")
+are included."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces
@@ -36,7 +39,7 @@ are included.")
    `(fringe ((,class (:background "#303030"))))
    `(highlight ((,class (:background "#454545" :foreground "#ffffff"
 			 :underline t))))
-   `(region ((,class (:background "#444444" :foreground "#f6f3e8"))))
+   `(region ((,class (:background "#444444"))))
    `(secondary-selection ((,class (:background "#333366" :foreground "#f6f3e8"))))
    `(isearch ((,class (:background "#343434" :foreground "#857b6f"))))
    `(lazy-highlight ((,class (:background "#384048" :foreground "#a0a8b0"))))
@@ -57,6 +60,8 @@ are included.")
    `(font-lock-type-face ((,class (:foreground "#92a65e" :weight bold))))
    `(font-lock-variable-name-face ((,class (:foreground "#cae682"))))
    `(font-lock-warning-face ((,class (:foreground "#ccaa8f"))))
+   ;; Help faces
+   `(help-key-binding ((,class (:background "#333333" :foreground "#f6f3e8"))))
    ;; Button and link faces
    `(link ((,class (:foreground "#8ac6f2" :underline t))))
    `(link-visited ((,class (:foreground "#e5786d" :underline t))))
@@ -93,12 +98,24 @@ are included.")
    `(message-header-subject ((,class (:foreground "#cae682"))))
    `(message-header-to ((,class (:foreground "#cae682"))))
    `(message-cited-text ((,class (:foreground "#99968b"))))
-   `(message-separator ((,class (:foreground "#e5786d" :weight bold))))))
-
-(custom-theme-set-variables
- 'wombat
- '(ansi-color-names-vector ["#242424" "#e5786d" "#95e454" "#cae682"
-			    "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"]))
+   `(message-separator ((,class (:foreground "#e5786d" :weight bold))))
+   ;; ANSI colors
+   `(ansi-color-black ((,class (:background "#242424" :foreground "#242424"))))
+   `(ansi-color-red ((,class (:background "#b85149" :foreground "#b85149"))))
+   `(ansi-color-green ((,class (:background "#92a65e" :foreground "#92a65e"))))
+   `(ansi-color-yellow ((,class (:background "#ccaa8f" :foreground "#ccaa8f"))))
+   `(ansi-color-blue ((,class (:background "#5b98c2" :foreground "#5b98c2"))))
+   `(ansi-color-magenta ((,class (:background "#64619a" :foreground "#64619a"))))
+   `(ansi-color-cyan ((,class (:background "#3f9f9e" :foreground "#3f9f9e"))))
+   `(ansi-color-white ((,class (:background "#f6f3e8" :foreground "#f6f3e8"))))
+   `(ansi-color-bright-black ((,class (:background "#444444" :foreground "#444444"))))
+   `(ansi-color-bright-red ((,class (:background "#e5786d" :foreground "#e5786d"))))
+   `(ansi-color-bright-green ((,class (:background "#95e454" :foreground "#95e454"))))
+   `(ansi-color-bright-yellow ((,class (:background "#edc4a3" :foreground "#edc4a3"))))
+   `(ansi-color-bright-blue ((,class (:background "#8ac6f2" :foreground "#8ac6f2"))))
+   `(ansi-color-bright-magenta ((,class (:background "#a6a1de" :foreground "#a6a1de"))))
+   `(ansi-color-bright-cyan ((,class (:background "#70cecc" :foreground "#70cecc"))))
+   `(ansi-color-bright-white ((,class (:background "#ffffff" :foreground "#ffffff"))))))
 
 (provide-theme 'wombat)
 

@@ -1,6 +1,6 @@
-;;; cus-dep.el --- find customization dependencies
+;;; cus-dep.el --- find customization dependencies  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -37,7 +37,7 @@
 ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
   "Regexp matching file names not to scan for `custom-make-dependencies'.")
 
-(require 'autoload)
+(require 'loaddefs-gen)
 
 ;; Hack workaround for bug#14384.
 ;; Define defcustom-mh as an alias for defcustom, etc.
@@ -50,6 +50,25 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 		      (or (fboundp sym)
 			  (defalias sym e))))
 	'(defcustom defface defgroup)))
+
+(defun custom--get-def (expr)
+  (if (not (memq (car-safe expr)
+                 '( define-minor-mode define-globalized-minor-mode)))
+      expr
+    ;; For define-minor-mode, we don't want to evaluate the whole
+    ;; expression, because it tends to define functions which aren't
+    ;; usable (because they call other functions that were skipped).
+    ;; Concretely it gave us an error
+    ;; "void-function bug-reference--run-auto-setup"
+    ;; when subsequently loading `cus-load.el'.
+    (let ((es (list (macroexpand-all expr)))
+          defs)
+      (while es
+        (let ((e (pop es)))
+          (pcase e
+            (`(progn . ,exps) (setq es (append exps es)))
+            (`(custom-declare-variable . ,_) (push e defs)))))
+      (macroexp-progn (nreverse defs)))))
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
@@ -70,7 +89,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                                   (directory-files subdir nil
                                                    "\\`[^=.].*\\.el\\'"))))
 	 (progress (make-progress-reporter
-                    (byte-compile-info-string "Scanning files for custom")
+                    (byte-compile-info "Scanning files for custom")
                     0 (length files) nil 10)))
     (with-temp-buffer
       (dolist (elem files)
@@ -90,6 +109,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
             (string-match "\\`\\(.*\\)\\.el\\'" file)
             (let ((name (or generated-autoload-load-name ; see bug#5277
                             (file-name-nondirectory (match-string 1 file))))
+                  (load-true-file-name file)
                   (load-file-name file))
               (if (save-excursion
                     (re-search-forward
@@ -99,16 +119,20 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                   (setq name (intern name)))
               (condition-case nil
                   (while (re-search-forward
-                          "^(def\\(custom\\|face\\|group\\)" nil t)
+                          "^(def\\(custom\\|face\\|group\\|ine\\(?:-globalized\\)?-minor-mode\\)" nil t)
                     (beginning-of-line)
                     (let ((type (match-string 1))
-			  (expr (read (current-buffer))))
+			  (expr (custom--get-def (read (current-buffer)))))
                       (condition-case nil
-                          (let ((custom-dont-initialize t))
+                          (let ((custom-dont-initialize t)
+                                (sym (nth 1 expr)))
+                            (put (if (eq (car-safe sym) 'quote)
+                                     (cadr sym)
+                                   sym)
+                                 'custom-where name)
                             ;; Eval to get the 'custom-group, -tag,
                             ;; -version, group-documentation etc properties.
-                            (put (nth 1 expr) 'custom-where name)
-                            (eval expr))
+                            (eval expr t))
                         ;; Eval failed for some reason.  Eg maybe the
                         ;; defcustom uses something defined earlier
                         ;; in the file (we haven't loaded the file).
@@ -127,20 +151,20 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                                                      type)))))))))))
                 (error nil)))))))
     (progress-reporter-done progress))
-  (byte-compile-info-message "Generating %s..."
-                             generated-custom-dependencies-file)
+  (byte-compile-info
+   (format "Generating %s..." generated-custom-dependencies-file) t)
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (setq buffer-undo-list t)
   (erase-buffer)
-  (insert (autoload-rubric generated-custom-dependencies-file
-                           "custom dependencies" t))
-  (search-backward "")
+  (generate-lisp-file-heading
+   generated-custom-dependencies-file 'custom-make-dependencies
+   :title "custom dependencies")
   (let (alist)
     (mapatoms (lambda (symbol)
 		(let ((members (get symbol 'custom-group))
 		      where found)
 		  (when members
-		    (dolist (member (mapcar 'car members))
+		    (dolist (member (mapcar #'car members))
 		      (setq where (get member 'custom-where))
 		      (unless (or (null where)
 				  (member where found))
@@ -148,13 +172,14 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (when found
 		      (push (cons (symbol-name symbol)
 				  (with-output-to-string
-				    (prin1 (sort found 'string<)))) alist))))))
+				    (prin1 (sort found #'string<))))
+			    alist))))))
     (dolist (e (sort alist (lambda (e1 e2) (string< (car e1) (car e2)))))
-      (insert "(put '" (car e) " 'custom-loads '" (cdr e) ")\n")))
+      (insert "(custom--add-custom-loads '" (car e) " '" (cdr e) ")\n")))
   (insert "\
 
 ;; The remainder of this file is for handling :version.
-;; We provide a minimum of information so that `customize-changed-options'
+;; We provide a minimum of information so that `customize-changed'
 ;; can do its job.
 
 ;; For groups we set `custom-version', `group-documentation' and
@@ -180,7 +205,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (setq where (get symbol 'custom-where))
 		    (when where
 		      (if (or (custom-variable-p symbol)
-			      (custom-facep symbol))
+                              (facep symbol))
 			  ;; This means it's a variable or a face.
 			  (progn
 			    (if (assoc version version-alist)
@@ -215,10 +240,11 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 This is an alist whose members have as car a version string, and as
 elements the files that have variables or faces that contain that
 version.  These files should be loaded before showing the customization
-buffer that `customize-changed-options' generates.\")\n\n"))
+buffer that `customize-changed' generates.\")\n\n"))
+  (generate-lisp-file-trailer generated-custom-dependencies-file)
   (save-buffer)
-  (byte-compile-info-message "Generating %s...done"
-                             generated-custom-dependencies-file))
+  (byte-compile-info
+   (format "Generating %s...done" generated-custom-dependencies-file) t))
 
 
 (provide 'cus-dep)

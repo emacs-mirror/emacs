@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2023 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -46,7 +46,7 @@
 ;;   * `file-cache-add-file-list': Adds a list of files to the cache
 ;;
 ;; The following functions use the regular expressions in
-;; `file-cache-delete-regexps' to eliminate unwanted files:
+;; `file-cache-filter-regexps' to eliminate unwanted files:
 ;;
 ;;   * `file-cache-add-directory': Adds the files in a directory to the
 ;;     cache.  You can also specify a regular expression to match the files
@@ -516,6 +516,16 @@ If called interactively, read the directory names one by one."
 	(concat directory "/")
       directory)))
 
+(defun file-cache-cycle (name)
+  "Cycle through the directories that NAME is available in."
+  (let ((file-name (file-cache-file-name name)))
+    (if (string= file-name (minibuffer-contents))
+        (minibuffer-message file-cache-sole-match-message)
+      (delete-minibuffer-contents)
+      (insert file-name)
+      (if file-cache-multiple-directory-message
+          (minibuffer-message file-cache-multiple-directory-message)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minibuffer functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -545,13 +555,7 @@ the name is considered already unique; only the second substitution
     (cond
      ;; If it's the only match, replace the original contents
      ((or arg (eq completion t))
-      (let ((file-name (file-cache-file-name string)))
-        (if (string= file-name (minibuffer-contents))
-            (minibuffer-message file-cache-sole-match-message)
-          (delete-minibuffer-contents)
-          (insert file-name)
-          (if file-cache-multiple-directory-message
-              (minibuffer-message file-cache-multiple-directory-message)))))
+      (file-cache-cycle string))
 
      ;; If it's the longest match, insert it
      ((consp completion)
@@ -564,10 +568,7 @@ the name is considered already unique; only the second substitution
                                file-cache-ignore-case))
             (if (and (eq last-command this-command)
                      (string= file-cache-last-completion newstring))
-                (progn
-                  (delete-minibuffer-contents)
-                  (insert (file-cache-file-name newstring))
-                  (setq file-cache-last-completion nil))
+                (file-cache-cycle newstring)
               (minibuffer-message file-cache-non-unique-message)
               (setq file-cache-last-completion string))
           (setq file-cache-last-completion string)
@@ -579,20 +580,12 @@ the name is considered already unique; only the second substitution
             (if (> (length completion-list) 1)
                 (progn
                   (delete-region (- (point-max) (length string)) (point-max))
-                  (save-excursion (insert newstring))
-                  (forward-char newpoint)
+                  (insert newstring)
                   (with-output-to-temp-buffer file-cache-completions-buffer
                     (display-completion-list completion-list)
                     ;; Add our own setup function to the Completions Buffer
                     (file-cache-completion-setup-function)))
-              (let ((file-name (file-cache-file-name newstring)))
-                (if (string= file-name (minibuffer-contents))
-                    (minibuffer-message file-cache-sole-match-message)
-                  (delete-minibuffer-contents)
-                  (insert file-name)
-                  (if file-cache-multiple-directory-message
-                      (minibuffer-message
-                       file-cache-multiple-directory-message)))))))))
+              (file-cache-cycle newstring))))))
 
      ;; No match
      ((eq completion nil)
@@ -613,9 +606,6 @@ the name is considered already unique; only the second substitution
     (choose-completion event)
     (select-window (active-minibuffer-window))
     (file-cache-minibuffer-complete nil)))
-
-(define-obsolete-function-alias 'file-cache-mouse-choose-completion
-  #'file-cache-choose-completion "23.2")
 
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."
@@ -676,10 +666,6 @@ match REGEXP."
       (dolist (item file-cache-alist)
         (insert (nth 1 item) (nth 0 item) "\n"))
       (pop-to-buffer buf))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Keybindings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'filecache)
 

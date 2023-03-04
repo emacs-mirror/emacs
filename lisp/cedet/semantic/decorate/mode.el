@@ -1,6 +1,6 @@
-;;; semantic/decorate/mode.el --- Minor mode for decorating tags
+;;; semantic/decorate/mode.el --- Minor mode for decorating tags  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -204,9 +204,6 @@ Also make sure old decorations in the area are completely flushed."
 (defvar semantic-decorate-pending-decoration-hook nil
   "Normal hook run to perform pending decoration changes.")
 
-(semantic-varalias-obsolete 'semantic-decorate-pending-decoration-hooks
-			    'semantic-decorate-pending-decoration-hook "23.2")
-
 (defun semantic-decorate-add-pending-decoration (fcn &optional buffer)
   "Add a pending decoration change represented by FCN.
 Applies only to the current BUFFER.
@@ -257,7 +254,7 @@ available and the current buffer was set up for parsing.  Return
 non-nil if the minor mode is enabled."
 ;;
 ;;\\{semantic-decoration-map}"
-  nil nil nil
+  :lighter nil
   (if semantic-decoration-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
           (progn
@@ -267,9 +264,9 @@ non-nil if the minor mode is enabled."
                    (buffer-name)))
         ;; Add hooks
         (add-hook 'semantic-after-partial-cache-change-hook
-                  'semantic-decorate-tags-after-partial-reparse nil t)
+                  #'semantic-decorate-tags-after-partial-reparse nil t)
         (add-hook 'semantic-after-toplevel-cache-change-hook
-                  'semantic-decorate-tags-after-full-reparse nil t)
+                  #'semantic-decorate-tags-after-full-reparse nil t)
         ;; Add decorations to available tags.  The above hooks ensure
         ;; that new tags will be decorated when they become available.
         ;; However, don't do this immediately, because EDE will be
@@ -285,9 +282,9 @@ non-nil if the minor mode is enabled."
     (semantic-decorate-flush-decorations)
     ;; Remove hooks
     (remove-hook 'semantic-after-partial-cache-change-hook
-                 'semantic-decorate-tags-after-partial-reparse t)
+                 #'semantic-decorate-tags-after-partial-reparse t)
     (remove-hook 'semantic-after-toplevel-cache-change-hook
-                 'semantic-decorate-tags-after-full-reparse t)))
+                 #'semantic-decorate-tags-after-full-reparse t)))
 
 (semantic-add-minor-mode 'semantic-decoration-mode
                          "")
@@ -353,20 +350,18 @@ Return non-nil if the decoration style is enabled."
 
 (defun semantic-decoration-build-style-menu (style)
   "Build a menu item for controlling a specific decoration STYLE."
-  (vector (car style)
-	  `(lambda () (interactive)
-	     (semantic-toggle-decoration-style
-	      ,(car style)))
-	  :style 'toggle
-	  :selected `(semantic-decoration-style-enabled-p ,(car style))
-	  ))
+  (let ((s (car style)))
+    (vector s
+	    (lambda () (interactive) (semantic-toggle-decoration-style s))
+	    :style 'toggle
+	    :selected `(semantic-decoration-style-enabled-p ',s))))
 
-(defun semantic-build-decoration-mode-menu (&rest ignore)
+(defun semantic-build-decoration-mode-menu (&rest _ignore)
   "Create a menu listing all the known decorations for toggling.
 IGNORE any input arguments."
   (or semantic-decoration-menu-cache
       (setq semantic-decoration-menu-cache
-	    (mapcar 'semantic-decoration-build-style-menu
+	    (mapcar #'semantic-decoration-build-style-menu
 		    (reverse semantic-decoration-styles))
 	    )))
 
@@ -396,6 +391,7 @@ etc., found in the semantic-decorate library.
 To add other kind of decorations on a tag, `NAME-highlight' must use
 `semantic-decorate-tag', and other functions of the semantic
 decoration API found in this library."
+  (declare (indent 1))
   (let ((predicate   (semantic-decorate-style-predicate   name))
         (highlighter (semantic-decorate-style-highlighter name))
 	(predicatedef   (semantic-decorate-style-predicate-default   name))
@@ -414,8 +410,11 @@ decoration API found in this library."
        ;; Create an override method to specify if a given tag belongs
        ;; to this type of decoration
        (define-overloadable-function ,predicate (tag)
-         ,(format "Return non-nil to decorate TAG with `%s' style.\n%s"
-                  name doc))
+         ,(concat
+           (internal--format-docstring-line
+            "Return non-nil to decorate TAG with `%s' style."
+            name)
+           "\n" doc))
        ;; Create an override method that will perform the highlight
        ;; operation if the -p method returns non-nil.
        (define-overloadable-function ,highlighter (tag)

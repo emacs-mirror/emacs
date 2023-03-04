@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2023 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -79,7 +79,10 @@ circular or dotted.  If a program doesn't look far enough down the
 list to see the @sc{cdr} of the final cons cell, it won't care.
 However, some functions that operate on lists demand proper lists and
 signal errors if given a dotted list.  Most functions that try to find
-the end of a list enter infinite loops if given a circular list.
+the end of a list enter infinite loops if given a circular list.  You
+can use the function @code{proper-list-p}, described in the next
+section (@pxref{List-related Predicates, proper-list-p}), to determine
+whether a list is a proper one.
 
 @cindex list structure
   Because most cons cells are used as part of lists, we refer to any
@@ -338,6 +341,44 @@ If @var{n} is zero, @code{nthcdr} returns all of
      @result{} (1 2 3 4)
 @end group
 @end example
+@end defun
+
+@defun take n list
+This function returns the @var{n} first elements of @var{list}.  Essentially,
+it returns the part of @var{list} that @code{nthcdr} skips.
+
+@code{take} returns @var{list} if shorter than @var{n} elements;
+it returns @code{nil} if @var{n} is zero or negative.
+
+@example
+@group
+(take 3 '(a b c d))
+     @result{} (a b c)
+@end group
+@group
+(take 10 '(a b c d))
+     @result{} (a b c d)
+@end group
+@group
+(take 0 '(a b c d))
+     @result{} nil
+@end group
+@end example
+@end defun
+
+@defun ntake n list
+This is a version of @code{take} that works by destructively modifying
+the list structure of the argument.  That makes it faster, but the
+original value of @var{list} may be lost.
+
+@code{ntake} returns @var{list} unmodified if shorter than @var{n}
+elements; it returns @code{nil} if @var{n} is zero or negative.
+Otherwise, it returns @var{list} truncated to its first @var{n}
+elements.
+
+This means that it is usually a good idea to use the return value and
+not just rely on the truncation effect unless @var{n} is known to be
+positive.
 @end defun
 
 @defun last list &optional n
@@ -679,6 +720,20 @@ list are in the same order as in @var{tree}.
     @result{}(1 2 3 4 5 6 7)
 @end example
 
+@defun ensure-list object
+This function returns @var{object} as a list.  If @var{object} is
+already a list, the function returns it; otherwise, the function
+returns a one-element list containing @var{object}.
+
+This is usually useful if you have a variable that may or may not be a
+list, and you can then say, for instance:
+
+@lisp
+(dolist (elem (ensure-list foo))
+  (princ elem))
+@end lisp
+@end defun
+
 @defun number-sequence from &optional to separation
 This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
@@ -866,10 +921,15 @@ foo                       ;; @r{@code{foo} was changed.}
 @node Modifying Lists
 @section Modifying Existing List Structure
 @cindex destructive list operations
+@cindex mutable lists
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
 primitives @code{setcar} and @code{setcdr}.  These are destructive
 operations because they change existing list structure.
+Destructive operations should be applied only to mutable lists,
+that is, lists constructed via @code{cons}, @code{list} or similar
+operations.  Lists created by quoting are part of the program and
+should not be changed by destructive operations.  @xref{Mutability}.
 
 @cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
@@ -906,7 +966,7 @@ value @var{object}.  For example:
 
 @example
 @group
-(setq x '(1 2))
+(setq x (list 1 2))
      @result{} (1 2)
 @end group
 @group
@@ -927,7 +987,7 @@ these lists.  Here is an example:
 @example
 @group
 ;; @r{Create two lists that are partly shared.}
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setq x2 (cons 'z (cdr x1)))
      @result{} (z b c)
@@ -1017,7 +1077,7 @@ reached via the @sc{cdr}.
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1037,7 +1097,7 @@ the @sc{cdr} of the first cons cell:
 
 @example
 @group
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setcdr x1 (cdr (cdr x1)))
      @result{} (c)
@@ -1069,7 +1129,7 @@ of this list.
 
 @example
 @group
-(setq x1 '(a b c))
+(setq x1 (list 'a 'b 'c))
      @result{} (a b c)
 (setcdr x1 (cons 'd (cdr x1)))
      @result{} (d b c)
@@ -1130,7 +1190,7 @@ Unlike @code{append} (@pxref{Building Lists}), the @var{lists} are
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1150,7 +1210,7 @@ list:
 
 @example
 @group
-(setq x '(1 2 3))
+(setq x (list 1 2 3))
      @result{} (1 2 3)
 @end group
 @group
@@ -1163,11 +1223,14 @@ x
 @end group
 @end example
 
-However, the other arguments (all but the last) must be lists.
+However, the other arguments (all but the last) should be mutable
+lists.
 
-A common pitfall is to use a quoted constant list as a non-last
-argument to @code{nconc}.  If you do this, your program will change
-each time you run it!  Here is what happens:
+A common pitfall is to use a constant list as a non-last argument to
+@code{nconc}.  If you do this, the resulting behavior is undefined
+(@pxref{Self-Evaluating Forms}).  It is possible that your program
+will change each time you run it!  Here is what might happen (though
+this is not guaranteed to happen):
 
 @smallexample
 @group
@@ -1205,13 +1268,13 @@ each time you run it!  Here is what happens:
 @cindex lists as sets
 @cindex sets
 
-  A list can represent an unordered mathematical set---simply consider a
-value an element of a set if it appears in the list, and ignore the
-order of the list.  To form the union of two sets, use @code{append} (as
-long as you don't mind having duplicate elements).  You can remove
-@code{equal} duplicates using @code{delete-dups}.  Other useful
-functions for sets include @code{memq} and @code{delq}, and their
-@code{equal} versions, @code{member} and @code{delete}.
+  A list can represent an unordered mathematical set---simply consider
+a value an element of a set if it appears in the list, and ignore the
+order of the list.  To form the union of two sets, use @code{append}
+(as long as you don't mind having duplicate elements).  You can remove
+@code{equal} duplicates using @code{delete-dups} or @code{seq-uniq}.
+Other useful functions for sets include @code{memq} and @code{delq},
+and their @code{equal} versions, @code{member} and @code{delete}.
 
 @cindex CL note---lack @code{union}, @code{intersection}
 @quotation
@@ -1235,8 +1298,8 @@ compare @var{object} against the elements of the list.  For example:
      @result{} (b c b a)
 @end group
 @group
-(memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{((2))}.}
 @end group
 @end example
 @end defun
@@ -1270,7 +1333,7 @@ removing it involves changing the @sc{cdr}s (@pxref{Setcdr}).
 
 @example
 @group
-(setq sample-list '(a b c (4)))
+(setq sample-list (list 'a 'b 'c '(4)))
      @result{} (a b c (4))
 @end group
 @group
@@ -1303,12 +1366,12 @@ into the variable that held the original list:
 (setq flowers (delq 'rose flowers))
 @end example
 
-In the following example, the @code{(4)} that @code{delq} attempts to match
-and the @code{(4)} in the @code{sample-list} are not @code{eq}:
+In the following example, the @code{(list 4)} that @code{delq} attempts to match
+and the @code{(4)} in the @code{sample-list} are @code{equal} but not @code{eq}:
 
 @example
 @group
-(delq '(4) sample-list)
+(delq (list 4) sample-list)
      @result{} (a c (4))
 @end group
 @end example
@@ -1324,7 +1387,7 @@ of @code{list}.
 
 @example
 @group
-(setq sample-list '(a b c a b c))
+(setq sample-list (list 'a 'b 'c 'a 'b 'c))
      @result{} (a b c a b c)
 @end group
 @group
@@ -1353,8 +1416,8 @@ Compare this with @code{memq}:
      @result{} (1.2 1.3)
 @end group
 @group
-(memq 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are not @code{eq}.}
-     @result{} nil
+(memq 1.2 '(1.1 1.2 1.3))  ; @r{The two @code{1.2}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(1.2 1.3)}.}
 @end group
 @end example
 @end defun
@@ -1377,8 +1440,8 @@ Compare this with @code{memq}:
      @result{} ((2))
 @end group
 @group
-(memq '(2) '((1) (2)))    ; @r{@code{(2)} and @code{(2)} are not @code{eq}.}
-     @result{} nil
+(memq '(2) '((1) (2)))    ; @r{The two @code{(2)}s need not be @code{eq}.}
+     @result{} @r{Unspecified; might be @code{nil} or @code{(2)}.}
 @end group
 @group
 ;; @r{Two strings with the same contents are @code{equal}.}
@@ -1407,7 +1470,7 @@ For example:
 
 @example
 @group
-(setq l '((2) (1) (2)))
+(setq l (list '(2) '(1) '(2)))
 (delete '(2) l)
      @result{} ((1))
 l
@@ -1416,7 +1479,7 @@ l
 ;; @r{write @code{(setq l (delete '(2) l))}.}
 @end group
 @group
-(setq l '((2) (1) (2)))
+(setq l (list '(2) '(1) '(2)))
 (delete '(1) l)
      @result{} ((2) (2))
 l
@@ -1467,7 +1530,8 @@ comparison.
 This function destructively removes all @code{equal} duplicates from
 @var{list}, stores the result in @var{list} and returns it.  Of
 several @code{equal} occurrences of an element in @var{list},
-@code{delete-dups} keeps the first one.
+@code{delete-dups} keeps the first one.  See @code{seq-uniq} for
+non-destructive operation (@pxref{Sequence Functions}).
 @end defun
 
   See also the function @code{add-to-list}, in @ref{List Variables},
@@ -1549,10 +1613,12 @@ of property lists and association lists.
 @defun assoc key alist &optional testfn
 This function returns the first association for @var{key} in
 @var{alist}, comparing @var{key} against the alist elements using
-@var{testfn} if it is non-@code{nil} and @code{equal} otherwise
-(@pxref{Equality Predicates}).  It returns @code{nil} if no
-association in @var{alist} has a @sc{car} equal to @var{key}.  For
-example:
+@var{testfn} if it is a function, and @code{equal} otherwise
+(@pxref{Equality Predicates}).  If @var{testfn} is a function, it is
+called with two arguments: the @sc{car} of an element from @var{alist}
+and @var{key}.  The function returns @code{nil} if no
+association in @var{alist} has a @sc{car} equal to @var{key}, as
+tested by @var{testfn}.  For example:
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
@@ -1619,7 +1685,7 @@ keys may not be symbols:
         ("compound leaves" . horsechestnut)))
 
 (assq "simple leaves" leaves)
-     @result{} nil
+     @result{} @r{Unspecified; might be @code{nil} or @code{("simple leaves" . oak)}.}
 (assoc "simple leaves" leaves)
      @result{} ("simple leaves" . oak)
 @end smallexample
@@ -1759,7 +1825,7 @@ correct results, use the return value of @code{assq-delete-all} rather
 than looking at the saved value of @var{alist}.
 
 @example
-(setq alist '((foo 1) (bar 2) (foo 3) (lose 4)))
+(setq alist (list '(foo 1) '(bar 2) '(foo 3) '(lose 4)))
      @result{} ((foo 1) (bar 2) (foo 3) (lose 4))
 (assq-delete-all 'foo alist)
      @result{} ((bar 2) (lose 4))
@@ -1796,7 +1862,7 @@ through a simple example:
 (let-alist colors
   (if (eq .rose 'red)
       .lily))
-=> white
+     @result{} white
 @end lisp
 
 The @var{body} is inspected at compilation time, and only the symbols
@@ -1812,7 +1878,7 @@ Nested association lists is supported:
 (let-alist colors
   (if (eq .rose 'red)
       .lily.belladonna))
-=> yellow
+     @result{} yellow
 @end lisp
 
 Nesting @code{let-alist} inside each other is allowed, but the code in
@@ -1850,6 +1916,11 @@ Properties}.
 properties.  Every symbol possesses a list of properties, used to
 record miscellaneous information about the symbol; these properties
 are stored in the form of a property list.  @xref{Symbol Properties}.
+
+@defun plistp object
+This predicate function returns non-@code{nil} if @var{object} is a
+valid property list.
+@end defun
 
 @menu
 * Plists and Alists::           Comparison of the advantages of property
@@ -1898,11 +1969,12 @@ and later discarded; this is not possible with a property list.
 @cindex accessing plist properties
 
   The following functions can be used to manipulate property lists.
-They all compare property names using @code{eq}.
+They all default to comparing property names using @code{eq}.
 
-@defun plist-get plist property
+@defun plist-get plist property &optional predicate
 This returns the value of the @var{property} property stored in the
-property list @var{plist}.  It accepts a malformed @var{plist}
+property list @var{plist}.  Comparisons are done with @var{predicate},
+which defaults to @code{eq}.  It accepts a malformed @var{plist}
 argument.  If @var{property} is not found in the @var{plist}, it
 returns @code{nil}.  For example,
 
@@ -1918,15 +1990,16 @@ returns @code{nil}.  For example,
 @end example
 @end defun
 
-@defun plist-put plist property value
+@defun plist-put plist property value &optional predicate
 This stores @var{value} as the value of the @var{property} property in
-the property list @var{plist}.  It may modify @var{plist} destructively,
+the property list @var{plist}.  Comparisons are done with @var{predicate},
+which defaults to @code{eq}.  It may modify @var{plist} destructively,
 or it may construct a new list structure without altering the old.  The
 function returns the modified property list, so you can store that back
 in the place where you got @var{plist}.  For example,
 
 @example
-(setq my-plist '(bar t foo 4))
+(setq my-plist (list 'bar t 'foo 4))
      @result{} (bar t foo 4)
 (setq my-plist (plist-put my-plist 'foo 69))
      @result{} (bar t foo 69)
@@ -1936,19 +2009,20 @@ in the place where you got @var{plist}.  For example,
 @end defun
 
 @defun lax-plist-get plist property
-Like @code{plist-get} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-get} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
 @defun lax-plist-put plist property value
-Like @code{plist-put} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-put} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
-@defun plist-member plist property
+@defun plist-member plist property &optional predicate
 This returns non-@code{nil} if @var{plist} contains the given
-@var{property}.  Unlike @code{plist-get}, this allows you to distinguish
-between a missing property and a property with the value @code{nil}.
-The value is actually the tail of @var{plist} whose @code{car} is
-@var{property}.
+@var{property}.  Comparisons are done with @var{predicate}, which
+defaults to @code{eq}.  Unlike @code{plist-get}, this allows you to
+distinguish between a missing property and a property with the value
+@code{nil}.  The value is actually the tail of @var{plist} whose
+@code{car} is @var{property}.
 @end defun

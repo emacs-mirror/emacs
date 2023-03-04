@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2023 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -121,9 +121,9 @@ typedef struct _RTL_HEAP_PARAMETERS {
 # define DUMPED_HEAP_SIZE 10
 #else
 # if defined _WIN64 || defined WIDE_EMACS_INT
-#  define DUMPED_HEAP_SIZE (23*1024*1024)
+#  define DUMPED_HEAP_SIZE (28*1024*1024)
 # else
-#  define DUMPED_HEAP_SIZE (13*1024*1024)
+#  define DUMPED_HEAP_SIZE (18*1024*1024)
 # endif
 #endif
 
@@ -189,9 +189,29 @@ malloc_fn the_malloc_fn;
 realloc_fn the_realloc_fn;
 free_fn the_free_fn;
 
+static void *
+heap_alloc (size_t size)
+{
+  void *p = size <= PTRDIFF_MAX ? HeapAlloc (heap, 0, size | !size) : NULL;
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
+static void *
+heap_realloc (void *ptr, size_t size)
+{
+  void *p = (size <= PTRDIFF_MAX
+	     ? HeapReAlloc (heap, 0, ptr, size | !size)
+	     : NULL);
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
 /* It doesn't seem to be useful to allocate from a file mapping.
    It would be if the memory was shared.
-     http://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
+     https://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
 
 /* This is the function to commit memory when the heap allocator
    claims for new memory.  Before dumping with unexec, we allocate
@@ -246,7 +266,7 @@ init_heap (bool use_dynamic_heap)
          environment before starting GDB to get low fragmentation heap
          on XP and older systems, for the price of losing "certain
          heap debug options"; for the details see
-         http://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
+	 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
       data_region_end = data_region_base;
 
       /* Create the private heap.  */
@@ -269,7 +289,7 @@ init_heap (bool use_dynamic_heap)
 	}
 #endif
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           the_malloc_fn = malloc_after_dump_9x;
           the_realloc_fn = realloc_after_dump_9x;
@@ -312,7 +332,7 @@ init_heap (bool use_dynamic_heap)
 	}
       heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           fprintf (stderr, "Cannot dump Emacs on Windows 9X; exiting.\n");
           exit (-1);
@@ -346,7 +366,7 @@ void *
 malloc_after_dump (size_t size)
 {
   /* Use the new private heap.  */
-  void *p = HeapAlloc (heap, 0, size);
+  void *p = heap_alloc (size);
 
   /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
@@ -356,8 +376,6 @@ malloc_after_dump (size_t size)
       if (new_brk > data_region_end)
 	data_region_end = new_brk;
     }
-  else
-    errno = ENOMEM;
   return p;
 }
 
@@ -373,9 +391,7 @@ malloc_before_dump (size_t size)
   if (size < MaxBlockSize)
     {
       /* Use the private heap if possible.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_alloc (size);
     }
   else
     {
@@ -433,18 +449,14 @@ realloc_after_dump (void *ptr, size_t size)
   if (FREEABLE_P (ptr))
     {
       /* Reallocate the block since it lies in the new heap.  */
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {
       /* If the block lies in the dumped data, do not free it.  Only
          allocate a new one.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
-      else if (ptr)
+      p = heap_alloc (size);
+      if (p && ptr)
 	CopyMemory (p, ptr, size);
     }
   /* After dump, keep track of the "brk value" for sbrk(0).  */
@@ -467,9 +479,7 @@ realloc_before_dump (void *ptr, size_t size)
   if (dumped_data < (unsigned char *)ptr
       && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
     {
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {
@@ -884,7 +894,7 @@ setrlimit (rlimit_resource_t rltype, const struct rlimit *rlp)
     {
     case RLIMIT_STACK:
     case RLIMIT_NOFILE:
-      /* We cannot modfy these limits, so we always fail.  */
+      /* We cannot modify these limits, so we always fail.  */
       errno = EPERM;
       break;
     default:

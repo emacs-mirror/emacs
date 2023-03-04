@@ -1,10 +1,11 @@
 ;;; ob-screen.el --- Babel Support for Interactive Terminal -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
+;; Maintainer: Ken Mankoff <mankoff@gmail.com>
 ;; Keywords: literate programming, interactive shell
-;; Homepage: https://orgmode.org
+;; URL: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -29,10 +30,14 @@
 ;; Adding :cmd and :terminal as header arguments
 ;; :terminal must support the -T (title) and -e (command) parameter
 ;;
-;; You can test the default setup. (xterm + sh) with
+;; You can test the default setup (xterm + sh) with
 ;; M-x org-babel-screen-test RET
 
 ;;; Code:
+
+(require 'org-macs)
+(org-assert-version)
+
 (require 'ob)
 
 (defvar org-babel-screen-location "screen"
@@ -40,7 +45,8 @@
 In case you want to use a different screen than one selected by your $PATH")
 
 (defvar org-babel-default-header-args:screen
-  '((:results . "silent") (:session . "default") (:cmd . "sh") (:terminal . "xterm"))
+  `((:results . "silent") (:session . "default") (:cmd . "sh")
+    (:terminal . "xterm") (:screenrc . ,null-device))
   "Default arguments to use when running screen source blocks.")
 
 (defun org-babel-execute:screen (body params)
@@ -59,11 +65,11 @@ In case you want to use a different screen than one selected by your $PATH")
   (let* ((session (cdr (assq :session params)))
          (cmd (cdr (assq :cmd params)))
          (terminal (cdr (assq :terminal params)))
+         (screenrc (cdr (assq :screenrc params)))
          (process-name (concat "org-babel: terminal (" session ")")))
     (apply 'start-process process-name "*Messages*"
            terminal `("-T" ,(concat "org-babel: " session) "-e" ,org-babel-screen-location
-		      "-c" "/dev/null" "-mS" ,(concat "org-babel-session-" session)
-		      ,cmd))
+		      "-c" ,screenrc "-mS" ,session ,cmd))
     ;; XXX: Is there a better way than the following?
     (while (not (org-babel-screen-session-socketname session))
       ;; wait until screen session is available before returning
@@ -97,9 +103,8 @@ In case you want to use a different screen than one selected by your $PATH")
 			 nil
 			 (mapcar
 			  (lambda (x)
-			    (when (string-match
-				   (concat "org-babel-session-" session) x)
-			      x))
+			    (and (string-match-p (regexp-quote session) x)
+				 x))
 			  sockets)))))
     (when match-socket (car (split-string match-socket)))))
 
@@ -108,6 +113,7 @@ In case you want to use a different screen than one selected by your $PATH")
   (let ((tmpfile (org-babel-temp-file "screen-")))
     (with-temp-file tmpfile
       (insert body)
+      (insert "\n")
 
       ;; org-babel has superfluous spaces
       (goto-char (point-min))
@@ -126,7 +132,7 @@ The terminal should shortly flicker."
     ;; XXX: need to find a better way to do the following
     (while (not (file-readable-p tmpfile))
       ;; do something, otherwise this will be optimized away
-      (format "org-babel-screen: File not readable yet."))
+      (message "org-babel-screen: File not readable yet."))
     (setq tmp-string (with-temp-buffer
                        (insert-file-contents-literally tmpfile)
                        (buffer-substring (point-min) (point-max))))
@@ -137,7 +143,5 @@ The terminal should shortly flicker."
 		       "DOESN'T work.")))))
 
 (provide 'ob-screen)
-
-
 
 ;;; ob-screen.el ends here

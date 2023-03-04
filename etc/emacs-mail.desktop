@@ -1,0 +1,10 @@
+[Desktop Entry]
+Categories=Network;Email;
+Comment=GNU Emacs is an extensible, customizable text editor - and more
+Exec=emacs -f message-mailto %u
+Icon=emacs
+Name=Emacs (Mail)
+MimeType=x-scheme-handler/mailto;
+NoDisplay=true
+Terminal=false
+Type=Application

@@ -1,6 +1,6 @@
-;;; idlw-complete-structtag.el --- Completion of structure tags.
+;;; idlw-complete-structtag.el --- Completion of structure tags.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: emacs-devel@gnu.org
@@ -44,20 +44,19 @@
 ;; completion for its tags.
 ;;
 ;; This file is a completion plugin which implements this kind of
-;; completion. It is also an example which shows how completion plugins
+;; completion.  It is also an example which shows how completion plugins
 ;; should be programmed.
 ;;
 ;; New versions of IDLWAVE, documentation, and more information available
 ;; from:
-;;                 http://github.com/jdtsmith/idlwave
+;;                 https://github.com/jdtsmith/idlwave
 ;;
 ;; INSTALLATION
 ;; ============
-;; Put this file on the emacs load path and load it with the following
-;; line in your init file:
+;; Load it with the following line in your init file:
 ;;
-;;   (add-hook 'idlwave-load-hook
-;;             (lambda () (require 'idlw-complete-structtag)))
+;;   (with-eval-after-load 'idlwave
+;;     (require 'idlw-complete-structtag))
 ;;
 ;; DESCRIPTION
 ;; ===========
@@ -87,6 +86,8 @@
 ;;  - You can force an update of the tag list with the usual command
 ;;    to update routine info in IDLWAVE: C-c C-i
 
+;;; Code:
+
 (require 'idlwave)
 
 (declare-function idlwave-shell-buffer "idlw-shell")
@@ -101,12 +102,11 @@
 (defvar idlwave-sint-structtags nil)
 
 ;; Create the sintern type for structure talks
-(declare-function idlwave-sintern-structtag "idlw-complete-structtag" t t)
-(idlwave-new-sintern-type 'structtag)
+(idlwave-new-sintern-type structtag)
 
 ;; Hook the plugin into idlwave
-(add-to-list 'idlwave-complete-special 'idlwave-complete-structure-tag)
-(add-hook 'idlwave-update-rinfo-hook 'idlwave-structtag-reset)
+(add-hook 'idlwave-complete-functions #'idlwave-complete-structure-tag)
+(add-hook 'idlwave-update-rinfo-hook #'idlwave-structtag-reset)
 
 ;;; The main code follows below
 (defvar idlwave-completion-help-info)

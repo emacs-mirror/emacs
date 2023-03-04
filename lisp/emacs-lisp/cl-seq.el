@@ -1,6 +1,6 @@
 ;;; cl-seq.el --- Common Lisp features, part 3  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -69,10 +69,9 @@
                           (list 'or (list 'memq '(car cl-keys-temp)
                                           (list 'quote
                                                 (mapcar
-                                                 (function
-                                                  (lambda (x)
-                                                    (if (consp x)
-                                                        (car x) x)))
+                                                 (lambda (x)
+                                                   (if (consp x)
+                                                       (car x) x))
                                                  (append kwords
                                                          other-keys))))
                                 '(car (cdr (memq (quote :allow-other-keys)
@@ -139,6 +138,10 @@ only case where FUNCTION is called with fewer than two arguments.
 
 If SEQ contains exactly one element and no :INITIAL-VALUE is
 specified, then return that element and FUNCTION is not called.
+
+If :FROM-END is non-nil, the reduction occurs from the back of
+the SEQ moving forward, and the order of arguments to the
+FUNCTION is also reversed.
 
 \n(fn FUNCTION SEQ [KEYWORD VALUE]...)"
   (cl--parsing-keywords (:from-end (:start 0) :end :initial-value :key) ()
@@ -668,9 +671,9 @@ This is a destructive function; it reuses the storage of SEQ if possible.
     (cl--parsing-keywords (:key) ()
       (if (memq cl-key '(nil identity))
 	  (sort cl-seq cl-pred)
-	(sort cl-seq (function (lambda (cl-x cl-y)
-				 (funcall cl-pred (funcall cl-key cl-x)
-					  (funcall cl-key cl-y)))))))))
+        (sort cl-seq (lambda (cl-x cl-y)
+                       (funcall cl-pred (funcall cl-key cl-x)
+                                (funcall cl-key cl-y))))))))
 
 ;;;###autoload
 (defun cl-stable-sort (cl-seq cl-pred &rest cl-keys)
@@ -1042,6 +1045,8 @@ Atoms are compared by `eql'; cons cells are compared recursively.
   (and (not (consp cl-x)) (not (consp cl-y)) (cl--check-match cl-x cl-y)))
 
 
+(make-obsolete-variable 'cl-seq-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'cl-seq-load-hook)
 
 ;; Local variables:

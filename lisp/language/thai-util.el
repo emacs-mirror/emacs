@@ -1,6 +1,6 @@
-;;; thai-util.el --- utilities for Thai -*- coding: utf-8; -*-
+;;; thai-util.el --- utilities for Thai -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -232,10 +232,10 @@ positions (integers or markers) specifying the region."
 	(let ((glyph-len (lgstring-glyph-len gstring))
 	      (last-char (lgstring-char gstring
 					(1- (lgstring-char-len gstring))))
-	      (i 0)
-	      glyph)
+	      (i 0)) ;; glyph
 	  (while (and (< i glyph-len)
-		      (setq glyph (lgstring-glyph gstring i)))
+		      ;; (setq glyph
+		      (lgstring-glyph gstring i)) ;; )
 	    (setq i (1+ i)))
 	  (if (= last-char ?ำ)
 	      (setq i (1- i)))
@@ -244,15 +244,13 @@ positions (integers or markers) specifying the region."
 ;; Thai-word-mode requires functions in the feature `thai-word'.
 (require 'thai-word)
 
-(defvar thai-word-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap forward-word] 'thai-forward-word)
-    (define-key map [remap backward-word] 'thai-backward-word)
-    (define-key map [remap kill-word] 'thai-kill-word)
-    (define-key map [remap backward-kill-word] 'thai-backward-kill-word)
-    (define-key map [remap transpose-words] 'thai-transpose-words)
-    map)
-  "Keymap for `thai-word-mode'.")
+(defvar-keymap thai-word-mode-map
+  :doc "Keymap for `thai-word-mode'."
+  "<remap> <forward-word>"       #'thai-forward-word
+  "<remap> <backward-word>"      #'thai-backward-word
+  "<remap> <kill-word>"          #'thai-kill-word
+  "<remap> <backward-kill-word>" #'thai-backward-kill-word
+  "<remap> <transpose-words>"    #'thai-transpose-words)
 
 (define-minor-mode thai-word-mode
   "Minor mode to make word-oriented commands aware of Thai words.

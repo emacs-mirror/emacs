@@ -1,6 +1,6 @@
-;;; ogonek.el --- change the encoding of Polish diacritics
+;;; ogonek.el --- change the encoding of Polish diacritics  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Włodek Bzyl
 ;;	   Ryszard Kubiak
@@ -214,7 +214,7 @@ The functions come in the following groups.
  is stored in the constant `ogonek-name-encoding-alist'.
 
  The `ogonek' functions refer to five variables in which the suggested
- answers to dialogue questions are stored.  The variables and their
+ answers to dialog questions are stored.  The variables and their
  default values are:
 
    ogonek-from-encoding           iso8859-2
@@ -266,7 +266,7 @@ The functions come in the following groups.
   (switch-to-buffer " *ogonek-how*")
   (goto-char (point-min)))
 
-;; ---- Variables keeping the suggested answers to dialogue questions -----
+;; ---- Variables keeping the suggested answers to dialog questions -----
 (defvar ogonek-encoding-choices
   (cons 'choice
 	(mapcar (lambda (x) (list 'const (car x)))
@@ -300,9 +300,8 @@ The functions come in the following groups.
 Store the name in the parameter-variable DEFAULT-NAME-VAR.
 PROMPT is a string to be shown when the user is asked for a name."
  (let ((encoding
-        (completing-read
-         (format "%s (default %s): " prompt (symbol-value default-name-var))
-         ogonek-name-encoding-alist nil t)))
+        (completing-read (format-prompt prompt (symbol-value default-name-var))
+                         ogonek-name-encoding-alist nil t)))
   ;; change the default name to the one just read, and
   ;; return the new default as the name you read
   (set default-name-var
@@ -314,8 +313,7 @@ The result is stored in the variable DEFAULT-PREFIX-VAR.
 PROMPT is a string to be shown when the user is asked for a new prefix."
   (let ((prefix-string
          (read-string
-          (format "%s (default %s): " prompt
-                  (char-to-string (eval default-prefix-var))))))
+          (format-prompt prompt (char-to-string (eval default-prefix-var))))))
     (if (> (length prefix-string) 1)
         (error "! Only one character expected")
       ;; set the default prefix character to the one just read

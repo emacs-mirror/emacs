@@ -1,6 +1,6 @@
-;;; korea-util.el --- utilities for Korean
+;;; korea-util.el --- utilities for Korean  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -29,24 +29,28 @@
 
 ;;;###autoload
 (defvar default-korean-keyboard
-   (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
+   (purecopy (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     ""))
-   "The kind of Korean keyboard for Korean input method.
-\"\" for 2, \"3\" for 3.")
+   "The kind of Korean keyboard for Korean (Hangul) input method.
+\"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
 
 ;; functions useful for Korean text input
 
 (defun toggle-korean-input-method ()
-  "Turn on or off a Korean text input method for the current buffer."
+  "Turn on or off a Korean text input method for the current buffer.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive)
   (if current-input-method
       (deactivate-input-method)
     (activate-input-method
      (concat "korean-hangul" default-korean-keyboard))))
 
-(defun quail-hangul-switch-symbol-ksc (&rest ignore)
-  "Swith to/from Korean symbol package."
+(defun quail-hangul-switch-symbol-ksc (&rest _ignore)
+  "Switch to/from Korean symbol package.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive "i")
   (and current-input-method
        (if (string-equal current-input-method "korean-symbol")
@@ -54,8 +58,10 @@
 					  default-korean-keyboard))
 	 (activate-input-method "korean-symbol"))))
 
-(defun quail-hangul-switch-hanja (&rest ignore)
-  "Swith to/from Korean hanja package."
+(defun quail-hangul-switch-hanja (&rest _ignore)
+  "Switch to/from Korean hanja package.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive "i")
   (and current-input-method
        (if (string-match "korean-hanja" current-input-method)
@@ -70,27 +76,24 @@
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (toggle-korean-input-method))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 (defun isearch-hangul-switch-symbol-ksc ()
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (quail-hangul-switch-symbol-ksc))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 (defun isearch-hangul-switch-hanja ()
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (quail-hangul-switch-hanja))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 ;; Information for setting and exiting Korean environment.

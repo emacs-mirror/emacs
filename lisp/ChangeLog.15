@@ -2803,7 +2803,7 @@
 2010-12-29  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Save list sorted and
-	pretty-printed, so that it is mergable by line-based text merging,
+	pretty-printed, so that it is mergeable by line-based text merging,
 	as suggested by Iain Dalton <iain.dalton {_AT_} gmail.com>.
 
 2010-12-28  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -5135,10 +5135,10 @@
 
 	* progmodes/verilog-mode.el (verilog-directive-re): Make this variable
 	auto-built for efficiency of execution and updating.
-	(verilog-extended-complete-re): Support 'pure' fucntion & task
+	(verilog-extended-complete-re): Support 'pure' function & task
 	declarations (these have no bodies).
 	(verilog-beg-of-statement): General cleanup to enable support of
-	'pure' fucntion & task declarations (these have no bodies).
+	'pure' function & task declarations (these have no bodies).
 	These efforts together fix Verilog bug210 from veripool; which was also
 	noticed by Steve Pearlmutter.
 	(verilog-directive-re, verilog-directive-begin, verilog-indent-re)
@@ -10320,7 +10320,7 @@
 	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
 	* skeleton.el, term.el, time.el, wid-edit.el, woman.el,
 	* calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
-	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lips/cl-loaddefs.el,
+	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lisp/cl-loaddefs.el,
 	* emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
 	* eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
 	* gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
@@ -10689,7 +10689,7 @@
 2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Do not kill ispell
-	process everytime when spellchecking from the minibuffer (bug#6143).
+	process every time when spellchecking from the minibuffer (bug#6143).
 
 2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -11955,7 +11955,7 @@
 	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
 	fix bug for /* / comments.
 	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
-	Speed up and simplfy as this is never called with a bound.
+	Speed up and simplify as this is never called with a bound.
 	(verilog-pretty-declarations): Enhance to line up declarations
 	inside a parameter list, suggested by Alan Morgan.
 	(verilog-pretty-expr): Tune assignment regular expression match
@@ -12100,7 +12100,7 @@
 2010-03-31  Juri Linkov  <juri@jurta.org>
 
 	* image.el (image-animated-p): Use `image-metadata' instead of
-	`image-extension-data'.  Get GIF extenstion data from metadata
+	`image-extension-data'.  Get GIF extension data from metadata
 	property `extension-data'.
 
 2010-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -14907,7 +14907,7 @@
 	Use complete-with-action rather than pascal-completion-response and
 	let it apply the predicate as well.
 	(pascal-goto-defun): Change buffer before calling pascal-comp-defun
-	when neded.
+	when needed.
 
 2009-12-02  Kenichi Handa  <handa@m17n.org>
 
@@ -15783,7 +15783,7 @@
 	* simple.el (with-wrapper-hook): Fix thinko.
 
 	* hfy-cmap.el (hfy-rgb-file): Use locate-file.
-	(htmlfontify-load-rgb-file): Remove unnused var `ff'.
+	(htmlfontify-load-rgb-file): Remove unused var `ff'.
 	Use with-current-buffer and string-to-number.
 	(hfy-fallback-colour-values): Use assoc-string.
 	* htmlfontify.el (hfy-face-to-css): Remove unused var `style'.
@@ -17307,7 +17307,7 @@
 	* simple.el (normal-erase-is-backspace-mode): Use input-decode-map
 	rather than fiddling with global-map bindings, since it should only
 	affect per-terminal settings.
-	See http://bugs.gentoo.org/show_bug.cgi?id=289709.
+	See https://bugs.gentoo.org/show_bug.cgi?id=289709.
 
 	* minibuffer.el (completion-table-with-terminator): Allow to specify
 	the terminator-regexp.
@@ -18684,7 +18684,7 @@
 2009-09-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Does not highlight trailing spaces While point is
-	at end of line.  Does not highligt spaces at beginning of buffer
+	at end of line.  Does not highlight spaces at beginning of buffer
 	while point is at beginning of buffer.  Does not highlight spaces
 	at end of buffer while point is at end of buffer.  (Bug#4177)
 	New version 12.0.
@@ -22575,7 +22575,7 @@
 
 2009-06-28  Juri Linkov  <juri@jurta.org>
 
-	* help-fns.el (describe-function-1): Correctly locate adviced
+	* help-fns.el (describe-function-1): Correctly locate advised
 	functions in hyperlink (Bug#2438).
 
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
@@ -22762,7 +22762,7 @@
 
 	Automatically handle .xz suffix (XZ-compressed files), too.
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add xz.
-	XZ is the successor to LZMA: <http://tukaani.org/xz/>
+	XZ is the successor to LZMA: <https://tukaani.org/xz/>
 
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
 	    Nick Roberts  <nickrob@snap.net.nz>
@@ -22802,7 +22802,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2009-2020 Free Software Foundation, Inc.
+  Copyright (C) 2009-2023 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

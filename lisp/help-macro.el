@@ -1,6 +1,6 @@
-;;; help-macro.el --- makes command line help such as help-for-help
+;;; help-macro.el --- makes command line help such as help-for-help  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -25,11 +25,12 @@
 
 ;;; Commentary:
 
-;; This file supplies the macro make-help-screen which constructs
-;; single character dispatching with browsable help such as that provided
-;; by help-for-help. This can be used to make many modes easier to use; for
-;; example, the GNU Emacs Empire Tool uses this for every "nested" mode map
-;; called from the main mode map.
+;; This file supplies the macro `make-help-screen' which constructs
+;; single character dispatching with browsable help such as that
+;; provided by `help-for-help'.  This can be used to make many modes
+;; easier to use; for example, the (long-since defunct) GNU Emacs
+;; Empire Tool used this for every "nested" mode map called from the
+;; main mode map.
 
 ;;       The name of this package was changed from help-screen.el to
 ;; help-macro.el in order to fit in a 14-character limit.
@@ -59,12 +60,6 @@
 ;;->  (define-key c-mp "\C-h" 'help-for-empire-redistribute-map)
 ;;->  (define-key c-mp help-character 'help-for-empire-redistribute-map)
 
-;;; Change Log:
-;;
-;; 22-Jan-1991		Lynn Slater x2048
-;;    Last Modified: Mon Oct  1 11:43:52 1990 #3 (Lynn Slater)
-;;    documented better
-
 ;;; Code:
 
 (require 'backquote)
@@ -83,7 +78,8 @@ gives the window that lists the options."
   :type 'boolean
   :group 'help)
 
-(defmacro make-help-screen (fname help-line help-text helped-map)
+(defmacro make-help-screen (fname help-line help-text helped-map
+                                  &optional buffer-name)
   "Construct help-menu function name FNAME.
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
 If the command is the help character, FNAME displays HELP-TEXT
@@ -92,119 +88,138 @@ If HELP-TEXT contains the sequence `%THIS-KEY%', that is replaced
 with the key sequence that invoked FNAME.
 When FNAME finally does get a command, it executes that command
 and then returns."
-  (let ((doc-fn (intern (concat (symbol-name fname) "-doc"))))
-    `(progn
-       (defun ,doc-fn () ,help-text nil)
-       (defun ,fname ()
-	 "Help command."
-	 (interactive)
-	 (let ((line-prompt
-		(substitute-command-keys ,help-line)))
-	   (when three-step-help
-	     (message "%s" line-prompt))
-	   (let* ((help-screen (documentation (quote ,doc-fn)))
-		  ;; We bind overriding-local-map for very small
-		  ;; sections, *excluding* where we switch buffers
-		  ;; and where we execute the chosen help command.
-		  (local-map (make-sparse-keymap))
-		  (new-minor-mode-map-alist minor-mode-map-alist)
-		  (prev-frame (selected-frame))
-		  config new-frame key char)
-	     (when (string-match "%THIS-KEY%" help-screen)
-	       (setq help-screen
-		     (replace-match (key-description
-				     (substring (this-command-keys) 0 -1))
-				    t t help-screen)))
-	     (unwind-protect
-		 (let ((minor-mode-map-alist nil))
-		   (setcdr local-map ,helped-map)
-		   (define-key local-map [t] 'undefined)
-		   ;; Make the scroll bar keep working normally.
-		   (define-key local-map [vertical-scroll-bar]
-		     (lookup-key global-map [vertical-scroll-bar]))
-		   (if three-step-help
-		       (progn
-			 (setq key (let ((overriding-local-map local-map))
-				     (read-key-sequence nil)))
-			 ;; Make the HELP key translate to C-h.
-			 (if (lookup-key function-key-map key)
-			     (setq key (lookup-key function-key-map key)))
-			 (setq char (aref key 0)))
-		     (setq char ??))
-		   (when (or (eq char ??) (eq char help-char)
-			     (memq char help-event-list))
-		     (setq config (current-window-configuration))
-		     (pop-to-buffer " *Metahelp*" nil t)
-		     (and (fboundp 'make-frame)
-			  (not (eq (window-frame)
-				   prev-frame))
-			  (setq new-frame (window-frame)
-				config nil))
-		     (setq buffer-read-only nil)
-		     (let ((inhibit-read-only t))
-		       (erase-buffer)
-		       (insert help-screen))
-		     (let ((minor-mode-map-alist new-minor-mode-map-alist))
-		       (help-mode)
-		       (setq new-minor-mode-map-alist minor-mode-map-alist))
-		     (goto-char (point-min))
-		     (while (or (memq char (append help-event-list
-						   (cons help-char '(?? ?\C-v ?\s ?\177 delete backspace vertical-scroll-bar ?\M-v))))
-				(eq (car-safe char) 'switch-frame)
-				(equal key "\M-v"))
-		       (condition-case nil
-			   (cond
-			    ((eq (car-safe char) 'switch-frame)
-			     (handle-switch-frame char))
-			    ((memq char '(?\C-v ?\s))
-			     (scroll-up))
-			    ((or (memq char '(?\177 ?\M-v delete backspace))
-				 (equal key "\M-v"))
-			     (scroll-down)))
-			 (error nil))
-		       (let ((cursor-in-echo-area t)
-			     (overriding-local-map local-map))
-			 (setq key (read-key-sequence
-				    (format "Type one of the options listed%s: "
-					    (if (pos-visible-in-window-p
-						 (point-max))
-						"" ", or SPACE or DEL to scroll")))
-			       char (aref key 0)))
+  (declare (indent defun))
+  `(defun ,fname ()
+     "Help command."
+     (interactive)
+     (let ((line-prompt
+            (substitute-command-keys ,help-line))
+           (help-buffer-under-preparation t))
+       (when three-step-help
+         (message "%s" line-prompt))
+       (let* ((help-screen ,help-text)
+              ;; We bind overriding-local-map for very small
+              ;; sections, *excluding* where we switch buffers
+              ;; and where we execute the chosen help command.
+              (local-map (make-sparse-keymap))
+              (new-minor-mode-map-alist minor-mode-map-alist)
+              (prev-frame (selected-frame))
+              config new-frame key char)
+         (when (string-match "%THIS-KEY%" help-screen)
+           (setq help-screen
+                 (replace-match (help--key-description-fontified
+                                 (substring (this-command-keys) 0 -1))
+                                t t help-screen)))
+         (unwind-protect
+             (let ((minor-mode-map-alist nil))
+               (setcdr local-map ,helped-map)
+               (define-key local-map [t] 'undefined)
+               ;; Make the scroll bar keep working normally.
+               (define-key local-map [vertical-scroll-bar]
+                 (lookup-key global-map [vertical-scroll-bar]))
+               (if three-step-help
+                   (progn
+                     (setq key (let ((overriding-local-map local-map))
+                                 (read-key-sequence nil)))
+                     ;; Make the HELP key translate to C-h.
+                     (if (lookup-key function-key-map key)
+                         (setq key (lookup-key function-key-map key)))
+                     (setq char (aref key 0)))
+                 (setq char ??))
+               (when (or (eq char ??) (eq char help-char)
+                         (memq char help-event-list))
+                 (setq config (current-window-configuration))
+                 (pop-to-buffer (or ,buffer-name " *Metahelp*") nil t)
+                 (and (fboundp 'make-frame)
+                      (not (eq (window-frame)
+                               prev-frame))
+                      (setq new-frame (window-frame)
+                            config nil))
+                 (setq buffer-read-only nil)
+                 (let ((inhibit-read-only t))
+                   (erase-buffer)
+                   (insert (substitute-command-keys help-screen)))
+                 (let ((minor-mode-map-alist new-minor-mode-map-alist))
+                   (help-mode)
+                   (variable-pitch-mode)
+                   (setq new-minor-mode-map-alist minor-mode-map-alist))
+                 (goto-char (point-min))
+                 (while (or (memq char (append help-event-list
+                                               (cons help-char '( ?? ?\C-v ?\s ?\177 ?\M-v ?\S-\s
+                                                                  deletechar backspace vertical-scroll-bar
+                                                                  home end next prior up down))))
+                            (eq (car-safe char) 'switch-frame)
+                            (equal key "\M-v"))
+                   (condition-case nil
+                       (cond
+                        ((eq (car-safe char) 'switch-frame)
+                         (handle-switch-frame char))
+                        ((memq char '(?\C-v ?\s next end))
+                         (scroll-up))
+                        ((or (memq char '(?\177 ?\M-v ?\S-\s deletechar backspace prior home))
+                             (equal key "\M-v"))
+                         (scroll-down))
+                        ((memq char '(down))
+                         (scroll-up 1))
+                        ((memq char '(up))
+                         (scroll-down 1)))
+                     (error nil))
+                   (let ((cursor-in-echo-area t)
+                         (overriding-local-map local-map))
+                     (setq key (read-key-sequence
+                                (format "Type one of listed options%s: "
+                                        (if (pos-visible-in-window-p
+                                             (point-max))
+                                            ""
+                                          (concat  ", or "
+                                                   (help--key-description-fontified (kbd "<PageDown>"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "<PageUp>"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "SPC"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "DEL"))
+                                                   " to scroll"))))
+                           char (aref key 0)))
 
-		       ;; If this is a scroll bar command, just run it.
-		       (when (eq char 'vertical-scroll-bar)
-			 (command-execute (lookup-key local-map key) nil key))))
-		   ;; We don't need the prompt any more.
-		   (message "")
-		   ;; Mouse clicks are not part of the help feature,
-		   ;; so reexecute them in the standard environment.
-		   (if (listp char)
-		       (setq unread-command-events
-			     (cons char unread-command-events)
-			     config nil)
-		     (let ((defn (lookup-key local-map key)))
-		       (if defn
-			   (progn
-			     (when config
-			       (set-window-configuration config)
-			       (setq config nil))
-			     ;; Temporarily rebind `minor-mode-map-alist'
-			     ;; to `new-minor-mode-map-alist' (Bug#10454).
-			     (let ((minor-mode-map-alist new-minor-mode-map-alist))
-			       ;; `defn' must make sure that its frame is
-			       ;; selected, so we won't iconify it below.
-			       (call-interactively defn))
-			     (when new-frame
-			       ;; Do not iconify the selected frame.
-			       (unless (eq new-frame (selected-frame))
-				 (iconify-frame new-frame))
-			       (setq new-frame nil)))
-			 (ding)))))
-	       (when config
-		 (set-window-configuration config))
-	       (when new-frame
-		 (iconify-frame new-frame))
-	       (setq minor-mode-map-alist new-minor-mode-map-alist))))))))
+                   ;; If this is a scroll bar command, just run it.
+                   (when (eq char 'vertical-scroll-bar)
+                     (command-execute (lookup-key local-map key) nil key))))
+               ;; We don't need the prompt any more.
+               (message "")
+               ;; Mouse clicks are not part of the help feature,
+               ;; so reexecute them in the standard environment.
+               (if (listp char)
+                   (setq unread-command-events
+                         (cons char unread-command-events)
+                         config nil)
+                 (let ((defn (lookup-key local-map key)))
+                   (if defn
+                       (progn
+                         (when config
+                           (set-window-configuration config)
+                           (setq config nil))
+                         ;; Temporarily rebind `minor-mode-map-alist'
+                         ;; to `new-minor-mode-map-alist' (Bug#10454).
+                         (let ((minor-mode-map-alist new-minor-mode-map-alist))
+                           ;; `defn' must make sure that its frame is
+                           ;; selected, so we won't iconify it below.
+                           (call-interactively defn))
+                         (when new-frame
+                           ;; Do not iconify the selected frame.
+                           (unless (eq new-frame (selected-frame))
+                             (iconify-frame new-frame))
+                           (setq new-frame nil)))
+                     (unless (equal (key-description key) "C-g")
+                       (message (substitute-command-keys
+                                (format "No help command is bound to `\\`%s''"
+                                        (key-description key))))
+                       (ding))))))
+           (when config
+             (set-window-configuration config))
+           (when new-frame
+             (iconify-frame new-frame))
+           (setq minor-mode-map-alist new-minor-mode-map-alist))))))
 
 (provide 'help-macro)
 

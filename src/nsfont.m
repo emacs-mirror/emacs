@@ -1,6 +1,6 @@
-/* Font back-end driver for the NeXT/Open/GNUstep and macOS window system.
+/* Font back-end driver for the GNUstep window system.
    See font.h
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -38,19 +38,260 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "termchar.h"
 #include "pdumper.h"
 
-/* TODO: Drop once we can assume gnustep-gui 0.17.1.  */
-#ifdef NS_IMPL_GNUSTEP
+#import <Foundation/NSException.h>
 #import <AppKit/NSFontDescriptor.h>
-#endif
+#import <AppKit/NSLayoutManager.h>
+#import <GNUstepGUI/GSLayoutManager.h>
+#import <GNUstepGUI/GSFontInfo.h>
 
 #define NSFONT_TRACE 0
-#define LCD_SMOOTHING_MARGIN 2
+
+/* Structure used by GS `shape' functions for storing layout
+   information for each glyph.  Borrowed from macfont.h.  */
+struct ns_glyph_layout
+{
+  /* Range of indices of the characters composed into the group of
+     glyphs that share the cursor position with this glyph.  The
+     members `location' and `length' are in UTF-16 indices.  */
+  NSRange comp_range;
+
+  /* UTF-16 index in the source string for the first character
+     associated with this glyph.  */
+  NSUInteger string_index;
+
+  /* Horizontal and vertical adjustments of glyph position.  The
+     coordinate space is that of Core Text.  So, the `baseline_delta'
+     value is negative if the glyph should be placed below the
+     baseline.  */
+  CGFloat advance_delta, baseline_delta;
+
+  /* Typographical width of the glyph.  */
+  CGFloat advance;
+
+  /* Glyph ID of the glyph.  */
+  NSGlyph glyph_id;
+};
+
+
+enum lgstring_direction
+  {
+    DIR_R2L = -1, DIR_UNKNOWN = 0, DIR_L2R = 1
+  };
+
+enum gs_font_slant
+  {
+    GS_FONT_SLANT_ITALIC,
+    GS_FONT_SLANT_REVERSE_ITALIC,
+    GS_FONT_SLANT_NORMAL
+  };
+
+enum gs_font_weight
+  {
+    GS_FONT_WEIGHT_LIGHT,
+    GS_FONT_WEIGHT_BOLD,
+    GS_FONT_WEIGHT_NORMAL
+  };
+
+enum gs_font_width
+  {
+    GS_FONT_WIDTH_CONDENSED,
+    GS_FONT_WIDTH_EXPANDED,
+    GS_FONT_WIDTH_NORMAL
+  };
+
+enum gs_specified
+  {
+    GS_SPECIFIED_SLANT = 1,
+    GS_SPECIFIED_WEIGHT = 1 << 1,
+    GS_SPECIFIED_WIDTH = 1 << 2,
+    GS_SPECIFIED_FAMILY = 1 << 3,
+    GS_SPECIFIED_SPACING = 1 << 4
+  };
+
+struct gs_font_data
+{
+  int specified;
+  enum gs_font_slant slant;
+  enum gs_font_weight weight;
+  enum gs_font_width width;
+  bool monospace_p;
+  char *family_name;
+};
+
+static void
+ns_done_font_data (struct gs_font_data *data)
+{
+  if (data->specified & GS_SPECIFIED_FAMILY)
+    xfree (data->family_name);
+}
+
+static void
+ns_get_font_data (NSFontDescriptor *desc, struct gs_font_data *dat)
+{
+  NSNumber *tem;
+  NSFontSymbolicTraits traits = [desc symbolicTraits];
+  NSDictionary *dict = [desc objectForKey: NSFontTraitsAttribute];
+  NSString *family = [desc objectForKey: NSFontFamilyAttribute];
+
+  dat->specified = 0;
+
+  if (family != nil)
+    {
+      dat->specified |= GS_SPECIFIED_FAMILY;
+      dat->family_name = xstrdup ([family cStringUsingEncoding: NSUTF8StringEncoding]);
+    }
+
+  tem = [desc objectForKey: NSFontFixedAdvanceAttribute];
+
+  if ((tem != nil && [tem boolValue] != NO)
+      || (traits & NSFontMonoSpaceTrait))
+    {
+      dat->specified |= GS_SPECIFIED_SPACING;
+      dat->monospace_p = true;
+    }
+  else if (tem != nil && [tem boolValue] == NO)
+    {
+      dat->specified |= GS_SPECIFIED_SPACING;
+      dat->monospace_p = false;
+    }
+
+  if (traits & NSFontBoldTrait)
+    {
+      dat->specified |= GS_SPECIFIED_WEIGHT;
+      dat->weight = GS_FONT_WEIGHT_BOLD;
+    }
+
+  if (traits & NSFontItalicTrait)
+    {
+      dat->specified |= GS_SPECIFIED_SLANT;
+      dat->slant = GS_FONT_SLANT_ITALIC;
+    }
+
+  if (traits & NSFontCondensedTrait)
+    {
+      dat->specified |= GS_SPECIFIED_WIDTH;
+      dat->width = GS_FONT_WIDTH_CONDENSED;
+    }
+  else if (traits & NSFontExpandedTrait)
+    {
+      dat->specified |= GS_SPECIFIED_WIDTH;
+      dat->width = GS_FONT_WIDTH_EXPANDED;
+    }
+
+  if (dict != nil)
+    {
+      tem = [dict objectForKey: NSFontSlantTrait];
+
+      if (tem != nil)
+	{
+	  dat->specified |= GS_SPECIFIED_SLANT;
+
+	  dat->slant = [tem floatValue] > 0
+	    ? GS_FONT_SLANT_ITALIC
+	    : ([tem floatValue] < 0
+	       ? GS_FONT_SLANT_REVERSE_ITALIC
+	       : GS_FONT_SLANT_NORMAL);
+	}
+
+      tem = [dict objectForKey: NSFontWeightTrait];
+
+      if (tem != nil)
+	{
+	  dat->specified |= GS_SPECIFIED_WEIGHT;
+
+	  dat->weight = [tem floatValue] > 0
+	    ? GS_FONT_WEIGHT_BOLD
+	    : ([tem floatValue] < -0.4f
+	       ? GS_FONT_WEIGHT_LIGHT
+	       : GS_FONT_WEIGHT_NORMAL);
+	}
+
+      tem = [dict objectForKey: NSFontWidthTrait];
+
+      if (tem != nil)
+	{
+	  dat->specified |= GS_SPECIFIED_WIDTH;
+
+	  dat->width = [tem floatValue] > 0
+	    ? GS_FONT_WIDTH_EXPANDED
+	    : ([tem floatValue] < 0
+	       ? GS_FONT_WIDTH_NORMAL
+	       : GS_FONT_WIDTH_CONDENSED);
+	}
+    }
+}
+
+static bool
+ns_font_descs_match_p (NSFontDescriptor *desc, NSFontDescriptor *target)
+{
+  struct gs_font_data dat;
+  struct gs_font_data t;
+
+  ns_get_font_data (desc, &dat);
+  ns_get_font_data (target, &t);
+
+  if (!(t.specified & GS_SPECIFIED_WIDTH))
+    t.width = GS_FONT_WIDTH_NORMAL;
+  if (!(t.specified & GS_SPECIFIED_WEIGHT))
+    t.weight = GS_FONT_WEIGHT_NORMAL;
+  if (!(t.specified & GS_SPECIFIED_SPACING))
+    t.monospace_p = false;
+  if (!(t.specified & GS_SPECIFIED_SLANT))
+    t.slant = GS_FONT_SLANT_NORMAL;
+
+  if (!(t.specified & GS_SPECIFIED_FAMILY))
+    emacs_abort ();
+
+  bool match_p = true;
+
+  if (dat.specified & GS_SPECIFIED_WIDTH
+      && dat.width != t.width)
+    {
+      match_p = false;
+      goto gout;
+    }
+
+  if (dat.specified & GS_SPECIFIED_WEIGHT
+      && dat.weight != t.weight)
+    {
+      match_p = false;
+      goto gout;
+    }
+
+  if (dat.specified & GS_SPECIFIED_SPACING
+      && dat.monospace_p != t.monospace_p)
+    {
+      match_p = false;
+      goto gout;
+    }
+
+  if (dat.specified & GS_SPECIFIED_SLANT
+      && dat.monospace_p != t.monospace_p)
+    {
+      if (NSFONT_TRACE)
+	printf ("Matching monospace for %s: %d %d\n",
+		t.family_name, dat.monospace_p,
+		t.monospace_p);
+      match_p = false;
+      goto gout;
+    }
+
+  if (dat.specified & GS_SPECIFIED_FAMILY
+      && strcmp (dat.family_name, t.family_name))
+    match_p = false;
+
+ gout:
+  ns_done_font_data (&dat);
+  ns_done_font_data (&t);
+
+  return match_p;
+}
 
 /* Font glyph and metrics caching functions, implemented at end.  */
 static void ns_uni_to_glyphs (struct nsfont_info *font_info,
                               unsigned char block);
 static void ns_glyph_metrics (struct nsfont_info *font_info,
-                              unsigned char block);
+                              unsigned int block);
 
 #define INVALID_GLYPH 0xFFFF
 
@@ -59,27 +300,6 @@ static void ns_glyph_metrics (struct nsfont_info *font_info,
     Utilities
 
    ========================================================================== */
-
-
-/* Replace spaces w/another character so emacs core font parsing routines
-   aren't thrown off.  */
-static void
-ns_escape_name (char *name)
-{
-  for (; *name; name++)
-    if (*name == ' ')
-      *name = '_';
-}
-
-
-/* Reconstruct spaces in a font family name passed through emacs.  */
-static void
-ns_unescape_name (char *name)
-{
-  for (; *name; name++)
-    if (*name == '_')
-      *name = ' ';
-}
 
 
 /* Extract family name from a font spec.  */
@@ -93,67 +313,109 @@ ns_get_family (Lisp_Object font_spec)
     {
       char *tmp = xlispstrdup (SYMBOL_NAME (tem));
       NSString *family;
-      ns_unescape_name (tmp);
       family = [NSString stringWithUTF8String: tmp];
       xfree (tmp);
       return family;
     }
 }
 
-
-/* Return 0 if attr not set, else value (which might also be 0).
-   On Leopard 0 gets returned even on descriptors where the attribute
-   was never set, so there's no way to distinguish between unspecified
-   and set to not have.  Callers should assume 0 means unspecified.  */
-static float
-ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
-{
-    NSDictionary *tdict = [fdesc objectForKey: NSFontTraitsAttribute];
-    NSNumber *val = [tdict objectForKey: trait];
-    return val == nil ? 0.0F : [val floatValue];
-}
-
-
 /* Converts FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, plus family and script/lang
    to NSFont descriptor.  Information under extra only needed for matching.  */
-#define STYLE_REF 100
 static NSFontDescriptor *
 ns_spec_to_descriptor (Lisp_Object font_spec)
 {
-    NSFontDescriptor *fdesc;
-    NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
-    NSMutableDictionary *tdict = [NSMutableDictionary new];
-    NSString *family = ns_get_family (font_spec);
-    float n;
+  NSFontDescriptor *fdesc;
+  NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
+  NSString *family = ns_get_family (font_spec);
+  NSMutableDictionary *tdict = [NSMutableDictionary new];
 
-    /* Add each attr in font_spec to fdAttrs.  */
-    n = min (FONT_WEIGHT_NUMERIC (font_spec), 200);
-    if (n != -1 && n != STYLE_REF)
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
-		  forKey: NSFontWeightTrait];
-    n = min (FONT_SLANT_NUMERIC (font_spec), 200);
-    if (n != -1 && n != STYLE_REF)
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
+  Lisp_Object tem;
+
+  tem = FONT_SLANT_SYMBOLIC (font_spec);
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qitalic) || EQ (tem, Qoblique))
+	[tdict setObject: [NSNumber numberWithFloat: 1.0]
 		  forKey: NSFontSlantTrait];
-    n = min (FONT_WIDTH_NUMERIC (font_spec), 200);
-    if (n > -1 && (n > STYLE_REF + 10 || n < STYLE_REF - 10))
-	[tdict setObject: [NSNumber numberWithFloat: (n - 100.0F) / 100.0F]
+      else if (EQ (tem, intern ("reverse-italic"))
+	       || EQ (tem, intern ("reverse-oblique")))
+	[tdict setObject: [NSNumber numberWithFloat: -1.0]
+		  forKey: NSFontSlantTrait];
+      else
+	[tdict setObject: [NSNumber numberWithFloat: 0.0]
+		  forKey: NSFontSlantTrait];
+    }
+
+  tem = FONT_WIDTH_SYMBOLIC (font_spec);
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qcondensed))
+	[tdict setObject: [NSNumber numberWithFloat: -1.0]
 		  forKey: NSFontWidthTrait];
-    if ([tdict count] > 0)
-	[fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
+      else if (EQ (tem, Qexpanded))
+	[tdict setObject: [NSNumber numberWithFloat: 1.0]
+		  forKey: NSFontWidthTrait];
+      else
+	[tdict setObject: [NSNumber numberWithFloat: 0.0]
+		  forKey: NSFontWidthTrait];
+    }
 
-    fdesc = [[[NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs]
-               retain] autorelease];
+  tem = FONT_WEIGHT_SYMBOLIC (font_spec);
 
-    if (family != nil)
-      {
-        NSFontDescriptor *fdesc2 = [fdesc fontDescriptorWithFamily: family];
-        fdesc = [[fdesc2 retain] autorelease];
-      }
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qbold))
+	{
+	  [tdict setObject: [NSNumber numberWithFloat: 1.0]
+		    forKey: NSFontWeightTrait];
+	}
+      else if (EQ (tem, Qlight))
+	{
+	  [tdict setObject: [NSNumber numberWithFloat: -1.0]
+		    forKey: NSFontWeightTrait];
+	}
+      else
+	{
+	  [tdict setObject: [NSNumber numberWithFloat: 0.0]
+		    forKey: NSFontWeightTrait];
+	}
+    }
 
-    [fdAttrs release];
-    [tdict release];
-    return fdesc;
+  tem = AREF (font_spec, FONT_SPACING_INDEX);
+
+  if (family != nil)
+    [fdAttrs setObject: family
+		forKey: NSFontFamilyAttribute];
+
+  if (FIXNUMP (tem))
+    {
+      if (XFIXNUM (tem) != FONT_SPACING_PROPORTIONAL)
+	[fdAttrs setObject: [NSNumber numberWithBool: YES]
+		    forKey: NSFontFixedAdvanceAttribute];
+      else
+	[fdAttrs setObject: [NSNumber numberWithBool: NO]
+		    forKey: NSFontFixedAdvanceAttribute];
+    }
+
+  /* Handle special families such as ``fixed'', ``monospace'' or
+     ``Sans Serif''.  */
+
+  if ([family isEqualToString: @"fixed"]
+      || [family isEqualToString: @"monospace"])
+    [fdAttrs setObject: [[NSFont userFixedPitchFontOfSize: 0] familyName]
+		forKey: NSFontFamilyAttribute];
+  else if ([family isEqualToString: @"Sans Serif"])
+    [fdAttrs setObject: [[NSFont userFontOfSize: 0] familyName]
+		forKey: NSFontFamilyAttribute];
+
+  [fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
+
+  fdesc = [[[NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs]
+	     retain] autorelease];
+
+  [tdict release];
+  [fdAttrs release];
+  return fdesc;
 }
 
 
@@ -163,61 +425,64 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
                          Lisp_Object extra,
                          const char *style)
 {
-    Lisp_Object font_entity = font_make_entity ();
-    /*   NSString *psName = [desc postscriptName]; */
-    NSString *family = [desc objectForKey: NSFontFamilyAttribute];
-    unsigned int traits = [desc symbolicTraits];
-    char *escapedFamily;
+  Lisp_Object font_entity = font_make_entity ();
+  struct gs_font_data data;
+  ns_get_font_data (desc, &data);
 
-    /* Shouldn't happen, but on Tiger fallback desc gets name but no family.  */
-    if (family == nil)
-      family = [desc objectForKey: NSFontNameAttribute];
-    if (family == nil)
-      family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
+  ASET (font_entity, FONT_TYPE_INDEX, Qns);
+  ASET (font_entity, FONT_FOUNDRY_INDEX, Qns);
+  if (data.specified & GS_SPECIFIED_FAMILY)
+    ASET (font_entity, FONT_FAMILY_INDEX, intern (data.family_name));
+  ASET (font_entity, FONT_ADSTYLE_INDEX, style ? intern (style) : Qnil);
+  ASET (font_entity, FONT_REGISTRY_INDEX, Qiso10646_1);
 
-    escapedFamily = xstrdup ([family UTF8String]);
-    ns_escape_name (escapedFamily);
+  if (data.specified & GS_SPECIFIED_WEIGHT)
+    {
+      FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX,
+		      data.weight == GS_FONT_WEIGHT_BOLD
+		      ? Qbold : (data.weight == GS_FONT_WEIGHT_LIGHT
+				 ? Qlight : Qnormal));
+    }
+  else
+    FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX, Qnormal);
 
-    ASET (font_entity, FONT_TYPE_INDEX, Qns);
-    ASET (font_entity, FONT_FOUNDRY_INDEX, Qapple);
-    ASET (font_entity, FONT_FAMILY_INDEX, intern (escapedFamily));
-    ASET (font_entity, FONT_ADSTYLE_INDEX, style ? intern (style) : Qnil);
-    ASET (font_entity, FONT_REGISTRY_INDEX, Qiso10646_1);
+  if (data.specified & GS_SPECIFIED_SLANT)
+    {
+      FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
+		      data.slant == GS_FONT_SLANT_ITALIC
+		      ? Qitalic : (data.slant == GS_FONT_SLANT_REVERSE_ITALIC
+				   ? intern ("reverse-italic") : Qnormal));
+    }
+  else
+    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX, Qnormal);
 
-    FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX,
-		    traits & NSFontBoldTrait ? Qbold : Qmedium);
-/*    FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX,
-		    make_fixnum (100 + 100
-			* ns_attribute_fvalue (desc, NSFontWeightTrait)));*/
-    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
-		    traits & NSFontItalicTrait ? Qitalic : Qnormal);
-/*    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
-		    make_fixnum (100 + 100
-			 * ns_attribute_fvalue (desc, NSFontSlantTrait)));*/
-    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
-                    traits & NSFontCondensedTrait ? Qcondensed :
-                    traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
-/*    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
-		    make_fixnum (100 + 100
-			 * ns_attribute_fvalue (desc, NSFontWidthTrait)));*/
+  if (data.specified & GS_SPECIFIED_WIDTH)
+    {
+      FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
+		      data.width == GS_FONT_WIDTH_CONDENSED
+		      ? Qcondensed : (data.width == GS_FONT_WIDTH_EXPANDED
+				      ? intern ("expanded") : Qnormal));
+    }
+  else
+    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX, Qnormal);
 
-    ASET (font_entity, FONT_SIZE_INDEX, make_fixnum (0));
-    ASET (font_entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
-    ASET (font_entity, FONT_SPACING_INDEX,
-	  make_fixnum([desc symbolicTraits] & NSFontMonoSpaceTrait
-	      ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL));
+  ASET (font_entity, FONT_SIZE_INDEX, make_fixnum (0));
+  ASET (font_entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
+  ASET (font_entity, FONT_SPACING_INDEX,
+	make_fixnum ((data.specified & GS_SPECIFIED_SPACING && data.monospace_p)
+		     ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL));
 
-    ASET (font_entity, FONT_EXTRA_INDEX, extra);
-    ASET (font_entity, FONT_OBJLIST_INDEX, Qnil);
+  ASET (font_entity, FONT_EXTRA_INDEX, extra);
+  ASET (font_entity, FONT_OBJLIST_INDEX, Qnil);
 
-    if (NSFONT_TRACE)
-      {
-	fputs ("created font_entity:\n    ", stderr);
-	debug_print (font_entity);
-      }
+  if (NSFONT_TRACE)
+    {
+      fputs ("created font_entity:\n    ", stderr);
+      debug_print (font_entity);
+    }
 
-    xfree (escapedFamily);
-    return font_entity;
+  ns_done_font_data (&data);
+  return font_entity;
 }
 
 
@@ -225,8 +490,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 static Lisp_Object
 ns_fallback_entity (void)
 {
-  return ns_descriptor_to_entity ([[NSFont userFixedPitchFontOfSize: 0]
-      fontDescriptor], Qnil, NULL);
+  return ns_descriptor_to_entity ([[NSFont userFixedPitchFontOfSize: 1] fontDescriptor], Qnil, NULL);
 }
 
 
@@ -236,12 +500,6 @@ ns_char_width (NSFont *sfont, int c)
 {
   CGFloat w = -1.0;
   NSString *cstr = [NSString stringWithFormat: @"%c", c];
-
-#ifdef NS_IMPL_COCOA
-  NSGlyph glyph = [sfont glyphWithName: cstr];
-  if (glyph)
-    w = [sfont advancementForGlyph: glyph].width;
-#endif
 
   if (w < 0.0)
     {
@@ -273,12 +531,6 @@ ns_ascii_average_width (NSFont *sfont)
       ascii_printable = [[NSString alloc] initWithFormat: @"%s", chars];
     }
 
-#ifdef NS_IMPL_COCOA
-  NSGlyph glyph = [sfont glyphWithName: ascii_printable];
-  if (glyph)
-    w = [sfont advancementForGlyph: glyph].width;
-#endif
-
   if (w < (CGFloat) 0.0)
     {
       NSDictionary *attrsDictionary =
@@ -291,30 +543,36 @@ ns_ascii_average_width (NSFont *sfont)
 
 
 /* Return whether set1 covers set2 to a reasonable extent given by pct.
-   We check, out of each 16 Unicode char range containing chars in set2,
-   whether at least one character is present in set1.
-   This must be true for pct of the pairs to consider it covering.  */
+
+   The GNUstep bitmap representation doesn't match Apple's
+   description.  It appears to be a single block of bytes, not broken
+   up into planes, where the last byte contains the highest character
+   the character set supports.  */
 static BOOL
 ns_charset_covers(NSCharacterSet *set1, NSCharacterSet *set2, float pct)
 {
-    const unsigned short *bytes1 = [[set1 bitmapRepresentation] bytes];
-    const unsigned short *bytes2 = [[set2 bitmapRepresentation] bytes];
-    int i, off = 0, tot = 0;
+  NSData *font = [set1 bitmapRepresentation];
+  NSData *script = [set2 bitmapRepresentation];
 
-    /* Work around what appears to be a GNUstep bug.
-       See <https://bugs.gnu.org/11853>.  */
-    if (! (bytes1 && bytes2))
-      return NO;
+  uint8_t *fontPlane = (uint8_t *)[font bytes];
+  uint8_t *scriptPlane = (uint8_t *)[script bytes];
 
-    for (i=0; i<4096; i++, bytes1++, bytes2++)
-	if (*bytes2)
-	  {
-	    tot++;
-	    if (*bytes1 == 0)  // *bytes1 & *bytes2 != *bytes2
-		off++;
-	  }
-    // fprintf(stderr, "off = %d\ttot = %d\n", off,tot);
-    return (float)off / tot < 1.0F - pct;
+  int covered = 0, total = 0;
+
+  for (ptrdiff_t b = 0 ; b < [script length] ; b++)
+    for (int i = 0 ; i < 8 ; i++)
+      {
+        if (*(scriptPlane + b) & (1 << i))
+          {
+            total++;
+
+            if (b < [font length]
+                && *(fontPlane + b) & (1 << i))
+              covered++;
+          }
+      }
+
+  return (float)covered / total >= 1.0F - pct;
 }
 
 
@@ -343,7 +601,7 @@ static NSString
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (XCDR ((script))))]
+	? [NSString stringWithLispString: SYMBOL_NAME (XCDR ((script)))]
 	: @"";
 }
 
@@ -359,7 +617,7 @@ static NSString
         if (!strncmp (SSDATA (r), reg, SBYTES (r)))
           {
             script = XCDR (XCAR (rts));
-            return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (script))];
+            return [NSString stringWithLispString: SYMBOL_NAME (script)];
           }
         rts = XCDR (rts);
       }
@@ -384,8 +642,7 @@ static NSString
 	  {
 	    Lisp_Object key = XCAR (tmp), val = XCDR (tmp);
 	    if (EQ (key, QCscript) && SYMBOLP (val))
-		return [NSString stringWithUTF8String:
-		            SSDATA (SYMBOL_NAME (val))];
+		return [NSString stringWithLispString: SYMBOL_NAME (val)];
 	    if (EQ (key, QClang) && SYMBOLP (val))
 		return ns_lang_to_script (val);
 	    if (EQ (key, QCotf) && CONSP (val) && SYMBOLP (XCAR (val)))
@@ -511,10 +768,6 @@ static NSSet
 	      }
             [charset release];
 	  }
-#ifdef NS_IMPL_COCOA
-	if ([families count] == 0)
-	    [families addObject: @"LastResort"];
-#endif
 	[scriptToFamilies setObject: families forKey: script];
       }
 
@@ -523,83 +776,61 @@ static NSSet
     return families;
 }
 
+/* GNUstep font matching is very mediocre (it can't even compare
+   symbolic styles correctly), which is why our own font matching
+   mechanism must be implemented.  */
 
-/* Implementation for list() and match().  List() can return nil, match()
-must return something.  Strategy is to drop family name from attribute
-matching set for match.  */
+/* Implementation for list and match.  */
 static Lisp_Object
 ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 {
-    Lisp_Object tem, list = Qnil;
-    NSFontDescriptor *fdesc, *desc;
-    NSMutableSet *fkeys;
-    NSArray *matchingDescs;
-    NSEnumerator *dEnum;
-    NSString *family;
-    NSSet *cFamilies;
-    BOOL foundItal = NO;
+  Lisp_Object tem, list = Qnil;
+  NSFontDescriptor *fdesc;
+  NSArray *all_descs;
+  GSFontEnumerator *enumerator = [GSFontEnumerator sharedEnumerator];
 
-    block_input ();
-    if (NSFONT_TRACE)
-      {
-	fprintf (stderr, "nsfont: %s for fontspec:\n    ",
-		 (isMatch ? "match" : "list"));
-	debug_print (font_spec);
-      }
+  NSSet *cFamilies;
 
-    cFamilies = ns_get_covering_families (ns_get_req_script (font_spec), 0.90);
+  block_input ();
+  if (NSFONT_TRACE)
+    {
+      fprintf (stderr, "nsfont: %s for fontspec:\n    ",
+	       (isMatch ? "match" : "list"));
+      debug_print (font_spec);
+    }
 
-    fdesc = ns_spec_to_descriptor (font_spec);
-    fkeys = [NSMutableSet setWithArray: [[fdesc fontAttributes] allKeys]];
-    if (isMatch)
-	[fkeys removeObject: NSFontFamilyAttribute];
+  cFamilies = ns_get_covering_families (ns_get_req_script (font_spec), 0.90);
 
-    matchingDescs = [fdesc matchingFontDescriptorsWithMandatoryKeys: fkeys];
+  fdesc = ns_spec_to_descriptor (font_spec);
+  all_descs = [enumerator availableFontDescriptors];
 
-    if (NSFONT_TRACE)
-	NSLog(@"Got desc %@ and found %lu matching fonts from it: ", fdesc,
-	      (unsigned long)[matchingDescs count]);
+  for (NSFontDescriptor *desc in all_descs)
+    {
+      if (![cFamilies containsObject:
+		  [desc objectForKey: NSFontFamilyAttribute]])
+	continue;
+      if (!ns_font_descs_match_p (fdesc, desc))
+	continue;
 
-    for (dEnum = [matchingDescs objectEnumerator]; (desc = [dEnum nextObject]);)
-      {
-	if (![cFamilies containsObject:
-	         [desc objectForKey: NSFontFamilyAttribute]])
-	    continue;
-        tem = ns_descriptor_to_entity (desc,
-					 AREF (font_spec, FONT_EXTRA_INDEX),
-                                       NULL);
-        if (isMatch)
-          return tem;
-	list = Fcons (tem, list);
-	if (fabs (ns_attribute_fvalue (desc, NSFontSlantTrait)) > 0.05)
-	    foundItal = YES;
-      }
+      tem = ns_descriptor_to_entity (desc,
+				     AREF (font_spec, FONT_EXTRA_INDEX),
+				     NULL);
+      if (isMatch)
+	return tem;
+      list = Fcons (tem, list);
+    }
 
-    /* Add synthItal member if needed.  */
-    family = [fdesc objectForKey: NSFontFamilyAttribute];
-    if (family != nil && !foundItal && !NILP (list))
-      {
-        NSFontDescriptor *s1 = [NSFontDescriptor new];
-        NSFontDescriptor *sDesc
-          = [[s1 fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
-              fontDescriptorWithFamily: family];
-	list = Fcons (ns_descriptor_to_entity (sDesc,
-					 AREF (font_spec, FONT_EXTRA_INDEX),
-					 "synthItal"), list);
-        [s1 release];
-      }
+  unblock_input ();
 
-    unblock_input ();
+  /* Return something if was a match and nothing found.  */
+  if (isMatch)
+    return ns_fallback_entity ();
 
-    /* Return something if was a match and nothing found.  */
-    if (isMatch)
-      return ns_fallback_entity ();
+  if (NSFONT_TRACE)
+    fprintf (stderr, "    Returning %"pD"d entities.\n",
+	     list_length (list));
 
-    if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %"pD"d entities.\n",
-		 list_length (list));
-
-    return list;
+  return list;
 }
 
 
@@ -665,7 +896,6 @@ nsfont_list_family (struct frame *f)
                objectEnumerator];
   while ((family = [families nextObject]))
       list = Fcons (intern ([family UTF8String]), list);
-  /* FIXME: escape the name?  */
 
   if (NSFONT_TRACE)
     fprintf (stderr, "nsfont: list families returning %"pD"d entries\n",
@@ -681,18 +911,15 @@ nsfont_list_family (struct frame *f)
 static Lisp_Object
 nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 {
-  BOOL synthItal;
-  unsigned int traits = 0;
   struct nsfont_info *font_info;
   struct font *font;
   NSFontDescriptor *fontDesc = ns_spec_to_descriptor (font_entity);
   NSFontManager *fontMgr = [NSFontManager sharedFontManager];
   NSString *family;
   NSFont *nsfont, *sfont;
-  Lisp_Object tem;
   NSRect brect;
   Lisp_Object font_object;
-  int fixLeopardBug;
+  Lisp_Object tem;
 
   block_input ();
 
@@ -705,47 +932,20 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   if (pixel_size <= 0)
     {
       /* try to get it out of frame params */
-        Lisp_Object tem = get_frame_param (f, Qfontsize);
-        pixel_size = NILP (tem) ? 0 : XFIXNAT (tem);
+      tem = get_frame_param (f, Qfontsize);
+      pixel_size = NILP (tem) ? 0 : XFIXNAT (tem);
     }
 
   tem = AREF (font_entity, FONT_ADSTYLE_INDEX);
-  synthItal = !NILP (tem) && !strncmp ("synthItal", SSDATA (SYMBOL_NAME (tem)),
-                                       9);
   family = ns_get_family (font_entity);
   if (family == nil)
     family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
-  /* Should be > 0.23 as some font descriptors (e.g. Terminus) set to that
-     when setting family in ns_spec_to_descriptor().  */
-  if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50F)
-      traits |= NSBoldFontMask;
-  if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05F))
-      traits |= NSItalicFontMask;
 
-  /* see https://web.archive.org/web/20100201175731/http://cocoadev.com/forums/comments.php?DiscussionID=74 */
-  fixLeopardBug = traits & NSBoldFontMask ? 10 : 5;
-  nsfont = [fontMgr fontWithFamily: family
-                            traits: traits weight: fixLeopardBug
-			      size: pixel_size];
-  /* if didn't find, try synthetic italic */
-  if (nsfont == nil && synthItal)
-    {
-      nsfont = [fontMgr fontWithFamily: family
-                                traits: traits & ~NSItalicFontMask
-                                weight: fixLeopardBug size: pixel_size];
-    }
-#ifdef NS_IMPL_COCOA
-  /* LastResort not really a family */
-  if (nsfont == nil && [@"LastResort" isEqualToString: family])
-      nsfont = [NSFont fontWithName: @"LastResort" size: pixel_size];
-#endif
+  nsfont = [NSFont fontWithDescriptor: fontDesc
+				 size: pixel_size];
 
   if (nsfont == nil)
-    {
-      message_with_string ("*** Warning: font in family `%s' not found",
-                          build_string ([family UTF8String]), 1);
-      nsfont = [NSFont userFixedPitchFontOfSize: pixel_size];
-    }
+    nsfont = [NSFont userFixedPitchFontOfSize: pixel_size];
 
   if (NSFONT_TRACE)
     NSLog (@"%@\n", nsfont);
@@ -758,19 +958,14 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
   if (!font)
     {
       unblock_input ();
-      return Qnil; /* FIXME: other terms do, but returning Qnil causes segfault.  */
+      return Qnil;
     }
 
   font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
   font_info->metrics = xzalloc (0x100 * sizeof *font_info->metrics);
 
   /* for metrics */
-#ifdef NS_IMPL_COCOA
-  sfont = [nsfont screenFontWithRenderingMode:
-                    NSFontAntialiasedIntegerAdvancementsRenderingMode];
-#else
   sfont = [nsfont screenFont];
-#endif
 
   if (sfont == nil)
     sfont = nsfont;
@@ -797,18 +992,14 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
      * intended.  */
     CGFloat adjusted_descender = [sfont descender] + 0.0001;
 
-#ifdef NS_IMPL_GNUSTEP
     font_info->nsfont = sfont;
-#else
-    font_info->nsfont = nsfont;
-#endif
     [font_info->nsfont retain];
 
     /* set up ns_font (defined in nsgui.h) */
     font_info->name = xstrdup (fontName);
     font_info->bold = [fontMgr traitsOfFont: nsfont] & NSBoldFontMask;
     font_info->ital =
-      synthItal || ([fontMgr traitsOfFont: nsfont] & NSItalicFontMask);
+      ([fontMgr traitsOfFont: nsfont] & NSItalicFontMask);
 
     /* Metrics etc.; some fonts return an unusually large max advance, so we
        only use it for fonts that have wide characters.  */
@@ -834,35 +1025,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     font_info->max_bounds.rbearing =
       lrint (brect.size.width - (CGFloat) font_info->width);
 
-#ifdef NS_IMPL_COCOA
-    /* set up synthItal and the CG font */
-    font_info->synthItal = synthItal;
-    {
-      ATSFontRef atsFont = ATSFontFindFromPostScriptName
-        ((CFStringRef)[nsfont fontName], kATSOptionFlagsDefault);
-
-      if (atsFont == kATSFontRefUnspecified)
-        {
-          /* see if we can get it by dropping italic (then synthesizing) */
-          atsFont = ATSFontFindFromPostScriptName ((CFStringRef)
-              [[fontMgr convertFont: nsfont toNotHaveTrait: NSItalicFontMask]
-                fontName], kATSOptionFlagsDefault);
-          if (atsFont != kATSFontRefUnspecified)
-              font_info->synthItal = YES;
-          else
-            {
-              /* last resort fallback */
-              atsFont = ATSFontFindFromPostScriptName
-                ((CFStringRef)@"Monaco", kATSOptionFlagsDefault);
-            }
-        }
-      font_info->cgfont = CGFontCreateWithPlatformFont ((void *) &atsFont);
-    }
-#endif
-
     /* set up metrics portion of font struct */
-    font->ascent = lrint([sfont ascender]);
-    font->descent = -lrint(floor(adjusted_descender));
     font->space_width = lrint (ns_char_width (sfont, ' '));
     font->max_width = lrint (font_info->max_bounds.width);
     font->min_width = font->space_width;  /* Approximate.  */
@@ -901,9 +1064,6 @@ nsfont_close (struct font *font)
       xfree (font_info->glyphs);
       xfree (font_info->metrics);
       [font_info->nsfont release];
-#ifdef NS_IMPL_COCOA
-      CGFontRelease (font_info->cgfont);
-#endif
       xfree (font_info->name);
       font_info->name = NULL;
     }
@@ -927,7 +1087,7 @@ nsfont_encode_char (struct font *font, int c)
 {
   struct nsfont_info *font_info = (struct nsfont_info *)font;
   unsigned char high = (c & 0xff00) >> 8, low = c & 0x00ff;
-  unsigned short g;
+  unsigned int g;
 
   if (c > 0xFFFF)
     return FONT_INVALID_CODE;
@@ -990,156 +1150,46 @@ nsfont_text_extents (struct font *font, const unsigned int *code,
 static int
 nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
              bool with_background)
-/* NOTE: focus and clip must be set.  */
 {
-  static unsigned char cbuf[1024];
-  unsigned char *c = cbuf;
-#ifdef NS_IMPL_GNUSTEP
-#if GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION > 22
-  static CGFloat advances[1024];
-  CGFloat *adv = advances;
-#else
-  static float advances[1024];
-  float *adv = advances;
-#endif
-#else
-  static CGSize advances[1024];
-  CGSize *adv = advances;
-#endif
+  NSGlyph *c = alloca ((to - from) * sizeof *c);
+
   struct face *face;
   NSRect r;
   struct nsfont_info *font;
-  NSColor *col, *bgCol;
-  unsigned *t = s->char2b;
-  int i, len, flags;
+  NSColor *col;
+  int len = to - from;
   char isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
 
   block_input ();
 
-  font = (struct nsfont_info *)s->face->font;
+  font = (struct nsfont_info *) s->font;
   if (font == NULL)
     font = (struct nsfont_info *)FRAME_FONT (s->f);
 
-  /* Select face based on input flags.  */
-  flags = s->hl == DRAW_CURSOR ? NS_DUMPGLYPH_CURSOR :
-    (s->hl == DRAW_MOUSE_FACE ? NS_DUMPGLYPH_MOUSEFACE :
-     (s->for_overlaps ? NS_DUMPGLYPH_FOREGROUND :
-      NS_DUMPGLYPH_NORMAL));
+  face = s->face;
 
-  switch (flags)
-    {
-    case NS_DUMPGLYPH_CURSOR:
-      face = s->face;
-      break;
-    case NS_DUMPGLYPH_MOUSEFACE:
-      face = FACE_FROM_ID_OR_NULL (s->f,
-				   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-      if (!face)
-        face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-      break;
-    default:
-      face = s->face;
-    }
-
-  r.origin.x = s->x;
-  if (s->face->box != FACE_NO_BOX && s->first_glyph->left_box_line_p)
-    r.origin.x += abs (s->face->box_line_width);
-
-  r.origin.y = s->y;
+  r.origin.x = x;
+  r.origin.y = y;
   r.size.height = FONT_HEIGHT (font);
 
-  /* Convert UTF-16 (?) to UTF-8 and determine advances.  Note if we just ask
-     NS to render the string, it will come out differently from the individual
-     character widths added up because of layout processing.  */
-  {
-    int cwidth, twidth = 0;
-    int hi, lo;
-    /* FIXME: composition: no vertical displacement is considered.  */
-    t += from; /* advance into composition */
-    for (i = from; i < to; i++, t++)
-      {
-        hi = (*t & 0xFF00) >> 8;
-        lo = *t & 0x00FF;
-        if (isComposite)
-          {
-	    if (!s->first_glyph->u.cmp.automatic)
-		cwidth = s->cmp->offsets[i * 2] /* (H offset) */ - twidth;
-	    else
-	      {
-		Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
-		Lisp_Object glyph = LGSTRING_GLYPH (gstring, i);
-		if (NILP (LGLYPH_ADJUSTMENT (glyph)))
-		    cwidth = LGLYPH_WIDTH (glyph);
-		else
-		  {
-		    cwidth = LGLYPH_WADJUST (glyph);
-#ifdef NS_IMPL_GNUSTEP
-		    *(adv-1) += LGLYPH_XOFF (glyph);
-#else
-		    (*(adv-1)).width += LGLYPH_XOFF (glyph);
-#endif
-		  }
-	      }
-          }
-        else
-          {
-            if (!font->metrics[hi]) /* FIXME: why/how can we need this now?  */
-              ns_glyph_metrics (font, hi);
-            cwidth = font->metrics[hi][lo].width;
-          }
-        twidth += cwidth;
-#ifdef NS_IMPL_GNUSTEP
-        *adv++ = cwidth;
-        CHAR_STRING_ADVANCE (*t, c); /* This converts the char to UTF-8.  */
-#else
-        (*adv++).width = cwidth;
-#endif
-      }
-    len = adv - advances;
-    r.size.width = twidth;
-    *c = 0;
-  }
+  for (int i = 0; i < len; ++i)
+    c[i] = s->char2b[i + from];
 
   /* Fill background if requested.  */
   if (with_background && !isComposite)
     {
-      NSRect br = r;
-      int fibw = FRAME_INTERNAL_BORDER_WIDTH (s->f);
-      int mbox_line_width = max (s->face->box_line_width, 0);
-
-      if (s->row->full_width_p)
-        {
-          if (br.origin.x <= fibw + 1 + mbox_line_width)
-            {
-              br.size.width += br.origin.x - mbox_line_width;
-              br.origin.x = mbox_line_width;
-            }
-          if (FRAME_PIXEL_WIDTH (s->f) - (br.origin.x + br.size.width)
-                <= fibw+1)
-            br.size.width += fibw;
-        }
-      if (s->face->box == FACE_NO_BOX)
-        {
-          /* Expand unboxed top row over internal border.  */
-          if (br.origin.y <= fibw + 1 + mbox_line_width)
-            {
-              br.size.height += br.origin.y;
-              br.origin.y = 0;
-            }
-        }
-      else
-        {
-          int correction = abs (s->face->box_line_width)+1;
-          br.origin.y += correction;
-          br.size.height -= 2*correction;
-          br.origin.x += correction;
-          br.size.width -= 2*correction;
-        }
+      NSRect br = NSMakeRect (x, y - FONT_BASE (s->font),
+			      s->width, FONT_HEIGHT (s->font));
 
       if (!s->face->stipple)
-        [(NS_FACE_BACKGROUND (face) != 0
-          ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
-          : FRAME_BACKGROUND_COLOR (s->f)) set];
+	{
+	  if (s->hl != DRAW_CURSOR)
+	    [(NS_FACE_BACKGROUND (face) != 0
+	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
+	      : FRAME_BACKGROUND_COLOR (s->f)) set];
+	  else
+	    [FRAME_CURSOR_COLOR (s->f) set];
+	}
       else
         {
           struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
@@ -1148,108 +1198,381 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       NSRectFill (br);
     }
 
-
   /* set up for character rendering */
-  r.origin.y = y;
-
-  col = (NS_FACE_FOREGROUND (face) != 0
-         ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
-         : FRAME_FOREGROUND_COLOR (s->f));
-
-  bgCol = (flags != NS_DUMPGLYPH_FOREGROUND ? nil
-           : (NS_FACE_BACKGROUND (face) != 0
-              ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
-              : FRAME_BACKGROUND_COLOR (s->f)));
+  if (s->hl == DRAW_CURSOR)
+    col = FRAME_BACKGROUND_COLOR (s->f);
+  else
+    col = (NS_FACE_FOREGROUND (face) != 0
+	   ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)]
+	   : FRAME_FOREGROUND_COLOR (s->f));
 
   /* render under GNUstep using DPS */
-#ifdef NS_IMPL_GNUSTEP
   {
-    NSGraphicsContext *context = GSCurrentContext ();
-
-    DPSgsave (context);
+    NSGraphicsContext *context = [NSGraphicsContext currentContext];
     [font->nsfont set];
-
-    /* do erase if "foreground" mode */
-    if (bgCol != nil)
-      {
-        [bgCol set];
-        DPSmoveto (context, r.origin.x, r.origin.y);
-/*[context GSSetTextDrawingMode: GSTextFillStroke]; /// not implemented yet */
-        DPSxshow (context, (const char *) cbuf, advances, len);
-        DPSstroke (context);
-        [col set];
-/*[context GSSetTextDrawingMode: GSTextFill]; /// not implemented yet */
-      }
-
     [col set];
-
-    /* draw with DPSxshow () */
     DPSmoveto (context, r.origin.x, r.origin.y);
-    DPSxshow (context, (const char *) cbuf, advances, len);
-    DPSstroke (context);
-
-    DPSgrestore (context);
+    GSShowGlyphs (context, c, len);
   }
-
-#else  /* NS_IMPL_COCOA */
-  {
-    CGContextRef gcontext =
-      [[NSGraphicsContext currentContext] graphicsPort];
-    static CGAffineTransform fliptf;
-    static BOOL firstTime = YES;
-
-    if (firstTime)
-      {
-        firstTime = NO;
-        fliptf = CGAffineTransformMakeScale (1.0, -1.0);
-      }
-
-    CGContextSaveGState (gcontext);
-
-    // Used to be Fix2X (kATSItalicQDSkew), but Fix2X is deprecated
-    // and kATSItalicQDSkew is 0.25.
-    fliptf.c =  font->synthItal ? 0.25 : 0.0;
-
-    CGContextSetFont (gcontext, font->cgfont);
-    CGContextSetFontSize (gcontext, font->size);
-    if (NILP (ns_antialias_text) || font->size <= ns_antialias_threshold)
-      CGContextSetShouldAntialias (gcontext, 0);
-    else
-      CGContextSetShouldAntialias (gcontext, 1);
-
-    CGContextSetTextMatrix (gcontext, fliptf);
-
-    if (bgCol != nil)
-      {
-        /* foreground drawing; erase first to avoid overstrike */
-        [bgCol set];
-        CGContextSetTextDrawingMode (gcontext, kCGTextFillStroke);
-        CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b, advances, len);
-        CGContextSetTextDrawingMode (gcontext, kCGTextFill);
-      }
-
-    [col set];
-
-    CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
-    CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
-                                     advances, len);
-
-    if (face->overstrike)
-      {
-        CGContextSetTextPosition (gcontext, r.origin.x+0.5, r.origin.y);
-        CGContextShowGlyphsWithAdvances (gcontext, s->char2b + from,
-                                         advances, len);
-      }
-
-    CGContextRestoreGState (gcontext);
-  }
-#endif  /* NS_IMPL_COCOA */
 
   unblock_input ();
   return to-from;
 }
 
+static NSUInteger
+ns_font_shape (NSFont *font, NSString *string,
+	       struct ns_glyph_layout *glyph_layouts, NSUInteger glyph_len,
+	       enum lgstring_direction dir)
+{
+  NSUInteger i;
+  NSUInteger result = 0;
+  NSTextStorage *textStorage;
+  NSLayoutManager *layoutManager;
+  NSTextContainer *textContainer;
+  NSUInteger stringLength;
+  NSPoint spaceLocation;
+  /* numberOfGlyphs can't actually be 0, but this pacifies GCC */
+  NSUInteger used, numberOfGlyphs = 0;
+
+  textStorage = [[NSTextStorage alloc] initWithString:string];
+  layoutManager = [[NSLayoutManager alloc] init];
+  textContainer = [[NSTextContainer alloc] init];
+
+  /* Append a trailing space to measure baseline position.  */
+  [textStorage appendAttributedString:([[[NSAttributedString alloc]
+                                          initWithString:@" "] autorelease])];
+  [textStorage setFont:font];
+  [textContainer setLineFragmentPadding:0];
+
+  [layoutManager addTextContainer:textContainer];
+  [textContainer release];
+  [textStorage addLayoutManager:layoutManager];
+  [layoutManager release];
+
+  if (!(textStorage && layoutManager && textContainer))
+    emacs_abort ();
+
+  stringLength = [string length];
+
+  /* Force layout.  */
+  (void) [layoutManager glyphRangeForTextContainer:textContainer];
+
+  spaceLocation = [layoutManager locationForGlyphAtIndex:stringLength];
+
+  /* Remove the appended trailing space because otherwise it may
+     generate a wrong result for a right-to-left text.  */
+  [textStorage beginEditing];
+  [textStorage deleteCharactersInRange:(NSMakeRange (stringLength, 1))];
+  [textStorage endEditing];
+  (void) [layoutManager glyphRangeForTextContainer:textContainer];
+
+  i = 0;
+  while (i < stringLength)
+    {
+      NSRange range;
+      NSFont *fontInTextStorage =
+        [textStorage attribute: NSFontAttributeName
+		       atIndex:i
+                     longestEffectiveRange: &range
+                       inRange: NSMakeRange (0, stringLength)];
+
+      if (!(fontInTextStorage == font
+            || [[fontInTextStorage fontName] isEqualToString:[font fontName]]))
+        break;
+      i = NSMaxRange (range);
+    }
+  if (i < stringLength)
+    /* Make the test `used <= glyph_len' below fail if textStorage
+       contained some fonts other than the specified one.  */
+    used = glyph_len + 1;
+  else
+    {
+      NSRange range = NSMakeRange (0, stringLength);
+
+      range = [layoutManager glyphRangeForCharacterRange:range
+                                    actualCharacterRange:NULL];
+      numberOfGlyphs = NSMaxRange (range);
+      used = numberOfGlyphs;
+      for (i = 0; i < numberOfGlyphs; i++)
+        if ([layoutManager notShownAttributeForGlyphAtIndex:i])
+          used--;
+    }
+
+  if (0 < used && used <= glyph_len)
+    {
+      NSUInteger glyphIndex, prevGlyphIndex;
+      NSUInteger *permutation;
+      NSRange compRange, range;
+      CGFloat totalAdvance;
+
+      glyphIndex = 0;
+      while ([layoutManager notShownAttributeForGlyphAtIndex:glyphIndex])
+        glyphIndex++;
+
+      permutation = NULL;
+#define RIGHT_TO_LEFT_P permutation
+
+      /* Fill the `comp_range' member of struct mac_glyph_layout, and
+         setup a permutation for right-to-left text.  */
+      compRange = NSMakeRange (0, 0);
+      for (range = NSMakeRange (0, 0); NSMaxRange (range) < used;
+           range.length++)
+        {
+          struct ns_glyph_layout *gl = glyph_layouts + NSMaxRange (range);
+          NSUInteger characterIndex =
+            [layoutManager characterIndexForGlyphAtIndex:glyphIndex];
+
+          gl->string_index = characterIndex;
+
+          if (characterIndex >= NSMaxRange (compRange))
+            {
+              compRange.location = NSMaxRange (compRange);
+              do
+                {
+                  NSRange characterRange =
+                    [string
+                      rangeOfComposedCharacterSequenceAtIndex:characterIndex];
+
+                  compRange.length =
+                    NSMaxRange (characterRange) - compRange.location;
+                  [layoutManager glyphRangeForCharacterRange:compRange
+                                        actualCharacterRange:&characterRange];
+                  characterIndex = NSMaxRange (characterRange) - 1;
+                }
+              while (characterIndex >= NSMaxRange (compRange));
+
+              if (RIGHT_TO_LEFT_P)
+                for (i = 0; i < range.length; i++)
+                  permutation[range.location + i] = NSMaxRange (range) - i - 1;
+
+              range = NSMakeRange (NSMaxRange (range), 0);
+            }
+
+          gl->comp_range.location = compRange.location;
+          gl->comp_range.length = compRange.length;
+
+          while (++glyphIndex < numberOfGlyphs)
+            if (![layoutManager notShownAttributeForGlyphAtIndex:glyphIndex])
+              break;
+        }
+      if (RIGHT_TO_LEFT_P)
+        for (i = 0; i < range.length; i++)
+          permutation[range.location + i] = NSMaxRange (range) - i - 1;
+
+      /* Then fill the remaining members.  */
+      glyphIndex = prevGlyphIndex = 0;
+      while ([layoutManager notShownAttributeForGlyphAtIndex:glyphIndex])
+        glyphIndex++;
+
+      if (!RIGHT_TO_LEFT_P)
+        totalAdvance = 0;
+      else
+        {
+          NSUInteger nrects;
+          NSRect *glyphRects =
+            [layoutManager
+              rectArrayForGlyphRange:(NSMakeRange (0, numberOfGlyphs))
+              withinSelectedGlyphRange:(NSMakeRange (NSNotFound, 0))
+                     inTextContainer:textContainer rectCount:&nrects];
+
+          totalAdvance = NSMaxX (glyphRects[0]);
+        }
+
+      for (i = 0; i < used; i++)
+        {
+          struct ns_glyph_layout *gl;
+          NSPoint location;
+          NSUInteger nextGlyphIndex;
+          NSRange glyphRange;
+          NSRect *glyphRects;
+          NSUInteger nrects;
+
+          if (!RIGHT_TO_LEFT_P)
+            gl = glyph_layouts + i;
+          else
+            {
+              NSUInteger dest = permutation[i];
+
+              gl = glyph_layouts + dest;
+              if (i < dest)
+                {
+                  NSUInteger tmp = gl->string_index;
+
+                  gl->string_index = glyph_layouts[i].string_index;
+                  glyph_layouts[i].string_index = tmp;
+                }
+            }
+          gl->glyph_id = [layoutManager glyphAtIndex: glyphIndex];
+
+          location = [layoutManager locationForGlyphAtIndex:glyphIndex];
+          gl->baseline_delta = spaceLocation.y - location.y;
+
+          for (nextGlyphIndex = glyphIndex + 1; nextGlyphIndex < numberOfGlyphs;
+               nextGlyphIndex++)
+            if (![layoutManager
+                   notShownAttributeForGlyphAtIndex:nextGlyphIndex])
+              break;
+
+          if (!RIGHT_TO_LEFT_P)
+            {
+              CGFloat maxX;
+
+              if (prevGlyphIndex == 0)
+                glyphRange = NSMakeRange (0, nextGlyphIndex);
+              else
+                glyphRange = NSMakeRange (glyphIndex,
+                                          nextGlyphIndex - glyphIndex);
+              glyphRects =
+                [layoutManager
+                  rectArrayForGlyphRange:glyphRange
+                  withinSelectedGlyphRange:(NSMakeRange (NSNotFound, 0))
+                         inTextContainer:textContainer rectCount:&nrects];
+              maxX = max (NSMaxX (glyphRects[0]), totalAdvance);
+              gl->advance_delta = location.x - totalAdvance;
+              gl->advance = maxX - totalAdvance;
+              totalAdvance = maxX;
+            }
+          else
+            {
+              CGFloat minX;
+
+              if (nextGlyphIndex == numberOfGlyphs)
+                glyphRange = NSMakeRange (prevGlyphIndex,
+                                          numberOfGlyphs - prevGlyphIndex);
+              else
+                glyphRange = NSMakeRange (prevGlyphIndex,
+                                          glyphIndex + 1 - prevGlyphIndex);
+              glyphRects =
+                [layoutManager
+                  rectArrayForGlyphRange:glyphRange
+                  withinSelectedGlyphRange:(NSMakeRange (NSNotFound, 0))
+                         inTextContainer:textContainer rectCount:&nrects];
+              minX = min (NSMinX (glyphRects[0]), totalAdvance);
+              gl->advance = totalAdvance - minX;
+              totalAdvance = minX;
+              gl->advance_delta = location.x - totalAdvance;
+            }
+
+          prevGlyphIndex = glyphIndex + 1;
+          glyphIndex = nextGlyphIndex;
+        }
+
+      if (RIGHT_TO_LEFT_P)
+        xfree (permutation);
+
+#undef RIGHT_TO_LEFT_P
+
+      result = used;
+    }
+  [textStorage release];
+
+  return result;
+}
+
+static Lisp_Object
+nsfont_shape (Lisp_Object lgstring, Lisp_Object direction)
+{
+  struct font *font = CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring));
+  struct nsfont_info *font_info = (struct nsfont_info *) font;
+  struct ns_glyph_layout *glyph_layouts;
+  NSFont *nsfont = font_info->nsfont;
+  ptrdiff_t glyph_len, len, i;
+  Lisp_Object tem;
+  unichar *mb_buf;
+  NSUInteger used;
+
+  glyph_len = LGSTRING_GLYPH_LEN (lgstring);
+  for (i = 0; i < glyph_len; ++i)
+    {
+      tem = LGSTRING_GLYPH (lgstring, i);
+
+      if (NILP (tem))
+	break;
+    }
+
+  len = i;
+
+  if (INT_MAX / 2 < len)
+    memory_full (SIZE_MAX);
+
+  block_input ();
+
+  mb_buf = alloca (len * sizeof *mb_buf);
+
+  for (i = 0; i < len; ++i)
+    {
+      uint32_t c = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, i));
+      mb_buf[i] = (unichar) c;
+    }
+
+  NSString *string = [NSString stringWithCharacters: mb_buf
+					     length: len];
+  unblock_input ();
+
+  if (!string)
+    return Qnil;
+
+  block_input ();
+
+  enum lgstring_direction dir = DIR_UNKNOWN;
+
+  if (EQ (direction, QL2R))
+    dir = DIR_L2R;
+  else if (EQ (direction, QR2L))
+    dir = DIR_R2L;
+  glyph_layouts = alloca (sizeof (struct ns_glyph_layout) * glyph_len);
+  used = ns_font_shape (nsfont, string, glyph_layouts, glyph_len, dir);
+
+  for (i = 0; i < used; i++)
+    {
+      Lisp_Object lglyph = LGSTRING_GLYPH (lgstring, i);
+      struct ns_glyph_layout *gl = glyph_layouts + i;
+      EMACS_INT from, to;
+      struct font_metrics metrics;
+
+      if (NILP (lglyph))
+        {
+          lglyph = LGLYPH_NEW ();
+          LGSTRING_SET_GLYPH (lgstring, i, lglyph);
+        }
+
+      from = gl->comp_range.location;
+      LGLYPH_SET_FROM (lglyph, from);
+
+      to = gl->comp_range.location + gl->comp_range.length;
+      LGLYPH_SET_TO (lglyph, to - 1);
+
+      /* LGLYPH_CHAR is used in `describe-char' for checking whether
+         the composition is trivial.  */
+      {
+        UTF32Char c;
+
+        if (mb_buf[gl->string_index] >= 0xD800
+            && mb_buf[gl->string_index] < 0xDC00)
+          c = (((mb_buf[gl->string_index] - 0xD800) << 10)
+               + (mb_buf[gl->string_index + 1] - 0xDC00) + 0x10000);
+        else
+          c = mb_buf[gl->string_index];
+
+        LGLYPH_SET_CHAR (lglyph, c);
+      }
+
+      {
+        unsigned long cc = gl->glyph_id;
+        LGLYPH_SET_CODE (lglyph, cc);
+      }
+
+      nsfont_text_extents (font, &gl->glyph_id, 1, &metrics);
+      LGLYPH_SET_WIDTH (lglyph, metrics.width);
+      LGLYPH_SET_LBEARING (lglyph, metrics.lbearing);
+      LGLYPH_SET_RBEARING (lglyph, metrics.rbearing);
+      LGLYPH_SET_ASCENT (lglyph, metrics.ascent);
+      LGLYPH_SET_DESCENT (lglyph, metrics.descent);
+    }
+  unblock_input ();
+
+  return make_fixnum (used);
+}
 
 
 /* ==========================================================================
@@ -1258,18 +1581,58 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
    ========================================================================== */
 
+static NSGlyph
+ns_uni_to_glyphs_1 (struct nsfont_info *info, unsigned int c)
+{
+  unichar characters[] = { c };
+  NSString *string =
+    [NSString stringWithCharacters: characters
+			    length: 1];
+  NSDictionary *attributes =
+    [NSDictionary dictionaryWithObjectsAndKeys:
+		    info->nsfont, NSFontAttributeName, nil];
+  NSTextStorage *storage = [[NSTextStorage alloc] initWithString: string
+						      attributes: attributes];
+  NSTextContainer *text_container = [[NSTextContainer alloc] init];
+  NSLayoutManager *manager = [[NSLayoutManager alloc] init];
+
+  [manager addTextContainer: text_container];
+  [text_container release]; /* Retained by manager */
+  [storage addLayoutManager: manager];
+  [manager release]; /* Retained by storage */
+
+  NSFont *font_in_storage = [storage attribute: NSFontAttributeName
+				       atIndex:0
+				effectiveRange: NULL];
+  NSGlyph glyph = FONT_INVALID_CODE;
+
+  if ((font_in_storage == info->nsfont
+       || [[font_in_storage fontName] isEqualToString: [info->nsfont fontName]]))
+    {
+      @try
+	{
+	  glyph = [manager glyphAtIndex: 0];
+	}
+      @catch (NSException *e)
+	{
+	  /* GNUstep bug? */
+	  glyph = 'X';
+	}
+    }
+
+  [storage release];
+
+  return glyph;
+}
+
 /* Find and cache corresponding glyph codes for unicode values in given
    hi-byte block of 256.  */
 static void
 ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 {
-#ifdef NS_IMPL_COCOA
-  static EmacsGlyphStorage *glyphStorage;
-  static char firstTime = 1;
-#endif
   unichar *unichars = xmalloc (0x101 * sizeof (unichar));
   unsigned int i, g, idx;
-  unsigned short *glyphs;
+  unsigned int *glyphs;
 
   if (NSFONT_TRACE)
     fprintf (stderr, "%p\tFinding glyphs for glyphs in block %d\n",
@@ -1277,15 +1640,7 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 
   block_input ();
 
-#ifdef NS_IMPL_COCOA
-  if (firstTime)
-    {
-      firstTime = 0;
-      glyphStorage = [[EmacsGlyphStorage alloc] initWithCapacity: 0x100];
-    }
-#endif
-
-  font_info->glyphs[block] = xmalloc (0x100 * sizeof (unsigned short));
+  font_info->glyphs[block] = xmalloc (0x100 * sizeof (unsigned int));
   if (!unichars || !(font_info->glyphs[block]))
     emacs_abort ();
 
@@ -1298,38 +1653,13 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
   unichars[0x100] = 0;
 
   {
-#ifdef NS_IMPL_COCOA
-    NSString *allChars = [[NSString alloc]
-                               initWithCharactersNoCopy: unichars
-                                                 length: 0x100
-                                           freeWhenDone: NO];
-    NSGlyphGenerator *glyphGenerator = [NSGlyphGenerator sharedGlyphGenerator];
-    /* NSCharacterSet *coveredChars = [nsfont coveredCharacterSet]; */
-    unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
-    NSUInteger gInd = 0, cInd = 0;
-
-    [glyphStorage setString: allChars font: font_info->nsfont];
-    [glyphGenerator generateGlyphsForGlyphStorage: glyphStorage
-                        desiredNumberOfCharacters: glyphStorage->maxChar
-                                       glyphIndex: &gInd characterIndex: &cInd];
-#endif
     glyphs = font_info->glyphs[block];
     for (i = 0; i < 0x100; i++, glyphs++)
       {
-#ifdef NS_IMPL_GNUSTEP
         g = unichars[i];
-#else
-        g = glyphStorage->cglyphs[i];
-        /* TODO: is this a good check?  Maybe need to use coveredChars.  */
-        if (g > numGlyphs || g == NSNullGlyph)
-          g = INVALID_GLYPH; /* Hopefully unused...  */
-#endif
-        *glyphs = g;
+	NSGlyph glyph = ns_uni_to_glyphs_1 (font_info, g);
+        *glyphs = glyph;
       }
-
-#ifdef NS_IMPL_COCOA
-    [allChars release];
-#endif
   }
 
   unblock_input ();
@@ -1337,33 +1667,27 @@ ns_uni_to_glyphs (struct nsfont_info *font_info, unsigned char block)
 }
 
 
-/* Determine and cache metrics for corresponding glyph codes in given
-   hi-byte block of 256.  */
+/* Determine and cache metrics for glyphs in given hi-byte block of
+   256.  */
 static void
-ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
+ns_glyph_metrics (struct nsfont_info *font_info, unsigned int block)
 {
-  unsigned int i, g;
+  unsigned int i;
+  NSGlyph g;
   unsigned int numGlyphs = [font_info->nsfont numberOfGlyphs];
   NSFont *sfont;
   struct font_metrics *metrics;
 
   if (NSFONT_TRACE)
-    fprintf (stderr, "%p\tComputing metrics for glyphs in block %d\n",
+    fprintf (stderr, "%p\tComputing metrics for glyphs in block %u\n",
             font_info, block);
 
-#ifdef NS_IMPL_GNUSTEP
   /* not implemented yet (as of startup 0.18), so punt */
   if (numGlyphs == 0)
     numGlyphs = 0x10000;
-#endif
 
   block_input ();
-#ifdef NS_IMPL_COCOA
-  sfont = [font_info->nsfont screenFontWithRenderingMode:
-                      NSFontAntialiasedIntegerAdvancementsRenderingMode];
-#else
   sfont = [font_info->nsfont screenFont];
-#endif
 
   font_info->metrics[block] = xzalloc (0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))
@@ -1378,92 +1702,17 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
       w = max ([sfont advancementForGlyph: g].width, 2.0);
       metrics->width = lrint (w);
 
-      lb = r.origin.x;
-      rb = r.size.width - w;
-      // Add to bearing for LCD smoothing.  We don't know if it is there.
-      if (lb < 0)
-        metrics->lbearing = round (lb - LCD_SMOOTHING_MARGIN);
-      if (font_info->ital)
-        rb += (CGFloat) (0.22F * font_info->height);
-      metrics->rbearing = lrint (w + rb + LCD_SMOOTHING_MARGIN);
+      lb = NSMinX (r);
+      rb = NSMaxX (r);
 
-      metrics->descent = r.origin.y < 0 ? -r.origin.y : 0;
-      /* lrint (hshrink * [sfont ascender] + expand * hd/2); */
-      metrics->ascent = r.size.height - metrics->descent;
-      /* -lrint (hshrink* [sfont descender] - expand * hd/2); */
+      metrics->rbearing = lrint (rb);
+      metrics->lbearing = lrint (lb);
+
+      metrics->descent = - NSMaxY (r);
+      metrics->ascent = - NSMinY (r);
     }
   unblock_input ();
 }
-
-
-#ifdef NS_IMPL_COCOA
-/* Helper for font glyph setup.  */
-@implementation EmacsGlyphStorage
-
-- init
-{
-  return [self initWithCapacity: 1024];
-}
-
-- initWithCapacity: (unsigned long) c
-{
-  self = [super init];
-  maxChar = 0;
-  maxGlyph = 0;
-  dict = [NSMutableDictionary new];
-  cglyphs = xmalloc (c * sizeof (CGGlyph));
-  return self;
-}
-
-- (void) dealloc
-{
-  if (attrStr != nil)
-    [attrStr release];
-  [dict release];
-  xfree (cglyphs);
-  [super dealloc];
-}
-
-- (void) setString: (NSString *)str font: (NSFont *)font
-{
-  [dict setObject: font forKey: NSFontAttributeName];
-  if (attrStr != nil)
-    [attrStr release];
-  attrStr = [[NSAttributedString alloc] initWithString: str attributes: dict];
-  maxChar = [str length];
-  maxGlyph = 0;
-}
-
-/* NSGlyphStorage protocol */
-- (NSUInteger)layoutOptions
-{
-  return 0;
-}
-
-- (NSAttributedString *)attributedString
-{
-  return attrStr;
-}
-
-- (void)insertGlyphs: (const NSGlyph *)glyphs length: (NSUInteger)length
-        forStartingGlyphAtIndex: (NSUInteger)glyphIndex
-        characterIndex: (NSUInteger)charIndex
-{
-  len = glyphIndex+length;
-  for (i =glyphIndex; i<len; i++)
-    cglyphs[i] = glyphs[i-glyphIndex];
-  if (len > maxGlyph)
-    maxGlyph = len;
-}
-
-- (void)setIntAttribute: (NSInteger)attributeTag value: (NSInteger)val
-        forGlyphAtIndex: (NSUInteger)glyphIndex
-{
-  return;
-}
-
-@end
-#endif /* NS_IMPL_COCOA */
 
 
 /* Debugging */
@@ -1496,6 +1745,7 @@ struct font_driver const nsfont_driver =
   .has_char = nsfont_has_char,
   .encode_char = nsfont_encode_char,
   .text_extents = nsfont_text_extents,
+  .shape = nsfont_shape,
   .draw = nsfont_draw,
   };
 
@@ -1504,10 +1754,12 @@ syms_of_nsfont (void)
 {
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
-  DEFSYM (Qapple, "apple");
   DEFSYM (Qmedium, "medium");
+
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
-               doc: /* Internal use: maps font registry to Unicode script.  */);
+    doc: /* Internal map of font registry to Unicode script.  */);
+  Vns_reg_to_script = Qnil;
+
   pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
 }
 

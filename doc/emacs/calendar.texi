@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.  -*- coding: utf-8 -*-
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2023 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
@@ -532,8 +532,8 @@ holidays centered around a different month, use @kbd{C-u M-x
 holidays}, which prompts for the month and year.
 
   The holidays known to Emacs include United States holidays and the
-major Bahá'í, Chinese, Christian, Islamic, and Jewish holidays; also the
-solstices and equinoxes.
+major Bahá'í, Chinese, Christian, Islamic, and Jewish
+holidays; also the solstices and equinoxes.
 
 @findex list-holidays
    The command @kbd{M-x holiday-list} displays the list of holidays for
@@ -624,6 +624,10 @@ Time (Greenwich time).  The values of
 your time zone.  Emacs displays the times of sunrise and sunset
 @emph{corrected for daylight saving time}.  @xref{Daylight Saving},
 for how daylight saving time is determined.
+
+@vindex calendar-time-zone-style
+  If you want to display numerical time zones (like @samp{"+0100"})
+instead of symbolic ones (like @samp{"CET"}), set this to @code{numeric}.
 
   As a user, you might find it convenient to set the calendar location
 variables for your usual physical location in your @file{.emacs} file.
@@ -1358,6 +1362,20 @@ The month can be a single month or a list of months.  Thus you could change
 the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
 entry applies to all months of the year.
+
+@findex diary-offset
+@example
+%%(diary-offset '(diary-float t 3 4) 2) Monthly committee meeting
+@end example
+
+@noindent
+This entry applies to the Saturday after the third Thursday of each
+month.  The 2 specifies number of days after when the sexp
+@w{@code{'(diary-float t 3 4)}} would evaluate to @code{t}.  This is
+useful when for example your organization has a committee meeting two
+days after every monthly meeting which takes place on the third
+Thursday, or if you would like to attend a virtual meeting scheduled
+in a different timezone causing a difference in the date.
 
   Each of the standard sexp diary entries takes an optional parameter
 specifying the name of a face or a single-character string to use when

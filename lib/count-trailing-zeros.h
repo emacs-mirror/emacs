@@ -1,17 +1,17 @@
 /* count-trailing-zeros.h -- counts the number of trailing 0 bits in a word.
-   Copyright 2013-2020 Free Software Foundation, Inc.
+   Copyright 2013-2023 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
@@ -38,12 +38,15 @@ extern "C" {
    expand to code that computes the number of trailing zeros of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
    from the current function.  */
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) \
+    || (__clang_major__ >= 4)
 # define COUNT_TRAILING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)               \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER
-# pragma intrinsic _BitScanForward
-# pragma intrinsic _BitScanForward64
+# pragma intrinsic (_BitScanForward)
+# if defined _M_X64
+#  pragma intrinsic (_BitScanForward64)
+# endif
 # define COUNT_TRAILING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)               \
     do                                                                  \
       {                                                                 \
@@ -100,8 +103,18 @@ count_trailing_zeros_l (unsigned long int x)
 COUNT_TRAILING_ZEROS_INLINE int
 count_trailing_zeros_ll (unsigned long long int x)
 {
+#if (defined _MSC_VER && !defined __clang__) && !defined _M_X64
+  /* 32-bit MSVC does not have _BitScanForward64, only _BitScanForward.  */
+  unsigned long result;
+  if (_BitScanForward (&result, (unsigned long) x))
+    return result;
+  if (_BitScanForward (&result, (unsigned long) (x >> 32)))
+    return result + 32;
+  return CHAR_BIT * sizeof x;
+#else
   COUNT_TRAILING_ZEROS (__builtin_ctzll, _BitScanForward64,
                         unsigned long long int);
+#endif
 }
 
 #ifdef __cplusplus

@@ -1,6 +1,6 @@
-;;; nnml.el --- mail spool access for Gnus
+;;; nnml.el --- mail spool access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2023 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@didierverna.net> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -89,6 +89,7 @@ non-nil.")
 
 (defconst nnml-version "nnml 1.0"
   "nnml version.")
+(make-obsolete-variable 'nnml-version 'emacs-version "29.1")
 
 (defvoo nnml-nov-file-name ".overview")
 
@@ -111,7 +112,7 @@ non-nil.")
 
 (nnoo-define-basics nnml)
 
-(defun nnml-group-pathname (group &optional file server)
+(defun nnml-group-pathname (group &optional file _server)
   "Return an absolute file name of FILE for GROUP on SERVER."
   (nnmail-group-pathname group nnml-directory file))
 
@@ -215,7 +216,7 @@ non-nil.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nnml-request-group (group &optional server dont-check info)
+(deffoo nnml-request-group (group &optional server dont-check _info)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nnml-possibly-change-directory group server))
@@ -252,11 +253,11 @@ non-nil.")
    (t
     (nnmail-get-new-mail 'nnml 'nnml-save-incremental-nov nnml-directory nil))))
 
-(deffoo nnml-close-group (group &optional server)
+(deffoo nnml-close-group (_group &optional _server)
   (setq nnml-article-file-alist nil)
   t)
 
-(deffoo nnml-request-create-group (group &optional server args)
+(deffoo nnml-request-create-group (group &optional server _args)
   (nnml-possibly-change-directory nil server)
   (nnmail-activate 'nnml)
   (cond
@@ -278,12 +279,12 @@ non-nil.")
       (let* ((file-name-coding-system nnmail-pathname-coding-system)
 	     (articles (nnml-directory-articles nnml-current-directory)))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))
       (nnmail-save-active nnml-group-alist nnml-active-file)
       t))))
 
-(deffoo nnml-request-list (&optional server)
+(deffoo nnml-request-list (&optional _server)
   (save-excursion
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
 	  (file-name-coding-system nnmail-pathname-coding-system))
@@ -291,10 +292,10 @@ non-nil.")
     (setq nnml-group-alist (nnmail-get-active))
     t))
 
-(deffoo nnml-request-newgroups (date &optional server)
+(deffoo nnml-request-newgroups (_date &optional server)
   (nnml-request-list server))
 
-(deffoo nnml-request-list-newsgroups (&optional server)
+(deffoo nnml-request-list-newsgroups (&optional _server)
   (save-excursion
     (nnmail-find-file nnml-newsgroups-file)))
 
@@ -307,7 +308,7 @@ non-nil.")
 	 article rest mod-time number target)
     (nnmail-activate 'nnml)
 
-    (setq active-articles (sort active-articles '<))
+    (setq active-articles (sort active-articles #'<))
     ;; Articles not listed in active-articles are already gone,
     ;; so don't try to expire them.
     (setq articles (gnus-sorted-intersection articles active-articles))
@@ -353,14 +354,14 @@ non-nil.")
     (let ((active (nth 1 (assoc-string group nnml-group-alist))))
       (when active
 	(setcar active (or (and active-articles
-				(apply 'min active-articles))
+				(apply #'min active-articles))
 			   (1+ (cdr active)))))
       (nnmail-save-active nnml-group-alist nnml-active-file))
     (nnml-save-nov)
     (nconc rest articles)))
 
 (deffoo nnml-request-move-article
-    (article group server accept-form &optional last move-is-internal)
+    (article group server accept-form &optional last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnml move*"))
 	(file-name-coding-system nnmail-pathname-coding-system)
 	result)
@@ -374,7 +375,7 @@ non-nil.")
 	   nnml-article-file-alist)
        (with-current-buffer buf
 	 (insert-buffer-substring nntp-server-buffer)
-	 (setq result (eval accept-form))
+	 (setq result (eval accept-form t))
 	 (kill-buffer (current-buffer))
 	 result))
      (progn
@@ -411,8 +412,8 @@ non-nil.")
       (and
        (nnmail-activate 'nnml)
        (if (and (not (setq result (nnmail-article-group
-				   `(lambda (group)
-				      (nnml-active-number group ,server)))))
+				   (lambda (group)
+				     (nnml-active-number group server)))))
 		(yes-or-no-p "Moved to `junk' group; delete article? "))
 	   (setq result 'junk)
 	 (setq result (car (nnml-save-mail result server t))))
@@ -600,7 +601,7 @@ non-nil.")
 		  (search-forward id nil t)) ; We find the ID.
 	;; And the id is in the fourth field.
 	(if (not (and (search-backward "\t" nil t 4)
-		      (not (search-backward "\t" (point-at-bol) t))))
+                      (not (search-backward "\t" (line-beginning-position) t))))
 	    (forward-line 1)
 	  (beginning-of-line)
 	  (setq found t)
@@ -705,7 +706,7 @@ article number.  This function is called narrowed to an article."
 	(setq nnml-article-file-alist
 	      (sort
 	       (nnml-current-group-article-to-file-alist)
-	       'car-less-than-car)))
+	       #'car-less-than-car)))
       (setq active
 	    (if nnml-article-file-alist
 		(cons (caar nnml-article-file-alist)
@@ -754,7 +755,7 @@ article number.  This function is called narrowed to an article."
     (nnheader-insert-nov headers)))
 
 (defsubst nnml-header-value ()
-  (buffer-substring (match-end 0) (point-at-eol)))
+  (buffer-substring (match-end 0) (line-end-position)))
 
 (defun nnml-parse-head (chars &optional number)
   "Parse the head of the current buffer."
@@ -766,10 +767,31 @@ article number.  This function is called narrowed to an article."
 	 (if (re-search-forward "\n\r?\n" nil t)
 	     (1- (point))
 	   (point-max))))
-      (let ((headers (nnheader-parse-naked-head)))
+      (let ((headers (nnheader-parse-head t)))
 	(setf (mail-header-chars  headers) chars)
 	(setf (mail-header-number headers) number)
+	;; If there's non-ASCII raw characters in the data,
+	;; RFC2047-encode them to avoid having arbitrary data in the
+	;; .overview file.
+	(nnml--encode-headers headers)
 	headers))))
+
+;; RFC2047-encode Subject and From, but leave invalid headers unencoded.
+(defun nnml--encode-headers (headers)
+  (let ((subject (mail-header-subject headers))
+	(rfc2047-encoding-type 'mime))
+    (unless (string-match "\\`[[:ascii:]]*\\'" subject)
+      (let ((encoded-subject
+             (ignore-errors (mail-encode-encoded-word-string subject t))))
+        (if encoded-subject
+            (setf (mail-header-subject headers) encoded-subject)))))
+  (let ((from (mail-header-from headers))
+	(rfc2047-encoding-type 'address-mime))
+    (unless (string-match "\\`[[:ascii:]]*\\'" from)
+      (let ((encoded-from
+             (ignore-errors (rfc2047-encode-string from t))))
+        (if encoded-from
+            (setf (mail-header-from headers) encoded-from))))))
 
 (defun nnml-get-nov-buffer (group &optional incrementalp)
   (let ((buffer (gnus-get-buffer-create
@@ -778,8 +800,8 @@ article number.  This function is called narrowed to an article."
 			 group)))
 	 (file-name-coding-system nnmail-pathname-coding-system))
     (with-current-buffer buffer
-      (set (make-local-variable 'nnml-nov-buffer-file-name)
-	   (nnmail-group-pathname group nnml-directory nnml-nov-file-name))
+      (setq-local nnml-nov-buffer-file-name
+                  (nnmail-group-pathname group nnml-directory nnml-nov-file-name))
       (erase-buffer)
       (when (and (not incrementalp)
 		 (file-exists-p nnml-nov-buffer-file-name))
@@ -840,7 +862,7 @@ Unless no-active is non-nil, update the active file too."
 	  (nnml-generate-nov-databases-directory dir seen)))
       ;; Do this directory.
       (let ((nnml-files (sort (nnheader-article-to-file-alist dir)
-			 'car-less-than-car)))
+			      #'car-less-than-car)))
 	(if (not nnml-files)
 	    (let* ((group (nnheader-file-to-group
 			   (directory-file-name dir) nnml-directory))
@@ -873,7 +895,7 @@ Unless no-active is non-nil, update the active file too."
   (let* ((dir (file-name-as-directory dir))
 	 (nov (concat dir nnml-nov-file-name))
 	 (nov-buffer (gnus-get-buffer-create " *nov*"))
-	 chars file headers)
+	 chars headers) ;; file
     (with-current-buffer nov-buffer
       ;; Init the nov buffer.
       (buffer-disable-undo)
@@ -994,7 +1016,7 @@ Use the nov database for the current group if available."
   (unless nnml-article-file-alist
     (setq nnml-article-file-alist
 	  (sort (nnml-current-group-article-to-file-alist)
-		'car-less-than-car)))
+		#'car-less-than-car)))
   (if (not nnml-article-file-alist)
       ;; The group is empty: do nothing but return t
       t
@@ -1044,7 +1066,7 @@ Use the nov database for the current group if available."
 					(regexp-quote
 					 (concat group ":" old-number-string))
 					"\\>")
-				(point-at-eol) t))
+                                (line-end-position) t))
 		      (replace-match
 		       (concat group ":" new-number-string)))
 		    ;; Save to the new file:
@@ -1062,21 +1084,20 @@ Use the nov database for the current group if available."
 		;; #### doing anything on them.
 		;; 2 a/ read articles:
 		(let ((read (gnus-info-read info)))
-		  (setq read (gnus-remove-from-range read (list new-number)))
-		  (when (gnus-member-of-range old-number read)
-		    (setq read (gnus-remove-from-range read (list old-number)))
-		    (setq read (gnus-add-to-range read (list new-number))))
+		  (setq read (range-remove read (list new-number)))
+		  (when (range-member-p old-number read)
+		    (setq read (range-remove read (list old-number)))
+		    (setq read (range-add-list read (list new-number))))
 		  (setf (gnus-info-read info) read))
 		;; 2 b/ marked articles:
 		(let ((oldmarks (gnus-info-marks info))
 		      mark newmarks)
 		  (while (setq mark (pop oldmarks))
-		    (setcdr mark (gnus-remove-from-range (cdr mark)
-							 (list new-number)))
-		    (when (gnus-member-of-range old-number (cdr mark))
-		      (setcdr mark (gnus-remove-from-range (cdr mark)
-							   (list old-number)))
-		      (setcdr mark (gnus-add-to-range (cdr mark)
+		    (setcdr mark (range-remove (cdr mark) (list new-number)))
+		    (when (range-member-p old-number (cdr mark))
+		      (setcdr mark (range-remove (cdr mark)
+						 (list old-number)))
+		      (setcdr mark (range-add-list (cdr mark)
 						      (list new-number))))
 		    (push mark newmarks))
 		  (setf (gnus-info-marks info) newmarks))
@@ -1093,7 +1114,7 @@ Use the nov database for the current group if available."
 				     (regexp-quote
 				      (concat group ":" old-number-string))
 				     "\\>")
-			     (point-at-eol) t)
+                             (line-end-position) t)
 			(replace-match
 			 (concat "\\1" group ":" new-number-string))))))
 		;; 4/ Possibly remove the article from the backlog:

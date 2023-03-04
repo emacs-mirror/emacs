@@ -223,7 +223,7 @@ int WorkingDays(Date a, Date b){
 	return(wdays);
 }
 
-Date StartDay(Date a,int days){//Function to calculate the apropriate start day to finish in days working days
+Date StartDay(Date a,int days){//Function to calculate the appropriate start day to finish in days working days
 	Date tmp;
 	int wdays=0;
 	if ( ! a.set() )

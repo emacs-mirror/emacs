@@ -1,6 +1,6 @@
 ;;; let-alist.el --- Easily let-bind values of an assoc-list by their names -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2023 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; Package-Requires: ((emacs "24.1"))
@@ -57,7 +57,7 @@
 ;;       .site.contents))
 ;;
 ;; If you nest `let-alist' invocations, the inner one can't access
-;; the variables of the outer one. You can, however, access alists
+;; the variables of the outer one.  You can, however, access alists
 ;; inside the original alist by using dots inside the symbol, as
 ;; displayed in the example above by the `.site.contents'.
 ;;
@@ -137,7 +137,7 @@ essentially expands to
       .site.contents))
 
 If you nest `let-alist' invocations, the inner one can't access
-the variables of the outer one. You can, however, access alists
+the variables of the outer one.  You can, however, access alists
 inside the original alist by using dots inside the symbol, as
 displayed in the example above."
   (declare (indent 1) (debug t))

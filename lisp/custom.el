@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2023 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -67,8 +67,10 @@ symbol."
 
 (defun custom-initialize-set (symbol exp)
   "Initialize SYMBOL based on EXP.
-If the symbol doesn't have a default binding already,
-then set it using its `:set' function (or `set-default' if it has none).
+If the symbol doesn't have a default binding already, then set it
+using its `:set' function (or `set-default-toplevel-value' if it
+has none).
+
 The value is either the value in the symbol's `saved-value' property,
 if any, or the value of EXP."
   (condition-case nil
@@ -81,11 +83,27 @@ if any, or the value of EXP."
 
 (defun custom-initialize-reset (symbol exp)
   "Initialize SYMBOL based on EXP.
-Set the symbol, using its `:set' function (or `set-default' if it has none).
+Set the symbol, using its `:set' function (or `set-default-toplevel-value'
+if it has none).
+
 The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) the value of EXP."
+  ;; If this value has been set with `setopt' (for instance in
+  ;; ~/.emacs), we didn't necessarily know the type of the user option
+  ;; then.  So check now, and issue a warning if it's wrong.
+  (let ((value (get symbol 'custom-check-value)))
+    (when value
+      (let ((type (get symbol 'custom-type)))
+        (when (and type
+                   (boundp symbol)
+                   (eq (car value) (symbol-value symbol))
+                   ;; Check that the type is correct.
+                   (not (widget-apply (widget-convert type)
+                                      :match (car value))))
+          (warn "Value `%S' for `%s' does not match type %s"
+                value symbol type)))))
   (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
            (condition-case nil
@@ -100,7 +118,7 @@ or (last of all) the value of EXP."
   "Initialize SYMBOL with EXP.
 Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
-For the standard setting, use `set-default'."
+For the standard setting, use `set-default-toplevel-value'."
   (condition-case nil
       (let ((def (default-toplevel-value symbol)))
         (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
@@ -114,33 +132,31 @@ For the standard setting, use `set-default'."
                 symbol
                 (eval (car (get symbol 'saved-value)))))
       (t
-       (set-default symbol (eval exp)))))))
+       (set-default-toplevel-value symbol (eval exp)))))))
 
 (defvar custom-delayed-init-variables nil
-  "List of variables whose initialization is pending.")
+  "List of variables whose initialization is pending until startup.
+Once this list has been processed, this var is set to a non-list value.")
 
-(defun custom-initialize-delay (symbol _value)
+(defun custom-initialize-delay (symbol value)
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
 context rather than the build-time context.  This also has the
 side-effect that the (delayed) initialization is performed with
-the :set function.
-
-For variables in preloaded files, you can simply use this
-function for the :initialize property.  For autoloaded variables,
-you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property.
-Or you can wrap the defcustom in a progn, to force the autoloader
-to include all of it."		   ; see eg vc-sccs-search-project-dir
-  ;; No longer true:
-  ;; "See `send-mail-function' in sendmail.el for an example."
+the :set function."
+  ;; Defvar it so as to mark it special, etc (bug#25770).
+  (internal--define-uninitialized-variable symbol)
 
   ;; Until the var is actually initialized, it is kept unbound.
   ;; This seemed to be at least as good as setting it to an arbitrary
   ;; value like nil (evaluating `value' is not an option because it
   ;; may have undesirable side-effects).
-  (push symbol custom-delayed-init-variables))
+  (if (listp custom-delayed-init-variables)
+      (push symbol custom-delayed-init-variables)
+    ;; In case this is called after startup, there is no "later" to which to
+    ;; delay it, so initialize it "normally" (bug#47072).
+    (custom-initialize-reset symbol value)))
 
 (defun custom-declare-variable (symbol default doc &rest args)
   "Like `defcustom', but SYMBOL and DEFAULT are evaluated as normal arguments.
@@ -157,9 +173,13 @@ set to nil, as the value is no longer rogue."
   (if (keywordp doc)
       (error "Doc string is missing"))
   (let ((initialize #'custom-initialize-reset)
-	(requests nil))
+        (requests nil)
+        ;; Whether automatically buffer-local.
+        buffer-local)
     (unless (memq :group args)
-      (custom-add-to-group (custom-current-group) symbol 'custom-variable))
+      (let ((cg (custom-current-group)))
+        (when cg
+          (custom-add-to-group cg symbol 'custom-variable))))
     (while args
       (let ((keyword (pop args)))
 	(unless (symbolp keyword)
@@ -183,7 +203,7 @@ set to nil, as the value is no longer rogue."
 		 (put symbol 'safe-local-variable value))
                 ((eq keyword :local)
                  (when (memq value '(t permanent))
-                   (make-variable-buffer-local symbol))
+                   (setq buffer-local t))
                  (when (eq value 'permanent)
                    (put symbol 'permanent-local t)))
 		((eq keyword :type)
@@ -205,7 +225,24 @@ set to nil, as the value is no longer rogue."
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
     (unless custom-dont-initialize
-      (funcall initialize symbol default)))
+      (funcall initialize symbol default)
+      ;; If there is a value under saved-value that wasn't saved by the user,
+      ;; reset it: we used that property to stash the value, but we don't need
+      ;; it anymore.
+      ;; This can happen given the following:
+      ;; 1. The user loaded a theme that had a setting for an unbound
+      ;; variable, so we stashed the theme setting under the saved-value
+      ;; property in `custom-theme-recalc-variable'.
+      ;; 2. Then, Emacs evaluated the defcustom for the option
+      ;; (e.g., something required the file where the option is defined).
+      ;; If we don't reset it and the user later sets this variable via
+      ;; Customize, we might end up saving the theme setting in the custom-file.
+      ;; See the test `custom-test-no-saved-value-after-customizing-option'.
+      (let ((theme (caar (get symbol 'theme-value))))
+        (when (and theme (not (eq theme 'user)) (get symbol 'saved-value))
+          (put symbol 'saved-value nil))))
+    (when buffer-local
+      (make-variable-buffer-local symbol)))
   (run-hooks 'custom-define-hook)
   symbol)
 
@@ -231,6 +268,8 @@ The following keywords are meaningful:
 
 :type	VALUE should be a widget type for editing the symbol's value.
 	Every `defcustom' should specify a value for this keyword.
+        See Info node `(elisp) Customization Types' for a list of
+        base types and useful composite types.
 :options VALUE should be a list of valid members of the widget type.
 :initialize
 	VALUE should be a function used to initialize the
@@ -241,11 +280,11 @@ The following keywords are meaningful:
 	when using the Customize user interface.  It takes two arguments,
 	the symbol to set and the value to give it.  The function should
 	not modify its value argument destructively.  The default choice
-	of function is `set-default'.
+	of function is `set-default-toplevel-value'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
-	is `default-value'.
+	is `default-toplevel-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your init file loads the value,
@@ -343,13 +382,14 @@ call that function directly.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
-  (declare (doc-string 3) (debug (name body)))
+  (declare (doc-string 3) (debug (name body))
+           (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
   `(custom-declare-variable
     ',symbol
-    ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
+    ,(if lexical-binding
          ;; The STANDARD arg should be an expression that evaluates to
          ;; the standard value.  The use of `eval' for it is spread
          ;; over many different places and hence difficult to
@@ -357,7 +397,7 @@ for more information."
          ;; expression is checked by the byte-compiler, and that
          ;; lexical-binding is obeyed, so quote the expression with
          ;; `lambda' rather than with `quote'.
-         ``(funcall #',(lambda () ,standard))
+         ``(funcall #',(lambda () "" ,standard))
        `',standard)
     ,doc
     ,@args))
@@ -426,7 +466,7 @@ In the ATTS property list, possible attributes are `:family',
 
 See Info node `(elisp) Faces' in the Emacs Lisp manual for more
 information."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -486,11 +526,15 @@ The remaining arguments should have the form
    [KEYWORD VALUE]...
 
 For a list of valid keywords, see the common keywords listed in
-`defcustom'.
+`defcustom'.  The keyword :prefix can only be used for
+customization groups, and means that the given string should be
+removed from variable names before creating unlispified names,
+when the user option `custom-unlispify-remove-prefixes' is
+non-nil.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -521,7 +565,9 @@ If no such group is found, return nil."
   "For customization option SYMBOL, handle keyword arguments ARGS.
 Third argument TYPE is the custom option type."
   (unless (memq :group args)
-    (custom-add-to-group (custom-current-group) symbol type))
+    (let ((cg (custom-current-group)))
+      (when cg
+        (custom-add-to-group cg symbol type))))
   (while args
     (let ((arg (car args)))
       (setq args (cdr args))
@@ -619,12 +665,15 @@ If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
 A customizable variable is either (i) a variable whose property
 list contains a non-nil `standard-value' or `custom-autoload'
 property, or (ii) an alias for another customizable variable."
+  (declare (side-effect-free t))
   (when (symbolp variable)
     (setq variable (indirect-variable variable))
     (or (get variable 'standard-value)
 	(get variable 'custom-autoload))))
 
-(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
+(defun custom--standard-value (variable)
+  "Return the standard value of VARIABLE."
+  (eval (car (get variable 'standard-value)) t))
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
@@ -685,7 +734,7 @@ this sets the local binding in that buffer instead."
   (if custom-local-buffer
       (with-current-buffer custom-local-buffer
 	(set variable value))
-    (set-default variable value)))
+    (set-default-toplevel-value variable value)))
 
 (defun custom-set-minor-mode (variable value)
   ":set function for minor mode variables.
@@ -758,6 +807,9 @@ Return non-nil if the `customized-value' property actually changed."
 	(progn (put symbol 'customized-value (list (custom-quote value)))
 	       (custom-push-theme 'theme-value symbol 'user 'set
 				  (custom-quote value)))
+      (custom-push-theme 'theme-value symbol 'user
+                         (if (get symbol 'saved-value) 'set 'reset)
+                         (custom-quote value))
       (put symbol 'customized-value nil))
     ;; Changed?
     (not (equal customized (get symbol 'customized-value)))))
@@ -767,8 +819,7 @@ Return non-nil if the `customized-value' property actually changed."
 Use the :set function to do so.  This is useful for customizable options
 that are defined before their standard value can really be computed.
 E.g. dumped variables whose default depends on run-time information."
-  ;; If it has never been set at all, defvar it so as to mark it
-  ;; special, etc (bug#25770).  This means we are initializing
+  ;; We are initializing
   ;; the variable, and normally any :set function would not apply.
   ;; For custom-initialize-delay, however, it is documented that "the
   ;; (delayed) initialization is performed with the :set function".
@@ -776,11 +827,10 @@ E.g. dumped variables whose default depends on run-time information."
   ;; custom-initialize-delay but needs the :set function custom-set-minor-mode
   ;; to also run during initialization.  So, long story short, we
   ;; always do the funcall step, even if symbol was not bound before.
-  (or (default-boundp symbol)
-      (eval `(defvar ,symbol nil))) ; reset below, so any value is fine
   (funcall (or (get symbol 'custom-set) #'set-default)
 	   symbol
-	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
+	   (eval (car (or (get symbol 'saved-value)
+	                  (get symbol 'standard-value))))))
 
 
 ;;; Custom Themes
@@ -859,7 +909,7 @@ symbol `set', then VALUE is the value to use.  If it is the symbol
 `reset', then SYMBOL will be removed from THEME (VALUE is ignored).
 
 See `custom-known-themes' for a list of known themes."
-  (unless (memq prop '(theme-value theme-face))
+  (unless (memq prop '(theme-value theme-face theme-icon))
     (error "Unknown theme property"))
   (let* ((old (get symbol prop))
 	 (setting (assq theme old))  ; '(theme value)
@@ -898,13 +948,21 @@ See `custom-known-themes' for a list of known themes."
 	  ;; the value to a fake theme, `changed'.  If the theme is
 	  ;; later disabled, we use this to bring back the old value.
 	  ;;
-	  ;; For faces, we just use `face-new-frame-defaults' to
+	  ;; For faces, we just use `face--new-frame-defaults' to
 	  ;; recompute when the theme is disabled.
 	  (when (and (eq prop 'theme-value)
 		     (boundp symbol))
 	    (let ((sv  (get symbol 'standard-value))
 		  (val (symbol-value symbol)))
-	      (unless (and sv (equal (eval (car sv)) val))
+	      (unless (or
+                       ;; We only do this trick if the current value
+                       ;; is different from the standard value.
+                       (and sv (equal (eval (car sv)) val))
+                       ;; And we don't do it if we would end up recording
+                       ;; the same value for the user theme.  This way we avoid
+                       ;; having ((user VALUE) (changed VALUE)).  That would be
+                       ;; useless, because we don't disable the user theme.
+                       (and (eq theme 'user) (equal (custom-quote val) value)))
 		(setq old `((changed ,(custom-quote val))))))))
 	(put symbol prop (cons (list theme value) old)))
       (put theme 'theme-settings
@@ -999,7 +1057,10 @@ COMMENT is a comment string about SYMBOL."
 	       set)
 	  (when requests
 	    (put symbol 'custom-requests requests)
-            (mapc #'require requests))
+            ;; Load any libraries that the setting has specified as
+            ;; being required, but don't error out if the package has
+            ;; been removed.
+            (mapc (lambda (lib) (require lib nil t)) requests))
           (setq set (or (get symbol 'custom-set) #'custom-set-default))
 	  (put symbol 'saved-value (list value))
 	  (put symbol 'saved-variable-comment comment)
@@ -1092,35 +1153,39 @@ list, in which A occurs before B if B was defined with a
 ;;   (provide-theme 'THEME)
 
 
-;; The IGNORED arguments to deftheme come from the XEmacs theme code, where
-;; they were used to supply keyword-value pairs like `:immediate',
-;; `:variable-reset-string', etc.  We don't use any of these, so ignore them.
-
-(defmacro deftheme (theme &optional doc &rest _ignored)
+(defmacro deftheme (theme &optional doc &rest properties)
   "Declare THEME to be a Custom theme.
 The optional argument DOC is a doc string describing the theme.
+PROPERTIES are interpreted as a property list that will be stored
+in the `theme-properties' property for THEME.
 
 Any theme `foo' should be defined in a file called `foo-theme.el';
 see `custom-make-theme-feature' for more information."
   (declare (doc-string 2)
-           (advertised-calling-convention (theme &optional doc) "22.1"))
+           (indent 1))
   (let ((feature (custom-make-theme-feature theme)))
     ;; It is better not to use backquote in this file,
     ;; because that makes a bootstrapping problem
     ;; if you need to recompile all the Lisp files using interpreted code.
-    (list 'custom-declare-theme (list 'quote theme) (list 'quote feature) doc)))
+    (list 'custom-declare-theme (list 'quote theme) (list 'quote feature) doc
+          (cons 'list properties))))
 
-(defun custom-declare-theme (theme feature &optional doc &rest _ignored)
+(defun custom-declare-theme (theme feature &optional doc properties)
   "Like `deftheme', but THEME is evaluated as a normal argument.
-FEATURE is the feature this theme provides.  Normally, this is a symbol
-created from THEME by `custom-make-theme-feature'."
-  (declare (advertised-calling-convention (theme feature &optional doc) "22.1"))
+FEATURE is the feature this theme provides.  Normally, this is a
+symbol created from THEME by `custom-make-theme-feature'.  The
+optional argument DOC may contain the documentation for THEME.
+The optional argument PROPERTIES may contain a property list of
+attributes associated with THEME."
   (unless (custom-theme-name-valid-p theme)
     (error "Custom theme cannot be named %S" theme))
   (unless (memq theme custom-known-themes)
     (push theme custom-known-themes))
   (put theme 'theme-feature feature)
-  (when doc (put theme 'theme-documentation doc)))
+  (when doc
+    (put theme 'theme-documentation doc))
+  (when properties
+    (put theme 'theme-properties properties)))
 
 (defun custom-make-theme-feature (theme)
   "Given a symbol THEME, create a new symbol by appending \"-theme\".
@@ -1180,6 +1245,32 @@ property `theme-feature' (which is usually a symbol created by
     (error "Custom theme cannot be named %S" theme))
   (custom-check-theme theme)
   (provide (get theme 'theme-feature)))
+
+(defun require-theme (feature &optional noerror)
+  "Load FEATURE from a file along `custom-theme-load-path'.
+
+This function is like `require', but searches along
+`custom-theme-load-path' instead of `load-path'.  It can be used
+by Custom themes to load supporting Lisp files when `require' is
+unsuitable.
+
+If FEATURE is not already loaded, search for a file named FEATURE
+with an added `.elc' or `.el' suffix, in that order, in the
+directories specified by `custom-theme-load-path'.
+
+Return FEATURE if the file is successfully found and loaded, or
+if FEATURE was already loaded.  If the file fails to load, signal
+an error.  If optional argument NOERROR is non-nil, return nil
+instead of signaling an error.  If the file loads but does not
+provide FEATURE, signal an error.  This cannot be suppressed."
+  (cond
+   ((featurep feature) feature)
+   ((let* ((path (custom-theme--load-path))
+           (file (locate-file (symbol-name feature) path '(".elc" ".el"))))
+      (and file (require feature (file-name-sans-extension file) noerror))))
+   ((not noerror)
+    (signal 'file-missing `("Cannot open load file" "No such file or directory"
+                            ,(symbol-name feature))))))
 
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
@@ -1266,6 +1357,13 @@ Return t if THEME was successfully loaded, nil otherwise."
                  t))))
           (t
            (error "Unable to load theme `%s'" theme))))
+  (when-let ((obs (get theme 'byte-obsolete-info)))
+    (display-warning 'initialization
+                     (format "The `%s' theme is obsolete%s"
+                             theme
+                             (if (nth 2 obs)
+                                 (format " since Emacs %s" (nth 2 obs))
+                               ""))))
   ;; Optimization: if the theme changes the `default' face, put that
   ;; entry first.  This avoids some `frame-set-background-mode' rigmarole
   ;; by assigning the new background immediately.
@@ -1283,6 +1381,58 @@ Return t if THEME was successfully loaded, nil otherwise."
   (unless no-enable
     (enable-theme theme))
   t)
+
+(defun theme-list-variants (theme &rest list)
+  "Return a list of theme variants for THEME.
+By default this will use all known custom themes (see
+`custom-available-themes') to check for variants.  This can be
+restricted if the optional argument LIST containing a list of
+theme symbols to consider."
+  (let* ((properties (get theme 'theme-properties))
+         (family (plist-get properties :family)))
+    (seq-filter
+     (lambda (variant)
+       (and (eq (plist-get (get variant 'theme-properties) :family)
+                family)
+            (not (eq variant theme))))
+     (or list (custom-available-themes)))))
+
+(defun theme-choose-variant (&optional no-confirm no-enable)
+  "Switch from the current theme to one of its variants.
+The current theme will be disabled before variant is enabled.  If
+the current theme has only one variant, switch to that variant
+without prompting, otherwise prompt for the variant to select.
+See `load-theme' for the meaning of NO-CONFIRM and NO-ENABLE."
+  (interactive)
+  (let ((active-color-schemes
+         (seq-filter
+          (lambda (theme)
+            ;; FIXME: As most themes currently do not have a `:kind'
+            ;; tag, it is assumed that a theme is a color scheme by
+            ;; default.  This should be reconsidered in the future.
+            (memq (plist-get (get theme 'theme-properties) :kind)
+                  '(color-scheme nil)))
+          custom-enabled-themes)))
+    (cond
+     ((length= active-color-schemes 0)
+      (user-error "No theme is active, cannot toggle"))
+     ((length> active-color-schemes 1)
+      (user-error "More than one theme active, cannot unambiguously toggle")))
+    (let* ((theme (car active-color-schemes))
+           (family (plist-get (get theme 'theme-properties) :family)))
+      (unless family
+        (error "Theme `%s' does not have any known variants" theme))
+      (let* ((variants (theme-list-variants theme))
+             (choice (cond
+                      ((null variants)
+                       (error "`%s' has no variants" theme))
+                      ((length= variants 1)
+                       (car variants))
+                      ((intern (completing-read "Load custom theme: " variants))))))
+        (disable-theme theme)
+        (load-theme choice no-confirm no-enable)))))
+
+(defalias 'toggle-theme #'theme-choose-variant)
 
 (defun custom-theme-load-confirm (hash)
   "Query the user about loading a Custom theme that may not be safe.
@@ -1350,6 +1500,22 @@ are not directories are omitted from the expansion."
 
 ;;; Enabling and disabling loaded themes.
 
+(defcustom enable-theme-functions nil
+  "Abnormal hook that is run after a theme has been enabled.
+The functions in the hook are called with one parameter -- the
+ name of the theme that's been enabled (as a symbol)."
+  :type 'hook
+  :group 'customize
+  :version "29.1")
+
+(defcustom disable-theme-functions nil
+  "Abnormal hook that is run after a theme has been disabled.
+The functions in the hook are called with one parameter -- the
+ name of the theme that's been disabled (as a symbol)."
+  :type 'hook
+  :group 'customize
+  :version "29.1")
+
 (defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 THEME should be either `user', or a theme loaded via `load-theme'.
@@ -1358,20 +1524,45 @@ After this function completes, THEME will have the highest
 precedence (after `user') among enabled themes.
 
 Note that any already-enabled themes remain enabled after this
-function runs.  To disable other themes, use `disable-theme'."
+function runs.  To disable other themes, use `disable-theme'.
+
+After THEME has been enabled, runs `enable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Enable custom theme: "
 		       obarray (lambda (sym) (get sym 'theme-settings)) t))))
   (unless (custom-theme-p theme)
     (error "Undefined Custom theme %s" theme))
-  (let ((settings (get theme 'theme-settings)))
+  (let ((settings (get theme 'theme-settings)) ; '(prop symbol theme value)
+        ;; We are enabling the theme, so don't inhibit enabling it.  (Bug#34027)
+        (custom--inhibit-theme-enable nil))
     ;; Loop through theme settings, recalculating vars/faces.
     (dolist (s settings)
       (let* ((prop (car s))
-	     (symbol (cadr s))
-	     (spec-list (get symbol prop)))
-	(put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
+             (symbol (cadr s))
+             (spec-list (get symbol prop))
+             (sv (get symbol 'standard-value))
+             (val (and (boundp symbol) (symbol-value symbol))))
+        ;; We can't call `custom-push-theme' when enabling the theme: it's not
+        ;; that the theme settings have changed, it's just that we want to
+        ;; enable those settings.  But we might need to save a user setting
+        ;; outside of Customize, in order to get back to it when disabling
+        ;; the theme, just like in `custom-push-theme'.
+        (when (and (custom--should-apply-setting theme)
+                   ;; Only do it for variables; for faces, using
+                   ;; `face-new-frame-defaults' is enough.
+                   (eq prop 'theme-value)
+                   (boundp symbol)
+                   (not (or spec-list
+                            ;; Only if the current value is different from
+                            ;; the standard value.
+                            (and sv (equal (eval (car sv)) val))
+                            ;; And only if the changed value is different
+                            ;; from the new value under the user theme.
+                            (and (eq theme 'user)
+                                 (equal (custom-quote val) (nth 3 s))))))
+          (setq spec-list `((changed ,(custom-quote val)))))
+        (put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
 	(cond
 	 ((eq prop 'theme-face)
 	  (custom-theme-recalc-face symbol))
@@ -1383,7 +1574,9 @@ function runs.  To disable other themes, use `disable-theme'."
     (setq custom-enabled-themes
 	  (cons theme (remq theme custom-enabled-themes)))
     ;; Give the `user' theme the highest priority.
-    (enable-theme 'user)))
+    (enable-theme 'user))
+  ;; Allow callers to react to the enabling.
+  (run-hook-with-args 'enable-theme-functions theme))
 
 (defcustom custom-enabled-themes nil
   "List of enabled Custom Themes, highest precedence first.
@@ -1428,7 +1621,9 @@ Setting this variable through Customize calls `enable-theme' or
 
 (defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
-See `custom-enabled-themes' for a list of enabled themes."
+See `custom-enabled-themes' for a list of enabled themes.
+
+After THEME has been disabled, runs `disable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Disable custom theme: "
@@ -1440,10 +1635,18 @@ See `custom-enabled-themes' for a list of enabled themes."
 	(let* ((prop   (car s))
 	       (symbol (cadr s))
 	       (val (assq-delete-all theme (get symbol prop))))
-	  (put symbol prop val)
+          (put symbol prop val)
 	  (cond
 	   ((eq prop 'theme-value)
-	    (custom-theme-recalc-variable symbol))
+            (custom-theme-recalc-variable symbol)
+            ;; We might have to reset the stashed value of the variable, if
+            ;; no other theme is customizing it.  Without this, loading a theme
+            ;; that has a setting for an unbound user option and then disabling
+            ;; it will leave this lingering setting for the option, and if then
+            ;; Emacs evaluates the defcustom the saved-value might be used to
+            ;; set the variable.  (Bug#20766)
+            (unless (get symbol 'theme-value)
+              (put symbol 'saved-value nil)))
 	   ((eq prop 'theme-face)
 	    ;; If the face spec specified by this theme is in the
 	    ;; saved-face property, reset that property.
@@ -1464,7 +1667,9 @@ See `custom-enabled-themes' for a list of enabled themes."
                             "unspecified-fg" "black"))
       (face-set-after-frame-default frame))
     (setq custom-enabled-themes
-          (delq theme custom-enabled-themes))))
+          (delq theme custom-enabled-themes))
+    ;; Allow callers to react to the disabling.
+    (run-hook-with-args 'disable-theme-functions theme)))
 
 ;; Only used if window-system not null.
 (declare-function x-get-resource "frame.c"
@@ -1492,8 +1697,16 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 (defun custom-theme-recalc-variable (variable)
   "Set VARIABLE according to currently enabled custom themes."
   (let ((valspec (custom-variable-theme-value variable)))
-    (if valspec
-	(put variable 'saved-value valspec)
+    ;; We used to save VALSPEC under the saved-value property unconditionally,
+    ;; but that is a recipe for trouble because we might end up saving session
+    ;; customizations if the user loads a theme.  (Bug#21355)
+    ;; It's better to only use the saved-value property to stash the value only
+    ;; if we really need to stash it (i.e., VARIABLE is void).
+    (condition-case nil
+        (default-toplevel-value variable) ; See if it doesn't fail.
+      (void-variable (when valspec
+                       (put variable 'saved-value valspec))))
+    (unless valspec
       (setq valspec (get variable 'standard-value)))
     (if (and valspec
 	     (or (get variable 'force-value)
@@ -1539,9 +1752,29 @@ Each of the arguments ARGS has this form:
     (VARIABLE IGNORED)
 
 This means reset VARIABLE.  (The argument IGNORED is ignored)."
+  (declare (obsolete nil "29.1"))
     (apply #'custom-theme-reset-variables 'user args))
 
-;;; The End.
+(defun custom-add-choice (variable choice)
+  "Add CHOICE to the custom type of VARIABLE.
+If a choice with the same tag already exists, no action is taken."
+  (let ((choices (get variable 'custom-type)))
+    (unless (eq (car choices) 'choice)
+      (error "Not a choice type: %s" choices))
+    (unless (seq-find (lambda (elem)
+                        (equal (caddr (member :tag elem))
+                               (caddr (member :tag choice))))
+                      (cdr choices))
+      ;; Put the new choice at the end.
+      (put variable 'custom-type
+           (append choices (list choice))))))
+
+(defun custom--add-custom-loads (symbol loads)
+  ;; Don't overwrite existing `custom-loads'.
+  (dolist (load (get symbol 'custom-loads))
+    (unless (memq load loads)
+      (push load loads)))
+  (put symbol 'custom-loads loads))
 
 (provide 'custom)
 

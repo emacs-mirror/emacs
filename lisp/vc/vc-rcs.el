@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2023 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -40,8 +40,8 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc))
+(require 'log-view)
 
-(declare-function vc-branch-p "vc" (rev))
 (declare-function vc-read-revision "vc"
                   (prompt &optional files backend default initial-input))
 (declare-function vc-buffer-context "vc-dispatcher" ())
@@ -58,8 +58,7 @@
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
-		 (const :tag "Unknown" unknown))
-  :group 'vc-rcs)
+		 (const :tag "Unknown" unknown)))
 
 (defcustom vc-rcs-register-switches nil
   "Switches for registering a file in RCS.
@@ -70,8 +69,7 @@ If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 (defcustom vc-rcs-diff-switches nil
   "String or list of strings specifying switches for RCS diff under VC.
@@ -80,21 +78,18 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 (defcustom vc-rcs-header '("$Id\ $")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
-  :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc-rcs)
+  :version "24.1")     ; no longer consult the obsolete vc-header-alist
 
 (defcustom vc-rcsdiff-knows-brief nil
   "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
-  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc-rcs)
+  :type '(choice (const :tag "Work out" nil) (const yes) (const no)))
 
 ;; This needs to be autoloaded because vc-rcs-registered uses it (via
 ;; vc-default-registered), and vc-hooks needs to be able to check
@@ -105,12 +100,11 @@ to use --brief and sets this variable to remember whether it worked."
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
-			'("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
+			("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 
 ;;; Properties of the backend
@@ -179,6 +173,19 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-rcs-dir-extra-headers (&rest _ignore))
 
+;; functions that operate on RCS revision numbers.
+(defun vc-rcs-branch-p (rev)
+  "Return t if REV is a branch revision."
+  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
+(define-obsolete-function-alias 'vc-branch-p #'vc-rcs-branch-p "28.1")
+
+(defun vc-rcs-branch-part (rev)
+  "Return the branch part of a revision number REV."
+  (let ((index (string-match "\\.[0-9]+\\'" rev)))
+    (when index
+      (substring rev 0 index))))
+(define-obsolete-function-alias 'vc-branch-part #'vc-rcs-branch-part "28.1")
+
 (defun vc-rcs-working-revision (file)
   "RCS-specific version of `vc-working-revision'."
   (or (and vc-consult-headers
@@ -204,7 +211,7 @@ When VERSION is given, perform check for that version."
 	       ;; If we are not on the trunk, we need to examine the
 	       ;; whole current branch.
 	       (vc-insert-file (vc-master-name file) "^desc")
-	       (vc-rcs-find-most-recent-rev (vc-branch-part version))))))
+	       (vc-rcs-find-most-recent-rev (vc-rcs-branch-part version))))))
 
 (defun vc-rcs-workfile-unchanged-p (file)
   "Has FILE remained unchanged since last checkout?"
@@ -236,7 +243,7 @@ When VERSION is given, perform check for that version."
 (autoload 'vc-switches "vc")
 
 (defun vc-rcs-register (files &optional comment)
-  "Register FILES into the RCS version-control system.
+  "Register FILES into the RCS version control system.
 Automatically retrieve a read-only version of the file with keywords expanded.
 COMMENT can be used to provide an initial description for each FILES.
 Passes either `vc-rcs-register-switches' or `vc-register-switches'
@@ -247,7 +254,7 @@ to the RCS command."
 		 (setq subdir (expand-file-name "RCS"
 						(file-name-directory file)))))
 	   (not (directory-files (file-name-directory file)
-				 nil ".*,v$" t))
+				 nil ",v\\'" t))
 	   (yes-or-no-p "Create RCS subdirectory? ")
 	   (make-directory subdir))
       (apply #'vc-do-command "*vc*" 0 "ci" file
@@ -282,12 +289,13 @@ to the RCS command."
 			   (match-string 1))))))
 
 (defun vc-rcs-responsible-p (file)
-  "Return non-nil if RCS thinks it would be responsible for registering FILE."
+  "Return the directory if RCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
-  (file-directory-p (expand-file-name "RCS"
-                                      (if (file-directory-p file)
-                                          file
-                                        (file-name-directory file)))))
+  (let ((dir (if (file-directory-p file)
+	         file
+	       (file-name-directory file))))
+    (and (file-directory-p (expand-file-name "RCS" dir))
+         (file-name-directory (expand-file-name "RCS" dir)))))
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."
@@ -312,8 +320,7 @@ whether to remove it."
       (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
 	   ;; check whether RCS dir is empty, i.e. it does not
 	   ;; contain any files except "." and ".."
-	   (not (directory-files dir nil
-				 "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
+	   (not (directory-files dir nil directory-files-no-dot-files-regexp))
 	   (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	   (delete-directory dir)))))
 
@@ -333,7 +340,7 @@ whether to remove it."
 	     (setq rev default-branch)
 	     (setq switches (cons "-f" switches)))
 	(if (and (not rev) old-version)
-	    (setq rev (vc-branch-part old-version)))
+	    (setq rev (vc-rcs-branch-part old-version)))
 	(apply #'vc-do-command "*vc*" 0 "ci" (vc-master-name file)
 	       ;; if available, use the secure check-in option
 	       (and (vc-rcs-release-p "5.6.4") "-j")
@@ -356,11 +363,11 @@ whether to remove it."
 	;; branch accordingly
 	(cond
 	 ((and old-version new-version
-	       (not (string= (vc-branch-part old-version)
-			     (vc-branch-part new-version))))
+	       (not (string= (vc-rcs-branch-part old-version)
+			     (vc-rcs-branch-part new-version))))
 	  (vc-rcs-set-default-branch file
 				     (if (vc-rcs-trunk-p new-version) nil
-				       (vc-branch-part new-version)))
+				       (vc-rcs-branch-part new-version)))
 	  ;; If this is an old (pre-1992!) RCS release, we might have
 	  ;; to remove a remaining lock.
 	  (if (not (vc-rcs-release-p "5.6.2"))
@@ -377,10 +384,11 @@ whether to remove it."
 	 (vc-switches 'RCS 'checkout)))
 
 (defun vc-rcs-checkout (file &optional rev)
-  "Retrieve a copy of a saved version of FILE.  If FILE is a directory,
-attempt the checkout for all registered files beneath it."
+  "Retrieve a copy of a saved version of FILE.
+If FILE is a directory, attempt the checkout for all registered
+files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-checkout (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-checkout (vc-expand-dirs (list file) 'RCS))
     (let ((file-buffer (get-file-buffer file))
 	  switches)
       (message "Checking out %s..." file)
@@ -421,7 +429,7 @@ attempt the checkout for all registered files beneath it."
 				       ;; REV is t ...
 				       (if (not (vc-rcs-trunk-p workrev))
 					   ;; ... go to head of current branch
-					   (vc-branch-part workrev)
+					   (vc-rcs-branch-part workrev)
 					 ;; ... go to head of trunk
 					 (vc-rcs-set-default-branch file
                                                                   nil)
@@ -438,15 +446,15 @@ attempt the checkout for all registered files beneath it."
 		  file
 		  (if (vc-rcs-latest-on-branch-p file new-version)
 		      (if (vc-rcs-trunk-p new-version) nil
-			(vc-branch-part new-version))
+			(vc-rcs-branch-part new-version))
 		    new-version)))))
 	(message "Checking out %s...done" file))))))
 
 (defun vc-rcs-revert (file &optional _contents-done)
-  "Revert FILE to the version it was based on.  If FILE is a directory,
-revert all registered files beneath it."
+  "Revert FILE to the version it was based on.
+If FILE is a directory, revert all registered files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-revert (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-revert (vc-expand-dirs (list file) 'RCS))
     (vc-do-command "*vc*" 0 "co" (vc-master-name file) "-f"
 		   (concat (if (eq (vc-state file) 'edited) "-u" "-r")
 			   (vc-working-revision file)))))
@@ -463,17 +471,17 @@ revert all registered files beneath it."
      ((string= first-revision "")
       (error "A starting RCS revision is required"))
      (t
-      (if (not (vc-branch-p first-revision))
+      (if (not (vc-rcs-branch-p first-revision))
          (setq second-revision
                (vc-read-revision
                 "Second RCS revision: "
                 (list file) 'RCS nil
-                (concat (vc-branch-part first-revision) ".")))
+                (concat (vc-rcs-branch-part first-revision) ".")))
        ;; We want to merge an entire branch.  Set revisions
        ;; accordingly, so that vc-rcs-merge understands us.
        (setq second-revision first-revision)
        ;; first-revision must be the starting point of the branch
-       (setq first-revision (vc-branch-part first-revision)))))
+       (setq first-revision (vc-rcs-branch-part first-revision)))))
     (vc-rcs-merge file first-revision second-revision)))
 
 (defun vc-rcs-merge (file first-version &optional second-version)
@@ -489,7 +497,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 If FILE is a directory, steal the lock on all registered files beneath it.
 Needs RCS 5.6.2 or later for -M."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-steal-lock (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-steal-lock (vc-expand-dirs (list file) 'RCS))
     (vc-do-command "*vc*" 0 "rcs" (vc-master-name file) "-M" (concat "-u" rev))
     ;; Do a real checkout after stealing the lock, so that we see
     ;; expanded headers.
@@ -511,8 +519,9 @@ Needs RCS 5.6.2 or later for -M."
 	(kill-buffer filename)))))
 
 (defun vc-rcs-modify-change-comment (files rev comment)
-  "Modify the change comments change on FILES on a specified REV.  If FILE is a
-directory the operation is applied to all registered files beneath it."
+  "Modify the change comments change on FILES on a specified REV.
+If FILE is a directory the operation is applied to all registered
+files beneath it."
   (dolist (file (vc-expand-dirs files 'RCS))
     (vc-do-command "*vc*" 0 "rcs" (vc-master-name file)
 		   (concat "-m" rev ":" comment))))
@@ -540,7 +549,7 @@ Remaining arguments are ignored.
 If FILE is a directory the operation is applied to all registered
 files beneath it."
   (vc-do-command (or buffer "*vc*") 0 "rlog"
-                 (mapcar 'vc-master-name (vc-expand-dirs files 'RCS)))
+                 (mapcar #'vc-master-name (vc-expand-dirs files 'RCS)))
   (with-current-buffer (or buffer "*vc*")
     (vc-rcs-print-log-cleanup))
   (when limit 'limit-unsupported))
@@ -644,11 +653,11 @@ Optional arg REVISION is a revision to annotate from."
     ;; Find which branches (if any) must be included in the edits.
     (let ((par revision)
           bpt kids)
-      (while (setq bpt (vc-branch-part par)
-                   par (vc-branch-part bpt))
+      (while (setq bpt (vc-rcs-branch-part par)
+                   par (vc-rcs-branch-part bpt))
         (setq kids (cdr (assq 'branches (cdr (assoc par revisions)))))
         ;; A branchpoint may have multiple children.  Find the right one.
-        (while (not (string= bpt (vc-branch-part (car kids))))
+        (while (not (string= bpt (vc-rcs-branch-part (car kids))))
           (setq kids (cdr kids)))
         (push (cons par (car kids)) nbls)))
     ;; Start with the full text.
@@ -674,11 +683,11 @@ Optional arg REVISION is a revision to annotate from."
         ;; *BEFORE* editing occurs) to start from, but line numbers
         ;; change as a result of edits.  To DTRT, we apply edits in
         ;; order of descending buffer position so that edits further
-        ;; down in the buffer occur first w/o corrupting specified
+        ;; down in the buffer occur first without corrupting specified
         ;; buffer positions of edits occurring towards the beginning of
         ;; the buffer.  In this way we avoid using markers.  A pleasant
         ;; property of this approach is ability to push instructions
-        ;; onto `path' directly, w/o need to maintain rev boundaries.
+        ;; onto `path' directly, without need to maintain rev boundaries.
         (dolist (insn (cdr (assq :insn meta)))
           (goto-char (point-min))
           (forward-line (1- (pop insn)))
@@ -825,7 +834,7 @@ systime, or nil if there is none.  Also, reposition point."
 or nil if there is no previous revision.  This default
 implementation works for MAJOR.MINOR-style revision numbers as
 used by RCS and CVS."
-  (let ((branch (vc-branch-part rev))
+  (let ((branch (vc-rcs-branch-part rev))
         (minor-num (string-to-number (vc-rcs-minor-part rev))))
     (when branch
       (if (> minor-num 1)
@@ -837,7 +846,7 @@ used by RCS and CVS."
             nil
           ;; we are at the beginning of a branch --
           ;; return revision of starting point
-          (vc-branch-part branch))))))
+          (vc-rcs-branch-part branch))))))
 
 (defun vc-rcs-next-revision (file rev)
   "Return the revision number immediately following REV for FILE,
@@ -845,7 +854,7 @@ or nil if there is no next revision.  This default implementation
 works for MAJOR.MINOR-style revision numbers as used by RCS
 and CVS."
   (when (not (string= rev (vc-working-revision file)))
-    (let ((branch (vc-branch-part rev))
+    (let ((branch (vc-rcs-branch-part rev))
 	  (minor-num (string-to-number (vc-rcs-minor-part rev))))
       (concat branch "." (number-to-string (1+ minor-num))))))
 
@@ -972,7 +981,7 @@ to its master version."
 	  (setq latest-rev rev)
 	  (setq value (match-string 1)))))
     (or value
-	(vc-branch-part branch))))
+	(vc-rcs-branch-part branch))))
 
 (defun vc-rcs-fetch-master-state (file &optional working-revision)
   "Compute the master file's idea of the state of FILE.
@@ -1054,9 +1063,9 @@ file."
 (defun vc-rcs-consult-headers (file)
   "Search for RCS headers in FILE, and set properties accordingly.
 
-Returns: nil            if no headers were found
-         'rev           if a workfile revision was found
-         'rev-and-lock  if revision and lock info was found"
+Returns: nil             if no headers were found
+         `rev'           if a workfile revision was found
+         `rev-and-lock'  if revision and lock info was found"
   (cond
    ((not (get-file-buffer file)) nil)
    ((let (status version)
@@ -1183,7 +1192,7 @@ variable `vc-rcs-release' is set to the returned value."
 (defun vc-rcs-parse (&optional buffer)
   "Parse current buffer, presumed to be in RCS-style masterfile format.
 Optional arg BUFFER specifies another buffer to parse.  Return an alist
-of two elements, w/ keys `headers' and `revisions' and values in turn
+of two elements, with keys `headers' and `revisions' and values in turn
 sub-alists.  For `headers', the values unless otherwise specified are
 strings and the keys are:
 
@@ -1345,7 +1354,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
           (push `(,(to-eol)
                   ,(k-semi 'date
                            (lambda ()
-                             (let ((ls (mapcar 'string-to-number
+                             (let ((ls (mapcar #'string-to-number
                                                (split-string
                                                 (buffer-substring-no-properties
                                                  b e)
@@ -1447,6 +1456,14 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
       ;; rv
       `((headers ,desc ,@headers)
         (revisions ,@revs)))))
+
+(defvar-keymap vc-rcs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-rcs-log-view-mode log-view-mode "RCS-Log-View")
 
 (provide 'vc-rcs)
 

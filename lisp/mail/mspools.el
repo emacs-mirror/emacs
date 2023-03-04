@@ -1,6 +1,6 @@
-;;; mspools.el --- show mail spools waiting to be read
+;;; mspools.el --- show mail spools waiting to be read  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2023 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Created: 22 Jan 1997
@@ -29,7 +29,7 @@
 ;; to be read in them.  It assumes that new mail for the file `folder'
 ;; is written by the filter to a file called `folder.spool'.  (If the
 ;; file writes directly to `folder' you may lose mail if new mail
-;; arrives whilst you are reading the folder in emacs, hence the use
+;; arrives whilst you are reading the folder in Emacs, hence the use
 ;; of a spool file.)  For example, the following procmail recipe puts
 ;; any mail with `emacs' in the subject line into the spool file
 ;; `emacs.spool', ready to go into the folder `emacs'.
@@ -55,7 +55,6 @@
 ;; `mspools-using-vm' for details.
 
 ;;; Basic installation.
-;; (autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
 ;; (setq mspools-folder-directory "~/MAIL/")
 ;;
 ;; If you use VM, mspools-folder-directory will default to vm-folder-directory
@@ -125,18 +124,15 @@
 
 (defcustom mspools-update nil
   "Non-nil means update *spools* buffer after visiting any folder."
-  :type 'boolean
-  :group 'mspools)
+  :type 'boolean)
 
 (defcustom mspools-suffix "spool"
   "Extension used for spool files (not including full stop)."
-  :type 'string
-  :group 'mspools)
+  :type 'string)
 
 (defcustom mspools-using-vm  (fboundp 'vm)
   "Non-nil if VM is used as mail reader, otherwise RMAIL is used."
-  :type 'boolean
-  :group 'mspools)
+  :type 'boolean)
 
 (defcustom mspools-folder-directory
   (if (boundp 'vm-folder-directory)
@@ -144,8 +140,7 @@
     "~/MAIL/")
   "Directory where mail folders are kept.  Ensure it has a trailing /.
 Defaults to `vm-folder-directory' if bound else to ~/MAIL/."
-  :type 'directory
-  :group 'mspools)
+  :type 'directory)
 
 (defcustom mspools-vm-system-mail (or (getenv "MAIL")
 				      (concat rmail-spool-directory
@@ -156,8 +151,7 @@ without it.  By default this will be set to the environment variable
 $MAIL.  Otherwise it will use `rmail-spool-directory' to guess where
 your primary spool is.  If this fails, set it to something like
 /usr/spool/mail/login-name."
-  :type 'file
-  :group 'mspools)
+  :type 'file)
 
 ;;; Internal Variables
 
@@ -170,20 +164,13 @@ your primary spool is.  If this fails, set it to something like
 (defvar mspools-buffer "*spools*"
   "Name of buffer for displaying spool info.")
 
-(defvar mspools-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'mspools-visit-spool)
-    (define-key map "\C-m" 'mspools-visit-spool)
-    (define-key map " " 'mspools-visit-spool)
-    (define-key map "?" 'mspools-help)
-    (define-key map "q" 'mspools-quit)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "g" 'revert-buffer)
-    map)
-  "Keymap for the *spools* buffer.")
-
-;;; Code
+(defvar-keymap mspools-mode-map
+  :doc "Keymap for the *spools* buffer."
+  "C-c C-c" #'mspools-visit-spool
+  "RET"     #'mspools-visit-spool
+  "SPC"     #'mspools-visit-spool
+  "n"       #'next-line
+  "p"       #'previous-line)
 
 ;;; VM Specific code
 (if mspools-using-vm
@@ -221,14 +208,15 @@ your primary spool is.  If this fails, set it to something like
                (concat mspools-folder-directory s "." mspools-suffix)
                (concat mspools-folder-directory s ".crash")))
 	    ;; So I create a vm-spool-files entry for each of those mail drops
-	    (mapcar 'file-name-sans-extension
+	    (mapcar #'file-name-sans-extension
 		    (directory-files mspools-folder-directory nil
-				     (format "^[^.]+\\.%s" mspools-suffix)))
+				     (format "\\`[^.]+\\.%s" mspools-suffix)))
 	    ))
    ))
 
 ;;; MSPOOLS-SHOW -- the main function
-(defun mspools-show ( &optional noshow)
+;;;###autoload
+(defun mspools-show (&optional noshow)
   "Show the list of non-empty spool files in the *spools* buffer.
 Buffer is not displayed if SHOW is non-nil."
   (interactive)
@@ -237,7 +225,7 @@ Buffer is not displayed if SHOW is non-nil."
       (progn
 	(set-buffer mspools-buffer)
 	(setq buffer-read-only nil)
-	(delete-region (point-min) (point-max)))
+	(erase-buffer))
     ;; else buffer doesn't exist so create it
     (get-buffer-create mspools-buffer))
 
@@ -260,8 +248,8 @@ Buffer is not displayed if SHOW is non-nil."
 (defun mspools-visit-spool ()
   "Visit the folder on the current line of the *spools* buffer."
   (interactive)
-  (let ( spool-name folder-name)
-    (setq spool-name (mspools-get-spool-name))
+  (let ((spool-name (mspools-get-spool-name))
+        folder-name)
     (if (null spool-name)
 	(message "No spool on current line")
 
@@ -270,19 +258,20 @@ Buffer is not displayed if SHOW is non-nil."
       ;; put in a little "*" to indicate spool file has been read.
       (if (not mspools-update)
 	  (save-excursion
-	    (setq buffer-read-only nil)
 	    (beginning-of-line)
-	    (insert "*")
-	    (delete-char 1)
-	    (setq buffer-read-only t)
-	    ))
+	    (let ((inhibit-read-only t))
+	      (insert "*")
+	      (delete-char 1))))
 
       (message "folder %s spool %s" folder-name spool-name)
-      (if (eq (count-lines (point-min) (point-at-eol))
-	      mspools-files-len)
-	  (forward-line (- 1 mspools-files-len)) ;back to top of list
-	;; else just on to next line
-	(forward-line 1))
+      (forward-line (if (eq (count-lines (point-min) (line-end-position))
+	                    mspools-files-len)
+	                ;; FIXME: Why use `mspools-files-len' instead
+                        ;; of looking if we're on the last line and
+                        ;; jumping to the first one if so?
+	                (- 1 mspools-files-len) ;back to top of list
+	              ;; else just on to next line
+	              1))
 
       ;; Choose whether to use VM or RMAIL for reading folder.
       (if mspools-using-vm
@@ -296,8 +285,8 @@ Buffer is not displayed if SHOW is non-nil."
 
       (if mspools-update
 	  ;; generate new list of spools.
-	  (save-excursion
-	    (mspools-show-again 'noshow))))))
+	  (save-excursion ;;FIXME: Why?
+	    (mspools-revert-buffer))))))
 
 (defun mspools-get-folder-from-spool (name)
   "Return folder name corresponding to the spool file NAME."
@@ -318,33 +307,37 @@ Buffer is not displayed if SHOW is non-nil."
 
 (defun mspools-get-spool-name ()
   "Return the name of the spool on the current line."
-  (let ((line-num (1- (count-lines (point-min) (point-at-eol)))))
+  (let ((line-num (1- (count-lines (point-min) (line-end-position)))))
+    ;; FIXME: Why not extract the name directly from the current line's text?
     (car (nth line-num mspools-files))))
 
 ;;; Spools mode functions
 
-(defun mspools-revert-buffer (ignore noconfirm)
-  "Re-run mspools-show to revert the *spools* buffer."
+(defun mspools-revert-buffer (&optional _ignore _noconfirm)
+  "Re-run `mspools-show' to revert the *spools* buffer."
   (mspools-show 'noshow))
 
 (defun mspools-show-again (&optional noshow)
-  "Update the *spools* buffer.  This is useful if mspools-update is
-nil."
+  "Update the *spools* buffer.
+This is useful if `mspools-update' is nil."
+  (declare (obsolete revert-buffer "28.1"))
   (interactive)
   (mspools-show noshow))
 
 (defun mspools-help ()
   "Show help for `mspools-mode'."
+  (declare (obsolete describe-mode "28.1"))
   (interactive)
   (describe-function 'mspools-mode))
 
 (defun mspools-quit ()
   "Quit the *spools* buffer."
+  (declare (obsolete quit-window "28.1"))
   (interactive)
   (kill-buffer mspools-buffer))
 
 (define-derived-mode mspools-mode special-mode "MSpools"
-  "Major mode for output from mspools-show.
+  "Major mode for output from `mspools-show'.
 \\<mspools-mode-map>Move point to one of the items in this buffer, then use
 \\[mspools-visit-spool] to go to the spool that the current line refers to.
 \\[revert-buffer] to regenerate the list of spools.
@@ -353,32 +346,26 @@ nil."
 
 (defun mspools-get-spool-files ()
   "Find the list of spool files and display them in *spools* buffer."
-  (let (folders head spool len beg end any)
-    (if (null mspools-folder-directory)
-	(error "Set `mspools-folder-directory' to where the spool files are"))
-    (setq folders (directory-files mspools-folder-directory nil
-				   (format "^[^.]+\\.%s$" mspools-suffix)))
-    (setq folders (mapcar 'mspools-size-folder folders))
-    (setq folders (delq nil folders))
+  (if (null mspools-folder-directory)
+      (error "Set `mspools-folder-directory' to where the spool files are"))
+  (let* ((folders (directory-files mspools-folder-directory nil
+				   (format "\\`[^.]+\\.%s\\'" mspools-suffix)))
+	 (folders (delq nil (mapcar #'mspools-size-folder folders)))
+	 ;; beg end
+	 )
     (setq mspools-files folders)
     (setq mspools-files-len (length mspools-files))
-    (set-buffer mspools-buffer)
-    (while folders
-      (setq any t)
-      (setq head (car folders))
-      (setq spool (car head))
-      (setq len (cdr head))
-      (setq folders (cdr folders))
-      (setq beg (point))
-      (insert (format " %10d %s" len spool))
-      (setq end (point))
-      (insert "\n")
-      ;;(put-text-property beg end 'mouse-face 'highlight)
-      )
-    (if any
-	(delete-char -1))			;delete last RET
-    (goto-char (point-min))
-    ))
+    (with-current-buffer mspools-buffer
+      (pcase-dolist (`(,spool . ,len) folders)
+        ;; (setq beg (point))
+        (insert (format " %10d %s" len spool))
+        ;; (setq end (point))
+        (insert "\n")
+        ;;(put-text-property beg end 'mouse-face 'highlight)
+        )
+      (if (not (bolp))
+	  (delete-char -1))			;delete last RET
+      (goto-char (point-min)))))
 
 (defun mspools-size-folder (spool)
   "Return (SPOOL . SIZE ), if SIZE of spool file is non-zero."

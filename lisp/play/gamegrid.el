@@ -1,9 +1,9 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2023 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
-;; Version: 1.02
+;; Old-Version: 1.02
 ;; Created: 1997-08-13
 ;; Keywords: games
 
@@ -28,36 +28,35 @@
 
 ;; ;;;;;;;;;;;;; buffer-local variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar gamegrid-use-glyphs t
+(defvar-local gamegrid-use-glyphs t
   "Non-nil means use glyphs when available.")
 
-(defvar gamegrid-use-color t
+(defvar-local gamegrid-use-color t
   "Non-nil means use color when available.")
 
-(defvar gamegrid-font "-*-courier-medium-r-*-*-*-140-100-75-*-*-iso8859-*"
+(defvar-local gamegrid-font "-*-courier-medium-r-*-*-*-140-100-75-*-*-iso8859-*"
   "Name of the font used in X mode.")
 
-(defvar gamegrid-face nil
+(defvar-local gamegrid-face nil
   "Indicates the face to use as a default.")
-(make-variable-buffer-local 'gamegrid-face)
 
-(defvar gamegrid-display-options nil)
+(defvar-local gamegrid-display-options nil)
 
-(defvar gamegrid-buffer-width 0)
-(defvar gamegrid-buffer-height 0)
-(defvar gamegrid-blank 0)
+(defvar-local gamegrid-buffer-width 0)
+(defvar-local gamegrid-buffer-height 0)
+(defvar-local gamegrid-blank 0)
 
-(defvar gamegrid-timer nil)
+(defvar-local gamegrid-timer nil)
 
-(defvar gamegrid-display-mode nil)
+(defvar-local gamegrid-display-mode nil)
 
-(defvar gamegrid-display-table)
+(defvar-local gamegrid-display-table nil)
 
-(defvar gamegrid-face-table nil)
+(defvar-local gamegrid-face-table nil)
 
-(defvar gamegrid-buffer-start 1)
+(defvar-local gamegrid-buffer-start 1)
 
-(defvar gamegrid-score-file-length 50
+(defvar-local gamegrid-score-file-length 50
   "Number of high scores to keep.")
 
 (defvar gamegrid-user-score-file-directory
@@ -66,19 +65,6 @@
 If Emacs was built without support for shared game scores, then this
 directory will be used.")
 
-(make-variable-buffer-local 'gamegrid-use-glyphs)
-(make-variable-buffer-local 'gamegrid-use-color)
-(make-variable-buffer-local 'gamegrid-font)
-(make-variable-buffer-local 'gamegrid-display-options)
-(make-variable-buffer-local 'gamegrid-buffer-width)
-(make-variable-buffer-local 'gamegrid-buffer-height)
-(make-variable-buffer-local 'gamegrid-blank)
-(make-variable-buffer-local 'gamegrid-timer)
-(make-variable-buffer-local 'gamegrid-display-mode)
-(make-variable-buffer-local 'gamegrid-display-table)
-(make-variable-buffer-local 'gamegrid-face-table)
-(make-variable-buffer-local 'gamegrid-buffer-start)
-(make-variable-buffer-local 'gamegrid-score-file-length)
 
 ;; ;;;;;;;;;;;;; global variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,7 +72,7 @@ directory will be used.")
 (defvar gamegrid-mono-x-face nil)
 (defvar gamegrid-mono-tty-face nil)
 
-(defvar gamegrid-glyph-height-mm 7.0
+(defvar gamegrid-glyph-height-mm 5.0
   "Desired glyph height in mm.")
 
 ;; ;;;;;;;;;;;;; glyph generation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,12 +80,20 @@ directory will be used.")
 (defun gamegrid-calculate-glyph-size ()
   "Calculate appropriate glyph size in pixels based on display resolution.
 Return a multiple of 8 no less than 16."
-  (if (and (display-pixel-height) (display-mm-height))
-      (let* ((y-pitch (/ (display-pixel-height) (float (display-mm-height))))
-             (pixels (* y-pitch gamegrid-glyph-height-mm))
-             (rounded (* (floor (/ (+ pixels 4) 8)) 8)))
-        (max 16 rounded))
-    16))
+  (let ((atts (frame-monitor-attributes))
+        y-pitch)
+    (setq y-pitch (cond
+                   (atts
+                    (/ (nth 4 (assq 'geometry atts))
+                       (nth 2 (assq 'mm-size atts))
+                       (or (cdr (assq 'scale-factor atts)) 1.0)))
+                   ((and (display-pixel-height) (display-mm-height))
+                    (/ (display-pixel-height) (float (display-mm-height))))))
+    (if y-pitch
+        (let* ((pixels (* y-pitch gamegrid-glyph-height-mm))
+               (rounded (* (floor (/ (+ pixels 4) 8)) 8)))
+          (max 16 rounded))
+      16)))
 
 ;; Example of glyph in XPM format:
 ;;
@@ -265,12 +259,7 @@ format."
   (set-face-foreground face color)
   (set-face-background face color)
   (gamegrid-set-font face)
-  (condition-case nil
-      (set-face-background-pixmap face [nothing]);; XEmacs
-    (error nil))
-  (condition-case nil
-      (set-face-background-pixmap face nil);; Emacs
-    (error nil)))
+  (set-face-stipple face nil))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
@@ -354,19 +343,28 @@ format."
 	   (gamegrid-match-spec-list (cdr spec-list)))))
 
 (defun gamegrid-make-glyph (data-spec-list color-spec-list)
+  ;; image.el is not preloaded in --without-x builds.
+  (defvar image-scaling-factor)
   (let ((data (gamegrid-match-spec-list data-spec-list))
-	(color (gamegrid-match-spec-list color-spec-list)))
+	(color (gamegrid-match-spec-list color-spec-list))
+        (image-scaling-factor 1.0))
     (cond ((characterp data)
 	   (vector data))
 	  ((eq data 'colorize)
 	   (gamegrid-colorize-glyph color))
 	  ((listp data)
 	   (find-image data)) ;untested!
-	  ((vectorp data)
-	   (gamegrid-make-image-from-vector data)))))
+          ;; Remove when `gamegrid-make-image-from-vector' is removed:
+          ((vectorp data)
+           (lwarn 'gamegrid :warning
+                  "Using obsolete XEmacs style \"glyph\"; \
+convert to an Emacs image-spec instead")
+           (with-suppressed-warnings ((obsolete gamegrid-make-image-from-vector))
+             (gamegrid-make-image-from-vector data))))))
 
 (defun gamegrid-make-image-from-vector (vect)
   "Convert an XEmacs style \"glyph\" to an image-spec."
+  (declare (obsolete nil "29.1"))
   (let ((l (list 'image :type)))
     (dotimes (n (length vect))
       (setf l (nconc l (list (aref vect n)))))
@@ -471,6 +469,7 @@ format."
     ;; Adjust the height of the default face to the height of the
     ;; images. Unlike XEmacs, Emacs doesn't allow making the default
     ;; face buffer-local; so we do this with an overlay.
+    ;; FIXME: This is not correct.  See face-remap.el.
     (when (eq gamegrid-display-mode 'glyph)
       (overlay-put (make-overlay (point-min) (point-max))
 		   'face gamegrid-face))
@@ -509,7 +508,7 @@ format."
   "Add the current score to the high score file.
 
 If REVERSE is non-nil, treat lower scores as better than higher
-scores. This is useful for games where lower scores are better.
+scores.  This is useful for games where lower scores are better.
 
 On POSIX systems there may be a shared game directory for all users in
 which the scorefiles are kept.  On such systems Emacs doesn't create
@@ -640,6 +639,8 @@ FILE is created there."
   (save-excursion
     (setq file (expand-file-name file (or directory
 					  temporary-file-directory)))
+    (unless (file-exists-p (file-name-directory file))
+      (make-directory (file-name-directory file) t))
     (find-file-other-window file)
     (setq buffer-read-only nil)
     (goto-char (point-max))

@@ -1,6 +1,6 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -44,9 +44,22 @@
 	(setq i (1+ i)))))
   string)
 
-(defvar truncate-string-ellipsis "..."  ;"…"
+(defvar truncate-string-ellipsis nil
   "String to use to indicate truncation.
-Serves as default value of ELLIPSIS argument to `truncate-string-to-width'.")
+Serves as default value of ELLIPSIS argument to `truncate-string-to-width'
+returned by the function `truncate-string-ellipsis'.")
+
+(defun truncate-string-ellipsis ()
+  "Return the string used to indicate truncation.
+Use the value of the variable `truncate-string-ellipsis' when it's non-nil.
+Otherwise, return the Unicode character U+2026 \"HORIZONTAL ELLIPSIS\"
+when it's displayable on the selected frame, or `...'.  This function
+needs to be called on every use of `truncate-string-to-width' to
+decide whether the selected frame can display that Unicode character."
+  (cond
+   (truncate-string-ellipsis)
+   ((char-displayable-p ?…) "…")
+   ("...")))
 
 ;;;###autoload
 (defun truncate-string-to-width (str end-column
@@ -54,10 +67,15 @@ Serves as default value of ELLIPSIS argument to `truncate-string-to-width'.")
                                      ellipsis-text-property)
   "Truncate string STR to end at column END-COLUMN.
 The optional 3rd arg START-COLUMN, if non-nil, specifies the starting
-column; that means to return the characters occupying columns
-START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and START-COLUMN
-are specified in terms of character display width in the current
-buffer; see also `char-width'.
+column (default: zero); that means to return the characters occupying
+columns START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and
+START-COLUMN are specified in terms of character display width in the
+current buffer; see `char-width'.
+
+Since character composition on display can produce glyphs whose
+width is smaller than the sum of `char-width' values of the
+composed characters, this function can produce inaccurate results
+when used in such cases.
 
 The optional 4th arg PADDING, if non-nil, specifies a padding
 character (which should have a display width of 1) to add at the end
@@ -73,15 +91,15 @@ If ELLIPSIS is non-nil, it should be a string which will replace the
 end of STR (including any padding) if it extends beyond END-COLUMN,
 unless the display width of STR is equal to or less than the display
 width of ELLIPSIS.  If it is non-nil and not a string, then ELLIPSIS
-defaults to `truncate-string-ellipsis'.
+defaults to `truncate-string-ellipsis', or to three dots when it's nil.
 
-If ELLIPSIS-TEXT-PROPERTY in non-nil, a too-long string will not
+If ELLIPSIS-TEXT-PROPERTY is non-nil, a too-long string will not
 be truncated, but instead the elided parts will be covered by a
 `display' text property showing the ellipsis."
   (or start-column
       (setq start-column 0))
   (when (and ellipsis (not (stringp ellipsis)))
-    (setq ellipsis truncate-string-ellipsis))
+    (setq ellipsis (truncate-string-ellipsis)))
   (let ((str-len (length str))
 	(str-width (string-width str))
 	(ellipsis-width (if ellipsis (string-width ellipsis) 0))
@@ -265,23 +283,13 @@ Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
 CODING-SYSTEMS is a list of coding systems.  See `set-coding-system-priority'.
 This affects the implicit sorting of lists of coding systems returned by
 operations such as `find-coding-systems-region'."
+  (declare (indent 1) (debug t))
   (let ((current (make-symbol "current")))
   `(let ((,current (coding-system-priority-list)))
      (apply #'set-coding-system-priority ,coding-systems)
      (unwind-protect
 	 (progn ,@body)
        (apply #'set-coding-system-priority ,current)))))
-;;;###autoload(put 'with-coding-priority 'lisp-indent-function 1)
-(put 'with-coding-priority 'edebug-form-spec t)
-
-;;;###autoload
-(defmacro detect-coding-with-priority (from to priority-list)
-  "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
-PRIORITY-LIST is an alist of coding categories vs the corresponding
-coding systems ordered by priority."
-  (declare (obsolete with-coding-priority "23.1"))
-  `(with-coding-priority (mapcar #'cdr ,priority-list)
-     (detect-coding-region ,from ,to)))
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
@@ -330,13 +338,20 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let ((eol (coding-system-eol-type coding-system))
         (type (coding-system-type coding-system))
         (base (coding-system-base coding-system))
         (pm (save-restriction (widen) (point-min))))
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))
@@ -406,14 +421,24 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let* ((eol (coding-system-eol-type coding-system))
-         (lineno (if (= eol 1) (1- (line-number-at-pos position)) 0))
          (type (coding-system-type coding-system))
          (base (coding-system-base coding-system))
-         (point-min 1))                 ;Clarify what the `1' means.
+         (point-min 1)                  ;Clarify what the `1' means.
+         lineno)
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
+    (setq lineno (if (= eol 1)
+                     (1- (line-number-at-pos position))
+                   0))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))

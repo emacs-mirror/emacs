@@ -1,6 +1,24 @@
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
-#include "copyright.h"
+/*
+
+Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
+
+Permission to use, copy, modify, and distribute this
+software and its documentation for any purpose and without
+fee is hereby granted, provided that the above copyright
+notice appear in all copies and that both that copyright
+notice and this permission notice appear in supporting
+documentation, and that the name of M.I.T. not be used in
+advertising or publicity pertaining to distribution of the
+software without specific, written prior permission.
+M.I.T. makes no representations about the suitability of
+this software for any purpose.  It is provided "as is"
+without express or implied warranty.
+
+*/
+
+
 
 
 #include "XMenuInt.h"
@@ -69,6 +87,8 @@ XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id
 	/* before the current value of "Entry". */
 	/* Create a new XAssoc and load it with new provided data. */
 	new_entry = (XAssoc *) malloc(sizeof(XAssoc));
+	if (!new_entry)
+	  return; /* This obsolete API has no way to report failure!  */
 	new_entry->display = dpy;
 	new_entry->x_id = x_id;
 	new_entry->data = data;

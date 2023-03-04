@@ -1,6 +1,6 @@
-;;; semantic/util.el --- Utilities for use with semantic tag tables
+;;; semantic/util.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -39,20 +39,18 @@
 
 ;;; Code:
 
-(defvar semantic-type-relation-separator-character '(".")
+(defvar-local semantic-type-relation-separator-character '(".")
   "Character strings used to separate a parent/child relationship.
 This list of strings are used for displaying or finding separators
 in variable field dereferencing.  The first character will be used for
 display.  In C, a type field is separated like this: \"type.field\"
 thus, the character is a \".\".  In C, and additional value of \"->\"
 would be in the list, so that \"type->field\" could be found.")
-(make-variable-buffer-local 'semantic-type-relation-separator-character)
 
-(defvar semantic-equivalent-major-modes nil
+(defvar-local semantic-equivalent-major-modes nil
   "List of major modes which are considered equivalent.
 Equivalent modes share a parser, and a set of override methods.
 A value of nil means that the current major mode is the only one.")
-(make-variable-buffer-local 'semantic-equivalent-major-modes)
 
 (declare-function semanticdb-file-stream "semantic/db" (file))
 
@@ -79,10 +77,6 @@ If FILE is not loaded, and semanticdb is not available, find the file
 	(with-current-buffer (find-file-noselect file)
 	  (semantic-fetch-tags))))))
 
-(semantic-alias-obsolete 'semantic-file-token-stream
-			 'semantic-file-tag-table "23.2")
-
-(declare-function semanticdb-abstract-table-child-p "semantic/db" (obj) t)
 (declare-function semanticdb-refresh-table "semantic/db")
 (declare-function semanticdb-get-tags "semantic/db" (arg &rest args) t)
 (declare-function semanticdb-find-results-p "semantic/db-find" (resultp))
@@ -119,7 +113,8 @@ buffer, or a filename.  If SOMETHING is nil return nil."
    ((and (featurep 'semantic/db)
 	 (require 'semantic/db-mode)
 	 (semanticdb-minor-mode-p)
-	 (cl-typep something 'semanticdb-abstract-table))
+	 (progn
+	   (cl-typep something 'semanticdb-abstract-table)))
     (semanticdb-refresh-table something)
     (semanticdb-get-tags something))
    ;; Semanticdb find-results
@@ -136,9 +131,6 @@ buffer, or a filename.  If SOMETHING is nil return nil."
 ;;    (semantic-fetch-tags))
    ;; don't know what it is
    (t nil)))
-
-(semantic-alias-obsolete 'semantic-something-to-stream
-			 'semantic-something-to-tag-table "23.2")
 
 ;;; Completion APIs
 ;;
@@ -307,7 +299,6 @@ If TAG is not specified, use the tag at point."
 		      semantic-init-db-hook
 		      semantic-unmatched-syntax-hook
 		      semantic--before-fetch-tags-hook
-		      semantic-after-toplevel-bovinate-hook
 		      semantic-after-toplevel-cache-change-hook
 		      semantic-before-toplevel-cache-flush-hook
 		      semantic-dump-parse
@@ -436,7 +427,7 @@ determining which symbols are considered."
       (setq completion (try-completion pattern collection predicate))
       (if (string= pattern completion)
 	  (let ((list (all-completions pattern collection predicate)))
-	    (setq list (sort list 'string<))
+	    (setq list (sort list #'string<))
 	    (if (> (length list) 1)
 		(with-output-to-temp-buffer "*Completions*"
 		  (display-completion-list

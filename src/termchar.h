@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -52,6 +52,11 @@ struct tty_display_info
                                    NULL if the terminal is suspended. */
   FILE *output;                 /* The stream to be used for terminal output.
                                    NULL if the terminal is suspended. */
+
+  /* Size of output buffer.  A value of zero means use the default of
+     BUFIZE.  If non-zero, also minimize writes to the tty by avoiding
+     calls to flush.  */
+  size_t output_buffer_size;
 
   FILE *termscript;             /* If nonzero, send all terminal output
                                    characters to this stream also.  */
@@ -136,6 +141,8 @@ struct tty_display_info
   const char *TS_enter_reverse_mode; /* "mr" -- enter reverse video mode.  */
   const char *TS_exit_underline_mode; /* "us" -- start underlining.  */
   const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
+  const char *TS_enter_strike_through_mode; /* "smxx" -- turn on strike-through
+					       mode.  */
 
   /* "as"/"ae" -- start/end alternate character set.  Not really
      supported, yet.  */
@@ -232,7 +239,7 @@ extern struct tty_display_info *tty_list;
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
 
 struct input_event;
-extern bool tty_handle_tab_bar_click (struct frame *, int, int, bool,
-				      struct input_event *);
+extern Lisp_Object tty_handle_tab_bar_click (struct frame *, int, int, bool,
+					     struct input_event *);
 
 #endif /* EMACS_TERMCHAR_H */
