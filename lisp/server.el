@@ -1929,12 +1929,22 @@ This sets the variable `server-stop-automatically' (which see)."
   ;; continue standard unloading
   nil)
 
+(define-error 'server-return-invalid-read-syntax
+              "Emacs server returned unreadable result of evaluation"
+              'invalid-read-syntax)
+
 (defun server-eval-at (server form)
   "Contact the Emacs server named SERVER and evaluate FORM there.
-Returns the result of the evaluation, or signals an error if it
-cannot contact the specified server.  For example:
+Returns the result of the evaluation.  For example:
   (server-eval-at \"server\" \\='(emacs-pid))
-returns the process ID of the Emacs instance running \"server\"."
+returns the process ID of the Emacs instance running \"server\".
+
+This function signals `error' if it could not contact the server.
+
+This function signals `server-return-invalid-read-syntax' if it
+couldn't read the result of evaluation printed by the server.
+This will occur whenever the result of evaluating FORM is something
+not readably printable."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
          (server-file (expand-file-name server server-dir))
          (coding-system-for-read 'binary)
@@ -1980,8 +1990,14 @@ returns the process ID of the Emacs instance running \"server\"."
 					  (progn (skip-chars-forward "^\n")
 						 (point))))))
 	(if (not (equal answer ""))
-	    (read (decode-coding-string (server-unquote-arg answer)
-					'emacs-internal)))))))
+            (condition-case err
+	        (read
+                 (decode-coding-string (server-unquote-arg answer)
+				       'emacs-internal))
+              ;; Re-signal with a more specific condition.
+              (invalid-read-syntax
+               (signal 'server-return-invalid-read-syntax
+                       (cdr err)))))))))
 
 
 (provide 'server)
