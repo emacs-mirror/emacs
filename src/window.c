@@ -1729,8 +1729,11 @@ window_from_coordinates (struct frame *f, int x, int y,
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
        doc: /* Return window containing coordinates X and Y on FRAME.
 FRAME must be a live frame and defaults to the selected one.
-The top left corner of the frame is considered to be row 0,
-column 0.  */)
+X and Y are measured in units of canonical columns and rows.
+The top left corner of the frame is considered to be column 0, row 0.
+Tool-bar and tab-bar pseudo-windows are ignored by this function: if
+the specified coordinates are in any of these two windows, this
+function returns nil.  */)
   (Lisp_Object x, Lisp_Object y, Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);

@@ -4134,6 +4134,10 @@ X and Y are FRAME-relative pixel coordinates.  A coordinate on an
 edge shared by two windows is attributed to the window on the
 right (or below).  Return nil if no such window can be found.
 
+Tool-bar and tab-bar pseudo-windows are ignored by this function:
+if the specified coordinates are in any of these two windows, this
+function returns nil.
+
 Optional argument FRAME must specify a live frame and defaults to
 the selected one.  Optional argument NO-OTHER non-nil means to
 return nil if the window located at the specified coordinates has
