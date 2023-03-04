@@ -4080,9 +4080,22 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   start = raster->cells + row * raster->stride;
   start += left >> SFNT_POLY_SHIFT;
 
-  w = 0;
+  /* If left and right actually lie in the same pixel, just fill with
+     the coverage of both and return.  */
 
-  /* Compute coverage for first pixel, then poly.  */
+  if ((left & ~SFNT_POLY_MASK) == (right & ~SFNT_POLY_MASK))
+    {
+      w = coverage[right - left];
+      a = *start + w;
+
+      *start = sfnt_saturate_short (a);
+      return;
+    }
+
+  /* Compute coverage for first pixel, then poly.  The code from here
+     onwards assumes that left and right are on two different
+     pixels.  */
+
   if (left & SFNT_POLY_MASK)
     {
       /* Compute the coverage for the first pixel, and move left past
@@ -4097,7 +4110,6 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
       /* Now move left past.  */
       left = end;
-
       *start++ = sfnt_saturate_short (a);
     }
 
@@ -4113,8 +4125,8 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
       left += SFNT_POLY_SAMPLE;
     }
 
-  /* Fill right pixel if necessary (because it has a fractional
-     part.)  */
+  /* Fill rightmost pixel with any partial coverage.  */
+
   if (right & SFNT_POLY_MASK)
     {
       w = coverage[right - left];
