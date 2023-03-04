@@ -819,7 +819,8 @@ In the latter case, VC mode is deactivated for this buffer."
 	     (cond ((not link-type) nil)	;Nothing to do.
 		   ((eq vc-follow-symlinks nil)
 		    (message
-		     "Warning: symbolic link to %s-controlled source file" link-type))
+		     "Warning: symbolic link to %s-controlled source file"
+                     link-type))
 		   ((or (not (eq vc-follow-symlinks 'ask))
 		        ;; Assume we cannot ask, default to yes.
 		        noninteractive
