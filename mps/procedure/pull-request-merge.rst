@@ -63,10 +63,12 @@ you should probably read section "`6. Rationale`_".
 ----------------------
 
 Start by making a record for the merge.  Make a comment on the pull
-request with a permalink to the procedure you're following (this one),
-like::
+request with a permalink_ to the procedure you're following (this one)
+and the start time, like::
 
   Executing [proc.merge.pull-request](https://github.com/Ravenbrook/mps/blob/973fc087c9abff01a957b85bd17c4a2be434ae73/procedure/pull-request-merge.rst)
+
+  1. Start time 11:03.
 
 The answers to the checklist questions should be "yes".  If the answer
 to a question isn't "yes", record that, and why (and maybe suggest
@@ -91,8 +93,9 @@ When you finish the checklist, decide whether to start
 
 #. If there changes to the `MPS interface`_, are they documented?
 
-#. If the changes are significant and user-visible, is there an update
-   to the release notes (``manual/source/release.rst``)?
+#. If the changes to the MPS are significant and user-visible, is
+   there an update to the release notes
+   (``manual/source/release.rst``)?
 
 #. Has there been a code review, and only review edits since?
 
@@ -118,17 +121,23 @@ When you finish the checklist, decide whether to start
 #. Does the branch, and its merge, build and pass tests?
 
    CI should have run builds of both the branch, and a *trial merge*
-   of the pull request with master.  Success by CI is a strong
-   indication that `the merging procedure`_ will be quick and
-   successful.
+   [#trial-merge]_ of the pull request with master.  Recent success by
+   CI is a strong indication that `the merging procedure`_ will be
+   quick and successful.
 
    Look for build results in the pull request on GitHub.  Expand "Show
    all checks", and look for build success messages for both the
    branch and for the pull request (the trial merge).  If these
    results are missing, inform sysadmins that CI isn't functioning.
 
-   You can also look for a build results in the `Travis CI build
-   history for the repo`_ and in the `GitHub workflows for the repo`_.
+   You can also look for a build results in the logs of CI systems.
+   See `design.mps.ci.results <../design/tests.txt#ci-results>`__.
+
+   Are the build results up to date?  If master has changed since the
+   date of the commit that kicked off the build (the one immediately
+   before the build results) then the build results are out of date.
+   Consider a *catch-up merge* from master to the branch to bring the
+   branch up to date and kick off new builds.
 
    If there is a failed build *of the branch* you should not execute
    `the merging procedure`_, but talk to the contributor about fixing
@@ -139,12 +148,20 @@ When you finish the checklist, decide whether to start
    believe that the failure is due to merge conflicts that you are
    willing to resolve.
 
-   If you have no build and test results for the merge, then you can
-   still try to execute `the merging procedure`_ if:
+   If you don't have recent build and test results for the merge, then
+   you can still try to execute `the merging procedure`_ if:
 
    #. you believe there are only merge conflicts,
    #. you're willing to try to resolve those conflicts, and
    #. you're prepared to test on all target platforms.
+
+.. [#trial-merge] CI is run against both the branch (labelled "push"),
+                  and a `pull request merge branch`_ (labelled "pull
+                  request") automatically created by GitHub.
+
+.. _permalink: https://docs.github.com/en/repositories/working-with-files/using-files/getting-permanent-links-to-files
+
+.. _pull request merge branch: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 
 .. _Travis CI build history for the repo: https://app.travis-ci.com/github/Ravenbrook/mps/builds
 
@@ -171,27 +188,42 @@ These steps will only rarely need repeating.
 #. Ensure your public SSH key is submitted in Perforce at
    //.git-fusion/users/USER/keys/
 
+   This is the public key that the SSH used by your Git will use to
+   connect to perforce.ravenbrook.com.
+
+   **NOTE**: As of 2022-11, you may not be able to connect to Perforce
+   Git Fusion without specifying an old public key algorithm.  See
+   `"Connecting to Git Fusion"
+   <https://info.ravenbrook.com/mail/2022/11/29/21-01-14/0/>`__.
+
 #. Ensure your e-mail address is submitted in Perforce at
    //.git-fusion/users/p4gf_usermap and matches your Perforce user
    record.
 
 #. Clone the Ravenbrook MPS GitHub repository and name the remote
-   "github".  This will give you access to CI to build and test the
-   merge.  (If you're an MPS developer you can use your existing
-   repo.)  ::
+   "github" [#github]_.  This will give you access to CI to
+   build and test the merge.  (If you're an MPS developer you can use
+   your existing repo.)  ::
 
      git clone -o github git@github.com:Ravenbrook/mps.git
-     cd mps
 
 #. Set your e-mail address for commits to the repo to match the one in
-   your Perforce user record, e.g. ::
+   your Perforce user record, e.g. from within the "mps" repo
+   directory ::
 
      git config user.email spqr@ravenbrook.com
 
+   and possibly your name if you don't have that set in Git globally ::
+
+     git config user.name 'Julius Cesar'
+
 #. Add the Git Fusion mps-public repo, which is the interface to
-   Ravenbrook's Perforce. ::
+   Ravenbrook's Perforce.  From within the "mps" repo directory ::
 
      git remote add perforce ssh://git@perforce.ravenbrook.com:1622/mps-public
+
+.. [#github] There's nothing special about this name -- it's just
+             assumed in the examples in the procedure.
 
 
 .. _the merging procedure:
@@ -266,13 +298,12 @@ working repo before that point.
    Edit the commit message to link it to *why* you are merging.  Say
    something like::
 
-     Merging branch/2023-01-06/speed-hax for GitHub pull request 93
-     <https://github.com/Ravenbrook/mps/pull/93>.
+     Merging branch/2023-01-06/speed-hax for GitHub pull request #93 <https://github.com/Ravenbrook/mps/pull/93>.
 
-   Do *not* just say "pull request 93" without a link, because that
-   number is local to, and only valid on GitHub.  Bear this in mind
-   for other references.  Do add any other links that would increase
-   traceability.
+   Do *not* just say "pull request #93" or just "#93" without a link,
+   because that number is local to, and only valid on GitHub.  Bear
+   this in mind for other references.  Do add any other links that
+   would increase traceability.
 
    You may need to resolve conflicts.  If you can't resolve conflicts
    yourself, you may need to involve the original author of the
@@ -359,6 +390,11 @@ working repo before that point.
    the merge was recorded correctly.  Check that any issues *not
    completely resolved* by the merge were not closed.  Re-open them if
    necessary.
+
+10. Edit the comment you made in `3. Pre-merge checklist`_ to record
+    the end time of the merge and how long you spent merging, like::
+
+      6. End time 11:20.  Merge took 17 mins.
 
 .. _Fetch the pull request branch: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally#modifying-an-inactive-pull-request-locally
 

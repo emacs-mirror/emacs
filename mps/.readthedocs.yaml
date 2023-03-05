@@ -26,6 +26,7 @@ python:
 
 sphinx:
   configuration: manual/source/conf.py
+  fail_on_warning: true
 
 # A. REFERENCES
 #

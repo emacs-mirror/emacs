@@ -67,6 +67,8 @@ Size PageSize(void)
 
 
 typedef struct VMParamsStruct {
+  /* TODO: Add sig and check with AVERT in VMInit and CHECKD in
+     VMArenaCheck. */
   Bool topDown;
 } VMParamsStruct, *VMParams;
 
@@ -101,7 +103,7 @@ Res VMInit(VM vm, Size size, Size grainSize, void *params)
   AVER(vm != NULL);
   AVERT(ArenaGrainSize, grainSize);
   AVER(size > 0);
-  AVER(params != NULL); /* FIXME: Should have full AVERT? */
+  AVER(params != NULL);
 
   AVER(COMPATTYPE(LPVOID, Addr));  /* .assume.lpvoid-addr */
   AVER(COMPATTYPE(SIZE_T, Size));
