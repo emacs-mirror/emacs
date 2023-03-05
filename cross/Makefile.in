@@ -20,6 +20,7 @@
 top_srcdir = @top_srcdir@
 srcdir = @srcdir@
 top_builddir = @top_builddir@
+builddir = @builddir@
 
 -include $(top_builddir)/src/verbose.mk
 
