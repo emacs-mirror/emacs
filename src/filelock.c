@@ -659,8 +659,31 @@ lock_if_free (lock_info_type *clasher, Lisp_Object lfname)
 static Lisp_Object
 make_lock_file_name (Lisp_Object fn)
 {
-  Lisp_Object lock_file_name = call1 (Qmake_lock_file_name,
-				      Fexpand_file_name (fn, Qnil));
+  Lisp_Object lock_file_name;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  char *name;
+#endif
+
+  fn = Fexpand_file_name (fn, Qnil);
+
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Files in /assets and /contents can't have lock files on Android
+     as these directories are fabrications of android.c, and backed by
+     read only data.  */
+
+  name = SSDATA (fn);
+
+  if (strcmp (name, "/assets")
+      || strcmp (name, "/assets/")
+      || strcmp (name, "/content")
+      || strcmp (name, "/content/")
+      || strncmp (name, "/assets/", sizeof "/assets")
+      || strncmp (name, "/content/", sizeof "/content"))
+  return Qnil;
+#endif
+
+  lock_file_name = call1 (Qmake_lock_file_name, fn);
+
   return !NILP (lock_file_name) ? ENCODE_FILE (lock_file_name) : Qnil;
 }
 

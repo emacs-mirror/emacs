@@ -445,7 +445,7 @@ IN_ONESHOT  */)
       || strcmp (name, "/content")
       || strcmp (name, "/content/")
       || strncmp (name, "/assets/", sizeof "/assets")
-      || strncmp (name, "/content", sizeof "/content"))
+      || strncmp (name, "/content/", sizeof "/content"))
     return Qnil;
 #endif
 
