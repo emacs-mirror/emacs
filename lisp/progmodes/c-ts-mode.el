@@ -292,8 +292,10 @@ PARENT and BOL are like other anchor functions."
            (setq prev-sibling (treesit-node-child prev-sibling 2)))
           ;; Get the last statement in the preproc.  Tested by
           ;; "Prev-Sibling When Prev-Sibling is Preproc" test.
-          ((or "preproc_if" "preproc_ifdef" "preproc_elif" "preproc_else")
+          ((or "preproc_if" "preproc_ifdef")
            (setq prev-sibling (treesit-node-child prev-sibling -2)))
+          ((or "preproc_elif" "preproc_else")
+           (setq prev-sibling (treesit-node-child prev-sibling -1)))
           ;; If the start of the previous sibling isn't at the
           ;; beginning of a line, something's probably not quite
           ;; right, go a step further.
