@@ -2076,10 +2076,16 @@ of the statement."
                            (goto-char (+ (point)
                                          (python-syntax-count-quotes
                                           (char-after (point)) (point))))
-                           (setq last-string-end
-                                 (or (re-search-forward
-                                      (rx (syntax string-delimiter)) nil t)
-                                     (goto-char (point-max)))))))
+                           (setq
+                            last-string-end
+                            (or (if (eq t (nth 3 (syntax-ppss)))
+                                    (re-search-forward
+                                     (rx (syntax string-delimiter)) nil t)
+                                  (ignore-error scan-error
+                                    (goto-char string-start)
+                                    (python-nav--lisp-forward-sexp)
+                                    (point)))
+                                (goto-char (point-max)))))))
                       ((python-syntax-context 'paren)
                        ;; The statement won't end before we've escaped
                        ;; at least one level of parenthesis.
