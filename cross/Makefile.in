@@ -60,8 +60,8 @@ all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
 # paths in *.android.
 
 # This file is used to tell lib/gnulib.mk when
-# $(top_srcdir)/config.status changes.
-config.status: $(top_srcdir)/config.status
+# $(top_builddir)/config.status changes.
+config.status: $(top_builddir)/config.status
 	$(AM_V_GEN) touch config.status
 
 src/verbose.mk: $(srcdir)/verbose.mk.android
