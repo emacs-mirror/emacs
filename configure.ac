@@ -7769,7 +7769,7 @@ if test "$XCONFIGURE" != "android"; then
 		 lib/min-max.h"
   for file in $emacs_files; do
     AS_IF([expr "X${file}J" : "Xlib/.*[[ch]]J" >/dev/null],
-      [AS_IF([test -f $file],
+      [AS_IF([test -f "$srcdir/$file"],
         [AC_CONFIG_LINKS([cross/$file:$file])])])
   done
 fi
