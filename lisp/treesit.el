@@ -1254,7 +1254,10 @@ See `treesit-simple-indent-presets'.")
                              (goto-char bol)
                              (forward-line -1)
                              (skip-chars-forward " \t"))))
-        (cons 'point-min (lambda (&rest _) (point-min)))
+        (cons 'column-0 (lambda (_n _p bol &rest _)
+                          (save-excursion
+                            (goto-char bol)
+                            (line-beginning-position))))
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
@@ -1358,9 +1361,9 @@ prev-line
 
     Returns the first non-whitespace character on the previous line.
 
-point-min
+column-0
 
-    Returns the beginning of buffer, which is always at column 0.
+    Returns the beginning of the current line, which is at column 0.
 
 comment-start
 
