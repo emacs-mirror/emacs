@@ -712,7 +712,7 @@ This are essential for the trampoline machinery to work properly.")
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
   (when (memq subr-name comp-warn-primitives)
-    (warn "Redefining `%s' might breaks trampoline native compilation."
+    (warn "Redefining `%s' might break native compilation of trampolines."
           subr-name))
   (unless (or (null native-comp-enable-subr-trampolines)
               (memq subr-name native-comp-never-optimize-functions)
