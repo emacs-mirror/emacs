@@ -160,6 +160,18 @@ or `eshell-printn' for display."
      :preserve-args
      :usage "[-S] [mode]")
    (cond
+    (args
+     (let* ((mask (car args))
+            (modes
+             (if (stringp mask)
+                 (if (string-match (rx bos (+ (any "0-7")) eos) mask)
+                     (- #o777 (string-to-number mask 8))
+                   (file-modes-symbolic-to-number
+                    mask (default-file-modes)))
+               (- #o777 mask))))
+       (set-default-file-modes modes)
+       (eshell-print
+        "Warning: umask changed for all new files created by Emacs.\n")))
     (symbolic-p
      (let ((mode (default-file-modes)))
        (eshell-printn
@@ -173,17 +185,9 @@ or `eshell-printn' for display."
                 (concat (and (= (logand mode 1) 1) "r")
                         (and (= (logand mode 2) 2) "w")
                         (and (= (logand mode 4) 4) "x"))))))
-    ((not args)
-     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
-                                           #o777))))
     (t
-     (when (stringp (car args))
-       (if (string-match "^[0-7]+$" (car args))
-           (setcar args (string-to-number (car args) 8))
-         (error "Setting umask symbolically is not yet implemented")))
-     (set-default-file-modes (- #o777 (car args)))
-     (eshell-print
-      "Warning: umask changed for all new files created by Emacs.\n")))
+     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
+                                           #o777)))))
    nil))
 
 (put 'eshell/umask 'eshell-no-numeric-conversions t)

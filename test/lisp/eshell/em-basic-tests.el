@@ -33,7 +33,7 @@
 
 ;;; Tests:
 
-(ert-deftest em-basic-test/umask-print-numeric ()
+(ert-deftest em-basic-test/umask/print-numeric ()
   "Test printing umask numerically."
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o775)))
     (eshell-command-result-equal "umask" "002\n"))
@@ -43,7 +43,7 @@
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o1775)))
     (eshell-command-result-equal "umask" "002\n")))
 
-(ert-deftest em-basic-test/umask-read-symbolic ()
+(ert-deftest em-basic-test/umask/print-symbolic ()
   "Test printing umask symbolically."
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o775)))
     (eshell-command-result-equal "umask -S"
@@ -56,8 +56,8 @@
     (eshell-command-result-equal "umask -S"
                                  "u=rwx,g=rwx,o=rx\n")))
 
-(ert-deftest em-basic-test/umask-set ()
-  "Test setting umask."
+(ert-deftest em-basic-test/umask/set-numeric ()
+  "Test setting umask numerically."
   (let ((file-modes 0))
     (cl-letf (((symbol-function 'set-default-file-modes)
                (lambda (mode) (setq file-modes mode))))
@@ -67,5 +67,31 @@
       (should (= file-modes #o654))
       (eshell-test-command-result "umask $(identity #o222)")
       (should (= file-modes #o555)))))
+
+(ert-deftest em-basic-test/umask/set-symbolic ()
+  "Test setting umask symbolically."
+  (let ((file-modes 0))
+    (cl-letf (((symbol-function 'default-file-modes)
+               (lambda() file-modes))
+              ((symbol-function 'set-default-file-modes)
+               (lambda (mode) (setq file-modes mode))))
+      (eshell-test-command-result "umask u=rwx,g=rwx,o=rx")
+      (should (= file-modes #o775))
+      (eshell-test-command-result "umask u=rw,g=rx,o=x")
+      (should (= file-modes #o651))
+      (eshell-test-command-result "umask u+x,o-x")
+      (should (= file-modes #o750))
+      (eshell-test-command-result "umask a+rx")
+      (should (= file-modes #o755)))))
+
+(ert-deftest em-basic-test/umask/set-with-S ()
+  "Test that passing \"-S\" and a umask still sets the umask."
+  (let ((file-modes 0))
+    (cl-letf (((symbol-function 'set-default-file-modes)
+               (lambda (mode) (setq file-modes mode))))
+      (eshell-test-command-result "umask -S 002")
+      (should (= file-modes #o775))
+      (eshell-test-command-result "umask -S 123")
+      (should (= file-modes #o654)))))
 
 ;; em-basic-tests.el ends here

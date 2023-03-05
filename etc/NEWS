@@ -678,6 +678,14 @@ command passed as arguments to 'env'.  If you pass any initial
 arguments of the form 'VAR=VALUE', 'env' will first set 'VAR' to
 'VALUE' before running the command.
 
+---
+*** Eshell's 'umask' command now supports setting the mask symbolically.
+Now, you can pass an argument like "u+w,o-r" to Eshell's 'umask'
+command, which will give write permission for owners of newly-created
+files and deny read permission for users who are not members of the
+file's group.  See the Info node '(coreutils)File permissions' for
+more information on this notation.
+
 +++
 *** New special reference type '#<marker POSITION BUFFER>'.
 This special reference type returns a marker at 'POSITION' in
