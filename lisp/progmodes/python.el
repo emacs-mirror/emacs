@@ -2062,10 +2062,6 @@ of the statement."
                        ;; are somehow out of whack.  This has been
                        ;; observed when using `syntax-ppss' during
                        ;; narrowing.
-                       ;; It can also fail in cases where the buffer is in
-                       ;; the process of being modified, e.g. when creating
-                       ;; a string with `electric-pair-mode' disabled such
-                       ;; that there can be an unmatched single quote
                        (when (>= string-start last-string-end)
                          (goto-char string-start)
                          (if (python-syntax-context 'paren)
@@ -2154,10 +2150,7 @@ backward to previous statement."
       (while (and (forward-line 1)
                   (not (eobp))
                   (or (and (> (current-indentation) block-indentation)
-                           (let ((start (point)))
-                             (python-nav-end-of-statement)
-                             ;; must move forward otherwise infinite loop
-                             (> (point) start)))
+                           (or (python-nav-end-of-statement) t))
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p))))
       (python-util-forward-comment -1)
