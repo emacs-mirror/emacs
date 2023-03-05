@@ -1079,7 +1079,8 @@ variable (which see) can query the value `eglot-lsp-context' to
 decide whether a given directory is a project containing a
 suitable root directory for a given LSP server's purposes."
   (let ((eglot-lsp-context t))
-    (or (project-current) `(transient . ,default-directory))))
+    (or (project-current)
+        `(transient . ,(expand-file-name default-directory)))))
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
@@ -1922,6 +1923,7 @@ If it is activated, also signal textDocument/didOpen."
       (eglot--signal-textDocument/didOpen)
       ;; Run user hook after 'textDocument/didOpen' so server knows
       ;; about the buffer.
+      (eglot-inlay-hints-mode 1)
       (run-hooks 'eglot-managed-mode-hook))))
 
 (add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
@@ -3645,8 +3647,7 @@ If NOERROR, return predicate, else erroring function."
   (cond (eglot-inlay-hints-mode
          (if (eglot--server-capable :inlayHintProvider)
              (jit-lock-register #'eglot--update-hints 'contextual)
-           (eglot--warn
-            "No :inlayHintProvider support. Inlay hints will not work.")))
+           (eglot-inlay-hints-mode -1)))
         (t
          (jit-lock-unregister #'eglot--update-hints)
          (remove-overlays nil nil 'eglot--inlay-hint t))))

@@ -67,11 +67,12 @@
 
 (defvar go-ts-mode--indent-rules
   `((go
-     ((parent-is "source_file") point-min 0)
+     ((parent-is "source_file") column-0 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") parent-bol 0)
-     ((node-is "labeled_statement") no-indent)
+     ((node-is "labeled_statement") no-indent 0)
+     ((parent-is "raw_string_literal") no-indent 0)
      ((parent-is "argument_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "block") parent-bol go-ts-mode-indent-offset)
      ((parent-is "communication_case") parent-bol go-ts-mode-indent-offset)

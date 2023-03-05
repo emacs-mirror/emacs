@@ -103,22 +103,21 @@ then restored."
              (set (car spec) (cadr spec)))
             ((stringp (car spec)) (push spec file-specs))))
     (unwind-protect
-        (let* ((home (getenv "HOME"))
-               (process-environment
+        (let* ((process-environment
                 (append
                  `(;; Set XDF_CONFIG_HOME to /dev/null to prevent
                    ;; user-configuration to have an influence on
                    ;; language servers. (See github#441)
                    "XDG_CONFIG_HOME=/dev/null"
                    ;; ... on the flip-side, a similar technique by
-                   ;; Emacs's test makefiles means that HOME is set to
-                   ;; /nonexistent.  This breaks some common
-                   ;; installations for LSP servers like pylsp, making
-                   ;; these tests mostly useless, so we hack around it
-                   ;; here with a great big hack.
+                   ;; Emacs's test makefiles means that HOME is
+                   ;; spoofed to /nonexistent, or sometimes /tmp.
+                   ;; This breaks some common installations for LSP
+                   ;; servers like pylsp, rust-analyzer making these
+                   ;; tests mostly useless, so we hack around it here
+                   ;; with a great big hack.
                    ,(format "HOME=%s"
-                            (if (file-exists-p home) home
-                              (format "/home/%s" (getenv "USER")))))
+                            (expand-file-name (format "~%s" (user-login-name)))))
                  process-environment))
                ;; Prevent "Can't guess python-indent-offset ..." messages.
                (python-indent-guess-indent-offset-verbose . nil)

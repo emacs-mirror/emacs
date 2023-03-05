@@ -5117,10 +5117,10 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-whitespace
 character on the previous line.
 
-@item point-min
+@item column-0
 This anchor is a function that is called with 3 arguments: @var{node},
-@var{parent}, and @var{bol}, and returns the beginning of the buffer.
-This is useful as the beginning of the buffer is always at column 0.
+@var{parent}, and @var{bol}, and returns the beginning of the current
+line, which is at column 0.
 
 @item comment-start
 This anchor is a function that is called with 3 arguments: @var{node},

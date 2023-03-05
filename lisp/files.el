@@ -2775,7 +2775,11 @@ not set local variables (though we do notice a mode specified with -*-.)
 
 `enable-local-variables' is ignored if you run `normal-mode' interactively,
 or from Lisp without specifying the optional argument FIND-FILE;
-in that case, this function acts as if `enable-local-variables' were t."
+in that case, this function acts as if `enable-local-variables' were t.
+
+If invoked in a buffer that doesn't visit a file, this function
+processes only the major mode specification in the -*- line and
+the local variables spec."
   (interactive)
   (kill-all-local-variables)
   (unless delay-mode-hooks
@@ -3925,9 +3929,6 @@ variables.
 
 Uses `hack-local-variables-apply' to apply the variables.
 
-See `hack-local-variables--find-variables' for the meaning of
-HANDLE-MODE.
-
 If `enable-local-variables' or `local-enable-local-variables' is
 nil, or INHIBIT-LOCALS is non-nil, this function disregards all
 normal local variables.  If `inhibit-local-variables-regexps'
@@ -3937,7 +3938,14 @@ applied.
 
 Variables present in `permanently-enabled-local-variables' will
 still be evaluated, even if local variables are otherwise
-inhibited."
+inhibited.
+
+If HANDLE-MODE is t, the function only checks whether a \"mode:\"
+is specified, and returns the corresponding mode symbol, or nil.
+In this case, try to ignore minor-modes, and return only a major-mode.
+If HANDLE-MODE is nil, the function gathers all the specified local
+variables.  If HANDLE-MODE is neither nil nor t, the function gathers
+all the specified local variables, but ignores any settings of \"mode:\"."
   ;; We don't let inhibit-local-variables-p influence the value of
   ;; enable-local-variables, because then it would affect dir-local
   ;; variables.  We don't want to search eg tar files for file local
