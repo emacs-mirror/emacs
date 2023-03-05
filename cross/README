@@ -1,6 +1,5 @@
 This directory holds Makefiles and other required assets to build an
-Emacs binary independently for another toolchain.  It also holds
-another copy of gnulib that may be modified to work on Android.
+Emacs binary independently for another toolchain.
 
 The directory ndk-build also contains an implementation of the Android
 `ndk-build' build system.
