@@ -2742,8 +2742,8 @@ The method used must be an out-of-band method."
 		      ;; End is followed by \n or by " -> ".
 		      (put-text-property start end 'dired-filename t))))))
 	  ;; Remove trailing lines.
-	  (beginning-of-line)
-	  (while (looking-at "//")
+	  (goto-char (point-max))
+	  (while (re-search-backward (rx bol "//") nil 'noerror)
 	    (forward-line 1)
 	    (delete-region (match-beginning 0) (point))))
 	;; Reset multibyte if needed.
