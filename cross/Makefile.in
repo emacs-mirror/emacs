@@ -33,9 +33,10 @@ top_builddir = @top_builddir@
 # $(top_builddir)/lib-src/Makefile.android are copied to their usual
 # locations in this directory.
 
-# This is possibly the ugliest Makefile ever written!
+# N.B. that LIB_SRCDIR is actually relative to builddir, because that
+# is where the gnulib files get linked.
 
-LIB_SRCDIR = $(realpath $(srcdir)/lib)
+LIB_SRCDIR = $(realpath $(builddir)/lib)
 LIB_TOP_SRCDIR = $(realpath $(top_srcdir))
 
 SRC_SRCDIR = $(realpath $(top_srcdir)/src)
@@ -49,7 +50,7 @@ LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
 LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
 		  lib-src/ebrowse lib-src/hexl lib-src/movemail
 
-CLEAN_SUBDIRS=src lib-src
+CLEAN_SUBDIRS=src lib-src lib
 
 .PHONY: all
 all: lib/libgnu.a src/libemacs.so src/android-emacs $(LIBSRC_BINARIES)
@@ -185,23 +186,15 @@ $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
 clean:
 	for dir in $(CLEAN_SUBDIRS); do \
 	  find $$dir -type f -delete;   \
-	done;				\
-	if [ -e lib/Makefile ]; then	\
-	  make -C lib clean;		\
-	fi
+	done
 	rm -rf lib/config.h lib-src/config.h
 # ndk-build won't have been generated in a non-Android build.
 	-make -C ndk-build clean
 
-distclean bootstrap-clean: clean
-	if [ -e lib/Makefile ]; then		\
-	  make -C lib distclean;		\
-	fi
-# Just in case.
+maintainer-clean distclean bootstrap-clean: clean
+# Remove links created by configure.
+	for dir in $(CLEAN_SUBDIRS); do \
+	  find $$dir -type l -delete;   \
+	done
 	rm -rf lib/Makefile lib/gnulib.mk ndk-build/Makefile
 	rm -rf ndk-build/ndk-build.mk Makefile
-
-maintainer-clean: distclean bootstrap-clean
-	if [ -e lib/Makefile ]; then		\
-	  make -C lib maintainer-clean;		\
-	fi

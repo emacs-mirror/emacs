@@ -7755,7 +7755,23 @@ if test "$XCONFIGURE" != "android"; then
   dnl Make cross/lib, which various Makefiles in cross expect to
   dnl always exist.
   AS_MKDIR_P([cross/lib])
+  AS_MKDIR_P([cross/lib/malloc])
+  AS_MKDIR_P([cross/lib/sys])
   AS_MKDIR_P([cross/lib-src])
+
+  dnl Link gnulib files to cross/lib as well.
+  dnl af_alg.h and lib/save-cwd.h are copied manually from
+  dnl gnulib, and as such aren't specified in gl_FILE_LIST.
+  emacs_files='gl_FILE_LIST lib/af_alg.h lib/save-cwd.h'
+  dnl These files are specific to Emacs.
+  emacs_files="$emacs_files lib/fingerprint.c lib/fingerprint.h \
+                 lib/save-cwd.c lib/openat-die.c lib/save-cwd.c \
+		 lib/min-max.h"
+  for file in $emacs_files; do
+    AS_IF([expr "X${file}J" : "Xlib/.*[[ch]]J" >/dev/null],
+      [AS_IF([test -f $file],
+        [AC_CONFIG_LINKS([cross/$file:$file])])])
+  done
 fi
 
 # Make java/Makefile

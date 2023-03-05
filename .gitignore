@@ -101,33 +101,7 @@ src/lisp.mk
 src/verbose.mk
 
 # Stuff built during cross compilation
-cross/lib/alloca.h
-cross/lib/assert.h
-cross/lib/byteswap.h
-cross/lib/dirent.h
-cross/lib/errno.h
-cross/lib/execinfo.h
-cross/lib/fcntl.h
-cross/lib/getopt.h
-cross/lib/getopt-cdefs.h
-cross/lib/gmp.h
-cross/lib/ieee754.h
-cross/lib/inttypes.h
-cross/lib/libgnu.a
-cross/lib/limits.h
-cross/lib/malloc/*.gl.h
-cross/lib/signal.h
-cross/lib/std*.h
-!cross/lib/std*.in.h
-!cross/lib/stdio-impl.h
-!cross/lib/_Noreturn.h
-cross/lib/math.h
-cross/lib/string.h
-cross/lib/sys/
-cross/lib/time.h
-cross/lib/unistd.h
-cross/lib/config.h
-cross/lib/gnulib.mk
+cross/lib/*
 cross/src/*
 cross/lib-src/*
 cross/sys/*
