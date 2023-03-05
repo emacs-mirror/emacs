@@ -1087,7 +1087,11 @@ lisp_free (void *block)
    BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
 
 /* Byte alignment of storage blocks.  */
-#define BLOCK_ALIGN (1 << 15)
+#ifdef HAVE_UNEXEC
+# define BLOCK_ALIGN (1 << 10)
+#else  /* !HAVE_UNEXEC */
+# define BLOCK_ALIGN (1 << 15)
+#endif
 verify (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available.
