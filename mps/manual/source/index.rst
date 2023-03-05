@@ -26,6 +26,7 @@ Contents
 .. toctree::
     :caption: Memory Management Reference
     :maxdepth: 2
+    :hidden:
 
     mmref/index
     mmref-index

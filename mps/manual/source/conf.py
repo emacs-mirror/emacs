@@ -37,7 +37,13 @@ if os.environ.get('MMREF'):
 else:
     project = u'Memory Pool System'
     master_doc = 'index'
+    # We use the Read the Docs theme for Sphinx for smooth publishing
+    # at readthedocs.io and low maintenance overheads.  See
+    # <https://sphinx-rtd-theme.readthedocs.io/>.
     html_theme = 'sphinx_rtd_theme'
+    html_theme_options = {
+        'includehidden': False,
+    }
     html_sidebars = {
         '**': ['localtoc.html', 'relations.html', 'links.html', 'contact.html'],
     }
