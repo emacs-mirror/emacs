@@ -18096,7 +18096,8 @@ evaluating untrusted code blocks by prompting for a confirmation.
 
 - =yes= ::
 
-  Org always evaluates the source code without asking permission.
+  Org evaluates the source code, possibly asking permission according
+  to ~org-confirm-babel-evaluate~.
 
 - =never= or =no= ::
 
