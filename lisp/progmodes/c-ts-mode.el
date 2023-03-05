@@ -296,6 +296,9 @@ PARENT and BOL are like other anchor functions."
            (setq prev-sibling (treesit-node-child prev-sibling -2)))
           ((or "preproc_elif" "preproc_else")
            (setq prev-sibling (treesit-node-child prev-sibling -1)))
+          ((or "#elif" "#else")
+           (setq prev-sibling (treesit-node-prev-sibling
+                               (treesit-node-parent prev-sibling) t)))
           ;; If the start of the previous sibling isn't at the
           ;; beginning of a line, something's probably not quite
           ;; right, go a step further.

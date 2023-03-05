@@ -89,6 +89,9 @@ int main() {
 #else
   if (f->output_method == output_termcap)
     create_tty_output (f);
+#elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+  if (FRAME_WINDOW_P (f))
+    {}
 #endif
   t->display_info.tty->top_frame = selected_frame;
   change_frame_size ();
