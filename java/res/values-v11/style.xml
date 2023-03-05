@@ -20,4 +20,5 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 <resources>
   <!-- Style used for popup menus and relatives on Android 3.x.  -->
   <style name="EmacsStyle" parent="@android:style/Theme.Holo.NoActionBar"/>
+  <style name="EmacsStyleOpen" parent="@android:style/Theme.Holo"/>
 </resources>

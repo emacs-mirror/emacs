@@ -27,4 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     <!-- Required to make sure the status bar text remains legible.  -->
     <item name="android:statusBarColor">@android:color/black</item>
   </style>
+  <style name="EmacsStyleOpen"
+	 parent="@android:style/Theme.DeviceDefault.DayNight"/>
 </resources>

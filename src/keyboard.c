@@ -10215,14 +10215,30 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	 effect, turn it off after the first character read.  This
 	 makes input methods send actual key events instead.
 
-         Make sure only to do this once.  */
+         Make sure only to do this once.  Also, disabling text
+         conversion seems to interact badly with menus, so don't
+         disable text conversion if a menu was displayed.  */
 
-      if (!disabled_conversion && t)
+      if (!disabled_conversion && t && !used_mouse_menu)
 	{
-	  disable_text_conversion ();
-	  record_unwind_protect_void (resume_text_conversion);
+	  int i;
 
-	  disabled_conversion = true;
+	  /* used_mouse_menu isn't set if a menu bar prefix key has
+	     just been stored.  It appears necessary to look for the
+	     prefix key itself.  */
+
+	  for (i = 0; i < t; ++i)
+	    {
+	      if (EQ (keybuf[i], Qmenu_bar))
+		break;
+	    }
+
+	  if (i == t)
+	    {
+	      disable_text_conversion ();
+	      record_unwind_protect_void (resume_text_conversion);
+	      disabled_conversion = true;
+	    }
 	}
 #endif
 

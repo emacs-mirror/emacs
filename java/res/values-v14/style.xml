@@ -21,4 +21,5 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <!-- Style used for popup menus and relatives between Android 4.0
        and Android 10.  -->
   <style name="EmacsStyle" parent="@android:style/Theme.DeviceDefault.NoActionBar"/>
+  <style name="EmacsStyleOpen" parent="@android:style/Theme.DeviceDefault"/>
 </resources>

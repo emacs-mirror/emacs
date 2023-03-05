@@ -22,4 +22,5 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
        2.3.  Styles used for newer Android versions are defined in
        the res/values- directories for their respective API levels. -->
   <style name="EmacsStyle" parent="@android:style/Theme.NoTitleBar"/>
+  <style name="EmacsStyleOpen" parent="@android:style/Theme"/>
 </resources>
