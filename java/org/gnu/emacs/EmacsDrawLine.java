@@ -21,13 +21,9 @@ package org.gnu.emacs;
 
 import java.lang.Math;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.Xfermode;
 
 public final class EmacsDrawLine
 {
@@ -38,7 +34,6 @@ public final class EmacsDrawLine
     Rect rect;
     Canvas canvas;
     Paint paint;
-    int i;
 
     /* TODO implement stippling.  */
     if (gc.fill_style == EmacsGC.GC_FILL_OPAQUE_STIPPLED)

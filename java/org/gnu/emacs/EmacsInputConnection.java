@@ -23,18 +23,13 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
-import android.view.inputmethod.InputMethodManager;
-import android.view.inputmethod.SurroundingText;
 import android.view.inputmethod.TextSnapshot;
 import android.view.KeyEvent;
 
-import android.text.Editable;
-
 import android.util.Log;
 
-/* Android input methods, take number six.
-
-   See EmacsEditable for more details.  */
+/* Android input methods, take number six.  See textconv.c for more
+   details; this is more-or-less a thin wrapper around that file.  */
 
 public final class EmacsInputConnection extends BaseInputConnection
 {

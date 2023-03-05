@@ -19,7 +19,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-/* Importing the entire package avoids the deprecation warning.  */
+/* Importing the entire package instead of just the legacy
+   ClipboardManager class avoids the deprecation warning.  */
+
 import android.text.*;
 
 import android.content.Context;

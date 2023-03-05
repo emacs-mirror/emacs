@@ -31,19 +31,16 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.PixelFormat;
 
 import android.view.View;
 import android.view.ViewManager;
-import android.view.ViewGroup;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.InputDevice;
 import android.view.WindowManager;
 
-import android.content.Intent;
 import android.util.Log;
 
 import android.os.Build;
@@ -87,7 +84,7 @@ public final class EmacsWindow extends EmacsHandleObject
   public EmacsWindow parent;
 
   /* List of all children in stacking order.  This must be kept
-     consistent!  */
+     consistent with their Z order!  */
   public ArrayList<EmacsWindow> children;
 
   /* Map between pointer identifiers and last known position.  Used to
@@ -105,9 +102,8 @@ public final class EmacsWindow extends EmacsHandleObject
      last button press or release event.  */
   public int lastButtonState, lastModifiers;
 
-  /* Whether or not the window is mapped, and whether or not it is
-     deiconified.  */
-  private boolean isMapped, isIconified;
+  /* Whether or not the window is mapped.  */
+  private boolean isMapped;
 
   /* Whether or not to ask for focus upon being mapped, and whether or
      not the window should be focusable.  */
@@ -122,7 +118,8 @@ public final class EmacsWindow extends EmacsHandleObject
   private WindowManager windowManager;
 
   /* The time of the last KEYCODE_VOLUME_DOWN release.  This is used
-     to quit Emacs.  */
+     to quit Emacs upon two rapid clicks of the volume down
+     button.  */
   private long lastVolumeButtonRelease;
 
   /* Linked list of character strings which were recently sent as
@@ -1103,14 +1100,12 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   noticeIconified ()
   {
-    isIconified = true;
     EmacsNative.sendIconified (this.handle);
   }
 
   public void
   noticeDeiconified ()
   {
-    isIconified = false;
     EmacsNative.sendDeiconified (this.handle);
   }
 

@@ -24,22 +24,15 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import java.util.List;
-import java.util.ArrayList;
 
-import android.graphics.Canvas;
-import android.graphics.Bitmap;
 import android.graphics.Point;
 
-import android.view.View;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-
-import android.annotation.TargetApi;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
-import android.app.PendingIntent;
 import android.app.Service;
 
 import android.content.ClipboardManager;
@@ -50,9 +43,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-
-import android.database.Cursor;
-import android.database.MatrixCursor;
 
 import android.hardware.input.InputManager;
 
@@ -67,9 +57,6 @@ import android.os.ParcelFileDescriptor;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.os.VibrationEffect;
-
-import android.provider.DocumentsContract;
-import android.provider.DocumentsContract.Document;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -87,7 +74,6 @@ class Holder<T>
 public final class EmacsService extends Service
 {
   public static final String TAG = "EmacsService";
-  public static final int MAX_PENDING_REQUESTS = 256;
   public static volatile EmacsService SERVICE;
   public static boolean needDashQ;
 
@@ -106,6 +92,22 @@ public final class EmacsService extends Service
   /* Flag that says whether or not to print verbose debugging
      information.  */
   public static final boolean DEBUG_IC = false;
+
+  /* Return the directory leading to the directory in which native
+     library files are stored on behalf of CONTEXT.  */
+
+  public static String
+  getLibraryDirectory (Context context)
+  {
+    int apiLevel;
+
+    apiLevel = Build.VERSION.SDK_INT;
+
+    if (apiLevel >= Build.VERSION_CODES.GINGERBREAD)
+      return context.getApplicationInfo ().nativeLibraryDir;
+
+    return context.getApplicationInfo ().dataDir + "/lib";
+  }
 
   @Override
   public int
@@ -178,23 +180,6 @@ public final class EmacsService extends Service
       }
   }
 
-  private String
-  getLibraryDirectory ()
-  {
-    int apiLevel;
-    Context context;
-
-    context = getApplicationContext ();
-    apiLevel = Build.VERSION.SDK_INT;
-
-    if (apiLevel >= Build.VERSION_CODES.GINGERBREAD)
-      return context.getApplicationInfo().nativeLibraryDir;
-    else if (apiLevel >= Build.VERSION_CODES.DONUT)
-      return context.getApplicationInfo().dataDir + "/lib";
-
-    return "/data/data/" + context.getPackageName() + "/lib";
-  }
-
   @Override
   public void
   onCreate ()
@@ -219,7 +204,7 @@ public final class EmacsService extends Service
 	/* Configure Emacs with the asset manager and other necessary
 	   parameters.  */
 	filesDir = app_context.getFilesDir ().getCanonicalPath ();
-	libDir = getLibraryDirectory ();
+	libDir = getLibraryDirectory (this);
 	cacheDir = app_context.getCacheDir ().getCanonicalPath ();
 
 	/* Now provide this application's apk file, so a recursive

@@ -19,9 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.lang.Object;
 import java.lang.IllegalStateException;
 
 /* This defines something that is a so-called ``handle''.  Handles

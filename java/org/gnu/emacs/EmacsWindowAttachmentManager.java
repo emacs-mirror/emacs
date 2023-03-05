@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import android.content.Intent;
@@ -74,8 +73,8 @@ public final class EmacsWindowAttachmentManager
   public
   EmacsWindowAttachmentManager ()
   {
-    consumers = new LinkedList<WindowConsumer> ();
-    windows = new LinkedList<EmacsWindow> ();
+    consumers = new ArrayList<WindowConsumer> ();
+    windows = new ArrayList<EmacsWindow> ();
   }
 
   public void

@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.content.Intent;
 
-import android.os.Bundle;
 import android.os.Build;
 
 import android.view.Menu;
@@ -34,8 +33,6 @@ import android.view.View;
 import android.view.SubMenu;
 
 import android.util.Log;
-
-import android.widget.PopupMenu;
 
 /* Context menu implementation.  This object is built from JNI and
    describes a menu hiearchy.  Then, `inflate' can turn it into an

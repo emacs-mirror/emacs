@@ -160,6 +160,7 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
   {
     String name, extension, mime;
     int extensionSeparator;
+    MimeTypeMap singleton;
 
     if (file.isDirectory ())
       return Document.MIME_TYPE_DIR;
@@ -170,8 +171,9 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
 
     if (extensionSeparator > 0)
       {
+	singleton = MimeTypeMap.getSingleton ();
 	extension = name.substring (extensionSeparator + 1);
-	mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension (extension);
+	mime = singleton.getMimeTypeFromExtension (extension);
 
 	if (mime != null)
 	  return mime;

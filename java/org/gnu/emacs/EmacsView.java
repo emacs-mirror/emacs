@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 
 import android.text.InputType;
 
@@ -116,6 +115,7 @@ public final class EmacsView extends ViewGroup
     super (EmacsService.SERVICE);
 
     Object tem;
+    Context context;
 
     this.window = window;
     this.damageRegion = new Region ();
@@ -133,7 +133,8 @@ public final class EmacsView extends ViewGroup
       setDefaultFocusHighlightEnabled (false);
 
     /* Obtain the input method manager.  */
-    tem = getContext ().getSystemService (Context.INPUT_METHOD_SERVICE);
+    context = getContext ();
+    tem = context.getSystemService (Context.INPUT_METHOD_SERVICE);
     imManager = (InputMethodManager) tem;
   }
 
@@ -281,7 +282,6 @@ public final class EmacsView extends ViewGroup
     int count, i;
     View child;
     Rect windowRect;
-    int wantedWidth, wantedHeight;
 
     count = getChildCount ();
 
@@ -421,7 +421,6 @@ public final class EmacsView extends ViewGroup
 			    child.getLayoutParams());
       }
   }
-
 
   /* The following two functions must not be called if the view has no
      parent, or is parented to an activity.  */

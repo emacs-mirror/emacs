@@ -24,18 +24,22 @@ import java.util.List;
 import java.util.ArrayList;
 
 import android.app.Activity;
+
 import android.content.Context;
 import android.content.Intent;
+
 import android.os.Build;
 import android.os.Bundle;
+
 import android.util.Log;
+
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.widget.FrameLayout.LayoutParams;
+
 import android.widget.FrameLayout;
 
 public class EmacsActivity extends Activity
@@ -187,6 +191,7 @@ public class EmacsActivity extends Activity
     Intent intent;
     View decorView;
     ViewTreeObserver observer;
+    int matchParent;
 
     /* See if Emacs should be started with -Q.  */
     intent = getIntent ();
@@ -194,8 +199,10 @@ public class EmacsActivity extends Activity
       = intent.getBooleanExtra ("org.gnu.emacs.START_DASH_Q",
 				false);
 
-    params = new FrameLayout.LayoutParams (LayoutParams.MATCH_PARENT,
-					   LayoutParams.MATCH_PARENT);
+    matchParent = FrameLayout.LayoutParams.MATCH_PARENT;
+    params
+      = new FrameLayout.LayoutParams (matchParent,
+				      matchParent);
 
     /* Make the frame layout.  */
     layout = new FrameLayout (this);

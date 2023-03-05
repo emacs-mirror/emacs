@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,8 +30,6 @@ import android.graphics.Typeface;
 import android.graphics.Canvas;
 
 import android.util.Log;
-
-import android.os.Build;
 
 public class EmacsSdk7FontDriver extends EmacsFontDriver
 {

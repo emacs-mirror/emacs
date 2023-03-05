@@ -19,7 +19,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-public class EmacsMultitaskActivity extends EmacsActivity
+/* This class only exists because EmacsActivity is already defined as
+   an activity, and the system wants a new class in order to define a
+   new activity.  */
+
+public final class EmacsMultitaskActivity extends EmacsActivity
 {
 
 }

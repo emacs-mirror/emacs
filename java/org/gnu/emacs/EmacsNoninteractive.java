@@ -46,21 +46,6 @@ import java.lang.reflect.Method;
 @SuppressWarnings ("unchecked")
 public final class EmacsNoninteractive
 {
-  private static String
-  getLibraryDirectory (Context context)
-  {
-    int apiLevel;
-
-    apiLevel = Build.VERSION.SDK_INT;
-
-    if (apiLevel >= Build.VERSION_CODES.GINGERBREAD)
-      return context.getApplicationInfo().nativeLibraryDir;
-    else if (apiLevel >= Build.VERSION_CODES.DONUT)
-      return context.getApplicationInfo().dataDir + "/lib";
-
-    return "/data/data/" + context.getPackageName() + "/lib";
-  }
-
   public static void
   main (String[] args)
   {
@@ -188,7 +173,7 @@ public final class EmacsNoninteractive
 	/* Now configure Emacs.  The class path should already be set.  */
 
 	filesDir = context.getFilesDir ().getCanonicalPath ();
-	libDir = getLibraryDirectory (context);
+	libDir = EmacsService.getLibraryDirectory (context);
 	cacheDir = context.getCacheDir ().getCanonicalPath ();
       }
     catch (Exception e)
@@ -198,6 +183,7 @@ public final class EmacsNoninteractive
 	System.err.println ("and that Emacs needs adjustments in order to");
 	System.err.println ("obtain required system internal resources.");
 	System.err.println ("Please report this bug to bug-gnu-emacs@gnu.org.");
+	e.printStackTrace ();
 
 	System.exit (1);
       }

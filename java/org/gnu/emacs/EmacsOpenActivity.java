@@ -46,7 +46,6 @@ package org.gnu.emacs;
 import android.app.AlertDialog;
 import android.app.Activity;
 
-import android.content.Context;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -301,23 +300,6 @@ public final class EmacsOpenActivity extends Activity
       });
   }
 
-  public String
-  getLibraryDirectory ()
-  {
-    int apiLevel;
-    Context context;
-
-    context = getApplicationContext ();
-    apiLevel = Build.VERSION.SDK_INT;
-
-    if (apiLevel >= Build.VERSION_CODES.GINGERBREAD)
-      return context.getApplicationInfo().nativeLibraryDir;
-    else if (apiLevel >= Build.VERSION_CODES.DONUT)
-      return context.getApplicationInfo().dataDir + "/lib";
-
-    return "/data/data/" + context.getPackageName() + "/lib";
-  }
-
   public void
   startEmacsClient (String fileName)
   {
@@ -327,7 +309,7 @@ public final class EmacsOpenActivity extends Activity
     EmacsClientThread thread;
     File file;
 
-    libDir = getLibraryDirectory ();
+    libDir = EmacsService.getLibraryDirectory (this);
     builder = new ProcessBuilder (libDir + "/libemacsclient.so",
 				  fileName, "--reuse-frame",
 				  "--timeout=10", "--no-wait");

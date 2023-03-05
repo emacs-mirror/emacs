@@ -33,7 +33,6 @@ public final class EmacsDrawRectangle
   perform (EmacsDrawable drawable, EmacsGC gc,
 	   int x, int y, int width, int height)
   {
-    int i;
     Paint maskPaint, paint;
     Canvas maskCanvas;
     Bitmap maskBitmap;

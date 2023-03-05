@@ -19,8 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 package org.gnu.emacs;
 
-import java.util.List;
-
 import android.os.Build;
 
 /* This code is mostly unused.  See sfntfont-android.c for the code
