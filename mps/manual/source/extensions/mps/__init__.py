@@ -1,6 +1,6 @@
 '''
 Sphinx extensions for the MPS documentation.
-See <http://sphinx-doc.org/extensions.html>
+See <https://www.sphinx-doc.org/en/master/development/index.html>
 '''
 
 from collections import defaultdict
@@ -56,12 +56,13 @@ class MpsDirective(Directive):
         else:
             return
         if hasattr(cls, 'node_class') and hasattr(cls, 'visit'):
-            app.add_node(cls.node_class, html=cls.visit, latex=cls.visit,
+            app.add_node(cls.node_class, override=True,
+                         html=cls.visit, latex=cls.visit,
                          text=cls.visit, man=cls.visit)
         if hasattr(cls, 'domain'):
-            app.add_directive_to_domain(cls.domain, name, cls)
+            app.add_directive_to_domain(cls.domain, name, cls, override=True)
         else:
-            app.add_directive(name, cls)
+            app.add_directive(name, cls, override=True)
 
 class MpsPrefixDirective(MpsDirective):
     domain = 'mps'
