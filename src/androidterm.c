@@ -676,6 +676,16 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       if (!f)
 	goto OTHER;
 
+      if (FRAME_TOOLTIP_P (f))
+	{
+	  if (FRAME_PIXEL_HEIGHT (f) != configureEvent.xconfigure.height
+	      || FRAME_PIXEL_WIDTH (f) != configureEvent.xconfigure.width)
+	    SET_FRAME_GARBAGED (f);
+
+	  FRAME_PIXEL_HEIGHT (f) = configureEvent.xconfigure.height;
+	  FRAME_PIXEL_WIDTH (f) = configureEvent.xconfigure.width;
+	}
+
       int width = configureEvent.xconfigure.width;
       int height = configureEvent.xconfigure.height;
 

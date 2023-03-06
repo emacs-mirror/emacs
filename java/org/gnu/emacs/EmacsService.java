@@ -481,25 +481,6 @@ public final class EmacsService extends Service
     return String.valueOf (keysym);
   }
 
-  public void
-  sync ()
-  {
-    Runnable runnable;
-
-    runnable = new Runnable () {
-	public void
-	run ()
-	{
-	  synchronized (this)
-	    {
-	      notify ();
-	    }
-	}
-      };
-
-    syncRunnable (runnable);
-  }
-
   
 
   /* Start the Emacs service if necessary.  On Android 26 and up,

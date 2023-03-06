@@ -168,7 +168,7 @@ public final class EmacsView extends ViewGroup
       = Bitmap.createBitmap (measuredWidth,
 			     measuredHeight,
 			     Bitmap.Config.ARGB_8888);
-    bitmap.eraseColor (0xffffffff);
+    bitmap.eraseColor (window.background | 0xff000000);
 
     /* And canvases.  */
     canvas = new Canvas (bitmap);
@@ -507,7 +507,10 @@ public final class EmacsView extends ViewGroup
     synchronized (this)
       {
 	/* Recycle the bitmap and call GC.  */
-	bitmap.recycle ();
+
+	if (bitmap != null)
+	  bitmap.recycle ();
+
 	bitmap = null;
 	canvas = null;
 	surfaceView.setBitmap (null, null);

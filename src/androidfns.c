@@ -1883,9 +1883,10 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
     unsigned long mask;
 
     block_input ();
-    mask = ANDROID_CW_OVERRIDE_REDIRECT;
+    mask = ANDROID_CW_OVERRIDE_REDIRECT | ANDROID_CW_BACK_PIXEL;
 
     attrs.override_redirect = true;
+    attrs.background_pixel = FRAME_BACKGROUND_PIXEL (f);
     tip_window
       = FRAME_ANDROID_WINDOW (f)
       = android_create_window (FRAME_DISPLAY_INFO (f)->root_window,
@@ -2314,10 +2315,6 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   android_map_raised (FRAME_ANDROID_WINDOW (tip_f));
   unblock_input ();
 
-  /* Synchronize with the UI thread.  This is required to prevent ugly
-     black splotches.  */
-  android_sync ();
-
   /* Garbage the tip frame too.  */
   SET_FRAME_GARBAGED (tip_f);
 
@@ -2327,6 +2324,11 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   set_buffer_internal_1 (old_buffer);
   unbind_to (count_1, Qnil);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
+
+  /* MapNotify events are not sent on Android, so make the frame
+     visible.  */
+
+  SET_FRAME_VISIBLE (tip_f, true);
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */

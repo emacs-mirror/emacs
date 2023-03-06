@@ -104,7 +104,6 @@ struct android_emacs_service
   jmethodID get_screen_height;
   jmethodID detect_mouse;
   jmethodID name_keysym;
-  jmethodID sync;
   jmethodID browse_url;
   jmethodID restart_emacs;
   jmethodID update_ic;
@@ -2122,7 +2121,6 @@ android_init_emacs_service (void)
   FIND_METHOD (get_screen_height, "getScreenHeight", "(Z)I");
   FIND_METHOD (detect_mouse, "detectMouse", "()Z");
   FIND_METHOD (name_keysym, "nameKeysym", "(I)Ljava/lang/String;");
-  FIND_METHOD (sync, "sync", "()V");
   FIND_METHOD (browse_url, "browseUrl", "(Ljava/lang/String;)"
 	       "Ljava/lang/String;");
   FIND_METHOD (restart_emacs, "restartEmacs", "()V");
@@ -4512,15 +4510,6 @@ android_translate_coordinates (android_window src, int x,
 
   /* And free the local reference.  */
   ANDROID_DELETE_LOCAL_REF (coordinates);
-}
-
-void
-android_sync (void)
-{
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.sync);
-  android_exception_check ();
 }
 
 int

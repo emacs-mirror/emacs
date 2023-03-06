@@ -606,8 +606,6 @@ extern void android_move_resize_window (android_window, int, int,
 extern void android_map_raised (android_window);
 extern void android_translate_coordinates (android_window, int,
 					   int, int *, int *);
-extern void android_sync (void);
-
 extern int android_wc_lookup_string (android_key_pressed_event *,
 				     wchar_t *, int, int *,
 				     enum android_lookup_status *);

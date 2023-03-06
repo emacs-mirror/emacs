@@ -129,6 +129,10 @@ public final class EmacsWindow extends EmacsHandleObject
   /* Whether or not this window is fullscreen.  */
   public boolean fullscreen;
 
+  /* The window background pixel.  This is used by EmacsView when
+     creating new bitmaps.  */
+  public volatile int background;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -183,6 +187,9 @@ public final class EmacsWindow extends EmacsHandleObject
     /* scratchGC is used as the argument to a FillRectangles req.  */
     scratchGC.foreground = pixel;
     scratchGC.markDirty (false);
+
+    /* Make the background known to the view as well.  */
+    background = pixel;
   }
 
   public Rect
