@@ -468,5 +468,6 @@ extern int emacs_setenv_TZ (char const *);
 
 #ifdef REPLACEMENT_MB_CUR_MAX
 #include <stdlib.h>
+#undef MB_CUR_MAX
 #define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
 #endif /* REPLACEMENT_MB_CUR_MAX */
