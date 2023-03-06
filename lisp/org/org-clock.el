@@ -726,9 +726,9 @@ If not, show simply the clocked time like 01:50."
 				'org-mode-line-clock-overrun
 			      'org-mode-line-clock)))
 	       (effort-str (org-duration-from-minutes effort-in-minutes)))
-	  (format (propertize " [%s/%s] (%s)" 'face 'org-mode-line-clock)
+	  (format (propertize "[%s/%s] (%s) " 'face 'org-mode-line-clock)
 		  work-done-str effort-str org-clock-heading))
-      (format (propertize " [%s] (%s)" 'face 'org-mode-line-clock)
+      (format (propertize "[%s] (%s) " 'face 'org-mode-line-clock)
 	      (org-duration-from-minutes clocked-time)
 	      org-clock-heading))))
 
@@ -1798,7 +1798,11 @@ Optional argument N tells to change by that many units."
 	      (begts (if updatets1 begts1 begts2)))
 	  (setq tdiff
 		(time-subtract
-		 (org-time-string-to-time org-last-changed-timestamp)
+		 (org-time-string-to-time
+                  (save-excursion
+                    (goto-char (if updatets1 begts2 begts1))
+                    (looking-at org-ts-regexp3)
+                    (match-string 0)))
 		 (org-time-string-to-time ts)))
           ;; `save-excursion' won't work because
           ;; `org-timestamp-change' deletes and re-inserts the

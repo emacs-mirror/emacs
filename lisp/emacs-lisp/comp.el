@@ -698,11 +698,22 @@ Useful to hook into pass checkers.")
 (defvar comp-no-spawn nil
   "Non-nil don't spawn native compilation processes.")
 
+(defconst comp-warn-primitives
+  '(null memq gethash and subrp not subr-native-elisp-p
+         comp--install-trampoline concat if symbolp symbol-name make-string
+         length aset aref length> mapcar expand-file-name
+         file-name-as-directory file-exists-p native-elisp-load)
+  "List of primitives we want to warn about in case of redefinition.
+This are essential for the trampoline machinery to work properly.")
+
 ;; Moved early to avoid circularity when comp.el is loaded and
 ;; `macroexpand' needs to be advised (bug#47049).
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
+  (when (memq subr-name comp-warn-primitives)
+    (warn "Redefining `%s' might break native compilation of trampolines."
+          subr-name))
   (unless (or (null native-comp-enable-subr-trampolines)
               (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
