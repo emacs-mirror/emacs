@@ -2803,8 +2803,7 @@ if test "${with_webp}" != "no"; then
    || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
    || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes"; then
       WEBP_REQUIRED=0.6.0
-      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED \
-                   libwebpdecoder >= $WEBP_REQUIRED"
+      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
       AC_SUBST([WEBP_CFLAGS])
