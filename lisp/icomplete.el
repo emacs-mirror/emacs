@@ -419,6 +419,16 @@ if that doesn't produce a completion match."
   "C-."     #'icomplete-forward-completions
   "C-,"     #'icomplete-backward-completions)
 
+(defun icomplete--fido-ccd ()
+  "Make value for `completion-category-defaults' prioritizing `flex'."
+  (cl-loop
+   for (cat . alist) in completion-category-defaults collect
+   `(,cat . ,(cl-loop
+              for entry in alist for (prop . val) = entry
+              if (eq prop 'styles)
+              collect `(,prop . (flex ,@(delq 'flex val)))
+              else collect entry))))
+
 (defun icomplete--fido-mode-setup ()
   "Setup `fido-mode''s minibuffer."
   (when (and icomplete-mode (icomplete-simple-completing-p))
@@ -430,6 +440,7 @@ if that doesn't produce a completion match."
                 icomplete-scroll (not (null icomplete-vertical-mode))
                 completion-styles '(flex)
                 completion-flex-nospace nil
+                completion-category-defaults (icomplete--fido-ccd)
                 completion-ignore-case t
                 read-buffer-completion-ignore-case t
                 read-file-name-completion-ignore-case t)))
