@@ -224,7 +224,8 @@ Use `emacs-lisp-byte-compile-and-load' in combination with
 native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
-  (load (native-compile buffer-file-name)))
+  (when-let ((out (native-compile buffer-file-name)))
+    (load out)))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.
