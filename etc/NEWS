@@ -100,7 +100,7 @@ If you want to get back the old behavior, set the user option to the value
 *** New user option 'grep-use-headings'.
 When non-nil, the output of Grep is split into sections, one for each
 file, instead of having file names prefixed to each line.  It is
-equivalent to the --heading option of some tools such as 'git grep'
+equivalent to the "--heading" option of some tools such as 'git grep'
 and 'rg'.  The headings are displayed using the new 'grep-heading'
 face.
 
@@ -116,7 +116,7 @@ switches for shortlogs, such as the one produced by 'C-x v L'.
 
 +++
 *** 'diff-ignore-whitespace-hunk' can now be applied to all hunks.
-When called with a non-nil prefix argument
+When called with a non-nil prefix argument,
 'diff-ignore-whitespace-hunk' now iterates over all the hunks in the
 current diff, regenerating them without whitespace changes.
 
@@ -161,7 +161,7 @@ this to your configuration:
 
 ---
 *** You can now properly unload Eshell.
-Calling "(unload-feature 'eshell)" no longer signals an error, and now
+Calling '(unload-feature 'eshell)' no longer signals an error, and now
 correctly unloads Eshell and all of its modules.
 
 +++
@@ -183,6 +183,12 @@ point is not in a comment or a string.  It is by default bound to
 +++
 *** New connection method "toolbox".
 This allows accessing system containers provided by Toolbox.
+
++++
+*** New value 'suppress' for user option 'tramp-use-ssh-controlmaster-options'.
+This user option allows now the values t, nil, and 'suppress'.  The
+latter suppresses also "ControlMaster" settings in the user's
+"~/.ssh/config" file.
 
 ** EWW
 
@@ -211,7 +217,7 @@ asynchronously (which is the default behavior).
 
 * New Modes and Packages in Emacs 30.1
 
-** New major modes based on the tree-sitter library.
+** New major modes based on the tree-sitter library
 
 +++
 *** New major mode 'html-ts-mode'.

@@ -108,11 +108,18 @@ detected as prompt when being sent on echoing hosts, therefore.")
 
 (defcustom tramp-use-ssh-controlmaster-options (not (eq system-type 'windows-nt))
   "Whether to use `tramp-ssh-controlmaster-options'.
+Set it to t, if you want Tramp to apply these options.
 Set it to nil, if you use Control* or Proxy* options in your ssh
-configuration."
+configuration.
+Set it to `suppress' if you want to disable settings in your
+\"~/.ssh/config¸\"."
   :group 'tramp
-  :version "28.1"
-  :type 'boolean)
+  :version "29.2"
+  :type '(choice (const :tag "Set ControlMaster" t)
+                 (const :tag "Don't set ControlMaster" nil)
+                 (const :tag "Suppress ControlMaster" suppress))
+  ;; Check with (safe-local-variable-p 'tramp-use-ssh-controlmaster-options 'suppress)
+  :safe (lambda (val) (and (memq val '(t nil suppress)) t)))
 
 (defvar tramp-ssh-controlmaster-options nil
   "Which ssh Control* arguments to use.
@@ -123,8 +130,8 @@ If it is a string, it should have the form
 spec must be doubled, because the string is used as format string.
 
 Otherwise, it will be auto-detected by Tramp, if
-`tramp-use-ssh-controlmaster-options' is non-nil.  The value
-depends on the installed local ssh version.
+`tramp-use-ssh-controlmaster-options' is t.  The value depends on
+the installed local ssh version.
 
 The string is used in `tramp-methods'.")
 
@@ -4811,6 +4818,15 @@ Goes through the list `tramp-inline-compress-commands'."
 	(tramp-message
 	 vec 2 "Couldn't find an inline transfer compress command")))))
 
+(defun tramp-ssh-option-exists-p (vec option)
+  "Check, whether local ssh OPTION is applicable."
+  ;; We don't want to cache it persistently.
+  (with-tramp-connection-property nil option
+    ;; We use a non-existing IP address for check, in order to avoid
+    ;; useless connections, and DNS timeouts.
+    (zerop
+     (tramp-call-process vec "ssh" nil nil nil "-G" "-o" option "0.0.0.1"))))
+
 (defun tramp-ssh-controlmaster-options (vec)
   "Return the Control* arguments of the local ssh."
   (cond
@@ -4820,40 +4836,30 @@ Goes through the list `tramp-inline-compress-commands'."
     "")
 
    ;; There is already a value to be used.
-   ((stringp tramp-ssh-controlmaster-options) tramp-ssh-controlmaster-options)
+   ((and (eq tramp-use-ssh-controlmaster-options t)
+         (stringp tramp-ssh-controlmaster-options))
+    tramp-ssh-controlmaster-options)
 
    ;; Determine the options.
-   (t (setq tramp-ssh-controlmaster-options "")
-      (let ((case-fold-search t))
-	(ignore-errors
-	  (with-tramp-progress-reporter
-	      vec 4 "Computing ControlMaster options"
-	    ;; We use a non-existing IP address, in order to avoid
-	    ;; useless connections, and DNS timeouts.
-	    (when (zerop
-		   (tramp-call-process
-		    vec "ssh" nil nil nil
-		    "-G" "-o" "ControlMaster=auto" "0.0.0.1"))
-	      (setq tramp-ssh-controlmaster-options
-		    "-o ControlMaster=auto")
-	      (if (zerop
-		   (tramp-call-process
-		    vec "ssh" nil nil nil
-		    "-G" "-o" "ControlPath=tramp.%C" "0.0.0.1"))
-		  (setq tramp-ssh-controlmaster-options
-			(concat tramp-ssh-controlmaster-options
-				" -o ControlPath=tramp.%%C"))
-		(setq tramp-ssh-controlmaster-options
-		      (concat tramp-ssh-controlmaster-options
-			      " -o ControlPath=tramp.%%r@%%h:%%p")))
-	      (when (zerop
-		     (tramp-call-process
-		      vec "ssh" nil nil nil
-		      "-G" "-o" "ControlPersist=no" "0.0.0.1"))
-		(setq tramp-ssh-controlmaster-options
-		      (concat tramp-ssh-controlmaster-options
-			      " -o ControlPersist=no")))))))
-      tramp-ssh-controlmaster-options)))
+   (t (ignore-errors
+        ;; ControlMaster and ControlPath options are introduced in OpenSSH 3.9.
+	(when (tramp-ssh-option-exists-p vec "ControlMaster=auto")
+          (concat
+           "-o ControlMaster="
+           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+               "no" "auto")
+
+           " -o ControlPath="
+           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+               "none"
+             ;; Hashed tokens are introduced in OpenSSH 6.7.
+	     (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
+		 "tramp.%%C" "tramp.%%r@%%h:%%p"))
+
+           ;; ControlPersist option is introduced in OpenSSH 5.6.
+	   (when (and (not (eq tramp-use-ssh-controlmaster-options 'suppress))
+                      (tramp-ssh-option-exists-p vec "ControlPersist=no"))
+	     " -o ControlPersist=no")))))))
 
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
