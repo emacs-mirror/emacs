@@ -46,7 +46,7 @@ extern int android_emacs_init (int, char **, char *);
 extern int android_select (int, fd_set *, fd_set *, fd_set *,
 			   struct timespec *);
 
-extern int android_open (const char *, int, int);
+extern int android_open (const char *, int, mode_t);
 extern char *android_user_full_name (struct passwd *);
 extern int android_fstat (int, struct stat *);
 extern int android_fstatat (int, const char *restrict,
@@ -104,6 +104,30 @@ extern struct android_dir *android_opendir (const char *);
 extern int android_dirfd (struct android_dir *);
 extern struct dirent *android_readdir (struct android_dir *);
 extern void android_closedir (struct android_dir *);
+
+
+
+/* External asset manager interface.  */
+
+struct android_fd_or_asset
+{
+  /* The file descriptor.  */
+  int fd;
+
+  /* The asset.  If set, FD is not a real file descriptor.  */
+  void *asset;
+};
+
+extern struct android_fd_or_asset android_open_asset (const char *,
+						      int, mode_t);
+extern int android_close_asset (struct android_fd_or_asset);
+extern ssize_t android_asset_read_quit (struct android_fd_or_asset,
+					void *, size_t);
+extern ssize_t android_asset_read (struct android_fd_or_asset,
+				   void *, size_t);
+extern off_t android_asset_lseek (struct android_fd_or_asset, off_t, int);
+extern int android_asset_fstat (struct android_fd_or_asset,
+				struct stat *);
 
 
 

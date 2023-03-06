@@ -412,3 +412,11 @@ AAsset_read (AAsset *asset, void *buffer, size_t size)
   return android_asset_read_internal (asset, MIN (size, INT_MAX),
 				      buffer);
 }
+
+static off_t
+AAsset_seek (AAsset *asset, off_t offset, int whence)
+{
+  /* Java InputStreams don't support seeking at all.  */
+  errno = ESPIPE;
+  return -1;
+}

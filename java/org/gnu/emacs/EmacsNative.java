@@ -203,6 +203,7 @@ public final class EmacsNative
   public static native ExtractedText getExtractedText (short window,
 						       ExtractedTextRequest req,
 						       int flags);
+  public static native void requestSelectionUpdate (short window);
 
 
   /* Return the current value of the selection, or -1 upon

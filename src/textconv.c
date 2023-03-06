@@ -957,6 +957,26 @@ really_delete_surrounding_text (struct frame *f, ptrdiff_t left,
   unbind_to (count, Qnil);
 }
 
+/* Update the interface with F's new point and mark.  If a batch edit
+   is in progress, schedule the update for when it finishes
+   instead.  */
+
+static void
+really_request_point_update (struct frame *f)
+{
+  /* If F's old selected window is no longer live, fail.  */
+
+  if (!WINDOW_LIVE_P (f->old_selected_window))
+    return;
+
+  if (f->conversion.batch_edit_count > 0)
+    f->conversion.batch_edit_flags |= PENDING_POINT_CHANGE;
+  else if (text_interface && text_interface->point_changed)
+    text_interface->point_changed (f,
+				   XWINDOW (f->old_selected_window),
+				   current_buffer);
+}
+
 /* Set point in F to POSITION.  If MARK is not POSITION, activate the
    mark and set MARK to that as well.
 
@@ -1162,6 +1182,10 @@ handle_pending_conversion_events_1 (struct frame *f,
     case TEXTCONV_DELETE_SURROUNDING_TEXT:
       really_delete_surrounding_text (f, XFIXNUM (XCAR (data)),
 				      XFIXNUM (XCDR (data)));
+      break;
+
+    case TEXTCONV_REQUEST_POINT_UPDATE:
+      really_request_point_update (f);
       break;
     }
 
@@ -1449,6 +1473,25 @@ delete_surrounding_text (struct frame *f, ptrdiff_t left,
   action->operation = TEXTCONV_DELETE_SURROUNDING_TEXT;
   action->data = Fcons (make_fixnum (left),
 			make_fixnum (right));
+  action->next = NULL;
+  action->counter = counter;
+  for (last = &f->conversion.actions; *last; last = &(*last)->next)
+    ;;
+  *last = action;
+  input_pending = true;
+}
+
+/* Request an immediate call to INTERFACE->point_changed with the new
+   details of F's region unless a batch edit is in progress.  */
+
+void
+request_point_update (struct frame *f, unsigned long counter)
+{
+  struct text_conversion_action *action, **last;
+
+  action = xmalloc (sizeof *action);
+  action->operation = TEXTCONV_REQUEST_POINT_UPDATE;
+  action->data = Qnil;
   action->next = NULL;
   action->counter = counter;
   for (last = &f->conversion.actions; *last; last = &(*last)->next)

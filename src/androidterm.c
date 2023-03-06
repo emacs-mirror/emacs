@@ -630,6 +630,10 @@ android_handle_ime_event (union android_event *event, struct frame *f)
     case ANDROID_IME_END_BATCH_EDIT:
       end_batch_edit (f, event->ime.counter);
       break;
+
+    case ANDROID_IME_REQUEST_SELECTION_UPDATE:
+      request_point_update (f, event->ime.counter);
+      break;
     }
 }
 
@@ -5167,6 +5171,28 @@ NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
   free (context.text);
 
   return string;
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (requestSelectionUpdate) (JNIEnv *env, jobject object,
+				      jshort window)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_REQUEST_SELECTION_UPDATE;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
 }
 
 #ifdef __clang__

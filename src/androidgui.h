@@ -430,6 +430,7 @@ enum android_ime_operation
     ANDROID_IME_SET_POINT,
     ANDROID_IME_START_BATCH_EDIT,
     ANDROID_IME_END_BATCH_EDIT,
+    ANDROID_IME_REQUEST_SELECTION_UPDATE,
   };
 
 struct android_ime_event

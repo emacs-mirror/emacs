@@ -573,18 +573,33 @@ public final class EmacsView extends ViewGroup
     /* Set a reasonable inputType.  */
     info.inputType = InputType.TYPE_CLASS_TEXT;
 
+    /* If this fails or ANDROID_IC_MODE_NULL was requested, then don't
+       initialize the input connection.  */
+
+    if (mode == EmacsService.IC_MODE_NULL)
+      {
+	info.inputType = InputType.TYPE_NULL;
+	return null;
+      }
+
     /* Obtain the current position of point and set it as the
        selection.  */
     selection = EmacsNative.getSelection (window.handle);
 
-    Log.d (TAG, "onCreateInputConnection: current selection is: " + selection);
-
-    /* If this fails or ANDROID_IC_MODE_NULL was requested, then don't
-       initialize the input connection.  */
-    if (mode == EmacsService.IC_MODE_NULL || selection == null)
+    if (selection != null)
+      Log.d (TAG, "onCreateInputConnection: current selection is: "
+	     + selection[0] + ", by " + selection[1]);
+    else
       {
-	info.inputType = InputType.TYPE_NULL;
-	return null;
+	Log.d (TAG, "onCreateInputConnection: current selection could"
+	       + " not be retrieved.");
+
+	/* If the selection could not be obtained, return 0 by 0.
+	   However, ask for the selection position to be updated as
+	   soon as possible.  */
+
+	selection = new int[] { 0, 0, };
+	EmacsNative.requestSelectionUpdate (window.handle);
       }
 
     if (mode == EmacsService.IC_MODE_ACTION)

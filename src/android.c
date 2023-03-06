@@ -1568,7 +1568,7 @@ android_close_on_exec (int fd)
    contain all assets in the application package.  */
 
 int
-android_open (const char *filename, int oflag, int mode)
+android_open (const char *filename, int oflag, mode_t mode)
 {
   const char *name;
   AAsset *asset;
@@ -5970,6 +5970,154 @@ android_set_fullscreen (android_window window, bool fullscreen)
 }
 
 
+
+/* External asset management interface.  By using functions here
+   to read and write from files, Emacs can avoid opening a
+   shared memory file descriptor for each ``asset'' file.  */
+
+/* Like android_open.  However, return a structure that can
+   either directly hold an AAsset or a file descriptor.
+
+   Value is the structure upon success.  Upon failure, value
+   consists of an uninitialized file descriptor, but its asset
+   field is set to -1, and errno is set accordingly.  */
+
+struct android_fd_or_asset
+android_open_asset (const char *filename, int oflag, mode_t mode)
+{
+  const char *name;
+  struct android_fd_or_asset fd;
+  AAsset *asset;
+
+  /* Initialize FD by setting its asset to an invalid
+     pointer.  */
+  fd.asset = (void *) -1;
+
+  /* See if this is an asset.  */
+
+  if (asset_manager && (name = android_get_asset_name (filename)))
+    {
+      /* Return failure for unsupported flags.  */
+
+      if (oflag & O_WRONLY || oflag & O_RDWR)
+	{
+	  errno = EROFS;
+	  return fd;
+	}
+
+      if (oflag & O_DIRECTORY)
+	{
+	  errno = ENOTSUP;
+	  return fd;
+	}
+
+      /* Now try to open the asset.  */
+      asset = AAssetManager_open (asset_manager, name,
+				  AASSET_MODE_STREAMING);
+
+      if (!asset)
+	{
+	  errno = ENOENT;
+	  return fd;
+	}
+
+      /* Return the asset.  */
+      fd.asset = asset;
+      return fd;
+    }
+
+  /* If the file is not an asset, fall back to android_open and
+     get a regular file descriptor.  */
+
+  fd.fd = android_open (filename, oflag, mode);
+  if (fd.fd < 1)
+    return fd;
+
+  /* Set fd.asset to NULL, signifying that it is a file
+     descriptor.  */
+  fd.asset = NULL;
+  return fd;
+}
+
+/* Like android_close.  However, it takes a ``file descriptor''
+   opened using android_open_asset.  */
+
+int
+android_close_asset (struct android_fd_or_asset asset)
+{
+  if (!asset.asset)
+    return android_close (asset.fd);
+
+  AAsset_close (asset.asset);
+  return 0;
+}
+
+/* Like `emacs_read_quit'.  However, it handles file descriptors
+   opened using `android_open_asset' as well.  */
+
+ssize_t
+android_asset_read_quit (struct android_fd_or_asset asset,
+			 void *buffer, size_t size)
+{
+  if (!asset.asset)
+    return emacs_read_quit (asset.fd, buffer, size);
+
+  /* It doesn't seem possible to quit from inside AAsset_read,
+     sadly.  */
+  return AAsset_read (asset.asset, buffer, size);
+}
+
+/* Like `read'.  However, it handles file descriptors opened
+   using `android_open_asset' as well.  */
+
+ssize_t
+android_asset_read (struct android_fd_or_asset asset,
+		    void *buffer, size_t size)
+{
+  if (!asset.asset)
+    return read (asset.fd, buffer, size);
+
+  /* It doesn't seem possible to quit from inside AAsset_read,
+     sadly.  */
+  return AAsset_read (asset.asset, buffer, size);
+}
+
+/* Like `lseek', but it handles ``file descriptors'' opened with
+   android_open_asset.  */
+
+off_t
+android_asset_lseek (struct android_fd_or_asset asset, off_t off,
+		     int whence)
+{
+  if (!asset.asset)
+    return lseek (asset.fd, off, whence);
+
+  return AAsset_seek (asset.asset, off, whence);
+}
+
+/* Like `fstat'.  */
+
+int
+android_asset_fstat (struct android_fd_or_asset asset,
+		     struct stat *statb)
+{
+  if (!asset.asset)
+    return fstat (asset.fd, statb);
+
+  /* Clear statb.  */
+  memset (statb, 0, sizeof *statb);
+
+  /* Set the mode.  */
+  statb->st_mode = S_IFREG | S_IRUSR | S_IRGRP | S_IROTH;
+
+  /* Owned by root.  */
+  statb->st_uid = 0;
+  statb->st_gid = 0;
+
+  /* Size of the file.  */
+  statb->st_size = AAsset_getLength (asset.asset);
+  return 0;
+}
 
 #else /* ANDROID_STUBIFY */
 

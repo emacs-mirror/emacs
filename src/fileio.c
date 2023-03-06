@@ -113,6 +113,37 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+
+/* Type describing a file descriptor used by functions such as
+   `insert-file-contents'.  */
+
+typedef int emacs_fd;
+
+/* Function used to read and open from such a file descriptor.  */
+
+#define emacs_fd_open		emacs_open
+#define emacs_fd_close		emacs_close
+#define emacs_fd_read		emacs_read_quit
+#define emacs_fd_lseek		lseek
+#define emacs_fd_fstat		sys_fstat
+#define emacs_fd_valid_p(fd)	((fd) >= 0)
+#define emacs_fd_to_int(fds)	(fds)
+
+#else /* HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+typedef struct android_fd_or_asset emacs_fd;
+
+#define emacs_fd_open		android_open_asset
+#define emacs_fd_close		android_close_asset
+#define emacs_fd_read		android_asset_read_quit
+#define emacs_fd_lseek		android_asset_lseek
+#define emacs_fd_fstat		android_asset_fstat
+#define emacs_fd_valid_p(fd)	((fd).asset != ((void *) -1))
+#define emacs_fd_to_int(fds)	((fds).asset ? -1 : (fds).fd)
+
+#endif /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+
 /* True during writing of auto-save files.  */
 static bool auto_saving;
 
@@ -297,6 +328,15 @@ void
 close_file_unwind (int fd)
 {
   emacs_close (fd);
+}
+
+static void
+close_file_unwind_emacs_fd (void *ptr)
+{
+  emacs_fd *fd;
+
+  fd = ptr;
+  emacs_fd_close (*fd);
 }
 
 void
@@ -2221,7 +2261,8 @@ permissions.  */)
 #else
   bool already_exists = false;
   mode_t new_mask;
-  int ifd, ofd;
+  emacs_fd ifd;
+  int ofd;
   struct stat st;
 #endif
 
@@ -2265,22 +2306,24 @@ permissions.  */)
       report_file_error ("Copying permissions to", newname);
     }
 #else /* not WINDOWSNT */
-  ifd = emacs_open (SSDATA (encoded_file), O_RDONLY | O_NONBLOCK, 0);
+  ifd = emacs_fd_open (SSDATA (encoded_file), O_RDONLY | O_NONBLOCK, 0);
 
-  if (ifd < 0)
+  if (!emacs_fd_valid_p (ifd))
     report_file_error ("Opening input file", file);
 
-  record_unwind_protect_int (close_file_unwind, ifd);
+  record_unwind_protect_ptr (close_file_unwind_emacs_fd, &ifd);
 
-  if (sys_fstat (ifd, &st) != 0)
+  if (emacs_fd_fstat (ifd, &st) != 0)
     report_file_error ("Input file status", file);
 
   if (!NILP (preserve_permissions))
     {
 #if HAVE_LIBSELINUX
-      if (is_selinux_enabled ())
+      if (is_selinux_enabled ()
+	  && emacs_fd_to_int (ifd) != -1)
 	{
-	  conlength = fgetfilecon (ifd, &con);
+	  conlength = fgetfilecon (emacs_fd_to_int (ifd),
+				   &con);
 	  if (conlength == -1)
 	    report_file_error ("Doing fgetfilecon", file);
 	}
@@ -2329,7 +2372,8 @@ permissions.  */)
 
   maybe_quit ();
 
-  if (clone_file (ofd, ifd))
+  if (emacs_fd_to_int (ifd) != -1
+      && clone_file (ofd, emacs_fd_to_int (ifd)))
     newsize = st.st_size;
   else
     {
@@ -2337,30 +2381,38 @@ permissions.  */)
       ssize_t copied;
 
 #ifndef MSDOS
-      for (newsize = 0; newsize < insize; newsize += copied)
+      newsize = 0;
+
+      if (emacs_fd_to_int (ifd) != -1)
 	{
-	  /* Copy at most COPY_MAX bytes at a time; this is min
-	     (PTRDIFF_MAX, SIZE_MAX) truncated to a value that is
-	     surely aligned well.  */
-	  ssize_t ssize_max = TYPE_MAXIMUM (ssize_t);
-	  ptrdiff_t copy_max = min (ssize_max, SIZE_MAX) >> 30 << 30;
-	  off_t intail = insize - newsize;
-	  ptrdiff_t len = min (intail, copy_max);
-	  copied = copy_file_range (ifd, NULL, ofd, NULL, len, 0);
-	  if (copied <= 0)
-	    break;
-	  maybe_quit ();
+	  for (; newsize < insize; newsize += copied)
+	    {
+	      /* Copy at most COPY_MAX bytes at a time; this is min
+		 (PTRDIFF_MAX, SIZE_MAX) truncated to a value that is
+		 surely aligned well.  */
+	      ssize_t ssize_max = TYPE_MAXIMUM (ssize_t);
+	      ptrdiff_t copy_max = min (ssize_max, SIZE_MAX) >> 30 << 30;
+	      off_t intail = insize - newsize;
+	      ptrdiff_t len = min (intail, copy_max);
+	      copied = copy_file_range (emacs_fd_to_int (ifd), NULL,
+					ofd, NULL, len, 0);
+	      if (copied <= 0)
+		break;
+	      maybe_quit ();
+	    }
 	}
 #endif /* MSDOS */
 
       /* Fall back on read+write if copy_file_range failed, or if the
-	 input is empty and so could be a /proc file.  read+write will
-	 either succeed, or report an error more precisely than
-	 copy_file_range would.  */
+	 input is empty and so could be a /proc file, or if ifd is an
+	 invention of android.c.  read+write will either succeed, or
+	 report an error more precisely than copy_file_range
+	 would.  */
       if (newsize != insize || insize == 0)
 	{
 	  char buf[MAX_ALLOCA];
-	  for (; (copied = emacs_read_quit (ifd, buf, sizeof buf));
+
+	  for (; (copied = emacs_fd_read (ifd, buf, sizeof buf));
 	       newsize += copied)
 	    {
 	      if (copied < 0)
@@ -2408,8 +2460,10 @@ permissions.  */)
 	  }
       }
 
-    switch (!NILP (preserve_permissions)
-	    ? qcopy_acl (SSDATA (encoded_file), ifd,
+    switch ((!NILP (preserve_permissions)
+	     && emacs_fd_to_int (ifd) != -1)
+	    ? qcopy_acl (SSDATA (encoded_file),
+			 emacs_fd_to_int (ifd),
 			 SSDATA (encoded_newname), ofd,
 			 preserved_permissions)
 	    : (already_exists
@@ -2449,7 +2503,9 @@ permissions.  */)
   if (emacs_close (ofd) < 0)
     report_file_error ("Write error", newname);
 
-  emacs_close (ifd);
+  /* Note that ifd is not closed twice because unwind_protects are
+     discarded at the end of this function.  */
+  emacs_fd_close (ifd);
 
 #ifdef MSDOS
   /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
@@ -3826,7 +3882,7 @@ union read_non_regular
 {
   struct
   {
-    int fd;
+    emacs_fd fd;
     ptrdiff_t inserted, trytry;
   } s;
   GCALIGNED_UNION_MEMBER
@@ -3837,10 +3893,10 @@ static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
   union read_non_regular *data = XFIXNUMPTR (state);
-  int nbytes = emacs_read_quit (data->s.fd,
-				((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				 + data->s.inserted),
-				data->s.trytry);
+  int nbytes = emacs_fd_read (data->s.fd,
+			      ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+			       + data->s.inserted),
+			      data->s.trytry);
   return make_fixnum (nbytes);
 }
 
@@ -3989,7 +4045,7 @@ by calling `format-decode', which see.  */)
 {
   struct stat st;
   struct timespec mtime;
-  int fd;
+  emacs_fd fd;
   ptrdiff_t inserted = 0;
   int unprocessed;
   specpdl_ref count = SPECPDL_INDEX ();
@@ -4067,8 +4123,8 @@ by calling `format-decode', which see.  */)
   orig_filename = filename;
   filename = ENCODE_FILE (filename);
 
-  fd = emacs_open (SSDATA (filename), O_RDONLY, 0);
-  if (fd < 0)
+  fd = emacs_fd_open (SSDATA (filename), O_RDONLY, 0);
+  if (!emacs_fd_valid_p (fd))
     {
       save_errno = errno;
       if (NILP (visit))
@@ -4086,7 +4142,7 @@ by calling `format-decode', which see.  */)
     }
 
   specpdl_ref fd_index = SPECPDL_INDEX ();
-  record_unwind_protect_int (close_file_unwind, fd);
+  record_unwind_protect_ptr (close_file_unwind_emacs_fd, &fd);
 
   /* Replacement should preserve point as it preserves markers.  */
   if (!NILP (replace))
@@ -4096,7 +4152,7 @@ by calling `format-decode', which see.  */)
 			     XCAR (XCAR (window_markers)));
     }
 
-  if (sys_fstat (fd, &st) != 0)
+  if (emacs_fd_fstat (fd, &st) != 0)
     report_file_error ("Input file status", orig_filename);
   mtime = get_stat_mtime (&st);
 
@@ -4117,7 +4173,7 @@ by calling `format-decode', which see.  */)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
 
-      seekable = lseek (fd, 0, SEEK_CUR) < 0;
+      seekable = emacs_fd_lseek (fd, 0, SEEK_CUR) < 0;
       if (!NILP (beg) && !seekable)
 	xsignal2 (Qfile_error,
 		  build_string ("cannot use a start position in a non-seekable file/device"),
@@ -4196,17 +4252,17 @@ by calling `format-decode', which see.  */)
 	      int nread;
 
 	      if (st.st_size <= (1024 * 4))
-		nread = emacs_read_quit (fd, read_buf, 1024 * 4);
+		nread = emacs_fd_read (fd, read_buf, 1024 * 4);
 	      else
 		{
-		  nread = emacs_read_quit (fd, read_buf, 1024);
+		  nread = emacs_fd_read (fd, read_buf, 1024);
 		  if (nread == 1024)
 		    {
 		      int ntail;
-		      if (lseek (fd, st.st_size - 1024 * 3, SEEK_CUR) < 0)
+		      if (emacs_fd_lseek (fd, st.st_size - 1024 * 3, SEEK_CUR) < 0)
 			report_file_error ("Setting file position",
 					   orig_filename);
-		      ntail = emacs_read_quit (fd, read_buf + nread, 1024 * 3);
+		      ntail = emacs_fd_read (fd, read_buf + nread, 1024 * 3);
 		      nread = ntail < 0 ? ntail : nread + ntail;
 		    }
 		}
@@ -4247,7 +4303,7 @@ by calling `format-decode', which see.  */)
 		  specpdl_ptr--;
 
 		  /* Rewind the file for the actual read done later.  */
-		  if (lseek (fd, 0, SEEK_SET) < 0)
+		  if (emacs_fd_lseek (fd, 0, SEEK_SET) < 0)
 		    report_file_error ("Setting file position", orig_filename);
 		}
 	    }
@@ -4306,7 +4362,7 @@ by calling `format-decode', which see.  */)
 
       if (beg_offset != 0)
 	{
-	  if (lseek (fd, beg_offset, SEEK_SET) < 0)
+	  if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	    report_file_error ("Setting file position", orig_filename);
 	}
 
@@ -4314,7 +4370,7 @@ by calling `format-decode', which see.  */)
 	 match the text at the beginning of the buffer.  */
       while (true)
 	{
-	  int nread = emacs_read_quit (fd, read_buf, sizeof read_buf);
+	  int nread = emacs_fd_read (fd, read_buf, sizeof read_buf);
 	  if (nread < 0)
 	    report_file_error ("Read error", orig_filename);
 	  else if (nread == 0)
@@ -4349,7 +4405,7 @@ by calling `format-decode', which see.  */)
 	 there's no need to replace anything.  */
       if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
 	{
-	  emacs_close (fd);
+	  emacs_fd_close (fd);
 	  clear_unwind_protect (fd_index);
 
 	  /* Truncate the buffer to the size of the file.  */
@@ -4372,14 +4428,14 @@ by calling `format-decode', which see.  */)
 	    break;
 	  /* How much can we scan in the next step?  */
 	  trial = min (curpos, sizeof read_buf);
-	  if (lseek (fd, curpos - trial, SEEK_SET) < 0)
+	  if (emacs_fd_lseek (fd, curpos - trial, SEEK_SET) < 0)
 	    report_file_error ("Setting file position", orig_filename);
 
 	  total_read = nread = 0;
 	  while (total_read < trial)
 	    {
-	      nread = emacs_read_quit (fd, read_buf + total_read,
-				       trial - total_read);
+	      nread = emacs_fd_read (fd, read_buf + total_read,
+				     trial - total_read);
 	      if (nread < 0)
 		report_file_error ("Read error", orig_filename);
 	      else if (nread == 0)
@@ -4499,7 +4555,7 @@ by calling `format-decode', which see.  */)
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
 
-      if (lseek (fd, beg_offset, SEEK_SET) < 0)
+      if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);
 
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
@@ -4510,8 +4566,8 @@ by calling `format-decode', which see.  */)
 	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
 	     quitting while reading a huge file.  */
 
-	  this = emacs_read_quit (fd, read_buf + unprocessed,
-				  READ_BUF_SIZE - unprocessed);
+	  this = emacs_fd_read (fd, read_buf + unprocessed,
+				READ_BUF_SIZE - unprocessed);
 	  if (this <= 0)
 	    break;
 
@@ -4526,7 +4582,7 @@ by calling `format-decode', which see.  */)
 
       if (this < 0)
 	report_file_error ("Read error", orig_filename);
-      emacs_close (fd);
+      emacs_fd_close (fd);
       clear_unwind_protect (fd_index);
 
       if (unprocessed > 0)
@@ -4673,7 +4729,7 @@ by calling `format-decode', which see.  */)
 
   if (beg_offset != 0 || !NILP (replace))
     {
-      if (lseek (fd, beg_offset, SEEK_SET) < 0)
+      if (emacs_fd_lseek (fd, beg_offset, SEEK_SET) < 0)
 	report_file_error ("Setting file position", orig_filename);
     }
 
@@ -4726,10 +4782,10 @@ by calling `format-decode', which see.  */)
 	    /* Allow quitting out of the actual I/O.  We don't make text
 	       part of the buffer until all the reading is done, so a C-g
 	       here doesn't do any harm.  */
-	    this = emacs_read_quit (fd,
-				    ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				     + inserted),
-				    trytry);
+	    this = emacs_fd_read (fd,
+				  ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
+				   + inserted),
+				  trytry);
 	  }
 
 	if (this <= 0)
@@ -4756,7 +4812,7 @@ by calling `format-decode', which see.  */)
   else
     Fset (Qdeactivate_mark, Qt);
 
-  emacs_close (fd);
+  emacs_fd_close (fd);
   clear_unwind_protect (fd_index);
 
   if (read_quit < 0)
