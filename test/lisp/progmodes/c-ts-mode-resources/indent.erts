@@ -402,3 +402,19 @@ int main()
   |
 }
 =-=-=
+
+Name: Prev-Sibling But Not Trailing Comment
+
+=-=
+static int
+required_matrix_height (struct window *w)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
+    {
+      return 0;
+    }
+#endif /* Don't align to this comment.  */
+  |
+}
+=-=-=

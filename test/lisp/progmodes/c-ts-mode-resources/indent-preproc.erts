@@ -78,3 +78,22 @@ free_glyph_pool (struct glyph_pool *pool)
     }
 }
 =-=-=
+
+Name: Prev-Sibling Plus Preproc
+
+=-=-=
+int main() {
+#ifdef MSDOS
+  f->output_data.tty = &the_only_tty_output;
+  f->output_data.tty->display_info = &the_only_display_info;
+#else
+  if (f->output_method == output_termcap)
+    create_tty_output (f);
+#elif defined (HAVE_X_WINDOWS) /* X without toolkit.  */
+  if (FRAME_WINDOW_P (f))
+    {}
+#endif
+  t->display_info.tty->top_frame = selected_frame;
+  change_frame_size ();
+}
+=-=-=

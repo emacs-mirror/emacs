@@ -978,8 +978,8 @@ Relative ones are stored relative to the output file's directory.\n");
     puts
       ("\tand create tags for extern variables unless --no-globals is used.");
 
-  puts ("In Mercury, tag both declarations starting a line with ':-' and first\n\
-        predicates or functions in clauses.");
+  puts ("\tIn Mercury, tag both declarations starting a line with ':-' and\n\
+        first predicates or functions in clauses.");
 
   if (CTAGS)
     puts ("-d, --defines\n\

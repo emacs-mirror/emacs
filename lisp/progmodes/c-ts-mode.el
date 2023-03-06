@@ -284,17 +284,30 @@ PARENT and BOL are like other anchor functions."
                    (treesit-node-first-child-for-pos parent bol) t)
                   (treesit-node-child parent -1 t)))
              (continue t))
-    (while (and prev-sibling continue)
-      (pcase (treesit-node-type prev-sibling)
-        ;; Get the statement in the label.
-        ("labeled_statement"
-         (setq prev-sibling (treesit-node-child prev-sibling 2)))
-        ;; Get the last statement in the preproc.  Tested by
-        ;; "Prev-Sibling When Prev-Sibling is Preproc" test.
-        ((or "preproc_if" "preproc_ifdef" "preproc_elif" "preproc_else")
-         (setq prev-sibling (treesit-node-child prev-sibling -2)))
-        ;; Don't do anything special.
-        (_ (setq continue nil))))
+    (save-excursion
+      (while (and prev-sibling continue)
+        (pcase (treesit-node-type prev-sibling)
+          ;; Get the statement in the label.
+          ("labeled_statement"
+           (setq prev-sibling (treesit-node-child prev-sibling 2)))
+          ;; Get the last statement in the preproc.  Tested by
+          ;; "Prev-Sibling When Prev-Sibling is Preproc" test.
+          ((or "preproc_if" "preproc_ifdef")
+           (setq prev-sibling (treesit-node-child prev-sibling -2)))
+          ((or "preproc_elif" "preproc_else")
+           (setq prev-sibling (treesit-node-child prev-sibling -1)))
+          ((or "#elif" "#else")
+           (setq prev-sibling (treesit-node-prev-sibling
+                               (treesit-node-parent prev-sibling) t)))
+          ;; If the start of the previous sibling isn't at the
+          ;; beginning of a line, something's probably not quite
+          ;; right, go a step further.
+          (_ (goto-char (treesit-node-start prev-sibling))
+             (if (looking-back (rx bol (* whitespace))
+                               (line-beginning-position))
+                 (setq continue nil)
+               (setq prev-sibling
+                     (treesit-node-prev-sibling prev-sibling)))))))
     ;; This could be nil if a) there is no prev-sibling or b)
     ;; prev-sibling doesn't have a child.
     (treesit-node-start prev-sibling)))

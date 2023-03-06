@@ -1621,7 +1621,8 @@ not written in Bash or sh."
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
                   ( command declaration-command keyword string)
-                  ( builtin-variable constant heredoc number variable)
+                  ( builtin-variable constant heredoc number
+                    string-interpolation variable)
                   ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
@@ -3299,6 +3300,12 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'string
    :language 'bash
    '([(string) (raw_string)] @font-lock-string-face)
+
+   :feature 'string-interpolation
+   :language 'bash
+   :override t
+   '((command_substitution) @sh-quoted-exec
+     (string (expansion (variable_name) @font-lock-variable-use-face)))
 
    :feature 'heredoc
    :language 'bash
