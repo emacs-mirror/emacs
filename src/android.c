@@ -2966,15 +2966,19 @@ android_change_window_attributes (android_window handle,
 {
   jmethodID method;
   jobject window;
+  jint pixel;
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
   if (value_mask & ANDROID_CW_BACK_PIXEL)
     {
       method = window_class.change_window_background;
-      (*android_java_env)->CallVoidMethod (android_java_env,
-					   window, method,
-					   (jint) attrs->background_pixel);
+      pixel = (jint) attrs->background_pixel;
+      (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						     window,
+						     window_class.class,
+						     method, pixel);
+      android_exception_check ();
     }
 }
 
@@ -3352,10 +3356,14 @@ android_change_gc (struct android_gc *gc,
 				      values->ts_y_origin);
 
   if (mask)
-    (*android_java_env)->CallVoidMethod (android_java_env,
-					 gcontext,
-					 emacs_gc_mark_dirty,
-					 (jboolean) clip_changed);
+    {
+      (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						     gcontext,
+						     emacs_gc_class,
+						     emacs_gc_mark_dirty,
+						     (jboolean) clip_changed);
+      android_exception_check ();
+    }
 }
 
 void
@@ -3417,10 +3425,12 @@ android_set_clip_rectangles (struct android_gc *gc, int clip_x_origin,
 				    emacs_gc_clip_y_origin,
 				    clip_y_origin);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       gcontext,
-				       emacs_gc_mark_dirty,
-				       (jboolean) true);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 gcontext,
+						 emacs_gc_class,
+						 emacs_gc_mark_dirty,
+						 (jboolean) true);
+  android_exception_check ();
 
   /* Cache the clip rectangles on the C side for
      sfntfont-android.c.  */
@@ -3448,9 +3458,10 @@ android_reparent_window (android_window w, android_window parent_handle,
 				   ANDROID_HANDLE_WINDOW);
 
   method = window_class.reparent_to;
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       method,
-				       parent, (jint) x, (jint) y);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env, window,
+						 window_class.class, method,
+						 parent, (jint) x, (jint) y);
+  android_exception_check ();
 }
 
 void
@@ -3460,10 +3471,12 @@ android_clear_window (android_window handle)
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.clear_window,
-				       window);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.clear_window,
+						 window);
+  android_exception_check ();
 }
 
 void
@@ -3475,8 +3488,11 @@ android_map_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   map_window = window_class.map_window;
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       window, map_window);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 map_window);
+  android_exception_check ();
 }
 
 void
@@ -3488,8 +3504,11 @@ android_unmap_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   unmap_window = window_class.unmap_window;
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       window, unmap_window);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 unmap_window);
+  android_exception_check ();
 }
 
 void
@@ -3502,9 +3521,13 @@ android_resize_window (android_window handle, unsigned int width,
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   resize_window = window_class.resize_window;
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       window, resize_window,
-				       (jint) width, (jint) height);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 resize_window,
+						 (jint) width,
+						 (jint) height);
+  android_exception_check ();
 }
 
 void
@@ -3516,9 +3539,12 @@ android_move_window (android_window handle, int x, int y)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   move_window = window_class.move_window;
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       window, move_window,
-				       (jint) x, (jint) y);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 move_window,
+						 (jint) x, (jint) y);
+  android_exception_check ();
 }
 
 void
@@ -3532,9 +3558,11 @@ android_swap_buffers (struct android_swap_info *swap_info,
     {
       window = android_resolve_handle (swap_info[i].swap_window,
 				       ANDROID_HANDLE_WINDOW);
-      (*android_java_env)->CallVoidMethod (android_java_env,
-					   window,
-					   window_class.swap_buffers);
+      (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						     window,
+						     window_class.class,
+						     window_class.swap_buffers);
+      android_exception_check ();
     }
 }
 
@@ -3618,14 +3646,15 @@ android_fill_rectangle (android_drawable handle, struct android_gc *gc,
   gcontext = android_resolve_handle (gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.fill_rectangle,
-				       drawable,
-				       gcontext,
-				       (jint) x, (jint) y,
-				       (jint) width,
-				       (jint) height);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.fill_rectangle,
+						 drawable,
+						 gcontext,
+						 (jint) x, (jint) y,
+						 (jint) width,
+						 (jint) height);
 }
 
 android_pixmap
@@ -3752,15 +3781,16 @@ android_copy_area (android_drawable src, android_drawable dest,
   gcontext = android_resolve_handle (gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.copy_area,
-				       src_object,
-				       dest_object,
-				       gcontext,
-				       (jint) src_x, (jint) src_y,
-				       (jint) width, (jint) height,
-				       (jint) dest_x, (jint) dest_y);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.copy_area,
+						 src_object,
+						 dest_object,
+						 gcontext,
+						 (jint) src_x, (jint) src_y,
+						 (jint) width, (jint) height,
+						 (jint) dest_x, (jint) dest_y);
 }
 
 void
@@ -3813,11 +3843,12 @@ android_fill_polygon (android_drawable drawable, struct android_gc *gc,
       ANDROID_DELETE_LOCAL_REF (point);
     }
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.fill_polygon,
-				       drawable_object,
-				       gcontext, array);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.fill_polygon,
+						 drawable_object,
+						 gcontext, array);
   ANDROID_DELETE_LOCAL_REF (array);
 }
 
@@ -3833,12 +3864,13 @@ android_draw_rectangle (android_drawable handle, struct android_gc *gc,
   gcontext = android_resolve_handle (gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.draw_rectangle,
-				       drawable, gcontext,
-				       (jint) x, (jint) y,
-				       (jint) width, (jint) height);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.draw_rectangle,
+						 drawable, gcontext,
+						 (jint) x, (jint) y,
+						 (jint) width, (jint) height);
 }
 
 void
@@ -3853,11 +3885,12 @@ android_draw_point (android_drawable handle, struct android_gc *gc,
   gcontext = android_resolve_handle (gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.draw_point,
-				       drawable, gcontext,
-				       (jint) x, (jint) y);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.draw_point,
+						 drawable, gcontext,
+						 (jint) x, (jint) y);
 }
 
 void
@@ -3872,12 +3905,13 @@ android_draw_line (android_drawable handle, struct android_gc *gc,
   gcontext = android_resolve_handle (gc->gcontext,
 				     ANDROID_HANDLE_GCONTEXT);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.draw_line,
-				       drawable, gcontext,
-				       (jint) x, (jint) y,
-				       (jint) x2, (jint) y2);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.draw_line,
+						 drawable, gcontext,
+						 (jint) x, (jint) y,
+						 (jint) x2, (jint) y2);
 }
 
 android_pixmap
@@ -3941,11 +3975,12 @@ android_clear_area (android_window handle, int x, int y,
 
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.clear_area,
-				       window, (jint) x, (jint) y,
-				       (jint) width, (jint) height);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.clear_area,
+						 window, (jint) x, (jint) y,
+						 (jint) width, (jint) height);
 }
 
 android_pixmap
@@ -4307,9 +4342,10 @@ android_put_image (android_pixmap handle, struct android_image *image)
 void
 android_bell (void)
 {
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.ring_bell);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.ring_bell);
   android_exception_check ();
 }
 
@@ -4322,8 +4358,11 @@ android_set_input_focus (android_window handle, unsigned long time)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   make_input_focus = window_class.make_input_focus;
 
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       make_input_focus, (jlong) time);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 service_class.class,
+						 make_input_focus,
+						 (jlong) time);
   android_exception_check ();
 }
 
@@ -4336,8 +4375,10 @@ android_raise_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   raise = window_class.raise;
 
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       raise);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 raise);
   android_exception_check ();
 }
 
@@ -4350,8 +4391,10 @@ android_lower_window (android_window handle)
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   lower = window_class.lower;
 
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       lower);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window,
+						 window_class.class,
+						 lower);
   android_exception_check ();
 }
 
@@ -4767,9 +4810,11 @@ android_set_dont_focus_on_map (android_window handle,
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   method = window_class.set_dont_focus_on_map;
 
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       method,
-				       (jboolean) no_focus_on_map);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env, window,
+						 window_class.class,
+						 method,
+						 (jboolean) no_focus_on_map);
+  android_exception_check ();
 }
 
 void
@@ -4782,9 +4827,11 @@ android_set_dont_accept_focus (android_window handle,
   window = android_resolve_handle (handle, ANDROID_HANDLE_WINDOW);
   method = window_class.set_dont_accept_focus;
 
-  (*android_java_env)->CallVoidMethod (android_java_env, window,
-				       method,
-				       (jboolean) no_accept_focus);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env, window,
+						 window_class.class,
+						 method,
+						 (jboolean) no_accept_focus);
+  android_exception_check ();
 }
 
 void
@@ -4802,7 +4849,7 @@ android_get_keysym_name (int keysym, char *name_return, size_t size)
   buffer = (*android_java_env)->GetStringUTFChars (android_java_env,
 						   (jstring) string,
 						   NULL);
-  android_exception_check ();
+  android_exception_check_nonnull ((void *) buffer, string);
   strncpy (name_return, buffer, size - 1);
 
   (*android_java_env)->ReleaseStringUTFChars (android_java_env,
@@ -4827,8 +4874,9 @@ android_toggle_on_screen_keyboard (android_window window, bool show)
   method = window_class.toggle_on_screen_keyboard;
 
   /* Now display the on screen keyboard.  */
-  (*android_java_env)->CallVoidMethod (android_java_env, object,
-				       method, (jboolean) show);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env, object,
+						 window_class.class,
+						 method, (jboolean) show);
 
   /* Check for out of memory errors.  */
   android_exception_check ();
@@ -5645,9 +5693,10 @@ android_restart_emacs (void)
 {
   /* Try to call the Java side function.  Normally, this should call
      System.exit to terminate this process.  */
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.restart_emacs);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.restart_emacs);
 
   /* Exit anyway, in case EmacsService did not do so.  */
   exit (0);
@@ -5720,10 +5769,11 @@ android_display_toast (const char *text)
   android_exception_check ();
 
   /* Display the toast.  */
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.display_toast,
-				       string);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.display_toast,
+						 string);
   android_exception_check_1 (string);
 
   /* Delete the local reference to the string.  */
@@ -5896,14 +5946,15 @@ android_update_ic (android_window window, ptrdiff_t selection_start,
 
   object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.update_ic,
-				       object,
-				       (jint) selection_start,
-				       (jint) selection_end,
-				       (jint) composing_region_start,
-				       (jint) composing_region_end);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.update_ic,
+						 object,
+						 (jint) selection_start,
+						 (jint) selection_end,
+						 (jint) composing_region_start,
+						 (jint) composing_region_end);
   android_exception_check ();
 }
 
@@ -5932,10 +5983,11 @@ android_reset_ic (android_window window, enum android_ic_mode mode)
 
   object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       emacs_service,
-				       service_class.reset_ic,
-				       object, (jint) mode);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 service_class.reset_ic,
+						 object, (jint) mode);
   android_exception_check ();
 }
 
@@ -5961,10 +6013,11 @@ android_set_fullscreen (android_window window, bool fullscreen)
 
   object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
 
-  (*android_java_env)->CallVoidMethod (android_java_env,
-				       object,
-				       window_class.set_fullscreen,
-				       (jboolean) fullscreen);
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 object,
+						 window_class.class,
+						 window_class.set_fullscreen,
+						 (jboolean) fullscreen);
   android_exception_check ();
   return 0;
 }

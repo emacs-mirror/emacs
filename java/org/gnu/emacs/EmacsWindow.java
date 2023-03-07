@@ -906,9 +906,16 @@ public final class EmacsWindow extends EmacsHandleObject
 	return true;
 
       case MotionEvent.ACTION_HOVER_EXIT:
-	EmacsNative.sendLeaveNotify (this.handle, (int) event.getX (),
-				     (int) event.getY (),
-				     event.getEventTime ());
+
+	/* If the exit event comes from a button press, its button
+	   state will have extra bits compared to the last known
+	   button state.  Since the exit event will interfere with
+	   tool bar button presses, ignore such splurious events.  */
+
+	if ((event.getButtonState () & ~lastButtonState) == 0)
+	  EmacsNative.sendLeaveNotify (this.handle, (int) event.getX (),
+				       (int) event.getY (),
+				       event.getEventTime ());
 	return true;
 
       case MotionEvent.ACTION_BUTTON_PRESS:
