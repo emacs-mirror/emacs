@@ -486,7 +486,8 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_nothing ();
   specbind (Qfile_name_handler_alist, Qnil);
-  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false, false);
+  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil, false, false,
+	      NULL);
   fp = fd < 0 ? 0 : fdopen (fd, "r");
   if (!fp)
     {

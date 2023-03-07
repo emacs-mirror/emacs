@@ -4514,7 +4514,8 @@ extern bool suffix_p (Lisp_Object, const char *);
 extern Lisp_Object save_match_data_load (Lisp_Object, Lisp_Object, Lisp_Object,
 					 Lisp_Object, Lisp_Object);
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
-                  Lisp_Object *, Lisp_Object, bool, bool);
+                  Lisp_Object *, Lisp_Object, bool, bool,
+		  void **);
 enum { S2N_IGNORE_TRAILING = 1 };
 extern Lisp_Object string_to_number (char const *, int, ptrdiff_t *);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
