@@ -255,6 +255,9 @@ This variable is updated in `gdb-done-or-error' and returned by
 It is initialized to `gdb-non-stop-setting' at the beginning of
 every GDB session.")
 
+(defvar gdb-debuginfod-enable nil
+  "Whether the current GDB session can query debuginfod servers.")
+
 (defvar-local gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
 
@@ -466,6 +469,30 @@ GDB session needs to be restarted for this setting to take effect."
   :type 'boolean
   :group 'gdb-non-stop
   :version "26.1")
+
+(defcustom gdb-debuginfod-enable-setting
+  ;; debuginfod servers are only for ELF executables, and elfutils, of
+  ;; which libdebuginfod is a part, is not usually available on
+  ;; MS-Windows.
+  (if (not (eq system-type 'windows-nt)) 'ask)
+  "Whether to enable downloading missing debug info from debuginfod servers.
+The debuginfod servers are HTTP servers for distributing source
+files and debug info files of programs.  If GDB was built with
+debuginfod support, it can query these servers when you debug a
+program for which some of these files are not available locally,
+and download the files if the servers have them.
+
+The value nil means never to download from debuginfod servers.
+The value t means always download from debuginfod servers when
+some source or debug info files are missing.
+The value `ask', the default, means ask at the beginning of each
+debugging session whether to download from debuginfod servers
+during that session."
+  :type '(choice (const :tag "Never download from debuginfod servers" nil)
+                 (const :tag "Download from debuginfod servers when necessary" t)
+                 (const :tag "Ask whether to download for each session" ask))
+  :group 'gdb
+  :version "29.1")
 
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
@@ -1021,6 +1048,11 @@ detailed description of this mode.
 
   (run-hooks 'gdb-mode-hook))
 
+(defconst gdb--string-regexp (rx "\""
+                                 (* (or (seq "\\" nonl)
+                                        (not (any "\"\\"))))
+                                 "\""))
+
 (defun gdb-init-1 ()
   ;; (Re-)initialize.
   (setq gdb-selected-frame nil
@@ -1044,7 +1076,8 @@ detailed description of this mode.
         gdb-threads-list '()
         gdb-breakpoints-list '()
         gdb-register-names '()
-        gdb-non-stop gdb-non-stop-setting)
+        gdb-non-stop gdb-non-stop-setting
+        gdb-debuginfod-enable gdb-debuginfod-enable-setting)
   ;;
   (gdbmi-bnf-init)
   ;;
@@ -1052,6 +1085,15 @@ detailed description of this mode.
   ;;
   (gdb-force-mode-line-update
    (propertize "initializing..." 'face font-lock-variable-name-face))
+
+  ;; This needs to be done before we ask GDB for anything that might
+  ;; trigger questions about debuginfod queries.
+  (if (eq gdb-debuginfod-enable 'ask)
+      (setq gdb-debuginfod-enable
+            (y-or-n-p "Enable querying debuginfod servers for this session?")))
+  (gdb-input (format "-gdb-set debuginfod enabled %s"
+                     (if gdb-debuginfod-enable "on" "off"))
+             'gdb-debuginfod-message)
 
   (gdb-get-buffer-create 'gdb-inferior-io)
   (gdb-clear-inferior-io)
@@ -1079,6 +1121,18 @@ detailed description of this mode.
   ;; Needs GDB 6.0 onwards.
   (gdb-input "-file-list-exec-source-file" 'gdb-get-source-file)
   (gdb-input "-gdb-show prompt" 'gdb-get-prompt))
+
+(defun gdb-debuginfod-message ()
+  "Show in the echo area GDB error response for a debuginfod command, if any."
+  (goto-char (point-min))
+  (cond
+   ((re-search-forward  "msg=\\(\".+\"\\)$" nil t)
+    ;; Supports debuginfod, but cannot perform command.
+    (message "%s" (buffer-substring (1+ (match-beginning 1))
+                                    (1- (line-end-position)))))
+   ((re-search-forward "No symbol" nil t)
+    (message "This version of GDB doesn't support debuginfod commands."))
+   (t (message nil))))
 
 (defun gdb-non-stop-handler ()
   (goto-char (point-min))
@@ -1147,11 +1201,6 @@ no input, and GDB is waiting for input."
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area
                                                text-face default-face))
-
-(defconst gdb--string-regexp (rx "\""
-                                 (* (or (seq "\\" nonl)
-                                        (not (any "\"\\"))))
-                                 "\""))
 
 (defun gdb-tooltip-print (expr)
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
