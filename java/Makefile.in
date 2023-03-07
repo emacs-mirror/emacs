@@ -222,8 +222,12 @@ install_temp/assets/version: install_temp
 			&& (git rev-parse --abbrev-ref HEAD 		\
 			    || echo "Unknown") } 2> /dev/null > $@
 
+install_temp/assets/build_info: install_temp
+	$(AM_V_GEN) { hostname; date +%s; } > $@
+
 emacs.apk-in: install_temp install_temp/assets/directory-tree \
-  install_temp/assets/version AndroidManifest.xml
+  install_temp/assets/version install_temp/assets/build_info  \
+  AndroidManifest.xml
 # Package everything.  Specifying the assets on this command line is
 # necessary for AAssetManager_getNextFileName to work on old versions
 # of Android.  Make sure not to generate R.java, as it's already been

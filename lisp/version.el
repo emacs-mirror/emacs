@@ -26,6 +26,31 @@
 
 ;;; Code:
 
+
+
+(defun android-read-build-system ()
+  "Obtain the host name of the system on which Emacs was built.
+Use the data stored in the special file `/assets/build_info'.
+Value is the string ``Unknown'' upon failure, else the hostname
+of the build system."
+  (with-temp-buffer
+    (insert-file-contents "/assets/build_info")
+    (let ((string (buffer-substring 1 (line-end-position))))
+      (and (not (equal string "Unknown")) string))))
+
+(defun android-read-build-time ()
+  "Obtain the time at which Emacs was built.
+Use the data stored in the special file `/assets/build_info'.
+Value is nil upon failure, else the time in the same format as
+returned by `current-time'."
+  (with-temp-buffer
+    (insert-file-contents "/assets/build_info")
+    (end-of-line)
+    (let ((number (read (current-buffer))))
+      (time-convert number 'list))))
+
+
+
 (defconst emacs-major-version
   (progn (string-match "^[0-9]+" emacs-version)
          (string-to-number (match-string 0 emacs-version)))
@@ -36,10 +61,15 @@
          (string-to-number (match-string 1 emacs-version)))
   "Minor version number of this version of Emacs.")
 
-(defconst emacs-build-system (system-name)
+(defconst emacs-build-system (or (and (eq system-type 'android)
+                                      (android-read-build-system))
+                                 (system-name))
   "Name of the system on which Emacs was built, or nil if not available.")
 
-(defconst emacs-build-time (if emacs-build-system (current-time))
+(defconst emacs-build-time (if emacs-build-system
+                               (or (and (eq system-type 'android)
+                                        (android-read-build-time))
+                                   (current-time)))
   "Time at which Emacs was dumped out, or nil if not available.")
 
 (defconst emacs-build-number 1          ; loadup.el may increment this
