@@ -533,7 +533,9 @@ Return the compile-time value of FORM."
                                       (macroexpand--all-toplevel
                                        form
                                        macroexpand-all-environment)))
-                                (eval expanded lexical-binding)
+                                (eval (byte-run-strip-symbol-positions
+                                       (safe-copy-tree expanded))
+                                      lexical-binding)
                                 expanded)))))
     (with-suppressed-warnings
         . ,(lambda (warnings &rest body)
@@ -2292,12 +2294,19 @@ With argument ARG, insert value in current buffer after the form."
            (symbols-with-pos-enabled t)
 	   (value (eval
 		   (displaying-byte-compile-warnings
+;;;; NEW STOUGH, 2023-03-05
+                    (byte-run-strip-symbol-positions
+;;;; END OF NEW STOUGH
 		    (byte-compile-sexp
                      (let ((form (read-positioning-symbols (current-buffer))))
                        (push form byte-compile-form-stack)
                        (eval-sexp-add-defvars
                         form
-                        start-read-position))))
+                        start-read-position)))
+;;;; NEW STOUGH, 2023-03-05
+                    )
+;;;; END OF NEW STOUGH
+                                              )
                    lexical-binding)))
       (cond (arg
 	     (message "Compiling from buffer... done.")
