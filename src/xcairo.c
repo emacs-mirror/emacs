@@ -44,7 +44,6 @@ static void
 box_blur_h (v4uc *s, v4uc *t, int w, int h, int r)
 {
   float iarr = 1.0f / (r + r + 1.0f);
-#pragma omp parallel for
   for (int i = 0; i < h; ++i)
     {
       int ti = i * w, li = ti, ri = ti + r;
@@ -74,7 +73,6 @@ static void
 box_blur_t (v4uc *s, v4uc *t, int w, int h, int r)
 {
   float iarr = 1.0f / (r + r + 1.0f);
-#pragma omp parallel for
   for (int i = 0; i < w; ++i)
     {
       int ti = i, li = ti, ri = ti+r*w;
