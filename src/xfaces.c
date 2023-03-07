@@ -6344,14 +6344,17 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	  offset = Qnil;
 	}
 
-      if (NILP (color))
-          face->shadow_color_defaulted_p = true;
-      else
+      if (STRINGP (color))
         {
           face->shadow_color_defaulted_p = false;
           face->shadow_color = load_color (f, face, color,
                                            LFACE_SHADOW_INDEX);
         }
+      else
+	{
+	  add_to_log ("Invalid shadow color");
+	  face->shadow_color_defaulted_p = true;
+	}
 
       if (NILP (offset))
         {
