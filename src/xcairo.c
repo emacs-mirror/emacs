@@ -3,6 +3,20 @@
 #include <cairo.h>
 #include "xcairo.h"
 
+#ifdef HAVE_OPENCV
+#include "opencv.h"
+
+void
+gaussian_blur (cairo_surface_t *s, int w, int h, double r)
+{
+  void *sdata;
+
+  sdata = cairo_image_surface_get_data (s);
+  opencv_gaussian_blur (s, w, h, r);
+}
+
+#else
+
 typedef unsigned char v4uc __attribute__((vector_size (4)));
 typedef float v4f __attribute__((vector_size (16)));
 
@@ -137,3 +151,5 @@ gaussian_blur (cairo_surface_t *s, int w, int h, double r)
   cairo_surface_destroy (t);
   cairo_surface_mark_dirty (s);
 }
+
+#endif
