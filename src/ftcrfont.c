@@ -44,11 +44,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "xcairo.h"
 
-#ifdef USE_BE_CAIRO
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
 #define BLUE_FROM_ULONG(color)	((color) & 0xff)
-#endif
 
 #define METRICS_NCOLS_PER_ROW	(128)
 
