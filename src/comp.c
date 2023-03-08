@@ -860,8 +860,13 @@ typedef struct {
   /* Same as before but contents dont survive load phase.  */
   Lisp_Object d_ephemeral_rvals;
 
+  gcc_jit_lvalue *d_staticvec_ptr_var;
+  ptrdiff_t d_staticvec_entries;
+
+  gcc_jit_lvalue *d_ephemeral_ptr_var;
+  ptrdiff_t d_ephemeral_entries;
+
   ptrdiff_t static_lisp_data_count;
-  ptrdiff_t lisp_obj_globals_count;
   Lisp_Object static_hash_cons_h;
   /* A list of lvalues that need to be dynamically initialized at load
      time. Each entry is a vector of the form [lvalue lisp_obj alloc_class]. */
@@ -2593,12 +2598,43 @@ emit_export_const_lisp_obj_var (const char *name, gcc_jit_rvalue *val)
   return global;
 }
 
-static gcc_jit_lvalue *
-emit_static_lisp_obj_var (void)
+static void
+alloc_class_check (Lisp_Object alloc_class)
 {
-  return gcc_jit_context_new_global (
-    comp.ctxt, NULL, GCC_JIT_GLOBAL_INTERNAL, comp.lisp_obj_type,
-    format_string ("lisp_obj_%td", comp.lisp_obj_globals_count++));
+  bool valid = EQ (alloc_class, Qd_default) ||
+    EQ (alloc_class, Qd_impure) ||
+    EQ (alloc_class, Qd_ephemeral);
+  if (!valid)
+    {
+      xsignal2 (Qnative_ice,
+		build_string ("invalid lisp data allocation class"),
+		alloc_class);
+      assume (false);
+    }
+}
+
+static gcc_jit_lvalue *
+emit_static_lisp_obj_var (Lisp_Object alloc_class)
+{
+  alloc_class_check (alloc_class);
+  gcc_jit_rvalue *array;
+  ptrdiff_t idx;
+
+  if (EQ (alloc_class, Qd_ephemeral))
+    {
+      array = gcc_jit_lvalue_as_rvalue (comp.d_ephemeral_ptr_var);
+      idx = comp.d_ephemeral_entries++;
+    }
+  else
+    {
+      array = gcc_jit_lvalue_as_rvalue (comp.d_staticvec_ptr_var);
+      idx = comp.d_staticvec_entries++;
+    }
+
+  return gcc_jit_context_new_array_access (
+    comp.ctxt, NULL, array,
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt, comp.ptrdiff_type,
+					 idx));
 }
 
 static Lisp_Object
@@ -2941,21 +2977,6 @@ comp_lisp_const_get_lisp_obj_rval (Lisp_Object lobj,
 }
 
 static void
-alloc_class_check (Lisp_Object alloc_class)
-{
-  bool valid = EQ (alloc_class, Qd_default) ||
-    EQ (alloc_class, Qd_impure) ||
-    EQ (alloc_class, Qd_ephemeral);
-  if (!valid)
-    {
-      xsignal2 (Qnative_ice,
-		build_string ("invalid lisp data allocation class"),
-		alloc_class);
-      assume (false);
-    }
-}
-
-static void
 add_static_initializer_lisp (gcc_jit_lvalue *accessor,
 			     Lisp_Object obj, Lisp_Object alloc_class)
 {
@@ -3283,7 +3304,8 @@ emit_comp_lisp_obj (Lisp_Object obj, Lisp_Object alloc_class)
 	}
       else
 	{
-	  gcc_jit_lvalue *var = emit_static_lisp_obj_var();
+	  gcc_jit_lvalue *var
+	    = emit_static_lisp_obj_var (alloc_class);
 	  add_static_initializer_lisp (var, obj, alloc_class);
 	  expr.const_expr_p = false;
 	  expr.expr_type = COMP_LISP_CONST_VAR;
@@ -3377,8 +3399,7 @@ define_init_objs (void)
 
   Lisp_Object statics = Freverse (comp.lisp_consts_init_lvals);
 
-  gcc_jit_block *next_block, *init_vars_block, *alloc_block,
-    *final_block;
+  gcc_jit_block *next_block, *alloc_block, *final_block;
 
   ptrdiff_t staticpro_n = 0;
   ptrdiff_t ephemeral_n = 0;
@@ -3399,8 +3420,6 @@ define_init_objs (void)
   comp.block = gcc_jit_function_new_block (comp.func, "entry");
 
   alloc_block = gcc_jit_function_new_block (comp.func, "alloc_data");
-  init_vars_block
-    = gcc_jit_function_new_block (comp.func, "init_vars");
   final_block = gcc_jit_function_new_block (comp.func, "final");
 
   gcc_jit_block_end_with_jump (comp.block, NULL, alloc_block);
@@ -3441,10 +3460,20 @@ define_init_objs (void)
   comp.block = NULL;
   if (staticpro_n > 0)
     {
-      staticpro_vec_type = make_lisp_vector_struct_type (staticpro_n);
+      if (staticpro_n != comp.d_staticvec_entries)
+	xsignal (Qnative_ice, build_string ("mismatch between staticvec entries"));
+
+      staticpro_vec_type
+	  = make_lisp_vector_struct_type (staticpro_n);
       staticpro_vec_contents
 	= emit_data_container_vector (DATA_STATICPRO_SYM,
 				      staticpro_vec_type);
+      gcc_jit_rvalue *addr = gcc_jit_lvalue_get_address (
+	gcc_jit_context_new_array_access (
+	  comp.ctxt, NULL, staticpro_vec_contents,
+	  gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type)),
+	NULL);
+      gcc_jit_global_set_initializer_rvalue (comp.d_staticvec_ptr_var, addr);
     }
   else
     emit_export_const_lisp_obj_var (DATA_STATICPRO_SYM,
@@ -3452,10 +3481,19 @@ define_init_objs (void)
 
   if (ephemeral_n > 0)
     {
+      if (ephemeral_n != comp.d_ephemeral_entries)
+	xsignal (Qnative_ice, build_string ("mismatch between ephemeral entries"));
+
       eph_vec_type = make_lisp_vector_struct_type (ephemeral_n);
       ephemeral_vec_contents
 	= emit_data_container_vector (DATA_EPHEMERAL_SYM,
 				      eph_vec_type);
+      gcc_jit_rvalue *addr = gcc_jit_lvalue_get_address (
+	gcc_jit_context_new_array_access (
+	  comp.ctxt, NULL, ephemeral_vec_contents,
+	  gcc_jit_context_zero (comp.ctxt, comp.ptrdiff_type)),
+	NULL);
+      gcc_jit_global_set_initializer_rvalue (comp.d_ephemeral_ptr_var, addr);
     }
   else
     emit_export_const_lisp_obj_var (DATA_EPHEMERAL_SYM,
@@ -3597,10 +3635,6 @@ define_init_objs (void)
 
 	      gcc_jit_block_add_assignment (comp.block, NULL, lval,
 					    final_rval);
-	      gcc_jit_block_add_assignment (init_vars_block, NULL,
-					    accessor,
-					    gcc_jit_lvalue_as_rvalue (
-					      lval));
 	    }
 	  else
 	    {
@@ -3614,16 +3648,11 @@ define_init_objs (void)
 		  comp.ctxt, NULL, staticpro_vec_contents, idx);
 	      gcc_jit_block_add_assignment (comp.block, NULL, lval,
 					    final_rval);
-	      gcc_jit_block_add_assignment (init_vars_block, NULL,
-					    accessor,
-					    gcc_jit_lvalue_as_rvalue (
-					      lval));
 	    }
 	}
     }
 
-  gcc_jit_block_end_with_jump (comp.block, NULL, init_vars_block);
-  gcc_jit_block_end_with_jump (init_vars_block, NULL, final_block);
+  gcc_jit_block_end_with_jump (comp.block, NULL, final_block);
   comp.block = final_block;
 
   Lisp_Object lambda = Freverse (comp.lambda_init_lvals);
@@ -7505,7 +7534,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   if (comp.compile_static_data)
     {
       comp.static_lisp_data_count = 0;
-      comp.lisp_obj_globals_count = 0;
       comp.static_hash_cons_h
 	= CALLN (Fmake_hash_table, QCtest,
 		 intern_c_string ("comp-imm-equal-test"));
@@ -7513,6 +7541,22 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       comp.lambda_init_lvals = Qnil;
       comp.cons_block_list = Qnil;
       comp.float_block_list = Qnil;
+
+#  define INIT_STORAGE_PTR(field, name)                         \
+   do                                                           \
+    {                                                           \
+     (field)                                                    \
+       = gcc_jit_context_new_global (comp.ctxt, NULL,           \
+				     GCC_JIT_GLOBAL_INTERNAL,   \
+				     gcc_jit_type_get_const (   \
+				       comp.lisp_obj_ptr_type), \
+				     (name));                   \
+    }                                                           \
+   while (0)
+
+      INIT_STORAGE_PTR (comp.d_staticvec_ptr_var, "d_default_ptr");
+      INIT_STORAGE_PTR (comp.d_ephemeral_ptr_var, "d_ephemeral_ptr");
+#  undef INIT_STORAGE_PTR
     }
   else
     {
