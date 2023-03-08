@@ -95,13 +95,12 @@ static void report(void)
 
 static mps_addr_t make(size_t rootsCount)
 {
-  static unsigned long calls = 0;
+  static volatile unsigned long calls = 0; /* for use from debugger */
   size_t length = rnd() % (scale * avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
   mps_res_t res;
   ++ calls;
-  (void)calls; /* suppress unused warning: we want to look at this from debugger */
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
