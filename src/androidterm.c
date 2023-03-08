@@ -5080,6 +5080,10 @@ android_build_extracted_text (jstring text, ptrdiff_t start,
 
   env = android_java_env;
 
+  /* Return NULL if the class has not yet been obtained.  */
+  if (!text_class.class)
+    return NULL;
+
   /* Create an ExtractedText object containing this information.  */
   object = (*env)->NewObject (env, text_class.class,
 			      text_class.constructor);
@@ -5333,11 +5337,14 @@ android_update_selection (struct frame *f, struct window *w)
       android_exception_check_1 (string);
       ANDROID_DELETE_LOCAL_REF (string);
 
-      /* extracted is now an associated ExtractedText object.  Perform
-	 the update.  */
-      android_update_extracted_text (FRAME_ANDROID_WINDOW (f),
-				     extracted, token);
-      ANDROID_DELETE_LOCAL_REF (extracted);
+      if (extracted)
+	{
+	  /* extracted is now an associated ExtractedText object.
+	     Perform the update.  */
+	  android_update_extracted_text (FRAME_ANDROID_WINDOW (f),
+					 extracted, token);
+	  ANDROID_DELETE_LOCAL_REF (extracted);
+	}
     }
 }
 
