@@ -848,8 +848,8 @@ argument VECP, this copies vectors as well as conses."
 
 (defvar safe-copy-tree--seen nil
   "A hash table for conses/vectors/records already seen by safe-copy-tree-1.
-It's key is a cons or vector/record seen by the algorithm, and its value is
-the corresponding cons/vector/record in the copy.")
+Its key is a cons or vector/record seen by the algorithm, and its
+value is the corresponding cons/vector/record in the copy.")
 
 (defun safe-copy-tree--1 (tree &optional vecp)
   "Make a copy of TREE, taking circular structure into account.
@@ -896,7 +896,10 @@ If TREE is a cons cell, this recursively copies both its car and its cdr.
 Contrast to `copy-sequence', which copies only along the cdrs.  With second
 argument VECP, this copies vectors and records as well as conses."
   (setq safe-copy-tree--seen (make-hash-table :test #'eq))
-  (safe-copy-tree--1 tree vecp))
+  (unwind-protect
+      (safe-copy-tree--1 tree vecp)
+    (clrhash safe-copy-tree--seen)
+    (setq safe-copy-tree--seen nil)))
 
 
 ;;;; Various list-search functions.

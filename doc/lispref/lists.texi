@@ -719,6 +719,7 @@ Normally, when @var{tree} is anything other than a cons cell,
 non-@code{nil}, it copies vectors and records too (and operates
 recursively on their elements).  This function handles circular lists
 and vectors, and is thus slower than @code{copy-tree} for typical cases.
+@end defun
 
 @defun flatten-tree tree
 This function returns a ``flattened'' copy of @var{tree}, that is,
