@@ -121,6 +121,7 @@
       (erc-modules (copy-sequence erc-modules))
       (inhibit-interaction t)
       (auth-source-do-cache nil)
+      (timer-list (copy-sequence timer-list))
       (erc-auth-source-parameters-join-function nil)
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
