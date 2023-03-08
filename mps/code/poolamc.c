@@ -35,7 +35,7 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
 static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
                        void *p, size_t s);
 
-/* local class declations */
+/* local class declarations */
 
 typedef AMC AMCZPool;
 #define AMCZPoolCheck AMCCheck
