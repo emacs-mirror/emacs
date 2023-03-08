@@ -51,6 +51,7 @@
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
 
 ;;; Comment indentation and filling
 
@@ -266,26 +267,59 @@ This should be the symbol of the indent offset variable for the
 particular major mode.  This cannot be nil for `c-ts-common'
 statement indent functions to work.")
 
-(defvar c-ts-common-indent-block-type-regexp nil
-  "Regexp matching types of block nodes (i.e., {} blocks).
+(defvar c-ts-common-indent-type-regexp-alist nil
+  "An alist of node type regexps.
 
-This cannot be nil for `c-ts-common' statement indent functions
-to work.")
+Each key in the alist is one of `if', `else', `do', `while',
+`for', `block', `close-bracket'.  Each value in the alist
+is the regexp matching the type of that kind of node.  Most of
+these types are self-explanatory, e.g., `if' corresponds to
+\"if_statement\" in C.  `block' corresponds to the {} block.
 
-(defvar c-ts-common-indent-bracketless-type-regexp nil
-  "A regexp matching types of bracketless constructs.
+Some types, specifically `else', is usually not identified by a
+standalone node, but a child under the \"if_statement\", under a
+field name like \"alternative\", etc.  In that case, use a
+cons (TYPE . FIELD-NAME) as the value, where TYPE is the node's
+parent's type, and FIELD-NAME is the field name of the node.
 
-These constructs include if, while, do-while, for statements.  In
-these statements, the body can omit the bracket, which requires
-special handling from our bracket-counting indent algorithm.
+If the language doesn't have a particular type, it is fine to
+omit it.")
 
-This can be nil, meaning such special handling is not needed.")
+(defun c-ts-common--node-is (node &rest types)
+  "Return non-nil if NODE is any one of the TYPES.
 
-(defun c-ts-common-statement-offset (node parent bol &rest _)
-  "This anchor is used for children of a statement inside a block.
+TYPES can be any of `if', `else', `while', `do', `for', and
+`block'.
+
+If NODE is nil, return nil."
+  (declare (indent 2))
+  (catch 'ret
+    (when (null node)
+      (throw 'ret nil))
+    (dolist (type types)
+      (let ((regexp (alist-get
+                     type c-ts-common-indent-type-regexp-alist))
+            (parent (treesit-node-parent node)))
+        (when (and regexp
+                   (if (consp regexp)
+                       (and parent
+                            (string-match-p (car regexp)
+                                            (treesit-node-type parent))
+                            (treesit-node-field-name node)
+                            (string-match-p (cdr regexp)
+                                            (treesit-node-field-name
+                                             node)))
+                     (string-match-p regexp (treesit-node-type node))))
+          (throw 'ret t))))
+    nil))
+
+(defun c-ts-common-statement-offset (node parent &rest _)
+  "Return an indent offset for a statement inside a block.
+
+Assumes the anchor is (point-min), i.e., the 0th column.
 
 This function basically counts the number of block nodes (i.e.,
-brackets) (defined by `c-ts-mode--indent-block-type-regexp')
+brackets) (defined by `c-ts-common-indent-block-type-regexp')
 between NODE and the root node (not counting NODE itself), and
 multiply that by `c-ts-common-indent-offset'.
 
@@ -293,16 +327,16 @@ To support GNU style, on each block level, this function also
 checks whether the opening bracket { is on its own line, if so,
 it adds an extra level, except for the top-level.
 
+It also has special handling for bracketless statements and
+else-if statements, which see.
+
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters on the current line."
   (let ((level 0))
     ;; If NODE is a opening/closing bracket on its own line, take off
     ;; one level because the code below assumes NODE is a statement
     ;; _inside_ a {} block.
-    (when (and node
-               (or (string-match-p c-ts-common-indent-block-type-regexp
-                                   (treesit-node-type node))
-                   (save-excursion (goto-char bol) (looking-at-p "}"))))
+    (when (c-ts-common--node-is node 'block 'close-bracket)
       (cl-decf level))
     ;; If point is on an empty line, NODE would be nil, but we pretend
     ;; there is a statement node.
@@ -312,47 +346,40 @@ characters on the current line."
     (while (if (eq node t)
                (setq node parent)
              node)
-      (when (string-match-p c-ts-common-indent-block-type-regexp
-                            (treesit-node-type node))
-        (cl-incf level)
-        (save-excursion
-          (goto-char (treesit-node-start node))
-          ;; Add an extra level if the opening bracket is on its own
-          ;; line, except (1) it's at top-level, or (2) it's immediate
-          ;; parent is another block.
-          (cond ((bolp) nil) ; Case (1).
-                ((let ((parent-type (treesit-node-type
-                                     (treesit-node-parent node))))
-                   ;; Case (2).
-                   (and parent-type
-                        (string-match-p
-                         c-ts-common-indent-block-type-regexp
-                         parent-type)))
-                 nil)
-                ;; Add a level.
-                ((looking-back (rx bol (* whitespace))
-                               (line-beginning-position))
-                 (cl-incf level)))))
-      (setq level (c-ts-mode--fix-bracketless-indent level node))
+      (let ((parent (treesit-node-parent node)))
+        ;; Increment level for every bracket (with exception).
+        (when (c-ts-common--node-is node 'block)
+          (cl-incf level)
+          (save-excursion
+            (goto-char (treesit-node-start node))
+            ;; Add an extra level if the opening bracket is on its own
+            ;; line, except (1) it's at top-level, or (2) it's immediate
+            ;; parent is another block.
+            (cond ((bolp) nil) ; Case (1).
+                  ((c-ts-common--node-is parent 'block) ; Case (2).
+                   nil)
+                  ;; Add a level.
+                  ((looking-back (rx bol (* whitespace))
+                                 (line-beginning-position))
+                   (cl-incf level)))))
+        ;; Fix bracketless statements.
+        (when (and (c-ts-common--node-is parent
+                       'if 'do 'while 'for)
+                   (not (c-ts-common--node-is node 'block)))
+          (cl-incf level))
+        ;; Flatten "else if" statements.
+        (when (and (c-ts-common--node-is node 'else)
+                   (c-ts-common--node-is node 'if)
+                   ;; But if the "if" is on it's own line, still
+                   ;; indent a level.
+                   (not (save-excursion
+                          (goto-char (treesit-node-start node))
+                          (looking-back (rx bol (* whitespace))
+                                        (line-beginning-position)))))
+          (cl-decf level)))
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))
     (* level (symbol-value c-ts-common-indent-offset))))
-
-(defun c-ts-mode--fix-bracketless-indent (level node)
-  "Takes LEVEL and NODE and return adjusted LEVEL.
-This fixes indentation for cases shown in bug#61026.  Basically
-in C-like syntax, statements like if, for, while sometimes omit
-the bracket in the body."
-  (let ((block-re c-ts-common-indent-block-type-regexp)
-        (statement-re
-         c-ts-common-indent-bracketless-type-regexp)
-        (node-type (treesit-node-type node))
-        (parent-type (treesit-node-type (treesit-node-parent node))))
-    (if (and block-re statement-re node-type parent-type
-             (not (string-match-p block-re node-type))
-             (string-match-p statement-re parent-type))
-        (1+ level)
-      level)))
 
 (provide 'c-ts-common)
 

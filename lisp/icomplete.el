@@ -137,10 +137,11 @@ See `icomplete-delay-completions-threshold'."
   "Maximum number of initial chars to apply `icomplete-compute-delay'."
   :type 'integer)
 
-(defvar icomplete-in-buffer nil
+(defcustom icomplete-in-buffer nil
   "If non-nil, also use Icomplete when completing in non-mini buffers.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup.")
+that use their own completions setup."
+  :type 'boolean)
 
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
@@ -215,15 +216,29 @@ the default otherwise."
        ;; calculated, This causes the first cached completion to
        ;; be taken (i.e. the one that the user sees highlighted)
        completion-all-sorted-completions)
-      (minibuffer-force-complete-and-exit)
+      (if (window-minibuffer-p)
+          (minibuffer-force-complete-and-exit)
+        (minibuffer-force-complete (icomplete--field-beg)
+                                   (icomplete--field-end)
+                                   'dont-cycle)
+        (completion-in-region-mode -1))
     ;; Otherwise take the faster route...
-    (minibuffer-complete-and-exit)))
+    (if (window-minibuffer-p)
+        (minibuffer-complete-and-exit)
+      (completion-complete-and-exit
+       (icomplete--field-beg)
+       (icomplete--field-end)
+       (lambda () (completion-in-region-mode -1))))))
 
 (defun icomplete-force-complete ()
   "Complete the icomplete minibuffer."
   (interactive)
   ;; We're not at all interested in cycling here (bug#34077).
-  (minibuffer-force-complete nil nil 'dont-cycle))
+  (if (window-minibuffer-p)
+      (minibuffer-force-complete nil nil 'dont-cycle)
+    (minibuffer-force-complete (icomplete--field-beg)
+                               (icomplete--field-end)
+                               'dont-cycle)))
 
 ;; Apropos `icomplete-scroll', we implement "scrolling icomplete"
 ;; within classic icomplete, which is "rotating", by contrast.
@@ -405,6 +420,16 @@ if that doesn't produce a completion match."
   "C-."     #'icomplete-forward-completions
   "C-,"     #'icomplete-backward-completions)
 
+(defun icomplete--fido-ccd ()
+  "Make value for `completion-category-defaults' prioritizing `flex'."
+  (cl-loop
+   for (cat . alist) in completion-category-defaults collect
+   `(,cat . ,(cl-loop
+              for entry in alist for (prop . val) = entry
+              if (eq prop 'styles)
+              collect `(,prop . (flex ,@(delq 'flex val)))
+              else collect entry))))
+
 (defun icomplete--fido-mode-setup ()
   "Setup `fido-mode''s minibuffer."
   (when (and icomplete-mode (icomplete-simple-completing-p))
@@ -416,6 +441,7 @@ if that doesn't produce a completion match."
                 icomplete-scroll (not (null icomplete-vertical-mode))
                 completion-styles '(flex)
                 completion-flex-nospace nil
+                completion-category-defaults (icomplete--fido-ccd)
                 completion-ignore-case t
                 read-buffer-completion-ignore-case t
                 read-file-name-completion-ignore-case t)))
@@ -429,9 +455,12 @@ more like `ido-mode' than regular `icomplete-mode'."
   :global t
   (remove-hook 'minibuffer-setup-hook #'icomplete-minibuffer-setup)
   (remove-hook 'minibuffer-setup-hook #'icomplete--fido-mode-setup)
+  (remove-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup)
   (when fido-mode
     (icomplete-mode -1)
     (setq icomplete-mode t)
+    (when icomplete-in-buffer
+      (add-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup))
     (add-hook 'minibuffer-setup-hook #'icomplete-minibuffer-setup)
     (add-hook 'minibuffer-setup-hook #'icomplete--fido-mode-setup)))
 
@@ -686,11 +715,13 @@ If it's on, just add the vertical display."
 Should be run via minibuffer `post-command-hook'.
 See `icomplete-mode' and `minibuffer-setup-hook'."
   (when (and icomplete-mode
+             ;; Check if still in the right buffer (bug#61308)
+             (or (window-minibuffer-p) completion-in-region--data)
              (icomplete-simple-completing-p)) ;Shouldn't be necessary.
     (let ((saved-point (point)))
       (save-excursion
         (goto-char (icomplete--field-end))
-                                        ; Insert the match-status information:
+        ;; Insert the match-status information:
         (when (and (or icomplete-show-matches-on-no-input
                        (not (equal (icomplete--field-string)
                                    icomplete--initial-input)))

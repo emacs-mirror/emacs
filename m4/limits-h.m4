@@ -23,6 +23,7 @@ AC_DEFUN_ONCE([gl_LIMITS_H],
             int wb = WORD_BIT;
             int ullw = ULLONG_WIDTH;
             int bw = BOOL_WIDTH;
+            int bm = BOOL_MAX;
           ]])],
        [gl_cv_header_limits_width=yes],
        [gl_cv_header_limits_width=no])])

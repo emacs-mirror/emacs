@@ -3442,6 +3442,7 @@ This function is intended for use in `after-change-functions'."
        ((parent-is "arguments") parent-bol js-indent-level)
        ((parent-is "array") parent-bol js-indent-level)
        ((parent-is "formal_parameters") parent-bol js-indent-level)
+       ((parent-is "template_string") no-indent) ; Don't indent the string contents.
        ((parent-is "template_substitution") parent-bol js-indent-level)
        ((parent-is "object_pattern") parent-bol js-indent-level)
        ((parent-is "object") parent-bol js-indent-level)
@@ -3457,12 +3458,14 @@ This function is intended for use in `after-change-functions'."
        ((match "<" "jsx_fragment") parent 0)
        ((parent-is "jsx_fragment") parent js-indent-level)
        ((node-is "jsx_closing_element") parent 0)
-       ((node-is "jsx_element") parent js-indent-level)
+       ((match "jsx_element" "statement") parent js-indent-level)
        ((parent-is "jsx_element") parent js-indent-level)
+       ((parent-is "jsx_text") parent-bol js-indent-level)
        ((parent-is "jsx_opening_element") parent js-indent-level)
        ((parent-is "jsx_expression") parent-bol js-indent-level)
        ((match "/" "jsx_self_closing_element") parent 0)
        ((parent-is "jsx_self_closing_element") parent js-indent-level)
+       ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
        (no-node parent-bol 0)))))
 
 (defvar js--treesit-keywords
@@ -3541,11 +3544,10 @@ This function is intended for use in `after-change-functions'."
       value: [(function) (arrow_function)])
 
      (variable_declarator
-      name: (array_pattern
-             (identifier)
-             (identifier)
-             @font-lock-function-name-face)
-      value: (array (number) (function)))
+      name: [(array_pattern (identifier) @font-lock-variable-name-face)
+             (object_pattern
+              (shorthand_property_identifier_pattern) @font-lock-variable-name-face)])
+
      ;; full module imports
      (import_clause (identifier) @font-lock-variable-name-face)
      ;; named imports with aliasing
@@ -3561,15 +3563,13 @@ This function is intended for use in `after-change-functions'."
 
    :language 'javascript
    :feature 'property
-   '(((property_identifier) @font-lock-property-face
+   '(((property_identifier) @font-lock-property-use-face
       (:pred js--treesit-property-not-function-p
-             @font-lock-property-face))
+             @font-lock-property-use-face))
 
-     (pair value: (identifier) @font-lock-variable-name-face)
+     (pair value: (identifier) @font-lock-variable-use-face)
 
-     ((shorthand_property_identifier) @font-lock-property-face)
-
-     ((shorthand_property_identifier_pattern) @font-lock-property-face))
+     ((shorthand_property_identifier) @font-lock-property-use-face))
 
    :language 'javascript
    :feature 'assignment
@@ -3579,14 +3579,14 @@ This function is intended for use in `after-change-functions'."
    :language 'javascript
    :feature 'function
    '((call_expression
-      function: [(identifier) @font-lock-function-name-face
+      function: [(identifier) @font-lock-function-call-face
                  (member_expression
                   property:
-                  (property_identifier) @font-lock-function-name-face)])
+                  (property_identifier) @font-lock-function-call-face)])
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
      (function_declaration
-      name: (identifier) @font-lock-function-name-face)
+      name: (identifier) @font-lock-function-call-face)
      (function
       name: (identifier) @font-lock-function-name-face))
 
@@ -3594,15 +3594,15 @@ This function is intended for use in `after-change-functions'."
    :feature 'jsx
    '((jsx_opening_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_self_closing_element
       [(nested_identifier (identifier)) (identifier)]
-      @font-lock-function-name-face)
+      @font-lock-function-call-face)
 
      (jsx_attribute
       (property_identifier)
@@ -3681,8 +3681,8 @@ For OVERRIDE, START, END, see `treesit-font-lock-rules'."
     (treesit-fontify-with-override
      (treesit-node-start node) (treesit-node-end node)
      (pcase (treesit-node-type node)
-       ("identifier" 'font-lock-variable-name-face)
-       ("property_identifier" 'font-lock-property-face))
+       ("identifier" 'font-lock-variable-use-face)
+       ("property_identifier" 'font-lock-property-use-face))
      override start end)))
 
 (defun js--treesit-defun-name (node)
@@ -3872,7 +3872,7 @@ See `treesit-sexp-type-regexp' for more information.")
 
     ;; Electric-indent.
     (setq-local electric-indent-chars
-	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+                (append "{}():;,<>/" electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
     (setq-local electric-layout-rules
 	        '((?\; . after) (?\{ . after) (?\} . before)))
 

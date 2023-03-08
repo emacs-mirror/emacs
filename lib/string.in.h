@@ -126,7 +126,11 @@
 # if (@REPLACE_FREE@ && !defined free \
       && !(defined __cplusplus && defined GNULIB_NAMESPACE))
 /* We can't do '#define free rpl_free' here.  */
+#  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
+_GL_EXTERN_C void rpl_free (void *) throw ();
+#  else
 _GL_EXTERN_C void rpl_free (void *);
+#  endif
 #  undef _GL_ATTRIBUTE_DEALLOC_FREE
 #  define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (rpl_free, 1)
 # else

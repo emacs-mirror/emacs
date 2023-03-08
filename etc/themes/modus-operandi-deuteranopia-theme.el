@@ -83,7 +83,7 @@ standard).")
       (yellow-faint    "#624416")
       (yellow-intense  "#808000")
       (blue            "#0031a9")
-      (blue-warmer     "#354fcf")
+      (blue-warmer     "#3548cf")
       (blue-cooler     "#0000b0")
       (blue-faint      "#003497")
       (blue-intense    "#0000ff")
@@ -157,7 +157,7 @@ standard).")
       (bg-completion       "#c0deff")
       (bg-hover            "#97dfed")
       (bg-hover-secondary  "#f5d0a0")
-      (bg-hl-line          "#d0d6ec")
+      (bg-hl-line          "#dae5ec")
       (bg-region           "#bdbdbd")
       (fg-region           "#000000")
 
@@ -182,26 +182,28 @@ standard).")
 
 ;;; Diffs
 
-      (bg-added           "#d5d5ff")
+      (bg-added           "#d5d7ff")
       (bg-added-faint     "#e6e6ff")
-      (bg-added-refine    "#b5b5ef")
-      (bg-added-intense   "#579acc")
-      (fg-added           "#333399")
-      (fg-added-intense   "#3333cc")
+      (bg-added-refine    "#babcef")
+      (bg-added-fringe    "#275acc")
+      (fg-added           "#303099")
+      (fg-added-intense   "#0303cc")
 
       (bg-changed         "#eecfdf")
       (bg-changed-faint   "#f0dde5")
       (bg-changed-refine  "#e0b0d0")
-      (bg-changed-intense "#9f7abf")
+      (bg-changed-fringe  "#9f6ab0")
       (fg-changed         "#6f1343")
-      (fg-changed-intense "#7f1f5f")
+      (fg-changed-intense "#7f0f9f")
 
-      (bg-removed         "#fff585")
-      (bg-removed-faint   "#f2f2bb")
-      (bg-removed-refine  "#f0e068")
-      (bg-removed-intense "#d7c20a")
+      (bg-removed         "#f4f099")
+      (bg-removed-faint   "#f6f6b7")
+      (bg-removed-refine  "#f0e56f")
+      (bg-removed-fringe  "#c0b200")
       (fg-removed         "#553d00")
-      (fg-removed-intense "#655000")
+      (fg-removed-intense "#7f6f00")
+
+      (bg-diff-context    "#f3f3f3")
 
 ;;; Paren match
 
@@ -380,10 +382,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
   (defcustom modus-operandi-deuteranopia-palette-overrides nil
     "Overrides for `modus-operandi-deuteranopia-palette'.

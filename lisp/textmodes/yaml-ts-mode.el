@@ -94,22 +94,22 @@
    :feature 'property
    :override t
    '((block_mapping_pair
-      key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face)))
+      key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face)))
      (block_mapping_pair
       key: (flow_node
-            [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face))
+            [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face))
      (flow_mapping
-      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face))))
+      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face))))
      (flow_mapping
       (_ key:
          (flow_node
-          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face)))
+          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face)))
      (flow_sequence
-      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-face))))
+      (_ key: (flow_node (plain_scalar (string_scalar) @font-lock-property-use-face))))
      (flow_sequence
       (_ key:
          (flow_node
-          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-face))))
+          [(double_quote_scalar) (single_quote_scalar)] @font-lock-property-use-face))))
 
    :language 'yaml
    :feature 'error

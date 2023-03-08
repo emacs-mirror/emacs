@@ -196,11 +196,13 @@ removed."
 
 ;;; Emacs < 27.1 compatibility
 
-(unless (fboundp 'combine-change-calls)
-  ;; A stub when `combine-change-calls' was not yet there.
-  (defmacro combine-change-calls (_beg _end &rest body)
-    (declare (debug (form form def-body)) (indent 2))
-    `(progn ,@body)))
+(if (version< emacs-version "29")
+    ;; A stub when `combine-change-calls' was not yet there or had
+    ;; critical bugs (see Emacs bug#60467).
+    (defmacro org-combine-change-calls (_beg _end &rest body)
+      (declare (debug (form form def-body)) (indent 2))
+      `(progn ,@body))
+  (defalias 'org-combine-change-calls 'combine-change-calls))
 
 (if (version< emacs-version "27.1")
     (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)

@@ -119,11 +119,14 @@
 
 /* Macros specified by C23.  */
 
-#if (! defined BOOL_WIDTH \
-     && (defined _GNU_SOURCE \
-         || (defined __STDC_VERSION__ && 201710 < __STDC_VERSION__)))
-# define BOOL_MAX 1
-# define BOOL_WIDTH 1
+#if (defined _GNU_SOURCE \
+     || (defined __STDC_VERSION__ && 201710 < __STDC_VERSION__))
+# if ! defined BOOL_WIDTH
+#  define BOOL_WIDTH 1
+#  define BOOL_MAX 1
+# elif ! defined BOOL_MAX
+#  define BOOL_MAX ((((1U << (BOOL_WIDTH - 1)) - 1) << 1) + 1)
+# endif
 #endif
 
 #endif /* _@GUARD_PREFIX@_LIMITS_H */

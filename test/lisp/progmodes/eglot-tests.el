@@ -103,22 +103,21 @@ then restored."
              (set (car spec) (cadr spec)))
             ((stringp (car spec)) (push spec file-specs))))
     (unwind-protect
-        (let* ((home (getenv "HOME"))
-               (process-environment
+        (let* ((process-environment
                 (append
                  `(;; Set XDF_CONFIG_HOME to /dev/null to prevent
                    ;; user-configuration to have an influence on
                    ;; language servers. (See github#441)
                    "XDG_CONFIG_HOME=/dev/null"
                    ;; ... on the flip-side, a similar technique by
-                   ;; Emacs's test makefiles means that HOME is set to
-                   ;; /nonexistent.  This breaks some common
-                   ;; installations for LSP servers like pylsp, making
-                   ;; these tests mostly useless, so we hack around it
-                   ;; here with a great big hack.
+                   ;; Emacs's test makefiles means that HOME is
+                   ;; spoofed to /nonexistent, or sometimes /tmp.
+                   ;; This breaks some common installations for LSP
+                   ;; servers like pylsp, rust-analyzer making these
+                   ;; tests mostly useless, so we hack around it here
+                   ;; with a great big hack.
                    ,(format "HOME=%s"
-                            (if (file-exists-p home) home
-                              (format "/home/%s" (getenv "USER")))))
+                            (expand-file-name (format "~%s" (user-login-name)))))
                  process-environment))
                ;; Prevent "Can't guess python-indent-offset ..." messages.
                (python-indent-guess-indent-offset-verbose . nil)
@@ -856,8 +855,8 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
            '((c-mode . ("clangd")))))
       (with-current-buffer
           (eglot--find-file-noselect "project/foo.c")
-        (setq-local eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column)
-        (setq-local eglot-current-column-function #'eglot-lsp-abiding-column)
+        (setq-local eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos)
+        (setq-local eglot-current-linepos-function #'eglot-utf-16-linepos)
         (eglot--sniffing (:client-notifications c-notifs)
           (eglot--tests-connect)
           (end-of-line)
@@ -866,12 +865,12 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
             (should (equal 71 (cadddr (cadadr (aref (cadddr params) 0))))))
           (beginning-of-line)
-          (should (eq eglot-move-to-column-function #'eglot-move-to-lsp-abiding-column))
-          (funcall eglot-move-to-column-function 71)
+          (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
+          (funcall eglot-move-to-linepos-function 71)
           (should (looking-at "p")))))))
 
 (ert-deftest eglot-test-lsp-abiding-column ()
-  "Test basic `eglot-lsp-abiding-column' and `eglot-move-to-lsp-abiding-column'."
+  "Test basic LSP character counting logic."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--lsp-abiding-column-1))
 

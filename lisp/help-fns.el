@@ -769,7 +769,7 @@ the C sources, too."
   (and (symbolp function)
        (not (eq (car-safe (symbol-function function)) 'macro))
        (let* ((interactive-only
-               (or (get function 'interactive-only)
+               (or (function-get function 'interactive-only)
                    (if (boundp 'byte-compile-interactive-only-functions)
                        (memq function
                              byte-compile-interactive-only-functions)))))
@@ -778,7 +778,7 @@ the C sources, too."
                    ;; Cf byte-compile-form.
                    (cond ((stringp interactive-only)
                           (format ";\n  in Lisp code %s" interactive-only))
-                         ((and (symbolp 'interactive-only)
+                         ((and (symbolp interactive-only)
                                (not (eq interactive-only t)))
                           (format-message ";\n  in Lisp code use `%s' instead."
                                           interactive-only))
@@ -996,7 +996,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                               (symbol-name function)))))))
 	 (real-def (cond
                     ((and aliased (not (subrp def)))
-                     (car (function-alias-p real-function t)))
+                     (car (function-alias-p real-function)))
 		    ((subrp def) (intern (subr-name def)))
                     (t def))))
 

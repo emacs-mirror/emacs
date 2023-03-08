@@ -58,10 +58,16 @@
 
 ;;; Code:
 
-(require 'esh-util)
-(require 'esh-module)
+;; Load the core Eshell modules; we'll call their initialization
+;; functions below in `eshell-mode'.
+(require 'esh-arg)
 (require 'esh-cmd)
-(require 'esh-arg)                      ;For eshell-parse-arguments
+(require 'esh-ext)
+(require 'esh-io)
+(require 'esh-module)
+(require 'esh-proc)
+(require 'esh-util)
+(require 'esh-var)
 
 (defgroup eshell-mode nil
   "This module contains code for handling input from the user."
@@ -73,6 +79,7 @@
 (defcustom eshell-mode-unload-hook nil
   "A hook that gets run when `eshell-mode' is unloaded."
   :type 'hook)
+(make-obsolete-variable 'eshell-mode-unload-hook nil "30.1")
 
 (defcustom eshell-mode-hook nil
   "A hook that gets run when `eshell-mode' is entered."
@@ -166,7 +173,10 @@ inserted.  They return the string as it should be inserted."
   :type 'hook)
 
 (defcustom eshell-password-prompt-regexp
-  (format "\\(%s\\)[^:：៖]*[:：៖]\\s *\\'" (regexp-opt password-word-equivalents))
+  (format "%s[^%s]*[%s]\\s *\\'"
+          (regexp-opt password-word-equivalents t)
+          (apply #'string password-colon-equivalents)
+          (apply #'string password-colon-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
@@ -190,6 +200,11 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
+
+(defvar eshell-non-interactive-p nil
+  "A variable which is non-nil when Eshell is not running interactively.
+Modules should use this variable so that they don't clutter
+non-interactive sessions, such as when using `eshell-command'.")
 
 ;; Internal Variables:
 
@@ -525,9 +540,7 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 (defun eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
   (when string
-    (add-text-properties 0 (length string)
-                         '(field command-output rear-nonsticky (field))
-                         string)
+    (eshell--mark-as-output 0 (length string) string)
     (eshell-interactive-filter nil string)))
 
 (defsubst eshell-begin-on-new-line ()
@@ -567,7 +580,7 @@ will return the parsed command."
 		 (setq command (eshell-parse-command (cons beg end)
 						     args t)))))
 	(ignore
-	 (message "Expecting completion of delimiter %c ..."
+         (message "Expecting completion of delimiter %s ..."
 		  (if (listp delim)
 		      (car delim)
 		    delim)))
@@ -891,7 +904,7 @@ If USE-CURRENT-REGION is non-nil, return the current region."
       (let ((inhibit-field-text-motion)
             (end (point)))
         (beginning-of-line)
-        (buffer-substring (point) end)))))
+        (buffer-substring-no-properties (point) end)))))
 
 (defun eshell-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited."

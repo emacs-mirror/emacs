@@ -92,12 +92,16 @@ into the eln output.  "
   :type 'boolean
   :version "28.1")
 
-(defcustom native-comp-deferred-compilation-deny-list
+(defcustom native-comp-jit-compilation-deny-list
   '()
   "List of regexps to exclude matching files from deferred native compilation.
 Files whose names match any regexp are excluded from native compilation."
   :type '(repeat regexp)
   :version "28.1")
+
+(make-obsolete-variable 'native-comp-deferred-compilation-deny-list
+                        'native-comp-jit-compilation-deny-list
+                        "29.1")
 
 (defcustom native-comp-bootstrap-deny-list
   '()
@@ -112,7 +116,11 @@ during bootstrap."
     ;; correctly (see comment in `advice--add-function'). DO NOT
     ;; REMOVE.
     macroexpand rename-buffer)
-  "Primitive functions to exclude from trampoline optimization."
+  "Primitive functions to exclude from trampoline optimization.
+
+Primitive functions included in this list will not be called
+directly by the natively-compiled code, which makes trampolines for
+those primitives unnecessary in case of function redefinition/advice."
   :type '(repeat symbol)
   :version "28.1")
 
@@ -697,12 +705,23 @@ Useful to hook into pass checkers.")
 (defvar comp-no-spawn nil
   "Non-nil don't spawn native compilation processes.")
 
+(defconst comp-warn-primitives
+  '(null memq gethash and subrp not subr-native-elisp-p
+         comp--install-trampoline concat if symbolp symbol-name make-string
+         length aset aref length> mapcar expand-file-name
+         file-name-as-directory file-exists-p native-elisp-load)
+  "List of primitives we want to warn about in case of redefinition.
+This are essential for the trampoline machinery to work properly.")
+
 ;; Moved early to avoid circularity when comp.el is loaded and
 ;; `macroexpand' needs to be advised (bug#47049).
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (or (null comp-enable-subr-trampolines)
+  (when (memq subr-name comp-warn-primitives)
+    (warn "Redefining `%s' might break native compilation of trampolines."
+          subr-name))
+  (unless (or (null native-comp-enable-subr-trampolines)
               (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
@@ -1128,10 +1147,12 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
           (comp-cstr-to-type-spec mvar)))
 
 (defun comp-prettyformat-insn (insn)
-  (cl-typecase insn
-    (comp-mvar (comp-prettyformat-mvar insn))
-    (atom (prin1-to-string insn))
-    (cons (concat "(" (mapconcat #'comp-prettyformat-insn insn " ") ")"))))
+  (cond
+   ((comp-mvar-p insn)
+    (comp-prettyformat-mvar insn))
+   ((proper-list-p insn)
+    (concat "(" (mapconcat #'comp-prettyformat-insn insn " ") ")"))
+   (t (prin1-to-string insn))))
 
 (defun comp-log-func (func verbosity)
   "Log function FUNC at VERBOSITY.
@@ -3802,6 +3823,31 @@ Return the trampoline if found or nil otherwise."
    when (file-exists-p filename)
      do (cl-return (native-elisp-load filename))))
 
+(defun comp--trampoline-abs-filename (subr-name)
+  "Return the absolute filename for a trampoline for SUBR-NAME."
+  (cl-loop
+   with dirs = (if (stringp native-comp-enable-subr-trampolines)
+                   (list (expand-file-name native-comp-enable-subr-trampolines
+                                           invocation-directory))
+                 (if native-compile-target-directory
+                     (list (expand-file-name comp-native-version-dir
+                                             native-compile-target-directory))
+                   (comp-eln-load-path-eff)))
+   with rel-filename = (comp-trampoline-filename subr-name)
+   for dir in dirs
+   for abs-filename = (expand-file-name rel-filename dir)
+   unless (file-exists-p dir)
+     do (ignore-errors
+          (make-directory dir t)
+          (cl-return abs-filename))
+   when (file-writable-p abs-filename)
+     do (cl-return abs-filename)
+   ;; Default to some temporary directory if no better option was
+   ;; found.
+   finally (cl-return
+            (make-temp-file (file-name-sans-extension rel-filename) nil ".eln"
+                            nil))))
+
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
   (let* ((lambda-list (comp-make-lambda-list-from-subr
@@ -3826,25 +3872,7 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     ;; If we've disabled nativecomp, don't write the trampolines to
-     ;; the eln cache (but create them).
-     (unless inhibit-automatic-native-compilation
-       (cl-loop
-        for dir in (if native-compile-target-directory
-                       (list (expand-file-name comp-native-version-dir
-                                               native-compile-target-directory))
-                     (comp-eln-load-path-eff))
-        for f = (expand-file-name
-                 (comp-trampoline-filename subr-name)
-                 dir)
-        unless (file-exists-p dir)
-          do (ignore-errors
-               (make-directory dir t)
-               (cl-return f))
-        when (file-writable-p f)
-          do (cl-return f)
-        finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'"))))))
+     (comp--trampoline-abs-filename subr-name))))
 
 
 ;; Some entry point support code.
@@ -4134,14 +4162,12 @@ the deferred compilation mechanism."
                   data
                 ;; So we return the compiled function.
                 (native-elisp-load data)))
-          ;; We may have created a temporary file when we're being
-          ;; called with something other than a file as the argument.
-          ;; Delete it if we can.
           (when (and (not (stringp function-or-file))
                      (not output)
                      comp-ctxt
                      (comp-ctxt-output comp-ctxt)
                      (file-exists-p (comp-ctxt-output comp-ctxt)))
+            ;; NOTE: Not sure if we want to remove this or being cautious.
             (cond ((eq 'windows-nt system-type)
                    ;; We may still be using the temporary .eln file.
                    (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
@@ -4161,11 +4187,11 @@ LOAD and SELECTOR work as described in `native--compile-async'."
        (t (error "SELECTOR must be a function a regexp or nil")))
       ;; Also exclude files from deferred compilation if
       ;; any of the regexps in
-      ;; `native-comp-deferred-compilation-deny-list' matches.
+      ;; `native-comp-jit-compilation-deny-list' matches.
       (and (eq load 'late)
            (cl-some (lambda (re)
                       (string-match-p re file))
-                    native-comp-deferred-compilation-deny-list))))
+                    native-comp-jit-compilation-deny-list))))
 
 (defun native--compile-async (files &optional recursively load selector)
   ;; BEWARE, this function is also called directly from C.

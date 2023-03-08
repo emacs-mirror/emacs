@@ -434,9 +434,14 @@ the values of nil for each."
 
 (defun eshell-envvar-names (&optional environment)
   "Return a list of currently visible environment variable names."
-  (mapcar (lambda (x)
-            (substring x 0 (string-search "=" x)))
-	  (or environment process-environment)))
+  (delete-dups
+   (append
+    ;; Real environment variables
+    (mapcar (lambda (x)
+              (substring x 0 (string-search "=" x)))
+	    (or environment process-environment))
+    ;; Eshell variable aliases
+    (mapcar #'car eshell-variable-aliases-list))))
 
 (defun eshell-environment-variables ()
   "Return a `process-environment', fully updated.
@@ -503,7 +508,7 @@ Possible variable references are:
    ((eq (char-after) ?{)
     (let ((end (eshell-find-delimiter ?\{ ?\})))
       (if (not end)
-          (throw 'eshell-incomplete ?\{)
+          (throw 'eshell-incomplete "${")
         (forward-char)
         (prog1
             `(eshell-apply-indices
@@ -527,7 +532,7 @@ Possible variable references are:
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
       (if (not end)
-          (throw 'eshell-incomplete ?\<)
+          (throw 'eshell-incomplete "$<")
         (let* ((temp (make-temp-file temporary-file-directory))
                (cmd (concat (buffer-substring (1+ (point)) end)
                             " > " temp)))
@@ -560,15 +565,19 @@ Possible variable references are:
                         (current-buffer)))))
           indices ,eshell-current-quoted)
       (end-of-file
-       (throw 'eshell-incomplete ?\())))
+       (throw 'eshell-incomplete "$("))))
    ((looking-at (rx-to-string
                  `(or "'" ,(if eshell-current-quoted "\\\"" "\""))))
     (eshell-with-temp-command
         (or (eshell-unescape-inner-double-quote (point-max))
             (cons (point) (point-max)))
-      (let ((name (if (eq (char-after) ?\')
-                      (eshell-parse-literal-quote)
-                    (eshell-parse-double-quote))))
+      (let (name)
+        (when-let ((delim
+                    (catch 'eshell-incomplete
+                      (ignore (setq name (if (eq (char-after) ?\')
+                                             (eshell-parse-literal-quote)
+                                           (eshell-parse-double-quote)))))))
+          (throw 'eshell-incomplete (concat "$" delim)))
         (when name
           `(eshell-get-variable ,(eval name) indices ,eshell-current-quoted)))))
    ((assoc (char-to-string (char-after))
@@ -597,7 +606,7 @@ For example, \"[0 1][2]\" becomes:
     (while (eq (char-after) ?\[)
       (let ((end (eshell-find-delimiter ?\[ ?\])))
 	(if (not end)
-	    (throw 'eshell-incomplete ?\[)
+            (throw 'eshell-incomplete "[")
 	  (forward-char)
           (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
                                         (cons (point) end))
@@ -816,41 +825,56 @@ START and END."
   (let ((arg (pcomplete-actual-arg)))
     (when (string-match
            (rx "$" (? (or "#" "@"))
-               (? (group (regexp eshell-variable-name-regexp)))
-               string-end)
+               (? (or (group-n 1 (regexp eshell-variable-name-regexp)
+                               string-end)
+                      (seq (group-n 2 (or "'" "\""))
+                           (group-n 1 (+ anychar))))))
            arg)
       (setq pcomplete-stub (substring arg (match-beginning 1)))
+      (let ((delimiter (match-string 2 arg)))
+        ;; When finished with completion, insert the trailing
+        ;; delimiter, if any, and add a trailing slash if the variable
+        ;; refers to a directory.
+        (add-function
+         :before-until (var pcomplete-exit-function)
+         (lambda (variable status)
+           (when (eq status 'finished)
+             (when delimiter
+               (if (looking-at (regexp-quote delimiter))
+                   (goto-char (match-end 0))
+                 (insert delimiter)))
+             (let ((non-essential t)
+                   (value (eshell-get-variable variable)))
+               (when (and (stringp value) (file-directory-p value))
+                 (insert "/")
+                 ;; Tell Pcomplete not to insert its own termination
+                 ;; string.
+                 t))))))
       (throw 'pcomplete-completions (eshell-variables-list)))))
 
 (defun eshell-variables-list ()
   "Generate list of applicable variables."
-  (let ((argname pcomplete-stub)
-	completions)
-    (dolist (alias eshell-variable-aliases-list)
-      (if (string-match (concat "^" argname) (car alias))
-	  (setq completions (cons (car alias) completions))))
+  (let ((argname pcomplete-stub))
     (sort
-     (append
-      (mapcar
-       (lambda (varname)
-         (let ((value (eshell-get-variable varname)))
-           (if (and value
-                    (stringp value)
-                    (file-directory-p value))
-               (concat varname "/")
-             varname)))
-       (eshell-envvar-names (eshell-environment-variables)))
-      (all-completions argname obarray 'boundp)
-      completions)
-     'string-lessp)))
+     (append (eshell-envvar-names)
+             (all-completions argname obarray #'boundp))
+     #'string-lessp)))
 
 (defun eshell-complete-variable-assignment ()
   "If there is a variable assignment, allow completion of entries."
-  (let ((arg (pcomplete-actual-arg)) pos)
-    (when (string-match (concat "\\`" eshell-variable-name-regexp "=") arg)
-      (setq pos (match-end 0))
-      (if (string-match "\\(:\\)[^:]*\\'" arg)
-	  (setq pos (match-end 1)))
+  (catch 'not-assignment
+    ;; The current argument can only be a variable assignment if all
+    ;; arguments leading up to it are also variable assignments.  See
+    ;; `eshell-handle-local-variables'.
+    (dotimes (offset (1+ pcomplete-index))
+      (unless (string-match (concat "\\`" eshell-variable-name-regexp "=")
+                            (pcomplete-actual-arg 'first offset))
+        (throw 'not-assignment nil)))
+    ;; We have a variable assignment.  Handle it.
+    (let ((arg (pcomplete-actual-arg))
+          (pos (match-end 0)))
+      (when (string-match "\\(:\\)[^:]*\\'" arg)
+	(setq pos (match-end 1)))
       (setq pcomplete-stub (substring arg pos))
       (throw 'pcomplete-completions (pcomplete-entries)))))
 

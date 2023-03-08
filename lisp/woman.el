@@ -1690,11 +1690,11 @@ Do not call directly!"
       (progn
 	(goto-char (point-min))
 	(while (search-forward "__\b\b" nil t)
-	  (backward-delete-char 4)
+	  (delete-char -4)
 	  (woman-set-face (point) (1+ (point)) 'woman-italic))
 	(goto-char (point-min))
 	(while (search-forward "\b\b__" nil t)
-	  (backward-delete-char 4)
+	  (delete-char -4)
 	  (woman-set-face (1- (point)) (point) 'woman-italic))))
 
   ;; Interpret overprinting to indicate bold face:

@@ -636,6 +636,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
+#ifdef HAVE_X_I18N
+#include "textconv.h"
+#endif
+
 #ifdef USE_XCB
 #include <xcb/xproto.h>
 #include <xcb/xcb.h>
@@ -5946,8 +5950,10 @@ void
 x_end_cr_clip (struct frame *f)
 {
   cairo_restore (FRAME_CR_CONTEXT (f));
+#ifdef HAVE_XDBE
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     x_mark_frame_dirty (f);
+#endif
 }
 
 void
@@ -7482,8 +7488,10 @@ x_update_end (struct frame *f)
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
 
 #ifdef USE_CAIRO
+# ifdef HAVE_XDBE
   if (!FRAME_X_DOUBLE_BUFFERED_P (f) && FRAME_CR_CONTEXT (f))
     cairo_surface_flush (cairo_get_target (FRAME_CR_CONTEXT (f)));
+# endif
 #endif
 
   /* If double buffering is disabled, finish the update here.
@@ -21137,8 +21145,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  x_flush (WINDOW_XFRAME (XWINDOW (bar->window)));
 		}
 
+#ifdef HAVE_XDBE
 	      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
 		x_drop_xrender_surfaces (f);
+#endif
 
 	      goto OTHER;
 	    }
@@ -31506,7 +31516,37 @@ x_initialize (void)
   XSetIOErrorHandler (x_io_error_quitter);
 }
 
-#ifdef USE_GTK
+#ifdef HAVE_X_I18N
+
+/* Notice that a change has occured on F that requires its input
+   method state to be reset.  */
+
+static void
+x_reset_conversion (struct frame *f)
+{
+  char *string;
+
+  if (FRAME_XIC (f))
+    {
+      string = XmbResetIC (FRAME_XIC (f));
+
+      /* string is actually any string that was being composed at the
+	 time of the reset.  */
+
+      if (string)
+	XFree (string);
+    }
+}
+
+/* Interface used to control input method ``text conversion''.  */
+
+static struct textconv_interface text_conversion_interface =
+  {
+    x_reset_conversion,
+  };
+
+#endif
+
 void
 init_xterm (void)
 {
@@ -31520,8 +31560,11 @@ init_xterm (void)
   gdk_disable_multidevice ();
 #endif
 #endif
-}
+
+#ifdef HAVE_X_I18N
+  register_texconv_interface (&text_conversion_interface);
 #endif
+}
 
 void
 mark_xterm (void)

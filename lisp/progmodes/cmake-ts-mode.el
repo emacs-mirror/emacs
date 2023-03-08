@@ -125,7 +125,7 @@
 
    :language 'cmake
    :feature 'function
-   '((normal_command (identifier) @font-lock-function-name-face))
+   '((normal_command (identifier) @font-lock-function-call-face))
 
    :language 'cmake
    :feature 'keyword
@@ -154,7 +154,7 @@
    :language 'cmake
    :feature 'variable
    :override t
-   '((variable) @font-lock-variable-name-face)
+   '((variable) @font-lock-variable-use-face)
 
    :language 'cmake
    :feature 'error
@@ -220,6 +220,9 @@ the subtrees."
     (setq-local treesit-font-lock-feature-list
                 '((comment)
                   (keyword string)
+                  ;; 'function' and 'variable' here play slightly
+                  ;; different roles than in other ts modes, so we
+                  ;; kept them at level 3.
                   (builtin constant escape-sequence function number variable)
                   (bracket error misc-punctuation)))
 

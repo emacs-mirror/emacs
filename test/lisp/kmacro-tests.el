@@ -614,6 +614,20 @@ This is a regression test for: Bug#3412, Bug#11817."
   (kmacro-tests-should-insert "bb"
     (kmacro-tests-simulate-command '(kmacro-tests-symbol-for-test))))
 
+;; Bug#61700 inserting named macro when the definition contains things
+;; that `key-parse' thinks are named keys
+(kmacro-tests-deftest kmacro-tests-name-last-macro-key-parse-syntax ()
+  "Name last macro can rebind a symbol it binds."
+  ;; Make sure our symbol is unbound.
+  (when (fboundp 'kmacro-tests-symbol-for-test)
+    (fmakunbound 'kmacro-tests-symbol-for-test))
+  (setplist 'kmacro-tests-symbol-for-test nil)
+  (kmacro-tests-define-macro "<b> hello </>")
+  (kmacro-name-last-macro 'kmacro-tests-symbol-for-test)
+  ;; Now run the function bound to the symbol.
+  (kmacro-tests-should-insert "<b> hello </>"
+    (kmacro-tests-simulate-command '(kmacro-tests-symbol-for-test))))
+
 (kmacro-tests-deftest kmacro-tests-store-in-register ()
   "Macro can be stored in and retrieved from a register."
   (use-local-map kmacro-tests-keymap)

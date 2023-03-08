@@ -37,6 +37,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 
+#ifdef HAVE_X_I18N
+#include "textconv.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -2671,24 +2675,50 @@ append_wm_protocols (struct x_display_info *dpyinfo,
 
 #ifdef HAVE_X_I18N
 
-static void xic_preedit_draw_callback (XIC, XPointer, XIMPreeditDrawCallbackStruct *);
-static void xic_preedit_caret_callback (XIC, XPointer, XIMPreeditCaretCallbackStruct *);
+static void xic_preedit_draw_callback (XIC, XPointer,
+				       XIMPreeditDrawCallbackStruct *);
+static void xic_preedit_caret_callback (XIC, XPointer,
+					XIMPreeditCaretCallbackStruct *);
 static void xic_preedit_done_callback (XIC, XPointer, XPointer);
 static int xic_preedit_start_callback (XIC, XPointer, XPointer);
+static void xic_string_conversion_callback (XIC, XPointer,
+					    XIMStringConversionCallbackStruct *);
 
 #ifndef HAVE_XICCALLBACK_CALLBACK
 #define XICCallback XIMCallback
 #define XICProc XIMProc
 #endif
 
-static XIMCallback Xxic_preedit_draw_callback = { NULL,
-						  (XIMProc) xic_preedit_draw_callback };
-static XIMCallback Xxic_preedit_caret_callback = { NULL,
-						   (XIMProc) xic_preedit_caret_callback };
-static XIMCallback Xxic_preedit_done_callback = { NULL,
-						  (XIMProc) xic_preedit_done_callback };
-static XICCallback Xxic_preedit_start_callback = { NULL,
-						   (XICProc) xic_preedit_start_callback };
+static XIMCallback Xxic_preedit_draw_callback =
+  {
+    NULL,
+    (XIMProc) xic_preedit_draw_callback,
+  };
+
+static XIMCallback Xxic_preedit_caret_callback =
+  {
+    NULL,
+    (XIMProc) xic_preedit_caret_callback,
+  };
+
+static XIMCallback Xxic_preedit_done_callback =
+  {
+    NULL,
+    (XIMProc) xic_preedit_done_callback,
+  };
+
+static XICCallback Xxic_preedit_start_callback =
+  {
+    NULL,
+    (XICProc) xic_preedit_start_callback,
+  };
+
+static XIMCallback Xxic_string_conversion_callback =
+  {
+    /* This is actually an XICCallback! */
+    NULL,
+    (XIMProc) xic_string_conversion_callback,
+  };
 
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
@@ -3094,6 +3124,8 @@ create_frame_xic (struct frame *f)
                      XNFocusWindow, FRAME_X_WINDOW (f),
                      XNStatusAttributes, status_attr,
                      XNPreeditAttributes, preedit_attr,
+		     XNStringConversionCallback,
+		     &Xxic_string_conversion_callback,
                      NULL);
   else if (preedit_attr)
     xic = XCreateIC (xim,
@@ -3101,6 +3133,8 @@ create_frame_xic (struct frame *f)
                      XNClientWindow, FRAME_X_WINDOW (f),
                      XNFocusWindow, FRAME_X_WINDOW (f),
                      XNPreeditAttributes, preedit_attr,
+		     XNStringConversionCallback,
+		     &Xxic_string_conversion_callback,
                      NULL);
   else if (status_attr)
     xic = XCreateIC (xim,
@@ -3108,12 +3142,16 @@ create_frame_xic (struct frame *f)
                      XNClientWindow, FRAME_X_WINDOW (f),
                      XNFocusWindow, FRAME_X_WINDOW (f),
                      XNStatusAttributes, status_attr,
+		     XNStringConversionCallback,
+		     &Xxic_string_conversion_callback,
                      NULL);
   else
     xic = XCreateIC (xim,
                      XNInputStyle, xic_style,
                      XNClientWindow, FRAME_X_WINDOW (f),
                      XNFocusWindow, FRAME_X_WINDOW (f),
+		     XNStringConversionCallback,
+		     &Xxic_string_conversion_callback,
                      NULL);
 
   if (!xic)
@@ -3377,6 +3415,7 @@ struct x_xim_text_conversion_data
   struct coding_system *coding;
   char *source;
   struct x_display_info *dpyinfo;
+  size_t size;
 };
 
 static Lisp_Object
@@ -3406,6 +3445,38 @@ x_xim_text_to_utf8_unix_1 (ptrdiff_t nargs, Lisp_Object *args)
   data->coding->dst_bytes = 2048;
   data->coding->destination = xmalloc (2048);
   decode_coding_object (data->coding, Qnil, 0, 0,
+			nbytes, nbytes, Qnil);
+
+  return Qnil;
+}
+
+static Lisp_Object
+x_encode_xim_text_1 (ptrdiff_t nargs, Lisp_Object *args)
+{
+  struct x_xim_text_conversion_data *data;
+  ptrdiff_t nbytes;
+  Lisp_Object coding_system;
+
+  data = xmint_pointer (args[0]);
+
+  if (SYMBOLP (Vx_input_coding_system))
+    coding_system = Vx_input_coding_system;
+  else if (!NILP (data->dpyinfo->xim_coding))
+    coding_system = data->dpyinfo->xim_coding;
+  else
+    coding_system = Vlocale_coding_system;
+
+  nbytes = data->size;
+
+  data->coding->destination = NULL;
+
+  setup_coding_system (coding_system, data->coding);
+  data->coding->mode |= (CODING_MODE_LAST_BLOCK
+			 | CODING_MODE_SAFE_ENCODING);
+  data->coding->source = (const unsigned char *) data->source;
+  data->coding->dst_bytes = 2048;
+  data->coding->destination = xmalloc (2048);
+  encode_coding_object (data->coding, Qnil, 0, 0,
 			nbytes, nbytes, Qnil);
 
   return Qnil;
@@ -3465,6 +3536,46 @@ x_xim_text_to_utf8_unix (struct x_display_info *dpyinfo,
   waiting_for_input = was_waiting_for_input_p;
 
   *length = coding.produced;
+  return (char *) coding.destination;
+}
+
+/* Convert SIZE bytes of the specified text from Emacs's internal
+   coding system to the input method coding system.  Return the
+   result, its byte length in *LENGTH, and its character length in
+   *CHARS, or NULL.
+
+   The string returned is not NULL terminated.  */
+
+static char *
+x_encode_xim_text (struct x_display_info *dpyinfo, char *text,
+		   size_t size, ptrdiff_t *length,
+		   ptrdiff_t *chars)
+{
+  struct coding_system coding;
+  struct x_xim_text_conversion_data data;
+  Lisp_Object arg;
+  bool was_waiting_for_input_p;
+
+  data.coding = &coding;
+  data.source = text;
+  data.dpyinfo = dpyinfo;
+  data.size = size;
+
+  was_waiting_for_input_p = waiting_for_input;
+  /* Otherwise Fsignal will crash.  */
+  waiting_for_input = false;
+
+  arg = make_mint_ptr (&data);
+  internal_condition_case_n (x_encode_xim_text_1, 1, &arg,
+			     Qt, x_xim_text_to_utf8_unix_2);
+  waiting_for_input = was_waiting_for_input_p;
+
+  if (length)
+    *length = coding.produced;
+
+  if (chars)
+    *chars = coding.produced_char;
+
   return (char *) coding.destination;
 }
 
@@ -3662,6 +3773,128 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
   XFree (attr);
 
   FRAME_XIC_FONTSET (f) = xfs;
+}
+
+
+
+/* String conversion support.  See textconv.c for more details.  */
+
+static void
+xic_string_conversion_callback (XIC ic, XPointer client_data,
+				XIMStringConversionCallbackStruct *call_data)
+{
+  struct textconv_callback_struct request;
+  ptrdiff_t length;
+  struct frame *f;
+  int rc;
+
+  /* Find the frame associated with this IC.  */
+  f = x_xic_to_frame (ic);
+
+  if (!f)
+    goto failure;
+
+  /* Fill in CALL_DATA as early as possible.  */
+  call_data->text->feedback = NULL;
+  call_data->text->encoding_is_wchar = False;
+
+  /* Now translate the conversion request to the format understood by
+     textconv.c.  */
+  request.position = call_data->position;
+
+  switch (call_data->direction)
+    {
+    case XIMForwardChar:
+      request.direction = TEXTCONV_FORWARD_CHAR;
+      break;
+
+    case XIMBackwardChar:
+      request.direction = TEXTCONV_BACKWARD_CHAR;
+      break;
+
+    case XIMForwardWord:
+      request.direction = TEXTCONV_FORWARD_WORD;
+      break;
+
+    case XIMBackwardWord:
+      request.direction = TEXTCONV_BACKWARD_WORD;
+      break;
+
+    case XIMCaretUp:
+      request.direction = TEXTCONV_CARET_UP;
+      break;
+
+    case XIMCaretDown:
+      request.direction = TEXTCONV_CARET_DOWN;
+      break;
+
+    case XIMNextLine:
+      request.direction = TEXTCONV_NEXT_LINE;
+      break;
+
+    case XIMPreviousLine:
+      request.direction = TEXTCONV_PREVIOUS_LINE;
+      break;
+
+    case XIMLineStart:
+      request.direction = TEXTCONV_LINE_START;
+      break;
+
+    case XIMLineEnd:
+      request.direction = TEXTCONV_LINE_END;
+      break;
+
+    case XIMAbsolutePosition:
+      request.direction = TEXTCONV_ABSOLUTE_POSITION;
+      break;
+
+    default:
+      goto failure;
+    }
+
+  /* factor is signed in call_data but is actually a CARD16.  */
+  request.factor = call_data->factor;
+
+  if (call_data->operation == XIMStringConversionSubstitution)
+    request.operation = TEXTCONV_SUBSTITUTION;
+  else
+    request.operation = TEXTCONV_RETRIEVAL;
+
+  /* Now perform the string conversion.  */
+  rc = textconv_query (f, &request);
+
+  if (rc)
+    {
+      xfree (request.text.text);
+      goto failure;
+    }
+
+  /* Encode the text in the locale coding system and give it back to
+     the input method.  */
+  request.text.text = NULL;
+  call_data->text->string.mbs
+    = x_encode_xim_text (FRAME_DISPLAY_INFO (f),
+			 request.text.text,
+			 request.text.bytes, NULL,
+			 &length);
+  call_data->text->length = length;
+
+  /* Free the encoded text.  This is always set to something
+     valid.  */
+  xfree (request.text.text);
+
+  /* Detect failure.  */
+  if (!call_data->text->string.mbs)
+    goto failure;
+
+  return;
+
+ failure:
+  /* Return a string of length 0 using the C library malloc.  This
+     assumes XFree is able to free data allocated with our malloc
+     wrapper.  */
+  call_data->text->length = 0;
+  call_data->text->string.mbs = malloc (0);
 }
 
 #endif /* HAVE_X_I18N */
@@ -9771,6 +10004,53 @@ This should be called from a variable watcher for `x-gtk-use-native-input'.  */)
 
   return Qnil;
 }
+
+#if 0
+
+DEFUN ("x-test-string-conversion", Fx_test_string_conversion,
+       Sx_test_string_conversion, 5, 5, 0,
+       doc: /* Perform tests on the XIM string conversion support.  */)
+  (Lisp_Object frame, Lisp_Object position,
+   Lisp_Object direction, Lisp_Object operation, Lisp_Object factor)
+{
+  struct frame *f;
+  XIMStringConversionCallbackStruct call_data;
+  XIMStringConversionText text;
+
+  f = decode_window_system_frame (frame);
+
+  if (!FRAME_XIC (f))
+    error ("No XIC on FRAME!");
+
+  CHECK_FIXNUM (position);
+  CHECK_FIXNUM (direction);
+  CHECK_FIXNUM (operation);
+  CHECK_FIXNUM (factor);
+
+  /* xic_string_conversion_callback (XIC ic, XPointer client_data,
+     XIMStringConversionCallbackStruct *call_data)   */
+
+  call_data.position = XFIXNUM (position);
+  call_data.direction = XFIXNUM (direction);
+  call_data.operation = XFIXNUM (operation);
+  call_data.factor = XFIXNUM (factor);
+  call_data.text = &text;
+
+  block_input ();
+  xic_string_conversion_callback (FRAME_XIC (f), NULL,
+				  &call_data);
+  unblock_input ();
+
+  /* Place a breakpoint here to inspect TEXT! */
+
+  while (1)
+    maybe_quit ();
+
+  return Qnil;
+}
+
+#endif
+
 
 /***********************************************************************
 			    Initialization
@@ -10217,6 +10497,9 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_display_set_last_user_time);
   defsubr (&Sx_translate_coordinates);
   defsubr (&Sx_get_modifier_masks);
+#if 0
+  defsubr (&Sx_test_string_conversion);
+#endif
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

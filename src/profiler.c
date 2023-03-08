@@ -505,6 +505,9 @@ Before returning, a new log is allocated for future samples.  */)
 void
 malloc_probe (size_t size)
 {
+  if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
+    /* FIXME: We should do something like what we did with `cpu_gc_count`.  */
+    return;
   eassert (HASH_TABLE_P (memory_log));
   record_backtrace (XHASH_TABLE (memory_log), min (size, MOST_POSITIVE_FIXNUM));
 }

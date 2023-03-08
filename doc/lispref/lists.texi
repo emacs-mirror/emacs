@@ -79,7 +79,10 @@ circular or dotted.  If a program doesn't look far enough down the
 list to see the @sc{cdr} of the final cons cell, it won't care.
 However, some functions that operate on lists demand proper lists and
 signal errors if given a dotted list.  Most functions that try to find
-the end of a list enter infinite loops if given a circular list.
+the end of a list enter infinite loops if given a circular list.  You
+can use the function @code{proper-list-p}, described in the next
+section (@pxref{List-related Predicates, proper-list-p}), to determine
+whether a list is a proper one.
 
 @cindex list structure
   Because most cons cells are used as part of lists, we refer to any
@@ -702,7 +705,20 @@ same way.
 Normally, when @var{tree} is anything other than a cons cell,
 @code{copy-tree} simply returns @var{tree}.  However, if @var{vecp} is
 non-@code{nil}, it copies vectors too (and operates recursively on
-their elements).
+their elements).  This function cannot cope with circular lists.
+@end defun
+
+@defun safe-copy-tree tree &optional vecp
+This function returns a copy of the tree @var{tree}.  If @var{tree} is
+a cons cell, this make a new cons cell with the same @sc{car} and
+@sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
+same way.
+
+Normally, when @var{tree} is anything other than a cons cell,
+@code{copy-tree} simply returns @var{tree}.  However, if @var{vecp} is
+non-@code{nil}, it copies vectors and records too (and operates
+recursively on their elements).  This function handles circular lists
+and vectors, and is thus slower than @code{copy-tree} for typical cases.
 @end defun
 
 @defun flatten-tree tree
@@ -1913,6 +1929,11 @@ Properties}.
 properties.  Every symbol possesses a list of properties, used to
 record miscellaneous information about the symbol; these properties
 are stored in the form of a property list.  @xref{Symbol Properties}.
+
+@defun plistp object
+This predicate function returns non-@code{nil} if @var{object} is a
+valid property list.
+@end defun
 
 @menu
 * Plists and Alists::           Comparison of the advantages of property

@@ -1042,7 +1042,9 @@ subshells can nest."
                        ;; Maybe we've bumped into an escaped newline.
                        (sh-is-quoted-p (point)))
                 (backward-char 1))
-              (when (eq (char-before) ?|)
+              (when (and
+                     (eq (char-before) ?|)
+                     (not (eq (char-before (1- (point))) ?\;)))
                 (backward-char 1) t)))
         (and (> (point) (1+ (point-min)))
              (progn (backward-char 2)
@@ -1053,7 +1055,7 @@ subshells can nest."
                     ;; a normal command rather than the real `in' keyword.
                     ;; I.e. we should look back to try and find the
                     ;; corresponding `case'.
-                    (and (looking-at ";[;&]\\|\\_<in")
+                    (and (looking-at ";\\(?:;&?\\|[&|]\\)\\|\\_<in")
                          ;; ";; esac )" is a case that looks
                          ;; like a case-pattern but it's really just a close
                          ;; paren after a case statement.  I.e. if we skipped
@@ -1619,7 +1621,8 @@ not written in Bash or sh."
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
                   ( command declaration-command keyword string)
-                  ( builtin-variable constant heredoc number variable)
+                  ( builtin-variable constant heredoc number
+                    string-interpolation variable)
                   ( bracket delimiter misc-punctuation operator)))
     (setq-local treesit-font-lock-settings
                 sh-mode--treesit-settings)
@@ -1784,8 +1787,9 @@ before the newline and in that case point should be just before the token."
       (pattern (rpattern) ("case-(" rpattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defconst sh-smie--sh-operators
@@ -2010,7 +2014,7 @@ May return nil if the line should not be treated as continued."
       (forward-line -1)
       (if (sh-smie--looking-back-at-continuation-p)
           (current-indentation)
-        (+ (current-indentation) sh-basic-offset))))
+        (+ (current-indentation) (sh-var-value 'sh-indent-for-continuation)))))
    (t
     ;; Just make sure a line-continuation is indented deeper.
     (save-excursion
@@ -2031,7 +2035,10 @@ May return nil if the line should not be treated as continued."
                        ;; check the line before that one.
                        (> ci indent))
                       (t ;Previous line is the beginning of the continued line.
-                       (setq indent (min (+ ci sh-basic-offset) max))
+                       (setq
+                        indent
+                        (min
+                         (+ ci (sh-var-value 'sh-indent-for-continuation)) max))
                        nil)))))
           indent))))))
 
@@ -2055,11 +2062,11 @@ May return nil if the line should not be treated as continued."
 	 `(column . ,(smie-indent-virtual))))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
-    (`(:before . ,(or ";;" ";&" ";;&"))
-     (if (and (smie-rule-bolp) (looking-at ";;?&?[ \t]*\\(#\\|$\\)"))
+    (`(:before . ,(or ";;" ";&" ";;&" ";|"))
+     (if (and (smie-rule-bolp) (looking-at ";\\(?:;&?\\|[&|]\\)?[ \t]*\\(#\\|$\\)"))
          (cons 'column (smie-indent-keyword ";"))
        (smie-rule-separator kind)))
-    (`(:after . ,(or ";;" ";&" ";;&"))
+    (`(:after . ,(or ";;" ";&" ";;&" ";|"))
      (with-demoted-errors "SMIE rule error: %S"
        (smie-backward-sexp token)
        (cons 'column
@@ -2148,8 +2155,9 @@ May return nil if the line should not be treated as continued."
       (pattern (pattern "|" pattern))
       (branches (branches ";;" branches)
                 (branches ";&" branches) (branches ";;&" branches) ;bash.
+                (branches ";|" branches) ;zsh.
                 (pattern "case-)" cmd)))
-    '((assoc ";;" ";&" ";;&"))
+    '((assoc ";;" ";&" ";;&" ";|"))
     '((assoc "case") (assoc ";" "&") (assoc "&&" "||") (assoc "|" "|&")))))
 
 (defun sh-smie--rc-after-special-arg-p ()
@@ -3292,6 +3300,12 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'string
    :language 'bash
    '([(string) (raw_string)] @font-lock-string-face)
+
+   :feature 'string-interpolation
+   :language 'bash
+   :override t
+   '((command_substitution) @sh-quoted-exec
+     (string (expansion (variable_name) @font-lock-variable-use-face)))
 
    :feature 'heredoc
    :language 'bash

@@ -617,10 +617,14 @@ treesit_load_language (Lisp_Object language_symbol,
   eassume (handle != NULL);
   dynlib_error ();
   TSLanguage *(*langfn) (void);
-  char *c_name = xstrdup (SSDATA (base_name));
-  treesit_symbol_to_c_name (c_name);
+  char *c_name;
   if (found_override)
-    c_name = SSDATA (override_c_name);
+    c_name = xstrdup (SSDATA (override_c_name));
+  else
+    {
+      c_name = xstrdup (SSDATA (base_name));
+      treesit_symbol_to_c_name (c_name);
+    }
   langfn = dynlib_sym (handle, c_name);
   xfree (c_name);
   error = dynlib_error ();
@@ -716,6 +720,7 @@ Return nil if a grammar library for LANGUAGE is not available.  */)
     }
 }
 
+
 /*** Parsing functions */
 
 static void
@@ -766,7 +771,8 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
       treesit_check_parser (lisp_parser);
       TSTree *tree = XTS_PARSER (lisp_parser)->tree;
       /* See comment (ref:visible-beg-null) if you wonder why we don't
-      update visible_beg/end when tree is NULL.  */
+	 update visible_beg/end when tree is NULL.  */
+
       if (tree != NULL)
 	{
 	  eassert (start_byte <= old_end_byte);
@@ -790,8 +796,12 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  ptrdiff_t old_end_offset = (min (visible_end,
 					   max (visible_beg, old_end_byte))
 				      - visible_beg);
-	  ptrdiff_t new_end_offset = (min (visible_end,
-					   max (visible_beg, new_end_byte))
+	  /* We don't clip new_end_offset under visible_end, because
+	     otherwise we would miss updating the clipped part.  Plus,
+	     when inserting in narrowed region, the narrowed region
+	     will grow to accommodate the new text, so this is the
+	     correct behavior.  (Bug#61369).  */
+	  ptrdiff_t new_end_offset = (max (visible_beg, new_end_byte)
 				      - visible_beg);
 	  eassert (start_offset <= old_end_offset);
 	  eassert (start_offset <= new_end_offset);
@@ -813,11 +823,13 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	    /* Move forward.  */
 	    visi_beg_delta = (old_end_byte < visible_beg
 			      ? new_end_byte - old_end_byte : 0);
+
 	  XTS_PARSER (lisp_parser)->visible_beg = visible_beg + visi_beg_delta;
 	  XTS_PARSER (lisp_parser)->visible_end = (visible_end
 						   + visi_beg_delta
 						   + (new_end_offset
 						      - old_end_offset));
+
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg >= 0);
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg
 		   <= XTS_PARSER (lisp_parser)->visible_end);
@@ -1100,6 +1112,7 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
   return beg;
 }
 
+
 /*** Functions for parser and node object */
 
 /* Wrap the parser in a Lisp_Object to be used in the Lisp
@@ -1261,6 +1274,9 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
 }
+
+
+/* Lisp definitions.  */
 
 DEFUN ("treesit-parser-p",
        Ftreesit_parser_p, Streesit_parser_p, 1, 1, 0,
@@ -1471,6 +1487,16 @@ This symbol is the one used to create the parser.  */)
   return XTS_PARSER (parser)->language_symbol;
 }
 
+/* Return true if PARSER is not deleted and its buffer is live.  */
+static bool
+treesit_parser_live_p (Lisp_Object parser)
+{
+  CHECK_TS_PARSER (parser);
+  return ((!XTS_PARSER (parser)->deleted) &&
+	  (!NILP (Fbuffer_live_p (XTS_PARSER (parser)->buffer))));
+}
+
+
 /*** Parser API */
 
 DEFUN ("treesit-parser-root-node",
@@ -1717,6 +1743,7 @@ positions.  PARSER is the parser issuing the notification.   */)
   return Qnil;
 }
 
+
 /*** Node API  */
 
 /* Check that OBJ is a positive integer and signal an error if
@@ -1904,7 +1931,8 @@ DEFUN ("treesit-node-check",
        Ftreesit_node_check, Streesit_node_check, 2, 2, 0,
        doc: /* Return non-nil if NODE has PROPERTY, nil otherwise.
 
-PROPERTY could be `named', `missing', `extra', `outdated', or `has-error'.
+PROPERTY could be `named', `missing', `extra', `outdated',
+`has-error', or `live'.
 
 Named nodes correspond to named rules in the language definition,
 whereas "anonymous" nodes correspond to string literals in the
@@ -1920,7 +1948,10 @@ A node is "outdated" if the parser has reparsed at least once after
 the node was created.
 
 A node "has error" if itself is a syntax error or contains any syntax
-errors.  */)
+errors.
+
+A node is "live" if its parser is not deleted and its buffer is
+live.  */)
   (Lisp_Object node, Lisp_Object property)
 {
   if (NILP (node)) return Qnil;
@@ -1943,9 +1974,11 @@ errors.  */)
     result = ts_node_is_extra (treesit_node);
   else if (EQ (property, Qhas_error))
     result = ts_node_has_error (treesit_node);
+  else if (EQ (property, Qlive))
+    result = treesit_parser_live_p (XTS_NODE (node)->parser);
   else
     signal_error ("Expecting `named', `missing', `extra', "
-		  "`outdated', or `has-error', but got",
+                  "`outdated', `has-error', or `live', but got",
 		  property);
   return result ? Qt : Qnil;
 }
@@ -2233,6 +2266,7 @@ produced by tree-sitter.  */)
   return same_node ? Qt : Qnil;
 }
 
+
 /*** Query functions */
 
 DEFUN ("treesit-pattern-expand",
@@ -2450,7 +2484,7 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error,
-	      build_string ("Predicate `equal' requires two "
+	      build_string ("Predicate `match' requires two "
 		            "arguments but only given"),
 	      Flength (args));
 
@@ -2807,6 +2841,7 @@ the query.  */)
   return Fnreverse (result);
 }
 
+
 /*** Navigation */
 
 static inline void
@@ -3131,13 +3166,13 @@ the way.  PREDICATE is a regexp string that matches against each
 node's type, or a function that takes a node and returns nil/non-nil.
 
 By default, only traverse named nodes, but if ALL is non-nil, traverse
-all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
+all nodes.  If BACKWARD is non-nil, traverse backwards.  If DEPTH is
 non-nil, only traverse nodes up to that number of levels down in the
-tree.  If LIMIT is nil, default to 1000.
+tree.  If DEPTH is nil, default to 1000.
 
 Return the first matched node, or nil if none matches.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object backward,
-   Lisp_Object all, Lisp_Object limit)
+   Lisp_Object all, Lisp_Object depth)
 {
   CHECK_TS_NODE (node);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
@@ -3148,10 +3183,10 @@ Return the first matched node, or nil if none matches.  */)
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = treesit_recursion_limit;
-  if (!NILP (limit))
+  if (!NILP (depth))
     {
-      CHECK_FIXNUM (limit);
-      the_limit = XFIXNUM (limit);
+      CHECK_FIXNUM (depth);
+      the_limit = XFIXNUM (depth);
     }
 
   treesit_initialize ();
@@ -3303,8 +3338,8 @@ If PROCESS-FN is non-nil, it should be a function of one argument.  In
 that case, instead of returning the matched nodes, pass each node to
 PROCESS-FN, and use its return value instead.
 
-If non-nil, LIMIT is the number of levels to go down the tree from
-ROOT.  If LIMIT is nil or omitted, it defaults to 1000.
+If non-nil, DEPTH is the number of levels to go down the tree from
+ROOT.  If DEPTH is nil or omitted, it defaults to 1000.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
 root of this tree might be nil, if ROOT doesn't match PREDICATE.
@@ -3315,7 +3350,7 @@ PREDICATE can also be a function that takes a node and returns
 nil/non-nil, but it is slower and more memory consuming than using
 a regexp.  */)
   (Lisp_Object root, Lisp_Object predicate, Lisp_Object process_fn,
-   Lisp_Object limit)
+   Lisp_Object depth)
 {
   CHECK_TS_NODE (root);
   CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
@@ -3327,10 +3362,10 @@ a regexp.  */)
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
   ptrdiff_t the_limit = treesit_recursion_limit;
-  if (!NILP (limit))
+  if (!NILP (depth))
     {
-      CHECK_FIXNUM (limit);
-      the_limit = XFIXNUM (limit);
+      CHECK_FIXNUM (depth);
+      the_limit = XFIXNUM (depth);
     }
 
   treesit_initialize ();
@@ -3427,7 +3462,7 @@ DEFUN ("treesit-available-p", Ftreesit_available_p,
 #endif
 }
 
-
+
 /*** Initialization */
 
 /* Initialize the tree-sitter routines.  */
@@ -3444,6 +3479,7 @@ syms_of_treesit (void)
   DEFSYM (Qextra, "extra");
   DEFSYM (Qoutdated, "outdated");
   DEFSYM (Qhas_error, "has-error");
+  DEFSYM (Qlive, "live");
 
   DEFSYM (QCanchor, ":anchor");
   DEFSYM (QCequal, ":equal");

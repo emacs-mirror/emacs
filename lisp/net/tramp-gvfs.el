@@ -2467,16 +2467,17 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
     (delete-dups
      (mapcar
       (lambda (x)
-	(let* ((list (split-string x ";"))
-	       (host (nth 6 list))
-	       (text (split-string (nth 9 list) "\" \"" 'omit "\""))
-	       user)
-	  ;; A user is marked in a TXT field like "u=guest".
-	  (while text
-	    (when (string-match (rx "u=" (group (+ nonl)) eol) (car text))
-	      (setq user (match-string 1 (car text))))
-	    (setq text (cdr text)))
-	  (list user host)))
+	(ignore-errors
+	  (let* ((list (split-string x ";"))
+		 (host (nth 6 list))
+		 (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+		 user)
+	    ;; A user is marked in a TXT field like "u=guest".
+	    (while text
+	      (when (string-match (rx "u=" (group (+ nonl)) eol) (car text))
+		(setq user (match-string 1 (car text))))
+	      (setq text (cdr text)))
+	    (list user host))))
       result))))
 
 (when tramp-gvfs-enabled

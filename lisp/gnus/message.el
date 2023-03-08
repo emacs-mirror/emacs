@@ -1926,9 +1926,10 @@ no, only reply back to the author."
   "Whether to generate X-Hashcash: headers.
 If t, always generate hashcash headers.  If `opportunistic',
 only generate hashcash headers if it can be done without the user
-waiting (i.e., only asynchronously).
+waiting (i.e., only asynchronously).  If nil, don't generate
+hashcash headers.
 
-You must have the \"hashcash\" binary installed, see `hashcash-path'."
+You must have the \"hashcash\" binary installed, see `hashcash-program'."
   :version "24.1"
   :group 'message-headers
   :link '(custom-manual "(message)Mail Headers")
@@ -6861,10 +6862,9 @@ are not included."
 
 (defun message-setup-1 (headers &optional yank-action actions return-action)
   (dolist (action actions)
-    (condition-case nil
-        ;; FIXME: Use functions rather than expressions!
-	(add-to-list 'message-send-actions
-		     `(apply #',(car action) ',(cdr action)))))
+    ;; FIXME: Use functions rather than expressions!
+    (add-to-list 'message-send-actions
+		 `(apply #',(car action) ',(cdr action))))
   (setq message-return-action return-action)
   (setq message-reply-buffer
 	(if (and (consp yank-action)

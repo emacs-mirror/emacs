@@ -223,9 +223,9 @@ ranges for <acronym>CSS</acronym> and JavaScript parsers:
 </p>
 <div class="example">
 <pre class="example">;; Create parsers.
-(setq html (treesit-get-parser-create 'html))
-(setq css (treesit-get-parser-create 'css))
-(setq js (treesit-get-parser-create 'javascript))
+(setq html (treesit-parser-create 'html))
+(setq css (treesit-parser-create 'css))
+(setq js (treesit-parser-create 'javascript))
 </pre><pre class="example">
 
 </pre><pre class="example">;; Set CSS ranges.

@@ -73,6 +73,23 @@ Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
   (eshell-command-result-equal "{(+ 1 2)} 3" 3))
 
+(ert-deftest esh-cmd-test/let-rebinds-after-defer ()
+  "Test that let-bound values are properly updated after `eshell-defer'.
+When inside a `let' block in an Eshell command form, we need to
+ensure that deferred commands update any let-bound variables so
+they have the correct values when resuming evaluation.  See
+bug#59469."
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-match-command-output
+    (concat "{"
+            "  export LOCAL=value; "
+            "  echo \"$LOCAL\"; "
+            "  *echo external; "        ; This will throw `eshell-defer'.
+            "  echo \"$LOCAL\"; "
+            "}")
+    "value\nexternal\nvalue\n")))
+
 
 ;; Lisp forms
 

@@ -122,6 +122,22 @@ The whitespace before and including \"|\" on each line is removed."
     (funcall indent-line-function)
     (should (= (current-indentation) ruby-indent-level))))
 
+(ert-deftest ruby-ts-indent-empty-if-else ()
+  (skip-unless (treesit-ready-p 'ruby t))
+  (let* ((str "c = if foo
+      zz
+    else
+      zz
+    end
+"))
+    (ruby-ts-with-temp-buffer str
+      (goto-char (point-min))
+      (dotimes (_ 2)
+        (re-search-forward "^ *zz")
+        (replace-match "")
+        (funcall indent-line-function)
+        (should (= (current-indentation) 6))))))
+
 (ert-deftest ruby-ts-add-log-current-method-examples ()
   (skip-unless (treesit-ready-p 'ruby t))
   (let ((pairs '(("foo" . "#foo")

@@ -569,6 +569,7 @@ Functions
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
 * Closures::                Functions that enclose a lexical environment.
+* OClosures::               Function objects with meta-data.
 * Advising Functions::      Adding to the definition of a function.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler

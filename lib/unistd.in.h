@@ -40,6 +40,24 @@
 # undef _GL_INCLUDING_UNISTD_H
 #endif
 
+/* Avoid lseek bugs in FreeBSD, macOS <https://bugs.gnu.org/61386>.
+   This bug is fixed after FreeBSD 13; see <https://bugs.freebsd.org/256205>.
+   Use macOS "9999" to stand for a future fixed macOS version.  */
+#if defined __FreeBSD__ && __FreeBSD__ < 14
+# undef SEEK_DATA
+# undef SEEK_HOLE
+#elif defined __APPLE__ && defined __MACH__ && defined SEEK_DATA
+# ifdef __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__
+#  include <AvailabilityMacros.h>
+# endif
+# if (!defined MAC_OS_X_VERSION_MIN_REQUIRED \
+      || MAC_OS_X_VERSION_MIN_REQUIRED < 99990000)
+#  include <sys/fcntl.h> /* It also defines the two macros.  */
+#  undef SEEK_DATA
+#  undef SEEK_HOLE
+# endif
+#endif
+
 /* Get all possible declarations of gethostname().  */
 #if @GNULIB_GETHOSTNAME@ && @UNISTD_H_HAVE_WINSOCK2_H@ \
   && !defined _GL_INCLUDING_WINSOCK2_H

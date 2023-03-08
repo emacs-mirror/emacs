@@ -495,7 +495,7 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
               sep1 (cdr (assoc sep reftex-multiref-punctuation))
               labels (cdr labels))
         (when cut
-          (backward-delete-char cut)
+          (delete-char (- cut))
           (setq cut nil))
 
         ;; remove ~ if we do already have a space

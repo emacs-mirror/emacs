@@ -1297,12 +1297,13 @@ calc-kill calc-kill-region calc-yank))))
 		  0))
 	  (let ((msg (nth calc-prefix-help-phase msgs)))
 	    (message "%s" (if msg
-			      (concat group ": " msg ":"
+			      (concat group ": " (substitute-command-keys msg) ":"
 				      (make-string
 				       (- (apply #'max (mapcar #'length msgs))
 					  (length msg))
                                        ?\s)
-				      "  [MORE]"
+				      (substitute-command-keys
+                                       "  [\\`?'=MORE]")
 				      (if key
 					  (concat "  " (char-to-string key)
 						  "-")

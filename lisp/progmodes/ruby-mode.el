@@ -909,16 +909,21 @@ This only affects the output of the command `ruby-toggle-block'."
                      "<<=" ">>=" "&&=" "||=" "and" "or"))
      (cond
       ((not ruby-after-operator-indent)
-       (ruby-smie--indent-to-stmt ruby-indent-level))
+       (ruby-smie--indent-to-stmt (if (smie-indent--hanging-p)
+                                      ruby-indent-level
+                                    0)))
       ((and (smie-rule-parent-p ";" nil)
             (smie-indent--hanging-p))
        ruby-indent-level)))
     (`(:before . "=")
-     (save-excursion
-      (and (smie-rule-parent-p " @ ")
-           (goto-char (nth 1 (smie-indent--parent)))
-           (smie-rule-prev-p "def=")
-           (cons 'column (+ (current-column) ruby-indent-level -3)))))
+     (or
+      (save-excursion
+        (and (smie-rule-parent-p " @ ")
+             (goto-char (nth 1 (smie-indent--parent)))
+             (smie-rule-prev-p "def=")
+             (cons 'column (+ (current-column) ruby-indent-level -3))))
+      (and (smie-rule-parent-p ",")
+           (smie-rule-parent))))
     (`(:after . ,(or "?" ":"))
      (if ruby-after-operator-indent
          ruby-indent-level
@@ -1845,93 +1850,92 @@ For example:
   File.open
 
 See `add-log-current-defun-function'."
-  (condition-case nil
-      (save-excursion
-        (let* ((indent (ruby--add-log-current-indent))
-               mname mlist
-               (start (point))
-               (make-definition-re
-                (lambda (re &optional method-name?)
-                  (concat "^[ \t]*" re "[ \t]+"
-                          "\\("
-                          ;; \\. and :: for class methods
-                          "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
-                          "\\|"
-                          (if method-name? ruby-operator-re "\\.")
-                          "\\|::" "\\)"
-                          "+\\)")))
-               (definition-re (funcall make-definition-re ruby-defun-beg-re t))
-               (module-re (funcall make-definition-re "\\(class\\|module\\)")))
-          ;; Get the current method definition (or class/module).
-          (when (catch 'found
-                  (while (and (re-search-backward definition-re nil t)
-                              (if (if (string-equal "def" (match-string 1))
-                                      ;; We're inside a method.
-                                      (if (ruby-block-contains-point (1- start))
-                                          t
-                                        ;; Try to match a method only once.
-                                        (setq definition-re module-re)
-                                        nil)
-                                    ;; Class/module. For performance,
-                                    ;; comparing indentation.
-                                    (or (not (numberp indent))
-                                        (> indent (current-indentation))))
-                                  (throw 'found t)
-                                t))))
-            (goto-char (match-beginning 1))
-            (if (not (string-equal "def" (match-string 1)))
-                (setq mlist (list (match-string 2)))
-              (setq mname (match-string 2)))
-            (setq indent (current-column))
-            (beginning-of-line))
-          ;; Walk up the class/module nesting.
-          (while (and indent
-                      (> indent 0)
-                      (re-search-backward module-re nil t))
-            (goto-char (match-beginning 1))
-            (when (< (current-column) indent)
-              (setq mlist (cons (match-string 2) mlist))
-              (setq indent (current-column))
-              (beginning-of-line)))
-          ;; Process the method name.
-          (when mname
-            (let ((mn (split-string mname "\\.\\|::")))
-              (if (cdr mn)
-                  (progn
-                    (unless (string-equal "self" (car mn)) ; def self.foo
-                      ;; def C.foo
-                      (let ((ml (nreverse mlist)))
-                        ;; If the method name references one of the
-                        ;; containing modules, drop the more nested ones.
-                        (while ml
-                          (if (string-equal (car ml) (car mn))
-                              (setq mlist (nreverse (cdr ml)) ml nil))
-                          (or (setq ml (cdr ml)) (nreverse mlist))))
-                      (if mlist
-                          (setcdr (last mlist) (butlast mn))
-                        (setq mlist (butlast mn))))
-                    (setq mname (concat "." (car (last mn)))))
-                ;; See if the method is in singleton class context.
-                (let ((in-singleton-class
-                       (when (re-search-forward ruby-singleton-class-re start t)
-                         (goto-char (match-beginning 0))
-                         ;; FIXME: Optimize it out, too?
-                         ;; This can be slow in a large file, but
-                         ;; unlike class/module declaration
-                         ;; indentations, method definitions can be
-                         ;; intermixed with these, and may or may not
-                         ;; be additionally indented after visibility
-                         ;; keywords.
-                         (ruby-block-contains-point start))))
-                  (setq mname (concat
-                               (if in-singleton-class "." "#")
-                               mname))))))
-          ;; Generate the string.
-          (if (consp mlist)
-              (setq mlist (mapconcat (function identity) mlist "::")))
-          (if mname
-              (if mlist (concat mlist mname) mname)
-            mlist)))))
+  (save-excursion
+    (let* ((indent (ruby--add-log-current-indent))
+           mname mlist
+           (start (point))
+           (make-definition-re
+            (lambda (re &optional method-name?)
+              (concat "^[ \t]*" re "[ \t]+"
+                      "\\("
+                      ;; \\. and :: for class methods
+                      "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
+                      "\\|"
+                      (if method-name? ruby-operator-re "\\.")
+                      "\\|::" "\\)"
+                      "+\\)")))
+           (definition-re (funcall make-definition-re ruby-defun-beg-re t))
+           (module-re (funcall make-definition-re "\\(class\\|module\\)")))
+      ;; Get the current method definition (or class/module).
+      (when (catch 'found
+              (while (and (re-search-backward definition-re nil t)
+                          (if (if (string-equal "def" (match-string 1))
+                                  ;; We're inside a method.
+                                  (if (ruby-block-contains-point (1- start))
+                                      t
+                                    ;; Try to match a method only once.
+                                    (setq definition-re module-re)
+                                    nil)
+                                ;; Class/module. For performance,
+                                ;; comparing indentation.
+                                (or (not (numberp indent))
+                                    (> indent (current-indentation))))
+                              (throw 'found t)
+                            t))))
+        (goto-char (match-beginning 1))
+        (if (not (string-equal "def" (match-string 1)))
+            (setq mlist (list (match-string 2)))
+          (setq mname (match-string 2)))
+        (setq indent (current-column))
+        (beginning-of-line))
+      ;; Walk up the class/module nesting.
+      (while (and indent
+                  (> indent 0)
+                  (re-search-backward module-re nil t))
+        (goto-char (match-beginning 1))
+        (when (< (current-column) indent)
+          (setq mlist (cons (match-string 2) mlist))
+          (setq indent (current-column))
+          (beginning-of-line)))
+      ;; Process the method name.
+      (when mname
+        (let ((mn (split-string mname "\\.\\|::")))
+          (if (cdr mn)
+              (progn
+                (unless (string-equal "self" (car mn)) ; def self.foo
+                  ;; def C.foo
+                  (let ((ml (nreverse mlist)))
+                    ;; If the method name references one of the
+                    ;; containing modules, drop the more nested ones.
+                    (while ml
+                      (if (string-equal (car ml) (car mn))
+                          (setq mlist (nreverse (cdr ml)) ml nil))
+                      (or (setq ml (cdr ml)) (nreverse mlist))))
+                  (if mlist
+                      (setcdr (last mlist) (butlast mn))
+                    (setq mlist (butlast mn))))
+                (setq mname (concat "." (car (last mn)))))
+            ;; See if the method is in singleton class context.
+            (let ((in-singleton-class
+                   (when (re-search-forward ruby-singleton-class-re start t)
+                     (goto-char (match-beginning 0))
+                     ;; FIXME: Optimize it out, too?
+                     ;; This can be slow in a large file, but
+                     ;; unlike class/module declaration
+                     ;; indentations, method definitions can be
+                     ;; intermixed with these, and may or may not
+                     ;; be additionally indented after visibility
+                     ;; keywords.
+                     (ruby-block-contains-point start))))
+              (setq mname (concat
+                           (if in-singleton-class "." "#")
+                           mname))))))
+      ;; Generate the string.
+      (if (consp mlist)
+          (setq mlist (mapconcat (function identity) mlist "::")))
+      (if mname
+          (if mlist (concat mlist mname) mname)
+        mlist))))
 
 (defun ruby-block-contains-point (pt)
   (save-excursion

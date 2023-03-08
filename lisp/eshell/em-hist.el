@@ -59,8 +59,6 @@
 (require 'ring)
 (require 'esh-opt)
 (require 'esh-mode)
-(require 'em-pred)
-(require 'eshell)
 
 ;;;###autoload
 (progn
@@ -82,6 +80,7 @@
      (remove-hook 'kill-emacs-hook 'eshell-save-some-history)))
   "A hook that gets run when `eshell-hist' is unloaded."
   :type 'hook)
+(make-obsolete-variable 'eshell-hist-unload-hook nil "30.1")
 
 (defcustom eshell-history-file-name
   (expand-file-name "history" eshell-directory-name)
@@ -769,6 +768,8 @@ matched."
 
 (defun eshell-hist-parse-modifier (hist reference)
   "Parse a history modifier beginning for HIST in REFERENCE."
+  (cl-assert (eshell-using-module 'em-pred))
+  (declare-function eshell-parse-modifiers "em-pred" ())
   (let ((here (point)))
     (insert reference)
     (prog1
@@ -1036,6 +1037,9 @@ If N is negative, search backwards for the -Nth previous match."
   (interactive)
   (isearch-done)
   (eshell-send-input))
+
+(defun em-hist-unload-function ()
+  (remove-hook 'kill-emacs-hook 'eshell-save-some-history))
 
 (provide 'em-hist)
 

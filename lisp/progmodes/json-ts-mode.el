@@ -101,7 +101,7 @@
    :language 'json
    :feature 'pair
    :override t ; Needed for overriding string face on keys.
-   '((pair key: (_) @font-lock-variable-name-face))
+   '((pair key: (_) @font-lock-property-use-face))
    :language 'json
    :feature 'error
    :override t

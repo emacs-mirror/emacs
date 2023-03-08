@@ -184,23 +184,25 @@ standard).")
       (bg-added           "#003066")
       (bg-added-faint     "#001a4f")
       (bg-added-refine    "#0f4a77")
-      (bg-added-intense   "#0f4fbf")
+      (bg-added-fringe    "#006fff")
       (fg-added           "#c4d5ff")
-      (fg-added-intense   "#a0afff")
+      (fg-added-intense   "#8080ff")
 
       (bg-changed         "#2f123f")
       (bg-changed-faint   "#1f022f")
       (bg-changed-refine  "#3f325f")
-      (bg-changed-intense "#7f42af")
+      (bg-changed-fringe  "#7f55a0")
       (fg-changed         "#e3cfff")
-      (fg-changed-intense "#c0a4ff")
+      (fg-changed-intense "#cf9fe2")
 
       (bg-removed         "#3d3d00")
       (bg-removed-faint   "#281f00")
       (bg-removed-refine  "#515100")
-      (bg-removed-intense "#dfd23a")
+      (bg-removed-fringe  "#d0c03f")
       (fg-removed         "#d4d48f")
-      (fg-removed-intense "#c0b05f")
+      (fg-removed-intense "#d0b05f")
+
+      (bg-diff-context    "#1a1a1a")
 
 ;;; Paren match
 
@@ -379,10 +381,7 @@ as a symbol and the latter as a string.
 
 Semantic color mappings have the form (MAPPING-NAME COLOR-NAME)
 with both as symbols.  The latter is a named color that already
-exists in the palette and is associated with a HEX-VALUE.
-
-Semantic color mappings cannot be recursive: their value must be
-either COLOR-NAME or HEX-VALUE.")
+exists in the palette and is associated with a HEX-VALUE.")
 
   (defcustom modus-vivendi-deuteranopia-palette-overrides nil
     "Overrides for `modus-vivendi-deuteranopia-palette'.

@@ -378,10 +378,8 @@ If so, and variable `package-check-signature' is
 `allow-unsigned', return `allow-unsigned', otherwise return the
 value of variable `package-check-signature'."
   (if (eq package-check-signature 'allow-unsigned)
-      (progn
-        (require 'epg-config)
-        (and (epg-find-configuration 'OpenPGP)
-             'allow-unsigned))
+      (and (epg-find-configuration 'OpenPGP)
+           'allow-unsigned)
     package-check-signature))
 
 (defcustom package-unsigned-archives nil
@@ -958,7 +956,6 @@ Newer versions are always activated, regardless of FORCE."
   "Untar the current buffer.
 This uses `tar-untar-buffer' from Tar mode.  All files should
 untar into a directory named DIR; otherwise, signal an error."
-  (require 'tar-mode)
   (tar-mode)
   ;; Make sure everything extracts into DIR.
   (let ((regexp (concat "\\`" (regexp-quote (expand-file-name dir)) "/"))

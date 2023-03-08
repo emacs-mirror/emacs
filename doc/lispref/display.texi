@@ -3501,11 +3501,11 @@ function finishes are the ones that really matter.
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
 
-When the buffer text includes very long lines, these functions are
-called with the buffer narrowed to a relatively small region around
-@var{pos}, and with narrowing locked, so the functions cannot use
-@code{widen} to gain access to the rest of the buffer.
-@xref{Narrowing}.
+Note that, when the buffer text includes very long lines, these
+functions are called as if they were in a @code{with-restriction} form
+(@pxref{Narrowing}), with a
+@code{long-line-optimizations-in-fontification-functions} label and
+with the buffer narrowed to a portion around @var{pos}.
 @end defvar
 
 @node Basic Faces
@@ -5285,9 +5285,10 @@ space taken by the line-number display.
   The @code{left}, @code{center}, and @code{right} positions can be
 used with @code{:align-to} to specify a position relative to the left
 edge, center, or right edge of the text area.  When the window
-displays line numbers, the @code{left} and the @code{center} positions
-are offset to account for the screen space taken by the line-number
-display.
+displays line numbers, and @code{:align-to} is used in display
+properties of buffer text (as opposed to header line, see below), the
+@code{left} and the @code{center} positions are offset to account for
+the screen space taken by the line-number display.
 
   Any of the above window elements (except @code{text}) can also be
 used with @code{:align-to} to specify that the position is relative to
@@ -5301,11 +5302,11 @@ the left-margin, use
 :align-to (+ left-margin (0.5 . left-margin))
 @end example
 
-  If no specific base offset is set for alignment, it is always relative
-to the left edge of the text area.  For example, @samp{:align-to 0} in a
-header-line aligns with the first text column in the text area.  When
-the window displays line numbers, the text is considered to start where
-the space used for line-number display ends.
+  If no specific base offset is set for alignment, it is always
+relative to the left edge of the text area.  For example,
+@samp{:align-to 0} aligns with the first text column in the text area.
+When the window displays line numbers, the text is considered to start
+where the space used for line-number display ends.
 
   A value of the form @code{(@var{num} . @var{expr})} stands for the
 product of the values of @var{num} and @var{expr}.  For example,
@@ -5316,6 +5317,35 @@ product of the values of @var{num} and @var{expr}.  For example,
   The form @code{(+ @var{expr} ...)} adds up the value of the
 expressions.  The form @code{(- @var{expr} ...)} negates or subtracts
 the value of the expressions.
+
+@vindex header-line-format@r{, and } :align-to
+@cindex aligning header line, when line numbers are displayed
+@cindex header line alignment when line numbers are displayed
+  Text shown in the header line that uses @code{:align-to} display
+specifications is not automatically realigned when
+@code{display-line-numbers-mode} is turned on and off, or when the
+width of line numbers on display changes.  To arrange for the
+header-line text alignment to be updated, thus keeping the header-line
+text aligned with the buffer text, turn on the
+@code{header-line-indent-mode} in the buffer and use its two
+variables, @code{header-line-indent} and
+@code{header-line-indent-width}, in the display specification.
+@xref{Header Lines}.  Here's a simple example:
+
+@lisp
+(setq header-line-format
+      (concat (propertize " "
+                          'display
+                          '(space :align-to
+                                  (+ header-line-indent-width 10)))
+              "Column"))
+@end lisp
+
+@noindent
+This will keep the text @samp{Column} on the header line aligned with
+column 10 of buffer text, regardless of whether
+@code{display-line-numbers-mode} is on or off, and also when
+line-number display changes its width.
 
 @node Other Display Specs
 @subsection Other Display Specifications

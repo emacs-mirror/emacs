@@ -7330,7 +7330,7 @@ Any match of REMOVE-RE will be removed from TXT."
 			      (let ((s (org-format-outline-path (org-get-outline-path)
 								(1- (frame-width))
 								nil org-agenda-breadcrumbs-separator)))
-				(if (eq "" s) "" (concat s org-agenda-breadcrumbs-separator))))))
+				(if (equal "" s) "" (concat s org-agenda-breadcrumbs-separator))))))
 	(setq time (cond (s2 (concat
 			      (org-agenda-time-of-day-to-ampm-maybe s1)
 			      "-" (org-agenda-time-of-day-to-ampm-maybe s2)
@@ -8211,7 +8211,7 @@ filter."
   (if (and org-agenda-filtered-by-category
 	   org-agenda-category-filter)
       (org-agenda-filter-show-all-cat)
-    (let ((cat (org-no-properties (org-get-at-eol 'org-category 1))))
+    (let ((cat (org-no-properties (org-agenda-get-category))))
       (cond
        ((and cat strip)
         (org-agenda-filter-apply

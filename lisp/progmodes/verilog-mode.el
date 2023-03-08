@@ -370,7 +370,8 @@ wherever possible, since it is slow."
       (unless (fboundp 'ignore-errors)
         (defmacro ignore-errors (&rest body)
           (declare (debug t) (indent 0))
-          `(condition-case nil (progn ,@body) (error nil)))))
+          `(condition-case nil (progn ,@body) (error nil))))
+    (error nil))
   ;; Added in Emacs 24.1
   (condition-case nil
       (unless (fboundp 'prog-mode)

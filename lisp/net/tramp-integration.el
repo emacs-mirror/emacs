@@ -133,7 +133,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; Use `path-separator' as it does eshell.
   (setq eshell-path-env
         (if (file-remote-p default-directory)
-            (mapconcat #'identity (butlast (exec-path)) path-separator)
+            (string-join (butlast (exec-path)) path-separator)
           (getenv "PATH"))))
 
 (with-eval-after-load 'esh-util
@@ -345,8 +345,7 @@ NAME must be equal to `tramp-current-connection'."
 (defconst tramp-bsd-process-attributes-ps-args
   `("-acxww"
     "-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("pid"
         "euid"
         "user"
@@ -355,8 +354,7 @@ NAME must be equal to `tramp-current-connection'."
         "comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
       ",")
     "-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("state"
         "ppid"
         "pgid"
@@ -419,8 +417,7 @@ See `tramp-process-attributes-ps-format'.")
 ;; Tested with BusyBox v1.24.1.
 (defconst tramp-busybox-process-attributes-ps-args
   `("-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("pid"
         "user"
         "group"
@@ -428,8 +425,7 @@ See `tramp-process-attributes-ps-format'.")
       ",")
     "-o" "stat=abcde"
     "-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("ppid"
         "pgid"
         "tty"
@@ -472,8 +468,7 @@ See `tramp-process-attributes-ps-format'.")
 (defconst tramp-darwin-process-attributes-ps-args
   `("-acxww"
     "-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("pid"
         "uid"
         "user"
@@ -482,8 +477,7 @@ See `tramp-process-attributes-ps-format'.")
       ",")
     "-o" "state=abcde"
     "-o"
-    ,(mapconcat
-      #'identity
+    ,(string-join
       '("ppid"
         "pgid"
         "sess"

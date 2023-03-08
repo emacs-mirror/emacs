@@ -1167,6 +1167,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eg-result-string "#<process foo>")
   (processp
    :eval (processp t))
+  (process-status
+   :no-eval (process-status process)
+   :eg-result exit)
   (delete-process
    :no-value (delete-process process))
   (kill-process

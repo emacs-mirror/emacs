@@ -339,14 +339,19 @@ Assumes the caller has bound `macroexpand-all-environment'."
             (`(cond . ,clauses)
              (macroexp--cons fn (macroexp--all-clauses clauses) form))
             (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
-             (macroexp--cons
-              fn
-              (macroexp--cons err
-                              (macroexp--cons (macroexp--expand-all body)
-                                              (macroexp--all-clauses handlers 1)
-                                              (cddr form))
-                              (cdr form))
-              form))
+             (let ((exp-body (macroexp--expand-all body)))
+               (if handlers
+                   (macroexp--cons fn
+                                   (macroexp--cons
+                                    err (macroexp--cons
+                                         exp-body
+                                         (macroexp--all-clauses handlers 1)
+                                         (cddr form))
+                                    (cdr form))
+                                   form)
+                 (macroexp-warn-and-return
+                  (format-message "`condition-case' without handlers")
+                  exp-body (list 'suspicious 'condition-case) t form))))
             (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
              (push name macroexp--dynvars)
              (macroexp--all-forms form 2))
@@ -496,7 +501,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 ;; Record which arguments expect functions, so we can warn when those
 ;; are accidentally quoted with ' rather than with #'
 (dolist (f '( funcall apply mapcar mapatoms mapconcat mapc cl-mapcar maphash
-              map-char-table map-keymap map-keymap-internal))
+              mapcan map-char-table map-keymap map-keymap-internal))
   (put f 'funarg-positions '(1)))
 (dolist (f '( add-hook remove-hook advice-remove advice--remove-function
               defalias fset global-set-key run-after-idle-timeout

@@ -510,7 +510,7 @@ If SOURCE, mark the entry with this as the source."
 	  (skip-chars-forward "^;\n")
 	  ;; skip \;
 	  (while (eq (char-before) ?\\)
-	    (backward-delete-char 1)
+	    (delete-char -1)
 	    (forward-char)
 	    (skip-chars-forward "^;\n"))
 	  (if (eq (or (char-after save-pos) 0) ?')

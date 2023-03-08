@@ -2578,21 +2578,70 @@ header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
 It is normally @code{nil}, so that ordinary buffers have no header
 line.
+@end defvar
 
-@findex header-line-indent-mode
-If @code{display-line-numbers-mode} is used, and you want the header
-line to be indented by the same amount as the buffer contents, you can
-use the @code{header-line-indent-mode} minor mode.  This minor mode
-keeps the @code{header-line-indent} variable updated, so that you can
-say something like:
+If @code{display-line-numbers-mode} is turned on in a buffer
+(@pxref{Display Custom, display-line-numbers-mode,, emacs, The GNU
+Emacs Manual}), the buffer text is indented on display by the amount
+of screen space needed to show the line numbers.  By contrast, text of
+the header line is not automatically indented, because a header line
+never displays a line number, and because the text of the header line
+is not necessarily directly related to buffer text below it.  If a
+Lisp program needs the header-line text to be aligned with buffer text
+(for example, if the buffer displays columnar data, like
+@code{tabulated-list-mode} does, @pxref{Tabulated List Mode}), it
+should turn on the minor mode @code{header-line-indent-mode}.
+
+@deffn Command header-line-indent-mode
+This buffer-local minor mode tracks the changes of the width of the
+line-number display on screen (which may vary depending on the range
+of line numbers shown in the window), and allows Lisp programs to
+arrange that header-line text is always aligned with buffer text when
+the line-number width changes.  Such Lisp programs should turn on this
+mode in the buffer, and use the variables @code{header-line-indent}
+and @code{header-line-indent-width} in the @code{header-line-format}
+to ensure it is adjusted to the text indentation at all times.
+@end deffn
+
+@defvar header-line-indent
+This variable's value is a whitespace string whose width is kept equal
+to the current width of line-numbers on display, provided that
+@code{header-line-indent-mode} is turned on in the buffer shown in the
+window.  The number of spaces is calculated under the assumption that
+the face of the header-line text uses the same font, including size,
+as the frame's default font; if that assumption is false, use
+@code{header-line-indent-width}, described below, instead.  This
+variable is intended to be used in simple situations where the
+header-line text needs to be indented as a whole to be realigned with
+buffer text, by prepending this variable's value to the actual
+header-line text.  For example, the following definition of
+@code{header-line-format}:
 
 @lisp
 (setq header-line-format
-      `("" header-line-format ,my-header-line))
+      `("" header-line-indent ,my-header-line))
 @end lisp
 
-This can be useful if you're displaying columnar data, and the header
-line should align with that data in the buffer.
+@noindent
+where @code{my-header-line} is the format string that produces the
+actual text of the header line, will make sure the header-line text
+is always indented like the buffer text below it.
+@end defvar
+
+@defvar header-line-indent-width
+This variable's value is kept updated to provide the current width, in
+units of the frame's canonical character width, used for displaying
+the line numbers, provided that @code{header-line-indent-mode} is
+turned on in the buffer shown in the window.  It can be used for
+aligning the header-line text with the buffer text when
+@code{header-line-indent} is not flexible enough.  For example, if the
+header line uses a font whose metrics is different from the default
+face's font, your Lisp program can calculate the width of line-number
+display in pixels, by multiplying the value of this variable by the
+value returned by @code{frame-char-width} (@pxref{Frame Font}), and
+then use the result to align header-line text using the
+@code{:align-to} display property spec (@pxref{Specified Space}) in
+pixels on the relevant parts of @code{header-line-frormat}.
 @end defvar
 
 @defun window-header-line-height &optional window
@@ -3630,9 +3679,19 @@ in C.
 @vindex font-lock-function-name-face
 for the name of a function being defined or declared.
 
+@item font-lock-function-call-face
+@vindex font-lock-function-call-face
+for the name of a function being called.  This face inherits, by
+default, from @code{font-lock-function-name-face}.
+
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face
 for the name of a variable being defined or declared.
+
+@item font-lock-variable-use-face
+@vindex font-lock-variable-use-face
+for the name of a variable being referenced.  This face inherits, by
+default, from @code{font-lock-variable-name-face}.
 
 @item font-lock-keyword-face
 @vindex font-lock-keyword-face
@@ -3707,11 +3766,16 @@ for numbers.
 @vindex font-lock-operator-face
 for operators.
 
-@item font-lock-property-face
-@vindex font-lock-property-face
-for properties of an object, such as the declaration and use of fields
-in a struct.
-This face inherits, by default, from @code{font-lock-variable-name-face}.
+@item font-lock-property-name-face
+@vindex font-lock-property-name-face
+for properties of an object, such as the declaration of fields in a
+struct.  This face inherits, by default, from
+@code{font-lock-variable-name-face}.
+
+@item font-lock-property-use-face
+@vindex font-lock-property-use-face
+for properties of an object, such as use of fields in a struct.  This
+face inherits, by default, from @code{font-lock-property-name-face}.
 
 For example,
 
@@ -5000,6 +5064,9 @@ first child where parent is @code{argument_list}, use
 (match nil "argument_list" nil nil 0 0)
 @end example
 
+In addition, @var{node-type} can be a special value @code{null},
+which matches when the value of @var{node} is @code{nil}.
+
 @item n-p-gp
 Short for ``node-parent-grandparent'', this matcher is a function of 3
 arguments: @var{node-type}, @var{parent-type}, and
@@ -5029,7 +5096,15 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @item parent-bol
 This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-space character
-on the line of @var{parent}.
+on the line which @var{parent}'s start is on.
+
+@item parent-bol
+This anchor is a function that is called with 3 arguments: @var{node},
+@var{parent}, and @var{bol}.  It finds the first ancestor node
+(parent, grandparent, etc) of @var{node} that starts on its own line,
+and return the start of that node.  ``Starting on its own line'' means
+there is only whitespace character before the node on the line which
+the node's start is on.
 
 @item prev-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
@@ -5045,10 +5120,10 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}, and returns the first non-whitespace
 character on the previous line.
 
-@item point-min
+@item column-0
 This anchor is a function that is called with 3 arguments: @var{node},
-@var{parent}, and @var{bol}, and returns the beginning of the buffer.
-This is useful as the beginning of the buffer is always at column 0.
+@var{parent}, and @var{bol}, and returns the beginning of the current
+line, which is at column 0.
 
 @item comment-start
 This anchor is a function that is called with 3 arguments: @var{node},
@@ -5062,8 +5137,11 @@ This anchor is a function that is called with 3 arguments: @var{node},
 @var{parent}, and @var{bol}.  It tries to go to the beginning of the
 previous non-empty line, and matches @code{adaptive-fill-regexp}.  If
 there is a match, this function returns the end of the match,
-otherwise it returns nil.  This anchor is useful for a
-@code{indent-relative}-like indent behavior for block comments.
+otherwise it returns nil.  However, if the current line begins with a
+prefix (e.g., ``-''), return the beginning of the prefix of the
+previous line instead, so that the two prefixes aligns.  This anchor
+is useful for a @code{indent-relative}-like indent behavior for block
+comments.
 
 @end ftable
 @end defvar

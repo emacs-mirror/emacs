@@ -67,12 +67,15 @@
 
 (defvar go-ts-mode--indent-rules
   `((go
+     ((parent-is "source_file") column-0 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is "}") parent-bol 0)
-     ((node-is "labeled_statement") no-indent)
+     ((node-is "labeled_statement") no-indent 0)
+     ((parent-is "raw_string_literal") no-indent 0)
      ((parent-is "argument_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "block") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "communication_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "const_declaration") parent-bol go-ts-mode-indent-offset)
      ((parent-is "default_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "expression_case") parent-bol go-ts-mode-indent-offset)
@@ -83,7 +86,10 @@
      ((parent-is "labeled_statement") parent-bol go-ts-mode-indent-offset)
      ((parent-is "literal_value") parent-bol go-ts-mode-indent-offset)
      ((parent-is "parameter_list") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "select_statement") parent-bol 0)
+     ((parent-is "type_case") parent-bol go-ts-mode-indent-offset)
      ((parent-is "type_spec") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "type_switch_statement") parent-bol 0)
      ((parent-is "var_declaration") parent-bol go-ts-mode-indent-offset)
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `go-ts-mode'.")
@@ -121,16 +127,31 @@
    '((["," "." ";" ":"]) @font-lock-delimiter-face)
 
    :language 'go
-   :feature 'function
-   '((call_expression
-      function: (identifier) @font-lock-function-name-face)
-     (call_expression
-      function: (selector_expression
-                 field: (field_identifier) @font-lock-function-name-face))
-     (function_declaration
+   :feature 'definition
+   '((function_declaration
       name: (identifier) @font-lock-function-name-face)
      (method_declaration
-      name: (field_identifier) @font-lock-function-name-face))
+      name: (field_identifier) @font-lock-function-name-face)
+     (method_spec
+      name: (field_identifier) @font-lock-function-name-face)
+     (field_declaration
+      name: (field_identifier) @font-lock-property-name-face)
+     (parameter_declaration
+      name: (identifier) @font-lock-variable-name-face)
+     (short_var_declaration
+      left: (expression_list
+             (identifier) @font-lock-variable-name-face
+             ("," (identifier) @font-lock-variable-name-face)*))
+     (var_spec name: (identifier) @font-lock-variable-name-face
+               ("," name: (identifier) @font-lock-variable-name-face)*))
+
+   :language 'go
+   :feature 'function
+   '((call_expression
+      function: (identifier) @font-lock-function-call-face)
+     (call_expression
+      function: (selector_expression
+                 field: (field_identifier) @font-lock-function-call-face)))
 
    :language 'go
    :feature 'keyword
@@ -157,19 +178,18 @@
    '([(package_identifier) (type_identifier)] @font-lock-type-face)
 
    :language 'go
+   :feature 'property
+   '((selector_expression field: (field_identifier) @font-lock-property-use-face)
+     (keyed_element (_ (identifier) @font-lock-property-use-face)))
+
+   :language 'go
    :feature 'variable
-   '((identifier) @font-lock-variable-name-face)
+   '((identifier) @font-lock-variable-use-face)
 
    :language 'go
    :feature 'escape-sequence
    :override t
    '((escape_sequence) @font-lock-escape-face)
-
-   :language 'go
-   :feature 'property
-   :override t
-   '((field_identifier) @font-lock-property-face
-     (keyed_element (_ (identifier) @font-lock-property-face)))
 
    :language 'go
    :feature 'error
@@ -225,11 +245,10 @@
     ;; Font-lock.
     (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( comment)
+                '(( comment definition)
                   ( keyword string type)
-                  ( constant escape-sequence function label number
-                    property variable)
-                  ( bracket delimiter error operator)))
+                  ( constant escape-sequence label number)
+                  ( bracket delimiter error function operator property variable)))
 
     (treesit-major-mode-setup)))
 

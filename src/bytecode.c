@@ -789,10 +789,10 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object template;
 	    Lisp_Object bytecode;
 	    if (COMPILEDP (call_fun)
-		// Lexical binding only.
+		/* Lexical binding only.  */
 		&& (template = AREF (call_fun, COMPILED_ARGLIST),
 		    FIXNUMP (template))
-		// No autoloads.
+		/* No autoloads.  */
 		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
 		    !CONSP (bytecode)))
 	      {

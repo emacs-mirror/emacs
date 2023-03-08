@@ -1,4 +1,4 @@
-# readlink.m4 serial 16
+# readlink.m4 serial 17
 dnl Copyright (C) 2003, 2007, 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -38,6 +38,9 @@ AC_DEFUN([gl_FUNC_READLINK],
             # Guess yes on Linux or glibc systems.
             linux-* | linux | *-gnu* | gnu*)
               gl_cv_func_readlink_trailing_slash="guessing yes" ;;
+            # Guess yes on systems that emulate the Linux system calls.
+            midipix*)
+              gl_cv_func_readlink_trailing_slash="guessing yes" ;;
             # Guess no on AIX or HP-UX.
             aix* | hpux*)
               gl_cv_func_readlink_trailing_slash="guessing no" ;;
@@ -74,6 +77,9 @@ AC_DEFUN([gl_FUNC_READLINK],
          [case "$host_os" in
             # Guess yes on Linux or glibc systems.
             linux-* | linux | *-gnu* | gnu*)
+              gl_cv_func_readlink_truncate="guessing yes" ;;
+            # Guess yes on systems that emulate the Linux system calls.
+            midipix*)
               gl_cv_func_readlink_truncate="guessing yes" ;;
             # Guess no on AIX or HP-UX.
             aix* | hpux*)

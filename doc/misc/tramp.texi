@@ -2728,6 +2728,7 @@ entry, @option{Seconds between keepalives} option.  Set this to 5.
 There is no counter which could be set.
 
 
+@anchor{Using ssh connection sharing}
 @subsection Using ssh connection sharing
 
 @vindex ControlPath@r{, ssh option}
@@ -2758,19 +2759,32 @@ Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} file is configured appropriately for the
-above behavior, then any changes to @command{ssh} can be suppressed
-with this @code{nil} setting:
+Using a predefined string in @code{tramp-ssh-controlmaster-options},
+or puzzling an own string, happens only when user option
+@code{tramp-use-ssh-controlmaster-options} is set to @code{t}.  If the
+@file{~/.ssh/config} file is configured appropriately for the above
+behavior, then any changes to @command{ssh} can be suppressed with
+this @code{nil} setting:
 
 @lisp
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 @end lisp
 
+Sometimes, it is not possible to use OpenSSH's @option{ControlMaster}
+option for remote processes.  This could result in concurrent access
+to the OpenSSH socket when reading data by different processes, which
+could block Emacs.  In this case, setting
+@code{tramp-use-ssh-controlmaster-options} to @code{suppress} disables
+shared access.  It is not needed to set this user option permanently
+to @code{suppress}, binding the user option prior calling
+@code{make-process} is sufficient.  @value{tramp} does this for
+esxample for compilation processes on its own.
+
 @vindex ProxyCommand@r{, ssh option}
 @vindex ProxyJump@r{, ssh option}
-This should also be set to @code{nil} if you use the
-@option{ProxyCommand} or @option{ProxyJump} options in your
-@command{ssh} configuration.
+@code{tramp-use-ssh-controlmaster-options} should also be set to
+@code{nil} or @code{suppress} if you use the @option{ProxyCommand} or
+@option{ProxyJump} options in your @command{ssh} configuration.
 
 In order to use the @option{ControlMaster} option, @value{tramp} must
 check whether the @command{ssh} client supports this option.  This is
@@ -3469,12 +3483,7 @@ much more appropriate.
 
 @value{tramp} can complete the following @value{tramp} file name
 components: method names, user names, host names, and file names
-located on remote hosts.  User name and host name completion is
-activated only, if file name completion has one of the styles
-@code{basic}, @code{emacs21}, or @code{emacs22}.
-@ifinfo
-@xref{Completion Styles, , , emacs}.
-@end ifinfo
+located on remote hosts.
 
 For example, type @kbd{C-x C-f @value{prefixwithspace} s @key{TAB}},
 @value{tramp} completion choices show up as
@@ -3508,10 +3517,7 @@ directory @file{/sbin} on your local host.
 Type @kbd{s h @value{postfixhop}} for the minibuffer completion to
 @samp{@value{prefix}ssh@value{postfixhop}}.  Typing @kbd{@key{TAB}}
 shows host names @value{tramp} extracts from @file{~/.ssh/config}
-@c bug#50387
-file, for example@footnote{Some completion styles, like
-@code{substring} or @code{flex}, require to type at least one
-character after the trailing @samp{@value{postfixhop}}.}.
+file, for example:
 
 @example
 @group
@@ -4296,7 +4302,8 @@ In order to gain even more performance, it is recommended to bind
 @code{start-file-process}.  Furthermore, you might set
 @code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
 bypass @value{tramp}'s handling of the @option{ControlMaster} options,
-and use your own settings in @file{~/.ssh/config}.
+and use your own settings in @file{~/.ssh/config}, @ref{Using ssh
+connection sharing}.
 
 
 @node Cleanup remote connections

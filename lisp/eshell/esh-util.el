@@ -132,6 +132,19 @@ function `string-to-number'.")
 (defvar eshell-user-timestamp nil
   "A timestamp of when the user file was read.")
 
+(defvar eshell-command-output-properties
+  `( field command-output
+     front-sticky (field)
+     rear-nonsticky (field)
+     ;; Text inserted by a user in the middle of process output
+     ;; should be marked as output.  This is needed for commands
+     ;; such as `yank' or `just-one-space' which don't use
+     ;; `insert-and-inherit' and thus bypass default text property
+     ;; inheritance.
+     insert-in-front-hooks (,#'eshell--mark-as-output
+                            ,#'eshell--mark-yanked-as-output))
+  "A list of text properties to apply to command output.")
+
 ;;; Obsolete variables:
 
 (define-obsolete-variable-alias 'eshell-host-names
@@ -156,6 +169,27 @@ Otherwise, evaluates FORM with no error handling."
 	   ,form
 	 ,@handlers)
     form))
+
+(defun eshell--mark-as-output (start end &optional object)
+  "Mark the text from START to END as Eshell output.
+OBJECT can be a buffer or string.  If nil, mark the text in the
+current buffer."
+  (with-silent-modifications
+    (add-text-properties start end eshell-command-output-properties
+                         object)))
+
+(defun eshell--mark-yanked-as-output (start end)
+  "Mark yanked text from START to END as Eshell output."
+  ;; `yank' removes the field text property from the text it inserts
+  ;; due to `yank-excluded-properties', so arrange for this text
+  ;; property to be reapplied in the `after-change-functions'.
+  (letrec ((hook
+            (lambda (start1 end1 _len1)
+              (remove-hook 'after-change-functions hook t)
+              (when (and (= start start1)
+                         (= end end1))
+                (eshell--mark-as-output start1 end1)))))
+    (add-hook 'after-change-functions hook nil t)))
 
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)

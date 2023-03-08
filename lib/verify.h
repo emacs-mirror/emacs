@@ -265,6 +265,8 @@ template <int w>
 #   define _GL_SA3 static_assert
 #   define _GL_SA_PICK(x1,x2,x3,x4,...) x4
 #   define static_assert(...) _GL_EXPAND(_GL_SA_PICK(__VA_ARGS__,_GL_SA3,_GL_SA2,_GL_SA1)) (__VA_ARGS__)
+/* Avoid "fatal error C1189: #error:  The C++ Standard Library forbids macroizing keywords."  */
+#   define _ALLOW_KEYWORD_MACROS 1
 #  else
 #   define static_assert _Static_assert /* C11 requires this #define. */
 #  endif

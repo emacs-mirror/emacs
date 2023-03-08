@@ -474,28 +474,37 @@ compilation and evaluation time conflicts."
          (and (eq (char-before) ?\])
               (not (eq (char-after) ?\;))))))
     `((annotation-top-cont ,(c-point 'iopl))))
-
    ((and
      ;; Heuristics to find object initializers
      (save-excursion
        ;; Next non-whitespace character should be '{'
        (goto-char (c-point 'boi))
-       (eq (char-after) ?{))
-     (save-excursion
-       ;; 'new' should be part of the line
-       (goto-char (c-point 'iopl))
-       (looking-at ".*new.*"))
+       (unless (eq (char-after) ?{)
+         (backward-up-list 1 t t))
+       (save-excursion
+         ;; 'new' should be part of the line
+         (goto-char (c-point 'iopl))
+         (looking-at ".*new.*")))
      ;; Line should not already be terminated
      (save-excursion
        (goto-char (c-point 'eopl))
        (or (not (eq (char-before) ?\;))
            (not (eq (char-before) ?\{)))))
-    (if (save-excursion
-          ;; if we have a hanging brace on line before
-          (goto-char (c-point 'eopl))
-          (eq (char-before) ?\{))
-        `((brace-list-intro ,(c-point 'iopl)))
-      `((block-open) (statement ,(c-point 'iopl)))))
+    (cond
+     ((save-excursion
+        ;; if we have a hanging brace on line before
+        (goto-char (c-point 'eopl))
+        (eq (char-before) ?\{))
+      `((brace-list-intro ,(c-point 'iopl))))
+     ((save-excursion
+        ;; if we have a hanging brace on line before
+        (goto-char (c-point 'boi))
+        (and (eq (char-after) ?\})
+             `((brace-list-close ,(save-excursion
+                                    (backward-up-list 1 t t)
+                                    (point)))))))
+     (t
+      `((block-open) (statement ,(c-point 'iopl))))))
    (t
     (apply orig-fun args))))
 
@@ -699,9 +708,9 @@ compilation and evaluation time conflicts."
   (treesit-font-lock-rules
    :language 'c-sharp
    :feature 'expression
-   '((conditional_expression (identifier) @font-lock-variable-name-face)
-     (postfix_unary_expression (identifier)* @font-lock-variable-name-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-name-face)))
+   '((conditional_expression (identifier) @font-lock-variable-use-face)
+     (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-use-face)))
 
    :language 'c-sharp
    :feature 'bracket
@@ -730,8 +739,8 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :override t
    :feature 'property
-   `((attribute (identifier) @font-lock-property-face (attribute_argument_list))
-     (attribute (identifier) @font-lock-property-face))
+   `((attribute (identifier) @font-lock-property-use-face (attribute_argument_list))
+     (attribute (identifier) @font-lock-property-use-face))
 
    :language 'c-sharp
    :override t
@@ -850,19 +859,42 @@ compilation and evaluation time conflicts."
    :feature 'function
    '((invocation_expression
       function: (member_access_expression
-                 name: (identifier) @font-lock-function-name-face))
+                 name: (identifier) @font-lock-function-call-face))
      (invocation_expression
-      function: (identifier) @font-lock-function-name-face)
+      function: (identifier) @font-lock-function-call-face)
      (invocation_expression
       function: (member_access_expression
-                 name: (generic_name (identifier) @font-lock-function-name-face)))
+                 name: (generic_name (identifier) @font-lock-function-call-face)))
      (invocation_expression
-      function: (generic_name (identifier) @font-lock-function-name-face)))
+      function: (generic_name (identifier) @font-lock-function-call-face)))
 
    :language 'c-sharp
    :feature 'escape-sequence
    :override t
-   '((escape_sequence) @font-lock-escape-face)))
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language 'c-sharp
+   :feature 'directives
+   :override t
+   '((if_directive
+      "if" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-use-face)
+     (elif_directive
+      "elif" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-use-face)
+     (else_directive) @font-lock-preprocessor-face
+     (endif_directive) @font-lock-preprocessor-face
+     (define_directive
+      "define" @font-lock-preprocessor-face
+      (identifier) @font-lock-variable-use-face)
+     (nullable_directive) @font-lock-preprocessor-face
+     (pragma_directive) @font-lock-preprocessor-face
+     (region_directive) @font-lock-preprocessor-face
+     (endregion_directive) @font-lock-preprocessor-face
+     (region_directive
+      (preproc_message) @font-lock-variable-use-face)
+     (endregion_directive
+      (preproc_message) @font-lock-variable-use-face))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
@@ -930,7 +962,7 @@ Key bindings:
   (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
-                ( keyword string type)
+                ( keyword string type directives)
                 ( constant escape-sequence expression literal property)
                 ( function bracket delimiter error)))
 

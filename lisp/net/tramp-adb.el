@@ -487,16 +487,9 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
-  ;; `file-exists-p' is used as predicate in file name completion.
-  ;; We don't want to run it when `non-essential' is t, or there is
-  ;; no connection process yet.
-  (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (with-tramp-file-property v localname "file-exists-p"
-	(if (tramp-file-property-p v localname "file-attributes")
-	    (not (null (tramp-get-file-property v localname "file-attributes")))
-	  (tramp-adb-send-command-and-check
-	   v (format "test -e %s" (tramp-shell-quote-argument localname))))))))
+  (tramp-skeleton-file-exists-p filename
+    (tramp-adb-send-command-and-check
+     v (format "test -e %s" (tramp-shell-quote-argument localname)))))
 
 (defun tramp-adb-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."

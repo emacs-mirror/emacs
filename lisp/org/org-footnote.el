@@ -853,7 +853,7 @@ to `org-footnote-section'.  Inline definitions are ignored."
 	  ;; Insert un-referenced footnote definitions at the end.
           ;; Combine all insertions into one to create a single cache
           ;; update call.
-          (combine-change-calls (point) (point)
+          (org-combine-change-calls (point) (point)
 	    (pcase-dolist (`(,label . ,definition) definitions)
 	      (unless (member label inserted)
 	        (insert "\n" definition "\n"))))))))))

@@ -49,8 +49,9 @@
 
 ;;; Code:
 
+(require 'esh-arg)
+(require 'esh-module)
 (require 'esh-util)
-(eval-when-compile (require 'eshell))
 
 ;;;###autoload
 (progn
@@ -170,7 +171,7 @@ interpretation."
 	       (end (eshell-find-delimiter
 		     delim (if (eq delim ?\[) ?\] ?\)))))
 	  (if (not end)
-	      (throw 'eshell-incomplete delim)
+              (throw 'eshell-incomplete (char-to-string delim))
 	    (if (and (eshell-using-module 'eshell-pred)
 		     (eshell-arg-delimiter (1+ end)))
 		(ignore (goto-char here))

@@ -94,6 +94,20 @@ is useful when you perform version control commands outside Emacs
 different version control system, or remove it from version control
 entirely.
 
+@cindex VC commands, in Dired buffers
+@cindex filesets, VC, in Dired buffers
+  VC is also enabled automatically in Dired buffers (@pxref{Dired})
+showing directories whose files are controlled by a VCS@.  All VC
+commands described in this section can be invoked from any Dired
+buffer showing a directory with VC-controlled files; any files that
+are marked in a Dired buffer (@pxref{Marks vs Flags}) are considered
+to belong to the current fileset, and VC commands operate on the files
+in this fileset.  This allows you to construct VC filesets including
+any files you want, regardless of their VC state.  (If no files are
+marked when a VC command is invoked from a Dired buffer, the file
+shown on the current line in the buffer is considered the only file in
+the fileset.)
+
 @menu
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
@@ -471,7 +485,10 @@ collection of one or more files that a VC operation acts on.  When you
 type VC commands in a buffer visiting a version-controlled file, the
 VC fileset is simply that one file.  When you type them in a VC
 Directory buffer, and some files in it are marked, the VC fileset
-consists of the marked files (@pxref{VC Directory Mode}).
+consists of the marked files (@pxref{VC Directory Mode}).  Likewise,
+when you invoke a VC command from a Dired buffer, the VC fileset
+consists of the marked files (@pxref{Marks vs Flags}), defaulting to
+the file shown on the current line if no files are marked.
 
   On modern changeset-based version control systems (@pxref{VCS
 Changesets}), VC commands handle multi-file VC filesets as a group.
@@ -495,7 +512,9 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer, in a Dired buffer, or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer; in the latter
+two cases the command operates on the fileset consisting of the marked
+files.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
@@ -840,7 +859,7 @@ details.
 
   If you invoke @kbd{C-x v =} or @kbd{C-u C-x v =} from a Dired buffer
 (@pxref{Dired}), the file listed on the current line is treated as the
-current VC fileset.
+current VC fileset.  The VC fileset can also include several marked files.
 
 @ifnottex
 @findex vc-ediff
@@ -1000,16 +1019,25 @@ Search the change history for a specified pattern.
 @findex vc-print-log
   @kbd{C-x v l} (@code{vc-print-log}) displays a buffer named
 @file{*vc-change-log*}, showing the history of changes made to the
-current file, including who made the changes, the dates, and the log
-entry for each change (these are the same log entries you would enter
-via the @file{*vc-log*} buffer; @pxref{Log Buffer}).  Point is
-centered at the revision of the file currently being visited.  With a
-prefix argument, the command prompts for the revision to center on,
-and the maximum number of revisions to display.
+current fileset in the long form, including who made the changes, the
+dates, and the log entry for each change (these are the same log
+entries you would enter via the @file{*vc-log*} buffer; @pxref{Log
+Buffer}).  When invoked from a buffer visiting a file, the current
+fileset consists of that single file, and point in the displayed
+@file{*vc-change-log*} buffer is centered at the revision of that
+file.  When invoked from a VC Directory buffer (@pxref{VC Directory
+Mode}) or from a Dired buffer (@pxref{Dired}), the fileset consists of
+all the marked files, defaulting to the file shown on the current line
+in the directory buffer if no file is marked.
 
-  If you call @kbd{C-x v l} from a VC Directory buffer (@pxref{VC
-Directory Mode}) or a Dired buffer (@pxref{Dired}), it applies to the
-file listed on the current line.
+  If the fileset includes one or more directories, the resulting
+@file{*vc-change-log*} buffer shows a short log of changes (one line
+for each change), if the VC backend supports that; otherwise it shows
+the log in the long form.
+
+  With a prefix argument, the command prompts for the revision to
+center on in the @file{*vc-change-log*} buffer and for the maximum
+number of revisions to display.
 
 @kindex C-x v L
 @findex vc-print-root-log
@@ -1214,6 +1242,11 @@ the version control system which the VC Directory buffer should use.
 called PCL-CVS which is specialized for CVS@.  @xref{Top, , About
 PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
 @end ifnottex
+
+  You can also invoke VC commands from Dired buffers (@pxref{Dired}).
+In that case, any VC command you invoke considers the marked files as
+the current fileset (@pxref{Basic VC Editing}), defaulting to the file
+on the current line if no files are marked.
 
 @menu
 * Buffer: VC Directory Buffer.      What the buffer looks like and means.

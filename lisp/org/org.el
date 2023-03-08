@@ -297,47 +297,49 @@ default, only Emacs Lisp is loaded, since it has no specific
 requirement."
   :group 'org-babel
   :set 'org-babel-do-load-languages
-  :version "24.1"
+  :package-version '(Org . "9.6")
   :type '(alist :tag "Babel Languages"
 		:key-type
 		(choice
 		 (const :tag "Awk" awk)
-		 (const :tag "C" C)
+		 (const :tag "C, D, C++, and cpp" C)
 		 (const :tag "R" R)
                  (const :tag "Calc" calc)
-		 (const :tag "Clojure" clojure)
+		 (const :tag "Clojure and ClojureScript" clojure)
 		 (const :tag "CSS" css)
 		 (const :tag "Ditaa" ditaa)
 		 (const :tag "Dot" dot)
                  (const :tag "Emacs Lisp" emacs-lisp)
+                 (const :tag "Eshell" eshell)
 		 (const :tag "Forth" forth)
 		 (const :tag "Fortran" fortran)
-		 (const :tag "Gnuplot" gnuplot)
+		 (const :tag "GnuPlot" gnuplot)
+		 (const :tag "Groovy" groovy)
 		 (const :tag "Haskell" haskell)
                  (const :tag "Java" java)
-		 (const :tag "Javascript" js)
-		 (const :tag "LaTeX" latex)
-                 (const :tag "Lilypond" lilypond)
+		 (const :tag "JavaScript" js)
+                 (const :tag "Julia" julia)
+                 (const :tag "LaTeX" latex)
+                 (const :tag "LilyPond" lilypond)
 		 (const :tag "Lisp" lisp)
+                 (const :tag "Lua" lua)
 		 (const :tag "Makefile" makefile)
 		 (const :tag "Maxima" maxima)
-		 (const :tag "Matlab" matlab)
-                 (const :tag "Ocaml" ocaml)
-		 (const :tag "Octave" octave)
+                 (const :tag "OCaml" ocaml)
+		 (const :tag "Octave and MatLab" octave)
 		 (const :tag "Org" org)
 		 (const :tag "Perl" perl)
-		 (const :tag "Pico Lisp" picolisp)
+                 (const :tag "Processing" processing)
 		 (const :tag "PlantUML" plantuml)
 		 (const :tag "Python" python)
 		 (const :tag "Ruby" ruby)
 		 (const :tag "Sass" sass)
-		 (const :tag "Scala" scala)
 		 (const :tag "Scheme" scheme)
 		 (const :tag "Screen" screen)
+                 (const :tag "Sed" sed)
 		 (const :tag "Shell Script" shell)
                  (const :tag "Sql" sql)
-		 (const :tag "Sqlite" sqlite)
-		 (const :tag "Stan" stan))
+		 (const :tag "Sqlite" sqlite))
 		:value-type (boolean :tag "Activate" :value t)))
 
 ;;;; Customization variables
@@ -723,6 +725,10 @@ defined in org-duration.el.")
   (set-default-toplevel-value var value)
   (when (featurep 'org)
     (org-load-modules-maybe 'force)
+    ;; FIXME: We can't have all the requires at top-level due to
+    ;; circular dependencies.  Yet, this function might sometimes be
+    ;; called when 'org-element is not loaded.
+    (require 'org-element)
     (org-element-cache-reset 'all)))
 
 (defcustom org-modules '(ol-doi ol-w3m ol-bbdb ol-bibtex ol-docview ol-gnus ol-info ol-irc ol-mhe ol-rmail ol-eww)
@@ -4555,21 +4561,25 @@ is available.  This option applies only if FILE is a URL."
      (cache)
      (is-url
       (if (org--should-fetch-remote-resource-p file)
-          (with-current-buffer (url-retrieve-synchronously file)
-            (goto-char (point-min))
-            ;; Move point to after the url-retrieve header.
-            (search-forward "\n\n" nil :move)
-            ;; Search for the success code only in the url-retrieve header.
-            (if (save-excursion
-                  (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
-                ;; Update the cache `org--file-cache' and return contents.
-                (puthash file
-                         (buffer-substring-no-properties (point) (point-max))
-                         org--file-cache)
-              (funcall (if noerror #'message #'user-error)
-                       "Unable to fetch file from %S"
-                       file)
-              nil))
+          (condition-case error
+              (with-current-buffer (url-retrieve-synchronously file)
+                (goto-char (point-min))
+                ;; Move point to after the url-retrieve header.
+                (search-forward "\n\n" nil :move)
+                ;; Search for the success code only in the url-retrieve header.
+                (if (save-excursion
+                      (re-search-backward "HTTP.*\\s-+200\\s-OK" nil :noerror))
+                    ;; Update the cache `org--file-cache' and return contents.
+                    (puthash file
+                             (buffer-substring-no-properties (point) (point-max))
+                             org--file-cache)
+                  (funcall (if noerror #'message #'user-error)
+                           "Unable to fetch file from %S"
+                           file)
+                  nil))
+            (error (if noerror
+                       (message "Org could't download \"%s\": %s %S" file (car error) (cdr error))
+                     (signal (car error) (cdr error)))))
         (funcall (if noerror #'message #'user-error)
                  "The remote resource %S is considered unsafe, and will not be downloaded."
                  file)))
@@ -6556,7 +6566,7 @@ See also `org-promote'."
   (interactive)
   (save-excursion
     (org-back-to-heading t)
-    (combine-change-calls (point) (save-excursion (org-end-of-subtree t))
+    (org-combine-change-calls (point) (save-excursion (org-end-of-subtree t))
       (org-with-limited-levels (org-map-tree 'org-promote))))
   (org-fix-position-after-promote))
 
@@ -6566,7 +6576,7 @@ See `org-demote' and `org-promote'."
   (interactive)
   (save-excursion
     (org-back-to-heading t)
-    (combine-change-calls (point) (save-excursion (org-end-of-subtree t))
+    (org-combine-change-calls (point) (save-excursion (org-end-of-subtree t))
       (org-with-limited-levels (org-map-tree 'org-demote))))
   (org-fix-position-after-promote))
 
@@ -7135,7 +7145,7 @@ When REMOVE is non-nil, remove the subtree from the clipboard."
        (setq beg (point))
        ;; Avoid re-parsing cache elements when i.e. level 1 heading
        ;; is inserted and then promoted.
-       (combine-change-calls beg beg
+       (org-combine-change-calls beg beg
          (when (fboundp 'org-id-paste-tracker) (org-id-paste-tracker txt))
          (insert txt)
          (unless (string-suffix-p "\n" txt) (insert "\n"))
@@ -18844,7 +18854,7 @@ Alignment is done according to `org-property-format', which see."
   (when (save-excursion
 	  (beginning-of-line)
 	  (looking-at org-property-re))
-    (combine-change-calls (match-beginning 0) (match-end 0)
+    (org-combine-change-calls (match-beginning 0) (match-end 0)
       (let ((newtext (concat (match-string 4)
 	                     (org-trim
 	                      (format org-property-format (match-string 1) (match-string 3))))))

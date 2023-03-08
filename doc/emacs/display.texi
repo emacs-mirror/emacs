@@ -1159,11 +1159,11 @@ function definitions.
 This level adds fontification of keywords, strings, and data types.
 @item Level 3
 This is the default level; it adds fontification of assignments,
-numbers, properties, etc.
+numbers, etc.
 @item Level 4
 This level adds everything else that can be fontified: operators,
 delimiters, brackets, other punctuation, function names in function
-calls, variables, etc.
+calls, property look ups, variables, etc.
 @end table
 
 @vindex treesit-font-lock-feature-list
@@ -1402,7 +1402,11 @@ right-to-left paragraphs.
 functionality especially in @code{prog-mode} and its descendants
 (@pxref{Major Modes}) to indicate the position of a specific column
 that has some special meaning for formatting the source code of a
-program.
+program.  This assumes the buffer uses a fixed-pitch font, where all
+the characters (with the possible exception of double-width
+characters) have the same width on display.  If the buffer uses
+variable-pitch fonts, the fill-column indicators on different lines
+might appear unaligned.
 
   To activate the fill-column indication display, use the minor modes
 @code{display-fill-@-column-indicator-mode} and

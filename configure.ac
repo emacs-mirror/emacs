@@ -3583,8 +3583,12 @@ XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no"; then
   if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
     WEBKIT_REQUIRED=2.12
-    WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
+    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED"
     EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
+    if test "$HAVE_WEBKIT" = "no"; then
+      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
+      EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
+    fi
     HAVE_XWIDGETS=$HAVE_WEBKIT
     XWIDGETS_OBJ="xwidget.o"
     if test "$HAVE_X_WINDOWS" = "yes" && test "${with_cairo}" = "no"; then
@@ -6502,6 +6506,12 @@ if test "$window_system" != "none"; then
   AC_DEFINE([POLL_FOR_INPUT], [1],
     [Define if you poll periodically to detect C-g.])
   WINDOW_SYSTEM_OBJ="fontset.o fringe.o image.o"
+
+  if test "$window_system" = "x11"; then
+    AC_DEFINE([HAVE_TEXT_CONVERSION], [1],
+      [Define if the window system has text conversion support.])
+    WINDOW_SYSTEM_OBJ="$WINDOW_SYSTEM_OBJ textconv.o"
+  fi
 fi
 
 AC_SUBST([WINDOW_SYSTEM_OBJ])
@@ -6627,6 +6637,7 @@ AC_DEFINE_UNQUOTED([EMACS_CONFIG_FEATURES], ["${emacs_config_features}"],
   [Summary of some of the main features enabled by configure.])
 
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
+  Does Emacs use the X Double Buffer Extension?           ${HAVE_XDBE}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}
   Does Emacs use -ltiff?                                  ${HAVE_TIFF}

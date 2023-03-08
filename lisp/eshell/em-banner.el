@@ -43,7 +43,6 @@
 
 (require 'esh-util)
 (require 'esh-mode)
-(require 'eshell)
 
 ;;;###autoload
 (progn

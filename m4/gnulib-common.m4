@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 80
+# gnulib-common.m4 serial 82
 dnl Copyright (C) 2007-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -356,7 +356,7 @@ AC_DEFUN([gl_COMMON_BODY], [
    [[__maybe_unused__]] nevertheless produces a warning.  */
 #ifndef _GL_ATTRIBUTE_MAYBE_UNUSED
 # if defined __clang__ && defined __cplusplus
-#  if __clang_major__ >= 10
+#  if !defined __apple_build_version__ && __clang_major__ >= 10
 #   define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
 #  endif
 # elif defined __has_c_attribute
@@ -1095,6 +1095,113 @@ AC_DEFUN([gl_CONDITIONAL_HEADER],
   m4_popdef([gl_header_name])
 ])
 
+dnl Preparations for gl_CHECK_FUNCS_MACOS.
+AC_DEFUN([gl_PREPARE_CHECK_FUNCS_MACOS],
+[
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_REQUIRE([gl_COMPILER_CLANG])
+  AC_CACHE_CHECK([for compiler option needed when checking for future declarations],
+    [gl_cv_compiler_check_future_option],
+    [case "$host_os" in
+       dnl This is only needed on macOS.
+       darwin*)
+         if test $gl_cv_compiler_clang = yes; then
+           dnl Test whether the compiler supports the option
+           dnl '-Werror=unguarded-availability-new'.
+           save_ac_compile="$ac_compile"
+           ac_compile="$ac_compile -Werror=unguarded-availability-new"
+           AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[]])],
+             [gl_cv_compiler_check_future_option='-Werror=unguarded-availability-new'],
+             [gl_cv_compiler_check_future_option=none])
+           ac_compile="$save_ac_compile"
+         else
+           gl_cv_compiler_check_future_option=none
+         fi
+         ;;
+       *) gl_cv_compiler_check_future_option=none ;;
+     esac
+    ])
+])
+
+dnl Pieces of the expansion of
+dnl gl_CHECK_FUNCS_ANDROID
+dnl gl_CHECK_FUNCS_MACOS
+dnl gl_CHECK_FUNCS_ANDROID_MACOS
+
+AC_DEFUN([gl_CHECK_FUNCS_DEFAULT_CASE],
+[
+         *)
+           AC_CHECK_FUNC([$1])
+           [gl_cv_onwards_func_][$1]=$[ac_cv_func_][$1]
+           ;;
+])
+
+AC_DEFUN([gl_CHECK_FUNCS_CASE_FOR_ANDROID],
+[
+         linux*-android*)
+           AC_CHECK_DECL([$1], , , [$2])
+           if test $[ac_cv_have_decl_][$1] = yes; then
+             AC_CHECK_FUNC([[$1]])
+             if test $[ac_cv_func_][$1] = yes; then
+               [gl_cv_onwards_func_][$1]=yes
+             else
+               dnl The function is declared but does not exist. This should not
+               dnl happen normally. But anyway, we know that a future version
+               dnl of Android will have the function.
+               [gl_cv_onwards_func_][$1]='future OS version'
+             fi
+           else
+             [gl_cv_onwards_func_][$1]='future OS version'
+           fi
+           ;;
+])
+
+AC_DEFUN([gl_CHECK_FUNCS_CASE_FOR_MACOS],
+[
+         darwin*)
+           if test "x$gl_cv_compiler_check_future_option" != "xnone"; then
+             dnl Use a compile test, not a link test.
+             save_ac_compile="$ac_compile"
+             ac_compile="$ac_compile $gl_cv_compiler_check_future_option"
+             save_ac_compile_for_check_decl="$ac_compile_for_check_decl"
+             ac_compile_for_check_decl="$ac_compile_for_check_decl $gl_cv_compiler_check_future_option"
+             unset [ac_cv_have_decl_][$1]
+             AC_CHECK_DECL([$1], , , [$2])
+             ac_compile="$save_ac_compile"
+             ac_compile_for_check_decl="$save_ac_compile_for_check_decl"
+             [ac_cv_func_][$1]="$[ac_cv_have_decl_][$1]"
+             if test $[ac_cv_func_][$1] = yes; then
+               [gl_cv_onwards_func_][$1]=yes
+             else
+               unset [ac_cv_have_decl_][$1]
+               AC_CHECK_DECL([$1], , , [$2])
+               if test $[ac_cv_have_decl_][$1] = yes; then
+                 [gl_cv_onwards_func_][$1]='future OS version'
+               else
+                 [gl_cv_onwards_func_][$1]=no
+               fi
+             fi
+           else
+             AC_CHECK_FUNC([$1])
+             [gl_cv_onwards_func_][$1]=$[ac_cv_func_][$1]
+           fi
+           ;;
+])
+
+AC_DEFUN([gl_CHECK_FUNCS_SET_RESULTS],
+[
+  case "$[gl_cv_onwards_func_][$1]" in
+    future*) [ac_cv_func_][$1]=no ;;
+    *)       [ac_cv_func_][$1]=$[gl_cv_onwards_func_][$1] ;;
+  esac
+  if test $[ac_cv_func_][$1] = yes; then
+    AC_DEFINE([HAVE_]m4_translit([[$1]],
+                                 [abcdefghijklmnopqrstuvwxyz],
+                                 [ABCDEFGHIJKLMNOPQRSTUVWXYZ]),
+              [1], [Define to 1 if you have the `$1' function.])
+  fi
+])
+
 dnl gl_CHECK_FUNCS_ANDROID([func], [[#include <foo.h>]])
 dnl is like AC_CHECK_FUNCS([func]), taking into account a portability problem
 dnl on Android.
@@ -1137,39 +1244,87 @@ AC_DEFUN([gl_CHECK_FUNCS_ANDROID],
     [[gl_cv_onwards_func_][$1]],
     [gl_SILENT([
        case "$host_os" in
-         linux*-android*)
-           AC_CHECK_DECL([$1], , , [$2])
-           if test $[ac_cv_have_decl_][$1] = yes; then
-             AC_CHECK_FUNC([[$1]])
-             if test $[ac_cv_func_][$1] = yes; then
-               [gl_cv_onwards_func_][$1]=yes
-             else
-               dnl The function is declared but does not exist. This should not
-               dnl happen normally. But anyway, we know that a future version
-               dnl of Android will have the function.
-               [gl_cv_onwards_func_][$1]='future OS version'
-             fi
-           else
-             [gl_cv_onwards_func_][$1]='future OS version'
-           fi
-           ;;
-         *)
-           AC_CHECK_FUNC([$1])
-           [gl_cv_onwards_func_][$1]=$[ac_cv_func_][$1]
-           ;;
+         gl_CHECK_FUNCS_CASE_FOR_ANDROID([$1], [$2])
+         gl_CHECK_FUNCS_DEFAULT_CASE([$1])
        esac
       ])
     ])
-  case "$[gl_cv_onwards_func_][$1]" in
-    future*) [ac_cv_func_][$1]=no ;;
-    *)       [ac_cv_func_][$1]=$[gl_cv_onwards_func_][$1] ;;
-  esac
-  if test $[ac_cv_func_][$1] = yes; then
-    AC_DEFINE([HAVE_]m4_translit([[$1]],
-                                 [abcdefghijklmnopqrstuvwxyz],
-                                 [ABCDEFGHIJKLMNOPQRSTUVWXYZ]),
-              [1], [Define to 1 if you have the `$1' function.])
-  fi
+  gl_CHECK_FUNCS_SET_RESULTS([$1])
+])
+
+dnl gl_CHECK_FUNCS_MACOS([func], [[#include <foo.h>]])
+dnl is like AC_CHECK_FUNCS([func]), taking into account a portability problem
+dnl on macOS.
+dnl
+dnl When code is compiled on macOS, it is in the context of a certain minimum
+dnl macOS version, that can be set through the option '-mmacosx-version-min='.
+dnl In other words, you don't compile for a specific version of macOS. You
+dnl compile for all versions of macOS, onwards from the given version.
+dnl Thus, the question "does the OS have the function func" has three possible
+dnl answers:
+dnl   - yes, in all versions starting from the given version,
+dnl   - no, in no version,
+dnl   - not in the given version, but in a later version of macOS.
+dnl
+dnl In detail, this works as follows:
+dnl If func was added to, say, macOS version 13, then the libc has the
+dnl symbol func always, whereas the header file <foo.h> declares func
+dnl conditionally with a special availability attribute:
+dnl   ... func (...) __attribute__((availability(macos,introduced=13.0)));
+dnl Thus, when compiling with "clang mmacosx-version-min=13", there is no
+dnl warning about the use of func, and the resulting binary
+dnl   - runs fine on macOS 13,
+dnl   - aborts with a dyld "Symbol not found" message on macOS 12.
+dnl Whereas, when compiling with "clang mmacosx-version-min=12", there is a
+dnl   warning: 'func' is only available on macOS 13.0 or newer
+dnl   [-Wunguarded-availability-new],
+dnl and the resulting binary
+dnl   - runs fine on macOS 13,
+dnl   - crashes with a SIGSEGV (signal 11) on macOS 12.
+dnl
+dnl This macro sets two variables:
+dnl   - gl_cv_onwards_func_<func>   to yes / no / "future OS version"
+dnl   - ac_cv_func_<func>           to yes / no / no
+dnl The first variable allows to distinguish all three cases.
+dnl The second variable is set, so that an invocation
+dnl   gl_CHECK_FUNCS_MACOS([func], [[#include <foo.h>]])
+dnl can be used as a drop-in replacement for
+dnl   AC_CHECK_FUNCS([func]).
+AC_DEFUN([gl_CHECK_FUNCS_MACOS],
+[
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_REQUIRE([gl_PREPARE_CHECK_FUNCS_MACOS])
+  AC_CACHE_CHECK([for [$1]],
+    [[gl_cv_onwards_func_][$1]],
+    [gl_SILENT([
+       case "$host_os" in
+         gl_CHECK_FUNCS_CASE_FOR_MACOS([$1], [$2])
+         gl_CHECK_FUNCS_DEFAULT_CASE([$1])
+       esac
+      ])
+    ])
+  gl_CHECK_FUNCS_SET_RESULTS([$1])
+])
+
+dnl gl_CHECK_FUNCS_ANDROID_MACOS([func], [[#include <foo.h>]])
+dnl is like AC_CHECK_FUNCS([func]), taking into account a portability problem
+dnl on Android and on macOS.
+dnl It is the combination of gl_CHECK_FUNCS_ANDROID and gl_CHECK_FUNCS_MACOS.
+AC_DEFUN([gl_CHECK_FUNCS_ANDROID_MACOS],
+[
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_REQUIRE([gl_PREPARE_CHECK_FUNCS_MACOS])
+  AC_CACHE_CHECK([for [$1]],
+    [[gl_cv_onwards_func_][$1]],
+    [gl_SILENT([
+       case "$host_os" in
+         gl_CHECK_FUNCS_CASE_FOR_ANDROID([$1], [$2])
+         gl_CHECK_FUNCS_CASE_FOR_MACOS([$1], [$2])
+         gl_CHECK_FUNCS_DEFAULT_CASE([$1])
+       esac
+      ])
+    ])
+  gl_CHECK_FUNCS_SET_RESULTS([$1])
 ])
 
 dnl Expands to some code for use in .c programs that, on native Windows, defines

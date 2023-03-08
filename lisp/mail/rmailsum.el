@@ -1931,7 +1931,7 @@ even if the header display is currently pruned."
    (progn (require 'rmailout)
 	  (list (rmail-output-read-file-name)
 		(prefix-numeric-value current-prefix-arg))))
-  (let ((i 0) prev-msg)
+  (let ((i 0) prev-msg curmsg)
     (while
 	(and (< i n)
 	     (progn (rmail-summary-goto-msg)
@@ -1942,7 +1942,11 @@ even if the header display is currently pruned."
       (setq i (1+ i))
       (with-current-buffer rmail-buffer
 	(let ((rmail-delete-after-output nil))
+          (setq curmsg rmail-current-message)
 	  (rmail-output file-name 1)))
+      ;; rmail-output sometimes moves to the next message; undo that.
+      (or (= curmsg (rmail-summary-msg-number))
+          (rmail-summary-goto-msg curmsg))
       (if rmail-delete-after-output
 	  (rmail-summary-delete-forward nil)
 	(if (< i n)

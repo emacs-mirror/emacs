@@ -490,6 +490,11 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
                  (string :tag "Switches"))
   :version "29.1")
 
+(defcustom dired-hide-details-preserved-columns nil
+  "List of columns which are not hidden in `dired-hide-details-mode'."
+  :type '(repeat integer)
+  :version "30.1")
+
 
 ;;; Internal variables
 
@@ -1880,8 +1885,15 @@ other marked file as well.  Otherwise, unmark all files."
 	      (put-text-property (line-beginning-position)
 				 (1+ (line-end-position))
 				 'invisible 'dired-hide-details-information))
-	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
-			     'invisible 'dired-hide-details-detail)
+	  (save-excursion
+            (let ((end (1- (point)))
+                  (opoint (goto-char (1+ (pos-bol))))
+                  (i 0))
+              (put-text-property opoint end 'invisible 'dired-hide-details-detail)
+              (while (re-search-forward "[^ ]+" end t)
+                (when (member (cl-incf i) dired-hide-details-preserved-columns)
+                  (put-text-property opoint (point) 'invisible nil))
+                (setq opoint (point)))))
           (when (and dired-mouse-drag-files (fboundp 'x-begin-drag))
             (put-text-property (point)
 	                       (save-excursion
@@ -2728,7 +2740,8 @@ directory in another window."
 (defun dired--find-possibly-alternative-file (file)
   "Find FILE, but respect `dired-kill-when-opening-new-dired-buffer'."
   (if (and dired-kill-when-opening-new-dired-buffer
-           (file-directory-p file))
+           (file-directory-p file)
+           (< (length (get-buffer-window-list)) 2))
       (progn
         (set-buffer-modified-p nil)
         (dired--find-file #'find-alternate-file file))

@@ -502,6 +502,15 @@ project.  The command @kbd{M-x eglot-code-actions} will pop up a menu
 of code applicable actions at point.
 @end table
 
+@item M-x eglot-inlay-hints-mode
+This command toggles LSP ``inlay hints'' on and off for the current
+buffer.  Inlay hints are small text annotations to specific parts of
+the whole buffer, not unlike diagnostics, but designed to help
+readability instead of indicating problems.  For example, a C++ LSP
+server can serve hints about positional parameter names in function
+calls and a variable's automatically deduced type.  Inlay hints help
+the user not have to remember these things by heart.
+
 @end itemize
 
 Not all servers support the full set of LSP capabilities, but most of

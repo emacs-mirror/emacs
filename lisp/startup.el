@@ -542,8 +542,8 @@ DIRS are relative."
   (setq comp--compilable t))
 
 (defvar native-comp-eln-load-path)
-(defvar inhibit-automatic-native-compilation)
-(defvar comp-enable-subr-trampolines)
+(defvar native-comp-jit-compilation)
+(defvar native-comp-enable-subr-trampolines)
 
 (defvar startup--original-eln-load-path nil
   "Original value of `native-comp-eln-load-path'.")
@@ -579,10 +579,6 @@ the updated value."
 It sets `command-line-processed', processes the command-line,
 reads the initialization files, etc.
 It is the default value of the variable `top-level'."
-  ;; Allow disabling automatic .elc->.eln processing.
-  (setq inhibit-automatic-native-compilation
-        (getenv "EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION"))
-
   (if command-line-processed
       (message internal--top-level-message)
     (setq command-line-processed t)
@@ -601,8 +597,8 @@ It is the default value of the variable `top-level'."
         ;; in this session.  This is necessary if libgccjit is not
         ;; available on MS-Windows, but Emacs was built with
         ;; native-compilation support.
-        (setq inhibit-automatic-native-compilation t
-              comp-enable-subr-trampolines nil))
+        (setq native-comp-jit-compilation nil
+              native-comp-enable-subr-trampolines nil))
 
       ;; Form `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
@@ -1596,7 +1592,8 @@ please check its value")
   ;; or EMACSLOADPATH, so we basically always have to check.
   (let (warned)
     (dolist (dir load-path)
-      (and (not warned)
+      (and (not noninteractive)
+           (not warned)
 	   (stringp dir)
 	   (string-equal (file-name-as-directory (expand-file-name dir))
 			 (expand-file-name user-emacs-directory))

@@ -2447,7 +2447,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#if defined(USE_GTK) && !defined(HAVE_PGTK)
+
+#ifdef HAVE_X_WINDOWS
   init_xterm ();
 #endif
 

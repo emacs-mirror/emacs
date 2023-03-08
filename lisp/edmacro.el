@@ -156,9 +156,9 @@ With a prefix argument, format the macro in a more concise way."
 	     (setq mac cmd)
 	     (setq cmd nil)))
       (when (kmacro-p mac)
-	(setq mac (kmacro--keys mac)
-	      mac-counter (kmacro--counter mac)
-	      mac-format (kmacro--format mac)))
+	(setq mac-counter (kmacro--counter mac)
+	      mac-format (kmacro--format mac)
+              mac (kmacro--keys mac)))
       (unless (arrayp mac)
 	(error "Key sequence %s is not a keyboard macro"
 	       (key-description keys)))
@@ -626,8 +626,7 @@ The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))
   (cl-loop for i below (length seq) do
-           (when (/= (logand (aref seq i) 128) 0)
-             (setf (aref seq i) (logand (aref seq i) 127))))
+           (setf (aref seq i) (logand (aref seq i) 127)))
   seq)
 
 ;; These are needed in a --without-x build.

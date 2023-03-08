@@ -893,6 +893,12 @@ permissions of the file itself.)
 If the file does not exist, or if there was trouble determining
 whether the file exists, this function returns @code{nil}.
 
+@cindex empty file name, and @code{file-exists-p}
+Since a file name that is an empty string is interpreted relative to
+the current buffer's default directory (@pxref{Relative File Names}),
+calling @code{file-exists-p} with an argument that is an empty string
+will report about the buffer's default directory.
+
 @cindex dangling symlinks, testing for existence
 Directories are files, so @code{file-exists-p} can return @code{t}
 when given a directory.  However, because @code{file-exists-p} follows
@@ -1982,7 +1988,11 @@ all.
 
 @defun file-modes-number-to-symbolic modes
 This function converts a numeric file mode specification in
-@var{modes} into the equivalent symbolic form.
+@var{modes} into the equivalent string form.  The string which this
+function returns is in the same format produced by the shell command
+@kbd{ls -l} and by @code{file-attributes}, @emph{not} the symbolic
+form accepted by @code{file-modes-symbolic-to-number} and the
+@command{chmod} shell command.
 @end defun
 
 @defun set-file-times filename &optional time flag
@@ -2352,6 +2362,10 @@ form.
 @end example
 @end defun
 
+@cindex empty file name
+  A file name that is an empty string stands for the current buffer's
+default directory.
+
 @node Directory Names
 @subsection Directory Names
 @cindex directory name
@@ -2541,6 +2555,7 @@ This is for the sake of filesystems that have the concept of a
 superroot above the root directory @file{/}.  On other filesystems,
 @file{/../} is interpreted exactly the same as @file{/}.
 
+@cindex empty file names, and @code{expand-file-name}
 Expanding @file{.} or the empty string returns the default directory:
 
 @example

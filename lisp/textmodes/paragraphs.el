@@ -476,8 +476,7 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	    (skip-chars-backward " \t\n")
 	  (goto-char par-end)))
       (setq arg (1- arg)))
-    (let ((npoint (constrain-to-field nil opoint t)))
-      (not (= npoint opoint)))))
+    (constrain-to-field nil opoint t)))
 
 (defvar forward-sentence-function #'forward-sentence-default-function
   "Function to be used to calculate sentence movements.
@@ -499,8 +498,13 @@ sentence.  Delegates its work to `forward-sentence-function'."
       (save-restriction
         (narrow-to-region start end)
         (goto-char (point-min))
-	(while (ignore-errors (forward-sentence))
-	  (setq sentences (1+ sentences)))
+        (let* ((prev (point))
+               (next (forward-sentence)))
+          (while (and (not (null next))
+                      (not (= prev next)))
+            (setq prev next
+                  next (ignore-errors (forward-sentence))
+                  sentences (1+ sentences))))
         ;; Remove last possibly empty sentence
         (when (/= (skip-chars-backward " \t\n") 0)
           (setq sentences (1- sentences)))

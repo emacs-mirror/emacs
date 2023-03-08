@@ -2333,6 +2333,9 @@ set_intervals_multibyte_1 (INTERVAL i, bool multi_flag,
 
   if (TOTAL_LENGTH (i) == 0)
     {
+      /* Delete the whole subtree.  */
+      i->left = NULL;
+      i->right = NULL;
       delete_interval (i);
       return;
     }

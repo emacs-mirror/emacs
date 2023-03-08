@@ -5081,8 +5081,8 @@ the mode line appears at the bottom.  */);
 The header line appears, optionally, at the top of a window; the mode
 line appears at the bottom.
 
-Also see `header-line-indent-mode' if `display-line-number-mode' is
-used.  */);
+Also see `header-line-indent-mode' if `display-line-numbers-mode' is
+turned on and header-line text should be aligned with buffer text.  */);
 
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
@@ -5916,40 +5916,41 @@ If nil, these display shortcuts will always remain disabled.
 There is no reason to change that value except for debugging purposes.  */);
   XSETFASTINT (Vlong_line_threshold, 50000);
 
-  DEFVAR_INT ("long-line-locked-narrowing-region-size",
-	      long_line_locked_narrowing_region_size,
-	      doc: /* Region size for locked narrowing in buffers with long lines.
+  DEFVAR_INT ("long-line-optimizations-region-size",
+	      long_line_optimizations_region_size,
+	      doc: /* Region size for narrowing in buffers with long lines.
 
-This variable has effect only in buffers which contain one or more
-lines whose length is above `long-line-threshold', which see.  For
-performance reasons, in such buffers, low-level hooks such as
-`fontification-functions' or `post-command-hook' are executed on a
-narrowed buffer, with a narrowing locked with `narrowing-lock'.  This
-variable specifies the size of the narrowed region around point.
+This variable has effect only in buffers in which
+`long-line-optimizations-p' is non-nil.  For performance reasons, in
+such buffers, the `fontification-functions', `pre-command-hook' and
+`post-command-hook' hooks are executed on a narrowed buffer around
+point, as if they were called in a `with-restriction' form with a label.
+This variable specifies the size of the narrowed region around point.
 
 To disable that narrowing, set this variable to 0.
 
-See also `long-line-locked-narrowing-bol-search-limit'.
+See also `long-line-optimizations-bol-search-limit'.
 
 There is no reason to change that value except for debugging purposes.  */);
-  long_line_locked_narrowing_region_size = 500000;
+  long_line_optimizations_region_size = 500000;
 
-  DEFVAR_INT ("long-line-locked-narrowing-bol-search-limit",
-	      long_line_locked_narrowing_bol_search_limit,
+  DEFVAR_INT ("long-line-optimizations-bol-search-limit",
+	      long_line_optimizations_bol_search_limit,
 	      doc: /* Limit for beginning of line search in buffers with long lines.
 
-This variable has effect only in buffers which contain one or more
-lines whose length is above `long-line-threshold', which see.  For
-performance reasons, in such buffers, low-level hooks such as
-`fontification-functions' or `post-command-hook' are executed on a
-narrowed buffer, with a narrowing locked with `narrowing-lock'.  The
-variable `long-line-locked-narrowing-region-size' specifies the size
-of the narrowed region around point.  This variable, which should be a
-small integer, specifies the number of characters by which that region
-can be extended backwards to make it start at the beginning of a line.
+This variable has effect only in buffers in which
+`long-line-optimizations-p' is non-nil.  For performance reasons, in
+such buffers, the `fontification-functions', `pre-command-hook' and
+`post-command-hook' hooks are executed on a narrowed buffer around
+point, as if they were called in a `with-restriction' form with a label.
+The variable `long-line-optimizations-region-size' specifies the
+size of the narrowed region around point.  This variable, which should
+be a small integer, specifies the number of characters by which that
+region can be extended backwards to make it start at the beginning of
+a line.
 
 There is no reason to change that value except for debugging purposes.  */);
-  long_line_locked_narrowing_bol_search_limit = 128;
+  long_line_optimizations_bol_search_limit = 128;
 
   DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
     doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.

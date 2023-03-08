@@ -421,7 +421,7 @@ backslash is in a quoted string, the backslash and the character
 after are both returned."
   (when (eq (char-after) ?\\)
     (when (eshell-looking-at-backslash-return (point))
-	(throw 'eshell-incomplete ?\\))
+        (throw 'eshell-incomplete "\\"))
     (forward-char 2) ; Move one char past the backslash.
     (let ((special-chars (if eshell-current-quoted
                              eshell-special-chars-inside-quoting
@@ -447,7 +447,7 @@ after are both returned."
   (if (eq (char-after) ?\')
       (let ((end (eshell-find-delimiter ?\' ?\')))
 	(if (not end)
-	    (throw 'eshell-incomplete ?\')
+            (throw 'eshell-incomplete "'")
 	  (let ((string (buffer-substring-no-properties (1+ (point)) end)))
 	    (goto-char (1+ end))
 	    (while (string-match "''" string)
@@ -460,7 +460,7 @@ after are both returned."
     (let* ((end (eshell-find-delimiter ?\" ?\" nil nil t))
 	   (eshell-current-quoted t))
       (if (not end)
-	  (throw 'eshell-incomplete ?\")
+          (throw 'eshell-incomplete "\"")
 	(prog1
 	    (save-restriction
 	      (forward-char)
@@ -514,7 +514,7 @@ If the form has no `type', the syntax is parsed as if `type' were
                         t)) ;; buffer-p is non-nil by default.
             (end (eshell-find-delimiter ?\< ?\>)))
         (when (not end)
-          (throw 'eshell-incomplete ?\<))
+          (throw 'eshell-incomplete "#<"))
         (if (eshell-arg-delimiter (1+ end))
             (prog1
                 (list (if buffer-p 'get-buffer-create 'get-process)

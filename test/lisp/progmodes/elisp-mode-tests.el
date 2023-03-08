@@ -1004,6 +1004,11 @@ evaluation of BODY."
     (should (equal (elisp--xref-infer-namespace p6) 'function)))
 
   (elisp-mode-test--with-buffer
+      (concat "(defclass child-class ({p1}parent-1 {p2}parent-2))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'function)))
+
+  (elisp-mode-test--with-buffer
       (concat "(require '{p1}alpha)\n"
               "(fboundp '{p2}beta)\n"
               "(boundp '{p3}gamma)\n"

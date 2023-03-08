@@ -95,6 +95,11 @@
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-string "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
+(declare-function treesit-parser-add-notifier "treesit.c")
+(declare-function treesit-parser-buffer "treesit.c")
+(declare-function treesit-parser-list "treesit.c")
 
 (defgroup ruby-ts nil
   "Major mode for editing Ruby code."
@@ -287,11 +292,11 @@ values of OVERRIDE"
 
    :language language
    :feature 'global
-   '((global_variable) @font-lock-variable-name-face)
+   '((global_variable) @font-lock-variable-use-face)
 
    :language language
    :feature 'instance
-   '((instance_variable) @font-lock-variable-name-face)
+   '((instance_variable) @font-lock-variable-use-face)
 
    :language language
    :feature 'method-definition
@@ -345,7 +350,7 @@ values of OVERRIDE"
    :language language
    :feature 'function
    '((call
-      method: (identifier) @font-lock-function-name-face))
+      method: (identifier) @font-lock-function-call-face))
 
    :language language
    :feature 'assignment
@@ -552,7 +557,7 @@ a statement container is a node that matches
   (let ((common
          `(
            ;; Slam all top level nodes to the left margin
-           ((parent-is "program") point-min 0)
+           ((parent-is "program") column-0 0)
 
            ;; Do not indent here docs or the end.  Not sure why it
            ;; takes the grand-parent but ok fine.
@@ -566,7 +571,7 @@ a statement container is a node that matches
            ;; Incomplete buffer state, better not reindent (bug#61017).
            ((and (parent-is "ERROR")
                  (or (node-is ,ruby-ts--class-or-module-regex)
-                     (node-is "\\`def\\'")))
+                     (node-is "\\`\\(?:def\\|identifier\\)\\'")))
             no-indent 0)
 
            ;; if then else elseif notes:
@@ -655,6 +660,13 @@ a statement container is a node that matches
             (ruby-ts--align-keywords ruby-ts--parent-node) ruby-indent-level)
            ((n-p-gp nil "body_statement" ,ruby-ts--method-regex) ;other statements
             (ruby-ts--align-keywords ruby-ts--grand-parent-node) ruby-indent-level)
+
+           ;; Quirk of the ruby parser: these "alignable" nodes don't
+           ;; have the "container" child node when there are no
+           ;; statements inside. Thus we have to have a separate rule
+           ;; for the "empty if/unless/case/def" situation.
+           ((match "\\`\\'" "\\`\\(?:if\\|unless\\|case\\|method\\)\\'")
+            (ruby-ts--align-keywords ruby-ts--parent-node) ruby-indent-level)
 
            ;; Chained calls:
            ;; if `ruby-align-chained-calls' is true, the first query
@@ -1002,6 +1014,78 @@ leading double colon is not added."
         (concat result sep method-name)
       result)))
 
+(defvar ruby-ts--s-p-query
+  (when (treesit-available-p)
+    (treesit-query-compile 'ruby
+                           '(((heredoc_body) @heredoc)
+                             ;; $' $" $`.
+                             ((global_variable) @global_var
+                              (:match "\\`\\$[#\"'`:?]" @global_var))
+                             ;; ?' ?" ?` are character literals.
+                             ((character) @char
+                              (:match "\\`?[#\"'`:?]" @char))
+                             ;; Symbols like :+, :<=> or :foo=.
+                             ((simple_symbol) @symbol
+                              (:match "[[:punct:]]" @symbol))
+                             ;; Method calls with name ending with ? or !.
+                             ((call method: (identifier) @ident)
+                              (:match "[?!]\\'" @ident))
+                             ;; Backtick method redefinition.
+                             ((operator "`" @backtick))
+                             ;; TODO: Stop at interpolations.
+                             ((regex "/" @regex_slash))
+                             ;; =begin...=end
+                             ((comment) @comm
+                              (:match "\\`=" @comm))
+                             ;; Percent literals: %w[], %q{}, ...
+                             ((string) @percent
+                              (:match "\\`%" @percent))))))
+
+(defun ruby-ts--syntax-propertize (beg end)
+  (let ((captures (treesit-query-capture 'ruby ruby-ts--s-p-query beg end)))
+    (pcase-dolist (`(,name . ,node) captures)
+      (pcase-exhaustive name
+        ('regex_slash
+         ;; N.B.: A regexp literal with modifiers actually includes them in
+         ;; the trailing "/" node.
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
+                            'syntax-table
+                            ;; Differentiate the %r{...} literals.
+                            (if (eq ?/ (char-after (treesit-node-start node)))
+                                (string-to-syntax "\"/")
+                              (string-to-syntax "|"))))
+        ('ident
+         (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "_")))
+        ('symbol
+         (put-text-property (1+ (treesit-node-start node)) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "_")))
+        ('heredoc
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
+                            'syntax-table (string-to-syntax "\""))
+         (put-text-property (treesit-node-end node) (1+ (treesit-node-end node))
+                            'syntax-table (string-to-syntax "\"")))
+        ('percent
+         ;; FIXME: Put the first one on the first paren in both %Q{} and %().
+         ;; That would stop electric-pair-mode from pairing, though.  Hmm.
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
+                            'syntax-table (string-to-syntax "|"))
+         (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "|")))
+        ((or 'global_var 'char)
+         (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
+                            'syntax-table (string-to-syntax "'"))
+         (put-text-property (1+ (treesit-node-start node)) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "_")))
+        ('backtick
+         (put-text-property (treesit-node-start node) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "_")))
+        ('comm
+         (dolist (pos (list (treesit-node-start node)
+                            (1- (treesit-node-end node))))
+           (put-text-property pos (1+ pos) 'syntax-table
+                              (string-to-syntax "!"))))))))
+
 (defvar-keymap ruby-ts-mode-map
   :doc "Keymap used in Ruby mode"
   :parent prog-mode-map
@@ -1066,7 +1150,21 @@ leading double colon is not added."
                   interpolation literal symbol assignment)
                 ( bracket error function operator punctuation)))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (treesit-parser-add-notifier (car (treesit-parser-list))
+                               #'ruby-ts--parser-after-change)
+
+  (setq-local syntax-propertize-function #'ruby-ts--syntax-propertize))
+
+(defun ruby-ts--parser-after-change (ranges parser)
+  ;; Make sure we re-syntax-propertize the full node that is being
+  ;; edited.  This is most pertinent to multi-line complex nodes such
+  ;; as heredocs.
+  (when ranges
+    (with-current-buffer (treesit-parser-buffer parser)
+      (syntax-ppss-flush-cache (cl-loop for r in ranges
+                                        minimize (car r))))))
 
 (if (treesit-ready-p 'ruby)
     ;; Copied from ruby-mode.el.

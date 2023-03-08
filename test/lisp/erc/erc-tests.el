@@ -147,7 +147,7 @@
       (should (looking-at-p (regexp-quote erc-prompt)))
       (setq erc-server-process (buffer-local-value 'erc-server-process
                                                    (get-buffer "ServNet"))
-            erc-default-recipients '("#chan")))
+            erc--target (erc--target-from-string "#chan")))
 
     (with-current-buffer (get-buffer-create "bob")
       (erc-tests--send-prep)
@@ -155,7 +155,7 @@
       (should (looking-at-p (regexp-quote erc-prompt)))
       (setq erc-server-process (buffer-local-value 'erc-server-process
                                                    (get-buffer "ServNet"))
-            erc-default-recipients '("bob")))
+            erc--target (erc--target-from-string "bob")))
 
     (ert-info ("Value: t (default)")
       (should (eq erc-hide-prompt t))

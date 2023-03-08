@@ -1225,8 +1225,10 @@ purpose by adding an entry to this alist, and setting
 	   ;; But the list will just be reversed.
 	   ,@(nreverse edebug-def-args))
        'nil)
-    (function (lambda () ,@forms))
-    ))
+    ;; Make sure `forms' is not nil so we don't accidentally return
+    ;; the magic keyword.  Mark the closure so we don't throw away
+    ;; unused vars (bug#59213).
+    #'(lambda () :closure-dont-trim-context ,@(or forms '(nil)))))
 
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented

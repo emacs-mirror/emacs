@@ -455,6 +455,7 @@ non-nil means return old filename."
   (setq major-mode 'dired-mode)
   (setq mode-name "Dired")
   (dired-advertise)
+  (dired-hide-details-update-invisibility-spec)
   (remove-hook 'kill-buffer-hook #'wdired-check-kill-buffer t)
   (remove-hook 'before-change-functions #'wdired--before-change-fn t)
   (remove-hook 'after-change-functions #'wdired--restore-properties t)

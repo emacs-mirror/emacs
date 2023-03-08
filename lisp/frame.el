@@ -873,6 +873,11 @@ the new frame according to its own rules."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
          (w (cond
+             ;; When running in a batch session, don't create a GUI
+             ;; frame.  (Batch sessions don't set a SIGIO handler on
+             ;; relevant platforms, so attempting this would terminate
+             ;; Emacs.)
+             (noninteractive nil)
              ((assq 'terminal parameters)
               (let ((type (terminal-live-p
                            (cdr (assq 'terminal parameters)))))
@@ -2120,8 +2125,9 @@ frame's display)."
 	  ;; a toggle.
 	  (featurep 't-mouse)
 	  ;; No way to check whether a w32 console has a mouse, assume
-	  ;; it always does.
-	  (boundp 'w32-use-full-screen-buffer))))))
+	  ;; it always does, except in batch invocations.
+          (and (not noninteractive)
+	       (boundp 'w32-use-full-screen-buffer)))))))
 
 (defun display-popup-menus-p (&optional display)
   "Return non-nil if popup menus are supported on DISPLAY.

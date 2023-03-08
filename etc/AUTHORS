@@ -325,9 +325,9 @@ Andreas Politz: changed filenotify.el inotify.c buffer-tests.el
 Andreas Rottmann: changed emacsclient.1 emacsclient.c misc.texi server.el
 
 Andreas Schwab: changed configure.ac lisp.h xdisp.c process.c alloc.c
-  coding.c Makefile.in files.el fileio.c keyboard.c lread.c xterm.c fns.c
-  src/Makefile.in editfns.c emacs.c print.c eval.c font.c xfns.c sysdep.c
-  and 656 other files
+  coding.c Makefile.in files.el fileio.c keyboard.c emacs.c lread.c
+  xterm.c fns.c src/Makefile.in editfns.c print.c eval.c font.c xfns.c
+  sysdep.c and 656 other files
 
 Andreas Seltenreich: changed nnweb.el gnus.texi message.el gnus-sum.el
   gnus.el nnslashdot.el gnus-srvr.el gnus-util.el mm-url.el mm-uu.el
@@ -1575,7 +1575,7 @@ and co-wrote help-tests.el
 and changed xdisp.c display.texi w32.c msdos.c w32fns.c simple.el
   files.el fileio.c emacs.c keyboard.c w32term.c text.texi dispnew.c
   w32proc.c files.texi frames.texi configure.ac lisp.h dispextern.h
-  process.c ms-w32.h and 1236 other files
+  process.c editfns.c and 1237 other files
 
 Eliza Velasquez: changed server.el
 
@@ -1984,7 +1984,7 @@ Gerd Möllmann: wrote authors.el ebrowse.el jit-lock.el tooltip.el
 and changed xdisp.c xterm.c dispnew.c dispextern.h xfns.c xfaces.c
   window.c keyboard.c lisp.h faces.el alloc.c buffer.c startup.el xterm.h
   fns.c simple.el term.c configure.ac frame.c xmenu.c emacs.c
-  and 609 other files
+  and 610 other files
 
 Gergely Nagy: changed erc.el
 
@@ -4787,8 +4787,8 @@ Robert P. Goldman: changed org.texi ob-exp.el org.el ox-latex.el
 Robert Pluim: wrote nsm-tests.el
 and changed configure.ac process.c blocks.awk network-stream-tests.el
   font.c processes.texi ftfont.c gtkutil.c vc-git.el process-tests.el
-  emoji-zwj.awk gnutls.el network-stream.el nsm.el tramp.texi mml-sec.el
-  nsterm.m unicode xfns.c auth.texi composite.c and 139 other files
+  custom.texi emoji-zwj.awk gnutls.el network-stream.el nsm.el tramp.texi
+  unicode mml-sec.el nsterm.m xfns.c auth.texi and 140 other files
 
 Robert Thorpe: changed cus-start.el indent.el rmail.texi
 
@@ -5182,7 +5182,7 @@ and co-wrote help-tests.el keymap-tests.el
 and changed efaq.texi checkdoc.el package.el cperl-mode.el bookmark.el
   help.el keymap.c subr.el simple.el erc.el ediff-util.el idlwave.el
   time.el bytecomp-tests.el comp.el emacs-lisp-intro.texi speedbar.el
-  bytecomp.el edebug.el flyspell.el ibuffer.el and 1348 other files
+  bytecomp.el edebug.el flyspell.el ibuffer.el and 1352 other files
 
 Stefan Merten: co-wrote rst.el
 
@@ -5937,7 +5937,7 @@ W. Trevor King: changed xterm.el
 
 Xavier Maillard: changed gnus-faq.texi gnus-score.el mh-utils.el spam.el
 
-Xi Lu: changed etags.c tramp-sh.el
+Xi Lu: changed etags.c htmlfontify.el ruby-mode.el tramp-sh.el
 
 Xu Chunyang: changed eww.el dom.el gud.el netrc.el
 
@@ -5953,8 +5953,8 @@ Yair F: changed hebrew.el
 
 Yamamoto Mitsuharu: wrote uvs.el
 and changed macterm.c macfns.c mac-win.el xterm.c mac.c macterm.h image.c
-  macmenu.c macgui.h xdisp.c ftfont.c xfns.c keyboard.c macselect.c
-  ftcrfont.c macfont.m configure.ac w32term.c dispextern.h
+  macmenu.c macgui.h xdisp.c ftfont.c xfns.c ftcrfont.c keyboard.c
+  macselect.c macfont.m configure.ac w32term.c dispextern.h
   src/Makefile.in unexmacosx.c and 111 other files
 
 Yan Gajdos: changed vc-git.el
@@ -6005,7 +6005,7 @@ Yuchen Pei: changed calendar.texi diary-lib.el icalendar-tests.el
 
 Yue Daian: wrote cl-font-lock.el
 
-Yuga Ego: changed emacs-lisp-intro.texi
+Yuga Ego: changed custom.texi emacs-lisp-intro.texi
 
 Yu-ji Hosokawa: changed README.W32
 

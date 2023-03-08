@@ -45,7 +45,7 @@ You can use this script that I put together here:
 You can also find them under this directory in /build-modules.
 
 This script automatically pulls and builds language definitions for C,
-C++, Rust, JSON, Go, HTML, Javascript, CSS, Python, Typescript,
+C++, Rust, JSON, Go, HTML, JavaScript, CSS, Python, Typescript,
 and C#. Better yet, I pre-built these language definitions for
 GNU/Linux and macOS, they can be downloaded here:
 
@@ -271,7 +271,7 @@ Matchers and anchors are functions that takes (NODE PARENT BOL &rest
 _). Matches return nil/non-nil for no match/match, and anchors return
 the anchor point. Below are some convenient builtin matchers and anchors.
 
-For MATHCER we have
+For MATCHER we have
 
     (parent-is TYPE) => matches if PARENT’s type matches TYPE as regexp
     (node-is TYPE) => matches NODE’s type

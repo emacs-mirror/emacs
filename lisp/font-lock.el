@@ -1154,6 +1154,8 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   "Fontify the text between BEG and END.
 If LOUDLY is non-nil, print status messages while fontifying.
 This function is the default `font-lock-fontify-region-function'."
+  (or (<= end (point-max))
+      (setq end (point-max)))
   (with-silent-modifications
    ;; Use the fontification syntax table, if any.
    (with-syntax-table (or font-lock-syntax-table (syntax-table))
@@ -2024,6 +2026,12 @@ as the constructs of Haddock, Javadoc and similar systems."
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-faces)
 
+(defface font-lock-function-call-face
+  '((t :inherit font-lock-function-name-face))
+  "Font Lock mode face used to highlight function calls."
+  :group 'font-lock-faces
+  :version "29.1")
+
 (defface font-lock-variable-name-face
   '((((class grayscale) (background light))
      :foreground "Gray90" :weight bold :slant italic)
@@ -2037,6 +2045,12 @@ as the constructs of Haddock, Javadoc and similar systems."
     (t :weight bold :slant italic))
   "Font Lock mode face used to highlight variable names."
   :group 'font-lock-faces)
+
+(defface font-lock-variable-use-face
+  '((t :inherit font-lock-variable-name-face))
+  "Font Lock mode face used to highlight variable references."
+  :group 'font-lock-faces
+  :version "29.1")
 
 (defface font-lock-type-face
   '((((class grayscale) (background light)) :foreground "Gray90" :weight bold)
@@ -2113,10 +2127,17 @@ as the constructs of Haddock, Javadoc and similar systems."
   :group 'font-lock-faces
   :version "29.1")
 
-(defface font-lock-property-face
+(defface font-lock-property-name-face
   '((t :inherit font-lock-variable-name-face))
   "Font Lock mode face used to highlight properties of an object.
-For example, the declaration and use of fields in a struct."
+For example, the declaration of fields in a struct."
+  :group 'font-lock-faces
+  :version "29.1")
+
+(defface font-lock-property-use-face
+  '((t :inherit font-lock-property-name-face))
+  "Font Lock mode face used to highlight property references.
+For example, property lookup of fields in a struct."
   :group 'font-lock-faces
   :version "29.1")
 
