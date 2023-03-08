@@ -2495,7 +2495,17 @@ permissions.  */)
       struct timespec ts[2];
       ts[0] = get_stat_atime (&st);
       ts[1] = get_stat_mtime (&st);
-      if (futimens (ofd, ts) != 0)
+      if (futimens (ofd, ts) != 0
+	  /* Various versions of the Android C library are missing
+	     futimens, which leads a gnulib fallback to be installed
+	     that uses fdutimens instead.  However, fdutimens is not
+	     supported on many Android kernels, so just silently fail
+	     if errno is ENOTSUP or ENOSYS.  */
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+	  && errno != ENOTSUP
+	  && errno != ENOSYS
+#endif
+	  )
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
     }
