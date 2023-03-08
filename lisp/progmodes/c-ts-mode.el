@@ -930,9 +930,9 @@ the semicolon.  This function skips the semicolon."
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
               (let ((pred #'c-ts-mode--defun-valid-p))
-                `(("Struct" ,(rx bos (or "struct" "enum" "union")
-                                 "_specifier" eos)
-                   ,pred nil)
+                `(("Enum" "\\`enum_specifier\\'" ,pred nil)
+                  ("Struct" "\\`struct_specifier\\'" ,pred nil)
+                  ("Union" "\\`union_specifier\\'" ,pred nil)
                   ("Variable" ,(rx bos "declaration" eos) ,pred nil)
                   ("Function" "\\`function_definition\\'" ,pred nil)
                   ("Class" ,(rx bos (or "class_specifier"
