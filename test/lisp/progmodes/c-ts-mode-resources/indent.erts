@@ -418,3 +418,19 @@ required_matrix_height (struct window *w)
   |
 }
 =-=-=
+
+Name: Empty Line
+
+=-=
+int
+main (void)
+{
+|
+}
+=-=
+int
+main (void)
+{
+  |
+}
+=-=-=

@@ -1107,9 +1107,11 @@ See `treesit-simple-indent-presets'.")
                 (&optional node-type parent-type node-field
                            node-index-min node-index-max)
                 (lambda (node parent &rest _)
-                  (and (or (null node-type)
-                           (string-match-p
-                            node-type (or (treesit-node-type node) "")))
+                  (and (pcase node-type
+                         ('nil t)
+                         ('null (null node))
+                         (_ (string-match-p
+                             node-type (or (treesit-node-type node) ""))))
                        (or (null parent-type)
                            (string-match-p
                             parent-type (treesit-node-type parent)))
@@ -1253,7 +1255,8 @@ See `treesit-simple-indent-presets'.")
                            (save-excursion
                              (goto-char bol)
                              (forward-line -1)
-                             (skip-chars-forward " \t"))))
+                             (skip-chars-forward " \t")
+                             (point))))
         (cons 'column-0 (lambda (_n _p bol &rest _)
                           (save-excursion
                             (goto-char bol)
@@ -1301,6 +1304,7 @@ MATCHER:
         (match nil \"argument_list\" nil nil 0 0).
 
     NODE-TYPE, PARENT-TYPE, and NODE-FIELD are regexps.
+    NODE-TYPE can also be `null', which matches when NODE is nil.
 
 no-node
 
