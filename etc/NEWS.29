@@ -2085,6 +2085,18 @@ command accepts the Unicode name of an Emoji (for example, "smiling
 face" or "heart with arrow"), like 'C-x 8 e e', with minibuffer
 completion, and adds the Emoji into the search string.
 
+** GDB/MI
+
+---
+*** New user option 'gdb-debuginfod-enable-setting'.
+On capable platforms, GDB 10.1 and later can download missing source
+and debug info files from special-purpose servers, called "debuginfod
+servers".  Use this new option to control whether 'M-x gdb' instructs
+GDB to download missing files from debuginfod servers when you debug
+the corresponding programs.  The default is to ask you at the
+beginning of each debugging session whether to download the files for
+that session.
+
 ** Glyphless Characters
 
 +++

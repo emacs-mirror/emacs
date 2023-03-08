@@ -5064,6 +5064,9 @@ first child where parent is @code{argument_list}, use
 (match nil "argument_list" nil nil 0 0)
 @end example
 
+In addition, @var{node-type} can be a special value @code{null},
+which matches when the value of @var{node} is @code{nil}.
+
 @item n-p-gp
 Short for ``node-parent-grandparent'', this matcher is a function of 3
 arguments: @var{node-type}, @var{parent-type}, and
