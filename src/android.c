@@ -112,6 +112,7 @@ struct android_emacs_service
   jmethodID check_content_uri;
   jmethodID query_battery;
   jmethodID display_toast;
+  jmethodID update_extracted_text;
 };
 
 struct android_emacs_pixmap
@@ -1236,13 +1237,12 @@ android_hack_asset_fd_fallback (AAsset *asset)
      Creating an ashmem file descriptor and reading from it doesn't
      work on these old Android versions.  */
 
-  snprintf (filename, PATH_MAX, "%s/%s.%d",
-	    android_cache_dir, "temp-unlinked",
-	    getpid ());
+  snprintf (filename, PATH_MAX, "%s/temp~unlinked.%d",
+	    android_cache_dir, getpid ());
   fd = open (filename, O_CREAT | O_RDWR | O_TRUNC,
 	     S_IRUSR | S_IWUSR);
 
-  if (fd < 1)
+  if (fd < 0)
     return -1;
 
   if (unlink (filename))
@@ -2135,6 +2135,9 @@ android_init_emacs_service (void)
   FIND_METHOD (query_battery, "queryBattery", "()[J");
   FIND_METHOD (display_toast, "displayToast",
 	       "(Ljava/lang/String;)V");
+  FIND_METHOD (update_extracted_text, "updateExtractedText",
+	       "(Lorg/gnu/emacs/EmacsWindow;"
+	       "Landroid/view/inputmethod/ExtractedText;I)V");
 #undef FIND_METHOD
 }
 
@@ -5991,6 +5994,37 @@ android_reset_ic (android_window window, enum android_ic_mode mode)
   android_exception_check ();
 }
 
+/* Make updates to extracted text known to the input method on
+   WINDOW.  TEXT should be a local reference to the new
+   extracted text.  TOKEN should be the token specified by the
+   input method.  */
+
+void
+android_update_extracted_text (android_window window, void *text,
+			       int token)
+{
+  jobject object;
+  jmethodID method;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  method = service_class.update_extracted_text;
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 method, object,
+						 /* N.B. that
+						   text is not
+						   jobject,
+						   because that
+						   type is not
+						   available in
+						   androidgui.h.  */
+						 (jobject) text,
+						 (jint) token);
+  android_exception_check_1 (text);
+}
+
 
 
 /* Window decoration management functions.  */
@@ -6083,7 +6117,7 @@ android_open_asset (const char *filename, int oflag, mode_t mode)
      get a regular file descriptor.  */
 
   fd.fd = android_open (filename, oflag, mode);
-  if (fd.fd < 1)
+  if (fd.fd < 0)
     return fd;
 
   /* Set fd.asset to NULL, signifying that it is a file

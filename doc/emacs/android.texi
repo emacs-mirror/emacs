@@ -205,6 +205,13 @@ other directories are not found at any fixed location, although the
 app data directory is typically symlinked to
 @file{/data/data/org.gnu.emacs}.
 
+@cindex temp~unlinked.NNNN files, Android
+  On Android devices running very old (2.6.29) versions of the Linux
+kernel, Emacs needs to create files named starting with
+@file{temp~unlinked} in the the temporary file directory in order to
+read from asset files.  Do not create files with such names yourself,
+or they may be overwritten or removed.
+
 @cindex file system limitations, Android 11
   On Android 11 and later, the Android system restricts applications
 from accessing files in the @file{/sdcard} directory using

@@ -4968,6 +4968,10 @@ NATIVE_NAME (performEditorAction) (JNIEnv *env, jobject object,
   android_write_event (&event);
 }
 
+
+
+/* Text extraction.  */
+
 struct android_get_extracted_text_context
 {
   /* The parameters of the request.  */
@@ -4975,6 +4979,9 @@ struct android_get_extracted_text_context
 
   /* Token for the request.  */
   int token;
+
+  /* Flags associated with the request.  */
+  int flags;
 
   /* The returned text, or NULL.  */
   char *text;
@@ -5011,6 +5018,14 @@ android_get_extracted_text (void *data)
     = get_extracted_text (f, min (request->hint_max_chars, 600),
 			  &request->start, &request->offset,
 			  &request->length, &request->bytes);
+
+  /* See if request->flags & GET_EXTRACTED_TEXT_MONITOR.  If so, then
+     the input method has asked to monitor changes to the extracted
+     text until the next IM context reset.  */
+
+  FRAME_ANDROID_OUTPUT (f)->extracted_text_flags = request->flags;
+  FRAME_ANDROID_OUTPUT (f)->extracted_text_token = request->token;
+  FRAME_ANDROID_OUTPUT (f)->extracted_text_hint = request->hint_max_chars;
 }
 
 /* Structure describing the `ExtractedTextRequest' class.
@@ -5038,6 +5053,51 @@ struct android_extracted_text_class
   jfieldID text;
 };
 
+/* Fields and methods associated with the `ExtractedTextRequest'
+   class.  */
+struct android_extracted_text_request_class request_class;
+
+/* Fields and methods associated with the `ExtractedText' class.  */
+struct android_extracted_text_class text_class;
+
+/* Return an ExtractedText object corresponding to the extracted text
+   TEXT.  START is a character position describing the offset of the
+   first character in TEXT.  OFFSET is the offset of point relative to
+   START.
+
+   Assume that request_class and text_class have already been
+   initialized.
+
+   Value is NULL if an error occurs; the exception is not cleared,
+   else a local reference to the ExtractedText object.  */
+
+static jobject
+android_build_extracted_text (jstring text, ptrdiff_t start,
+			      ptrdiff_t offset)
+{
+  JNIEnv *env;
+  jobject object;
+
+  env = android_java_env;
+
+  /* Create an ExtractedText object containing this information.  */
+  object = (*env)->NewObject (env, text_class.class,
+			      text_class.constructor);
+  if (!object)
+    return NULL;
+
+  (*env)->SetIntField (env, object, text_class.partial_start_offset, -1);
+  (*env)->SetIntField (env, object, text_class.partial_end_offset, -1);
+  (*env)->SetIntField (env, object, text_class.selection_start,
+		       min (offset, TYPE_MAXIMUM (jint)));
+  (*env)->SetIntField (env, object, text_class.selection_end,
+		       min (offset, TYPE_MAXIMUM (jint)));
+  (*env)->SetIntField (env, object, text_class.start_offset,
+		       min (start, TYPE_MAXIMUM (jint)));
+  (*env)->SetObjectField (env, object, text_class.text, text);
+  return object;
+}
+
 JNIEXPORT jobject JNICALL
 NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 				jshort window, jobject request,
@@ -5046,13 +5106,9 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
   struct android_get_extracted_text_context context;
-  static struct android_extracted_text_request_class request_class;
-  static struct android_extracted_text_class text_class;
   jstring string;
   jclass class;
   jobject object;
-
-  /* TODO: report changes to extracted text.  */
 
   /* Initialize both classes if necessary.  */
 
@@ -5106,6 +5162,7 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
     = (*env)->GetIntField (env, request, request_class.hint_max_chars);
   context.token
     = (*env)->GetIntField (env, request, request_class.token);
+  context.flags = flags;
   context.text = NULL;
   context.window = window;
 
@@ -5126,8 +5183,8 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
     return NULL;
 
   /* Create an ExtractedText object containing this information.  */
-  object = (*android_java_env)->NewObject (env, text_class.class,
-					   text_class.constructor);
+  object = (*env)->NewObject (env, text_class.class,
+			      text_class.constructor);
   if (!object)
     return NULL;
 
@@ -5142,6 +5199,8 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
   (*env)->SetObjectField (env, object, text_class.text, string);
   return object;
 }
+
+
 
 JNIEXPORT jstring JNICALL
 NATIVE_NAME (getSelectedText) (JNIEnv *env, jobject object,
@@ -5210,8 +5269,12 @@ NATIVE_NAME (requestSelectionUpdate) (JNIEnv *env, jobject object,
 static void
 android_update_selection (struct frame *f, struct window *w)
 {
-  ptrdiff_t start, end, point, mark;
+  ptrdiff_t start, end, point, mark, offset, length, bytes;
   struct buffer *b;
+  int hint, token;
+  char *text;
+  jobject extracted;
+  jstring string;
 
   if (MARKERP (f->conversion.compose_region_start))
     {
@@ -5246,6 +5309,36 @@ android_update_selection (struct frame *f, struct window *w)
      the selection is less than or equal to the end.  */
   android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark),
 		     max (point, mark), start, end);
+
+  /* Update the extracted text as well, if the input method has asked
+     for updates.  1 is
+     InputConnection.GET_EXTRACTED_TEXT_MONITOR.  */
+
+  if (FRAME_ANDROID_OUTPUT (f)->extracted_text_flags & 1)
+    {
+      hint = FRAME_ANDROID_OUTPUT (f)->extracted_text_hint;
+      token = FRAME_ANDROID_OUTPUT (f)->extracted_text_token;
+      text = get_extracted_text (f, min (hint, 600), &start,
+				 &offset, &length, &bytes);
+
+      /* Make a string out of the extracted text.  */
+      string = android_text_to_string (android_java_env,
+				       text, length, bytes);
+      xfree (text);
+      android_exception_check ();
+
+      /* Make extracted text out of that string.  */
+      extracted = android_build_extracted_text (string, start,
+						offset);
+      android_exception_check_1 (string);
+      ANDROID_DELETE_LOCAL_REF (string);
+
+      /* extracted is now an associated ExtractedText object.  Perform
+	 the update.  */
+      android_update_extracted_text (FRAME_ANDROID_WINDOW (f),
+				     extracted, token);
+      ANDROID_DELETE_LOCAL_REF (extracted);
+    }
 }
 
 /* Notice that the input method connection to F should be reset as a
@@ -5282,6 +5375,10 @@ android_reset_conversion (struct frame *f)
     mode = ANDROID_IC_MODE_TEXT;
 
   android_reset_ic (FRAME_ANDROID_WINDOW (f), mode);
+
+  /* Clear extracted text flags.  Since the IM has been reinitialised,
+     it should no longer be displaying extracted text.  */
+  FRAME_ANDROID_OUTPUT (f)->extracted_text_flags = 0;
 
   /* Move its selection to the specified position.  */
   android_update_selection (f, NULL);

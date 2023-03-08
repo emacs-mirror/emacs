@@ -29,6 +29,7 @@ import android.graphics.Point;
 
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.inputmethod.ExtractedText;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -810,5 +811,16 @@ public final class EmacsService extends Service
 	  toast.show ();
 	}
       });
+  }
+
+  public void
+  updateExtractedText (EmacsWindow window, ExtractedText text,
+		       int token)
+  {
+    if (DEBUG_IC)
+      Log.d (TAG, "updateExtractedText: @" + token + ", " + text);
+
+    window.view.imManager.updateExtractedText (window.view,
+					       token, text);
   }
 };

@@ -569,6 +569,7 @@ public final class EmacsView extends ViewGroup
     /* Make sure the input method never displays a full screen input
        box that obscures Emacs.  */
     info.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
+    info.imeOptions |= EditorInfo.IME_FLAG_NO_EXTRACT_UI;
 
     /* Set a reasonable inputType.  */
     info.inputType = InputType.TYPE_CLASS_TEXT;

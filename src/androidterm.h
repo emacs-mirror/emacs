@@ -241,6 +241,16 @@ struct android_output
   /* List of all tools (either styluses or fingers) pressed onto the
      frame.  */
   struct android_touch_point *touch_points;
+
+  /* Flags associated with the last request to obtain ``extracted
+     text''.  */
+  int extracted_text_flags;
+
+  /* Token asssociated with that request.  */
+  int extracted_text_token;
+
+  /* The number of characters of extracted text wanted by the IM.  */
+  int extracted_text_hint;
 };
 
 enum
