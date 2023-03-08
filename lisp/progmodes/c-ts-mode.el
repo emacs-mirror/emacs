@@ -419,7 +419,9 @@ MODE is either `c' or `cpp'."
            ((parent-is "field_declaration_list") c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
-           ((match nil "compound_statement" nil 1 1) standalone-parent c-ts-mode-indent-offset)
+           ((or (match nil "compound_statement" nil 1 1)
+                (match null "compound_statement"))
+            standalone-parent c-ts-mode-indent-offset)
            ((parent-is "compound_statement") c-ts-mode--anchor-prev-sibling 0)
            ;; Opening bracket.
            ((node-is "compound_statement") standalone-parent c-ts-mode-indent-offset)
