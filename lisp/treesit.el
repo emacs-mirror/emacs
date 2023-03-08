@@ -1253,7 +1253,8 @@ See `treesit-simple-indent-presets'.")
                            (save-excursion
                              (goto-char bol)
                              (forward-line -1)
-                             (skip-chars-forward " \t"))))
+                             (skip-chars-forward " \t")
+                             (point))))
         (cons 'column-0 (lambda (_n _p bol &rest _)
                           (save-excursion
                             (goto-char bol)
