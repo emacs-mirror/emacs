@@ -910,7 +910,7 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
 
   /* Second, read each encoding subtable itself.  */
   *data = xmalloc (cmap->num_subtables
-		   * sizeof **subtables);
+		   * sizeof *data);
 
   for (i = 0; i < cmap->num_subtables; ++i)
     {
@@ -923,7 +923,7 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
 	     being unsupported.)  Return now.  */
 
 	  for (j = 0; j < i; ++j)
-	    xfree (data[j]);
+	    xfree ((*data)[j]);
 
 	  xfree (*data);
 	  xfree (*subtables);
