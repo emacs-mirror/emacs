@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../eglot.info
 @settitle Eglot: The Emacs Client for the Language Server Protocol
-@include docstyle.texi
+@include ../emacs/docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @c %**end of header
@@ -98,6 +98,7 @@ This manual documents how to configure, use, and customize Eglot.
 * Eglot and LSP Servers::       How to work with language servers.
 * Using Eglot::                 Important Eglot commands and variables.
 * Customizing Eglot::           Eglot customization and advanced features.
+* Advanced server configuration::
 * Troubleshooting Eglot::       Troubleshooting and reporting bugs.
 * GNU Free Documentation License::  The license for this manual.
 * Index::
@@ -170,7 +171,7 @@ This chapter describes how to set up Eglot for your needs, and how to
 start it.
 
 @menu
-* Setting Up LSP Servers::   How to configure LSP servers for your needs.
+* Setting Up LSP Servers::      How to configure LSP servers for your needs.
 * Starting Eglot::              Ways of starting Eglot for your project.
 * Shutting Down LSP Servers::
 @end menu
@@ -226,11 +227,9 @@ This says to invoke @var{program} with zero or more arguments
 standard input and standard output streams.
 
 @item (@var{program} @var{args}@dots{} :initializationOptions @var{options}@dots{})
-Like above, but with @var{options} specifying the options to be
-used for constructing the @samp{initializationOptions} JSON object for
-the server.  @var{options} can also be a function of one argument, in
-which case it will be called with the server instance as the argument,
-and should return the JSON object to use for initialization.
+@var{program} is invoked with @var{args} but @var{options} specifies
+how to construct the @samp{initializationOptions} JSON object for the
+server (@pxref{Advanced server configuration}).
 
 @item (@var{host} @var{port} @var{args}@dots{})
 Here @var{host} is a string and @var{port} is a positive integer
@@ -971,12 +970,50 @@ Set this variable to true if you'd like progress notifications coming
 from the LSP server to be handled as Emacs's progress reporting
 facilities.
 
+@end table
+
+@node Advanced server configuration
+@chapter Advanced server configuration
+
+Though many language servers work very well out-of-the-both, most
+servers allow fine-grained configuration of their operation.  A small
+number of servers even require a special configuration to work
+acceptably or at all.  
+
+After having setup your server executable program in
+@code{eglot-server-programs} (@pxref{Setting Up LSP Servers}) and
+verifying that Eglot can invoke it, you may want to take advantage of
+options specific to that server.  Before doing so, it's important to
+distinguish the two main modes of server configuration:
+
+@itemize @bullet
+@item 
+User-specific, applies to all projects the server is used for
+
+This manner of configuring the server applies to all projects the
+server is employed for.  You can do this in a variety of ways,
+depending on what the server allows.  Some servers allow command line
+options To use it, a specific syntax of @code{eglot-server-programs}
+can be used, namely its @code{:initializationOptions}.
+
+@item
+Project-specific, applies to a specific project
+
+@end itemize
+
+Note that not all servers accept both forms of customization, and it's
+not even guaranteed that the options accepted in one form are also
+accepted in the other or have the same effect.  When in doubt consult
+your language server's documentation.
+
+@node The @code{:initializationOptions} option
+
+@node The @code{eglot-workspace-configuration} variable
 @vindex eglot-workspace-configuration
 @cindex server workspace configuration
-@item eglot-workspace-configuration
+
 This variable is meant to be set in the @file{.dir-locals.el} file, to
 provide per-project settings, as described below in more detail.
-@end table
 
 Some language servers need to know project-specific settings, which
 the LSP calls @dfn{workspace configuration}.  Eglot allows such fine
@@ -1073,36 +1110,9 @@ set to a function.  The function is called with the
 with @code{default-directory} set to the root of the project.  The
 function should return a value of the form described above.
 
-Some servers need special hand-holding to operate correctly.  If your
-server has some quirks or non-conformity, it's possible to extend
-Eglot via Elisp to adapt to it, by defining a suitable
-@code{eglot-initialization-options} method via @code{cl-defmethod}
-(@pxref{Generic Functions,,, elisp, GNU Emacs Lisp Reference Manual}).
+@node How to represent LSP options in Elisp
 
-Here's an example:
-
-@lisp
-(require 'eglot)
-
-(add-to-list 'eglot-server-programs
-             '((c++-mode c-mode) . (eglot-cquery "cquery")))
-
-(defclass eglot-cquery (eglot-lsp-server) ()
-  :documentation "A custom class for cquery's C/C++ langserver.")
-
-(cl-defmethod eglot-initialization-options ((server eglot-cquery))
-  "Passes through required cquery initialization options"
-  (let* ((root (car (project-roots (eglot--project server))))
-         (cache (expand-file-name ".cquery_cached_index/" root)))
-    (list :cacheDirectory (file-name-as-directory cache)
-          :progressReportFrequencyMs -1)))
-@end lisp
-
-@noindent
-See the doc string of @code{eglot-initialization-options} for more
-details.
-@c FIXME: The doc string of eglot-initialization-options should be
-@c enhanced and extended.
+@node Other modes of controlling server behaviour
 
 @node Troubleshooting Eglot
 @chapter Troubleshooting Eglot
