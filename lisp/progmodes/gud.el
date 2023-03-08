@@ -135,9 +135,9 @@ Used to gray out relevant toolbar icons.")
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
   (interactive)
-  (if (eq gud-minor-mode 'gdbmi)
-      (info-other-window "(emacs)GDB Graphical Interface")
-    (info-other-window "(emacs)Debuggers")))
+  (info-other-window (if (eq gud-minor-mode 'gdbmi)
+                         "(emacs)GDB Graphical Interface"
+                       "(emacs)Debuggers")))
 
 (defun gud-tool-bar-item-visible-no-fringe ()
   (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)
@@ -159,14 +159,17 @@ Used to gray out relevant toolbar icons.")
           (t
            (comint-interrupt-subjob)))))
 
+(defvar-keymap gud-shared-mode-map
+  :doc "Keymap shared between `gud-mode' and `gud-minor-mode'.")
+
 (defvar-keymap gud-mode-map
-  ;; Will inherit from comint-mode via define-derived-mode.
-  :doc "`gud-mode' keymap.")
+  :doc "`gud-mode' keymap."
+  :parent (make-composed-keymap gud-shared-mode-map comint-mode-map))
 
 (defvar-keymap gud-minor-mode-map
-  :parent gud-mode-map)
+  :parent gud-shared-mode-map)
 
-(easy-menu-define gud-menu-map gud-mode-map
+(easy-menu-define gud-menu-map gud-shared-mode-map
   "Menu for `gud-mode'."
   '("Gud"
     ["Continue" gud-cont
@@ -535,9 +538,9 @@ required by the caller."
 			(value (nth 4 var)) (status (nth 5 var))
 			(has-more (nth 6 var)))
 	      (put-text-property
-	       0 (length expr) 'face font-lock-variable-name-face expr)
+	       0 (length expr) 'face 'font-lock-variable-name-face expr)
 	      (put-text-property
-	       0 (length type) 'face font-lock-type-face type)
+	       0 (length type) 'face 'font-lock-type-face type)
 	      (while (string-match "\\." varnum start)
 		(setq depth (1+ depth)
 		      start (1+ (match-beginning 0))))
@@ -1260,7 +1263,7 @@ whereby $stopformat=1 produces an output format compatible with
       (define-key map key cmd))
     (when (or gud-mips-p
               gud-irix-p)
-      (define-key map "f" 'gud-finish))
+      (define-key map "f" #'gud-finish))
     map)
   "Keymap to repeat `dbx' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
@@ -3422,9 +3425,9 @@ class of the file (using s to separate nested class ids)."
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond
-   ((nth 3 state) font-lock-string-face)
-   ((nth 7 state) font-lock-doc-face)
-   (t font-lock-comment-face)))
+   ((nth 3 state) 'font-lock-string-face)
+   ((nth 7 state) 'font-lock-doc-face)
+   (t 'font-lock-comment-face)))
 
 (defvar gdb-script-basic-indent 2)
 
@@ -3455,7 +3458,7 @@ class of the file (using s to separate nested class ids)."
 (defun gdb-script-indent-line ()
   "Indent current line of GDB script."
   (interactive)
-  (if (and (eq (get-text-property (point) 'face) font-lock-doc-face)
+  (if (and (eq (get-text-property (point) 'face) 'font-lock-doc-face)
 	   (save-excursion
 	     (forward-line 0)
 	     (skip-chars-forward " \t")
