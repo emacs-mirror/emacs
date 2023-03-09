@@ -65,7 +65,7 @@ typedef struct mps_pool_class_s {
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   PoolSizeMethod totalSize;     /* total memory allocated from arena */
   PoolSizeMethod freeSize;      /* free memory (unused by client program) */
-  Sig sig;                      /* design.mps.sig.field.end.class */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } PoolClassStruct;
 
 
@@ -205,7 +205,7 @@ typedef struct SegClassStruct {
   SegFixMethod fixEmergency;    /* as fix, no failure allowed */
   SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
   SegWalkMethod walk;           /* walk over a segment */
-  Sig sig;                      /* design.mps.sig.field.end.class */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } SegClassStruct;
 
 
@@ -289,7 +289,7 @@ typedef struct BufferClassStruct {
   BufferRankSetMethod rankSet;  /* rank set of buffer */
   BufferSetRankSetMethod setRankSet; /* change rank set of buffer */
   BufferReassignSegMethod reassignSeg; /* change seg of attached buffer */
-  Sig sig;                      /* design.mps.sig.field.end.class */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } BufferClassStruct;
 
 
@@ -489,7 +489,7 @@ typedef struct mps_arena_class_s {
   ArenaCompactMethod compact;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   ArenaChunkPageMappedMethod chunkPageMapped;
-  Sig sig; /* design.mps.sig.field.end.class */
+  Sig sig; /* design.mps.sig.field.end.outer */
 } ArenaClassStruct;
 
 
@@ -561,7 +561,7 @@ typedef struct LandClassStruct {
   LandFindMethod findLast;      /* find last range of given size */
   LandFindMethod findLargest;   /* find largest range */
   LandFindInZonesMethod findInZones; /* find first range of given size in zone set */
-  Sig sig;                      /* design.mps.sig.field.end.class */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } LandClassStruct;
 
 
