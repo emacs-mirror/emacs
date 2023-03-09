@@ -83,7 +83,7 @@ typedef struct mps_pool_class_s {
 
 typedef struct mps_pool_s {     /* generic structure */
   InstStruct instStruct;
-  Sig sig;                      /* design.mps.sig.field [FIXME: Why is this not at the end? RB 2023-03-09] */
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->poolSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* link in list of pools in arena */
@@ -218,7 +218,7 @@ typedef struct SegClassStruct {
 
 typedef struct SegStruct {      /* segment structure */
   InstStruct instStruct;
-  Sig sig;                      /* design.mps.sig.field [FIXME: should be at end?  RB 2023-03-09] */
+  Sig sig;                      /* design.mps.sig.field */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
@@ -307,7 +307,7 @@ typedef struct BufferClassStruct {
 
 typedef struct BufferStruct {
   InstStruct instStruct;
-  Sig sig;                      /* design.mps.sig.field [FIXME: Why is this not at the end?  RB 2023-03-09] */
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from pool->bufferSerial */
   Arena arena;                  /* owning arena */
   Pool pool;                    /* owning pool */

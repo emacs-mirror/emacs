@@ -186,7 +186,7 @@ typedef void (*FinishMethod)(Inst inst);
 
 typedef struct InstClassStruct {
   InstStruct instStruct;        /* classes are instances of kinds */
-  Sig sig;                      /* design.mps.sig.field [FIXME: Why isn't this at the end? RB 2023-03-09] */
+  Sig sig;                      /* design.mps.sig.field */
   ClassName name;               /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
