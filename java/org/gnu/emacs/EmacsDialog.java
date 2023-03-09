@@ -57,6 +57,9 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
   /* Dialog to dismiss after click.  */
   private AlertDialog dismissDialog;
 
+  /* The menu serial associated with this dialog box.  */
+  private int menuEventSerial;
+
   private class EmacsButton implements View.OnClickListener,
 			    DialogInterface.OnClickListener
   {
@@ -76,7 +79,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
       Log.d (TAG, "onClicked " + this);
 
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id);
+      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
       dismissDialog.dismiss ();
     }
 
@@ -87,15 +90,16 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
       Log.d (TAG, "onClicked " + this);
 
       wasButtonClicked = true;
-      EmacsNative.sendContextMenu ((short) 0, id);
+      EmacsNative.sendContextMenu ((short) 0, id, menuEventSerial);
     }
   };
 
   /* Create a popup dialog with the title TITLE and the text TEXT.
-     TITLE may be NULL.  */
+     TITLE may be NULL.  MENUEVENTSERIAL is a number which will
+     identify this popup dialog inside events it sends.  */
 
   public static EmacsDialog
-  createDialog (String title, String text)
+  createDialog (String title, String text, int menuEventSerial)
   {
     EmacsDialog dialog;
 
@@ -103,6 +107,7 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     dialog.buttons = new ArrayList<EmacsButton> ();
     dialog.title = title;
     dialog.text = text;
+    dialog.menuEventSerial = menuEventSerial;
 
     return dialog;
   }
@@ -330,6 +335,6 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     if (wasButtonClicked)
       return;
 
-    EmacsNative.sendContextMenu ((short) 0, 0);
+    EmacsNative.sendContextMenu ((short) 0, 0, menuEventSerial);
   }
 };

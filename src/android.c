@@ -2744,7 +2744,8 @@ NATIVE_NAME (sendDeiconified) (JNIEnv *env, jobject object,
 
 JNIEXPORT jlong JNICALL
 NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
-			       jshort window, jint menu_event_id)
+			       jshort window, jint menu_event_id,
+			       jint menu_event_serial)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
@@ -2754,6 +2755,7 @@ NATIVE_NAME (sendContextMenu) (JNIEnv *env, jobject object,
   event.menu.serial = ++event_serial;
   event.menu.window = window;
   event.menu.menu_event_id = menu_event_id;
+  event.menu.menu_event_serial = menu_event_serial;
 
   android_write_event (&event);
   return event_serial;

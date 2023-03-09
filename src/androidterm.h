@@ -421,6 +421,12 @@ extern void android_finalize_font_entity (struct font_entity *);
 
 /* Defined in androidmenu.c.  */
 
+#ifndef ANDROID_STUBIFY
+
+extern unsigned int current_menu_serial;
+
+#endif
+
 extern Lisp_Object android_menu_show (struct frame *, int, int, int,
 				      Lisp_Object, const char **);
 extern Lisp_Object android_popup_dialog (struct frame *, Lisp_Object,

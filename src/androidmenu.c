@@ -35,6 +35,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 static int popup_activated_flag;
 
+/* Serial number used to identify which context menu events are
+   associated with the context menu currently being displayed.  */
+
+unsigned int current_menu_serial;
+
 int
 popup_activated (void)
 {
@@ -96,7 +101,8 @@ android_init_emacs_context_menu (void)
   eassert (menu_class.c_name);
 
   FIND_METHOD_STATIC (create_context_menu, "createContextMenu",
-		      "(Ljava/lang/String;)Lorg/gnu/emacs/EmacsContextMenu;");
+		      "(Ljava/lang/String;)"
+		      "Lorg/gnu/emacs/EmacsContextMenu;");
 
   FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ"
 	       "Ljava/lang/String;)V");
@@ -105,7 +111,7 @@ android_init_emacs_context_menu (void)
 	       "Lorg/gnu/emacs/EmacsContextMenu;");
   FIND_METHOD (add_pane, "addPane", "(Ljava/lang/String;)V");
   FIND_METHOD (parent, "parent", "()Lorg/gnu/emacs/EmacsContextMenu;");
-  FIND_METHOD (display, "display", "(Lorg/gnu/emacs/EmacsWindow;II)Z");
+  FIND_METHOD (display, "display", "(Lorg/gnu/emacs/EmacsWindow;III)Z");
   FIND_METHOD (dismiss, "dismiss", "(Lorg/gnu/emacs/EmacsWindow;)V");
 
 #undef FIND_METHOD
@@ -254,8 +260,10 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
   struct android_menu_subprefix *subprefix, *temp_subprefix;
   struct android_menu_subprefix *subprefix_1;
   bool checkmark;
+  unsigned int serial;
 
   count = SPECPDL_INDEX ();
+  serial = ++current_menu_serial;
 
   block_input ();
 
@@ -458,7 +466,8 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 					       context_menu,
 					       menu_class.display,
 					       window, (jint) x,
-					       (jint) y);
+					       (jint) y,
+					       (jint) serial);
   android_exception_check ();
 
   if (!rc)
@@ -606,7 +615,7 @@ android_init_emacs_dialog (void)
 					      name, signature);		\
 
   FIND_METHOD_STATIC (create_dialog, "createDialog", "(Ljava/lang/String;"
-		      "Ljava/lang/String;)Lorg/gnu/emacs/EmacsDialog;");
+		      "Ljava/lang/String;I)Lorg/gnu/emacs/EmacsDialog;");
   FIND_METHOD (add_button, "addButton", "(Ljava/lang/String;IZ)V");
   FIND_METHOD (display, "display", "()Z");
 
@@ -625,6 +634,10 @@ android_dialog_show (struct frame *f, Lisp_Object title,
   bool rc;
   int id;
   jmethodID method;
+  unsigned int serial;
+
+  /* Generate a unique ID for events from this dialog box.  */
+  serial = ++current_menu_serial;
 
   if (menu_items_n_panes > 1)
     {
@@ -651,7 +664,8 @@ android_dialog_show (struct frame *f, Lisp_Object title,
   dialog = (*android_java_env)->CallStaticObjectMethod (android_java_env,
 							dialog_class.class,
 							method, java_header,
-						        java_title);
+						        java_title,
+							(jint) serial);
   android_exception_check ();
 
   /* Delete now unused local references.  */

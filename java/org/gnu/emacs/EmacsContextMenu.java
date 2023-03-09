@@ -49,6 +49,9 @@ public final class EmacsContextMenu
   /* Whether or not a submenu was selected.  */
   public static boolean wasSubmenuSelected;
 
+  /* The serial ID of the last context menu to be displayed.  */
+  public static int lastMenuEventSerial;
+
   private static class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
@@ -106,7 +109,8 @@ public final class EmacsContextMenu
 	}
 
       /* Send a context menu event.  */
-      EmacsNative.sendContextMenu ((short) 0, itemID);
+      EmacsNative.sendContextMenu ((short) 0, itemID,
+				   lastMenuEventSerial);
 
       /* Say that an item has already been selected.  */
       itemAlreadySelected = true;
@@ -293,12 +297,13 @@ public final class EmacsContextMenu
 				  false);
   }
 
-  /* Display this context menu on WINDOW, at xPosition and
-     yPosition.  */
+  /* Display this context menu on WINDOW, at xPosition and yPosition.
+     SERIAL is a number that will be returned in any menu event
+     generated to identify this context menu.  */
 
   public boolean
   display (final EmacsWindow window, final int xPosition,
-	   final int yPosition)
+	   final int yPosition, final int serial)
   {
     Runnable runnable;
     final Holder<Boolean> rc;
@@ -312,6 +317,7 @@ public final class EmacsContextMenu
 	{
 	  synchronized (this)
 	    {
+	      lastMenuEventSerial = serial;
 	      rc.thing = display1 (window, xPosition, yPosition);
 	      notify ();
 	    }

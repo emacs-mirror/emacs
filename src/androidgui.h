@@ -418,6 +418,9 @@ struct android_menu_event
 
   /* Menu event ID.  */
   int menu_event_id;
+
+  /* Menu event serial; this counter identifies the context menu.  */
+  int menu_event_serial;
 };
 
 enum android_ime_operation

@@ -315,6 +315,8 @@ public class EmacsActivity extends Activity
   public final void
   onContextMenuClosed (Menu menu)
   {
+    int serial;
+
     Log.d (TAG, "onContextMenuClosed: " + menu);
 
     /* See the comment inside onMenuItemClick.  */
@@ -335,7 +337,11 @@ public class EmacsActivity extends Activity
     /* Send a context menu event given that no menu item has already
        been selected.  */
     if (!EmacsContextMenu.itemAlreadySelected)
-      EmacsNative.sendContextMenu ((short) 0, 0);
+      {
+	serial = EmacsContextMenu.lastMenuEventSerial;
+	EmacsNative.sendContextMenu ((short) 0, 0,
+				     serial);
+      }
 
     super.onContextMenuClosed (menu);
   }

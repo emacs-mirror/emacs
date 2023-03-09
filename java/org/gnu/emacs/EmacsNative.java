@@ -155,7 +155,8 @@ public final class EmacsNative
   public static native long sendDeiconified (short window);
 
   /* Send an ANDROID_CONTEXT_MENU event.  */
-  public static native long sendContextMenu (short window, int menuEventID);
+  public static native long sendContextMenu (short window, int menuEventID,
+					     int menuEventSerial);
 
   /* Send an ANDROID_EXPOSE event.  */
   public static native long sendExpose (short window, int x, int y,

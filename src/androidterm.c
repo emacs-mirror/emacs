@@ -1457,7 +1457,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       /* Context menu handling.  */
     case ANDROID_CONTEXT_MENU:
 
-      if (dpyinfo->menu_event_id == -1)
+      if (dpyinfo->menu_event_id == -1
+	  /* Previously displayed popup menus might generate events
+	     after dismissal, which might interfere.
+	     `current_menu_serial' is always set to an identifier
+	     identifying the last context menu to be displayed.  */
+	  && event->menu.menu_event_serial == current_menu_serial)
 	dpyinfo->menu_event_id = event->menu.menu_event_id;
 
       goto OTHER;
