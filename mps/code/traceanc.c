@@ -57,7 +57,7 @@
 #define TRACE_START_MESSAGE_WHYBUF_LEN 128
 
 typedef struct TraceStartMessageStruct {
-  Sig sig;
+  Sig sig; /* design.mps.sig.field */
   char why[TRACE_START_MESSAGE_WHYBUF_LEN];  /* .whybuf */
   MessageStruct messageStruct;
 } TraceStartMessageStruct;
@@ -253,7 +253,7 @@ void TracePostStartMessage(Trace trace)
 #define TraceMessageSig ((Sig)0x51926359) /* SIGnature TRace MeSsaGe */
 
 typedef struct TraceMessageStruct  {
-  Sig sig;
+  Sig sig; /* design.mps.sig.field */
   Size liveSize;
   Size condemnedSize;
   Size notCondemnedSize;

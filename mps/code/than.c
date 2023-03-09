@@ -14,7 +14,7 @@ SRCID(than, "$Id$");
 
 
 typedef struct mps_thr_s {      /* ANSI fake thread structure */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */

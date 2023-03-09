@@ -41,7 +41,7 @@ typedef struct GenDescStruct *GenDesc;
 #define GenDescSig ((Sig)0x5199E4DE)  /* SIGnature GEN DEsc */
 
 typedef struct GenDescStruct {
-  Sig sig;              /* <design/sig> */
+  Sig sig;              /* design.mps.sig.field */
   Serial serial;        /* serial number within arena */
   ZoneSet zones;        /* zoneset for this generation */
   Size capacity;        /* capacity in bytes */
@@ -58,7 +58,7 @@ typedef struct GenDescStruct {
 #define PoolGenSig ((Sig)0x519B009E)  /* SIGnature POOl GEn */
 
 typedef struct PoolGenStruct {
-  Sig sig;
+  Sig sig;            /* design.mps.sig.field */
   Pool pool;          /* pool this belongs to */
   GenDesc gen;        /* generation this belongs to */
   /* link in ring of all PoolGen's in this GenDesc (locus) */
@@ -81,7 +81,7 @@ typedef struct PoolGenStruct {
 #define ChainSig ((Sig)0x519C8A14)  /* SIGnature CHAIN */
 
 typedef struct mps_chain_s {
-  Sig sig;
+  Sig sig;              /* design.mps.sig.field */
   Arena arena;
   RingStruct chainRing; /* list of chains in the arena */
   size_t genCount; /* number of generations */

@@ -30,7 +30,7 @@ DECLARE_CLASS(Arena, ClientArena, AbstractArena);
 
 typedef struct ClientArenaStruct {
   ArenaStruct arenaStruct; /* generic arena structure */
-  Sig sig;                 /* <design/sig> */
+  Sig sig;                 /* design.mps.sig.field.end.outer */
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
 
@@ -45,7 +45,7 @@ typedef struct ClientChunkStruct {
   ChunkStruct chunkStruct;     /* generic chunk */
   Size freePages;              /* number of free pages in chunk */
   Addr pageBase;               /* base of first managed page in chunk */
-  Sig sig;                     /* <design/sig> */
+  Sig sig;                     /* design.mps.sig.field.end.outer */
 } ClientChunkStruct;
 
 #define ClientChunk2Chunk(clchunk) (&(clchunk)->chunkStruct)

@@ -41,10 +41,7 @@
  * CLASS(ABCPool) returns a PoolClass pointing to a PoolClassStruct of
  * methods which implement the memory management policy for pool class
  * ABC.
- *
- * .class.end-sig: The class structure has a signature at the end.  This
- * causes the compiler to complain if the class structure is extended
- * without modifying static initializers.  */
+ */
 
 #define PoolClassSig    ((Sig)0x519C7A55) /* SIGnature pool CLASS */
 
@@ -68,7 +65,7 @@ typedef struct mps_pool_class_s {
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
   PoolSizeMethod totalSize;     /* total memory allocated from arena */
   PoolSizeMethod freeSize;      /* free memory (unused by client program) */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.class */
 } PoolClassStruct;
 
 
@@ -86,7 +83,7 @@ typedef struct mps_pool_class_s {
 
 typedef struct mps_pool_s {     /* generic structure */
   InstStruct instStruct;
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field [FIXME: Why is this not at the end? RB 2023-03-09] */
   Serial serial;                /* from arena->poolSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* link in list of pools in arena */
@@ -122,7 +119,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
   Size total;                   /* total size allocated from arena */
   Size free;                    /* free space in pool */
   RingStruct extentRing;        /* ring of extents in pool */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } MFSStruct;
 
 
@@ -135,7 +132,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
 #define MessageClassSig ((Sig)0x519359c1) /* SIGnature MeSsaGe CLass */
 
 typedef struct MessageClassStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   const char *name;             /* Human readable Class name */
 
   MessageType type;             /* Message Type */
@@ -164,7 +161,7 @@ typedef struct MessageClassStruct {
  * <design/message#.message.struct>.  */
 
 typedef struct mps_message_s {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Arena arena;                  /* owning arena */
   MessageClass klass;           /* Message Class Structure */
   Clock postedClock;            /* mps_clock() at post time, or 0 */
@@ -208,7 +205,7 @@ typedef struct SegClassStruct {
   SegFixMethod fixEmergency;    /* as fix, no failure allowed */
   SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
   SegWalkMethod walk;           /* walk over a segment */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.class */
 } SegClassStruct;
 
 
@@ -221,7 +218,7 @@ typedef struct SegClassStruct {
 
 typedef struct SegStruct {      /* segment structure */
   InstStruct instStruct;
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field [FIXME: should be at end?  RB 2023-03-09] */
   Tract firstTract;             /* first tract of segment */
   RingStruct poolRing;          /* link in list of segs in pool */
   Addr limit;                   /* limit of segment */
@@ -250,7 +247,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
   RefSet summary;               /* summary of references out of seg */
   Buffer buffer;                /* non-NULL if seg is buffered */
   RingStruct genRing;           /* link in list of segs in gen */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } GCSegStruct;
 
 
@@ -264,7 +261,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
 #define LocusPrefSig      ((Sig)0x51970CB6) /* SIGnature LOCus PRef */
 
 typedef struct LocusPrefStruct { /* locus placement preferences */
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Bool high;                    /* high or low */
   ZoneSet zones;                /* preferred zones */
   ZoneSet avoid;                /* zones to avoid */
@@ -292,7 +289,7 @@ typedef struct BufferClassStruct {
   BufferRankSetMethod rankSet;  /* rank set of buffer */
   BufferSetRankSetMethod setRankSet; /* change rank set of buffer */
   BufferReassignSegMethod reassignSeg; /* change seg of attached buffer */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.class */
 } BufferClassStruct;
 
 
@@ -310,7 +307,7 @@ typedef struct BufferClassStruct {
 
 typedef struct BufferStruct {
   InstStruct instStruct;
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field [FIXME: Why is this not at the end?  RB 2023-03-09] */
   Serial serial;                /* from pool->bufferSerial */
   Arena arena;                  /* owning arena */
   Pool pool;                    /* owning pool */
@@ -339,7 +336,7 @@ typedef struct SegBufStruct {
   BufferStruct bufferStruct;    /* superclass fields must come first */
   RankSet rankSet;              /* ranks of references being created */
   Seg seg;                      /* segment being buffered */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } SegBufStruct;
 
 
@@ -353,7 +350,7 @@ typedef struct SegBufStruct {
 #define FormatSig       ((Sig)0x519F63A2) /* Signature FoRMAT */
 
 typedef struct mps_fmt_s {
-  Sig sig;
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->formatSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
@@ -399,7 +396,7 @@ typedef struct mps_fmt_s {
 #define ScanStateSig    ((Sig)0x5195CA45) /* SIGnature SCAN State */
 
 typedef struct ScanStateStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
   mps_fmt_scan_t formatScan;    /* callback for scanning formatted objects */
@@ -428,7 +425,7 @@ typedef struct ScanStateStruct {
 #define TraceSig ((Sig)0x51924ACE) /* SIGnature TRACE */
 
 typedef struct TraceStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
   TraceStartWhy why;            /* why the trace began */
@@ -492,7 +489,7 @@ typedef struct mps_arena_class_s {
   ArenaCompactMethod compact;
   ArenaPagesMarkAllocatedMethod pagesMarkAllocated;
   ArenaChunkPageMappedMethod chunkPageMapped;
-  Sig sig;
+  Sig sig; /* design.mps.sig.field.end.class */
 } ArenaClassStruct;
 
 
@@ -506,7 +503,7 @@ typedef struct mps_arena_class_s {
 #define GlobalsSig ((Sig)0x519970BA) /* SIGnature GLOBAls */
 
 typedef struct GlobalsStruct {
-  Sig sig;
+  Sig sig;                      /* design.mps.sig.field */
 
   /* general fields <code/global.c> */
   RingStruct globalRing;        /* node in global ring of arenas */
@@ -564,7 +561,7 @@ typedef struct LandClassStruct {
   LandFindMethod findLast;      /* find last range of given size */
   LandFindMethod findLargest;   /* find largest range */
   LandFindInZonesMethod findInZones; /* find first range of given size in zone set */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.class */
 } LandClassStruct;
 
 
@@ -577,7 +574,7 @@ typedef struct LandClassStruct {
 
 typedef struct LandStruct {
   InstStruct instStruct;
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Arena arena;                  /* owning arena */
   Align alignment;              /* alignment of addresses */
   Bool inLand;                  /* prevent reentrance */
@@ -604,7 +601,7 @@ typedef struct CBSStruct {
   Size size;                    /* total size of ranges in CBS */
   /* meters for sizes of search structures at each op */
   METER_DECL(treeSearch)
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } CBSStruct;
 
 
@@ -622,7 +619,7 @@ typedef struct FailoverStruct {
   LandStruct landStruct;        /* superclass fields come first */
   Land primary;                 /* use this land normally */
   Land secondary;               /* but use this one if primary fails */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } FailoverStruct;
 
 
@@ -643,7 +640,7 @@ typedef struct FreelistStruct {
   FreelistBlock list;           /* first block in list or NULL if empty */
   Count listSize;               /* number of blocks in list */
   Size size;                    /* total size of ranges in list */
-  Sig sig;                      /* .class.end-sig */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } FreelistStruct;
 
 
@@ -669,7 +666,7 @@ typedef struct SortStruct {
 #define ShieldSig      ((Sig)0x519581E1) /* SIGnature SHEILd */
 
 typedef struct ShieldStruct {
-  Sig sig;           /* <design/sig> */
+  Sig sig;           /* design.mps.sig.field */
   BOOLFIELD(inside); /* <design/shield#.def.inside> */
   BOOLFIELD(suspended); /* mutator suspended? */
   BOOLFIELD(queuePending); /* queue insertion pending? */
@@ -692,7 +689,7 @@ typedef struct ShieldStruct {
 #define HistorySig     ((Sig)0x51981520) /* SIGnature HISTOry */
 
 typedef struct HistoryStruct {
-  Sig sig;                         /* <design/sig> */
+  Sig sig;                         /* design.mps.sig.field */
   Epoch epoch;                     /* <design/arena#.ld.epoch> */
   RefSet prehistory;               /* <design/arena#.ld.prehistory> */
   RefSet history[LDHistoryLENGTH]; /* <design/arena#.ld.history> */
@@ -724,7 +721,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   FailoverStruct foStruct;      /* free memory (fail-over mechanism) */
   Bool firstFit;                /* as opposed to last fit */
   Bool slotHigh;                /* prefers high part of large block */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } MVFFStruct;
 
 
@@ -819,7 +816,7 @@ typedef struct mps_arena_s {
   void *stackWarm;               /* NULL or stack pointer warmer than
                                     mutator state. */
 
-  Sig sig;
+  Sig sig; /* design.mps.sig.field.end.outer */
 } ArenaStruct;
 
 

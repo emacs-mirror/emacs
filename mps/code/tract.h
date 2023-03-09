@@ -83,7 +83,7 @@ typedef union PageUnion {     /* page structure */
 #define ChunkSig ((Sig)0x519C804C) /* SIGnature CHUNK */
 
 typedef struct ChunkStruct {
-  Sig sig;              /* <design/sig> */
+  Sig sig;              /* design.mps.sig.field */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
   RingStruct arenaRing; /* node in ring of all chunks in arena */

@@ -107,7 +107,7 @@ typedef struct MRGStruct {
   RingStruct freeRing;      /* <design/poolmrg#.poolstruct.free> */
   RingStruct refRing;       /* <design/poolmrg#.poolstruct.refring> */
   Size extendBy;            /* <design/poolmrg#.extend> */
-  Sig sig;                  /* <code/mps.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } MRGStruct;
 
 typedef MRG MRGPool;
@@ -143,14 +143,14 @@ typedef struct MRGRefSegStruct *MRGRefSeg;
 typedef struct MRGLinkSegStruct {
   SegStruct segStruct;      /* superclass fields must come first */
   MRGRefSeg refSeg;         /* <design/poolmrg#.mrgseg.link.refseg> */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } MRGLinkSegStruct;
 
 typedef struct MRGRefSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   RingStruct mrgRing;       /* <design/poolmrg#.mrgseg.ref.segring> */
   MRGLinkSeg linkSeg;       /* <design/poolmrg#.mrgseg.ref.linkseg> */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } MRGRefSegStruct;
 
 
