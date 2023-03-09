@@ -994,6 +994,12 @@ android_get_asset_name (const char *filename)
 static bool
 android_content_name_p (const char *filename)
 {
+  /* Content URIs aren't supported before Android 4.4, so return
+     false.  */
+
+  if (android_api_level < 19)
+    return false;
+
   return (!strcmp (filename, "/content")
 	  || !strncmp (filename, "/content/",
 		       sizeof "/content/" - 1));

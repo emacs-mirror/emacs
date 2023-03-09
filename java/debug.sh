@@ -284,7 +284,7 @@ else
     if (adb -s $device shell ls /system/bin | grep -G tee); then
 	# Copy it to the user directory.
 	adb -s $device shell "$gdbserver_cat"
-	adb -s $device shell "run-as $package chmod +x gdbserver"
+	adb -s $device shell "run-as $package chmod 777 gdbserver"
 	gdbserver_cmd="./gdbserver"
     else
 	# Hopefully this is an old version of Android which allows
