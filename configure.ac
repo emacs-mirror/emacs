@@ -2806,6 +2806,25 @@ if test "${with_webp}" != "no"; then
       WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
+
+      # WebPGetInfo is sometimes not present inside libwebpdemux, so
+      # if it does not link, also check for libwebpdecoder.
+
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
+      CFLAGS="$CFLAGS $WEBP_CFLAGS"
+      LIBS="$LIBS $WEBP_LIBS"
+
+      AC_CHECK_FUNC([WebPGetInfo], [],
+        [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+	 HAVE_WEBP=no
+	 AS_UNSET([WEBP_LIBS])
+	 AS_UNSET([WEBP_CFLAGS])
+	 EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])])
+
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
+
       AC_SUBST([WEBP_CFLAGS])
       AC_SUBST([WEBP_LIBS])
    fi
