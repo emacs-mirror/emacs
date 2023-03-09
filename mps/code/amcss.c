@@ -95,7 +95,12 @@ static void report(void)
 
 static mps_addr_t make(size_t rootsCount)
 {
-  static volatile unsigned long calls = 0; /* for use from debugger */
+  /* The calls variable is useful when debugging to stop the debugging
+     after a certain number of allocations using a debugger
+     "watchpoint".  Allocations are a good "clock tick" for this test.
+     The test itself doesn't use the variable, so we declare it
+     volatile, which also forces updates into memory. */
+  static volatile unsigned long calls = 0;
   size_t length = rnd() % (scale * avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
   mps_addr_t p;
