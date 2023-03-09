@@ -3455,12 +3455,13 @@ if test "${with_webp}" != "no"; then
       CFLAGS="$CFLAGS $WEBP_CFLAGS"
       LIBS="$LIBS $WEBP_LIBS"
 
-      AC_CHECK_FUNC([WebPGetInfo], [],
-        [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
-	 HAVE_WEBP=no
-	 AS_UNSET([WEBP_LIBS])
-	 AS_UNSET([WEBP_CFLAGS])
-	 EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])])
+      AS_IF([test "$REALLY_ANDROID" != "yes"], [
+	AC_CHECK_FUNC([WebPGetInfo], [],
+	  [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+	   HAVE_WEBP=no
+	   AS_UNSET([WEBP_LIBS])
+	   AS_UNSET([WEBP_CFLAGS])
+	   EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])])])
 
       CFLAGS=$OLD_CFLAGS
       LIBS=$OLD_LIBS
