@@ -2914,6 +2914,13 @@ android_destroy_handle (android_handle handle)
   (*android_java_env)->CallVoidMethod (android_java_env,
 				       android_handles[handle].handle,
 				       method);
+
+  /* Just clear any exception thrown.  If destroying the handle
+     fails from an out-of-memory error, then Emacs loses some
+     resources, but that is not as big deal as signalling.  */
+  (*android_java_env)->ExceptionClear (android_java_env);
+
+  /* Delete the global reference regardless of any error.  */
   (*android_java_env)->DeleteGlobalRef (android_java_env,
 					android_handles[handle].handle);
   android_handles[handle].handle = NULL;
