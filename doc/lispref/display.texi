@@ -2345,10 +2345,11 @@ newline.  The property value can be one of several forms:
 @item t
 If the property value is @code{t}, the newline character has no
 effect on the displayed height of the line---the visible contents
-alone determine the height.  The @code{line-spacing} property,
-described below, is also ignored in this case.  This is useful for
-tiling small images (or image slices) without adding blank areas
-between the images.
+alone determine the height.  The @code{line-spacing} property of the
+newline, described below, is also ignored in this case.  This is
+useful for tiling small images (or image slices) without adding blank
+areas between the images.
+
 @item (@var{height} @var{total})
 If the property value is a list of the form shown, that adds extra
 space @emph{below} the display line.  First Emacs uses @var{height} as
@@ -2409,7 +2410,9 @@ overrides line spacings specified for the frame.
 property that can enlarge the default frame line spacing and the
 buffer local @code{line-spacing} variable: if its value is larger than
 the buffer or frame defaults, that larger value is used instead, for
-the display line ending in that newline.
+the display line ending in that newline (unless the newline also has
+the @code{line-height} property whose value is one of the special
+values which cause @code{line-spacing} to be ignored, see above).
 
   One way or another, these mechanisms specify a Lisp value for the
 spacing of each line.  The value is a height spec, and it translates

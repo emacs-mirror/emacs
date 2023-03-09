@@ -4078,6 +4078,7 @@ to other portions of the buffer, use `without-restriction' with the
 same LABEL argument.
 
 \(fn START END [:label LABEL] BODY)"
+  (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
       `(internal--with-restriction ,start ,end (lambda () ,@(cddr rest))
                                  ,(cadr rest))
@@ -4100,6 +4101,7 @@ restrictions set by `with-restriction' with the same LABEL argument
 are lifted.
 
 \(fn [:label LABEL] BODY)"
+  (declare (indent 0) (debug t))
   (if (eq (car rest) :label)
       `(internal--without-restriction (lambda () ,@(cddr rest))
                                     ,(cadr rest))

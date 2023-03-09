@@ -1982,6 +1982,18 @@ match foo:
    (should (eq (car (python-indent-context)) :after-block-start))
    (should (= (python-indent-calculate-indentation) 8))))
 
+(ert-deftest python-indent-after-re-match ()
+  "Test BUG 62031 regression."
+  (python-tests-with-temp-buffer
+   "
+def test_re(string):
+    if re.match('^[a-c]+$', string):
+        print('yes')
+    else:
+    "
+   (python-tests-look-at "else:")
+   (should (= (python-indent-calculate-indentation) 4))))
+
 
 ;;; Filling
 
