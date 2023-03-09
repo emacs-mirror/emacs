@@ -1026,7 +1026,7 @@ leading double colon is not added."
                               (:match "\\`?[#\"'`:?]" @char))
                              ;; Symbols like :+, :<=> or :foo=.
                              ((simple_symbol) @symbol
-                              (:match "[[:punct:]]" @symbol))
+                              (:match "\\s." @symbol))
                              ;; Method calls with name ending with ? or !.
                              ((call method: (identifier) @ident)
                               (:match "[?!]\\'" @ident))
@@ -1058,7 +1058,9 @@ leading double colon is not added."
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
                             'syntax-table (string-to-syntax "_")))
         ('symbol
-         (put-text-property (1+ (treesit-node-start node)) (treesit-node-end node)
+         (goto-char (treesit-node-end node))
+         (skip-syntax-backward "." (treesit-node-start node))
+         (put-text-property (point) (treesit-node-end node)
                             'syntax-table (string-to-syntax "_")))
         ('heredoc
          (put-text-property (treesit-node-start node) (1+ (treesit-node-start node))
