@@ -39,12 +39,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 
-/* The window system's text conversion interface.
-   NULL when the window system has not set up text conversion.
-
-   This interface will later be heavily extended on the
-   feature/android branch to deal with Android's much less
-   straightforward text conversion protocols.  */
+/* The window system's text conversion interface.  NULL when the
+   window system has not set up text conversion.  */
 
 static struct textconv_interface *text_interface;
 
