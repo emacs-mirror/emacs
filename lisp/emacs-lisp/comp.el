@@ -3726,7 +3726,8 @@ Prepare every function for final compilation and drive the C back-end."
              (temp-file (make-temp-file
 			 (concat "emacs-int-comp-"
 				 (file-name-base output) "-")
-			 nil ".el")))
+			 nil ".el"))
+             (default-directory invocation-directory))
 	(with-temp-file temp-file
           (insert ";; -*-coding: utf-8-emacs-unix; -*-\n")
           (mapc (lambda (e)
@@ -4023,6 +4024,7 @@ display a message."
                         (comp-log "\n")
                         (mapc #'comp-log expr-strings)))
                    (load1 load)
+                   (default-directory invocation-directory)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
                              :buffer (with-current-buffer
