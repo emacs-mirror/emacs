@@ -8,6 +8,7 @@ Signatures in the MPS
 :Organization: Ravenbrook Limited
 :Date: 2013-05-09
 :Revision: $Id$
+:Readership: MPS developers, developers
 :Copyright: See section `Copyright and License`_.
 :Index terms:
    pair: structure signatures; design
@@ -16,6 +17,7 @@ Signatures in the MPS
 
 Introduction
 ------------
+
 Integrity of data structures is absolutely critical to the cost of
 deploying the Memory Pool System.  Memory corruption and memory
 management bugs are incredibly hard to detect and debug, often
@@ -24,56 +26,93 @@ ways the MPS detects corruption or the passing of illegal data is using
 *signatures*.  This simple technique has proved invaluable at catching
 defects early.
 
-This is based on [RB_1995-08-25]_.
+This document is based on [RB_1995-08-25]_.
 
 
 Overview
 --------
-Signatures are `magic numbers`_ which are written into structures when
-they are created and invalidated (by overwriting with ``SigInvalid``)
-when they are destroyed. They provide a limited form of run-time type
-checking and dynamic scope checking. They are a simplified form of
-"Structure Marking", a technique used in the Multics filesystem
-[THVV_1995]_.
+
+_`.overview`: Signatures are `magic numbers`_ which are written into
+structures when they are created and invalidated (by overwriting with
+``SigInvalid``) when they are destroyed. They provide a limited form
+of run-time type checking and dynamic scope checking. They are a
+simplified form of "Structure Marking", a technique used in the
+Multics filesystem [THVV_1995]_.
 
 .. _`magic numbers`: https://en.wikipedia.org/wiki/Magic_number_(programming)
 
 
 Definitions
 -----------
-Nearly every structure should start with a field of type ``Sig`` with the name
-``sig``.  For example::
+
+_`.field`: Nearly every structure should start with a field of type
+``Sig`` with the name ``sig``.  For example::
 
     typedef struct mps_message_s {
-      Sig sig;                      /* <design/sig/> */
+      Sig sig;                      /* design.mps.sig */
       Arena arena;                  /* owning arena */
       MessageClass class;           /* Message Class Structure */
       Clock postedClock;            /* mps_clock() at post time, or 0 */
       RingStruct queueRing;         /* Message queue ring */
     } MessageStruct;
 
-There must also be a definition for the valid value for that signature::
+_`.value`: There must also be a definition for the valid value for
+that signature::
 
     #define MessageSig      ((Sig)0x5193e559) /* SIG MESSaGe */
 
-This is a 32-bit hex constant, spelled according to guide.hex.trans_::
+_`.value.hex`: This is a 32-bit hex constant, spelled using *hex
+transliteration* according to `guide.hex.trans`_::
 
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     ABCDEF9811C7340BC6520F3812
 
 .. _guide.hex.trans: guide.hex.trans
 
-This allows the structure to be recognised when looking at memory in a hex
-dump or memory window, or found using memory searches.
+_`.value.hex.just`: Hex transliteration allows the structure to be
+recognised when looking at memory in a hex dump or memory window, or
+found using memory searches.
+
+_`.field.end`: In some circumstances the signature should be placed at
+the end of the structure.
+
+_`.field.end.outer`: When a structure extends an *inner structure*
+that already has a signature, it is good practice to put the signature
+for the outer structure at the end. This gives some extra fencepost
+checking.  For example::
+
+  typedef struct MVFFStruct {     /* MVFF pool outer structure */
+    PoolStruct poolStruct;        /* generic structure */
+    LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
+  ...
+    Sig sig;                      /* design.mps.sig.field.end.outer */
+  } MVFFStruct;
+
+_`.field.end.class`: When a structure is a protocol_ class, it's good
+practice to put the signature for the class at the end.  This causes
+the compiler to complain if the class structure is extended without
+modifying static initializers.  [FIXME: Check whether we still use any
+static initializers.  `.field.end.outer`_ would still apply if not.
+RB 2023-03-09] For example::
+
+  typedef struct mps_pool_class_s {
+    InstClassStruct instClassStruct;
+    size_t size;                  /* size of outer structure */
+  ...
+    Sig sig;                      /* design.mps.sig.field.end.class */
+  } PoolClassStruct;
+
+.. _protocol: protocol.txt
 
 
 Init and Finish
 ---------------
-When the structure is initialised, the signature is initialised as the
-*last* action, just before validating it.  (Think of it as putting your
-signature at the bottom of a document to say it's done.)  This ensures
-that the structure will appear invalid until it is completely initialized
-and ready to use.  For example::
+
+_`.init`: When the structure is initialised, the signature is
+initialised as the *last* action, just before validating it.  (Think
+of it as putting your signature at the bottom of a document to say
+it's done.)  This ensures that the structure will appear invalid until
+it is completely initialized and ready to use.  For example::
 
     void MessageInit(...) {
       ...
@@ -85,9 +124,10 @@ and ready to use.  For example::
       AVERT(Message, message);
     }
 
-When the structure is finished, the signature is invalidated as the
-*first* action, ensuring that the structure appears invalid while it is
-being torn down.  For example::
+_`.finish`: When the structure is finished, the signature is
+invalidated as the *first* action.  This ensures that the structure
+appears invalid while it is being torn down and can't be used after.
+For example::
 
     void MessageFinish(Message message)
     {
@@ -98,11 +138,13 @@ being torn down.  For example::
       RingFinish(&message->queueRing);
     }
 
-Do not do anything else with signatures.  See `.rule.purpose`_.
+_`.ambit`: Do not do anything else with signatures.  See
+`.rule.purpose`_.
 
 
 Checking
 --------
+
 _`.check.arg`: Every function that takes a pointer to a signed
 structure should check its argument.
 
@@ -113,14 +155,14 @@ checks that ``val->sig`` is the correct signature for ``type``.
 _`.check.arg.locked`: A function that holds the arena lock should
 check the argument using the ``AVERT`` macro. This macro has different
 definitions depending on how the MPS is compiled (see
-design.mps.config.def.var_). It may simply check the signature, or
+`design.mps.config.def.var`_). It may simply check the signature, or
 call the full checking function for the structure.
 
-.. _design.mps.config.def.var: config#.def.var
+.. _design.mps.config.def.var: config.txt#def-var
 
 _`.check.sig`: The checking function for the structure should also
 validate the signature as its first step using the ``CHECKS()`` macro
-(see check.h_). For example::
+(see `check.h`_). For example::
 
     Bool MessageCheck(Message message)
     {
@@ -138,17 +180,21 @@ pointer into a function.
 
 Rules
 -----
-_`.rule.purpose`: **Do not** use signatures for any other purpose.  For
-example, don't use them to make any actual decisions within the code.
-They must not be used to discriminate between structure variants (or
-union members). They must not be used to try to detect *whether* a
-structure has been initialised or finished.  They are there to
-double-check whether these facts are true. They lose their value as a
-consistency check if the code uses them as well.
+
+_`.rule.purpose`: **Do not** use signatures for any other purpose.
+The code must function in exactly the same way (modulo defects) if
+they are removed.  For example, don't use them to make any actual
+decisions within the code.  They must not be used to discriminate
+between structure variants (or union members). They must not be used
+to try to detect *whether* a structure has been initialised or
+finished.  They are there to double-check whether these facts are
+true. They lose their value as a consistency check if the code uses
+them as well.
 
 
 Tools
 -----
+
 _`.test.uniq`: The Unix command::
 
     sed -n '/^#define [a-zA-Z]*Sig/s/[^(]*(/(/p' code/*.[ch] | sort | uniq -c
@@ -161,6 +207,7 @@ undesirable and the problem should be investigated.
 
 References
 ----------
+
 .. [RB_1995-08-25] "design.mps.sig: The design of the Memory Pool System
    Signature System"; Richard Brooksby; Harlequin; 1995-08-25;
    <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/design/mps/sig/>.
@@ -171,7 +218,11 @@ References
 
 Document History
 ----------------
-- 2013-05-09  RB  Created based on scanty MM document [RB_1995-08-25]_.
+
+- 2013-05-09  RB_  Created based on scanty MM document [RB_1995-08-25]_.
+
+- 2023-03-09 RB_ Justified the use of signatures at the end of
+  structures (`.field.end`_).  Updated markup and improved tagging.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb/
 
@@ -179,7 +230,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+Copyright © 2013–2023 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
