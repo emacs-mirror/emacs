@@ -6057,7 +6057,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     result					\
       = interpreter->state.round (result,	\
 				  interpreter);	\
-    PUSH (((result & 127) == 64) ? 1 : 0);	\
+    PUSH_UNCHECKED (((result & 127)		\
+		     == 64) ? 1 : 0);		\
   }
 
 #define EVEN()					\
