@@ -105,7 +105,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   pool->serial = ArenaGlobals(arena)->poolSerial;
   ++ArenaGlobals(arena)->poolSerial;
 
-  /* Initialise signature last; see <design/sig> */
+  /* Initialise signature last; see design.mps.sig.init */
   SetClassOfPoly(pool, CLASS(AbstractPool));
   pool->sig = PoolSig;
   AVERT(Pool, pool);

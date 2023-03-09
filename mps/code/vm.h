@@ -20,7 +20,7 @@
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 typedef struct VMStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   Size pageSize;                /* operating system page size */
   void *block;                  /* unaligned base of mmap'd memory */
   Addr base, limit;             /* aligned boundaries of reserved space */
