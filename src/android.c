@@ -4363,7 +4363,7 @@ android_set_input_focus (android_window handle, unsigned long time)
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
 						 window,
-						 service_class.class,
+						 window_class.class,
 						 make_input_focus,
 						 (jlong) time);
   android_exception_check ();
