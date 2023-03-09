@@ -55,7 +55,7 @@ typedef struct ABQStruct
   METER_DECL(peek)
   METER_DECL(delete)
 
-  Sig sig;
+  Sig sig;              /* design.mps.sig.field [FIXME: Why is this at the end? RB 2023-03-09] */
 } ABQStruct;
 
 #endif /* abq_h */

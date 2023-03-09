@@ -16,7 +16,7 @@
 
 typedef struct BootBlockStruct
 {
-  Sig sig;
+  Sig sig;      /* design.mps.sig.field */
   void *base;
   void *alloc;
   void *limit;
