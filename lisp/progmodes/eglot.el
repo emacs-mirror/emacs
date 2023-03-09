@@ -3666,13 +3666,14 @@ If NOERROR, return predicate, else erroring function."
 
 ;;; Misc
 ;;;
-(defun eglot--debbugs-or-github-bug-uri ()
-  (format (if (string= (match-string 2) "github")
-              "https://github.com/joaotavora/eglot/issues/%s"
-            "https://debbugs.gnu.org/%s")
-          (match-string 3)))
-(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
-
+;;;###autoload
+(progn
+  (put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+  (defun eglot--debbugs-or-github-bug-uri ()
+    (format (if (string= (match-string 2) "github")
+                "https://github.com/joaotavora/eglot/issues/%s"
+              "https://debbugs.gnu.org/%s")
+            (match-string 3))))
 ;;; Obsolete
 ;;;
 
