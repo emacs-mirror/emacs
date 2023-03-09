@@ -88,22 +88,6 @@ checking.  For example::
     Sig sig;                      /* design.mps.sig.field.end.outer */
   } MVFFStruct;
 
-_`.field.end.class`: When a structure is a protocol_ class, it's good
-practice to put the signature for the class at the end.  This causes
-the compiler to complain if the class structure is extended without
-modifying static initializers.  [FIXME: Check whether we still use any
-static initializers.  `.field.end.outer`_ would still apply if not.
-RB 2023-03-09] For example::
-
-  typedef struct mps_pool_class_s {
-    InstClassStruct instClassStruct;
-    size_t size;                  /* size of outer structure */
-  ...
-    Sig sig;                      /* design.mps.sig.field.end.class */
-  } PoolClassStruct;
-
-.. _protocol: protocol.txt
-
 
 Init and Finish
 ---------------
