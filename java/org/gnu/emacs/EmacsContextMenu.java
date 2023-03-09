@@ -139,11 +139,14 @@ public final class EmacsContextMenu
 
      If this is not a submenu and ISCHECKABLE is set, make the item
      checkable.  Likewise, if ISCHECKED is set, make the item
-     checked.  */
+     checked.
+
+     If TOOLTIP is non-NULL, set the menu item tooltip to TOOLTIP.  */
 
   public void
   addItem (int itemID, String itemName, boolean isEnabled,
-	   boolean isCheckable, boolean isChecked)
+	   boolean isCheckable, boolean isChecked,
+	   String tooltip)
   {
     Item item;
 
@@ -153,6 +156,7 @@ public final class EmacsContextMenu
     item.isEnabled = isEnabled;
     item.isCheckable = isCheckable;
     item.isChecked = isChecked;
+    item.tooltip = tooltip;
 
     menuItems.add (item);
   }
