@@ -70,17 +70,20 @@ It is a slightly enhanced `lisp-data-mode'.
   (when (gnus-visual-p 'group-menu 'menu)
     (gnus-edit-form-make-menu-bar))
   (make-local-variable 'gnus-edit-form-done-function)
-  (make-local-variable 'gnus-prev-winconf))
+  (make-local-variable 'gnus-prev-winconf)
+  (make-local-variable 'gnus-prev-cwc))
 
 (defun gnus-edit-form (form documentation exit-func &optional layout)
   "Edit FORM in a new buffer.
 Call EXIT-FUNC on exit.  Display DOCUMENTATION in the beginning
 of the buffer.
 The optional LAYOUT overrides the `edit-form' window layout."
-  (let ((winconf (current-window-configuration)))
+  (let ((winconf (current-window-configuration))
+        (cwc gnus-current-window-configuration))
     (set-buffer (gnus-get-buffer-create gnus-edit-form-buffer))
     (gnus-configure-windows (or layout 'edit-form))
     (gnus-edit-form-mode)
+    (setq gnus-prev-cwc cwc)
     (setq gnus-prev-winconf winconf)
     (setq gnus-edit-form-done-function exit-func)
     (erase-buffer)
@@ -113,9 +116,11 @@ The optional LAYOUT overrides the `edit-form' window layout."
 (defun gnus-edit-form-exit ()
   "Kill the current buffer."
   (interactive nil gnus-edit-form-mode)
-  (let ((winconf gnus-prev-winconf))
+  (let ((winconf gnus-prev-winconf)
+        (cwc gnus-prev-cwc))
     (kill-buffer (current-buffer))
-    (set-window-configuration winconf)))
+    (set-window-configuration winconf)
+    (setq gnus-current-window-configuration cwc)))
 
 (provide 'gnus-eform)
 

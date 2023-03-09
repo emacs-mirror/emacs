@@ -2445,6 +2445,7 @@ are always t.")
 
 ;; Save window configuration.
 (defvar gnus-prev-winconf nil)
+(defvar gnus-prev-cwc nil)
 
 (defvar gnus-reffed-article-number nil)
 
