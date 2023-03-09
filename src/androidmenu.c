@@ -98,7 +98,8 @@ android_init_emacs_context_menu (void)
   FIND_METHOD_STATIC (create_context_menu, "createContextMenu",
 		      "(Ljava/lang/String;)Lorg/gnu/emacs/EmacsContextMenu;");
 
-  FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ)V");
+  FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ"
+	       "Ljava/lang/String;)V");
   FIND_METHOD (add_submenu, "addSubmenu", "(Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;)"
 	       "Lorg/gnu/emacs/EmacsContextMenu;");
@@ -411,6 +412,14 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 	      title_string = (!NILP (item_name)
 			      ? android_build_string (item_name)
 			      : NULL);
+	      help_string = NULL;
+
+	      /* Menu items can have tool tips on Android 26 and
+		 later.  In this case, set it to the help string.  */
+
+	      if (android_get_current_api_level () >= 26
+		  && STRINGP (help))
+		help_string = android_build_string (help);
 
 	      /* Determine whether or not to display a check box.  */
 
@@ -424,11 +433,15 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 						   title_string,
 						   (jboolean) !NILP (enable),
 						   (jboolean) checkmark,
-						   (jboolean) !NILP (selected));
+						   (jboolean) !NILP (selected),
+						   help_string);
 	      android_exception_check ();
 
 	      if (title_string)
 		ANDROID_DELETE_LOCAL_REF (title_string);
+
+	      if (help_string)
+		ANDROID_DELETE_LOCAL_REF (help_string);
 	    }
 
 	  i += MENU_ITEMS_ITEM_LENGTH;

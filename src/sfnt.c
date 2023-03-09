@@ -155,7 +155,7 @@ static uint32_t sfnt_table_names[] =
 /* Swap values from TrueType to system byte order.  */
 
 static void
-_sfnt_swap16 (uint16_t *value)
+sfnt_swap16_1 (uint16_t *value)
 {
 #ifndef WORDS_BIGENDIAN
   *value = bswap_16 (*value);
@@ -163,15 +163,15 @@ _sfnt_swap16 (uint16_t *value)
 }
 
 static void
-_sfnt_swap32 (uint32_t *value)
+sfnt_swap32_1 (uint32_t *value)
 {
 #ifndef WORDS_BIGENDIAN
   *value = bswap_32 (*value);
 #endif
 }
 
-#define sfnt_swap16(what) (_sfnt_swap16 ((uint16_t *) (what)))
-#define sfnt_swap32(what) (_sfnt_swap32 ((uint32_t *) (what)))
+#define sfnt_swap16(what) (sfnt_swap16_1 ((uint16_t *) (what)))
+#define sfnt_swap32(what) (sfnt_swap32_1 ((uint32_t *) (what)))
 
 /* Read the table directory from the file FD.  FD must currently be at
    the start of the file (or an offset defined in the TTC header, if

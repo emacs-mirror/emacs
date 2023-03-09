@@ -5244,27 +5244,47 @@ android_build_string (Lisp_Object text)
 {
   Lisp_Object encoded;
   jstring string;
+  size_t nchars;
+  jchar *characters;
+  USE_SAFE_ALLOCA;
 
-  encoded = ENCODE_UTF_8 (text);
+  encoded = code_convert_string_norecord (text, Qutf_16le,
+					  true);
+  nchars = (SBYTES (encoded) / sizeof (jchar));
 
-  /* Note that Java expects this string to be in ``modified UTF
-     encoding'', which is actually UTF-8, except with NUL encoded as a
-     two-byte sequence.  The only consequence of passing an actual
-     UTF-8 string is that NUL bytes cannot be represented, which is
-     not really of consequence.  */
-  string = (*android_java_env)->NewStringUTF (android_java_env,
-					      SSDATA (encoded));
+  /* Encode the string as UTF-16 prior to creating the string.
+     Copy the string to a separate buffer in order to preserve
+     alignment.  */
+
+  characters = SAFE_ALLOCA (SBYTES (encoded));
+  memcpy (characters, SDATA (encoded), SBYTES (encoded));
+
+  /* Create the string.  */
+  string
+    = (*android_java_env)->NewString (android_java_env,
+				      characters, nchars);
   android_exception_check ();
 
+  SAFE_FREE ();
   return string;
 }
 
-/* Do the same, except TEXT is constant string data.  */
+/* Do the same, except TEXT is constant string data in ASCII or
+   UTF-8 containing no characters outside the Basic Multilingual
+   Plane.  */
 
 jstring
 android_build_jstring (const char *text)
 {
   jstring string;
+
+  /* Note that Java expects this string to be in ``modified UTF
+     encoding'', which is actually UTF-8, except with NUL
+     encoded as a two-byte sequence, and surrogate pairs encoded
+     in the three-byte extended encoding.  The only consequence
+     of passing an actual UTF-8 string is that NUL bytes and
+     characters requiring surrogate pairs cannot be represented,
+     which is not really of consequence.  */
 
   string = (*android_java_env)->NewStringUTF (android_java_env,
 					      text);
