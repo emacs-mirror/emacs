@@ -1994,6 +1994,20 @@ def test_re(string):
    (python-tests-look-at "else:")
    (should (= (python-indent-calculate-indentation) 4))))
 
+(ert-deftest python-indent-after-bare-match ()
+  "Test BUG 62031 regression."
+  (python-tests-with-temp-buffer
+   "
+from re import match
+
+def test_re(string):
+    if match('^[a-c]+$', string):
+        print('yes')
+    else:
+    "
+   (python-tests-look-at "else:")
+   (should (= (python-indent-calculate-indentation) 4))))
+
 
 ;;; Filling
 

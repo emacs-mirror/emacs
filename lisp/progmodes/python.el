@@ -5792,7 +5792,9 @@ likely an invalid python file."
             (while (python-nav--syntactically
                     (lambda ()
                       (cl-loop while (re-search-backward (python-rx block-start) nil t)
-                               if (memq (char-before) '(nil ?\s ?\t ?\n))
+                               if (save-match-data
+                                    (looking-back (rx line-start (* whitespace))
+                                                  (line-beginning-position)))
                                return t))
                     #'<)
               (let ((indentation (current-indentation)))
