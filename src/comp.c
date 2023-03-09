@@ -2605,16 +2605,14 @@ emit_export_const_lisp_obj_var (const char *name, gcc_jit_rvalue *val)
 static void
 alloc_class_check (Lisp_Object alloc_class)
 {
-  bool valid = EQ (alloc_class, Qd_default) ||
-    EQ (alloc_class, Qd_impure) ||
-    EQ (alloc_class, Qd_ephemeral);
-  if (!valid)
-    {
-      xsignal2 (Qnative_ice,
-		build_string ("invalid lisp data allocation class"),
-		alloc_class);
-      assume (false);
-    }
+  if ((EQ (alloc_class, Qd_default)
+       || EQ (alloc_class, Qd_impure)
+       || EQ (alloc_class, Qd_ephemeral)))
+    return;
+
+  xsignal2 (Qnative_ice,
+	    build_string ("invalid lisp data allocation class"),
+	    alloc_class);
 }
 
 static gcc_jit_lvalue *
