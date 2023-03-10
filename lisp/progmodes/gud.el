@@ -159,17 +159,61 @@ Used to gray out relevant toolbar icons.")
           (t
            (comint-interrupt-subjob)))))
 
-(defvar-keymap gud-shared-mode-map
+(defvar-keymap gud-text-menu-bar-map
+  :doc "Menu-bar keymap used in GUD buffers on text frames."
+  ;; Use the menu-bar as a pseudo-tool-bar.
+  "<down>" `(,(propertize "down" 'face 'font-lock-doc-face) . gud-down)
+  "<up>" `(,(propertize "up" 'face 'font-lock-doc-face) . gud-up)
+  "<finish>" `(,(propertize "finish" 'face 'font-lock-doc-face) . gud-finish)
+  "<step>" `(,(propertize "step" 'face 'font-lock-doc-face) . gud-step)
+  "<next>" `(,(propertize "next" 'face 'font-lock-doc-face) . gud-next)
+  "<until>" `(menu-item
+              ,(propertize "until" 'face 'font-lock-doc-face) gud-until
+              :visible (memq gud-minor-mode '(gdbmi gdb perldb)))
+  "<cont>" `(menu-item
+           ,(propertize "cont" 'face 'font-lock-doc-face) gud-cont
+           :visible (not (eq gud-minor-mode 'gdbmi)))
+  "<run>" `(menu-item
+          ,(propertize "run" 'face 'font-lock-doc-face) gud-run
+          :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+  "<go>" `(menu-bar-item
+         ,(propertize " go " 'face 'font-lock-doc-face) gud-go
+         :visible (and (eq gud-minor-mode 'gdbmi)
+                       (gdb-show-run-p)))
+  "<stop>" `(menu-item
+           ,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
+           :visible (or (and (eq gud-minor-mode 'gdbmi)
+		             (gdb-show-stop-p))
+		        (not (eq gud-minor-mode 'gdbmi))))
+  "<print>" `(,(propertize "print" 'face 'font-lock-doc-face) . gud-print)
+  ;; Hide the usual menus to make room.
+  "<tools>" #'undefined
+  "<buffer>" #'undefined
+  "<options>" #'undefined
+  "<edit>" #'undefined
+  "<file>" #'undefined)
+
+(defvar-keymap gud-menu-mode-map
   :doc "Keymap shared between `gud-mode' and `gud-minor-mode'.")
 
 (defvar-keymap gud-mode-map
   :doc "`gud-mode' keymap."
-  :parent (make-composed-keymap gud-shared-mode-map comint-mode-map))
+  ;; BEWARE: `gud-mode-map' does not inherit from something like
+  ;; `gud-menu-mode-map' because the `gud-mode' buffer is also in
+  ;; `gud-minor-mode'.
+  ;;:parent (make-composed-keymap gud-menu-mode-map comint-mode-map)
+  )
 
 (defvar-keymap gud-minor-mode-map
-  :parent gud-shared-mode-map)
+  ;; Part of the menu is dynamic, so we use 2 keymaps: `gud-menu-mode-map'
+  ;; is the static/normal menu defined with easy-menu, and
+  ;; `gud-text-menu-bar-map' is the part that's only used on text frames.
+  ;; We then merge them here into `gud-minor-mode-map'.
+  :parent gud-menu-mode-map
+  "<menu-bar>" `(menu-item nil ,gud-text-menu-bar-map
+                 :filter ,(lambda (map) (unless window-system map))))
 
-(easy-menu-define gud-menu-map gud-shared-mode-map
+(easy-menu-define gud-menu-map gud-menu-mode-map
   "Menu for `gud-mode'."
   '("Gud"
     ["Continue" gud-cont
@@ -279,7 +323,7 @@ Used to gray out relevant toolbar icons.")
 		 (gud-goto-info . "info"))
 	       map)
       (tool-bar-local-item-from-menu
-       (car x) (cdr x) map gud-minor-mode-map))))
+       (car x) (cdr x) map gud-menu-mode-map))))
 
 (defvar gud-gdb-repeat-map
   (let ((map (make-sparse-keymap)))
