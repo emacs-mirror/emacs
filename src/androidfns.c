@@ -802,6 +802,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     FRAME_BACKGROUND_PIXEL (f) = -1;
     f->output_data.android->cursor_pixel = -1;
     f->output_data.android->cursor_foreground_pixel = -1;
+    f->output_data.android->mouse_pixel = -1;
 
     black = build_string ("black");
     FRAME_FOREGROUND_PIXEL (f)
@@ -811,6 +812,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     f->output_data.android->cursor_pixel
       = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.android->cursor_foreground_pixel
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.android->mouse_pixel
       = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
   }
 
@@ -1798,6 +1801,7 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
     FRAME_BACKGROUND_PIXEL (f) = -1;
     f->output_data.android->cursor_pixel = -1;
     f->output_data.android->cursor_foreground_pixel = -1;
+    f->output_data.android->mouse_pixel = -1;
 
     black = build_string ("black");
     FRAME_FOREGROUND_PIXEL (f)
@@ -1807,6 +1811,8 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
     f->output_data.android->cursor_pixel
       = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.android->cursor_foreground_pixel
+      = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.android->mouse_pixel
       = android_decode_color (f, black, BLACK_PIX_DEFAULT (f));
   }
 
@@ -2632,13 +2638,147 @@ android_set_menu_bar_lines (struct frame *f, Lisp_Object value,
   adjust_frame_glyphs (f);
 }
 
+
+
+/* These enums must stay in sync with the mouse_cursor_types array
+   below!  */
+
+enum mouse_cursor
+  {
+    mouse_cursor_text,
+    mouse_cursor_nontext,
+    mouse_cursor_hourglass,
+    mouse_cursor_mode,
+    mouse_cursor_hand,
+    mouse_cursor_horizontal_drag,
+    mouse_cursor_vertical_drag,
+    mouse_cursor_left_edge,
+    mouse_cursor_top_left_corner,
+    mouse_cursor_top_edge,
+    mouse_cursor_top_right_corner,
+    mouse_cursor_right_edge,
+    mouse_cursor_bottom_right_corner,
+    mouse_cursor_bottom_edge,
+    mouse_cursor_bottom_left_corner,
+    mouse_cursor_max
+  };
+
+struct mouse_cursor_types
+{
+  /* Printable name for error messages (optional).  */
+  const char *name;
+
+  /* Lisp variable controlling the cursor shape.  */
+  /* FIXME: A couple of these variables are defined in the C code but
+     are not actually accessible from Lisp.  They should probably be
+     made accessible or removed.  */
+  Lisp_Object *shape_var_ptr;
+
+  /* The default shape.  */
+  int default_shape;
+};
+
+/* This array must stay in sync with enum mouse_cursor above!  */
+
+static const struct mouse_cursor_types mouse_cursor_types[] =
+  {
+    {"text", &Vx_pointer_shape, ANDROID_XC_XTERM, },
+    {"nontext", &Vx_nontext_pointer_shape, ANDROID_XC_LEFT_PTR, },
+    {"hourglass", &Vx_hourglass_pointer_shape, ANDROID_XC_WATCH, },
+    {"modeline", &Vx_mode_pointer_shape, ANDROID_XC_XTERM, },
+    {NULL, &Vx_sensitive_text_pointer_shape, ANDROID_XC_HAND2, },
+    {NULL, &Vx_window_horizontal_drag_shape, ANDROID_XC_SB_H_DOUBLE_ARROW, },
+    {NULL, &Vx_window_vertical_drag_shape, ANDROID_XC_SB_V_DOUBLE_ARROW, },
+    {NULL, &Vx_window_left_edge_shape, ANDROID_XC_LEFT_SIDE, },
+    {NULL, &Vx_window_top_left_corner_shape, ANDROID_XC_TOP_LEFT_CORNER, },
+    {NULL, &Vx_window_top_edge_shape, ANDROID_XC_TOP_SIDE, },
+    {NULL, &Vx_window_top_right_corner_shape, ANDROID_XC_TOP_RIGHT_CORNER, },
+    {NULL, &Vx_window_right_edge_shape, ANDROID_XC_RIGHT_SIDE, },
+    {NULL, &Vx_window_bottom_right_corner_shape,
+     ANDROID_XC_BOTTOM_RIGHT_CORNER, },
+    {NULL, &Vx_window_bottom_edge_shape, ANDROID_XC_BOTTOM_SIDE, },
+    {NULL, &Vx_window_bottom_left_corner_shape,
+	ANDROID_XC_BOTTOM_LEFT_CORNER, },
+  };
+
+struct mouse_cursor_data
+{
+  /* Cursor numbers chosen.  */
+  unsigned int cursor_num[mouse_cursor_max];
+
+  /* Allocated Cursor values, or zero for failed attempts.  */
+  android_cursor cursor[mouse_cursor_max];
+};
+
+
+
 static void
 android_set_mouse_color (struct frame *f, Lisp_Object arg,
 			 Lisp_Object oldval)
 {
-  /* Changing the mouse color is unsupported under Android, so this is
-     left intact.  */
-  android_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  struct android_output *x = f->output_data.android;
+  struct mouse_cursor_data cursor_data = { -1, -1 };
+  unsigned long pixel = android_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  unsigned long mask_color = FRAME_BACKGROUND_PIXEL (f);
+  int i;
+
+  /* Don't let pointers be invisible.  */
+  if (mask_color == pixel)
+    pixel = FRAME_FOREGROUND_PIXEL (f);
+
+  x->mouse_pixel = pixel;
+
+  for (i = 0; i < mouse_cursor_max; i++)
+    {
+      Lisp_Object shape_var = *mouse_cursor_types[i].shape_var_ptr;
+      cursor_data.cursor_num[i]
+	= (!NILP (shape_var)
+	   ? check_uinteger_max (shape_var, UINT_MAX)
+	   : mouse_cursor_types[i].default_shape);
+    }
+
+  block_input ();
+
+  for (i = 0; i < mouse_cursor_max; i++)
+    cursor_data.cursor[i]
+      = android_create_font_cursor (cursor_data.cursor_num[i]);
+
+  if (FRAME_ANDROID_WINDOW (f))
+    {
+      f->output_data.android->current_cursor
+	= cursor_data.cursor[mouse_cursor_text];
+      android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			     f->output_data.android->current_cursor);
+    }
+
+#define INSTALL_CURSOR(FIELD, SHORT_INDEX)				\
+   eassert (x->FIELD							\
+	    != cursor_data.cursor[mouse_cursor_ ## SHORT_INDEX]);	\
+   if (x->FIELD != 0)							\
+     android_free_cursor (x->FIELD);					\
+   x->FIELD = cursor_data.cursor[mouse_cursor_ ## SHORT_INDEX];
+
+  INSTALL_CURSOR (text_cursor, text);
+  INSTALL_CURSOR (nontext_cursor, nontext);
+  INSTALL_CURSOR (hourglass_cursor, hourglass);
+  INSTALL_CURSOR (modeline_cursor, mode);
+  INSTALL_CURSOR (hand_cursor, hand);
+  INSTALL_CURSOR (horizontal_drag_cursor, horizontal_drag);
+  INSTALL_CURSOR (vertical_drag_cursor, vertical_drag);
+  INSTALL_CURSOR (left_edge_cursor, left_edge);
+  INSTALL_CURSOR (top_left_corner_cursor, top_left_corner);
+  INSTALL_CURSOR (top_edge_cursor, top_edge);
+  INSTALL_CURSOR (top_right_corner_cursor, top_right_corner);
+  INSTALL_CURSOR (right_edge_cursor, right_edge);
+  INSTALL_CURSOR (bottom_right_corner_cursor, bottom_right_corner);
+  INSTALL_CURSOR (bottom_edge_cursor, bottom_edge);
+  INSTALL_CURSOR (bottom_left_corner_cursor, bottom_left_corner);
+
+#undef INSTALL_CURSOR
+
+  unblock_input ();
+
+  update_face_from_frame_parameter (f, Qmouse_color, arg);
 }
 
 static void
@@ -2844,6 +2984,81 @@ syms_of_androidfns (void)
   /* Miscellaneous symbols used by some functions here.  */
   DEFSYM (Qtrue_color, "true-color");
   DEFSYM (Qalways, "always");
+
+  DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_pointer_shape = Qnil;
+
+#if false /* This doesn't really do anything.  */
+  DEFVAR_LISP ("x-nontext-pointer-shape", Vx_nontext_pointer_shape,
+    doc: /* SKIP: real doc in xfns.c.  */);
+#endif
+  Vx_nontext_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-hourglass-pointer-shape", Vx_hourglass_pointer_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_hourglass_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-sensitive-text-pointer-shape",
+	      Vx_sensitive_text_pointer_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_sensitive_text_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-horizontal-drag-cursor",
+	      Vx_window_horizontal_drag_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_horizontal_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-vertical-drag-cursor",
+	      Vx_window_vertical_drag_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_vertical_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-left-edge-cursor",
+	       Vx_window_left_edge_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_left_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-left-corner-cursor",
+	       Vx_window_top_left_corner_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_top_left_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-edge-cursor",
+	       Vx_window_top_edge_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_top_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-right-corner-cursor",
+	       Vx_window_top_right_corner_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_top_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-right-edge-cursor",
+	       Vx_window_right_edge_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_right_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-right-corner-cursor",
+	       Vx_window_bottom_right_corner_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_bottom_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-edge-cursor",
+	       Vx_window_bottom_edge_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_bottom_edge_shape = Qnil;
+
+#if false /* This doesn't really do anything.  */
+  DEFVAR_LISP ("x-mode-pointer-shape", Vx_mode_pointer_shape,
+    doc: /* SKIP: real doc in xfns.c.  */);
+#endif
+  Vx_mode_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-left-corner-cursor",
+	       Vx_window_bottom_left_corner_shape,
+    doc: /* SKIP: real text in xfns.c.  */);
+  Vx_window_bottom_left_corner_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
     doc: /* SKIP: real doc in xfns.c.  */);

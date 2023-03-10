@@ -155,6 +155,13 @@ struct android_emacs_window
   jmethodID translate_coordinates;
   jmethodID set_dont_accept_focus;
   jmethodID set_dont_focus_on_map;
+  jmethodID define_cursor;
+};
+
+struct android_emacs_cursor
+{
+  jclass class;
+  jmethodID constructor;
 };
 
 /* The API level of the current device.  */
@@ -233,6 +240,9 @@ static struct android_emacs_drawable drawable_class;
 
 /* Various methods associated with the EmacsWindow class.  */
 static struct android_emacs_window window_class;
+
+/* Various methods associated with the EmacsCursor class.  */
+static struct android_emacs_cursor cursor_class;
 
 /* The last event serial used.  This is a 32 bit value, but it is
    stored in unsigned long to be consistent with X.  */
@@ -2288,6 +2298,38 @@ android_init_emacs_window (void)
 	       "(II)[I");
   FIND_METHOD (set_dont_focus_on_map, "setDontFocusOnMap", "(Z)V");
   FIND_METHOD (set_dont_accept_focus, "setDontAcceptFocus", "(Z)V");
+  FIND_METHOD (define_cursor, "defineCursor",
+	       "(Lorg/gnu/emacs/EmacsCursor;)V");
+#undef FIND_METHOD
+}
+
+static void
+android_init_emacs_cursor (void)
+{
+  jclass old;
+
+  cursor_class.class
+    = (*android_java_env)->FindClass (android_java_env,
+				      "org/gnu/emacs/EmacsCursor");
+  eassert (cursor_class.class);
+
+  old = cursor_class.class;
+  cursor_class.class
+    = (jclass) (*android_java_env)->NewGlobalRef (android_java_env,
+						  (jobject) old);
+  ANDROID_DELETE_LOCAL_REF (old);
+
+  if (!cursor_class.class)
+    emacs_abort ();
+
+#define FIND_METHOD(c_name, name, signature)			\
+  cursor_class.c_name						\
+    = (*android_java_env)->GetMethodID (android_java_env,	\
+					cursor_class.class,	\
+					name, signature);	\
+  assert (cursor_class.c_name);
+
+  FIND_METHOD (constructor, "<init>", "(SI)V");
 #undef FIND_METHOD
 }
 
@@ -2339,6 +2381,7 @@ NATIVE_NAME (initEmacs) (JNIEnv *env, jobject object, jarray argv,
   android_init_graphics_point ();
   android_init_emacs_drawable ();
   android_init_emacs_window ();
+  android_init_emacs_cursor ();
 
   /* Set HOME to the app data directory.  */
   setenv ("HOME", android_files_dir, 1);
@@ -6241,6 +6284,81 @@ android_asset_fstat (struct android_fd_or_asset asset,
   /* Size of the file.  */
   statb->st_size = AAsset_getLength (asset.asset);
   return 0;
+}
+
+
+
+/* Window cursor support.  */
+
+android_cursor
+android_create_font_cursor (enum android_cursor_shape shape)
+{
+  android_cursor id;
+  short prev_max_handle;
+  jobject object;
+
+  /* First, allocate the cursor handle.  */
+  prev_max_handle = max_handle;
+  id = android_alloc_id ();
+
+  if (!id)
+    error ("Out of cursor handles!");
+
+  /* Next, create the cursor.  */
+  object = (*android_java_env)->NewObject (android_java_env,
+					   cursor_class.class,
+					   cursor_class.constructor,
+					   (jshort) id,
+					   (jint) shape);
+  if (!object)
+    {
+      (*android_java_env)->ExceptionClear (android_java_env);
+      max_handle = prev_max_handle;
+      memory_full (0);
+    }
+
+  android_handles[id].type = ANDROID_HANDLE_CURSOR;
+  android_handles[id].handle
+    = (*android_java_env)->NewGlobalRef (android_java_env, object);
+  (*android_java_env)->ExceptionClear (android_java_env);
+  ANDROID_DELETE_LOCAL_REF (object);
+
+  if (!android_handles[id].handle)
+    memory_full (0);
+
+  return id;
+}
+
+void
+android_define_cursor (android_window window, android_cursor cursor)
+{
+  jobject window1, cursor1;
+  jmethodID method;
+
+  window1 = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  cursor1 = (cursor
+	     ? android_resolve_handle (cursor, ANDROID_HANDLE_CURSOR)
+	     : NULL);
+  method = window_class.define_cursor;
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 window1,
+						 window_class.class,
+						 method, cursor1);
+  android_exception_check ();
+}
+
+void
+android_free_cursor (android_cursor cursor)
+{
+  if (android_handles[cursor].type != ANDROID_HANDLE_CURSOR)
+    {
+      __android_log_print (ANDROID_LOG_ERROR, __func__,
+			   "Trying to destroy something not a CURSOR!");
+      emacs_abort ();
+    }
+
+  android_destroy_handle (cursor);
 }
 
 #else /* ANDROID_STUBIFY */

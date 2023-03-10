@@ -136,6 +136,9 @@ struct android_display_info
   /* ID of the last menu event received.  -1 means Emacs is waiting
      for a context menu event.  */
   int menu_event_id;
+
+  /* The invisible cursor used for pointer blanking.  */
+  android_cursor invisible_cursor;
 };
 
 /* Structure representing a single tool (finger or stylus) pressed
@@ -176,6 +179,7 @@ struct android_output
 
   /* Various colors.  */
   unsigned long cursor_pixel;
+  unsigned long mouse_pixel;
   unsigned long cursor_foreground_pixel;
 
   /* Foreground color for scroll bars.  A value of -1 means use the
@@ -187,7 +191,7 @@ struct android_output
      bars).  */
   unsigned long scroll_bar_background_pixel;
 
-  /* Unused stuff (cursors).  */
+  /* Cursors associated with this frame.  */
   Emacs_Cursor text_cursor;
   Emacs_Cursor nontext_cursor;
   Emacs_Cursor modeline_cursor;

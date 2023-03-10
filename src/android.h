@@ -63,6 +63,7 @@ enum android_handle_type
     ANDROID_HANDLE_WINDOW,
     ANDROID_HANDLE_GCONTEXT,
     ANDROID_HANDLE_PIXMAP,
+    ANDROID_HANDLE_CURSOR,
   };
 
 extern jobject android_resolve_handle (android_handle,

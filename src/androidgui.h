@@ -36,6 +36,7 @@ typedef android_handle android_pixmap, Emacs_Pixmap;
 typedef android_handle android_window, Emacs_Window;
 typedef android_handle android_gcontext, GContext;
 typedef android_handle android_drawable, Drawable;
+typedef android_handle android_cursor, Emacs_Cursor;
 
 typedef unsigned int android_time;
 
@@ -161,10 +162,6 @@ struct android_swap_info
   /* Unused field present only for consistency with X.  */
   enum android_swap_action swap_action;
 };
-
-/* Android doesn't support cursors, so define this to something
-   unused.  */
-typedef char Emacs_Cursor;
 
 #define NativeRectangle			Emacs_Rectangle
 #define CONVERT_TO_NATIVE_RECT(xr, nr)	((xr) = (nr))
@@ -619,6 +616,29 @@ extern void android_reset_ic (android_window, enum android_ic_mode);
 extern void android_update_extracted_text (android_window, void *,
 					   int);
 extern int android_set_fullscreen (android_window, bool);
+
+enum android_cursor_shape
+  {
+    ANDROID_XC_XTERM = 1008,
+    ANDROID_XC_LEFT_PTR = 1000,
+    ANDROID_XC_WATCH = 1004,
+    ANDROID_XC_HAND2 = 1002,
+    ANDROID_XC_SB_H_DOUBLE_ARROW = 1014,
+    ANDROID_XC_SB_V_DOUBLE_ARROW = 1015,
+    ANDROID_XC_LEFT_SIDE = 1020,
+    ANDROID_XC_TOP_LEFT_CORNER = 1020,
+    ANDROID_XC_TOP_SIDE = 1020,
+    ANDROID_XC_TOP_RIGHT_CORNER = 1020,
+    ANDROID_XC_RIGHT_SIDE = 1020,
+    ANDROID_XC_BOTTOM_RIGHT_CORNER = 1020,
+    ANDROID_XC_BOTTOM_SIDE = 1020,
+    ANDROID_XC_BOTTOM_LEFT_CORNER = 1020,
+    ANDROID_XC_NULL = 0,
+  };
+
+extern android_cursor android_create_font_cursor (enum android_cursor_shape);
+extern void android_define_cursor (android_window, android_cursor);
+extern void android_free_cursor (android_cursor);
 
 #endif
 

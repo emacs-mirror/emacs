@@ -224,10 +224,38 @@ android_ring_bell (struct frame *f)
     }
 }
 
+static android_cursor
+make_invisible_cursor (struct android_display_info *dpyinfo)
+{
+  return android_create_font_cursor (ANDROID_XC_NULL);
+}
+
+static void
+android_toggle_visible_pointer (struct frame *f, bool invisible)
+{
+  struct android_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (!dpyinfo->invisible_cursor)
+    dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
+
+  if (invisible)
+    android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			   dpyinfo->invisible_cursor);
+  else
+    android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			   f->output_data.android->current_cursor);
+
+  f->pointer_invisible = invisible;
+}
+
 static void
 android_toggle_invisible_pointer (struct frame *f, bool invisible)
 {
-
+  block_input ();
+  android_toggle_visible_pointer (f, invisible);
+  unblock_input ();
 }
 
 /* Start an update of frame F.  This function is installed as a hook
@@ -2039,6 +2067,38 @@ android_free_frame_resources (struct frame *f)
     android_destroy_window (FRAME_ANDROID_WINDOW (f));
 
   android_free_gcs (f);
+
+  /* Free cursors.  */
+  if (f->output_data.android->text_cursor)
+    android_free_cursor (f->output_data.android->text_cursor);
+  if (f->output_data.android->nontext_cursor)
+    android_free_cursor (f->output_data.android->nontext_cursor);
+  if (f->output_data.android->modeline_cursor)
+    android_free_cursor (f->output_data.android->modeline_cursor);
+  if (f->output_data.android->hand_cursor)
+    android_free_cursor (f->output_data.android->hand_cursor);
+  if (f->output_data.android->hourglass_cursor)
+    android_free_cursor (f->output_data.android->hourglass_cursor);
+  if (f->output_data.android->horizontal_drag_cursor)
+    android_free_cursor (f->output_data.android->horizontal_drag_cursor);
+  if (f->output_data.android->vertical_drag_cursor)
+    android_free_cursor (f->output_data.android->vertical_drag_cursor);
+  if (f->output_data.android->left_edge_cursor)
+    android_free_cursor (f->output_data.android->left_edge_cursor);
+  if (f->output_data.android->top_left_corner_cursor)
+    android_free_cursor (f->output_data.android->top_left_corner_cursor);
+  if (f->output_data.android->top_edge_cursor)
+    android_free_cursor (f->output_data.android->top_edge_cursor);
+  if (f->output_data.android->top_right_corner_cursor)
+    android_free_cursor (f->output_data.android->top_right_corner_cursor);
+  if (f->output_data.android->right_edge_cursor)
+    android_free_cursor (f->output_data.android->right_edge_cursor);
+  if (f->output_data.android->bottom_right_corner_cursor)
+    android_free_cursor (f->output_data.android->bottom_right_corner_cursor);
+  if (f->output_data.android->bottom_edge_cursor)
+    android_free_cursor (f->output_data.android->bottom_edge_cursor);
+  if (f->output_data.android->bottom_left_corner_cursor)
+    android_free_cursor (f->output_data.android->bottom_left_corner_cursor);
 
   /* Free extra GCs allocated by android_setup_relief_colors.  */
   if (f->output_data.android->white_relief.gc)
@@ -3971,7 +4031,11 @@ android_draw_glyph_string (struct glyph_string *s)
 static void
 android_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
 {
-  /* Not supported, because cursors are not supported on Android.  */
+  if (!f->pointer_invisible
+      && f->output_data.android->current_cursor != cursor)
+    android_define_cursor (FRAME_ANDROID_WINDOW (f), cursor);
+
+  f->output_data.android->current_cursor = cursor;
 }
 
 static void

@@ -1222,4 +1222,20 @@ public final class EmacsWindow extends EmacsHandleObject
 	}
       });
   }
+
+  public void
+  defineCursor (final EmacsCursor cursor)
+  {
+    /* Don't post this message if pointer icons aren't supported.  */
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+      view.post (new Runnable () {
+	  @Override
+	  public void
+	  run ()
+	  {
+	    view.setPointerIcon (cursor.icon);
+	  }
+	});
+  }
 };
