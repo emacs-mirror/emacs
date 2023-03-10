@@ -1658,6 +1658,21 @@ a == 4):
    (python-indent-line t)
    (should (= (python-indent-calculate-indentation t) 6))))
 
+(ert-deftest python-indent-dedenters-9 ()
+  "Test de-indentation for the case keyword."
+  (python-tests-with-temp-buffer
+   "
+match a:
+    case 1:
+        print(1)
+        case 2
+"
+   (python-tests-look-at "case 2")
+   (should (eq (car (python-indent-context)) :at-dedenter-block-start))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 4))))
+
 (ert-deftest python-indent-inside-string-1 ()
   "Test indentation for strings."
   (python-tests-with-temp-buffer
