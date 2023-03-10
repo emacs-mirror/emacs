@@ -426,7 +426,7 @@ Before returning, a new log is allocated for future samples.  */)
      more for our use afterwards since we can't rely on its special
      pre-allocated keys anymore.  So we have to allocate a new one.  */
   cpu_log = profiler_cpu_running ? make_log () : Qnil;
-  Fputhash (make_vector (1, QAutomatic_GC),
+  Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
 	    make_fixnum (cpu_gc_count),
 	    result);
   cpu_gc_count = 0;
@@ -501,7 +501,7 @@ Before returning, a new log is allocated for future samples.  */)
      more for our use afterwards since we can't rely on its special
      pre-allocated keys anymore.  So we have to allocate a new one.  */
   memory_log = profiler_memory_running ? make_log () : Qnil;
-  Fputhash (make_vector (1, QAutomatic_GC),
+  Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
 	    make_fixnum (mem_gc_count),
 	    result);
   mem_gc_count = 0;
@@ -518,11 +518,10 @@ malloc_probe (size_t size)
   if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
     /* Special case the malloc-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
-       More specifically it uses ASIZE at many places where it does
-       not expect the ARRAY_MARK_FLAG to be set.  We could try and
-       harden the hash-table code, but it doesn't seem worth the
-       effort.  */
-    mem_gc_count = saturated_add (mem_gc_count, 1);
+       E.g. it uses ASIZE at many places where it does not expect
+       the ARRAY_MARK_FLAG to be set and in anyn case it'd modify the
+       heap behind the GC's back.  */
+    mem_gc_count = saturated_add (mem_gc_count, size);
   else
     {
       eassert (HASH_TABLE_P (memory_log));
