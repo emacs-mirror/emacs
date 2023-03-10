@@ -211,7 +211,9 @@ Used to gray out relevant toolbar icons.")
   ;; We then merge them here into `gud-minor-mode-map'.
   :parent gud-menu-mode-map
   "<menu-bar>" `(menu-item nil ,gud-text-menu-bar-map
-                 :filter ,(lambda (map) (unless window-system map))))
+                 ;; Be careful to return an empty keymap rather than nil
+                 ;; so as not to hide the parent's menus.
+                 :filter ,(lambda (map) (if window-system '(keymap) map))))
 
 (easy-menu-define gud-menu-map gud-menu-mode-map
   "Menu for `gud-mode'."
