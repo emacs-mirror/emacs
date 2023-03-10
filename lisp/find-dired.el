@@ -51,7 +51,9 @@ than the latter."
   :type 'string)
 
 (defvar find-ls-option-default-ls
-  (cons "-ls" (if (eq system-type 'berkeley-unix) "-gilsb" "-dilsb")))
+  (cons "-ls" (if (memq system-type '(berkeley-unix darwin))
+                  "-dgils"
+                "-dilsb")))
 
 (defvar find-ls-option-default-exec
   (cons (format "-exec ls -ld {} %s" find-exec-terminator) "-ld"))
