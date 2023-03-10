@@ -50,8 +50,13 @@ than the latter."
   :group 'find-dired
   :type 'string)
 
+(defvar find-gnu-find-p
+  (eq 0 (ignore-errors
+          (process-file find-program nil nil nil null-device "--version")))
+  "T if 'find-program' is a GNU find.  NIL otherwise.")
+
 (defvar find-ls-option-default-ls
-  (cons "-ls" (if (eq system-type 'berkeley-unix) "-gilsb" "-dilsb")))
+  (cons "-ls" (if find-gnu-find-p "-dilsb" "-dgils")))
 
 (defvar find-ls-option-default-exec
   (cons (format "-exec ls -ld {} %s" find-exec-terminator) "-ld"))
