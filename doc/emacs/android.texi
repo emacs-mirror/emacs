@@ -498,6 +498,16 @@ selection, Emacs provides an emulation instead.  This means there is
 no way to transfer the contents of the primary selection to another
 application via cut-and-paste.
 
+@vindex android-pass-multimedia-buttons-to-system
+@cindex volume/multimedia buttons, Android
+  The volume keys are normally reserved by Emacs and used to provide
+the ability to quit Emacs without a physical keyboard
+(@pxref{On-Screen-Keyboards}.)  However, if you want them to adjust
+the volume instead, you can set the variable
+@code{android-pass-multimedia-buttons-to-system} to a non-@code{nil}
+value; note that you will no longer be able to quit Emacs using the
+volume buttons in that case.
+
 @node Android Fonts
 @section Font backends and selection under Android
 @cindex fonts, android

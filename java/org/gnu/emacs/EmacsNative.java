@@ -174,6 +174,10 @@ public final class EmacsNative
      main thread's looper to respond.  */
   public static native void endSynchronous ();
 
+  /* Return whether or not KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP and
+     KEYCODE_VOLUME_MUTE should be forwarded to Emacs.  */
+  public static native boolean shouldForwardMultimediaButtons ();
+
 
 
   /* Input connection functions.  These mostly correspond to their

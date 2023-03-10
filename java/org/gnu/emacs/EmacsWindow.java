@@ -1234,7 +1234,10 @@ public final class EmacsWindow extends EmacsHandleObject
 	  public void
 	  run ()
 	  {
-	    view.setPointerIcon (cursor.icon);
+	    if (cursor != null)
+	      view.setPointerIcon (cursor.icon);
+	    else
+	      view.setPointerIcon (null);
 	  }
 	});
   }

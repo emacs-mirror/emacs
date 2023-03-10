@@ -2825,6 +2825,15 @@ NATIVE_NAME (sendExpose) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
+JNIEXPORT jboolean JNICALL
+NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
+					      jobject object)
+{
+  /* Yes, android_pass_multimedia_buttons_to_system is being
+     read from the UI thread.  */
+  return !android_pass_multimedia_buttons_to_system;
+}
+
 /* Forward declarations of deadlock prevention functions.  */
 
 static void android_begin_query (void);

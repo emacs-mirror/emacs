@@ -3075,6 +3075,17 @@ syms_of_androidfns (void)
     doc: /* SKIP: real doc in xfns.c.  */);
   Vx_max_tooltip_size = Qnil;
 
+  DEFVAR_BOOL ("android-pass-multimedia-buttons-to-system",
+	       android_pass_multimedia_buttons_to_system,
+    doc: /* Whether or not to pass volume control buttons to the system.
+Generally, the `volume-up', `volume-down' and `volume-mute' keys are
+processed by Emacs, but setting this to non-nil they are passed to the
+operating system instead of being intercepted by Emacs.
+
+Note that if you set this, you will no longer be able to quit Emacs
+using the volume down button.  */);
+  android_pass_multimedia_buttons_to_system = false;
+
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
   defsubr (&Sxw_color_defined_p);

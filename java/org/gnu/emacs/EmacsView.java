@@ -361,6 +361,12 @@ public final class EmacsView extends ViewGroup
   public boolean
   onKeyDown (int keyCode, KeyEvent event)
   {
+    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	&& !EmacsNative.shouldForwardMultimediaButtons ())
+      return false;
+
     window.onKeyDown (keyCode, event);
     return true;
   }
@@ -369,6 +375,12 @@ public final class EmacsView extends ViewGroup
   public boolean
   onKeyMultiple (int keyCode, int repeatCount, KeyEvent event)
   {
+    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	&& !EmacsNative.shouldForwardMultimediaButtons ())
+      return false;
+
     window.onKeyDown (keyCode, event);
     return true;
   }
@@ -377,6 +389,12 @@ public final class EmacsView extends ViewGroup
   public boolean
   onKeyUp (int keyCode, KeyEvent event)
   {
+    if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+	 || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE)
+	&& !EmacsNative.shouldForwardMultimediaButtons ())
+      return false;
+
     window.onKeyUp (keyCode, event);
     return true;
   }
