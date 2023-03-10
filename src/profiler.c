@@ -227,6 +227,9 @@ static Lisp_Object cpu_log;
 /* Separate counter for the time spent in the GC.  */
 static EMACS_INT cpu_gc_count;
 
+/* Separate counter for the memory allocations during GC.  */
+static EMACS_INT mem_gc_count;
+
 /* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
 
@@ -451,7 +454,10 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
     error ("Memory profiler is already running");
 
   if (NILP (memory_log))
-    memory_log = make_log ();
+    {
+      mem_gc_count = 0;
+      memory_log = make_log ();
+    }
 
   profiler_memory_running = true;
 
@@ -495,6 +501,10 @@ Before returning, a new log is allocated for future samples.  */)
      more for our use afterwards since we can't rely on its special
      pre-allocated keys anymore.  So we have to allocate a new one.  */
   memory_log = profiler_memory_running ? make_log () : Qnil;
+  Fputhash (make_vector (1, QAutomatic_GC),
+	    make_fixnum (mem_gc_count),
+	    result);
+  mem_gc_count = 0;
   return result;
 }
 
@@ -506,10 +516,19 @@ void
 malloc_probe (size_t size)
 {
   if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
-    /* FIXME: We should do something like what we did with `cpu_gc_count`.  */
-    return;
-  eassert (HASH_TABLE_P (memory_log));
-  record_backtrace (XHASH_TABLE (memory_log), min (size, MOST_POSITIVE_FIXNUM));
+    /* Special case the malloc-count inside GC because the hash-table
+       code is not prepared to be used while the GC is running.
+       More specifically it uses ASIZE at many places where it does
+       not expect the ARRAY_MARK_FLAG to be set.  We could try and
+       harden the hash-table code, but it doesn't seem worth the
+       effort.  */
+    mem_gc_count = saturated_add (mem_gc_count, 1);
+  else
+    {
+      eassert (HASH_TABLE_P (memory_log));
+      record_backtrace (XHASH_TABLE (memory_log),
+			min (size, MOST_POSITIVE_FIXNUM));
+    }
 }
 
 DEFUN ("function-equal", Ffunction_equal, Sfunction_equal, 2, 2, 0,
