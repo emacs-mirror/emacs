@@ -5754,7 +5754,7 @@ android_get_current_api_level (void)
 }
 
 /* Query the status of the battery, and place it in *STATUS.
-   Value is 1 if the system is too old, else 0.  */
+   Value is 1 upon failure, else 0.  */
 
 int
 android_query_battery (struct android_battery_state *status)
@@ -5783,6 +5783,8 @@ android_query_battery (struct android_battery_state *status)
   status->current_now = longs[3];
   status->remaining = longs[4];
   status->status = longs[5];
+  status->plugged = longs[6];
+  status->temperature = longs[7];
 
   (*android_java_env)->ReleaseLongArrayElements (android_java_env,
 						 array, longs,

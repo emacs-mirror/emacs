@@ -1089,9 +1089,11 @@ The following %-sequences are provided:
 The following %-sequences are provided:
 %c Current capacity (mAh)
 %r Current rate of charge or discharge (mA)
+%L AC line status (verbose).
 %B Battery status (verbose)
 %b Battery status, empty means high, `-' means low,
   `+' means charging and `?' means unknown.
+%d Temperature (in degrees Celsius)
 %p Battery load percentage.
 %m Remaining time (to charge) in minutes.
 %h Remaining time (to charge) in hours.
@@ -1139,7 +1141,14 @@ The following %-sequences are provided:
             (cons ?m (or minutes "N/A"))
             (cons ?h (or hours "N/A"))
             (cons ?t (or remaining "N/A"))
-            (cons ?L "N/A")))))
+            (cons ?L (cl-case (nth 6 status)
+                       (0 "off-line")
+                       (1 "on-line")
+                       (2 "on-line (dock)")
+                       (3 "on-line (USB)")
+                       (4 "on-line (wireless)")
+                       (t "unknown")))
+            (cons ?t (/ (or (nth 7 status) 0) 10.0))))))
 
 
 ;;; Private functions.

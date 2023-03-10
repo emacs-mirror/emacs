@@ -160,6 +160,18 @@ struct android_battery_state
           but is not charging either.
        1, if the battery state is unknown.  */
   int status;
+
+  /* The power source of the battery.  Value is:
+
+       0, if on battery power.
+       1, for line power.
+       8, for dock power.
+       2, for USB power.
+       4, for wireless power.  */
+  int plugged;
+
+  /* The temperature of the battery in 10 * degrees centigrade.  */
+  int temperature;
 };
 
 extern Lisp_Object android_browse_url (Lisp_Object);

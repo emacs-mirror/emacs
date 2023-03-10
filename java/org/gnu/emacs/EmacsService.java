@@ -40,6 +40,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.ApplicationInfoFlags;
 import android.content.pm.PackageManager;
@@ -738,6 +739,36 @@ public final class EmacsService extends Service
       }
   }
 
+  private long[]
+  queryBattery19 ()
+  {
+    IntentFilter filter;
+    Intent battery;
+    long capacity, chargeCounter, currentAvg, currentNow;
+    long status, remaining, plugged, temp;
+
+    filter = new IntentFilter (Intent.ACTION_BATTERY_CHANGED);
+    battery = registerReceiver (null, filter);
+
+    if (battery == null)
+      return null;
+
+    capacity = battery.getIntExtra (BatteryManager.EXTRA_LEVEL, 0);
+    chargeCounter
+      = (battery.getIntExtra (BatteryManager.EXTRA_SCALE, 0)
+	 / battery.getIntExtra (BatteryManager.EXTRA_LEVEL, 100) * 100);
+    currentAvg = 0;
+    currentNow = 0;
+    status = battery.getIntExtra (BatteryManager.EXTRA_STATUS, 0);
+    remaining = -1;
+    plugged = battery.getIntExtra (BatteryManager.EXTRA_PLUGGED, 0);
+    temp = battery.getIntExtra (BatteryManager.EXTRA_TEMPERATURE, 0);
+
+    return new long[] { capacity, chargeCounter, currentAvg,
+			currentNow, remaining, status, plugged,
+			temp, };
+  }
+
   /* Return the status of the battery.  See struct
      android_battery_status for the order of the elements
      returned.
@@ -750,14 +781,16 @@ public final class EmacsService extends Service
     Object tem;
     BatteryManager manager;
     long capacity, chargeCounter, currentAvg, currentNow;
-    long status, remaining;
+    long status, remaining, plugged, temp;
     int prop;
+    IntentFilter filter;
+    Intent battery;
 
-    /* Android 4.4 or earlier require applications to listen to
-       changes to the battery instead of querying for its status.  */
+    /* Android 4.4 or earlier require applications to use a different
+       API to query the battery status.  */
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-      return null;
+      return queryBattery19 ();
 
     tem = getSystemService (Context.BATTERY_SERVICE);
     manager = (BatteryManager) tem;
@@ -776,7 +809,8 @@ public final class EmacsService extends Service
        only return ``charging'' or ``discharging''.  */
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      status = manager.getIntProperty (BatteryManager.BATTERY_PROPERTY_STATUS);
+      status
+	= manager.getIntProperty (BatteryManager.BATTERY_PROPERTY_STATUS);
     else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
       status = (manager.isCharging ()
 		? BatteryManager.BATTERY_STATUS_CHARGING
@@ -789,8 +823,27 @@ public final class EmacsService extends Service
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
       remaining = manager.computeChargeTimeRemaining ();
 
+    plugged = -1;
+    temp = -1;
+
+    /* Now obtain additional information from the battery manager.  */
+
+    filter = new IntentFilter (Intent.ACTION_BATTERY_CHANGED);
+    battery = registerReceiver (null, filter);
+
+    if (battery != null)
+      {
+	plugged = battery.getIntExtra (BatteryManager.EXTRA_PLUGGED, 0);
+	temp = battery.getIntExtra (BatteryManager.EXTRA_TEMPERATURE, 0);
+
+	/* Make status more reliable.  */
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+	  status = battery.getIntExtra (BatteryManager.EXTRA_STATUS, 0);
+      }
+
     return new long[] { capacity, chargeCounter, currentAvg,
-			currentNow, remaining, status, };
+			currentNow, remaining, status, plugged,
+			temp, };
   }
 
   /* Display the specified STRING in a small dialog box on the main
