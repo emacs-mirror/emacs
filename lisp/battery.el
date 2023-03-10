@@ -97,20 +97,21 @@ Value does not include \".\" or \"..\"."
 (defcustom battery-status-function
   (cond ((member battery-upower-service (dbus-list-activatable-names))
          #'battery-upower)
-        ;; Try to find the relevant devices in /sys and /proc on
-        ;; Android as well, in case the system makes them available.
-        ((and (memq system-type '(gnu/linux android))
+        ((and (eq system-type 'gnu/linux)
               (file-readable-p "/sys/")
               (battery--find-linux-sysfs-batteries))
          #'battery-linux-sysfs)
-	((and (memq system-type '(gnu/linux android))
+	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/proc/acpi/battery"))
 	 #'battery-linux-proc-acpi)
-	((and (memq system-type '(gnu/linux android))
+	((and (eq system-type 'gnu/linux)
               (file-readable-p "/proc/")
               (file-readable-p "/proc/apm"))
          #'battery-linux-proc-apm)
         ;; Now try the Android battery status function.
+        ;; Note that even though the Linux kernel APIs are sometimes
+        ;; available on Android, they are badly implemented by Android
+        ;; kernels, so avoid using those.
         ((eq system-type 'android)
          #'battery-android)
 	((and (eq system-type 'berkeley-unix)
