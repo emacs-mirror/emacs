@@ -229,7 +229,8 @@ public final class EmacsNative
 				 "tasn1_emacs", "hogweed_emacs",
 				 "jansson_emacs", "jpeg_emacs",
 				 "tiff_emacs", "xml2_emacs",
-				 "icuuc_emacs", };
+				 "icuuc_emacs",
+				 "tree-sitter_emacs", };
 
     for (String dependency : libraryDeps)
       {
