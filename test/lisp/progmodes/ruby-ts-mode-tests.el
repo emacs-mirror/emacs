@@ -259,6 +259,7 @@ The whitespace before and including \"|\" on each line is removed."
     (should (string= (ruby-ts-add-log-current-function) "M::C#foo"))))
 
 (ert-deftest ruby-ts-syntax-propertize-symbol ()
+  (skip-unless (treesit-ready-p 'ruby t))
   (pcase-dolist (`(,str . ,expected)
                  '((":abc" . ":abc")
                    (":foo?" . #(":foo?" 4 5 (syntax-table (3))))
