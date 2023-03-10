@@ -2639,154 +2639,137 @@ character_name_to_code (char const *name, ptrdiff_t name_len,
    Unicode 9.0.0 the maximum is 83, so this should be safe.  */
 enum { UNICODE_CHARACTER_NAME_LENGTH_BOUND = 200 };
 
-/* Read a \-escape sequence, assuming we already read the `\'.
-   If the escape sequence forces unibyte, return eight-bit char.  */
-
-static int
-read_escape (Lisp_Object readcharfun)
+static AVOID
+invalid_escape_syntax_error (void)
 {
-  int c = READCHAR;
-  /* \u allows up to four hex digits, \U up to eight.  Default to the
-     behavior for \u, and change this value in the case that \U is seen.  */
-  int unicode_hex_count = 4;
+  error ("Invalid escape character syntax");
+}
+
+/* Read a character escape sequence, assuming we just read a backslash
+   and one more character (next_char).  */
+static int
+read_char_escape (Lisp_Object readcharfun, int next_char)
+{
+  int modifiers = 0;
+  ptrdiff_t ncontrol = 0;
+  int chr;
+
+ again: ;
+  int c = next_char;
+  int unicode_hex_count;
+  int mod;
 
   switch (c)
     {
     case -1:
       end_of_file_error ();
 
-    case 'a':
-      return '\007';
-    case 'b':
-      return '\b';
-    case 'd':
-      return 0177;
-    case 'e':
-      return 033;
-    case 'f':
-      return '\f';
-    case 'n':
-      return '\n';
-    case 'r':
-      return '\r';
-    case 't':
-      return '\t';
-    case 'v':
-      return '\v';
+    case 'a': chr = '\a'; break;
+    case 'b': chr = '\b'; break;
+    case 'd': chr =  127; break;
+    case 'e': chr =   27; break;
+    case 'f': chr = '\f'; break;
+    case 'n': chr = '\n'; break;
+    case 'r': chr = '\r'; break;
+    case 't': chr = '\t'; break;
+    case 'v': chr = '\v'; break;
 
     case '\n':
       /* ?\LF is an error; it's probably a user mistake.  */
       error ("Invalid escape character syntax");
 
-    case 'M':
-      c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      return c | meta_modifier;
+    /* \M-x etc: set modifier bit and parse the char to which it applies,
+       allowing for chains such as \M-\S-\A-\H-\s-\C-q.  */
+    case 'M': mod = meta_modifier;  goto mod_key;
+    case 'S': mod = shift_modifier; goto mod_key;
+    case 'H': mod = hyper_modifier; goto mod_key;
+    case 'A': mod = alt_modifier;   goto mod_key;
+    case 's': mod = super_modifier; goto mod_key;
 
-    case 'S':
-      c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      return c | shift_modifier;
-
-    case 'H':
-      c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      return c | hyper_modifier;
-
-    case 'A':
-      c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      return c | alt_modifier;
-
-    case 's':
-      c = READCHAR;
-      if (c != '-')
-	{
-	  UNREAD (c);
-	  return ' ';
-	}
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      return c | super_modifier;
-
-    case 'C':
-      c = READCHAR;
-      if (c != '-')
-	error ("Invalid escape character syntax");
-      FALLTHROUGH;
-    case '^':
-      c = READCHAR;
-      if (c == '\\')
-	c = read_escape (readcharfun);
-      if ((c & ~CHAR_MODIFIER_MASK) == '?')
-	return 0177 | (c & CHAR_MODIFIER_MASK);
-      else if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
-	return c | ctrl_modifier;
-      /* ASCII control chars are made from letters (both cases),
-	 as well as the non-letters within 0100...0137.  */
-      else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
-	return (c & (037 | ~0177));
-      else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
-	return (c & (037 | ~0177));
-      else
-	return c | ctrl_modifier;
-
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-      /* An octal escape, as in ANSI C.  */
+    mod_key:
       {
-	register int i = c - '0';
-	register int count = 0;
-	while (++count < 3)
+	int c1 = READCHAR;
+	if (c1 != '-')
 	  {
-	    if ((c = READCHAR) >= '0' && c <= '7')
+	    if (c == 's')
 	      {
-		i *= 8;
-		i += c - '0';
+		/* \s not followed by a hyphen is SPC.  */
+		UNREAD (c1);
+		chr = ' ';
+		break;
 	      }
 	    else
+	      /* \M, \S, \H, \A not followed by a hyphen is an error.  */
+	      invalid_escape_syntax_error ();
+	  }
+	modifiers |= mod;
+	c1 = READCHAR;
+	if (c1 == '\\')
+	  {
+	    next_char = READCHAR;
+	    goto again;
+	  }
+	chr = c1;
+	break;
+      }
+
+    /* Control modifiers (\C-x or \^x) are messy and not actually idempotent.
+       For example, ?\C-\C-a = ?\C-\001 = 0x4000001.
+       Keep a count of them and apply them separately.  */
+    case 'C':
+      {
+	int c1 = READCHAR;
+	if (c1 != '-')
+	  invalid_escape_syntax_error ();
+      }
+      FALLTHROUGH;
+    /* The prefixes \C- and \^ are equivalent.  */
+    case '^':
+      {
+	ncontrol++;
+	int c1 = READCHAR;
+	if (c1 == '\\')
+	  {
+	    next_char = READCHAR;
+	    goto again;
+	  }
+	chr = c1;
+	break;
+      }
+
+    /* 1-3 octal digits.  Values in 0x80..0xff are encoded as raw bytes.  */
+    case '0': case '1': case '2': case '3':
+    case '4': case '5': case '6': case '7':
+      {
+	int i = c - '0';
+	int count = 0;
+	while (count < 2)
+	  {
+	    int c = READCHAR;
+	    if (c < '0' || c > '7')
 	      {
 		UNREAD (c);
 		break;
 	      }
+	    i = (i << 3) + (c - '0');
+	    count++;
 	  }
 
 	if (i >= 0x80 && i < 0x100)
 	  i = BYTE8_TO_CHAR (i);
-	return i;
+	chr = i;
+	break;
       }
 
+    /* 1 or more hex digits.  Values may encode modifiers.
+       Values in 0x80..0xff using 2 hex digits are encoded as raw bytes.  */
     case 'x':
-      /* A hex escape, as in ANSI C.  */
       {
 	unsigned int i = 0;
 	int count = 0;
 	while (1)
 	  {
-	    c = READCHAR;
+	    int c = READCHAR;
 	    int digit = char_hexdigit (c);
 	    if (digit < 0)
 	      {
@@ -2796,40 +2779,37 @@ read_escape (Lisp_Object readcharfun)
 	    i = (i << 4) + digit;
 	    /* Allow hex escapes as large as ?\xfffffff, because some
 	       packages use them to denote characters with modifiers.  */
-	    if ((CHAR_META | (CHAR_META - 1)) < i)
+	    if (i > (CHAR_META | (CHAR_META - 1)))
 	      error ("Hex character out of range: \\x%x...", i);
 	    count += count < 3;
 	  }
 
+	if (count == 0)
+	  invalid_escape_syntax_error ();
 	if (count < 3 && i >= 0x80)
-	  return BYTE8_TO_CHAR (i);
-	return i;
+	  i = BYTE8_TO_CHAR (i);
+	modifiers |= i & CHAR_MODIFIER_MASK;
+	chr = i & ~CHAR_MODIFIER_MASK;
+	break;
       }
 
+    /* 8-digit Unicode hex escape: \UHHHHHHHH */
     case 'U':
-      /* Post-Unicode-2.0: Up to eight hex chars.  */
       unicode_hex_count = 8;
-      FALLTHROUGH;
-    case 'u':
+      goto unicode_hex;
 
-      /* A Unicode escape.  We only permit them in strings and characters,
-	 not arbitrarily in the source code, as in some other languages.  */
+    /* 4-digit Unicode hex escape: \uHHHH */
+    case 'u':
+      unicode_hex_count = 4;
+    unicode_hex:
       {
 	unsigned int i = 0;
-	int count = 0;
-
-	while (++count <= unicode_hex_count)
+	for (int count = 0; count < unicode_hex_count; count++)
 	  {
-	    c = READCHAR;
+	    int c = READCHAR;
 	    if (c < 0)
-	      {
-		if (unicode_hex_count > 4)
-		  error ("Malformed Unicode escape: \\U%x", i);
-		else
-		  error ("Malformed Unicode escape: \\u%x", i);
-	      }
-	    /* `isdigit' and `isalpha' may be locale-specific, which we don't
-	       want.  */
+	      error ("Malformed Unicode escape: \\%c%x",
+		     unicode_hex_count == 4 ? 'u' : 'U', i);
 	    int digit = char_hexdigit (c);
 	    if (digit < 0)
 	      error ("Non-hex character used for Unicode escape: %c (%d)",
@@ -2838,13 +2818,14 @@ read_escape (Lisp_Object readcharfun)
 	  }
 	if (i > 0x10FFFF)
 	  error ("Non-Unicode character: 0x%x", i);
-	return i;
+	chr = i;
+	break;
       }
 
+    /* Named character: \N{name} */
     case 'N':
-      /* Named character.  */
       {
-        c = READCHAR;
+        int c = READCHAR;
         if (c != '{')
           invalid_syntax ("Expected opening brace after \\N", readcharfun);
         char name[UNICODE_CHARACTER_NAME_LENGTH_BOUND + 1];
@@ -2852,12 +2833,12 @@ read_escape (Lisp_Object readcharfun)
         ptrdiff_t length = 0;
         while (true)
           {
-            c = READCHAR;
+            int c = READCHAR;
             if (c < 0)
               end_of_file_error ();
             if (c == '}')
               break;
-            if (! (0 < c && c < 0x80))
+            if (c >= 0x80)
               {
                 AUTO_STRING (format,
                              "Invalid character U+%04X in character name");
@@ -2886,13 +2867,41 @@ read_escape (Lisp_Object readcharfun)
 	name[length] = '\0';
 
 	/* character_name_to_code can invoke read0, recursively.
-	   This is why read0's buffer is not static.  */
-	return character_name_to_code (name, length, readcharfun);
+	   This is why read0 needs to be re-entrant.  */
+	chr = character_name_to_code (name, length, readcharfun);
+	break;
       }
 
     default:
-      return c;
+      chr = c;
+      break;
     }
+  eassert (chr >= 0 && chr < (1 << CHARACTERBITS));
+
+  /* Apply Control modifiers, using the rules:
+     \C-X = ascii_ctrl(nomod(X)) | mods(X)  if nomod(X) is one of:
+                                                A-Z a-z ? @ [ \ ] ^ _
+
+            X | ctrl_modifier               otherwise
+
+     where
+         nomod(c) = c without modifiers
+	 mods(c)  = the modifiers of c
+         ascii_ctrl(c) = 127       if c = '?'
+                         c & 0x1f  otherwise
+  */
+  while (ncontrol > 0)
+    {
+      if ((chr >= '@' && chr <= '_') || (chr >= 'a' && chr <= 'z'))
+	chr &= 0x1f;
+      else if (chr == '?')
+	chr = 127;
+      else
+	modifiers |= ctrl_modifier;
+      ncontrol--;
+    }
+
+  return chr | modifiers;
 }
 
 /* Return the digit that CHARACTER stands for in the given BASE.
@@ -3014,7 +3023,7 @@ read_char_literal (Lisp_Object readcharfun)
     }
 
   if (ch == '\\')
-    ch = read_escape (readcharfun);
+    ch = read_char_escape (readcharfun, READCHAR);
 
   int modifiers = ch & CHAR_MODIFIER_MASK;
   ch &= ~CHAR_MODIFIER_MASK;
@@ -3080,8 +3089,7 @@ read_string_literal (Lisp_Object readcharfun)
 	      /* `\SPC' and `\LF' generate no characters at all.  */
 	      continue;
 	    default:
-	      UNREAD (ch);
-	      ch = read_escape (readcharfun);
+	      ch = read_char_escape (readcharfun, ch);
 	      break;
 	    }
 
