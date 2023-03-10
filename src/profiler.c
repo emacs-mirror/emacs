@@ -51,7 +51,8 @@ static const struct hash_table_test hashtest_profiler =
 
 struct profiler_log {
   Lisp_Object log;
-  EMACS_INT gc_count;
+  EMACS_INT gc_count;  /* Samples taken during GC.  */
+  EMACS_INT discarded; /* Samples evicted during table overflow.  */
 };
 
 static struct profiler_log
@@ -70,7 +71,7 @@ make_log (void)
 			 DEFAULT_REHASH_SIZE,
 			 DEFAULT_REHASH_THRESHOLD,
 			 Qnil, false),
-	0 };
+	0, 0 };
   struct Lisp_Hash_Table *h = XHASH_TABLE (log.log);
 
   /* What is special about our hash-tables is that the values are pre-filled
@@ -123,8 +124,9 @@ static EMACS_INT approximate_median (log_t *log,
     }
 }
 
-static void evict_lower_half (log_t *log)
+static void evict_lower_half (struct profiler_log *plog)
 {
+  log_t *log = XHASH_TABLE (plog->log);
   ptrdiff_t size = ASIZE (log->key_and_value) / 2;
   EMACS_INT median = approximate_median (log, 0, size);
 
@@ -134,6 +136,8 @@ static void evict_lower_half (log_t *log)
     if (XFIXNUM (HASH_VALUE (log, i)) <= median)
       {
 	Lisp_Object key = HASH_KEY (log, i);
+	EMACS_INT count = XFIXNUM (HASH_VALUE (log, i));
+	plog->discarded = saturated_add (plog->discarded, count);
 	{ /* FIXME: we could make this more efficient.  */
 	  Lisp_Object tmp;
 	  XSET_HASH_TABLE (tmp, log); /* FIXME: Use make_lisp_ptr.  */
@@ -155,12 +159,12 @@ static void evict_lower_half (log_t *log)
    size for memory.  */
 
 static void
-record_backtrace (log_t *log, EMACS_INT count)
+record_backtrace (struct profiler_log *plog, EMACS_INT count)
 {
+  eassert (HASH_TABLE_P (plog->log));
+  log_t *log = XHASH_TABLE (plog->log);
   if (log->next_free < 0)
-    /* FIXME: transfer the evicted counts to a special entry rather
-       than dropping them on the floor.  */
-    evict_lower_half (log);
+    evict_lower_half (plog);
   ptrdiff_t index = log->next_free;
 
   /* Get a "working memory" vector.  */
@@ -240,7 +244,7 @@ static EMACS_INT current_sampling_interval;
 /* Signal handler for sampling profiler.  */
 
 static void
-add_sample (struct profiler_log *log, EMACS_INT count)
+add_sample (struct profiler_log *plog, EMACS_INT count)
 {
   if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
     /* Special case the time-count inside GC because the hash-table
@@ -249,12 +253,9 @@ add_sample (struct profiler_log *log, EMACS_INT count)
        not expect the ARRAY_MARK_FLAG to be set.  We could try and
        harden the hash-table code, but it doesn't seem worth the
        effort.  */
-    log->gc_count = saturated_add (log->gc_count, count);
+    plog->gc_count = saturated_add (plog->gc_count, count);
   else
-    {
-      eassert (HASH_TABLE_P (log->log));
-      record_backtrace (XHASH_TABLE (log->log), count);
-    }
+    record_backtrace (plog, count);
 }
 
 
@@ -424,9 +425,14 @@ static Lisp_Object
 export_log (struct profiler_log *log)
 {
   Lisp_Object result = log->log;
-  Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
-	    make_fixnum (log->gc_count),
-	    result);
+  if (log->gc_count)
+    Fputhash (CALLN (Fvector, QAutomatic_GC, Qnil),
+	      make_fixnum (log->gc_count),
+	      result);
+  if (log->discarded)
+    Fputhash (CALLN (Fvector, QDiscarded_Samples, Qnil),
+	      make_fixnum (log->discarded),
+	      result);
   /* Here we're making the log visible to Elisp, so it's not safe any
      more for our use afterwards since we can't rely on its special
      pre-allocated keys anymore.  So we have to allocate a new one.  */
@@ -595,6 +601,7 @@ to make room for new entries.  */);
   profiler_log_size = 10000;
 
   DEFSYM (Qprofiler_backtrace_equal, "profiler-backtrace-equal");
+  DEFSYM (QDiscarded_Samples, "Discarded Samples");
 
   defsubr (&Sfunction_equal);
 
