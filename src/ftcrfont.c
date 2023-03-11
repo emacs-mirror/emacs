@@ -665,7 +665,7 @@ ftcrfont_draw (struct glyph_string *s,
 	}
 
       ftcrfont_show_glyphs (s, dc, from, to, 0, FONT_BASE(s->font));
-      gaussian_blur (surface, w1, h1, s->face->shadow_blur);
+      gaussian_blur (surface, w1, h1, s->face->shadow_blur / 2.0);
 
       x1 = x1 + s->face->shadow_offset.x;
       y1 = y1 + s->face->shadow_offset.y;
