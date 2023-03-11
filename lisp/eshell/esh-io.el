@@ -466,13 +466,7 @@ STATUS should be non-nil on successful termination of the output."
    ;; A plain function redirection needs no additional arguments
    ;; passed.
    ((functionp target)
-    (funcall target status))
-
-   ;; But a more complicated function redirection (which can only
-   ;; happen with aliases at the moment) has arguments that need to be
-   ;; passed along with it.
-   ((consp target)
-    (apply (car target) status (cdr target)))))
+    (funcall target status))))
 
 (defun eshell-kill-append (string)
   "Call `kill-append' with STRING, if it is indeed a string."
@@ -642,10 +636,7 @@ Returns what was actually sent, or nil if nothing was sent."
        (if (memq (process-status target)
 		 '(run stop open closed))
            (signal (car err) (cdr err))
-         (signal 'eshell-pipe-broken (list target))))))
-
-   ((consp target)
-    (apply (car target) object (cdr target))))
+         (signal 'eshell-pipe-broken (list target)))))))
   object)
 
 (defun eshell-output-object (object &optional handle-index handles)
