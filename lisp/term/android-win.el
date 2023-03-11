@@ -203,5 +203,19 @@ EVENT is a preedit-text event."
 
 (define-key special-event-map [preedit-text] 'android-preedit-text)
 
+
+;; Android cursor shapes, named according to the X scheme.
+;; Many X cursors are missing.
+
+(defconst x-pointer-arrow 1000)
+(defconst x-pointer-left-ptr 1000)
+(defconst x-pointer-left-side 1020)
+(defconst x-pointer-sb-h-double-arrow 1014)
+(defconst x-pointer-sb-v-double-arrow 1015)
+(defconst x-pointer-watch 1004)
+(defconst x-pointer-xterm 1008)
+(defconst x-pointer-invisible 0)
+
+
 (provide 'android-win)
 ;; android-win.el ends here.

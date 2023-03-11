@@ -209,6 +209,9 @@ struct android_output
   Emacs_Cursor bottom_edge_cursor;
   Emacs_Cursor bottom_left_corner_cursor;
 
+  /* Whether or not the hourglass cursor is being displayed.  */
+  bool hourglass;
+
   /* This is the Emacs structure for the display this frame is on.  */
   struct android_display_info *display_info;
 

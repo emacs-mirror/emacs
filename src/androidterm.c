@@ -105,6 +105,45 @@ android_clear_frame (struct frame *f)
 }
 
 static void
+android_show_hourglass (struct frame *f)
+{
+  struct android_output *x;
+
+  /* This isn't implemented like X because a window brings alongside
+     too many unneeded resources.  */
+
+  x = FRAME_ANDROID_OUTPUT (f);
+
+  /* If the hourglass window is mapped inside a popup menu, input
+     could be lost if the menu is popped down and the grab is
+     relinquished, but the hourglass window is still up.  Just
+     avoid displaying the hourglass at all while popups are
+     active.  */
+
+  if (popup_activated ())
+    return;
+
+  x->hourglass = true;
+
+  if (!f->pointer_invisible)
+    android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			   x->hourglass_cursor);
+}
+
+static void
+android_hide_hourglass (struct frame *f)
+{
+  struct android_output *x;
+
+  x = FRAME_ANDROID_OUTPUT (f);
+  x->hourglass = false;
+
+  if (!f->pointer_invisible)
+    android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			   x->current_cursor);
+}
+
+static void
 android_flash (struct frame *f)
 {
   struct android_gc *gc;
@@ -245,7 +284,9 @@ android_toggle_visible_pointer (struct frame *f, bool invisible)
 			   dpyinfo->invisible_cursor);
   else
     android_define_cursor (FRAME_ANDROID_WINDOW (f),
-			   f->output_data.android->current_cursor);
+			   (FRAME_ANDROID_OUTPUT (f)->hourglass
+			    ? f->output_data.android->hourglass_cursor
+			    : f->output_data.android->current_cursor));
 
   f->pointer_invisible = invisible;
 }
@@ -4032,6 +4073,7 @@ static void
 android_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
 {
   if (!f->pointer_invisible
+      && !FRAME_ANDROID_OUTPUT (f)->hourglass
       && f->output_data.android->current_cursor != cursor)
     android_define_cursor (FRAME_ANDROID_WINDOW (f), cursor);
 
@@ -5540,8 +5582,8 @@ static struct redisplay_interface android_redisplay_interface =
     android_draw_vertical_window_border,
     android_draw_window_divider,
     NULL,
-    NULL,
-    NULL,
+    android_show_hourglass,
+    android_hide_hourglass,
     android_default_font_parameter,
 #endif
   };
