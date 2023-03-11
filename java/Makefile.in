@@ -23,6 +23,9 @@ srcdir = @srcdir@
 builddir = @builddir@
 version = @version@
 
+# Don't install movemail if mailutils are to be used.
+emacs_use_mailutils = @emacs_use_mailutils@
+
 # This is the host lib-src and lib, not the cross compiler's lib-src.
 libsrc = ../lib-src
 EXEEXT = @EXEEXT@
@@ -114,14 +117,18 @@ APK_NAME := emacs-$(version)-$(ANDROID_MIN_SDK)-$(ANDROID_ABI).apk
 all: $(APK_NAME)
 
 # Binaries to cross-compile.
-CROSS_SRC_BINS = $(top_builddir)/cross/src/android-emacs
-CROSS_LIBSRC_BINS = $(top_builddir)/cross/lib-src/ctags		\
-		    $(top_builddir)/cross/lib-src/hexl		\
-		    $(top_builddir)/cross/lib-src/movemail	\
-		    $(top_builddir)/cross/lib-src/ebrowse	\
-		    $(top_builddir)/cross/lib-src/emacsclient	\
-		    $(top_builddir)/cross/lib-src/etags
+CROSS_SRC_BINS := $(top_builddir)/cross/src/android-emacs
+CROSS_LIBSRC_BINS := $(top_builddir)/cross/lib-src/ctags	\
+		     $(top_builddir)/cross/lib-src/hexl		\
+		     $(top_builddir)/cross/lib-src/ebrowse	\
+		     $(top_builddir)/cross/lib-src/emacsclient	\
+		     $(top_builddir)/cross/lib-src/etags
+CROSS_LIBSRC_BINS_MOVEMAIL := $(top_builddir)/cross/lib-src/movemail
 CROSS_BINS = $(CROSS_SRC_BINS) $(CROSS_LIBSRC_BINS)
+
+ifneq ($(emacs_use_mailutils),yes)
+CROSS_LIBSRC_BINS := $(CROSS_LIBSRC_BINS) $(CROSS_LIBSRC_BINS_MOVEMAIL)
+endif
 
 # Libraries to cross-compile.
 CROSS_LIBS = $(top_builddir)/cross/src/libemacs.so

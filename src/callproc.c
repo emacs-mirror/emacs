@@ -2178,7 +2178,10 @@ the system.  */);
 Use this instead of calling `movemail' directly, as `movemail'
 may have been renamed to comply with executable naming restrictions on
 the system.  */);
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
+  /* Don't change the name of `movemail' if Emacs is being built to
+     use movemail from another source.  */
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY	\
+  || defined HAVE_MAILUTILS
   Vmovemail_program_name = build_pure_c_string ("movemail");
 #else
   Vmovemail_program_name = build_pure_c_string ("libmovemail.so");

@@ -317,24 +317,31 @@ AC_ARG_WITH([mailutils],
       installed])],
   [],
   [with_mailutils=$with_features
-   if test "$with_mailutils" = yes; then
-     (movemail --version) >/dev/null 2>&1 || with_mailutils=no
-   fi])
-if test "$with_mailutils" = no; then
-  with_mailutils=
-fi
+   AS_IF(["$with_mailutils" = yes],
+     [AS_IF([test "x$XCONFIGURE" != "xandroid"],
+       [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
+       [dnl don't check for movemail if cross-compiling.
+        with_mailutils=yes])])])
+AS_IF([test "$with_mailutils" = no],
+  [with_mailutils=])
+
+AS_IF([test x"$with_mailutils" = xyes],
+  [AC_DEFINE([HAVE_MAILUTILS], [1],
+     [Define to 1 if Emacs was configured with mailutils])])
+
 AC_SUBST([with_mailutils])
 
 AC_ARG_WITH([pop],
   [AS_HELP_STRING([--with-pop],
      [Support POP mail retrieval if Emacs movemail is used (not recommended,
       as Emacs movemail POP is insecure).  This is the default only on
-      native MS-Windows.])],
+      native MS-Windows and Android.])],
   [],
-  [case $host in
-     *-mingw*) with_pop=yes;;
-     *) with_pop=no-by-default;;
-   esac])
+  dnl Enable movemail POP support on Android as GNU Mailutils is
+  dnl normally unavailable on that platform.
+  [AS_CASE([$host],
+     [*-mingw*|*android*], [with_pop=yes],
+     [with_pop=no-by-default])])
 if test "$with_pop" = yes; then
    AC_DEFINE([MAIL_USE_POP])
 fi
@@ -794,6 +801,9 @@ WARN_JAVAFLAGS=
 # Android.
 android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
 
+# This is whether or not to package mailutils into the executable.
+emacs_use_mailutils=
+
 AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
@@ -1151,6 +1161,11 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-tree-sitter=$with_tree_sitter"
   passthrough="$passthrough --with-imagemagick=$with_imagemagick"
   passthrough="$passthrough --with-lcms2=$with_lcms2"
+  passthrough="$passthrough --with-mailutils=$with_mailutils"
+  passthrough="$passthrough --with-pop=$with_pop"
+
+  AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
+  AC_SUBST([emacs_use_mailutils])
 
   AS_IF([XCONFIGURE=android ANDROID_CC="$ANDROID_CC"		\
          ANDROID_SDK="$android_sdk" android_abi=$android_abi	\
@@ -1230,6 +1245,8 @@ if test "$ANDROID" = "yes"; then
     with_tree_sitter=no
     with_imagemagick=no
     with_lcms2=no
+    with_mailutils=no
+    with_pop=no
   fi
 
   with_rsvg=no
