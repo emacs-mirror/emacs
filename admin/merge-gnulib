@@ -46,7 +46,7 @@ GNULIB_MODULES='
   qcopy-acl readlink readlinkat regex
   sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stddef stdio
   stpcpy strnlen strtoimax symlink sys_stat sys_time
-  tempname time time_r time_rz timegm timer-time timespec-add timespec-sub
+  tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat
   vla warnings
 '

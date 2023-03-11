@@ -189,7 +189,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_time:
   # Code from module sys_types:
   # Code from module tempname:
-  # Code from module time:
+  # Code from module time-h:
   # Code from module time_r:
   # Code from module time_rz:
   # Code from module timegm:
