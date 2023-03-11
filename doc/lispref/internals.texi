@@ -566,7 +566,8 @@ recommend against increasing the threshold for prolonged periods of
 time, and advise that you never set it higher than needed for the
 program to run in reasonable time.  Using thresholds higher than
 necessary could potentially cause higher system-wide memory pressure,
-and should therefore be avoided.
+and also make each garbage-collection cycle take much more time, and
+should therefore be avoided.
 
 You can make collections more frequent by specifying a smaller value, down
 to 1/10th of @code{GC_DEFAULT_THRESHOLD}.  A value less than this minimum
