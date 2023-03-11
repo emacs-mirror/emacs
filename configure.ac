@@ -464,7 +464,6 @@ OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
 OPTION_DEFAULT_IFAVAILABLE([json], [compile with native JSON support])
 OPTION_DEFAULT_IFAVAILABLE([tree-sitter], [compile with tree-sitter])
-OPTION_DEFAULT_IFAVAILABLE([opencv], [compile with opencv])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([harfbuzz],[don't use HarfBuzz for text shaping])
@@ -3188,21 +3187,6 @@ fi
 AC_SUBST([JSON_LIBS])
 AC_SUBST([JSON_CFLAGS])
 AC_SUBST([JSON_OBJ])
-
-
-HAVE_OPENCV=no
-
-if test "${with_opencv}" != "no"; then
-  EMACS_CHECK_MODULES([OPENCV], [opencv >= 4.0],
-    [HAVE_OPENCV=yes], [HAVE_OPENCV=no])
-  if test "${HAVE_OPENCV}" = yes; then
-    AC_DEFINE(HAVE_OPENCV, 1, [Define if using opencv.])
-  fi
-fi
-
-AC_SUBST([OPENCV_LIBS])
-AC_SUBST([OPENCV_CFLAGS])
-AC_SUBST([OPENCV_OBJ])
 
 
 HAVE_TREE_SITTER=no
