@@ -1813,6 +1813,7 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:foreground . "Foreground")
 		  (:distant-foreground . "DistantForeground")
 		  (:background . "Background")
+                  (:shadow . "Shadow")
 		  (:underline . "Underline")
 		  (:overline . "Overline")
 		  (:strike-through . "Strike-through")
