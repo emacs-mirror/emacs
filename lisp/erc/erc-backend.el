@@ -2236,6 +2236,11 @@ See `erc-display-server-message'." nil
     (erc-display-message parsed '(notice error) 'active
                          's401 ?n nick/channel)))
 
+(define-erc-response-handler (402)
+  "No such server." nil
+  (erc-display-message parsed '(notice error) 'active
+                       's402 ?c (cadr (erc-response.command-args parsed))))
+
 (define-erc-response-handler (403)
   "No such channel." nil
   (erc-display-message parsed '(notice error) 'active
@@ -2383,7 +2388,7 @@ See `erc-display-error-notice'." nil
 ;; (define-erc-response-handler (323 364 365 381 382 392 393 394 395
 ;;                               200 201 202 203 204 205 206 208 209 211 212 213
 ;;                               214 215 216 217 218 219 241 242 243 244 249 261
-;;                               262 302 342 351 402 407 409 411 413 414 415
+;;                               262 302 342 351 407 409 411 413 414 415
 ;;                               423 424 436 441 443 444 467 471 472 473 KILL)
 ;;   nil nil
 ;;   (ignore proc parsed))

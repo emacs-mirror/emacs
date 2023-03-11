@@ -4051,6 +4051,22 @@ means that the user has a +o flag in the channel's access list)."
    (t (erc-server-send "TIME"))))
 (defalias 'erc-cmd-DATE #'erc-cmd-TIME)
 
+(defun erc-cmd-MOTD (&optional target)
+  "Ask server to send the current MOTD.
+Some IRCds simply ignore TARGET."
+  (letrec ((oneoff (lambda (proc parsed)
+                     (with-current-buffer (erc-server-buffer)
+                       (cl-assert (eq (current-buffer) (process-buffer proc)))
+                       (remove-hook 'erc-server-402-functions h402 t)
+                       (remove-hook 'erc-server-376-functions h376 t)
+                       (remove-hook 'erc-server-422-functions h422 t))
+                     (erc-server-MOTD proc parsed)
+                     t))
+           (h402 (erc-once-with-server-event 402 oneoff))
+           (h376 (erc-once-with-server-event 376 oneoff))
+           (h422 (erc-once-with-server-event 422 oneoff)))
+    (erc-server-send (concat "MOTD" (and target " ") target))))
+
 (defun erc-cmd-TOPIC (topic)
   "Set or request the topic for a channel.
 LINE has the format: \"#CHANNEL TOPIC\", \"#CHANNEL\", \"TOPIC\"
@@ -7136,6 +7152,7 @@ All windows are opened in the current frame."
    (s379   . "%c: Forwarded to %f")
    (s391   . "The time at %s is %t")
    (s401   . "%n: No such nick/channel")
+   (s402   . "%c: No such server")
    (s403   . "%c: No such channel")
    (s404   . "%c: Cannot send to channel")
    (s405   . "%c: You have joined too many channels")
