@@ -6323,8 +6323,16 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       /* (blur . color) or (blur color offset) */
       Lisp_Object blur, color, offset, rest;
       blur = CAR (shadow);
-      face->shadow_p = true;
-      face->shadow_blur = XFLOAT_DATA (blur);
+      if (FLOATP (blur))
+	{
+	  face->shadow_p = true;
+	  face->shadow_blur = XFLOAT_DATA (blur);
+	}
+      else
+	{
+	  face->shadow_p = false;
+	  add_to_log ("Invalid shadow blur value");
+	}
 
       rest = CDR (shadow);
       if (STRINGP (rest))
@@ -6337,9 +6345,15 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
         {
           color = CAR (rest);
           offset = CDR (rest);
+	  if (CONSP (CAR (offset)) && NILP (CDR (offset)))
+	    {
+	      /* Be tolerant about something like (5.0 "color" (x . y)) */
+	      offset = CAR (offset);
+	    }
         }
       else
 	{
+	  add_to_log ("Invalid shadow");
 	  color = Qnil;
 	  offset = Qnil;
 	}
@@ -6363,9 +6377,17 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
         }
       else if (FIXNUMP (CAR (offset)) && FIXNUMP (CDR (offset)))
         {
-          face->shadow_offset.x = XFIXNUM (CAR (offset));
-          face->shadow_offset.y = XFIXNUM (CDR (offset));
+	  EMACS_INT x = XFIXNUM (CAR (offset)), y = XFIXNUM (CDR (offset));
+	  if (x >= 128 || y >= 128 || x <= -127 || y <= -127)
+	    add_to_log ("Invalid shadow offset");
+	  else
+	    {
+	      face->shadow_offset.x = x;
+	      face->shadow_offset.y = y;
+	    }
         }
+      else
+	add_to_log ("Invalid shadow offset");
     }
 
   /* Text underline, overline, strike-through.  */
