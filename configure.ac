@@ -550,7 +550,7 @@ OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
-OPTION_DEFAULT_IFAVAILABLE([modules],[don't compile with dynamic modules support])
+OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
@@ -4874,90 +4874,36 @@ if test $window_system = pgtk; then
   esac
 fi
 
-if test "${with_modules}" != "no"; then
-  # __attribute__ ((cleanup)) is required for dynamic modules to
-  # work.
-  AC_CACHE_CHECK([for working __attribute__((cleanup))],
-    [emacs_cv_attribute_cleanup],
-    [AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+AS_IF([test "x$with_modules" != "xno"],
+  [AS_CASE(["$opsys"],
+    [gnu|gnu-linux],
+      [LIBMODULES="-ldl"
+       HAVE_MODULES=yes],
+    [cygwin|mingw32|darwin],
+      [HAVE_MODULES=yes],
+    # BSD systems have dlopen in libc.
+    [AC_CHECK_FUNC([dlopen], [HAVE_MODULES=yes])])
 
- extern int exit ();
+  AS_IF([test "x$HAVE_MODULES" = "xno"],
+    [AS_IF([test "$with_modules" = "ifavailable"],
+      [AC_MSG_WARN([Dynamic modules are not supported on your system])],
+      [AC_MSG_ERROR([Dynamic modules are not supported on your system])])],
+    [SAVE_LIBS=$LIBS
+     LIBS="$LIBS $LIBMODULES"
+     AC_CHECK_FUNCS([dladdr dlfunc])
+     LIBS=$SAVE_LIBS])])
 
- cleanup_func_1 (k)
-    int *k;
- {
-   exit (*k - 100);
- }
+AS_IF([test "x$HAVE_MODULES" = xyes],
+   [MODULES_OBJ="emacs-module.o"
+    NEED_DYNLIB=yes
+    AC_DEFINE([HAVE_MODULES], [1], [Define to 1 if dynamic modules are enabled])
+    AC_DEFINE_UNQUOTED([MODULES_SUFFIX], ["$MODULES_SUFFIX"],
+      [System extension for dynamic libraries])
+    AS_IF([test -n "$MODULES_SECONDARY_SUFFIX"],
+      [AC_DEFINE_UNQUOTED([MODULES_SECONDARY_SUFFIX],
+	["$MODULES_SECONDARY_SUFFIX"],
+	[Alternative system extension for dynamic libraries.])])])
 
- cleanup_func ()
- {
-   int k __attribute__((cleanup (cleanup_func_1))) = 100;
- }
-
- ]], [[cleanup_func (); return 1;]])],
-       [emacs_cv_attribute_cleanup=yes],
-       [emacs_cv_attribute_cleanup=no],
-       [AC_COMPILE_IFELSE([
-         AC_LANG_PROGRAM([[
-	   cleanup_func_1 (k)
-	     int *k;
-	   {
-	     return *k;
-	   };
-	   cleanup_func ()
-	   {
-	     int k __attribute__((cleanup (cleanup_func_1))) = 100;
-	   }]],
-	   [[cleanup_func ()]])],
-	 [emacs_cv_attribute_cleanup="guessing yes"],
-	 [emacs_cv_attribute_cleanup=no])])])
-
-  if test "$emacs_cv_attribute_cleanup" = "no"; then
-    if test "${with_modules}" = "ifavailable"; then
-      AC_MSG_WARN([your compiler does not support cleanup attributes,
-and as a result dynamic modules have been disabled])
-    else
-      AC_MSG_ERROR([your compiler is missing the cleanup attribute
-required for dynamic modules to work])
-    fi
-  else
-    case $opsys in
-      gnu|gnu-linux)
-	LIBMODULES="-ldl"
-	HAVE_MODULES=yes
-	;;
-      cygwin|mingw32|darwin)
-	HAVE_MODULES=yes
-	;;
-      *)
-	# BSD systems have dlopen in libc.
-	AC_CHECK_FUNC([dlopen], [HAVE_MODULES=yes])
-	;;
-    esac
-
-    if test "${HAVE_MODULES}" = no; then
-      AC_MSG_ERROR([Dynamic modules are not supported on your system])
-    else
-      SAVE_LIBS=$LIBS
-      LIBS="$LIBS $LIBMODULES"
-      AC_CHECK_FUNCS([dladdr dlfunc])
-      LIBS=$SAVE_LIBS
-    fi
-  fi
-fi
-
-if test "${HAVE_MODULES}" = yes; then
-   MODULES_OBJ="emacs-module.o"
-   NEED_DYNLIB=yes
-   AC_DEFINE([HAVE_MODULES], [1], [Define to 1 if dynamic modules are enabled])
-   AC_DEFINE_UNQUOTED([MODULES_SUFFIX], ["$MODULES_SUFFIX"],
-     [System extension for dynamic libraries])
-   if test -n "${MODULES_SECONDARY_SUFFIX}"; then
-     AC_DEFINE_UNQUOTED([MODULES_SECONDARY_SUFFIX],
-       ["$MODULES_SECONDARY_SUFFIX"],
-       [Alternative system extension for dynamic libraries.])
-   fi
-fi
 AC_SUBST([MODULES_OBJ])
 AC_SUBST([LIBMODULES])
 AC_SUBST([HAVE_MODULES])
