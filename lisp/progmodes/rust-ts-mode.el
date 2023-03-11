@@ -91,6 +91,7 @@
      ((parent-is "let_declaration") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "macro_definition") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "parameters") parent-bol rust-ts-mode-indent-offset)
+     ((parent-is "struct_pattern") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "token_tree") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "use_list") parent-bol rust-ts-mode-indent-offset)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
