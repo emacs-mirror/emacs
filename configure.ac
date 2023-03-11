@@ -3188,7 +3188,6 @@ AC_SUBST([JSON_LIBS])
 AC_SUBST([JSON_CFLAGS])
 AC_SUBST([JSON_OBJ])
 
-
 HAVE_TREE_SITTER=no
 TREE_SITTER_OBJ=
 NEED_DYNLIB=no
@@ -6672,7 +6671,6 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lsystemd?                               ${HAVE_LIBSYSTEMD}
   Does Emacs use -ljansson?                               ${HAVE_JSON}
   Does Emacs use -ltree-sitter?                           ${HAVE_TREE_SITTER}
-  Does Emacs use OpenCV?                                  ${HAVE_OPENCV}
   Does Emacs use the GMP library?                         ${HAVE_GMP}
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}
   Does Emacs have dynamic modules support?                ${HAVE_MODULES}
