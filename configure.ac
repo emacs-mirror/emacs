@@ -318,10 +318,12 @@ AC_ARG_WITH([mailutils],
   [],
   [with_mailutils=$with_features
    AS_IF([test "$with_mailutils" = yes],
-     [AS_IF([test "x$XCONFIGURE" != "xandroid"],
+     [AS_IF([test "x$XCONFIGURE" != "xandroid" \
+             && test "$with_android" = "no"],
        [(movemail --version) >/dev/null 2>&1 || with_mailutils=no],
-       [dnl don't check for movemail if cross-compiling.
-        with_mailutils=yes])])])
+       [dnl Don't check for movemail if cross-compiling.
+        dnl instead, default to false.
+        with_mailutils=no])])])
 AS_IF([test "$with_mailutils" = no],
   [with_mailutils=])
 
