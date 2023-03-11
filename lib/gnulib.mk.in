@@ -159,7 +159,7 @@
 #  sys_stat \
 #  sys_time \
 #  tempname \
-#  time \
+#  time-h \
 #  time_r \
 #  time_rz \
 #  timegm \
@@ -722,6 +722,7 @@ GL_GNULIB_SYSTEM_POSIX = @GL_GNULIB_SYSTEM_POSIX@
 GL_GNULIB_TANF = @GL_GNULIB_TANF@
 GL_GNULIB_TANHF = @GL_GNULIB_TANHF@
 GL_GNULIB_TANL = @GL_GNULIB_TANL@
+GL_GNULIB_TIME = @GL_GNULIB_TIME@
 GL_GNULIB_TIMEGM = @GL_GNULIB_TIMEGM@
 GL_GNULIB_TIMESPEC_GET = @GL_GNULIB_TIMESPEC_GET@
 GL_GNULIB_TIMESPEC_GETRES = @GL_GNULIB_TIMESPEC_GETRES@
@@ -1535,6 +1536,7 @@ REPLACE_SYMLINK = @REPLACE_SYMLINK@
 REPLACE_SYMLINKAT = @REPLACE_SYMLINKAT@
 REPLACE_TANF = @REPLACE_TANF@
 REPLACE_TANHF = @REPLACE_TANHF@
+REPLACE_TIME = @REPLACE_TIME@
 REPLACE_TIMEGM = @REPLACE_TIMEGM@
 REPLACE_TIMESPEC_GET = @REPLACE_TIMESPEC_GET@
 REPLACE_TMPFILE = @REPLACE_TMPFILE@
@@ -4574,8 +4576,8 @@ EXTRA_DIST += tempname.h
 endif
 ## end   gnulib module tempname
 
-## begin gnulib module time
-ifeq (,$(OMIT_GNULIB_MODULE_time))
+## begin gnulib module time-h
+ifeq (,$(OMIT_GNULIB_MODULE_time-h))
 
 BUILT_SOURCES += time.h
 
@@ -4594,6 +4596,7 @@ time.h: time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_NANOSLEEP''@/$(GL_GNULIB_NANOSLEEP)/g' \
 	      -e 's/@''GNULIB_STRFTIME''@/$(GL_GNULIB_STRFTIME)/g' \
 	      -e 's/@''GNULIB_STRPTIME''@/$(GL_GNULIB_STRPTIME)/g' \
+	      -e 's/@''GNULIB_TIME''@/$(GL_GNULIB_TIME)/g' \
 	      -e 's/@''GNULIB_TIMEGM''@/$(GL_GNULIB_TIMEGM)/g' \
 	      -e 's/@''GNULIB_TIMESPEC_GET''@/$(GL_GNULIB_TIMESPEC_GET)/g' \
 	      -e 's/@''GNULIB_TIMESPEC_GETRES''@/$(GL_GNULIB_TIMESPEC_GETRES)/g' \
@@ -4615,6 +4618,7 @@ time.h: time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''REPLACE_MKTIME''@|$(REPLACE_MKTIME)|g' \
 	      -e 's|@''REPLACE_NANOSLEEP''@|$(REPLACE_NANOSLEEP)|g' \
 	      -e 's|@''REPLACE_STRFTIME''@|$(REPLACE_STRFTIME)|g' \
+	      -e 's|@''REPLACE_TIME''@|$(REPLACE_TIME)|g' \
 	      -e 's|@''REPLACE_TIMEGM''@|$(REPLACE_TIMEGM)|g' \
 	      -e 's|@''REPLACE_TIMESPEC_GET''@|$(REPLACE_TIMESPEC_GET)|g' \
 	      -e 's|@''REPLACE_TZSET''@|$(REPLACE_TZSET)|g' \
@@ -4633,7 +4637,7 @@ MOSTLYCLEANFILES += time.h time.h-t
 EXTRA_DIST += time.in.h
 
 endif
-## end   gnulib module time
+## end   gnulib module time-h
 
 ## begin gnulib module time_r
 ifeq (,$(OMIT_GNULIB_MODULE_time_r))

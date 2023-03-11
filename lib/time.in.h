@@ -143,6 +143,20 @@ _GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
 _GL_CXXALIASWARN (timespec_getres);
 # endif
 
+/* Return the number of seconds that have elapsed since the Epoch.  */
+# if @GNULIB_TIME@
+#  if @REPLACE_TIME@
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    define time rpl_time
+#   endif
+_GL_FUNCDECL_RPL (time, time_t, (time_t *__tp));
+_GL_CXXALIAS_RPL (time, time_t, (time_t *__tp));
+#  else
+_GL_CXXALIAS_SYS (time, time_t, (time_t *__tp));
+#  endif
+_GL_CXXALIASWARN (time);
+# endif
+
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,
    return -1 and store the remaining time into RMTP.  See
    <https://pubs.opengroup.org/onlinepubs/9699919799/functions/nanosleep.html>.  */
