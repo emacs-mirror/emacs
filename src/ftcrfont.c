@@ -645,8 +645,12 @@ ftcrfont_draw (struct glyph_string *s,
       cairo_surface_t *surface;
       cairo_t *dc;
 
-      int w1 = s->width, h1 = FONT_HEIGHT (s->font);
-      int x1 = x, y1 = y - FONT_BASE (s->font);
+      int x1, y1, w1, h1;
+      int margin;
+
+      margin = (int) ceil (s->face->shadow_blur);
+      w1 = s->width + margin;
+      h1 = FONT_HEIGHT (s->font) + margin;
 
       surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
       dc = cairo_create (surface);
@@ -656,19 +660,18 @@ ftcrfont_draw (struct glyph_string *s,
       else
 	{
 	  unsigned long col = s->face->shadow_color;
-	  cairo_set_source_rgba (dc,
-				 RED_FROM_ULONG (col) / 255.0,
-				 GREEN_FROM_ULONG (col) / 255.0,
-				 BLUE_FROM_ULONG (col),
-				 f->alpha_background);
+	  cairo_set_source_rgb (dc,
+				RED_FROM_ULONG (col) / 255.0,
+				GREEN_FROM_ULONG (col) / 255.0,
+				BLUE_FROM_ULONG (col) / 255.0);
 	  cairo_set_operator (dc, CAIRO_OPERATOR_OVER);
 	}
 
-      ftcrfont_show_glyphs (s, dc, from, to, 0, FONT_BASE(s->font));
+      ftcrfont_show_glyphs (s, dc, from, to, margin, FONT_BASE(s->font) + margin);
       gaussian_blur (surface, w1, h1, s->face->shadow_blur / 2.0);
 
-      x1 = x1 + s->face->shadow_offset.x;
-      y1 = y1 + s->face->shadow_offset.y;
+      x1 = x + s->face->shadow_offset.x - margin;
+      y1 = y - FONT_BASE (s->font) + s->face->shadow_offset.y - margin;
 
       cairo_set_source_surface (cr, surface, x1, y1);
       cairo_rectangle (cr, x1, y1, w1, h1);
