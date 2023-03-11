@@ -1093,7 +1093,9 @@ NEW-NAME."
               (with-temp-buffer
                 (set-buffer-multibyte nil)
                 (archive--extract-file extractor copy ename)
-                (write-region (point-min) (point-max) write-to))
+                (let ((coding-system-for-write
+                       (or coding-system-for-write 'no-conversion)))
+                  (write-region (point-min) (point-max) write-to)))
             (unless (equal copy archive)
               (delete-file copy))))))))
 
