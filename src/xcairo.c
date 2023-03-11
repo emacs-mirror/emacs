@@ -75,7 +75,7 @@ box_blur_h (v4uc *s, v4uc *t, int w, int h, int r)
           val += uc2f(s[ri++])-uc2f(s[li++]);
           t[ti++] = f2uc(val*iarr);
         }
-      for(int j=w-r;j<w;++j)
+      for(int j=w-r;j<w-1;++j)
         {
           val += uc2f(lv)-uc2f(s[li++]);
           t[ti++] = f2uc(val*iarr);
@@ -106,7 +106,7 @@ box_blur_t (v4uc *s, v4uc *t, int w, int h, int r)
           t[ti] = f2uc(val*iarr);
           li+=w; ri+=w; ti+=w;
         }
-      for(int j=h-r; j<h; ++j)
+      for(int j=h-r; j<h-1; ++j)
         {
           val += uc2f(lv) - uc2f(s[li]);
           t[ti] = f2uc(val*iarr);
