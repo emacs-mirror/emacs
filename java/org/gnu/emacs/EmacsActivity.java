@@ -321,10 +321,14 @@ public class EmacsActivity extends Activity
 
     /* See the comment inside onMenuItemClick.  */
 
-    if (EmacsContextMenu.wasSubmenuSelected
+    if (((EmacsContextMenu.wasSubmenuSelected == -2)
+	 || (EmacsContextMenu.wasSubmenuSelected >= 0
+	     && ((System.currentTimeMillis ()
+		  - EmacsContextMenu.wasSubmenuSelected)
+		 <= 300)))
 	|| menu == lastClosedMenu)
       {
-	EmacsContextMenu.wasSubmenuSelected = false;
+	EmacsContextMenu.wasSubmenuSelected = -1;
 	lastClosedMenu = menu;
 	return;
       }

@@ -46,8 +46,11 @@ public final class EmacsContextMenu
   /* Whether or not an item was selected.  */
   public static boolean itemAlreadySelected;
 
-  /* Whether or not a submenu was selected.  */
-  public static boolean wasSubmenuSelected;
+  /* Whether or not a submenu was selected.
+     Value is -1 if no; value is -2 if yes, and a context menu
+     close event will definitely be sent.  Any other value is
+     the timestamp when the submenu was selected.  */
+  public static long wasSubmenuSelected;
 
   /* The serial ID of the last context menu to be displayed.  */
   public static int lastMenuEventSerial;
@@ -78,7 +81,7 @@ public final class EmacsContextMenu
 	      /* Still set wasSubmenuSelected -- if not set, the
 		 dismissal of this context menu will result in a
 		 context menu event being sent.  */
-	      wasSubmenuSelected = true;
+	      wasSubmenuSelected = -2;
 
 	      /* Running a popup menu from inside a click handler
 		 doesn't work, so make sure it is displayed
@@ -103,8 +106,13 @@ public final class EmacsContextMenu
 
 	     Setting this flag makes EmacsActivity to only handle
 	     SubMenuBuilder being closed, which always means the menu
-	     has actually been dismissed.  */
-	  wasSubmenuSelected = true;
+	     has actually been dismissed.
+
+	     However, these extraneous events aren't sent on devices
+	     where submenus display without dismissing their parents.
+	     Thus, only ignore the close event if it happens within
+	     300 milliseconds of the submenu being selected.  */
+	  wasSubmenuSelected = System.currentTimeMillis ();
 	  return false;
 	}
 
@@ -291,7 +299,7 @@ public final class EmacsContextMenu
     itemAlreadySelected = false;
 
     /* No submenu has been selected yet.  */
-    wasSubmenuSelected = false;
+    wasSubmenuSelected = -1;
 
     return window.view.popupMenu (this, xPosition, yPosition,
 				  false);
