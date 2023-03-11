@@ -63,6 +63,7 @@ beginning of the test file."
               (eshell-debug-command (cons 'process eshell-debug-command))
               (eshell-history-file-name nil)
               (eshell-last-dir-ring-file-name nil)
+              (eshell-module-loading-messages nil)
               (eshell-buffer (eshell t)))
          (unwind-protect
              (with-current-buffer eshell-buffer
@@ -183,10 +184,11 @@ inserting the command."
 (defun eshell-command-result-equal (command result)
   "Execute COMMAND non-interactively and compare it to RESULT."
   (ert-info (#'eshell-get-debug-logs :prefix "Command logs: ")
-    (should (eshell-command-result--equal
-             command
-             (eshell-test-command-result command)
-             result))))
+    (let ((eshell-module-loading-messages nil))
+      (should (eshell-command-result--equal
+               command
+               (eshell-test-command-result command)
+               result)))))
 
 (provide 'eshell-tests-helpers)
 
