@@ -2986,6 +2986,12 @@ android_resolve_handle (android_handle handle,
     /* ANDROID_NONE.  */
     return NULL;
 
+  /* CheckJNI will normally ensure that the handle exists and is
+     the right type, but with a less informative error message.
+     Don't waste cycles doing our own checking here.  */
+
+#ifdef ENABLE_CHECKING
+
   if (!android_handles[handle].handle)
     {
       __android_log_print (ANDROID_LOG_ERROR, __func__,
@@ -3000,6 +3006,8 @@ android_resolve_handle (android_handle handle,
       emacs_abort ();
     }
 
+#endif /* ENABLE_CHECKING */
+
   return android_handles[handle].handle;
 }
 
@@ -3010,6 +3018,12 @@ android_resolve_handle2 (android_handle handle,
 {
   if (!handle)
     return NULL;
+
+  /* CheckJNI will normally ensure that the handle exists and is
+     the right type, but with a less informative error message.
+     Don't waste cycles doing our own checking here.  */
+
+#ifdef ENABLE_CHECKING
 
   if (!android_handles[handle].handle)
     {
@@ -3025,6 +3039,8 @@ android_resolve_handle2 (android_handle handle,
 			   "Handle has wrong type!");
       emacs_abort ();
     }
+
+#endif /* ENABLE_CHECKING */
 
   return android_handles[handle].handle;
 }
@@ -3861,6 +3877,7 @@ android_copy_area (android_drawable src, android_drawable dest,
 						 (jint) src_x, (jint) src_y,
 						 (jint) width, (jint) height,
 						 (jint) dest_x, (jint) dest_y);
+  android_exception_check ();
 }
 
 void
@@ -6345,9 +6362,7 @@ android_define_cursor (android_window window, android_cursor cursor)
   jmethodID method;
 
   window1 = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
-  cursor1 = (cursor
-	     ? android_resolve_handle (cursor, ANDROID_HANDLE_CURSOR)
-	     : NULL);
+  cursor1 = android_resolve_handle (cursor, ANDROID_HANDLE_CURSOR);
   method = window_class.define_cursor;
 
   (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
