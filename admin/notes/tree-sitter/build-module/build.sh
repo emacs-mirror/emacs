@@ -31,6 +31,9 @@ case "${lang}" in
     "cmake")
         org="uyha"
         ;;
+    "elixir")
+        org="elixir-lang"
+        ;;
     "go-mod")
         # The parser is called "gomod".
         lang="gomod"

@@ -221,7 +221,7 @@ chosen (interactively or automatically)."
                                 ((java-mode java-ts-mode) . ("jdtls"))
                                 (dart-mode . ("dart" "language-server"
                                               "--client-id" "emacs.eglot-dart"))
-                                (elixir-mode . ("language_server.sh"))
+                                ((elixir-ts-mode elixir-mode) . ("language_server.sh"))
                                 (ada-mode . ("ada_language_server"))
                                 (scala-mode . ,(eglot-alternatives
                                                 '("metals" "metals-emacs")))

@@ -8,6 +8,7 @@ languages=(
     'css'
     'c-sharp'
     'dockerfile'
+    'elixir'
     'go'
     'go-mod'
     'heex'
