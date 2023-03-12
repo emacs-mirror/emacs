@@ -567,6 +567,10 @@ OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 OPTION_DEFAULT_OFF([android],[cross-compile Android application package])
 OPTION_DEFAULT_ON([android-debug],[don't build Emacs as a debug package on Android])
 
+AC_ARG_WITH([shared-user-id],
+  [AS_HELP_STRING([--with-shared-user-id=ID],
+    [use the given shared user ID in Android builds])])
+
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
  [ case "${withval}" in
@@ -798,6 +802,7 @@ DX=
 ANDROID_JAR=
 ANDROID_ABI=
 WARN_JAVAFLAGS=
+ANDROID_SHARED_USER_ID=
 
 # This is a list of Makefiles that have alternative versions for
 # Android.
@@ -2571,7 +2576,7 @@ ANDROID_CFLAGS=
 REALLY_ANDROID=
 CM_OBJ="cm.o"
 
-if test "${ANDROID}" = "yes"; then
+AS_IF([test "$ANDROID" = "yes"],[
   window_system=android
   no_x=yes
   ANDROID_OBJ="androidterm.o androidfns.o androidfont.o androidmenu.o"
@@ -2582,10 +2587,17 @@ if test "${ANDROID}" = "yes"; then
   AC_DEFINE([HAVE_ANDROID], [1], [Define to 1 if Emacs is being built
 with Android support])
 
-  if test "${XCONFIGURE}" != "android"; then
+  AS_IF([test "$XCONFIGURE" != "android"], [
     AC_DEFINE([ANDROID_STUBIFY], [1], [Define to 1 if Emacs is being built
 for Android, but all API calls need to be stubbed out])
-  else
+
+    # Now set any shared user ID that was specified.
+    AS_IF([test -n "$with_shared_user_id"],
+      [emacs_val=$with_shared_user_id
+       emacs_val=`AS_ECHO(["$with_shared_user_id"]) \
+                  | sed -e 's/"/\\"/'`
+       emacs_val="\"$emacs_val\""
+       ANDROID_SHARED_USER_ID="android:sharedUserId=$emacs_val"])],[
     # Emacs will be built as a shared library, and a wrapper around it
     # will also be built for the benefit of applications.  This
     # requires Emacs be built as a position independent executable.
@@ -2598,11 +2610,9 @@ for Android, but all API calls need to be stubbed out])
     # Link with libraries required for Android support.
     # API 9 and later require `-landroid' for the asset manager.
     # API 8 uses an emulation via the JNI.
-    if test "$ANDROID_SDK" -lt "9"; then
-      ANDROID_LIBS="-llog -ljnigraphics"
-    else
-      ANDROID_LIBS="-landroid -llog -ljnigraphics"
-    fi
+    AS_IF([test "$ANDROID_SDK" -lt "9"],
+      [ANDROID_LIBS="-llog -ljnigraphics"],
+      [ANDROID_LIBS="-landroid -llog -ljnigraphics"])
 
     # This is required to make the system load emacs.apk's libpng
     # (among others) instead of the system's own.  But it doesn't work
@@ -2621,15 +2631,14 @@ for Android, but all API calls need to be stubbed out])
     AC_CHECK_DECLS([android_get_device_api_level])
 
     # Say this build is really for Android.
-    REALLY_ANDROID=yes
-  fi
-fi
+    REALLY_ANDROID=yes])])
 
-AC_SUBST(ANDROID)
-AC_SUBST(ANDROID_OBJ)
-AC_SUBST(ANDROID_LIBS)
-AC_SUBST(ANDROID_LDFLAGS)
-AC_SUBST(ANDROID_CFLAGS)
+AC_SUBST([ANDROID])
+AC_SUBST([ANDROID_OBJ])
+AC_SUBST([ANDROID_LIBS])
+AC_SUBST([ANDROID_LDFLAGS])
+AC_SUBST([ANDROID_CFLAGS])
+AC_SUBST([ANDROID_SHARED_USER_ID])
 
 if test "${with_pgtk}" = "yes"; then
   window_system=pgtk
@@ -7518,7 +7527,8 @@ AC_DEFINE_UNQUOTED([EMACS_CONFIG_FEATURES], ["${emacs_config_features}"],
   [Summary of some of the main features enabled by configure.])
 
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
-  Does Emacs use Android?                                 ${ANDROID}
+  Is Emacs being built for Android?                       ${ANDROID}\
+`AS_IF([test -n "$with_shared_user_id"],[AS_ECHO([" ($with_shared_user_id)"])])`
   Does Emacs use the X Double Buffer Extension?           ${HAVE_XDBE}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}

@@ -157,6 +157,23 @@ If you are building an Emacs package for redistribution, we urge you
 to provide both debug and release versions.
 
 
+BUILDING WITH A SHARED USER ID
+
+Sometimes it may be desirable to build Emacs so that it is able to
+access executables from another program.  To achieve this, that other
+program must have a ``shared user ID'', and be signed with the same
+signing key used to sign Emacs (normally `emacs.keystore'.)
+
+Once you have both that signing key and its ``shared user ID'', you
+can give it to configure:
+
+    ./configure --with-shared-user-id=MY.SHARED.USER.ID
+
+Don't do this if you already have Emacs installed with a different
+shared user ID, as the system does not allow programs to change their
+user IDs after being installed.
+
+
 BUILDING WITH THIRD PARTY LIBRARIES
 
 The Android NDK does not support the usual ways of locating third
