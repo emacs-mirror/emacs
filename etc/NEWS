@@ -248,6 +248,9 @@ following to you init file:
 An optional major mode based on the tree-sitter library for editing
 HTML files.
 
+*** New major mode heex-ts-mode'.
+A major mode based on the tree-sitter library for editing HEEx files.
+
 ---
 ** The highly accessible Modus themes collection has six items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have

@@ -36,6 +36,9 @@ case "${lang}" in
         lang="gomod"
         org="camdencheek"
         ;;
+    "heex")
+        org="phoenixframework"
+        ;;
     "typescript")
         sourcedir="tree-sitter-typescript/typescript/src"
         grammardir="tree-sitter-typescript/typescript"

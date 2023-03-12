@@ -10,6 +10,7 @@ languages=(
     'dockerfile'
     'go'
     'go-mod'
+    'heex'
     'html'
     'javascript'
     'json'
