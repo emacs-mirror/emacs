@@ -1455,7 +1455,8 @@ If SAME-WINDOW, don't pop to a new window."
     (beginning-of-line)))
 
 (defun shortdoc--insert-group-in-buffer (group &optional buf)
-  "Insert a short documentation summary for functions in GROUP in buffer BUF."
+  "Insert a short documentation summary for functions in GROUP in buffer BUF.
+BUF defaults to the current buffer if nil or omitted."
   (with-current-buffer (or buf (current-buffer))
     (let ((inhibit-read-only t)
           (prev nil))
@@ -1593,10 +1594,10 @@ function's documentation in the Info manual"))
 (defun shortdoc-function-examples (function)
   "Return all shortdoc examples for FUNCTION.
 The result is an alist with items of the form (GROUP . EXAMPLES),
-where GROUP is a shortdoc group where FUNCTION appears in and
+where GROUP is a shortdoc group where FUNCTION appears, and
 EXAMPLES is a string with the usage examples of FUNCTION defined
 in GROUP.  Return nil if FUNCTION is not a function or if it
-doesn't contain shortdoc information."
+doesn't has any shortdoc information."
   (let ((groups (and (symbolp function)
                      (shortdoc-function-groups function)))
         (examples nil))
@@ -1605,28 +1606,28 @@ doesn't contain shortdoc information."
        (with-temp-buffer
          (shortdoc--insert-group-in-buffer group)
          (goto-char (point-min))
-         (setq match (text-property-search-forward
-                      'shortdoc-example function t))
-         (push `(,group . ,(string-trim
-                            (buffer-substring-no-properties
-                             (prop-match-beginning match)
-                             (prop-match-end match))))
-               examples)))
+         (let ((match (text-property-search-forward
+                       'shortdoc-example function t)))
+           (push `(,group . ,(string-trim
+                              (buffer-substring-no-properties
+                               (prop-match-beginning match)
+                               (prop-match-end match))))
+                 examples))))
      groups)
     examples))
 
 (defun shortdoc-help-fns-examples-function (function)
   "Insert Emacs Lisp examples for FUNCTION into the current buffer.
-You can add this function to the
-`help-fns-describe-function-functions' list to show function
-example documentation in *Help* buffers."
+You can add this function to the `help-fns-describe-function-functions'
+hook to show examples of using FUNCTION in *Help* buffers produced
+by \\[describe-function]."
   (let ((examples (shortdoc-function-examples function))
         (times 0))
     (dolist (example examples)
       (when (zerop times)
         (if (eq (length examples) 1)
-            (insert "  Example:\n\n")
-          (insert "  Examples:\n\n")))
+            (insert "\n  Example:\n\n")
+          (insert "\n  Examples:\n\n")))
       (setq times (1+ times))
       (insert "  ")
       (insert (cdr example))
