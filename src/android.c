@@ -4880,45 +4880,80 @@ android_damage_window (android_drawable handle,
 int
 android_get_screen_width (void)
 {
-  return (*android_java_env)->CallIntMethod (android_java_env,
-					     emacs_service,
-					     service_class.get_screen_width,
-					     (jboolean) false);
+  int rc;
+  jmethodID method;
+
+  method = service_class.get_screen_width;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method,
+						     (jboolean) false);
+  android_exception_check ();
+  return rc;
 }
 
 int
 android_get_screen_height (void)
 {
-  return (*android_java_env)->CallIntMethod (android_java_env,
-					     emacs_service,
-					     service_class.get_screen_height,
-					     (jboolean) false);
+  int rc;
+  jmethodID method;
+
+  method = service_class.get_screen_height;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method,
+						     (jboolean) false);
+  android_exception_check ();
+  return rc;
 }
 
 int
 android_get_mm_width (void)
 {
-  return (*android_java_env)->CallIntMethod (android_java_env,
-					     emacs_service,
-					     service_class.get_screen_width,
-					     (jboolean) true);
+  int rc;
+  jmethodID method;
+
+  method = service_class.get_screen_width;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method,
+						     (jboolean) true);
+  android_exception_check ();
+  return rc;
 }
 
 int
 android_get_mm_height (void)
 {
-  return (*android_java_env)->CallIntMethod (android_java_env,
-					     emacs_service,
-					     service_class.get_screen_height,
-					     (jboolean) true);
+  int rc;
+  jmethodID method;
+
+  method = service_class.get_screen_height;
+  rc = (*android_java_env)->CallNonvirtualIntMethod (android_java_env,
+						     emacs_service,
+						     service_class.class,
+						     method,
+						     (jboolean) true);
+  android_exception_check ();
+  return rc;
 }
 
 bool
 android_detect_mouse (void)
 {
-  return (*android_java_env)->CallBooleanMethod (android_java_env,
-						 emacs_service,
-						 service_class.detect_mouse);
+  bool rc;
+  jmethodID method;
+
+  method = service_class.detect_mouse;
+  rc = (*android_java_env)->CallNonvirtualBooleanMethod (android_java_env,
+							 emacs_service,
+							 service_class.class,
+							 method);
+  android_exception_check ();
+  return rc;
 }
 
 void
