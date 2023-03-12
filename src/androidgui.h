@@ -247,6 +247,7 @@ enum android_modifier_mask
     ANDROID_SHIFT_MASK	 = 193,
     ANDROID_CONTROL_MASK = 4096,
     ANDROID_ALT_MASK	 = 2,
+    ANDROID_SUPER_MASK	 = 4,
   };
 
 struct android_key_event
