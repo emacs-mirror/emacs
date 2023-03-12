@@ -2949,16 +2949,16 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       if (face->shadow_p)
         {
           CGSize offset;
+          CGColorRef shadow_color;
+
           offset = CGSizeMake (face->shadow_offset.x, - face->shadow_offset.y);
-          if (!face->shadow_color_defaulted_p)
-            {
-              CGColorRef color = get_cgcolor (face->shadow_color);
-              CGContextSetShadowWithColor (context, offset, face->shadow_blur,
-                                           color);
-              CGColorRelease (color);
-            }
+          if (face->shadow_color_defaulted_p)
+            shadow_color = get_cgcolor (NS_FACE_FOREGROUND (face));
           else
-            CGContextSetShadow (context, offset, face->shadow_blur);
+            shadow_color = get_cgcolor (face->shadow_color);
+          CGContextSetShadowWithColor (context, offset, face->shadow_blur,
+                                       shadow_color);
+          CGColorRelease (shadow_color);
         }
 
       CGContextScaleCTM (context, 1, -1);
