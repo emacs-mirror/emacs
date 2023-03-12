@@ -261,7 +261,7 @@ See <lisp/eshell/esh-var.el>."
   "Test completion of things that look like variable assignment, but aren't.
 For example, the second argument in \"tar --directory=dir\" looks
 like it could be a variable assignment, but it's not.  We should
-let `pcomplete-tar' handle it instead.
+let `pcomplete/tar' handle it instead.
 
 See <lisp/eshell/esh-var.el>."
   (with-temp-eshell
