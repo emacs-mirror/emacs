@@ -1159,8 +1159,7 @@ INTERACTIVE is t if called interactively."
              (remove-hook 'post-command-hook #'maybe-connect t)
              (unless eglot--managed-mode
                (apply #'eglot--connect (eglot--guess-contact))))))
-      (when (and this-command
-                 buffer-file-name)
+      (when buffer-file-name
         (add-hook 'post-command-hook #'maybe-connect 'append t)))))
 
 (defun eglot-events-buffer (server)
