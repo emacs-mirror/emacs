@@ -495,6 +495,42 @@ Return the compile-time value of FORM."
                     (cdr form)))
     (funcall non-toplevel-case form)))
 
+
+(defvar bytecomp--copy-tree-seen)
+
+(defun bytecomp--copy-tree-1 (tree)
+  ;; TREE must be a cons.
+  (or (gethash tree bytecomp--copy-tree-seen)
+      (let* ((next (cdr tree))
+             (result (cons nil next))
+             (copy result))
+        (while (progn
+                 (puthash tree copy bytecomp--copy-tree-seen)
+                 (let ((a (car tree)))
+                   (setcar copy (if (consp a)
+                                    (bytecomp--copy-tree-1 a)
+                                  a)))
+                 (and (consp next)
+                      (let ((tail (gethash next bytecomp--copy-tree-seen)))
+                        (if tail
+                            (progn (setcdr copy tail)
+                                   nil)
+                          (setq tree next)
+                          (setq next (cdr next))
+                          (let ((prev copy))
+                            (setq copy (cons nil next))
+                            (setcdr prev copy)
+                            t))))))
+        result)))
+
+(defun bytecomp--copy-tree (tree)
+  "Make a copy of TREE, preserving any circular structure therein.
+Only conses are traversed and duplicated, not arrays or any other structure."
+  (if (consp tree)
+      (let ((bytecomp--copy-tree-seen (make-hash-table :test #'eq)))
+        (bytecomp--copy-tree-1 tree))
+    tree))
+
 (defconst byte-compile-initial-macro-environment
   `(
     ;; (byte-compiler-options . (lambda (&rest forms)
@@ -534,7 +570,7 @@ Return the compile-time value of FORM."
                                        form
                                        macroexpand-all-environment)))
                                 (eval (byte-run-strip-symbol-positions
-                                       (safe-copy-tree expanded))
+                                       (bytecomp--copy-tree expanded))
                                       lexical-binding)
                                 expanded)))))
     (with-suppressed-warnings

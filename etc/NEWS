@@ -392,11 +392,6 @@ This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
 +++
-** New function 'safe-copy-tree'
-This function is a version of copy-tree which handles circular lists
-and circular vectors/records.
-
-+++
 ** New function 'file-user-uid'.
 This function is like 'user-uid', but is aware of file name handlers,
 so it will return the remote UID for remote files (or -1 if the
