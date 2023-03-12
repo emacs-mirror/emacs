@@ -84,6 +84,12 @@ You can now type:
  \\`SPC'  to try the command just this once, but leave it disabled.
  \\`!'    to enable it and all the disabled commands for this session.")))
          (char
+          ;; Note: the prompt produced from the choices below must not
+          ;; overflow a single screen line, because otherwise it will
+          ;; cause the mini-window to resize, which will in turn hide
+          ;; the last line of the help text above: the code which fits
+          ;; the window to the size of the help text does not expect
+          ;; the mini-window to become taller.
           (car (read-multiple-choice "Use this command?"
                                      '((?n "no")
                                        (?y "yes")
