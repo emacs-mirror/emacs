@@ -1155,12 +1155,13 @@ INTERACTIVE is t if called interactively."
     (cl-labels
         ((maybe-connect
            ()
-           (remove-hook 'post-command-hook #'maybe-connect nil)
            (eglot--when-live-buffer buffer
+             (remove-hook 'post-command-hook #'maybe-connect t)
              (unless eglot--managed-mode
                (apply #'eglot--connect (eglot--guess-contact))))))
-      (when buffer-file-name
-        (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
+      (when (and this-command
+                 buffer-file-name)
+        (add-hook 'post-command-hook #'maybe-connect 'append t)))))
 
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER.
