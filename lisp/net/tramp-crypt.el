@@ -730,18 +730,19 @@ absolute file names."
 
 (defun tramp-crypt-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (let* (completion-regexp-list
-	  tramp-crypt-enabled
-	  (directory (file-name-as-directory directory))
-	  (enc-dir (tramp-crypt-encrypt-file-name directory)))
-     (mapcar
-      (lambda (x)
-	(substring
-	 (tramp-crypt-decrypt-file-name (concat enc-dir x))
-	 (length directory)))
-      (file-name-all-completions "" enc-dir)))))
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (let* (completion-regexp-list
+	    tramp-crypt-enabled
+	    (directory (file-name-as-directory directory))
+	    (enc-dir (tramp-crypt-encrypt-file-name directory)))
+       (mapcar
+	(lambda (x)
+	  (substring
+	   (tramp-crypt-decrypt-file-name (concat enc-dir x))
+	   (length directory)))
+	(file-name-all-completions "" enc-dir))))))
 
 (defun tramp-crypt-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
