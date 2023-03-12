@@ -5474,6 +5474,19 @@ android_update_selection (struct frame *f, struct window *w)
     }
 }
 
+/* Return whether or not EVENT is an input method event destined for
+   the frame (struct frame *) ARG.  */
+
+static bool
+android_event_is_for_frame (union android_event *event, void *arg)
+{
+  struct frame *f;
+
+  f = arg;
+  return (event->type == ANDROID_INPUT_METHOD
+	  && event->ime.window == FRAME_ANDROID_WINDOW (f));
+}
+
 /* Notice that the input method connection to F should be reset as a
    result of a change to its contents.  */
 
@@ -5484,6 +5497,7 @@ android_reset_conversion (struct frame *f)
   struct window *w;
   struct buffer *buffer;
   Lisp_Object style;
+  union android_event event;
 
   /* Reset the input method.
 
@@ -5506,6 +5520,27 @@ android_reset_conversion (struct frame *f)
     mode = ANDROID_IC_MODE_ACTION;
   else
     mode = ANDROID_IC_MODE_TEXT;
+
+  /* Remove any existing input method events that apply to FRAME from
+     the event queue.
+
+     There's a small window between this and the call to
+     android_reset_ic between which more events can be generated.  */
+
+  while (android_check_if_event (&event, android_event_is_for_frame, f))
+    {
+      switch (event.ime.operation)
+	{
+	case ANDROID_IME_COMMIT_TEXT:
+	case ANDROID_IME_FINISH_COMPOSING_TEXT:
+	case ANDROID_IME_SET_COMPOSING_TEXT:
+	  xfree (event.ime.text);
+	  break;
+
+	default:
+	  break;
+	}
+    }
 
   android_reset_ic (FRAME_ANDROID_WINDOW (f), mode);
 

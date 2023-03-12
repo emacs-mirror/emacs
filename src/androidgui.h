@@ -524,6 +524,10 @@ enum android_ic_mode
 
 extern int android_pending (void);
 extern void android_next_event (union android_event *);
+extern bool android_check_if_event (union android_event *,
+				    bool (*) (union android_event *,
+					      void *),
+				    void *);
 
 extern android_window android_create_window (android_window, int,
 					     int, int, int,

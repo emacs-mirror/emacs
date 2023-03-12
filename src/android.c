@@ -601,6 +601,40 @@ android_next_event (union android_event *event_return)
   pthread_mutex_unlock (&event_queue.mutex);
 }
 
+bool
+android_check_if_event (union android_event *event_return,
+			bool (*predicate) (union android_event *,
+					   void *),
+			void *arg)
+{
+  struct android_event_container *container;
+
+  pthread_mutex_lock (&event_queue.mutex);
+
+  /* Loop over each event.  */
+  container = event_queue.events.last;
+  for (; container != &event_queue.events; container = container->last)
+    {
+      /* See if the predicate matches.  */
+      if ((*predicate) (&container->event, arg))
+	{
+	  /* Copy out the event and return true.  */
+	  *event_return = container->event;
+	  --event_queue.num_events;
+
+	  /* Unlink container.  */
+	  container->last->next = container->next;
+	  container->next->last = container->last;
+	  free (container);
+	  pthread_mutex_unlock (&event_queue.mutex);
+	  return true;
+	}
+    }
+
+  pthread_mutex_unlock (&event_queue.mutex);
+  return false;
+}
+
 void
 android_write_event (union android_event *event)
 {
