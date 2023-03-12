@@ -253,11 +253,17 @@ Thus, this does not include the current directory.")
     (throw 'eshell-replace-command
 	   (eshell-parse-command "cd" (flatten-tree args)))))
 
+(defun eshell-expand-user-reference (file)
+  "Expand a user reference in FILE to its real directory name."
+  (replace-regexp-in-string
+   (rx bos (group "~" (*? anychar)) (or "/" eos))
+   #'expand-file-name file))
+
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
   (when (and (not eshell-current-argument)
-	     (eq (char-after) ?~))
-    (add-to-list 'eshell-current-modifiers 'expand-file-name)
+             (eq (char-after) ?~))
+    (add-to-list 'eshell-current-modifiers #'eshell-expand-user-reference)
     (forward-char)
     (char-to-string (char-before))))
 
