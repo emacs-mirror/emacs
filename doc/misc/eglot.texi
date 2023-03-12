@@ -989,24 +989,24 @@ server configuration:
 
 @itemize @bullet
 @item
-User-specific, applying to all projects the server is used for;
+Project-specific, applying to a specific project;
 
 @item
-Project-specific, applying to a specific project.
+User-specific, applying to all projects the server is used for.
 @end itemize
 
 When you have decided which kind you need, the following sections
 teach how Eglot's user variables can be used to achieve it:
 
 @menu
-* User-specific configuration::
 * Project-specific configuration::
+* User-specific configuration::
 * JSONRPC objects in Elisp::
 @end menu
 
 It's important to note that not all servers allow both kinds of
 configuration, nor is it guaranteed that user options can be copied
-over project options, and vice-versa.  When in doubt, consult your
+over to project options, and vice-versa.  When in doubt, consult your
 language server's documentation.
 
 It's also worth noting that some language servers can read these
@@ -1018,48 +1018,6 @@ configuration.  The @command{clangd} C/C++ server reads both
 @file{.clangd} for project configuration.  It may be advantageous to
 use these mechanisms instead of Eglot's, as the latter have the
 advantage of working with other LSP clients.
-
-@node User-specific configuration
-@section User-specific configuration
-@cindex initializationOptions
-@cindex command-line arguments
-
-This kind of configuration applies to all projects the server is used
-for.  Here, there are again two main ways to do this inside Eglot.
-
-A common way is to pass command-line options to the server invocation
-via @code{eglot-server-programs}.  Let's say we want to configure
-where the @command{clangd} server reads its
-@code{compile_commands.json} from.  This can be done like so:
-
-@lisp
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               `(c++-mode . ("clangd" "--compile-commands-dir=/tmp"))))
-
-@end lisp
-
-@noindent
-Another way is to have Eglot pass a JSON object to the server during
-the LSP handshake.  This is done using the
-@code{:initializationOptions} syntax of @code{eglot-server-programs}:
-
-@lisp
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-               `(c++-mode . ("clangd" :initializationOptions
-                                      (:compilationDatabasePath "/tmp")))))
-@end lisp
-
-@noindent
-The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
-representation in plist format of a simple JSON object
-@code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
-represent more deeply nested options in this format, @xref{JSONRPC
-objects in Elisp}.
-
-In this case, the two examples achieve exactly the same, but notice
-how the option's name has changed between them.
 
 @node Project-specific configuration
 @section Project-specific configuration
@@ -1074,7 +1032,7 @@ This variable is a directory-local variable (@pxref{Directory
 Variables, , Per-directory Local Variables, emacs, The GNU Emacs
 Manual}).  It's important to recognize that this variable really only
 makes sense when set directory-locally.  It usually does not make
-sense to set it globally or in a major-mode hook.
+sense to set it file-locally or in a major-mode hook.
 
 The most common way to set @code{eglot-workspace-configuration } is
 using a @file{.dir-locals.el} file in the root of your project.  If
@@ -1206,6 +1164,68 @@ set to a function.  The function is called with the
 with @code{default-directory} set to the root of the project.  The
 function should return a plist suitable for use as the variable's
 value.
+
+@node User-specific configuration
+@section User-specific configuration
+@cindex initializationOptions
+@cindex command-line arguments
+
+This kind of configuration applies to all projects the server is used
+for.  Here, there are a number of ways to do this inside Eglot.
+
+A common way is to pass command-line options to the server invocation
+via @code{eglot-server-programs}.  Let's say we want to configure
+where the @command{clangd} server reads its
+@code{compile_commands.json} from.  This can be done like so:
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(c++-mode . ("clangd" "--compile-commands-dir=/tmp"))))
+
+@end lisp
+
+@noindent
+Another way is to have Eglot pass a JSON object to the server during
+the LSP handshake.  This is done using the
+@code{:initializationOptions} syntax of @code{eglot-server-programs}:
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(c++-mode . ("clangd" :initializationOptions
+                                      (:compilationDatabasePath "/tmp")))))
+@end lisp
+
+@noindent
+The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
+representation in plist format of a simple JSON object
+@code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
+represent more deeply nested options in this format, @xref{JSONRPC
+objects in Elisp}.
+
+In this case, the two examples achieve exactly the same, but notice
+how the option's name has changed between them.
+
+@vindex eglot-workspace-configuration
+Finally there is another way to do user-specific configuration of
+language servers, which may be used if the methods above are not
+supported.  It consists of @emph{globally} setting
+@code{eglot-workspace-configuration}, a variable originally intended
+for project-specific configuration.  This has the same effect as
+giving all your projects a certain default configuration, as described
+in @xref{Project-specific configuration}.  Here is an example.
+
+@lisp
+(setq-default eglot-workspace-configuration
+              '(:pylsp (:plugins (:jedi_completion (:include_params t
+                                                    :fuzzy t)
+                                  :pylint (:enabled :json-false)))
+                :gopls (:usePlaceholders t)))
+@end lisp
+
+Note that the global value of @code{eglot-workspace-configuration} is
+always overriden if a directory-local value is detected.
 
 @node JSONRPC objects in Elisp
 @section JSONRPC objects in Elisp
