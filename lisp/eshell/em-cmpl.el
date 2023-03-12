@@ -317,7 +317,7 @@ to writing a completion function."
     (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (beginning-of-line) (point)))
-	args posns delim)
+	args posns delim incomplete-arg)
     (when (and pcomplete-allow-modifications
 	       (memq this-command '(pcomplete-expand
 			            pcomplete-expand-and-complete)))
@@ -332,10 +332,11 @@ to writing a completion function."
         (cond ((member (car delim) '("{" "${" "$<"))
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
-              ((member (car delim) '("$'" "$\""))
+              ((member (car delim) '("$'" "$\"" "#<"))
                ;; Add the (incomplete) argument to our arguments, and
                ;; note its position.
-               (setq args (append (nth 2 delim) (list (car delim))))
+               (setq args (append (nth 2 delim) (list (car delim)))
+                     incomplete-arg t)
                (push (- (nth 1 delim) 2) posns))
               ((member (car delim) '("(" "$("))
 	       (throw 'pcompleted (elisp-completion-at-point)))
@@ -362,7 +363,8 @@ to writing a completion function."
 	(setq args (nthcdr (1+ new-start) args)
 	      posns (nthcdr (1+ new-start) posns))))
     (cl-assert (= (length args) (length posns)))
-    (when (and args (eq (char-syntax (char-before end)) ? )
+    (when (and args (not incomplete-arg)
+               (eq (char-syntax (char-before end)) ? )
 	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))
