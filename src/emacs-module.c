@@ -206,7 +206,7 @@ static void module_non_local_exit_signal_1 (emacs_env *,
 static void module_non_local_exit_throw_1 (emacs_env *,
 					   Lisp_Object, Lisp_Object);
 static void module_out_of_memory (emacs_env *);
-static void module_reset_handlerlist (struct handler **);
+static void module_reset_handlerlist (struct handler *);
 static bool value_storage_contains_p (const struct emacs_value_storage *,
                                       emacs_value, ptrdiff_t *);
 
@@ -280,13 +280,13 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
       module_handle_nonlocal_exit (env,                                 \
                                    internal_cleanup->nonlocal_exit,     \
                                    internal_cleanup->val);              \
-      module_reset_handlerlist (&internal_cleanup);			\
+      module_reset_handlerlist (internal_cleanup);			\
       return retval;							\
     }									\
   do { } while (false)
 
-#define MODULE_INTERNAL_CLEANUP			\
-  module_reset_handlerlist (&internal_cleanup)
+#define MODULE_INTERNAL_CLEANUP()		\
+  module_reset_handlerlist (internal_cleanup)
 
 
 /* Implementation of runtime and environment functions.
@@ -440,7 +440,7 @@ module_make_global_ref (emacs_env *env, emacs_value value)
       bool overflow = INT_ADD_WRAPV (ref->refcount, 1, &ref->refcount);
       if (overflow)
 	overflow_error ();
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return &ref->value;
     }
   else
@@ -453,7 +453,7 @@ module_make_global_ref (emacs_env *env, emacs_value value)
       Lisp_Object value;
       XSETPSEUDOVECTOR (value, ref, PVEC_OTHER);
       hash_put (h, new_obj, value, hashcode);
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return &ref->value;
     }
 }
@@ -486,7 +486,7 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
         hash_remove_from_table (h, obj);
     }
 
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 static enum emacs_funcall_exit
@@ -607,7 +607,7 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   eassert (MODULE_FUNCTIONP (result));
 
   value = lisp_to_value (env, result);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return value;
 }
 
@@ -617,7 +617,7 @@ module_get_function_finalizer (emacs_env *env, emacs_value arg)
   MODULE_FUNCTION_BEGIN (NULL);
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_MODULE_FUNCTION (lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return XMODULE_FUNCTION (lisp)->finalizer;
 }
 
@@ -629,7 +629,7 @@ module_set_function_finalizer (emacs_env *env, emacs_value arg,
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_MODULE_FUNCTION (lisp);
   XMODULE_FUNCTION (lisp)->finalizer = fin;
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 void
@@ -649,7 +649,7 @@ module_make_interactive (emacs_env *env, emacs_value function, emacs_value spec)
   /* Normalize (interactive nil) to (interactive). */
   XMODULE_FUNCTION (lisp_fun)->interactive_form
     = NILP (lisp_spec) ? list1 (Qinteractive) : list2 (Qinteractive, lisp_spec);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 Lisp_Object
@@ -683,7 +683,7 @@ module_funcall (emacs_env *env, emacs_value func, ptrdiff_t nargs,
     newargs[1 + i] = value_to_lisp (args[i]);
   emacs_value result = lisp_to_value (env, Ffuncall (nargs1, newargs));
   SAFE_FREE ();
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return result;
 }
 
@@ -694,7 +694,7 @@ module_intern (emacs_env *env, const char *name)
 
   MODULE_FUNCTION_BEGIN (NULL);
   tem = lisp_to_value (env, intern (name));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return tem;
 }
 
@@ -705,7 +705,7 @@ module_type_of (emacs_env *env, emacs_value arg)
 
   MODULE_FUNCTION_BEGIN (NULL);
   tem = lisp_to_value (env, Ftype_of (value_to_lisp (arg)));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return tem;
 }
 
@@ -732,7 +732,7 @@ module_extract_integer (emacs_env *env, emacs_value arg)
   intmax_t i;
   if (! integer_to_intmax (lisp, &i))
     xsignal1 (Qoverflow_error, lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return i;
 }
 
@@ -743,7 +743,7 @@ module_make_integer (emacs_env *env, intmax_t n)
 
   MODULE_FUNCTION_BEGIN (NULL);
   value = lisp_to_value (env, make_int (n));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -754,7 +754,7 @@ module_extract_float (emacs_env *env, emacs_value arg)
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_TYPE (FLOATP (lisp), Qfloatp, lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return XFLOAT_DATA (lisp);
 }
@@ -766,7 +766,7 @@ module_make_float (emacs_env *env, double d)
 
   MODULE_FUNCTION_BEGIN (NULL);
   value = lisp_to_value (env, make_float (d));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -800,7 +800,7 @@ module_copy_string_contents (emacs_env *env, emacs_value value, char *buf,
   if (buf == NULL)
     {
       *len = required_buf_size;
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return true;
     }
 
@@ -816,7 +816,7 @@ module_copy_string_contents (emacs_env *env, emacs_value value, char *buf,
   *len = required_buf_size;
   memcpy (buf, SDATA (lisp_str_utf8), raw_size + 1);
 
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return true;
 }
 
@@ -831,7 +831,7 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
   Lisp_Object lstr
     = len == 0 ? empty_multibyte_string : module_decode_utf_8 (str, len);
   value = lisp_to_value (env, lstr);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return value;
 }
 
@@ -846,7 +846,7 @@ module_make_unibyte_string (emacs_env *env, const char *str, ptrdiff_t length)
   Lisp_Object lstr
     = length == 0 ? empty_unibyte_string : make_unibyte_string (str, length);
   value = lisp_to_value (env, lstr);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -858,7 +858,7 @@ module_make_user_ptr (emacs_env *env, emacs_finalizer fin, void *ptr)
 
   MODULE_FUNCTION_BEGIN (NULL);
   value = lisp_to_value (env, make_user_ptr (fin, ptr));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -869,7 +869,7 @@ module_get_user_ptr (emacs_env *env, emacs_value arg)
   MODULE_FUNCTION_BEGIN (NULL);
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_USER_PTR (lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return XUSER_PTR (lisp)->p;
 }
@@ -881,7 +881,7 @@ module_set_user_ptr (emacs_env *env, emacs_value arg, void *ptr)
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_USER_PTR (lisp);
   XUSER_PTR (lisp)->p = ptr;
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 static emacs_finalizer
@@ -890,7 +890,7 @@ module_get_user_finalizer (emacs_env *env, emacs_value arg)
   MODULE_FUNCTION_BEGIN (NULL);
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_USER_PTR (lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return XUSER_PTR (lisp)->finalizer;
 }
 
@@ -902,7 +902,7 @@ module_set_user_finalizer (emacs_env *env, emacs_value arg,
   Lisp_Object lisp = value_to_lisp (arg);
   CHECK_USER_PTR (lisp);
   XUSER_PTR (lisp)->finalizer = fin;
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 static void
@@ -922,7 +922,7 @@ module_vec_set (emacs_env *env, emacs_value vector, ptrdiff_t index,
   Lisp_Object lisp = value_to_lisp (vector);
   check_vec_index (lisp, index);
   ASET (lisp, index, value_to_lisp (value));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 }
 
 static emacs_value
@@ -934,7 +934,7 @@ module_vec_get (emacs_env *env, emacs_value vector, ptrdiff_t index)
   Lisp_Object lisp = value_to_lisp (vector);
   check_vec_index (lisp, index);
   value = lisp_to_value (env, AREF (lisp, index));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -945,7 +945,7 @@ module_vec_size (emacs_env *env, emacs_value vector)
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object lisp = value_to_lisp (vector);
   CHECK_VECTOR (lisp);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return ASIZE (lisp);
 }
@@ -967,7 +967,7 @@ module_process_input (emacs_env *env)
   MODULE_FUNCTION_BEGIN (emacs_process_input_quit);
   maybe_quit ();
   rc = emacs_process_input_continue;
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return rc;
 }
 
@@ -978,7 +978,7 @@ module_extract_time (emacs_env *env, emacs_value arg)
 
   MODULE_FUNCTION_BEGIN ((struct timespec) {0});
   value = lisp_time_argument (value_to_lisp (arg));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -990,7 +990,7 @@ module_make_time (emacs_env *env, struct timespec time)
 
   MODULE_FUNCTION_BEGIN (NULL);
   value = lisp_to_value (env, timespec_to_lisp (time));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return value;
 }
@@ -1070,7 +1070,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       *sign = (0 < x) - (x < 0);
       if (x == 0 || count == NULL)
 	{
-	  MODULE_INTERNAL_CLEANUP;
+	  MODULE_INTERNAL_CLEANUP ();
 	  return true;
 	}
       /* As a simplification we don't check how many array elements
@@ -1083,7 +1083,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       if (magnitude == NULL)
         {
           *count = required;
-	  MODULE_INTERNAL_CLEANUP;
+	  MODULE_INTERNAL_CLEANUP ();
           return true;
         }
       if (*count < required)
@@ -1102,14 +1102,14 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       verify (required * bits < PTRDIFF_MAX);
       for (ptrdiff_t i = 0; i < required; ++i)
         magnitude[i] = (emacs_limb_t) (u >> (i * bits));
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return true;
     }
   const mpz_t *x = xbignum_val (o);
   *sign = mpz_sgn (*x);
   if (count == NULL)
     {
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return true;
     }
   size_t required_size = (mpz_sizeinbase (*x, 2) + numb - 1) / numb;
@@ -1119,7 +1119,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
   if (magnitude == NULL)
     {
       *count = required;
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return true;
     }
   if (*count < required)
@@ -1132,7 +1132,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
   size_t written;
   mpz_export (magnitude, &written, order, size, endian, nails, *x);
   eassert (written == required_size);
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return true;
 }
 
@@ -1146,7 +1146,7 @@ module_make_big_integer (emacs_env *env, int sign,
   if (sign == 0)
     {
       value = lisp_to_value (env, make_fixed_natnum (0));
-      MODULE_INTERNAL_CLEANUP;
+      MODULE_INTERNAL_CLEANUP ();
       return value;
     }
   enum { order = -1, size = sizeof *magnitude, endian = 0, nails = 0 };
@@ -1154,7 +1154,7 @@ module_make_big_integer (emacs_env *env, int sign,
   if (sign < 0)
     mpz_neg (mpz[0], mpz[0]);
   value = lisp_to_value (env, make_integer_mpz ());
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
   return value;
 }
 
@@ -1165,7 +1165,7 @@ module_open_channel (emacs_env *env, emacs_value pipe_process)
 
   MODULE_FUNCTION_BEGIN (-1);
   rc = open_channel_for_module (value_to_lisp (pipe_process));
-  MODULE_INTERNAL_CLEANUP;
+  MODULE_INTERNAL_CLEANUP ();
 
   return rc;
 }
@@ -1620,12 +1620,13 @@ finalize_runtime_unwind (void *raw_ert)
 /* Must be called after setting up a handler immediately before
    returning from the function.  See the comments in lisp.h and the
    code in eval.c for details.  The macros below arrange for this
-   function to be called automatically.  PHANDLERLIST points to a word
-   containing the handler list, for sanity checking.  */
+   function to be called automatically.  HANDLERLIST points to the
+   handler list.  */
+
 static void
-module_reset_handlerlist (struct handler **phandlerlist)
+module_reset_handlerlist (struct handler *handlerlist)
 {
-  eassert (handlerlist == *phandlerlist);
+  eassert (handlerlist == handlerlist);
   handlerlist = handlerlist->next;
 }
 
