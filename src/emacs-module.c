@@ -1620,13 +1620,13 @@ finalize_runtime_unwind (void *raw_ert)
 /* Must be called after setting up a handler immediately before
    returning from the function.  See the comments in lisp.h and the
    code in eval.c for details.  The macros below arrange for this
-   function to be called automatically.  HANDLERLIST points to the
+   function to be called automatically.  IHANDLERLIST points to the
    handler list.  */
 
 static void
-module_reset_handlerlist (struct handler *handlerlist)
+module_reset_handlerlist (struct handler *ihandlerlist)
 {
-  eassert (handlerlist == handlerlist);
+  eassert (handlerlist == ihandlerlist);
   handlerlist = handlerlist->next;
 }
 
