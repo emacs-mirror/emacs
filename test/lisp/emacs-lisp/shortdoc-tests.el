@@ -75,6 +75,21 @@
   (should (equal '((regexp . "(string-match-p \"^[fo]+\" \"foobar\")\n    => 0"))
                  (shortdoc-function-examples 'string-match-p))))
 
+(ert-deftest shortdoc-help-fns-examples-function-test ()
+  "Test that `shortdoc-help-fns-examples-function' correctly prints ELisp function examples."
+  (with-temp-buffer
+    (shortdoc-help-fns-examples-function 'string-fill)
+    (should (equal "\n  Examples:\n\n  (string-fill \"Three short words\" 12)\n    => \"Three short\\nwords\"\n  (string-fill \"Long-word\" 3)\n    => \"Long-word\"\n\n"
+                   (buffer-substring-no-properties (point-min) (point-max))))
+    (erase-buffer)
+    (shortdoc-help-fns-examples-function 'assq)
+    (should (equal "\n  Examples:\n\n  (assq 'foo '((foo . bar) (zot . baz)))\n    => (foo . bar)\n\n  (assq 'b '((a . 1) (b . 2)))\n    => (b . 2)\n\n"
+                   (buffer-substring-no-properties (point-min) (point-max))))
+    (erase-buffer)
+    (shortdoc-help-fns-examples-function 'string-trim)
+    (should (equal "\n  Example:\n\n  (string-trim \" foo \")\n    => \"foo\"\n\n"
+                   (buffer-substring-no-properties (point-min) (point-max))))))
+
 (provide 'shortdoc-tests)
 
 ;;; shortdoc-tests.el ends here
