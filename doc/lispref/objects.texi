@@ -1007,13 +1007,6 @@ It looks like this:
 @end example
 @end ifnottex
 
-  As a somewhat peculiar side effect of @code{(a b . c)} and
-@code{(a . (b . c))} being equivalent, for consistency this means
-that if you replace @code{b} here with the empty sequence, then it
-follows that @code{(a . c)} and @code{(a . ( . c))} are equivalent,
-too.  This also means that @code{( .  c)} is equivalent to @code{c},
-but this is seldom used.
-
 @node Association List Type
 @subsubsection Association List Type
 
