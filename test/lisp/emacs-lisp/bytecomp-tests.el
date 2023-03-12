@@ -1850,6 +1850,34 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
     (should (eq (byte-compile-file src-file) 'no-byte-compile))
     (should-not (file-exists-p dest-file))))
 
+(ert-deftest bytecomp--copy-tree ()
+  (should (null (bytecomp--copy-tree nil)))
+  (let ((print-circle t))
+    (let* ((x '(1 2 (3 4)))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "((1 2 (3 4)) (1 2 (3 4)))")))
+    (let* ((x '#1=(a #1#))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(#1=(a #1#) #2=(a #2#))")))
+    (let* ((x '#1=(#1# a))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(#1=(#1# a) #2=(#2# a))")))
+    (let* ((x '((a . #1=(b)) #1#))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     "(((a . #1=(b)) #1#) ((a . #2=(b)) #2#))")))
+    (let* ((x '#1=(a #2=(#1# b . #3=(#2# c . #1#)) (#3# d)))
+           (y (bytecomp--copy-tree x)))
+      (should (equal (prin1-to-string (list x y))
+                     (concat
+                      "("
+                      "#1=(a #2=(#1# b . #3=(#2# c . #1#)) (#3# d))"
+                      " "
+                      "#4=(a #5=(#4# b . #6=(#5# c . #4#)) (#6# d))"
+                      ")"))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

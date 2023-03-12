@@ -1621,13 +1621,38 @@ doesn't has any shortdoc information."
 You can add this function to the `help-fns-describe-function-functions'
 hook to show examples of using FUNCTION in *Help* buffers produced
 by \\[describe-function]."
-  (let ((examples (shortdoc-function-examples function))
-        (times 0))
+  (let* ((examples (shortdoc-function-examples function))
+         (num-examples (length examples))
+         (times 0))
     (dolist (example examples)
       (when (zerop times)
-        (if (eq (length examples) 1)
-            (insert "\n  Example:\n\n")
-          (insert "\n  Examples:\n\n")))
+        (if (> num-examples 1)
+            (insert "\n  Examples:\n\n")
+          ;; Some functions have more than one example per group.
+          ;; Count the number of arrows to know if we need to
+          ;; pluralize "Example".
+          (let* ((text (cdr example))
+                 (count 0)
+                 (pos 0)
+                 (end (length text))
+                 (double-arrow (if (char-displayable-p ?⇒)
+                                   "    ⇒"
+                                 "    =>"))
+                 (double-arrow-example (if (char-displayable-p ?⇒)
+                                           "    e.g. ⇒"
+                                         "    e.g. =>"))
+                 (single-arrow (if (char-displayable-p ?→)
+                                   "    →"
+                                 "    ->")))
+            (while (and (< pos end)
+                        (or (string-match double-arrow text pos)
+                            (string-match double-arrow-example text pos)
+                            (string-match single-arrow text pos)))
+              (setq count (1+ count)
+                    pos (match-end 0)))
+            (if (> count 1)
+                (insert "\n  Examples:\n\n")
+              (insert "\n  Example:\n\n")))))
       (setq times (1+ times))
       (insert "  ")
       (insert (cdr example))

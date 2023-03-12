@@ -432,31 +432,32 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (with-parsed-tramp-file-name (expand-file-name directory) nil
-     (with-tramp-file-property v localname "file-name-all-completions"
-       (tramp-adb-send-command
-	v (format "%s -a %s | cat"
-		  (tramp-adb-get-ls-command v)
-		  (tramp-shell-quote-argument localname)))
-       (mapcar
-	(lambda (f)
-	  (if (file-directory-p (expand-file-name f directory))
-	      (file-name-as-directory f)
-	    f))
-	(with-current-buffer (tramp-get-buffer v)
-	  (delete-dups
-	   (append
-	    ;; On some file systems like "sdcard", "." and ".." are
-	    ;; not included.  We fix this by `delete-dups'.
-	    '("." "..")
-	    (delq
-	     nil
-	     (mapcar
-	      (lambda (l)
-		(and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	      (split-string (buffer-string) "\n")))))))))))
+  (ignore-error file-missing
+    (all-completions
+     filename
+     (with-parsed-tramp-file-name (expand-file-name directory) nil
+       (with-tramp-file-property v localname "file-name-all-completions"
+	 (tramp-adb-send-command
+	  v (format "%s -a %s | cat"
+		    (tramp-adb-get-ls-command v)
+		    (tramp-shell-quote-argument localname)))
+	 (mapcar
+	  (lambda (f)
+	    (if (file-directory-p (expand-file-name f directory))
+		(file-name-as-directory f)
+	      f))
+	  (with-current-buffer (tramp-get-buffer v)
+	    (delete-dups
+	     (append
+	      ;; On some file systems like "sdcard", "." and ".." are
+	      ;; not included.  We fix this by `delete-dups'.
+	      '("." "..")
+	      (delq
+	       nil
+	       (mapcar
+		(lambda (l)
+		  (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+		(split-string (buffer-string) "\n"))))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."

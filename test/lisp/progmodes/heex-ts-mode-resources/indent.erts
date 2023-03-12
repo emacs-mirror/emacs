@@ -1,0 +1,47 @@
+Code:
+  (lambda ()
+    (setq indent-tabs-mode nil)
+    (heex-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: $
+
+Name: Tag
+
+=-=
+   <div>
+ div
+    </div>
+=-=
+<div>
+  div
+</div>
+=-=-=
+
+Name: Component
+
+=-=
+   <Foo>
+     foobar
+      </Foo>
+=-=
+<Foo>
+  foobar
+</Foo>
+=-=-=
+
+Name: Slots
+
+=-=
+   <Foo>
+   <:bar>
+     foobar
+      </:bar>
+      </Foo>
+=-=
+<Foo>
+  <:bar>
+    foobar
+  </:bar>
+</Foo>
+=-=-=

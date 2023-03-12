@@ -261,6 +261,15 @@ An optional major mode based on the tree-sitter library for editing
 HTML files.
 
 ---
+*** New major mode heex-ts-mode'.
+A major mode based on the tree-sitter library for editing HEEx files.
+
+---
+*** New major mode elixir-ts-mode'.
+A major mode based on the tree-sitter library for editing Elixir
+files.
+
+---
 ** The highly accessible Modus themes collection has six items.
 The 'modus-operandi' and 'modus-vivendi' are the main themes that have
 been part of Emacs since version 28.  The former is light, the latter
@@ -412,11 +421,6 @@ was to catch all errors, add an explicit handler for 'error', or use
 
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
-
-+++
-** New function 'safe-copy-tree'
-This function is a version of copy-tree which handles circular lists
-and circular vectors/records.
 
 +++
 ** New function 'file-user-uid'.
