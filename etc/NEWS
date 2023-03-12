@@ -4884,6 +4884,12 @@ two buttons: "Yes" and "No".
 ---
 *** 'process-attributes' is now implemented.
 
+** macOS
+
++++
+*** The 'ns-popup-font-panel' command has been removed.
+Use the general command "M-x menu-set-font" instead.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
