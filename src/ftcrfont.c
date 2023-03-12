@@ -588,6 +588,53 @@ ftcrfont_show_glyphs (struct glyph_string *s, cairo_t *cr,
   cairo_show_glyphs (cr, glyphs, len);
 }
 
+static void
+ftcrfont_draw_shadow (struct glyph_string *s, cairo_t *frame_cr,
+		      int from, int to, int x, int y, bool save)
+{
+  cairo_surface_t *surface;
+  cairo_t *dc;
+
+  int x1, y1, w1, h1;
+  unsigned long col;
+  int margin;
+
+  margin = (int) ceil (s->face->shadow_blur);
+  w1 = s->width + margin;
+  h1 = FONT_HEIGHT (s->font) + margin;
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
+  dc = cairo_create (surface);
+
+  if (s->face->shadow_color_defaulted_p)
+    col = s->face->foreground;
+  else
+    col = s->face->shadow_color;
+
+  cairo_set_source_rgb (dc,
+			RED_FROM_ULONG (col) / 255.0,
+			GREEN_FROM_ULONG (col) / 255.0,
+			BLUE_FROM_ULONG (col) / 255.0);
+  cairo_set_operator (dc, CAIRO_OPERATOR_OVER);
+
+  ftcrfont_show_glyphs (s, dc, from, to, margin, FONT_BASE(s->font) + margin);
+  gaussian_blur (surface, w1, h1, s->face->shadow_blur / 2.0);
+
+  x1 = x + s->face->shadow_offset.x - margin;
+  y1 = y - FONT_BASE (s->font) + s->face->shadow_offset.y - margin;
+
+  if (save)
+    cairo_save (frame_cr);
+  cairo_set_source_surface (frame_cr, surface, x1, y1);
+  cairo_rectangle (frame_cr, x1, y1, w1, h1);
+  cairo_fill (frame_cr);
+  if (save)
+    cairo_restore (frame_cr);
+
+  cairo_destroy (dc);
+  cairo_surface_destroy (surface);
+}
+
 static int
 ftcrfont_draw (struct glyph_string *s,
                int from, int to, int x, int y, bool with_background)
@@ -640,47 +687,17 @@ ftcrfont_draw (struct glyph_string *s,
       cairo_fill (cr);
     }
 
-  if (s->face->shadow_p)
-    {
-      cairo_surface_t *surface;
-      cairo_t *dc;
-
-      int x1, y1, w1, h1;
-      int margin;
-
-      margin = (int) ceil (s->face->shadow_blur);
-      w1 = s->width + margin;
-      h1 = FONT_HEIGHT (s->font) + margin;
-
-      surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w1, h1);
-      dc = cairo_create (surface);
-
-      if (s->face->shadow_color_defaulted_p)
-	ftcrfont_select_foreground_color (f, dc, s);
-      else
-	{
-	  unsigned long col = s->face->shadow_color;
-	  cairo_set_source_rgb (dc,
-				RED_FROM_ULONG (col) / 255.0,
-				GREEN_FROM_ULONG (col) / 255.0,
-				BLUE_FROM_ULONG (col) / 255.0);
-	  cairo_set_operator (dc, CAIRO_OPERATOR_OVER);
-	}
-
-      ftcrfont_show_glyphs (s, dc, from, to, margin, FONT_BASE(s->font) + margin);
-      gaussian_blur (surface, w1, h1, s->face->shadow_blur / 2.0);
-
-      x1 = x + s->face->shadow_offset.x - margin;
-      y1 = y - FONT_BASE (s->font) + s->face->shadow_offset.y - margin;
-
-      cairo_set_source_surface (cr, surface, x1, y1);
-      cairo_rectangle (cr, x1, y1, w1, h1);
-      cairo_fill (cr);
-
-      cairo_surface_destroy (surface);
-    }
-
+#if defined(HAVE_PGTK)
+  /* PGTK requires the foreground color to be selected BEFORE creating
+     the shadow layer.  Hence we need to save and restore cairo_t. */
   ftcrfont_select_foreground_color (f, cr, s);
+  if (s->face->shadow_p)
+    ftcrfont_draw_shadow (s, cr, from, to, x, y, true);
+#else
+  if (s->face->shadow_p)
+    ftcrfont_draw_shadow (s, cr, from, to, x, y, false);
+  ftcrfont_select_foreground_color (f, cr, s);
+#endif
   ftcrfont_show_glyphs (s, cr, from, to, x, y);
 
 #ifndef USE_BE_CAIRO
