@@ -5849,6 +5849,7 @@ If set to a non-float value, there will be no wait at all.  */);
     doc: /* String identifying the device's OS version.
 This is a string that uniquely identifies the version of Android
 Emacs is running on.  */);
+  Vandroid_build_fingerprint = Qnil;
 
   /* Only defined so loadup.el loads scroll-bar.el.  */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
