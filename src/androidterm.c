@@ -4811,7 +4811,7 @@ NATIVE_NAME (getTextAfterCursor) (JNIEnv *env, jobject object, jshort window,
   jstring string;
 
   /* First, set up the conversion query.  */
-  context.query.position = 0;
+  context.query.position = EMACS_INT_MAX;
   context.query.direction = TEXTCONV_FORWARD_CHAR;
   context.query.factor = min (length, 65535);
   context.query.operation = TEXTCONV_RETRIEVAL;
@@ -4855,7 +4855,7 @@ NATIVE_NAME (getTextBeforeCursor) (JNIEnv *env, jobject object, jshort window,
   jstring string;
 
   /* First, set up the conversion query.  */
-  context.query.position = 0;
+  context.query.position = TYPE_MINIMUM (EMACS_INT);
   context.query.direction = TEXTCONV_BACKWARD_CHAR;
   context.query.factor = min (length, 65535);
   context.query.operation = TEXTCONV_RETRIEVAL;
@@ -4936,8 +4936,8 @@ NATIVE_NAME (setComposingRegion) (JNIEnv *env, jobject object, jshort window,
   event.ime.serial = ++event_serial;
   event.ime.window = window;
   event.ime.operation = ANDROID_IME_SET_COMPOSING_REGION;
-  event.ime.start = start;
-  event.ime.end = end;
+  event.ime.start = start + 1;
+  event.ime.end = end + 1;
   event.ime.length = 0;
   event.ime.position = 0;
   event.ime.text = NULL;
@@ -4961,8 +4961,8 @@ NATIVE_NAME (setSelection) (JNIEnv *env, jobject object, jshort window,
   event.ime.serial = ++event_serial;
   event.ime.window = window;
   event.ime.operation = ANDROID_IME_SET_POINT;
-  event.ime.start = start;
-  event.ime.end = end;
+  event.ime.start = start + 1;
+  event.ime.end = end + 1;
   event.ime.length = 0;
   event.ime.position = start;
   event.ime.text = NULL;
@@ -5040,11 +5040,12 @@ NATIVE_NAME (getSelection) (JNIEnv *env, jobject object, jshort window)
     return NULL;
 
   /* Wraparound actually makes more sense than truncation; at least
-     editing will sort of work.  */
+     editing will sort of work.  Convert the positions to start from
+     index 0, as that is what Android expects.  */
   contents[0] = (unsigned int) min (context.point,
-				    context.mark);
+				    context.mark) - 1;
   contents[1] = (unsigned int) max (context.point,
-				    context.mark);
+				    context.mark) - 1;
 
   /* Now create the array.  */
   array = (*env)->NewIntArray (env, 2);
@@ -5209,8 +5210,11 @@ android_build_extracted_text (jstring text, ptrdiff_t start,
 		       min (offset, TYPE_MAXIMUM (jint)));
   (*env)->SetIntField (env, object, text_class.selection_end,
 		       min (offset, TYPE_MAXIMUM (jint)));
+
+  /* Subtract 1 from start: point indices in Emacs start from 1, but
+     Android expects 0.  */
   (*env)->SetIntField (env, object, text_class.start_offset,
-		       min (start, TYPE_MAXIMUM (jint)));
+		       min (start - 1, TYPE_MAXIMUM (jint)));
   (*env)->SetObjectField (env, object, text_class.text, text);
   return object;
 }
@@ -5311,8 +5315,11 @@ NATIVE_NAME (getExtractedText) (JNIEnv *env, jobject ignored_object,
 		       min (context.offset, TYPE_MAXIMUM (jint)));
   (*env)->SetIntField (env, object, text_class.selection_end,
 		       min (context.offset, TYPE_MAXIMUM (jint)));
+
+  /* Subtract 1 from start: point indices in Emacs start from 1, but
+     Android expects 0.  */
   (*env)->SetIntField (env, object, text_class.start_offset,
-		       min (context.start, TYPE_MAXIMUM (jint)));
+		       min (context.start - 1, TYPE_MAXIMUM (jint)));
   (*env)->SetObjectField (env, object, text_class.text, string);
   return object;
 }
@@ -5397,8 +5404,9 @@ android_update_selection (struct frame *f, struct window *w)
     {
       eassert (MARKERP (f->conversion.compose_region_end));
 
-      start = marker_position (f->conversion.compose_region_start);
-      end = marker_position (f->conversion.compose_region_end);
+      /* Indexing in android starts from 0 instead of 1.  */
+      start = marker_position (f->conversion.compose_region_start) - 1;
+      end = marker_position (f->conversion.compose_region_end) - 1;
     }
   else
     start = -1, end = -1;
@@ -5423,9 +5431,11 @@ android_update_selection (struct frame *f, struct window *w)
 
   /* Send the update.  Android doesn't have a concept of ``point'' and
      ``mark''; instead, it only has a selection, where the start of
-     the selection is less than or equal to the end.  */
-  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark),
-		     max (point, mark), start, end);
+     the selection is less than or equal to the end.  Also, convert
+     the indices from 1-based Emacs indices to 0-based Android
+     ones.  */
+  android_update_ic (FRAME_ANDROID_WINDOW (f), min (point, mark) - 1,
+		     max (point, mark) - 1, start, end);
 
   /* Update the extracted text as well, if the input method has asked
      for updates.  1 is
@@ -5438,25 +5448,28 @@ android_update_selection (struct frame *f, struct window *w)
       text = get_extracted_text (f, min (hint, 600), &start,
 				 &offset, &length, &bytes);
 
-      /* Make a string out of the extracted text.  */
-      string = android_text_to_string (android_java_env,
-				       text, length, bytes);
-      xfree (text);
-      android_exception_check ();
-
-      /* Make extracted text out of that string.  */
-      extracted = android_build_extracted_text (string, start,
-						offset);
-      android_exception_check_1 (string);
-      ANDROID_DELETE_LOCAL_REF (string);
-
-      if (extracted)
+      if (text)
 	{
-	  /* extracted is now an associated ExtractedText object.
-	     Perform the update.  */
-	  android_update_extracted_text (FRAME_ANDROID_WINDOW (f),
-					 extracted, token);
-	  ANDROID_DELETE_LOCAL_REF (extracted);
+	  /* Make a string out of the extracted text.  */
+	  string = android_text_to_string (android_java_env,
+					   text, length, bytes);
+	  xfree (text);
+	  android_exception_check ();
+
+	  /* Make extracted text out of that string.  */
+	  extracted = android_build_extracted_text (string, start,
+						    offset);
+	  android_exception_check_1 (string);
+	  ANDROID_DELETE_LOCAL_REF (string);
+
+	  if (extracted)
+	    {
+	      /* extracted is now an associated ExtractedText object.
+		 Perform the update.  */
+	      android_update_extracted_text (FRAME_ANDROID_WINDOW (f),
+					     extracted, token);
+	      ANDROID_DELETE_LOCAL_REF (extracted);
+	    }
 	}
     }
 }

@@ -137,6 +137,10 @@ select_window (Lisp_Object window, Lisp_Object norecord)
    window and QUERY->factor times QUERY->direction from that
    position.  Return it in QUERY->text.
 
+   If QUERY->position is TYPE_MINIMUM (EMACS_INT) or EMACS_INT_MAX,
+   start at the window's last point or mark, whichever is greater or
+   smaller.
+
    Then, either delete that text from the buffer if QUERY->operation
    is TEXTCONV_SUBSTITUTION, or return 0.
 
@@ -155,8 +159,9 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 {
   specpdl_ref count;
   ptrdiff_t pos, pos_byte, end, end_byte, start;
-  ptrdiff_t temp, temp1;
+  ptrdiff_t temp, temp1, mark;
   char *buffer;
+  struct window *w;
 
   /* Save the excursion, as there will be extensive changes to the
      selected window.  */
@@ -171,11 +176,34 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
   select_window ((WINDOW_LIVE_P (f->old_selected_window)
 		  ? f->old_selected_window
 		  : f->selected_window), Qt);
+  w = XWINDOW (selected_window);
 
   /* Now find the appropriate text bounds for QUERY.  First, move
      point QUERY->position steps forward or backwards.  */
 
   pos = PT;
+
+  /* If QUERY->position is EMACS_INT_MAX, use the last mark or the
+     ephemeral last point, whichever is greater.
+
+     The opposite applies for EMACS_INT_MIN.  */
+
+  mark = get_mark ();
+
+  if (query->position == EMACS_INT_MAX)
+    {
+      pos = (mark == -1
+	     ? w->ephemeral_last_point
+	     : max (w->ephemeral_last_point, mark));
+      goto escape1;
+    }
+  else if (query->position == TYPE_MINIMUM (EMACS_INT))
+    {
+      pos = (mark == -1
+	     ? w->ephemeral_last_point
+	     : min (w->ephemeral_last_point, mark));
+      goto escape1;
+    }
 
   /* Next, if POS lies within the conversion region and the caller
      asked for it to be moved away, move it away from the conversion
@@ -210,7 +238,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
   if (flags & TEXTCONV_SKIP_ACTIVE_REGION)
     {
-      temp = get_mark ();
+      temp = mark;
 
       if (temp == -1)
 	goto escape;
@@ -245,6 +273,8 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
   if (INT_ADD_WRAPV (pos, query->position, &pos))
     pos = PT;
+
+ escape1:
 
   if (pos < BEGV)
     pos = BEGV;
@@ -792,7 +822,7 @@ really_set_composing_text (struct frame *f, ptrdiff_t position,
   /* If PT hasn't changed, the conversion region definitely has.
      Otherwise, redisplay will update the input method instead.  */
 
-  if (PT == w->last_point
+  if (PT == w->ephemeral_last_point
       && text_interface
       && text_interface->compose_region_changed)
     {
