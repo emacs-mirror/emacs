@@ -68,7 +68,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 public final class EmacsOpenActivity extends Activity
-  implements DialogInterface.OnClickListener
+  implements DialogInterface.OnClickListener,
+  DialogInterface.OnCancelListener
 {
   private static final String TAG = "EmacsOpenActivity";
 
@@ -117,6 +118,13 @@ public final class EmacsOpenActivity extends Activity
   @Override
   public void
   onClick (DialogInterface dialog, int which)
+  {
+    finish ();
+  }
+
+  @Override
+  public void
+  onCancel (DialogInterface dialog)
   {
     finish ();
   }
@@ -178,6 +186,7 @@ public final class EmacsOpenActivity extends Activity
 
     dialog.setMessage (text);
     dialog.setButton (DialogInterface.BUTTON_POSITIVE, "OK", this);
+    dialog.setOnCancelListener (this);
     dialog.show ();
   }
 

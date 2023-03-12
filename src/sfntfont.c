@@ -482,7 +482,14 @@ sfnt_parse_languages (struct sfnt_meta_table *meta,
 			     &map);
 
   if (!data)
-    return;
+    {
+      /* Fall back to the supported languages metadata.  */
+      data = sfnt_find_metadata (meta, SFNT_META_DATA_TAG_SLNG,
+				 &map);
+
+      if (!data)
+	return;
+    }
 
   USE_SAFE_ALLOCA;
 
