@@ -682,7 +682,7 @@ variables for a connection profile are defined using
             (cons (cons criteria (delete-dups profiles))
 		  connection-local-criteria-alist))))
   (custom-set-variables
-   `(connection-local-criteria-alist ',connection-local-criteria-alist)))
+   `(connection-local-criteria-alist ',connection-local-criteria-alist now)))
 
 (defsubst connection-local-get-profile-variables (profile)
   "Return the connection-local variable list for PROFILE."
@@ -703,7 +703,7 @@ VARIABLES list of the connection profile.  The list is processed
 in order."
   (setf (alist-get profile connection-local-profile-alist) variables)
   (custom-set-variables
-   `(connection-local-profile-alist ',connection-local-profile-alist)))
+   `(connection-local-profile-alist ',connection-local-profile-alist now)))
 
 ;;;###autoload
 (defun connection-local-update-profile-variables (profile variables)
