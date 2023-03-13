@@ -1941,10 +1941,10 @@ returns the process ID of the Emacs instance running \"server\".
 
 This function signals `error' if it could not contact the server.
 
-This function signals `server-return-invalid-read-syntax' if it
-couldn't read the result of evaluation printed by the server.
-This will occur whenever the result of evaluating FORM is something
-not readably printable."
+This function signals `server-return-invalid-read-syntax' if
+`read' fails on the result returned by the server.
+This will occur whenever the result of evaluating FORM is
+something that cannot be printed readably."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
          (server-file (expand-file-name server server-dir))
          (coding-system-for-read 'binary)
