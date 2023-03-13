@@ -133,9 +133,13 @@ the list at the end of this file.
 
 ** Android
 
-  Emacs is known to run on all Android versions from 2.3 onwards.
-  It should work with Android 2.2 as well, but only the build
-  has been tested, and actually running the built Emacs has not.
+  Emacs is known to run on all Android versions from 2.2 onwards, on
+  Linux kernel 2.26.29 or later.
+
+  Android 2.2 has only been tested on ARM.  mips64 has not been
+  tested, but builds.  With these exceptions, Emacs is known to run on
+  all supported versions of Android on all supported machines: arm,
+  armv7, arm64, x86, x86_64, and mips.
 
   See the file INSTALL.android for detailed installation instructions.
 
