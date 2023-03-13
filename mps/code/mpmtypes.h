@@ -26,7 +26,7 @@
 
 /* TYPES */
 
-typedef unsigned long Sig;              /* <design/sig> */
+typedef unsigned long Sig;              /* design.mps.sig */
 typedef int Res;                        /* <design/type#.res> */
 
 typedef void (*Fun)(void);              /* <design/type#.fun> */
@@ -262,7 +262,7 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 /* CONSTANTS */
 
 
-/* <design/sig>  */
+/* design.mps.sig  */
 #define SigInvalid      ((Sig)0x51915BAD) /* SIGnature IS BAD */
 
 #define SizeMAX         ((Size)-1)

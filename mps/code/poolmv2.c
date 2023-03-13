@@ -132,7 +132,7 @@ typedef struct MVTStruct
   METER_DECL(exceptionSplinters)
   METER_DECL(exceptionReturns)
 
-  Sig sig;
+  Sig sig; /* design.mps.sig.field.end.outer */
 } MVTStruct;
 
 

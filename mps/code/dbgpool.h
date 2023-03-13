@@ -42,7 +42,7 @@ typedef PoolDebugOptionsStruct *PoolDebugOptions;
 #define PoolDebugMixinSig ((Sig)0x519B0DB9)  /* SIGnature POol DeBuG */
 
 typedef struct PoolDebugMixinStruct {
-  Sig sig;
+  Sig sig; /* design.mps.sig.field */
   const struct AddrStruct *fenceTemplate;
   Size fenceSize;
   const struct AddrStruct *freeTemplate;

@@ -23,7 +23,7 @@ typedef union AreaScanUnion {
 } AreaScanUnion;
 
 typedef struct RootStruct {
-  Sig sig;
+  Sig sig;                      /* design.mps.sig.field */
   Serial serial;                /* from arena->rootSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attachment to arena */

@@ -34,7 +34,7 @@ SRCID(poolsnc, "$Id$");
 typedef struct SNCStruct {
   PoolStruct poolStruct;
   Seg freeSegs;
-  Sig sig;
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } SNCStruct, *SNC;
 
 #define PoolSNC(pool) PARENT(SNCStruct, poolStruct, (pool))
@@ -78,7 +78,7 @@ typedef struct SNCBufStruct *SNCBuf;
 typedef struct SNCBufStruct {
   SegBufStruct segBufStruct;      /* superclass fields must come first */
   Seg topseg;                     /* The segment chain head -- may be NULL */
-  Sig sig;                        /* <design/sig> */
+  Sig sig;                        /* design.mps.sig.field.end.outer */
 } SNCBufStruct;
 
 
@@ -182,7 +182,7 @@ typedef struct SNCSegStruct *SNCSeg;
 typedef struct SNCSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   SNCSeg next;              /* Next segment in chain, or NULL */
-  Sig sig;
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } SNCSegStruct;
 
 #define SegSNCSeg(seg)             ((SNCSeg)(seg))

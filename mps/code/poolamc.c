@@ -56,7 +56,7 @@ typedef struct amcGenStruct {
   PoolGenStruct pgen;
   RingStruct amcRing;           /* link in list of gens in pool */
   Buffer forward;               /* forwarding buffer */
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } amcGenStruct;
 
 #define amcGenAMC(amcgen) MustBeA(AMCZPool, (amcgen)->pgen.pool)
@@ -113,7 +113,7 @@ typedef struct amcSegStruct {
   BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } amcSegStruct;
 
 
@@ -422,7 +422,7 @@ typedef struct AMCStruct { /* <design/poolamc#.struct> */
   amcPinnedFunction pinned; /* function determining if block is pinned */
   Size extendBy;           /* segment size to extend pool by */
   Size largeSize;          /* min size of "large" segments */
-  Sig sig;                 /* <design/pool#.outer-structure.sig> */
+  Sig sig;                 /* design.mps.sig.field.end.outer */
 } AMCStruct;
 
 
@@ -457,7 +457,7 @@ typedef struct amcBufStruct {
   SegBufStruct segbufStruct;    /* superclass fields must come first */
   amcGen gen;                   /* The AMC generation */
   Bool forHashArrays;           /* allocates hash table arrays, see AMCBufferFill */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } amcBufStruct;
 
 

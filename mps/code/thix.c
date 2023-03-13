@@ -49,7 +49,7 @@ SRCID(thix, "$Id$");
 /* ThreadStruct -- thread descriptor */
 
 typedef struct mps_thr_s {       /* PThreads thread structure */
-  Sig sig;                       /* <design/sig> */
+  Sig sig;                       /* design.mps.sig.field */
   Serial serial;                 /* from arena->threadSerial */
   Arena arena;                   /* owning arena */
   RingStruct arenaRing;          /* threads attached to arena */

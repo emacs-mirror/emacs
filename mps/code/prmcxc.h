@@ -21,7 +21,7 @@
 #endif
 
 typedef struct MutatorContextStruct {
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field */
   MutatorContextVar var;        /* Discriminator. */
   Addr address;                 /* Fault address, if stopped by protection
                                  * fault; NULL if stopped by thread manager. */
