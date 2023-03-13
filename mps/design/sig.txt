@@ -151,7 +151,7 @@ call the full checking function for the structure.
 
 _`.check.sig`: The checking function for the structure should also
 validate the signature as its first step using the ``CHECKS()`` macro
-(see `check.h`_). For example::
+(see `design.mps.check.macro.sig <check.txt>`_). For example::
 
     Bool MessageCheck(Message message)
     {
@@ -163,8 +163,6 @@ validate the signature as its first step using the ``CHECKS()`` macro
 This combination makes it extremely difficult to get an object of the
 wrong type, an uninitialized object, or a dead object, or a random
 pointer into a function.
-
-.. _check.h: ../code/check.h
 
 
 Rules
