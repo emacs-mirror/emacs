@@ -133,6 +133,11 @@ file, it invokes @command{emacsclient} with the options
 and the name of the file being opened.  Then, upon success, the focus
 is transferred to any open Emacs frame.
 
+  However, if Emacs is not running at the time the wrapper is opened,
+it starts Emacs and gives it the file to open as an argument.  Note
+that if that Emacs in turn does not start the Emacs server, subsequent
+attempts to open the file with the wrapper will fail.
+
 @cindex /content directory, android
   Some files are given to Emacs as ``content identifiers'', which the
 system provides access to outside the normal filesystem APIs.  Emacs

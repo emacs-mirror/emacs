@@ -20,24 +20,32 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 package org.gnu.emacs;
 
 import java.lang.Thread;
+import java.util.Arrays;
 
 import android.os.Build;
+import android.util.Log;
 
 public class EmacsThread extends Thread
 {
+  private static final String TAG = "EmacsThread";
+
   /* Whether or not Emacs should be started -Q.  */
   private boolean startDashQ;
 
   /* Runnable run to initialize Emacs.  */
   private Runnable paramsClosure;
 
+  /* Whether or not to open a file after starting Emacs.  */
+  private String fileToOpen;
+
   public
   EmacsThread (EmacsService service, Runnable paramsClosure,
-	       boolean startDashQ)
+	       boolean startDashQ, String fileToOpen)
   {
     super ("Emacs main thread");
     this.startDashQ = startDashQ;
     this.paramsClosure = paramsClosure;
+    this.fileToOpen = fileToOpen;
   }
 
   @Override
@@ -46,14 +54,27 @@ public class EmacsThread extends Thread
   {
     String args[];
 
-    if (!startDashQ)
-      args = new String[] { "libandroid-emacs.so", };
+    if (fileToOpen == null)
+      {
+	if (!startDashQ)
+	  args = new String[] { "libandroid-emacs.so", };
+	else
+	  args = new String[] { "libandroid-emacs.so", "-Q", };
+      }
     else
-      args = new String[] { "libandroid-emacs.so", "-Q", };
+      {
+	if (!startDashQ)
+	  args = new String[] { "libandroid-emacs.so",
+				fileToOpen, };
+	else
+	  args = new String[] { "libandroid-emacs.so", "-Q",
+				fileToOpen, };
+      }
 
     paramsClosure.run ();
 
     /* Run the native code now.  */
+    Log.d (TAG, "run: " + Arrays.toString (args));
     EmacsNative.initEmacs (args, EmacsApplication.dumpFileName,
 			   Build.VERSION.SDK_INT);
   }

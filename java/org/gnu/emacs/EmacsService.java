@@ -215,7 +215,8 @@ public final class EmacsService extends Service
 	classPath = getApkFile ();
 
 	Log.d (TAG, "Initializing Emacs, where filesDir = " + filesDir
-	       + ", libDir = " + libDir + ", and classPath = " + classPath);
+	       + ", libDir = " + libDir + ", and classPath = " + classPath
+	       + "; fileToOpen = " + EmacsOpenActivity.fileToOpen);
 
 	/* Start the thread that runs Emacs.  */
 	thread = new EmacsThread (this, new Runnable () {
@@ -228,7 +229,9 @@ public final class EmacsService extends Service
 					  (float) pixelDensityY,
 					  classPath, EmacsService.this);
 	    }
-	  }, needDashQ);
+	  }, needDashQ,
+	  /* If any file needs to be opened, open it now.  */
+	  EmacsOpenActivity.fileToOpen);
 	thread.start ();
       }
     catch (IOException exception)

@@ -56,10 +56,10 @@ DISPLAY is ignored on Android."
 (cl-defmethod frame-creation-function (params &context (window-system android))
   (x-create-frame-with-faces params))
 
-(cl-defmethod handle-args-function (_ignored &context (window-system android))
-  ;; Nothing to do here: Android has no command line to provide
-  ;; arguments on.
-  (ignore))
+(cl-defmethod handle-args-function (args &context (window-system android))
+  ;; Android has no command line to provide arguments on.
+  ;; However, call x-handle-args to handle file name args.
+  (x-handle-args args))
 
 
 ;;; Selection support.

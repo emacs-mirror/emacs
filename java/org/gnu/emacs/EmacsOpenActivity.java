@@ -72,6 +72,7 @@ public final class EmacsOpenActivity extends Activity
   DialogInterface.OnCancelListener
 {
   private static final String TAG = "EmacsOpenActivity";
+  public static String fileToOpen;
 
   private class EmacsClientThread extends Thread
   {
@@ -317,6 +318,20 @@ public final class EmacsOpenActivity extends Activity
     Process process;
     EmacsClientThread thread;
     File file;
+    Intent intent;
+
+    /* If the Emacs service is not running, then start Emacs and make
+       it open this file.  */
+
+    if (EmacsService.SERVICE == null)
+      {
+	fileToOpen = fileName;
+	intent = new Intent (EmacsOpenActivity.this,
+			     EmacsActivity.class);
+	finish ();
+	startActivity (intent);
+	return;
+      }
 
     libDir = EmacsService.getLibraryDirectory (this);
     builder = new ProcessBuilder (libDir + "/libemacsclient.so",
