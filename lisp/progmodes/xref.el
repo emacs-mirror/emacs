@@ -981,7 +981,7 @@ point."
     map))
 
 (declare-function outline-search-text-property "outline"
-		  (property &optional value bound move backward looking-at))
+                  (property &optional value bound move backward looking-at))
 
 (define-derived-mode xref--xref-buffer-mode special-mode "XREF"
   "Mode for displaying cross-references."
@@ -993,14 +993,14 @@ point."
   (setq imenu-extract-index-name-function
         #'xref--imenu-extract-index-name)
   (setq-local add-log-current-defun-function
-	      #'xref--add-log-current-defun)
-  (setq-local outline-minor-mode-cycle t
-              outline-minor-mode-use-buttons 'insert
-              outline-search-function
+              #'xref--add-log-current-defun)
+  (setq-local outline-minor-mode-cycle t)
+  (setq-local outline-minor-mode-use-buttons 'insert)
+  (setq-local outline-search-function
               (lambda (&optional bound move backward looking-at)
                 (outline-search-text-property
-                 'xref-group nil bound move backward looking-at))
-              outline-level (lambda () 1)))
+                 'xref-group nil bound move backward looking-at)))
+  (setq-local outline-level (lambda () 1)))
 
 (defvar xref--transient-buffer-mode-map
   (let ((map (make-sparse-keymap)))
