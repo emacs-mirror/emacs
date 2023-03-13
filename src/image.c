@@ -652,9 +652,19 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+#include "android.h"
+
+/* This abstraction allows directly loading images from assets without
+   copying them to a file descriptor first.  */
+typedef struct android_fd_or_asset image_fd;
+#else /* !defined HAVE_ANDROID || defined ANDROID_STUBIFY */
+typedef int image_fd;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
 #if defined HAVE_HAIKU || defined HAVE_NS || defined HAVE_ANDROID
-static char *slurp_file (int, ptrdiff_t *);
-static Lisp_Object image_find_image_fd (Lisp_Object, int *);
+static char *slurp_file (image_fd, ptrdiff_t *);
+static Lisp_Object image_find_image_fd (Lisp_Object, image_fd *);
 static bool xbm_read_bitmap_data (struct frame *, char *, char *,
 				  int *, int *, char **, bool);
 #endif
@@ -877,7 +887,8 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   emacs_abort ();
 #else
   ptrdiff_t id, size;
-  int fd, width, height, rc;
+  int width, height, rc;
+  image_fd fd;
   char *contents, *data;
   Lisp_Object found;
   android_pixmap bitmap;
@@ -4135,10 +4146,11 @@ image_unget_x_image (struct image *img, bool mask_p, Emacs_Pix_Container ximg)
    PFD is null, do not open the file.  */
 
 static Lisp_Object
-image_find_image_fd (Lisp_Object file, int *pfd)
+image_find_image_fd (Lisp_Object file, image_fd *pfd)
 {
   Lisp_Object file_found, search_path;
   int fd;
+  void *platform;
 
   /* TODO I think this should use something like image-load-path
      instead.  Unfortunately, that can contain non-string elements.  */
@@ -4147,9 +4159,10 @@ image_find_image_fd (Lisp_Object file, int *pfd)
 		       Vx_bitmap_file_path);
 
   /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
+  platform = NULL;
   fd = openp (search_path, file, Qnil, &file_found,
 	      pfd ? Qt : make_fixnum (R_OK), false, false,
-	      NULL);
+	      pfd ? &platform : NULL);
   if (fd == -2)
     {
       /* The file exists locally, but has a file name handler.
@@ -4159,10 +4172,23 @@ image_find_image_fd (Lisp_Object file, int *pfd)
       Lisp_Object encoded_name = ENCODE_FILE (file_found);
       fd = emacs_open (SSDATA (encoded_name), O_RDONLY, 0);
     }
-  else if (fd < 0)
+  /* FD is -3 if PLATFORM is set to a valid asset file descriptor on
+     Android.  */
+  else if (fd < 0 && fd != -3)
     return Qnil;
+
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   if (pfd)
     *pfd = fd;
+#else
+  /* Construct an asset file descriptor.  */
+
+  if (pfd)
+    {
+      pfd->fd = fd;
+      pfd->asset = platform;
+    }
+#endif
   return file_found;
 }
 
@@ -4176,14 +4202,25 @@ image_find_image_file (Lisp_Object file)
   return image_find_image_fd (file, 0);
 }
 
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+
+static void
+close_android_fd (void *ptr)
+{
+  android_close_asset (*(struct android_fd_or_asset *) ptr);
+}
+
+#endif
+
 /* Read FILE into memory.  Value is a pointer to a buffer allocated
    with xmalloc holding FILE's contents.  Value is null if an error
    occurred.  FD is a file descriptor open for reading FILE.  Set
    *SIZE to the size of the file.  */
 
 static char *
-slurp_file (int fd, ptrdiff_t *size)
+slurp_file (image_fd fd, ptrdiff_t *size)
 {
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   FILE *fp = fdopen (fd, "rb");
 
   char *buf = NULL;
@@ -4212,6 +4249,39 @@ slurp_file (int fd, ptrdiff_t *size)
 
       unbind_to (count, Qnil);
     }
+#else
+  char *buf;
+  struct stat st;
+  specpdl_ref count;
+
+  if (!android_asset_fstat (fd, &st)
+      && (0 <= st.st_size
+	  && st.st_size < min (PTRDIFF_MAX, SIZE_MAX)))
+    {
+      count = SPECPDL_INDEX ();
+      record_unwind_protect_ptr (close_android_fd, &fd);
+      buf = xmalloc (st.st_size + 1);
+
+      /* Read one byte past the end of the file.  That allows
+	 detecting if the file grows as it is being read.  */
+
+      if (android_asset_read (fd, buf,
+			      st.st_size + 1) == st.st_size)
+	*size = st.st_size;
+      else
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+
+      unbind_to (count, Qnil);
+    }
+  else
+    {
+      buf = NULL;
+      android_close_asset (fd);
+    }
+#endif
 
   return buf;
 }
@@ -4934,7 +5004,7 @@ xbm_load (struct frame *f, struct image *img)
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
@@ -6230,7 +6300,7 @@ xpm_load (struct frame *f,
   file_name = image_spec_value (img->spec, QCfile, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
@@ -7259,7 +7329,7 @@ pbm_load (struct frame *f, struct image *img)
 
   if (STRINGP (specified_file))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
@@ -7927,8 +7997,11 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   if (NILP (specified_data))
     {
       int fd;
-      Lisp_Object file = image_find_image_fd (specified_file, &fd);
-      if (!STRINGP (file))
+      Lisp_Object file = image_find_image_file (specified_file);
+
+      if (!STRINGP (file)
+	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
+			       O_RDONLY, 0)) < 0)
 	{
 	  image_error ("Cannot find image file `%s'", specified_file);
 	  return 0;
@@ -8655,8 +8728,10 @@ jpeg_load_body (struct frame *f, struct image *img,
   if (NILP (specified_data))
     {
       int fd;
-      Lisp_Object file = image_find_image_fd (specified_file, &fd);
-      if (!STRINGP (file))
+      Lisp_Object file = image_find_image_file (specified_file);
+      if (!STRINGP (file)
+	  || (fd = emacs_open (SSDATA (ENCODE_FILE (file)),
+			       O_RDONLY, 0)) < 0)
 	{
 	  image_error ("Cannot find image file `%s'", specified_file);
 	  return 0;
@@ -10153,7 +10228,7 @@ webp_load (struct frame *f, struct image *img)
 
   if (NILP (specified_data))
     {
-      int fd;
+      image_fd fd;
       file = image_find_image_fd (specified_file, &fd);
       if (!STRINGP (file))
 	{
@@ -11552,7 +11627,7 @@ svg_load (struct frame *f, struct image *img)
   base_uri = image_spec_value (img->spec, QCbase_uri, NULL);
   if (STRINGP (file_name))
     {
-      int fd;
+      image_fd fd;
       Lisp_Object file = image_find_image_fd (file_name, &fd);
       if (!STRINGP (file))
 	{
