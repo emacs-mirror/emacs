@@ -79,6 +79,14 @@
                   :help "Print current buffer with page headings"))
     menu))
 
+(defcustom menu-bar-close-window nil
+  "Whether or not to close the current window from the menu bar.
+If non-nil, selecting Close from the File menu or clicking Close
+in the tool bar will close the current window where possible."
+  :type 'boolean
+  :group 'menu
+  :version "30.1")
+
 (defvar menu-bar-file-menu
   (let ((menu (make-sparse-keymap "File")))
 
@@ -2168,12 +2176,19 @@ otherwise it could decide to silently do nothing."
    ;; (Bug#8184).
    ((not (menu-bar-menu-frame-live-and-visible-p)))
    ((menu-bar-non-minibuffer-window-p)
-    (kill-buffer (current-buffer)))
+    (kill-buffer (current-buffer))
+    ;; Also close the current window if `menu-bar-close-windows' is
+    ;; set.
+    (when menu-bar-close-window
+      (ignore-errors (delete-window))))
    (t
     (abort-recursive-edit))))
 
 (defun kill-this-buffer-enabled-p ()
-  "Return non-nil if the `kill-this-buffer' menu item should be enabled."
+  "Return non-nil if the `kill-this-buffer' menu item should be enabled.
+It should be enabled there is at least one non-hidden buffer, or if
+`menu-bar-close-window' is non-nil and there is more than one window on
+this frame."
   (or (not (menu-bar-non-minibuffer-window-p))
       (let (found-1)
 	;; Instead of looping over entire buffer list, stop once we've
@@ -2183,7 +2198,9 @@ otherwise it could decide to silently do nothing."
 	    (unless (string-match-p "^ " (buffer-name buffer))
 	      (if (not found-1)
 		  (setq found-1 t)
-		(throw 'found-2 t))))))))
+		(throw 'found-2 t))))))
+      (and menu-bar-close-window
+           (window-parent (selected-window)))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 

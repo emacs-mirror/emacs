@@ -47,6 +47,12 @@ compositing manager, Emacs will now redisplay such a frame even though
 'frame-visible-p' returns nil or 'icon' for it.  This can happen, for
 example, as part of preview for iconified frames.
 
+---
+** New user option 'menu-bar-close-window'.
+When non-nil, selecting Close from the File menu or clicking Close in
+the tool bar will result in the current window being closed, if
+possible.
+
 +++
 ** 'write-region-inhibit-fsync' now defaults to t in interactive mode,
 as it has in batch mode since Emacs 24.
