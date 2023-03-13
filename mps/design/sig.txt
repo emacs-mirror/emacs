@@ -14,6 +14,8 @@ Signatures in the MPS
    pair: structure signatures; design
    single: signatures
 
+.. TODO: Use RFC-2119 keywords.
+
 
 Introduction
 ------------
@@ -49,7 +51,7 @@ _`.field`: Nearly every structure should start with a field of type
 ``Sig`` with the name ``sig``.  For example::
 
     typedef struct mps_message_s {
-      Sig sig;                      /* design.mps.sig */
+      Sig sig;                      /* design.mps.sig.field */
       Arena arena;                  /* owning arena */
       MessageClass class;           /* Message Class Structure */
       Clock postedClock;            /* mps_clock() at post time, or 0 */
@@ -61,13 +63,16 @@ that signature::
 
     #define MessageSig      ((Sig)0x5193e559) /* SIG MESSaGe */
 
+_`.value.unique`: The hex value should be unique to the structure
+type.  (See `.test.uniq`_ for a method of ensuring this.)
+
 _`.value.hex`: This is a 32-bit hex constant, spelled using *hex
 transliteration* according to `guide.hex.trans`_::
 
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     ABCDEF9811C7340BC6520F3812
 
-.. _guide.hex.trans: guide.hex.trans
+.. _guide.hex.trans: guide.hex.trans.rst
 
 _`.value.hex.just`: Hex transliteration allows the structure to be
 recognised when looking at memory in a hex dump or memory window, or
@@ -109,9 +114,9 @@ it is completely initialized and ready to use.  For example::
     }
 
 _`.finish`: When the structure is finished, the signature is
-invalidated as the *first* action.  This ensures that the structure
-appears invalid while it is being torn down and can't be used after.
-For example::
+invalidated just after checking the structure, before finishing any of
+other fields.  This ensures that the structure appears invalid while
+it is being torn down and can't be used after.  For example::
 
     void MessageFinish(Message message)
     {
