@@ -45,7 +45,7 @@ typedef struct VMChunkStruct {
   VMStruct vmStruct;            /* virtual memory descriptor */
   Addr overheadMappedLimit;     /* limit of pages mapped for overhead */
   SparseArrayStruct pages;      /* to manage backing store of page table */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } VMChunkStruct;
 
 #define VMChunk2Chunk(vmchunk) (&(vmchunk)->chunkStruct)
@@ -78,7 +78,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaVMContractedCallback contracted;
   MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
   CBSStruct spareLandStruct;    /* spare memory */
-  Sig sig;                      /* <design/sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } VMArenaStruct;
 
 #define VMArenaVM(vmarena) (&(vmarena)->vmStruct)

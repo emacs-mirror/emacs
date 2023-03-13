@@ -43,6 +43,7 @@ extern void ABQIterate(ABQ abq, ABQVisitor visitor, void *closure);
 
 typedef struct ABQStruct
 {
+  Sig sig;              /* design.mps.sig.field */
   Count elements;
   Size elementSize;
   Index in;
@@ -54,8 +55,6 @@ typedef struct ABQStruct
   METER_DECL(pop)
   METER_DECL(peek)
   METER_DECL(delete)
-
-  Sig sig;
 } ABQStruct;
 
 #endif /* abq_h */

@@ -24,7 +24,7 @@ typedef struct SparseArrayStruct *SparseArray;
 #define SparseArraySig  ((Sig)0x5195BA66) /* SIGnature SParse ARRay */
 
 typedef struct SparseArrayStruct {
-  Sig sig;
+  Sig sig;              /* design.mps.sig.field */
   void *base;           /* base of array, page aligned */
   Size elementSize;     /* size of array elements, <= page size */
   Index length;         /* number of elements in the array */

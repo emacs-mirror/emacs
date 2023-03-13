@@ -25,7 +25,7 @@ typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   PoolGenStruct pgenStruct;     /* generation representing the pool */
   PoolGen pgen;                 /* NULL or pointer to pgenStruct */
-  Sig sig;                      /* <code/misc.h#sig> */
+  Sig sig;                      /* design.mps.sig.field.end.outer */
 } LOStruct;
 
 typedef LO LOPool;
@@ -59,7 +59,7 @@ typedef struct LOSegStruct {
   Count bufferedGrains;     /* grains in buffers */
   Count newGrains;          /* grains allocated since last collection */
   Count oldGrains;          /* grains allocated prior to last collection */
-  Sig sig;                  /* <code/misc.h#sig> */
+  Sig sig;                  /* design.mps.sig.field.end.outer */
 } LOSegStruct;
 
 
