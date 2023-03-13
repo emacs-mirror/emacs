@@ -5389,6 +5389,23 @@ emacs_abort (void)
 
 
 
+/* Return whether or not TEXT, a string without multibyte
+   characters, has no bytes with the 8th bit set.  */
+
+static bool
+android_check_string (Lisp_Object text)
+{
+  ptrdiff_t i;
+
+  for (i = 0; i < ASIZE (text); ++i)
+    {
+      if (SREF (text, i) & 128)
+	return false;
+    }
+
+  return true;
+}
+
 /* Given a Lisp string TEXT, return a local reference to an equivalent
    Java string.  */
 
@@ -5400,6 +5417,21 @@ android_build_string (Lisp_Object text)
   size_t nchars;
   jchar *characters;
   USE_SAFE_ALLOCA;
+
+  /* Directly encode TEXT if it contains no multibyte
+     characters.  This is okay because the Java extended UTF
+     format is compatible with ASCII.  */
+
+  if (SBYTES (text) == SCHARS (text)
+      && android_check_string (text))
+    {
+      string = (*android_java_env)->NewStringUTF (android_java_env,
+						  SSDATA (text));
+      android_exception_check ();
+      SAFE_FREE ();
+
+      return string;
+    }
 
   encoded = code_convert_string_norecord (text, Qutf_16le,
 					  true);
