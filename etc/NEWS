@@ -245,6 +245,14 @@ following to your init file:
     (add-hook 'help-fns-describe-function-functions
               #'shortdoc-help-fns-examples-function)
 
+** Package
+
+---
+*** New user option 'package-vc-register-as-project'.
+When non-nil, it will automatically register every package as a
+project, that you can quickly select using 'project-switch-project'
+('C-x p p').
+
 
 * New Modes and Packages in Emacs 30.1
 
