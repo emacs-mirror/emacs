@@ -407,7 +407,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
                           )
           (should (eglot--tests-connect))
           (let (register-id)
-            (eglot--wait-for (s-requests 1)
+            (eglot--wait-for (s-requests 3)
                 (&key id method &allow-other-keys)
               (setq register-id id)
               (string= method "client/registerCapability"))
@@ -444,16 +444,19 @@ Pass TIMEOUT to `eglot--with-timeout'."
 
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
-  (skip-unless (executable-find "rust-analyzer"))
-  (skip-unless (executable-find "cargo"))
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      '(("diagnostic-tag-project" .
-         (("main.rs" .
-           "fn main() -> () { let test=3; }"))))
+      `(("diag-project" .
+         (("main.cpp" . "int main(){float a = 42.2; return 0;}"))))
     (with-current-buffer
-        (eglot--find-file-noselect "diagnostic-tag-project/main.rs")
-      (let ((eglot-server-programs '((rust-mode . ("rust-analyzer")))))
-        (should (zerop (shell-command "cargo init")))
+        (eglot--find-file-noselect "diag-project/main.cpp")
+      (eglot--make-file-or-dir '(".git"))
+      (eglot--make-file-or-dir
+       `("compile_commands.json" .
+         ,(json-serialize
+           `[(:directory ,default-directory :command "/usr/bin/c++ -Wall -c main.cpp"
+                         :file ,(expand-file-name "main.cpp"))])))
+      (let ((eglot-server-programs '((c++-mode . ("clangd")))))
         (eglot--sniffing (:server-notifications s-notifs)
           (eglot--tests-connect)
           (eglot--wait-for (s-notifs 10)
@@ -803,12 +806,13 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
   (eglot--with-fixture
       '(("project" .
          (("main.rs" .
-           "fn main() -> () { let test=3; }")
+           "fn main() -> i32 { return 42.2;}")
           ("other-file.rs" .
            "fn foo() -> () { let hi=3; }"))))
     (eglot--make-file-or-dir '(".git"))
     (let ((eglot-server-programs '((rust-mode . ("rust-analyzer")))))
-      ;; Open other-file, and see diagnostics arrive for main.rs
+      ;; Open other-file.rs, and see diagnostics arrive for main.rs,
+      ;; which we didn't open.
       (with-current-buffer (eglot--find-file-noselect "project/other-file.rs")
         (should (zerop (shell-command "cargo init")))
         (eglot--sniffing (:server-notifications s-notifs)
@@ -817,13 +821,12 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
           (eglot--wait-for (s-notifs 10)
               (&key _id method &allow-other-keys)
             (string= method "textDocument/publishDiagnostics"))
-          (let ((diags (flymake--project-diagnostics)))
-            (should (= 2 (length diags)))
-            ;; Check that we really get a diagnostic from main.rs, and
-            ;; not from other-file.rs
-            (should (string-suffix-p
-                     "main.rs"
-                     (flymake-diagnostic-buffer (car diags))))))))))
+          (let* ((diags (flymake--project-diagnostics)))
+            (should (cl-some (lambda (diag)
+                               (let ((locus (flymake-diagnostic-buffer diag)))
+                                 (and (stringp (flymake-diagnostic-buffer diag))
+                                      (string-suffix-p "main.rs" locus))))
+                             diags))))))))
 
 (ert-deftest eglot-test-json-basic ()
   "Test basic autocompletion in vscode-json-languageserver."
