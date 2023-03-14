@@ -4598,9 +4598,10 @@ This is run upon minibuffer setup."
     (cancel-timer minibuffer-on-screen-keyboard-timer)
     (setq minibuffer-on-screen-keyboard-timer nil))
   (setq minibuffer-on-screen-keyboard-displayed nil)
-  (when (not (memq (device-class last-event-frame
-                               last-event-device)
-                   '(keyboard core-keyboard)))
+  (when (and (framep last-event-frame)
+             (not (memq (device-class last-event-frame
+                                      last-event-device)
+                        '(keyboard core-keyboard))))
     (setq minibuffer-on-screen-keyboard-displayed
           (frame-toggle-on-screen-keyboard (selected-frame) nil))))
 
