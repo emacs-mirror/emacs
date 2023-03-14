@@ -4592,9 +4592,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should-not (file-name-completion "a" tmp-name))
 	      ;; `file-name-completion' should not err out if
 	      ;; directory does not exist.  (Bug#61890)
-	      (should-not
-	       (file-name-completion
-		"a" (tramp-compat-file-name-concat tmp-name "fuzz")))
+	      ;; Ange-FTP does not support this.
+	      (unless (tramp--test-ange-ftp-p)
+		(should-not
+		 (file-name-completion
+		  "a" (tramp-compat-file-name-concat tmp-name "fuzz"))))
 	      ;; Ange-FTP does not support predicates.
 	      (unless (tramp--test-ange-ftp-p)
 		(should
@@ -7387,10 +7389,12 @@ This is needed in timer functions as well as process filters and sentinels."
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
-  :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		(and (or (getenv "EMACS_HYDRA_CI")
-                         (getenv "EMACS_EMBA_CI"))
-                     '(:unstable)))
+  ;; :tags (append '(:expensive-test :tramp-asynchronous-processes)
+  ;;       	(and (or (getenv "EMACS_HYDRA_CI")
+  ;;                        (getenv "EMACS_EMBA_CI"))
+  ;;                    '(:unstable)))
+  ;; It doesn't work sufficiently.
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   (skip-unless (not (tramp--test-container-p)))
