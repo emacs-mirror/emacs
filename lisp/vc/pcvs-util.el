@@ -1,6 +1,6 @@
 ;;; pcvs-util.el --- utility functions for PCL-CVS  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2023 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs

@@ -1,6 +1,6 @@
 ;;; rmailsort.el --- Rmail: sort messages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1990, 1993-1994, 2001-2022 Free Software Foundation,
+;; Copyright (C) 1990, 1993-1994, 2001-2023 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>

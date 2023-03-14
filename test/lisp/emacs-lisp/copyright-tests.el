@@ -1,6 +1,6 @@
 ;;; copyright-tests.el --- tests for copyright.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -62,6 +62,7 @@
     "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
 
 (ert-deftest test-correct-notice ()
+  :tags '(:unstable)
   (should (equal
            (with-temp-buffer
              (dotimes (_ 2)

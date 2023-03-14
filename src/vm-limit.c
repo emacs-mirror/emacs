@@ -1,5 +1,5 @@
 /* Functions for memory limit warnings.
-   Copyright (C) 1990, 1992, 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1992, 2001-2023 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2023 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Created: 1999-05-28

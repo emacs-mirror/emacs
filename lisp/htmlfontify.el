@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2009-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2023 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -1882,7 +1882,7 @@ Hardly bombproof, but good enough in the context in which it is being used."
 
 (defun hfy-text-p (srcdir file)
   "Is SRCDIR/FILE text?  Use `hfy-istext-command' to determine this."
-  (let* ((cmd (format hfy-istext-command (expand-file-name file srcdir)))
+  (let* ((cmd (format hfy-istext-command (shell-quote-argument (expand-file-name file srcdir))))
          (rsp (shell-command-to-string    cmd)))
     (string-match "text" rsp)))
 

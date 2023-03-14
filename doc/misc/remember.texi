@@ -10,7 +10,7 @@
 @copying
 This manual is for Remember Mode, as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2001, 2004--2005, 2007--2022 Free Software
+Copyright @copyright{} 2001, 2004--2005, 2007--2023 Free Software
 Foundation, Inc.
 
 @quotation
