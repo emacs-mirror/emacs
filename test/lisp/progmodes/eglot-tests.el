@@ -59,6 +59,11 @@
 
 ;;; Helpers
 
+(defun eglot--test-message (format &rest args)
+  "Message out with FORMAT with ARGS."
+  (message "[eglot-tests] %s"
+           (apply #'format format args)))
+
 (defmacro eglot--with-fixture (fixture &rest body)
   "Setup FIXTURE, call BODY, teardown FIXTURE.
 FIXTURE is a list.  Its elements are of the form (FILE . CONTENT)
@@ -102,6 +107,7 @@ then restored."
              (push (cons (car spec) (symbol-value (car spec))) syms-to-restore)
              (set (car spec) (cadr spec)))
             ((stringp (car spec)) (push spec file-specs))))
+    (eglot--test-message "[%s]: test start" (ert-test-name (ert-running-test)))
     (unwind-protect
         (let* ((process-environment
                 (append
@@ -126,8 +132,8 @@ then restored."
           (setq created-files (mapcan #'eglot--make-file-or-dir file-specs))
           (prog1 (funcall fn)
             (setq test-body-successful-p t)))
-      (eglot--message
-       "Test body was %s" (if test-body-successful-p "OK" "A FAILURE"))
+      (eglot--test-message "[%s]: %s" (ert-test-name (ert-running-test))
+                           (if test-body-successful-p "OK" "FAILED"))
       (unwind-protect
           (let ((eglot-autoreconnect nil))
             (dolist (server new-servers)
@@ -136,8 +142,7 @@ then restored."
                     (eglot-shutdown
                      server nil 3 (not test-body-successful-p))
                   (error
-                   (eglot--message "Non-critical shutdown error after test: %S"
-                                   oops))))
+                   (eglot--test-message "Non-critical cleanup error: %S" oops))))
               (when (not test-body-successful-p)
                 ;; We want to do this after the sockets have
                 ;; shut down such that any pending data has been
@@ -150,21 +155,21 @@ then restored."
                                           (jsonrpc-events-buffer server)))))
                   (cond (noninteractive
                          (dolist (buffer buffers)
-                           (eglot--message "%s:" (buffer-name buffer))
+                           (eglot--test-message "contents of `%s':" (buffer-name buffer))
                            (princ (with-current-buffer buffer (buffer-string))
                                   'external-debugging-output)))
                         (t
-                         (eglot--message "Preserved for inspection: %s"
-                                         (mapconcat #'buffer-name buffers ", "))))))))
+                         (eglot--test-message "Preserved for inspection: %s"
+                                              (mapconcat #'buffer-name buffers ", "))))))))
         (eglot--cleanup-after-test fixture-directory created-files syms-to-restore)))))
 
 (defun eglot--cleanup-after-test (fixture-directory created-files syms-to-restore)
   (let ((buffers-to-delete
          (delete nil (mapcar #'find-buffer-visiting created-files))))
-    (eglot--message "Killing %s, wiping %s, restoring %s"
-                    buffers-to-delete
-                    fixture-directory
-                    (mapcar #'car syms-to-restore))
+    (eglot--test-message "Killing %s, wiping %s, restoring %s"
+                         buffers-to-delete
+                         fixture-directory
+                         (mapcar #'car syms-to-restore))
     (cl-loop for (sym . val) in syms-to-restore
              do (set sym val))
     (dolist (buf buffers-to-delete) ;; have to save otherwise will get prompted
@@ -252,12 +257,12 @@ then restored."
        (advice-remove #'jsonrpc--log-event ',log-event-ad-sym))))
 
 (cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message) args &body body)
-  "Spin until FN match in EVENTS-SYM, flush events after it.
-Pass TIMEOUT to `eglot--with-timeout'."
   (declare (indent 2) (debug (sexp sexp sexp &rest form)))
   `(eglot--with-timeout '(,timeout ,(or message
                                         (format "waiting for:\n%s" (pp-to-string body))))
-     (let ((event
+     (eglot--test-message "waiting for `%s'" (with-output-to-string
+                                               (mapc #'princ ',body)))
+     (let ((events
             (cl-loop thereis (cl-loop for json in ,events-sym
                                       for method = (plist-get json :method)
                                       when (keywordp method)
@@ -271,16 +276,18 @@ Pass TIMEOUT to `eglot--with-timeout'."
                                       collect json into before)
                      for i from 0
                      when (zerop (mod i 5))
-                     ;; do (eglot--message "still struggling to find in %s"
-                     ;;                    ,events-sym)
+                     ;; do (eglot--test-message "still struggling to find in %s"
+                     ;;                         ,events-sym)
                      do
                      ;; `read-event' is essential to have the file
                      ;; watchers come through.
-                     (read-event "[eglot] Waiting a bit..." nil 0.1)
+                     (read-event nil nil 0.1)
+                     (princ ".") (flush-standard-output)
                      (accept-process-output nil 0.1))))
-       (setq ,events-sym (cdr event))
-       (eglot--message "Event detected:\n%s"
-                       (pp-to-string (car event))))))
+       (setq ,events-sym (cdr events))
+       (cl-destructuring-bind (&key method id &allow-other-keys) (car events)
+         (eglot--test-message "detected: %s"
+                              (or method (and id (format "id=%s" id))))))))
 
 ;; `rust-mode' is not a part of Emacs, so we define these two shims
 ;; which should be more than enough for testing.
@@ -803,17 +810,18 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
   "Test diagnostics through multiple files in a TypeScript LSP."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
+  (skip-unless (executable-find "git"))
   (eglot--with-fixture
       '(("project" .
          (("main.rs" .
            "fn main() -> i32 { return 42.2;}")
           ("other-file.rs" .
            "fn foo() -> () { let hi=3; }"))))
-    (eglot--make-file-or-dir '(".git"))
     (let ((eglot-server-programs '((rust-mode . ("rust-analyzer")))))
       ;; Open other-file.rs, and see diagnostics arrive for main.rs,
       ;; which we didn't open.
       (with-current-buffer (eglot--find-file-noselect "project/other-file.rs")
+        (should (zerop (shell-command "git init")))
         (should (zerop (shell-command "cargo init")))
         (eglot--sniffing (:server-notifications s-notifs)
           (eglot--tests-connect)
