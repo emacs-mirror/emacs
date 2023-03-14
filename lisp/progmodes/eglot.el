@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
-;; Version: 1.11
+;; Version: 1.12
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1") (project "0.9.3") (xref "1.4.0") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
+;; Package-Requires: ((emacs "26.3") (jsonrpc "1.0.16") (flymake "1.2.1") (project "0.9.8") (xref "1.6.2") (eldoc "1.11.0") (seq "2.23") (external-completion "0.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -1155,12 +1155,12 @@ INTERACTIVE is t if called interactively."
     (cl-labels
         ((maybe-connect
            ()
-           (remove-hook 'post-command-hook #'maybe-connect nil)
            (eglot--when-live-buffer buffer
+             (remove-hook 'post-command-hook #'maybe-connect t)
              (unless eglot--managed-mode
                (apply #'eglot--connect (eglot--guess-contact))))))
       (when buffer-file-name
-        (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
+        (add-hook 'post-command-hook #'maybe-connect 'append t)))))
 
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER.
@@ -3666,13 +3666,14 @@ If NOERROR, return predicate, else erroring function."
 
 ;;; Misc
 ;;;
-(defun eglot--debbugs-or-github-bug-uri ()
-  (format (if (string= (match-string 2) "github")
-              "https://github.com/joaotavora/eglot/issues/%s"
-            "https://debbugs.gnu.org/%s")
-          (match-string 3)))
-(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
-
+;;;###autoload
+(progn
+  (put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+  (defun eglot--debbugs-or-github-bug-uri ()
+    (format (if (string= (match-string 2) "github")
+                "https://github.com/joaotavora/eglot/issues/%s"
+              "https://debbugs.gnu.org/%s")
+            (match-string 3))))
 ;;; Obsolete
 ;;;
 

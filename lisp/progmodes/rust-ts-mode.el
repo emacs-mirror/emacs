@@ -91,6 +91,7 @@
      ((parent-is "let_declaration") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "macro_definition") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "parameters") parent-bol rust-ts-mode-indent-offset)
+     ((parent-is "struct_pattern") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "token_tree") parent-bol rust-ts-mode-indent-offset)
      ((parent-is "use_list") parent-bol rust-ts-mode-indent-offset)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
@@ -235,6 +236,7 @@
        "^\\(u8\\|u16\\|u32\\|u64\\|u128\\|usize\\|i8\\|i16\\|i32\\|i64\\|i128\\|isize\\|char\\|str\\)$"
        @font-lock-type-face))
      ((scoped_identifier path: (identifier) @rust-ts-mode--fontify-scope))
+     ((scoped_type_identifier path: (identifier) @rust-ts-mode--fontify-scope))
      (type_identifier) @font-lock-type-face)
 
    :language 'rust
