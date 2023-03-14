@@ -23,8 +23,14 @@ import java.util.List;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
+
 import android.content.Context;
+import android.content.DialogInterface;
+
+import android.os.Build;
+
+import android.provider.Settings;
+
 import android.util.Log;
 
 import android.widget.Button;
@@ -33,6 +39,8 @@ import android.widget.FrameLayout;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 
 /* Toolkit dialog implementation.  This object is built from JNI and
    describes a single alert dialog.  Then, `inflate' turns it into
@@ -225,33 +233,54 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
 
   /* Internal helper for display run on the main thread.  */
 
+  @SuppressWarnings("deprecation")
   private boolean
   display1 ()
   {
-    EmacsActivity activity;
-    int size;
+    Context context;
+    int size, type;
     Button buttonView;
     EmacsButton button;
     AlertDialog dialog;
+    Window window;
 
-    if (EmacsActivity.focusedActivities.isEmpty ())
+    /* First, try to display a dialog using the service context.  */
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+	|| Settings.canDrawOverlays (EmacsService.SERVICE))
+      context = EmacsService.SERVICE;
+    else if (EmacsActivity.focusedActivities.isEmpty ())
       {
 	/* If focusedActivities is empty then this dialog may have
 	   been displayed immediately after a popup dialog is
 	   dismissed.  */
 
-	activity = EmacsActivity.lastFocusedActivity;
+	context = EmacsActivity.lastFocusedActivity;
 
-	if (activity == null)
+	if (context == null)
 	  return false;
       }
     else
-      activity = EmacsActivity.focusedActivities.get (0);
+      context = EmacsActivity.focusedActivities.get (0);
 
-    dialog = dismissDialog = toAlertDialog (activity);
+    Log.d (TAG, "display1: using context " + context);
+
+    dialog = dismissDialog = toAlertDialog (context);
 
     try
       {
+	if (context == EmacsService.SERVICE)
+	  {
+	    /* Apply the system alert window type to make sure this
+	       dialog can be displayed.  */
+
+	    window = dialog.getWindow ();
+	    type = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+		    ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+		    : WindowManager.LayoutParams.TYPE_PHONE);
+	    window.setType (type);
+	  }
+
 	dismissDialog.show ();
       }
     catch (Exception exception)
