@@ -990,7 +990,7 @@ implementation will be used."
 				  (progn
 				    (goto-char (point-min))
 				    (not (search-forward "\n" nil t)))
-			        (tramp-accept-process-output p 0))
+			        (tramp-accept-process-output p))
 			      (delete-region (point-min) (point)))
 			    ;; Provide error buffer.  This shows only
 			    ;; initial error messages; messages
