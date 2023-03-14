@@ -1262,7 +1262,9 @@ macro will assume it exists."
   (let* ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
          (tramp-histfile-override t)
          (tramp-verbose 1)
-         (temporary-file-directory ert-remote-temporary-file-directory)
+         (temporary-file-directory
+          (or (bound-and-true-p ert-remote-temporary-file-directory)
+              temporary-file-directory))
          (default-directory temporary-file-directory))
     ;; We must check the remote LSP server.  So far, just "clangd" is used.
     (unless (executable-find "clangd" 'remote)
