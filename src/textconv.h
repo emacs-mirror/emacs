@@ -119,7 +119,6 @@ struct textconv_callback_struct
 };
 
 #define TEXTCONV_SKIP_CONVERSION_REGION (1 << 0)
-#define TEXTCONV_SKIP_ACTIVE_REGION	(1 << 1)
 
 extern int textconv_query (struct frame *, struct textconv_callback_struct *,
 			   int);

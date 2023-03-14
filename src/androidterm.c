@@ -4685,8 +4685,6 @@ struct android_conversion_query_context
 /* Obtain the text from the frame whose window is that specified in
    DATA using the text conversion query specified there.
 
-   Adjust the query position to skip over any active composing region.
-
    Set ((struct android_conversion_query_context *) DATA)->success on
    success.  */
 
@@ -4704,7 +4702,7 @@ android_perform_conversion_query (void *data)
   if (!f)
     return;
 
-  textconv_query (f, &context->query, TEXTCONV_SKIP_ACTIVE_REGION);
+  textconv_query (f, &context->query, 0);
 
   /* context->query.text will have been set even if textconv_query
      returns 1.  */

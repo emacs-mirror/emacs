@@ -147,9 +147,6 @@ select_window (Lisp_Object window, Lisp_Object norecord)
    If FLAGS & TEXTCONV_SKIP_CONVERSION_REGION, then first move PT past
    the conversion region in the specified direction if it is inside.
 
-   If FLAGS & TEXTCONV_SKIP_ACTIVE_REGION, then also move PT past the
-   region if the mark is active.
-
    Value is 0 if QUERY->operation was not TEXTCONV_SUBSTITUTION
    or if deleting the text was successful, and 1 otherwise.  */
 
@@ -229,37 +226,6 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
 	    default:
 	      pos = max (BEGV, start - 1);
-	      break;
-	    }
-	}
-    }
-
-  /* Likewise for the region if the mark is active.  */
-
-  if (flags & TEXTCONV_SKIP_ACTIVE_REGION)
-    {
-      temp = mark;
-
-      if (temp == -1)
-	goto escape;
-
-      start = min (temp, PT);
-      end = max (temp, PT);
-
-      if (pos >= start && pos < end)
-	{
-	  switch (query->direction)
-	    {
-	    case TEXTCONV_FORWARD_CHAR:
-	    case TEXTCONV_FORWARD_WORD:
-	    case TEXTCONV_CARET_DOWN:
-	    case TEXTCONV_NEXT_LINE:
-	    case TEXTCONV_LINE_START:
-	      pos = end;
-	      break;
-
-	    default:
-	      pos = max (BEGV, start);
 	      break;
 	    }
 	}

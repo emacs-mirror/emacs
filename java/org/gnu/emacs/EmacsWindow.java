@@ -755,6 +755,14 @@ public final class EmacsWindow extends EmacsHandleObject
 	break;
 
       case MotionEvent.ACTION_UP:
+
+	/* Detect mice.  If this is a mouse event, give it to
+	   onSomeKindOfMotionEvent.  */
+	if ((Build.VERSION.SDK_INT
+	     >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	    && event.getToolType (0) == MotionEvent.TOOL_TYPE_MOUSE)
+	  return -2;
+
 	/* Primary pointer released with index 0.  */
 	pointerID = event.getPointerId (0);
 	pointerMap.remove (pointerID);
@@ -916,6 +924,7 @@ public final class EmacsWindow extends EmacsHandleObject
 	  EmacsNative.sendLeaveNotify (this.handle, (int) event.getX (),
 				       (int) event.getY (),
 				       event.getEventTime ());
+
 	return true;
 
       case MotionEvent.ACTION_BUTTON_PRESS:
@@ -949,11 +958,33 @@ public final class EmacsWindow extends EmacsHandleObject
 	return true;
 
       case MotionEvent.ACTION_DOWN:
-      case MotionEvent.ACTION_UP:
 	/* Emacs must return true even though touch events are not
 	   handled here, because the value of this function is used by
 	   the system to decide whether or not Emacs gets ACTION_MOVE
 	   events.  */
+	return true;
+
+      case MotionEvent.ACTION_UP:
+	/* However, if ACTION_UP reports a different button state from
+	   the last known state, look up which button was released and
+	   send a ButtonRelease event; this is to work around a bug in
+	   the framework where real ACTION_BUTTON_RELEASE events are
+	   not delivered.  */
+
+	if (Build.VERSION.SDK_INT
+	    < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	  return true;
+
+	if (event.getButtonState () == 0 && lastButtonState != 0)
+	  {
+	    EmacsNative.sendButtonRelease (this.handle, (int) event.getX (),
+					   (int) event.getY (),
+					   event.getEventTime (),
+					   lastModifiers,
+					   whatButtonWasIt (event, false));
+	    lastButtonState = event.getButtonState ();
+	  }
+
 	return true;
 
       case MotionEvent.ACTION_SCROLL:
