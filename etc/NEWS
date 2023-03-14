@@ -232,8 +232,8 @@ from the available shortdoc information.
 This function inserts into the current buffer examples of use of a
 given Emacs Lisp function, which it gleans from the shortdoc
 information.  If you want 'describe-function' ('C-h f') to insert
-examples of using the function into regular *Help* buffers, add the
-following to you init file:
+examples of using the function into regular "*Help*" buffers, add the
+following to your init file:
 
     (add-hook 'help-fns-describe-function-functions
               #'shortdoc-help-fns-examples-function)
@@ -249,11 +249,11 @@ An optional major mode based on the tree-sitter library for editing
 HTML files.
 
 ---
-*** New major mode heex-ts-mode'.
+*** New major mode 'heex-ts-mode'.
 A major mode based on the tree-sitter library for editing HEEx files.
 
 ---
-*** New major mode elixir-ts-mode'.
+*** New major mode 'elixir-ts-mode'.
 A major mode based on the tree-sitter library for editing Elixir
 files.
 
