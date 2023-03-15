@@ -4328,8 +4328,8 @@ If you really want to try it anyway, use the configure option
 fi
 
 if test "${with_native_compilation}" != "no"; then
-    if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
+    if test "$with_unexec" = yes; then
+       AC_MSG_ERROR(['--with-native-compilation' is not compatible with unexec])
     fi
     if test "${HAVE_ZLIB}" = no; then
        AC_MSG_ERROR(['--with-native-compilation' requires zlib])
