@@ -24,7 +24,7 @@
 # Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:stretch as emacs-base
+FROM debian:bullseye as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
