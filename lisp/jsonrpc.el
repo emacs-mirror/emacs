@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.16
+;; Version: 1.0.17
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -43,7 +43,6 @@
 (eval-when-compile (require 'subr-x))
 (require 'warnings)
 (require 'pcase)
-(require 'ert) ; to escape a `condition-case-unless-debug'
 
 
 ;;; Public API
@@ -154,6 +153,14 @@ immediately."
   "Stop waiting for responses from the current JSONRPC CONNECTION."
   (clrhash (jsonrpc--request-continuations connection)))
 
+(defvar jsonrpc-inhibit-debug-on-error nil
+  "Inhibit `debug-on-error' when answering requests.
+Some extensions, notably ert.el, set `debug-on-error' to non-nil,
+which makes it hard to test the behaviour of catching the Elisp
+error and replying to the endpoint with an JSONRPC-error.  This
+variable can be set around calls like `jsonrpc-request' to
+circumvent that.")
+
 (defun jsonrpc-connection-receive (connection message)
   "Process MESSAGE just received from CONNECTION.
 This function will destructure MESSAGE and call the appropriate
@@ -166,7 +173,8 @@ dispatcher in CONNECTION."
       (cond
        (;; A remote request
         (and method id)
-        (let* ((debug-on-error (and debug-on-error (not (ert-running-test))))
+        (let* ((debug-on-error (and debug-on-error
+                                    (not jsonrpc-inhibit-debug-on-error)))
                (reply
                 (condition-case-unless-debug _ignore
                     (condition-case oops

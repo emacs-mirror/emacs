@@ -2424,6 +2424,10 @@ The method used must be an out-of-band method."
 		      copy-program copy-args)))
 		(tramp-message v 6 "%s" (string-join (process-command p) " "))
 		(process-put p 'vector v)
+		;; This is neded for ssh or PuTTY based processes, and
+		;; only if the respective options are set.  Perhaps,
+		;; the setting could be more fine-grained.
+		(process-put p 'shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 
@@ -3753,6 +3757,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (string-join sequence " "))
 	(tramp-message v 6 "Run `%s', %S" (string-join sequence " ") p)
 	(process-put p 'vector v)
+	;; This is neded for ssh or PuTTY based processes, and only if
+	;; the respective options are set.  Perhaps, the setting could
+	;; be more fine-grained.
+	(process-put p 'shared-socket t)
 	;; Needed for process filter.
 	(process-put p 'events events)
 	(process-put p 'watch-name localname)
@@ -3761,7 +3769,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
-	(while (tramp-accept-process-output p 0))
+	(while (tramp-accept-process-output p))
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
@@ -5116,6 +5124,10 @@ connection if a previous connection has died for some reason."
 		;; Set sentinel and query flag.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
 		(process-put p 'vector vec)
+		;; This is neded for ssh or PuTTY based processes, and
+		;; only if the respective options are set.  Perhaps,
+		;; the setting could be more fine-grained.
+		(process-put p 'shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection (cons vec (current-time)))

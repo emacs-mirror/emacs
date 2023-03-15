@@ -692,7 +692,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Check, whether a sudo process has finished.  Remove unneeded output."
   ;; There might be pending output for the exit status.
   (unless (process-live-p proc)
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     ;; Delete narrowed region, it would be in the way reading a Lisp form.
     (goto-char (point-min))
     (widen)

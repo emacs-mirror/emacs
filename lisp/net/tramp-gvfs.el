@@ -1469,7 +1469,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
-	(while (tramp-accept-process-output p 0))
+	(while (tramp-accept-process-output p))
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))

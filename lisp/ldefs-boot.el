@@ -3781,6 +3781,12 @@ and exists only for compatibility reasons.
 
 (put 'c-basic-offset 'safe-local-variable 'integerp)
 (put 'c-backslash-column 'safe-local-variable 'integerp)
+ (put 'c-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'c++-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'objc-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'java-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'idl-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'pike-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
 (put 'c-file-style 'safe-local-variable 'string-or-null-p)
 (register-definition-prefixes "cc-vars" '("awk-mode-hook" "c++-" "c-" "defcustom-c-stylevar" "idl-" "java-" "objc-" "pike-"))
 
@@ -9212,7 +9218,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 11)) package--builtin-versions)
+(push (purecopy '(eglot 1 12)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -9256,6 +9262,8 @@ INTERACTIVE is ignored and provided for backward compatibility.
 (autoload 'eglot-ensure "eglot" "\
 Start Eglot session for current buffer if there isn't one.")
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+(defun eglot--debbugs-or-github-bug-uri nil (format (if (string= (match-string 2) "github") "https://github.com/joaotavora/eglot/issues/%s" "https://debbugs.gnu.org/%s") (match-string 3)))
 (register-definition-prefixes "eglot" '("eglot-"))
 
 
@@ -9505,6 +9513,15 @@ optional prefix argument REINIT is non-nil.
 
 (fn &optional REINIT)" t)
 (register-definition-prefixes "elint" '("elint-"))
+
+
+;;; Generated autoloads from progmodes/elixir-ts-mode.el
+
+(autoload 'elixir-ts-mode "elixir-ts-mode" "\
+Major mode for editing Elixir, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "elixir-ts-mode" '("elixir-ts-"))
 
 
 ;;; Generated autoloads from emacs-lisp/elp.el
@@ -10178,7 +10195,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push (purecopy '(erc 5 4 1)) package--builtin-versions)
+(push (purecopy '(erc 5 5)) package--builtin-versions)
 (autoload 'erc-select-read-args "erc" "\
 Prompt the user for values of nick, server, port, and password.")
 (autoload 'erc "erc" "\
@@ -15099,6 +15116,15 @@ Prefix arg sets default accept amount temporarily.
 (register-definition-prefixes "hashcash" '("hashcash-"))
 
 
+;;; Generated autoloads from progmodes/heex-ts-mode.el
+
+(autoload 'heex-ts-mode "heex-ts-mode" "\
+Major mode for editing HEEx, powered by tree-sitter.
+
+(fn)" t)
+(register-definition-prefixes "heex-ts-mode" '("heex-ts-"))
+
+
 ;;; Generated autoloads from help-at-pt.el
 
 (autoload 'help-at-pt-string "help-at-pt" "\
@@ -18740,7 +18766,7 @@ Major mode for editing JSON, powered by tree-sitter.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push (purecopy '(jsonrpc 1 0 16)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 17)) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -36942,7 +36968,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push (purecopy '(xref 1 6 2)) package--builtin-versions)
+(push (purecopy '(xref 1 6 3)) package--builtin-versions)
 (autoload 'xref-find-backend "xref")
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\

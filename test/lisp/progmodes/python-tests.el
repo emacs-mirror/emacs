@@ -1658,6 +1658,21 @@ a == 4):
    (python-indent-line t)
    (should (= (python-indent-calculate-indentation t) 6))))
 
+(ert-deftest python-indent-dedenters-9 ()
+  "Test de-indentation for the case keyword."
+  (python-tests-with-temp-buffer
+   "
+match a:
+    case 1:
+        print(1)
+        case 2
+"
+   (python-tests-look-at "case 2")
+   (should (eq (car (python-indent-context)) :at-dedenter-block-start))
+   (should (= (python-indent-calculate-indentation) 4))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 4))))
+
 (ert-deftest python-indent-inside-string-1 ()
   "Test indentation for strings."
   (python-tests-with-temp-buffer
@@ -1988,6 +2003,20 @@ match foo:
    "
 def test_re(string):
     if re.match('^[a-c]+$', string):
+        print('yes')
+    else:
+    "
+   (python-tests-look-at "else:")
+   (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-bare-match ()
+  "Test BUG 62031 regression."
+  (python-tests-with-temp-buffer
+   "
+from re import match
+
+def test_re(string):
+    if match('^[a-c]+$', string):
         print('yes')
     else:
     "
@@ -2954,6 +2983,36 @@ string
   (python-tests-with-temp-buffer
    "'\n''\n"
    (python-nav-end-of-statement)))
+
+(ert-deftest python-nav-end-of-statement-3 ()
+  "Test unmatched quotes (Bug#58780)."
+  (python-tests-with-temp-buffer
+   "
+' \"\"\"
+v = 1
+"
+   (python-tests-look-at "v =")
+   (should (= (save-excursion
+                (python-nav-end-of-statement)
+                (point))
+              (save-excursion
+                (point-max))))))
+
+(ert-deftest python-nav-end-of-statement-4 ()
+  (python-tests-with-temp-buffer
+   "
+abc = 'a\\
+b\\
+c'
+d = '''d'''
+"
+   (python-tests-look-at "b\\")
+   (should (= (save-excursion
+                (python-nav-end-of-statement)
+                (point))
+              (save-excursion
+                (python-tests-look-at "c'")
+                (pos-eol))))))
 
 (ert-deftest python-nav-forward-statement-1 ()
   (python-tests-with-temp-buffer
@@ -5220,6 +5279,20 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                     "decoratorFunctionWithArguments"))
    (should (string= (python-info-current-defun t)
                     "def decoratorFunctionWithArguments"))))
+
+(ert-deftest python-info-current-defun-4 ()
+  "Ensure unmatched quotes do not cause hang (Bug#58780)."
+  (python-tests-with-temp-buffer
+   "
+def func():
+    ' \"\"\"
+    v = 1
+"
+   (python-tests-look-at "v = 1")
+   (should (string= (python-info-current-defun)
+                    "func"))
+   (should (string= (python-info-current-defun t)
+                    "def func"))))
 
 (ert-deftest python-info-current-symbol-1 ()
   (python-tests-with-temp-buffer

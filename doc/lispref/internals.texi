@@ -558,12 +558,15 @@ The initial threshold value is @code{GC_DEFAULT_THRESHOLD}, defined in
 value is 400,000 for the default 32-bit configuration and 800,000 for
 the 64-bit one.  If you specify a larger value, garbage collection
 will happen less often.  This reduces the amount of time spent garbage
-collecting, but increases total memory use.  You may want to do this
-when running a program that creates lots of Lisp data.  However, we
+collecting (so Lisp programs will run faster between cycles of garbage
+collection that happen more rarely), but increases total memory use.
+You may want to do this when running a program that creates lots of
+Lisp data, especially if you need it to run faster.  However, we
 recommend against increasing the threshold for prolonged periods of
 time, and advise that you never set it higher than needed for the
 program to run in reasonable time.  Using thresholds higher than
-necessary could potentially cause system-wide memory pressure, and
+necessary could potentially cause higher system-wide memory pressure,
+and also make each garbage-collection cycle take much more time, and
 should therefore be avoided.
 
 You can make collections more frequent by specifying a smaller value, down

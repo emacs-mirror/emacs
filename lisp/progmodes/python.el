@@ -426,7 +426,7 @@ This variant of `rx' supports common Python named REGEXPS."
                                              (or "def" "for" "with")))
                                     symbol-end))
             (dedenter          (seq symbol-start
-                                    (or "elif" "else" "except" "finally")
+                                    (or "elif" "else" "except" "finally" "case")
                                     symbol-end))
             (block-ender       (seq symbol-start
                                     (or
@@ -2062,10 +2062,6 @@ of the statement."
                        ;; are somehow out of whack.  This has been
                        ;; observed when using `syntax-ppss' during
                        ;; narrowing.
-                       ;; It can also fail in cases where the buffer is in
-                       ;; the process of being modified, e.g. when creating
-                       ;; a string with `electric-pair-mode' disabled such
-                       ;; that there can be an unmatched single quote
                        (when (>= string-start last-string-end)
                          (goto-char string-start)
                          (if (python-syntax-context 'paren)
@@ -2076,10 +2072,16 @@ of the statement."
                            (goto-char (+ (point)
                                          (python-syntax-count-quotes
                                           (char-after (point)) (point))))
-                           (setq last-string-end
-                                 (or (re-search-forward
-                                      (rx (syntax string-delimiter)) nil t)
-                                     (goto-char (point-max)))))))
+                           (setq
+                            last-string-end
+                            (or (if (eq t (nth 3 (syntax-ppss)))
+                                    (re-search-forward
+                                     (rx (syntax string-delimiter)) nil t)
+                                  (ignore-error scan-error
+                                    (goto-char string-start)
+                                    (python-nav--lisp-forward-sexp)
+                                    (point)))
+                                (goto-char (point-max)))))))
                       ((python-syntax-context 'paren)
                        ;; The statement won't end before we've escaped
                        ;; at least one level of parenthesis.
@@ -2148,10 +2150,7 @@ backward to previous statement."
       (while (and (forward-line 1)
                   (not (eobp))
                   (or (and (> (current-indentation) block-indentation)
-                           (let ((start (point)))
-                             (python-nav-end-of-statement)
-                             ;; must move forward otherwise infinite loop
-                             (> (point) start)))
+                           (or (python-nav-end-of-statement) t))
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p))))
       (python-util-forward-comment -1)
@@ -5784,7 +5783,8 @@ likely an invalid python file."
                (pairs '(("elif" "elif" "if")
                         ("else" "if" "elif" "except" "for" "while")
                         ("except" "except" "try")
-                        ("finally" "else" "except" "try")))
+                        ("finally" "else" "except" "try")
+                        ("case" "case")))
                (dedenter (match-string-no-properties 0))
                (possible-opening-blocks (cdr (assoc-string dedenter pairs)))
                (collected-indentations)
@@ -5793,7 +5793,9 @@ likely an invalid python file."
             (while (python-nav--syntactically
                     (lambda ()
                       (cl-loop while (re-search-backward (python-rx block-start) nil t)
-                               if (memq (char-before) '(nil ?\s ?\t ?\n))
+                               if (save-match-data
+                                    (looking-back (rx line-start (* whitespace))
+                                                  (line-beginning-position)))
                                return t))
                     #'<)
               (let ((indentation (current-indentation)))

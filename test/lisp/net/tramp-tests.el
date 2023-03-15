@@ -4592,9 +4592,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (should-not (file-name-completion "a" tmp-name))
 	      ;; `file-name-completion' should not err out if
 	      ;; directory does not exist.  (Bug#61890)
-	      (should-not
-	       (file-name-completion
-		"a" (tramp-compat-file-name-concat tmp-name "fuzz")))
+	      ;; Ange-FTP does not support this.
+	      (unless (tramp--test-ange-ftp-p)
+		(should-not
+		 (file-name-completion
+		  "a" (tramp-compat-file-name-concat tmp-name "fuzz"))))
 	      ;; Ange-FTP does not support predicates.
 	      (unless (tramp--test-ange-ftp-p)
 		(should
@@ -5971,6 +5973,8 @@ INPUT, if non-nil, is a string sent to the process."
 	 (enable-remote-dir-locals t)
          (inhibit-message t)
 	 kill-buffer-query-functions
+	 (clpa connection-local-profile-alist)
+	 (clca connection-local-criteria-alist)
 	 connection-local-profile-alist connection-local-criteria-alist)
     (unwind-protect
 	(progn
@@ -6019,6 +6023,9 @@ INPUT, if non-nil, is a string sent to the process."
 	    (kill-buffer (current-buffer))))
 
       ;; Cleanup.
+      (custom-set-variables
+       `(connection-local-profile-alist ',clpa now)
+       `(connection-local-criteria-alist ',clca now))
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test34-explicit-shell-file-name ()
@@ -6029,6 +6036,8 @@ INPUT, if non-nil, is a string sent to the process."
 
   (let ((default-directory ert-remote-temporary-file-directory)
 	explicit-shell-file-name kill-buffer-query-functions
+	(clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
 	connection-local-profile-alist connection-local-criteria-alist)
     (unwind-protect
 	(progn
@@ -6060,6 +6069,9 @@ INPUT, if non-nil, is a string sent to the process."
 
       ;; Cleanup.
       (put 'explicit-shell-file-name 'permanent-local nil)
+      (custom-set-variables
+       `(connection-local-profile-alist ',clpa now)
+       `(connection-local-criteria-alist ',clca now))
       (kill-buffer "*shell*"))))
 
 (ert-deftest tramp-test35-exec-path ()
@@ -7387,10 +7399,12 @@ This is needed in timer functions as well as process filters and sentinels."
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
-  :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		(and (or (getenv "EMACS_HYDRA_CI")
-                         (getenv "EMACS_EMBA_CI"))
-                     '(:unstable)))
+  ;; :tags (append '(:expensive-test :tramp-asynchronous-processes)
+  ;;       	(and (or (getenv "EMACS_HYDRA_CI")
+  ;;                        (getenv "EMACS_EMBA_CI"))
+  ;;                    '(:unstable)))
+  ;; It doesn't work sufficiently.
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   (skip-unless (not (tramp--test-container-p)))

@@ -98,6 +98,7 @@ This manual documents how to configure, use, and customize Eglot.
 * Eglot and LSP Servers::       How to work with language servers.
 * Using Eglot::                 Important Eglot commands and variables.
 * Customizing Eglot::           Eglot customization and advanced features.
+* Advanced server configuration::  Fine-tune a specific language server
 * Troubleshooting Eglot::       Troubleshooting and reporting bugs.
 * GNU Free Documentation License::  The license for this manual.
 * Index::
@@ -226,11 +227,10 @@ This says to invoke @var{program} with zero or more arguments
 standard input and standard output streams.
 
 @item (@var{program} @var{args}@dots{} :initializationOptions @var{options}@dots{})
-Like above, but with @var{options} specifying the options to be
-used for constructing the @samp{initializationOptions} JSON object for
-the server.  @var{options} can also be a function of one argument, in
-which case it will be called with the server instance as the argument,
-and should return the JSON object to use for initialization.
+@var{program} is invoked with @var{args} but @var{options} specifies
+how to construct the @samp{:initializationOptions} JSON object to pass
+the server on during the LSP handshake (@pxref{Advanced server
+configuration}).
 
 @item (@var{host} @var{port} @var{args}@dots{})
 Here @var{host} is a string and @var{port} is a positive integer
@@ -970,83 +970,128 @@ mechanism.
 Set this variable to true if you'd like progress notifications coming
 from the LSP server to be handled as Emacs's progress reporting
 facilities.
-
-@vindex eglot-workspace-configuration
-@cindex server workspace configuration
-@item eglot-workspace-configuration
-This variable is meant to be set in the @file{.dir-locals.el} file, to
-provide per-project settings, as described below in more detail.
 @end table
 
-Some language servers need to know project-specific settings, which
-the LSP calls @dfn{workspace configuration}.  Eglot allows such fine
-tuning of per-project settings via the variable
-@code{eglot-workspace-configuration}.  Eglot sends the settings in
-this variable to each server, and each server applies the portion of the
-settings relevant to it and ignores the rest.  These settings are
-communicated to the server initially (upon establishing the
-connection) or when the settings are changed, or in response to a
-configuration request from the server.
+@node Advanced server configuration
+@chapter Advanced server configuration
 
-In many cases, servers can be configured globally using a
-configuration file in the user's home directory or in the project
-directory, which the language server reads.  For example, the
-@command{pylsp} server for Python reads the file
-@file{~/.config/pycodestyle} and the @command{clangd} server reads the
-file @file{.clangd} anywhere in the current project's directory tree.
-If possible, we recommend using those configuration files that are
-independent of Eglot and Emacs; they have the advantage that they will
-work with other LSP clients as well.
+Though many language servers work well out-of-the-box, most allow
+fine-grained control of their operation via specific configuration
+options that vary from server to server.  A small number of servers
+require such special configuration to work acceptably, or even to work
+at all.
 
-If you do need to provide Emacs-specific configuration for a language
-server, we recommend defining the appropriate value in the
-@file{.dir-locals.el} file in the project's directory.  The value of
-this variable should be a property list of the following format:
+After having setup a server executable program in
+@code{eglot-server-programs} (@pxref{Setting Up LSP Servers}) and
+ensuring Eglot can invoke it, you may want to take advantage of some
+of these options.  You should first distinguish two main kinds of
+server configuration:
+
+@itemize @bullet
+@item
+Project-specific, applying to a specific project;
+
+@item
+User-specific, applying to all projects the server is used for.
+@end itemize
+
+When you have decided which kind you need, the following sections
+teach how Eglot's user variables can be used to achieve it:
+
+@menu
+* Project-specific configuration::
+* User-specific configuration::
+* JSONRPC objects in Elisp::
+@end menu
+
+It's important to note that not all servers allow both kinds of
+configuration, nor is it guaranteed that user options can be copied
+over to project options, and vice-versa.  When in doubt, consult your
+language server's documentation.
+
+It's also worth noting that some language servers can read these
+settings from configuration files in the user's @code{HOME} directory
+or in a project's directory.  For example, the @command{pylsp} Python
+server reads the file @file{~/.config/pycodestyle} for user
+configuration.  The @command{clangd} C/C++ server reads both
+@file{~/.config/clangd/config.yaml} for user configuration and
+@file{.clangd} for project configuration.  It may be advantageous to
+use these mechanisms instead of Eglot's, as the latter have the
+advantage of working with other LSP clients.
+
+@node Project-specific configuration
+@section Project-specific configuration
+@vindex eglot-workspace-configuration
+@cindex workspace configuration
+
+To set project-specific settings, which the LSP specification calls
+@dfn{workspace configuration}, the variable
+@code{eglot-workspace-configuration} may be used.
+
+This variable is a directory-local variable (@pxref{Directory
+Variables, , Per-directory Local Variables, emacs, The GNU Emacs
+Manual}).  It's important to recognize that this variable really only
+makes sense when set directory-locally.  It usually does not make
+sense to set it file-locally or in a major-mode hook.
+
+The most common way to set @code{eglot-workspace-configuration } is
+using a @file{.dir-locals.el} file in the root of your project.  If
+you can't do that, you may also set it from Elisp code via the
+@code{dir-locals-set-class-variables} function.  (@pxref{Directory
+Local Variables,,, elisp, GNU Emacs Lisp Reference Manual}).
+
+However you choose to set it, the variable's value is a plist
+(@pxref{Property Lists,,, elisp, GNU Emacs Lisp Reference Manual}) with
+the following format:
 
 @lisp
- (:@var{server} @var{plist}@dots{})
+ (@var{:server1} @var{plist1} @var{:server2} @var{plist2} @dots{})
 @end lisp
 
 @noindent
-Here @code{:@var{server}} identifies a particular language server and
-@var{plist} is the corresponding keyword-value property list of one or
-more parameter settings for that server, serialized by Eglot as a JSON
-object.  @var{plist} may be arbitrarily complex, generally containing
-other keyword-value property sublists corresponding to JSON subobjects.
-The JSON values @code{true}, @code{false}, @code{null} and @code{@{@}}
-are represented by the Lisp values @code{t}, @code{:json-false},
-@code{nil}, and @code{eglot-@{@}}, respectively.
+Here, @var{:server1} and @var{:server2} are keywords whose names
+identify the LSP language servers to target.  Consult server
+documentation to find out what name to use.  @var{plist1} and
+@var{plist2} are plists of options, possibly nesting other plists.
 
 @findex eglot-show-workspace-configuration
 When experimenting with workspace settings, you can use the command
 @kbd{M-x eglot-show-workspace-configuration} to inspect and debug the
-JSON value to be sent to the server.  This helper command works even
-before actually connecting to the server.
+value of this variable in its final JSON form, ready to be sent to the
+server (@pxref{JSONRPC objects in Elisp}).  This helper command works
+even before actually connecting to the server.
 
-Here's an example of defining the workspace-configuration settings for
-a project that uses two different language servers, one for Python,
-the other one for Go (presumably, the project is written in a
-combination of these two languages).  The server for Python in this
-case is @command{pylsp}, the server for Go is @command{gopls}.  The
-value of @code{eglot-workspace-configuration} in this case should be:
+These variable's value doesn't take effect immediately.  That happens
+upon establishing the connection, in response to an explicit query
+from the server, or when issuing the command @kbd{M-x
+eglot-signal-didChangeConfiguration} which notifies the server during
+an ongoing Eglot session.
 
-@lisp
-((python-mode
-  . ((eglot-workspace-configuration
-      . (:pylsp (:plugins (:jedi_completion (:include_params t
-                                             :fuzzy t)
-                           :pylint (:enabled :json-false)))))))
- (go-mode
-  . ((eglot-workspace-configuration
-      . (:gopls (:usePlaceholders t))))))
-@end lisp
+@subsection Examples
 
-@noindent
-This should go into the @file{.dir-locals.el} file in the project's
-root directory.  It sets up the value of
-@code{eglot-workspace-configuration} separately for each major mode.
+For some users, setting @code{eglot-workspace-configuration} is a
+somewhat daunting task.  One of the reasons is having to manage the
+general Elisp syntax of per-mode directory-local variables, which uses
+alists (@pxref{Association Lists,,, elisp, GNU Emacs Lisp Reference
+Manual}), and the specific syntax of Eglot's variable, which uses
+plists.  Some examples are useful.
 
-Alternatively, the same configuration could be defined as follows:
+Let's say you want to configure two language servers to be used in a
+project written in a combination of the Python and Go languages.  You
+want to use the @command{pylsp} and @command{gopls} LSP servers. In
+the documentation of the servers in question (or in some other editor's
+configuration file, or in some blog article), you find the following
+configuration options in informal dotted-notation syntax:
+
+@example
+pylsp.plugins.jedi_completion.include_params: true
+pylsp.plugins.jedi_completion.fuzzy: true
+pylsp.pylint.enabled: false
+gopls.usePlaceholders: true
+@end example
+
+To apply this to Eglot, and assuming you chose the
+@file{.dir-locals.el} file method, the contents of that file could be:
 
 @lisp
 ((nil
@@ -1054,55 +1099,178 @@ Alternatively, the same configuration could be defined as follows:
       . (:pylsp (:plugins (:jedi_completion (:include_params t
                                              :fuzzy t)
                            :pylint (:enabled :json-false)))
-         :gopls (:usePlaceholders t))))))
+         :gopls (:usePlaceholders t)))))
+ (python-mode . ((indent-tabs-mode . nil)))
+ (go-mode     . ((indent-tabs-mode . t))))
 @end lisp
 
-This is an equivalent setup which sets the value for all the
-major-modes inside the project; each server will use only the section
-of the parameters intended for that server, and ignore the rest.
+@noindent
+This sets the value of @code{eglot-workspace-configuration} in all the
+buffers inside the project; each server will use only the section of
+the parameters intended for that server, and ignore the rest.  Note
+how alists are used for associating Emacs mode names with alists
+associating variable names with variable values.  Then notice how
+plists are used inside the value of
+@code{eglot-workspace-configuration}.
 
-As yet another alternative, you can set the value of
-@code{eglot-workspace-configuration} programmatically, via the
-@code{dir-locals-set-class-variables} function, @pxref{Directory Local
-Variables,,, elisp, GNU Emacs Lisp Reference Manual}.
+This following form may also be used:
+
+@lisp
+((python-mode
+  . ((eglot-workspace-configuration
+      . (:pylsp (:plugins (:jedi_completion (:include_params t
+                                             :fuzzy t)
+                           :pylint (:enabled :json-false)))))
+     (indent-tabs-mode . nil)))
+ (go-mode
+  . ((eglot-workspace-configuration
+      . (:gopls (:usePlaceholders t)))
+     (indent-tabs-mode . t))))
+@end lisp
+
+@noindent
+This sets up the value of @code{eglot-workspace-configuration}
+separately depending on the major mode of each of that project's
+buffers.  @code{python-mode} buffers will have the variable set to
+@code{(:pylsp (:plugins ...))}.  @code{go-mode} buffers will have the
+variable set to @code{(:gopls (:usePlaceholders t))}.
+
+Some servers will issue workspace configuration for specific files
+inside your project.  For example, if you know @code{gopls} is asking
+about specific files in the @code{src/imported} subdirectory and you
+want to set a different option for @code{gopls.usePlaceholders} , you
+may use something like:
+
+@lisp
+((python-mode
+  . ((eglot-workspace-configuration
+      . (:pylsp (:plugins (:jedi_completion (:include_params t
+                                             :fuzzy t)
+                           :pylint (:enabled :json-false)))))
+     (indent-tabs-mode nil)))
+ (go-mode
+  . ((eglot-workspace-configuration
+      . (:gopls (:usePlaceholders t)))
+     (indent-tabs-mode t)))
+ ("src/imported"
+   . ((eglot-workspace-configuration
+      . (:gopls (:usePlaceholders nil))))))
+@end lisp
 
 Finally, if one needs to determine the workspace configuration based
 on some dynamic context, @code{eglot-workspace-configuration} can be
 set to a function.  The function is called with the
 @code{eglot-lsp-server} instance of the connected server (if any) and
 with @code{default-directory} set to the root of the project.  The
-function should return a value of the form described above.
+function should return a plist suitable for use as the variable's
+value.
 
-Some servers need special hand-holding to operate correctly.  If your
-server has some quirks or non-conformity, it's possible to extend
-Eglot via Elisp to adapt to it, by defining a suitable
-@code{eglot-initialization-options} method via @code{cl-defmethod}
-(@pxref{Generic Functions,,, elisp, GNU Emacs Lisp Reference Manual}).
+@node User-specific configuration
+@section User-specific configuration
+@cindex initializationOptions
+@cindex command-line arguments
 
-Here's an example:
+This kind of configuration applies to all projects the server is used
+for.  Here, there are a number of ways to do this inside Eglot.
+
+A common way is to pass command-line options to the server invocation
+via @code{eglot-server-programs}.  Let's say we want to configure
+where the @command{clangd} server reads its
+@code{compile_commands.json} from.  This can be done like so:
 
 @lisp
-(require 'eglot)
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(c++-mode . ("clangd" "--compile-commands-dir=/tmp"))))
 
-(add-to-list 'eglot-server-programs
-             '((c++-mode c-mode) . (eglot-cquery "cquery")))
-
-(defclass eglot-cquery (eglot-lsp-server) ()
-  :documentation "A custom class for cquery's C/C++ langserver.")
-
-(cl-defmethod eglot-initialization-options ((server eglot-cquery))
-  "Passes through required cquery initialization options"
-  (let* ((root (car (project-roots (eglot--project server))))
-         (cache (expand-file-name ".cquery_cached_index/" root)))
-    (list :cacheDirectory (file-name-as-directory cache)
-          :progressReportFrequencyMs -1)))
 @end lisp
 
 @noindent
-See the doc string of @code{eglot-initialization-options} for more
-details.
-@c FIXME: The doc string of eglot-initialization-options should be
-@c enhanced and extended.
+Another way is to have Eglot pass a JSON object to the server during
+the LSP handshake.  This is done using the
+@code{:initializationOptions} syntax of @code{eglot-server-programs}:
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               `(c++-mode . ("clangd" :initializationOptions
+                                      (:compilationDatabasePath "/tmp")))))
+@end lisp
+
+@noindent
+The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
+representation in plist format of a simple JSON object
+@code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
+represent more deeply nested options in this format, @xref{JSONRPC
+objects in Elisp}.
+
+In this case, the two examples achieve exactly the same, but notice
+how the option's name has changed between them.
+
+@vindex eglot-workspace-configuration
+Finally there is another way to do user-specific configuration of
+language servers, which may be used if the methods above are not
+supported.  It consists of @emph{globally} setting
+@code{eglot-workspace-configuration}, a variable originally intended
+for project-specific configuration.  This has the same effect as
+giving all your projects a certain default configuration, as described
+in @xref{Project-specific configuration}.  Here is an example.
+
+@lisp
+(setq-default eglot-workspace-configuration
+              '(:pylsp (:plugins (:jedi_completion (:include_params t
+                                                    :fuzzy t)
+                                  :pylint (:enabled :json-false)))
+                :gopls (:usePlaceholders t)))
+@end lisp
+
+Note that the global value of @code{eglot-workspace-configuration} is
+always overriden if a directory-local value is detected.
+
+@node JSONRPC objects in Elisp
+@section JSONRPC objects in Elisp
+
+Emacs's preferred way of representing JSON is via Lisp lists.  In
+Eglot, the syntax of this list is the simplest possible (the one with
+fewer parenthesis), a plist (@pxref{Property Lists,,, elisp, GNU Emacs
+Lisp Reference Manual}).
+
+The plist may be arbitrarily complex, and generally containing other
+keyword-value property sub-plists corresponding to JSON sub-objects.
+
+For representing the JSON leaf values @code{true}, @code{false},
+@code{null} and @code{@{@}}, you can use the Lisp values @code{t},
+@code{:json-false}, @code{nil}, and @code{eglot-@{@}}, respectively.
+
+For example, this plist:
+
+@lisp
+(:pylsp (:plugins (:jedi_completion (:include_params t
+                                             :fuzzy t)
+                           :pylint (:enabled :json-false)))
+ :gopls (:usePlaceholders t))
+@end lisp
+
+Is serialized by Eglot to the following JSON text:
+
+@example
+@{
+  "pylsp": @{
+    "plugins": @{
+      "jedi_completion": @{
+        "include_params": true,
+        "fuzzy": true
+      @},
+      "pylint": @{
+        "enabled": false
+      @}
+    @}
+  @},
+  "gopls": @{
+    "usePlaceholders":true
+  @},
+@}
+@end example
 
 @node Troubleshooting Eglot
 @chapter Troubleshooting Eglot

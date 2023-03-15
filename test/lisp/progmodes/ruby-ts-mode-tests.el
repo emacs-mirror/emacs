@@ -258,6 +258,22 @@ The whitespace before and including \"|\" on each line is removed."
     (delete-char 1)
     (should (string= (ruby-ts-add-log-current-function) "M::C#foo"))))
 
+(ert-deftest ruby-ts-syntax-propertize-symbol ()
+  (skip-unless (treesit-ready-p 'ruby t))
+  (pcase-dolist (`(,str . ,expected)
+                 '((":abc" . ":abc")
+                   (":foo?" . #(":foo?" 4 5 (syntax-table (3))))
+                   (":<=>" . #(":<=>" 1 4 (syntax-table (3))))))
+    (ruby-ts-with-temp-buffer str
+      (syntax-propertize (point-max))
+      (let ((text (buffer-string)))
+        (remove-text-properties 0 (1- (point-max))
+                                '(fontified)
+                                text)
+        (should (equal-including-properties
+                 text
+                 expected))))))
+
 (defmacro ruby-ts-resource-file (file)
   `(when-let ((testfile ,(or (macroexp-file-name)
                              buffer-file-name)))

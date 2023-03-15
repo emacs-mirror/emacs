@@ -1093,7 +1093,9 @@ NEW-NAME."
               (with-temp-buffer
                 (set-buffer-multibyte nil)
                 (archive--extract-file extractor copy ename)
-                (write-region (point-min) (point-max) write-to))
+                (let ((coding-system-for-write
+                       (or coding-system-for-write 'no-conversion)))
+                  (write-region (point-min) (point-max) write-to)))
             (unless (equal copy archive)
               (delete-file copy))))))))
 
@@ -1954,10 +1956,21 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; -------------------------------------------------------------------------
 ;;; Section: Zip Archives
 
+(declare-function w32-get-console-codepage "w32proc.c")
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
   (let ((p (archive-l-e (+ (point) 16) 4))
+        (w32-fname-encoding
+         ;; On MS-Windows, both InfoZip's Zip and the system's
+         ;; built-in File Explorer use the console codepage for
+         ;; encoding file names.  Problem: the codepage of the system
+         ;; where the zip file was created cannot be known; we assume
+         ;; it is the same as the one of the current system.  Also,
+         ;; the zip file doesn't tell us the OS where the file was
+         ;; created, it only tells the filesystem.
+         (if (eq system-type 'windows-nt)
+             (intern (format "cp%d" (w32-get-console-codepage)))))
         files)
     (when (or (= p #xffffffff) (= p -1))
       ;; If the offset of end-of-central-directory is 0xFFFFFFFF, this
@@ -1987,7 +2000,15 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              ;; (lheader (archive-l-e (+ p 42) 4))
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
 			(decode-coding-string
-			 str archive-file-name-coding-system)))
+			 str
+                         (or (if (and w32-fname-encoding
+                                      (memq creator
+                                            ;; This should be just 10 and
+                                            ;; 14, but InfoZip uses 0 and
+                                            ;; File Explorer uses 11(??).
+                                            '(0 10 11 14)))
+                                 w32-fname-encoding)
+                             archive-file-name-coding-system))))
              (ucsize  (if (and (or (= ucsize #xffffffff) (= ucsize -1))
                                (> exlen 0))
                           ;; APPNOTE.TXT, para 4.5.3: the Extra Field

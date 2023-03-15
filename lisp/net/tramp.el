@@ -5087,6 +5087,11 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    ;; t.  See Bug#51177.
 	    (when filter
 	      (set-process-filter p filter))
+	    (process-put p 'vector v)
+	    ;; This is neded for ssh or PuTTY based processes, and
+	    ;; only if the respective options are set.  Perhaps, the
+	    ;; setting could be more fine-grained.
+	    (process-put p 'shared-socket t)
 	    (process-put p 'remote-command orig-command)
 	    (tramp-set-connection-property p "remote-command" orig-command)
 
@@ -5489,7 +5494,7 @@ of."
   ;; There might be pending output.  Avoid problems with reentrant
   ;; call of Tramp.
   (ignore-errors
-    (while (tramp-accept-process-output proc 0)))
+    (while (tramp-accept-process-output proc)))
   (tramp-message proc 6 "Kill %S" proc)
   (delete-process proc))
 
@@ -5641,13 +5646,13 @@ Wait, until the connection buffer changes."
   "Check, whether a process has finished."
   (unless (process-live-p proc)
     ;; There might be pending output.
-    (while (tramp-accept-process-output proc 0))
+    (while (tramp-accept-process-output proc))
     (throw 'tramp-action 'process-died)))
 
 (defun tramp-action-out-of-band (proc vec)
   "Check, whether an out-of-band copy has finished."
   ;; There might be pending output for the exit status.
-  (while (tramp-accept-process-output proc 0))
+  (while (tramp-accept-process-output proc))
   (cond ((and (not (process-live-p proc))
 	      (zerop (process-exit-status proc)))
 	 (tramp-message	vec 3 "Process has finished.")
@@ -5678,7 +5683,7 @@ See `tramp-process-actions' for the format of ACTIONS."
     (while (not found)
       ;; Reread output once all actions have been performed.
       ;; Obviously, the output was not complete.
-      (while (tramp-accept-process-output proc 0))
+      (while (tramp-accept-process-output proc))
       (setq todo actions)
       (while todo
 	(setq item (pop todo)
@@ -5795,11 +5800,21 @@ Mostly useful to protect BODY from being interrupted by timers."
 	   ,@body)
        (tramp-flush-connection-property ,proc "locked"))))
 
-(defun tramp-accept-process-output (proc &optional timeout)
+(defun tramp-accept-process-output (proc &optional _timeout)
   "Like `accept-process-output' for Tramp processes.
 This is needed in order to hide `last-coding-system-used', which is set
 for process communication also.
 If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
+  (declare (advertised-calling-convention (proc) "29.2"))
+  ;; There could be other processes which use the same socket for
+  ;; communication.  This could block the output for the current
+  ;; process.  Read such output first.  (Bug#61350)
+  (when-let (((process-get proc 'shared-socket))
+	     (v (process-get proc 'vector)))
+    (dolist (p (delq proc (process-list)))
+      (when (tramp-file-name-equal-p v (process-get p 'vector))
+	(accept-process-output p 0 nil t))))
+
   (with-current-buffer (process-buffer proc)
     (let ((inhibit-read-only t)
 	  last-coding-system-used
@@ -5809,10 +5824,10 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
 	;; JUST-THIS-ONE is set due to Bug#12145.  `with-local-quit'
 	;; returns t in order to report success.
 	(if (with-local-quit
-	      (setq result (accept-process-output proc timeout nil t)) t)
+	      (setq result (accept-process-output proc 0 nil t)) t)
 	    (tramp-message
-	     proc 10 "%s %s %s %s\n%s"
-	     proc timeout (process-status proc) result (buffer-string))
+	     proc 10 "%s %s %s\n%s"
+	     proc (process-status proc) result (buffer-string))
 	  ;; Propagate quit.
 	  (keyboard-quit)))
       result)))
@@ -6825,7 +6840,7 @@ name of a process or buffer, or nil to default to the current buffer."
                  (tramp-get-remote-null-device (process-get proc 'vector))))
 	;; Wait, until the process has disappeared.  If it doesn't,
 	;; fall back to the default implementation.
-        (while (tramp-accept-process-output proc 0))
+        (while (tramp-accept-process-output proc))
 	(not (process-live-p proc))))))
 
 (add-hook 'interrupt-process-functions #'tramp-interrupt-process)
