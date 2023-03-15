@@ -977,9 +977,9 @@ facilities.
 
 Though many language servers work well out-of-the-box, most allow
 fine-grained control of their operation via specific configuration
-options that vary from server to server.  A small number of servers
-require such special configuration to work acceptably, or even to work
-at all.
+options that are transmitted over the LSP protocol and vary from
+server to server.  A small number of servers require such special
+configuration to work acceptably, or even to work at all.
 
 After having setup a server executable program in
 @code{eglot-server-programs} (@pxref{Setting Up LSP Servers}) and
@@ -1016,8 +1016,9 @@ server reads the file @file{~/.config/pycodestyle} for user
 configuration.  The @command{clangd} C/C++ server reads both
 @file{~/.config/clangd/config.yaml} for user configuration and
 @file{.clangd} for project configuration.  It may be advantageous to
-use these mechanisms instead of Eglot's, as the latter have the
-advantage of working with other LSP clients.
+use these mechanisms instead of Eglot's, as this will probably work
+with other LSP clients and may be easier to debug than options riding
+on the LSP wire.
 
 @node Project-specific configuration
 @section Project-specific configuration
