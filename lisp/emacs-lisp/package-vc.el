@@ -48,7 +48,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'rx))
-(eval-when-compile (require 'inline))
 (eval-when-compile (require 'map))
 (eval-when-compile (require 'cl-lib))
 (require 'package)
@@ -226,13 +225,6 @@ name for PKG-DESC."
      (apply #'append (cons package-vc-selected-packages
                            (mapcar #'cdr package-vc--archive-spec-alist))))
    '() nil #'string=))
-
-(define-inline package-vc--query-spec (pkg-desc prop)
-  "Query the property PROP for the package specification of PKG-DESC.
-If no package specification can be determined, the function will
-return nil."
-  (inline-letevals (pkg-desc prop)
-    (inline-quote (plist-get (package-vc--desc->spec ,pkg-desc) ,prop))))
 
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc--archive-spec-alist' for ARCHIVE.
@@ -578,7 +570,6 @@ attribute in PKG-SPEC."
     (unless (file-exists-p dir)
       (make-directory (file-name-directory dir) t)
       (let ((backend (or (plist-get pkg-spec :vc-backend)
-                         (package-vc--query-spec pkg-desc :vc-backend)
                          (package-vc--guess-backend url)
                          (plist-get (alist-get (package-desc-archive pkg-desc)
                                                package-vc--archive-data-alist
