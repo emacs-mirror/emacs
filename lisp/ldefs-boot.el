@@ -9210,7 +9210,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 11)) package--builtin-versions)
+(push (purecopy '(eglot 1 12)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -9254,6 +9254,8 @@ INTERACTIVE is ignored and provided for backward compatibility.
 (autoload 'eglot-ensure "eglot" "\
 Start Eglot session for current buffer if there isn't one.")
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+(put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
+(defun eglot--debbugs-or-github-bug-uri nil (format (if (string= (match-string 2) "github") "https://github.com/joaotavora/eglot/issues/%s" "https://debbugs.gnu.org/%s") (match-string 3)))
 (register-definition-prefixes "eglot" '("eglot-"))
 
 
@@ -10171,7 +10173,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push (purecopy '(erc 5 4 1)) package--builtin-versions)
+(push (purecopy '(erc 5 5)) package--builtin-versions)
 (autoload 'erc-select-read-args "erc" "\
 Prompt the user for values of nick, server, port, and password.")
 (autoload 'erc "erc" "\
@@ -36907,7 +36909,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push (purecopy '(xref 1 6 2)) package--builtin-versions)
+(push (purecopy '(xref 1 6 3)) package--builtin-versions)
 (autoload 'xref-find-backend "xref")
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\
