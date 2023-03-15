@@ -1179,7 +1179,7 @@ package will likely install on older systems but crash on startup.])
 	 android_ndk_path="$with_ndk_path"		     	\
 	 android_ndk_cxx_shared="$with_ndk_cxx_shared"	     	\
 	 android_ndk_cxx="$android_ndk_cxx"			\
-	 $0 $passthrough], [],
+	 $CONFIG_SHELL $0 $passthrough], [],
     [AC_MSG_ERROR([Failed to cross-configure Emacs for android.])])
 
   # Now set ANDROID to yes.
@@ -7527,9 +7527,12 @@ done
 AC_DEFINE_UNQUOTED([EMACS_CONFIG_FEATURES], ["${emacs_config_features}"],
   [Summary of some of the main features enabled by configure.])
 
+# This is just a printable representation of the shared user ID.
+android_shared_user=
+AS_IF([test -n "$with_shared_user_id"],[android_shared_user="($with_shared_user_id)"])
+
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
-  Is Emacs being built for Android?                       ${ANDROID}\
-`AS_IF([test -n "$with_shared_user_id"],[AS_ECHO([" ($with_shared_user_id)"])])`
+  Is Emacs being built for Android?                       ${ANDROID} ${android_shared_user}
   Does Emacs use the X Double Buffer Extension?           ${HAVE_XDBE}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}
