@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
-;; Version: 1.12
+;; Version: 1.13
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -2147,6 +2147,10 @@ COMMAND is a symbol naming the command."
   (_server (_method (eql telemetry/event)) &rest _any)
   "Handle notification telemetry/event.") ;; noop, use events buffer
 
+(defalias 'eglot--reporter-update
+  (if (> emacs-major-version 26) #'progress-reporter-update
+    (lambda (a b &optional _c) (progress-reporter-update a b))))
+
 (cl-defmethod eglot-handle-notification
   (server (_method (eql $/progress)) &key token value)
   "Handle $/progress notification identified by TOKEN from SERVER."
@@ -2162,10 +2166,10 @@ COMMAND is a symbol naming the command."
                            (make-progress-reporter prefix 0 100 percentage 1 0)
                          (make-progress-reporter prefix nil nil nil 1 0))
                        (eglot--progress-reporters server))))
-             (progress-reporter-update pr percentage (fmt title message))))
+             (eglot--reporter-update pr percentage (fmt title message))))
           ("report"
            (when-let ((pr (gethash token (eglot--progress-reporters server))))
-             (progress-reporter-update pr percentage (fmt title message))))
+             (eglot--reporter-update pr percentage (fmt title message))))
           ("end" (remhash token (eglot--progress-reporters server))))))))
 
 (cl-defmethod eglot-handle-notification
@@ -2183,7 +2187,7 @@ COMMAND is a symbol naming the command."
               (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (cl-loop
-           initially (assoc-delete-all path flymake-list-only-diagnostics #'string=)
+           initially (assoc-delete-all path flymake-list-only-diagnostics)
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
@@ -2237,7 +2241,7 @@ COMMAND is a symbol naming the command."
        into diags
        finally
        (setq flymake-list-only-diagnostics
-             (assoc-delete-all path flymake-list-only-diagnostics #'string=))
+             (assoc-delete-all path flymake-list-only-diagnostics))
        (push (cons path diags) flymake-list-only-diagnostics)))))
 
 (cl-defun eglot--register-unregister (server things how)

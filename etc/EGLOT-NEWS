@@ -12,10 +12,15 @@ This file is about changes in Eglot, the Emacs client for LSP
 (Language Server Protocol) distributed with GNU Emacs since Emacs
 version 29.1 and with GNU ELPA since 2018.
 
-Note: references to Eglot issues are presented as "github#nnnn".
-This refers to https://github.com/joaotavora/eglot/issues/.
-That is, to look up issue github#1234, go to
+Note: references to some Eglot issues are presented as "github#nnnn".
+This refers to https://github.com/joaotavora/eglot/issues/.  That is,
+to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
+
+
+* Changes in Eglot 1.13 (15/03/2023)
+
+** ELPA installations on Emacs 26.3 are supported again.
 
 
 * Changes in Eglot 1.12 (13/03/2023)
@@ -328,7 +333,7 @@ This disconnects the server after last managed buffer is killed.
 
 (github#217, github#270)
 
-** Completion support support has been fixed.
+** Completion support has been fixed.
 Among other things, consider LSP's "filterText" cookies, which enable
 a kind of poor-man's flex-matching for some backends.
 
