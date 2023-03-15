@@ -5004,7 +5004,7 @@ by calling `format-decode', which see.  */)
   /* Decode file format.  Don't do this if Qformat_decode is not
      bound, which can happen when called early during loadup.  */
 
-  if (inserted > 0 && !NILP (Fboundp (Qformat_decode)))
+  if (inserted > 0 && !NILP (Ffboundp (Qformat_decode)))
     {
       /* Don't run point motion or modification hooks when decoding.  */
       specpdl_ref count1 = SPECPDL_INDEX ();

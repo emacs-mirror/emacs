@@ -3516,7 +3516,7 @@ replace_buffer_in_windows (Lisp_Object buffer)
 {
   /* When kill-buffer is called early during loadup, this function is
      undefined.  */
-  if (!NILP (Fboundp (Qreplace_buffer_in_windows)))
+  if (!NILP (Ffboundp (Qreplace_buffer_in_windows)))
     call1 (Qreplace_buffer_in_windows, buffer);
 }
 
