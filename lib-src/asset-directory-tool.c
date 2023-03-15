@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <endian.h>
+#include <byteswap.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
@@ -197,7 +197,11 @@ main_2 (int fd, struct directory_tree *tree, size_t *offset)
     croak ("write");
 
   /* Write the offset.  */
-  output = htole32 (tree->offset);
+#ifdef WORDS_BIGENDIAN
+  output = bswap_32 (tree->offset);
+#else
+  output = tree->offset;
+#endif
   if (write (fd, &output, 4) < 1)
     croak ("write");
   size += 4;
