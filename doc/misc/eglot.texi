@@ -1201,7 +1201,7 @@ the LSP handshake.  This is done using the
 The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
 representation in plist format of a simple JSON object
 @code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
-represent more deeply nested options in this format, @xref{JSONRPC
+represent more deeply nested options in this format, @pxref{JSONRPC
 objects in Elisp}.
 
 In this case, the two examples achieve exactly the same, but notice
@@ -1214,7 +1214,7 @@ supported.  It consists of @emph{globally} setting
 @code{eglot-workspace-configuration}, a variable originally intended
 for project-specific configuration.  This has the same effect as
 giving all your projects a certain default configuration, as described
-in @xref{Project-specific configuration}.  Here is an example.
+in @ref{Project-specific configuration}.  Here is an example:
 
 @lisp
 (setq-default eglot-workspace-configuration
@@ -1241,17 +1241,21 @@ keyword-value property sub-plists corresponding to JSON sub-objects.
 For representing the JSON leaf values @code{true}, @code{false},
 @code{null} and @code{@{@}}, you can use the Lisp values @code{t},
 @code{:json-false}, @code{nil}, and @code{eglot-@{@}}, respectively.
+JSON arrays are represented as Elisp vectors surrounded by square brackets
+(@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference Manual}).
 
-For example, this plist:
+For example, the plist
 
 @lisp
 (:pylsp (:plugins (:jedi_completion (:include_params t
-                                             :fuzzy t)
-                           :pylint (:enabled :json-false)))
+                                     :fuzzy t
+                                     :cache_for ["pandas" "numpy"]
+                   :pylint (:enabled :json-false))))
  :gopls (:usePlaceholders t))
 @end lisp
 
-Is serialized by Eglot to the following JSON text:
+@noindent
+is serialized by Eglot to the following JSON text:
 
 @example
 @{
@@ -1259,7 +1263,8 @@ Is serialized by Eglot to the following JSON text:
     "plugins": @{
       "jedi_completion": @{
         "include_params": true,
-        "fuzzy": true
+        "fuzzy": true,
+        "cache_for": [ "pandas", "numpy" ],
       @},
       "pylint": @{
         "enabled": false
