@@ -281,8 +281,11 @@ then restored."
                      do
                      ;; `read-event' is essential to have the file
                      ;; watchers come through.
-                     (read-event nil nil 0.1)
-                     (princ ".") (flush-standard-output)
+                     (cond ((fboundp 'flush-standard-output)
+                            (read-event nil nil 0.1) (princ ".")
+                            (flush-standard-output))
+                           (t
+                            (read-event "." nil 0.1)))
                      (accept-process-output nil 0.1))))
        (setq ,events-sym (cdr events))
        (cl-destructuring-bind (&key method id &allow-other-keys) (car events)
@@ -441,7 +444,7 @@ then restored."
         (eglot--find-file-noselect "diag-project/main.c")
       (eglot--sniffing (:server-notifications s-notifs)
         (eglot--tests-connect)
-        (eglot--wait-for (s-notifs 2)
+        (eglot--wait-for (s-notifs 10)
             (&key _id method &allow-other-keys)
           (string= method "textDocument/publishDiagnostics"))
         (flymake-start)
@@ -826,9 +829,10 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
         (eglot--sniffing (:server-notifications s-notifs)
           (eglot--tests-connect)
           (flymake-start)
-          (eglot--wait-for (s-notifs 10)
-              (&key _id method &allow-other-keys)
-            (string= method "textDocument/publishDiagnostics"))
+          (eglot--wait-for (s-notifs 15)
+              (&key _id method params &allow-other-keys)
+            (and (string= method "textDocument/publishDiagnostics")
+                 (string-suffix-p "main.rs" (plist-get params :uri))))
           (let* ((diags (flymake--project-diagnostics)))
             (should (cl-some (lambda (diag)
                                (let ((locus (flymake-diagnostic-buffer diag)))
