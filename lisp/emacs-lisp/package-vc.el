@@ -139,7 +139,6 @@ the `clone' function."
                (package-desc-create :name name :kind 'vc))
            spec)))))))
 
-;;;###autoload
 (defcustom package-vc-selected-packages '()
   "List of packages that must be installed.
 Each member of the list is of the form (NAME . SPEC), where NAME
@@ -174,13 +173,9 @@ is a symbol designating the package and SPEC is one of:
 
   All other keys are ignored.
 
-This user option differs from `package-selected-packages' in that
-it is meant to be specified manually.  If you want to install all
-the packages in the list, you cal also use
-`package-vc-install-selected-packages'.
-
-Note that this option will not override an existing source
-package installation or revert the checked out revision."
+This user option will be automatically updated to store package
+specifications for packages that are not specified in any
+archive."
   :type '(alist :tag "List of packages you want to be installed"
                 :key-type (symbol :tag "Package")
                 :value-type
@@ -191,10 +186,6 @@ package installation or revert the checked out revision."
                                          (:lisp-dir string)
                                          (:main-file string)
                                          (:vc-backend symbol)))))
-  :initialize #'custom-initialize-default
-  :set (lambda (sym val)
-         (custom-set-default sym val)
-         (package-vc-install-selected-packages))
   :version "29.1")
 
 (defvar package-vc--archive-spec-alist nil
@@ -224,12 +215,17 @@ All other values are ignored.")
 The optional argument NAME can be used to override the default
 name for PKG-DESC."
   (alist-get
-   (or name (package-desc-name pkg-desc))
-   (if (package-desc-archive pkg-desc)
+   (setq name (or name (package-desc-name pkg-desc)))
+   (if (and (package-desc-archive pkg-desc)
+            (not (alist-get name package-vc-selected-packages
+                            nil nil #'string=)))
        (alist-get (intern (package-desc-archive pkg-desc))
                   package-vc--archive-spec-alist)
-     (apply #'append (mapcar #'cdr package-vc--archive-spec-alist)))
-   nil nil #'string=))
+     ;; Consult both our local list of package specifications, as well
+     ;; as the lists provided by the archives.
+     (apply #'append (cons package-vc-selected-packages
+                           (mapcar #'cdr package-vc--archive-spec-alist))))
+   '() nil #'string=))
 
 (define-inline package-vc--query-spec (pkg-desc prop)
   "Query the property PROP for the package specification of PKG-DESC.
@@ -659,9 +655,19 @@ abort installation?" name))
           ;; file system or between installations.
           (throw 'done (setq lisp-dir name)))))
 
+    ;; Store the :lisp-dir
     (when lisp-dir
       (push (cons :lisp-dir lisp-dir)
             (package-desc-extras pkg-desc)))
+
+    ;; Ensure we have a copy of the package specification
+    (unless (equal (alist-get name (mapcar #'cdr package-vc--archive-spec-alist)) pkg-spec)
+      (customize-save-variable
+       'package-vc-selected-packages
+       (cons (cons name pkg-spec)
+             (seq-remove (lambda (spec) (string= name (car spec)))
+                         package-vc-selected-packages))))
+
     (package-vc--unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc--read-package-name (prompt &optional allow-url installed)
