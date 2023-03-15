@@ -2663,8 +2663,9 @@ sfntfont_text_extents (struct font *font, const unsigned int *code,
 void
 sfntfont_close (struct font *font)
 {
-  struct sfnt_font_info *info, **next;
+  struct sfnt_font_info *info;
 #ifdef HAVE_MMAP
+  struct sfnt_font_info **next;
   int rc;
 #endif /* HAVE_MMAP */
 
