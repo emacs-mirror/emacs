@@ -96,9 +96,16 @@ lib-src/config.h: $(top_builddir)/src/config.h.android
 	$(AM_V_GEN) cp -f -p $(top_builddir)/src/config.h.android	\
 	  lib-src/config.h
 
+# Figure out where build-aux is.
+# Then, replace the build-aux directory with its actual location,
+# in case MKDIR_P points there.
+
+relative_buildaux_dir := $(subst /,\/,$(top_srcdir)/build-aux)
+
 lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
 	$(AM_V_GEN) \
 	  sed -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	      -e 's/$(relative_buildaux_dir)/$(subst /,\/,../$(top_builddir))\/build-aux/g' \
 	    < $(top_builddir)/lib/gnulib.mk.android > $@
 
 lib/Makefile: $(top_builddir)/lib/Makefile.android

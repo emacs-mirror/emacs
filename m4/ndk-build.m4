@@ -228,10 +228,12 @@ ndk_subst_cc_onto_cxx () {
   done
 }
 
-# Look for a suitable ar in the same directory as the C compiler.
+# Look for a suitable ar and ranlib in the same directory as the C
+# compiler.
 ndk_cc_firstword=`AS_ECHO(["$CC"]) | cut -d' ' -f1`
 ndk_where_cc=`which $ndk_cc_firstword`
 ndk_ar_search_path=$PATH
+ndk_ranlib_search_path=$RANLIB
 
 # First, try to find $host_alias-ar in PATH.
 AC_PATH_PROGS([AR], [$host_alias-ar], [], [$ndk_ar_search_path])
@@ -241,6 +243,16 @@ AS_IF([test -z "$AR"],[
   # CC.
   ndk_ar_search_path="`AS_DIRNAME([$ndk_where_cc])`:$ndk_ar_search_path"
   AC_PATH_PROGS([AR], [$host_alias-ar llvm-ar], [], [$ndk_ar_search_path])])
+
+# First, try to find $host_alias-ranlib in PATH.
+AC_PATH_PROGS([RANLIB], [$host_alias-ranlib], [], [$ndk_ranlib_search_path])
+
+AS_IF([test -z "$RANLIB"],[
+  # Next, try finding either that or llvm-ranlib in the directory
+  # holding CC.
+  ndk_ranlib_search_path="`AS_DIRNAME([$ndk_where_cc])`:$ndk_ranlib_search_path"
+  AC_PATH_PROGS([RANLIB], [$host_alias-ranlib llvm-ranlib], [],
+    [$ndk_ranlib_search_path])])
 
 NDK_BUILD_NASM=
 
