@@ -305,12 +305,11 @@ asynchronously."
          (directory (file-name-concat
                      (or (package-desc-dir pkg-desc)
                          (expand-file-name name package-user-dir))
-                     (and-let* ((extras (package-desc-extras pkg-desc)))
-                       (alist-get :lisp-dir extras))))
-         (file (or (plist-get pkg-spec :main-file)
-                   (expand-file-name
-                    (concat name ".el")
-                    directory))))
+                     (plist-get pkg-spec :lisp-dir)))
+         (file (expand-file-name
+                (or (plist-get pkg-spec :main-file)
+                    (concat name ".el"))
+                directory)))
     (if (file-exists-p file) file
       ;; The following heuristic is only necessary when fetching a
       ;; repository with URL that would break the above assumptions.
@@ -491,12 +490,12 @@ documentation and marking the package as installed."
                           missing)))
 
     (let ((default-directory (file-name-as-directory pkg-dir))
-          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
+          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir))
+          (pkg-spec (package-vc--desc->spec pkg-desc)))
       ;; Generate autoloads
       (let* ((name (package-desc-name pkg-desc))
              (auto-name (format "%s-autoloads.el" name))
-             (extras (package-desc-extras pkg-desc))
-             (lisp-dir (alist-get :lisp-dir extras)))
+             (lisp-dir (plist-get pkg-spec :lisp-dir)))
         (package-generate-autoloads
          name (file-name-concat pkg-dir lisp-dir))
         (when lisp-dir
@@ -516,8 +515,7 @@ documentation and marking the package as installed."
       (package-vc--generate-description-file pkg-desc pkg-file)
 
       ;; Detect a manual
-      (when-let ((pkg-spec (package-vc--desc->spec pkg-desc))
-                 ((executable-find "install-info")))
+      (when (executable-find "install-info")
         (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
           (package-vc--build-documentation pkg-desc doc-file))))
 
@@ -654,11 +652,6 @@ abort installation?" name))
           ;; the package installation, ie. to break if moved around the
           ;; file system or between installations.
           (throw 'done (setq lisp-dir name)))))
-
-    ;; Store the :lisp-dir
-    (when lisp-dir
-      (push (cons :lisp-dir lisp-dir)
-            (package-desc-extras pkg-desc)))
 
     ;; Ensure we have a copy of the package specification
     (unless (equal (alist-get name (mapcar #'cdr package-vc--archive-spec-alist)) pkg-spec)
