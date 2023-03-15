@@ -1651,7 +1651,7 @@ ID-FORMAT valid values are `string' and `integer'."
       (if (tramp-file-property-p v localname "file-attributes")
 	  (or (tramp-check-cached-permissions v ?x)
 	      (tramp-check-cached-permissions v ?s))
-	(tramp-run-test "-x" filename)))))
+	(tramp-run-test v "-x" localname)))))
 
 (defun tramp-sh-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -1661,7 +1661,7 @@ ID-FORMAT valid values are `string' and `integer'."
       ;; satisfied without remote operation.
       (if (tramp-file-property-p v localname "file-attributes")
 	  (tramp-handle-file-readable-p filename)
-	(tramp-run-test "-r" filename)))))
+	(tramp-run-test v "-r" localname)))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -1682,7 +1682,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		   (tramp-get-file-property
 		    v (tramp-file-local-name truename) "file-attributes"))
 		  t)
-	    (tramp-run-test "-d" filename))))))
+	    (tramp-run-test v "-d" localname))))))
 
 (defun tramp-sh-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
@@ -1693,7 +1693,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	      ;; Examine `file-attributes' cache to see if request can
 	      ;; be satisfied without remote operation.
 	      (tramp-check-cached-permissions v ?w)
-	    (tramp-run-test "-w" filename))
+	    (tramp-run-test v "-w" localname))
 	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
@@ -4020,17 +4020,14 @@ Only send the definition if it has not already been done."
 	(tramp-set-connection-property
 	 (tramp-get-connection-process vec) "scripts" (cons name scripts))))))
 
-(defun tramp-run-test (switch filename)
-  "Run `test' on the remote system, given a SWITCH and a FILENAME.
+(defun tramp-run-test (vec switch localname)
+  "Run `test' on the remote system VEC, given a SWITCH and a LOCALNAME.
 Returns the exit code of the `test' program."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-send-command-and-check
-     v
-     (format
-      "%s %s %s"
-      (tramp-get-test-command v)
-      switch
-      (tramp-shell-quote-argument localname)))))
+  (tramp-send-command-and-check
+   vec
+   (format
+    "%s %s %s"
+    (tramp-get-test-command vec) switch (tramp-shell-quote-argument localname))))
 
 (defun tramp-find-executable
   (vec progname dirlist &optional ignore-tilde ignore-path)
