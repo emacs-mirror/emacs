@@ -1266,6 +1266,7 @@ if test "$ANDROID" = "yes"; then
   with_dbus=no
   with_gsettings=no
   with_threads=no
+  with_ns=no
 
   # zlib is available in android.
 fi

@@ -97,22 +97,16 @@ lib-src/config.h: $(top_builddir)/src/config.h.android
 	  lib-src/config.h
 
 lib/gnulib.mk: $(top_builddir)/lib/gnulib.mk.android
-	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/gnulib.mk.android	\
-	  lib/gnulib.mk
-	$(AM_V_SILENT) \
-	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g'	\
-	  lib/gnulib.mk
+	$(AM_V_GEN) \
+	  sed -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	    < $(top_builddir)/lib/gnulib.mk.android > $@
 
 lib/Makefile: $(top_builddir)/lib/Makefile.android
-	$(AM_V_GEN) cp -f -p $(top_builddir)/lib/Makefile.android	\
-	     lib/Makefile
-	$(AM_V_SILENT) \
-	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
-	  lib/Makefile \
-        && sed -i 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
-	  lib/Makefile							  \
-	&& sed -i 's/VPATH =.*$$/VPATH = $(subst /,\/,$(LIB_SRCDIR))/g' \
-	  lib/Makefile
+	$(AM_V_GEN) \
+	  sed -e 's/^top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	      -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(LIB_SRCDIR))/g' \
+	      -e 's/^VPATH =.*$$/VPATH = $(subst /,\/,$(LIB_SRCDIR))/g' \
+		< $(top_builddir)/lib/Makefile.android > $@
 
 # What is needed to build gnulib.
 LIB_DEPS = lib/config.h lib/gnulib.mk lib/Makefile
@@ -121,34 +115,27 @@ LIB_DEPS = lib/config.h lib/gnulib.mk lib/Makefile
 lib/libgnu.a: src/verbose.mk config.status $(LIB_DEPS) $(PRE_BUILD_DEPS)
 	$(MAKE) -C lib libgnu.a
 
-src/Makefile src/config.h &: $(top_builddir)/src/config.h.android	\
-  $(top_builddir)/src/Makefile.android
-# Copy config.h to src/
-	$(AM_V_GEN) \
-	cp -f -p $(top_builddir)/src/config.h.android src/config.h
-# And the Makefile.
-	$(AM_V_SILENT) \
-	cp -f -p $(top_builddir)/src/Makefile.android src/Makefile
-# Next, edit srcdir and top_srcdir to the right location.
-	$(AM_V_SILENT) \
-	sed -i 's/srcdir =.*$$/srcdir = $(subst /,\/,$(SRC_SRCDIR))/g' src/Makefile
-	$(AM_V_SILENT) \
-	sed -i 's/top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
-	  src/Makefile
+# Edit srcdir and top_srcdir to the right locations.
 # Edit references to ../admin/unidata to read ../../admin/unidata.
-	$(AM_V_SILENT) \
-	sed -i 's/\.\.\/admin\/unidata/..\/..\/admin\/unidata/g' src/Makefile
-	$(AM_V_SILENT) \
-	sed -i 's/\.\.\/admin\/charsets/..\/..\/admin\/charsets/g' src/Makefile
 # Next, edit libsrc to the location at top_srcdir! It is important
 # that src/Makefile uses the binaries there, instead of any
 # cross-compiled binaries at ./lib-src.
-	$(AM_V_SILENT) \
-	sed -i 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' src/Makefile
 # Edit out anything saying -I($(top_srcdir)/lib) into
 # -I$../(srcdir)/lib; that should be covered by -I$(lib)
-	$(AM_V_SILENT) \
-	sed -i 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' src/Makefile
+
+src/Makefile: $(top_builddir)/src/Makefile.android
+	$(AM_V_GEN) \
+	sed -e 's/^srcdir =.*$$/srcdir = $(subst /,\/,$(SRC_SRCDIR))/g' \
+	    -e 's/^top_srcdir =.*$$/top_srcdir = $(subst /,\/,$(LIB_TOP_SRCDIR))/g' \
+	    -e 's/\.\.\/admin\/unidata/..\/..\/admin\/unidata/g' \
+	    -e 's/\.\.\/admin\/charsets/..\/..\/admin\/charsets/g' \
+	    -e 's/^libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
+	    -e 's/libsrc =.*$$/libsrc = \.\.\/\.\.\/lib-src/g' \
+	    -e 's/-I\$$(top_srcdir)\/lib/-I..\/$(subst /,\/,$(srcdir))\/lib/g' \
+	    < $(top_builddir)/src/Makefile.android > $@
+
+src/config.h: $(top_builddir)/src/config.h.android
+	$(AM_V_GEN) cp -f -p $< $@
 
 .PHONY: src/android-emacs src/libemacs.so
 
@@ -160,22 +147,17 @@ src/android-emacs: src/Makefile src/config.h lib/libgnu.a \
   $(PRE_BUILD_DEPS)
 	$(MAKE) -C src android-emacs
 
-lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
-	$(AM_V_GEN) cp -f -p $< $@
-	$(AM_V_SILENT) sed -i 's/-I\$${srcdir}\/\.\.\/lib//g' lib-src/Makefile
-# Next, edit srcdir and top_srcdir to the right location.
-	$(AM_V_SILENT) \
-	sed -i 's/srcdir=.*$$/srcdir = $(subst /,\/,$(LIB_SRC_SRCDIR))/g' \
-	  lib-src/Makefile
-	$(AM_V_SILENT) \
-	sed -i 's/top_srcdir=.*$$/top_srcdir = $(subst /,\/,$(LIB_SRC_TOP_SRCDIR))/g' \
-	  lib-src/Makefile
 # Edit out SCRIPTS, it interferes with the build.
-	$(AM_V_SILENT) \
-	sed -i 's/^SCRIPTS=.*$$/SCRIPTS=/g' lib-src/Makefile
 # Make BASE_CFLAGS also include cross/lib as well as ../lib.
-	$(AM_V_SILENT) \
-	sed -i 's/-I\.\.\/lib/-I..\/lib -I..\/$(subst /,\/,$(srcdir))\/lib/g' lib-src/Makefile
+
+lib-src/Makefile: $(top_builddir)/lib-src/Makefile.android
+	$(AM_V_GEN) \
+	sed -e 's/-I\$${srcdir}\/\.\.\/lib//g' \
+	    -e 's/^srcdir=.*$$/srcdir = $(subst /,\/,$(LIB_SRC_SRCDIR))/g' \
+	    -e 's/^top_srcdir=.*$$/top_srcdir = $(subst /,\/,$(LIB_SRC_TOP_SRCDIR))/g' \
+	    -e 's/^SCRIPTS=.*$$/SCRIPTS=/g' \
+	    -e 's/-I\.\.\/lib/-I..\/lib -I..\/$(subst /,\/,$(srcdir))\/lib/g' \
+	  < $(top_builddir)/lib-src/Makefile.android > $@
 
 .PHONY: $(LIBSRC_BINARIES)
 $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
