@@ -231,8 +231,6 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 	}
     }
 
- escape:
-
   /* If pos is outside the accessible part of the buffer or if it
      overflows, move back to point or to the extremes of the
      accessible region.  */

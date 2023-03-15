@@ -10227,33 +10227,38 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 
 #ifdef HAVE_TEXT_CONVERSION
       /* When reading a key sequence while text conversion is in
-	 effect, turn it off after the first character read.  This
-	 makes input methods send actual key events instead.
+	 effect, turn it off after the first actual character read.
+	 This makes input methods send actual key events instead.
 
          Make sure only to do this once.  Also, disabling text
          conversion seems to interact badly with menus, so don't
          disable text conversion if a menu was displayed.  */
 
-      if (!disabled_conversion && t && !used_mouse_menu)
+      if (!disabled_conversion && t && !used_mouse_menu
+	  && !disable_inhibit_text_conversion)
 	{
 	  int i;
 
 	  /* used_mouse_menu isn't set if a menu bar prefix key has
-	     just been stored.  It appears necessary to look for the
-	     prefix key itself.  */
+	     just been stored.  It appears necessary to look for a
+	     prefix key itself.  Don't look through too many keys for
+	     efficiency reasons.  */
 
-	  for (i = 0; i < t; ++i)
+	  for (i = 0; i < min (t, 10); ++i)
 	    {
-	      if (EQ (keybuf[i], Qmenu_bar))
-		break;
+	      if (NUMBERP (keybuf[i])
+		  || (SYMBOLP (keybuf[i])
+		      && EQ (Fget (keybuf[i], Qevent_kind),
+			     Qfunction_key)))
+		goto disable_text_conversion;
 	    }
 
-	  if (i == t)
-	    {
-	      disable_text_conversion ();
-	      record_unwind_protect_void (resume_text_conversion);
-	      disabled_conversion = true;
-	    }
+	  goto replay_key;
+
+	disable_text_conversion:
+	  disable_text_conversion ();
+	  record_unwind_protect_void (resume_text_conversion);
+	  disabled_conversion = true;
 	}
 #endif
 
@@ -13377,8 +13382,15 @@ which see.  */);
   DEFVAR_LISP ("post-select-region-hook", Vpost_select_region_hook,
     doc: /* Abnormal hook run after the region is selected.
 This usually happens as a result of `select-active-regions'.  The hook
-is called with one argument, the string that was selected.  */);;
+is called with one argument, the string that was selected.  */);
   Vpost_select_region_hook = Qnil;
+
+  DEFVAR_LISP ("disable-inhibit-text-conversion",
+	       disable_inhibit_text_conversion,
+    doc: /* Don't disable text conversion inside `read-key-sequence'.
+If non-nil, text conversion will continue to happen after a prefix
+key has been read inside `read-key-sequence'.  */);
+    disable_inhibit_text_conversion = false;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

@@ -798,7 +798,7 @@ static void substitute_in_interval (INTERVAL, void *);
 
    If text conversion is enabled and ASCII_REQUIRED && ERROR_NONASCII,
    temporarily disable any input method which wants to perform
-   edits.  */
+   edits, unless `disable-inhibit-text-conversion'.  */
 
 static Lisp_Object
 read_filtered_event (bool no_switch_frame, bool ascii_required,
@@ -821,7 +821,8 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   /* Don't use text conversion when trying to just read a
      character.  */
 
-  if (ascii_required && error_nonascii)
+  if (ascii_required && error_nonascii
+      && !disable_inhibit_text_conversion)
     {
       disable_text_conversion ();
       record_unwind_protect_void (resume_text_conversion);

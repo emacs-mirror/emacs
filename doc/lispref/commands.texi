@@ -2263,6 +2263,12 @@ that takes immediate effect, call the function
 lock up the input method for a significant amount of time, so do
 not do this lightly!
 
+@vindex disable-inhibit-text-conversion
+In addition, text conversion is automatically disabled after a prefix
+key is read by the command loop, or through @code{read-key-sequence}.
+This can be disabled by setting or binding the variable
+@code{disable-inhibit-text-conversion} to a non-@code{nil} value.
+
 @cindex @code{delete-frame} event
 @item (delete-frame (@var{frame}))
 This kind of event indicates that the user gave the window manager

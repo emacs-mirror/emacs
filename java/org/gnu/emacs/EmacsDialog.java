@@ -244,23 +244,26 @@ public final class EmacsDialog implements DialogInterface.OnDismissListener
     AlertDialog dialog;
     Window window;
 
-    /* First, try to display a dialog using the service context.  */
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-	|| Settings.canDrawOverlays (EmacsService.SERVICE))
-      context = EmacsService.SERVICE;
-    else if (EmacsActivity.focusedActivities.isEmpty ())
+    if (EmacsActivity.focusedActivities.isEmpty ())
       {
 	/* If focusedActivities is empty then this dialog may have
 	   been displayed immediately after a popup dialog is
-	   dismissed.  */
+	   dismissed.  Or Emacs might legitimately be in the
+	   background.  Try the service context first if possible.  */
 
-	context = EmacsActivity.lastFocusedActivity;
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+	    || Settings.canDrawOverlays (EmacsService.SERVICE))
+	  context = EmacsService.SERVICE;
+	else
+	  context = EmacsActivity.lastFocusedActivity;
 
 	if (context == null)
 	  return false;
       }
     else
+      /* Display using the activity context when Emacs is in the
+	 foreground, as this allows the dialog to be dismissed more
+	 consistently.  */
       context = EmacsActivity.focusedActivities.get (0);
 
     Log.d (TAG, "display1: using context " + context);

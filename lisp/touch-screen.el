@@ -511,20 +511,21 @@ with that event and DATA.
 
 Return nil immediately if any other kind of event is received;
 otherwise, return t once the `touchscreen-end' event arrives."
-  (catch 'finish
-    (while t
-      (let ((new-event (read-event nil)))
-        (cond
-         ((eq (car-safe new-event) 'touchscreen-update)
-          (when (and update (assq (caadr event) (cadr new-event)))
-            (funcall update new-event data)))
-         ((eq (car-safe new-event) 'touchscreen-end)
-          (throw 'finish
-                 ;; Now determine whether or not the `touchscreen-end'
-                 ;; event has the same ID as EVENT.  If it doesn't,
-                 ;; then this is another touch, so return nil.
-                 (eq (caadr event) (caadr new-event))))
-         (t (throw 'finish nil)))))))
+  (let ((disable-inhibit-text-conversion t))
+    (catch 'finish
+      (while t
+        (let ((new-event (read-event nil)))
+          (cond
+           ((eq (car-safe new-event) 'touchscreen-update)
+            (when (and update (assq (caadr event) (cadr new-event)))
+              (funcall update new-event data)))
+           ((eq (car-safe new-event) 'touchscreen-end)
+            (throw 'finish
+                   ;; Now determine whether or not the `touchscreen-end'
+                   ;; event has the same ID as EVENT.  If it doesn't,
+                   ;; then this is another touch, so return nil.
+                   (eq (caadr event) (caadr new-event))))
+           (t (throw 'finish nil))))))))
 
 (defun touch-screen-track-drag (event update &optional data)
   "Track a single drag starting from EVENT.
@@ -543,7 +544,8 @@ otherwise, return either t or `no-drag' once the
 touch point in EVENT did not move significantly, and t otherwise."
   (let ((return-value 'no-drag)
         (start-xy (touch-screen-relative-xy (cdadr event)
-                                            'frame)))
+                                            'frame))
+        (disable-inhibit-text-conversion t))
     (catch 'finish
       (while t
         (let ((new-event (read-event nil)))
