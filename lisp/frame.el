@@ -2124,6 +2124,7 @@ for FRAME."
 ;; or in https://debbugs.gnu.org/cgi/bugreport.cgi?bug=35058#17.
 
 (declare-function msdos-mouse-p "dosfns.c")
+(declare-function android-detect-mouse "androidfns.c")
 
 (defun display-mouse-p (&optional display)
   "Return non-nil if DISPLAY has a mouse available.
