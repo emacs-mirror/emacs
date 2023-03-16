@@ -1236,6 +1236,7 @@ syntax requires a leading volume (share) name, for example:
 
 @item @option{dav}
 @item @option{davs}
+@cindex WebDAV
 @cindex method @option{dav}
 @cindex method @option{davs}
 @cindex @option{dav} method
