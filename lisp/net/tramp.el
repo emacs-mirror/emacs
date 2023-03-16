@@ -5091,7 +5091,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    ;; This is neded for ssh or PuTTY based processes, and
 	    ;; only if the respective options are set.  Perhaps, the
 	    ;; setting could be more fine-grained.
-	    (process-put p 'shared-socket t)
+	    ;; (process-put p 'shared-socket t)
 	    (process-put p 'remote-command orig-command)
 	    (tramp-set-connection-property p "remote-command" orig-command)
 
@@ -5809,6 +5809,7 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
   ;; There could be other processes which use the same socket for
   ;; communication.  This could block the output for the current
   ;; process.  Read such output first.  (Bug#61350)
+  ;; The process property isn't set anymore due to Bug#62194.
   (when-let (((process-get proc 'shared-socket))
 	     (v (process-get proc 'vector)))
     (dolist (p (delq proc (process-list)))

@@ -2427,7 +2427,7 @@ The method used must be an out-of-band method."
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
-		(process-put p 'shared-socket t)
+		;; (process-put p 'shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 
@@ -3760,7 +3760,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	;; This is neded for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
-	(process-put p 'shared-socket t)
+	;; (process-put p 'shared-socket t)
 	;; Needed for process filter.
 	(process-put p 'events events)
 	(process-put p 'watch-name localname)
@@ -5124,7 +5124,7 @@ connection if a previous connection has died for some reason."
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
-		(process-put p 'shared-socket t)
+		;; (process-put p 'shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection (cons vec (current-time)))

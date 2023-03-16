@@ -44,7 +44,6 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'heex-ts-mode)
 (eval-when-compile (require 'rx))
 
 (declare-function treesit-parser-create "treesit.c")
@@ -480,6 +479,10 @@
      :host 'elixir
      '((sigil (sigil_name) @name (:match "^[HF]$" @name) (quoted_content) @heex)))))
 
+(defvar heex-ts--sexp-regexp)
+(defvar heex-ts--indent-rules)
+(defvar heex-ts--font-lock-settings)
+
 (defun elixir-ts--forward-sexp (&optional arg)
   "Move forward across one balanced expression (sexp).
 With ARG, do it many times.  Negative ARG means move backward."
@@ -566,8 +569,12 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (when (treesit-ready-p 'elixir)
     ;; The HEEx parser has to be created first for elixir to ensure elixir
     ;; is the first language when looking for treesit ranges.
-    (if (treesit-ready-p 'heex)
-        (treesit-parser-create 'heex))
+    (when (treesit-ready-p 'heex)
+      ;; Require heex-ts-mode only when we load elixir-ts-mode
+      ;; so that we don't get a tree-sitter compilation warning for
+      ;; elixir-ts-mode.
+      (require 'heex-ts-mode)
+      (treesit-parser-create 'heex))
 
     (treesit-parser-create 'elixir)
 
