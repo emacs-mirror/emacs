@@ -66,6 +66,7 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
       Root.COLUMN_ROOT_ID,
       Root.COLUMN_MIME_TYPES,
       Root.COLUMN_FLAGS,
+      Root.COLUMN_ICON,
       Root.COLUMN_TITLE,
       Root.COLUMN_SUMMARY,
       Root.COLUMN_DOCUMENT_ID,
@@ -116,6 +117,7 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
 
     row.add (Root.COLUMN_FLAGS, (Root.FLAG_SUPPORTS_CREATE
 				 | Root.FLAG_SUPPORTS_IS_CHILD));
+    row.add (Root.COLUMN_ICON, R.drawable.emacs);
     row.add (Root.FLAG_LOCAL_ONLY);
     row.add (Root.COLUMN_TITLE, "Emacs");
     row.add (Root.COLUMN_DOCUMENT_ID, baseDir.getAbsolutePath ());
