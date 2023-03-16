@@ -29,8 +29,7 @@ AC_INIT([GNU Emacs], [30.0.50], [bug-gnu-emacs@gnu.org], [],
 if test "$XCONFIGURE" = "android"; then
   # configure is being called recursively to configure Emacs for
   # Android!
-  AC_MSG_NOTICE([called to recursively configure Emacs \
-for Android.])
+  AC_MSG_NOTICE([called to recursively configure Emacs for Android.])
   # Set CC to ANDROID_CC and CFLAGS to ANDROID_CFLAGS.
   CC=$ANDROID_CC
   # Set -Wno-implicit-function-declaration.  Building Emacs for older
