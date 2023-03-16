@@ -87,7 +87,7 @@
 (defconst elixir-ts--sexp-regexp
   (rx bol
       (or "call" "stab_clause" "binary_operator" "list" "tuple" "map" "pair"
-          "sigil" "string" "atom" "pair" "alias" "arguments" "atom" "identifier"
+          "sigil" "string" "atom" "alias" "arguments" "identifier"
           "boolean" "quoted_content")
       eol))
 

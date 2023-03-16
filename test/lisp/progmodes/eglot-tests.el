@@ -31,23 +31,20 @@
 ;; Some of these tests rely on the GNU ELPA package company.el and
 ;; yasnippet.el being available.
 
-;; Some of the tests require access to a remote host files.  Since
-;; this could be problematic, a mock-up connection method "mock" is
-;; used.  Emulating a remote connection, it simply calls "sh -i".
-;; Tramp's file name handlers still run, so this test is sufficient
-;; except for connection establishing.
-
-;; If you want to test a real Tramp connection, set
-;; $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
-;; overwrite the default value.  If you want to skip tests accessing a
-;; remote host, set this environment variable to "/dev/null" or
-;; whatever is appropriate on your system.
+;; Some of the tests require access to a remote host files, which is
+;; mocked in the simplest case.  If you want to test a real Tramp
+;; connection, override $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable
+;; value (FIXME: like what?) in order to overwrite the default value.
+;;
+;; IMPORTANT: Since Eglot is a :core ELPA package, these tests are
+ ;;supposed to run on Emacsen down to 26.3.  Do not use bleeding-edge
+ ;;functionality not compatible with that Emacs version.
 
 ;;; Code:
 (require 'eglot)
 (require 'cl-lib)
 (require 'ert)
-(require 'tramp) ; must be prior ert-x
+(require 'tramp)
 (require 'ert-x) ; ert-simulate-command
 (require 'edebug)
 (require 'python) ; some tests use pylsp
@@ -463,7 +460,7 @@ then restored."
       (eglot--make-file-or-dir '(".git"))
       (eglot--make-file-or-dir
        `("compile_commands.json" .
-         ,(json-serialize
+         ,(jsonrpc--json-encode
            `[(:directory ,default-directory :command "/usr/bin/c++ -Wall -c main.cpp"
                          :file ,(expand-file-name "main.cpp"))])))
       (let ((eglot-server-programs '((c++-mode . ("clangd")))))
@@ -744,7 +741,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
         (should (zerop (shell-command "cargo init")))
         (eglot--sniffing (:server-notifications s-notifs)
           (should (eglot--tests-connect))
-          (eglot--wait-for (s-notifs 10) (&key method &allow-other-keys)
+          (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
              (string= method "textDocument/publishDiagnostics")))
         (goto-char (point-max))
         (eglot--simulate-key-event ?.)
@@ -810,7 +807,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
             (should (= 4 (length (flymake--project-diagnostics))))))))))
 
 (ert-deftest eglot-test-project-wide-diagnostics-rust-analyzer ()
-  "Test diagnostics through multiple files in a TypeScript LSP."
+  "Test diagnostics through multiple files in rust-analyzer."
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
   (skip-unless (executable-find "git"))
@@ -829,7 +826,7 @@ pylsp prefers autopep over yafp, despite its README stating the contrary."
         (eglot--sniffing (:server-notifications s-notifs)
           (eglot--tests-connect)
           (flymake-start)
-          (eglot--wait-for (s-notifs 15)
+          (eglot--wait-for (s-notifs 20)
               (&key _id method params &allow-other-keys)
             (and (string= method "textDocument/publishDiagnostics")
                  (string-suffix-p "main.rs" (plist-get params :uri))))
@@ -1272,18 +1269,28 @@ macro will assume it exists."
 
 (defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
+  (unless (>= emacs-major-version 27)
+    (ert-skip "Eglot Tramp support only on Emacs >= 27"))
   ;; Set up a Tramp method that’s just a shell so the remote host is
   ;; really just the local host.
-  (let* ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
+  (let* ((tramp-remote-path (cons 'tramp-own-remote-path
+                                  tramp-remote-path))
          (tramp-histfile-override t)
          (tramp-verbose 1)
          (temporary-file-directory
           (or (bound-and-true-p ert-remote-temporary-file-directory)
-              temporary-file-directory))
+              (prog1 (format "/mock::%s" temporary-file-directory)
+                (add-to-list
+                 'tramp-methods
+                 '("mock"
+                   (tramp-login-program "sh")       (tramp-login-args (("-i")))
+                   (tramp-direct-async ("-c"))      (tramp-remote-shell "/bin/sh")
+                   (tramp-remote-shell-args ("-c")) (tramp-connection-timeout 10)))
+                (add-to-list 'tramp-default-host-alist
+                             `("\\`mock\\'" nil ,(system-name)))
+                (when (and noninteractive (not (file-directory-p "~/")))
+                  (setenv "HOME" temporary-file-directory)))))
          (default-directory temporary-file-directory))
-    ;; We must check the remote LSP server.  So far, just "clangd" is used.
-    (unless (executable-find "clangd" 'remote)
-      (ert-skip "Remote clangd not found"))
     (funcall fn)))
 
 (ert-deftest eglot-test-tramp-test ()
