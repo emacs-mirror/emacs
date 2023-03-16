@@ -3371,7 +3371,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   `(defun ,name (beg &optional end)
      ,(format "Execute `%s' code actions between BEG and END." kind)
      (interactive (eglot--region-bounds))
-     (eglot-code-actions beg end ,kind)))
+     (eglot-code-actions beg end ,kind t)))
 
 (eglot--code-action eglot-code-action-organize-imports "source.organizeImports")
 (eglot--code-action eglot-code-action-extract "refactor.extract")
