@@ -3654,13 +3654,11 @@ If NOERROR, return predicate, else erroring function."
 
 ;;; Hacks
 ;;;
-;; FIXME: Although desktop.el compatibility is Emacs bug#56407, the
-;; optimal solution agreed to there is a bit more work than what I
-;; have time to right now.  See
-;; e.g. https://debbugs.gnu.org/cgi/bugreport.cgi?bug=bug%2356407#68.
-;; For now, just use `with-eval-after-load'
+;; Emacs bug#56407, the optimal solution is in desktop.el, but that's
+;; harder. For now, use `with-eval-after-load'. See also github#1183.
 (with-eval-after-load 'desktop
-  (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore)))
+  (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore))
+  (add-to-list 'desktop-minor-mode-handlers '(eglot-inlay-hints-mode . ignore)))
 
 
 ;;; Misc
