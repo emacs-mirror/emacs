@@ -2317,7 +2317,7 @@ static void
 build_load_history (Lisp_Object filename, bool entire)
 {
   Lisp_Object tail, prev, newelt;
-  Lisp_Object tem, tem2, association;
+  Lisp_Object tem, tem2;
   bool foundit = 0;
 
   tail = Vload_history;
@@ -2366,16 +2366,8 @@ build_load_history (Lisp_Object filename, bool entire)
      front of load-history, the most-recently-loaded position.  Also
      do this if we didn't find an existing member for the file.  */
   if (entire || !foundit)
-    {
-      association = Fnreverse (Vcurrent_load_list);
-
-      if (!NILP (association) && STRINGP (XCAR (association)))
-	/* readevalloop can be called with SOURCENAME set to some
-	   nonsense value, meaning the car of ASSOCIATION will be nil
-	   (or worse something else), leading to an invalid
-	   Vload_history.  Ignore such invalid entries.  */
-	Vload_history = Fcons (association, Vload_history);
-    }
+    Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
+			   Vload_history);
 }
 
 static void

@@ -666,6 +666,13 @@ lost after dumping")))
 (setq load-file-name nil)
 (eval top-level t)
 
+;; loadup.el is loaded at startup, but clobbers current-load-list.
+;; Set current-load-list to a list containing no definitions and only
+;; its name, to prevent invalid entries from ending up in
+;; Vload_history when running temacs interactively.
+
+(setq current-load-list (list "loadup.el"))
+
 
 ;; Local Variables:
 ;; no-byte-compile: t
