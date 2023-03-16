@@ -174,7 +174,7 @@ if test "$XCONFIGURE" = "android"; then
   with_ndk_path="$android_ndk_path"
   with_ndk_cxx_shared="$android_ndk_cxx_shared"
   with_ndk_cxx="$android_ndk_cxx"
-  ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],\
+  ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],
            [$ANDROID_CFLAGS])
 fi
 
@@ -811,6 +811,8 @@ android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
 # This is whether or not to package mailutils into the executable.
 emacs_use_mailutils=
 
+AC_ARG_VAR([SDK_BUILD_TOOLS], [Name of directory holding Android SDK build-tools.])
+AC_ARG_VAR([ANDROID_CFLAGS], [Flags given to the Android C cross-compiler.])
 AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
 AC_ARG_VAR([JARSIGNER], [Java package signer path.  Used for Android.])
 AC_ARG_VAR([APKSIGNER], [Android package signer path.  Used for Android.])
@@ -2573,7 +2575,9 @@ window_system=none
 
 ANDROID_OBJ=
 ANDROID_LIBS=
-ANDROID_CFLAGS=
+# ANDROID_CFLAGS is a precious variable used to pass information to
+# the cross-compiler.
+ANDROID_BUILD_CFLAGS=
 REALLY_ANDROID=
 CM_OBJ="cm.o"
 
@@ -2602,11 +2606,11 @@ for Android, but all API calls need to be stubbed out])
     # Emacs will be built as a shared library, and a wrapper around it
     # will also be built for the benefit of applications.  This
     # requires Emacs be built as a position independent executable.
-    ANDROID_CFLAGS="-fPIC -fvisibility=hidden"
+    ANDROID_BUILD_CFLAGS="-fPIC -fvisibility=hidden"
 
     # Graphics code in sfntfont-android.c benefits heavily from
     # vectorization.
-    ANDROID_CFLAGS="$ANDROID_CFLAGS -ftree-vectorize"
+    ANDROID_BUILD_CFLAGS="$ANDROID_BUILD_CFLAGS -ftree-vectorize"
 
     # Link with libraries required for Android support.
     # API 9 and later require `-landroid' for the asset manager.
@@ -2638,7 +2642,7 @@ AC_SUBST([ANDROID])
 AC_SUBST([ANDROID_OBJ])
 AC_SUBST([ANDROID_LIBS])
 AC_SUBST([ANDROID_LDFLAGS])
-AC_SUBST([ANDROID_CFLAGS])
+AC_SUBST([ANDROID_BUILD_CFLAGS])
 AC_SUBST([ANDROID_SHARED_USER_ID])
 
 if test "${with_pgtk}" = "yes"; then

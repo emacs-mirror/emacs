@@ -156,7 +156,7 @@ s/@PACKAGE@/emacs/
 /^HYBRID_MALLOC *=/s/@HYBRID_MALLOC@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
-/^ANDROID_CFLAGS *=/s/@ANDROID_CFLAGS@//
+/^ANDROID_BUILD_CFLAGS *=/s/@ANDROID_BUILD_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@//
 /^DEPDIR *=/s/@[^@\n]*@/deps/
 /^ECHO_N *=/s/@[^@\n]*@/-n/
