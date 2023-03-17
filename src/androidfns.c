@@ -1234,6 +1234,32 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
   return make_fixnum (1 << nr_planes);
 }
 
+DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
+       doc: /* SKIP: real doc in xfns.c.  */)
+  (Lisp_Object terminal)
+{
+#ifdef ANDROID_STUBIFY
+  error ("Android cross-compilation stub called!");
+  return Qnil;
+#else
+  check_android_display_info (terminal);
+  return Vandroid_build_manufacturer;
+#endif
+}
+
+DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
+       doc: /* SKIP: real doc in xfns.c.  */)
+  (Lisp_Object terminal)
+{
+#ifdef ANDROID_STUBIFY
+  error ("Android cross-compilation stub called!");
+  return Qnil;
+#else
+  check_android_display_info (terminal);
+  return list3i (android_get_current_api_level (), 0, 0);
+#endif
+}
+
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens,
        0, 1, 0, doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
@@ -3114,6 +3140,8 @@ using the volume down button.  */);
   defsubr (&Sx_hide_tip);
   defsubr (&Sandroid_detect_mouse);
   defsubr (&Sandroid_toggle_on_screen_keyboard);
+  defsubr (&Sx_server_vendor);
+  defsubr (&Sx_server_version);
 #ifndef ANDROID_STUBIFY
   defsubr (&Sandroid_query_battery);
 

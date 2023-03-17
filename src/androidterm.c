@@ -5786,7 +5786,8 @@ android_term_init (void)
 
 
 
-/* Set Vandroid_build_fingerprint to a reasonable value.  */
+/* Set Vandroid_build_fingerprint to a reasonable value, and also
+   Vandroid_build_manufacturer.  */
 
 static void
 android_set_build_fingerprint (void)
@@ -5847,6 +5848,39 @@ android_set_build_fingerprint (void)
       Vandroid_build_fingerprint = build_string_from_utf8 (data);
       (*android_java_env)->ReleaseStringUTFChars (android_java_env,
 						  string, data);
+
+      /* Now obtain Build.MANUFACTURER.  */
+
+      ANDROID_DELETE_LOCAL_REF (string);
+      string = NULL;
+
+      field = (*android_java_env)->GetStaticFieldID (android_java_env,
+						     class,
+						     "MANUFACTURER",
+						     "Ljava/lang/String;");
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!field)
+	goto fail;
+
+      string
+	= (*android_java_env)->GetStaticObjectField (android_java_env,
+						     class, field);
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!string)
+	goto fail;
+
+      data = (*android_java_env)->GetStringUTFChars (android_java_env,
+						     string, NULL);
+      (*android_java_env)->ExceptionClear (android_java_env);
+
+      if (!data)
+	goto fail;
+
+      Vandroid_build_manufacturer = build_string_from_utf8 (data);
+      (*android_java_env)->ReleaseStringUTFChars (android_java_env,
+						  string, data);
     }
 
   if (string)
@@ -5861,6 +5895,7 @@ android_set_build_fingerprint (void)
     ANDROID_DELETE_LOCAL_REF (class);
 
   Vandroid_build_fingerprint = Qnil;
+  Vandroid_build_manufacturer = Qnil;
 #endif
 }
 
@@ -5898,6 +5933,10 @@ If set to a non-float value, there will be no wait at all.  */);
 This is a string that uniquely identifies the version of Android
 Emacs is running on.  */);
   Vandroid_build_fingerprint = Qnil;
+
+  DEFVAR_LISP ("android-build-manufacturer", Vandroid_build_manufacturer,
+    doc: /* Name of the developer of the running version of Android.  */);
+  Vandroid_build_manufacturer = Qnil;
 
   /* Only defined so loadup.el loads scroll-bar.el.  */
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
