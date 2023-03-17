@@ -2283,16 +2283,25 @@ buffer, but doesn't select any of them.
 
 @kindex M-,
 @findex xref-go-back
-  To go back to places @emph{from where} you've displayed the definition,
-use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
+  To go back to places @emph{from where} you've displayed the
+definition, use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.
+where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace the
+steps you made forward in the history of places, all the way to the
+first place in history, where you first invoked @kbd{M-.}, or to any
+place in-between.
 
 @kindex C-M-,
 @findex xref-go-forward
-  If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
-(@code{xref-go-forward}) can be used to go forward again.
+  If you previously went back too far with @kbd{M-,}, or want to
+re-examine a place from which you went back, you can use @kbd{C-M-,}
+(@code{xref-go-forward}) to go forward again.  This is similar to
+using @kbd{M-.}, except that you don't need on each step to move point
+to the identifier whose definition you want to look up.  @kbd{C-M-,}
+allows you to retrace all the steps you made back in the history of
+places, all the way to the last place in history, where you invoked
+@kbd{M-,}, or to any place in-between.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
