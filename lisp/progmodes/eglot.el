@@ -1948,8 +1948,8 @@ If it is activated, also signal textDocument/didOpen."
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
 
-(defun eglot--mouse-call (what)
-  "Make an interactive lambda for calling WHAT from mode-line."
+(defun eglot--mouse-call (what &optional update-mode-line)
+  "Make an interactive lambda for calling WHAT with the mouse."
   (lambda (event)
     (interactive "e")
     (let ((start (event-start event))) (with-selected-window (posn-window start)
@@ -1957,7 +1957,8 @@ If it is activated, also signal textDocument/didOpen."
                                            (goto-char (or (posn-point start)
                                                           (point)))
                                            (call-interactively what)
-                                           (force-mode-line-update t))))))
+                                           (when update-mode-line
+                                             (force-mode-line-update t)))))))
 
 (defun eglot-manual () "Open documentation."
        (declare (obsolete info "29.1"))
@@ -2031,7 +2032,7 @@ Uses THING, FACE, DEFS and PREPEND."
   (cl-loop with map = (make-sparse-keymap)
            for (elem . rest) on defs
            for (key def help) = elem
-           do (define-key map `[mode-line ,key] (eglot--mouse-call def))
+           do (define-key map `[mode-line ,key] (eglot--mouse-call def t))
            concat (format "%s: %s" key help) into blurb
            when rest concat "\n" into blurb
            finally (return `(:propertize ,thing
@@ -2092,15 +2093,18 @@ still unanswered LSP requests to the server\n"))))))))
 (defalias 'eglot--make-diag 'flymake-make-diagnostic)
 (defalias 'eglot--diag-data 'flymake-diagnostic-data)
 
+(defvar eglot-diagnostics-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'eglot-code-actions-at-mouse)
+    map)
+  "Map active in Eglot-backed Flymake diagnostic overlays.")
+
 (cl-loop for i from 1
          for type in '(eglot-note eglot-warning eglot-error)
          do (put type 'flymake-overlay-control
                  `((mouse-face . highlight)
                    (priority . ,(+ 50 i))
-                   (keymap . ,(let ((map (make-sparse-keymap)))
-                                (define-key map [mouse-1]
-                                            (eglot--mouse-call 'eglot-code-actions))
-                                map)))))
+                   (keymap . ,eglot-diagnostics-map))))
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
@@ -3341,6 +3345,9 @@ at point.  With prefix argument, prompt for ACTION-KIND."
     (if interactive
         (eglot--read-execute-code-action actions server action-kind)
       actions)))
+
+(defalias 'eglot-code-actions-at-mouse (eglot--mouse-call 'eglot-code-actions)
+  "Like `eglot-code-actions', but intended for mouse events.")
 
 (defun eglot--read-execute-code-action (actions server &optional action-kind)
   "Helper for interactive calls to `eglot-code-actions'."
