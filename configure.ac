@@ -810,6 +810,7 @@ android_makefiles="lib/Makefile lib/gnulib.mk lib-src/Makefile src/Makefile"
 # This is whether or not to package mailutils into the executable.
 emacs_use_mailutils=
 
+AC_ARG_VAR([ANDROID_CC], [The Android C cross-compiler.])
 AC_ARG_VAR([SDK_BUILD_TOOLS], [Name of directory holding Android SDK build-tools.])
 AC_ARG_VAR([ANDROID_CFLAGS], [Flags given to the Android C cross-compiler.])
 AC_ARG_VAR([JAVAC], [Java compiler path.  Used for Android.])
