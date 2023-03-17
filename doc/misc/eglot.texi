@@ -1303,7 +1303,7 @@ and may speed things up.
 In other situations, the cause of poor performance lies in the LSP
 server itself.  Servers use aggressive caching and other techniques to
 improve their performance.  Often, this can be tweaked by changing the
-server configuration (@pxref{Advanced Server Configuration}).
+server configuration (@pxref{Advanced server configuration}).
 
 If you think you have found a bug, we want to hear about it.  Before
 reporting a bug, keep in mind that interaction with LSP servers
