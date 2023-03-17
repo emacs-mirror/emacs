@@ -55,6 +55,9 @@ public final class EmacsContextMenu
   /* The serial ID of the last context menu to be displayed.  */
   public static int lastMenuEventSerial;
 
+  /* The last group ID used for a menu item.  */
+  public int lastGroupId;
+
   private static class Item implements MenuItem.OnMenuItemClickListener
   {
     public int itemID;
@@ -62,6 +65,7 @@ public final class EmacsContextMenu
     public EmacsContextMenu subMenu;
     public boolean isEnabled, isCheckable, isChecked;
     public EmacsView inflatedView;
+    public boolean isRadio;
 
     @Override
     public boolean
@@ -153,12 +157,14 @@ public final class EmacsContextMenu
      checkable.  Likewise, if ISCHECKED is set, make the item
      checked.
 
-     If TOOLTIP is non-NULL, set the menu item tooltip to TOOLTIP.  */
+     If TOOLTIP is non-NULL, set the menu item tooltip to TOOLTIP.
+
+     If ISRADIO, then display the check mark as a radio button.  */
 
   public void
   addItem (int itemID, String itemName, boolean isEnabled,
 	   boolean isCheckable, boolean isChecked,
-	   String tooltip)
+	   String tooltip, boolean isRadio)
   {
     Item item;
 
@@ -169,6 +175,7 @@ public final class EmacsContextMenu
     item.isCheckable = isCheckable;
     item.isChecked = isChecked;
     item.tooltip = tooltip;
+    item.isRadio = isRadio;
 
     menuItems.add (item);
   }
@@ -244,7 +251,11 @@ public final class EmacsContextMenu
 	  }
 	else
 	  {
-	    menuItem = menu.add (item.itemName);
+	    if (item.isRadio)
+	      menuItem = menu.add (++lastGroupId, Menu.NONE, Menu.NONE,
+				   item.itemName);
+	    else
+	      menuItem = menu.add (item.itemName);
 	    menuItem.setOnMenuItemClickListener (item);
 
 	    /* If the item ID is zero, then disable the item.  */
@@ -259,6 +270,12 @@ public final class EmacsContextMenu
 
 	    if (item.isChecked)
 	      menuItem.setChecked (true);
+
+	    /* Define an exclusively checkable group if the item is a
+	       radio button.  */
+
+	    if (item.isRadio)
+	      menu.setGroupCheckable (lastGroupId, true, true);
 
 	    /* If the tooltip text is set and the system is new enough
 	       to support menu item tooltips, set it on the item.  */

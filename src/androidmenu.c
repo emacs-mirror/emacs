@@ -105,7 +105,7 @@ android_init_emacs_context_menu (void)
 		      "Lorg/gnu/emacs/EmacsContextMenu;");
 
   FIND_METHOD (add_item, "addItem", "(ILjava/lang/String;ZZZ"
-	       "Ljava/lang/String;)V");
+	       "Ljava/lang/String;Z)V");
   FIND_METHOD (add_submenu, "addSubmenu", "(Ljava/lang/String;"
 	       "Ljava/lang/String;Ljava/lang/String;)"
 	       "Lorg/gnu/emacs/EmacsContextMenu;");
@@ -442,7 +442,9 @@ android_menu_show (struct frame *f, int x, int y, int menuflags,
 						   (jboolean) !NILP (enable),
 						   (jboolean) checkmark,
 						   (jboolean) !NILP (selected),
-						   help_string);
+						   help_string,
+						   (jboolean) (EQ (type,
+								   QCradio)));
 	      android_exception_check ();
 
 	      if (title_string)
