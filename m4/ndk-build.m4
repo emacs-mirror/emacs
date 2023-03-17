@@ -38,7 +38,7 @@ AC_ARG_WITH([ndk_cxx],
 # DIR should be a directory containing the Makefile.in actually
 # implementing the Android NDK build system.
 
-AC_DEFUN_ONCE([ndk_INIT],
+AC_DEFUN([ndk_INIT],
 [
 # Look for Android.mk files.
 ndk_module_files=
@@ -347,13 +347,18 @@ AS_IF([test -n "$with_ndk_cxx"], [CXX=$with_ndk_cxx],
 # required C and C++ headers.
 
 AC_DEFUN([ndk_LATE],
-[
+[dnl
+dnl This calls AC_REQUIRE([AC_PROG_CXX]), leading to configure looking
+dnl for a C++ compiler.  However, the language is not restored
+dnl afterwards if not `$ndk_INITIALIZED'.
 AS_IF([test "$ndk_INITIALIZED" = "yes"],[
   AS_IF([test -n "$CXX"], [AC_LANG_PUSH([C++])
     AC_CHECK_HEADER([string], [ndk_working_cxx=yes],
       [AC_MSG_WARN([Your C++ compiler is not properly set up, and\
  the standard library headers could not be found.])])
     AC_LANG_POP([C++])])])
+dnl Thus, manually switch back to C here.
+AC_LANG([C])
 ])
 
 # ndk_SEARCH_MODULE(MODULE, NAME, ACTION-IF-FOUND, [ACTION-IF-NOT-FOUND])

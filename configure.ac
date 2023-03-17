@@ -165,7 +165,7 @@ fi
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
-if test "$XCONFIGURE" = "android"; then
+AS_IF([test "$XCONFIGURE" = "android"],[
   # Initialize the Android NDK build system.  Make sure to use the
   # passed through NDK path.
   # Make sure to pass through the CFLAGS, as older versions of the
@@ -174,8 +174,7 @@ if test "$XCONFIGURE" = "android"; then
   with_ndk_cxx_shared="$android_ndk_cxx_shared"
   with_ndk_cxx="$android_ndk_cxx"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],
-           [$ANDROID_CFLAGS])
-fi
+           [$ANDROID_CFLAGS])])
 
 case $host in
  *-mingw*)
