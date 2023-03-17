@@ -1,4 +1,4 @@
-;;; c-ts-mode-tests.el --- Tests for Tree-sitter-based C mode         -*- lexical-binding: t; -*-
+;;; elixir-ts-mode-tests.el --- Tests for elixir-ts-mode         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
