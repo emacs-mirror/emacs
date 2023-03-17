@@ -887,22 +887,23 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx,
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
-    {
-      Lisp_Object elt;
+    if (!remove)
+      {
+	Lisp_Object elt;
 
-      if (CONSP (idx) && CHARACTERP (XCAR (idx)))
-	{
-	  /* IDX specifies a range of characters, and not all of them
-	     were handled yet, which means this keymap doesn't have a
-	     char-table.  So, we insert a char-table now.  */
-	  elt = Fmake_char_table (Qkeymap, Qnil);
-	  Fset_char_table_range (elt, idx, NILP (def) ? Qt : def);
-	}
-      else
-	elt = Fcons (idx, def);
-      CHECK_IMPURE (insertion_point, XCONS (insertion_point));
-      XSETCDR (insertion_point, Fcons (elt, XCDR (insertion_point)));
-    }
+	if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	  {
+	    /* IDX specifies a range of characters, and not all of them
+	       were handled yet, which means this keymap doesn't have a
+	       char-table.  So, we insert a char-table now.  */
+	    elt = Fmake_char_table (Qkeymap, Qnil);
+	    Fset_char_table_range (elt, idx, NILP (def) ? Qt : def);
+	  }
+	else
+	  elt = Fcons (idx, def);
+	CHECK_IMPURE (insertion_point, XCONS (insertion_point));
+	XSETCDR (insertion_point, Fcons (elt, XCDR (insertion_point)));
+      }
   }
 
   return def;
