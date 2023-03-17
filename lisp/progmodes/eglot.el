@@ -758,7 +758,9 @@ treated as in `eglot--dbind'."
              :completion      (list :dynamicRegistration :json-false
                                     :completionItem
                                     `(:snippetSupport
-                                      ,(if (eglot--snippet-expansion-fn)
+                                      ,(if (and
+                                            (not (eglot--stay-out-of-p 'yasnippet))
+                                            (eglot--snippet-expansion-fn))
                                            t
                                          :json-false)
                                       :deprecatedSupport t
@@ -1626,9 +1628,11 @@ If optional MARKER, return a marker instead"
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
 Doubles as an indicator of snippet support."
-  (and (boundp 'yas-minor-mode)
-       (symbol-value 'yas-minor-mode)
-       'yas-expand-snippet))
+  (and (fboundp 'yas-minor-mode)
+       (lambda (&rest args)
+         (with-no-warnings
+           (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
+           (apply #'yas-expand-snippet args)))))
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
@@ -2887,8 +2891,7 @@ for which LSP on-type-formatting should be requested."
                                 ;; it'll be adjusted.  If no usable
                                 ;; insertText at all, label is best,
                                 ;; too.
-                                (cond ((or (and (eql insertTextFormat 2)
-                                                (eglot--snippet-expansion-fn))
+                                (cond ((or (eql insertTextFormat 2)
                                            textEdit
                                            (null insertText)
                                            (string-empty-p insertText))
