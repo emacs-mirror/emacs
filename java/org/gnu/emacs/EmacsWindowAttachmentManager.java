@@ -67,7 +67,7 @@ public final class EmacsWindowAttachmentManager
     public void destroy ();
   };
 
-  private List<WindowConsumer> consumers;
+  public List<WindowConsumer> consumers;
   public List<EmacsWindow> windows;
 
   public

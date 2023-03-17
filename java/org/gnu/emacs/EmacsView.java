@@ -514,6 +514,17 @@ public final class EmacsView extends ViewGroup
 
     contextMenu = null;
     popupActive = false;
+
+    /* It is not possible to know with 100% certainty which activity
+       is currently displaying the context menu.  Loop through each
+       activity and call `closeContextMenu' instead.  */
+
+    for (EmacsWindowAttachmentManager.WindowConsumer consumer
+	   : EmacsWindowAttachmentManager.MANAGER.consumers)
+      {
+	if (consumer instanceof EmacsActivity)
+	  ((EmacsActivity) consumer).closeContextMenu ();
+      }
   }
 
   @Override
@@ -644,6 +655,16 @@ public final class EmacsView extends ViewGroup
     /* If value is true, then the system will display the on screen
        keyboard.  */
     return isCurrentlyTextEditor;
+  }
+
+  @Override
+  public boolean
+  isOpaque ()
+  {
+    /* Returning true here allows the system to not draw the contents
+       of windows underneath this view, thereby improving
+       performance.  */
+    return true;
   }
 
   public synchronized void
