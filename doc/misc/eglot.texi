@@ -154,11 +154,11 @@ Use Eglot.
 
 Most Eglot facilities are integrated into Emacs features, such as
 ElDoc, Flymake, Xref, and Imenu.  However, Eglot also provides
-commands of its own, mainly to perform tasks by the LSP server, such
-as @kbd{M-x eglot-rename} (to rename an identifier across the entire
-project), @kbd{M-x eglot-format} (to reformat and reindent code), and
-some others.  @xref{Eglot Commands}, for the detailed list of Eglot
-commands.
+commands of its own, mainly to perform tasks by the language server,
+such as @kbd{M-x eglot-rename} (to rename an identifier across the
+entire project), @kbd{M-x eglot-format} (to reformat and reindent
+code), and some others.  @xref{Eglot Commands}, for the detailed list
+of Eglot commands.
 
 @item
 That's it!
@@ -968,7 +968,7 @@ mechanism.
 @cindex progress
 @item eglot-report-progress
 Set this variable to true if you'd like progress notifications coming
-from the LSP server to be handled as Emacs's progress reporting
+from the language server to be handled as Emacs's progress reporting
 facilities.
 @end table
 
@@ -1079,10 +1079,11 @@ plists.  Some examples are useful.
 
 Let's say you want to configure two language servers to be used in a
 project written in a combination of the Python and Go languages.  You
-want to use the @command{pylsp} and @command{gopls} LSP servers. In
-the documentation of the servers in question (or in some other editor's
-configuration file, or in some blog article), you find the following
-configuration options in informal dotted-notation syntax:
+want to use the @command{pylsp} and @command{gopls} languages
+servers. In the documentation of the servers in question (or in some
+other editor's configuration file, or in some blog article), you find
+the following configuration options in informal dotted-notation
+syntax:
 
 @example
 pylsp.plugins.jedi_completion.include_params: true
@@ -1300,13 +1301,14 @@ slowly, try to customize the variable @code{eglot-events-buffer-size}
 (@pxref{Eglot Variables}) to 0.  This will disable any debug logging
 and may speed things up.
 
-In other situations, the cause of poor performance lies in the LSP
-server itself.  Servers use aggressive caching and other techniques to
-improve their performance.  Often, this can be tweaked by changing the
-server configuration (@pxref{Advanced server configuration}).
+In other situations, the cause of poor performance lies in the
+language server itself.  Servers use aggressive caching and other
+techniques to improve their performance.  Often, this can be tweaked
+by changing the server configuration (@pxref{Advanced server
+configuration}).
 
 If you think you have found a bug, we want to hear about it.  Before
-reporting a bug, keep in mind that interaction with LSP servers
+reporting a bug, keep in mind that interaction with language servers
 represents a large quantity of unknown variables.  Therefore, it is
 generally both @emph{difficult} and @emph{absolutely essential} that
 the maintainers reproduce bugs exactly as they happened to you, the
