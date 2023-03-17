@@ -517,10 +517,10 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 
   if (!bitmap)
     return -1;
-#else
+#elif defined HAVE_ANDROID
   ((void) dpyinfo);
   emacs_abort ();
-#endif
+#endif /* HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
 #ifdef HAVE_NTGUI
   Lisp_Object frame UNINIT;	/* The value is not used.  */

@@ -128,7 +128,12 @@ typedef int emacs_fd;
 #define emacs_fd_lseek		lseek
 #define emacs_fd_fstat		sys_fstat
 #define emacs_fd_valid_p(fd)	((fd) >= 0)
+
+/* This is not used on MS Windows.  */
+
+#ifndef WINDOWSNT
 #define emacs_fd_to_int(fds)	(fds)
+#endif /* WINDOWSNT */
 
 #else /* HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
