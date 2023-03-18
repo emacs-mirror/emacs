@@ -208,7 +208,7 @@ linked Emacs under SunOS 4.x."
       proc)))
 
 (defvar url-gw-rlogin-obsolete-warned-once nil)
-(make-obsolete-variable url-gw-rlogin-obsolete-warned-once nil "29.1")
+(make-obsolete-variable 'url-gw-rlogin-obsolete-warned-once nil "29.1")
 
 ;;;###autoload
 (defun url-open-stream (name buffer host service &optional gateway-method)
