@@ -1062,7 +1062,7 @@ plists.  Some examples are useful.
 Let's say you want to configure two language servers to be used in a
 project written in a combination of the Python and Go languages.  You
 want to use the @command{pylsp} and @command{gopls} languages
-servers. In the documentation of the servers in question (or in some
+servers.  In the documentation of the servers in question (or in some
 other editor's configuration file, or in some blog article), you find
 the following configuration options in informal dotted-notation
 syntax:

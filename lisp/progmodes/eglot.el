@@ -2092,7 +2092,7 @@ still unanswered LSP requests to the server\n"))))))))
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'eglot-code-actions-at-mouse)
     map)
-  "Map active in Eglot-backed Flymake diagnostic overlays.")
+  "Keymap active in Eglot-backed Flymake diagnostic overlays.")
 
 (cl-loop for i from 1
          for type in '(eglot-note eglot-warning eglot-error)
