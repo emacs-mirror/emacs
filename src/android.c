@@ -304,9 +304,6 @@ static struct timespec *volatile android_pselect_timeout;
 /* Value of pselect.  */
 static int android_pselect_rc;
 
-/* Whether or not pselect finished.  */
-static volatile bool android_pselect_completed;
-
 /* The global event queue.  */
 static struct android_event_queue event_queue;
 
@@ -317,6 +314,11 @@ static sem_t android_pselect_sem, android_pselect_start_sem;
 
 /* Select self-pipe.  */
 static int select_pipe[2];
+
+#else
+
+/* Whether or not pselect has been interrupted.  */
+static volatile sig_atomic_t android_pselect_interrupted;
 
 #endif
 
@@ -388,7 +390,6 @@ android_run_select_thread (void *data)
          condition variable.  */
 
       pthread_mutex_lock (&event_queue.mutex);
-      android_pselect_completed = true;
       pthread_cond_broadcast (&event_queue.read_var);
       pthread_mutex_unlock (&event_queue.mutex);
 
@@ -417,6 +418,10 @@ android_run_select_thread (void *data)
       while (sem_wait (&android_pselect_start_sem) < 0)
 	;;
 
+      /* Clear the ``pselect interrupted'' flag.  This is safe because
+	 right now, SIGUSR1 is blocked.  */
+      android_pselect_interrupted = 0;
+
       /* Get the select lock and call pselect.  */
       pthread_mutex_lock (&event_queue.select_mutex);
       rc = pselect (android_pselect_nfds,
@@ -434,11 +439,16 @@ android_run_select_thread (void *data)
          condition variable.  */
 
       pthread_mutex_lock (&event_queue.mutex);
-      android_pselect_completed = true;
       pthread_cond_broadcast (&event_queue.read_var);
       pthread_mutex_unlock (&event_queue.mutex);
 
-      if (rc != -1 || errno != EINTR)
+      /* Check `android_pselect_interrupted' instead of rc and errno.
+
+         This is because `pselect' does not return an rc of -1 upon
+         being interrupted in some versions of Android, but does set
+         signal masks correctly.  */
+
+      if (!android_pselect_interrupted)
 	/* Now, wait for SIGUSR1, unless pselect was interrupted and
 	   the signal was already delivered.  The Emacs thread will
 	   always send this signal after read_var is triggered or the
@@ -460,8 +470,8 @@ android_run_select_thread (void *data)
 static void
 android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
 {
-  /* Nothing to do here, this signal handler is only installed to make
-     sure the disposition of SIGUSR1 is enough.  */
+  /* Notice that pselect has been interrupted.  */
+  android_pselect_interrupted = 1;
 }
 
 #endif
@@ -686,7 +696,6 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
     }
 
   nfds_return = 0;
-  android_pselect_completed = false;
 
   pthread_mutex_lock (&event_queue.select_mutex);
   android_pselect_nfds = nfds;
