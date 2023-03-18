@@ -468,7 +468,7 @@ In addition to enabling and enhancing other features and packages,
 Eglot also provides a number of user commands based on the
 capabilities of language servers.  Examples include renaming symbols
 with @kbd{eglot-rename} and asking to automatically correct problems
-with @kbd{eglot-code-actions}.  @xref{Eglot commands}.
+with @kbd{eglot-code-actions}.  @xref{Eglot Commands}.
 @end itemize
 
 Not all servers support the full set of LSP capabilities, but most of
