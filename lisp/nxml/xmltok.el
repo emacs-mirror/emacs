@@ -734,8 +734,13 @@ and VALUE-END, otherwise a STRING giving the value."
 	(atts-needing-normalization nil))
     (while (cond ((or (looking-at (xmltok-attribute regexp))
 		      ;; use non-greedy group
-		      (when (looking-at (concat "[^<>\n]+?"
-						(xmltok-attribute regexp)))
+		      ;; Limit the search to 10000 characters, to
+		      ;; avoid slowdowns due to the quadratic
+		      ;; complexity of the regexp.  See bug#61514.
+		      (when (with-restriction
+			      (point) (+ (point) 10000)
+			      (looking-at (concat "[^<>\n]+?"
+						  (xmltok-attribute regexp))))
 			(unless recovering
 			  (xmltok-add-error "Malformed attribute"
 					    (point)
