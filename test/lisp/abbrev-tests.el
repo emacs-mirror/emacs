@@ -317,7 +317,7 @@
         (should-not abbrevs-changed))
       ;; Don't save
       (let ((abbrevs-changed t))
-        (ert-simulate-keys '(?n)
+        (ert-simulate-keys '(?n ?\C-m)
           (should (abbrev--possibly-save nil)))
         (should-not abbrevs-changed)))))
 
