@@ -232,6 +232,7 @@ See `c-offsets-alist'."
 	       (setq offset (cdr offset)))
 	     (null offset)))))
 
+;;;###autoload
 (defun c-string-list-p (val)
   "Return non-nil if VAL is a list of strings."
   (and
@@ -1561,16 +1562,6 @@ also elsewhere in CC Mode to tell types from other identifiers."))
 ;; (as opposed to the *-font-lock-keywords-* variables) since the old
 ;; values work fairly well anyway.
 
-(defun c-list-of-strings (obj)
-  "Return non-nil when OBJ is a list of strings (including the empty list)."
-  (and
-   (listp obj)
-   (catch 'check
-     (dolist (elt obj)
-       (when (not (stringp elt))
-	 (throw 'check nil)))
-     t)))
-
 (defcustom c-font-lock-extra-types
   '("\\sw+_t"
     ;; Defined in C99:
@@ -1586,10 +1577,10 @@ also elsewhere in CC Mode to tell types from other identifiers."))
 "For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word \"FILE\"
 and words ending in \"_t\" are treated as type names.")
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'c-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'c-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom c++-font-lock-extra-types
   '("\\sw+_t"
@@ -1620,10 +1611,10 @@ and words ending in \"_t\" are treated as type names.")
 "For example, a value of (\"string\") means the word \"string\" is treated
 as a type name.")
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'c++-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'c++-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom objc-font-lock-extra-types nil
   (c-make-font-lock-extra-types-blurb "ObjC" "objc-mode" (concat
@@ -1632,10 +1623,10 @@ capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps macro and constant
 names)."))
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'objc-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'objc-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom java-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
@@ -1644,18 +1635,18 @@ names)."))
 capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps constant names)."))
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'java-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'java-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom idl-font-lock-extra-types nil
   (c-make-font-lock-extra-types-blurb "IDL" "idl-mode" "")
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'idl-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'idl-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom pike-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw*"))
@@ -1665,10 +1656,10 @@ capitalized words are treated as type names (the requirement for a
 lower case char is to avoid recognizing all-caps macro and constant
 names)."))
   :type 'c-extra-types-widget
-  :safe #'c-list-of-strings
+  :safe #'c-string-list-p
   :group 'c)
 
-;;;###autoload (put 'pike-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+;;;###autoload (put 'pike-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 
 (defcustom c-asymmetry-fontification-flag t
   "Whether to fontify certain ambiguous constructs by white space asymmetry.
