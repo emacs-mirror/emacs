@@ -671,6 +671,7 @@ entire current buffer.
 This command reformats the current buffer, in the same manner as
 @code{eglot-format} does.
 
+@cindex code actions
 @item M-x eglot-code-actions
 @itemx M-x eglot-code-action-organize-imports
 @itemx M-x eglot-code-action-quickfix
@@ -699,8 +700,9 @@ Other commands execute a specific code action.  For example,
 @dfn{imports}---declarations of modules whose capabilities the program
 uses.
 
+@cindex inlay hints
 @item M-x eglot-inlay-hints-mode
-This command toggles LSP ``inlay hints'' on and off for the current
+This command toggles LSP @dfn{inlay hints} on and off for the current
 buffer.  Inlay hints are small text annotations to specific parts of
 the whole buffer, not unlike diagnostics, but designed to help
 readability instead of indicating problems.  For example, a C++
