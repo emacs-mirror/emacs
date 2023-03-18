@@ -133,6 +133,9 @@ public final class EmacsWindow extends EmacsHandleObject
      creating new bitmaps.  */
   public volatile int background;
 
+  /* The position of this window relative to the root window.  */
+  public int xPosition, yPosition;
+
   public
   EmacsWindow (short handle, final EmacsWindow parent, int x, int y,
 	       int width, int height, boolean overrideRedirect)
@@ -192,18 +195,14 @@ public final class EmacsWindow extends EmacsHandleObject
     background = pixel;
   }
 
-  public Rect
+  public synchronized Rect
   getGeometry ()
   {
-    synchronized (this)
-      {
-	/* Huh, this is it.  */
-	return rect;
-      }
+    return new Rect (rect);
   }
 
   @Override
-  public void
+  public synchronized void
   destroyHandle () throws IllegalStateException
   {
     if (parent != null)
@@ -258,21 +257,27 @@ public final class EmacsWindow extends EmacsHandleObject
     return attached;
   }
 
-  public long
+  public synchronized long
   viewLayout (int left, int top, int right, int bottom)
   {
     int rectWidth, rectHeight;
 
-    synchronized (this)
-      {
-	rect.left = left;
-	rect.top = top;
-	rect.right = right;
-	rect.bottom = bottom;
-      }
+    rect.left = left;
+    rect.top = top;
+    rect.right = right;
+    rect.bottom = bottom;
 
     rectWidth = right - left;
     rectHeight = bottom - top;
+
+    /* If parent is null, use xPosition and yPosition instead of the
+       geometry rectangle positions.  */
+
+    if (parent == null)
+      {
+	left = xPosition;
+	top = yPosition;
+      }
 
     return EmacsNative.sendConfigureNotify (this.handle,
 					    System.currentTimeMillis (),
@@ -283,8 +288,6 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   requestViewLayout ()
   {
-    /* This is necessary because otherwise subsequent drawing on the
-       Emacs thread may be lost.  */
     view.explicitlyDirtyBitmap ();
 
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
@@ -302,35 +305,29 @@ public final class EmacsWindow extends EmacsHandleObject
       });
   }
 
-  public void
+  public synchronized void
   resizeWindow (int width, int height)
   {
-    synchronized (this)
-      {
-	rect.right = rect.left + width;
-	rect.bottom = rect.top + height;
+    rect.right = rect.left + width;
+    rect.bottom = rect.top + height;
 
-	requestViewLayout ();
-      }
+    requestViewLayout ();
   }
 
-  public void
+  public synchronized void
   moveWindow (int x, int y)
   {
     int width, height;
 
-    synchronized (this)
-      {
-	width = rect.width ();
-	height = rect.height ();
+    width = rect.width ();
+    height = rect.height ();
 
-	rect.left = x;
-	rect.top = y;
-	rect.right = x + width;
-	rect.bottom = y + height;
+    rect.left = x;
+    rect.top = y;
+    rect.right = x + width;
+    rect.bottom = y + height;
 
-	requestViewLayout ();
-      }
+    requestViewLayout ();
   }
 
   private WindowManager.LayoutParams
@@ -366,13 +363,17 @@ public final class EmacsWindow extends EmacsHandleObject
     return EmacsService.SERVICE;
   }
 
-  public void
+  public synchronized void
   mapWindow ()
   {
+    final int width, height;
+
     if (isMapped)
       return;
 
     isMapped = true;
+    width = rect.width ();
+    height = rect.height ();
 
     if (parent == null)
       {
@@ -424,6 +425,7 @@ public final class EmacsWindow extends EmacsHandleObject
 		  /* Attach the view.  */
 		  try
 		    {
+		      view.prepareForLayout (width, height);
 		      windowManager.addView (view, params);
 
 		      /* Record the window manager being used in the
@@ -448,10 +450,14 @@ public final class EmacsWindow extends EmacsHandleObject
 	    public void
 	    run ()
 	    {
+	      /* Prior to mapping the view, set its measuredWidth and
+		 measuredHeight to some reasonable value, in order to
+		 avoid excessive bitmap dirtying.  */
+
+	      view.prepareForLayout (width, height);
 	      view.setVisibility (View.VISIBLE);
 
 	      if (!getDontFocusOnMap ())
-	      /* Eventually this should check no-focus-on-map.  */
 		view.requestFocus ();
 	    }
 	  });
@@ -512,12 +518,9 @@ public final class EmacsWindow extends EmacsHandleObject
   public void
   clearWindow ()
   {
-    synchronized (this)
-      {
-	EmacsService.SERVICE.fillRectangle (this, scratchGC,
-					    0, 0, rect.width (),
-					    rect.height ());
-      }
+    EmacsService.SERVICE.fillRectangle (this, scratchGC,
+					0, 0, rect.width (),
+					rect.height ());
   }
 
   public void
@@ -1001,7 +1004,7 @@ public final class EmacsWindow extends EmacsHandleObject
     return false;
   }
 
-  public void
+  public synchronized void
   reparentTo (final EmacsWindow otherWindow, int x, int y)
   {
     int width, height;
@@ -1017,15 +1020,12 @@ public final class EmacsWindow extends EmacsHandleObject
     parent = otherWindow;
 
     /* Move this window to the new location.  */
-    synchronized (this)
-      {
-	width = rect.width ();
-	height = rect.height ();
-	rect.left = x;
-	rect.top = y;
-	rect.right = x + width;
-	rect.bottom = y + height;
-      }
+    width = rect.width ();
+    height = rect.height ();
+    rect.left = x;
+    rect.top = y;
+    rect.right = x + width;
+    rect.bottom = y + height;
 
     /* Now do the work necessary on the UI thread to reparent the
        window.  */
@@ -1081,7 +1081,7 @@ public final class EmacsWindow extends EmacsHandleObject
       });
   }
 
-  public void
+  public synchronized void
   raise ()
   {
     /* This does nothing here.  */
@@ -1103,7 +1103,7 @@ public final class EmacsWindow extends EmacsHandleObject
       });
   }
 
-  public void
+  public synchronized void
   lower ()
   {
     /* This does nothing here.  */
@@ -1125,17 +1125,15 @@ public final class EmacsWindow extends EmacsHandleObject
       });
   }
 
-  public int[]
+  public synchronized int[]
   getWindowGeometry ()
   {
     int[] array;
-    Rect rect;
 
     array = new int[4];
-    rect = getGeometry ();
 
-    array[0] = rect.left;
-    array[1] = rect.top;
+    array[0] = parent != null ? rect.left : xPosition;
+    array[1] = parent != null ? rect.top : yPosition;
     array[2] = rect.width ();
     array[3] = rect.height ();
 
@@ -1271,5 +1269,32 @@ public final class EmacsWindow extends EmacsHandleObject
 	      view.setPointerIcon (null);
 	  }
 	});
+  }
+
+  public synchronized void
+  notifyContentRectPosition (int xPosition, int yPosition)
+  {
+    Rect geometry;
+
+    /* Ignore these notifications if not a child of the root
+       window.  */
+    if (parent != null)
+      return;
+
+    /* xPosition and yPosition are the position of this window
+       relative to the screen.  Set them and request a ConfigureNotify
+       event.  */
+
+    if (this.xPosition != xPosition
+	|| this.yPosition != yPosition)
+      {
+	this.xPosition = xPosition;
+	this.yPosition = yPosition;
+
+	EmacsNative.sendConfigureNotify (this.handle,
+					 System.currentTimeMillis (),
+					 xPosition, yPosition,
+					 rect.width (), rect.height ());
+      }
   }
 };

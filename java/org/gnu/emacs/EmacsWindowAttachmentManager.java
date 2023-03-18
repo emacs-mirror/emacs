@@ -22,7 +22,9 @@ package org.gnu.emacs;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 /* Code to paper over the differences in lifecycles between
@@ -102,6 +104,7 @@ public final class EmacsWindowAttachmentManager
   registerWindow (EmacsWindow window)
   {
     Intent intent;
+    ActivityOptions options;
 
     Log.d (TAG, "registerWindow (maybe): " + window);
 
@@ -128,7 +131,18 @@ public final class EmacsWindowAttachmentManager
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_DOCUMENT
 		     | Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-    EmacsService.SERVICE.startActivity (intent);
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      EmacsService.SERVICE.startActivity (intent);
+    else
+      {
+	/* Specify the desired window size.  */
+	options = ActivityOptions.makeBasic ();
+	options.setLaunchBounds (window.getGeometry ());
+	EmacsService.SERVICE.startActivity (intent,
+					    options.toBundle ());
+      }
+
     Log.d (TAG, "registerWindow: startActivity");
   }
 

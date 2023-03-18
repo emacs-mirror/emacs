@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -51,6 +52,7 @@ import android.util.Log;
    It is also a ViewGroup, as it also lays out children.  */
 
 public final class EmacsView extends ViewGroup
+  implements ViewTreeObserver.OnGlobalLayoutListener
 {
   public static final String TAG = "EmacsView";
 
@@ -136,6 +138,9 @@ public final class EmacsView extends ViewGroup
     context = getContext ();
     tem = context.getSystemService (Context.INPUT_METHOD_SERVICE);
     imManager = (InputMethodManager) tem;
+
+    /* Add this view as its own global layout listener.  */
+    getViewTreeObserver ().addOnGlobalLayoutListener (this);
   }
 
   private void
@@ -236,6 +241,13 @@ public final class EmacsView extends ViewGroup
       }
 
     return canvas;
+  }
+
+  public void
+  prepareForLayout (int wantedWidth, int wantedHeight)
+  {
+    measuredWidth = wantedWidth;
+    measuredHeight = wantedWidth;
   }
 
   @Override
@@ -562,8 +574,7 @@ public final class EmacsView extends ViewGroup
     bitmapDirty = true;
 
     /* Now expose the view contents again.  */
-    EmacsNative.sendExpose (this.window.handle, 0, 0,
-			    measuredWidth, measuredHeight);
+    EmacsNative.sendExpose (this.window.handle, 0, 0, 0, 0);
 
     super.onAttachedToWindow ();
   }
@@ -677,5 +688,20 @@ public final class EmacsView extends ViewGroup
   getICMode ()
   {
     return icMode;
+  }
+
+  @Override
+  public void
+  onGlobalLayout ()
+  {
+    int[] locations;
+
+    /* Get the absolute offset of this view and specify its left and
+       top position in subsequent ConfigureNotify events.  */
+
+    locations = new int[2];
+    getLocationInWindow (locations);
+    window.notifyContentRectPosition (locations[0],
+				      locations[1]);
   }
 };

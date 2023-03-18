@@ -787,6 +787,33 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  cancel_mouse_face (f);
 	}
 
+      /* Now change the left and top position of this window.  */
+
+      {
+	int old_left = f->left_pos;
+	int old_top = f->top_pos;
+	Lisp_Object frame;
+
+	XSETFRAME (frame, f);
+
+	{
+	  android_window root;
+	  unsigned int dummy_uint;
+
+	  android_get_geometry (FRAME_ANDROID_WINDOW (f),
+				&root, &f->left_pos, &f->top_pos,
+				&dummy_uint, &dummy_uint,
+				&dummy_uint);
+	}
+
+	if (!FRAME_TOOLTIP_P (f)
+	    && (old_left != f->left_pos || old_top != f->top_pos))
+	  {
+	    inev.ie.kind = MOVE_FRAME_EVENT;
+	    XSETFRAME (inev.ie.frame_or_window, f);
+	  }
+      }
+
       goto OTHER;
 
     case ANDROID_KEY_PRESS:
@@ -1100,6 +1127,11 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
           if (!FRAME_GARBAGED_P (f))
             {
+	      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+				   "expose: %d %d %d %d\n",
+				   event->xexpose.x, event->xexpose.y,
+				   event->xexpose.width,
+				   event->xexpose.height);
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 	      show_back_buffer (f);
