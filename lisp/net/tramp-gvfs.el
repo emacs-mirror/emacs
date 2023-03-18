@@ -1460,9 +1460,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
 	(tramp-message
 	 v 6 "Run `%s', %S" (string-join (process-command p) " ") p)
-	(process-put p 'vector v)
-	(process-put p 'events events)
-	(process-put p 'watch-name localname)
+	(process-put p 'tramp-vector v)
+	(process-put p 'tramp-events events)
+	(process-put p 'tramp-watch-name localname)
 	(process-put p 'adjust-window-size-function #'ignore)
 	(set-process-query-on-exit-flag p nil)
 	(set-process-filter p #'tramp-gvfs-monitor-process-filter)
@@ -1481,8 +1481,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 (defun tramp-gvfs-monitor-process-filter (proc string)
   "Read output from \"gvfs-monitor-file\" and add corresponding \
 `file-notify' events."
-  (let* ((events (process-get proc 'events))
-	 (rest-string (process-get proc 'rest-string))
+  (let* ((events (process-get proc 'tramp-events))
+	 (rest-string (process-get proc 'tramp-rest-string))
 	 (dd (tramp-get-default-directory (process-buffer proc)))
 	 (ddu (rx (literal (tramp-gvfs-url-file-name dd)))))
     (when rest-string
@@ -1525,7 +1525,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	  (setq file1 (url-unhex-string file1)))
 	;; Remove watch when file or directory to be watched is deleted.
 	(when (and (member action '(moved deleted))
-		   (string-equal file (process-get proc 'watch-name)))
+		   (string-equal file (process-get proc 'tramp-watch-name)))
 	  (delete-process proc))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
@@ -1537,7 +1537,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     ;; Save rest of the string.
     (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
-    (process-put proc 'rest-string string)))
+    (process-put proc 'tramp-rest-string string)))
 
 (defun tramp-gvfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -2152,7 +2152,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (set-process-query-on-exit-flag p nil)
 
       ;; Set connection-local variables.
