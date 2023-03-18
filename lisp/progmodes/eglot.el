@@ -1258,11 +1258,6 @@ This docstring appeases checkdoc, that's all."
                               ;; very much data so we turn it off
                               ;; unconditionally -- just for our
                               ;; process.
-                              ;; In Tramp 2.6.0.3 and newer, the value
-                              ;; `suppress' is sufficient.  Older
-                              ;; Tramp versions need a non-nil value,
-                              ;; and a proper setting of
-                              ;; `tramp-ssh-controlmaster-options'.
                               (tramp-use-ssh-controlmaster-options 'suppress)
                               (tramp-ssh-controlmaster-options
                                "-o ControlMaster=no -o ControlPath=none"))
