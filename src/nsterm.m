@@ -8581,6 +8581,10 @@ ns_in_echo_area (void)
   return self;
 }
 
+- (BOOL) validateToolbarItem: (NSToolbarItem *) toolbarItem
+{
+  return [toolbarItem isEnabled];
+}
 
 - (instancetype)toggleToolbar: (id)sender
 {
