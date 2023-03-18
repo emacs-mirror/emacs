@@ -53,7 +53,7 @@ than the latter."
 (defvar find-gnu-find-p
   (eq 0 (ignore-errors
           (process-file find-program nil nil nil null-device "--version")))
-  "T if 'find-program' is a GNU find.  NIL otherwise.")
+  "Non-nil if `find-program' is a GNU Find, nil otherwise.")
 
 (defvar find-ls-option-default-ls
   (cons "-ls" (if find-gnu-find-p "-dilsb" "-dgils")))
