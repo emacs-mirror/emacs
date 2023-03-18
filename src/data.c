@@ -773,7 +773,10 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
 }
 
 DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
-       doc: /* Return SYMBOL's name, a string.  */)
+       doc: /* Return SYMBOL's name, a string.
+
+Warning: never alter the string returned by `symbol-name'.
+Doing that might make Emacs dysfunctional, and might even crash Emacs.  */)
   (register Lisp_Object symbol)
 {
   register Lisp_Object name;

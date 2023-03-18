@@ -276,9 +276,8 @@ This function returns the string that is @var{symbol}'s name.  For example:
 @end group
 @end example
 
-@strong{Warning:} Changing the string by substituting characters does
-change the name of the symbol, but fails to update the obarray, so don't
-do it!
+@strong{Warning:} Never alter the string returned by that function.
+Doing that might make Emacs dysfunctional, and might even crash Emacs.
 @end defun
 
 @cindex uninterned symbol, and generating Lisp code
