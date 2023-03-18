@@ -1127,11 +1127,6 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
           if (!FRAME_GARBAGED_P (f))
             {
-	      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
-				   "expose: %d %d %d %d\n",
-				   event->xexpose.x, event->xexpose.y,
-				   event->xexpose.width,
-				   event->xexpose.height);
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 	      show_back_buffer (f);
