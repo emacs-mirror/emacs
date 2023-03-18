@@ -574,7 +574,8 @@ public final class EmacsView extends ViewGroup
     bitmapDirty = true;
 
     /* Now expose the view contents again.  */
-    EmacsNative.sendExpose (this.window.handle, 0, 0, 0, 0);
+    EmacsNative.sendExpose (this.window.handle, 0, 0,
+			    measuredWidth, measuredHeight);
 
     super.onAttachedToWindow ();
   }
