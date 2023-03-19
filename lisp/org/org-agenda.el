@@ -3348,7 +3348,7 @@ s   Search for keywords                 M   Like m, but only TODO entries
 	      (`agenda
 	       (call-interactively 'org-agenda-list))
 	      (`agenda*
-	       (funcall 'org-agenda-list nil nil t))
+	       (funcall 'org-agenda-list nil nil nil t))
 	      (`alltodo
 	       (call-interactively 'org-todo-list))
 	      (`search
