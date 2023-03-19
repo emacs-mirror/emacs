@@ -2375,25 +2375,23 @@ THINGS are either registrations or unregisterations (sic)."
   "Hook onto `after-change-functions'.
 Records BEG, END and PRE-CHANGE-LENGTH locally."
   (cl-incf eglot--versioned-identifier)
-  (pcase (and (listp eglot--recent-changes)
-              (car eglot--recent-changes))
+  (pcase (car-safe eglot--recent-changes)
     (`(,lsp-beg ,lsp-end
                 (,b-beg . ,b-beg-marker)
                 (,b-end . ,b-end-marker))
-     ;; github#259 and github#367: With `capitalize-word' or somesuch,
-     ;; `before-change-functions' always records the whole word's
-     ;; `b-beg' and `b-end'.  Similarly, when coalescing two lines
-     ;; into one, `fill-paragraph' they mark the end of the first line
-     ;; up to the end of the second line.  In both situations, args
-     ;; received here contradict that information: `beg' and `end'
-     ;; will differ by 1 and will likely only encompass the letter
-     ;; that was capitalized or, in the sentence-joining situation,
-     ;; the replacement of the newline with a space.  That's we keep
-     ;; markers _and_ positions so we're able to detect and correct
-     ;; this.  We ignore `beg', `len' and `pre-change-len' and send
-     ;; "fuller" information about the region from the markers.  I've
-     ;; also experimented with doing this unconditionally but it seems
-     ;; to break when newlines are added.
+     ;; github#259 and github#367: with `capitalize-word' & friends,
+     ;; `before-change-functions' records the whole word's `b-beg' and
+     ;; `b-end'.  Similarly, when `fill-paragraph' coalesces two
+     ;; lines, `b-beg' and `b-end' mark end of first line and end of
+     ;; second line, resp.  In both situations, `beg' and `end'
+     ;; received here seemingly contradict that: they will differ by 1
+     ;; and encompass the capitalized character or, in the coalescing
+     ;; case, the replacement of the newline with a space.  We keep
+     ;; both markers and positions to detect and correct this.  In
+     ;; this specific case, we ignore `beg', `len' and
+     ;; `pre-change-len' and send richer information about the region
+     ;; from the markers.  I've also experimented with doing this
+     ;; unconditionally but it seems to break when newlines are added.
      (if (and (= b-end b-end-marker) (= b-beg b-beg-marker)
               (or (/= beg b-beg) (/= end b-end)))
          (setcar eglot--recent-changes
