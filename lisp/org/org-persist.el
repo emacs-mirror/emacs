@@ -540,13 +540,13 @@ COLLECTION is the plist holding data collection."
 
 (defun org-persist-read:file (_ path __)
   "Read file container from PATH."
-  (when (and path (file-exists-p (concat org-persist-directory path)))
-    (concat org-persist-directory path)))
+  (when (and path (file-exists-p (org-file-name-concat org-persist-directory path)))
+    (org-file-name-concat org-persist-directory path)))
 
 (defun org-persist-read:url (_ path __)
   "Read file container from PATH."
-  (when (and path (file-exists-p (concat org-persist-directory path)))
-    (concat org-persist-directory path)))
+  (when (and path (file-exists-p (org-file-name-concat org-persist-directory path)))
+    (org-file-name-concat org-persist-directory path)))
 
 (defun org-persist-read:index (cont index-file _)
   "Read index container CONT from INDEX-FILE."
