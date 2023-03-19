@@ -720,7 +720,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (set-process-query-on-exit-flag p nil)
 
       ;; Set connection-local variables.
@@ -758,7 +758,7 @@ in case of error, t otherwise."
       (tramp-message vec 6 "%s" (string-join (process-command p) " "))
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (process-put p 'vector vec)
+      (process-put p 'tramp-vector vec)
       (process-put p 'adjust-window-size-function #'ignore)
       (set-process-query-on-exit-flag p nil)
       (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)

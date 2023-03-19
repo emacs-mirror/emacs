@@ -1249,7 +1249,7 @@ connection if a previous connection has died for some reason."
 
 	    ;; Set sentinel and query flag.  Initialize variables.
 	    (set-process-sentinel p #'tramp-process-sentinel)
-	    (process-put p 'vector vec)
+	    (process-put p 'tramp-vector vec)
 	    (process-put p 'adjust-window-size-function #'ignore)
 	    (set-process-query-on-exit-flag p nil)
 

@@ -2423,11 +2423,11 @@ The method used must be an out-of-band method."
 		      (tramp-get-connection-buffer v)
 		      copy-program copy-args)))
 		(tramp-message v 6 "%s" (string-join (process-command p) " "))
-		(process-put p 'vector v)
+		(process-put p 'tramp-vector v)
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
-		;; (process-put p 'shared-socket t)
+		;; (process-put p 'tramp-shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 
@@ -3756,14 +3756,14 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   "`%s' failed to start on remote host"
 	   (string-join sequence " "))
 	(tramp-message v 6 "Run `%s', %S" (string-join sequence " ") p)
-	(process-put p 'vector v)
+	(process-put p 'tramp-vector v)
 	;; This is neded for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
-	;; (process-put p 'shared-socket t)
+	;; (process-put p 'tramp-shared-socket t)
 	;; Needed for process filter.
-	(process-put p 'events events)
-	(process-put p 'watch-name localname)
+	(process-put p 'tramp-events events)
+	(process-put p 'tramp-watch-name localname)
 	(set-process-query-on-exit-flag p nil)
 	(set-process-filter p filter)
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
@@ -3777,10 +3777,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 
 (defun tramp-sh-gio-monitor-process-filter (proc string)
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
-  (let ((events (process-get proc 'events))
+  (let ((events (process-get proc 'tramp-events))
 	(remote-prefix
 	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
-	(rest-string (process-get proc 'rest-string))
+	(rest-string (process-get proc 'tramp-rest-string))
 	pos)
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
@@ -3862,11 +3862,11 @@ Fall back to normal file name handler if no Tramp handler exists."
       (setq string (replace-match "" nil nil string)))
     (when (string-empty-p string) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
-    (process-put proc 'rest-string string)))
+    (process-put proc 'tramp-rest-string string)))
 
 (defun tramp-sh-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding `file-notify' events."
-  (let ((events (process-get proc 'events)))
+  (let ((events (process-get proc 'tramp-events)))
     (tramp-message proc 6 "%S\n%s" proc string)
     (dolist (line (split-string string (rx (+ (any "\r\n"))) 'omit))
       ;; Check, whether there is a problem.
@@ -3885,7 +3885,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 		  (tramp-compat-string-replace "_" "-" (downcase x))))
 	       (split-string (match-string 1 line) "," 'omit))
 	      (or (match-string 2 line)
-		  (file-name-nondirectory (process-get proc 'watch-name))))))
+		  (file-name-nondirectory
+		   (process-get proc 'tramp-watch-name))))))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the handler directly.
@@ -4315,7 +4316,7 @@ file exists and nonzero exit status otherwise."
   "Wait for shell prompt and barf if none appears.
 Looks at process PROC to see if a shell prompt appears in TIMEOUT
 seconds.  If not, it produces an error message with the given ERROR-ARGS."
-  (let ((vec (process-get proc 'vector)))
+  (let ((vec (process-get proc 'tramp-vector)))
     (condition-case nil
 	(tramp-wait-for-regexp
 	 proc timeout
@@ -5120,11 +5121,11 @@ connection if a previous connection has died for some reason."
 
 		;; Set sentinel and query flag.  Initialize variables.
 		(set-process-sentinel p #'tramp-process-sentinel)
-		(process-put p 'vector vec)
+		(process-put p 'tramp-vector vec)
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
-		;; (process-put p 'shared-socket t)
+		;; (process-put p 'tramp-shared-socket t)
 		(process-put p 'adjust-window-size-function #'ignore)
 		(set-process-query-on-exit-flag p nil)
 		(setq tramp-current-connection (cons vec (current-time)))

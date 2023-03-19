@@ -123,7 +123,7 @@ When called interactively, a Tramp connection has to be selected."
     ;; Delete processes.
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (processp key)
-		 (tramp-file-name-equal-p (process-get key 'vector) vec)
+		 (tramp-file-name-equal-p (process-get key 'tramp-vector) vec)
 		 (or (not keep-processes)
 		     (eq key (tramp-get-process vec))))
 	(tramp-flush-connection-properties key)
