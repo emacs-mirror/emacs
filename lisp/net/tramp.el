@@ -684,7 +684,7 @@ See also `tramp-yn-prompt-regexp'."
   :type 'regexp)
 
 (defcustom tramp-yn-prompt-regexp
-  (rx (| "Store key in cache? (y/n)"
+  (rx (| (: "Store key in cache? (y/n" (* nonl) ")")
 	 "Update cached key? (y/n, Return cancels connection)")
       (* blank))
   "Regular expression matching all y/n queries which need to be confirmed.
