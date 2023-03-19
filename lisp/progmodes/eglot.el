@@ -3219,8 +3219,9 @@ Returns a list as described in docstring of `imenu--index-alist'."
                                  ,(eglot--TextDocumentIdentifier))
                                :cancel-on-input non-essential))))))
 
-(defun eglot--apply-text-edits (edits &optional version)
+(cl-defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
+  (unless edits (cl-return-from eglot--apply-text-edits))
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (jsonrpc-error "Edits on `%s' require version %d, you have %d"
                    (current-buffer) version eglot--versioned-identifier))
