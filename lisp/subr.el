@@ -3598,6 +3598,7 @@ character.  This is not possible when using `read-key', but using
 
 ;; Actually in textconv.c.
 (defvar overriding-text-conversion-style)
+(declare-function set-text-conversion-style "textconv.c")
 
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
@@ -3674,6 +3675,9 @@ like) while `y-or-n-p' is running)."
       (while
           (let* ((scroll-actions '(recenter scroll-up scroll-down
                                             scroll-other-window scroll-other-window-down))
+                 ;; Disable text conversion so that real key events
+                 ;; are sent.
+                 (overriding-text-conversion-style nil)
                  (key
                   (let ((cursor-in-echo-area t))
                     (when minibuffer-auto-raise
@@ -3721,9 +3725,15 @@ like) while `y-or-n-p' is running)."
                        map))
              ;; Protect this-command when called from pre-command-hook (bug#45029)
              (this-command this-command)
-             (str (read-from-minibuffer
-                   prompt nil keymap nil
-                   (or y-or-n-p-history-variable t))))
+             (str (progn
+                    (when (active-minibuffer-window)
+                      ;; If the minibuffer is already active, the
+                      ;; selected window might not change.  Disable
+                      ;; text conversion by hand.
+                      (set-text-conversion-style text-conversion-style))
+                    (read-from-minibuffer
+                     prompt nil keymap nil
+                     (or y-or-n-p-history-variable t)))))
         (setq answer (if (member str '("y" "Y")) 'act 'skip)))))
     (let ((ret (eq answer 'act)))
       (unless noninteractive

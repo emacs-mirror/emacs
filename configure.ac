@@ -1171,6 +1171,7 @@ package will likely install on older systems but crash on startup.])
   passthrough="$passthrough --with-lcms2=$with_lcms2"
   passthrough="$passthrough --with-mailutils=$with_mailutils"
   passthrough="$passthrough --with-pop=$with_pop"
+  passthrough="$passthrough --with-harfbuzz=$with_harfbuzz"
 
   AS_IF([test "x$with_mailutils" = "xyes"], [emacs_use_mailutils=yes])
   AC_SUBST([emacs_use_mailutils])
@@ -1255,13 +1256,13 @@ if test "$ANDROID" = "yes"; then
     with_lcms2=no
     with_mailutils=no
     with_pop=no
+    with_harfbuzz=no
   fi
 
   with_rsvg=no
   with_libsystemd=no
   with_cairo=no
   with_xft=no
-  with_harfbuzz=no
   with_libotf=no
   with_gpm=no
   with_dbus=no
@@ -4581,7 +4582,8 @@ else
 fi
 if test "${HAVE_X11}" = "yes" && test "${HAVE_FREETYPE}" = "yes" \
         || test "$window_system" = "pgtk" \
-        || test "${HAVE_W32}" = "yes"; then
+        || test "${HAVE_W32}" = "yes" \
+	|| test "$REALLY_ANDROID" = "yes"; then
   if test "${with_harfbuzz}" != "no"; then
     EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= $harfbuzz_required_ver])
     if test "$HAVE_HARFBUZZ" = "yes"; then

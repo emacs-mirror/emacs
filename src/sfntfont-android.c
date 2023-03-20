@@ -657,8 +657,16 @@ const struct font_driver android_sfntfont_driver =
     .encode_char = sfntfont_encode_char,
     .text_extents = sfntfont_text_extents,
     .list_family = sfntfont_list_family,
+    .get_variation_glyphs = sfntfont_get_variation_glyphs,
 
-    /* TODO: list_family, shaping.  */
+#ifdef HAVE_HARFBUZZ
+    /* HarfBuzz support is enabled transparently on Android without
+       using a separate font driver.  */
+    .begin_hb_font = sfntfont_begin_hb_font,
+    .combining_capability = hbfont_combining_capability,
+    .shape = hbfont_shape,
+    .otf_capability = hbfont_otf_capability,
+#endif /* HAVE_HARFBUZZ */
   };
 
 

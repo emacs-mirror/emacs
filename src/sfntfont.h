@@ -42,6 +42,7 @@ extern void sfntfont_close (struct font *);
 extern int sfntfont_draw (struct glyph_string *, int, int,
 			  int, int, bool);
 extern Lisp_Object sfntfont_list_family (struct frame *);
+extern int sfntfont_get_variation_glyphs (struct font *, int, unsigned[256]);
 
 
 /* Initialization functions.  */
@@ -64,5 +65,15 @@ extern void init_sfntfont_vendor (Lisp_Object, const struct font_driver *,
 extern bool sfntfont_detect_sigbus (void *);
 
 #endif /* HAVE_MMAP */
+
+
+
+/* HarfBuzz specific functions.  */
+
+#ifdef HAVE_HARFBUZZ
+
+extern hb_font_t *sfntfont_begin_hb_font (struct font *, double *);
+
+#endif /* HAVE_HARFBUZZ */
 
 #endif /* _SFNTFONT_H_ */

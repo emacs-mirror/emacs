@@ -265,6 +265,8 @@ systems:
     (Extract and point ``--with-ndk-path'' to tiff-4.5.0-emacs.tar.gz.)
   tree-sitter	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
     (Please see the section TREE-SITTER near the end of this file.)
+  harfbuzz  	- https://sourceforge.net/projects/android-ports-for-gnu-emacs
+    (Please see the section HARFBUZZ near the end of this file.)
 
 And other developers have ported the following dependencies to Android
 systems:
@@ -305,15 +307,23 @@ should not try to build these packages separately using any
 TREE-SITTER
 
 A copy of tree-sitter modified to build with the ndk-build system can
-also find that URL.  To build Emacs with tree-sitter, you must unpack
-the following tar archive in that site:
+also be found that URL.  To build Emacs with tree-sitter, you must
+unpack the following tar archive in that site:
 
   tree-sitter-0.20.7-emacs.tar.gz
 
 and add the resulting folder to ``--with-ndk-build''.
 
 
-IMAGEMAGICK
+HARFBUZZ
+
+A copy of HarfBuzz modified to build with the ndk-build system can
+also be found at that URL.  To build Emacs with HarfBuzz, you must
+unpack the following tar archive in that site:
+
+  harfbuzz-7.1.0-emacs.tar.gz
+
+and add the resulting folder to ``--with-ndk-build''.
 
 There is a third party port of ImageMagick to Android.  Unfortunately,
 the port also uses its own patched versions of libpng, libjpeg,

@@ -1723,12 +1723,12 @@ DEFUN ("set-text-conversion-style", Fset_text_conversion_style,
        Sset_text_conversion_style, 1, 1, 0,
        doc: /* Set the text conversion style in the current buffer.
 
-Set `text-conversion-mode' to VALUE, then force any input method
+Set `text-conversion-style' to VALUE, then force any input method
 editing frame displaying this buffer to stop itself.
 
 This can lead to a significant amount of time being taken by the input
 method resetting itself, so you should not use this function lightly;
-instead, set `text-conversion-mode' before your buffer is displayed,
+instead, set `text-conversion-style' before your buffer is displayed,
 and let redisplay manage the input method appropriately.  */)
   (Lisp_Object value)
 {

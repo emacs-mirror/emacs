@@ -25,6 +25,8 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sys/types.h>
+
 #if defined emacs || defined TEST
 #define SFNT_ENABLE_HINTING
 #endif
@@ -422,7 +424,7 @@ struct sfnt_cmap_format_8
   struct sfnt_cmap_format_8_or_12_group *groups;
 };
 
-/* cmap formats 10, 13 and 14 unsupported.  */
+/* cmap formats 10, 13 unsupported.  */
 
 struct sfnt_cmap_format_12
 {
@@ -443,6 +445,36 @@ struct sfnt_cmap_format_12
 
   /* Variable length data.  */
   struct sfnt_cmap_format_8_or_12_group *groups;
+};
+
+struct sfnt_cmap_format_14
+{
+  /* Format, set to 14.  */
+  uint16_t format;
+
+  /* The length of the table in bytes.  */
+  uint32_t length;
+
+  /* Number of variation selector records.  */
+  uint16_t num_var_selector_records;
+
+  /* The offset of this table in the font file.  */
+  off_t offset;
+
+  /* Variable length data.  */
+  struct sfnt_variation_selector_record *records;
+};
+
+struct sfnt_variation_selector_record
+{
+  /* 24-bit unsigned variation selector.  */
+  unsigned int var_selector;
+
+  /* Offset to default UVS table.  */
+  uint32_t default_uvs_offset;
+
+  /* Offset to non-default UVS table.  */
+  uint32_t nondefault_uvs_offset;
 };
 
 struct sfnt_maxp_table
@@ -1437,6 +1469,106 @@ struct sfnt_instructed_outline
 
 
 
+/* Unicode Variation Sequence (UVS) support.  */
+
+struct sfnt_default_uvs_table
+{
+  /* Number of ranges that follow.  */
+  uint32_t num_unicode_value_ranges;
+
+  /* Variable length data.  */
+  struct sfnt_unicode_value_range *ranges;
+};
+
+struct sfnt_unicode_value_range
+{
+  /* First value in this range.  */
+  unsigned int start_unicode_value;
+
+  /* Number of additional values in this range.  */
+  unsigned char additional_count;
+};
+
+struct sfnt_nondefault_uvs_table
+{
+  /* Number of UVS mappings which follow.  */
+  uint32_t num_uvs_mappings;
+
+  /* Variable length data.  */
+  struct sfnt_uvs_mapping *mappings;
+};
+
+struct sfnt_uvs_mapping
+{
+  /* Base character value.  */
+  unsigned int unicode_value;
+
+  /* Glyph ID of the base character value.  */
+  uint16_t base_character_value;
+};
+
+struct sfnt_mapped_variation_selector_record
+{
+  /* The variation selector.  */
+  unsigned int selector;
+
+  /* Its default UVS table.  */
+  struct sfnt_default_uvs_table *default_uvs;
+
+  /* Its nondefault UVS table.  */
+  struct sfnt_nondefault_uvs_table *nondefault_uvs;
+};
+
+/* Structure describing a single offset to load into a variation
+   selection context.  */
+
+struct sfnt_table_offset_rec
+{
+  /* The offset from the start of the font file.  */
+  off_t offset;
+
+  /* Whether or not the offset points to a non-default UVS table.  */
+  bool is_nondefault_table;
+
+  /* Pointer to the UVS table.  */
+  void *table;
+};
+
+struct sfnt_uvs_context
+{
+  /* Number of records and tables.  */
+  size_t num_records, nmemb;
+
+  /* Array of UVS tables.  */
+  struct sfnt_table_offset_rec *tables;
+
+  /* Array of variation selector records mapped to
+     their corresponding tables.  */
+  struct sfnt_mapped_variation_selector_record *records;
+};
+
+
+
+#if defined HAVE_MMAP && !defined TEST
+
+/* Memory mapping support.  */
+
+struct sfnt_mapped_table
+{
+  /* Pointer to table data.  */
+  void *data;
+
+  /* Pointer to table mapping.  */
+  void *mapping;
+
+  /* Size of mapped data and size of mapping.  */
+  size_t length, size;
+};
+
+#endif /* HAVE_MMAP && !TEST */
+
+
+
 /* Functions used to read tables used by the TrueType interpreter.  */
 
 #ifndef TEST
@@ -1508,6 +1640,37 @@ extern const char *sfnt_interpret_simple_glyph (PROTOTYPE);
 extern const char *sfnt_interpret_compound_glyph (PROTOTYPE);
 
 #undef PROTOTYPE
+
+
+
+#define PROTOTYPE struct sfnt_cmap_format_14 *, int
+
+extern struct sfnt_uvs_context *sfnt_create_uvs_context (PROTOTYPE);
+
+#undef PROTOTYPE
+
+extern void sfnt_free_uvs_context (struct sfnt_uvs_context *);
+
+#define PROTOTYPE struct sfnt_nondefault_uvs_table *, sfnt_char
+
+extern sfnt_glyph sfnt_variation_glyph_for_char (PROTOTYPE);
+
+#undef PROTOTYPE
+
+
+
+#ifdef HAVE_MMAP
+
+extern int sfnt_map_table (int, struct sfnt_offset_subtable *,
+			   uint32_t, struct sfnt_mapped_table *);
+extern int sfnt_unmap_table (struct sfnt_mapped_table *);
+
+#endif /* HAVE_MMAP */
+
+
+
+extern void *sfnt_read_table (int, struct sfnt_offset_subtable *,
+			      uint32_t, size_t *);
 
 #endif /* TEST */
 

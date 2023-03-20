@@ -601,7 +601,7 @@ sfnt_read_cmap_format_8 (int fd,
   ssize_t rc;
   uint32_t length, i;
 
-  /* Read the 32-bit lenth field.  */
+  /* Read the 32-bit length field.  */
   if (read (fd, &length, sizeof (length)) < sizeof (length))
     return (struct sfnt_cmap_format_8 *) -1;
 
@@ -693,7 +693,7 @@ sfnt_read_cmap_format_12 (int fd,
   ssize_t rc;
   uint32_t length, i;
 
-  /* Read the 32-bit lenth field.  */
+  /* Read the 32-bit length field.  */
   if (read (fd, &length, sizeof (length)) < sizeof (length))
     return (struct sfnt_cmap_format_12 *) -1;
 
@@ -773,6 +773,98 @@ sfnt_read_cmap_format_12 (int fd,
   return format12;
 }
 
+/* Read a 3-byte big endian number from BYTES.  */
+
+static unsigned int
+sfnt_read_24 (unsigned char *bytes)
+{
+  return (bytes[0] << 16u) | (bytes[1] << 8u) | bytes[2];
+}
+
+/* Read a format 14 cmap table from FD.  HEADER->format will be 14 and
+   HEADER->length will be 0; the 16-bit length field is not read.
+   OFFSET is the offset of the table's header in the font file.
+
+   Only variation selector records will be read.  UVS tables will
+   not.  */
+
+static struct sfnt_cmap_format_14 *
+sfnt_read_cmap_format_14 (int fd,
+			  struct sfnt_cmap_encoding_subtable_data *header,
+			  off_t offset)
+{
+  struct sfnt_cmap_format_14 *format14;
+  uint32_t length;
+  uint32_t num_records;
+  uint32_t buffer1[2];
+  size_t size, temp;
+  char buffer[3 + 4 + 4];
+  int i;
+
+  /* Read the length field and number of variation selector
+     records.  */
+
+  if (read (fd, buffer1, sizeof buffer1) < sizeof buffer1)
+    return NULL;
+
+  length = buffer1[0];
+  num_records = buffer1[1];
+
+  sfnt_swap32 (&length);
+  sfnt_swap32 (&num_records);
+
+  /* Now, the number of records present is known.  Allocate the format
+     14 cmap table.  */
+
+  size = sizeof *format14;
+  if (INT_MULTIPLY_WRAPV (num_records, sizeof *format14->records,
+			  &temp)
+      || INT_ADD_WRAPV (size, temp, &size))
+    return NULL;
+
+  format14 = xmalloc (size);
+
+  /* Fill in the data already read.  */
+  format14->format = header->format;
+  format14->length = length;
+  format14->num_var_selector_records = num_records;
+  format14->offset = offset;
+
+  /* Set the pointer to the remaining record data.  */
+  format14->records
+    = (struct sfnt_variation_selector_record *) (format14 + 1);
+
+  /* Read each variation selector record.  */
+
+  for (i = 0; i < num_records; ++i)
+    {
+      if (read (fd, buffer, sizeof buffer) < sizeof buffer)
+	{
+	  xfree (format14);
+	  return NULL;
+	}
+
+      /* First, read the 24 bit variation selector.  */
+      format14->records[i].var_selector
+	= sfnt_read_24 ((unsigned char *) buffer);
+
+      /* Next, read the two unaligned longs.  */
+      memcpy (&format14->records[i].default_uvs_offset,
+	      buffer + 3,
+	      sizeof format14->records[i].default_uvs_offset);
+      memcpy (&format14->records[i].nondefault_uvs_offset,
+	      buffer + 7,
+	      sizeof format14->records[i].nondefault_uvs_offset);
+
+      /* And swap them.  */
+      sfnt_swap32 (&format14->records[i].default_uvs_offset);
+      sfnt_swap32 (&format14->records[i].nondefault_uvs_offset);
+    }
+
+  /* Return the format 14 character mapping table.  */
+  return format14;
+}
+
 /* Read the CMAP subtable data from a given file FD at TABLE_OFFSET
    bytes from DIRECTORY_OFFSET.  Return the subtable data if it is
    supported.  Else, value is NULL if the format is unsupported, or -1
@@ -791,11 +883,26 @@ sfnt_read_cmap_table_1 (int fd, uint32_t directory_offset,
   if (lseek (fd, offset, SEEK_SET) == (off_t) -1)
     return (struct sfnt_cmap_encoding_subtable_data *) -1;
 
-  if (read (fd, &header, sizeof header) < sizeof header)
+  if (read (fd, &header.format, sizeof header.format)
+      < sizeof header.format)
     return (struct sfnt_cmap_encoding_subtable_data *) -1;
 
   sfnt_swap16 (&header.format);
-  sfnt_swap16 (&header.length);
+
+  /* Format 14 tables are rather special: they do not have a 16-bit
+     `length' field.  When these tables are encountered, leave reading
+     the rest of the header to `sfnt_read_cmap_table_14'.  */
+
+  if (header.format != 14)
+    {
+      if (read (fd, &header.length, sizeof header.length)
+	  < sizeof header.length)
+	return (struct sfnt_cmap_encoding_subtable_data *) -1;
+
+      sfnt_swap16 (&header.length);
+    }
+  else
+    header.length = 0;
 
   switch (header.format)
     {
@@ -827,6 +934,10 @@ sfnt_read_cmap_table_1 (int fd, uint32_t directory_offset,
     case 12:
       return ((struct sfnt_cmap_encoding_subtable_data *)
 	      sfnt_read_cmap_format_12 (fd, &header));
+
+    case 14:
+      return ((struct sfnt_cmap_encoding_subtable_data *)
+	      sfnt_read_cmap_format_14 (fd, &header, offset));
 
     default:
       return NULL;
@@ -909,8 +1020,7 @@ sfnt_read_cmap_table (int fd, struct sfnt_offset_subtable *subtable,
     return cmap;
 
   /* Second, read each encoding subtable itself.  */
-  *data = xmalloc (cmap->num_subtables
-		   * sizeof *data);
+  *data = xmalloc (cmap->num_subtables * sizeof *data);
 
   for (i = 0; i < cmap->num_subtables; ++i)
     {
@@ -1199,7 +1309,10 @@ sfnt_lookup_glyph_12 (sfnt_char character,
 
 /* Look up the glyph index corresponding to the character CHARACTER,
    which must be in the correct encoding for the cmap table pointed to
-   by DATA.  */
+   by DATA.
+
+   DATA must be either a format 0, 2, 4, 6, 8 or 12 cmap table, else
+   behavior is undefined.  */
 
 TEST_STATIC sfnt_glyph
 sfnt_lookup_glyph (sfnt_char character,
@@ -11775,6 +11888,551 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
 
 
 
+/* Unicode Variation Sequence (UVS) support.
+
+   Unicode defines a mechanism by which a two-codepoint sequence
+   consisting of a ``base character'' and ``variation selector'' is
+   able to produce a glyph that is a variant of the glyph that would
+   conventionally have been mapped to the ``base character''.
+
+   TrueType describes variation selector sequences through a type of
+   character mapping table that is given the format 14.  The character
+   mapping table consists of an array of variation selectors, each of
+   which have a corresponding ``default UVS table'', which describes
+   ranges of ``base characters'' having no special variant glyphs, and
+   a ``non-default UVS table'', which is a map of ``base characters''
+   to their corresponding variant glyphs.  */
+
+/* Read a default UVS table from the font file FD, at the specified
+   OFFSET.  Value is the default UVS table upon success, else
+   NULL.  */
+
+static struct sfnt_default_uvs_table *
+sfnt_read_default_uvs_table (int fd, off_t offset)
+{
+  struct sfnt_default_uvs_table *uvs;
+  uint32_t num_ranges, i, j;
+  size_t size, temp;
+  char data[512];
+
+  /* First, seek to the given offset.  */
+
+  if (lseek (fd, offset, SEEK_SET) != offset)
+    return NULL;
+
+  /* Next, read the number of ranges present.  */
+
+  if (read (fd, &num_ranges, sizeof num_ranges) != sizeof num_ranges)
+    return NULL;
+
+  /* Swap the number of ranges present.  */
+  sfnt_swap32 (&num_ranges);
+
+  /* Now, allocate enough to hold the UVS table.  */
+
+  size = sizeof *uvs;
+  if (INT_MULTIPLY_WRAPV (sizeof *uvs->ranges, num_ranges,
+			  &temp)
+      || INT_ADD_WRAPV (temp, size, &size))
+    return NULL;
+
+  uvs = xmalloc (size);
+
+  /* Fill in the data which was already read.  */
+  uvs->num_unicode_value_ranges = num_ranges;
+
+  /* Fill in the pointer to the ranges.  */
+  uvs->ranges = (struct sfnt_unicode_value_range *) (uvs + 1);
+  i = 0;
+
+  /* Read each default UVS range in multiples of 512 bytes.  Then,
+     fill in uvs->ranges.  */
+
+  while (num_ranges)
+    {
+      size = (num_ranges > 128 ? 512 : num_ranges * 4);
+
+      if (read (fd, data, size) != size)
+	{
+	  xfree (uvs);
+	  return NULL;
+	}
+
+      for (j = 0; j < size / 4; ++j)
+	{
+	  uvs->ranges[i + j].start_unicode_value
+	    = sfnt_read_24 ((unsigned char *) data + j * 4);
+	  uvs->ranges[i + j].additional_count = data[j * 4 + 1];
+	}
+
+      i += j;
+      num_ranges -= size / 4;
+    }
+
+  /* Return the resulting default UVS table.  */
+  return uvs;
+}
+
+/* Read a non-default UVS table from the font file FD, at the
+   specified OFFSET.  Value is the non-default UVS table upon success,
+   else NULL.  */
+
+static struct sfnt_nondefault_uvs_table *
+sfnt_read_nondefault_uvs_table (int fd, off_t offset)
+{
+  struct sfnt_nondefault_uvs_table *uvs;
+  uint32_t num_mappings, i, j;
+  size_t size, temp;
+  char data[500];
+
+  /* First, seek to the given offset.  */
+
+  if (lseek (fd, offset, SEEK_SET) != offset)
+    return NULL;
+
+  /* Next, read the number of mappings present.  */
+
+  if (read (fd, &num_mappings, sizeof num_mappings)
+      != sizeof num_mappings)
+    return NULL;
+
+  /* Swap the number of mappings present.  */
+  sfnt_swap32 (&num_mappings);
+
+  /* Now, allocate enough to hold the UVS table.  */
+
+  size = sizeof *uvs;
+  if (INT_MULTIPLY_WRAPV (sizeof *uvs->mappings, num_mappings,
+			  &temp)
+      || INT_ADD_WRAPV (temp, size, &size))
+    return NULL;
+
+  uvs = xmalloc (size);
+
+  /* Fill in the data which was already read.  */
+  uvs->num_uvs_mappings = num_mappings;
+
+  /* Fill in the pointer to the mappings.  */
+  uvs->mappings = (struct sfnt_uvs_mapping *) (uvs + 1);
+
+  i = 0;
+
+  /* Read each nondefault UVS mapping in multiples of 500 bytes.
+     Then, fill in uvs->ranges.  */
+
+  while (num_mappings)
+    {
+      size = (num_mappings > 100 ? 500 : num_mappings * 5);
+
+      if (read (fd, data, size) != size)
+	{
+	  xfree (uvs);
+	  return NULL;
+	}
+
+      for (j = 0; j < size / 5; ++j)
+	{
+	  uvs->mappings[i + j].unicode_value
+	    = sfnt_read_24 ((unsigned char *) data + j * 5);
+	  memcpy (&uvs->mappings[i + j].base_character_value,
+		  data + j * 5 + 3,
+		  sizeof uvs->mappings[i + j].base_character_value);
+	  sfnt_swap16 (&uvs->mappings[i + j].base_character_value);
+	}
+
+      i += j;
+      num_mappings -= size / 5;
+    }
+
+  /* Return the nondefault UVS table.  */
+  return uvs;
+}
+
+/* Perform comparison of A and B, two table offsets.  */
+
+static int
+sfnt_compare_table_offsets (const void *a, const void *b)
+{
+  const struct sfnt_table_offset_rec *rec_a, *rec_b;
+
+  rec_a = a;
+  rec_b = b;
+
+  if (rec_a->offset < rec_b->offset)
+    return -1;
+  else if (rec_a->offset > rec_b->offset)
+    return 1;
+
+  return 0;
+}
+
+/* Create a variation selection context based on the format 14 cmap
+   subtable CMAP.
+
+   FD is the font file to which the table belongs.
+
+   Value is the variation selection context upon success, else NULL.
+   The context contains each variation selector record and their
+   associated default and nondefault UVS tables.  Free the context
+   with `sfnt_free_uvs_context'.  */
+
+TEST_STATIC struct sfnt_uvs_context *
+sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
+{
+  struct sfnt_table_offset_rec *table_offsets, *rec, template;
+  size_t size, i, nmemb, j;
+  off_t offset;
+  struct sfnt_uvs_context *context;
+
+  if (INT_MULTIPLY_WRAPV (cmap->num_var_selector_records,
+			  sizeof *table_offsets, &size)
+      || INT_MULTIPLY_WRAPV (size, 2, &size))
+    return NULL;
+
+  context = NULL;
+
+  /* First, record and sort the UVS and nondefault UVS table offsets
+     in ascending order.  */
+
+  table_offsets = xmalloc (size);
+  memset (table_offsets, 0, size);
+  nmemb = cmap->num_var_selector_records * 2;
+  j = 0;
+
+  for (i = 0; i < cmap->num_var_selector_records; ++i)
+    {
+      /* Note that either offset may be 0, meaning there is no such
+	 table.  */
+
+      if (cmap->records[i].default_uvs_offset)
+	{
+	  if (INT_ADD_WRAPV (cmap->offset,
+			     cmap->records[i].default_uvs_offset,
+			     &table_offsets[j].offset))
+	    goto bail;
+
+	  table_offsets[j++].is_nondefault_table = false;
+	}
+
+      if (cmap->records[i].nondefault_uvs_offset)
+	{
+	  if (INT_ADD_WRAPV (cmap->offset,
+			     cmap->records[i].nondefault_uvs_offset,
+			     &table_offsets[j].offset))
+	    goto bail;
+
+	  table_offsets[j++].is_nondefault_table = true;
+	}
+    }
+
+  /* Make nmemb the number of offsets actually looked up.  */
+  nmemb = j;
+
+  qsort (table_offsets, nmemb, sizeof *table_offsets,
+	 sfnt_compare_table_offsets);
+
+  /* Now go through table_offsets, and read everything.  nmemb is the
+     number of elements in table_offsets[i]; it is kept up to date
+     when duplicate members are removed.  */
+  offset = -1;
+
+  for (i = 0; i < nmemb; ++i)
+    {
+      /* Skip past duplicate tables.  */
+
+      while (table_offsets[i].offset == offset && i < nmemb)
+	{
+	  nmemb--;
+	  table_offsets[i] = table_offsets[i + 1];
+	}
+
+      /* If the last element of the array is a duplicate, break out of
+	 the loop.  */
+
+      if (i == nmemb)
+	break;
+
+      /* Read the correct type of table depending on
+	 table_offsets[i].is_nondefault_table.  Then skip past
+	 duplicate tables.  Don't handle the case where two different
+	 kind of tables share the same offset, because that is not
+	 possible in a valid variation selector record.  */
+
+      offset = table_offsets[i].offset;
+
+      if (table_offsets[i].is_nondefault_table)
+	table_offsets[i].table
+	  = sfnt_read_nondefault_uvs_table (fd, offset);
+      else
+	table_offsets[i].table
+	  = sfnt_read_default_uvs_table (fd, offset);
+    }
+
+  /* Now make the context.  */
+  context = xmalloc (sizeof *context);
+  context->num_records = cmap->num_var_selector_records;
+  context->nmemb = nmemb;
+  context->records = xmalloc (sizeof *context->records
+			      * cmap->num_var_selector_records);
+
+  for (i = 0; i < cmap->num_var_selector_records; ++i)
+    {
+      context->records[i].selector = cmap->records[i].var_selector;
+
+      /* Either offset may be 0, meaning no such table exists.  Also,
+         the code below will lose if more than one kind of table
+         shares the same offset, because that is impossible.  */
+
+      if (cmap->records[i].default_uvs_offset)
+	{
+	  /* Resolve the default table.  */
+	  template.offset = (cmap->records[i].default_uvs_offset
+			     + cmap->offset);
+	  rec = bsearch (&template, table_offsets,
+			 nmemb, sizeof *table_offsets,
+			 sfnt_compare_table_offsets);
+
+	  /* Make sure this record is the right type.  */
+	  if (!rec || rec->is_nondefault_table || !rec->table)
+	    goto bail;
+
+	  context->records[i].default_uvs = rec->table;
+	}
+      else
+	context->records[i].default_uvs = NULL;
+
+      if (cmap->records[i].nondefault_uvs_offset)
+	{
+	  /* Resolve the nondefault table.  */
+	  template.offset = (cmap->records[i].nondefault_uvs_offset
+			     + cmap->offset);
+	  rec = bsearch (&template, table_offsets,
+			 nmemb, sizeof *table_offsets,
+			 sfnt_compare_table_offsets);
+
+	  if (!rec)
+	    goto bail;
+
+	  /* Make sure this record is the right type.  */
+	  if (!rec || !rec->is_nondefault_table || !rec->table)
+	    goto bail;
+
+	  context->records[i].nondefault_uvs = rec->table;
+	}
+      else
+	context->records[i].nondefault_uvs = NULL;
+    }
+
+  context->tables = table_offsets;
+  return context;
+
+ bail:
+
+  if (context)
+    {
+      xfree (context->records);
+      xfree (context);
+    }
+
+  /* Loop through and free any tables that might have been read
+     already.  */
+
+  for (i = 0; i < nmemb; ++i)
+    xfree (table_offsets[i].table);
+
+  xfree (table_offsets);
+  return NULL;
+}
+
+/* Free the specified variation selection context C.  */
+
+TEST_STATIC void
+sfnt_free_uvs_context (struct sfnt_uvs_context *c)
+{
+  size_t i;
+
+  xfree (c->records);
+
+  for (i = 0; i < c->nmemb; ++i)
+    xfree (c->tables[i].table);
+
+  xfree (c->tables);
+  xfree (c);
+}
+
+/* Compare *(sfnt_char *) K to ((struct sfnt_uvs_mapping *)
+   V)->unicode_value appropriately for bsearch.  */
+
+static int
+sfnt_compare_uvs_mapping (const void *k, const void *v)
+{
+  const sfnt_char *key;
+  const struct sfnt_uvs_mapping *value;
+
+  key = k;
+  value = v;
+
+  if (*key < value->unicode_value)
+    return -1;
+  else if (*key == value->unicode_value)
+    return 0;
+
+  return 1;
+}
+
+/* Return the ID of a variation glyph for the character C in the
+   nondefault UVS mapping table UVS.
+
+   Value is the glyph ID upon success, or 0 if there is no variation
+   glyph for the base character C.  */
+
+TEST_STATIC sfnt_glyph
+sfnt_variation_glyph_for_char (struct sfnt_nondefault_uvs_table *uvs,
+			       sfnt_char c)
+{
+  struct sfnt_uvs_mapping *mapping;
+
+  mapping = bsearch (&c, uvs->mappings, uvs->num_uvs_mappings,
+		     sizeof *uvs->mappings,
+		     sfnt_compare_uvs_mapping);
+
+  return mapping ? mapping->base_character_value : 0;
+}
+
+
+
+#if defined HAVE_MMAP && !defined TEST
+
+/* Memory mapping support.
+   It useful to map OpenType layout tables prior to using them in
+   an external shaping engine such as HarfBuzz.  */
+
+/* Map a table identified by TAG into the structure *TABLE.
+   TAG is swapped into host byte order.
+
+   Use the table directory SUBTABLE, which corresponds to the font
+   file FD.
+
+   Return 0 upon success, and set TABLE->data to the table data,
+   TABLE->mapping to the start of the mapped area, TABLE->length to
+   the length of the table contents, and TABLE->size to the size of
+   the mapping.
+
+   Return 1 upon failure.  */
+
+int
+sfnt_map_table (int fd, struct sfnt_offset_subtable *subtable,
+		uint32_t tag, struct sfnt_mapped_table *table)
+{
+  struct sfnt_table_directory *directory;
+  size_t offset, page, map_offset;
+  void *data;
+  int i;
+
+  /* Find the table in the directory.  */
+
+  for (i = 0; i < subtable->num_tables; ++i)
+    {
+      if (subtable->subtables[i].tag == tag)
+	{
+	  directory = &subtable->subtables[i];
+	  break;
+	}
+    }
+
+  if (i == subtable->num_tables)
+    return 1;
+
+  /* Now try to map the glyph data.  Make sure offset is a multiple of
+     the page size.  */
+
+  page = getpagesize ();
+  offset = directory->offset & ~(page - 1);
+
+  /* Figure out how much larger the mapping should be.  */
+  map_offset = directory->offset - offset;
+
+  /* Do the mmap.  */
+  data = mmap (NULL, directory->length + map_offset,
+	       PROT_READ, MAP_PRIVATE, fd, offset);
+
+  if (data == MAP_FAILED)
+    return 1;
+
+  /* Fill in *TABLE.  */
+  table->data = (unsigned char *) data + map_offset;
+  table->mapping = data;
+  table->length = directory->length;
+  table->size = directory->length + map_offset;
+  return 0;
+}
+
+/* Unmap the table inside *TABLE.
+   Value is 0 upon success, 1 otherwise.  */
+
+int
+sfnt_unmap_table (struct sfnt_mapped_table *table)
+{
+  return munmap (table->mapping, table->size) != 0;
+}
+
+#endif /* HAVE_MMAP && !TEST */
+
+
+
+#ifndef TEST
+
+/* Reading table contents.  */
+
+/* Read the table with the specified TAG from the font file FD.
+   Return its length in *LENGTH, and its data upon success, else
+   NULL.  */
+
+void *
+sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
+		 uint32_t tag, size_t *length)
+{
+  struct sfnt_table_directory *directory;
+  void *data;
+  int i;
+
+  /* Find the table in the directory.  */
+
+  for (i = 0; i < subtable->num_tables; ++i)
+    {
+      if (subtable->subtables[i].tag == tag)
+	{
+	  directory = &subtable->subtables[i];
+	  break;
+	}
+    }
+
+  if (i == subtable->num_tables)
+    return NULL;
+
+  /* Seek to the table.  */
+
+  if (lseek (fd, directory->offset, SEEK_SET) != directory->offset)
+    return NULL;
+
+  /* Now allocate enough to hold the data and read into it.  */
+
+  data = xmalloc (directory->length);
+  if (read (fd, data, directory->length) != directory->length)
+    {
+      xfree (data);
+      return NULL;
+    }
+
+  /* Return the length and table data.  */
+  *length = directory->length;
+  return data;
+}
+
+#endif /* !TEST */
+
+
+
 #ifdef TEST
 
 struct sfnt_test_dcontext
@@ -15494,6 +16152,52 @@ sfnt_pop_hook (struct sfnt_interpreter *interpreter,
 
 
 
+static void
+sfnt_test_uvs (int fd, struct sfnt_cmap_format_14 *format14)
+{
+  struct sfnt_uvs_context *context;
+  size_t i, j;
+  sfnt_glyph glyph;
+  sfnt_char c;
+  struct sfnt_nondefault_uvs_table *uvs;
+
+  context = sfnt_create_uvs_context (format14, fd);
+
+  /* Print each variation selector and its associated ranges.  */
+
+  if (!context)
+    fprintf (stderr, "failed to read uvs data\n");
+  else
+    {
+      fprintf (stderr, "UVS context with %zu records and %zu tables\n",
+	       context->num_records, context->nmemb);
+
+      for (i = 0; i < context->num_records; ++i)
+	{
+	  if (!context->records[i].nondefault_uvs)
+	    continue;
+
+	  uvs = context->records[i].nondefault_uvs;
+
+	  for (j = 0; j < uvs->num_uvs_mappings; ++j)
+	    {
+	      c = uvs->mappings[j].unicode_value;
+	      glyph = sfnt_variation_glyph_for_char (uvs, c);
+
+	      if (glyph != uvs->mappings[j].base_character_value)
+		abort ();
+
+	      fprintf (stderr, "   UVS: %"PRIx32" (%"PRIx32") -> %"PRIu32"\n",
+		       c, context->records[i].selector, glyph);
+	    }
+	}
+
+      sfnt_free_uvs_context (context);
+    }
+}
+
+
+
 /* Main entry point.  */
 
 /* Simple tests that were used while developing this file.  By the
@@ -15564,7 +16268,7 @@ main (int argc, char **argv)
   struct sfnt_raster **rasters;
   size_t length;
 
-  if (argc != 2)
+  if (argc < 2)
     return 1;
 
   if (!strcmp (argv[1], "--check-interpreter"))
@@ -15654,8 +16358,25 @@ main (int argc, char **argv)
 		 data[i]->format);
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+  if (argc >= 3 && !strcmp (argv[2], "--check-variation-selectors"))
+    {
+      /* Look for a format 14 cmap table.  */
+
+      for (i = 0; i < table->num_subtables; ++i)
+	{
+	  if (data[i]->format == 14)
+	    {
+	      fprintf (stderr, "format 14 subtable found\n");
+	      sfnt_test_uvs (fd, (struct sfnt_cmap_format_14 *) data[i]);
+	      return 0;
+	    }
+	}
+
+      return 1;
+    }
+
+#define FANCY_PPEM 25
+#define EASY_PPEM  25
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);

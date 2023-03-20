@@ -34,6 +34,11 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 #include "sfnt.h"
 #include "sfntfont.h"
 
+#ifdef HAVE_HARFBUZZ
+#include <hb.h>
+#include <hb-ot.h>
+#endif /* HAVE_HARFBUZZ */
+
 /* For FRAME_FONT.  */
 #include TERM_HEADER
 
@@ -1038,15 +1043,20 @@ sfntfont_charset_for_cmap (struct sfnt_cmap_encoding_subtable subtable)
 
 /* Pick the best character map in the cmap table CMAP.  Use the
    subtables in SUBTABLES and DATA.  Return the subtable data and the
-   subtable in *SUBTABLE upon success, NULL otherwise.  */
+   subtable in *SUBTABLE upon success, NULL otherwise.
+
+   If FORMAT14 is non-NULL, return any associated format 14 variation
+   selection context in *FORMAT14 should the selected charcter map be
+   a Unicode character map.  */
 
 static struct sfnt_cmap_encoding_subtable_data *
 sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
 		      struct sfnt_cmap_encoding_subtable *subtables,
 		      struct sfnt_cmap_encoding_subtable_data **data,
-		      struct sfnt_cmap_encoding_subtable *subtable)
+		      struct sfnt_cmap_encoding_subtable *subtable,
+		      struct sfnt_cmap_format_14 **format14)
 {
-  int i;
+  int i, j;
 
   /* First look for a non-BMP Unicode cmap.  */
 
@@ -1055,6 +1065,24 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
       if (data[i] && sfntfont_identify_cmap (subtables[i]) == 2)
 	{
 	  *subtable = subtables[i];
+
+	  if (!format14)
+	    return data[i];
+
+	  /* Search for a correspoinding format 14 character map.
+	     This is used in conjunction with the selected character
+	     map to map variation sequences.  */
+
+	  for (j = 0; j < cmap->num_subtables; ++j)
+	    {
+	      if (data[j]
+		  && subtables[j].platform_id == SFNT_PLATFORM_UNICODE
+		  && (subtables[j].platform_specific_id
+		      == SFNT_UNICODE_VARIATION_SEQUENCES)
+		  && data[j]->format == 14)
+		*format14 = (struct sfnt_cmap_format_14 *) data[j];
+	    }
+
 	  return data[i];
 	}
     }
@@ -1066,6 +1094,24 @@ sfntfont_select_cmap (struct sfnt_cmap_table *cmap,
       if (data[i] && sfntfont_identify_cmap (subtables[i]) == 1)
 	{
 	  *subtable = subtables[i];
+
+	  if (!format14)
+	    return data[i];
+
+	  /* Search for a correspoinding format 14 character map.
+	     This is used in conjunction with the selected character
+	     map to map variation sequences.  */
+
+	  for (j = 0; j < cmap->num_subtables; ++j)
+	    {
+	      if (data[j]
+		  && subtables[j].platform_id == SFNT_PLATFORM_UNICODE
+		  && (subtables[j].platform_specific_id
+		      == SFNT_UNICODE_VARIATION_SEQUENCES)
+		  && data[j]->format == 14)
+		*format14 = (struct sfnt_cmap_format_14 *) data[j];
+	    }
+
 	  return data[i];
 	}
     }
@@ -1128,7 +1174,7 @@ sfntfont_read_cmap (struct sfnt_font_desc *desc,
   /* Now pick the best character map.  */
 
   *cmap = sfntfont_select_cmap (table, subtables, data,
-				subtable);
+				subtable, NULL);
 
   /* Free the cmap data.  */
 
@@ -1960,6 +2006,9 @@ struct sfnt_font_info
   /* Data identifying that character map.  */
   struct sfnt_cmap_encoding_subtable cmap_subtable;
 
+  /* The UVS context.  */
+  struct sfnt_uvs_context *uvs;
+
   /* Outline cache.  */
   struct sfnt_outline_cache outline_cache;
 
@@ -1983,6 +2032,17 @@ struct sfnt_font_info
   /* Whether or not the glyph table has been mmapped.  */
   bool glyf_table_mapped;
 #endif /* HAVE_MMAP */
+
+#ifdef HAVE_HARFBUZZ
+  /* HarfBuzz font object.  */
+  hb_font_t *hb_font;
+
+  /* File descriptor associated with this font.  */
+  int fd;
+
+  /* The table directory of the font file.  */
+  struct sfnt_offset_subtable *directory;
+#endif /* HAVE_HARFBUZZ */
 };
 
 #ifdef HAVE_MMAP
@@ -2198,6 +2258,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   struct charset *charset;
   int point_size;
   Display_Info *dpyinfo;
+  struct sfnt_cmap_format_14 *format14;
 
   if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
@@ -2240,6 +2301,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->prep = NULL;
   font_info->fpgm = NULL;
   font_info->cvt = NULL;
+  font_info->uvs = NULL;
 
   font_info->outline_cache.next = &font_info->outline_cache;
   font_info->outline_cache.last = &font_info->outline_cache;
@@ -2251,6 +2313,11 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 #ifdef HAVE_MMAP
   font_info->glyf_table_mapped = false;
 #endif /* HAVE_MMAP */
+#ifdef HAVE_HARFBUZZ
+  font_info->hb_font = NULL;
+  font_info->fd = -1;
+  font_info->directory = NULL;
+#endif /* HAVE_HARFBUZZ */
 
   /* Open the font.  */
   fd = emacs_open (desc->path, O_RDONLY, 0);
@@ -2280,14 +2347,29 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   if (!font_info->cmap)
     goto bail2;
 
+  format14 = NULL;
   font_info->cmap_data
     = sfntfont_select_cmap (font_info->cmap,
 			    subtables, data,
-			    &font_info->cmap_subtable);
+			    &font_info->cmap_subtable,
+			    &format14);
+
+  if (format14)
+    {
+      /* Build a UVS context from this format 14 mapping table.  A UVS
+         context contains each variation selector supported by the
+         font, and a list of ``non-default'' mappings between base
+         characters and variation glyph IDs.  */
+
+      font_info->uvs = sfnt_create_uvs_context (format14, fd);
+      xfree (format14);
+    }
 
   for (i = 0; i < font_info->cmap->num_subtables; ++i)
     {
-      if (data[i] != font_info->cmap_data)
+      if (data[i] != font_info->cmap_data
+	  /* format14 has already been freed.  */
+	  && data[i] != (struct sfnt_cmap_encoding_subtable_data *) format14)
 	xfree (data[i]);
     }
 
@@ -2432,11 +2514,19 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   sfntfont_setup_interpreter (fd, font_info, subtable,
 			      point_size);
 
+#ifndef HAVE_HARFBUZZ
   /* Close the font file descriptor.  */
   emacs_close (fd);
 
   /* Free the offset subtable.  */
   xfree (subtable);
+#else /* HAVE_HARFBUZZ */
+  /* HarfBuzz will potentially read font tables after the font has
+     been opened by Emacs.  Keep the font open, and record its offset
+     subtable.  */
+  font_info->fd = fd;
+  font_info->directory = subtable;
+#endif /* !HAVE_HARFBUZZ */
 
 #ifdef HAVE_MMAP
   /* Link the font onto the font table.  */
@@ -2483,6 +2573,10 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   xfree (font_info->cmap_data);
   font_info->cmap_data = NULL;
  bail3:
+
+  if (font_info->uvs)
+    sfnt_free_uvs_context (font_info->uvs);
+
   xfree (font_info->cmap);
   font_info->cmap = NULL;
  bail2:
@@ -2677,8 +2771,7 @@ sfntfont_close (struct font *font)
   xfree (info->hmtx);
 
 #ifdef HAVE_MMAP
-  if (info->glyf_table_mapped
-      && info->glyf)
+  if (info->glyf_table_mapped && info->glyf)
     {
       rc = sfnt_unmap_glyf_table (info->glyf);
 
@@ -2697,6 +2790,12 @@ sfntfont_close (struct font *font)
   xfree (info->cvt);
   xfree (info->interpreter);
 
+  /* Deallocate any UVS context allocated to look up font variation
+     sequences.  */
+
+  if (info->uvs)
+    sfnt_free_uvs_context (info->uvs);
+
   /* Clear these fields.  It seems that close can be called twice,
      once during font driver destruction, and once during GC.  */
 
@@ -2713,6 +2812,7 @@ sfntfont_close (struct font *font)
   info->fpgm = NULL;
   info->cvt = NULL;
   info->interpreter = NULL;
+  info->uvs = NULL;
 
 #ifdef HAVE_MMAP
 
@@ -2727,6 +2827,28 @@ sfntfont_close (struct font *font)
   info->next = NULL;
 
 #endif /* HAVE_MMAP */
+
+#ifdef HAVE_HARFBUZZ
+  /* Close the font file.  */
+
+  if (info->fd != -1)
+    {
+      emacs_close (info->fd);
+      info->fd = -1;
+    }
+
+  /* Free its table directory.  */
+  xfree (info->directory);
+  info->directory = NULL;
+
+  /* Free any hb_font created.  */
+
+  if (info->hb_font)
+    {
+      hb_font_destroy (info->hb_font);
+      info->hb_font = NULL;
+    }
+#endif
 
   sfntfont_free_outline_cache (&info->outline_cache);
   sfntfont_free_raster_cache (&info->raster_cache);
@@ -2821,7 +2943,11 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 
       /* Now work out where to put the outline.  */
       x_coords[i - from] = current_x;
-      current_x += SFNT_CEIL_FIXED (metrics.advance) >> 16;
+
+      if (s->padding_p)
+	current_x += 1;
+      else
+	current_x += SFNT_CEIL_FIXED (metrics.advance) >> 16;
     }
 
   /* Call the window system function to put the glyphs to the
@@ -2865,6 +2991,126 @@ sfntfont_list_family (struct frame *f)
 
 
 
+/* Unicode Variation Selector (UVS) support.  This is typically
+   required for Harfbuzz.  */
+
+/* Given a FONT object, a character C, and VARIATIONS, return the
+   number of non-default variation glyphs, and their glyph ids in
+   VARIATIONS.
+
+   For each variation selector character K with a non-default glyph in
+   the variation selector range 0xFE00 to 0xFE0F, set variations[K -
+   0xFE0] to its ID.
+
+   For each variation selector character K with a non-default glyph in
+   the variation selector range 0xE0100 to 0xE01EF, set variations[K -
+   0xE0100 + 16] to its ID.
+
+   If value is more than 0, set all other members of VARIATIONS to 0.
+   Else, the contents of VARIATIONS are undefined.  */
+
+int
+sfntfont_get_variation_glyphs (struct font *font, int c,
+			       unsigned variations[256])
+{
+  struct sfnt_font_info *info;
+  size_t i;
+  int n;
+  struct sfnt_mapped_variation_selector_record *record;
+
+  info = (struct sfnt_font_info *) font;
+  n = 0;
+
+  /* Return 0 if there is no UVS mapping table.  */
+
+  if (!info->uvs)
+    return 0;
+
+  /* Clear the variations array.  */
+
+  memset (variations, 0, sizeof *variations * 256);
+
+  /* Find the first 0xFExx selector.  */
+
+  i = 0;
+  while (i < info->uvs->num_records
+	 && info->uvs->records[i].selector < 0xfe00)
+    ++i;
+
+  /* Fill in selectors 0 to 15.  */
+
+  while (i < info->uvs->num_records
+	 && info->uvs->records[i].selector <= 0xfe0f)
+    {
+      record = &info->uvs->records[i];
+
+      /* If record has no non-default mappings, continue on to the
+	 next selector.  */
+
+      if (!record->nondefault_uvs)
+	goto next_selector;
+
+      /* Handle invalid unsorted tables.  */
+
+      if (record->selector < 0xfe00)
+	return 0;
+
+      /* Find the glyph ID associated with C and put it in
+	 VARIATIONS.  */
+
+      variations[info->uvs->records[i].selector - 0xfe00]
+	= sfnt_variation_glyph_for_char (record->nondefault_uvs, c);
+
+      if (variations[info->uvs->records[i].selector - 0xfe00])
+	++n;
+
+    next_selector:
+      ++i;
+    }
+
+  /* Find the first 0xE0100 selector.  */
+
+  i = 0;
+  while (i < info->uvs->num_records
+	 && info->uvs->records[i].selector < 0xe0100)
+    ++i;
+
+  /* Fill in selectors 16 to 255.  */
+
+  while (i < info->uvs->num_records
+	 && info->uvs->records[i].selector <= 0xe01ef)
+    {
+      record = &info->uvs->records[i];
+
+      /* If record has no non-default mappings, continue on to the
+	 next selector.  */
+
+      if (!record->nondefault_uvs)
+	goto next_selector_1;
+
+      /* Handle invalid unsorted tables.  */
+
+      if (record->selector < 0xe0100)
+	return 0;
+
+      /* Find the glyph ID associated with C and put it in
+	 VARIATIONS.  */
+
+      variations[info->uvs->records[i].selector - 0xe0100 + 16]
+	= sfnt_variation_glyph_for_char (record->nondefault_uvs, c);
+
+      if (variations[info->uvs->records[i].selector - 0xe0100 + 16])
+	++n;
+
+    next_selector_1:
+      ++i;
+    }
+
+  return n;
+}
+
+
+
 /* mmap specific stuff.  */
 
 #ifdef HAVE_MMAP
@@ -2890,6 +3136,126 @@ sfntfont_detect_sigbus (void *addr)
 }
 
 #endif
+
+
+
+/* Harfbuzz font support.  */
+
+#ifdef HAVE_HARFBUZZ
+
+#ifdef HAVE_MMAP
+
+/* Unmap the specified table.  */
+
+static void
+sfntfont_unmap_blob (void *ptr)
+{
+  if (sfnt_unmap_table (ptr))
+    emacs_abort ();
+
+  xfree (ptr);
+}
+
+#endif /* HAVE_MMAP */
+
+/* Given a font DATA and a tag TAG, return the data of the
+   corresponding font table as a HarfBuzz blob.  */
+
+static hb_blob_t *
+sfntfont_get_font_table (hb_face_t *face, hb_tag_t tag, void *data)
+{
+  size_t size;
+  struct sfnt_font_info *info;
+#ifdef HAVE_MMAP
+  struct sfnt_mapped_table *table;
+  hb_blob_t *blob;
+
+  info = data;
+  table = xmalloc (sizeof *table);
+
+  if (!sfnt_map_table (info->fd, info->directory, tag,
+		       table))
+    {
+      /* Create an hb_blob_t and return it.
+         TODO: record this mapping properly so that SIGBUS can
+	 be handled.  */
+
+      blob = hb_blob_create (table->data, table->length,
+			     HB_MEMORY_MODE_READONLY,
+			     table, sfntfont_unmap_blob);
+
+      /* Note that sfntfont_unmap_blob will be called if the empty
+	 blob is returned.  */
+      return blob;
+    }
+
+  xfree (table);
+#else /* !HAVE_MMAP */
+
+  /* Try to read the table conventionally.  */
+  info = data;
+#endif /* HAVE_MMAP */
+
+  data = sfnt_read_table (info->fd, info->directory, tag,
+			  &size);
+
+  if (!data)
+    return NULL;
+
+  return hb_blob_create (data, size, HB_MEMORY_MODE_WRITABLE,
+			 data, xfree);
+}
+
+/* Create or return a HarfBuzz font object corresponding to the
+   specified FONT.  Return the scale to convert between fwords and
+   pixels in POSITION_UNIT.  */
+
+hb_font_t *
+sfntfont_begin_hb_font (struct font *font, double *position_unit)
+{
+  struct sfnt_font_info *info;
+  hb_face_t *face;
+  int factor;
+
+  info = (struct sfnt_font_info *) font;
+
+  if (info->hb_font)
+    {
+      /* Calculate the scale factor.  */
+      *position_unit = 1.0 / 64.0;
+      return info->hb_font;
+    }
+
+  /* Create a face and then a font.  */
+  face = hb_face_create_for_tables (sfntfont_get_font_table, font,
+				    NULL);
+
+  if (hb_face_get_glyph_count (face) > 0)
+    {
+      info->hb_font = hb_font_create (face);
+      if (!info->hb_font)
+	goto bail;
+
+      factor = font->pixel_size;
+
+      /* Set the scale and PPEM values.  */
+      hb_font_set_scale (info->hb_font, factor * 64, factor * 64);
+      hb_font_set_ppem (info->hb_font, factor, factor);
+
+      /* This is needed for HarfBuzz before 2.0.0; it is the default
+	 in later versions.  */
+      hb_ot_font_set_funcs (info->hb_font);
+    }
+
+ bail:
+  hb_face_destroy (face);
+
+  /* Calculate the scale factor.  */
+  *position_unit = 1.0 / 64.0;
+  return info->hb_font;
+}
+
+#endif /* HAVE_HARFBUZZ */
 
 
 
