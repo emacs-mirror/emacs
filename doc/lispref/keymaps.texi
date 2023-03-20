@@ -1452,6 +1452,12 @@ keymap; using @var{remove} instead will allow the key in the parent keymap
 to be used.
 @end defun
 
+Note: using @code{keymap-unset} with @var{remove} non-@code{nil} is
+intended for users to put in their init file; Emacs packages should
+avoid using it if possible, since they have complete control over
+their own keymaps anyway, and they should not be altering other
+packages' keymaps.
+
   This example creates a sparse keymap and makes a number of
 bindings in it:
 
