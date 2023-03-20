@@ -53,7 +53,7 @@
 (defvar shortdoc--groups)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
-(defvar tramp-use-ssh-controlmaster-options)
+(defvar tramp-use-connection-share)
 
 ;;; Fontification of `read-file-name':
 
@@ -302,7 +302,7 @@ NAME must be equal to `tramp-current-connection'."
 ;; Bug#45518.  So we don't use ssh ControlMaster options.
 (defun tramp-compile-disable-ssh-controlmaster-options ()
   "Don't allow ssh ControlMaster while compiling."
-  (setq-local tramp-use-ssh-controlmaster-options nil))
+  (setq-local tramp-use-connection-share 'suppress))
 
 (with-eval-after-load 'compile
   (add-hook 'compilation-mode-hook

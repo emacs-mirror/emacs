@@ -1440,6 +1440,18 @@ bindings in a keymap makes no difference for keyboard input, but it
 does matter for menu keymaps (@pxref{Menu Keymaps}).
 @end defun
 
+@findex keymap-unset
+@defun keymap-unset keymap key &optional remove
+This function is the inverse of @code{keymap-set}, it unsets the
+binding for @var{key} in @var{keymap}, which is the same as setting
+the binding to @code{nil}.  In order to instead remove the binding
+completely, specify @var{remove} as non-@code{nil}.  This only makes a
+difference if @var{keymap} has a parent keymap: if you just unset a key
+in a child map, it will still shadow the same key in the parent
+keymap; using @var{remove} instead will allow the key in the parent keymap
+to be used.
+@end defun
+
   This example creates a sparse keymap and makes a number of
 bindings in it:
 

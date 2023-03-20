@@ -24,7 +24,7 @@
 # Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:stretch as emacs-base
+FROM debian:bullseye as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -34,9 +34,10 @@ RUN apt-get update && \
 
 FROM emacs-base as emacs-inotify
 
+# We install clangd for Eglot tests.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      inotify-tools \
+      inotify-tools clangd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout

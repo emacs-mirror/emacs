@@ -163,7 +163,7 @@ of previous VARs.
 (defmacro setq-local (&rest pairs)
   "Make each VARIABLE buffer-local and assign to it the corresponding VALUE.
 
-The arguments are variable/value pairs  For each VARIABLE in a pair,
+The arguments are variable/value pairs.  For each VARIABLE in a pair,
 make VARIABLE buffer-local and assign to it the corresponding VALUE
 of the pair.  The VARIABLEs are literal symbols and should not be quoted.
 

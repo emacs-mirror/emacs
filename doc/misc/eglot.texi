@@ -154,11 +154,11 @@ Use Eglot.
 
 Most Eglot facilities are integrated into Emacs features, such as
 ElDoc, Flymake, Xref, and Imenu.  However, Eglot also provides
-commands of its own, mainly to perform tasks by the LSP server, such
-as @kbd{M-x eglot-rename} (to rename an identifier across the entire
-project), @kbd{M-x eglot-format} (to reformat and reindent code), and
-some others.  @xref{Eglot Commands}, for the detailed list of Eglot
-commands.
+commands of its own, mainly to perform tasks by the language server,
+such as @kbd{M-x eglot-rename} (to rename an identifier across the
+entire project), @kbd{M-x eglot-format} (to reformat and reindent
+code), and some others.  @xref{Eglot Commands}, for the detailed list
+of Eglot commands.
 
 @item
 That's it!
@@ -465,52 +465,10 @@ ElDoc look nicer on display.
 
 @item
 In addition to enabling and enhancing other features and packages,
-Eglot also provides a small number of user commands based directly on
-the capabilities of language servers.  These commands are:
-
-@table @kbd
-@item M-x eglot-rename
-This prompts for a new name for the symbol at point, and then modifies
-all the project source files to rename the symbol to the new name,
-based on editing data received from the language-server.  @xref{Eglot
-and Buffers}, for the details of how project files are defined.
-
-@item M-x eglot-format
-This reformats and prettifies the current active region according to
-source formatting rules of the language-server.  If the region is not
-active, it reformats the entire buffer instead.
-
-@item M-x eglot-format-buffer
-This reformats and prettifies the current buffer according to source
-formatting rules of the language-server.
-
-@cindex code actions
-@item M-x eglot-code-actions
-@itemx M-x eglot-code-action-organize-imports
-@itemx M-x eglot-code-action-quickfix
-@itemx M-x eglot-code-action-extract
-@itemx M-x eglot-code-action-inline
-@itemx M-x eglot-code-action-rewrite
-These command allow you to invoke the so-called @dfn{code actions}:
-requests for the language-server to provide editing commands for
-various code fixes, typically either to fix an error diagnostic or to
-beautify/refactor code.  For example,
-@code{eglot-code-action-organize-imports} rearranges the program
-@dfn{imports}---declarations of modules whose capabilities the program
-uses.  These commands affect all the files that belong to the
-project.  The command @kbd{M-x eglot-code-actions} will pop up a menu
-of code applicable actions at point.
-@end table
-
-@item M-x eglot-inlay-hints-mode
-This command toggles LSP ``inlay hints'' on and off for the current
-buffer.  Inlay hints are small text annotations to specific parts of
-the whole buffer, not unlike diagnostics, but designed to help
-readability instead of indicating problems.  For example, a C++ LSP
-server can serve hints about positional parameter names in function
-calls and a variable's automatically deduced type.  Inlay hints help
-the user not have to remember these things by heart.
-
+Eglot also provides a number of user commands based on the
+capabilities of language servers.  Examples include renaming symbols
+with @kbd{eglot-rename} and asking to automatically correct problems
+with @kbd{eglot-code-actions}.  @xref{Eglot Commands}.
 @end itemize
 
 Not all servers support the full set of LSP capabilities, but most of
@@ -713,20 +671,44 @@ entire current buffer.
 This command reformats the current buffer, in the same manner as
 @code{eglot-format} does.
 
+@cindex code actions
 @item M-x eglot-code-actions
-@itemx mouse-1
-This command asks the server for any @dfn{code actions} applicable at
-point.  It can also be invoked by @kbd{mouse-1} clicking on
-diagnostics provided by the server.
-
-@item M-x eglot-code-action-organize-imports
+@itemx M-x eglot-code-action-organize-imports
 @itemx M-x eglot-code-action-quickfix
 @itemx M-x eglot-code-action-extract
 @itemx M-x eglot-code-action-inline
 @itemx M-x eglot-code-action-rewrite
-These commands invoke specific code actions supported by the language
-server.
-@c FIXME: Need more detailed description of each action.
+These commands allow you to invoke the so-called @dfn{code actions}:
+requests for the language server to provide editing commands for
+correcting, refactoring or beautifying your code.  These commands may
+affect more than one visited file belong to the project.
+
+The command @code{eglot-code-actions} asks the server if there any
+code actions for any point in the buffer or contained in the active
+region.  If there are, you the choice to execute one of them via the
+minibuffer.
+
+A common use of code actions is fixing the Flymake error diagnostics
+issued by Eglot (@pxref{Top,,, flymake, GNU Flymake manual}).
+Clicking on a diagnostic with @kbd{mouse-2} invokes
+@code{eglot-code-actions-at-mouse} which pops up a menu of available
+code actions.  The variable @code{eglot-diagnostics-map} can be used
+to control the mouse binding.
+
+Other commands execute a specific code action.  For example,
+@code{eglot-code-action-organize-imports} rearranges the program's
+@dfn{imports}---declarations of modules whose capabilities the program
+uses.
+
+@cindex inlay hints
+@item M-x eglot-inlay-hints-mode
+This command toggles LSP @dfn{inlay hints} on and off for the current
+buffer.  Inlay hints are small text annotations to specific parts of
+the whole buffer, not unlike diagnostics, but designed to help
+readability instead of indicating problems.  For example, a C++
+language server can serve hints about positional parameter names in
+function calls and a variable's automatically deduced type.  Inlay
+hints help the user not have to remember these things by heart.
 @end ftable
 
 The following Eglot commands are used less commonly, mostly for
@@ -968,7 +950,7 @@ mechanism.
 @cindex progress
 @item eglot-report-progress
 Set this variable to true if you'd like progress notifications coming
-from the LSP server to be handled as Emacs's progress reporting
+from the language server to be handled as Emacs's progress reporting
 facilities.
 @end table
 
@@ -977,9 +959,9 @@ facilities.
 
 Though many language servers work well out-of-the-box, most allow
 fine-grained control of their operation via specific configuration
-options that vary from server to server.  A small number of servers
-require such special configuration to work acceptably, or even to work
-at all.
+options that are transmitted over the LSP protocol and vary from
+server to server.  A small number of servers require such special
+configuration to work acceptably, or even to work at all.
 
 After having setup a server executable program in
 @code{eglot-server-programs} (@pxref{Setting Up LSP Servers}) and
@@ -1016,8 +998,9 @@ server reads the file @file{~/.config/pycodestyle} for user
 configuration.  The @command{clangd} C/C++ server reads both
 @file{~/.config/clangd/config.yaml} for user configuration and
 @file{.clangd} for project configuration.  It may be advantageous to
-use these mechanisms instead of Eglot's, as the latter have the
-advantage of working with other LSP clients.
+use these mechanisms instead of Eglot's, as this will probably work
+with other LSP clients and may be easier to debug than options riding
+on the LSP wire.
 
 @node Project-specific configuration
 @section Project-specific configuration
@@ -1078,10 +1061,11 @@ plists.  Some examples are useful.
 
 Let's say you want to configure two language servers to be used in a
 project written in a combination of the Python and Go languages.  You
-want to use the @command{pylsp} and @command{gopls} LSP servers. In
-the documentation of the servers in question (or in some other editor's
-configuration file, or in some blog article), you find the following
-configuration options in informal dotted-notation syntax:
+want to use the @command{pylsp} and @command{gopls} languages
+servers.  In the documentation of the servers in question (or in some
+other editor's configuration file, or in some blog article), you find
+the following configuration options in informal dotted-notation
+syntax:
 
 @example
 pylsp.plugins.jedi_completion.include_params: true
@@ -1201,7 +1185,7 @@ the LSP handshake.  This is done using the
 The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
 representation in plist format of a simple JSON object
 @code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
-represent more deeply nested options in this format, @xref{JSONRPC
+represent more deeply nested options in this format, @pxref{JSONRPC
 objects in Elisp}.
 
 In this case, the two examples achieve exactly the same, but notice
@@ -1214,7 +1198,7 @@ supported.  It consists of @emph{globally} setting
 @code{eglot-workspace-configuration}, a variable originally intended
 for project-specific configuration.  This has the same effect as
 giving all your projects a certain default configuration, as described
-in @xref{Project-specific configuration}.  Here is an example.
+in @ref{Project-specific configuration}.  Here is an example:
 
 @lisp
 (setq-default eglot-workspace-configuration
@@ -1241,17 +1225,21 @@ keyword-value property sub-plists corresponding to JSON sub-objects.
 For representing the JSON leaf values @code{true}, @code{false},
 @code{null} and @code{@{@}}, you can use the Lisp values @code{t},
 @code{:json-false}, @code{nil}, and @code{eglot-@{@}}, respectively.
+JSON arrays are represented as Elisp vectors surrounded by square brackets
+(@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference Manual}).
 
-For example, this plist:
+For example, the plist
 
 @lisp
 (:pylsp (:plugins (:jedi_completion (:include_params t
-                                             :fuzzy t)
-                           :pylint (:enabled :json-false)))
+                                     :fuzzy t
+                                     :cache_for ["pandas" "numpy"]
+                   :pylint (:enabled :json-false))))
  :gopls (:usePlaceholders t))
 @end lisp
 
-Is serialized by Eglot to the following JSON text:
+@noindent
+is serialized by Eglot to the following JSON text:
 
 @example
 @{
@@ -1259,7 +1247,8 @@ Is serialized by Eglot to the following JSON text:
     "plugins": @{
       "jedi_completion": @{
         "include_params": true,
-        "fuzzy": true
+        "fuzzy": true,
+        "cache_for": [ "pandas", "numpy" ],
       @},
       "pylint": @{
         "enabled": false
@@ -1286,53 +1275,104 @@ pop up special buffers that can be used to inspect the communications
 between the Eglot and language server.  In many cases, this will
 indicate the problems or at least provide a hint.
 
+@cindex performance
 A common and easy-to-fix cause of performance problems is the length
-of these two buffers.  If Eglot is operating correctly but slowly,
-customize the variable @code{eglot-events-buffer-size} (@pxref{Eglot
-Variables}) to limit logging, and thus speed things up.
+of the Eglot events buffer because it represent additional work that
+Eglot must do.  After verifying Eglot is operating correctly but
+slowly, try to customize the variable @code{eglot-events-buffer-size}
+(@pxref{Eglot Variables}) to 0.  This will disable any debug logging
+and may speed things up.
 
-If you need to report an Eglot bug, please keep in mind that, because
-there are so many variables involved, it is generally both very
-@emph{difficult} and @emph{absolutely essential} to reproduce bugs
-exactly as they happened to you, the user.  Therefore, every bug
-report should include:
+In other situations, the cause of poor performance lies in the
+language server itself.  Servers use aggressive caching and other
+techniques to improve their performance.  Often, this can be tweaked
+by changing the server configuration (@pxref{Advanced server
+configuration}).
+
+If you think you have found a bug, we want to hear about it.  Before
+reporting a bug, keep in mind that interaction with language servers
+represents a large quantity of unknown variables.  Therefore, it is
+generally both @emph{difficult} and @emph{absolutely essential} that
+the maintainers reproduce bugs exactly as they happened to you, the
+user.
+
+To report an Eglot bug, send e-mail to @email{bug-gnu-emacs@@gnu.org}.
+
+Get acquainted with Emacs's bug reporting guidelines (@pxref{Bugs,,,
+emacs, GNU Emacs Manual}).  Then, follow this checklist specific to
+Eglot bug rerpots.
 
 @enumerate
 @item
-The transcript of events obtained from the buffer popped up by
-@kbd{M-x eglot-events-buffer}.  If the transcript can be narrowed down
-to show the problematic exchange, so much the better.  This is
-invaluable for the investigation and reproduction of the problem.
+Include the transcript of JSONRPC events obtained from the buffer
+popped up by @kbd{M-x eglot-events-buffer}.  You may narrow down the
+transcript if you are sure of where the problematic exchange is, but
+it's safer to include the whole transcript, either attached or inline.
 
 @item
 If Emacs signaled an error (an error message was seen or heard), make
-sure to repeat the process after toggling @code{debug-on-error} on
-(via @kbd{M-x toggle-debug-on-error}).  This normally produces a
-backtrace of the error that should also be attached to the bug report.
+sure to repeat the process after turning on @code{debug-on-error} via
+@kbd{M-x toggle-debug-on-error}.  This normally produces a backtrace
+of the error that should also be attached to the bug report.
 
 @item
-An explanation of how to obtain, install, and configure the language
-server you used.  If possible, try to replicate the problem with the
-C/C@t{++} or Python servers, as these are very easy to install.
+Include a description of how the maintainer should obtain, install,
+and configure the language server you used.  Maintainers usually have
+access to GNU/Linux systems, though not necessarily the distribution
+that you may be using.  If possible, try to replicate the problem with
+the C/C@t{++} or Python servers, as these are very easy to install.
 
 @item
-A description of how to setup the @emph{minimal} project (one or two
-files and their contents) where the problem happens.
+Describe how to setup a @emph{minimal} project directory where Eglot
+should be started for the problem to happen.  Describe each file's
+name and its contents.  Alternatively, you can supply the address of a
+public Git repository.
 
 @item
-A recipe to replicate the problem with @emph{a clean Emacs run}.  This
-means @kbd{emacs -Q} invocation or a very minimal (no more that 10
-lines) @file{.emacs} initialization file.  @code{eglot-ensure} and
-@code{use-package} calls are generally @emph{not} needed.
+Include versions of the software used.  The Emacs version can be
+obtained with @kbd{M-x emacs-version}.
+
+It's also essential to include the version of ELPA packages that are
+explicitly or implicitly loaded.  The optional but popular Company or
+Markdown packages are distributed as GNU ELPA packages, not to mention
+Eglot itself in some situations.  Some major modes (Go, Rust, etc.)
+are provided by ELPA packages.  It's sometimes easy to miss these,
+since they are usually implicitly loaded when visiting a file in that
+language.
+
+ELPA packages usually live in @code{~/.emacs.d/elpa} (or what is in
+@code{package-user-dir}).  Please show the listing of files in that
+directory as well.
 
 @item
-Make sure to double check all the above elements and re-run the
-recipe to see that the problem is reproducible.
+Include a recipe to replicate the problem with @emph{a clean Emacs
+run}.  This means @kbd{emacs -Q -f package-initialize} invocation
+which starts Emacs with no configuration and initializes the ELPA
+packages.  A very minimal (no more that 10 lines) @file{.emacs}
+initialization file is also acceptable and good means to describe
+changes to variables.
+
+There is usually no need to include @kbd{require} statements in the
+recipe, as Eglot's functionality uses autoloads.
+
+Likewise, there is rarely the need to use things like
+@code{use-package} or @code{eglot-ensure}.  This just makes the recipe
+harder to follow.  Prefer setting variables with @code{setq} and
+adding to hooks with @code{add-hook}.  Prefer starting Eglot with
+@code{M-x eglot}.
+
+@item
+Make sure to double check all the above elements and re-run the recipe
+to see that the problem is reproducible.  Following the recipe should
+produce event transcript and error backtraces that are exactly the
+same or very similar to the ones you included.  If the problem only
+happens sometimes, include this information in your bug report.
 @end enumerate
 
 Please keep in mind that some problems reported against Eglot may
 actually be bugs in the language server or the Emacs feature/package
-that used Eglot to communicate with the language server.
+that used Eglot to communicate with the language server.  Eglot is, in
+many cases, just a frontend to that functionality.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

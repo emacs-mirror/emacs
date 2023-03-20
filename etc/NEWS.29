@@ -2540,8 +2540,16 @@ the project by a VC project based on that VCS.
 
 +++
 *** New command 'xref-go-forward'.
-It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
-('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
+It is bound to 'C-M-,' and jumps to the location where you previously
+invoked 'xref-go-back' ('M-,', also known as 'xref-pop-marker-stack').
+
++++
+*** The depth of the Xref marker stack is now infinite.
+The implementation of the Xref marker stack was changed in a way that
+allows as many places to be saved on the stack as needed, limited only
+by the available memory.  Therefore, the variables
+'find-tag-marker-ring-length' and 'xref-marker-ring-length' are now
+obsolete and unused; setting them has no effect.
 
 +++
 *** 'xref-query-replace-in-results' prompting change.

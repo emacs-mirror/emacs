@@ -239,7 +239,8 @@ that's not the whole story: see `after-focus-change-function'."
 This function runs the abnormal hook `move-frame-functions'."
   (interactive "e")
   (let ((frame (posn-window (event-start event))))
-    (run-hook-with-args 'move-frame-functions frame)))
+    (when (frame-live-p frame) ;Experience shows it can die in the meantime.
+      (run-hook-with-args 'move-frame-functions frame))))
 
 ;;;; Arrangement of frames at startup
 

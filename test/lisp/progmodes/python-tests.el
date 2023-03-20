@@ -255,6 +255,27 @@ aliqua."
 
 ;;; Font-lock and syntax
 
+(ert-deftest python-syntax-context-1 ()
+  (python-tests-with-temp-buffer
+   "
+# Comment
+s = 'Single Quoted String'
+t = '''Triple Quoted String'''
+p = (1 + 2)
+"
+   (python-tests-look-at "Comment")
+   (should (= (python-syntax-context 'comment) (pos-bol)))
+   (python-tests-look-at "Single")
+   (should (= (python-syntax-context 'string) (1- (point))))
+   (should (= (python-syntax-context 'single-quoted-string) (1- (point))))
+   (should-not (python-syntax-context 'triple-quoted-string))
+   (python-tests-look-at "Triple")
+   (should (= (python-syntax-context 'string) (1- (point))))
+   (should-not (python-syntax-context 'single-quoted-string))
+   (should (= (python-syntax-context 'triple-quoted-string) (1- (point))))
+   (python-tests-look-at "1 + 2")
+   (should (= (python-syntax-context 'paren) (1- (point))))))
+
 (ert-deftest python-syntax-after-python-backspace ()
   ;; `python-indent-dedent-line-backspace' garbles syntax
   (python-tests-with-temp-buffer
@@ -2051,6 +2072,54 @@ this is a test this is a test this is a test this is a test this is a test this 
    (search-forward "test.")
    (fill-paragraph)
    (should (= (current-indentation) 0))))
+
+(ert-deftest python-fill-paragraph-single-quoted-string-1 ()
+  "Single quoted string should not be filled."
+  (let ((contents "
+s = 'abc def ghi jkl mno pqr stu vwx yz'
+")
+        (fill-column 20))
+    (python-tests-with-temp-buffer
+     contents
+     (python-tests-look-at "abc")
+     (fill-paragraph)
+     (should (string= (buffer-substring-no-properties (point-min) (point-max))
+                      contents)))))
+
+(ert-deftest python-fill-paragraph-single-quoted-string-2 ()
+  "Ensure no fill is performed after the end of the single quoted string."
+  (let ((contents "
+s1 = 'abc'
+s2 = 'def'
+"))
+    (python-tests-with-temp-buffer
+     contents
+     (python-tests-look-at "abc")
+     (fill-paragraph)
+     (should (string= (buffer-substring-no-properties (point-min) (point-max))
+                      contents)))))
+
+(ert-deftest python-fill-paragraph-triple-quoted-string-1 ()
+  "Triple quoted string should be filled."
+  (let ((contents "
+s = '''abc def ghi jkl mno pqr stu vwx yz'''
+")
+        (expected "
+s = '''abc def ghi
+jkl mno pqr stu vwx
+yz'''
+")
+        (fill-column 20))
+    (dolist (look-at '("'''abc" "z'''"))
+      (dolist (offset '(0 1 2 3))
+        (python-tests-with-temp-buffer
+         contents
+         (python-tests-look-at look-at)
+         (forward-char offset)
+         (fill-paragraph)
+         (should (string=
+                  (buffer-substring-no-properties (point-min) (point-max))
+                  expected)))))))
 
 
 ;;; Mark
@@ -6490,6 +6559,56 @@ class Class:
    (should (python-info-docstring-p))
    (python-tests-look-at "'''Not a method docstring.'''")
    (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-triple-quoted-string-p-1 ()
+  "Test triple quoted string."
+  (python-tests-with-temp-buffer
+   "
+t = '''Triple'''
+"
+   (python-tests-look-at " '''Triple")
+   (should-not
+    (python-tests-should-not-move
+     #'python-info-triple-quoted-string-p))
+   (forward-char)
+   (let ((start-pos (+ (point) 2))
+         (eol (pos-eol)))
+     (while (< (point) eol)
+       (should (= (python-tests-should-not-move
+                   #'python-info-triple-quoted-string-p)
+                  start-pos))
+       (forward-char)))
+   (dolist (pos `(,(point) ,(point-min) ,(point-max)))
+     (goto-char pos)
+     (should-not
+      (python-tests-should-not-move
+       #'python-info-triple-quoted-string-p)))))
+
+(ert-deftest python-info-triple-quoted-string-p-2 ()
+  "Test empty triple quoted string."
+  (python-tests-with-temp-buffer
+   "
+e = ''''''
+"
+   (python-tests-look-at "''''''")
+   (let ((start-pos (+ (point) 2))
+         (eol (pos-eol)))
+     (while (< (point) eol)
+       (should (= (python-tests-should-not-move
+                   #'python-info-triple-quoted-string-p)
+                  start-pos))
+       (forward-char)))))
+
+(ert-deftest python-info-triple-quoted-string-p-3 ()
+  "Test single quoted string."
+  (python-tests-with-temp-buffer
+   "
+s = 'Single'
+"
+   (while (< (point) (point-max))
+     (should-not (python-tests-should-not-move
+                  #'python-info-triple-quoted-string-p))
+     (forward-char))))
 
 (ert-deftest python-info-encoding-from-cookie-1 ()
   "Should detect it on first line."

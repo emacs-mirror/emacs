@@ -558,29 +558,6 @@ regular package listing.  If you just wish to clone the source of a
 package, without adding it to the package list, use
 @code{package-vc-checkout}.
 
-@vindex package-vc-selected-packages
-@findex package-vc-install-selected-packages
-  An alternative way to use @code{package-vc-install} is via the
-@code{package-vc-selected-packages} user option.  This is an alist of
-packages to install, where each key is a package name and the value is
-@code{nil}, indicating that any revision is to install, a string,
-indicating a specific revision or a package specification plist.  The
-side effect of setting the user option is to install the package, but
-the process can also be manually triggered using the function
-@code{package-vc-install-selected-packages}.  Here is an example of
-how the user option:
-
-@example
-@group
-(setopt package-vc-selected-packages
-        '((modus-themes . "0f39eb3fd9") ;specific revision
-          (auctex . nil)                ;any revision
-          (foo                          ;a package specification
-           :url "https://git.sv.gnu.org/r/foo-mode.git"
-           :branch "trunk")))
-@end group
-@end example
-
 @findex package-report-bug
 @findex package-vc-prepare-patch
   With the source checkout, you might want to reproduce a bug against

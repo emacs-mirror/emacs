@@ -106,20 +106,26 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
-(defcustom tramp-use-ssh-controlmaster-options (not (eq system-type 'windows-nt))
-  "Whether to use `tramp-ssh-controlmaster-options'.
-Set it to t, if you want Tramp to apply these options.
+(defcustom tramp-use-connection-share (not (eq system-type 'windows-nt))
+  "Whether to use connection share in ssh or PuTTY.
+Set it to t, if you want Tramp to apply respective options. These
+are `tramp-ssh-controlmaster-options' for ssh, and \"-share\" for PuTTY.
 Set it to nil, if you use Control* or Proxy* options in your ssh
 configuration.
 Set it to `suppress' if you want to disable settings in your
-\"~/.ssh/config¸\"."
+\"~/.ssh/config\" file or in your PuTTY session."
   :group 'tramp
-  :version "29.2"
+  :version "30.1"
   :type '(choice (const :tag "Set ControlMaster" t)
                  (const :tag "Don't set ControlMaster" nil)
                  (const :tag "Suppress ControlMaster" suppress))
-  ;; Check with (safe-local-variable-p 'tramp-use-ssh-controlmaster-options 'suppress)
+  ;; Check with (safe-local-variable-p 'tramp-use-connection-share 'suppress)
   :safe (lambda (val) (and (memq val '(t nil suppress)) t)))
+
+(defvaralias 'tramp-use-connection-share 'tramp-use-ssh-controlmaster-options)
+(make-obsolete-variable
+ 'tramp-use-ssh-controlmaster-options
+ "Use `tramp-use-connection-share' instead" "30.1")
 
 (defvar tramp-ssh-controlmaster-options nil
   "Which ssh Control* arguments to use.
@@ -130,8 +136,8 @@ If it is a string, it should have the form
 spec must be doubled, because the string is used as format string.
 
 Otherwise, it will be auto-detected by Tramp, if
-`tramp-use-ssh-controlmaster-options' is t.  The value depends on
-the installed local ssh version.
+`tramp-use-connection-share' is t.  The value depends on the
+installed local ssh version.
 
 The string is used in `tramp-methods'.")
 
@@ -348,7 +354,7 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("plink"
                 (tramp-login-program        "plink")
-                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh")
+                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%c")
 					     ("-t") ("%h") ("\"")
 				             (,(format
 				                "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'"
@@ -361,7 +367,7 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("plinkx"
                 (tramp-login-program        "plink")
-                (tramp-login-args           (("-load") ("%h") ("-t") ("\"")
+                (tramp-login-args           (("-load") ("%h") ("%c") ("-t") ("\"")
 				             (,(format
 				                "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'"
 				                tramp-terminal-type
@@ -373,7 +379,7 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("pscp"
                 (tramp-login-program        "plink")
-                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh")
+                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%c")
 					     ("-t") ("%h") ("\"")
 				             (,(format
 				                "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'"
@@ -391,7 +397,7 @@ The string is used in `tramp-methods'.")
  (add-to-list 'tramp-methods
               `("psftp"
                 (tramp-login-program        "plink")
-                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh")
+                (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%c")
 					     ("-t") ("%h") ("\"")
 				             (,(format
 				                "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=%s'"
@@ -403,7 +409,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "pscp")
                 (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp")
-					     ("-p" "%k") ("-q")))
+					     ("-p" "%k")))
                 (tramp-copy-keep-date       t)))
  (add-to-list 'tramp-methods
               `("fcp"
@@ -4839,12 +4845,19 @@ Goes through the list `tramp-inline-compress-commands'."
   "Return the Control* arguments of the local ssh."
   (cond
    ;; No options to be computed.
-   ((or (null tramp-use-ssh-controlmaster-options)
+   ((or (null tramp-use-connection-share)
 	(null (assoc "%c" (tramp-get-method-parameter vec 'tramp-login-args))))
     "")
 
+   ;; Use plink option.
+   ((string-match-p
+     (rx "plink" (? ".exe") eol)
+     (tramp-get-method-parameter vec 'tramp-login-program))
+    (if (eq tramp-use-connection-share 'suppress)
+	"-noshare" "-share"))
+
    ;; There is already a value to be used.
-   ((and (eq tramp-use-ssh-controlmaster-options t)
+   ((and (eq tramp-use-connection-share t)
          (stringp tramp-ssh-controlmaster-options))
     tramp-ssh-controlmaster-options)
 
@@ -4854,18 +4867,18 @@ Goes through the list `tramp-inline-compress-commands'."
 	(when (tramp-ssh-option-exists-p vec "ControlMaster=auto")
           (concat
            "-o ControlMaster="
-           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+           (if (eq tramp-use-connection-share 'suppress)
                "no" "auto")
 
            " -o ControlPath="
-           (if (eq tramp-use-ssh-controlmaster-options 'suppress)
+           (if (eq tramp-use-connection-share 'suppress)
                "none"
              ;; Hashed tokens are introduced in OpenSSH 6.7.
 	     (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
 		 "tramp.%%C" "tramp.%%r@%%h:%%p"))
 
            ;; ControlPersist option is introduced in OpenSSH 5.6.
-	   (when (and (not (eq tramp-use-ssh-controlmaster-options 'suppress))
+	   (when (and (not (eq tramp-use-connection-share 'suppress))
                       (tramp-ssh-option-exists-p vec "ControlPersist=no"))
 	     " -o ControlPersist=no")))))))
 

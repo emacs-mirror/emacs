@@ -1247,6 +1247,7 @@ syntax requires a leading volume (share) name, for example:
 
 @item @option{dav}
 @item @option{davs}
+@cindex WebDAV
 @cindex method @option{dav}
 @cindex method @option{davs}
 @cindex @option{dav} method
@@ -2758,32 +2759,32 @@ allows you to set the @option{ControlPath} provided the variable
 Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
-@vindex tramp-use-ssh-controlmaster-options
+@vindex tramp-use-connection-share
 Using a predefined string in @code{tramp-ssh-controlmaster-options},
 or puzzling an own string, happens only when user option
-@code{tramp-use-ssh-controlmaster-options} is set to @code{t}.  If the
+@code{tramp-use-connection-share} is set to @code{t}.  If the
 @file{~/.ssh/config} file is configured appropriately for the above
 behavior, then any changes to @command{ssh} can be suppressed with
 this @code{nil} setting:
 
 @lisp
-(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+(customize-set-variable 'tramp-use-connection-share nil)
 @end lisp
 
 Sometimes, it is not possible to use OpenSSH's @option{ControlMaster}
 option for remote processes.  This could result in concurrent access
 to the OpenSSH socket when reading data by different processes, which
 could block Emacs.  In this case, setting
-@code{tramp-use-ssh-controlmaster-options} to @code{suppress} disables
-shared access.  It is not needed to set this user option permanently
-to @code{suppress}, binding the user option prior calling
+@code{tramp-use-connection-share} to @code{suppress} disables shared
+access.  It is not needed to set this user option permanently to
+@code{suppress}, binding the user option prior calling
 @code{make-process} is sufficient.  @value{tramp} does this for
 esxample for compilation processes on its own.
 
 @vindex ProxyCommand@r{, ssh option}
 @vindex ProxyJump@r{, ssh option}
-@code{tramp-use-ssh-controlmaster-options} should also be set to
-@code{nil} or @code{suppress} if you use the @option{ProxyCommand} or
+@code{tramp-use-connection-share} should also be set to @code{nil} or
+@code{suppress} if you use the @option{ProxyCommand} or
 @option{ProxyJump} options in your @command{ssh} configuration.
 
 In order to use the @option{ControlMaster} option, @value{tramp} must
@@ -2806,12 +2807,16 @@ Host *
 Check the @samp{ssh_config(5)} man page whether these options are
 supported on your proxy host.
 
-On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
-@code{nil} by default, because the MS Windows and MSYS2
-implementations of @command{OpenSSH} do not support this option properly.
+On MS Windows, @code{tramp-use-connection-share} is set to @code{nil}
+by default, because the MS Windows and MSYS2 implementations of
+@command{OpenSSH} do not support this option properly.
 
-In PuTTY, you can achieve connection sharing in the @option{Connection/SSH}
-entry, enabling the @option{Share SSH connections if possible} option.
+In PuTTY, you can achieve connection sharing in the
+@option{Connection/SSH} entry, enabling the @option{Share SSH
+connections if possible} option.  @code{tramp-use-connection-share}
+must be set to @code{nil}.  If @code{tramp-use-connection-share} is
+set to @code{t} or @code{suppress}, @command{plink} is called with the
+option @option{-share} or @option{-noshare}, respectively.
 
 
 @subsection Configure direct copying between two remote servers
@@ -4300,9 +4305,9 @@ It does not use @code{tramp-remote-path}.
 In order to gain even more performance, it is recommended to bind
 @code{tramp-verbose} to 0 when running @code{make-process} or
 @code{start-file-process}.  Furthermore, you might set
-@code{tramp-use-ssh-controlmaster-options} to @code{nil} in order to
-bypass @value{tramp}'s handling of the @option{ControlMaster} options,
-and use your own settings in @file{~/.ssh/config}, @ref{Using ssh
+@code{tramp-use-connection-share} to @code{nil} in order to bypass
+@value{tramp}'s handling of the @option{ControlMaster} options, and
+use your own settings in @file{~/.ssh/config}, @ref{Using ssh
 connection sharing}.
 
 
