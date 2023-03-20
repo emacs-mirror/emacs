@@ -757,7 +757,9 @@ may happen."
                             255))
                        '(0 1 2))))))
 
-(defun hfy-family (family) (list (cons "font-family"  family)))
+(defun hfy-family (family)
+  (list (cons "font-family"
+              (format "\"%s\"" (string-replace "\"" "\\\\\"" family)))))
 (defun hfy-bgcol  (color) (list (cons "background"   (hfy-triplet color))))
 (defun hfy-color (color) (list (cons "color"        (hfy-triplet color))))
 (define-obsolete-function-alias 'hfy-colour #'hfy-color "27.1")

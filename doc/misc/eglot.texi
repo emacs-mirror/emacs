@@ -977,9 +977,9 @@ facilities.
 
 Though many language servers work well out-of-the-box, most allow
 fine-grained control of their operation via specific configuration
-options that vary from server to server.  A small number of servers
-require such special configuration to work acceptably, or even to work
-at all.
+options that are transmitted over the LSP protocol and vary from
+server to server.  A small number of servers require such special
+configuration to work acceptably, or even to work at all.
 
 After having setup a server executable program in
 @code{eglot-server-programs} (@pxref{Setting Up LSP Servers}) and
@@ -1016,8 +1016,9 @@ server reads the file @file{~/.config/pycodestyle} for user
 configuration.  The @command{clangd} C/C++ server reads both
 @file{~/.config/clangd/config.yaml} for user configuration and
 @file{.clangd} for project configuration.  It may be advantageous to
-use these mechanisms instead of Eglot's, as the latter have the
-advantage of working with other LSP clients.
+use these mechanisms instead of Eglot's, as this will probably work
+with other LSP clients and may be easier to debug than options riding
+on the LSP wire.
 
 @node Project-specific configuration
 @section Project-specific configuration
@@ -1201,7 +1202,7 @@ the LSP handshake.  This is done using the
 The argument @code{(:compilationDatabasePath "/tmp")} is Emacs's
 representation in plist format of a simple JSON object
 @code{@{"compilationDatabasePath": "/tmp"@}}.  To learn how to
-represent more deeply nested options in this format, @xref{JSONRPC
+represent more deeply nested options in this format, @pxref{JSONRPC
 objects in Elisp}.
 
 In this case, the two examples achieve exactly the same, but notice
@@ -1214,7 +1215,7 @@ supported.  It consists of @emph{globally} setting
 @code{eglot-workspace-configuration}, a variable originally intended
 for project-specific configuration.  This has the same effect as
 giving all your projects a certain default configuration, as described
-in @xref{Project-specific configuration}.  Here is an example.
+in @ref{Project-specific configuration}.  Here is an example:
 
 @lisp
 (setq-default eglot-workspace-configuration
@@ -1241,17 +1242,21 @@ keyword-value property sub-plists corresponding to JSON sub-objects.
 For representing the JSON leaf values @code{true}, @code{false},
 @code{null} and @code{@{@}}, you can use the Lisp values @code{t},
 @code{:json-false}, @code{nil}, and @code{eglot-@{@}}, respectively.
+JSON arrays are represented as Elisp vectors surrounded by square brackets
+(@pxref{Vectors,,,elisp,GNU Emacs Lisp Reference Manual}).
 
-For example, this plist:
+For example, the plist
 
 @lisp
 (:pylsp (:plugins (:jedi_completion (:include_params t
-                                             :fuzzy t)
-                           :pylint (:enabled :json-false)))
+                                     :fuzzy t
+                                     :cache_for ["pandas" "numpy"]
+                   :pylint (:enabled :json-false))))
  :gopls (:usePlaceholders t))
 @end lisp
 
-Is serialized by Eglot to the following JSON text:
+@noindent
+is serialized by Eglot to the following JSON text:
 
 @example
 @{
@@ -1259,7 +1264,8 @@ Is serialized by Eglot to the following JSON text:
     "plugins": @{
       "jedi_completion": @{
         "include_params": true,
-        "fuzzy": true
+        "fuzzy": true,
+        "cache_for": [ "pandas", "numpy" ],
       @},
       "pylint": @{
         "enabled": false
