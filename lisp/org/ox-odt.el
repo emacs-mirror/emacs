@@ -1986,7 +1986,7 @@ information."
 	  (ignore))))))))
 
 
-;;;; Latex Environment
+;;;; LaTeX Environment
 
 ;; (eval-after-load 'ox-odt '(ad-deactivate 'org-format-latex-as-mathml))
 ;; (advice-add 'org-format-latex-as-mathml	; FIXME
@@ -2007,7 +2007,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
     (org-odt-do-format-code latex-frag info)))
 
 
-;;;; Latex Fragment
+;;;; LaTeX Fragment
 
 ;; (when latex-frag			; FIXME
 ;; 	(setq href (propertize href :title "LaTeX Fragment"

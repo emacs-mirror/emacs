@@ -154,11 +154,11 @@ Use Eglot.
 
 Most Eglot facilities are integrated into Emacs features, such as
 ElDoc, Flymake, Xref, and Imenu.  However, Eglot also provides
-commands of its own, mainly to perform tasks by the LSP server, such
-as @kbd{M-x eglot-rename} (to rename an identifier across the entire
-project), @kbd{M-x eglot-format} (to reformat and reindent code), and
-some others.  @xref{Eglot Commands}, for the detailed list of Eglot
-commands.
+commands of its own, mainly to perform tasks by the language server,
+such as @kbd{M-x eglot-rename} (to rename an identifier across the
+entire project), @kbd{M-x eglot-format} (to reformat and reindent
+code), and some others.  @xref{Eglot Commands}, for the detailed list
+of Eglot commands.
 
 @item
 That's it!
@@ -465,52 +465,10 @@ ElDoc look nicer on display.
 
 @item
 In addition to enabling and enhancing other features and packages,
-Eglot also provides a small number of user commands based directly on
-the capabilities of language servers.  These commands are:
-
-@table @kbd
-@item M-x eglot-rename
-This prompts for a new name for the symbol at point, and then modifies
-all the project source files to rename the symbol to the new name,
-based on editing data received from the language-server.  @xref{Eglot
-and Buffers}, for the details of how project files are defined.
-
-@item M-x eglot-format
-This reformats and prettifies the current active region according to
-source formatting rules of the language-server.  If the region is not
-active, it reformats the entire buffer instead.
-
-@item M-x eglot-format-buffer
-This reformats and prettifies the current buffer according to source
-formatting rules of the language-server.
-
-@cindex code actions
-@item M-x eglot-code-actions
-@itemx M-x eglot-code-action-organize-imports
-@itemx M-x eglot-code-action-quickfix
-@itemx M-x eglot-code-action-extract
-@itemx M-x eglot-code-action-inline
-@itemx M-x eglot-code-action-rewrite
-These command allow you to invoke the so-called @dfn{code actions}:
-requests for the language-server to provide editing commands for
-various code fixes, typically either to fix an error diagnostic or to
-beautify/refactor code.  For example,
-@code{eglot-code-action-organize-imports} rearranges the program
-@dfn{imports}---declarations of modules whose capabilities the program
-uses.  These commands affect all the files that belong to the
-project.  The command @kbd{M-x eglot-code-actions} will pop up a menu
-of code applicable actions at point.
-@end table
-
-@item M-x eglot-inlay-hints-mode
-This command toggles LSP ``inlay hints'' on and off for the current
-buffer.  Inlay hints are small text annotations to specific parts of
-the whole buffer, not unlike diagnostics, but designed to help
-readability instead of indicating problems.  For example, a C++ LSP
-server can serve hints about positional parameter names in function
-calls and a variable's automatically deduced type.  Inlay hints help
-the user not have to remember these things by heart.
-
+Eglot also provides a number of user commands based on the
+capabilities of language servers.  Examples include renaming symbols
+with @kbd{eglot-rename} and asking to automatically correct problems
+with @kbd{eglot-code-actions}.  @xref{Eglot Commands}.
 @end itemize
 
 Not all servers support the full set of LSP capabilities, but most of
@@ -713,20 +671,44 @@ entire current buffer.
 This command reformats the current buffer, in the same manner as
 @code{eglot-format} does.
 
+@cindex code actions
 @item M-x eglot-code-actions
-@itemx mouse-1
-This command asks the server for any @dfn{code actions} applicable at
-point.  It can also be invoked by @kbd{mouse-1} clicking on
-diagnostics provided by the server.
-
-@item M-x eglot-code-action-organize-imports
+@itemx M-x eglot-code-action-organize-imports
 @itemx M-x eglot-code-action-quickfix
 @itemx M-x eglot-code-action-extract
 @itemx M-x eglot-code-action-inline
 @itemx M-x eglot-code-action-rewrite
-These commands invoke specific code actions supported by the language
-server.
-@c FIXME: Need more detailed description of each action.
+These commands allow you to invoke the so-called @dfn{code actions}:
+requests for the language server to provide editing commands for
+correcting, refactoring or beautifying your code.  These commands may
+affect more than one visited file belong to the project.
+
+The command @code{eglot-code-actions} asks the server if there any
+code actions for any point in the buffer or contained in the active
+region.  If there are, you the choice to execute one of them via the
+minibuffer.
+
+A common use of code actions is fixing the Flymake error diagnostics
+issued by Eglot (@pxref{Top,,, flymake, GNU Flymake manual}).
+Clicking on a diagnostic with @kbd{mouse-2} invokes
+@code{eglot-code-actions-at-mouse} which pops up a menu of available
+code actions.  The variable @code{eglot-diagnostics-map} can be used
+to control the mouse binding.
+
+Other commands execute a specific code action.  For example,
+@code{eglot-code-action-organize-imports} rearranges the program's
+@dfn{imports}---declarations of modules whose capabilities the program
+uses.
+
+@cindex inlay hints
+@item M-x eglot-inlay-hints-mode
+This command toggles LSP @dfn{inlay hints} on and off for the current
+buffer.  Inlay hints are small text annotations to specific parts of
+the whole buffer, not unlike diagnostics, but designed to help
+readability instead of indicating problems.  For example, a C++
+language server can serve hints about positional parameter names in
+function calls and a variable's automatically deduced type.  Inlay
+hints help the user not have to remember these things by heart.
 @end ftable
 
 The following Eglot commands are used less commonly, mostly for
@@ -968,7 +950,7 @@ mechanism.
 @cindex progress
 @item eglot-report-progress
 Set this variable to true if you'd like progress notifications coming
-from the LSP server to be handled as Emacs's progress reporting
+from the language server to be handled as Emacs's progress reporting
 facilities.
 @end table
 
@@ -1079,10 +1061,11 @@ plists.  Some examples are useful.
 
 Let's say you want to configure two language servers to be used in a
 project written in a combination of the Python and Go languages.  You
-want to use the @command{pylsp} and @command{gopls} LSP servers. In
-the documentation of the servers in question (or in some other editor's
-configuration file, or in some blog article), you find the following
-configuration options in informal dotted-notation syntax:
+want to use the @command{pylsp} and @command{gopls} languages
+servers.  In the documentation of the servers in question (or in some
+other editor's configuration file, or in some blog article), you find
+the following configuration options in informal dotted-notation
+syntax:
 
 @example
 pylsp.plugins.jedi_completion.include_params: true
@@ -1300,13 +1283,14 @@ slowly, try to customize the variable @code{eglot-events-buffer-size}
 (@pxref{Eglot Variables}) to 0.  This will disable any debug logging
 and may speed things up.
 
-In other situations, the cause of poor performance lies in the LSP
-server itself.  Servers use aggressive caching and other techniques to
-improve their performance.  Often, this can be tweaked by changing the
-server configuration (@pxref{Advanced server configuration}).
+In other situations, the cause of poor performance lies in the
+language server itself.  Servers use aggressive caching and other
+techniques to improve their performance.  Often, this can be tweaked
+by changing the server configuration (@pxref{Advanced server
+configuration}).
 
 If you think you have found a bug, we want to hear about it.  Before
-reporting a bug, keep in mind that interaction with LSP servers
+reporting a bug, keep in mind that interaction with language servers
 represents a large quantity of unknown variables.  Therefore, it is
 generally both @emph{difficult} and @emph{absolutely essential} that
 the maintainers reproduce bugs exactly as they happened to you, the

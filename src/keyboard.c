@@ -105,6 +105,13 @@ static bool single_kboard;
 /* Minimum allowed size of the recent_keys vector.  */
 #define MIN_NUM_RECENT_KEYS (100)
 
+/* Maximum allowed size of the recent_keys vector.  */
+#if INTPTR_MAX <= INT_MAX
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH / 10)
+#else
+# define MAX_NUM_RECENT_KEYS (INT_MAX / EMACS_INT_WIDTH)
+#endif
+
 /* Index for storing next element into recent_keys.  */
 static int recent_keys_index;
 
@@ -10984,10 +10991,10 @@ The saved keystrokes are shown by `view-lossage'.  */)
 
   if (!FIXNATP (arg))
     user_error ("Value must be a positive integer");
-  int osize = ASIZE (recent_keys);
+  ptrdiff_t osize = ASIZE (recent_keys);
   eassert (lossage_limit == osize);
   int min_size = MIN_NUM_RECENT_KEYS;
-  int new_size = XFIXNAT (arg);
+  EMACS_INT new_size = XFIXNAT (arg);
 
   if (new_size == osize)
     return make_fixnum (lossage_limit);
@@ -10996,6 +11003,12 @@ The saved keystrokes are shown by `view-lossage'.  */)
     {
       AUTO_STRING (fmt, "Value must be >= %d");
       Fsignal (Quser_error, list1 (CALLN (Fformat, fmt, make_fixnum (min_size))));
+    }
+  if (new_size > MAX_NUM_RECENT_KEYS)
+    {
+      AUTO_STRING (fmt, "Value must be <= %d");
+      Fsignal (Quser_error, list1 (CALLN (Fformat, fmt,
+					  make_fixnum (MAX_NUM_RECENT_KEYS))));
     }
 
   int kept_keys = new_size > osize ? total_keys : min (new_size, total_keys);
