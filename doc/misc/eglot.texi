@@ -1292,53 +1292,103 @@ pop up special buffers that can be used to inspect the communications
 between the Eglot and language server.  In many cases, this will
 indicate the problems or at least provide a hint.
 
+@cindex performance
 A common and easy-to-fix cause of performance problems is the length
-of these two buffers.  If Eglot is operating correctly but slowly,
-customize the variable @code{eglot-events-buffer-size} (@pxref{Eglot
-Variables}) to limit logging, and thus speed things up.
+of the Eglot events buffer because it represent additional work that
+Eglot must do.  After verifying Eglot is operating correctly but
+slowly, try to customize the variable @code{eglot-events-buffer-size}
+(@pxref{Eglot Variables}) to 0.  This will disable any debug logging
+and may speed things up.
 
-If you need to report an Eglot bug, please keep in mind that, because
-there are so many variables involved, it is generally both very
-@emph{difficult} and @emph{absolutely essential} to reproduce bugs
-exactly as they happened to you, the user.  Therefore, every bug
-report should include:
+In other situations, the cause of poor performance lies in the LSP
+server itself.  Servers use aggressive caching and other techniques to
+improve their performance.  Often, this can be tweaked by changing the
+server configuration (@pxref{Advanced server configuration}).
+
+If you think you have found a bug, we want to hear about it.  Before
+reporting a bug, keep in mind that interaction with LSP servers
+represents a large quantity of unknown variables.  Therefore, it is
+generally both @emph{difficult} and @emph{absolutely essential} that
+the maintainers reproduce bugs exactly as they happened to you, the
+user.
+
+To report an Eglot bug, send e-mail to @email{bug-gnu-emacs@@gnu.org}.
+
+Get acquainted with Emacs's bug reporting guidelines (@pxref{Bugs,,,
+emacs, GNU Emacs Manual}).  Then, follow this checklist specific to
+Eglot bug rerpots.
 
 @enumerate
 @item
-The transcript of events obtained from the buffer popped up by
-@kbd{M-x eglot-events-buffer}.  If the transcript can be narrowed down
-to show the problematic exchange, so much the better.  This is
-invaluable for the investigation and reproduction of the problem.
+Include the transcript of JSONRPC events obtained from the buffer
+popped up by @kbd{M-x eglot-events-buffer}.  You may narrow down the
+transcript if you are sure of where the problematic exchange is, but
+it's safer to include the whole transcript, either attached or inline.
 
 @item
 If Emacs signaled an error (an error message was seen or heard), make
-sure to repeat the process after toggling @code{debug-on-error} on
-(via @kbd{M-x toggle-debug-on-error}).  This normally produces a
-backtrace of the error that should also be attached to the bug report.
+sure to repeat the process after turning on @code{debug-on-error} via
+@kbd{M-x toggle-debug-on-error}.  This normally produces a backtrace
+of the error that should also be attached to the bug report.
 
 @item
-An explanation of how to obtain, install, and configure the language
-server you used.  If possible, try to replicate the problem with the
-C/C@t{++} or Python servers, as these are very easy to install.
+Include a description of how the maintainer should obtain, install,
+and configure the language server you used.  Maintainers usually have
+access to GNU/Linux systems, though not necessarily the distribution
+that you may be using.  If possible, try to replicate the problem with
+the C/C@t{++} or Python servers, as these are very easy to install.
 
 @item
-A description of how to setup the @emph{minimal} project (one or two
-files and their contents) where the problem happens.
+Describe how to setup a @emph{minimal} project directory where Eglot
+should be started for the problem to happen.  Describe each file's
+name and its contents.  Alternatively, you can supply the address of a
+public Git repository.
 
 @item
-A recipe to replicate the problem with @emph{a clean Emacs run}.  This
-means @kbd{emacs -Q} invocation or a very minimal (no more that 10
-lines) @file{.emacs} initialization file.  @code{eglot-ensure} and
-@code{use-package} calls are generally @emph{not} needed.
+Include versions of the software used.  The Emacs version can be
+obtained with @kbd{M-x emacs-version}.
+
+It's also essential to include the version of ELPA packages that are
+explicitly or implicitly loaded.  The optional but popular Company or
+Markdown packages are distributed as GNU ELPA packages, not to mention
+Eglot itself in some situations.  Some major modes (Go, Rust, etc.)
+are provided by ELPA packages.  It's sometimes easy to miss these,
+since they are usually implicitly loaded when visiting a file in that
+language.
+
+ELPA packages usually live in @code{~/.emacs.d/elpa} (or what is in
+@code{package-user-dir}).  Please show the listing of files in that
+directory as well.
 
 @item
-Make sure to double check all the above elements and re-run the
-recipe to see that the problem is reproducible.
+Include a recipe to replicate the problem with @emph{a clean Emacs
+run}.  This means @kbd{emacs -Q -f package-initialize} invocation
+which starts Emacs with no configuration and initializes the ELPA
+packages.  A very minimal (no more that 10 lines) @file{.emacs}
+initialization file is also acceptable and good means to describe
+changes to variables.
+
+There is usually no need to include @kbd{require} statements in the
+recipe, as Eglot's functionality uses autoloads.
+
+Likewise, there is rarely the need to use things like
+@code{use-package} or @code{eglot-ensure}.  This just makes the recipe
+harder to follow.  Prefer setting variables with @code{setq} and
+adding to hooks with @code{add-hook}.  Prefer starting Eglot with
+@code{M-x eglot}.
+
+@item
+Make sure to double check all the above elements and re-run the recipe
+to see that the problem is reproducible.  Following the recipe should
+produce event transcript and error backtraces that are exactly the
+same or very similar to the ones you included.  If the problem only
+happens sometimes, include this information in your bug report.
 @end enumerate
 
 Please keep in mind that some problems reported against Eglot may
 actually be bugs in the language server or the Emacs feature/package
-that used Eglot to communicate with the language server.
+that used Eglot to communicate with the language server.  Eglot is, in
+many cases, just a frontend to that functionality.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

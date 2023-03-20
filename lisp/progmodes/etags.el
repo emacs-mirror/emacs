@@ -146,7 +146,10 @@ Otherwise, `find-tag-default' is used."
 (define-obsolete-variable-alias 'find-tag-marker-ring-length
   'tags-location-ring-length "25.1")
 
-(defvar tags-location-ring-length 16)
+(defvar tags-location-ring-length 16
+  "Size of the find-tag marker ring.
+This variable has no effect, and is kept only for backward compatibility.
+The actual size of the find-tag marker ring is unlimited.")
 
 (defcustom tags-tag-face 'default
   "Face for tags in the output of `tags-apropos'."
@@ -181,8 +184,9 @@ Example value:
 		       (sexp :tag "Tags to search")))
   :version "21.1")
 
-;; Obsolete variable kept for compatibility. We don't use it in any way.
-(defvar find-tag-marker-ring (make-ring 16))
+(defvar find-tag-marker-ring (make-ring 16)
+  "Find-tag marker ring.
+Obsolete variable kept for compatibility.  It is not used in any way.")
 (make-obsolete-variable
  'find-tag-marker-ring
  "use `xref-push-marker-stack' or `xref-go-back' instead."

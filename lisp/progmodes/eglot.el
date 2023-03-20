@@ -759,7 +759,9 @@ treated as in `eglot--dbind'."
              :completion      (list :dynamicRegistration :json-false
                                     :completionItem
                                     `(:snippetSupport
-                                      ,(if (eglot--snippet-expansion-fn)
+                                      ,(if (and
+                                            (not (eglot--stay-out-of-p 'yasnippet))
+                                            (eglot--snippet-expansion-fn))
                                            t
                                          :json-false)
                                       :deprecatedSupport t
@@ -1627,9 +1629,11 @@ If optional MARKER, return a marker instead"
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
 Doubles as an indicator of snippet support."
-  (and (boundp 'yas-minor-mode)
-       (symbol-value 'yas-minor-mode)
-       'yas-expand-snippet))
+  (and (fboundp 'yas-minor-mode)
+       (lambda (&rest args)
+         (with-no-warnings
+           (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
+           (apply #'yas-expand-snippet args)))))
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
@@ -2892,8 +2896,7 @@ for which LSP on-type-formatting should be requested."
                                 ;; it'll be adjusted.  If no usable
                                 ;; insertText at all, label is best,
                                 ;; too.
-                                (cond ((or (and (eql insertTextFormat 2)
-                                                (eglot--snippet-expansion-fn))
+                                (cond ((or (eql insertTextFormat 2)
                                            textEdit
                                            (null insertText)
                                            (string-empty-p insertText))
@@ -3376,7 +3379,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   `(defun ,name (beg &optional end)
      ,(format "Execute `%s' code actions between BEG and END." kind)
      (interactive (eglot--region-bounds))
-     (eglot-code-actions beg end ,kind)))
+     (eglot-code-actions beg end ,kind t)))
 
 (eglot--code-action eglot-code-action-organize-imports "source.organizeImports")
 (eglot--code-action eglot-code-action-extract "refactor.extract")
@@ -3659,13 +3662,11 @@ If NOERROR, return predicate, else erroring function."
 
 ;;; Hacks
 ;;;
-;; FIXME: Although desktop.el compatibility is Emacs bug#56407, the
-;; optimal solution agreed to there is a bit more work than what I
-;; have time to right now.  See
-;; e.g. https://debbugs.gnu.org/cgi/bugreport.cgi?bug=bug%2356407#68.
-;; For now, just use `with-eval-after-load'
+;; Emacs bug#56407, the optimal solution is in desktop.el, but that's
+;; harder. For now, use `with-eval-after-load'. See also github#1183.
 (with-eval-after-load 'desktop
-  (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore)))
+  (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore))
+  (add-to-list 'desktop-minor-mode-handlers '(eglot-inlay-hints-mode . ignore)))
 
 
 ;;; Misc

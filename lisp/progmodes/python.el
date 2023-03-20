@@ -511,19 +511,28 @@ This variant of `rx' supports common Python named REGEXPS."
       (''string
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
           (and (nth 3 ppss) (nth 8 ppss))))
+      (''single-quoted-string
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (characterp (nth 3 ppss)) (nth 8 ppss))))
+      (''triple-quoted-string
+       `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
+          (and (eq t (nth 3 ppss)) (nth 8 ppss))))
       (''paren
        `(nth 1 (or ,syntax-ppss (syntax-ppss))))
       (_ form))))
 
 (defun python-syntax-context (type &optional syntax-ppss)
   "Return non-nil if point is on TYPE using SYNTAX-PPSS.
-TYPE can be `comment', `string' or `paren'.  It returns the start
+TYPE can be `comment', `string', `single-quoted-string',
+`triple-quoted-string' or `paren'.  It returns the start
 character address of the specified TYPE."
   (declare (compiler-macro python-syntax--context-compiler-macro))
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (pcase type
       ('comment (and (nth 4 ppss) (nth 8 ppss)))
       ('string (and (nth 3 ppss) (nth 8 ppss)))
+      ('single-quoted-string (and (characterp (nth 3 ppss)) (nth 8 ppss)))
+      ('triple-quoted-string (and (eq t (nth 3 ppss)) (nth 8 ppss)))
       ('paren (nth 1 ppss))
       (_ nil))))
 
@@ -4805,9 +4814,7 @@ Optional argument JUSTIFY defines if the paragraph should be justified."
      ((python-syntax-context 'comment)
       (funcall python-fill-comment-function justify))
      ;; Strings/Docstrings
-     ((save-excursion (or (python-syntax-context 'string)
-                          (equal (string-to-syntax "|")
-                                 (syntax-after (point)))))
+     ((python-info-triple-quoted-string-p)
       (funcall python-fill-string-function justify))
      ;; Decorators
      ((equal (char-after (save-excursion
@@ -4833,10 +4840,7 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
   (let* ((str-start-pos
           (set-marker
            (make-marker)
-           (or (python-syntax-context 'string)
-               (and (equal (string-to-syntax "|")
-                           (syntax-after (point)))
-                    (point)))))
+           (python-info-triple-quoted-string-p)))
          ;; JT@2021-09-21: Since bug#49518's fix this will always be 1
          (num-quotes (python-syntax-count-quotes
                       (char-after str-start-pos) str-start-pos))
@@ -6042,6 +6046,21 @@ point's current `syntax-ppss'."
               ((python-info-assignment-statement-p) t)
               ((python-info-looking-at-beginning-of-defun))
               (t nil))))))
+
+(defun python-info-triple-quoted-string-p ()
+  "Check if point is in a triple quoted string including quotes.
+It returns the position of the third quote character of the start
+of the string."
+  (save-excursion
+    (let ((pos (point)))
+      (cl-loop
+       for offset in '(0 3 -2 2 -1 1)
+       if (let ((check-pos (+ pos offset)))
+            (and (>= check-pos (point-min))
+                 (<= check-pos (point-max))
+                 (python-syntax-context
+                  'triple-quoted-string (syntax-ppss check-pos))))
+       return it))))
 
 (defun python-info-encoding-from-cookie ()
   "Detect current buffer's encoding from its coding cookie.
