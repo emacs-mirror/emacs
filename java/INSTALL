@@ -325,6 +325,9 @@ unpack the following tar archive in that site:
 
 and add the resulting folder to ``--with-ndk-build''.
 
+
+IMAGEMAGICK
+
 There is a third party port of ImageMagick to Android.  Unfortunately,
 the port also uses its own patched versions of libpng, libjpeg,
 libtiff and libwebp, which conflict with those used by Emacs.  Its
