@@ -1882,6 +1882,7 @@ this function depends on `treesit-defun-type-regexp' and
 `treesit-defun-skipper'."
   (interactive "^p\nd")
   (let ((orig-point (point)))
+    (if (or (null arg) (= arg 0)) (setq arg 1))
     (catch 'done
       (dotimes (_ 2) ; Not making progress is better than infloop.
 
