@@ -1773,17 +1773,25 @@ SP-DELTA is the stack adjustment."
              (maxarg (cdr arity)))
         (when (eq maxarg 'unevalled)
           (signal 'native-ice (list "subr contains unevalled args" subr-name)))
-        (if (eq maxarg 'many)
-            ;; callref case.
-            (comp-emit-set-call (comp-callref subr-name nargs (comp-sp)))
-          ;; Normal call.
-          (unless (and (>= maxarg nargs) (<= minarg nargs))
-            (signal 'native-ice
-                    (list "incoherent stack adjustment" nargs maxarg minarg)))
-          (let* ((subr-name subr-name)
-                 (slots (cl-loop for i from 0 below maxarg
-                                 collect (comp-slot-n (+ i (comp-sp))))))
-            (comp-emit-set-call (apply #'comp-call (cons subr-name slots))))))))
+        (if (not (subrp subr-name))
+            ;; The primitive got redefined before the compiler is
+            ;; invoked! (bug#61917)
+            (comp-emit-set-call `(callref funcall
+                                          ,(make-comp-mvar :constant subr-name)
+                                          ,@(cl-loop repeat nargs
+                                                     for sp from (comp-sp)
+                                                     collect (comp-slot-n sp))))
+          (if (eq maxarg 'many)
+              ;; callref case.
+              (comp-emit-set-call (comp-callref subr-name nargs (comp-sp)))
+            ;; Normal call.
+            (unless (and (>= maxarg nargs) (<= minarg nargs))
+              (signal 'native-ice
+                      (list "incoherent stack adjustment" nargs maxarg minarg)))
+            (let* ((subr-name subr-name)
+                   (slots (cl-loop for i from 0 below maxarg
+                                   collect (comp-slot-n (+ i (comp-sp))))))
+              (comp-emit-set-call (apply #'comp-call (cons subr-name slots)))))))))
 
 (eval-when-compile
   (defun comp-op-to-fun (x)
