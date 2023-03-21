@@ -1773,7 +1773,7 @@ SP-DELTA is the stack adjustment."
              (maxarg (cdr arity)))
         (when (eq maxarg 'unevalled)
           (signal 'native-ice (list "subr contains unevalled args" subr-name)))
-        (if (not (subrp subr-name))
+        (if (not (subr-primitive-p subr-name))
             ;; The primitive got redefined before the compiler is
             ;; invoked! (bug#61917)
             (comp-emit-set-call `(callref funcall
