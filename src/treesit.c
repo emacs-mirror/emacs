@@ -2631,13 +2631,99 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
       Lisp_Object signal_symbol = Qnil;
       Lisp_Object signal_data = Qnil;
       TSQuery *treesit_query = treesit_ensure_query_compiled (lisp_query,
-							 &signal_symbol,
-							 &signal_data);
+							      &signal_symbol,
+							      &signal_data);
 
       if (treesit_query == NULL)
 	xsignal (signal_symbol, signal_data);
 
       return lisp_query;
+    }
+}
+
+/* Resolve OBJ into a tree-sitter node Lisp_Object.  OBJ can be a
+   node, a parser, or a language symbol.  Note that this function can
+   signal.  */
+static Lisp_Object treesit_resolve_node (Lisp_Object obj)
+{
+  if (TS_NODEP (obj))
+    {
+      treesit_check_node (obj); /* Check if up-to-date.  */
+      return obj;
+    }
+  else if (TS_PARSERP (obj))
+    {
+      treesit_check_parser (obj); /* Check if deleted.  */
+      return Ftreesit_parser_root_node (obj);
+    }
+  else if (SYMBOLP (obj))
+    {
+      Lisp_Object parser
+	= Ftreesit_parser_create (obj, Fcurrent_buffer (), Qnil);
+      return Ftreesit_parser_root_node (parser);
+    }
+  else
+    xsignal2 (Qwrong_type_argument,
+	      list4 (Qor, Qtreesit_node_p, Qtreesit_parser_p, Qsymbolp),
+	      obj);
+}
+
+/* Create and initialize QUERY.  When success, initialize TS_QUERY,
+   CURSOR, and NEED_FREE, and return true; if failed, initialize
+   SIGNAL_SYMBOL and SIGNAL_DATA, and return false.  If NEED_FREE is
+   initialized to true, the TS_QUERY and CURSOR needs to be freed
+   after use; otherwise they shouldn't be freed by hand.
+
+   Basically this function looks at QUERY and check its type, if QUERY
+   is a compiled query, this function takes out its query and cursor;
+   if QUERY is a string or a cons, this function creates a new query
+   and cursor (so they need to be manually freed).
+
+   This function assumes QUERY is either a compiled query, a string or
+   a cons, the caller should make sure QUERY is valid.
+
+   LANG is the language to use if we need to create the query and
+   cursor.  */
+static bool
+treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
+			  TSQuery **ts_query, TSQueryCursor **cursor,
+			  bool *need_free, Lisp_Object *signal_symbol,
+			  Lisp_Object *signal_data)
+{
+  if (TS_COMPILED_QUERY_P (query))
+    {
+      *ts_query = treesit_ensure_query_compiled (query, signal_symbol,
+						 signal_data);
+      *cursor = XTS_COMPILED_QUERY (query)->cursor;
+      /* We don't need to free ts_query and cursor because they
+	 are stored in a lisp object, which is tracked by gc.  */
+      *need_free = false;
+      return (*ts_query != NULL);
+    }
+  else
+    {
+      /* Since query is not TS_COMPILED_QUERY, it can only be a string
+	 or a cons.  */
+      if (CONSP (query))
+	query = Ftreesit_query_expand (query);
+      char *query_string = SSDATA (query);
+      uint32_t error_offset;
+      TSQueryError error_type;
+      *ts_query = ts_query_new (lang, query_string, strlen (query_string),
+				&error_offset, &error_type);
+      if (*ts_query == NULL)
+	{
+	  *signal_symbol = Qtreesit_query_error;
+	  *signal_data = treesit_compose_query_signal_data (error_offset,
+							    error_type, query);
+	  return false;
+	}
+      else
+	{
+	  *cursor = ts_query_cursor_new ();
+	  *need_free = true;
+	  return true;
+	}
     }
 }
 
@@ -2681,27 +2767,7 @@ the query.  */)
   treesit_initialize ();
 
   /* Resolve NODE into an actual node.  */
-  Lisp_Object lisp_node;
-  if (TS_NODEP (node))
-    {
-      treesit_check_node (node); /* Check if up-to-date.  */
-      lisp_node = node;
-    }
-  else if (TS_PARSERP (node))
-    {
-      treesit_check_parser (node); /* Check if deleted.  */
-      lisp_node = Ftreesit_parser_root_node (node);
-    }
-  else if (SYMBOLP (node))
-    {
-      Lisp_Object parser
-	= Ftreesit_parser_create (node, Fcurrent_buffer (), Qnil);
-      lisp_node = Ftreesit_parser_root_node (parser);
-    }
-  else
-    xsignal2 (Qwrong_type_argument,
-	      list4 (Qor, Qtreesit_node_p, Qtreesit_parser_p, Qsymbolp),
-	      node);
+  Lisp_Object lisp_node = treesit_resolve_node (node);
 
   /* Extract C values from Lisp objects.  */
   TSNode treesit_node
@@ -2725,40 +2791,15 @@ the query.  */)
   TSQuery *treesit_query;
   TSQueryCursor *cursor;
   bool needs_to_free_query_and_cursor;
-  if (TS_COMPILED_QUERY_P (query))
-    {
-      Lisp_Object signal_symbol = Qnil;
-      Lisp_Object signal_data = Qnil;
-      treesit_query = treesit_ensure_query_compiled (query, &signal_symbol,
-						     &signal_data);
-      cursor = XTS_COMPILED_QUERY (query)->cursor;
-      /* We don't need to free ts_query and cursor because they
-	 are stored in a lisp object, which is tracked by gc.  */
-      needs_to_free_query_and_cursor = false;
-      if (treesit_query == NULL)
-	xsignal (signal_symbol, signal_data);
-    }
-  else
-    {
-      /* Since query is not TS_COMPILED_QUERY, it can only be a string
-	 or a cons.  */
-      if (CONSP (query))
-	query = Ftreesit_query_expand (query);
-      char *query_string = SSDATA (query);
-      uint32_t error_offset;
-      TSQueryError error_type;
-      treesit_query = ts_query_new (lang, query_string, strlen (query_string),
-				    &error_offset, &error_type);
-      if (treesit_query == NULL)
-	xsignal (Qtreesit_query_error,
-		 treesit_compose_query_signal_data (error_offset,
-						    error_type, query));
-      cursor = ts_query_cursor_new ();
-      needs_to_free_query_and_cursor = true;
-    }
+  Lisp_Object signal_symbol;
+  Lisp_Object signal_data;
+  if (!treesit_initialize_query (query, lang, &treesit_query, &cursor,
+				 &needs_to_free_query_and_cursor,
+				 &signal_symbol, &signal_data))
+    xsignal (signal_symbol, signal_data);
 
-  /* WARN: After this point, free treesit_query and cursor before every
-     signal and return.  */
+  /* WARN: After this point, free TREESIT_QUERY and CURSOR before every
+     signal and return if NEEDS_TO_FREE_QUERY_AND_CURSOR is true.  */
 
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
