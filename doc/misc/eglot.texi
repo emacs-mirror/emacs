@@ -1298,9 +1298,9 @@ user.
 
 To report an Eglot bug, send e-mail to @email{bug-gnu-emacs@@gnu.org}.
 
-Get acquainted with Emacs's bug reporting guidelines (@pxref{Bugs,,,
-emacs, GNU Emacs Manual}).  Then, follow this checklist specific to
-Eglot bug rerpots.
+To understand how to write this email, get acquainted with Emacs's bug
+reporting guidelines (@pxref{Bugs,,, emacs, GNU Emacs Manual}).  Then,
+follow this Eglot-specific checklist:
 
 @enumerate
 @item
@@ -1341,18 +1341,18 @@ since they are usually implicitly loaded when visiting a file in that
 language.
 
 ELPA packages usually live in @code{~/.emacs.d/elpa} (or what is in
-@code{package-user-dir}).  Please show the listing of files in that
-directory as well.
+@code{package-user-dir}).  Including a listing of files in that
+directory is a way to tell the maintainers about ELPA package
+versions.
 
 @item
 Include a recipe to replicate the problem with @emph{a clean Emacs
-run}.  This means @kbd{emacs -Q -f package-initialize} invocation
-which starts Emacs with no configuration and initializes the ELPA
-packages.  A very minimal (no more that 10 lines) @file{.emacs}
-initialization file is also acceptable and good means to describe
-changes to variables.
+run}.  The invocation @code{emacs -Q -f package-initialize} starts
+Emacs with no configuration and initializes the ELPA packages.  A very
+minimal @file{.emacs} initialization file (10 lines or less) is also
+acceptable and good means to describe changes to variables.
 
-There is usually no need to include @kbd{require} statements in the
+There is usually no need to include @code{require} statements in the
 recipe, as Eglot's functionality uses autoloads.
 
 Likewise, there is rarely the need to use things like
@@ -1364,9 +1364,9 @@ adding to hooks with @code{add-hook}.  Prefer starting Eglot with
 @item
 Make sure to double check all the above elements and re-run the recipe
 to see that the problem is reproducible.  Following the recipe should
-produce event transcript and error backtraces that are exactly the
-same or very similar to the ones you included.  If the problem only
-happens sometimes, include this information in your bug report.
+produce event transcript and error backtraces that are very similar to
+the ones you included.  If the problem only happens sometimes, mention
+this in your report.
 @end enumerate
 
 Please keep in mind that some problems reported against Eglot may
