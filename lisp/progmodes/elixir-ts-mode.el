@@ -55,7 +55,9 @@
 (declare-function treesit-parser-list "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-query-capture "treesit.c")
 (declare-function treesit-node-eq "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 
@@ -550,6 +552,22 @@ Return nil if NODE is not a defun node or doesn't have a name."
                 (_ nil))))
     (_ nil)))
 
+(defvar elixir-ts--syntax-propertize-query
+  (when (treesit-available-p)
+    (treesit-query-compile
+     'elixir
+     '(((["\"\"\""] @quoted-text))))))
+
+(defun elixir-ts--syntax-propertize (start end)
+  "Apply syntax text properties between START and END for `elixir-ts-mode'."
+  (let ((captures
+         (treesit-query-capture 'elixir elixir-ts--syntax-propertize-query start end)))
+    (pcase-dolist (`(,name . ,node) captures)
+      (pcase-exhaustive name
+        ('quoted-text
+         (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
+                            'syntax-table (string-to-syntax "$")))))))
+
 ;;;###autoload
 (define-derived-mode elixir-ts-mode prog-mode "Elixir"
   "Major mode for editing Elixir, powered by tree-sitter."
@@ -630,7 +648,8 @@ Return nil if NODE is not a defun node or doesn't have a name."
                     ( elixir-sigil elixir-string-escape
                       elixir-string-interpolation ))))
 
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+    (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)))
 
 (if (treesit-ready-p 'elixir)
     (progn
