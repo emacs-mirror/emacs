@@ -2770,12 +2770,9 @@ the query.  */)
   Lisp_Object lisp_node = treesit_resolve_node (node);
 
   /* Extract C values from Lisp objects.  */
-  TSNode treesit_node
-    = XTS_NODE (lisp_node)->node;
-  Lisp_Object lisp_parser
-    = XTS_NODE (lisp_node)->parser;
-  ptrdiff_t visible_beg
-    = XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
+  TSNode treesit_node = XTS_NODE (lisp_node)->node;
+  Lisp_Object lisp_parser = XTS_NODE (lisp_node)->parser;
+
   const TSLanguage *lang
     = ts_parser_language (XTS_PARSER (lisp_parser)->parser);
 
@@ -2804,6 +2801,8 @@ the query.  */)
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
     {
+      ptrdiff_t visible_beg
+	= XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
       ptrdiff_t beg_byte = CHAR_TO_BYTE (XFIXNUM (beg));
       ptrdiff_t end_byte = CHAR_TO_BYTE (XFIXNUM (end));
       /* We never let tree-sitter run on buffers too large, so these
