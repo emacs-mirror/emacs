@@ -434,6 +434,8 @@ MODE is either `c' or `cpp'."
            ((parent-is "while_statement") standalone-parent c-ts-mode-indent-offset)
            ((parent-is "do_statement") standalone-parent c-ts-mode-indent-offset)
 
+           ((parent-is "case_statement") standalone-parent c-ts-mode-indent-offset)
+
            ,@(when (eq mode 'cpp)
                `(((node-is "field_initializer_list") parent-bol ,(* c-ts-mode-indent-offset 2)))))))
     `((gnu
