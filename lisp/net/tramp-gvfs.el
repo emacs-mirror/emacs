@@ -872,6 +872,14 @@ arguments to pass to the OPERATION."
    (tramp-register-foreign-file-name-handler
     #'tramp-gvfs-file-name-p #'tramp-gvfs-file-name-handler)))
 
+;; Event type `dbus-event' is added to `while-no-input-ignore-events'
+;; in Emacs 29.1.  If it is missing, some packages like Helm report
+;; problems.  So we add it here.
+(when (and (featurep 'dbusbind)
+	   (not (memq 'dbus-event while-no-input-ignore-events)))
+  (setq while-no-input-ignore-events
+	(cons 'dbus-event while-no-input-ignore-events)))
+
 
 ;; D-Bus helper function.
 
