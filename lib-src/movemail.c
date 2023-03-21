@@ -846,7 +846,7 @@ movemail_strftime (char *s, size_t size, char const *format,
 static bool
 mbx_delimit_begin (FILE *mbf)
 {
-  time_t now = time (NULL);
+  time_t now = current_timespec ().tv_sec;
   struct tm *ltime = localtime (&now);
   if (!ltime)
     return false;
