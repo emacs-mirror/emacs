@@ -314,6 +314,12 @@ then restored."
   (setq last-command-event char)
   (call-interactively (key-binding (vector char))))
 
+(defun eglot--clangd-version ()
+  "Report on the clangd version used in various tests."
+  (replace-regexp-in-string
+   ".*version[[:space:]]+\\(.*\\)" "\\1"
+   (car (split-string (shell-command-to-string "clangd --version") "\n"))))
+
 
 ;;; Unit tests
 
@@ -452,6 +458,7 @@ then restored."
 (ert-deftest eglot-test-diagnostic-tags-unnecessary-code ()
   "Test rendering of diagnostics tagged \"unnecessary\"."
   (skip-unless (executable-find "clangd"))
+  (skip-unless (version<= "14" (eglot--clangd-version)))
   (eglot--with-fixture
       `(("diag-project" .
          (("main.cpp" . "int main(){float a = 42.2; return 0;}"))))
