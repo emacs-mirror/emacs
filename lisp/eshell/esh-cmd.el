@@ -675,13 +675,13 @@ This means an exit code of 0."
 	   (or (= (point-max) (1+ (point)))
 	       (not (eq (char-after (1+ (point))) ?\}))))
       (let ((end (eshell-find-delimiter ?\{ ?\})))
-	(if (not end)
-            (throw 'eshell-incomplete "{")
-	  (when (eshell-arg-delimiter (1+ end))
-	    (prog1
-		`(eshell-as-subcommand
-                  ,(eshell-parse-command (cons (1+ (point)) end)))
-	      (goto-char (1+ end))))))))
+        (unless end
+          (throw 'eshell-incomplete "{"))
+        (when (eshell-arg-delimiter (1+ end))
+          (prog1
+              `(eshell-as-subcommand
+                ,(eshell-parse-command (cons (1+ (point)) end)))
+            (goto-char (1+ end)))))))
 
 (defun eshell-parse-lisp-argument ()
   "Parse a Lisp expression which is specified as an argument."
