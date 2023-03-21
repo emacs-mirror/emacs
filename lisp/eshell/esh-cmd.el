@@ -1168,7 +1168,7 @@ have been replaced by constants."
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
        ((eq (car form) 'let)
-        (when (not (eq (car (cadr args)) 'eshell-do-eval))
+        (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
           (eshell-manipulate "evaluating let args"
             (dolist (letarg (car args))
               (when (and (listp letarg)
