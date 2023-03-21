@@ -293,6 +293,17 @@ CDR are the same process.
 
 When the process in the CDR completes, resume command evaluation.")
 
+(defvar eshell-allow-commands t
+  "If non-nil, allow evaluating command forms (including Lisp forms).
+If you want to forbid command forms, you can let-bind this to a
+non-nil value before calling `eshell-do-eval'.  Then, any command
+forms will signal `eshell-commands-forbidden'.  This is useful
+if, for example, you want to evaluate simple expressions like
+variable expansions, but not fully-evaluate the command.  See
+also `eshell-complete-parse-arguments'.")
+
+(define-error 'eshell-commands-forbidden "Commands forbidden")
+
 ;;; Functions:
 
 (defsubst eshell-interactive-process-p ()
@@ -1328,6 +1339,8 @@ have been replaced by constants."
 (defun eshell-named-command (command &optional args)
   "Insert output from a plain COMMAND, using ARGS.
 COMMAND may result in an alias being executed, or a plain command."
+  (unless eshell-allow-commands
+    (signal 'eshell-commands-forbidden '(named)))
   (setq eshell-last-arguments args
 	eshell-last-command-name (eshell-stringify command))
   (run-hook-with-args 'eshell-prepare-command-hook)
@@ -1465,6 +1478,8 @@ via `eshell-errorn'."
 
 (defun eshell-lisp-command (object &optional args)
   "Insert Lisp OBJECT, using ARGS if a function."
+  (unless eshell-allow-commands
+    (signal 'eshell-commands-forbidden '(lisp)))
   (catch 'eshell-external               ; deferred to an external command
     (setq eshell-last-command-status 0
           eshell-last-arguments args)
