@@ -2480,7 +2480,7 @@ use the root of SERVER's `eglot--project'."
                ;; Set the major mode to be the first of the managed
                ;; modes.  This is the one the user started eglot in.
                (setq major-mode (car (eglot--major-modes server)))
-               (hack-dir-local-variables-non-file-buffer)()
+               (hack-dir-local-variables-non-file-buffer)
                (if (functionp eglot-workspace-configuration)
                    (funcall eglot-workspace-configuration server)
                  eglot-workspace-configuration))))
