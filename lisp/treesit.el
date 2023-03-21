@@ -324,13 +324,13 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
     node))
 
 (defun treesit-parent-while (node pred)
-  "Return the furthest parent of NODE that satisfies PRED.
+  "Return the furthest parent of NODE (including NODE) that satisfies PRED.
 
-This function successively examines the parent of NODE, then
-the parent of the parent, etc., until it finds an ancestor node
-which no longer satisfies the predicate PRED; it returns the last
-examined ancestor that satisfies PRED.  It returns nil if no
-ancestor node was found that satisfies PRED.
+This function successively examines NODE, the parent of NODE,
+then the parent of the parent, etc., until it finds a node which
+no longer satisfies the predicate PRED; it returns the last
+examined node that satisfies PRED.  If no node satisfies PRED, it
+returns nil.
 
 PRED should be a function that takes one argument, the node to
 examine, and returns a boolean value indicating whether that
