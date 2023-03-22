@@ -532,6 +532,19 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (subr-native-elisp-p
            (symbol-function 'comp-test-48029-nonascii-žžž-f))))
 
+(comp-deftest 61917-1 ()
+  "Verify we can compile calls to redefined primitives with
+dedicated byte-op code."
+  (let ((f (lambda (fn &rest args)
+             (apply fn args))))
+    (advice-add #'delete-region :around f)
+    (unwind-protect
+        (should (subr-native-elisp-p
+                 (native-compile
+                  '(lambda ()
+                     (delete-region (point-min) (point-max))))))
+      (advice-remove #'delete-region f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
