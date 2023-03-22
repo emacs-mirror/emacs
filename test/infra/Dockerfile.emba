@@ -60,6 +60,17 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make bootstrap
 
+FROM emacs-base as emacs-eglot
+
+# We install a recent clangd for Eglot tests.
+RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+
+COPY . /checkout
+WORKDIR /checkout
+RUN ./autogen.sh autoconf
+RUN ./configure
+RUN make bootstrap
+
 FROM emacs-base as emacs-gnustep
 
 RUN apt-get update && \

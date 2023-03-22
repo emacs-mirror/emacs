@@ -166,6 +166,16 @@ default:
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
 
+.eglot-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**.in"
+        - lisp/progmodes/eglot.el
+        - test/infra/*
+        - test/lisp/progmodes/eglot-tests.el
+
 .native-comp-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -228,6 +238,23 @@ test-filenotify-gio:
     target: emacs-filenotify-gio
     # This is needed in order to get a JUnit test report.
     make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
+
+build-image-eglot:
+  stage: platform-images
+  extends: [.job-template, .build-template, .eglot-template]
+  variables:
+    target: emacs-eglot
+
+test-eglot:
+  stage: platforms
+  extends: [.job-template, .test-template, .eglot-template]
+  needs:
+    - job: build-image-eglot
+      optional: true
+  variables:
+    target: emacs-eglot
+    # This is needed in order to get a JUnit test report.
+    make_params: '-k -C test check-expensive LOGFILES="lisp/progmodes/eglot-tests.log"'
 
 # The next two jobs are commented out due to bug#62210.
 
