@@ -316,9 +316,10 @@ then restored."
 
 (defun eglot--clangd-version ()
   "Report on the clangd version used in various tests."
-  (replace-regexp-in-string
-   ".*version[[:space:]]+\\(.*\\)" "\\1"
-   (car (split-string (shell-command-to-string "clangd --version") "\n"))))
+  (let ((version (shell-command-to-string "clangd --version")))
+    (when (string-match "version[[:space:]]+\\([0-9.]*\\)"
+                        version)
+      (match-string 1 version))))
 
 
 ;;; Unit tests
