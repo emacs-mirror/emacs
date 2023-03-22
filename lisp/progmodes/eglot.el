@@ -2136,13 +2136,14 @@ COMMAND is a symbol naming the command."
                   type message))
 
 (cl-defmethod eglot-handle-request
-  (_server (_method (eql window/showMessageRequest)) &key type message actions)
+  (_server (_method (eql window/showMessageRequest))
+           &key type message actions &allow-other-keys)
   "Handle server request window/showMessageRequest."
   (let* ((actions (append actions nil)) ;; gh#627
          (label (completing-read
                  (concat
                   (format (propertize "[eglot] Server reports (type=%s): %s"
-                                      'face (if (<= type 1) 'error))
+                                      'face (if (or (not type) (<= type 1)) 'error))
                           type message)
                   "\nChoose an option: ")
                  (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
