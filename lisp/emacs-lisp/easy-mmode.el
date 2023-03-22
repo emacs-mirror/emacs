@@ -509,7 +509,7 @@ on if the hook has explicitly disabled it.
          (setq turn-on-function
                `(lambda ()
                   (require 'easy-mmode)
-                  (when (easy-mmode--globalized-predicate-p ,(car predicate))
+                  (when (easy-mmode--globalized-predicate-p ,MODE-predicate)
                     (funcall ,turn-on-function)))))
         (_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
