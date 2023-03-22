@@ -644,8 +644,9 @@ If INTERACTIVE is t, also display the buffer."
 (defun eldoc-documentation-default ()
   "Show the first non-nil documentation string for item at point.
 This is the default value for `eldoc-documentation-strategy'."
-  (run-hook-with-args-until-success 'eldoc-documentation-functions
-                                    (eldoc--make-callback :patient)))
+  (run-hook-wrapped 'eldoc-documentation-functions
+                    (lambda (f)
+                      (funcall f (eldoc--make-callback :eager f)))))
 
 (defun eldoc--documentation-compose-1 (eagerlyp)
   "Helper function for composing multiple doc strings.
@@ -654,7 +655,8 @@ else wait for all doc strings."
   (run-hook-wrapped 'eldoc-documentation-functions
                     (lambda (f)
                       (let* ((callback (eldoc--make-callback
-                                        (if eagerlyp :eager :patient)))
+                                        (if eagerlyp :eager :patient)
+                                        f))
                              (str (funcall f callback)))
                         (if (or (null str) (stringp str)) (funcall callback str))
                         nil)))
@@ -675,7 +677,7 @@ This is meant to be used as a value for `eldoc-documentation-strategy'."
 This is meant to be used as a value for `eldoc-documentation-strategy'."
   (run-hook-wrapped 'eldoc-documentation-functions
                     (lambda (f)
-                      (let* ((callback (eldoc--make-callback :enthusiast))
+                      (let* ((callback (eldoc--make-callback :enthusiast f))
                              (str (funcall f callback)))
                         (if (stringp str) (funcall callback str))
                         nil)))
@@ -780,7 +782,7 @@ before a higher priority one.")
 ;; `eldoc--invoke-strategy' could be moved to
 ;; `eldoc-documentation-strategy' or thereabouts if/when we decide to
 ;; extend or publish the `make-callback' protocol.
-(defun eldoc--make-callback (method)
+(defun eldoc--make-callback (method origin)
   "Make callback suitable for `eldoc-documentation-functions'.
 The return value is a function FN whose lambda list is (STRING
 &rest PLIST) and can be called by those functions.  Its
@@ -800,8 +802,11 @@ have the following values:
    `eldoc-documentation-functions' have been collected;
 
 - `:eager' says to display STRING along with all other competing
-  strings so far, as soon as possible."
-  (funcall eldoc--make-callback method))
+  strings so far, as soon as possible.
+
+ORIGIN is the member of `eldoc-documentation-functions' which
+will be responsible for eventually calling the FN."
+  (funcall eldoc--make-callback method origin))
 
 (defun eldoc--invoke-strategy (interactive)
   "Invoke `eldoc-documentation-strategy' function.
@@ -838,9 +843,10 @@ the docstrings eventually produced, using
          (docs-registered '()))
     (cl-labels
         ((register-doc
-          (pos string plist)
+          (pos string plist origin)
           (when (and string (> (length string) 0))
-            (push (cons pos (cons string plist)) docs-registered)))
+            (push (cons pos (cons string `(:origin ,origin ,@plist)))
+                  docs-registered)))
          (display-doc
           ()
           (run-hook-with-args
@@ -850,7 +856,7 @@ the docstrings eventually produced, using
                                                         (lambda (a b) (< (car a) (car b))))))
            interactive))
          (make-callback
-          (method)
+          (method origin)
           (let ((pos (prog1 howmany (cl-incf howmany))))
             (cl-ecase method
               (:enthusiast
@@ -858,7 +864,7 @@ the docstrings eventually produced, using
                  (when (and string (cl-loop for (p) in docs-registered
                                             never (< p pos)))
                    (setq docs-registered '())
-                   (register-doc pos string plist))
+                   (register-doc pos string plist origin))
                  (when (and (timerp eldoc--enthusiasm-curbing-timer)
                             (memq eldoc--enthusiasm-curbing-timer
                                   timer-list))
@@ -870,12 +876,12 @@ the docstrings eventually produced, using
               (:patient
                (cl-incf want)
                (lambda (string &rest plist)
-                 (register-doc pos string plist)
+                 (register-doc pos string plist origin)
                  (when (zerop (cl-decf want)) (display-doc))
                  t))
               (:eager
                (lambda (string &rest plist)
-                 (register-doc pos string plist)
+                 (register-doc pos string plist origin)
                  (display-doc)
                  t))))))
       (let* ((eldoc--make-callback #'make-callback)
