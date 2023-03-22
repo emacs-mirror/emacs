@@ -69,11 +69,12 @@ When nil, show candidates in full."
   :type 'boolean
   :version "24.4")
 
-(defvar icomplete-tidy-shadowed-file-names nil
+(defcustom icomplete-tidy-shadowed-file-names nil
   "If non-nil, automatically delete superfluous parts of file names.
 For example, if the user types ~/ after a long path name,
 everything preceding the ~/ is discarded so the interactive
-selection process starts again from the user's $HOME.")
+selection process starts again from the user's $HOME."
+  :type 'boolean)
 
 (defcustom icomplete-show-matches-on-no-input nil
   "When non-nil, show completions when first prompting for input.
