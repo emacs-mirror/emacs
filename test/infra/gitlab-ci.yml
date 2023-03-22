@@ -263,23 +263,21 @@ test-filenotify-gio:
 #   variables:
 #     target: emacs-native-comp-speed1
 
-# The next two jobs are commented out due to bug#62211.
+build-native-comp-speed2:
+  stage: native-comp-images
+  extends: [.job-template, .build-template, .native-comp-template]
+  variables:
+    target: emacs-native-comp-speed2
 
-# build-native-comp-speed2:
-#   stage: native-comp-images
-#   extends: [.job-template, .build-template, .native-comp-template]
-#   variables:
-#     target: emacs-native-comp-speed2
-
-# test-native-comp-speed2:
-#   stage: native-comp
-#   extends: [.job-template, .test-template, .native-comp-template]
-#   needs:
-#     - job: build-native-comp-speed2
-#       optional: true
-#   variables:
-#     target: emacs-native-comp-speed2
-#     make_params: "-k -C test check SELECTOR='(not (tag :unstable))'"
+test-native-comp-speed2:
+  stage: native-comp
+  extends: [.job-template, .test-template, .native-comp-template]
+  needs:
+    - job: build-native-comp-speed2
+      optional: true
+  variables:
+    target: emacs-native-comp-speed2
+    make_params: "-k -C test check SELECTOR='(not (tag :unstable))'"
 
 # Local Variables:
 # add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"
