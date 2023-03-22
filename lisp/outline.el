@@ -1877,7 +1877,7 @@ With a prefix argument, show headings up to that LEVEL."
   (save-excursion (goto-char beg) (setq beg (pos-bol)))
   (save-excursion (goto-char end) (setq end (pos-eol)))
   (remove-overlays beg end 'outline-button t)
-  (outline--fix-up-all-buttons beg end))
+  (save-match-data (outline--fix-up-all-buttons beg end)))
 
 
 (defvar-keymap outline-navigation-repeat-map
