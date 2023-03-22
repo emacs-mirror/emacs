@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <timespec.h>
 
 #include <getopt.h>
 #include <unistd.h>
