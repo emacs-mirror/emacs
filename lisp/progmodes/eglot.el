@@ -396,7 +396,9 @@ done by `eglot-reconnect'."
   :type 'string)
 
 (defcustom eglot-report-progress t
-  "If non-nil, show progress of long running LSP server work"
+  "If non-nil, show progress of long running LSP server work.
+If set to `messages', use *Messages* buffer, else use Eglot's
+mode line indicator."
   :type 'boolean
   :version "29.1")
 
@@ -2040,7 +2042,7 @@ Uses THING, FACE, DEFS and PREPEND."
                                          mouse-face mode-line-highlight))))
 
 (defun eglot--mode-line-format ()
-  "Compose the Eglot's mode-line."
+  "Compose Eglot's mode-line."
   (let* ((server (eglot-current-server))
          (nick (and server (eglot-project-nickname server)))
          (pending (and server (hash-table-count
@@ -2077,7 +2079,15 @@ Uses THING, FACE, DEFS and PREPEND."
                      '((mouse-3 eglot-forget-pending-continuations
                                 "Forget pending continuations"))
                      "Number of outgoing, \
-still unanswered LSP requests to the server\n"))))))))
+still unanswered LSP requests to the server\n")))
+         ,@(cl-loop for pr hash-values of (eglot--progress-reporters server)
+                    when (eq (car pr)  'eglot--mode-line-reporter)
+                    append `("/" ,(eglot--mode-line-props
+                                   (format "%d%%%%" (or (nth 4 pr) "?"))
+                                   'eglot-mode-line
+                                   nil
+                                   (format "(%s) %s %s" (nth 1 pr)
+                                           (nth 2 pr) (nth 3 pr))))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
@@ -2166,22 +2176,31 @@ COMMAND is a symbol naming the command."
   (server (_method (eql $/progress)) &key token value)
   "Handle $/progress notification identified by TOKEN from SERVER."
   (when eglot-report-progress
-    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " ")))
+    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " "))
+              (mkpr (title)
+                (if (eq eglot-report-progress 'messages)
+                    (make-progress-reporter
+                     (format "[eglot] %s %s: %s"
+                             (eglot-project-nickname server) token title))
+                  (list 'eglot--mode-line-reporter token title)))
+              (upd (pcnt msg &optional
+                         (pr (gethash token (eglot--progress-reporters server))))
+                (cond
+                  ((eq (car pr) 'eglot--mode-line-reporter)
+                   (setcdr (cddr pr) (list msg pcnt))
+                   (force-mode-line-update t))
+                  (pr (progress-reporter-update pr pcnt msg)))))
       (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
         (pcase kind
           ("begin"
-           (let* ((prefix (format (concat "[eglot] %s %s:" (when percentage " "))
-                                  (eglot-project-nickname server) token))
-                  (pr (puthash token
-                       (if percentage
-                           (make-progress-reporter prefix 0 100 percentage 1 0)
-                         (make-progress-reporter prefix nil nil nil 1 0))
-                       (eglot--progress-reporters server))))
-             (eglot--reporter-update pr percentage (fmt title message))))
-          ("report"
-           (when-let ((pr (gethash token (eglot--progress-reporters server))))
-             (eglot--reporter-update pr percentage (fmt title message))))
-          ("end" (remhash token (eglot--progress-reporters server))))))))
+           (upd percentage (fmt title message)
+                (puthash token (mkpr title)
+                         (eglot--progress-reporters server))))
+          ("report" (upd percentage message))
+          ("end" (upd (or percentage 100) message)
+           (run-at-time 2 nil
+                        (lambda ()
+                          (remhash token (eglot--progress-reporters server))))))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
