@@ -2159,22 +2159,24 @@ COMMAND is a symbol naming the command."
   (server (_method (eql $/progress)) &key token value)
   "Handle $/progress notification identified by TOKEN from SERVER."
   (when eglot-report-progress
-    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " ")))
+    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " "))
+              (upd (pcnt msg &optional
+                         (pr (gethash token (eglot--progress-reporters server))))
+                (when pr (progress-reporter-update pr pcnt msg))))
       (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
         (pcase kind
           ("begin"
-           (let* ((prefix (format (concat "[eglot] %s %s:" (when percentage " "))
-                                  (eglot-project-nickname server) token))
-                  (pr (puthash token
-                       (if percentage
-                           (make-progress-reporter prefix 0 100 percentage 1 0)
-                         (make-progress-reporter prefix nil nil nil 1 0))
-                       (eglot--progress-reporters server))))
-             (progress-reporter-update pr percentage (fmt title message))))
-          ("report"
-           (when-let ((pr (gethash token (eglot--progress-reporters server))))
-             (progress-reporter-update pr percentage (fmt title message))))
-          ("end" (remhash token (eglot--progress-reporters server))))))))
+           (let ((prefix (format (concat "[eglot] %s %s:" (when percentage " "))
+                                 (eglot-project-nickname server) token)))
+             (upd percentage (fmt title message)
+                  (puthash token
+                           (if percentage
+                               (make-progress-reporter prefix 0 100 percentage 1 0)
+                             (make-progress-reporter prefix nil nil nil 1 0))
+                           (eglot--progress-reporters server)))))
+          ("report" (upd percentage (fmt title message)))
+          ("end" (upd (or percentage 100) (fmt title message))
+           (remhash token (eglot--progress-reporters server))))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
