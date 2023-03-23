@@ -391,6 +391,10 @@ done by `eglot-reconnect'."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
+(defcustom eglot-prefer-plaintext nil
+  "If non-nil, always request plaintext responses to hover requests."
+  :type 'boolean)
+
 (defcustom eglot-menu-string "eglot"
   "String displayed in mode line when Eglot is active."
   :type 'string)
@@ -776,7 +780,8 @@ treated as in `eglot--dbind'."
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
                                        :contentFormat
-                                       (if (fboundp 'gfm-view-mode)
+                                       (if (and (not eglot-prefer-plaintext)
+                                                (fboundp 'gfm-view-mode))
                                            ["markdown" "plaintext"]
                                          ["plaintext"]))
              :signatureHelp      (list :dynamicRegistration :json-false
