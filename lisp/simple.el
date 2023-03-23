@@ -9108,6 +9108,13 @@ presented."
   "Toggle buffer size display in the mode line (Size Indication mode)."
   :global t :group 'mode-line)
 
+(defcustom remote-file-name-inhibit-auto-save nil
+  "When nil, `auto-save-mode' will auto-save remote files.
+Any other value means that it will not."
+  :group 'auto-save
+  :type 'boolean
+  :version "30.1")
+
 (define-minor-mode auto-save-mode
   "Toggle auto-saving in the current buffer (Auto Save mode).
 
@@ -9130,6 +9137,9 @@ For more details, see Info node `(emacs) Auto Save'."
                  (setq buffer-auto-save-file-name
                        (cond
                         ((null val) nil)
+                        ((and buffer-file-name remote-file-name-inhibit-auto-save
+                              (file-remote-p buffer-file-name))
+                         nil)
                         ((and buffer-file-name auto-save-visited-file-name
                               (not buffer-read-only))
                          buffer-file-name)

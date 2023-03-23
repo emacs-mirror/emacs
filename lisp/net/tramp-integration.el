@@ -42,9 +42,10 @@
 (declare-function shortdoc-add-function "shortdoc")
 (declare-function tramp-dissect-file-name "tramp")
 (declare-function tramp-file-name-equal-p "tramp")
-(declare-function tramp-tramp-file-p "tramp")
 (declare-function tramp-rename-files "tramp-cmds")
 (declare-function tramp-rename-these-files "tramp-cmds")
+(declare-function tramp-set-connection-local-variables-for-buffer "tramp")
+(declare-function tramp-tramp-file-p "tramp")
 (defvar eshell-path-env)
 (defvar ido-read-file-name-non-ido)
 (defvar info-lookup-alist)
@@ -548,6 +549,14 @@ See `tramp-process-attributes-ps-format'.")
   (connection-local-set-profiles
    '(:application tramp :machine "localhost")
    local-profile))
+
+;; Set connection-local variables for buffers visiting a file.
+
+(add-hook 'find-file-hook #'tramp-set-connection-local-variables-for-buffer -50)
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (remove-hook
+             'find-file-hook #'tramp-set-connection-local-variables-for-buffer)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-integration 'force)))
