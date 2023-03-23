@@ -1775,6 +1775,8 @@ it's used to say which major modes this minor mode is useful in.
 
 Any other keyword arguments are passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
+@xref{Variable Definitions}, for the description of those keywords and
+their values.
 
 The command named @var{mode} first performs the standard actions such as
 setting the variable named @var{mode} and then executes the @var{body}
@@ -1860,9 +1862,10 @@ by visiting files, and buffers that use a major mode other than
 Fundamental mode; but it does not detect the creation of a new buffer
 in Fundamental mode.
 
-This defines the customization option @var{global-mode} (@pxref{Customization}),
-which can be toggled in the Customize interface to turn the minor mode on
-and off.  As with @code{define-minor-mode}, you should ensure that the
+This macro defines the customization option @var{global-mode}
+(@pxref{Customization}), which can be toggled via the Customize
+interface to turn the minor mode on and off.  As with
+@code{define-minor-mode}, you should ensure that the
 @code{define-globalized-minor-mode} form is evaluated each time Emacs
 starts, for example by providing a @code{:require} keyword.
 
@@ -1875,24 +1878,27 @@ Use @code{:variable @var{variable}} if that's not the case--some minor
 modes use a different variable to store this state information.
 
 Generally speaking, when you define a globalized minor mode, you should
-also define a non-globalized version, so that people can use (or
-disable) it in individual buffers.  This also allows them to disable a
+also define a non-globalized version, so that people could use it (or
+disable it) in individual buffers.  This also allows them to disable a
 globally enabled minor mode in a specific major mode, by using that
 mode's hook.
 
-If given a @code{:predicate} keyword, a user option called the same as
-the global mode variable, but with @code{-modes} instead of
-@code{-mode} at the end will be created.  The variable is used as a
-predicate that specifies which major modes the minor mode should be
-activated in.  Valid values include @code{t} (use in all major modes,
-@code{nil} (use in no major modes), or a list of mode names (or
-@code{(not mode-name ...)}) elements (as well as @code{t} and
-@code{nil}).
+If the macro is given a @code{:predicate} keyword, it will create a
+user option called the same as the global mode variable, but with
+@code{-modes} instead of @code{-mode} at the end, i.e.@:
+@code{@var{global-mode}s}.  This variable will be used in a predicate
+function that determines whether the minor mode should be activated in
+a particular major mode.  Valid values of @code{:predicate} include
+@code{t} (use in all major modes), @code{nil} (don't use in any major
+modes), or a list of mode names, optionally preceded with @code{not}
+(as in @w{@code{(not @var{mode-name} @dots{})}}).  These elements can
+be mixed, as shown in the following examples.
 
 @example
 (c-mode (not mail-mode message-mode) text-mode)
 @end example
 
+@noindent
 This means ``use in modes derived from @code{c-mode}, and not in
 modes derived from @code{message-mode} or @code{mail-mode}, but do use
 in modes derived from @code{text-mode}, and otherwise no other
@@ -1902,13 +1908,15 @@ modes''.
 ((not c-mode) t)
 @end example
 
-This means ``don't use modes derived from @code{c-mode}, but use
+@noindent
+This means ``don't use in modes derived from @code{c-mode}, but do use
 everywhere else''.
 
 @example
 (text-mode)
 @end example
 
+@noindent
 This means ``use in modes derived from @code{text-mode}, but nowhere
 else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
