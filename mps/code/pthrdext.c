@@ -1,9 +1,11 @@
-/* pthreadext.c: POSIX THREAD EXTENSIONS
+/* pthrdext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2023 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Provides extension to Pthreads.
+ * .purpose: Provides extension to Pthreads to permit thread suspend
+ * and resume, so that the MPS can gain exclusive access to memory via
+ * the Shield (design.mps.shield).
  *
  * .design: see <design/pthreadext>
  *
@@ -15,7 +17,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
-#error "protsgix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#error "pthrdext.c is specific to MPS_OS_FR or MPS_OS_LI"
 #endif
 
 #include "pthrdext.h"
@@ -365,7 +367,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2023 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
