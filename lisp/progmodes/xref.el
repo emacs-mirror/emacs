@@ -636,7 +636,7 @@ If SELECT is non-nil, select the target window."
 
 (defface xref-match '((t :inherit match))
   "Face used to highlight matches in the xref buffer."
-  :version "27.1")
+  :version "28.1")
 
 (defmacro xref--with-dedicated-window (&rest body)
   `(let* ((xref-w (get-buffer-window xref-buffer-name))

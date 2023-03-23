@@ -188,6 +188,36 @@ int main()
 }
 =-=-=
 
+Name: Switch-Case statement
+
+=-=
+int main() {
+switch (a) {
+case 1:
+b = c;
+return 10;
+case 2:
+{
+a = b;
+return 12
+}
+}
+}
+=-=
+int main() {
+  switch (a) {
+  case 1:
+    b = c;
+    return 10;
+  case 2:
+    {
+      a = b;
+      return 12
+    }
+  }
+}
+=-=-=
+
 Name: Multiline Block Comments 1 (bug#60270)
 
 =-=
