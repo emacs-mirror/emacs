@@ -437,7 +437,7 @@ documentation-producing backend to cooperate with specific
 documentation-displaying frontends.  For example, KEY can be:
 
 * `:thing', VALUE being a short string or symbol designating what
-  is being reported on.  It can, for example be the name of the
+  DOCSTRING reports on.  It can, for example be the name of the
   function whose signature is being documented, or the name of
   the variable whose docstring is being documented.
   `eldoc-display-in-echo-area', a member of
@@ -447,6 +447,16 @@ documentation-displaying frontends.  For example, KEY can be:
 * `:face', VALUE being a symbol designating a face which both
   `eldoc-display-in-echo-area' and `eldoc-display-in-buffer' will
   use when displaying `:thing''s value.
+
+* `:origin', VALUE being the member of
+  `eldoc-documentation-functions' where DOCSTRING
+  originated. `eldoc-display-in-buffer' may use this organize the
+  documentation buffer accordingly.
+
+* `:noecho', a non-nil VALUE indicating that
+  `eldoc-display-in-echo-area' should not present this DOCSTRING
+  fully, to save space.  If a number, it is a character position
+  up to which a substring can be displayed in the echo are.
 
 Finally, major modes should modify this hook locally, for
 example:
@@ -471,8 +481,6 @@ directly from the user or from ElDoc's automatic mechanisms'.")
 
 (defvar eldoc--doc-buffer nil "Buffer displaying latest ElDoc-produced docs.")
 
-(defvar eldoc--doc-buffer-docs nil "Documentation items in `eldoc--doc-buffer'.")
-
 (defun eldoc-doc-buffer (&optional interactive)
   "Get or display ElDoc documentation buffer.
 
@@ -496,39 +504,55 @@ If INTERACTIVE, display it.  Else, return said buffer."
                            eldoc--doc-buffer
                          (setq eldoc--doc-buffer
                                (get-buffer-create " *eldoc*")))
-    (unless (eq docs eldoc--doc-buffer-docs)
-      (setq-local eldoc--doc-buffer-docs docs)
-      (let ((inhibit-read-only t)
-            (things-reported-on))
-        (special-mode)
-        (erase-buffer)
-        (setq-local nobreak-char-display nil)
-        (cl-loop for (docs . rest) on docs
-                 for (this-doc . plist) = docs
-                 for thing = (plist-get plist :thing)
-                 when thing do
-                 (cl-pushnew thing things-reported-on)
-                 (setq this-doc
-                       (concat
-                        (propertize (format "%s" thing)
-                                    'face (plist-get plist :face))
-                        ": "
-                        this-doc))
-                 do (insert this-doc)
-                 when rest do (insert "\n")
-                 finally (goto-char (point-min)))
-        ;; Rename the buffer, taking into account whether it was
-        ;; hidden or not
-        (rename-buffer (format "%s*eldoc%s*"
-                               (if (string-match "^ " (buffer-name)) " " "")
-                               (if things-reported-on
-                                   (format " for %s"
-                                           (mapconcat
-                                            (lambda (s) (format "%s" s))
-                                            things-reported-on
-                                            ", "))
-                                 ""))))))
+    (let ((inhibit-read-only t)
+          (things-reported-on))
+      (special-mode)
+      (erase-buffer)
+      (setq-local nobreak-char-display nil)
+      (cl-loop for (docs . rest) on docs
+               for (this-doc . plist) = docs
+               for thing = (plist-get plist :thing)
+               when thing do
+               (cl-pushnew thing things-reported-on)
+               (setq this-doc
+                     (concat
+                      (propertize (format "%s" thing)
+                                  'face (plist-get plist :face))
+                      ": "
+                      this-doc))
+               do (insert this-doc)
+               when rest do (insert "\n")
+               finally (goto-char (point-min)))
+      ;; Rename the buffer, taking into account whether it was
+      ;; hidden or not
+      (rename-buffer (format "%s*eldoc%s*"
+                             (if (string-match "^ " (buffer-name)) " " "")
+                             (if things-reported-on
+                                 (format " for %s"
+                                         (mapconcat
+                                          (lambda (s) (format "%s" s))
+                                          things-reported-on
+                                          ", "))
+                               "")))))
   eldoc--doc-buffer)
+
+(defun eldoc--echo-area-render (docs)
+  "Similar to `eldoc--format-doc-buffer', but for echo area.
+Helper for `eldoc-display-in-echo-area'."
+  (cl-loop for (item . rest) on docs
+           for (this-doc . plist) = item
+           for noecho = (plist-get plist :noecho)
+           for thing = (plist-get plist :thing)
+           unless (eq noecho t) do
+           (when noecho (setq this-doc (substring this-doc 0 noecho)))
+           (when thing (setq this-doc
+                             (concat
+                              (propertize (format "%s" thing)
+                                          'face (plist-get plist :face))
+                              ": "
+                              this-doc)))
+           (insert this-doc)
+           (when rest (insert "\n"))))
 
 (defun eldoc--echo-area-substring (available)
   "Given AVAILABLE lines, get buffer substring to display in echo area.
@@ -615,15 +639,15 @@ Honor `eldoc-echo-area-use-multiline-p' and
                single-doc)
               ((and (numberp available)
                     (cl-plusp available))
-               ;; Else, given a positive number of logical lines, we
-               ;; format the *eldoc* buffer, using as most of its
-               ;; contents as we know will fit.
-               (with-current-buffer (eldoc--format-doc-buffer docs)
-                 (save-excursion
-                   (eldoc--echo-area-substring available))))
+               ;; Else, given a positive number of logical lines, grab
+               ;; as many as we can.
+               (with-temp-buffer
+                 (eldoc--echo-area-render docs)
+                 (eldoc--echo-area-substring available)))
               (t ;; this is the "truncate brutally" situation
                (let ((string
-                      (with-current-buffer (eldoc--format-doc-buffer docs)
+                      (with-temp-buffer
+                        (eldoc--echo-area-render docs)
                         (buffer-substring (goto-char (point-min))
                                           (progn (end-of-visible-line)
                                                  (point))))))
