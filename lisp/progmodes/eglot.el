@@ -3149,7 +3149,8 @@ for which LSP on-type-formatting should be requested."
                      (eglot--when-buffer-window buf
                        (let ((info (unless (seq-empty-p contents)
                                      (eglot--hover-info contents range))))
-                         (funcall cb info :buffer t))))
+                         (funcall cb info
+                                  :noecho (and info (string-match "\n" info))))))
        :deferred :textDocument/hover))
     (eglot--highlight-piggyback cb)
     t))
