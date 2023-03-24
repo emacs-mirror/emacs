@@ -1986,7 +1986,7 @@ Used to populate `package-selected-packages'."
     ;; It is valid to set it to nil, for example when the last package
     ;; is uninstalled.  But it shouldn't be done at init time, to
     ;; avoid overwriting configurations that haven't yet been loaded.
-    (setq package-selected-packages value))
+    (setq package-selected-packages (sort value #'string<)))
   (if after-init-time
       (customize-save-variable 'package-selected-packages package-selected-packages)
     (add-hook 'after-init-hook #'package--save-selected-packages)))
