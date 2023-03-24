@@ -1779,9 +1779,9 @@ and just return it.  PROMPT shouldn't end with a question mark."
 (defun eglot--plist-keys (plist) "Get keys of a plist."
   (cl-loop for (k _v) on plist by #'cddr collect k))
 
-(defun eglot--ensure-list (x) (if (listp x) x (list x)))
-(when (fboundp 'ensure-list)            ; Emacs 28 or later
-  (define-obsolete-function-alias 'eglot--ensure-list #'ensure-list "29.1"))
+(defalias 'eglot--ensure-list
+  (if (fboundp 'ensure-list) #'ensure-list
+    (lambda (x) (if (listp x) x (list x)))))
 
 
 ;;; Minor modes
