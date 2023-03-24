@@ -452,6 +452,10 @@ This can be useful when using docker to run a language server.")
   (if (>= emacs-major-version 27) (executable-find command remote)
     (executable-find command)))
 
+(defun eglot--accepted-formats ()
+  (if (and (not eglot-prefer-plaintext) (fboundp 'gfm-view-mode))
+      ["markdown" "plaintext"] ["plaintext"]))
+
 
 ;;; Message verification helpers
 ;;;
@@ -782,15 +786,12 @@ treated as in `eglot--dbind'."
                                       :tagSupport (:valueSet [1]))
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
-                                       :contentFormat
-                                       (if (and (not eglot-prefer-plaintext)
-                                                (fboundp 'gfm-view-mode))
-                                           ["markdown" "plaintext"]
-                                         ["plaintext"]))
+                                       :contentFormat (eglot--accepted-formats))
              :signatureHelp      (list :dynamicRegistration :json-false
                                        :signatureInformation
                                        `(:parameterInformation
                                          (:labelOffsetSupport t)
+                                         :documentationFormat ,(eglot--accepted-formats)
                                          :activeParameterSupport t))
              :references         `(:dynamicRegistration :json-false)
              :definition         (list :dynamicRegistration :json-false
