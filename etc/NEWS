@@ -278,6 +278,12 @@ their customization options.
 
 * Incompatible Lisp Changes in Emacs 30.1
 
+---
+** The escape sequence \x not followed by hex digits is now an error.
+Previously, \x without at least one hex digit denoted character code
+zero (NUL) but as this was neither intended nor documented or even
+known by anyone, it is now treated as an error by the Lisp reader.
+
 ** User option 'tramp-completion-reread-directory-timeout' has been removed.
 This user option has been obsoleted in Emacs 27, use
 'remote-file-name-inhibit-cache' instead.
