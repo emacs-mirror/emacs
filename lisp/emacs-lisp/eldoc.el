@@ -911,8 +911,11 @@ the docstrings eventually produced, using
       (let* ((eldoc--make-callback #'make-callback)
              (res (funcall eldoc-documentation-strategy)))
         ;; Observe the old and the new protocol:
-        (cond (;; Old protocol: got string, output immediately;
-               (stringp res) (register-doc 0 res nil) (display-doc))
+        (cond (;; Old protocol: got string, e-d-strategy is iself the
+               ;; origin function, and we output immediately;
+               (stringp res)
+               (register-doc 0 res nil eldoc-documentation-strategy)
+               (display-doc))
               (;; Old protocol: got nil, clear the echo area;
                (null res) (eldoc--message nil))
               (;; New protocol: trust callback will be called;
