@@ -369,9 +369,12 @@ This doesn't solicit or validate a suite of supported mechanisms."
             data (sasl-step-data step))
       (when (string= data "")
         (setq data nil))
-      (when data
-        (setq data (erc--unfun (base64-encode-string data t))))
-      (erc-server-send (concat "AUTHENTICATE " (or data "+"))))))
+      (setq data (if data (erc--unfun (base64-encode-string data t)) "+"))
+      (while (not (string-empty-p data))
+        (let ((end (min 400 (length data))))
+          ;; For now, assume this is unlikely to block
+          (erc-server-send (concat "AUTHENTICATE " (substring data 0 end)))
+          (setq data (concat (substring data end) (and (= end 400) "+"))))))))
 
 (defun erc-sasl--destroy (proc)
   (run-hook-with-args 'erc-quit-hook proc)
