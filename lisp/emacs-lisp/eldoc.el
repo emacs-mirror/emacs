@@ -500,8 +500,8 @@ If INTERACTIVE, display it.  Else, return said buffer."
           (t (current-buffer)))))
 
 (defvar eldoc-doc-buffer-separator
-  "String used to separate items in Eldoc documentation buffer."
-  (concat "\n" (propertize "\n" 'face '(:inherit separator-line :extend t)) "\n"))
+  (concat "\n" (propertize "\n" 'face '(:inherit separator-line :extend t)) "\n")
+  "String used to separate items in Eldoc documentation buffer.")
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
