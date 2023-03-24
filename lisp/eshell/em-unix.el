@@ -145,9 +145,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
   (setq-local eshell-complex-commands
-	(append '("grep" "egrep" "fgrep" "agrep" "glimpse" "locate"
-		  "cat" "time" "cp" "mv" "make" "du" "diff")
-		eshell-complex-commands)))
+	      (append '("grep" "egrep" "fgrep" "agrep" "rgrep"
+                        "glimpse" "locate" "cat" "time" "cp" "mv"
+                        "make" "du" "diff")
+		      eshell-complex-commands)))
 
 (defalias 'eshell/date     'current-time-string)
 (defalias 'eshell/basename 'file-name-nondirectory)
@@ -772,6 +773,10 @@ external command."
 (defun eshell/agrep (&rest args)
   "Use Emacs grep facility instead of calling external agrep."
   (eshell-grep "agrep" args))
+
+(defun eshell/rgrep (&rest args)
+  "Use Emacs grep facility instead of calling external rgrep."
+  (eshell-grep "grep" (append '("-rH") args) t))
 
 (defun eshell/glimpse (&rest args)
   "Use Emacs grep facility instead of calling external glimpse."

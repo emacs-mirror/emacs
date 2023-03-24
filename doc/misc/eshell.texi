@@ -602,6 +602,8 @@ disabled by default.
 @cmindex egrep
 @itemx fgrep
 @cmindex fgrep
+@itemx rgrep
+@cmindex rgrep
 @itemx glimpse
 @cmindex glimpse
 The @command{grep} commands are compatible with GNU @command{grep},
