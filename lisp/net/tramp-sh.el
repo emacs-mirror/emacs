@@ -106,6 +106,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
+(define-obsolete-variable-alias
+  'tramp-use-ssh-controlmaster-options 'tramp-use-connection-share "30.1")
+
 (defcustom tramp-use-connection-share (not (eq system-type 'windows-nt))
   "Whether to use connection share in ssh or PuTTY.
 Set it to t, if you want Tramp to apply respective options. These
@@ -121,11 +124,6 @@ Set it to `suppress' if you want to disable settings in your
                  (const :tag "Suppress ControlMaster" suppress))
   ;; Check with (safe-local-variable-p 'tramp-use-connection-share 'suppress)
   :safe (lambda (val) (and (memq val '(t nil suppress)) t)))
-
-(defvaralias 'tramp-use-connection-share 'tramp-use-ssh-controlmaster-options)
-(make-obsolete-variable
- 'tramp-use-ssh-controlmaster-options
- "Use `tramp-use-connection-share' instead" "30.1")
 
 (defvar tramp-ssh-controlmaster-options nil
   "Which ssh Control* arguments to use.

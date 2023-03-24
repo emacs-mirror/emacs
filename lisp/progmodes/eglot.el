@@ -221,7 +221,8 @@ chosen (interactively or automatically)."
                                 ((java-mode java-ts-mode) . ("jdtls"))
                                 (dart-mode . ("dart" "language-server"
                                               "--client-id" "emacs.eglot-dart"))
-                                ((elixir-ts-mode elixir-mode) . ("language_server.sh"))
+                                ((elixir-mode elixir-ts-mode heex-ts-mode)
+                                 . ("language_server.sh"))
                                 (ada-mode . ("ada_language_server"))
                                 (scala-mode . ,(eglot-alternatives
                                                 '("metals" "metals-emacs")))
@@ -390,12 +391,18 @@ done by `eglot-reconnect'."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
+(defcustom eglot-prefer-plaintext nil
+  "If non-nil, always request plaintext responses to hover requests."
+  :type 'boolean)
+
 (defcustom eglot-menu-string "eglot"
   "String displayed in mode line when Eglot is active."
   :type 'string)
 
 (defcustom eglot-report-progress t
-  "If non-nil, show progress of long running LSP server work"
+  "If non-nil, show progress of long running LSP server work.
+If set to `messages', use *Messages* buffer, else use Eglot's
+mode line indicator."
   :type 'boolean
   :version "29.1")
 
@@ -773,7 +780,8 @@ treated as in `eglot--dbind'."
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
                                        :contentFormat
-                                       (if (fboundp 'gfm-view-mode)
+                                       (if (and (not eglot-prefer-plaintext)
+                                                (fboundp 'gfm-view-mode))
                                            ["markdown" "plaintext"]
                                          ["plaintext"]))
              :signatureHelp      (list :dynamicRegistration :json-false
@@ -820,6 +828,7 @@ treated as in `eglot--dbind'."
                                        `(:valueSet
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
+            :window `(:workDoneProgress t)
             :general (list :positionEncodings ["utf-32" "utf-8" "utf-16"])
             :experimental eglot--{})))
 
@@ -1312,6 +1321,7 @@ This docstring appeases checkdoc, that's all."
                                         (eq (jsonrpc-process-type server)
                                             'network))
                               (emacs-pid))
+                            :clientInfo '(:name "Eglot")
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
                             ;; into `/path/to/baz.py', so LSP groks it.
                             :rootPath (file-local-name
@@ -1648,10 +1658,15 @@ Doubles as an indicator of snippet support."
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
       (let ((inhibit-message t)
-            (message-log-max nil))
-        (ignore-errors (delay-mode-hooks (funcall mode))))
-      (font-lock-ensure)
-      (string-trim (buffer-string)))))
+            (message-log-max nil)
+            match)
+        (ignore-errors (delay-mode-hooks (funcall mode)))
+        (font-lock-ensure)
+        (goto-char (point-min))
+        (while (setq match (text-property-search-forward 'invisible))
+          (delete-region (prop-match-beginning match)
+                         (prop-match-end match)))
+        (string-trim (buffer-string))))))
 
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
   'eglot-ignored-server-capabilities "1.8")
@@ -2037,7 +2052,7 @@ Uses THING, FACE, DEFS and PREPEND."
                                          mouse-face mode-line-highlight))))
 
 (defun eglot--mode-line-format ()
-  "Compose the Eglot's mode-line."
+  "Compose Eglot's mode-line."
   (let* ((server (eglot-current-server))
          (nick (and server (eglot-project-nickname server)))
          (pending (and server (hash-table-count
@@ -2074,7 +2089,15 @@ Uses THING, FACE, DEFS and PREPEND."
                      '((mouse-3 eglot-forget-pending-continuations
                                 "Forget pending continuations"))
                      "Number of outgoing, \
-still unanswered LSP requests to the server\n"))))))))
+still unanswered LSP requests to the server\n")))
+         ,@(cl-loop for pr hash-values of (eglot--progress-reporters server)
+                    when (eq (car pr)  'eglot--mode-line-reporter)
+                    append `("/" ,(eglot--mode-line-props
+                                   (format "%s%%%%" (or (nth 4 pr) "?"))
+                                   'eglot-mode-line
+                                   nil
+                                   (format "(%s) %s %s" (nth 1 pr)
+                                           (nth 2 pr) (nth 3 pr))))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
@@ -2133,13 +2156,14 @@ COMMAND is a symbol naming the command."
                   type message))
 
 (cl-defmethod eglot-handle-request
-  (_server (_method (eql window/showMessageRequest)) &key type message actions)
+  (_server (_method (eql window/showMessageRequest))
+           &key type message actions &allow-other-keys)
   "Handle server request window/showMessageRequest."
   (let* ((actions (append actions nil)) ;; gh#627
          (label (completing-read
                  (concat
                   (format (propertize "[eglot] Server reports (type=%s): %s"
-                                      'face (if (<= type 1) 'error))
+                                      'face (if (or (not type) (<= type 1)) 'error))
                           type message)
                   "\nChoose an option: ")
                  (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
@@ -2163,22 +2187,31 @@ COMMAND is a symbol naming the command."
   (server (_method (eql $/progress)) &key token value)
   "Handle $/progress notification identified by TOKEN from SERVER."
   (when eglot-report-progress
-    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " ")))
+    (cl-flet ((fmt (&rest args) (mapconcat #'identity args " "))
+              (mkpr (title)
+                (if (eq eglot-report-progress 'messages)
+                    (make-progress-reporter
+                     (format "[eglot] %s %s: %s"
+                             (eglot-project-nickname server) token title))
+                  (list 'eglot--mode-line-reporter token title)))
+              (upd (pcnt msg &optional
+                         (pr (gethash token (eglot--progress-reporters server))))
+                (cond
+                  ((eq (car pr) 'eglot--mode-line-reporter)
+                   (setcdr (cddr pr) (list msg pcnt))
+                   (force-mode-line-update t))
+                  (pr (progress-reporter-update pr pcnt msg)))))
       (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
         (pcase kind
           ("begin"
-           (let* ((prefix (format (concat "[eglot] %s %s:" (when percentage " "))
-                                  (eglot-project-nickname server) token))
-                  (pr (puthash token
-                       (if percentage
-                           (make-progress-reporter prefix 0 100 percentage 1 0)
-                         (make-progress-reporter prefix nil nil nil 1 0))
-                       (eglot--progress-reporters server))))
-             (eglot--reporter-update pr percentage (fmt title message))))
-          ("report"
-           (when-let ((pr (gethash token (eglot--progress-reporters server))))
-             (eglot--reporter-update pr percentage (fmt title message))))
-          ("end" (remhash token (eglot--progress-reporters server))))))))
+           (upd percentage (fmt title message)
+                (puthash token (mkpr title)
+                         (eglot--progress-reporters server))))
+          ("report" (upd percentage message))
+          ("end" (upd (or percentage 100) message)
+           (run-at-time 2 nil
+                        (lambda ()
+                          (remhash token (eglot--progress-reporters server))))))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
@@ -2484,7 +2517,7 @@ use the root of SERVER's `eglot--project'."
                ;; Set the major mode to be the first of the managed
                ;; modes.  This is the one the user started eglot in.
                (setq major-mode (car (eglot--major-modes server)))
-               (hack-dir-local-variables-non-file-buffer)()
+               (hack-dir-local-variables-non-file-buffer)
                (if (functionp eglot-workspace-configuration)
                    (funcall eglot-workspace-configuration server)
                  eglot-workspace-configuration))))
@@ -3146,7 +3179,8 @@ for which LSP on-type-formatting should be requested."
                      (eglot--when-buffer-window buf
                        (let ((info (unless (seq-empty-p contents)
                                      (eglot--hover-info contents range))))
-                         (funcall cb info :buffer t))))
+                         (funcall cb info
+                                  :echo (and info (string-match "\n" info))))))
        :deferred :textDocument/hover))
     (eglot--highlight-piggyback cb)
     t))

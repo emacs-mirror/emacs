@@ -859,18 +859,24 @@ return non-@code{nil} to indicate that the node should be kept.  If
 nodes.
 @end defun
 
-@defun treesit-parent-until node predicate
+@defun treesit-parent-until node predicate &optional include-node
 This function repeatedly finds the parents of @var{node}, and returns
-the parent that satisfies @var{predicate}, a function that takes a
-node as the argument.  If no parent satisfies @var{predicate}, this
-function returns @code{nil}.
+the parent that satisfies @var{pred}, a function that takes a node as
+the argument and returns a boolean that indicates a match.  If no
+parent satisfies @var{pred}, this function returns @code{nil}.
+
+Normally this function only looks at the parents of @var{node} but not
+@var{node} itself. But if @var{include-node} is non-@var{nil}, this
+function returns @var{node} if @var{node} satisfies @var{pred}.
 @end defun
 
-@defun treesit-parent-while node predicate
-This function repeatedly finds the parent of @var{node}, and keeps
-doing so as long as the nodes satisfy @var{predicate}, a function that
+@defun treesit-parent-while node pred
+This function goes up the tree starting from @var{node}, and keeps
+doing so as long as the nodes satisfy @var{pred}, a function that
 takes a node as the argument.  That is, this function returns the
-farthest parent that still satisfies @var{predicate}.
+highest parent of @var{node} that still satisfies @var{pred}.  Note
+that if @var{node} satisfies @var{pred} but its immediate parent
+doesn't, @var{node} itself is returned.
 @end defun
 
 @defun treesit-node-top-level node &optional type

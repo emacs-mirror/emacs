@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <timespec.h>
 
 #include <getopt.h>
 #include <unistd.h>
@@ -846,7 +847,7 @@ movemail_strftime (char *s, size_t size, char const *format,
 static bool
 mbx_delimit_begin (FILE *mbf)
 {
-  time_t now = time (NULL);
+  time_t now = current_timespec ().tv_sec;
   struct tm *ltime = localtime (&now);
   if (!ltime)
     return false;

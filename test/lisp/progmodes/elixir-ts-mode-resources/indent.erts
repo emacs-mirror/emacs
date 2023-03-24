@@ -306,3 +306,27 @@ Name: Long tuple
 {"January", "February", "March", "April", "May", "June", "July", "August", "September",
  "October", "November", "December"}
 =-=-=
+
+Name: Embedded HEEx
+
+=-=
+ defmodule Foo do
+ def foo(assigns) do
+~H"""
+<span>
+text
+</span>
+"""
+ end
+ end
+=-=
+defmodule Foo do
+  def foo(assigns) do
+    ~H"""
+    <span>
+      text
+    </span>
+    """
+  end
+end
+=-=-=

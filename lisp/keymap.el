@@ -579,14 +579,17 @@ value can also be a property list with properties `:enter' and
      :repeat (:enter (commands ...) :exit (commands ...))
 
 `:enter' specifies the list of additional commands that only
-enter `repeat-mode'.  When the list is empty, then by default all
-commands in the map enter `repeat-mode'.  This is useful when
-there is a command that has the `repeat-map' symbol property, but
-doesn't exist in this specific map.  `:exit' is a list of
-commands that exit `repeat-mode'.  When the list is empty, no
-commands in the map exit `repeat-mode'.  This is useful when a
-command exists in this specific map, but it doesn't have the
-`repeat-map' symbol property on its symbol.
+enter `repeat-mode'.  When the list is empty, then only the
+commands defined in the map enter `repeat-mode'.  Specifying a
+list of commands is useful when there are commands that have the
+`repeat-map' symbol property, but don't exist in this specific
+map.
+
+`:exit' is a list of commands that exit `repeat-mode'.  When the
+list is empty, no commands in the map exit `repeat-mode'.
+Specifying a list of commands is useful when those commands exist
+in this specific map, but should not have the `repeat-map' symbol
+property.
 
 \(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP REPEAT &rest [KEY DEFINITION]...)"
   (declare (indent 1))

@@ -3190,6 +3190,11 @@ auto-saved files to the same directory as the original file.
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
 
+@c Since Emacs 30.
+@vindex remote-file-name-inhibit-auto-save
+If you want to suppress auto-saving of remote files at all, set user
+option @code{remote-file-name-inhibit-auto-save} to non-@code{nil}.
+
 @c Since Emacs 29.
 @vindex remote-file-name-inhibit-auto-save-visited
 An alternative to @code{auto-save-mode} is
@@ -4907,6 +4912,36 @@ Disable file locks.  Set @code{remote-file-name-inhibit-locks} to
 the same remote file.
 
 @item
+@vindex remote-file-name-inhibit-auto-save
+Keep auto-save files local.  This is already the default configuration
+in Emacs, don't change it.  If you want to disable auto-saving for
+remote files at all, set @code{remote-file-name-inhibit-auto-save} to
+@code{t}, but think about the consequences!
+
+If you want to disable auto-saving just for selected connections, for
+example due to security considerations, use connection-local variables
+in order to set @code{buffer-auto-save-file-name}.  If you, for
+example, want to disable auto-saving for all @option{sudo}
+connections, apply the following code.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+
+@lisp
+@group
+(connection-local-set-profile-variables
+  'my-auto-save-profile
+  '((buffer-auto-save-file-name . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :protocol "sudo")
+ 'my-auto-save-profile)
+@end group
+@end lisp
+
+@item
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
@@ -5220,6 +5255,7 @@ HISTFILE=/dev/null
 @item
 Where are remote files trashed to?
 
+@vindex remote-file-name-inhibit-delete-by-moving-to-trash
 Emacs can trash file instead of deleting
 @ifinfo
 them, @ref{Misc File Ops, Trashing , , emacs}.

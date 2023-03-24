@@ -1138,7 +1138,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
     ;; key substitution constructs, load the library.
     (and (autoloadp real-def) doc-raw
          help-enable-autoload
-         (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]" doc-raw)
+         (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]\\|`.*'" doc-raw)
          (autoload-do-load real-def))
 
     (help-fns--key-bindings function)
