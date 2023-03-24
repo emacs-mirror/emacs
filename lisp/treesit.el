@@ -363,6 +363,50 @@ If NAMED is non-nil, count named child only."
              (idx (treesit-node-index node)))
     (treesit-node-field-name-for-child parent idx)))
 
+(defun treesit-node-get (node instructions)
+  "Get things from NODE by INSTRUCTIONS.
+
+This is a convenience function that chains together multiple node
+accessor functions together.  For example, to get NODE's parent's
+next sibling's second child's text, call
+
+   (treesit-node-get node
+     \\='((parent 1)
+       (sibling 1 nil)
+       (child 1 nil)
+       (text nil)))
+
+INSTRUCTION is a list of INSTRUCTIONs of the form (FN ARG...).
+The following FN's are supported:
+
+\(child IDX NAMED)    Get the IDX'th child
+\(parent N)           Go to parent N times
+\(field-name)         Get the field name of the current node
+\(type)               Get the type of the current node
+\(text NO-PROPERTY)   Get the text of the current node
+\(children NAMED)     Get a list of children
+\(sibling STEP NAMED) Get the nth prev/next sibling, negative STEP
+                     means prev sibling, positive means next
+
+Note that arguments like NAMED and NO-PROPERTY can't be omitted,
+unlike in their original functions."
+  (declare (indent 1))
+  (while (and node instructions)
+    (pcase (pop instructions)
+      ('(field-name) (setq node (treesit-node-field-name node)))
+      ('(type) (setq node (treesit-node-type node)))
+      (`(child ,idx ,named) (setq node (treesit-node-child node idx named)))
+      (`(parent ,n) (dotimes (_ n)
+                      (setq node (treesit-node-parent node))))
+      (`(text ,no-property) (setq node (treesit-node-text node no-property)))
+      (`(children ,named) (setq node (treesit-node-children node named)))
+      (`(sibling ,step ,named)
+       (dotimes (_ (abs step))
+         (setq node (if (> step 0)
+                        (treesit-node-next-sibling node named)
+                      (treesit-node-prev-sibling node named)))))))
+  node)
+
 ;;; Query API supplement
 
 (defun treesit-query-string (string query language)
