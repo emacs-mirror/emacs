@@ -499,6 +499,10 @@ If INTERACTIVE, display it.  Else, return said buffer."
            (display-buffer (current-buffer)))
           (t (current-buffer)))))
 
+(defvar eldoc-doc-buffer-separator
+  "String used to separate items in Eldoc documentation buffer."
+  (concat "\n" (propertize "\n" 'face '(:inherit separator-line :extend t)) "\n"))
+
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
   (with-current-buffer (if (buffer-live-p eldoc--doc-buffer)
@@ -522,7 +526,8 @@ If INTERACTIVE, display it.  Else, return said buffer."
                       ": "
                       this-doc))
                do (insert this-doc)
-               when rest do (insert "\n")
+               when rest do
+               (insert eldoc-doc-buffer-separator)
                finally (goto-char (point-min)))
       ;; Rename the buffer, taking into account whether it was
       ;; hidden or not
