@@ -2407,87 +2407,111 @@ treesit_predicates_for_pattern (TSQuery *query, uint32_t pattern_index)
   return Fnreverse (result);
 }
 
-/* Translate a capture NAME (symbol) to a node.
-   Signals treesit-query-error if such node is not captured.  */
-static Lisp_Object
+/* Translate a capture NAME (symbol) to a node.  If everything goes
+   fine, set NODE and return true; if error occurs (e.g., when there
+   is no node for the capture name), set NODE to Qnil, SIGNAL_DATA to
+   a suitable signal data, and return false.  */
+static bool
 treesit_predicate_capture_name_to_node (Lisp_Object name,
-					struct capture_range captures)
+					struct capture_range captures,
+					Lisp_Object *node,
+					Lisp_Object *signal_data)
 {
-  Lisp_Object node = Qnil;
+  *node = Qnil;
   for (Lisp_Object tail = captures.start; !EQ (tail, captures.end);
        tail = XCDR (tail))
     {
       if (EQ (XCAR (XCAR (tail)), name))
 	{
-	  node = XCDR (XCAR (tail));
+	  *node = XCDR (XCAR (tail));
 	  break;
 	}
     }
 
-  if (NILP (node))
-    xsignal3 (Qtreesit_query_error,
-	      build_string ("Cannot find captured node"),
-	      name, build_string ("A predicate can only refer"
-		                  " to captured nodes in the "
-		                  "same pattern"));
-  return node;
+  if (NILP (*node))
+    {
+      *signal_data = list3 (build_string ("Cannot find captured node"),
+			    name, build_string ("A predicate can only refer"
+						" to captured nodes in the "
+						"same pattern"));
+      return false;
+    }
+  return true;
 }
 
 /* Translate a capture NAME (symbol) to the text of the captured node.
-   Signals treesit-query-error if such node is not captured.  */
-static Lisp_Object
+   If everything goes fine, set TEXT to the text and return true;
+   otherwise set TEXT to Qnil and set SIGNAL_DATA to a suitable signal
+   data.  */
+static bool
 treesit_predicate_capture_name_to_text (Lisp_Object name,
-					struct capture_range captures)
+					struct capture_range captures,
+					Lisp_Object *text,
+					Lisp_Object *signal_data)
 {
-  Lisp_Object node = treesit_predicate_capture_name_to_node (name, captures);
+  Lisp_Object node = Qnil;
+  if (!treesit_predicate_capture_name_to_node (name, captures, &node, signal_data))
+    return false;
 
   struct buffer *old_buffer = current_buffer;
   set_buffer_internal (XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer));
-  Lisp_Object text = Fbuffer_substring (Ftreesit_node_start (node),
-					Ftreesit_node_end (node));
+  *text = Fbuffer_substring (Ftreesit_node_start (node),
+			     Ftreesit_node_end (node));
   set_buffer_internal (old_buffer);
-  return text;
+  return true;
 }
 
 /* Handles predicate (#equal A B).  Return true if A equals B; return
    false otherwise.  A and B can be either string, or a capture name.
    The capture name evaluates to the text its captured node spans in
-   the buffer.  */
+   the buffer.  If everything goes fine, don't touch SIGNAL_DATA; if
+   error occurs, set it to a suitable signal data.  */
 static bool
-treesit_predicate_equal (Lisp_Object args, struct capture_range captures)
+treesit_predicate_equal (Lisp_Object args, struct capture_range captures,
+			 Lisp_Object *signal_data)
 {
   if (XFIXNUM (Flength (args)) != 2)
-    xsignal2 (Qtreesit_query_error,
-	      build_string ("Predicate `equal' requires "
-		            "two arguments but only given"),
-	      Flength (args));
-
+    {
+      *signal_data = list2 (build_string ("Predicate `equal' requires "
+					  "two arguments but only given"),
+			    Flength (args));
+      return false;
+    }
   Lisp_Object arg1 = XCAR (args);
   Lisp_Object arg2 = XCAR (XCDR (args));
-  Lisp_Object text1 = (STRINGP (arg1)
-		       ? arg1
-		       : treesit_predicate_capture_name_to_text (arg1,
-								 captures));
-  Lisp_Object text2 = (STRINGP (arg2)
-		       ? arg2
-		       : treesit_predicate_capture_name_to_text (arg2,
-								 captures));
+  Lisp_Object text1 = arg1;
+  Lisp_Object text2 = arg2;
+  if (SYMBOLP (arg1))
+    {
+      if (!treesit_predicate_capture_name_to_text (arg1, captures, &text1,
+						   signal_data))
+	return false;
+    }
+  if (SYMBOLP (arg2))
+    {
+      if (!treesit_predicate_capture_name_to_text (arg2, captures, &text2,
+						   signal_data))
+	return false;
+    }
 
   return !NILP (Fstring_equal (text1, text2));
 }
 
 /* Handles predicate (#match "regexp" @node).  Return true if "regexp"
-   matches the text spanned by @node; return false otherwise.  Matching
-   is case-sensitive.  */
+   matches the text spanned by @node; return false otherwise.
+   Matching is case-sensitive.  If everything goes fine, don't touch
+   SIGNAL_DATA; if error occurs, set it to a suitable signal data.  */
 static bool
-treesit_predicate_match (Lisp_Object args, struct capture_range captures)
+treesit_predicate_match (Lisp_Object args, struct capture_range captures,
+			 Lisp_Object *signal_data)
 {
   if (XFIXNUM (Flength (args)) != 2)
-    xsignal2 (Qtreesit_query_error,
-	      build_string ("Predicate `match' requires two "
-		            "arguments but only given"),
-	      Flength (args));
-
+    {
+      *signal_data = list2 (build_string ("Predicate `match' requires two "
+					  "arguments but only given"),
+			    Flength (args));
+      return false;
+    }
   Lisp_Object regexp = XCAR (args);
   Lisp_Object capture_name = XCAR (XCDR (args));
 
@@ -2504,8 +2528,10 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 	      build_string ("The second argument to `match' should "
 		            "be a capture name, not a string"));
 
-  Lisp_Object node = treesit_predicate_capture_name_to_node (capture_name,
-							     captures);
+  Lisp_Object node = Qnil;
+  if (!treesit_predicate_capture_name_to_node (capture_name, captures, &node,
+					       signal_data))
+    return false;
 
   struct buffer *old_buffer = current_buffer;
   struct buffer *buffer = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
@@ -2544,54 +2570,66 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures)
 
 /* Handles predicate (#pred FN ARG...).  Return true if FN returns
    non-nil; return false otherwise.  The arity of FN must match the
-   number of ARGs  */
+   number of ARGs.  If everything goes fine, don't touch SIGNAL_DATA;
+   if error occurs, set it to a suitable signal data.  */
 static bool
-treesit_predicate_pred (Lisp_Object args, struct capture_range captures)
+treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
+			Lisp_Object *signal_data)
 {
   if (XFIXNUM (Flength (args)) < 2)
-    xsignal2 (Qtreesit_query_error,
-	      build_string ("Predicate `pred' requires "
-		            "at least two arguments, "
-		            "but was only given"),
-	      Flength (args));
+    {
+      *signal_data = list2 (build_string ("Predicate `pred' requires "
+					  "at least two arguments, "
+					  "but was only given"),
+			    Flength (args));
+      return false;
+    }
 
   Lisp_Object fn = Fintern (XCAR (args), Qnil);
   Lisp_Object nodes = Qnil;
   Lisp_Object tail = XCDR (args);
   FOR_EACH_TAIL (tail)
-    nodes = Fcons (treesit_predicate_capture_name_to_node (XCAR (tail),
-							   captures),
-		   nodes);
+  {
+    Lisp_Object node = Qnil;
+    if (!treesit_predicate_capture_name_to_node (XCAR (tail), captures, &node,
+						 signal_data))
+      return false;
+    nodes = Fcons (node, nodes);
+  }
   nodes = Fnreverse (nodes);
 
   return !NILP (CALLN (Fapply, fn, nodes));
 }
 
 /* If all predicates in PREDICATES passes, return true; otherwise
-   return false.  */
+   return false.  If everything goes fine, don't touch SIGNAL_DATA; if
+   error occurs, set it to a suitable signal data.  */
 static bool
-treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates)
+treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates,
+			 Lisp_Object *signal_data)
 {
   bool pass = true;
   /* Evaluate each predicates.  */
   for (Lisp_Object tail = predicates;
-       !NILP (tail); tail = XCDR (tail))
+       pass && !NILP (tail); tail = XCDR (tail))
     {
       Lisp_Object predicate = XCAR (tail);
       Lisp_Object fn = XCAR (predicate);
       Lisp_Object args = XCDR (predicate);
       if (!NILP (Fstring_equal (fn, Vtreesit_str_equal)))
-	pass &= treesit_predicate_equal (args, captures);
+	pass &= treesit_predicate_equal (args, captures, signal_data);
       else if (!NILP (Fstring_equal (fn, Vtreesit_str_match)))
-	pass &= treesit_predicate_match (args, captures);
+	pass &= treesit_predicate_match (args, captures, signal_data);
       else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred)))
-	pass &= treesit_predicate_pred (args, captures);
+	pass &= treesit_predicate_pred (args, captures, signal_data);
       else
-	xsignal3 (Qtreesit_query_error,
-		  build_string ("Invalid predicate"),
-		  fn, build_string ("Currently Emacs only supports"
-		                    " equal, match, and pred"
-		                    " predicate"));
+	{
+	  *signal_data = list3 (build_string ("Invalid predicate"),
+				fn, build_string ("Currently Emacs only supports"
+						  " equal, match, and pred"
+						  " predicates"));
+	  pass = false;
+	}
     }
   /* If all predicates passed, add captures to result list.  */
   return pass;
@@ -2831,11 +2869,12 @@ the query.  */)
   Lisp_Object result = Qnil;
   Lisp_Object prev_result = result;
   Lisp_Object predicates_table = make_vector (patterns_count, Qt);
+  Lisp_Object predicate_signal_data = Qnil;
   while (ts_query_cursor_next_match (cursor, &match))
     {
       /* Record the checkpoint that we may roll back to.  */
       prev_result = result;
-      /* Get captured nodes.  */
+      /* 1. Get captured nodes.  */
       const TSQueryCapture *captures = match.captures;
       for (int idx = 0; idx < match.capture_count; idx++)
 	{
@@ -2858,7 +2897,8 @@ the query.  */)
 
 	  result = Fcons (cap, result);
 	}
-      /* Get predicates.  */
+      /* 2. Get predicates and check whether this match can be
+         included in the result list.  */
       Lisp_Object predicates = AREF (predicates_table, match.pattern_index);
       if (EQ (predicates, Qt))
 	{
@@ -2869,15 +2909,27 @@ the query.  */)
 
       /* captures_lisp = Fnreverse (captures_lisp); */
       struct capture_range captures_range = { result, prev_result };
-      if (!treesit_eval_predicates (captures_range, predicates))
-	/* Predicates didn't pass, roll back.  */
+      bool match = treesit_eval_predicates (captures_range, predicates,
+					    &predicate_signal_data);
+      if (!NILP (predicate_signal_data))
+	break;
+
+      /* Predicates didn't pass, roll back.  */
+      if (!match)
 	result = prev_result;
     }
+
+  /* Final clean up.  */
   if (needs_to_free_query_and_cursor)
     {
       ts_query_delete (treesit_query);
       ts_query_cursor_delete (cursor);
     }
+
+  /* Some capture predicate signaled an error.  */
+  if (!NILP (predicate_signal_data))
+    xsignal (Qtreesit_query_error, predicate_signal_data);
+
   return Fnreverse (result);
 }
 
