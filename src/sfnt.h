@@ -53,6 +53,9 @@ enum sfnt_table
     SFNT_TABLE_CVT ,
     SFNT_TABLE_FPGM,
     SFNT_TABLE_PREP,
+    SFNT_TABLE_FVAR,
+    SFNT_TABLE_GVAR,
+    SFNT_TABLE_CVAR,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -61,7 +64,14 @@ enum sfnt_table
 /* Each of these structures must be aligned so that no compiler will
    ever generate padding bytes on platforms where the alignment
    requirements for uint32_t and uint16_t are no larger than 4 and 2
-   bytes respectively.  */
+   bytes respectively.
+
+   Pointer types are assumed to impose an alignmnent requirement no
+   less than that of uint32_t.
+
+   If a table has more than one kind of variable-length subtable array
+   at the end, make sure to pad subsequent subtables
+   appropriately.  */
 
 struct sfnt_offset_subtable
 {
@@ -568,25 +578,25 @@ struct sfnt_simple_glyph
   size_t number_of_points;
 
   /* Array containing the last points of each contour.  */
-  uint16_t *end_pts_of_contours;
+  uint16_t *restrict end_pts_of_contours;
 
   /* Total number of bytes needed for instructions.  */
   uint16_t instruction_length;
 
   /* Instruction data.  */
-  uint8_t *instructions;
+  uint8_t *restrict instructions;
 
   /* Array of flags.  */
-  uint8_t *flags;
+  uint8_t *restrict flags;
 
   /* Array of X coordinates.  */
-  int16_t *x_coordinates;
+  int16_t *restrict x_coordinates;
 
   /* Array of Y coordinates.  */
-  int16_t *y_coordinates;
+  int16_t *restrict y_coordinates;
 
   /* Pointer to the end of that array.  */
-  int16_t *y_coordinates_end;
+  int16_t *restrict y_coordinates_end;
 };
 
 struct sfnt_compound_glyph_component
