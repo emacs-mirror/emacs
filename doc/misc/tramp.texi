@@ -1493,8 +1493,10 @@ access and it has the most reasonable security protocols, use
 @end example
 
 If @option{ssh} is unavailable for whatever reason, look for other
-obvious options.  For MS Windows, try the @option{plink} method.  For
-Kerberos, try @option{krlogin}.
+obvious options.  For MS Windows, try the @option{plink}
+method@footnote{This shouldn't be needed with recent @code{OpenSSH}
+versions for MS Windows.  Use method @option{sshx}.}.  For Kerberos,
+try @option{krlogin}.
 
 For editing local files as @option{su} or @option{sudo} methods, try
 the shortened syntax of @samp{root}:
@@ -2837,10 +2839,18 @@ When @value{tramp} uses direct remote copying, password caches are not
 consulted.
 
 
-@subsection Issues with Cygwin ssh
+@subsection Issues with Cygwin and MS Windows ssh
 @cindex cygwin, issues
+@cindex ms Windows, issues
 
 This section is incomplete.  Please share your solutions.
+
+@cindex ms windows and @command{ssh}
+@cindex ms windows and @command{ssh-agent}
+
+MS Windows' @command{ssh} does not open a remote TTY@.  Use the method
+@option{sshx} or @option{scpx} instead.  Furthermore, it cannot read a
+passphrase for ssh private keys.  Use the MS @code{ssh-agent}.
 
 @cindex method @option{sshx} with cygwin
 @cindex @option{sshx} method with cygwin
@@ -2881,13 +2891,15 @@ Windows file names to Cygwin file names.
 @cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
 @vindex SSH_AUTH_SOCK@r{, environment variable}
 
-When using the @command{ssh-agent} on MS Windows for password-less
-interaction, @option{ssh} methods depend on the environment variable
-@env{SSH_AUTH_SOCK}.  But this variable is not set when Emacs is
-started from a Desktop shortcut and authentication fails.
+When using the cygwin @command{ssh-agent} on MS Windows for
+password-less interaction, @option{ssh} methods depend on the
+environment variable @env{SSH_AUTH_SOCK}.  But this variable is not
+set when Emacs is started from a Desktop shortcut and authentication
+fails.
 
-One workaround is to use an MS Windows based SSH Agent, such as
-@command{Pageant}.  It is part of the PuTTY Suite of tools.
+One workaround is to use an MS Windows based SSH Agent, such as the
+native MS @command{ssh-agent} or @command{Pageant}.  The latter is
+part of the PuTTY Suite of tools.
 
 The fallback is to start Emacs from a shell.
 
