@@ -2533,10 +2533,6 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures,
 					       signal_data))
     return false;
 
-  struct buffer *old_buffer = current_buffer;
-  struct buffer *buffer = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
-  set_buffer_internal (buffer);
-
   TSNode treesit_node = XTS_NODE (node)->node;
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   uint32_t start_byte_offset = ts_node_start_byte (treesit_node);
@@ -2562,8 +2558,6 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures,
   BEGV_BYTE = old_begv_byte;
   ZV = old_zv;
   ZV_BYTE = old_zv_byte;
-
-  set_buffer_internal (old_buffer);
 
   return (val > 0);
 }
@@ -2870,6 +2864,10 @@ the query.  */)
   Lisp_Object prev_result = result;
   Lisp_Object predicates_table = make_vector (patterns_count, Qt);
   Lisp_Object predicate_signal_data = Qnil;
+
+  struct buffer *old_buf = current_buffer;
+  set_buffer_internal (buf);
+
   while (ts_query_cursor_next_match (cursor, &match))
     {
       /* Record the checkpoint that we may roll back to.  */
@@ -2925,6 +2923,7 @@ the query.  */)
       ts_query_delete (treesit_query);
       ts_query_cursor_delete (cursor);
     }
+  set_buffer_internal (old_buf);
 
   /* Some capture predicate signaled an error.  */
   if (!NILP (predicate_signal_data))
