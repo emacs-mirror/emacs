@@ -64,11 +64,17 @@ FROM emacs-base as emacs-eglot
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      wget \
+      snapd wget \
     && rm -rf /var/lib/apt/lists/*
 
-# We install a recent clangd for Eglot tests.
-RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+# A recent clangd.  It must be at least clangd 14, which is in Debian
+# bookworm.
+RUN bash -c "$(wget --no-check-certificate -O - https://apt.llvm.org/llvm.sh)"
+
+# A recent pylsp.  Since Debian bookworm there is the package
+# python3-pylsp.
+RUN snap install core
+RUN snap install pylsp
 
 COPY . /checkout
 WORKDIR /checkout
