@@ -3204,7 +3204,7 @@ VERSION and so on.  It is called with ARGS."
     (erc-send-ctcp-message nick str)
     t))
 
-(defun erc-cmd-HELP (&optional func)
+(defun erc-cmd-HELP (&optional func &rest rest)
   "Popup help information.
 
 If FUNC contains a valid function or variable, help about that
@@ -3237,6 +3237,10 @@ For a list of user commands (/join /part, ...):
                           nil)))))
         (if sym
             (cond
+             ((get sym 'erc--cmd-help)
+              (when (autoloadp (symbol-function sym))
+                (autoload-do-load (symbol-function sym)))
+              (apply (get sym 'erc--cmd-help) rest))
              ((boundp sym) (describe-variable sym))
              ((fboundp sym) (describe-function sym))
              (t nil))
