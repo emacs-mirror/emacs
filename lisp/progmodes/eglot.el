@@ -3096,62 +3096,57 @@ for which LSP on-type-formatting should be requested."
   (mapconcat #'eglot--format-markup
              (if (vectorp contents) contents (list contents)) "\n"))
 
-(defun eglot--sig-info (sigs active-sig sig-help-active-param)
-  (cl-loop
-   for (sig . moresigs) on (append sigs nil) for i from 0
-   concat
-   (eglot--dbind ((SignatureInformation) label documentation parameters activeParameter) sig
-     (with-temp-buffer
-       (save-excursion (insert label))
-       (let ((active-param (or activeParameter sig-help-active-param))
-             params-start params-end)
-         ;; Ad-hoc attempt to parse label as <name>(<params>)
-         (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
-           (setq params-start (match-beginning 2) params-end (match-end 2))
-           (add-face-text-property (match-beginning 1) (match-end 1)
-                                   'font-lock-function-name-face))
-         (when (eql i active-sig)
-           ;; Decide whether to add one-line-summary to signature line
-           (when (and (stringp documentation)
-                      (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
-                                    documentation))
-             (setq documentation (match-string 1 documentation))
-             (unless (string-prefix-p (string-trim documentation) label)
-               (goto-char (point-max))
-               (insert ": " (eglot--format-markup documentation))))
-           ;; Decide what to do with the active parameter...
-           (when (and (eql i active-sig) active-param
-                      (< -1 active-param (length parameters)))
-             (eglot--dbind ((ParameterInformation) label documentation)
-                 (aref parameters active-param)
-               ;; ...perhaps highlight it in the formals list
-               (when params-start
-                 (goto-char params-start)
-                 (pcase-let
-                     ((`(,beg ,end)
+(defun eglot--sig-info (sig &optional _activep sig-help-active-param)
+  (eglot--dbind ((SignatureInformation) label documentation parameters activeParameter)
+      sig
+    (with-temp-buffer
+      (save-excursion (insert label))
+      (let ((active-param (or activeParameter sig-help-active-param))
+            params-start params-end)
+        ;; Ad-hoc attempt to parse label as <name>(<params>)
+        (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
+          (setq params-start (match-beginning 2) params-end (match-end 2))
+          (add-face-text-property (match-beginning 1) (match-end 1)
+                                  'font-lock-function-name-face))
+        ;; Decide whether to add one-line-summary to signature line
+        (when (and (stringp documentation)
+                   (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
+                                 documentation))
+          (setq documentation (match-string 1 documentation))
+          (unless (string-prefix-p (string-trim documentation) label)
+            (goto-char (point-max))
+            (insert ": " (eglot--format-markup documentation))))
+        ;; Decide what to do with the active parameter...
+        (when (and active-param (< -1 active-param (length parameters)))
+          (eglot--dbind ((ParameterInformation) label documentation)
+              (aref parameters active-param)
+            ;; ...perhaps highlight it in the formals list
+            (when params-start
+              (goto-char params-start)
+              (pcase-let
+                  ((`(,beg ,end)
+                    (if (stringp label)
+                        (let ((case-fold-search nil))
+                          (and (re-search-forward
+                                (concat "\\<" (regexp-quote label) "\\>")
+                                params-end t)
+                               (list (match-beginning 0) (match-end 0))))
+                      (mapcar #'1+ (append label nil)))))
+                (if (and beg end)
+                    (add-face-text-property
+                     beg end
+                     'eldoc-highlight-function-argument))))
+            ;; ...and/or maybe add its doc on a line by its own.
+            (when documentation
+              (goto-char (point-max))
+              (insert "\n"
+                      (propertize
                        (if (stringp label)
-                           (let ((case-fold-search nil))
-                             (and (re-search-forward
-                                   (concat "\\<" (regexp-quote label) "\\>")
-                                   params-end t)
-                                  (list (match-beginning 0) (match-end 0))))
-                         (mapcar #'1+ (append label nil)))))
-                   (if (and beg end)
-                       (add-face-text-property
-                        beg end
-                        'eldoc-highlight-function-argument))))
-               ;; ...and/or maybe add its doc on a line by its own.
-               (when documentation
-                 (goto-char (point-max))
-                 (insert "\n"
-                         (propertize
-                          (if (stringp label)
-                              label
-                            (apply #'buffer-substring (mapcar #'1+ label)))
-                          'face 'eldoc-highlight-function-argument)
-                         ": " (eglot--format-markup documentation))))))
-         (buffer-string))))
-   when moresigs concat "\n"))
+                           label
+                         (apply #'buffer-substring (mapcar #'1+ label)))
+                       'face 'eldoc-highlight-function-argument)
+                      ": " (eglot--format-markup documentation))))))
+      (buffer-string))))
 
 (defun eglot-signature-eldoc-function (cb)
   "A member of `eldoc-documentation-functions', for signatures."
@@ -3164,11 +3159,12 @@ for which LSP on-type-formatting should be requested."
        (eglot--lambda ((SignatureHelp)
                        signatures activeSignature activeParameter)
          (eglot--when-buffer-window buf
-           (funcall cb
-                    (unless (seq-empty-p signatures)
-                      (eglot--sig-info signatures
-                                       activeSignature
-                                       activeParameter)))))
+           (let ((active-sig (and (cl-plusp (length signatures))
+                                  (aref signatures (or activeSignature 0)))))
+             (if (not active-sig) (funcall cb nil)
+               (funcall cb
+                        (mapconcat #'eglot--sig-info signatures "\n")
+                        :echo (eglot--sig-info active-sig t activeParameter))))))
        :deferred :textDocument/signatureHelp))
     t))
 
