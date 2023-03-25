@@ -404,7 +404,15 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
         (apropos "erc-dcc-do-.*-command")
         t))))
 
+(put 'erc-cmd-DCC 'do-not-parse-args t)
 (autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
+
+;;;###autoload(put 'erc-cmd-DCC 'erc--cmd-help 'erc-dcc--cmd-help)
+(defun erc-dcc--cmd-help (&rest args)
+  (describe-function
+   (or (and args (intern-soft (concat "erc-dcc-do-"
+                                      (upcase (car args)) "-command")))
+       'erc-cmd-DCC)))
 
 ;;;###autoload
 (defun pcomplete/erc-mode/DCC ()
