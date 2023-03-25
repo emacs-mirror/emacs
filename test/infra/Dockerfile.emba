@@ -78,7 +78,7 @@ FROM emacs-base as emacs-native-comp
 # The libgccjit version must correspond to the gcc version.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libgccjit-10-dev \
+      libgccjit-10-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-native-comp as emacs-native-comp-speed0
