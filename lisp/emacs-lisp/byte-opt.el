@@ -2765,7 +2765,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                       (or (memq (caar tmp) '(byte-discard byte-discardN))
                           ;; Make sure we don't hoist a discardN-preserve-tos
                           ;; that really should be merged or deleted instead.
-                          (and (eq (caar tmp) 'byte-discardN-preserve-tos)
+                          (and (or (eq (caar tmp) 'byte-discardN-preserve-tos)
+                                   (and (eq (caar tmp) 'byte-stack-set)
+                                        (eql (cdar tmp) 1)))
                                (let ((next (cadr tmp)))
                                  (not (or (memq (car next)
                                                 '(byte-discardN-preserve-tos
