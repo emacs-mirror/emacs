@@ -6005,22 +6005,42 @@ INPUT, if non-nil, is a string sent to the process."
 	    (should (eq local-variable 'connect))
 	    (kill-buffer (current-buffer)))
 
-	  ;; `local-variable' is dir-local due to existence of .dir-locals.el.
+	  ;; `local-variable' is still connection-local due to Tramp.
+	  ;; `find-file-hook' overrides dir-local settings.
 	  (write-region
 	   "((nil . ((local-variable . dir))))" nil
 	   (expand-file-name ".dir-locals.el" tmp-name1))
 	  (should (file-exists-p (expand-file-name ".dir-locals.el" tmp-name1)))
-	  (with-current-buffer (find-file-noselect tmp-name2)
-	    (should (eq local-variable 'dir))
-	    (kill-buffer (current-buffer)))
+	  (when (memq #'tramp-set-connection-local-variables-for-buffer
+		      find-file-hook)
+	    (with-current-buffer (find-file-noselect tmp-name2)
+	      (should (eq local-variable 'connect))
+	      (kill-buffer (current-buffer))))
+	  ;; `local-variable' is dir-local due to existence of .dir-locals.el.
+	  (let ((find-file-hook
+		 (remq #'tramp-set-connection-local-variables-for-buffer
+		       find-file-hook)))
+	    (with-current-buffer (find-file-noselect tmp-name2)
+	      (should (eq local-variable 'dir))
+	      (kill-buffer (current-buffer))))
 
-	  ;; `local-variable' is file-local due to specifying as file variable.
+	  ;; `local-variable' is still connection-local due to Tramp.
+	  ;; `find-file-hook' overrides dir-local settings.
 	  (write-region
 	   "-*- mode: comint; local-variable: file; -*-" nil tmp-name2)
           (should (file-exists-p tmp-name2))
-	  (with-current-buffer (find-file-noselect tmp-name2)
-	    (should (eq local-variable 'file))
-	    (kill-buffer (current-buffer))))
+	  (when (memq #'tramp-set-connection-local-variables-for-buffer
+		      find-file-hook)
+	    (with-current-buffer (find-file-noselect tmp-name2)
+	      (should (eq local-variable 'connect))
+	      (kill-buffer (current-buffer))))
+	  ;; `local-variable' is file-local due to specifying as file variable.
+	  (let ((find-file-hook
+		 (remq #'tramp-set-connection-local-variables-for-buffer
+		       find-file-hook)))
+	    (with-current-buffer (find-file-noselect tmp-name2)
+	      (should (eq local-variable 'file))
+	      (kill-buffer (current-buffer)))))
 
       ;; Cleanup.
       (custom-set-variables
