@@ -64,6 +64,7 @@
 
 (defvar gnus-inhibit-demon)
 (defvar gnus-message-group-art)
+(defvar gnus-search-use-parsed-queries)
 
 ;; For future use
 (defvoo nnselect-directory gnus-directory
@@ -677,7 +678,8 @@ artlist; otherwise store the ARTLIST in the group parameters."
 	  ;; If so we perform the query, massage the result, and return
 	  ;; the new headers back to the caller to incorporate into the
 	  ;; current summary buffer.
-	  (let* ((group-spec
+	  (let* ((gnus-search-use-parsed-queries t)
+                 (group-spec
 		  (list (delq nil (list
 				   (or server (gnus-group-server artgroup))
 				   (unless gnus-refer-thread-use-search
