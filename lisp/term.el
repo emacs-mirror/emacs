@@ -1370,7 +1370,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (setq this-command 'yank)
   (mouse-set-point click)
   ;; As we have moved point, bind `select-active-regions' to prevent
   ;; the `deactivate-mark' call in `term-send-raw-string' from
