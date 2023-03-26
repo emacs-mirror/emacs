@@ -222,7 +222,10 @@ chosen (interactively or automatically)."
                                 (dart-mode . ("dart" "language-server"
                                               "--client-id" "emacs.eglot-dart"))
                                 ((elixir-mode elixir-ts-mode heex-ts-mode)
-                                 . ("language_server.sh"))
+                                 . ,(if (and (fboundp 'w32-shell-dos-semantics)
+                                             (w32-shell-dos-semantics))
+                                        '("language_server.bat")
+                                      '("language_server.sh")))
                                 (ada-mode . ("ada_language_server"))
                                 (scala-mode . ,(eglot-alternatives
                                                 '("metals" "metals-emacs")))

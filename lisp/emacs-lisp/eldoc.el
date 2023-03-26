@@ -454,9 +454,10 @@ documentation-displaying frontends.  For example, KEY can be:
   documentation buffer accordingly.
 
 * `:echo', controlling how `eldoc-display-in-echo-area' should
-  present this documentation item, to save space.  If VALUE is
-  `skip' don't echo DOCSTRING.  If a number, only echo DOCSTRING
-  up to that character position.
+  present this documentation item in the echo area, to save
+  space.  If VALUE is a string, echo it instead of DOCSTRING.  If
+  a number, only echo DOCSTRING up to that character position.
+  If `skip', don't echo DOCSTRING at all.
 
 Finally, major modes should modify this hook locally, for
 example:
@@ -498,6 +499,10 @@ If INTERACTIVE, display it.  Else, return said buffer."
            (display-buffer (current-buffer)))
           (t (current-buffer)))))
 
+(defvar eldoc-doc-buffer-separator
+  (concat "\n" (propertize "\n" 'face '(:inherit separator-line :extend t)) "\n")
+  "String used to separate items in Eldoc documentation buffer.")
+
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
   (with-current-buffer (if (buffer-live-p eldoc--doc-buffer)
@@ -521,7 +526,8 @@ If INTERACTIVE, display it.  Else, return said buffer."
                       ": "
                       this-doc))
                do (insert this-doc)
-               when rest do (insert "\n")
+               when rest do
+               (insert eldoc-doc-buffer-separator)
                finally (goto-char (point-min)))
       ;; Rename the buffer, taking into account whether it was
       ;; hidden or not
@@ -544,7 +550,10 @@ Helper for `eldoc-display-in-echo-area'."
            for echo = (plist-get plist :echo)
            for thing = (plist-get plist :thing)
            unless (eq echo 'skip) do
-           (when echo (setq this-doc (substring this-doc 0 echo)))
+           (setq this-doc
+                 (cond ((integerp echo) (substring this-doc 0 echo))
+                       ((stringp echo) echo)
+                       (t this-doc)))
            (when thing (setq this-doc
                              (concat
                               (propertize (format "%s" thing)
@@ -911,8 +920,11 @@ the docstrings eventually produced, using
       (let* ((eldoc--make-callback #'make-callback)
              (res (funcall eldoc-documentation-strategy)))
         ;; Observe the old and the new protocol:
-        (cond (;; Old protocol: got string, output immediately;
-               (stringp res) (register-doc 0 res nil) (display-doc))
+        (cond (;; Old protocol: got string, e-d-strategy is iself the
+               ;; origin function, and we output immediately;
+               (stringp res)
+               (register-doc 0 res nil eldoc-documentation-strategy)
+               (display-doc))
               (;; Old protocol: got nil, clear the echo area;
                (null res) (eldoc--message nil))
               (;; New protocol: trust callback will be called;

@@ -1311,7 +1311,8 @@ matches regular expression @var{regexp}.  Matching is case-sensitive.
 
 @deffn Predicate pred fn &rest nodes
 Matches if function @var{fn} returns non-@code{nil} when passed each
-node in @var{nodes} as arguments.
+node in @var{nodes} as arguments.  The function runs with the current
+buffer set to the buffer of node being queried.
 @end deffn
 
 Note that a predicate can only refer to capture names that appear in
