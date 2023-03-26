@@ -210,6 +210,20 @@ They are checked during start up via
 	tramp-gvfs-interface-mounttracker))
   "The list of supported methods of the mount tracking interface.")
 
+(defconst tramp-gvfs-listmountableinfo
+  (if (member "ListMountableInfo" tramp-gvfs-methods-mounttracker)
+      "ListMountableInfo"
+    "listMountableInfo")
+  "The name of the \"listMountableInfo\" method.
+It has been changed in GVFS 1.14.")
+
+(defconst tramp-gvfs-listmounttypes
+  (if (member "ListMountTypes" tramp-gvfs-methods-mounttracker)
+      "ListMountTypes"
+    "listMountTypes")
+  "The name of the \"listMountTypes\" method.
+It has been changed in GVFS 1.14.")
+
 (defconst tramp-gvfs-listmounts
   (if (member "ListMounts" tramp-gvfs-methods-mounttracker)
       "ListMounts"
@@ -233,6 +247,12 @@ It has been changed in GVFS 1.14.")
 It has been changed in GVFS 1.14.")
 
 ;; <interface name='org.gtk.vfs.MountTracker'>
+;;   <method name='listMountableInfo'>
+;;     <arg name='mountables'  type='a(ssasib)'  direction='out'/>
+;;   </method>
+;;   <method name='listMountTypes'>
+;;     <arg name='mount_types' type='as'         direction='out'/>
+;;   </method>
 ;;   <method name='listMounts'>
 ;;     <arg name='mount_info_list'
 ;;          type='a{sosssssbay{aya{say}}ay}'
@@ -252,6 +272,13 @@ It has been changed in GVFS 1.14.")
 ;;          type='{sosssssbay{aya{say}}ay}'/>
 ;;   </signal>
 ;; </interface>
+;;
+;; STRUCT		mountable
+;;   STRING		  type
+;;   STRING		  scheme
+;;   ARRAY STRING	  scheme_aliases
+;;   INT32		  default_port
+;;   BOOLEAN		  host_is_inet
 ;;
 ;; STRUCT		mount_info
 ;;   STRING		  dbus_id
@@ -2151,6 +2178,22 @@ connection if a previous connection has died for some reason."
   ;; During completion, don't reopen a new connection.
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
+
+  ;; Sanity check.
+  (let ((method (tramp-file-name-method vec)))
+    (unless (member
+	     (or (rassoc method '(("smb" . "smb-share")
+				  ("davs" . "dav")
+				  ("nextcloud" . "dav")
+				  ("afp". "afp-volume")
+				  ("gdrive" . "google-drive")))
+		 method)
+	     (with-tramp-dbus-call-method vec t
+	       :session tramp-gvfs-service-daemon
+	       tramp-gvfs-path-mounttracker
+	       tramp-gvfs-interface-mounttracker
+	       tramp-gvfs-listmounttypes))
+      (tramp-error vec 'file-error "Method `%s' not supported by GVFS" method)))
 
   ;; For password handling, we need a process bound to the connection
   ;; buffer.  Therefore, we create a dummy process.  Maybe there is a
