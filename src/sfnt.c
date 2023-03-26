@@ -153,6 +153,7 @@ static uint32_t sfnt_table_names[] =
     [SFNT_TABLE_FVAR] = 0x66766172,
     [SFNT_TABLE_GVAR] = 0x67766172,
     [SFNT_TABLE_CVAR] = 0x63766172,
+    [SFNT_TABLE_AVAR] = 0x61766172,
   };
 
 /* Swap values from TrueType to system byte order.  */
@@ -2377,6 +2378,10 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
   sfnt_swap16 (&glyph.xmax);
   sfnt_swap16 (&glyph.ymax);
 
+  /* This is set later on after `sfnt_vary_X_glyph'.  */
+  glyph.advance_distortion = 0;
+  glyph.origin_distortion = 0;
+
   /* Figure out what needs to be read based on
      glyph.number_of_contours.  */
   if (glyph.number_of_contours >= 0)
@@ -3758,6 +3763,9 @@ sfnt_curve_to_and_build (struct sfnt_point control,
    given pixel size.  Return the outline data with a refcount of 0
    upon success, or NULL upon failure.
 
+   Use the scaled glyph METRICS to determine the origin point of the
+   outline.
+
    Call GET_GLYPH and FREE_GLYPH with the specified DCONTEXT to obtain
    glyphs for compound glyph subcomponents.
 
@@ -3767,12 +3775,14 @@ TEST_STATIC struct sfnt_glyph_outline *
 sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
 			  struct sfnt_head_table *head,
 			  int pixel_size,
+			  struct sfnt_glyph_metrics *metrics,
 			  sfnt_get_glyph_proc get_glyph,
 			  sfnt_free_glyph_proc free_glyph,
 			  void *dcontext)
 {
   struct sfnt_glyph_outline *outline;
   int rc;
+  sfnt_fword origin;
 
   memset (&build_outline_context, 0, sizeof build_outline_context);
 
@@ -3824,6 +3834,12 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
       xfree (outline);
       return NULL;
     }
+
+  /* Compute the origin position.  */
+  origin = outline->xmin - metrics->lbearing;
+  outline->origin
+    = (origin + sfnt_mul_fixed (glyph->origin_distortion,
+				build_outline_context.factor));
 
   return outline;
 }
@@ -3887,7 +3903,11 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
 		     + (SFNT_POLY_ALIGNMENT - 1))
 		    & ~(SFNT_POLY_ALIGNMENT - 1));
 
-  raster->offx = sfnt_floor_fixed (outline->xmin) >> 16;
+  /* Apply outline->origin.  This is 0 by convention in most fonts.
+     However, variable fonts typically change this as variations are
+     applied.  */
+  raster->offx = sfnt_floor_fixed (outline->xmin
+				   - outline->origin) >> 16;
   raster->offy = sfnt_floor_fixed (outline->ymin) >> 16;
 }
 
@@ -4516,6 +4536,23 @@ sfnt_scale_metrics (struct sfnt_glyph_metrics *metrics,
     = sfnt_mul_fixed (metrics->advance * 65536, factor);
 }
 
+/* Like `sfnt_scale_metrics', except it scales the specified metrics
+   by a factor calculated using the given PPEM and HEAD table's UPEM
+   value.  */
+
+MAYBE_UNUSED TEST_STATIC void
+sfnt_scale_metrics_to_pixel_size (struct sfnt_glyph_metrics *metrics,
+				  int ppem,
+				  struct sfnt_head_table *head)
+{
+  sfnt_fixed factor;
+
+  /* Now calculate the factor scale lbearing and advance up to the
+     given PPEM size.  */
+  factor = sfnt_div_fixed (ppem, head->units_per_em);
+  sfnt_scale_metrics (metrics, factor);
+}
+
 
 
 /* Font style parsing.  */
@@ -4948,8 +4985,6 @@ sfnt_read_ttc_header (int fd)
 }
 
 
-
-#ifdef SFNT_ENABLE_HINTING
 
 /* TrueType hinting support.
 
@@ -10897,6 +10932,15 @@ sfnt_build_instructed_outline (struct sfnt_instructed_outline *instructed)
      inside sfnt_decompose_glyph.  */
   outline = build_outline_context.outline;
 
+  /* Finally, obtain the origin point of the glyph after it has been
+     instructed.  */
+
+  if (instructed->num_points > 1)
+    outline->origin
+      = instructed->x_points[instructed->num_points - 2];
+  else
+    outline->origin = 0;
+
   if (rc)
     {
       xfree (outline);
@@ -10934,6 +10978,10 @@ sfnt_compute_phantom_points (struct sfnt_glyph *glyph,
   /* First compute both values in fwords.  */
   f1 = glyph->xmin - metrics->lbearing;
   f2 = f1 + metrics->advance;
+
+  /* Apply the metrics distortion.  */
+  f1 += glyph->origin_distortion;
+  f2 += glyph->advance_distortion;
 
   /* Next, scale both up.  */
   *x1 = sfnt_mul_f26dot6_fixed (f1 * 64, scale);
@@ -11881,7 +11929,6 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
   return NULL;
 }
 
-#endif /* SFNT_ENABLE_HINTING */
 
 
 
@@ -12428,8 +12475,6 @@ sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
 
 #endif /* !TEST */
 
-#ifdef TEST
-
 
 
 /* Glyph variations.  Instead of defining separate fonts for each
@@ -12442,83 +12487,12 @@ sfnt_read_table (int fd, struct sfnt_offset_subtable *subtable,
    variation), `gvar' (glyph variation) and `cvar' (CVT variation)
    tables in a font file.  */
 
-struct sfnt_variation_axis
-{
-  /* The axis tag.  */
-  uint32_t axis_tag;
-
-  /* The minimum style coordinate for the axis.  */
-  sfnt_fixed min_value;
-
-  /* The default style coordinate for the axis.  */
-  sfnt_fixed default_value;
-
-  /* The maximum style coordinate for the axis.  */
-  sfnt_fixed max_value;
-
-  /* Set to zero.  */
-  uint16_t flags;
-
-  /* Identifier under which this axis's name will be found in the
-     `name' table.  */
-  uint16_t name_id;
-};
-
-struct sfnt_instance
-{
-  /* The instance name ID.  */
-  uint16_t name_id;
-
-  /* Flags.  */
-  uint16_t flags;
-
-  /* Optional PostScript name.  */
-  uint16_t ps_name_id;
-
-  /* Coordinates of each defined instance.  */
-  sfnt_fixed *coords;
-};
-
-struct sfnt_fvar_table
-{
-  /* Major version; should be 1.  */
-  uint16_t major_version;
-
-  /* Minor version; should be 0.  */
-  uint16_t minor_version;
-
-  /* Offset in bytes from the beginning of the table to the beginning
-     of the first axis data.  */
-  uint16_t offset_to_data;
-
-  /* Reserved field; always 2.  */
-  uint16_t count_size_pairs;
-
-  /* Number of style axes in this font.  */
-  uint16_t axis_count;
-
-  /* The number of bytes in each variation axis record.  Currently 20
-     bytes.  */
-  uint16_t axis_size;
-
-  /* The number of named instances for the font found in the
-     instance array.  */
-  uint16_t instance_count;
-
-  /* The size of each instance record.  */
-  uint16_t instance_size;
-
-  /* Variable length data.  */
-  struct sfnt_variation_axis *axis;
-  struct sfnt_instance *instance;
-};
-
 /* Read an fvar table from the given font FD.  Use the table directory
    specified in SUBTABLE.
 
    Return the fvar table upon success, else NULL.  */
 
-static struct sfnt_fvar_table *
+TEST_STATIC struct sfnt_fvar_table *
 sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -12745,60 +12719,12 @@ sfnt_read_fvar_table (int fd, struct sfnt_offset_subtable *subtable)
 
 
 
-struct sfnt_gvar_table
-{
-  /* Version of the glyph variations table.  */
-  uint16_t version;
-
-  /* Reserved, currently 0.  */
-  uint16_t reserved;
-
-  /* The number of style axes for this font.  This must be the same
-     number as axisCount in the 'fvar' table.  */
-  uint16_t axis_count;
-
-  /* The number of shared coordinates.  */
-  uint16_t shared_coord_count;
-
-  /* Byte offset from the beginning of this table to the list of
-     shared style coordinates.  */
-  uint32_t offset_to_coord;
-
-  /* The number of glyphs in this font; this should match the number
-     of the glyphs store elsewhere in the font.  */
-  uint16_t glyph_count;
-
-  /* Bit-field that gives the format of the offset array that
-     follows. If the flag is 0, the type is uint16. If the flag is 1,
-     the type is unit 32.  */
-  uint16_t flags;
-
-  /* Byte offset from the beginning of this table to the first glyph
-     glyphVariationData.  */
-  uint32_t offset_to_data;
-
-  /* Number of bytes in the glyph variation data.  */
-  size_t data_size;
-
-  /* Byte offsets from the beginning of the glyphVariationData array
-     to the glyphVariationData for each glyph in the font.  The format
-     of this field is set by the flags field.  */
-  union {
-    uint16_t *offset_word;
-    uint32_t *offset_long;
-  } u;
-
-  /* Other variable length data.  */
-  sfnt_f2dot14 *global_coords;
-  unsigned char *glyph_variation_data;
-};
-
 /* Read a gvar table from the given font FD.  Use the table directory
    specified in SUBTABLE.
 
    Return the gvar table upon success, else NULL.  */
 
-static struct sfnt_gvar_table *
+TEST_STATIC struct sfnt_gvar_table *
 sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 {
   struct sfnt_table_directory *directory;
@@ -12956,159 +12882,129 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
 
 
 
-/* Structure repesenting a set of axis coordinates and their
-   normalized equivalents.
+/* Read an avar table from the given font FD.  Use the table directory
+   specified in SUBTABLE.
 
-   To use this structure, call
+   Return the avar table upon success, else NULL.  */
 
-     sfnt_init_blend (&blend, fvar, gvar)
-
-   on a `struct sfnt_blend *', with an appropriate fvar and gvar
-   table.
-
-   Then, fill in blend.coords with the un-normalized coordinates,
-   and call
-
-     sfnt_normalize_blend (&blend)
-
-   finally, call sfnt_vary_glyph and related functions.  */
-
-struct sfnt_blend
+TEST_STATIC struct sfnt_avar_table *
+sfnt_read_avar_table (int fd, struct sfnt_offset_subtable *subtable)
 {
-  /* The fvar table.  This determines the number of elements in each
-     of the arrays below.  */
-  struct sfnt_fvar_table *fvar;
+  struct sfnt_table_directory *directory;
+  struct sfnt_avar_table *avar;
+  ssize_t rc;
+  size_t min_size, size, i, k, j;
+  uint16_t *buffer;
+  struct sfnt_short_frac_correspondence *correspondences;
 
-  /* The gvar table.  This provides the glyph variation data.  */
-  struct sfnt_gvar_table *gvar;
+  /* Find the table in the directory.  */
 
-  /* Un-normalized coordinates.  */
-  sfnt_fixed *coords;
+  directory = sfnt_find_table (subtable, SFNT_TABLE_AVAR);
 
-  /* Normalized coordinates.  */
-  sfnt_fixed *norm_coords;
-};
+  if (!directory)
+    return NULL;
 
-/* Initialize the specified BLEND with the given FVAR and GVAR
-   tables.  */
+  min_size = SFNT_ENDOF (struct sfnt_avar_table, axis_count, uint32_t);
 
-static void
-sfnt_init_blend (struct sfnt_blend *blend, struct sfnt_fvar_table *fvar,
-		 struct sfnt_gvar_table *gvar)
-{
-  size_t size;
+  /* Check that the length is at least min_size.  */
+  if (directory->length < min_size)
+    return NULL;
 
-  blend->fvar = fvar;
-  blend->gvar = gvar;
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
 
-  /* Allocate a single array to hold both coords and norm_coords.  */
-  size = (fvar->axis_count * sizeof *blend->coords * 2);
-  blend->coords = xmalloc (size);
-  blend->norm_coords = blend->coords + fvar->axis_count;
-}
+  /* Allocate enough to hold the avar table header.  */
+  avar = xmalloc (sizeof *avar);
 
-/* Free what was initialized in the specified BLEND.  */
+  /* Read the avar table header.  */
+  rc = read (fd, avar, min_size);
+  if (rc != min_size)
+    goto bail;
 
-static void
-sfnt_free_blend (struct sfnt_blend *blend)
-{
-  xfree (blend->coords);
-}
+  /* Swap what was read.  */
+  sfnt_swap32 (&avar->version);
+  sfnt_swap32 (&avar->axis_count);
 
-/* Normalize BLEND->fvar->axis_count coordinates in BLEND->coords and
-   place the result in BLEND->norm_coords.  */
+  if (avar->version != 0x00010000)
+    goto bail;
 
-static void
-sfnt_normalize_blend (struct sfnt_blend *blend)
-{
-  struct sfnt_variation_axis *axis;
-  int i;
-  sfnt_fixed coord;
+  if (avar->axis_count < 0)
+    goto bail;
 
-  /* For each axis... */
-  for (i = 0; i < blend->fvar->axis_count; ++i)
+  /* Allocate a buffer that holds the rest of the data.  */
+  size = directory->length - min_size;
+  buffer = xmalloc (size);
+  rc = read (fd, buffer, size);
+  if (rc != size)
+    goto bail1;
+
+  /* Swap each word.  */
+  for (i = 0; i < size / sizeof *buffer; ++i)
+    sfnt_swap16 (&buffer[i]);
+
+  /* Now, determine how big the resulting data needs to be.  Each
+     struct has a pointer field, and that should be its alignment.  */
+
+  k = 0;
+  min_size = sizeof *avar;
+  for (i = 0; i < avar->axis_count; ++i)
     {
-      /* Normalize based on [min, default, max], into [-1, 0, 1].  */
-      axis = &blend->fvar->axis[i];
+      /* Check that k remains within bounds.  */
+      if (k >= size / sizeof *buffer)
+	goto bail1;
 
-      /* Load the current design coordinate.  */
-      coord = blend->coords[i];
+      /* Now add one struct sfnt_short_frac_segment for each axis and
+         each of its correspondences.  */
+      if (INT_ADD_WRAPV (sizeof (struct sfnt_short_frac_segment),
+			 min_size, &min_size)
+	  || INT_ADD_WRAPV (sizeof (struct sfnt_short_frac_correspondence)
+			    * buffer[k], min_size, &min_size))
+	goto bail1;
 
-      /* Keep it within bounds.  */
+      /* Verify that words from here to buffer[1 + buffer[k] * 2], the
+	 next pairCount field, are within bounds.  */
+      if (k + 1 + buffer[k] * 2 > size / sizeof *buffer)
+	goto bail1;
 
-      if (coord > axis->max_value)
-	coord = axis->max_value;
-      else if (coord < axis->min_value)
-	coord = axis->min_value;
-
-      if (coord > axis->default_value)
-	{
-	  /* Avoid division by 0.  */
-	  if (axis->max_value != axis->default_value)
-	    blend->norm_coords[i]
-	      = sfnt_div_fixed (sfnt_sub (coord, axis->default_value),
-				sfnt_sub (axis->max_value,
-					  axis->default_value));
-	  else
-	    blend->norm_coords[i] = 0;
-	}
-      else if (coord < axis->default_value)
-	{
-	  if (axis->default_value != axis->min_value)
-	    blend->norm_coords[i]
-	      = sfnt_div_fixed (sfnt_sub (coord, axis->default_value),
-				sfnt_sub (axis->default_value,
-					  axis->min_value));
-	  else
-	    blend->norm_coords[i] = 0;
-	}
-      else
-	blend->norm_coords[i] = 0;
+      /* Move to the next pairCount field.  */
+      k += 1 + buffer[k] * 2;
     }
 
-  /* TODO: process avar tables.  */
+  /* Resize avar to min_size and start filling in various
+     pointers.  */
+  avar = xrealloc (avar, min_size);
+  avar->segments = (struct sfnt_short_frac_segment *) (avar + 1);
+  correspondences
+    = ((struct sfnt_short_frac_correspondence *) (avar->segments
+						  + avar->axis_count));
+
+  k = 0;
+  for (i = 0; i < avar->axis_count; ++i)
+    {
+      avar->segments[i].pair_count = buffer[k++];
+      avar->segments[i].correspondence = correspondences;
+
+      for (j = 0; j < avar->segments[i].pair_count; ++j)
+	{
+	  correspondences->from_coord = buffer[k++];
+	  correspondences->to_coord = buffer[k++];
+	  correspondences++;
+	}
+    }
+
+  /* Return the read avar table.  Free buffer.  */
+  xfree (buffer);
+  return avar;
+
+ bail1:
+  xfree (buffer);
+ bail:
+  xfree (avar);
+  return NULL;
 }
 
 
-
-struct sfnt_tuple_header
-{
-  /* The size in bytes of the serialized data for this tuple variation
-     table.  */
-  uint16_t variation_data_size;
-
-  /* A packed field. The high 4 bits are flags (see below). The low 12
-     bits are an index into a shared tuple records array.  */
-  uint16_t tuple_index;
-
-  /* Embedded coordinate tuples, if any.  */
-  sfnt_f2dot14 *embedded_coord;
-
-  /* Intermediate coordinate tuples, if any.  */
-  sfnt_f2dot14 *intermediate_coord;
-
-  /* Number of points associated with this tuple.
-     Times two, the number of deltas associated with this tuple.  */
-  uint16_t npoints;
-
-  /* Points associated with this tuple.  */
-  uint16_t *points;
-
-  /* Deltas associated with this tuple.  */
-  sfnt_fword *deltas;
-};
-
-struct sfnt_gvar_glyph_header
-{
-  /* A packed field. The high 4 bits are flags and the low 12 bits are
-     the number of tuples for this glyph.  The number of tuples can be
-     any number between 1 and 4095.  */
-  uint16_t tuple_count;
-
-  /* Offset from the start of the GlyphVariationData table to the
-     serialized data.  */
-  uint16_t data_offset;
-};
 
 /* Read a sequence of packed points starting from DATA.  Return the
    number of points read in *NPOINTS_RETURN and the array of unpacked
@@ -13234,6 +13130,7 @@ sfnt_read_packed_deltas (unsigned char *restrict data,
   sfnt_fword *deltas;
   int i, count;
   unsigned char control;
+  uint16_t value;
 
   if (data >= end)
     return NULL;
@@ -13258,9 +13155,9 @@ sfnt_read_packed_deltas (unsigned char *restrict data,
 	      if (data + 1 >= end)
 		goto fail;
 
-	      deltas[i] = (signed char) *data++;
-	      deltas[i] *= 65536;
-	      deltas[i++] |= *data++;
+	      value = *data++ << 8;
+	      value |= *data++;
+	      deltas[i++] = value;
 	    }
 	  else
 	    {
@@ -13281,6 +13178,465 @@ sfnt_read_packed_deltas (unsigned char *restrict data,
   xfree (deltas);
   return NULL;
 }
+
+/* Read a cvar table from the given font FD.  Use the table directory
+   specified in SUBTABLE, axis information provided in the fvar table
+   FVAR, and CVT information provided in the cvt table CVT.
+
+   Return the cvar table upon success, else NULL.  */
+
+TEST_STATIC struct sfnt_cvar_table *
+sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
+		      struct sfnt_fvar_table *fvar,
+		      struct sfnt_cvt_table *cvt)
+{
+  struct sfnt_table_directory *directory;
+  struct sfnt_cvar_table *cvar;
+  ssize_t rc;
+  size_t ntuples, size;
+  int i, j;
+  sfnt_f2dot14 *coords;
+  uint16_t *local, *points, npoints, data_size, min_size, index;
+  unsigned char *buffer, *data, *end, *tuple;
+  ptrdiff_t data_offset;
+  sfnt_fword *deltas;
+
+  /* Find the table in the directory.  */
+
+  directory = sfnt_find_table (subtable, SFNT_TABLE_CVAR);
+
+  if (!directory)
+    return NULL;
+
+  min_size = SFNT_ENDOF (struct sfnt_cvar_table, data_offset,
+			 uint16_t);
+
+  /* Check that the length is at least min_size.  */
+  if (directory->length < min_size)
+    return NULL;
+
+  /* Seek to the location given in the directory.  */
+  if (lseek (fd, directory->offset, SEEK_SET) == (off_t) -1)
+    return NULL;
+
+  /* Allocate enough to hold the cvar table header.  */
+  cvar = xmalloc (sizeof *cvar);
+
+  /* Read the cvar table header.  */
+  rc = read (fd, cvar, min_size);
+  if (rc != min_size)
+    goto bail;
+
+  /* Swap what was read.  */
+  sfnt_swap32 (&cvar->version);
+  sfnt_swap16 (&cvar->tuple_count);
+  sfnt_swap16 (&cvar->data_offset);
+
+  /* Read the rest of the table.  */
+  size = directory->length - min_size;
+  buffer = xmalloc (size);
+  rc = read (fd, buffer, size);
+  if (rc != size)
+    goto bail;
+
+  /* Now figure out how large cvar must be by reading the tuples.  */
+
+  ntuples = cvar->tuple_count & 0x0fff;
+  data_offset = ((ptrdiff_t) cvar->data_offset
+		 - (ptrdiff_t) min_size);
+  end = buffer + size;
+
+  if (data_offset < 0)
+    goto bail1;
+
+  /* See if there are shared points, and read them if there are.  */
+
+  data = buffer + data_offset;
+  tuple = buffer;
+  points = NULL;
+
+  if (cvar->tuple_count & 0x8000)
+    {
+      points = sfnt_read_packed_points (data, &npoints, end,
+					&tuple);
+      if (!points)
+	goto bail1;
+
+      /* Add npoints words to the size.  */
+      size = npoints * sizeof *points;
+    }
+  else
+    size = 0;
+
+  while (ntuples--)
+    {
+      data = buffer + data_offset;
+
+      /* Read the tuple.  */
+      if (tuple + 3 >= end)
+	goto bail2;
+
+      memcpy (&data_size, tuple, sizeof data_size);
+      tuple += sizeof data_size;
+      memcpy (&index, tuple, sizeof index);
+      tuple += sizeof index;
+      sfnt_swap16 (&data_size);
+      sfnt_swap16 (&index);
+
+      /* Increment the offset to the data by the data size specified
+	 here.  */
+      data_offset += data_size;
+
+      if (index & 0x8000)
+	{
+	  /* Embedded coordinates are present.  Read each
+	     coordinate and add it to the size.  */
+
+	  if (tuple + fvar->axis_count * sizeof *coords - 1 >= end)
+	    goto bail2;
+
+	  tuple += sizeof *coords * fvar->axis_count;
+	  if (INT_ADD_WRAPV (size, sizeof *coords * fvar->axis_count,
+			     &size))
+	    goto bail2;
+	}
+      else
+	/* This table is invalid, as cvar tables don't have global
+	   coordinates.  */
+	goto bail2;
+
+      /* Now read indeterminate tuples if required.  */
+      if (index & 0x4000)
+	{
+	  tuple += fvar->axis_count * 4;
+	  if (INT_ADD_WRAPV (size, fvar->axis_count * 4, &size))
+	    goto bail2;
+	}
+
+      /* Add one point and one delta for each CVT element.  */
+      if (INT_ADD_WRAPV (size, cvt->num_elements * 4, &size))
+	goto bail2;
+
+      /* Now add the size of the tuple.  */
+      if (INT_ADD_WRAPV (size, sizeof *cvar->variation, &size))
+	goto bail2;
+    }
+
+  if (INT_ADD_WRAPV (sizeof *cvar, size, &size))
+    goto bail2;
+
+  /* Reallocate cvar.  */
+  cvar = xrealloc (cvar, size);
+  ntuples = cvar->tuple_count & 0x0fff;
+  cvar->variation = (struct sfnt_tuple_variation *) (cvar + 1);
+  coords = (sfnt_f2dot14 *) (cvar->variation + ntuples);
+  tuple = buffer;
+
+  data_offset = ((ptrdiff_t) cvar->data_offset
+		 - (ptrdiff_t) min_size);
+
+  /* Start reading the tuples into cvar.  */
+  for (i = 0; i < ntuples; ++i)
+    {
+      data = buffer + data_offset;
+
+      /* Read the tuple.  */
+      if (tuple + 3 >= end)
+	goto bail2;
+
+      memcpy (&data_size, tuple, sizeof data_size);
+      tuple += sizeof data_size;
+      memcpy (&index, tuple, sizeof index);
+      tuple += sizeof index;
+      sfnt_swap16 (&data_size);
+      sfnt_swap16 (&index);
+
+      /* Increment the offset to the data by the data size specified
+	 here.  */
+      data_offset += data_size;
+
+      cvar->variation[i].intermediate_start = NULL;
+      cvar->variation[i].intermediate_end = NULL;
+
+      if (index & 0x8000)
+	{
+	  /* Embedded coordinates are present.  Read each
+	     coordinate.  */
+	  cvar->variation[i].coordinates = coords;
+
+	  for (j = 0; j < fvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto bail2;
+
+	      memcpy (coords++, tuple, sizeof *coords);
+	      tuple += sizeof *coords;
+	      sfnt_swap16 (coords);
+	    }
+	}
+      else
+	goto bail2;
+
+      /* Now read indeterminate tuples if required.  */
+      if (index & 0x4000)
+	{
+	  cvar->variation[i].intermediate_start = coords;
+
+	  for (j = 0; j < fvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto bail2;
+
+	      memcpy (coords++, tuple, sizeof *coords);
+	      tuple += sizeof *coords;
+	      sfnt_swap16 (coords);
+	    }
+
+	  cvar->variation[i].intermediate_end = coords;
+
+	  for (j = 0; j < fvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto bail2;
+
+	      memcpy (coords++, tuple, sizeof *coords);
+	      tuple += sizeof *coords;
+	      sfnt_swap16 (coords);
+	    }
+	}
+
+      /* Finally, read private ``point'' numbers.  If this flag is not
+         set, use shared point numbers previously read.
+
+         Read at most CVT->num_elements points, as that is all the
+         storage allocated.  */
+
+      if (index & 0x2000)
+	{
+	  local = sfnt_read_packed_points (data, &cvar->variation[i].num_points,
+					   end, &data);
+	  if (!local)
+	    goto bail2;
+
+	  /* If points apply to all CVT indices, skip this part.  */
+
+	  if (cvar->variation[i].num_points != UINT16_MAX)
+	    {
+	      if (cvar->variation[i].num_points > cvt->num_elements)
+		cvar->variation[i].num_points = cvt->num_elements;
+
+	      cvar->variation[i].points = (uint16_t *) coords;
+	      for (j = 0; j < cvar->variation[i].num_points; ++j)
+		*coords++ = local[j];
+	      xfree (local);
+	    }
+	  else
+	    cvar->variation[i].points = NULL;
+	}
+      else
+	{
+	  /* Copy in the shared point numbers instead.  */
+	  cvar->variation[i].num_points = npoints;
+
+	  if (npoints != UINT16_MAX)
+	    {
+	      if (cvar->variation[i].num_points > cvt->num_elements)
+		cvar->variation[i].num_points = cvt->num_elements;
+
+	      cvar->variation[i].points = (uint16_t *) coords;
+	      for (j = 0; j < cvar->variation[i].num_points; ++j)
+		*coords++ = points[j];
+	    }
+	  else
+	    cvar->variation[i].points = NULL;
+	}
+
+      /* And read packed deltas.  If cvar->variation[i].num_points is
+	 UINT16_MAX, then there is one delta for each CVT entry.
+	 Otherwise, there are that many deltas.  */
+
+      if (cvar->variation[i].num_points == UINT16_MAX)
+	{
+	  deltas = sfnt_read_packed_deltas (data, end, cvt->num_elements,
+					    &data);
+
+	  if (!deltas)
+	    goto bail2;
+
+	  cvar->variation[i].deltas = coords;
+
+	  for (j = 0; j < cvt->num_elements; ++j)
+	    *coords++ = deltas[j];
+	  xfree (deltas);
+	}
+      else
+	{
+	  deltas = sfnt_read_packed_deltas (data, end,
+					    cvar->variation[i].num_points,
+					    &data);
+	  if (!deltas)
+	    goto bail2;
+
+	  cvar->variation[i].deltas = coords;
+
+	  for (j = 0; j < cvar->variation[i].num_points; ++j)
+	    *coords++ = deltas[j];
+	  xfree (deltas);
+	}
+    }
+
+  /* Free data and return the read cvar table.  */
+  if (points != (void *) -1)
+    xfree (points);
+  xfree (buffer);
+  return cvar;
+
+ bail2:
+  if (points != (void *) -1)
+    xfree (points);
+ bail1:
+  xfree (buffer);
+ bail:
+  xfree (cvar);
+  return NULL;
+}
+
+
+
+/* Initialize the specified BLEND with the given FVAR and GVAR tables.
+   If non-NULL, adjust normalized coordinates using the axis variation
+   table AVAR; similarly, adjust interpreter CVT values using CVAR, if
+   specified.  */
+
+TEST_STATIC void
+sfnt_init_blend (struct sfnt_blend *blend, struct sfnt_fvar_table *fvar,
+		 struct sfnt_gvar_table *gvar, struct sfnt_avar_table *avar,
+		 struct sfnt_cvar_table *cvar)
+{
+  size_t size;
+
+  blend->fvar = fvar;
+  blend->gvar = gvar;
+  blend->avar = avar;
+  blend->cvar = cvar;
+
+  /* Allocate a single array to hold both coords and norm_coords.  */
+  size = (fvar->axis_count * sizeof *blend->coords * 2);
+  blend->coords = xmalloc (size);
+  blend->norm_coords = blend->coords + fvar->axis_count;
+}
+
+/* Free what was initialized in the specified BLEND.  */
+
+TEST_STATIC void
+sfnt_free_blend (struct sfnt_blend *blend)
+{
+  xfree (blend->coords);
+}
+
+/* Normalize BLEND->fvar->axis_count coordinates in BLEND->coords and
+   place the result in BLEND->norm_coords.  */
+
+TEST_STATIC void
+sfnt_normalize_blend (struct sfnt_blend *blend)
+{
+  struct sfnt_variation_axis *axis;
+  int i, j;
+  sfnt_fixed from, coord, j0, j1, j2;
+  sfnt_fixed from_last, coord_last;
+  struct sfnt_short_frac_segment *segment;
+
+  /* For each axis... */
+  for (i = 0; i < blend->fvar->axis_count; ++i)
+    {
+      /* Normalize based on [min, default, max], into [-1, 0, 1].  */
+      axis = &blend->fvar->axis[i];
+
+      /* Load the current design coordinate.  */
+      coord = blend->coords[i];
+
+      /* Keep it within bounds.  */
+
+      if (coord > axis->max_value)
+	coord = axis->max_value;
+      else if (coord < axis->min_value)
+	coord = axis->min_value;
+
+      if (coord > axis->default_value)
+	{
+	  /* Avoid division by 0.  */
+	  if (axis->max_value != axis->default_value)
+	    blend->norm_coords[i]
+	      = sfnt_div_fixed (sfnt_sub (coord, axis->default_value),
+				sfnt_sub (axis->max_value,
+					  axis->default_value));
+	  else
+	    blend->norm_coords[i] = 0;
+	}
+      else if (coord < axis->default_value)
+	{
+	  if (axis->default_value != axis->min_value)
+	    blend->norm_coords[i]
+	      = sfnt_div_fixed (sfnt_sub (coord, axis->default_value),
+				sfnt_sub (axis->default_value,
+					  axis->min_value));
+	  else
+	    blend->norm_coords[i] = 0;
+	}
+      else
+	blend->norm_coords[i] = 0;
+    }
+
+  /* Now, apply axis variations, but only if the avar table has the
+     right number of axes.  */
+
+  if (blend->fvar->axis_count == blend->avar->axis_count)
+    {
+      for (i = 0; i < blend->fvar->axis_count; ++i)
+	{
+	  segment = &blend->avar->segments[i];
+
+	  /* Search for a correspondence record above the normalized
+	     coordinate of this axis.  */
+
+	  for (j = 1; j < segment->pair_count; ++j)
+	    {
+	      from = segment->correspondence[j].from_coord * 4;
+	      coord = segment->correspondence[j].to_coord * 4;
+
+	      if (blend->norm_coords[i] < from)
+		{
+		  from_last
+		    = segment->correspondence[j - 1].from_coord * 4;
+		  coord_last
+		    = segment->correspondence[j - 1].to_coord * 4;
+
+		  j0 = blend->norm_coords[i] - from_last;
+		  j1 = coord - coord_last;
+		  j2 = from - from_last;
+
+		  blend->norm_coords[i]
+		    = (sfnt_multiply_divide_signed (j0, j1, j2) + coord_last);
+		  break;
+		}
+	    }
+	}
+    }
+}
+
+
+
+struct sfnt_gvar_glyph_header
+{
+  /* A packed field. The high 4 bits are flags and the low 12 bits are
+     the number of tuples for this glyph.  The number of tuples can be
+     any number between 1 and 4095.  */
+  uint16_t tuple_count;
+
+  /* Offset from the start of the GlyphVariationData table to the
+     serialized data.  */
+  uint16_t data_offset;
+};
 
 /* Given a BLEND containing normalized coordinates, an array of
    BLEND->gvar->axis_count tuple coordinates, and, if INTERMEDIATE_P,
@@ -13758,13 +14114,15 @@ sfnt_infer_deltas (struct sfnt_glyph *glyph, bool *touched,
      - contains two elements for each axis, and its axis has a value
        between the first element and the second.
 
-   After the deltas are applied, any points without deltas must be
-   interpolated similar to an IUP instruction.  In addition, deltas
-   may also be applied to phantom points within a glyph.  */
+   Return the deltas that would normally be applied to the two phantom
+   points describing horizontal bounds in *DISTORTION.  Do not
+   transform the outline to reflect adjustments to the origin
+   point.  */
 
-static int
-sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
-		 struct sfnt_glyph *glyph)
+TEST_STATIC int
+sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
+			struct sfnt_glyph *glyph,
+			struct sfnt_metrics_distortion *distortion)
 {
   uint32_t offset;
   struct sfnt_gvar_glyph_header header;
@@ -13775,7 +14133,7 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   sfnt_f2dot14 *restrict coords;
   sfnt_f2dot14 *restrict intermediate_start;
   sfnt_f2dot14 *restrict intermediate_end;
-  sfnt_fword *dx, *dy, fword;
+  sfnt_fword *restrict dx, *restrict dy, fword;
   struct sfnt_gvar_table *gvar;
   uint16_t *local_points, n_local_points;
   sfnt_fixed scale;
@@ -13805,6 +14163,10 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   if (offset + sizeof header > gvar->data_size)
     return 1;
+
+  /* Clear the distortion.  */
+  distortion->origin = 0;
+  distortion->advance = 0;
 
   memcpy (&header, gvar->glyph_variation_data + offset,
 	  sizeof header);
@@ -13846,7 +14208,11 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   /* Start reading each tuple.  */
   tuple = gvar->glyph_variation_data + offset + sizeof header;
 
-  coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = alloca (gvar->axis_count * sizeof *coords * 3);
+
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = coords + gvar->axis_count;
 
@@ -13856,7 +14222,7 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   original_x = NULL;
   original_y = NULL;
 
-  for (i = 0; i < ntuples; ++i)
+  while (ntuples--)
     {
       data = gvar->glyph_variation_data + offset + data_offset;
 
@@ -13899,7 +14265,7 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 		gvar->axis_count * sizeof *coords);
 
       /* Now read indeterminate tuples if required.  */
-      if (index & 0x1000)
+      if (index & 0x4000)
 	{
 	  for (j = 0; j < gvar->axis_count; ++j)
 	    {
@@ -13969,9 +14335,6 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	  /* Deltas are provided for all points in the glyph.
 	     No glyph should have more than 65535 points.  */
 
-	  if (glyph->simple->number_of_points > 65535)
-	    abort ();
-
 	  /* Add 4 phantom points to each end.  */
 	  dx = sfnt_read_packed_deltas (data, end,
 					glyph->simple->number_of_points + 4,
@@ -13993,7 +14356,9 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      glyph->simple->y_coordinates[i] += fword;
 	    }
 
-	  /* TODO: apply metrics variations.  */
+	  /* Apply the deltas for the two phantom points.  */
+	  distortion->origin += sfnt_mul_fixed (dx[i++], scale);
+	  distortion->advance += sfnt_mul_fixed (dx[i], scale);
 	  break;
 
 	default:
@@ -14007,10 +14372,22 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  if (!original_x)
 	    {
-	      touched = xmalloc (sizeof *touched
-				 * glyph->simple->number_of_points);
-	      original_x = xmalloc (sizeof *original_x * 2
-				    * glyph->simple->number_of_points);
+	      if ((glyph->simple->number_of_points
+		   * sizeof *touched) >= 1024 * 16)
+		touched = xmalloc (sizeof *touched
+				   * glyph->simple->number_of_points);
+	      else
+		touched = alloca (sizeof *touched
+				  * glyph->simple->number_of_points);
+
+	      if ((sizeof *original_x * 2
+		   * glyph->simple->number_of_points) >= 1024 * 16)
+		original_x = xmalloc (sizeof *original_x * 2
+				      * glyph->simple->number_of_points);
+	      else
+		original_x = alloca (sizeof *original_x * 2
+				     * glyph->simple->number_of_points);
+
 	      original_y = original_x + glyph->simple->number_of_points;
 	      memcpy (original_x, glyph->simple->x_coordinates,
 		      (sizeof *original_x
@@ -14025,6 +14402,20 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  for (i = 0; i < point_count; ++i)
 	    {
+	      /* Apply deltas to phantom points.  */
+
+	      if (glyph_points[i] == glyph->simple->number_of_points)
+		{
+		  distortion->origin += sfnt_mul_fixed (dx[i], scale);
+		  continue;
+		}
+
+	      if (glyph_points[i] == glyph->simple->number_of_points + 1)
+		{
+		  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+		  continue;
+		}
+
 	      /* Make sure the point doesn't end up out of bounds.  */
 	      if (glyph_points[i] >= glyph->simple->number_of_points)
 		continue;
@@ -14038,8 +14429,6 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  sfnt_infer_deltas (glyph, touched, original_x,
 			     original_y);
-
-	  /* TODO: apply metrics variations.  */
 	  break;
 	}
 
@@ -14052,12 +14441,23 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  xfree (touched);
-  xfree (coords);
-  xfree (original_x);
+  if ((glyph->simple->number_of_points
+       * sizeof *touched) >= 1024 * 16)
+    xfree (touched);
+
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    xfree (coords);
+
+  if ((sizeof *original_x * 2
+       * glyph->simple->number_of_points) >= 1024 * 16)
+    xfree (original_x);
 
   if (points != (uint16_t *) -1)
     xfree (points);
+
+  /* Set the glyph metrics distortion as well.  */
+  glyph->advance_distortion = distortion->advance;
+  glyph->origin_distortion = distortion->origin;
 
   return 0;
 
@@ -14066,9 +14466,17 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (dy);
   xfree (local_points);
  fail1:
-  xfree (touched);
-  xfree (coords);
-  xfree (original_x);
+
+  if ((glyph->simple->number_of_points
+       * sizeof *touched) >= 1024 * 16)
+    xfree (touched);
+
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    xfree (coords);
+
+  if ((sizeof *original_x * 2
+       * glyph->simple->number_of_points) >= 1024 * 16)
+    xfree (original_x);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -14076,7 +14484,482 @@ sfnt_vary_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   return 1;
 }
 
-#endif /* TEST */
+/* Read the glyph variation data for the specified glyph ID from
+   BLEND's gvar table.  Apply the deltas specified within to each
+   component with offsets in the specified compound GLYPH, based on
+   the specified BLEND.  Return distortions to phantom points in
+   *DISTORTION.
+
+   Value is 0 upon success, 1 otherwise.  */
+
+TEST_STATIC int
+sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
+			  struct sfnt_glyph *glyph,
+			  struct sfnt_metrics_distortion *distortion)
+{
+  uint32_t offset;
+  struct sfnt_gvar_glyph_header header;
+  uint16_t *points, npoints;
+  int i, ntuples, j, point_count;
+  unsigned char *tuple, *end, *data;
+  uint16_t data_size, index, *glyph_points;
+  sfnt_f2dot14 *restrict coords;
+  sfnt_f2dot14 *restrict intermediate_start;
+  sfnt_f2dot14 *restrict intermediate_end;
+  sfnt_fword *restrict dx, *restrict dy, fword, word;
+  struct sfnt_gvar_table *gvar;
+  uint16_t *local_points, n_local_points;
+  sfnt_fixed scale;
+  ptrdiff_t data_offset;
+  bool *touched;
+  sfnt_fword *restrict original_x, *restrict original_y;
+  struct sfnt_compound_glyph_component *component;
+
+  gvar = blend->gvar;
+
+  if (gvar->axis_count != blend->fvar->axis_count)
+    return 1;
+
+  if (gvar->glyph_count <= id)
+    return 1;
+
+  if (gvar->flags & 1)
+    offset = gvar->u.offset_long[id];
+  else
+    offset = gvar->u.offset_word[id] * 2u;
+
+  if (offset >= gvar->data_size)
+    return 1;
+
+  end = gvar->glyph_variation_data + gvar->data_size;
+
+  /* Start reading the header.  */
+
+  if (offset + sizeof header > gvar->data_size)
+    return 1;
+
+  /* Clear the distortion.  */
+  distortion->origin = 0;
+  distortion->advance = 0;
+
+  memcpy (&header, gvar->glyph_variation_data + offset,
+	  sizeof header);
+
+  /* Swap the header.  */
+  sfnt_swap16 (&header.tuple_count);
+  sfnt_swap16 (&header.data_offset);
+
+  /* Prepare to read each tuple.  */
+  ntuples = header.tuple_count & 0x0fff;
+
+  /* Initialize the data offset.  This is incremented with each tuple
+     read.  */
+  data_offset = header.data_offset;
+
+  /* If gvar->flags & tuples_share_point_numbers, read the shared
+     point numbers.  */
+
+  npoints = 0;
+
+  if (header.tuple_count & 0x8000)
+    {
+      data = gvar->glyph_variation_data + offset + data_offset;
+      points = sfnt_read_packed_points (data, &npoints, end,
+					&tuple);
+
+      if (!points)
+	return 1;
+
+      /* Shared point numbers are part of the data after the tuple
+         array.  Thus, increment data_offset by tuple - data.  `tuple'
+         here holds no relation to a pointer to the current part of
+         the tuple array that is being read later on.  */
+      data_offset += tuple - data;
+    }
+  else
+    points = NULL;
+
+  /* Start reading each tuple.  */
+  tuple = gvar->glyph_variation_data + offset + sizeof header;
+
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = alloca (gvar->axis_count * sizeof *coords * 3);
+
+  intermediate_start = coords + gvar->axis_count;
+  intermediate_end = coords + gvar->axis_count;
+
+  /* Allocate arrays of booleans and fwords to keep track of which
+     points have been touched.  */
+  touched = NULL;
+  original_x = NULL;
+  original_y = NULL;
+
+  while (ntuples--)
+    {
+      data = gvar->glyph_variation_data + offset + data_offset;
+
+      if (tuple + 3 >= end)
+	goto fail1;
+
+      memcpy (&data_size, tuple, sizeof data_size);
+      tuple += sizeof data_size;
+      memcpy (&index, tuple, sizeof index);
+      tuple += sizeof index;
+      sfnt_swap16 (&data_size);
+      sfnt_swap16 (&index);
+
+      /* Increment the offset to the data by the data size specified
+	 here.  */
+      data_offset += data_size;
+
+      if (index & 0x8000)
+	{
+	  /* Embedded coordinates are present.  Read each
+	     coordinate and add it to the tuple.  */
+	  for (j = 0; j < gvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto fail1;
+
+	      memcpy (&coords[j], tuple, sizeof *coords);
+	      tuple += sizeof *coords;
+	      sfnt_swap16 (&coords[j]);
+	    }
+	}
+      else if ((index & 0xfff) > gvar->shared_coord_count)
+	/* index exceeds the number of shared tuples present.  */
+	goto fail1;
+      else
+	/* index points into gvar->axis_count coordinates making up
+	   the tuple.  */
+	memcpy (coords, (gvar->global_coords
+			 + ((index & 0xfff) * gvar->axis_count)),
+		gvar->axis_count * sizeof *coords);
+
+      /* Now read indeterminate tuples if required.  */
+      if (index & 0x4000)
+	{
+	  for (j = 0; j < gvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto fail1;
+
+	      memcpy (&intermediate_start[j], tuple,
+		      sizeof *intermediate_start);
+	      tuple += sizeof *intermediate_start;
+	      sfnt_swap16 (&intermediate_start[j]);
+	    }
+
+	  for (j = 0; j < gvar->axis_count; ++j)
+	    {
+	      if (tuple + 1 >= end)
+		goto fail1;
+
+	      memcpy (&intermediate_end[j], tuple,
+		      sizeof *intermediate_end);
+	      tuple += sizeof *intermediate_end;
+	      sfnt_swap16 (&intermediate_end[j]);
+	    }
+	}
+
+      /* See whether or not the tuple applies to the current variation
+	 configuration, and how much to scale them by.  */
+
+      scale = sfnt_compute_tuple_scale (blend, index & 0x1000,
+					coords, intermediate_start,
+					intermediate_end);
+
+      if (!scale)
+	continue;
+
+      local_points = NULL;
+
+      /* Finally, read private point numbers.
+	 Set local_points to those numbers; it will be freed
+	 once the loop ends.  */
+
+      if (index & 0x2000)
+	{
+	  local_points = sfnt_read_packed_points (data, &n_local_points,
+						  end, &data);
+	  if (!local_points)
+	    goto fail1;
+
+	  point_count = n_local_points;
+	  glyph_points = local_points;
+	}
+      else
+	{
+	  /* If there are no private point numbers, use global
+	     points.  */
+	  point_count = npoints;
+	  glyph_points = points;
+	}
+
+      /* Now, read packed deltas.  */
+
+      dx = NULL;
+      dy = NULL;
+
+      switch (point_count)
+	{
+	case UINT16_MAX:
+	  /* Deltas are provided for all components in the glyph.  */
+
+	  /* Add 4 phantom points to each end.  */
+	  dx = sfnt_read_packed_deltas (data, end,
+					glyph->compound->num_components + 4,
+					&data);
+	  dy = sfnt_read_packed_deltas (data, end,
+				        glyph->compound->num_components + 4,
+					&data);
+
+	  if (!dx || !dy)
+	    goto fail3;
+
+	  /* Apply each delta to the compound glyph.  */
+
+	  for (i = 0; i < glyph->compound->num_components; ++i)
+	    {
+	      component = &glyph->compound->components[i];
+
+	      /* Check if the component uses deltas at all.  */
+	      if (!(component->flags & 02))
+		continue;
+
+	      /* Vary the X offset.  */
+
+	      if (!(component->flags & 01))
+		word = component->argument1.b;
+	      else
+		word = component->argument1.d;
+
+	      fword = sfnt_mul_fixed (dx[i], scale);
+	      component->flags |= 01;
+	      component->argument1.d = word + fword;
+
+	      /* Vary the Y offset.  */
+
+	      if (!(component->flags & 01))
+		word = component->argument2.b;
+	      else
+		word = component->argument2.d;
+
+	      fword = sfnt_mul_fixed (dy[i], scale);
+	      component->flags |= 01;
+	      component->argument2.d = word + fword;
+	    }
+
+	  /* Apply the deltas for the two phantom points.  */
+	  distortion->origin += sfnt_mul_fixed (dx[i++], scale);
+	  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+	  break;
+
+	default:
+	  dx = sfnt_read_packed_deltas (data, end, point_count, &data);
+	  dy = sfnt_read_packed_deltas (data, end, point_count, &data);
+
+	  if (!dx || !dy)
+	    goto fail3;
+
+	  /* Deltas are only applied for each point number read.  */
+
+	  if (!original_x)
+	    {
+	      if ((glyph->compound->num_components
+		   * sizeof *touched) >= 1024 * 16)
+		touched = xmalloc (sizeof *touched
+				   * glyph->compound->num_components);
+	      else
+		touched = alloca (sizeof *touched
+				  * glyph->compound->num_components);
+
+	      if ((sizeof *original_x * 2
+		   * glyph->compound->num_components) >= 1024 * 16)
+		original_x = xmalloc (sizeof *original_x * 2
+				      * glyph->compound->num_components);
+	      else
+		original_x = alloca (sizeof *original_x * 2
+				     * glyph->compound->num_components);
+
+	      original_y = original_x + glyph->compound->num_components;
+	      memcpy (original_x, glyph->simple->x_coordinates,
+		      (sizeof *original_x
+		       * glyph->compound->num_components));
+	      memcpy (original_y, glyph->simple->y_coordinates,
+		      (sizeof *original_y
+		       * glyph->compound->num_components));
+	    }
+
+	  memset (touched, 0, (sizeof *touched
+			       * glyph->compound->num_components));
+
+	  for (i = 0; i < point_count; ++i)
+	    {
+	      /* Apply deltas to phantom points.  */
+
+	      if (glyph_points[i] == glyph->compound->num_components)
+		{
+		  distortion->origin += sfnt_mul_fixed (dx[i], scale);
+		  continue;
+		}
+
+	      if (glyph_points[i] == glyph->compound->num_components + 1)
+		{
+		  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+		  continue;
+		}
+
+	      /* Make sure the point doesn't end up out of bounds.  */
+	      if (glyph_points[i] >= glyph->compound->num_components)
+		continue;
+
+	      component = &glyph->compound->components[glyph_points[i]];
+
+	      /* Check if the component uses deltas at all.  */
+	      if (!(component->flags & 02))
+		continue;
+
+	      /* Vary the X offset.  */
+
+	      if (!(component->flags & 01))
+		word = component->argument1.b;
+	      else
+		word = component->argument1.d;
+
+	      fword = sfnt_mul_fixed (dx[i], scale);
+	      component->flags |= 01;
+	      component->argument1.d = word + fword;
+
+	      /* Vary the Y offset.  */
+
+	      if (!(component->flags & 01))
+		word = component->argument2.b;
+	      else
+		word = component->argument2.d;
+
+	      fword = sfnt_mul_fixed (dy[i], scale);
+	      component->flags |= 01;
+	      component->argument2.d = word + fword;
+	    }
+
+	  break;
+	}
+
+      xfree (dx);
+      xfree (dy);
+
+      if (local_points != (uint16_t *) -1)
+	xfree (local_points);
+    }
+
+  /* Return success.  */
+
+  if ((glyph->compound->num_components
+       * sizeof *touched) >= 1024 * 16)
+    xfree (touched);
+
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    xfree (coords);
+
+  if ((sizeof *original_x * 2
+       * glyph->compound->num_components) >= 1024 * 16)
+    xfree (original_x);
+
+  if (points != (uint16_t *) -1)
+    xfree (points);
+
+  /* Set the glyph metrics distortion as well.  */
+  glyph->advance_distortion = distortion->advance;
+  glyph->origin_distortion = distortion->origin;
+
+  return 0;
+
+ fail3:
+  xfree (dx);
+  xfree (dy);
+  xfree (local_points);
+ fail1:
+
+  if ((glyph->compound->num_components
+       * sizeof *touched) >= 1024 * 16)
+    xfree (touched);
+
+  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
+    xfree (coords);
+
+  if ((sizeof *original_x * 2
+       * glyph->compound->num_components) >= 1024 * 16)
+    xfree (original_x);
+
+  if (points != (uint16_t *) -1)
+    xfree (points);
+
+  return 1;
+}
+
+/* Vary the specified INTERPRETER's control value table using the
+   variations in BLEND's CVT variations table.
+
+   The CVT table used to create INTERPRETER must be the same used
+   to read BLEND->cvar.  If not, behavior is undefined.  */
+
+TEST_STATIC void
+sfnt_vary_interpreter (struct sfnt_interpreter *interpreter,
+		       struct sfnt_blend *blend)
+{
+  sfnt_fixed scale;
+  int i;
+  struct sfnt_tuple_variation *variation;
+  size_t ndeltas, j, index;
+  sfnt_f26dot6 delta;
+
+  /* Return if there's no cvar table.  */
+  if (!blend->cvar)
+    return;
+
+  /* For each tuple in the cvar table... */
+  for (i = 0; i < (blend->cvar->tuple_count & 0x0fff); ++i)
+    {
+      /* See if the tuple applies.  */
+      variation = &blend->cvar->variation[i];
+      scale = sfnt_compute_tuple_scale (blend,
+					variation->intermediate_start != NULL,
+					variation->coordinates,
+					variation->intermediate_start,
+					variation->intermediate_end);
+      if (!scale)
+	continue;
+
+      /* Figure out how many deltas there are.  If variation->points,
+         there are num_points deltas.  Otherwise, there are
+         interpreter->cvt->num_elements deltas.  */
+
+      ndeltas = (variation->points
+		 ? variation->num_points
+		 : interpreter->cvt_size);
+
+      for (j = 0; j < ndeltas; ++j)
+	{
+	  /* Figure out which CVT entry this applies to.  */
+	  index = variation->points ? variation->points[j] : j;
+
+	  if (index > interpreter->cvt_size)
+	    continue;
+
+	  /* Multiply the delta by the interpreter scale factor and
+	     then the tuple scale factor.  */
+	  delta = sfnt_mul_f26dot6_fixed (variation->deltas[j] * 64,
+					  interpreter->scale);
+	  delta = sfnt_mul_fixed (delta, scale);
+
+	  /* Apply the delta to the control value table.  */
+	  interpreter->cvt[i] += delta;
+	}
+    }
+}
 
 
 
@@ -14088,6 +14971,7 @@ struct sfnt_test_dcontext
   struct sfnt_glyf_table *glyf;
   struct sfnt_loca_table_short *loca_short;
   struct sfnt_loca_table_long *loca_long;
+  struct sfnt_blend *blend;
 };
 
 /* Global context for test functions.  Height of glyph.  */
@@ -14120,17 +15004,31 @@ sfnt_test_curve_to (struct sfnt_point control,
 }
 
 static struct sfnt_glyph *
-sfnt_test_get_glyph (sfnt_glyph glyph, void *dcontext,
+sfnt_test_get_glyph (sfnt_glyph id, void *dcontext,
 		     bool *need_free)
 {
   struct sfnt_test_dcontext *tables;
+  struct sfnt_glyph *glyph;
+  struct sfnt_metrics_distortion distortion;
 
   tables = dcontext;
   *need_free = true;
 
-  return sfnt_read_glyph (glyph, tables->glyf,
-			  tables->loca_short,
-			  tables->loca_long);
+  glyph = sfnt_read_glyph (id, tables->glyf,
+			   tables->loca_short,
+			   tables->loca_long);
+
+  if (tables->blend && glyph)
+    {
+      if (glyph->simple)
+	sfnt_vary_simple_glyph (tables->blend, id, glyph,
+				&distortion);
+      else
+	sfnt_vary_compound_glyph (tables->blend, id, glyph,
+				  &distortion);
+    }
+
+  return glyph;
 }
 
 static void
@@ -17881,7 +18779,7 @@ main (int argc, char **argv)
   struct sfnt_cmap_encoding_subtable *subtables;
   struct sfnt_cmap_encoding_subtable_data **data;
   struct sfnt_cmap_table *table;
-  int fd, i;
+  int fd, i, j;
   sfnt_char character;
   struct sfnt_head_table *head;
   struct sfnt_hhea_table *hhea;
@@ -17911,6 +18809,8 @@ main (int argc, char **argv)
   struct sfnt_instructed_outline *value;
   struct sfnt_fvar_table *fvar;
   struct sfnt_gvar_table *gvar;
+  struct sfnt_avar_table *avar;
+  struct sfnt_cvar_table *cvar;
   sfnt_fixed scale;
   char *fancy;
   int *advances;
@@ -17919,6 +18819,7 @@ main (int argc, char **argv)
   char *axis_name;
   struct sfnt_instance *instance;
   struct sfnt_blend blend;
+  struct sfnt_metrics_distortion distortion;
 
   if (argc < 2)
     return 1;
@@ -18029,8 +18930,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 12
-#define EASY_PPEM  12
+#define FANCY_PPEM 15
+#define EASY_PPEM  15
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -18044,16 +18945,123 @@ main (int argc, char **argv)
   prep = sfnt_read_prep_table (fd, font);
   fvar = sfnt_read_fvar_table (fd, font);
   gvar = sfnt_read_gvar_table (fd, font);
+  avar = sfnt_read_avar_table (fd, font);
+  cvar = NULL;
   hmtx = NULL;
+
+  if (fvar && cvt)
+    cvar = sfnt_read_cvar_table (fd, font, fvar, cvt);
+
+  if (cvar)
+    fprintf (stderr, "cvar table found\n");
 
   exec_prep = prep;
   exec_fpgm = fpgm;
   fancy = getenv ("SFNT_FANCY_TEST");
-	
+
+  loca_long = NULL;
+  loca_short = NULL;
+
+  if (fvar)
+    {
+      fprintf (stderr, "FVAR table found!\n"
+	       "version: %"PRIu16".%"PRIu16"\n"
+	       "axis_count: %"PRIu16"\n"
+	       "axis_size: %"PRIu16"\n"
+	       "instance_count: %"PRIu16"\n"
+	       "instance_size: %"PRIu16"\n",
+	       fvar->major_version,
+	       fvar->minor_version,
+	       fvar->axis_count,
+	       fvar->axis_size,
+	       fvar->instance_count,
+	       fvar->instance_size);
+
+      for (i = 0; i < fvar->axis_count; ++i)
+	{
+	  if (name)
+	    {
+	      axis_name
+		= (char *) sfnt_find_name (name, fvar->axis[i].name_id,
+					   &record);
+
+	      if (axis_name)
+		fprintf (stderr, "axis no: %d; name: %.*s\n",
+			 i, record.length, axis_name);
+	    }
+
+	  fprintf (stderr, "  axis: %"PRIx32" %g %g %g\n",
+		   fvar->axis[i].axis_tag,
+		   sfnt_coerce_fixed (fvar->axis[i].min_value),
+		   sfnt_coerce_fixed (fvar->axis[i].default_value),
+		   sfnt_coerce_fixed (fvar->axis[i].max_value));
+	}
+
+      for (i = 0; i < fvar->instance_count; ++i)
+	{
+	  if (name)
+	    {
+	      axis_name
+		= (char *) sfnt_find_name (name, fvar->instance[i].name_id,
+					   &record);
+
+	      if (axis_name)
+		fprintf (stderr, "instance no: %d; name: %.*s\n",
+			 i, record.length, axis_name);
+	    }
+	}
+
+      if (fvar->instance_count > 1)
+	{
+	  printf ("instance? ");
+
+	  if (scanf ("%d", &i) == EOF)
+	    goto free_lab;
+
+	  if (i >= fvar->instance_count)
+	    goto free_lab;
+
+	  if (i >= 0)
+	    instance = &fvar->instance[i];
+	}
+    }
+
+  if (gvar)
+    fprintf (stderr, "gvar table found\n");
+
+  if (avar)
+    {
+      fprintf (stderr, "avar table found\n");
+
+      for (i = 0; i < avar->axis_count; ++i)
+	{
+	  fprintf (stderr, "axis: %d, %"PRIu16" pairs\n",
+		   i, avar->segments[i].pair_count);
+
+	  for (j = 0; j < avar->segments[i].pair_count; ++j)
+	    fprintf (stderr, "pair: %g, %g\n",
+		     (avar->segments[i].correspondence[j].from_coord
+		      / 16384.0),
+		     (avar->segments[i].correspondence[j].to_coord
+		      / 16384.0));
+	}
+    }
+
+  memset (&blend, 0, sizeof blend);
+
+  if (instance && gvar)
+    {
+      sfnt_init_blend (&blend, fvar, gvar, avar,
+		       cvar);
+
+      for (i = 0; i < fvar->axis_count; ++i)
+	blend.coords[i] = instance->coords[i];
+
+      sfnt_normalize_blend (&blend);
+    }
+
   if (fancy)
     {
-      loca_long = NULL;
-      loca_short = NULL;
       length = strlen (fancy);
       scale = sfnt_div_fixed (FANCY_PPEM, head->units_per_em);
 
@@ -18085,6 +19093,8 @@ main (int argc, char **argv)
 
       interpreter = sfnt_make_interpreter (maxp, cvt, head,
 					   FANCY_PPEM, FANCY_PPEM);
+      if (instance && gvar)
+	sfnt_vary_interpreter (interpreter, &blend);
 
       if (!interpreter)
 	exit (1);
@@ -18128,6 +19138,10 @@ main (int argc, char **argv)
 	  if (!glyph || !glyph->simple)
 	    exit (3);
 
+	  if (instance && gvar)
+	    sfnt_vary_simple_glyph (&blend, code, glyph,
+				    &distortion);
+
 	  if (sfnt_lookup_glyph_metrics (code, -1,
 					 &metrics,
 					 hmtx, hhea,
@@ -18159,56 +19173,12 @@ main (int argc, char **argv)
 	  xfree (outline);
 
 	  rasters[i] = raster;
-	  advances[i] = sfnt_mul_fixed (metrics.advance, scale);
+	  advances[i] = (sfnt_mul_fixed (metrics.advance, scale)
+			 + sfnt_mul_fixed (distortion.advance, scale));
 	}
 
       sfnt_x_raster (rasters, advances, length, hhea, scale);
       exit (0);
-    }
-
-  if (head && maxp && maxp->version >= 0x00010000)
-    {
-      fprintf (stderr, "creating interpreter\n"
-	       "the size of the stack is %"PRIu16"\n"
-	       "the size of the twilight zone is %"PRIu16"\n"
-	       "the size of the storage area is %"PRIu16"\n"
-	       "there are at most %"PRIu16" idefs\n"
-	       "there are at most %"PRIu16" fdefs\n"
-	       "the cvt is %zu fwords in length\n",
-	       maxp->max_stack_elements,
-	       maxp->max_twilight_points,
-	       maxp->max_storage,
-	       maxp->max_instruction_defs,
-	       maxp->max_function_defs,
-	       cvt ? cvt->num_elements : 0ul);
-
-      interpreter = sfnt_make_interpreter (maxp, cvt, head,
-					   FANCY_PPEM,
-					   FANCY_PPEM);
-      state = interpreter->state;
-
-      if (fpgm)
-	{
-	  fprintf (stderr, "interpreting the font program, with"
-		   " %zu instructions\n", fpgm->num_instructions);
-
-	  trap = sfnt_interpret_font_program (interpreter, fpgm);
-
-	  if (trap)
-	    fprintf (stderr, "**TRAP**: %s\n", trap);
-	}
-
-      if (prep)
-	{
-	  fprintf (stderr, "interpreting the control value program, with"
-		   " %zu instructions\n", prep->num_instructions);
-
-	  trap = sfnt_interpret_control_value_program (interpreter, prep,
-						       &state);
-
-	  if (trap)
-	    fprintf (stderr, "**TRAP**: %s\n", trap);
-	}
     }
 
   if (hhea && maxp)
@@ -18315,80 +19285,52 @@ main (int argc, char **argv)
 	     (int) hhea->caret_slope_rise,
 	     (int) hhea->caret_slope_run);
 
-  if (fvar)
+  if (head && maxp && maxp->version >= 0x00010000)
     {
-      fprintf (stderr, "FVAR table found!\n"
-	       "version: %"PRIu16".%"PRIu16"\n"
-	       "axis_count: %"PRIu16"\n"
-	       "axis_size: %"PRIu16"\n"
-	       "instance_count: %"PRIu16"\n"
-	       "instance_size: %"PRIu16"\n",
-	       fvar->major_version,
-	       fvar->minor_version,
-	       fvar->axis_count,
-	       fvar->axis_size,
-	       fvar->instance_count,
-	       fvar->instance_size);
+      fprintf (stderr, "creating interpreter\n"
+	       "the size of the stack is %"PRIu16"\n"
+	       "the size of the twilight zone is %"PRIu16"\n"
+	       "the size of the storage area is %"PRIu16"\n"
+	       "there are at most %"PRIu16" idefs\n"
+	       "there are at most %"PRIu16" fdefs\n"
+	       "the cvt is %zu fwords in length\n",
+	       maxp->max_stack_elements,
+	       maxp->max_twilight_points,
+	       maxp->max_storage,
+	       maxp->max_instruction_defs,
+	       maxp->max_function_defs,
+	       cvt ? cvt->num_elements : 0ul);
 
-      for (i = 0; i < fvar->axis_count; ++i)
+      interpreter = sfnt_make_interpreter (maxp, cvt, head,
+					   FANCY_PPEM,
+					   FANCY_PPEM);
+      state = interpreter->state;
+
+      if (instance && gvar)
+	sfnt_vary_interpreter (interpreter, &blend);
+
+      if (fpgm)
 	{
-	  if (name)
-	    {
-	      axis_name
-		= (char *) sfnt_find_name (name, fvar->axis[i].name_id,
-					   &record);
+	  fprintf (stderr, "interpreting the font program, with"
+		   " %zu instructions\n", fpgm->num_instructions);
 
-	      if (axis_name)
-		fprintf (stderr, "axis no: %d; name: %.*s\n",
-			 i, record.length, axis_name);
-	    }
+	  trap = sfnt_interpret_font_program (interpreter, fpgm);
 
-	  fprintf (stderr, "  axis: %"PRIx32" %g %g %g\n",
-		   fvar->axis[i].axis_tag,
-		   sfnt_coerce_fixed (fvar->axis[i].min_value),
-		   sfnt_coerce_fixed (fvar->axis[i].default_value),
-		   sfnt_coerce_fixed (fvar->axis[i].max_value));
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
 	}
 
-      for (i = 0; i < fvar->instance_count; ++i)
+      if (prep)
 	{
-	  if (name)
-	    {
-	      axis_name
-		= (char *) sfnt_find_name (name, fvar->instance[i].name_id,
-					   &record);
+	  fprintf (stderr, "interpreting the control value program, with"
+		   " %zu instructions\n", prep->num_instructions);
 
-	      if (axis_name)
-		fprintf (stderr, "instance no: %d; name: %.*s\n",
-			 i, record.length, axis_name);
-	    }
+	  trap = sfnt_interpret_control_value_program (interpreter, prep,
+						       &state);
+
+	  if (trap)
+	    fprintf (stderr, "**TRAP**: %s\n", trap);
 	}
-
-      if (fvar->instance_count > 1)
-	{
-	  printf ("instance? ");
-
-	  if (scanf ("%d", &i) == EOF)
-	    goto free_lab;
-
-	  if (i < 0 || i >= fvar->instance_count)
-	    goto free_lab;
-
-	  instance = &fvar->instance[i];
-	}
-    }
-
-  if (gvar)
-    fprintf (stderr, "gvar table found\n");
-
-  if (instance && gvar)
-    {
-      sfnt_init_blend (&blend, fvar, gvar);
-
-      for (i = 0; i < fvar->axis_count; ++i)
-	blend.coords[i] = instance->coords[i];
-
-      sfnt_normalize_blend (&blend);
     }
 
   while (true)
@@ -18428,11 +19370,33 @@ main (int argc, char **argv)
 	      dcontext.loca_short = loca_short;
 	      dcontext.loca_long = loca_long;
 
+	      if (instance && gvar)
+		dcontext.blend = &blend;
+	      else
+		dcontext.blend = NULL;
+
 	      if (glyph->simple && instance && gvar)
 		{
 		  printf ("applying variations to simple glyph...\n");
 
-		  if (sfnt_vary_glyph (&blend, code, glyph))
+		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
+		  if (sfnt_vary_simple_glyph (&blend, code, glyph,
+					      &distortion))
+		    printf ("variation failed!\n");
+		  clock_gettime (CLOCK_THREAD_CPUTIME_ID, &end);
+		  sub = timespec_sub (end, start);
+
+		  printf ("time spent varying: %lld sec %ld nsec\n",
+			  (long long) sub.tv_sec, sub.tv_nsec);
+		  printf ("distortions: %"PRIi16", %"PRIi16"\n",
+			  distortion.origin, distortion.advance);
+		}
+	      else if (instance && gvar)
+		{
+		  printf ("applying variations to compound glyph...\n");
+
+		  if (sfnt_vary_compound_glyph (&blend, code, glyph,
+						&distortion))
 		    printf ("variation failed!\n");
 		}
 
@@ -18444,10 +19408,20 @@ main (int argc, char **argv)
 					&dcontext))
 		printf ("decomposition failure\n");
 
+	      if (sfnt_lookup_glyph_metrics (code, EASY_PPEM,
+					     &metrics,
+					     hmtx, hhea,
+					     head, maxp))
+		{
+		  printf ("metrics lookup failure");
+		  memset (&metrics, 0, sizeof metrics);
+		}
+
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
 	      outline = sfnt_build_glyph_outline (glyph, head,
 						  EASY_PPEM,
+						  &metrics,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
 						  &dcontext);
@@ -18618,6 +19592,9 @@ main (int argc, char **argv)
   for (i = 0; i < table->num_subtables; ++i)
     xfree (data[i]);
 
+  if (instance && gvar)
+    sfnt_free_blend (&blend);
+
   xfree (table);
   xfree (data);
   xfree (subtables);
@@ -18637,9 +19614,8 @@ main (int argc, char **argv)
   xfree (prep);
   xfree (fvar);
   xfree (gvar);
-
-  if (instance && gvar)
-    sfnt_free_blend (&blend);
+  xfree (avar);
+  xfree (cvar);
 
   return 0;
 }

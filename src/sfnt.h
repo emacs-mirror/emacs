@@ -27,10 +27,6 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #include <sys/types.h>
 
-#if defined emacs || defined TEST
-#define SFNT_ENABLE_HINTING
-#endif
-
 
 
 /* Container structure and enumerator definitions.  */
@@ -56,6 +52,7 @@ enum sfnt_table
     SFNT_TABLE_FVAR,
     SFNT_TABLE_GVAR,
     SFNT_TABLE_CVAR,
+    SFNT_TABLE_AVAR,
   };
 
 #define SFNT_ENDOF(type, field, type1)			\
@@ -664,6 +661,12 @@ struct sfnt_glyph
   /* Coordinate bounds.  */
   sfnt_fword xmin, ymin, xmax, ymax;
 
+  /* Distortion applied to the right side phantom point.  */
+  sfnt_fword advance_distortion;
+
+  /* Distortion applied to the origin point.  */
+  sfnt_fword origin_distortion;
+
   /* Either a simple glyph or a compound glyph, depending on which is
      set.  */
   struct sfnt_simple_glyph *simple;
@@ -718,6 +721,10 @@ struct sfnt_glyph_outline
      and maximum X and Y positions.  */
   sfnt_fixed xmin, ymin, xmax, ymax;
 
+  /* The origin point of the outline on the X axis.  Value defaults to
+     0.  */
+  sfnt_fixed origin;
+
   /* Reference count.  Initially zero.  */
   short refcount;
 };
@@ -739,7 +746,8 @@ struct sfnt_raster
   /* Basic dimensions of the raster.  */
   unsigned short width, height;
 
-  /* Integer offset to apply to positions in the raster.  */
+  /* Integer offset to apply to positions in the raster so that they
+     start from the origin point of the glyph.  */
   short offx, offy;
 
   /* The raster stride.  */
@@ -966,6 +974,357 @@ enum sfnt_ttc_tag
 
 
 
+/* Unicode Variation Sequence (UVS) support.  */
+
+struct sfnt_default_uvs_table
+{
+  /* Number of ranges that follow.  */
+  uint32_t num_unicode_value_ranges;
+
+  /* Variable length data.  */
+  struct sfnt_unicode_value_range *ranges;
+};
+
+struct sfnt_unicode_value_range
+{
+  /* First value in this range.  */
+  unsigned int start_unicode_value;
+
+  /* Number of additional values in this range.  */
+  unsigned char additional_count;
+};
+
+struct sfnt_nondefault_uvs_table
+{
+  /* Number of UVS mappings which follow.  */
+  uint32_t num_uvs_mappings;
+
+  /* Variable length data.  */
+  struct sfnt_uvs_mapping *mappings;
+};
+
+struct sfnt_uvs_mapping
+{
+  /* Base character value.  */
+  unsigned int unicode_value;
+
+  /* Glyph ID of the base character value.  */
+  uint16_t base_character_value;
+};
+
+struct sfnt_mapped_variation_selector_record
+{
+  /* The variation selector.  */
+  unsigned int selector;
+
+  /* Its default UVS table.  */
+  struct sfnt_default_uvs_table *default_uvs;
+
+  /* Its nondefault UVS table.  */
+  struct sfnt_nondefault_uvs_table *nondefault_uvs;
+};
+
+/* Structure describing a single offset to load into a variation
+   selection context.  */
+
+struct sfnt_table_offset_rec
+{
+  /* The offset from the start of the font file.  */
+  off_t offset;
+
+  /* Whether or not the offset points to a non-default UVS table.  */
+  bool is_nondefault_table;
+
+  /* Pointer to the UVS table.  */
+  void *table;
+};
+
+struct sfnt_uvs_context
+{
+  /* Number of records and tables.  */
+  size_t num_records, nmemb;
+
+  /* Array of UVS tables.  */
+  struct sfnt_table_offset_rec *tables;
+
+  /* Array of variation selector records mapped to
+     their corresponding tables.  */
+  struct sfnt_mapped_variation_selector_record *records;
+};
+
+
+
+#if defined HAVE_MMAP && !defined TEST
+
+/* Memory mapping support.  */
+
+struct sfnt_mapped_table
+{
+  /* Pointer to table data.  */
+  void *data;
+
+  /* Pointer to table mapping.  */
+  void *mapping;
+
+  /* Size of mapped data and size of mapping.  */
+  size_t length, size;
+};
+
+#endif /* HAVE_MMAP && !TEST */
+
+
+
+/* Glyph variation support.  */
+
+/* 2.14 fixed point type used to represent versors of unit
+   vectors.  */
+typedef int16_t sfnt_f2dot14;
+
+/* Forward declaration used only for the distortable font stuff.  */
+struct sfnt_cvt_table;
+
+struct sfnt_variation_axis
+{
+  /* The axis tag.  */
+  uint32_t axis_tag;
+
+  /* The minimum style coordinate for the axis.  */
+  sfnt_fixed min_value;
+
+  /* The default style coordinate for the axis.  */
+  sfnt_fixed default_value;
+
+  /* The maximum style coordinate for the axis.  */
+  sfnt_fixed max_value;
+
+  /* Set to zero.  */
+  uint16_t flags;
+
+  /* Identifier under which this axis's name will be found in the
+     `name' table.  */
+  uint16_t name_id;
+};
+
+struct sfnt_instance
+{
+  /* The instance name ID.  */
+  uint16_t name_id;
+
+  /* Flags.  */
+  uint16_t flags;
+
+  /* Optional PostScript name.  */
+  uint16_t ps_name_id;
+
+  /* Coordinates of each defined instance.  */
+  sfnt_fixed *coords;
+};
+
+struct sfnt_fvar_table
+{
+  /* Major version; should be 1.  */
+  uint16_t major_version;
+
+  /* Minor version; should be 0.  */
+  uint16_t minor_version;
+
+  /* Offset in bytes from the beginning of the table to the beginning
+     of the first axis data.  */
+  uint16_t offset_to_data;
+
+  /* Reserved field; always 2.  */
+  uint16_t count_size_pairs;
+
+  /* Number of style axes in this font.  */
+  uint16_t axis_count;
+
+  /* The number of bytes in each variation axis record.  Currently 20
+     bytes.  */
+  uint16_t axis_size;
+
+  /* The number of named instances for the font found in the
+     instance array.  */
+  uint16_t instance_count;
+
+  /* The size of each instance record.  */
+  uint16_t instance_size;
+
+  /* Variable length data.  */
+  struct sfnt_variation_axis *axis;
+  struct sfnt_instance *instance;
+};
+
+struct sfnt_short_frac_correspondence
+{
+  /* Value in normalized user space.  */
+  sfnt_f2dot14 from_coord;
+
+  /* Value in normalized axis space.  */
+  sfnt_f2dot14 to_coord;
+};
+
+struct sfnt_short_frac_segment
+{
+  /* The number of pairs for this axis.  */
+  uint16_t pair_count;
+
+  /* Variable length data.  */
+  struct sfnt_short_frac_correspondence *correspondence;
+};
+
+struct sfnt_avar_table
+{
+  /* The version of the table.  Should be 1.0.  */
+  sfnt_fixed version;
+
+  /* Number of variation axes defined in this table.
+     XXX: why is this signed? */
+  int32_t axis_count;
+
+  /* Variable length data.  */
+  struct sfnt_short_frac_segment *segments;
+};
+
+struct sfnt_tuple_variation
+{
+  /* Tuple point numbers.  */
+  uint16_t *points;
+
+  /* Deltas.  */
+  sfnt_fword *deltas;
+
+  /* Tuple coordinates.  One for each axis specified in the [gaf]var
+     tables.  */
+  sfnt_f2dot14 *coordinates;
+
+  /* Intermediate start and end coordinates.  */
+  sfnt_f2dot14 *restrict intermediate_start;
+
+  /* Intermediate start and end coordinates.  */
+  sfnt_f2dot14 *restrict intermediate_end;
+
+  /* The number of points and deltas present.
+
+     UINT16_MAX and POINTS set to NULL means there are deltas for each
+     CVT entry.  */
+  uint16_t num_points;
+};
+
+struct sfnt_cvar_table
+{
+  /* The version of this CVT variations table.  */
+  sfnt_fixed version;
+
+  /* Flags.  */
+  uint16_t tuple_count;
+
+  /* Offset from the beginning of the table to the tuple data.  */
+  uint16_t data_offset;
+
+  /* Variable length data.  */
+  struct sfnt_tuple_variation *variation;
+};
+
+struct sfnt_gvar_table
+{
+  /* Version of the glyph variations table.  */
+  uint16_t version;
+
+  /* Reserved, currently 0.  */
+  uint16_t reserved;
+
+  /* The number of style axes for this font.  This must be the same
+     number as axisCount in the 'fvar' table.  */
+  uint16_t axis_count;
+
+  /* The number of shared coordinates.  */
+  uint16_t shared_coord_count;
+
+  /* Byte offset from the beginning of this table to the list of
+     shared style coordinates.  */
+  uint32_t offset_to_coord;
+
+  /* The number of glyphs in this font; this should match the number
+     of the glyphs store elsewhere in the font.  */
+  uint16_t glyph_count;
+
+  /* Bit-field that gives the format of the offset array that
+     follows. If the flag is 0, the type is uint16. If the flag is 1,
+     the type is unit 32.  */
+  uint16_t flags;
+
+  /* Byte offset from the beginning of this table to the first glyph
+     glyphVariationData.  */
+  uint32_t offset_to_data;
+
+  /* Number of bytes in the glyph variation data.  */
+  size_t data_size;
+
+  /* Byte offsets from the beginning of the glyphVariationData array
+     to the glyphVariationData for each glyph in the font.  The format
+     of this field is set by the flags field.  */
+  union {
+    uint16_t *offset_word;
+    uint32_t *offset_long;
+  } u;
+
+  /* Other variable length data.  */
+  sfnt_f2dot14 *global_coords;
+  unsigned char *glyph_variation_data;
+};
+
+/* Structure repesenting a set of axis coordinates and their
+   normalized equivalents.
+
+   To use this structure, call
+
+     sfnt_init_blend (&blend, fvar, gvar)
+
+   on a `struct sfnt_blend *', with an appropriate fvar and gvar
+   table.
+
+   Then, fill in blend.coords with the un-normalized coordinates,
+   and call
+
+     sfnt_normalize_blend (&blend)
+
+   finally, call sfnt_vary_simple_glyph and related functions.  */
+
+struct sfnt_blend
+{
+  /* The fvar table.  This determines the number of elements in each
+     of the arrays below.  */
+  struct sfnt_fvar_table *fvar;
+
+  /* The gvar table.  This provides the glyph variation data.  */
+  struct sfnt_gvar_table *gvar;
+
+  /* The avar table.  This provides adjustments to normalized axis
+     values, and may be NULL.  */
+  struct sfnt_avar_table *avar;
+
+  /* The cvar table.  This provides adjustments to CVT values, and may
+     be NULL.  */
+  struct sfnt_cvar_table *cvar;
+
+  /* Un-normalized coordinates.  */
+  sfnt_fixed *coords;
+
+  /* Normalized coordinates.  */
+  sfnt_fixed *norm_coords;
+};
+
+struct sfnt_metrics_distortion
+{
+  /* Distortion applied to the origin point.  */
+  sfnt_fword origin;
+
+  /* Distortion applied to the advance point.  */
+  sfnt_fword advance;
+};
+
+
+
 #define SFNT_CEIL_FIXED(fixed)			\
   (!((fixed) & 0177777) ? (fixed)		\
    : ((fixed) + 0200000) & 037777600000)
@@ -1012,7 +1371,9 @@ extern void sfnt_free_glyph (struct sfnt_glyph *);
 #define PROTOTYPE		\
   struct sfnt_glyph *,		\
   struct sfnt_head_table *,	\
-  int, sfnt_get_glyph_proc,	\
+  int,				\
+  struct sfnt_glyph_metrics *,	\
+  sfnt_get_glyph_proc,		\
   sfnt_free_glyph_proc,		\
   void *
 extern struct sfnt_glyph_outline *sfnt_build_glyph_outline (PROTOTYPE);
@@ -1042,6 +1403,8 @@ extern int sfnt_lookup_glyph_metrics (sfnt_glyph, int,
 
 extern void sfnt_scale_metrics (struct sfnt_glyph_metrics *,
 				sfnt_fixed);
+extern void sfnt_scale_metrics_to_pixel_size (struct sfnt_glyph_metrics *,
+					      int, struct sfnt_head_table *);
 
 #define PROTOTYPE int, struct sfnt_offset_subtable *
 extern struct sfnt_name_table *sfnt_read_name_table (PROTOTYPE);
@@ -1061,13 +1424,81 @@ extern char *sfnt_find_metadata (struct sfnt_meta_table *,
 
 extern struct sfnt_ttc_header *sfnt_read_ttc_header (int);
 
+
+
+#define PROTOTYPE struct sfnt_cmap_format_14 *, int
+
+extern struct sfnt_uvs_context *sfnt_create_uvs_context (PROTOTYPE);
+
+#undef PROTOTYPE
+
+extern void sfnt_free_uvs_context (struct sfnt_uvs_context *);
+
+#define PROTOTYPE struct sfnt_nondefault_uvs_table *, sfnt_char
+
+extern sfnt_glyph sfnt_variation_glyph_for_char (PROTOTYPE);
+
+#undef PROTOTYPE
+
+
+
+#ifdef HAVE_MMAP
+
+extern int sfnt_map_table (int, struct sfnt_offset_subtable *,
+			   uint32_t, struct sfnt_mapped_table *);
+extern int sfnt_unmap_table (struct sfnt_mapped_table *);
+
+#endif /* HAVE_MMAP */
+
+
+
+extern void *sfnt_read_table (int, struct sfnt_offset_subtable *,
+			      uint32_t, size_t *);
+
+
+
+#define PROTOTYPE int, struct sfnt_offset_subtable *
+
+extern struct sfnt_fvar_table *sfnt_read_fvar_table (PROTOTYPE);
+extern struct sfnt_gvar_table *sfnt_read_gvar_table (PROTOTYPE);
+extern struct sfnt_avar_table *sfnt_read_avar_table (PROTOTYPE);
+
+#undef PROTOTYPE
+
+#define PROTOTYPE				\
+  int,						\
+  struct sfnt_offset_subtable *,		\
+  struct sfnt_fvar_table *,			\
+  struct sfnt_cvt_table *
+
+extern struct sfnt_cvar_table *sfnt_read_cvar_table (PROTOTYPE);
+
+#undef PROTOTYPE
+
+
+
+extern void sfnt_init_blend (struct sfnt_blend *,
+			     struct sfnt_fvar_table *,
+			     struct sfnt_gvar_table *,
+			     struct sfnt_avar_table *,
+			     struct sfnt_cvar_table *);
+extern void sfnt_free_blend (struct sfnt_blend *);
+extern void sfnt_normalize_blend (struct sfnt_blend *);
+
+
+
+extern int sfnt_vary_simple_glyph (struct sfnt_blend *, sfnt_glyph,
+				   struct sfnt_glyph *,
+				   struct sfnt_metrics_distortion *);
+extern int sfnt_vary_compound_glyph (struct sfnt_blend *, sfnt_glyph,
+				     struct sfnt_glyph *,
+				     struct sfnt_metrics_distortion *);
+
 #endif /* TEST */
 
 
 
 /* TrueType hinting support.  */
-
-#ifdef SFNT_ENABLE_HINTING
 
 /* Structure definitions for tables used by the TrueType
    interpreter.  */
@@ -1106,10 +1537,6 @@ struct sfnt_prep_table
 
 /* 26.6 fixed point type used within the interpreter.  */
 typedef int32_t sfnt_f26dot6;
-
-/* 2.14 fixed point type used to represent versors of unit
-   vectors.  */
-typedef int16_t sfnt_f2dot14;
 
 /* 18.14 fixed point type used to calculate rounding details.  */
 typedef int32_t sfnt_f18dot14;
@@ -1479,106 +1906,6 @@ struct sfnt_instructed_outline
 
 
 
-/* Unicode Variation Sequence (UVS) support.  */
-
-struct sfnt_default_uvs_table
-{
-  /* Number of ranges that follow.  */
-  uint32_t num_unicode_value_ranges;
-
-  /* Variable length data.  */
-  struct sfnt_unicode_value_range *ranges;
-};
-
-struct sfnt_unicode_value_range
-{
-  /* First value in this range.  */
-  unsigned int start_unicode_value;
-
-  /* Number of additional values in this range.  */
-  unsigned char additional_count;
-};
-
-struct sfnt_nondefault_uvs_table
-{
-  /* Number of UVS mappings which follow.  */
-  uint32_t num_uvs_mappings;
-
-  /* Variable length data.  */
-  struct sfnt_uvs_mapping *mappings;
-};
-
-struct sfnt_uvs_mapping
-{
-  /* Base character value.  */
-  unsigned int unicode_value;
-
-  /* Glyph ID of the base character value.  */
-  uint16_t base_character_value;
-};
-
-struct sfnt_mapped_variation_selector_record
-{
-  /* The variation selector.  */
-  unsigned int selector;
-
-  /* Its default UVS table.  */
-  struct sfnt_default_uvs_table *default_uvs;
-
-  /* Its nondefault UVS table.  */
-  struct sfnt_nondefault_uvs_table *nondefault_uvs;
-};
-
-/* Structure describing a single offset to load into a variation
-   selection context.  */
-
-struct sfnt_table_offset_rec
-{
-  /* The offset from the start of the font file.  */
-  off_t offset;
-
-  /* Whether or not the offset points to a non-default UVS table.  */
-  bool is_nondefault_table;
-
-  /* Pointer to the UVS table.  */
-  void *table;
-};
-
-struct sfnt_uvs_context
-{
-  /* Number of records and tables.  */
-  size_t num_records, nmemb;
-
-  /* Array of UVS tables.  */
-  struct sfnt_table_offset_rec *tables;
-
-  /* Array of variation selector records mapped to
-     their corresponding tables.  */
-  struct sfnt_mapped_variation_selector_record *records;
-};
-
-
-
-#if defined HAVE_MMAP && !defined TEST
-
-/* Memory mapping support.  */
-
-struct sfnt_mapped_table
-{
-  /* Pointer to table data.  */
-  void *data;
-
-  /* Pointer to table mapping.  */
-  void *mapping;
-
-  /* Size of mapped data and size of mapping.  */
-  size_t length, size;
-};
-
-#endif /* HAVE_MMAP && !TEST */
-
-
-
 /* Functions used to read tables used by the TrueType interpreter.  */
 
 #ifndef TEST
@@ -1653,39 +1980,11 @@ extern const char *sfnt_interpret_compound_glyph (PROTOTYPE);
 
 
 
-#define PROTOTYPE struct sfnt_cmap_format_14 *, int
-
-extern struct sfnt_uvs_context *sfnt_create_uvs_context (PROTOTYPE);
-
-#undef PROTOTYPE
-
-extern void sfnt_free_uvs_context (struct sfnt_uvs_context *);
-
-#define PROTOTYPE struct sfnt_nondefault_uvs_table *, sfnt_char
-
-extern sfnt_glyph sfnt_variation_glyph_for_char (PROTOTYPE);
-
-#undef PROTOTYPE
-
-
-
-#ifdef HAVE_MMAP
-
-extern int sfnt_map_table (int, struct sfnt_offset_subtable *,
-			   uint32_t, struct sfnt_mapped_table *);
-extern int sfnt_unmap_table (struct sfnt_mapped_table *);
-
-#endif /* HAVE_MMAP */
-
-
-
-extern void *sfnt_read_table (int, struct sfnt_offset_subtable *,
-			      uint32_t, size_t *);
+extern void sfnt_vary_interpreter (struct sfnt_interpreter *,
+				   struct sfnt_blend *);
 
 #endif /* TEST */
 
 
-
-#endif /* SFNT_ENABLE_HINTING */
 
 #endif /* _SFNT_H_ */

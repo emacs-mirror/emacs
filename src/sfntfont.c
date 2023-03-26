@@ -1688,6 +1688,8 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
 
    If INTERPRETER is non-NULL, then possibly use the unscaled glyph
    metrics in METRICS and the interpreter STATE to instruct the glyph.
+   Otherwise, METRICS must contain scaled glyph metrics used to
+   compute the origin point of the outline.
 
    Return the outline with an incremented reference count and enter
    the generated outline into CACHE upon success, possibly discarding
@@ -1714,6 +1716,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   struct sfntfont_get_glyph_outline_dcontext dcontext;
   struct sfnt_instructed_outline *value;
   const char *error;
+  struct sfnt_glyph_metrics temp;
 
   start = cache->next;
 
@@ -1784,10 +1787,31 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
     }
 
   if (!outline)
-    outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
-					sfntfont_get_glyph,
-					sfntfont_free_glyph,
-					&dcontext);
+    {
+      /* If INTERPRETER is NULL, METRICS contains scaled metrics.  */
+
+      if (!interpreter)
+	outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
+					    metrics,
+					    sfntfont_get_glyph,
+					    sfntfont_free_glyph,
+					    &dcontext);
+      else
+	{
+	  /* But otherwise, they are unscaled, and must be scaled
+	     before being used.  */
+
+	  temp = *metrics;
+	  sfnt_scale_metrics_to_pixel_size (&temp, pixel_size,
+					    head);
+	  outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
+					      &temp,
+					      sfntfont_get_glyph,
+					      sfntfont_free_glyph,
+					      &dcontext);	  
+	}
+    }
+
   xfree (glyph);
 
   if (!outline)
@@ -2689,8 +2713,8 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
 					font->hmtx, font->hhea,
 					font->maxp,
 					font->loca_short,
-					font->loca_long, NULL, NULL,
-					NULL);
+					font->loca_long, NULL,
+					&metrics, NULL);
 
   if (!outline)
     return 1;
