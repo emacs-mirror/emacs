@@ -322,7 +322,7 @@ PARENT is the same as other anchor functions."
       ;; nil.
       parent (lambda (node)
                (and node
-                    (not (string-match "preproc" (treesit-node-type node)))
+                    (not (string-search "preproc" (treesit-node-type node)))
                     (progn
                       (goto-char (treesit-node-start node))
                       (looking-back (rx bol (* whitespace))

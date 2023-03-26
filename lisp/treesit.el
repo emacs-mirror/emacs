@@ -106,7 +106,7 @@ indent, imenu, etc."
     ;; 40MB for 64-bit systems, 15 for 32-bit.
     (if (or (< most-positive-fixnum (* 2.0 1024 mb))
             ;; 32-bit system with wide ints.
-            (string-match-p "--with-wide-int" system-configuration-options))
+            (string-search "--with-wide-int" system-configuration-options))
         (* 15 mb)
       (* 40 mb)))
   "Maximum buffer size (in bytes) for enabling tree-sitter parsing.
@@ -3090,7 +3090,7 @@ function signals an error."
          (with-temp-buffer
            (insert-file-contents (find-library-name "treesit"))
            (cl-remove-if
-            (lambda (name) (string-match "treesit--" name))
+            (lambda (name) (string-search "treesit--" name))
             (cl-sort
              (save-excursion
                (goto-char (point-min))
