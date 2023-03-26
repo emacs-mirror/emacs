@@ -66,7 +66,7 @@ The action to be taken can be further customized via
 
 (defcustom eww-download-directory "~/Downloads/"
   "Default directory where `eww' saves downloaded files."
-  :version "30.1"
+  :version "29.1"
   :group 'eww
   :type 'directory)
 
