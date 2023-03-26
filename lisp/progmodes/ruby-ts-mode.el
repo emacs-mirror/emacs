@@ -469,7 +469,7 @@ non-nil."
   (let* (first-call )
     (while (and parent
                 (setq first-call (treesit-node-parent parent))
-                (string-search "call" (treesit-node-type first-call)))
+                (equal "call" (treesit-node-type first-call)))
       (setq parent first-call))
     (treesit-node-start (treesit-search-subtree parent "\\." nil t))))
 
