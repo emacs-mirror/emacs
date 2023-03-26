@@ -3056,11 +3056,17 @@ function signals an error."
           (apply #'treesit--call-process-signal
                  (if (file-exists-p "scanner.cc") c++ cc)
                  nil t nil
-                 `("-fPIC" "-shared"
-                   ,@(directory-files
-                      default-directory nil
-                      (rx bos (+ anychar) ".o" eos))
-                   "-o" ,lib-name))
+                 (if (eq system-type 'cygwin)
+                     `("-shared" "-Wl,-dynamicbase"
+                       ,@(directory-files
+                          default-directory nil
+                          (rx bos (+ anychar) ".o" eos))
+                       "-o" ,lib-name)
+                   `("-fPIC" "-shared"
+                     ,@(directory-files
+                        default-directory nil
+                        (rx bos (+ anychar) ".o" eos))
+                     "-o" ,lib-name)))
           ;; Copy out.
           (unless (file-exists-p out-dir)
             (make-directory out-dir t))

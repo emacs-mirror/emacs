@@ -186,8 +186,9 @@ and above."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom native-comp-driver-options (when (eq system-type 'darwin)
-                                        '("-Wl,-w"))
+(defcustom native-comp-driver-options
+  (cond ((eq system-type 'darwin) '("-Wl,-w"))
+        ((eq system-type 'cygwin) '("-Wl,-dynamicbase")))
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
