@@ -7069,7 +7069,7 @@ CONDITION is either:
 - the symbol t, to always match,
 - the symbol nil, which never matches,
 - a regular expression, to match a buffer name,
-- a predicate function that takes a buffer object and ARG as
+- a predicate function that takes BUFFER-OR-NAME and ARG as
   arguments, and returns non-nil if the buffer matches,
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
@@ -7095,8 +7095,8 @@ CONDITION is either:
                        (string-match-p condition (buffer-name buffer)))
                       ((pred functionp)
                        (if (eq 1 (cdr (func-arity condition)))
-                           (funcall condition buffer)
-                         (funcall condition buffer arg)))
+                           (funcall condition buffer-or-name)
+                         (funcall condition buffer-or-name arg)))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)

@@ -7501,8 +7501,8 @@ Its value takes effect before processing the ACTION argument of
 If non-nil, this is an alist of elements (CONDITION . ACTION),
 where:
 
- CONDITION is passed to `buffer-match-p', along with the buffer
-  that is to be displayed and the ACTION argument of
+ CONDITION is passed to `buffer-match-p', along with the name of
+  the buffer that is to be displayed and the ACTION argument of
   `display-buffer', to check if ACTION should be used.
 
  ACTION is a cons cell (FUNCTIONS . ALIST), where FUNCTIONS is an
@@ -7559,12 +7559,16 @@ all fail.  It should never be set by programs or users.  See
 (defun display-buffer-assq-regexp (buffer-or-name alist action)
   "Retrieve ALIST entry corresponding to buffer specified by BUFFER-OR-NAME.
 This returns the cdr of the alist entry ALIST if the entry's
-key (its car) and BUFFER-OR-NAME satisfy `buffer-match-p', using
-the key as CONDITION argument of `buffer-match-p'.  ACTION should
-have the form of the action argument passed to `display-buffer'."
+key (its car) and the name of the buffer designated by
+BUFFER-OR-NAME satisfy `buffer-match-p', using the key as
+CONDITION argument of `buffer-match-p'.  ACTION should have the
+form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
-      (when (buffer-match-p (car entry) buffer-or-name action)
+      (when (buffer-match-p (car entry) (if (stringp buffer-or-name)
+                                            buffer-or-name
+                                          (buffer-name buffer-or-name))
+                                          action)
         (throw 'match (cdr entry))))))
 
 (defvar display-buffer--same-window-action
