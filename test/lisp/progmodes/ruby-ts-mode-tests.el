@@ -281,6 +281,31 @@ The whitespace before and including \"|\" on each line is removed."
        (file-truename
         (expand-file-name (format "ruby-mode-resources/%s" ,file))))))
 
+(ert-deftest ruby-ts-imenu-index ()
+  (ruby-ts-with-temp-buffer
+      (ruby-ts-test-string
+       "module Foo
+       |  class Blub
+       |    def hi
+       |      'Hi!'
+       |    end
+       |
+       |    def bye
+       |      'Bye!'
+       |    end
+       |
+       |    private def self.hiding
+       |      'You can't see me'
+       |    end
+       |  end
+       |end")
+    (should (equal (mapcar #'car (ruby-ts--imenu))
+                   '("Foo"
+                     "Foo::Blub"
+                     "Foo::Blub#hi"
+                     "Foo::Blub#bye"
+                     "Foo::Blub.hiding")))))
+
 (defmacro ruby-ts-deftest-indent (file)
   `(ert-deftest ,(intern (format "ruby-ts-indent-test/%s" file)) ()
      ;; :tags '(:expensive-test)
