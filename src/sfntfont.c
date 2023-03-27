@@ -1648,7 +1648,10 @@ enum
 
 /* Caching subsystem.  Generating outlines from glyphs is expensive,
    and so is rasterizing them, so two caches are maintained for both
-   glyph outlines and rasters.  */
+   glyph outlines and rasters.
+
+   Computing metrics also requires some expensive processing if the
+   glyph has instructions or distortions.  */
 
 struct sfnt_outline_cache
 {
@@ -1657,6 +1660,9 @@ struct sfnt_outline_cache
 
   /* Pointer to outline.  */
   struct sfnt_glyph_outline *outline;
+
+  /* Reference to glyph metrics.  */
+  struct sfnt_glyph_metrics metrics;
 
   /* What glyph this caches.  */
   sfnt_glyph glyph;
@@ -1724,20 +1730,21 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
 }
 
 /* Get the outline corresponding to the specified GLYPH_CODE in CACHE.
-   Use the pixel size PIXEL_SIZE, the glyf table GLYF, and the head
-   table HEAD.  Keep *CACHE_SIZE updated with the number of elements
-   in the cache.
+   Use the scale factor SCALE, the glyf table GLYF, and the head table
+   HEAD.  Keep *CACHE_SIZE updated with the number of elements in the
+   cache.
 
    Use the offset information in the long or short loca tables
    LOCA_LONG and LOCA_SHORT, whichever is set.
 
-   Use the specified HMTX, HHEA and MAXP tables when instructing
+   Use the specified HMTX, HEAD, HHEA and MAXP tables when instructing
    compound glyphs.
 
-   If INTERPRETER is non-NULL, then possibly use the unscaled glyph
-   metrics in METRICS and the interpreter STATE to instruct the glyph.
-   Otherwise, METRICS must contain scaled glyph metrics used to
-   compute the origin point of the outline.
+   If INTERPRETER is non-NULL, then possibly use it and the
+   interpreter graphics STATE to instruct the glyph.
+
+   If METRICS is non-NULL, return the scaled glyph metrics after
+   variation and instructing.
 
    Return the outline with an incremented reference count and enter
    the generated outline into CACHE upon success, possibly discarding
@@ -1746,7 +1753,7 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
 static struct sfnt_glyph_outline *
 sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 			    struct sfnt_outline_cache *cache,
-			    int pixel_size, int *cache_size,
+			    sfnt_fixed scale, int *cache_size,
 			    struct sfnt_glyf_table *glyf,
 			    struct sfnt_head_table *head,
 			    struct sfnt_hmtx_table *hmtx,
@@ -1785,6 +1792,9 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	  start->last->next = start;
 	  start->outline->refcount++;
 
+	  if (metrics)
+	    *metrics = start->metrics;
+
 	  return start->outline;
 	}
     }
@@ -1804,6 +1814,12 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   dcontext.loca_short = loca_short;
   dcontext.glyf = glyf;
 
+  /* Now load the glyph's unscaled metrics into TEMP.  */
+
+  if (sfnt_lookup_glyph_metrics (glyph_code, -1, &temp, hmtx, hhea,
+				 head, maxp))
+    goto fail;
+
   if (interpreter)
     {
       if (glyph->simple)
@@ -1813,7 +1829,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	  interpreter->state = *state;
 
 	  error = sfnt_interpret_simple_glyph (glyph, interpreter,
-					       metrics, &value);
+					       &temp, &value);
 	}
       else
 	/* Restoring the interpreter state is done by
@@ -1824,7 +1840,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					       sfntfont_get_glyph,
 					       sfntfont_free_glyph,
 					       hmtx, hhea, maxp,
-					       metrics, &dcontext,
+					       &temp, &dcontext,
 					       &value);
 
       if (!error)
@@ -1834,31 +1850,28 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	}
     }
 
+  /* At this point, the glyph metrics are unscaled.  Scale them up.
+     If INTERPRETER is set, use the scale placed within.  */
+
+  sfnt_scale_metrics (&temp, scale);
+
   if (!outline)
     {
-      /* If INTERPRETER is NULL, METRICS contains scaled metrics.  */
-
       if (!interpreter)
-	outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
-					    metrics,
+	outline = sfnt_build_glyph_outline (glyph, scale,
+					    &temp,
 					    sfntfont_get_glyph,
 					    sfntfont_free_glyph,
 					    &dcontext);
       else
-	{
-	  /* But otherwise, they are unscaled, and must be scaled
-	     before being used.  */
-
-	  temp = *metrics;
-	  sfnt_scale_metrics_to_pixel_size (&temp, pixel_size,
-					    head);
-	  outline = sfnt_build_glyph_outline (glyph, head, pixel_size,
-					      &temp,
-					      sfntfont_get_glyph,
-					      sfntfont_free_glyph,
-					      &dcontext);
-	}
+	outline = sfnt_build_glyph_outline (glyph, scale,
+					    &temp,
+					    sfntfont_get_glyph,
+					    sfntfont_free_glyph,
+					    &dcontext);
     }
+
+ fail:
 
   xfree (glyph);
 
@@ -1868,6 +1881,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   start = xmalloc (sizeof *start);
   start->glyph = glyph_code;
   start->outline = outline;
+  start->metrics = temp;
 
   /* One reference goes to the cache.  The second reference goes to
      the caller.  */
@@ -1898,7 +1912,11 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
       (*cache_size)--;
     }
 
-  /* Return the cached outline.  */
+  /* Return the cached outline and metrics.  */
+
+  if (metrics)
+    *metrics = temp;
+
   return outline;
 }
 
@@ -2103,6 +2121,9 @@ struct sfnt_font_info
   /* Graphics state after the execution of the font and control value
      programs.  */
   struct sfnt_graphics_state state;
+
+  /* Factor used to convert from em space to pixel space.  */
+  sfnt_fixed scale;
 
 #ifdef HAVE_MMAP
   /* Whether or not the glyph table has been mmapped.  */
@@ -2647,6 +2668,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->raster_cache.last = &font_info->raster_cache;
   font_info->raster_cache_size = 0;
   font_info->interpreter = NULL;
+  font_info->scale = 0;
 #ifdef HAVE_MMAP
   font_info->glyf_table_mapped = false;
 #endif /* HAVE_MMAP */
@@ -2681,6 +2703,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->cmap_data = tables->cmap_data;
   font_info->cmap_subtable = tables->cmap_subtable;
   font_info->uvs = tables->uvs;
+
+  /* Calculate the font's scaling factor.  */
+  font_info->scale = sfnt_get_scale (font_info->head, pixel_size);
 
   /* Fill in font data.  */
   font = &font_info->font;
@@ -2819,21 +2844,16 @@ sfntfont_encode_char (struct font *font, int c)
    Value is 0 upon success, 1 otherwise.  */
 
 static int
-sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
-				 struct font_metrics *pcm)
+sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
+		      struct font_metrics *pcm)
 {
   struct sfnt_glyph_metrics metrics;
   struct sfnt_glyph_outline *outline;
 
-  /* Ask for unscaled metrics.  */
-  if (sfnt_lookup_glyph_metrics (glyph, -1, &metrics, font->hmtx,
-				 font->hhea, font->head, font->maxp))
-    return 1;
-
   /* Now get the glyph outline, which is required to obtain the rsb,
      ascent and descent.  */
   outline = sfntfont_get_glyph_outline (glyph, &font->outline_cache,
-					font->font.pixel_size,
+					font->scale,
 					&font->outline_cache_size,
 					font->glyf, font->head,
 					font->hmtx, font->hhea,
@@ -2846,57 +2866,6 @@ sfntfont_measure_instructed_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   if (!outline)
     return 1;
 
-  /* Scale the metrics by the interpreter's scale.  */
-  sfnt_scale_metrics (&metrics, font->interpreter->scale);
-
-  pcm->lbearing = metrics.lbearing >> 16;
-  pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) >> 16;
-
-  /* Round the advance, ascent and descent upwards.  */
-  pcm->width = SFNT_CEIL_FIXED (metrics.advance) >> 16;
-  pcm->ascent = SFNT_CEIL_FIXED (outline->ymax) >> 16;
-  pcm->descent = SFNT_CEIL_FIXED (-outline->ymin) >> 16;
-
-  sfntfont_dereference_outline (outline);
-  return 0;
-}
-
-/* Measure the single glyph GLYPH in the font FONT and return its
-   metrics in *PCM.  Value is 0 upon success, 1 otherwise.  */
-
-static int
-sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
-		      struct font_metrics *pcm)
-{
-  struct sfnt_glyph_metrics metrics;
-  struct sfnt_glyph_outline *outline;
-
-  if (font->interpreter)
-    /* Use a function which instructs the glyph.  */
-    return sfntfont_measure_instructed_pcm (font, glyph, pcm);
-
-  /* Get the glyph metrics first.  */
-  if (sfnt_lookup_glyph_metrics (glyph, font->font.pixel_size,
-				 &metrics, font->hmtx, font->hhea,
-				 font->head, font->maxp))
-    return 1;
-
-  /* Now get the glyph outline, which is required to obtain the rsb,
-     ascent and descent.  */
-  outline = sfntfont_get_glyph_outline (glyph, &font->outline_cache,
-					font->font.pixel_size,
-					&font->outline_cache_size,
-					font->glyf, font->head,
-					font->hmtx, font->hhea,
-					font->maxp,
-					font->loca_short,
-					font->loca_long, NULL,
-					&metrics, NULL);
-
-  if (!outline)
-    return 1;
-
-  /* How to round lbearing and rbearing? */
   pcm->lbearing = metrics.lbearing >> 16;
   pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) >> 16;
 
@@ -3049,15 +3018,10 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
   struct font *font;
   struct sfnt_font_info *info;
   struct sfnt_glyph_metrics metrics;
-  int pixel_size;
 
   length = to - from;
   font = s->font;
   info = (struct sfnt_font_info *) font;
-  pixel_size = font->pixel_size;
-
-  if (info->interpreter)
-    pixel_size = -1;
 
   rasters = alloca (length * sizeof *rasters);
   x_coords = alloca (length * sizeof *x_coords);
@@ -3066,21 +3030,10 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
   /* Get rasters and outlines for them.  */
   for (i = from; i < to; ++i)
     {
-      /* Look up the metrics for this glyph.  The metrics are unscaled
-	 if INFO->interpreter is set.  */
-      if (sfnt_lookup_glyph_metrics (s->char2b[i], pixel_size,
-				     &metrics, info->hmtx, info->hhea,
-				     info->head, info->maxp))
-	{
-	  rasters[i - from] = NULL;
-	  x_coords[i - from] = 0;
-	  continue;
-	}
-
       /* Look up the outline.  */
       outline = sfntfont_get_glyph_outline (s->char2b[i],
 					    &info->outline_cache,
-					    font->pixel_size,
+					    info->scale,
 					    &info->outline_cache_size,
 					    info->glyf, info->head,
 					    info->hmtx, info->hhea,
@@ -3097,10 +3050,6 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 	  rasters[i - from] = NULL;
 	  continue;
 	}
-
-      /* Scale the metrics if info->interpreter is set.  */
-      if (info->interpreter)
-	sfnt_scale_metrics (&metrics, info->interpreter->scale);
 
       /* Rasterize the outline.  */
       rasters[i - from] = sfntfont_get_glyph_raster (s->char2b[i],

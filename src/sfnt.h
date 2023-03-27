@@ -1370,8 +1370,7 @@ extern void sfnt_free_glyph (struct sfnt_glyph *);
 
 #define PROTOTYPE		\
   struct sfnt_glyph *,		\
-  struct sfnt_head_table *,	\
-  int,				\
+  sfnt_fixed,			\
   struct sfnt_glyph_metrics *,	\
   sfnt_get_glyph_proc,		\
   sfnt_free_glyph_proc,		\
@@ -1403,8 +1402,7 @@ extern int sfnt_lookup_glyph_metrics (sfnt_glyph, int,
 
 extern void sfnt_scale_metrics (struct sfnt_glyph_metrics *,
 				sfnt_fixed);
-extern void sfnt_scale_metrics_to_pixel_size (struct sfnt_glyph_metrics *,
-					      int, struct sfnt_head_table *);
+extern sfnt_fixed sfnt_get_scale (struct sfnt_head_table *, int);
 
 #define PROTOTYPE int, struct sfnt_offset_subtable *
 extern struct sfnt_name_table *sfnt_read_name_table (PROTOTYPE);

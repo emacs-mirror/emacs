@@ -3760,21 +3760,21 @@ sfnt_curve_to_and_build (struct sfnt_point control,
 }
 
 /* Non-reentrantly build the outline for the specified GLYPH at the
-   given pixel size.  Return the outline data with a refcount of 0
+   given scale factor.  Return the outline data with a refcount of 0
    upon success, or NULL upon failure.
+
+   SCALE is a scale factor that converts between em space and device
+   space.
 
    Use the scaled glyph METRICS to determine the origin point of the
    outline.
 
    Call GET_GLYPH and FREE_GLYPH with the specified DCONTEXT to obtain
-   glyphs for compound glyph subcomponents.
-
-   HEAD should be the `head' table of the font.  */
+   glyphs for compound glyph subcomponents.  */
 
 TEST_STATIC struct sfnt_glyph_outline *
 sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
-			  struct sfnt_head_table *head,
-			  int pixel_size,
+			  sfnt_fixed scale,
 			  struct sfnt_glyph_metrics *metrics,
 			  sfnt_get_glyph_proc get_glyph,
 			  sfnt_free_glyph_proc free_glyph,
@@ -3805,19 +3805,8 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
   outline->xmax = 0;
   outline->ymax = 0;
 
-  /* Figure out how to convert from font unit-space to pixel space.
-     To turn one unit to its corresponding pixel size given a ppem of
-     1, the unit must be divided by head->units_per_em.  Then, it must
-     be multipled by the ppem.  So,
-
-       PIXEL = UNIT / UPEM * PPEM
-
-     which means:
-
-       PIXEL = UNIT * PPEM / UPEM  */
-
-  build_outline_context.factor
-    = sfnt_div_fixed (pixel_size, head->units_per_em);
+  /* Set the scale factor.  */
+  build_outline_context.factor = scale;
 
   /* Decompose the outline.  */
   rc = sfnt_decompose_glyph (glyph, sfnt_move_to_and_build,
@@ -4536,21 +4525,24 @@ sfnt_scale_metrics (struct sfnt_glyph_metrics *metrics,
     = sfnt_mul_fixed (metrics->advance * 65536, factor);
 }
 
-/* Like `sfnt_scale_metrics', except it scales the specified metrics
-   by a factor calculated using the given PPEM and HEAD table's UPEM
-   value.  */
+/* Calculate the factor used to convert em space to device space for a
+   font with the specified HEAD table and PPEM value.  */
 
-MAYBE_UNUSED TEST_STATIC void
-sfnt_scale_metrics_to_pixel_size (struct sfnt_glyph_metrics *metrics,
-				  int ppem,
-				  struct sfnt_head_table *head)
+MAYBE_UNUSED TEST_STATIC sfnt_fixed
+sfnt_get_scale (struct sfnt_head_table *head, int ppem)
 {
-  sfnt_fixed factor;
+  /* Figure out how to convert from font unit-space to pixel space.
+     To turn one unit to its corresponding pixel size given a ppem of
+     1, the unit must be divided by head->units_per_em.  Then, it must
+     be multipled by the ppem.  So,
 
-  /* Now calculate the factor scale lbearing and advance up to the
-     given PPEM size.  */
-  factor = sfnt_div_fixed (ppem, head->units_per_em);
-  sfnt_scale_metrics (metrics, factor);
+       PIXEL = UNIT / UPEM * PPEM
+
+     which means:
+
+       PIXEL = UNIT * PPEM / UPEM  */
+
+  return sfnt_div_fixed (ppem, head->units_per_em);
 }
 
 
@@ -19419,8 +19411,7 @@ main (int argc, char **argv)
 
 	      /* Time this important bit.  */
 	      clock_gettime (CLOCK_THREAD_CPUTIME_ID, &start);
-	      outline = sfnt_build_glyph_outline (glyph, head,
-						  EASY_PPEM,
+	      outline = sfnt_build_glyph_outline (glyph, scale,
 						  &metrics,
 						  sfnt_test_get_glyph,
 						  sfnt_test_free_glyph,
