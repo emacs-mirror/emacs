@@ -115,6 +115,11 @@ the `clone' function."
                            vc-handled-backends))
   :version "29.1")
 
+(defcustom package-vc-register-as-project t
+  "Non-nil means that packages should be registered as projects."
+  :type 'boolean
+  :version "30.1")
+
 (defvar package-vc-selected-packages) ; pacify byte-compiler
 
 ;;;###autoload
@@ -559,6 +564,8 @@ and return nil if it cannot reasonably guess."
   (and url (alist-get url package-vc-heuristic-alist
                       nil nil #'string-match-p)))
 
+(declare-function project-remember-projects-under "project" (dir &optional recursive))
+
 (defun package-vc--clone (pkg-desc pkg-spec dir rev)
   "Clone the package PKG-DESC whose spec is PKG-SPEC into the directory DIR.
 REV specifies a specific revision to checkout.  This overrides the `:branch'
@@ -579,6 +586,11 @@ attribute in PKG-SPEC."
         (unless (vc-clone url backend dir
                           (or (and (not (eq rev :last-release)) rev) branch))
           (error "Failed to clone %s from %s" name url))))
+
+    (when package-vc-register-as-project
+      (let ((default-directory dir))
+        (require 'project)
+        (project-remember-projects-under dir)))
 
     ;; Check out the latest release if requested
     (when (eq rev :last-release)

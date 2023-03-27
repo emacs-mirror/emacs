@@ -64,7 +64,7 @@ FROM emacs-base as emacs-eglot
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      snapd wget \
+      snapd wget lsb_release add-apt-repository gpg \
     && rm -rf /var/lib/apt/lists/*
 
 # A recent clangd.  It must be at least clangd 14, which is in Debian

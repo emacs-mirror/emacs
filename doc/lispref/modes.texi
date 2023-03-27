@@ -2349,18 +2349,19 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-function-mode} minor mode if
-set, else after @code{mode-line-modes}.  Elements that are added to
-this construct should normally end in a space (to ensure that
-consecutive @code{global-mode-string} elements display properly).  For
-instance, the command @code{display-time} sets
-@code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time
-and load information.
+the mode line as part of @code{mode-line-misc-info}, just after the
+@code{which-function-mode} information if that minor mode is enabled,
+else after @code{mode-line-modes}.  Elements that are added to this
+construct should normally end in a space (to ensure that consecutive
+@code{global-mode-string} elements display properly).  For instance,
+the command @code{display-time} sets @code{global-mode-string} to
+refer to the variable @code{display-time-string}, which holds a string
+containing the time and load information.
 
 The @samp{%M} construct substitutes the value of
-@code{global-mode-string}, but that is obsolete, since the variable is
-included in the mode line from @code{mode-line-format}.
+@code{global-mode-string}.  This construct is not used by the default
+mode line, as the variable itself is used in
+@code{mode-line-misc-info}.
 @end defvar
 
 Here is a simplified version of the default value of
@@ -2389,6 +2390,7 @@ specifies addition of text properties.
 
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
+@cindex @code{%}-constructs in the mode line
 
   Strings used as mode line constructs can use certain
 @code{%}-constructs to substitute various kinds of data.  The
@@ -2440,6 +2442,10 @@ abbreviate.
 The current line number of point, counting within the accessible portion
 of the buffer.
 
+@item %M
+The value of @code{global-mode-string} (which is part of
+@code{mode-line-misc-info} by default).
+
 @item %n
 @samp{Narrow} when narrowing is in effect; nothing otherwise (see
 @code{narrow-to-region} in @ref{Narrowing}).
@@ -2475,6 +2481,9 @@ The mnemonics of keyboard, terminal, and buffer coding systems.
 @item %Z
 Like @samp{%z}, but including the end-of-line format.
 
+@item %&
+@samp{*} if the buffer is modified, and @samp{-} otherwise.
+
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{*} if the buffer is modified (see @code{buffer-modified-p}); @*
@@ -2485,9 +2494,6 @@ Like @samp{%z}, but including the end-of-line format.
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{-} otherwise.  This differs from @samp{%*} only for a modified
 read-only buffer.  @xref{Buffer Modification}.
-
-@item %&
-@samp{*} if the buffer is modified, and @samp{-} otherwise.
 
 @item %@@
 @samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
@@ -2510,13 +2516,16 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following @code{%}-construct is still supported, but it is
-obsolete, since you can get the same result using the variable
-@code{mode-name}.
+@subsubheading Obsolete @code{%}-Constructs
+
+  The following constructs should no longer be used.
 
 @table @code
 @item %m
-The value of @code{mode-name}.
+Obsolete; use the @code{mode-name} variable instead.  The @code{%m}
+construct is inadequate, as it produces an empty string if the value
+of @code{mode-name} is a non-string mode-line construct (as in
+@code{emacs-lisp-mode}, for example).
 @end table
 
 @node Properties in Mode
