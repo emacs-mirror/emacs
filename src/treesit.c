@@ -1016,11 +1016,6 @@ treesit_call_after_change_functions (TSTree *old_tree, TSTree *new_tree,
 static void
 treesit_ensure_parsed (Lisp_Object parser)
 {
-  /* Make sure this comes before everything else, see comment
-     (ref:notifier-inside-ensure-parsed) for more detail.  */
-  if (!XTS_PARSER (parser)->need_reparse)
-    return;
-
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
   /* Before we parse, catch up with the narrowing situation.  */
@@ -1028,6 +1023,11 @@ treesit_ensure_parsed (Lisp_Object parser)
   /* This function has to run before we check for need_reparse flag,
      because it might set the flag to true.  */
   treesit_sync_visible_region (parser);
+
+  /* Make sure this comes before everything else, see comment
+     (ref:notifier-inside-ensure-parsed) for more detail.  */
+  if (!XTS_PARSER (parser)->need_reparse)
+    return;
 
   TSParser *treesit_parser = XTS_PARSER (parser)->parser;
   TSTree *tree = XTS_PARSER (parser)->tree;

@@ -232,8 +232,9 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
       savehist-coding-system))
     (run-hooks 'savehist-save-hook)
     (let ((print-length nil)
-	  (print-level nil)
-	  (print-quoted t))
+          (print-level nil)
+          (print-quoted t)
+          (print-circle t))
       ;; Save the minibuffer histories, along with the value of
       ;; savehist-minibuffer-history-variables itself.
       (when savehist-save-minibuffer-history
