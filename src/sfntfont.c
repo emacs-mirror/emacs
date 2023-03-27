@@ -51,6 +51,48 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 
 
+/* Tables associated with each font, be it distortable or not.  This
+   allows different font objects sharing the same underlying font file
+   to share tables.  */
+
+struct sfnt_font_tables
+{
+  /* Various tables required to use the font.  */
+  struct sfnt_cmap_table *cmap;
+  struct sfnt_hhea_table *hhea;
+  struct sfnt_maxp_table *maxp;
+  struct sfnt_head_table *head;
+  struct sfnt_hmtx_table *hmtx;
+  struct sfnt_glyf_table *glyf;
+  struct sfnt_loca_table_short *loca_short;
+  struct sfnt_loca_table_long *loca_long;
+  struct sfnt_prep_table *prep;
+  struct sfnt_fpgm_table *fpgm;
+  struct sfnt_cvt_table *cvt;
+
+  /* The selected character map.  */
+  struct sfnt_cmap_encoding_subtable_data *cmap_data;
+
+  /* Data identifying that character map.  */
+  struct sfnt_cmap_encoding_subtable cmap_subtable;
+
+  /* The UVS context.  */
+  struct sfnt_uvs_context *uvs;
+
+#ifdef HAVE_MMAP
+  /* Whether or not the glyph table has been mmapped.  */
+  bool glyf_table_mapped;
+#endif /* HAVE_MMAP */
+
+#ifdef HAVE_HARFBUZZ
+  /* File descriptor associated with this font.  */
+  int fd;
+
+  /* The table directory of the font file.  */
+  struct sfnt_offset_subtable *directory;
+#endif /* HAVE_HARFBUZZ */
+};
+
 /* Description of a font that hasn't been opened.  */
 
 struct sfnt_font_desc
@@ -99,6 +141,12 @@ struct sfnt_font_desc
   /* The number of glyphs in this font.  Used to catch invalid cmap
      tables.  This is actually the number of glyphs - 1.  */
   int num_glyphs;
+
+  /* The number of references to the font tables below.  */
+  int refcount;
+
+  /* List of font tables.  */
+  struct sfnt_font_tables *tables;
 };
 
 /* List of fonts.  */
@@ -1808,7 +1856,7 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					      &temp,
 					      sfntfont_get_glyph,
 					      sfntfont_free_glyph,
-					      &dcontext);	  
+					      &dcontext);
 	}
     }
 
@@ -2011,6 +2059,10 @@ struct sfnt_font_info
   struct sfnt_font_info *next;
 #endif /* HAVE_MMAP */
 
+  /* The font description used to create this font.  Used to
+     dereference tables associated with this font.  */
+  struct sfnt_font_desc *desc;
+
   /* Various tables required to use the font.  */
   struct sfnt_cmap_table *cmap;
   struct sfnt_hhea_table *hhea;
@@ -2161,20 +2213,17 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
     font_info->font.average_width = total_width / num_characters;
 }
 
-/* Initialize the instruction interpreter for INFO, whose file and
-   offset subtable should be respectively FD and SUBTABLE.  Load the
-   font and preprogram for the pixel size in INFO and its
-   corresponding point size POINT_SIZE.
+/* Initialize the instruction interpreter for INFO.  Load the font and
+   preprogram for the pixel size in INFO and its corresponding point
+   size POINT_SIZE.
 
    The font tables in INFO must already have been initialized.
 
-   Set INFO->interpreter, INFO->cvt, INFO->prep, INFO->fpgm and
-   INFO->state upon success, and leave those fields intact
+   Set INFO->interpreter upon success, and leave that field intact
    otherwise.  */
 
 static void
-sfntfont_setup_interpreter (int fd, struct sfnt_font_info *info,
-			    struct sfnt_offset_subtable *subtable,
+sfntfont_setup_interpreter (struct sfnt_font_info *info,
 			    int point_size)
 {
   struct sfnt_cvt_table *cvt;
@@ -2184,12 +2233,11 @@ sfntfont_setup_interpreter (int fd, struct sfnt_font_info *info,
   const char *error;
   struct sfnt_graphics_state state;
 
-  /* Try to read the control value program, cvt, and font program
-     tables.  */
+  /* Load the cvt, fpgm and prep already read.  */
 
-  cvt = sfnt_read_cvt_table (fd, subtable);
-  fpgm = sfnt_read_fpgm_table (fd, subtable);
-  prep = sfnt_read_prep_table (fd, subtable);
+  cvt  = info->cvt ;
+  fpgm = info->fpgm;
+  prep = info->prep;
 
   /* If both fpgm and prep are NULL, this font likely has no
      instructions, so don't bother setting up the interpreter.  */
@@ -2199,6 +2247,7 @@ sfntfont_setup_interpreter (int fd, struct sfnt_font_info *info,
 
   /* Now, create the interpreter using the limits in info->maxp and
      info->head.  CVT can be NULL.  */
+
   interpreter = sfnt_make_interpreter (info->maxp, cvt, info->head,
 				       info->font.pixel_size,
 				       point_size);
@@ -2256,9 +2305,280 @@ sfntfont_setup_interpreter (int fd, struct sfnt_font_info *info,
  bail1:
   xfree (interpreter);
  bail:
-  xfree (cvt);
-  xfree (fpgm);
-  xfree (prep);
+  return;
+}
+
+/* Free each of the tables opened by `sfnt_open_tables', and possibly
+   file descriptors as well.  Then, free TABLES itself.  */
+
+static void
+sfnt_close_tables (struct sfnt_font_tables *tables)
+{
+  int rc;
+
+  xfree (tables->cmap);
+  xfree (tables->hhea);
+  xfree (tables->maxp);
+  xfree (tables->head);
+  xfree (tables->hmtx);
+#ifdef HAVE_MMAP
+  if (tables->glyf_table_mapped)
+    {
+      rc = sfnt_unmap_glyf_table (tables->glyf);
+
+      if (rc)
+	emacs_abort ();
+    }
+  else
+#endif /* HAVE_MMAP */
+    xfree (tables->glyf);
+  xfree (tables->loca_short);
+  xfree (tables->loca_long);
+  xfree (tables->prep);
+  xfree (tables->fpgm);
+  xfree (tables->cvt);
+  xfree (tables->cmap_data);
+
+  if (tables->uvs)
+    sfnt_free_uvs_context (tables->uvs);
+
+#ifdef HAVE_HARFBUZZ
+  /* Close the font file.  */
+
+  if (tables->fd != -1)
+    {
+      emacs_close (tables->fd);
+      tables->fd = -1;
+    }
+
+  /* Free its table directory.  */
+  xfree (tables->directory);
+  tables->directory = NULL;
+#endif
+}
+
+/* Open font tables associated with the specified font description
+   DESC.  Return the font tables, or NULL upon failure.  */
+
+static struct sfnt_font_tables *
+sfnt_open_tables (struct sfnt_font_desc *desc)
+{
+  struct sfnt_font_tables *tables;
+  struct sfnt_offset_subtable *subtable;
+  int fd, i, rc;
+  struct sfnt_cmap_encoding_subtable *subtables;
+  struct sfnt_cmap_encoding_subtable_data **data;
+  struct sfnt_cmap_format_14 *format14;
+
+  tables = xzalloc (sizeof *tables);
+
+  /* Open the font.  */
+  fd = emacs_open (desc->path, O_RDONLY, 0);
+
+  if (fd == -1)
+    goto bail;
+
+  /* Seek to the offset specified to the table directory.  */
+
+  if (desc->offset
+      && lseek (fd, desc->offset, SEEK_SET) != desc->offset)
+    goto bail;
+
+  /* Read the offset subtable.  */
+  subtable = sfnt_read_table_directory (fd);
+
+  if (!subtable)
+    goto bail1;
+
+  /* Read required tables.  This font backend is supposed to be used
+     mostly on devices with flash memory, so the order in which they
+     are read is insignificant.  */
+
+  tables->cmap = sfnt_read_cmap_table (fd, subtable, &subtables,
+				       &data);
+  if (!tables->cmap)
+    goto bail2;
+
+  format14 = NULL;
+  tables->cmap_data
+    = sfntfont_select_cmap (tables->cmap,
+			    subtables, data,
+			    &tables->cmap_subtable,
+			    &format14);
+
+  if (format14)
+    {
+      /* Build a UVS context from this format 14 mapping table.  A UVS
+         context contains each variation selector supported by the
+         font, and a list of ``non-default'' mappings between base
+         characters and variation glyph IDs.  */
+
+      tables->uvs = sfnt_create_uvs_context (format14, fd);
+      xfree (format14);
+    }
+
+  for (i = 0; i < tables->cmap->num_subtables; ++i)
+    {
+      if (data[i] != tables->cmap_data
+	  /* format14 has already been freed.  */
+	  && data[i] != (struct sfnt_cmap_encoding_subtable_data *) format14)
+	xfree (data[i]);
+    }
+
+  xfree (subtables);
+  xfree (data);
+
+  if (!tables->cmap_data)
+    goto bail3;
+
+  /* Read the hhea, maxp, glyf, and head tables.  */
+  tables->hhea = sfnt_read_hhea_table (fd, subtable);
+  tables->maxp = sfnt_read_maxp_table (fd, subtable);
+
+#ifdef HAVE_MMAP
+
+  /* First try to map the glyf table.  If that fails, then read the
+     glyf table.  */
+
+  tables->glyf = sfnt_map_glyf_table (fd, subtable);
+
+  /* Next, if this fails, read the glyf table.  */
+
+  if (!tables->glyf)
+#endif /* HAVE_MMAP */
+    tables->glyf = sfnt_read_glyf_table (fd, subtable);
+#ifdef HAVE_MMAP
+  else
+    tables->glyf_table_mapped = true;
+#endif /* HAVE_MMAP */
+
+  tables->head = sfnt_read_head_table (fd, subtable);
+
+  /* If any of those tables couldn't be read, bail.  */
+  if (!tables->hhea || !tables->maxp || !tables->glyf
+      || !tables->head)
+    goto bail4;
+
+  /* Now figure out which kind of loca table must be read based on
+     head->index_to_loc_format.  */
+
+  if (tables->head->index_to_loc_format)
+    {
+      tables->loca_long
+	= sfnt_read_loca_table_long (fd, subtable);
+
+      if (!tables->loca_long)
+	goto bail4;
+    }
+  else
+    {
+      tables->loca_short
+	= sfnt_read_loca_table_short (fd, subtable);
+
+      if (!tables->loca_short)
+	goto bail4;
+    }
+
+  /* Read the horizontal metrics table.  */
+  tables->hmtx = sfnt_read_hmtx_table (fd, subtable,
+				       tables->hhea,
+				       tables->maxp);
+  if (!tables->hmtx)
+    goto bail5;
+
+#ifdef HAVE_HARFBUZZ
+  /* Now copy over the subtable if necessary, as it is needed to read
+     extra font tables required by HarfBuzz.  */
+  tables->directory = subtable;
+  tables->fd = fd;
+#else /* !HAVE_HARFBUZZ */
+  /* Otherwise, close the fd and free the table directory.  */
+  xfree (subtable);
+  emacs_close (fd);
+#endif /* HAVE_HARFBUZZ */
+
+  /* Read instruction related font tables.  These might not be
+     present, which is OK, since instructing fonts is optional.  */
+  tables->prep = sfnt_read_prep_table (fd, subtable);
+  tables->fpgm = sfnt_read_fpgm_table (fd, subtable);
+  tables->cvt  = sfnt_read_cvt_table (fd, subtable);
+
+  return tables;
+
+ bail5:
+  xfree (tables->loca_long);
+  xfree (tables->loca_short);
+ bail4:
+  xfree (tables->hhea);
+  xfree (tables->maxp);
+
+#ifdef HAVE_MMAP
+  if (tables->glyf_table_mapped)
+    {
+      rc = sfnt_unmap_glyf_table (tables->glyf);
+
+      if (rc)
+	emacs_abort ();
+    }
+  else
+#endif /* HAVE_MMAP */
+    xfree (tables->glyf);
+
+  xfree (tables->head);
+
+  /* This comes under bail4 due to a peculiarity of how the four
+     tables above are validated.  */
+  xfree (tables->cmap_data);
+ bail3:
+  if (tables->uvs)
+    sfnt_free_uvs_context (tables->uvs);
+
+  xfree (tables->cmap);
+ bail2:
+  xfree (subtable);
+ bail1:
+  emacs_close (fd);
+ bail:
+  xfree (tables);
+  return NULL;
+}
+
+/* Open or reference font tables corresponding to the specified font
+   DESC.  Return NULL upon failure.  */
+
+static struct sfnt_font_tables *
+sfnt_reference_font_tables (struct sfnt_font_desc *desc)
+{
+  if (desc->refcount)
+    {
+      desc->refcount++;
+      return desc->tables;
+    }
+
+  desc->tables = sfnt_open_tables (desc);
+
+  if (!desc->tables)
+    return NULL;
+
+  desc->refcount++;
+  return desc->tables;
+}
+
+/* Dereference font tables corresponding to the specified font
+   DESC.  */
+
+static void
+sfnt_dereference_font_tables (struct sfnt_font_desc *desc)
+{
+  if (!desc->refcount)
+    emacs_abort ();
+
+  if (--desc->refcount)
+    return;
+
+  sfnt_close_tables (desc->tables);
+  desc->tables = NULL;
+  return;
 }
 
 /* Open the font corresponding to the font-entity FONT_ENTITY.  Return
@@ -2272,17 +2592,10 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   struct font *font;
   struct sfnt_font_desc *desc;
   Lisp_Object font_object;
-  int fd, i;
-#ifdef HAVE_MMAP
-  int rc;
-#endif /* HAVE_MMAP */
-  struct sfnt_offset_subtable *subtable;
-  struct sfnt_cmap_encoding_subtable *subtables;
-  struct sfnt_cmap_encoding_subtable_data **data;
   struct charset *charset;
   int point_size;
   Display_Info *dpyinfo;
-  struct sfnt_cmap_format_14 *format14;
+  struct sfnt_font_tables *tables;
 
   if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
@@ -2343,122 +2656,31 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->directory = NULL;
 #endif /* HAVE_HARFBUZZ */
 
-  /* Open the font.  */
-  fd = emacs_open (desc->path, O_RDONLY, 0);
-
-  if (fd == -1)
-    goto bail;
-
-  /* Seek to the offset specified.  */
-
-  if (desc->offset
-      && lseek (fd, desc->offset, SEEK_SET) != desc->offset)
-    goto bail;
-
-  /* Read the offset subtable.  */
-  subtable = sfnt_read_table_directory (fd);
-
-  if (!subtable)
-    goto bail1;
-
   /* Read required tables.  This font backend is supposed to be used
      mostly on devices with flash memory, so the order in which they
      are read is insignificant.  */
 
-  /* Select a character map table.  */
-  font_info->cmap = sfnt_read_cmap_table (fd, subtable, &subtables,
-					  &data);
-  if (!font_info->cmap)
-    goto bail2;
+  tables = sfnt_reference_font_tables (desc);
 
-  format14 = NULL;
-  font_info->cmap_data
-    = sfntfont_select_cmap (font_info->cmap,
-			    subtables, data,
-			    &font_info->cmap_subtable,
-			    &format14);
+  if (!tables)
+    goto bail;
 
-  if (format14)
-    {
-      /* Build a UVS context from this format 14 mapping table.  A UVS
-         context contains each variation selector supported by the
-         font, and a list of ``non-default'' mappings between base
-         characters and variation glyph IDs.  */
-
-      font_info->uvs = sfnt_create_uvs_context (format14, fd);
-      xfree (format14);
-    }
-
-  for (i = 0; i < font_info->cmap->num_subtables; ++i)
-    {
-      if (data[i] != font_info->cmap_data
-	  /* format14 has already been freed.  */
-	  && data[i] != (struct sfnt_cmap_encoding_subtable_data *) format14)
-	xfree (data[i]);
-    }
-
-  xfree (subtables);
-  xfree (data);
-
-  if (!font_info->cmap_data)
-    goto bail3;
-
-  /* Read the hhea, maxp, glyf, and head tables.  */
-  font_info->hhea = sfnt_read_hhea_table (fd, subtable);
-  font_info->maxp = sfnt_read_maxp_table (fd, subtable);
-
-#ifdef HAVE_MMAP
-
-  /* First try to map the glyf table.  If that fails, then read the
-     glyf table.  */
-
-  font_info->glyf = sfnt_map_glyf_table (fd, subtable);
-
-  /* Next, if this fails, read the glyf table.  */
-
-  if (!font_info->glyf)
-#endif /* HAVE_MMAP */
-    font_info->glyf = sfnt_read_glyf_table (fd, subtable);
-#ifdef HAVE_MMAP
-  else
-    font_info->glyf_table_mapped = true;
-#endif /* HAVE_MMAP */
-
-  font_info->head = sfnt_read_head_table (fd, subtable);
-
-  /* If any of those tables couldn't be read, bail.  */
-  if (!font_info->hhea || !font_info->maxp || !font_info->glyf
-      || !font_info->head)
-    goto bail4;
-
-  /* Now figure out which kind of loca table must be read based on
-     head->index_to_loc_format.  */
-  font_info->loca_short = NULL;
-  font_info->loca_long = NULL;
-
-  if (font_info->head->index_to_loc_format)
-    {
-      font_info->loca_long
-	= sfnt_read_loca_table_long (fd, subtable);
-
-      if (!font_info->loca_long)
-	goto bail4;
-    }
-  else
-    {
-      font_info->loca_short
-	= sfnt_read_loca_table_short (fd, subtable);
-
-      if (!font_info->loca_short)
-	goto bail4;
-    }
-
-  /* Read the horizontal metrics table.  */
-  font_info->hmtx = sfnt_read_hmtx_table (fd, subtable,
-					  font_info->hhea,
-					  font_info->maxp);
-  if (!font_info->hmtx)
-    goto bail5;
+  /* Copy fields from the table structure to the font for fast
+     access.  */
+  font_info->cmap = tables->cmap;
+  font_info->hhea = tables->hhea;
+  font_info->maxp = tables->maxp;
+  font_info->head = tables->head;
+  font_info->hmtx = tables->hmtx;
+  font_info->glyf = tables->glyf;
+  font_info->loca_short = tables->loca_short;
+  font_info->loca_long = tables->loca_long;
+  font_info->prep = tables->prep;
+  font_info->fpgm = tables->fpgm;
+  font_info->cvt  = tables->cvt ;
+  font_info->cmap_data = tables->cmap_data;
+  font_info->cmap_subtable = tables->cmap_subtable;
+  font_info->uvs = tables->uvs;
 
   /* Fill in font data.  */
   font = &font_info->font;
@@ -2535,22 +2757,19 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   point_size = PIXEL_TO_POINT (pixel_size, (dpyinfo->resx
 					    * dpyinfo->resy
 					    / 2));
-  sfntfont_setup_interpreter (fd, font_info, subtable,
-			      point_size);
+  sfntfont_setup_interpreter (font_info, point_size);
 
-#ifndef HAVE_HARFBUZZ
-  /* Close the font file descriptor.  */
-  emacs_close (fd);
-
-  /* Free the offset subtable.  */
-  xfree (subtable);
-#else /* HAVE_HARFBUZZ */
+#ifdef HAVE_HARFBUZZ
   /* HarfBuzz will potentially read font tables after the font has
      been opened by Emacs.  Keep the font open, and record its offset
      subtable.  */
-  font_info->fd = fd;
-  font_info->directory = subtable;
-#endif /* !HAVE_HARFBUZZ */
+  font_info->fd = tables->fd;
+  font_info->directory = tables->directory;
+#endif /* HAVE_HARFBUZZ */
+
+  /* Set font->desc so that font tables can be dereferenced if
+     anything goes wrong.  */
+  font_info->desc = desc;
 
 #ifdef HAVE_MMAP
   /* Link the font onto the font table.  */
@@ -2563,50 +2782,8 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   return font_object;
 
  bail6:
-  xfree (font_info->hmtx);
-  font_info->hmtx = NULL;
- bail5:
-  xfree (font_info->loca_long);
-  xfree (font_info->loca_short);
-  font_info->loca_long = NULL;
-  font_info->loca_short = NULL;
- bail4:
-  xfree (font_info->hhea);
-  xfree (font_info->maxp);
-
-#ifdef HAVE_MMAP
-  if (font_info->glyf_table_mapped)
-    {
-      rc = sfnt_unmap_glyf_table (font_info->glyf);
-
-      if (rc)
-	emacs_abort ();
-    }
-  else
-#endif /* HAVE_MMAP */
-    xfree (font_info->glyf);
-
-  xfree (font_info->head);
-  font_info->hhea = NULL;
-  font_info->maxp = NULL;
-  font_info->glyf = NULL;
-  font_info->head = NULL;
-
-  /* This comes in bail4 due to a peculiarity of how the four tables
-     above are validated.  */
-  xfree (font_info->cmap_data);
-  font_info->cmap_data = NULL;
- bail3:
-
-  if (font_info->uvs)
-    sfnt_free_uvs_context (font_info->uvs);
-
-  xfree (font_info->cmap);
-  font_info->cmap = NULL;
- bail2:
-  xfree (subtable);
- bail1:
-  emacs_close (fd);
+  sfnt_dereference_font_tables (desc);
+  font_info->desc = NULL;
  bail:
   unblock_input ();
   return Qnil;
@@ -2784,41 +2961,17 @@ sfntfont_close (struct font *font)
   struct sfnt_font_info *info;
 #ifdef HAVE_MMAP
   struct sfnt_font_info **next;
-  int rc;
 #endif /* HAVE_MMAP */
 
   info = (struct sfnt_font_info *) font;
-  xfree (info->cmap);
-  xfree (info->hhea);
-  xfree (info->maxp);
-  xfree (info->head);
-  xfree (info->hmtx);
 
-#ifdef HAVE_MMAP
-  if (info->glyf_table_mapped && info->glyf)
-    {
-      rc = sfnt_unmap_glyf_table (info->glyf);
+  /* If info->desc is still set, dereference the font tables.  */
+  if (info->desc)
+    sfnt_dereference_font_tables (info->desc);
+  info->desc = NULL;
 
-      if (rc)
-	emacs_abort ();
-    }
-  else
-#endif /* HAVE_MMAP */
-    xfree (info->glyf);
-
-  xfree (info->loca_short);
-  xfree (info->loca_long);
-  xfree (info->cmap_data);
-  xfree (info->prep);
-  xfree (info->fpgm);
-  xfree (info->cvt);
+  /* Free the interpreter, which is created on a per font basis.  */
   xfree (info->interpreter);
-
-  /* Deallocate any UVS context allocated to look up font variation
-     sequences.  */
-
-  if (info->uvs)
-    sfnt_free_uvs_context (info->uvs);
 
   /* Clear these fields.  It seems that close can be called twice,
      once during font driver destruction, and once during GC.  */
@@ -2853,17 +3006,11 @@ sfntfont_close (struct font *font)
 #endif /* HAVE_MMAP */
 
 #ifdef HAVE_HARFBUZZ
-  /* Close the font file.  */
-
-  if (info->fd != -1)
-    {
-      emacs_close (info->fd);
-      info->fd = -1;
-    }
-
-  /* Free its table directory.  */
-  xfree (info->directory);
+  /* These fields will be freed or closed by
+     sfnt_dereference_font_tables, but clear them here for good
+     measure.  */
   info->directory = NULL;
+  info->fd = -1;
 
   /* Free any hb_font created.  */
 
