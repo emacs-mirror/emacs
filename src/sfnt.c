@@ -13582,7 +13582,8 @@ sfnt_normalize_blend (struct sfnt_blend *blend)
   /* Now, apply axis variations, but only if the avar table has the
      right number of axes.  */
 
-  if (blend->fvar->axis_count == blend->avar->axis_count)
+  if (blend->avar && (blend->fvar->axis_count
+		      == blend->avar->axis_count))
     {
       for (i = 0; i < blend->fvar->axis_count; ++i)
 	{
