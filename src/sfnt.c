@@ -18922,8 +18922,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 15
-#define EASY_PPEM  15
+#define FANCY_PPEM 40
+#define EASY_PPEM  40
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);

@@ -4586,14 +4586,19 @@ if test "${HAVE_X11}" = "yes" && test "${HAVE_FREETYPE}" = "yes" \
 	|| test "$REALLY_ANDROID" = "yes"; then
   if test "${with_harfbuzz}" != "no"; then
     EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= $harfbuzz_required_ver])
-    if test "$HAVE_HARFBUZZ" = "yes"; then
+    AS_IF([test "$HAVE_HARFBUZZ" = "yes"],[
       AC_DEFINE([HAVE_HARFBUZZ], [1], [Define to 1 if using HarfBuzz.])
       ### mingw32 and Cygwin-w32 don't use -lharfbuzz, since they load
       ### the library dynamically.
-      if test "${HAVE_W32}" = "yes"; then
-        HARFBUZZ_LIBS=
-      fi
-    fi
+      AS_IF([test "${HAVE_W32}" = "yes"], [HARFBUZZ_LIBS=])
+      ## Now check for `hb_font_set_var_named_instance'.
+      OLD_CFLAGS=$CFLAGS
+      CFLAGS="$HARFBUZZ_CFLAGS $CFLAGS"
+      EMACS_CHECK_LIB([harfbuzz], [hb_font_set_var_named_instance],
+        [AC_DEFINE([HAVE_HB_FONT_SET_VAR_NAMED_INSTANCE], [1],
+	  [Define to 1 if `hb_font_set_var_named_instance' is present.])],
+	[], [$HARFBUZZ_LIBS], [#include <hb.h>])
+      CFLAGS=$OLD_CFLAGS])
   fi
 fi
 

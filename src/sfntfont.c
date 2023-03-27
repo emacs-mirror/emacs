@@ -69,6 +69,10 @@ struct sfnt_font_tables
   struct sfnt_prep_table *prep;
   struct sfnt_fpgm_table *fpgm;
   struct sfnt_cvt_table *cvt;
+  struct sfnt_fvar_table *fvar;
+  struct sfnt_avar_table *avar;
+  struct sfnt_gvar_table *gvar;
+  struct sfnt_cvar_table *cvar;
 
   /* The selected character map.  */
   struct sfnt_cmap_encoding_subtable_data *cmap_data;
@@ -117,6 +121,11 @@ struct sfnt_font_desc
 
   /* Font registry that this font supports.  */
   Lisp_Object registry;
+
+  /* Vector of instances.  Each element is another of the instance's
+     `style', `adstyle', and numeric width, weight, and slant.  May be
+     nil.  */
+  Lisp_Object instances;
 
   /* Numeric width, weight, slant and spacing.  */
   int width, weight, slant, spacing;
@@ -360,6 +369,29 @@ sfnt_decode_foundry_name (struct sfnt_name_table *name)
 				  designer_rec.length);
 }
 
+/* Decode the name of the specified font INSTANCE using the given NAME
+   table.  Return the name of that instance, or nil upon failure.  */
+
+static Lisp_Object
+sfnt_decode_instance_name (struct sfnt_instance *instance,
+			   struct sfnt_name_table *name)
+{
+  struct sfnt_name_record name_rec;
+  unsigned char *name_data;
+
+  name_data = sfnt_find_name (name, instance->name_id,
+			      &name_rec);
+
+  if (!name_data)
+    return Qnil;
+
+  return sfnt_decode_font_string (name_data,
+				  name_rec.platform_id,
+				  name_rec.platform_specific_id,
+				  name_rec.language_id,
+				  name_rec.length);
+}
+
 struct sfnt_style_desc
 {
   /* The C string to match against.  */
@@ -375,6 +407,7 @@ static struct sfnt_style_desc sfnt_weight_descriptions[] =
     { "thin", 0,		},
     { "extralight", 40,		},
     { "ultralight", 40,		},
+    { "light", 50,		},
     { "demilight", 55,		},
     { "semilight", 55,		},
     { "book", 75,		},
@@ -809,7 +842,10 @@ sfnt_enum_font_1 (int fd, const char *file,
   struct sfnt_name_table *name;
   struct sfnt_meta_table *meta;
   struct sfnt_maxp_table *maxp;
-  Lisp_Object family, style;
+  struct sfnt_fvar_table *fvar;
+  struct sfnt_font_desc temp;
+  Lisp_Object family, style, instance, style1;
+  int i;
 
   /* Create the font desc and copy in the file name.  */
   desc = xzalloc (sizeof *desc + strlen (file) + 1);
@@ -841,6 +877,10 @@ sfnt_enum_font_1 (int fd, const char *file,
   /* Decode the family and style from the name table.  */
   if (sfnt_decode_family_style (name, &family, &style))
     goto bail4;
+
+  /* See if this is a distortable/variable/multiple master font (all
+     three terms mean the same time.)  */
+  fvar = sfnt_read_fvar_table (fd, subtables);
 
   /* Set the family.  */
   desc->family = family;
@@ -877,6 +917,43 @@ sfnt_enum_font_1 (int fd, const char *file,
   /* Figure out what registry this font is likely to support.  */
   sfnt_grok_registry (fd, desc, subtables);
 
+  if (fvar && fvar->instance_count)
+    {
+      /* If there is an fvar table with instances, then this is a font
+	 which defines different axes along which the points in each
+	 glyph can be changed.
+
+         Instead of enumerating the font itself, enumerate each
+         instance within, which specifies how to configure each axis
+         to achieve a specified style.  */
+
+      desc->instances = make_vector (fvar->instance_count, Qnil);
+
+      for (i = 0; i < fvar->instance_count; ++i)
+	{
+	  style1 = sfnt_decode_instance_name (&fvar->instance[i],
+					      name);
+
+	  if (!style1)
+	    continue;
+
+	  /* Now parse the style.  */
+	  temp.adstyle = Qnil;
+	  sfnt_parse_style (style1, &temp);
+
+	  /* Set each field of the vector.  */
+	  instance = make_vector (5, Qnil);
+	  ASET (instance, 0, style1);
+	  ASET (instance, 1, temp.adstyle);
+	  ASET (instance, 2, make_fixnum (temp.width));
+	  ASET (instance, 3, make_fixnum (temp.weight));
+	  ASET (instance, 4, make_fixnum (temp.slant));
+
+	  /* Place the vector in desc->instances.  */
+	  ASET (desc->instances, i, instance);
+	}
+    }
+
   /* Set the style, link the desc onto system_fonts and return.  */
   desc->style = style;
   desc->next = system_fonts;
@@ -898,6 +975,7 @@ sfnt_enum_font_1 (int fd, const char *file,
 	next = &prev->next;
     }
 
+  xfree (fvar);
   xfree (meta);
   xfree (maxp);
   xfree (name);
@@ -1346,15 +1424,23 @@ sfntfont_registries_compatible_p (Lisp_Object a, Lisp_Object b)
 }
 
 /* Return whether or not the font description DESC satisfactorily
-   matches the font specification FONT_SPEC.  */
+   matches the font specification FONT_SPEC.
 
-static bool
-sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
+   Value is 0 if there is no match, -1 if there is a match against
+   DESC itself, and the number of matching instances if the style
+   matches one or more instances defined in in DESC.  Return the index
+   of each matching instance in INSTANCES; it should be SIZE big.  */
+
+static int
+sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec,
+		 int *instances, int size)
 {
   Lisp_Object tem, extra, tail;
   struct sfnt_cmap_encoding_subtable_data *cmap;
   size_t i;
   struct sfnt_cmap_encoding_subtable subtable;
+  int instance, num_instance;
+  Lisp_Object item;
 
   /* cmap and subtable are caches for sfntfont_lookup_char.  */
 
@@ -1388,7 +1474,9 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
 
   if (!NILP (tem) && NILP (Fstring_equal (SYMBOL_NAME (tem),
 					  desc->family)))
-    return false;
+    return 0;
+
+  instance = -1;
 
   /* If a registry is set and wrong, then reject the font desc
      immediately.  This detects 50% of mismatches from fontset.c.
@@ -1399,33 +1487,82 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
   tem = AREF (spec, FONT_REGISTRY_INDEX);
   if (!NILP (tem) && !NILP (desc->registry)
       && !sfntfont_registries_compatible_p (tem, desc->registry))
-    return false;
+    return 0;
 
-  /* Check that the adstyle specified matches.  */
+  /* Check the style.  If DESC is a fixed font, just check once.
+     Otherwise, check each instance.  */
 
-  tem = AREF (spec, FONT_ADSTYLE_INDEX);
-  if (!NILP (tem) && NILP (Fequal (tem, desc->adstyle)))
-    return false;
+  if (NILP (desc->instances))
+    {
+      tem = AREF (spec, FONT_ADSTYLE_INDEX);
+      if (!NILP (tem) && NILP (Fequal (tem, desc->adstyle)))
+	return 0;
 
-  /* Check the style.  */
+      if (FONT_WIDTH_NUMERIC (spec) != -1
+	  && FONT_WIDTH_NUMERIC (spec) != desc->width)
+	return 0;
 
-  if (FONT_WIDTH_NUMERIC (spec) != -1
-      && FONT_WIDTH_NUMERIC (spec) != desc->width)
-    return false;
+      if (FONT_WEIGHT_NUMERIC (spec) != -1
+	  && FONT_WEIGHT_NUMERIC (spec) != desc->weight)
+	return 0;
 
-  if (FONT_WEIGHT_NUMERIC (spec) != -1
-      && FONT_WEIGHT_NUMERIC (spec) != desc->weight)
-    return false;
+      if (FONT_SLANT_NUMERIC (spec) != -1
+	  && FONT_SLANT_NUMERIC (spec) != desc->slant)
+	return 0;
+    }
+  else
+    {
+      num_instance = 0;
 
-  if (FONT_SLANT_NUMERIC (spec) != -1
-      && FONT_SLANT_NUMERIC (spec) != desc->slant)
-    return false;
+      /* Find the indices of instances in this distortable font which
+	 match the given font spec.  */
+
+      for (i = 0; i < ASIZE (desc->instances); ++i)
+	{
+	  item = AREF (desc->instances, i);
+
+	  if (NILP (item))
+	    continue;
+
+	  /* Check that the adstyle specified matches.  */
+
+	  tem = AREF (spec, FONT_ADSTYLE_INDEX);
+	  if (!NILP (tem) && NILP (Fequal (tem, AREF (item, 1))))
+	    continue;
+
+	  /* Check the style.  */
+
+	  if (FONT_WIDTH_NUMERIC (spec) != -1
+	      && (FONT_WIDTH_NUMERIC (spec)
+		  != XFIXNUM (AREF (item, 2))))
+	    continue;
+
+	  if (FONT_WEIGHT_NUMERIC (spec) != -1
+	      && (FONT_WEIGHT_NUMERIC (spec)
+		  != XFIXNUM (AREF (item, 3))))
+	    continue;
+
+	  if (FONT_SLANT_NUMERIC (spec) != -1
+	      && (FONT_SLANT_NUMERIC (spec)
+		  != XFIXNUM (AREF (item, 4))))
+	    continue;
+
+	  if (num_instance == size)
+	    break;
+
+	  /* A matching instance has been found.  Set its index, then
+	     go back to the rest of the font matching.  */
+	  instances[num_instance++] = i;
+	}
+
+      instance = num_instance;
+    }
 
   /* Handle extras.  */
   extra = AREF (spec, FONT_EXTRA_INDEX);
 
   if (NILP (extra))
-    return true;
+    return instance;
 
   tem = assq_no_quit (QCscript, extra);
   cmap = NULL;
@@ -1490,12 +1627,12 @@ sfntfont_list_1 (struct sfnt_font_desc *desc, Lisp_Object spec)
     desc->subtable = subtable;
 
   xfree (cmap);
-  return true;
+  return instance;
 
  fail:
   /* The cmap might've been read in and require deallocation.  */
   xfree (cmap);
-  return false;
+  return 0;
 }
 
 /* Type of font entities and font objects created.  */
@@ -1546,12 +1683,14 @@ sfntfont_registry_for_desc (struct sfnt_font_desc *desc)
 }
 
 /* Return a font-entity that represents the font descriptor (unopened
-   font) DESC.  */
+   font) DESC.  If INSTANCE is more than or equal to 1, then it is the
+   index of the instance in DESC that should be opened plus 1; in that
+   case, DESC must be a distortable font.  */
 
 static Lisp_Object
-sfntfont_desc_to_entity (struct sfnt_font_desc *desc)
+sfntfont_desc_to_entity (struct sfnt_font_desc *desc, int instance)
 {
-  Lisp_Object entity;
+  Lisp_Object entity, vector;
 
   entity = font_make_entity ();
 
@@ -1572,19 +1711,40 @@ sfntfont_desc_to_entity (struct sfnt_font_desc *desc)
   ASET (entity, FONT_SPACING_INDEX,
 	make_fixnum (desc->spacing));
 
-  FONT_SET_STYLE (entity, FONT_WIDTH_INDEX,
-		  make_fixnum (desc->width));
-  FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
-		  make_fixnum (desc->weight));
-  FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
-		  make_fixnum (desc->slant));
+  if (instance >= 1)
+    {
+      if (NILP (desc->instances)
+	  || instance > ASIZE (desc->instances))
+	emacs_abort ();
 
-  ASET (entity, FONT_ADSTYLE_INDEX, Qnil);
+      vector = AREF (desc->instances, instance - 1);
+      FONT_SET_STYLE (entity, FONT_WIDTH_INDEX,
+		      AREF (vector, 2));
+      FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
+		      AREF (vector, 3));
+      FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
+		      AREF (vector, 4));
+      ASET (entity, FONT_ADSTYLE_INDEX, AREF (vector, 1));      
+    }
+  else
+    {
+      FONT_SET_STYLE (entity, FONT_WIDTH_INDEX,
+		      make_fixnum (desc->width));
+      FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
+		      make_fixnum (desc->weight));
+      FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
+		      make_fixnum (desc->slant));
+      ASET (entity, FONT_ADSTYLE_INDEX, desc->adstyle);
+    }
 
   /* Set FONT_EXTRA_INDEX to a pointer to the font description.  Font
      descriptions are never supposed to be freed.  */
+
   ASET (entity, FONT_EXTRA_INDEX,
-	list1 (Fcons (Qfont_entity, make_mint_ptr (desc))));
+	(instance >= 1
+	 ? list2 (Fcons (Qfont_entity, make_mint_ptr (desc)),
+		  Fcons (Qfont_instance, make_fixnum (instance - 1)))
+	 : list1 (Fcons (Qfont_entity, make_mint_ptr (desc)))));
 
   return entity;
 }
@@ -1597,6 +1757,7 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
 {
   Lisp_Object matching, tem;
   struct sfnt_font_desc *desc;
+  int i, rc, instances[100];
 
   matching = Qnil;
 
@@ -1612,10 +1773,24 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
     }
 
   /* Loop through known system fonts and add them one-by-one.  */
+
   for (desc = system_fonts; desc; desc = desc->next)
     {
-      if (sfntfont_list_1 (desc, font_spec))
-	matching = Fcons (sfntfont_desc_to_entity (desc), matching);
+      rc = sfntfont_list_1 (desc, font_spec, instances,
+			    ARRAYELTS (instances));
+
+      if (rc < 0)
+	matching = Fcons (sfntfont_desc_to_entity (desc, 0),
+			  matching);
+      else if (rc)
+	{
+	  /* Add each matching instance.  */
+
+	  for (i = 0; i < rc; ++i)
+	    matching = Fcons (sfntfont_desc_to_entity (desc,
+						       instances[i] + 1),
+			      matching);
+	}
     }
 
   unblock_input ();
@@ -1688,23 +1863,45 @@ struct sfntfont_get_glyph_outline_dcontext
 
   /* glyf table.  */
   struct sfnt_glyf_table *glyf;
+
+  /* Variation settings, or NULL.  */
+  struct sfnt_blend *blend;
 };
 
-/* Return the glyph identified by GLYPH from the glyf and loca table
-   specified in DCONTEXT.  Set *NEED_FREE to true.  */
+/* Return the glyph identified by GLYPH_ID from the glyf and loca
+   table specified in DCONTEXT.  Set *NEED_FREE to true.  */
 
 static struct sfnt_glyph *
-sfntfont_get_glyph (sfnt_glyph glyph, void *dcontext,
+sfntfont_get_glyph (sfnt_glyph glyph_id, void *dcontext,
 		    bool *need_free)
 {
   struct sfntfont_get_glyph_outline_dcontext *tables;
+  struct sfnt_glyph *glyph;
+  struct sfnt_metrics_distortion distortion;
 
   tables = dcontext;
   *need_free = true;
 
-  return sfnt_read_glyph (glyph, tables->glyf,
-			  tables->loca_short,
-			  tables->loca_long);
+  glyph = sfnt_read_glyph (glyph_id, tables->glyf,
+			   tables->loca_short,
+			   tables->loca_long);
+
+  if (!tables->blend || !glyph)
+    return glyph;
+
+  if ((glyph->simple
+       && sfnt_vary_simple_glyph (tables->blend, glyph_id,
+				  glyph, &distortion))
+      || (!glyph->simple
+	  && sfnt_vary_compound_glyph (tables->blend, glyph_id,
+				       glyph, &distortion)))
+    {
+      sfnt_free_glyph (glyph);
+      return NULL;
+    }
+
+  /* Note that the distortion is not relevant for compound glyphs.  */
+  return glyph;
 }
 
 /* Free the glyph identified by GLYPH.  */
@@ -1734,6 +1931,8 @@ sfntfont_dereference_outline (struct sfnt_glyph_outline *outline)
    HEAD.  Keep *CACHE_SIZE updated with the number of elements in the
    cache.
 
+   Distort the glyph using BLEND if INDEX is not -1.
+
    Use the offset information in the long or short loca tables
    LOCA_LONG and LOCA_SHORT, whichever is set.
 
@@ -1754,6 +1953,8 @@ static struct sfnt_glyph_outline *
 sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 			    struct sfnt_outline_cache *cache,
 			    sfnt_fixed scale, int *cache_size,
+			    struct sfnt_blend *blend,
+			    int index,
 			    struct sfnt_glyf_table *glyf,
 			    struct sfnt_head_table *head,
 			    struct sfnt_hmtx_table *hmtx,
@@ -1772,8 +1973,10 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   struct sfnt_instructed_outline *value;
   const char *error;
   struct sfnt_glyph_metrics temp;
+  struct sfnt_metrics_distortion distortion;
 
   start = cache->next;
+  distortion.advance = 0;
 
   /* See if the outline is already cached.  */
   for (; start != cache; start = start->next)
@@ -1806,6 +2009,30 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   if (!glyph)
     return NULL;
 
+  /* Distort the glyph if necessary.  */
+
+  if (index != -1)
+    {
+      if (glyph->simple)
+	{
+	  if (sfnt_vary_simple_glyph (blend, glyph_code,
+				      glyph, &distortion))
+	    {
+	      sfnt_free_glyph (glyph);
+	      return NULL;
+	    }
+	}
+      else if (!glyph->simple)
+	{
+	  if (sfnt_vary_compound_glyph (blend, glyph_code,
+					glyph, &distortion))
+	    {
+	      sfnt_free_glyph (glyph);
+	      return NULL;
+	    }
+	}
+    }
+
   /* Try to instruct the glyph if INTERPRETER is specified.  */
 
   outline = NULL;
@@ -1813,12 +2040,16 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
   dcontext.loca_long = loca_long;
   dcontext.loca_short = loca_short;
   dcontext.glyf = glyf;
+  dcontext.blend = (index != -1 ? blend : NULL);
 
   /* Now load the glyph's unscaled metrics into TEMP.  */
 
   if (sfnt_lookup_glyph_metrics (glyph_code, -1, &temp, hmtx, hhea,
 				 head, maxp))
     goto fail;
+
+  /* Add the advance width distortion.  */
+  temp.advance += distortion.advance;
 
   if (interpreter)
     {
@@ -1877,6 +2108,13 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 
   if (!outline)
     return NULL;
+
+  if (index != -1)
+    /* Finally, adjust the left side bearing of the glyph metrics by
+       the origin point of the outline, should a distortion have been
+       applied.  The left side bearing is the distance from the origin
+       point to the left most point on the X axis.  */
+    temp.lbearing = outline->xmin - outline->origin;
 
   start = xmalloc (sizeof *start);
   start->glyph = glyph_code;
@@ -2125,6 +2363,13 @@ struct sfnt_font_info
   /* Factor used to convert from em space to pixel space.  */
   sfnt_fixed scale;
 
+  /* The blend (configuration of this multiple master font).  */
+  struct sfnt_blend blend;
+
+  /* The index of the named instance used to initialize BLEND.
+     -1 if BLEND is not initialized.  */
+  int instance;
+
 #ifdef HAVE_MMAP
   /* Whether or not the glyph table has been mmapped.  */
   bool glyf_table_mapped;
@@ -2358,6 +2603,10 @@ sfnt_close_tables (struct sfnt_font_tables *tables)
   xfree (tables->prep);
   xfree (tables->fpgm);
   xfree (tables->cvt);
+  xfree (tables->fvar);
+  xfree (tables->avar);
+  xfree (tables->gvar);
+  xfree (tables->cvar);
   xfree (tables->cmap_data);
 
   if (tables->uvs)
@@ -2524,6 +2773,15 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
   tables->fpgm = sfnt_read_fpgm_table (fd, subtable);
   tables->cvt  = sfnt_read_cvt_table (fd, subtable);
 
+  /* Read distortion related tables.  These might not be present.  */
+  tables->fvar = sfnt_read_fvar_table (fd, subtable);
+  tables->avar = sfnt_read_avar_table (fd, subtable);
+  tables->gvar = sfnt_read_gvar_table (fd, subtable);
+
+  if (tables->cvt && tables->fvar)
+    tables->cvar = sfnt_read_cvar_table (fd, subtable, tables->fvar,
+					 tables->cvt);
+
   return tables;
 
  bail5:
@@ -2614,9 +2872,10 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   struct sfnt_font_desc *desc;
   Lisp_Object font_object;
   struct charset *charset;
-  int point_size;
+  int point_size, instance, i;
   Display_Info *dpyinfo;
   struct sfnt_font_tables *tables;
+  Lisp_Object tem;
 
   if (XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX)) != 0)
     pixel_size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
@@ -2633,10 +2892,18 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 
   /* Now find the font description corresponding to FONT_ENTITY.  */
 
-  if (NILP (AREF (font_entity, FONT_EXTRA_INDEX)))
+  tem = AREF (font_entity, FONT_EXTRA_INDEX);
+  if (NILP (tem))
     return Qnil;
 
-  desc = xmint_pointer (XCDR (XCAR (AREF (font_entity, FONT_EXTRA_INDEX))));
+  desc = xmint_pointer (XCDR (XCAR (tem)));
+
+  /* Finally, see if a specific instance is associated with
+     FONT_ENTITY.  */
+
+  instance = -1;
+  if (!NILP (XCDR (tem)))
+    instance = XFIXNUM (XCDR (XCAR (XCDR (tem))));
 
   /* Build the font object.  */
   font_object = font_make_object (VECSIZE (struct sfnt_font_info),
@@ -2669,6 +2936,8 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->raster_cache_size = 0;
   font_info->interpreter = NULL;
   font_info->scale = 0;
+  font_info->instance = -1;
+  font_info->blend.coords = NULL;
 #ifdef HAVE_MMAP
   font_info->glyf_table_mapped = false;
 #endif /* HAVE_MMAP */
@@ -2784,6 +3053,34 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 					    / 2));
   sfntfont_setup_interpreter (font_info, point_size);
 
+  /* If an instance was specified and the font is distortable, set up
+     the blend.  */
+
+  if (instance != -1
+      && desc->tables->fvar && desc->tables->gvar
+      /* Make sure the instance is within range.  */
+      && instance < desc->tables->fvar->instance_count)
+    {
+      sfnt_init_blend (&font_info->blend, desc->tables->fvar,
+		       desc->tables->gvar, desc->tables->avar,
+		       desc->tables->cvar);
+
+      /* Copy over the coordinates.  */
+      for (i = 0; i < desc->tables->fvar->axis_count; ++i)
+	font_info->blend.coords[i]
+	  = desc->tables->fvar->instance[instance].coords[i];
+
+      sfnt_normalize_blend (&font_info->blend);
+
+      /* If an interpreter was specified, distort it now.  */
+
+      if (font_info->interpreter)
+	sfnt_vary_interpreter (font_info->interpreter,
+			       &font_info->blend);
+
+      font_info->instance = instance;
+    }
+
 #ifdef HAVE_HARFBUZZ
   /* HarfBuzz will potentially read font tables after the font has
      been opened by Emacs.  Keep the font open, and record its offset
@@ -2855,6 +3152,8 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   outline = sfntfont_get_glyph_outline (glyph, &font->outline_cache,
 					font->scale,
 					&font->outline_cache_size,
+					&font->blend,
+					font->instance,
 					font->glyf, font->head,
 					font->hmtx, font->hhea,
 					font->maxp,
@@ -2960,6 +3259,11 @@ sfntfont_close (struct font *font)
   info->interpreter = NULL;
   info->uvs = NULL;
 
+  /* Deinitialize the blend.  */
+  if (info->instance != -1 && info->blend.coords)
+    sfnt_free_blend (&info->blend);
+  info->instance = -1;
+
 #ifdef HAVE_MMAP
 
   /* Unlink INFO.  */
@@ -3035,6 +3339,8 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
 					    &info->outline_cache,
 					    info->scale,
 					    &info->outline_cache_size,
+					    &info->blend,
+					    info->instance,
 					    info->glyf, info->head,
 					    info->hmtx, info->hhea,
 					    info->maxp,
@@ -3362,6 +3668,13 @@ sfntfont_begin_hb_font (struct font *font, double *position_unit)
       hb_font_set_scale (info->hb_font, factor * 64, factor * 64);
       hb_font_set_ppem (info->hb_font, factor, factor);
 
+#ifdef HAVE_HB_FONT_SET_VAR_NAMED_INSTANCE
+      /* Set the instance if this is a distortable font.  */
+      if (info->instance != -1)
+	hb_font_set_var_named_instance (info->hb_font,
+					info->instance);
+#endif /* HAVE_HB_FONT_SET_VAR_NAMED_INSTANCE */
+
       /* This is needed for HarfBuzz before 2.0.0; it is the default
 	 in later versions.  */
       hb_ot_font_set_funcs (info->hb_font);
@@ -3396,6 +3709,7 @@ syms_of_sfntfont (void)
   DEFSYM (Qzh, "zh");
   DEFSYM (Qja, "ja");
   DEFSYM (Qko, "ko");
+  DEFSYM (Qfont_instance, "font-instance");
 
   /* Char-table purpose.  */
   DEFSYM (Qfont_lookup_cache, "font-lookup-cache");
@@ -3427,6 +3741,7 @@ mark_sfntfont (void)
       mark_object (desc->family);
       mark_object (desc->style);
       mark_object (desc->adstyle);
+      mark_object (desc->instances);
       mark_object (desc->languages);
       mark_object (desc->registry);
       mark_object (desc->char_cache);

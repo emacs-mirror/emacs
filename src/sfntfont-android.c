@@ -713,8 +713,11 @@ loaded before character sets are made available.  */)
 	  /* If it contains (not ends with!) with .ttf or .ttc, then
 	     enumerate it.  */
 
-	  if (strstr (dirent->d_name, ".ttf")
-	      || strstr (dirent->d_name, ".ttc"))
+	  if ((strstr (dirent->d_name, ".ttf")
+	       || strstr (dirent->d_name, ".ttc"))
+	      /* Ignore the non-variable Roboto font.  */
+	      && (i != 0 || strcmp (dirent->d_name,
+				    "RobotoStatic-Regular.ttf")))
 	    {
 	      sprintf (name, "%s/%s", system_font_directories[i],
 		       dirent->d_name);
