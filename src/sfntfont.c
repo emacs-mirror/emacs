@@ -2756,17 +2756,6 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
   if (!tables->hmtx)
     goto bail5;
 
-#ifdef HAVE_HARFBUZZ
-  /* Now copy over the subtable if necessary, as it is needed to read
-     extra font tables required by HarfBuzz.  */
-  tables->directory = subtable;
-  tables->fd = fd;
-#else /* !HAVE_HARFBUZZ */
-  /* Otherwise, close the fd and free the table directory.  */
-  xfree (subtable);
-  emacs_close (fd);
-#endif /* HAVE_HARFBUZZ */
-
   /* Read instruction related font tables.  These might not be
      present, which is OK, since instructing fonts is optional.  */
   tables->prep = sfnt_read_prep_table (fd, subtable);
@@ -2781,6 +2770,17 @@ sfnt_open_tables (struct sfnt_font_desc *desc)
   if (tables->cvt && tables->fvar)
     tables->cvar = sfnt_read_cvar_table (fd, subtable, tables->fvar,
 					 tables->cvt);
+
+#ifdef HAVE_HARFBUZZ
+  /* Now copy over the subtable if necessary, as it is needed to read
+     extra font tables required by HarfBuzz.  */
+  tables->directory = subtable;
+  tables->fd = fd;
+#else /* !HAVE_HARFBUZZ */
+  /* Otherwise, close the fd and free the table directory.  */
+  xfree (subtable);
+  emacs_close (fd);
+#endif /* HAVE_HARFBUZZ */
 
   return tables;
 
