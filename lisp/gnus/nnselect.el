@@ -440,7 +440,7 @@ artlist; otherwise store the ARTLIST in the group parameters."
       (if (eq 'nnselect (car (gnus-server-to-method server)))
 	  (with-current-buffer gnus-summary-buffer
 	    (let ((thread (gnus-id-to-thread article)))
-	      (when thread
+              (when (car thread)
 		(mapc
 		 (lambda (x)
 		   (when (and x (> x 0))
