@@ -3215,15 +3215,24 @@ unspecified, the only fallback disabled is downcasing of the last
 event.
 @end defun
 
+@vindex read-char-choice-use-read-key
 @defun read-char-choice prompt chars &optional inhibit-quit
-This function uses @code{read-key} to read and return a single
-character.  It ignores any input that is not a member of @var{chars},
-a list of accepted characters.  Optionally, it will also ignore
-keyboard-quit events while it is waiting for valid input.  If you bind
-@code{help-form} (@pxref{Help Functions}) to a non-@code{nil} value
-while calling @code{read-char-choice}, then pressing @code{help-char}
-causes it to evaluate @code{help-form} and display the result.  It
-then continues to wait for a valid input character, or keyboard-quit.
+This function uses @code{read-from-minibuffer} to read and return a
+single character that is a member of @var{chars}, which should be a
+list of single characters.  It discards any input characters that are
+not members of @var{chars}, and shows a message to that effect.
+
+The optional argument @var{inhibit-quit} is by default ignored, but if
+the variable @code{read-char-choice-use-read-key} is non-@code{nil},
+this function uses @code{read-key} instead of
+@code{read-from-minibuffer}, and in that case @var{inhibit-quit}
+non-@code{nil} means ignore keyboard-quit events while waiting for
+valid input.  In addition, if @code{read-char-choice-use-read-key} is
+non-@code{nil}, binding @code{help-form} (@pxref{Help Functions}) to a
+non-@code{nil} value while calling this function causes it to evaluate
+@code{help-form} and display the result when the user presses
+@code{help-char}; it then continues to wait for a valid input
+character, or for keyboard-quit.
 @end defun
 
 @defun read-multiple-choice prompt choices &optional help-string show-help long-form
