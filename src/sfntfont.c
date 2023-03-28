@@ -3045,9 +3045,6 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   font_info->font.underline_position = -1;
   font_info->font.underline_thickness = 0;
 
-  /* Calculate the xfld name.  */
-  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
-
   /* Now try to set up grid fitting for this font.  */
   dpyinfo = FRAME_DISPLAY_INFO (f);
   point_size = PIXEL_TO_POINT (pixel_size, (dpyinfo->resx
@@ -3098,6 +3095,9 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);	  
 	}
     }
+
+  /* Calculate the xfld name.  */
+  font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
 
 #ifdef HAVE_HARFBUZZ
   /* HarfBuzz will potentially read font tables after the font has

@@ -14331,7 +14331,7 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
       /* See whether or not the tuple applies to the current variation
 	 configuration, and how much to scale them by.  */
 
-      scale = sfnt_compute_tuple_scale (blend, index & 0x1000,
+      scale = sfnt_compute_tuple_scale (blend, index & 0x4000,
 					coords, intermediate_start,
 					intermediate_end);
 
@@ -14705,7 +14705,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
       /* See whether or not the tuple applies to the current variation
 	 configuration, and how much to scale them by.  */
 
-      scale = sfnt_compute_tuple_scale (blend, index & 0x1000,
+      scale = sfnt_compute_tuple_scale (blend, index & 0x4000,
 					coords, intermediate_start,
 					intermediate_end);
 
