@@ -71,7 +71,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
-RUN make bootstrap
+RUN make V=1 bootstrap
 
 FROM emacs-base as emacs-native-comp
 
