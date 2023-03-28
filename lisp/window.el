@@ -7556,19 +7556,16 @@ all fail.  It should never be set by programs or users.  See
 `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
-(defun display-buffer-assq-regexp (buffer-or-name alist action)
-  "Retrieve ALIST entry corresponding to buffer specified by BUFFER-OR-NAME.
+(defun display-buffer-assq-regexp (buffer-name alist action)
+  "Retrieve ALIST entry corresponding to buffer whose name is BUFFER-NAME.
 This returns the cdr of the alist entry ALIST if the entry's
 key (its car) and the name of the buffer designated by
-BUFFER-OR-NAME satisfy `buffer-match-p', using the key as
+BUFFER-NAME satisfy `buffer-match-p', using the key as
 CONDITION argument of `buffer-match-p'.  ACTION should have the
 form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
-      (when (buffer-match-p (car entry) (if (stringp buffer-or-name)
-                                            buffer-or-name
-                                          (buffer-name buffer-or-name))
-                                          action)
+      (when (buffer-match-p (car entry) buffer-name action)
         (throw 'match (cdr entry))))))
 
 (defvar display-buffer--same-window-action
@@ -7727,6 +7724,9 @@ specified by the ACTION argument."
   (let ((buffer (if (bufferp buffer-or-name)
 		    buffer-or-name
 		  (get-buffer buffer-or-name)))
+        (buf-name (if (bufferp buffer-or-name)
+                      (buffer-name buffer-or-name)
+                    buffer-or-name))
 	;; Make sure that when we split windows the old window keeps
 	;; point, bug#14829.
 	(split-window-keep-point t)
@@ -7735,7 +7735,7 @@ specified by the ACTION argument."
     (unless (listp action) (setq action nil))
     (let* ((user-action
             (display-buffer-assq-regexp
-             buffer display-buffer-alist action))
+             buf-name display-buffer-alist action))
            (special-action (display-buffer--special-action buffer))
            ;; Extra actions from the arguments to this function:
            (extra-action
