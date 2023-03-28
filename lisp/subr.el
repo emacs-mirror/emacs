@@ -3210,13 +3210,15 @@ confusing to some users.")
   "Read and return one of the characters in CHARS, prompting with PROMPT.
 CHARS should be a list of single characters.
 The function discards any input character that is not one of CHARS,
-and shows a message to the effect that it is not one of the expected
-charcaters.
+and by default shows a message to the effect that it is not one of
+the expected characters.
 
-By default, use the minibuffer to read the key non-modally (see
-`read-char-from-minibuffer').  But if `read-char-choice-use-read-key'
-is non-nil, the modal `read-key' function is used instead (see
-`read-char-choice-with-read-key')."
+By default, this function uses the minibuffer to read the key
+non-modally (see `read-char-from-minibuffer'), and the optional
+argument INHIBIT-KEYBOARD-QUIT is ignored.  However, if
+`read-char-choice-use-read-key' is non-nil, the modal `read-key'
+function is used instead (see `read-char-choice-with-read-key'),
+and INHIBIT-KEYBOARD-QUIT is passed to it."
   (if (not read-char-choice-use-read-key)
       (read-char-from-minibuffer prompt chars)
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
