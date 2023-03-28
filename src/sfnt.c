@@ -14549,8 +14549,6 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   uint16_t *local_points, n_local_points;
   sfnt_fixed scale;
   ptrdiff_t data_offset;
-  bool *touched;
-  sfnt_fword *restrict original_x, *restrict original_y;
   struct sfnt_compound_glyph_component *component;
 
   gvar = blend->gvar;
@@ -14627,12 +14625,6 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = coords + gvar->axis_count;
-
-  /* Allocate arrays of booleans and fwords to keep track of which
-     points have been touched.  */
-  touched = NULL;
-  original_x = NULL;
-  original_y = NULL;
 
   while (ntuples--)
     {
@@ -14775,7 +14767,6 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 		word = component->argument1.d;
 
 	      fword = sfnt_mul_fixed_round (dx[i], scale);
-	      component->flags |= 01;
 	      component->argument1.d = word + fword;
 
 	      /* Vary the Y offset.  */
@@ -14786,6 +14777,8 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 		word = component->argument2.d;
 
 	      fword = sfnt_mul_fixed_round (dy[i], scale);
+
+	      /* Set the flag that says offsets are words.  */
 	      component->flags |= 01;
 	      component->argument2.d = word + fword;
 	    }
@@ -14803,36 +14796,6 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	    goto fail3;
 
 	  /* Deltas are only applied for each point number read.  */
-
-	  if (!original_x)
-	    {
-	      if ((glyph->compound->num_components
-		   * sizeof *touched) >= 1024 * 16)
-		touched = xmalloc (sizeof *touched
-				   * glyph->compound->num_components);
-	      else
-		touched = alloca (sizeof *touched
-				  * glyph->compound->num_components);
-
-	      if ((sizeof *original_x * 2
-		   * glyph->compound->num_components) >= 1024 * 16)
-		original_x = xmalloc (sizeof *original_x * 2
-				      * glyph->compound->num_components);
-	      else
-		original_x = alloca (sizeof *original_x * 2
-				     * glyph->compound->num_components);
-
-	      original_y = original_x + glyph->compound->num_components;
-	      memcpy (original_x, glyph->simple->x_coordinates,
-		      (sizeof *original_x
-		       * glyph->compound->num_components));
-	      memcpy (original_y, glyph->simple->y_coordinates,
-		      (sizeof *original_y
-		       * glyph->compound->num_components));
-	    }
-
-	  memset (touched, 0, (sizeof *touched
-			       * glyph->compound->num_components));
 
 	  for (i = 0; i < point_count; ++i)
 	    {
@@ -14868,7 +14831,6 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 		word = component->argument1.d;
 
 	      fword = sfnt_mul_fixed_round (dx[i], scale);
-	      component->flags |= 01;
 	      component->argument1.d = word + fword;
 
 	      /* Vary the Y offset.  */
@@ -14879,6 +14841,8 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 		word = component->argument2.d;
 
 	      fword = sfnt_mul_fixed_round (dy[i], scale);
+
+	      /* Set the flag that says offsets are words.  */
 	      component->flags |= 01;
 	      component->argument2.d = word + fword;
 	    }
@@ -14895,16 +14859,8 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  if ((glyph->compound->num_components
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
   if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
     xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->compound->num_components) >= 1024 * 16)
-    xfree (original_x);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -14921,16 +14877,8 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (local_points);
  fail1:
 
-  if ((glyph->compound->num_components
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
   if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
     xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->compound->num_components) >= 1024 * 16)
-    xfree (original_x);
 
   if (points != (uint16_t *) -1)
     xfree (points);

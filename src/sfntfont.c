@@ -1886,18 +1886,14 @@ sfntfont_get_glyph (sfnt_glyph glyph_id, void *dcontext,
 			   tables->loca_short,
 			   tables->loca_long);
 
-  if (!tables->blend || !glyph)
-    return glyph;
-
-  if ((glyph->simple
-       && sfnt_vary_simple_glyph (tables->blend, glyph_id,
-				  glyph, &distortion))
-      || (!glyph->simple
-	  && sfnt_vary_compound_glyph (tables->blend, glyph_id,
-				       glyph, &distortion)))
+  if (tables->blend && glyph)
     {
-      sfnt_free_glyph (glyph);
-      return NULL;
+      if (glyph->simple)
+	sfnt_vary_simple_glyph (tables->blend, glyph_id, glyph,
+				&distortion);
+      else
+	sfnt_vary_compound_glyph (tables->blend, glyph_id, glyph,
+				  &distortion);
     }
 
   /* Note that the distortion is not relevant for compound glyphs.  */
@@ -2022,14 +2018,11 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	      return NULL;
 	    }
 	}
-      else if (!glyph->simple)
+      else if (sfnt_vary_compound_glyph (blend, glyph_code,
+					 glyph, &distortion))
 	{
-	  if (sfnt_vary_compound_glyph (blend, glyph_code,
-					glyph, &distortion))
-	    {
-	      sfnt_free_glyph (glyph);
-	      return NULL;
-	    }
+	  sfnt_free_glyph (glyph);
+	  return NULL;
 	}
     }
 
