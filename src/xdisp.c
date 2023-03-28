@@ -3608,11 +3608,30 @@ get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
   return min ((pos / len + 1) * len, ZV);
 }
 
+static ptrdiff_t
+get_nearby_bol_pos (ptrdiff_t pos)
+{
+  ptrdiff_t start, pos_bytepos, cur, next, found, bol = 0;
+  start = pos - 500000 < BEGV ? BEGV : pos - 500000;
+  pos_bytepos = CHAR_TO_BYTE (pos);
+  for (cur = start; cur < pos; cur = next)
+    {
+      next = find_newline1 (cur, CHAR_TO_BYTE (cur), pos, pos_bytepos,
+			    1, &found, NULL, false);
+      if (found)
+	bol = next;
+      else
+	break;
+    }
+  return bol;
+}
+
 ptrdiff_t
 get_small_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_width (w);
-  return max ((pos / len - 1) * len, BEGV);
+  int bol_pos = get_nearby_bol_pos (pos);
+  return max (bol_pos + ((pos - bol_pos) / len - 1) * len, BEGV);
 }
 
 ptrdiff_t
@@ -3653,7 +3672,7 @@ unwind_narrowed_begv (Lisp_Object point_min)
 
 #define SET_WITH_NARROWED_BEGV(IT,DST,EXPR,BV)				\
   do {									\
-    if (IT->medium_narrowing_begv)						\
+    if (IT->medium_narrowing_begv)					\
       {									\
 	specpdl_ref count = SPECPDL_INDEX ();				\
 	record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());	\
