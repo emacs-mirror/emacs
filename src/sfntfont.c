@@ -2460,7 +2460,7 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
       num_characters++;
 
       /* Add the advance to total_width.  */
-      total_width += metrics.advance / 65536;
+      total_width += SFNT_CEIL_FIXED (metrics.advance) / 65536;
 
       /* Update min_width if it hasn't been set yet or is wider.  */
       if (font_info->font.min_width == 1
@@ -3183,7 +3183,8 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   if (!outline)
     return 1;
 
-  pcm->lbearing = metrics.lbearing / 65536;
+  /* Round the left side bearing downwards.  */
+  pcm->lbearing = SFNT_FLOOR_FIXED (metrics.lbearing) / 65536;
   pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) / 65536;
 
   /* Round the advance, ascent and descent upwards.  */

@@ -1325,9 +1325,8 @@ struct sfnt_metrics_distortion
 
 
 
-#define SFNT_CEIL_FIXED(fixed)			\
-  (!((fixed) & 0177777) ? (fixed)		\
-   : ((fixed) + 0200000) & 037777600000)
+#define SFNT_CEIL_FIXED(fixed)	(((fixed) + 0177777) & 037777600000)
+#define SFNT_FLOOR_FIXED(fixed) ((fixed) & 037777600000)
 
 
 
