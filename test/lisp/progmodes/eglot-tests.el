@@ -1261,6 +1261,7 @@ macro will assume it exists."
   ;; really just the local host.
   (let* ((tramp-remote-path (cons 'tramp-own-remote-path tramp-remote-path))
          (tramp-histfile-override t)
+         (tramp-allow-unsafe-temporary-files t)
          (tramp-verbose 1)
          (temporary-file-directory ert-remote-temporary-file-directory)
          (default-directory temporary-file-directory))
