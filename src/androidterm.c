@@ -3327,6 +3327,7 @@ android_draw_image_glyph_string (struct glyph_string *s)
 
   /* Draw the foreground.  */
   android_draw_image_foreground (s);
+  android_set_glyph_string_clipping (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief

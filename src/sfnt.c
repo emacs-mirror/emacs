@@ -3539,6 +3539,40 @@ sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 #endif
 }
 
+#ifndef INT64_MAX
+
+/* Add the specified unsigned 32-bit N to the large integer
+   INTEGER.  */
+
+static void
+sfnt_large_integer_add (struct sfnt_large_integer *integer,
+			uint32_t n)
+{
+  struct sfnt_large_integer number;
+
+  number.low = integer->low + n;
+  number.high = integer->high + (number.low
+				 < integer->low);
+
+  *integer = number;
+}
+
+/* Calculate (A * B) / C, rounding the result with a threshold of N.
+   Use a 64 bit temporary.  */
+
+static unsigned int
+sfnt_multiply_divide_round (unsigned int a, unsigned int b,
+			    unsigned int n, unsigned int c)
+{
+  struct sfnt_large_integer temp;
+
+  sfnt_multiply_divide_1 (a, b, &temp);
+  sfnt_large_integer_add (&temp, n);
+  return sfnt_multiply_divide_2 (&temp, c);
+}
+
+#endif /* INT64_MAX */
+
 /* The same as sfnt_multiply_divide, but handle signed values
    instead.  */
 
@@ -3588,6 +3622,36 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 
   return sfnt_multiply_divide (abs (x), abs (y),
 			       65536) * sign;
+#endif
+}
+
+/* Multiply the two 16.16 fixed point numbers X and Y, with rounding
+   of the result.  */
+
+static sfnt_fixed
+sfnt_mul_fixed_round (sfnt_fixed x, sfnt_fixed y)
+{
+#ifdef INT64_MAX
+  int64_t product, round;
+
+  product = (int64_t) x * (int64_t) y;
+  round = product < 0 ? -32768 : 32768;
+
+  /* This can be done quickly with int64_t.  */
+  return (product + round) / (int64_t) 65536;
+#else
+  int sign;
+
+  sign = 1;
+
+  if (x < 0)
+    sign = -sign;
+
+  if (y < 0)
+    sign = -sign;
+
+  return sfnt_multiply_divide_round (abs (x), abs (y),
+				     32768, 65536) * sign;
 #endif
 }
 
@@ -3766,7 +3830,7 @@ sfnt_curve_to_and_build (struct sfnt_point control,
    SCALE is a scale factor that converts between em space and device
    space.
 
-   Use the scaled glyph METRICS to determine the origin point of the
+   Use the unscaled glyph METRICS to determine the origin point of the
    outline.
 
    Call GET_GLYPH and FREE_GLYPH with the specified DCONTEXT to obtain
@@ -3824,11 +3888,12 @@ sfnt_build_glyph_outline (struct sfnt_glyph *glyph,
       return NULL;
     }
 
-  /* Compute the origin position.  */
-  origin = outline->xmin - metrics->lbearing;
-  outline->origin
-    = (origin + sfnt_mul_fixed (glyph->origin_distortion,
-				build_outline_context.factor));
+  /* Compute the origin position.  Note that the original glyph xmin
+     is first used to calculate the origin point, and the origin
+     distortion is applied to it to get the distorted origin.  */
+
+  origin = glyph->xmin - metrics->lbearing + glyph->origin_distortion;
+  outline->origin = sfnt_mul_fixed (origin, scale);
 
   return outline;
 }
@@ -3881,10 +3946,10 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
 {
   raster->width
     = (sfnt_ceil_fixed (outline->xmax)
-       - sfnt_floor_fixed (outline->xmin)) >> 16;
+       - sfnt_floor_fixed (outline->xmin)) / 65536;
   raster->height
     = (sfnt_ceil_fixed (outline->ymax)
-       - sfnt_floor_fixed (outline->ymin)) >> 16;
+       - sfnt_floor_fixed (outline->ymin)) / 65536;
   raster->refcount = 0;
 
   /* Align the raster to a SFNT_POLY_ALIGNMENT byte boundary.  */
@@ -3896,8 +3961,8 @@ sfnt_prepare_raster (struct sfnt_raster *raster,
      However, variable fonts typically change this as variations are
      applied.  */
   raster->offx = sfnt_floor_fixed (outline->xmin
-				   - outline->origin) >> 16;
-  raster->offy = sfnt_floor_fixed (outline->ymin) >> 16;
+				   - outline->origin) / 65536;
+  raster->offy = sfnt_floor_fixed (outline->ymin) / 65536;
 }
 
 typedef void (*sfnt_edge_proc) (struct sfnt_edge *, size_t,
@@ -5206,7 +5271,7 @@ sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
 #endif
 }
 
-/* Multiply-round the specified two 26.6 fixed point numbers A and B.
+/* Multiply the specified two 26.6 fixed point numbers A and B.
    Return the result, or an undefined value upon overflow.  */
 
 static sfnt_f26dot6
@@ -5262,26 +5327,6 @@ sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 			       16384) * sign;
 #endif
 }
-
-#ifndef INT64_MAX
-
-/* Add the specified unsigned 32-bit N to the large integer
-   INTEGER.  */
-
-static void
-sfnt_large_integer_add (struct sfnt_large_integer *integer,
-			uint32_t n)
-{
-  struct sfnt_large_integer number;
-
-  number.low = integer->low + n;
-  number.high = integer->high + (number.low
-				 < integer->low);
-
-  *integer = number;
-}
-
-#endif
 
 /* Multiply the specified 26.6 fixed point number X by the specified
    16.16 fixed point number Y with symmetric rounding.
@@ -14343,15 +14388,15 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  for (i = 0; i < glyph->simple->number_of_points; ++i)
 	    {
-	      fword = sfnt_mul_fixed (dx[i], scale);
+	      fword = sfnt_mul_fixed_round (dx[i], scale);
 	      glyph->simple->x_coordinates[i] += fword;
-	      fword = sfnt_mul_fixed (dy[i], scale);
+	      fword = sfnt_mul_fixed_round (dy[i], scale);
 	      glyph->simple->y_coordinates[i] += fword;
 	    }
 
 	  /* Apply the deltas for the two phantom points.  */
-	  distortion->origin += sfnt_mul_fixed (dx[i++], scale);
-	  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+	  distortion->origin += sfnt_mul_fixed_round (dx[i++], scale);
+	  distortion->advance += sfnt_mul_fixed_round (dx[i], scale);
 	  break;
 
 	default:
@@ -14399,13 +14444,13 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	      if (glyph_points[i] == glyph->simple->number_of_points)
 		{
-		  distortion->origin += sfnt_mul_fixed (dx[i], scale);
+		  distortion->origin += sfnt_mul_fixed_round (dx[i], scale);
 		  continue;
 		}
 
 	      if (glyph_points[i] == glyph->simple->number_of_points + 1)
 		{
-		  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+		  distortion->advance += sfnt_mul_fixed_round (dx[i], scale);
 		  continue;
 		}
 
@@ -14413,9 +14458,9 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      if (glyph_points[i] >= glyph->simple->number_of_points)
 		continue;
 
-	      fword = sfnt_mul_fixed (dx[i], scale);
+	      fword = sfnt_mul_fixed_round (dx[i], scale);
 	      glyph->simple->x_coordinates[glyph_points[i]] += fword;
-	      fword = sfnt_mul_fixed (dy[i], scale);
+	      fword = sfnt_mul_fixed_round (dy[i], scale);
 	      glyph->simple->y_coordinates[glyph_points[i]] += fword;
 	      touched[glyph_points[i]] = true;
 	    }
@@ -14729,7 +14774,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      else
 		word = component->argument1.d;
 
-	      fword = sfnt_mul_fixed (dx[i], scale);
+	      fword = sfnt_mul_fixed_round (dx[i], scale);
 	      component->flags |= 01;
 	      component->argument1.d = word + fword;
 
@@ -14740,14 +14785,14 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      else
 		word = component->argument2.d;
 
-	      fword = sfnt_mul_fixed (dy[i], scale);
+	      fword = sfnt_mul_fixed_round (dy[i], scale);
 	      component->flags |= 01;
 	      component->argument2.d = word + fword;
 	    }
 
 	  /* Apply the deltas for the two phantom points.  */
-	  distortion->origin += sfnt_mul_fixed (dx[i++], scale);
-	  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+	  distortion->origin += sfnt_mul_fixed_round (dx[i++], scale);
+	  distortion->advance += sfnt_mul_fixed_round (dx[i], scale);
 	  break;
 
 	default:
@@ -14795,13 +14840,13 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	      if (glyph_points[i] == glyph->compound->num_components)
 		{
-		  distortion->origin += sfnt_mul_fixed (dx[i], scale);
+		  distortion->origin += sfnt_mul_fixed_round (dx[i], scale);
 		  continue;
 		}
 
 	      if (glyph_points[i] == glyph->compound->num_components + 1)
 		{
-		  distortion->advance += sfnt_mul_fixed (dx[i], scale);
+		  distortion->advance += sfnt_mul_fixed_round (dx[i], scale);
 		  continue;
 		}
 
@@ -14822,7 +14867,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      else
 		word = component->argument1.d;
 
-	      fword = sfnt_mul_fixed (dx[i], scale);
+	      fword = sfnt_mul_fixed_round (dx[i], scale);
 	      component->flags |= 01;
 	      component->argument1.d = word + fword;
 
@@ -14833,7 +14878,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 	      else
 		word = component->argument2.d;
 
-	      fword = sfnt_mul_fixed (dy[i], scale);
+	      fword = sfnt_mul_fixed_round (dy[i], scale);
 	      component->flags |= 01;
 	      component->argument2.d = word + fword;
 	    }
@@ -14946,7 +14991,7 @@ sfnt_vary_interpreter (struct sfnt_interpreter *interpreter,
 	     then the tuple scale factor.  */
 	  delta = sfnt_mul_f26dot6_fixed (variation->deltas[j] * 64,
 					  interpreter->scale);
-	  delta = sfnt_mul_fixed (delta, scale);
+	  delta = sfnt_mul_fixed_round (delta, scale);
 
 	  /* Apply the delta to the control value table.  */
 	  interpreter->cvt[i] += delta;
@@ -18923,8 +18968,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 40
-#define EASY_PPEM  40
+#define FANCY_PPEM 36
+#define EASY_PPEM  36
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -19401,7 +19446,7 @@ main (int argc, char **argv)
 					&dcontext))
 		printf ("decomposition failure\n");
 
-	      if (sfnt_lookup_glyph_metrics (code, EASY_PPEM,
+	      if (sfnt_lookup_glyph_metrics (code, -1,
 					     &metrics,
 					     hmtx, hhea,
 					     head, maxp))
@@ -19424,6 +19469,10 @@ main (int argc, char **argv)
 
 	      if (outline)
 		{
+		  fprintf (stderr, "outline origin, rbearing: %"
+			   PRIi32" %"PRIi32"\n",
+			   outline->origin,
+			   outline->ymax - outline->origin);
 		  sfnt_test_max = outline->ymax - outline->ymin;
 
 		  for (i = 0; i < outline->outline_used; i++)

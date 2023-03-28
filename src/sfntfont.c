@@ -2081,11 +2081,6 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 	}
     }
 
-  /* At this point, the glyph metrics are unscaled.  Scale them up.
-     If INTERPRETER is set, use the scale placed within.  */
-
-  sfnt_scale_metrics (&temp, scale);
-
   if (!outline)
     {
       if (!interpreter)
@@ -2101,6 +2096,11 @@ sfntfont_get_glyph_outline (sfnt_glyph glyph_code,
 					    sfntfont_free_glyph,
 					    &dcontext);
     }
+
+  /* At this point, the glyph metrics are unscaled.  Scale them up.
+     If INTERPRETER is set, use the scale placed within.  */
+
+  sfnt_scale_metrics (&temp, scale);
 
  fail:
 
@@ -2460,18 +2460,18 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
       num_characters++;
 
       /* Add the advance to total_width.  */
-      total_width += metrics.advance >> 16;
+      total_width += metrics.advance / 65536;
 
       /* Update min_width if it hasn't been set yet or is wider.  */
       if (font_info->font.min_width == 1
-	  || font_info->font.min_width > metrics.advance >> 16)
-	font_info->font.min_width = metrics.advance >> 16;
+	  || font_info->font.min_width > metrics.advance / 65536)
+	font_info->font.min_width = metrics.advance / 65536;
 
       /* If i is the space character, set the space width.  Make sure
 	 to round this up.  */
       if (i == 32)
 	font_info->font.space_width
-	  = SFNT_CEIL_FIXED (metrics.advance) >> 16;
+	  = SFNT_CEIL_FIXED (metrics.advance) / 65536;
     }
 
   /* Now, if characters were found, set average_width.  */
@@ -3023,6 +3023,8 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   ASET (font_object, FONT_SPACING_INDEX,
 	make_fixnum (desc->spacing));
 
+  /* Set the font style.  */
+
   FONT_SET_STYLE (font_object, FONT_WIDTH_INDEX,
 		  make_fixnum (desc->width));
   FONT_SET_STYLE (font_object, FONT_WEIGHT_INDEX,
@@ -3061,24 +3063,40 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
       /* Make sure the instance is within range.  */
       && instance < desc->tables->fvar->instance_count)
     {
-      sfnt_init_blend (&font_info->blend, desc->tables->fvar,
-		       desc->tables->gvar, desc->tables->avar,
-		       desc->tables->cvar);
+      tem = AREF (desc->instances, instance);
 
-      /* Copy over the coordinates.  */
-      for (i = 0; i < desc->tables->fvar->axis_count; ++i)
-	font_info->blend.coords[i]
-	  = desc->tables->fvar->instance[instance].coords[i];
+      if (!NILP (tem))
+	{
+	  sfnt_init_blend (&font_info->blend, desc->tables->fvar,
+			   desc->tables->gvar, desc->tables->avar,
+			   desc->tables->cvar);
 
-      sfnt_normalize_blend (&font_info->blend);
+	  /* Copy over the coordinates.  */
+	  for (i = 0; i < desc->tables->fvar->axis_count; ++i)
+	    font_info->blend.coords[i]
+	      = desc->tables->fvar->instance[instance].coords[i];
 
-      /* If an interpreter was specified, distort it now.  */
+	  sfnt_normalize_blend (&font_info->blend);
 
-      if (font_info->interpreter)
-	sfnt_vary_interpreter (font_info->interpreter,
-			       &font_info->blend);
+	  /* If an interpreter was specified, distort it now.  */
 
-      font_info->instance = instance;
+	  if (font_info->interpreter)
+	    sfnt_vary_interpreter (font_info->interpreter,
+				   &font_info->blend);
+
+	  font_info->instance = instance;
+
+	  /* Replace the style information with that of the
+	     instance.  */
+
+	  FONT_SET_STYLE (font_object, FONT_WIDTH_INDEX,
+			  AREF (tem, 2));
+	  FONT_SET_STYLE (font_object, FONT_WEIGHT_INDEX,
+			  AREF (tem, 3));
+	  FONT_SET_STYLE (font_object, FONT_SLANT_INDEX,
+			  AREF (tem, 4));
+	  ASET (font_object, FONT_ADSTYLE_INDEX, Qnil);	  
+	}
     }
 
 #ifdef HAVE_HARFBUZZ
@@ -3165,13 +3183,13 @@ sfntfont_measure_pcm (struct sfnt_font_info *font, sfnt_glyph glyph,
   if (!outline)
     return 1;
 
-  pcm->lbearing = metrics.lbearing >> 16;
-  pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) >> 16;
+  pcm->lbearing = metrics.lbearing / 65536;
+  pcm->rbearing = SFNT_CEIL_FIXED (outline->xmax) / 65536;
 
   /* Round the advance, ascent and descent upwards.  */
-  pcm->width = SFNT_CEIL_FIXED (metrics.advance) >> 16;
-  pcm->ascent = SFNT_CEIL_FIXED (outline->ymax) >> 16;
-  pcm->descent = SFNT_CEIL_FIXED (-outline->ymin) >> 16;
+  pcm->width = SFNT_CEIL_FIXED (metrics.advance) / 65536;
+  pcm->ascent = SFNT_CEIL_FIXED (outline->ymax) / 65536;
+  pcm->descent = SFNT_CEIL_FIXED (-outline->ymin) / 65536;
 
   sfntfont_dereference_outline (outline);
   return 0;
@@ -3373,7 +3391,7 @@ sfntfont_draw (struct glyph_string *s, int from, int to,
       if (s->padding_p)
 	current_x += 1;
       else
-	current_x += SFNT_CEIL_FIXED (metrics.advance) >> 16;
+	current_x += SFNT_CEIL_FIXED (metrics.advance) / 65536;
     }
 
   /* Call the window system function to put the glyphs to the
