@@ -2386,6 +2386,7 @@ Any narrowing restriction in effect (see `narrow-to-region') is removed,
 so the buffer is truly empty after this.  */)
   (void)
 {
+  labeled_restrictions_remove_in_current_buffer ();
   Fwiden ();
 
   del_range (BEG, Z);

@@ -4689,6 +4689,7 @@ extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
 extern void labeled_narrow_to_region (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void reset_outermost_restrictions (void);
+extern void labeled_restrictions_remove_in_current_buffer (void);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 

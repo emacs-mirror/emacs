@@ -2756,6 +2756,13 @@ labeled_restrictions_pop (Lisp_Object buf)
     XSETCDR (restrictions, list1 (XCDR (XCAR (XCDR (restrictions)))));
 }
 
+/* Unconditionally remove all labeled restrictions in current_buffer.  */
+void
+labeled_restrictions_remove_in_current_buffer (void)
+{
+  labeled_restrictions_remove (Fcurrent_buffer ());
+}
+
 static void
 unwind_reset_outermost_restriction (Lisp_Object buf)
 {

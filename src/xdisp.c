@@ -24199,6 +24199,7 @@ display_count_lines_logically (ptrdiff_t start_byte, ptrdiff_t limit_byte,
   ptrdiff_t val;
   specpdl_ref pdl_count = SPECPDL_INDEX ();
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
+  labeled_restrictions_remove_in_current_buffer ();
   Fwiden ();
   val = display_count_lines (start_byte, limit_byte, count, byte_pos_ptr);
   unbind_to (pdl_count, Qnil);

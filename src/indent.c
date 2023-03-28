@@ -2065,6 +2065,7 @@ line_number_display_width (struct window *w, int *width, int *pixel_width)
 	{
 	  record_unwind_protect (save_restriction_restore,
 				 save_restriction_save ());
+	  labeled_restrictions_remove_in_current_buffer ();
 	  Fwiden ();
 	  saved_restriction = true;
 	}
