@@ -692,7 +692,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
       ;; "rmdir" does not report an error.  So we check ourselves.
       (when (file-exists-p directory)
-	(tramp-error v 'file-error "`%s' not removed." directory)))))
+	(tramp-error v 'file-error "`%s' not removed" directory)))))
 
 (defun tramp-smb-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."

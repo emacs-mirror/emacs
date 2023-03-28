@@ -469,7 +469,7 @@ non-nil."
   (let* (first-call )
     (while (and parent
                 (setq first-call (treesit-node-parent parent))
-                (string-search "call" (treesit-node-type first-call)))
+                (equal "call" (treesit-node-type first-call)))
       (setq parent first-call))
     (treesit-node-start (treesit-search-subtree parent "\\." nil t))))
 
@@ -883,32 +883,24 @@ a statement container is a node that matches
   "Return the fully qualified name of NODE."
   (let* ((name (ruby-ts--get-name node))
          (delimiter "#"))
+    (when (equal (treesit-node-type node) "singleton_method")
+      (setq delimiter "."
+            name (treesit-node-text (treesit-node-child-by-field-name node "name"))))
     (while (setq node (treesit-parent-until node #'ruby-ts--class-or-module-p))
-      (setq name (concat (ruby-ts--get-name node) delimiter name))
+      (if name
+          (setq name (concat (ruby-ts--get-name node) delimiter name))
+        (setq name (ruby-ts--get-name node)))
       (setq delimiter "::"))
     name))
 
-(defun ruby-ts--imenu-helper (node)
-  "Convert a treesit sparse tree NODE in an imenu list.
-Helper for `ruby-ts--imenu' which converts a treesit sparse
-NODE into a list of imenu ( name . pos ) nodes"
-  (let* ((ts-node (car node))
-         (subtrees (mapcan #'ruby-ts--imenu-helper (cdr node)))
-         (name (when ts-node
-                 (ruby-ts--full-name ts-node)))
-         (marker (when ts-node
-                   (set-marker (make-marker)
-                               (treesit-node-start ts-node)))))
-    (cond
-     ((or (null ts-node) (null name)) subtrees)
-     ;; Don't include the anonymous "class" and "module" nodes
-     ((string-match-p "(\"\\(class\\|module\\)\")"
-                      (treesit-node-string ts-node))
-      nil)
-     (subtrees
-      `((,name ,(cons name marker) ,@subtrees)))
-     (t
-      `((,name . ,marker))))))
+(defun ruby-ts--imenu-helper (tree)
+  "Convert a treesit sparse tree NODE in a flat imenu list."
+  (if (cdr tree)
+      ;; We only use the "leaf" values in the tree.  It does include a
+      ;; leaf node for every class or module body.
+      (cl-mapcan #'ruby-ts--imenu-helper (cdr tree))
+    (list (cons (ruby-ts--full-name (car tree))
+                (treesit-node-start (car tree))))))
 
 ;; For now, this is going to work like ruby-mode and return a list of
 ;; class, modules, def (methods), and alias.  It is likely that this
@@ -916,8 +908,14 @@ NODE into a list of imenu ( name . pos ) nodes"
 (defun ruby-ts--imenu ()
   "Return Imenu alist for the current buffer."
   (let* ((root (treesit-buffer-root-node))
-         (nodes (treesit-induce-sparse-tree root "^\\(method\\|alias\\|class\\|module\\)$")))
-    (ruby-ts--imenu-helper nodes)))
+         (tree (treesit-induce-sparse-tree root
+                                           (rx bol (or "singleton_method"
+                                                       "method"
+                                                       "alias"
+                                                       "class"
+                                                       "module")
+                                               eol))))
+    (ruby-ts--imenu-helper tree)))
 
 (defun ruby-ts--arrow-up-start (arg)
   "Move to the start ARG levels up or out."

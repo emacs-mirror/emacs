@@ -319,7 +319,7 @@ The remote connection identified by SOURCE is flushed by
 	 (read-file-name-function #'read-file-name-default)
 	  source target)
      (if (null connections)
-	 (tramp-user-error nil "There are no remote connections.")
+	 (tramp-user-error nil "There are no remote connections")
        (setq source
 	     ;; Likely, the source remote connection is broken.  So we
 	     ;; shall avoid any action on it.
@@ -367,15 +367,15 @@ The remote connection identified by SOURCE is flushed by
      (list source target)))
 
   (unless (tramp-tramp-file-p source)
-    (tramp-user-error nil "Source %s must be remote." source))
+    (tramp-user-error nil "Source %s must be remote" source))
   (when (null target)
     (or (setq target (tramp-default-rename-file source))
 	(tramp-user-error
 	 nil
 	 (concat "There is no target specified.  "
-		 "Check `tramp-default-rename-alist' for a proper entry."))))
+		 "Check `tramp-default-rename-alist' for a proper entry"))))
   (when (tramp-equal-remote source target)
-    (tramp-user-error nil "Source and target must have different remote."))
+    (tramp-user-error nil "Source and target must have different remote"))
 
   ;; Append local file name if none is specified.
   (when (string-equal (file-remote-p target) target)
@@ -461,7 +461,7 @@ For details, see `tramp-rename-files'."
 	  nil
 	  (substitute-command-keys
 	   (concat "Current buffer is not remote.  "
-		   "Consider `\\[tramp-rename-files]' instead.")))
+		   "Consider `\\[tramp-rename-files]' instead")))
        (setq target
 	     (when (null current-prefix-arg)
 	       ;; The source remote connection shall not trigger any action.

@@ -180,6 +180,15 @@ static timezone_t const utc_tz = 0;
 static struct tm *
 emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
 {
+#ifdef WINDOWSNT
+  /* The Windows CRT functions are "optimized for speed", so they don't
+     check for timezone and DST changes if they were last called less
+     than 1 minute ago (see http://support.microsoft.com/kb/821231).
+     So all Emacs features that repeatedly call time functions (e.g.,
+     display-time) are in real danger of missing timezone and DST
+     changes.  Calling tzset before each localtime call fixes that.  */
+  tzset ();
+#endif
   tm = localtime_rz (tz, t, tm);
   if (!tm && errno == ENOMEM)
     memory_full (SIZE_MAX);

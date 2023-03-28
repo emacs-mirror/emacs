@@ -3565,11 +3565,13 @@ font spec.  In these cases, replacing ":weight 'normal" with ":weight
 'medium" should fix the issue.
 
 ---
-** Keymap descriptions have changed.
+** Keymap descriptions by Help commands have changed.
 'help--describe-command', 'C-h b' and associated functions that output
 keymap descriptions have changed.  In particular, prefix commands are
-not output at all, and instead of "??" for closures/functions,
-"[closure]"/"[lambda]" is output.
+not output at all, and instead of "??" for closures/functions, these
+functions output "[closure]"/"[lambda]".  You can get back the old
+behavior of including prefix commands by customizing the new option
+'describe-bindings-show-prefix-commands' to a non-nil value.
 
 ---
 ** 'downcase' details have changed slightly.

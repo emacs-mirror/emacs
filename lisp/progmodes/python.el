@@ -5854,7 +5854,14 @@ statement."
   (save-excursion
     (python-nav-beginning-of-statement)
     (when (and (not (python-syntax-context-type))
-               (looking-at (python-rx dedenter)))
+               (looking-at (python-rx dedenter))
+               ;; Exclude the first "case" in the block.
+               (not (and (string= (match-string-no-properties 0)
+                                  "case")
+                         (save-excursion
+                           (back-to-indentation)
+                           (python-util-forward-comment -1)
+                           (equal (char-before) ?:)))))
       (point))))
 
 (defun python-info-line-ends-backslash-p (&optional line-number)

@@ -436,7 +436,7 @@ Otherwise, return NAME."
 		     crypt-vec (if (eq op 'encrypt) "encode" "decode")
 		     tramp-compat-temporary-file-directory localname)
 	      (tramp-error
-	       crypt-vec 'file-error "%s of file name %s failed."
+	       crypt-vec 'file-error "%s of file name %s failed"
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
@@ -471,7 +471,7 @@ Raise an error if this fails."
 	       (file-name-directory infile)
 	       (concat "/" (file-name-nondirectory infile)))
 	(tramp-error
-	 crypt-vec 'file-error "%s of file %s failed."
+	 crypt-vec 'file-error "%s of file %s failed"
 	 (if (eq op 'encrypt) "Encrypting" "Decrypting") infile))
       (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	(write-region nil nil outfile)))))
@@ -495,11 +495,11 @@ directory.  File names will be also encrypted."
   ;; (declare (completion tramp-crypt-command-completion-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
-    (tramp-user-error nil "Feature is not enabled."))
+    (tramp-user-error nil "Feature is not enabled"))
   (unless (and (tramp-tramp-file-p name) (file-directory-p name))
-    (tramp-user-error nil "%s must be an existing remote directory." name))
+    (tramp-user-error nil "%s must be an existing remote directory" name))
   (when (file-name-quoted-p name)
-    (tramp-user-error nil "%s must not be quoted." name))
+    (tramp-user-error nil "%s must not be quoted" name))
   (setq name (file-name-as-directory (expand-file-name name)))
   (unless (member name tramp-crypt-directories)
     (setq tramp-crypt-directories (cons name tramp-crypt-directories)))
@@ -518,7 +518,7 @@ kept in their encrypted form."
   ;; (declare (completion tramp-crypt-command-completion-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
-    (tramp-user-error nil "Feature is not enabled."))
+    (tramp-user-error nil "Feature is not enabled"))
   (setq name (file-name-as-directory (expand-file-name name)))
   (when (and (member name tramp-crypt-directories)
 	     (delete

@@ -271,7 +271,7 @@ instead the assignment is turned into something equivalent to
     (SETTER ARGS... temp)
     temp)
 so as to preserve the semantics of `setf'."
-  (declare (debug (sexp (&or symbolp lambda-expr) &optional sexp)))
+  (declare (debug (sexp [&or symbolp lambda-expr] &optional sexp)))
   (when (eq 'lambda (car-safe setter))
     (message "Use `gv-define-setter' or name %s's setter function" name))
   `(gv-define-setter ,name (val &rest args)
