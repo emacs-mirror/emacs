@@ -3594,14 +3594,14 @@ get_narrowed_len (struct window *w)
   return get_narrowed_width (w) * max (1, height);
 }
 
-ptrdiff_t
+static ptrdiff_t
 get_medium_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
   return max ((pos / len - 1) * len, BEGV);
 }
 
-ptrdiff_t
+static ptrdiff_t
 get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);

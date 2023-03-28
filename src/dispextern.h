@@ -3409,8 +3409,6 @@ void mark_window_display_accurate (Lisp_Object, bool);
 void redisplay_preserve_echo_area (int);
 void init_iterator (struct it *, struct window *, ptrdiff_t,
                     ptrdiff_t, struct glyph_row *, enum face_id);
-ptrdiff_t get_medium_narrowing_begv (struct window *, ptrdiff_t);
-ptrdiff_t get_medium_narrowing_zv (struct window *, ptrdiff_t);
 ptrdiff_t get_small_narrowing_begv (struct window *, ptrdiff_t);
 ptrdiff_t get_large_narrowing_begv (ptrdiff_t);
 ptrdiff_t get_large_narrowing_zv (ptrdiff_t);
