@@ -1863,6 +1863,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (unless (eglot--stay-out-of-p 'xref)
       (add-hook 'xref-backend-functions 'eglot-xref-backend nil t))
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
+    (add-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush nil t)
+    (add-hook 'company-after-completion-hook #'eglot--capf-session-flush nil t)
     (add-hook 'change-major-mode-hook #'eglot--managed-mode-off nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
@@ -1894,6 +1896,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
+    (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
+    (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
@@ -2896,6 +2900,13 @@ for which LSP on-type-formatting should be requested."
                       :trimFinalNewlines (if delete-trailing-lines t :json-false))
        args)))))
 
+(defvar eglot-cache-session-completions t
+  "If non-nil Eglot caches data during completion sessions.")
+
+(defvar eglot--capf-session :none "A cache used by `eglot-completion-at-point'.")
+
+(defun eglot--capf-session-flush (&optional _) (setq eglot--capf-session :none))
+
 (defun eglot-completion-at-point ()
   "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
@@ -2911,40 +2922,50 @@ for which LSP on-type-formatting should be requested."
                                :sortText)))))
            (metadata `(metadata (category . eglot)
                                 (display-sort-function . ,sort-completions)))
-           resp items (cached-proxies :none)
+           (local-cache :none)
+           (bounds (bounds-of-thing-at-point 'symbol))
+           (orig-pos (point))
+           (resolved (make-hash-table))
            (proxies
             (lambda ()
-              (if (listp cached-proxies) cached-proxies
-                (setq resp
-                      (eglot--request server
-                                       :textDocument/completion
-                                       (eglot--CompletionParams)
-                                       :cancel-on-input t))
-                (setq items (append
-                             (if (vectorp resp) resp (plist-get resp :items))
-                             nil))
-                (setq cached-proxies
-                      (mapcar
-                       (jsonrpc-lambda
-                           (&rest item &key label insertText insertTextFormat
-                                  textEdit &allow-other-keys)
-                         (let ((proxy
-                                ;; Snippet or textEdit, it's safe to
-                                ;; display/insert the label since
-                                ;; it'll be adjusted.  If no usable
-                                ;; insertText at all, label is best,
-                                ;; too.
-                                (cond ((or (eql insertTextFormat 2)
-                                           textEdit
-                                           (null insertText)
-                                           (string-empty-p insertText))
-                                       (string-trim-left label))
-                                      (t insertText))))
-                           (unless (zerop (length proxy))
-                             (put-text-property 0 1 'eglot--lsp-item item proxy))
-                           proxy))
-                       items)))))
-           (resolved (make-hash-table))
+              (if (listp local-cache) local-cache
+                (let* ((resp (eglot--request server
+                                             :textDocument/completion
+                                             (eglot--CompletionParams)
+                                             :cancel-on-input t))
+                       (items (append
+                               (if (vectorp resp) resp (plist-get resp :items))
+                               nil))
+                       (cachep (and (listp resp) items
+                                    eglot-cache-session-completions
+                                    (eq (plist-get resp :isIncomplete) :json-false)))
+                       (bounds (or bounds
+                                   (cons (point) (point))))
+                       (proxies
+                        (mapcar
+                         (jsonrpc-lambda
+                             (&rest item &key label insertText insertTextFormat
+                                    textEdit &allow-other-keys)
+                           (let ((proxy
+                                  ;; Snippet or textEdit, it's safe to
+                                  ;; display/insert the label since
+                                  ;; it'll be adjusted.  If no usable
+                                  ;; insertText at all, label is best,
+                                  ;; too.
+                                  (cond ((or (eql insertTextFormat 2)
+                                             textEdit
+                                             (null insertText)
+                                             (string-empty-p insertText))
+                                         (string-trim-left label))
+                                        (t insertText))))
+                             (unless (zerop (length proxy))
+                               (put-text-property 0 1 'eglot--lsp-item item proxy))
+                             proxy))
+                         items)))
+                  ;; (trace-values "Requested" (length proxies) cachep bounds)
+                  (setq eglot--capf-session
+                        (if cachep (list bounds proxies resolved orig-pos) :none))
+                  (setq local-cache proxies)))))
            (resolve-maybe
             ;; Maybe completion/resolve JSON object `lsp-comp' into
             ;; another JSON object, if at all possible.  Otherwise,
@@ -2957,11 +2978,19 @@ for which LSP on-type-formatting should be requested."
                                  (plist-get lsp-comp :data))
                             (eglot--request server :completionItem/resolve
                                             lsp-comp :cancel-on-input t)
-                          lsp-comp)))))
-           (bounds (bounds-of-thing-at-point 'symbol)))
+                          lsp-comp))))))
+      (unless bounds (setq bounds (cons (point) (point))))
+      (when (and (consp eglot--capf-session)
+                 (= (car bounds) (car (nth 0 eglot--capf-session)))
+                 (>= (cdr bounds) (cdr (nth 0 eglot--capf-session))))
+        (setq local-cache (nth 1 eglot--capf-session)
+              resolved (nth 2 eglot--capf-session)
+              orig-pos (nth 3 eglot--capf-session))
+        ;; (trace-values "Recalling cache" (length local-cache) bounds orig-pos)
+        )
       (list
-       (or (car bounds) (point))
-       (or (cdr bounds) (point))
+       (car bounds)
+       (cdr bounds)
        (lambda (probe pred action)
          (cond
           ((eq action 'metadata) metadata)               ; metadata
@@ -3032,7 +3061,7 @@ for which LSP on-type-formatting should be requested."
        :company-require-match 'never
        :company-prefix-length
        (save-excursion
-         (when (car bounds) (goto-char (car bounds)))
+         (goto-char (car bounds))
          (when (listp completion-capability)
            (looking-back
             (regexp-opt
@@ -3040,6 +3069,7 @@ for which LSP on-type-formatting should be requested."
             (eglot--bol))))
        :exit-function
        (lambda (proxy status)
+         (eglot--capf-session-flush)
          (when (memq status '(finished exact))
            ;; To assist in using this whole `completion-at-point'
            ;; function inside `completion-in-region', ensure the exit
@@ -3063,17 +3093,12 @@ for which LSP on-type-formatting should be requested."
                (let ((snippet-fn (and (eql insertTextFormat 2)
                                       (eglot--snippet-expansion-fn))))
                  (cond (textEdit
-                        ;; Undo (yes, undo) the newly inserted completion.
-                        ;; If before completion the buffer was "foo.b" and
-                        ;; now is "foo.bar", `proxy' will be "bar".  We
-                        ;; want to delete only "ar" (`proxy' minus the
-                        ;; symbol whose bounds we've calculated before)
-                        ;; (github#160).
-                        (delete-region (+ (- (point) (length proxy))
-                                          (if bounds
-                                              (- (cdr bounds) (car bounds))
-                                            0))
-                                       (point))
+                        ;; Revert buffer back to state when the edit
+                        ;; was obtained from server. If a `proxy'
+                        ;; "bar" was obtained from a buffer with
+                        ;; "foo.b", the LSP edit applies to that'
+                        ;; state, _not_ the current "foo.bar".
+                        (delete-region orig-pos (point))
                         (eglot--dbind ((TextEdit) range newText) textEdit
                           (pcase-let ((`(,beg . ,end)
                                        (eglot--range-region range)))
