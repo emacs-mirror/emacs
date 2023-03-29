@@ -1224,8 +1224,8 @@ boundaries."
        :url website
        :keywords keywords
        :maintainer
-       ;; For backward compatibility, use a single string if there's only
-       ;; one maintainer (the most common case).
+       ;; For backward compatibility, use a single cons-cell if
+       ;; there's only one maintainer (the most common case).
        (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
 
@@ -2736,7 +2736,8 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainer (cdr (assoc :maintainer extras)))
+         (maintainers (or (cdr (assoc :maintainers extras))
+                          (cdr (assoc :maintainer extras))))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
@@ -2871,19 +2872,21 @@ Helper function for `describe-package'."
          'action 'package-keyword-button-action)
         (insert " "))
       (insert "\n"))
-    (when maintainer
-      (package--print-help-section "Maintainer")
-      (package--print-email-button maintainer))
-    (when authors
+    (when maintainers
+      (unless (proper-list-p maintainers)
+        (setq maintainers (list maintainers)))
       (package--print-help-section
-          (if (= (length authors) 1)
-              "Author"
-            "Authors"))
-      (package--print-email-button (pop authors))
-      ;; If there's more than one author, indent the rest correctly.
-      (dolist (name authors)
-        (insert (make-string 13 ?\s))
-        (package--print-email-button name)))
+          (if (cdr maintainers) "Maintainers" "Maintainer"))
+      (dolist (maintainer maintainers)
+        (when (bolp)
+          (insert (make-string 13 ?\s)))
+        (package--print-email-button maintainer)))
+    (when authors
+      (package--print-help-section (if (cdr authors) "Authors" "Author"))
+      (dolist (author authors)
+        (when (bolp)
+          (insert (make-string 13 ?\s)))
+        (package--print-email-button author)))
     (let* ((all-pkgs (append (cdr (assq name package-alist))
                              (cdr (assq name package-archive-contents))
                              (let ((bi (assq name package--builtins)))
