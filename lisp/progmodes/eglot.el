@@ -916,7 +916,7 @@ SERVER."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (jsonrpc-request server :shutdown nil :timeout (or timeout 1.5))
+        (eglot--request server :shutdown nil :timeout (or timeout 1.5))
         (jsonrpc-notify server :exit nil))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
@@ -1468,6 +1468,18 @@ CONNECT-ARGS are passed as additional arguments to
     (lambda (&optional n) (let ((inhibit-field-text-motion t))
                             (line-beginning-position n))))
   "Return position of first character in current line.")
+
+(cl-defun eglot--request (server method params &key
+                                 immediate
+                                 timeout cancel-on-input
+                                 cancel-on-input-retval)
+  "Like `jsonrpc-request', but for Eglot LSP requests.
+Unless IMMEDIATE, send pending changes before making request."
+  (unless immediate (eglot--signal-textDocument/didChange))
+  (jsonrpc-request server method params
+                   :timeout timeout
+                   :cancel-on-input cancel-on-input
+                   :cancel-on-input-retval cancel-on-input-retval))
 
 
 ;;; Encoding fever
@@ -2148,8 +2160,8 @@ still unanswered LSP requests to the server\n")))
   (server command arguments)
   "Execute COMMAND on SERVER with `:workspace/executeCommand'.
 COMMAND is a symbol naming the command."
-  (jsonrpc-request server :workspace/executeCommand
-                   `(:command ,(format "%s" command) :arguments ,arguments)))
+  (eglot--request server :workspace/executeCommand
+                  `(:command ,(format "%s" command) :arguments ,arguments)))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/showMessage)) &key type message)
@@ -2453,16 +2465,6 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
                               (run-hooks 'eglot--document-changed-hook)
                               (setq eglot--change-idle-timer nil))))))))
 
-;; HACK! Launching a deferred sync request with outstanding changes is a
-;; bad idea, since that might lead to the request never having a
-;; chance to run, because `jsonrpc-connection-ready-p'.
-(advice-add #'jsonrpc-request :before
-            (cl-function (lambda (_proc _method _params &key
-                                        deferred &allow-other-keys)
-                           (when (and eglot--managed-mode deferred)
-                             (eglot--signal-textDocument/didChange))))
-            '((name . eglot--signal-textDocument/didChange)))
-
 (defvar-local eglot-workspace-configuration ()
   "Configure LSP servers specifically for a given project.
 
@@ -2615,8 +2617,8 @@ When called interactively, use the currently active server"
     (when (eglot--server-capable :textDocumentSync :willSaveWaitUntil)
       (ignore-errors
         (eglot--apply-text-edits
-         (jsonrpc-request server :textDocument/willSaveWaitUntil params
-                          :timeout 0.5))))))
+         (eglot--request server :textDocument/willSaveWaitUntil params
+                         :timeout 0.5))))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Maybe send textDocument/didSave to server."
@@ -2728,8 +2730,8 @@ If BUFFER, switch to it before."
                   (propertize (alist-get kind eglot--symbol-kind-names "Unknown")
                               'face 'shadow))
           'eglot--lsp-workspaceSymbol wss)))
-     (jsonrpc-request (eglot--current-server-or-lose) :workspace/symbol
-                      `(:query ,pat)))))
+     (eglot--request (eglot--current-server-or-lose) :workspace/symbol
+                     `(:query ,pat)))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   "Yet another tricky connection between LSP and Elisp completion semantics."
@@ -2785,7 +2787,7 @@ If BUFFER, switch to it before."
                 (cadr (split-string (symbol-name method)
                                     "/"))))))
   (let ((response
-         (jsonrpc-request
+         (eglot--request
           (eglot--current-server-or-lose)
           method (append (eglot--TextDocumentPositionParams) extra-params))))
     (eglot--collecting-xrefs (collect)
@@ -2848,9 +2850,9 @@ If BUFFER, switch to it before."
        (eglot--lambda ((SymbolInformation) name location)
          (eglot--dbind ((Location) uri range) location
            (collect (eglot--xref-make-match name uri range))))
-       (jsonrpc-request (eglot--current-server-or-lose)
-                        :workspace/symbol
-                        `(:query ,pattern))))))
+       (eglot--request (eglot--current-server-or-lose)
+                       :workspace/symbol
+                       `(:query ,pattern))))))
 
 (defun eglot-format-buffer ()
   "Format contents of current buffer."
@@ -2882,7 +2884,7 @@ for which LSP on-type-formatting should be requested."
                  '(:textDocument/formatting :documentFormattingProvider nil)))))
     (eglot--server-capable-or-lose cap)
     (eglot--apply-text-edits
-     (jsonrpc-request
+     (eglot--request
       (eglot--current-server-or-lose)
       method
       (cl-list*
@@ -2891,8 +2893,7 @@ for which LSP on-type-formatting should be requested."
                       :insertSpaces (if indent-tabs-mode :json-false t)
                       :insertFinalNewline (if require-final-newline t :json-false)
                       :trimFinalNewlines (if delete-trailing-lines t :json-false))
-       args)
-      :deferred method))))
+       args)))))
 
 (defun eglot-completion-at-point ()
   "Eglot's `completion-at-point' function."
@@ -2914,10 +2915,9 @@ for which LSP on-type-formatting should be requested."
             (lambda ()
               (if (listp cached-proxies) cached-proxies
                 (setq resp
-                      (jsonrpc-request server
+                      (eglot--request server
                                        :textDocument/completion
                                        (eglot--CompletionParams)
-                                       :deferred :textDocument/completion
                                        :cancel-on-input t))
                 (setq items (append
                              (if (vectorp resp) resp (plist-get resp :items))
@@ -2954,8 +2954,8 @@ for which LSP on-type-formatting should be requested."
                         (if (and (eglot--server-capable :completionProvider
                                                         :resolveProvider)
                                  (plist-get lsp-comp :data))
-                            (jsonrpc-request server :completionItem/resolve
-                                             lsp-comp :cancel-on-input t)
+                            (eglot--request server :completionItem/resolve
+                                            lsp-comp :cancel-on-input t)
                           lsp-comp)))))
            (bounds (bounds-of-thing-at-point 'symbol)))
       (list
@@ -3255,11 +3255,11 @@ Returns a list as described in docstring of `imenu--index-alist'."
      (seq-group-by
       (lambda (obj) (plist-get obj :kind))
       (mapcan #'unfurl
-              (jsonrpc-request (eglot--current-server-or-lose)
-                               :textDocument/documentSymbol
-                               `(:textDocument
-                                 ,(eglot--TextDocumentIdentifier))
-                               :cancel-on-input non-essential))))))
+              (eglot--request (eglot--current-server-or-lose)
+                              :textDocument/documentSymbol
+                              `(:textDocument
+                                ,(eglot--TextDocumentIdentifier))
+                              :cancel-on-input non-essential))))))
 
 (cl-defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
@@ -3330,9 +3330,9 @@ Returns a list as described in docstring of `imenu--index-alist'."
           (symbol-name (symbol-at-point)))))
   (eglot--server-capable-or-lose :renameProvider)
   (eglot--apply-workspace-edit
-   (jsonrpc-request (eglot--current-server-or-lose)
-                    :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-                                           :newName ,newname))
+   (eglot--request (eglot--current-server-or-lose)
+                   :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+                                          :newName ,newname))
    current-prefix-arg))
 
 (defun eglot--region-bounds ()
@@ -3358,7 +3358,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (eglot--server-capable-or-lose :codeActionProvider)
   (let* ((server (eglot--current-server-or-lose))
          (actions
-          (jsonrpc-request
+          (eglot--request
            server
            :textDocument/codeAction
            (list :textDocument (eglot--TextDocumentIdentifier)
@@ -3370,8 +3370,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                when (cdr (assoc 'eglot-lsp-diag
                                                 (eglot--diag-data diag)))
                                collect it)]
-                   ,@(when action-kind `(:only [,action-kind]))))
-           :deferred t))
+                   ,@(when action-kind `(:only [,action-kind]))))))
          ;; Redo filtering, in case the `:only' didn't go through.
          (actions (cl-loop for a across actions
                            when (or (not action-kind)
