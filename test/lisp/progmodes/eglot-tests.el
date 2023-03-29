@@ -1284,6 +1284,7 @@ macro will assume it exists."
   (let* ((tramp-remote-path (cons 'tramp-own-remote-path
                                   tramp-remote-path))
          (tramp-histfile-override t)
+         (tramp-allow-unsafe-temporary-files t)
          (tramp-verbose 1)
          (temporary-file-directory
           (or (bound-and-true-p ert-remote-temporary-file-directory)
