@@ -64,8 +64,9 @@ The action to be taken can be further customized via
   :version "28.1"
   :type 'regexp)
 
-(defcustom eww-download-directory "~/Downloads/"
-  "Default directory where `eww' saves downloaded files."
+(defcustom eww-default-download-directory "~/Downloads/"
+  "Default directory where `eww' saves downloaded files.
+Used by `eww--download-directory', which see."
   :version "29.1"
   :group 'eww
   :type 'directory)
@@ -76,10 +77,10 @@ The default is specified by `eww-download-directory'; however,
 if that directory doesn't exist and the DOWNLOAD XDG user directory
 is defined, use the latter instead."
   (or (and (file-exists-p eww-download-directory)
-           eww-download-directory)
+           eww-default-download-directory)
       (when-let ((dir (xdg-user-dir "DOWNLOAD")))
         (file-name-as-directory dir))
-      eww-download-directory))
+      eww-default-download-directory))
 
 (defcustom eww-download-directory 'eww--download-directory
   "Directory where files will downloaded.
