@@ -1,5 +1,5 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
-@setfilename ../info/tramp
+@setfilename ../../info/tramp.info
 @c %**start of header
 @include docstyle.texi
 @c In the Tramp GIT, the version number and the bug report address
@@ -2372,10 +2372,11 @@ This uses also the settings in @code{tramp-sh-extra-args}.
 @vindex RemoteCommand@r{, ssh option}
 @strong{Note}: If you use an @option{ssh}-based method for connection,
 do @emph{not} set the @option{RemoteCommand} option in your
-@command{ssh} configuration, for example to @command{screen}.  On the
-other hand, some @option{ssh}-based methods, like @option{sshx} or
-@option{scpx}, silently overwrite a @option{RemoteCommand} option of
-the configuration file.
+@command{ssh} configuration to something like @command{screen}.  If
+used, @option{RemoteCommand} must open an interactive shell on the
+remote host.  On the other hand, some @option{ssh}-based methods, like
+@option{sshx} or @option{scpx}, silently overwrite a
+@option{RemoteCommand} option of the configuration file.
 
 
 @subsection Other remote shell setup hints
