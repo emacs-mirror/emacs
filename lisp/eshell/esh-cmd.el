@@ -293,6 +293,17 @@ CDR are the same process.
 
 When the process in the CDR completes, resume command evaluation.")
 
+(defvar eshell-allow-commands t
+  "If non-nil, allow evaluating command forms (including Lisp forms).
+If you want to forbid command forms, you can let-bind this to a
+non-nil value before calling `eshell-do-eval'.  Then, any command
+forms will signal `eshell-commands-forbidden'.  This is useful
+if, for example, you want to evaluate simple expressions like
+variable expansions, but not fully-evaluate the command.  See
+also `eshell-complete-parse-arguments'.")
+
+(define-error 'eshell-commands-forbidden "Commands forbidden")
+
 ;;; Functions:
 
 (defsubst eshell-interactive-process-p ()
@@ -675,13 +686,13 @@ This means an exit code of 0."
 	   (or (= (point-max) (1+ (point)))
 	       (not (eq (char-after (1+ (point))) ?\}))))
       (let ((end (eshell-find-delimiter ?\{ ?\})))
-	(if (not end)
-            (throw 'eshell-incomplete "{")
-	  (when (eshell-arg-delimiter (1+ end))
-	    (prog1
-		`(eshell-as-subcommand
-                  ,(eshell-parse-command (cons (1+ (point)) end)))
-	      (goto-char (1+ end))))))))
+        (unless end
+          (throw 'eshell-incomplete "{"))
+        (when (eshell-arg-delimiter (1+ end))
+          (prog1
+              `(eshell-as-subcommand
+                ,(eshell-parse-command (cons (1+ (point)) end)))
+            (goto-char (1+ end)))))))
 
 (defun eshell-parse-lisp-argument ()
   "Parse a Lisp expression which is specified as an argument."
@@ -1168,7 +1179,7 @@ have been replaced by constants."
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
        ((eq (car form) 'let)
-        (when (not (eq (car (cadr args)) 'eshell-do-eval))
+        (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
           (eshell-manipulate "evaluating let args"
             (dolist (letarg (car args))
               (when (and (listp letarg)
@@ -1328,6 +1339,8 @@ have been replaced by constants."
 (defun eshell-named-command (command &optional args)
   "Insert output from a plain COMMAND, using ARGS.
 COMMAND may result in an alias being executed, or a plain command."
+  (unless eshell-allow-commands
+    (signal 'eshell-commands-forbidden '(named)))
   (setq eshell-last-arguments args
 	eshell-last-command-name (eshell-stringify command))
   (run-hook-with-args 'eshell-prepare-command-hook)
@@ -1465,6 +1478,8 @@ via `eshell-errorn'."
 
 (defun eshell-lisp-command (object &optional args)
   "Insert Lisp OBJECT, using ARGS if a function."
+  (unless eshell-allow-commands
+    (signal 'eshell-commands-forbidden '(lisp)))
   (catch 'eshell-external               ; deferred to an external command
     (setq eshell-last-command-status 0
           eshell-last-arguments args)
