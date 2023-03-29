@@ -5910,6 +5910,14 @@ For internal use.  */);
   Vcomp_loaded_comp_units_h =
     CALLN (Fmake_hash_table, QCweakness, Qvalue, QCtest, Qequal);
 
+  DEFVAR_LISP ("comp-subr-arities-h", Vcomp_subr_arities_h,
+    doc: /* Hash table recording the arity of Lisp primitives.
+This is in case they are redefined so the compiler still knows how to
+compile calls to them.
+subr-name -> arity
+For internal use.  */);
+  Vcomp_subr_arities_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+
   Fprovide (intern_c_string ("native-compile"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
