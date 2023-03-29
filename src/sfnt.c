@@ -7567,7 +7567,7 @@ sfnt_move_zp1 (struct sfnt_interpreter *interpreter, uint32_t point,
 }
 
 /* Move N points starting from the specified POINT in the zone
-   addressed by INTERPRETER's ZP1 register by the given DISTANCE along
+   addressed by INTERPRETER's ZP2 register by the given DISTANCE along
    the freedom vector.
 
    No checking is done to ensure that POINT lies inside the zone, or
@@ -9526,7 +9526,7 @@ sfnt_validate_gs (struct sfnt_graphics_state *gs)
      aligned to an axis.  */
 
   if (gs->freedom_vector.x == 040000
-      && gs->projection_vector.y == 040000)
+      && gs->projection_vector.x == 040000)
     gs->move = sfnt_move_x;
   else if (gs->freedom_vector.y == 040000
 	   && gs->projection_vector.y == 040000)
