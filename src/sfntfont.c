@@ -2504,6 +2504,15 @@ sfntfont_setup_interpreter (struct sfnt_font_info *info,
   if (!fpgm && !prep)
     goto bail;
 
+  /* If the interpreter does not use the operand stack at all, it is
+     useless.  In addition, some broken fonts specify some unnecessary
+     instructions in prep and set head->max_stack_elements to 0.
+
+     Don't create the interpreter in that case.  */
+
+  if (!info->maxp->max_stack_elements)
+    goto bail;
+
   /* Now, create the interpreter using the limits in info->maxp and
      info->head.  CVT can be NULL.  */
 
