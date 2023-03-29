@@ -3068,6 +3068,22 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 
 	  sfnt_normalize_blend (&font_info->blend);
 
+	  /* Test whether or not the instance is actually redundant,
+	     as all of its axis are at their default values.  If so,
+	     free the instance.  */
+
+	  for (i = 0; i < desc->tables->fvar->axis_count; ++i)
+	    {
+	      if (font_info->blend.norm_coords[i])
+		break;
+	    }
+
+	  if (i == desc->tables->fvar->axis_count)
+	    {
+	      sfnt_free_blend (&font_info->blend);
+	      goto cancel_blend;
+	    }
+
 	  /* If an interpreter was specified, distort it now.  */
 
 	  if (font_info->interpreter)
@@ -3089,6 +3105,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
 	}
     }
 
+ cancel_blend:
   /* Calculate the xfld name.  */
   font->props[FONT_NAME_INDEX] = Ffont_xlfd_name (font_object, Qnil);
 
