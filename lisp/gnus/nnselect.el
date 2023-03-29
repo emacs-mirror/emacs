@@ -895,13 +895,17 @@ article came from is also searched."
     ;; collect the set of marked article lists categorized by
     ;; originating groups
     (pcase-dolist (`(,mark . ,type) gnus-article-mark-lists)
-      (let (type-list)
-	(when (setq type-list
-		    (symbol-value (intern (format "gnus-newsgroup-%s" mark))))
-	  (push (cons
-		 type
-		 (numbers-by-group type-list (gnus-article-mark-to-type type)))
-		mark-list))))
+      (let ((mark-type (gnus-article-mark-to-type type))
+            (type-list (symbol-value
+                        (intern (format "gnus-newsgroup-%s" mark)))))
+        (when type-list
+          (unless (eq 'tuple mark-type)
+            (setq type-list (range-list-intersection
+                             gnus-newsgroup-articles type-list)))
+          (push (cons
+                 type
+                 (numbers-by-group type-list mark-type))
+                mark-list))))
     ;; now work on each originating group one at a time
     (pcase-dolist (`(,artgroup . ,artlist)
 		   (numbers-by-group gnus-newsgroup-articles))
