@@ -689,6 +689,10 @@ To record all your input, use `open-dribble-file'."
       (with-current-buffer standard-output
 	(goto-char (point-min))
 	(let ((comment-start ";; ")
+              ;; Prevent 'comment-indent' from handling a single
+              ;; semicolon as the beginning of a comment.
+              (comment-start-skip ";; ")
+              (comment-use-syntax nil)
               (comment-column 24))
           (while (not (eobp))
             (comment-indent)
