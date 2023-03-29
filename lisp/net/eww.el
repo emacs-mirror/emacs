@@ -76,7 +76,7 @@ Used by `eww--download-directory', which see."
 The default is specified by `eww-download-directory'; however,
 if that directory doesn't exist and the DOWNLOAD XDG user directory
 is defined, use the latter instead."
-  (or (and (file-exists-p eww-download-directory)
+  (or (and (file-exists-p eww-default-download-directory)
            eww-default-download-directory)
       (when-let ((dir (xdg-user-dir "DOWNLOAD")))
         (file-name-as-directory dir))
