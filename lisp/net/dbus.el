@@ -371,7 +371,11 @@ object is returned instead of a list containing this single Lisp object.
 	 (apply
           #'dbus-message-internal dbus-message-type-method-call
           bus service path interface method #'dbus-call-method-handler args))
-        (result (cons :pending nil)))
+        (result (unless executing-kbd-macro (cons :pending nil))))
+
+    ;; While executing a keyboard macro, we run into an infinite loop,
+    ;; receiving the event -1.  So we don't try to get the result.
+    ;; (Bug#62018)
 
     ;; Wait until `dbus-call-method-handler' has put the result into
     ;; `dbus-return-values-table'.  If no timeout is given, use the
