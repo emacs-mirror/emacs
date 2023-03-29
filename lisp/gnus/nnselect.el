@@ -884,13 +884,14 @@ article came from is also searched."
 
 
 
-(defun nnselect-push-info (group)
+(defun nnselect-push-info (_group)
   "Copy mark-lists from GROUP to the originating groups."
   (let ((select-unreads (numbers-by-group gnus-newsgroup-unreads))
-	(select-reads (numbers-by-group
-		       (gnus-info-read (gnus-get-info group)) 'range))
-	(select-unseen (numbers-by-group gnus-newsgroup-unseen))
-	(gnus-newsgroup-active nil) mark-list)
+        (select-reads (numbers-by-group
+                       (gnus-sorted-difference gnus-newsgroup-articles
+                                               gnus-newsgroup-unreads)))
+        (select-unseen (numbers-by-group gnus-newsgroup-unseen))
+        (gnus-newsgroup-active nil) mark-list)
     ;; collect the set of marked article lists categorized by
     ;; originating groups
     (pcase-dolist (`(,mark . ,type) gnus-article-mark-lists)
