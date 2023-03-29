@@ -3580,10 +3580,14 @@ init_iterator (struct it *it, struct window *w,
 static int
 get_narrowed_width (struct window *w)
 {
+  bool term = EQ (Fterminal_live_p (Qnil), Qt);
   /* In a character-only terminal, only one font size is used, so we
      can use a smaller factor.  */
-  int fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
-  int width = window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+  int fact = term ? 2 : 3;
+  /* In a character-only terminal, subtract 1 from the width for the
+     '\' line wrapping character.  */
+  int width = window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS)
+    - (term ? 1 : 0);
   return fact * max (1, width);
 }
 
