@@ -119,8 +119,6 @@
 (defconst tramp-gvfs-enabled
   (ignore-errors
     (and (featurep 'dbusbind)
-	 (autoload 'zeroconf-init "zeroconf")
-	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
 	 (or (tramp-process-running-p "gvfs-fuse-daemon")
 	     (tramp-process-running-p "gvfsd-fuse"))))
@@ -223,6 +221,13 @@ It has been changed in GVFS 1.14.")
     "listMountTypes")
   "The name of the \"listMountTypes\" method.
 It has been changed in GVFS 1.14.")
+
+(defconst tramp-gvfs-mounttypes
+  (and tramp-gvfs-enabled
+       (dbus-call-method
+	:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	tramp-gvfs-interface-mounttracker tramp-gvfs-listmounttypes))
+  "The list of supported mount types of the mount tracking interface.")
 
 (defconst tramp-gvfs-listmounts
   (if (member "ListMounts" tramp-gvfs-methods-mounttracker)
@@ -2188,11 +2193,7 @@ connection if a previous connection has died for some reason."
 				  ("afp". "afp-volume")
 				  ("gdrive" . "google-drive")))
 		 method)
-	     (with-tramp-dbus-call-method vec t
-	       :session tramp-gvfs-service-daemon
-	       tramp-gvfs-path-mounttracker
-	       tramp-gvfs-interface-mounttracker
-	       tramp-gvfs-listmounttypes))
+	     tramp-gvfs-mounttypes)
       (tramp-error vec 'file-error "Method `%s' not supported by GVFS" method)))
 
   ;; For password handling, we need a process bound to the connection
@@ -2538,43 +2539,45 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
   ;; Suppress D-Bus error messages and Tramp traces.
   (let ((tramp-verbose 0)
 	tramp-gvfs-dbus-event-vector fun)
-    ;; Add completion functions for services announced by DNS-SD.
-    ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
-    (zeroconf-init tramp-gvfs-zeroconf-domain)
-    (when (setq fun (or (and (zeroconf-list-service-types)
-			     #'tramp-zeroconf-parse-device-names)
-			(and (executable-find "avahi-browse")
-			     #'tramp-gvfs-parse-device-names)))
-      (when (member "afp" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "afp" `((,fun "_afpovertcp._tcp"))))
-      (when (member "dav" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "dav" `((,fun "_webdav._tcp")
-		 (,fun "_webdavs._tcp"))))
-      (when (member "davs" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "davs" `((,fun "_webdav._tcp")
-		  (,fun "_webdavs._tcp"))))
-      (when (member "ftp" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "ftp" `((,fun "_ftp._tcp"))))
-      (when (member "http" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "http" `((,fun "_http._tcp")
-		  (,fun "_https._tcp"))))
-      (when (member "https" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "https" `((,fun "_http._tcp")
-		   (,fun "_https._tcp"))))
-      (when (member "sftp" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "sftp" `((,fun "_sftp-ssh._tcp")
-		  (,fun "_ssh._tcp")
-		  (,fun "_workstation._tcp"))))
-      (when (member "smb" tramp-gvfs-methods)
-	(tramp-set-completion-function
-	 "smb" `((,fun "_smb._tcp")))))
+    (when (and (autoload 'zeroconf-init "zeroconf")
+	       (tramp-compat-funcall 'dbus-get-unique-name :system))
+      ;; Add completion functions for services announced by DNS-SD.
+      ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
+      (zeroconf-init tramp-gvfs-zeroconf-domain)
+      (when (setq fun (or (and (zeroconf-list-service-types)
+			       #'tramp-zeroconf-parse-device-names)
+			  (and (executable-find "avahi-browse")
+			       #'tramp-gvfs-parse-device-names)))
+	(when (member "afp" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "afp" `((,fun "_afpovertcp._tcp"))))
+	(when (member "dav" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "dav" `((,fun "_webdav._tcp")
+		   (,fun "_webdavs._tcp"))))
+	(when (member "davs" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "davs" `((,fun "_webdav._tcp")
+		    (,fun "_webdavs._tcp"))))
+	(when (member "ftp" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "ftp" `((,fun "_ftp._tcp"))))
+	(when (member "http" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "http" `((,fun "_http._tcp")
+		    (,fun "_https._tcp"))))
+	(when (member "https" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "https" `((,fun "_http._tcp")
+		     (,fun "_https._tcp"))))
+	(when (member "sftp" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "sftp" `((,fun "_sftp-ssh._tcp")
+		    (,fun "_ssh._tcp")
+		    (,fun "_workstation._tcp"))))
+	(when (member "smb" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "smb" `((,fun "_smb._tcp"))))))
 
     ;; Add completion functions for GNOME Online Accounts.
     (tramp-get-goa-accounts nil)
@@ -2604,9 +2607,9 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
 ;; * Host name completion for existing mount points (afp-server,
 ;;   smb-server) or via smb-network or network.
 ;;
+;; * What's up with the other types in `tramp-gvfs-mounttypes'?
+;;
 ;; * Check, how two shares of the same SMB server can be mounted in
 ;;   parallel.
-;;
-;; * What's up with ftps dns-sd afc admin computer?
 
 ;;; tramp-gvfs.el ends here
