@@ -282,6 +282,7 @@ The whitespace before and including \"|\" on each line is removed."
         (expand-file-name (format "ruby-mode-resources/%s" ,file))))))
 
 (ert-deftest ruby-ts-imenu-index ()
+  (skip-unless (treesit-ready-p 'ruby t))
   (ruby-ts-with-temp-buffer
       (ruby-ts-test-string
        "module Foo
