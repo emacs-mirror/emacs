@@ -827,6 +827,63 @@ sfnt_grok_registry (int fd, struct sfnt_font_desc *desc,
   xfree (subtables);
 }
 
+/* Return whether or not the font description PREV conflicts with the
+   newer font description DESC, and should be removed from the list of
+   system fonts.
+
+   If PREV is a variable font, potentially adjust its list of
+   instances.  */
+
+static bool
+sfnt_replace_fonts_p (struct sfnt_font_desc *prev,
+		      struct sfnt_font_desc *desc)
+{
+  int i, width, weight, slant, count_instance;
+  Lisp_Object tem;
+  bool family_equal_p;
+
+  family_equal_p = !NILP (Fstring_equal (prev->family,
+					 desc->family));
+
+  if ((!NILP (desc->instances)
+       || !NILP (Fstring_equal (prev->style, desc->style)))
+      && family_equal_p)
+    return true;
+
+  if (NILP (prev->instances) || !family_equal_p)
+    return false;
+
+  /* Look through instances in PREV to see if DESC provides the same
+     thing.  */
+
+  count_instance = 0;
+  for (i = 0; i < ASIZE (prev->instances); ++i)
+    {
+      tem = AREF (prev->instances, i);
+
+      if (NILP (tem))
+	continue;
+
+      width = XFIXNUM (AREF (tem, 2));
+      weight = XFIXNUM (AREF (tem, 3));
+      slant = XFIXNUM (AREF (tem, 4));
+
+      if (desc->width == width
+	  && desc->weight == weight
+	  && desc->slant == slant)
+	{
+	  /* Remove this instance.  */
+	  ASET (prev->instances, i, Qnil);
+	  continue;
+	}
+
+      count_instance++;
+    }
+
+  /* Remove this desc if there are no more instances.  */
+  return count_instance < 1;
+}
+
 /* Enumerate the offset subtable SUBTABLES in the file FD, whose file
    name is FILE.  OFFSET should be the offset of the subtable within
    the font file, and is recorded for future use.  Value is 1 upon
@@ -959,14 +1016,15 @@ sfnt_enum_font_1 (int fd, const char *file,
   desc->next = system_fonts;
   system_fonts = desc;
 
-  /* Remove any fonts which have the same style as this one.  */
+  /* Remove any fonts which have the same style as this one.  For
+     distortable fonts, only remove overlapping styles, unless this is
+     also a distortable font.  */
 
   next = &system_fonts->next;
   prev = *next;
   for (; *next; prev = *next)
     {
-      if (!NILP (Fstring_equal (prev->style, desc->style))
-	  && !NILP (Fstring_equal (prev->family, desc->family)))
+      if (sfnt_replace_fonts_p (prev, desc))
 	{
 	  *next = prev->next;
 	  xfree (prev);
