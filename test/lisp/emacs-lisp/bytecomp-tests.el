@@ -1462,6 +1462,12 @@ literals (Bug#20852)."
    "Warning: `condition-case' without handlers")
 
   (test-suppression
+   '(defun zot (x)
+      (unwind-protect (print x)))
+   '((suspicious unwind-protect))
+   "Warning: `unwind-protect' without unwind forms")
+
+  (test-suppression
    '(defun zot ()
       (let ((_ 1))
         ))
