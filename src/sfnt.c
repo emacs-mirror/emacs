@@ -13001,11 +13001,12 @@ sfnt_read_avar_table (int fd, struct sfnt_offset_subtable *subtable)
 
       /* Verify that words from here to buffer[1 + buffer[k] * 2], the
 	 next pairCount field, are within bounds.  */
-      if (k + 1 + buffer[k] * 2 > size / sizeof *buffer)
+      j = k + 1 + buffer[k] * 2;
+      if (j > size / sizeof *buffer)
 	goto bail1;
 
       /* Move to the next pairCount field.  */
-      k += 1 + buffer[k] * 2;
+      k = j;
     }
 
   /* Resize avar to min_size and start filling in various
