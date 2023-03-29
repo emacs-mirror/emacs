@@ -9344,7 +9344,7 @@ sfnt_dual_project_onto_any_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 }
 
 /* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
-   vector.  Set *FLAGS where appropriate and when non-NULL.
+   vector.  Set N flags in *FLAGS where appropriate and when non-NULL.
 
    Assume both vectors are aligned to the X axis.  */
 
@@ -9354,14 +9354,17 @@ sfnt_move_x (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 	     sfnt_f26dot6 distance, unsigned char *flags)
 {
   while (n--)
-    *x = sfnt_add (*x, distance);
+    {
+      *x = sfnt_add (*x, distance);
+      x++;
 
-  if (flags)
-    *flags |= SFNT_POINT_TOUCHED_X;
+      if (flags)
+	*flags++ |= SFNT_POINT_TOUCHED_X;
+    }
 }
 
 /* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
-   vector.  Set *FLAGS where appropriate and when non-NULL.
+   vector.  Set N flags in *FLAGS where appropriate and when non-NULL.
 
    Assume both vectors are aligned to the Y axis.  */
 
@@ -9371,14 +9374,18 @@ sfnt_move_y (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 	     sfnt_f26dot6 distance, unsigned char *flags)
 {
   while (n--)
-    *y = sfnt_add (*y, distance);
+    {
+      *y = sfnt_add (*y, distance);
+      y++;
 
-  if (flags)
-    *flags |= SFNT_POINT_TOUCHED_Y;
+      if (flags)
+	*flags++ |= SFNT_POINT_TOUCHED_Y;
+    }
 }
 
 /* Move N points at *X, *Y by DISTANCE along INTERPRETER's freedom
-   vector.  Set *FLAGS where appropriate and when non-NULL.  */
+   vector.  Set N flags in *FLAGS where appropriate and when
+   non-NULL.  */
 
 static void
 sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
@@ -9412,10 +9419,10 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 							  versor,
 							  dot_product));
 	  x++;
-	}
 
-      if (flags)
-	*flags |= SFNT_POINT_TOUCHED_X;
+	  if (flags)
+	    *flags++ |= SFNT_POINT_TOUCHED_X;
+	}
     }
 
   versor = interpreter->state.freedom_vector.y;
@@ -9432,10 +9439,10 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 							  versor,
 							  dot_product));
 	  y++;
-	}
 
-      if (flags)
-	*flags |= SFNT_POINT_TOUCHED_Y;
+	  if (flags)
+	    *flags++ |= SFNT_POINT_TOUCHED_Y;
+	}
     }
 }
 
