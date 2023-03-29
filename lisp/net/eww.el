@@ -73,7 +73,7 @@ Used by `eww--download-directory', which see."
 
 (defun eww--download-directory ()
   "Return the name of the EWW download directory.
-The default is specified by `eww-download-directory'; however,
+The default is specified by `eww-default-download-directory'; however,
 if that directory doesn't exist and the DOWNLOAD XDG user directory
 is defined, use the latter instead."
   (or (and (file-exists-p eww-default-download-directory)
