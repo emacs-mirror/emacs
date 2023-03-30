@@ -378,8 +378,15 @@ the option as a Lisp variable); preferably, though, it should not
 modify its value argument destructively.  The default for
 @var{setfunction} is @code{set-default-toplevel-value}.
 
+If defined, @var{setfunction} will also be called when evaluating a
+@code{defcustom} form with @kbd{C-M-x} in Emacs Lisp mode and when the
+@var{option}'s value is changed via the @code{setopt} macro
+(@pxref{Setting Variables, setopt}).
+
 If you specify this keyword, the variable's documentation string
-should describe how to do the same job in hand-written Lisp code.
+should describe how to do the same job in hand-written Lisp code,
+either by invoking @var{setfunction} directly or by using
+@code{setopt}.
 
 @item :get @var{getfunction}
 @kindex get@r{, @code{defcustom} keyword}
