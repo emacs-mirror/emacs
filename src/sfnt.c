@@ -6511,7 +6511,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (selector & 1)				\
       k |= 02;					\
 						\
-    if (selector & 8 && interpreter->n_axis)	\
+    if (selector & 8				\
+	&& interpreter->norm_coords)		\
       k |= 02000;				\
 						\
     PUSH_UNCHECKED (k);				\
