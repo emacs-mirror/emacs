@@ -1886,6 +1886,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
   (remove-overlays nil nil 'eglot--overlay t)
+  (eglot-inlay-hints-mode -1)
   (eglot--managed-mode -1))
 
 (defun eglot-current-server ()
