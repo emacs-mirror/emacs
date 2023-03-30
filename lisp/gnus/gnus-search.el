@@ -1066,7 +1066,9 @@ Responsible for handling and, or, and parenthetical expressions.")
 				      _srv query-spec groups)
   (let ((artlist []))
     (dolist (group groups)
-      (let* ((gnus-newsgroup-selection (nnselect-get-artlist group))
+      (let* ((gnus-newsgroup-selection
+              (or
+               (nnselect-get-artlist group) (nnselect-generate-artlist group)))
              (group-spec
               (nnselect-categorize
                (mapcar 'car
