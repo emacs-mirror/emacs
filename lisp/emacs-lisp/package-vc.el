@@ -41,9 +41,6 @@
 
 ;; - Allow maintaining patches that are ported back onto regular
 ;;   packages and maintained between versions.
-;;
-;; - Add a heuristic for guessing a `:lisp-dir' when cloning directly
-;;  from a URL.
 
 ;;; Code:
 
