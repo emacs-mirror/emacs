@@ -732,6 +732,16 @@ checked."
       (when (and result (not (numberp result)))
         result))))
 
+(defsubst which-key--safe-lookup-key-description (keymap key)
+  "Version of `lookup-key' that allows KEYMAP to be nil.
+Also convert numeric results of `lookup-key' to nil. KEY
+should be formatted as an input for `kbd'."
+  (let ((key (ignore-errors (kbd key))))
+    (when (and key (keymapp keymap))
+      (let ((result (lookup-key keymap key)))
+        (when (and result (not (numberp result)))
+          result)))))
+
 ;;; Third-party library support
 ;;;; Evil
 
@@ -924,7 +934,7 @@ for REPLACEMENT will eventually be removed."
             ((consp replacement) replacement)
             ((stringp replacement)
              (cons replacement
-                   (or (which-key--safe-lookup-key keymap (kbd key))
+                   (or (which-key--safe-lookup-key-description keymap key)
                        (make-sparse-keymap))))
             (t
              (user-error "replacement is neither a cons cell or a string")))))
@@ -1520,8 +1530,9 @@ which are strings. KEY is of the form produced by `key-binding'."
   (key-description (which-key--current-key-list key-str)))
 
 (defun which-key--local-binding-p (keydesc)
-  (eq (which-key--safe-lookup-key
-       (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
+  (eq (which-key--safe-lookup-key-description
+       (current-local-map)
+       (which-key--current-key-string (car keydesc)))
       (intern (cdr keydesc))))
 
 (defun which-key--map-binding-p (map keydesc)
@@ -1529,15 +1540,15 @@ which are strings. KEY is of the form produced by `key-binding'."
   (or
    (when (bound-and-true-p evil-state)
      (let ((lookup
-            (which-key--safe-lookup-key
+            (which-key--safe-lookup-key-description
              map
-             (kbd (which-key--current-key-string
-                   (format "<%s-state> %s" evil-state (car keydesc)))))))
+             (which-key--current-key-string
+              (format "<%s-state> %s" evil-state (car keydesc))))))
        (or (eq lookup (intern (cdr keydesc)))
            (and (keymapp lookup) (string= (cdr keydesc) "Prefix Command")))))
    (let ((lookup
-          (which-key--safe-lookup-key
-           map (kbd (which-key--current-key-string (car keydesc))))))
+          (which-key--safe-lookup-key-description
+           map (which-key--current-key-string (car keydesc)))))
      (or (eq lookup (intern (cdr keydesc)))
          (and (keymapp lookup) (string= (cdr keydesc) "Prefix Command"))))))
 
@@ -1719,7 +1730,8 @@ alists. Returns a list (key separator description)."
       (let* ((keys (car key-binding))
              (orig-desc (cdr key-binding))
              (group (which-key--group-p orig-desc))
-             (local (eq (which-key--safe-lookup-key local-map (kbd keys))
+             (local (eq (which-key--safe-lookup-key-description
+                         local-map keys)
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
              (key-binding (which-key--maybe-replace key-binding))
