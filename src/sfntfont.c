@@ -1875,8 +1875,8 @@ sfntfont_match (struct frame *f, Lisp_Object font_spec)
 
 enum
   {
-    SFNT_OUTLINE_CACHE_SIZE = 128,
-    SFNT_RASTER_CACHE_SIZE  = 100,
+    SFNT_OUTLINE_CACHE_SIZE = 256,
+    SFNT_RASTER_CACHE_SIZE  = 128,
   };
 
 /* Caching subsystem.  Generating outlines from glyphs is expensive,
