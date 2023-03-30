@@ -1924,8 +1924,8 @@ extern struct sfnt_prep_table *sfnt_read_prep_table (PROTOTYPE);
 #define PROTOTYPE				\
   struct sfnt_maxp_table *,			\
   struct sfnt_cvt_table *,			\
-  struct sfnt_fvar_table *,			\
   struct sfnt_head_table *,			\
+  struct sfnt_fvar_table *,			\
   int, int
 
 extern struct sfnt_interpreter *sfnt_make_interpreter (PROTOTYPE);
