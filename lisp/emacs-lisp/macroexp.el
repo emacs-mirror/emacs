@@ -383,6 +383,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
               (format-message "missing `while' condition")
               `(signal 'wrong-number-of-arguments '(while 0))
               nil 'compile-only form))
+            (`(unwind-protect ,expr)
+             (macroexp-warn-and-return
+              (format-message "`unwind-protect' without unwind forms")
+              (macroexp--expand-all expr)
+              (list 'suspicious 'unwind-protect) t form))
             (`(setq ,(and var (pred symbolp)
                           (pred (not booleanp)) (pred (not keywordp)))
                     ,expr)

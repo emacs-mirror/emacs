@@ -455,6 +455,21 @@ was to catch all errors, add an explicit handler for 'error', or use
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
+---
+*** Warn about 'unwind-protect' without unwind forms.
+The compiler now warns when the 'unwind-protect' form is used without
+any unwind forms, as in
+
+    (unwind-protect (read buffer))
+
+because the behaviour is identical to that of the argument; there is
+no protection of any kind.  Perhaps the intended unwind forms have
+been misplaced or forgotten, or the use of 'unwind-protect' could be
+simplified away.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
 +++
 ** New function 'file-user-uid'.
 This function is like 'user-uid', but is aware of file name handlers,

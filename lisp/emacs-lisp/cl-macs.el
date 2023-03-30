@@ -2758,26 +2758,29 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
   ;; Common-Lisp's `psetf' does the first, so we'll do the same.
   (if (null bindings)
       (if (and (null binds) (null simplebinds)) (macroexp-progn body)
+        (let ((body-form
+               (macroexp-progn
+                (append
+                 (delq nil
+                       (mapcar (lambda (x)
+                                 (pcase x
+                                   ;; If there's no vnew, do nothing.
+                                   (`(,_vold ,_getter ,setter ,vnew)
+                                    (funcall setter vnew))))
+                               binds))
+                 body))))
         `(let* (,@(mapcar (lambda (x)
                             (pcase-let ((`(,vold ,getter ,_setter ,_vnew) x))
                               (list vold getter)))
                           binds)
                 ,@simplebinds)
-           (unwind-protect
-               ,(macroexp-progn
-                 (append
-                  (delq nil
-                        (mapcar (lambda (x)
-                                  (pcase x
-                                    ;; If there's no vnew, do nothing.
-                                    (`(,_vold ,_getter ,setter ,vnew)
-                                     (funcall setter vnew))))
-                                binds))
-                  body))
-             ,@(mapcar (lambda (x)
-                         (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
-                           (funcall setter vold)))
-                       binds))))
+           ,(if binds
+                `(unwind-protect ,body-form
+                   ,@(mapcar (lambda (x)
+                               (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
+                                 (funcall setter vold)))
+                             binds))
+              body-form))))
     (let* ((binding (car bindings))
            (place (car binding)))
       (gv-letplace (getter setter) place

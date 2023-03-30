@@ -246,7 +246,7 @@ chosen (interactively or automatically)."
                                                           ("css-languageserver" "--stdio"))))
                                 (html-mode . ,(eglot-alternatives '(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
                                 ((dockerfile-mode dockerfile-ts-mode) . ("docker-langserver" "--stdio"))
-                                ((clojure-mode clojurescript-mode clojurec-mode)
+                                ((clojure-mode clojurescript-mode clojurec-mode clojure-ts-mode)
                                  . ("clojure-lsp"))
                                 ((csharp-mode csharp-ts-mode)
                                  . ,(eglot-alternatives
