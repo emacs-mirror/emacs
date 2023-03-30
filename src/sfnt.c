@@ -5445,10 +5445,10 @@ sfnt_init_graphics_state (struct sfnt_graphics_state *state)
 }
 
 /* Set up an interpreter to be used with a font.  Use the resource
-   limits specified in the MAXP table, the values specified in the CVT
-   and HEAD tables, the pixel size PIXEL_SIZE, and the point size
-   POINT_SIZE.  CVT may be NULL, in which case the interpreter will
-   not have access to a control value table.
+   limits specified in the MAXP table, the values specified in the
+   CVT, HEAD and FVAR tables, the pixel size PIXEL_SIZE, and the point
+   size POINT_SIZE.  CVT may be NULL, in which case the interpreter
+   will not have access to a control value table.
 
    POINT_SIZE should be PIXEL_SIZE, converted to 1/72ths of an inch.
 
@@ -5459,6 +5459,7 @@ TEST_STATIC struct sfnt_interpreter *
 sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 		       struct sfnt_cvt_table *cvt,
 		       struct sfnt_head_table *head,
+		       struct sfnt_fvar_table *fvar,
 		       int pixel_size, int point_size)
 {
   size_t size, temp, i, storage_size, pad;
@@ -5612,6 +5613,18 @@ sfnt_make_interpreter (struct sfnt_maxp_table *maxp,
 
   /* Fill in the current call depth.  */
   interpreter->call_depth = 0;
+
+  /* Clear variation axes.  They will be set upon a call to
+     `sfnt_vary_interpreter'.  */
+  interpreter->n_axis = 0;
+  interpreter->norm_coords = NULL;
+
+  /* Set n_axis now if a fvar table was provided.  This way, GXAXIS
+     pushes the correct number of values even if no blend is
+     provided.  */
+
+  if (fvar)
+    interpreter->n_axis = fvar->axis_count;
 
   /* Return the interpreter.  */
   return interpreter;
@@ -6483,16 +6496,25 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     interpreter->state.scan_control = value;	\
   }
 
+/* Selector bit 8 is undocumented, but present in the Macintosh
+   rasterizer.  02000 is returned if there is a variation axis in
+   use.  */
+
 #define GETINFO()				\
   {						\
-    uint32_t selector;				\
+    uint32_t selector, k;			\
 						\
     selector = POP ();				\
 						\
+    k = 0;					\
+						\
     if (selector & 1)				\
-      PUSH_UNCHECKED (2)			\
-    else					\
-      PUSH_UNCHECKED (0)			\
+      k |= 02;					\
+						\
+    if (selector & 8 && interpreter->n_axis)	\
+      k |= 02000;				\
+						\
+    PUSH_UNCHECKED (k);				\
   }
 
 #define IDEF()					\
@@ -6561,6 +6583,25 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     if (v)					\
       interpreter->state.instruct_control	\
 	|= (1 << s);				\
+  }
+
+/* GXAXIS is undocumented.  It seems to return each axis in shortFrac
+   format.  */
+
+#define GXAXIS()				\
+  {						\
+    uint32_t v;					\
+    int i;					\
+						\
+    for (i = 0; i < interpreter->n_axis; ++i)	\
+      {						\
+	if (interpreter->norm_coords)		\
+	  v = interpreter->norm_coords[i] / 4;	\
+	else					\
+	  v = 0;				\
+						\
+	PUSH (v);				\
+      }						\
   }
 
 #define PUSHB()					\
@@ -6943,6 +6984,8 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
   {						\
     interpreter->state.freedom_vector		\
       = interpreter->state.projection_vector;	\
+						\
+    sfnt_validate_gs (&interpreter->state);	\
   }
 
 #define ISECT()					\
@@ -8231,6 +8274,16 @@ sfnt_line_to_vector (struct sfnt_interpreter *interpreter,
   sfnt_address_zp1 (interpreter, p1, &x1, &y1, &original_x1,
 		    &original_y1);
 
+  /* Use original coordinates if specified.  */
+
+  if (original)
+    {
+      x2 = original_x2;
+      y2 = original_y2;
+      x1 = original_x1;
+      y1 = original_y1;
+    }
+
   /* Calculate the vector between X2, Y2, and X1, Y1.  */
   a = sfnt_sub (x1, x2);
   b = sfnt_sub (y1, y2);
@@ -9392,7 +9445,7 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
 	   size_t n, struct sfnt_interpreter *interpreter,
 	   sfnt_f26dot6 distance, unsigned char *flags)
 {
-  sfnt_f26dot6 versor;
+  sfnt_f26dot6 versor, k;
   sfnt_f2dot14 dot_product;
   size_t num;
 
@@ -9412,12 +9465,13 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
       /* Move along X axis, converting the distance to the freedom
 	 vector.  */
       num = n;
+      k = sfnt_multiply_divide_signed (distance,
+				       versor,
+				       dot_product);
 
       while (num--)
 	{
-	  *x = sfnt_add (*x, sfnt_multiply_divide_signed (distance,
-							  versor,
-							  dot_product));
+	  *x = sfnt_add (*x, k);
 	  x++;
 
 	  if (flags)
@@ -9432,12 +9486,13 @@ sfnt_move (sfnt_f26dot6 *restrict x, sfnt_f26dot6 *restrict y,
       /* Move along X axis, converting the distance to the freedom
 	 vector.  */
       num = n;
+      k = sfnt_multiply_divide_signed (distance,
+				       versor,
+				       dot_product);
 
       while (num--)
 	{
-	  *y = sfnt_add (*y, sfnt_multiply_divide_signed (distance,
-							  versor,
-							  dot_product));
+	  *y = sfnt_add (*y, k);
 	  y++;
 
 	  if (flags)
@@ -10745,6 +10800,10 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	case 0x8F:  /* ADJUST */
 	case 0x90:  /* ADJUST */
 	  NOT_IMPLEMENTED ();
+	  break;
+
+	case 0x91:  /* GXAXIS */
+	  GXAXIS ();
 	  break;
 
 	default:
@@ -14895,7 +14954,8 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 }
 
 /* Vary the specified INTERPRETER's control value table using the
-   variations in BLEND's CVT variations table.
+   variations in BLEND's CVT variations table, then record the blend's
+   normalized coordinates and axis count in the interpreter.
 
    The CVT table used to create INTERPRETER must be the same used
    to read BLEND->cvar.  If not, behavior is undefined.  */
@@ -14953,6 +15013,9 @@ sfnt_vary_interpreter (struct sfnt_interpreter *interpreter,
 	  interpreter->cvt[i] += delta;
 	}
     }
+
+  interpreter->n_axis = blend->fvar->axis_count;
+  interpreter->norm_coords = blend->norm_coords;
 }
 
 
@@ -15443,7 +15506,7 @@ sfnt_make_test_interpreter (void)
   return sfnt_make_interpreter (&test_interpreter_profile,
 				&test_interpreter_cvt,
 				&test_interpreter_head,
-				17, 17);
+				NULL, 17, 17);
 }
 
 struct sfnt_interpreter_test
@@ -15938,7 +16001,7 @@ static struct sfnt_generic_test_args npushw_test_args =
 static struct sfnt_generic_test_args pushb_test_args =
   {
     (uint32_t []) { 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U,
-		   1U, },
+		    1U, },
     9,
     true,
     11,
@@ -15947,7 +16010,7 @@ static struct sfnt_generic_test_args pushb_test_args =
 static struct sfnt_generic_test_args pushw_test_args =
   {
     (uint32_t []) { 0x203U, 0x204U, 0x205U, 0x206U, 0x207U, 0x208U,
-		   0x909U, 0x909U, (uint32_t) -1, },
+		    0x909U, 0x909U, (uint32_t) -1, },
     9,
     true,
     20,
@@ -18347,7 +18410,7 @@ sfnt_name_instruction (unsigned char opcode)
     "7 INS_$8F",
 
     "7 INS_$90",
-    "7 INS_$91",
+    "7 GXAXIS",
     "7 INS_$92",
     "7 INS_$93",
     "7 INS_$94",
@@ -18924,8 +18987,8 @@ main (int argc, char **argv)
       return 1;
     }
 
-#define FANCY_PPEM 36
-#define EASY_PPEM  36
+#define FANCY_PPEM 19
+#define EASY_PPEM  19
 
   interpreter = NULL;
   head = sfnt_read_head_table (fd, font);
@@ -19085,7 +19148,7 @@ main (int argc, char **argv)
 		   loca_short->num_offsets);
 	}
 
-      interpreter = sfnt_make_interpreter (maxp, cvt, head,
+      interpreter = sfnt_make_interpreter (maxp, cvt, head, fvar,
 					   FANCY_PPEM, FANCY_PPEM);
       if (instance && gvar)
 	sfnt_vary_interpreter (interpreter, &blend);
@@ -19296,7 +19359,7 @@ main (int argc, char **argv)
 	       cvt ? cvt->num_elements : 0ul);
 
       interpreter = sfnt_make_interpreter (maxp, cvt, head,
-					   FANCY_PPEM,
+					   fvar, FANCY_PPEM,
 					   FANCY_PPEM);
       state = interpreter->state;
 

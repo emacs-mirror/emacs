@@ -2532,7 +2532,7 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
 
 /* Initialize the instruction interpreter for INFO.  Load the font and
    preprogram for the pixel size in INFO and its corresponding point
-   size POINT_SIZE.
+   size POINT_SIZE.  Use the FVAR table in DESC.
 
    The font tables in INFO must already have been initialized.
 
@@ -2541,6 +2541,7 @@ sfntfont_probe_widths (struct sfnt_font_info *font_info)
 
 static void
 sfntfont_setup_interpreter (struct sfnt_font_info *info,
+			    struct sfnt_font_desc *desc,
 			    int point_size)
 {
   struct sfnt_cvt_table *cvt;
@@ -2575,6 +2576,7 @@ sfntfont_setup_interpreter (struct sfnt_font_info *info,
      info->head.  CVT can be NULL.  */
 
   interpreter = sfnt_make_interpreter (info->maxp, cvt, info->head,
+				       desc->tables->fvar,
 				       info->font.pixel_size,
 				       point_size);
 
@@ -3110,7 +3112,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
   point_size = PIXEL_TO_POINT (pixel_size, (dpyinfo->resx
 					    * dpyinfo->resy
 					    / 2));
-  sfntfont_setup_interpreter (font_info, point_size);
+  sfntfont_setup_interpreter (font_info, desc, point_size);
 
   /* If an instance was specified and the font is distortable, set up
      the blend.  */

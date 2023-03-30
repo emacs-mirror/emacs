@@ -1860,6 +1860,12 @@ struct sfnt_interpreter
   /* What was the trap.  */
   const char *trap_reason;
 
+  /* Number of variation axes provided by this distortable font.  */
+  int n_axis;
+
+  /* Normalized axis coordinates set for this distortable font.  */
+  sfnt_fixed *norm_coords;
+
 #ifdef TEST
   /* If non-NULL, function called before each instruction is
      executed.  */
@@ -1918,6 +1924,7 @@ extern struct sfnt_prep_table *sfnt_read_prep_table (PROTOTYPE);
 #define PROTOTYPE				\
   struct sfnt_maxp_table *,			\
   struct sfnt_cvt_table *,			\
+  struct sfnt_fvar_table *,			\
   struct sfnt_head_table *,			\
   int, int
 
