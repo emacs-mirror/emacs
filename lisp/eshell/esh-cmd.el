@@ -790,10 +790,25 @@ current ones (see `eshell-duplicate-handles')."
      (eshell-protect-handles eshell-current-handles)
      ,object))
 
+(defun eshell--unmark-deferrable (command)
+  "If COMMAND is (or ends with) a deferrable command, unmark it as such.
+This changes COMMAND in-place by converting function calls listed
+in `eshell-deferrable-commands' to their non-deferrable forms so
+that Eshell doesn't erroneously allow deferring it.  For example,
+`eshell-named-command' becomes `eshell-named-command*', "
+  (let ((cmd command))
+    (when (memq (car cmd) '(let progn))
+      (setq cmd (car (last cmd))))
+    (when (memq (car cmd) eshell-deferrable-commands)
+      (setcar cmd (intern-soft
+		   (concat (symbol-name (car cmd)) "*"))))
+    command))
+
 (defmacro eshell-do-pipelines (pipeline &optional notfirst)
   "Execute the commands in PIPELINE, connecting each to one another.
 This macro calls itself recursively, with NOTFIRST non-nil."
   (when (setq pipeline (cadr pipeline))
+    (eshell--unmark-deferrable (car pipeline))
     `(eshell-with-copied-handles
       (progn
 	,(when (cdr pipeline)
@@ -801,14 +816,6 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 		   (eshell-do-pipelines (quote ,(cdr pipeline)) t)))
               (eshell-set-output-handle ,eshell-output-handle
                                         'append nextproc)))
-	,(let ((head (car pipeline)))
-	   (if (memq (car head) '(let progn))
-	       (setq head (car (last head))))
-	   (when (memq (car head) eshell-deferrable-commands)
-	     (ignore
-	      (setcar head
-		      (intern-soft
-		       (concat (symbol-name (car head)) "*"))))))
 	;; First and last elements in a pipeline may need special treatment.
 	;; (Currently only eshell-ls-files uses 'last.)
 	;; Affects process-connection-type in eshell-gather-process-output.
@@ -828,20 +835,13 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 Output of each command is passed as input to the next one in the pipeline.
 This is used on systems where async subprocesses are not supported."
   (when (setq pipeline (cadr pipeline))
+    ;; FIXME: is deferrable significant here?
+    (eshell--unmark-deferrable (car pipeline))
     `(progn
        ,(when (cdr pipeline)
           `(let ((output-marker ,(point-marker)))
              (eshell-set-output-handle ,eshell-output-handle
                                        'append output-marker)))
-       ,(let ((head (car pipeline)))
-          (if (memq (car head) '(let progn))
-              (setq head (car (last head))))
-          ;; FIXME: is deferrable significant here?
-          (when (memq (car head) eshell-deferrable-commands)
-            (ignore
-             (setcar head
-                     (intern-soft
-                      (concat (symbol-name (car head)) "*"))))))
        ;; The last process in the pipe should get its handles
        ;; redirected as we found them before running the pipe.
        ,(if (null (cdr pipeline))
