@@ -1,0 +1,37 @@
+This directory contains icons for some inline symbols.
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+Files: *.svg
+Author: Yuan Fu <casouri@gmail.com>
+Copyright (C) 2023 Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
+
+How I made these icons: I made them with Figma, and exported them into
+SVG. I made the shapes with vectors (SVG paths) rather than strokes,
+merged all the shapes into a single shape with union operation, and
+stripped filling attributes from the SVG files. This way the icons can
+be colored like normal text! I'm not exactly sure how it works, but as
+long as the icon uses SVG path, and there is only one path in the
+file, and there is no filling attributes, the icons can be colored as
+text.
+
+FWIW, this is the command I used to strip filling attributes:
+
+sed -i 's/fill="none"//g' <file>
+sed -i 's/fill="black"//g' <file>
+
+Naming: Use underscore to separate styles, dash are considered normal
+character so you can use it for names. End with the intended optical
+size for the icon.
+
+There should also be an order for all the keywords. Right now we have
+directions (left/right), circle, fill, and optical size. Among them,
+the order should be
+
+1. direction
+2. circle
+3. fill
+4. size
+
+E.g., arrow_right_circle_fill_16.
