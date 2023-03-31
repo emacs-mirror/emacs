@@ -272,26 +272,28 @@ information on Eshell, see Info node `(eshell)Top'."
 
 (declare-function eshell-add-input-to-history "em-hist" (input))
 
-;;;###autoload
-(defun eshell-command (&optional command arg)
-  "Execute the Eshell command string COMMAND.
-With prefix ARG, insert output into the current buffer at point."
-  (interactive)
-  (unless arg
-    (setq arg current-prefix-arg))
-  (let ((eshell-non-interactive-p t))
+(defun eshell-read-command (&optional prompt)
+  "Read an Eshell command from the minibuffer, prompting with PROMPT."
+  (let ((prompt (or prompt "Emacs shell command: "))
+        (eshell-non-interactive-p t))
     ;; Enable `eshell-mode' only in this minibuffer.
     (minibuffer-with-setup-hook (lambda ()
                                   (eshell-mode)
                                   (eshell-command-mode +1))
-      (unless command
-        (setq command (read-from-minibuffer "Emacs shell command: "))
-	(if (eshell-using-module 'eshell-hist)
-	    (eshell-add-input-to-history command)))))
-  (unless command
-    (error "No command specified!"))
+      (let ((command (read-from-minibuffer prompt)))
+        (when (eshell-using-module 'eshell-hist)
+          (eshell-add-input-to-history command))
+        command))))
+
+;;;###autoload
+(defun eshell-command (command &optional to-current-buffer)
+  "Execute the Eshell command string COMMAND.
+If TO-CURRENT-BUFFER is non-nil (interactively, with the prefix
+argument), then insert output into the current buffer at point."
+  (interactive (list (eshell-read-command)
+                     current-prefix-arg))
   (save-excursion
-    (let ((stdout (if arg (current-buffer) t))
+    (let ((stdout (if to-current-buffer (current-buffer) t))
           (buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
@@ -319,7 +321,7 @@ With prefix ARG, insert output into the current buffer at point."
 	  (while (and (bolp) (not (bobp)))
 	    (delete-char -1)))
 	(cl-assert (and buf (buffer-live-p buf)))
-	(unless arg
+	(unless to-current-buffer
 	  (let ((len (if (not intr) 2
 		       (count-lines (point-min) (point-max)))))
 	    (cond
