@@ -107,6 +107,50 @@
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
 
+(ert-deftest eshell-test/eshell-command/simple ()
+  "Test that the `eshell-command' function writes to the current buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/pipeline ()
+  "Test that the `eshell-command' function writes to the current buffer.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi | *cat" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/background ()
+  "Test that `eshell-command' works for background commands."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (process-list))
+          (eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi &" t)
+        (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/background-pipeline ()
+  "Test that `eshell-command' works for background commands.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((orig-processes (copy-tree (process-list)))
+          (eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi | *cat &" t)
+        (eshell-wait-for (lambda () (equal (process-list) orig-processes)))
+        (should (equal (buffer-string) "hi\n"))))))
+
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell

@@ -290,25 +290,18 @@ With prefix ARG, insert output into the current buffer at point."
 	    (eshell-add-input-to-history command)))))
   (unless command
     (error "No command specified!"))
-  ;; redirection into the current buffer is achieved by adding an
-  ;; output redirection to the end of the command, of the form
-  ;; 'COMMAND >>> #<buffer BUFFER>'.  This will not interfere with
-  ;; other redirections, since multiple redirections merely cause the
-  ;; output to be copied to multiple target locations
-  (if arg
-      (setq command
-	    (concat command
-		    (format " >>> #<buffer %s>"
-			    (buffer-name (current-buffer))))))
   (save-excursion
-    (let ((buf (set-buffer (generate-new-buffer " *eshell cmd*")))
+    (let ((stdout (if arg (current-buffer) t))
+          (buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
       (let* ((proc (eshell-eval-command
-		    (list 'eshell-commands
-			  (eshell-parse-command command))))
+                    `(let ((eshell-current-handles
+                            (eshell-create-handles ,stdout 'insert))
+                           (eshell-current-subjob-p))
+		       ,(eshell-parse-command command))))
 	     intr
-	     (bufname (if (and proc (listp proc))
+	     (bufname (if (eq (car-safe proc) :eshell-background)
 			  "*Eshell Async Command Output*"
 			(setq intr t)
 			"*Eshell Command Output*")))
