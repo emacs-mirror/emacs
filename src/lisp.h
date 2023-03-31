@@ -5305,26 +5305,6 @@ __lsan_ignore_object (void const *p)
 }
 #endif
 
-/* If built with USE_SANITIZER_UNALIGNED_LOAD defined, use compiler
-   provided ASan functions to perform unaligned loads, allowing ASan
-   to catch bugs which it might otherwise miss.  */
-#if defined HAVE_SANITIZER_COMMON_INTERFACE_DEFS_H \
-  && defined ADDRESS_SANITIZER                     \
-  && defined USE_SANITIZER_UNALIGNED_LOAD
-# include <sanitizer/common_interface_defs.h>
-# if (SIZE_MAX == UINT64_MAX)
-#  define UNALIGNED_LOAD_SIZE(a, i) \
-   (size_t) __sanitizer_unaligned_load64 ((void *) ((a) + (i)))
-# elif (SIZE_MAX == UINT32_MAX)
-#  define UNALIGNED_LOAD_SIZE(a, i) \
-   (size_t) __sanitizer_unaligned_load32 ((void *) ((a) + (i)))
-# else
-#  define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
-# endif
-#else
-# define UNALIGNED_LOAD_SIZE(a, i) *((a) + (i))
-#endif
-
 extern void xputenv (const char *);
 
 extern char *egetenv_internal (const char *, ptrdiff_t);
