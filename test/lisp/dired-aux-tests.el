@@ -55,12 +55,11 @@
            (setq to-mv
                  (expand-file-name
                   "foo-mv" (file-name-as-directory (expand-file-name "qux" ,foo))))
-           (unwind-protect
-               (if ,yes-or-no
-                   (cl-letf (((symbol-function 'yes-or-no-p)
-                              (lambda (_prompt) (eq ,yes-or-no 'yes))))
-                     ,@body)
-                 ,@body)))))))
+           (if ,yes-or-no
+               (cl-letf (((symbol-function 'yes-or-no-p)
+                          (lambda (_prompt) (eq ,yes-or-no 'yes))))
+                 ,@body)
+             ,@body))))))
 
 (ert-deftest dired-test-bug28834 ()
   "test for https://debbugs.gnu.org/28834 ."
