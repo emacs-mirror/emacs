@@ -366,6 +366,12 @@ Useful for shells like zsh that has this feature."
   :group 'shell-directories
   :version "28.1")
 
+(defcustom shell-get-old-input-include-continuation-lines nil
+  "Whether `shell-get-old-input' includes \"\\\" lines."
+  :type 'boolean
+  :group 'shell
+  :version "30.1")
+
 (defcustom shell-kill-buffer-on-exit nil
   "Kill a shell buffer after the shell process terminates."
   :type 'boolean
@@ -506,6 +512,39 @@ Useful for shells like zsh that has this feature."
           (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
 
+(defun shell-get-old-input ()
+  "Default for `comint-get-old-input' in `shell-mode'.
+If `comint-use-prompt-regexp' is nil, then either
+return the current input field (if point is on an input field), or the
+current line (if point is on an output field).
+If `comint-use-prompt-regexp' is non-nil, then return
+the current line, with any initial string matching the regexp
+`comint-prompt-regexp' removed.
+In either case, if `shell-get-old-input-include-continuation-lines'
+is non-nil and the current line ends with a backslash, the next
+line is also included and examined for a backslash, ending with a
+final line without a backslash."
+  (let (field-prop bof)
+    (if (and (not comint-use-prompt-regexp)
+             ;; Make sure we're in an input rather than output field.
+             (not (setq field-prop (get-char-property
+                                    (setq bof (field-beginning)) 'field))))
+        (field-string-no-properties bof)
+      (comint-bol)
+      (let ((start (point)))
+        (cond ((or comint-use-prompt-regexp
+                   (eq field-prop 'output))
+               (goto-char (line-end-position))
+               (when shell-get-old-input-include-continuation-lines
+                 ;; Include continuation lines as long as the current
+                 ;; line ends with a backslash.
+                 (while (and (not (eobp))
+                             (= (char-before) ?\\))
+                   (goto-char (line-end-position 2)))))
+              (t
+               (goto-char (field-end))))
+        (buffer-substring-no-properties start (point))))))
+
 ;;;###autoload
 (defun split-string-shell-command (string)
   "Split STRING (a shell command) into a list of strings.
@@ -642,6 +681,7 @@ command."
   (setq-local font-lock-defaults '(shell-font-lock-keywords t))
   (setq-local shell-dirstack nil)
   (setq-local shell-last-dir nil)
+  (setq-local comint-get-old-input #'shell-get-old-input)
   ;; People expect Shell mode to keep the last line of output at
   ;; window bottom.
   (setq-local scroll-conservatively 101)
