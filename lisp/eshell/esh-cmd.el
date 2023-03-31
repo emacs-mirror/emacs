@@ -1032,18 +1032,20 @@ produced by `eshell-parse-command'."
     (setq eshell-current-command command)
     (let* ((delim (catch 'eshell-incomplete
                     (eshell-resume-eval)))
-           (val (car-safe delim)))
+           (val (car-safe delim))
+           (val-is-process (or (eshell-processp val)
+                               (eshell-process-pair-p val))))
       ;; If the return value of `eshell-resume-eval' is wrapped in a
       ;; list, it indicates that the command was run asynchronously.
       ;; In that case, unwrap the value before checking the delimiter
       ;; value.
       (if (and val
-               (not (eshell-processp val))
+               (not val-is-process)
                (not (eq val t)))
           (error "Unmatched delimiter: %S" val)
         ;; Eshell-command expect a list like (<process>) to know if the
         ;; command should be async or not.
-        (or (and (eshell-processp val) delim) val)))))
+        (or (and val-is-process delim) val)))))
 
 (defun eshell-resume-command (proc status)
   "Resume the current command when a process ends."

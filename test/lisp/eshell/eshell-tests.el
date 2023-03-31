@@ -105,6 +105,53 @@
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
 
+(ert-deftest eshell-test/eshell-command/simple ()
+  "Test that the `eshell-command' function writes to the current buffer."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/pipeline ()
+  "Test that the `eshell-command' function writes to the current buffer.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      (with-temp-buffer
+        (eshell-command "*echo hi | *cat" t)
+        (should (equal (buffer-string) "hi\n"))))))
+
+(ert-deftest eshell-test/eshell-command/background ()
+  "Test that `eshell-command' works for background commands."
+  (skip-unless (executable-find "echo"))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      ;; XXX: We can't write to the current buffer here, since
+      ;; `eshell-command' will produce an invalid command in that
+      ;; case.  Just make sure the command runs and produces an output
+      ;; buffer.
+      (eshell-command "*echo hi &")
+      (with-current-buffer "*Eshell Async Command Output*"
+        (goto-char (point-min))
+        (should (looking-at "\\[echo\\(<[0-9]+>\\)?\\]"))))))
+
+(ert-deftest eshell-test/eshell-command/background-pipeline ()
+  "Test that `eshell-command' works for background commands.
+This test uses a pipeline for the command."
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (ert-with-temp-directory eshell-directory-name
+    (let ((eshell-history-file-name nil))
+      ;; XXX: As above, we can't write to the current buffer here.
+      (eshell-command "*echo hi | *cat &")
+      (with-current-buffer "*Eshell Async Command Output*"
+        (goto-char (point-min))
+        (should (looking-at "\\[cat\\(<[0-9]+>\\)?\\]"))))))
+
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
   (with-temp-eshell
