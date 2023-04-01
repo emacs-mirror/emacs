@@ -795,13 +795,14 @@ part of the buffer.
 
 +++
 ** New user option 'set-message-functions'.
-It allows selecting more functions for 'set-message-function'
-in addition to the default function that handles messages
-in the active minibuffer.  The most useful are 'inhibit-message'
-that allows specifying a list of messages to inhibit via
-'inhibit-message-regexps', and 'set-multi-message' that
-accumulates recent messages and displays them stacked
-in the echo area.
+It allows more flexible control of how echo-area message are displayed
+by adding functions to this list.  The default value is a list of one
+element: 'set-minibuffer-message', which displays echo-area messages
+at the end of the minibuffer text when the minibuffer is active.
+Other useful functions include 'inhibit-message', which allows
+specifying, via 'inhibit-message-regexps', the list of messages whose
+display shall be inhibited; and 'set-multi-message' that accumulates
+recent messages and displays them stacked together.
 
 ---
 ** New user option 'find-library-include-other-files'.
