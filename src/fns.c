@@ -462,8 +462,6 @@ load_unaligned_size_t (const void *p)
   return x;
 }
 
-#else
-#define HAVE_FAST_UNALIGNED_ACCESS 0
 #endif
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
