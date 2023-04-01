@@ -849,6 +849,53 @@ Each node in the returned tree looks like
 
 @heading More convenience functions
 
+@defun treesit-node-get node instructions
+This is a convenience function that chains together multiple node
+accessor functions together.  For example, to get @var{node}'s
+parent's next sibling's second child's text:
+
+@example
+@group
+(treesit-node-get node
+   '((parent 1)
+    (sibling 1 nil)
+    (child 1 nil)
+    (text nil)))
+@end group
+@end example
+
+@var{instruction} is a list of INSTRUCTIONs of the form
+@w{@code{(@var{fn} @var{arg}...)}}.  The following @var{fn}'s are
+supported:
+
+@table @code
+@item (child @var{idx} @var{named})
+Get the @var{idx}'th child.
+
+@item (parent @var{n})
+Go to parent @var{n} times.
+
+@item (field-name)
+Get the field name of the current node.
+
+@item (type)
+Get the type of the current node.
+
+@item (text @var{no-property})
+Get the text of the current node.
+
+@item (children @var{named})
+Get a list of children.
+
+@item (sibling @var{step} @var{named})
+Get the nth prev/next sibling, negative @var{step} means prev sibling,
+positive means next sibling.
+@end table
+
+Note that arguments like @var{named} and @var{no-property} can't be
+omitted, unlike in their original functions.
+@end defun
+
 @defun treesit-filter-child node predicate &optional named
 This function finds immediate children of @var{node} that satisfy
 @var{predicate}.

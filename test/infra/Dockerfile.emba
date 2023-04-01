@@ -72,15 +72,6 @@ RUN apt-get update && \
 RUN bash -c "$(wget --no-check-certificate -O - https://apt.llvm.org/llvm.sh)"
 RUN ln -s /usr/bin/clangd-15 /usr/bin/clangd
 
-# A recent pylsp.  In Debian bookworm there is the package
-# python3-pylsp.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      python3-pyls \
-    && rm -rf /var/lib/apt/lists/*
-# eglot.el knows pyls.  However, eglot-tests.el checks only for pylsp.
-RUN ln -s /usr/bin/pyls /usr/bin/pylsp
-
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf

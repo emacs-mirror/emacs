@@ -439,17 +439,29 @@ If string STR1 is greater, the value is a positive number N;
 }
 
 /* Check whether the platform allows access to unaligned addresses for
-   size_t integers without trapping or undue penalty (a few cycles is OK).
+   size_t integers without trapping or undue penalty (a few cycles is OK),
+   and that a word-sized memcpy can be used to generate such an access.
 
    This whitelist is incomplete but since it is only used to improve
    performance, omitting cases is safe.  */
-#if defined __x86_64__|| defined __amd64__	\
-    || defined __i386__ || defined __i386	\
-    || defined __arm64__ || defined __aarch64__	\
-    || defined __powerpc__ || defined __powerpc	\
-    || defined __ppc__ || defined __ppc		\
-    || defined __s390__ || defined __s390x__
+#if (defined __x86_64__|| defined __amd64__		\
+     || defined __i386__ || defined __i386		\
+     || defined __arm64__ || defined __aarch64__	\
+     || defined __powerpc__ || defined __powerpc	\
+     || defined __ppc__ || defined __ppc		\
+     || defined __s390__ || defined __s390x__)		\
+  && defined __OPTIMIZE__
 #define HAVE_FAST_UNALIGNED_ACCESS 1
+
+/* Load a word from a possibly unaligned address.  */
+static inline size_t
+load_unaligned_size_t (const void *p)
+{
+  size_t x;
+  memcpy (&x, p, sizeof x);
+  return x;
+}
+
 #else
 #define HAVE_FAST_UNALIGNED_ACCESS 0
 #endif
@@ -497,17 +509,12 @@ Symbols are also allowed; their print names are used instead.  */)
       if (HAVE_FAST_UNALIGNED_ACCESS)
 	{
 	  /* First compare entire machine words.  */
-	  typedef size_t word_t;
-	  int ws = sizeof (word_t);
-	  const word_t *w1 = (const word_t *) SDATA (string1);
-	  const word_t *w2 = (const word_t *) SDATA (string2);
-	  while (b < nb - ws + 1)
-	    {
-	      if (UNALIGNED_LOAD_SIZE (w1, b / ws)
-		  != UNALIGNED_LOAD_SIZE (w2, b / ws))
-		break;
-	      b += ws;
-	    }
+	  int ws = sizeof (size_t);
+	  const char *w1 = SSDATA (string1);
+	  const char *w2 = SSDATA (string2);
+	  while (b < nb - ws + 1 &&    load_unaligned_size_t (w1 + b)
+		                    == load_unaligned_size_t (w2 + b))
+	    b += ws;
 	}
 
       /* Scan forward to the differing byte.  */
