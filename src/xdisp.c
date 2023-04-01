@@ -3616,7 +3616,7 @@ get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
 static ptrdiff_t
 get_nearby_bol_pos (ptrdiff_t pos)
 {
-  ptrdiff_t start, pos_bytepos, cur, next, found, bol = 0;
+  ptrdiff_t start, pos_bytepos, cur, next, found, bol = BEGV - 1;
   int dist;
   for (dist = 500; dist <= 500000; dist *= 10)
     {
@@ -3632,7 +3632,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
 	  else
 	    break;
 	}
-      if (bol)
+      if (bol >= BEGV || start == BEGV)
 	return bol;
       else
 	pos = pos - dist < BEGV ? BEGV : pos - dist;
@@ -3644,7 +3644,7 @@ ptrdiff_t
 get_small_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_width (w);
-  int bol_pos = get_nearby_bol_pos (pos);
+  ptrdiff_t bol_pos = get_nearby_bol_pos (pos);
   return max (bol_pos + ((pos - bol_pos) / len - 1) * len, BEGV);
 }
 
