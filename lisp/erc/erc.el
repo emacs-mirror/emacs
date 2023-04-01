@@ -12,8 +12,8 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.5
-;; Package-Requires: ((emacs "27.1") (compat "29.1.3.4"))
+;; Version: 5.6-git
+;; Package-Requires: ((emacs "27.1") (compat "29.1.4.1"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
 
@@ -71,7 +71,7 @@
 (require 'iso8601)
 (eval-when-compile (require 'subr-x) (require 'url-parse))
 
-(defconst erc-version "5.5"
+(defconst erc-version "5.6-git"
   "This version of ERC.")
 
 (defvar erc-official-location
@@ -87,7 +87,8 @@
        ("5.3" . "23.1")
        ("5.4" . "28.1")
        ("5.4.1" . "29.1")
-       ("5.5" . "29.1")))
+       ("5.5" . "29.1")
+       ("5.6" . "30.1")))
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
