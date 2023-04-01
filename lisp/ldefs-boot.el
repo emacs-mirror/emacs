@@ -3779,14 +3779,18 @@ and exists only for compatibility reasons.
 
 ;;; Generated autoloads from progmodes/cc-vars.el
 
+(autoload 'c-string-list-p "cc-vars" "\
+Return non-nil if VAL is a list of strings.
+
+(fn VAL)")
 (put 'c-basic-offset 'safe-local-variable 'integerp)
 (put 'c-backslash-column 'safe-local-variable 'integerp)
- (put 'c-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
- (put 'c++-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
- (put 'objc-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
- (put 'java-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
- (put 'idl-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
- (put 'pike-font-lock-extra-types 'safe-local-variable #'c-list-of-strings)
+ (put 'c-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+ (put 'c++-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+ (put 'objc-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+ (put 'java-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+ (put 'idl-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
+ (put 'pike-font-lock-extra-types 'safe-local-variable #'c-string-list-p)
 (put 'c-file-style 'safe-local-variable 'string-or-null-p)
 (register-definition-prefixes "cc-vars" '("awk-mode-hook" "c++-" "c-" "defcustom-c-stylevar" "idl-" "java-" "objc-" "pike-"))
 
@@ -8234,15 +8238,23 @@ Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
 TURN-ON is a function that will be called with no args in every buffer
 and that should try to turn MODE on if applicable for that buffer.
 
-Each of KEY VALUE is a pair of CL-style keyword arguments.  :predicate
-specifies which major modes the globalized minor mode should be switched on
-in.  As the minor mode defined by this function is always global, any
-:global keyword is ignored.  Other keywords have the same meaning as in
-`define-minor-mode', which see.  In particular, :group specifies the custom
-group.  The most useful keywords are those that are passed on to the
-`defcustom'.  It normally makes no sense to pass the :lighter or :keymap
-keywords to `define-globalized-minor-mode', since these are usually passed
-to the buffer-local version of the minor mode.
+Each of KEY VALUE is a pair of CL-style keyword arguments.
+The :predicate argument specifies in which major modes should the
+globalized minor mode be switched on.  The value should be t (meaning
+switch on the minor mode in all major modes), nil (meaning don't
+switch on in any major mode), a list of modes (meaning switch on only
+in those modes and their descendants), or a list (not MODES...),
+meaning switch on in any major mode except MODES.  The value can also
+mix all of these forms, see the info node `Defining Minor Modes' for
+details.
+As the minor mode defined by this function is always global, any
+:global keyword is ignored.
+Other keywords have the same meaning as in `define-minor-mode',
+which see.  In particular, :group specifies the custom group.
+The most useful keywords are those that are passed on to the `defcustom'.
+It normally makes no sense to pass the :lighter or :keymap keywords
+to `define-globalized-minor-mode', since these are usually passed to
+the buffer-local version of the minor mode.
 
 BODY contains code to execute each time the mode is enabled or disabled.
 It is executed after toggling the mode, and before running
@@ -9218,7 +9230,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push (purecopy '(eglot 1 12)) package--builtin-versions)
+(push (purecopy '(eglot 1 13)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -22454,7 +22466,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 1)) package--builtin-versions)
+(push (purecopy '(org 9 6 2)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -23553,48 +23565,6 @@ DESC must be a `package-desc' object.
 
 (autoload 'package-vc-install-selected-packages "package-vc" "\
 Ensure packages specified in `package-vc-selected-packages' are installed." t)
-(defvar package-vc-selected-packages 'nil "\
-List of packages that must be installed.
-Each member of the list is of the form (NAME . SPEC), where NAME
-is a symbol designating the package and SPEC is one of:
-
-- nil, if any package version can be installed;
-- a version string, if that specific revision is to be installed;
-- a property list, describing a package specification.  Valid
-  key/value pairs are
-
-   `:url' (string)
-      The URL of the repository used to fetch the package source.
-
-   `:branch' (string)
-      If given, the name of the branch to checkout after cloning the directory.
-
-   `:lisp-dir' (string)
-      The repository-relative name of the directory to use for loading the Lisp
-      sources.  If not given, the value defaults to the root directory
-      of the repository.
-
-   `:main-file' (string)
-      The main file of the project, relevant to gather package metadata.
-      If not given, the assumed default is the package name with \".el\"
-      appended to it.
-
-   `:vc-backend' (symbol)
-      A symbol of the VC backend to use for cloning the package.  The
-      value ought to be a member of `vc-handled-backends'.  If omitted,
-      `vc-clone' will fall back onto the archive default or on
-      `package-vc-default-backend'.
-
-  All other keys are ignored.
-
-This user option differs from `package-selected-packages' in that
-it is meant to be specified manually.  If you want to install all
-the packages in the list, you cal also use
-`package-vc-install-selected-packages'.
-
-Note that this option will not override an existing source
-package installation or revert the checked out revision.")
-(custom-autoload 'package-vc-selected-packages "package-vc" nil)
 (autoload 'package-vc-update-all "package-vc" "\
 Attempt to update all installed VC packages." t)
 (autoload 'package-vc-update "package-vc" "\
@@ -36975,7 +36945,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 Go back to the previous position in xref history.
 To undo, use \\[xref-go-forward]." t)
 (autoload 'xref-go-forward "xref" "\
-Got to the point where a previous \\[xref-go-back] was invoked." t)
+Go to the point where a previous \\[xref-go-back] was invoked." t)
 (autoload 'xref-marker-stack-empty-p "xref" "\
 Whether the xref back-history is empty.")
 (autoload 'xref-forward-history-empty-p "xref" "\

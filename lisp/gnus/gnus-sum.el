@@ -1408,6 +1408,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-newsgroup-adaptive-score-file nil)
 (defvar gnus-current-score-file nil)
 (defvar gnus-current-move-group nil)
+(defvar gnus-current-move-article nil)
 (defvar gnus-current-copy-group nil)
 (defvar gnus-current-crosspost-group nil)
 (defvar gnus-newsgroup-display nil)
@@ -8500,7 +8501,15 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 If REVERSE, limit the summary buffer to articles that are marked
 with MARKS.  MARKS can either be a string of marks or a list of marks.
 Returns how many articles were removed."
-  (interactive "sMarks: " gnus-summary-mode)
+  (interactive
+   (list
+    (completing-read "Marks:"
+		     (let ((mark-list '()))
+		       (mapc (lambda (datum)
+			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			     gnus-newsgroup-data)
+		       (mapcar 'char-to-string  mark-list)))
+    current-prefix-arg) gnus-summary-mode)
   (gnus-summary-limit-to-marks marks t))
 
 (defun gnus-summary-limit-to-marks (marks &optional reverse)
@@ -8509,7 +8518,15 @@ If REVERSE (the prefix), limit the summary buffer to articles that are
 not marked with MARKS.  MARKS can either be a string of marks or a
 list of marks.
 Returns how many articles were removed."
-  (interactive "sMarks: \nP" gnus-summary-mode)
+  (interactive
+   (list
+    (completing-read "Marks:"
+		     (let ((mark-list '()))
+		       (mapc (lambda (datum)
+			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			     gnus-newsgroup-data)
+		       (mapcar 'char-to-string  mark-list)))
+    current-prefix-arg) gnus-summary-mode)
   (prog1
       (let ((data gnus-newsgroup-data)
 	    (marks (if (listp marks) marks
@@ -10248,6 +10265,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
+	  (set (intern "gnus-current-move-article") (cdr art-group))
 	  (run-hook-with-args 'gnus-summary-article-move-hook
 			      action
 			      (gnus-data-header (gnus-data-find article))

@@ -506,16 +506,18 @@ Symbols are also allowed; their print names are used instead.  */)
       /* String data is normally allocated with word alignment, but
 	 there are exceptions (notably pure strings) so we restrict the
 	 wordwise skipping to safe architectures.  */
-      if (HAVE_FAST_UNALIGNED_ACCESS)
+#ifdef HAVE_FAST_UNALIGNED_ACCESS
 	{
 	  /* First compare entire machine words.  */
 	  int ws = sizeof (size_t);
 	  const char *w1 = SSDATA (string1);
 	  const char *w2 = SSDATA (string2);
-	  while (b < nb - ws + 1 &&    load_unaligned_size_t (w1 + b)
-		                    == load_unaligned_size_t (w2 + b))
+	  while (b < nb - ws + 1
+		 && (load_unaligned_size_t (w1 + b)
+		     == load_unaligned_size_t (w2 + b)))
 	    b += ws;
 	}
+#endif
 
       /* Scan forward to the differing byte.  */
       while (b < nb && SREF (string1, b) == SREF (string2, b))
