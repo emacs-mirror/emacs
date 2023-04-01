@@ -286,7 +286,7 @@ Overrides local variable `indent-tabs-mode'."
     ;;    counter_rtl.vhd(29):Conditional signal assignment line__29
     ("ModelSim" "vcom" "-93 -work \\1" "make" "-f \\1"
      nil "vlib \\1; vmap \\2 \\1" "./" "work/" "Makefile" "modelsim"
-     ("\\(ERROR:\\|WARNING\\[[0-9]+\\]:\\|\\*\\* Error:\\|\\*\\* Warning: \\[[0-9]+\\]\\| +\\) \\([^ ]+\\)(\\([0-9]+\\)):" 2 3 nil)
+     ("^\\(ERROR\\|WARNING\\|\\*\\* Error\\|\\*\\* Warning\\)[^:]*:\\( *\[[0-9]+\]\\| ([^)]+)\\)? \\([^ \t\n]+\\)(\\([0-9]+\\)):" 3 4 nil)
      ("" 0)
      ("\\1/_primary.dat" "\\2/\\1.dat" "\\1/_primary.dat"
       "\\1/_primary.dat" "\\1/body.dat" downcase))
