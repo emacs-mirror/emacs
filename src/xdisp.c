@@ -3580,14 +3580,14 @@ init_iterator (struct it *it, struct window *w,
 static int
 get_narrowed_width (struct window *w)
 {
-  bool term = EQ (Fterminal_live_p (Qnil), Qt);
   /* In a character-only terminal, only one font size is used, so we
      can use a smaller factor.  */
-  int fact = term ? 2 : 3;
-  /* In a character-only terminal, subtract 1 from the width for the
+  int fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
+  /* If the window has no fringes (in a character-only terminal or in
+     a GUI frame without fringes), subtract 1 from the width for the
      '\' line wrapping character.  */
   int width = window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS)
-    - (term ? 1 : 0);
+    - (WINDOW_RIGHT_FRINGE_WIDTH (w) == 0 ? 1 : 0);
   return fact * max (1, width);
 }
 
@@ -3616,16 +3616,25 @@ static ptrdiff_t
 get_nearby_bol_pos (ptrdiff_t pos)
 {
   ptrdiff_t start, pos_bytepos, cur, next, found, bol = 0;
-  start = pos - 500000 < BEGV ? BEGV : pos - 500000;
-  pos_bytepos = CHAR_TO_BYTE (pos);
-  for (cur = start; cur < pos; cur = next)
+  int dist;
+  for (dist = 500; dist <= 500000; dist *= 10)
     {
-      next = find_newline1 (cur, CHAR_TO_BYTE (cur), pos, pos_bytepos,
-			    1, &found, NULL, false);
-      if (found)
-	bol = next;
+      pos_bytepos = pos == BEGV ? BEGV_BYTE : CHAR_TO_BYTE (pos);
+      start = pos - dist < BEGV ? BEGV : pos - dist;
+      for (cur = start; cur < pos; cur = next)
+	{
+	  next = find_newline1 (cur, CHAR_TO_BYTE (cur),
+				pos, pos_bytepos,
+				1, &found, NULL, false);
+	  if (found)
+	    bol = next;
+	  else
+	    break;
+	}
+      if (bol)
+	return bol;
       else
-	break;
+	pos = pos - dist < BEGV ? BEGV : pos - dist;
     }
   return bol;
 }
