@@ -512,8 +512,9 @@ Symbols are also allowed; their print names are used instead.  */)
 	  int ws = sizeof (size_t);
 	  const char *w1 = SSDATA (string1);
 	  const char *w2 = SSDATA (string2);
-	  while (b < nb - ws + 1 &&    load_unaligned_size_t (w1 + b)
-		                    == load_unaligned_size_t (w2 + b))
+	  while (b < nb - ws + 1
+		 && (load_unaligned_size_t (w1 + b)
+		     == load_unaligned_size_t (w2 + b)))
 	    b += ws;
 	}
 #endif
