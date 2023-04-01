@@ -136,6 +136,8 @@ This test uses a pipeline for the command."
       ;; buffer.
       (eshell-command "*echo hi &")
       (with-current-buffer "*Eshell Async Command Output*"
+        (while (get-buffer-process (current-buffer))
+          (accept-process-output))
         (goto-char (point-min))
         (should (looking-at "\\[echo\\(\\.exe\\)?\\(<[0-9]+>\\)?\\]"))))))
 
@@ -149,6 +151,8 @@ This test uses a pipeline for the command."
       ;; XXX: As above, we can't write to the current buffer here.
       (eshell-command "*echo hi | *cat &")
       (with-current-buffer "*Eshell Async Command Output*"
+        (while (get-buffer-process (current-buffer))
+          (accept-process-output))
         (goto-char (point-min))
         (should (looking-at "\\[cat\\(\\.exe\\)?\\(<[0-9]+>\\)?\\]"))))))
 
