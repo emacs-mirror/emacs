@@ -795,7 +795,7 @@ part of the buffer.
 
 +++
 ** New user option 'set-message-functions'.
-It allows more flexible control of how echo-area message are displayed
+It allows more flexible control of how echo-area messages are displayed
 by adding functions to this list.  The default value is a list of one
 element: 'set-minibuffer-message', which displays echo-area messages
 at the end of the minibuffer text when the minibuffer is active.
