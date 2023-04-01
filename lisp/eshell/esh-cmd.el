@@ -893,7 +893,7 @@ This is used on systems where async subprocesses are not supported."
      (set headproc nil)
      (set tailproc nil)
      (progn
-       ,(if (fboundp 'make-process)
+       ,(if eshell-supports-asynchronous-processes
 	    `(eshell-do-pipelines ,pipeline)
           `(let ((tail-handles (eshell-duplicate-handles
                                 eshell-current-handles)))
