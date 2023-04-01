@@ -3644,7 +3644,7 @@ ptrdiff_t
 get_small_narrowing_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_width (w);
-  ptrdiff_t bol_pos = get_nearby_bol_pos (pos);
+  ptrdiff_t bol_pos = max (get_nearby_bol_pos (pos), BEGV);
   return max (bol_pos + ((pos - bol_pos) / len - 1) * len, BEGV);
 }
 
