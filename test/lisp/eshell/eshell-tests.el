@@ -150,7 +150,7 @@ This test uses a pipeline for the command."
       (eshell-command "*echo hi | *cat &")
       (with-current-buffer "*Eshell Async Command Output*"
         (goto-char (point-min))
-        (should (looking-at "\\[cat\\(\\.exe\\)\\(<[0-9]+>\\)?\\]"))))))
+        (should (looking-at "\\[cat\\(\\.exe\\)?\\(<[0-9]+>\\)?\\]"))))))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
