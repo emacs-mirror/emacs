@@ -3582,12 +3582,13 @@ get_narrowed_width (struct window *w)
 {
   /* In a character-only terminal, only one font size is used, so we
      can use a smaller factor.  */
-  int fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
+  int fact = FRAME_WINDOW_P (XFRAME (w->frame)) ? 3 : 2;
   /* If the window has no fringes (in a character-only terminal or in
      a GUI frame without fringes), subtract 1 from the width for the
      '\' line wrapping character.  */
   int width = window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS)
-    - (WINDOW_RIGHT_FRINGE_WIDTH (w) == 0 ? 1 : 0);
+    - ((WINDOW_RIGHT_FRINGE_WIDTH (w) == 0
+	|| WINDOW_LEFT_FRINGE_WIDTH (w) == 0) ? 1 : 0);
   return fact * max (1, width);
 }
 
