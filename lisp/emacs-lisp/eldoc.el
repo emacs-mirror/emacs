@@ -448,16 +448,16 @@ documentation-displaying frontends.  For example, KEY can be:
   `eldoc-display-in-echo-area' and `eldoc-display-in-buffer' will
   use when displaying `:thing''s value.
 
-* `:origin', VALUE being the member of
-  `eldoc-documentation-functions' where DOCSTRING
-  originated. `eldoc-display-in-buffer' may use this organize the
-  documentation buffer accordingly.
-
 * `:echo', controlling how `eldoc-display-in-echo-area' should
   present this documentation item in the echo area, to save
   space.  If VALUE is a string, echo it instead of DOCSTRING.  If
   a number, only echo DOCSTRING up to that character position.
   If `skip', don't echo DOCSTRING at all.
+
+The additional KEY `:origin' is always added by ElDoc, its VALUE
+being the member of `eldoc-documentation-functions' where
+DOCSTRING originated. `eldoc-display-functions' may use this
+information to organize display of multiple docstrings.
 
 Finally, major modes should modify this hook locally, for
 example:
