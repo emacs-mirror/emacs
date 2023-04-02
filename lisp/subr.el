@@ -3538,10 +3538,9 @@ confusing to some users.")
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
 (defun use-dialog-box-p ()
-  "Say whether the current command should prompt the user via a dialog box."
+  "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (and last-nonmenu-event      ; nil is listp...
-                (listp last-nonmenu-event))   ; invoked by a mouse event
+       (or (consp last-nonmenu-event)   ; invoked by a mouse event
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
