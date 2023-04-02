@@ -3433,8 +3433,9 @@ at point.  With prefix argument, prompt for ACTION-KIND."
       (unwind-protect
           (progn
             (dolist (dir dirs-to-watch)
-              (push (file-notify-add-watch dir '(change) #'handle-event)
-                    (gethash id (eglot--file-watches server))))
+              (when (file-readable-p dir)
+                (push (file-notify-add-watch dir '(change) #'handle-event)
+                      (gethash id (eglot--file-watches server)))))
             (setq
              success
              `(:message ,(format "OK, watching %s directories in %s watchers"
