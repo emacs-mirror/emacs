@@ -97,34 +97,30 @@
 
 (require 'imenu)
 (require 'cl-lib)
-(require 'project)
+
 (require 'url-parse)
 (require 'url-util)
 (require 'pcase)
 (require 'compile) ; for some faces
 (require 'warnings)
-(require 'flymake)
-(require 'xref)
 (eval-when-compile
   (require 'subr-x))
-(require 'jsonrpc)
 (require 'filenotify)
 (require 'ert)
 (require 'array)
-(require 'external-completion)
 
-;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
-;; using the latest version from GNU Elpa when we load eglot.el.  Use an
-;; heuristic to see if we need to `load' it in Emacs < 28.
-(if (and (< emacs-major-version 28)
-         (not (boundp 'eldoc-documentation-strategy)))
-    (load "eldoc")
-  (require 'eldoc))
-
-;; Similar issue as above for Emacs 26.3 and seq.el.
-(if (< emacs-major-version 27)
-    (load "seq")
-  (require 'seq))
+;; These dependencies are also GNU ELPA core packages.  Because of
+;; bug#62576, since there is a risk that M-x package-install, despite
+;; having installed them, didn't correctly re-load them over the
+;; built-in versions.
+(eval-and-compile
+  (load "project")
+  (load "eldoc")
+  (load "seq")
+  (load "flymake")
+  (load "xref")
+  (load "jsonrpc")
+  (load "external-completion"))
 
 ;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
 (defvar markdown-fontify-code-blocks-natively)
