@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.13.0
+;; Version: 1.14.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
