@@ -542,9 +542,10 @@ of its argument (i.e., use of a Lisp special form), it must be
 implemented via rewriting, rather than as a function."
   (if (and (equal (car terms) "for")
 	   (equal (nth 2 terms) "in"))
-      (let ((body (car (last terms))))
+      (let ((for-items (make-symbol "for-items"))
+            (body (car (last terms))))
 	(setcdr (last terms 2) nil)
-        `(let ((for-items
+        `(let ((,for-items
                 (append
                  ,@(mapcar
                     (lambda (elem)
@@ -552,13 +553,13 @@ implemented via rewriting, rather than as a function."
                           elem
                         `(list ,elem)))
                     (nthcdr 3 terms)))))
-           (while for-items
-             (let ((,(intern (cadr terms)) (car for-items))
+           (while ,for-items
+             (let ((,(intern (cadr terms)) (car ,for-items))
 		   (eshell--local-vars (cons ',(intern (cadr terms))
                                              eshell--local-vars)))
 	       (eshell-protect
 	   	,(eshell-invokify-arg body t)))
-             (setq for-items (cdr for-items)))
+             (setq ,for-items (cdr ,for-items)))
            (eshell-close-handles)))))
 
 (defun eshell-structure-basic-command (func names keyword test body
@@ -901,28 +902,33 @@ This is used on systems where async subprocesses are not supported."
                                       (symbol-value tailproc))))))
 
 (defmacro eshell-as-subcommand (command)
-  "Execute COMMAND using a temp buffer.
-This is used so that certain Lisp commands, such as `cd', when
-executed in a subshell, do not disturb the environment of the main
-Eshell buffer."
+  "Execute COMMAND as a subcommand.
+A subcommand creates a local environment so that any changes to
+the environment don't propagate outside of the subcommand's
+scope.  This lets you use commands like `cd' within a subcommand
+without changing the current directory of the main Eshell
+buffer."
   `(let ,eshell-subcommand-bindings
      ,command))
 
 (defmacro eshell-do-command-to-value (object)
   "Run a subcommand prepared by `eshell-command-to-value'.
 This avoids the need to use `let*'."
+  (declare (obsolete nil "30.1"))
   `(let ((eshell-current-handles
 	  (eshell-create-handles value 'overwrite)))
      (progn
        ,object
        (symbol-value value))))
 
-(defmacro eshell-command-to-value (object)
-  "Run OBJECT synchronously, returning its result as a string.
-Returns a string comprising the output from the command."
-  `(let ((value (make-symbol "eshell-temp"))
-         (eshell-in-pipeline-p nil))
-     (eshell-do-command-to-value ,object)))
+(defmacro eshell-command-to-value (command)
+  "Run an Eshell COMMAND synchronously, returning its output."
+  (let ((value (make-symbol "eshell-temp")))
+    `(let ((eshell-in-pipeline-p nil)
+           (eshell-current-handles
+	    (eshell-create-handles ',value 'overwrite)))
+       ,command
+       ,value)))
 
 ;;;_* Iterative evaluation
 ;;

@@ -73,6 +73,13 @@ Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
   (eshell-command-result-equal "{(+ 1 2)} 3" 3))
 
+(ert-deftest esh-cmd-test/subcommand-shadow-value ()
+  "Test that the variable `value' isn't shadowed inside subcommands."
+  (with-temp-eshell
+   (with-no-warnings (setq-local value "hello"))
+   (eshell-match-command-output "echo ${echo $value}"
+                                "hello\n")))
+
 (ert-deftest esh-cmd-test/let-rebinds-after-defer ()
   "Test that let-bound values are properly updated after `eshell-defer'.
 When inside a `let' block in an Eshell command form, we need to
@@ -151,19 +158,26 @@ bug#59469."
    (eshell-match-command-output "for i in 1 2 (list 3 4) { echo $i }"
                                 "1\n2\n3\n4\n")))
 
-(ert-deftest esh-cmd-test/for-name-loop () ; bug#15231
+(ert-deftest esh-cmd-test/for-loop-name () ; bug#15231
   "Test invocation of a for loop using `name'."
   (let ((process-environment (cons "name" process-environment)))
     (eshell-command-result-equal "for name in 3 { echo $name }"
                                  3)))
 
-(ert-deftest esh-cmd-test/for-name-shadow-loop () ; bug#15372
+(ert-deftest esh-cmd-test/for-loop-name-shadow () ; bug#15372
   "Test invocation of a for loop using an env-var."
   (let ((process-environment (cons "name=env-value" process-environment)))
     (with-temp-eshell
      (eshell-match-command-output
       "echo $name; for name in 3 { echo $name }; echo $name"
       "env-value\n3\nenv-value\n"))))
+
+(ert-deftest esh-cmd-test/for-loop-for-items-shadow ()
+  "Test that the variable `for-items' isn't shadowed inside for loops."
+  (with-temp-eshell
+   (with-no-warnings (setq-local for-items "hello"))
+   (eshell-match-command-output "for i in 1 { echo $for-items }"
+                                "hello\n")))
 
 (ert-deftest esh-cmd-test/for-loop-pipe ()
   "Test invocation of a for loop piped to another command."
