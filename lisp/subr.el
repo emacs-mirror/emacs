@@ -3540,7 +3540,8 @@ confusing to some users.")
 (defun use-dialog-box-p ()
   "Say whether the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (listp last-nonmenu-event)   ; invoked by a mouse event
+       (or (and last-nonmenu-event      ; nil is listp...
+                (listp last-nonmenu-event))   ; invoked by a mouse event
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
