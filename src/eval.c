@@ -3400,7 +3400,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
   return object;
 }
 
-/* Return true if SYMBOL currently has a let-binding
+/* Return true if SYMBOL's default currently has a let-binding
    which was made in the buffer that is now current.  */
 
 bool
@@ -3415,6 +3415,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (specpdl_symbol (p));
 	eassert (let_bound_symbol->u.s.redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
+	    && p->kind != SPECPDL_LET_LOCAL /* bug#62419 */
 	    && EQ (specpdl_where (p), buf))
 	  return 1;
       }
