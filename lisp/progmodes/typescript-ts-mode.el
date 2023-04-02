@@ -396,7 +396,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 This major mode defines two additional JSX-specific faces:
 `typescript-ts-jsx-attribute-face' and
 `typescript-ts-jsx-attribute-face' that are used for HTML tags
-and attributes, respectively."
+and attributes, respectively.
+
+The JSX-specific faces are used when `treesit-font-lock-level' is
+at least 3 (which is the default value)."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
