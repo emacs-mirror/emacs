@@ -154,7 +154,7 @@ the buffer will be momentarily unfontified.
 @vindex redisplay-skip-fontification-on-input
 Finally, a third alternative to these variables is
 @code{redisplay-skip-fontification-on-input}.  If this variable is
-non-@code{nil}, skip some fontifications is there's input pending.
+non-@code{nil}, skip some fontifications if there's input pending.
 This usually does not affect the display because redisplay is
 completely skipped anyway if input was pending, but it can make
 scrolling smoother by avoiding unnecessary fontification.

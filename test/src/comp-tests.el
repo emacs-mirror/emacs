@@ -446,7 +446,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
           (should (equal comp-test-primitive-advice '(3 4))))
       (advice-remove #'+ f))))
 
-(defvar comp-test-primitive-redefine-args)
+(defvar comp-test-primitive-redefine-args nil)
 (comp-deftest primitive-redefine ()
   "Test effectiveness of primitive redefinition."
   (cl-letf ((comp-test-primitive-redefine-args nil)
@@ -531,6 +531,22 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-07/msg00666.html>"
   (should (subr-native-elisp-p
            (symbol-function 'comp-test-48029-nonascii-žžž-f))))
+
+(comp-deftest 61917-1 ()
+  "Verify we can compile calls to redefined primitives with
+dedicated byte-op code."
+  (let (x
+        (f (lambda (fn &rest args)
+             (setq comp-test-primitive-redefine-args args))))
+    (advice-add #'delete-region :around f)
+    (unwind-protect
+        (setf x (native-compile
+                 '(lambda ()
+                    (delete-region 1 2))))
+      (should (subr-native-elisp-p x))
+      (funcall x)
+      (advice-remove #'delete-region f)
+      (should (equal comp-test-primitive-redefine-args '(1 2))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;

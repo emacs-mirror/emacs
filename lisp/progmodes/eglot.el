@@ -1641,10 +1641,9 @@ If optional MARKER, return a marker instead"
                (normalized (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
                                     (cl-plusp (length retval)))
-                               (substring retval 1)
+                               (w32-long-file-name (substring retval 1))
                              retval)))
           (concat remote-prefix normalized))
-
       uri)))
 
 (defun eglot--snippet-expansion-fn ()
@@ -1916,6 +1915,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
   (remove-overlays nil nil 'eglot--overlay t)
+  (eglot-inlay-hints-mode -1)
   (eglot--managed-mode -1))
 
 (defun eglot-current-server ()
