@@ -356,7 +356,9 @@ wherever possible, since it is slow."
 (eval-and-compile
   ;; Both xemacs and emacs
   (condition-case nil
-      (require 'diff)  ; diff-command and diff-switches
+      ;; `diff-command' and `diff-switches',
+      ;; although XEmacs lacks the former.
+      (require 'diff)
     (error nil))
   (condition-case nil
       (require 'compile)  ; compilation-error-regexp-alist-alist
@@ -11883,31 +11885,33 @@ If optional REGEXP, ignore differences matching it."
 This requires the external program `diff-command' to be in your `exec-path',
 and uses `diff-switches' in which you may want to have \"-u\" flag.
 Ignores WHITESPACE if t, and writes output to stdout if SHOW."
-  ;; Similar to `diff-buffer-with-file' but works on XEmacs, and doesn't
-  ;; call `diff' as `diff' has different calling semantics on different
-  ;; versions of Emacs.
+  ;; Similar to `diff-buffer-with-file' but works on Emacs 21, and
+  ;; doesn't call `diff' as `diff' has different calling semantics on
+  ;; different versions of Emacs.
   (if (not (file-exists-p f1))
-      (message "Buffer `%s' has no associated file on disk" (buffer-name b2))
-    (with-temp-buffer "*Verilog-Diff*"
-                      (let ((outbuf (current-buffer))
-                            (f2 (make-temp-file "vm-diff-auto-")))
-                        (unwind-protect
-                            (progn
-                              (with-current-buffer b2
-                                (save-restriction
-                                  (widen)
-                                  (write-region (point-min) (point-max) f2 nil 'nomessage)))
-                              (call-process diff-command nil outbuf t
-                                            diff-switches  ; User may want -u in diff-switches
-                                            (if whitespace "-b" "")
-                                            f1 f2)
-                              ;; Print out results.  Alternatively we could have call-processed
-                              ;; ourself, but this way we can reuse diff switches
-                              (when show
-                                (with-current-buffer outbuf (message "%s" (buffer-string))))))
-                        (sit-for 0)
-                        (when (file-exists-p f2)
-                          (delete-file f2))))))
+      (message "Buffer `%s' has no associated file on disk" b2)
+    (let ((outbuf (get-buffer "*Verilog-Diff*"))
+          (f2 (make-temp-file "vm-diff-auto-")))
+      (unwind-protect
+          ;; User may want -u in `diff-switches'.
+          (let ((args `(,@(if (listp diff-switches)
+                              diff-switches
+                            (list diff-switches))
+                        ,@(and whitespace '("-b"))
+                        ,f1 ,f2)))
+            (with-current-buffer b2
+              (save-restriction
+                (widen)
+                (write-region (point-min) (point-max) f2 nil 'nomessage)))
+            (apply #'call-process diff-command nil outbuf t args)
+            ;; Print out results.  Alternatively we could have call-processed
+            ;; ourself, but this way we can reuse diff switches.
+            (when show
+              (with-current-buffer outbuf (message "%s" (buffer-string)))))
+        (sit-for 0)
+        (condition-case nil
+            (delete-file f2)
+          (error nil))))))
 
 (defun verilog-diff-report (b1 b2 diffpt)
   "Report differences detected with `verilog-diff-auto'.
