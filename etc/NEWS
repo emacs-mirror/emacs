@@ -319,6 +319,8 @@ hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 * Lisp Changes in Emacs 30.1
 
+** New var 'inhibit-auto-fill' to temporarily prevent auto-fill.
+
 ** Functions and variables to transpose sexps
 
 +++
