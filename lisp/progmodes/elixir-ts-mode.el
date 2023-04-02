@@ -568,13 +568,27 @@ Return nil if NODE is not a defun node or doesn't have a name."
          (put-text-property (1- (treesit-node-end node)) (treesit-node-end node)
                             'syntax-table (string-to-syntax "$")))))))
 
+(defun elixir-ts--electric-pair-string-delimiter ()
+  "Insert corresponding multi-line string for `electric-pair-mode'."
+  (when (and electric-pair-mode
+             (eq last-command-event ?\")
+             (let ((count 0))
+               (while (eq (char-before (- (point) count)) last-command-event)
+                 (cl-incf count))
+               (= count 3))
+             (eq (char-after) last-command-event))
+    (save-excursion
+      (insert (make-string 2 last-command-event)))
+    (save-excursion
+      (newline 1 t))))
+
 ;;;###autoload
 (define-derived-mode elixir-ts-mode prog-mode "Elixir"
   "Major mode for editing Elixir, powered by tree-sitter."
   :group 'elixir-ts
   :syntax-table elixir-ts--syntax-table
 
-  ;; Comments
+  ;; Comments.
   (setq-local comment-start "# ")
   (setq-local comment-start-skip
               (rx "#" (* (syntax whitespace))))
@@ -584,8 +598,12 @@ Return nil if NODE is not a defun node or doesn't have a name."
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end) "\n"))))
 
-  ;; Compile
+  ;; Compile.
   (setq-local compile-command "mix")
+
+  ;; Electric pair.
+  (add-hook 'post-self-insert-hook
+            #'elixir-ts--electric-pair-string-delimiter 'append t)
 
   (when (treesit-ready-p 'elixir)
     ;; The HEEx parser has to be created first for elixir to ensure elixir
@@ -617,14 +635,14 @@ Return nil if NODE is not a defun node or doesn't have a name."
     ;; Indent.
     (setq-local treesit-simple-indent-rules elixir-ts--indent-rules)
 
-    ;; Navigation
+    ;; Navigation.
     (setq-local forward-sexp-function #'elixir-ts--forward-sexp)
     (setq-local treesit-defun-type-regexp
                 '("call" . elixir-ts--defun-p))
 
     (setq-local treesit-defun-name-function #'elixir-ts--defun-name)
 
-    ;; Embedded Heex
+    ;; Embedded Heex.
     (when (treesit-ready-p 'heex)
       (setq-local treesit-range-settings elixir-ts--treesit-range-rules)
 
