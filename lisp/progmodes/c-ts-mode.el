@@ -996,7 +996,11 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your configuration."
+in your configuration.
+
+Since this mode uses a parser, unbalanced brackets might cause
+some breakage in indentation/fontification.  Therefore, it's
+recommended to enable `electric-pair-mode' with this mode."
   :group 'c++
   :after-hook (c-ts-mode-set-modeline)
 
