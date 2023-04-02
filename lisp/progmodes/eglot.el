@@ -107,7 +107,6 @@
   (require 'subr-x))
 (require 'filenotify)
 (require 'ert)
-(require 'array)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
