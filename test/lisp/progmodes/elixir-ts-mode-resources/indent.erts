@@ -1,6 +1,5 @@
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
     (elixir-ts-mode)
     (indent-region (point-min) (point-max)))
 
@@ -329,4 +328,23 @@ defmodule Foo do
     """
   end
 end
+=-=-=
+
+Code:
+  (lambda ()
+    (elixir-ts-mode)
+    (newline)
+    (indent-for-tab-command))
+
+Name: New list item
+
+=-=
+[
+  :foo,$
+]
+=-=
+[
+  :foo,
+  $
+]
 =-=-=
