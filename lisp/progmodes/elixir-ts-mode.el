@@ -455,16 +455,13 @@
    :override t
    `((sigil
       (sigil_name) @elixir-ts-font-sigil-name-face
-      quoted_start: _ @font-lock-string-face
-      quoted_end: _ @font-lock-string-face
-      (:match "^[sSwWpP]$" @elixir-ts-font-sigil-name-face))
+      (:match "^[sSwWpPUD]$" @elixir-ts-font-sigil-name-face))
      @font-lock-string-face
      (sigil
+      "~" @font-lock-string-face
       (sigil_name) @elixir-ts-font-sigil-name-face
-      quoted_start: _ @font-lock-regex-face
-      quoted_end: _ @font-lock-regex-face
       (:match "^[rR]$" @elixir-ts-font-sigil-name-face))
-     @font-lock-regex-face
+     @font-lock-regexp-face
      (sigil
       "~" @font-lock-string-face
       (sigil_name) @elixir-ts-font-sigil-name-face
