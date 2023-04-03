@@ -208,6 +208,9 @@ DEFUN ("android-clipboard-exists-p", Fandroid_clipboard_exists_p,
   jboolean rc;
   jmethodID method;
 
+  if (!android_init_gui)
+    error ("No Android display connection");
+
   method = clipboard_class.clipboard_exists;
   rc = (*android_java_env)->CallBooleanMethod (android_java_env,
 					       clipboard,
