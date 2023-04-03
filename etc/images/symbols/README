@@ -35,3 +35,9 @@ the order should be
 4. size
 
 E.g., arrow_right_circle_fill_16.
+
+
+
+Every time you modify the SVG icons, please use the ImageMagick
+`convert' utility to convert them to PBM icons, for the sake of
+Emacsen that cannot display SVG images.
