@@ -496,7 +496,13 @@ lost after dumping")))
 ;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
+(defvar comp-subr-arities-h)
 (when (featurep 'native-compile)
+  ;; Save the arity for all primitives so the compiler can always
+  ;; retrive it even in case of redefinition.
+  (mapatoms (lambda (f)
+              (when (subr-primitive-p (symbol-function f))
+                (puthash f (func-arity f) comp-subr-arities-h))))
   ;; Fix the compilation unit filename to have it working when
   ;; installed or if the source directory got moved.  This is set to be
   ;; a pair in the form of:

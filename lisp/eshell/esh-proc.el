@@ -97,6 +97,9 @@ information, for example."
 
 ;;; Internal Variables:
 
+(defvar eshell-supports-asynchronous-processes (fboundp 'make-process)
+  "Non-nil if Eshell can create asynchronous processes.")
+
 (defvar eshell-current-subjob-p nil)
 
 (defvar eshell-process-list nil
@@ -296,7 +299,7 @@ Used only on systems which do not support async subprocesses.")
                 (coding-system-change-eol-conversion locale-coding-system
                                                      'unix))))
     (cond
-     ((fboundp 'make-process)
+     (eshell-supports-asynchronous-processes
       (unless (or ;; FIXME: It's not currently possible to use a
                   ;; stderr process for remote files.
                   (file-remote-p default-directory)
@@ -367,6 +370,8 @@ Used only on systems which do not support async subprocesses.")
 	(erase-buffer)
 	(set-buffer oldbuf)
 	(run-hook-with-args 'eshell-exec-hook command)
+        ;; XXX: This doesn't support sending stdout and stderr to
+        ;; separate places.
 	(setq exit-status
 	      (apply #'call-process-region
 		     (append (list eshell-last-sync-output-start (point)
@@ -392,10 +397,6 @@ Used only on systems which do not support async subprocesses.")
 	    (setq lbeg lend)
 	    (set-buffer proc-buf))
 	  (set-buffer oldbuf))
-        (require 'esh-mode)
-        (declare-function eshell-update-markers "esh-mode" (pmark))
-        (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
-	(eshell-update-markers eshell-last-output-end)
 	;; Simulate the effect of eshell-sentinel.
 	(eshell-close-handles
          (if (numberp exit-status) exit-status -1)

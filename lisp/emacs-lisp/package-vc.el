@@ -41,9 +41,6 @@
 
 ;; - Allow maintaining patches that are ported back onto regular
 ;;   packages and maintained between versions.
-;;
-;; - Add a heuristic for guessing a `:lisp-dir' when cloning directly
-;;  from a URL.
 
 ;;; Code:
 
@@ -58,7 +55,7 @@
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
   :group 'package
-  :link '(custom-manual "(emacs) Package from Source")
+  :link '(custom-manual "(emacs) Fetching Package Sources")
   :prefix "package-vc-"
   :version "29.1")
 

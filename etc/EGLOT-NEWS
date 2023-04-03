@@ -18,6 +18,54 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes in upcoming Eglot 1.14
+
+** Faster, more responsive completion
+
+Eglot takes advantage of LSP's "isIncomplete" flag in responses to
+completion requests to drive new completion-caching mechanism for the
+duration of each completion session.  Once a full set of completions
+is obtained for a given position, the server needn't be contacted in
+many scenarios, resulting in significantly less communication
+overhead.  This works with the popular Company package and stock
+completion-at-point interfaces.
+
+A variable 'eglot-cache-session-completions', t by default, controls
+this.  The mechanism was tested with ccls, jdtls, pylsp, golsp and
+clangd.  Notably, the C/C++ language server Clangd version 15 has a
+bug in its "isIcomplete" flag (it is fixed in later versions).  If you
+run into problems, disable this mechanism like so:
+
+(add-hook 'c-common-mode-hook
+   (lambda () (setq-local eglot-cache-session-completions nil)))
+
+** At-point documentation less obtrusive in echo area
+
+Eglot takes advantage of new features of ElDoc to separate short
+documentation strings from large ones, sending the former to be shown in
+the ElDoc's echo area and the latter to be shown in other outlets,
+such as the *eldoc* buffer obtainable with 'C-h .'.
+
+** New variable 'eglot-prefer-plaintext'
+
+Customize this to t to opt-in to docstrings in plain text instead of
+Markdown.
+
+(bug#61373)
+
+** Progress indicators inhabit the mode-line by default
+
+To switch to the echo area, customize 'eglot-report-progress' to
+'messages'.  To switch off progress reporting completely, set to nil.
+
+** Snippet support is easier to enable
+
+The user needn't manually activate 'yas-minor-mode' or
+'yas-global-mode'.  If YASnippet is installed and the server supports
+snippets, it is used automatically, unless the symbol 'yasnippet' has
+been added to 'eglot-stay-out-of'.
+
+
 * Changes in Eglot 1.13 (15/03/2023)
 
 ** ELPA installations on Emacs 26.3 are supported again.

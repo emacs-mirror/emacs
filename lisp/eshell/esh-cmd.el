@@ -421,7 +421,8 @@ hooks should be run before and after the command."
                            (string= (car eshell--sep-terms) ";"))
                        (eshell-parse-pipeline cmd)
                      `(eshell-do-subjob
-                       (list ,(eshell-parse-pipeline cmd)))))
+                       (cons :eshell-background
+                             ,(eshell-parse-pipeline cmd)))))
              (setq eshell--sep-terms (cdr eshell--sep-terms))
              (if eshell-in-pipeline-p
                  cmd
@@ -893,7 +894,7 @@ This is used on systems where async subprocesses are not supported."
      (set headproc nil)
      (set tailproc nil)
      (progn
-       ,(if (fboundp 'make-process)
+       ,(if eshell-supports-asynchronous-processes
 	    `(eshell-do-pipelines ,pipeline)
           `(let ((tail-handles (eshell-duplicate-handles
                                 eshell-current-handles)))
@@ -1036,7 +1037,12 @@ produced by `eshell-parse-command'."
     (cadr result)))
 
 (defun eshell-eval-command (command &optional input)
-  "Evaluate the given COMMAND iteratively."
+  "Evaluate the given COMMAND iteratively.
+Return the process (or head and tail processes) created by
+COMMAND, if any.  If COMMAND is a background command, return the
+process(es) in a cons cell like:
+
+  (:eshell-background . PROCESS)"
   (if eshell-current-command
       ;; We can just stick the new command at the end of the current
       ;; one, and everything will happen as it should.
@@ -1052,20 +1058,12 @@ produced by `eshell-parse-command'."
            (erase-buffer)
            (insert "command: \"" input "\"\n")))
     (setq eshell-current-command command)
-    (let* ((delim (catch 'eshell-incomplete
-                    (eshell-resume-eval)))
-           (val (car-safe delim)))
-      ;; If the return value of `eshell-resume-eval' is wrapped in a
-      ;; list, it indicates that the command was run asynchronously.
-      ;; In that case, unwrap the value before checking the delimiter
-      ;; value.
-      (if (and val
-               (not (eshell-processp val))
-               (not (eq val t)))
-          (error "Unmatched delimiter: %S" val)
-        ;; Eshell-command expect a list like (<process>) to know if the
-        ;; command should be async or not.
-        (or (and (eshell-processp val) delim) val)))))
+    (let* (result
+           (delim (catch 'eshell-incomplete
+                    (ignore (setq result (eshell-resume-eval))))))
+      (when delim
+        (error "Unmatched delimiter: %S" delim))
+      result)))
 
 (defun eshell-resume-command (proc status)
   "Resume the current command when a process ends."

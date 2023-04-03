@@ -356,6 +356,8 @@ The new functions 'touch-screen-track-tap' and
 'touch-screen-track-drag' handle tracking common touch screen gestures
 from within a command.
 
+** New var 'inhibit-auto-fill' to temporarily prevent auto-fill.
+
 ** Functions and variables to transpose sexps
 
 +++

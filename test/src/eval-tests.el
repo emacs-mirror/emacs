@@ -247,4 +247,23 @@ expressions works for identifiers starting with period."
             (should (equal (string-trim (buffer-string))
                            expected-messages))))))))
 
+(defvar-local eval-test--local-var 'global)
+
+(ert-deftest eval-test--bug62419 ()
+  (with-temp-buffer
+    (setq eval-test--local-var 'first-local)
+    (let ((eval-test--local-var t))
+      (kill-local-variable 'eval-test--local-var)
+      (setq eval-test--local-var 'second-local)
+      (should (eq eval-test--local-var 'second-local)))
+    ;; FIXME: It's not completely clear if exiting the above `let'
+    ;; should restore the buffer-local binding to `first-local'
+    ;; (i.e. reset the value of the second buffer-local binding to the
+    ;; first's initial value) or should do nothing (on the principle that
+    ;; the first buffer-local binding doesn't exists any more so there's
+    ;; nothing to restore).  I think both semantics make sense.
+    ;;(should (eq eval-test--local-var 'first-local))
+    )
+  (should (eq eval-test--local-var 'global)))
+
 ;;; eval-tests.el ends here
