@@ -838,39 +838,37 @@ This is used on systems where async subprocesses are not supported."
     ;; FIXME: is deferrable significant here?
     (eshell--unmark-deferrable (car pipeline))
     `(progn
+       (eshell-with-copied-handles
+        (progn
+          ,(when (cdr pipeline)
+             `(let ((output-marker ,(point-marker)))
+                (eshell-set-output-handle ,eshell-output-handle
+                                          'append output-marker)))
+          (let (;; XXX: `eshell-in-pipeline-p' has a different meaning
+                ;; for synchronous processes: it's non-nil only when
+                ;; piping *to* a process.
+                (eshell-in-pipeline-p ,(and (cdr pipeline) t)))
+            (let ((result ,(car pipeline)))
+              ;; `tailproc' gets the result of the last successful
+              ;; process in the pipeline.
+              (set tailproc (or result (symbol-value tailproc))))))
+        ;; Steal handles if this is the last item in the pipeline.
+        ,(null (cdr pipeline)))
        ,(when (cdr pipeline)
-          `(let ((output-marker ,(point-marker)))
-             (eshell-set-output-handle ,eshell-output-handle
-                                       'append output-marker)))
-       ;; The last process in the pipe should get its handles
-       ;; redirected as we found them before running the pipe.
-       ,(if (null (cdr pipeline))
-            '(progn
-               (setq eshell-current-handles tail-handles)
-               (setq eshell-in-pipeline-p nil)))
-       (let ((result ,(car pipeline)))
-         ;; tailproc gets the result of the last successful process in
-         ;; the pipeline.
-         (set tailproc (or result (symbol-value tailproc)))
-         ,(if (cdr pipeline)
-              `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
-         result))))
+          `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline)))))))
 
 (defalias 'eshell-process-identity 'identity)
 
 (defmacro eshell-execute-pipeline (pipeline)
   "Execute the commands in PIPELINE, connecting each to one another."
-  `(let ((eshell-in-pipeline-p t)
-         (headproc (make-symbol "headproc"))
+  `(let ((headproc (make-symbol "headproc"))
          (tailproc (make-symbol "tailproc")))
      (set headproc nil)
      (set tailproc nil)
      (progn
        ,(if eshell-supports-asynchronous-processes
 	    `(eshell-do-pipelines ,pipeline)
-          `(let ((tail-handles (eshell-duplicate-handles
-                                eshell-current-handles)))
-	     (eshell-do-pipelines-synchronously ,pipeline)))
+	  `(eshell-do-pipelines-synchronously ,pipeline))
        (eshell-process-identity (cons (symbol-value headproc)
                                       (symbol-value tailproc))))))
 
