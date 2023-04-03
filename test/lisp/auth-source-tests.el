@@ -341,13 +341,14 @@
               (should
                (string-equal (plist-get auth-info :user) (user-login-name)))
               (should (string-equal (plist-get auth-info :host) host))
-              (should (string-equal auth-passwd passwd)))))
+              (should (string-equal auth-passwd passwd))))
 
-      ;; Cleanup.
-      ;; Should use `auth-source-delete' when implemented for :secrets backend.
-      (secrets-delete-item
-       "session"
-       (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host))))))
+        ;; Cleanup.
+        ;; Should use `auth-source-delete' when implemented for :secrets backend.
+        (secrets-delete-item
+         "session"
+         (format
+          "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host)))))))
 
 (ert-deftest auth-source-test-netrc-create-secret ()
   (ert-with-temp-file netrc-file
