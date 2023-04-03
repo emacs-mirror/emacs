@@ -6414,7 +6414,10 @@ INPUT, if non-nil, is a string sent to the process."
 		(if quoted #'file-name-quote #'identity)
 		(expand-file-name
 		 (format "%s~" (file-name-nondirectory tmp-name1))
-		 ert-remote-temporary-file-directory)))))))
+		 ert-remote-temporary-file-directory))))))
+
+	;; Cleanup.  Nothing to do yet.
+	nil)
 
       (unwind-protect
 	  ;; Map `backup-directory-alist'.

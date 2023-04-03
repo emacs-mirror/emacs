@@ -1138,6 +1138,9 @@ leading double colon is not added."
                       "heredoc_body"
                       "regex"
                       "argument_list"
+                      "interpolation"
+                      "instance_variable"
+                      "global_variable"
                       )
                   eol))
 

@@ -10265,7 +10265,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
-	  (set (intern "gnus-current-move-article") (cdr art-group))
+          (setq gnus-current-move-article (cdr art-group))
 	  (run-hook-with-args 'gnus-summary-article-move-hook
 			      action
 			      (gnus-data-header (gnus-data-find article))
