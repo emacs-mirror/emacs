@@ -8241,8 +8241,8 @@ sfnt_normalize_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
     goto fail;
 
   /* Long division.. eek! */
-  vector->x = (sfnt_div_fixed (vx * 1024, magnitude) >> 2);
-  vector->y = (sfnt_div_fixed (vy * 1024, magnitude) >> 2);
+  vector->x = (sfnt_div_fixed (vx * 1024, magnitude) / 4);
+  vector->y = (sfnt_div_fixed (vy * 1024, magnitude) / 4);
 }
 
 /* Compute a unit vector describing the direction of a line from the
