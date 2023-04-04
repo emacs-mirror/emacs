@@ -1960,8 +1960,8 @@ end-position of a drag event, this position list may represent a
 location outside the boundaries of the initially selected frame, in
 which case the list contains that frame in place of a window.
 
-The special form @code{track-mouse} enables generation of motion
-events within its body.  Outside of @code{track-mouse} forms, Emacs
+The @code{track-mouse} macro enables generation of motion
+events within its body.  Outside of @code{track-mouse} body, Emacs
 does not generate events for mere motion of the mouse, and these
 events do not appear.  @xref{Mouse Tracking}.
 
@@ -2443,7 +2443,7 @@ into another window.  That produces a pair of events like these:
 
 The frame with input focus might not take up the entire screen, and
 the user might move the mouse outside the scope of the frame.  Inside
-the @code{track-mouse} special form, that produces an event like this:
+the @code{track-mouse} macro, that produces an event like this:
 
 @smallexample
 (mouse-movement (#<frame *ielm* 0x102849a30> nil (563 . 205) 532301936))
