@@ -593,8 +593,8 @@ symbol a function definition, its function cell is said to be
   In practice, nearly all functions have names, and are referred to by
 their names.  You can create a named Lisp function by defining a
 lambda expression and putting it in a function cell (@pxref{Function
-Cells}).  However, it is more common to use the @code{defun} special
-form, described in the next section.
+Cells}).  However, it is more common to use the @code{defun} macro,
+described in the next section.
 @ifnottex
 @xref{Defining Functions}.
 @end ifnottex
