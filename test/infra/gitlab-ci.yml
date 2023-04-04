@@ -229,22 +229,24 @@ test-filenotify-gio:
     # This is needed in order to get a JUnit test report.
     make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
 
-build-image-gnustep:
-  stage: platform-images
-  extends: [.job-template, .build-template, .gnustep-template]
-  variables:
-    target: emacs-gnustep
+# The next two jobs are commented out due to bug#62210.
 
-test-gnustep:
-  # This tests the GNUstep build process.
-  stage: platforms
-  extends: [.job-template, .gnustep-template]
-  needs:
-    - job: build-image-gnustep
-      optional: true
-  variables:
-    target: emacs-gnustep
-    make_params: install
+# build-image-gnustep:
+#   stage: platform-images
+#   extends: [.job-template, .build-template, .gnustep-template]
+#   variables:
+#     target: emacs-gnustep
+
+# test-gnustep:
+#   # This tests the GNUstep build process.
+#   stage: platforms
+#   extends: [.job-template, .gnustep-template]
+#   needs:
+#     - job: build-image-gnustep
+#       optional: true
+#   variables:
+#     target: emacs-gnustep
+#     make_params: install
 
 # The next two jobs are commented out due to high workload on
 # emba.gnu.org.
