@@ -3471,8 +3471,8 @@ There is no need to explicitly add `help-char' to CHARS;
 
   ;; If text conversion is enabled in this buffer, then it will only
   ;; be disabled the next time `force-mode-line-update' happens.
-  (when (and (bound-and-true-p 'overriding-text-conversion-style)
-             (bound-and-true-p 'text-conversion-style))
+  (when (and (bound-and-true-p overriding-text-conversion-style)
+             (bound-and-true-p text-conversion-style))
     (force-mode-line-update))
 
   (let* ((overriding-text-conversion-style nil)
