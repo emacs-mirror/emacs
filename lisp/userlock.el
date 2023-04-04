@@ -206,11 +206,12 @@ file, then make the change again."))
 ;;;###autoload
 (defun userlock--handle-unlock-error (error)
   "Report an ERROR that occurred while unlocking a file."
-  (display-warning
-   '(unlock-file)
-   ;; There is no need to explain that this is an unlock error because
-   ;; ERROR is a `file-error' condition, which explains this.
-   (message "%s, ignored" (error-message-string error))
-   :warning))
+  (when create-lockfiles
+    (display-warning
+     '(unlock-file)
+     ;; There is no need to explain that this is an unlock error because
+     ;; ERROR is a `file-error' condition, which explains this.
+     (message "%s, ignored" (error-message-string error))
+     :warning)))
 
 ;;; userlock.el ends here
