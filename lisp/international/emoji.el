@@ -700,7 +700,8 @@ We prefer the earliest unique letter."
 
 (defvar-keymap emoji-zoom-map
   "+" #'emoji-zoom-increase
-  "-" #'emoji-zoom-decrease)
+  "-" #'emoji-zoom-decrease
+  "0" #'emoji-zoom-reset)
 
 ;;;###autoload
 (defun emoji-zoom-increase (&optional factor)
@@ -740,6 +741,19 @@ FACTOR is the multiplication factor for the size."
   "Decrease the size of the character under point."
   (interactive)
   (emoji-zoom-increase 0.9))
+
+;;;###autoload
+(defun emoji-zoom-reset ()
+  "Reset the size of the character under point."
+  (interactive)
+  (with-silent-modifications
+    (let ((old (get-text-property (point) 'face)))
+      (when (and (consp old)
+                 (remove-text-properties (point) (1+ (point)) '(rear-nonsticky nil)))
+        (if (eq (car old) :height)
+            (remove-text-properties (point) (1+ (point)) '(face nil))
+          (add-text-properties (point) (1+ (point)) (list 'face
+                                                      (cdr old))))))))
 
 (provide 'emoji)
 
