@@ -1712,6 +1712,10 @@ Return value is the fall-through block name."
 
 (defun comp-jump-table-optimizable (jmp-table)
   "Return t if JMP-TABLE can be optimized out."
+  ;; Identify LAP sequences like:
+  ;; (byte-constant #s(hash-table size 3 test eq rehash-size 1.5 rehash-threshold 0.8125 purecopy t data (created 126 deleted 126 changed 126)) . 24)
+  ;; (byte-switch)
+  ;; (TAG 126 . 10)
   (cl-loop
    with labels = (cl-loop for target-label being each hash-value of jmp-table
                           collect target-label)
@@ -1719,7 +1723,10 @@ Return value is the fall-through block name."
    for l in (cdr-safe labels)
    unless (= l x)
      return nil
-   finally return t))
+   finally return (pcase (nth (1+ (comp-limplify-pc comp-pass))
+                              (comp-func-lap comp-func))
+                    (`(TAG ,label . ,_label-sp)
+                     (= label l)))))
 
 (defun comp-emit-switch (var last-insn)
   "Emit a Limple for a lap jump table given VAR and LAST-INSN."
