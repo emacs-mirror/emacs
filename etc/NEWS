@@ -4323,9 +4323,11 @@ that binding is ignored by 'where-is-internal'.
 
 +++
 *** New functions for defining and manipulating keystrokes.
-These all take the syntax defined by 'key-valid-p'.  None of the older
-functions have been deprecated or altered, but they are now
-de-emphasized in the documentation.
+These all take the syntax defined by 'key-valid-p', which is basically
+the same syntax as the one accepted by the 'kbd' macro.  None of the
+older functions have been deprecated or altered, but they are now
+de-emphasized in the documentation, and we encourage Lisp programs to
+switch to these new functions.
 
 +++
 *** Use 'keymap-set' instead of 'define-key'.
