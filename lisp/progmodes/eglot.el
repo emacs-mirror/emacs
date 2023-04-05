@@ -1605,6 +1605,7 @@ If optional MARKER, return a marker instead"
                (directory-file-name (file-local-name truepath))
                eglot--uri-path-allowed-chars)))))
 
+(declare-function w32-long-file-name "w32proc.c" (fn))
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
