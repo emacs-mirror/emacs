@@ -2688,13 +2688,14 @@ byte compiler can check that the calls match the declaration.
 Tell the byte compiler to assume that @var{function} is defined in the
 file @var{file}.  The optional third argument @var{arglist} is either
 @code{t}, meaning the argument list is unspecified, or a list of
-formal parameters in the same style as @code{defun}.  An omitted
-@var{arglist} defaults to @code{t}, not @code{nil}; this is atypical
-behavior for omitted arguments, and it means that to supply a fourth
-but not third argument one must specify @code{t} for the third-argument
-placeholder instead of the usual @code{nil}.  The optional fourth
-argument @var{fileonly} non-@code{nil} means check only that
-@var{file} exists, not that it actually defines @var{function}.
+formal parameters in the same style as @code{defun} (including the
+parentheses).  An omitted @var{arglist} defaults to @code{t}, not
+@code{nil}; this is atypical behavior for omitted arguments, and it
+means that to supply a fourth but not third argument one must specify
+@code{t} for the third-argument placeholder instead of the usual
+@code{nil}.  The optional fourth argument @var{fileonly}
+non-@code{nil} means check only that @var{file} exists, not that it
+actually defines @var{function}.
 @end defmac
 
 @findex check-declare-file
