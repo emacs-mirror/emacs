@@ -5,9 +5,12 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
 ;; Created: 10 Mar 2007
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Keywords: tools
-;; Package-Requires: ((tabulated-list "1.0"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1.0.0"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -147,6 +150,7 @@
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'epg))      ;For setf accessors.
 (eval-when-compile (require 'inline))   ;For `define-inline'
+(require 'compat nil 'noerror)
 (require 'seq)
 
 (require 'tabulated-list)
@@ -1090,20 +1094,24 @@ untar into a directory named DIR; otherwise, signal an error."
          (autoload-timestamps nil)
          (backup-inhibited t)
          (version-control 'never))
-    (loaddefs-generate
-     pkg-dir output-file nil
-     (prin1-to-string
-      '(add-to-list
-        'load-path
-        ;; Add the directory that will contain the autoload file to
-        ;; the load path.  We don't hard-code `pkg-dir', to avoid
-        ;; issues if the package directory is moved around.
-        ;; `loaddefs-generate' has code to do this for us, but it's
-        ;; not currently exposed.  (Bug#63625)
-        (or (and load-file-name
-                 (directory-file-name
-                  (file-name-directory load-file-name)))
-             (car load-path)))))
+    (if (fboundp 'loaddefs-generate)
+        (loaddefs-generate
+         pkg-dir output-file nil
+         (prin1-to-string
+          '(add-to-list
+            'load-path
+            ;; Add the directory that will contain the autoload file to
+            ;; the load path.  We don't hard-code `pkg-dir', to avoid
+            ;; issues if the package directory is moved around.
+            ;; `loaddefs-generate' has code to do this for us, but it's
+            ;; not currently exposed.  (Bug#63625)
+            (or (and load-file-name
+                     (directory-file-name
+                      (file-name-directory load-file-name)))
+		(car load-path)))))
+      (with-suppressed-warnings ((obsolete package-autoload-ensure-default-file))
+        (package-autoload-ensure-default-file output-file))
+      (make-directory-autoloads pkg-dir output-file))
     (let ((buf (find-buffer-visiting output-file)))
       (when buf (kill-buffer buf)))
     auto-name))
@@ -1134,7 +1142,8 @@ This assumes that `pkg-desc' has already been activated with
   "Native compile installed package PKG-DESC asynchronously.
 This assumes that `pkg-desc' has already been activated with
 `package-activate-1'."
-  (when (native-comp-available-p)
+  (when (and (fboundp 'native-comp-available-p)
+             (native-comp-available-p))
     (let ((warning-minimum-level :error))
       (native-compile-async (package-desc-dir pkg-desc) t))))
 
@@ -1170,9 +1179,10 @@ is wrapped around any parts requiring it."
 
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-header-multiline "lisp-mnt" (header))
-(declare-function lm-website "lisp-mnt" (&optional file))
+(declare-function lm-homepage "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
+(declare-function lm-maintainer "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
@@ -1205,7 +1215,7 @@ boundaries."
             (or (lm-header "package-version") (lm-header "version")))
            (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
-           (website (lm-website)))
+           (website (lm-homepage)))
       (unless pkg-version
          (if version-info
              (error "Unrecognized package version: %s" version-info)
@@ -1219,9 +1229,12 @@ boundaries."
        :url website
        :keywords keywords
        :maintainer
-       ;; For backward compatibility, use a single cons-cell if
-       ;; there's only one maintainer (the most common case).
-       (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
+       ;; For backward compatibility, use a single string if there's only
+       ;; one maintainer (the most common case).
+       (if (fboundp 'lm-maintainers)
+           (let ((maints (lm-maintainers)))
+             (if (cdr maints) maints (car maints)))
+         (lm-maintainer))
        :authors (lm-authors)))))
 
 (defun package--read-pkg-desc (kind)
@@ -2348,8 +2361,6 @@ Otherwise return nil."
       ;; Don't return `str' but (package-version-join (version-to-list str))
       ;; to make sure we use a "canonical name"!
       (if l (package-version-join l)))))
-
-(declare-function lm-website "lisp-mnt" (&optional file))
 
 ;;;###autoload
 (defun package-install-from-buffer ()
@@ -4664,7 +4675,9 @@ DESC must be a `package-desc' object."
         (dolist (ent (get (cdr group) 'custom-group))
           (when (and (custom-variable-p (car ent))
                      (boundp (car ent))
-                     (not (eq (custom--standard-value (car ent))
+                     (not (eq (if (fboundp 'custom--standard-value)
+                                  (custom--standard-value (car ent))
+                                (eval (car (get (car ent) 'standard-value)) t))
                               (default-toplevel-value (car ent)))))
             (push (car ent) vars)))))
     (dlet ((reporter-prompt-for-summary-p t))
