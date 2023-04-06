@@ -518,6 +518,19 @@
 (defun comp-test-48029-nonascii-žžž-f (arg)
   (when arg t))
 
+(defun comp-test-62537-1-f ())
+
+(defun comp-test-62537-2-f ()
+  (when (let ((val (comp-test-62537-1-f)))
+	  (cond
+	   ((eq val 'x)
+	    t)
+	   ((eq val 'y)
+	    'y)))
+    (comp-test-62537-1-f))
+  t)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

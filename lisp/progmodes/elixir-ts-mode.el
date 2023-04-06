@@ -169,7 +169,13 @@
 
 (defun elixir-ts--argument-indent-offset (node _parent &rest _)
   "Return the argument offset position for NODE."
-  (if (treesit-node-prev-sibling node t) 0 elixir-ts-indent-offset))
+  (if (or (treesit-node-prev-sibling node t)
+          ;; Don't indent if this is the first node or
+          ;; if the line is empty.
+          (save-excursion
+            (beginning-of-line)
+            (looking-at-p "[[:blank:]]*$")))
+      0 elixir-ts-indent-offset))
 
 (defun elixir-ts--argument-indent-anchor (node parent &rest _)
   "Return the argument anchor position for NODE and PARENT."
@@ -264,7 +270,7 @@
        ;; Handle incomplete maps when parent is ERROR.
        ((n-p-gp "^binary_operator$" "ERROR" nil) parent-bol 0)
        ;; When there is an ERROR, just indent to prev-line.
-       ((parent-is "ERROR") prev-line 0)
+       ((parent-is "ERROR") prev-line ,offset)
        ((node-is "^binary_operator$")
         (lambda (node parent &rest _)
           (let ((top-level
@@ -449,16 +455,13 @@
    :override t
    `((sigil
       (sigil_name) @elixir-ts-font-sigil-name-face
-      quoted_start: _ @font-lock-string-face
-      quoted_end: _ @font-lock-string-face
-      (:match "^[sSwWpP]$" @elixir-ts-font-sigil-name-face))
+      (:match "^[sSwWpPUD]$" @elixir-ts-font-sigil-name-face))
      @font-lock-string-face
      (sigil
+      "~" @font-lock-string-face
       (sigil_name) @elixir-ts-font-sigil-name-face
-      quoted_start: _ @font-lock-regex-face
-      quoted_end: _ @font-lock-regex-face
       (:match "^[rR]$" @elixir-ts-font-sigil-name-face))
-     @font-lock-regex-face
+     @font-lock-regexp-face
      (sigil
       "~" @font-lock-string-face
       (sigil_name) @elixir-ts-font-sigil-name-face

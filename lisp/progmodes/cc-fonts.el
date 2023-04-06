@@ -2678,9 +2678,7 @@ need for `c-font-lock-extra-types'.")
 			   'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
-		)
-	       (t (goto-char pos)
-		  (c-font-lock-declarators limit nil c-label-face-name nil)))
+		))
 	      (eq (char-after) ?,)))
 	(forward-char)))		; over the comma.
     nil))
