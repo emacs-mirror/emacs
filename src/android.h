@@ -88,6 +88,7 @@ extern void android_exception_check (void);
 extern void android_exception_check_1 (jobject);
 extern void android_exception_check_2 (jobject, jobject);
 extern void android_exception_check_nonnull (void *, jobject);
+extern void android_exception_check_nonnull_1 (void *, jobject, jobject);
 
 extern void android_get_keysym_name (int, char *, size_t);
 extern void android_wait_event (void);

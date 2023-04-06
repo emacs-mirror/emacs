@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <assert.h>
+#include <minmax.h>
+#include <unistd.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -27,12 +29,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "androidterm.h"
 
 /* Selection support on Android is confined to copying and pasting of
-   plain text from the clipboard.  There is no primary selection.
+   plain text and MIME data from the clipboard.  There is no primary
+   selection.
 
    While newer versions of Android are supposed to have the necessary
    interfaces for transferring other kinds of selection data, doing so
    is too complicated, and involves registering ``content providers''
-   and all kinds of other stuff.  */
+   and all kinds of other stuff; for this reason, Emacs does not
+   support setting the clipboard contents to anything other than plain
+   text.  */
 
 
 
@@ -46,6 +51,8 @@ struct android_emacs_clipboard
   jmethodID clipboard_exists;
   jmethodID get_clipboard;
   jmethodID make_clipboard;
+  jmethodID get_clipboard_targets;
+  jmethodID get_clipboard_data;
 };
 
 /* Methods associated with the EmacsClipboard class.  */
@@ -86,6 +93,10 @@ android_init_emacs_clipboard (void)
   FIND_METHOD (owns_clipboard, "ownsClipboard", "()I");
   FIND_METHOD (clipboard_exists, "clipboardExists", "()Z");
   FIND_METHOD (get_clipboard, "getClipboard", "()[B");
+  FIND_METHOD (get_clipboard_targets, "getClipboardTargets",
+	       "()[[B");
+  FIND_METHOD (get_clipboard_data, "getClipboardData",
+	       "([B)[J");
 
   clipboard_class.make_clipboard
     = (*android_java_env)->GetStaticMethodID (android_java_env,
@@ -244,6 +255,210 @@ URL with a scheme specified.  Signal an error upon failure.  */)
 
 
 
+/* MIME clipboard support.  This provides support for reading MIME
+   data (but not text) from the clipboard.  */
+
+DEFUN ("android-get-clipboard-targets", Fandroid_get_clipboard_targets,
+       Sandroid_get_clipboard_targets, 0, 0, 0,
+       doc: /* Return a list of data types in the clipboard.
+Value is a list of MIME types as strings, each defining a single extra
+data type available from the clipboard.  */)
+  (void)
+{
+  jarray bytes_array;
+  jbyteArray bytes;
+  jmethodID method;
+  size_t length, length1, i;
+  jbyte *data;
+  Lisp_Object targets, tem;
+
+  if (!android_init_gui)
+    error ("No Android display connection!");
+
+  targets = Qnil;
+  block_input ();
+  method = clipboard_class.get_clipboard_targets;
+  bytes_array = (*android_java_env)->CallObjectMethod (android_java_env,
+						       clipboard, method);
+  android_exception_check ();
+
+  if (!bytes_array)
+    goto fail;
+
+  length = (*android_java_env)->GetArrayLength (android_java_env,
+						bytes_array);
+  for (i = 0; i < length; ++i)
+    {
+      /* Retireve the MIME type.  */
+      bytes
+	= (*android_java_env)->GetObjectArrayElement (android_java_env,
+						      bytes_array, i);
+      android_exception_check_nonnull (bytes, bytes_array);
+
+      /* Cons it onto the list of targets.  */
+      length1 = (*android_java_env)->GetArrayLength (android_java_env,
+						     bytes);
+      data = (*android_java_env)->GetByteArrayElements (android_java_env,
+							bytes, NULL);
+      android_exception_check_nonnull_1 (data, bytes, bytes_array);
+
+      /* Decode the string.  */
+      tem = make_unibyte_string ((char *) data, length1);
+      tem = code_convert_string_norecord (tem, Qutf_8, Qnil);
+      targets = Fcons (tem, targets);
+
+      /* Delete the retrieved data.  */
+      (*android_java_env)->ReleaseByteArrayElements (android_java_env,
+						     bytes, data,
+						     JNI_ABORT);
+      ANDROID_DELETE_LOCAL_REF (bytes);
+    }
+  unblock_input ();
+
+  ANDROID_DELETE_LOCAL_REF (bytes_array);
+  return Fnreverse (targets);
+
+ fail:
+  unblock_input ();
+  return Qnil;
+}
+
+/* Free the memory inside PTR, a pointer to a char pointer.  */
+
+static void
+android_xfree_inside (void *ptr)
+{
+  xfree (*(char **) ptr);
+}
+
+DEFUN ("android-get-clipboard-data", Fandroid_get_clipboard_data,
+       Sandroid_get_clipboard_data, 1, 1, 0,
+       doc: /* Return the clipboard data of the given MIME TYPE.
+Value is a unibyte string containing the entire contents of the
+clipboard, after its owner has converted the data to the given
+MIME type.  Value is nil if the conversion fails, or if the data
+is not present.
+
+Value is also nil if the clipboard data consists of a single URL which
+does not have any corresponding data.  In that case, use
+`android-get-clipboard' instead.  */)
+  (Lisp_Object type)
+{
+  jlongArray array;
+  jbyteArray bytes;
+  jmethodID method;
+  int fd;
+  ptrdiff_t rc;
+  jlong offset, length, *longs;
+  specpdl_ref ref;
+  char *buffer, *start;
+
+  if (!android_init_gui)
+    error ("No Android display connection!");
+
+  /* Encode the string as UTF-8.  */
+  CHECK_STRING (type);
+  type = ENCODE_UTF_8 (type);
+
+  /* Then give it to the selection code.  */
+  block_input ();
+  bytes = (*android_java_env)->NewByteArray (android_java_env,
+					     SBYTES (type));
+  (*android_java_env)->SetByteArrayRegion (android_java_env, bytes,
+					   0, SBYTES (type),
+					   (jbyte *) SDATA (type));
+  android_exception_check ();
+
+  method = clipboard_class.get_clipboard_data;
+  array = (*android_java_env)->CallObjectMethod (android_java_env,
+						 clipboard, method,
+						 bytes);
+  android_exception_check_1 (bytes);
+  ANDROID_DELETE_LOCAL_REF (bytes);
+
+  if (!array)
+    goto fail;
+
+  longs = (*android_java_env)->GetLongArrayElements (android_java_env,
+						     array, NULL);
+  android_exception_check_nonnull (longs, array);
+
+  /* longs[0] is the file descriptor.
+     longs[1] is an offset to apply to the file.
+     longs[2] is either -1, or the number of bytes to read from the
+     file.  */
+  fd = longs[0];
+  offset = longs[1];
+  length = longs[2];
+
+  (*android_java_env)->ReleaseLongArrayElements (android_java_env,
+						 array, longs,
+						 JNI_ABORT);
+  ANDROID_DELETE_LOCAL_REF (array);
+  unblock_input ();
+
+  /* Now begin reading from longs[0].  */
+  ref = SPECPDL_INDEX ();
+  record_unwind_protect_int (close_file_unwind, fd);
+
+  if (length != -1)
+    {
+      buffer = xmalloc (MIN (length, PTRDIFF_MAX));
+      record_unwind_protect_ptr (xfree, buffer);
+
+      rc = emacs_read_quit (fd, buffer,
+			    MIN (length, PTRDIFF_MAX));
+
+      /* Return nil upon an IO problem.  */
+      if (rc < 0)
+	return unbind_to (ref, Qnil);
+
+      /* Return the data as a unibyte string.  */
+      return unbind_to (ref, make_unibyte_string (buffer, rc));
+    }
+
+  /* Otherwise, read BUFSIZ bytes at a time.  */
+  buffer = xmalloc (BUFSIZ);
+  length = 0;
+  start = buffer;
+
+  record_unwind_protect_ptr (android_xfree_inside, &buffer);
+
+  /* Seek to the start of the data.  */
+
+  if (offset)
+    {
+      if (lseek (fd, offset, SEEK_SET) < 0)
+	return unbind_to (ref, Qnil);
+    }
+
+  while (true)
+    {
+      rc = emacs_read_quit (fd, start, BUFSIZ);
+
+      if (!INT_ADD_OK (rc, length, &length)
+	  || PTRDIFF_MAX - length < BUFSIZ)
+	memory_full (PTRDIFF_MAX);
+
+      if (rc < 0)
+	return unbind_to (ref, Qnil);
+
+      if (rc < BUFSIZ)
+	break;
+
+      buffer = xrealloc (buffer, length + BUFSIZ);
+      start = buffer + length;
+    }
+
+  return unbind_to (ref, make_unibyte_string (buffer, rc));
+
+ fail:
+  unblock_input ();
+  return Qnil;
+}
+
+
+
 void
 init_androidselect (void)
 {
@@ -279,4 +494,6 @@ syms_of_androidselect (void)
   defsubr (&Sandroid_get_clipboard);
   defsubr (&Sandroid_clipboard_exists_p);
   defsubr (&Sandroid_browse_url);
+  defsubr (&Sandroid_get_clipboard_targets);
+  defsubr (&Sandroid_get_clipboard_data);
 }

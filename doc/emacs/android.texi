@@ -476,7 +476,7 @@ Android, it can also be @code{fullscreen}.
   Emacs does not implement all selection related features supported
 under the X Window System on Android.  For example, only the
 @code{CLIPBOARD} and @code{PRIMARY} selections (@pxref{Cut and Paste})
-are supported, and plain text is the only supported data type.
+are supported, and Emacs is only able to set selections to plain text.
 
   In addition, the Android system itself places certain restrictions
 on what selection data Emacs can access:

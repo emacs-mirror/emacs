@@ -70,6 +70,8 @@ DISPLAY is ignored on Android."
 (declare-function android-get-clipboard "androidselect.c")
 (declare-function android-set-clipboard "androidselect.c")
 (declare-function android-clipboard-owner-p "androidselect.c")
+(declare-function android-get-clipboard-targets "androidselect.c")
+(declare-function android-get-clipboard-data "androidselect.c")
 
 (defvar android-primary-selection nil
   "The last string placed in the primary selection.
@@ -80,13 +82,25 @@ emulates one inside Lisp.")
 
 (defun android-get-clipboard-1 (data-type)
   "Return the clipboard data.
-DATA-TYPE is a selection conversion target; only STRING and
-TARGETS are supported."
+DATA-TYPE is a selection conversion target.  `STRING' means to
+return the contents of the clipboard as a string.  `TARGETS'
+means to return supported data types as a vector.
+
+Interpret any other symbol as a MIME type, and return its
+corresponding data."
   (or (and (eq data-type 'STRING)
            (android-get-clipboard))
       (and (eq data-type 'TARGETS)
            (android-clipboard-exists-p)
-           [TARGETS STRING])))
+           (vconcat [TARGETS STRING]
+                    (let ((i nil))
+                      (dolist (type (android-get-clipboard-targets))
+                        ;; Don't report plain text as a valid target.
+                        (unless (equal type "text/plain")
+                          (push (intern type) i)))
+                      (nreverse i))))
+      (and (symbolp data-type)
+           (android-get-clipboard-data (symbol-name data-type)))))
 
 (defun android-get-primary (data-type)
   "Return the last string placed in the primary selection, or nil.

@@ -5530,7 +5530,7 @@ android_exception_check (void)
   if ((*android_java_env)->ExceptionCheck (android_java_env))
     {
       __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error."
+			   "Possible out of memory error. "
 			   " The Java exception follows:  ");
       /* Describe exactly what went wrong.  */
       (*android_java_env)->ExceptionDescribe (android_java_env);
@@ -5549,7 +5549,7 @@ android_exception_check_1 (jobject object)
   if ((*android_java_env)->ExceptionCheck (android_java_env))
     {
       __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error."
+			   "Possible out of memory error. "
 			   " The Java exception follows:  ");
       /* Describe exactly what went wrong.  */
       (*android_java_env)->ExceptionDescribe (android_java_env);
@@ -5568,7 +5568,7 @@ android_exception_check_2 (jobject object, jobject object1)
   if ((*android_java_env)->ExceptionCheck (android_java_env))
     {
       __android_log_print (ANDROID_LOG_WARN, __func__,
-			   "Possible out of memory error."
+			   "Possible out of memory error. "
 			   " The Java exception follows:  ");
       /* Describe exactly what went wrong.  */
       (*android_java_env)->ExceptionDescribe (android_java_env);
@@ -5596,6 +5596,27 @@ android_exception_check_nonnull (void *object, jobject object1)
 
   if (object1)
     ANDROID_DELETE_LOCAL_REF (object1);
+
+  memory_full (0);
+}
+
+/* Check for JNI problems based on the value of OBJECT.
+
+   Signal out of memory if OBJECT is NULL.  OBJECT1 and OBJECT2 mean
+   the same as in `android_exception_check_2'.  */
+
+void
+android_exception_check_nonnull_1 (void *object, jobject object1,
+				   jobject object2)
+{
+  if (object)
+    return;
+
+  if (object1)
+    ANDROID_DELETE_LOCAL_REF (object1);
+
+  if (object2)
+    ANDROID_DELETE_LOCAL_REF (object2);
 
   memory_full (0);
 }

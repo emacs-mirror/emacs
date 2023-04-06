@@ -21,12 +21,20 @@ package org.gnu.emacs;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.ClipData;
+import android.content.ClipDescription;
+
+import android.content.res.AssetFileDescriptor;
+
+import android.net.Uri;
 
 import android.util.Log;
 
 import android.os.Build;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 /* This class implements EmacsClipboard for Android 3.0 and later
@@ -40,6 +48,7 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
   private boolean ownsClipboard;
   private int clipboardChangedCount;
   private int monitoredClipboardChangedCount;
+  private ContentResolver resolver;
 
   public
   EmacsSdk11Clipboard ()
@@ -51,6 +60,11 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
       manager.addPrimaryClipChangedListener (this);
+
+    /* Now obtain the content resolver used to open file
+       descriptors.  */
+
+    resolver = EmacsService.SERVICE.getContentResolver ();
   }
 
   @Override
@@ -156,5 +170,121 @@ public final class EmacsSdk11Clipboard extends EmacsClipboard
       }
 
     return null;
+  }
+
+  /* Return an array of targets currently provided by the
+     clipboard, or NULL if there are none.  */
+
+  @Override
+  public byte[][]
+  getClipboardTargets ()
+  {
+    ClipData clip;
+    ClipDescription description;
+    byte[][] typeArray;
+    int i;
+
+    /* N.B. that Android calls the clipboard the ``primary clip''; it
+       is not related to the X primary selection.  */
+    clip = manager.getPrimaryClip ();
+    description = clip.getDescription ();
+    i = description.getMimeTypeCount ();
+    typeArray = new byte[i][i];
+
+    try
+      {
+	for (i = 0; i < description.getMimeTypeCount (); ++i)
+	  typeArray[i] = description.getMimeType (i).getBytes ("UTF-8");
+      }
+    catch (UnsupportedEncodingException exception)
+      {
+	return null;
+      }
+
+    return typeArray;
+  }
+
+  /* Return the clipboard data for the given target, or NULL if it
+     does not exist.
+
+     Value is normally an array of three longs: the file descriptor,
+     the start offset of the data, and its length; length may be
+     AssetFileDescriptor.UNKOWN_LENGTH, meaning that the data extends
+     from that offset to the end of the file.
+
+     Do not use this function to open text targets; use `getClipboard'
+     for that instead, as it will handle selection data consisting
+     solely of a URI.  */
+
+  @Override
+  public long[]
+  getClipboardData (byte[] target)
+  {
+    ClipData data;
+    String mimeType;
+    int fd;
+    AssetFileDescriptor assetFd;
+    Uri uri;
+    long[] value;
+
+    /* Decode the target given by Emacs.  */
+    try
+      {
+	mimeType = new String (target, "UTF-8");
+      }
+    catch (UnsupportedEncodingException exception)
+      {
+	return null;
+      }
+
+    Log.d (TAG, "getClipboardData: "+ mimeType);
+
+    /* Now obtain the clipboard data and the data corresponding to
+       that MIME type.  */
+
+    data = manager.getPrimaryClip ();
+
+    if (data.getItemCount () < 1)
+      return null;
+
+    try
+      {
+	uri = data.getItemAt (0).getUri ();
+
+	if (uri == null)
+	  return null;
+
+	Log.d (TAG, "getClipboardData: "+ uri);
+
+	/* Now open the file descriptor.  */
+	assetFd = resolver.openTypedAssetFileDescriptor (uri, mimeType,
+							 null);
+
+	/* Duplicate the file descriptor.  */
+	fd = assetFd.getParcelFileDescriptor ().getFd ();
+	fd = EmacsNative.dup (fd);
+
+	/* Return the relevant information.  */
+	value = new long[] { fd, assetFd.getStartOffset (),
+			     assetFd.getLength (), };
+
+	/* Close the original offset.  */
+	assetFd.close ();
+
+	Log.d (TAG, "getClipboardData: "+ value);
+      }
+    catch (FileNotFoundException e)
+      {
+	return null;
+      }
+    catch (IOException e)
+      {
+	return null;
+      }
+
+    /* Don't return value if the file descriptor couldn't be
+       created.  */
+
+    return fd != -1 ? value : null;
   }
 };

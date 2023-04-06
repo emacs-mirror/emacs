@@ -115,4 +115,33 @@ public final class EmacsSdk8Clipboard extends EmacsClipboard
 
     return null;
   }
+
+  /* Return an array of targets currently provided by the
+     clipboard, or NULL if there are none.  */
+
+  @Override
+  public byte[][]
+  getClipboardTargets ()
+  {
+    return null;
+  }
+
+  /* Return the clipboard data for the given target, or NULL if it
+     does not exist.
+
+     Value is normally an array of three longs: the file descriptor,
+     the start offset of the data, and its length; length may be
+     AssetFileDescriptor.UNKOWN_LENGTH, meaning that the data extends
+     from that offset to the end of the file.
+
+     Do not use this function to open text targets; use `getClipboard'
+     for that instead, as it will handle selection data consisting
+     solely of a URI.  */
+
+  @Override
+  public long[]
+  getClipboardData (byte[] target)
+  {
+    return null;
+  }
 };

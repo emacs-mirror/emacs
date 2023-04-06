@@ -31,6 +31,9 @@ public abstract class EmacsClipboard
   public abstract boolean clipboardExists ();
   public abstract byte[] getClipboard ();
 
+  public abstract byte[][] getClipboardTargets ();
+  public abstract long[] getClipboardData (byte[] target);
+
   /* Create the correct kind of clipboard for this system.  */
 
   public static EmacsClipboard
