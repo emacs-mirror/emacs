@@ -921,15 +921,13 @@ the semicolon.  This function skips the semicolon."
                             "goto_statement"
                             "case_statement")))
 
+  ;; IMO it makes more sense to define what's NOT sexp, since sexp by
+  ;; spirit, especially when used for movement, is like "expression"
+  ;; or "syntax unit". --yuan
   (setq-local treesit-sexp-type-regexp
-              (regexp-opt '("preproc"
-                            "declarator"
-                            "qualifier"
-                            "type"
-                            "parameter"
-                            "expression"
-                            "literal"
-                            "string")))
+              ;; It more useful to include semicolons as sexp so that
+              ;; users can move to the end of a statement.
+              (rx (not (or "{" "}" "[" "]" "(" ")" ","))))
 
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
