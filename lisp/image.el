@@ -595,8 +595,8 @@ If nil, use the `image-scaling-factor' variable."
 IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
-image.  STRING is defaulted if you omit it.
-The overlay created will have the `put-image' property set to t.
+image.  STRING defaults to \"x\" if it's nil or omitted.
+The overlay created by this function has the `put-image' property set to t.
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
@@ -1158,9 +1158,11 @@ has no effect."
   "r" #'image-rotate)
 
 (defun image-increase-size (&optional n position)
-  "Increase the image size by a factor of N.
-If N is 3, then the image size will be increased by 30%.  The
-default is 20%."
+  "Increase the image size at POSITION by a factor specified by N.
+If N is 3, then the image size will be increased by 30%.  More
+generally, the image size is multiplied by 1 plus N divided by 10.
+N defaults to 2, which increases the image size by 20%.
+POSITION can be a buffer position or a marker, and defaults to point."
   (interactive "P")
   (image--delayed-change-size (if n
                                   (1+ (/ (prefix-numeric-value n) 10.0))
@@ -1179,9 +1181,11 @@ default is 20%."
   (run-with-idle-timer 0.3 nil #'image--change-size size position))
 
 (defun image-decrease-size (&optional n position)
-  "Decrease the image size by a factor of N.
-If N is 3, then the image size will be decreased by 30%.  The
-default is 20%."
+  "Decrease the image size at POSITION by a factor specified by N.
+If N is 3, then the image size will be decreased by 30%.  More
+generally, the image size is multiplied by 1 minus N divided by 10.
+N defaults to 2, which decreases the image size by 20%.
+POSITION can be a buffer position or a marker, and defaults to point."
   (interactive "P")
   (image--delayed-change-size (if n
                                   (- 1 (/ (prefix-numeric-value n) 10.0))
@@ -1191,7 +1195,9 @@ default is 20%."
                      "Use %k for further adjustments"))
 
 (defun image-mouse-increase-size (&optional event)
-  "Increase the image size using the mouse."
+  "Increase the image size using the mouse-gesture EVENT.
+This increases the size of the image at the position specified by
+EVENT, if any, by the default factor used by `image-increase-size'."
   (interactive "e")
   (when (listp event)
     (save-window-excursion
@@ -1199,7 +1205,9 @@ default is 20%."
       (image-increase-size nil (point-marker)))))
 
 (defun image-mouse-decrease-size (&optional event)
-  "Decrease the image size using the mouse."
+  "Decrease the image size using the mouse-gesture EVENT.
+This decreases the size of the image at the position specified by
+EVENT, if any, by the default factor used by `image-decrease-size'."
   (interactive "e")
   (when (listp event)
     (save-window-excursion
@@ -1207,12 +1215,24 @@ default is 20%."
       (image-decrease-size nil (point-marker)))))
 
 (defun image--get-image (&optional position)
-  "Return the image at point."
-  (let ((image (get-char-property (or position (point)) 'display
-                                  (when (markerp position)
-                                    (marker-buffer position)))))
+  "Return the image at POSITION.
+POSITION can be a buffer position or a marker, and defaults to point."
+  (let* ((image (get-char-property (or position (point)) 'display
+                                   (when (markerp position)
+                                     (marker-buffer position))))
+         (image-car (car-safe image))
+         (image
+          (cond ((eq image-car 'image)
+                 image)
+                ;; The value of the display property could be a sliced
+                ;; image of the form ((slice ...) (image ...)).
+                ;; FIXME: can we have more than 2 members in the list,
+                ;; so that the (image ...) part is NOT the cadr?
+                ((and (listp image) (consp image-car))
+                 (cadr image))
+                (t nil))))
     (unless (eq (car-safe image) 'image)
-      (error "No image under point"))
+      (error "No recognizable image under point"))
     image))
 
 ;;;###autoload

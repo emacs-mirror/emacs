@@ -684,36 +684,60 @@ We prefer the earliest unique letter."
 
 (defvar-keymap emoji-zoom-map
   "+" #'emoji-zoom-increase
-  "-" #'emoji-zoom-decrease)
+  "-" #'emoji-zoom-decrease
+  "0" #'emoji-zoom-reset)
 
 ;;;###autoload
 (defun emoji-zoom-increase (&optional factor)
   "Increase the size of the character under point.
 FACTOR is the multiplication factor for the size."
   (interactive)
-  (set-transient-map emoji-zoom-map t nil "Zoom with %k")
-  (let* ((factor (or factor 1.1))
-         (old (get-text-property (point) 'face))
-         (height (or (and (consp old)
-                          (plist-get old :height))
-                     1.0))
-         (inhibit-read-only t))
-    (with-silent-modifications
-      (if (consp old)
-          (add-text-properties
-           (point) (1+ (point))
-           (list 'face (plist-put (copy-sequence old) :height (* height factor))
-                 'rear-nonsticky t))
-        (add-face-text-property (point) (1+ (point))
-                                (list :height (* height factor)))
-        (put-text-property (point) (1+ (point))
-                           'rear-nonsticky t)))))
+  (set-transient-map emoji-zoom-map t #'redisplay "Zoom with %k")
+  (unless (eobp)
+    (let* ((factor (or factor 1.1))
+           (old (get-text-property (point) 'face))
+           ;; The text property is either a named face, or a plist
+           ;; with :height, or a list starting with such a plist,
+           ;; followed by one or more faces.
+           (newheight (* (or (and (consp old)
+                                  (or (plist-get (car old) :height)
+                                      (plist-get old :height)))
+                             1.0)
+                         factor))
+           (inhibit-read-only t))
+      (with-silent-modifications
+        (if (consp old)
+            (add-text-properties
+             (point) (1+ (point))
+             (list 'face
+                   (if (eq (car old) :height)
+                       (plist-put (copy-sequence old) :height newheight)
+                     (cons (plist-put (car old) :height newheight)
+                           (cdr old)))
+                   'rear-nonsticky t))
+          (add-face-text-property (point) (1+ (point))
+                                  (list :height newheight))
+          (put-text-property (point) (1+ (point))
+                             'rear-nonsticky t))))))
 
 ;;;###autoload
 (defun emoji-zoom-decrease ()
   "Decrease the size of the character under point."
   (interactive)
   (emoji-zoom-increase 0.9))
+
+;;;###autoload
+(defun emoji-zoom-reset ()
+  "Reset the size of the character under point."
+  (interactive)
+  (with-silent-modifications
+    (let ((old (get-text-property (point) 'face)))
+      (when (and (consp old)
+                 (remove-text-properties (point) (1+ (point)) '(rear-nonsticky nil)))
+        (if (eq (car old) :height)
+            (remove-text-properties (point) (1+ (point)) '(face nil))
+          (add-text-properties (point) (1+ (point)) (list 'face
+                                                      (cdr old))))))))
 
 (provide 'emoji)
 

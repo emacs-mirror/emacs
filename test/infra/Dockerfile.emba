@@ -87,14 +87,14 @@ FROM emacs-base as emacs-gnustep
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      gnustep-devel \
+      gnustep-devel zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
-RUN make V=1 bootstrap
+RUN make bootstrap
 
 FROM emacs-base as emacs-native-comp
 

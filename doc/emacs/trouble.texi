@@ -1075,7 +1075,7 @@ report.  (The backtrace is more detailed if you load the relevant Lisp
 @file{*.el} source files before triggering the error, so do that if
 you know how to find and load those files.)
 
-To debug the error, we suggest to use Edebug.  @xref{Edebug,, Edebug,
+To debug the error, we suggest using Edebug.  @xref{Edebug,, Edebug,
 elisp, the Emacs Lisp Reference Manual}, for information on debugging
 Emacs Lisp programs with the Edebug package.
 

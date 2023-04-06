@@ -45,7 +45,8 @@ declaration.  A FILE with an \"ext:\" prefix is an external file.
 `check-declare' will check such files if they are found, and skip
 them without error if they are not.
 
-Optional ARGLIST specifies FN's arguments, or is t to not specify
+Optional ARGLIST specifies FN's arguments, in the same form as
+in `defun' (including the parentheses); or it is t to not specify
 FN's arguments.  An omitted ARGLIST defaults to t, not nil: a nil
 ARGLIST specifies an empty argument list, and an explicit t
 ARGLIST is a placeholder that allows supplying a later arg.
@@ -3575,9 +3576,9 @@ confusing to some users.")
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
 (defun use-dialog-box-p ()
-  "Say whether the current command should prompt the user via a dialog box."
+  "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (listp last-nonmenu-event)   ; invoked by a mouse event
+       (or (consp last-nonmenu-event)   ; invoked by a mouse event
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 

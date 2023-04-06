@@ -1022,6 +1022,11 @@ These are bound to 'C-x 8 e +' and 'C-x 8 e -', respectively.  They
 can be used on any character, but are mainly useful for Emoji.
 
 ---
+*** New command 'emoji-zoom-reset'.
+This is bound to 'C-x 8 e 0', and undoes any size changes performed by
+'emoji-zoom-increase' and 'emoji-zoom-decrease'.
+
+---
 *** New input method 'emoji'.
 This allows you to enter Emoji using short strings, eg ':face_palm:'
 or ':scream:'.
@@ -4323,9 +4328,11 @@ that binding is ignored by 'where-is-internal'.
 
 +++
 *** New functions for defining and manipulating keystrokes.
-These all take the syntax defined by 'key-valid-p'.  None of the older
-functions have been deprecated or altered, but they are now
-de-emphasized in the documentation.
+These all take the syntax defined by 'key-valid-p', which is basically
+the same syntax as the one accepted by the 'kbd' macro.  None of the
+older functions have been deprecated or altered, but they are now
+de-emphasized in the documentation, and we encourage Lisp programs to
+switch to these new functions.
 
 +++
 *** Use 'keymap-set' instead of 'define-key'.
