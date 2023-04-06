@@ -543,4 +543,12 @@ $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
 $(lisp)/progmodes/js.elc: $(lisp)/progmodes/cc-defs.elc \
    $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-mode.elc
 
+# When org-version.el gets updated with a new version, all the Org
+# files need to be recompiled, or else the build will fail due to
+# version mismatch, prompting the naive users to bootstrap.  So we
+# make all the Org *.elc files dependent of org-version.el, to trigger
+# their recompilation automatically.
+$(lisp)/org/org.elc $(filter-out $(lisp)/org/org-version.elc,$(filter-out $(lisp)/org/org.elc,$(wildcard $(lisp)/org/*.elc))): \
+   $(lisp)/org/org-version.el
+
 # Makefile ends here.
