@@ -3604,7 +3604,8 @@ to provide the `find-revision' operation instead."
           (file-buffer (or (get-file-buffer file) (current-buffer))))
       (message "Checking out %s..." file)
       (let ((failed t)
-            (backup-name (car (find-backup-file-name file))))
+            (backup-name (when (file-exists-p file)
+                           (car (find-backup-file-name file)))))
         (when backup-name
           (copy-file file backup-name 'ok-if-already-exists 'keep-date)
           (unless (file-writable-p file)
