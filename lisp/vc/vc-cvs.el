@@ -1029,13 +1029,16 @@ state."
                       (cdr (assoc (char-after) translation)))
                 result)
         (cond
-         ((looking-at "cvs update: warning: \\(.*\\) was lost")
+         ((looking-at "cvs update: warning: .* was lost")
           ;; Format is:
           ;; cvs update: warning: FILENAME was lost
           ;; U FILENAME
-          (push (list (match-string 1) 'missing) result)
-          ;; Skip the "U" line
-          (forward-line 1))
+          ;; with FILENAME in the first line possibly enclosed in
+          ;; quotes (since CVS 1.12.3). To avoid problems, use the U
+          ;; line where name is never quoted.
+          (forward-line 1)
+          (when (looking-at "^U \\(.*\\)$")
+            (push (list (match-string 1) 'missing) result)))
          ((looking-at "cvs update: New directory `\\(.*\\)' -- ignored")
           (push (list (match-string 1) 'unregistered) result))))
       (forward-line 1))
