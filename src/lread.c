@@ -4721,6 +4721,8 @@ define_symbol (Lisp_Object sym, char const *str)
   Lisp_Object string = make_pure_c_string (str, len);
   init_symbol (sym, string);
 
+  eassert (valid_lisp_object_p (SYMBOL_VAL (XSYMBOL (sym))));
+
   /* Qunbound is uninterned, so that it's not confused with any symbol
      'unbound' created by a Lisp program.  */
   if (! BASE_EQ (sym, Qunbound))

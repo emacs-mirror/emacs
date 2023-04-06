@@ -1876,6 +1876,11 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
      too nested calls to mark_object.  No way to survive.  */
   bool fatal = gc_in_progress;
 
+#if USE_INCREMENTAL_GC && WRITE_PROTECT_SIGNAL == SIGSEGV
+  if (alloc_fault (siginfo->si_addr))
+    return;
+#endif /* USE_INCREMENTAL_GC && WRITE_PROTECT_SIGNAL == SIGSEGV */
+
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
   if (!fatal && !pthread_equal (pthread_self (), main_thread_id))
     fatal = true;
@@ -1963,11 +1968,28 @@ maybe_fatal_sig (int sig)
     sigaction (sig, &process_fatal_action, 0);
 }
 
+#ifdef USE_INCREMENTAL_GC
+
+static void
+write_protect_fault (int signal, siginfo_t *siginfo, void *arg)
+{
+  if (alloc_fault (siginfo->si_addr))
+    return;
+
+  /* Otherwise, this is another kind of fault.  */
+  deliver_fatal_thread_signal (signal);
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 void
 init_signals (void)
 {
   struct sigaction thread_fatal_action;
   struct sigaction action;
+#ifdef USE_INCREMENTAL_GC
+  bool was_sigsegv_init;
+#endif /* USE_INCREMENTAL_GC */
 
   sigemptyset (&empty_mask);
 
@@ -2052,7 +2074,12 @@ init_signals (void)
   sigaction (SIGBUS, &thread_fatal_action, 0);
 #endif
   if (!init_sigsegv ())
-    sigaction (SIGSEGV, &thread_fatal_action, 0);
+    {
+#ifdef USE_INCREMENTAL_GC
+      was_sigsegv_init = true;
+#endif /* USE_INCREMENTAL_GC */
+      sigaction (SIGSEGV, &thread_fatal_action, 0);
+    }
 #ifdef SIGSYS
   sigaction (SIGSYS, &thread_fatal_action, 0);
 #endif
@@ -2098,6 +2125,18 @@ init_signals (void)
 #ifdef SIGTALRM
   sigaction (SIGTALRM, &thread_fatal_action, 0);
 #endif
+
+#ifdef USE_INCREMENTAL_GC
+#if WRITE_PROTECT_SIGNAL == SIGSEGV
+  if (!was_sigsegv_init)
+#endif /* WRITE_PROTECT_SIGNAL == SIGSEGV */
+    {
+      memset (&action, 0, sizeof action);
+      action.sa_flags = SA_SIGINFO;
+      action.sa_sigaction = write_protect_fault;
+      sigaction (WRITE_PROTECT_SIGNAL, &action, 0);
+    }
+#endif /* USE_INCREMENTAL_GC */
 }
 
 #ifndef HAVE_RANDOM

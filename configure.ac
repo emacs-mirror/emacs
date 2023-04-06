@@ -527,6 +527,9 @@ OPTION_DEFAULT_OFF([be-app],
 OPTION_DEFAULT_OFF([be-cairo],
   [enable use of cairo under Haiku's Application Kit])
 
+OPTION_DEFAULT_OFF([incremental-gc],
+  [enable incremental garbage collector])
+
 ## Makefile.in needs the cache file name.
 AC_SUBST([cache_file])
 
@@ -4993,7 +4996,7 @@ gai_strerror sync \
 getpwent endpwent getgrent endgrent \
 renameat2 \
 cfmakeraw cfsetspeed __executable_start log2 pthread_setname_np \
-pthread_set_name_np])
+pthread_set_name_np sysconf])
 LIBS=$OLD_LIBS
 
 if test "$ac_cv_func_pthread_setname_np" = "yes"; then
@@ -6534,6 +6537,174 @@ if test "$window_system" != "none"; then
 fi
 
 AC_SUBST([WINDOW_SYSTEM_OBJ])
+
+AC_DEFUN([emacs_PAGE_SIZE],
+[
+AC_CACHE_CHECK([for the page size, in bytes],
+  [emacs_cv_page_size],
+  [AS_IF([test "x$ac_cv_func_sysconf" = "xyes"],
+    [AC_RUN_IFELSE([AC_LANG_PROGRAM([
+AC_INCLUDES_DEFAULT
+[#include <stdio.h>
+]],[[
+FILE *file;
+long pagesize;
+
+file = fopen ("conftest.out", "w");
+if (!file)
+  exit (1);
+
+#ifdef _SC_PAGESIZE
+pagesize = sysconf (_SC_PAGESIZE);
+#else /* !_SC_PAGESIZE */
+pagesize = sysconf (_SC_PAGE_SIZE);
+#endif
+if (pagesize < 0)
+  exit (1);
+
+fprintf (file, "%ld\n", pagesize);
+fflush (file);
+fclose (file);
+exit (0);
+]])], [emacs_cv_page_size=`cat conftest.out`],
+      [AC_MSG_ERROR([Could not determine the page size])])],
+    [AS_IF([test "x$ac_cv_func_getpagesize" = "xyes"],
+      [AC_RUN_IFELSE([AC_LANG_PROGRAM([
+AC_INCLUDES_DEFAULT
+[#include <stdio.h>
+]],[[
+FILE *file;
+long pagesize;
+
+file = fopen ("conftest.out", "w");
+if (!file)
+  exit (1);
+
+pagesize = getpagesize ();
+if (pagesize < 0)
+  exit (1);
+
+fprintf (file, "%ld\n", pagesize);
+fflush (file);
+fclose (file);
+exit (0);
+]])], [emacs_cv_page_size=`cat conftest.out`],
+      [AC_MSG_ERROR([Could not determine the page size])])])])])
+AC_DEFINE_UNQUOTED([EMACS_PAGE_SIZE], [$emacs_cv_page_size],
+  [Define to the system page size, in bytes.])
+])
+
+AC_DEFUN([emacs_WRITE_FAULT_SIGNAL],
+[
+AC_CHECK_FUNCS([posix_memalign aligned_alloc valloc memalign])
+AS_CASE(["$ac_cv_func_posix_memalign$ac_cv_func_aligned_alloc\
+$ac_cv_func_valloc$ac_cv_func_memalign"], [*yes*], [],
+  [AC_MSG_ERROR([Cannot find a way to allocate page aligned memory])])
+
+AC_CACHE_CHECK([for signal sent upon writing to protected memory],
+  [emacs_cv_protection_fault_signal],
+  [AC_RUN_IFELSE([AC_LANG_PROGRAM([
+AC_INCLUDES_DEFAULT
+[
+#include <sys/mman.h>
+#if defined HAVE_VALLOC || defined HAVE_MEMALIGN
+#include <malloc.h>
+#endif /* HAVE_VALLOC || HAVE_MEMALIGN */
+#include <stdio.h>
+#include <signal.h>
+#include <setjmp.h>
+
+static volatile int sentsig;
+static jmp_buf env;
+
+static void
+handlesigbus (signal)
+     int signal;
+{
+  sentsig = SIGBUS;
+  longjmp (env, 1);
+}
+
+static void
+handlesigsegv (signal)
+     int signal;
+{
+  sentsig = SIGSEGV;
+  longjmp (env, 1);
+}
+
+]], [[
+char *mem;
+FILE *file;
+
+signal (SIGBUS, handlesigbus);
+signal (SIGSEGV, handlesigsegv);
+
+#ifdef HAVE_ALIGNED_ALLOC
+mem = aligned_alloc (EMACS_PAGE_SIZE, EMACS_PAGE_SIZE);
+if (!mem)
+  exit (1);
+#elif defined HAVE_POSIX_MEMALIGN
+if (posix_memalign (&mem, EMACS_PAGE_SIZE,
+		    EMACS_PAGE_SIZE))
+  exit (1);
+#elif defined HAVE_MEMALIGN
+mem = memalign (EMACS_PAGE_SIZE, EMACS_PAGE_SIZE);
+if (!mem)
+  exit (1);
+#elif defined HAVE_VALLOC
+mem = valloc (EMACS_PAGE_SIZE);
+if (!mem)
+  exit (1);
+#endif
+
+mprotect (mem, EMACS_PAGE_SIZE, PROT_READ);
+if (!setjmp (env))
+  *mem = 1;
+
+if (!sentsig)
+  exit (1);
+
+file = fopen ("conftest.out", "w");
+
+if (sentsig == SIGBUS)
+  {
+    fputs ("SIGBUS\n", file);
+    fflush (file);
+    fclose (file);
+  }
+else
+  {
+    fputs ("SIGSEGV\n", file);
+    fflush (file);
+    fclose (file);
+  }
+
+exit (0);
+]])],
+  [emacs_cv_protection_fault_signal=`cat conftest.out`],
+  [AC_MSG_ERROR([Could not determine whether to use SIGBUS])])])
+AC_DEFINE_UNQUOTED([WRITE_PROTECT_SIGNAL],
+  [$emacs_cv_protection_fault_signal],
+  [Signal sent upon a write protection fault.])
+])
+
+dnl Incremental GC setup.
+dnl Determine the page size of the system.
+dnl Then determine the signal raised during write
+dnl protection faults.
+
+AS_IF([test x"$with_incremental_gc" = x"yes"],
+  # Look for mprotect.
+  [AC_CHECK_FUNC([mprotect], [],
+     [AC_MSG_ERROR([mprotect not found.])])
+   # Determine the page size.
+   emacs_PAGE_SIZE
+   # Determine the signal raised due to a memory protection faults.
+   emacs_WRITE_FAULT_SIGNAL
+   # Finally, enable the incremental garbage collector.
+   AC_DEFINE([USE_INCREMENTAL_GC], [1],
+     [Define to 1 if garbage collection should run incrementally])])
 
 AH_TOP([/* GNU Emacs site configuration template file.
 

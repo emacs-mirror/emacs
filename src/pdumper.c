@@ -1711,6 +1711,10 @@ dump_root_visitor (Lisp_Object const *root_ptr, enum gc_root_type type,
 {
   struct dump_context *ctx = data;
   Lisp_Object value = *root_ptr;
+
+  if (type == GC_ROOT_IGNORED)
+    return;
+
   if (type == GC_ROOT_C_SYMBOL)
     {
       eassert (dump_builtin_symbol_p (value));
@@ -4095,7 +4099,7 @@ types.  */)
   do
     {
       number_finalizers_run = 0;
-      garbage_collect ();
+      garbage_collect (false);
     }
   while (number_finalizers_run);
 

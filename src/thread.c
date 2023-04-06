@@ -702,6 +702,9 @@ void
 unmark_main_thread (void)
 {
   main_thread.s.header.size &= ~ARRAY_MARK_FLAG;
+#ifdef USE_INCREMENTAL_GC
+  main_thread.s.header.s.new_flags = 0;
+#endif /* USE_INCREMENTAL_GC */
 }
 
 

@@ -52,6 +52,9 @@ struct interval
   bool_bf up_obj : 1;
 
   bool_bf gcmarkbit : 1;
+#ifdef USE_INCREMENTAL_GC
+  bool_bf gcmarkbit1 : 1;
+#endif /* USE_INCREMENTAL_GC */
 
   /* The remaining components are `properties' of the interval.
      The first four are duplicates for things which can be on the list,

@@ -4593,6 +4593,8 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 static void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
+  ptrdiff_t i;
+
   if (h->next_free < 0)
     {
       ptrdiff_t old_size = HASH_TABLE_SIZE (h);
@@ -4620,7 +4622,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       Lisp_Object next = larger_vecalloc (h->next, new_size - old_size,
 					  new_size);
       ptrdiff_t next_size = ASIZE (next);
-      for (ptrdiff_t i = old_size; i < next_size - 1; i++)
+      for (i = old_size; i < next_size - 1; i++)
 	ASET (next, i, make_fixnum (i + 1));
       ASET (next, next_size - 1, make_fixnum (-1));
 
@@ -4629,8 +4631,12 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       Lisp_Object key_and_value
 	= larger_vecalloc (h->key_and_value, 2 * (next_size - old_size),
 			   2 * next_size);
-      for (ptrdiff_t i = 2 * old_size; i < 2 * next_size; i++)
+      for (i = 2 * old_size; i < 2 * next_size; i++)
         ASET (key_and_value, i, Qunbound);
+#ifdef ENABLE_CHECKING
+      for (i = 0; i < ASIZE (key_and_value); ++i)
+	eassert (valid_lisp_object_p (AREF (key_and_value, i)));
+#endif /* ENABLE_CHECKING */
 
       Lisp_Object hash = larger_vector (h->hash, next_size - old_size,
 					next_size);
@@ -4642,7 +4648,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       h->next_free = old_size;
 
       /* Rehash.  */
-      for (ptrdiff_t i = 0; i < old_size; i++)
+      for (i = 0; i < old_size; i++)
 	if (!NILP (HASH_HASH (h, i)))
 	  {
 	    EMACS_UINT hash_code = XUFIXNUM (HASH_HASH (h, i));

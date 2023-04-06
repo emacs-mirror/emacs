@@ -838,6 +838,12 @@ struct Lisp_Symbol
     {
       bool_bf gcmarkbit : 1;
 
+#ifdef USE_INCREMENTAL_GC
+      /* Additional mark bit specifying whether or not this
+	 symbol has been scanned.  */
+      bool_bf gcmarkbit1 : 1;
+#endif /* USE_INCREMENTAL_GC */
+
       /* Indicates where the value can be found:
 	 0 : it's a plain var, the value is in the `value' field.
 	 1 : it's a varalias, the value is really in the `alias' symbol.
@@ -988,6 +994,7 @@ typedef EMACS_UINT Lisp_Word_tag;
    number of members has been reduced to one.  */
 union vectorlike_header
   {
+#ifndef USE_INCREMENTAL_GC
     /* The main member contains various pieces of information:
        - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
        - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
@@ -1008,6 +1015,21 @@ union vectorlike_header
 	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
 	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
     ptrdiff_t size;
+#else /* USE_INCREMENTAL_GC */
+    ptrdiff_t size;
+
+    struct {
+      ptrdiff_t size;
+
+      /* New mark bit flags associated with the incremental GC.  */
+      short new_flags;
+
+      /* Whether or not this vectorlike is a large vector.  */
+      short large_vector_p;
+
+      /* Four bytes wasted due to alignment below! */
+    } s;
+#endif /* !USE_INCREMENTAL_GC */
   };
 
 struct Lisp_Symbol_With_Pos
@@ -1690,7 +1712,13 @@ INLINE ptrdiff_t
 SCHARS (Lisp_Object string)
 {
   ptrdiff_t nchars = XSTRING (string)->u.s.size;
+#ifndef USE_INCREMENTAL_GC
   eassume (0 <= nchars);
+#else /* USE_INCREMENTAL_GC */
+  /* Incremental GC will leave mark bits in vectors while GC is
+     suspended.  */
+  nchars &= ~ARRAY_MARK_FLAG;
+#endif
   return nchars;
 }
 
@@ -1705,6 +1733,11 @@ STRING_BYTES (struct Lisp_String *s)
 #else
   ptrdiff_t nbytes = s->u.s.size_byte < 0 ? s->u.s.size : s->u.s.size_byte;
 #endif
+#ifdef USE_INCREMENTAL_GC
+  /* Incremental GC will leave mark bits in vectors while GC is
+     suspended.  */
+  nbytes &= ~ARRAY_MARK_FLAG;
+#endif /* USE_INCREMENTAL_GC */
   eassume (0 <= nbytes);
   return nbytes;
 }
@@ -1722,7 +1755,15 @@ STRING_SET_CHARS (Lisp_Object string, ptrdiff_t newsize)
   eassert (STRING_MULTIBYTE (string)
 	   ? 0 <= newsize && newsize <= SBYTES (string)
 	   : newsize == SCHARS (string));
+#ifdef USE_INCREMENTAL_GC
+  /* When incremental GC is in use, leave the mark bits in the string
+     intact.  */
+  XSTRING (string)->u.s.size
+    = (newsize | (XSTRING (string)->u.s.size
+		  & ARRAY_MARK_FLAG));
+#else
   XSTRING (string)->u.s.size = newsize;
+#endif
 }
 
 INLINE void
@@ -1764,7 +1805,13 @@ INLINE ptrdiff_t
 ASIZE (Lisp_Object array)
 {
   ptrdiff_t size = XVECTOR (array)->header.size;
+#ifndef USE_INCREMENTAL_GC
   eassume (0 <= size);
+#else /* USE_INCREMENTAL_GC */
+  /* Incremental GC will leave mark bits in vectors while GC is
+     suspended.  */
+  size &= ~ARRAY_MARK_FLAG;
+#endif
   return size;
 }
 
@@ -3669,6 +3716,13 @@ extern bool volatile pending_signals;
 extern void process_pending_signals (void);
 extern void probably_quit (void);
 
+#ifdef USE_INCREMENTAL_GC
+extern int gc_ticks;
+extern void return_to_gc (void);
+
+#define GC_QUIT_COUNT 100000
+#endif /* USE_INCREMENTAL_GC */
+
 /* Check quit-flag and quit if it is non-nil.  Typing C-g does not
    directly cause a quit; it only sets Vquit_flag.  So the program
    needs to call maybe_quit at times when it is safe to quit.  Every
@@ -3676,6 +3730,9 @@ extern void probably_quit (void);
    maybe_quit at least once, at a safe place.  Unless that is
    impossible, of course.  But it is very desirable to avoid creating
    loops where maybe_quit is impossible.
+
+   In addition, return to ongoing garbage collection every
+   GC_QUIT_COUNT if incremental GC is enabled.
 
    If quit-flag is set to `kill-emacs' the SIGINT handler has received
    a request to exit Emacs when it is safe to do.
@@ -3687,6 +3744,11 @@ maybe_quit (void)
 {
   if (!NILP (Vquit_flag) || pending_signals)
     probably_quit ();
+
+#ifdef USE_INCREMENTAL_GC
+  if (gc_ticks && gc_ticks++ > GC_QUIT_COUNT)
+    return_to_gc ();
+#endif /* USE_INCREMENTAL_GC */
 }
 
 /* Process a quit rarely, based on a counter COUNT, for efficiency.
@@ -4198,6 +4260,7 @@ extern AVOID buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 extern void mark_objects (Lisp_Object *, ptrdiff_t);
+extern void mark_objects_in_object (Lisp_Object *, ptrdiff_t);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
 extern void refill_memory_reserve (void);
 #endif
@@ -4206,6 +4269,9 @@ extern void alloc_unexec_post (void);
 extern void mark_c_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 extern void mark_memory (void const *start, void const *end);
+#ifdef USE_INCREMENTAL_GC
+extern bool alloc_fault (void *);
+#endif /* USE_INCREMENTAL_GC */
 
 /* Force callee-saved registers and register windows onto the stack,
    so that conservative garbage collection can see their values.  */
@@ -4233,7 +4299,7 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
   flush_stack_call_func1 (func, arg);
 }
 
-extern void garbage_collect (void);
+extern void garbage_collect (bool);
 extern void maybe_garbage_collect (void);
 extern bool maybe_garbage_collect_eagerly (EMACS_INT factor);
 extern const char *pending_malloc_warning;
@@ -4257,10 +4323,11 @@ extern Lisp_Object pure_listn (ptrdiff_t, Lisp_Object, ...);
 
 enum gc_root_type
 {
+  GC_ROOT_IGNORED,
   GC_ROOT_STATICPRO,
   GC_ROOT_BUFFER_LOCAL_DEFAULT,
   GC_ROOT_BUFFER_LOCAL_NAME,
-  GC_ROOT_C_SYMBOL
+  GC_ROOT_C_SYMBOL,
 };
 
 struct gc_root_visitor
@@ -4420,7 +4487,7 @@ extern struct Lisp_Vector *allocate_pseudovector (int, int, int,
 				   PSEUDOVECSIZE (type, field),	       \
 				   VECSIZE (type), tag))
 
-extern bool gc_in_progress;
+extern volatile bool gc_in_progress;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern specpdl_ref inhibit_garbage_collection (void);

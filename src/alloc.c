@@ -62,6 +62,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/sysinfo.h>
 #endif
 
+#ifdef USE_INCREMENTAL_GC
+#include <sys/mman.h>		/* For mprotect.  */
+#endif /* USE_INCREMENTAL_GC */
+
 #ifdef MSDOS
 #include "dosfns.h"		/* For dos_memory_info.  */
 #endif
@@ -300,6 +304,66 @@ my_heap_start (void)
 
 #endif
 
+
+
+#ifdef USE_INCREMENTAL_GC
+
+/* Incremental GC memory protection.  Each kind of page-aligned block
+   has some data at its start or end in a `struct protection'.  This
+   structure consists of:
+
+     - pointer to the next `struct protection'.
+     - size of the block, or a pointer to the start of the block.
+     - flags.
+
+   Where the difference between the second pointer and the first is
+   the size of the block itself.  During GC, these blocks are placed
+   on the chain `pending_protect'.  After GC is about to return
+   control to the mutator, each block in the chain is placed under
+   memory protection.
+
+   Once a write fault happens, GC looks up the block which was written
+   to, removes memory protection, and places the block on a chain of
+   blocks to be re-scanned for references.
+
+   Every time a protected block is about to be marked during GC, the
+   block is unprotected and placed back on `pending_protect'.  The
+   same applies if a page fault arrives, except in addition the whole
+   block is rescanned, as it may have changed.  */
+
+struct protection
+{
+  /* The next protected block.  */
+  struct protection *next;
+
+  /* Either the size of the block, or a pointer to the start of the
+     block.  */
+  union u {
+    size_t size;
+    void *start;
+  } u;
+
+  /* Flag set if u holds a size.  The most significant 4 bits actually
+     hold the mem_type.  */
+  int flags;
+};
+
+#define PROTECTION_IS_SIZE	1
+#define PROTECTION_IS_CHAINED	2
+#define PROTECTION_IN_PLACE	4
+
+/* Chain of all blocks pending memory protection.  */
+struct protection *pending_protect;
+
+/* Chain of all blocks to rescan.  */
+struct protection *dirtied;
+
+#endif /* USE_INCREMENTAL_GC */
+
+
+
+#ifndef USE_INCREMENTAL_GC
+
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -310,6 +374,25 @@ my_heap_start (void)
 #define XMARK_VECTOR(V)		((V)->header.size |= ARRAY_MARK_FLAG)
 #define XUNMARK_VECTOR(V)	((V)->header.size &= ~ARRAY_MARK_FLAG)
 #define XVECTOR_MARKED_P(V)	(((V)->header.size & ARRAY_MARK_FLAG) != 0)
+
+#else /* USE_INCREMENTAL_GC */
+
+static void unmark_string (struct Lisp_String *);
+static void checking_mprotect (void *, size_t, int);
+static void unprotect (struct protection *);
+static void suspend_protection (struct protection *);
+static void suspend_vectorlike_protection (void *);
+
+#define XMARK_STRING(S)		((S)->u.s.size |= ARRAY_MARK_FLAG)
+#define XUNMARK_STRING(S)	(unmark_string (S))
+#define XSTRING_MARKED_P(S)	(((S)->u.s.size & ARRAY_MARK_FLAG) != 0)
+
+#define XMARK_VECTOR(V)		((V)->header.size |= ARRAY_MARK_FLAG)
+#define XUNMARK_VECTOR(V)	((V)->header.size &= ~ARRAY_MARK_FLAG,	\
+				 (V)->header.s.new_flags = 0)
+#define XVECTOR_MARKED_P(V)	(((V)->header.size & ARRAY_MARK_FLAG) != 0)
+
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Default value of gc_cons_threshold (see below).  */
 
@@ -330,7 +413,7 @@ int number_finalizers_run;
 
 /* True during GC.  */
 
-bool gc_in_progress;
+volatile bool gc_in_progress;
 
 /* System byte and object counts reported by GC.  */
 
@@ -493,6 +576,7 @@ static void set_interval_marked (INTERVAL);
 enum mem_type
 {
   MEM_TYPE_NON_LISP,
+  MEM_TYPE_INTERVAL,
   MEM_TYPE_CONS,
   MEM_TYPE_STRING,
   MEM_TYPE_SYMBOL,
@@ -772,8 +856,12 @@ malloc_unblock_input (void)
       malloc_probe (size);			\
   } while (0)
 
+#ifndef USE_INCREMENTAL_GC
+
 static void *lmalloc (size_t, bool) ATTRIBUTE_MALLOC_SIZE ((1));
 static void *lrealloc (void *, size_t);
+
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Like malloc but check for no memory and block interrupt input.  */
 
@@ -783,7 +871,11 @@ xmalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
+#ifndef USE_INCREMENTAL_GC
   val = lmalloc (size, false);
+#else /* USE_INCREMENTAL_GC */
+  val = malloc (size);
+#endif /* !USE_INCREMENTAL_GC */
   MALLOC_UNBLOCK_INPUT;
 
   if (!val)
@@ -800,7 +892,11 @@ xzalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
+#ifndef USE_INCREMENTAL_GC
   val = lmalloc (size, true);
+#else /* USE_INCREMENTAL_GC */
+  val = calloc (1, size);
+#endif /* !USE_INCREMENTAL_GC */
   MALLOC_UNBLOCK_INPUT;
 
   if (!val)
@@ -817,15 +913,19 @@ xrealloc (void *block, size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
+#ifndef USE_INCREMENTAL_GC
   /* Call lmalloc when BLOCK is null, for the benefit of long-obsolete
      platforms lacking support for realloc (NULL, size).  */
   if (! block)
     val = lmalloc (size, false);
   else
     val = lrealloc (block, size);
+#else /* USE_INCREMENTAL_GC */
+  val = realloc (block, size);
+#endif
   MALLOC_UNBLOCK_INPUT;
 
-  if (!val)
+  if (!val && size)
     memory_full (size);
   MALLOC_PROBE (size);
   return val;
@@ -847,7 +947,6 @@ xfree (void *block)
   /* We don't call refill_memory_reserve here
      because in practice the call in r_alloc_free seems to suffice.  */
 }
-
 
 /* Other parts of Emacs pass large int values to allocator functions
    expecting ptrdiff_t.  This is portable in practice, but check it to
@@ -1006,6 +1105,7 @@ record_xmalloc (size_t size)
   return p;
 }
 
+#ifndef USE_INCREMENTAL_GC
 
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
@@ -1032,7 +1132,8 @@ lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
   /* If the memory just allocated cannot be addressed thru a Lisp
      object's pointer, and it needs to be,
      that's equivalent to running out of memory.  */
-  if (val && type != MEM_TYPE_NON_LISP)
+  if (val && (type != MEM_TYPE_NON_LISP
+	      && type != MEM_TYPE_INTERVAL))
     {
       Lisp_Object tem;
       XSETCONS (tem, (char *) val + nbytes - 1);
@@ -1046,7 +1147,8 @@ lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
 #endif
 
 #ifndef GC_MALLOC_CHECK
-  if (val && type != MEM_TYPE_NON_LISP)
+  if (val && (type != MEM_TYPE_NON_LISP
+	      && type != MEM_TYPE_INTERVAL))
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
@@ -1259,7 +1361,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       /* If the memory just allocated cannot be addressed thru a Lisp
 	 object's pointer, and it needs to be, that's equivalent to
 	 running out of memory.  */
-      if (type != MEM_TYPE_NON_LISP)
+      if (type != MEM_TYPE_NON_LISP
+	  && type != MEM_TYPE_INTERVAL)
 	{
 	  Lisp_Object tem;
 	  char *end = (char *) base + ABLOCKS_BYTES - 1;
@@ -1301,7 +1404,8 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
   free_ablock = free_ablock->x.next_free;
 
 #ifndef GC_MALLOC_CHECK
-  if (type != MEM_TYPE_NON_LISP)
+  if (type != MEM_TYPE_NON_LISP
+      && type != MEM_TYPE_INTERVAL)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
@@ -1437,6 +1541,194 @@ lrealloc (void *p, size_t size)
     }
 }
 
+#else /* USE_INCREMENTAL_GC */
+
+/* BLOCK_ALIGN should be a multiple of the page size; rely on the
+   aligned malloc function to DTRT.
+
+   lisp_align_malloc and lisp_align_free are reimplemented in terms
+   of memalign or valloc.
+
+   When valloc is used, BLOCK_ALIGN needs to be the page size
+   precisely.  Otherwise, use 32 kb or the page size, whichever is
+   larger.  */
+
+#define BLOCK_ALIGN	(1 << 15)
+#if BLOCK_ALIGN < EMACS_PAGE_SIZE
+#undef  BLOCK_ALIGN
+#define BLOCK_ALIGN	EMACS_PAGE_SIZE
+#endif /* BLOCK_ALIGN < EMACS_PAGE_SIZE */
+
+/* Now define the number of bytes per block.  */
+#define BLOCK_BYTES	(BLOCK_ALIGN)
+
+verify (POWER_OF_2 (BLOCK_ALIGN));
+
+/* Allocate an aligned block of NBYTES.  Round NBYTES up to the next
+   page boundary.  TYPE is used for internal consistency checking.  */
+
+static void *
+lisp_align_malloc (size_t nbytes, enum mem_type type)
+{
+  size_t original;
+  void *ptr;
+
+  /* Assert that overly large blocks aren't being allocated.  */
+  eassert ((type == MEM_TYPE_VECTORLIKE
+	    || type == MEM_TYPE_NON_LISP)
+	   || nbytes <= BLOCK_ALIGN);
+
+  /* Round NBYTES up to the page size.  Keep track of the original
+     size.  */
+  original = nbytes;
+  nbytes += EMACS_PAGE_SIZE - 1;
+  nbytes &= -EMACS_PAGE_SIZE;
+
+  /* Allocate this much memory.  */
+#ifdef HAVE_ALIGNED_ALLOC
+  ptr = aligned_alloc (BLOCK_ALIGN, nbytes);
+#elif defined HAVE_POSIX_MEMALIGN
+  if (posix_memalign (&ptr, BLOCK_ALIGN, nbytes))
+    ptr = NULL;
+#elif defined HAVE_MEMALIGN
+  ptr = memalign (BLOCK_ALIGN, nbytes);
+#else /* HAVE_VALLOC */
+#undef  BLOCK_ALIGN
+#define BLOCK_ALIGN	EMACS_PAGE_SIZE
+  ptr = valloc (BLOCK_ALIGN);
+#endif /* HAVE_ALIGNED_ALLOC || HAVE_POSIX_MEMALIGN \
+	  || HAVE_MEMALIGN || HAVE_VALLOC */
+
+#if !USE_LSB_TAG
+
+  /* If LSB tags aren't being used and the allocated memory cannot be
+     addressed through a pointer to a Lisp_Object, that's equivalent
+     to running out of memory.
+
+     This should not happen in practice, unless GCALIGNMENT is
+     insufficient to tag pointers to automatic objects.  */
+
+  if (ptr && (type != MEM_TYPE_NON_LISP
+	      && type != MEM_TYPE_INTERVAL)
+      && ((uintptr_t) ptr + nbytes - 1) & VALMASK)
+    {
+      lisp_malloc_loser = ptr;
+      free (ptr);
+      ptr = NULL;
+    }
+
+#endif /* !USE_LSB_TAG */
+
+  if (!ptr)
+    memory_full (nbytes);
+
+#ifndef GC_MALLOC_CHECK
+  if (ptr && type != MEM_TYPE_NON_LISP)
+    mem_insert (ptr, (char *) ptr + original, type);
+#endif
+
+  return ptr;
+}
+
+/* Free memory allocated through `lisp_align_malloc'.  Assume that C
+   free can free pointers allocated with valloc or memalign.  */
+
+static void
+lisp_align_free (void *block)
+{
+#ifndef GC_MALLOC_CHECK
+  mem_delete (mem_find (block));
+#endif
+  free (block);
+}
+
+/* `lisp_malloc' and `lisp_free' are implemented in terms of
+   `lisp_align_XXX', since they have to return pages of memory.
+
+   xmalloc and xfree use C library malloc and free, and are not used
+   to allocate Lisp objects.  */
+
+static void *
+lisp_malloc (size_t size, bool clearit, enum mem_type type)
+{
+  void *data;
+
+  data = lisp_align_malloc (size, type);
+
+  if (!data)
+    return NULL;
+
+  if (clearit)
+    memset (data, 0, size);
+
+  return data;
+}
+
+static void
+lisp_free (void *ptr)
+{
+  if (pdumper_object_p (ptr))
+    return;
+
+  lisp_align_free (ptr);
+}
+
+#endif /* !USE_INCREMENTAL_GC */
+
+
+
+#ifdef USE_INCREMENTAL_GC
+
+/* Determine the number of elements in a block holding the given
+   object TYPE.  Assume N mark bits for each element, and reserve R
+   bytes for padding and metadata.
+
+   Try to fit blocks into blocks when incremental GC is in use, to
+   minimize the amount of wasted memory.
+
+   Assume BLOCK_BYTES is 32768, and 32760 is the number of bytes free
+   for mark bits and objects.  The largest number K which satisfies
+   the inequality:
+
+     KJ + (KNM / T) + NM <= 32760
+
+   where M is sizeof (bits_word), T is BITS_PER_BITS_WORD and J is
+   sizeof (TYPE), is the number of Lisp_Objects to be allocated.
+
+   Move NM to the right hand side.
+     KJ + (KNM / T) <= 32760 - NM
+
+   Multiply both sides by T:
+     KJT + (KNM / T)T <= 32760T - NMT
+
+   Simplify:
+     KJT + KNM = 32760T - NMT
+
+   Factor:
+     K(JT + NM) = 32760T - NM
+
+   Divide both sides by JT + NM:
+     K(JT + NM) / (JT + NM) = 32760T / (JT + NM) - NMT / (JT + NM)
+
+   Simplify:
+     K <= (32760T - NMT) / (JT + NM)
+
+   Which is:
+     K <= (32760 * 32 - (2 * 4 * 32)) / (16 * 32 + 2 * 4)
+     K <= ~2015.5, K is 2015 */
+
+#define BLOCK_SIZE(r, j, n, m, t)		\
+  ((((BLOCK_BYTES - (r)) * (t))			\
+    - ((n) * (m) * (t)))			\
+   / (((j) * (t)) + ((n) * (m))))
+
+#define LISP_BLOCK_SIZE(type, r, n)		\
+  (BLOCK_SIZE ((r), (sizeof (type)), (n),	\
+	       (sizeof (bits_word)),		\
+	       (BITS_PER_BITS_WORD)))
+
+#endif /* USE_INCREMENTAL_GC */
+
 
 /***********************************************************************
 			 Interval Allocation
@@ -1444,9 +1736,31 @@ lrealloc (void *p, size_t size)
 
 /* Number of intervals allocated in an interval_block structure.  */
 
+#ifndef USE_INCREMENTAL_GC
+
 enum { INTERVAL_BLOCK_SIZE
-         = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct interval_block *))
-	    / sizeof (struct interval)) };
+       = ((MALLOC_SIZE_NEAR (1024) - (sizeof (struct interval_block *)))
+	  / sizeof (struct interval)) };
+
+#else /* USE_INCREMENTAL_GC */
+
+struct padding_interval_block
+{
+  struct interval intervals;
+  struct interval_block *next;
+  struct protection protection;
+};
+
+/* Make better use of aligned memory by making interval blocks close
+   in size to BLOCK_ALIGN.  */
+
+#define INTERVAL_BLOCK_SIZE					\
+  (LISP_BLOCK_SIZE (struct interval,				\
+		    (sizeof (struct padding_interval_block)	\
+		     - offsetof (struct padding_interval_block,	\
+				 next)), 0))
+
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Intervals are allocated in chunks in the form of an interval_block
    structure.  */
@@ -1456,7 +1770,15 @@ struct interval_block
   /* Place `intervals' first, to preserve alignment.  */
   struct interval intervals[INTERVAL_BLOCK_SIZE];
   struct interval_block *next;
+#ifdef USE_INCREMENTAL_GC
+  /* Block ``header'' used to keep tabs during incremental GC.  */
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
 };
+
+#ifdef USE_INCREMENTAL_GC
+verify (sizeof (struct interval_block) <= BLOCK_ALIGN);
+#endif /* USE_INCREMENTAL_GC */
 
 /* Current interval block.  Its `next' pointer points to older
    blocks.  */
@@ -1510,9 +1832,14 @@ make_interval (void)
       if (interval_block_index == INTERVAL_BLOCK_SIZE)
 	{
 	  struct interval_block *newi
-	    = lisp_malloc (sizeof *newi, false, MEM_TYPE_NON_LISP);
+	    = lisp_malloc (sizeof *newi, false, MEM_TYPE_INTERVAL);
 
 	  newi->next = interval_block;
+#ifdef USE_INCREMENTAL_GC
+	  newi->protection.next = NULL;
+	  newi->protection.u.start = newi;
+	  newi->protection.flags = 0 | (MEM_TYPE_INTERVAL << 28);
+#endif /* USE_INCREMENTAL_GC */
 	  ASAN_POISON_INTERVAL_BLOCK (newi);
 	  interval_block = newi;
 	  interval_block_index = 0;
@@ -1527,9 +1854,16 @@ make_interval (void)
   intervals_consed++;
   RESET_INTERVAL (val);
   val->gcmarkbit = 0;
+#ifdef USE_INCREMENTAL_GC
+  val->gcmarkbit1 = 0;
+#endif /* USE_INCREMENTAL_GC */
   return val;
 }
 
+#ifdef USE_INCREMENTAL_GC
+static void write_protect_interval (INTERVAL);
+static void suspend_interval_protection (INTERVAL);
+#endif
 
 /* Mark Lisp objects in interval I.  */
 
@@ -1539,8 +1873,19 @@ mark_interval_tree_1 (INTERVAL i, void *dummy)
   /* Intervals should never be shared.  So, if extra internal checking is
      enabled, GC aborts if it seems to have visited an interval twice.  */
   eassert (!interval_marked_p (i));
+#ifdef USE_INCREMENTAL_GC
+  /* Undo write protection in preparation for marking the
+     interval.  */
+  suspend_interval_protection (i);
+#endif
   set_interval_marked (i);
   mark_object (i->plist);
+
+#ifdef USE_INCREMENTAL_GC
+  /* Now write protect the interval, so it can be remarked if its
+     contents change.  */
+  write_protect_interval (i);
+#endif /* USE_INCREMENTAL_GC */
 }
 
 /* Mark the interval tree rooted in I.  */
@@ -1662,6 +2007,15 @@ enum { STRING_BLOCK_SIZE
          = ((MALLOC_SIZE_NEAR (1024) - sizeof (struct string_block *))
 	    / sizeof (struct Lisp_String)) };
 
+#ifdef USE_INCREMENTAL_GC
+
+#define STRING_BLOCK(S)						\
+  ((struct string_block *) ((uintptr_t) (S) & -BLOCK_ALIGN))
+#define STRING_INDEX(S)						\
+  (((uintptr_t) (S) & (BLOCK_ALIGN - 1)) / sizeof (*S))
+
+#endif /* USE_INCREMENTAL_GC */
+
 /* Structure describing a block from which Lisp_String structures
    are allocated.  */
 
@@ -1669,6 +2023,13 @@ struct string_block
 {
   /* Place `strings' first, to preserve alignment.  */
   struct Lisp_String strings[STRING_BLOCK_SIZE];
+#ifdef USE_INCREMENTAL_GC
+  /* Bitmask containing extra mark bits.  */
+  bits_word gcmarkbits[1 + STRING_BLOCK_SIZE / BITS_PER_BITS_WORD];
+
+  /* Memory protection metadata.  */
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
   struct string_block *next;
 };
 
@@ -1898,8 +2259,16 @@ allocate_string (void)
      add all the Lisp_Strings in it to the free-list.  */
   if (string_free_list == NULL)
     {
-      struct string_block *b = lisp_malloc (sizeof *b, false, MEM_TYPE_STRING);
+      struct string_block *b = lisp_malloc (sizeof *b, false,
+					    MEM_TYPE_STRING);
       int i;
+
+#ifdef USE_INCREMENTAL_GC
+      memset (b->gcmarkbits, 0, sizeof b->gcmarkbits);
+      b->protection.next = NULL;
+      b->protection.u.start = b;
+      b->protection.flags = 0 | (MEM_TYPE_STRING << 28);
+#endif /* USE_INCREMENTAL_GC */
 
       b->next = string_blocks;
       string_blocks = b;
@@ -2099,6 +2468,17 @@ resize_string_data (Lisp_Object string, ptrdiff_t cidx_byte,
   return new_charaddr;
 }
 
+#ifdef USE_INCREMENTAL_GC
+
+/* Remove write protection on the specified string BLOCK.  */
+
+static void
+unprotect_string_block (struct string_block *block)
+{
+  unprotect (&block->protection);
+}
+
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Sweep and compact strings.  */
 
@@ -2122,6 +2502,11 @@ sweep_strings (void)
       ASAN_UNPOISON_STRING_BLOCK (b);
 
       next = b->next;
+
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this string block.  */
+      unprotect_string_block (b);
+#endif /* !USE_INCREMENTAL_GC */
 
       for (i = 0; i < STRING_BLOCK_SIZE; ++i)
 	{
@@ -2670,11 +3055,38 @@ pin_string (Lisp_Object string)
    by GC are put on a free list to be reallocated before allocating
    any new float cells from the latest float_block.  */
 
+#ifndef USE_INCREMENTAL_GC
+
 #define FLOAT_BLOCK_SIZE					\
   (((BLOCK_BYTES - sizeof (struct float_block *)		\
      /* The compiler might add padding at the end.  */		\
      - (sizeof (struct Lisp_Float) - sizeof (bits_word))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
+
+#else /* USE_INCREMENTAL_GC */
+
+/* Fascimile of struct float_block used to compute the amount of
+   padding after `bits_word'.  */
+
+struct padding_float_block
+{
+  /* One float.  */
+  struct Lisp_Float floats[1];
+
+  /* One bits_word.  */
+  bits_word bits_word;
+
+  /* One pointer.  */
+  struct float_block *next;
+};
+
+#define FLOAT_BLOCK_SIZE					\
+  (LISP_BLOCK_SIZE (struct Lisp_Float,				\
+		    (sizeof (struct padding_float_block)	\
+		     - offsetof (struct padding_float_block,	\
+				 bits_word)), 2))
+
+#endif /* !USE_INCREMENTAL_GC */
 
 #define GETMARKBIT(block,n)				\
   (((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
@@ -2689,6 +3101,22 @@ pin_string (Lisp_Object string)
   ((block)->gcmarkbits[(n) / BITS_PER_BITS_WORD]	\
    &= ~((bits_word) 1 << ((n) % BITS_PER_BITS_WORD)))
 
+#ifdef USE_INCREMENTAL_GC
+
+static void
+unmark_string (struct Lisp_String *string)
+{
+  struct string_block *block;
+
+  string->u.s.size &= ~ARRAY_MARK_FLAG;
+
+  /* Clear the additional mark bit.  */
+  block = STRING_BLOCK (string);
+  UNSETMARKBIT (block, STRING_INDEX (string));
+}
+
+#endif /* !USE_INCREMENTAL_GC */
+
 #define FLOAT_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
    ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1))))
@@ -2700,9 +3128,21 @@ struct float_block
 {
   /* Place `floats' at the beginning, to ease up FLOAT_INDEX's job.  */
   struct Lisp_Float floats[FLOAT_BLOCK_SIZE];
+#ifdef USE_INCREMENTAL_GC
+  /* If incremental garbage collection is in use, define an extra mark
+     bit.  This is used to record whether or not the object has been
+     ``completely marked'' and must be rescanned after a write
+     fault.  */
+  bits_word gcmarkbits[1 + FLOAT_BLOCK_SIZE * 2 / BITS_PER_BITS_WORD];
+#else /* !USE_INCREMENTAL_GC */
   bits_word gcmarkbits[1 + FLOAT_BLOCK_SIZE / BITS_PER_BITS_WORD];
+#endif /* !USE_INCREMENTAL_GC */
   struct float_block *next;
 };
+
+#ifdef USE_INCREMENTAL_GC
+verify (sizeof (struct float_block) <= BLOCK_BYTES);
+#endif /* USE_INCREMENTAL_GC */
 
 #define XFLOAT_MARKED_P(fptr) \
   GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
@@ -2712,6 +3152,19 @@ struct float_block
 
 #define XFLOAT_UNMARK(fptr) \
   UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+
+#ifdef USE_INCREMENTAL_GC
+
+#define XFLOAT_PUSHED_P(fptr) \
+  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_BLOCK_SIZE + FLOAT_INDEX ((fptr)))
+
+#define XPUSH_FLOAT(fptr) \
+  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_BLOCK_SIZE + FLOAT_INDEX ((fptr)))
+
+#define XUNPUSH_FLOAT(fptr) \
+  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_BLOCK_SIZE + FLOAT_INDEX ((fptr)))
+
+#endif /* USE_INCREMENTAL_GC */
 
 #if GC_ASAN_POISON_OBJECTS
 # define ASAN_POISON_FLOAT_BLOCK(fblk)         \
@@ -2795,11 +3248,41 @@ make_float (double float_value)
    GC are put on a free list to be reallocated before allocating
    any new cons cells from the latest cons_block.  */
 
+#ifndef USE_INCREMENTAL_GC
+
 #define CONS_BLOCK_SIZE						\
   (((BLOCK_BYTES - sizeof (struct cons_block *)			\
      /* The compiler might add padding at the end.  */		\
      - (sizeof (struct Lisp_Cons) - sizeof (bits_word))) * CHAR_BIT)	\
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
+
+#else /* USE_INCREMENTAL_GC */
+
+/* Fascimile of struct cons_block used to compute the amount of
+   padding after `bits_word'.  */
+
+struct padding_cons_block
+{
+  /* One cons.  */
+  struct Lisp_Cons cons[1];
+
+  /* One bits_word.  */
+  bits_word bits_word;
+
+  /* One struct protection.  */
+  struct protection protection;
+
+  /* One pointer.  */
+  struct cons_block *next;
+};
+
+#define CONS_BLOCK_SIZE						\
+  (LISP_BLOCK_SIZE (struct Lisp_Cons,				\
+		    (sizeof (struct padding_cons_block)		\
+		     - offsetof (struct padding_cons_block,	\
+				 protection)), 2))
+
+#endif /* !USE_INCREMENTAL_GC */
 
 #define CONS_BLOCK(fptr) \
   (eassert (!pdumper_object_p (fptr)),                                  \
@@ -2812,7 +3295,14 @@ struct cons_block
 {
   /* Place `conses' at the beginning, to ease up CONS_INDEX's job.  */
   struct Lisp_Cons conses[CONS_BLOCK_SIZE];
+#ifndef USE_INCREMENTAL_GC
   bits_word gcmarkbits[1 + CONS_BLOCK_SIZE / BITS_PER_BITS_WORD];
+#else /* USE_INCREMENTAL_GC */
+  bits_word gcmarkbits[1 + CONS_BLOCK_SIZE * 2 / BITS_PER_BITS_WORD];
+
+  /* Memory protection metadata.  */
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
   struct cons_block *next;
 };
 
@@ -2824,6 +3314,19 @@ struct cons_block
 
 #define XUNMARK_CONS(fptr) \
   UNSETMARKBIT (CONS_BLOCK (fptr), CONS_INDEX ((fptr)))
+
+#ifdef USE_INCREMENTAL_GC
+
+#define XCONS_PUSHED_P(fptr) \
+  GETMARKBIT (CONS_BLOCK (fptr), CONS_BLOCK_SIZE + CONS_INDEX ((fptr)))
+
+#define XPUSH_CONS(fptr) \
+  SETMARKBIT (CONS_BLOCK (fptr), CONS_BLOCK_SIZE + CONS_INDEX ((fptr)))
+
+#define XUNPUSH_CONS(fptr) \
+  UNSETMARKBIT (CONS_BLOCK (fptr), CONS_BLOCK_SIZE + CONS_INDEX ((fptr)))
+
+#endif /* USE_INCREMENTAL_GC */
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -2874,6 +3377,9 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 {
   register Lisp_Object val;
 
+  eassert (valid_lisp_object_p (cdr));
+  eassert (valid_lisp_object_p (car));
+
   MALLOC_BLOCK_INPUT;
 
   if (cons_free_list)
@@ -2890,6 +3396,11 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	    = lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  ASAN_POISON_CONS_BLOCK (new);
+#ifdef USE_INCREMENTAL_GC
+	  new->protection.next = NULL;
+	  new->protection.u.start = new;
+	  new->protection.flags = 0 | (MEM_TYPE_CONS << 28);
+#endif /* USE_INCREMENTAL_GC */
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
@@ -3045,7 +3556,36 @@ set_next_vector (struct Lisp_Vector *v, struct Lisp_Vector *p)
    for the most common cases; it's not required to be a power of two, but
    it's expected to be a mult-of-ROUNDUP_SIZE (see below).  */
 
+#ifndef USE_INCREMENTAL_GC
+
 enum { VECTOR_BLOCK_SIZE = 4096 };
+
+#else /* USE_INCREMENTAL_GC */
+
+/* Make optimal use of aligned memory by making vector blocks as close
+   as possible to an ablock.  */
+
+struct padding_vector_block
+{
+  /* One char.  */
+  char data;
+
+  /* One struct protection.  */
+  struct protection protection;
+
+  /* One pointer.  */
+  struct padding_vector_block *next;
+};
+
+#define VECTOR_BLOCK_SIZE_1					\
+  LISP_BLOCK_SIZE (Lisp_Object,					\
+		   (sizeof (struct padding_vector_block)	\
+		    - offsetof (struct padding_vector_block,	\
+				protection)), 0)
+
+#define VECTOR_BLOCK_SIZE (VECTOR_BLOCK_SIZE_1 & ~(roundup_size - 1))
+
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Vector size requests are a multiple of this.  */
 enum { roundup_size = COMMON_MULTIPLE (LISP_ALIGNMENT, word_size) };
@@ -3061,7 +3601,8 @@ verify (VECTOR_BLOCK_SIZE <= (1 << PSEUDOVECTOR_SIZE_BITS));
 
 /* Rounding helps to maintain alignment constraints if USE_LSB_TAG.  */
 
-enum {VECTOR_BLOCK_BYTES = VECTOR_BLOCK_SIZE - vroundup_ct (sizeof (void *))};
+enum { VECTOR_BLOCK_BYTES = (VECTOR_BLOCK_SIZE
+			     - vroundup_ct (sizeof (void *))) };
 
 /* Size of the minimal vector allocated from block.  */
 
@@ -3109,12 +3650,17 @@ VINDEX (ptrdiff_t nbytes)
 
 struct large_vector
 {
+#ifdef USE_INCREMENTAL_GC
+  /* Memory protection metadata.  */
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
   struct large_vector *next;
 };
 
 enum
 {
-  large_vector_offset = ROUNDUP (sizeof (struct large_vector), LISP_ALIGNMENT)
+  large_vector_offset = ROUNDUP (sizeof (struct large_vector),
+				 LISP_ALIGNMENT),
 };
 
 static struct Lisp_Vector *
@@ -3129,8 +3675,20 @@ large_vector_vec (struct large_vector *p)
 struct vector_block
 {
   char data[VECTOR_BLOCK_BYTES];
+
+#ifdef USE_INCREMENTAL_GC
+  /* Memory protection metadata.  */
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
   struct vector_block *next;
 };
+
+#ifdef USE_INCREMENTAL_GC
+/* Verify that vector blocks can be properly aligned.
+   This is because vector pointers are truncated to find their
+   vector blocks.  */
+verify (sizeof (struct vector_block) <= BLOCK_ALIGN);
+#endif /* !USE_INCREMENTAL_GC */
 
 /* Chain of vector blocks.  */
 
@@ -3183,13 +3741,15 @@ setup_on_free_list (struct Lisp_Vector *v, ptrdiff_t nbytes)
 static struct vector_block *
 allocate_vector_block (void)
 {
-  struct vector_block *block = xmalloc (sizeof *block);
+  struct vector_block *block;
 
-#ifndef GC_MALLOC_CHECK
-  mem_insert (block->data, block->data + VECTOR_BLOCK_BYTES,
-	      MEM_TYPE_VECTOR_BLOCK);
-#endif
-
+  block = lisp_malloc (sizeof *block, false,
+		       MEM_TYPE_VECTOR_BLOCK);
+#ifdef USE_INCREMENTAL_GC
+  block->protection.next = NULL;
+  block->protection.u.start = block;
+  block->protection.flags = 0 | (MEM_TYPE_VECTOR_BLOCK << 28);
+#endif /* USE_INCREMENTAL_GC */
   block->next = vector_blocks;
   vector_blocks = block;
   return block;
@@ -3400,6 +3960,26 @@ cleanup_vector (struct Lisp_Vector *vector)
 #endif
 }
 
+#ifdef USE_INCREMENTAL_GC
+
+/* Remove write protection on the specified vector BLOCK.  */
+
+static void
+unprotect_vector_block (struct vector_block *block)
+{
+  unprotect (&block->protection);
+}
+
+/* Remove write protection on the specified large vector VECTOR.  */
+
+static void
+unprotect_large_vector (struct large_vector *vector)
+{
+  unprotect (&vector->protection);
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 /* Reclaim space used by unmarked vectors.  */
 
 NO_INLINE /* For better stack traces */
@@ -3419,6 +3999,11 @@ sweep_vectors (void)
   for (block = vector_blocks; block; block = *bprev)
     {
       bool free_this_block = false;
+
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this vector block.  */
+      unprotect_vector_block (block);
+#endif /* USE_INCREMENTAL_GC */
 
       for (vector = (struct Lisp_Vector *) block->data;
 	   VECTOR_IN_BLOCK (vector, block); vector = next)
@@ -3480,6 +4065,11 @@ sweep_vectors (void)
 
   for (lv = large_vectors; lv; lv = *lvprev)
     {
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this large vector.  */
+      unprotect_large_vector (lv);
+#endif /* USE_INCREMENTAL_GC */
+
       vector = large_vector_vec (lv);
       if (XVECTOR_MARKED_P (vector))
 	{
@@ -3537,9 +4127,21 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
       struct large_vector *lv = lisp_malloc (large_vector_offset + nbytes,
 					     clearit, MEM_TYPE_VECTORLIKE);
       lv->next = large_vectors;
+#ifdef USE_INCREMENTAL_GC
+      lv->protection.next = NULL;
+      lv->protection.u.size = large_vector_offset + nbytes;
+      lv->protection.flags = 1 | (MEM_TYPE_VECTORLIKE << 28);
+#endif /* USE_INCREMENTAL_GC */
       large_vectors = lv;
       p = large_vector_vec (lv);
     }
+
+#ifdef USE_INCREMENTAL_GC
+  /* Clear the extra mark bits.  */
+  p->header.s.new_flags = 0;
+  p->header.s.large_vector_p
+    = (nbytes > VBLOCK_BYTES_MAX);
+#endif /* USE_INCREMENTAL_GC */
 
 #ifdef DOUG_LEA_MALLOC
   if (!mmap_lisp_allowed_p ())
@@ -3547,7 +4149,7 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
 #endif
 
   if (find_suspicious_object_in_range (p, (char *) p + nbytes))
-    emacs_abort ();
+    raise (SIGTRAP);
 
   tally_consing (nbytes);
   vector_cells_consed += len;
@@ -3786,6 +4388,8 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
 			   Symbol Allocation
  ***********************************************************************/
 
+#ifndef USE_INCREMENTAL_GC
+
 /* Each symbol_block is just under 1020 bytes long, since malloc
    really allocates in units of powers of two and uses 4 bytes for its
    own overhead.  */
@@ -3793,10 +4397,35 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
 #define SYMBOL_BLOCK_SIZE \
   ((1020 - sizeof (struct symbol_block *)) / sizeof (struct Lisp_Symbol))
 
+#else /* USE_INCREMENTAL_GC */
+
+struct padding_symbol_block
+{
+  /* One symbol.  */
+  struct Lisp_Symbol symbols;
+
+  /* One struct protection.  */
+  struct protection protection;
+
+  /* One pointer.  */
+  struct symbol_block *next;
+};
+
+#define SYMBOL_BLOCK_SIZE					\
+  LISP_BLOCK_SIZE (struct Lisp_Symbol,				\
+		   (sizeof (struct padding_symbol_block)	\
+		    - offsetof (struct padding_symbol_block,	\
+				protection)), 0)		\
+
+#endif /* !USE_INCREMENTAL_GC */
+
 struct symbol_block
 {
   /* Place `symbols' first, to preserve alignment.  */
   struct Lisp_Symbol symbols[SYMBOL_BLOCK_SIZE];
+#ifdef USE_INCREMENTAL_GC
+  struct protection protection;
+#endif /* USE_INCREMENTAL_GC */
   struct symbol_block *next;
 };
 
@@ -3851,6 +4480,9 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   set_symbol_function (val, Qnil);
   set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
+#ifdef USE_INCREMENTAL_GC
+  p->u.s.gcmarkbit1 = false;
+#endif /* USE_INCREMENTAL_GC */
   p->u.s.interned = SYMBOL_UNINTERNED;
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
@@ -3881,6 +4513,11 @@ Its value is void, and its function definition and property list are nil.  */)
 	  struct symbol_block *new
 	    = lisp_malloc (sizeof *new, false, MEM_TYPE_SYMBOL);
 	  ASAN_POISON_SYMBOL_BLOCK (new);
+#ifdef USE_INCREMENTAL_GC
+	  new->protection.next = NULL;
+	  new->protection.u.start = new;
+	  new->protection.flags = 0 | (MEM_TYPE_SYMBOL << 28);
+#endif /* USE_INCREMENTAL_GC */
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
@@ -4071,6 +4708,9 @@ mark_finalizer_list (struct Lisp_Finalizer *head)
        finalizer != head;
        finalizer = finalizer->next)
     {
+#ifdef USE_INCREMENTAL_GC
+      suspend_vectorlike_protection (finalizer);
+#endif /* USE_INCREMENTAL_GC */
       set_vectorlike_marked (&finalizer->header);
       mark_object (finalizer->function);
     }
@@ -4386,6 +5026,16 @@ refill_memory_reserve (void)
    tree, and use that to determine if the pointer points into a Lisp
    object or not.  */
 
+
+
+/* Whether or not program memory is being modified.  */
+static volatile int mem_tree_is_being_modified;
+
+/* Whether or not the font cache is being modified.  */
+static volatile int compacting_font_caches;
+
+
+
 /* Initialize this part of alloc.c.  */
 
 static void
@@ -4429,6 +5079,8 @@ static struct mem_node *
 mem_insert (void *start, void *end, enum mem_type type)
 {
   struct mem_node *c, *parent, *x;
+
+  mem_tree_is_being_modified = 1;
 
   if (min_heap_address == NULL || start < min_heap_address)
     min_heap_address = start;
@@ -4475,6 +5127,8 @@ mem_insert (void *start, void *end, enum mem_type type)
 
   /* Re-establish red-black tree properties.  */
   mem_insert_fixup (x);
+
+  mem_tree_is_being_modified = 0;
 
   return x;
 }
@@ -4637,6 +5291,8 @@ mem_delete (struct mem_node *z)
   if (!z || z == MEM_NIL)
     return;
 
+  mem_tree_is_being_modified = 1;
+
   if (z->left == MEM_NIL || z->right == MEM_NIL)
     y = z;
   else
@@ -4671,6 +5327,8 @@ mem_delete (struct mem_node *z)
 
   if (y->color == MEM_BLACK)
     mem_delete_fixup (x);
+
+  mem_tree_is_being_modified = 0;
 
 #ifdef GC_MALLOC_CHECK
   free (y);
@@ -5097,6 +5755,7 @@ mark_maybe_pointer (void *p, bool symbol_only)
 	{
 	case MEM_TYPE_NON_LISP:
 	case MEM_TYPE_SPARE:
+	case MEM_TYPE_INTERVAL:
 	  /* Nothing to do; not a pointer to Lisp memory.  */
 	  return;
 
@@ -5512,6 +6171,9 @@ valid_lisp_object_p (Lisp_Object obj)
   if (p == &buffer_defaults || p == &buffer_local_symbols)
     return 2;
 
+  if (main_thread_p (p))
+    return 1;
+
   if (pdumper_object_p (p))
     return pdumper_object_p_precise (p) ? 1 : 0;
 
@@ -5534,6 +6196,7 @@ valid_lisp_object_p (Lisp_Object obj)
     {
     case MEM_TYPE_NON_LISP:
     case MEM_TYPE_SPARE:
+    case MEM_TYPE_INTERVAL:
       return 0;
 
     case MEM_TYPE_CONS:
@@ -6069,8 +6732,8 @@ compact_font_cache_entry (Lisp_Object entry)
             {
               Lisp_Object objlist;
 
-              if (vectorlike_marked_p (
-                    &GC_XFONT_ENTITY (AREF (obj_cdr, i))->header))
+              if (vectorlike_marked_p (&GC_XFONT_ENTITY (AREF (obj_cdr,
+							       i))->header))
                 break;
 
               objlist = AREF (AREF (obj_cdr, i), FONT_OBJLIST_INDEX);
@@ -6113,6 +6776,14 @@ compact_font_caches (void)
 {
   struct terminal *t;
 
+#ifdef USE_INCREMENTAL_GC
+  /* Set this flag to let alloc_fault know that font caches are being
+     compacted.  It is impractical to remove write barriers in a
+     standard manner, as `compact_font_cache_entry' goes outside the
+     scope of alloc.c.  */
+  compacting_font_caches = 1;
+#endif /* USE_INCREMENTAL_GC */
+
   for (t = terminal_list; t; t = t->next_terminal)
     {
       Lisp_Object cache = TERMINAL_FONT_CACHE (t);
@@ -6129,6 +6800,10 @@ compact_font_caches (void)
 	}
       mark_object (cache);
     }
+
+#ifdef USE_INCREMENTAL_GC
+  compacting_font_caches = 0;
+#endif /* USE_INCREMENTAL_GC */
 }
 
 #else /* not HAVE_WINDOW_SYSTEM */
@@ -6150,7 +6825,13 @@ compact_undo_list (Lisp_Object list)
       if (CONSP (XCAR (tail))
 	  && MARKERP (XCAR (XCAR (tail)))
 	  && !vectorlike_marked_p (&XMARKER (XCAR (XCAR (tail)))->header))
-	*prev = XCDR (tail);
+	{
+#ifdef USE_INCREMENTAL_GC
+	  if (prev != &list)
+	    suspend_protection (&CONS_BLOCK (prev)->protection);
+#endif /* USE_INCREMENTAL_GC */
+	  *prev = XCDR (tail);
+	}
       else
 	prev = xcdr_addr (tail);
     }
@@ -6219,6 +6900,12 @@ visit_buffer_root (struct gc_root_visitor visitor,
 void
 visit_static_gc_roots (struct gc_root_visitor visitor)
 {
+#ifdef USE_INCREMENTAL_GC
+  struct Lisp_Symbol *symbol;
+  struct Lisp_Buffer_Local_Value *blv;
+  Lisp_Object where;
+#endif /* USE_INCREMENTAL_GC */
+
   visit_buffer_root (visitor,
                      &buffer_defaults,
                      GC_ROOT_BUFFER_LOCAL_DEFAULT);
@@ -6229,7 +6916,53 @@ visit_static_gc_roots (struct gc_root_visitor visitor)
   for (int i = 0; i < ARRAYELTS (lispsym); i++)
     {
       Lisp_Object sptr = builtin_lisp_symbol (i);
+#ifndef USE_INCREMENTAL_GC
       visitor.visit (&sptr, GC_ROOT_C_SYMBOL, visitor.data);
+#else /* USE_INCREMENTAL_GC */
+      /* Symbols are a kind of static root which are objects
+	 themselves, yet hold references to other objects that can't
+	 be protected during incremental GC.  Visit each reference as
+	 well.  */
+
+      visitor.visit (&sptr, GC_ROOT_C_SYMBOL, visitor.data);
+      symbol = &lispsym[i];
+      visitor.visit (&symbol->u.s.function, GC_ROOT_IGNORED,
+		     visitor.data);
+      visitor.visit (&symbol->u.s.plist, GC_ROOT_IGNORED,
+		     visitor.data);
+
+      switch (symbol->u.s.redirect)
+	{
+	case SYMBOL_PLAINVAL:
+	  sptr = SYMBOL_VAL (symbol);
+	  visitor.visit (&sptr, GC_ROOT_IGNORED,
+			 visitor.data);
+	  break;
+
+	case SYMBOL_VARALIAS:
+	  XSETSYMBOL (sptr, SYMBOL_ALIAS (symbol));
+	  visitor.visit (&sptr, GC_ROOT_IGNORED, visitor.data);
+	  break;
+
+	case SYMBOL_LOCALIZED:
+
+	  blv = SYMBOL_BLV (symbol);
+	  where = blv->where;
+	  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where))))
+	    swap_in_global_binding (symbol);
+
+	  visitor.visit (&blv->where, GC_ROOT_IGNORED, visitor.data);
+	  visitor.visit (&blv->valcell, GC_ROOT_IGNORED, visitor.data);
+	  visitor.visit (&blv->defcell, GC_ROOT_IGNORED, visitor.data);
+	  break;
+
+	case SYMBOL_FORWARDED:
+	  /* See process_mark_stack.  */
+	  break;
+	}
+
+      /* SYMBOL_NAME shouldn't change, so don't visit it here.  */
+#endif /* !USE_INCREMENTAL_GC */
     }
 
   for (int i = 0; i < staticidx; i++)
@@ -6274,6 +7007,10 @@ mark_and_sweep_weak_table_contents (void)
     {
       h = weak_hash_tables;
       weak_hash_tables = h->next_weak;
+#ifdef USE_INCREMENTAL_GC
+      /* Unprotect the weak hash table.  */
+      suspend_vectorlike_protection (h);
+#endif /* USE_INCREMENTAL_GC */
       h->next_weak = NULL;
       sweep_weak_table (h, true);
     }
@@ -6352,14 +7089,21 @@ void
 maybe_garbage_collect (void)
 {
   if (bump_consing_until_gc (gc_cons_threshold, Vgc_cons_percentage) < 0)
-    garbage_collect ();
+    garbage_collect (false);
 }
 
 static inline bool mark_stack_empty_p (void);
 
-/* Subroutine of Fgarbage_collect that does most of the work.  */
+#ifdef USE_INCREMENTAL_GC
+static int reenter_gc (void);
+#endif /* USE_INCREMENTAL_GC */
+
+/* Subroutine of Fgarbage_collect that does most of the work.
+   If NO_COMPACT, don't compact live buffers or perform other
+   unnecessary work.  */
+
 void
-garbage_collect (void)
+garbage_collect (bool no_compact)
 {
   Lisp_Object tail, buffer;
   char stack_top_variable;
@@ -6367,20 +7111,22 @@ garbage_collect (void)
   specpdl_ref count = SPECPDL_INDEX ();
   struct timespec start;
 
-  eassert (weak_hash_tables == NULL);
-
   if (garbage_collection_inhibited)
     return;
 
-  eassert(mark_stack_empty_p ());
+#ifndef USE_INCREMENTAL_GC
+  eassert (weak_hash_tables == NULL);
+  eassert (mark_stack_empty_p ());
+#endif /* USE_INCREMENTAL_GC */
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   record_in_backtrace (QAutomatic_GC, 0, 0);
 
-  /* Don't keep undo information around forever.
-     Do this early on, so it is no problem if the user quits.  */
-  FOR_EACH_LIVE_BUFFER (tail, buffer)
-    compact_buffer (XBUFFER (buffer));
+  if (!no_compact)
+    /* Don't keep undo information around forever.
+       Do this early on, so it is no problem if the user quits.  */
+    FOR_EACH_LIVE_BUFFER (tail, buffer)
+      compact_buffer (XBUFFER (buffer));
 
   byte_ct tot_before = (profiler_memory_running
 			? total_bytes_of_live_objects ()
@@ -6440,6 +7186,8 @@ garbage_collect (void)
 
   gc_in_progress = 1;
 
+#ifndef USE_INCREMENTAL_GC
+
   /* Mark all the special slots that serve as the roots of accessibility.  */
 
   struct gc_root_visitor visitor = { .visit = mark_object_root_visitor };
@@ -6492,6 +7240,32 @@ garbage_collect (void)
       mark_object (BVAR (nextb, undo_list));
     }
 
+#else /* USE_INCREMENTAL_GC */
+  /* Enter (or restart) incremental GC.  */
+
+  if (reenter_gc ())
+    {
+      eassert (!pending_protect);
+      gc_in_progress = 0;
+
+      /* GC was canceled due to input becoming available.  */
+      unblock_input ();
+      unbind_to (count, Qnil);
+
+      return;
+    }
+
+  eassert (!pending_protect);
+  eassert (mark_stack_empty_p ());
+
+  {
+    Lisp_Object tem;
+
+    for (tem = Vload_history; CONSP (tem); tem = XCDR (tem))
+      eassert (survives_gc_p (tem));
+  }
+#endif /* !USE_INCREMENTAL_GC */
+
   /* Now pre-sweep finalizers.  Here, we add any unmarked finalizers
      to doomed_finalizers so we can run their associated functions
      after GC.  It's important to scan finalizers at this stage so
@@ -6506,9 +7280,26 @@ garbage_collect (void)
   mark_and_sweep_weak_table_contents ();
   eassert (weak_hash_tables == NULL);
 
+  /* Clear write protects caused by finalizer and weak hash table
+     sweeping.  */
+#ifdef USE_INCREMENTAL_GC
+  while (pending_protect)
+    {
+      pending_protect->flags &= ~PROTECTION_IS_CHAINED;
+      pending_protect = pending_protect->next;
+    }
+#endif /* USE_INCREMENTAL_GC */
+
   eassert (mark_stack_empty_p ());
 
   gc_sweep ();
+
+  {
+    Lisp_Object tem;
+
+    for (tem = Vload_history; CONSP (tem); tem = XCDR (tem))
+      eassert (valid_lisp_object_p (tem));
+  }
 
   unmark_main_thread ();
 
@@ -6596,7 +7387,7 @@ For further details, see Info node `(elisp)Garbage Collection'.  */)
 
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qsymbols_with_pos_enabled, Qnil);
-  garbage_collect ();
+  garbage_collect (false);
   unbind_to (count, Qnil);
   struct gcstat gcst = gcstat;
 
@@ -6653,7 +7444,7 @@ Returns non-nil if GC happened, and nil otherwise.  */)
   EMACS_INT since_gc = gc_threshold - consing_until_gc;
   if (fact >= 1 && since_gc > gc_threshold / fact)
     {
-      garbage_collect ();
+      garbage_collect (false);
       return Qt;
     }
   else
@@ -6725,7 +7516,7 @@ mark_vectorlike (union vectorlike_header *header)
      the number of Lisp_Object fields that we should trace.
      The distinction is used e.g. by Lisp_Process which places extra
      non-Lisp_Object fields at the end of the structure...  */
-  mark_objects (ptr->contents, size);
+  mark_objects_in_object (ptr->contents, size);
 }
 
 /* Like mark_vectorlike but optimized for char-tables (and
@@ -6745,16 +7536,23 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
     {
       Lisp_Object val = ptr->contents[i];
 
-      if (FIXNUMP (val) ||
-          (BARE_SYMBOL_P (val) && symbol_marked_p (XBARE_SYMBOL (val))))
+      if (FIXNUMP (val)
+	  || (BARE_SYMBOL_P (val)
+	      && symbol_marked_p (XBARE_SYMBOL (val))))
 	continue;
+
       if (SUB_CHAR_TABLE_P (val))
 	{
 	  if (! vector_marked_p (XVECTOR (val)))
-	    mark_char_table (XVECTOR (val), PVEC_SUB_CHAR_TABLE);
+	    {
+#ifdef USE_INCREMENTAL_GC
+	      suspend_vectorlike_protection (XVECTOR (val));
+#endif /* USE_INCREMENTAL_GC */
+	      mark_char_table (XVECTOR (val), PVEC_SUB_CHAR_TABLE);
+	    }
 	}
       else
-	mark_object (val);
+        mark_object (val);
     }
 }
 
@@ -6807,9 +7605,14 @@ mark_buffer (struct buffer *buffer)
     mark_overlays (buffer->overlays->root);
 
   /* If this is an indirect buffer, mark its base buffer.  */
-  if (buffer->base_buffer &&
-      !vectorlike_marked_p (&buffer->base_buffer->header))
-    mark_buffer (buffer->base_buffer);
+  if (buffer->base_buffer
+      && !vectorlike_marked_p (&buffer->base_buffer->header))
+    {
+#ifdef USE_INCREMENTAL_GC
+      suspend_vectorlike_protection (buffer->base_buffer);
+#endif /* USE_INCREMENTAL_GC */
+      mark_buffer (buffer->base_buffer);
+    }
 }
 
 /* Mark Lisp faces in the face cache C.  */
@@ -6826,8 +7629,14 @@ mark_face_cache (struct face_cache *c)
 
 	  if (face)
 	    {
-	      if (face->font && !vectorlike_marked_p (&face->font->header))
-		mark_vectorlike (&face->font->header);
+	      if (face->font
+		  && !vectorlike_marked_p (&face->font->header))
+		{
+#ifdef USE_INCREMENTAL_GC
+		  suspend_vectorlike_protection (&face->font->header);
+#endif /* USE_INCREMENTAL_GC */
+		  mark_vectorlike (&face->font->header);
+		}
 
 	      mark_objects (face->lface, LFACE_VECTOR_SIZE);
 	    }
@@ -6849,6 +7658,25 @@ mark_localized_symbol (struct Lisp_Symbol *ptr)
   mark_object (blv->defcell);
 }
 
+#ifdef USE_INCREMENTAL_GC
+
+static inline void mark_stack_push_value (Lisp_Object);
+
+static void
+push_localized_symbol (struct Lisp_Symbol *ptr)
+{
+  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
+  Lisp_Object where = blv->where;
+  /* If the value is set up for a killed buffer restore its global binding.  */
+  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where))))
+    swap_in_global_binding (ptr);
+  mark_stack_push_value (blv->where);
+  mark_stack_push_value (blv->valcell);
+  mark_stack_push_value (blv->defcell);
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 /* Remove killed buffers or items whose car is a killed buffer from
    LIST, and mark other items.  Return changed LIST, which is marked.  */
 
@@ -6867,6 +7695,10 @@ mark_discard_killed_buffers (Lisp_Object list)
 	*prev = XCDR (tail);
       else
 	{
+#ifdef USE_INCREMENTAL_GC
+	  if (!PURE_P (XCONS (tail)))
+	    suspend_protection (&CONS_BLOCK (XCONS (tail))->protection);
+#endif /* USE_INCREMENTAL_GC */
 	  set_cons_marked (XCONS (tail));
 	  mark_object (XCAR (tail));
 	  prev = xcdr_addr (tail);
@@ -6922,8 +7754,10 @@ mark_window (struct Lisp_Vector *ptr)
 /* Entry of the mark stack.  */
 struct mark_entry
 {
-  ptrdiff_t n;		        /* number of values, or 0 if a single value */
+  ptrdiff_t n;		        /* number of values, or 0 if a single value.
+				   -1 if value is actually an interval.  */
   union {
+    INTERVAL interval;		/* when n < 0 */
     Lisp_Object value;		/* when n = 0 */
     Lisp_Object *values;	/* when n > 0 */
   } u;
@@ -6940,30 +7774,54 @@ struct mark_stack
 
 static struct mark_stack mark_stk = {NULL, 0, 0};
 
+union mark_stack_entry
+{
+  INTERVAL interval;
+  Lisp_Object value;
+};
+
 static inline bool
 mark_stack_empty_p (void)
 {
   return mark_stk.sp <= 0;
 }
 
-/* Pop and return a value from the mark stack (which must be nonempty).  */
-static inline Lisp_Object
-mark_stack_pop (void)
+/* Pop and return a value from the mark stack (which must be
+   nonempty).  Set *IS_INTERVAL to true if an interval was
+   returned.  */
+
+static union mark_stack_entry
+mark_stack_pop (bool *is_interval)
 {
+  struct mark_entry *e;
+
   eassume (!mark_stack_empty_p ());
-  struct mark_entry *e = &mark_stk.stack[mark_stk.sp - 1];
+  e = &mark_stk.stack[mark_stk.sp - 1];
+
+  if (e->n < 0) /* Interval.  */
+    {
+      --mark_stk.sp;
+      *is_interval = true;
+      return (union mark_stack_entry) e->u.interval;
+    }
+
   if (e->n == 0)		/* single value */
     {
       --mark_stk.sp;
-      return e->u.value;
+      eassert (valid_lisp_object_p (e->u.value));
+      return (union mark_stack_entry) e->u.value;
     }
+
   /* Array of values: pop them left to right, which seems to be slightly
      faster than right to left.  */
   e->n--;
   if (e->n == 0)
     --mark_stk.sp;		/* last value consumed */
-  return (++e->u.values)[-1];
+  return (union mark_stack_entry) (++e->u.values)[-1];
 }
+
+/* Pop and return a value from the mark stack.
+   This may be a Lisp object */
 
 NO_INLINE static void
 grow_mark_stack (void)
@@ -6975,27 +7833,1115 @@ grow_mark_stack (void)
   eassert (ms->sp < ms->size);
 }
 
-/* Push VALUE onto the mark stack.  */
+#ifdef USE_INCREMENTAL_GC
+
+#define SYMBOL_BLOCK(S)						\
+  ((struct symbol_block *) ((uintptr_t) (S) & -BLOCK_ALIGN))
+#define VECTOR_BLOCK(v)						\
+  ((struct vector_block *) ((uintptr_t) (v) & -BLOCK_ALIGN))
+#define INTERVAL_BLOCK(i)					\
+  ((struct interval_block *) ((uintptr_t) (i) & -BLOCK_ALIGN))
+
+#define LARGE_VECTOR_P(object) (XVECTOR (object)->header.s.large_vector_p)
+
+/* Like `mark_first_flag', but for intervals.  */
+
+static bool
+mark_interval_flag (INTERVAL interval)
+{
+  bool already_marked;
+
+  already_marked = interval->gcmarkbit1;
+
+  if (!already_marked)
+    {
+      suspend_protection (&INTERVAL_BLOCK (interval)->protection);
+      interval->gcmarkbit1 = true;
+    }
+
+  return already_marked;
+}
+
+/* Set a flag on OBJECT, specifying that it has been placed on the
+   mark stack.  This flag is not cleared until the object is sweeped
+   or written into.  If OBJECT is read only or some kind of GC root,
+   return true.  Otherwise, return whether or not the flag was already
+   set.  */
+
+static bool
+mark_first_flag (Lisp_Object object)
+{
+  struct Lisp_String *string;
+  struct Lisp_Cons *cons;
+  struct Lisp_Float *xfloat;
+  bool already_set;
+
+  /* Objects in pure space can't change, and they will only have
+     references from pure space.  */
+  if (PURE_P (object))
+    return true;
+
+  switch (XTYPE (object))
+    {
+      /* Note that code here should not write mark bits without first
+	 calling `suspend_protection'.  If a protected object is
+	 written into, the protection fault handler will unprotect it,
+	 but at the cost of having it rescanned and placed back on the
+	 mark stack.
+
+         The same applies for `process_mark_stack' etc.  */
+
+    case Lisp_String:
+      string = XSTRING (object);
+      already_set = GETMARKBIT (STRING_BLOCK (string),
+				STRING_INDEX (string));
+
+      if (!already_set)
+	{
+	  suspend_protection (&STRING_BLOCK (string)->protection);
+	  SETMARKBIT (STRING_BLOCK (string),
+		      STRING_INDEX (string));
+	}
+      break;
+
+    case Lisp_Symbol:
+      if (c_symbol_p (XSYMBOL (object)))
+	return true;
+      already_set = XSYMBOL (object)->u.s.gcmarkbit1;
+
+      if (!already_set)
+	{
+	  suspend_protection (&SYMBOL_BLOCK (XSYMBOL (object))->protection);
+	  XSYMBOL (object)->u.s.gcmarkbit1 = true;
+	}
+
+      break;
+
+    case Lisp_Int0:
+    case Lisp_Int1:
+      return true;
+
+    case Lisp_Vectorlike:
+      already_set = XVECTOR (object)->header.s.new_flags;
+
+      if (!already_set)
+	{
+	  suspend_vectorlike_protection (XVECTOR (object));
+	  XVECTOR (object)->header.s.new_flags = 1;
+	}
+      break;
+
+    case Lisp_Cons:
+      cons = XCONS (object);
+      already_set = XCONS_PUSHED_P (cons);
+
+      if (!already_set)
+	{
+	  suspend_protection (&CONS_BLOCK (cons)->protection);
+	  XPUSH_CONS (cons);
+	}
+      break;
+
+    case Lisp_Float:
+      xfloat = XFLOAT (object);
+      already_set = XFLOAT_PUSHED_P (xfloat);
+
+      if (!already_set)
+	XPUSH_FLOAT (FLOAT_BLOCK (xfloat));
+      break;
+
+    default:
+      eassume (0);
+    }
+
+  return already_set;
+}
+
+/* Push INTERVAL on to the mark stack.  When incremental garbage
+   collection is in use, set the flag which says that VALUE has been
+   placed on the mark stack.  */
+
+static void
+mark_stack_push_interval (INTERVAL interval)
+{
+  if (!interval || mark_interval_flag (interval))
+    return;
+
+  if (mark_stk.sp >= mark_stk.size)
+    grow_mark_stack ();
+
+  mark_stk.stack[mark_stk.sp].n = -1;
+  mark_stk.stack[mark_stk.sp].u.interval = interval;
+  mark_stk.sp++;
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
+/* Push VALUE onto the mark stack.  When incremental garbage
+   collection is in use, set the flag which says that VALUE has
+   been placed on the mark stack.  */
+
 static inline void
 mark_stack_push_value (Lisp_Object value)
 {
+  ptrdiff_t i;
+
+  eassert (valid_lisp_object_p (value));
+
+#ifdef USE_INCREMENTAL_GC
+  /* Don't put objects that have already been on the mark stack
+     back.  */
+
+  if (mark_first_flag (value))
+    {
+#ifdef ENABLE_CHECKING
+      /* Now check that VALUE is either marked or on the mark stack.
+         Do this only for conses, since I have not seen this GC lose
+         anything else for this reason.  */
+
+      if (!PURE_P (value) && CONSP (value)
+	  && !XCONS_MARKED_P (XCONS (value)))
+	{
+	  for (i = 0; i < mark_stk.sp; ++i)
+	    {
+	      if (!mark_stk.stack[i].n
+		  && mark_stk.stack[i].u.value == value)
+		{
+		  break;
+		}
+	    }
+
+	  eassert (i != mark_stk.sp);
+	}
+#endif /* ENABLE_CHECKING */
+      return;
+    }
+#endif /* USE_INCREMENTAL_GC */
+
+#ifdef ENABLE_CHECKING
+  eassert (XTYPE (value) != Lisp_Type_Unused0);
+  eassert (valid_lisp_object_p (value));
+#endif /* ENABLE_CHECKING */
+
   if (mark_stk.sp >= mark_stk.size)
     grow_mark_stack ();
-  mark_stk.stack[mark_stk.sp++] = (struct mark_entry){.n = 0, .u.value = value};
+
+  mark_stk.stack[mark_stk.sp].n = 0;
+  mark_stk.stack[mark_stk.sp].u.value = value;
+  mark_stk.sp++;
 }
 
-/* Push the N values at VALUES onto the mark stack.  */
+/* Push the N values at VALUES onto the mark stack.  When incremental
+   garbage collection is in use, the flag which says that VALUE has
+   been placed on the mark stack is not set.  Thus, do not call this
+   each time incremental GC runs to avoid continually growing the mark
+   stack.  */
+
 static inline void
 mark_stack_push_values (Lisp_Object *values, ptrdiff_t n)
 {
+#ifdef ENABLE_CHECKING
+  ptrdiff_t i;
+
+  for (i = 0; i < n; ++i)
+    eassert (valid_lisp_object_p (values[i]));
+#endif /* ENABLE_CHECKING */
+
   eassume (n >= 0);
+
   if (n == 0)
     return;
+
   if (mark_stk.sp >= mark_stk.size)
     grow_mark_stack ();
-  mark_stk.stack[mark_stk.sp++] = (struct mark_entry){.n = n,
-						      .u.values = values};
+
+  mark_stk.stack[mark_stk.sp].n = n;
+  mark_stk.stack[mark_stk.sp].u.values = values;
+  mark_stk.sp++;
 }
+
+#ifdef USE_INCREMENTAL_GC
+
+/* Place the given memory access PROTECTION on LEN bytes of pages
+   starting from ADDR.  Abort upon failure.  */
+
+static void
+checking_mprotect (void *addr, size_t len, int prot)
+{
+  int rc;
+
+  eassert (!((uintptr_t) addr & (BLOCK_ALIGN - 1)));
+  rc = mprotect (addr, len, prot);
+
+  if (rc)
+    {
+      perror ("mprotect");
+      emacs_abort ();
+    }
+}
+
+/* Schedule write protection of the specified BLOCK.  */
+
+static void
+schedule_protection (struct protection *block)
+{
+  eassert (!PURE_P (block));
+
+  /* Return if the block is already chained or write protected.  */
+  if (block->flags & PROTECTION_IS_CHAINED
+      || block->flags & PROTECTION_IN_PLACE)
+    return;
+
+  /* Return if the address seems to be ridiculous.  */
+  eassert (mem_find (block));
+
+  block->next = pending_protect;
+  pending_protect = block;
+  block->flags |= PROTECTION_IS_CHAINED;
+}
+
+/* Do each scheduled protection.  Call this after GC returns to
+   Lisp.  */
+
+static void
+do_write_protects (void)
+{
+  struct protection *protect;
+  char *start;
+  size_t size;
+
+  protect = pending_protect;
+  for (; protect; protect = protect->next)
+    {
+      /* Calculate the start address of this protection.
+         PROTECTION_IS_SIZE says whether or not the memory protection
+         specifies an area starting from the protection, or an area
+         ending at the protection.  */
+
+      if (protect->flags & PROTECTION_IS_SIZE)
+	{
+	  start = (char *) protect;
+	  size  = protect->u.size;
+	}
+      else
+	{
+	  start = (char *) protect->u.start;
+	  size  = (char *) protect - start;
+	}
+
+      /* Put the memory protection in place.  */
+      protect->flags |= PROTECTION_IN_PLACE;
+      protect->flags &= ~PROTECTION_IS_CHAINED;
+      checking_mprotect (start, size, PROT_READ);
+    }
+
+  /* Clear `pending_protect'.  */
+  pending_protect = NULL;
+}
+
+/* Cancel memory protection for the specified PROTECT.  Then, schedule
+   it for protection.
+
+   Call this prior to writing into an object's block as part of
+   GC.  */
+
+static void
+suspend_protection (struct protection *protect)
+{
+  char *start;
+  size_t size;
+
+  /* Determine the size of the protected area.  */
+
+  if (protect->flags & PROTECTION_IS_SIZE)
+    {
+      start = (char *) protect;
+      size  = protect->u.size;
+    }
+  else
+    {
+      start = (char *) protect->u.start;
+      size  = (char *) protect - start;
+    }
+
+  if (protect->flags & PROTECTION_IN_PLACE)
+    checking_mprotect (start, size, PROT_READ | PROT_WRITE);
+  protect->flags &= ~PROTECTION_IN_PLACE;
+  schedule_protection (protect);
+}
+
+/* Cancel memory protection for the given vector PTR, handling both
+   large and small vectors.  PTR should be a pointer to a vectorlike
+   header.  */
+
+static void
+suspend_vectorlike_protection (void *ptr)
+{
+  struct Lisp_Vector *vector;
+  struct large_vector *large;
+
+  vector = ptr;
+
+  if ((PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR)
+#ifdef HAVE_NATIVE_COMP
+       && NILP (((struct Lisp_Subr *) vector)->native_comp_u)
+#endif /* HAVE_NATIVE_COMP */
+       ) || main_thread_p (&vector->header))
+    return;
+
+  if (vector->header.s.large_vector_p)
+    {
+      /* This is a large vector.  Find its corresponding struct
+	 large_vector and protect that.  */
+      large = ((struct large_vector *) ((char *) vector
+					- large_vector_offset));
+      suspend_protection (&large->protection);
+      return;
+    }
+
+  suspend_protection (&VECTOR_BLOCK (vector)->protection);
+}
+
+/* Unprotect the specified block of memory PROTECT.  */
+
+static void
+unprotect (struct protection *protect)
+{
+  char *start;
+  size_t size;
+
+  /* Determine the size of the protected area.  */
+
+  if (protect->flags & PROTECTION_IS_SIZE)
+    {
+      start = (char *) protect;
+      size  = protect->u.size;
+    }
+  else
+    {
+      start = (char *) protect->u.start;
+      size  = (char *) protect - start;
+    }
+
+  if (protect->flags & PROTECTION_IN_PLACE)
+    checking_mprotect (start, size, PROT_READ | PROT_WRITE);
+  protect->flags &= ~PROTECTION_IN_PLACE;
+}
+
+/* Suspend write protection for the interval block holding the given
+   interval I.  */
+
+static void
+suspend_interval_protection (INTERVAL i)
+{
+  suspend_protection (&INTERVAL_BLOCK (i)->protection);
+}
+
+/* Schedule write protection for the block holding INTERVAL, unless it
+   is already write protected.  This should be called after INTERVAL
+   is scanned.  */
+
+static void
+write_protect_interval (INTERVAL interval)
+{
+  struct interval_block *block;
+
+  block = INTERVAL_BLOCK (interval);
+  eassert ((uintptr_t) block &- BLOCK_ALIGN);
+  schedule_protection (&block->protection);
+}
+
+/* Schedule write protection on the block holding OBJECT, unless it is
+   already write protected.  This should be called after OBJECT is
+   scanned.  */
+
+static void
+write_protect (Lisp_Object object)
+{
+  struct large_vector *vector;
+
+  eassert (gc_in_progress);
+
+  /* Get the block OBJECT is allocated within, unless it is a large
+     vector or has no block.  */
+
+  if (PURE_P (object) || SUBRP (object)
+      || main_thread_p (XPNTR (object)))
+    return;
+
+  if (VECTORLIKEP (object) && LARGE_VECTOR_P (object))
+    {
+      vector = (struct large_vector *) ((char *) (XVECTOR (object))
+					- large_vector_offset);
+      schedule_protection (&vector->protection);
+    }
+  else
+    {
+      switch (XTYPE (object))
+	{
+	case Lisp_String:
+	  schedule_protection (&STRING_BLOCK (XSTRING (object))->protection);
+	  break;
+
+	case Lisp_Symbol:
+	  if (c_symbol_p (XSYMBOL (object)))
+	    return;
+
+	  schedule_protection (&SYMBOL_BLOCK (XSYMBOL (object))->protection);
+	  break;
+
+	case Lisp_Int0:
+	case Lisp_Int1:
+	case Lisp_Float:
+	  return;
+
+	case Lisp_Vectorlike:
+	  /* Small vector.  */
+	  schedule_protection (&VECTOR_BLOCK (XVECTOR (object))->protection);
+	  break;
+
+	case Lisp_Cons:
+	  schedule_protection (&CONS_BLOCK (XCONS (object))->protection);
+	  break;
+
+	default:
+	  eassume (0);
+	}
+    }
+}
+
+static void
+fixup_cons (struct cons_block *block)
+{
+  size_t i;
+
+  for (i = 0; i < ARRAYELTS (block->conses); ++i)
+    {
+      /* Check that the cons is not dead.  */
+
+      if (!deadp (block->conses[i].u.s.car)
+	  /* Now check the cons is already marked.
+	     If it is not, it will be marked later on.  */
+	  && XCONS_MARKED_P (&block->conses[i]))
+	{
+	  /* Prepare to mark the car and cdr again in case a new
+	     reference was made.  */
+	  mark_stack_push_value (block->conses[i].u.s.car);
+	  mark_stack_push_value (block->conses[i].u.s.u.cdr);
+	}
+    }
+}
+
+static void
+fixup_string (struct string_block *block)
+{
+  size_t i;
+
+  for (i = 0; i < ARRAYELTS (block->strings); ++i)
+    {
+      if (!block->strings[i].u.s.data)
+	continue;
+
+      /* Live string.  Check whether or not it is marked.  */
+      if (!string_marked_p (&block->strings[i]))
+	continue;
+
+      /* Mark its interval tree.  */
+      if (block->strings[i].u.s.intervals)
+	mark_stack_push_interval (block->strings[i].u.s.intervals);
+    }
+}
+
+static void
+fixup_symbol (struct symbol_block *block)
+{
+  size_t i;
+  struct Lisp_Symbol *ptr;
+  Lisp_Object tem;
+
+  for (i = 0; i < ARRAYELTS (block->symbols); ++i)
+    {
+      if (block->symbols[i].u.s.function == dead_object ())
+	continue;
+
+      if (!symbol_marked_p (&block->symbols[i]))
+	continue;
+
+      ptr = &block->symbols[i];
+
+      mark_stack_push_value (ptr->u.s.function);
+      mark_stack_push_value (ptr->u.s.plist);
+
+      switch (ptr->u.s.redirect)
+	{
+	case SYMBOL_PLAINVAL:
+	  eassert (valid_lisp_object_p (SYMBOL_VAL (ptr)));
+	  mark_stack_push_value (SYMBOL_VAL (ptr));
+	  break;
+
+	case SYMBOL_VARALIAS:
+	  XSETSYMBOL (tem, SYMBOL_ALIAS (ptr));
+	  mark_stack_push_value (tem);
+	  break;
+
+	case SYMBOL_LOCALIZED:
+	  push_localized_symbol (ptr);
+	  break;
+
+	case SYMBOL_FORWARDED:
+	  /* If the value is forwarded to a buffer or keyboard field,
+	     these are marked when we see the corresponding object.
+	     And if it's forwarded to a C variable, either it's not a
+	     Lisp_Object var, or it's staticpro'd already.  */
+	  break;
+
+	default:
+	  emacs_abort ();
+	}
+
+      mark_stack_push_value (ptr->u.s.name);
+    }
+}
+
+static void
+fixup_float (struct float_block *block)
+{
+  /* Floats hold no references to other objects.  */
+}
+
+static void fixup_overlays (struct itree_node *);
+
+static void
+fixup_buffer (struct buffer *buffer)
+{
+  Lisp_Object tem;
+
+  if (!itree_empty_p (buffer->overlays))
+    fixup_overlays (buffer->overlays->root);
+
+  if (buffer->base_buffer)
+    {
+      XSETBUFFER (tem, buffer->base_buffer);
+      mark_stack_push_value (tem);
+    }
+}
+
+static void
+fixup_hash_table (struct Lisp_Hash_Table *table)
+{
+  struct Lisp_Vector *vector;
+
+  vector = XVECTOR (table->key_and_value);
+
+  mark_stack_push_value (table->test.name);
+  mark_stack_push_value (table->test.user_hash_function);
+  mark_stack_push_value (table->test.user_cmp_function);
+
+  if (NILP (table->weak))
+    mark_stack_push_value (table->key_and_value);
+  else
+    {
+      /* Linking the hash table onto the weak hash table list is not
+	 necessary; fixup_hash_table is called on hash tables that have
+	 already been marked.  */
+      suspend_vectorlike_protection (vector);
+      set_vector_marked (vector);
+    }
+}
+
+static void
+fixup_overlay (struct Lisp_Overlay *overlay)
+{
+  mark_stack_push_value (overlay->plist);
+}
+
+static void
+fixup_overlays (struct itree_node *node)
+{
+  if (!node)
+    return;
+
+  fixup_overlay (XOVERLAY (node->data));
+  fixup_overlays (node->left);
+  fixup_overlays (node->right);
+}
+
+static void
+fixup_subr (struct Lisp_Subr *subr)
+{
+#ifdef HAVE_NATIVE_COMP
+  if (NILP (subr->native_comp_u))
+    return;
+
+  mark_stack_push_value (subr->intspec.native);
+  mark_stack_push_value (subr->command_modes);
+  mark_stack_push_value (subr->native_comp_u);
+  mark_stack_push_value (subr->lambda_list);
+  mark_stack_push_value (subr->type);
+#endif /* HAVE_NATIVE_COMP */
+}
+
+static void
+fixup_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
+{
+  int size;
+  int i, idx;
+  Lisp_Object val;
+
+  size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+  idx = (pvectype == PVEC_SUB_CHAR_TABLE ? SUB_CHAR_TABLE_OFFSET : 0);
+
+  for (i = idx; i < size; i++)
+    {
+      val = ptr->contents[i];
+
+      if (FIXNUMP (val)
+	  || (BARE_SYMBOL_P (val)
+	      && symbol_marked_p (XBARE_SYMBOL (val))))
+	continue;
+
+      if (SUB_CHAR_TABLE_P (val))
+	{
+	  if (!vector_marked_p (XVECTOR (val)))
+	    {
+	      suspend_vectorlike_protection (XVECTOR (val));
+	      set_vector_marked (XVECTOR (val));
+	      fixup_char_table (XVECTOR (val), PVEC_SUB_CHAR_TABLE);
+	    }
+	}
+      else
+	mark_stack_push_value (val);
+    }
+}
+
+static void
+fixup_large_vector (void *ptr)
+{
+  struct Lisp_Vector *vector;
+  ptrdiff_t size;
+#ifdef ENABLE_CHECKING
+  ptrdiff_t i;
+#endif /* ENABLE_CHECKING */
+
+  vector = large_vector_vec (ptr);
+
+  if (!XVECTOR_MARKED_P (vector)
+      || PSEUDOVECTOR_TYPE (vector) == PVEC_BOOL_VECTOR)
+    return;
+
+  size = vector->header.size & ~ARRAY_MARK_FLAG;
+  if (size & PSEUDOVECTOR_FLAG)
+    size &= PSEUDOVECTOR_SIZE_MASK;
+
+  /* If this is a pseudovector, also mark extra stuff.  */
+  switch (PSEUDOVECTOR_TYPE (vector))
+    {
+    default:
+      break;
+
+    case PVEC_BOOL_VECTOR:
+      eassume (0);
+      break;
+
+    case PVEC_WINDOW:
+      /* Note that live window glyph matrices are considered GC
+	 roots, and don't need to be fixed up here.  */
+      break;
+
+    case PVEC_BUFFER:
+      /* Note that live buffer interval trees are considered GC roots,
+	 and don't need to be fixed up here.  Buffer overlays do,
+	 however.  */
+      fixup_buffer ((struct buffer *) vector);
+      break;
+
+    case PVEC_HASH_TABLE:
+      fixup_hash_table ((struct Lisp_Hash_Table *) vector);
+      break;
+
+    case PVEC_CHAR_TABLE:
+      fixup_char_table (vector, PVEC_CHAR_TABLE);
+      return;
+
+    case PVEC_SUB_CHAR_TABLE:
+      fixup_char_table (vector, PVEC_SUB_CHAR_TABLE);
+      return;
+
+    case PVEC_OVERLAY:
+      fixup_overlay ((struct Lisp_Overlay *) vector);
+      break;
+
+    case PVEC_SUBR:
+      fixup_subr ((struct Lisp_Subr *) vector);
+      break;
+
+    case PVEC_FREE:
+      emacs_abort ();
+      break;
+    }
+
+  /* Now mark the vector contents.  */
+#ifdef ENABLE_CHECKING
+  for (i = 0; i < size; ++i)
+    eassert (valid_lisp_object_p (vector->contents[i]));
+#endif /* ENABLE_CHECKING */
+
+  mark_stack_push_values (vector->contents, size);
+}
+
+static void
+fixup_vectorlike (struct vector_block *block)
+{
+  struct Lisp_Vector *vector, *next;
+  ptrdiff_t size;
+#ifdef ENABLE_CHECKING
+  ptrdiff_t i;
+#endif
+
+  for (vector = (struct Lisp_Vector *) block->data;
+       VECTOR_IN_BLOCK (vector, block); vector = next)
+    {
+      if (!XVECTOR_MARKED_P (vector)
+	  || PSEUDOVECTOR_TYPE (vector) == PVEC_BOOL_VECTOR)
+	goto next_vectorlike;
+
+      size = vector->header.size & ~ARRAY_MARK_FLAG;
+      if (size & PSEUDOVECTOR_FLAG)
+	size &= PSEUDOVECTOR_SIZE_MASK;
+
+      /* If this is a pseudovector, also mark extra stuff.  */
+      switch (PSEUDOVECTOR_TYPE (vector))
+	{
+	default:
+	  break;
+
+	case PVEC_BOOL_VECTOR:
+	  eassume (0);
+	  break;
+
+	case PVEC_WINDOW:
+	  /* Note that live window glyph matrices are considered GC
+	     roots, and don't need to be fixed up here.  */
+	  break;
+
+	case PVEC_BUFFER:
+	  /* Note that live buffer interval trees are considered GC
+	     roots, and don't need to be fixed up here.  */
+	  break;
+
+	case PVEC_HASH_TABLE:
+	  fixup_hash_table ((struct Lisp_Hash_Table *) vector);
+	  break;
+
+	case PVEC_CHAR_TABLE:
+	  fixup_char_table (vector, PVEC_CHAR_TABLE);
+	  goto next_vectorlike;
+
+	case PVEC_SUB_CHAR_TABLE:
+	  fixup_char_table (vector, PVEC_SUB_CHAR_TABLE);
+	  goto next_vectorlike;
+
+	case PVEC_OVERLAY:
+	  fixup_overlay ((struct Lisp_Overlay *) vector);
+	  break;
+
+	case PVEC_SUBR:
+	  fixup_subr ((struct Lisp_Subr *) vector);
+	  break;
+
+	case PVEC_FREE:
+	  emacs_abort ();
+	  break;
+	}
+
+      /* Now mark the vector contents.  */
+#ifdef ENABLE_CHECKING
+      for (i = 0; i < size; ++i)
+	eassert (valid_lisp_object_p (vector->contents[i]));
+#endif /* ENABLE_CHECKING */
+
+      mark_stack_push_values (vector->contents, size);
+
+    next_vectorlike:
+      next = ADVANCE (vector, vector_nbytes (vector));
+    }
+}
+
+static void
+fixup_interval (INTERVAL interval)
+{
+  if (interval->left)
+    mark_stack_push_interval (interval->left);
+
+  if (interval->right)
+    mark_stack_push_interval (interval->right);
+
+  mark_stack_push_value (interval->plist);
+}
+
+static void process_mark_stack (ptrdiff_t);
+
+/* Fix up marked objects in dirtied blocks in preparation for
+   reentering the garbage collector.  */
+
+static void
+fixup_blocks (void)
+{
+  struct protection *protection;
+
+  eassert (!pending_protect);
+
+  protection = dirtied;
+  for (; protection; protection = protection->next)
+    {
+      eassert (protection->flags & PROTECTION_IS_CHAINED);
+
+      switch (protection->flags >> 28)
+	{
+	case MEM_TYPE_CONS:
+	  fixup_cons (protection->u.start);
+	  break;
+
+	case MEM_TYPE_STRING:
+	  fixup_string (protection->u.start);
+	  break;
+
+	case MEM_TYPE_SYMBOL:
+	  fixup_symbol (protection->u.start);
+	  break;
+
+	case MEM_TYPE_FLOAT:
+	  fixup_float (protection->u.start);
+	  break;
+
+	case MEM_TYPE_VECTOR_BLOCK:
+	  fixup_vectorlike (protection->u.start);
+	  break;
+
+	case MEM_TYPE_VECTORLIKE:
+	  fixup_large_vector (((char *) protection
+			       - (offsetof (struct large_vector,
+					    protection))));
+	  break;
+
+	case MEM_TYPE_INTERVAL:
+	  fixup_interval (protection->u.start);
+	  break;
+
+	default:
+	  break;
+	}
+
+      protection->flags &= ~PROTECTION_IS_CHAINED;
+    }
+  dirtied = NULL;
+}
+
+
+
+/* Incremental GC set up.  */
+
+/* Jump buffer used to leave process_mark_stack.  */
+static sys_jmp_buf exit_gc;
+
+/* Prepare to transfer control from incremental GC back to Lisp.  */
+
+static void
+return_to_lisp (void)
+{
+  eassert (!dirtied);
+  do_write_protects ();
+  eassert (!pending_protect);
+
+  /* Set gc_ticks to 1 so QUIT will start trying to continue the
+     garbage collection.  */
+  gc_ticks = 1;
+}
+
+/* Mark the glyph matrices of every live window.  */
+
+static void
+mark_each_window (void)
+{
+  Lisp_Object tem;
+  struct window *w;
+
+  tem = Vwindow_list;
+  FOR_EACH_TAIL_SAFE (tem)
+    {
+      w = XWINDOW (XCAR (tem));
+
+      if (!w->current_matrix)
+	continue;
+
+      mark_glyph_matrix (w->current_matrix);
+      mark_glyph_matrix (w->desired_matrix);
+    }
+}
+
+/* Mark the interval list of each buffer.  */
+
+static void
+mark_each_buffer (void)
+{
+  Lisp_Object tail, buffer;
+  struct buffer *b;
+
+  FOR_EACH_LIVE_BUFFER (tail, buffer)
+    {
+      b = XBUFFER (buffer);
+      mark_stack_push_interval (buffer_intervals (b));
+    }
+}
+
+enum
+  {
+    MAX_GC_TICKS = 1500000,
+  };
+
+/* Whether or not Emacs should not call `process_mark_stack'.  */
+static bool inside_process_mark_stack;
+
+/* Stop marking objects and return control to Lisp every MAX_GC_TICKS
+   calls.  */
+
+static void
+rarely_suspend_gc (void)
+{
+  static unsigned int ticks;
+
+  ticks++;
+
+  if (ticks > MAX_GC_TICKS)
+    {
+      inside_process_mark_stack = false;
+      ticks = 0;
+      sys_longjmp (exit_gc, 1);
+    }
+}
+
+/* Prepare for entry into incremental GC.  Mark the stack, staticvec
+   and other GC roots, along with extra GC roots which cannot be
+   tracked.  Value is 1 if GC was suspended without completing, 0
+   otherwise.  */
+
+static int
+reenter_gc (void)
+{
+  struct gc_root_visitor visitor;
+  struct buffer *nextb;
+  Lisp_Object tail, buffer, compacted;
+
+  if (sys_setjmp (exit_gc))
+    {
+#if 0
+      fprintf (stderr, "return_to_lisp: %td\n",
+	       mark_stk.sp);
+#endif /* 0 */
+      return_to_lisp ();
+      return 1;
+    }
+
+#if 0
+  fprintf (stderr, "reenter_gc: %td\n", mark_stk.sp);
+#endif /* 0 */
+
+  /* Mark dirtied blocks.  */
+  fixup_blocks ();
+
+  /* Mark each GC root.  Make sure only to push objects on to the mark
+     stack.  */
+  inside_process_mark_stack = true;
+  memset (&visitor, 0, sizeof visitor);
+  visitor.visit = mark_object_root_visitor;
+  visit_static_gc_roots (visitor);
+  mark_pinned_objects ();
+  mark_pinned_symbols ();
+  mark_lread ();
+  mark_terminals ();
+  mark_kboards ();
+  mark_threads ();
+#ifdef HAVE_PGTK
+  mark_pgtkterm ();
+#endif
+#ifdef USE_GTK
+  xg_mark_data ();
+#endif
+#ifdef HAVE_HAIKU
+  mark_haiku_display ();
+#endif
+#ifdef HAVE_WINDOW_SYSTEM
+  mark_fringe_data ();
+#endif
+#ifdef HAVE_X_WINDOWS
+  mark_xterm ();
+  mark_xselect ();
+#endif
+#ifdef HAVE_NS
+  mark_nsterm ();
+#endif
+
+  /* Mark stuff that write barriers can't be placed on.  */
+  mark_each_window ();
+  mark_each_buffer ();
+
+  /* Everything is now marked, except for the data in font caches,
+     undo lists, and finalizers.  The first two are compacted by
+     removing an items which aren't reachable otherwise.  */
+
+  compact_font_caches ();
+
+  FOR_EACH_LIVE_BUFFER (tail, buffer)
+    {
+      nextb = XBUFFER (buffer);
+      if (!EQ (BVAR (nextb, undo_list), Qt))
+	{
+	  compacted = compact_undo_list (BVAR (nextb,
+					       undo_list));
+	  suspend_vectorlike_protection (nextb);
+	  bset_undo_list (nextb, compacted);
+	}
+      /* Now that we have stripped the elements that need not be
+	 in the undo_list any more, we can finally mark the list.  */
+      mark_object (BVAR (nextb, undo_list));
+    }
+  inside_process_mark_stack = false;
+
+  /* Now begin to process the mark stack.  */
+  process_mark_stack (0);
+
+  /* The mark stack should now be empty.  Finish GC.
+     Also, clear the chain of write protects.  */
+
+  while (pending_protect)
+    {
+      pending_protect->flags &= ~PROTECTION_IS_CHAINED;
+      pending_protect = pending_protect->next;
+    }
+
+  /* Clear GC ticks so QUIT doesn't try to return here.  */
+  gc_ticks = 0;
+#if 0
+  fprintf (stderr, "exit_gc: 0\n");
+#endif /* 0 */
+  return 0;
+}
+
+/* ``gc ticks'' set here, when garbage collection is suspended, and
+   inside the QUIT macro.  */
+int gc_ticks;
+
+/* Re-enter garbage collection.  Set `gc_ticks' to 0, then start
+   running garbage collection.  */
+
+void
+return_to_gc (void)
+{
+  gc_ticks = 0;
+  garbage_collect (true);
+}
+
+#endif /* USE_INCREMENTAL_GC */
 
 /* Traverse and mark objects on the mark stack above BASE_SP.
 
@@ -7011,13 +8957,32 @@ process_mark_stack (ptrdiff_t base_sp)
 #if GC_CDR_COUNT
   ptrdiff_t cdr_count = 0;
 #endif
+  union mark_stack_entry entry;
+  bool is_interval;
+  Lisp_Object obj;
+
+#ifdef USE_INCREMENTAL_GC
+  eassert (!inside_process_mark_stack);
+  inside_process_mark_stack = true;
+#endif /* USE_INCREMENTAL_GC */
 
   eassume (mark_stk.sp >= base_sp && base_sp >= 0);
 
   while (mark_stk.sp > base_sp)
     {
-      Lisp_Object obj = mark_stack_pop ();
-    mark_obj: ;
+      is_interval = false;
+      entry = mark_stack_pop (&is_interval);
+
+      if (is_interval)
+	{
+	  mark_interval_tree (entry.interval);
+	  continue;
+	}
+
+      obj = entry.value;
+
+    mark_obj:
+      ;
       void *po = XPNTR (obj);
       if (PURE_P (po))
 	continue;
@@ -7088,6 +9053,11 @@ process_mark_stack (ptrdiff_t base_sp)
 	    register struct Lisp_String *ptr = XSTRING (obj);
 	    if (string_marked_p (ptr))
 	      break;
+#ifdef USE_INCREMENTAL_GC
+	    /* Unprotect the object in preparation for writing its
+	       mark bits.  */
+	    suspend_protection (&STRING_BLOCK (ptr)->protection);
+#endif /* USE_INCREMENTAL_GC */
 	    CHECK_ALLOCATED_AND_LIVE (live_string_p, MEM_TYPE_STRING);
 	    set_string_marked (ptr);
 	    mark_interval_tree (ptr->u.s.intervals);
@@ -7122,6 +9092,13 @@ process_mark_stack (ptrdiff_t base_sp)
 	      }
 #endif
 
+#ifdef USE_INCREMENTAL_GC
+	    /* Unprotect the object in preparation for writing its
+	       mark bits.  */
+
+	    suspend_vectorlike_protection (ptr);
+#endif /* USE_INCREMENTAL_GC */
+
 	    switch (pvectype)
 	      {
 	      case PVEC_BUFFER:
@@ -7149,12 +9126,18 @@ process_mark_stack (ptrdiff_t base_sp)
 		    mark_stack_push_value (h->key_and_value);
 		  else
 		    {
+		      struct Lisp_Vector *ptr;
+
 		      /* For weak tables, mark only the vector and not its
 			 contents --- that's what makes it weak.  */
 		      eassert (h->next_weak == NULL);
 		      h->next_weak = weak_hash_tables;
 		      weak_hash_tables = h;
-		      set_vector_marked (XVECTOR (h->key_and_value));
+		      ptr = XVECTOR (h->key_and_value);
+#ifdef USE_INCREMENTAL_GC
+		      suspend_vectorlike_protection (&ptr->header);
+#endif /* USE_INCREMENTAL_GC */
+		      set_vector_marked (ptr);
 		    }
 		  break;
 		}
@@ -7204,6 +9187,10 @@ process_mark_stack (ptrdiff_t base_sp)
 		  if (size & PSEUDOVECTOR_FLAG)
 		    size &= PSEUDOVECTOR_SIZE_MASK;
 		  set_vector_marked (ptr);
+#ifdef USE_INCREMENTAL_GC
+		  /* Schedule write protection for the object.  */
+		  write_protect (obj);
+#endif
 		  mark_stack_push_values (ptr->contents, size);
 		}
 		break;
@@ -7218,6 +9205,12 @@ process_mark_stack (ptrdiff_t base_sp)
 	    if (symbol_marked_p (ptr))
 	      break;
 	    CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
+#ifdef USE_INCREMENTAL_GC
+	    if (!c_symbol_p (ptr))
+	      /* Unprotect the object in preparation for writing its
+		 mark bits.  */
+	      suspend_protection (&SYMBOL_BLOCK (ptr)->protection);
+#endif /* USE_INCREMENTAL_GC */
 	    set_symbol_marked (ptr);
 	    /* Attempt to catch bogus objects.  */
 	    eassert (valid_lisp_object_p (ptr->u.s.function));
@@ -7226,6 +9219,7 @@ process_mark_stack (ptrdiff_t base_sp)
 	    switch (ptr->u.s.redirect)
 	      {
 	      case SYMBOL_PLAINVAL:
+		eassert (valid_lisp_object_p (SYMBOL_VAL (ptr)));
 		mark_stack_push_value (SYMBOL_VAL (ptr));
 		break;
 	      case SYMBOL_VARALIAS:
@@ -7247,12 +9241,29 @@ process_mark_stack (ptrdiff_t base_sp)
 	      default: emacs_abort ();
 	      }
 	    if (!PURE_P (XSTRING (ptr->u.s.name)))
-	      set_string_marked (XSTRING (ptr->u.s.name));
+	      {
+		register struct Lisp_String *string;
+
+		string = XSTRING (ptr->u.s.name);
+#ifdef USE_INCREMENTAL_GC
+		suspend_protection (&STRING_BLOCK (string)->protection);
+#endif /* USE_INCREMENTAL_GC */
+		set_string_marked (string);
+	      }
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
 	    po = ptr = ptr->u.s.next;
 	    if (ptr)
-	      goto nextsym;
+	      {
+#ifdef USE_INCREMENTAL_GC
+		write_protect (obj);
+
+		/* Set obj to the symbol in question: it needs to be
+		   write protected later.  */
+		XSETSYMBOL (obj, ptr);
+#endif /* USE_INCREMENTAL_GC */
+		goto nextsym;
+	      }
 	  }
 	  break;
 
@@ -7262,6 +9273,11 @@ process_mark_stack (ptrdiff_t base_sp)
 	    if (cons_marked_p (ptr))
 	      break;
 	    CHECK_ALLOCATED_AND_LIVE (live_cons_p, MEM_TYPE_CONS);
+#ifdef USE_INCREMENTAL_GC
+	    /* Unprotect the object in preparation for writing its
+	       mark bits.  */
+	    suspend_protection (&CONS_BLOCK (ptr)->protection);
+#endif /* USE_INCREMENTAL_GC */
 	    set_cons_marked (ptr);
 	    /* Avoid growing the stack if the cdr is nil.
 	       In any case, make sure the car is expanded first.  */
@@ -7274,8 +9290,13 @@ process_mark_stack (ptrdiff_t base_sp)
 		  emacs_abort ();
 #endif
 	      }
+#ifdef USE_INCREMENTAL_GC
+	    /* Schedule write protection for the object.  */
+	    write_protect (obj);
+#endif
 	    /* Speedup hack for the common case (successive list elements).  */
 	    obj = ptr->u.s.car;
+	    eassert (valid_lisp_object_p (obj));
 	    goto mark_obj;
 	  }
 
@@ -7295,26 +9316,84 @@ process_mark_stack (ptrdiff_t base_sp)
 	default:
 	  emacs_abort ();
 	}
+
+#ifdef USE_INCREMENTAL_GC
+      /* Schedule write protection for the object.  */
+      write_protect (obj);
+
+      /* See if input is pending and quit if it is.  */
+      rarely_suspend_gc ();
+#endif /* USE_INCREMENTAL_GC */
     }
 
 #undef CHECK_LIVE
 #undef CHECK_ALLOCATED
 #undef CHECK_ALLOCATED_AND_LIVE
+
+#ifdef USE_INCREMENTAL_GC
+  inside_process_mark_stack = false;
+#endif /* USE_INCREMENTAL_GC */
 }
 
 void
 mark_object (Lisp_Object obj)
 {
   ptrdiff_t sp = mark_stk.sp;
+
   mark_stack_push_value (obj);
+#ifdef USE_INCREMENTAL_GC
+  /* When inside `process_mark_stack', don't utilize C recursion to
+     mark objects.  Otherwise, if it longjmp's, objects could be left
+     incompletely marked.  */
+
+  if (inside_process_mark_stack)
+    return;
+#endif /* USE_INCREMENTAL_GC */
   process_mark_stack (sp);
 }
 
 void
 mark_objects (Lisp_Object *objs, ptrdiff_t n)
 {
-  ptrdiff_t sp = mark_stk.sp;
+  ptrdiff_t sp;
+#ifdef USE_INCREMENTAL_GC
+  ptrdiff_t i;
+#endif /* USE_INCREMENTAL_GC */
+  sp = mark_stk.sp;
+
+#ifdef USE_INCREMENTAL_GC
+
+  /* `mark_objects' is not always called with memory in objects.  Mark
+     each individual item in the array instead, as the storage might
+     go away after suspending GC.  */
+
+  for (i = 0; i < n; ++i)
+    mark_stack_push_value (objs[i]);
+
+  if (inside_process_mark_stack)
+    return;
+#else /* !USE_INCREMENTAL_GC */
   mark_stack_push_values (objs, n);
+#endif /* USE_INCREMENTAL_GC */
+  process_mark_stack (sp);
+}
+
+/* Like `mark_object'.  However, OBJS should be inside memory managed
+   by the garbage collector.  */
+
+void
+mark_objects_in_object (Lisp_Object *objs, ptrdiff_t n)
+{
+  ptrdiff_t sp;
+
+  sp = mark_stk.sp;
+  mark_stack_push_values (objs, n);
+
+#ifdef USE_INCREMENTAL_GC
+  if (inside_process_mark_stack)
+    return;
+#endif /* USE_INCREMENTAL_GC */
+
   process_mark_stack (sp);
 }
 
@@ -7335,7 +9414,12 @@ mark_terminals (void)
       mark_image_cache (t->image_cache);
 #endif /* HAVE_WINDOW_SYSTEM */
       if (!vectorlike_marked_p (&t->header))
-	mark_vectorlike (&t->header);
+	{
+#ifdef USE_INCREMENTAL_GC
+	  suspend_vectorlike_protection (&t->header);
+#endif /* USE_INCREMENTAL_GC */
+	  mark_vectorlike (&t->header);
+	}
     }
 }
 
@@ -7387,6 +9471,18 @@ survives_gc_p (Lisp_Object obj)
 
 
 
+#ifdef USE_INCREMENTAL_GC
+
+/* Remove write protection on the specified cons BLOCK.  */
+
+static void
+unprotect_cons_block (struct cons_block *block)
+{
+  unprotect (&block->protection);
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 NO_INLINE /* For better stack traces */
 static void
 sweep_conses (void)
@@ -7403,16 +9499,22 @@ sweep_conses (void)
       int this_free = 0;
       int ilim = (lim + BITS_PER_BITS_WORD - 1) / BITS_PER_BITS_WORD;
 
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this cons block.  */
+      unprotect_cons_block (cblk);
+#endif /* USE_INCREMENTAL_GC */
+
       /* Scan the mark bits an int at a time.  */
       for (i = 0; i < ilim; i++)
         {
+#ifndef USE_INCREMENTAL_GC
+	  /* This optimization is incompatible with incremental GC due
+	     to the different layout of mark bits.  */
           if (cblk->gcmarkbits[i] == BITS_WORD_MAX)
-            {
-              /* Fast path - all cons cells for this int are marked.  */
-              cblk->gcmarkbits[i] = 0;
-              num_used += BITS_PER_BITS_WORD;
-            }
+	    /* Fast path - all cons cells for this int are marked.  */
+	    cblk->gcmarkbits[i] = 0;
           else
+#endif /* USE_INCREMENTAL_GC */
             {
               /* Some cons cells for this int are not marked.
                  Find which ones, and free them.  */
@@ -7440,6 +9542,7 @@ sweep_conses (void)
                     {
                       num_used++;
 		      XUNMARK_CONS (acons);
+		      XUNPUSH_CONS (acons);
                     }
                 }
             }
@@ -7480,6 +9583,7 @@ sweep_floats (void)
   for (struct float_block *fblk; (fblk = *fprev); )
     {
       int this_free = 0;
+
       ASAN_UNPOISON_FLOAT_BLOCK (fblk);
       for (int i = 0; i < lim; i++)
 	{
@@ -7495,6 +9599,7 @@ sweep_floats (void)
 	    {
 	      num_used++;
 	      XFLOAT_UNMARK (afloat);
+	      XUNPUSH_FLOAT (afloat);
 	    }
 	}
       lim = FLOAT_BLOCK_SIZE;
@@ -7519,6 +9624,26 @@ sweep_floats (void)
   gcstat.total_free_floats = num_free;
 }
 
+#ifdef USE_INCREMENTAL_GC
+
+/* Remove write protection on the specified symbol BLOCK.  */
+
+static void
+unprotect_symbol_block (struct symbol_block *block)
+{
+  unprotect (&block->protection);
+}
+
+/* Remove write protection on the specified interval BLOCK.  */
+
+static void
+unprotect_interval_block (struct interval_block *block)
+{
+  unprotect (&block->protection);
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 NO_INLINE /* For better stack traces */
 static void
 sweep_intervals (void)
@@ -7532,6 +9657,12 @@ sweep_intervals (void)
   for (struct interval_block *iblk; (iblk = *iprev); )
     {
       int this_free = 0;
+
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this interval block.  */
+      unprotect_interval_block (iblk);
+#endif /* USE_INCREMENTAL_GC */
+
       ASAN_UNPOISON_INTERVAL_BLOCK (iblk);
       for (int i = 0; i < lim; i++)
         {
@@ -7546,6 +9677,9 @@ sweep_intervals (void)
             {
               num_used++;
               iblk->intervals[i].gcmarkbit = 0;
+#ifdef USE_INCREMENTAL_GC
+	      iblk->intervals[i].gcmarkbit1 = 0;
+#endif /* USE_INCREMENTAL_GC */
             }
         }
       lim = INTERVAL_BLOCK_SIZE;
@@ -7582,10 +9716,20 @@ sweep_symbols (void)
   symbol_free_list = NULL;
 
   for (int i = 0; i < ARRAYELTS (lispsym); i++)
-    lispsym[i].u.s.gcmarkbit = 0;
+    {
+      lispsym[i].u.s.gcmarkbit = 0;
+#ifdef USE_INCREMENTAL_GC
+      lispsym[i].u.s.gcmarkbit1 = 0;
+#endif /* USE_INCREMENTAL_GC */
+    }
 
   for (sblk = symbol_block; sblk; sblk = *sprev)
     {
+#ifdef USE_INCREMENTAL_GC
+      /* Remove write protection on this symbol block.  */
+      unprotect_symbol_block (sblk);
+#endif
+
       ASAN_UNPOISON_SYMBOL_BLOCK (sblk);
 
       int this_free = 0;
@@ -7616,6 +9760,9 @@ sweep_symbols (void)
             {
               ++num_used;
               sym->u.s.gcmarkbit = 0;
+#ifdef USE_INCREMENTAL_GC
+	      sym->u.s.gcmarkbit1 = 0;
+#endif
               /* Attempt to catch bogus objects.  */
               eassert (valid_lisp_object_p (sym->u.s.function));
             }
@@ -7665,11 +9812,27 @@ static void
 sweep_buffers (void)
 {
   Lisp_Object tail, buf;
+#ifdef USE_INCREMENTAL_GC
+  struct large_vector *large;
+#endif /* USE_INCREMENTAL_GC */
 
   gcstat.total_buffers = 0;
   FOR_EACH_LIVE_BUFFER (tail, buf)
     {
       struct buffer *buffer = XBUFFER (buf);
+#ifdef USE_INCREMENTAL_GC
+      if (buffer->header.s.large_vector_p)
+	{
+	  /* This is a large vector.  Find its corresponding struct
+	     large_vector and protect that.  */
+	  large = ((struct large_vector *) ((char *) buffer
+					    - large_vector_offset));
+	  unprotect_large_vector (large);
+	  return;
+	}
+      else
+	unprotect_vector_block (VECTOR_BLOCK (buffer));
+#endif /* USE_INCREMENTAL_GC */
       /* Do not use buffer_(set|get)_intervals here.  */
       buffer->text->intervals = balance_intervals (buffer->text->intervals);
       unchain_dead_markers (buffer);
@@ -7681,11 +9844,17 @@ sweep_buffers (void)
 static void
 gc_sweep (void)
 {
+#ifdef USE_INCREMENTAL_GC
+  eassert (!gc_ticks);
+#endif /* USE_INCREMENTAL_GC */
+  /* Sweep intervals prior to sweeping strings.  `sweep_strings' calls
+     `balance_intervals', which hits the write protection barrier if
+     it comes first.  */
+  sweep_intervals ();
   sweep_strings ();
   check_string_bytes (!noninteractive);
   sweep_conses ();
   sweep_floats ();
-  sweep_intervals ();
   sweep_symbols ();
   sweep_buffers ();
   sweep_vectors ();
@@ -8044,6 +10213,292 @@ init_alloc (void)
   gcs_done = 0;
 }
 
+
+
+#ifdef USE_INCREMENTAL_GC
+
+/* Remove memory protection on the given cons BLOCK.
+   If garbage collection is not in progress, then also schedule the
+   block for scanning.  */
+
+static void
+mark_each_cons (struct cons_block *block)
+{
+  eassert (block->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (block, offsetof (struct cons_block,
+				      protection),
+		     PROT_READ | PROT_WRITE);
+  block->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(block->protection.flags & PROTECTION_IS_CHAINED));
+      block->protection.next = dirtied;
+      dirtied = &block->protection;
+      block->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&block->protection);
+    }
+}
+
+/* Remove memory protection on the given string BLOCK.
+   If garbage collection is not in progress, then also schedule the
+   block for scanning.  */
+
+static void
+mark_each_string (struct string_block *block)
+{
+  eassert (block->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (block, offsetof (struct string_block,
+				      protection),
+		     PROT_READ | PROT_WRITE);
+  block->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(block->protection.flags & PROTECTION_IS_CHAINED));
+      block->protection.next = dirtied;
+      dirtied = &block->protection;
+      block->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&block->protection);
+    }
+}
+
+/* Remove memory protection on the given symbol BLOCK.
+   If garbage collection is not in progress, then also schedule the
+   block for scanning.  */
+
+static void
+mark_each_symbol (struct symbol_block *block)
+{
+  eassert (block->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (block, offsetof (struct symbol_block,
+				      protection),
+		     PROT_READ | PROT_WRITE);
+  block->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(block->protection.flags & PROTECTION_IS_CHAINED));
+      block->protection.next = dirtied;
+      dirtied = &block->protection;
+      block->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&block->protection);
+    }
+}
+
+/* Remove memory protection from the given vector BLOCK.  If garbage
+   collection is not in progress, then also schedule the block for
+   scanning.  */
+
+static void
+mark_each_vector (struct vector_block *block)
+{
+  eassert (block->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (block, offsetof (struct vector_block, protection),
+		     PROT_READ | PROT_WRITE);
+  block->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(block->protection.flags & PROTECTION_IS_CHAINED));
+      block->protection.next = dirtied;
+      dirtied = &block->protection;
+      block->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&block->protection);
+    }
+}
+
+/* Remove memory protection from the given large vector.  If garbge
+   collection in not in progress, also schedule the vector for
+   scanning.  */
+
+static void
+mark_large_vector (struct large_vector *vector)
+{
+  eassert (vector->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (vector, vector->protection.u.size,
+		     PROT_READ | PROT_WRITE);
+  vector->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(vector->protection.flags & PROTECTION_IS_CHAINED));
+      vector->protection.next = dirtied;
+      dirtied = &vector->protection;
+      vector->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&vector->protection);
+    }
+}
+
+/* Do the same for the given interval BLOCK.  */
+
+static void
+mark_each_interval (struct interval_block *block)
+{
+  eassert (block->protection.flags & PROTECTION_IN_PLACE);
+
+  /* Remove memory protection.  */
+  checking_mprotect (block, offsetof (struct interval_block,
+				      protection),
+		     PROT_READ | PROT_WRITE);
+  block->protection.flags &= ~PROTECTION_IN_PLACE;
+
+  /* If GC isn't in progress, link the block onto the chain of blocks
+     to rescan.  */
+
+  if (!gc_in_progress)
+    {
+      eassert (!(block->protection.flags & PROTECTION_IS_CHAINED));
+      block->protection.next = dirtied;
+      dirtied = &block->protection;
+      block->protection.flags |= PROTECTION_IS_CHAINED;
+    }
+  else
+    {
+      /* Otherwise, font caches are being compacted.  Suspend protection
+	 for this block.  */
+      eassert (compacting_font_caches);
+      suspend_protection (&block->protection);
+    }
+}
+
+/* Handle a write fault at ADDR.  Return whether or not the garbage
+   collector has handled this fault.
+
+   Look for a page starting at addr.  Remove memory protection on the
+   object block and queue it all for garbage collection.
+
+   During garbage collection, assume that new references to objects
+   cannot be created, and only remove the memory protection so that
+   the object can be written to.  */
+
+bool
+alloc_fault (void *addr)
+{
+  struct mem_node *node;
+
+#ifdef ENABLE_CHECKING
+
+  /* Check for faults where it is unsafe to remove memory protection
+     or to look for Lisp objects.  */
+
+  if (mem_tree_is_being_modified)
+    emacs_abort ();
+
+#endif /* ENABLE_CHECKING */
+
+  /* Look for a faulting page.  */
+
+  node = mem_find (addr);
+  if (node != MEM_NIL)
+    {
+      /* Now unprotect and mark the objects within the faulting
+	 block.  */
+
+#if 0
+      fprintf (stderr, "alloc_fault: %p %d %d\n", node->start,
+	       (int) node->type, gc_in_progress);
+#endif /* 0 */
+
+      /* GC should always unprotect objects before marking them.
+         However, if `compacting_font_caches', ignore this.  */
+      eassert (!gc_in_progress || compacting_font_caches);
+
+      switch (node->type)
+	{
+	case MEM_TYPE_CONS:
+	case MEM_TYPE_FLOAT:
+	  mark_each_cons ((struct cons_block *) node->start);
+	  break;
+
+	case MEM_TYPE_STRING:
+	  mark_each_string ((struct string_block *) node->start);
+	  break;
+
+	case MEM_TYPE_SYMBOL:
+	  mark_each_symbol ((struct symbol_block *) node->start);
+	  break;
+
+	case MEM_TYPE_VECTORLIKE:
+	  mark_large_vector ((struct large_vector *) node->start);
+	  break;
+
+	case MEM_TYPE_VECTOR_BLOCK:
+	  mark_each_vector ((struct vector_block *) node->start);
+	  break;
+
+	case MEM_TYPE_INTERVAL:
+	  mark_each_interval ((struct interval_block *) node->start);
+	  break;
+
+	  /* Nothing to mark here.  */
+	default:
+	  break;
+	}
+
+      return true;
+    }
+
+  return false;
+}
+
+#endif /* USE_INCREMENTAL_GC */
+
 void
 syms_of_alloc (void)
 {
@@ -8222,6 +10677,12 @@ enum defined_HAVE_PGTK { defined_HAVE_PGTK = false };
    then xbacktrace could fail.  Similarly for the other enums and
    their values.  Some non-GCC compilers don't like these constructs.  */
 #ifdef __GNUC__
+
+enum Block_Alignment
+  {
+    Block_Alignment = BLOCK_ALIGN,
+  };
+
 union
 {
   enum CHARTAB_SIZE_BITS CHARTAB_SIZE_BITS;
@@ -8237,5 +10698,6 @@ union
   enum pvec_type pvec_type;
   enum defined_HAVE_X_WINDOWS defined_HAVE_X_WINDOWS;
   enum defined_HAVE_PGTK defined_HAVE_PGTK;
+  enum Block_Alignment Block_Alignment;
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */
