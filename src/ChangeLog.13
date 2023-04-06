@@ -1,3 +1,100 @@
+2023-04-06  Po Lu  <luangruo@yahoo.com>
+
+	* thread.c (unmark_main_thread): Clear new mark bit.
+
+	* sysdep.c (handle_sigsegv): Call alloc_fault.
+	(write_protect_fault): New signal hanler func.
+	(init_signals): Set it to the write protect symbol.
+
+	* pdumper.c (dump_root_visitor): New root type `GC_ROOT_IGNORED'.
+	Ignore it.
+	(Fdump_emacs_portable): Adjust call to `garbage_collect'.
+
+	* lread.c (define_symbol): Add sanity check.
+
+	* lisp.h (s): New GC root type.
+	(union vectorlike_header) [USE_INCREMENTAL_GC]: New fields for
+	extra flags.
+	(SCHARS):
+	(STRING_BYTES):
+	(STRING_SET_CHARS):
+	(ASIZE): Handle vectors and strings with mark bits set when
+	USE_INCREMENTAL_GC.
+	(maybe_quit): Check gc_ticks and return to GC after that long.
+	(enum gc_root_type): New GC root type.
+
+
+	* intervals.h (interval): New mark bit when USE_INCREMENTAL_GC.
+
+	* fns.c (maybe_resize_hash_table): Add more sanity checks.
+
+	* data.c (wrong_type_argument): Add sanity check.
+
+	* alloc.c [USE_INCREMENTAL_GC]: Include sys/mman.h.
+	(struct protection): New structure.
+	(lmalloc):
+	(xzalloc):
+	(xrealloc): Don't implement with lisp_malloc.
+	(lisp_malloc):
+	(lisp_align_malloc): Implement in terms of page allocator
+	function.
+	(gc_in_progress): Make volatile.
+	(enum mem_type): Add MEM_TYPE_INTERVAL.
+	(BLOCK_SIZE, LISP_BLOCK_SIZE): New macros.
+	(struct interval_block): Make better use of page aligned space.
+	(make_interval): Set up GC protection.
+	(mark_interval_tree_1): Suspend write protection.
+	(struct string_block): Make better use of page aligned space.
+	(allocate_string): Set up GC protection.
+	(sweep_strings): Unprotect pages.
+	(struct float_block):
+	(struct cons_block): Make better use of GC'd space.
+	(Fcons): Unprotect pages.
+	(struct large_vector):
+	(struct vector_block):
+	(allocate_vector_block):
+	(sweep_vectors): Likewise.
+	(allocate_vectorlike): Here too.
+	(init_symbol):
+	(Fmake_symbol): Clear new GC mark bits.
+	(mark_finalizer_list): Suspend garbage collection.
+	(mem_insert):
+	(mem_delete): Set `mem_tree_is_being_modified'.
+	(mark_maybe_pointer):
+	(valid_lisp_object_p): Return 1 if P is the main thread.
+	(compact_font_cache_entry):
+	(compact_font_caches):
+	(compact_undo_list): Suspend write protection before writing into
+	object.
+	(visit_static_gc_roots): Visit static fields in static roots along
+	with the roots themselves.
+	(mark_and_sweep_weak_table_contents): Suspend vectorlike GC
+	protection.
+	(reenter_gc): New function.
+	(garbage_collect): Delegate to `reenter_gc'.  Handle longjmps from
+	`reenter_gc'.  New arg `no_compact'.  All callers changed.
+	(mark_objects): Don't push objects directly onto the mark stack.
+	(mark_objects_in_object): New function.  Make it behave like the
+	old `mark_objects'.
+	(mark_vectorlike): Use `mark_objects_in_object'.
+	(mark_char_table):
+	(mark_buffer):
+	(mark_face_cache):
+	(mark_discard_killed_buffers): Suspend protection before writing
+	into object.
+	(struct mark_entry): Allow placing intervals on the mark stack.
+	(mark_stk):
+	(process_mark_stack): Suspend write protection where necessary.
+	Place write protection as well.  Quit every once in a while.
+	(mark_terminals):
+	(sweep_conses):
+	(sweep_floats):
+	(sweep_intervals):
+	(sweep_symbols):
+	(sweep_buffers): Unprotect objects.
+	(gc_sweep): Rearrange sweep order.
+	(gdb_make_enums_visible): New enum Block_Alignment.
+
 2015-04-06  Koichi Arakawa  <arakawa@pp.iij4u.or.jp>  (tiny change)
 
 	* w32proc.c (w32_executable_type): Look for the DLL name in the
