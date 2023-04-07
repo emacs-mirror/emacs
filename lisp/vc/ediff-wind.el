@@ -69,6 +69,16 @@ provided functions are written."
 		 (function :tag "Other function"))
   :version "24.3")
 
+(defcustom ediff-floating-control-frame nil
+  "If non-nil, try making the control frame be floating rather than tiled.
+
+If your X window manager makes the Ediff control frame a tiled one,
+set this to a non-nil value, and Emacs will try to make it floating.
+This only has effect on X displays."
+  :type '(choice (const :tag "Control frame floats" t)
+                 (const :tag "Control frame has default WM behavior" nil))
+  :version "30.1")
+
 (ediff-defvar-local ediff-multiframe nil
   "Indicates if we are in a multiframe setup.")
 
@@ -873,6 +883,16 @@ Create a new splittable frame if none is found."
     (not (ediff-frame-has-dedicated-windows (window-frame wind)))
     )))
 
+(defun ediff-frame-make-utility (frame)
+  (let ((x-fast-protocol-requests t))
+    (x-change-window-property
+     "_NET_WM_WINDOW_TYPE" '("_NET_WM_WINDOW_TYPE_UTILITY")
+     frame "ATOM" 32 t)
+    (x-change-window-property
+     "WM_TRANSIENT_FOR"
+     (list (string-to-number (frame-parameter nil 'window-id)))
+     frame "WINDOW" 32 t)))
+
 ;; Prepare or refresh control frame
 (defun ediff-setup-control-frame (ctl-buffer designated-minibuffer-frame)
   (let ((window-min-height 1)
@@ -948,6 +968,8 @@ Create a new splittable frame if none is found."
     (goto-char (point-min))
 
     (modify-frame-parameters ctl-frame adjusted-parameters)
+    (when (and ediff-floating-control-frame (eq (window-system ctl-frame) 'x))
+      (ediff-frame-make-utility ctl-frame))
     (make-frame-visible ctl-frame)
 
     ;; This works around a bug in 19.25 and earlier.  There, if frame gets
