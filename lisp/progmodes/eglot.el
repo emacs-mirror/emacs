@@ -403,7 +403,7 @@ done by `eglot-reconnect'."
 If set to `messages', use *Messages* buffer, else use Eglot's
 mode line indicator."
   :type 'boolean
-  :version "29.1")
+  :version "Eglot 1.10")
 
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
@@ -1480,11 +1480,11 @@ Unless IMMEDIATE, send pending changes before making request."
 ;;; Encoding fever
 ;;;
 (define-obsolete-function-alias
-  'eglot-lsp-abiding-column 'eglot-utf-16-linepos "29.1")
+  'eglot-lsp-abiding-column 'eglot-utf-16-linepos "Eglot 1.12")
 (define-obsolete-function-alias
-  'eglot-current-column 'eglot-utf-32-linepos "29.1")
+  'eglot-current-column 'eglot-utf-32-linepos "Eglot 1.12")
 (define-obsolete-variable-alias
-  'eglot-current-column-function 'eglot-current-linepos-function "29.1")
+  'eglot-current-column-function 'eglot-current-linepos-function "Eglot 1.12")
 
 (defvar eglot-current-linepos-function #'eglot-utf-16-linepos
   "Function calculating position relative to line beginning.
@@ -1525,11 +1525,11 @@ LBP defaults to `eglot--bol'."
                            (funcall eglot-current-linepos-function)))))
 
 (define-obsolete-function-alias
-  'eglot-move-to-current-column 'eglot-move-to-utf-32-linepos "29.1")
+  'eglot-move-to-current-column 'eglot-move-to-utf-32-linepos "Eglot 1.12")
 (define-obsolete-function-alias
-  'eglot-move-to-lsp-abiding-column 'eglot-move-to-utf-16-linepos "29.1")
+  'eglot-move-to-lsp-abiding-column 'eglot-move-to-utf-16-linepos "Eglot 1.12")
 (define-obsolete-variable-alias
-'eglot-move-to-column-function 'eglot-move-to-linepos-function "29.1")
+'eglot-move-to-column-function 'eglot-move-to-linepos-function "Eglot 1.12")
 
 (defvar eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos
   "Function to move to a position within a line reported by the LSP server.
@@ -1681,7 +1681,7 @@ Doubles as an indicator of snippet support."
         (string-trim (buffer-string))))))
 
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
-  'eglot-ignored-server-capabilities "1.8")
+  'eglot-ignored-server-capabilities "Eglot 1.8")
 
 (defcustom eglot-ignored-server-capabilities (list)
   "LSP server capabilities that Eglot could use, but won't.
@@ -1988,8 +1988,8 @@ If it is activated, also signal textDocument/didOpen."
                                            (when update-mode-line
                                              (force-mode-line-update t)))))))
 
-(defun eglot-manual () "Open documentation."
-       (declare (obsolete info "29.1"))
+(defun eglot-manual () "Read Eglot's manual."
+       (declare (obsolete info "Eglot 1.10"))
        (interactive) (info "(eglot)"))
 
 (easy-menu-define eglot-menu nil "Eglot"
@@ -3758,7 +3758,7 @@ If NOERROR, return predicate, else erroring function."
 ;;;
 
 (make-obsolete-variable 'eglot--managed-mode-hook
-                        'eglot-managed-mode-hook "1.6")
+                        'eglot-managed-mode-hook "Eglot 1.6")
 (provide 'eglot)
 
 
