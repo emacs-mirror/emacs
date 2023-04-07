@@ -107,6 +107,7 @@
   (require 'subr-x))
 (require 'filenotify)
 (require 'ert)
+(require 'text-property-search nil t)
 
 ;; These dependencies are also GNU ELPA core packages.  Because of
 ;; bug#62576, since there is a risk that M-x package-install, despite
@@ -1673,9 +1674,10 @@ Doubles as an indicator of snippet support."
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
-          (while (setq match (text-property-search-forward 'invisible))
-            (delete-region (prop-match-beginning match)
-                           (prop-match-end match))))
+          (when (fboundp 'text-property-search-forward) ;; FIXME: use compat
+            (while (setq match (text-property-search-forward 'invisible))
+              (delete-region (prop-match-beginning match)
+                             (prop-match-end match)))))
         (string-trim (buffer-string))))))
 
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
