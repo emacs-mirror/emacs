@@ -392,6 +392,24 @@ Each function should accept two arguments, NEW-NICK and OLD-NICK."
   :group 'erc-hooks
   :type 'hook)
 
+(defcustom erc-nickname-in-use-functions nil
+  "Function to run before trying for a different nickname.
+Called with two arguments: the desired but just rejected nickname
+and the alternate nickname about to be requested.  Use cases
+include special handling during connection registration and
+wrestling with nickname services.  For example, value
+`erc-regain-nick-on-connect' is aimed at dealing with reaping
+lingering connections that may prevent you from being issued a
+requested nick immediately when reconnecting.  It's meant to be
+used with an `erc-server-reconnect-function' value of
+`erc-server-delayed-check-reconnect' alongside SASL
+authentication."
+  :package-version '(ERC . "5.6")
+  :group 'erc-hooks
+  :type '(choice (function-item erc-regain-nick-on-connect)
+                 function
+                 (const nil)))
+
 (defcustom erc-connect-pre-hook '(erc-initialize-log-marker)
   "Hook called just before `erc' calls `erc-connect'.
 Functions are passed a buffer as the first argument."
@@ -4594,6 +4612,34 @@ E.g. \"Read error to Nick [user@some.host]: 110\" would be shortened to
         (match-string 1 reason))
       reason))
 
+(defun erc-regain-nick-on-connect (want temp)
+  "Try at most once to grab nickname WANT after settling for TEMP.
+Only do so during connection registration, likely prior to
+authenticating with SASL.  Assume the prior connection was lost
+due to connectivity failure and that the server hasn't yet
+noticed.  Also assume that the server won't process any
+authentication-related messages until it has accepted a mulligan
+nick or at least sent a 433 and thus triggered
+`erc-nickname-in-use-functions'.  Expect authentication to have
+succeeded by the time a logical IRC connection has been
+established and that the contending connection may otherwise
+still be alive and require manual intervention involving
+NickServ."
+  (unless erc-server-connected
+    (letrec ((after-connect
+              (lambda (_ nick)
+                (remove-hook 'erc-after-connect after-connect t)
+                (when (equal temp nick)
+                  (erc-cmd-NICK want))))
+             (on-900
+              (lambda (_ parsed)
+                (remove-hook 'erc-server-900-functions on-900 t)
+                (unless erc-server-connected
+                  (when (equal (car (erc-response.command-args parsed)) temp)
+                    (add-hook 'erc-after-connect after-connect nil t)))
+                nil)))
+      (add-hook 'erc-server-900-functions on-900 nil t))))
+
 (defun erc-nickname-in-use (nick reason)
   "If NICK is unavailable, tell the user the REASON.
 
@@ -4627,6 +4673,7 @@ See also `erc-display-error-notice'."
                                    ;; established a connection yet
                                    (- 9 (length erc-nick-uniquifier))))
 				erc-nick-uniquifier)))
+      (run-hook-with-args 'erc-nickname-in-use-functions nick newnick)
       (erc-cmd-NICK newnick)
       (erc-display-error-notice
        nil
