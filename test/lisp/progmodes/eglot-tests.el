@@ -665,7 +665,7 @@ int main() {
       (completion-at-point)
       (message (buffer-string))
       (should (looking-back "fprintf(?"))
-      (unless (= (char-before) ?\()) (insert "()") (backward-char)
+      (unless (= (char-before) ?\() (insert "()") (backward-char))
       (eglot--signal-textDocument/didChange)
       (should (string-match "^fprintf" (eglot--tests-force-full-eldoc))))))
 
