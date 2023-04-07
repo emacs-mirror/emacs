@@ -3247,7 +3247,8 @@ for which LSP on-type-formatting should be requested."
          (let ((elems (mapcar
                        (eglot--lambda ((SymbolInformation) kind name location)
                          (let ((reg (eglot--range-region
-                                     (plist-get location :range))))
+                                     (plist-get location :range)))
+                               (kind (alist-get kind eglot--symbol-kind-names)))
                            (cons (propertize name
                                              'breadcrumb-region reg
                                              'breadcrumb-kind kind)
@@ -3262,13 +3263,14 @@ for which LSP on-type-formatting should be requested."
   "Compute `imenu--index-alist' for RES vector of DocumentSymbol."
   (cl-labels ((dfs (&key name children range kind &allow-other-keys)
                 (let* ((reg (eglot--range-region range))
+                       (kind (alist-get kind eglot--symbol-kind-names))
                        (name (propertize name
                                          'breadcrumb-region reg
                                          'breadcrumb-kind kind)))
-                  (if children
-                      (cons name
-                            (mapcar (lambda (c) (apply #'dfs c)) children))
-                    (cons name (car reg))))))
+                  (if (seq-empty-p children)
+                      (cons name (car reg))
+                    (cons name
+                            (mapcar (lambda (c) (apply #'dfs c)) children))))))
     (mapcar (lambda (s) (apply #'dfs s)) res)))
 
 (defun eglot-imenu ()
