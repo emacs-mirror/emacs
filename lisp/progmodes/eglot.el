@@ -486,9 +486,7 @@ This can be useful when using docker to run a language server.")
       (SymbolInformation (:name :kind :location)
                          (:deprecated :containerName))
       (DocumentSymbol (:name :range :selectionRange :kind)
-                      ;; `:containerName' isn't really allowed , but
-                      ;; it simplifies the impl of `eglot-imenu'.
-                      (:detail :deprecated :children :containerName))
+                      (:detail :deprecated :children))
       (TextDocumentEdit (:textDocument :edits) ())
       (TextEdit (:range :newText))
       (VersionedTextDocumentIdentifier (:uri :version) ())
@@ -3235,49 +3233,53 @@ for which LSP on-type-formatting should be requested."
        :deferred :textDocument/documentHighlight)
       nil)))
 
+(defun eglot--imenu-SymbolInformation (res)
+  "Compute `imenu--index-alist' for RES vector of SymbolInformation."
+  (mapcar
+   (pcase-lambda (`(,kind . ,objs))
+     (cons
+      (alist-get kind eglot--symbol-kind-names "Unknown")
+      (mapcan
+       (pcase-lambda (`(,container . ,objs))
+         (let ((elems (mapcar
+                       (eglot--lambda ((SymbolInformation) kind name location)
+                         (let ((reg (eglot--range-region
+                                     (plist-get location :range))))
+                           (cons (propertize name
+                                             'breadcrumb-region reg
+                                             'breadcrumb-kind kind)
+                                 (car reg))))
+                       objs)))
+           (if container (list (cons container elems)) elems)))
+       (seq-group-by
+        (eglot--lambda ((SymbolInformation) containerName) containerName) objs))))
+   (seq-group-by (eglot--lambda ((SymbolInformation) kind) kind) res)))
+
+(defun eglot--imenu-DocumentSymbol (res)
+  "Compute `imenu--index-alist' for RES vector of DocumentSymbol."
+  (cl-labels ((dfs (&key name children range kind &allow-other-keys)
+                (let* ((reg (eglot--range-region range))
+                       (name (propertize name
+                                         'breadcrumb-region reg
+                                         'breadcrumb-kind kind)))
+                  (if children
+                      (cons name
+                            (mapcar (lambda (c) (apply #'dfs c)) children))
+                    (cons name (car reg))))))
+    (mapcar (lambda (s) (apply #'dfs s)) res)))
+
 (defun eglot-imenu ()
   "Eglot's `imenu-create-index-function'.
 Returns a list as described in docstring of `imenu--index-alist'."
-  (cl-labels
-      ((unfurl (obj)
-         (eglot--dcase obj
-           (((SymbolInformation)) (list obj))
-           (((DocumentSymbol) name children)
-            (cons obj
-                  (mapcar
-                   (lambda (c)
-                     (plist-put
-                      c :containerName
-                      (let ((existing (plist-get c :containerName)))
-                        (if existing (format "%s::%s" name existing)
-                          name))))
-                   (mapcan #'unfurl children)))))))
-    (mapcar
-     (pcase-lambda (`(,kind . ,objs))
-       (cons
-        (alist-get kind eglot--symbol-kind-names "Unknown")
-        (mapcan (pcase-lambda (`(,container . ,objs))
-                  (let ((elems (mapcar
-                                (lambda (obj)
-                                  (cons (plist-get obj :name)
-                                        (car (eglot--range-region
-                                              (eglot--dcase obj
-                                                (((SymbolInformation) location)
-                                                 (plist-get location :range))
-                                                (((DocumentSymbol) selectionRange)
-                                                 selectionRange))))))
-                                objs)))
-                    (if container (list (cons container elems)) elems)))
-                (seq-group-by
-                 (lambda (e) (plist-get e :containerName)) objs))))
-     (seq-group-by
-      (lambda (obj) (plist-get obj :kind))
-      (mapcan #'unfurl
-              (eglot--request (eglot--current-server-or-lose)
+  (let* ((res (eglot--request (eglot--current-server-or-lose)
                               :textDocument/documentSymbol
                               `(:textDocument
                                 ,(eglot--TextDocumentIdentifier))
-                              :cancel-on-input non-essential))))))
+                              :cancel-on-input non-essential))
+         (head (and res (elt res 0))))
+    (eglot--dcase head
+      (((SymbolInformation)) (eglot--imenu-SymbolInformation res))
+      (((DocumentSymbol)) (eglot--imenu-DocumentSymbol res)))))
 
 (cl-defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."

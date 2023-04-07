@@ -409,9 +409,7 @@ If multiple rules match, only first one is executed.")
                                 (goto-char pos)
                                 (funcall probe last-command-event))))
                          (when res (throw 'done res))))))))))
-    (when (and rule
-               ;; Not in a string or comment.
-               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+    (when rule
       (goto-char pos)
       (when (functionp rule) (setq rule (funcall rule)))
       (dolist (sym (if (symbolp rule) (list rule) rule))
