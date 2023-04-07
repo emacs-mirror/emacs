@@ -1672,9 +1672,10 @@ Doubles as an indicator of snippet support."
         (ignore-errors (delay-mode-hooks (funcall mode)))
         (font-lock-ensure)
         (goto-char (point-min))
-        (while (setq match (text-property-search-forward 'invisible))
-          (delete-region (prop-match-beginning match)
-                         (prop-match-end match)))
+        (let ((inhibit-read-only t))
+          (while (setq match (text-property-search-forward 'invisible))
+            (delete-region (prop-match-beginning match)
+                           (prop-match-end match))))
         (string-trim (buffer-string))))))
 
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
