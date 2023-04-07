@@ -1935,8 +1935,8 @@ specific features."
 		      (if (and cell table-detect-cell-alignment)
 			  (table--detect-cell-alignment cell)))
 		    (unless (re-search-forward border end t)
-		      (goto-char end))))))))))
-    (restore-buffer-modified-p modified-flag)))
+		      (goto-char end))))))
+            (restore-buffer-modified-p modified-flag)))))))
 
 ;;;###autoload
 (defun table-unrecognize-region (beg end)

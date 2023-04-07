@@ -104,10 +104,10 @@
           (run-hooks 'post-command-hook)
           (should (hl-line-tests-verify 257 t))
           (with-current-buffer second-buffer
-            (should (hl-line-tests-verify 999 nil)))))
-    (let (kill-buffer-query-functions)
-      (ignore-errors (kill-buffer first-buffer))
-      (ignore-errors (kill-buffer second-buffer)))))
+            (should (hl-line-tests-verify 999 nil))))
+      (let (kill-buffer-query-functions)
+        (ignore-errors (kill-buffer first-buffer))
+        (ignore-errors (kill-buffer second-buffer))))))
 
 (provide 'hl-line-tests)
 

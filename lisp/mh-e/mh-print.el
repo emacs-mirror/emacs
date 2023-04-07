@@ -79,8 +79,7 @@ commands \\[mh-ps-print-toggle-color] and
 This is the function that actually does the work.
 If FILE is nil, then the messages are spooled to the printer."
   (mh-iterate-on-range msg range
-    (unwind-protect
-        (mh-ps-spool-msg msg))
+    (mh-ps-spool-msg msg)
     (mh-notate msg mh-note-printed mh-cmd-note))
   (ps-despool file))
 

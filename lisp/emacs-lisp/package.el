@@ -1218,15 +1218,14 @@ boundaries."
   "Read a `define-package' form in current buffer.
 Return the pkg-desc, with desc-kind set to KIND."
   (goto-char (point-min))
-  (unwind-protect
-      (let* ((pkg-def-parsed (read (current-buffer)))
-             (pkg-desc
-              (when (eq (car pkg-def-parsed) 'define-package)
-                (apply #'package-desc-from-define
-                  (append (cdr pkg-def-parsed))))))
-        (when pkg-desc
-          (setf (package-desc-kind pkg-desc) kind)
-          pkg-desc))))
+  (let* ((pkg-def-parsed (read (current-buffer)))
+         (pkg-desc
+          (when (eq (car pkg-def-parsed) 'define-package)
+            (apply #'package-desc-from-define
+                   (append (cdr pkg-def-parsed))))))
+    (when pkg-desc
+      (setf (package-desc-kind pkg-desc) kind)
+      pkg-desc)))
 
 (declare-function tar-get-file-descriptor "tar-mode" (file))
 (declare-function tar--extract "tar-mode" (descriptor))

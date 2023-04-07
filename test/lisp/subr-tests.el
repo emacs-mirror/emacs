@@ -579,7 +579,8 @@
           (cons (mapcar (pcase-lambda (`(,evald ,func ,args ,_))
                           `(,evald ,func ,@args))
                         (backtrace-frames base))
-                (subr-test--backtrace-frames-with-backtrace-frame base))))))
+                (subr-test--backtrace-frames-with-backtrace-frame base))
+        (sit-for 0)))))                 ; dummy unwind form
 
 (defun subr-test--frames-1 (base)
   (subr-test--frames-2 base))

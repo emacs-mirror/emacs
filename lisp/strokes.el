@@ -760,27 +760,27 @@ Optional EVENT is acceptable as the starting event of the stroke."
 			    (setq safe-to-draw-p t))
 			  (push (cdr (mouse-pixel-position))
 				pix-locs)))
-		    (setq event (read--potential-mouse-event)))))
-	    ;; protected
-	    ;; clean up strokes buffer and then bury it.
-	    (when (equal (buffer-name) strokes-buffer-name)
-	      (subst-char-in-region (point-min) (point-max)
-				    strokes-character ?\s)
-	      (goto-char (point-min))
-	      (bury-buffer))))
-      ;; Otherwise, don't use strokes buffer and read stroke silently
-      (when prompt
-	(message "%s" prompt)
-	(setq event (read--potential-mouse-event))
-	(or (strokes-button-press-event-p event)
-	    (error "You must draw with the mouse")))
-      (track-mouse
-	(or event (setq event (read--potential-mouse-event)))
-	(while (not (strokes-button-release-event-p event))
-	  (if (strokes-mouse-event-p event)
-	      (push (cdr (mouse-pixel-position))
-		    pix-locs))
-	  (setq event (read--potential-mouse-event))))
+		    (setq event (read--potential-mouse-event))))
+	      ;; protected
+	      ;; clean up strokes buffer and then bury it.
+	      (when (equal (buffer-name) strokes-buffer-name)
+	        (subst-char-in-region (point-min) (point-max)
+				      strokes-character ?\s)
+	        (goto-char (point-min))
+	        (bury-buffer))))
+        ;; Otherwise, don't use strokes buffer and read stroke silently
+        (when prompt
+	  (message "%s" prompt)
+	  (setq event (read--potential-mouse-event))
+	  (or (strokes-button-press-event-p event)
+	      (error "You must draw with the mouse")))
+        (track-mouse
+	  (or event (setq event (read--potential-mouse-event)))
+	  (while (not (strokes-button-release-event-p event))
+	    (if (strokes-mouse-event-p event)
+	        (push (cdr (mouse-pixel-position))
+		      pix-locs))
+	    (setq event (read--potential-mouse-event)))))
       (setq grid-locs (strokes-renormalize-to-grid (nreverse pix-locs)))
       (strokes-fill-stroke
        (strokes-eliminate-consecutive-redundancies grid-locs)))))
