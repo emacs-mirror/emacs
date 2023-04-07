@@ -117,6 +117,11 @@ of max unsigned 32-bit value for byte offsets into buffer text."
   :type 'integer
   :version "29.1")
 
+(defcustom treesit-langs-install-directory nil
+  "Set treesit langs install directory"
+  :type 'string
+  :version "29.1")
+
 ;;; Parser API supplement
 
 (defun treesit-parse-string (string language)
@@ -3008,8 +3013,8 @@ executable programs, such as the C/C++ compiler and linker."
                    lang))))
     (condition-case err
         (apply #'treesit--install-language-grammar-1
-               ;; The nil is OUT-DIR.
-               (cons nil recipe))
+               ;; OUT-DIR default is nil, but can be customized to other directory
+               (cons treesit-langs-install-directory recipe))
       (error
        (display-warning
         'treesit
