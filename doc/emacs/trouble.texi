@@ -856,7 +856,7 @@ customizations.
 @cindex dribble file
 @cindex logging keystrokes
 One way to record the input to Emacs precisely is to write a dribble
-file.  To start the file, use the @kbd{M-x open-dribble-file} command.
+file.  To start the file, use the command @w{@kbd{M-x open-dribble-file}}.
 From then on, Emacs copies all your input to the specified dribble
 file until the Emacs process is killed.  Be aware that sensitive
 information (such as passwords) may end up recorded in the dribble
@@ -1071,9 +1071,13 @@ backtrace for the error.  To make a backtrace for the error, use
 say, you must give that command and then make the bug happen).  This
 causes the error to start the Lisp debugger, which shows you a
 backtrace.  Copy the text of the debugger's backtrace into the bug
-report.  @xref{Edebug,, Edebug, elisp, the Emacs Lisp Reference
-Manual}, for information on debugging Emacs Lisp programs with the
-Edebug package.
+report.  (The backtrace is more detailed if you load the relevant Lisp
+@file{*.el} source files before triggering the error, so do that if
+you know how to find and load those files.)
+
+To debug the error, we suggest using Edebug.  @xref{Edebug,, Edebug,
+elisp, the Emacs Lisp Reference Manual}, for information on debugging
+Emacs Lisp programs with the Edebug package.
 
 This use of the debugger is possible only if you know how to make the
 bug happen again.  If you can't make it happen again, at least copy

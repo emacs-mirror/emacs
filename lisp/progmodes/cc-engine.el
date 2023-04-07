@@ -9120,7 +9120,7 @@ multi-line strings (but not C++, for example)."
     (c-forward-syntactic-ws))
 
   (let ((start (point)) pos res name-res id-start id-end id-range
-	post-prefix-pos)
+	post-prefix-pos prefix-end-pos)
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
@@ -9130,6 +9130,7 @@ multi-line strings (but not C++, for example)."
 	  (when (looking-at c-no-type-key)
 	    (setq res 'no-id)))
 	(goto-char (match-end 1))
+	(setq prefix-end-pos (point))
 	(setq pos (point))
 	(c-forward-syntactic-ws)
 	(or (eq res 'no-id)
@@ -9281,7 +9282,10 @@ multi-line strings (but not C++, for example)."
 		  (not (looking-at c-type-decl-prefix-key)))))
       ;; A C specifier followed by an implicit int, e.g.
       ;; "register count;"
-      (goto-char id-start)
+      (goto-char prefix-end-pos)
+      (setq pos (point))
+      (unless stop-at-end
+	(c-forward-syntactic-ws))
       (setq res 'no-id))
 
      (name-res
@@ -9289,6 +9293,7 @@ multi-line strings (but not C++, for example)."
 	     ;; A normal identifier.
 	     (goto-char id-end)
 	     (setq pos (point))
+	     (c-forward-syntactic-ws)
 	     (if (or res c-promote-possible-types)
 		 (progn
 		   (when (not (eq c-promote-possible-types 'just-one))
@@ -9296,7 +9301,9 @@ multi-line strings (but not C++, for example)."
 		   (when (and c-record-type-identifiers id-range)
 		     (c-record-type-id id-range))
 		   (unless res
-		     (setq res 'found)))
+		     (setq res 'found))
+		   (when (eq res 'prefix)
+		     (setq res t)))
 	       (setq res (if (c-check-qualified-type id-start)
 			     ;; It's an identifier that has been used as
 			     ;; a type somewhere else.

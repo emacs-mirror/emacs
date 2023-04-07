@@ -30815,7 +30815,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
 #if defined HAVE_XFIXES && XFIXES_VERSION >= 40000
-  dpyinfo->fixes_pointer_blanking = egetenv ("EMACS_XFIXES");
+  dpyinfo->fixes_pointer_blanking = (egetenv ("EMACS_XFIXES") != NULL);
 #endif
 
 #ifdef HAVE_X_I18N

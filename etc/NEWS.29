@@ -795,13 +795,14 @@ part of the buffer.
 
 +++
 ** New user option 'set-message-functions'.
-It allows selecting more functions for 'set-message-function'
-in addition to the default function that handles messages
-in the active minibuffer.  The most useful are 'inhibit-message'
-that allows specifying a list of messages to inhibit via
-'inhibit-message-regexps', and 'set-multi-message' that
-accumulates recent messages and displays them stacked
-in the echo area.
+It allows more flexible control of how echo-area messages are displayed
+by adding functions to this list.  The default value is a list of one
+element: 'set-minibuffer-message', which displays echo-area messages
+at the end of the minibuffer text when the minibuffer is active.
+Other useful functions include 'inhibit-message', which allows
+specifying, via 'inhibit-message-regexps', the list of messages whose
+display shall be inhibited; and 'set-multi-message' that accumulates
+recent messages and displays them stacked together.
 
 ---
 ** New user option 'find-library-include-other-files'.
@@ -1019,6 +1020,11 @@ works for non-Emoji characters.)
 *** New commands 'emoji-zoom-increase' and 'emoji-zoom-decrease'.
 These are bound to 'C-x 8 e +' and 'C-x 8 e -', respectively.  They
 can be used on any character, but are mainly useful for Emoji.
+
+---
+*** New command 'emoji-zoom-reset'.
+This is bound to 'C-x 8 e 0', and undoes any size changes performed by
+'emoji-zoom-increase' and 'emoji-zoom-decrease'.
 
 ---
 *** New input method 'emoji'.
@@ -4322,9 +4328,11 @@ that binding is ignored by 'where-is-internal'.
 
 +++
 *** New functions for defining and manipulating keystrokes.
-These all take the syntax defined by 'key-valid-p'.  None of the older
-functions have been deprecated or altered, but they are now
-de-emphasized in the documentation.
+These all take the syntax defined by 'key-valid-p', which is basically
+the same syntax as the one accepted by the 'kbd' macro.  None of the
+older functions have been deprecated or altered, but they are now
+de-emphasized in the documentation, and we encourage Lisp programs to
+switch to these new functions.
 
 +++
 *** Use 'keymap-set' instead of 'define-key'.

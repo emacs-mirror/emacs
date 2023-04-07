@@ -768,8 +768,8 @@ prefix definition, and then by those from the global map.
   In the following example, we make @kbd{C-p} a prefix key in the local
 keymap, in such a way that @kbd{C-p} is identical to @kbd{C-x}.  Then
 the binding for @kbd{C-p C-f} is the function @code{find-file}, just
-like @kbd{C-x C-f}.  The key sequence @kbd{C-p 6} is not found in any
-active keymap.
+like @kbd{C-x C-f}.  By contrast, the key sequence @kbd{C-p 9} is not
+found in any active keymap.
 
 @example
 @group
@@ -778,15 +778,14 @@ active keymap.
 @end group
 @group
 (keymap-local-set "C-p" ctl-x-map)
-    @result{} nil
+    @result{} (keymap #^[nil nil keymap @dots{}
 @end group
 @group
-(keymap-binding "C-p C-f")
+(keymap-lookup nil "C-p C-f")
     @result{} find-file
 @end group
-
 @group
-(keymap-binding "C-p 6")
+(keymap-lookup nil "C-p 9")
     @result{} nil
 @end group
 @end example
@@ -883,7 +882,7 @@ Normally it ignores @code{overriding-local-map} and
 then it pays attention to them.  @var{position} can optionally be either
 an event position as returned by @code{event-start} or a buffer
 position, and may change the keymaps as described for
-@code{keymap-binding}.
+@code{keymap-lookup} (@pxref{Functions for Key Lookup, keymap-lookup}).
 @end defun
 
 @node Searching Keymaps
@@ -1308,7 +1307,11 @@ the second example.
 @end group
 @end example
 
-The @var{keymap} argument can also be a list of keymaps.
+The @var{keymap} argument can be @code{nil}, meaning to look up
+@var{key} in the current keymaps (as returned by
+@code{current-active-maps}, @pxref{Active Keymaps}); or it can be a
+keymap or a list of keymaps, meaning to look up @var{key} only in the
+specified keymaps.
 
 Unlike @code{read-key-sequence}, this function does not modify the
 specified events in ways that discard information (@pxref{Key Sequence

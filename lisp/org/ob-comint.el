@@ -81,19 +81,7 @@ or user `keyboard-quit' during execution of body."
        (let* ((string-buffer "")
 	      (comint-output-filter-functions
 	       (cons (lambda (text)
-                       (setq string-buffer
-                             (concat
-                              string-buffer
-                              ;; Upon concatenation, the prompt may no
-                              ;; longer match `comint-prompt-regexp'.
-                              ;; In particular, when the regexp has ^
-                              ;; and the output does not contain
-                              ;; trailing newline.  Use more reliable
-                              ;; match to split the output later.
-                              (replace-regexp-in-string
-                               comint-prompt-regexp
-                               ,org-babel-comint-prompt-separator
-                               text))))
+                       (setq string-buffer (concat string-buffer text)))
 		     comint-output-filter-functions))
 	      dangling-text)
 	 ;; got located, and save dangling text
@@ -108,21 +96,28 @@ or user `keyboard-quit' during execution of body."
 	 (while (progn
 		  (goto-char comint-last-input-end)
 		  (not (save-excursion
-			 (and (re-search-forward
-			       (regexp-quote ,eoe-indicator) nil t)
-			      (re-search-forward
-			       comint-prompt-regexp nil t)))))
+		       (and (re-search-forward
+			     (regexp-quote ,eoe-indicator) nil t)
+			    (re-search-forward
+			     comint-prompt-regexp nil t)))))
 	   (accept-process-output (get-buffer-process (current-buffer))))
 	 ;; replace cut dangling text
 	 (goto-char (process-mark (get-buffer-process (current-buffer))))
 	 (insert dangling-text)
 
-         ;; Replace partially supplied input lines.
-         ;; This is needed when output filter spits partial lines that
-         ;; do not include a full prompt at a time.
+         ;; Filter out prompts.
          (setq string-buffer
                (replace-regexp-in-string
-                comint-prompt-regexp
+                ;; Sometimes, we get multiple agglomerated
+                ;; prompts together in a single output:
+                ;; "prompt prompt prompt output"
+                ;; Remove them progressively, so that
+                ;; possible "^" in the prompt regexp gets to
+                ;; work as we remove the heading prompt
+                ;; instance.
+                (if (string-prefix-p "^" comint-prompt-regexp)
+                    (format "^\\(%s\\)+" (substring comint-prompt-regexp 1))
+                  comint-prompt-regexp)
                 ,org-babel-comint-prompt-separator
                 string-buffer))
 	 ;; remove echo'd FULL-BODY from input

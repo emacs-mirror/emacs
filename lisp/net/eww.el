@@ -1015,7 +1015,7 @@ the like."
                       (list 'base (list (cons 'href base))
                             (eww-highest-readability dom))
 		      nil (current-buffer))
-    (dolist (elem '(:source :url :title :next :previous :up))
+    (dolist (elem '(:source :url :title :next :previous :up :peer))
       (plist-put eww-data elem (plist-get old-data elem)))
     (eww--after-page-change)))
 

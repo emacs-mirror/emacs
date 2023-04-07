@@ -310,29 +310,29 @@ reformatted, with undesirable results.  Instead, use @code{(message
 "%s" @var{string})}.
 @end defun
 
+The following facilities allow users and Lisp programs to control how
+echo-area messages are displayed.
+
 @defvar set-message-function
 If this variable is non-@code{nil}, it should be a function of one
-argument, the text of a message to display in the echo area.  This
+argument, the text of a message to display in the echo area.  That
 function will be called by @code{message} and related functions.  If
 the function returns @code{nil}, the message is displayed in the echo
-area as usual.  If this function returns a string, that string is
-displayed in the echo area instead of the original one.  If this
-function returns other non-@code{nil} values, that means the message
-was already handled, so @code{message} will not display anything in
-the echo area.  See also @code{clear-message-function} that can be
-used to clear the message displayed by this function.
+area as usual.  If the function returns a string, that string is
+displayed in the echo area @emph{instead} of the original message.  If
+the function returns any other non-@code{nil} value, that means the
+message was already handled, so @code{message} will not display
+anything in the echo area.
 
-The default value is the function that displays the message at the end
-of the minibuffer when the minibuffer is active.  However, if the text
-shown in the active minibuffer has the @code{minibuffer-message} text
-property (@pxref{Special Properties}) on some character, the message
-will be displayed before the first character having that property.
+The default value calls @code{set-minibuffer-message}, described
+below.
 @end defvar
 
 @defvar clear-message-function
-If this variable is non-@code{nil}, @code{message} and related
-functions call it with no arguments when their argument message is
-@code{nil} or the empty string.
+If this variable is non-@code{nil}, it should be a function of no
+arguments; @code{message} and related functions call it when their
+argument message is @code{nil} or the empty string, to clear the echo
+area.
 
 Usually this function is called when the next input event arrives
 after displaying an echo-area message.  The function is expected to
@@ -358,11 +358,51 @@ with the same text; if the last function in the list returns
 function returns a non-@code{nil} value that is not a string, the
 message is considered to be handled, and no further functions in the
 list are called.
+
+The three useful functions to be put in the list that is the value of
+this option are described below.
 @end defopt
+
+@defun set-minibuffer-message message
+This function displays @var{message} in the echo-area when the
+minibuffer is not active, and at the end of the minibuffer when the
+minibuffer is active.  However, if the text shown in the active
+minibuffer has the @code{minibuffer-message} text property
+(@pxref{Special Properties}) on some character, the message will be
+displayed before the first character having that property.
+
+This function is by default the only member of the list in
+@code{set-message-functions}.
+@end defun
+
+@vindex inhibit-message-regexps
+@defun inhibit-message message
+If an echo-area @var{message} matches any regexp in the list that is
+the value of the user option @code{inhibit-message-regexps}, this
+function suppresses the display of that message and returns a
+non-@code{nil} value that is not a string.  Thus, if this function is
+in the list @code{set-message-functions}, the rest of the functions in
+the list will not be called when @var{message} matches the regexps in
+@code{inhibit-message-regexps}.  To ensure a matching @var{message}
+will never be displayed, make this function be the first element of
+the list in @code{set-message-functions}.
+@end defun
+
+@vindex multi-message-max
+@vindex multi-message-timeout
+@defun set-multi-message message
+This function accumulates several echo-area messages emitted one after
+another, and returns them as a single string in which individual
+messages are separated by newlines.  Up to @code{multi-message-max}
+recent messages can be accumulated.  The accumulated messages are
+discarded when more than @code{multi-message-timeout} seconds have
+elapsed since the time the first message was emitted.
+@end defun
 
 @defvar inhibit-message
 When this variable is non-@code{nil}, @code{message} and related functions
-will not use the Echo Area to display messages.
+will not display any messages in the Echo Area.  Echo-area messages
+are still logged in the @file{*Messages*} buffer, though.
 @end defvar
 
 @defmac with-temp-message message &rest body

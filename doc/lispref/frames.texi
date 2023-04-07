@@ -3579,7 +3579,7 @@ the mouse position list will be @code{nil} if the value is
 @code{drag-source}.  This is useful to determine if a frame is not
 directly visible underneath the mouse pointer.
 
-The @code{track-mouse} form causes Emacs to generate mouse motion
+The @code{track-mouse} macro causes Emacs to generate mouse motion
 events by binding the variable @code{track-mouse} to a
 non-@code{nil} value.  If that variable has the special value
 @code{dragging}, it additionally instructs the display engine to
