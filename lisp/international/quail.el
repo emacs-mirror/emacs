@@ -1995,7 +1995,8 @@ Remaining args are for FUNC."
 (defun quail-minibuffer-message (string)
   (message nil)
   (let ((point-max (point-max))
-	(inhibit-quit t))
+	(inhibit-quit t)
+        (deactivate-mark nil))
     (save-excursion
       (goto-char point-max)
       (insert string))
