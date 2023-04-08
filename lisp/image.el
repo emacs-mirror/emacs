@@ -172,22 +172,6 @@ or \"ffmpeg\") is installed."
 
 (define-error 'unknown-image-type "Unknown image type")
 
-(defvar-keymap image-map
-  :doc "Map put into text properties on images."
-  "i" (define-keymap
-        "-" #'image-decrease-size
-        "+" #'image-increase-size
-        "r" #'image-rotate
-        "o" #'image-save
-        "c" #'image-crop
-        "x" #'image-cut
-        "h" #'image-flip-horizontally
-        "v" #'image-flip-vertically)
-  "C-<wheel-down>" #'image-mouse-decrease-size
-  "C-<mouse-5>"    #'image-mouse-decrease-size
-  "C-<wheel-up>"   #'image-mouse-increase-size
-  "C-<mouse-4>"    #'image-mouse-increase-size)
-
 (defvar-keymap image-slice-map
   :doc "Map put into text properties on sliced images."
   "i" (define-keymap
@@ -200,6 +184,14 @@ or \"ffmpeg\") is installed."
   "C-<mouse-5>"    #'image-mouse-decrease-size
   "C-<wheel-up>"   #'image-mouse-increase-size
   "C-<mouse-4>"    #'image-mouse-increase-size)
+
+(defvar-keymap image-map
+  :doc "Map put into text properties on images."
+  :parent image-slice-map
+  "i" (define-keymap
+        "r" #'image-rotate
+        "h" #'image-flip-horizontally
+        "v" #'image-flip-vertically))
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.

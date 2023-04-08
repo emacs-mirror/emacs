@@ -222,9 +222,9 @@ In previous Emacs versions, images have had the '+', '-' and 'r' keys
 bound when point is over an image.  In Emacs 29.1, additional commands
 were added, and this made it more likely that users would trigger the
 image commands by mistake.  To avoid this, all image commands have
-moved to the 'i' keymap, so '+' is now 'i +', '-' is now 'i -', and
-'r' is now 'i r'.  In addition, these commands are now repeating, so
-you can rotate an image twice by saying 'i r r', for instance.
+moved to the 'i' prefix keymap, so '+' is now 'i +', '-' is now 'i -',
+and 'r' is now 'i r'.  In addition, these commands are now repeating,
+so, for example, you can rotate an image twice by typing 'i r r'.
 
 +++
 ** Emacs now picks the correct coding-system for X input methods.
@@ -2629,11 +2629,6 @@ image formats saying how to edit it as text.  The default is to show
 this message for SVG and XPM.
 
 +++
-*** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
-These commands horizontally and vertically flip the image under point,
-and are bound to 'i h' and 'i v', respectively.
-
-+++
 *** New command 'image-transform-set-percent'.
 It allows setting the image size to a percentage of its original size,
 and is bound to 's p' in Image mode.
@@ -2647,6 +2642,19 @@ The old name was confusing, and is now an obsolete function alias.
 The old name was confusing, and is now an obsolete function alias.
 
 ** Images
+
++++
+** New commands 'image-crop' and 'image-cut'.
+These commands allow interactively cropping/cutting the image at
+point.  The commands are bound to keys 'i c' and 'i x' (respectively)
+in the local keymap over images.  They rely on external programs, by
+default "convert" from ImageMagick, to do the actual cropping/eliding
+of the image file.
+
++++
+*** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
+These commands horizontally and vertically flip the image under point,
+and are bound to 'i h' and 'i v', respectively.
 
 +++
 *** Users can now add special image conversion functions.
@@ -3242,14 +3250,6 @@ use-package is now shipped with Emacs.  It provides the 'use-package'
 macro, which allows you to isolate package configuration in your init
 file in a way that is declarative, tidy, and performance-oriented.
 See the new Info manual "(use-package) Top" for more.
-
-+++
-** New commands 'image-crop' and 'image-cut'.
-These commands allow interactively cropping/cutting the image at
-point.  The commands are bound to keys 'i c' and 'i x' (respectively)
-in the local keymap over images.  They rely on external programs, by
-default "convert" from ImageMagick, to do the actual cropping/eliding
-of the image file.
 
 ---
 ** New package 'wallpaper'.
