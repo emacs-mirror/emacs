@@ -524,7 +524,8 @@ Some context functions add menu items below the separator."
           (i 0))
       (dolist (item (reverse yank-menu))
         (when (consp item)
-          (define-key submenu (vector (setq i (1+ i)))
+          (define-key submenu
+            (vector (intern (format "kill-%d" (setq i (1+ i)))))
             `(menu-item ,(cadr item)
                         ,(lambda () (interactive)
                            (mouse-yank-from-menu click (car item)))))))
