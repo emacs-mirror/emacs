@@ -188,6 +188,19 @@ or \"ffmpeg\") is installed."
   "C-<wheel-up>"   #'image-mouse-increase-size
   "C-<mouse-4>"    #'image-mouse-increase-size)
 
+(defvar-keymap image-slice-map
+  :doc "Map put into text properties on sliced images."
+  "i" (define-keymap
+        "-" #'image-decrease-size
+        "+" #'image-increase-size
+        "o" #'image-save
+        "c" #'image-crop
+        "x" #'image-cut)
+  "C-<wheel-down>" #'image-mouse-decrease-size
+  "C-<mouse-5>"    #'image-mouse-decrease-size
+  "C-<wheel-up>"   #'image-mouse-increase-size
+  "C-<mouse-4>"    #'image-mouse-increase-size)
+
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
 
@@ -665,7 +678,9 @@ is non-nil, this is inhibited."
 				      image)
                                    rear-nonsticky t
 				   inhibit-isearch ,inhibit-isearch
-                                   keymap ,image-map))))
+                                   keymap ,(if slice
+                                               image-slice-map
+                                             image-map)))))
 
 
 ;;;###autoload
@@ -701,8 +716,8 @@ The image is automatically split into ROWS x COLS slices."
 	  (insert string)
 	  (add-text-properties start (point)
 			       `(display ,(list (list 'slice x y dx dy) image)
-					 rear-nonsticky (display)
-                                         keymap ,image-map))
+					 rear-nonsticky (display keymap)
+                                         keymap ,image-slice-map))
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
