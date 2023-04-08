@@ -1438,8 +1438,8 @@ literals (Bug#20852)."
    '(defun zot ()
       (mapcar #'list '(1 2 3))
       nil)
-   '((mapcar mapcar))
-   "Warning: .mapcar. called for effect")
+   '((ignored-return-value mapcar))
+   "Warning: value from call to `mapcar' is unused; use `mapc' or `dolist' instead")
 
   (test-suppression
    '(defun zot ()
