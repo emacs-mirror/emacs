@@ -3118,29 +3118,27 @@ for which LSP on-type-formatting should be requested."
   (mapconcat #'eglot--format-markup
              (if (vectorp contents) contents (list contents)) "\n"))
 
-(defun eglot--sig-info (sig &optional _activep sig-help-active-param)
+(defun eglot--sig-info (sig &optional sig-help-active-param briefp)
   (eglot--dbind ((SignatureInformation) label documentation parameters activeParameter)
       sig
     (with-temp-buffer
       (save-excursion (insert label))
       (let ((active-param (or activeParameter sig-help-active-param))
+            (labeldoc (and (not briefp) documentation
+                           (eglot--format-markup documentation)))
             params-start params-end)
         ;; Ad-hoc attempt to parse label as <name>(<params>)
         (when (looking-at "\\([^(]*\\)(\\([^)]+\\))")
           (setq params-start (match-beginning 2) params-end (match-end 2))
           (add-face-text-property (match-beginning 1) (match-end 1)
                                   'font-lock-function-name-face))
-        ;; Decide whether to add one-line-summary to signature line
-        (when (and (stringp documentation)
-                   (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
-                                 documentation))
-          (setq documentation (match-string 1 documentation))
-          (unless (string-prefix-p (string-trim documentation) label)
-            (goto-char (point-max))
-            (insert ": " (eglot--format-markup documentation))))
+        ;; Add documentation, indented so we can distinguish multiple signatures
+        (when labeldoc
+          (goto-char (point-max))
+          (insert "\n" (replace-regexp-in-string "^" "  " labeldoc)))
         ;; Decide what to do with the active parameter...
         (when (and active-param (< -1 active-param (length parameters)))
-          (eglot--dbind ((ParameterInformation) label documentation)
+          (eglot--dbind ((ParameterInformation) label)
               (aref parameters active-param)
             ;; ...perhaps highlight it in the formals list
             (when params-start
@@ -3157,17 +3155,7 @@ for which LSP on-type-formatting should be requested."
                 (if (and beg end)
                     (add-face-text-property
                      beg end
-                     'eldoc-highlight-function-argument))))
-            ;; ...and/or maybe add its doc on a line by its own.
-            (when documentation
-              (goto-char (point-max))
-              (insert "\n"
-                      (propertize
-                       (if (stringp label)
-                           label
-                         (apply #'buffer-substring (mapcar #'1+ label)))
-                       'face 'eldoc-highlight-function-argument)
-                      ": " (eglot--format-markup documentation))))))
+                     'eldoc-highlight-function-argument)))))))
       (buffer-string))))
 
 (defun eglot-signature-eldoc-function (cb)
@@ -3184,9 +3172,13 @@ for which LSP on-type-formatting should be requested."
            (let ((active-sig (and (cl-plusp (length signatures))
                                   (aref signatures (or activeSignature 0)))))
              (if (not active-sig) (funcall cb nil)
-               (funcall cb
-                        (mapconcat #'eglot--sig-info signatures "\n")
-                        :echo (eglot--sig-info active-sig t activeParameter))))))
+               (funcall
+                cb (mapconcat (lambda (s)
+                                (eglot--sig-info s (and (eq s active-sig)
+                                                        activeParameter)
+                                                 nil))
+                              signatures "\n")
+                :echo (eglot--sig-info active-sig activeParameter t))))))
        :deferred :textDocument/signatureHelp))
     t))
 
