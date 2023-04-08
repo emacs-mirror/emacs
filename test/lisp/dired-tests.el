@@ -477,9 +477,9 @@
             ;;(should (= 0 (length (directory-files testdir nil "[0-9]" t -1))))
             (should (= 5 (length (directory-files testdir nil "[0-9]" t))))
             (should (= 5 (length (directory-files testdir nil "[0-9]" t 50))))
-            (should-not (directory-empty-p testdir)))
+            (should-not (directory-empty-p testdir))))
 
-          (delete-directory testdir t)))))
+      (delete-directory testdir t))))
 
 (ert-deftest dired-test-directory-files-and-attributes ()
   "Test for `directory-files-and-attributes'."

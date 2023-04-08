@@ -618,21 +618,18 @@ Does nothing if the current buffer doesn't need reparsing."
 	   (lexically-safe t)
 	   )
 
-      (unwind-protect
-	  ;; Perform the parsing.
-	  (progn
-	    (when (semantic-lex-catch-errors safe-refresh
-		    (save-excursion (semantic-fetch-tags))
-		    nil)
-	      ;; If we are here, it is because the lexical step failed,
-	      ;; probably due to unterminated lists or something like that.
+      ;; Perform the parsing.
+      (when (semantic-lex-catch-errors safe-refresh
+		                       (save-excursion (semantic-fetch-tags))
+		                       nil)
+	;; If we are here, it is because the lexical step failed,
+	;; probably due to unterminated lists or something like that.
 
-	      ;; We do nothing, and just wait for the next idle timer
-	      ;; to go off.  In the meantime, remember this, and make sure
-	      ;; no other idle services can get executed.
-	      (setq lexically-safe nil))
-	    )
-	)
+	;; We do nothing, and just wait for the next idle timer
+	;; to go off.  In the meantime, remember this, and make sure
+	;; no other idle services can get executed.
+	(setq lexically-safe nil))
+
       ;; Return if we are lexically safe
       lexically-safe))))
 

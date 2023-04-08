@@ -674,8 +674,8 @@ depending on PATTERNS."
 			    (cons item (cdr menu)))))
 		;; Go to the start of the match, to make sure we
 		;; keep making progress backwards.
-		(goto-char start))))
-	  (set-syntax-table old-table)))
+		(goto-char start)))))
+      (set-syntax-table old-table))
     ;; Sort each submenu by position.
     ;; This is in case one submenu gets items from two different regexps.
     (dolist (item index-alist)

@@ -722,16 +722,12 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	(let (viper-vi-kbd-minor-mode
 	      viper-insert-kbd-minor-mode
 	      viper-emacs-kbd-minor-mode)
-	  (unwind-protect
-	      (progn
-		(setq com
-		      (key-binding (setq key (read-key-sequence nil))))
-		;; In case of binding indirection--chase definitions.
-		;; Have to do it here because we execute this command under
-		;; different keymaps, so command-execute may not do the
-		;; right thing there
-		(while (vectorp com) (setq com (key-binding com))))
-	    nil)
+	  (setq com (key-binding (setq key (read-key-sequence nil))))
+	  ;; In case of binding indirection--chase definitions.
+	  ;; Have to do it here because we execute this command under
+	  ;; different keymaps, so command-execute may not do the
+	  ;; right thing there
+	  (while (vectorp com) (setq com (key-binding com)))
 	  ;; Execute command com in the original Viper state, not in state
 	  ;; `state'.  Otherwise, if we switch buffers while executing the
 	  ;; escaped to command, Viper's mode vars will remain those of
@@ -1950,16 +1946,16 @@ To turn this feature off, set this variable to nil."
 	  (if found
 	      ()
 	    (viper-tmp-insert-at-eob " [Please complete file name]")
-	    (unwind-protect
-		(while (not (memq cmd
-				  '(exit-minibuffer viper-exit-minibuffer)))
-		  (setq cmd
-			(key-binding (setq key (read-key-sequence nil))))
-		  (cond ((eq cmd 'self-insert-command)
-			 (insert key))
-			((memq cmd '(exit-minibuffer viper-exit-minibuffer))
-			 nil)
-			(t (command-execute cmd))))))))))
+
+	    (while (not (memq cmd
+			      '(exit-minibuffer viper-exit-minibuffer)))
+	      (setq cmd
+		    (key-binding (setq key (read-key-sequence nil))))
+	      (cond ((eq cmd 'self-insert-command)
+		     (insert key))
+		    ((memq cmd '(exit-minibuffer viper-exit-minibuffer))
+		     nil)
+		    (t (command-execute cmd)))))))))
 
 
 (defun viper-minibuffer-trim-tail ()

@@ -1445,20 +1445,19 @@ match, the user will be asked to confirm the replacement."
                   (as-words reftex-index-phrases-search-whole-words))
              (unless macro-data
                (error "No macro associated with key %c" char))
-             (unwind-protect
-                 (let ((overlay-arrow-string "=>")
-                       (overlay-arrow-position
-                        reftex-index-phrases-marker)
-                       (replace-count 0))
-                   ;; Show the overlay arrow
-                   (move-marker reftex-index-phrases-marker
-                                (match-beginning 0) (current-buffer))
-                   ;; Start the query-replace
-                   (reftex-query-index-phrase-globally
-                    files phrase macro-fmt
-                    index-key repeat as-words)
-                   (message "%s replaced"
-                            (reftex-number replace-count "occurrence"))))))
+             (let ((overlay-arrow-string "=>")
+                   (overlay-arrow-position
+                    reftex-index-phrases-marker)
+                   (replace-count 0))
+               ;; Show the overlay arrow
+               (move-marker reftex-index-phrases-marker
+                            (match-beginning 0) (current-buffer))
+               ;; Start the query-replace
+               (reftex-query-index-phrase-globally
+                files phrase macro-fmt
+                index-key repeat as-words)
+               (message "%s replaced"
+                        (reftex-number replace-count "occurrence")))))
           (t (error "Cannot parse this line")))))
 
 (defun reftex-index-all-phrases ()

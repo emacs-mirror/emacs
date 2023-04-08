@@ -71,10 +71,10 @@ RUN apt-get update && \
       libdbus-1-dev libacl1-dev acl git texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
-# Some language servers.
+# Install clangd.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd python3-pylsp python3-autopep8 python3-yapf \
+      clangd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout

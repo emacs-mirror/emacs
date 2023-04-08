@@ -536,7 +536,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "Verify we can compile calls to redefined primitives with
 dedicated byte-op code."
   (let (x
-        (f (lambda (fn &rest args)
+        (f (lambda (_fn &rest args)
              (setq comp-test-primitive-redefine-args args))))
     (advice-add #'delete-region :around f)
     (unwind-protect
