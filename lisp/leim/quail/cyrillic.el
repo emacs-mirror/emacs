@@ -1846,8 +1846,8 @@ Doubling the postfix separates the letter and postfix
 
 
 ;; Mongolian layout: Mongolian alphabet has 2 letters: Ө Ү,
-;; and the layout is quite different than other cyrillic layouts.
-;; written by Garid Z.
+;; and the layout is quite different from other cyrillic layouts.
+;; Written by Garid Zorigoo.
 (quail-define-package
  "cyrillic-mongolian" "Mongolian"  "MN-" t
  "Input method for cyrillic Mongolian"
