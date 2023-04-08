@@ -5394,7 +5394,7 @@ a variable containing a vector of rules.
 1:  [merge, secsqr]          1:  [a/x + b/x := (a + b)/x, ... ]
     .                                 .
 
-    ' [merge,sinsqr] @key{RET}          =
+    ' [merge,secsqr] @key{RET}          =
 
 @end group
 @end smallexample
