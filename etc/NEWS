@@ -1577,6 +1577,11 @@ This input method is based on the russian-computer input method, and
 is intended for typing in the Chuvash language written in the Cyrillic
 script.
 
+---
+*** New input method 'cyrillic-mongolian'.
+This input method is for typing in the Mongolian language using the
+Cyrillic script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
