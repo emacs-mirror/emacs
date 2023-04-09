@@ -43,7 +43,7 @@
 ;;  /dcc chat nick - Either accept pending chat offer from nick, or offer
 ;;                   DCC chat to nick
 ;;  /dcc close type [nick] - Close DCC connection (SEND/GET/CHAT) with nick
-;;  /dcc get [-t][-s] nick [file] - Accept DCC offer from nick
+;;  /dcc get [-t][-s] nick [--] file - Accept DCC offer from nick
 ;;  /dcc list - List all DCC offers/connections
 ;;  /dcc send nick file - Offer DCC SEND to nick
 
@@ -389,12 +389,18 @@ If this is nil, then the current value of `default-directory' is used."
   :type '(choice (const :value nil :tag "Default directory") directory))
 
 ;;;###autoload
-(defun erc-cmd-DCC (cmd &rest args)
+(defun erc-cmd-DCC (line &rest compat-args)
   "Parser for /dcc command.
 This figures out the dcc subcommand and calls the appropriate routine to
 handle it.  The function dispatched should be named \"erc-dcc-do-FOO-command\",
 where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
-  (when cmd
+  (let (cmd args)
+    ;; Called as library function (i.e., not directly as /dcc)
+    (if compat-args
+        (setq cmd line
+              args compat-args)
+      (setq args (delete "" (erc-compat--split-string-shell-command line))
+            cmd (pop args)))
     (let ((fn (intern-soft (concat "erc-dcc-do-" (upcase cmd) "-command"))))
       (if fn
           (apply fn erc-server-process args)
@@ -404,7 +410,15 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
         (apropos "erc-dcc-do-.*-command")
         t))))
 
+(put 'erc-cmd-DCC 'do-not-parse-args t)
 (autoload 'pcomplete-erc-all-nicks "erc-pcomplete")
+
+;;;###autoload(put 'erc-cmd-DCC 'erc--cmd-help 'erc-dcc--cmd-help)
+(defun erc-dcc--cmd-help (&rest args)
+  (describe-function
+   (or (and args (intern-soft (concat "erc-dcc-do-"
+                                      (upcase (car args)) "-command")))
+       'erc-cmd-DCC)))
 
 ;;;###autoload
 (defun pcomplete/erc-mode/DCC ()
@@ -430,15 +444,20 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                       (eq (plist-get elt :type) 'GET))
                     erc-dcc-list)))
      ('send (pcomplete-erc-all-nicks))))
+  (when (equal "get" (downcase (pcomplete-arg 'first 1)))
+    (pcomplete-opt "-"))
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 'first 1)))
-     ('get (mapcar (lambda (elt) (plist-get elt :file))
+     ('get (mapcar (lambda (elt)
+                     (combine-and-quote-strings (list (plist-get elt :file))))
                    (cl-remove-if-not
                     (lambda (elt)
                       (and (eq (plist-get elt :type) 'GET)
                            (erc-nick-equal-p (erc-extract-nick
                                               (plist-get elt :nick))
-                                             (pcomplete-arg 1))))
+                                             (pcase (pcomplete-arg 1)
+                                               ("--" (pcomplete-arg 2))
+                                               (v v)))))
                     erc-dcc-list)))
      ('close (mapcar #'erc-dcc-nick
                      (cl-remove-if-not
@@ -504,16 +523,33 @@ At least one of TYPE and NICK must be provided."
            ?n (erc-extract-nick (plist-get ret :nick))))))
     t))
 
-(defun erc-dcc-do-GET-command (proc nick &rest file)
-  "Do a DCC GET command.  NICK is the person who is sending the file.
-FILE is the filename.  If FILE is split into multiple arguments,
-re-join the arguments, separated by a space.
-PROC is the server process."
-  (let* ((args (seq-group-by (lambda (s) (eq ?- (aref s 0))) (cons nick file)))
+(defun erc-dcc-do-GET-command (proc &rest args)
+  "Perform a DCC GET command.
+Recognize input conforming to the following usage syntax:
+
+  /DCC GET [-t|-s] nick [--] filename
+
+  nick     The person who is sending the file.
+  filename The filename to be downloaded.  Can be split into multiple
+           arguments that are then joined by a space.
+  flags    \"-t\" sets `:turbo' in `erc-dcc-list'
+           \"-s\" sets `:secure' in `erc-dcc-list'
+           \"--\" indicates end of options
+           All of which are optional.
+
+Expect PROC to be the server process and ARGS to contain
+everything after the subcommand \"GET\" in the usage description
+above."
+  ;; Despite the advertised syntax above, we currently respect flags
+  ;; in these positions: [flag] nick [flag] filename [flag]
+  (let* ((trailing (and-let* ((trailing (member "--" args)))
+                     (setq args (butlast args (length trailing)))
+                     (cdr trailing)))
+         (args (seq-group-by (lambda (s) (eq ?- (aref s 0))) args))
          (flags (prog1 (cdr (assq t args))
-                  (setq args (cdr (assq nil args))
-                        nick (pop args)
-                        file (and args (mapconcat #'identity args " ")))))
+                  (setq args (nconc (cdr (assq nil args)) trailing))))
+         (nick (pop args))
+         (file (and args (mapconcat #'identity args " ")))
          (elt (erc-dcc-member :nick nick :type 'GET :file file))
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt

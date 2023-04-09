@@ -102,6 +102,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
 	 (when (featurep 'erc-services)
 	   (erc-nickserv-identify-mode val))))
 
+;;;###autoload(put 'nickserv 'erc--module 'services)
 ;;;###autoload(autoload 'erc-services-mode "erc-services" nil t)
 (define-erc-module services nickserv
   "This mode automates communication with services."

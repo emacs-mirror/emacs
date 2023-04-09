@@ -32,7 +32,50 @@
 ;;; Code:
 
 (require 'compat nil 'noerror)
-(eval-when-compile (require 'cl-lib) (require 'url-parse))
+(eval-when-compile (require 'cl-lib))
+
+;; Except for the "erc-" namespacing, these two definitions should be
+;; continuously updated to match the latest upstream ones verbatim.
+;; Although they're pretty simple, it's likely not worth checking for
+;; and possibly deferring to the non-prefixed versions.
+;;
+;; BEGIN Compat macros
+
+;;;; Macros for extended compatibility function calls
+
+(defmacro erc-compat-function (fun)
+  "Return compatibility function symbol for FUN.
+
+If the Emacs version provides a sufficiently recent version of
+FUN, the symbol FUN is returned itself.  Otherwise the macro
+returns the symbol of a compatibility function which supports the
+behavior and calling convention of the current stable Emacs
+version.  For example Compat 29.1 will provide compatibility
+functions which implement the behavior and calling convention of
+Emacs 29.1.
+
+See also `compat-call' to directly call compatibility functions."
+  (let ((compat (intern (format "compat--%s" fun))))
+    `#',(if (fboundp compat) compat fun)))
+
+(defmacro erc-compat-call (fun &rest args)
+  "Call compatibility function or macro FUN with ARGS.
+
+A good example function is `plist-get' which was extended with an
+additional predicate argument in Emacs 29.1.  The compatibility
+function, which supports this additional argument, can be
+obtained via (compat-function plist-get) and called
+via (compat-call plist-get plist prop predicate).  It is not
+possible to directly call (plist-get plist prop predicate) on
+Emacs older than 29.1, since the original `plist-get' function
+does not yet support the predicate argument.  Note that the
+Compat library never overrides existing functions.
+
+See also `compat-function' to lookup compatibility functions."
+  (let ((compat (intern (format "compat--%s" fun))))
+    `(,(if (fboundp compat) compat fun) ,@args)))
+
+;; END Compat macros
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode
@@ -368,16 +411,8 @@ If START or END is negative, it counts from the end."
 
 ;;;; Misc 29.1
 
-(defmacro erc-compat--with-memoization (table &rest forms)
-  (declare (indent defun))
-  (cond
-   ((fboundp 'with-memoization)
-    `(with-memoization ,table ,@forms)) ; 29.1
-   ((fboundp 'cl--generic-with-memoization)
-    `(cl--generic-with-memoization ,table ,@forms))
-   (t `(progn ,@forms))))
-
 (defvar url-irc-function)
+(declare-function url-type "url-parse" (cl-x))
 
 (defun erc-compat--29-browse-url-irc (string &rest _)
   (require 'url-irc)
@@ -408,6 +443,28 @@ If START or END is negative, it counts from the end."
                             u r))
                  (cons '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
                        existing))))))
+
+
+;;;; Misc 28.1
+
+(defvar comint-file-name-quote-list)
+(defvar shell-file-name-quote-list)
+(declare-function shell--parse-pcomplete-arguments "shell" nil)
+
+(defun erc-compat--28-split-string-shell-command (string)
+  (require 'comint)
+  (require 'shell)
+  (with-temp-buffer
+    (insert string)
+    (let ((comint-file-name-quote-list shell-file-name-quote-list))
+      (car (shell--parse-pcomplete-arguments)))))
+
+(defmacro erc-compat--split-string-shell-command (string)
+  ;; Autoloaded in Emacs 28.
+  (list (if (fboundp 'split-string-shell-command)
+            'split-string-shell-command
+          'erc-compat--28-split-string-shell-command)
+        string))
 
 (provide 'erc-compat)
 

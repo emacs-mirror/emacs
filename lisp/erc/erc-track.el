@@ -921,7 +921,11 @@ is relative to `erc-track-switch-direction'."
 	   (unless (eq major-mode 'erc-mode)
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
-	   (funcall fun (erc-track-get-active-buffer arg)))
+           (if-let ((buf (erc-track-get-active-buffer arg))
+                    ((buffer-live-p buf)))
+               (funcall fun buf)
+             (erc-modified-channels-update)
+             (erc-track--switch-buffer fun arg)))
 	  ;; if no active channels, switch back to what we were doing before
 	  ((and erc-track-last-non-erc-buffer
 	        erc-track-switch-from-erc

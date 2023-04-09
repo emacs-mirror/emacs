@@ -28,6 +28,9 @@
 ;; `erc-fill-mode' to switch it on.  Customize `erc-fill-function' to
 ;; change the style.
 
+;; TODO: redo `erc-fill-wrap-nudge' using transient after ERC drops
+;; support for Emacs 27.
+
 ;;; Code:
 
 (require 'erc)
@@ -38,30 +41,18 @@
   :group 'erc)
 
 ;;;###autoload(autoload 'erc-fill-mode "erc-fill" nil t)
-(define-minor-mode erc-fill-mode
-  "Toggle ERC fill mode.
-With a prefix argument ARG, enable ERC fill mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
-
+(define-erc-module fill nil
+  "Manage filling in ERC buffers.
 ERC fill mode is a global minor mode.  When enabled, messages in
 the channel buffers are filled."
-  :global t
-  (if erc-fill-mode
-      (erc-fill-enable)
-    (erc-fill-disable)))
-
-(defun erc-fill-enable ()
-  "Setup hooks for `erc-fill-mode'."
-  (interactive)
-  (add-hook 'erc-insert-modify-hook #'erc-fill)
-  (add-hook 'erc-send-modify-hook #'erc-fill))
-
-(defun erc-fill-disable ()
-  "Cleanup hooks, disable `erc-fill-mode'."
-  (interactive)
-  (remove-hook 'erc-insert-modify-hook #'erc-fill)
-  (remove-hook 'erc-send-modify-hook #'erc-fill))
+  ;; FIXME ensure a consistent ordering relative to hook members from
+  ;; other modules.  Ideally, this module's processing should happen
+  ;; after "morphological" modifications to a message's text but
+  ;; before superficial decorations.
+  ((add-hook 'erc-insert-modify-hook #'erc-fill)
+   (add-hook 'erc-send-modify-hook #'erc-fill))
+  ((remove-hook 'erc-insert-modify-hook #'erc-fill)
+   (remove-hook 'erc-send-modify-hook #'erc-fill)))
 
 (defcustom erc-fill-prefix nil
   "Values used as `fill-prefix' for `erc-fill-variable'.
@@ -91,16 +82,29 @@ Static Filling with `erc-fill-static-center' of 27:
 These two styles are implemented using `erc-fill-variable' and
 `erc-fill-static'.  You can, of course, define your own filling
 function.  Narrowing to the region in question is in effect while your
-function is called."
+function is called.
+
+A third style resembles static filling but \"wraps\" instead of
+fills, thanks to `visual-line-mode' mode, which ERC automatically
+enables when this option is `erc-fill-wrap' or when
+`erc-fill-wrap-mode' is active.  Set `erc-fill-static-center' to
+your preferred initial \"prefix\" width.  For adjusting the width
+during a session, see the command `erc-fill-wrap-nudge'."
   :type '(choice (const :tag "Variable Filling" erc-fill-variable)
                  (const :tag "Static Filling" erc-fill-static)
+                 (const :tag "Dynamic word-wrap" erc-fill-wrap)
                  function))
 
 (defcustom erc-fill-static-center 27
-  "Column around which all statically filled messages will be centered.
-This column denotes the point where the ` ' character between
-<nickname> and the entered text will be put, thus aligning nick
-names right and text left."
+  "Number of columns to \"outdent\" the first line of a message.
+During early message handing, ERC prepends a span of
+non-whitespace characters to every message, such as a bracketed
+\"<nickname>\" or an `erc-notice-prefix'.  The
+`erc-fill-function' variants `erc-fill-static' and
+`erc-fill-wrap' look to this option to determine the amount of
+padding to apply to that portion until the filled (or wrapped)
+message content aligns with the indicated column.  See also
+https://en.wikipedia.org/wiki/Hanging_indent."
   :type 'integer)
 
 (defcustom erc-fill-variable-maximum-indentation 17
@@ -130,7 +134,7 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 
 (defun erc-fill-static ()
   "Fills a text such that messages start at column `erc-fill-static-center'."
-  (save-match-data
+  (save-restriction
     (goto-char (point-min))
     (looking-at "^\\(\\S-+\\)")
     (let ((nick (match-string 1)))
@@ -166,6 +170,326 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
                                          32)))
           (erc-fill-regarding-timestamp))))
     (erc-restore-text-properties)))
+
+(defvar-local erc-fill--wrap-value nil)
+(defvar-local erc-fill--wrap-visual-keys nil)
+
+(defcustom erc-fill-wrap-use-pixels t
+  "Whether to calculate padding in pixels when possible.
+A value of nil means ERC should use columns, which may happen
+regardless, depending on the Emacs version.  This option only
+matters when `erc-fill-wrap-mode' is enabled."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type 'boolean)
+
+(defcustom erc-fill-wrap-visual-keys 'non-input
+  "Whether to retain keys defined by `visual-line-mode'.
+A value of t tells ERC to use movement commands defined by
+`visual-line-mode' everywhere in an ERC buffer along with visual
+editing commands in the input area.  A value of nil means to
+never do so.  A value of `non-input' tells ERC to act like the
+value is nil in the input area and t elsewhere.  This option only
+plays a role when `erc-fill-wrap-mode' is enabled."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(choice (const nil) (const t) (const non-input)))
+
+(defcustom erc-fill-wrap-merge t
+  "Whether to consolidate messages from the same speaker.
+This tells ERC to omit redundant speaker labels for subsequent
+messages less than a day apart."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type 'boolean)
+
+(defun erc-fill--wrap-move (normal-cmd visual-cmd arg)
+  (funcall (pcase erc-fill--wrap-visual-keys
+             ('non-input
+              (if (>= (point) erc-input-marker) normal-cmd visual-cmd))
+             ('t visual-cmd)
+             (_ normal-cmd))
+           arg))
+
+(defun erc-fill--wrap-kill-line (arg)
+  "Defer to `kill-line' or `kill-visual-line'."
+  (interactive "P")
+  ;; ERC buffers are read-only outside of the input area, but we run
+  ;; `kill-line' anyway so that users can see the error.
+  (erc-fill--wrap-move #'kill-line #'kill-visual-line arg))
+
+(defun erc-fill--wrap-beginning-of-line (arg)
+  "Defer to `move-beginning-of-line' or `beginning-of-visual-line'."
+  (interactive "^p")
+  (let ((inhibit-field-text-motion t))
+    (erc-fill--wrap-move #'move-beginning-of-line
+                         #'beginning-of-visual-line arg))
+  (when (get-text-property (point) 'erc-prompt)
+    (goto-char erc-input-marker)))
+
+(defun erc-fill--wrap-end-of-line (arg)
+  "Defer to `move-end-of-line' or `end-of-visual-line'."
+  (interactive "^p")
+  (erc-fill--wrap-move #'move-end-of-line #'end-of-visual-line arg))
+
+(defun erc-fill-wrap-cycle-visual-movement (arg)
+  "Cycle through `erc-fill-wrap-visual-keys' styles ARG times.
+Go from nil to t to `non-input' and back around, but set internal
+state instead of mutating `erc-fill-wrap-visual-keys'.  When ARG
+is 0, reset to value of `erc-fill-wrap-visual-keys'."
+  (interactive "^p")
+  (when (zerop arg)
+    (setq erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys))
+  (while (not (zerop arg))
+    (cl-incf arg (- (abs arg)))
+    (setq erc-fill--wrap-visual-keys (pcase erc-fill--wrap-visual-keys
+                                       ('nil t)
+                                       ('t 'non-input)
+                                       ('non-input nil))))
+  (message "erc-fill-wrap movement: %S" erc-fill--wrap-visual-keys))
+
+(defvar-keymap erc-fill-wrap-mode-map ; Compat 29
+  :doc "Keymap for ERC's `fill-wrap' module."
+  :parent visual-line-mode-map
+  "<remap> <kill-line>" #'erc-fill--wrap-kill-line
+  "<remap> <move-end-of-line>" #'erc-fill--wrap-end-of-line
+  "<remap> <move-beginning-of-line>" #'erc-fill--wrap-beginning-of-line
+  "C-c a" #'erc-fill-wrap-cycle-visual-movement
+  ;; Not sure if this is problematic because `erc-bol' takes no args.
+  "<remap> <erc-bol>" #'erc-fill--wrap-beginning-of-line)
+
+(defvar erc-match-mode)
+(defvar erc-button-mode)
+(defvar erc-match--hide-fools-offset-bounds)
+
+(defun erc-fill--make-module-dependency-msg (module)
+  (concat "Enabling default global module `" module "' needed by local"
+          " module `fill-wrap'.  This will impact \C-]all\C-] ERC"
+          " sessions.  Add `" module "' to `erc-modules' to avoid this"
+          " warning.  See Info:\"(erc) Modules\" for more."))
+
+;;;###autoload(put 'fill-wrap 'erc--feature 'erc-fill)
+(define-erc-module fill-wrap nil
+  "Fill style leveraging `visual-line-mode'.
+This module displays nickname labels for speakers as overhanging
+leftward (and thus right-aligned) to a common offset, as
+determined by the option `erc-fill-static-center'.  It depends on
+the `fill' and `button' modules and assumes the option
+`erc-insert-timestamp-function' is `erc-insert-timestamp-right'
+or `erc-insert-timestamp-left-and-right' (recommended) so that it
+can display right-hand stamps in the right margin.  A value of
+`erc-insert-timestamp-left' is unsupported.  This local module
+depends on the global `fill' module.  To use it, either include
+`fill-wrap' in `erc-modules' or set `erc-fill-function' to
+`erc-fill-wrap' (recommended).  You can also manually invoke one
+of the minor-mode toggles as usual."
+  ((let (msg)
+     (unless erc-fill-mode
+       (unless (memq 'fill erc-modules)
+         (setq msg
+               ;; FIXME use `erc-button--display-error-notice-with-keys'
+               ;; when bug#60933 is ready.
+               (erc-fill--make-module-dependency-msg "fill")))
+       (erc-fill-mode +1))
+     (when erc-fill-wrap-merge
+       (require 'erc-button)
+       (unless erc-button-mode
+         (unless (memq 'button erc-modules)
+           (setq msg (concat msg (and msg " ")
+                             (erc-fill--make-module-dependency-msg "button"))))
+         (erc-with-server-buffer
+           (erc-button-mode +1))))
+     ;; Set local value of user option (can we avoid this somehow?)
+     (unless (eq erc-fill-function #'erc-fill-wrap)
+       (setq-local erc-fill-function #'erc-fill-wrap))
+     (when-let* ((vars (or erc--server-reconnecting erc--target-priors))
+                 ((alist-get 'erc-fill-wrap-mode vars)))
+       (setq erc-fill--wrap-visual-keys (alist-get 'erc-fill--wrap-visual-keys
+                                                   vars)
+             erc-fill--wrap-value (alist-get 'erc-fill--wrap-value vars)))
+     (add-function :filter-args (local 'erc-stamp--insert-date-function)
+                   #'erc-fill--wrap-stamp-insert-prefixed-date)
+     (when (or erc-stamp-mode (memq 'stamp erc-modules))
+       (erc-stamp--display-margin-mode +1))
+     (when (or (bound-and-true-p erc-match-mode) (memq 'match erc-modules))
+       (require 'erc-match)
+       (setq erc-match--hide-fools-offset-bounds t))
+     (setq erc-fill--wrap-value
+           (or erc-fill--wrap-value erc-fill-static-center))
+     (visual-line-mode +1)
+     (unless (local-variable-p 'erc-fill--wrap-visual-keys)
+       (setq erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys))
+     (when msg
+       (erc-display-error-notice nil msg))))
+  ((when erc-stamp--display-margin-mode
+     (erc-stamp--display-margin-mode -1))
+   (kill-local-variable 'erc-fill--wrap-value)
+   (kill-local-variable 'erc-fill-function)
+   (kill-local-variable 'erc-fill--wrap-visual-keys)
+   (remove-function (local 'erc-stamp--insert-date-function)
+                    #'erc-fill--wrap-stamp-insert-prefixed-date)
+   (visual-line-mode -1))
+  'local)
+
+(defvar-local erc-fill--wrap-length-function nil
+  "Function to determine length of overhanging characters.
+It should return an EXPR as defined by the Info node `(elisp)
+Pixel Specification'.  This value should represent the width of
+the overhang with all faces applied, including any enclosing
+brackets (which are not normally fontified) and a trailing space.
+It can also return nil to tell ERC to fall back to the default
+behavior of taking the length from the first \"word\".  This
+variable can be converted to a public one if needed by third
+parties.")
+
+(defvar-local erc-fill--wrap-last-msg nil)
+(defvar-local erc-fill--wrap-max-lull (* 24 60 60))
+
+(defun erc-fill--wrap-continued-message-p ()
+  (prog1 (and-let*
+             ((m (or erc-fill--wrap-last-msg
+                     (setq erc-fill--wrap-last-msg (point-min-marker))
+                     nil))
+              ((< (1+ (point-min)) (- (point) 2)))
+              (props (save-restriction
+                       (widen)
+                       (when (eq 'erc-timestamp (field-at-pos m))
+                         (set-marker m (field-end m)))
+                       (and (eq 'PRIVMSG (get-text-property m 'erc-command))
+                            (not (eq (get-text-property m 'font-lock-face)
+                                     'erc-action-face))
+                            (cons (get-text-property m 'erc-timestamp)
+                                  (get-text-property (1+ m) 'erc-data)))))
+              (ts (pop props))
+              ((not (time-less-p (erc-stamp--current-time) ts)))
+              ((time-less-p (time-subtract (erc-stamp--current-time) ts)
+                            erc-fill--wrap-max-lull))
+              (nick  (buffer-substring-no-properties
+                      (1+ (point-min)) (- (point) 2)))
+              ((equal (car props) (erc-downcase nick)))))
+    (set-marker erc-fill--wrap-last-msg (point-min))))
+
+(defun erc-fill--wrap-stamp-insert-prefixed-date (args)
+  "Apply `line-prefix' property to args."
+  (let* ((ts-left (car args)))
+    (put-text-property 0 (length ts-left) 'line-prefix
+                       `(space :width
+                               (- erc-fill--wrap-value
+                                  ,(length (string-trim-left ts-left))))
+                       ts-left))
+  args)
+
+(defun erc-fill-wrap ()
+  "Use text props to mimic the effect of `erc-fill-static'.
+See `erc-fill-wrap-mode' for details."
+  (unless erc-fill-wrap-mode
+    (erc-fill-wrap-mode +1))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((len (or (and erc-fill--wrap-length-function
+                        (funcall erc-fill--wrap-length-function))
+                   (progn
+                     (skip-syntax-forward "^-")
+                     (forward-char)
+                     (cond ((and erc-fill-wrap-merge
+                                 (erc-fill--wrap-continued-message-p))
+                            (put-text-property (point-min) (point)
+                                               'display "")
+                            0)
+                           ((and erc-fill-wrap-use-pixels
+                                 (fboundp 'buffer-text-pixel-size))
+                            (save-restriction
+                              (narrow-to-region (point-min) (point))
+                              (list (car (buffer-text-pixel-size)))))
+                           (t (- (point) (point-min))))))))
+      ;; Leaving out the final newline doesn't seem to affect anything.
+      (erc-put-text-properties (point-min) (point-max)
+                               '(line-prefix wrap-prefix) nil
+                               `((space :width (- erc-fill--wrap-value ,len))
+                                 (space :width erc-fill--wrap-value))))))
+
+;; This is an experimental helper for third-party modules.  You could,
+;; for example, use this to automatically resize the prefix to a
+;; fraction of the window's width on some event change.  Another use
+;; case would be to fix lines affected by toggling a display-oriented
+;; mode, like `display-line-numbers-mode'.
+
+(defun erc-fill--wrap-fix (&optional value)
+  "Re-wrap from `point-min' to `point-max'.
+That is, recalculate the width of all accessible lines and reset
+local prefix VALUE when non-nil."
+  (save-excursion
+    (when value
+      (setq erc-fill--wrap-value value))
+    (let ((inhibit-field-text-motion t)
+          (inhibit-read-only t))
+      (goto-char (point-min))
+      (while (and (zerop (forward-line))
+                  (< (point) (min (point-max) erc-insert-marker)))
+        (save-restriction
+          (narrow-to-region (line-beginning-position) (line-end-position))
+          (erc-fill-wrap))))))
+
+(defun erc-fill--wrap-nudge (arg)
+  (when (zerop arg)
+    (setq arg (- erc-fill-static-center erc-fill--wrap-value)))
+  (cl-incf erc-fill--wrap-value arg)
+  arg)
+
+(defun erc-fill-wrap-nudge (arg)
+  "Adjust `erc-fill-wrap' by ARG columns.
+Offer to repeat command in a manner similar to
+`text-scale-adjust'.
+
+   \\`=' Increase indentation by one column
+   \\`-' Decrease indentation by one column
+   \\`0' Reset indentation to the default
+   \\`+' Shift right margin rightward (shrink) by one column
+   \\`_' Shift right margin leftward (grow) by one column
+   \\`)' Reset the right margin to the default
+
+Note that misalignment may occur when messages contain
+decorations applied by third-party modules.  See
+`erc-fill--wrap-fix' for a temporary workaround."
+  (interactive "p")
+  (unless erc-fill--wrap-value
+    (cl-assert (not erc-fill-wrap-mode))
+    (user-error "Minor mode `erc-fill-wrap-mode' disabled"))
+  (unless (get-buffer-window)
+    (user-error "Command called in an undisplayed buffer"))
+  (let* ((total (erc-fill--wrap-nudge arg))
+         (win-ratio (/ (float (- (window-point) (window-start)))
+                       (- (window-end nil t) (window-start)))))
+    (when (zerop arg)
+      (setq arg 1))
+    (erc-compat-call
+     set-transient-map
+     (let ((map (make-sparse-keymap)))
+       (dolist (key '(?= ?- ?0))
+         (let ((a (pcase key
+                    (?0 0)
+                    (?- (- (abs arg)))
+                    (_ (abs arg)))))
+           (define-key map (vector (list key))
+                       (lambda ()
+                         (interactive)
+                         (cl-incf total (erc-fill--wrap-nudge a))
+                         (recenter (round (* win-ratio (window-height))))))))
+       (dolist (key '(?\) ?_ ?+))
+         (let ((a (pcase key
+                    (?\) 0)
+                    (?_ (- (abs arg)))
+                    (?+ (abs arg)))))
+           (define-key map (vector (list key))
+                       (lambda ()
+                         (interactive)
+                         (erc-stamp--adjust-right-margin (- a))
+                         (recenter (round (* win-ratio (window-height))))))))
+       map)
+     t
+     (lambda ()
+       (message "Fill prefix: %d (%+d col%s)"
+                erc-fill--wrap-value total (if (> (abs total) 1) "s" "")))
+     "Use %k for further adjustment"
+     1)
+    (recenter (round (* win-ratio (window-height))))))
 
 (defun erc-fill-regarding-timestamp ()
   "Fills a text such that messages start at column `erc-fill-static-center'."

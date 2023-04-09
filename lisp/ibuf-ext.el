@@ -1650,68 +1650,67 @@ a prefix argument reverses the meaning of that variable."
 	  (error "No buffer with name %s" name)
 	(goto-char buf-point)))))
 
+(declare-function diff-check-labels "diff" (&optional force))
+(declare-function diff-file-local-copy "diff" (file-or-buf))
 (declare-function diff-sentinel "diff"
 		  (code &optional old-temp-file new-temp-file))
 
 (defun ibuffer-diff-buffer-with-file-1 (buffer)
-  (let ((bufferfile (buffer-local-value 'buffer-file-name buffer))
-	(tempfile (make-temp-file "buffer-content-")))
-    (when bufferfile
-      (unwind-protect
-	  (progn
-	    (with-current-buffer buffer
-	      (write-region nil nil tempfile nil 'nomessage))
-	    (let* ((old (expand-file-name bufferfile))
-		   (new (expand-file-name tempfile))
-		   (oldtmp (file-local-copy old))
-		   (newtmp (file-local-copy new))
-		   (switches diff-switches)
-		   (command
-		    (mapconcat
-		     'identity
-		     `(,diff-command
-		       ;; Use explicitly specified switches
-		       ,@(if (listp switches) switches (list switches))
-		       ,@(if (or old new)
-			     (list "-L" (shell-quote-argument old)
-				   "-L" (shell-quote-argument
-					 (format "Buffer %s" (buffer-name buffer)))))
-		       ,(shell-quote-argument (or oldtmp old))
-		       ,(shell-quote-argument (or newtmp new)))
-		     " ")))
-	      (let ((inhibit-read-only t))
-		(insert command "\n")
-		(diff-sentinel
-		 (call-process shell-file-name nil
-			       (current-buffer) nil
-			       shell-command-switch command))
-		(insert "\n")))))
-      (sit-for 0)
-      (when (file-exists-p tempfile)
-	(delete-file tempfile)))))
+  "Compare BUFFER with its associated file, if any.
+Unlike `diff-no-select', insert output into current buffer
+without erasing it."
+  (when-let ((old (buffer-file-name buffer)))
+    (defvar diff-use-labels)
+    (let* ((new buffer)
+           (oldtmp (diff-file-local-copy old))
+           (newtmp (diff-file-local-copy new))
+           (switches diff-switches)
+           (command
+            (string-join
+             `(,diff-command
+               ,@(if (listp switches) switches (list switches))
+               ,@(and (eq diff-use-labels t)
+                      (list "--label" (shell-quote-argument old)
+                            "--label" (shell-quote-argument (format "%S" new))))
+               ,(shell-quote-argument (or oldtmp old))
+               ,(shell-quote-argument (or newtmp new)))
+             " "))
+           (inhibit-read-only t))
+      (insert ?\n command ?\n)
+      (diff-sentinel (call-process shell-file-name nil t nil
+                                   shell-command-switch command)
+                     oldtmp newtmp)
+      (goto-char (point-max)))
+    (redisplay)))
 
 ;;;###autoload
 (defun ibuffer-diff-with-file ()
   "View the differences between marked buffers and their associated files.
 If no buffers are marked, use buffer at point.
-This requires the external program \"diff\" to be in your `exec-path'."
+This requires the external program `diff-command' to be in your
+`exec-path'."
   (interactive)
   (require 'diff)
-  (let ((marked-bufs (ibuffer-get-marked-buffers)))
-    (when (null marked-bufs)
-      (setq marked-bufs (list (ibuffer-current-buffer t))))
-    (with-current-buffer (get-buffer-create "*Ibuffer Diff*")
-      (setq buffer-read-only nil)
-      (buffer-disable-undo (current-buffer))
-      (erase-buffer)
-      (buffer-enable-undo (current-buffer))
+  (let ((marked-bufs (or (ibuffer-get-marked-buffers)
+                         (list (ibuffer-current-buffer t))))
+        (diff-buf (get-buffer-create "*Ibuffer Diff*")))
+    (with-current-buffer diff-buf
+      (setq buffer-read-only t)
+      (buffer-disable-undo)
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (buffer-enable-undo)
       (diff-mode)
+      (diff-check-labels)
       (dolist (buf marked-bufs)
 	(unless (buffer-live-p buf)
 	  (error "Buffer %s has been killed" buf))
-	(ibuffer-diff-buffer-with-file-1 buf))
-      (setq buffer-read-only t)))
-  (switch-to-buffer "*Ibuffer Diff*"))
+        (ibuffer-diff-buffer-with-file-1 buf))
+      (goto-char (point-min))
+      (when (= (following-char) ?\n)
+        (let ((inhibit-read-only t))
+          (delete-char 1))))
+    (pop-to-buffer-same-window diff-buf)))
 
 ;;;###autoload
 (defun ibuffer-copy-filename-as-kill (&optional arg)

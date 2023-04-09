@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'erc)
+(require 'erc-goodies)
 (require 'speedbar)
 (condition-case nil (require 'dframe) (error nil))
 

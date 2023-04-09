@@ -415,8 +415,12 @@ This only has an effect if `erc-server-auto-reconnect' is non-nil."
 
 (defcustom erc-server-reconnect-timeout 1
   "Number of seconds to wait between successive reconnect attempts.
-
-If a key is pressed while ERC is waiting, it will stop waiting."
+If this value is too low, servers may reject your initial nick
+request upon reconnecting because they haven't yet noticed that
+your previous connection is dead.  If this happens, try setting
+this value to 120 or greater and/or exploring the option
+`erc-nickname-in-use-functions', which may provide a more
+proactive means of handling this situation on some servers."
   :type 'number)
 
 (defcustom erc-server-reconnect-function 'erc-server-delayed-reconnect
@@ -427,6 +431,7 @@ dialing.  Use `erc-schedule-reconnect' to instead try again later
 and optionally alter the attempts tally."
   :package-version '(ERC . "5.5")
   :type '(choice (function-item erc-server-delayed-reconnect)
+                 (function-item erc-server-delayed-check-reconnect)
                  function))
 
 (defcustom erc-split-line-length 440
@@ -658,6 +663,30 @@ The current buffer is given by BUFFER."
   (run-hooks 'erc--server-post-connect-hook)
   (erc-login))
 
+(defvar erc--server-connect-function #'erc--server-propagate-failed-connection
+  "Function called one second after creating a server process.
+Called with the newly created process just before the opening IRC
+protocol exchange.")
+
+(defun erc--server-propagate-failed-connection (process)
+  "Ensure the PROCESS sentinel runs at least once on early failure.
+Act as a watchdog timer to force `erc-process-sentinel' and its
+finalizers, like `erc-disconnected-hook', to run when PROCESS has
+a status of `failed' after one second.  But only do so when its
+error data is something ERC recognizes.  Print an explanation to
+the server buffer in any case."
+  (when (eq (process-status process) 'failed)
+    (erc-display-message
+     nil 'error (process-buffer process)
+     (format "Process exit status: %S" (process-exit-status process)))
+    (pcase (process-exit-status process)
+      (111
+       (erc-process-sentinel process "failed with code 111\n"))
+      (`(file-error . ,_)
+       (erc-process-sentinel process "failed with code -523\n"))
+      ((rx "tls" (+ nonl) "failed")
+       (erc-process-sentinel process "failed with code -525\n")))))
+
 (defvar erc--server-connect-dumb-ipv6-regexp
   ;; Not for validation (gives false positives).
   (rx bot "[" (group (+ (any xdigit digit ":.")) (? "%" (+ alnum))) "]" eot))
@@ -710,7 +739,9 @@ TLS (see `erc-session-client-certificate' for more details)."
     ;; MOTD line)
     (if (eq (process-status process) 'connect)
         ;; waiting for a non-blocking connect - keep the user informed
-        (erc-display-message nil nil buffer "Opening connection..\n")
+        (progn
+          (erc-display-message nil nil buffer "Opening connection..\n")
+          (run-at-time 1 nil erc--server-connect-function process))
       (message "%s...done" msg)
       (erc--register-connection))))
 
@@ -743,6 +774,78 @@ Make sure you are in an ERC buffer when running this."
   (if (buffer-live-p buffer)
     (with-current-buffer buffer
       (erc-server-reconnect))))
+
+(defvar-local erc--server-reconnect-timeout nil)
+(defvar-local erc--server-reconnect-timeout-check 10)
+(defvar-local erc--server-reconnect-timeout-scale-function
+    #'erc--server-reconnect-timeout-double)
+
+(defun erc--server-reconnect-timeout-double (existing)
+  "Double EXISTING timeout, but cap it at 5 minutes."
+  (min 300 (* existing 2)))
+
+;; This may appear to hang at various places.  It's assumed that when
+;; *Messages* contains "Waiting for socket ..."  or similar, progress
+;; will be made eventually.
+
+(defun erc-server-delayed-check-reconnect (buffer)
+  "Wait for internet connectivity before trying to reconnect.
+Expect BUFFER to be the server buffer for the current connection."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (setq erc--server-reconnect-timeout
+            (funcall erc--server-reconnect-timeout-scale-function
+                     (or erc--server-reconnect-timeout
+                         erc-server-reconnect-timeout)))
+      (let* ((reschedule (lambda (proc)
+                           (when (buffer-live-p buffer)
+                             (with-current-buffer buffer
+                               (let ((erc-server-reconnect-timeout
+                                      erc--server-reconnect-timeout))
+                                 (delete-process proc)
+                                 (erc-display-message nil 'error buffer
+                                                      "Nobody home...")
+                                 (erc-schedule-reconnect buffer 0))))))
+             (conchk-exp (time-add erc--server-reconnect-timeout-check
+                                   (current-time)))
+             (conchk-timer nil)
+             (conchk (lambda (proc)
+                       (let ((status (process-status proc))
+                             (xprdp (time-less-p conchk-exp (current-time))))
+                         (when (or (not (eq 'connect status)) xprdp)
+                           (cancel-timer conchk-timer))
+                         (when (buffer-live-p buffer)
+                           (cond (xprdp (erc-display-message
+                                         nil 'error buffer
+                                         "Timed out while dialing...")
+                                        (delete-process proc)
+                                        (funcall reschedule proc))
+                                 ((eq 'failed status)
+                                  (funcall reschedule proc)))))))
+             (sentinel (lambda (proc event)
+                         (pcase event
+                           ("open\n"
+                            (run-at-time nil nil #'send-string proc
+                                         (format "PING %d\r\n"
+                                                 (time-convert nil 'integer))))
+                           ((or "connection broken by remote peer\n"
+                                (rx bot "failed"))
+                            (funcall reschedule proc)))))
+             (filter (lambda (proc _)
+                       (delete-process proc)
+                       (with-current-buffer buffer
+                         (setq erc--server-reconnect-timeout nil))
+                       (run-at-time nil nil #'erc-server-delayed-reconnect
+                                    buffer))))
+        (condition-case _
+            (let ((proc (funcall erc-session-connector
+                                 "*erc-connectivity-check*" nil
+                                 erc-session-server erc-session-port
+                                 :nowait t)))
+              (setq conchk-timer (run-at-time 1 1 conchk proc))
+              (set-process-filter proc filter)
+              (set-process-sentinel proc sentinel))
+          (file-error (funcall reschedule nil)))))))
 
 (defun erc-server-filter-function (process string)
   "The process filter for the ERC server."
@@ -823,11 +926,16 @@ When `erc-server-reconnect-attempts' is a number, increment
 `erc-server-reconnect-count' by INCR unconditionally."
   (let ((count (and (integerp erc-server-reconnect-attempts)
                     (- erc-server-reconnect-attempts
-                       (cl-incf erc-server-reconnect-count (or incr 1))))))
-    (erc-display-message nil 'error (current-buffer) 'reconnecting
+                       (cl-incf erc-server-reconnect-count (or incr 1)))))
+        (proc (buffer-local-value 'erc-server-process buffer)))
+    (erc-display-message nil 'error buffer 'reconnecting
                          ?m erc-server-reconnect-timeout
                          ?i (if count erc-server-reconnect-count "N")
                          ?n (if count erc-server-reconnect-attempts "A"))
+    (set-process-sentinel proc #'ignore)
+    (set-process-filter proc nil)
+    (delete-process proc)
+    (erc-update-mode-line)
     (setq erc-server-reconnecting nil
           erc--server-reconnect-timer
           (run-at-time erc-server-reconnect-timeout nil
@@ -1876,7 +1984,7 @@ ambiguous and only useful for tokens supporting a single
 primitive value."
   (if-let* ((table (or erc--isupport-params
                        (erc-with-server-buffer erc--isupport-params)))
-            (value (erc-compat--with-memoization (gethash key table)
+            (value (with-memoization (gethash key table)
                      (when-let ((v (assoc (symbol-name key)
                                           erc-server-parameters)))
                        (if (cdr v)
@@ -2236,6 +2344,11 @@ See `erc-display-server-message'." nil
     (erc-display-message parsed '(notice error) 'active
                          's401 ?n nick/channel)))
 
+(define-erc-response-handler (402)
+  "No such server." nil
+  (erc-display-message parsed '(notice error) 'active
+                       's402 ?c (cadr (erc-response.command-args parsed))))
+
 (define-erc-response-handler (403)
   "No such channel." nil
   (erc-display-message parsed '(notice error) 'active
@@ -2383,7 +2496,7 @@ See `erc-display-error-notice'." nil
 ;; (define-erc-response-handler (323 364 365 381 382 392 393 394 395
 ;;                               200 201 202 203 204 205 206 208 209 211 212 213
 ;;                               214 215 216 217 218 219 241 242 243 244 249 261
-;;                               262 302 342 351 402 407 409 411 413 414 415
+;;                               262 302 342 351 407 409 411 413 414 415
 ;;                               423 424 436 441 443 444 467 471 472 473 KILL)
 ;;   nil nil
 ;;   (ignore proc parsed))
