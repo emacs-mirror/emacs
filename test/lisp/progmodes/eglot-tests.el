@@ -61,16 +61,13 @@
            (apply #'format format args)))
 
 (defmacro eglot--with-fixture (fixture &rest body)
-  "Setup FIXTURE, call BODY, teardown FIXTURE.
+  "Set up FIXTURE, call BODY, tear down FIXTURE.
 FIXTURE is a list.  Its elements are of the form (FILE . CONTENT)
 to create a readable FILE with CONTENT.  FILE may be a directory
 name and CONTENT another (FILE . CONTENT) list to specify a
-directory hierarchy.  FIXTURE's elements can also be (SYMBOL
-VALUE) meaning SYMBOL should be bound to VALUE during BODY and
-then restored."
+directory hierarchy."
   (declare (indent 1) (debug t))
-  `(eglot--call-with-fixture
-    ,fixture #'(lambda () ,@body)))
+  `(eglot--call-with-fixture ,fixture (lambda () ,@body)))
 
 (defun eglot--make-file-or-dir (ass)
   (let ((file-or-dir-name (car ass))
@@ -91,18 +88,9 @@ then restored."
   "Helper for `eglot--with-fixture'.  Run FN under FIXTURE."
   (let* ((fixture-directory (make-nearby-temp-file "eglot--fixture" t))
          (default-directory fixture-directory)
-         file-specs created-files
-         syms-to-restore
+         created-files
          new-servers
          test-body-successful-p)
-    (dolist (spec fixture)
-      (cond ((symbolp spec)
-             (push (cons spec (symbol-value spec)) syms-to-restore)
-             (set spec nil))
-            ((symbolp (car spec))
-             (push (cons (car spec) (symbol-value (car spec))) syms-to-restore)
-             (set (car spec) (cadr spec)))
-            ((stringp (car spec)) (push spec file-specs))))
     (eglot--test-message "[%s]: test start" (ert-test-name (ert-running-test)))
     (unwind-protect
         (let* ((process-environment
@@ -123,7 +111,7 @@ then restored."
                  process-environment))
                (eglot-server-initialized-hook
                 (lambda (server) (push server new-servers))))
-          (setq created-files (mapcan #'eglot--make-file-or-dir file-specs))
+          (setq created-files (mapcan #'eglot--make-file-or-dir fixture))
           (prog1 (funcall fn)
             (setq test-body-successful-p t)))
       (eglot--test-message "[%s]: %s" (ert-test-name (ert-running-test))
@@ -155,18 +143,15 @@ then restored."
                         (t
                          (eglot--test-message "Preserved for inspection: %s"
                                               (mapconcat #'buffer-name buffers ", "))))))))
-        (eglot--cleanup-after-test fixture-directory created-files syms-to-restore)))))
+        (eglot--cleanup-after-test fixture-directory created-files)))))
 
-(defun eglot--cleanup-after-test (fixture-directory created-files syms-to-restore)
+(defun eglot--cleanup-after-test (fixture-directory created-files)
   (let ((buffers-to-delete
-         (delete nil (mapcar #'find-buffer-visiting created-files))))
-    (eglot--test-message "Killing %s, wiping %s, restoring %s"
+         (delq nil (mapcar #'find-buffer-visiting created-files))))
+    (eglot--test-message "Killing %s, wiping %s"
                          buffers-to-delete
-                         fixture-directory
-                         (mapcar #'car syms-to-restore))
-    (cl-loop for (sym . val) in syms-to-restore
-             do (set sym val))
-    (dolist (buf buffers-to-delete) ;; have to save otherwise will get prompted
+                         fixture-directory)
+    (dolist (buf buffers-to-delete) ;; Have to save otherwise will get prompted.
       (with-current-buffer buf (save-buffer) (kill-buffer)))
     (delete-directory fixture-directory 'recursive)
     ;; Delete Tramp buffers if needed.
@@ -871,9 +856,9 @@ int main() {
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
       `(("project" . (("foo.c" . "int foo() {return 42;}")
-                      ("bar.c" . "int bar() {return 42;}")))
-        (c-mode-hook (eglot-ensure)))
-    (let (server)
+                      ("bar.c" . "int bar() {return 42;}"))))
+    (let ((c-mode-hook '(eglot-ensure))
+          server)
       ;; need `ert-simulate-command' because `eglot-ensure'
       ;; relies on `post-command-hook'.
       (with-current-buffer
