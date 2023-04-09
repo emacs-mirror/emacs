@@ -325,8 +325,7 @@ then restored."
   "Connect to eclipse.jdt.ls server."
   (skip-unless (executable-find "jdtls"))
   (eglot--with-fixture
-      '(("project/src/main/java/foo" . (("Main.java" . "")))
-        ("project/.git/" . nil))
+      '(("project/src/main/java/foo" . (("Main.java" . ""))))
     (with-current-buffer
         (eglot--find-file-noselect "project/src/main/java/foo/Main.java")
       (eglot--sniffing (:server-notifications s-notifs)
