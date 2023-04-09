@@ -244,8 +244,8 @@ arguments to pass to the OPERATION."
         (setq result
 	      (insert-file-contents
 	       (tramp-fuse-local-file-name filename) visit beg end replace))
-      (when visit (setq buffer-file-name filename))
-      (cons filename (cdr result)))))
+      (when visit (setq buffer-file-name filename)))
+    (cons filename (cdr result))))
 
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
