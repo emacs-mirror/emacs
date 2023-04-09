@@ -859,6 +859,18 @@ the semicolon.  This function skips the semicolon."
     (goto-char (match-end 0)))
   (treesit-default-defun-skipper))
 
+(defun c-ts-base--before-indent (args)
+  (pcase-let ((`(,node ,parent ,bol) args))
+    (when (null node)
+      (let ((smallest-node (treesit-node-at (point))))
+        ;; "Virtual" closer curly added by the
+        ;; parser's error recovery.
+        (when (and (equal (treesit-node-type smallest-node) "}")
+                   (equal (treesit-node-end smallest-node)
+                          (treesit-node-start smallest-node)))
+          (setq parent (treesit-node-parent smallest-node)))))
+    (list node parent bol)))
+
 (defun c-ts-mode-indent-defun ()
   "Indent the current top-level declaration syntactically.
 
@@ -903,6 +915,11 @@ the semicolon.  This function skips the semicolon."
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
   (setq-local treesit-defun-prefer-top-level t)
+
+  ;; When the code is in incomplete state, try to make a better guess
+  ;; about which node to indent against.
+  (add-function :filter-args (local 'treesit-indent-function)
+                #'c-ts-base--before-indent)
 
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
