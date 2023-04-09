@@ -443,6 +443,21 @@ simplified away.
 This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
+---
+*** Warn about more ignored function return values.
+The compiler now warns when the return value from certain functions is
+ignored.  Example:
+
+    (progn (nreverse my-list) my-list)
+
+will elicit a warning because it is usually pointless to call
+'nreverse' on a list without using the returned value.  To silence the
+warning, make use of the value in some way, such as assigning it to a
+variable.  You can also wrap the function call in '(ignore ...)'.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'ignored-return-value'.
+
 +++
 ** New function 'file-user-uid'.
 This function is like 'user-uid', but is aware of file name handlers,

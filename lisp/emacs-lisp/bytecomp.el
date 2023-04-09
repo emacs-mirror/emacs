@@ -3502,7 +3502,67 @@ lambda-expression."
               ;; so maybe we don't need to bother about it here?
               (setq form (cons 'progn (cdr form)))
               (setq handler #'byte-compile-progn))
-             ((and (or sef (eq (car form) 'mapcar))
+             ((and (or sef
+                       (memq (car form)
+                             ;; FIXME: Use a function property (declaration)
+                             ;; instead of this list.
+                             '(
+                               ;; Functions that are side-effect-free
+                               ;; except for the behaviour of
+                               ;; functions passed as argument.
+                               mapcar mapcan mapconcat
+                               cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
+                               cl-reduce
+                               assoc assoc-default plist-get plist-member
+                               cl-assoc cl-assoc-if cl-assoc-if-not
+                               cl-rassoc cl-rassoc-if cl-rassoc-if-not
+                               cl-member cl-member-if cl-member-if-not
+                               cl-adjoin
+                               cl-mismatch cl-search
+                               cl-find cl-find-if cl-find-if-not
+                               cl-position cl-position-if cl-position-if-not
+                               cl-count cl-count-if cl-count-if-not
+                               cl-remove cl-remove-if cl-remove-if-not
+                               cl-member cl-member-if cl-member-if-not
+                               cl-remove-duplicates
+                               cl-subst cl-subst-if cl-subst-if-not
+                               cl-substitute cl-substitute-if
+                               cl-substitute-if-not
+                               cl-sublis
+                               cl-union cl-intersection
+                               cl-set-difference cl-set-exclusive-or
+                               cl-subsetp
+                               cl-every cl-some cl-notevery cl-notany
+                               cl-tree-equal
+
+                               ;; Functions that mutate and return a list.
+                               cl-delete-if cl-delete-if-not
+                               ;; `delete-dups' and `delete-consecutive-dups'
+                               ;; never delete the first element so it's
+                               ;; safe to ignore their return value, but
+                               ;; this isn't the case with
+                               ;; `cl-delete-duplicates'.
+                               cl-delete-duplicates
+                               cl-nsubst cl-nsubst-if cl-nsubst-if-not
+                               cl-nsubstitute cl-nsubstitute-if
+                               cl-nsubstitute-if-not
+                               cl-nunion cl-nintersection
+                               cl-nset-difference cl-nset-exclusive-or
+                               cl-nreconc cl-nsublis
+                               cl-merge
+                               ;; It's safe to ignore the value of `sort'
+                               ;; and `nreverse' when used on arrays,
+                               ;; but most calls pass lists.
+                               nreverse
+                               sort cl-sort cl-stable-sort
+
+                               ;; Adding the following functions yields many
+                               ;; positives; evaluate how many of them are
+                               ;; false first.
+
+                               ;;delq delete cl-delete
+                               ;;nconc plist-put
+                               )))
                    (byte-compile-warning-enabled-p
                     'ignored-return-value (car form)))
               (byte-compile-warn-x
