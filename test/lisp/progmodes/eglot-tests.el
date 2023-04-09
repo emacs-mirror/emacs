@@ -37,8 +37,8 @@
 ;; value (FIXME: like what?) in order to overwrite the default value.
 ;;
 ;; IMPORTANT: Since Eglot is a :core ELPA package, these tests are
- ;;supposed to run on Emacsen down to 26.3.  Do not use bleeding-edge
- ;;functionality not compatible with that Emacs version.
+;; supposed to run on Emacsen down to 26.3.  Do not use bleeding-edge
+;; functionality not compatible with that Emacs version.
 
 ;;; Code:
 (require 'eglot)
@@ -479,11 +479,11 @@ then restored."
           (should (eq 'eglot-diagnostic-tag-unnecessary-face (face-at-point))))))))
 
 (defun eglot--eldoc-on-demand ()
-  ;; Trick Eldoc 1.1.0 into accepting on-demand calls.
+  ;; Trick ElDoc 1.1.0 into accepting on-demand calls.
   (eldoc t))
 
 (defun eglot--tests-force-full-eldoc ()
-  ;; FIXME: This uses some Eldoc implementation defatils.
+  ;; FIXME: This uses some ElDoc implementation details.
   (when (buffer-live-p eldoc--doc-buffer)
     (with-current-buffer eldoc--doc-buffer
       (let ((inhibit-read-only t))
@@ -669,7 +669,7 @@ int main() {
       (should (string-match "^fprintf" (eglot--tests-force-full-eldoc))))))
 
 (ert-deftest eglot-test-multiline-eldoc ()
-  "Test Eldoc documentation from multiple osurces."
+  "Test ElDoc documentation from multiple osurces."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
       `(("project" . (("coiso.c" .
@@ -722,7 +722,7 @@ int main() {
         (eglot--sniffing (:server-notifications s-notifs)
           (should (eglot--tests-connect))
           (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
-             (string= method "textDocument/publishDiagnostics")))
+            (string= method "textDocument/publishDiagnostics")))
         (goto-char (point-max))
         (eglot--simulate-key-event ?.)
         (should (looking-back "^    \\."))))))
@@ -1287,7 +1287,7 @@ macro will assume it exists."
 (ert-deftest eglot-test-path-to-uri-windows ()
   (skip-unless (eq system-type 'windows-nt))
   (should (string-prefix-p "file:///"
-                             (eglot--path-to-uri "c:/Users/Foo/bar.lisp")))
+                           (eglot--path-to-uri "c:/Users/Foo/bar.lisp")))
   (should (string-suffix-p "c%3A/Users/Foo/bar.lisp"
                            (eglot--path-to-uri "c:/Users/Foo/bar.lisp"))))
 
@@ -1317,8 +1317,9 @@ macro will assume it exists."
         (should (eq (eglot-current-server) server))))))
 
 (provide 'eglot-tests)
-;;; eglot-tests.el ends here
 
 ;; Local Variables:
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
+
+;;; eglot-tests.el ends here
