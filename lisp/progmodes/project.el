@@ -1248,8 +1248,10 @@ If you exit the `query-replace', you can later continue the
 
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
-          (file-name-nondirectory
-           (directory-file-name default-directory))
+          (if-let ((proj (project-current nil)))
+              (project-name proj)
+            (file-name-nondirectory
+             (directory-file-name default-directory)))
           "-"
           (downcase mode)
           "*"))
@@ -1261,7 +1263,7 @@ If non-nil, it overrides `compilation-buffer-name-function' for
   :version "28.1"
   :group 'project
   :type '(choice (const :tag "Default" nil)
-                 (const :tag "Prefixed with root directory name"
+                 (const :tag "Prefixed with project name"
                         project-prefixed-buffer-name)
                  (function :tag "Custom function")))
 
