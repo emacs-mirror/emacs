@@ -563,9 +563,9 @@ The same keyword arguments are supported as in
         ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
         ;; in batch mode only, therefore.
         (when (and noninteractive (not (file-directory-p "~/")))
-          (setenv "HOME" temporary-file-directory))
+          (setenv "HOME" (directory-file-name temporary-file-directory)))
         (format "/mock::%s" temporary-file-directory))))
-    "Temporary directory for remote file tests.")
+  "Temporary directory for remote file tests.")
 
 (provide 'ert-x)
 
