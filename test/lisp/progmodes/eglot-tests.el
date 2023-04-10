@@ -92,24 +92,24 @@ directory hierarchy."
          test-body-successful-p)
     (eglot--test-message "[%s]: test start" (ert-test-name (ert-running-test)))
     (unwind-protect
-        (let* ((process-environment
-                (append
-                 `(;; Set XDF_CONFIG_HOME to /dev/null to prevent
-                   ;; user-configuration to have an influence on
-                   ;; language servers. (See github#441)
-                   "XDG_CONFIG_HOME=/dev/null"
-                   ;; ... on the flip-side, a similar technique by
-                   ;; Emacs's test makefiles means that HOME is
-                   ;; spoofed to /nonexistent, or sometimes /tmp.
-                   ;; This breaks some common installations for LSP
-                   ;; servers like pylsp, rust-analyzer making these
-                   ;; tests mostly useless, so we hack around it here
-                   ;; with a great big hack.
-                   ,(format "HOME=%s"
-                            (expand-file-name (format "~%s" (user-login-name)))))
-                 process-environment))
-               (eglot-server-initialized-hook
-                (lambda (server) (push server new-servers))))
+        (let ((process-environment
+               `(;; Set XDG_CONFIG_HOME to /dev/null to prevent
+                 ;; user-configuration influencing language servers
+                 ;; (see github#441).
+                 ,(format "XDG_CONFIG_HOME=%s" null-device)
+                 ;; ... on the flip-side, a similar technique in
+                 ;; Emacs's `test/Makefile' spoofs HOME as
+                 ;; /nonexistent (and as `temporary-file-directory' in
+                 ;; `ert-remote-temporary-file-directory').
+                 ;; This breaks some common installations for LSP
+                 ;; servers like rust-analyzer, making these tests
+                 ;; mostly useless, so we hack around it here with a
+                 ;; great big hack.
+                 ,(format "HOME=%s"
+                          (expand-file-name (format "~%s" (user-login-name))))
+                 ,@process-environment))
+              (eglot-server-initialized-hook
+               (lambda (server) (push server new-servers))))
           (setq created-files (mapcan #'eglot--make-file-or-dir fixture))
           (prog1 (funcall fn)
             (setq test-body-successful-p t)))
