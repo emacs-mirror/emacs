@@ -70,17 +70,16 @@ directory hierarchy."
   `(eglot--call-with-fixture ,fixture (lambda () ,@body)))
 
 (defun eglot--make-file-or-dir (ass)
-  (let ((file-or-dir-name (car ass))
+  (let ((file-or-dir-name (expand-file-name (car ass)))
         (content (cdr ass)))
     (cond ((listp content)
            (make-directory file-or-dir-name 'parents)
-           (let ((default-directory (concat default-directory "/" file-or-dir-name)))
+           (let ((default-directory (file-name-as-directory file-or-dir-name)))
              (mapcan #'eglot--make-file-or-dir content)))
           ((stringp content)
-           (with-temp-buffer
-             (insert content)
-             (write-region nil nil file-or-dir-name nil 'nomessage))
-           (list (expand-file-name file-or-dir-name)))
+           (with-temp-file file-or-dir-name
+             (insert content))
+           (list file-or-dir-name))
           (t
            (eglot--error "Expected a string or a directory spec")))))
 
