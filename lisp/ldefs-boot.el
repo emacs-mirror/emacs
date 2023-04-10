@@ -2965,6 +2965,10 @@ To use tree-sitter C/C++ modes by default, evaluate
 
 in your configuration.
 
+Since this mode uses a parser, unbalanced brackets might cause
+some breakage in indentation/fontification.  Therefore, it's
+recommended to enable `electric-pair-mode' with this mode.
+
 (fn)" t)
 (autoload 'c-or-c++-ts-mode "c-ts-mode" "\
 Analyze buffer and enable either C or C++ mode.
@@ -9813,6 +9817,8 @@ FACTOR is the multiplication factor for the size.
 (fn &optional FACTOR)" t)
 (autoload 'emoji-zoom-decrease "emoji" "\
 Decrease the size of the character under point." t)
+(autoload 'emoji-zoom-reset "emoji" "\
+Reset the size of the character under point." t)
 (register-definition-prefixes "emoji" '("emoji-"))
 
 
@@ -17232,8 +17238,8 @@ Put image IMAGE in front of POS in the current buffer.
 IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
-image.  STRING is defaulted if you omit it.
-The overlay created will have the `put-image' property set to t.
+image.  STRING defaults to \"x\" if it's nil or omitted.
+The overlay created by this function has the `put-image' property set to t.
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
@@ -17367,14 +17373,12 @@ Cut a rectangle from the image under point, filling it with COLOR.
 COLOR defaults to the value of `image-cut-color'.
 Interactively, with prefix argument, prompt for COLOR to use.
 
-(fn &optional COLOR)" t)
-(autoload 'image-crop "image-crop" "\
-Crop the image under point.
-If CUT is non-nil, remove a rectangle from the image instead of
-cropping the image.  In that case CUT should be the name of a
-color to fill the rectangle.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to cut.
 
-While cropping the image, the following key bindings are available:
+While moving/resizing the cutting area, the following key bindings
+are available:
 
 `q':   Exit without changing anything.
 `RET': Crop/cut the image.
@@ -17382,8 +17386,31 @@ While cropping the image, the following key bindings are available:
        rectangle shape.
 `s':   Same as `m', but make the rectangle into a square first.
 
-After cropping an image, you can save it by `M-x image-save' or
+After cutting the image, you can save it by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image.
+
+(fn &optional COLOR)" t)
+(autoload 'image-crop "image-crop" "\
+Crop the image under point.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to crop.
+
+While moving/resizing the cropping area, the following key bindings
+are available:
+
+`q':   Exit without changing anything.
+`RET': Crop/cut the image.
+`m':   Make mouse movements move the rectangle instead of altering the
+       rectangle shape.
+`s':   Same as `m', but make the rectangle into a square first.
+
+After cropping the image, you can save it by `M-x image-save' or
+\\<image-map>\\[image-save] when point is over the image.
+
+When called from Lisp, if CUT is non-nil, remove a rectangle from
+the image instead of cropping the image.  In that case, CUT should
+be the name of a color to fill the rectangle.
 
 (fn &optional CUT)" t)
 (register-definition-prefixes "image-crop" '("image-c"))
@@ -22427,7 +22454,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 2)) package--builtin-versions)
+(push (purecopy '(org 9 6 3)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -33129,6 +33156,9 @@ This major mode defines two additional JSX-specific faces:
 `typescript-ts-jsx-attribute-face' that are used for HTML tags
 and attributes, respectively.
 
+The JSX-specific faces are used when `treesit-font-lock-level' is
+at least 3 (which is the default value).
+
 (fn)" t)
 (register-definition-prefixes "typescript-ts-mode" '("typescript-ts-mode-"))
 
@@ -37120,7 +37150,6 @@ run a specific program.  The program must be a member of
 (provide 'loaddefs)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
 ;; no-native-compile: t
