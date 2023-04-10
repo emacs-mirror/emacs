@@ -302,10 +302,9 @@ or one col more than the `string-width' of
                                         (current-time)
                                         erc-timestamp-format)))))
            (+ right-margin-width cols))))
-    (setq right-margin-width width
-          right-fringe-width 0)
-    (set-window-margins nil left-margin-width width)
-    (set-window-fringes nil left-fringe-width 0)))
+    (setq right-margin-width width)
+    (when (eq (current-buffer) (window-buffer))
+      (set-window-margins nil left-margin-width width))))
 
 ;;;###autoload
 (defun erc-stamp-prefix-log-filter (text)
@@ -344,6 +343,9 @@ message text so that stamps will be visible when yanked."
   :interactive nil
   (if erc-stamp--display-margin-mode
       (progn
+        (setq fringes-outside-margins t)
+        (when (eq (current-buffer) (window-buffer))
+          (set-window-buffer (selected-window) (current-buffer)))
         (erc-stamp--adjust-right-margin 0)
         (add-function :filter-return (local 'filter-buffer-substring-function)
                       #'erc--remove-text-properties)
@@ -354,9 +356,10 @@ message text so that stamps will be visible when yanked."
     (remove-function (local 'erc-insert-timestamp-function)
                      #'erc-stamp--display-margin-force)
     (kill-local-variable 'right-margin-width)
-    (kill-local-variable 'right-fringe-width)
-    (set-window-margins nil left-margin-width nil)
-    (set-window-fringes nil left-fringe-width nil)))
+    (kill-local-variable 'fringes-outside-margins)
+    (when (eq (current-buffer) (window-buffer))
+      (set-window-margins nil left-margin-width nil)
+      (set-window-buffer (selected-window) (current-buffer)))))
 
 (defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."

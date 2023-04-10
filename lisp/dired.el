@@ -927,9 +927,9 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		    (lambda ()
 		      (if ,show-progress (sit-for 0))
 		      (setq results (cons ,body results))))
-		   (if (< ,arg 0)
-		       (nreverse results)
-		     results))
+		   (when (< ,arg 0)
+		     (setq results (nreverse results)))
+		   results)
 	       ;; non-nil, non-integer, non-marked ARG means use current file:
                (list ,body))
 	   (let ((regexp (dired-marker-regexp)) next-position)

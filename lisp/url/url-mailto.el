@@ -120,11 +120,11 @@
 	      (url-mail-goto-field nil)
 	    (url-mail-goto-field "subject")))
       (if url-request-extra-headers
-	  (mapconcat
+	  (mapc
 	   (lambda (x)
 	     (url-mail-goto-field (car x))
 	     (insert (cdr x)))
-	   url-request-extra-headers ""))
+	   url-request-extra-headers))
       (goto-char (point-max))
       (insert url-request-data)
       ;; It seems Microsoft-ish to send without warning.
