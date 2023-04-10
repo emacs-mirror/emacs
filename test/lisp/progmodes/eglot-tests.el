@@ -50,7 +50,6 @@
 (require 'tramp) ; must be prior ert-x
 (require 'ert-x) ; ert-simulate-command
 (require 'edebug)
-(require 'python) ; some tests use pylsp
 (require 'cc-mode) ; c-mode-hook
 (require 'company nil t)
 (require 'yasnippet nil t)
@@ -119,8 +118,6 @@ then restored."
                    ,(format "HOME=%s"
                             (expand-file-name (format "~%s" (user-login-name)))))
                  process-environment))
-               ;; Prevent "Can't guess python-indent-offset ..." messages.
-               (python-indent-guess-indent-offset-verbose . nil)
                (eglot-server-initialized-hook
                 (lambda (server) (push server new-servers))))
           (setq created-files (mapcan #'eglot--make-file-or-dir file-specs))
@@ -533,90 +530,101 @@ Pass TIMEOUT to `eglot--with-timeout'."
       (should (equal (buffer-string)
                      "int bar() {return 42;} int main() {return bar();}")))))
 
+(defun eglot--wait-for-clangd ()
+  (eglot--sniffing (:server-notifications s-notifs)
+    (should (eglot--tests-connect))
+    (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
+      (string= method "textDocument/publishDiagnostics"))))
+
 (ert-deftest eglot-test-basic-completions ()
-  "Test basic autocompletion in a python LSP."
-  (skip-unless (executable-find "pylsp"))
+  "Test basic autocompletion in a clangd LSP."
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("something.py" . "import sys\nsys.exi"))))
+      `(("project" . (("coiso.c" . "#include <stdio.h>\nint main () {fprin"))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
-      (should (eglot--tests-connect))
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--sniffing (:server-notifications s-notifs)
+        (eglot--wait-for-clangd)
+        (eglot--wait-for (s-notifs 20) (&key method &allow-other-keys)
+          (string= method "textDocument/publishDiagnostics")))
       (goto-char (point-max))
       (completion-at-point)
-      (should (looking-back "sys.exit")))))
+      (message (buffer-string))
+      (should (looking-back "fprintf.?")))))
 
 (ert-deftest eglot-test-non-unique-completions ()
   "Test completion resulting in 'Complete, but not unique'."
-  (skip-unless (executable-find "pylsp"))
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      '(("project" . (("something.py" . "foo=1\nfoobar=2\nfoo"))))
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foo; int fooey;"
+                                "int main() {foo")))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
-      (should (eglot--tests-connect))
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
-      (completion-at-point))
-    ;; FIXME: `current-message' doesn't work here :-(
+      (completion-at-point)
+      ;; FIXME: `current-message' doesn't work here :-(
     (with-current-buffer (messages-buffer)
       (save-excursion
         (goto-char (point-max))
         (forward-line -1)
-        (should (looking-at "Complete, but not unique"))))))
+        (should (looking-at "Complete, but not unique")))))))
 
 (ert-deftest eglot-test-basic-xref ()
-  "Test basic xref functionality in a python LSP."
-  (skip-unless (executable-find "pylsp"))
+  "Test basic xref functionality in a clangd LSP."
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("something.py" . "def foo(): pass\ndef bar(): foo()"))))
+      `(("project" . (("coiso.c" .
+                       ,(concat "int foo=42; int fooey;"
+                                "int main() {foo=82;}")))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
+        (eglot--find-file-noselect "project/coiso.c")
       (should (eglot--tests-connect))
-      (search-forward "bar(): f")
+      (search-forward "{foo")
       (call-interactively 'xref-find-definitions)
-      (should (looking-at "foo(): pass")))))
+      (should (looking-at "foo=42")))))
 
-(defvar eglot--test-python-buffer
+(defvar eglot--test-c-buffer
   "\
-def foobarquux(a, b, c=True): pass
-def foobazquuz(d, e, f): pass
+void foobarquux(int a, int b, int c){};
+void foobazquuz(int a, int b, int f){};
+int main() {
 ")
 
 (declare-function yas-minor-mode nil)
 
 (ert-deftest eglot-test-snippet-completions ()
-  "Test simple snippet completion in a python LSP."
-  (skip-unless (and (executable-find "pylsp")
+  "Test simple snippet completion in a clangd LSP."
+  (skip-unless (and (executable-find "clangd")
                     (functionp 'yas-minor-mode)))
   (eglot--with-fixture
-      `(("project" . (("something.py" . ,eglot--test-python-buffer))))
+      `(("project" . (("coiso.c" . ,eglot--test-c-buffer))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
+        (eglot--find-file-noselect "project/coiso.c")
       (yas-minor-mode 1)
-      (let ((eglot-workspace-configuration
-             `((:pylsp . (:plugins (:jedi_completion (:include_params t)))))))
-        (should (eglot--tests-connect)))
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
       (insert "foobar")
       (completion-at-point)
       (should (looking-back "foobarquux("))
-      (should (looking-at "a, b)")))))
+      (should (looking-at "int a, int b, int c)")))))
 
 (defvar company-candidates)
 (declare-function company-mode nil)
 (declare-function company-complete nil)
 
 (ert-deftest eglot-test-snippet-completions-with-company ()
-  "Test simple snippet completion in a python LSP."
-  (skip-unless (and (executable-find "pylsp")
+  "Test simple snippet completion in a clangd LSP."
+  (skip-unless (and (executable-find "clangd")
                     (functionp 'yas-minor-mode)
                     (functionp 'company-complete)))
   (eglot--with-fixture
-      `(("project" . (("something.py" . ,eglot--test-python-buffer))))
+      `(("project" . (("coiso.c" . ,eglot--test-c-buffer))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
+        (eglot--find-file-noselect "project/coiso.c")
       (yas-minor-mode 1)
-      (let ((eglot-workspace-configuration
-             `((:pylsp . (:plugins (:jedi_completion (:include_params t)))))))
-        (should (eglot--tests-connect)))
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
       (insert "foo")
       (company-mode)
@@ -624,98 +632,63 @@ def foobazquuz(d, e, f): pass
       (should (looking-back "fooba"))
       (should (= 2 (length company-candidates)))
       ;; this last one is brittle, since there it is possible that
-      ;; pylsp will change the representation of this candidate
-      (should (member "foobazquuz(d, e, f)" company-candidates)))))
+      ;; clangd will change the representation of this candidate
+      (should (member "foobazquuz(int a, int b, int f)" company-candidates)))))
 
 (ert-deftest eglot-test-eldoc-after-completions ()
-  "Test documentation echo in a python LSP."
-  (skip-unless (executable-find "pylsp"))
+  "Test documentation echo in a clangd LSP."
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("something.py" . "import sys\nsys.exi"))))
+      `(("project" . (("coiso.c" . "#include <stdio.h>\nint main () {fprin"))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
-      (should (eglot--tests-connect))
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
       (goto-char (point-max))
       (completion-at-point)
-      (should (looking-back "sys.exit"))
-      (should (string-match "^exit" (eglot--tests-force-full-eldoc))))))
+      (message (buffer-string))
+      (should (looking-back "fprintf(?"))
+      (unless (= (char-before) ?\() (insert "()") (backward-char))
+      (eglot--signal-textDocument/didChange)
+      (should (string-match "^fprintf" (eglot--tests-force-full-eldoc))))))
 
 (ert-deftest eglot-test-multiline-eldoc ()
-  "Test if suitable amount of lines of hover info are shown."
-  (skip-unless (executable-find "pylsp"))
+  "Test Eldoc documentation from multiple osurces."
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("hover-first.py" . "from datetime import datetime"))))
+      `(("project" . (("coiso.c" .
+                       "#include <stdio.h>\nint main () {fprintf(blergh);}"))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/hover-first.py")
-      (should (eglot--tests-connect))
-      (goto-char (point-max))
-      ;; one-line
-      (let* ((eldoc-echo-area-use-multiline-p t)
-             (captured-message (eglot--tests-force-full-eldoc)))
-        (should (string-match "datetim" captured-message))
+        (eglot--find-file-noselect "project/coiso.c")
+      (search-forward "fprintf(ble")
+      (eglot--wait-for-clangd)
+      (flymake-start nil t) ;; thing brings in the "unknown identifier blergh"
+      (let* ((captured-message (eglot--tests-force-full-eldoc)))
+        ;; check for signature and error message in the result
+        (should (string-match "fprintf" captured-message))
+        (should (string-match "blergh" captured-message))
         (should (cl-find ?\n captured-message))))))
 
-(ert-deftest eglot-test-single-line-eldoc ()
-  "Test if suitable amount of lines of hover info are shown."
-  (skip-unless (executable-find "pylsp"))
-  (eglot--with-fixture
-      `(("project" . (("hover-first.py" . "from datetime import datetime"))))
-    (with-current-buffer
-        (eglot--find-file-noselect "project/hover-first.py")
-      (should (eglot--tests-connect))
-      (goto-char (point-max))
-      ;; one-line
-      (let* ((eldoc-echo-area-use-multiline-p nil)
-             (captured-message (eglot--tests-force-full-eldoc)))
-        (should (string-match "datetim" captured-message))
-        (should (not (cl-find ?\n eldoc-last-message)))))))
-
-(ert-deftest eglot-test-python-autopep-formatting ()
-  "Test formatting in the pylsp python LSP.
-pylsp prefers autopep over yafp, despite its README stating the contrary."
+(ert-deftest eglot-test-formatting ()
+  "Test formatting in the clangd server."
   ;; Beware, default autopep rules can change over time, which may
   ;; affect this test.
-  (skip-unless (and (executable-find "pylsp")
-                    (executable-find "autopep8")))
+  (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
-      `(("project" . (("something.py" . "def a():pass\n\ndef b():pass"))))
+      `(("project" . (("coiso.c" . ,(concat "#include <stdio.h>\n"
+                                            "int main(){fprintf(blergh);}"
+                                            "int ble{\n\nreturn 0;}")))))
     (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
-      (should (eglot--tests-connect))
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (forward-line)
       ;; Try to format just the second line
-      (search-forward "b():pa")
       (eglot-format (line-beginning-position) (line-end-position))
-      (should (looking-at "ss"))
-      (should
-       (or (string= (buffer-string) "def a():pass\n\n\ndef b(): pass\n")
-           ;; autopep8 2.0.0 (pycodestyle: 2.9.1)
-           (string= (buffer-string) "def a():pass\n\ndef b(): pass")))
-      ;; now format the whole buffer
+      (should (looking-at "int main() { fprintf(blergh); }"))
+      ;; ;; now format the whole buffer
       (eglot-format-buffer)
       (should
-       (string= (buffer-string) "def a(): pass\n\n\ndef b(): pass\n")))))
-
-(ert-deftest eglot-test-python-yapf-formatting ()
-  "Test formatting in the pylsp python LSP."
-  (skip-unless (and (executable-find "pylsp")
-                    (not (executable-find "autopep8"))
-                    (or (executable-find "yapf")
-                        (executable-find "yapf3"))))
-  (eglot--with-fixture
-      `(("project" . (("something.py" . "def a():pass\ndef b():pass"))))
-    (with-current-buffer
-        (eglot--find-file-noselect "project/something.py")
-      (should (eglot--tests-connect))
-      ;; Try to format just the second line
-      (search-forward "b():pa")
-      (eglot-format (line-beginning-position) (line-end-position))
-      (should (looking-at "ss"))
-      (should
-       (string= (buffer-string) "def a():pass\n\n\ndef b():\n    pass\n"))
-      ;; now format the whole buffer
-      (eglot-format-buffer)
-      (should
-       (string= (buffer-string) "def a():\n    pass\n\n\ndef b():\n    pass\n")))))
+       (string= (buffer-string)
+                "#include <stdio.h>\nint main() { fprintf(blergh); }\nint ble { return 0; }")))))
 
 (ert-deftest eglot-test-rust-on-type-formatting ()
   "Test textDocument/onTypeFormatting against rust-analyzer."
