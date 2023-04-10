@@ -7128,12 +7128,13 @@ CONDITION is either:
     (funcall match (list condition))))
 
 (defun match-buffers (condition &optional buffers arg)
-  "Return a list of buffers that match CONDITION.
-See `buffer-match-p' for details on CONDITION.  By default all
-buffers are checked, this can be restricted by passing an
-optional argument BUFFERS, set to a list of buffers to check.
-ARG is passed to `buffer-match', for predicate conditions in
-CONDITION."
+  "Return a list of buffers that match CONDITION, or nil if none match.
+See `buffer-match-p' for various supported CONDITIONs.
+By default all buffers are checked, but the optional
+argument BUFFERS can restrict that: its value should be
+an explicit list of buffers to check.
+Optional argument ARG is passed to `buffer-match-p', for
+predicate conditions in CONDITION."
   (let (bufs)
     (dolist (buf (or buffers (buffer-list)))
       (when (buffer-match-p condition (get-buffer buf) arg)
