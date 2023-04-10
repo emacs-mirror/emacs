@@ -1537,13 +1537,7 @@ implementations.  Currently there are two: `sh-mode' and
               (lambda (terminator)
                 (if (eq terminator ?')
                     "'\\'"
-                  "\\")))
-  ;; Parse or insert magic number for exec, and set all variables depending
-  ;; on the shell thus determined.
-  (sh-set-shell (sh--guess-shell) nil nil)
-  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
-  (add-hook 'hack-local-variables-hook
-            #'sh-after-hack-local-variables nil t))
+                  "\\"))))
 
 ;;;###autoload
 (define-derived-mode sh-mode sh-base-mode "Shell-script"
@@ -1603,7 +1597,13 @@ with your script for an edit-interpret-debug cycle."
           nil nil
           ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
           (font-lock-syntactic-face-function
-           . ,#'sh-font-lock-syntactic-face-function))))
+           . ,#'sh-font-lock-syntactic-face-function)))
+  ;; Parse or insert magic number for exec, and set all variables depending
+  ;; on the shell thus determined.
+  (sh-set-shell (sh--guess-shell) nil nil)
+  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
+  (add-hook 'hack-local-variables-hook
+            #'sh-after-hack-local-variables nil t))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -1615,6 +1615,10 @@ This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh."
   :syntax-table sh-mode-syntax-table
   (when (treesit-ready-p 'bash)
+    (sh-set-shell "bash" nil nil)
+    (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
+    (add-hook 'hack-local-variables-hook
+              #'sh-after-hack-local-variables nil t)
     (treesit-parser-create 'bash)
     (setq-local treesit-font-lock-feature-list
                 '(( comment function)
