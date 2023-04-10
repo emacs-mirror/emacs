@@ -376,43 +376,41 @@ is less than @var{c}, then @var{a} must be less than @var{c}.  If you
 use a comparison function which does not meet these requirements, the
 result of @code{sort} is unpredictable.
 
-The destructive aspect of @code{sort} for lists is that it rearranges the
-cons cells forming @var{sequence} by changing @sc{cdr}s.  A nondestructive
-sort function would create new cons cells to store the elements in their
-sorted order.  If you wish to make a sorted copy without destroying the
-original, copy it first with @code{copy-sequence} and then sort.
-
-Sorting does not change the @sc{car}s of the cons cells in @var{sequence};
-the cons cell that originally contained the element @code{a} in
-@var{sequence} still has @code{a} in its @sc{car} after sorting, but it now
-appears in a different position in the list due to the change of
-@sc{cdr}s.  For example:
+The destructive aspect of @code{sort} for lists is that it reuses the
+cons cells forming @var{sequence} by changing their contents, possibly
+rearranging them in a different order.  This means that the value of
+the input list is undefined after sorting; only the list returned by
+@code{sort} has a well-defined value.  Example:
 
 @example
 @group
-(setq nums (list 1 3 2 6 5 4 0))
-     @result{} (1 3 2 6 5 4 0)
-@end group
-@group
+(setq nums (list 2 1 4 3 0))
 (sort nums #'<)
-     @result{} (0 1 2 3 4 5 6)
-@end group
-@group
-nums
-     @result{} (1 2 3 4 5 6)
+     @result{} (0 1 2 3 4)
+     ; nums is unpredictable at this point
 @end group
 @end example
 
-@noindent
-@strong{Warning}: Note that the list in @code{nums} no longer contains
-0; this is the same cons cell that it was before, but it is no longer
-the first one in the list.  Don't assume a variable that formerly held
-the argument now holds the entire sorted list!  Instead, save the result
-of @code{sort} and use that.  Most often we store the result back into
-the variable that held the original list:
+Most often we store the result back into the variable that held the
+original list:
 
 @example
 (setq nums (sort nums #'<))
+@end example
+
+If you wish to make a sorted copy without destroying the original,
+copy it first and then sort:
+
+@example
+@group
+(setq nums (list 2 1 4 3 0))
+(sort (copy-sequence nums) #'<)
+     @result{} (0 1 2 3 4)
+@end group
+@group
+nums
+     @result{} (2 1 4 3 0)
+@end group
 @end example
 
 For the better understanding of what stable sort is, consider the following
