@@ -1,3 +1,69 @@
+2023-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/ldefs-boot.el: Regenerate.
+
+2023-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Bump Emacs version to 29.0.90
+
+	* README:
+	* configure.ac:
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump version to 29.0.90.
+
+2023-04-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Fix some cases of incomplete code's indentation [c/c++-ts-mode]
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-base--before-indent): Try to
+	guess when the parse tree is incomplete, and provide a better node
+	to indent against (bug#62717).
+	(c-ts-base-mode): Set up advice for local treesit-indent-function.
+
+2023-04-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	project-search: Pipe the list of files through 'file-regular-p'
+
+	* lisp/progmodes/project.el (project-search): Pipe the list of
+	files through 'file-regular-p' to skip directories (bug#62735).
+
+2023-04-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Update ChangeLog and AUTHORS for Emacs 29
+
+	* admin/authors.el: Update for Emacs 29.
+
+	* etc/AUTHORS: Re-generate for Emacs 29.
+
+	* ChangeLog.4: New generated file.
+	* Makefile.in (PREFERRED_BRANCH): Update to emacs-29.
+	(CHANGELOG_HISTORY_INDEX_MAX): Bump to 4.
+
+2023-04-09  João Távora  <joaotavora@gmail.com>
+
+	Backport: Eglot: no more tests based on Pylsp (bug#62694)
+
+	The functionality under test in eglot.el is exactly the same, but use
+	the clangd server only, as that is used in more tests, and it is much
+	easier to check if it misbehaves or not.
+
+	Tests pass with clangd version 15.
+
+	* test/lisp/progmodes/eglot-tests.el (python): Don't require it.
+	(eglot--call-with-fixture): Simplify.
+	(eglot--wait-for-clangd): New helper.
+	(eglot-test-basic-completions)
+	(eglot-test-non-unique-completions, eglot-test-basic-xref)
+	(eglot-test-snippet-completions)
+	(eglot-test-snippet-completions-with-company)
+	(eglot-test-eldoc-after-completions, eglot-test-multiline-eldoc):
+	Use clangd, not pylsp.
+	(eglot-test-formatting): Renamed from
+	eglot-test-python-autopep-formatting.
+	(eglot-test-python-yapf-formatting): Remove.
+
+	(cherry picked from commit fc8230f3362b12955152f48565a6c670b4c4cc88)
+
 2023-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix 'C-h k' for "Paste from Kill Menu" in context menus
@@ -114256,7 +114322,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit 5ef7ff05736b9d1b4d806cfe04ec5d99c090e748 (inclusive).
+commit 5e039d5a6e99d8380044f410673b8ee51dbc1711 (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:
