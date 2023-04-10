@@ -1490,7 +1490,8 @@ backend check whether the group actually exists."
 	       (gnus-request-update-info
 		info (inline (gnus-find-method-for-group
 			      (gnus-info-group info)))))
-      (gnus-activate-group (gnus-info-group info) nil t))
+      (gnus-activate-group (gnus-info-group info) nil t)
+      (setq active (gnus-active (gnus-info-group info))))
 
     (let* ((range (gnus-info-read info))
 	   (num 0))

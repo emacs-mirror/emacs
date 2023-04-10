@@ -3690,14 +3690,14 @@ macro that returns its `&whole' argument."
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))
-      '(cl-oddp cl-evenp cl-signum last butlast cl-ldiff cl-pairlis cl-gcd
+      '(cl-oddp cl-evenp cl-signum cl-ldiff cl-pairlis cl-gcd
         cl-lcm cl-isqrt cl-floor cl-ceiling cl-truncate cl-round cl-mod cl-rem
         cl-subseq cl-list-length cl-get cl-getf))
 
 ;;; Things that are side-effect-and-error-free.
 (mapc (lambda (x) (function-put x 'side-effect-free 'error-free))
-      '(eql cl-list* cl-subst cl-acons cl-equalp
-        cl-random-state-p copy-tree cl-sublis))
+      '(cl-list* cl-acons cl-equalp
+        cl-random-state-p copy-tree))
 
 ;;; Types and assertions.
 

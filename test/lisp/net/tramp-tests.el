@@ -2412,22 +2412,51 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (let ((point (point)))
-	      (insert-file-contents tmp-name)
+	      (should
+	       (equal
+		(insert-file-contents tmp-name)
+		`(,(expand-file-name tmp-name) 3)))
 	      (should (string-equal (buffer-string) "foo"))
 	      (should (= point (point))))
 	    (goto-char (1+ (point)))
 	    (let ((point (point)))
-	      (insert-file-contents tmp-name)
+	      (should
+	       (equal
+		(insert-file-contents tmp-name)
+		`(,(expand-file-name tmp-name) 3)))
 	      (should (string-equal (buffer-string) "ffoooo"))
 	      (should (= point (point))))
 	    ;; Insert partly.
 	    (let ((point (point)))
-	      (insert-file-contents tmp-name nil 1 3)
+	      (should
+	       (equal
+		(insert-file-contents tmp-name nil 1 3)
+		`(,(expand-file-name tmp-name) 2)))
 	      (should (string-equal (buffer-string) "foofoooo"))
+	      (should (= point (point))))
+	    (let ((point (point)))
+	      (should
+	       (equal
+		(insert-file-contents tmp-name nil 2 5)
+		`(,(expand-file-name tmp-name) 1)))
+	      (should (string-equal (buffer-string) "fooofoooo"))
 	      (should (= point (point))))
 	    ;; Replace.
 	    (let ((point (point)))
-	      (insert-file-contents tmp-name nil nil nil 'replace)
+	      ;; 0 characters replaced, because "foo" is already there.
+	      (should
+	       (equal
+		(insert-file-contents tmp-name nil nil nil 'replace)
+		`(,(expand-file-name tmp-name) 0)))
+	      (should (string-equal (buffer-string) "foo"))
+	      (should (= point (point))))
+	    (let ((point (point)))
+	      (replace-string-in-region "foo" "bar" (point-min) (point-max))
+	      (goto-char point)
+	      (should
+	       (equal
+		(insert-file-contents tmp-name nil nil nil 'replace)
+		`(,(expand-file-name tmp-name) 3)))
 	      (should (string-equal (buffer-string) "foo"))
 	      (should (= point (point))))
 	    ;; Error case.

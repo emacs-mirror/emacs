@@ -1706,7 +1706,7 @@ See Info node `(elisp) Integer Basics'."
 	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
-	 eobp eolp eq equal
+	 eobp eolp eq equal eql
 	 floatp following-char framep
 	 hash-table-p
 	 identity indirect-function integerp integer-or-marker-p
