@@ -1086,6 +1086,15 @@ leading double colon is not added."
            (put-text-property pos (1+ pos) 'syntax-table
                               (string-to-syntax "!"))))))))
 
+(defun ruby-ts--sexp-p (node)
+  ;; Skip parenless calls (implicit parens are both non-obvious to the
+  ;; user, and might take over when we want to just over some physical
+  ;; parens/braces).
+  (or (not (equal (treesit-node-type node)
+                  "argument_list"))
+      (equal (treesit-node-type (treesit-node-child node 0))
+             "(")))
+
 (defvar-keymap ruby-ts-mode-map
   :doc "Keymap used in Ruby mode"
   :parent prog-mode-map
@@ -1114,8 +1123,10 @@ leading double colon is not added."
   (setq-local treesit-defun-type-regexp ruby-ts--method-regex)
 
   (setq-local treesit-sexp-type-regexp
-              (rx bol
-                  (or "class"
+              (cons (rx
+                     bol
+                     (or
+                      "class"
                       "module"
                       "method"
                       "array"
@@ -1147,7 +1158,8 @@ leading double colon is not added."
                       "instance_variable"
                       "global_variable"
                       )
-                  eol))
+                     eol)
+                    #'ruby-ts--sexp-p))
 
   ;; AFAIK, Ruby can not nest methods
   (setq-local treesit-defun-prefer-top-level nil)
