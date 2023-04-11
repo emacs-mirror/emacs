@@ -118,4 +118,41 @@
 
      (should (eq (window-buffer) (messages-buffer))))))
 
+
+;; This shows that the option `erc-interactive-display' overrides
+;; `erc-join-buffer' during cold opens and interactive /JOINs.
+
+(ert-deftest erc-scenarios-base-buffer-display--interactive-default ()
+  :tags '(:expensive-test)
+  (should (eq erc-join-buffer 'bury))
+  (should (eq erc-interactive-display 'window))
+
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "join/legacy")
+       (dumb-server (erc-d-run "localhost" t 'foonet))
+       (port (process-contact dumb-server :service))
+       (url (format "tester:changeme@127.0.0.1:%d\r\r" port))
+       (expect (erc-d-t-make-expecter))
+       (erc-server-flood-penalty 0.1)
+       (erc-server-auto-reconnect t)
+       (erc-user-full-name "tester"))
+
+    (ert-info ("Connect to foonet")
+      (with-current-buffer (let (inhibit-interaction)
+                             (ert-simulate-keys url
+                               (call-interactively #'erc)))
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
+
+        (erc-d-t-wait-for 10 "Server buffer shown"
+          (eq (window-buffer) (current-buffer)))
+        (funcall expect 10 "debug mode")
+        (erc-scenarios-common-say "/JOIN #chan")))
+
+    (ert-info ("Wait for output in #chan")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall expect 10 "welcome")
+        (erc-d-t-ensure-for 3 "Channel #chan shown"
+          (eq (window-buffer) (current-buffer)))
+        (funcall expect 10 "be prosperous")))))
+
 ;;; erc-scenarios-base-buffer-display.el ends here

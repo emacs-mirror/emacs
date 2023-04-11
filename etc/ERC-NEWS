@@ -37,15 +37,18 @@ decade overdue, this is no longer the case.  Other UX improvements in
 this area aim to make the process of connecting interactively slightly
 more streamlined and less repetitive, even for veteran users.
 
-** New buffer-display option 'erc-interactive-display'.
+** Revised buffer-display handling for interactive commands.
 A point of friction for new users and one only just introduced with
 ERC 5.5 has been the lack of visual feedback when first connecting via
-M-x erc.  As explained below in the news for 5.5, the discovery of a
-security issue led to new ERC buffers being "buried" on creation.  On
-further reflection, this was judged to have been an overcorrection in
-the case of interactive invocations, hence the new option
-'erc-interactive-display', which is set to 'buffer' (i.e., "take me
-there") by default.
+M-x erc or when issuing a "/JOIN" command at the prompt.  As explained
+below, in the news for 5.5, the discovery of a security issue led to
+most new ERC buffers being "buried" on creation.  On further
+reflection, this was judged to have been an overcorrection in the case
+of interactive invocations, hence the borrowing of an old option,
+'erc-query-display', and the bestowing of a new alias,
+'erc-interactive-display', which better describes its expanded role as
+a more general buffer-display knob for interactive commands ("/QUERY"
+still among them).
 
 Accompanying this addition are "display"-suffixed aliases for related
 options 'erc-join-buffer' and 'erc-auto-query', which users have

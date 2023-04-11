@@ -98,7 +98,9 @@
   :group 'erc)
 
 (defgroup erc-display nil
-  "Settings for how various things are displayed."
+  "Settings controlling how various things are displayed.
+See the customization group `erc-buffers' for display options
+concerning buffers."
   :group 'erc)
 
 (defgroup erc-mode-line-and-header nil
@@ -1507,9 +1509,9 @@ Defaults to the server buffer."
   "IRC port to use for encrypted connections if it cannot be \
 detected otherwise.")
 
-(defvaralias 'erc-buffer-display 'erc-join-buffer)
-(defcustom erc-join-buffer 'bury
-  "Determines how to display a newly created IRC buffer.
+(defvaralias 'erc-join-buffer 'erc-buffer-display)
+(defcustom erc-buffer-display 'bury
+  "How to display a newly created ERC buffer.
 
 The available choices are:
 
@@ -1518,7 +1520,9 @@ The available choices are:
   `frame'           - in another frame,
   `bury'            - bury it in a new buffer,
   `buffer'          - in place of the current buffer,
-  any other value  - in place of the current buffer."
+
+See related options `erc-interactive-display',
+`erc-reconnect-display', and `erc-receive-query-display'."
   :package-version '(ERC . "5.5")
   :group 'erc-buffers
   :type '(choice (const :tag "Split window and select" window)
@@ -1528,13 +1532,17 @@ The available choices are:
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
 
-(defcustom erc-interactive-display 'buffer
-  "How and whether to display server buffers for M-x erc.
-See `erc-buffer-display' and friends for a description of
-possible values."
+(defvaralias 'erc-query-display 'erc-interactive-display)
+(defcustom erc-interactive-display 'window
+  "How to display buffers as a result of user interaction.
+This affects commands like /QUERY and /JOIN when issued
+interactively at the prompt.  It does not apply when calling a
+handler for such a command, like `erc-cmd-JOIN', from lisp code.
+See `erc-buffer-display' for a full description of available
+values."
   :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-buffers
-  :type '(choice (const :tag "Use value of `erc-join-buffer'" nil)
+  :type '(choice (const :tag "Use value of `erc-buffer-display'" nil)
                  (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
                  (const :tag "New frame" frame)
@@ -1542,15 +1550,14 @@ possible values."
                  (const :tag "Use current buffer" buffer)))
 
 (defcustom erc-reconnect-display nil
-  "How (and whether) to display a channel buffer upon reconnecting.
-
-This only affects automatic reconnections and is ignored when
-issuing a /reconnect command or reinvoking `erc-tls' with the
-same args (assuming success, of course).  See `erc-join-buffer'
-for a description of possible values."
+  "How and whether to display a channel buffer when auto-reconnecting.
+This only affects automatic reconnections and is ignored, like
+all other buffer-display options, when issuing a /RECONNECT or
+successfully reinvoking `erc-tls' with similar arguments.  See
+`erc-buffer-display' for a description of possible values."
   :package-version '(ERC . "5.5")
   :group 'erc-buffers
-  :type '(choice (const :tag "Use value of `erc-join-buffer'" nil)
+  :type '(choice (const :tag "Use value of `erc-buffer-display'" nil)
                  (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
                  (const :tag "New frame" frame)
@@ -2044,6 +2051,9 @@ to display-buffer machinery."
         (display-buffer-use-some-frame buffer
                                        `((frame-predicate . ,ercp) ,@alist)))))
 
+(defvar erc--setup-buffer-hook nil
+  "Internal hook for module setup involving windows and frames.")
+
 (defun erc-setup-buffer (buffer)
   "Consults `erc-join-buffer' to find out how to display `BUFFER'."
   (pcase (if (zerop (erc-with-server-buffer
@@ -2251,7 +2261,8 @@ Returns the buffer for the given server or channel."
         ;; we can't log to debug buffer, it may not exist yet
         (message "erc: old buffer %s, switching to %s"
                  old-buffer buffer))
-      (erc-setup-buffer buffer))
+      (erc-setup-buffer buffer)
+      (run-hooks 'erc--setup-buffer-hook))
 
     buffer))
 
@@ -3057,6 +3068,10 @@ present."
   (let ((prop-val (erc-get-parsed-vector position)))
     (and prop-val (member (erc-response.command prop-val) list))))
 
+(defvar erc--called-as-input-p nil
+  "Non-nil when a user types a \"/slash\" command.
+Remains bound until `erc-cmd-SLASH' returns.")
+
 (defvar-local erc-send-input-line-function 'erc-send-input-line
   "Function for sending lines lacking a leading user command.
 When a line typed into a buffer contains an explicit command, like /msg,
@@ -3110,7 +3125,8 @@ this function from interpreting the line as a command."
     (if (and command-list
              (not no-command))
         (let* ((cmd  (nth 0 command-list))
-               (args (nth 1 command-list)))
+               (args (nth 1 command-list))
+               (erc--called-as-input-p t))
           (condition-case nil
               (if (listp args)
                   (apply cmd args)
@@ -3584,6 +3600,21 @@ were most recently invited.  See also `invitation'."
                    (erc-get-channel-user (erc-current-nick)))))
           (switch-to-buffer existing)
         (setq erc--server-last-reconnect-count 0)
+        (when-let* ; bind `erc-join-buffer' when /JOIN issued
+            ((erc--called-as-input-p)
+             (fn (lambda (proc parsed)
+                   (when-let* ; `fn' wrapper already removed from hook
+                       (((equal (car (erc-response.command-args parsed))
+                                channel))
+                        (sn (erc-extract-nick (erc-response.sender parsed)))
+                        ((erc-nick-equal-p sn (erc-current-nick)))
+                        (erc-join-buffer (or erc-interactive-display
+                                             erc-join-buffer)))
+                     (run-hook-with-args-until-success
+                      'erc-server-JOIN-functions proc parsed)
+                     t))))
+          (erc-with-server-buffer
+            (erc-once-with-server-event "JOIN" fn)))
         (erc-server-join-channel nil chnl key))))
   t)
 
@@ -3947,27 +3978,10 @@ just as you provided it.  Use this command with care!"
    (t nil)))
 (put 'erc-cmd-QUOTE 'do-not-parse-args t)
 
-(defcustom erc-query-display 'window
-  "How to display query buffers when using the /QUERY command to talk to someone.
-
-The default behavior is to display the message in a new window
-and bring it to the front.  See the documentation for
-`erc-join-buffer' for a description of the available choices.
-
-See also `erc-auto-query' to decide how private messages from
-other people should be displayed."
-  :group 'erc-query
-  :type '(choice (const :tag "Split window and select" window)
-                 (const :tag "Split window, don't select" window-noselect)
-                 (const :tag "New frame" frame)
-                 (const :tag "Bury in new buffer" bury)
-                 (const :tag "Use current buffer" buffer)
-                 (const :tag "Use current buffer" t)))
-
 (defun erc-cmd-QUERY (&optional user)
   "Open a query with USER.
 How the query is displayed (in a new window, frame, etc.) depends
-on the value of `erc-query-display'."
+on the value of `erc-interactive-display'."
   ;; FIXME: The doc string used to say at the end:
   ;; "If USER is omitted, close the current query buffer if one exists
   ;; - except this is broken now ;-)"
