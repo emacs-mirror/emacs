@@ -1642,7 +1642,8 @@ case "$opsys" in
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
 
-  haiku) LIBS_SYSTEM="-lnetwork" ;;
+  # Haiku needs -lbsd for cfsetspeed.
+  haiku) LIBS_SYSTEM="-lnetwork -lbsd" ;;
 esac
 
 AC_SUBST([LIBS_SYSTEM])
