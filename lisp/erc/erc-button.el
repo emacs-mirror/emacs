@@ -55,11 +55,11 @@
   ((erc-button--check-nicknames-entry)
    (add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions #'erc-button-next-function)
+   (add-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map t "<backtab>" #'erc-button-previous))
   ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions #'erc-button-next-function)
+   (remove-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map nil "<backtab>" #'erc-button-previous)))
 
 ;;; Variables
@@ -529,6 +529,7 @@ call it with the value of the `erc-data' text property."
 (defun erc-button-next-function ()
   "Pseudo completion function that actually jumps to the next button.
 For use on `completion-at-point-functions'."
+  (declare (obsolete erc-nickserv-identify "30.1"))
   ;; FIXME: This is an abuse of completion-at-point-functions.
   (when (< (point) (erc-beg-of-input-line))
     (let ((start (point)))
@@ -546,27 +547,73 @@ For use on `completion-at-point-functions'."
             (error "No next button"))
           t)))))
 
-(defun erc-button-next ()
-  "Go to the next button in this buffer."
-  (interactive)
-  (let ((f (erc-button-next-function)))
-    (if f (funcall f))))
+(defvar erc-button--prev-next-predicate-functions
+  '(erc-button--end-of-button-p)
+  "Abnormal hook whose members can return non-nil to continue searching.
+Otherwise, if all members return nil, point will stay at the
+current button.  Called with a single arg, a buffer position
+greater than `point-min' with a text property of `erc-callback'.")
 
-(defun erc-button-previous ()
-  "Go to the previous button in this buffer."
-  (interactive)
-  (let ((here (point)))
-    (when (< here (erc-beg-of-input-line))
-      (while (and (get-text-property here 'erc-callback)
-                  (not (= here (point-min))))
-        (setq here (1- here)))
-      (while (and (not (get-text-property here 'erc-callback))
-                  (not (= here (point-min))))
-        (setq here (1- here)))
-      (if (> here (point-min))
-          (goto-char here)
-        (error "No previous button"))
-      t)))
+(defun erc-button--end-of-button-p (point)
+  (get-text-property (1- point) 'erc-callback))
+
+(defun erc--button-next (arg)
+  (let* ((nextp (prog1 (>= arg 1) (setq arg (max 1 (abs arg)))))
+         (search-fn (if nextp
+                        #'next-single-char-property-change
+                      #'previous-single-char-property-change))
+         (start (point))
+         (p start))
+    (while (progn
+             ;; Break out of current search context.
+             (when-let ((low (max (point-min) (1- (pos-bol))))
+                        (high (min (point-max) (1+ (pos-eol))))
+                        (prop (get-text-property p 'erc-callback))
+                        (q (if nextp
+                               (text-property-not-all p high
+                                                      'erc-callback prop)
+                             (funcall search-fn p 'erc-callback nil low)))
+                        ((< low q high)))
+               (setq p q))
+             ;; Assume that buttons occur frequently enough that
+             ;; omitting LIMIT is acceptable.
+             (while
+                 (and (setq p (funcall search-fn p 'erc-callback))
+                      (if nextp (< p erc-insert-marker) (/= p (point-min)))
+                      (run-hook-with-args-until-success
+                       'erc-button--prev-next-predicate-functions p)))
+             (and arg
+                  (< (point-min) p erc-insert-marker)
+                  (goto-char p)
+                  (not (zerop (cl-decf arg))))))
+    (when (= (point) start)
+      (user-error (if nextp "No next button" "No previous button")))
+    t))
+
+(defun erc-button-next (&optional arg)
+  "Go to the ARGth next button."
+  (declare (advertised-calling-convention (arg) "30.1"))
+  (interactive "p")
+  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
+  (erc--button-next arg))
+
+(defun erc-button-previous (&optional arg)
+  "Go to ARGth previous button."
+  (declare (advertised-calling-convention (arg) "30.1"))
+  (interactive "p")
+  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
+  (erc--button-next (- arg)))
+
+(defun erc-button-previous-of-nick (arg)
+  "Go to ARGth previous button for nick at point."
+  (interactive "p")
+  (if-let* ((prop (get-text-property (point) 'erc-data))
+            (erc-button--prev-next-predicate-functions
+             (cons (lambda (p)
+                     (not (equal (get-text-property p 'erc-data) prop)))
+                   erc-button--prev-next-predicate-functions)))
+      (erc--button-next (- arg))
+    (user-error "No nick at point")))
 
 (defun erc-browse-emacswiki (thing)
   "Browse to THING in the emacs-wiki."

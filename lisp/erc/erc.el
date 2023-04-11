@@ -354,7 +354,7 @@ simply because we do not necessarily receive the QUIT event."
   :type 'hook)
 
 (defcustom erc-complete-functions nil
-  "These functions get called when the user hits TAB in ERC.
+  "These functions get called when the user hits \\`TAB' in ERC.
 Each function in turn is called until one returns non-nil to
 indicate it has handled the input."
   :group 'erc-hooks
@@ -1231,7 +1231,7 @@ which the local user typed."
     (define-key map "\C-c\C-u" #'erc-kill-input)
     (define-key map "\C-c\C-x" #'erc-quit-server)
     (define-key map "\M-\t" #'ispell-complete-word)
-    (define-key map "\t" #'completion-at-point)
+    (define-key map "\t" #'erc-tab)
 
     ;; Suppress `font-lock-fontify-block' key binding since it
     ;; destroys face properties.
@@ -4674,6 +4674,19 @@ This places `point' just after the prompt, or at the beginning of the line."
     (if (boundp 'erc-input-ring-index)
         (setq erc-input-ring-index nil))
     (kill-line)))
+
+(defvar erc--tab-functions nil
+  "Functions to try when user hits \\`TAB' outside of input area.
+Called with a numeric prefix arg.")
+
+(defun erc-tab (&optional arg)
+  "Call `completion-at-point' when typing in the input area.
+Otherwise call members of `erc--tab-functions' with raw prefix
+ARG until one of them returns non-nil."
+  (interactive "P")
+  (if (>= (point) erc-input-marker)
+      (completion-at-point)
+    (run-hook-with-args-until-success 'erc--tab-functions arg)))
 
 (defun erc-complete-word-at-point ()
   (run-hook-with-args-until-success 'erc-complete-functions))
