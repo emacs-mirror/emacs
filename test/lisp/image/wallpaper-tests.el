@@ -129,12 +129,16 @@
       (should (equal called fil-jpg)))))
 
 (ert-deftest wallpaper--find-command/return-string ()
-  (should (or (not (wallpaper--find-command))
-              (stringp (wallpaper--find-command)))))
+  (let ((cmd (wallpaper--find-command)))
+    (should (or (not cmd)
+                (stringp cmd)))))
 
 (ert-deftest wallpaper--find-command-args/return-list ()
-  (should (or (not (wallpaper--find-command-args))
-              (listp (wallpaper--find-command-args)))))
+  (let ((cmdargs (wallpaper--find-command-args)))
+    (if (functionp cmdargs)
+        (setq cmdargs (funcall cmdargs)))
+    (should (or (not cmdargs)
+                (listp cmdargs)))))
 
 (ert-deftest wallpaper--image-file-regexp/return-string ()
   (should (stringp (wallpaper--image-file-regexp))))
