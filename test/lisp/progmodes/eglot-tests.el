@@ -404,7 +404,7 @@ Pass TIMEOUT to `eglot--with-timeout'."
                           )
           (should (eglot--tests-connect))
           (let (register-id)
-            (eglot--wait-for (s-requests 1)
+            (eglot--wait-for (s-requests 3)
                 (&key id method &allow-other-keys)
               (setq register-id id)
               (string= method "client/registerCapability"))
@@ -801,6 +801,7 @@ int main() {
 (ert-deftest eglot-test-json-basic ()
   "Test basic autocompletion in vscode-json-languageserver."
   (skip-unless (executable-find "vscode-json-languageserver"))
+  (skip-unless (fboundp 'yas-minor-mode))
   (eglot--with-fixture
       '(("project" .
          (("p.json" . "{\"foo.b")
