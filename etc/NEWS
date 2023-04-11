@@ -192,6 +192,11 @@ correctly unloads Eshell and all of its modules.
 After manually editing 'eshell-aliases-file', you can use this command
 to load the edited aliases.
 
++++
+*** 'rgrep' is now a builtin command.
+Running "rgrep" in Eshell now uses the Emacs grep facility instead of
+calling external rgrep.
+
 ** Shell Mode
 
 +++

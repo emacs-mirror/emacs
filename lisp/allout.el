@@ -5390,7 +5390,7 @@ Defaults:
     ;; not specified -- default it:
     (setq tobuf (concat "*" (buffer-name frombuf) " exposed*")))
   (if (listp format)
-      (nreverse format))
+      (setq format (reverse format)))
 
   (let* ((listified
 	  (progn (set-buffer frombuf)

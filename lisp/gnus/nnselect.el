@@ -909,6 +909,7 @@ article came from is also searched."
     ;; now work on each originating group one at a time
     (pcase-dolist (`(,artgroup . ,artlist)
 		   (numbers-by-group gnus-newsgroup-articles))
+      (setq artlist (sort artlist #'<))
       (let* ((group-info (gnus-get-info artgroup))
 	     (old-unread (gnus-list-of-unread-articles artgroup))
 	     newmarked delta-marks)

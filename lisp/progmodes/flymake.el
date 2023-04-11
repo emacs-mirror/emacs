@@ -4,9 +4,9 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.2.2
+;; Version: 1.3.2
 ;; Keywords: c languages tools
-;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0") (project "0.7.1"))
+;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.7.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -370,6 +370,12 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-beg flymake--diag-beg beg)
 (flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
 (flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-locus locus)
+
+(defun flymake-diagnostic-oneliner (diag)
+  "Get truncated one-line text string for diagnostic DIAG."
+  (let ((txt (flymake-diagnostic-text diag)))
+    (substring txt 0 (cl-loop for i from 0 for a across txt
+                              when (eq a ?\n) return i))))
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
@@ -1254,10 +1260,17 @@ START and STOP and LEN are as in `after-change-functions'."
 (defun flymake-eldoc-function (report-doc &rest _)
   "Document diagnostics at point.
 Intended for `eldoc-documentation-functions' (which see)."
-  (let ((diags (flymake-diagnostics (point))))
-    (when diags
-      (funcall report-doc
-               (mapconcat #'flymake-diagnostic-text diags "\n")))))
+  (when-let ((diags (flymake-diagnostics (point))))
+    (funcall report-doc
+             (mapconcat #'flymake-diagnostic-text diags "\n")
+             :echo (mapconcat (lambda (d)
+                                (propertize (flymake-diagnostic-oneliner d)
+                                            'face
+                                            (flymake--lookup-type-property
+                                             (flymake-diagnostic-type d)
+                                             'face
+                                             'flymake-error)))
+                              diags "\n"))))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
   "Go to Nth next Flymake diagnostic that matches FILTER.
@@ -1582,8 +1595,7 @@ filename of the diagnostic relative to that directory."
                                                     "\\1\\2" bname)
                         "(anon)")
                       'help-echo (format "From `%s' backend" backend))
-                    (,(replace-regexp-in-string "\n.*" ""
-                                                (flymake-diagnostic-text diag))
+                    (,(flymake-diagnostic-oneliner diag)
                      mouse-face highlight
                      help-echo "mouse-2: visit this diagnostic"
                      face nil
