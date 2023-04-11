@@ -1594,7 +1594,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
        (vc-call make-version-backups-p file)
        (vc-up-to-date-p file)
        (vc-make-version-backup file))
-  (let ((backend (vc-backend file)))
+  (let ((backend (or vc-dir-backend (vc-backend file))))
     (with-vc-properties (list file)
       (condition-case err
           (vc-call-backend backend 'checkout file rev)
