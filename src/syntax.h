@@ -145,15 +145,15 @@ extern bool syntax_prefix_flag_p (int c);
 
 extern unsigned char const syntax_spec_code[0400];
 
-/* Convert the regexp BYTEOFFSET into a character position,
-   for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
+/* Convert the regexp's BYTEOFFSET into a character position,
+   for the object recorded in gl_state with RE_SETUP_SYNTAX_TABLE_FOR_OBJECT.
 
    The value is meant for use in code that does nothing when
    parse_sexp_lookup_properties is false, so return 0 in that case,
    for speed.  */
 
 INLINE ptrdiff_t
-SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
+RE_SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
 {
   return (! parse_sexp_lookup_properties
 	  ? 0
@@ -208,7 +208,7 @@ SETUP_BUFFER_SYNTAX_TABLE (void)
 }
 
 extern ptrdiff_t scan_words (ptrdiff_t, EMACS_INT);
-extern void SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object, ptrdiff_t, ptrdiff_t);
+extern void RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object, ptrdiff_t);
 
 INLINE_HEADER_END
 

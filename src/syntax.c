@@ -268,12 +268,11 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
    FROMBYTE is an regexp-byteoffset.  */
 
 void
-SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
-			       ptrdiff_t frombyte, ptrdiff_t count)
+RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
+			          ptrdiff_t frombyte)
 {
   SETUP_BUFFER_SYNTAX_TABLE ();
   gl_state.object = object;
-  ptrdiff_t from = SYNTAX_TABLE_BYTE_TO_CHAR (frombyte);
   if (BUFFERP (gl_state.object))
     {
       struct buffer *buf = XBUFFER (gl_state.object);
@@ -296,8 +295,8 @@ SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
       gl_state.e_property = 1 + SCHARS (gl_state.object);
     }
   if (parse_sexp_lookup_properties)
-    update_syntax_table (from - (count <= 0),
-			 count, 1, gl_state.object);
+    update_syntax_table (RE_SYNTAX_TABLE_BYTE_TO_CHAR (frombyte),
+			 1, 1, gl_state.object);
 }
 
 /* Update gl_state to an appropriate interval which contains CHARPOS.  The
