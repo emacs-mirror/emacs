@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.3.2
+;; Version: 1.3.3
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.7.1"))
 
@@ -371,11 +371,19 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
 (flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-locus locus)
 
-(defun flymake-diagnostic-oneliner (diag)
-  "Get truncated one-line text string for diagnostic DIAG."
-  (let ((txt (flymake-diagnostic-text diag)))
-    (substring txt 0 (cl-loop for i from 0 for a across txt
-                              when (eq a ?\n) return i))))
+(defun flymake-diagnostic-oneliner (diag &optional nopaintp)
+  "Get truncated one-line text string for diagnostic DIAG.
+This is useful for displaying the DIAG's text to the user in
+confined spaces, such as the echo are.  Unless NOPAINTP is t,
+propertize returned text with the `echo-face' property of DIAG's
+type."
+  (let* ((txt (flymake-diagnostic-text diag))
+         (txt (substring txt 0 (cl-loop for i from 0 for a across txt
+                                        when (eq a ?\n) return i))))
+    (if nopaintp txt
+      (propertize txt 'face
+                  (flymake--lookup-type-property
+                   (flymake-diagnostic-type diag) 'echo-face 'flymake-error)))))
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
@@ -577,18 +585,21 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-error 'flymake-bitmap 'flymake-error-bitmap)
 (put 'flymake-error 'severity (warning-numeric-level :error))
 (put 'flymake-error 'mode-line-face 'compilation-error)
+(put 'flymake-error 'echo-face 'error)
 (put 'flymake-error 'flymake-type-name "error")
 
 (put 'flymake-warning 'face 'flymake-warning)
 (put 'flymake-warning 'flymake-bitmap 'flymake-warning-bitmap)
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
 (put 'flymake-warning 'mode-line-face 'compilation-warning)
+(put 'flymake-warning 'echo-face 'warning)
 (put 'flymake-warning 'flymake-type-name "warning")
 
 (put 'flymake-note 'face 'flymake-note)
 (put 'flymake-note 'flymake-bitmap 'flymake-note-bitmap)
 (put 'flymake-note 'severity (warning-numeric-level :debug))
 (put 'flymake-note 'mode-line-face 'compilation-info)
+(put 'flymake-note 'echo-face 'compilation-info)
 (put 'flymake-note 'flymake-type-name "note")
 
 (defun flymake--lookup-type-property (type prop &optional default)
@@ -736,7 +747,7 @@ Return nil or the overlay created."
         (lambda (window _ov pos)
           (with-selected-window window
             (mapconcat
-             #'flymake-diagnostic-text
+             #'flymake-diagnostic-oneliner
              (flymake-diagnostics pos)
              "\n"))))
       (default-maybe 'severity (warning-numeric-level :error))
@@ -1263,13 +1274,7 @@ Intended for `eldoc-documentation-functions' (which see)."
   (when-let ((diags (flymake-diagnostics (point))))
     (funcall report-doc
              (mapconcat #'flymake-diagnostic-text diags "\n")
-             :echo (mapconcat (lambda (d)
-                                (propertize (flymake-diagnostic-oneliner d)
-                                            'face
-                                            (flymake--lookup-type-property
-                                             (flymake-diagnostic-type d)
-                                             'face
-                                             'flymake-error)))
+             :echo (mapconcat #'flymake-diagnostic-oneliner
                               diags "\n"))))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
@@ -1595,7 +1600,7 @@ filename of the diagnostic relative to that directory."
                                                     "\\1\\2" bname)
                         "(anon)")
                       'help-echo (format "From `%s' backend" backend))
-                    (,(flymake-diagnostic-oneliner diag)
+                    (,(flymake-diagnostic-oneliner diag t)
                      mouse-face highlight
                      help-echo "mouse-2: visit this diagnostic"
                      face nil

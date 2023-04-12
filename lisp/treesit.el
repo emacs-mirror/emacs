@@ -1783,15 +1783,17 @@ however, smaller in scope than sentences.  This is used by
 `treesit-forward-sexp' and friends.")
 
 (defun treesit-forward-sexp (&optional arg)
+  "Tree-sitter implementation for `forward-sexp-function'.
+ARG is described in the docstring of `forward-sexp-function'."
   (interactive "^p")
   (or arg (setq arg 1))
   (funcall
    (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   treesit-sexp-type-regexp (abs arg)))
+   treesit-sexp-type-regexp (abs arg) 'restricted))
 
 (defun treesit-transpose-sexps (&optional arg)
   "Tree-sitter `transpose-sexps' function.
-Arg is the same as in `transpose-sexps'.
+ARG is the same as in `transpose-sexps'.
 
 Locate the node closest to POINT, and transpose that node with
 its sibling node ARG nodes away.
@@ -1896,33 +1898,53 @@ Basically,
       pattern
     (cons pattern nil)))
 
-(defun treesit-beginning-of-thing (pattern &optional arg)
+(defun treesit-beginning-of-thing (pattern &optional arg tactic)
   "Like `beginning-of-defun', but generalized into things.
 
 PATTERN is like `treesit-defun-type-regexp', ARG
 is the same as in `beginning-of-defun'.
 
+TACTIC determines how does this function move between things.  It
+can be `nested', `top-level', `restricted', or nil.  `nested'
+means normal nested navigation: try to move to siblings first,
+and if there aren't enough siblings, move to the parent and its
+siblings.  `top-level' means only consider top-level things, and
+nested things are ignored.  `restricted' means movement is
+restricted inside the thing that encloses POS (i.e., parent),
+should there be one.  If omitted, TACTIC is considered to be
+`nested'.
+
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
                (`(,regexp . ,pred) (treesit--thing-unpack-pattern
                                     pattern))
                (dest (treesit--navigate-thing
-                      (point) (- arg) 'beg regexp pred)))
+                      (point) (- arg) 'beg regexp pred tactic)))
     (when dest
       (goto-char dest))))
 
-(defun treesit-end-of-thing (pattern &optional arg)
+(defun treesit-end-of-thing (pattern &optional arg tactic)
   "Like `end-of-defun', but generalized into things.
 
 PATTERN is like `treesit-defun-type-regexp', ARG is the same as
 in `end-of-defun'.
 
+TACTIC determines how does this function move between things.  It
+can be `nested', `top-level', `restricted', or nil.  `nested'
+means normal nested navigation: try to move to siblings first,
+and if there aren't enough siblings, move to the parent and its
+siblings.  `top-level' means only consider top-level things, and
+nested things are ignored.  `restricted' means movement is
+restricted inside the thing that encloses POS (i.e., parent),
+should there be one.  If omitted, TACTIC is considered to be
+`nested'.
+
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
                (`(,regexp . ,pred) (treesit--thing-unpack-pattern
                                     pattern))
                (dest (treesit--navigate-thing
-                      (point) arg 'end regexp pred)))
+                      (point) arg 'end regexp pred tactic)))
     (when dest
       (goto-char dest))))
 
@@ -1943,7 +1965,8 @@ and `treesit-defun-skipper'."
     (catch 'done
       (dotimes (_ 2)
 
-        (when (treesit-beginning-of-thing treesit-defun-type-regexp arg)
+        (when (treesit-beginning-of-thing
+               treesit-defun-type-regexp arg treesit-defun-tactic)
           (when treesit-defun-skipper
             (funcall treesit-defun-skipper)
             (setq success t)))
@@ -1971,7 +1994,8 @@ this function depends on `treesit-defun-type-regexp' and
     (catch 'done
       (dotimes (_ 2) ; Not making progress is better than infloop.
 
-        (when (treesit-end-of-thing treesit-defun-type-regexp arg)
+        (when (treesit-end-of-thing
+               treesit-defun-type-regexp arg treesit-defun-tactic)
           (when treesit-defun-skipper
             (funcall treesit-defun-skipper)))
 
@@ -2144,7 +2168,7 @@ REGEXP and PRED are the same as in `treesit-thing-at-point'."
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
 ;;       in the function to do that.
-(defun treesit--navigate-thing (pos arg side regexp &optional pred recursing)
+(defun treesit--navigate-thing (pos arg side regexp &optional pred tactic recursing)
   "Navigate thing ARG steps from POS.
 
 If ARG is positive, move forward that many steps, if negative,
@@ -2156,6 +2180,16 @@ position it would move to.  If there aren't enough things to move
 across, return nil.
 
 REGEXP and PRED are the same as in `treesit-thing-at-point'.
+
+TACTIC determines how does this function move between things.  It
+can be `nested', `top-level', `restricted', or nil.  `nested'
+means normal nested navigation: try to move to siblings first,
+and if there aren't enough siblings, move to the parent and its
+siblings.  `top-level' means only consider top-level things, and
+nested things are ignored.  `restricted' means movement is
+restricted inside the thing that encloses POS (i.e., parent),
+should there be one.  If omitted, TACTIC is considered to be
+`nested'.
 
 RECURSING is an internal parameter, if non-nil, it means this
 function is called recursively."
@@ -2178,53 +2212,57 @@ function is called recursively."
           ;; When PARENT is nil, nested and top-level are the same, if
           ;; there is a PARENT, make PARENT to be the top-level parent
           ;; and pretend there is no nested PREV and NEXT.
-          (when (and (eq treesit-defun-tactic 'top-level)
+          (when (and (eq tactic 'top-level)
                      parent)
             (setq parent (treesit--top-level-thing
                           parent regexp pred)
                   prev nil
                   next nil))
-          ;; Move...
-          (if (> arg 0)
-              ;; ...forward.
-              (if (and (eq side 'beg)
-                       ;; Should we skip the defun (recurse)?
-                       (cond (next (and (not recursing) ; [1] (see below)
-                                        (eq pos (funcall advance next))))
-                             (parent t))) ; [2]
-                  ;; Special case: go to next beg-of-defun, but point
-                  ;; is already on beg-of-defun.  Set POS to the end
-                  ;; of next-sib/parent defun, and run one more step.
-                  ;; If there is a next-sib defun, we only need to
-                  ;; recurse once, so we don't need to recurse if we
-                  ;; are already recursing [1]. If there is no
-                  ;; next-sib but a parent, keep stepping out
-                  ;; (recursing) until we got out of the parents until
-                  ;; (1) there is a next sibling defun, or (2) no more
-                  ;; parents [2].
-                  ;;
-                  ;; If point on beg-of-defun but we are already
-                  ;; recurring, that doesn't count as special case,
-                  ;; because we have already made progress (by moving
-                  ;; the end of next before recurring.)
+          ;; If TACTIC is `restricted', the implementation is very simple.
+          (if (eq tactic 'restricted)
+              (setq pos (funcall advance (if (> arg 0) next prev)))
+            ;; For `nested', it's a bit more work:
+            ;; Move...
+            (if (> arg 0)
+                ;; ...forward.
+                (if (and (eq side 'beg)
+                         ;; Should we skip the defun (recurse)?
+                         (cond (next (and (not recursing) ; [1] (see below)
+                                          (eq pos (funcall advance next))))
+                               (parent t))) ; [2]
+                    ;; Special case: go to next beg-of-defun, but point
+                    ;; is already on beg-of-defun.  Set POS to the end
+                    ;; of next-sib/parent defun, and run one more step.
+                    ;; If there is a next-sib defun, we only need to
+                    ;; recurse once, so we don't need to recurse if we
+                    ;; are already recursing [1]. If there is no
+                    ;; next-sib but a parent, keep stepping out
+                    ;; (recursing) until we got out of the parents until
+                    ;; (1) there is a next sibling defun, or (2) no more
+                    ;; parents [2].
+                    ;;
+                    ;; If point on beg-of-defun but we are already
+                    ;; recurring, that doesn't count as special case,
+                    ;; because we have already made progress (by moving
+                    ;; the end of next before recurring.)
+                    (setq pos (or (treesit--navigate-thing
+                                   (treesit-node-end (or next parent))
+                                   1 'beg regexp pred tactic t)
+                                  (throw 'term nil)))
+                  ;; Normal case.
+                  (setq pos (funcall advance (or next parent))))
+              ;; ...backward.
+              (if (and (eq side 'end)
+                       (cond (prev (and (not recursing)
+                                        (eq pos (funcall advance prev))))
+                             (parent t)))
+                  ;; Special case: go to prev end-of-defun.
                   (setq pos (or (treesit--navigate-thing
-                                 (treesit-node-end (or next parent))
-                                 1 'beg regexp pred t)
+                                 (treesit-node-start (or prev parent))
+                                 -1 'end regexp pred tactic t)
                                 (throw 'term nil)))
                 ;; Normal case.
-                (setq pos (funcall advance (or next parent))))
-            ;; ...backward.
-            (if (and (eq side 'end)
-                     (cond (prev (and (not recursing)
-                                      (eq pos (funcall advance prev))))
-                           (parent t)))
-                ;; Special case: go to prev end-of-defun.
-                (setq pos (or (treesit--navigate-thing
-                               (treesit-node-start (or prev parent))
-                               -1 'end regexp pred t)
-                              (throw 'term nil)))
-              ;; Normal case.
-              (setq pos (funcall advance (or prev parent)))))
+                (setq pos (funcall advance (or prev parent))))))
           ;; A successful step! Decrement counter.
           (cl-decf counter))))
     ;; Counter equal to 0 means we successfully stepped ARG steps.
@@ -2984,6 +3022,9 @@ See `treesit-language-source-alist' for details."
             (buffer-local-value 'url-http-response-status buffer)
             200)))))
 
+(defvar treesit--install-language-grammar-out-dir-history nil
+  "History for OUT-DIR for `treesit-install-language-grammar'.")
+
 ;;;###autoload
 (defun treesit-install-language-grammar (lang)
   "Build and install the tree-sitter language grammar library for LANG.
@@ -3005,11 +3046,20 @@ executable programs, such as the C/C++ compiler and linker."
   (when-let ((recipe
               (or (assoc lang treesit-language-source-alist)
                   (treesit--install-language-grammar-build-recipe
-                   lang))))
+                   lang)))
+             (default-out-dir
+              (or (car treesit--install-language-grammar-out-dir-history)
+                  (locate-user-emacs-file "tree-sitter")))
+             (out-dir
+              (read-string
+               (format "Install to (default: %s): "
+                       default-out-dir)
+               nil
+               'treesit--install-language-grammar-out-dir-history
+               default-out-dir)))
     (condition-case err
         (apply #'treesit--install-language-grammar-1
-               ;; The nil is OUT-DIR.
-               (cons nil recipe))
+               (cons out-dir recipe))
       (error
        (display-warning
         'treesit

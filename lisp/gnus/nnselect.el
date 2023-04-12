@@ -478,7 +478,8 @@ artlist; otherwise store the ARTLIST in the group parameters."
 
 (deffoo nnselect-request-move-article
     (article _group _server accept-form &optional last _internal-move-group)
-  (let* ((artgroup (nnselect-article-group article))
+  (let* ((nnimap-expunge 'immediately)
+         (artgroup (nnselect-article-group article))
 	 (artnumber (nnselect-article-number article))
 	 (to-newsgroup (nth 1 accept-form))
 	 (to-method (gnus-find-method-for-group to-newsgroup))

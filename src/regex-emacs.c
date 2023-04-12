@@ -47,13 +47,6 @@
 /* Make syntax table lookup grant data in gl_state.  */
 #define SYNTAX(c) syntax_property (c, 1)
 
-/* Convert the pointer to the char to BEG-based offset from the start.  */
-#define PTR_TO_OFFSET(d) POS_AS_IN_BUFFER (POINTER_TO_OFFSET (d))
-/* Strings are 0-indexed, buffers are 1-indexed; pun on the boolean
-   result to get the right base index.  */
-#define POS_AS_IN_BUFFER(p)                                    \
-  ((p) + (NILP (gl_state.object) || BUFFERP (gl_state.object)))
-
 #define RE_MULTIBYTE_P(bufp) ((bufp)->multibyte)
 #define RE_TARGET_MULTIBYTE_P(bufp) ((bufp)->target_multibyte)
 #define RE_STRING_CHAR(p, multibyte) \
@@ -3258,12 +3251,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, ptrdiff_t size1,
   /* See whether the pattern is anchored.  */
   anchored_start = (bufp->buffer[0] == begline);
 
-  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
-  {
-    ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (startpos));
-
-    SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
-  }
+  RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, startpos);
 
   /* Loop through the string, looking for a place to start matching.  */
   for (;;)
@@ -3871,10 +3859,7 @@ re_match_2 (struct re_pattern_buffer *bufp,
 {
   ptrdiff_t result;
 
-  ptrdiff_t charpos;
-  gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
-  charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
-  SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
+  RE_SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, pos);
 
   result = re_match_2_internal (bufp, (re_char *) string1, size1,
 				(re_char *) string2, size2,
@@ -4806,8 +4791,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		int c1, c2;
 		int s1, s2;
 		int dummy;
-                ptrdiff_t offset = PTR_TO_OFFSET (d);
-                ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+                ptrdiff_t offset = POINTER_TO_OFFSET (d);
+                ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 		UPDATE_SYNTAX_TABLE (charpos);
 		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 		nchars++;
@@ -4846,8 +4831,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      GET_CHAR_AFTER (c2, d, dummy);
@@ -4889,8 +4874,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      int c1, c2;
 	      int s1, s2;
 	      int dummy;
-              ptrdiff_t offset = PTR_TO_OFFSET (d);
-              ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+              ptrdiff_t offset = POINTER_TO_OFFSET (d);
+              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      nchars++;
@@ -4931,8 +4916,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, target_multibyte);
@@ -4972,8 +4957,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2;
 	      int s1, s2;
-              ptrdiff_t offset = PTR_TO_OFFSET (d);
-              ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
+              ptrdiff_t offset = POINTER_TO_OFFSET (d);
+              ptrdiff_t charpos = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      nchars++;
@@ -5008,8 +4993,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 			 mcnt);
 	    PREFETCH ();
 	    {
-	      ptrdiff_t offset = PTR_TO_OFFSET (d);
-	      ptrdiff_t pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ptrdiff_t offset = POINTER_TO_OFFSET (d);
+	      ptrdiff_t pos1 = RE_SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (pos1);
 	    }
 	    {
