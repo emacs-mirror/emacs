@@ -264,14 +264,16 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
    If it is t (which is only used in fast_c_string_match_ignore_case),
-   ignore properties altogether.  */
+   ignore properties altogether.
+   FROMBYTE is an regexp-byteoffset.  */
 
 void
 SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
-			       ptrdiff_t from, ptrdiff_t count)
+			       ptrdiff_t frombyte, ptrdiff_t count)
 {
   SETUP_BUFFER_SYNTAX_TABLE ();
   gl_state.object = object;
+  ptrdiff_t from = SYNTAX_TABLE_BYTE_TO_CHAR (frombyte);
   if (BUFFERP (gl_state.object))
     {
       struct buffer *buf = XBUFFER (gl_state.object);
