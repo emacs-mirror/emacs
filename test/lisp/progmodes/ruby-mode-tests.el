@@ -567,6 +567,22 @@ VALUES-PLIST is a list with alternating index and value elements."
     (search-backward "_")
     (should (string= (ruby-add-log-current-method) "C::D#foo"))))
 
+(ert-deftest ruby-add-log-current-method-singleton-referencing-outer ()
+  (ruby-with-temp-buffer (ruby-test-string
+                          "module M
+                          |  module N
+                          |    module C
+                          |      class D
+                          |        def C.foo
+                          |          _
+                          |        end
+                          |      end
+                          |    end
+                          |  end
+                          |end")
+    (search-backward "_")
+    (should (string= (ruby-add-log-current-method) "M::N::C.foo"))))
+
 (ert-deftest ruby-add-log-current-method-after-inner-class ()
   (ruby-with-temp-buffer (ruby-test-string
                           "module M
