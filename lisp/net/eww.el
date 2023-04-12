@@ -329,6 +329,12 @@ parameter, and should return the (possibly) transformed URL."
   :parent shr-image-map
   "RET" #'eww-follow-link)
 
+(defvar-keymap eww-minibuffer-url-keymap
+  :doc "Keymap used in the minibuffer prompt for URLs or keywords."
+  :parent minibuffer-local-completion-map
+  "SPC" #'self-insert-command
+  "?" #'self-insert-command)
+
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
 This list can be customized via `eww-suggest-uris'."
@@ -377,10 +383,12 @@ killed after rendering.
 
 For more information, see Info node `(eww) Top'."
   (interactive
-   (let ((uris (eww-suggested-uris)))
-     (list (read-string (format-prompt "Enter URL or keywords"
-                                       (and uris (car uris)))
-                        nil 'eww-prompt-history uris)
+   (let ((uris (eww-suggested-uris))
+         (minibuffer-local-completion-map eww-minibuffer-url-keymap))
+     (list (completing-read (format-prompt "Enter URL or keywords"
+                                           (and uris (car uris)))
+                            eww-prompt-history nil nil nil
+                            'eww-prompt-history uris)
            current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
