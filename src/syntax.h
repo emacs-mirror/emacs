@@ -85,8 +85,6 @@ struct gl_state_s
 					   and possibly at the
 					   intervals too, depending
 					   on:  */
-  /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
-  ptrdiff_t offset;
 };
 
 extern struct gl_state_s gl_state;
@@ -164,10 +162,9 @@ SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
 	  : BUFFERP (gl_state.object)
 	  ? ((buf_bytepos_to_charpos
 	      (XBUFFER (gl_state.object),
-	       (bytepos + BUF_BEGV_BYTE (XBUFFER (gl_state.object)) - 1)))
-	     - BUF_BEGV (XBUFFER (gl_state.object)) + 1)
+	       (bytepos + BUF_BEGV_BYTE (XBUFFER (gl_state.object)) - 1))))
 	  : NILP (gl_state.object)
-	  ? BYTE_TO_CHAR (bytepos + BEGV_BYTE - 1) - BEGV + 1
+	  ? BYTE_TO_CHAR (bytepos + BEGV_BYTE - 1)
 	  : bytepos);
 }
 
@@ -178,8 +175,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 { /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table_forward (charpos + gl_state.offset,
-				 false, gl_state.object);
+    update_syntax_table_forward (charpos, false, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -189,7 +185,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos < gl_state.b_property)
-    update_syntax_table (charpos + gl_state.offset, -1, false, gl_state.object);
+    update_syntax_table (charpos, -1, false, gl_state.object);
 }
 
 /* Make syntax table good for CHARPOS.  */

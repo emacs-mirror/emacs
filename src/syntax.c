@@ -250,7 +250,6 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
   gl_state.b_property = BEGV;
   gl_state.e_property = ZV + 1;
   gl_state.object = Qnil;
-  gl_state.offset = 0;
   if (parse_sexp_lookup_properties)
     {
       if (count > 0)
@@ -265,12 +264,7 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
    If it is t (which is only used in fast_c_string_match_ignore_case),
-   ignore properties altogether.
-
-   This is meant for regex-emacs.c to use.  For buffers, regex-emacs.c
-   passes arguments to the UPDATE_SYNTAX_TABLE functions which are
-   relative to BEGV.  So if it is a buffer, we set the offset field to
-   BEGV.  */
+   ignore properties altogether.  */
 
 void
 SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
@@ -281,30 +275,26 @@ SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
   if (BUFFERP (gl_state.object))
     {
       struct buffer *buf = XBUFFER (gl_state.object);
-      gl_state.b_property = 1;
-      gl_state.e_property = BUF_ZV (buf) - BUF_BEGV (buf) + 1;
-      gl_state.offset = BUF_BEGV (buf) - 1;
+      gl_state.b_property = BEG;
+      gl_state.e_property = BUF_ZV (buf);
     }
   else if (NILP (gl_state.object))
     {
-      gl_state.b_property = 1;
-      gl_state.e_property = ZV - BEGV + 1;
-      gl_state.offset = BEGV - 1;
+      gl_state.b_property = BEG;
+      gl_state.e_property = ZV; /* FIXME: Why not +1 like in SETUP_SYNTAX_TABLE? */
     }
   else if (EQ (gl_state.object, Qt))
     {
       gl_state.b_property = 0;
       gl_state.e_property = PTRDIFF_MAX;
-      gl_state.offset = 0;
     }
   else
     {
       gl_state.b_property = 0;
       gl_state.e_property = 1 + SCHARS (gl_state.object);
-      gl_state.offset = 0;
     }
   if (parse_sexp_lookup_properties)
-    update_syntax_table (from + gl_state.offset - (count <= 0),
+    update_syntax_table (from - (count <= 0),
 			 count, 1, gl_state.object);
 }
 
@@ -341,8 +331,8 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
       if (!i)
 	return;
       i = gl_state.forward_i;
-      gl_state.b_property = i->position - gl_state.offset;
-      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+      gl_state.b_property = i->position;
+      gl_state.e_property = INTERVAL_LAST_POS (i);
     }
   else
     {
@@ -362,7 +352,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    {
 	      invalidate = false;
 	      gl_state.forward_i = i;
-	      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+	      gl_state.e_property = INTERVAL_LAST_POS (i);
 	    }
         }
       else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
@@ -375,7 +365,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    {
 	      invalidate = false;
 	      gl_state.backward_i = i;
-	      gl_state.b_property = i->position - gl_state.offset;
+	      gl_state.b_property = i->position;
 	    }
         }
     }
@@ -391,12 +381,12 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
       if (count > 0)
 	{
 	  gl_state.backward_i = i;
-	  gl_state.b_property = i->position - gl_state.offset;
+	  gl_state.b_property = i->position;
 	}
       else
 	{
 	  gl_state.forward_i = i;
-	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+	  gl_state.e_property = INTERVAL_LAST_POS (i);
 	}
     }
 
@@ -426,13 +416,13 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	{
 	  if (count > 0)
 	    {
-	      gl_state.e_property = i->position - gl_state.offset;
+	      gl_state.e_property = i->position;
 	      gl_state.forward_i = i;
 	    }
 	  else
 	    {
 	      gl_state.b_property
-		= i->position + LENGTH (i) - gl_state.offset;
+		= i->position + LENGTH (i);
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -442,7 +432,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	  if (count > 0)
 	    {
 	      gl_state.e_property
-		= i->position + LENGTH (i) - gl_state.offset
+		= i->position + LENGTH (i)
 		/* e_property at EOB is not set to ZV but to ZV+1, so that
 		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
 		   having to check eob between the two.  */
@@ -451,7 +441,7 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 	    }
 	  else
 	    {
-	      gl_state.b_property = i->position - gl_state.offset;
+	      gl_state.b_property = i->position;
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -2201,8 +2191,7 @@ skip_syntaxes (bool forwardp, Lisp_Object string, Lisp_Object lim)
 	    while (!parse_sexp_lookup_properties
 		   || pos < gl_state.e_property);
 
-	    update_syntax_table_forward (pos + gl_state.offset,
-					 false, gl_state.object);
+	    update_syntax_table_forward (pos, false, gl_state.object);
 	  }
       }
     else
