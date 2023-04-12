@@ -145,7 +145,7 @@ extern bool syntax_prefix_flag_p (int c);
 
 extern unsigned char const syntax_spec_code[0400];
 
-/* Convert the byte offset BYTEPOS into a character position,
+/* Convert the regexp BYTEOFFSET into a character position,
    for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
 
    The value is meant for use in code that does nothing when
@@ -153,19 +153,19 @@ extern unsigned char const syntax_spec_code[0400];
    for speed.  */
 
 INLINE ptrdiff_t
-SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
+SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t byteoffset)
 {
   return (! parse_sexp_lookup_properties
 	  ? 0
 	  : STRINGP (gl_state.object)
-	  ? string_byte_to_char (gl_state.object, bytepos)
+	  ? string_byte_to_char (gl_state.object, byteoffset)
 	  : BUFFERP (gl_state.object)
 	  ? ((buf_bytepos_to_charpos
 	      (XBUFFER (gl_state.object),
-	       (bytepos + BUF_BEGV_BYTE (XBUFFER (gl_state.object)) - 1))))
+	       (byteoffset + BUF_BEGV_BYTE (XBUFFER (gl_state.object))))))
 	  : NILP (gl_state.object)
-	  ? BYTE_TO_CHAR (bytepos + BEGV_BYTE - 1)
-	  : bytepos);
+	  ? BYTE_TO_CHAR (byteoffset + BEGV_BYTE)
+	  : byteoffset);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
