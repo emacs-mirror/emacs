@@ -1636,97 +1636,198 @@ See Info node `(elisp) Integer Basics'."
 
 ;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
-       '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
-	 assq
+       '(% * + - / /= 1+ 1- < <= = > >= abs acos
+         active-minibuffer-window all-threads
+         append aref ash asin atan
+         assoc-string assq
+         bare-symbol
          base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-count-consecutive bool-vector-count-population
          bool-vector-subsetp
-	 boundp buffer-file-name buffer-local-variables buffer-modified-p
-	 buffer-substring
-	 capitalize car-less-than-car car cdr ceiling char-after char-before
-	 char-equal char-to-string char-width compare-strings
-	 window-configuration-equal-p concat coordinates-in-window-p
-	 copy-alist copy-sequence copy-marker copysign cos
+	 boundp
+         buffer-base-buffer buffer-chars-modified-tick buffer-file-name
+         buffer-local-value buffer-local-variables buffer-modified-p
+         buffer-modified-tick buffer-name buffer-substring
+         buffer-substring-no-properties
+         buffer-text-pixel-size
+         byte-to-string byte-to-position
+         capitalize car-less-than-car car category-docstring
+         category-set-mnemonics cdr ceiling
+         char-after char-before char-category-set char-equal
+         char-syntax char-to-string char-width
+         compare-buffer-substrings compare-strings
+	 concat condition-mutex condition-name
+         controlling-tty-p coordinates-in-window-p
+         copy-category-table copy-alist copy-hash-table copy-keymap
+         copy-marker copy-sequence copy-syntax-table
+         copysign cos
+         current-bidi-paragraph-direction
 	 current-time-string current-time-zone
 	 decode-char
-	 decode-time default-boundp default-value documentation downcase
+	 decode-time default-boundp default-value
+         directory-name-p
+         documentation downcase
 	 elt encode-char exp expt encode-time error-message-string
 	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
          file-name-concat
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
-	 float float-time floor format format-message format-time-string
-         frame-first-window frame-root-window frame-selected-window
-	 frame-visible-p fround ftruncate
-	 get gethash get-buffer get-buffer-window get-file-buffer
-	 hash-table-count
-	 intern-soft isnan
-	 keymap-parent
+	 float float-time floor
+         format format-message format-network-address format-time-string
+         frame-ancestor-p frame-bottom-divider-width
+         frame-char-height frame-char-width
+         frame-child-frame-border-width frame-internal-border-width
+         frame-native-height frame-native-width frame-first-window frame-focus
+         frame-fringe-width
+         frame-parameters frame-parameter frame-parent
+         frame-pointer-visible-p frame-position
+         frame-right-divider-width
+         frame-root-window frame-scale-factor
+         frame-scroll-bar-height frame-scroll-bar-width
+         frame-selected-window frame-terminal frame-text-cols frame-text-lines
+         frame-text-height frame-text-width
+         frame-total-cols frame-total-lines
+         frame-visible-p frame-window-state-change
+         fringe-bitmaps-at-pos
+         fround ftruncate
+         get gethash get-buffer get-buffer-process get-buffer-window
+         get-char-property get-char-property-and-overlay
+         get-display-property get-process
+         get-text-property get-unused-category get-variable-watchers
+         group-name
+         hash-table-count hash-table-rehash-size hash-table-rehash-threshold
+         hash-table-size hash-table-test hash-table-weakness
+         indirect-variable innermost-minibuffer-p intern-soft invisible-p isnan
+         keymap-parent keymap-prompt
          ldexp
          length length< length> length=
-         line-beginning-position line-end-position pos-bol pos-eol
+         line-beginning-position line-end-position
+         line-number-at-pos line-pixel-height
 	 local-variable-if-set-p local-variable-p locale-info
 	 log logand logb logcount logior lognot logxor
-	 make-byte-code make-list make-string make-symbol marker-buffer max
+         lookup-image-map
+         make-bool-vector make-byte-code make-category-set make-char-table
+         make-hash-table make-keymap make-list make-record make-sparse-keymap
+         make-string make-symbol make-vector
+         marker-buffer marker-insertion-type marker-position max
          match-beginning match-end
-	 member memq memql min minibuffer-selected-window minibuffer-window
-	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
-	 prefix-numeric-value previous-window prin1-to-string propertize
+         matching-paren
+	 member memq memql min minibuffer-innermost-command-loop-p
+         minibuffer-selected-window minibuffer-window minibufferp
+         mod multibyte-char-to-unibyte mutex-name
+         next-char-property-change next-frame next-overlay-change
+         next-property-change next-single-char-property-change
+         next-single-property-change
+         next-window ngettext nth nthcdr number-to-string
+         object-intervals
+         overlay-buffer overlay-end overlay-get overlay-properties
+         overlay-start overlays-at overlays-in
+         posn-at-point posn-at-x-y position-symbol
+         pos-bol pos-eol
+	 prefix-numeric-value
+         previous-char-property-change previous-frame previous-overlay-change
+         previous-property-change
+         previous-single-char-property-change previous-single-property-change
+         previous-window
+         prin1-to-string
+         process-buffer process-coding-system process-command process-filter
+         process-id process-inherit-coding-system-flag
+         process-mark process-name process-plist
+         process-query-on-exit-flag process-running-child-p process-sentinel
+         process-thread process-tty-name process-type
+         propertize
 	 rassq rassoc read-from-string
          regexp-quote region-beginning region-end reverse round
-	 sin sqrt string string-equal string-lessp
+         sin
+         sqlite-columns sqlite-more-p sqlite-version
+         sqrt string string-bytes string-distance string-equal string-lessp
          string-search string-to-char
-	 string-to-number string-to-syntax substring substring-no-properties
-	 sxhash-equal sxhash-eq sxhash-eql
-	 symbol-function symbol-name symbol-plist symbol-value
+         string-to-number string-to-syntax subr-arity subr-name
+         substring substring-no-properties
+         sxhash-equal sxhash-eq sxhash-eql sxhash-equal-including-properties
+         symbol-function symbol-name symbol-plist symbol-value
+         symbol-with-pos-pos
+         syntax-class-to-char
          string-make-unibyte
 	 string-make-multibyte string-as-multibyte string-as-unibyte
 	 string-to-multibyte
-	 take tan time-convert truncate
-	 unibyte-char-to-multibyte upcase user-full-name
+         subr-native-lambda-list subr-type
+         tab-bar-height
+	 take tan
+         terminal-list terminal-live-p terminal-name
+         terminal-parameter terminal-parameters
+         text-properties-at text-property-any text-property-not-all
+         thread-live-p thread-name
+         time-add time-convert time-equal-p time-less-p time-subtract
+         tool-bar-height tool-bar-pixel-width truncate
+         tty-display-color-cells tty-display-color-p tty-top-frame tty-type
+	 unibyte-char-to-multibyte upcase upcase-initials user-full-name
 	 user-login-name
-	 vconcat
+         variable-binding-locus vconcat
 	 window-at window-body-height
 	 window-body-width window-buffer window-dedicated-p window-display-table
-	 window-combination-limit window-frame window-fringes
-	 window-hscroll
+         window-combination-limit window-configuration-equal-p window-frame
+         window-fringes window-hscroll
 	 window-left-child window-left-column window-margins window-minibuffer-p
 	 window-next-buffers window-next-sibling window-new-normal
 	 window-new-total window-normal-size window-parameter window-parameters
 	 window-parent window-point window-prev-buffers
          window-prev-sibling window-scroll-bars
-	 window-start window-text-height window-top-child window-top-line
+         window-start window-system window-text-height
+         window-text-pixel-size
+         window-top-child window-top-line
 	 window-total-height window-total-width window-use-time window-vscroll
 	 ))
       (side-effect-and-error-free-fns
        '(arrayp atom
-	 bobp bolp bool-vector-p
-	 buffer-list buffer-size buffer-string bufferp
-         byte-code-function-p
-	 car-safe case-table-p cdr-safe char-or-string-p characterp
-	 charsetp commandp cons consp
-	 current-buffer current-global-map current-indentation
-	 current-local-map current-minor-mode-maps current-time
-	 eobp eolp eq equal eql
-	 floatp following-char framep
+         bare-symbol-p bobp bolp bool-vector bool-vector-p
+	 buffer-list buffer-live-p buffer-size buffer-string bufferp
+         byte-code-function-p byteorder
+         car-safe case-table-p category-table category-table-p cdr-safe
+         char-or-string-p char-table-p characterp
+	 charsetp commandp condition-variable-p cons consp
+         current-buffer current-case-table current-column current-global-map
+         current-idle-time current-indentation current-input-mode
+	 current-local-map current-message current-minor-mode-maps
+         current-thread current-time
+         default-file-modes
+	 emacs-pid eobp eolp eq equal eql
+	 floatp following-char
+         frame-list frame-live-p framep functionp
+         gap-position gap-size
+         group-gid group-real-gid
 	 hash-table-p
-	 identity indirect-function integerp integer-or-marker-p
+	 identity imagep indirect-function integerp integer-or-marker-p
 	 invocation-directory invocation-name
 	 keymapp keywordp
-	 list listp
-	 make-marker mark-marker markerp max-char
+	 last-nonminibuffer-frame list listp
+         long-line-optimizations-p
+         make-category-table make-marker mark-marker markerp max-char
+         minibuffer-contents  minibuffer-contents-no-properties
+         minibuffer-depth minibuffer-prompt minibuffer-prompt-end
+         module-function-p multibyte-string-p mutexp
 	 natnump nlistp null number-or-marker-p numberp
-	 overlayp
-	 point point-marker point-min point-max preceding-char
-	 processp proper-list-p
-	 recent-keys recursion-depth
-	 safe-length selected-frame selected-window sequencep
-	 standard-case-table standard-syntax-table stringp subrp symbolp
-	 syntax-table syntax-table-p
+	 old-selected-frame overlay-lists overlayp
+	 point point-marker point-min point-max position-bytes
+         preceding-char
+	 processp process-list
+         proper-list-p purecopy
+	 recent-keys record recordp recursion-depth
+         remove-pos-from-symbol
+	 safe-length secure-hash-algorithms
+         selected-frame selected-window sequencep signal-names
+         sqlite-available-p sqlitep
+         standard-case-table standard-category-table standard-syntax-table
+         stringp
+         subr-native-elisp-p subrp
+         symbol-with-pos-p symbolp
+	 syntax-table syntax-table-p system-name
 	 this-command-keys this-command-keys-vector this-single-command-keys
-	 this-single-command-raw-keys type-of
-	 user-real-login-name user-real-uid user-uid
-	 vector vectorp visible-frame-list
+	 this-single-command-raw-keys threadp type-of
+         user-ptrp
+         user-real-login-name user-real-uid user-uid
+	 vector vector-or-char-table-p vectorp visible-frame-list
+         waiting-for-user-input-p
 	 wholenump window-configuration-p window-live-p
 	 window-valid-p windowp)))
   (while side-effect-free-fns
@@ -1765,11 +1866,14 @@ See Info node `(elisp) Integer Basics'."
          string-equal string-lessp
          string-search
          consp atom listp nlistp proper-list-p
-         sequencep arrayp vectorp stringp bool-vector-p hash-table-p
+         sequencep arrayp vectorp stringp bool-vector-p hash-table-p recordp
+         multibyte-string-p char-table-p vector-or-char-table-p
+         threadp mutexp condition-variable-p
          null
          numberp integerp floatp natnump characterp
          integer-or-marker-p number-or-marker-p char-or-string-p
-         symbolp keywordp
+         symbolp keywordp bufferp markerp
+         bare-symbol remove-pos-from-symbol
          type-of
          identity
 
@@ -1785,6 +1889,7 @@ See Info node `(elisp) Integer Basics'."
          ;; impure if the test function is (consider `string-match').
          assq rassq rassoc
          aref elt
+         length< length> length= string-bytes string-distance
          base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-subsetp
          bool-vector-count-population bool-vector-count-consecutive

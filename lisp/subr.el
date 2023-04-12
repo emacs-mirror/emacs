@@ -829,7 +829,7 @@ of course, also replace TO with a slightly larger value
 If TREE is a cons cell, this recursively copies both its car and its cdr.
 Contrast to `copy-sequence', which copies only along the cdrs.  With second
 argument VECP, this copies vectors as well as conses."
-  (declare (side-effect-free t))
+  (declare (side-effect-free error-free))
   (if (consp tree)
       (let (result)
 	(while (consp tree)
