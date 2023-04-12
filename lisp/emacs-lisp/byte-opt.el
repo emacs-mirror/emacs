@@ -1642,7 +1642,7 @@ See Info node `(elisp) Integer Basics'."
          bool-vector-count-consecutive bool-vector-count-population
          bool-vector-subsetp
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
-	 buffer-substring byte-code-function-p
+	 buffer-substring
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
 	 char-equal char-to-string char-width compare-strings
 	 window-configuration-equal-p concat coordinates-in-window-p
@@ -1702,6 +1702,7 @@ See Info node `(elisp) Integer Basics'."
        '(arrayp atom
 	 bobp bolp bool-vector-p
 	 buffer-list buffer-size buffer-string bufferp
+         byte-code-function-p
 	 car-safe case-table-p cdr-safe char-or-string-p characterp
 	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
