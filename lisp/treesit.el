@@ -3022,6 +3022,9 @@ See `treesit-language-source-alist' for details."
             (buffer-local-value 'url-http-response-status buffer)
             200)))))
 
+(defvar treesit--install-language-grammar-out-dir-history nil
+  "History for OUT-DIR for `treesit-install-language-grammar'.")
+
 ;;;###autoload
 (defun treesit-install-language-grammar (lang)
   "Build and install the tree-sitter language grammar library for LANG.
@@ -3043,11 +3046,20 @@ executable programs, such as the C/C++ compiler and linker."
   (when-let ((recipe
               (or (assoc lang treesit-language-source-alist)
                   (treesit--install-language-grammar-build-recipe
-                   lang))))
+                   lang)))
+             (default-out-dir
+              (or (car treesit--install-language-grammar-out-dir-history)
+                  (locate-user-emacs-file "tree-sitter")))
+             (out-dir
+              (read-string
+               (format "Install to (default: %s): "
+                       default-out-dir)
+               nil
+               'treesit--install-language-grammar-out-dir-history
+               default-out-dir)))
     (condition-case err
         (apply #'treesit--install-language-grammar-1
-               ;; The nil is OUT-DIR.
-               (cons nil recipe))
+               (cons out-dir recipe))
       (error
        (display-warning
         'treesit
