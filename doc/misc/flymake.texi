@@ -320,7 +320,6 @@ Which fringe (if any) should show the warning/error bitmaps.
 @item flymake-wrap-around
 If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
-@end vtable
 
 @item flymake-show-diagnostics-at-end-of-line
 If non-@code{nil}, show summarized descriptions of diagnostics at the
