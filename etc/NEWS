@@ -1876,6 +1876,11 @@ package maintainers.
 By customizing this user option you can specify specific packages to
 install.
 
+---
+*** New user option 'package-install-upgrade-built-in'.
+When enabled, 'package-install' can be used to install
+newer versions of built-in packages.
+
 ** Emacs Sessions (Desktop)
 
 +++
