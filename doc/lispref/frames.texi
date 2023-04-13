@@ -4064,21 +4064,23 @@ Emacs 25.1.
 @section Accessing Selections
 
   @code{gui-get-selection} is able to retrieve multiple different
-kinds of selection data.  However, the exact data types which Emacs
-understands is not precisely specified and differs depending on the
-window system on which Emacs is running.
+kinds of selection data from any number of selections.  However, the
+data types and selections that Emacs understands is not precisely
+specified and differs depending on the window system on which Emacs is
+running.
 
   At the same time, @code{gui-set-selection} hides a great deal of
 complexity behind its back, at least on some systems: its @var{data}
 argument need not be a string, but is actually given verbatim to
 system specific code.
 
-  Emacs implements selections most completely on the X Window System.
-This is both an artifact of history (X was the first window system
-supported by Emacs) and one of technical reasons: instead of using
-selections only to transfer text and multimedia content between
-clients, X uses selections as a general inter-client communication
-system, leading to a great proliferation of selection data types.
+  Emacs's implementation of selections is most complete on the X
+Window System.  This is both an artifact of history (X was the first
+window system supported by Emacs) and one of technical reasons:
+instead of using selections only to transfer text and multimedia
+content between clients, X uses selections as a general inter-client
+communication system, leading to a great proliferation of selection
+data types.
 
   Even more confusingly, X also supports another inter-client
 communication mechanism: the Inter-Client Exchange.  However, ICE is
@@ -4097,17 +4099,18 @@ separate topic.
 fixed number of selections.  Selections are instead identified by X
 ``atoms'', which are unique 29-bit identifiers issued by the X server
 for a corresponding name.  In Emacs, you can simply write a symbol
-with name of the atom, and Emacs will transparently request these
+with the name of the atom, and Emacs will transparently request these
 identifiers where necessary.
 
-  When a program ``sets'' a selection under X, it actually takes
-ownership of the selection---the X server will then deliver selection
-requests to the program, which is obliged to respond to the requesting
-client with the selection data.
+  When a program ``sets'' a selection under X, it actually makes
+itself the ``owner'' of the selection---the X server will then deliver
+selection requests to the program, which is obliged to respond to the
+requesting client with the selection data.
 
   Similarly, a program does not ``get'' selection data from the X
 server.  Instead, its selection requests are sent to the client with
-the window which last took ownership over the selection.
+the window which last took ownership over the selection, which then
+replies with the requested data.
 
   Each selection request contains three parameters:
 

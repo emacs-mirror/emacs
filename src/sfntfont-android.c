@@ -52,6 +52,7 @@ struct sfntfont_android_scanline_buffer
 static char *system_font_directories[] =
   {
     (char *) "/system/fonts",
+    (char *) "/product/fonts",
     /* This should be filled in by init_sfntfont_android.  */
     (char[PATH_MAX]) { },
   };
@@ -772,7 +773,7 @@ init_sfntfont_android (void)
 
   /* Set up the user fonts directory.  This directory is ``fonts'' in
      the Emacs files directory.  */
-  snprintf (system_font_directories[1], PATH_MAX, "%s/fonts",
+  snprintf (system_font_directories[2], PATH_MAX, "%s/fonts",
 	    android_get_home_directory ());
 }
 
