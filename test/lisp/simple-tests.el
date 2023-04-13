@@ -839,7 +839,7 @@ See Bug#21722."
     (forward-line 2)
     (narrow-to-region (pos-bol) (pos-eol))
     (should (equal (line-number-at-pos) 1))
-    (line-number-at-pos nil t)
+    (should (equal (line-number-at-pos nil t) 3))
     (should (equal (line-number-at-pos) 1))))
 
 (ert-deftest line-number-at-pos-keeps-point ()
@@ -849,8 +849,8 @@ See Bug#21722."
       (goto-char (point-min))
       (forward-line 2)
       (setq pos (point))
-      (line-number-at-pos)
-      (line-number-at-pos nil t)
+      (should (equal (line-number-at-pos) 3))
+      (should (equal (line-number-at-pos nil t) 3))
       (should (equal pos (point))))))
 
 (ert-deftest line-number-at-pos-when-passing-point ()
