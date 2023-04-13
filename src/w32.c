@@ -543,7 +543,14 @@ typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
 
 typedef COORD (WINAPI *GetConsoleFontSize_Proc) (HANDLE, DWORD);
 
-#if _WIN32_WINNT < 0x0501
+/* Old versions of mingw.org's MinGW, before v5.2.0, don't have a
+   _WIN32_WINNT guard for CONSOLE_FONT_INFO in wincon.h, and so don't
+   need the conditional definition below, which causes compilation
+   errors.  Note: MinGW64 sets _WIN32_WINNT to a higher version, and
+   its w32api.h version stays fixed at 3.14.  */
+#if _WIN32_WINNT < 0x0501 \
+    && (__W32API_MAJOR_VERSION > 5 \
+	|| (__W32API_MAJOR_VERSION == 5 && __W32API_MINOR_VERSION >= 2))
 typedef struct
 {
   DWORD nFont;
