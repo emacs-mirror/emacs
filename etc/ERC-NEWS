@@ -45,9 +45,15 @@ security issue led to new ERC buffers being "buried" on creation.  On
 further reflection, this was judged to have been an overcorrection in
 the case of interactive invocations, hence the new option
 'erc-interactive-display', which is set to 'buffer' (i.e., "take me
-there") by default.  Accompanying this addition are "display"-suffixed
-aliases for related options 'erc-join-buffer' and 'erc-auto-query',
-which users have reported as being difficult to discover and remember.
+there") by default.
+
+Accompanying this addition are "display"-suffixed aliases for related
+options 'erc-join-buffer' and 'erc-auto-query', which users have
+reported as being difficult to discover and remember.  When the latter
+option (now known as 'erc-receive-query-display') is nil, ERC uses
+'erc-join-buffer' in its place, much like it does for
+'erc-interactive-display'.  The old nil behavior can still be gotten
+via the new compatibility flag 'erc-receive-query-display-defer'.
 
 ** Setting a module's mode variable via Customize earns a warning.
 Trying and failing to activate a module via its minor mode's Custom
@@ -107,6 +113,13 @@ this special treatment is being canonized.  From now on, all values
 other than the symbol 'erc-button-buttonize-nicks' appearing in the
 "FORM" field (third element) of this entry are considered deprecated
 and will incur a warning.
+
+** Option 'erc-query-on-unjoined-chan-privmsg' restored and renamed.
+This option was accidentally removed from the default client in ERC
+5.5 and was thus prevented from influencing PRIVMSG routing.  It's now
+been restored with a slightly revised role contingent on a few
+assumptions explained in its doc string.  For clarity, it has been
+renamed 'erc-ensure-target-buffer-on-privmsg'.
 
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
@@ -332,8 +345,8 @@ In an effort to help further tame ERC's complexity, the variable
 'erc-default-recipients' is now expected to hold but a single target.
 As a consequence, functions like 'erc-add-default-channel' that
 imagine an alternate, aspirational model of buffer-target relations
-have been deprecated.  See Emacs change-log entries from around July
-of 2022 for specifics.
+have been deprecated.  Grep for their names in ChangeLog.4 for
+details.
 
 A number of less consequential deprecations also debut in this
 release.  For example, the function 'erc-auto-query' was deemed too

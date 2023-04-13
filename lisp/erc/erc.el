@@ -3978,8 +3978,8 @@ on the value of `erc-query-display'."
   (unless user
       ;; currently broken, evil hack to display help anyway
                                         ;(erc-delete-query))))
-    (signal 'wrong-number-of-arguments ""))
-  (let ((erc-join-buffer erc-query-display))
+    (signal 'wrong-number-of-arguments '(erc-cmd-QUERY 0)))
+  (let ((erc-join-buffer erc-interactive-display))
     (erc-with-server-buffer
      (erc--open-target user))))
 
@@ -4722,23 +4722,30 @@ See `erc-default-server-hook'."
   "Open a query buffer on TARGET using SERVER-BUFFER.
 To change how this query window is displayed, use `let' to bind
 `erc-join-buffer' before calling this."
-  (declare (obsolete "bind `erc-cmd-query' and call `erc-cmd-QUERY'" "29.1"))
+  (declare (obsolete "call `erc-open' in a live server buffer" "29.1"))
   (unless (buffer-live-p server-buffer)
     (error "Couldn't switch to server buffer"))
   (with-current-buffer server-buffer
     (erc--open-target target)))
 
-(defvaralias 'erc-receive-query-display 'erc-auto-query)
-(defcustom erc-auto-query 'window-noselect
+(defvaralias 'erc-auto-query 'erc-receive-query-display)
+(defcustom erc-receive-query-display 'window-noselect
   "If non-nil, create a query buffer each time you receive a private message.
 If the buffer doesn't already exist, it is created.
 
 This can be set to a symbol, to control how the new query window
 should appear.  The default behavior is to display the buffer in
-a new window, but not to select it.  See the documentation for
-`erc-join-buffer' for a description of the available choices."
+a new window but not to select it.  See the documentation for
+`erc-buffer-display' for a description of available values.
+
+Note that the legacy behavior of forgoing buffer creation
+entirely when this option is nil requires setting the
+compatibility flag `erc-receive-query-display-defer' to nil.  Use
+`erc-ensure-target-buffer-on-privmsg' to achieve the same effect."
+  :package-version '(ERC . "5.6")
+  :group 'erc-buffers
   :group 'erc-query
-  :type '(choice (const :tag "Don't create query window" nil)
+  :type '(choice (const :tag "Defer to value of `erc-buffer-display'" nil)
                  (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
                  (const :tag "New frame" frame)
@@ -4746,15 +4753,37 @@ a new window, but not to select it.  See the documentation for
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
 
-;; FIXME either retire this or put it to use after determining how
-;; it's meant to work.  Clearly, the doc string does not describe
-;; current behavior.  It's currently only used by the obsolete
-;; function `erc-auto-query'.
-(defcustom erc-query-on-unjoined-chan-privmsg t
-  "If non-nil create query buffer on receiving any PRIVMSG at all.
+(defvar erc-receive-query-display-defer t
+  "How to interpret a null `erc-receive-query-display'.
+When this variable is non-nil, ERC defers to `erc-buffer-display'
+upon seeing a nil value for `erc-receive-query-display', much
+like it does with other buffer-display options, like
+`erc-interactive-display'.  Otherwise, when this option is nil,
+ERC retains the legacy behavior of not creating a new query
+buffer.")
+
+(defvaralias 'erc-query-on-unjoined-chan-privmsg
+  'erc-ensure-target-buffer-on-privmsg)
+(defcustom erc-ensure-target-buffer-on-privmsg t
+  "When non-nil, create a target buffer upon receiving a PRIVMSG.
 This includes PRIVMSGs directed to channels.  If you are using an IRC
 bouncer, such as dircproxy, to keep a log of channels when you are
-disconnected, you should set this option to t."
+disconnected, you should set this option to t.
+
+For queries (direct messages), this option's non-nil meaning is
+straightforward: if a buffer doesn't exist for the sender, create
+one.  For channels, the use case is more niche and usually
+involves receiving playback (via commands like ZNC's
+\"PLAYBUFFER\") for channels to which your bouncer is joined but
+from which you've \"detached\".
+
+Note that this option was absent from ERC 5.5 because knowledge
+of its intended role was \"unavailable\" during a major
+refactoring involving buffer management.  The option has since
+been restored in ERC 5.6 but now also affects queries in the
+manner implied above, which was lost sometime before ERC 5.4."
+  :package-version '(ERC . "5.6") ; revived
+  :group 'erc-buffers
   :group 'erc-query
   :type 'boolean)
 

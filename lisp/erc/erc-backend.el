@@ -102,11 +102,11 @@
 (require 'erc-common)
 
 (defvar erc--target)
-(defvar erc-auto-query)
 (defvar erc-channel-list)
 (defvar erc-channel-users)
 (defvar erc-default-nicks)
 (defvar erc-default-recipients)
+(defvar erc-ensure-target-buffer-on-privmsg)
 (defvar erc-format-nick-function)
 (defvar erc-format-query-as-channel-p)
 (defvar erc-hide-prompt)
@@ -123,6 +123,8 @@
 (defvar erc-nick-change-attempt-count)
 (defvar erc-prompt-for-channel-key)
 (defvar erc-prompt-hidden)
+(defvar erc-receive-query-display)
+(defvar erc-receive-query-display-defer)
 (defvar erc-reuse-buffers)
 (defvar erc-verbose-server-ping)
 (defvar erc-whowas-on-nosuchnick)
@@ -1831,11 +1833,16 @@ add things to `%s' instead."
         (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))
                     (erc-is-message-ctcp-and-not-action-p msg))
           (if privp
-              (when erc-auto-query
-                (let ((erc-join-buffer erc-auto-query))
-                  (setq buffer (erc--open-target nick))))
-            ;; A channel buffer has been killed but is still joined
-            (setq buffer (erc--open-target tgt))))
+              (when-let ((erc-join-buffer
+                          (or (and (not erc-receive-query-display-defer)
+                                   erc-receive-query-display)
+                              (and erc-ensure-target-buffer-on-privmsg
+                                   (or erc-receive-query-display
+                                       erc-join-buffer)))))
+                (setq buffer (erc--open-target nick)))
+            ;; A channel buffer has been killed but is still joined.
+            (when erc-ensure-target-buffer-on-privmsg
+              (setq buffer (erc--open-target tgt)))))
         (when buffer
           (with-current-buffer buffer
             (when privp (erc--unhide-prompt))
