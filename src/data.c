@@ -4217,10 +4217,11 @@ syms_of_data (void)
   Fput (Qrecursion_error, Qerror_message, build_pure_c_string
 	("Excessive recursive calling error"));
 
-  PUT_ERROR (Qexcessive_variable_binding, recursion_tail,
-	     "Variable binding depth exceeds max-specpdl-size");
   PUT_ERROR (Qexcessive_lisp_nesting, recursion_tail,
 	     "Lisp nesting exceeds `max-lisp-eval-depth'");
+  /* Error obsolete (from 29.1), kept for compatibility.  */
+  PUT_ERROR (Qexcessive_variable_binding, recursion_tail,
+	     "Variable binding depth exceeds max-specpdl-size");
 
   /* Types that type-of returns.  */
   DEFSYM (Qinteger, "integer");
