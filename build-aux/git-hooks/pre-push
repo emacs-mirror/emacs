@@ -1,0 +1,83 @@
+#!/bin/sh
+# Check the file list of GNU Emacs change log entries before pushing.
+
+# Copyright 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+# This hook runs before pushing a series of commits and checks that
+# the files mentioned in each commit message match the diffs.  This
+# helps ensure that the resulting change logs are correct, which
+# should prevent errors when generating etc/AUTHORS.
+
+# These checks also happen in the "post-commit" hook (which see), but
+# that hook can't abort a commit; it just advises the committer to fix
+# the commit so that this hook runs without errors.
+
+### Code:
+
+# Prefer gawk if available, as it handles NUL bytes properly.
+if type gawk >/dev/null 2>&1; then
+  awk="gawk"
+else
+  awk="awk"
+fi
+
+# Standard input receives lines of the form:
+#   <local ref> SP <local name> SP <remote ref> SP <remote name> LF
+$awk -v origin_name="$1" '
+  # If the local SHA is all zeroes, ignore it.
+  $2 ~ /^0{40}$/ {
+    next
+  }
+
+  $2 ~ /^[a-z0-9]{40}$/ {
+    newref = $2
+    # If the remote SHA is all zeroes, this is a new object to be
+    # pushed (likely a branch).  Go backwards until we find a SHA on
+    # an origin branch.
+    if ($4 ~ /^0{40}$/) {
+      back = 0
+      cmd = ("git branch -r -l '\''" origin_name "/*'\'' --contains " \
+             newref "~" back)
+      while ((cmd | getline) == 0) {
+
+        # Only look back at most 1000 commits, just in case...
+        if (back++ > 1000)
+          break;
+      }
+      close(cmd)
+
+      cmd = ("git rev-parse " newref "~" back)
+      cmd | getline oldref
+      if (!(oldref ~ /^[a-z0-9]{40}$/)) {
+        # The SHA is misformatted!  Skip this line.
+        next
+      }
+      close(cmd)
+    } else if ($4 ~ /^[a-z0-9]{40}$/)  {
+      oldref = $4
+    } else {
+      # The SHA is misformatted!  Skip this line.
+      next
+    }
+
+    # Print every SHA after oldref, up to (and including) newref.
+    system("git rev-list --reverse " oldref ".." newref)
+  }
+' | $awk -v reason=pre-push -f .git/hooks/commit-msg-files.awk

@@ -340,7 +340,8 @@ git_config diff.texinfo.xfuncname \
 tailored_hooks=
 sample_hooks=
 
-for hook in commit-msg pre-commit prepare-commit-msg; do
+for hook in commit-msg pre-commit prepare-commit-msg post-commit \
+            pre-push commit-msg-files.awk; do
     cmp -- build-aux/git-hooks/$hook "$hooks/$hook" >/dev/null 2>&1 ||
 	tailored_hooks="$tailored_hooks $hook"
 done
