@@ -4603,7 +4603,7 @@ ns_send_appdefined (int value)
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 static void
-check_native_fs ()
+check_native_fs (void)
 {
   Lisp_Object frame, tail;
 
