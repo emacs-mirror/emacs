@@ -831,7 +831,7 @@ the return value is ((1 3) (1 3))."
                                       (funcall fn)))))
 
 (defun treesit--ert-test-defun-navigation
-    (init program master &optional opening closing)
+    (init program master tactic &optional opening closing)
   "Run defun navigation tests on PROGRAM and MASTER.
 
 INIT is a setup function that runs right after this function
@@ -842,6 +842,8 @@ PROGRAM is a program source in string, MASTER is a list of
 starting marker position, and the rest are marker positions the
 corresponding navigation should stop at (after running
 `treesit-defun-skipper').
+
+TACTIC is the same as in `treesit--navigate-thing'.
 
 OPENING and CLOSING are the same as in
 `treesit--ert-insert-and-parse-marker', by default they are \"[\"
@@ -873,7 +875,7 @@ and \"]\"."
                        (if-let ((pos (funcall
                                       #'treesit--navigate-thing
                                       (point) (car conf) (cdr conf)
-                                      regexp pred)))
+                                      regexp pred tactic)))
                            (save-excursion
                              (goto-char pos)
                              (funcall treesit-defun-skipper)
@@ -1025,43 +1027,42 @@ the prev-beg, now point should be at marker 103\", etc.")
   "Test defun navigation."
   (skip-unless (treesit-language-available-p 'python))
   ;; Nested defun navigation
-  (let ((treesit-defun-tactic 'nested))
-    (require 'python)
-    (treesit--ert-test-defun-navigation
-     'python-ts-mode
-     treesit--ert-defun-navigation-python-program
-     treesit--ert-defun-navigation-nested-master)))
+  (require 'python)
+  (treesit--ert-test-defun-navigation
+   'python-ts-mode
+   treesit--ert-defun-navigation-python-program
+   treesit--ert-defun-navigation-nested-master
+   'nested))
 
 (ert-deftest treesit-defun-navigation-nested-2 ()
   "Test defun navigation using `js-ts-mode'."
   (skip-unless (treesit-language-available-p 'javascript))
   ;; Nested defun navigation
-  (let ((treesit-defun-tactic 'nested))
-    (require 'js)
-    (treesit--ert-test-defun-navigation
-     'js-ts-mode
-     treesit--ert-defun-navigation-js-program
-     treesit--ert-defun-navigation-nested-master)))
+  (require 'js)
+  (treesit--ert-test-defun-navigation
+   'js-ts-mode
+   treesit--ert-defun-navigation-js-program
+   treesit--ert-defun-navigation-nested-master
+   'nested))
 
 (ert-deftest treesit-defun-navigation-nested-3 ()
   "Test defun navigation using `bash-ts-mode'."
   (skip-unless (treesit-language-available-p 'bash))
   ;; Nested defun navigation
-  (let ((treesit-defun-tactic 'nested))
-    (treesit--ert-test-defun-navigation
-     (lambda ()
-       (treesit-parser-create 'bash)
-       (setq-local treesit-defun-type-regexp "function_definition"))
-     treesit--ert-defun-navigation-bash-program
-     treesit--ert-defun-navigation-nested-master)))
+  (treesit--ert-test-defun-navigation
+   (lambda ()
+     (treesit-parser-create 'bash)
+     (setq-local treesit-defun-type-regexp "function_definition"))
+   treesit--ert-defun-navigation-bash-program
+   treesit--ert-defun-navigation-nested-master
+   'nested))
 
 (ert-deftest treesit-defun-navigation-nested-4 ()
   "Test defun navigation using Elixir.
 This tests bug#60355."
   (skip-unless (treesit-language-available-p 'elixir))
   ;; Nested defun navigation
-  (let ((treesit-defun-tactic 'nested)
-        (pred (lambda (node)
+  (let ((pred (lambda (node)
                 (member (treesit-node-text
                          (treesit-node-child-by-field-name node "target"))
                         '("def" "defmodule")))))
@@ -1070,18 +1071,19 @@ This tests bug#60355."
        (treesit-parser-create 'elixir)
        (setq-local treesit-defun-type-regexp `("call" . ,pred)))
      treesit--ert-defun-navigation-elixir-program
-     treesit--ert-defun-navigation-nested-master)))
+     treesit--ert-defun-navigation-nested-master
+     'nested)))
 
 (ert-deftest treesit-defun-navigation-top-level ()
   "Test top-level only defun navigation."
   (skip-unless (treesit-language-available-p 'python))
   ;; Nested defun navigation
-  (let ((treesit-defun-tactic 'top-level))
-    (require 'python)
-    (treesit--ert-test-defun-navigation
-     'python-ts-mode
-     treesit--ert-defun-navigation-python-program
-     treesit--ert-defun-navigation-top-level-master)))
+  (require 'python)
+  (treesit--ert-test-defun-navigation
+   'python-ts-mode
+   treesit--ert-defun-navigation-python-program
+   treesit--ert-defun-navigation-top-level-master
+   'top-level))
 
 ;; TODO
 ;; - Functions in treesit.el
