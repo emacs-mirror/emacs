@@ -47,6 +47,12 @@ New features
    :ref:`topic-scanning-protocol`. This allows the client program to
    safely update references in the visited objects.
 
+#. A :term:`virtual memory arena` can now be configured to call
+   functions when it acquires a new chunk of :term:`address space`,
+   and when it returns a chunk of address space to the operation
+   system. This is intended to support dynamic function tables in
+   Windows. See :ref:`topic-arena-extension`.
+
 
 Interface changes
 .................
