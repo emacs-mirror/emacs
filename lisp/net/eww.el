@@ -94,7 +94,8 @@ no parameters) that returns a directory name."
 (defcustom eww-suggest-uris
   '(eww-links-at-point
     thing-at-point-url-at-point
-    eww-current-url)
+    eww-current-url
+    eww-bookmark-urls)
   "List of functions called to form the list of default URIs for `eww'.
 Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
@@ -104,7 +105,8 @@ duplicate entries (if any) removed."
   :type 'hook
   :options '(eww-links-at-point
              thing-at-point-url-at-point
-             eww-current-url))
+             eww-current-url
+             eww-bookmark-urls))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
@@ -387,8 +389,8 @@ For more information, see Info node `(eww) Top'."
          (minibuffer-local-completion-map eww-minibuffer-url-keymap))
      (list (completing-read (format-prompt "Enter URL or keywords"
                                            (and uris (car uris)))
-                            eww-prompt-history nil nil nil
-                            'eww-prompt-history uris)
+                            (seq-uniq (append eww-prompt-history uris))
+                            nil nil nil 'eww-prompt-history uris)
            current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
@@ -2234,6 +2236,12 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
       (setq bookmark (get-text-property (line-beginning-position)
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
+
+(defun eww-bookmark-urls ()
+  "Get the URLs from the current list of bookmarks."
+  (interactive nil eww-boomark-mode)
+  (eww-read-bookmarks)
+  (mapcar (lambda (x) (plist-get x :url)) eww-bookmarks))
 
 (defvar-keymap eww-bookmark-mode-map
   "C-k" #'eww-bookmark-kill

@@ -236,6 +236,12 @@ activate this behavior.
 The interactive minibuffer prompt when invoking 'eww' now has support
 for tab completion.
 
++++
+*** 'eww' URL and keyword prompt now completes suggested URIs and bookmarks.
+The interactive minibuffer prompt when invoking 'eww' now provides
+completions from 'eww-suggest-uris'. 'eww-suggest-uris' now includes
+bookmark URIs.
+
 ** go-ts-mode
 
 +++
