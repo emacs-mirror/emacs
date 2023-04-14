@@ -1307,7 +1307,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: result = SYMBOL_VAL (sym); break;
     case SYMBOL_LOCALIZED:
       { /* Look in local_var_alist.  */

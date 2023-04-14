@@ -571,11 +571,12 @@ omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
 or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
 itself an alias.  If NEW-ALIAS is bound, and BASE-VARIABLE is not,
 then the value of BASE-VARIABLE is set to that of NEW-ALIAS.
-The return value is BASE-VARIABLE.  */)
+The return value is BASE-VARIABLE.
+
+If the resulting chain of variable definitions would contain a loop,
+signal a `cyclic-variable-indirection' error.  */)
   (Lisp_Object new_alias, Lisp_Object base_variable, Lisp_Object docstring)
 {
-  struct Lisp_Symbol *sym;
-
   CHECK_SYMBOL (new_alias);
   CHECK_SYMBOL (base_variable);
 
@@ -584,7 +585,18 @@ The return value is BASE-VARIABLE.  */)
     error ("Cannot make a constant an alias: %s",
 	   SDATA (SYMBOL_NAME (new_alias)));
 
-  sym = XSYMBOL (new_alias);
+  struct Lisp_Symbol *sym = XSYMBOL (new_alias);
+
+  /* Ensure non-circularity.  */
+  struct Lisp_Symbol *s = XSYMBOL (base_variable);
+  for (;;)
+    {
+      if (s == sym)
+	xsignal1 (Qcyclic_variable_indirection, base_variable);
+      if (s->u.s.redirect != SYMBOL_VARALIAS)
+	break;
+      s = SYMBOL_ALIAS (s);
+    }
 
   switch (sym->u.s.redirect)
     {
@@ -3476,7 +3488,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
   switch (sym->u.s.redirect)
     {
     case SYMBOL_VARALIAS:
-      sym = indirect_variable (sym); XSETSYMBOL (symbol, sym); goto start;
+      sym = SYMBOL_ALIAS (sym); XSETSYMBOL (symbol, sym); goto start;
     case SYMBOL_PLAINVAL:
       /* The most common case is that of a non-constant symbol with a
 	 trivial value.  Make that as fast as we can.  */

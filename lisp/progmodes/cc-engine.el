@@ -9460,19 +9460,24 @@ multi-line strings (but not C++, for example)."
        (setq ,ps (cdr ,ps)))))
 
 (defun c-forward-over-compound-identifier ()
-  ;; Go over a possibly compound identifier, such as C++'s Foo::Bar::Baz,
-  ;; returning that identifier (with any syntactic WS removed).  Return nil if
-  ;; we're not at an identifier.
-  (when (c-on-identifier)
+  ;; Go over a possibly compound identifier (but not any following
+  ;; whitespace), such as C++'s Foo::Bar::Baz, returning that identifier (with
+  ;; any syntactic WS removed).  Return nil if we're not at an identifier, in
+  ;; which case point is not moved.
+  (when
+      (eq (c-on-identifier)
+	  (point))
     (let ((consolidated "") (consolidated-:: "")
-	  start end)
+	  (here (point))
+	  start end end-token)
       (while
        (progn
 	 (setq start (point))
 	 (c-forward-over-token)
 	 (setq consolidated
 	       (concat consolidated-::
-		       (buffer-substring-no-properties start (point))))
+		       (buffer-substring-no-properties start (point)))
+	       end-token (point))
 	 (c-forward-syntactic-ws)
 	 (and c-opt-identifier-concat-key
 	      (looking-at c-opt-identifier-concat-key)
@@ -9487,7 +9492,9 @@ multi-line strings (but not C++, for example)."
 		       (concat consolidated
 			       (buffer-substring-no-properties start end))))))))
       (if (equal consolidated "")
-	  nil
+	  (progn (goto-char here)
+		 nil)
+	(goto-char end-token)
 	consolidated))))
 
 (defun c-back-over-compound-identifier ()
@@ -9660,13 +9667,16 @@ point unchanged and return nil."
 
 ;; Handling of large scale constructs like statements and declarations.
 
-(defun c-forward-primary-expression (&optional limit)
-  ;; Go over the primary expression (if any) at point, moving to the next
-  ;; token and return non-nil.  If we're not at a primary expression leave
-  ;; point unchanged and return nil.
+(defun c-forward-primary-expression (&optional limit stop-at-end)
+  ;; Go over the primary expression (if any) at point, and unless STOP-AT-END
+  ;; is non-nil, move to the next token then return non-nil.  If we're not at
+  ;; a primary expression leave point unchanged and return nil.
   ;;
   ;; Note that this function is incomplete, handling only those cases expected
   ;; to be common in a C++20 requires clause.
+  ;;
+  ;; Note also that (...) is not recognised as a primary expression if the
+  ;; next token is an open brace.
   (let ((here (point))
 	(c-restricted-<>-arglists t)
 	(c-parse-and-markup-<>-arglists nil)
@@ -9674,28 +9684,38 @@ point unchanged and return nil."
     (if	(cond
 	 ((looking-at c-constant-key)
 	  (goto-char (match-end 1))
-	  (c-forward-syntactic-ws limit)
+	  (unless stop-at-end (c-forward-syntactic-ws limit))
 	  t)
 	 ((eq (char-after) ?\()
 	  (and (c-go-list-forward (point) limit)
 	       (eq (char-before) ?\))
-	       (progn (c-forward-syntactic-ws limit)
-		      t)))
+	       (let ((after-paren (point)))
+		 (c-forward-syntactic-ws limit)
+		 (prog1
+		     (not (eq (char-after) ?{))
+		   (when stop-at-end
+		     (goto-char after-paren))))))
 	 ((c-forward-over-compound-identifier)
-	  (c-forward-syntactic-ws limit)
-	  (while (cond
-		  ((looking-at "<")
-		   (prog1
-		       (c-forward-<>-arglist nil)
-		     (c-forward-syntactic-ws limit)))
-		  ((looking-at c-opt-identifier-concat-key)
-		   (and
-		    (zerop (c-forward-token-2 1 nil limit))
-		    (prog1
-			(c-forward-over-compound-identifier)
-		      (c-forward-syntactic-ws limit))))))
-	  t)
-	 ((looking-at c-fun-name-substitute-key) ; "requires"
+	  (let ((after-id (point)))
+	    (c-forward-syntactic-ws limit)
+	    (while (cond
+		    ((and
+		      (looking-at "<")
+		      (prog1
+			  (and
+			   (c-forward-<>-arglist nil)
+			   (setq after-id (point)))))
+		     (c-forward-syntactic-ws limit))
+		    ((looking-at c-opt-identifier-concat-key)
+		     (and
+		      (zerop (c-forward-token-2 1 nil limit))
+		      (prog1
+			  (c-forward-over-compound-identifier)
+			(c-forward-syntactic-ws limit))))))
+	    (goto-char after-id)))
+	 ((and
+	   (looking-at c-fun-name-substitute-key) ; "requires"
+	   (not (eq (char-after (match-end 0)) ?_)))
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws limit)
 	  (and
@@ -9708,35 +9728,46 @@ point unchanged and return nil."
 	   (and (c-go-list-forward (point) limit)
 		(eq (char-before) ?}))
 	   (progn
-	     (c-forward-syntactic-ws limit)
+	     (unless stop-at-end (c-forward-syntactic-ws limit))
 	     t))))
 	t
       (goto-char here)
       nil)))
 
-(defun c-forward-c++-requires-clause (&optional limit)
-  ;; Point is at the keyword "requires".  Move forward over the requires
-  ;; clause to the next token after it and return non-nil.  If there is no
-  ;; valid requires clause at point, leave point unmoved and return nil.
+(defun c-forward-constraint-clause (&optional limit stop-at-end)
+  ;; Point is at the putative start of a constraint clause.  Move to its end
+  ;; (when STOP-AT-END is non-zero) or the token after that (otherwise) and
+  ;; return non-nil.  Return nil without moving if we fail to find a
+  ;; constraint.
   (let ((here (point))
 	final-point)
     (or limit (setq limit (point-max)))
-    (if (and
-	 (zerop (c-forward-token-2 1 nil limit)) ; over "requires".
-	 (prog1
-	     (c-forward-primary-expression limit)
-	   (setq final-point (point))
-	   (while
-	       (and (looking-at "\\(?:&&\\|||\\)")
-		    (progn (goto-char (match-end 0))
-			   (c-forward-syntactic-ws limit)
-			   (and (< (point) limit)
-				(c-forward-primary-expression limit))))
-	     (setq final-point (point)))))
-	(progn (goto-char final-point)
-	       t)
+    (if (c-forward-primary-expression limit t)
+	(progn
+	  (setq final-point (point))
+	  (c-forward-syntactic-ws limit)
+	  (while
+	      (and (looking-at "\\(?:&&\\|||\\)")
+		   (<= (match-end 0) limit)
+		   (progn (goto-char (match-end 0))
+			  (c-forward-syntactic-ws limit)
+			  (and (<= (point) limit)))
+		   (c-forward-primary-expression limit t)
+		   (setq final-point (point))))
+	  (goto-char final-point)
+	  (or stop-at-end (c-forward-syntactic-ws limit))
+	  t)
       (goto-char here)
       nil)))
+
+(defun c-forward-c++-requires-clause (&optional limit stop-at-end)
+  ;; Point is at the keyword "requires".  Move forward over the requires
+  ;; clause to its end (if STOP-AT-END is non-nil) or the next token after it
+  ;; (otherwise) and return non-nil.  If there is no valid requires clause at
+  ;; point, leave point unmoved and return nil.
+  (or limit (setq limit (point-max)))
+  (and (zerop (c-forward-token-2))	; over "requires".
+       (c-forward-constraint-clause limit stop-at-end)))
 
 (defun c-forward-decl-arglist (not-top id-in-parens &optional limit)
   ;; Point is at an open parenthesis, assumed to be the arglist of a function
@@ -9939,7 +9970,9 @@ point unchanged and return nil."
 		   ((looking-at c-type-decl-suffix-key)
 		    (cond
 		     ((save-match-data
-			(looking-at c-fun-name-substitute-key))
+			(and
+			 (looking-at c-fun-name-substitute-key)
+			 (not (eq (char-after (match-end 0)) ?_))))
 		      (c-forward-c++-requires-clause))
 		     ((eq (char-after) ?\()
 		      (if (c-forward-decl-arglist not-top decorated limit)
@@ -10393,7 +10426,9 @@ This function might do hidden buffer changes."
 	      (when (and (c-major-mode-is 'c++-mode)
 			 (c-keyword-member kwd-sym 'c-<>-sexp-kwds)
 			 (save-match-data
-			   (looking-at c-fun-name-substitute-key)))
+			   (and
+			    (looking-at c-fun-name-substitute-key)
+			    (not (eq (char-after (match-end 0)) ?_)))))
 		(c-forward-c++-requires-clause))
 	      (setq kwd-clause-end (point))))
 	   ((and c-opt-cpp-prefix
@@ -10743,7 +10778,9 @@ This function might do hidden buffer changes."
 		     ((save-match-data (looking-at "\\s("))
 		      (c-safe (c-forward-sexp 1) t))
 		     ((save-match-data
-			(looking-at c-fun-name-substitute-key)) ; C++ requires
+			(and
+			 (looking-at c-fun-name-substitute-key)
+			 (not (eq (char-after (match-end 0)) ?_)))) ; C++ requires
 		      (c-forward-c++-requires-clause))
 		     (t (goto-char (match-end 1))
 			t))
@@ -12866,7 +12903,9 @@ comment at the start of cc-engine.el for more info."
 		       in-paren 'in-paren))
 		((looking-at c-pre-brace-non-bracelist-key)
 		 (setq braceassignp nil))
-		((looking-at c-fun-name-substitute-key)
+		((and
+		  (looking-at c-fun-name-substitute-key)
+		  (not (eq (char-after (match-end 0)) ?_)))
 		 (setq braceassignp nil))
 		((looking-at c-return-key))
 		((and (looking-at c-symbol-start)
@@ -12881,7 +12920,8 @@ comment at the start of cc-engine.el for more info."
 		 ;; Have we a requires with a parenthesis list?
 		 (when (save-excursion
 			 (and (zerop (c-backward-token-2 1 nil lim))
-			      (looking-at c-fun-name-substitute-key)))
+			      (looking-at c-fun-name-substitute-key)
+			      (not (eq (char-after (match-end 0)) ?_))))
 		   (setq braceassignp nil))
 		 nil)
 		(t nil))
@@ -13212,6 +13252,120 @@ comment at the start of cc-engine.el for more info."
 	   (t nil)))
       (goto-char here))))
 
+(defun c-forward-concept-fragment (&optional limit stop-at-end)
+  ;; Are we currently at the "concept" keyword in a concept construct?  If so
+  ;; we return the position of the first constraint expression following the
+  ;; "=" sign and move forward over the constraint.  Otherwise we return nil.
+  ;; LIMIT is a forward search limit.
+  (let ((here (point)))
+    (if
+	(and
+	 (looking-at c-equals-nontype-decl-key) ; "concept"
+	 (goto-char (match-end 0))
+	 (progn (c-forward-syntactic-ws limit)
+		(not (looking-at c-keywords-regexp)))
+	 (looking-at c-identifier-key)
+	 (goto-char (match-end 0))
+	 (progn (c-forward-syntactic-ws limit)
+		(looking-at c-operator-re))
+	 (equal (match-string 0) "=")
+	 (goto-char (match-end 0)))
+	(prog1
+	    (progn (c-forward-syntactic-ws limit)
+		   (point))
+	  (c-forward-constraint-clause limit stop-at-end))
+      (goto-char here)
+      nil)))
+
+(defun c-looking-at-concept (&optional limit)
+  ;; Are we currently at the start of a concept construct?  I.e. at the
+  ;; "template" keyword followed by the construct?  If so, we return a cons of
+  ;; the position of "concept" and the position of the first constraint
+  ;; expression following the "=" sign, otherwise we return nil.  LIMIT is a
+  ;; forward search limit.
+  (save-excursion
+    (let (conpos)
+      (and (looking-at c-pre-concept-<>-key)
+	   (goto-char (match-end 1))
+	   (< (point) limit)
+	   (progn (c-forward-syntactic-ws limit)
+		  (eq (char-after) ?<))
+	   (let ((c-parse-and-markup-<>-arglists t)
+		 c-restricted-<>-arglists)
+	     (c-forward-<>-arglist nil))
+	   (< (point) limit)
+	   (progn (c-forward-syntactic-ws limit)
+		  (looking-at c-equals-nontype-decl-key)) ; "concept"
+	   (setq conpos (match-beginning 0))
+	   (goto-char (match-end 0))
+	   (< (point) limit)
+	   (c-syntactic-re-search-forward
+	    "=" limit t t)
+	   (goto-char (match-end 0))
+	   (<= (point) limit)
+	   (progn (c-forward-syntactic-ws limit)
+		  (cons conpos (point)))))))
+
+(defun c-in-requires-or-at-end-of-clause (&optional pos)
+  ;; Is POS (default POINT) in a C++ "requires" expression or "requires"
+  ;; clause or at the end of a "requires" clause?  If so return a cons
+  ;; (POSITION . END) where POSITION is that of the "requires" keyword, and
+  ;; END is `expression' if POS is in an expression, nil if it's in a clause
+  ;; or t if it's at the end of a clause.  "End of a clause" means just after
+  ;; the non syntactic WS on the line where the clause ends.
+  ;;
+  ;; Note we can't use `c-beginning-of-statement-1' in this function because
+  ;; of this function's use in `c-at-vsemi-p' for C++ Mode.
+  (save-excursion
+    (if pos (goto-char pos) (setq pos (point)))
+    (let ((limit (max (- (point) 2000) (point-min)))
+	  found-req req-pos found-clause res pe-start pe-end
+	  )
+      (while	  ; Loop around syntactically significant "requires" keywords.
+	  (progn
+	    (while
+		(and
+		 (setq found-req (re-search-backward
+				  c-fun-name-substitute-key
+				  limit t)) ; Fast!
+		 (or (not (setq found-req
+				(not (eq (char-after (match-end 0)) ?_))))
+		     (not (setq found-req (not (c-in-literal))))))) ; Slow!
+	    (setq req-pos (point))
+	    (cond
+	     ((not found-req)		; No "requires" found
+	      nil)
+	     ((save-excursion		; A primary expression `pos' is in
+		(setq pe-end nil)
+		(while (and (setq pe-start (point))
+			    (< (point) pos)
+			    (c-forward-primary-expression nil t)
+			    (setq pe-end (point))
+			    (progn (c-forward-syntactic-ws)
+				   (looking-at "&&\\|||"))
+			    (c-forward-over-token-and-ws)))
+		pe-end)
+	      (if (<= pe-end pos)
+		  t 			; POS is not in a primary expression.
+		(setq res (cons pe-start 'expression))
+		nil))
+	     ((progn
+		(goto-char req-pos)
+		(if (looking-at c-fun-name-substitute-key)
+		    (setq found-clause (c-forward-c++-requires-clause nil t))
+		  (and (c-forward-concept-fragment)
+		       (setq found-clause (point))))
+		nil))
+	     ((and found-clause (>= (point) pos))
+	      (setq res (cons req-pos (eq (point) pos)))
+	      nil)
+	     (found-clause ; We found a constraint clause, but it did not
+	                   ; extend far enough forward to reach POS.
+	      (c-go-up-list-backward req-pos limit))
+	     (t (goto-char req-pos)
+		t))))
+      res)))
+
 (defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
   ;; Return non-nil if we're looking at the beginning of a block
   ;; inside an expression.  The value returned is actually a cons of
@@ -13407,6 +13561,19 @@ comment at the start of cc-engine.el for more info."
      (or (eq (c-backward-token-2 1) 1)
 	 (looking-at c-pre-lambda-tokens-re)))
    (not (c-in-literal))))
+
+(defun c-c++-vsemi-p (&optional pos)
+  ;; C++ Only - Is there a "virtual semicolon" at POS or point?
+  ;; (See cc-defs.el for full details of "virtual semicolons".)
+  ;;
+  ;; This is true when point is at the last non syntactic WS position on the
+  ;; line, and either there is a "macro with semicolon" just before it (see
+  ;; `c-at-macro-vsemi-p') or there is a "requires" clause which ends there.
+  (let (res)
+    (cond
+     ((setq res (c-in-requires-or-at-end-of-clause pos))
+      (and res (eq (cdr res) t)))
+     ((c-at-macro-vsemi-p)))))
 
 (defun c-at-macro-vsemi-p (&optional pos)
   ;; Is there a "virtual semicolon" at POS or point?
@@ -13959,7 +14126,7 @@ comment at the start of cc-engine.el for more info."
 	 literal char-before-ip before-ws-ip char-after-ip macro-start
 	 in-macro-expr c-syntactic-context placeholder
 	 step-type tmpsymbol keyword injava-inher special-brace-list tmp-pos
-	 tmp-pos2 containing-<
+	 tmp-pos2 containing-< tmp constraint-detail
 	 ;; The following record some positions for the containing
 	 ;; declaration block if we're directly within one:
 	 ;; `containing-decl-open' is the position of the open
@@ -14374,6 +14541,33 @@ comment at the start of cc-engine.el for more info."
 				containing-decl-start
 				containing-decl-kwd))
 
+	   ;; CASE 5A.7: "defun" open in a requires expression.
+	   ((save-excursion
+	      (goto-char indent-point)
+	      (c-backward-syntactic-ws lim)
+	      (and (or (not (eq (char-before) ?\)))
+		       (c-go-list-backward nil lim))
+		   (progn (c-backward-syntactic-ws lim)
+			  (zerop (c-backward-token-2 nil nil lim)))
+		   (looking-at c-fun-name-substitute-key)
+		   (not (eq (char-after (match-end 0)) ?_))
+		   (setq placeholder (point))))
+	    (goto-char placeholder)
+	    (back-to-indentation)
+	    (c-add-syntax 'defun-open (point)))
+
+	   ;; CASE 5A.6: "defun" open in concept.
+	   ;; ((save-excursion
+	   ;;    (goto-char indent-point)
+	   ;;    (skip-chars-forward " \t")
+	   ;;    (and (eq (char-after) ?{)
+	   ;; 	   (eq (c-beginning-of-statement-1 lim) 'same)
+	   ;; 	   (setq placeholder
+	   ;; 		 (cdr (c-looking-at-concept indent-point)))))
+	   ;;  (goto-char placeholder)
+	   ;;  (back-to-indentation)
+	   ;;  (c-add-syntax 'defun-open (point)))
+
 	   ;; CASE 5A.5: ordinary defun open
 	   (t
 	    (save-excursion
@@ -14544,10 +14738,35 @@ comment at the start of cc-engine.el for more info."
 	   nil nil
 	   containing-sexp paren-state))
 
+	 ;; CASE 5F: Close of a non-class declaration level block.
+	 ((and (eq char-after-ip ?})
+	       (c-keyword-member containing-decl-kwd
+				 'c-other-block-decl-kwds))
+	  ;; This is inconsistent: Should use `containing-decl-open'
+	  ;; here if it's at boi, like in case 5J.
+	  (goto-char containing-decl-start)
+	  (c-add-stmt-syntax
+	   (if (string-equal (symbol-name containing-decl-kwd) "extern")
+	       ;; Special case for compatibility with the
+	       ;; extern-lang syntactic symbols.
+	       'extern-lang-close
+	     (intern (concat (symbol-name containing-decl-kwd)
+			     "-close")))
+	   nil t
+	   (c-most-enclosing-brace paren-state (point))
+	   paren-state))
+
+	   ;; CASE 5T: Continuation of a concept clause.
+	 ((save-excursion
+	    (and (eq (c-beginning-of-statement-1 nil t) 'same)
+		 (setq tmp (c-looking-at-concept indent-point))))
+	  (c-add-syntax 'constraint-cont (car tmp)))
+
 	 ;; CASE 5D: this could be a top-level initialization, a
 	 ;; member init list continuation, or a template argument
 	 ;; list continuation.
 	 ((save-excursion
+	    (setq constraint-detail (c-in-requires-or-at-end-of-clause))
 	    ;; Note: We use the fact that lim is always after any
 	    ;; preceding brace sexp.
 	    (if c-recognize-<>-arglists
@@ -14577,8 +14796,9 @@ comment at the start of cc-engine.el for more info."
 	      ;; clause - we assume only C++ needs it.
 	      (c-syntactic-skip-backward "^;,=" lim t))
 	    (setq placeholder (point))
-	    (and (memq (char-before) '(?, ?= ?<))
-		 (not (c-crosses-statement-barrier-p (point) indent-point))))
+	    (or constraint-detail
+		(and (memq (char-before) '(?, ?= ?<))
+		     (not (c-crosses-statement-barrier-p (point) indent-point)))))
 	  (cond
 
 	   ;; CASE 5D.6: Something like C++11's "using foo = <type-exp>"
@@ -14596,8 +14816,7 @@ comment at the start of cc-engine.el for more info."
 			  (c-on-identifier))
 		       (setq placeholder preserve-point)))))
 	    (c-add-syntax
-	     'statement-cont placeholder)
-		   )
+	     'statement-cont placeholder))
 
 	   ;; CASE 5D.3: perhaps a template list continuation?
 	   ((and (c-major-mode-is 'c++-mode)
@@ -14647,21 +14866,10 @@ comment at the start of cc-engine.el for more info."
 
 	   ;; CASE 5D.7: Continuation of a "concept foo =" line in C++20 (or
 	   ;; similar).
-	   ((and c-equals-nontype-decl-key
-		 (save-excursion
-		   (prog1
-		       (and (zerop (c-backward-token-2 1 nil lim))
-			    (looking-at c-operator-re)
-			    (equal (match-string 0) "=")
-			    (zerop (c-backward-token-2 1 nil lim))
-			    (looking-at c-symbol-start)
-			    (not (looking-at c-keywords-regexp))
-			    (zerop (c-backward-token-2 1 nil lim))
-			    (looking-at c-equals-nontype-decl-key)
-			    (eq (c-beginning-of-statement-1 lim) 'same))
-		     (setq placeholder (point)))))
-	    (goto-char placeholder)
-	    (c-add-stmt-syntax 'topmost-intro-cont nil nil containing-sexp
+	   ((and constraint-detail
+		 (not (eq (cdr constraint-detail) 'expression)))
+	    (goto-char (car constraint-detail))
+	    (c-add-stmt-syntax 'constraint-cont nil nil containing-sexp
 			       paren-state))
 
 	   ;; CASE 5D.5: Continuation of the "expression part" of a
@@ -14685,24 +14893,6 @@ comment at the start of cc-engine.el for more info."
 	      (t 'statement-cont))
 	     nil nil containing-sexp paren-state))
 	   ))
-
-	 ;; CASE 5F: Close of a non-class declaration level block.
-	 ((and (eq char-after-ip ?})
-	       (c-keyword-member containing-decl-kwd
-				 'c-other-block-decl-kwds))
-	  ;; This is inconsistent: Should use `containing-decl-open'
-	  ;; here if it's at boi, like in case 5J.
-	  (goto-char containing-decl-start)
-	  (c-add-stmt-syntax
-	   (if (string-equal (symbol-name containing-decl-kwd) "extern")
-	       ;; Special case for compatibility with the
-	       ;; extern-lang syntactic symbols.
-	       'extern-lang-close
-	     (intern (concat (symbol-name containing-decl-kwd)
-			     "-close")))
-	   nil t
-	   (c-most-enclosing-brace paren-state (point))
-	   paren-state))
 
 	 ;; CASE 5G: we are looking at the brace which closes the
 	 ;; enclosing nested class decl
@@ -14915,6 +15105,16 @@ comment at the start of cc-engine.el for more info."
 	    (goto-char placeholder))
 	  (c-add-syntax 'topmost-intro-cont (c-point 'boi)))
 	 ))
+
+       ;; CASE 20: A C++ requires sub-clause.
+       ((and (setq tmp (c-in-requires-or-at-end-of-clause indent-point))
+	     (not (eq (cdr tmp) 'expression))
+	     (setq placeholder (car tmp)))
+	(c-add-syntax
+	 (if (eq char-after-ip ?{)
+	     'substatement-open
+	   'substatement)
+	 (c-point 'boi placeholder)))
 
        ;; ((Old) CASE 6 has been removed.)
        ;; CASE 6: line is within a C11 _Generic expression.
@@ -15299,6 +15499,20 @@ comment at the start of cc-engine.el for more info."
 	      (c-add-syntax 'defun-close (point))
 	    (c-add-syntax 'inline-close (point))))
 
+	 ;; CASE 16G: Do we have the closing brace of a "requires" clause
+	 ;; of a C++20 "concept"?
+	 ((save-excursion
+	    (c-backward-syntactic-ws lim)
+	    (and (or (not (eq (char-before) ?\)))
+		     (c-go-list-backward nil lim))
+		 (progn (c-backward-syntactic-ws lim)
+			(zerop (c-backward-token-2 nil nil lim)))
+		 (looking-at c-fun-name-substitute-key)
+		 (not (eq (char-after (match-end 0)) ?_))))
+	  (goto-char containing-sexp)
+	  (back-to-indentation)
+	  (c-add-stmt-syntax 'defun-close nil t lim paren-state))
+
 	 ;; CASE 16F: Can be a defun-close of a function declared
 	 ;; in a statement block, e.g. in Pike or when using gcc
 	 ;; extensions, but watch out for macros followed by
@@ -15448,6 +15662,21 @@ comment at the start of cc-engine.el for more info."
 		(c-add-syntax (car placeholder))))
 	  (if (eq char-after-ip ?{)
 	      (c-add-syntax 'block-open)))
+
+	 ;; CASE 17J: first "statement" inside a C++20 requires
+	 ;; "function".
+	 ((save-excursion
+	    (goto-char containing-sexp)
+	    (c-backward-syntactic-ws lim)
+	    (and (or (not (eq (char-before) ?\)))
+		     (c-go-list-backward nil lim))
+		 (progn (c-backward-syntactic-ws lim)
+			(zerop (c-backward-token-2 nil nil lim)))
+		 (looking-at c-fun-name-substitute-key)
+		 (not (eq (char-after (match-end 0)) ?_))))
+	  (goto-char containing-sexp)
+	  (back-to-indentation)
+	  (c-add-syntax 'defun-block-intro (point)))
 
 	 ;; CASE 17F: first statement in an inline, or first
 	 ;; statement in a top-level defun. we can tell this is it

@@ -266,4 +266,20 @@ expressions works for identifiers starting with period."
     )
   (should (eq eval-test--local-var 'global)))
 
+(ert-deftest eval-tests-defvaralias ()
+  (defvar eval-tests--my-var 'coo)
+  (defvaralias 'eval-tests--my-var1 'eval-tests--my-var)
+  (defvar eval-tests--my-var1)
+  (should (equal eval-tests--my-var 'coo))
+  (should (equal eval-tests--my-var1 'coo))
+
+  (defvaralias 'eval-tests--my-a 'eval-tests--my-b)
+  (defvaralias 'eval-tests--my-b 'eval-tests--my-c)
+
+  (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-c)
+                :type 'cyclic-variable-indirection)
+  (defvaralias 'eval-tests--my-d 'eval-tests--my-a)
+  (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
+                :type 'cyclic-variable-indirection))
+
 ;;; eval-tests.el ends here

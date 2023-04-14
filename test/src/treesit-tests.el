@@ -363,11 +363,12 @@ BODY is the test body."
             while cursor
             do (should (equal (treesit-node-text cursor) text)))
    ;; Test (regexp . function)
-   (cl-labels ((is-odd (string)
-                 (and (eq 1 (length string))
-                      (cl-oddp (string-to-number string)))))
+   (let ((is-odd (lambda (node)
+                   (let ((string (treesit-node-text node)))
+                     (and (eq 1 (length string))
+                          (cl-oddp (string-to-number string)))))))
      (cl-loop for cursor = (treesit-node-child array 0)
-              then (treesit-search-forward cursor '("number" . is-odd)
+              then (treesit-search-forward cursor `("number" . ,is-odd)
                                            nil t)
               for text in '("[" "1" "3" "5" "7" "9")
               while cursor
@@ -377,13 +378,13 @@ BODY is the test body."
   "Test tree-sitter's ability to detect invalid predicates."
   (skip-unless (treesit-language-available-p 'json))
   (treesit--ert-search-setup
-   (dolist (pred '( 1 (not 1) (not "2" "3") (or) (or 1)))
+   (dolist (pred '( 1 (not 1) (not "2" "3") (or) (or 1) 'a))
      (should-error (treesit-search-forward (treesit-node-child array 0)
                                            pred)
                    :type 'treesit-invalid-predicate))
    (should-error (treesit-search-forward (treesit-node-child array 0)
-                                         'not-a-function)
-                 :type 'void-function)))
+                                         (lambda (node) (car node)))
+                 :type 'wrong-type-argument)))
 
 (ert-deftest treesit-cursor-helper-with-missing-node ()
   "Test treesit_cursor_helper with a missing node."

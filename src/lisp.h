@@ -3970,7 +3970,6 @@ extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
 extern intmax_t cons_to_signed (Lisp_Object, intmax_t, intmax_t);
 extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
 
-extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern AVOID args_out_of_range (Lisp_Object, Lisp_Object);
 extern AVOID circular_list (Lisp_Object);
 extern Lisp_Object do_symval_forwarding (lispfwd);
