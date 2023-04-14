@@ -3155,11 +3155,23 @@ treesit_traverse_child_helper (TSTreeCursor *cursor,
 
 /* Validate the PRED passed to treesit_traverse_match_predicate.  If
    there's an error, set SIGNAL_DATA to something signal accepts, and
-   return false, otherwise return true.  */
+   return false, otherwise return true.  This function also check for
+   recusion levels: we place a arbitrary 100 level limit on recursive
+   predicates.  RECURSION_LEVEL is the current recursion level (that
+   starts at 0), if it goes over 99, return false and set
+   SIGNAL_DATA.  */
 static bool
 treesit_traverse_validate_predicate (Lisp_Object pred,
-				     Lisp_Object *signal_data)
+				     Lisp_Object *signal_data,
+				     ptrdiff_t recursion_level)
 {
+  if (recursion_level > 99)
+    {
+      *signal_data = list1 (build_string ("Predicate recursion level "
+					  "exceeded: it must not exceed "
+					  "100 levels"));
+      return false;
+    }
   if (STRINGP (pred))
     return true;
   else if (FUNCTIONP (pred))
@@ -3186,7 +3198,8 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	      return false;
 	    }
 	  return treesit_traverse_validate_predicate (XCAR (cdr),
-						      signal_data);
+						      signal_data,
+						      recursion_level + 1);
 	}
       else if (BASE_EQ (car, Qor))
 	{
@@ -3201,7 +3214,8 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	  FOR_EACH_TAIL (cdr)
 	    {
 	      if (!treesit_traverse_validate_predicate (XCAR (cdr),
-							signal_data))
+							signal_data,
+							recursion_level + 1))
 		return false;
 	    }
 	  return true;
@@ -3399,7 +3413,7 @@ Return the first matched node, or nil if none matches.  */)
   CHECK_SYMBOL (backward);
 
   Lisp_Object signal_data = Qnil;
-  if (!treesit_traverse_validate_predicate (predicate, &signal_data))
+  if (!treesit_traverse_validate_predicate (predicate, &signal_data, 0))
     xsignal1 (Qtreesit_invalid_predicate, signal_data);
 
   /* We use a default limit of 1000.  See bug#59426 for the
@@ -3470,7 +3484,7 @@ always traverse leaf nodes first, then upwards.  */)
   CHECK_SYMBOL (backward);
 
   Lisp_Object signal_data = Qnil;
-  if (!treesit_traverse_validate_predicate (predicate, &signal_data))
+  if (!treesit_traverse_validate_predicate (predicate, &signal_data, 0))
     xsignal1 (Qtreesit_invalid_predicate, signal_data);
 
   treesit_initialize ();
@@ -3587,7 +3601,7 @@ a regexp.  */)
   CHECK_TS_NODE (root);
 
   Lisp_Object signal_data = Qnil;
-  if (!treesit_traverse_validate_predicate (predicate, &signal_data))
+  if (!treesit_traverse_validate_predicate (predicate, &signal_data, 0))
     xsignal1 (Qtreesit_invalid_predicate, signal_data);
 
   if (!NILP (process_fn))
@@ -3639,7 +3653,7 @@ if NODE matches PRED, nil otherwise.  */)
   CHECK_TS_NODE (node);
 
   Lisp_Object signal_data = Qnil;
-  if (!treesit_traverse_validate_predicate (predicate, &signal_data))
+  if (!treesit_traverse_validate_predicate (predicate, &signal_data, 0))
     xsignal1 (Qtreesit_invalid_predicate, signal_data);
 
   Lisp_Object parser = XTS_NODE (node)->parser;
