@@ -363,11 +363,12 @@ BODY is the test body."
             while cursor
             do (should (equal (treesit-node-text cursor) text)))
    ;; Test (regexp . function)
-   (cl-labels ((is-odd (string)
-                 (and (eq 1 (length string))
-                      (cl-oddp (string-to-number string)))))
+   (let ((is-odd (lambda (node)
+                   (let ((string (treesit-node-text node)))
+                     (and (eq 1 (length string))
+                          (cl-oddp (string-to-number string)))))))
      (cl-loop for cursor = (treesit-node-child array 0)
-              then (treesit-search-forward cursor '("number" . is-odd)
+              then (treesit-search-forward cursor `("number" . ,is-odd)
                                            nil t)
               for text in '("[" "1" "3" "5" "7" "9")
               while cursor

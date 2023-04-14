@@ -3148,9 +3148,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 {
   if (STRINGP (pred))
     return true;
-  /* We want to allow cl-labels-defined functions, so we allow
-     symbols.  */
-  else if (FUNCTIONP (pred) || SYMBOLP (pred))
+  else if (FUNCTIONP (pred))
     return true;
   else if (CONSP (pred))
     {
@@ -3194,8 +3192,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	    }
 	  return true;
 	}
-      /* We allow the function to be a symbol to support cl-label. */
-      else if (STRINGP (car) && (FUNCTIONP (cdr) || SYMBOLP (cdr)))
+      else if (STRINGP (car) && FUNCTIONP (cdr))
 	return true;
     }
   *signal_data = list2 (build_string ("Invalid predicate, see TODO for "
@@ -3230,9 +3227,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
       const char *type = ts_node_type (node);
       return fast_c_string_match (pred, type, strlen (type)) >= 0;
     }
-  /* We want to allow cl-labels-defined functions, so we allow
-     symbols.  */
-  else if (FUNCTIONP (pred) || SYMBOLP (pred))
+  else if (FUNCTIONP (pred))
     {
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       return !NILP (CALLN (Ffuncall, pred, lisp_node));
@@ -3255,17 +3250,15 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	    }
 	  return false;
 	}
-      /* We want to allow cl-labels-defined functions, so we allow
-	 symbols.  */
-      else if (STRINGP (car) && (FUNCTIONP (cdr) || SYMBOLP (cdr)))
+      else if (STRINGP (car) && FUNCTIONP (cdr))
 	{
 	  /* A bit of code duplication here, but should be fine.  */
 	  const char *type = ts_node_type (node);
-	  if (!(fast_c_string_match (pred, type, strlen (type)) >= 0))
+	  if (!(fast_c_string_match (car, type, strlen (type)) >= 0))
 	    return false;
 
 	  Lisp_Object lisp_node = make_treesit_node (parser, node);
-	  if (NILP (CALLN (Ffuncall, pred, lisp_node)))
+	  if (NILP (CALLN (Ffuncall, cdr, lisp_node)))
 	    return false;
 
 	  return true;
