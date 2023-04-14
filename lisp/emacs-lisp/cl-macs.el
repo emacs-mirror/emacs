@@ -2891,45 +2891,14 @@ The function's arguments should be treated as immutable.
              ,(format "compiler-macro for inlining `%s'." name)
              (cl--defsubst-expand
               ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
-              ;; We used to pass `simple' as
-              ;; (not (or unsafe (cl-expr-access-order pbody argns)))
-              ;; But this is much too simplistic since it
-              ;; does not pay attention to the argvs (and
-              ;; cl-expr-access-order itself is also too naive).
               nil
               ,(and (memq '&key args) 'cl-whole) nil ,@argns)))
        (cl-defun ,name ,args ,@body))))
 
-(defun cl--defsubst-expand (argns body simple whole _unsafe &rest argvs)
-  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
-    (if (cl--simple-exprs-p argvs) (setq simple t))
-    (let* ((substs ())
-           (lets (delq nil
-                       (cl-mapcar (lambda (argn argv)
-                                    (if (or simple (macroexp-const-p argv))
-                                        (progn (push (cons argn argv) substs)
-                                               nil)
-                                      (list argn argv)))
-                                  argns argvs))))
-      ;; FIXME: `sublis/subst' will happily substitute the symbol
-      ;; `argn' in places where it's not used as a reference
-      ;; to a variable.
-      ;; FIXME: `sublis/subst' will happily copy `argv' to a different
-      ;; scope, leading to name capture.
-      (setq body (cond ((null substs) body)
-                       ((null (cdr substs))
-                        (cl-subst (cdar substs) (caar substs) body))
-                       (t (cl--sublis substs body))))
-      (if lets `(let ,lets ,body) body))))
-
-(defun cl--sublis (alist tree)
-  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
-  (let ((x (assq tree alist)))
-    (cond
-     (x (cdr x))
-     ((consp tree)
-      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
-     (t tree))))
+(defun cl--defsubst-expand (argns body _simple whole _unsafe &rest argvs)
+  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs))))
+      whole
+    `(let ,(cl-mapcar #'list argns argvs) ,body)))
 
 ;;; Structures.
 
@@ -3244,19 +3213,8 @@ To see the documentation for a defined struct type, use
       (let* ((anames (cl--arglist-args args))
              (make (cl-mapcar (lambda (s d) (if (memq s anames) s d))
 			      slots defaults))
-	     ;; `cl-defsubst' is fundamentally broken: it substitutes
-             ;; its arguments into the body's `sexp' much too naively
-             ;; when inlinling, which results in various problems.
-             ;; For example it generates broken code if your
-             ;; argument's name happens to be the same as some
-             ;; function used within the body.
-             ;; E.g. (cl-defsubst sm-foo (list) (list list))
-             ;; will expand `(sm-foo 1)' to `(1 1)' rather than to `(list t)'!
-             ;; Try to catch this known case!
-	     (con-fun (or type #'record))
-	     (unsafe-cl-defsubst
-	      (or (memq con-fun args) (assq con-fun args))))
-	(push `(,(if unsafe-cl-defsubst 'cl-defun cldefsym) ,cname
+	     (con-fun (or type #'record)))
+	(push `(,cldefsym ,cname
                    (&cl-defs (nil ,@descs) ,@args)
                  ,(if (stringp doc) doc
                     (format "Constructor for objects of type `%s'." name))

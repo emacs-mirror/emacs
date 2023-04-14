@@ -2373,8 +2373,7 @@ grow_specpdl_allocation (void)
   union specbinding *pdlvec = specpdl - 1;
   ptrdiff_t size = specpdl_end - specpdl;
   ptrdiff_t pdlvecsize = size + 1;
-  if (max_size <= size)
-    xsignal0 (Qexcessive_variable_binding);  /* Can't happen, essentially.  */
+  eassert (max_size > size);
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
   specpdl_end = specpdl + pdlvecsize - 1;
