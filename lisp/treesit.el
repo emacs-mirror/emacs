@@ -1886,10 +1886,10 @@ nil.")
   "The delimiter used to connect several defun names.
 This is used in `treesit-add-log-current-defun'.")
 
-(defun treesit-beginning-of-thing (pattern &optional arg tactic)
+(defun treesit-beginning-of-thing (pred &optional arg tactic)
   "Like `beginning-of-defun', but generalized into things.
 
-PATTERN is like `treesit-defun-type-regexp', ARG
+PRED is like `treesit-defun-type-regexp', ARG
 is the same as in `beginning-of-defun'.
 
 TACTIC determines how does this function move between things.  It
@@ -1905,14 +1905,14 @@ should there be one.  If omitted, TACTIC is considered to be
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
                (dest (treesit--navigate-thing
-                      (point) (- arg) 'beg pattern tactic)))
+                      (point) (- arg) 'beg pred tactic)))
     (when dest
       (goto-char dest))))
 
-(defun treesit-end-of-thing (pattern &optional arg tactic)
+(defun treesit-end-of-thing (pred &optional arg tactic)
   "Like `end-of-defun', but generalized into things.
 
-PATTERN is like `treesit-defun-type-regexp', ARG is the same as
+PRED is like `treesit-defun-type-regexp', ARG is the same as
 in `end-of-defun'.
 
 TACTIC determines how does this function move between things.  It
@@ -1928,7 +1928,7 @@ should there be one.  If omitted, TACTIC is considered to be
 Return non-nil if successfully moved, nil otherwise."
   (pcase-let* ((arg (or arg 1))
                (dest (treesit--navigate-thing
-                      (point) arg 'end pattern tactic)))
+                      (point) arg 'end pred tactic)))
     (when dest
       (goto-char dest))))
 
@@ -2053,7 +2053,7 @@ the current line if the beginning of the defun is indented."
 ;; parent:
 ;; 1. node covers pos
 ;; 2. smallest such node
-(defun treesit--things-around (pos regexp)
+(defun treesit--things-around (pos pred)
   "Return the previous, next, and parent thing around POS.
 
 Return a list of (PREV NEXT PARENT), where PREV and NEXT are
@@ -2061,7 +2061,7 @@ previous and next sibling things around POS, and PARENT is the
 parent thing surrounding POS.  All of three could be nil if no
 sound things exists.
 
-REGEXP can be a regexp, a predicate function, and more.  See
+PRED can be a regexp, a predicate function, and more.  See
 `treesit-things-definition' for details."
   (let* ((node (treesit-node-at pos))
          (result (list nil nil nil)))
@@ -2085,7 +2085,7 @@ REGEXP can be a regexp, a predicate function, and more.  See
      when node
      do (let ((cursor node)
               (iter-pred (lambda (node)
-                           (and (treesit-node-match-p node regexp)
+                           (and (treesit-node-match-p node pred)
                                 (funcall pos-pred node)))))
           ;; Find the node just before/after POS to start searching.
           (save-excursion
@@ -2099,11 +2099,11 @@ REGEXP can be a regexp, a predicate function, and more.  See
             (setf (nth idx result)
                   (treesit-node-top-level cursor iter-pred t))
             (setq cursor (treesit-search-forward
-                          cursor regexp backward backward)))))
+                          cursor pred backward backward)))))
     ;; 2. Find the parent defun.
     (let ((cursor (or (nth 0 result) (nth 1 result) node))
           (iter-pred (lambda (node)
-                       (and (treesit-node-match-p node regexp)
+                       (and (treesit-node-match-p node pred)
                             (not (treesit-node-eq node (nth 0 result)))
                             (not (treesit-node-eq node (nth 1 result)))
                             (< (treesit-node-start node)
@@ -2140,7 +2140,7 @@ REGEXP can be a regexp, a predicate function, and more.  See
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
 ;;       in the function to do that.
-(defun treesit--navigate-thing (pos arg side regexp &optional tactic recursing)
+(defun treesit--navigate-thing (pos arg side pred &optional tactic recursing)
   "Navigate thing ARG steps from POS.
 
 If ARG is positive, move forward that many steps, if negative,
@@ -2151,7 +2151,7 @@ This function doesn't actually move point, it just returns the
 position it would move to.  If there aren't enough things to move
 across, return nil.
 
-REGEXP can be a regexp, a predicate function, and more.  See
+PRED can be a regexp, a predicate function, and more.  See
 `treesit-things-definition' for detail.
 
 TACTIC determines how does this function move between things.  It
@@ -2181,13 +2181,13 @@ function is called recursively."
       (while (> counter 0)
         (pcase-let
             ((`(,prev ,next ,parent)
-              (treesit--things-around pos regexp)))
+              (treesit--things-around pos pred)))
           ;; When PARENT is nil, nested and top-level are the same, if
           ;; there is a PARENT, make PARENT to be the top-level parent
           ;; and pretend there is no nested PREV and NEXT.
           (when (and (eq tactic 'top-level)
                      parent)
-            (setq parent (treesit-node-top-level parent regexp t)
+            (setq parent (treesit-node-top-level parent pred t)
                   prev nil
                   next nil))
           ;; If TACTIC is `restricted', the implementation is very simple.
@@ -2219,7 +2219,7 @@ function is called recursively."
                     ;; the end of next before recurring.)
                     (setq pos (or (treesit--navigate-thing
                                    (treesit-node-end (or next parent))
-                                   1 'beg regexp tactic t)
+                                   1 'beg pred tactic t)
                                   (throw 'term nil)))
                   ;; Normal case.
                   (setq pos (funcall advance (or next parent))))
@@ -2231,7 +2231,7 @@ function is called recursively."
                   ;; Special case: go to prev end-of-defun.
                   (setq pos (or (treesit--navigate-thing
                                  (treesit-node-start (or prev parent))
-                                 -1 'end regexp tactic t)
+                                 -1 'end pred tactic t)
                                 (throw 'term nil)))
                 ;; Normal case.
                 (setq pos (funcall advance (or prev parent))))))
@@ -2241,17 +2241,17 @@ function is called recursively."
     (if (eq counter 0) pos nil)))
 
 ;; TODO: In corporate into thing-at-point.
-(defun treesit-thing-at-point (pattern tactic)
+(defun treesit-thing-at-point (pred tactic)
   "Return the thing node at point or nil if none is found.
 
-\"Thing\" is defined by PATTERN, which can be a regexp, a
+\"Thing\" is defined by PRED, which can be a regexp, a
 predication function, and more, see `treesit-things-definition'
 for detail.
 
 Return the top-level defun if TACTIC is `top-level', return the
 immediate parent thing if TACTIC is `nested'."
   (pcase-let* ((`(,_ ,next ,parent)
-                (treesit--things-around (point) pattern))
+                (treesit--things-around (point) pred))
                ;; If point is at the beginning of a thing, we
                ;; prioritize that thing over the parent in nested
                ;; mode.
@@ -2259,7 +2259,7 @@ immediate parent thing if TACTIC is `nested'."
                               next)
                          parent)))
     (if (eq tactic 'top-level)
-        (treesit-node-top-level node pattern t)
+        (treesit-node-top-level node pred t)
       node)))
 
 (defun treesit-defun-at-point ()
