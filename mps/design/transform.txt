@@ -1,0 +1,126 @@
+MPS TRANSFORM DESIGN
+====================
+Richard Brooksby, Ravenbrook Limited, 2012-09-04
+
+
+1. Introduction
+---------------
+
+This document describes the Transform mechanism of the Memory Pool
+System.  Transforms allow the client code to replace a set of object
+references on the heap.  Transforms exist to satisfy a requirement from
+Configura, and are not intended to become part of the open source
+MPS.
+
+The readership of this document is any developer intending to modify the
+Transform implementation.
+
+This document is Configura client confidential.
+
+
+2. Background
+-------------
+
+Göran Rydqvist of Configura originally expressed the requirement for the
+MPS to support the change of layout of objects in CET [[Crab
+2010-02-25][]].  Ravenbrook proposed several methods [[RHSK
+2010-09-21][]] but Configura selected idea 1:
+
+> Make all objects "direct", without IOHeaders. If you need to add fields,
+> then use a special new MPS function (that doesn't exist yet):
+> 
+>     mps_arena_transform_objects(&my_transform_function);
+> 
+> This traverses the object graph, lets your transform_function basically
+> "realloc()" the field-block, and MPS fixes up all references from other
+> objects to point to the new field-block.
+> 
+> Unfortunately, this idea is probably killed off by ambiguous references
+> :-(.  You could only run the patch if you could *guarantee* there are no
+> ambiguous refs you want.  In other words, any object refs on the stack
+> would become instant death (or worse: subtle slow death :-). Therefore we
+> don't really like this idea (unfortunately).  There are safer and simpler
+> ways to do it, we think...
+
+An initial implementation was made by RHSK and released to Configura as
+"experimental", however Configura put it into production.
+
+During work on adapting the MPS to 64-bit Windows, RB reformed and
+reimplemented transforms based on RHSK's original work.
+
+
+3. Overview
+-----------
+
+The client program builds a table mapping "old" references to "new" ones
+in a `Transform` object.  This is then "applied", causing a garbage
+collection trace in which the fix function is substituted by
+`transformFix`, which spots "old" references and replaces them with
+"new" ones, in addition to applying the usual garbage collection fix
+function.
+
+
+4. NOT YET WRITTEN
+------------------
+
+Points to cover:
+
+* Ambiguous references and aborting the transform
+
+  * How ambiguous references are avoided using stackAtEnter
+
+* How the implementation is an add-on to the MPS
+
+* How the code is kept separate from the mainstream MPS
+
+* Why it has its own hash table implementation (no good reason)
+
+* Why it does a garbage collection and not just a transforming scan
+
+  * Nice side-effect is that "old" objects are killed
+
+* Why the arena must be parked
+
+
+
+A. References
+-------------
+
+[Crab 2010-02-25]: http://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/
+[Crab 2010-02-25] "Incremental object" (email); Göran Rydqvist;
+Configura; 2010-02-25;
+<http://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/>.
+
+[RHSK 2010-09-21]: http://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/
+[RHSK 2010-09-21] "Incremental object ideas" (email); Richard Kistruck;
+Ravenbrook Limited; 2010-09-21;
+<http://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/>.
+
+[Crab 2010-09-22]: http://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/
+[Crab 2010-09-22] "Incremental object ideas" (email); Göran Rydqvist;
+Configura; 2010-09-22;
+<http://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/>.
+
+
+B. Document History
+-------------------
+
+* 2012-09-04  [RB](mailto:rb@ravenbrook.com)  First draft.
+
+
+C. Copyright and Licence
+------------------------
+
+This document is copyright © 2012 [Ravenbrook Limited](http://www.ravenbrook.com).  All rights reserved.  This is an
+open source license.  Contact Ravenbrook for commercial licensing
+options.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs.
+
+**This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.**
