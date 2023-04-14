@@ -3243,10 +3243,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
       Lisp_Object cdr = XCDR (pred);
 
       if (EQ (car, Qnot))
-	{
-	  return !treesit_traverse_match_predicate (cursor, XCAR (cdr),
-						    parser, named);
-	}
+	return !treesit_traverse_match_predicate (cursor, XCAR (cdr),
+						  parser, named);
       else if (EQ (car, Qor))
 	{
 	  FOR_EACH_TAIL (cdr)
@@ -3287,6 +3285,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
    forward, false backward.  If SKIP_ROOT is true, don't match ROOT.
 
    This function may signal if the predicate function signals.  */
+
 static bool
 treesit_search_dfs (TSTreeCursor *cursor,
 		    Lisp_Object pred, Lisp_Object parser,
@@ -3325,6 +3324,7 @@ treesit_search_dfs (TSTreeCursor *cursor,
    position is undefined.
 
    This function may signal if the predicate function signals.  */
+
 static bool
 treesit_search_forward (TSTreeCursor *cursor,
 			Lisp_Object pred, Lisp_Object parser,
@@ -3334,8 +3334,7 @@ treesit_search_forward (TSTreeCursor *cursor,
      nodes.  This way repeated call of this function traverses each
      node in the tree once and only once:
 
-     (while node (setq node (treesit-search-forward node)))
-  */
+     (while node (setq node (treesit-search-forward node)))  */
   bool initial = true;
   while (true)
     {
@@ -3362,10 +3361,12 @@ treesit_search_forward (TSTreeCursor *cursor,
     }
 }
 
-/** Cleanup function for cursor.  */
-static void treesit_traverse_cleanup_cursor(void *cursor)
+/* Clean up the given tree cursor CURSOR.  */
+
+static void
+treesit_traverse_cleanup_cursor (void *cursor)
 {
-  ts_tree_cursor_delete ((TSTreeCursor *) cursor);
+  ts_tree_cursor_delete (cursor);
 }
 
 DEFUN ("treesit-search-subtree",
@@ -3421,10 +3422,7 @@ Return the first matched node, or nil if none matches.  */)
       return_value = make_treesit_node (parser, node);
     }
 
-  unbind_to (count, Qnil);
-
-  ts_tree_cursor_delete (&cursor);
-  return return_value;
+  return unbind_to (count, return_value);
 }
 
 DEFUN ("treesit-search-forward",
@@ -3486,10 +3484,7 @@ always traverse leaf nodes first, then upwards.  */)
       return_value = make_treesit_node (parser, node);
     }
 
-  unbind_to (count, Qnil);
-
-  ts_tree_cursor_delete (&cursor);
-  return return_value;
+  return unbind_to (count, return_value);
 }
 
 /* Recursively traverse the tree under CURSOR, and append the result
@@ -3616,8 +3611,8 @@ a regexp.  */)
 
   unbind_to (count, Qnil);
 
-  ts_tree_cursor_delete (&cursor);
   Fsetcdr (parent, Fnreverse (Fcdr (parent)));
+
   if (NILP (Fcdr (parent)))
     return Qnil;
   else
