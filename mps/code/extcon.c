@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 /* Number of test objects to allocate */
-#define N_TESTOBJ 100
+#define N_TESTOBJ 1000
 /* Number of integers in each test object */
 #define N_INT_TESTOBJ 10000
 /* This is the difference in size between */
@@ -51,28 +51,28 @@ static int n_extend = 0;
 /* Union of all object types */
 typedef int type_t;
 enum {
-	TYPE_INTBOX,
-	TYPE_FWD2,            /* two-word forwarding object */
-	TYPE_FWD,             /* three words and up forwarding object */
-	TYPE_PAD1,            /* one-word padding object */
-	TYPE_PAD              /* two words and up padding object */
+  TYPE_INTBOX,
+  TYPE_FWD2,            /* two-word forwarding object */
+  TYPE_FWD,             /* three words and up forwarding object */
+  TYPE_PAD1,            /* one-word padding object */
+  TYPE_PAD              /* two words and up padding object */
 };
 
 typedef struct type_s {
-	type_t type;
+  type_t type;
 } type_s;
 
 typedef union obj_u *obj_t;
 
 typedef struct fwd2_s {
-	type_t type;                  /* TYPE_FWD2 */
-	obj_t fwd;                    /* forwarded object */
+  type_t type;                  /* TYPE_FWD2 */
+  obj_t fwd;                    /* forwarded object */
 } fwd2_s;
 
 typedef struct fwd_s {
-	type_t type;                  /* TYPE_FWD */
-	obj_t fwd;                    /* forwarded object */
-	size_t size;                  /* total size of this object */
+  type_t type;                  /* TYPE_FWD */
+  obj_t fwd;                    /* forwarded object */
+  size_t size;                  /* total size of this object */
 } fwd_s;
 
 /* Align size upwards to the next multiple of the word size, and
@@ -84,30 +84,30 @@ typedef struct fwd_s {
    : ALIGN_WORD(sizeof(fwd_s)))
 
 typedef struct pad1_s {
-	type_t type;                  /* TYPE_PAD1 */
+  type_t type;                  /* TYPE_PAD1 */
 } pad1_s;
 
 typedef struct pad_s {
-	type_t type;                  /* TYPE_PAD */
-	size_t size;                  /* total size of this object */
+  type_t type;                  /* TYPE_PAD */
+  size_t size;                  /* total size of this object */
 } pad_s;
 
 
 typedef struct test_alloc_obj
 {
-	type_t type;
-	size_t size;
-	int int_array[N_INT_TESTOBJ];
+  type_t type;
+  size_t size;
+  int int_array[N_INT_TESTOBJ];
 } test_alloc_obj_s;
 
 
 typedef union obj_u {
-	type_s type;
-	test_alloc_obj_s int_box;
-	fwd_s fwd;
-	fwd2_s fwd2;
-	pad1_s pad1;
-	pad_s pad;
+  type_s type;
+  test_alloc_obj_s int_box;
+  fwd_s fwd;
+  fwd2_s fwd2;
+  pad1_s pad1;
+  pad_s pad;
 } obj_s;
 
 /* Callback functions for arena extension and contraction */
@@ -126,217 +126,217 @@ static void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t si
   testlib_unused(addr);
   testlib_unused(size);
   /* printf("Arena contracted by %zd bytes\n", size); */
-	n_contract++;
+  n_contract++;
 }
 
 /* Format functions */
 static mps_addr_t obj_skip(mps_addr_t addr)
 {
-	obj_t obj = addr;
+  obj_t obj = addr;
 
-	switch (TYPE(obj))
-	{
-	case TYPE_INTBOX:
-		addr = (char *)addr + ALIGN_OBJ(sizeof(test_alloc_obj_s));
-		break;
-	case TYPE_FWD2:
-		addr = (char *)addr + ALIGN_WORD(sizeof(fwd2_s));
-		break;
-	case TYPE_FWD:
-		addr = (char *)addr + ALIGN_WORD(obj->fwd.size);
-		break;
-	case TYPE_PAD1:
-		addr = (char *)addr + ALIGN_WORD(sizeof(pad1_s));
-		break;
-	case TYPE_PAD:
-		addr = (char *)addr + ALIGN_WORD(obj->pad.size);
-		break;
-	default:
-		printf("invalid type");
-		assert(0);
-		break;
-	}
+  switch (TYPE(obj))
+  {
+  case TYPE_INTBOX:
+    addr = (char *)addr + ALIGN_OBJ(sizeof(test_alloc_obj_s));
+    break;
+  case TYPE_FWD2:
+    addr = (char *)addr + ALIGN_WORD(sizeof(fwd2_s));
+    break;
+  case TYPE_FWD:
+    addr = (char *)addr + ALIGN_WORD(obj->fwd.size);
+    break;
+  case TYPE_PAD1:
+    addr = (char *)addr + ALIGN_WORD(sizeof(pad1_s));
+    break;
+  case TYPE_PAD:
+    addr = (char *)addr + ALIGN_WORD(obj->pad.size);
+    break;
+  default:
+    printf("invalid type");
+    assert(0);
+    break;
+  }
 
-	return addr;
+  return addr;
 }
 
 static void obj_pad(mps_addr_t addr, size_t size)
 {
 
-	obj_t obj = addr;
+  obj_t obj = addr;
 
-	assert(size >= ALIGN_WORD(sizeof(pad1_s)));
-	if (size == ALIGN_WORD(sizeof(pad1_s))) {
-		TYPE(obj) = TYPE_PAD1;
-	} else {
-		TYPE(obj) = TYPE_PAD;
-		obj->pad.size = size;
-	}
+  assert(size >= ALIGN_WORD(sizeof(pad1_s)));
+  if (size == ALIGN_WORD(sizeof(pad1_s))) {
+    TYPE(obj) = TYPE_PAD1;
+  } else {
+    TYPE(obj) = TYPE_PAD;
+    obj->pad.size = size;
+  }
 }
 
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
 {
-	obj_t obj = old;
-	mps_addr_t limit = obj_skip(old);
-	size_t size = (size_t)((char*)limit - (char*)old);
+  obj_t obj = old;
+  mps_addr_t limit = obj_skip(old);
+  size_t size = (size_t)((char*)limit - (char*)old);
 
-	assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
-	if (size == ALIGN_WORD(sizeof(fwd2_s))) {
-		TYPE(obj) = TYPE_FWD2;
-		obj->fwd2.fwd = new;
-	} else {
-		TYPE(obj) = TYPE_FWD;
-		obj->fwd.fwd = new;
-		obj->fwd.size = size;
-	}
+  assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
+  if (size == ALIGN_WORD(sizeof(fwd2_s))) {
+    TYPE(obj) = TYPE_FWD2;
+    obj->fwd2.fwd = new;
+  } else {
+    TYPE(obj) = TYPE_FWD;
+    obj->fwd.fwd = new;
+    obj->fwd.size = size;
+  }
 }
 
 static mps_addr_t obj_isfwd(mps_addr_t addr)
 {
-	obj_t obj = addr;
-	switch (TYPE(obj)) {
-	case TYPE_FWD2:
-          return obj->fwd2.fwd;
-	case TYPE_FWD:
-          return obj->fwd.fwd;
-        default:
-          return NULL;
-	}
+  obj_t obj = addr;
+  switch (TYPE(obj)) {
+  case TYPE_FWD2:
+    return obj->fwd2.fwd;
+  case TYPE_FWD:
+    return obj->fwd.fwd;
+  default:
+    return NULL;
+  }
 }
 
 static void test_main(void *cold_stack_end)
 {
-	mps_res_t res;
-	mps_fmt_t obj_fmt;
-	mps_thr_t thread;
-	mps_root_t stack_root;
-	size_t arena_size, obj_size;
-	mps_addr_t p;
-	int i;
-	test_alloc_obj_s *testobj[N_TESTOBJ];
+  mps_res_t res;
+  mps_fmt_t obj_fmt;
+  mps_thr_t thread;
+  mps_root_t stack_root;
+  size_t arena_size, obj_size;
+  mps_addr_t p;
+  int i;
+  test_alloc_obj_s *testobj[N_TESTOBJ];
 
-	/* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
-	obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
-	arena_size = ALIGN_OBJ(obj_size + SIZEDIFF);
+  /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
+  obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
+  arena_size = ALIGN_OBJ(obj_size + SIZEDIFF);
 
-	/* Create arena and register callbacks */
-	MPS_ARGS_BEGIN(args) {
-		MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
-		MPS_ARGS_ADD(args, MPS_KEY_ARENA_EXTENDED, (mps_fun_t)&arena_extended_cb);
-		MPS_ARGS_ADD(args, MPS_KEY_ARENA_CONTRACTED, (mps_fun_t)&arena_contracted_cb);
-		res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
-	} MPS_ARGS_END(args);
+  /* Create arena and register callbacks */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_EXTENDED, (mps_fun_t)&arena_extended_cb);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_CONTRACTED, (mps_fun_t)&arena_contracted_cb);
+    res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+  } MPS_ARGS_END(args);
 
-	/* Create new fmt */
-	MPS_ARGS_BEGIN(args) {
-		MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
-		MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
-		MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
-		MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
-		MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-		res = mps_fmt_create_k(&obj_fmt, arena, args);
-	} MPS_ARGS_END(args);
+  /* Create new fmt */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
+    res = mps_fmt_create_k(&obj_fmt, arena, args);
+  } MPS_ARGS_END(args);
 
-	/* Create new pool */
-	MPS_ARGS_BEGIN(args) {
-		MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
-		die(mps_pool_create_k(&obj_pool, arena, mps_class_amcz(), args),
-			"mps_pool_create_k");
-	} MPS_ARGS_END(args);
+  /* Create new pool */
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, obj_fmt);
+    die(mps_pool_create_k(&obj_pool, arena, mps_class_amcz(), args),
+      "mps_pool_create_k");
+  } MPS_ARGS_END(args);
 
-	/* Register thread */
-	die(mps_thread_reg(&thread, arena), "Thread reg");
+  /* Register thread */
+  die(mps_thread_reg(&thread, arena), "Thread reg");
 
-	/* Register stack roots */
-	die(mps_root_create_thread(&stack_root, arena, thread, cold_stack_end), "Create Stack root");
+  /* Register stack roots */
+  die(mps_root_create_thread(&stack_root, arena, thread, cold_stack_end), "Create Stack root");
 
-	/* Create allocation point */
-	die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
+  /* Create allocation point */
+  die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
 
-	/* Allocate objects and force arena extension */
-	for (i = 0; i < N_TESTOBJ; i++) {
-		int j;
-		test_alloc_obj_s* p_test_obj;
+  /* Allocate objects and force arena extension */
+  for (i = 0; i < N_TESTOBJ; i++) {
+    int j;
+    test_alloc_obj_s* p_test_obj;
     printf("Reserving memory for object %d: ", i);
-		do {
-			res = mps_reserve(&p, obj_ap, obj_size);
-			if (res != MPS_RES_OK) 
-				exit(EXIT_FAILURE);
+    do {
+      res = mps_reserve(&p, obj_ap, obj_size);
+      if (res != MPS_RES_OK) 
+        exit(EXIT_FAILURE);
 
       /* Each "*" indicates a single attempt to reserve memory */
       printf("*");
 
-			/* p is now an ambiguous reference to the reserved block */
-			testobj[i] = p;
+      /* p is now an ambiguous reference to the reserved block */
+      testobj[i] = p;
 
-			/* initialize obj */
-			p_test_obj = testobj[i];
-			p_test_obj->type = TYPE_INTBOX;
-			p_test_obj->size = obj_size;
+      /* initialize obj */
+      p_test_obj = testobj[i];
+      p_test_obj->type = TYPE_INTBOX;
+      p_test_obj->size = obj_size;
 
-			for (j = 0; j < N_INT_TESTOBJ; ++j) {
-				p_test_obj->int_array[j] = j;
-			}
-		} while (!mps_commit(obj_ap, p, obj_size));
-		/* testobj[i] is now valid and managed by the MPS */
+      for (j = 0; j < N_INT_TESTOBJ; ++j) {
+        p_test_obj->int_array[j] = j;
+      }
+    } while (!mps_commit(obj_ap, p, obj_size));
+    /* testobj[i] is now valid and managed by the MPS */
 
     printf("...committed.\n");
 
     /* Overwrite the local references to test objects*/
-		p_test_obj = NULL;
-		p = NULL;
-	}
+    p_test_obj = NULL;
+    p = NULL;
+  }
 
-	/* overwrite all the references to the objects*/
-	for (i = 0; i < N_TESTOBJ; i++) {
+  /* overwrite all the references to the objects*/
+  for (i = 0; i < N_TESTOBJ; i++) {
 
-		/* bonus test of mps_addr_object */
+    /* bonus test of mps_addr_object */
 #if 0 /* Comment this out as mps_addr_object is unavailable */
     mps_addr_t out;
-		assert(N_TESTOBJ <= N_INT_TESTOBJ);
+    assert(N_TESTOBJ <= N_INT_TESTOBJ);
 
-		/* use "i" to as a convenient way to generate different interior pointers
+    /* use "i" to as a convenient way to generate different interior pointers
        To guarantee the i index will give us an interior pointer the number of test
        objects must be <= the number of integers in each object */
     assert(N_TESTOBJ <= N_INT_TESTOBJ);
-		die(mps_addr_object(&out, arena, &(testobj[i])->int_array[i]), "Address object");
+    die(mps_addr_object(&out, arena, &(testobj[i])->int_array[i]), "Address object");
 
-		assert(out == testobj[i]);
+    assert(out == testobj[i]);
 
-		/* end piggy back testbench */
+    /* end piggy back testbench */
 #endif
 
-		/* now overwrite the ref */
-		testobj[i] = NULL;
-	}
+    /* now overwrite the ref */
+    testobj[i] = NULL;
+  }
 
-	/* Collect */
-	mps_arena_collect(arena);
+  /* Collect */
+  mps_arena_collect(arena);
 
-	printf("Arena extended %d times\n", n_extend);
-	printf("Arena contracted %d times\n", n_contract);
+  printf("Arena extended %d times\n", n_extend);
+  printf("Arena contracted %d times\n", n_contract);
 
-	/* Clean up */
-	/* [FIXME:is park needed] */
-	mps_arena_park(arena);
-	
-	mps_root_destroy(stack_root);
-	mps_thread_dereg(thread);
-	mps_ap_destroy(obj_ap);
-	mps_pool_destroy(obj_pool);
-	mps_fmt_destroy(obj_fmt);
-	mps_arena_destroy(arena);
+  /* Clean up */
+  /* [FIXME:is park needed] */
+  mps_arena_park(arena);
+  
+  mps_root_destroy(stack_root);
+  mps_thread_dereg(thread);
+  mps_ap_destroy(obj_ap);
+  mps_pool_destroy(obj_pool);
+  mps_fmt_destroy(obj_fmt);
+  mps_arena_destroy(arena);
 
-	
-	if (n_extend == 0) 
-		printf("No callbacks received upon arena extended!\n");
-	if (n_contract == 0)
-		printf("No callbacks received upon arena contracted!\n");
+  
+  if (n_extend == 0) 
+    printf("No callbacks received upon arena extended!\n");
+  if (n_contract == 0)
+    printf("No callbacks received upon arena contracted!\n");
 
-	if (n_contract == 0 || n_extend == 0)
-	{
-		exit(EXIT_FAILURE);
-	}
+  if (n_contract == 0 || n_extend == 0)
+  {
+    exit(EXIT_FAILURE);
+  }
 }
 
 int main(int argc, char* argv[])
