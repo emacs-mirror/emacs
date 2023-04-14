@@ -116,7 +116,7 @@ static void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size
   testlib_unused(arena_in);
   testlib_unused(addr);
   testlib_unused(size);
-  /* printf("Arena extended by %zd bytes\n", size); */
+  printf("Arena extended by %"PRIuLONGEST" bytes\n", (ulongest_t)size);
   n_extend++;
 }
 
@@ -125,7 +125,7 @@ static void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t si
   testlib_unused(arena_in);
   testlib_unused(addr);
   testlib_unused(size);
-  /* printf("Arena contracted by %zd bytes\n", size); */
+  printf("Arena contracted by %"PRIuLONGEST" bytes\n", (ulongest_t)size);
   n_contract++;
 }
 
@@ -204,6 +204,45 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
   }
 }
 
+
+static void print_messages(void)
+{
+  mps_message_type_t type;
+
+  while (mps_message_queue_type(&type, arena)) {
+    mps_message_t message;
+
+    cdie(mps_message_get(&message, arena, type),
+         "get");
+
+    switch(type) {
+      case mps_message_type_gc_start():
+        printf("GC start at %"PRIuLONGEST": %s\n",
+               (ulongest_t)mps_message_clock(arena, message),
+               mps_message_gc_start_why(arena, message));
+        break;
+
+      case mps_message_type_gc():
+        printf("GC end at %"PRIuLONGEST" "
+               "condemned %"PRIuLONGEST" "
+               "not condemned %"PRIuLONGEST" "
+               "live %"PRIuLONGEST"\n",
+               (ulongest_t)mps_message_clock(arena, message),
+               (ulongest_t)mps_message_gc_condemned_size(arena, message),
+               (ulongest_t)mps_message_gc_not_condemned_size(arena, message),
+               (ulongest_t)mps_message_gc_live_size(arena, message));
+        break;
+
+      default:
+        cdie(0, "message type");
+        break;
+    }
+
+    mps_message_discard(arena, message);
+  }
+}
+
+
 ATTRIBUTE_NOINLINE
 static void test_main(void *cold_stack_end)
 {
@@ -236,6 +275,8 @@ static void test_main(void *cold_stack_end)
     res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
   } MPS_ARGS_END(args);
 
+  printf("Initial reservation %"PRIuLONGEST".\n", (ulongest_t)mps_arena_reserved(arena));
+
   /* Create new fmt */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
@@ -262,18 +303,20 @@ static void test_main(void *cold_stack_end)
   /* Create allocation point */
   die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
 
+  mps_message_type_enable(arena, mps_message_type_gc_start());
+  mps_message_type_enable(arena, mps_message_type_gc());
+
   /* Allocate objects and force arena extension */
   for (i = 0; i < N_TESTOBJ; i++) {
     int j;
     test_alloc_obj_s* p_test_obj;
-    printf("Reserving memory for object %d: ", i);
+
     do {
+      printf("Reserving memory for object %d\n", i);
+
       res = mps_reserve(&p, obj_ap, obj_size);
       if (res != MPS_RES_OK) 
         exit(EXIT_FAILURE);
-
-      /* Each "*" indicates a single attempt to reserve memory */
-      printf("*");
 
       /* p is now an ambiguous reference to the reserved block */
       testobj[i] = p;
@@ -289,11 +332,16 @@ static void test_main(void *cold_stack_end)
     } while (!mps_commit(obj_ap, p, obj_size));
     /* testobj[i] is now valid and managed by the MPS */
 
-    printf("...committed.\n");
+    printf("Object %d committed.  "
+           "Arena reserved: %"PRIuLONGEST".\n",
+           i,
+           (ulongest_t)mps_arena_reserved(arena));
 
     /* Overwrite the local references to test objects*/
     p_test_obj = NULL;
     p = NULL;
+
+    print_messages();
   }
 
   /* overwrite all the references to the objects*/
@@ -317,10 +365,14 @@ static void test_main(void *cold_stack_end)
 
     /* now overwrite the ref */
     testobj[i] = NULL;
+
+    print_messages();
   }
 
   /* Collect */
   mps_arena_collect(arena);
+
+  print_messages();
 
   printf("Arena extended %d times\n", n_extend);
   printf("Arena contracted %d times\n", n_contract);
@@ -332,7 +384,6 @@ static void test_main(void *cold_stack_end)
   mps_pool_destroy(obj_pool);
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
-
   
   if (n_extend == 0) 
     printf("No callbacks received upon arena extended!\n");
@@ -340,9 +391,7 @@ static void test_main(void *cold_stack_end)
     printf("No callbacks received upon arena contracted!\n");
 
   if (n_contract == 0 || n_extend == 0)
-  {
     exit(EXIT_FAILURE);
-  }
 }
 
 int main(int argc, char* argv[])
