@@ -111,7 +111,7 @@ typedef union obj_u {
 } obj_s;
 
 /* Callback functions for arena extension and contraction */
-void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
+static void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
 {
   testlib_unused(arena_in);
   testlib_unused(addr);
@@ -120,7 +120,7 @@ void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
   n_extend++;
 }
 
-void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
+static void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
 {
   testlib_unused(arena_in);
   testlib_unused(addr);
@@ -130,7 +130,7 @@ void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
 }
 
 /* Format functions */
-mps_addr_t obj_skip(mps_addr_t addr)
+static mps_addr_t obj_skip(mps_addr_t addr)
 {
 	obj_t obj = addr;
 
@@ -160,7 +160,7 @@ mps_addr_t obj_skip(mps_addr_t addr)
 	return addr;
 }
 
-void obj_pad(mps_addr_t addr, size_t size)
+static void obj_pad(mps_addr_t addr, size_t size)
 {
 
 	obj_t obj = addr;
@@ -174,7 +174,7 @@ void obj_pad(mps_addr_t addr, size_t size)
 	}
 }
 
-void obj_fwd(mps_addr_t old, mps_addr_t new)
+static void obj_fwd(mps_addr_t old, mps_addr_t new)
 {
 	obj_t obj = old;
 	mps_addr_t limit = obj_skip(old);
@@ -191,19 +191,20 @@ void obj_fwd(mps_addr_t old, mps_addr_t new)
 	}
 }
 
-mps_addr_t obj_isfwd(mps_addr_t addr)
+static mps_addr_t obj_isfwd(mps_addr_t addr)
 {
 	obj_t obj = addr;
 	switch (TYPE(obj)) {
 	case TYPE_FWD2:
-		return obj->fwd2.fwd;
+          return obj->fwd2.fwd;
 	case TYPE_FWD:
-		return obj->fwd.fwd;
+          return obj->fwd.fwd;
+        default:
+          return NULL;
 	}
-	return NULL;
 }
 
-void test_main(void *cold_stack_end)
+static void test_main(void *cold_stack_end)
 {
 	mps_res_t res;
 	mps_fmt_t obj_fmt;
