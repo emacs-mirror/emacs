@@ -176,14 +176,14 @@ to load the edited aliases.
 
 +++
 *** 'rgrep' is now a builtin command.
-Running "rgrep" in Eshell now uses the Emacs grep facility instead of
+Running 'rgrep' in Eshell now uses the Emacs grep facility instead of
 calling external rgrep.
 
 ** Shell Mode
 
 +++
 *** New user option 'shell-get-old-input-include-continuation-lines'.
-When this user option is non-nil, 'shell-get-old-input' (C-RET)
+When this user option is non-nil, 'shell-get-old-input' ('C-RET')
 includes multiple shell "\" continuation lines from command output.
 Default is nil.
 
@@ -259,6 +259,7 @@ following to your init file:
               #'shortdoc-help-fns-examples-function)
 
 ** Package
+
 ---
 *** New user option 'package-vc-register-as-project'.
 When non-nil, it will automatically register every package as a
@@ -266,6 +267,7 @@ project, that you can quickly select using 'project-switch-project'
 ('C-x p p').
 
 ** Flymake
+
 +++
 *** New user option 'flymake-show-diagnostics-at-end-of-line'.
 When non-nil, Flymake shows summarized descriptions of diagnostics at
@@ -332,7 +334,7 @@ hooks named after the feature name, like 'esh-mode-unload-hook'.
 
 * Lisp Changes in Emacs 30.1
 
-** New var 'inhibit-auto-fill' to temporarily prevent auto-fill.
+** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
 
 ** Functions and variables to transpose sexps
 
@@ -448,7 +450,7 @@ any unwind forms, as in
 
     (unwind-protect (read buffer))
 
-because the behaviour is identical to that of the argument; there is
+because the behavior is identical to that of the argument; there is
 no protection of any kind.  Perhaps the intended unwind forms have
 been misplaced or forgotten, or the use of 'unwind-protect' could be
 simplified away.

@@ -434,22 +434,22 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
 (defface flymake-error-echo
   '((t :inherit compilation-error))
   "Face used for showing summarized descriptions of errors."
-  :package-version '("Flymake" . "1.3.4"))
+  :package-version '(Flymake . "1.3.4"))
 
 (defface flymake-warning-echo
   '((t :inherit compilation-warning))
   "Face used for showing summarized descriptions of warnings."
-  :package-version '("Flymake" . "1.3.4"))
+  :package-version '(Flymake . "1.3.4"))
 
 (defface flymake-note-echo
   '((t :inherit flymake-note))
   "Face used for showing summarized descriptions of notes."
-  :package-version '("Flymake" . "1.3.4"))
+  :package-version '(Flymake . "1.3.4"))
 
 (defcustom flymake-show-diagnostics-at-end-of-line nil
   "If non-nil, add diagnostic summary messages at end-of-line."
   :type 'boolean
-  :package-version '("Flymake" . "1.3.4"))
+  :package-version '(Flymake . "1.3.4"))
 
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
