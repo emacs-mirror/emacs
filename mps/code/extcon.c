@@ -204,6 +204,7 @@ static mps_addr_t obj_isfwd(mps_addr_t addr)
   }
 }
 
+ATTRIBUTE_NOINLINE
 static void test_main(void *cold_stack_end)
 {
   mps_res_t res;
@@ -221,7 +222,7 @@ static void test_main(void *cold_stack_end)
      main and lose this condition if the expression below is removed.
      This is a problem we are analysing in GitHub issue #210
      <https://github.com/Ravenbrook/mps/issues/210>. */
-  Insist((void *)&testobj[N_TESTOBJ] < cold_stack_end);
+  Insist((void *)&testobj[N_TESTOBJ] <= cold_stack_end);
 
   /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
   obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
