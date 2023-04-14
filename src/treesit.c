@@ -421,10 +421,17 @@ static Lisp_Object Vtreesit_str_match;
 static Lisp_Object Vtreesit_str_pred;
 
 /* This is the limit on recursion levels for some tree-sitter
-   functions.  Remember to update docstrings when changing this
-   value. */
-const ptrdiff_t treesit_recursion_limit = 1000;
-bool treesit_initialized = false;
+   functions.  Remember to update docstrings when changing this value.
+
+   If we think of programs and AST, it is very rare for any program to
+   have a very deep AST. For example, you would need 1000+ levels of
+   nested if-statements, or a struct somehow nested for 1000+ levels.
+   It’s hard for me to imagine any hand-written or machine generated
+   program to be like that.  So I think 1000 is already generous.  If
+   we look at xdisp.c, its AST only have 30 levels.  */
+#define TREESIT_RECURSION_LIMIT 1000
+
+static bool treesit_initialized = false;
 
 static bool
 load_tree_sitter_if_necessary (bool required)
@@ -478,40 +485,47 @@ treesit_initialize (void)
 static void
 treesit_symbol_to_c_name (char *symbol_name)
 {
-  for (int idx = 0; idx < strlen (symbol_name); idx++)
+  size_t len = strlen (symbol_name);
+  for (int idx = 0; idx < len; idx++)
     {
       if (symbol_name[idx] == '-')
 	symbol_name[idx] = '_';
     }
 }
 
+/* Find the override name for LANGUAGE_SYMBOL in
+   treesit-load-name-override-list.  Set NAME and C_SYMBOL to the
+   override name, and return true if there exists one, otherwise
+   return false.
+
+   This function may signal if treesit-load-name-override-list is
+   malformed.  */
 static bool
 treesit_find_override_name (Lisp_Object language_symbol, Lisp_Object *name,
 			    Lisp_Object *c_symbol)
 {
-  Lisp_Object tem;
-
   CHECK_LIST (Vtreesit_load_name_override_list);
+  Lisp_Object tail = Vtreesit_load_name_override_list;
 
-  tem = Vtreesit_load_name_override_list;
-
-  FOR_EACH_TAIL (tem)
+  FOR_EACH_TAIL (tail)
     {
-      Lisp_Object lang = XCAR (XCAR (tem));
+      Lisp_Object entry = XCAR (tail);
+      CHECK_LIST (entry);
+      Lisp_Object lang = XCAR (entry);
       CHECK_SYMBOL (lang);
 
       if (EQ (lang, language_symbol))
 	{
-	  *name = Fnth (make_fixnum (1), XCAR (tem));
+	  *name = Fnth (make_fixnum (1), entry);
 	  CHECK_STRING (*name);
-	  *c_symbol = Fnth (make_fixnum (2), XCAR (tem));
+	  *c_symbol = Fnth (make_fixnum (2), entry);
 	  CHECK_STRING (*c_symbol);
 
 	  return true;
 	}
     }
 
-  CHECK_LIST_END (tem, Vtreesit_load_name_override_list);
+  CHECK_LIST_END (tail, Vtreesit_load_name_override_list);
 
   return false;
 }
@@ -1619,6 +1633,9 @@ buffer.  */)
       TSRange *treesit_ranges = xmalloc (sizeof (TSRange) * len);
       struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
+      /* We can use XFUXNUM, XCAR, XCDR freely because we have checked
+	 the input by treesit_check_range_argument.  */
+
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
 	{
 	  Lisp_Object range = XCAR (ranges);
@@ -1639,9 +1656,6 @@ buffer.  */)
 	}
       success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
 					       treesit_ranges, len);
-      /* Although XFIXNUM could signal, it should be impossible
-	 because we have checked the input by treesit_check_range_argument.
-	 So there is no need for unwind-protect.  */
       xfree (treesit_ranges);
     }
 
@@ -2295,11 +2309,11 @@ See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
 {
   if (BASE_EQ (pattern, QCanchor))
     return Vtreesit_str_dot;
-  if (BASE_EQ (pattern, intern_c_string (":?")))
+  if (BASE_EQ (pattern, QCquestion))
     return Vtreesit_str_question_mark;
-  if (BASE_EQ (pattern, intern_c_string (":*")))
+  if (BASE_EQ (pattern, QCstar))
     return Vtreesit_str_star;
-  if (BASE_EQ (pattern, intern_c_string (":+")))
+  if (BASE_EQ (pattern, QCplus))
     return Vtreesit_str_plus;
   if (BASE_EQ (pattern, QCequal))
     return Vtreesit_str_pound_equal;
@@ -3008,7 +3022,7 @@ treesit_cursor_helper (TSTreeCursor *cursor, TSNode node, Lisp_Object parser)
   TSNode root = ts_tree_root_node (XTS_PARSER (parser)->tree);
   *cursor = ts_tree_cursor_new (root);
   bool success = treesit_cursor_helper_1 (cursor, &node, end_pos,
-					  treesit_recursion_limit);
+					  TREESIT_RECURSION_LIMIT);
   if (!success)
     ts_tree_cursor_delete (cursor);
   return success;
@@ -3390,7 +3404,7 @@ Return the first matched node, or nil if none matches.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = treesit_recursion_limit;
+  ptrdiff_t the_limit = TREESIT_RECURSION_LIMIT;
   if (!NILP (depth))
     {
       CHECK_FIXNUM (depth);
@@ -3581,7 +3595,7 @@ a regexp.  */)
 
   /* We use a default limit of 1000.  See bug#59426 for the
      discussion.  */
-  ptrdiff_t the_limit = treesit_recursion_limit;
+  ptrdiff_t the_limit = TREESIT_RECURSION_LIMIT;
   if (!NILP (depth))
     {
       CHECK_FIXNUM (depth);
@@ -3740,6 +3754,9 @@ syms_of_treesit (void)
   DEFSYM (Qnot, "not");
 
   DEFSYM (QCanchor, ":anchor");
+  DEFSYM (QCquestion, ":?");
+  DEFSYM (QCstar, ":*");
+  DEFSYM (QCplus, ":+");
   DEFSYM (QCequal, ":equal");
   DEFSYM (QCmatch, ":match");
   DEFSYM (QCpred, ":pred");
