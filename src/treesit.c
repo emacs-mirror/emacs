@@ -1962,19 +1962,19 @@ live.  */)
   TSNode treesit_node = XTS_NODE (node)->node;
   bool result;
 
-  if (EQ (property, Qoutdated))
+  if (BASE_EQ (property, Qoutdated))
     return treesit_node_uptodate_p (node) ? Qnil : Qt;
 
   treesit_check_node (node);
-  if (EQ (property, Qnamed))
+  if (BASE_EQ (property, Qnamed))
     result = ts_node_is_named (treesit_node);
-  else if (EQ (property, Qmissing))
+  else if (BASE_EQ (property, Qmissing))
     result = ts_node_is_missing (treesit_node);
-  else if (EQ (property, Qextra))
+  else if (BASE_EQ (property, Qextra))
     result = ts_node_is_extra (treesit_node);
-  else if (EQ (property, Qhas_error))
+  else if (BASE_EQ (property, Qhas_error))
     result = ts_node_has_error (treesit_node);
-  else if (EQ (property, Qlive))
+  else if (BASE_EQ (property, Qlive))
     result = treesit_parser_live_p (XTS_NODE (node)->parser);
   else
     signal_error ("Expecting `named', `missing', `extra', "
@@ -2293,19 +2293,19 @@ PATTERN can be
 See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object pattern)
 {
-  if (EQ (pattern, QCanchor))
+  if (BASE_EQ (pattern, QCanchor))
     return Vtreesit_str_dot;
-  if (EQ (pattern, intern_c_string (":?")))
+  if (BASE_EQ (pattern, intern_c_string (":?")))
     return Vtreesit_str_question_mark;
-  if (EQ (pattern, intern_c_string (":*")))
+  if (BASE_EQ (pattern, intern_c_string (":*")))
     return Vtreesit_str_star;
-  if (EQ (pattern, intern_c_string (":+")))
+  if (BASE_EQ (pattern, intern_c_string (":+")))
     return Vtreesit_str_plus;
-  if (EQ (pattern, QCequal))
+  if (BASE_EQ (pattern, QCequal))
     return Vtreesit_str_pound_equal;
-  if (EQ (pattern, QCmatch))
+  if (BASE_EQ (pattern, QCmatch))
     return Vtreesit_str_pound_match;
-  if (EQ (pattern, QCpred))
+  if (BASE_EQ (pattern, QCpred))
     return Vtreesit_str_pound_pred;
   Lisp_Object opening_delimeter
     = VECTORP (pattern)
@@ -2898,7 +2898,7 @@ the query.  */)
       /* 2. Get predicates and check whether this match can be
          included in the result list.  */
       Lisp_Object predicates = AREF (predicates_table, match.pattern_index);
-      if (EQ (predicates, Qt))
+      if (BASE_EQ (predicates, Qt))
 	{
 	  predicates = treesit_predicates_for_pattern (treesit_query,
 						       match.pattern_index);
@@ -3154,7 +3154,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
     {
       Lisp_Object car = XCAR (pred);
       Lisp_Object cdr = XCDR (pred);
-      if (EQ (car, Qnot))
+      if (BASE_EQ (car, Qnot))
 	{
 	  if (!CONSP (cdr))
 	    {
@@ -3174,7 +3174,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	  return treesit_traverse_validate_predicate (XCAR (cdr),
 						      signal_data);
 	}
-      else if (EQ (car, Qor))
+      else if (BASE_EQ (car, Qor))
 	{
 	  if (!CONSP (cdr) || NILP (cdr))
 	    {
@@ -3237,10 +3237,10 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
       Lisp_Object car = XCAR (pred);
       Lisp_Object cdr = XCDR (pred);
 
-      if (EQ (car, Qnot))
+      if (BASE_EQ (car, Qnot))
 	return !treesit_traverse_match_predicate (cursor, XCAR (cdr),
 						  parser, named);
-      else if (EQ (car, Qor))
+      else if (BASE_EQ (car, Qor))
 	{
 	  FOR_EACH_TAIL (cdr)
 	    {
