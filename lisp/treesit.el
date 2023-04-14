@@ -248,7 +248,7 @@ type as it.  If no such parent exists, return nil.
 
 If PRED is non-nil, match each parent's type with PRED rather
 than using NODE's type.  PRED can also be a predicate function,
-and more.  See `treesit-things-definition' for detail.
+and more.  See `treesit-thing-settings' for detail.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((pred (or pred (rx-to-string
@@ -2062,7 +2062,7 @@ parent thing surrounding POS.  All of three could be nil if no
 sound things exists.
 
 PRED can be a regexp, a predicate function, and more.  See
-`treesit-things-definition' for details."
+`treesit-thing-settings' for details."
   (let* ((node (treesit-node-at pos))
          (result (list nil nil nil)))
     ;; 1. Find previous and next sibling defuns.
@@ -2152,7 +2152,7 @@ position it would move to.  If there aren't enough things to move
 across, return nil.
 
 PRED can be a regexp, a predicate function, and more.  See
-`treesit-things-definition' for detail.
+`treesit-thing-settings' for details.
 
 TACTIC determines how does this function move between things.  It
 can be `nested', `top-level', `restricted', or nil.  `nested'
@@ -2245,8 +2245,8 @@ function is called recursively."
   "Return the thing node at point or nil if none is found.
 
 \"Thing\" is defined by PRED, which can be a regexp, a
-predication function, and more, see `treesit-things-definition'
-for detail.
+predication function, and more, see `treesit-thing-settings'
+for details.
 
 Return the top-level defun if TACTIC is `top-level', return the
 immediate parent thing if TACTIC is `nested'."

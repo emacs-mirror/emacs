@@ -3195,8 +3195,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
       else if (STRINGP (car) && FUNCTIONP (cdr))
 	return true;
     }
-  *signal_data = list2 (build_string ("Invalid predicate, see TODO for "
-				      "valid forms of predicate"),
+  *signal_data = list2 (build_string ("Invalid predicate, see `treesit-thing-settings' for valid forms of predicate"),
 			pred);
   return false;
 }
@@ -3268,10 +3267,11 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
   return false;
 }
 
-/* Traverse the parse tree starting from CURSOR.  See TODO for the
-   shapes PRED can have.  If the node satisfies PRED, leave CURSOR on
-   that node and return true.  If no node satisfies PRED, move CURSOR
-   back to starting position and return false.
+/* Traverse the parse tree starting from CURSOR.  See
+   `treesit-thing-settings' for the shapes PRED can have.  If the
+   node satisfies PRED, leave CURSOR on that node and return true.  If
+   no node satisfies PRED, move CURSOR back to starting position and
+   return false.
 
    LIMIT is the number of levels we descend in the tree.  FORWARD
    controls the direction in which we traverse the tree, true means
@@ -3791,7 +3791,8 @@ syms_of_treesit (void)
 		"This parser is deleted and cannot be used",
 		Qtreesit_error);
   define_error (Qtreesit_invalid_predicate,
-		"Invalid predicate, see TODO for valid forms for a predicate",
+		"Invalid predicate, see `treesit-thing-settings' "
+		"for valid forms for a predicate",
 		Qtreesit_error);
 
   DEFVAR_LISP ("treesit-load-name-override-list",
@@ -3822,6 +3823,33 @@ Emacs first looks in the directories mentioned in this variable,
 then in the `tree-sitter' subdirectory of `user-emacs-directory', and
 then in the system default locations for dynamic libraries, in that order.  */);
   Vtreesit_extra_load_path = Qnil;
+
+  DEFVAR_LISP ("treesit-thing-settings",
+	       Vtreesit_thing_settings,
+	       doc:
+	       /* A list defining things.
+
+The value should be an alist of (LANGUAGE . DEFINITIONS), where
+LANGUAGE is a language symbol, and DEFINITIONS is a list of
+
+    (THING PRED)
+
+THING is a symbol representing the thing, like `defun', `sexp', or
+`block'; PRED defines what kind of node can be qualified as THING.
+
+PRED can be a regexp string that matches the type of the node; it can
+be a predicate function that takes the node as the sole argument and
+returns t if the node is the thing; it can be a cons (REGEXP . FN),
+which is a combination of a regexp and a predicate function, and the
+node has to match both to qualify as the thing.
+
+PRED can also be recursively defined.  It can be (or PRED...), meaning
+satisfying anyone of the inner PREDs qualifies the node; or (not
+PRED), meaning not satisfying the inner PRED qualifies the node.
+
+Finally, PRED can refer to other THINGs defined in this list by using
+the symbol of that THING.  For example, (or block sexp).  */);
+  Vtreesit_thing_settings = Qnil;
 
   staticpro (&Vtreesit_str_libtree_sitter);
   Vtreesit_str_libtree_sitter = build_pure_c_string ("libtree-sitter-");
