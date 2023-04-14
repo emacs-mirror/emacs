@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 /* Number of test objects to allocate */
-#define N_TESTOBJ 10
+#define N_TESTOBJ 100
 /* Number of integers in each test object */
 #define N_INT_TESTOBJ 10000
 /* This is the difference in size between */
@@ -116,6 +116,7 @@ void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
   testlib_unused(arena_in);
   testlib_unused(addr);
   testlib_unused(size);
+  /* printf("Arena extended by %zd bytes\n", size); */
   n_extend++;
 }
 
@@ -124,12 +125,11 @@ void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
   testlib_unused(arena_in);
   testlib_unused(addr);
   testlib_unused(size);
+  /* printf("Arena contracted by %zd bytes\n", size); */
 	n_contract++;
 }
 
-
 /* Format functions */
-
 mps_addr_t obj_skip(mps_addr_t addr)
 {
 	obj_t obj = addr;
@@ -203,27 +203,18 @@ mps_addr_t obj_isfwd(mps_addr_t addr)
 	return NULL;
 }
 
-int main(int argc, char* argv[])
+void test_main(void *cold_stack_end)
 {
 	mps_res_t res;
 	mps_fmt_t obj_fmt;
-	
 	mps_thr_t thread;
 	mps_root_t stack_root;
 	size_t arena_size, obj_size;
-
-	/* Cold end of stack pointer */
-	void *cold = &cold;
-
-	/* [FIXME: do we need a trampoline? is p a root?] */
 	mps_addr_t p;
-	
 	int i;
 	test_alloc_obj_s *testobj[N_TESTOBJ];
 
-  testlib_init(argc, argv);
-
-	/* Make initial arena size slightly bigger than the test object size to force and extension as early as possible */
+	/* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
 	obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
 	arena_size = ALIGN_OBJ(obj_size + SIZEDIFF);
 
@@ -256,7 +247,7 @@ int main(int argc, char* argv[])
 	die(mps_thread_reg(&thread, arena), "Thread reg");
 
 	/* Register stack roots */
-	die(mps_root_create_thread(&stack_root, arena, thread, cold), "Create Stack root");
+	die(mps_root_create_thread(&stack_root, arena, thread, cold_stack_end), "Create Stack root");
 
 	/* Create allocation point */
 	die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
@@ -265,10 +256,14 @@ int main(int argc, char* argv[])
 	for (i = 0; i < N_TESTOBJ; i++) {
 		int j;
 		test_alloc_obj_s* p_test_obj;
+    printf("Reserving memory for object %d: ", i);
 		do {
 			res = mps_reserve(&p, obj_ap, obj_size);
 			if (res != MPS_RES_OK) 
 				exit(EXIT_FAILURE);
+
+      /* Each "*" indicates a single attempt to reserve memory */
+      printf("*");
 
 			/* p is now an ambiguous reference to the reserved block */
 			testobj[i] = p;
@@ -281,31 +276,35 @@ int main(int argc, char* argv[])
 			for (j = 0; j < N_INT_TESTOBJ; ++j) {
 				p_test_obj->int_array[j] = j;
 			}
-		} while (!mps_commit(obj_ap, p, obj_size)); /* see note 2 [FIXME:what? where?] */
-		/* obj is now valid and managed by the MPS */
+		} while (!mps_commit(obj_ap, p, obj_size));
+		/* testobj[i] is now valid and managed by the MPS */
 
-		/* Destroy the local reference to test object*/
+    printf("...committed.\n");
+
+    /* Overwrite the local references to test objects*/
 		p_test_obj = NULL;
 		p = NULL;
 	}
 
-	/* destroy all the references to the objects*/
+	/* overwrite all the references to the objects*/
 	for (i = 0; i < N_TESTOBJ; i++) {
 
-		/* !!! JPH bonus test of mps_addr_object - move to separate testbench */
-#if 0
-    /* Comment this out as mps_addr_object is unavailable */
+		/* bonus test of mps_addr_object */
+#if 0 /* Comment this out as mps_addr_object is unavailable */
     mps_addr_t out;
 		assert(N_TESTOBJ <= N_INT_TESTOBJ);
 
-		/* [FIXME:explain this, especially use of i] */
+		/* use "i" to as a convenient way to generate different interior pointers
+       To guarantee the i index will give us an interior pointer the number of test
+       objects must be <= the number of integers in each object */
+    assert(N_TESTOBJ <= N_INT_TESTOBJ);
 		die(mps_addr_object(&out, arena, &(testobj[i])->int_array[i]), "Address object");
 
 		assert(out == testobj[i]);
 
 		/* end piggy back testbench */
-
 #endif
+
 		/* now overwrite the ref */
 		testobj[i] = NULL;
 	}
@@ -329,19 +328,29 @@ int main(int argc, char* argv[])
 
 	
 	if (n_extend == 0) 
-		printf("%s: No callbacks received upon arena extended!\n", argv[0]);
+		printf("No callbacks received upon arena extended!\n");
 	if (n_contract == 0)
-		printf("%s: No callbacks received upon arena contracted!\n", argv[0]);
+		printf("No callbacks received upon arena contracted!\n");
 
 	if (n_contract == 0 || n_extend == 0)
 	{
-		printf("%s: Conclusion: Test failed.\n", argv[0]);
-		return 1;
+		exit(EXIT_FAILURE);
 	}
-
-	printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
-	return 0;
 }
+
+int main(int argc, char* argv[])
+{
+  void *stack_marker = &stack_marker;
+
+  testlib_init(argc, argv);
+
+  test_main(stack_marker);
+
+  printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+
+  return 0;
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
