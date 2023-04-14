@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 /* Number of test objects to allocate */
-#define N_TESTOBJ 1000
+#define N_TESTOBJ 100
 /* Number of integers in each test object */
 #define N_INT_TESTOBJ 10000
 /* This is the difference in size between */
@@ -214,6 +214,14 @@ static void test_main(void *cold_stack_end)
   mps_addr_t p;
   int i;
   test_alloc_obj_s *testobj[N_TESTOBJ];
+
+  /* The testobj array must be below (on all current Posix platforms)
+     the cold end of the stack in order for the MPS to scan it.  We
+     have observed a Heisenbug where GCC will inline test_main into
+     main and lose this condition if the expression below is removed.
+     This is a problem we are analysing in GitHub issue #210
+     <https://github.com/Ravenbrook/mps/issues/210>. */
+  Insist((void *)&testobj[N_TESTOBJ] < cold_stack_end);
 
   /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
   obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
