@@ -326,9 +326,6 @@ static void test_main(void *cold_stack_end)
   printf("Arena contracted %d times\n", n_contract);
 
   /* Clean up */
-  /* [FIXME:is park needed] */
-  mps_arena_park(arena);
-  
   mps_root_destroy(stack_root);
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
