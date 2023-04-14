@@ -3612,6 +3612,37 @@ a regexp.  */)
     return parent;
 }
 
+DEFUN ("treesit-node-match-p",
+       Ftreesit_node_match_p,
+       Streesit_node_match_p, 2, 2, 0,
+       doc: /* Check whether NODE matches PREDICATE.
+
+PREDICATE can be a regexp matching node type, a predicate function,
+and more, see `treesit-things-definition' for detail.  Return non-nil
+if NODE matches PRED, nil otherwise.  */)
+  (Lisp_Object node, Lisp_Object predicate)
+{
+  CHECK_TS_NODE (node);
+
+  Lisp_Object signal_data = Qnil;
+  if (!treesit_traverse_validate_predicate (predicate, &signal_data))
+    xsignal1 (Qtreesit_invalid_predicate, signal_data);
+
+  Lisp_Object parser = XTS_NODE (node)->parser;
+  TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (node)->node);
+
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (treesit_traverse_cleanup_cursor, &cursor);
+
+  bool match = false;
+  match = treesit_traverse_match_predicate (&cursor, predicate,
+					    parser, false);
+
+  unbind_to (count, Qnil);
+
+  return match ? Qt : Qnil;
+}
+
 DEFUN ("treesit-subtree-stat",
        Ftreesit_subtree_stat,
        Streesit_subtree_stat, 1, 1, 0,
@@ -3879,6 +3910,7 @@ then in the system default locations for dynamic libraries, in that order.  */);
   defsubr (&Streesit_search_subtree);
   defsubr (&Streesit_search_forward);
   defsubr (&Streesit_induce_sparse_tree);
+  defsubr (&Streesit_node_match_p);
   defsubr (&Streesit_subtree_stat);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
