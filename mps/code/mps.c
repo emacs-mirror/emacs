@@ -81,6 +81,11 @@
 #include "vm.c"
 #include "policy.c"
 
+/* Configura CET customisations */
+
+#include "trans.c"
+#include "mpsitr.c"
+
 /* Additional pool classes */
 
 #include "poolamc.c"
