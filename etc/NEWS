@@ -480,19 +480,19 @@ so it will return the remote UID for remote files (or -1 if the
 connection has no associated user).
 
 +++
-** 'fset' and 'defalias' now signal an error for circular alias chains.
-Previously, 'fset' and 'defalias' could be made to build circular
-function indirection chains as in
+** 'fset', 'defalias' and 'defvaralias' now signal an error for cyclic aliases.
+Previously, 'fset', 'defalias' and 'defvaralias' could be made to
+build circular function and variable indirection chains as in
 
     (defalias 'able 'baker)
     (defalias 'baker 'able)
 
-but trying to call them would often make Emacs hang.  Now, an attempt
+but trying to use them would sometimes make Emacs hang.  Now, an attempt
 to create such a loop results in an error.
 
-Since circular alias chains now cannot occur, 'function-alias-p' and
-'indirect-function' will never signal an error.  Their second
-'noerror' arguments have no effect and are therefore obsolete.
+Since circular alias chains now cannot occur, 'function-alias-p',
+'indirect-function' and 'indirect-variable' will never signal an error.
+Their 'noerror' arguments have no effect and are therefore obsolete.
 
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems

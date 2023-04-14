@@ -683,7 +683,7 @@ global value outside of any lexical scope.  */)
   switch (sym->u.s.redirect)
     {
     case SYMBOL_PLAINVAL: valcontents = SYMBOL_VAL (sym); break;
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_LOCALIZED:
       {
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
@@ -1249,51 +1249,20 @@ The value, if non-nil, is a list of mode name symbols.  */)
 		Getting and Setting Values of Symbols
  ***********************************************************************/
 
-/* Return the symbol holding SYMBOL's value.  Signal
-   `cyclic-variable-indirection' if SYMBOL's chain of variable
-   indirections contains a loop.  */
-
-struct Lisp_Symbol *
-indirect_variable (struct Lisp_Symbol *symbol)
-{
-  struct Lisp_Symbol *tortoise, *hare;
-
-  hare = tortoise = symbol;
-
-  while (hare->u.s.redirect == SYMBOL_VARALIAS)
-    {
-      hare = SYMBOL_ALIAS (hare);
-      if (hare->u.s.redirect != SYMBOL_VARALIAS)
-	break;
-
-      hare = SYMBOL_ALIAS (hare);
-      tortoise = SYMBOL_ALIAS (tortoise);
-
-      if (hare == tortoise)
-	{
-	  Lisp_Object tem;
-	  XSETSYMBOL (tem, symbol);
-	  xsignal1 (Qcyclic_variable_indirection, tem);
-	}
-    }
-
-  return hare;
-}
-
-
 DEFUN ("indirect-variable", Findirect_variable, Sindirect_variable, 1, 1, 0,
        doc: /* Return the variable at the end of OBJECT's variable chain.
 If OBJECT is a symbol, follow its variable indirections (if any), and
 return the variable at the end of the chain of aliases.  See Info node
 `(elisp)Variable Aliases'.
 
-If OBJECT is not a symbol, just return it.  If there is a loop in the
-chain of aliases, signal a `cyclic-variable-indirection' error.  */)
+If OBJECT is not a symbol, just return it.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
     {
-      struct Lisp_Symbol *sym = indirect_variable (XSYMBOL (object));
+      struct Lisp_Symbol *sym = XSYMBOL (object);
+      while (sym->u.s.redirect == SYMBOL_VARALIAS)
+	sym = SYMBOL_ALIAS (sym);
       XSETSYMBOL (object, sym);
     }
   return object;
@@ -1582,7 +1551,7 @@ find_symbol_value (Lisp_Object symbol)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return SYMBOL_VAL (sym);
     case SYMBOL_LOCALIZED:
       {
@@ -1671,7 +1640,7 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: SET_SYMBOL_VAL (sym , newval); return;
     case SYMBOL_LOCALIZED:
       {
@@ -1925,7 +1894,7 @@ default_value (Lisp_Object symbol)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return SYMBOL_VAL (sym);
     case SYMBOL_LOCALIZED:
       {
@@ -2019,7 +1988,7 @@ set_default_internal (Lisp_Object symbol, Lisp_Object value,
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: set_internal (symbol, value, Qnil, bindflag); return;
     case SYMBOL_LOCALIZED:
       {
@@ -2157,7 +2126,7 @@ See also `defvar-local'.  */)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL:
       forwarded = 0; valcontents.value = SYMBOL_VAL (sym);
       if (BASE_EQ (valcontents.value, Qunbound))
@@ -2225,7 +2194,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL:
       forwarded = 0; valcontents.value = SYMBOL_VAL (sym); break;
     case SYMBOL_LOCALIZED:
@@ -2311,7 +2280,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return variable;
     case SYMBOL_FORWARDED:
       {
@@ -2378,7 +2347,7 @@ Also see `buffer-local-boundp'.*/)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return Qnil;
     case SYMBOL_LOCALIZED:
       {
@@ -2428,7 +2397,7 @@ value in BUFFER, or if VARIABLE is automatically buffer-local (see
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return Qnil;
     case SYMBOL_LOCALIZED:
       {
@@ -2463,7 +2432,7 @@ If the current binding is global (the default), the value is nil.  */)
  start:
   switch (sym->u.s.redirect)
     {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
+    case SYMBOL_VARALIAS: sym = SYMBOL_ALIAS (sym); goto start;
     case SYMBOL_PLAINVAL: return Qnil;
     case SYMBOL_FORWARDED:
       {
