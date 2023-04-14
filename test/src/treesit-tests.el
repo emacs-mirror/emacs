@@ -378,13 +378,13 @@ BODY is the test body."
   "Test tree-sitter's ability to detect invalid predicates."
   (skip-unless (treesit-language-available-p 'json))
   (treesit--ert-search-setup
-   (dolist (pred '( 1 (not 1) (not "2" "3") (or) (or 1)))
+   (dolist (pred '( 1 (not 1) (not "2" "3") (or) (or 1) 'a))
      (should-error (treesit-search-forward (treesit-node-child array 0)
                                            pred)
                    :type 'treesit-invalid-predicate))
    (should-error (treesit-search-forward (treesit-node-child array 0)
-                                         'not-a-function)
-                 :type 'void-function)))
+                                         (lambda (node) (car node)))
+                 :type 'wrong-type-argument)))
 
 (ert-deftest treesit-cursor-helper-with-missing-node ()
   "Test treesit_cursor_helper with a missing node."
