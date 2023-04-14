@@ -1289,15 +1289,12 @@
         (erc-default-recipients '("#chan"))
         calls)
     (with-temp-buffer
+      (erc-tests--set-fake-server-process "sleep" "1")
       (cl-letf (((symbol-function 'erc-cmd-MSG)
                  (lambda (line)
                    (push line calls)
                    (should erc--called-as-input-p)
                    (funcall orig-erc-cmd-MSG line)))
-                ((symbol-function 'erc-server-buffer)
-                 (lambda () (current-buffer)))
-                ((symbol-function 'erc-server-process-alive)
-                 (lambda () t))
                 ((symbol-function 'erc-server-send-queue)
                  #'ignore))
 
@@ -2018,7 +2015,7 @@ ARG is omitted or nil.
 Some docstring."
                         :global t
                         :group (erc--find-group 'mname 'malias)
-                        :get #'erc--neuter-custom-variable-state
+                        :require 'nil
                         :type "mname"
                         (if erc-mname-mode
                             (erc-mname-enable)
