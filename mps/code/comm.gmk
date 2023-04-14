@@ -221,6 +221,10 @@ MPMCOMMON = \
 POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
 MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
 
+# Custom CET extensions go here:
+
+MPM += mpsitr.c trans.c
+
 
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
@@ -300,6 +304,10 @@ TEST_TARGETS=\
 
 UNBUILDABLE_TARGETS=\
     replay # depends on the EPVM pool
+
+# Add tests for the custom CET build here:
+
+TEST_TARGETS += ztfm
 
 ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
@@ -566,6 +574,9 @@ $(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/ztfm: $(PFM)/$(VARIETY)/ztfm.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/mpseventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
