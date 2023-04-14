@@ -1094,6 +1094,8 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Bol at the last line of previous construct.
        (topmost-intro-cont    . c-lineup-topmost-intro-cont)
        ;;Anchor pos: Bol at the topmost annotation line
+       (constraint-cont  . +)
+       ;; Anchor pos: Boi of the starting requires/concept line
        (annotation-top-cont   .   0)
        ;;Anchor pos: Bol at the topmost annotation line
        (annotation-var-cont   .   +)
@@ -1326,6 +1328,9 @@ Here is the current list of valid syntactic element symbols:
  knr-argdecl		-- Subsequent lines in a K&R C argument declaration.
  topmost-intro		-- The first line in a topmost construct definition.
  topmost-intro-cont	-- Topmost definition continuation lines.
+ constraint-cont        -- Continuation line of a C++ requires clause (not
+                           to be confused with a \"requires expression\") or
+                           concept.
  annotation-top-cont    -- Topmost definition continuation line where only
  			   annotations are on previous lines.
  annotation-var-cont    -- A continuation of a C (or like) statement where
