@@ -79,6 +79,7 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
 
 ;;; Custom variables
 
