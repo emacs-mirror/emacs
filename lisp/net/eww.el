@@ -326,7 +326,7 @@ parameter, and should return the (possibly) transformed URL."
   "<mouse-2>" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
-  :parent shr-map
+  :parent shr-image-map
   "RET" #'eww-follow-link)
 
 (defun eww-suggested-uris nil

@@ -276,7 +276,7 @@ and other things:
 
 (defvar-keymap shr-map
   "a" #'shr-show-alt-text
-  "i" #'shr-browse-image
+  "M-i" #'shr-browse-image
   "z" #'shr-zoom-image
   "TAB" #'shr-next-link
   "C-M-i" #'shr-previous-link
