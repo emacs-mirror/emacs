@@ -74,7 +74,7 @@ AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
 BYTE_COMPILE_FLAGS = \
   --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
-	$(BYTE_COMPILE_EXTRA_FLAGS)
+  --eval "(setq org--built-in-p t)" $(BYTE_COMPILE_EXTRA_FLAGS)
 # ... but we must prefer .elc files for those in the early bootstrap.
 compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
@@ -542,13 +542,5 @@ $(lisp)/progmodes/cc-styles.elc: $(lisp)/progmodes/cc-vars.elc \
 # be compiled under the same version of CC Mode it will run with.
 $(lisp)/progmodes/js.elc: $(lisp)/progmodes/cc-defs.elc \
    $(lisp)/progmodes/cc-engine.elc $(lisp)/progmodes/cc-mode.elc
-
-# When org-version.el gets updated with a new version, all the Org
-# files need to be recompiled, or else the build will fail due to
-# version mismatch, prompting the naive users to bootstrap.  So we
-# make all the Org *.elc files dependent of org-version.el, to trigger
-# their recompilation automatically.
-$(lisp)/org/org.elc $(filter-out $(lisp)/org/org-version.elc,$(filter-out $(lisp)/org/org.elc,$(wildcard $(lisp)/org/*.elc))): \
-   $(lisp)/org/org-version.el
 
 # Makefile ends here.
