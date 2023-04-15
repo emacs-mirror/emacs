@@ -3216,7 +3216,7 @@ any window it creates as dedicated to its buffer (@pxref{Dedicated
 Windows}).  It does that by calling @code{set-window-dedicated-p} with
 the chosen window as first argument and the entry's value as second.
 Side windows are by default dedicated with the value @code{side}
-((@pxref{Side Window Options and Functions}).
+(@pxref{Side Window Options and Functions}).
 
 @vindex preserve-size@r{, a buffer display action alist entry}
 @item preserve-size
