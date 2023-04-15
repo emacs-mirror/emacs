@@ -299,16 +299,39 @@ specified by `erc-button-alist'."
 
 (defun erc-button--check-nicknames-entry ()
   ;; This helper exists because the module is defined after its options.
-  (when-let (((eq major-mode 'erc-mode))
-             (entry (alist-get 'nicknames erc-button-alist)))
-    (unless (eq 'erc-button-buttonize-nicks (nth 1 entry))
+  (when (eq major-mode 'erc-mode)
+    (unless (eq (nth 1 (alist-get 'nicknames erc-button-alist))
+                'erc-button-buttonize-nicks)
       (erc-button--display-error-notice-with-keys-and-warn
        "Values other than `erc-button-buttonize-nicks' in the third slot of "
        "the `nicknames' entry of `erc-button-alist' are deprecated."))))
 
-(defun erc-button--preserve-bounds (bounds _ server-user _)
-  "Return BOUNDS.\n\n(fn BOUNDS NICKNAME SERVER-USER CHANNEL-USER)"
-  (and server-user bounds))
+(cl-defstruct erc-button--nick
+  ( bounds nil :type cons
+    ;; Indicates the nick's position in the current message.  BEG is
+    ;; normally also point.
+    :documentation "A cons of (BEG . END).")
+  ( data nil :type (or null cons)
+    ;; When non-nil, the CAR must be a non-casemapped nickname.  For
+    ;; compatibility, the CDR should probably be nil, but this may
+    ;; have to change eventually.  If non-nil, the entire cons should
+    ;; be mutated rather than replaced because it's used as a key in
+    ;; hash tables and text-property searches.
+    :documentation "A unique cons whose car is a nickname.")
+  ( downcased nil :type (or null string)
+    :documentation "The case-mapped nickname sans text properties.")
+  ( user nil :type (or null erc-server-user)
+    ;; Not necessarily present in `erc-server-users'.
+    :documentation "A possibly nil or spoofed `erc-server-user'.")
+  ( cuser nil :type (or null erc-channel-user)
+    ;; The CDR of a value from an `erc-channel-users' table.
+    :documentation "A possibly nil `erc-channel-user'.")
+  ( erc-button-face erc-button-face :type symbol
+    :documentation "Temp `erc-button-face' while buttonizing.")
+  ( erc-button-nickname-face erc-button-nickname-face :type symbol
+    :documentation "Temp `erc-button-nickname-face' while buttonizing.")
+  ( erc-button-mouse-face erc-button-mouse-face :type symbol
+    :documentation "Temp `erc-button-mouse-face' while buttonizing."))
 
 ;; This variable is intended to serve as a "core" to be wrapped by
 ;; (built-in) modules during setup.  It's unclear whether
@@ -317,31 +340,29 @@ specified by `erc-button-alist'."
 ;; mostly concerned with ensuring one "piece" precedes or follows
 ;; another (specific piece), which may not yet (or ever) be present.
 
-(defvar erc-button--modify-nick-function #'erc-button--preserve-bounds
+(defvar erc-button--modify-nick-function #'identity
   "Function to possibly modify aspects of nick being buttonized.
-Called with four args: BOUNDS NICKNAME SERVER-USER CHANNEL-USER.
-BOUNDS is a cons of (BEG . END) marking the position of the nick
-in the current message, which occupies the whole of the narrowed
-buffer.  BEG is normally also point.  NICKNAME is a case-mapped
-string without text properties.  SERVER-USER and CHANNEL-USER are
-the nick's `erc-server-users' entry and its associated (though
-possibly nil) `erc-channel-user' object.  The function should
-return BOUNDS or a suitable replacement to indicate that
-buttonizing ought to proceed, and nil if it should be inhibited.")
+Called with one argument, an `erc-button--nick' object, or nil.
+The function should return the same (or similar) object when
+buttonizing ought to proceed and nil otherwise.  While running,
+all faces defined in `erc-button' are bound temporarily and can
+be updated at will.")
 
 (defvar-local erc-button--phantom-users nil)
 
 (defun erc-button--add-phantom-speaker (args)
   "Maybe substitute fake `server-user' for speaker at point."
-  (pcase args
-    (`(,bounds ,downcased-nick nil ,channel-user)
-     (list bounds downcased-nick
-           ;; Like `with-memoization' but don't cache when value is nil.
-           (or (gethash downcased-nick erc-button--phantom-users)
-               (and-let* ((user (erc-button--get-user-from-speaker-naive
-                                 (car bounds))))
-                 (puthash downcased-nick user erc-button--phantom-users)))
-           channel-user))
+  (pcase (car args)
+    ((and obj (cl-struct erc-button--nick bounds downcased (user 'nil)))
+     ;; Like `with-memoization' but don't cache when value is nil.
+     (when-let ((user (or (gethash downcased erc-button--phantom-users)
+                          (erc-button--get-user-from-speaker-naive
+                           (car bounds)))))
+       (cl-assert (null (erc-button--nick-data obj)))
+       (puthash downcased user erc-button--phantom-users)
+       (setf (erc-button--nick-data obj) (list (erc-server-user-nickname user))
+             (erc-button--nick-user obj) user))
+     (list obj))
     (_ args)))
 
 (define-minor-mode erc-button--phantom-users-mode
@@ -401,12 +422,24 @@ early (outer), args-filtering advice wrapping
                              (gethash down erc-channel-users)))
                  (user (or (and cuser (car cuser))
                            (and erc-server-users
-                                (gethash down erc-server-users)))))
+                                (gethash down erc-server-users))))
+                 (data (list word)))
             (when (or (not (functionp form))
-                      (setq bounds
-                            (funcall form bounds down user (cdr cuser))))
+                      (and-let* ((user)
+                                 (obj (funcall form (make-erc-button--nick
+                                                     :bounds bounds :data data
+                                                     :downcased down :user user
+                                                     :cuser (cdr cuser)))))
+                        (setq bounds (erc-button--nick-bounds obj)
+                              data (erc-button--nick-data obj)
+                              erc-button-mouse-face
+                              (erc-button--nick-erc-button-mouse-face obj)
+                              erc-button-nickname-face
+                              (erc-button--nick-erc-button-nickname-face obj)
+                              erc-button-face
+                              (erc-button--nick-erc-button-face obj))))
               (erc-button-add-button (car bounds) (cdr bounds)
-                                     fun t (list word)))))))))
+                                     fun t data))))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
