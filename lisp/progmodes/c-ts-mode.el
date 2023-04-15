@@ -1070,6 +1070,39 @@ recommended to enable `electric-pair-mode' with this mode."
 
     (treesit-major-mode-setup)))
 
+(easy-menu-define c-ts-mode-menu (list c-ts-mode-map c++-ts-mode-map)
+  "Menu for `c-ts-mode' and `c++-ts-mode'."
+  '("C/C++"
+    ["Comment Out Region" comment-region
+     :enable mark-active
+     :help "Comment out the region between the mark and point"]
+    ["Uncomment Region" (comment-region (region-beginning)
+                                        (region-end) '(4))
+     :enable mark-active
+     :help "Uncomment the region between the mark and point"]
+    ["Indent Top-level Expression" c-ts-mode-indent-defun
+     :help "Indent/reindent top-level function, class, etc."]
+    ["Indent Line or Region" indent-for-tab-command
+     :help "Indent current line or region, or insert a tab"]
+    ["Forward Expression" forward-sexp
+     :help "Move forward across one balanced expression"]
+    ["Backward Expression" backward-sexp
+     :help "Move back across one balanced expression"]
+    "--"
+    ("Style..."
+     ["Set Indentation Style..." c-ts-mode-set-style
+      :help "Set C/C++ indentation style for current buffer"]
+     ["Show Current Indentation Style" (message "Indentation Style: %s"
+                                                c-ts-mode-indent-style)
+      :help "Show the name of the C/C++ indentation style for current buffer"]
+     ["Set Comment Style" c-ts-mode-toggle-comment-style
+      :help "Toglle C/C++ comment style between block and line comments"])
+    "--"
+    ("Toggle..."
+     ["SubWord Mode" subword-mode
+      :style toggle :selected subword-mode
+      :help "Toggle sub-word movement and editing mode"])))
+
 ;; We could alternatively use parsers, but if this works well, I don't
 ;; see the need to change.  This is copied verbatim from cc-guess.el.
 (defconst c-ts-mode--c-or-c++-regexp

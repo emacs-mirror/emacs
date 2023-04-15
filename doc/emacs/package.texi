@@ -578,3 +578,80 @@ from the package directory (@pxref{Package Files}) to your checkout
 and initializes the code.  Note that you might have to use
 @code{package-vc-refresh} to repeat the initialization and update the
 autoloads.
+
+@subsection Specifying Package Sources
+@cindex package specification
+@cindex specification, for source packages
+
+  To install a package from source, Emacs must know where to get the
+package's source code (such as a code repository) and basic
+information about the structure of the code (such as the main file in
+a multi-file package).  A @dfn{package specification} describes these
+properties.
+
+  When supported by a package archive (@pxref{Package
+Archives,,,elisp, The Emacs Lisp Reference Manual}), Emacs can
+automatically download a package's specification from said archive.
+If the first argument passed to @code{package-vc-install} is a symbol
+naming a package, then Emacs will use the specification provided by
+the archive for that package.
+
+@example
+@group
+;; Emacs will download BBDB's specification from GNU ELPA:
+(package-vc-install 'bbdb)
+@end group
+@end example
+
+  The first argument to @code{package-vc-install} may also be a
+package specification.  This allows you to install source packages
+from locations other than the known archives listed in the user option
+@code{package-archives}.  A package specification is a list of the
+form @code{(@var{name} . @var{spec})}, in which @var{spec} should be a
+property list using any of the keys in the table below.
+
+For definitions of basic terms for working with code repositories and
+version control systems, see @ref{VCS Concepts,,,emacs, The GNU Emacs
+Manual}.
+
+@table @code
+@item :url
+A string providing the URL that specifies the repository from which to
+fetch the package's source code.
+
+@item :branch
+A string providing the revision of the code to install.  Do not
+confuse this with a package's version number.
+
+@item :lisp-dir
+A string providing the repository-relative name of the directory to
+use for loading the Lisp sources, which defaults to the root directory
+of the repository.
+
+@item :main-file
+A string providing the main file of the project, from which to gather
+package metadata.  If not given, the default is the package name with
+".el" appended to it.
+
+@item :doc
+A string providing the repository-relative name of the documentation
+file from which to build an Info file.  This can be a Texinfo file or
+an Org file.
+
+@item :vc-backend
+A symbol naming the VC backend to use for downloading a copy of the
+package's repository (@pxref{Version Control Systems,,,emacs, The GNU
+Emacs Manual}).  If omitted, Emacs will attempt to make a guess based
+on the provided URL, or, failing that, the process will fall back onto
+the value of @code{package-vc-default-backend}.
+@end table
+
+@example
+@group
+;; Specifying information manually:
+(package-vc-install
+  '(bbdb :url "https://git.savannah.nongnu.org/git/bbdb.git"
+         :lisp-dir "lisp"
+         :doc "doc/bbdb.texi"))
+@end group
+@end example
