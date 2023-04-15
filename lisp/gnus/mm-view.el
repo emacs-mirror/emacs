@@ -98,7 +98,7 @@ This is only used if `mm-inline-large-images' is set to
 		    (truncate (* mm-inline-large-images-proportion
 				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
-     " ")
+     "x")
     (insert "\n")
     (mm-handle-set-undisplayer
      handle

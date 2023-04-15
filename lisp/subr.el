@@ -1555,31 +1555,32 @@ EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may fail to include
 the `click' modifier."
-  (let ((type event))
-    (if (listp type)
-	(setq type (car type)))
-    (if (symbolp type)
-        ;; Don't read event-symbol-elements directly since we're not
-        ;; sure the symbol has already been parsed.
-	(cdr (internal-event-symbol-parse-modifiers type))
-      (let ((list nil)
-	    (char (logand type (lognot (logior ?\M-\0 ?\C-\0 ?\S-\0
-					       ?\H-\0 ?\s-\0 ?\A-\0)))))
-	(if (not (zerop (logand type ?\M-\0)))
-	    (push 'meta list))
-	(if (or (not (zerop (logand type ?\C-\0)))
-		(< char 32))
-	    (push 'control list))
-	(if (or (not (zerop (logand type ?\S-\0)))
-		(/= char (downcase char)))
-	    (push 'shift list))
-	(or (zerop (logand type ?\H-\0))
-	    (push 'hyper list))
-	(or (zerop (logand type ?\s-\0))
-	    (push 'super list))
-	(or (zerop (logand type ?\A-\0))
-	    (push 'alt list))
-	list))))
+  (unless (stringp event)
+    (let ((type event))
+      (if (listp type)
+	  (setq type (car type)))
+      (if (symbolp type)
+          ;; Don't read event-symbol-elements directly since we're not
+          ;; sure the symbol has already been parsed.
+	  (cdr (internal-event-symbol-parse-modifiers type))
+        (let ((list nil)
+	      (char (logand type (lognot (logior ?\M-\0 ?\C-\0 ?\S-\0
+					         ?\H-\0 ?\s-\0 ?\A-\0)))))
+	  (if (not (zerop (logand type ?\M-\0)))
+	      (push 'meta list))
+	  (if (or (not (zerop (logand type ?\C-\0)))
+		  (< char 32))
+	      (push 'control list))
+	  (if (or (not (zerop (logand type ?\S-\0)))
+		  (/= char (downcase char)))
+	      (push 'shift list))
+	  (or (zerop (logand type ?\H-\0))
+	      (push 'hyper list))
+	  (or (zerop (logand type ?\s-\0))
+	      (push 'super list))
+	  (or (zerop (logand type ?\A-\0))
+	      (push 'alt list))
+	  list)))))
 
 (defun event-basic-type (event)
   "Return the basic type of the given event (all modifiers removed).
@@ -1587,17 +1588,18 @@ The value is a printing character (not upper case) or a symbol.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
 in the current Emacs session, then this function may return nil."
-  (if (consp event)
-      (setq event (car event)))
-  (if (symbolp event)
-      (car (get event 'event-symbol-elements))
-    (let* ((base (logand event (1- ?\A-\0)))
-	   (uncontrolled (if (< base 32) (logior base 64) base)))
-      ;; There are some numbers that are invalid characters and
-      ;; cause `downcase' to get an error.
-      (condition-case ()
-	  (downcase uncontrolled)
-	(error uncontrolled)))))
+  (unless (stringp event)
+    (if (consp event)
+        (setq event (car event)))
+    (if (symbolp event)
+        (car (get event 'event-symbol-elements))
+      (let* ((base (logand event (1- ?\A-\0)))
+	     (uncontrolled (if (< base 32) (logior base 64) base)))
+        ;; There are some numbers that are invalid characters and
+        ;; cause `downcase' to get an error.
+        (condition-case ()
+	    (downcase uncontrolled)
+	  (error uncontrolled))))))
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."

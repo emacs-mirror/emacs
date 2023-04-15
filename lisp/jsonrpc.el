@@ -574,15 +574,14 @@ With optional CLEANUP, kill any associated buffers."
     (cl-return-from jsonrpc--process-filter))
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (let* ((inhibit-read-only t)
-             (jsonrpc--in-process-filter t)
+      (let* ((jsonrpc--in-process-filter t)
              (connection (process-get proc 'jsonrpc-connection))
              (expected-bytes (jsonrpc--expected-bytes connection)))
         ;; Insert the text, advancing the process marker.
         ;;
         (save-excursion
           (goto-char (process-mark proc))
-          (insert string)
+          (let ((inhibit-read-only t)) (insert string))
           (set-marker (process-mark proc) (point)))
         ;; Loop (more than one message might have arrived)
         ;;
@@ -631,7 +630,8 @@ With optional CLEANUP, kill any associated buffers."
                                     (jsonrpc-connection-receive connection
                                                                 json-message)))))
                           (goto-char message-end)
-                          (delete-region (point-min) (point))
+                          (let ((inhibit-read-only t))
+                            (delete-region (point-min) (point)))
                           (setq expected-bytes nil))))
                      (t
                       ;; Message is still incomplete
