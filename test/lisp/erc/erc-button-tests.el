@@ -23,6 +23,112 @@
 
 (require 'erc-button)
 
+(ert-deftest erc-button-alist--url ()
+  (setq erc-server-process
+        (start-process "sleep" (current-buffer) "sleep" "1"))
+  (set-process-query-on-exit-flag erc-server-process nil)
+  (with-current-buffer (erc--open-target "#chan")
+    (let ((verify
+           (lambda (p url)
+             (should (equal (get-text-property p 'erc-data) (list url)))
+             (should (equal (get-text-property p 'mouse-face) 'highlight))
+             (should (eq (get-text-property p 'font-lock-face) 'erc-button))
+             (should (eq (get-text-property p 'erc-callback)
+                         'browse-url-button-open-url)))))
+      (goto-char (point-min))
+
+      ;; Most common (unbracketed)
+      (erc-display-message nil nil (current-buffer)
+                           "Foo https://example.com bar.")
+      (search-forward "https")
+      (funcall verify (point) "https://example.com")
+
+      ;; The <URL: form> still works despite being removed in ERC 5.6.
+      (erc-display-message nil nil (current-buffer)
+                           "Foo <URL: https://gnu.org> bar.")
+      (search-forward "https")
+      (funcall verify (point) "https://gnu.org")
+
+      ;; Bracketed
+      (erc-display-message nil nil (current-buffer) "Foo <ftp://gnu.org> bar.")
+      (search-forward "ftp")
+      (funcall verify (point) "ftp://gnu.org"))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(defvar erc-button-tests--form nil)
+(defvar erc-button-tests--some-var nil)
+
+(defun erc-button-tests--form (&rest rest)
+  (push rest erc-button-tests--form)
+  (apply #'erc-button-add-button rest))
+
+(defun erc-button-tests--erc-button-alist--function-as-form (func)
+  (setq erc-server-process
+        (start-process "sleep" (current-buffer) "sleep" "1"))
+  (set-process-query-on-exit-flag erc-server-process nil)
+
+  (with-current-buffer (erc--open-target "#chan")
+    (let* ((erc-button-tests--form nil)
+           (entry (list (rx "+1") 0 func #'ignore 0))
+           (erc-button-alist (cons entry erc-button-alist)))
+
+      (erc-display-message nil 'notice (current-buffer) "Foo bar baz")
+      (erc-display-message nil nil (current-buffer) "+1")
+      (erc-display-message nil 'notice (current-buffer) "Spam")
+      (should (equal (pop erc-button-tests--form)
+                     '(53 55 ignore nil ("+1") "\\+1")))
+      (should-not erc-button-tests--form)
+      (goto-char (point-min))
+      (search-forward "+")
+      (should (equal (get-text-property (point) 'erc-data) '("+1")))
+      (should (equal (get-text-property (point) 'mouse-face) 'highlight))
+      (should (eq (get-text-property (point) 'font-lock-face) 'erc-button))
+      (should (eq (get-text-property (point) 'erc-callback) 'ignore)))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest erc-button-alist--function-as-form ()
+  (erc-button-tests--erc-button-alist--function-as-form
+   #'erc-button-tests--form)
+
+  (erc-button-tests--erc-button-alist--function-as-form
+   (symbol-function #'erc-button-tests--form))
+
+  (erc-button-tests--erc-button-alist--function-as-form
+   (lambda (&rest r) (push r erc-button-tests--form)
+     (apply #'erc-button-add-button r))))
+
+(defun erc-button-tests--erc-button-alist--nil-form (form)
+  (setq erc-server-process
+        (start-process "sleep" (current-buffer) "sleep" "1"))
+  (set-process-query-on-exit-flag erc-server-process nil)
+
+  (with-current-buffer (erc--open-target "#chan")
+    (let* ((erc-button-tests--form nil)
+           (entry (list (rx "+1") 0 form #'ignore 0))
+           (erc-button-alist (cons entry erc-button-alist)))
+
+      (erc-display-message nil 'notice (current-buffer) "Foo bar baz")
+      (erc-display-message nil nil (current-buffer) "+1")
+      (erc-display-message nil 'notice (current-buffer) "Spam")
+      (should-not erc-button-tests--form)
+      (goto-char (point-min))
+      (search-forward "+")
+      (should-not (get-text-property (point) 'erc-data))
+      (should-not (get-text-property (point) 'mouse-face))
+      (should-not (get-text-property (point) 'font-lock-face))
+      (should-not (get-text-property (point) 'erc-callback)))
+
+    (when noninteractive
+      (kill-buffer))))
+
+(ert-deftest erc-button-alist--nil-form ()
+  (erc-button-tests--erc-button-alist--nil-form nil)
+  (erc-button-tests--erc-button-alist--nil-form 'erc-button-tests--some-var))
+
 (defun erc-button-tests--insert-privmsg (speaker &rest msg-parts)
   (declare (indent 1))
   (let ((msg (erc-format-privmessage speaker

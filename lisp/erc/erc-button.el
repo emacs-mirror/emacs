@@ -128,7 +128,6 @@ longer than `erc-fill-column'."
   ;; things hard to maintain.
   '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
     (erc-button-url-regexp 0 t browse-url-button-open-url 0)
-    ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
     ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
@@ -166,17 +165,14 @@ REGEXP is the string matching text around the button or a symbol
 BUTTON is the number of the regexp grouping actually matching the
   button.  This is ignored if REGEXP is `nicknames'.
 
-FORM is a Lisp symbol for a special variable whose value must be
-  true for the button to be added.  Alternatively, when REGEXP is
-  not `nicknames', FORM can be a function whose arguments are BEG
-  and END, the bounds of the button in the current buffer.  It's
-  expected to return a cons of (possibly identical) bounds or
-  nil, to deny.  For the extent of the call, all face options
-  defined for the button module are re-bound, shadowing
-  themselves, so the function is free to change their values.
-  When regexp is the special symbol `nicknames', FORM must be the
-  symbol `erc-button-buttonize-nicks'.  Specifying anything else
-  is deprecated.
+FORM is either a boolean or a special variable whose value must
+  be non-nil for the button to be added.  When REGEXP is the
+  special symbol `nicknames', FORM must be the symbol
+  `erc-button-buttonize-nicks'.  Anything else is deprecated.
+  For all other entries, FORM can also be a function to call in
+  place of `erc-button-add-button' with the exact same arguments.
+  When FORM is also a special variable, ERC disregards the
+  variable and calls the function.
 
 CALLBACK is the function to call when the user push this button.
   CALLBACK can also be a symbol.  Its variable value will be used
@@ -288,15 +284,18 @@ specified by `erc-button-alist'."
                         entry)))))))))))
 
 (defun erc-button--maybe-warn-arbitrary-sexp (form)
-  (if (and (symbolp form) (special-variable-p form))
-      (symbol-value form)
-    (unless (get 'erc-button--maybe-warn-arbitrary-sexp 'warned-arbitrary-sexp)
-      (put 'erc-button--maybe-warn-arbitrary-sexp 'warned-arbitrary-sexp t)
-      (lwarn 'erc :warning
-             (concat "Arbitrary sexps for the third FORM"
-                     " slot of `erc-button-alist' entries"
-                     " have been deprecated.")))
-    (eval form t)))
+  (cl-assert (not (booleanp form))) ; covered by caller
+  ;; If a special-variable is also a function, favor the function.
+  (cond ((functionp form) form)
+        ((and (symbolp form) (special-variable-p form)) (symbol-value form))
+        (t (unless (get 'erc-button--maybe-warn-arbitrary-sexp
+                        'warned-arbitrary-sexp)
+             (put 'erc-button--maybe-warn-arbitrary-sexp
+                  'warned-arbitrary-sexp t)
+             (lwarn 'erc :warning (concat "Arbitrary sexps for the third FORM"
+                                          " slot of `erc-button-alist' entries"
+                                          " have been deprecated.")))
+           (eval form t))))
 
 (defun erc-button--check-nicknames-entry ()
   ;; This helper exists because the module is defined after its options.
@@ -412,22 +411,22 @@ early (outer), args-filtering advice wrapping
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
   (goto-char (point-min))
-  (while (re-search-forward regexp nil t)
-    (let ((start (match-beginning (nth 1 entry)))
-          (end (match-end (nth 1 entry)))
-          (form (nth 2 entry))
-          (fun (nth 3 entry))
-          (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
-      (when (or (eq t form)
-                (and (functionp form)
-                     (let* ((erc-button-face erc-button-face)
-                            (erc-button-mouse-face erc-button-mouse-face)
-                            (erc-button-nickname-face erc-button-nickname-face)
-                            (rv (funcall form start end)))
-                       (when rv
-                         (setq end (cdr rv) start (car rv)))))
-                (erc-button--maybe-warn-arbitrary-sexp form))
-        (erc-button-add-button start end fun nil data regexp)))))
+  (let (buttonizer)
+    (while
+        (and (re-search-forward regexp nil t)
+             (or buttonizer
+                 (setq buttonizer
+                       (and-let*
+                           ((raw-form (nth 2 entry))
+                            (res (or (eq t raw-form)
+                                     (erc-button--maybe-warn-arbitrary-sexp
+                                      raw-form))))
+                         (if (functionp res) res #'erc-button-add-button)))))
+      (let ((start (match-beginning (nth 1 entry)))
+            (end (match-end (nth 1 entry)))
+            (fun (nth 3 entry))
+            (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
+        (funcall buttonizer start end fun nil data regexp)))))
 
 (defun erc-button-remove-old-buttons ()
   "Remove all existing buttons.
@@ -682,15 +681,15 @@ and `apropos' for other symbols."
     (message "@%s is %d:%02d local time"
              beats hours minutes)))
 
-(defun erc-button--substitute-command-keys-in-region (beg end)
+(defun erc-button--display-error-with-buttons
+    (from to fun nick-p &optional data regexp)
   "Replace command in region with keys and return new bounds"
-  (let* ((o (buffer-substring beg end))
-         (s (substitute-command-keys o)))
-    (unless (equal o s)
-      (setq erc-button-face nil))
-    (delete-region beg end)
-    (insert s))
-  (cons beg (point)))
+  (let* ((o (buffer-substring from to))
+         (s (substitute-command-keys o))
+         (erc-button-face (and (equal o s) erc-button-face)))
+    (delete-region from to)
+    (insert s)
+    (erc-button-add-button from (point) fun nick-p data regexp)))
 
 ;;;###autoload
 (defun erc-button--display-error-notice-with-keys (&optional parsed buffer
@@ -727,7 +726,7 @@ non-strings, concatenate leading string members before applying
                 erc-insert-post-hook))
          (erc-button-alist
           `((,(rx "\\[" (group (+ (not "]"))) "]") 0
-             erc-button--substitute-command-keys-in-region
+             erc-button--display-error-with-buttons
              erc-button-describe-symbol 1)
             ,@erc-button-alist)))
     (erc-display-message parsed '(notice error) (or buffer 'active) string)
