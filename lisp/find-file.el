@@ -167,7 +167,7 @@ To override this, give an argument to `ff-find-other-file'."
   :type 'boolean)
 
 (defcustom ff-quiet-mode nil
-  "If non-nil, trace which directories are being searched."
+  "If non-nil, do not trace which directories are being searched."
   :type 'boolean)
 
 ;;;###autoload
@@ -351,7 +351,7 @@ Variables of interest include:
    If non-nil, always attempt to create the other file if it was not found.
 
  - `ff-quiet-mode'
-   If non-nil, traces which directories are being searched.
+   If non-nil, does not trace which directories are being searched.
 
  - `ff-special-constructs'
    A list of regular expressions specifying how to recognize special
