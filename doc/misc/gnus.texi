@@ -10542,7 +10542,7 @@ If @code{gnus-refer-thread-use-search} is @code{nil} (the default)
 then thread-referral only looks for articles in the current group. If
 this variable is @code{t} the server to which the current group
 belongs is searched (provided that searching is available for the
-server's backend). If this variable is a list of servers, each server
+server's backend).  If this variable is a list of servers, each server
 in the list is searched.
 
 @vindex gnus-refer-thread-limit
