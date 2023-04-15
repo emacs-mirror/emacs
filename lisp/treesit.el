@@ -248,7 +248,7 @@ type as it.  If no such parent exists, return nil.
 
 If PRED is non-nil, match each parent's type with PRED rather
 than using NODE's type.  PRED can also be a predicate function,
-and more.  See `treesit-thing-settings' for detail.
+and more.  See `treesit-thing-settings' for details.
 
 If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
   (let ((pred (or pred (rx-to-string
