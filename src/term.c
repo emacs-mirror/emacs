@@ -4164,7 +4164,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_exit_alt_charset_mode = tgetstr ("ae", address);
   tty->TS_exit_attribute_mode = tgetstr ("me", address);
 #ifdef TERMINFO
-  tty->TS_enter_strike_through_mode = tigetstr ("smxx", address);
+  tty->TS_enter_strike_through_mode = tigetstr ("smxx");
   if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) -1)
     tty->TS_enter_strike_through_mode = NULL;
 #else
