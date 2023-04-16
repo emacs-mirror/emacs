@@ -798,7 +798,7 @@ specifying the minimum acceptable version."
         (assq package package--builtins))))))
 
 (defun package--active-built-in-p (package)
-  "Return non-nil if PACKAGE if the built-in version is used.
+  "Return non-nil if the built-in version of PACKAGE is used.
 If the built-in version of PACKAGE is used and PACKAGE is
 also available for installation from an archive, it is an
 indication that PACKAGE was never upgraded to any newer
@@ -2200,7 +2200,7 @@ using `package-compute-transaction'."
 (defcustom package-install-upgrade-built-in nil
   "Non-nil means that built-in packages can be upgraded via a package archive.
 If disabled, then `package-install' will not suggest to replace a
-built-in package with a version from a package archive."
+built-in package with a (possibly newer) version from a package archive."
   :type 'boolean
   :version "29.1")
 
@@ -2220,9 +2220,9 @@ non-nil, install the package but do not add it to
 If PKG is a `package-desc' and it is already installed, don't try
 to install it but still mark it as selected.
 
-If the command is invoked with a prefix argument, the upgrading
-of built-in packages will be possible, as if
-`package-install-upgrade-built-in' had been enabled."
+If the command is invoked with a prefix argument, it will allow
+upgrading of built-in packages, as if `package-install-upgrade-built-in'
+had been enabled."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package

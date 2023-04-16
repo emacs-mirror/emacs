@@ -1878,8 +1878,16 @@ install.
 
 ---
 *** New user option 'package-install-upgrade-built-in'.
-When enabled, 'package-install' can be used to install
-newer versions of built-in packages.
+When enabled, 'package-install' will include in the list of
+upgradeable packages those built-in packages (like Eglot and
+use-package, for example) for which a newer version is available in
+package archives, and will allow to install those newer versions.  By
+default, this is disabled; however, if 'package-install' is invoked
+with a prefix argument, it will act as if this new option were
+enabled.
+
+If you customize this option, we recommend to place its non-default
+setting in your early-init file.
 
 ** Emacs Sessions (Desktop)
 
@@ -3249,12 +3257,20 @@ based on data provided by language servers using the Language Server
 Protocol (LSP).  See the new Info manual "(eglot) Top" for more.  Also
 see "etc/EGLOT-NEWS".
 
+If you want to be able to use 'package-install' to upgrade Eglot to
+newer versions released on GNU ELPA, customize the new option
+'package-install-upgrade-built-in' to a non-nil value.
+
 +++
 ** use-package: Declarative package configuration.
 use-package is now shipped with Emacs.  It provides the 'use-package'
 macro, which allows you to isolate package configuration in your init
 file in a way that is declarative, tidy, and performance-oriented.
 See the new Info manual "(use-package) Top" for more.
+
+If you want to be able to use 'package-install' to upgrade use-package
+to newer versions released on GNU ELPA, customize the new option
+'package-install-upgrade-built-in' to a non-nil value.
 
 ---
 ** New package 'wallpaper'.
