@@ -2459,10 +2459,10 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_999DC26DEC
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_61B174C9F4
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
-#if CHECK_STRUCTS && !defined (HASH_symbol_redirect_ADB4F5B113)
+#if CHECK_STRUCTS && !defined (HASH_symbol_redirect_EA72E4BFF5)
 # error "symbol_redirect changed. See CHECK_STRUCTS comment in config.h."
 #endif
 
