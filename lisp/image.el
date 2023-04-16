@@ -51,7 +51,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . jpeg)    ; used to be (image-jpeg-p . jpeg)
-    ("\\`RIFF....WEBPVP8" . webp)
+    ("\\`RIFF[^z-a][^z-a][^z-a][^z-a]WEBPVP8" . webp)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
 	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
@@ -172,21 +172,26 @@ or \"ffmpeg\") is installed."
 
 (define-error 'unknown-image-type "Unknown image type")
 
-(defvar-keymap image-map
-  :doc "Map put into text properties on images."
+(defvar-keymap image-slice-map
+  :doc "Map put into text properties on sliced images."
   "i" (define-keymap
         "-" #'image-decrease-size
         "+" #'image-increase-size
-        "r" #'image-rotate
         "o" #'image-save
         "c" #'image-crop
-        "x" #'image-cut
-        "h" #'image-flip-horizontally
-        "v" #'image-flip-vertically)
+        "x" #'image-cut)
   "C-<wheel-down>" #'image-mouse-decrease-size
   "C-<mouse-5>"    #'image-mouse-decrease-size
   "C-<wheel-up>"   #'image-mouse-increase-size
   "C-<mouse-4>"    #'image-mouse-increase-size)
+
+(defvar-keymap image-map
+  :doc "Map put into text properties on images."
+  :parent image-slice-map
+  "i" (define-keymap
+        "r" #'image-rotate
+        "h" #'image-flip-horizontally
+        "v" #'image-flip-vertically))
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -665,7 +670,9 @@ is non-nil, this is inhibited."
 				      image)
                                    rear-nonsticky t
 				   inhibit-isearch ,inhibit-isearch
-                                   keymap ,image-map))))
+                                   keymap ,(if slice
+                                               image-slice-map
+                                             image-map)))))
 
 
 ;;;###autoload
@@ -701,8 +708,8 @@ The image is automatically split into ROWS x COLS slices."
 	  (insert string)
 	  (add-text-properties start (point)
 			       `(display ,(list (list 'slice x y dx dy) image)
-					 rear-nonsticky (display)
-                                         keymap ,image-map))
+					 rear-nonsticky (display keymap)
+                                         keymap ,image-slice-map))
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))

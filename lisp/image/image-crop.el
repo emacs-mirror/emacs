@@ -35,6 +35,7 @@
 (declare-function image-property "image.el" (image property))
 (declare-function image-size "image.c" (spec &optional pixels frame))
 (declare-function imagep "image.c" (spec))
+(declare-function image--get-image "image.el" (&optional position))
 
 (defgroup image-crop ()
   "Image cropping."
@@ -113,18 +114,14 @@ and the cropped image data.")
 (defun image-cut (&optional color)
   "Cut a rectangle from the image under point, filling it with COLOR.
 COLOR defaults to the value of `image-cut-color'.
-Interactively, with prefix argument, prompt for COLOR to use."
-  (interactive (list (and current-prefix-arg (read-color "Use color: "))))
-  (image-crop (if (zerop (length color)) image-cut-color color)))
+Interactively, with prefix argument, prompt for COLOR to use.
 
-;;;###autoload
-(defun image-crop (&optional cut)
-  "Crop the image under point.
-If CUT is non-nil, remove a rectangle from the image instead of
-cropping the image.  In that case CUT should be the name of a
-color to fill the rectangle.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to cut.
 
-While cropping the image, the following key bindings are available:
+While moving/resizing the cutting area, the following key bindings
+are available:
 
 `q':   Exit without changing anything.
 `RET': Crop/cut the image.
@@ -132,15 +129,51 @@ While cropping the image, the following key bindings are available:
        rectangle shape.
 `s':   Same as `m', but make the rectangle into a square first.
 
-After cropping an image, you can save it by `M-x image-save' or
+After cutting the image, you can save it by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image."
+  (interactive (list (and current-prefix-arg
+                          (read-color "Color to use for filling: "))))
+  (image-crop (if (zerop (length color)) image-cut-color color)))
+
+;;;###autoload
+(defun image-crop (&optional cut)
+  "Crop the image under point.
+This command presents the image with a rectangular area superimposed
+on it, and allows moving and resizing the area to define which
+part of it to crop.
+
+While moving/resizing the cropping area, the following key bindings
+are available:
+
+`q':   Exit without changing anything.
+`RET': Crop/cut the image.
+`m':   Make mouse movements move the rectangle instead of altering the
+       rectangle shape.
+`s':   Same as `m', but make the rectangle into a square first.
+
+After cropping the image, you can save it by `M-x image-save' or
+\\<image-map>\\[image-save] when point is over the image.
+
+When called from Lisp, if CUT is non-nil, remove a rectangle from
+the image instead of cropping the image.  In that case, CUT should
+be the name of a color to fill the rectangle."
   (interactive)
   (unless (image-type-available-p 'svg)
-    (error "SVG support is needed to crop images"))
-  (unless (executable-find (car image-crop-crop-command))
-    (error "Couldn't find %s command to crop the image"
-           (car image-crop-crop-command)))
-  (let ((image (get-text-property (point) 'display)))
+    (error "SVG support is needed to crop and cut images"))
+  (let* ((crop-cmd (car image-crop-crop-command))
+         (found (executable-find crop-cmd)))
+    (unless found
+      (error "Couldn't find `%s' command to crop/cut the image" crop-cmd))
+    (if (and (memq system-type '(windows-nt ms-dos))
+             ;; MS-Windows has an incompatible convert.exe, used to
+             ;; convert filesystems...
+             (string-equal crop-cmd "convert")
+             (= 0 (string-search "Invalid drive specification."
+                                 (shell-command-to-string
+                                  (format "%s %s" crop-cmd null-device)))))
+        (error "The program `%s' is not an image conversion program"
+               found)))
+  (let ((image (image--get-image)))
     (unless (imagep image)
       (user-error "No image under point"))
     (when (overlays-at (point))

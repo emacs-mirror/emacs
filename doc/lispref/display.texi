@@ -6877,7 +6877,7 @@ This function puts image @var{image} in front of @var{pos} in the
 current buffer.  The argument @var{pos} should be an integer or a
 marker.  It specifies the buffer position where the image should appear.
 The argument @var{string} specifies the text that should hold the image
-as an alternative to the default.
+as an alternative to the default @samp{x}.
 
 The argument @var{image} must be an image descriptor, perhaps returned
 by @code{create-image} or stored by @code{defimage}.
@@ -6890,7 +6890,7 @@ buffer's text.
 
 Internally, this function creates an overlay, and gives it a
 @code{before-string} property containing text that has a @code{display}
-property whose value is the image.  (Whew!)
+property whose value is the image.  (Whew! that was a mouthful@dots{})
 @end defun
 
 @defun remove-images start end &optional buffer
@@ -6937,41 +6937,47 @@ This function returns @code{t} if point is on an image, and @code{nil}
 otherwise.
 @end defun
 
+@cindex operations on images
 Images inserted with the insertion functions above also get a local
 keymap installed in the text properties (or overlays) that span the
 displayed image.  This keymap defines the following commands:
 
 @table @kbd
+@findex image-increase-size
 @item i +
-Increase the image size (@code{image-increase-size}).  A prefix value
-of @samp{4} means to increase the size by 40%.  The default is 20%.
+Increase the image size (@code{image-increase-size})
 
+@findex image-decrease-size
 @item i -
-Decrease the image size (@code{image-increase-size}).  A prefix value
-of @samp{4} means to decrease the size by 40%.  The default is 20%.
+Decrease the image size (@code{image-decrease-size}).
 
+@findex image-rotate
 @item i r
-Rotate the image by 90 degrees clockwise (@code{image-rotate}).
-A prefix means to rotate by 90 degrees counter-clockwise instead.
+Rotate the image (@code{image-rotate}).
 
+@findex image-flip-horizontally
 @item i h
 Flip the image horizontally (@code{image-flip-horizontally}).
 
+@findex image-flip-vertically
 @item i v
 Flip the image vertically (@code{image-flip-vertically}).
 
+@findex image-save
 @item i o
 Save the image to a file (@code{image-save}).
 
+@findex image-crop
 @item i c
-Crop the image interactively (@code{image-crop}).
+Interactively crop the image (@code{image-crop}).
 
+@findex image-cut
 @item i x
-Cut a rectangle from the image interactively (@code{image-cut}).
+Interactively cut a rectangle from the image (@code{image-cut}).
 @end table
 
-The size and rotation commands are ``repeating'', which means that you
-can continue adjusting the image without using the @kbd{i} prefix.
+@xref{Image Mode,,, emacs, The GNU Emacs Manual}, for more details
+about these image-specific key bindings.
 
 @node Multi-Frame Images
 @subsection Multi-Frame Images

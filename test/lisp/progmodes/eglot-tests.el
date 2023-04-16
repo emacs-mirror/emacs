@@ -804,6 +804,7 @@ int main() {
 (ert-deftest eglot-test-json-basic ()
   "Test basic autocompletion in vscode-json-languageserver."
   (skip-unless (executable-find "vscode-json-languageserver"))
+  (skip-unless (fboundp 'yas-minor-mode))
   (eglot--with-fixture
       '(("project" .
          (("p.json" . "{\"foo.b")

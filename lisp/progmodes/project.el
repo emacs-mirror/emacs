@@ -1227,7 +1227,10 @@ To continue searching for the next match, use the
 command \\[fileloop-continue]."
   (interactive "sSearch (regexp): ")
   (fileloop-initialize-search
-   regexp (project-files (project-current t)) 'default)
+   regexp
+   ;; XXX: See the comment in project-query-replace-regexp.
+   (cl-delete-if-not #'file-regular-p (project-files (project-current t)))
+   'default)
   (fileloop-continue))
 
 ;;;###autoload

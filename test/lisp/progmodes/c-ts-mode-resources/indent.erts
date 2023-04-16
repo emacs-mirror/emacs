@@ -464,3 +464,17 @@ main (void)
   |
 }
 =-=-=
+
+Name: Empty Line (Block Start)
+
+=-=
+int
+main (void)
+{
+|
+=-=
+int
+main (void)
+{
+  |
+=-=-=

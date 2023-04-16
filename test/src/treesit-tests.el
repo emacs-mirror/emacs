@@ -916,8 +916,6 @@ and \"]\"."
                    collect
                    (cl-loop for pos in record
                             collect (alist-get pos marker-alist))))
-         (`(,regexp . ,pred) (treesit--thing-unpack-pattern
-                              treesit-defun-type-regexp))
          ;; Collect positions each function returns.
          (positions
           (treesit--ert-collect-positions
@@ -929,7 +927,7 @@ and \"]\"."
                        (if-let ((pos (funcall
                                       #'treesit--navigate-thing
                                       (point) (car conf) (cdr conf)
-                                      regexp pred tactic)))
+                                      treesit-defun-type-regexp tactic)))
                            (save-excursion
                              (goto-char pos)
                              (funcall treesit-defun-skipper)

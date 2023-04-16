@@ -4675,7 +4675,7 @@ has the same meaning as the @var{action} argument to
   Emacs implements receiving text and URLs individually for each
 window system, and does not by default support receiving other kinds
 of data as drops.  To support receiving other kinds of data, use the
-X-specific interface described below:
+X-specific interface described below.
 
 @vindex x-dnd-test-function
 @vindex x-dnd-known-types
@@ -4704,29 +4704,71 @@ depending on the specific drag-and-drop protocol being used.  For
 example, the data type used for plain text may be either
 @code{"STRING"} or @code{"text/plain"}.
 
+@cindex XDS
+@cindex direct save protocol
 @vindex x-dnd-direct-save-function
-@c FIXME: This description is overly-complicated and confusing.  In
-@c particular, the two calls to the function basically sound
-@c identical, so it is unclear how should the function distinguish
-@c between the first and the second one.  The description of who asks
-@c whom to do what is also very hard to understand.  Needs rewording,
-@c and needs shorter sentences.  Perhaps examples could help.
-  However, @code{x-dnd-types-alist} does not handle a special kind of
-drop sent by a program that wants Emacs to tell it where to save a
-file in a specific location determined by the user.  These drops are
-instead handled by a function that is the value of the variable
-@code{x-dnd-direct-save-function}.  This function should accept two arguments.
-If the first argument is non-@code{nil}, then the second argument is a
-file name to save (with leading directories) that the other
-program recommends, and the
-function should return the full file name under which it should be
-saved.  After the function completes, Emacs will ask the other program
-to save the file under the name that was returned, and if the file was
-successfully saved, call the function again with the first argument
-set to a non-@code{nil} value and the second argument set to the file
-name that was returned.  The function should then perform whatever
-action is appropriate (i.e., opening the file or refreshing a
-directory listing.)
+  When Emacs runs on X window system, it supports the X Direct Save
+(@acronym{XDS}) protocol, which allows users to save a file by
+dragging and dropping it onto an Emacs window, such as a Dired window.
+To comply with the unique requirements of @acronym{XDS}, these
+drag-and-drop requests are processed specially: instead of being
+handled according to @code{x-dnd-types-alist}, they are handled by the
+@dfn{direct-save function} that is the value of the variable
+@code{x-dnd-direct-save-function}.  The value should be a function of
+two arguments, @var{need-name} and @var{filename}.  The @acronym{XDS}
+protocol uses a two-step procedure for dragging files:
+
+@enumerate 1
+@item
+The application from which the file is dragged asks Emacs to provide
+the full file name under which to save the file.  For this purpose,
+the direct-save function is called with its first argument
+@var{need-name} non-@code{nil}, and the second argument @var{filename}
+set to the basename of the file to be saved.  It should return the
+fully-expanded absolute file name under which to save the file.  For
+example, if a file is dragged to a Dired window, the natural directory
+for the file is the directory of the file shown at location of the
+drop.  If saving the file is not possible for some reason, the
+function should return @code{nil}, which will cancel the drag-and-drop
+operation.
+
+@item
+The application from which the file is dragged saves the file under
+the name returned by the first call to the direct-save function.  If
+it succeeds in saving the file, the direct-save function is called
+again, this time with the first argument @var{need-name} set to
+@code{nil} and the second argument @var{filename} set to the full
+absolute name of the saved file.  The function is then expected to do
+whatever is needed given the fact that file was saved.  For example,
+Dired should update the directory on display by showing the new file
+there.
+@end enumerate
+
+The default value of @code{x-dnd-direct-save-function} is
+@code{x-dnd-save-direct}.
+
+@defun x-dnd-save-direct need-name filename
+When called with the @var{need-name} argument non-@code{nil}, this
+function prompts the user for the absolute file name under which it
+should be saved.  If the specified file already exists, it
+additionally asks the user whether to overwrite it, and returns the
+absolute file name only if the user confirms the overwriting.
+
+When called with the @var{need-name} argument @code{nil}, it reverts
+the Dired listing if the current buffer is in Dired mode or one of its
+descendants, and otherwise visits the file by calling @code{find-file}
+(@pxref{Visiting Functions}).
+@end defun
+
+@defun x-dnd-save-direct-immediately need-name filename
+This function works like @code{x-dnd-save-direct}, but when called
+with its @var{need-name} argument non-@code{nil}, it doesn't prompt
+the user for the full name of the file to be saved; instead, it
+returns its argument @var{filename} expanded against the current
+buffer's default directory (@pxref{File Name Expansion}).  (It still
+asks for confirmation if a file by that name already exists in the
+default directory.)
+@end defun
 
 @cindex initiating drag-and-drop
   On capable window systems, Emacs also supports dragging contents

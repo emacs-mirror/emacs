@@ -214,12 +214,14 @@ Must be greater than 1."
 	((file-readable-p "/usr/share/lib/dict/words")
 	 "/usr/share/lib/dict/words")
 	((file-readable-p "/sys/dict") "/sys/dict"))
-  "Alternate plain word-list dictionary for spelling help."
+  "Alternate plain word-list dictionary for spelling help.
+This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-complete-word-dict nil
   "Plain word-list dictionary used for word completion if
-different from `ispell-alternate-dictionary'."
+different from `ispell-alternate-dictionary'.
+This is also used by `ispell-lookup-words' and `ispell-complete-word'."
   :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-message-dictionary-alist nil
@@ -2510,7 +2512,9 @@ Otherwise the variable `ispell-grep-command' contains the command
 
 Optional second argument contains the dictionary to use; the default is
 `ispell-alternate-dictionary', overridden by `ispell-complete-word-dict'
-if defined."
+if defined.  If none of LOOKUP-DICT, `ispell-alternate-dictionary',
+and `ispell-complete-word-dict' name an existing word-list file,
+this function signals an error."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.
   (if (null lookup-dict)
@@ -3685,7 +3689,12 @@ If APPEND is non-nil, don't erase previous debugging output."
 If optional INTERIOR-FRAG is non-nil, then the word may be a character
 sequence inside of a word.
 
-Standard ispell choices are then available."
+Standard ispell choices are then available.
+
+This command uses a word-list file specified
+by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
+if none of those name an existing word-list file, this command
+signals an error."
   ;; FIXME: completion-at-point-function.
   (interactive "P")
   (let ((case-fold-search-val case-fold-search)

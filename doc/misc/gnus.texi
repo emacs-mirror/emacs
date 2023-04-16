@@ -10528,9 +10528,9 @@ article (@code{gnus-summary-refer-references}).
 @kindex A T @r{(Summary)}
 Display the full thread where the current article appears
 (@code{gnus-summary-refer-thread}).  By default this command looks for
-articles only in the current group.  Some backends (currently only
-@code{nnimap}) know how to find articles in the thread directly.  In
-other cases each header in the current group must be fetched and
+articles only in the current group.  If the group belongs to a backend
+that has an associated search engine, articles are found by searching.
+In other cases each header in the current group must be fetched and
 examined, so it usually takes a while.  If you do it often, you may
 consider setting @code{gnus-fetch-old-headers} to @code{invisible}
 (@pxref{Filling In Threads}).  This won't have any visible effects
@@ -10538,19 +10538,22 @@ normally, but it'll make this command work a whole lot faster.  Of
 course, it'll make group entry somewhat slow.
 
 @vindex gnus-refer-thread-use-search
-If @code{gnus-refer-thread-use-search} is non-@code{nil} then those backends
-that know how to find threads directly will search not just in the
-current group but all groups on the same server.
+If @code{gnus-refer-thread-use-search} is @code{nil} (the default)
+then thread-referral only looks for articles in the current group. If
+this variable is @code{t} the server to which the current group
+belongs is searched (provided that searching is available for the
+server's backend).  If this variable is a list of servers, each server
+in the list is searched.
 
 @vindex gnus-refer-thread-limit
 The @code{gnus-refer-thread-limit} variable says how many old (i.e.,
 articles before the first displayed in the current group) headers to
-fetch when doing this command.  The default is 200.  If @code{t}, all
-the available headers will be fetched.  This variable can be overridden
-by giving the @kbd{A T} command a numerical prefix.
+fetch when referring a thread.  The default is 500.  If @code{t}, all
+the available headers will be fetched.  This variable can be
+overridden by giving the @kbd{A T} command a numerical prefix.
 
 @vindex gnus-refer-thread-limit-to-thread
-In most cases @code{gnus-refer-thread} adds any articles it finds to
+@code{gnus-summary-refer-thread} tries to add any articles it finds to
 the current summary buffer.  (When @code{gnus-refer-thread-use-search}
 is true and the initial referral starts from a summary buffer for a
 non-virtual group this may not be possible.  In this case a new

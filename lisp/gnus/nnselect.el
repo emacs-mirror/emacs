@@ -86,14 +86,14 @@
     (let (selection)
       (pcase-dolist (`(,artgroup . ,arts)
                      (nnselect-categorize artlist #'nnselect-artitem-group))
-	(let (list)
+        (let (list)
           (pcase-dolist (`(,rsv . ,articles)
-			 (nnselect-categorize
+                         (nnselect-categorize
                           arts #'nnselect-artitem-rsv #'nnselect-artitem-number))
             (push (cons rsv (gnus-compress-sequence (sort articles #'<)))
                   list))
-          (push (cons artgroup list) selection)))
-      selection)))
+          (push (cons artgroup (sort list 'car-less-than-car)) selection)))
+      (sort selection (lambda (x y) (string< (car x) (car y)))))))
 
 (defun nnselect-uncompress-artlist (artlist)
   "Uncompress ARTLIST."
@@ -101,17 +101,20 @@
       artlist
     (let (selection)
       (pcase-dolist (`(,artgroup . ,list) artlist)
-	(pcase-dolist (`(,artrsv . ,artseq) list)
-	  (setq selection
-		(vconcat
-		 (cl-map 'vector
-			 (lambda (art)
-                           (vector artgroup art artrsv))
-			 (gnus-uncompress-sequence artseq)) selection))))
-      selection)))
+        (pcase-dolist (`(,artrsv . ,artseq) list)
+          (setq selection
+                (vconcat selection
+                         (cl-map 'vector
+                                 (lambda (art)
+                                   (vector artgroup art artrsv))
+                                 (gnus-uncompress-sequence artseq))))))
+      (sort selection
+            (lambda (x y)
+              (< (nnselect-artitem-rsv x) (nnselect-artitem-rsv y)))))))
 
 (make-obsolete 'nnselect-group-server 'gnus-group-server "28.1")
 (make-obsolete 'nnselect-run 'nnselect-generate-artlist "29.1")
+(make-obsolete 'nnselect-search-thread 'gnus-search-thread "29.1")
 
 ;; Data type article list.
 
@@ -268,18 +271,79 @@ If this variable is nil, or if the provided function returns nil,
   :version "28.1"
   :type '(repeat function))
 
-(defun nnselect-generate-artlist (group &optional specs)
-  "Generate the artlist for GROUP using SPECS.
-SPECS should be an alist including an `nnselect-function' and an
-`nnselect-args'.  The former applied to the latter should create
-the artlist.  If SPECS is nil retrieve the specs from the group
-parameters."
+(defmacro nnselect-get-artlist (group)
+  "Get the stored list of articles for GROUP.
+If the group parameter `nnselect-get-artlist-override-function'
+is non-nil call this function with argument GROUP to get the
+artlist; if the group parameter `nnselect-always-regenerate' is
+non-nil, return nil to regenerate the artlist; otherwise retrieve
+the stored artlist from the group parameters."
+  `(when (gnus-nnselect-group-p ,group)
+     (let ((override (gnus-group-get-parameter
+                      ,group
+                      'nnselect-get-artlist-override-function)))
+       (cond
+        (override (funcall override ,group))
+        ((gnus-group-get-parameter ,group 'nnselect-always-regenerate)
+         nil)
+        (t
+         (nnselect-uncompress-artlist
+          (gnus-group-get-parameter ,group 'nnselect-artlist t)))))))
+
+(defmacro nnselect-store-artlist  (group artlist)
+  "Store the ARTLIST for GROUP.
+If the group parameter `nnselect-store-artlist-override-function'
+is non-nil call this function on GROUP and ARTLIST; if the group
+parameter `nnselect-always-regenerate' is non-nil don't store the
+artlist; otherwise store the ARTLIST in the group parameters.
+The active range is also stored."
+  `(let ((override (gnus-group-get-parameter
+                    ,group
+                    'nnselect-store-artlist-override-function)))
+     (gnus-group-set-parameter ,group 'active
+                               (cons 1 (nnselect-artlist-length ,artlist)))
+     (cond
+      (override	 (funcall override ,group ,artlist))
+      ((gnus-group-get-parameter ,group 'nnselect-always-regenerate)
+       (gnus-group-remove-parameter ,group 'nnselect-artlist))
+      (t
+       (gnus-group-set-parameter ,group 'nnselect-artlist
+                                 (nnselect-compress-artlist ,artlist))))))
+
+(defun nnselect-generate-artlist (group &optional specs info)
+  "Generate and return the artlist for GROUP using SPECS.
+The artlist is sorted by rsv, lexically over groups, and by
+article number.  SPECS should be an alist including an
+`nnselect-function' and an `nnselect-args'.  The former applied
+to the latter should create the artlist.  If SPECS is nil
+retrieve the specs from the group parameters.  If INFO update the
+group info."
   (let* ((specs
           (or specs (gnus-group-get-parameter group 'nnselect-specs t)))
          (function (alist-get 'nnselect-function specs))
          (args (alist-get 'nnselect-args specs)))
     (condition-case-unless-debug err
-        (funcall function args)
+        (progn
+          (let ((gnus-newsgroup-selection
+                 (sort
+                  (funcall function args)
+                  (lambda (x y)
+                    (let ((xgroup (nnselect-artitem-group x))
+                          (ygroup (nnselect-artitem-group y))
+                          (xrsv (nnselect-artitem-rsv x))
+                          (yrsv (nnselect-artitem-rsv y)))
+                      (or (< xrsv yrsv)
+                          (and (eql xrsv yrsv)
+                               (or (string<  xgroup ygroup)
+                                   (and (string= xgroup ygroup)
+                                        (< (nnselect-artitem-number x)
+                                           (nnselect-artitem-number y)))))))))))
+            (when info
+              (if gnus-newsgroup-selection
+                  (nnselect-request-update-info group info)
+                (gnus-set-active group '(1 . 0))))
+            (nnselect-store-artlist group gnus-newsgroup-selection)
+            gnus-newsgroup-selection))
       ;; Don't swallow gnus-search errors; the user should be made
       ;; aware of them.
       (gnus-search-error
@@ -289,41 +353,6 @@ parameters."
         3
         "nnselect-generate-artlist: %s on %s gave error %s" function args err)
        []))))
-
-(defmacro nnselect-get-artlist (group)
-  "Get the list of articles for GROUP.
-If the group parameter `nnselect-get-artlist-override-function' is
-non-nil call this function with argument GROUP to get the
-artlist; if the group parameter `nnselect-always-regenerate' is
-non-nil, regenerate the artlist; otherwise retrieve the artlist
-directly from the group parameters."
-  `(when (gnus-nnselect-group-p ,group)
-     (let ((override (gnus-group-get-parameter
-		     ,group
-		     'nnselect-get-artlist-override-function)))
-       (cond
-        (override (funcall override ,group))
-        ((gnus-group-get-parameter ,group 'nnselect-always-regenerate)
-         (nnselect-generate-artlist ,group))
-        (t
-	 (nnselect-uncompress-artlist
-          (gnus-group-get-parameter ,group 'nnselect-artlist t)))))))
-
-(defmacro nnselect-store-artlist  (group artlist)
-  "Store the ARTLIST for GROUP.
-If the group parameter `nnselect-store-artlist-override-function'
-is non-nil call this function on GROUP and ARTLIST; if the group
-parameter `nnselect-always-regenerate' is non-nil don't store the
-artlist; otherwise store the ARTLIST in the group parameters."
-  `(let ((override (gnus-group-get-parameter
-		    ,group
-		    'nnselect-store-artlist-override-function)))
-     (cond
-      (override	 (funcall override ,group ,artlist))
-      ((gnus-group-get-parameter ,group 'nnselect-always-regenerate) t)
-      (t
-       (gnus-group-set-parameter ,group 'nnselect-artlist
-                                 (nnselect-compress-artlist ,artlist))))))
 
 ;; Gnus backend interface functions.
 
@@ -345,85 +374,82 @@ artlist; otherwise store the ARTLIST in the group parameters."
 
 (deffoo nnselect-request-group (group &optional _server _dont-check info)
   (let* ((group (nnselect-add-prefix group))
-	 (nnselect-artlist (nnselect-get-artlist group))
-	 length)
-    ;; Check for cached select result or run the selection and cache
-    ;; the result.
-    (unless nnselect-artlist
-      (nnselect-store-artlist group
-       (setq nnselect-artlist (nnselect-generate-artlist group)))
-      (nnselect-request-update-info
-       group (or info (gnus-get-info group))))
-    (if (zerop (setq length (nnselect-artlist-length nnselect-artlist)))
-	(progn
-	  (nnheader-report 'nnselect "Selection produced empty results.")
-	  (when (gnus-ephemeral-group-p group)
-	    (gnus-kill-ephemeral-group group)
-	    (setq gnus-ephemeral-servers
-		  (assq-delete-all 'nnselect gnus-ephemeral-servers)))
-	  (nnheader-insert ""))
+         (length (cdr (gnus-group-get-parameter group 'active t))))
+    (when (or (null length)
+              (gnus-group-get-parameter group 'nnselect-always-regenerate))
+      (setq length (nnselect-artlist-length
+                    (nnselect-generate-artlist group nil info))))
+    (if (and (zerop length) (gnus-ephemeral-group-p group))
+        (progn
+          (nnheader-report 'nnselect "Selection produced empty results.")
+          (gnus-kill-ephemeral-group group)
+          (setq gnus-ephemeral-servers
+                (assq-delete-all 'nnselect gnus-ephemeral-servers))
+          (nnheader-insert ""))
       (with-current-buffer nntp-server-buffer
-	(nnheader-insert "211 %d %d %d %s\n"
-                         length    ; total #
-                         1         ; first #
-                         length    ; last #
-                         group))) ; group name
-  nnselect-artlist))
-
+        (nnheader-insert "211 %d %d %d %s\n"
+                         length                  ; total #
+                         (if (zerop length) 0 1) ; first #
+                         length                  ; last #
+                         group)))))              ; group name
 
 (deffoo nnselect-retrieve-headers (articles group &optional _server fetch-old)
-  (let ((group (nnselect-add-prefix group)))
+  (let ((group (nnselect-add-prefix group))
+        (gnus-inhibit-demon t))
     (with-current-buffer (gnus-summary-buffer-name group)
-      (setq gnus-newsgroup-selection (or gnus-newsgroup-selection
-					 (nnselect-get-artlist group)))
-      (let ((gnus-inhibit-demon t)
-	    (gartids (ids-by-group articles))
-	    headers)
-	(with-current-buffer nntp-server-buffer
-	  (pcase-dolist (`(,artgroup . ,artids) gartids)
-	    (let ((artlist (sort (mapcar #'cdr artids) #'<))
-		  (gnus-override-method (gnus-find-method-for-group artgroup))
-		  (fetch-old
-		   (or
-		    (car-safe
-		     (gnus-group-find-parameter artgroup
-						'gnus-fetch-old-headers t))
-		    fetch-old)))
+      (setq gnus-newsgroup-selection
+            (or gnus-newsgroup-selection
+                (nnselect-get-artlist group)
+                ;; maybe don't need to update the info?
+                ;; (nnselect-generate-artlist group nil (gnus-get-info group))))
+                (nnselect-generate-artlist group)))
+      (let ((gartids (ids-by-group articles))
+            headers)
+        (with-current-buffer nntp-server-buffer
+          (pcase-dolist (`(,artgroup . ,artids) gartids)
+            (let ((artlist (sort (mapcar #'cdr artids) #'<))
+                  (gnus-override-method (gnus-find-method-for-group artgroup))
+                  (fetch-old
+                   (or
+                    (car-safe
+                     (gnus-group-find-parameter artgroup
+                                                'gnus-fetch-old-headers t))
+                    fetch-old)))
               (gnus-request-group artgroup)
-	      (erase-buffer)
-	      (pcase (setq gnus-headers-retrieved-by
-			   (or
-			    (and
-			     nnselect-retrieve-headers-override-function
-			     (funcall
-			      nnselect-retrieve-headers-override-function
-			      artlist artgroup))
-			    (gnus-retrieve-headers
-			     artlist artgroup fetch-old)))
-		('nov
-		 (goto-char (point-min))
-		 (while (not (eobp))
-		   (nnselect-add-novitem
-		    (nnheader-parse-nov))
-		   (forward-line 1)))
-		('headers
-		 (gnus-run-hooks 'gnus-parse-headers-hook)
-		 (let ((nnmail-extra-headers gnus-extra-headers))
-		   (goto-char (point-min))
-		   (while (not (eobp))
-		     (nnselect-add-novitem
-		      (nnheader-parse-head))
-		     (forward-line 1))))
-		((pred listp)
-		 (dolist (novitem gnus-headers-retrieved-by)
-		   (nnselect-add-novitem novitem)))
-		(_ (error "Unknown header type %s while requesting articles \
-                    of group %s" gnus-headers-retrieved-by artgroup)))))
-	  (setq headers
-		(sort
-		 headers
-		 (lambda (x y)
-		   (< (mail-header-number x) (mail-header-number y))))))))))
+              (erase-buffer)
+              (pcase (setq gnus-headers-retrieved-by
+                           (or
+                            (and
+                             nnselect-retrieve-headers-override-function
+                             (funcall
+                              nnselect-retrieve-headers-override-function
+                              artlist artgroup))
+                            (gnus-retrieve-headers
+                             artlist artgroup fetch-old)))
+                ('nov
+                 (goto-char (point-min))
+                 (while (not (eobp))
+                   (nnselect-add-novitem
+                    (nnheader-parse-nov))
+                   (forward-line 1)))
+                ('headers
+                 (gnus-run-hooks 'gnus-parse-headers-hook)
+                 (let ((nnmail-extra-headers gnus-extra-headers))
+                   (goto-char (point-min))
+                   (while (not (eobp))
+                     (nnselect-add-novitem
+                      (nnheader-parse-head))
+                     (forward-line 1))))
+                ((pred listp)
+                 (dolist (novitem gnus-headers-retrieved-by)
+                   (nnselect-add-novitem novitem)))
+                (_ (error "Unknown header type %s while requesting articles \
+                  of group %s" gnus-headers-retrieved-by artgroup)))))
+          (setq headers
+                (sort
+                 headers
+                 (lambda (x y)
+                   (< (mail-header-number x) (mail-header-number y))))))))))
 
 
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
@@ -567,9 +593,9 @@ artlist; otherwise store the ARTLIST in the group parameters."
 	 (artnumber (nnselect-article-number article))
 	 (gmark (gnus-request-update-mark artgroup artnumber mark)))
     (when (and artnumber
-	       (memq mark gnus-auto-expirable-marks)
-	       (= mark gmark)
-	       (gnus-group-auto-expirable-p artgroup))
+               (memq mark gnus-auto-expirable-marks)
+               (= mark gmark)
+               (gnus-group-auto-expirable-p artgroup))
       (setq gmark gnus-expirable-mark))
     gmark))
 
@@ -656,57 +682,48 @@ artlist; otherwise store the ARTLIST in the group parameters."
 
 (deffoo nnselect-request-thread (header &optional group server)
   (with-current-buffer gnus-summary-buffer
-    (let ((group (nnselect-add-prefix group))
-	  ;; find the best group for the originating article. if its a
-	  ;; pseudo-article look for real articles in the same thread
-	  ;; and see where they come from.
-	  (artgroup (nnselect-article-group
-		     (if (> (mail-header-number header) 0)
-			 (mail-header-number header)
-		       (if (> (gnus-summary-article-number) 0)
-			   (gnus-summary-article-number)
-			 (let ((thread
-				(gnus-id-to-thread (mail-header-id header))))
-			   (when thread
-                             (cl-some (lambda (x)
-                                        (when (and x (> x 0)) x))
-				      (gnus-articles-in-thread thread)))))))))
-      ;; Check if search-based thread referral is permitted, and
-      ;; available.
-      (if (and gnus-refer-thread-use-search
-	       (gnus-search-server-to-engine
-		(gnus-method-to-server
-		 (gnus-find-method-for-group artgroup))))
-	  ;; If so we perform the query, massage the result, and return
-	  ;; the new headers back to the caller to incorporate into the
-	  ;; current summary buffer.
-	  (let* ((gnus-search-use-parsed-queries t)
+    (let* ((group (nnselect-add-prefix group))
+           ;; Find the best group for the originating article.  If its
+           ;; a pseudo-article check for real articles in the same
+           ;; thread to see where they come from.
+           (artgroup
+            (nnselect-article-group
+             (cond
+              ((> (mail-header-number header) 0)
+               (mail-header-number header))
+              ((> (gnus-summary-article-number) 0)
+               (gnus-summary-article-number))
+              (t (cl-some
+                  (lambda (x) (when (and x (> x 0)) x))
+                  (gnus-articles-in-thread
+                   (gnus-id-to-thread (mail-header-id header))))))))
+           (server (or server (gnus-group-server artgroup))))
+      ;; Check if search-based thread referral is available.
+      (if (ignore-errors (gnus-search-server-to-engine server))
+          ;; We perform the query, massage the result, and return
+          ;; the new headers back to the caller to incorporate into
+          ;; the current summary buffer.
+          (let* ((gnus-search-use-parsed-queries t)
                  (group-spec
-		  (list (delq nil (list
-				   (or server (gnus-group-server artgroup))
-				   (unless gnus-refer-thread-use-search
-				     artgroup)))))
-		 (ids (cons (mail-header-id header)
-			    (split-string
-			     (or (mail-header-references header)
-				 ""))))
-		 (query-spec
-		  (list (cons 'query (mapconcat (lambda (i)
-						  (format "id:%s" i))
-						ids " or "))
-			(cons 'thread t)))
-		 (last (nnselect-artlist-length gnus-newsgroup-selection))
-		 (first (1+ last))
-		 (new-nnselect-artlist
-		  (gnus-search-run-query
-		   (list (cons 'search-query-spec query-spec)
-			 (cons 'search-group-spec group-spec))))
-		 old-arts seq
-		 headers)
-	    (mapc
+                  (if (not gnus-refer-thread-use-search)
+                      (list (list server artgroup))
+                    (if (listp gnus-refer-thread-use-search)
+                        gnus-refer-thread-use-search
+                      (list (list server)))))
+                 (ids (cons (mail-header-id header)
+                            (split-string
+                             (or (mail-header-references header)
+                                 ""))))
+                 (query-spec
+                  (list (cons 'query
+                              (mapconcat (lambda (i) (format "id:%s" i))
+                                         ids " or ")) (cons 'thread t)))
+                 (last (nnselect-artlist-length gnus-newsgroup-selection))
+                 (first (1+ last))
+                 old-arts seq headers)
+            (mapc
              (lambda (article)
-               (if
-                   (setq seq
+               (if (setq seq
                          (cl-position
                           article
                           gnus-newsgroup-selection
@@ -714,48 +731,61 @@ artlist; otherwise store the ARTLIST in the group parameters."
                           (lambda (x y)
                             (and (equal (nnselect-artitem-group x)
                                         (nnselect-artitem-group y))
-	                         (eql (nnselect-artitem-number x)
+                                 (eql (nnselect-artitem-number x)
                                       (nnselect-artitem-number y))))))
                    (push (1+ seq) old-arts)
                  (setq gnus-newsgroup-selection
                        (vconcat gnus-newsgroup-selection (vector article)))
                  (cl-incf last)))
-	     new-nnselect-artlist)
-	    (setq headers
-		  (gnus-fetch-headers
-		   (append (sort old-arts #'<)
-			   (number-sequence first last))
-		   nil t))
-	    (nnselect-store-artlist group gnus-newsgroup-selection)
-	    (when (>= last first)
-	      (let (new-marks)
-		(pcase-dolist (`(,artgroup . ,artids)
-			       (ids-by-group (number-sequence first last)))
-		  (pcase-dolist (`(,type . ,marked)
-				 (gnus-info-marks (gnus-get-info artgroup)))
-		    (setq marked (gnus-uncompress-sequence marked))
-		    (when (setq new-marks
-				(delq nil
-				      (mapcar
+             (gnus-search-run-query
+              (list (cons 'search-query-spec query-spec)
+                    (cons 'search-group-spec group-spec))))
+            (setq headers
+                  (gnus-fetch-headers
+                   (append (sort old-arts #'<) (number-sequence first last))
+                   nil t))
+            (nnselect-store-artlist group gnus-newsgroup-selection)
+            (when (>= last first)
+              (let (new-marks)
+                (pcase-dolist (`(,artgroup . ,artids)
+                               (ids-by-group (number-sequence first last)))
+                  (pcase-dolist (`(,type . ,marked)
+                                 (gnus-info-marks (gnus-get-info artgroup)))
+                    (when
+                        (setq new-marks
+                              (delq nil
+                                    (if (eq (gnus-article-mark-to-type type)
+                                            'tuple)
+                                        (mapcar
+                                         (lambda (art)
+                                           (let ((mtup
+                                                  (assq (cdr art) marked)))
+                                             (when mtup
+                                               (cons (car art) (cdr mtup)))))
+                                         artids)
+                                      (setq marked
+                                            (gnus-uncompress-sequence marked))
+                                      (mapcar
                                        (lambda (art)
                                          (when (memq (cdr art) marked)
                                            (car art)))
-				       artids)))
-		      (nconc
-		       (symbol-value
-			(intern
-			 (format "gnus-newsgroup-%s"
-				 (car (rassq type gnus-article-mark-lists)))))
-		       new-marks)))))
-	      (setq gnus-newsgroup-active
-		    (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))
-	      (gnus-set-active
-	       group
-	       (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
-	    headers)
-	;; If we can't or won't use search, just warp to the original
-	;; group and punt back to gnus-summary-refer-thread.
-	(and (gnus-warp-to-article) (gnus-summary-refer-thread))))))
+                                       artids))))
+                      (nconc
+                       (symbol-value
+                        (intern
+                         (format "gnus-newsgroup-%s"
+                                 (car
+                                  (rassq type gnus-article-mark-lists)))))
+                       new-marks)))))
+              (gnus-set-active
+               group
+               (setq
+                gnus-newsgroup-active
+                (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))))
+            headers)
+        ;; If we can't use search, just warp to the original group and
+        ;; punt back to gnus-summary-refer-thread.
+        (and (gnus-warp-to-article) (gnus-summary-refer-thread))))))
 
 
 (deffoo nnselect-close-group (group &optional _server)
@@ -774,23 +804,23 @@ artlist; otherwise store the ARTLIST in the group parameters."
   (message "Creating nnselect group %s" group)
   (let* ((group (gnus-group-prefixed-name  group '(nnselect "nnselect")))
          (specs (assq 'nnselect-specs args))
+         (artlist (alist-get 'nnselect-artlist args))
          (otherargs (assq-delete-all 'nnselect-specs args))
          (function-spec
           (or  (alist-get 'nnselect-function specs)
-	       (intern (completing-read "Function: " obarray #'functionp))))
+               (intern (completing-read "Function: " obarray #'functionp))))
          (args-spec
           (or  (alist-get 'nnselect-args specs)
                (read-from-minibuffer "Args: " nil nil t nil "nil")))
          (nnselect-specs (list (cons 'nnselect-function function-spec)
-			       (cons 'nnselect-args args-spec))))
+                               (cons 'nnselect-args args-spec))))
     (gnus-group-set-parameter group 'nnselect-specs nnselect-specs)
     (dolist (arg otherargs)
       (gnus-group-set-parameter group (car arg) (cdr arg)))
-    (nnselect-store-artlist
-     group
-     (or (alist-get 'nnselect-artlist args)
-	 (nnselect-generate-artlist group nnselect-specs)))
-    (nnselect-request-update-info group (gnus-get-info group)))
+    (if artlist
+        (nnselect-store-artlist group artlist)
+      (nnselect-generate-artlist group nnselect-specs
+                                 (gnus-get-info group))))
   t)
 
 
@@ -820,11 +850,12 @@ artlist; otherwise store the ARTLIST in the group parameters."
 
 
 (deffoo nnselect-request-group-scan (group &optional _server _info)
-  (let* ((group (nnselect-add-prefix group))
-	 (artlist (nnselect-generate-artlist group)))
-    (gnus-set-active group (cons 1 (nnselect-artlist-length
-				    artlist)))
-    (nnselect-store-artlist group artlist)))
+  (let ((group (nnselect-add-prefix group)))
+    (unless (gnus-group-find-parameter group 'nnselect-always-regenerate)
+      (let ((artlist (nnselect-generate-artlist group)))
+        (gnus-set-active group (cons 1 (nnselect-artlist-length
+                                        artlist))))))
+  t)
 
 ;; Add any undefined required backend functions
 

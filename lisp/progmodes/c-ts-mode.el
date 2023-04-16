@@ -79,6 +79,7 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
+(declare-function treesit-node-next-sibling "treesit.c")
 
 ;;; Custom variables
 
@@ -191,6 +192,10 @@ To set the default indent style globally, use
           (treesit--indent-rules-optimize
            (c-ts-mode--get-indent-style
             (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
+
+(defvar c-ts-mode-emacs-devel nil
+  "If the value is t, enable Emacs source-specific features.
+This needs to be set before enabling `c-ts-mode'.")
 
 ;;; Syntax table
 
@@ -802,7 +807,14 @@ Return nil if NODE is not a defun node or doesn't have a name."
      ((or "struct_specifier" "enum_specifier"
           "union_specifier" "class_specifier"
           "namespace_definition")
-      (treesit-node-child-by-field-name node "name")))
+      (treesit-node-child-by-field-name node "name"))
+     ;; DEFUNs in Emacs source.
+     ("expression_statement"
+      (let* ((call-exp-1 (treesit-node-child node 0))
+             (call-exp-2 (treesit-node-child call-exp-1 0))
+             (arg-list (treesit-node-child call-exp-2 1))
+             (name (treesit-node-child arg-list 1 t)))
+        name)))
    t))
 
 ;;; Defun navigation
@@ -810,28 +822,29 @@ Return nil if NODE is not a defun node or doesn't have a name."
 (defun c-ts-mode--defun-valid-p (node)
   "Return non-nil if NODE is a valid defun node.
 Ie, NODE is not nested."
-  (not (or (and (member (treesit-node-type node)
-                        '("struct_specifier"
-                          "enum_specifier"
-                          "union_specifier"
-                          "declaration"))
-                ;; If NODE's type is one of the above, make sure it is
-                ;; top-level.
-                (treesit-node-top-level
-                 node (rx (or "function_definition"
-                              "type_definition"
-                              "struct_specifier"
+  (or (c-ts-mode--emacs-defun-p node)
+      (not (or (and (member (treesit-node-type node)
+                            '("struct_specifier"
                               "enum_specifier"
                               "union_specifier"
-                              "declaration"))))
+                              "declaration"))
+                    ;; If NODE's type is one of the above, make sure it is
+                    ;; top-level.
+                    (treesit-node-top-level
+                     node (rx (or "function_definition"
+                                  "type_definition"
+                                  "struct_specifier"
+                                  "enum_specifier"
+                                  "union_specifier"
+                                  "declaration"))))
 
-           (and (equal (treesit-node-type node) "declaration")
-                ;; If NODE is a declaration, make sure it is not a
-                ;; function declaration.
-                (equal (treesit-node-type
-                        (treesit-node-child-by-field-name
-                         node "declarator"))
-                       "function_declarator")))))
+               (and (equal (treesit-node-type node) "declaration")
+                    ;; If NODE is a declaration, make sure it is not a
+                    ;; function declaration.
+                    (equal (treesit-node-type
+                            (treesit-node-child-by-field-name
+                             node "declarator"))
+                           "function_declarator"))))))
 
 (defun c-ts-mode--defun-for-class-in-imenu-p (node)
   "Check if NODE is a valid entry for the Class subindex.
@@ -859,16 +872,84 @@ the semicolon.  This function skips the semicolon."
     (goto-char (match-end 0)))
   (treesit-default-defun-skipper))
 
+(defun c-ts-base--before-indent (args)
+  (pcase-let ((`(,node ,parent ,bol) args))
+    (when (null node)
+      (let ((smallest-node (treesit-node-at (point))))
+        ;; "Virtual" closer curly added by the
+        ;; parser's error recovery.
+        (when (and (equal (treesit-node-type smallest-node) "}")
+                   (equal (treesit-node-end smallest-node)
+                          (treesit-node-start smallest-node)))
+          (setq parent (treesit-node-parent smallest-node)))))
+    (list node parent bol)))
+
+(defun c-ts-mode--emacs-defun-p (node)
+  "Return non-nil if NODE is a DEFUN in Emacs source files."
+  (and (equal (treesit-node-type node) "expression_statement")
+       (equal (treesit-node-text
+               (treesit-node-child-by-field-name
+                (treesit-node-child
+                 (treesit-node-child node 0) 0)
+                "function")
+               t)
+              "DEFUN")))
+
+(defun c-ts-mode--emacs-defun-at-point (&optional range)
+  "Return the current defun node.
+
+This function recognizes DEFUNs in Emacs source files.
+
+Note that for the case of a DEFUN, it is made of two separate
+nodes, one for the declaration and one for the body, this
+function returns the declaration node.
+
+If RANGE is non-nil, return (BEG . END) where BEG end END
+encloses the whole defun.  This solves the problem of only
+returning the declaration part for DEFUN."
+  (or (when-let ((node (treesit-defun-at-point)))
+        (if range
+            (cons (treesit-node-start node)
+                (treesit-node-end node))
+            node))
+      (and c-ts-mode-emacs-devel
+           (let ((candidate-1 ; For when point is in the DEFUN statement.
+                  (treesit-node-prev-sibling
+                   (treesit-node-top-level
+                    (treesit-node-at (point))
+                    "compound_statement")))
+                 (candidate-2 ; For when point is in the body.
+                  (treesit-node-top-level
+                   (treesit-node-at (point))
+                   "expression_statement")))
+             (when-let
+                 ((node (or (and (c-ts-mode--emacs-defun-p candidate-1)
+                                 candidate-1)
+                            (and (c-ts-mode--emacs-defun-p candidate-2)
+                                 candidate-2))))
+               (if range
+                   (cons (treesit-node-start node)
+                       (treesit-node-end
+                        (treesit-node-next-sibling node)))
+                   node))))))
+
 (defun c-ts-mode-indent-defun ()
   "Indent the current top-level declaration syntactically.
 
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
   (when-let ((orig-point (point-marker))
-             (node (treesit-defun-at-point)))
-    (indent-region (treesit-node-start node)
-                   (treesit-node-end node))
+             (range (c-ts-mode--emacs-defun-at-point t)))
+    (indent-region (car range) (cdr range))
     (goto-char orig-point)))
+
+(defun c-ts-mode--emacs-current-defun-name ()
+  "Return the name of the current defun.
+This is used for `add-log-current-defun-function'.  This
+recognizes DEFUN in Emacs sources, in addition to normal function
+definitions."
+  (or (treesit-add-log-current-defun)
+      (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
 
 ;;; Modes
 
@@ -932,6 +1013,11 @@ the semicolon.  This function skips the semicolon."
   ;; Nodes like struct/enum/union_specifier can appear in
   ;; function_definitions, so we need to find the top-level node.
   (setq-local treesit-defun-prefer-top-level t)
+
+  ;; When the code is in incomplete state, try to make a better guess
+  ;; about which node to indent against.
+  (add-function :filter-args (local 'treesit-indent-function)
+                #'c-ts-base--before-indent)
 
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
@@ -1008,7 +1094,11 @@ in your configuration."
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
     ;; Navigation.
     (setq-local treesit-defun-tactic 'top-level)
-    (treesit-major-mode-setup)))
+    (treesit-major-mode-setup)
+
+    (when c-ts-mode-emacs-devel
+      (setq-local add-log-current-defun-function
+                  #'c-ts-mode--emacs-current-defun-name))))
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
@@ -1050,8 +1140,43 @@ recommended to enable `electric-pair-mode' with this mode."
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
+    (treesit-major-mode-setup)
+    (when c-ts-mode-emacs-devel
+      (setq-local add-log-current-defun-function
+                  #'c-ts-mode--emacs-current-defun-name))))
 
-    (treesit-major-mode-setup)))
+(easy-menu-define c-ts-mode-menu (list c-ts-mode-map c++-ts-mode-map)
+  "Menu for `c-ts-mode' and `c++-ts-mode'."
+  '("C/C++"
+    ["Comment Out Region" comment-region
+     :enable mark-active
+     :help "Comment out the region between the mark and point"]
+    ["Uncomment Region" (comment-region (region-beginning)
+                                        (region-end) '(4))
+     :enable mark-active
+     :help "Uncomment the region between the mark and point"]
+    ["Indent Top-level Expression" c-ts-mode-indent-defun
+     :help "Indent/reindent top-level function, class, etc."]
+    ["Indent Line or Region" indent-for-tab-command
+     :help "Indent current line or region, or insert a tab"]
+    ["Forward Expression" forward-sexp
+     :help "Move forward across one balanced expression"]
+    ["Backward Expression" backward-sexp
+     :help "Move back across one balanced expression"]
+    "--"
+    ("Style..."
+     ["Set Indentation Style..." c-ts-mode-set-style
+      :help "Set C/C++ indentation style for current buffer"]
+     ["Show Current Indentation Style" (message "Indentation Style: %s"
+                                                c-ts-mode-indent-style)
+      :help "Show the name of the C/C++ indentation style for current buffer"]
+     ["Set Comment Style" c-ts-mode-toggle-comment-style
+      :help "Toglle C/C++ comment style between block and line comments"])
+    "--"
+    ("Toggle..."
+     ["SubWord Mode" subword-mode
+      :style toggle :selected subword-mode
+      :help "Toggle sub-word movement and editing mode"])))
 
 ;; We could alternatively use parsers, but if this works well, I don't
 ;; see the need to change.  This is copied verbatim from cc-guess.el.

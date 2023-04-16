@@ -321,7 +321,7 @@ them right the first time, so here are guidelines for formatting them:
 ** Committing your changes.
 
 When you commit changes, Git invokes several scripts that test the
-commit for validity, and may abort the commit of some of the tests
+commit for validity, and may abort the commit if some of the tests
 fail.  These scripts live in the '.git/hooks/' subdirectory of the
 top-level directory of the repository, and they perform the following
 tests:
