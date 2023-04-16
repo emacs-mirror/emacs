@@ -4163,7 +4163,15 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_enter_alt_charset_mode = tgetstr ("as", address);
   tty->TS_exit_alt_charset_mode = tgetstr ("ae", address);
   tty->TS_exit_attribute_mode = tgetstr ("me", address);
+#ifdef TERMINFO
+  tty->TS_enter_strike_through_mode = tigetstr ("smxx", address);
+  if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) -1)
+    tty->TS_enter_strike_through_mode = NULL;
+#else
+  /* FIXME: Is calling tgetstr here for non-terminfo case correct,
+     even though "smxx" is more than 2 characters?  */
   tty->TS_enter_strike_through_mode = tgetstr ("smxx", address);
+#endif
 
   MultiUp (tty) = tgetstr ("UP", address);
   MultiDown (tty) = tgetstr ("DO", address);
