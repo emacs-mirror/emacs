@@ -1966,6 +1966,20 @@ assq_no_quit (Lisp_Object key, Lisp_Object alist)
   return Qnil;
 }
 
+/* Assq but doesn't signal.  Unlike assq_no_quit, this function still
+   detect circular lists; like assq_no_quit, this function does not
+   allow quits and never signals.  If anything goes wrong, it returns
+   Qnil.  */
+Lisp_Object
+assq_no_signal (Lisp_Object key, Lisp_Object alist)
+{
+  Lisp_Object tail = alist;
+  FOR_EACH_TAIL_SAFE (tail)
+    if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
+      return XCAR (tail);
+  return Qnil;
+}
+
 DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
        doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
 The value is actually the first element of ALIST whose car equals KEY.
