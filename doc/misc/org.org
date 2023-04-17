@@ -5958,8 +5958,9 @@ the agenda (see [[*Weekly/daily agenda]]).  We distinguish:
   #+findex: org-block
 
   For more complex date specifications, Org mode supports using the
-  special expression diary entries implemented in the Emacs Calendar
-  package[fn:20].  For example, with optional time:
+  special expression diary entries implemented in the
+  [[info:emacs#Special Diary Entries][Emacs Calendar package]][fn:20].
+  For example, with optional time:
 
   #+begin_example
   ,* 22:00-23:00 The nerd meeting on every 2nd Thursday of the month
