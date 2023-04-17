@@ -2183,7 +2183,8 @@ checked for articles; if t all groups on the server containing
 the article's group will be searched; if a list then all servers
 in this list will be searched.  If possible the newly found
 articles are added to the summary buffer; otherwise the full
-thread is displayed in a new ephemeral nnselect buffer."
+thread along with the original articles are displayed in a new
+ephemeral nnselect buffer."
   (let* ((group (or group gnus-newsgroup-name))
          (server (or server (gnus-group-server group)))
          (query
@@ -2207,22 +2208,48 @@ thread is displayed in a new ephemeral nnselect buffer."
                          (cons 'search-group-spec
                                (list (list server group))))))
           #'<) nil t)
-      ;; Otherwise create an ephemeral search group. If we return to
-      ;; the current summary buffer after exiting the thread we would
-      ;; end up overwriting any changes we made, so we exit the
-      ;; current summary buffer first.
-      (gnus-summary-exit)
-      (gnus-group-read-ephemeral-search-group
-       nil
-       (list (cons 'search-query-spec query)
-             (cons 'search-group-spec
-                   (if (listp gnus-refer-thread-use-search)
-                       gnus-refer-thread-use-search
-                     (list (list server))))))
-      (if (gnus-id-to-article (mail-header-id header))
-          (gnus-summary-goto-subject
-           (gnus-id-to-article (mail-header-id header)))
-        (message "Thread search failed")))))
+      ;; Otherwise create an ephemeral search group: record the
+      ;; current summary contents; exit the current group (so that
+      ;; changes are saved); then create a new ephemeral group with
+      ;; the original articles plus those of the thread.
+      (let ((selection (seq-map (lambda (x) (vector group x 100))
+                                gnus-newsgroup-articles))
+            (thread  (gnus-search-run-query
+                      (list (cons 'search-query-spec query)
+                            (cons 'search-group-spec
+                                  (if (listp gnus-refer-thread-use-search)
+                                      gnus-refer-thread-use-search
+                                    (list (list server))))))))
+        (if (< (nnselect-artlist-length thread) 2)
+            (message "No other articles in thread")
+          (setq selection
+                (seq-into
+                 (seq-union selection thread
+                            (lambda (x y)
+                              (and (equal (nnselect-artitem-group x)
+                                          (nnselect-artitem-group y))
+                                   (eql (nnselect-artitem-number x)
+                                        (nnselect-artitem-number y)))))
+                 'vector))
+          (gnus-summary-exit)
+          (gnus-group-read-ephemeral-group
+           (concat "nnselect-" (message-unique-id))
+           (list 'nnselect "nnselect")
+           nil
+           (cons (current-buffer) gnus-current-window-configuration)
+           nil nil
+           (list
+            (cons 'nnselect-specs
+                  (list
+                   (cons 'nnselect-function 'identity)
+                   (cons 'nnselect-args
+                         selection)))
+            (cons 'nnselect-artlist nil))
+           (nnselect-artlist-length selection))
+          (if (gnus-id-to-article (mail-header-id header))
+              (gnus-summary-goto-subject
+               (gnus-id-to-article (mail-header-id header)))
+            (message "Thread search failed")))))))
 
 (defun gnus-search-get-active (srv)
   (let ((method (gnus-server-to-method srv))
