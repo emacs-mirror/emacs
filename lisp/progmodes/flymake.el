@@ -446,6 +446,27 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   "Face used for showing summarized descriptions of notes."
   :package-version '(Flymake . "1.3.4"))
 
+(defface flymake-end-of-line-diagnostics-face
+  '((t :height 0.7 :box (:line-width 1)))
+  "Face used for end-of-line diagnostics.
+See variable `flymake-show-diagnostics-at-end-of-line'."
+  :package-version '("Flymake" . "1.3.5"))
+
+(defface flymake-error-echo-at-eol
+  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-error)))
+  "Face like `flymake-error-echo', but for end-of-line overlays."
+  :package-version '("Flymake" . "1.3.5"))
+
+(defface flymake-warning-echo-at-eol
+  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-warning)))
+  "Face like `flymake-warning-echo', but for end-of-line overlays."
+  :package-version '("Flymake" . "1.3.5"))
+
+(defface flymake-note-echo-at-eol
+  '((t :inherit (flymake-end-of-line-diagnostics-face flymake-note)))
+  "Face like `flymake-note-echo', but for end-of-line overlays."
+  :package-version '("Flymake" . "1.3.5"))
+
 (defcustom flymake-show-diagnostics-at-end-of-line nil
   "If non-nil, add diagnostic summary messages at end-of-line."
   :type 'boolean
@@ -606,7 +627,7 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-error 'severity (warning-numeric-level :error))
 (put 'flymake-error 'mode-line-face 'flymake-error-echo)
 (put 'flymake-error 'echo-face 'flymake-error-echo)
-(put 'flymake-error 'eol-face 'flymake-error-echo)
+(put 'flymake-error 'eol-face 'flymake-error-echo-at-eol)
 (put 'flymake-error 'flymake-type-name "error")
 
 (put 'flymake-warning 'face 'flymake-warning)
@@ -614,7 +635,7 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
 (put 'flymake-warning 'mode-line-face 'flymake-warning-echo)
 (put 'flymake-warning 'echo-face 'flymake-warning-echo)
-(put 'flymake-warning 'eol-face 'flymake-warning-echo)
+(put 'flymake-warning 'eol-face 'flymake-warning-echo-at-eol)
 (put 'flymake-warning 'flymake-type-name "warning")
 
 (put 'flymake-note 'face 'flymake-note)
@@ -622,7 +643,7 @@ Node `(Flymake)Flymake error types'"
 (put 'flymake-note 'severity (warning-numeric-level :debug))
 (put 'flymake-note 'mode-line-face 'flymake-note-echo)
 (put 'flymake-note 'echo-face 'flymake-note-echo)
-(put 'flymake-note 'eol-face 'flymake-note-echo)
+(put 'flymake-note 'eol-face 'flymake-note-echo-at-eol)
 (put 'flymake-note 'flymake-type-name "note")
 
 (defun flymake--lookup-type-property (type prop &optional default)
@@ -768,7 +789,7 @@ Return nil or the overlay created."
                (end (min (1+ start) (point-max)))
                (eolov (car
                        (cl-remove-if-not
-                        (lambda (o) (overlay-get o 'flymake-source-ovs))
+                        (lambda (o) (overlay-get o 'flymake-eol-source-region))
                         (overlays-at start))))
                (bs (flymake-diagnostic-oneliner diagnostic t)))
           (setq bs (propertize bs 'face eol-face))
@@ -779,15 +800,17 @@ Return nil or the overlay created."
           (cond (eolov
                  (overlay-put eolov 'before-string
                               (concat (overlay-get eolov 'before-string) " " bs))
-                 (overlay-put eolov 'flymake-source-ovs
-                              (cons ov (overlay-get eolov 'flymake-source-ovs))))
+                 (let ((e (overlay-get eolov 'flymake-eol-source-region)))
+                   (setcar e (min (car e) (overlay-start ov)))
+                   (setcdr e (max (cdr e) (overlay-end ov)))))
                 (t
                  (setq eolov (make-overlay start end nil t nil))
                  (setq bs (concat "   " bs))
                  (put-text-property 0 1 'cursor t bs)
                  (overlay-put eolov 'before-string bs)
                  (overlay-put eolov 'evaporate (not (= start end)))
-                 (overlay-put eolov 'flymake-source-ovs (list ov))
+                 (overlay-put eolov 'flymake-eol-source-region
+                              (cons (overlay-start ov) (overlay-end ov)))
                  (overlay-put ov 'eol-ov eolov))))))
     ;; Now ensure some essential defaults are set
     ;;
@@ -1308,12 +1331,27 @@ Do it only if `flymake-no-changes-timeout' is non-nil."
 (make-obsolete 'flymake-mode-on 'flymake-mode "26.1")
 (make-obsolete 'flymake-mode-off 'flymake-mode "26.1")
 
-(defun flymake-after-change-function (start stop _len)
+(defun flymake-after-change-function (start stop pre-change-len)
   "Start syntax check for current buffer if it isn't already running.
 START and STOP and LEN are as in `after-change-functions'."
   (let((new-text (buffer-substring start stop)))
     (push (list start stop new-text) flymake--recent-changes)
-    (flymake--schedule-timer-maybe)))
+    (flymake--schedule-timer-maybe))
+  ;; Some special handling to prevent eol overlays from temporarily
+  ;; moving to wrong line
+  (when (and flymake-show-diagnostics-at-end-of-line
+             (zerop pre-change-len))
+    (save-excursion
+      (goto-char start)
+      (when-let* ((probe (search-forward "\n" stop t))
+                  (eolovs (cl-remove-if-not
+                           (lambda (o)
+                             (let ((reg (overlay-get o 'flymake-eol-source-region)))
+                               (and reg (< (car reg) (1- probe)))))
+                           (overlays-at (line-end-position)))))
+        (goto-char start)
+        (let ((newend (line-end-position)))
+          (dolist (ov eolovs) (move-overlay ov newend (1+ newend))))))))
 
 (defun flymake-after-save-hook ()
   (when flymake-start-on-save-buffer
