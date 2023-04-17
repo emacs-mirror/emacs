@@ -572,6 +572,47 @@ If this is set to nil, never try to reconnect."
 
 ;;;; Helper functions
 
+(defvar erc--reject-unbreakable-lines nil
+  "Signal an error when a line exceeds `erc-split-line-length'.
+Sending such lines and hoping for the best is no longer supported
+in ERC 5.6.  This internal var exists as a possibly temporary
+escape hatch for inhibiting their transmission.")
+
+(defun erc--split-line (longline)
+  (let* ((coding (erc-coding-system-for-target nil))
+         (original-window-buf (window-buffer (selected-window)))
+         out)
+    (when (consp coding)
+      (setq coding (car coding)))
+    (setq coding (coding-system-change-eol-conversion coding 'unix))
+    (unwind-protect
+        (with-temp-buffer
+          (set-window-buffer (selected-window) (current-buffer))
+          (insert longline)
+          (goto-char (point-min))
+          (while (not (eobp))
+            (let ((upper (filepos-to-bufferpos erc-split-line-length
+                                               'exact coding)))
+              (goto-char (or upper (point-max)))
+              (unless (eobp)
+                (skip-chars-backward "^ \t"))
+              (when (bobp)
+                (when erc--reject-unbreakable-lines
+                  (user-error
+                   (substitute-command-keys
+                    (concat "Unbreakable line encountered "
+                            "(Recover input with \\[erc-previous-command])"))))
+                (goto-char upper))
+              (when-let ((cmp (find-composition (point) (1+ (point)))))
+                (if (= (car cmp) (point-min))
+                    (goto-char (nth 1 cmp))
+                  (goto-char (car cmp)))))
+            (cl-assert (/= (point-min) (point)))
+            (push (buffer-substring-no-properties (point-min) (point)) out)
+            (delete-region (point-min) (point)))
+          (or (nreverse out) (list "")))
+      (set-window-buffer (selected-window) original-window-buf))))
+
 ;; From Circe
 (defun erc-split-line (longline)
   "Return a list of lines which are not too long for IRC.

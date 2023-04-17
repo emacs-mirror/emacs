@@ -909,6 +909,9 @@ Flooding is sending too much information to the server in too
 short of an interval, which may cause the server to terminate the
 connection.
 
+Note that older code conflated rate limiting and line splitting.
+Starting in ERC 5.6, this option no longer influences the latter.
+
 See `erc-server-flood-margin' for other flood-related parameters.")
 
 ;; Script parameters
@@ -1103,7 +1106,8 @@ The struct has three slots:
 ;; remove this hook and the struct completely.  IOW, if you need this,
 ;; please say so.
 
-(defvar erc--pre-send-split-functions '(erc--discard-trailing-multiline-nulls)
+(defvar erc--pre-send-split-functions '(erc--discard-trailing-multiline-nulls
+                                        erc--split-lines)
   "Special hook for modifying individual lines in multiline prompt input.
 The functions are called with one argument, an `erc--input-split'
 struct, which they can optionally modify.
@@ -6211,6 +6215,14 @@ an `erc--input-split' object."
         (setq reversed (cdr reversed)))
       (setf (erc--input-split-lines state) (nreverse reversed)))))
 
+(defun erc--split-lines (state)
+  "Partition non-command input into lines of protocol-compliant length."
+  ;; Prior to ERC 5.6, line splitting used to be predicated on
+  ;; `erc-flood-protect' being non-nil.
+  (unless (erc--input-split-cmdp state)
+    (setf (erc--input-split-lines state)
+          (mapcan #'erc--split-line (erc--input-split-lines state)))))
+
 (defun erc-send-input (input &optional skip-ws-chk)
   "Treat INPUT as typed in by the user.
 It is assumed that the input and the prompt is already deleted.
@@ -6241,23 +6253,22 @@ Return non-nil only if we actually send anything."
 				  :insertp erc-insert-this
 				  :sendp erc-send-this))
       (run-hook-with-args 'erc-pre-send-functions state)
-      (setq state (make-erc--input-split
-                   :string (erc-input-string state)
-                   :insertp (erc-input-insertp state)
-                   :sendp (erc-input-sendp state)
-                   :lines (split-string (erc-input-string state)
-                                        erc--input-line-delim-regexp)
-                   :cmdp (string-match erc-command-regexp
-                                       (erc-input-string state))))
-      (run-hook-with-args 'erc--pre-send-split-functions state)
       (when (and (erc-input-sendp state)
                  erc-send-this)
-        (let ((lines (erc--input-split-lines state)))
-          (if (and (erc--input-split-cmdp state) (not (cdr lines)))
-              (erc-process-input-line (concat (car lines) "\n") t nil)
+        (if-let* ((first (split-string (erc-input-string state)
+                                       erc--input-line-delim-regexp))
+                  (split (mapcan #'erc--split-line first))
+                  (lines (nreverse (seq-drop-while #'string-empty-p
+                                                   (nreverse split))))
+                  ((string-match erc-command-regexp (car lines))))
+            (progn
+              ;; Asking users what to do here might make more sense.
+              (cl-assert (not (cdr lines)))
+              ;; The `force' arg (here t) is ignored for command lines.
+              (erc-process-input-line (concat (car lines) "\n") t nil))
+          (progn ; temporarily preserve indentation
             (dolist (line lines)
-              (dolist (line (or (and erc-flood-protect (erc-split-line line))
-                                (list line)))
+              (progn ; temporarily preserve indentation
                 (when (erc-input-insertp state)
                   (erc-display-msg line))
                 (erc-process-input-line (concat line "\n")

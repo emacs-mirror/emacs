@@ -456,7 +456,7 @@ including line delimiters."
         (setq string (unless (= (match-end 0) (length string))
                        (substring string (match-end 0))))
         (erc-d--log process line nil)
-        (ring-insert queue (erc-d-i--parse-message line 'decode))))
+        (ring-insert queue (erc-d-i--parse-message line nil))))
     (when string
       (setf (process-get process :stashed-input) string))))
 
