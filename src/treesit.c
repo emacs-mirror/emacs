@@ -3153,17 +3153,6 @@ treesit_traverse_child_helper (TSTreeCursor *cursor,
     }
 }
 
-/* Assq but doesn't signal.  */
-static Lisp_Object
-safe_assq (Lisp_Object key, Lisp_Object alist)
-{
-  Lisp_Object tail = alist;
-  FOR_EACH_TAIL_SAFE (tail)
-    if (CONSP (XCAR (tail)) && EQ (XCAR (XCAR (tail)), key))
-      return XCAR (tail);
-  return Qnil;
-}
-
 /* Given a symbol THING, and a language symbol LANGUAGE, find the
    corresponding predicate definition in treesit-things-settings.
    Don't check for the type of THING and LANGUAGE.
@@ -3172,11 +3161,11 @@ safe_assq (Lisp_Object key, Lisp_Object alist)
 static Lisp_Object
 treesit_traverse_get_predicate (Lisp_Object thing, Lisp_Object language)
 {
-  Lisp_Object cons = safe_assq (language, Vtreesit_thing_settings);
+  Lisp_Object cons = assq_no_quit (language, Vtreesit_thing_settings);
   if (NILP (cons))
     return Qnil;
   Lisp_Object definitions = XCDR (cons);
-  Lisp_Object entry = safe_assq (thing, definitions);
+  Lisp_Object entry = assq_no_quit (thing, definitions);
   if (NILP (entry))
     return Qnil;
   /* ENTRY looks like (THING PRED).  */
