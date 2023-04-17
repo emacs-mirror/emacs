@@ -1881,12 +1881,12 @@ install.
 When enabled, 'package-install' will include in the list of
 upgradeable packages those built-in packages (like Eglot and
 use-package, for example) for which a newer version is available in
-package archives, and will allow to install those newer versions.  By
+package archives, and will allow installing those newer versions.  By
 default, this is disabled; however, if 'package-install' is invoked
 with a prefix argument, it will act as if this new option were
 enabled.
 
-If you customize this option, we recommend to place its non-default
+If you customize this option, we recommend you place its non-default
 setting in your early-init file.
 
 ** Emacs Sessions (Desktop)
