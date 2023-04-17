@@ -3207,7 +3207,7 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
 	{
 	  *signal_data = list2 (build_string ("Cannot find the definition "
 					      "of the predicate in "
-					      "`treesit-things-settings'"),
+					      "`treesit-thing-settings'"),
 				pred);
 	  return false;
 	}
@@ -3705,7 +3705,7 @@ DEFUN ("treesit-node-match-p",
        doc: /* Check whether NODE matches PREDICATE.
 
 PREDICATE can be a regexp matching node type, a predicate function,
-and more, see `treesit-things-definition' for detail.  Return non-nil
+and more, see `treesit-thing-settings' for detail.  Return non-nil
 if NODE matches PRED, nil otherwise.  */)
   (Lisp_Object node, Lisp_Object predicate)
 {
