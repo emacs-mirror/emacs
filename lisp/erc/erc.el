@@ -6082,6 +6082,9 @@ submitted line to be intentional."
 
 (defvar erc--input-line-delim-regexp (rx (| (: (? ?\r) ?\n) ?\r)))
 
+(defvar erc-command-regexp "^/\\([A-Za-z']+\\)\\(\\s-+.*\\|\\s-*\\)$"
+  "Regular expression used for matching commands in ERC.")
+
 (defun erc--blank-in-multiline-input-p (lines)
   "Detect whether LINES contains a blank line.
 When `erc-send-whitespace-lines' is in effect, return nil if
@@ -6131,11 +6134,19 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
               (erc-command-no-process-p string))
     "ERC: No process running"))
 
+(defun erc--check-prompt-input-for-multiline-command (line lines)
+  "Return non-nil when non-blank lines follow a command line."
+  (when (and (cdr lines)
+             (string-match erc-command-regexp line)
+             (seq-drop-while #'string-empty-p (reverse (cdr lines))))
+    "Excess input after command line"))
+
 (defvar erc--check-prompt-input-functions
   '(erc--check-prompt-input-for-point-in-bounds
     erc--check-prompt-input-for-multiline-blanks
     erc--check-prompt-input-for-running-process
-    erc--check-prompt-input-for-excess-lines)
+    erc--check-prompt-input-for-excess-lines
+    erc--check-prompt-input-for-multiline-command)
   "Validators for user input typed at prompt.
 Called with latest input string submitted by user and the list of
 lines produced by splitting it.  If any member function returns
@@ -6190,19 +6201,15 @@ When the returned value is a string, pass it to `erc-error'.")
    erc-input-marker
    (erc-end-of-input-line)))
 
-(defvar erc-command-regexp "^/\\([A-Za-z']+\\)\\(\\s-+.*\\|\\s-*\\)$"
-  "Regular expression used for matching commands in ERC.")
-
 (defun erc--discard-trailing-multiline-nulls (state)
   "Ensure last line of STATE's string is non-null.
 But only when `erc-send-whitespace-lines' is non-nil.  STATE is
 an `erc--input-split' object."
   (when (and erc-send-whitespace-lines (erc--input-split-lines state))
     (let ((reversed (nreverse (erc--input-split-lines state))))
-      (when (string-empty-p (car reversed))
-        (pop reversed)
-        (setf (erc--input-split-cmdp state) nil))
-      (nreverse (seq-drop-while #'string-empty-p reversed)))))
+      (while (and reversed (string-empty-p (car reversed)))
+        (setq reversed (cdr reversed)))
+      (setf (erc--input-split-lines state) (nreverse reversed)))))
 
 (defun erc-send-input (input &optional skip-ws-chk)
   "Treat INPUT as typed in by the user.

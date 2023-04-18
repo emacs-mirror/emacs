@@ -1236,15 +1236,23 @@
        (pcase-dolist (`(,p . ,q)
                       '(("/a b\r" "/a b\n") ("/a b\n" "/a b\n")
                         ("/a b\n\n" "/a b\n") ("/a b\r\n" "/a b\n")
-                        ("a b\nc\n\n" "c\n" "a b\n")
-                        ("/a b\nc\n\n" "c\n" "/a b\n")
-                        ("/a b\n\nc\n\n" "c\n" "\n" "/a b\n")))
+                        ("/a b\n\n\n" "/a b\n")))
          (insert p)
          (erc-send-current-line)
          (erc-bol)
          (should (eq (point) (point-max)))
          (while q
-           (should (equal (funcall next) (list (pop q) nil t))))
+           (should (pcase (funcall next)
+                     (`(,cmd ,_ nil) (equal cmd (pop q))))))
+         (should-not (funcall next))))
+
+     (ert-info ("Multiline command with non-blanks errors")
+       (dolist (p '("/a b\nc\n\n" "/a b\n/c\n\n" "/a b\n\nc\n\n"
+                    "/a\n c\n" "/a\nb\n" "/a\n/b\n" "/a \n \n"))
+         (insert p)
+         (should-error (erc-send-current-line))
+         (goto-char erc-input-marker)
+         (delete-region (point) (point-max))
          (should-not (funcall next))))
 
      (ert-info ("Multiline hunk with trailing whitespace not filtered")
