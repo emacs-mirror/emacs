@@ -218,8 +218,9 @@ chosen (interactively or automatically)."
                                 ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                                                         "languageserver::run()"))
                                 ((java-mode java-ts-mode) . ("jdtls"))
-                                (dart-mode . ("dart" "language-server"
-                                              "--client-id" "emacs.eglot-dart"))
+                                ((dart-mode dart-ts-mode)
+                                 . ("dart" "language-server"
+                                    "--client-id" "emacs.eglot-dart"))
                                 (elixir-mode . ("language_server.sh"))
                                 (ada-mode . ("ada_language_server"))
                                 (scala-mode . ,(eglot-alternatives
