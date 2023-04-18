@@ -450,22 +450,22 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   '((t :height 0.7 :box (:line-width 1)))
   "Face used for end-of-line diagnostics.
 See variable `flymake-show-diagnostics-at-end-of-line'."
-  :package-version '("Flymake" . "1.3.5"))
+  :package-version '(Flymake . "1.3.5"))
 
 (defface flymake-error-echo-at-eol
   '((t :inherit (flymake-end-of-line-diagnostics-face compilation-error)))
   "Face like `flymake-error-echo', but for end-of-line overlays."
-  :package-version '("Flymake" . "1.3.5"))
+  :package-version '(Flymake . "1.3.5"))
 
 (defface flymake-warning-echo-at-eol
   '((t :inherit (flymake-end-of-line-diagnostics-face compilation-warning)))
   "Face like `flymake-warning-echo', but for end-of-line overlays."
-  :package-version '("Flymake" . "1.3.5"))
+  :package-version '(Flymake . "1.3.5"))
 
 (defface flymake-note-echo-at-eol
   '((t :inherit (flymake-end-of-line-diagnostics-face flymake-note)))
   "Face like `flymake-note-echo', but for end-of-line overlays."
-  :package-version '("Flymake" . "1.3.5"))
+  :package-version '(Flymake . "1.3.5"))
 
 (defcustom flymake-show-diagnostics-at-end-of-line nil
   "If non-nil, add diagnostic summary messages at end-of-line."
