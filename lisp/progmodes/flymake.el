@@ -447,7 +447,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   :package-version '(Flymake . "1.3.4"))
 
 (defface flymake-end-of-line-diagnostics-face
-  '((t :height 0.7 :box (:line-width 1)))
+  '((t :height 0.85 :box (:line-width -1)))
   "Face used for end-of-line diagnostics.
 See variable `flymake-show-diagnostics-at-end-of-line'."
   :package-version '(Flymake . "1.3.5"))
