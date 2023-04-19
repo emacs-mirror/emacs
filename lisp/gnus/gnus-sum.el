@@ -9081,8 +9081,8 @@ is non-numeric or nil fetch the number specified by the
              (cl-merge 'list gnus-newsgroup-headers new-headers
                        'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
-            (gnus-sorted-nunion gnus-newsgroup-articles article-ids))
-      (gnus-summary-limit-include-thread id gnus-refer-thread-limit-to-thread)))
+            (gnus-sorted-nunion gnus-newsgroup-articles article-ids)))
+    (gnus-summary-limit-include-thread id gnus-refer-thread-limit-to-thread))
   (gnus-summary-show-thread))
 
 (defun gnus-summary-open-group-with-article (message-id)
