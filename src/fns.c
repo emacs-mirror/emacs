@@ -1967,7 +1967,7 @@ assq_no_quit (Lisp_Object key, Lisp_Object alist)
 }
 
 /* Assq but doesn't signal.  Unlike assq_no_quit, this function still
-   detect circular lists; like assq_no_quit, this function does not
+   detects circular lists; like assq_no_quit, this function does not
    allow quits and never signals.  If anything goes wrong, it returns
    Qnil.  */
 Lisp_Object
