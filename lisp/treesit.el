@@ -2994,37 +2994,48 @@ See `treesit-language-source-alist' for details."
   "History for OUT-DIR for `treesit-install-language-grammar'.")
 
 ;;;###autoload
-(defun treesit-install-language-grammar (lang)
+(defun treesit-install-language-grammar (lang &optional out-dir)
   "Build and install the tree-sitter language grammar library for LANG.
 
 Interactively, if `treesit-language-source-alist' doesn't already
 have data for building the grammar for LANG, prompt for its
-repository URL and the C/C++ compiler to use.
+repository URL and the C/C++ compiler to use.  Non-interactively,
+signal an error when there's no recipe for LANG.
 
 This command requires Git, a C compiler and (sometimes) a C++ compiler,
 and the linker to be installed and on PATH.  It also requires that the
 recipe for LANG exists in `treesit-language-source-alist'.
 
 See `exec-path' for the current path where Emacs looks for
-executable programs, such as the C/C++ compiler and linker."
+executable programs, such as the C/C++ compiler and linker.
+
+Interactively, prompt for the directory in which to install the
+compiled grammar files.  Non-interactively, use OUT-DIR; if it's
+nil, the grammar is installed to the standard location, the
+\"tree-sitter\" directory under `user-emacs-directory'."
   (interactive (list (intern
                       (completing-read
                        "Language: "
-                       (mapcar #'car treesit-language-source-alist)))))
+                       (mapcar #'car treesit-language-source-alist)))
+                     'interactive))
   (when-let ((recipe
               (or (assoc lang treesit-language-source-alist)
-                  (treesit--install-language-grammar-build-recipe
-                   lang)))
+                  (if (eq out-dir 'interactive)
+                      (treesit--install-language-grammar-build-recipe
+                       lang)
+                    (signal 'treesit-error `("Cannot find recipe for this language" ,lang)))))
              (default-out-dir
               (or (car treesit--install-language-grammar-out-dir-history)
                   (locate-user-emacs-file "tree-sitter")))
              (out-dir
-              (read-string
-               (format "Install to (default: %s): "
-                       default-out-dir)
-               nil
-               'treesit--install-language-grammar-out-dir-history
-               default-out-dir)))
+              (if (eq out-dir 'interactive)
+                  (read-string
+                   (format "Install to (default: %s): "
+                           default-out-dir)
+                   nil
+                   'treesit--install-language-grammar-out-dir-history
+                   default-out-dir)
+                out-dir)))
     (condition-case err
         (apply #'treesit--install-language-grammar-1
                (cons out-dir recipe))
