@@ -446,6 +446,22 @@ Use 'TAB' in the minibuffer to show or hide the password.  Likewise,
 there is an icon on the mode-line, which toggles the visibility of the
 password when clicking with 'mouse-1'.
 
+** Terminal Emacs
+
+---
+*** Support for 'styled' and 'colored' underline face attributes on TTY frames.
+If your terminals termcap or terminfo database entry has the 'Su' or
+'Smulx' capability defined, Emacs will now emit the prescribed escape
+sequence necessary to render faces with styled underlines on TTY
+frames.
+
+Styled underlines are any underlines containing a non-default
+underline style or a color other than the foreground-color.
+The available underline styles for TTY frames are 'single',
+'double-line', 'wave', 'dots, and 'dashes'.  These are currently
+supported by Kitty, libvte, and st (through the undercurl patch) among
+other terminals.
+
 
 * Editing Changes in Emacs 30.1
 

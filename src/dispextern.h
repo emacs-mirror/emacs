@@ -1697,9 +1697,13 @@ enum face_box_type
 
 enum face_underline_type
 {
+	/* Note: Order matches the order of the Smulx terminfo extension. */
   FACE_NO_UNDERLINE = 0,
-  FACE_UNDER_LINE,
-  FACE_UNDER_WAVE
+  FACE_UNDERLINE_SINGLE,
+  FACE_UNDERLINE_DOUBLE_LINE,
+  FACE_UNDERLINE_WAVE,
+  FACE_UNDERLINE_DOTS,
+  FACE_UNDERLINE_DASHES,
 };
 
 /* Structure describing a realized face.
@@ -1783,7 +1787,7 @@ struct face
   ENUM_BF (face_box_type) box : 2;
 
   /* Style of underlining. */
-  ENUM_BF (face_underline_type) underline : 2;
+  ENUM_BF (face_underline_type) underline : 3;
 
   /* If `box' above specifies a 3D type, true means use box_color for
      drawing shadows.  */
@@ -1815,7 +1819,6 @@ struct face
      string meaning the default color of the TTY.  */
   bool_bf tty_bold_p : 1;
   bool_bf tty_italic_p : 1;
-  bool_bf tty_underline_p : 1;
   bool_bf tty_reverse_p : 1;
   bool_bf tty_strike_through_p : 1;
 
@@ -3433,6 +3436,7 @@ enum tool_bar_item_image
 #define TTY_CAP_DIM		0x08
 #define TTY_CAP_ITALIC  	0x10
 #define TTY_CAP_STRIKE_THROUGH	0x20
+#define TTY_CAP_UNDERLINE_STYLED	(0x32 & TTY_CAP_UNDERLINE)
 
 
 /***********************************************************************

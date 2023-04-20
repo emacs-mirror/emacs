@@ -2685,12 +2685,15 @@ Underline in color @var{color}, a string specifying a color.
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
-@var{style} should be a symbol @code{line} or @code{wave}, meaning to
-use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.  @var{position}, if non-@code{nil}, means to
-display the underline at the descent of the text, instead of at the
-baseline level.  If it is a number, then it specifies the amount of
-pixels above the descent to display the underline.
+@var{style} is a symbol which sets the line-style to of the underline.
+It should be one of @code{line}, @code{double-line}, @code{wave},
+@code{dots}, or @code{dashes}.  GUI frames only support @code{line} and
+@code{wave}.  Terminal frames can support all aforementioned underline
+styles.  Omitting the attribute @code{:style} means to use a straight
+line.  @var{position}, if non-@code{nil}, means to display the underline
+at the descent of the text, instead of at the baseline level.  If it is
+a number, then it specifies the amount of pixels above the descent to
+display the underline.
 @end table
 
 @cindex overlined text
