@@ -816,7 +816,7 @@ individually should stay local."
 (defun vc-cvs-repository-hostname (dirname)
   "Hostname of the CVS server associated to workarea DIRNAME.
 
-Returns nil if there is no hostname or the hostname could not be
+Return nil if there is no hostname, or the hostname could not be
 determined because the CVS/Root specification is invalid."
   (let ((rootname (expand-file-name "CVS/Root" dirname)))
     (when (file-readable-p rootname)
@@ -836,31 +836,34 @@ determined because the CVS/Root specification is invalid."
 (cl-defun vc-cvs-parse-root (root)
   "Split CVS Root specification string into a list of fields.
 
-A CVS Root specification of the form
-  [:METHOD:][[[USER][:PASSWORD]@]HOSTNAME][:[PORT]]/pathname/to/repository
-is converted to a normalized record with the following structure:
-  \(METHOD USER HOSTNAME PATHNAME).
+Convert a CVS Root specification of the form
 
-The default METHOD for a CVS root of the form
-  /pathname/to/repository
-is \"local\".
-The default METHOD for a CVS root of the form
-  [USER@]HOSTNAME:/pathname/to/repository
-is \"ext\".
+  [:METHOD:][[[USER][:PASSWORD]@]HOSTNAME][:[PORT]]/path/to/repository
 
-If METHOD is explicitly \"local\" or \"fork\", then the pathname
-starts immediately after the method block.  This must be used on
-Windows platforms when pathnames start with a drive letter.
+to a normalized record with the following structure:
+
+  \(METHOD USER HOSTNAME FILENAME).
+
+The default METHOD for a CVS root of the form /path/to/repository
+is \"local\".  The default METHOD for a CVS root of the
+form  [USER@]HOSTNAME:/path/to/repository is \"ext\".
+
+If METHOD is explicitly \"local\" or \"fork\", then the repository's
+file name starts immediately after the [:METHOD:] part.  This must be
+used on MS-Windows platforms where absolute file names start with a
+drive letter.
 
 Note that, except for METHOD, which is defaulted if not present,
-other optional fields are returned as nil if not syntactically
-present, or as the empty string if delimited but empty.
+other optional parts will default to nil if not syntactically
+present, or to an empty string if present and delimited, but empty.
 
-Returns nil in case of an unparsable CVS root (including the
-empty string) and issues a warning.  This function doesn't check
-that an explicit method is valid, or that some fields are empty
-or nil but should not be for a given method."
-  (let (method user password hostname port pathname
+Return nil in case of an unparsable CVS Root (including the
+empty string), and issue a warning in that case.
+
+This function doesn't check that an explicit method is valid, or
+that some fields which should not be empty for a given method,
+are empty or nil."
+  (let (method user password hostname port filename
                ;; IDX set by `next-delim' as a side-effect
                idx)
     (cl-labels
@@ -869,21 +872,21 @@ or nil but should not be for a given method."
                   (concat "vc-cvs-parse-root: Can't parse '%s': " reason)
                   root args)
            (cl-return-from vc-cvs-parse-root))
-         (no-pathname ()
-           (invalid "No pathname"))
+         (no-filename ()
+           (invalid "No repository file name"))
          (next-delim (start)
            ;; Search for a :, @ or /.  If none is found, there can be
-           ;; no path at the end, which is an error.
+           ;; no file name at the end, which is an error.
            (setq idx (string-match-p "[:@/]" root start))
-           (if idx (aref root idx) (no-pathname)))
+           (if idx (aref root idx) (no-filename)))
          (grab-user (start end)
            (setq user (substring root start end)))
          (at-hostname-block (start)
            (let ((cand (next-delim start)))
              (cl-ecase cand
                (?:
-                ;; Could be : before PORT and PATHNAME, or before
-                ;; PASSWORD.  We search for a @ to disambiguate.
+                ;; Could be : before PORT and /path/to/repository, or
+                ;; before PASSWORD.  We search for a @ to disambiguate.
                 (let ((colon-idx idx)
                       (cand (next-delim (1+ idx))))
                   (cl-ecase cand
@@ -907,7 +910,7 @@ or nil but should not be for a given method."
                (?/
                 (if (/= idx start)
                     (grab-hostname start idx))
-                (at-pathname idx)))))
+                (at-filename idx)))))
          (delimited-password (start end)
            (setq password (substring root start end))
            (at-hostname (1+ end)))
@@ -923,17 +926,17 @@ or nil but should not be for a given method."
                 (invalid "Hostname: Unexpected @ after index %s" start))
                (?/
                 (grab-hostname start idx)
-                (at-pathname idx)))))
+                (at-filename idx)))))
          (delimited-port (start end)
            (setq port (substring root start end))
-           (at-pathname end))
+           (at-filename end))
          (at-port (start)
            (let ((end (string-match-p "/" root start)))
-             (if end (delimited-port start end) (no-pathname))))
-         (at-pathname (start)
-           (setq pathname (substring root start))))
+             (if end (delimited-port start end) (no-filename))))
+         (at-filename (start)
+           (setq filename (substring root start))))
       (when (string= root "")
-        (invalid "Empty string"))
+        (invalid "Empty Root string"))
       ;; Check for a starting ":"
       (if (= (aref root 0) ?:)
           ;; 3 possible cases:
@@ -948,7 +951,7 @@ or nil but should not be for a given method."
                (setq method (substring root 1 idx))
                ;; Continue
                (if (member method '("local" "fork"))
-                   (at-pathname (1+ idx))
+                   (at-filename (1+ idx))
                  (at-hostname-block (1+ idx))))
               (?@
                ;; :PASSWORD@HOSTNAME case
@@ -962,7 +965,7 @@ or nil but should not be for a given method."
       ;; Default the method if not specified
       (setq method
             (if (or user password hostname port) "ext" "local")))
-    (list method user hostname pathname)))
+    (list method user hostname filename)))
 
 ;; XXX: This does not work correctly for subdirectories.  "cvs status"
 ;; information is context sensitive, it contains lines like:
