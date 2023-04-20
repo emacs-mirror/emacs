@@ -816,7 +816,7 @@ individually should stay local."
 (defun vc-cvs-repository-hostname (dirname)
   "Hostname of the CVS server associated to workarea DIRNAME.
 
-Returns nil if there is not hostname or the hostname could not be
+Returns nil if there is no hostname or the hostname could not be
 determined because the CVS/Root specification is invalid."
   (let ((rootname (expand-file-name "CVS/Root" dirname)))
     (when (file-readable-p rootname)
@@ -849,7 +849,7 @@ The default METHOD for a CVS root of the form
 is \"ext\".
 
 If METHOD is explicitly \"local\" or \"fork\", then the pathname
-starts immediately after the method block. This must be used on
+starts immediately after the method block.  This must be used on
 Windows platforms when pathnames start with a drive letter.
 
 Note that, except for METHOD, which is defaulted if not present,
@@ -857,9 +857,9 @@ other optional fields are returned as nil if not syntactically
 present, or as the empty string if delimited but empty.
 
 Returns nil in case of an unparsable CVS root (including the
-empty string) and issues a warning. This function doesn't check
+empty string) and issues a warning.  This function doesn't check
 that an explicit method is valid, or that some fields are empty
-or nil but should not for a given method."
+or nil but should not be for a given method."
   (let (method user password hostname port pathname
                ;; IDX set by `next-delim' as a side-effect
                idx)
@@ -872,7 +872,7 @@ or nil but should not for a given method."
          (no-pathname ()
            (invalid "No pathname"))
          (next-delim (start)
-           ;; Search for a :, @ or /. If none is found, there can be
+           ;; Search for a :, @ or /.  If none is found, there can be
            ;; no path at the end, which is an error.
            (setq idx (string-match-p "[:@/]" root start))
            (if idx (aref root idx) (no-pathname)))
@@ -883,7 +883,7 @@ or nil but should not for a given method."
              (cl-ecase cand
                (?:
                 ;; Could be : before PORT and PATHNAME, or before
-                ;; PASSWORD. We search for a @ to disambiguate.
+                ;; PASSWORD.  We search for a @ to disambiguate.
                 (let ((colon-idx idx)
                       (cand (next-delim (1+ idx))))
                   (cl-ecase cand
@@ -937,9 +937,9 @@ or nil but should not for a given method."
       ;; Check for a starting ":"
       (if (= (aref root 0) ?:)
           ;; 3 possible cases:
-          ;; - :METHOD: at start. METHOD doesn't have any @.
-          ;; - :PASSWORD@ at start. Must be followed by HOSTNAME.
-          ;; - :[PORT] at start. Must be followed immediately by a "/".
+          ;; - :METHOD: at start.  METHOD doesn't have any @.
+          ;; - :PASSWORD@ at start.  Must be followed by HOSTNAME.
+          ;; - :[PORT] at start.  Must be followed immediately by a "/".
           ;; So, find the next character equal to ":", "@" or "/".
           (let ((cand (next-delim 1)))
             (cl-ecase cand
@@ -973,7 +973,7 @@ or nil but should not for a given method."
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
-essential information. Note that this can never set the `ignored'
+essential information.  Note that this can never set the `ignored'
 state."
   (let (file status missing)
     (goto-char (point-min))
@@ -1034,7 +1034,7 @@ state."
           ;; cvs update: warning: FILENAME was lost
           ;; U FILENAME
           ;; with FILENAME in the first line possibly enclosed in
-          ;; quotes (since CVS 1.12.3). To avoid problems, use the U
+          ;; quotes (since CVS 1.12.3).  To avoid problems, use the U
           ;; line where name is never quoted.
           (forward-line 1)
           (when (looking-at "^U \\(.*\\)$")

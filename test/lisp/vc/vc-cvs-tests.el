@@ -76,7 +76,7 @@
    ":pserver:usr:passwd@host:28/home/serv/repo"
    '("pserver" "usr" "host" "/home/serv/repo")))
 
-;; Next 3 tests are just to err on the side of caution. It doesn't
+;; Next 3 tests are just to err on the side of caution.  It doesn't
 ;; seem that CVS 1.12 can ever produce such lines.
 
 (ert-deftest
