@@ -4480,13 +4480,25 @@ selected by these commands to the minibuffer."
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion to the minibuffer."
   (interactive "p")
-  (let ((auto-choose minibuffer-completion-auto-choose))
+  (let ((auto-choose minibuffer-completion-auto-choose)
+         (buf (current-buffer)))
     (with-minibuffer-completions-window
       (when completions-highlight-face
         (setq-local cursor-face-highlight-nonselected-window t))
       (next-completion (or n 1))
       (when auto-choose
-        (let ((completion-use-base-affixes t))
+        (let* ((completion-use-base-affixes t)
+               ;; Backported fix for bug#62700
+               (md
+                (with-current-buffer buf
+                  (completion--field-metadata (minibuffer--completion-prompt-end))))
+               (base-suffix
+                (if (eq (alist-get 'category (cdr md)) 'file)
+                    (with-current-buffer buf
+                      (buffer-substring (save-excursion (search-forward "/" nil t) (point))
+                                        (point-max)))
+                  ""))
+              (completion-base-affixes (list (car completion-base-affixes) base-suffix)))
           (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
@@ -4505,9 +4517,17 @@ of `completion-no-auto-exit'.
 If NO-QUIT is non-nil, insert the completion at point to the
 minibuffer, but don't quit the completions window."
   (interactive "P")
-  (with-minibuffer-completions-window
-    (let ((completion-use-base-affixes t))
-      (choose-completion nil no-exit no-quit))))
+  ;; Backported fix for bug#62700
+  (let* ((md (completion--field-metadata (minibuffer--completion-prompt-end)))
+         (base-suffix
+          (if (eq (alist-get 'category (cdr md)) 'file)
+              (buffer-substring (save-excursion (search-forward "/" nil t) (point))
+                                (point-max))
+            "")))
+    (with-minibuffer-completions-window
+      (let ((completion-use-base-affixes t)
+            (completion-base-affixes (list (car completion-base-affixes) base-suffix)))
+        (choose-completion nil no-exit no-quit)))))
 
 (defun minibuffer-complete-history ()
   "Complete the minibuffer history as far as possible.
