@@ -21,6 +21,8 @@
                (electric-quote-comment . nil)
                (electric-quote-string . nil)
 	       (mode . bug-reference-prog)))
+ (c-ts-mode . ((indent-tabs-mode . t)
+               (mode . bug-reference-prog)))
  (log-edit-mode . ((log-edit-font-lock-gnu-style . t)
                    (log-edit-setup-add-author . t)
 		   (vc-git-log-edit-summary-target-len . 50)))
