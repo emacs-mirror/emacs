@@ -1459,8 +1459,6 @@ Finds hooks by looking in the `erc-server-responses' hash table."
     (erc-with-server-buffer
       (run-hook-with-args 'erc-timer-hook (erc-current-time)))))
 
-(add-hook 'erc-default-server-functions #'erc-handle-unknown-server-response)
-
 (defun erc-handle-unknown-server-response (proc parsed)
   "Display unknown server response's message."
   (let ((line (concat (erc-response.sender parsed)

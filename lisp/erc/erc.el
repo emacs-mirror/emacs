@@ -4689,9 +4689,13 @@ This places `point' just after the prompt, or at the beginning of the line."
 ; Stolen from ZenIRC. I just wanna test this code, so here is
 ; experiment area.
 
-(defcustom erc-default-server-hook '(erc-debug-missing-hooks
-                                     erc-default-server-handler)
-  "Default for server messages which aren't covered by `erc-server-hooks'."
+;; This shouldn't be a user option but remains so for compatibility.
+(define-obsolete-variable-alias
+  'erc-default-server-hook 'erc-default-server-functions "30.1")
+(defcustom erc-default-server-functions '(erc-handle-unknown-server-response)
+  "Abnormal hook for incoming messages without their own handlers.
+See `define-erc-response-handler' for more."
+  :package-version '(ERC . "5.6")
   :group 'erc-server-hooks
   :type 'hook)
 
@@ -4699,6 +4703,7 @@ This places `point' just after the prompt, or at the beginning of the line."
   "Default server handler.
 
 Displays PROC and PARSED appropriately using `erc-display-message'."
+  (declare (obsolete erc-handle-unknown-server-response "29.1"))
   (erc-display-message
    parsed 'notice proc
    (mapconcat
@@ -4721,7 +4726,7 @@ See `erc-debug-missing-hooks'.")
   "Add PARSED server message ERC does not yet handle to `erc-server-vectors'.
 These vectors can be helpful when adding new server message handlers to ERC.
 See `erc-default-server-hook'."
-  (nconc erc-server-vectors (list parsed))
+  (setq erc-server-vectors `(,@erc-server-vectors ,parsed))
   nil)
 
 (defun erc--open-target (target)
@@ -4915,6 +4920,9 @@ See also `erc-display-error-notice'."
 
 ;;; Server messages
 
+;; FIXME remove on next major version release.  This group is all but
+;; unused because most `erc-server-FOO-functions' are plain variables
+;; and not user options as implied by this doc string.
 (defgroup erc-server-hooks nil
   "Server event callbacks.
 Every server event - like numeric replies - has its own hook.
