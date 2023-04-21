@@ -795,6 +795,21 @@ specifying the minimum acceptable version."
         (require 'finder-inf nil t) ; For `package--builtins'.
         (assq package package--builtins))))))
 
+(defun package--active-built-in-p (package)
+  "Return non-nil if the built-in version of PACKAGE is used.
+If the built-in version of PACKAGE is used and PACKAGE is
+also available for installation from an archive, it is an
+indication that PACKAGE was never upgraded to any newer
+version from the archive."
+  (and (not (assq (cond
+                   ((package-desc-p package)
+                    (package-desc-name package))
+                   ((stringp package) (intern package))
+                   ((symbolp package) package)
+                   ((error "Unknown package format: %S" package)))
+                  (package--alist)))
+       (package-built-in-p package)))
+
 (defun package--autoloads-file-name (pkg-desc)
   "Return the absolute name of the autoloads file, sans extension.
 PKG-DESC is a `package-desc' object."
@@ -2178,12 +2193,18 @@ using `package-compute-transaction'."
   (unless package-archive-contents
     (package-refresh-contents)))
 
+(defcustom package-install-upgrade-built-in nil
+  "Non-nil means that built-in packages can be upgraded via a package archive.
+If disabled, then `package-install' will not suggest to replace a
+built-in package with a (possibly newer) version from a package archive."
+  :type 'boolean
+  :version "29.1")
+
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
 PKG can be a `package-desc' or a symbol naming one of the
-available packages in an archive in `package-archives'.  When
-called interactively, prompt for the package name.
+available packages in an archive in `package-archives'.
 
 Mark the installed package as selected by adding it to
 `package-selected-packages'.
@@ -2193,7 +2214,11 @@ non-nil, install the package but do not add it to
 `package-selected-packages'.
 
 If PKG is a `package-desc' and it is already installed, don't try
-to install it but still mark it as selected."
+to install it but still mark it as selected.
+
+If the command is invoked with a prefix argument, it will allow
+upgrading of built-in packages, as if `package-install-upgrade-built-in'
+had been enabled."
   (interactive
    (progn
      ;; Initialize the package system to get the list of package
@@ -2201,11 +2226,14 @@ to install it but still mark it as selected."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    (delq nil
-                          (mapcar (lambda (elt)
-                                    (unless (package-installed-p (car elt))
-                                      (symbol-name (car elt))))
-                                  package-archive-contents))
+                    (mapcan
+                     (lambda (elt)
+                       (and (or (and (or current-prefix-arg
+                                         package-install-upgrade-built-in)
+                                     (package--active-built-in-p (car elt)))
+                                (not (package-installed-p (car elt))))
+                            (list (symbol-name (car elt)))))
+                     package-archive-contents)
                     nil t))
            nil)))
   (package--archives-initialize)
@@ -2216,6 +2244,9 @@ to install it but still mark it as selected."
     (unless (or dont-select (package--user-selected-p name))
       (package--save-selected-packages
        (cons name package-selected-packages)))
+    (when (and (or current-prefix-arg package-install-upgrade-built-in)
+               (package--active-built-in-p pkg))
+      (setq pkg (or (cadr (assq name package-archive-contents)) pkg)))
     (if-let* ((transaction
                (if (package-desc-p pkg)
                    (unless (package-installed-p pkg)

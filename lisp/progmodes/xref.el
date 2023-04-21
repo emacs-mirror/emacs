@@ -1820,16 +1820,22 @@ IGNORES is a list of glob patterns for files to ignore."
 ;; Ripgrep gets jumbled output, though, even with --line-buffered.
 ;; But Grep seems to be stable. Even without --line-buffered.
 (defcustom xref-search-program-alist
-  '((grep
-     .
-     ;; '-s' because 'git ls-files' can output broken symlinks.
-     "xargs -0 grep <C> --null -snHE -e <R>")
-    (ripgrep
-     .
-     ;; '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"
-     )
-    (ugrep . "xargs -0 ugrep <C> --null -ns -e <R>"))
+  (let ((xargs-max-chars
+         (and (memq system-type '(windows-nt ms-dos))
+              "-s 10000 ")))
+    `((grep
+       .
+       ;; '-s' because 'git ls-files' can output broken symlinks.
+       ,(concat "xargs -0 " xargs-max-chars "grep <C> --null -snHE -e <R>"))
+      (ripgrep
+       .
+       ;; '!*/' is there to filter out dirs (e.g. submodules).
+       ,(concat "xargs -0 "
+                xargs-max-chars
+                "rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"))
+      (ugrep
+       .
+       ,(concat "xargs -0 " xargs-max-chars "ugrep <C> --null -ns -e <R>"))))
   "Association list mapping program identifiers to command templates.
 
 Program identifier should be a symbol, named after the search program.
@@ -1844,7 +1850,7 @@ The template should have the following fields:
   :type '(repeat
           (cons (symbol :tag "Program identifier")
                 (string :tag "Command template")))
-  :version "28.1"
+  :version "29.1"
   :package-version '(xref . "1.0.4"))
 
 (defcustom xref-search-program 'grep

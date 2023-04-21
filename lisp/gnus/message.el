@@ -4359,8 +4359,10 @@ If COND is a function, METHOD will be inserted if COND returns
 a non-nil value when called in the message buffer without any
 arguments.  If METHOD is nil in this case, the return value of
 the function will be inserted instead.
-If the buffer already has a\"X-Message-SMTP-Method\" header,
-it is left unchanged."
+
+Note: if the buffer already has a \"X-Message-SMTP-Method\"
+header, these rules are ignored, and the header is left
+unchanged."
   :type '(alist :key-type (choice
                            (string :tag "From Address")
                            (function :tag "Predicate"))

@@ -313,18 +313,26 @@ may be defined in your Emacs session.  For example, if a command
 called @code{authorize-me} was defined, Emacs could only complete
 as far as @samp{aut}.)
 
-  If you type @key{TAB} again immediately, it cannot determine the
-next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So it
-does not add any characters; instead, @key{TAB} displays a list of all
-possible completions in another window.
+  If you type @kbd{@key{TAB}} again immediately, it cannot determine
+the next character; it could be @samp{-}, @samp{a}, or @samp{c}.  So
+it does not add any characters; instead, @key{TAB} displays a list of
+all possible completions in another window.
 
   Next, type @kbd{-f}.  The minibuffer now contains @samp{auto-f}, and
 the only command name that starts with this is @code{auto-fill-mode}.
-If you now type @key{TAB}, completion fills in the rest of the
+If you now type @kbd{@key{TAB}}, completion fills in the rest of the
 argument @samp{auto-fill-mode} into the minibuffer.
 
   Hence, typing just @kbd{a u @key{TAB} - f @key{TAB}} allows you to
 enter @samp{auto-fill-mode}.
+
+  @key{TAB} also works while point is not at the end of the
+minibuffer.  In that case, it will fill in text both at point and at
+the end of the minibuffer.  If you type @kbd{M-x autocm}, then press
+@kbd{C-b} to move point before the @samp{m}, you can type
+@kbd{@key{TAB}} to insert the text @samp{onf-} at point and @samp{ode}
+at the end of the minibuffer, so that the minibuffer contains
+@samp{autoconf-mode}.
 
 @node Completion Commands
 @subsection Completion Commands

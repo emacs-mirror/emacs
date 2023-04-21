@@ -211,14 +211,14 @@ static unsigned short right_curly_arrow_bits[] = {
 
 /* Large circle bitmap.  */
 /*
-  ........
   ..xxxx..
   .xxxxxx.
   xxxxxxxx
   xxxxxxxx
+  xxxxxxxx
+  xxxxxxxx
   .xxxxxx.
   ..xxxx..
-  ........
 */
 static unsigned short large_circle_bits[] = {
   0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c};

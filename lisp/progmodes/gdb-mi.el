@@ -2406,7 +2406,7 @@ a GDB/MI reply message."
     ("+" . ())
     ("=" . (("thread-created" . (gdb-thread-created . atomic))
             ("thread-selected" . (gdb-thread-selected . atomic))
-            ("thread-existed" . (gdb-ignored-notification . atomic))
+            ("thread-exited" . (gdb-thread-exited . atomic))
             ('default . (gdb-ignored-notification . atomic)))))
   "Alist of alists, mapping the type and class of message to a handler function.
 Handler functions are all flagged as either `progressive' or `atomic'.

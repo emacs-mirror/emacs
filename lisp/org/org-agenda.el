@@ -7724,8 +7724,7 @@ The optional argument TYPE tells the agenda type."
                    (unless (string= org-agenda-todo-keyword-format "")
                      ;; Remove `display' property as the icon could leak
                      ;; on the white space.
-                     (org-add-props " " (org-plist-delete (text-properties-at 0 x)
-                                                          'display)))
+                     (apply #'propertize " " (org-plist-delete (text-properties-at 0 x) 'display)))
                    (substring x (match-end 3)))))))
       x)))
 

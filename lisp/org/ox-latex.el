@@ -1822,7 +1822,7 @@ INFO is a plist used as a communication channel.  See
           (replace-regexp-in-string
            "--\\|[\\{}$%&_#~^]"
            (lambda (m)
-             (cond ((equal m "--") "-{}-")
+             (cond ((equal m "--") "-{}-{}")
                    ((equal m "\\") "\\textbackslash{}")
                    ((equal m "~") "\\textasciitilde{}")
                    ((equal m "^") "\\textasciicircum{}")

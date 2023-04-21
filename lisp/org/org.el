@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "26.1"))
 
-;; Version: 9.6.3
+;; Version: 9.6.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -9143,7 +9143,8 @@ nil or a string to be used for the todo mark." )
 	(replace-match "0" t nil nil 1)))))
 
 (defvar org-state)
-(defvar org-blocked-by-checkboxes)
+;; FIXME: We should refactor this and similar dynamically scoped blocker flags.
+(defvar org-blocked-by-checkboxes nil) ; dynamically scoped
 (defun org-todo (&optional arg)
   "Change the TODO state of an item.
 
