@@ -641,7 +641,7 @@ REF must have been previously obtained with `gv-ref'."
 
 ;; You'd think noone would write `(setf (error ...) ..)' but it
 ;; appears naturally as the result of macroexpansion of things like
-;; (setf (case-exhaustive ...)).
+;; (setf (pcase-exhaustive ...)).
 ;; We could generalize this to `throw' and `signal', but it seems
 ;; preferable to wait until there's a concrete need.
 (gv-define-expander error (lambda (_do &rest args) `(error . ,args)))
