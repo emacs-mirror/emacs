@@ -1494,8 +1494,11 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
                                       (memq (erc--target-symbol erc--target)
                                             erc-networks--bouncer-targets)))
                                proc)
-      (let ((m (concat "Unexpected state detected. Please report via "
-                       (substitute-command-keys "\\[erc-bug]") ".")))
+      (let ((m (concat "Unexpected state detected. If you've just issued an"
+                       " /MOTD, please know that the command is bugged in ERC"
+                       " 5.5 (Emacs 29) but will be fixed in the next release."
+                       " Otherwise, please report this occurrence via"
+                       (substitute-command-keys " \\[erc-bug]."))))
         (erc-display-error-notice parsed m))))
 
   ;; For now, retain compatibility with erc-server-NNN-functions.

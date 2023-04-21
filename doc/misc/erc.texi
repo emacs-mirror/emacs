@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
-@set ERCVER 5.5
+@set ERCVER 5.5.0.29.1
 @set ERCDIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex fn cp

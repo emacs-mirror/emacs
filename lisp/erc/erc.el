@@ -12,7 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
-;; Version: 5.5
+;; Version: 5.5.0.29.1
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.3.4"))
 ;; Keywords: IRC, chat, client, Internet
 ;; URL: https://www.gnu.org/software/emacs/erc.html
@@ -71,7 +71,7 @@
 (require 'iso8601)
 (eval-when-compile (require 'subr-x) (require 'url-parse))
 
-(defconst erc-version "5.5"
+(defconst erc-version "5.5.0.29.1"
   "This version of ERC.")
 
 (defvar erc-official-location
@@ -1495,9 +1495,19 @@ The available choices are:
 This only affects automatic reconnections and is ignored when
 issuing a /reconnect command or reinvoking `erc-tls' with the
 same args (assuming success, of course).  See `erc-join-buffer'
-for a description of possible values."
+for a description of possible values.
+
+WARNING: this option is bugged in ERC 5.5 (Emacs 29).  Setting it
+to anything other than nil results in the chosen value being
+permanently adopted by all other buffer-display options for the
+remainder of the ERC session.  If you need this fixed
+immediately, see Info node `(erc) Upgrading'."
   :package-version '(ERC . "5.5")
   :group 'erc-buffers
+  :set (lambda (sym val)
+         (when (set sym val)
+           (lwarn 'erc :warning "Setting `%s' to `%s' is currently bugged; %s"
+                  sym val "see doc string for more information.")))
   :type '(choice (const :tag "Use value of `erc-join-buffer'" nil)
                  (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
@@ -4501,7 +4511,7 @@ See `erc-default-server-hook'."
   "Open a query buffer on TARGET using SERVER-BUFFER.
 To change how this query window is displayed, use `let' to bind
 `erc-join-buffer' before calling this."
-  (declare (obsolete "bind `erc-cmd-query' and call `erc-cmd-QUERY'" "29.1"))
+  (declare (obsolete "call `erc-open' in a live server buffer" "29.1"))
   (unless (buffer-live-p server-buffer)
     (error "Couldn't switch to server buffer"))
   (with-current-buffer server-buffer
@@ -4524,16 +4534,29 @@ a new window, but not to select it.  See the documentation for
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
 
-;; FIXME either retire this or put it to use after determining how
-;; it's meant to work.  Clearly, the doc string does not describe
-;; current behavior.  It's currently only used by the obsolete
-;; function `erc-auto-query'.
 (defcustom erc-query-on-unjoined-chan-privmsg t
   "If non-nil create query buffer on receiving any PRIVMSG at all.
 This includes PRIVMSGs directed to channels.  If you are using an IRC
 bouncer, such as dircproxy, to keep a log of channels when you are
-disconnected, you should set this option to t."
+disconnected, you should set this option to t.
+
+WARNING: this option was mistakenly removed from ERC 5.5's client
+code, so setting it to nil is temporarily ineffective.  That is,
+ERC now always creates a buffer when receiving a PRIVMSG directed
+at a channel for which none exists.  And despite this option's
+name and its doc string's use of \"query\" to refer to any
+conversation with a target, it did not previously allow for
+opting out of buffer creation for direct messages (at least not
+in Emacs 27 and 28).  However, such behavior has always been and
+will continue to be available by setting `erc-auto-query' to nil.
+If needing to restore pre-5.5 functionality immediately, see Info
+node `(erc) Upgrading'."
   :group 'erc-query
+  :set (lambda (sym val)
+         (unless (set sym val)
+           (lwarn 'erc :warning
+                  "Setting `%s' to nil is currently ineffective; %s"
+                  sym "see doc string for details.")))
   :type 'boolean)
 
 (defcustom erc-format-query-as-channel-p t

@@ -508,7 +508,11 @@ At least one of TYPE and NICK must be provided."
   "Do a DCC GET command.  NICK is the person who is sending the file.
 FILE is the filename.  If FILE is split into multiple arguments,
 re-join the arguments, separated by a space.
-PROC is the server process."
+PROC is the server process.
+
+WARNING: the /DCC GET command is bugged in ERC 5.5 (Emacs 29).
+File names containing the string \" -\" are not honored.  If you
+need a fix immediately, see Info node `(erc) Upgrading'."
   (let* ((args (seq-group-by (lambda (s) (eq ?- (aref s 0))) (cons nick file)))
          (flags (prog1 (cdr (assq t args))
                   (setq args (cdr (assq nil args))

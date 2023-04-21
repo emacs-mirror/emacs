@@ -80,9 +80,7 @@ can now opt for an improved 'window-noselect' instead.  It still
 offers the same pronounced visual cue when connecting and joining but
 now avoids any hijacking of the active window as well.
 
-Beyond this, additional flexibility is now available for controlling
-the behavior of newly created target buffers during reconnection.
-See the option 'erc-reconnect-display' for more.
+(Edited for ERC 5.5.0.29.1 in Emacs 29.1.)
 
 ** Improved handling of multiline prompt input.
 This means better detection and handling of intervening and trailing
