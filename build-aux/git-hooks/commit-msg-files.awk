@@ -59,15 +59,28 @@ function check_commit_msg_files(commit_sha, verbose,    changes, good, \
     if (verbose && ! msg)
       msg = $0
 
-    # Find lines that reference files.  We look at any line starting
-    # with "*" (possibly prefixed by "; ") where the file part starts
-    # with an alphanumeric character.  The file part ends if we
-    # encounter any of the following characters: [ ( < { :
-    if (/^(; )?\*[ \t]+[[:alnum:]]/ && match($0, /[[:alnum:]][^[(<{:]*/)) {
-      # There might be multiple files listed on this line, separated
-      # by spaces (and possibly a comma).  Iterate over each of them.
-      split(substr($0, RSTART, RLENGTH), filenames, ",?([[:blank:]]+|$)")
+    # Find file entries in the commit message.  We look at any line
+    # starting with "*" (possibly prefixed by "; ") followed by a ":",
+    # possibly on a different line.  If we encounter a blank line
+    # without seeing a ":", then we don't treat that as a file entry.
 
+    # Accumulate the contents of a (possible) file entry.
+    if (/^[ \t]*$/)
+      filenames_str = ""
+    else if (/^(; )?\*[ \t]+[[:alnum:]]/)
+      filenames_str = $0
+    else if (filenames_str)
+      filenames_str = (filenames_str $0)
+
+    # We have a file entry; analyze it.
+    if (filenames_str && /:/) {
+      # Delete the leading "*" and any trailing information.
+      sub(/^(; )?\*[ \t]+/, "", filenames_str)
+      sub(/[ \t]*[[(<:].*$/, "", filenames_str)
+
+      # There might be multiple files listed in this entry, separated
+      # by spaces (and possibly a comma).  Iterate over each of them.
+      split(filenames_str, filenames, ",[ \t]+")
       for (i in filenames) {
         # Remove trailing slashes from any directory entries.
         sub(/\/$/, "", filenames[i])
@@ -83,6 +96,8 @@ function check_commit_msg_files(commit_sha, verbose,    changes, good, \
           good = 0
         }
       }
+
+      filenames_str = ""
     }
   }
   close(cmd)
