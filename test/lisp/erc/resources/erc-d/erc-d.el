@@ -299,9 +299,10 @@ PROCESS should be a client connection or a server network process."
                             (concat (format-time-string "%s.%N: ")
                                     ,format-string)
                           ,format-string))
-         (want-insert (and ,process erc-d--in-process)))
-     (when want-insert
-       (with-current-buffer (process-buffer (process-get ,process :server))
+         (want-insert (and ,process erc-d--in-process))
+         (buffer (process-buffer (process-get ,process :server))))
+     (when (and want-insert (buffer-live-p buffer))
+       (with-current-buffer buffer
          (goto-char (point-max))
          (insert (concat (format ,format-string ,@args) "\n"))))
      (when (or erc-d--m-debug (not want-insert))

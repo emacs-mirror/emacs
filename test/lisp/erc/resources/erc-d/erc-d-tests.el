@@ -674,7 +674,7 @@ nonzero for this to work."
 (ert-deftest erc-d-run-linger ()
   :tags '(:unstable :expensive-test)
   (erc-d-tests-with-server (dumb-s _) linger
-    (with-current-buffer (erc-d-t-wait-for 6 (get-buffer "#chan"))
+    (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
     (with-current-buffer (process-buffer dumb-s)
       (erc-d-t-search-for 2 "Lingering for 1.00 seconds"))
