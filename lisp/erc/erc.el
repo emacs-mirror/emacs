@@ -1564,6 +1564,13 @@ successfully reinvoking `erc-tls' with similar arguments.  See
                  (const :tag "Bury in new buffer" bury)
                  (const :tag "Use current buffer" buffer)))
 
+(defcustom erc-reconnect-display-timeout 10
+  "Duration `erc-reconnect-display' remains active.
+The countdown starts on MOTD and is canceled early by any
+\"slash\" command."
+  :type 'integer
+  :group 'erc-buffers)
+
 (defcustom erc-frame-alist nil
   "Alist of frame parameters for creating erc frames.
 A value of nil means to use `default-frame-alist'."
@@ -3127,6 +3134,7 @@ this function from interpreting the line as a command."
         (let* ((cmd  (nth 0 command-list))
                (args (nth 1 command-list))
                (erc--called-as-input-p t))
+          (erc--server-last-reconnect-display-reset (erc-server-buffer))
           (condition-case nil
               (if (listp args)
                   (apply cmd args)
@@ -3599,7 +3607,6 @@ were most recently invited.  See also `invitation'."
                 ((with-current-buffer existing
                    (erc-get-channel-user (erc-current-nick)))))
           (switch-to-buffer existing)
-        (setq erc--server-last-reconnect-count 0)
         (when-let* ; bind `erc-join-buffer' when /JOIN issued
             ((erc--called-as-input-p)
              (fn (lambda (proc parsed)
@@ -5204,6 +5211,12 @@ Set user modes and run `erc-after-connect' hook."
         (setq erc-server-connected t)
         (setq erc--server-last-reconnect-count erc-server-reconnect-count
               erc-server-reconnect-count 0)
+        (setq erc--server-reconnect-display-timer
+              (run-at-time erc-reconnect-display-timeout nil
+                           #'erc--server-last-reconnect-display-reset
+                           (current-buffer)))
+        (add-hook 'erc-disconnected-hook
+                  #'erc--server-last-reconnect-on-disconnect nil t)
         (erc-update-mode-line)
         (erc-set-initial-user-mode nick buffer)
         (erc-server-setup-periodical-ping buffer)

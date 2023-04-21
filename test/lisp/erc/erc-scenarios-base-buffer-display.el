@@ -29,7 +29,8 @@
 ;; These first couple `erc-reconnect-display' tests used to live in
 ;; erc-scenarios-base-reconnect but have since been renamed.
 
-(defun erc-scenarios-base-buffer-display--reconnect-common (test)
+(defun erc-scenarios-base-buffer-display--reconnect-common
+    (assert-server assert-chan assert-rest)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/reconnect")
        (dumb-server (erc-d-run "localhost" t 'options 'options-again))
@@ -37,87 +38,163 @@
        (expect (erc-d-t-make-expecter))
        (erc-server-flood-penalty 0.1)
        (erc-server-auto-reconnect t)
-       erc-autojoin-channels-alist
-       erc-server-buffer)
+       erc-autojoin-channels-alist)
 
     (should (memq 'autojoin erc-modules))
 
     (ert-info ("Connect to foonet")
-      (setq erc-server-buffer (erc :server "127.0.0.1"
-                                   :port port
-                                   :nick "tester"
-                                   :password "changeme"
-                                   :full-name "tester"))
-      (with-current-buffer erc-server-buffer
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (funcall assert-server expect)
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
         (funcall expect 10 "debug mode")))
 
     (ert-info ("Wait for some output in channels")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall assert-chan expect)
         (funcall expect 10 "welcome")))
 
     (ert-info ("Server buffer shows connection failed")
-      (with-current-buffer erc-server-buffer
+      (with-current-buffer "FooNet"
         (funcall expect 10 "Connection failed!  Re-establishing")))
 
     (should (equal erc-autojoin-channels-alist '((FooNet "#chan"))))
-
-    (funcall test)
-
-    ;; A manual /JOIN command tells ERC we're done auto-reconnecting
-    (with-current-buffer "FooNet" (erc-cmd-JOIN "#spam"))
-
-    (erc-d-t-ensure-for 1 "Newly joined chan ignores `erc-reconnect-display'"
-      (not (eq (window-buffer) (get-buffer "#spam"))))
+    (delete-other-windows)
+    (pop-to-buffer-same-window "*Messages*")
 
     (ert-info ("Wait for auto reconnect")
-      (with-current-buffer erc-server-buffer
-        (funcall expect 10 "still in debug mode")))
+      (with-current-buffer "FooNet" (funcall expect 10 "still in debug mode")))
 
-    (ert-info ("Wait for activity to recommence in channels")
+    (funcall assert-rest expect)
+
+    (ert-info ("Wait for activity to recommence in both channels")
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
         (funcall expect 10 "forest of Arden"))
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
         (funcall expect 10 "her elves come here anon")))))
 
-(ert-deftest erc-scenarios-base-reconnect-options--buffer ()
+(ert-deftest erc-scenarios-base-buffer-display--defwin-recbury-intbuf ()
   :tags '(:expensive-test)
-  (should (eq erc-join-buffer 'bury))
+  (should (eq erc-buffer-display 'bury))
+  (should (eq erc-interactive-display 'window))
   (should-not erc-reconnect-display)
 
-  ;; FooNet (the server buffer) is not switched to because it's
-  ;; already current (but not shown) when `erc-open' is called.  See
-  ;; related conditional guard towards the end of that function.
+  (let ((erc-buffer-display 'window)
+        (erc-interactive-display 'buffer)
+        (erc-reconnect-display 'bury))
 
-  (let ((erc-reconnect-display 'buffer))
     (erc-scenarios-base-buffer-display--reconnect-common
-     (lambda ()
-       (pop-to-buffer-same-window "*Messages*")
 
-       (erc-d-t-ensure-for 1 "Server buffer not shown"
-         (not (eq (window-buffer) (get-buffer "FooNet"))))
+     (lambda (_)
+       (should (eq (window-buffer) (current-buffer)))
+       (should-not (frame-root-window-p (selected-window))))
 
-       (erc-d-t-wait-for 5 "Channel #chan shown when autojoined"
-         (eq (window-buffer) (get-buffer "#chan")))))))
+     (lambda (_)
+       (should (eq (window-buffer) (current-buffer)))
+       (should (equal (get-buffer "FooNet") (window-buffer (next-window)))))
 
-(ert-deftest erc-scenarios-base-reconnect-options--default ()
+     (lambda (_)
+       (with-current-buffer "FooNet"
+         (should (eq (window-buffer) (messages-buffer)))
+         (should (frame-root-window-p (selected-window))))
+
+       ;; A manual /JOIN command tells ERC we're done auto-reconnecting
+       (with-current-buffer "FooNet" (erc-scenarios-common-say "/JOIN #spam"))
+
+       (ert-info ("#spam ignores `erc-reconnect-display'")
+         ;; Uses `erc-interactive-display' instead.
+         (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
+           (should (eq (window-buffer) (get-buffer "#spam")))
+           ;; Option `buffer' replaces entire window (no split)
+           (erc-d-t-wait-for 5 (frame-root-window-p (selected-window)))))))))
+
+(ert-deftest erc-scenarios-base-buffer-display--defwino-recbury-intbuf ()
   :tags '(:expensive-test)
-  (should (eq erc-join-buffer 'bury))
+  (should (eq erc-buffer-display 'bury))
+  (should (eq erc-interactive-display 'window))
   (should-not erc-reconnect-display)
 
-  (erc-scenarios-base-buffer-display--reconnect-common
+  (let ((erc-buffer-display 'window-noselect)
+        (erc-reconnect-display 'bury)
+        (erc-interactive-display 'buffer))
+    (erc-scenarios-base-buffer-display--reconnect-common
 
-   (lambda ()
-     (pop-to-buffer-same-window "*Messages*")
+     (lambda (_)
+       ;; Selected window shows some non-ERC buffer.  New server
+       ;; buffer appears in another window (other side of split).
+       (should-not (frame-root-window-p (selected-window)))
+       (should-not (eq (window-buffer) (current-buffer)))
+       (with-current-buffer (window-buffer)
+         (should-not (derived-mode-p 'erc-mode)))
+       (should (eq (current-buffer) (window-buffer (next-window)))))
 
-     (erc-d-t-ensure-for 1 "Server buffer not shown"
-       (not (eq (window-buffer) (get-buffer "FooNet"))))
+     (lambda (_)
+       (should-not (frame-root-window-p (selected-window)))
+       ;; Current split likely shows scratch.
+       (with-current-buffer (window-buffer)
+         (should-not (derived-mode-p 'erc-mode)))
+       (should (eq (current-buffer) (window-buffer (next-window)))))
 
-     (erc-d-t-ensure-for 3 "Channel #chan not shown"
-       (not (eq (window-buffer) (get-buffer "#chan"))))
+     (lambda (_)
+       (with-current-buffer "FooNet"
+         (should (eq (window-buffer) (messages-buffer)))
+         (should (frame-root-window-p (selected-window))))
 
-     (should (eq (window-buffer) (messages-buffer))))))
+       ;; A non-interactive JOIN command doesn't signal that we're
+       ;; done auto-reconnecting, and `erc-interactive-display' is
+       ;; ignored, so `erc-buffer-display' is again in charge (here,
+       ;; that means `window-noselect').
+       (ert-info ("Join chan noninteractively and open a /QUERY")
+         (with-current-buffer "FooNet"
+           (erc-cmd-JOIN "#spam")
+           ;; However this will reset the option.
+           (erc-scenarios-common-say "/QUERY bob")
+           (should (eq (window-buffer) (get-buffer "bob")))
+           (should (frame-root-window-p (selected-window)))))
 
+       (ert-info ("Newly joined chan ignores `erc-reconnect-display'")
+         (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
+           (should (eq (window-buffer) (get-buffer "bob")))
+           (should-not (frame-root-window-p (selected-window)))
+           (should (eq (current-buffer) (window-buffer (next-window))))))))))
+
+(ert-deftest erc-scenarios-base-buffer-display--count-reset-timeout ()
+  :tags '(:expensive-test)
+  (should (eq erc-buffer-display 'bury))
+  (should (eq erc-interactive-display 'window))
+  (should (eq erc-reconnect-display-timeout 10))
+  (should-not erc-reconnect-display)
+
+  (let ((erc-buffer-display 'window-noselect)
+        (erc-reconnect-display 'bury)
+        (erc-interactive-display 'buffer)
+        (erc-reconnect-display-timeout 0.5))
+    (erc-scenarios-base-buffer-display--reconnect-common
+     #'ignore #'ignore ; These two are identical to the previous test.
+
+     (lambda (_)
+       (with-current-buffer "FooNet"
+         (should erc--server-reconnect-display-timer)
+         (should (eq (window-buffer) (messages-buffer)))
+         (should (frame-root-window-p (selected-window))))
+
+       ;; A non-interactive JOIN command doesn't signal that we're
+       ;; done auto-reconnecting
+       (ert-info ("Join chan noninteractively")
+         (with-current-buffer "FooNet"
+           (erc-d-t-wait-for 1 (null erc--server-reconnect-display-timer))
+           (erc-cmd-JOIN "#spam")))
+
+       (ert-info ("Newly joined chan ignores `erc-reconnect-display'")
+         (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
+           (should (eq (window-buffer) (messages-buffer)))
+           ;; If `erc-reconnect-display-timeout' were left alone, this
+           ;; would be (frame-root-window-p #<window 1 on *scratch*>).
+           (should-not (frame-root-window-p (selected-window)))
+           (should (eq (current-buffer) (window-buffer (next-window))))))))))
 
 ;; This shows that the option `erc-interactive-display' overrides
 ;; `erc-join-buffer' during cold opens and interactive /JOINs.

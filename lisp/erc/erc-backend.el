@@ -299,6 +299,12 @@ function `erc-server-process-alive' instead.")
 (defvar-local erc-server-reconnect-count 0
   "Number of times we have failed to reconnect to the current server.")
 
+(defvar-local erc--server-reconnect-display-timer nil
+  "Timer that resets `erc--server-last-reconnect-count' to zero.
+Becomes non-nil in all server buffers when an IRC connection is
+first \"established\" and carries out its duties
+`erc-reconnect-display-timeout' seconds later.")
+
 (defvar-local erc--server-last-reconnect-count 0
   "Snapshot of reconnect count when the connection was established.")
 
@@ -902,6 +908,22 @@ EVENT is the message received from the closed connection process."
   (or (with-suppressed-warnings ((obsolete erc-server-reconnecting))
         erc-server-reconnecting)
       (erc--server-reconnect-p event)))
+
+(defun erc--server-last-reconnect-on-disconnect (&rest _)
+  (remove-hook 'erc-disconnected-hook
+               #'erc--server-last-reconnect-on-disconnect t)
+  (erc--server-last-reconnect-display-reset (current-buffer)))
+
+(defun erc--server-last-reconnect-display-reset (buffer)
+  "Deactivate `erc-reconnect-display'."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (when erc--server-reconnect-display-timer
+        (cancel-timer erc--server-reconnect-display-timer)
+        (remove-hook 'erc-disconnected-hook
+                     #'erc--server-last-reconnect-display-reset t)
+        (setq erc--server-reconnect-display-timer nil
+              erc--server-last-reconnect-count 0)))))
 
 (defconst erc--mode-line-process-reconnecting
   '(:eval (erc-with-server-buffer
