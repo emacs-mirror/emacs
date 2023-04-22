@@ -193,9 +193,17 @@ To set the default indent style globally, use
            (c-ts-mode--get-indent-style
             (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
 
-(defvar c-ts-mode-emacs-devel nil
-  "If the value is t, enable Emacs source-specific features.
-This needs to be set before enabling `c-ts-mode'.")
+(defcustom c-ts-mode-emacs-sources-support t
+  "Whether to enable Emacs source-specific features.
+This enables detection of definitions of Lisp function using
+the DEFUN macro.
+This needs to be set before enabling `c-ts-mode'; if you change
+the value after enabling `c-ts-mode', toggle the mode off and on
+again."
+  :version "29.1"
+  :type 'boolean
+  :safe 'booleanp
+  :group 'c)
 
 ;;; Syntax table
 
@@ -671,7 +679,7 @@ MODE is either `c' or `cpp'."
    :override t
    '(((call_expression
        (call_expression function: (identifier) @fn)
-       @c-ts-mode--fontify-defun)
+       @c-ts-mode--fontify-DEFUN)
       (:match "^DEFUN$" @fn)))))
 
 ;;; Font-lock helpers
@@ -735,14 +743,14 @@ OVERRIDE, START, END, and ARGS, see `treesit-font-lock-rules'."
      (treesit-node-start node) (treesit-node-end node)
      'font-lock-variable-use-face override start end)))
 
-(defun c-ts-mode--fontify-defun (node override start end &rest _)
-  "Correctly fontify the DEFUN macro.
+(defun c-ts-mode--fontify-DEFUN (node override start end &rest _)
+  "Correctly fontify calls to the DEFUN macro in Emacs sources.
 For NODE, OVERRIDE, START, and END, see
 `treesit-font-lock-rules'.  The captured NODE is a
-call_expression where DEFUN is the function.
+call_expression node, where DEFUN is the function.
 
-This function corrects the fontification on the colon in
-\"doc:\", and the parameter list."
+This function corrects the fontification of the colon in
+\"doc:\", and of the parameter list."
   (let* ((parent (treesit-node-parent node))
          ;; ARG-LIST-1 and 2 are like this:
          ;;
@@ -808,7 +816,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
           "union_specifier" "class_specifier"
           "namespace_definition")
       (treesit-node-child-by-field-name node "name"))
-     ;; DEFUNs in Emacs source.
+     ;; DEFUNs in Emacs sources.
      ("expression_statement"
       (let* ((call-exp-1 (treesit-node-child node 0))
              (call-exp-2 (treesit-node-child call-exp-1 0))
@@ -885,7 +893,9 @@ the semicolon.  This function skips the semicolon."
     (list node parent bol)))
 
 (defun c-ts-mode--emacs-defun-p (node)
-  "Return non-nil if NODE is a DEFUN in Emacs source files."
+  "Return non-nil if NODE is a Lisp function defined using DEFUN.
+This function detects Lisp primitives defined in Emacs source
+files using the DEFUN macro."
   (and (equal (treesit-node-type node) "expression_statement")
        (equal (treesit-node-text
                (treesit-node-child-by-field-name
@@ -896,23 +906,25 @@ the semicolon.  This function skips the semicolon."
               "DEFUN")))
 
 (defun c-ts-mode--emacs-defun-at-point (&optional range)
-  "Return the current defun node.
+  "Return the defun node at point.
 
-This function recognizes DEFUNs in Emacs source files.
+In addition to regular C functions, this function recognizes
+definitions of Lisp primitrives in Emacs source files using DEFUN,
+if `c-ts-mode-emacs-sources-support' is non-nil.
 
-Note that for the case of a DEFUN, it is made of two separate
-nodes, one for the declaration and one for the body, this
+Note that DEFUN is parsed by tree-sitter as two separate
+nodes, one for the declaration and one for the body; this
 function returns the declaration node.
 
 If RANGE is non-nil, return (BEG . END) where BEG end END
-encloses the whole defun.  This solves the problem of only
-returning the declaration part for DEFUN."
+encloses the whole defun.  This is for when the entire defun
+is required, not just the declaration part for DEFUN."
   (or (when-let ((node (treesit-defun-at-point)))
         (if range
             (cons (treesit-node-start node)
                 (treesit-node-end node))
             node))
-      (and c-ts-mode-emacs-devel
+      (and c-ts-mode-emacs-sources-support
            (let ((candidate-1 ; For when point is in the DEFUN statement.
                   (treesit-node-prev-sibling
                    (treesit-node-top-level
@@ -945,9 +957,10 @@ returning the declaration part for DEFUN."
 
 (defun c-ts-mode--emacs-current-defun-name ()
   "Return the name of the current defun.
-This is used for `add-log-current-defun-function'.  This
-recognizes DEFUN in Emacs sources, in addition to normal function
-definitions."
+This is used for `add-log-current-defun-function'.
+In addition to regular C functions, this function also recognizes
+Emacs primitives defined using DEFUN in Emacs sources,
+if `c-ts-mode-emacs-sources-support' is non-nil."
   (or (treesit-add-log-current-defun)
       (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
 
@@ -1096,7 +1109,7 @@ in your configuration."
     (setq-local treesit-defun-tactic 'top-level)
     (treesit-major-mode-setup)
 
-    (when c-ts-mode-emacs-devel
+    (when c-ts-mode-emacs-sources-support
       (setq-local add-log-current-defun-function
                   #'c-ts-mode--emacs-current-defun-name))))
 
@@ -1141,7 +1154,8 @@ recommended to enable `electric-pair-mode' with this mode."
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'cpp))
     (treesit-major-mode-setup)
-    (when c-ts-mode-emacs-devel
+
+    (when c-ts-mode-emacs-sources-support
       (setq-local add-log-current-defun-function
                   #'c-ts-mode--emacs-current-defun-name))))
 

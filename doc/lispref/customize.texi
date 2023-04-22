@@ -264,11 +264,12 @@ have any number of prefixes.
 @end table
 
 @cindex @code{custom-group} property
-The variables and subgroups of a group are stored in the
+The variables, faces, and subgroups of a group are stored in the
 @code{custom-group} property of the group's symbol.  @xref{Symbol
 Plists}.  The value of that property is a list of pairs whose
-@code{car} is the variable or subgroup symbol and the @code{cdr} is
-either @code{custom-variable} or @code{custom-group}.
+@code{car} is the symbol of the variable or the face or the subgroup,
+and the @code{cdr} is one of the corresponding symbols
+@code{custom-variable}, @code{custom-face}, or @code{custom-group}.
 @end defmac
 
 @defopt custom-unlispify-remove-prefixes

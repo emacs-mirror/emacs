@@ -1245,6 +1245,7 @@ Manual}.
 These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
+@cindex fallback modes
   If you're editing a file across Emacs versions, and a new mode has
 been introduced to handle a file in a newer Emacs version, you can use
 several @code{mode} entries to use the new mode (called

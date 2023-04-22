@@ -78,6 +78,10 @@ This allows the user to customize the prompt that is appended by
 This is used for displaying the time and date components of
 'display-time-mode'.
 
+---
+** New icon images for general use
+Several symbolic icons are added to etc/images/symbols, including
+plus, minus, check-mark, start, etc.
 
 * Editing Changes in Emacs 30.1
 
