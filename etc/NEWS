@@ -282,6 +282,7 @@ mouse to consult an error message.
 
 ** Python mode
 
+---
 *** New user option 'python-indent-block-paren-deeper'.
 If non-nil, increase the indentation of the lines inside parens in a
 header of a block when they are indented to the same level as the body
