@@ -136,6 +136,10 @@ symbol."
               (loop (append res (list buffer)) (cdr buffers))
             (loop res (cdr buffers))))))))
 
+(defun c-ts-indent-style-safep (style)
+  "Non-nil if STYLE's value is safe for file-local variables."
+  (and (symbolp style) (not (functionp style))))
+
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
@@ -150,6 +154,7 @@ follows the form of `treesit-simple-indent-rules'."
                  (symbol :tag "BSD" bsd)
                  (function :tag "A function for user customized style" ignore))
   :set #'c-ts-mode--indent-style-setter
+  :safe 'c-ts-indent-style-safep
   :group 'c)
 
 (defun c-ts-mode--get-indent-style (mode)
