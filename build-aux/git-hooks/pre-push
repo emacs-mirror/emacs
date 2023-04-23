@@ -39,14 +39,17 @@ else
 fi
 
 # Standard input receives lines of the form:
-#   <local ref> SP <local name> SP <remote ref> SP <remote name> LF
+#   <local ref> SP <local sha> SP <remote ref> SP <remote sha> LF
 $awk -v origin_name="$1" '
   # If the local SHA is all zeroes, ignore it.
   $2 ~ /^0{40}$/ {
     next
   }
 
-  $2 ~ /^[a-z0-9]{40}$/ {
+  # Check any lines with a valid local SHA and whose remote ref is
+  # master or an emacs-NN release branch.  (We want to avoid checking
+  # feature or scratch branches here.)
+  $2 ~ /^[a-z0-9]{40}$/ && $3 ~ /^refs/heads/(master|emacs-[0-9]+)$/ {
     newref = $2
     # If the remote SHA is all zeroes, this is a new object to be
     # pushed (likely a branch)...
@@ -78,6 +81,6 @@ $awk -v origin_name="$1" '
     }
 
     # Print every SHA after oldref, up to (and including) newref.
-    system("git rev-list --reverse " oldref ".." newref)
+    system("git rev-list --first-parent --reverse " oldref ".." newref)
   }
 ' | $awk -v reason=pre-push -f .git/hooks/commit-msg-files.awk

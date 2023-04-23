@@ -33,7 +33,7 @@
 function get_commit_changes(commit_sha, changes,    cmd, i, j, len, \
                             bits, filename) {
   # Collect all the files touched in the specified commit.
-  cmd = ("git log -1 --name-status --format= " commit_sha)
+  cmd = ("git show --name-status --first-parent --format= " commit_sha)
   while ((cmd | getline) > 0) {
     for (i = 2; i <= NF; i++) {
       len = split($i, bits, "/")
