@@ -648,6 +648,8 @@
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")
 	     (nil . "ISO8859-6"))
+     (mongolian ,(font-spec :registry "iso10646-1"
+			    :otf '(mong nil (init medi fina))))
 
      (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
 	     (nil . "ISO8859-8"))

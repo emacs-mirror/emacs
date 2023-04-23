@@ -339,6 +339,20 @@ Coptic language using the Coptic script is supported in this
 language environment."))
  '("Misc"))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Traditional Mongolian
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-char-table-range
+ composition-function-table
+ '(#x1820 . #x18AF)
+ (list (vector "[\u200C\u200D][\u1820-\u18AF][\u200C\u200D]?"
+               1 'font-shape-gstring)
+       (vector "[\u1820-\u18AF][\u200C\u200D]" 0 'font-shape-gstring)
+       (vector "[\u1820-\u18AF\u202F\u180B-\u180F\u1807]+"
+               0 'font-shape-gstring)))
+
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here
