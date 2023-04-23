@@ -2263,24 +2263,24 @@ had been enabled."
           (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
 
-(declare-function package-vc-update "package-vc" (pkg))
+(declare-function package-vc-upgrade "package-vc" (pkg))
 
 ;;;###autoload
-(defun package-update (name)
-  "Update package NAME if a newer version exists."
+(defun package-upgrade (name)
+  "Upgrade package NAME if a newer version exists."
   (interactive
    (list (completing-read
-          "Update package: " (package--updateable-packages) nil t)))
+          "Upgrade package: " (package--upgradeable-packages) nil t)))
   (let* ((package (if (symbolp name)
                       name
                     (intern name)))
          (pkg-desc (cadr (assq package package-alist))))
     (if (package-vc-p pkg-desc)
-        (package-vc-update pkg-desc)
+        (package-vc-upgrade pkg-desc)
       (package-delete pkg-desc 'force)
       (package-install package 'dont-select))))
 
-(defun package--updateable-packages ()
+(defun package--upgradeable-packages ()
   ;; Initialize the package system to get the list of package
   ;; symbols for completion.
   (package--archives-initialize)
@@ -2298,23 +2298,23 @@ had been enabled."
     package-alist)))
 
 ;;;###autoload
-(defun package-update-all (&optional query)
+(defun package-upgrade-all (&optional query)
   "Refresh package list and upgrade all packages.
-If QUERY, ask the user before updating packages.  When called
+If QUERY, ask the user before upgrading packages.  When called
 interactively, QUERY is always true."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
-  (let ((updateable (package--updateable-packages)))
-    (if (not updateable)
-        (message "No packages to update")
+  (let ((upgradeable (package--upgradeable-packages)))
+    (if (not upgradeable)
+        (message "No packages to upgrade")
       (when (and query
                  (not (yes-or-no-p
-                       (if (length= updateable 1)
-                           "One package to update.  Do it? "
-                         (format "%s packages to update.  Do it?"
-                                 (length updateable))))))
-        (user-error "Updating aborted"))
-      (mapc #'package-update updateable))))
+                       (if (length= upgradeable 1)
+                           "One package to upgrade.  Do it? "
+                         (format "%s packages to upgrade.  Do it?"
+                                 (length upgradeable))))))
+        (user-error "Upgrade aborted"))
+      (mapc #'package-upgrade upgradeable))))
 
 (defun package--dependencies (pkg)
   "Return a list of all dependencies PKG has.
