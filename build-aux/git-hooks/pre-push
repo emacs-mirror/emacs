@@ -49,19 +49,19 @@ $awk -v origin_name="$1" '
   $2 ~ /^[a-z0-9]{40}$/ {
     newref = $2
     # If the remote SHA is all zeroes, this is a new object to be
-    # pushed (likely a branch).  Go backwards until we find a SHA on
-    # an origin branch.
+    # pushed (likely a branch)...
     if ($4 ~ /^0{40}$/) {
       back = 0
-      cmd = ("git branch -r -l '\''" origin_name "/*'\'' --contains " \
-             newref "~" back)
-      while ((cmd | getline) == 0) {
-
-        # Only look back at most 1000 commits, just in case...
-        if (back++ > 1000)
+      # ... Go backwards until we find a SHA on an origin branch.
+      # Stop trying after 1000 commits, just in case...
+      for (back = 0; back < 1000; back++) {
+        cmd = ("git branch -r -l '\''" origin_name "/*'\''" \
+               " --contains " newref "~" back)
+        rv = (cmd | getline)
+        close(cmd)
+        if (rv > 0)
           break;
       }
-      close(cmd)
 
       cmd = ("git rev-parse " newref "~" back)
       cmd | getline oldref
