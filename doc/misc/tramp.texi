@@ -938,6 +938,16 @@ be used.
 
 This method does not support user names.
 
+@item @option{flatpak}
+@cindex method @option{flatpak}
+@cindex @option{flatpak} method
+
+Integration of Flatpak sandboxes.  The host name may be either an
+application ID, a sandbox instance ID, or a PID, as returned by
+@samp{flatpak ps}.
+
+This method does not support user names.
+
 @end table
 
 

@@ -67,9 +67,10 @@ This is used for displaying the time and date components of
 'display-time-mode'.
 
 ---
-** New icon images for general use
-Several symbolic icons are added to etc/images/symbols, including
+** New icon images for general use.
+Several symbolic icons are added to "etc/images/symbols", including
 plus, minus, check-mark, start, etc.
+
 
 * Editing Changes in Emacs 30.1
 
@@ -104,7 +105,7 @@ If you want to get back the old behavior, set the user option to the value
     (setopt gdb-locals-table-row-config
             `((type . 0) (name . 0) (value . ,gdb-locals-value-limit)))
 
-** Compile
+** Grep
 
 *** New user option 'grep-use-headings'.
 When non-nil, the output of Grep is split into sections, one for each
@@ -203,16 +204,18 @@ point is not in a comment or a string.  It is by default bound to
 ** Tramp
 
 +++
-*** New connection method "toolbox".
-This allows accessing system containers provided by Toolbox.
+*** New connection methods "toolbox" and "flatpak".
+They allow accessing system containers provided by Toolbox or
+sandboxes provided by Flatpak.
 
 +++
-*** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share.
-The old name still exists as defvaralias.  This user option controls
-now connection sharing for both ssh-based and plink-based methods.  It
-allows the values t, nil, and 'suppress'.  The latter suppresses
-also "ControlMaster" settings in the user's "~/.ssh/config" file,
-or connection share configuration in PuTTY sessions, respectively.
+*** Rename 'tramp-use-ssh-controlmaster-options' to 'tramp-use-connection-share'.
+The old name still exists as obsolete variable alias.  This user
+option controls now connection sharing for both ssh-based and
+plink-based methods.  It allows the values t, nil, and 'suppress'.
+The latter suppresses also "ControlMaster" settings in the user's
+"~/.ssh/config" file, or connection share configuration in PuTTY
+sessions, respectively.
 
 ** EWW
 
@@ -280,7 +283,7 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
 
-** Python mode
+** Python Mode
 
 ---
 *** New user option 'python-indent-block-paren-deeper'.
