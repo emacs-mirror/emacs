@@ -1520,6 +1520,35 @@ See Info node `(elisp) Integer Basics'."
   ;; (list) -> nil
   (and (cdr form) form))
 
+(put 'nconc 'byte-optimizer #'byte-optimize-nconc)
+(defun byte-optimize-nconc (form)
+  (pcase (cdr form)
+    ('nil nil)                          ; (nconc) -> nil
+    (`(,x) x)                           ; (nconc X) -> X
+    (_ (named-let loop ((args (cdr form)) (newargs nil))
+         (if args
+             (let ((arg (car args))
+                   (prev (car newargs)))
+               (cond
+                ;; Elide null args.
+                ((null arg) (loop (cdr args) newargs))
+                ;; Merge consecutive `list' args.
+                ((and (eq (car-safe arg) 'list)
+                      (eq (car-safe prev) 'list))
+                 (loop (cons (cons (car prev) (append (cdr prev) (cdr arg)))
+                             (cdr args))
+                       (cdr newargs)))
+                ;; (nconc ... (list A) B ...) -> (nconc ... (cons A B) ...)
+                ((and (eq (car-safe prev) 'list) (cdr prev) (null (cddr prev)))
+                 (loop (cdr args)
+                       (cons (list 'cons (cadr prev) arg)
+                             (cdr newargs))))
+                (t (loop (cdr args) (cons arg newargs)))))
+           (let ((new-form (cons (car form) (nreverse newargs))))
+             (if (equal new-form form)
+                 form
+               new-form)))))))
+
 (put 'append 'byte-optimizer #'byte-optimize-append)
 (defun byte-optimize-append (form)
   ;; There is (probably) too much code relying on `append' to return a
@@ -1572,11 +1601,9 @@ See Info node `(elisp) Integer Basics'."
             ;; (append X) -> X
             ((null newargs) arg)
 
-            ;; (append (list Xs...) nil) -> (list Xs...)
-            ((and (null arg)
-                  newargs (null (cdr newargs))
-                  (consp prev) (eq (car prev) 'list))
-             prev)
+            ;; (append ... (list Xs...) nil) -> (append ... (list Xs...))
+            ((and (null arg) (eq (car-safe prev) 'list))
+             (cons (car form) (nreverse newargs)))
 
             ;; (append '(X) Y)     -> (cons 'X Y)
             ;; (append (list X) Y) -> (cons X Y)
@@ -1587,13 +1614,13 @@ See Info node `(elisp) Integer Basics'."
                               (= (length (cadr prev)) 1)))
                         ((eq (car prev) 'list)
                          (= (length (cdr prev)) 1))))
-             (list 'cons (if (eq (car prev) 'quote)
-                             (macroexp-quote (caadr prev))
-                           (cadr prev))
-                   arg))
+             `(cons ,(if (eq (car prev) 'quote)
+                         (macroexp-quote (caadr prev))
+                       (cadr prev))
+                    ,arg))
 
             (t
-             (let ((new-form (cons 'append (nreverse (cons arg newargs)))))
+             (let ((new-form (cons (car form) (nreverse (cons arg newargs)))))
                (if (equal new-form form)
                    form
                  new-form))))))))

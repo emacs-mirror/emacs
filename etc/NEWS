@@ -298,6 +298,24 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving the buffer or reaching for the
 mouse to consult an error message.
 
+** Python mode
+
+---
+*** New user option 'python-indent-block-paren-deeper'.
+If non-nil, increase the indentation of the lines inside parens in a
+header of a block when they are indented to the same level as the body
+of the block:
+
+    if (some_expression
+            and another_expression):
+        do_something()
+
+instead of:
+
+    if (some_expression
+        and another_expression):
+        do_something()
+
 
 * New Modes and Packages in Emacs 30.1
 

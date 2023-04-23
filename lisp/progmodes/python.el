@@ -1265,10 +1265,58 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   :type '(repeat symbol))
 
 (defcustom python-indent-def-block-scale 2
-  "Multiplier applied to indentation inside multi-line def blocks."
+  "Multiplier applied to indentation inside multi-line blocks.
+The indentation in parens in the block header will be the current
+indentation plus `python-indent-offset' multiplied by this
+variable.  For example, the arguments are indented as follows if
+this variable is 1:
+
+    def do_something(
+        arg1,
+        arg2):
+        print('hello')
+
+if this variable is 2 (default):
+
+    def do_something(
+            arg1,
+            arg2):
+        print('hello')
+
+This variable has an effect on all blocks, not just def block.
+This variable only works if the opening paren is not followed by
+non-whitespace characters on the same line.  Modify
+`python-indent-block-paren-deeper' to customize the case where
+non-whitespace characters follow the opening paren on the same
+line."
   :version "26.1"
   :type 'integer
   :safe 'natnump)
+
+(defcustom python-indent-block-paren-deeper nil
+  "Increase indentation inside parens of a block.
+If non-nil, increase the indentation of the lines inside parens
+in a header of a block when they are indented to the same level
+as the body of the block:
+
+    if (some_expression
+            and another_expression):
+        do_something()
+
+instead of:
+
+    if (some_expression
+        and another_expression):
+        do_something()
+
+This variable only works if the opening paren is followed by
+non-whitespace characters on the same line.  Modify
+`python-indent-def-block-scale' to customize the case where
+non-whitespace character does not follow the opening paren on the
+same line."
+  :version "30.1"
+  :type 'boolean
+  :safe 'booleanp)
 
 (defvar python-indent-current-level 0
   "Deprecated var available for compatibility.")
@@ -1367,6 +1415,10 @@ keyword
  - Point is inside a paren with items starting in their own line
    from a block start.
  - START is the position of the open paren.
+:inside-paren-from-block
+ - Point is inside a paren from a block start followed by some
+   items on the same line.
+ - START is the first non space char position *after* the open paren.
 
 :after-backslash
  - Fallback case when point is after backslash.
@@ -1450,12 +1502,16 @@ keyword
              (starts-in-newline
               (cons :inside-paren-newline-start start))
              ;; General case.
-             (t (cons :inside-paren
-                      (save-excursion
-                        (goto-char (1+ start))
-                        (skip-syntax-forward "(" 1)
-                        (skip-syntax-forward " ")
-                        (point))))))))
+             (t (let ((after-start (save-excursion
+                               (goto-char (1+ start))
+                               (skip-syntax-forward "(" 1)
+                               (skip-syntax-forward " ")
+                               (point))))
+                  (if (save-excursion
+                        (python-nav-beginning-of-statement)
+                        (python-info-looking-at-beginning-of-block))
+                      (cons :inside-paren-from-block after-start)
+                    (cons :inside-paren after-start))))))))
        ;; After backslash.
        ((let ((start (when (not (python-syntax-comment-or-string-p ppss))
                        (python-info-line-ends-backslash-p
@@ -1603,7 +1659,17 @@ possibilities can be narrowed to specific indentation points."
         (`(,(or :inside-paren-newline-start-from-block) . ,start)
          (goto-char start)
          (+ (current-indentation)
-            (* python-indent-offset python-indent-def-block-scale))))))
+            (* python-indent-offset python-indent-def-block-scale)))
+        (`(,:inside-paren-from-block . ,start)
+         (goto-char start)
+         (let ((column (current-column)))
+           (if (and python-indent-block-paren-deeper
+                    (= column (+ (save-excursion
+                                   (python-nav-beginning-of-statement)
+                                   (current-indentation))
+                                 python-indent-offset)))
+               (+ column python-indent-offset)
+             column))))))
 
 (defun python-indent--calculate-levels (indentation)
   "Calculate levels list given INDENTATION.

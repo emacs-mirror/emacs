@@ -6604,10 +6604,11 @@ works.  You will probably need to use @kbd{C-h f}
 (@code{describe-function}).  The newer version uses a conditional to
 determine whether the buffer has been narrowed.
 
-(Also, it uses @code{line-number-at-pos}, which among other simple
-expressions, such as @code{(goto-char (point-min))}, moves point to
-the beginning of the current line with @code{(forward-line 0)} rather
-than @code{beginning-of-line}.)
+Also, the modern version of @code{what-line} uses
+@code{line-number-at-pos}, which among other simple expressions, such
+as @code{(goto-char (point-min))}, moves point to the beginning of the
+current line with @code{(forward-line 0)} rather than
+@code{beginning-of-line}.)
 
 The @code{what-line} function as shown here has a documentation line
 and is interactive, as you would expect.  The next two lines use the
