@@ -728,12 +728,17 @@ Return nil if KEYS is nil."
   :version "29.1")
 
 (defcustom describe-bindings-outline-rules '((match-regexp . "Key translations"))
-  "Visibility rules for outlines in the output buffer of `describe-bindings'.
+  "Visibility rules for outline sections of `describe-bindings'.
 This is used as the value of `outline-default-rules' in the
 output buffer of `describe-bindings' when
 `describe-bindings-outline' is non-nil, otherwise this option
 doesn't have any effect."
-  :type 'boolean
+  :type '(choice (const :tag "Hide unconditionally" nil)
+                 (set :tag "Show section unless"
+                      (cons :tag "Heading matches regexp"
+                            (const match-regexp)  string)
+                      (cons :tag "Custom function returns non-nil"
+                            (const custom-function) function)))
   :group 'help
   :version "30.1")
 
