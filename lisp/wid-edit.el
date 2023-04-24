@@ -4038,6 +4038,7 @@ is inline."
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
   :format "%{%t%}: %[Toggle%]  %v\n"
+  :match (lambda (_widget value) (booleanp value))
   :on "on (non-nil)"
   :off "off (nil)")
 
