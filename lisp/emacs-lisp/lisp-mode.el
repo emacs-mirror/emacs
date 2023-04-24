@@ -1435,6 +1435,16 @@ Any non-integer value means do not use a different value of
   :safe (lambda (x) (or (eq x t) (integerp x)))
   :group 'lisp)
 
+(defcustom lisp-fill-string-by-source-column t
+  "When true, `lisp-fill-paragraph' fills strings in `lisp-mode' in
+such a way that the resulting source code respects `fill-column'.
+Else, the lines of the string are filled as if the string started
+in column 0. For function docstrings, which are typically
+indented by 3 characters, the difference between the two is
+small."
+  :type 'boolean
+  :group 'lisp)
+
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.
 If any of the current line is a comment, fill the comment or the
@@ -1501,14 +1511,19 @@ and initial semicolons."
                 ;; statements that follow the string.
                 (when (ppss-string-terminator ppss)
                   (goto-char (ppss-comment-or-string-start ppss))
-                  ;; The string may be unterminated -- in that case, don't
-                  ;; narrow.
-                  (when (ignore-errors
-                          (progn
-                            (forward-sexp 1)
-                            t))
-                    (narrow-to-region (1+ (ppss-comment-or-string-start ppss))
-                                      (1- (point)))))
+                  (let ((beginning (save-excursion
+                                     (if lisp-fill-string-by-source-column
+                                         (progn
+                                           (beginning-of-line)
+                                           (point))
+                                       (1+ (point))))))
+                    ;; The string may be unterminated -- in that case, don't
+                    ;; narrow.
+                    (when (ignore-errors
+                            (progn
+                              (forward-sexp 1)
+                              t))
+                      (narrow-to-region beginning (1- (point))))))
                 ;; Move back to where we were.
                 (goto-char start)
                 ;; We should fill the first line of a string
