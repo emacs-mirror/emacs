@@ -2395,7 +2395,11 @@ These include:
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
              (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
                                             (+ start base-size)))
-             (base-suffix (buffer-substring (point) (point-max)))
+             (base-suffix
+              (if (eq (alist-get 'category (cdr md)) 'file)
+                  (buffer-substring (save-excursion (or (search-forward "/" nil t) (point-max)))
+                                    (point-max))
+                ""))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
