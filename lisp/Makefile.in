@@ -72,9 +72,10 @@ AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
   ${srcdir}/subdirs.el ${srcdir}/eshell/esh-groups.el
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
+# Set org--inhibit-version-check to avoid unnecessarily aborting the build.
 BYTE_COMPILE_FLAGS = \
   --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
-  --eval "(setq org--built-in-p t)" $(BYTE_COMPILE_EXTRA_FLAGS)
+  --eval "(setq org--inhibit-version-check t)" $(BYTE_COMPILE_EXTRA_FLAGS)
 # ... but we must prefer .elc files for those in the early bootstrap.
 compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
