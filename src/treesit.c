@@ -404,7 +404,9 @@ init_treesit_functions (void)
 
 static Lisp_Object Vtreesit_str_libtree_sitter;
 static Lisp_Object Vtreesit_str_tree_sitter;
+#ifndef WINDOWSNT
 static Lisp_Object Vtreesit_str_dot_0;
+#endif
 static Lisp_Object Vtreesit_str_dot;
 static Lisp_Object Vtreesit_str_question_mark;
 static Lisp_Object Vtreesit_str_star;
@@ -532,15 +534,17 @@ treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
   FOR_EACH_TAIL (suffixes)
     {
       Lisp_Object candidate1 = concat2 (lib_base_name, XCAR (suffixes));
-      /* Support libraries named with ABI version numbers.  In the
-         foreseeable future we only need to support version 0.0.  See
-         the thread titled "Versioned Tree-sitter parser libraries" on
-         emacs-devel.  */
+#ifndef WINDOWSNT
+      /* On Posix hosts, support libraries named with ABI version
+         numbers.  In the foreseeable future we only need to support
+         version 0.0.  For more details, see
+         https://lists.gnu.org/archive/html/emacs-devel/2023-04/msg00386.html.  */
       Lisp_Object candidate2 = concat2 (candidate1, Vtreesit_str_dot_0);
       Lisp_Object candidate3 = concat2 (candidate2, Vtreesit_str_dot_0);
 
       *path_candidates = Fcons (candidate3, *path_candidates);
       *path_candidates = Fcons (candidate2, *path_candidates);
+#endif
       *path_candidates = Fcons (candidate1, *path_candidates);
     }
 }
@@ -3595,8 +3599,10 @@ then in the system default locations for dynamic libraries, in that order.  */);
   Vtreesit_str_libtree_sitter = build_pure_c_string ("libtree-sitter-");
   staticpro (&Vtreesit_str_tree_sitter);
   Vtreesit_str_tree_sitter = build_pure_c_string ("tree-sitter-");
+#ifndef WINDOWSNT
   staticpro (&Vtreesit_str_dot_0);
   Vtreesit_str_dot_0 = build_pure_c_string (".0");
+#endif
   staticpro (&Vtreesit_str_dot);
   Vtreesit_str_dot = build_pure_c_string (".");
   staticpro (&Vtreesit_str_question_mark);
