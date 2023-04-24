@@ -1311,6 +1311,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-set-connection-property p "connected" t)))))))
 
 ;;; Default connection-local variables for Tramp.
+
 (defconst tramp-adb-connection-local-default-shell-variables
   '((shell-file-name . "/system/bin/sh")
     (shell-command-switch . "-c"))

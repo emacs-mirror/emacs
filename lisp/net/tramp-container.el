@@ -47,9 +47,9 @@
 ;;     C-x C-f /kubernetes:POD:/path/to/file
 ;;
 ;; Where:
-;;     POD     is the pod to connect to.
-;;             By default, the first container in that pod will be
-;;             used.
+;;     POD	is the pod to connect to.
+;;		By default, the first container in that pod will be
+;;		used.
 ;;
 ;; Completion for POD and accessing it operate in the current
 ;; namespace, use this command to change it:
@@ -58,7 +58,7 @@
 ;;
 ;;
 ;;
-;; Open a file on an existing toolbox container via Toolbox:
+;; Open a file on an existing Toolbox container:
 ;;
 ;;     C-x C-f /toolbox:CONTAINER:/path/to/file
 ;;
@@ -67,6 +67,16 @@
 ;;
 ;; If the container is not running, it is started.  If no container is
 ;; specified, the default Toolbox container is used.
+;;
+;;
+;;
+;; Open a file on a running Flatpak sandbox:
+;;
+;;     C-x C-f /flatpak:SANDBOX:/path/to/file
+;;
+;; Where:
+;;     SANDBOX	is the running sandbox to connect to.
+;;		It could be an application ID, an instance ID, or a PID.
 
 ;;; Code:
 
@@ -105,6 +115,14 @@
                  (string)))
 
 ;;;###tramp-autoload
+(defcustom tramp-flatpak-program "flatpak"
+  "Name of the Flatpak client program."
+  :group 'tramp
+  :version "30.1"
+  :type '(choice (const "flatpak")
+                 (string)))
+
+;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
 
@@ -119,6 +137,10 @@
 ;;;###tramp-autoload
 (defconst tramp-toolbox-method "toolbox"
   "Tramp method name to use to connect to Toolbox containers.")
+
+;;;###tramp-autoload
+(defconst tramp-flatpak-method "flatpak"
+  "Tramp method name to use to connect to Flatpak sandboxes.")
 
 ;;;###tramp-autoload
 (defun tramp-container--completion-function (program)
@@ -196,6 +218,30 @@ see its function help for a description of the format."
     (mapcar (lambda (name) (list nil name)) (delq nil names))))
 
 ;;;###tramp-autoload
+(defun tramp-flatpak--completion-function (&rest _args)
+  "List Flatpak sandboxes available for connection.
+It returns application IDs or, in case there is no application
+ID, instance IDs.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (when-let ((default-directory tramp-compat-temporary-file-directory)
+	     (raw-list
+	      (shell-command-to-string
+	       (concat tramp-flatpak-program
+		       " ps --columns=instance,application")))
+             (lines (split-string raw-list "\n" 'omit))
+             (names (mapcar
+		     (lambda (line)
+                       (when (string-match
+			      (rx bol (* space) (group (+ (not space)))
+				  (? (+ space) (group (+ (not space)))) eol)
+			      line)
+			 (or (match-string 2 line) (match-string 1 line))))
+                     lines)))
+    (mapcar (lambda (name) (list nil name)) (delq nil names))))
+
+;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
 
 ;;;###tramp-autoload
@@ -253,6 +299,17 @@ see its function help for a description of the format."
 
  (add-to-list 'tramp-default-host-alist `(,tramp-toolbox-method nil ""))
 
+ (add-to-list 'tramp-methods
+	      `(,tramp-flatpak-method
+		(tramp-login-program ,tramp-flatpak-program)
+		(tramp-login-args (("enter")
+				   ("%h")
+				   ("%l")))
+		(tramp-direct-async (,tramp-default-remote-shell "-c"))
+		(tramp-remote-shell ,tramp-default-remote-shell)
+		(tramp-remote-shell-login ("-l"))
+		(tramp-remote-shell-args ("-c"))))
+
  (tramp-set-completion-function
   tramp-docker-method
   `((tramp-container--completion-function
@@ -269,7 +326,25 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-toolbox-method
-  '((tramp-toolbox--completion-function ""))))
+  '((tramp-toolbox--completion-function "")))
+
+ (tramp-set-completion-function
+  tramp-flatpak-method
+  '((tramp-flatpak--completion-function "")))
+
+ ;; Default connection-local variables for Tramp.
+
+ (defconst tramp-container-connection-local-default-flatpak-variables
+   `((tramp-remote-path  . ,(cons "/app/bin" tramp-remote-path)))
+   "Default connection-local variables for remote flatpak connections.")
+
+ (connection-local-set-profile-variables
+  'tramp-container-connection-local-default-flatpak-profile
+  tramp-container-connection-local-default-flatpak-variables)
+
+ (connection-local-set-profiles
+  `(:application tramp :protocol ,tramp-flatpak-method)
+  'tramp-container-connection-local-default-flatpak-profile))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
