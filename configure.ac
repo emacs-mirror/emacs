@@ -1001,7 +1001,7 @@ AC_ARG_ENABLE([gcc-warnings],
    # however, if there is also a .tarball-version file it is probably
    # just a release imported into Git for patch management.
    gl_gcc_warnings=no
-   if test -e "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
+   if test -d "$srcdir"/.git && test ! -f "$srcdir"/.tarball-version; then
       # Clang typically identifies itself as GCC 4.2 or something similar
       # even if it is recent enough to accept the warnings we enable.
       AS_IF([test "$emacs_cv_clang" = yes],
@@ -2034,31 +2034,23 @@ if test "${with_ns}" != no; then
      ns_appresdir=${ns_appdir}/Contents/Resources
      ns_appsrc=Cocoa/Emacs.base
      ns_fontfile=macfont.o
-  elif flags=$( (gnustep-config --objc-flags) 2>/dev/null); then
+  elif flags=`(gnustep-config --objc-flags) 2>/dev/null`; then
      NS_IMPL_GNUSTEP=yes
      NS_GNUSTEP_CONFIG=yes
      GNU_OBJC_CFLAGS="$flags"
-     LIBS_GNUSTEP=$(gnustep-config --gui-libs) || exit
+     LIBS_GNUSTEP=`gnustep-config --gui-libs || exit`
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
      dnl FIXME sourcing this several times in subshells seems inefficient.
-     GNUSTEP_SYSTEM_HEADERS=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_SYSTEM_HEADERS"])
-     )
-     GNUSTEP_SYSTEM_LIBRARIES=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_SYSTEM_LIBRARIES"])
-     )
+     GNUSTEP_SYSTEM_HEADERS=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_SYSTEM_HEADERS"])`
+     GNUSTEP_SYSTEM_LIBRARIES=` . $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_SYSTEM_LIBRARIES"])`
      dnl I seemed to need these as well with GNUstep-startup 0.25.
-     GNUSTEP_LOCAL_HEADERS=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_LOCAL_HEADERS"])
-     )
-     GNUSTEP_LOCAL_LIBRARIES=$(
-       . $GNUSTEP_CONFIG_FILE
-       AS_ECHO(["$GNUSTEP_LOCAL_LIBRARIES"])
-     )
+     GNUSTEP_LOCAL_HEADERS=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_LOCAL_HEADERS"])`
+     GNUSTEP_LOCAL_LIBRARIES=`. $GNUSTEP_CONFIG_FILE \
+       && AS_ECHO(["$GNUSTEP_LOCAL_LIBRARIES"])`
      test "x${GNUSTEP_LOCAL_HEADERS}" != "x" && \
        GNUSTEP_LOCAL_HEADERS="-I${GNUSTEP_LOCAL_HEADERS}"
      test "x${GNUSTEP_LOCAL_LIBRARIES}" != "x" && \
@@ -4207,7 +4199,7 @@ module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
-emacs_major_version="${PACKAGE_VERSION%%.*}"
+emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 
 ### Emacs Lisp native compiler support
@@ -4317,14 +4309,16 @@ if test "${with_native_compilation}" != "no"; then
         # available.  (We filter out the gcc4 packages, because they
         # don't support jit, and they have names like "gcc49" that
         # sort later than "gcc11".)
-        PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+        PORT_PACKAGE=`port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
                             awk '{ print $1; }' | grep -v 'gcc4@<:@0-9@:>@' | \
-                            sort -V | tail -n 1)
+                            sort -V | tail -n 1`
         if test -n "$PORT_PACKAGE"; then
-          MAC_CFLAGS="-I$(dirname $(port contents $PORT_PACKAGE | \
-                                           grep libgccjit.h))"
-          MAC_LIBS="-L$(dirname $(port contents $PORT_PACKAGE | \
-                                              grep libgccjit.dylib))"
+	  emacs_val=`port contents $PORT_PACKAGE | grep libgccjit.h`
+	  emacs_val=`dirname $emacs_val`
+          MAC_CFLAGS="-I$emacs_val"
+	  emacs_val=`port contents $PORT_PACKAGE | grep libgccjit.dylib`
+	  emacs_val=`dirname $emacs_val`
+          MAC_LIBS="-L$emacs_val"
         fi
       fi
 
