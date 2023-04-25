@@ -1546,6 +1546,10 @@ environments are:
 
  Coptic script and language environment
 
+ Mongolian-traditional script and language environment
+
+ Mongolian-cyrillic language environment
+
 ---
 *** The "Oriya" language environment was renamed to "Odia".
 This is to follow the change in the official name of the script.  The
@@ -1587,7 +1591,8 @@ script.
 ---
 *** New input method 'cyrillic-mongolian'.
 This input method is for typing in the Mongolian language using the
-Cyrillic script.
+Cyrillic script.  It is the default input method for the new
+Mongolian-cyrillic language environment, see above.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
