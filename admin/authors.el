@@ -182,7 +182,7 @@ files.")
     ("Philip Kaludercic" "Philip K\\." "Philip K")
     ("Philipp Stephani" "Philipp .*phst@google")
     ("Piotr Zieliński" "Piotr Zielinski")
-    ("Po Lu" "Po Lu Via")               ; looks like a mistake
+    ("Po Lu" "Po Lu Via" "Your Name")   ; looks like a mistake
     ("Przemysław Wojnowski" "Przemyslaw Wojnowski")
     ("R. Bernstein" "rb@dustyfeet.com")
     ("Rainer Schöpf" "Rainer Schoepf")
