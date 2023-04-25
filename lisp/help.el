@@ -727,6 +727,21 @@ Return nil if KEYS is nil."
   :group 'help
   :version "29.1")
 
+(defcustom describe-bindings-outline-rules '((match-regexp . "Key translations"))
+  "Visibility rules for outline sections of `describe-bindings'.
+This is used as the value of `outline-default-rules' in the
+output buffer of `describe-bindings' when
+`describe-bindings-outline' is non-nil, otherwise this option
+doesn't have any effect."
+  :type '(choice (const :tag "Hide unconditionally" nil)
+                 (set :tag "Show section unless"
+                      (cons :tag "Heading matches regexp"
+                            (const match-regexp)  string)
+                      (cons :tag "Custom function returns non-nil"
+                            (const custom-function) function)))
+  :group 'help
+  :version "30.1")
+
 (declare-function outline-hide-subtree "outline")
 
 (defun describe-bindings (&optional prefix buffer)
@@ -756,8 +771,7 @@ or a buffer name."
                       outline-minor-mode-use-buttons 'insert
                       ;; Hide the longest body.
                       outline-default-state 1
-                      outline-default-rules
-                      '((match-regexp . "Key translations")))
+                      outline-default-rules describe-bindings-outline-rules)
           (outline-minor-mode 1)
           (save-excursion
             (goto-char (point-min))
