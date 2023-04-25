@@ -1769,7 +1769,7 @@ or can take a long time to render.
 +++
 *** New command 'enriched-toggle-markup'.
 This allows you to see the markup in 'enriched-mode' buffers (e.g.,
-the "HELLO" file).
+the "HELLO" file).  Bound to 'M-o m' by default.
 
 ** Shell Script Mode
 
