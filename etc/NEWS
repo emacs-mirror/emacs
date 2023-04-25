@@ -1693,6 +1693,13 @@ the following to your Init file:
 This command visits the file on the current line with EWW.
 
 ---
+*** 'browse-url-of-dired-file' can now call the secondary browser.
+When invoked with a prefix arg, this will now call
+'browse-url-secondary-browser-function' instead of the default
+browser.  'browse-url-of-dired-file' is bound to 'W' by default in
+dired mode.
+
+---
 *** New user option 'dired-omit-lines'.
 This is used by 'dired-omit-mode', and now allows you to hide based on
 other things than just the file names.
