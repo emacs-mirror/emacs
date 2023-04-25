@@ -3773,7 +3773,7 @@ if test "${HAVE_X11}" = "yes"; then
 	  AC_DEFINE([HAVE_OTF_GET_VARIATION_GLYPHS], [1],
 		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
 	fi
-	if ! $PKG_CONFIG --atleast-version=0.9.16 libotf; then
+	if $PKG_CONFIG --atleast-version=0.9.16 libotf; then :; else
 	  AC_DEFINE([HAVE_OTF_KANNADA_BUG], [1],
 [Define to 1 if libotf is affected by https://debbugs.gnu.org/28110.])
 	fi
@@ -3881,7 +3881,7 @@ if test "${HAVE_BE_APP}" = "yes"; then
 	  AC_DEFINE([HAVE_OTF_GET_VARIATION_GLYPHS], [1],
 		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
 	fi
-	if ! $PKG_CONFIG --atleast-version=0.9.16 libotf; then
+	if $PKG_CONFIG --atleast-version=0.9.16 libotf; then :; else
 	  AC_DEFINE([HAVE_OTF_KANNADA_BUG], [1],
 [Define to 1 if libotf is affected by https://debbugs.gnu.org/28110.])
 	fi
