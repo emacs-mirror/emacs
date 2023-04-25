@@ -74,7 +74,8 @@ and Italian.")))
 	    (coding-priority utf-8 iso-8859-6 windows-1256)
 	    (input-method . "farsi-transliterate-banan")
 	    (sample-text . "Persian	فارسی")
-	    (documentation . "Bidirectional editing is supported.")))
+	    (documentation . "Bidirectional editing is supported.")
+            (tutorial . "TUTORIAL.fa")))
 
 (defcustom arabic-shaper-ZWNJ-handling nil
   "How to handle ZWNJ (Zero-width Non-Joiner) in Arabic text rendering.
