@@ -2688,6 +2688,15 @@ Emacs so that it isn't compiled with '-O5'.
 We list bugs in current versions here.  See also the section on legacy
 systems.
 
+*** On Solaris 10, running 'configure' with "/bin/sh" produces errors.
+The "/bin/sh" shell on Solaris is an ancient and non-POSIX shell, so
+we recommend not to use it.  The Emacs 'configure' script should find
+an appropriate shell and re-exec itself with that shell, unless you
+force it to use "/bin/sh" by using "CONFIG_SHELL=/bin/sh" on the
+'configure' command line.  So either don't use CONFIG_SHELL, or, if
+you'd rather pick the shell yourself, choose "/bin/bash" or "/bin/ksh"
+or "/usr/xpg4/bin/sh" instead.
+
 *** On Solaris 10 sparc, Emacs crashes during the build while saving state.
 This was observed for Emacs 28.1 on Solaris 10 32-bit sparc, with
 Oracle Developer Studio 12.6 (Sun C 5.15).  The failure was intermittent,
