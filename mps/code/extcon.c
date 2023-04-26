@@ -263,6 +263,16 @@ static void test_main(void *cold_stack_end)
      <https://github.com/Ravenbrook/mps/issues/210>. */
   Insist((void *)&testobj[N_TESTOBJ] <= cold_stack_end);
 
+  if ((void *)&testobj[N_TESTOBJ] > cold_stack_end)
+  {
+    printf("Cold stack marker invalid!\n");
+  } else {
+    printf("Cold stack marker probably valid.\n");
+  }
+
+
+  //assert((void *)&testobj[N_TESTOBJ] <= cold_stack_end);
+
   /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
   obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
   arena_size = ALIGN_OBJ(obj_size + SIZEDIFF);
@@ -384,7 +394,10 @@ static void test_main(void *cold_stack_end)
   mps_pool_destroy(obj_pool);
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
-  
+#if 0
+  printf("&testobj[N_TESTOBJ] = %p\n", (void *)&testobj[N_TESTOBJ]);
+  printf("cold_stack_end = %p\n", cold_stack_end);
+#endif
   if (n_extend == 0) 
     printf("No callbacks received upon arena extended!\n");
   if (n_contract == 0)
