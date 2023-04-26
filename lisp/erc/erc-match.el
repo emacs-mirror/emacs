@@ -654,6 +654,8 @@ See `erc-log-match-format'."
 
 (defvar-local erc-match--hide-fools-offset-bounds nil)
 
+;; FIXME this should merge with instead of overwrite existing
+;; `invisible' values.
 (defun erc-hide-fools (match-type _nickuserhost _message)
  "Hide foolish comments.
 This function should be called from `erc-text-matched-hook'."

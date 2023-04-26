@@ -221,8 +221,13 @@ messages less than a day apart."
   (let ((inhibit-field-text-motion t))
     (erc-fill--wrap-move #'move-beginning-of-line
                          #'beginning-of-visual-line arg))
-  (when (get-text-property (point) 'erc-prompt)
-    (goto-char erc-input-marker)))
+  (if (get-text-property (point) 'erc-prompt)
+      (goto-char erc-input-marker)
+    ;; Mimic what `move-beginning-of-line' does with invisible text.
+    (when-let ((erc-fill-wrap-merge)
+               (empty (get-text-property (point) 'display))
+               ((string-empty-p empty)))
+      (goto-char (text-property-not-all (point) (pos-eol) 'display empty)))))
 
 (defun erc-fill--wrap-end-of-line (arg)
   "Defer to `move-end-of-line' or `end-of-visual-line'."
@@ -389,6 +394,9 @@ See `erc-fill-wrap-mode' for details."
                    (progn
                      (skip-syntax-forward "^-")
                      (forward-char)
+                     ;; Using the `invisible' property might make more
+                     ;; sense, but that would require coordination
+                     ;; with other modules, like `erc-match'.
                      (cond ((and erc-fill-wrap-merge
                                  (erc-fill--wrap-continued-message-p))
                             (put-text-property (point-min) (point)

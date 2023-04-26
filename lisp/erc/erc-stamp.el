@@ -198,13 +198,15 @@ may not be unique, `equal'-wise."
 
 This function is meant to be called from `erc-insert-modify-hook'
 or `erc-send-modify-hook'."
-  (unless (get-text-property (point-min) 'invisible)
+  (progn ; remove this `progn' on next major refactor
     (let* ((ct (erc-stamp--current-time))
+           (invisible (get-text-property (point-min) 'invisible))
            (erc-stamp--current-time ct))
-      (funcall erc-insert-timestamp-function
-               (erc-format-timestamp ct erc-timestamp-format))
+      (unless invisible
+        (funcall erc-insert-timestamp-function
+                 (erc-format-timestamp ct erc-timestamp-format)))
       ;; FIXME this will error when advice has been applied.
-      (when (and (fboundp erc-insert-away-timestamp-function)
+      (when (and (not invisible) (fboundp erc-insert-away-timestamp-function)
 		 erc-away-timestamp-format
 		 (erc-away-time)
 		 (not erc-timestamp-format))
