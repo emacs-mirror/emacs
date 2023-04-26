@@ -105,6 +105,12 @@
     ">>" "%=" ">>=" "--" "!"  "..."  "&^" "&^=" "~")
   "Go operators for tree-sitter font-locking.")
 
+(defun go-ts-mode--iota-query-supported-p ()
+  "Returns t if the iota query is supported by the current version of
+the tree-sitter-go grammar."
+  (ignore-errors
+    (or (treesit-query-string "" '((iota) @font-lock-constant-face) 'go) t)))
+
 (defvar go-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'go
@@ -117,7 +123,9 @@
 
    :language 'go
    :feature 'constant
-   '([(false) (iota) (nil) (true)] @font-lock-constant-face
+   `([(false) (nil) (true)] @font-lock-constant-face
+     ,@(when (go-ts-mode--iota-query-supported-p)
+         '((iota) @font-lock-constant-face))
      (const_declaration
       (const_spec name: (identifier) @font-lock-constant-face)))
 
