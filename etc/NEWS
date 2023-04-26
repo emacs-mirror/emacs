@@ -222,6 +222,11 @@ The latter suppresses also "ControlMaster" settings in the user's
 "~/.ssh/config" file, or connection share configuration in PuTTY
 sessions, respectively.
 
++++
+*** New command 'tramp-cleanup-some-buffers'.
+It allows to kill only selected remote buffers, controlled by user
+option 'tramp-cleanup-some-buffers-hook'.
+
 ** EWW
 
 +++
@@ -239,7 +244,7 @@ for tab completion.
 +++
 *** 'eww' URL and keyword prompt now completes suggested URIs and bookmarks.
 The interactive minibuffer prompt when invoking 'eww' now provides
-completions from 'eww-suggest-uris'. 'eww-suggest-uris' now includes
+completions from 'eww-suggest-uris'.  'eww-suggest-uris' now includes
 bookmark URIs.
 
 ** go-ts-mode

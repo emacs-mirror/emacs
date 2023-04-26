@@ -720,8 +720,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-get-connection-name vec)
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
-      (process-put p 'tramp-vector vec)
-      (set-process-query-on-exit-flag p nil)
+      (tramp-post-process-creation p vec)
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)
@@ -755,12 +754,9 @@ in case of error, t otherwise."
 	   (tramp-cache-read-persistent-data t)
 	   ;; We do not want to save the password.
 	   auth-source-save-behavior)
-      (tramp-message vec 6 "%s" (string-join (process-command p) " "))
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (process-put p 'tramp-vector vec)
-      (process-put p 'adjust-window-size-function #'ignore)
-      (set-process-query-on-exit-flag p nil)
+      (tramp-post-process-creation p vec)
       (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))

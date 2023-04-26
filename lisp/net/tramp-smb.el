@@ -556,13 +556,7 @@ arguments to pass to the OPERATION."
 				     (tramp-get-connection-name v)
 				     (tramp-get-connection-buffer v)
 				     tramp-smb-program args)))
-
-			    (tramp-message
-			     v 6 "%s" (string-join (process-command p) " "))
-			    (process-put p 'tramp-vector v)
-			    (process-put
-			     p 'adjust-window-size-function #'ignore)
-			    (set-process-query-on-exit-flag p nil)
+			    (tramp-post-process-creation p v)
 			    (tramp-process-actions
 			     p v nil tramp-smb-actions-with-tar)
 
@@ -816,12 +810,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			  (tramp-get-connection-name v)
 			  (tramp-get-connection-buffer v)
 			  tramp-smb-acl-program args)))
-
-		  (tramp-message
-		   v 6 "%s" (string-join (process-command p) " "))
-		  (process-put p 'tramp-vector v)
-		  (process-put p 'adjust-window-size-function #'ignore)
-		  (set-process-query-on-exit-flag p nil)
+		  (tramp-post-process-creation p v)
 		  (tramp-process-actions p v nil tramp-smb-actions-get-acl)
 		  (when (> (point-max) (point-min))
 		    (substring-no-properties (buffer-string))))))))))))
@@ -1416,12 +1405,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			(tramp-get-connection-name v)
 			(tramp-get-connection-buffer v)
 			tramp-smb-acl-program args)))
-
-		(tramp-message
-		 v 6 "%s" (string-join (process-command p) " "))
-		(process-put p 'tramp-vector v)
-		(process-put p 'adjust-window-size-function #'ignore)
-		(set-process-query-on-exit-flag p nil)
+		(tramp-post-process-creation p v)
 		(tramp-process-actions p v nil tramp-smb-actions-set-acl)
 		;; This is meant for traces, and returning from
 		;; the function.  No error is propagated outside,
@@ -1965,11 +1949,7 @@ If ARGUMENT is non-nil, use it as argument for
 			       (if argument
 				   tramp-smb-winexe-program tramp-smb-program)
 			       args))))
-
-	      (tramp-message vec 6 "%s" (string-join (process-command p) " "))
-	      (process-put p 'tramp-vector vec)
-	      (process-put p 'adjust-window-size-function #'ignore)
-	      (set-process-query-on-exit-flag p nil)
+	      (tramp-post-process-creation p vec)
 
 	      ;; Set connection-local variables.
 	      (tramp-set-connection-local-variables vec)

@@ -297,16 +297,6 @@ is greater than 10.
        (tramp--test-message
 	"%s %f sec" ,message (float-time (time-subtract nil start))))))
 
-;; `always' is introduced with Emacs 28.1.
-(defalias 'tramp--test-always
-  (if (fboundp 'always)
-      #'always
-    (lambda (&rest _arguments)
-      "Do nothing and return t.
-This function accepts any number of ARGUMENTS, but ignores them.
-Also see `ignore'."
-      t)))
-
 (ert-deftest tramp-test00-availability ()
   "Test availability of Tramp functions."
   :expected-result (if (tramp--test-enabled) :passed :failed)
@@ -2563,9 +2553,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; `tramp-test39-make-lock-file-name'.
 
 	    ;; Do not overwrite if excluded.
-	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp--test-always)
+	    (cl-letf (((symbol-function #'y-or-n-p) #'tramp-compat-always)
 		      ;; Ange-FTP.
-		      ((symbol-function 'yes-or-no-p) #'tramp--test-always))
+		      ((symbol-function 'yes-or-no-p) #'tramp-compat-always))
 	      (write-region "foo" nil tmp-name nil nil nil 'mustbenew))
 	    (should-error
 	     (cl-letf (((symbol-function #'y-or-n-p) #'ignore)
@@ -3991,7 +3981,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should-error
 		 (make-symbolic-link tmp-name1 tmp-name2 0)
 		 :type 'file-already-exists)))
-	    (cl-letf (((symbol-function #'yes-or-no-p) #'tramp--test-always))
+	    (cl-letf (((symbol-function #'yes-or-no-p) #'tramp-compat-always))
 	      (make-symbolic-link tmp-name1 tmp-name2 0)
 	      (should
 	       (string-equal
@@ -4071,7 +4061,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (should-error
 		(add-name-to-file tmp-name1 tmp-name2 0)
 		:type 'file-already-exists))
-	     (cl-letf (((symbol-function #'yes-or-no-p) #'tramp--test-always))
+	     (cl-letf (((symbol-function #'yes-or-no-p) #'tramp-compat-always))
 	       (add-name-to-file tmp-name1 tmp-name2 0)
 	       (should (file-regular-p tmp-name2)))
 	     (add-name-to-file tmp-name1 tmp-name2 'ok-if-already-exists)
@@ -5202,7 +5192,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
        ;; `file-truename' does it by side-effect.  Suppress
        ;; `tramp--test-enabled', in order to keep the connection.
        ;; Suppress "Process ... finished" messages.
-       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp--test-always)
+       (cl-letf (((symbol-function #'tramp--test-enabled) #'tramp-compat-always)
 		 ((symbol-function #'internal-default-process-sentinel)
 		  #'ignore))
 	 (file-truename ert-remote-temporary-file-directory)
@@ -6410,7 +6400,7 @@ INPUT, if non-nil, is a string sent to the process."
 		  (tramp-cleanup-connection
 		   tramp-test-vec 'keep-debug 'keep-password)
 		  (cl-letf (((symbol-function #'yes-or-no-p)
-			     #'tramp--test-always))
+			     #'tramp-compat-always))
 		    (should (stringp (make-auto-save-file-name))))))))
 
 	;; Cleanup.
@@ -6556,8 +6546,7 @@ INPUT, if non-nil, is a string sent to the process."
 		 :type 'file-error))
 	      (tramp-cleanup-connection
 	       tramp-test-vec 'keep-debug 'keep-password)
-	      (cl-letf (((symbol-function #'yes-or-no-p)
-			 #'tramp--test-always))
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'tramp-compat-always))
 		(should (stringp (car (find-backup-file-name tmp-name1)))))))
 
 	;; Cleanup.
@@ -6712,8 +6701,7 @@ INPUT, if non-nil, is a string sent to the process."
 		 :type 'file-error))
 	      (tramp-cleanup-connection
 	       tramp-test-vec 'keep-debug 'keep-password)
-	      (cl-letf (((symbol-function #'yes-or-no-p)
-			 #'tramp--test-always))
+	      (cl-letf (((symbol-function #'yes-or-no-p) #'tramp-compat-always))
 		(write-region "foo" nil tmp-name1))))
 
 	;; Cleanup.
@@ -6783,7 +6771,8 @@ INPUT, if non-nil, is a string sent to the process."
 			(should (file-locked-p tmp-name)))))
 
 		  ;; `save-buffer' removes the file lock.
-		  (cl-letf (((symbol-function 'yes-or-no-p) #'tramp--test-always)
+		  (cl-letf (((symbol-function 'yes-or-no-p)
+			     #'tramp-compat-always)
 			    ((symbol-function 'read-char-choice)
 			     (lambda (&rest _) ?y)))
 		    (should (buffer-modified-p))
