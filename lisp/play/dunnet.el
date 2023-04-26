@@ -1132,9 +1132,14 @@ treasures for points?" "4" "four")
 
 ;;;; Mode definitions for interactive mode
 
+;; Actually defined in textconv.c.
+(defvar text-conversion-style)
+
 (define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
   :interactive nil
+  ;; Make sure RET is processed by Emacs.
+  (setq text-conversion-style 'action)
   (setq-local scroll-step 2))
 
 (defun dun-parse (_arg)
