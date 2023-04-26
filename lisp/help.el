@@ -737,7 +737,7 @@ doesn't have any effect."
                  (set :tag "Show section unless"
                       (cons :tag "Heading matches regexp"
                             (const match-regexp)  string)
-                      (cons :tag "Custom function returns non-nil"
+                      (cons :tag "Custom function to show/hide sections"
                             (const custom-function) function)))
   :group 'help
   :version "30.1")
