@@ -1571,15 +1571,14 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (minibuffer-selected-window)
         (select-window (minibuffer-selected-window)))
-      ;; Remove window parameters that can cause problems
-      ;; with `delete-other-windows' and `split-window'.
-      (unless (eq tab-bar-new-tab-choice 'clone)
-        (set-window-parameter nil 'window-atom nil)
-        (set-window-parameter nil 'window-side nil))
-      (let ((ignore-window-parameters t))
+      (let ((ignore-window-parameters t)
+            (window--sides-inhibit-check t))
         (if (eq tab-bar-new-tab-choice 'clone)
             ;; Create new unique windows with the same layout
             (window-state-put (window-state-get))
+          ;; Remove window parameters that can cause problems
+          ;; with `delete-other-windows' and `split-window'.
+          (set-window-parameter nil 'window-atom nil)
           (delete-other-windows)
           (if (eq tab-bar-new-tab-choice 'window)
               ;; Create new unique window from remaining window

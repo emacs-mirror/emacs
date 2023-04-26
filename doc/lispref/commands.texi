@@ -2504,6 +2504,17 @@ as @code{set-language-environment}), use the
 ;; Get the full localized name of the language
 (w32-get-locale-info language-id t)
 @end smallexample
+
+@cindex @code{end-session} event
+@item end-session
+This event is generated on MS-Windows when the operating system
+informs Emacs that the user terminated the interactive session, or
+that the system is shutting down.  The standard definition of this
+event is to invoke the @code{kill-emacs} command (@pxref{Killing
+Emacs}) so as to shut down Emacs in an orderly fashion; if there are
+unsaved changes, this will produce auto-save files
+(@pxref{Auto-Saving}) that the user can use after restarting the
+session to restore the unsaved edits.
 @end table
 
   If one of these events arrives in the middle of a key sequence---that

@@ -1820,9 +1820,11 @@ INFO is a plist used as a communication channel.  See
   "Protect special chars, then wrap TEXT in \"\\texttt{}\"."
   (format "\\texttt{%s}"
           (replace-regexp-in-string
-           "--\\|[\\{}$%&_#~^]"
+           "--\\|<<\\|>>\\|[\\{}$%&_#~^]"
            (lambda (m)
              (cond ((equal m "--") "-{}-{}")
+                   ((equal m "<<") "<{}<{}")
+                   ((equal m ">>") ">{}>{}")
                    ((equal m "\\") "\\textbackslash{}")
                    ((equal m "~") "\\textasciitilde{}")
                    ((equal m "^") "\\textasciicircum{}")

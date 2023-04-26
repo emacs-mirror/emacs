@@ -249,6 +249,17 @@ the new argument NEW-BUFFER non-nil, it will use a new buffer instead.
 Interactively, invoke 'eww-open-file' with a prefix argument to
 activate this behavior.
 
+---
+*** 'eww' URL or keyword prompt now has tab completion.
+The interactive minibuffer prompt when invoking 'eww' now has support
+for tab completion.
+
++++
+*** 'eww' URL and keyword prompt now completes suggested URIs and bookmarks.
+The interactive minibuffer prompt when invoking 'eww' now provides
+completions from 'eww-suggest-uris'. 'eww-suggest-uris' now includes
+bookmark URIs.
+
 ** go-ts-mode
 
 +++

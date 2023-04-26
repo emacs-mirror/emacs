@@ -650,6 +650,7 @@ with some explanatory links."
 	  (delete-region prop-start prop-end))))))
 
 (defvar tutorial--starting-point)
+(put 'tutorial--starting-point 'permanent-local t)
 (defun tutorial--save-on-kill ()
   "Query the user about saving the tutorial when killing Emacs."
   (when (buffer-live-p tutorial--buffer)

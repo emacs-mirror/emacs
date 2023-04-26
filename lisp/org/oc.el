@@ -1232,7 +1232,9 @@ from the processor set in `org-cite-activate-processor'."
       (let ((cite (org-with-point-at (match-beginning 0)
                     (org-element-citation-parser))))
         (when cite
-          (funcall activate cite)
+          ;; Do not alter match data as font-lock expects us to set it
+          ;; appropriately.
+          (save-match-data (funcall activate cite))
           ;; Move after cite object and make sure to return
           ;; a non-nil value.
           (goto-char (org-element-property :end cite)))))))

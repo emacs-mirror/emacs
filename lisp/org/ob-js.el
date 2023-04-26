@@ -69,7 +69,10 @@
   :safe #'stringp)
 
 (defvar org-babel-js-function-wrapper
-  "require('process').stdout.write(require('util').inspect(function(){%s}()));"
+  ;; Note that newline after %s - it makes sure that closing
+  ;; parenthesis are not shadowed if the last line of the body is a
+  ;; line comment.
+  "require('process').stdout.write(require('util').inspect(function(){%s\n}()));"
   "Javascript code to print value of body.")
 
 (defun org-babel-execute:js (body params)

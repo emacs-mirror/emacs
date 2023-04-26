@@ -857,17 +857,17 @@ This value stands for the value of the corresponding attribute of the
 inheriting from other faces.
 
 +++
-** New X resource: "borderThickness".
+** New X resource "borderThickness".
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
 
 +++
-** New X resource: "inputStyle".
+** New X resource "inputStyle".
 This controls the style of the pre-edit and status areas of X input
 methods.
 
 +++
-** New X resources: "highlightForeground" and "highlightBackground".
+** New X resources "highlightForeground" and "highlightBackground".
 Only in the Lucid build, this controls colors used for highlighted
 menu item widgets.
 
@@ -1546,6 +1546,10 @@ environments are:
 
  Coptic script and language environment
 
+ Mongolian-traditional script and language environment
+
+ Mongolian-cyrillic language environment
+
 ---
 *** The "Oriya" language environment was renamed to "Odia".
 This is to follow the change in the official name of the script.  The
@@ -1559,7 +1563,10 @@ Type 'C-u C-h t' to select it in case your language setup does not do
 so automatically.
 
 ---
-*** New Ukrainian translation of the Emacs Tutorial.
+*** New Ukrainian translation of the Emacs tutorial.
+
+---
+*** New Farsi/Persian translation of the Emacs tutorial.
 
 ---
 *** New default phonetic input method for the Tamil language environment.
@@ -1587,7 +1594,8 @@ script.
 ---
 *** New input method 'cyrillic-mongolian'.
 This input method is for typing in the Mongolian language using the
-Cyrillic script.
+Cyrillic script.  It is the default input method for the new
+Mongolian-cyrillic language environment, see above.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
@@ -2664,7 +2672,7 @@ The old name was confusing, and is now an obsolete function alias.
 ** Images
 
 +++
-** New commands 'image-crop' and 'image-cut'.
+*** New commands 'image-crop' and 'image-cut'.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
 in the local keymap over images.  They rely on external programs, by
@@ -2672,7 +2680,7 @@ default "convert" from ImageMagick, to do the actual cropping/eliding
 of the image file.
 
 +++
-*** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
+*** New commands 'image-flip-horizontally' and 'image-flip-vertically'.
 These commands horizontally and vertically flip the image under point,
 and are bound to 'i h' and 'i v', respectively.
 
