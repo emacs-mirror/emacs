@@ -1531,7 +1531,16 @@ See Info node `(elisp) Integer Basics'."
                    (prev (car newargs)))
                (cond
                 ;; Elide null args.
-                ((null arg) (loop (cdr args) newargs))
+                ((and (null arg)
+                      ;; Don't elide a terminal nil unless preceded by
+                      ;; a nonempty proper list, since that will have
+                      ;; its last cdr forced to nil.
+                      (or (cdr args)
+                          ;; FIXME: prove the 'nonempty proper list' property
+                          ;; for more forms than just `list', such as
+                          ;; `append', `mapcar' etc.
+                          (eq 'list (car-safe (car newargs)))))
+                 (loop (cdr args) newargs))
                 ;; Merge consecutive `list' args.
                 ((and (eq (car-safe arg) 'list)
                       (eq (car-safe prev) 'list))
