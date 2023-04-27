@@ -2267,7 +2267,11 @@ had been enabled."
 
 ;;;###autoload
 (defun package-upgrade (name)
-  "Upgrade package NAME if a newer version exists."
+  "Upgrade package NAME if a newer version exists.
+
+Currently, packages which are part of the Emacs distribution
+cannot be upgraded that way.  Use `i' after `M-x list-packages' to
+upgrade to an ELPA version first."
   (interactive
    (list (completing-read
           "Upgrade package: " (package--upgradeable-packages) nil t)))
@@ -2301,7 +2305,11 @@ had been enabled."
 (defun package-upgrade-all (&optional query)
   "Refresh package list and upgrade all packages.
 If QUERY, ask the user before upgrading packages.  When called
-interactively, QUERY is always true."
+interactively, QUERY is always true.
+
+Currently, packages which are part of the Emacs distribution are
+not upgraded that way.  Use `i' after `M-x list-packages' to
+upgrade to an ELPA version first."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
   (let ((upgradeable (package--upgradeable-packages)))
