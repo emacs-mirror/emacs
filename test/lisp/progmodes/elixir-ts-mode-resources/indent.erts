@@ -79,6 +79,18 @@ def foo() do
 end
 =-=-=
 
+Name: Bitstring mulitline
+
+=-=
+<<12, 22,
+22, 32
+    >>
+=-=
+<<12, 22,
+  22, 32
+>>
+=-=-=
+
 Name: Block assignments
 
 =-=
