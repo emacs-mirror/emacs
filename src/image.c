@@ -634,8 +634,10 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   dpyinfo->bitmaps[id - 1].width = width;
   dpyinfo->bitmaps[id - 1].refcount = 1;
 
-#if defined HAVE_X_WINDOWS && defined HAVE_ANDROID
+#if defined HAVE_X_WINDOWS || defined HAVE_ANDROID
+#ifndef ANDROID_STUBIFY
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+#endif /* ANDROID_STUBIFY */
   dpyinfo->bitmaps[id - 1].have_mask = false;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #ifdef USE_CAIRO
