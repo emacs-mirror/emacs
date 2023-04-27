@@ -7938,6 +7938,10 @@ ns_in_echo_area (void)
   [self setLayerContentsRedrawPolicy:
           NSViewLayerContentsRedrawOnSetNeedsDisplay];
   [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
+
+  /* initWithEmacsFrame can't create the toolbar before the layer is
+     set, so have another go at creating the toolbar here.  */
+  [(EmacsWindow*)[self window] createToolbar:f];
 #endif
 
   if (ns_drag_types)
@@ -9182,10 +9186,17 @@ ns_in_echo_area (void)
 
 - (void)createToolbar: (struct frame *)f
 {
-  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f))
+  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
     return;
 
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  /* If the view's layer isn't an EmacsLayer then we can't create the
+     toolbar yet.  */
+  if (! [[view layer] isKindOfClass:[EmacsLayer class]])
+    return;
+#endif
 
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
