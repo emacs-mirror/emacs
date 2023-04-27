@@ -378,13 +378,16 @@ See `treesit-query-capture' for QUERY."
 (defun treesit-query-range (node query &optional beg end)
   "Query the current buffer and return ranges of captured nodes.
 
-QUERY, NODE, BEG, END are the same as in
-`treesit-query-capture'.  This function returns a list
-of (START . END), where START and END specifics the range of each
-captured node.  Capture names don't matter."
+QUERY, NODE, BEG, END are the same as in `treesit-query-capture'.
+This function returns a list of (START . END), where START and
+END specifics the range of each captured node.  Capture names
+generally don't matter, but names that starts with an underscore
+are ignored."
   (cl-loop for capture
            in (treesit-query-capture node query beg end)
+           for name = (car capture)
            for node = (cdr capture)
+           if (not (string-prefix-p "_" (symbol-name name)))
            collect (cons (treesit-node-start node)
                          (treesit-node-end node))))
 
@@ -398,6 +401,9 @@ When updating the range of each parser in the buffer,
 `treesit-update-ranges' queries each QUERY, and sets LANGUAGE's
 range to the range spanned by captured nodes.  QUERY must be a
 compiled query.
+
+Capture names generally don't matter, but names that starts with
+an underscore are ignored.
 
 QUERY can also be a function, in which case it is called with 2
 arguments, START and END.  It should ensure parsers' ranges are
@@ -417,6 +423,9 @@ like this:
 
 Each QUERY is a tree-sitter query in either the string,
 s-expression or compiled form.
+
+Capture names generally don't matter, but names that starts with
+an underscore are ignored.
 
 For each QUERY, :KEYWORD and VALUE pairs add meta information to
 it.  For example,
