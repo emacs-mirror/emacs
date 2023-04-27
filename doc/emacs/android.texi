@@ -230,9 +230,9 @@ version of Android allows this restriction to be disabled on a
 per-program basis; the corresponding option in the system settings
 panel is:
 
-@indentedblock
+@example
 System -> Apps -> Special App Access -> All files access -> Emacs
-@end indentedblock
+@end example
 
   After you disable or enable this setting as appropriate and grant
 Emacs the ``Files and Media'' permission, it will be able to access
@@ -520,9 +520,9 @@ important to you, this ability can be restored by granting Emacs
 permission to display over other programs.  Normally, this can be done
 from the:
 
-@indentedblock
+@example
 System -> Apps -> Emacs -> More -> Display over other apps
-@end indentedblock
+@end example
 
 menu in the system settings, but this procedure may vary by device.
 
