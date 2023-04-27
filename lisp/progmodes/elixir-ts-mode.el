@@ -257,7 +257,6 @@
        ((node-is "^stab_clause$") parent-bol ,offset)
        ((query ,elixir-ts--capture-operator-parent) grand-parent 0)
        ((node-is "^when$") parent 0)
-       ((node-is "^keywords$") parent-bol ,offset)
        ((parent-is "^body$")
         (lambda (node parent _)
           (save-excursion
@@ -272,6 +271,7 @@
         ,'elixir-ts--argument-indent-anchor
         ,'elixir-ts--argument-indent-offset)
        ;; Handle incomplete maps when parent is ERROR.
+       ((node-is "^keywords$") parent-bol ,offset)
        ((n-p-gp "^binary_operator$" "ERROR" nil) parent-bol 0)
        ;; When there is an ERROR, just indent to prev-line.
        ((parent-is "ERROR") prev-line ,offset)

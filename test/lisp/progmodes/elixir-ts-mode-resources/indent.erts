@@ -193,7 +193,19 @@ tuple = {
 }
 =-=-=
 
-Name: Spec and method
+Name: Call with keywords
+
+=-=
+def foo() do
+  bar(:one,
+      :two,
+      one: 1,
+      two: 2
+  )
+end
+=-=-=
+
+Name: Call with @spec
 
 =-=
 @spec foobar(
