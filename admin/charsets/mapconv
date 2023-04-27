@@ -38,7 +38,7 @@
 ## So that eg [A-F] as used by KANJI-DATABASE branch below works as expected.
 ## Otherwise with LANG=en_US.utf8, CNS-6.map was generated with a
 ## bogus entry.  By experiment, LC_COLLATE=C was not enough.
-LC_ALL=c
+LC_ALL=C
 export LC_ALL
 
 BASE=`expr "$1" : '.*/\(.*\)' '|' "$1"` # basename
