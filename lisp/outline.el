@@ -1500,8 +1500,10 @@ corresponding level.  See `outline-default-rules' to customize
 visibility of the subtree at that level.
 
 If equal to a lambda function or function name, this function is
-expected to toggle headings visibility, and will be
-called without arguments after the mode is enabled."
+expected to toggle headings visibility, and will be called
+without arguments after the mode is enabled.  Heading visibility
+can be changed with functions such as `outline-show-subtree',
+`outline-show-entry', `outline-hide-entry' etc."
   :version "29.1"
   :type '(choice (const :tag "Disabled" nil)
                  (const :tag "Show all" outline-show-all)

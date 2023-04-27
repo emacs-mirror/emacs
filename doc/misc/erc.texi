@@ -1477,9 +1477,29 @@ questions.  You can also try the relatively quiet @samp{#erc}, on the
 same network, for more involved questions.
 
 @item
+@anchor{Upgrading}
 You can check GNU ELPA between Emacs releases to see if a newer
 version is available that might contain a fix for your issue:
 @uref{https://elpa.gnu.org/packages/erc.html}.
+
+To upgrade, run @kbd{M-x list-packages @key{RET}}.  In the
+@file{*Packages*} (@code{package-menu-mode}) buffer, click the
+@samp{erc} package link for the desired version.  If unsure, or if the
+version column is too narrow to tell, try the bottom-most candidate.
+In the resulting @code{help-mode} buffer, confirm the version and
+click @samp{Install}.  Make sure to restart Emacs before reconnecting
+to IRC, and don't forget that you can roll back to the previous
+version by running @kbd{M-x package-delete @key{RET}}.
+@xref{Packages,,,emacs, the Emacs manual} for more information.
+
+In the rare instance you need an emergency fix or have volunteered to
+test an edge feature between ERC releases, you can try adding
+@samp{("devel" . "https://elpa.gnu.org/devel/")} to
+@code{package-archives} prior to performing the steps above.  For
+this, you'll want to instead select a ``snapshot'' version from the
+menu.  Please be aware that when going this route, the latest changes
+may not yet be available and you run the risk of incurring other bugs
+and encountering unstable features.
 
 @item
 To report a bug in ERC, use @kbd{M-x erc-bug}.
