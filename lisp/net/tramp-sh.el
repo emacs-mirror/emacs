@@ -2426,14 +2426,11 @@ The method used must be an out-of-band method."
 		      (tramp-get-connection-name v)
 		      (tramp-get-connection-buffer v)
 		      copy-program copy-args)))
-		(tramp-message v 6 "%s" (string-join (process-command p) " "))
-		(process-put p 'tramp-vector v)
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)
-		(process-put p 'adjust-window-size-function #'ignore)
-		(set-process-query-on-exit-flag p nil)
+		(tramp-post-process-creation p v)
 
 		;; We must adapt `tramp-local-end-of-line' for sending
 		;; the password.  Also, we indicate that perhaps
@@ -2934,6 +2931,7 @@ implementation will be used."
 		 v 'file-error "Stderr buffer `%s' not supported" stderr))
 	      (with-current-buffer stderr
 		(setq buffer-read-only nil))
+	      (tramp-taint-remote-process-buffer stderr)
 	      ;; Create named pipe.
 	      (tramp-send-command
 	       v (format (tramp-get-remote-mknod-or-mkfifo v) tmpstderr))
@@ -3759,8 +3757,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   v 'file-notify-error
 	   "`%s' failed to start on remote host"
 	   (string-join sequence " "))
-	(tramp-message v 6 "Run `%s', %S" (string-join sequence " ") p)
-	(process-put p 'tramp-vector v)
 	;; This is neded for ssh or PuTTY based processes, and only if
 	;; the respective options are set.  Perhaps, the setting could
 	;; be more fine-grained.
@@ -3768,9 +3764,9 @@ Fall back to normal file name handler if no Tramp handler exists."
 	;; Needed for process filter.
 	(process-put p 'tramp-events events)
 	(process-put p 'tramp-watch-name localname)
-	(set-process-query-on-exit-flag p nil)
 	(set-process-filter p filter)
 	(set-process-sentinel p #'tramp-file-notify-process-sentinel)
+	(tramp-post-process-creation p v)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
 	(while (tramp-accept-process-output p))
@@ -5130,18 +5126,14 @@ connection if a previous connection has died for some reason."
 			    (and tramp-encoding-command-interactive
 				 (list tramp-encoding-command-interactive)))))))
 
-		;; Set sentinel and query flag.  Initialize variables.
-		(set-process-sentinel p #'tramp-process-sentinel)
-		(process-put p 'tramp-vector vec)
 		;; This is neded for ssh or PuTTY based processes, and
 		;; only if the respective options are set.  Perhaps,
 		;; the setting could be more fine-grained.
 		;; (process-put p 'tramp-shared-socket t)
-		(process-put p 'adjust-window-size-function #'ignore)
-		(set-process-query-on-exit-flag p nil)
+		;; Set sentinel.  Initialize variables.
+		(set-process-sentinel p #'tramp-process-sentinel)
+		(tramp-post-process-creation p vec)
 		(setq tramp-current-connection (cons vec (current-time)))
-
-		(tramp-message vec 6 "%s" (string-join (process-command p) " "))
 
 		;; Set connection-local variables.
 		(tramp-set-connection-local-variables vec)

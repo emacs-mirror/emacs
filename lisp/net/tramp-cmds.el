@@ -207,17 +207,76 @@ This includes password cache, file cache, connection cache, buffers."
   ;; The end.
   (run-hooks 'tramp-cleanup-all-connections-hook))
 
+(defcustom tramp-cleanup-some-buffers-hook nil
+  "Hook for `tramp-cleanup-some-buffers'.
+The functions determine which buffers shall be killed.  This
+happens when at least one of the functions returns non-nil.  The
+functions are called with `current-buffer' set."
+  :group 'tramp
+  :version "30.1"
+  :type 'hook)
+
+(add-hook 'tramp-cleanup-some-buffers-hook
+	  #'buffer-file-name)
+
+(defun tramp-cleanup-dired-buffer-p ()
+  "Return t if current buffer runs `dired-mode'."
+  (derived-mode-p 'dired-mode))
+
+(add-hook 'tramp-cleanup-some-buffers-hook
+	  #'tramp-cleanup-dired-buffer-p)
+
+(defvar tramp-tainted-remote-process-buffers nil
+  "List of process buffers to be cleaned up.")
+
+(defun tramp-delete-tainted-remote-process-buffer-function ()
+  "Delete current buffer from `tramp-tainted-remote-process-buffers'."
+  (setq tramp-tainted-remote-process-buffers
+	(delete (current-buffer) tramp-tainted-remote-process-buffers)))
+
 ;;;###tramp-autoload
-(defun tramp-cleanup-all-buffers ()
-  "Kill all remote buffers."
+(defun tramp-taint-remote-process-buffer (buffer)
+  "Mark buffer as related to remote processes."
+  (add-to-list 'tramp-tainted-remote-process-buffers buffer))
+
+(add-hook 'kill-buffer-hook
+	  #'tramp-delete-tainted-remote-process-buffer-function)
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (remove-hook 'kill-buffer-hook
+			 #'tramp-delete-tainted-remote-process-buffer-function)))
+
+(defun tramp-cleanup-remote-process-p ()
+  "Return t if current buffer belongs to a remote process."
+  (memq (current-buffer) tramp-tainted-remote-process-buffers))
+
+(add-hook 'tramp-cleanup-some-buffers-hook
+	  #'tramp-cleanup-remote-process-p)
+
+;;;###tramp-autoload
+(defun tramp-cleanup-some-buffers ()
+  "Kill some remote buffers.
+A buffer is killed when it has a remote `default-directory', and
+one of the functions in `tramp-cleanup-some-buffers-hook' returns
+non-nil."
   (interactive)
 
   ;; Remove all Tramp related connections.
   (tramp-cleanup-all-connections)
 
-  ;; Remove all buffers with a remote default-directory.
+  ;; Remove all buffers with a remote default-directory which fit the hook.
   (dolist (name (tramp-list-remote-buffers))
-    (when (bufferp (get-buffer name)) (kill-buffer name))))
+    (and (buffer-live-p (get-buffer name))
+	 (with-current-buffer (get-buffer name)
+	   (run-hook-with-args-until-success 'tramp-cleanup-some-buffers-hook))
+	 (kill-buffer name))))
+
+;;;###tramp-autoload
+(defun tramp-cleanup-all-buffers ()
+  "Kill all remote buffers."
+  (interactive)
+  (let ((tramp-cleanup-some-buffers-hook '(tramp-compat-always)))
+    (tramp-cleanup-some-buffers)))
 
 (defcustom tramp-default-rename-alist nil
   "Default target for renaming remote buffer file names.

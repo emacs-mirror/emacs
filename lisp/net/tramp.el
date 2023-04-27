@@ -4941,6 +4941,16 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	(unless (member "" x) x))
       args))))
 
+(defun tramp-post-process-creation (proc vec)
+  "Apply actions after creation of process PROC."
+  (process-put proc 'tramp-vector vec)
+  (process-put proc 'adjust-window-size-function #'ignore)
+  (set-process-query-on-exit-flag proc nil)
+  (tramp-taint-remote-process-buffer (process-buffer proc))
+  (tramp-message vec 6 "%s" (string-join (process-command proc) " ")))
+
+(put #'tramp-post-process-creation 'tramp-suppress-trace t)
+
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
   (let ((v (tramp-dissect-file-name default-directory))
@@ -5090,15 +5100,19 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	    ;; t.  See Bug#51177.
 	    (when filter
 	      (set-process-filter p filter))
-	    (process-put p 'tramp-vector v)
+	    (tramp-post-process-creation p v)
+	    ;; Query flag is overwritten in `tramp-post-process-creation',
+	    ;; so we reset it.
+	    (set-process-query-on-exit-flag p (null noquery))
 	    ;; This is neded for ssh or PuTTY based processes, and
 	    ;; only if the respective options are set.  Perhaps, the
 	    ;; setting could be more fine-grained.
 	    ;; (process-put p 'tramp-shared-socket t)
 	    (process-put p 'remote-command orig-command)
 	    (tramp-set-connection-property p "remote-command" orig-command)
+	    (when (bufferp stderr)
+	      (tramp-taint-remote-process-buffer stderr))
 
-	    (tramp-message v 6 "%s" (string-join (process-command p) " "))
 	    p))))))
 
 (defun tramp-handle-make-symbolic-link

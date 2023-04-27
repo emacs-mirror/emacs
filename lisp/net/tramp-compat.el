@@ -219,6 +219,16 @@ Add the extension of F, if existing."
     (lambda (sequence length)
       (= (length sequence) length))))
 
+;; `always' is introduced with Emacs 28.1.
+(defalias 'tramp-compat-always
+  (if (fboundp 'always)
+      #'always
+    (lambda (&rest _arguments)
+      "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+      t)))
+
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
   (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)

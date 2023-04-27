@@ -1000,6 +1000,7 @@ implementation will be used."
 			    ;; deleted.
 			    (when (bufferp stderr)
 			      (ignore-errors
+				(tramp-taint-remote-process-buffer stderr)
 				(with-current-buffer stderr
 			          (insert-file-contents-literally
 			           remote-tmpstderr 'visit)))
@@ -1237,8 +1238,6 @@ connection if a previous connection has died for some reason."
 			     tramp-adb-program args)))
 		 (prompt (md5 (concat (prin1-to-string process-environment)
 				      (current-time-string)))))
-	    (tramp-message
-	     vec 6 "%s" (string-join (process-command p) " "))
 	    ;; Wait for initial prompt.  On some devices, it needs an
 	    ;; initial RET, in order to get it.
             (sleep-for 0.1)
@@ -1247,11 +1246,9 @@ connection if a previous connection has died for some reason."
 	    (unless (process-live-p p)
 	      (tramp-error vec 'file-error "Terminated!"))
 
-	    ;; Set sentinel and query flag.  Initialize variables.
+	    ;; Set sentinel.  Initialize variables.
 	    (set-process-sentinel p #'tramp-process-sentinel)
-	    (process-put p 'tramp-vector vec)
-	    (process-put p 'adjust-window-size-function #'ignore)
-	    (set-process-query-on-exit-flag p nil)
+	    (tramp-post-process-creation p vec)
 
 	    ;; Set connection-local variables.
 	    (tramp-set-connection-local-variables vec)
