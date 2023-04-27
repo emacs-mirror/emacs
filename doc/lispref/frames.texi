@@ -4093,7 +4093,7 @@ separate topic.
 @end menu
 
 @node X Selections
-@section X Selections
+@subsection X Selections
 
   X refrains from defining fixed data types for selection data, or a
 fixed number of selections.  Selections are instead identified by X
@@ -4479,7 +4479,7 @@ bounds of the selection data in the buffer @var{buf}.
 @end itemize
 
 @node Other Selections
-@section Other Selections
+@subsection Other Selections
 
   Window systems such as MS-Windows, Nextstep, Haiku and Android do
 not provide selections corresponding to the X semantics.  Each window

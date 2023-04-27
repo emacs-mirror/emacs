@@ -2220,9 +2220,9 @@ been made to them, use the variable
 @code{text-conversion} event being sent; it is a list of the
 form:
 
-@indentedblock
+@example
 @w{@code{((@var{buffer} @var{beg} @var{end} @var{ephemeral}) ...)}}
-@end indentedblock
+@end example
 
 Where @var{ephemeral} is the buffer which was modified, @var{beg} and
 @var{end} are markers set to the positions of the edit at the time it
