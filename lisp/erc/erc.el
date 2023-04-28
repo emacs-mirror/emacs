@@ -4993,6 +4993,16 @@ and as second argument the event parsed as a vector."
   (and (erc-is-message-ctcp-p message)
        (not (string-match "^\C-aACTION.*\C-a$" message))))
 
+(defvar erc--user-from-nick-function #'erc--examine-nick
+  "Function to possibly consider unknown user.
+Must return either nil or a cons of an `erc-server-user' and a
+possibly nil `erc-channel-user' for formatting a server user's
+nick.  Called in the appropriate buffer with the downcased nick,
+the parsed NUH, and the original `erc-response' object.")
+
+(defun erc--examine-nick (downcased _nuh _parsed)
+  (and erc-channel-users (gethash downcased erc-channel-users)))
+
 (defun erc-format-privmessage (nick msg privp msgp)
   "Format a PRIVMSG in an insertable fashion."
   (let* ((mark-s (if msgp (if privp "*" "<") "-"))
