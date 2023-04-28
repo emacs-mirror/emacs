@@ -1846,7 +1846,7 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 *** New command 'package-upgrade'.
 This command allows you to upgrade packages without using 'M-x
 list-packages'.  A package that comes with the Emacs distribution can
-only be upgraded after you install it, once, a newer version from ELPA
+only be upgraded after you install, once, a newer version from ELPA
 via the package-menu displayed by 'list-packages'.
 
 +++
