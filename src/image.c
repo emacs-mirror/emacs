@@ -504,7 +504,8 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 
 #ifdef HAVE_X_WINDOWS
   Pixmap bitmap;
-  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
+				  dpyinfo->root_window,
 				  bits, width, height);
   if (! bitmap)
     return -1;
@@ -778,8 +779,10 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   filename = SSDATA (found);
 
-  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
-			    filename, &width, &height, &bitmap, &xhot, &yhot);
+  result = XReadBitmapFile (FRAME_X_DISPLAY (f),
+			    dpyinfo->root_window,
+			    filename, &width, &height, &bitmap,
+			    &xhot, &yhot);
   if (result != BitmapSuccess)
     return -1;
 
