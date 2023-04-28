@@ -468,7 +468,10 @@ compilation and evaluation time conflicts."
     (save-excursion
       (goto-char (c-point 'iopl))
       (and
-       (eq (char-after) ?\[)
+       (eq (save-excursion
+             (skip-chars-forward " \t\n")
+             (char-after))
+           ?\[)
        (save-excursion
          (c-go-list-forward)
          (and (eq (char-before) ?\])
