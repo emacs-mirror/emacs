@@ -1224,7 +1224,15 @@ x
 @end example
 
 However, the other arguments (all but the last) should be mutable
-lists.
+lists.  They can be dotted lists, whose last @sc{cdr}s are then
+replaced with the next argument:
+
+@example
+@group
+(nconc (cons 1 2) (cons 3 (cons 4 5)) 'z)
+     @result{} (1 3 4 . z)
+@end group
+@end example
 
 A common pitfall is to use a constant list as a non-last argument to
 @code{nconc}.  If you do this, the resulting behavior is undefined

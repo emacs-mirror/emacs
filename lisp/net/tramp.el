@@ -1349,6 +1349,7 @@ let-bind this variable."
 ;; IRIX64: /usr/bin
 ;; QNAP QTS: ---
 ;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
+;;;###tramp-autoload
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
     "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin"

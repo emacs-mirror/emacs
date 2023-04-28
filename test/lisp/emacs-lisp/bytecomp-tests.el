@@ -766,6 +766,16 @@ inner loops respectively."
                         ((eq x 2) (setq y 'c)))
                   (list x y)))))
       (mapcar fn (bytecomp-test-identity '(0 1 2 3 10 11))))
+
+    ;; `nconc' nil arg elimination
+    (nconc (list 1 2 3 4) nil)
+    (nconc (list 1 2 3 4) nil nil)
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc x nil))
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc x nil nil))
+    (let ((x (cons 1 (cons 2 (cons 3 4)))))
+      (nconc nil x nil (list 5 6) nil))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

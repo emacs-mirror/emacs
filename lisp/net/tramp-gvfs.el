@@ -2183,11 +2183,12 @@ connection if a previous connection has died for some reason."
   ;; Sanity check.
   (let ((method (tramp-file-name-method vec)))
     (unless (member
-	     (or (rassoc method '(("smb" . "smb-share")
-				  ("davs" . "dav")
-				  ("nextcloud" . "dav")
-				  ("afp". "afp-volume")
-				  ("gdrive" . "google-drive")))
+	     (or (assoc-default
+		  method '(("smb" . "smb-share")
+			   ("davs" . "dav")
+			   ("nextcloud" . "dav")
+			   ("afp". "afp-volume")
+			   ("gdrive" . "google-drive")))
 		 method)
 	     tramp-gvfs-mounttypes)
       (tramp-error vec 'file-error "Method `%s' not supported by GVFS" method)))
