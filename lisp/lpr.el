@@ -73,7 +73,8 @@ switch on this list.
 See `lpr-command'."
   :type '(repeat (string :tag "Argument")))
 
-(defcustom lpr-add-switches (memq system-type '(berkeley-unix gnu/linux))
+(defcustom lpr-add-switches
+  (not (not (memq system-type '(berkeley-unix gnu/linux))))
   "Non-nil means construct `-T' and `-J' options for the printer program.
 These are made assuming that the program is `lpr';
 if you are using some other incompatible printer program,

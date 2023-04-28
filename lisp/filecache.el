@@ -213,7 +213,7 @@ Defaults to the value of `case-fold-search'."
   :type 'boolean)
 
 (defcustom file-cache-ignore-case
-  (memq system-type '(ms-dos windows-nt cygwin))
+  (not (not (memq system-type '(ms-dos windows-nt cygwin))))
   "Non-nil means ignore case when checking completions in the file cache.
 Defaults to nil on DOS and Windows, and t on other systems."
   :type 'boolean)

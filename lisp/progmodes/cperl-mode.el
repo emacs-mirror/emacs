@@ -275,7 +275,7 @@ Can be overwritten by `cperl-hairy' if nil."
   :type '(choice (const null) boolean)
   :group 'cperl-affected-by-hairy)
 
-(defcustom cperl-electric-parens-mark window-system
+(defcustom cperl-electric-parens-mark (not (not window-system))
   "Not-nil means that electric parens look for active mark.
 Default is yes if there is visual feedback on mark."
   :type 'boolean

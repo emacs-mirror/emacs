@@ -79,7 +79,7 @@ by zsh for filename generation."
   :type 'boolean
   :group 'eshell-glob)
 
-(defcustom eshell-glob-case-insensitive (eshell-under-windows-p)
+(defcustom eshell-glob-case-insensitive (not (not (eshell-under-windows-p)))
   "If non-nil, glob pattern matching will ignore case."
   :type 'boolean
   :group 'eshell-glob)
