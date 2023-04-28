@@ -2311,10 +2311,7 @@ interactively, QUERY is always true.
 Currently, packages which are part of the Emacs distribution are
 not upgraded by this command.  To enable upgrading such a package
 using this command, first upgrade  the package to a newer version
-from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'.
-
-  Use `i' after `M-x list-packages' to
-upgrade to an ELPA version first."
+from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
   (let ((upgradeable (package--upgradeable-packages)))
