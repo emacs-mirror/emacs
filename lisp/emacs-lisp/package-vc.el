@@ -24,7 +24,7 @@
 
 ;; While packages managed by package.el use tarballs for distributing
 ;; the source code, this extension allows for packages to be fetched
-;; and updated directly from a version control system.
+;; and upgraded directly from a version control system.
 ;;
 ;; To install a package from source use `package-vc-install'.  If you
 ;; aren't interested in activating a package, you can use
@@ -672,19 +672,19 @@ installed package."
                #'string=)))
 
 ;;;###autoload
-(defun package-vc-update-all ()
-  "Attempt to update all installed VC packages."
+(defun package-vc-upgrade-all ()
+  "Attempt to upgrade all installed VC packages."
   (interactive)
   (dolist (package package-alist)
     (dolist (pkg-desc (cdr package))
       (when (package-vc-p pkg-desc)
-        (package-vc-update pkg-desc))))
-  (message "Done updating packages."))
+        (package-vc-upgrade pkg-desc))))
+  (message "Done upgrading packages."))
 
 ;;;###autoload
-(defun package-vc-update (pkg-desc)
-  "Attempt to update the package PKG-DESC."
-  (interactive (list (package-vc--read-package-desc "Update VC package: " t)))
+(defun package-vc-upgrade (pkg-desc)
+  "Attempt to upgrade the package PKG-DESC."
+  (interactive (list (package-vc--read-package-desc "Upgrade VC package: " t)))
   ;; HACK: To run `package-vc--unpack-1' after checking out the new
   ;; revision, we insert a hook into `vc-post-command-functions', and
   ;; remove it right after it ran.  To avoid running the hook multiple
@@ -882,7 +882,7 @@ Rebuilding an installation means scraping for new autoload
 cookies, re-compiling Emacs Lisp files, building and installing
 any documentation, downloading any missing dependencies.  This
 command does not fetch new revisions from a remote server.  That
-is the responsibility of `package-vc-update'.  Interactively,
+is the responsibility of `package-vc-upgrade'.  Interactively,
 prompt for the name of the package to rebuild."
   (interactive (list (package-vc--read-package-desc "Rebuild package: " t)))
   (package-vc--unpack-1 pkg-desc (package-desc-dir pkg-desc)))

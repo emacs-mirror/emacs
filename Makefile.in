@@ -1030,6 +1030,9 @@ $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)
 
 distclean: $(distclean_dirs:=_distclean) clean-gsettings-schemas
 	${top_distclean}
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	rm -rf native-lisp
+endif
 
 ### 'bootstrap-clean'
 ###      Delete everything that can be reconstructed by 'make' and that

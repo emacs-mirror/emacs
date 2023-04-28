@@ -1265,7 +1265,7 @@ is serialized by Eglot to the following JSON text:
 @chapter Troubleshooting Eglot
 @cindex troubleshooting Eglot
 
-This section documents commands and variables that can be used to
+This chapter documents commands and variables that can be used to
 troubleshoot Eglot problems.  It also provides guidelines for
 reporting Eglot bugs in a way that facilitates their resolution.
 
@@ -1275,6 +1275,8 @@ pop up special buffers that can be used to inspect the communications
 between the Eglot and language server.  In many cases, this will
 indicate the problems or at least provide a hint.
 
+@node Performance
+@section Performance
 @cindex performance
 A common and easy-to-fix cause of performance problems is the length
 of the Eglot events buffer because it represent additional work that
@@ -1288,6 +1290,30 @@ language server itself.  Servers use aggressive caching and other
 techniques to improve their performance.  Often, this can be tweaked
 by changing the server configuration (@pxref{Advanced server
 configuration}).
+
+@node Getting the latest version
+@section Getting the latest version
+@cindex updating Eglot
+
+To install the latest Eglot on an Emacs version that does not bundle
+Eglot, use @kbd{M-x package-install}.
+
+Often, a newer Eglot version exists that has fixed a longstanding bug,
+has more LSP features, or just better support for a particular
+language server.  Recent Eglot versions can self-update via the
+command @kbd{M-x eglot-update}.  This will replace any currently
+installed version with the newest one available from the ELPA archives
+configured in @code{package-archives}.
+
+You may update though other methods, such as @code{package-install},
+@code{use-package}, @code{list-packages} or the newer
+@code{package-update}.  However, do read the docstrings of these
+commands, as some may not work in exactly the same way across Emacs
+versions, meaning your configuration may be not portable.
+
+@node Reporting bugs
+@section Reporting bugs
+@cindex bug reports
 
 If you think you have found a bug, we want to hear about it.  Before
 reporting a bug, keep in mind that interaction with language servers
@@ -1331,6 +1357,10 @@ public Git repository.
 @item
 Include versions of the software used.  The Emacs version can be
 obtained with @kbd{M-x emacs-version}.
+
+We welcome bug reports about all Eglot versions, but it is helpful to
+first check if the problem isn't already fixed in the latest version
+(@pxref{Getting the latest version}).
 
 It's also essential to include the version of ELPA packages that are
 explicitly or implicitly loaded.  The optional but popular Company or

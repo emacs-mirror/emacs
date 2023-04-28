@@ -329,15 +329,15 @@ version of the package, a newer version is also installed.
 @section Package Installation
 
 @findex package-install
-@findex package-update
-@findex package-update-all
+@findex package-upgrade
+@findex package-upgrade-all
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
 @samp{available} status, then downloads and installs it.  Similarly,
-if you want to update a package, you can use the @kbd{M-x
-package-update} command, and if you just want to update all the
-packages, you can use the @kbd{M-x package-update-all} command.
+if you want to upgrade a package, you can use the @kbd{M-x
+package-upgrade} command, and if you want to upgrade all the packages,
+you can use the @kbd{M-x package-upgrade-all} command.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,
@@ -551,8 +551,8 @@ bugs.
 source code for a package directly from source.  The command will also
 automatically ensure that all files are byte-compiled and auto-loaded,
 just like with a regular package.  Packages installed this way behave
-just like any other package.  You can update them using
-@code{package-update} or @code{package-update-all} and delete them
+just like any other package.  You can upgrade them using
+@code{package-upgrade} or @code{package-upgrade-all} and delete them
 again using @code{package-delete}.  They are even displayed in the
 regular package listing.  If you just wish to clone the source of a
 package, without adding it to the package list, use
