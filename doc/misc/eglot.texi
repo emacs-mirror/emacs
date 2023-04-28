@@ -1275,9 +1275,15 @@ pop up special buffers that can be used to inspect the communications
 between the Eglot and language server.  In many cases, this will
 indicate the problems or at least provide a hint.
 
+@menu
+* Performance::
+* Getting the latest version::
+* Reporting bugs::
+@end menu
+
 @node Performance
 @section Performance
-@cindex performance
+@cindex performance problems, with Eglot
 A common and easy-to-fix cause of performance problems is the length
 of the Eglot events buffer because it represent additional work that
 Eglot must do.  After verifying Eglot is operating correctly but
@@ -1293,23 +1299,26 @@ configuration}).
 
 @node Getting the latest version
 @section Getting the latest version
-@cindex updating Eglot
+@cindex upgrading Eglot
 
-To install the latest Eglot on an Emacs version that does not bundle
+To install the latest Eglot in an Emacs version that does not bundle
 Eglot, use @kbd{M-x package-install}.
 
 Often, a newer Eglot version exists that has fixed a longstanding bug,
-has more LSP features, or just better support for a particular
-language server.  Recent Eglot versions can self-update via the
-command @kbd{M-x eglot-update}.  This will replace any currently
-installed version with the newest one available from the ELPA archives
+has more LSP features, or just better supports a particular language
+server.  Recent Eglot versions can self-update via the command
+@kbd{M-x eglot-update}.  This will replace any currently installed
+version with the newest one available from the ELPA archives
 configured in @code{package-archives}.
 
-You may update though other methods, such as @code{package-install},
-@code{use-package}, @code{list-packages} or the newer
-@code{package-update}.  However, do read the docstrings of these
-commands, as some may not work in exactly the same way across Emacs
-versions, meaning your configuration may be not portable.
+You can also update Eglot through other methods, such as
+@code{use-package} (@pxref{Installing packages,,, use-package,
+use-package User Manual}), @code{package-install},
+@code{list-packages} or the newer @code{package-upgrade}
+(@pxref{Packages,,, emacs, GNU Emacs Manual}).  However, do read the
+docstrings of the command you intend to use before you use it, as some
+of them may not work in exactly the same way across Emacs versions,
+meaning your configuration may be not portable.
 
 @node Reporting bugs
 @section Reporting bugs
