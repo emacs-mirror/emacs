@@ -2270,8 +2270,9 @@ had been enabled."
   "Upgrade package NAME if a newer version exists.
 
 Currently, packages which are part of the Emacs distribution
-cannot be upgraded that way.  Use `i' after `M-x list-packages' to
-upgrade to an ELPA version first."
+cannot be upgraded that way.  To enable upgrades of such a
+package using this command, first upgrade the package to a
+newer version from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive
    (list (completing-read
           "Upgrade package: " (package--upgradeable-packages) nil t)))
@@ -2308,7 +2309,11 @@ If QUERY, ask the user before upgrading packages.  When called
 interactively, QUERY is always true.
 
 Currently, packages which are part of the Emacs distribution are
-not upgraded that way.  Use `i' after `M-x list-packages' to
+not upgraded by this command.  To enable upgrading such a package
+using this command, first upgrade  the package to a newer version
+from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'.
+
+  Use `i' after `M-x list-packages' to
 upgrade to an ELPA version first."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
