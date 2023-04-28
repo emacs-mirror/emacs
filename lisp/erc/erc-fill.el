@@ -363,7 +363,8 @@ parties.")
                             erc-fill--wrap-max-lull))
               (nick  (buffer-substring-no-properties
                       (1+ (point-min)) (- (point) 2)))
-              ((equal (car props) (erc-downcase nick)))))
+              (props)
+              ((erc-nick-equal-p (car props) nick))))
     (set-marker erc-fill--wrap-last-msg (point-min))))
 
 (defun erc-fill--wrap-stamp-insert-prefixed-date (args)
