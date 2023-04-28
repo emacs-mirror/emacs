@@ -2696,7 +2696,7 @@ non-nil."
   :version "22.1")
 
 (defface mode-line
-  '((((class color) (min-colors 88))
+  '((((class color grayscale) (min-colors 88))
      :box (:line-width -1 :style released-button)
      :background "grey75" :foreground "black")
     (t
@@ -2719,11 +2719,11 @@ This inherits from the `mode-line' face."
 (defface mode-line-inactive
   '((default
      :inherit mode-line)
-    (((class color) (min-colors 88) (background light))
+    (((class color grayscale) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
      :foreground "grey20" :background "grey90")
-    (((class color) (min-colors 88) (background dark) )
+    (((class color grayscale) (min-colors 88) (background dark) )
      :weight light
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30"))
@@ -2733,7 +2733,7 @@ This inherits from the `mode-line' face."
   :group 'basic-faces)
 
 (defface mode-line-highlight
-  '((((supports :box t) (class color) (min-colors 88))
+  '((((supports :box t) (class color grayscale) (min-colors 88))
      :box (:line-width 2 :color "grey40" :style released-button))
     (t
      :inherit highlight))
