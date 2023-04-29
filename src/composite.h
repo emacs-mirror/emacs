@@ -348,7 +348,7 @@ extern bool find_automatic_composition (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 
 extern void composition_compute_stop_pos (struct composition_it *,
                                           ptrdiff_t, ptrdiff_t, ptrdiff_t,
-                                          Lisp_Object);
+                                          Lisp_Object, bool);
 extern bool composition_reseat_it (struct composition_it *, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t, struct window *,
 				   signed char, struct face *, Lisp_Object);

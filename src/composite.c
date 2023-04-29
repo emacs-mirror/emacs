@@ -1040,7 +1040,9 @@ inhibit_auto_composition (void)
    composition closest to CHARPOS is found, set cmp_it->stop_pos to
    the last character of the composition.  STRING, if non-nil, is
    the string (as opposed to a buffer) whose characters should be
-   tested for being composable.
+   tested for being composable.  INCLUDE_STATIC non-zero means
+   consider both static and automatic compositions; if zero, look
+   only for potential automatic compositions.
 
    If no composition is found, set cmp_it->ch to -2.  If a static
    composition is found, set cmp_it->ch to -1.  Otherwise, set
@@ -1050,7 +1052,7 @@ inhibit_auto_composition (void)
 void
 composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 			      ptrdiff_t bytepos, ptrdiff_t endpos,
-			      Lisp_Object string)
+			      Lisp_Object string, bool include_static)
 {
   ptrdiff_t start, end;
   int c;
@@ -1084,8 +1086,10 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
   cmp_it->stop_pos = endpos;
   if (charpos == endpos)
     return;
+  /* Look for static compositions.  */
   /* FIXME: Bidi is not yet handled well in static composition.  */
-  if (charpos < endpos
+  if (include_static
+      && charpos < endpos
       && find_composition (charpos, endpos, &start, &end, &prop, string)
       && start >= charpos
       && composition_valid_p (start, end, prop))
@@ -1106,6 +1110,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	bytepos = string_char_to_byte (string, charpos);
     }
 
+  /* Look for automatic compositions.  */
   start = charpos;
   if (charpos < endpos)
     {
@@ -1285,7 +1290,8 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 {
   if (cmp_it->ch == -2)
     {
-      composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string);
+      composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string,
+				    true);
       if (cmp_it->ch == -2 || cmp_it->stop_pos != charpos)
 	/* The current position is not composed.  */
 	return 0;
@@ -1424,7 +1430,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
     }
   if (cmp_it->reversed_p)
     endpos = -1;
-  composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string);
+  composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string, true);
   return 0;
 }
 

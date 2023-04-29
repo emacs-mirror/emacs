@@ -4056,7 +4056,7 @@ compute_stop_pos (struct it *it)
 {
   register INTERVAL iv, next_iv;
   Lisp_Object object, limit, position;
-  ptrdiff_t charpos, bytepos;
+  ptrdiff_t charpos, bytepos, cmp_limit_pos = -1;
 
   if (STRINGP (it->string))
     {
@@ -4126,7 +4126,10 @@ compute_stop_pos (struct it *it)
 		}
 	    }
 	  if (found)
-	    pos--;
+	    {
+	      pos--;
+	      cmp_limit_pos = pos;
+	    }
 	  else if (it->stop_charpos < endpos)
 	    pos = it->stop_charpos;
 	  else
@@ -4184,14 +4187,25 @@ compute_stop_pos (struct it *it)
 	}
     }
 
-  if (it->cmp_it.id < 0)
+  if (it->cmp_it.id < 0
+      && (STRINGP (it->string)
+	  || ((!it->bidi_p || it->bidi_it.scan_dir >= 0)
+	      && it->cmp_it.stop_pos <= IT_CHARPOS (*it))))
     {
       ptrdiff_t stoppos = it->end_charpos;
 
+      /* If we found, above, a buffer position that cannot be part of
+         an automatic composition, limit the search of composable
+         characters to that position.  */
       if (it->bidi_p && it->bidi_it.scan_dir < 0)
 	stoppos = -1;
+      else if (cmp_limit_pos > 0)
+	stoppos = cmp_limit_pos;
+      /* Force composition_compute_stop_pos avoid the costly search
+         for static compositions, since those were already found by
+         looking at text properties, above.  */
       composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
-				    stoppos, it->string);
+				    stoppos, it->string, false);
     }
 
   eassert (STRINGP (it->string)
@@ -7716,7 +7730,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       if (endpos > it->end_charpos)
 	endpos = it->end_charpos;
       composition_compute_stop_pos (&it->cmp_it, charpos, -1, endpos,
-				    it->string);
+				    it->string, true);
     }
   CHECK_IT (it);
 }
@@ -8404,7 +8418,7 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 		   where to stop.  */
 		stop = -1;
 	      composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
-					    IT_BYTEPOS (*it), stop, Qnil);
+					    IT_BYTEPOS (*it), stop, Qnil, true);
 	    }
 	}
       else
@@ -8435,7 +8449,8 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 		  if (it->bidi_it.scan_dir < 0)
 		    stop = -1;
 		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
-						IT_BYTEPOS (*it), stop, Qnil);
+						IT_BYTEPOS (*it), stop, Qnil,
+						true);
 		}
 	    }
 	  eassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
@@ -8591,7 +8606,7 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 	      composition_compute_stop_pos (&it->cmp_it,
 					    IT_STRING_CHARPOS (*it),
 					    IT_STRING_BYTEPOS (*it), stop,
-					    it->string);
+					    it->string, true);
 	    }
 	}
       else
@@ -8628,7 +8643,7 @@ set_iterator_to_next (struct it *it, bool reseat_p)
 		  composition_compute_stop_pos (&it->cmp_it,
 						IT_STRING_CHARPOS (*it),
 						IT_STRING_BYTEPOS (*it), stop,
-						it->string);
+						it->string, true);
 		}
 	    }
 	}
@@ -8879,7 +8894,7 @@ get_visually_first_element (struct it *it)
       if (it->bidi_it.scan_dir < 0)
 	stop = -1;
       composition_compute_stop_pos (&it->cmp_it, charpos, bytepos, stop,
-				    it->string);
+				    it->string, true);
     }
 }
 
