@@ -86,7 +86,7 @@ systems (bug#58790).
 These modes are usually handled by the same server that handles the
 "classical mode".
 
-** New servers chsharp-ls and texlab added to 'eglot-server-programs'.
+** New servers csharp-ls and texlab added to 'eglot-server-programs'.
 
 ** Assorted bugfixes.
 (bug#59824, bug#59338)
