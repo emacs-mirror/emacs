@@ -5510,7 +5510,7 @@ contents of an SQLite database.
 @section Parsing HTML and XML
 @cindex parsing html
 
-  Emacs can be compiled with built-in libxml2 support.
+  Emacs can be compiled with built-in @file{libxml2} support.
 
 @defun libxml-available-p
 This function returns non-@code{nil} if built-in libxml2 support is
@@ -5529,8 +5529,10 @@ mistakes.
 If @var{start} or @var{end} are @code{nil}, they default to the values
 from @code{point-min} and @code{point-max}, respectively.
 
-The optional argument @var{base-url}, if non-@code{nil}, should be a
-string specifying the base URL for relative URLs occurring in links.
+The optional argument @var{base-url}, if non-@code{nil}, should be
+used for warnings and errors reported by the @file{libxml2} library,
+but Emacs currently calls the library with errors and warnings
+disabled, so this argument is not used.
 
 If the optional argument @var{discard-comments} is non-@code{nil},
 any top-level comment is discarded.  (This argument is obsolete and
