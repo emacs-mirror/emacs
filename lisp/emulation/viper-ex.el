@@ -294,7 +294,8 @@
 	   "\\|"
 	   "bash$\\|bash.exe$"
 	   "\\)")
-	  shell-file-name)))
+	  shell-file-name)
+         t))
   "Is the user using a unix-type shell under a non-OS?"
   :type 'boolean)
 

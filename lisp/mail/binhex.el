@@ -49,7 +49,7 @@ input and write the converted data to its standard output."
   :type '(repeat string))
 
 (defcustom binhex-use-external
-  (executable-find binhex-decoder-program)
+  (not (not (executable-find binhex-decoder-program)))
   "Use external binhex program."
   :version "22.1"
   :type 'boolean)

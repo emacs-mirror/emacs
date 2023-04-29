@@ -101,7 +101,7 @@ update the dependent variables."
   :group 'ls-lisp)
 
 (defcustom ls-lisp-ignore-case
-  (memq ls-lisp-emulation '(MS-Windows MacOS))
+  (not (not (memq ls-lisp-emulation '(MS-Windows MacOS))))
   "Non-nil causes ls-lisp alphabetic sorting to ignore case."
   :set-after '(ls-lisp-emulation)
   :type 'boolean

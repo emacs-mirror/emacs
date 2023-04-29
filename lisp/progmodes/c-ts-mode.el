@@ -80,6 +80,8 @@
 (declare-function treesit-node-prev-sibling "treesit.c")
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-next-sibling "treesit.c")
+(declare-function treesit-parser-set-included-ranges "treesit.c")
+(declare-function treesit-query-compile "treesit.c")
 
 ;;; Custom variables
 
@@ -971,24 +973,25 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
   (or (treesit-add-log-current-defun)
       (c-ts-mode--defun-name (c-ts-mode--emacs-defun-at-point))))
 
-;;; FOR_EACH_TAIL fix
+;;; Support for FOR_EACH_* macros
 ;;
-;; FOR_EACH_TAIL (and FOR_EACH_TAIL_SAFE) followed by a unbracketed
-;; body will mess up the parser, which parses the thing as a function
-;; declaration.  We "fix" it by adding a shadow parser, emacs-c (which
-;; is just c but under a different name).  We use emacs-c to find each
-;; FOR_EACH_TAIL with a unbracketed body, and set the ranges of the C
-;; parser so that it skips those FOR_EACH_TAIL's.  Note that we only
-;; ignore FOR_EACH_TAIL's with a unbracketed body.  Those with a
-;; bracketed body parses more or less fine.
+;; FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE, FOR_EACH_FRAME etc., followed by
+;; an unbracketed body will mess up the parser, which parses the thing
+;; as a function declaration.  We "fix" it by adding a shadow parser
+;; for a language 'emacs-c' (which is just 'c' but under a different
+;; name).  We use 'emacs-c' to find each FOR_EACH_* macro with a
+;; unbracketed body, and set the ranges of the C parser so that it
+;; skips those FOR_EACH_*'s.  Note that we only ignore FOR_EACH_*'s
+;; with a unbracketed body.  Those with a bracketed body parse more
+;; or less fine.
 
 (defvar c-ts-mode--for-each-tail-regexp
   (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
                       "LIVE_BUFFER" "FRAME"))
-  "A regexp matching all the FOR_EACH_TAIL variants.")
+  "A regexp matching all the variants of the FOR_EACH_* macro.")
 
 (defun c-ts-mode--for-each-tail-body-matcher (_n _p bol &rest _)
-  "A matcher that matches the first line after a FOR_EACH_TAIL.
+  "A matcher that matches the first line after a FOR_EACH_* macro.
 For BOL see `treesit-simple-indent-rules'."
   (when c-ts-mode-emacs-sources-support
     (save-excursion
@@ -1005,10 +1008,10 @@ For BOL see `treesit-simple-indent-rules'."
                 @for-each-tail)
                (:match ,c-ts-mode--for-each-tail-regexp
                        @_name))))
-  "Query that finds the FOR_EACH_TAIL with a unbracketed body.")
+  "Query that finds a FOR_EACH_* macro with an unbracketed body.")
 
 (defvar-local c-ts-mode--for-each-tail-ranges nil
-  "Ranges covering all the FOR_EACH_TAIL's in the buffer.")
+  "Ranges covering all the FOR_EACH_* macros in the buffer.")
 
 (defun c-ts-mode--reverse-ranges (ranges beg end)
   "Reverse RANGES and return the new ranges between BEG and END.
@@ -1031,7 +1034,7 @@ parser parse the whole buffer."
       (nreverse new-ranges))))
 
 (defun c-ts-mode--emacs-set-ranges (beg end)
-  "Set ranges for the C parser to skip some FOR_EACH_TAIL's.
+  "Set ranges for the C parser to skip some FOR_EACH_* macros.
 BEG and END are described in `treesit-range-rules'."
   (let* ((c-parser (treesit-parser-create 'c))
          (old-ranges c-ts-mode--for-each-tail-ranges)
@@ -1158,6 +1161,8 @@ BEG and END are described in `treesit-range-rules'."
                 ( assignment constant escape-sequence label literal)
                 ( bracket delimiter error function operator property variable))))
 
+(defvar treesit-load-name-override-list)
+
 ;;;###autoload
 (define-derived-mode c-ts-mode c-ts-base-mode "C"
   "Major mode for editing C, powered by tree-sitter.
@@ -1179,7 +1184,7 @@ in your configuration."
 
   (when (treesit-ready-p 'c)
     ;; Add a fake "emacs-c" language which is just C.  Used for
-    ;; skipping FOR_EACH_TAIL, see `c-ts-mode--emacs-set-ranges'.
+    ;; skipping FOR_EACH_* macros, see `c-ts-mode--emacs-set-ranges'.
     (setf (alist-get 'emacs-c treesit-load-name-override-list)
           '("libtree-sitter-c" "tree_sitter_c"))
     ;; If Emacs source support is enabled, make sure emacs-c parser is
@@ -1202,7 +1207,7 @@ in your configuration."
     (setq-local treesit-defun-tactic 'top-level)
     (treesit-major-mode-setup)
 
-    ;; Emacs source support: handle DEFUN and FOR_EACH_TAIL gracefully.
+    ;; Emacs source support: handle DEFUN and FOR_EACH_* gracefully.
     (when c-ts-mode-emacs-sources-support
       (setq-local add-log-current-defun-function
                   #'c-ts-mode--emacs-current-defun-name)
