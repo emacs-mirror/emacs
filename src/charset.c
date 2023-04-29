@@ -545,7 +545,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
       entries->entry[idx].c = c;
       n_entries++;
     }
-  fclose (fp);
+  emacs_fclose (fp);
   clear_unwind_protect (count);
 
   load_charset_map (charset, head, n_entries, control_flag);

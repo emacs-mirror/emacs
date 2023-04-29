@@ -7004,7 +7004,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 			    cmap);
 	    }
 	}
-      fclose (fp);
+      emacs_fclose (fp);
     }
   unblock_input ();
   return cmap;

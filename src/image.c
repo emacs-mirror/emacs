@@ -3248,7 +3248,7 @@ image_set_transform (struct frame *f, struct image *img)
 		   * transformed_image->height);
       android_project_image_nearest (image, transformed_image,
 				     &transform);
-      image_unget_x_image (img, false, image);
+      image_unget_x_image (img, true, image);
 
       /* Now replace the image.  */
 
@@ -8024,7 +8024,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
 	  || png_sig_cmp (sig, 0, sizeof sig))
 	{
-	  fclose (fp);
+	  emacs_fclose (fp);
 	  image_error ("Not a PNG file: `%s'", file);
 	  return 0;
 	}
@@ -8078,7 +8078,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
     }
   if (! png_ptr)
     {
-      if (fp) fclose (fp);
+      if (fp) emacs_fclose (fp);
       return 0;
     }
 
@@ -8092,7 +8092,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
       xfree (c->pixels);
       xfree (c->rows);
       if (c->fp)
-	fclose (c->fp);
+	emacs_fclose (c->fp);
       return 0;
     }
 
@@ -8217,7 +8217,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   png_read_end (png_ptr, info_ptr);
   if (fp)
     {
-      fclose (fp);
+      emacs_fclose (fp);
       c->fp = NULL;
     }
 
@@ -8782,7 +8782,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
-	fclose (fp);
+	emacs_fclose (fp);
       jpeg_destroy_decompress (&mgr->cinfo);
 
       /* If we already have an XImage, free that.  */
@@ -8877,7 +8877,7 @@ jpeg_load_body (struct frame *f, struct image *img,
   jpeg_finish_decompress (&mgr->cinfo);
   jpeg_destroy_decompress (&mgr->cinfo);
   if (fp)
-    fclose (fp);
+    emacs_fclose (fp);
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
@@ -9651,11 +9651,16 @@ gif_load (struct frame *f, struct image *img)
 
 	  /* Get the file size so that we can report it in
 	     `image-cache-size'.  */
-	  struct stat st;
-	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
-	  if (sys_fstat (fileno (fp), &st) == 0)
-	    byte_size = st.st_size;
-	  fclose (fp);
+	  {
+	    struct stat st;
+	    int fd;
+
+	    fd = emacs_open (SSDATA (encoded_file), O_RDONLY,
+			     0);
+	    if (!sys_fstat (fd, &st))
+	      byte_size = st.st_size;
+	    emacs_close (fd);
+	  }
 	}
       else
 	{

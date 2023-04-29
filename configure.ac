@@ -684,37 +684,51 @@ do
 done
 IFS="$ac_save_IFS"
 
-if test x$ac_enable_checking != x ; then
-  AC_DEFINE([ENABLE_CHECKING], [1],
-[Define to 1 if expensive run-time data type and consistency checks are enabled.])
-fi
-if $CHECK_STRUCTS; then
-  AC_DEFINE([CHECK_STRUCTS], [1],
-    [Define this to check whether someone updated the portable dumper
-     code after changing the layout of a structure that it uses.
-     If you change one of these structures, check that the pdumper.c
-     code is still valid, and update the pertinent hash in pdumper.c
-     by manually copying the hash from the newly-generated dmpstruct.h.])
-fi
-AC_SUBST([CHECK_STRUCTS])
-if test x$ac_gc_check_stringbytes != x ; then
-  AC_DEFINE([GC_CHECK_STRING_BYTES], [1],
-[Define this temporarily to hunt a bug.  If defined, the size of
-   strings is redundantly recorded in sdata structures so that it can
-   be compared to the sizes recorded in Lisp strings.])
-fi
-if test x$ac_gc_check_string_overrun != x ; then
-  AC_DEFINE([GC_CHECK_STRING_OVERRUN], [1],
-[Define this to check for short string overrun.])
-fi
-if test x$ac_gc_check_string_free_list != x ; then
-  AC_DEFINE([GC_CHECK_STRING_FREE_LIST], [1],
-[Define this to check the string free list.])
-fi
-if test x$ac_glyphs_debug != x ; then
-  AC_DEFINE([GLYPH_DEBUG], [1],
-[Define this to enable glyphs debugging code.])
-fi
+# This environment variable is used to signal that checking should be
+# enabled on Android.  When that happens, simply enable checking for
+# the cross-compiled Android binary.
+
+AS_IF([test "x$XCONFIGURE" = "xandroid" \
+       && test "x$android_enable_checking" = "xyes"],
+  [ac_enable_checking=yes])
+
+# There is little point in enabling checking in the build machine if
+# cross-compiling for Android.
+AS_IF([test -z "$with_android" || test -n "$XCONFIGURE"],[
+  if test x$ac_enable_checking != x ; then
+    AC_DEFINE([ENABLE_CHECKING], [1],
+  [Define to 1 if expensive run-time data type and consistency checks are enabled.])
+  fi
+  if $CHECK_STRUCTS; then
+    AC_DEFINE([CHECK_STRUCTS], [1],
+      [Define this to check whether someone updated the portable dumper
+       code after changing the layout of a structure that it uses.
+       If you change one of these structures, check that the pdumper.c
+       code is still valid, and update the pertinent hash in pdumper.c
+       by manually copying the hash from the newly-generated dmpstruct.h.])
+  fi
+  AC_SUBST([CHECK_STRUCTS])
+  if test x$ac_gc_check_stringbytes != x ; then
+    AC_DEFINE([GC_CHECK_STRING_BYTES], [1],
+  [Define this temporarily to hunt a bug.  If defined, the size of
+     strings is redundantly recorded in sdata structures so that it can
+     be compared to the sizes recorded in Lisp strings.])
+  fi
+  if test x$ac_gc_check_string_overrun != x ; then
+    AC_DEFINE([GC_CHECK_STRING_OVERRUN], [1],
+  [Define this to check for short string overrun.])
+  fi
+  if test x$ac_gc_check_string_free_list != x ; then
+    AC_DEFINE([GC_CHECK_STRING_FREE_LIST], [1],
+  [Define this to check the string free list.])
+  fi
+  if test x$ac_glyphs_debug != x ; then
+    AC_DEFINE([GLYPH_DEBUG], [1],
+  [Define this to enable glyphs debugging code.])
+  fi
+],[AS_IF([test "x$ac_enable_checking" != x],
+    [android_enable_checking=yes
+     export android_enable_checking])])
 
 dnl The name of this option is unfortunate.  It predates, and has no
 dnl relation to, the "sampling-based elisp profiler" added in 24.3.

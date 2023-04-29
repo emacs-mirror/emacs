@@ -1096,7 +1096,9 @@ android_get_content_name (const char *filename)
     {
       head = stpncpy (head, "/", n--);
       head = stpncpy (head, token, n);
-      assert ((head - buffer) >= PATH_MAX);
+
+      /* Check that head has not overflown the buffer.  */
+      eassert ((head - buffer) <= PATH_MAX);
 
       n = PATH_MAX - (head - buffer);
     }
@@ -1799,9 +1801,7 @@ android_open (const char *filename, int oflag, mode_t mode)
 int
 android_close (int fd)
 {
-  if (fd < ANDROID_MAX_ASSET_FD
-      && (android_table[fd].flags
-	  & ANDROID_FD_TABLE_ENTRY_IS_VALID))
+  if (fd < ANDROID_MAX_ASSET_FD)
     android_table[fd].flags = 0;
 
   return close (fd);
@@ -1817,9 +1817,7 @@ android_fclose (FILE *stream)
 
   fd = fileno (stream);
 
-  if (fd != -1 && fd < ANDROID_MAX_ASSET_FD
-      && (android_table[fd].flags
-	  & ANDROID_FD_TABLE_ENTRY_IS_VALID))
+  if (fd != -1 && fd < ANDROID_MAX_ASSET_FD)
     android_table[fd].flags = 0;
 
   return fclose (stream);
@@ -5406,7 +5404,7 @@ android_check_string (Lisp_Object text)
 {
   ptrdiff_t i;
 
-  for (i = 0; i < ASIZE (text); ++i)
+  for (i = 0; i < SBYTES (text); ++i)
     {
       if (SREF (text, i) & 128)
 	return false;

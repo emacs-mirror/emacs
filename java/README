@@ -1,7 +1,7 @@
 This directory holds the Java sources of the port of GNU Emacs to
 Android-like systems, along with files needed to create an application
 package out of them.  If you need to build this port, please read the
-document ``INSTALL.android''.
+file INSTALL in this directory.
 
 The ``org/gnu/emacs'' subdirectory contains the Java sources under the
 ``org.gnu.emacs'' package identifier.
