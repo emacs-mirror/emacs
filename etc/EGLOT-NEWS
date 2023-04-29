@@ -40,7 +40,7 @@ The position-encoding scheme (UTF-8, UTF-16 or UTF-32) can now
 be negotiated with the server.
 
 ** More of the user's Eldoc configuration is respected.
-This change addresses the problems reported in many Elglot reports
+This change addresses the problems reported in many Eglot reports
 dating back to early 2021 at least.
 
 (github#646, github#894, github#920, github#1031, github#1171).
