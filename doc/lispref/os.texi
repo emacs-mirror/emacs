@@ -182,7 +182,9 @@ is over, and, together with @code{before-init-time}, provides the
 measurement of how long it took.
 
 @item
-It runs the normal hook @code{after-init-hook}.
+It runs the normal hooks @code{after-init-hook} and
+@code{delayed-warnings-hook}.  The latter shows any warnings emitted
+during previous stages of startup, which are automatically delayed.
 
 @item
 If the buffer @file{*scratch*} exists and is still in Fundamental mode
