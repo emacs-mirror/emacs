@@ -942,8 +942,8 @@
     (should-not (local-variable-if-set-p 'erc-send-completed-hook))
     (set (make-local-variable 'erc-send-completed-hook) nil) ; skip t (globals)
     ;; Just in case erc-ring-mode is already on
-    (setq-local erc-pre-send-functions nil)
-    (add-hook 'erc-pre-send-functions #'erc-add-to-input-ring)
+    (setq-local erc--input-review-functions nil)
+    (add-hook 'erc--input-review-functions #'erc-add-to-input-ring)
     ;;
     (cl-letf (((symbol-function 'erc-process-input-line)
                (lambda (&rest _)
@@ -1156,7 +1156,9 @@
 
 (defun erc-tests--with-process-input-spy (test)
   (with-current-buffer (get-buffer-create "FakeNet")
-    (let* ((erc-pre-send-functions
+    (let* ((erc--input-review-functions
+            (remove #'erc-add-to-input-ring erc--input-review-functions))
+           (erc-pre-send-functions
             (remove #'erc-add-to-input-ring erc-pre-send-functions)) ; for now
            (inhibit-message noninteractive)
            (erc-server-current-nick "tester")
@@ -1314,13 +1316,14 @@
   (ert-info ("With `erc-inhibit-multiline-input' as t (2)")
     (let ((erc-inhibit-multiline-input t))
       (should-not (erc--check-prompt-input-for-excess-lines "" '("a")))
-      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "")))
+      ;; Does not trim trailing blanks.
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "")))
       (should (erc--check-prompt-input-for-excess-lines "" '("a" "b")))))
 
   (ert-info ("With `erc-inhibit-multiline-input' as 3")
     (let ((erc-inhibit-multiline-input 3))
       (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b")))
-      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b" "")))
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "b" "")))
       (should (erc--check-prompt-input-for-excess-lines "" '("a" "b" "c")))))
 
   (ert-info ("With `erc-ask-about-multiline-input'")
@@ -1398,6 +1401,94 @@
                            '("PRIVMSG #chan : \r\n" . utf-8))))
 
           (should-not calls))))))
+
+
+;; The behavior of `erc-pre-send-functions' differs between versions
+;; in how hook members see and influence a trailing newline that's
+;; part of the original prompt submission:
+;;
+;;  5.4: both seen and sent
+;;  5.5: seen but not sent*
+;;  5.6: neither seen nor sent*
+;;
+;;  * requires `erc-send-whitespace-lines' for hook to run
+;;
+;; Two aspects that have remained consistent are
+;;
+;;   - a final nonempty line in any submission is always sent
+;;   - a trailing newline appended by a hook member is always sent
+;;
+;; The last bullet would seem to contradict the "not sent" behavior of
+;; 5.5 and 5.6, but what's actually happening is that exactly one
+;; trailing newline is culled, so anything added always goes through.
+;; Also, in ERC 5.6, all empty lines are actually padded, but this is
+;; merely incidental WRT the above.
+;;
+;; Note that this test doesn't run any input-prep hooks and thus can't
+;; account for the "seen" dimension noted above.
+
+(ert-deftest erc--run-send-hooks ()
+  (with-suppressed-warnings ((obsolete erc-send-this)
+                             (obsolete erc-send-pre-hook))
+    (should erc-insert-this)
+    (should erc-send-this) ; populates `erc--input-split-sendp'
+
+    (let (erc-pre-send-functions erc-send-pre-hook)
+
+      (ert-info ("String preserved, lines rewritten, empties padded")
+        (setq erc-pre-send-functions
+              (lambda (o) (setf (erc-input-string o) "bar\n\nbaz\n")))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "foo" :lines '("foo")))
+                  ((cl-struct erc--input-split
+                              (string "foo") (sendp 't) (insertp 't)
+                              (lines '("bar" " " "baz" " ")) (cmdp 'nil))
+                   t))))
+
+      (ert-info ("Multiline commands rejected")
+        (should-error (erc--run-send-hooks (make-erc--input-split
+                                            :string "/mycmd foo"
+                                            :lines '("/mycmd foo")
+                                            :cmdp t))))
+
+      (ert-info ("Single-line commands pass")
+        (setq erc-pre-send-functions
+              (lambda (o) (setf (erc-input-sendp o) nil
+                                (erc-input-string o) "/mycmd bar")))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "/mycmd foo"
+                                             :lines '("/mycmd foo")
+                                             :cmdp t))
+                  ((cl-struct erc--input-split
+                              (string "/mycmd foo") (sendp 'nil) (insertp 't)
+                              (lines '("/mycmd bar")) (cmdp 't))
+                   t))))
+
+      (ert-info ("Legacy hook respected, special vars confined")
+        (setq erc-send-pre-hook (lambda (_) (setq erc-send-this nil))
+              erc-pre-send-functions (lambda (o) ; propagates
+                                       (should-not (erc-input-sendp o))))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "foo" :lines '("foo")))
+                  ((cl-struct erc--input-split
+                              (string "foo") (sendp 'nil) (insertp 't)
+                              (lines '("foo")) (cmdp 'nil))
+                   t)))
+        (should erc-send-this))
+
+      (ert-info ("Request to resplit honored")
+        (setq erc-send-pre-hook nil
+              erc-pre-send-functions
+              (lambda (o) (setf (erc-input-string o) "foo bar baz"
+                                (erc-input-refoldp o) t)))
+        (let ((erc-split-line-length 8))
+          (should
+           (pcase (erc--run-send-hooks (make-erc--input-split
+                                        :string "foo" :lines '("foo")))
+             ((cl-struct erc--input-split
+                         (string "foo") (sendp 't) (insertp 't)
+                         (lines '("foo bar " "baz")) (cmdp 'nil))
+              t))))))))
 
 ;; Note: if adding an erc-backend-tests.el, please relocate this there.
 

@@ -187,6 +187,12 @@ The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
+*** Prompt input is split before 'erc-pre-send-functions' has a say.
+Hook members are now treated to input whose lines have already been
+adjusted to fall within the allowed length limit.  For convenience,
+third-party code can request that the final input be "re-filled" prior
+to being sent.  See doc string for details.
+
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while
 running hooks during message insertion, and the position of its

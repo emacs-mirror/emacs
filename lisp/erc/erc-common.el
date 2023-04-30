@@ -30,8 +30,10 @@
 (defvar erc--casemapping-rfc1459-strict)
 (defvar erc-channel-users)
 (defvar erc-dbuf)
+(defvar erc-insert-this)
 (defvar erc-log-p)
 (defvar erc-modules)
+(defvar erc-send-this)
 (defvar erc-server-process)
 (defvar erc-server-users)
 (defvar erc-session-server)
@@ -49,10 +51,14 @@
 (declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp)
+  string insertp sendp refoldp)
 
-(cl-defstruct (erc--input-split (:include erc-input))
-  lines cmdp)
+(cl-defstruct (erc--input-split (:include erc-input
+                                          (string :read-only)
+                                          (insertp erc-insert-this)
+                                          (sendp erc-send-this)))
+  (lines nil :type (list-of string))
+  (cmdp nil :type boolean))
 
 (cl-defstruct (erc-server-user (:type vector) :named)
   ;; User data

@@ -1094,34 +1094,40 @@ The struct has three slots:
 
   `string': The current input string.
   `insertp': Whether the string should be inserted into the erc buffer.
-  `sendp': Whether the string should be sent to the irc server."
+  `sendp': Whether the string should be sent to the irc server.
+  `refoldp': Whether the string should be re-split per protocol limits.
+
+This hook runs after protocol line splitting has taken place, so
+the value of `string' is originally \"pre-filled\".  If you need
+ERC to refill the entire payload before sending it, set the
+`refoldp' slot to a non-nil value.  Preformatted text and encoded
+subprotocols should probably be handled manually."
   :group 'erc
   :type 'hook
   :version "27.1")
 
-;; This is being auditioned for possible exporting (as a custom hook
-;; option).  Likewise for (public versions of) `erc--input-split' and
-;; `erc--discard-trailing-multiline-nulls'.  If unneeded, we'll just
-;; run the latter on the input after `erc-pre-send-functions', and
-;; remove this hook and the struct completely.  IOW, if you need this,
-;; please say so.
-
-(defvar erc--pre-send-split-functions '(erc--discard-trailing-multiline-nulls
-                                        erc--split-lines)
-  "Special hook for modifying individual lines in multiline prompt input.
-The functions are called with one argument, an `erc--input-split'
-struct, which they can optionally modify.
+(define-obsolete-variable-alias 'erc--pre-send-split-functions
+  'erc--input-review-functions "30.1")
+(defvar erc--input-review-functions '(erc--discard-trailing-multiline-nulls
+                                      erc--split-lines
+                                      erc--run-input-validation-checks)
+  "Special hook for reviewing and modifying prompt input.
+ERC runs this before clearing the prompt and before running any
+send-related hooks, such as `erc-pre-send-functions'.  Thus, it's
+quite \"safe\" to bail out of this hook with a `user-error', if
+necessary.  The hook's members are called with one argument, an
+`erc--input-split' struct, which they can optionally modify.
 
 The struct has five slots:
 
-  `string': the input string delivered by `erc-pre-send-functions'
-  `insertp': whether to insert the lines into the buffer
-  `sendp': whether the lines should be sent to the IRC server
+  `string': the original input as a read-only reference
+  `insertp': same as in `erc-pre-send-functions'
+  `sendp': same as in `erc-pre-send-functions'
+  `refoldp': same as in `erc-pre-send-functions'
   `lines': a list of lines to be sent, each one a `string'
   `cmdp': whether to interpret input as a command, like /ignore
 
-The `string' field is effectively read-only.  When `cmdp' is
-non-nil, all but the first line will be discarded.")
+When `cmdp' is non-nil, all but the first line will be discarded.")
 
 (defvar erc-insert-this t
   "Insert the text into the target buffer or not.
@@ -1163,8 +1169,8 @@ preserve point if needed."
 
 (defcustom erc-send-modify-hook nil
   "Sending hook for functions that will change the text's appearance.
-This hook is called just after `erc-send-pre-hook' when the values
-of `erc-send-this' and `erc-insert-this' are both t.
+ERC runs this just after `erc-pre-send-functions' if its shared
+`erc-input' object's `sendp' and `insertp' slots remain non-nil.
 While this hook is run, narrowing is in effect and `current-buffer' is
 the buffer where the text got inserted.
 
@@ -6106,16 +6112,18 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
 (defun erc--check-prompt-input-for-excess-lines (_ lines)
   "Return non-nil when trying to send too many LINES."
   (when erc-inhibit-multiline-input
-    ;; Assume `erc--discard-trailing-multiline-nulls' is set to run
-    (let ((reversed (seq-drop-while #'string-empty-p (reverse lines)))
-          (max (if (eq erc-inhibit-multiline-input t)
+    (let ((max (if (eq erc-inhibit-multiline-input t)
                    2
                  erc-inhibit-multiline-input))
           (seen 0)
-          msg)
-      (while (and (pop reversed) (< (cl-incf seen) max)))
+          last msg)
+      (while (and lines (setq last (pop lines)) (< (cl-incf seen) max)))
       (when (= seen max)
-        (setq msg (format "(exceeded by %d)" (1+ (length reversed))))
+        (push last lines)
+        (setq msg
+              (format "-- exceeded by %d (%d chars)"
+                      (length lines)
+                      (apply #'+ (mapcar #'length lines))))
         (unless (and erc-ask-about-multiline-input
                      (y-or-n-p (concat "Send input " msg "?")))
           (concat "Too many lines " msg))))))
@@ -6155,7 +6163,17 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
 Called with latest input string submitted by user and the list of
 lines produced by splitting it.  If any member function returns
 non-nil, processing is abandoned and input is left untouched.
-When the returned value is a string, pass it to `erc-error'.")
+When the returned value is a string, ERC passes it to `erc-error'.")
+
+(defun erc--run-input-validation-checks (state)
+  "Run input checkers from STATE, an `erc--input-split' object."
+  (when-let ((msg (run-hook-with-args-until-success
+                   'erc--check-prompt-input-functions
+                   (erc--input-split-string state)
+                   (erc--input-split-lines state))))
+    (unless (stringp msg)
+      (setq msg (format "Input error: %S" msg)))
+    (user-error msg)))
 
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
@@ -6170,12 +6188,15 @@ When the returned value is a string, pass it to `erc-error'.")
                      (eolp))
             (expand-abbrev))
           (widen)
-          (if-let* ((str (erc-user-input))
-                    (msg (run-hook-with-args-until-success
-                          'erc--check-prompt-input-functions str
-                          (split-string str erc--input-line-delim-regexp))))
-              (when (stringp msg)
-                (erc-error msg))
+          (let* ((str (erc-user-input))
+                 (state (make-erc--input-split
+                         :string str
+                         :insertp erc-insert-this
+                         :sendp erc-send-this
+                         :lines (split-string
+                                 str erc--input-line-delim-regexp)
+                         :cmdp (string-match erc-command-regexp str))))
+            (run-hook-with-args 'erc--input-review-functions state)
             (let ((inhibit-read-only t)
                   (old-buf (current-buffer)))
               (progn ; unprogn this during next major surgery
@@ -6183,7 +6204,7 @@ When the returned value is a string, pass it to `erc-error'.")
                 ;; Kill the input and the prompt
                 (delete-region erc-input-marker (erc-end-of-input-line))
                 (unwind-protect
-                    (erc-send-input str 'skip-ws-chk)
+                    (erc--send-input-lines (erc--run-send-hooks state))
                   ;; Fix the buffer if the command didn't kill it
                   (when (buffer-live-p old-buf)
                     (with-current-buffer old-buf
@@ -6222,6 +6243,52 @@ an `erc--input-split' object."
   (unless (erc--input-split-cmdp state)
     (setf (erc--input-split-lines state)
           (mapcan #'erc--split-line (erc--input-split-lines state)))))
+
+(defun erc--run-send-hooks (lines-obj)
+  "Run send-related hooks that operate on the entire prompt input.
+Sequester some of the back and forth involved in honoring old
+interfaces, such as the reconstituting and re-splitting of
+multiline input.  Optionally readjust lines to protocol length
+limits and pad empty ones, knowing full well that additional
+processing may still corrupt messages before they reach the send
+queue.  Expect LINES-OBJ to be an `erc--input-split' object."
+  (when (or erc-send-pre-hook erc-pre-send-functions)
+    (with-suppressed-warnings ((lexical str) (obsolete erc-send-this))
+      (defvar str) ; see note in string `erc-send-input'.
+      (let* ((str (string-join (erc--input-split-lines lines-obj) "\n"))
+             (erc-send-this (erc--input-split-sendp lines-obj))
+             (erc-insert-this (erc--input-split-insertp lines-obj))
+             (state (progn
+                      ;; This may change `str' and `erc-*-this'.
+                      (run-hook-with-args 'erc-send-pre-hook str)
+                      (make-erc-input :string str
+                                      :insertp erc-insert-this
+                                      :sendp erc-send-this))))
+        (run-hook-with-args 'erc-pre-send-functions state)
+        (setf (erc--input-split-sendp lines-obj) (erc-input-sendp state)
+              (erc--input-split-insertp lines-obj) (erc-input-insertp state)
+              ;; See note in test of same name re trailing newlines.
+              (erc--input-split-lines lines-obj)
+              (cl-nsubst " " "" (split-string (erc-input-string state)
+                                              erc--input-line-delim-regexp)
+                         :test #'equal))
+        (when (erc-input-refoldp state)
+          (erc--split-lines lines-obj)))))
+  (when (and (erc--input-split-cmdp lines-obj)
+             (cdr (erc--input-split-lines lines-obj)))
+    (user-error "Multiline command detected" ))
+  lines-obj)
+
+(defun erc--send-input-lines (lines-obj)
+  "Send lines in `erc--input-split-lines' object LINES-OBJ."
+  (when (erc--input-split-sendp lines-obj)
+    (dolist (line (erc--input-split-lines lines-obj))
+      (unless (erc--input-split-cmdp lines-obj)
+        (when (erc--input-split-insertp lines-obj)
+          (erc-display-msg line)))
+      (erc-process-input-line (concat line "\n")
+                              (null erc-flood-protect)
+                              (not (erc--input-split-cmdp lines-obj))))))
 
 (defun erc-send-input (input &optional skip-ws-chk)
   "Treat INPUT as typed in by the user.
