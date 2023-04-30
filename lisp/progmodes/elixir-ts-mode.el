@@ -89,7 +89,7 @@
   (rx bol
       (or "call" "stab_clause" "binary_operator" "list" "tuple" "map" "pair"
           "sigil" "string" "atom" "alias" "arguments" "identifier"
-          "boolean" "quoted_content")
+          "boolean" "quoted_content" "bitstring")
       eol))
 
 (defconst elixir-ts--test-definition-keywords
@@ -231,6 +231,7 @@
        ((node-is "^]$") ,'elixir-ts--parent-expression-start 0)
        ((node-is "^}$") ,'elixir-ts--parent-expression-start 0)
        ((node-is "^)$") ,'elixir-ts--parent-expression-start 0)
+       ((node-is "^>>$") ,'elixir-ts--parent-expression-start 0)
        ((node-is "^else_block$") grand-parent 0)
        ((node-is "^catch_block$") grand-parent 0)
        ((node-is "^rescue_block$") grand-parent 0)
@@ -250,12 +251,12 @@
         ,'elixir-ts--argument-indent-anchor
         ,'elixir-ts--argument-indent-offset)
        ((parent-is "^pair$") parent ,offset)
+       ((parent-is "^bitstring$") parent ,offset)
        ((parent-is "^map_content$") parent-bol 0)
        ((parent-is "^map$") ,'elixir-ts--parent-expression-start ,offset)
        ((node-is "^stab_clause$") parent-bol ,offset)
        ((query ,elixir-ts--capture-operator-parent) grand-parent 0)
        ((node-is "^when$") parent 0)
-       ((node-is "^keywords$") parent-bol ,offset)
        ((parent-is "^body$")
         (lambda (node parent _)
           (save-excursion
@@ -270,6 +271,7 @@
         ,'elixir-ts--argument-indent-anchor
         ,'elixir-ts--argument-indent-offset)
        ;; Handle incomplete maps when parent is ERROR.
+       ((node-is "^keywords$") parent-bol ,offset)
        ((n-p-gp "^binary_operator$" "ERROR" nil) parent-bol 0)
        ;; When there is an ERROR, just indent to prev-line.
        ((parent-is "ERROR") prev-line ,offset)
