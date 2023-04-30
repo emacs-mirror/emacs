@@ -162,7 +162,7 @@ archive."
                                          (:vc-backend symbol)))))
   :version "29.1")
 
-(defvar package-vc--archive-spec-alist nil
+(defvar package-vc--archive-spec-alists nil
   "List of package specifications for each archive.
 The list maps each package name, as a string, to a plist as
 specified in `package-vc-selected-packages'.")
@@ -194,15 +194,15 @@ name for PKG-DESC."
             (not (alist-get name package-vc-selected-packages
                             nil nil #'string=)))
        (alist-get (intern (package-desc-archive pkg-desc))
-                  package-vc--archive-spec-alist)
+                  package-vc--archive-spec-alists)
      ;; Consult both our local list of package specifications, as well
      ;; as the lists provided by the archives.
      (apply #'append (cons package-vc-selected-packages
-                           (mapcar #'cdr package-vc--archive-spec-alist))))
+                           (mapcar #'cdr package-vc--archive-spec-alists))))
    '() nil #'string=))
 
 (defun package-vc--read-archive-data (archive)
-  "Update `package-vc--archive-spec-alist' for ARCHIVE.
+  "Update `package-vc--archive-spec-alists' for ARCHIVE.
 This function is meant to be used as a hook for `package-read-archive-hook'."
   (let ((contents-file (expand-file-name
                         (format "archives/%s/elpa-packages.eld" archive)
@@ -219,7 +219,7 @@ This function is meant to be used as a hook for `package-read-archive-hook'."
           (let ((spec (read (current-buffer))))
             (when (eq package-vc--elpa-packages-version
                       (plist-get (cdr spec) :version))
-              (setf (alist-get (intern archive) package-vc--archive-spec-alist)
+              (setf (alist-get (intern archive) package-vc--archive-spec-alists)
                     (car spec)))
             (setf (alist-get (intern archive) package-vc--archive-data-alist)
                   (cdr spec))
@@ -230,7 +230,7 @@ This function is meant to be used as a hook for `package-read-archive-hook'."
 
 (defun package-vc--download-and-read-archives (&optional async)
   "Download specifications of all `package-archives' and read them.
-Populate `package-vc--archive-spec-alist' with the result.
+Populate `package-vc--archive-spec-alists' with the result.
 
 If optional argument ASYNC is non-nil, perform the downloads
 asynchronously."
@@ -571,7 +571,7 @@ Emacs Lisp files.")
 (defun package-vc--unpack (pkg-desc pkg-spec &optional rev)
   "Install the package described by PKG-DESC.
 PKG-SPEC is a package specification, a property list describing
-how to fetch and build the package.  See `package-vc--archive-spec-alist'
+how to fetch and build the package.  See `package-vc--archive-spec-alists'
 for details.  The optional argument REV specifies a specific revision to
 checkout.  This overrides the `:branch' attribute in PKG-SPEC."
   (unless (eq (package-desc-kind pkg-desc) 'vc)
@@ -620,7 +620,8 @@ abort installation?" name))
           (throw 'done (setq lisp-dir name)))))
 
     ;; Ensure we have a copy of the package specification
-    (unless (equal (alist-get name (mapcar #'cdr package-vc--archive-spec-alist)) pkg-spec)
+    (unless (seq-some (lambda (alist) (equal (alist-get name (cdr alist)) pkg-spec))
+                      package-vc--archive-spec-alists)
       (customize-save-variable
        'package-vc-selected-packages
        (cons (cons name pkg-spec)
