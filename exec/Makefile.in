@@ -1,0 +1,139 @@
+### @configure_input@
+
+# Copyright (C) 2023 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# Configure build directory information.
+
+     srcdir = @srcdir@
+      VPATH = @srcdir@
+   builddir = @builddir@
+
+# Set up compilation tools.
+
+	 CC = @CC@
+	 AS = @AS@
+	 LD = @LD@
+	 M4 = @M4@
+	CPP = @CPP@
+    ASFLAGS = @ASFLAGS@
+    ARFLAGS = @ARFLAGS@
+     CFLAGS = @CFLAGS@
+   CPPFLAGS = @CPPFLAGS@
+    LDFLAGS = @LDFLAGS@
+LOADERFLAGS = @LOADERFLAGS@
+FIND_DELETE = @FIND_DELETE@
+
+# Set up object files.
+
+     LOADER = @exec_loader@
+       OBJS = @OBJS@
+   LOADOBJS = $(patsubst %.s,%.o,$(LOADER))
+
+# Set up automatic dependency tracking.
+
+AUTO_DEPEND = @AUTO_DEPEND@
+DEPDIR = deps
+ifeq ($(AUTO_DEPEND),yes)
+DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
+-include $(OBJS:%.o=$(DEPDIR)/%.d)
+-include $(DEPDIR)/test.d
+-include $(DEPDIR)/exec1.d
+else
+DEPFLAGS =
+include $(srcdir)/deps.mk
+endif
+
+# Set up the appropriate targets.
+
+all: libexec.a loader
+
+# Set up automatic Makefile regeneration.
+
+$(srcdir)/configure: $(srcdir)/configure.ac
+	cd $(srcdir) && autoreconf
+
+config.status: $(srcdir)/configure
+	if [ -x config.status ]; then	\
+	  ./config.status --recheck;	\
+	else				\
+	  $(srcdir)/configure;		\
+	fi
+
+Makefile: config.status Makefile.in
+	MAKE="$(MAKE)" ./config.status
+
+# Set up rules to build targets.
+
+.SUFFIXES: .c .s
+.c.o:
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -I$(srcdir) $< -o $@
+.s.o:
+	$(M4) $< > $<.s
+	$(AS) $(ASFLAGS) $<.s -o $@
+
+# Set up dependencies for config-mips.m4.
+
+config-mips.m4: config-mips.m4.in
+	cd $(srcdir) && ./config.status $@
+$(LOADOBJS): config-mips.m4
+
+# Set up rules to build libexec.a.
+
+libexec.a: $(OBJS)
+	$(AR) cru $(ARFLAGS) $@ $^
+
+# And loader.
+
+loader: $(LOADOBJS)
+	$(LD) -o $@ $(LOADERFLAGS) $(LOADOBJS)
+
+# And test.
+
+test: test.o libexec.a
+	$(CC) $(LDFLAGS) $< libexec.a -o $@
+
+# And exec1.
+
+exec1: exec1.o libexec.a
+	$(CC) $(LDFLAGS) $< libexec.a -o $@
+
+# Set up targets for cleaning.
+
+.PHONY: clean distclean maintainer-clean
+clean:
+	rm -f *.o *.a loader test *.s.s
+ifeq ($(AUTO_DEPEND),yes)
+	rm -rf deps/*.d
+endif
+
+distclean: clean
+	rm -f Makefile config.status config.h config-mips.m4
+
+maintainer-clean: distclean
+
+### This doesn't actually appear in the coding standards, but Karl
+### says GCC supports it, and that's where the configuration part of
+### the coding standards seem to come from.  It's like distclean, but
+### it deletes backup and autosave files too.
+
+extraclean: maintainer-clean
+	-rm -f config-tmp-* $(srcdir)/aclocal.m4 $(srcdir)/configure \
+	  $(srcdir)/src/config.in
+	-[ "$(srcdir)" = "." ] || \
+	  find $(srcdir) '(' -name '*~' -o -name '#*' ')' $(FIND_DELETE)
+	-find . '(' -name '*~' -o -name '#*' ')' $(FIND_DELETE)

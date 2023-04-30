@@ -1,0 +1,3 @@
+This directory holds the source code to a library used to replace the
+`execve' and `execveat' system calls, used by the Android port of
+Emacs to start executables without intervention from the system.

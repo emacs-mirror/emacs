@@ -124,7 +124,8 @@ CROSS_LIBSRC_BINS := $(top_builddir)/cross/lib-src/ctags	\
 		     $(top_builddir)/cross/lib-src/emacsclient	\
 		     $(top_builddir)/cross/lib-src/etags
 CROSS_LIBSRC_BINS_MOVEMAIL := $(top_builddir)/cross/lib-src/movemail
-CROSS_BINS = $(CROSS_SRC_BINS) $(CROSS_LIBSRC_BINS)
+CROSS_EXEC_BINS := $(top_builddir)/exec/exec1 $(top_builddir)/exec/loader
+CROSS_BINS = $(CROSS_SRC_BINS) $(CROSS_LIBSRC_BINS) $(CROSS_EXEC_BINS)
 
 ifneq ($(emacs_use_mailutils),yes)
 CROSS_LIBSRC_BINS := $(CROSS_LIBSRC_BINS) $(CROSS_LIBSRC_BINS_MOVEMAIL)
@@ -158,6 +159,12 @@ $(CROSS_LIBSRC_BINS) &: $(CROSS_ARCHIVES)
 
 $(CROSS_ARCHIVES):
 	$(MAKE) -C $(top_builddir)/cross lib/libgnu.a
+
+# These two binaries are helpers used to execute binaries on Android
+# 10 and later.
+
+$(CROSS_EXEC_BINS) &:
+	$(MAKE) -C $(top_builddir)/exec $(notdir $(CROSS_EXEC_BINS))
 
 # This is needed to generate the ``.directory-tree'' file used by the
 # Android emulations of readdir and faccessat.

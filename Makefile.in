@@ -1000,6 +1000,12 @@ endef
 mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
   doc/lispref doc/lispintro test
 
+### Add the libexec directory to mostlyclean_dirs if its Makefile has
+### been created.
+ifneq ($(wildcard exec/Makefile),)
+mostlyclean_dirs := $(mostlyclean_dirs) exec
+endif
+
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)

@@ -174,7 +174,33 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   with_ndk_cxx_shared="$android_ndk_cxx_shared"
   with_ndk_cxx="$android_ndk_cxx"
   ndk_INIT([$android_abi], [$ANDROID_SDK], [cross/ndk-build],
-           [$ANDROID_CFLAGS])])
+           [$ANDROID_CFLAGS])
+
+  # At the same time, configure libexec with the build directory
+  # set to `exec'.
+  AS_MKDIR_P([exec])
+  AC_MSG_NOTICE([configuring in `exec'])
+
+  # Enter exec and configure it, using the C compiler as both the
+  # assembler and the linker.  Determine the absolute name of the
+  # source directory.
+  # N.B. that the linker is actually cc, so pass -nostdlib, lest
+  # the crt be linked in.  Likewise for as.
+
+  AS_CASE([$ac_srcdir], [.], [emacs_srcdir=`pwd`],
+    [[[\\/]* | ?:[\\/]*]], [emacs_srcdir=$ac_srcdir],
+    [*], [emacs_srcdir=`pwd`/$ac_srcdir])
+
+  OLDCWD=`pwd`
+  cd exec
+  $CONFIG_SHELL $emacs_srcdir/exec/configure	  \
+		--host=$host CC=$CC LD=$CC AS=$CC \
+		AR=$AR ASFLAGS=-c
+  cd $OLDCWD
+
+  AS_IF([test "$?" != "0"],
+    [AC_MSG_ERROR([failed to configure in `exec'])])
+])
 
 case $host in
  *-mingw*)

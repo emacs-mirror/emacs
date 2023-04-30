@@ -371,3 +371,14 @@ lib-src/seccomp-filter-exec.pfc
 # GDB history
 .gdb_history
 _gdb_history
+
+# Files ignored in exec/.
+exec/config.status
+exec/loader
+exec/test
+exec/exec1
+exec/deps/*
+exec/autom4te.cache
+exec/config.h
+exec/config-mips.m4
+exec/*.s.s
