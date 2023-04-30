@@ -801,7 +801,7 @@ This function corrects the fontification of the colon in
            'default override start end))))))
 
 (defun c-ts-mode--fontify-for-each-tail (node override start end &rest _)
-  "Fontify FOR_EACH_TAIL variants in Emacs sources.
+  "Fontify FOR_EACH_* macro variants in Emacs sources.
 For NODE, OVERRIDE, START, and END, see
 `treesit-font-lock-rules'.  The captured NODE is a
 function_definition node."
