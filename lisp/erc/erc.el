@@ -597,6 +597,29 @@ Removes all users in the current channel.  This is called by
              erc-channel-users)
     (clrhash erc-channel-users)))
 
+(defmacro erc--define-channel-user-status-compat-getter (name n)
+  "Define a gv getter for historical `erc-channel-user' status slot NAME.
+Expect NAME to be a string and N to be its associated power-of-2
+\"enumerated flag\" integer."
+  `(defun ,(intern (concat "erc-channel-user-" name)) (u)
+     ,(format "Get equivalent of pre-5.6 `%s' slot for `erc-channel-user'."
+              name)
+     (declare (gv-setter (lambda (v)
+                           (macroexp-let2 nil v v
+                             (,'\`(let ((val (erc-channel-user-status ,',u)))
+                                    (setf (erc-channel-user-status ,',u)
+                                          (if ,',v
+                                              (logior val ,n)
+                                            (logand val ,(lognot n))))
+                                    ,',v))))))
+     (= ,n (logand ,n (erc-channel-user-status u)))))
+
+(erc--define-channel-user-status-compat-getter "voice"  1)
+(erc--define-channel-user-status-compat-getter "halfop" 2)
+(erc--define-channel-user-status-compat-getter "op"     4)
+(erc--define-channel-user-status-compat-getter "admin"  8)
+(erc--define-channel-user-status-compat-getter "owner" 16)
+
 (defun erc-channel-user-owner-p (nick)
   "Return non-nil if NICK is an owner of the current channel."
   (and nick
@@ -6764,6 +6787,19 @@ which USER is a member, and t is returned."
                   (run-hooks 'erc-channel-members-changed-hook))))))
     changed))
 
+;; This exists solely to make `erc-update-current-channel-member' more
+;; readable.  Having to resort to it is admittedly not ideal.  While
+;; it would seem at first glance that we could go further and encode
+;; the combined status in one go, we can't without gating the entire
+;; operation on the parameters `admin', `halfop', etc. being non-nil.
+(defmacro erc--update-cusr-status-if-changed (cuser changed-var status-var)
+  "Maybe update STATUS-VAR slot of `erc-channel-user' CUSER, and CHANGED-VAR."
+  (let ((accessor (intern (format "erc-channel-user-%s" status-var))))
+    `(when (and ,status-var (not (eq (,accessor ,cuser) ,status-var)))
+       (setf (,accessor ,cuser) (and (not (eq ,status-var 'off))
+                                     (and ,status-var t))
+             ,changed-var t))))
+
 (defun erc-update-current-channel-member
   (nick new-nick &optional add voice halfop op admin owner host login full-name info
         update-message-time)
@@ -6791,41 +6827,11 @@ See also: `erc-update-user' and `erc-update-channel-member'."
     (if cuser
         (progn
           (erc-log (format "update-member: user = %S, cuser = %S" user cuser))
-          (when (and voice
-                     (not (eq (erc-channel-user-voice cuser) voice)))
-            (setq changed t)
-            (setf (erc-channel-user-voice cuser)
-                  (cond ((eq voice 'on) t)
-                        ((eq voice 'off) nil)
-                        (t voice))))
-          (when (and halfop
-                     (not (eq (erc-channel-user-halfop cuser) halfop)))
-            (setq changed t)
-            (setf (erc-channel-user-halfop cuser)
-                  (cond ((eq halfop 'on) t)
-                        ((eq halfop 'off) nil)
-                        (t halfop))))
-          (when (and op
-                     (not (eq (erc-channel-user-op cuser) op)))
-            (setq changed t)
-            (setf (erc-channel-user-op cuser)
-                  (cond ((eq op 'on) t)
-                        ((eq op 'off) nil)
-                        (t op))))
-          (when (and admin
-                     (not (eq (erc-channel-user-admin cuser) admin)))
-            (setq changed t)
-            (setf (erc-channel-user-admin cuser)
-                  (cond ((eq admin 'on) t)
-                        ((eq admin 'off) nil)
-                        (t admin))))
-          (when (and owner
-                     (not (eq (erc-channel-user-owner cuser) owner)))
-            (setq changed t)
-            (setf (erc-channel-user-owner cuser)
-                  (cond ((eq owner 'on) t)
-                        ((eq owner 'off) nil)
-                        (t owner))))
+          (erc--update-cusr-status-if-changed cuser changed voice)
+          (erc--update-cusr-status-if-changed cuser changed halfop)
+          (erc--update-cusr-status-if-changed cuser changed op)
+          (erc--update-cusr-status-if-changed cuser changed admin)
+          (erc--update-cusr-status-if-changed cuser changed owner)
           (when update-message-time
             (setf (erc-channel-user-last-message-time cuser) (current-time)))
           (setq user-changed
@@ -6846,21 +6852,11 @@ See also: `erc-update-user' and `erc-update-channel-member'."
                 (cons (current-buffer)
                       (erc-server-user-buffers user))))
         (setq cuser (make-erc-channel-user
-                     :voice (cond ((eq voice 'on) t)
-                                  ((eq voice 'off) nil)
-                                  (t voice))
-                     :halfop (cond ((eq halfop 'on) t)
-                                ((eq halfop 'off) nil)
-                                (t halfop))
-                     :op (cond ((eq op 'on) t)
-                               ((eq op 'off) nil)
-                               (t op))
-                     :admin (cond ((eq admin 'on) t)
-                                  ((eq admin 'off) nil)
-                                  (t admin))
-                     :owner (cond ((eq owner 'on) t)
-                                  ((eq owner 'off) nil)
-                                  (t owner))
+                     :voice  (and (not (eq voice  'off)) (and voice  t))
+                     :halfop (and (not (eq halfop 'off)) (and halfop t))
+                     :op     (and (not (eq op     'off)) (and op     t))
+                     :admin  (and (not (eq admin  'off)) (and admin  t))
+                     :owner  (and (not (eq owner  'off)) (and owner  t))
                      :last-message-time
                      (if update-message-time (current-time))))
         (puthash (erc-downcase nick) (cons user cuser)

@@ -460,6 +460,15 @@ like "+" (for "voice"), and to avoid confusion with user modes, like
 "+i" (for "invisible").  Additionally, its lone parameter is now
 overloaded to accept an 'erc-channel-user' object as well as a string.
 
+*** The 'erc-channel-user' struct has a changed internally.
+The five boolean slots for membership prefixes have been folded
+("encoded") into a single integer slot.  However, the old 'setf'-able
+accessors remain available, and the constructor's signature remains
+unchanged.  Since third-party code must be recompiled when upgrading
+ERC anyway, users shouldn't experience any churn.  The only caveat is
+that third-party code using the literal read-syntax of these objects,
+for example, in unit tests, will have to be updated.
+
 *** Hidden messages contain a preceding rather than trailing newline.
 ERC has traditionally only offered to hide messages involving fools,
 but plans are to make hiding more powerful.  Anyone depending on the

@@ -68,8 +68,23 @@
   ;; Buffers
   (buffers nil))
 
-(cl-defstruct (erc-channel-user (:type vector) :named)
-  voice halfop op admin owner
+(cl-defstruct (erc-channel-user (:type vector)
+                                (:constructor
+                                 erc-channel-user--make
+                                 (&key (status 0) (last-message-time nil)))
+                                (:constructor
+                                 make-erc-channel-user
+                                 ( &key voice halfop op admin owner
+                                   last-message-time
+                                   &aux (status (+ (if voice  1 0)
+                                                   (if halfop 2 0)
+                                                   (if op     4 0)
+                                                   (if admin  8 0)
+                                                   (if owner 16 0)))))
+                                :named)
+  "Object containing channel-specific data for a single user."
+  ;; voice halfop op admin owner
+  (status 0 :type integer)
   ;; Last message time (in the form of the return value of
   ;; (current-time)
   ;;

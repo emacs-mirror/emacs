@@ -3046,6 +3046,57 @@
     (kill-buffer "baznet")
     (kill-buffer "#chan")))
 
+(ert-deftest erc-channel-user ()
+  ;; Traditional and alternate constructor swapped for compatibility.
+  (should (= 0 (erc-channel-user-status (erc-channel-user--make))))
+  (should-not (erc-channel-user-last-message-time (erc-channel-user--make)))
+
+  (should (= 42 (erc-channel-user-last-message-time
+                 (make-erc-channel-user :last-message-time 42))))
+
+  (should (zerop (erc-channel-user-status (make-erc-channel-user))))
+
+  (let ((u (make-erc-channel-user)))
+
+    (ert-info ("Add voice status to user")
+      (should (= 0 (erc-channel-user-status u)))
+      (should-not (erc-channel-user-voice u))
+      (should (eq t (setf (erc-channel-user-voice u) t)))
+      (should (eq t (erc-channel-user-voice u))))
+
+    (ert-info ("Add op status to user")
+      (should (= 1 (erc-channel-user-status u)))
+      (should-not (erc-channel-user-op u))
+      (should (eq t (setf (erc-channel-user-op u) t)))
+      (should (eq t (erc-channel-user-op u))))
+
+    (ert-info ("Add owner status to user")
+      (should (= 5 (erc-channel-user-status u)))
+      (should-not (erc-channel-user-owner u))
+      (should (eq t (setf (erc-channel-user-owner u) t)))
+      (should (eq t (erc-channel-user-owner u))))
+
+    (ert-info ("Remove owner status from user")
+      (should (= 21 (erc-channel-user-status u)))
+      (should-not (setf (erc-channel-user-owner u) nil))
+      (should-not (erc-channel-user-owner u)))
+
+    (ert-info ("Remove op status from user")
+      (should (= 5 (erc-channel-user-status u)))
+      (should-not (setf (erc-channel-user-op u) nil))
+      (should-not (erc-channel-user-op u)))
+
+    (ert-info ("Remove voice status from user")
+      (should (= 1 (erc-channel-user-status u)))
+      (should-not (setf (erc-channel-user-voice u) nil))
+      (should-not (erc-channel-user-voice u)))
+
+    (ert-info ("Remove voice status from zeroed user")
+      (should (= 0 (erc-channel-user-status u)))
+      (should-not (setf (erc-channel-user-voice u) nil))
+      (should-not (erc-channel-user-voice u))
+      (should (= 0 (erc-channel-user-status u))))))
+
 (defconst erc-tests--modules
   '( autoaway autojoin bufbar button capab-identify
      command-indicator completion dcc fill identd
