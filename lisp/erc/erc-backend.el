@@ -104,7 +104,7 @@
 (defvar erc--display-context)
 (defvar erc--target)
 (defvar erc-channel-list)
-(defvar erc-channel-users)
+(defvar erc-channel-members)
 (defvar erc-default-nicks)
 (defvar erc-default-recipients)
 (defvar erc-ensure-target-buffer-on-privmsg)
@@ -1108,11 +1108,10 @@ Change value of property `erc-prompt' from t to `hidden'."
                    (setq erc-server-ping-handler nil)))
           (run-hook-with-args 'erc-disconnected-hook
                               (erc-current-nick) (system-name) "")
-          (dolist (buf (erc-buffer-filter (lambda () (boundp 'erc-channel-users)) cproc))
-            (with-current-buffer buf
-              (when (erc--target-channel-p erc--target)
-                (setf (erc--target-channel-joined-p erc--target) nil))
-              (setq erc-channel-users (make-hash-table :test 'equal))))
+          (erc-with-all-buffers-of-server cproc (lambda () erc-channel-members)
+            (when (erc--target-channel-p erc--target)
+              (setf (erc--target-channel-joined-p erc--target) nil))
+            (clrhash erc-channel-members))
           ;; Hide the prompt
           (erc--hide-prompt cproc)
           ;; Decide what to do with the buffer

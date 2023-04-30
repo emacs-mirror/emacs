@@ -460,6 +460,16 @@ like "+" (for "voice"), and to avoid confusion with user modes, like
 "+i" (for "invisible").  Additionally, its lone parameter is now
 overloaded to accept an 'erc-channel-user' object as well as a string.
 
+*** Channel-membership table 'erc-channel-users' renamed.
+Distinguishing between 'erc-channel-user' objects and values of the
+'erc-channel-users' (plural) hash-table has been a constant source of
+confusion, even within ERC's own code base.  The hash-table's values
+are cons cells whose CDR slot is an 'erc-channel-user'.  To help keep
+things sane, 'erc-channel-users' (plural) is now officially being
+redubbed 'erc-channel-members'.  Similarly, the utility function
+'erc-get-channel-user' has been renamed to 'erc-get-channel-member'.
+Expect deprecations of the old names to follow in a future release.
+
 *** The 'erc-channel-user' struct has a changed internally.
 The five boolean slots for membership prefixes have been folded
 ("encoded") into a single integer slot.  However, the old 'setf'-able

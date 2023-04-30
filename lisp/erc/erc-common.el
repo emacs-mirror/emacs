@@ -523,9 +523,10 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
                      (_ erc--casemapping-rfc1459))
     (downcase string)))
 
-(define-inline erc-get-channel-user (nick)
-  "Find NICK in the current buffer's `erc-channel-users' hash table."
+(define-inline erc-get-channel-member (nick)
+  "Find NICK in the current buffer's `erc-channel-members' hash table."
   (inline-quote (gethash (erc-downcase ,nick) erc-channel-users)))
+(defalias 'erc-get-channel-user #'erc-get-channel-member)
 
 (define-inline erc-get-server-user (nick)
   "Find NICK in the current server's `erc-server-users' hash table."

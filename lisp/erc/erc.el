@@ -474,13 +474,14 @@ Functions are passed a buffer as the first argument."
   :group 'erc-hooks
   :type 'hook)
 
-
-(defvar-local erc-channel-users nil
+(defvaralias 'erc-channel-users 'erc-channel-members)
+(defvar-local erc-channel-members nil
   "Hash table of members in the current channel.
-It associates nicknames with cons cells of the form:
-\(USER . MEMBER-DATA) where USER is a pointer to an
-erc-server-user struct, and MEMBER-DATA is a pointer to an
-erc-channel-user struct.")
+It associates nicknames with cons cells of the form
+\(SERVER-USER . MEMBER-DATA), where SERVER-USER is a
+`erc-server-user' object and MEMBER-DATA is a `erc-channel-user'
+object.  Convenient abbreviations for these two components are
+`susr' and `cusr', along with `cmem' for the pair.")
 
 (defvar-local erc-server-users nil
   "Hash table of users on the current server.
