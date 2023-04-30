@@ -2926,24 +2926,25 @@ contextual information."
       ;; FIXME: The unnecessary spacing may still remain when a newline
       ;; is at a boundary between Org objects (e.g. italics markup
       ;; followed by newline).
-      (setq output
-            (with-temp-buffer
-              (save-match-data
-                (let ((leading (and (string-match (rx bos (1+ blank)) output)
-                                    (match-string 0 output)))
-                      (trailing (and (string-match (rx (1+ blank) eos) output)
-                                     (match-string 0 output))))
-                  (insert
-                   (substring
-                    output
-                    (length leading)
-                    (pcase (length trailing)
-                      (0 nil)
-                      (n (- n)))))
-                  ;; Unfill, retaining leading/trailing space.
-                  (let ((fill-column most-positive-fixnum))
-                    (fill-region (point-min) (point-max)))
-                  (concat leading (buffer-string) trailing))))))
+      (when (org-string-nw-p output) ; blank string needs not to be re-filled
+        (setq output
+              (with-temp-buffer
+                (save-match-data
+                  (let ((leading (and (string-match (rx bos (1+ blank)) output)
+                                      (match-string 0 output)))
+                        (trailing (and (string-match (rx (1+ blank) eos) output)
+                                       (match-string 0 output))))
+                    (insert
+                     (substring
+                      output
+                      (length leading)
+                      (pcase (length trailing)
+                        (0 nil)
+                        (n (- n)))))
+                    ;; Unfill, retaining leading/trailing space.
+                    (let ((fill-column most-positive-fixnum))
+                      (fill-region (point-min) (point-max)))
+                    (concat leading (buffer-string) trailing)))))))
     ;; Return value.
     output))
 
