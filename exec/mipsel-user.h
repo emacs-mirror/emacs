@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef _MIPSEL_USER_H_
 #define _MIPSEL_USER_H_
 
-#include <sgidefs.h>
 #include <sys/user.h>
 
 #ifndef ELF_NGREG

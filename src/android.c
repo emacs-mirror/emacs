@@ -6584,8 +6584,8 @@ android_rewrite_spawn_argv (const char ***argv)
   new_args[0] = exec1_name;
   new_args[1] = loader_name;
 
-  /* And insert the rest.  */
-  for (i = 0; i < nargs; ++i)
+  /* And insert the rest, including the trailing NULL.  */
+  for (i = 0; i < nargs + 1; ++i)
     new_args[i + 2] = (*argv)[i];
 
   /* Replace argv.  */

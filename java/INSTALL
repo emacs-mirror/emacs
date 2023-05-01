@@ -22,10 +22,11 @@ your freedom's sake, you should use the Android SDK provided by the
 Debian project.
 
 In addition to the Android SDK and Android NDK, Emacs also requires
-the Java compiler from OpenJDK 1.7.0 to be installed on your system.
-Building on GNU systems is all that is officially supported.  We are
-told that Mac OS works too, and other Unix systems will likely work
-as well, but MS Windows and Cygwin will not.
+the Java compiler from OpenJDK 1.7.0 to be installed on your system,
+along with a working `m4' macro processor.  Building on GNU systems is
+all that is officially supported.  We are told that Mac OS works too,
+and other Unix systems will likely work as well, but MS Windows and
+Cygwin will not.
 
 Once all of those tools are obtained, you may invoke the `configure'
 script like so:

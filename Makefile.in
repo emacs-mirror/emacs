@@ -1101,6 +1101,8 @@ extraclean: maintainer-clean
 	-[ "${srcdir}" = "." ] || \
 	  find ${srcdir} '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
 	-find . '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
+	-rm -f ${srcdir}/exec/config-tmp-* ${srcdir}/exec/aclocal.m4 \
+	  ${srcdir}/src/config.in ${srcdir}/exec/configure
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.

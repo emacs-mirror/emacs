@@ -96,6 +96,13 @@ AH_TEMPLATE([CLONE3_SYSCALL], [Define to number of the `clone3' system call.])
 
 AC_CANONICAL_HOST
 
+# Check whether or not sys/user exists.  If it doesn't, try
+# asm/user.h, and croak if that doesn't exist either.
+AS_CASE([$host], [*mips*], [], [*],
+  [AC_CHECK_HEADER([sys/user.h], [user_h="<sys/user.h>"],
+    [AC_CHECK_HEADER([asm/user.h], [user_h="<asm/user.h>"],
+      [AC_MSG_ERROR([Can not find working user.h])])])])
+
 # Look for required tools.
 
 AC_ARG_VAR([M4], [`m4' preprocessor command.])
@@ -187,11 +194,12 @@ AS_IF([test "x$exec_cv_mips_nabi" != "xno"],
 exec_loader=
 is_mips=
 OBJS="exec.o trace.o"
+DADDI_BROKEN=no
 
 AS_CASE([$host], [x86_64-*linux*],
   [AC_CHECK_MEMBER([struct user_regs_struct.rdi],
     [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
-     AC_DEFINE([USER_HEADER], [<sys/user.h>])
+     AC_DEFINE_UNQUOTED([USER_HEADER], [$user_h])
      AC_DEFINE([USER_REGS_STRUCT], [struct user_regs_struct])
      AC_DEFINE([SYSCALL_NUM_REG], [orig_rax])
      AC_DEFINE([SYSCALL_RET_REG], [rax])
@@ -213,11 +221,11 @@ AS_CASE([$host], [x86_64-*linux*],
      exec_loader=loader-x86_64.s],
     [AC_MSG_ERROR([Missing `rdi' in user_regs_struct])],
     [[
-#include <sys/user.h>
+#include $user_h
     ]])], [i[[34567]]86-*linux*],
   [AC_CHECK_MEMBER([struct user_regs_struct.edi],
     [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
-     AC_DEFINE([USER_HEADER], [<sys/user.h>])
+     AC_DEFINE_UNQUOTED([USER_HEADER], [$user_h])
      AC_DEFINE([USER_REGS_STRUCT], [struct user_regs_struct])
      AC_DEFINE([SYSCALL_NUM_REG], [orig_eax])
      AC_DEFINE([SYSCALL_RET_REG], [eax])
@@ -237,11 +245,11 @@ AS_CASE([$host], [x86_64-*linux*],
      exec_loader=loader-x86.s],
     [AC_MSG_ERROR([Missing `edi' in user_regs_struct])],
     [[
-#include <sys/user.h>
+#include $user_h
     ]])], [aarch64-*linux*],
   [AC_CHECK_MEMBER([struct user_regs_struct.sp],
     [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
-     AC_DEFINE([USER_HEADER], [<sys/user.h>])
+     AC_DEFINE_UNQUOTED([USER_HEADER], [$user_h])
      AC_DEFINE([USER_REGS_STRUCT], [struct user_regs_struct])
      AC_DEFINE([SYSCALL_NUM_REG], [[regs[8]]])
      AC_DEFINE([SYSCALL_RET_REG], [[regs[0]]])
@@ -263,11 +271,11 @@ AS_CASE([$host], [x86_64-*linux*],
      exec_loader=loader-aarch64.s],
     [AC_MSG_ERROR([Missing `sp' in user_regs_struct])],
     [[
-#include <sys/user.h>
+#include $user_h
     ]])], [arm*linux*eabi* | armv7*linux*],
   [AC_CHECK_MEMBER([struct user_regs.uregs],
     [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
-     AC_DEFINE([USER_HEADER], [<sys/user.h>])
+     AC_DEFINE_UNQUOTED([USER_HEADER], [$user_h])
      AC_DEFINE([USER_REGS_STRUCT], [struct user_regs])
      AC_DEFINE([SYSCALL_NUM_REG], [[uregs[7]]])
      AC_DEFINE([SYSCALL_RET_REG], [[uregs[0]]])
@@ -283,9 +291,30 @@ AS_CASE([$host], [x86_64-*linux*],
      exec_CHECK_LINUX_CLONE3
      LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
      exec_loader=loader-armeabi.s],
-    [AC_MSG_ERROR([Missing `uregs' in user_regs_struct])],
+    [AC_CHECK_MEMBER([struct pt_regs.uregs],
+      [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
+       AC_DEFINE_UNQUOTED([USER_HEADER], [<asm/ptrace.h>])
+       AC_DEFINE([USER_REGS_STRUCT], [struct pt_regs])
+       AC_DEFINE([SYSCALL_NUM_REG], [[uregs[7]]])
+       AC_DEFINE([SYSCALL_RET_REG], [[uregs[0]]])
+       AC_DEFINE([SYSCALL_ARG_REG], [[uregs[0]]])
+       AC_DEFINE([SYSCALL_ARG1_REG], [[uregs[1]]])
+       AC_DEFINE([STACK_POINTER], [[uregs[13]]])
+       AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
+       AC_DEFINE([USER_WORD], [uintptr_t])
+       AC_DEFINE([EXECUTABLE_BASE], [0x0f000000])
+       AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
+       AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
+       AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+       exec_CHECK_LINUX_CLONE3
+       LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
+       exec_loader=loader-armeabi.s],
+      [AC_MSG_ERROR([Missing `uregs' in user_regs_struct or pt_regs])],
+      [[
+#include <asm/ptrace.h>
+      ]])],
     [[
-#include <sys/user.h>
+#include $user_h
     ]])], [mipsel*linux*],
   [AC_DEFINE([SYSCALL_HEADER], [<asm/unistd.h>])
    AC_DEFINE([USER_HEADER], ["mipsel-user.h"])
@@ -325,12 +354,35 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([INTERPRETER_BASE], [0x3f00000000])
    AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+   AC_CACHE_CHECK([whether as understands `daddi'],
+     [exec_cv_as_daddi],
+     [exec_cv_as_daddi=no
+      cat <<_ACEOF >conftest.s
+      .section text
+      .global __start
+__start:
+	li	$t0, 0
+	li	$t1, 0
+	daddi	$t0, $t1, 1
+	daddi	$t0, $t1, -1
+	daddi	$t0, -1
+	daddi	$t0, 1
+
+_ACEOF
+      $AS $ASFLAGS conftest.s -o conftest.$OBJEXT \
+	>&AS_MESSAGE_LOG_FD 2>&1		  \
+	&& exec_cv_as_daddi=yes
+      rm -f conftest.s conftest.$OBJEXT])
+   AS_IF([test "x$exec_cv_as_daddi" != "xyes"],
+     [DADDI_BROKEN=yes])
    exec_CHECK_LINUX_CLONE3
    exec_CHECK_MIPS_NABI
    LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x3e00000000"
    is_mips=yes
    exec_loader=loader-mips64el.s], [*],
   [AC_MSG_ERROR([Please port libexec to $host])])
+
+AC_SUBST([DADDI_BROKEN])
 
 MIPS_N32=$exec_cv_mips_nabi
 

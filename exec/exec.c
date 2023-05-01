@@ -95,7 +95,7 @@ check_interpreter (const char *name, int fd, const char **extra)
 
   /* Strip leading whitespace.  */
   start = buffer;
-  while (*start && *start < 128 && isspace (*start))
+  while (*start && ((unsigned char) *start) < 128 && isspace (*start))
     ++start;
 
   /* Look for a newline character.  */

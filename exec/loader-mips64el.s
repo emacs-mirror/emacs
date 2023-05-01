@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.	 If not, see <https://www.gnu.org/licenses/>.
 
+include(`config-mips.m4')
+
 	.set noreorder			# delay slots managed by hand
+	.set noat			# no assembler macros
 	.section .text
 	.global __start
 __start:
@@ -24,8 +27,8 @@ dnl	dla	$a0, .timespec		# rqtp
 dnl	li	$a1, 0			# rmtp
 dnl	syscall				# syscall
 	ld	$s2, ($sp)		# original stack pointer
-	daddi	$s0, $sp, 16		# start of load area
-	daddi	$sp, -16		# primary fd, secondary fd
+	DADDI3(	$s0, $sp, 16)		# start of load area
+	DADDI2(	$sp, -16)		# primary fd, secondary fd
 	li	$t0, -1			# secondary fd
 	sd	$t0, 8($sp)		# initialize secondary fd
 .next_action:
@@ -33,7 +36,7 @@ dnl	syscall				# syscall
 	andi	$t0, $s1, 15		# t0 = action number & 15
 	beqz	$t0, .open_file		# open file?
 	nop				# delay slot
-	daddi	$t0, -3			# t0 -= 3
+	DADDI2(	$t0, -3)		# t0 -= 3
 	beqz	$t0, .rest_of_exec	# jump to code
 	nop				# delay slot
 	li	$t1, 1
@@ -76,30 +79,30 @@ dnl	syscall				# syscall
 	bne	$t2, $zero, .fillb	# fill bytes
 	nop				# delay slot
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	sd	$zero, ($t1)		# zero doubleword
-	daddi	$t1, 8			# next doubleword
+	DADDI2(	$t1, 8)			# next doubleword
 	j	.filld			# fill either doubleword or byte
 	nop				# delay slot
 .fillb:
 	beq	$t0, $t1, .continue	# already finished?
 	nop				# delay slot
 	sb	$zero, ($t1)		# clear byte
-	daddi	$t1, $t1, 1		# t1++
+	DADDI2(	$t1, 1)			# t1++
 .continue:
-	daddi	$s0, $s0, 56		# s0 = next action
+	DADDI2(	$s0, 56)		# s0 = next action
 	j	.next_action		# next action
 	nop				# delay slot
 .do_mmap_anon:
@@ -113,26 +116,26 @@ dnl	syscall				# syscall
 	nop				# branch delay slot
 .open_file:
 	li	$v0, 5002		# SYS_open
-	daddi	$a0, $s0, 8		# start of name
+	DADDI3(	$a0, $s0, 8)		# start of name
 	move	$a1, $zero		# flags = O_RDONLY
 	move	$a2, $zero		# mode = 0
 	syscall				# syscall
 	bne	$a3, $zero, .perror	# perror
 	nop				# delay slot
-	daddi	$s0, $s0, 8		# start of string
+	DADDI2(	$s0, 8)			# start of string
 .nextc:
 	lb	$t0, ($s0)		# load byte
-	daddi	$s0, $s0, 1		# s0++
+	DADDI2(	$s0, 1)			# s0++
 	bne	$t0, $zero, .nextc	# next character?
 	nop				# delay slot
-	daddi	$s0, $s0, 7		# adjust for round
+	DADDI2(	$s0, 7)			# adjust for round
 	li	$t2, -8			# t2 = -8
 	and	$s0, $s0, $t2		# mask for round
 	andi	$t0, $s1, 16		# t1 = s1 & 16
 	move	$t1, $sp		# address of primary fd
 	beqz	$t0, .primary		# primary fd?
 	nop				# delay slot
-	daddi	$t1, $t1, 8		# address of secondary fd
+	DADDI2(	$t1, 8)			# address of secondary fd
 .primary:
 	sd	$v0, ($t1)		# store fd
 	j	.next_action		# next action
@@ -145,11 +148,11 @@ dnl	syscall				# syscall
 	move	$s1, $s2		# original SP
 	ld	$t0, ($s1)		# argc
 	dsll	$t0, $t0, 3		# argc *= 3
-	daddi	$t0, $t0, 16		# argc += 16
+	DADDI2(	$t0, 16)		# argc += 16
 	dadd	$s1, $s1, $t0		# s1 = start of envp
 .skipenv:
 	ld	$t0, ($s1)		# t0 = *s1
-	daddi	$s1, $s1, 8		# s1++
+	DADDI2(	$s1, 8)			# s1++
 	bne	$t0, $zero, .skipenv	# skip again
 	nop				# delay slot
 	dla	$t3, .auxvtab		# address of auxv table
@@ -170,7 +173,7 @@ dnl	syscall				# syscall
 	ld	$t2, ($t2)		# t2 = *t2
 	sd	$t2, 8($s1)		# set auxv value
 .next:
-	daddi	$s1, $s1, 16		# next auxv
+	DADDI2(	$s1, 16)		# next auxv
 	j	.one_auxv		# next auxv
 	nop				# delay slot
 .finish:

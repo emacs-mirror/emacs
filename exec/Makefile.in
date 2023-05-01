@@ -81,10 +81,10 @@ Makefile: config.status Makefile.in
 
 .SUFFIXES: .c .s
 .c.o:
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -I$(srcdir) $< -o $@
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -I$(srcdir) -I. $< -o $@
 .s.o:
-	$(M4) $< > $<.s
-	$(AS) $(ASFLAGS) $<.s -o $@
+	$(M4) $< > $(notdir $<).s
+	$(AS) $(ASFLAGS) $(notdir $<).s -o $@
 
 # Set up dependencies for config-mips.m4.
 
