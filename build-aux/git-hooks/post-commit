@@ -42,4 +42,4 @@ else
 fi
 
 git rev-parse HEAD | $awk -v reason=post-commit \
-                          -f .git/hooks/commit-msg-files.awk
+                          -f ${GIT_DIR:-.git}/hooks/commit-msg-files.awk

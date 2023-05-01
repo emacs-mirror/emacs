@@ -83,4 +83,4 @@ $awk -v origin_name="$1" '
     # Print every SHA after oldref, up to (and including) newref.
     system("git rev-list --first-parent --reverse " oldref ".." newref)
   }
-' | $awk -v reason=pre-push -f .git/hooks/commit-msg-files.awk
+' | $awk -v reason=pre-push -f ${GIT_DIR:-.git}/hooks/commit-msg-files.awk
