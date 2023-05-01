@@ -98,6 +98,8 @@ There are several subdirectories:
 'java'	    holds the Java code for the Emacs port to Android.
 'cross'	    holds Makefiles and an additional copy of gnulib used to build
 	    Emacs for Android devices.
+'exec'	    holds the source code to several helper executables used to run
+	    user-installed programs on Android.
 
    Building Emacs on non-Posix platforms requires tools that aren't part
 of the standard distribution of the OS.  The platform-specific README
