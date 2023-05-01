@@ -627,6 +627,9 @@ process_system_call (struct exec_tracee *tracee)
   USER_REGS_STRUCT regs;
   int rc, wstatus;
   USER_WORD callno, sp;
+#ifdef __aarch64__
+  USER_WORD old_w0, old_w1, old_w2;
+#endif /* __aarch64__ */
 
 #ifdef __aarch64__
   rc = aarch64_get_regs (tracee->pid, &regs);
@@ -692,7 +695,20 @@ process_system_call (struct exec_tracee *tracee)
      Make sure that the stack pointer is restored to its original
      position upon exit, or bad things can happen.  */
 
+#ifndef __aarch64__
   regs.SYSCALL_NUM_REG = -1;
+#else /* __aarch64__ */
+  /* ARM also requires the system call number to be valid.  However, I
+     can't find any unused system call, so use fcntl instead, with
+     invalid arguments.  */
+  regs.SYSCALL_NUM_REG = 72;
+  old_w0 = regs.regs[0];
+  old_w1 = regs.regs[1];
+  old_w2 = regs.regs[2];
+  regs.regs[0] = -1;
+  regs.regs[1] = -1;
+  regs.regs[2] = -1;
+#endif /* !__aarch64__ */
   regs.STACK_POINTER   = sp;
 
 #ifdef __aarch64__
@@ -713,7 +729,6 @@ process_system_call (struct exec_tracee *tracee)
   if (ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs))
     return;
 #endif /* __aarch64__ */
-
 
   /* Do this invalid system call.  */
   if (ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL))
@@ -740,6 +755,10 @@ process_system_call (struct exec_tracee *tracee)
 
       /* Report errno.  */
 #ifdef __aarch64__
+      /* Restore x0, x1 and x2.  */
+      regs.regs[0] = old_w0;
+      regs.regs[1] = old_w1;
+      regs.regs[2] = old_w2;
       aarch64_set_regs (tracee->pid, &regs, false);
 #else /* !__aarch64__ */
       ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs);
