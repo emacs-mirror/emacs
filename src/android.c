@@ -6514,6 +6514,89 @@ android_free_cursor (android_cursor cursor)
   android_destroy_handle (cursor);
 }
 
+
+
+/* Process execution.
+
+   Newer Android systems use SELinux to restrict user programs from
+   executing programs installed in the application data directory for
+   security reasons.  Emacs uses a `loader' binary installed in the
+   application data directory to manually load executables and replace
+   the `execve' system call.  */
+
+enum
+  {
+    /* Maximum number of arguments available.  */
+    MAXARGS = 1024,
+  };
+
+/* Rewrite the command line given in *ARGV to utilize the `exec1'
+   bootstrap binary if necessary.
+
+   Value is 0 upon success, else 1.  Set errno upon failure.
+
+   ARGV holds a pointer to a NULL-terminated array of arguments given
+   to `emacs_spawn'.  */
+
+int
+android_rewrite_spawn_argv (const char ***argv)
+{
+  static const char *new_args[MAXARGS];
+  static char exec1_name[PATH_MAX], loader_name[PATH_MAX];
+  size_t i, nargs;
+
+  /* This isn't required on Android 9 or earlier.  */
+
+  if (android_api_level < 29 || !android_use_exec_loader)
+    return 0;
+
+  /* Get argv[0]; this should never be NULL.
+     Then, verify that it exists and is executable.  */
+
+  eassert (**argv);
+  if (access (**argv, R_OK | X_OK))
+    return 1;
+
+  /* Count the number of arguments in *argv.  */
+
+  nargs = 0;
+  while ((*argv)[nargs])
+    ++nargs;
+
+  /* nargs now holds the number of arguments in argv.  If it's larger
+     than MAXARGS, return failure.  */
+
+  if (nargs + 2 > MAXARGS)
+    {
+      errno = E2BIG;
+      return 1;
+    }
+
+  /* Fill in the name of `libexec1.so'.  */
+  snprintf (exec1_name, PATH_MAX, "%s/libexec1.so",
+	    android_lib_dir);
+
+  /* And libloader.so.  */
+  snprintf (loader_name, PATH_MAX, "%s/libloader.so",
+	    android_lib_dir);
+
+  /* Now fill in the first two arguments.  */
+  new_args[0] = exec1_name;
+  new_args[1] = loader_name;
+
+  /* And insert the rest.  */
+  for (i = 0; i < nargs; ++i)
+    new_args[i + 2] = (*argv)[i];
+
+  /* Replace argv.  */
+  *argv = new_args;
+
+  /* Return success.  */
+  return 0;
+}
+
+
+
 #else /* ANDROID_STUBIFY */
 
 /* X emulation functions for Android.  */

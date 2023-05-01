@@ -3112,6 +3112,20 @@ Note that if you set this, you will no longer be able to quit Emacs
 using the volume down button.  */);
   android_pass_multimedia_buttons_to_system = false;
 
+  DEFVAR_BOOL ("android-use-exec-loader", android_use_exec_loader,
+    doc: /* Whether or not to bypass system restrictions on program execution.
+
+Android 10 and later prevent programs from executing files installed
+in writable directories, such as the application data directory.
+
+When non-nil, Emacs will bypass this restriction by running such
+executables under system call tracing, and replacing the `execve'
+system call with a version which ignores the system's security
+restrictions.
+
+This option has no effect on Android 9 and earlier.  */);
+  android_use_exec_loader = true;
+
   /* Functions defined.  */
   defsubr (&Sx_create_frame);
   defsubr (&Sxw_color_defined_p);

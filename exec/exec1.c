@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/wait.h>
 
 #include "exec.h"
@@ -41,10 +42,15 @@ main (int argc, char **argv)
   extern char **environ;
   int wstatus;
 
+  pid1 = getpid ();
   pid = fork ();
 
   if (!pid)
     {
+      /* Set the process group used to the parent.  */
+      if (setpgid (0, pid1))
+	perror ("setpgid");
+
       tracing_execve (argv[2], argv + 2, environ);
 
       /* An error occured.  Exit with failure.  */

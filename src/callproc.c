@@ -92,6 +92,10 @@ extern char **environ;
 #include "pgtkterm.h"
 #endif
 
+#ifdef HAVE_ANDROID
+#include "android.h"
+#endif /* HAVE_ANDROID */
+
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
@@ -1437,6 +1441,18 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
              const char *pty_name, bool pty_in, bool pty_out,
              const sigset_t *oldset)
 {
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  /* Android 10 and later don't allow directly executing programs
+     installed in the application data directory.  Emacs provides a
+     loader binary which replaces the `execve' system call for it and
+     all its children.  On these systems, rewrite the command line to
+     call that loader binary instead.  */
+
+  if (android_rewrite_spawn_argv ((const char ***) &argv))
+    return 1;
+#endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
+
+
 #if USABLE_POSIX_SPAWN
   /* Prefer the simpler `posix_spawn' if available.  `posix_spawn'
      doesn't yet support setting up pseudoterminals, so we fall back

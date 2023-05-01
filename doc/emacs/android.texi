@@ -252,10 +252,7 @@ Emacs, the system has an overwhelming number of users.
 which is the app data directory (@pxref{Android File System}.)
 
   Each application is also prohibited from accessing system
-directories, and the app data directories of other applications.  In
-recent versions of Android, the system also prohibits, for security
-reasons, even Emacs itself from running executables inside the app
-data directory.
+directories, and the app data directories of other applications.
 
   Emacs comes with several binaries.  While being executable files,
 they are packaged as libraries in the library directory, because
@@ -276,6 +273,17 @@ best to start Emacs, for the purpose of running Lisp in batch mode.
 However, the approach it takes was devised by reading Android source
 code, and is not sanctioned by the Android compatibility definition
 documents, so your mileage may vary.
+
+@cindex call-process, Android
+@vindex android-use-exec-loader
+  Android 10 and later versions of the system also prohibit Emacs
+itself from running executables inside the app data directory.  On
+these systems, Emacs normally applies a workaround; however, this
+workaround requires running all sub-processes in another subprocess,
+and applying process tracing to all executables, which may prove to be
+problematic for various different reasons.  In that case, the
+workaround can be disabled by changing the variable
+@code{android-use-exec-loader} to @code{nil}.
 
 @section Running Emacs in the background
 @cindex emacs killed, android

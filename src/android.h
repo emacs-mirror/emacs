@@ -190,6 +190,11 @@ extern void android_write_event (union android_event *);
 
 extern unsigned int event_serial;
 
+
+
+/* Process related functions.  */
+extern int android_rewrite_spawn_argv (const char ***);
+
 #endif
 
 /* JNI functions should not be built when Emacs is stubbed out for the
