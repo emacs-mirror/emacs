@@ -584,7 +584,7 @@ If ARG is non-nil, instead prompt for connection parameters."
                   (condition-case nil
                       (let ((process (rcirc-connect server port nick user-name
                                                     full-name channels password encryption
-                                                    client-cert server-alias)))
+                                                    server-alias client-cert)))
                         (when rcirc-display-server-buffer
                           (pop-to-buffer-same-window (process-buffer process))))
                     (quit (message "Quit connecting to %s"
@@ -680,7 +680,7 @@ See `rcirc-connect' for more details on these variables.")
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
                              full-name startup-channels password encryption
-                             certfp server-alias)
+                             server-alias certfp)
   "Connect to SERVER.
 The arguments PORT, NICK, USER-NAME, FULL-NAME, PASSWORD,
 ENCRYPTION, CERTFP, SERVER-ALIAS are interpreted as in
