@@ -3601,7 +3601,8 @@ confusing to some users.")
 (defun use-dialog-box-p ()
   "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (consp last-nonmenu-event)   ; invoked by a mouse event
+       (or (featurep 'android)		; prefer dialog boxes on Android
+           (consp last-nonmenu-event)   ; invoked by a mouse event
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
