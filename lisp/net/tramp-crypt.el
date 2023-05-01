@@ -205,6 +205,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-system-info . tramp-crypt-handle-file-system-info)
     ;; `file-truename' performed by default handler.
     ;; `file-user-uid' performed by default-handler.
+    ;; `file-group-gid' performed by default-handler.
     (file-writable-p . tramp-crypt-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

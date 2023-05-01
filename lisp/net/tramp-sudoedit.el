@@ -115,6 +115,7 @@ See `tramp-actions-before-shell' for more info.")
     (file-system-info . tramp-sudoedit-handle-file-system-info)
     (file-truename . tramp-sudoedit-handle-file-truename)
     (file-user-uid . tramp-handle-file-user-uid)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-writable-p . tramp-sudoedit-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

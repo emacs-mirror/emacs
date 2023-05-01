@@ -529,10 +529,10 @@ The declaration '(important-return-value t)' sets the
 return value should probably not be thrown away implicitly.
 
 +++
-** New function 'file-user-uid'.
-This function is like 'user-uid', but is aware of file name handlers,
-so it will return the remote UID for remote files (or -1 if the
-connection has no associated user).
+** New functions 'file-user-uid' and 'file-group-gid'.
+These functions are like 'user-uid' and 'group-gid', respectively, but
+are aware of file name handlers, so they will return the remote UID or
+GID for remote files (or -1 if the connection has no associated user).
 
 +++
 ** 'fset', 'defalias' and 'defvaralias' now signal an error for cyclic aliases.

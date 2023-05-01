@@ -266,6 +266,7 @@ It must be supported by libarchive(3).")
     (file-system-info . tramp-archive-handle-file-system-info)
     (file-truename . tramp-archive-handle-file-truename)
     (file-user-uid . tramp-archive-handle-file-user-uid)
+    (file-group-gid . tramp-archive-handle-file-group-gid)
     (file-writable-p . ignore)
     (find-backup-file-name . ignore)
     ;; `get-file-buffer' performed by default handler.
@@ -677,6 +678,13 @@ offered."
     (let ((default-directory (file-name-directory archive)))
       ;; `file-user-uid' exists since Emacs 30.1.
       (tramp-compat-funcall 'file-user-uid))))
+
+(defun tramp-archive-handle-file-group-gid ()
+  "Like `group-gid' for file archives."
+  (with-parsed-tramp-archive-file-name default-directory nil
+    (let ((default-directory (file-name-directory archive)))
+      ;; `file-group-gid' exists since Emacs 30.1.
+      (tramp-compat-funcall 'file-group-gid))))
 
 (defun tramp-archive-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)

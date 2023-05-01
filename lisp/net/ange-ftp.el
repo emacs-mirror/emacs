@@ -4381,7 +4381,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       (ange-ftp-real-find-backup-file-name fn)))
 
 (defun ange-ftp-file-user-uid ()
-  ;; Return "don't  know" value.
+  ;; Return "don't know" value.
+  -1)
+
+(defun ange-ftp-file-group-gid ()
+  ;; Return "don't know" value.
   -1)
 
 ;;; Define the handler for special file names
@@ -4524,8 +4528,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-notify-rm-watch 'ange-ftp 'ignore)
 (put 'file-notify-valid-p 'ange-ftp 'ignore)
 
-;; Return the "don't know' value for remote user uid.
+;; Return the "don't know" value for remote user uid and group gid.
 (put 'file-user-uid 'ange-ftp 'ange-ftp-file-user-uid)
+(put 'file-group-gid 'ange-ftp 'ange-ftp-file-group-gid)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
