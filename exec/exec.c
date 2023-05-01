@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <unistd.h>
-#include <string.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <string.h>
@@ -45,6 +44,103 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #if defined __mips__ && !defined MIPS_NABI
 #include "mipsfpu.h"
 #endif /* defined __mips__ && !defined MIPS_NABI */
+
+
+
+
+/* Define replacements for required string functions.  */
+
+#ifndef HAVE_STPCPY
+
+/* Copy SRC to DEST, returning the address of the terminating '\0' in
+   DEST.  */
+
+static char *
+rpl_stpcpy (char *dest, const char *src)
+{
+  register char *d;
+  register const char *s;
+
+  d = dest;
+  s = src;
+
+  do
+    *d++ = *s;
+  while (*s++ != '\0');
+
+  return d - 1;
+}
+
+#define stpcpy rpl_stpcpy
+#endif /* !HAVE_STPCPY */
+
+#ifndef HAVE_STPNCPY
+
+/* Copy no more than N bytes of SRC to DST, returning a pointer past
+   the last non-NUL byte written into DST.  */
+
+char *
+rpl_stpncpy (char *dest, const char *src, size_t n)
+{
+  char c, *s;
+  size_t n4;
+
+  s = dest;
+
+  if (n >= 4)
+    {
+      n4 = n >> 2;
+
+      for (;;)
+	{
+	  c = *src++;
+	  *dest++ = c;
+	  if (c == '\0')
+	    break;
+	  c = *src++;
+	  *dest++ = c;
+	  if (c == '\0')
+	    break;
+	  c = *src++;
+	  *dest++ = c;
+	  if (c == '\0')
+	    break;
+	  c = *src++;
+	  *dest++ = c;
+	  if (c == '\0')
+	    break;
+	  if (--n4 == 0)
+	    goto last_chars;
+	}
+      n -= dest - s;
+      goto zero_fill;
+    }
+
+ last_chars:
+  n &= 3;
+  if (n == 0)
+    return dest;
+
+  for (;;)
+    {
+      c = *src++;
+      --n;
+      *dest++ = c;
+      if (c == '\0')
+	break;
+      if (n == 0)
+	return dest;
+    }
+
+ zero_fill:
+  while (n-- > 0)
+    dest[n] = '\0';
+
+  return dest - 1;
+}
+
+#define stpncpy rpl_stpncpy
+#endif /* !HAVE_STPNCPY */
 
 
 
@@ -624,9 +720,8 @@ process_program_header (const char *name, int fd,
       break;
 
     case 3: /* PT_INTERP */
-      /* This describes another executable that must be loaded.
-         Open the interpreter and process each of its headers
-         as well.  */
+      /* This describes another executable that must be loaded.  Open
+	 the interpreter and process each of its headers as well.  */
       rc = process_interpreter (fd, header, entry);
       break;
 

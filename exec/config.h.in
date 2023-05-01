@@ -38,6 +38,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* Define to number of the `exec' system call. */
 #undef EXEC_SYSCALL
 
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -52,6 +55,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `stpcpy' function. */
+#undef HAVE_STPCPY
+
+/* Define to 1 if you have the `stpncpy' function. */
+#undef HAVE_STPNCPY
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H

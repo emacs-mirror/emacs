@@ -54,7 +54,7 @@ AC_TYPE_UINTPTR_T
 AC_TYPE_PID_T
 
 AC_HEADER_STDBOOL
-AC_CHECK_FUNC([getpagesize])
+AC_CHECK_FUNCS([getpagesize stpcpy stpncpy])
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H
