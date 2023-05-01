@@ -203,18 +203,23 @@
   (erc-fill-tests--wrap-populate
 
    (lambda ()
+     (erc-update-channel-member
+      "#chan" "Dummy" "Dummy" t nil nil nil nil nil "fake" "~u" nil nil t)
+
      ;; Set this here so that the first few messages are from 1970
      (let ((erc-fill-tests--time-vals (lambda () 1680332400)))
        (erc-fill-tests--insert-privmsg "bob" "zero.")
        (erc-fill-tests--insert-privmsg "alice" "one.")
        (erc-fill-tests--insert-privmsg "alice" "two.")
        (erc-fill-tests--insert-privmsg "bob" "three.")
-       (erc-fill-tests--insert-privmsg "bob" "four."))
+       (erc-fill-tests--insert-privmsg "bob" "four.")
+       (erc-fill-tests--insert-privmsg "Dummy" "five.")
+       (erc-fill-tests--insert-privmsg "Dummy" "six."))
 
      (should (= erc-fill--wrap-value 27))
      (erc-fill-tests--wrap-check-prefixes
       "*** " "<alice> " "<bob> "
-      "<bob> " "<alice> " "<alice> " "<bob> " "<bob> ")
+      "<bob> " "<alice> " "<alice> " "<bob> " "<bob> " "<Dummy> " "<Dummy> ")
      (erc-fill-tests--compare "merge-01-start")
 
      (ert-info ("Shift right by one (plus)")
@@ -222,7 +227,7 @@
        (should (= erc-fill--wrap-value 29))
        (erc-fill-tests--wrap-check-prefixes
         "*** " "<alice> " "<bob> "
-        "<bob> " "<alice> " "<alice> " "<bob> " "<bob> ")
+        "<bob> " "<alice> " "<alice> " "<bob> " "<bob> " "<Dummy> " "<Dummy> ")
        (erc-fill-tests--compare "merge-02-right")))))
 
 (ert-deftest erc-fill-wrap-visual-keys--body ()
