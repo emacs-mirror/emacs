@@ -9215,6 +9215,21 @@ it skips the contents of comments that end before point."
   :type 'boolean
   :group 'paren-blinking)
 
+(defcustom blink-matching-paren-highlight-offscreen nil
+  "If non-nil, highlight showing in the echo area matched off-screen open paren.
+This highlighting uses face `blink-matching-paren-offscreen'."
+  :type 'boolean
+  :version "30.1"
+  :group 'paren-blinking)
+
+(defface blink-matching-paren-offscreen
+  '((t :foreground "green"))
+  "Face for showing in the echo area matched open paren that is off-screen.
+This face will not be used when `blink-matching-paren-highlight-offscreen'
+is nil."
+  :version "30.1"
+  :group 'paren-blinking)
+
 (defun blink-matching-check-mismatch (start end)
   "Return whether or not START...END are matching parens.
 END is the current point and START is the blink position.
@@ -9312,47 +9327,79 @@ The function should return non-nil if the two tokens do not match.")
                  (delete-overlay blink-matching--overlay)))))
        ((not show-paren-context-when-offscreen)
         (minibuffer-message
-         "Matches %s"
-         (substring-no-properties
-          (blink-paren-open-paren-line-string blinkpos))))))))
+         #("Matches %s"
+           ;; Make the following text (i.e., %s) prominent.
+           0 7 (face shadow))
+         (blink-paren-open-paren-line-string blinkpos)))))))
 
 (defun blink-paren-open-paren-line-string (pos)
-  "Return the line string that contains the openparen at POS."
+  "Return the line string that contains the openparen at POS.
+Remove the line string's properties but give the openparen a
+face if `blink-matching-paren-highlight-offscreen' is non-nil."
   (save-excursion
     (goto-char pos)
     ;; Capture the regions in terms of (beg . end) conses whose
     ;; buffer-substrings we want to show as a context string.  Ensure
     ;; they are font-locked (bug#59527).
-    (let (regions)
-      ;; Show what precedes the open in its line, if anything.
+    (let (regions
+          openparen-idx)
       (cond
+       ;; Show what precedes the open in its line, if anything.
        ((save-excursion (skip-chars-backward " \t") (not (bolp)))
-        (setq regions (list (cons (line-beginning-position)
-                                  (1+ pos)))))
+        (let ((bol (line-beginning-position)))
+          (setq regions (list (cons bol (1+ pos)))
+                openparen-idx (- pos bol))))
        ;; Show what follows the open in its line, if anything.
        ((save-excursion
           (forward-char 1)
           (skip-chars-forward " \t")
           (not (eolp)))
-        (setq regions (list (cons pos (line-end-position)))))
+        (setq regions (list (cons pos (line-end-position)))
+              openparen-idx 0))
        ;; Otherwise show the previous nonblank line,
        ;; if there is one.
        ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
-        (setq regions (list (cons (progn
-                                    (skip-chars-backward "\n \t")
-                                    (line-beginning-position))
-                                  (progn (end-of-line)
-                                         (skip-chars-backward " \t")
-                                         (point)))
+        (setq regions (list (cons
+                             (let (bol)
+                               (skip-chars-backward "\n \t")
+                               (setq bol (line-beginning-position)
+                                     openparen-idx (- bol))
+                               bol)
+                             (let (eol)
+                               (end-of-line)
+                               (skip-chars-backward " \t")
+                               (setq eol (point)
+                                     openparen-idx (+ openparen-idx
+                                                      eol
+                                                      ;; (length "...")
+                                                      3))
+                               eol))
                             (cons pos (1+ pos)))))
        ;; There is nothing to show except the char itself.
-       (t (setq regions (list (cons pos (1+ pos))))))
+       (t (setq regions (list (cons pos (1+ pos)))
+                openparen-idx 0)))
       ;; Ensure we've font-locked the context region.
       (font-lock-ensure (caar regions) (cdar (last regions)))
-      (mapconcat (lambda (region)
-                   (buffer-substring (car region) (cdr region)))
-                 regions
-                 "..."))))
+      (let ((line-string
+             (mapconcat
+              (lambda (region)
+                (buffer-substring (car region) (cdr region)))
+              regions
+              "..."))
+            (openparen-next-char-idx (1+ openparen-idx)))
+        (setq line-string (substring-no-properties line-string))
+        (concat
+         (substring line-string
+                    0 openparen-idx)
+         (let ((matched-offscreen-openparen
+                (substring line-string
+                           openparen-idx openparen-next-char-idx)))
+           (if blink-matching-paren-highlight-offscreen
+               (propertize matched-offscreen-openparen
+                           'face 'blink-matching-paren-offscreen)
+             matched-offscreen-openparen))
+         (substring line-string
+                    openparen-next-char-idx))))))
 
 (defvar blink-paren-function 'blink-matching-open
   "Function called, if non-nil, whenever a close parenthesis is inserted.
