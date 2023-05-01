@@ -669,9 +669,23 @@ android_write_event (union android_event *event)
   pthread_cond_broadcast (&event_queue.read_var);
   pthread_mutex_unlock (&event_queue.mutex);
 
-  /* Now set pending_signals to true.  This allows C-g to be handled
-     immediately even without SIGIO.  */
+  /* Now set pending_signals to true, and raise SIGIO to interrupt any
+     ongoing reads if the event is important.  */
   pending_signals = true;
+
+  switch (event->type)
+    {
+      /* Key press and window action events are considered important,
+	 as they either end up quitting or asking for responses to the
+	 IME.  */
+    case ANDROID_KEY_PRESS:
+    case ANDROID_WINDOW_ACTION:
+      raise (SIGIO);
+      break;
+
+    default:
+      break;
+    }
 }
 
 int
@@ -2480,7 +2494,10 @@ NATIVE_NAME (quit) (JNIEnv *env, jobject object)
 {
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
+  /* Raise sigio to interrupt anything that could be reading
+     input.  */
   Vquit_flag = Qt;
+  raise (SIGIO);
 }
 
 JNIEXPORT jlong JNICALL
