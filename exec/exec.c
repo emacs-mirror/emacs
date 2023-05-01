@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 #include <sys/ptrace.h>
 #include <sys/param.h>
@@ -808,6 +809,35 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
 
 
 
+/* Format PID, an unsigned process identifier, in base 10.  Place the
+   result in *IN, and return a pointer to the byte after the
+   result.  REM should be NULL.  */
+
+static char *
+format_pid (char *in, unsigned int pid)
+{
+  unsigned int digits[32], *fill;
+
+  fill = digits;
+
+  for (; pid != 0; pid = pid / 10)
+    *fill++ = pid % 10;
+
+  /* Insert 0 if the number would otherwise be empty.  */
+
+  if (fill == digits)
+    *fill++ = 0;
+
+  while (fill != digits)
+    {
+      --fill;
+      *in++ = '0' + *fill;
+    }
+
+  *in = '\0';
+  return in;
+}
+
 /* Return a sequence of actions required to load the executable under
    the file NAME for the given TRACEE.  First, see if the file starts
    with #!; in that case, find the program to open and use that
@@ -836,6 +866,29 @@ exec_0 (const char *name, struct exec_tracee *tracee,
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
 #endif /* defined __mips__ && !defined MIPS_NABI */
+  char buffer[PATH_MAX + 80], *rewrite;
+  size_t remaining;
+
+  /* If name is not absolute, then make it relative to TRACEE's
+     cwd.  Use stpcpy, as sprintf is not reentrant.  */
+
+  if (name[0] && name[0] != '/')
+    {
+      /* Clear `buffer'.  */
+      memset (buffer, 0, sizeof buffer);
+
+      /* Copy over /proc, the PID, and /cwd/.  */
+      rewrite = stpcpy (buffer, "/proc/");
+      rewrite = format_pid (rewrite, tracee->pid);
+      rewrite = stpcpy (rewrite, "/cwd/");
+
+      /* Make sure there is enough free space.  */
+      remaining = buffer + sizeof buffer - rewrite - 1;
+      rewrite = stpncpy (rewrite, name, remaining);
+
+      /* Replace name with buffer.  */
+      name = buffer;
+    }
 
   fd = open (name, O_RDONLY);
   if (fd < 0)

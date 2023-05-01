@@ -457,10 +457,17 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   memcpy (&original, regs, sizeof *regs);
 
   /* Figure out what the loader needs to do.  */
+ again1:
   area = exec_0 (buffer, tracee, &size, regs);
 
   if (!area)
-    return 1;
+    {
+      /* Handle SIGINTR errors caused by IO.  */
+      if (errno == EINTR)
+	goto again1;
+
+      return 1;
+    }
 
   /* Rewrite the first argument to point to the loader.  */
 
@@ -516,10 +523,7 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
     goto again;
 
   if (rc < 0)
-    {
-      errno = EIO;
-      return 1;
-    }
+    return 1;
 
   if (!WIFSTOPPED (wstatus))
     /* The process has been killed in response to a signal.
@@ -608,13 +612,14 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
 
 #endif /* STACK_GROWS_DOWNWARDS */
 
- exec_failure:
-
   /* Continue.  */
   if (ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0))
     return 3;
 
   return 0;
+
+ exec_failure:
+  return 3;
 }
 
 /* Process the system call at which TRACEE is stopped.  If the system
@@ -625,10 +630,10 @@ static void
 process_system_call (struct exec_tracee *tracee)
 {
   USER_REGS_STRUCT regs;
-  int rc, wstatus;
+  int rc, wstatus, save_errno;
   USER_WORD callno, sp;
 #ifdef __aarch64__
-  USER_WORD old_w0, old_w1, old_w2;
+  USER_WORD old_w1, old_w2;
 #endif /* __aarch64__ */
 
 #ifdef __aarch64__
@@ -695,6 +700,9 @@ process_system_call (struct exec_tracee *tracee)
      Make sure that the stack pointer is restored to its original
      position upon exit, or bad things can happen.  */
 
+  /* First, save errno; system calls below will clobber it.  */
+  save_errno = errno;
+
 #ifndef __aarch64__
   regs.SYSCALL_NUM_REG = -1;
 #else /* __aarch64__ */
@@ -702,7 +710,6 @@ process_system_call (struct exec_tracee *tracee)
      can't find any unused system call, so use fcntl instead, with
      invalid arguments.  */
   regs.SYSCALL_NUM_REG = 72;
-  old_w0 = regs.regs[0];
   old_w1 = regs.regs[1];
   old_w2 = regs.regs[2];
   regs.regs[0] = -1;
@@ -739,6 +746,11 @@ process_system_call (struct exec_tracee *tracee)
   if (rc == -1 && errno == EINTR)
     goto again1;
 
+  /* Return if waitpid fails.  */
+
+  if (rc == -1)
+    return;
+
   if (!WIFSTOPPED (wstatus))
     /* The process has been killed in response to a signal.  In this
        case, simply unlink the tracee and return.  */
@@ -747,16 +759,15 @@ process_system_call (struct exec_tracee *tracee)
     {
 #ifdef __mips__
       /* MIPS systems place errno in v0 and set a3 to 1.  */
-      regs.gregs[2] = errno;
+      regs.gregs[2] = save_errno;
       regs.gregs[7] = 1;
 #else /* !__mips__ */
-      regs.SYSCALL_RET_REG = -errno;
+      regs.SYSCALL_RET_REG = -save_errno;
 #endif /* __mips__ */
 
       /* Report errno.  */
 #ifdef __aarch64__
-      /* Restore x0, x1 and x2.  */
-      regs.regs[0] = old_w0;
+      /* Restore x1 and x2.  x0 is clobbered by errno.  */
       regs.regs[1] = old_w1;
       regs.regs[2] = old_w2;
       aarch64_set_regs (tracee->pid, &regs, false);
