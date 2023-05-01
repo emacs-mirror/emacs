@@ -4660,7 +4660,7 @@ syms_of_term (void)
   DEFVAR_BOOL ("system-uses-terminfo", system_uses_terminfo,
     doc: /* Non-nil means the system uses terminfo rather than termcap.
 This variable can be used by terminal emulator packages.  */);
-#ifdef TERMINFO
+#if defined TERMINFO || (defined HAVE_ANDROID && !defined ANDROID_STUBIFY)
   system_uses_terminfo = 1;
 #else
   system_uses_terminfo = 0;
