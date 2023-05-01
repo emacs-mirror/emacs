@@ -3683,8 +3683,7 @@ macro that returns its `&whole' argument."
          cl-tree-equal
 
          ;; Functions that mutate and return a list.
-         ;;cl-delete
-         cl-delete-if cl-delete-if-not
+         cl-delete cl-delete-if cl-delete-if-not
          cl-delete-duplicates
          cl-nsubst cl-nsubst-if cl-nsubst-if-not
          cl-nsubstitute cl-nsubstitute-if cl-nsubstitute-if-not
