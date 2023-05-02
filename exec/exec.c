@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define replacements for required string functions.  */
 
-#ifndef HAVE_STPCPY
+#if !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY
 
 /* Copy SRC to DEST, returning the address of the terminating '\0' in
    DEST.  */
@@ -72,14 +72,14 @@ rpl_stpcpy (char *dest, const char *src)
 }
 
 #define stpcpy rpl_stpcpy
-#endif /* !HAVE_STPCPY */
+#endif /* !defined HAVE_STPCPY || !defined HAVE_DECL_STPCPY */
 
-#ifndef HAVE_STPNCPY
+#if !defined HAVE_STPNCPY || !defined HAVE_DECL_STPNCPY
 
 /* Copy no more than N bytes of SRC to DST, returning a pointer past
    the last non-NUL byte written into DST.  */
 
-char *
+static char *
 rpl_stpncpy (char *dest, const char *src, size_t n)
 {
   char c, *s;
@@ -140,7 +140,7 @@ rpl_stpncpy (char *dest, const char *src, size_t n)
 }
 
 #define stpncpy rpl_stpncpy
-#endif /* !HAVE_STPNCPY */
+#endif /* !defined HAVE_STPNCPY || !defined HAVE_DECL_STPNCPY */
 
 
 

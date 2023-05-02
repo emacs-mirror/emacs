@@ -38,6 +38,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* Define to number of the `exec' system call. */
 #undef EXEC_SYSCALL
 
+/* Define to 1 if you have the declaration of `stpcpy', and to 0 if you don't.
+   */
+#undef HAVE_DECL_STPCPY
+
+/* Define to 1 if you have the declaration of `stpncpy', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STPNCPY
+
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
