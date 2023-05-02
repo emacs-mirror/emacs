@@ -123,10 +123,16 @@ dnl	syscall				# syscall
 	bne	$a3, $zero, .perror	# perror
 	nop				# delay slot
 	DADDI2(	$s0, 8)			# start of string
+	move	$t3, $s0		# t3 = s0
 .nextc:
 	lb	$t0, ($s0)		# load byte
 	DADDI2(	$s0, 1)			# s0++
-	bne	$t0, $zero, .nextc	# next character?
+	li	$t1, 47			# directory separator `/'
+	bne	$t0, $t1, .nextc1	# is separator char?
+	nop				# delay slot
+	move	$t3, $s0		# t3 = char past separator
+.nextc1:
+	bnez	$t0, .nextc		# next character?
 	nop				# delay slot
 	DADDI2(	$s0, 7)			# adjust for round
 	li	$t2, -8			# t2 = -8
@@ -136,8 +142,19 @@ dnl	syscall				# syscall
 	beqz	$t0, .primary		# primary fd?
 	nop				# delay slot
 	DADDI2(	$t1, 8)			# address of secondary fd
+	sd	$v0, ($t1)		# store fd
+	j	.next_action		# next action
+	nop				# delay slot
 .primary:
 	sd	$v0, ($t1)		# store fd
+	li	$v0, 5153		# SYS_prctl
+	li	$a0, 15			# PR_SET_NAME
+	move	$a1, $t3		# char past separator
+	move	$a2, $zero		# a2
+	move	$a3, $zero		# a3
+	move	$a4, $zero		# a4
+	move	$a5, $zero		# a5
+	syscall				# syscall
 	j	.next_action		# next action
 	nop				# delay slot
 .perror:

@@ -21,10 +21,10 @@ CC along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	.section .text
 	.global _start
 _start:
-	#movq	$35, %rax		CC SYS_nanosleep
-	#leaq	timespec(%rip), %rdi
-	#xorq	%rsi, %rsi
-	#syscall
+dnl	movq	$35, %rax		CC SYS_nanosleep
+dnl	leaq	timespec(%rip), %rdi
+dnl	xorq	%rsi, %rsi
+dnl	syscall
 	popq	%r13			CC original SP
 	popq	%r15			CC size of load area.
 	movq	$-1, %r12		CC r12 is the interpreter fd
@@ -87,9 +87,16 @@ _start:
 	jle	.perror
 	movq	%rdi, %rsp		CC rsp = start of string
 	subq	$1, %rsp
+	movq	%rsp, %r14		CC r14 = start of string
 .nextc:
 	addq	$1, %rsp
-	cmpb	$0, (%rsp)		CC *rsp == 0?
+	movb	(%rsp), %dil		CC rdi = *rsp
+	cmpb	$47, %dil		CC *rsp == '/'?
+	jne	.nextc1
+	movq	%rsp, %r14		CC r14 = rsp
+	addq	$1, %r14		CC r14 = char past separator
+.nextc1:
+	cmpb	$0, %dil		CC *rsp == 0?
 	jne	.nextc
 	addq	$8, %rsp		CC adjust past rsp prior to rounding
 	andq	$-8, %rsp		CC round rsp up to the next quad
@@ -99,6 +106,14 @@ _start:
 	jmp	.next_action
 .primary:
 	movq	%rax, %rbx		CC if not, move fd to rbx
+	movq	$157, %rax		CC SYS_prctl
+	movq	$15, %rdi		CC PR_SET_NAME
+	movq	%r14, %rsi		CC arg1
+	xorq	%rdx, %rdx		CC arg2
+	xorq	%r10, %r10		CC arg3
+	xorq	%r8, %r8		CC arg4
+	xorq	%r9, %r9		CC arg5
+	syscall
 	jmp	.next_action
 .perror:
 	movq	%rax, %r12		CC error code
@@ -159,11 +174,11 @@ _start:
 .cleanup:
 	movq	$3, %rax		CC SYS_close
 	cmpq	$-1, %r12		CC see if interpreter fd is set
-	jne	.cleanup_1
+	je	.cleanup_1
 	movq	%r12, %rdi
 	syscall
-.cleanup_1:
 	movq	$3, %rax		CC SYS_close
+.cleanup_1:
 	movq	%rbx, %rdi
 	syscall
 .enter:

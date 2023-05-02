@@ -104,15 +104,27 @@ _start:
 	cmp	r0, #-1			@ r0 <= -1?
 	ble	.perror
 	add	r8, r8, #4		@ r8 = start of string
+	mov	r1, r8			@ r1 = r8
 .nextc:
-	ldrb	r1, [r8], #1		@ b = *r0++
-	cmp	r1, #0			@ b?
+	ldrb	r2, [r8], #1		@ b = *r0++
+	cmp	r2, #47			@ dir separator?
+	bne	.nextc1			@ not dir separator
+	mov	r1, r8			@ r1 = char past separator
+.nextc1:
+	cmp	r2, #0			@ b?
 	bne	.nextc			@ next character
 	add	r8, r8, #3		@ round up r8
 	and	r8, r8, #-4		@ mask for round, set r8
 	tst	r11, #16		@ primary fd?
 	bne	.secondary		@ secondary fd
 	mov	r10, r0			@ primary fd
+	mov	r7, #172		@ SYS_prctl
+	mov	r0, #15			@ PR_SET_NAME, r1 = name
+	mov	r2, #0			@ arg2
+	mov	r3, #0			@ arg3
+	mov	r4, #0			@ arg4
+	mov	r5, #0			@ arg5
+	swi	#0			@ syscall
 	b	.next_action		@ next action
 .secondary:
 	mov	r14, r0			@ secondary fd

@@ -24,10 +24,10 @@ include(`config-mips.m4')
 	.section .text
 	.global __start
 __start:
-dnl	li	$v0, SYSCALL_nanosleep	# SYS_nanosleep
-dnl	la	$a0, .timespec		# rqtp
-dnl	li	$a1, 0			# rmtp
-dnl	syscall				# syscall
+	li	$v0, SYSCALL_nanosleep	# SYS_nanosleep
+	la	$a0, .timespec		# rqtp
+	li	$a1, 0			# rmtp
+	syscall				# syscall
 	lw	$s6, ($sp)		# original stack pointer
 	addi	$s0, $sp, 8		# start of load area
 	addi	$sp, -8			# primary fd, secondary fd
@@ -121,10 +121,16 @@ RESTORE()				# delay slot, restore sp
 	syscall				# syscall
 	bne	$a3, $zero, .perror	# perror
 	addi	$s0, $s0, 4		# start of string, delay slot
+	move	$t3, $s0		# t3 = char past separator
 .nextc:
 	lb	$t0, ($s0)		# load byte
 	addi	$s0, $s0, 1		# s0++
-	bne	$t0, $zero, .nextc	# next character?
+	li	$t1, 47			# directory separator `/'
+	bne	$t0, $t1, .nextc1	# is separator char?
+	nop				# delay slot
+	move	$t3, $s0		# t3 = char past separator
+.nextc1:
+	bnez	$t0, .nextc		# next character?
 	nop				# delay slot
 	addi	$s0, $s0, 3		# adjust for round
 	li	$t2, -4			# t2 = -4
@@ -133,8 +139,17 @@ RESTORE()				# delay slot, restore sp
 	beqz	$t0, .primary		# primary fd?
 	move	$t0, $sp		# address of primary fd, delay slot
 	addi	$t0, $t0, 4		# address of secondary fd
+	j	.next_action		# next action
 .primary:
-	sw	$v0, ($t0)		# store fd
+	sw	$v0, ($t0)		# store fd, delay slot
+	li	$v0, SYSCALL_prctl	# SYS_prctl
+	li	$a0, 15			# PR_SET_NAME
+	move	$a1, $t3		# name
+	move	$a2, $zero		# arg1
+	move	$a3, $zero		# arg2
+SYSCALL(`$a2',`$a2',`$a2',`$a2')	# syscall args
+	syscall				# syscall
+RESTORE()				# restore sp
 	j	.next_action		# next action
 	nop				# delay slot
 .perror:

@@ -81,7 +81,7 @@ Makefile: config.status Makefile.in
 
 .SUFFIXES: .c .s
 .c.o:
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -I$(srcdir) -I. $< -o $@
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) -I. -I$(srcdir) $< -o $@
 .s.o:
 	$(M4) $< > $(notdir $<).s
 	$(AS) $(ASFLAGS) $(notdir $<).s -o $@

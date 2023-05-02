@@ -92,14 +92,27 @@ _start:
 	svc	#0			// syscall
 	cmp	x0, #-1			// rc < 0?
 	ble	.perror
+	mov	x19, x1			// x19 == x1
 .nextc:
 	ldrb	w2, [x1], #1		// b = *x1++
+	cmp	w2, #47			// dir separator?
+	bne	.nextc1			// not dir separator
+	mov	x19, x1			// x19 = char past separator
+.nextc1:
 	cbnz	w2, .nextc		// b?
 	add	x1, x1, #7		// round up x1
 	and	x20, x1, #-8		// mask for round, set x20
 	tst	x11, #16		// primary fd?
 	bne	.secondary		// secondary fd
 	mov	x29, x0			// primary fd
+	mov	x8, #167		// SYS_prctl
+	mov	x0, #15			// PR_SET_NAME
+	mov	x1, x19			// basename
+	mov	x2, #0			// arg2
+	mov	x3, #0			// arg3
+	mov	x4, #0			// arg4
+	mov	x5, #0			// arg5
+	svc	#0			// syscall
 	b	.next_action		// next action
 .secondary:
 	mov	x28, x0			// secondary fd

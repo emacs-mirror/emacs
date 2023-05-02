@@ -21,10 +21,10 @@ CC along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	.section .text
 	.global _start
 _start:
-	#movl	$162, %eax		CC SYS_nanosleep
-	#leal	timespec, %ebx
-	#xorl	%ecx, %ecx
-	#int	$0x80
+dnl	movl	$162, %eax		CC SYS_nanosleep
+dnl	leal	timespec, %ebx
+dnl	xorl	%ecx, %ecx
+dnl	int	$0x80
 	leal	8(%esp), %ebp		CC ebp = start of load area
 	subl	$8, %esp		CC (%esp) = primary fd, 4(%esp) = secondary fd
 	movl	$-1, 4(%esp)
@@ -102,10 +102,16 @@ _start:
 	jle	.perror
 	movl	%ebp, %esi		CC (esi) = original action number
 	popl	%ebp			CC ebp = start of string
+	movl	%ebp, %ecx		CC char past separator
 	decl	%ebp
 .nextc:
 	incl	%ebp
-	cmpb	$0, (%ebp)		CC *ebp == 0?
+	movb	(%ebp), %dl		CC dl = *ebp
+	cmpb	$47, %dl		CC dl == '\?'?
+	jne	.nextc1
+	leal	1(%ebp), %ecx		CC ecx = char past separator
+.nextc1:
+	cmpb	$0, %dl			CC dl == 0?
 	jne	.nextc
 	addl	$4, %ebp		CC adjust past ebp prior to rounding
 	andl	$-4, %ebp		CC round ebp up to the next long
@@ -114,7 +120,16 @@ _start:
 	movl	%eax, 4(%esp)		CC secondary fd = eax
 	jmp	.next_action
 .primary:
-	movl	%eax, (%esp)		CC primary fd = eax
+	pushl	%ebp
+	xorl	%esi, %esi		CC arg3
+	movl	%eax, 4(%esp)		CC primary fd = eax
+	xorl	%edx, %edx		CC arg2
+	movl	$15, %ebx		CC PR_SET_NAME, arg1 = ecx
+	xorl	%edi, %edi		CC arg4
+	movl	$172, %eax		CC SYS_prctl
+	xorl	%ebp, %ebp		CC arg5
+	int	$0x80			CC syscall
+	popl	%ebp
 	jmp	.next_action
 .perror:
 	movl	%eax, %ebx
@@ -127,7 +142,7 @@ _start:
 	leal	8(%ecx, %esi, 4), %ecx	CC ecx = start of environ
 .skip_environ:
 	movl	(%ecx), %esi		CC envp[N]
-	subl	$4, %ecx
+	addl	$4, %ecx
 	testl	%esi, %esi		CC envp[n] ?
 	jnz	.skip_environ		CC otherwise, esi is now at the start of auxv
 .one_auxv:
@@ -168,12 +183,12 @@ _start:
 	jmp	.one_auxv
 .cleanup:
 	movl	$6, %eax		CC SYS_close
-	cmpl	$1, -4(%esp)		CC see if interpreter fd is set
-	jne	.cleanup_1
-	movl	-4(%esp), %ebx
+	cmpl	$-1, 4(%esp)		CC see if interpreter fd is set
+	je	.cleanup_1
+	movl	4(%esp), %ebx
 	int 	$0x80
-.cleanup_1:
 	movl	$6, %eax		CC SYS_close
+.cleanup_1:
 	movl	(%esp), %ebx
 	int	$0x80
 .enter:
