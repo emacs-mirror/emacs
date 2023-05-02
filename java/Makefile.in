@@ -46,6 +46,7 @@ ANDROID_SDK_18_OR_EARLIER = @ANDROID_SDK_18_OR_EARLIER@
 ANDROID_SDK_8_OR_EARLIER = @ANDROID_SDK_8_OR_EARLIER@
 WARN_JAVAFLAGS = @WARN_JAVAFLAGS@
 JAVAFLAGS = $(WARN_JAVAFLAGS) -classpath "$(ANDROID_JAR):$(srcdir)"
+FIND_DELETE = @FIND_DELETE@
 
 # Android 4.3 and earlier require Emacs to be signed with a different
 # digital signature algorithm.
@@ -323,7 +324,7 @@ TAGS: $(ETAGS) $(tagsfiles)
 clean:
 	rm -f *.apk emacs.apk-in *.dex *.unaligned *.class *.idsig
 	rm -rf install-temp $(RESOURCE_FILE) TAGS
-	find . -name '*.class' -delete
+	find . -name '*.class' $(FIND_DELETE)
 
 maintainer-clean distclean bootstrap-clean: clean
 	rm -f Makefile ndk-build.mk
