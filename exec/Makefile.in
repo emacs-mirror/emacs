@@ -114,7 +114,7 @@ exec1: exec1.o libexec.a
 
 # Set up targets for cleaning.
 
-.PHONY: clean distclean maintainer-clean
+.PHONY: clean distclean maintainer-clean extraclean bootstrap-clean
 clean:
 	rm -f *.o *.a loader test *.s.s
 ifeq ($(AUTO_DEPEND),yes)
@@ -137,3 +137,4 @@ extraclean: maintainer-clean
 	-[ "$(srcdir)" = "." ] || \
 	  find $(srcdir) '(' -name '*~' -o -name '#*' ')' $(FIND_DELETE)
 	-find . '(' -name '*~' -o -name '#*' ')' $(FIND_DELETE)
+bootstrap-clean: extraclean
