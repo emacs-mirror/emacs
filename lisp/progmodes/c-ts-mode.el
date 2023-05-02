@@ -1001,14 +1001,13 @@ For BOL see `treesit-simple-indent-rules'."
       (looking-at c-ts-mode--for-each-tail-regexp))))
 
 (defvar c-ts-mode--emacs-c-range-query
-  (and (treesit-available-p)
-       (treesit-query-compile
-        'emacs-c `(((declaration
-                     type: (macro_type_specifier
-                            name: (identifier) @_name)
-                     @for-each-tail)
-                    (:match ,c-ts-mode--for-each-tail-regexp
-                            @_name)))))
+  (treesit-query-compile
+   'emacs-c `(((declaration
+                type: (macro_type_specifier
+                       name: (identifier) @_name)
+                @for-each-tail)
+               (:match ,c-ts-mode--for-each-tail-regexp
+                       @_name))))
   "Query that finds a FOR_EACH_* macro with an unbracketed body.")
 
 (defvar-local c-ts-mode--for-each-tail-ranges nil
