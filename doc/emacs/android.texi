@@ -276,14 +276,22 @@ documents, so your mileage may vary.
 
 @cindex call-process, Android
 @vindex android-use-exec-loader
-  Android 10 and later versions of the system also prohibit Emacs
-itself from running executables inside the app data directory.  On
-these systems, Emacs normally applies a workaround; however, this
-workaround requires running all sub-processes in another subprocess,
-and applying process tracing to all executables, which may prove to be
-problematic for various different reasons.  In that case, the
-workaround can be disabled by changing the variable
-@code{android-use-exec-loader} to @code{nil}.
+  Android 10 and later also prohibit Emacs itself from running
+executables inside the app data directory, obstensibly for security
+readers.  On these systems, Emacs normally applies a workaround;
+however, this workaround requires running all sub-processes through
+another subprocess which implements an executable loader and applies
+process tracing to all its children, which may prove to be problematic
+for various different reasons.  In that case, the workaround can be
+disabled by changing the variable @code{android-use-exec-loader} to
+@code{nil}.
+
+  When this workaround is in effect, process IDs retrieved through the
+@code{process-id} function will be that of the executable loader
+process; its child will belong to the same process group as the
+loader.  As a result, @code{interrupt-process}, and other related
+functions will work correctly, but using the process ID returned by
+@code{process-id} for other purposes will not.
 
 @section Running Emacs in the background
 @cindex emacs killed, android
