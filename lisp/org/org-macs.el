@@ -37,9 +37,16 @@
 ;;; Org version verification.
 
 (defvar org--inhibit-version-check nil
-  "When non-nil, assume that Org is a part of Emacs source.
+  "When non-nil, skip the detection of mixed-versions situations.
 For internal use only.  See Emacs bug #62762.
-This variable is only supposed to be changed by Emacs build scripts.")
+This variable is only supposed to be changed by Emacs build scripts.
+When nil, Org tries to detect when Org source files were compiled with
+a different version of Org (which tends to lead to incorrect `.elc' files),
+or when the current Emacs session has loaded a mix of files from different
+Org versions (typically the one bundled with Emacs and another one installed
+from GNU ELPA), which can happen if some parts of Org were loaded before
+`load-path' was changed (e.g. before the GNU-ELPA-installed Org is activated
+by `package-activate-all').")
 (defmacro org-assert-version ()
   "Assert compile time and runtime version match."
   ;; We intentionally use a more permissive `org-release' instead of

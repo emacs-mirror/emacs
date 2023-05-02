@@ -1809,6 +1809,9 @@ wish the program to continue execution despite an error in a subroutine.
 In these cases, you would use @code{condition-case} to establish
 @dfn{error handlers} to recover control in case of error.
 
+  For reporting problems without terminating the execution of the
+current command, consider issuing a warning instead.  @xref{Warnings}.
+
   Resist the temptation to use error handling to transfer control from
 one part of the program to another; use @code{catch} and @code{throw}
 instead.  @xref{Catch and Throw}.
