@@ -42,6 +42,11 @@ General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */])
 
+AC_ARG_WITH([reentrancy],
+  [AS_HELP_STRING([--with-reentrancy],
+    [Generate library which can be used within a signal handler.])],
+  [AC_DEFINE([REENTRANT], [1])])
+
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -56,6 +61,7 @@ AC_TYPE_PID_T
 AC_HEADER_STDBOOL
 AC_CHECK_FUNCS([getpagesize stpcpy stpncpy])
 AC_CHECK_DECLS([stpcpy, stpncpy])
+AC_CHECK_HEADERS([sys/param.h]) dnl for MIN and MAX
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H
@@ -73,6 +79,18 @@ typedef bool _Bool;
 # define true 1
 # define __bool_true_false_are_defined 1
 #endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif /* HAVE_SYS_PARAM_H */
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif /* MAX */
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif /* MIN */
 ])
 
 AC_C_BIGENDIAN
@@ -83,6 +101,8 @@ AH_TEMPLATE([USER_REGS_STRUCT], [Define to structure holding user registers.])
 AH_TEMPLATE([SYSCALL_NUM_REG], [Define to register holding the system call number.])
 AH_TEMPLATE([SYSCALL_ARG_REG], [Define to register holding arg0 to system calls.])
 AH_TEMPLATE([SYSCALL_ARG1_REG], [Define to register holding arg1 to system calls.])
+AH_TEMPLATE([SYSCALL_ARG2_REG], [Define to register holding arg2 to system calls.])
+AH_TEMPLATE([SYSCALL_ARG3_REG], [Define to register holding arg3 to system calls.])
 AH_TEMPLATE([SYSCALL_RET_REG], [Define to register holding value of system calls.])
 AH_TEMPLATE([STACK_POINTER], [Define to register holding the stack pointer.])
 AH_TEMPLATE([EXEC_SYSCALL], [Define to number of the `exec' system call.])
@@ -94,6 +114,9 @@ AH_TEMPLATE([EXECUTABLE_BASE], [Virtual address for loading PIC executables])
 AH_TEMPLATE([INTERPRETER_BASE], [Virtual address for loading PIC interpreters])
 AH_TEMPLATE([CLONE_SYSCALL], [Define to number of the `clone' system call.])
 AH_TEMPLATE([CLONE3_SYSCALL], [Define to number of the `clone3' system call.])
+AH_TEMPLATE([READLINK_SYSCALL], [Define to number of the `readlink' system call.])
+AH_TEMPLATE([READLINKAT_SYSCALL], [Define to number of the `readlinkat' system call.])
+AH_TEMPLATE([REENTRANT], [Define to 1 if the library is used within a signal handler.])
 
 AC_CANONICAL_HOST
 
@@ -206,6 +229,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_RET_REG], [rax])
      AC_DEFINE([SYSCALL_ARG_REG], [rdi])
      AC_DEFINE([SYSCALL_ARG1_REG], [rsi])
+     AC_DEFINE([SYSCALL_ARG2_REG], [rdx])
+     AC_DEFINE([SYSCALL_ARG3_REG], [r10])
      AC_DEFINE([STACK_POINTER], [rsp])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
@@ -215,6 +240,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([INTERPRETER_BASE], [0x600000000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+     AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+     AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.
@@ -232,6 +259,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_RET_REG], [eax])
      AC_DEFINE([SYSCALL_ARG_REG], [ebx])
      AC_DEFINE([SYSCALL_ARG1_REG], [ecx])
+     AC_DEFINE([SYSCALL_ARG2_REG], [edx])
+     AC_DEFINE([SYSCALL_ARG3_REG], [esi])
      AC_DEFINE([STACK_POINTER], [esp])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
@@ -239,6 +268,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([INTERPRETER_BASE], [0xaf000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+     AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+     AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.
@@ -256,6 +287,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_RET_REG], [[regs[0]]])
      AC_DEFINE([SYSCALL_ARG_REG], [[regs[0]]])
      AC_DEFINE([SYSCALL_ARG1_REG], [[regs[1]]])
+     AC_DEFINE([SYSCALL_ARG2_REG], [[regs[2]]])
+     AC_DEFINE([SYSCALL_ARG3_REG], [[regs[3]]])
      AC_DEFINE([STACK_POINTER], [sp])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
@@ -264,6 +297,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([INTERPRETER_BASE], [0x3f00000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+     # Note that aarch64 has no `readlink'.
+     AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
      exec_CHECK_LINUX_CLONE3
      # Make sure the loader doesn't conflict with other position
      # dependent code.  ARM places rather significant restrictions on
@@ -282,6 +317,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([SYSCALL_RET_REG], [[uregs[0]]])
      AC_DEFINE([SYSCALL_ARG_REG], [[uregs[0]]])
      AC_DEFINE([SYSCALL_ARG1_REG], [[uregs[1]]])
+     AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
+     AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
      AC_DEFINE([STACK_POINTER], [[uregs[13]]])
      AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
      AC_DEFINE([USER_WORD], [uintptr_t])
@@ -289,6 +326,8 @@ AS_CASE([$host], [x86_64-*linux*],
      AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
      AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
      AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+     AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+     AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
      exec_CHECK_LINUX_CLONE3
      LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
      exec_loader=loader-armeabi.s],
@@ -300,6 +339,8 @@ AS_CASE([$host], [x86_64-*linux*],
        AC_DEFINE([SYSCALL_RET_REG], [[uregs[0]]])
        AC_DEFINE([SYSCALL_ARG_REG], [[uregs[0]]])
        AC_DEFINE([SYSCALL_ARG1_REG], [[uregs[1]]])
+       AC_DEFINE([SYSCALL_ARG2_REG], [[uregs[2]]])
+       AC_DEFINE([SYSCALL_ARG3_REG], [[uregs[3]]])
        AC_DEFINE([STACK_POINTER], [[uregs[13]]])
        AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
        AC_DEFINE([USER_WORD], [uintptr_t])
@@ -307,6 +348,8 @@ AS_CASE([$host], [x86_64-*linux*],
        AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
        AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
        AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+       AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+       AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
        exec_CHECK_LINUX_CLONE3
        LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x20000000"
        exec_loader=loader-armeabi.s],
@@ -324,6 +367,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_RET_REG], [[gregs[4]]]) # a0
    AC_DEFINE([SYSCALL_ARG_REG], [[gregs[4]]]) # a0
    AC_DEFINE([SYSCALL_ARG1_REG], [[gregs[5]]]) # a1
+   AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
+   AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
@@ -331,6 +376,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([INTERPRETER_BASE], [0x1f000000])
    AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+   AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+   AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
    AC_CHECK_DECL([_MIPS_SIM], [exec_CHECK_MIPS_NABI],
      [AC_MSG_ERROR([_MIPS_SIM could not be determined]),
      [[
@@ -347,6 +394,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([SYSCALL_RET_REG], [[gregs[4]]]) # a0
    AC_DEFINE([SYSCALL_ARG_REG], [[gregs[4]]]) # a0
    AC_DEFINE([SYSCALL_ARG1_REG], [[gregs[5]]]) # a1
+   AC_DEFINE([SYSCALL_ARG2_REG], [[gregs[4]]]) # a2
+   AC_DEFINE([SYSCALL_ARG3_REG], [[gregs[5]]]) # a3
    AC_DEFINE([STACK_POINTER], [[gregs[29]]]) # sp
    AC_DEFINE([EXEC_SYSCALL], [__NR_execve])
    AC_DEFINE([USER_WORD], [uintptr_t])
@@ -355,6 +404,8 @@ AS_CASE([$host], [x86_64-*linux*],
    AC_DEFINE([INTERPRETER_BASE], [0x3f00000000])
    AC_DEFINE([STACK_GROWS_DOWNWARDS], [1])
    AC_DEFINE([CLONE_SYSCALL], [__NR_clone])
+   AC_DEFINE([READLINK_SYSCALL], [__NR_readlink])
+   AC_DEFINE([READLINKAT_SYSCALL], [__NR_readlinkat])
    AC_CACHE_CHECK([whether as understands `daddi'],
      [exec_cv_as_daddi],
      [exec_cv_as_daddi=no

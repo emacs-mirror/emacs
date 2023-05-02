@@ -31,14 +31,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 #include <sys/mman.h>
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif /* MIN */
-
-#ifndef MAX
-#define MAX(a, b) ((a) < (b) ? (b) : (a))
-#endif /* MAX */
-
 #include "exec.h"
 
 #if defined __mips__ && !defined MIPS_NABI
@@ -938,6 +930,10 @@ format_pid (char *in, unsigned int pid)
    with #!; in that case, find the program to open and use that
    instead.
 
+   If REENTRANT is not defined, NAME is actually a buffer of size
+   PATH_MAX + 80.  In that case, copy over the file name actually
+   opened.
+
    Next, read the executable header, and add the necessary memory
    mappings for each file.  Finally, return the action data and its
    size in *SIZE.
@@ -948,7 +944,7 @@ format_pid (char *in, unsigned int pid)
    Value is NULL upon failure, with errno set accordingly.  */
 
 char *
-exec_0 (const char *name, struct exec_tracee *tracee,
+exec_0 (char *name, struct exec_tracee *tracee,
 	size_t *size, USER_REGS_STRUCT *regs)
 {
   int fd, rc, i;
@@ -961,7 +957,8 @@ exec_0 (const char *name, struct exec_tracee *tracee,
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
 #endif /* defined __mips__ && !defined MIPS_NABI */
-  char buffer[PATH_MAX + 80], *rewrite;
+  char buffer[80], buffer1[PATH_MAX + 80], *rewrite;
+  ssize_t link_size;
   size_t remaining;
 
   /* If name is not absolute, then make it relative to TRACEE's
@@ -971,18 +968,43 @@ exec_0 (const char *name, struct exec_tracee *tracee,
     {
       /* Clear `buffer'.  */
       memset (buffer, 0, sizeof buffer);
+      memset (buffer1, 0, sizeof buffer);
 
       /* Copy over /proc, the PID, and /cwd/.  */
       rewrite = stpcpy (buffer, "/proc/");
       rewrite = format_pid (rewrite, tracee->pid);
-      rewrite = stpcpy (rewrite, "/cwd/");
+      stpcpy (rewrite, "/cwd");
 
-      /* Make sure there is enough free space.  */
-      remaining = buffer + sizeof buffer - rewrite - 1;
+      /* Resolve this symbolic link.  */
+
+      link_size = readlink (buffer, buffer1,
+			    PATH_MAX + 1);
+
+      if (link_size < 0)
+	return NULL;
+
+      /* Check that the name is a reasonable size.  */
+
+      if (link_size > PATH_MAX)
+	{
+	  /* The name is too long.  */
+	  errno = ENAMETOOLONG;
+	  return NULL;
+	}
+
+      /* Add a directory separator if necessary.  */
+      
+      if (!link_size || buffer1[link_size - 1] != '/')
+	buffer1[link_size] = '/', link_size++;
+
+      rewrite = buffer1 + link_size;
+      remaining = buffer1 + sizeof buffer1 - rewrite - 1;
       rewrite = stpncpy (rewrite, name, remaining);
 
-      /* Replace name with buffer.  */
-      name = buffer;
+      /* Replace name with buffer1.  */
+#ifndef REENTRANT
+      strcpy (name, buffer1);
+#endif /* REENTRANT */
     }
 
   fd = open (name, O_RDONLY);

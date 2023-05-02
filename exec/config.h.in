@@ -76,6 +76,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
@@ -115,6 +118,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Define to number of the `readlinkat' system call. */
+#undef READLINKAT_SYSCALL
+
+/* Define to number of the `readlink' system call. */
+#undef READLINK_SYSCALL
+
+/* Define to 1 if the library is used within a signal handler. */
+#undef REENTRANT
+
 /* Define to 1 if the stack grows downwards. */
 #undef STACK_GROWS_DOWNWARDS
 
@@ -128,6 +140,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* Define to register holding arg1 to system calls. */
 #undef SYSCALL_ARG1_REG
+
+/* Define to register holding arg2 to system calls. */
+#undef SYSCALL_ARG2_REG
+
+/* Define to register holding arg3 to system calls. */
+#undef SYSCALL_ARG3_REG
 
 /* Define to register holding arg0 to system calls. */
 #undef SYSCALL_ARG_REG
@@ -216,4 +234,16 @@ typedef bool _Bool;
 # define true 1
 # define __bool_true_false_are_defined 1
 #endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif /* HAVE_SYS_PARAM_H */
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif /* MAX */
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif /* MIN */
 

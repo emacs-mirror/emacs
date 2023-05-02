@@ -154,6 +154,11 @@ struct exec_tracee
   /* Whether or not the tracee is currently waiting for a system call
      to complete.  */
   bool waiting_for_syscall;
+
+#ifndef REENTRANT
+  /* Name of the executable being run.  */
+  char *exec_file;
+#endif /* !REENTRANT */
 };
 
 
@@ -184,7 +189,7 @@ extern pid_t exec_waitpid (pid_t, int *, int);
 
 /* Defined in exec.c.  */
 
-extern char *exec_0 (const char *, struct exec_tracee *,
+extern char *exec_0 (char *, struct exec_tracee *,
 		     size_t *, USER_REGS_STRUCT *);
 
 

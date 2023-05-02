@@ -315,6 +315,13 @@ remove_tracee (struct exec_tracee *tracee)
 
 	  /* Link the tracee onto the list of free tracees.  */
 	  tracee->next = free_tracees;
+
+#ifndef REENTRANT
+	  /* Free the exec file, if any.  */
+	  free (tracee->exec_file);
+	  tracee->exec_file = NULL;
+#endif /* REENTRANT */
+
 	  free_tracees = tracee;
 
 	  return;
@@ -431,7 +438,7 @@ syscall_trap_p (siginfo_t *signal)
 static int
 handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
 {
-  char buffer[PATH_MAX], *area;
+  char buffer[PATH_MAX + 80], *area;
   USER_REGS_STRUCT original;
   size_t size, loader_size;
   USER_WORD loader, size1, sp;
@@ -516,6 +523,17 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
       errno = EIO;
       return 1;
     }
+
+#ifndef REENTRANT
+  /* Now that the loader has started, record the value to use for
+     /proc/self/exe.  Don't give up just because strdup fails.
+
+     Note that exec_0 copies the absolute file name into buffer.  */
+
+  if (tracee->exec_file)
+    free (tracee->exec_file);
+  tracee->exec_file = strdup (buffer);
+#endif /* REENTRANT */
 
  again:
   rc = waitpid (tracee->pid, &wstatus, __WALL);
@@ -622,6 +640,91 @@ handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
   return 3;
 }
 
+/* Handle a `readlink' or `readlinkat' system call.
+
+   CALLNO is the system call number, and REGS are the current user
+   registers of the TRACEE.
+
+   If the first argument of a `readlinkat' system call is AT_FDCWD,
+   and the file name specified in either a `readlink' or `readlinkat'
+   system call is `/proc/self/exe', write the name of the executable
+   being run into the buffer specified in the system call.
+
+   Return the number of bytes written to the tracee's buffer in
+   *RESULT.
+
+   Value is 0 upon success.  Value is 1 upon failure, and 2 if the
+   system call has been emulated.  */
+
+static int
+handle_readlinkat (USER_WORD callno, USER_REGS_STRUCT *regs,
+		   struct exec_tracee *tracee, USER_WORD *result)
+{
+#ifdef REENTRANT
+  /* readlinkat cannot be handled specially when the library is built
+     to be reentrant, as the file name information cannot be
+     recorded.  */
+  return 0;
+#else /* !REENTRANT */
+
+  char buffer[PATH_MAX + 1];
+  USER_WORD address, return_buffer, size;
+  size_t length;
+
+  /* Read the file name.  */
+
+#ifdef READLINK_SYSCALL
+  if (callno == READLINK_SYSCALL)
+    {
+      address = regs->SYSCALL_ARG_REG;
+      return_buffer = regs->SYSCALL_ARG1_REG;
+      size = regs->SYSCALL_ARG2_REG;
+    }
+  else
+#endif /* READLINK_SYSCALL */
+    {
+      address = regs->SYSCALL_ARG1_REG;
+      return_buffer = regs->SYSCALL_ARG2_REG;
+      size = regs->SYSCALL_ARG3_REG;
+    }
+
+  read_memory (tracee, buffer, PATH_MAX, address);
+
+  /* Make sure BUFFER is NULL terminated.  */
+
+  if (!memchr (buffer, '\0', PATH_MAX))
+    {
+      errno = ENAMETOOLONG;
+      return 1;
+    }
+
+  /* Now check if the caller is looking for /proc/self/exe.
+
+     dirfd can be ignored, as for now only absolute file names are
+     handled.  FIXME.  */
+
+  if (strcmp (buffer, "/proc/self/exe") || !tracee->exec_file)
+    return 0;
+
+  /* Copy over tracee->exec_file.  Truncate it to PATH_MAX, length, or
+     size, whichever is less.  */
+
+  length = strlen (tracee->exec_file);
+  length = MIN (size, MIN (PATH_MAX, length));
+  strncpy (buffer, tracee->exec_file, length);
+
+  if (user_copy (tracee, (unsigned char *) buffer,
+		 return_buffer, length))
+    {
+      errno = EIO;
+      return 1;
+    }
+
+  *result = length;
+  return 2;
+#endif /* REENTRANT */
+}
+
 /* Process the system call at which TRACEE is stopped.  If the system
    call is not known or not exec, send TRACEE on its way.  Otherwise,
    rewrite it to load the loader and perform an appropriate action.  */
@@ -635,6 +738,8 @@ process_system_call (struct exec_tracee *tracee)
 #ifdef __aarch64__
   USER_WORD old_w1, old_w2;
 #endif /* __aarch64__ */
+  USER_WORD result;
+  bool reporting_error;
 
 #ifdef __aarch64__
   rc = aarch64_get_regs (tracee->pid, &regs);
@@ -678,6 +783,24 @@ process_system_call (struct exec_tracee *tracee)
 
       break;
 
+#ifdef READLINK_SYSCALL
+    case READLINK_SYSCALL:
+#endif /* READLINK_SYSCALL */
+    case READLINKAT_SYSCALL:
+
+      /* Handle this readlinkat system call.  */
+      rc = handle_readlinkat (callno, &regs, tracee,
+			      &result);
+
+      /* rc means the same as in `handle_exec'.  */
+
+      if (rc == 1)
+	goto report_syscall_error;
+      else if (rc == 2)
+	goto emulate_syscall;
+
+      /* Fallthrough.  */
+
     default:
       /* Don't wait for the system call to finish; instead, the system
 	 will DTRT upon the next call to PTRACE_SYSCALL after the
@@ -694,8 +817,16 @@ process_system_call (struct exec_tracee *tracee)
   return;
 
  report_syscall_error:
-  /* Reporting an error works by setting the system call number to -1,
-     letting it continue, and then substituting errno for ENOSYS.
+  reporting_error = true;
+  goto common;
+
+ emulate_syscall:
+  reporting_error = false;
+ common:
+
+  /* Reporting an error or emulating a system call works by setting
+     the system call number to -1, letting it continue, and then
+     substituting errno for ENOSYS in the case of an error.
 
      Make sure that the stack pointer is restored to its original
      position upon exit, or bad things can happen.  */
@@ -755,7 +886,7 @@ process_system_call (struct exec_tracee *tracee)
     /* The process has been killed in response to a signal.  In this
        case, simply unlink the tracee and return.  */
     remove_tracee (tracee);
-  else
+  else if (reporting_error)
     {
 #ifdef __mips__
       /* MIPS systems place errno in v0 and set a3 to 1.  */
@@ -763,6 +894,32 @@ process_system_call (struct exec_tracee *tracee)
       regs.gregs[7] = 1;
 #else /* !__mips__ */
       regs.SYSCALL_RET_REG = -save_errno;
+#endif /* __mips__ */
+
+      /* Report errno.  */
+#ifdef __aarch64__
+      /* Restore x1 and x2.  x0 is clobbered by errno.  */
+      regs.regs[1] = old_w1;
+      regs.regs[2] = old_w2;
+      aarch64_set_regs (tracee->pid, &regs, false);
+#else /* !__aarch64__ */
+      ptrace (PTRACE_SETREGS, tracee->pid, NULL, &regs);
+#endif /* __aarch64__ */
+
+      /* Now wait for the next system call to happen.  */
+      ptrace (PTRACE_SYSCALL, tracee->pid, NULL, NULL);
+    }
+  else
+    {
+      /* No error is being reported.  Return the result in the
+	 appropriate registers.  */
+
+#ifdef __mips__
+      /* MIPS systems place errno in v0 and set a3 to 1.  */
+      regs.gregs[2] = result;
+      regs.gregs[7] = 0;
+#else /* !__mips__ */
+      regs.SYSCALL_RET_REG = result;
 #endif /* __mips__ */
 
       /* Report errno.  */
@@ -869,6 +1026,9 @@ after_fork (pid_t pid)
   tracee->pid = pid;
   tracee->next = tracing_processes;
   tracee->waiting_for_syscall = false;
+#ifndef REENTRANT
+  tracee->exec_file = NULL;
+#endif /* REENTRANT */
   tracing_processes = tracee;
   return 0;
 }
