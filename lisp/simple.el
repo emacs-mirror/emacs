@@ -9216,8 +9216,8 @@ it skips the contents of comments that end before point."
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-highlight-offscreen nil
-  "If non-nil, highlight showing in the echo area matched off-screen open paren.
-This highlighting uses face `blink-matching-paren-offscreen'."
+  "If non-nil, highlight matched off-screen open paren in the echo area.
+This highlighting uses the `blink-matching-paren-offscreen' face."
   :type 'boolean
   :version "30.1"
   :group 'paren-blinking)
@@ -9225,8 +9225,8 @@ This highlighting uses face `blink-matching-paren-offscreen'."
 (defface blink-matching-paren-offscreen
   '((t :foreground "green"))
   "Face for showing in the echo area matched open paren that is off-screen.
-This face will not be used when `blink-matching-paren-highlight-offscreen'
-is nil."
+This face is used only when `blink-matching-paren-highlight-offscreen'
+is non-nil."
   :version "30.1"
   :group 'paren-blinking)
 
@@ -9334,7 +9334,7 @@ The function should return non-nil if the two tokens do not match.")
 
 (defun blink-paren-open-paren-line-string (pos)
   "Return the line string that contains the openparen at POS.
-Remove the line string's properties but give the openparen a
+Remove the line string's properties but give the openparen a distinct
 face if `blink-matching-paren-highlight-offscreen' is non-nil."
   (save-excursion
     (goto-char pos)
