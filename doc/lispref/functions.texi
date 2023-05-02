@@ -2633,7 +2633,7 @@ symbol, @pxref{Standard Properties}.
 
 @item (important-return-value @var{val})
 If @var{val} is non-@code{nil}, the byte compiler will warn about
-calls to this function that do not use the returned value. This is the
+calls to this function that do not use the returned value.  This is the
 same as the @code{important-return-value} property of the function's
 symbol, @pxref{Standard Properties}.
 

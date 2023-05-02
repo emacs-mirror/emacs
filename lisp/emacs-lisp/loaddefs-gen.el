@@ -597,73 +597,63 @@ instead of just updating them with the new/changed autoloads."
                                 defs))))))
       (progress-reporter-done progress))
 
-    ;; If we have no autoloads data, but we have EXTRA-DATA, then
-    ;; generate the (almost) empty file anyway.
-    (if (and (not defs) extra-data)
+    ;; First group per output file.
+    (dolist (fdefs (seq-group-by (lambda (x) (expand-file-name (car x)))
+                                 defs))
+      (let ((loaddefs-file (car fdefs))
+            hash)
         (with-temp-buffer
-          (insert (loaddefs-generate--rubric output-file nil t))
-          (search-backward "\f")
-          (insert extra-data)
-          (ensure-empty-lines 1)
-          (write-region (point-min) (point-max) output-file nil 'silent))
-      ;; We have some data, so generate the loaddef files.  First
-      ;; group per output file.
-      (dolist (fdefs (seq-group-by (lambda (x) (expand-file-name (car x)))
-                                   defs))
-        (let ((loaddefs-file (car fdefs))
-              hash)
-          (with-temp-buffer
-            (if (and updating (file-exists-p loaddefs-file))
-                (insert-file-contents loaddefs-file)
-              (insert (loaddefs-generate--rubric
-                       loaddefs-file nil t include-package-version))
-              (search-backward "\f")
-              (when extra-data
-                (insert extra-data)
-                (ensure-empty-lines 1)))
-            (setq hash (buffer-hash))
-            ;; Then group by source file (and sort alphabetically).
-            (dolist (section (sort (seq-group-by #'cadr (cdr fdefs))
-                                   (lambda (e1 e2)
-                                     (string<
-                                      (file-name-sans-extension
-                                       (file-name-nondirectory (car e1)))
-                                      (file-name-sans-extension
-                                       (file-name-nondirectory (car e2)))))))
-              (pop section)
-              (let* ((relfile (file-relative-name
-                               (cadar section)
-                               (file-name-directory loaddefs-file)))
-                     (head (concat "\n\f\n;;; Generated autoloads from "
-                                   relfile "\n\n")))
-                (when (file-exists-p loaddefs-file)
-                  ;; If we're updating an old loaddefs file, then see if
-                  ;; there's a section here for this file already.
-                  (goto-char (point-min))
-                  (if (not (search-forward head nil t))
-                      ;; It's a new file; put the data at the end.
-                      (progn
-                        (goto-char (point-max))
-                        (search-backward "\f\n" nil t))
-                    ;; Delete the old version of the section.
-                    (delete-region (match-beginning 0)
-                                   (and (search-forward "\n\f\n;;;")
-                                        (match-beginning 0)))
-                    (forward-line -2)))
-                (insert head)
-                (dolist (def (reverse section))
-                  (setq def (caddr def))
-                  (if (stringp def)
-                      (princ def (current-buffer))
-                    (loaddefs-generate--print-form def))
-                  (unless (bolp)
-                    (insert "\n")))))
-            ;; Only write the file if we actually made a change.
-            (unless (equal (buffer-hash) hash)
-              (write-region (point-min) (point-max) loaddefs-file nil 'silent)
-              (byte-compile-info
-               (file-relative-name loaddefs-file (car (ensure-list dir)))
-               t "GEN"))))))))
+          (if (and updating (file-exists-p loaddefs-file))
+              (insert-file-contents loaddefs-file)
+            (insert (loaddefs-generate--rubric
+                     loaddefs-file nil t include-package-version))
+            (search-backward "\f")
+            (when extra-data
+              (insert extra-data)
+              (ensure-empty-lines 1)))
+          (setq hash (buffer-hash))
+          ;; Then group by source file (and sort alphabetically).
+          (dolist (section (sort (seq-group-by #'cadr (cdr fdefs))
+                                 (lambda (e1 e2)
+                                   (string<
+                                    (file-name-sans-extension
+                                     (file-name-nondirectory (car e1)))
+                                    (file-name-sans-extension
+                                     (file-name-nondirectory (car e2)))))))
+            (pop section)
+            (let* ((relfile (file-relative-name
+                             (cadar section)
+                             (file-name-directory loaddefs-file)))
+                   (head (concat "\n\f\n;;; Generated autoloads from "
+                                 relfile "\n\n")))
+              (when (file-exists-p loaddefs-file)
+                ;; If we're updating an old loaddefs file, then see if
+                ;; there's a section here for this file already.
+                (goto-char (point-min))
+                (if (not (search-forward head nil t))
+                    ;; It's a new file; put the data at the end.
+                    (progn
+                      (goto-char (point-max))
+                      (search-backward "\f\n" nil t))
+                  ;; Delete the old version of the section.
+                  (delete-region (match-beginning 0)
+                                 (and (search-forward "\n\f\n;;;")
+                                      (match-beginning 0)))
+                  (forward-line -2)))
+              (insert head)
+              (dolist (def (reverse section))
+                (setq def (caddr def))
+                (if (stringp def)
+                    (princ def (current-buffer))
+                  (loaddefs-generate--print-form def))
+                (unless (bolp)
+                  (insert "\n")))))
+          ;; Only write the file if we actually made a change.
+          (unless (equal (buffer-hash) hash)
+            (write-region (point-min) (point-max) loaddefs-file nil 'silent)
+            (byte-compile-info
+             (file-relative-name loaddefs-file (car (ensure-list dir)))
+             t "GEN")))))))
 
 (defun loaddefs-generate--print-form (def)
   "Print DEF in a format that makes sense for version control."

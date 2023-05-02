@@ -280,7 +280,10 @@ DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
 If START is nil, it defaults to `point-min'.  If END is nil, it
 defaults to `point-max'.
 
-If BASE-URL is non-nil, it is used to expand relative URLs.
+If BASE-URL is non-nil, it is used if and when reporting errors and
+warnings from the underlying libxml2 library.  Currently, errors and
+warnings from the library are suppressed, so this argument is largely
+ignored.
 
 If you want comments to be stripped, use the `xml-remove-comments'
 function to strip comments before calling this function.  */)
@@ -298,7 +301,10 @@ DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
 If START is nil, it defaults to `point-min'.  If END is nil, it
 defaults to `point-max'.
 
-If BASE-URL is non-nil, it is used to expand relative URLs.
+If BASE-URL is non-nil, it is used if and when reporting errors and
+warnings from the underlying libxml2 library.  Currently, errors and
+warnings from the library are suppressed, so this argument is largely
+ignored.
 
 If you want comments to be stripped, use the `xml-remove-comments'
 function to strip comments before calling this function.  */)

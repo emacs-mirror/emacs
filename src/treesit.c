@@ -3886,9 +3886,9 @@ syms_of_treesit (void)
   define_error (Qtreesit_parse_error, "Parse failed",
 		Qtreesit_error);
   define_error (Qtreesit_range_invalid,
-		"RANGES are invalid, they have to be ordered and not overlapping",
+		"RANGES are invalid: they have to be ordered and should not overlap",
 		Qtreesit_error);
-  define_error (Qtreesit_buffer_too_large, "Buffer too large (> 4GB)",
+  define_error (Qtreesit_buffer_too_large, "Buffer too large (> 4GiB)",
 		Qtreesit_error);
   define_error (Qtreesit_load_language_error,
 		"Cannot load language definition",

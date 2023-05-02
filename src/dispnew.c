@@ -3755,6 +3755,14 @@ update_window (struct window *w, bool force_p)
 	      }
 	  }
 
+      /* If the window doesn't display its mode line, make sure the
+         corresponding row of the current glyph matrix is disabled, so
+         that if and when the mode line is displayed again, it will be
+         cleared and completely redrawn.  */
+      if (!window_wants_mode_line (w))
+	SET_MATRIX_ROW_ENABLED_P (w->current_matrix,
+				  w->current_matrix->nrows - 1, false);
+
       /* Was display preempted?  */
       paused_p = row < end;
 

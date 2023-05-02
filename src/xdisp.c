@@ -20662,6 +20662,8 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
       int bot_scroll_margin = top_scroll_margin;
       if (window_wants_header_line (w))
 	top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
+      if (window_wants_tab_line (w))
+	top_scroll_margin += CURRENT_TAB_LINE_HEIGHT (w);
       start_display (&it, w, pos);
 
       if ((w->cursor.y >= 0
@@ -22006,17 +22008,23 @@ try_window_id (struct window *w)
 
   /* Don't let the cursor end in the scroll margins.  */
   {
-    int this_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
+    int top_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
+    int bot_scroll_margin = top_scroll_margin;
     int cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
 
-    if ((w->cursor.y < this_scroll_margin
+    if (window_wants_header_line (w))
+      top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
+    if (window_wants_tab_line (w))
+      top_scroll_margin += CURRENT_TAB_LINE_HEIGHT (w);
+
+    if ((w->cursor.y < top_scroll_margin
 	 && CHARPOS (start) > BEGV)
 	/* Old redisplay didn't take scroll margin into account at the bottom,
 	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
 	|| (w->cursor.y
 	    + (cursor_row_fully_visible_p (w, false, true, true)
 	       ? 1
-	       : cursor_height + this_scroll_margin)) > it.last_visible_y)
+	       : cursor_height + bot_scroll_margin)) > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);

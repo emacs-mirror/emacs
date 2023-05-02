@@ -1653,7 +1653,10 @@ If HDR is non-nil, insert a header line with the directory name."
 see `dired-use-ls-dired' for more details.")
 		       nil))
 	       dired-use-ls-dired)))
-	(setq switches (concat "--dired " switches)))
+        ;; Use -N with --dired, to countermand possible non-default
+        ;; quoting style, in particular via the environment variable
+        ;; QUOTINTG_STYLE.
+	(setq switches (concat "--dired -N " switches)))
     ;; Expand directory wildcards and fill file-list.
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p dir)))
       (cond (dir-wildcard

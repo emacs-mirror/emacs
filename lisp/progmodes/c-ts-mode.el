@@ -536,6 +536,11 @@ MODE is either `c' or `cpp'."
     "+=" "*=" "/=" "%=" "|=" "&=" "^=" ">>=" "<<=" "--" "++")
   "C/C++ operators for tree-sitter font-locking.")
 
+(defvar c-ts-mode--for-each-tail-regexp
+  (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
+                      "LIVE_BUFFER" "FRAME"))
+  "A regexp matching all the variants of the FOR_EACH_* macro.")
+
 (defun c-ts-mode--font-lock-settings (mode)
   "Tree-sitter font-lock settings.
 MODE is either `c' or `cpp'."
@@ -686,10 +691,14 @@ MODE is either `c' or `cpp'."
    :language mode
    :feature 'emacs-devel
    :override t
-   '(((call_expression
+   `(((call_expression
        (call_expression function: (identifier) @fn)
        @c-ts-mode--fontify-DEFUN)
-      (:match "^DEFUN$" @fn)))))
+      (:match "^DEFUN$" @fn))
+
+     ((function_definition type: (_) @for-each-tail)
+      @c-ts-mode--fontify-for-each-tail
+      (:match ,c-ts-mode--for-each-tail-regexp @for-each-tail)))))
 
 ;;; Font-lock helpers
 
@@ -790,6 +799,20 @@ This function corrects the fontification of the colon in
           (treesit-fontify-with-override
            (treesit-node-start arg) (treesit-node-end arg)
            'default override start end))))))
+
+(defun c-ts-mode--fontify-for-each-tail (node override start end &rest _)
+  "Fontify FOR_EACH_* macro variants in Emacs sources.
+For NODE, OVERRIDE, START, and END, see
+`treesit-font-lock-rules'.  The captured NODE is a
+function_definition node."
+  (let ((for-each-tail (treesit-node-child-by-field-name node "type"))
+        (args (treesit-node-child-by-field-name node "declarator")))
+    (treesit-fontify-with-override
+     (treesit-node-start for-each-tail) (treesit-node-end for-each-tail)
+     'default override start end)
+    (treesit-fontify-with-override
+     (1+ (treesit-node-start args)) (1- (treesit-node-end args))
+     'default override start end)))
 
 (defun c-ts-mode--fontify-error (node override start end &rest _)
   "Fontify the error nodes.
@@ -984,11 +1007,12 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
 ;; skips those FOR_EACH_*'s.  Note that we only ignore FOR_EACH_*'s
 ;; with a unbracketed body.  Those with a bracketed body parse more
 ;; or less fine.
-
-(defvar c-ts-mode--for-each-tail-regexp
-  (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
-                      "LIVE_BUFFER" "FRAME"))
-  "A regexp matching all the variants of the FOR_EACH_* macro.")
+;;
+;; In the meantime, we have a special fontification rule for
+;; FOR_EACH_* macros with a bracketed body that removes any applied
+;; fontification (which are wrong anyway), to keep them consistent
+;; with the skipped FOR_EACH_* macros (which have no fontification).
+;; The rule is in 'emacs-devel' feature.
 
 (defun c-ts-mode--for-each-tail-body-matcher (_n _p bol &rest _)
   "A matcher that matches the first line after a FOR_EACH_* macro.
@@ -1001,14 +1025,14 @@ For BOL see `treesit-simple-indent-rules'."
       (looking-at c-ts-mode--for-each-tail-regexp))))
 
 (defvar c-ts-mode--emacs-c-range-query
-  (and (treesit-available-p)
-       (treesit-query-compile
-        'emacs-c `(((declaration
-                     type: (macro_type_specifier
-                            name: (identifier) @_name)
-                     @for-each-tail)
-                    (:match ,c-ts-mode--for-each-tail-regexp
-                            @_name)))))
+  (when (treesit-available-p)
+    (treesit-query-compile
+     'emacs-c `(((declaration
+                  type: (macro_type_specifier
+                         name: (identifier) @_name)
+                  @for-each-tail)
+                 (:match ,c-ts-mode--for-each-tail-regexp
+                         @_name)))))
   "Query that finds a FOR_EACH_* macro with an unbracketed body.")
 
 (defvar-local c-ts-mode--for-each-tail-ranges nil
@@ -1217,7 +1241,8 @@ in your configuration."
                   (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
 
       (setq-local treesit-language-at-point-function
-                  (lambda (_pos) 'c)))))
+                  (lambda (_pos) 'c))
+      (treesit-font-lock-recompute-features '(emacs-devel)))))
 
 ;;;###autoload
 (define-derived-mode c++-ts-mode c-ts-base-mode "C++"
