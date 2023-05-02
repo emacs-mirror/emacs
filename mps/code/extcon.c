@@ -18,7 +18,6 @@
 #include "testlib.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -153,7 +152,7 @@ static mps_addr_t obj_skip(mps_addr_t addr)
     break;
   default:
     printf("invalid type");
-    assert(0);
+    Insist(0);
     break;
   }
 
@@ -165,7 +164,7 @@ static void obj_pad(mps_addr_t addr, size_t size)
 
   obj_t obj = addr;
 
-  assert(size >= ALIGN_WORD(sizeof(pad1_s)));
+  Insist(size >= ALIGN_WORD(sizeof(pad1_s)));
   if (size == ALIGN_WORD(sizeof(pad1_s))) {
     TYPE(obj) = TYPE_PAD1;
   } else {
@@ -180,7 +179,7 @@ static void obj_fwd(mps_addr_t old, mps_addr_t new)
   mps_addr_t limit = obj_skip(old);
   size_t size = (size_t)((char*)limit - (char*)old);
 
-  assert(size >= ALIGN_WORD(sizeof(fwd2_s)));
+  Insist(size >= ALIGN_WORD(sizeof(fwd2_s)));
   if (size == ALIGN_WORD(sizeof(fwd2_s))) {
     TYPE(obj) = TYPE_FWD2;
     obj->fwd2.fwd = new;
@@ -249,11 +248,16 @@ static void test_main(void *cold_stack_end)
   mps_res_t res;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
-  mps_root_t stack_root;
+  mps_root_t stack_root, testobj_root;
   size_t arena_size, obj_size;
   mps_addr_t p;
   int i;
-  test_alloc_obj_s *testobj[N_TESTOBJ];
+  /* In the original version of extcon this was a stack root, but we
+     observed unreliable failures to do with registering the cold end
+     of the stack.  See GitHub issue #210
+     <https://github.com/Ravenbrook/mps/issues/210>.  For now, we
+     declare this as a separate root. */
+  static mps_addr_t testobj[N_TESTOBJ];
 
   /* The testobj array must be below (on all current Posix platforms)
      the cold end of the stack in order for the MPS to scan it.  We
@@ -263,15 +267,11 @@ static void test_main(void *cold_stack_end)
      <https://github.com/Ravenbrook/mps/issues/210>. */
   Insist((void *)&testobj[N_TESTOBJ] <= cold_stack_end);
 
+  /* The Insist above ought to prevent an invalid marker message below. */
   if ((void *)&testobj[N_TESTOBJ] > cold_stack_end)
-  {
     printf("Cold stack marker invalid!\n");
-  } else {
+  else
     printf("Cold stack marker probably valid.\n");
-  }
-
-
-  //assert((void *)&testobj[N_TESTOBJ] <= cold_stack_end);
 
   /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
   obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
@@ -310,6 +310,12 @@ static void test_main(void *cold_stack_end)
   /* Register stack roots */
   die(mps_root_create_thread(&stack_root, arena, thread, cold_stack_end), "Create Stack root");
 
+  /* Register ambiguous array of object roots. */
+  die(mps_root_create_table(&testobj_root, arena,
+                            mps_rank_ambig(), (mps_rm_t)0,
+                            &testobj[0], N_TESTOBJ),
+      "root_create_table(testobj)");
+
   /* Create allocation point */
   die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
 
@@ -319,7 +325,7 @@ static void test_main(void *cold_stack_end)
   /* Allocate objects and force arena extension */
   for (i = 0; i < N_TESTOBJ; i++) {
     int j;
-    test_alloc_obj_s* p_test_obj;
+    test_alloc_obj_s *p_test_obj;
 
     do {
       printf("Reserving memory for object %d\n", i);
@@ -336,9 +342,8 @@ static void test_main(void *cold_stack_end)
       p_test_obj->type = TYPE_INTBOX;
       p_test_obj->size = obj_size;
 
-      for (j = 0; j < N_INT_TESTOBJ; ++j) {
+      for (j = 0; j < N_INT_TESTOBJ; ++j)
         p_test_obj->int_array[j] = j;
-      }
     } while (!mps_commit(obj_ap, p, obj_size));
     /* testobj[i] is now valid and managed by the MPS */
 
@@ -358,17 +363,17 @@ static void test_main(void *cold_stack_end)
   for (i = 0; i < N_TESTOBJ; i++) {
 
     /* bonus test of mps_addr_object */
-#if 0 /* Comment this out as mps_addr_object is unavailable */
+#if 0 /* Comment this out until mps_addr_object becomes available. */
     mps_addr_t out;
-    assert(N_TESTOBJ <= N_INT_TESTOBJ);
+    Insist(N_TESTOBJ <= N_INT_TESTOBJ);
 
     /* use "i" to as a convenient way to generate different interior pointers
        To guarantee the i index will give us an interior pointer the number of test
        objects must be <= the number of integers in each object */
-    assert(N_TESTOBJ <= N_INT_TESTOBJ);
+    Insist(N_TESTOBJ <= N_INT_TESTOBJ);
     die(mps_addr_object(&out, arena, &(testobj[i])->int_array[i]), "Address object");
 
-    assert(out == testobj[i]);
+    Insist(out == testobj[i]);
 
     /* end piggy back testbench */
 #endif
@@ -388,6 +393,7 @@ static void test_main(void *cold_stack_end)
   printf("Arena contracted %d times\n", n_contract);
 
   /* Clean up */
+  mps_root_destroy(testobj_root);
   mps_root_destroy(stack_root);
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
