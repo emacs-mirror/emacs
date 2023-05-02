@@ -3657,6 +3657,45 @@ macro that returns its `&whole' argument."
       '(cl-list* cl-acons cl-equalp
         cl-random-state-p copy-tree))
 
+;;; Things whose return value should probably be used.
+(mapc (lambda (x) (function-put x 'important-return-value t))
+       '(
+         ;; Functions that are side-effect-free except for the
+         ;; behaviour of functions passed as argument.
+         cl-mapcar cl-mapcan cl-maplist cl-map cl-mapcon
+         cl-reduce
+         cl-assoc cl-assoc-if cl-assoc-if-not
+         cl-rassoc cl-rassoc-if cl-rassoc-if-not
+         cl-member cl-member-if cl-member-if-not
+         cl-adjoin
+         cl-mismatch cl-search
+         cl-find cl-find-if cl-find-if-not
+         cl-position cl-position-if cl-position-if-not
+         cl-count cl-count-if cl-count-if-not
+         cl-remove cl-remove-if cl-remove-if-not
+         cl-remove-duplicates
+         cl-subst cl-subst-if cl-subst-if-not
+         cl-substitute cl-substitute-if cl-substitute-if-not
+         cl-sublis
+         cl-union cl-intersection cl-set-difference cl-set-exclusive-or
+         cl-subsetp
+         cl-every cl-some cl-notevery cl-notany
+         cl-tree-equal
+
+         ;; Functions that mutate and return a list.
+         cl-delete cl-delete-if cl-delete-if-not
+         cl-delete-duplicates
+         cl-nsubst cl-nsubst-if cl-nsubst-if-not
+         cl-nsubstitute cl-nsubstitute-if cl-nsubstitute-if-not
+         cl-nunion cl-nintersection cl-nset-difference cl-nset-exclusive-or
+         cl-nreconc cl-nsublis
+         cl-merge
+         ;; It's safe to ignore the value of `cl-sort' and `cl-stable-sort'
+         ;; when used on arrays, but most calls pass lists.
+         cl-sort cl-stable-sort
+         ))
+
+
 ;;; Types and assertions.
 
 ;;;###autoload

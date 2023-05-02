@@ -2631,6 +2631,12 @@ so the byte compiler can ignore calls whose value is ignored.  This is
 the same as the @code{side-effect-free} property of the function's
 symbol, @pxref{Standard Properties}.
 
+@item (important-return-value @var{val})
+If @var{val} is non-@code{nil}, the byte compiler will warn about
+calls to this function that do not use the returned value. This is the
+same as the @code{important-return-value} property of the function's
+symbol, @pxref{Standard Properties}.
+
 @item (speed @var{n})
 Specify the value of @code{native-comp-speed} in effect for native
 compilation of this function (@pxref{Native-Compilation Variables}).

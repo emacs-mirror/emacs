@@ -544,17 +544,26 @@ the warning name 'suspicious'.
 ---
 *** Warn about more ignored function return values.
 The compiler now warns when the return value from certain functions is
-ignored.  Example:
+implicitly ignored.  Example:
 
     (progn (nreverse my-list) my-list)
 
 will elicit a warning because it is usually pointless to call
-'nreverse' on a list without using the returned value.  To silence the
-warning, make use of the value in some way, such as assigning it to a
-variable.  You can also wrap the function call in '(ignore ...)'.
+'nreverse' on a list without using the returned value.
 
-This warning can be suppressed using 'with-suppressed-warnings' with
-the warning name 'ignored-return-value'.
+To silence the warning, make use of the value in some way, such as
+assigning it to a variable.  You can also wrap the function call in
+'(ignore ...)', or use 'with-suppressed-warnings' with the warning
+name 'ignored-return-value'.
+
+The warning will only be issued for calls to functions declared
+'important-return-value' or 'side-effect-free' (but not 'error-free').
+
++++
+** New function declaration and property 'important-return-value'.
+The declaration '(important-return-value t)' sets the
+'important-return-value' property which indicates that the function
+return value should probably not be thrown away implicitly.
 
 +++
 ** New function 'file-user-uid'.

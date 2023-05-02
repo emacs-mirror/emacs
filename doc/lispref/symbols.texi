@@ -643,6 +643,12 @@ ignore a call whose value is unused.  If the property's value is
 calls.  In addition to byte compiler optimizations, this property is
 also used for determining function safety (@pxref{Function Safety}).
 
+@item important-return-value
+@cindex @code{important-return-value} property
+A non-@code{nil} value makes the byte compiler warn about code that
+calls the named function without using its returned value.  This is
+useful for functions where doing so is likely to be a mistake.
+
 @item undo-inhibit-region
 If non-@code{nil}, the named function prevents the @code{undo} operation
 from being restricted to the active region, if @code{undo} is invoked
