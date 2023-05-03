@@ -24,10 +24,10 @@ include(`config-mips.m4')
 	.section .text
 	.global __start
 __start:
-	li	$v0, SYSCALL_nanosleep	# SYS_nanosleep
-	la	$a0, .timespec		# rqtp
-	li	$a1, 0			# rmtp
-	syscall				# syscall
+dnl	li	$v0, SYSCALL_nanosleep	# SYS_nanosleep
+dnl	la	$a0, .timespec		# rqtp
+dnl	li	$a1, 0			# rmtp
+dnl	syscall				# syscall
 	lw	$s6, ($sp)		# original stack pointer
 	addi	$s0, $sp, 8		# start of load area
 	addi	$sp, -8			# primary fd, secondary fd
