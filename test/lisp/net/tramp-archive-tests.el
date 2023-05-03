@@ -883,7 +883,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
 ;; `file-user-uid' and `file-group-gid' were introduced in Emacs 30.1.
 (ert-deftest tramp-archive-test44-user-group-ids ()
-  "Check that `file-user-uid' returns proper values."
+  "Check results of user/group functions.
+`file-user-uid' and `file-group-gid' should return proper values."
   (skip-unless tramp-archive-enabled)
   (skip-unless (and (fboundp 'file-user-uid)
                     (fboundp 'file-group-gid)))

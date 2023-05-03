@@ -101,6 +101,7 @@
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-fuse-handle-file-executable-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -125,7 +126,6 @@
     (file-system-info . tramp-sshfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
     (file-user-uid . tramp-handle-file-user-uid)
-    (file-group-gid . tramp-handle-file-group-gid)
     (file-writable-p . tramp-sshfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

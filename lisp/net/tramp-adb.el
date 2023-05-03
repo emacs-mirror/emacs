@@ -130,6 +130,7 @@ It is used for TCP/IP devices."
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-adb-handle-file-executable-p)
     (file-exists-p . tramp-adb-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -154,7 +155,6 @@ It is used for TCP/IP devices."
     (file-system-info . tramp-adb-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
     (file-user-uid . tramp-handle-file-user-uid)
-    (file-group-gid . tramp-handle-file-group-gid)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.

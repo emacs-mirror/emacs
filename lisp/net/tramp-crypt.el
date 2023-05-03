@@ -181,6 +181,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-crypt-handle-file-executable-p)
     (file-exists-p . tramp-handle-file-exists-p)
+    ;; `file-group-gid' performed by default-handler.
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
     (file-locked-p . tramp-crypt-handle-file-locked-p)
@@ -205,7 +206,6 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-system-info . tramp-crypt-handle-file-system-info)
     ;; `file-truename' performed by default handler.
     ;; `file-user-uid' performed by default-handler.
-    ;; `file-group-gid' performed by default-handler.
     (file-writable-p . tramp-crypt-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
