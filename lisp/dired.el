@@ -1655,7 +1655,7 @@ see `dired-use-ls-dired' for more details.")
 	       dired-use-ls-dired)))
         ;; Use -N with --dired, to countermand possible non-default
         ;; quoting style, in particular via the environment variable
-        ;; QUOTINTG_STYLE.
+        ;; QUOTING_STYLE.
 	(setq switches (concat "--dired -N " switches)))
     ;; Expand directory wildcards and fill file-list.
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p dir)))
