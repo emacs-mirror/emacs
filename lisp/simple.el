@@ -9339,9 +9339,8 @@ The function should return non-nil if the two tokens do not match.")
                  (delete-overlay blink-matching--overlay)))))
        ((not show-paren-context-when-offscreen)
         (minibuffer-message
-         #("Matches %s"
-           ;; Make the following text (i.e., %s) prominent.
-           0 7 (face shadow))
+         "%s%s"
+         (propertize "Matches " 'face 'shadow)
          (blink-paren-open-paren-line-string blinkpos)))))))
 
 (defun blink-paren-open-paren-line-string (pos)
