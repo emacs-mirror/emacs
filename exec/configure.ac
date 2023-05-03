@@ -47,6 +47,7 @@ AC_ARG_WITH([reentrancy],
     [Generate library which can be used within a signal handler.])],
   [AC_DEFINE([REENTRANT], [1])])
 
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -56,12 +57,22 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINTPTR_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 AC_TYPE_PID_T
 
 AC_HEADER_STDBOOL
 AC_CHECK_FUNCS([getpagesize stpcpy stpncpy])
 AC_CHECK_DECLS([stpcpy, stpncpy])
-AC_CHECK_HEADERS([sys/param.h]) dnl for MIN and MAX
+AC_CHECK_FUNC([process_vm_readv],
+  [AC_CHECK_FUNC([process_vm_writev],
+    [AC_CHECK_DECL([process_vm_readv],
+      [AC_DEFINE([HAVE_PROCESS_VM], [1],
+        [Define to 1 if process_vm_readv is available.])],
+      [], [[
+#include <sys/uio.h>
+      ]])])])
+AC_CHECK_HEADERS([sys/param.h sys/uio.h])
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H

@@ -42,6 +42,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <linux/elf.h> /* for NT_* */
 #endif /* __aarch64__ */
 
+#ifdef HAVE_SYS_UIO_H
+#include <sys/uio.h> /* for process_vm_readv */
+#endif /* HAVE_SYS_UIO_H */
+
 
 
 /* Program tracing functions.
@@ -122,7 +126,10 @@ static struct exec_tracee *tracing_processes;
 
 
 /* Read N bytes from TRACEE's memory, starting at the specified user
-   ADDRESS.  Return its contents in BUFFER.  */
+   ADDRESS.  Return its contents in BUFFER.
+
+   If there are unreadable pages within ADDRESS + N, the contents of
+   BUFFER after the first such page becomes undefined.  */
 
 static void
 read_memory (struct exec_tracee *tracee, char *buffer,
@@ -130,6 +137,25 @@ read_memory (struct exec_tracee *tracee, char *buffer,
 {
   USER_WORD word, n_words, n_bytes, i;
   long rc;
+#ifdef HAVE_PROCESS_VM
+  struct iovec iov, remote;
+
+  /* If `process_vm_readv' is available, use it instead.  */
+
+  iov.iov_base = buffer;
+  iov.iov_len = n;
+  remote.iov_base = (void *) address;
+  remote.iov_len = n;
+
+  /* Return immediately if successful.  As long as some bytes were
+     read, consider the read to have been a success.  */
+
+  if (n <= SSIZE_MAX
+      && ((size_t) process_vm_readv (tracee->pid, &iov, 1,
+				     &remote, 1, 0) != -1))
+    return;
+
+#endif /* HAVE_PROCESS_VM */
 
   /* First, read entire words from the tracee.  */
   n_words = n & ~(sizeof (USER_WORD) - 1);
@@ -248,6 +274,22 @@ user_copy (struct exec_tracee *tracee, const unsigned char *buffer,
 {
   USER_WORD start, end, word;
   unsigned char *bytes;
+#ifdef HAVE_PROCESS_VM
+  struct iovec iov, remote;
+
+  /* Try to use `process_vm_writev' if possible, but fall back to
+     ptrace if something bad happens.  */
+
+  iov.iov_base = (void *) buffer;
+  iov.iov_len = n;
+  remote.iov_base = (void *) address;
+  remote.iov_len = n;
+
+  if (n <= SSIZE_MAX
+      && ((size_t) process_vm_writev (tracee->pid, &iov, 1,
+				      &remote, 1, 0) == n))
+    return 0;
+#endif /* HAVE_PROCESS_VM */
 
   /* Calculate the start and end positions for the write.  */
 
