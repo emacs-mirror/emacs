@@ -1307,7 +1307,7 @@ Eglot, use @kbd{M-x package-install}.
 Often, a newer Eglot version exists that has fixed a longstanding bug,
 has more LSP features, or just better supports a particular language
 server.  Recent Eglot versions can self-update via the command
-@kbd{M-x eglot-update}.  This will replace any currently installed
+@kbd{M-x eglot-upgrade}.  This will replace any currently installed
 version with the newest one available from the ELPA archives
 configured in @code{package-archives}.
 

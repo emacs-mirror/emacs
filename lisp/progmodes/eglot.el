@@ -1967,7 +1967,7 @@ If it is activated, also signal textDocument/didOpen."
        (interactive) (info "(eglot)"))
 
 ;;;###autoload
-(defun eglot-update (&rest _) "Update Eglot."
+(defun eglot-upgrade (&rest _) "Update Eglot."
   (interactive)
   (with-no-warnings
     (require 'package)
