@@ -9279,7 +9279,11 @@ multi-line strings (but not C++, for example)."
 	     (setq pos (point))
 	     (c-forward-syntactic-ws)
 	     (and (not (looking-at c-symbol-start))
-		  (not (looking-at c-type-decl-prefix-key)))))
+		  (or
+		   (not (looking-at c-type-decl-prefix-key))
+		   (and (eq (char-after) ?\()
+			(not (save-excursion
+			       (c-forward-declarator))))))))
       ;; A C specifier followed by an implicit int, e.g.
       ;; "register count;"
       (goto-char prefix-end-pos)
