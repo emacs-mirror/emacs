@@ -58,6 +58,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* Define to 1 if process_vm_readv is available. */
 #undef HAVE_PROCESS_VM
 
+/* Define to 1 if `si_syscall' is a member of `siginfo_t'. */
+#undef HAVE_SIGINFO_T_SI_SYSCALL
+
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
 

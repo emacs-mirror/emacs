@@ -1174,6 +1174,31 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 	  ptrace (PTRACE_SYSCALL, pid, 0, 0);
 	  return -1;
 
+#ifdef SIGSYS
+	case SIGSYS:
+	  if (ptrace (PTRACE_GETSIGINFO, pid, 0, &siginfo))
+	    return -1;
+
+	  /* Continue the process until the next syscall, but don't
+	     pass through the signal if an emulated syscall led to
+	     it.  */
+#ifdef HAVE_SIGINFO_T_SI_SYSCALL
+#ifndef __arm__
+	  ptrace (PTRACE_SYSCALL, pid, 0, ((siginfo.si_code == SYS_SECCOMP
+					    && siginfo.si_syscall == -1)
+					   ? 0 : status));
+#else /* __arm__ */
+	  ptrace (PTRACE_SYSCALL, pid, 0, ((siginfo.si_code == SYS_SECCOMP
+					    && siginfo.si_syscall == 222)
+					   ? 0 : status));
+#endif /* !__arm__ */
+#else /* !HAVE_SIGINFO_T_SI_SYSCALL */
+	  /* Drop this signal, since what caused it is unknown.  */
+	  ptrace (PTRACE_SYSCALL, pid, 0, 0);
+#endif /* HAVE_SIGINFO_T_SI_SYSCALL */
+	  return -1;
+#endif /* SIGSYS */
+
 	default:
 	  /* Continue the process until the next syscall.  */
 	  ptrace (PTRACE_SYSCALL, pid, 0, status);

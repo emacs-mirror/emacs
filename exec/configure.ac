@@ -73,6 +73,10 @@ AC_CHECK_FUNC([process_vm_readv],
 #include <sys/uio.h>
       ]])])])
 AC_CHECK_HEADERS([sys/param.h sys/uio.h])
+AC_CHECK_MEMBERS([siginfo_t.si_syscall], [], [],
+  [[
+#include <signal.h>
+  ]])
 
 AH_BOTTOM([
 #ifdef HAVE_STDBOOL_H
