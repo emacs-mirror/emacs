@@ -1469,6 +1469,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
          ;; When this ends up being the current buffer, either we have
          ;; a "given" ID or the buffer was reused on reconnecting.
          (existing (get-buffer name)))
+    (process-put new-proc 'erc-networks--id erc-networks--id)
     (cond ((or (not existing)
                (erc-networks--id-given erc-networks--id)
                (eq existing (current-buffer)))
