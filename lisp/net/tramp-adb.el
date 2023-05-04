@@ -130,6 +130,7 @@ It is used for TCP/IP devices."
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-adb-handle-file-executable-p)
     (file-exists-p . tramp-adb-handle-file-exists-p)
+    (file-group-gid . tramp-handle-file-group-gid)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)

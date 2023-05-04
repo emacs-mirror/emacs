@@ -1196,7 +1196,7 @@ boundaries."
     ;; the earliest in version 31.1.  The idea is to phase out the
     ;; requirement for a "footer line" without unduly impacting users
     ;; on earlier Emacs versions.  See Bug#26490 for more details.
-    (unless (search-forward (concat ";;; " file-name ".el ends here"))
+    (unless (search-forward (concat ";;; " file-name ".el ends here") nil t)
       (lwarn '(package package-format) :warning
              "Package lacks a terminating comment"))
     ;; Try to include a trailing newline.

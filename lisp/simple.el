@@ -4753,6 +4753,18 @@ this function will instead return -1."
       (funcall handler 'file-user-uid)
     (user-uid)))
 
+(defun file-group-gid ()
+  "Return the connection-local effective gid.
+This is similar to `group-gid', but may invoke a file name handler
+based on `default-directory'.  See Info node `(elisp)Magic File
+Names'.
+
+If a file name handler is unable to retrieve the effective gid,
+this function will instead return -1."
+  (if-let ((handler (find-file-name-handler default-directory 'file-group-gid)))
+      (funcall handler 'file-group-gid)
+    (group-gid)))
+
 (defun max-mini-window-lines (&optional frame)
   "Compute maximum number of lines for echo area in FRAME.
 As defined by `max-mini-window-height'.  FRAME defaults to the
@@ -9327,9 +9339,8 @@ The function should return non-nil if the two tokens do not match.")
                  (delete-overlay blink-matching--overlay)))))
        ((not show-paren-context-when-offscreen)
         (minibuffer-message
-         #("Matches %s"
-           ;; Make the following text (i.e., %s) prominent.
-           0 7 (face shadow))
+         "%s%s"
+         (propertize "Matches " 'face 'shadow)
          (blink-paren-open-paren-line-string blinkpos)))))))
 
 (defun blink-paren-open-paren-line-string (pos)

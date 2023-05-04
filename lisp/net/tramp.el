@@ -2650,7 +2650,7 @@ Must be handled by the callers."
 	      ;; Emacs 29+ only.
               list-system-processes memory-info process-attributes
               ;; Emacs 30+ only.
-	      file-user-uid))
+	      file-group-gid file-user-uid))
     default-directory)
    ;; PROC.
    ((member operation '(file-notify-rm-watch file-notify-valid-p))
@@ -3931,11 +3931,20 @@ Let-bind it when necessary.")
       (tramp-make-tramp-file-name (tramp-dissect-file-name filename)))))
 
 (defun tramp-handle-file-user-uid ()
-  "Like `user-uid' for Tramp files."
+  "Like `file-user-uid' for Tramp files."
   (let ((v (tramp-dissect-file-name default-directory)))
     (or (tramp-get-remote-uid v 'integer)
         ;; Some handlers for `tramp-get-remote-uid' return nil if they
         ;; can't get the UID; always return -1 in this case for
+        ;; consistency.
+        tramp-unknown-id-integer)))
+
+(defun tramp-handle-file-group-gid ()
+  "Like `file-group-gid' for Tramp files."
+  (let ((v (tramp-dissect-file-name default-directory)))
+    (or (tramp-get-remote-gid v 'integer)
+        ;; Some handlers for `tramp-get-remote-gid' return nil if they
+        ;; can't get the GID; always return -1 in this case for
         ;; consistency.
         tramp-unknown-id-integer)))
 
@@ -6390,7 +6399,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-read-id-output (vec)
   "Read in connection buffer the output of the `id' command.
-Set connection properties \"{uid,gid.groups}-{integer,string}\"."
+Set connection properties \"{uid,gid,groups}-{integer,string}\"."
   (with-current-buffer (tramp-get-connection-buffer vec)
     (let (uid-integer uid-string
 	  gid-integer gid-string

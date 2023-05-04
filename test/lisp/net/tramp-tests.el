@@ -7367,16 +7367,20 @@ This requires restrictions of file name syntax."
     (dotimes (i (length fsi))
       (should (natnump (or (nth i fsi) 0))))))
 
-;; `file-user-uid' was introduced in Emacs 30.1.
-(ert-deftest tramp-test44-file-user-uid ()
-  "Check that `file-user-uid' and `tramp-get-remote-*' return proper values."
+;; `file-user-uid' and `file-group-gid' were introduced in Emacs 30.1.
+(ert-deftest tramp-test44-file-user-group-ids ()
+  "Check results of user/group functions.
+`file-user-uid', `file-group-gid', and `tramp-get-remote-*'
+should all return proper values."
   (skip-unless (tramp--test-enabled))
 
   (let ((default-directory ert-remote-temporary-file-directory))
-    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
-    ;; compiler warnings for older Emacsen.
+    ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
+    ;; We don't want to see compiler warnings for older Emacsen.
     (when (fboundp 'file-user-uid)
       (should (integerp (with-no-warnings (file-user-uid)))))
+    (when (fboundp 'file-group-gid)
+      (should (integerp (with-no-warnings (file-group-gid)))))
 
     (with-parsed-tramp-file-name default-directory nil
       (should (or (integerp (tramp-get-remote-uid v 'integer))

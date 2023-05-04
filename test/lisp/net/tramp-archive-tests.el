@@ -881,16 +881,19 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-;; `file-user-uid' was introduced in Emacs 30.1.
-(ert-deftest tramp-archive-test44-file-user-uid ()
-  "Check that `file-user-uid' returns proper values."
+;; `file-user-uid' and `file-group-gid' were introduced in Emacs 30.1.
+(ert-deftest tramp-archive-test44-user-group-ids ()
+  "Check results of user/group functions.
+`file-user-uid' and `file-group-gid' should return proper values."
   (skip-unless tramp-archive-enabled)
-  (skip-unless (fboundp 'file-user-uid))
+  (skip-unless (and (fboundp 'file-user-uid)
+                    (fboundp 'file-group-gid)))
 
   (let ((default-directory tramp-archive-test-archive))
-    ;; `file-user-uid' exists since Emacs 30.1.  We don't want to see
-    ;; compiler warnings for older Emacsen.
-    (should (integerp (with-no-warnings (file-user-uid))))))
+    ;; `file-user-uid' and `file-group-gid' exist since Emacs 30.1.
+    ;; We don't want to see compiler warnings for older Emacsen.
+    (should (integerp (with-no-warnings (file-user-uid))))
+    (should (integerp (with-no-warnings (file-group-gid))))))
 
 (ert-deftest tramp-archive-test48-auto-load ()
   "Check that `tramp-archive' autoloads properly."

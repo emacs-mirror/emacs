@@ -87,11 +87,11 @@ ordinary strings."
     (?U . (lambda (file)                   ; owned by effective uid
             (if (file-exists-p file)
                 (= (file-attribute-user-id (file-attributes file))
-                   (user-uid)))))
+                   (file-user-uid)))))
     (?G . (lambda (file)               ; owned by effective gid
             (if (file-exists-p file)
                 (= (file-attribute-group-id (file-attributes file))
-                   (group-gid)))))
+                   (file-group-gid)))))
     (?* . (lambda (file)
             (and (file-regular-p file)
                  (not (file-symlink-p file))
