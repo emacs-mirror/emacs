@@ -635,9 +635,12 @@ instead of just updating them with the new/changed autoloads."
                     (progn
                       (goto-char (point-max))
                       (search-backward "\f\n" nil t))
-                  ;; Delete the old version of the section.
+                  ;; Delete the old version of the section.  Strictly
+                  ;; speaking this should search for "\n\f\n;;;", but
+                  ;; there are loaddefs files in the wild that only
+                  ;; have two ';;'.  (Bug#63236)
                   (delete-region (match-beginning 0)
-                                 (and (search-forward "\n\f\n;;;")
+                                 (and (search-forward "\n\f\n;;")
                                       (match-beginning 0)))
                   (forward-line -2)))
               (insert head)
