@@ -1420,10 +1420,13 @@ See Info node `(elisp) Integer Basics'."
 
 
 (defun byte-optimize-funcall (form)
-  ;; (funcall (lambda ...) ...) ==> ((lambda ...) ...)
-  ;; (funcall foo ...) ==> (foo ...)
-  (let ((fn (nth 1 form)))
-    (if (memq (car-safe fn) '(quote function))
+  ;; (funcall #'(lambda ...) ...) -> ((lambda ...) ...)
+  ;; (funcall #'SYM ...) -> (SYM ...)
+  ;; (funcall 'SYM ...)  -> (SYM ...)
+  (let* ((fn (nth 1 form))
+         (head (car-safe fn)))
+    (if (or (eq head 'function)
+            (and (eq head 'quote) (symbolp (nth 1 fn))))
 	(cons (nth 1 fn) (cdr (cdr form)))
       form)))
 
