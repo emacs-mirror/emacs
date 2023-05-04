@@ -469,10 +469,6 @@ for speeding up processing.")
 	     form
 	   (byte-optimize-form newform for-effect))))
 
-      ;; FIXME: Strictly speaking, I think this is a bug: (closure...)
-      ;; is a *value* and shouldn't appear in the car.
-      (`((closure . ,_) . ,_) form)
-
       (`(setq ,var ,expr)
        (let ((lexvar (assq var byte-optimize--lexvars))
              (value (byte-optimize-form expr nil)))
@@ -500,7 +496,7 @@ for speeding up processing.")
        (cons fn (mapcar #'byte-optimize-form exps)))
 
       (`(,(pred (not symbolp)) . ,_)
-       (byte-compile-warn-x fn "`%s' is a malformed function" fn)
+       (byte-compile-warn-x form "`%s' is a malformed function" fn)
        form)
 
       ((guard (when for-effect
