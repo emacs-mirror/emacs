@@ -84,6 +84,22 @@ widget has been an age-old annoyance for new users.  Previously
 ineffective, this method now actually works, but it also admonishes
 users to edit the 'erc-modules' widget instead.
 
+** ERC's status-sidebar has gained an accompanying module.
+Users can now add 'bufbar' to 'erc-modules' to achieve the same effect
+as toggling 'erc-status-sidebar-open' manually at the start of an IRC
+session.  The module has also been outfitted to show channels and
+queries under their respective servers by default.  To avoid
+confusion, the major mode used for the sidebar buffer itself,
+'erc-status-sidebar-mode', is no longer available interactively.
+
+** A new spin on a classic integration in erc-speedbar.
+Add 'nickbar' to 'erc-modules' to spawn a dynamically updating side
+window listing all the users in any target buffer.  It's powered by
+the same speedbar.el integration you've always known, except this
+one's optionally accessible from the keyboard, just like any other
+side window.  Hit '<RET>' over a nick to spawn a "/QUERY" or a
+"Lastlog" (Occur) session.  See 'erc-nickbar-mode' for more.
+
 ** The option 'erc-timestamp-use-align-to' is more versatile.
 While this option has always offered to right-align stamps via the
 'display' text property, it's now more effective at doing so when set

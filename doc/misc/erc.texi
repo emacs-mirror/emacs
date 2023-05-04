@@ -414,9 +414,10 @@ Set away status automatically
 @item autojoin
 Join channels automatically
 
-@cindex modules, bbdb
-@item bbdb
-Integrate with the Big Brother Database
+@cindex modules, bufbar
+@item bufbar
+List buffers belonging to a connection in a side window; part of
+Custom group @code{erc-status-sidebar}
 
 @cindex modules, button
 @item button
@@ -443,6 +444,10 @@ Launch an identd server on port 8113
 @item irccontrols
 Highlight or remove IRC control characters
 
+@cindex modules, keep-place
+@item keep-place
+Remember your position in buffers
+
 @cindex modules, log
 @item log
 Save buffers in logs
@@ -462,6 +467,11 @@ Detect netsplits
 @cindex modules, nicks
 @item nicks
 Automatically colorize nicks
+
+@cindex modules, nickbar
+@item nickbar
+List participating nicks for the current target buffer in a side
+window; part of Custom group @code{erc-speedbar}
 
 @cindex modules, noncommands
 @item noncommands
@@ -531,6 +541,33 @@ Truncate buffers to a certain size
 @cindex modules, unmorse
 @item unmorse
 Translate morse code in messages
+
+@end table
+
+@anchor{Auxiliary Modules}
+@subheading Auxiliary Modules
+@cindex auxiliary modules
+
+For various reasons, the following modules aren't currently listed in
+the Custom interface for @code{erc-modules}, but feel free to add them
+explicitly.  They may be managed by another module or considered more
+useful when toggled interactively or just deemed experimental.
+
+@table @code
+
+@cindex modules, fill-wrap
+@item fill-wrap
+Wrap long lines using @code{visual-line-mode}
+
+@cindex modules, keep-place-indicator
+@item keep-place-indicator
+Remember your place in buffers with a visible reminder; activated
+interactively or via something like @code{erc-join-hook}
+
+@cindex modules, services-regain
+@item services-regain
+Automatically ask NickServ to reclaim your nick when reconnecting;
+experimental as of ERC 5.6
 
 @end table
 

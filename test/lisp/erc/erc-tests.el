@@ -1951,9 +1951,9 @@
     (kill-buffer "#chan")))
 
 (defconst erc-tests--modules
-  '( autoaway autojoin button capab-identify completion dcc fill identd
+  '( autoaway autojoin bufbar button capab-identify completion dcc fill identd
      imenu irccontrols keep-place list log match menu move-to-prompt netsplit
-     networks nicks noncommands notifications notify page readonly
+     networks nickbar nicks noncommands notifications notify page readonly
      replace ring sasl scrolltobottom services smiley sound
      spelling stamp track truncate unmorse xdcc))
 

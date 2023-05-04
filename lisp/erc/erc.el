@@ -2046,6 +2046,7 @@ removed from the list will be disabled."
     :greedy t
     (const :tag "autoaway: Set away status automatically" autoaway)
     (const :tag "autojoin: Join channels automatically" autojoin)
+    (const :tag "bufbar: Show ERC buffers in a side window" bufbar)
     (const :tag "button: Buttonize URLs, nicknames, and other text" button)
     (const :tag "capab: Mark unidentified users on servers supporting CAPAB"
            capab-identify)
@@ -2066,6 +2067,7 @@ removed from the list will be disabled."
            move-to-prompt)
     (const :tag "netsplit: Detect netsplits" netsplit)
     (const :tag "networks: Provide data about IRC networks" networks)
+    (const :tag "nickbar: Show nicknames in a dyamic side window" nickbar)
     (const :tag "nicks: Uniquely colorize nicknames in target buffers" nicks)
     (const :tag "noncommands: Don't display non-IRC commands after evaluation"
            noncommands)
