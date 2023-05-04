@@ -293,6 +293,20 @@ loader.  As a result, @code{interrupt-process}, and other related
 functions will work correctly, but using the process ID returned by
 @code{process-id} for other purposes will not.
 
+  In addition, Android 12 also terminates subprocesses which are
+consuming CPU while Emacs itself is in the background.  The system
+determines which processes are consuming too much CPU in intervals of
+five minutes, and terminates the process that has consumed the most
+CPU time.
+
+  Android 12.1 and Android 13 provide an option to disable this
+behavior; to use it, enable ``USB debugging'' (@pxref{Android
+Startup}) connect the Android system to another computer, and run:
+
+@example
+$ adb shell "settings put global settings_enable_monitor_phantom_procs false"
+@end example
+
 @section Running Emacs in the background
 @cindex emacs killed, android
 @cindex emacs in the background, android
