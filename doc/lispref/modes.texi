@@ -4154,7 +4154,7 @@ Other keywords are optional:
 @end multitable
 
 Lisp programs mark patterns in @var{query} with capture names (names
-that starts with @code{@@}), and tree-sitter will return matched nodes
+that start with @code{@@}), and tree-sitter will return matched nodes
 tagged with those same capture names.  For the purpose of
 fontification, capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
