@@ -425,7 +425,10 @@ if that doesn't produce a completion match."
    for (cat . alist) in completion-category-defaults collect
    `(,cat . ,(cl-loop
               for entry in alist for (prop . val) = entry
-              if (eq prop 'styles)
+              if (and (eq prop 'styles)
+                      ;; Never step in front of 'external', as that
+                      ;; might lose us completions.
+                      (not (memq 'external val)))
               collect `(,prop . (flex ,@(delq 'flex val)))
               else collect entry))))
 
