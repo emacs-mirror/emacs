@@ -1967,7 +1967,7 @@ If it is activated, also signal textDocument/didOpen."
        (interactive) (info "(eglot)"))
 
 ;;;###autoload
-(defun eglot-upgrade (&rest _) "Update Eglot."
+(defun eglot-upgrade-eglot (&rest _) "Update Eglot to latest version."
   (interactive)
   (with-no-warnings
     (require 'package)
@@ -1975,6 +1975,9 @@ If it is activated, also signal textDocument/didOpen."
     (when-let ((existing (cadr (assoc 'eglot package-alist))))
       (package-delete existing t))
     (package-install (cadr (assoc 'eglot package-archive-contents)))))
+
+;;;###autoload
+(define-obsolete-function-alias 'eglot-update 'eglot-upgrade-eglot "29.1")
 
 (easy-menu-define eglot-menu nil "Eglot"
   `("Eglot"

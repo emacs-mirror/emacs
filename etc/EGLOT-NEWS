@@ -18,7 +18,14 @@ That is, to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
-* Changes in Eglot bundled with Emacs 29
+* Changes in Eglot 1.12.29 (Eglot bundled with Emacs 29.1)
+
+** Eglot can upgrade itself to the latest version.
+
+The new command 'eglot-upgrade-eglot' works around behaviour in the
+existing 'package-install' command and the new 'package-upgrade'
+command which would prevent the user from easily grabbing the latest
+version as usual.
 
 ** LSP inlay hints are now supported.
 Inlay hints are small text annotations not unlike diagnostics, but
