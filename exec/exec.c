@@ -961,51 +961,67 @@ exec_0 (char *name, struct exec_tracee *tracee,
   ssize_t link_size;
   size_t remaining;
 
-  /* If name is not absolute, then make it relative to TRACEE's
-     cwd.  Use stpcpy, as sprintf is not reentrant.  */
+  /* If the process is trying to run /proc/self/exe, make it run
+     itself instead.  */
 
-  if (name[0] && name[0] != '/')
+  if (!strcmp (name, "/proc/self/exe") && tracee->exec_file)
     {
-      /* Clear `buffer'.  */
-      memset (buffer, 0, sizeof buffer);
-      memset (buffer1, 0, sizeof buffer);
-
-      /* Copy over /proc, the PID, and /cwd/.  */
-      rewrite = stpcpy (buffer, "/proc/");
-      rewrite = format_pid (rewrite, tracee->pid);
-      stpcpy (rewrite, "/cwd");
-
-      /* Resolve this symbolic link.  */
-
-      link_size = readlink (buffer, buffer1,
-			    PATH_MAX + 1);
-
-      if (link_size < 0)
-	return NULL;
-
-      /* Check that the name is a reasonable size.  */
-
-      if (link_size > PATH_MAX)
-	{
-	  /* The name is too long.  */
-	  errno = ENAMETOOLONG;
-	  return NULL;
-	}
-
-      /* Add a directory separator if necessary.  */
-      
-      if (!link_size || buffer1[link_size - 1] != '/')
-	buffer1[link_size] = '/', link_size++;
-
-      rewrite = buffer1 + link_size;
-      remaining = buffer1 + sizeof buffer1 - rewrite - 1;
-      rewrite = stpncpy (rewrite, name, remaining);
-
-      /* Replace name with buffer1.  */
-#ifndef REENTRANT
-      strcpy (name, buffer1);
-#endif /* REENTRANT */
+      strncpy (name, tracee->exec_file, PATH_MAX - 1);
+      name[PATH_MAX] = '\0';
     }
+  else
+    {
+      /* If name is not absolute, then make it relative to TRACEE's
+	 cwd.  Use stpcpy, as sprintf is not reentrant.  */
+
+      if (name[0] && name[0] != '/')
+	{
+	  /* Clear `buffer'.  */
+	  memset (buffer, 0, sizeof buffer);
+	  memset (buffer1, 0, sizeof buffer);
+
+	  /* Copy over /proc, the PID, and /cwd/.  */
+	  rewrite = stpcpy (buffer, "/proc/");
+	  rewrite = format_pid (rewrite, tracee->pid);
+	  stpcpy (rewrite, "/cwd");
+
+	  /* Resolve this symbolic link.  */
+
+	  link_size = readlink (buffer, buffer1,
+				PATH_MAX + 1);
+
+	  if (link_size < 0)
+	    return NULL;
+
+	  /* Check that the name is a reasonable size.  */
+
+	  if (link_size > PATH_MAX)
+	    {
+	      /* The name is too long.  */
+	      errno = ENAMETOOLONG;
+	      return NULL;
+	    }
+
+	  /* Add a directory separator if necessary.  */
+      
+	  if (!link_size || buffer1[link_size - 1] != '/')
+	    buffer1[link_size] = '/', link_size++;
+
+	  rewrite = buffer1 + link_size;
+	  remaining = buffer1 + sizeof buffer1 - rewrite - 1;
+	  rewrite = stpncpy (rewrite, name, remaining);
+
+	  /* Replace name with buffer1.  */
+#ifndef REENTRANT
+	  strcpy (name, buffer1);
+#endif /* REENTRANT */
+	}
+    }
+
+  /* Check that the file is accessible and executable.  */
+
+  if (access (name, X_OK))
+    return NULL;
 
   fd = open (name, O_RDONLY);
   if (fd < 0)
