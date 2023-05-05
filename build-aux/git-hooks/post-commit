@@ -34,7 +34,7 @@
 
 ### Code:
 
-HOOKS_DIR=$(dirname $0)
+HOOKS_DIR=`dirname "$0"`
 
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
@@ -44,4 +44,4 @@ else
 fi
 
 git rev-parse HEAD | $awk -v reason=post-commit \
-                          -f $HOOKS_DIR/commit-msg-files.awk
+                          -f "$HOOKS_DIR"/commit-msg-files.awk

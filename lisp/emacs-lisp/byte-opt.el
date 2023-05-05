@@ -221,21 +221,17 @@ for speeding up processing.")
 
 (defun byte-optimize--substitutable-p (expr)
   "Whether EXPR is a constant that can be propagated."
-  ;; Only consider numbers, symbols and strings to be values for substitution
-  ;; purposes.  Numbers and symbols are immutable, and mutating string
-  ;; literals (or results from constant-evaluated string-returning functions)
-  ;; can be considered undefined.
-  ;; (What about other quoted values, like conses?)
   (or (booleanp expr)
       (numberp expr)
-      (stringp expr)
-      (and (consp expr)
-           (or (and (memq (car expr) '(quote function))
-                    (symbolp (cadr expr)))
-               ;; (internal-get-closed-var N) can be considered constant for
-               ;; const-prop purposes.
-               (and (eq (car expr) 'internal-get-closed-var)
-                    (integerp (cadr expr)))))
+      (arrayp expr)
+      (let ((head (car-safe expr)))
+        (cond ((eq head 'quote) t)
+              ;; Don't substitute #'(lambda ...) since that would enable
+              ;; uncontrolled inlining.
+              ((eq head 'function) (symbolp (cadr expr)))
+              ;; (internal-get-closed-var N) can be considered constant for
+              ;; const-prop purposes.
+              ((eq head 'internal-get-closed-var) (integerp (cadr expr)))))
       (keywordp expr)))
 
 (defmacro byte-optimize--pcase (exp &rest cases)
@@ -469,10 +465,6 @@ for speeding up processing.")
 	     form
 	   (byte-optimize-form newform for-effect))))
 
-      ;; FIXME: Strictly speaking, I think this is a bug: (closure...)
-      ;; is a *value* and shouldn't appear in the car.
-      (`((closure . ,_) . ,_) form)
-
       (`(setq ,var ,expr)
        (let ((lexvar (assq var byte-optimize--lexvars))
              (value (byte-optimize-form expr nil)))
@@ -500,7 +492,7 @@ for speeding up processing.")
        (cons fn (mapcar #'byte-optimize-form exps)))
 
       (`(,(pred (not symbolp)) . ,_)
-       (byte-compile-warn-x fn "`%s' is a malformed function" fn)
+       (byte-compile-warn-x form "`%s' is a malformed function" fn)
        form)
 
       ((guard (when for-effect
@@ -1420,10 +1412,13 @@ See Info node `(elisp) Integer Basics'."
 
 
 (defun byte-optimize-funcall (form)
-  ;; (funcall (lambda ...) ...) ==> ((lambda ...) ...)
-  ;; (funcall foo ...) ==> (foo ...)
-  (let ((fn (nth 1 form)))
-    (if (memq (car-safe fn) '(quote function))
+  ;; (funcall #'(lambda ...) ...) -> ((lambda ...) ...)
+  ;; (funcall #'SYM ...) -> (SYM ...)
+  ;; (funcall 'SYM ...)  -> (SYM ...)
+  (let* ((fn (nth 1 form))
+         (head (car-safe fn)))
+    (if (or (eq head 'function)
+            (and (eq head 'quote) (symbolp (nth 1 fn))))
 	(cons (nth 1 fn) (cdr (cdr form)))
       form)))
 

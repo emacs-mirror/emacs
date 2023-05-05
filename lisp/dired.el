@@ -1647,9 +1647,9 @@ If HDR is non-nil, insert a header line with the directory name."
 		 ;; save the answer in `dired-use-ls-dired'.
 		 (or (setq dired-use-ls-dired
 			   (eq 0 (call-process insert-directory-program
-                                               nil nil nil "--dired")))
+                                               nil nil nil "--dired" "-N")))
 		     (progn
-		       (message "ls does not support --dired; \
+		       (message "ls does not support --dired -N; \
 see `dired-use-ls-dired' for more details.")
 		       nil))
 	       dired-use-ls-dired)))
@@ -1665,7 +1665,7 @@ see `dired-use-ls-dired' for more details.")
              ;; "--dired", so we cannot add it to the `process-file'
              ;; call for wildcards.
              (when (file-remote-p dir)
-               (setq switches (string-replace "--dired" "" switches)))
+               (setq switches (string-replace "--dired -N" "" switches)))
              (let* ((default-directory (car dir-wildcard))
                     (script (format "ls %s %s" switches (cdr dir-wildcard)))
                     (remotep (file-remote-p dir))

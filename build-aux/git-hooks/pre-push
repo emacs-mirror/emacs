@@ -31,7 +31,7 @@
 
 ### Code:
 
-HOOKS_DIR=$(dirname $0)
+HOOKS_DIR=`dirname "$0"`
 
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
@@ -85,4 +85,4 @@ $awk -v origin_name="$1" '
     # Print every SHA after oldref, up to (and including) newref.
     system("git rev-list --first-parent --reverse " oldref ".." newref)
   }
-' | $awk -v reason=pre-push -f $HOOKS_DIR/commit-msg-files.awk
+' | $awk -v reason=pre-push -f "$HOOKS_DIR"/commit-msg-files.awk

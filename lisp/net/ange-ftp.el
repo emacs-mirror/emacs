@@ -4242,6 +4242,7 @@ directory, so that Emacs will know its current contents."
 	  ((eq identification 'user) user)
 	  ((eq identification 'host) host)
 	  ((eq identification 'localname) localname)
+	  ((eq identification 'hop) nil)
 	  (t (ange-ftp-replace-name-component file ""))))))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix must-suffix)
