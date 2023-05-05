@@ -120,7 +120,7 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
 (defcustom tramp-debug-to-file nil
   "Whether Tramp debug messages shall be saved to file.
 The debug file has the same name as the debug buffer, written to
-`temporary-file-directory'."
+`tramp-compat-temporary-file-directory'."
   :version "28.1"
   :type 'boolean)
 
@@ -665,6 +665,7 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 	 "Sorry, try again."
 	 "Name or service not known"
 	 "Host key verification failed."
+	 "Authentication failed"
 	 "No supported authentication methods left to try!"
 	 (: "Login " (| "Incorrect" "incorrect"))
 	 (: "Connection " (| "refused" "closed"))
@@ -1970,7 +1971,7 @@ of `current-buffer'."
       (+ digit) ":" (+ digit) ":" (+ digit) "." (+ digit) blank
       ;; Thread.
       (? (group "#<thread " (+ nonl) ">") blank)
-       ;; Function name, verbosity.
+      ;; Function name, verbosity.
       (+ (any "-" alnum)) " (" (group (+ digit)) ") #")
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
 
@@ -2109,18 +2110,23 @@ ARGUMENTS to actually emit the message (if applicable)."
 	  (insert "\n"))
 	;; Timestamp.
 	(insert (format-time-string "%T.%6N "))
+	;; Threads.  `current-thread' might not exist when Emacs is
+	;; configured --without-threads.
+	;; (unless (eq (tramp-compat-funcall 'current-thread) main-thread)
+	;;   (insert (format "%s " (tramp-compat-funcall 'current-thread))))
 	;; Calling Tramp function.  We suppress compat and trace
 	;; functions from being displayed.
-	(let ((btn 1) btf fn)
+	(let ((frames (backtrace-frames))
+	      btf fn)
 	  (while (not fn)
-	    (setq btf (nth 1 (backtrace-frame btn)))
+	    (setq btf (cadadr frames))
 	    (if (not btf)
 		(setq fn "")
 	      (and (symbolp btf) (setq fn (symbol-name btf))
 		   (or (not (string-prefix-p "tramp" fn))
 		       (get btf 'tramp-suppress-trace))
 		   (setq fn nil))
-	      (setq btn (1+ btn))))
+	      (setq frames (cdr frames))))
 	  ;; The following code inserts filename and line number.
 	  ;; Should be inactive by default, because it is time consuming.
 	  ;; (let ((ffn (find-function-noselect (intern fn))))
@@ -3790,14 +3796,14 @@ BODY is the backend specific code."
   ;; VISIT, for example `jka-compr-handler'.  We must respect this.
   ;; See Bug#55166.
   `(let* ((filename (expand-file-name ,filename))
-	 (lockname (file-truename (or ,lockname filename)))
-	 (handler (and (stringp ,visit)
-		       (let ((inhibit-file-name-handlers
-			      `(tramp-file-name-handler
-				tramp-crypt-file-name-handler
-				. inhibit-file-name-handlers))
-			     (inhibit-file-name-operation 'write-region))
-			 (find-file-name-handler ,visit 'write-region)))))
+	  (lockname (file-truename (or ,lockname filename)))
+	  (handler (and (stringp ,visit)
+			(let ((inhibit-file-name-handlers
+			       `(tramp-file-name-handler
+				 tramp-crypt-file-name-handler
+				 . inhibit-file-name-handlers))
+			      (inhibit-file-name-operation 'write-region))
+			  (find-file-name-handler ,visit 'write-region)))))
      (with-parsed-tramp-file-name filename nil
        (if handler
 	   (progn
@@ -5821,11 +5827,14 @@ Mostly useful to protect BODY from being interrupted by timers."
 	   (throw 'non-essential 'non-essential)
 	 (tramp-error
 	  ,proc 'remote-file-error "Forbidden reentrant call of Tramp"))
-     (unwind-protect
-	 (progn
-	   (tramp-set-connection-property ,proc "locked" t)
-	   ,@body)
-       (tramp-flush-connection-property ,proc "locked"))))
+     (let ((stimers (with-timeout-suspend))
+	   timer-list timer-idle-list)
+       (unwind-protect
+	   (progn
+	     (tramp-set-connection-property ,proc "locked" t)
+	     ,@body)
+	 (tramp-flush-connection-property ,proc "locked")
+	 (with-timeout-unsuspend stimers)))))
 
 (defun tramp-accept-process-output (proc &optional _timeout)
   "Like `accept-process-output' for Tramp processes.
