@@ -153,7 +153,11 @@ struct exec_tracee
 
   /* Whether or not the tracee is currently waiting for a system call
      to complete.  */
-  bool waiting_for_syscall;
+  bool waiting_for_syscall : 1;
+
+  /* Whether or not the tracee has been created but is not yet
+     processed by `handle_clone'.  */
+  bool new_child : 1;
 
 #ifndef REENTRANT
   /* Name of the executable being run.  */

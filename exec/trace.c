@@ -50,6 +50,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define SYS_SECCOMP 1
 #endif /* SYS_SECCOMP */
 
+#ifndef PTRACE_GETEVENTMSG
+#define PTRACE_GETEVENTMSG 0x4201
+#endif /* PTRACE_GETEVENTMSG */
+
 
 
 /* Program tracing functions.
@@ -63,7 +67,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* Number of tracees children are allowed to create.  */
-#define MAX_TRACEES 1024
+#define MAX_TRACEES 4096
 
 #ifdef __aarch64__
 
@@ -381,23 +385,66 @@ remove_tracee (struct exec_tracee *tracee)
 
 /* Child process tracing.  */
 
-/* Handle the completion of a `clone' or `clone3' system call,
-   resulting in the creation of the process PID.  Allocate a new
-   tracee structure from a static area for the processes's pid.
+/* Array of `struct exec_tracees' that they are allocated from.  */
+static struct exec_tracee static_tracees[MAX_TRACEES];
 
-   Value is 0 upon success, 1 otherwise.  */
+/* Number of tracees currently allocated.  */
+static int tracees;
 
-static int
-handle_clone (pid_t pid)
+/* Return the `struct exec_tracee' corresponding to the specified
+   PROCESS.  */
+
+static struct exec_tracee *
+find_tracee (pid_t process)
 {
-  static struct exec_tracee static_tracees[MAX_TRACEES];
-  static int tracees;
   struct exec_tracee *tracee;
-  long rc;
-  int flags;
 
-  /* Now allocate a new tracee, either from static_tracees or the free
-     list.  */
+  for (tracee = tracing_processes; tracee; tracee = tracee->next)
+    {
+      if (tracee->pid == process)
+	return tracee;
+    }
+
+  return NULL;
+}
+
+/* Prepare to handle the completion of a `clone' system call.
+
+   If the new clone is not yet being traced, create a new tracee for
+   PARENT's child, copying over its current command line.  Then, set
+   `new_child' in the new tracee.  Otherwise, continue it until the
+   next syscall.  */
+
+static void
+handle_clone_prepare (struct exec_tracee *parent)
+{
+#ifndef REENTRANT
+  long rc;
+  unsigned long pid;
+  struct exec_tracee *tracee;
+
+  rc = ptrace (PTRACE_GETEVENTMSG, parent->pid, NULL,
+	       &pid);
+  if (rc)
+    return;
+
+  /* See if the tracee already exists.  */
+  tracee = find_tracee (pid);
+
+  if (tracee)
+    {
+      /* Continue the tracee.  Record its command line, as that has
+	 not yet been done.  */
+
+      assert (tracee->new_child);
+      tracee->new_child = false;
+      tracee->exec_file = NULL;
+      ptrace (PTRACE_SYSCALL, tracee->pid, 0, 0);
+
+      if (parent->exec_file)
+	tracee->exec_file = strdup (parent->exec_file);
+      return;
+    }
 
   if (free_tracees)
     {
@@ -410,12 +457,74 @@ handle_clone (pid_t pid)
       tracees++;
     }
   else
-    return 1;
+    return;
 
   tracee->pid = pid;
   tracee->next = tracing_processes;
   tracee->waiting_for_syscall = false;
+  tracee->new_child = true;
+  tracee->exec_file = NULL;
   tracing_processes = tracee;
+
+  /* Copy over the command line.  */
+
+  if (parent->exec_file)
+    tracee->exec_file = strdup (parent->exec_file);
+#endif /* REENTRANT */
+}
+
+/* Handle the completion of a `clone' or `clone3' system call,
+   resulting in the creation of the process PID.  If TRACEE is NULL,
+   allocate a new tracee structure from a static area for the
+   processes's pid, then set TRACEE->new_child to true and await the
+   parent's corresponding ptrace event to arrive; otherwise, just
+   clear TRACEE->new_child.
+
+   Value is 0 upon success, 2 if TRACEE should remain suspended until
+   the parent's ptrace-stop, and 1 otherwise.  */
+
+static int
+handle_clone (struct exec_tracee *tracee, pid_t pid)
+{
+  long rc;
+  int flags, value;
+
+  /* Now allocate a new tracee, either from static_tracees or the free
+     list, if no tracee was supplied.  */
+
+  value = 0;
+
+  if (!tracee)
+    {
+      if (free_tracees)
+	{
+	  tracee = free_tracees;
+	  free_tracees = free_tracees->next;
+	}
+      else if (tracees < MAX_TRACEES)
+	{
+	  tracee = &static_tracees[tracees];
+	  tracees++;
+	}
+      else
+	return 1;
+
+      tracee->pid = pid;
+      tracee->next = tracing_processes;
+      tracee->waiting_for_syscall = false;
+#ifndef REENTRANT
+      tracee->exec_file = NULL;
+#endif /* REENTRANT */
+      tracing_processes = tracee;
+      tracee->new_child = true;
+
+      /* Wait for the ptrace-stop to happen in the parent.  */
+      value = 2;
+    }
+  else
+    /* Clear the flag saying that this is a newly created child
+       process.  */
+    tracee->new_child = false;
 
   /* Apply required options to the child, so that the kernel
      automatically traces children and makes it easy to differentiate
@@ -432,15 +541,18 @@ handle_clone (pid_t pid)
   if (rc)
     goto bail;
 
-  /* The new tracee is currently stopped.  Continue it until the next
-     system call.  */
+  if (value != 2)
+    {
+      /* The new tracee is currently stopped.  Continue it until the next
+	 system call.  */
 
-  rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
+      rc = ptrace (PTRACE_SYSCALL, pid, 0, 0);
 
-  if (rc)
-    goto bail;
+      if (rc)
+	goto bail;
+    }
 
-  return 0;
+  return value;
 
  bail:
   remove_tracee (tracee);
@@ -1148,28 +1260,12 @@ after_fork (pid_t pid)
   tracee->pid = pid;
   tracee->next = tracing_processes;
   tracee->waiting_for_syscall = false;
+  tracee->new_child = false;
 #ifndef REENTRANT
   tracee->exec_file = NULL;
 #endif /* REENTRANT */
   tracing_processes = tracee;
   return 0;
-}
-
-/* Return the `struct exec_tracee' corresponding to the specified
-   PROCESS.  */
-
-static struct exec_tracee *
-find_tracee (pid_t process)
-{
-  struct exec_tracee *tracee;
-
-  for (tracee = tracing_processes; tracee; tracee = tracee->next)
-    {
-      if (tracee->pid == process)
-	return tracee;
-    }
-
-  return NULL;
 }
 
 /* Wait for a child process to exit, like `waitpid'.  However, if a
@@ -1199,12 +1295,12 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
     {
       tracee = find_tracee (pid);
 
-      if (!tracee)
+      if (!tracee || tracee->new_child)
 	{
 	  if (WSTOPSIG (status) == SIGSTOP)
 	    /* A new process has been created and stopped.  Record
 	       it now.  */
-	    handle_clone (pid);
+	    handle_clone (tracee, pid);
 
 	  return -1;
 	}
@@ -1248,6 +1344,21 @@ exec_waitpid (pid_t pid, int *wstatus, int options)
 	case SIGTRAP | (PTRACE_EVENT_FORK << 8):
 	case SIGTRAP | (PTRACE_EVENT_VFORK << 8):
 	case SIGTRAP | (PTRACE_EVENT_CLONE << 8):
+
+	  /* Both PTRACE_EVENT_CLONE and SIGSTOP must arrive before a
+	     process is continued.  Otherwise, its parent's cmdline
+	     cannot be obtained and propagated.
+
+	     If the PID of the new process is currently not being
+	     traced, create a new tracee.  Set `new_child' to true,
+	     and copy over the old command line in preparation for a
+	     SIGSTOP signal being delivered to it.
+
+	     Otherwise, start the tracee running until the next
+	     syscall.  */
+
+	  handle_clone_prepare (tracee);
+
 	  /* These events are handled by tracing SIGSTOP signals sent
 	     to unknown tracees.  Make sure not to pass through
 	     status, as there's no signal really being delivered.  */
