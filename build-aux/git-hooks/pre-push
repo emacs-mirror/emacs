@@ -31,7 +31,7 @@
 
 ### Code:
 
-HOOKS_DIR=$(dirname $0)
+HOOKS_DIR=`dirname "$0"`
 
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
