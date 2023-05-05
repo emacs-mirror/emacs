@@ -46,6 +46,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/uio.h> /* for process_vm_readv */
 #endif /* HAVE_SYS_UIO_H */
 
+#ifndef SYS_SECCOMP
+#define SYS_SECCOMP 1
+#endif /* SYS_SECCOMP */
+
 
 
 /* Program tracing functions.
