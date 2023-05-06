@@ -347,6 +347,7 @@ FILE can be an Org file, indicated by its \".org\" extension,
 otherwise it's assumed to be an Info file."
   (let* ((pkg-name (package-desc-name pkg-desc))
          (default-directory (package-desc-dir pkg-desc))
+         (docs-directory (expand-file-name (file-name-directory file)))
          (output (expand-file-name (format "%s.info" pkg-name)))
          clean-up)
     (when (string-match-p "\\.org\\'" file)
@@ -361,7 +362,9 @@ otherwise it's assumed to be an Info file."
       (erase-buffer)
       (cond
        ((/= 0 (call-process "makeinfo" nil t nil
-                            "--no-split" file "-o" output))
+                            "-I" docs-directory
+                            "--no-split" file
+                            "-o" output))
         (message "Failed to build manual %s, see buffer %S"
                  file (buffer-name)))
        ((/= 0 (call-process "install-info" nil t nil
