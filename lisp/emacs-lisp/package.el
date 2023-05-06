@@ -2282,7 +2282,7 @@ newer version from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-
          (pkg-desc (cadr (assq package package-alist))))
     (if (package-vc-p pkg-desc)
         (package-vc-upgrade pkg-desc)
-      (package-delete pkg-desc 'force)
+      (package-delete pkg-desc 'force 'dont-unselect)
       (package-install package 'dont-select))))
 
 (defun package--upgradeable-packages ()
