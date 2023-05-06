@@ -936,7 +936,6 @@
 (defun calc-edit-macro-finish-edit (cmdname key)
   "Finish editing a Calc macro.
 Redefine the corresponding command."
-  (interactive)
   (let ((cmd (intern cmdname)))
     (calc-edit-macro-pre-finish-edit)
     (let* ((str (buffer-substring calc-edit-top (point-max)))

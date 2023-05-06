@@ -195,7 +195,6 @@ Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C
 ;;;###autoload
 (defun calc-info-goto-node (node)
   "Go to a node in the Calculator info documentation."
-  (interactive)
   (select-window (get-largest-window))
   (info (concat "(Calc)" node)))
 

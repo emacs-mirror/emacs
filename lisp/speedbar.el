@@ -3550,9 +3550,7 @@ This variable is ignored if `speedbar-use-imenu-flag' is t."
   "Toggle FLAG in `speedbar-fetch-etags-arguments'.
 FLAG then becomes a member of etags command line arguments.  If flag
 is \"sort\", then toggle the value of `speedbar-sort-tags'.  If its
-value is \"show\" then toggle the value of
-`speedbar-show-unknown-files'."
-  (interactive)
+value is \"show\" then toggle the value of `speedbar-show-unknown-files'."
   (cond
    ((equal flag "sort")
     (setq speedbar-sort-tags (not speedbar-sort-tags)))

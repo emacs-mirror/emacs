@@ -3150,7 +3150,7 @@ Obeying it means displaying in another window the specified file and line."
 
 (defun gud-basic-call (command)
   "Invoke the debugger COMMAND displaying source in other window."
-  (interactive)
+  (interactive "sInvoke debugger command: ")
   (gud-set-buffer)
   (let ((proc (get-buffer-process gud-comint-buffer)))
     (or proc (error "Current buffer has no process"))
