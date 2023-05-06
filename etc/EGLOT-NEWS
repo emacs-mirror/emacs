@@ -97,6 +97,16 @@ been added to 'eglot-stay-out-of'.
 ** ELPA installations on Emacs 26.3 are supported again.
 
 
+* Changes in Eglot 1.12.29 (Eglot bundled with Emacs 29.1)
+
+** Eglot can upgrade itself to the latest version.
+
+The new command 'eglot-upgrade-eglot' works around behaviour in the
+existing 'package-install' command and the new 'package-upgrade'
+command which would prevent the user from easily grabbing the latest
+version as usual.
+
+
 * Changes in Eglot 1.12 (13/03/2023)
 
 ** LSP inlay hints are now supported.

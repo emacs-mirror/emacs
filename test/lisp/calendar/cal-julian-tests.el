@@ -47,7 +47,7 @@
          (progn
            (calendar)
            ,@body)
-       (kill-buffer "*Calendar*"))))
+       (kill-buffer calendar-buffer))))
 
 (ert-deftest cal-julian-test-goto-date ()
   (with-cal-julian-test
