@@ -490,8 +490,8 @@ check-declare:
 ## This finds a lot of duplicates between foo.el and obsolete/foo.el.
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
-	  $$(find . -name '*.el' ! -name '.*' -print | \
-	  grep -Ev '(loaddefs|ldefs-boot)\.el|obsolete') | sort | uniq -d
+	  `find . -name '*.el' ! -name '.*' -print | \
+	  grep -Ev '(loaddefs|ldefs-boot)\.el|obsolete'` | sort | uniq -d
 
 # Dependencies
 
