@@ -747,11 +747,13 @@ indicating the package name and SPEC is a plist as described in
 symbol whose name is the package name, and the URL for the
 package will be taken from the package's metadata.
 
-By default, this function installs the last version of the package
-available from its repository, but if REV is given and non-nil, it
-specifies the revision to install.  If REV has the special value
-`:last-release' (interactively, the prefix argument), that stands
-for the last released version of the package.
+By default, this function installs the last revision of the
+package available from its repository.  If REV is a string, it
+describes the revision to install, as interpreted by the VC
+backend.  The special value `:last-release' (interactively, the
+prefix argument), will use the commit of the latest release, if
+it exists.  The last release is the latest revision which changed
+the \"Version:\" header of the package's main Lisp file.
 
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
