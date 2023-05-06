@@ -7261,7 +7261,7 @@ LIBS=$SAVE_LIBS
 # Set up libgmp on Android.  Make sure to override what gnulib has
 # found.
 LIBGMP_CFLAGS=
-if test "$REALLY_ANDROID" == "yes" && test "$with_libgmp" != "no"; then
+if test "$REALLY_ANDROID" = "yes" && test "$with_libgmp" != "no"; then
   HAVE_LIBGMP=no
   ndk_SEARCH_MODULE([libgmp], [LIBGMP], [HAVE_LIBGMP=yes])
 
