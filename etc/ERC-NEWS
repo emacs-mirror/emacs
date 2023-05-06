@@ -37,17 +37,26 @@ decade overdue, this is no longer the case.  Other UX improvements in
 this area aim to make the process of connecting interactively slightly
 more streamlined and less repetitive, even for veteran users.
 
-** New buffer-display option 'erc-interactive-display'.
+** Revised buffer-display handling for interactive commands.
 A point of friction for new users and one only just introduced with
 ERC 5.5 has been the lack of visual feedback when first connecting via
-M-x erc.  As explained below in the news for 5.5, the discovery of a
-security issue led to new ERC buffers being "buried" on creation.  On
-further reflection, this was judged to have been an overcorrection in
-the case of interactive invocations, hence the new option
-'erc-interactive-display', which is set to 'buffer' (i.e., "take me
-there") by default.  Accompanying this addition are "display"-suffixed
-aliases for related options 'erc-join-buffer' and 'erc-auto-query',
-which users have reported as being difficult to discover and remember.
+M-x erc or when issuing a "/JOIN" command at the prompt.  As explained
+below, in the news for 5.5, the discovery of a security issue led to
+most new ERC buffers being "buried" on creation.  On further
+reflection, this was judged to have been an overcorrection in the case
+of interactive invocations, hence the borrowing of an old option,
+'erc-query-display', and the bestowing of a new alias,
+'erc-interactive-display', which better describes its expanded role as
+a more general buffer-display knob for interactive commands ("/QUERY"
+still among them).
+
+Accompanying this addition are "display"-suffixed aliases for related
+options 'erc-join-buffer' and 'erc-auto-query', which users have
+reported as being difficult to discover and remember.  When the latter
+option (now known as 'erc-receive-query-display') is nil, ERC uses
+'erc-join-buffer' in its place, much like it does for
+'erc-interactive-display'.  The old nil behavior can still be gotten
+via the new compatibility flag 'erc-receive-query-display-defer'.
 
 ** Setting a module's mode variable via Customize earns a warning.
 Trying and failing to activate a module via its minor mode's Custom
@@ -108,13 +117,21 @@ other than the symbol 'erc-button-buttonize-nicks' appearing in the
 "FORM" field (third element) of this entry are considered deprecated
 and will incur a warning.
 
+** Option 'erc-query-on-unjoined-chan-privmsg' restored and renamed.
+This option was accidentally removed from the default client in ERC
+5.5 and was thus prevented from influencing PRIVMSG routing.  It's now
+been restored with a slightly revised role contingent on a few
+assumptions explained in its doc string.  For clarity, it has been
+renamed 'erc-ensure-target-buffer-on-privmsg'.
+
 ** Miscellaneous UX changes.
 Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
 interactive and can be invoked on any message to view its timestamp in
-the echo area.  Also, the 'irccontrols' module now supports additional
-colors and special handling for "spoilers" (hidden text).  And issuing
-an "/MOTD" now dispatches a purpose-built command handler.
+the echo area.  The command 'erc-button-previous' now moves to the
+beginning instead of the end of buttons.  And the 'irccontrols' module
+now supports additional colors and special handling for "spoilers"
+(hidden text).
 
 ** Changes in the library API.
 
@@ -170,6 +187,12 @@ The 'fill' module is now defined by 'define-erc-module'.  The same
 goes for ERC's imenu integration, which has 'imenu' now appearing in
 the default value of 'erc-modules'.
 
+*** Prompt input is split before 'erc-pre-send-functions' has a say.
+Hook members are now treated to input whose lines have already been
+adjusted to fall within the allowed length limit.  For convenience,
+third-party code can request that the final input be "re-filled" prior
+to being sent.  See doc string for details.
+
 *** ERC's prompt survives the insertion of user input and messages.
 Previously, ERC's prompt and its input marker disappeared while
 running hooks during message insertion, and the position of its
@@ -183,10 +206,14 @@ example, requiring the use of 'insert-before-markers' instead of
 changes are encouraged to voice their concerns on the bug list.
 
 *** Miscellaneous changes
-For autoloading purposes, 'Info-goto-node' has been supplanted by
-plain old 'info' in 'erc-button-alist', and two helper macros from GNU
-ELPA's Compat library are now available to third-party modules as
-'erc-compat-call' and 'erc-compat-function'.
+Two helper macros from GNU ELPA's Compat library are now available to
+third-party modules as 'erc-compat-call' and 'erc-compat-function'.
+In the area of buttons, 'Info-goto-node' has been supplanted by plain
+old 'info' in 'erc-button-alist', and the bracketed "<URL:...>"
+pattern entry has been removed because it was more or less redundant.
+And the "TAB" key is now bound to a new command, 'erc-tab', that only
+calls 'completion-at-point' when point is in the input area and
+module-specific commands, like 'erc-button-next', otherwise.
 
 
 * Changes in ERC 5.5
@@ -332,8 +359,8 @@ In an effort to help further tame ERC's complexity, the variable
 'erc-default-recipients' is now expected to hold but a single target.
 As a consequence, functions like 'erc-add-default-channel' that
 imagine an alternate, aspirational model of buffer-target relations
-have been deprecated.  See Emacs change-log entries from around July
-of 2022 for specifics.
+have been deprecated.  Grep for their names in ChangeLog.4 for
+details.
 
 A number of less consequential deprecations also debut in this
 release.  For example, the function 'erc-auto-query' was deemed too

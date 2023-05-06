@@ -30,8 +30,11 @@
 (defvar erc--casemapping-rfc1459-strict)
 (defvar erc-channel-users)
 (defvar erc-dbuf)
+(defvar erc-insert-this)
 (defvar erc-log-p)
 (defvar erc-modules)
+(defvar erc-send-this)
+(defvar erc-server-process)
 (defvar erc-server-users)
 (defvar erc-session-server)
 
@@ -40,15 +43,22 @@
 (declare-function erc-server-buffer "erc" nil)
 (declare-function widget-apply-action "wid-edit" (widget &optional event))
 (declare-function widget-at "wid-edit" (&optional pos))
+(declare-function widget-create-child-and-convert "wid-edit"
+                  (parent type &rest args))
+(declare-function widget-default-format-handler "wid-edit" (widget escape))
 (declare-function widget-get-sibling "wid-edit" (widget))
 (declare-function widget-move "wid-edit" (arg &optional suppress-echo))
 (declare-function widget-type "wid-edit" (widget))
 
 (cl-defstruct erc-input
-  string insertp sendp)
+  string insertp sendp refoldp)
 
-(cl-defstruct (erc--input-split (:include erc-input))
-  lines cmdp)
+(cl-defstruct (erc--input-split (:include erc-input
+                                          (string :read-only)
+                                          (insertp erc-insert-this)
+                                          (sendp erc-send-this)))
+  (lines nil :type (list-of string))
+  (cmdp nil :type boolean))
 
 (cl-defstruct (erc-server-user (:type vector) :named)
   ;; User data
@@ -195,16 +205,6 @@ instead of a `set' state, which precludes any actual saving."
         (throw 'found found)))
     'erc))
 
-(defun erc--neuter-custom-variable-state (variable)
-  "Lie to Customize about VARIABLE's true state.
-Do so by always returning its standard value, namely nil."
-  ;; Make a module's global minor-mode toggle blind to Customize, so
-  ;; that `customize-variable-state' never sees it as "changed",
-  ;; regardless of its value.  This snippet is
-  ;; `custom--standard-value' from Emacs 28+.
-  (cl-assert (null (eval (car (get variable 'standard-value)) t)))
-  nil)
-
 ;; This exists as a separate, top-level function to prevent the byte
 ;; compiler from warning about widget-related dependencies not being
 ;; loaded at runtime.
@@ -230,25 +230,42 @@ Do so by always returning its standard value, namely nil."
              (substitute-command-keys "\\[Custom-set]")
              (substitute-command-keys "\\[Custom-save]"))))
 
+;; This stands apart to avoid needing forward declarations for
+;; `wid-edit' functions in every file requiring `erc-common'.
+(defun erc--make-show-me-widget (widget escape &rest plist)
+  (if (eq escape ?i)
+      (apply #'widget-create-child-and-convert widget 'push-button plist)
+    (widget-default-format-handler widget escape)))
+
 (defun erc--prepare-custom-module-type (name)
   `(let* ((name (erc--normalize-module-symbol ',name))
           (fmtd (format " `%s' " name)))
      `(boolean
-       :button-face '(custom-variable-obsolete custom-button)
-       :format "%{%t%}: %[Deprecated Toggle%] \n%h\n"
+       :format "%{%t%}: %i %[Deprecated Toggle%] %v \n%h\n"
+       :format-handler
+       ,(lambda (widget escape)
+          (erc--make-show-me-widget
+           widget escape
+           :button-face '(custom-variable-obsolete custom-button)
+           :tag "Show Me"
+           :action (apply-partially #'erc--tick-module-checkbox name)
+           :help-echo (lambda (_)
+                        (let ((hasp (memq name erc-modules)))
+                          (concat (if hasp "Remove" "Add") fmtd
+                                  (if hasp "from" "to")
+                                  " `erc-modules'.")))))
+       :action widget-toggle-action
        :documentation-property
        ,(lambda (_)
           (let ((hasp (memq name erc-modules)))
-            (concat "Setting a module's minor-mode variable is "
-                    (propertize "ineffective" 'face 'error)
-                    ".\nPlease " (if hasp "remove" "add") fmtd
-                    (if hasp "from" "to") " `erc-modules' directly instead.\n"
-                    "You can do so now by clicking the scary button above.")))
-       :help-echo ,(lambda (_)
-                     (let ((hasp (memq name erc-modules)))
-                       (concat (if hasp "Remove" "Add") fmtd
-                               (if hasp "from" "to") " `erc-modules'.")))
-       :action ,(apply-partially #'erc--tick-module-checkbox name))))
+            (concat
+             "Setting a module's minor-mode variable is "
+             (propertize "ineffective" 'face 'error)
+             ".\nPlease " (if hasp "remove" "add") fmtd
+             (if hasp "from" "to") " `erc-modules' directly instead.\n"
+             "You can do so now by clicking "
+             (propertize "Show Me" 'face 'custom-variable-obsolete)
+             " above."))))))
 
 (defun erc--fill-module-docstring (&rest strings)
   (with-temp-buffer
@@ -263,6 +280,12 @@ Do so by always returning its standard value, namely nil."
       (fill-paragraph))
     (goto-char (point-min))
     (nth 3 (read (current-buffer)))))
+
+(defmacro erc--find-feature (name alias)
+  `(pcase (erc--find-group ',name ,(and alias (list 'quote alias)))
+     ('erc (and-let* ((file (or (macroexp-file-name) buffer-file-name)))
+             (intern (file-name-base file))))
+     (v v)))
 
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
@@ -310,7 +333,7 @@ if ARG is omitted or nil.
 \n%s" name name doc))
          :global ,(not local-p)
          :group (erc--find-group ',name ,(and alias (list 'quote alias)))
-         ,@(unless local-p '(:get #'erc--neuter-custom-variable-state))
+         ,@(unless local-p `(:require ',(erc--find-feature name alias)))
          ,@(unless local-p `(:type ,(erc--prepare-custom-module-type name)))
          (if ,mode
              (,enable)
@@ -371,12 +394,13 @@ If no server buffer exists, return nil."
                    (not (cdr body))
                    (special-variable-p (car body))))
         (buffer (make-symbol "buffer")))
-    `(let ((,buffer (erc-server-buffer)))
-       (when (buffer-live-p ,buffer)
-         ,(if varp
-              `(buffer-local-value ',(car body) ,buffer)
-            `(with-current-buffer ,buffer
-               ,@body))))))
+    `(when-let* (((processp erc-server-process))
+                 (,buffer (process-buffer erc-server-process))
+                 ((buffer-live-p ,buffer)))
+       ,(if varp
+            `(buffer-local-value ',(car body) ,buffer)
+          `(with-current-buffer ,buffer
+             ,@body)))))
 
 (defmacro erc-with-all-buffers-of-server (process pred &rest forms)
   "Execute FORMS in all buffers which have same process as this server.

@@ -942,8 +942,8 @@
     (should-not (local-variable-if-set-p 'erc-send-completed-hook))
     (set (make-local-variable 'erc-send-completed-hook) nil) ; skip t (globals)
     ;; Just in case erc-ring-mode is already on
-    (setq-local erc-pre-send-functions nil)
-    (add-hook 'erc-pre-send-functions #'erc-add-to-input-ring)
+    (setq-local erc--input-review-functions nil)
+    (add-hook 'erc--input-review-functions #'erc-add-to-input-ring)
     ;;
     (cl-letf (((symbol-function 'erc-process-input-line)
                (lambda (&rest _)
@@ -1044,6 +1044,48 @@
     (kill-buffer "*erc-protocol*")
     (should-not erc-debug-irc-protocol)))
 
+(ert-deftest erc--split-line ()
+  (let ((erc-default-recipients '("#chan"))
+        (erc-split-line-length 10))
+    (should (equal (erc--split-line "") '("")))
+    (should (equal (erc--split-line "0123456789") '("0123456789")))
+    (should (equal (erc--split-line "0123456789a") '("0123456789" "a")))
+
+    (should (equal (erc--split-line "0123456789 ") '("0123456789" " ")))
+    (should (equal (erc--split-line "01234567 89") '("01234567 " "89")))
+    (should (equal (erc--split-line "0123456 789") '("0123456 " "789")))
+    (should (equal (erc--split-line "0 123456789") '("0 " "123456789")))
+    (should (equal (erc--split-line " 0123456789") '(" " "0123456789")))
+    (should (equal (erc--split-line "012345678 9a") '("012345678 " "9a")))
+    (should (equal (erc--split-line "0123456789 a") '("0123456789" " a")))
+
+    ;; UTF-8 vs. KOI-8
+    (should (= 10 (string-bytes "Русск"))) ; utf-8
+    (should (equal (erc--split-line "Русск") '("Русск")))
+    (should (equal (erc--split-line "РусскийТекст") '("Русск" "ийТек" "ст")))
+    (should (equal (erc--split-line "Русский Текст") '("Русск" "ий " "Текст")))
+    (let ((erc-encoding-coding-alist '(("#chan" . cyrillic-koi8))))
+      (should (equal (erc--split-line "Русск") '("Русск")))
+      (should (equal (erc--split-line "РусскийТекст") '("РусскийТек" "ст")))
+      (should (equal (erc--split-line "Русский Текст") '("Русский " "Текст"))))
+
+    ;; UTF-8 vs. Latin 1
+    (should (= 17 (string-bytes "Hyvää päivää")))
+    (should (equal (erc--split-line "Hyvää päivää") '("Hyvää " "päivää")))
+    (should (equal (erc--split-line "HyvääPäivää") '("HyvääPä" "ivää")))
+    (let ((erc-encoding-coding-alist '(("#chan" . latin-1))))
+      (should (equal (erc--split-line "Hyvää päivää") '("Hyvää " "päivää")))
+      (should (equal (erc--split-line "HyvääPäivää") '("HyvääPäivä" "ä"))))
+
+    ;; Combining characters
+    (should (= 10 (string-bytes "Åström")))
+    (should (equal (erc--split-line "_Åström") '("_Åströ" "m")))
+    (should (equal (erc--split-line "__Åström") '("__Åstr" "öm")))
+    (should (equal (erc--split-line "___Åström") '("___Åstr" "öm")))
+    (when (> emacs-major-version 27)
+      (should (equal (erc--split-line "🏁🚩🎌🏴🏳️🏳️‍🌈🏳️‍⚧️🏴‍☠️")
+                     '("🏁🚩" "🎌🏴" "🏳️" "🏳️‍🌈" "🏳️‍⚧️" "🏴‍☠️"))))))
+
 (ert-deftest erc--input-line-delim-regexp ()
   (let ((p erc--input-line-delim-regexp))
     ;; none
@@ -1114,7 +1156,9 @@
 
 (defun erc-tests--with-process-input-spy (test)
   (with-current-buffer (get-buffer-create "FakeNet")
-    (let* ((erc-pre-send-functions
+    (let* ((erc--input-review-functions
+            (remove #'erc-add-to-input-ring erc--input-review-functions))
+           (erc-pre-send-functions
             (remove #'erc-add-to-input-ring erc-pre-send-functions)) ; for now
            (inhibit-message noninteractive)
            (erc-server-current-nick "tester")
@@ -1181,8 +1225,9 @@
        (ert-info ("Input cleared")
          (erc-bol)
          (should (eq (point) (point-max))))
-       ;; Commands are forced (no flood protection)
-       (should (equal (funcall next) '("/msg #chan hi\n" t nil))))
+       ;; The `force' argument is irrelevant here because it can't
+       ;; influence dispatched handlers, such as `erc-cmd-MSG'.
+       (should (pcase (funcall next) (`("/msg #chan hi\n" ,_ nil) t))))
 
      (ert-info ("Simple non-command")
        (insert "hi")
@@ -1190,7 +1235,8 @@
        (should (eq (point) (point-max)))
        (should (save-excursion (forward-line -1)
                                (search-forward "<tester> hi")))
-       ;; Non-ommands are forced only when `erc-flood-protect' is nil
+       ;; Non-commands are forced only when `erc-flood-protect' is
+       ;; nil, which conflates two orthogonal concerns.
        (should (equal (funcall next) '("hi\n" nil t))))
 
      (should (consp erc-last-input-time)))))
@@ -1236,15 +1282,23 @@
        (pcase-dolist (`(,p . ,q)
                       '(("/a b\r" "/a b\n") ("/a b\n" "/a b\n")
                         ("/a b\n\n" "/a b\n") ("/a b\r\n" "/a b\n")
-                        ("a b\nc\n\n" "c\n" "a b\n")
-                        ("/a b\nc\n\n" "c\n" "/a b\n")
-                        ("/a b\n\nc\n\n" "c\n" "\n" "/a b\n")))
+                        ("/a b\n\n\n" "/a b\n")))
          (insert p)
          (erc-send-current-line)
          (erc-bol)
          (should (eq (point) (point-max)))
          (while q
-           (should (equal (funcall next) (list (pop q) nil t))))
+           (should (pcase (funcall next)
+                     (`(,cmd ,_ nil) (equal cmd (pop q))))))
+         (should-not (funcall next))))
+
+     (ert-info ("Multiline command with non-blanks errors")
+       (dolist (p '("/a b\nc\n\n" "/a b\n/c\n\n" "/a b\n\nc\n\n"
+                    "/a\n c\n" "/a\nb\n" "/a\n/b\n" "/a \n \n"))
+         (insert p)
+         (should-error (erc-send-current-line))
+         (goto-char erc-input-marker)
+         (delete-region (point) (point-max))
          (should-not (funcall next))))
 
      (ert-info ("Multiline hunk with trailing whitespace not filtered")
@@ -1262,13 +1316,14 @@
   (ert-info ("With `erc-inhibit-multiline-input' as t (2)")
     (let ((erc-inhibit-multiline-input t))
       (should-not (erc--check-prompt-input-for-excess-lines "" '("a")))
-      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "")))
+      ;; Does not trim trailing blanks.
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "")))
       (should (erc--check-prompt-input-for-excess-lines "" '("a" "b")))))
 
   (ert-info ("With `erc-inhibit-multiline-input' as 3")
     (let ((erc-inhibit-multiline-input 3))
       (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b")))
-      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b" "")))
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "b" "")))
       (should (erc--check-prompt-input-for-excess-lines "" '("a" "b" "c")))))
 
   (ert-info ("With `erc-ask-about-multiline-input'")
@@ -1289,14 +1344,12 @@
         (erc-default-recipients '("#chan"))
         calls)
     (with-temp-buffer
+      (erc-tests--set-fake-server-process "sleep" "1")
       (cl-letf (((symbol-function 'erc-cmd-MSG)
                  (lambda (line)
                    (push line calls)
+                   (should erc--called-as-input-p)
                    (funcall orig-erc-cmd-MSG line)))
-                ((symbol-function 'erc-server-buffer)
-                 (lambda () (current-buffer)))
-                ((symbol-function 'erc-server-process-alive)
-                 (lambda () t))
                 ((symbol-function 'erc-server-send-queue)
                  #'ignore))
 
@@ -1348,6 +1401,94 @@
                            '("PRIVMSG #chan : \r\n" . utf-8))))
 
           (should-not calls))))))
+
+
+;; The behavior of `erc-pre-send-functions' differs between versions
+;; in how hook members see and influence a trailing newline that's
+;; part of the original prompt submission:
+;;
+;;  5.4: both seen and sent
+;;  5.5: seen but not sent*
+;;  5.6: neither seen nor sent*
+;;
+;;  * requires `erc-send-whitespace-lines' for hook to run
+;;
+;; Two aspects that have remained consistent are
+;;
+;;   - a final nonempty line in any submission is always sent
+;;   - a trailing newline appended by a hook member is always sent
+;;
+;; The last bullet would seem to contradict the "not sent" behavior of
+;; 5.5 and 5.6, but what's actually happening is that exactly one
+;; trailing newline is culled, so anything added always goes through.
+;; Also, in ERC 5.6, all empty lines are actually padded, but this is
+;; merely incidental WRT the above.
+;;
+;; Note that this test doesn't run any input-prep hooks and thus can't
+;; account for the "seen" dimension noted above.
+
+(ert-deftest erc--run-send-hooks ()
+  (with-suppressed-warnings ((obsolete erc-send-this)
+                             (obsolete erc-send-pre-hook))
+    (should erc-insert-this)
+    (should erc-send-this) ; populates `erc--input-split-sendp'
+
+    (let (erc-pre-send-functions erc-send-pre-hook)
+
+      (ert-info ("String preserved, lines rewritten, empties padded")
+        (setq erc-pre-send-functions
+              (lambda (o) (setf (erc-input-string o) "bar\n\nbaz\n")))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "foo" :lines '("foo")))
+                  ((cl-struct erc--input-split
+                              (string "foo") (sendp 't) (insertp 't)
+                              (lines '("bar" " " "baz" " ")) (cmdp 'nil))
+                   t))))
+
+      (ert-info ("Multiline commands rejected")
+        (should-error (erc--run-send-hooks (make-erc--input-split
+                                            :string "/mycmd foo"
+                                            :lines '("/mycmd foo")
+                                            :cmdp t))))
+
+      (ert-info ("Single-line commands pass")
+        (setq erc-pre-send-functions
+              (lambda (o) (setf (erc-input-sendp o) nil
+                                (erc-input-string o) "/mycmd bar")))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "/mycmd foo"
+                                             :lines '("/mycmd foo")
+                                             :cmdp t))
+                  ((cl-struct erc--input-split
+                              (string "/mycmd foo") (sendp 'nil) (insertp 't)
+                              (lines '("/mycmd bar")) (cmdp 't))
+                   t))))
+
+      (ert-info ("Legacy hook respected, special vars confined")
+        (setq erc-send-pre-hook (lambda (_) (setq erc-send-this nil))
+              erc-pre-send-functions (lambda (o) ; propagates
+                                       (should-not (erc-input-sendp o))))
+        (should (pcase (erc--run-send-hooks (make-erc--input-split
+                                             :string "foo" :lines '("foo")))
+                  ((cl-struct erc--input-split
+                              (string "foo") (sendp 'nil) (insertp 't)
+                              (lines '("foo")) (cmdp 'nil))
+                   t)))
+        (should erc-send-this))
+
+      (ert-info ("Request to resplit honored")
+        (setq erc-send-pre-hook nil
+              erc-pre-send-functions
+              (lambda (o) (setf (erc-input-string o) "foo bar baz"
+                                (erc-input-refoldp o) t)))
+        (let ((erc-split-line-length 8))
+          (should
+           (pcase (erc--run-send-hooks (make-erc--input-split
+                                        :string "foo" :lines '("foo")))
+             ((cl-struct erc--input-split
+                         (string "foo") (sendp 't) (insertp 't)
+                         (lines '("foo bar " "baz")) (cmdp 'nil))
+              t))))))))
 
 ;; Note: if adding an erc-backend-tests.el, please relocate this there.
 
@@ -1469,7 +1610,7 @@
                          :nick (user-login-name)
                          '&interactive-env
                          '((erc-server-connect-function . erc-open-tls-stream)
-                           (erc-join-buffer . buffer))))))
+                           (erc-join-buffer . window))))))
 
   (ert-info ("Switches to TLS when port matches default TLS port")
     (should (equal (ert-simulate-keys "irc.gnu.org\r6697\r\r\r"
@@ -1479,7 +1620,7 @@
                          :nick (user-login-name)
                          '&interactive-env
                          '((erc-server-connect-function . erc-open-tls-stream)
-                           (erc-join-buffer . buffer))))))
+                           (erc-join-buffer . window))))))
 
   (ert-info ("Switches to TLS when URL is ircs://")
     (should (equal (ert-simulate-keys "ircs://irc.gnu.org\r\r\r\r"
@@ -1489,7 +1630,7 @@
                          :nick (user-login-name)
                          '&interactive-env
                          '((erc-server-connect-function . erc-open-tls-stream)
-                           (erc-join-buffer . buffer))))))
+                           (erc-join-buffer . window))))))
 
   (setq-local erc-interactive-display nil) ; cheat to save space
 
@@ -1625,7 +1766,7 @@
                        '("localhost" 6667 "nick" "unknown" t "sesame"
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-join-buffer buffer)
+                       '((erc-join-buffer window)
                          (erc-server-connect-function erc-open-tls-stream)))))
 
       (ert-info ("Custom connect function")
@@ -1686,7 +1827,7 @@
                        '("irc.libera.chat" 6697 "tester" "unknown" t nil
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-join-buffer buffer) (erc-server-connect-function
+                       '((erc-join-buffer window) (erc-server-connect-function
                                                    erc-open-tls-stream)))))
 
       (ert-info ("Nick supplied, decline TLS upgrade")
@@ -1696,7 +1837,7 @@
                        '("irc.libera.chat" 6667 "dummy" "unknown" t nil
                          nil nil nil nil "user" nil)))
         (should (equal (pop env)
-                       '((erc-join-buffer buffer)
+                       '((erc-join-buffer window)
                          (erc-server-connect-function
                           erc-open-network-stream))))))))
 
@@ -2017,7 +2158,7 @@ ARG is omitted or nil.
 Some docstring."
                         :global t
                         :group (erc--find-group 'mname 'malias)
-                        :get #'erc--neuter-custom-variable-state
+                        :require 'nil
                         :type "mname"
                         (if erc-mname-mode
                             (erc-mname-enable)
@@ -2108,66 +2249,5 @@ connection."
                       (put 'erc-mname-mode 'definition-name 'mname)
                       (put 'erc-mname-enable 'definition-name 'mname)
                       (put 'erc-mname-disable 'definition-name 'mname))))))
-
-
-;; XXX move erc-button tests to new file if more added.
-(require 'erc-button)
-
-;; See also `erc-scenarios-networks-announced-missing' in
-;; erc-scenarios-misc.el for a more realistic example.
-(ert-deftest erc-button--display-error-notice-with-keys ()
-  (with-current-buffer (get-buffer-create "*fake*")
-    (let ((mode erc-button-mode)
-          (inhibit-message noninteractive)
-          erc-modules
-          erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
-      (erc-mode)
-      (erc-tests--set-fake-server-process "sleep" "1")
-      (erc--initialize-markers (point) nil)
-      (erc-button-mode +1)
-      (should (equal (erc-button--display-error-notice-with-keys
-                      "If \\[erc-bol] fails, "
-                      "see \\[erc-bug] or `erc-mode-map'.")
-                     "*** If C-a fails, see M-x erc-bug or `erc-mode-map'."))
-      (goto-char (point-min))
-
-      (ert-info ("Keymap substitution succeeds")
-        (erc-button-next)
-        (should (looking-at "C-a"))
-        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
-        (erc-button-press-button)
-        (with-current-buffer "*Help*"
-          (goto-char (point-min))
-          (should (search-forward "erc-bol" nil t)))
-        (erc-button-next)
-        (erc-button-previous) ; end of interval correct
-        (should (looking-at "a fails")))
-
-      (ert-info ("Extended command mapping succeeds")
-        (erc-button-next)
-        (should (looking-at "M-x erc-bug"))
-        (erc-button-press-button)
-        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
-        (with-current-buffer "*Help*"
-          (goto-char (point-min))
-          (should (search-forward "erc-bug" nil t))))
-
-      (ert-info ("Symbol-description face preserved") ; mutated by d-e-n-w-k
-        (erc-button-next)
-        (should (equal (get-text-property (point) 'font-lock-face)
-                       '(erc-button erc-error-face)))
-        (should (eq (get-text-property (point) 'mouse-face) 'highlight))
-        (should (eq erc-button-face 'erc-button))) ; extent evaporates
-
-      (ert-info ("Format when trailing args include non-strings")
-        (should (equal (erc-button--display-error-notice-with-keys
-                        "abc" " %d def" " 45%s" 123 '\6)
-                       "*** abc 123 def 456")))
-
-      (when noninteractive
-        (unless mode
-          (erc-button-mode -1))
-        (kill-buffer "*Help*")
-        (kill-buffer)))))
 
 ;;; erc-tests.el ends here

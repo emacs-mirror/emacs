@@ -94,6 +94,8 @@
           ;; Defend against non-local exits from `ert-skip'
           (unwind-protect
               (funcall test)
+            (when set-transient-map-timer
+              (timer-event-handler set-transient-map-timer))
             (set-window-buffer (selected-window) original-window-buffer)
             (when noninteractive
               (while-let ((buf (pop erc-fill-tests--buffers)))

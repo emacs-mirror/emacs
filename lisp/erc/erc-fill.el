@@ -221,8 +221,13 @@ messages less than a day apart."
   (let ((inhibit-field-text-motion t))
     (erc-fill--wrap-move #'move-beginning-of-line
                          #'beginning-of-visual-line arg))
-  (when (get-text-property (point) 'erc-prompt)
-    (goto-char erc-input-marker)))
+  (if (get-text-property (point) 'erc-prompt)
+      (goto-char erc-input-marker)
+    ;; Mimic what `move-beginning-of-line' does with invisible text.
+    (when-let ((erc-fill-wrap-merge)
+               (empty (get-text-property (point) 'display))
+               ((string-empty-p empty)))
+      (goto-char (text-property-not-all (point) (pos-eol) 'display empty)))))
 
 (defun erc-fill--wrap-end-of-line (arg)
   "Defer to `move-end-of-line' or `end-of-visual-line'."
@@ -295,7 +300,9 @@ of the minor-mode toggles as usual."
            (setq msg (concat msg (and msg " ")
                              (erc-fill--make-module-dependency-msg "button"))))
          (erc-with-server-buffer
-           (erc-button-mode +1))))
+           (erc-button-mode +1)))
+       (add-hook 'erc-button--prev-next-predicate-functions
+                 #'erc-fill--wrap-merged-button-p nil t))
      ;; Set local value of user option (can we avoid this somehow?)
      (unless (eq erc-fill-function #'erc-fill-wrap)
        (setq-local erc-fill-function #'erc-fill-wrap))
@@ -323,6 +330,8 @@ of the minor-mode toggles as usual."
    (kill-local-variable 'erc-fill--wrap-value)
    (kill-local-variable 'erc-fill-function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
+   (remove-hook 'erc-button--prev-next-predicate-functions
+                #'erc-fill--wrap-merged-button-p t)
    (remove-function (local 'erc-stamp--insert-date-function)
                     #'erc-fill--wrap-stamp-insert-prefixed-date)
    (visual-line-mode -1))
@@ -389,6 +398,9 @@ See `erc-fill-wrap-mode' for details."
                    (progn
                      (skip-syntax-forward "^-")
                      (forward-char)
+                     ;; Using the `invisible' property might make more
+                     ;; sense, but that would require coordination
+                     ;; with other modules, like `erc-match'.
                      (cond ((and erc-fill-wrap-merge
                                  (erc-fill--wrap-continued-message-p))
                             (put-text-property (point-min) (point)
@@ -405,6 +417,10 @@ See `erc-fill-wrap-mode' for details."
                                '(line-prefix wrap-prefix) nil
                                `((space :width (- erc-fill--wrap-value ,len))
                                  (space :width erc-fill--wrap-value))))))
+
+;; FIXME use own text property to avoid false positives.
+(defun erc-fill--wrap-merged-button-p (point)
+  (equal "" (get-text-property point 'display)))
 
 ;; This is an experimental helper for third-party modules.  You could,
 ;; for example, use this to automatically resize the prefix to a
