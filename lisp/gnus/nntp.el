@@ -643,7 +643,7 @@ connection timeouts (which may be several minutes) or
 `nntp-with-open-group', opens a new connection then re-issues the NNTP
 command whose response triggered the error."
   (declare (indent 2) (debug (form form [&optional symbolp] def-body)))
-  (when (consp connectionless))
+  (when (consp connectionless)
     (setq forms (cons connectionless forms)
 	  connectionless nil))
   `(nntp-with-open-group-function ,group ,server ,connectionless
