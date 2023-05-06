@@ -8668,12 +8668,22 @@ node `(elisp) Word Motion' for details."
   (forward-word (- (or arg 1))))
 
 (defun mark-word (&optional arg allow-extend)
-  "Set mark ARG words away from point.
-The place mark goes is the same place \\[forward-word] would
-move to with the same argument.
-Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active,
-it marks the next ARG words after the ones already marked."
+  "Set mark ARG words from point or move mark one word.
+When called from Lisp with ALLOW-EXTEND ommitted or nil, mark is
+set ARG words from point.
+With ARG and ALLOW-EXTEND both non-nil (interactively, with prefix
+argument), the place to which mark goes is the same place \\[forward-word]
+would move to with the same argument; if the mark is active, it moves
+ARG words from its current position, otherwise it is set ARG words
+from point.
+When invoked interactively without a prefix argument and no active
+region, mark moves one word forward.
+When invoked interactively without a prefix argument, and region
+is active, mark moves one word away of point (i.e., forward
+if mark is at or after point, back if mark is before point), thus
+extending the region by one word.  Since the direction of region
+extension depends on the relative position of mark and point, you
+can change the direction by \\[exchange-point-and-mark]."
   (interactive "P\np")
   (cond ((and allow-extend
 	      (or (and (eq last-command this-command) (mark t))
