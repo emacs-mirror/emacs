@@ -1948,11 +1948,9 @@ requires the @acronym{POP}-before-@acronym{SMTP} authentication.
 @cindex X-Message-SMTP-Method
 If you have a complex @acronym{SMTP} setup, and want some messages to
 go via one mail server, and other messages to go through another, you
-can use the @samp{X-Message-SMTP-Method} header.  These are the
-supported values:
-
-@table @samp
-@item smtpmail
+can use the @samp{X-Message-SMTP-Method} header to override the
+default by using the keyword @samp{smtp} followed by the server
+information:
 
 @example
 X-Message-SMTP-Method: smtp smtp.fsf.org 587
@@ -1968,16 +1966,19 @@ This is the same as the above, but uses @samp{other-user} as the user
 name when authenticating.  This is handy if you have several
 @acronym{SMTP} accounts on the same server.
 
-@item sendmail
+This header may also be used to specify an alternative MTA by using a
+@samp{mailer} keyword, where @samp{mailer} is the name of an MTA with
+a corresponding @code{message-send-mail-with-'mailer'} function.  For
+example:
 
 @example
 X-Message-SMTP-Method: sendmail
 @end example
 
-This will send the message via the locally installed sendmail/exim/etc
-installation.
+will send the message via the locally installed sendmail program.  The
+recognized values of @samp{mailer} are sendmail, qmail, mh, and
+mailclient.
 
-@end table
 
 @item message-mh-deletable-headers
 @vindex message-mh-deletable-headers

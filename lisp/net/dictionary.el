@@ -683,7 +683,6 @@ previous state."
   "Save the current state and start a new search based on ARGS.
 The parameter ARGS is a cons cell where car is the word to search
 and cdr is the dictionary where to search the word in."
-  (interactive)
   (dictionary-store-positions)
   (let ((word (car args))
 	(dictionary (cdr args)))
@@ -1258,7 +1257,6 @@ allows editing it."
   :version "28.1")
 
 (defun dictionary-definition (word &optional dictionary)
-  (interactive)
   (unwind-protect
       (let ((dictionary (or dictionary dictionary-default-dictionary)))
 	(dictionary-do-search word dictionary 'dictionary-read-definition t))
@@ -1315,7 +1313,6 @@ tooltip mode.  The hook function will check the value of the
 variable `dictionary-tooltip-mode' to decide if some action must be
 taken.  When disabling the tooltip mode the value of this variable
 will be set to nil."
-  (interactive)
   (tooltip-mode on)
   (if on
       (add-hook 'tooltip-functions #'dictionary-display-tooltip)

@@ -219,17 +219,25 @@ creates huge integers.
 
 @cindex @acronym{IEEE} floating point
   Floating-point numbers are useful for representing numbers that are
-not integral.  The range of floating-point numbers is
-the same as the range of the C data type @code{double} on the machine
-you are using.  On all computers supported by Emacs, this is
-@acronym{IEEE} binary64 floating point format, which is standardized by
-@url{https://standards.ieee.org/standard/754-2019.html,,IEEE Std 754-2019}
-and is discussed further in David Goldberg's paper
+not integral.  The range of floating-point numbers is the same as the
+range of the C data type @code{double} on the machine you are using.
+On almost all computers supported by Emacs, this is @acronym{IEEE}
+binary64 floating point format, which is standardized by
+@url{https://standards.ieee.org/standard/754-2019.html,,IEEE Std
+754-2019} and is discussed further in David Goldberg's paper
 ``@url{https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html,
-What Every Computer Scientist Should Know About Floating-Point Arithmetic}''.
-On modern platforms, floating-point operations follow the IEEE-754
-standard closely; however, results are not always rounded correctly on
-some obsolescent platforms, notably 32-bit x86.
+What Every Computer Scientist Should Know About Floating-Point
+Arithmetic}''.  On modern platforms, floating-point operations follow
+the IEEE-754 standard closely; however, results are not always rounded
+correctly on some systems, notably 32-bit x86.
+
+  On some old computer systems, Emacs may not use IEEE floating-point.
+We know of one such system on which Emacs runs correctly, but does not
+follow IEEE-754: the VAX running NetBSD using GCC 10.4.0, where the
+VAX @samp{D_Floating} format is used instead.  IBM System/370-derived
+mainframes and their XL/C compiler are also capable of utilizing a
+hexadecimal floating point format, but Emacs has not yet been built in
+such a configuration.
 
   The read syntax for floating-point numbers requires either a decimal
 point, an exponent, or both.  Optional signs (@samp{+} or @samp{-})
@@ -261,6 +269,10 @@ NaNs carry a sign and a significand, and non-numeric functions treat
 two NaNs as equal when their
 signs and significands agree.  Significands of NaNs are
 machine-dependent, as are the digits in their string representation.
+
+  NaNs are not available on systems which do not use IEEE
+floating-point arithmetic; if the read syntax for a NaN is used on a
+VAX, for example, the reader signals an error.
 
   When NaNs and signed zeros are involved, non-numeric functions like
 @code{eql}, @code{equal}, @code{sxhash-eql}, @code{sxhash-equal} and
@@ -742,9 +754,10 @@ by rounding the quotient towards zero after each division.
 
 @cindex @code{arith-error} in division
 If you divide an integer by the integer 0, Emacs signals an
-@code{arith-error} error (@pxref{Errors}).  Floating-point division of
-a nonzero number by zero yields either positive or negative infinity
-(@pxref{Float Basics}).
+@code{arith-error} error (@pxref{Errors}).  On systems using IEEE-754
+floating-point, floating-point division of a nonzero number by zero
+yields either positive or negative infinity (@pxref{Float Basics});
+otherwise, an @code{arith-error} is signaled as usual.
 @end defun
 
 @defun % dividend divisor

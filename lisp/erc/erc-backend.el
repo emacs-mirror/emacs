@@ -102,11 +102,12 @@
 (require 'erc-common)
 
 (defvar erc--target)
-(defvar erc-auto-query)
+(defvar erc--user-from-nick-function)
 (defvar erc-channel-list)
 (defvar erc-channel-users)
 (defvar erc-default-nicks)
 (defvar erc-default-recipients)
+(defvar erc-ensure-target-buffer-on-privmsg)
 (defvar erc-format-nick-function)
 (defvar erc-format-query-as-channel-p)
 (defvar erc-hide-prompt)
@@ -123,6 +124,8 @@
 (defvar erc-nick-change-attempt-count)
 (defvar erc-prompt-for-channel-key)
 (defvar erc-prompt-hidden)
+(defvar erc-receive-query-display)
+(defvar erc-receive-query-display-defer)
 (defvar erc-reuse-buffers)
 (defvar erc-verbose-server-ping)
 (defvar erc-whowas-on-nosuchnick)
@@ -296,6 +299,12 @@ function `erc-server-process-alive' instead.")
 
 (defvar-local erc-server-reconnect-count 0
   "Number of times we have failed to reconnect to the current server.")
+
+(defvar-local erc--server-reconnect-display-timer nil
+  "Timer that resets `erc--server-last-reconnect-count' to zero.
+Becomes non-nil in all server buffers when an IRC connection is
+first \"established\" and carries out its duties
+`erc-reconnect-display-timeout' seconds later.")
 
 (defvar-local erc--server-last-reconnect-count 0
   "Snapshot of reconnect count when the connection was established.")
@@ -563,6 +572,47 @@ If this is set to nil, never try to reconnect."
   "This variable holds the periodic ping timer.")
 
 ;;;; Helper functions
+
+(defvar erc--reject-unbreakable-lines nil
+  "Signal an error when a line exceeds `erc-split-line-length'.
+Sending such lines and hoping for the best is no longer supported
+in ERC 5.6.  This internal var exists as a possibly temporary
+escape hatch for inhibiting their transmission.")
+
+(defun erc--split-line (longline)
+  (let* ((coding (erc-coding-system-for-target nil))
+         (original-window-buf (window-buffer (selected-window)))
+         out)
+    (when (consp coding)
+      (setq coding (car coding)))
+    (setq coding (coding-system-change-eol-conversion coding 'unix))
+    (unwind-protect
+        (with-temp-buffer
+          (set-window-buffer (selected-window) (current-buffer))
+          (insert longline)
+          (goto-char (point-min))
+          (while (not (eobp))
+            (let ((upper (filepos-to-bufferpos erc-split-line-length
+                                               'exact coding)))
+              (goto-char (or upper (point-max)))
+              (unless (eobp)
+                (skip-chars-backward "^ \t"))
+              (when (bobp)
+                (when erc--reject-unbreakable-lines
+                  (user-error
+                   (substitute-command-keys
+                    (concat "Unbreakable line encountered "
+                            "(Recover input with \\[erc-previous-command])"))))
+                (goto-char upper))
+              (when-let ((cmp (find-composition (point) (1+ (point)))))
+                (if (= (car cmp) (point-min))
+                    (goto-char (nth 1 cmp))
+                  (goto-char (car cmp)))))
+            (cl-assert (/= (point-min) (point)))
+            (push (buffer-substring-no-properties (point-min) (point)) out)
+            (delete-region (point-min) (point)))
+          (or (nreverse out) (list "")))
+      (set-window-buffer (selected-window) original-window-buf))))
 
 ;; From Circe
 (defun erc-split-line (longline)
@@ -900,6 +950,22 @@ EVENT is the message received from the closed connection process."
   (or (with-suppressed-warnings ((obsolete erc-server-reconnecting))
         erc-server-reconnecting)
       (erc--server-reconnect-p event)))
+
+(defun erc--server-last-reconnect-on-disconnect (&rest _)
+  (remove-hook 'erc-disconnected-hook
+               #'erc--server-last-reconnect-on-disconnect t)
+  (erc--server-last-reconnect-display-reset (current-buffer)))
+
+(defun erc--server-last-reconnect-display-reset (buffer)
+  "Deactivate `erc-reconnect-display'."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (when erc--server-reconnect-display-timer
+        (cancel-timer erc--server-reconnect-display-timer)
+        (remove-hook 'erc-disconnected-hook
+                     #'erc--server-last-reconnect-display-reset t)
+        (setq erc--server-reconnect-display-timer nil
+              erc--server-last-reconnect-count 0)))))
 
 (defconst erc--mode-line-process-reconnecting
   '(:eval (erc-with-server-buffer
@@ -1435,8 +1501,6 @@ Finds hooks by looking in the `erc-server-responses' hash table."
     (erc-with-server-buffer
       (run-hook-with-args 'erc-timer-hook (erc-current-time)))))
 
-(add-hook 'erc-default-server-functions #'erc-handle-unknown-server-response)
-
 (defun erc-handle-unknown-server-response (proc parsed)
   "Display unknown server response's message."
   (let ((line (concat (erc-response.sender parsed)
@@ -1831,11 +1895,16 @@ add things to `%s' instead."
         (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))
                     (erc-is-message-ctcp-and-not-action-p msg))
           (if privp
-              (when erc-auto-query
-                (let ((erc-join-buffer erc-auto-query))
-                  (setq buffer (erc--open-target nick))))
-            ;; A channel buffer has been killed but is still joined
-            (setq buffer (erc--open-target tgt))))
+              (when-let ((erc-join-buffer
+                          (or (and (not erc-receive-query-display-defer)
+                                   erc-receive-query-display)
+                              (and erc-ensure-target-buffer-on-privmsg
+                                   (or erc-receive-query-display
+                                       erc-join-buffer)))))
+                (setq buffer (erc--open-target nick)))
+            ;; A channel buffer has been killed but is still joined.
+            (when erc-ensure-target-buffer-on-privmsg
+              (setq buffer (erc--open-target tgt)))))
         (when buffer
           (with-current-buffer buffer
             (when privp (erc--unhide-prompt))
@@ -1844,7 +1913,8 @@ add things to `%s' instead."
             ;; at this point.
             (erc-update-channel-member (if privp nick tgt) nick nick
                                        privp nil nil nil nil nil host login nil nil t)
-            (let ((cdata (erc-get-channel-user nick)))
+            (let ((cdata (funcall erc--user-from-nick-function
+                                  (erc-downcase nick) sndr parsed)))
               (setq fnick (funcall erc-format-nick-function
                                    (car cdata) (cdr cdata))))))
         (cond

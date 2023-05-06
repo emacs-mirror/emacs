@@ -1807,7 +1807,6 @@ If no fileset name is provided, prompt for NAME."
 
 (defun filesets-convert-patterns (name)
   "Change fileset NAME's mode from :pattern to :files."
-  (interactive)
   (let ((entry (assoc name filesets-data)))
     (if entry
 	(let ((pattern  (filesets-entry-get-pattern entry))

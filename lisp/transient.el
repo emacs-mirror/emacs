@@ -1071,7 +1071,8 @@ example, sets a variable, use `transient-define-infix' instead.
                               (if (and desc (or (stringp desc) (symbolp desc)))
                                   desc
                                 (plist-get args :key)))))))
-          (setq args (plist-put args :command `(defalias ',sym ,cmd)))))
+          (setq args (plist-put args :command
+                                `(defalias ',sym ,(macroexp-quote cmd))))))
        ((or (stringp car)
             (and car (listp car)))
         (let ((arg pop))

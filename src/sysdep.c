@@ -2065,7 +2065,9 @@ init_signals (void)
     signal (SIGPIPE, SIG_IGN);
 
   sigaction (SIGQUIT, &process_fatal_action, 0);
+#ifndef __vax__
   sigaction (SIGILL, &thread_fatal_action, 0);
+#endif /* __vax__ */
   sigaction (SIGTRAP, &thread_fatal_action, 0);
 
   /* Typically SIGFPE is thread-specific and is fatal, like SIGILL.
@@ -2078,6 +2080,11 @@ init_signals (void)
     {
       emacs_sigaction_init (&action, deliver_arith_signal);
       sigaction (SIGFPE, &action, 0);
+#ifdef __vax__
+      /* NetBSD/vax generates SIGILL upon some floating point errors,
+	 such as taking the log of 0.0.  */
+      sigaction (SIGILL, &action, 0);
+#endif /* __vax__ */
     }
 
   /* SIGUSR1 and SIGUSR2 are used internally by the android_select

@@ -2753,7 +2753,6 @@ in the region."
 
 (defun treesit--explorer-jump (button)
   "Mark the original text corresponding to BUTTON."
-  (interactive)
   (when (and (derived-mode-p 'treesit--explorer-tree-mode)
              (buffer-live-p treesit--explorer-source-buffer))
     (with-current-buffer treesit--explorer-source-buffer

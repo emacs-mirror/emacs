@@ -2263,25 +2263,26 @@ had been enabled."
 
 ;;;###autoload
 (defun package-upgrade (name)
-  "Upgrade package NAME if a newer version exists.
-
-Currently, packages which are part of the Emacs distribution
-cannot be upgraded that way.  To enable upgrades of such a
-package using this command, first upgrade the package to a
-newer version from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
+  "Upgrade package NAME if a newer version exists."
   (interactive
    (list (completing-read
-          "Upgrade package: " (package--upgradeable-packages) nil t)))
+          "Upgrade package: " (package--upgradeable-packages t) nil t)))
   (let* ((package (if (symbolp name)
                       name
                     (intern name)))
-         (pkg-desc (cadr (assq package package-alist))))
-    (if (package-vc-p pkg-desc)
+         (pkg-desc (cadr (assq package package-alist)))
+         (package-install-upgrade-built-in (not pkg-desc)))
+    ;; `pkg-desc' will be nil when the package is an "active built-in".
+    (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
-      (package-delete pkg-desc 'force)
-      (package-install package 'dont-select))))
+      (when pkg-desc
+        (package-delete pkg-desc 'force 'dont-unselect))
+      (package-install package
+                       ;; An active built-in has never been "selected"
+                       ;; before.  Mark it as installed explicitly.
+                       (and pkg-desc 'dont-select)))))
 
-(defun package--upgradeable-packages ()
+(defun package--upgradeable-packages (&optional include-builtins)
   ;; Initialize the package system to get the list of package
   ;; symbols for completion.
   (package--archives-initialize)
@@ -2292,11 +2293,21 @@ newer version from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-
       (or (let ((available
                  (assq (car elt) package-archive-contents)))
             (and available
-                 (version-list-<
-                  (package-desc-version (cadr elt))
-                  (package-desc-version (cadr available)))))
-          (package-vc-p (cadr (assq (car elt) package-alist)))))
-    package-alist)))
+                 (or (and
+                      include-builtins
+                      (not (package-desc-version (cadr elt))))
+                     (version-list-<
+                      (package-desc-version (cadr elt))
+                      (package-desc-version (cadr available))))))
+          (package-vc-p (cadr elt))))
+    (if include-builtins
+        (append package-alist
+                (mapcan
+                 (lambda (elt)
+                   (when (not (assq (car elt) package-alist))
+                     (list (list (car elt) (package--from-builtin elt)))))
+                 package--builtins))
+      package-alist))))
 
 ;;;###autoload
 (defun package-upgrade-all (&optional query)
@@ -2306,8 +2317,9 @@ interactively, QUERY is always true.
 
 Currently, packages which are part of the Emacs distribution are
 not upgraded by this command.  To enable upgrading such a package
-using this command, first upgrade  the package to a newer version
-from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
+using this command, first upgrade the package to a newer version
+from ELPA by either using `\\[package-upgrade]' or
+`\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
   (let ((upgradeable (package--upgradeable-packages)))

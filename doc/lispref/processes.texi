@@ -1773,7 +1773,9 @@ caught automatically, so that it doesn't stop the execution of whatever
 program was running when the filter function was started.  However, if
 @code{debug-on-error} is non-@code{nil}, errors are not caught.
 This makes it possible to use the Lisp debugger to debug filter
-functions.  @xref{Debugger}.
+functions.  @xref{Debugger}.  If an error is caught, Emacs pauses for
+@code{process-error-pause-time} seconds so that the user sees the
+error.  @xref{Asynchronous Processes}
 
   Many filter functions sometimes (or always) insert the output in the
 process's buffer, mimicking the actions of the default filter.
@@ -2177,7 +2179,9 @@ automatically, so that it doesn't stop the execution of whatever
 programs was running when the sentinel was started.  However, if
 @code{debug-on-error} is non-@code{nil},  errors are not caught.
 This makes it possible to use the Lisp debugger to debug the
-sentinel.  @xref{Debugger}.
+sentinel.  @xref{Debugger}.  If an error is caught, Emacs pauses for
+@code{process-error-pause-time} seconds so that the user sees the
+error.  @xref{Asynchronous Processes}
 
   While a sentinel is running, the process sentinel is temporarily
 set to @code{nil} so that the sentinel won't run recursively.

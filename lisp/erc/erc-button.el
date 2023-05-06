@@ -55,11 +55,11 @@
   ((erc-button--check-nicknames-entry)
    (add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions #'erc-button-next-function)
+   (add-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map t "<backtab>" #'erc-button-previous))
   ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions #'erc-button-next-function)
+   (remove-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map nil "<backtab>" #'erc-button-previous)))
 
 ;;; Variables
@@ -128,7 +128,6 @@ longer than `erc-fill-column'."
   ;; things hard to maintain.
   '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
     (erc-button-url-regexp 0 t browse-url-button-open-url 0)
-    ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
     ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
@@ -166,17 +165,14 @@ REGEXP is the string matching text around the button or a symbol
 BUTTON is the number of the regexp grouping actually matching the
   button.  This is ignored if REGEXP is `nicknames'.
 
-FORM is a Lisp symbol for a special variable whose value must be
-  true for the button to be added.  Alternatively, when REGEXP is
-  not `nicknames', FORM can be a function whose arguments are BEG
-  and END, the bounds of the button in the current buffer.  It's
-  expected to return a cons of (possibly identical) bounds or
-  nil, to deny.  For the extent of the call, all face options
-  defined for the button module are re-bound, shadowing
-  themselves, so the function is free to change their values.
-  When regexp is the special symbol `nicknames', FORM must be the
-  symbol `erc-button-buttonize-nicks'.  Specifying anything else
-  is deprecated.
+FORM is either a boolean or a special variable whose value must
+  be non-nil for the button to be added.  When REGEXP is the
+  special symbol `nicknames', FORM must be the symbol
+  `erc-button-buttonize-nicks'.  Anything else is deprecated.
+  For all other entries, FORM can also be a function to call in
+  place of `erc-button-add-button' with the exact same arguments.
+  When FORM is also a special variable, ERC disregards the
+  variable and calls the function.
 
 CALLBACK is the function to call when the user push this button.
   CALLBACK can also be a symbol.  Its variable value will be used
@@ -288,28 +284,54 @@ specified by `erc-button-alist'."
                         entry)))))))))))
 
 (defun erc-button--maybe-warn-arbitrary-sexp (form)
-  (if (and (symbolp form) (special-variable-p form))
-      (symbol-value form)
-    (unless (get 'erc-button--maybe-warn-arbitrary-sexp 'warned-arbitrary-sexp)
-      (put 'erc-button--maybe-warn-arbitrary-sexp 'warned-arbitrary-sexp t)
-      (lwarn 'erc :warning
-             (concat "Arbitrary sexps for the third FORM"
-                     " slot of `erc-button-alist' entries"
-                     " have been deprecated.")))
-    (eval form t)))
+  (cl-assert (not (booleanp form))) ; covered by caller
+  ;; If a special-variable is also a function, favor the function.
+  (cond ((functionp form) form)
+        ((and (symbolp form) (special-variable-p form)) (symbol-value form))
+        (t (unless (get 'erc-button--maybe-warn-arbitrary-sexp
+                        'warned-arbitrary-sexp)
+             (put 'erc-button--maybe-warn-arbitrary-sexp
+                  'warned-arbitrary-sexp t)
+             (lwarn 'erc :warning (concat "Arbitrary sexps for the third FORM"
+                                          " slot of `erc-button-alist' entries"
+                                          " have been deprecated.")))
+           (eval form t))))
 
 (defun erc-button--check-nicknames-entry ()
   ;; This helper exists because the module is defined after its options.
-  (when-let (((eq major-mode 'erc-mode))
-             (entry (alist-get 'nicknames erc-button-alist)))
-    (unless (eq 'erc-button-buttonize-nicks (nth 1 entry))
+  (when (eq major-mode 'erc-mode)
+    (unless (eq (nth 1 (alist-get 'nicknames erc-button-alist))
+                'erc-button-buttonize-nicks)
       (erc-button--display-error-notice-with-keys-and-warn
        "Values other than `erc-button-buttonize-nicks' in the third slot of "
        "the `nicknames' entry of `erc-button-alist' are deprecated."))))
 
-(defun erc-button--preserve-bounds (bounds _ server-user _)
-  "Return BOUNDS.\n\n(fn BOUNDS NICKNAME SERVER-USER CHANNEL-USER)"
-  (and server-user bounds))
+(cl-defstruct erc-button--nick
+  ( bounds nil :type cons
+    ;; Indicates the nick's position in the current message.  BEG is
+    ;; normally also point.
+    :documentation "A cons of (BEG . END).")
+  ( data nil :type (or null cons)
+    ;; When non-nil, the CAR must be a non-casemapped nickname.  For
+    ;; compatibility, the CDR should probably be nil, but this may
+    ;; have to change eventually.  If non-nil, the entire cons should
+    ;; be mutated rather than replaced because it's used as a key in
+    ;; hash tables and text-property searches.
+    :documentation "A unique cons whose car is a nickname.")
+  ( downcased nil :type (or null string)
+    :documentation "The case-mapped nickname sans text properties.")
+  ( user nil :type (or null erc-server-user)
+    ;; Not necessarily present in `erc-server-users'.
+    :documentation "A possibly nil or spoofed `erc-server-user'.")
+  ( cuser nil :type (or null erc-channel-user)
+    ;; The CDR of a value from an `erc-channel-users' table.
+    :documentation "A possibly nil `erc-channel-user'.")
+  ( erc-button-face erc-button-face :type symbol
+    :documentation "Temp `erc-button-face' while buttonizing.")
+  ( erc-button-nickname-face erc-button-nickname-face :type symbol
+    :documentation "Temp `erc-button-nickname-face' while buttonizing.")
+  ( erc-button-mouse-face erc-button-mouse-face :type symbol
+    :documentation "Temp `erc-button-mouse-face' while buttonizing."))
 
 ;; This variable is intended to serve as a "core" to be wrapped by
 ;; (built-in) modules during setup.  It's unclear whether
@@ -318,66 +340,65 @@ specified by `erc-button-alist'."
 ;; mostly concerned with ensuring one "piece" precedes or follows
 ;; another (specific piece), which may not yet (or ever) be present.
 
-(defvar erc-button--modify-nick-function #'erc-button--preserve-bounds
+(defvar erc-button--modify-nick-function #'identity
   "Function to possibly modify aspects of nick being buttonized.
-Called with four args: BOUNDS NICKNAME SERVER-USER CHANNEL-USER.
-BOUNDS is a cons of (BEG . END) marking the position of the nick
-in the current message, which occupies the whole of the narrowed
-buffer.  BEG is normally also point.  NICKNAME is a case-mapped
-string without text properties.  SERVER-USER and CHANNEL-USER are
-the nick's `erc-server-users' entry and its associated (though
-possibly nil) `erc-channel-user' object.  The function should
-return BOUNDS or a suitable replacement to indicate that
-buttonizing ought to proceed, and nil if it should be inhibited.")
+Called with one argument, an `erc-button--nick' object, or nil.
+The function should return the same (or similar) object when
+buttonizing ought to proceed and nil otherwise.  While running,
+all faces defined in `erc-button' are bound temporarily and can
+be updated at will.")
 
 (defvar-local erc-button--phantom-users nil)
 
-(defun erc-button--add-phantom-speaker (args)
-  "Maybe substitute fake `server-user' for speaker at point."
-  (pcase args
-    (`(,bounds ,downcased-nick nil ,channel-user)
-     (list bounds downcased-nick
-           ;; Like `with-memoization' but don't cache when value is nil.
-           (or (gethash downcased-nick erc-button--phantom-users)
-               (and-let* ((user (erc-button--get-user-from-speaker-naive
-                                 (car bounds))))
-                 (puthash downcased-nick user erc-button--phantom-users)))
-           channel-user))
-    (_ args)))
+(defvar erc-button--fallback-user-function #'ignore
+  "Function to determine `erc-server-user' if not found in the usual places.
+Called with DOWNCASED-NICK, NICK, and NICK-BOUNDS when
+`erc-button-add-nickname-buttons' cannot find a user object for
+DOWNCASED-NICK in `erc-channel-users' or `erc-server-users'.")
 
+(defun erc-button--add-phantom-speaker (downcased nuh _parsed)
+  "Stash fictitious `erc-server-user' while processing \"PRIVMSG\".
+Expect DOWNCASED to be the downcased nickname, NUH to be a triple
+of (NICK LOGIN HOST), and parsed to be an `erc-response' object."
+  (pcase-let* ((`(,nick ,login ,host) nuh)
+               (user (or (gethash downcased erc-button--phantom-users)
+                         (make-erc-server-user
+                          :nickname nick
+                          :host (and (not (string-empty-p host)) host)
+                          :login (and (not (string-empty-p login)) login)))))
+    (list (puthash downcased user erc-button--phantom-users))))
+
+(defun erc-button--get-phantom-user (down _word _bounds)
+  (gethash down erc-button--phantom-users))
+
+;; In the future, we'll most likely create temporary
+;; `erc-channel-users' tables during BATCH chathistory playback, thus
+;; obviating the need for this mode entirely.
 (define-minor-mode erc-button--phantom-users-mode
   "Minor mode to recognize unknown speakers.
 Expect to be used by module setup code for creating placeholder
 users on the fly during history playback.  Treat an unknown
-PRIVMSG speaker, like <bob>, as if they were present in a 353 and
-are thus a member of the channel.  However, don't bother creating
-an actual `erc-channel-user' object because their status prefix
-is unknown.  Instead, just spoof an `erc-server-user' by applying
-early (outer), args-filtering advice wrapping
-`erc-button--modify-nick-function'."
+\"PRIVMSG\" speaker, like \"<bob>\", as if they previously
+appeared in a prior \"353\" message and are thus a known member
+of the channel.  However, don't bother creating an actual
+`erc-channel-user' object because their status prefix is unknown.
+Instead, just spoof an `erc-server-user' and stash it during
+\"PRIVMSG\" handling via `erc--user-from-nick-function' and
+retrieve it during buttonizing via
+`erc-button--fallback-user-function'."
   :interactive nil
   (if erc-button--phantom-users-mode
       (progn
-        (add-function :filter-args (local 'erc-button--modify-nick-function)
-                      #'erc-button--add-phantom-speaker '((depth . -90)))
+        (add-function :after-until (local 'erc--user-from-nick-function)
+                      #'erc-button--add-phantom-speaker '((depth . -50)))
+        (add-function :after-until (local 'erc-button--fallback-user-function)
+                      #'erc-button--get-phantom-user '((depth . 50)))
         (setq erc-button--phantom-users (make-hash-table :test #'equal)))
-    (remove-function (local 'erc-button--modify-nick-function)
+    (remove-function (local 'erc--user-from-nick-function)
                      #'erc-button--add-phantom-speaker)
+    (remove-function (local 'erc-button--fallback-user-function)
+                     #'erc-button--get-phantom-user)
     (kill-local-variable 'erc-nicks--phantom-users)))
-
-;; FIXME replace this after making ERC account-aware.
-(defun erc-button--get-user-from-speaker-naive (point)
-  "Return `erc-server-user' object for nick at POINT."
-  (when-let*
-      (((eql ?< (char-before point)))
-       ((eq (get-text-property point 'font-lock-face) 'erc-nick-default-face))
-       (parsed (erc-get-parsed-vector point)))
-    (pcase-let* ((`(,nick ,login ,host)
-                  (erc-parse-user (erc-response.sender parsed))))
-      (make-erc-server-user
-       :nickname nick
-       :host (and (not (string-empty-p host)) host)
-       :login (and (not (string-empty-p login)) login)))))
 
 (defun erc-button-add-nickname-buttons (entry)
   "Search through the buffer for nicknames, and add buttons."
@@ -402,32 +423,46 @@ early (outer), args-filtering advice wrapping
                              (gethash down erc-channel-users)))
                  (user (or (and cuser (car cuser))
                            (and erc-server-users
-                                (gethash down erc-server-users)))))
+                                (gethash down erc-server-users))
+                           (funcall erc-button--fallback-user-function
+                                    down word bounds)))
+                 (data (list word)))
             (when (or (not (functionp form))
-                      (setq bounds
-                            (funcall form bounds down user (cdr cuser))))
+                      (and-let* ((user)
+                                 (obj (funcall form (make-erc-button--nick
+                                                     :bounds bounds :data data
+                                                     :downcased down :user user
+                                                     :cuser (cdr cuser)))))
+                        (setq bounds (erc-button--nick-bounds obj)
+                              data (erc-button--nick-data obj)
+                              erc-button-mouse-face
+                              (erc-button--nick-erc-button-mouse-face obj)
+                              erc-button-nickname-face
+                              (erc-button--nick-erc-button-nickname-face obj)
+                              erc-button-face
+                              (erc-button--nick-erc-button-face obj))))
               (erc-button-add-button (car bounds) (cdr bounds)
-                                     fun t (list word)))))))))
+                                     fun t data))))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
   (goto-char (point-min))
-  (while (re-search-forward regexp nil t)
-    (let ((start (match-beginning (nth 1 entry)))
-          (end (match-end (nth 1 entry)))
-          (form (nth 2 entry))
-          (fun (nth 3 entry))
-          (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
-      (when (or (eq t form)
-                (and (functionp form)
-                     (let* ((erc-button-face erc-button-face)
-                            (erc-button-mouse-face erc-button-mouse-face)
-                            (erc-button-nickname-face erc-button-nickname-face)
-                            (rv (funcall form start end)))
-                       (when rv
-                         (setq end (cdr rv) start (car rv)))))
-                (erc-button--maybe-warn-arbitrary-sexp form))
-        (erc-button-add-button start end fun nil data regexp)))))
+  (let (buttonizer)
+    (while
+        (and (re-search-forward regexp nil t)
+             (or buttonizer
+                 (setq buttonizer
+                       (and-let*
+                           ((raw-form (nth 2 entry))
+                            (res (or (eq t raw-form)
+                                     (erc-button--maybe-warn-arbitrary-sexp
+                                      raw-form))))
+                         (if (functionp res) res #'erc-button-add-button)))))
+      (let ((start (match-beginning (nth 1 entry)))
+            (end (match-end (nth 1 entry)))
+            (fun (nth 3 entry))
+            (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
+        (funcall buttonizer start end fun nil data regexp)))))
 
 (defun erc-button-remove-old-buttons ()
   "Remove all existing buttons.
@@ -529,6 +564,7 @@ call it with the value of the `erc-data' text property."
 (defun erc-button-next-function ()
   "Pseudo completion function that actually jumps to the next button.
 For use on `completion-at-point-functions'."
+  (declare (obsolete erc-nickserv-identify "30.1"))
   ;; FIXME: This is an abuse of completion-at-point-functions.
   (when (< (point) (erc-beg-of-input-line))
     (let ((start (point)))
@@ -546,27 +582,73 @@ For use on `completion-at-point-functions'."
             (error "No next button"))
           t)))))
 
-(defun erc-button-next ()
-  "Go to the next button in this buffer."
-  (interactive)
-  (let ((f (erc-button-next-function)))
-    (if f (funcall f))))
+(defvar erc-button--prev-next-predicate-functions
+  '(erc-button--end-of-button-p)
+  "Abnormal hook whose members can return non-nil to continue searching.
+Otherwise, if all members return nil, point will stay at the
+current button.  Called with a single arg, a buffer position
+greater than `point-min' with a text property of `erc-callback'.")
 
-(defun erc-button-previous ()
-  "Go to the previous button in this buffer."
-  (interactive)
-  (let ((here (point)))
-    (when (< here (erc-beg-of-input-line))
-      (while (and (get-text-property here 'erc-callback)
-                  (not (= here (point-min))))
-        (setq here (1- here)))
-      (while (and (not (get-text-property here 'erc-callback))
-                  (not (= here (point-min))))
-        (setq here (1- here)))
-      (if (> here (point-min))
-          (goto-char here)
-        (error "No previous button"))
-      t)))
+(defun erc-button--end-of-button-p (point)
+  (get-text-property (1- point) 'erc-callback))
+
+(defun erc--button-next (arg)
+  (let* ((nextp (prog1 (>= arg 1) (setq arg (max 1 (abs arg)))))
+         (search-fn (if nextp
+                        #'next-single-char-property-change
+                      #'previous-single-char-property-change))
+         (start (point))
+         (p start))
+    (while (progn
+             ;; Break out of current search context.
+             (when-let ((low (max (point-min) (1- (pos-bol))))
+                        (high (min (point-max) (1+ (pos-eol))))
+                        (prop (get-text-property p 'erc-callback))
+                        (q (if nextp
+                               (text-property-not-all p high
+                                                      'erc-callback prop)
+                             (funcall search-fn p 'erc-callback nil low)))
+                        ((< low q high)))
+               (setq p q))
+             ;; Assume that buttons occur frequently enough that
+             ;; omitting LIMIT is acceptable.
+             (while
+                 (and (setq p (funcall search-fn p 'erc-callback))
+                      (if nextp (< p erc-insert-marker) (/= p (point-min)))
+                      (run-hook-with-args-until-success
+                       'erc-button--prev-next-predicate-functions p)))
+             (and arg
+                  (< (point-min) p erc-insert-marker)
+                  (goto-char p)
+                  (not (zerop (cl-decf arg))))))
+    (when (= (point) start)
+      (user-error (if nextp "No next button" "No previous button")))
+    t))
+
+(defun erc-button-next (&optional arg)
+  "Go to the ARGth next button."
+  (declare (advertised-calling-convention (arg) "30.1"))
+  (interactive "p")
+  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
+  (erc--button-next arg))
+
+(defun erc-button-previous (&optional arg)
+  "Go to ARGth previous button."
+  (declare (advertised-calling-convention (arg) "30.1"))
+  (interactive "p")
+  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
+  (erc--button-next (- arg)))
+
+(defun erc-button-previous-of-nick (arg)
+  "Go to ARGth previous button for nick at point."
+  (interactive "p")
+  (if-let* ((prop (get-text-property (point) 'erc-data))
+            (erc-button--prev-next-predicate-functions
+             (cons (lambda (p)
+                     (not (equal (get-text-property p 'erc-data) prop)))
+                   erc-button--prev-next-predicate-functions)))
+      (erc--button-next (- arg))
+    (user-error "No nick at point")))
 
 (defun erc-browse-emacswiki (thing)
   "Browse to THING in the emacs-wiki."
@@ -635,15 +717,15 @@ and `apropos' for other symbols."
     (message "@%s is %d:%02d local time"
              beats hours minutes)))
 
-(defun erc-button--substitute-command-keys-in-region (beg end)
+(defun erc-button--display-error-with-buttons
+    (from to fun nick-p &optional data regexp)
   "Replace command in region with keys and return new bounds"
-  (let* ((o (buffer-substring beg end))
-         (s (substitute-command-keys o)))
-    (unless (equal o s)
-      (setq erc-button-face nil))
-    (delete-region beg end)
-    (insert s))
-  (cons beg (point)))
+  (let* ((o (buffer-substring from to))
+         (s (substitute-command-keys o))
+         (erc-button-face (and (equal o s) erc-button-face)))
+    (delete-region from to)
+    (insert s)
+    (erc-button-add-button from (point) fun nick-p data regexp)))
 
 ;;;###autoload
 (defun erc-button--display-error-notice-with-keys (&optional parsed buffer
@@ -680,7 +762,7 @@ non-strings, concatenate leading string members before applying
                 erc-insert-post-hook))
          (erc-button-alist
           `((,(rx "\\[" (group (+ (not "]"))) "]") 0
-             erc-button--substitute-command-keys-in-region
+             erc-button--display-error-with-buttons
              erc-button-describe-symbol 1)
             ,@erc-button-alist)))
     (erc-display-message parsed '(notice error) (or buffer 'active) string)

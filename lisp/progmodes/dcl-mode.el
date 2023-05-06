@@ -1396,7 +1396,7 @@ regexps in `dcl-electric-reindent-regexps'."
 ;;;-------------------------------------------------------------------------
 (defun dcl-indent-to (col &optional minimum)
   "Like `indent-to', but only indents if indentation would change."
-  (interactive)
+  (interactive "NIndent to column: ")
   (let (cur-indent collapsed indent)
     (save-excursion
       (skip-chars-forward " \t")

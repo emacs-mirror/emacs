@@ -180,7 +180,7 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                    (insert " "))))
               ((member completion extra-strings)
                (insert ">"))))
-          :company-kind ,(lambda () 'property))))))
+          :company-kind ,(lambda (_) 'property))))))
 
 (defconst rng-in-end-tag-name-regex
   (replace-regexp-in-string
