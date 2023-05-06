@@ -27,16 +27,7 @@ AM_V_CC =
 AM_V_CXX =
 AM_V_CCLD =
 AM_V_CXXLD =
-AM_V_ELC =
-AM_V_ELN =
 AM_V_GEN =
-AM_V_GLOBALS =
-AM_V_NO_PD =
-AM_V_RC =
-AM_V_JAVAC =
-AM_V_DX =
-AM_V_AAPT =
-AM_V_ZIPALIGN =
 else
 
 # Whether $(info ...) works.  This is to work around a bug in GNU Make
@@ -53,13 +44,12 @@ have_working_info = $(filter notintermediate,$(value .FEATURES))
 # The workaround is done only for AM_V_ELC and AM_V_ELN,
 # since the bug is not annoying elsewhere.
 
-AM_V_AR      = @$(info $   AR          $@)
+AM_V_AR      = @$(info $   AR       $@)
 AM_V_at = @
-AM_V_CC      = @$(info $  ANDROID_CC   $@)
-AM_V_CXX     = @$(info $  ANDROID_CXX  $@)
-AM_V_CCLD    = @$(info $   CCLD        $@)
-AM_V_CXXLD   = @$(info $   CXXLD       $@)
-
-AM_V_GEN     = @$(info $   GEN         $@)
+AM_V_CC      = @$(info $   CC       $@)
+AM_V_CXX     = @$(info $   CXX      $@)
+AM_V_CCLD    = @$(info $   CCLD     $@)
+AM_V_CXXLD   = @$(info $   CXXLD    $@)
+AM_V_GEN     = @$(info $   GEN      $@)
 AM_V_NO_PD = --no-print-directory
 endif

@@ -540,7 +540,11 @@ restore_selected_window (Lisp_Object window)
 
 /* Commit the given text in the composing region.  If there is no
    composing region, then insert the text after F's selected window's
-   last point instead.  Finally, remove the composing region.  */
+   last point instead.  Finally, remove the composing region.
+
+   Then, move point to POSITION relative to TEXT.  If POSITION is
+   greater than zero, it is relative to the character at the end of
+   TEXT; otherwise, it is relative to the start of TEXT.  */
 
 static void
 really_commit_text (struct frame *f, EMACS_INT position,
@@ -577,14 +581,16 @@ really_commit_text (struct frame *f, EMACS_INT position,
       Finsert (1, &text);
       record_buffer_change (start, PT, text);
 
-      /* Move to a the position specified in POSITION.  */
+      /* Move to a the position specified in POSITION.  If POSITION is
+         less than zero, it is relative to the start of the text that
+         was inserted.  */
 
-      if (position < 0)
+      if (position <= 0)
 	{
 	  wanted
 	    = marker_position (f->conversion.compose_region_start);
 
-	  if (INT_SUBTRACT_WRAPV (wanted, position, &wanted)
+	  if (INT_ADD_WRAPV (wanted, position, &wanted)
 	      || wanted < BEGV)
 	    wanted = BEGV;
 
@@ -595,6 +601,9 @@ really_commit_text (struct frame *f, EMACS_INT position,
 	}
       else
 	{
+	  /* Otherwise, it is relative to the last character in
+	     TEXT.  */
+
 	  wanted
 	    = marker_position (f->conversion.compose_region_end);
 
@@ -631,9 +640,9 @@ really_commit_text (struct frame *f, EMACS_INT position,
       Finsert (1, &text);
       record_buffer_change (wanted, PT, text);
 
-      if (position < 0)
+      if (position <= 0)
 	{
-	  if (INT_SUBTRACT_WRAPV (wanted, position, &wanted)
+	  if (INT_ADD_WRAPV (wanted, position, &wanted)
 	      || wanted < BEGV)
 	    wanted = BEGV;
 
@@ -1533,8 +1542,9 @@ get_extracted_text (struct frame *f, ptrdiff_t n,
   /* Figure out the bounds of the text to return.  */
   if (n != -1)
     {
-      /* Make sure n is at least 2.  */
-      n = max (2, n);
+      /* Make sure n is at least 4, leaving two characters around
+	 PT.  */
+      n = max (4, n);
 
       start = PT - n / 2;
       end = PT + n - n / 2;

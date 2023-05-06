@@ -26,6 +26,8 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.TextSnapshot;
 import android.view.KeyEvent;
 
+import android.os.Build;
+
 import android.util.Log;
 
 /* Android input methods, take number six.  See textconv.c for more
@@ -36,6 +38,34 @@ public final class EmacsInputConnection extends BaseInputConnection
   private static final String TAG = "EmacsInputConnection";
   private EmacsView view;
   private short windowHandle;
+
+  /* Whether or not to synchronize and call `updateIC' with the
+     selection position after committing text.
+
+     This helps with on screen keyboard programs found in some vendor
+     versions of Android, which rely on immediate updates to the point
+     position after text is commited in order to place the cursor
+     within that text.  */
+
+  private static boolean syncAfterCommit;
+
+  /* Whether or not to return empty text with the offset set to zero
+     if a request arrives that has no flags set and has requested no
+     characters at all.
+
+     This is necessary with on screen keyboard programs found in some
+     vendor versions of Android which don't rely on the documented
+     meaning of `ExtractedText.startOffset', and instead take the
+     selection offset inside at face value.  */
+
+  private static boolean extractAbsoluteOffsets;
+
+  static
+  {
+    if (Build.MANUFACTURER.equalsIgnoreCase ("Huawei")
+	|| Build.MANUFACTURER.equalsIgnoreCase ("Honor"))
+      extractAbsoluteOffsets = syncAfterCommit = true;
+  };
 
   public
   EmacsInputConnection (EmacsView view)
@@ -85,11 +115,32 @@ public final class EmacsInputConnection extends BaseInputConnection
   public boolean
   commitText (CharSequence text, int newCursorPosition)
   {
+    int[] selection;
+
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "commitText: " + text + " " + newCursorPosition);
 
     EmacsNative.commitText (windowHandle, text.toString (),
 			    newCursorPosition);
+
+    if (syncAfterCommit)
+      {
+	/* Synchronize with the Emacs thread, obtain the new
+	   selection, and report it immediately.  */
+
+	selection = EmacsNative.getSelection (windowHandle);
+
+	if (EmacsService.DEBUG_IC && selection != null)
+	  Log.d (TAG, "commitText: new selection is " + selection[0]
+		 + ", by " + selection[1]);
+
+	if (selection != null)
+	  /* N.B. that the composing region is removed after text is
+	     committed.  */
+	  view.imManager.updateSelection (view, selection[0],
+					  selection[1], -1, -1);
+      }
+
     return true;
   }
 
@@ -203,16 +254,42 @@ public final class EmacsInputConnection extends BaseInputConnection
   getExtractedText (ExtractedTextRequest request, int flags)
   {
     ExtractedText text;
+    int[] selection;
 
     if (EmacsService.DEBUG_IC)
-      Log.d (TAG, "getExtractedText: " + request + " " + flags);
+      Log.d (TAG, "getExtractedText: " + request.hintMaxChars + ", "
+	     + request.hintMaxLines + " " + flags);
 
-    text = EmacsNative.getExtractedText (windowHandle, request,
-					 flags);
+    /* If a request arrives with hintMaxChars, hintMaxLines and flags
+       set to 0, and the system is known to be buggy, return an empty
+       extracted text object with the absolute selection positions.  */
+
+    if (extractAbsoluteOffsets
+	&& request.hintMaxChars == 0
+	&& request.hintMaxLines == 0
+	&& flags == 0)
+      {
+	/* Obtain the selection.  */
+	selection = EmacsNative.getSelection (windowHandle);
+	if (selection == null)
+	  return null;
+
+	/* Create the workaround extracted text.  */
+	text = new ExtractedText ();
+	text.partialStartOffset = -1;
+	text.partialEndOffset = -1;
+	text.text = "";
+	text.selectionStart = selection[0];
+	text.selectionEnd = selection[1];
+      }
+    else
+      text = EmacsNative.getExtractedText (windowHandle, request,
+					   flags);
 
     if (EmacsService.DEBUG_IC)
       Log.d (TAG, "getExtractedText: " + text.text + " @"
-	     + text.startOffset + ":" + text.selectionStart);
+	     + text.startOffset + ":" + text.selectionStart
+	     + ", " + text.selectionEnd);
 
     return text;
   }
