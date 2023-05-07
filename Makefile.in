@@ -421,9 +421,9 @@ advice-on-failure:
 
 sanity-check:
 	@[ -f .no-advice-on-failure ] && exit 0; true
-	@v=$$(src/emacs${EXEEXT} --batch --eval \
+	@v=`src/emacs${EXEEXT} --batch --eval \
 	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
-	  2> /dev/null); \
+	  2> /dev/null`; \
 	[ "X$$v" = "X3628800" ] && exit 0; \
 	echo >&2 '***'; \
 	echo >&2 '*** '"\"make ${make-target}\" succeeded, but Emacs is not functional."; \
@@ -1309,7 +1309,7 @@ PREFERRED_BRANCH = emacs-28
 preferred-branch-is-current:
 	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:
-	x=$$(git diff-files --name-only $(CHANGELOG_N) $(emacslog)) && \
+	x=`git diff-files --name-only $(CHANGELOG_N) $(emacslog)` && \
 	  test -z "$$x"
 
 # Regular expression that matches the newest commit covered by a ChangeLog.
