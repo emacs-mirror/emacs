@@ -1862,6 +1862,10 @@ This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
 and `treesit-defun-skipper'."
   (interactive "^p")
+  (or (not (eq this-command 'treesit-beginning-of-defun))
+      (eq last-command 'treesit-beginning-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (let ((orig-point (point))
         (success nil))
     (catch 'done
@@ -1892,6 +1896,10 @@ this function depends on `treesit-defun-type-regexp' and
   (interactive "^p\nd")
   (let ((orig-point (point)))
     (if (or (null arg) (= arg 0)) (setq arg 1))
+    (or (not (eq this-command 'treesit-end-of-defun))
+        (eq last-command 'treesit-end-of-defun)
+        (and transient-mark-mode mark-active)
+        (push-mark))
     (catch 'done
       (dotimes (_ 2) ; Not making progress is better than infloop.
 
