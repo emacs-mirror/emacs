@@ -432,6 +432,13 @@ enum android_ime_operation
     ANDROID_IME_START_BATCH_EDIT,
     ANDROID_IME_END_BATCH_EDIT,
     ANDROID_IME_REQUEST_SELECTION_UPDATE,
+    ANDROID_IME_REQUEST_CURSOR_UPDATES,
+  };
+
+enum
+  {
+    ANDROID_CURSOR_UPDATE_IMMEDIATE = 1,
+    ANDROID_CURSOR_UPDATE_MONITOR   = (1 << 1),
   };
 
 struct android_ime_event
@@ -452,7 +459,11 @@ struct android_ime_event
      indices, and may actually mean ``left'' and ``right''.  */
   ptrdiff_t start, end, position;
 
-  /* The number of characters in TEXT.  */
+  /* The number of characters in TEXT.
+
+     If OPERATION is ANDROID_IME_REQUEST_CURSOR_UPDATES, then this is
+     actually the cursor update mode associated with that
+     operation.  */
   size_t length;
 
   /* TEXT is either NULL, or a pointer to LENGTH bytes of malloced
@@ -620,6 +631,8 @@ extern void android_update_ic (android_window, ptrdiff_t, ptrdiff_t,
 extern void android_reset_ic (android_window, enum android_ic_mode);
 extern void android_update_extracted_text (android_window, void *,
 					   int);
+extern void android_update_cursor_anchor_info (android_window, float,
+					       float, float, float);
 extern int android_set_fullscreen (android_window, bool);
 
 enum android_cursor_shape

@@ -231,6 +231,10 @@ struct android_output
      because the frame contents have been dirtied.  */
   bool_bf need_buffer_flip : 1;
 
+  /* Whether or not the input method should be notified every time the
+     position of this frame's selected window changes.  */
+  bool_bf need_cursor_updates : 1;
+
   /* Relief GCs, colors etc.  */
   struct relief {
     struct android_gc *gc;
@@ -383,6 +387,7 @@ extern struct android_display_info *x_display_list;
 
 extern void android_free_gcs (struct frame *);
 extern void android_default_font_parameter (struct frame *, Lisp_Object);
+extern void android_set_preeditarea (struct window *, int, int);
 
 /* Defined in androidterm.c.  */
 

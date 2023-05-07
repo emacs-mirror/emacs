@@ -632,6 +632,40 @@ android_decode_utf16 (unsigned short *utf16, size_t n)
   return coding.dst_object;
 }
 
+/* Handle a cursor update request for F from the input method.
+   MODE specifies whether or not an update should be sent immediately,
+   and whether or not they are needed in the future.
+
+   If MODE & ANDROID_CURSOR_UPDATE_IMMEDIATE, report the position of
+   F's old selected window's phys cursor now.
+
+   If MODE & ANDROID_CURSOR_UPDATE_MONITOR, set
+   `need_cursor_updates'.  */
+
+static void
+android_request_cursor_updates (struct frame *f, int mode)
+{
+  struct window *w;
+
+  if (mode & ANDROID_CURSOR_UPDATE_IMMEDIATE
+      && WINDOWP (WINDOW_LIVE_P (f->old_selected_window)
+		  ? f->old_selected_window
+		  : f->selected_window))
+    {
+      /* Prefer the old selected window, as its selection is what was
+	 reported to the IME previously.  */
+
+      w = XWINDOW (WINDOW_LIVE_P (f->old_selected_window)
+		   ? f->old_selected_window
+		   : f->selected_window);
+      android_set_preeditarea (w, w->cursor.x, w->cursor.y);
+    }
+
+  /* Now say whether or not updates are needed in the future.  */
+  FRAME_OUTPUT_DATA (f)->need_cursor_updates
+    = (mode & ANDROID_CURSOR_UPDATE_MONITOR);
+}
+
 /* Handle a single input method event EVENT, delivered to the frame
    F.
 
@@ -705,6 +739,10 @@ android_handle_ime_event (union android_event *event, struct frame *f)
     case ANDROID_IME_REQUEST_SELECTION_UPDATE:
       request_point_update (f, event->ime.counter);
       break;
+
+    case ANDROID_IME_REQUEST_CURSOR_UPDATES:
+      android_request_cursor_updates (f, event->ime.length);
+      break;
     }
 }
 
@@ -724,6 +762,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   double scroll_unit;
   int keysym;
   ptrdiff_t nchars, i;
+  struct window *w;
 
   /* It is okay for this to not resemble handle_one_xevent so much.
      Differences in event handling code are much less nasty than
@@ -812,6 +851,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    inev.ie.kind = MOVE_FRAME_EVENT;
 	    XSETFRAME (inev.ie.frame_or_window, f);
 	  }
+
+      if (f && FRAME_OUTPUT_DATA (f)->need_cursor_updates)
+	{
+	  w = XWINDOW (f->selected_window);
+	  android_set_preeditarea (w, w->cursor.x, w->cursor.y);
+	}
       }
 
       goto OTHER;
@@ -954,6 +999,16 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto done_keysym;
 
     done_keysym:
+
+      /* Now proceed to tell the input method the current position of
+	 the cursor, if required.  */
+
+      if (f && FRAME_OUTPUT_DATA (f)->need_cursor_updates)
+	{
+	  w = XWINDOW (f->selected_window);
+	  android_set_preeditarea (w, w->cursor.x, w->cursor.y);
+	}
+
       goto OTHER;
 
     case ANDROID_FOCUS_IN:
@@ -4321,6 +4376,10 @@ android_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 			    int x, int y, enum text_cursor_kinds cursor_type,
 			    int cursor_width, bool on_p, bool active_p)
 {
+  struct frame *f;
+
+  f = WINDOW_XFRAME (w);
+
   if (on_p)
     {
       w->phys_cursor_type = cursor_type;
@@ -4362,6 +4421,13 @@ android_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 	      emacs_abort ();
 	    }
 	}
+
+      /* Now proceed to tell the input method the current position of
+	 the cursor, if required.  */
+
+      if (FRAME_OUTPUT_DATA (f)->need_cursor_updates
+	  && w == XWINDOW (f->selected_window))
+	android_set_preeditarea (w, x, y);
     }
 }
 
@@ -5397,6 +5463,28 @@ NATIVE_NAME (requestSelectionUpdate) (JNIEnv *env, jobject object,
   event.ime.start = 0;
   event.ime.end = 0;
   event.ime.length = 0;
+  event.ime.position = 0;
+  event.ime.text = NULL;
+  event.ime.counter = ++edit_counter;
+
+  android_write_event (&event);
+}
+
+JNIEXPORT void JNICALL
+NATIVE_NAME (requestCursorUpdates) (JNIEnv *env, jobject object,
+				    jshort window, jint mode)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+
+  event.ime.type = ANDROID_INPUT_METHOD;
+  event.ime.serial = ++event_serial;
+  event.ime.window = window;
+  event.ime.operation = ANDROID_IME_REQUEST_CURSOR_UPDATES;
+  event.ime.start = 0;
+  event.ime.end = 0;
+  event.ime.length = mode;
   event.ime.position = 0;
   event.ime.text = NULL;
   event.ime.counter = ++edit_counter;

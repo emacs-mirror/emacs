@@ -209,6 +209,7 @@ public final class EmacsNative
 						       ExtractedTextRequest req,
 						       int flags);
   public static native void requestSelectionUpdate (short window);
+  public static native void requestCursorUpdates (short window, int mode);
 
 
   /* Return the current value of the selection, or -1 upon

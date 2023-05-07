@@ -25,10 +25,12 @@ import java.io.UnsupportedEncodingException;
 
 import java.util.List;
 
+import android.graphics.Matrix;
 import android.graphics.Point;
 
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.inputmethod.CursorAnchorInfo;
 import android.view.inputmethod.ExtractedText;
 
 import android.app.Notification;
@@ -633,6 +635,36 @@ public final class EmacsService extends Service
 
     window.view.setICMode (icMode);
     window.view.imManager.restartInput (window.view);
+  }
+
+  public void
+  updateCursorAnchorInfo (EmacsWindow window, float x,
+			  float y, float yBaseline,
+			  float yBottom)
+  {
+    CursorAnchorInfo info;
+    CursorAnchorInfo.Builder builder;
+    Matrix matrix;
+    int[] offsets;
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+      return;
+
+    offsets = new int[2];
+    builder = new CursorAnchorInfo.Builder ();
+    matrix = new Matrix (window.view.getMatrix ());
+    window.view.getLocationOnScreen (offsets);
+    matrix.postTranslate (offsets[0], offsets[1]);
+    builder.setMatrix (matrix);
+    builder.setInsertionMarkerLocation (x, y, yBaseline, yBottom,
+					0);
+    info = builder.build ();
+
+    if (DEBUG_IC)
+      Log.d (TAG, ("updateCursorAnchorInfo: " + x + " " + y
+		   + " " + yBaseline + "-" + yBottom));
+
+    window.view.imManager.updateCursorAnchorInfo (window.view, info);
   }
 
   /* Open a content URI described by the bytes BYTES, a non-terminated

@@ -113,6 +113,7 @@ struct android_emacs_service
   jmethodID query_battery;
   jmethodID display_toast;
   jmethodID update_extracted_text;
+  jmethodID update_cursor_anchor_info;
 };
 
 struct android_emacs_pixmap
@@ -2209,6 +2210,8 @@ android_init_emacs_service (void)
   FIND_METHOD (update_extracted_text, "updateExtractedText",
 	       "(Lorg/gnu/emacs/EmacsWindow;"
 	       "Landroid/view/inputmethod/ExtractedText;I)V");
+  FIND_METHOD (update_cursor_anchor_info, "updateCursorAnchorInfo",
+	       "(Lorg/gnu/emacs/EmacsWindow;FFFF)V");
 #undef FIND_METHOD
 }
 
@@ -6275,6 +6278,37 @@ android_update_extracted_text (android_window window, void *text,
 						 (jobject) text,
 						 (jint) token);
   android_exception_check_1 (text);
+}
+
+/* Report the position of the cursor to the input method connection on
+   WINDOW.
+
+   X is the horizontal position of the end of the insertion marker.  Y
+   is the top of the insertion marker.  Y_BASELINE is the baseline of
+   the row containing the insertion marker, and Y_BOTTOM is the bottom
+   of the insertion marker.  */
+
+void
+android_update_cursor_anchor_info (android_window window, float x,
+				   float y, float y_baseline,
+				   float y_bottom)
+{
+  jobject object;
+  jmethodID method;
+
+  object = android_resolve_handle (window, ANDROID_HANDLE_WINDOW);
+  method = service_class.update_cursor_anchor_info;
+
+  (*android_java_env)->CallNonvirtualVoidMethod (android_java_env,
+						 emacs_service,
+						 service_class.class,
+						 method,
+						 object,
+						 (jfloat) x,
+						 (jfloat) y,
+						 (jfloat) y_baseline,
+						 (jfloat) y_bottom);
+  android_exception_check ();
 }
 
 

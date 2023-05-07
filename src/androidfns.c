@@ -3000,6 +3000,34 @@ for more details about these values.  */)
 		make_fixnum (state.temperature));
 }
 
+
+
+/* Miscellaneous input method related stuff.  */
+
+/* Report X, Y, by the phys cursor width and height as the cursor
+   anchor rectangle for W's frame.  */
+
+void
+android_set_preeditarea (struct window *w, int x, int y)
+{
+  struct frame *f;
+
+  f = WINDOW_XFRAME (w);
+
+  /* Convert the window coordinates to the frame's coordinate
+     space.  */
+  x = (WINDOW_TO_FRAME_PIXEL_X (w, x)
+       + WINDOW_LEFT_FRINGE_WIDTH (w)
+       + WINDOW_LEFT_MARGIN_WIDTH (w));
+  y = WINDOW_TO_FRAME_PIXEL_Y (w, y);
+
+  /* Note that calculating the baseline is too hard, so the bottom of
+     the cursor is used instead.  */
+  android_update_cursor_anchor_info (FRAME_ANDROID_WINDOW (f), x,
+				     y, y + w->phys_cursor_height,
+				     y + w->phys_cursor_height);
+}
+
 #endif
 
 

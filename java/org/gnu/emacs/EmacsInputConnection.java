@@ -324,6 +324,17 @@ public final class EmacsInputConnection extends BaseInputConnection
     return this.deleteSurroundingText (beforeLength, afterLength);
   }
 
+  @Override
+  public boolean
+  requestCursorUpdates (int cursorUpdateMode)
+  {
+    if (EmacsService.DEBUG_IC)
+      Log.d (TAG, "requestCursorUpdates: " + cursorUpdateMode);
+
+    EmacsNative.requestCursorUpdates (windowHandle, cursorUpdateMode);
+    return true;
+  }
+
 
   /* Override functions which are not implemented.  */
 
