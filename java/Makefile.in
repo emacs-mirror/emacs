@@ -233,7 +233,8 @@ install_temp/assets/directory-tree: $(libsrc)/asset-directory-tool \
 	  install_temp/assets/directory-tree
 
 install_temp/assets/version: install_temp
-	$(AM_V_GEN) { (git rev-parse HEAD || echo "Unknown")		\
+	$(AM_V_GEN) { (cd $(top_srcdir)					\
+			&& git rev-parse HEAD || echo "Unknown")	\
 			&& (git rev-parse --abbrev-ref HEAD 		\
 			    || echo "Unknown") } 2> /dev/null > $@
 
