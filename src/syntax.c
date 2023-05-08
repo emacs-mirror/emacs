@@ -178,14 +178,14 @@ static ptrdiff_t find_start_begv;
 static modiff_count find_start_modiff;
 
 
-static Lisp_Object skip_chars (bool, Lisp_Object, Lisp_Object, bool);
+static Lisp_Object skip_chars (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object skip_syntaxes (bool, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, bool);
 static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
                                 bool, int);
 static void internalize_parse_state (Lisp_Object, struct lisp_parse_state *);
-static bool in_classes (int, Lisp_Object);
+static bool in_classes (int c, int num_classes, const unsigned char *classes);
 static void parse_sexp_propertize (ptrdiff_t charpos);
 
 /* This setter is used only in this file, so it can be private.  */
@@ -1607,7 +1607,7 @@ Char classes, e.g. `[:alpha:]', are supported.
 Returns the distance traveled, either zero or positive.  */)
   (Lisp_Object string, Lisp_Object lim)
 {
-  return skip_chars (1, string, lim, 1);
+  return skip_chars (1, string, lim);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -1616,7 +1616,7 @@ See `skip-chars-forward' for details.
 Returns the distance traveled, either zero or negative.  */)
   (Lisp_Object string, Lisp_Object lim)
 {
-  return skip_chars (0, string, lim, 1);
+  return skip_chars (0, string, lim);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
@@ -1643,8 +1643,7 @@ of this is the distance traveled.  */)
 }
 
 static Lisp_Object
-skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
-	    bool handle_iso_classes)
+skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim)
 {
   int c;
   char fastmap[0400];
@@ -1661,11 +1660,9 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
   ptrdiff_t size_byte;
   const unsigned char *str;
   int len;
-  Lisp_Object iso_classes;
   USE_SAFE_ALLOCA;
 
   CHECK_STRING (string);
-  iso_classes = Qnil;
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
@@ -1700,6 +1697,8 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
      If STRING contains non-ASCII characters, setup char_ranges for
      them and use fastmap only for their leading codes.  */
 
+  int nclasses = 0;
+  unsigned char classes[RECC_NUM_CLASSES];
   if (! string_multibyte)
     {
       bool string_has_eight_bit = 0;
@@ -1707,18 +1706,16 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
       /* At first setup fastmap.  */
       while (i_byte < size_byte)
 	{
-	  if (handle_iso_classes)
+	  const unsigned char *ch = str + i_byte;
+	  re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
+	  if (cc == 0)
+	    error ("Invalid ISO C character class");
+	  if (cc != -1)
 	    {
-	      const unsigned char *ch = str + i_byte;
-	      re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
-	      if (cc == 0)
-		error ("Invalid ISO C character class");
-	      if (cc != -1)
-		{
-		  iso_classes = Fcons (make_fixnum (cc), iso_classes);
-		  i_byte = ch - str;
-		  continue;
-		}
+	      if (!(nclasses && memchr (classes, cc, nclasses)))
+		classes[nclasses++] = cc;
+	      i_byte = ch - str;
+	      continue;
 	    }
 
 	  c = str[i_byte++];
@@ -1803,18 +1800,16 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 	{
 	  int leading_code = str[i_byte];
 
-	  if (handle_iso_classes)
+	  const unsigned char *ch = str + i_byte;
+	  re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
+	  if (cc == 0)
+	    error ("Invalid ISO C character class");
+	  if (cc != -1)
 	    {
-	      const unsigned char *ch = str + i_byte;
-	      re_wctype_t cc = re_wctype_parse (&ch, size_byte - i_byte);
-	      if (cc == 0)
-		error ("Invalid ISO C character class");
-	      if (cc != -1)
-		{
-		  iso_classes = Fcons (make_fixnum (cc), iso_classes);
-		  i_byte = ch - str;
-		  continue;
-		}
+	      if (!(nclasses && memchr (classes, cc, nclasses)))
+		classes[nclasses++] = cc;
+	      i_byte = ch - str;
+	      continue;
 	    }
 
 	  if (leading_code== '\\')
@@ -1960,7 +1955,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 	      c = string_char_and_length (p, &nbytes);
-	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+	      if (nclasses && in_classes (c, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2001,7 +1996,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 
-	      if (!NILP (iso_classes) && in_classes (*p, iso_classes))
+	      if (nclasses && in_classes (*p, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2035,7 +2030,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 
 	      c = STRING_CHAR (p);
 
-	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+	      if (nclasses && in_classes (c, nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2069,7 +2064,7 @@ skip_chars (bool forwardp, Lisp_Object string, Lisp_Object lim,
 		  stop = endp;
 		}
 
-	      if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
+	      if (nclasses && in_classes (p[-1], nclasses, classes))
 		{
 		  if (negate)
 		    break;
@@ -2253,26 +2248,16 @@ skip_syntaxes (bool forwardp, Lisp_Object string, Lisp_Object lim)
   }
 }
 
-/* Return true if character C belongs to one of the ISO classes
-   in the list ISO_CLASSES.  Each class is represented by an
-   integer which is its type according to re_wctype.  */
+/* Return true if character C belongs to one of the ISO classes in the
+   array.  */
 
 static bool
-in_classes (int c, Lisp_Object iso_classes)
+in_classes (int c, int nclasses, const unsigned char *classes)
 {
-  bool fits_class = 0;
-
-  while (CONSP (iso_classes))
-    {
-      Lisp_Object elt;
-      elt = XCAR (iso_classes);
-      iso_classes = XCDR (iso_classes);
-
-      if (re_iswctype (c, XFIXNAT (elt)))
-	fits_class = 1;
-    }
-
-  return fits_class;
+  for (int i = 0; i < nclasses; i++)
+    if (re_iswctype (c, classes[i]))
+      return true;
+  return false;
 }
 
 /* Jump over a comment, assuming we are at the beginning of one.
