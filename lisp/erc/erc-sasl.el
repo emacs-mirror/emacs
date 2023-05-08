@@ -137,12 +137,12 @@ that symbol is `:password', in which case, use a non-nil
 `erc-session-password' instead.  Otherwise, just defer to
 `erc-auth-source-search' to pick a suitable `:host'.  Expect
 PLIST to contain keyword params known to `auth-source-search'."
-  (when erc-sasl-password
-    (when-let ((host (if (eq :password erc-sasl-password)
-                         (and (not (functionp erc-session-password))
-                              erc-session-password)
-                       erc-sasl-password)))
-      (setq plist `(,@plist :host ,(format "%s" host)))))
+  (when-let* ((erc-sasl-password)
+              (host (if (eq :password erc-sasl-password)
+                        (and (not (functionp erc-session-password))
+                             erc-session-password)
+                      erc-sasl-password)))
+    (setq plist `(,@plist :host ,(format "%s" host))))
   (apply #'erc-auth-source-search plist))
 
 (defun erc-sasl--read-password (prompt)
@@ -297,21 +297,6 @@ If necessary, pass PROMPT to `read-passwd'."
              (sasl-client-set-property client 'ecdsa-keyfile keyfile)
              client)))))
 
-;; This stands alone because it's also used by bug#49860.
-(defun erc-sasl--init ()
-  (setq erc-sasl--state (make-erc-sasl--state))
-  ;; If the previous attempt failed during registration, this may be
-  ;; non-nil and contain erroneous values, but how can we detect that?
-  ;; What if the server dropped the connection for some other reason?
-  (setq erc-sasl--options
-        (or (and erc--server-reconnecting
-                 (alist-get 'erc-sasl--options erc--server-reconnecting))
-            `((user . ,erc-sasl-user)
-              (password . ,erc-sasl-password)
-              (mechanism . ,erc-sasl-mechanism)
-              (authfn . ,erc-sasl-auth-source-function)
-              (authzid . ,erc-sasl-authzid)))))
-
 (defun erc-sasl--mechanism-offered-p (offered)
   "Return non-nil when OFFERED appears among a list of mechanisms."
   (string-match-p (rx-to-string
@@ -334,7 +319,16 @@ If necessary, pass PROMPT to `read-passwd'."
 This doesn't solicit or validate a suite of supported mechanisms."
   ;; See bug#49860 for a CAP 3.2-aware WIP implementation.
   ((unless erc--target
-     (erc-sasl--init)
+     (setq erc-sasl--state (make-erc-sasl--state))
+     ;; If the previous attempt failed during registration, this may be
+     ;; non-nil and contain erroneous values, but how can we detect that?
+     ;; What if the server dropped the connection for some other reason?
+     (erc--restore-initialize-priors erc-sasl-mode
+       erc-sasl--options `((user . ,erc-sasl-user)
+                           (password . ,erc-sasl-password)
+                           (mechanism . ,erc-sasl-mechanism)
+                           (authfn . ,erc-sasl-auth-source-function)
+                           (authzid . ,erc-sasl-authzid)))
      (let* ((mech (alist-get 'mechanism erc-sasl--options))
             (client (erc-sasl--create-client mech)))
        (unless client

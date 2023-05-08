@@ -868,6 +868,21 @@
       (should-not (erc--valid-local-channel-p "#chan"))
       (should (erc--valid-local-channel-p "&local")))))
 
+(ert-deftest erc--restore-initialize-priors ()
+  ;; This `pcase' expands to 100+k.  Guess we could do something like
+  ;; (and `(,_ ((,e . ,_) . ,_) . ,_) v) first and then return a
+  ;; (equal `(if-let* ((,e ...)...)...) v) to cut it down to < 1k.
+  (should (pcase (macroexpand-1 '(erc--restore-initialize-priors erc-my-mode
+                                   foo (ignore 1 2 3)
+                                   bar #'spam))
+            (`(if-let* ((,e (or erc--server-reconnecting erc--target-priors))
+                        ((alist-get 'erc-my-mode ,e)))
+                  (setq foo (alist-get 'foo ,e)
+                        bar (alist-get 'bar ,e))
+                (setq foo (ignore 1 2 3)
+                      bar #'spam))
+             t))))
+
 (ert-deftest erc--target-from-string ()
   (should (equal (erc--target-from-string "#chan")
                  #s(erc--target-channel "#chan" \#chan)))

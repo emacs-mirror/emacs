@@ -56,7 +56,9 @@
 (cl-defstruct (erc--input-split (:include erc-input
                                           (string :read-only)
                                           (insertp erc-insert-this)
-                                          (sendp erc-send-this)))
+                                          (sendp (with-suppressed-warnings
+                                                     ((obsolete erc-send-this))
+                                                   erc-send-this))))
   (lines nil :type (list-of string))
   (cmdp nil :type boolean))
 
