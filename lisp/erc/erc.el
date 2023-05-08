@@ -2084,6 +2084,26 @@ Except ignore all local modules, which were introduced in ERC 5.5."
             (push mode local-modes))
         (error "`%s' is not a known ERC module" module)))))
 
+(defvar erc--updating-modules-p nil
+  "Non-nil when running `erc--update-modules' in `erc-open'.
+This allows global modules with known or likely dependents (or
+some other reason for activating after session initialization) to
+conditionally run setup code traditionally reserved for
+`erc-mode-hook' in the setup portion of their mode toggle.  Note
+that being \"global\", they'll likely want to do so in all ERC
+buffers and ensure the code is idempotent.  For example:
+
+  (add-hook \\='erc-mode-hook #\\='erc-foo-setup-fn)
+  (unless erc--updating-modules-p
+    (erc-with-all-buffers-of-server nil
+        (lambda () some-condition-p)
+      (erc-foo-setup-fn)))
+
+This means that when a dependent module is initializing and
+realizes it's missing some required module \"foo\", it can
+confidently call (erc-foo-mode 1) without having to learn
+anything about the dependency's implementation.")
+
 (defun erc--setup-buffer-first-window (frame a b)
   (catch 'found
     (walk-window-tree
@@ -2243,7 +2263,8 @@ Returns the buffer for the given server or channel."
     (set-buffer buffer)
     (setq old-point (point))
     (setq delayed-modules
-          (erc--merge-local-modes (erc--update-modules)
+          (erc--merge-local-modes (let ((erc--updating-modules-p t))
+                                    (erc--update-modules))
                                   (or erc--server-reconnecting
                                       erc--target-priors)))
 

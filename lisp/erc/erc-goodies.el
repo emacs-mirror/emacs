@@ -53,9 +53,8 @@ argument to `recenter'."
   "This mode causes the prompt to stay at the end of the window."
   ((add-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
    (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
-   (dolist (buffer (erc-buffer-list))
-     (with-current-buffer buffer
-       (erc-add-scroll-to-bottom))))
+   (unless erc--updating-modules-p
+     (erc-buffer-filter #'erc-add-scroll-to-bottom)))
   ((remove-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
    (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
@@ -120,9 +119,8 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
 (define-erc-module move-to-prompt nil
   "This mode causes the point to be moved to the prompt when typing text."
   ((add-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
-   (dolist (buffer (erc-buffer-list))
-     (with-current-buffer buffer
-       (erc-move-to-prompt-setup))))
+   (unless erc--updating-modules-p
+     (erc-buffer-filter #'erc-move-to-prompt-setup)))
   ((remove-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
