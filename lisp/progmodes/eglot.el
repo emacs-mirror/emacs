@@ -724,8 +724,23 @@ treated as in `eglot--dbind'."
 (cl-defgeneric eglot-handle-notification (server method &rest params)
   "Handle SERVER's METHOD notification with PARAMS.")
 
-(cl-defgeneric eglot-execute-command (server command arguments)
-  "Ask SERVER to execute COMMAND with ARGUMENTS.")
+(cl-defgeneric eglot-execute-command (_ _ _)
+  (declare (obsolete eglot-execute "30.1"))
+  (:method
+   (server command arguments)
+   (eglot--request server :workspace/executeCommand
+                   `(:command ,(format "%s" command) :arguments ,arguments))))
+
+(cl-defgeneric eglot-execute (server action)
+  "Ask SERVER to execute ACTION.
+ACTION is an LSP object of either `CodeAction' or `Command' type."
+  (:method
+   (server action) "Default implementation."
+   (eglot--dcase action
+     (((Command)) (eglot--request server :workspace/executeCommand action))
+     (((CodeAction) edit command)
+      (when edit (eglot--apply-workspace-edit edit))
+      (when command (eglot--request server :workspace/executeCommand action))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
@@ -2181,13 +2196,6 @@ still unanswered LSP requests to the server\n")))
   (when (memq 'disallow-unknown-methods eglot-strict-mode)
     (jsonrpc-error "Unknown request method `%s'" method)))
 
-(cl-defmethod eglot-execute-command
-  (server command arguments)
-  "Execute COMMAND on SERVER with `:workspace/executeCommand'.
-COMMAND is a symbol naming the command."
-  (eglot--request server :workspace/executeCommand
-                  `(:command ,(format "%s" command) :arguments ,arguments)))
-
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/showMessage)) &key type message)
   "Handle notification window/showMessage."
@@ -3465,14 +3473,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                           default-action)
                                   menu-items nil t nil nil default-action)
                                  menu-items))))))
-    (eglot--dcase chosen
-      (((Command) command arguments)
-       (eglot-execute-command server (intern command) arguments))
-      (((CodeAction) edit command)
-       (when edit (eglot--apply-workspace-edit edit))
-       (when command
-         (eglot--dbind ((Command) command arguments) command
-           (eglot-execute-command server (intern command) arguments)))))))
+    (eglot-execute server chosen)))
 
 (defmacro eglot--code-action (name kind)
   "Define NAME to execute KIND code action."
