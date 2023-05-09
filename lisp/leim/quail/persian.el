@@ -1,6 +1,6 @@
 ;;; persian.el --- Quail package for inputting Persian/Farsi keyboard	-*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 
 ;; Author: Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
 ;; URL: http://mohsen.1.banan.byname.net/contact
