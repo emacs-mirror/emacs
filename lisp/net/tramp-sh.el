@@ -4856,26 +4856,30 @@ Goes through the list `tramp-inline-compress-commands'."
          (stringp tramp-ssh-controlmaster-options))
     tramp-ssh-controlmaster-options)
 
+   ;; We can't auto-compute the options.
+   ((ignore-errors
+      (not (tramp-ssh-option-exists-p vec "ControlMaster=auto")))
+    "")
+
    ;; Determine the options.
    (t (ignore-errors
         ;; ControlMaster and ControlPath options are introduced in OpenSSH 3.9.
-	(when (tramp-ssh-option-exists-p vec "ControlMaster=auto")
-          (concat
-           "-o ControlMaster="
-           (if (eq tramp-use-connection-share 'suppress)
-               "no" "auto")
+        (concat
+         "-o ControlMaster="
+         (if (eq tramp-use-connection-share 'suppress)
+             "no" "auto")
 
-           " -o ControlPath="
-           (if (eq tramp-use-connection-share 'suppress)
-               "none"
-             ;; Hashed tokens are introduced in OpenSSH 6.7.
-	     (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
-		 "tramp.%%C" "tramp.%%r@%%h:%%p"))
+         " -o ControlPath="
+         (if (eq tramp-use-connection-share 'suppress)
+             "none"
+           ;; Hashed tokens are introduced in OpenSSH 6.7.
+	   (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
+	       "tramp.%%C" "tramp.%%r@%%h:%%p"))
 
-           ;; ControlPersist option is introduced in OpenSSH 5.6.
-	   (when (and (not (eq tramp-use-connection-share 'suppress))
-                      (tramp-ssh-option-exists-p vec "ControlPersist=no"))
-	     " -o ControlPersist=no")))))))
+         ;; ControlPersist option is introduced in OpenSSH 5.6.
+	 (when (and (not (eq tramp-use-connection-share 'suppress))
+                    (tramp-ssh-option-exists-p vec "ControlPersist=no"))
+	   " -o ControlPersist=no"))))))
 
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
