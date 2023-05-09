@@ -1977,6 +1977,18 @@ this can be controlled by using this variable, which is a list of
 symbols.
 @end defvar
 
+@defvar safe-local-variable-directories
+This is a list of directories where local variables are always
+enabled.  Directory-local variables loaded from these directories,
+such as the variables in @file{.dir-locals.el}, will be enabled even
+if they are risky.  The directories in this list must be
+fully-expanded absolute paths that end in a directory separator
+character.  They may also be remote directory paths if the
+@code{enable-remote-dir-locals} variable is set to @code{t}.
+Directory paths in this list are case-sensitive, even if the
+filesystem is not.
+@end defvar
+
 @defun hack-local-variables &optional handle-mode
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable

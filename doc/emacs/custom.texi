@@ -1328,6 +1328,13 @@ pairs in the file, by typing @kbd{i} at the confirmation prompt --
 these pairs will thereafter be ignored in this file and in all other
 files.
 
+  For directory-local variable/value pairs
+(@pxref{Directory Variables}), typing @kbd{+} at the confirmation
+prompt will set all the variable/value pairs, and recognize all
+variables in that directory as safe in the future.  This option should
+only be used for directories whose contents you trust.  The @kbd{+}
+confirmation prompt option is not available for file-local variables.
+
 @vindex safe-local-variable-values
 @vindex ignored-local-variable-values
 @cindex risky variable
@@ -1343,6 +1350,21 @@ record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
 Similarly, if you want to record values of risky variables that should
 be permanently ignored, customize @code{ignored-local-variable-values}.
+
+@vindex safe-local-variable-directories
+  Sometimes it is helpful to always trust risky variables in a certain
+directory, and skip the confirmation prompt when directory-local
+variables are loaded there.  When @kbd{+} is pressed at the risky
+variable confirmation prompt, the directory in question is added to
+the @samp{safe-local-variable-directories} variable, and risky
+directory-local variables there will be loaded without prompting in
+the future.  If customizing @samp{safe-local-variable-directories}
+manually, the directories in this list must be fully-expanded absolute
+paths that end in a directory separator character.  Directory paths
+may be remote directory paths (@pxref{Remote Files}), if the
+@code{enable-remote-dir-locals} variable is set to @code{t}.
+Directory paths in this list are case-sensitive, even if the
+filesystem is not.
 
 @vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the
