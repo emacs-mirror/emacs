@@ -314,13 +314,35 @@ sed -n 's/.*\[\(.*\)]$/\1/p' @var{backtrace} |
 @end example
 
 @noindent
+On MS-Windows, the backtrace looks somewhat differently, for example:
+
+@example
+Backtrace:
+00007ff61166a12e
+00007ff611538be1
+00007ff611559601
+00007ff6116ce84a
+00007ff9b7977ff0
+@dots{}
+@end example
+
+@noindent
+Therefore, the filtering via @command{sed} is not required, and the
+command to show the source-code line number is
+
+@example
+ addr2line -C -f -i -p -e @var{bindir}/@var{emacs-binary} < @var{backtrace}
+@end example
+
+@noindent
 Here, @var{backtrace} is the name of a text file containing a copy of
-the backtrace, @var{bindir} is the name of the directory that
-contains the Emacs executable, and @var{emacs-binary} is the name of
-the Emacs executable file, normally @file{emacs} on GNU and Unix
-systems and @file{emacs.exe} on MS-Windows and MS-DOS@.  Omit the
-@option{-p} option if your version of @command{addr2line} is too old
-to have it.
+the backtrace (on MS-Windows, @file{emacs_backtrace.txt} in the
+directory where Emacs was started), @var{bindir} is the name of the
+directory that contains the Emacs executable, and @var{emacs-binary}
+is the name of the Emacs executable file, normally @file{emacs} on GNU
+and Unix systems and @file{emacs.exe} on MS-Windows and MS-DOS@.  Omit
+the @option{-p} option if your version of @command{addr2line} is too
+old to have it.
 
 @cindex core dump
   Optionally, Emacs can generate a @dfn{core dump} when it crashes, on
