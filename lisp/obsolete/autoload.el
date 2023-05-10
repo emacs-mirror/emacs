@@ -723,7 +723,7 @@ autoloads into the specified file instead."
 
 ;;;###autoload
 (defun make-directory-autoloads (dir output-file)
-  "Update autoload definitions for Lisp files in the directories DIRS.
+  "Update autoload definitions for Lisp files in the directories DIR.
 DIR can be either a single directory or a list of
 directories.  (The latter usage is discouraged.)
 
