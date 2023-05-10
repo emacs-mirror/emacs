@@ -391,7 +391,7 @@ or call the function `%s'."))))
                                  (not (equal ,last-message
                                              (current-message))))
                       (let ((local ,(if globalp "" " in current buffer")))
-			(message ,(format "%s %%sabled%%s" pretty-name)
+			(message "%s %sabled%s" ,pretty-name
 			         (if ,getter "en" "dis") local)))))
 	      ,@(when after-hook `(,after-hook)))
 	    (force-mode-line-update)

@@ -504,10 +504,10 @@ NODE should be a labeled_statement.  PARENT is its parent."
   "C/C++ keywords for tree-sitter font-locking.
 MODE is either `c' or `cpp'."
   (let ((c-keywords
-         '("break" "case" "const" "continue"
+         '("_Atomic" "break" "case" "const" "continue"
            "default" "do" "else" "enum"
            "extern" "for" "goto" "if" "inline"
-           "register" "return"
+           "register" "restrict" "return"
            "sizeof" "static" "struct"
            "switch" "typedef" "union"
            "volatile" "while")))
