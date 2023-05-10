@@ -436,6 +436,8 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 Arguments FROM-STRING, TO-STRING, DELIMITED, START, END, BACKWARD, and
 REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see).
+\(TO-STRING is passed to `perform-replace' as REPLACEMENTS and
+DELIMITED is passed as DELIMITED-FLAG.)
 
 To customize possible responses, change the bindings in `query-replace-map'."
   (declare (interactive-args
@@ -533,7 +535,10 @@ text, TO-STRING is actually made a list instead of a string.
 Use \\[repeat-complex-command] after this command for details.
 
 Arguments REGEXP, TO-STRING, DELIMITED, START, END, BACKWARD, and
-REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see)."
+REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see).
+\(REGEXP is passed to `perform-replace' as FROM-STRING,
+TO-STRING is passed as REPLACEMENTS, and DELIMITED is passed
+as DELIMITED-FLAG.)"
   (declare (interactive-args
 	    (start (use-region-beginning))
 	    (end (use-region-end))
