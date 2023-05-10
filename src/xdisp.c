@@ -12810,6 +12810,8 @@ truncate_message_1 (void *a1, Lisp_Object a2)
   return false;
 }
 
+extern intptr_t garbage_collection_inhibited;
+
 /* Set the current message to STRING.  */
 
 static void
@@ -12819,7 +12821,11 @@ set_message (Lisp_Object string)
 
   eassert (STRINGP (string));
 
-  if (FUNCTIONP (Vset_message_function))
+  if (FUNCTIONP (Vset_message_function)
+      /* FIXME: (bug#63253) We should really make the regexp engine re-entrant,
+         but in the mean time, let's ignore `set-message-function` when
+         called from `probably_quit`.  */
+      && !garbage_collection_inhibited)
     {
       specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
@@ -12896,7 +12902,9 @@ clear_message (bool current_p, bool last_displayed_p)
 
   if (current_p)
     {
-      if (FUNCTIONP (Vclear_message_function))
+      if (FUNCTIONP (Vclear_message_function)
+          /* FIXME: (bug#63253) Same as for `set-message-function` above.  */
+          && !garbage_collection_inhibited)
         {
           specpdl_ref count = SPECPDL_INDEX ();
           specbind (Qinhibit_quit, Qt);
