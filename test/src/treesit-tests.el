@@ -54,6 +54,9 @@
 (declare-function treesit-node-descendant-for-range "treesit.c")
 (declare-function treesit-node-eq "treesit.c")
 
+(declare-function treesit-search-forward "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
+
 ;;; Basic API
 
 (ert-deftest treesit-basic-parsing ()
