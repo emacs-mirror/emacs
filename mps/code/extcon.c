@@ -16,6 +16,8 @@
 
 #include "mps.h"
 #include "testlib.h"
+#include "fmtdy.h"
+#include "fmtdytst.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
 #include <stdio.h>
@@ -23,9 +25,9 @@
 
 /* Number of test objects to allocate */
 #define N_TESTOBJ 100
-/* Number of integers in each test object */
-#define N_INT_TESTOBJ 10000
-/* This is the difference in size between */
+/* Number of dylan "slots" in each test object */
+#define N_SLOT_TESTOBJ 10000
+/* This is the number of bytes the initial arena is bigger than the test object size */
 #define SIZEDIFF 10
 
 /* Set alignment to mps_word_ts */
@@ -33,81 +35,16 @@
 
 /* Align size upwards to the next multiple of the word size. */
 #define ALIGN_WORD(size) \
-  (((size) + ALIGNMENT - 1) & ~(ALIGNMENT - 1))
-
-/* Object TYPE macro */
-#define TYPE(obj) ((obj)->type.type)
+    (((size) + ALIGNMENT - 1) & ~(ALIGNMENT - 1))
 
 /* Global objects*/
 static mps_arena_t arena;       /* the arena */
-static mps_pool_t obj_pool;     /* pool for ordinary objects */
+static mps_pool_t obj_pool;     /* pool for test objects */
 static mps_ap_t obj_ap;         /* allocation point used to allocate objects */
 
 /* Count of number of arena contractions and extensions */
 static int n_contract = 0;
 static int n_extend = 0;
-
-/* Union of all object types */
-typedef int type_t;
-enum {
-  TYPE_INTBOX,
-  TYPE_FWD2,            /* two-word forwarding object */
-  TYPE_FWD,             /* three words and up forwarding object */
-  TYPE_PAD1,            /* one-word padding object */
-  TYPE_PAD              /* two words and up padding object */
-};
-
-typedef struct type_s {
-  type_t type;
-} type_s;
-
-typedef union obj_u *obj_t;
-
-typedef struct fwd2_s {
-  type_t type;                  /* TYPE_FWD2 */
-  obj_t fwd;                    /* forwarded object */
-} fwd2_s;
-
-typedef struct fwd_s {
-  type_t type;                  /* TYPE_FWD */
-  obj_t fwd;                    /* forwarded object */
-  size_t size;                  /* total size of this object */
-} fwd_s;
-
-/* Align size upwards to the next multiple of the word size, and
- * additionally ensure that it's big enough to store a forwarding
- * pointer. Evaluates its argument twice. */
-#define ALIGN_OBJ(size)                                \
-  (ALIGN_WORD(size) >= ALIGN_WORD(sizeof(fwd_s))       \
-   ? ALIGN_WORD(size)                                  \
-   : ALIGN_WORD(sizeof(fwd_s)))
-
-typedef struct pad1_s {
-  type_t type;                  /* TYPE_PAD1 */
-} pad1_s;
-
-typedef struct pad_s {
-  type_t type;                  /* TYPE_PAD */
-  size_t size;                  /* total size of this object */
-} pad_s;
-
-
-typedef struct test_alloc_obj
-{
-  type_t type;
-  size_t size;
-  int int_array[N_INT_TESTOBJ];
-} test_alloc_obj_s;
-
-
-typedef union obj_u {
-  type_s type;
-  test_alloc_obj_s int_box;
-  fwd_s fwd;
-  fwd2_s fwd2;
-  pad1_s pad1;
-  pad_s pad;
-} obj_s;
 
 /* Callback functions for arena extension and contraction */
 static void arena_extended_cb(mps_arena_t arena_in, mps_addr_t addr, size_t size)
@@ -128,82 +65,7 @@ static void arena_contracted_cb(mps_arena_t arena_in, mps_addr_t addr, size_t si
   n_contract++;
 }
 
-/* Format functions */
-static mps_addr_t obj_skip(mps_addr_t addr)
-{
-  obj_t obj = addr;
-
-  switch (TYPE(obj))
-  {
-  case TYPE_INTBOX:
-    addr = (char *)addr + ALIGN_OBJ(sizeof(test_alloc_obj_s));
-    break;
-  case TYPE_FWD2:
-    addr = (char *)addr + ALIGN_WORD(sizeof(fwd2_s));
-    break;
-  case TYPE_FWD:
-    addr = (char *)addr + ALIGN_WORD(obj->fwd.size);
-    break;
-  case TYPE_PAD1:
-    addr = (char *)addr + ALIGN_WORD(sizeof(pad1_s));
-    break;
-  case TYPE_PAD:
-    addr = (char *)addr + ALIGN_WORD(obj->pad.size);
-    break;
-  default:
-    printf("invalid type");
-    Insist(0);
-    break;
-  }
-
-  return addr;
-}
-
-static void obj_pad(mps_addr_t addr, size_t size)
-{
-
-  obj_t obj = addr;
-
-  Insist(size >= ALIGN_WORD(sizeof(pad1_s)));
-  if (size == ALIGN_WORD(sizeof(pad1_s))) {
-    TYPE(obj) = TYPE_PAD1;
-  } else {
-    TYPE(obj) = TYPE_PAD;
-    obj->pad.size = size;
-  }
-}
-
-static void obj_fwd(mps_addr_t old, mps_addr_t new)
-{
-  obj_t obj = old;
-  mps_addr_t limit = obj_skip(old);
-  size_t size = (size_t)((char*)limit - (char*)old);
-
-  Insist(size >= ALIGN_WORD(sizeof(fwd2_s)));
-  if (size == ALIGN_WORD(sizeof(fwd2_s))) {
-    TYPE(obj) = TYPE_FWD2;
-    obj->fwd2.fwd = new;
-  } else {
-    TYPE(obj) = TYPE_FWD;
-    obj->fwd.fwd = new;
-    obj->fwd.size = size;
-  }
-}
-
-static mps_addr_t obj_isfwd(mps_addr_t addr)
-{
-  obj_t obj = addr;
-  switch (TYPE(obj)) {
-  case TYPE_FWD2:
-    return obj->fwd2.fwd;
-  case TYPE_FWD:
-    return obj->fwd.fwd;
-  default:
-    return NULL;
-  }
-}
-
-
+/* Messages for testbench debugging */
 static void print_messages(void)
 {
   mps_message_type_t type;
@@ -241,7 +103,8 @@ static void print_messages(void)
   }
 }
 
-
+/* Disabling inlining is necessary (but perhaps not sufficient) if using stack roots.
+   See comment below with link to GitHub issue*/
 ATTRIBUTE_NOINLINE
 static void test_main(void *cold_stack_end)
 {
@@ -250,14 +113,13 @@ static void test_main(void *cold_stack_end)
   mps_thr_t thread;
   mps_root_t stack_root, testobj_root;
   size_t arena_size, obj_size;
-  mps_addr_t p;
   int i;
   /* In the original version of extcon this was a stack root, but we
      observed unreliable failures to do with registering the cold end
      of the stack.  See GitHub issue #210
      <https://github.com/Ravenbrook/mps/issues/210>.  For now, we
      declare this as a separate root. */
-  static mps_addr_t testobj[N_TESTOBJ];
+  static mps_word_t testobj[N_TESTOBJ];
 
   /* The testobj array must be below (on all current Posix platforms)
      the cold end of the stack in order for the MPS to scan it.  We
@@ -276,8 +138,9 @@ static void test_main(void *cold_stack_end)
 #endif
 
   /* Make initial arena size slightly bigger than the test object size to force an extension as early as possible */
-  obj_size = ALIGN_OBJ(sizeof(test_alloc_obj_s));
-  arena_size = ALIGN_OBJ(obj_size + SIZEDIFF);
+  /* See definition of make_dylan_vector() in fmtdytst.c for calculation of vector size */  
+  obj_size = ALIGN_WORD((N_SLOT_TESTOBJ + 2) * sizeof(mps_word_t));
+  arena_size = ALIGN_WORD(obj_size + SIZEDIFF);
 
   /* Create arena and register callbacks */
   MPS_ARGS_BEGIN(args) {
@@ -289,15 +152,7 @@ static void test_main(void *cold_stack_end)
 
   printf("Initial reservation %"PRIuLONGEST".\n", (ulongest_t)mps_arena_reserved(arena));
 
-  /* Create new fmt */
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_ISFWD, obj_isfwd);
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_PAD, obj_pad);
-    res = mps_fmt_create_k(&obj_fmt, arena, args);
-  } MPS_ARGS_END(args);
+  die(dylan_fmt(&obj_fmt, arena), "dylan_fmt()");
 
   /* Create new pool */
   MPS_ARGS_BEGIN(args) {
@@ -310,13 +165,19 @@ static void test_main(void *cold_stack_end)
   die(mps_thread_reg(&thread, arena), "Thread reg");
 
   /* Register stack roots */
+  /* Since this testbench is currently not using a stack root, #IF 0 this out */
+  testlib_unused(cold_stack_end);
+  testlib_unused(stack_root);
+#if 0
   die(mps_root_create_thread(&stack_root, arena, thread, cold_stack_end), "Create Stack root");
+#endif
 
   /* Register ambiguous array of object roots. */
-  die(mps_root_create_table(&testobj_root, arena,
+  die(mps_root_create_area(&testobj_root, arena,
                             mps_rank_ambig(), (mps_rm_t)0,
-                            &testobj[0], N_TESTOBJ),
-      "root_create_table(testobj)");
+                            &testobj[0], &testobj[N_TESTOBJ],
+                            mps_scan_area, NULL),
+      "root_create_area(testobj)");
 
   /* Create allocation point */
   die(mps_ap_create_k(&obj_ap, obj_pool, mps_args_none), "Create Allocation point");
@@ -326,37 +187,13 @@ static void test_main(void *cold_stack_end)
 
   /* Allocate objects and force arena extension */
   for (i = 0; i < N_TESTOBJ; i++) {
-    int j;
-    test_alloc_obj_s *p_test_obj;
 
-    do {
-      printf("Reserving memory for object %d\n", i);
-
-      res = mps_reserve(&p, obj_ap, obj_size);
-      if (res != MPS_RES_OK) 
-        exit(EXIT_FAILURE);
-
-      /* p is now an ambiguous reference to the reserved block */
-      testobj[i] = p;
-
-      /* initialize obj */
-      p_test_obj = testobj[i];
-      p_test_obj->type = TYPE_INTBOX;
-      p_test_obj->size = obj_size;
-
-      for (j = 0; j < N_INT_TESTOBJ; ++j)
-        p_test_obj->int_array[j] = j;
-    } while (!mps_commit(obj_ap, p, obj_size));
-    /* testobj[i] is now valid and managed by the MPS */
+    die(make_dylan_vector(&testobj[i], obj_ap, N_SLOT_TESTOBJ), "make_dylan_vector"); 
 
     printf("Object %d committed.  "
            "Arena reserved: %"PRIuLONGEST".\n",
            i,
            (ulongest_t)mps_arena_reserved(arena));
-
-    /* Overwrite the local references to test objects*/
-    p_test_obj = NULL;
-    p = NULL;
 
     print_messages();
   }
@@ -381,7 +218,7 @@ static void test_main(void *cold_stack_end)
 #endif
 
     /* now overwrite the ref */
-    testobj[i] = NULL;
+    testobj[i] = (mps_word_t)NULL;
 
     print_messages();
   }
@@ -396,7 +233,7 @@ static void test_main(void *cold_stack_end)
 
   /* Clean up */
   mps_root_destroy(testobj_root);
-  mps_root_destroy(stack_root);
+  /* mps_root_destroy(stack_root);*/
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
