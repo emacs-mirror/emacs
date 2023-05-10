@@ -108,7 +108,6 @@ static void print_messages(void)
 ATTRIBUTE_NOINLINE
 static void test_main(void *cold_stack_end)
 {
-  mps_res_t res;
   mps_fmt_t obj_fmt;
   mps_thr_t thread;
   mps_root_t stack_root, testobj_root;
@@ -147,7 +146,7 @@ static void test_main(void *cold_stack_end)
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_EXTENDED, (mps_fun_t)&arena_extended_cb);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CONTRACTED, (mps_fun_t)&arena_contracted_cb);
-    res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "mps_arena_create_k");
   } MPS_ARGS_END(args);
 
   printf("Initial reservation %"PRIuLONGEST".\n", (ulongest_t)mps_arena_reserved(arena));
