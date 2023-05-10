@@ -489,7 +489,7 @@ $(PFM)/$(VARIETY)/djbench: $(PFM)/$(VARIETY)/djbench.o \
 	$(TESTLIBOBJ) $(TESTTHROBJ)
 
 $(PFM)/$(VARIETY)/extcon: $(PFM)/$(VARIETY)/extcon.o \
-	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
