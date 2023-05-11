@@ -33,6 +33,7 @@
 ;;; Customizable variables
 
 (declare-function font-get-system-font "xsettings.c" ())
+(declare-function reconsider-frame-font "frame.c" ())
 
 (defvar font-use-system-font)
 

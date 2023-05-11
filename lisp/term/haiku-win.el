@@ -36,6 +36,9 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
+;; For when building a --without-x configuration, where this is not
+;; preloaded.
+(eval-when-compile (require 'mwheel))
 
 (add-to-list 'display-format-alist '(".*" . haiku))
 

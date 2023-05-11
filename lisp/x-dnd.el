@@ -31,6 +31,9 @@
 ;;; Code:
 
 (require 'dnd)
+;; For when building a --without-x configuration, where this is not
+;; preloaded.
+(eval-when-compile (require 'mwheel))
 
 ;;; Customizable variables
 (defcustom x-dnd-test-function #'x-dnd-default-test-function
