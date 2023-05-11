@@ -3488,6 +3488,22 @@ lambda-expression."
 				      (format-message "; use `%s' instead."
                                                       interactive-only))
 				     (t "."))))
+        (let ((mutargs (function-get (car form) 'mutates-arguments)))
+          (when mutargs
+            (dolist (idx (if (eq mutargs 'all-but-last)
+                             (number-sequence 1 (- (length form) 2))
+                           mutargs))
+              (let ((arg (nth idx form)))
+                (when (and (or (and (eq (car-safe arg) 'quote)
+                                    (consp (nth 1 arg)))
+                               (arrayp arg))
+                           (byte-compile-warning-enabled-p
+                            'suspicious (car form)))
+                  (byte-compile-warn-x form "`%s' on constant %s (arg %d)"
+                                       (car form)
+                                       (if (consp arg) "list" (type-of arg))
+                                       idx))))))
+
         (if (eq (car-safe (symbol-function (car form))) 'macro)
             (byte-compile-report-error
              (format-message "`%s' defined after use in %S (missing `require' of a library file?)"
@@ -3556,6 +3572,43 @@ lambda-expression."
          )))
   (dolist (fn important-return-value-fns)
     (put fn 'important-return-value t)))
+
+(let ((mutating-fns
+       ;; FIXME: Should there be a function declaration for this?
+       ;;
+       ;; (FUNC . ARGS) means that FUNC mutates arguments whose indices are
+       ;; in the list ARGS, starting at 1, or all but the last argument if
+       ;; ARGS is `all-but-last'.
+       '(
+         (setcar 1) (setcdr 1) (aset 1)
+         (nreverse 1)
+         (nconc . all-but-last)
+         (nbutlast 1) (ntake 2)
+         (sort 1)
+         (delq 2) (delete 2)
+         (delete-dups 1) (delete-consecutive-dups 1)
+         (plist-put 1)
+         (fillarray 1)
+         (store-substring 1)
+         (clear-string 1)
+
+         (add-text-properties 4) (put-text-property 5) (set-text-properties 4)
+         (remove-text-properties 4) (remove-list-of-text-properties 4)
+         (alter-text-property 5)
+         (add-face-text-property 5) (add-display-text-property 5)
+
+         (cl-delete 2) (cl-delete-if 2) (cl-delete-if-not 2)
+         (cl-delete-duplicates 1)
+         (cl-nsubst 3) (cl-nsubst-if 3) (cl-nsubst-if-not 3)
+         (cl-nsubstitute 3) (cl-nsubstitute-if 3) (cl-nsubstitute-if-not 3)
+         (cl-nsublis 2)
+         (cl-nunion 1 2) (cl-nintersection 1 2) (cl-nset-difference 1 2)
+         (cl-nset-exclusive-or 1 2)
+         (cl-nreconc 1)
+         (cl-sort 1) (cl-stable-sort 1) (cl-merge 2 3)
+         )))
+  (dolist (entry mutating-fns)
+    (put (car entry) 'mutates-arguments (cdr entry))))
 
 
 (defun byte-compile-normal-call (form)

@@ -510,6 +510,26 @@ This warning can be suppressed using 'with-suppressed-warnings' with
 the warning name 'suspicious'.
 
 ---
+*** Warn about mutation of constant values.
+The compiler now warns about code that modifies program constants in
+some obvious cases.  Examples:
+
+    (setcar '(1 2) 7)
+    (aset [3 4] 0 8)
+    (aset "abc" 1 ?d)
+
+Such code may have unpredictable behaviour because the constants are
+part of the program, not data structures generated afresh during
+execution, and the compiler does not expect them to change.
+
+To avoid the warning, operate on an object created by the program
+(maybe a copy of the constant), or use a non-destructive operation
+instead.
+
+This warning can be suppressed using 'with-suppressed-warnings' with
+the warning name 'suspicious'.
+
+---
 *** Warn about more ignored function return values.
 The compiler now warns when the return value from certain functions is
 implicitly ignored.  Example:

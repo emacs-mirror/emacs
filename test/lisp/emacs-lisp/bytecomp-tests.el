@@ -1518,6 +1518,36 @@ literals (Bug#20852)."
         ))
    '((empty-body with-suppressed-warnings))
    "Warning: `with-suppressed-warnings' with empty body")
+
+  (test-suppression
+   '(defun zot ()
+      (setcar '(1 2) 3))
+   '((suspicious setcar))
+   "Warning: `setcar' on constant list (arg 1)")
+
+  (test-suppression
+   '(defun zot ()
+      (aset [1 2] 1 3))
+   '((suspicious aset))
+   "Warning: `aset' on constant vector (arg 1)")
+
+  (test-suppression
+   '(defun zot ()
+      (aset "abc" 1 ?d))
+   '((suspicious aset))
+   "Warning: `aset' on constant string (arg 1)")
+
+  (test-suppression
+   '(defun zot (x y)
+      (nconc x y '(1 2) '(3 4)))
+   '((suspicious nconc))
+   "Warning: `nconc' on constant list (arg 3)")
+
+  (test-suppression
+   '(defun zot ()
+      (put-text-property 0 2 'prop 'val "abc"))
+   '((suspicious put-text-property))
+   "Warning: `put-text-property' on constant string (arg 5)")
   )
 
 (ert-deftest bytecomp-tests--not-writable-directory ()
