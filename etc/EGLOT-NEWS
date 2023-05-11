@@ -99,12 +99,12 @@ been added to 'eglot-stay-out-of'.
 
 * Changes in Eglot 1.12.29 (Eglot bundled with Emacs 29.1)
 
-** Eglot can upgrade itself to the latest version.
+** Eglot has a new command to upgrade to the latest version.
 
-The new command 'eglot-upgrade-eglot' works around behaviour in the
-existing 'package-install' command and the new 'package-upgrade'
-command which would prevent the user from easily grabbing the latest
-version as usual.
+The new command 'eglot-upgrade-eglot' allows easily grabbing the
+latest version of Eglot from ELPA.  This might be more convenient than
+using the more general command 'package-install', which by default
+will not upgrade "built-in" packages, those that come with Emacs.
 
 
 * Changes in Eglot 1.12 (13/03/2023)
@@ -253,12 +253,12 @@ may be disabled via 'eglot-ignored-server-capabilities'
 ** Basic LSP "workspace folders" support added.
 Eglot now advertises 'project-root' and 'project-external-roots' as
 workspace-folders.  (Configuring 'project-vc-external-roots-function'
-via Elisp or 'tags-table-list' via Custtomize are two ways to set the
+via Elisp or 'tags-table-list' via Customize are two ways to set the
 external roots of a simple git project.)
 
 (github#893)
 
-** Eglot can now show project wide diagnosics via Flymake.
+** Eglot can now show project wide diagnostics via Flymake.
 Some LSP servers report diagnostics for all files in the current
 workspace.  Flymake has (as of version 1.2.1) the option to show
 diagnostics from buffers other than the currently visited one.  The
@@ -476,7 +476,7 @@ these two domains.
 
 * Changes in Eglot 1.3 (10/12/2018)
 
-** Provide strict checking of incoming LSP messagesp.
+** Provide strict checking of incoming LSP messages.
 
 (github#144, github#156)
 
@@ -570,7 +570,7 @@ here.
 * Changes in Eglot 1.1 (9/7/2018)
 
 ** Implement TCP autostart/autoconnect (and support Ruby's Solargraph).
-The ':autoport' symbol in the server incovation is replaced
+The ':autoport' symbol in the server invocation is replaced
 dynamically by a local port believed to be vacant, so that the ensuing
 TCP connection finds a listening server.
 

@@ -464,6 +464,15 @@ compilation and evaluation time conflicts."
 
 (defun csharp-guess-basic-syntax (orig-fun &rest args)
   (cond
+   (;; enum
+    (save-excursion
+      (goto-char (c-point 'boi))
+      (and
+       (eq (char-after) ?\{)
+       (save-excursion
+         (goto-char (c-point 'iopl))
+         (looking-at ".*enum.*"))))
+    `((class-open ,(c-point 'iopl))))
    (;; Attributes
     (save-excursion
       (goto-char (c-point 'iopl))

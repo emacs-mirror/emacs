@@ -2247,7 +2247,7 @@ Here is an example:
 
 @smallexample
 @group
-(yes-or-no-p "Do you really want to remove everything?")
+(yes-or-no-p "Do you really want to remove everything? ")
 
 ;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears,}

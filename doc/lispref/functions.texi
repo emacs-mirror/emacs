@@ -1484,7 +1484,7 @@ the symbol as a function, Emacs signals a @code{void-function} error.
   Note that void is not the same as @code{nil} or the symbol
 @code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
 and can be stored into a function cell just as any other object can be
-(and they can be valid functions if you define them in turn with
+(and @code{void} can be a valid function if you define it with
 @code{defun}).  A void function cell contains no object whatsoever.
 
   You can test the voidness of a symbol's function definition with

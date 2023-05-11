@@ -1653,9 +1653,9 @@ command's first argument.  If @code{case-fold-search} is set to
 @code{nil}, case is always significant in all searches.
 
 @vindex case-replace
-  In addition, when the @var{newstring} argument is all or partly lower
-case, replacement commands try to preserve the case pattern of each
-occurrence.  Thus, the command
+  In addition, when the second argument of a replace command is all or
+partly lower case, replacement commands try to preserve the case
+pattern of each occurrence.  Thus, the command
 
 @example
 M-x replace-string @key{RET} foo @key{RET} bar @key{RET}

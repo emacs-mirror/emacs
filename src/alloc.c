@@ -402,7 +402,7 @@ static ptrdiff_t pure_bytes_used_non_lisp;
 
 /* If positive, garbage collection is inhibited.  Otherwise, zero.  */
 
-static intptr_t garbage_collection_inhibited;
+intptr_t garbage_collection_inhibited;
 
 /* The GC threshold in bytes, the last time it was calculated
    from gc-cons-threshold and gc-cons-percentage.  */
