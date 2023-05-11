@@ -3934,7 +3934,10 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 		  (null unsafe-vars)
 		  (null risky-vars))
 	     (memq enable-local-variables '(:all :safe))
-             (member dir-name safe-local-variable-directories)
+             (delq nil (mapcar (lambda (dir)
+                                 (and dir-name dir
+                                      (file-equal-p dir dir-name)))
+                               safe-local-variable-directories))
 	     (hack-local-variables-confirm all-vars unsafe-vars
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)

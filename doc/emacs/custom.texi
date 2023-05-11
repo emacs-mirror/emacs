@@ -1359,10 +1359,9 @@ certain directories, and skip the confirmation prompt when local
 variables are loaded from those directories, even if the variables are
 risky.  The variable @code{safe-local-variable-directories} holds the
 list of such directories.  The names of the directories in this list
-must be full absolute file names, and should end in a slash.  If the
-variable @code{enable-remote-dir-locals} has a non-@code{nil} value,
-the list can include remote directories as well (@pxref{Remote
-Files}).
+must be full absolute file names.  If the variable
+@code{enable-remote-dir-locals} has a non-@code{nil} value, the list
+can include remote directories as well (@pxref{Remote Files}).
 
 @vindex enable-local-variables
   The variable @code{enable-local-variables} allows you to change the
