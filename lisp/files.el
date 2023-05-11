@@ -3700,7 +3700,10 @@ This overrides any `enable-local-variables' setting.")
 (defcustom safe-local-variable-directories '()
   "A list of directories where local variables are always enabled.
 Directory-local variables loaded from these directories, such as the
-variables in .dir-locals.el, will be enabled even if they are risky."
+variables in .dir-locals.el, will be enabled even if they are risky.
+The names of the directories in the list must be absolute, and must
+end in a slash.  Remote directories can be included if the
+variable `enable-remote-dir-locals' is non-nil."
   :version "30.1"
   :type '(repeat string)
   :risky t

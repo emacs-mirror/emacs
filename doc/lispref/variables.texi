@@ -1982,11 +1982,11 @@ This is a list of directories where local variables are always
 enabled.  Directory-local variables loaded from these directories,
 such as the variables in @file{.dir-locals.el}, will be enabled even
 if they are risky.  The directories in this list must be
-fully-expanded absolute paths that end in a directory separator
-character.  They may also be remote directory paths if the
-@code{enable-remote-dir-locals} variable is set to @code{t}.
-Directory paths in this list are case-sensitive, even if the
-filesystem is not.
+fully-expanded absolute file names that end in a directory separator
+character.  They may also be remote directories if the variable
+@code{enable-remote-dir-locals} is set non-@code{nil}.  Directories in
+this list are matched case-sensitively, even if the filesystem is
+case-sensitive.
 @end defvar
 
 @defun hack-local-variables &optional handle-mode
