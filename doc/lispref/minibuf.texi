@@ -2200,6 +2200,9 @@ the expected answers (@kbd{y}, @kbd{n}, @kbd{@key{SPC}},
 @kbd{@key{DEL}}, or something that quits), the function responds
 @samp{Please answer y or n.}, and repeats the request.
 
+If @var{prompt} is a non-empty string, and it ends with a non-space
+character, a @samp{SPC} character will be appended to it.
+
 This function actually uses the minibuffer, but does not allow editing
 of the answer.  The cursor moves to the minibuffer while the question
 is being asked.
@@ -2239,6 +2242,9 @@ minibuffer, followed by the value of @code{yes-or-no-prompt} @w{(default
 @samp{(yes or no) })}.  The user must type one of the expected
 responses; otherwise, the function responds @w{@samp{Please answer yes or
 no.}}, waits about two seconds and repeats the request.
+
+If @var{prompt} is a non-empty string, and it ends with a non-space
+character, a @samp{SPC} character will be appended to it.
 
 @code{yes-or-no-p} requires more work from the user than
 @code{y-or-n-p} and is appropriate for more crucial decisions.

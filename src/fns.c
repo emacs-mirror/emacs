@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include <vla.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "lisp.h"
 #include "bignum.h"
@@ -3202,7 +3203,9 @@ DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
 Return t if answer is yes, and nil if the answer is no.
 
 PROMPT is the string to display to ask the question; `yes-or-no-p'
-appends `yes-or-no-prompt' (default \"(yes or no) \") to it.
+appends `yes-or-no-prompt' (default \"(yes or no) \") to it.  If
+PROMPT is a non-empty string, and it ends with a non-space character,
+a space character will be appended to it.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
@@ -3234,6 +3237,12 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   if (use_short_answers)
     return call1 (intern ("y-or-n-p"), prompt);
 
+  {
+    char *s = SSDATA (prompt);
+    ptrdiff_t len = strlen (s);
+    if ((len > 0) && !isspace (s[len - 1]))
+      prompt = CALLN (Fconcat, prompt, build_string (" "));
+  }
   prompt = CALLN (Fconcat, prompt, Vyes_or_no_prompt);
 
   specpdl_ref count = SPECPDL_INDEX ();
