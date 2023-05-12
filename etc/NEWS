@@ -1910,8 +1910,8 @@ In addition, when this option is non-nil, built-in packages for which
 a new version is available in archives can be upgraded via the package
 menu produced by 'M-x list-packages'.  If you do set this option
 non-nil, we recommend not to use the 'U' command, but instead to use
-'/ u' to show the packages which can be upgraded, and then unmark the
-built-in packages which you don't need to overwrite from the archives.
+'/ u' to show the packages which can be upgraded, and then decide
+which ones of them you actually want to update from the archives.
 
 If you customize this option, we recommend you place its non-default
 setting in your early-init file.
