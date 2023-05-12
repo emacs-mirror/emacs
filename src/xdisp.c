@@ -3545,7 +3545,7 @@ init_iterator (struct it *it, struct window *w,
 
    The corresponding function 'get_medium_narrowing_zv' (and
    'medium_narrowing_zv' field in 'struct it') is not used to set the
-   end limit of a the restriction, which is again unnecessary, but to
+   end limit of the restriction, which is again unnecessary, but to
    determine, in 'reseat', whether the iterator has moved far enough
    from its original position, and whether the start position of the
    restriction must be computed anew.
@@ -3613,10 +3613,15 @@ get_medium_narrowing_zv (struct window *w, ptrdiff_t pos)
   return min ((pos / len + 1) * len, ZV);
 }
 
+/* Find the position of the last BOL before POS, unless it is too far
+   away.  The buffer portion in which the search occurs is gradually
+   enlarged: [POS-500..POS], [POS-5500..POS-500],
+   [POS-55500..POS-5500], and finally [POS-555500..POS-55500].  Return
+   BEGV-1 if no BOL was found in [POS-555500..POS].  */
 static ptrdiff_t
 get_nearby_bol_pos (ptrdiff_t pos)
 {
-  ptrdiff_t start, pos_bytepos, cur, next, found, bol = BEGV - 1;
+  ptrdiff_t start, pos_bytepos, cur, next, found, bol = BEGV - 1, init_pos = pos;
   int dist;
   for (dist = 500; dist <= 500000; dist *= 10)
     {
@@ -3633,10 +3638,11 @@ get_nearby_bol_pos (ptrdiff_t pos)
 	    break;
 	}
       if (bol >= BEGV || start == BEGV)
-	return bol;
+	break;
       else
 	pos = pos - dist < BEGV ? BEGV : pos - dist;
     }
+  eassert (bol <= init_pos);
   return bol;
 }
 
