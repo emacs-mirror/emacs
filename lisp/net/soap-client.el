@@ -5,7 +5,7 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.2.1
+;; Version: 3.2.2
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; URL: https://github.com/alex-hhh/emacs-soap-client
@@ -717,9 +717,12 @@ representing leap seconds."
                 second)
               minute hour day month year second-fraction datatype time-zone)
       (let ((time
-	     (encode-time (list
-			   (if new-decode-time new-decode-time-second second)
-			   minute hour day month year nil nil time-zone))))
+             ;; Continue calling encode-time the old way, for backward
+             ;; compatibility in GNU ELPA.
+             (apply
+              #'encode-time (list
+                             (if new-decode-time new-decode-time-second second)
+                             minute hour day month year nil nil time-zone))))
         (if new-decode-time
             (with-no-warnings (decode-time time nil t))
           (decode-time time))))))
@@ -946,7 +949,7 @@ This is a specialization of `soap-encode-attributes' for
    (t nil)))
 
 (defun soap-type-is-array? (type)
-  "Return t if TYPE defines an ARRAY."
+  "Return t if TYPE is an ARRAY."
   (and (soap-xs-complex-type-p type)
        (eq (soap-xs-complex-type-indicator type) 'array)))
 

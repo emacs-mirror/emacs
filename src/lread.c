@@ -2883,12 +2883,6 @@ character_name_to_code (char const *name, ptrdiff_t name_len,
    Unicode 9.0.0 the maximum is 83, so this should be safe.  */
 enum { UNICODE_CHARACTER_NAME_LENGTH_BOUND = 200 };
 
-static AVOID
-invalid_escape_syntax_error (void)
-{
-  error ("Invalid escape character syntax");
-}
-
 /* Read a character escape sequence, assuming we just read a backslash
    and one more character (next_char).  */
 static int
@@ -2920,7 +2914,7 @@ read_char_escape (Lisp_Object readcharfun, int next_char)
 
     case '\n':
       /* ?\LF is an error; it's probably a user mistake.  */
-      error ("Invalid escape character syntax");
+      error ("Invalid escape char syntax: \\<newline>");
 
     /* \M-x etc: set modifier bit and parse the char to which it applies,
        allowing for chains such as \M-\S-\A-\H-\s-\C-q.  */
@@ -2944,7 +2938,7 @@ read_char_escape (Lisp_Object readcharfun, int next_char)
 	      }
 	    else
 	      /* \M, \S, \H, \A not followed by a hyphen is an error.  */
-	      invalid_escape_syntax_error ();
+	      error ("Invalid escape char syntax: \\%c not followed by -", c);
 	  }
 	modifiers |= mod;
 	c1 = READCHAR;
@@ -2964,7 +2958,7 @@ read_char_escape (Lisp_Object readcharfun, int next_char)
       {
 	int c1 = READCHAR;
 	if (c1 != '-')
-	  invalid_escape_syntax_error ();
+	  error ("Invalid escape char syntax: \\%c not followed by -", c);
       }
       FALLTHROUGH;
     /* The prefixes \C- and \^ are equivalent.  */
@@ -3029,7 +3023,7 @@ read_char_escape (Lisp_Object readcharfun, int next_char)
 	  }
 
 	if (count == 0)
-	  invalid_escape_syntax_error ();
+	  error ("Invalid escape char syntax: \\x not followed by hex digit");
 	if (count < 3 && i >= 0x80)
 	  i = BYTE8_TO_CHAR (i);
 	modifiers |= i & CHAR_MODIFIER_MASK;

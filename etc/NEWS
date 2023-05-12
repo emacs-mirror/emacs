@@ -417,6 +417,10 @@ The new functions 'touch-screen-track-tap' and
 'touch-screen-track-drag' handle tracking common touch screen gestures
 from within a command.
 
+** New variable 'safe-local-variable-directories'.
+This variable names directories in which Emacs will treat all
+directory-local variables as safe.
+
 ** New variable 'inhibit-auto-fill' to temporarily prevent auto-fill.
 
 ** Functions and variables to transpose sexps
