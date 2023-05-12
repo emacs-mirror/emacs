@@ -1906,6 +1906,13 @@ default, this is disabled; however, if 'package-install' is invoked
 with a prefix argument, it will act as if this new option were
 enabled.
 
+In addition, when this option is non-nil, built-in packages for which
+a new version is available in archives can be upgraded via the package
+menu produced by 'M-x list-packages'.  If you do set this option
+non-nil, we recommend not to use the 'U' command, but instead to use
+'/ u' to show the packages which can be upgraded, and then unmark the
+built-in packages which you don't need to overwrite from the archives.
+
 If you customize this option, we recommend you place its non-default
 setting in your early-init file.
 
