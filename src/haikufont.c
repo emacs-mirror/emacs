@@ -1127,7 +1127,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 
       haiku_draw_background_rect (s, s->face, x, y - ascent,
 				  s->width, height);
-      s->background_filled_p = 1;
     }
 
   BView_SetHighColor (view, foreground);
