@@ -2255,6 +2255,7 @@ readevalloop (Lisp_Object readcharfun,
 	  record_unwind_protect_excursion ();
 	  /* Save ZV in it.  */
 	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+	  labeled_restrictions_remove_in_current_buffer ();
 	  /* Those get unbound after we read one expression.  */
 
 	  /* Set point and ZV around stuff to be read.  */

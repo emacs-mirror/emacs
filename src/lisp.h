@@ -4687,8 +4687,9 @@ extern void save_restriction_restore (Lisp_Object);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern void narrow_to_region_locked (Lisp_Object, Lisp_Object, Lisp_Object);
-extern void reset_outermost_narrowings (void);
+extern void labeled_narrow_to_region (Lisp_Object, Lisp_Object, Lisp_Object);
+extern void reset_outermost_restrictions (void);
+extern void labeled_restrictions_remove_in_current_buffer (void);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 
@@ -4857,7 +4858,6 @@ extern bool detect_input_pending (void);
 extern bool detect_input_pending_ignore_squeezables (void);
 extern bool detect_input_pending_run_timers (bool);
 extern void safe_run_hooks (Lisp_Object);
-extern void safe_run_hooks_maybe_narrowed (Lisp_Object, struct window *);
 extern void safe_run_hooks_2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_2 (Lisp_Object);
