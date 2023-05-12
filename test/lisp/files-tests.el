@@ -170,7 +170,7 @@ form.")
   ;; safe-local-variable-directories should be risky,
   ;; so use it as an arbitrary risky variable.
   (let ((test-alist '((safe-local-variable-directories . "some_val")))
-        (fakedir "/test1/test2/")
+        (fakedir default-directory)
         (enable-local-eval t))
     (with-temp-buffer
       (setq safe-local-variable-directories (list fakedir))
