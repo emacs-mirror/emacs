@@ -717,12 +717,9 @@ representing leap seconds."
                 second)
               minute hour day month year second-fraction datatype time-zone)
       (let ((time
-             ;; Continue calling encode-time the old way, for backward
-             ;; compatibility in GNU ELPA.
-             (apply
-              #'encode-time (list
-                             (if new-decode-time new-decode-time-second second)
-                             minute hour day month year nil nil time-zone))))
+             ;; Call encode-time the old way, for Emacs<27.
+             (encode-time (if new-decode-time new-decode-time-second second)
+                          minute hour day month year time-zone)))
         (if new-decode-time
             (with-no-warnings (decode-time time nil t))
           (decode-time time))))))
