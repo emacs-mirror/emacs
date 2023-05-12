@@ -2687,20 +2687,19 @@ labeled_restrictions_remove (Lisp_Object buf)
 }
 
 /* Retrieve one of the labeled restriction bounds in BUF from the
-   labeled_restrictions alist, as a pointer to a struct Lisp_Marker,
-   or return NULL if BUF is not in labeled_restrictions or is a killed
-   buffer.  When OUTERMOST is true, the restriction bounds that were
-   current when the first labeled restriction was entered are
-   returned.  Otherwise the bounds of the innermost labeled
-   restriction are returned.  */
-static struct Lisp_Marker *
+   labeled_restrictions alist, as a marker, or return nil if BUF is
+   not in labeled_restrictions or is a killed buffer.  When OUTERMOST
+   is true, the restriction bounds that were current when the first
+   labeled restriction was entered are returned.  Otherwise the bounds
+   of the innermost labeled restriction are returned.  */
+static Lisp_Object
 labeled_restrictions_get_bound (Lisp_Object buf, bool begv, bool outermost)
 {
   if (NILP (Fbuffer_live_p (buf)))
-    return NULL;
+    return Qnil;
   Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
   if (NILP (restrictions))
-    return NULL;
+    return Qnil;
   restrictions = XCAR (XCDR (restrictions));
   Lisp_Object bounds
     = outermost
@@ -2709,7 +2708,7 @@ labeled_restrictions_get_bound (Lisp_Object buf, bool begv, bool outermost)
   eassert (! NILP (bounds));
   Lisp_Object marker = begv ? XCAR (bounds) : XCAR (XCDR (bounds));
   eassert (EQ (Fmarker_buffer (marker), buf));
-  return XMARKER (marker);
+  return marker;
 }
 
 /* Retrieve the label of the innermost labeled restriction in BUF.
@@ -2766,14 +2765,14 @@ labeled_restrictions_remove_in_current_buffer (void)
 static void
 unwind_reset_outermost_restriction (Lisp_Object buf)
 {
-  struct Lisp_Marker *begv
-    = labeled_restrictions_get_bound (buf, true, false);
-  struct Lisp_Marker *zv
-    = labeled_restrictions_get_bound (buf, false, false);
-  if (begv != NULL && zv != NULL)
+  Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+  Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+  if (! NILP (begv) && ! NILP (zv))
     {
-      SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
-      SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
+      SET_BUF_BEGV_BOTH (XBUFFER (buf),
+			 marker_position (begv), marker_byte_position (begv));
+      SET_BUF_ZV_BOTH (XBUFFER (buf),
+		       marker_position (zv), marker_byte_position (zv));
     }
   else
     labeled_restrictions_remove (buf);
@@ -2797,14 +2796,14 @@ reset_outermost_restrictions (void)
     {
       buf = XCAR (XCAR (val));
       eassert (BUFFERP (buf));
-      struct Lisp_Marker *begv
-	= labeled_restrictions_get_bound (buf, true, true);
-      struct Lisp_Marker *zv
-	= labeled_restrictions_get_bound (buf, false, true);
-      if (begv != NULL && zv != NULL)
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, true);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, true);
+      if (! NILP (begv) && ! NILP (zv))
 	{
-	  SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
-	  SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
+	  SET_BUF_BEGV_BOTH (XBUFFER (buf),
+			     marker_position (begv), marker_byte_position (begv));
+	  SET_BUF_ZV_BOTH (XBUFFER (buf),
+			   marker_position (zv), marker_byte_position (zv));
 	  record_unwind_protect (unwind_reset_outermost_restriction, buf);
 	}
       else
@@ -2878,15 +2877,17 @@ To gain access to other portions of the buffer, use
     }
   else
     {
-      struct Lisp_Marker *begv
-	= labeled_restrictions_get_bound (buf, true, false);
-      struct Lisp_Marker *zv
-	= labeled_restrictions_get_bound (buf, false, false);
-      eassert (begv != NULL && zv != NULL);
-      if (begv->charpos != BEGV || zv->charpos != ZV)
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+      eassert (! NILP (begv) && ! NILP (zv));
+      ptrdiff_t begv_charpos = marker_position (begv);
+      ptrdiff_t zv_charpos = marker_position (zv);
+      if (begv_charpos != BEGV || zv_charpos != ZV)
 	current_buffer->clip_changed = 1;
-      SET_BUF_BEGV_BOTH (current_buffer, begv->charpos, begv->bytepos);
-      SET_BUF_ZV_BOTH (current_buffer, zv->charpos, zv->bytepos);
+      SET_BUF_BEGV_BOTH (current_buffer,
+			 begv_charpos, marker_byte_position (begv));
+      SET_BUF_ZV_BOTH (current_buffer,
+		       zv_charpos, marker_byte_position (zv));
       /* If the only remaining bounds in labeled_restrictions for
 	 current_buffer are the bounds that were set by the user, no
 	 labeled restriction is in effect in current_buffer anymore:
@@ -2933,15 +2934,15 @@ argument.  To gain access to other portions of the buffer, use
     {
       /* Limit the start and end positions to those of the innermost
 	 labeled restriction.  */
-      struct Lisp_Marker *begv
-	= labeled_restrictions_get_bound (buf, true, false);
-      struct Lisp_Marker *zv
-	= labeled_restrictions_get_bound (buf, false, false);
-      eassert (begv != NULL && zv != NULL);
-      if (s < begv->charpos) s = begv->charpos;
-      if (s > zv->charpos) s = zv->charpos;
-      if (e < begv->charpos) e = begv->charpos;
-      if (e > zv->charpos) e = zv->charpos;
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+      eassert (! NILP (begv) && ! NILP (zv));
+      ptrdiff_t begv_charpos = marker_position (begv);
+      ptrdiff_t zv_charpos = marker_position (zv);
+      if (s < begv_charpos) s = begv_charpos;
+      if (s > zv_charpos) s = zv_charpos;
+      if (e < begv_charpos) e = begv_charpos;
+      if (e > zv_charpos) e = zv_charpos;
     }
 
   /* Record the accessible range of the buffer when narrow-to-region
