@@ -5,7 +5,7 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.2.2
+;; Version: 3.2.3
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; URL: https://github.com/alex-hhh/emacs-soap-client
@@ -717,12 +717,9 @@ representing leap seconds."
                 second)
               minute hour day month year second-fraction datatype time-zone)
       (let ((time
-             ;; Continue calling encode-time the old way, for backward
-             ;; compatibility in GNU ELPA.
-             (apply
-              #'encode-time (list
-                             (if new-decode-time new-decode-time-second second)
-                             minute hour day month year nil nil time-zone))))
+             ;; Call encode-time the old way, for Emacs<27.
+             (encode-time (if new-decode-time new-decode-time-second second)
+                          minute hour day month year time-zone)))
         (if new-decode-time
             (with-no-warnings (decode-time time nil t))
           (decode-time time))))))

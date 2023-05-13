@@ -6244,6 +6244,9 @@ comment at the start of cc-engine.el for more info."
   ;; prefix".  The declaration prefix is the earlier of `cfd-prop-match' and
   ;; `cfd-re-match'.  `cfd-match-pos' is set to the decl prefix.
   ;;
+  ;; The variables which this macro should set for `c-find-decl-spots' are
+  ;; `cfd-match-pos' and `cfd-continue-pos'.
+  ;;
   ;; This macro might do hidden buffer changes.
 
   '(progn
@@ -6586,11 +6589,17 @@ comment at the start of cc-engine.el for more info."
 	;; and so we can continue the search from this point.  If we
 	;; didn't hit `c-find-decl-syntactic-pos' then we're now in
 	;; the right spot to begin searching anyway.
-	(if (and (eq (point) c-find-decl-syntactic-pos)
-		 c-find-decl-match-pos)
-	    (setq cfd-match-pos c-find-decl-match-pos
-		  cfd-continue-pos syntactic-pos)
-
+	(cond
+	 ((and (eq (point) c-find-decl-syntactic-pos)
+	       c-find-decl-match-pos)
+	  (setq cfd-match-pos c-find-decl-match-pos
+		cfd-continue-pos syntactic-pos))
+	 ((save-excursion (c-beginning-of-macro))
+	  ;; The `c-backward-syntactic-ws' ~40 lines up failed to find non
+	  ;; syntactic-ws and hit its limit, leaving us in a macro.
+	  (setq cfd-match-pos cfd-start-pos
+		cfd-continue-pos cfd-start-pos))
+	 (t
 	  (setq c-find-decl-syntactic-pos syntactic-pos)
 
 	  (when (if (bobp)
@@ -6608,7 +6617,7 @@ comment at the start of cc-engine.el for more info."
 	    (c-find-decl-prefix-search)) ; sets cfd-continue-pos
 
 	  (setq c-find-decl-match-pos (and (< cfd-match-pos cfd-start-pos)
-					   cfd-match-pos))))) ; end of `cond'
+					   cfd-match-pos)))))) ; end of `cond'
 
       ;; Advance `cfd-continue-pos' if it's before the start position.
       ;; The closest continue position that might have effect at or
