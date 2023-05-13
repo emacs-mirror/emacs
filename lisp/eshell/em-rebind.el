@@ -29,14 +29,17 @@
 (progn
 (defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
-while the point is in a region of input text.  By default, it binds
-C-a to move to the beginning of the input text (rather than just the
-beginning of the line), and C-p and C-n to move through the input
-history, C-u kills the current input text, etc.  It also, if
-`eshell-confine-point-to-input' is non-nil, does not allow certain
-commands to cause the point to leave the input area, such as
-`backward-word', `previous-line', etc.  This module intends to mimic
-the behavior of normal shells while the user editing new input text."
+while the point is in a region of input text.  The default
+keybindings mimic the bindings used in other shells when the user
+is editing new input text.
+
+For example, it binds C-u to kill the current input text and C-w
+to `backward-kill-word'.  If the history module is enabled, it
+also binds C-p and C-n to move through the input history, etc.
+
+If `eshell-confine-point-to-input' is non-nil, this module prevents
+certain commands from causing the point to leave the input area, such
+as `backward-word', `previous-line', etc."
   :tag "Rebind keys at input"
   :group 'eshell-module))
 
