@@ -1522,31 +1522,31 @@ literals (Bug#20852)."
   (test-suppression
    '(defun zot ()
       (setcar '(1 2) 3))
-   '((suspicious setcar))
+   '((mutate-constant setcar))
    "Warning: `setcar' on constant list (arg 1)")
 
   (test-suppression
    '(defun zot ()
       (aset [1 2] 1 3))
-   '((suspicious aset))
+   '((mutate-constant aset))
    "Warning: `aset' on constant vector (arg 1)")
 
   (test-suppression
    '(defun zot ()
       (aset "abc" 1 ?d))
-   '((suspicious aset))
+   '((mutate-constant aset))
    "Warning: `aset' on constant string (arg 1)")
 
   (test-suppression
    '(defun zot (x y)
       (nconc x y '(1 2) '(3 4)))
-   '((suspicious nconc))
+   '((mutate-constant nconc))
    "Warning: `nconc' on constant list (arg 3)")
 
   (test-suppression
    '(defun zot ()
       (put-text-property 0 2 'prop 'val "abc"))
-   '((suspicious put-text-property))
+   '((mutate-constant put-text-property))
    "Warning: `put-text-property' on constant string (arg 5)")
   )
 

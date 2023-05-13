@@ -527,7 +527,7 @@ To avoid the warning, operate on an object created by the program
 instead.
 
 This warning can be suppressed using 'with-suppressed-warnings' with
-the warning name 'suspicious'.
+the warning name 'mutate-constant'.
 
 ---
 *** Warn about more ignored function return values.
