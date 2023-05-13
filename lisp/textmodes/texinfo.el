@@ -409,6 +409,8 @@ REPORT-FN is the callback function."
 
 ;;; Texinfo mode
 
+(defvar fill-paragraph-separate nil)
+
 ;;;###autoload
 (define-derived-mode texinfo-mode text-mode "Texinfo"
   "Major mode for editing Texinfo files.
@@ -482,6 +484,10 @@ value of `texinfo-mode-hook'."
 		      "\\)\\>"))
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local indent-tabs-mode nil)
+  ;; This is used in 'texinfo--fill-paragraph'.
+  (setq-local fill-paragraph-separate (default-value 'paragraph-separate))
+  (setq-local paragraph-separate
+              (concat "@[a-zA-Z]*[ \n]\\|" paragraph-separate))
   (setq-local paragraph-start (concat "@[a-zA-Z]*[ \n]\\|"
 				      paragraph-start))
   (setq-local fill-paragraph-function 'texinfo--fill-paragraph)
@@ -536,7 +542,13 @@ value of `texinfo-mode-hook'."
 
 (defun texinfo--fill-paragraph (justify)
   "Function to fill a paragraph in `texinfo-mode'."
-  (let ((command-re "\\(@[a-zA-Z]+\\)[ \t\n]"))
+  (let ((command-re "\\(@[a-zA-Z]+\\)[ \t\n]")
+        ;; Kludge alert: we override paragraph-separate here because
+        ;; that is needed for filling @noindent and similar lines.
+        ;; The default Texinfo-specific paragraph-separate value,
+        ;; OTOH, is needed for auto-fill-mode, which doesn't call
+        ;; mode-specific functions.
+        (paragraph-separate fill-paragraph-separate))
     (catch 'no-fill
       (save-restriction
         ;; First check whether we're on a command line that can be

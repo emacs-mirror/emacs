@@ -318,6 +318,8 @@ static Lisp_Object command_loop (void);
 static void echo_now (void);
 static ptrdiff_t echo_length (void);
 
+static void safe_run_hooks_maybe_narrowed (Lisp_Object, struct window *);
+
 /* Incremented whenever a timer is run.  */
 unsigned timers_run;
 
@@ -1909,7 +1911,7 @@ safe_run_hooks (Lisp_Object hook)
   unbind_to (count, Qnil);
 }
 
-void
+static void
 safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -1919,11 +1921,11 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
   if (current_buffer->long_line_optimizations_p
       && long_line_optimizations_region_size > 0)
     {
-      ptrdiff_t begv = get_locked_narrowing_begv (PT);
-      ptrdiff_t zv = get_locked_narrowing_zv (PT);
+      ptrdiff_t begv = get_large_narrowing_begv (PT);
+      ptrdiff_t zv = get_large_narrowing_zv (PT);
       if (begv != BEG || zv != Z)
-	narrow_to_region_locked (make_fixnum (begv), make_fixnum (zv),
-				 Qlong_line_optimizations_in_command_hooks);
+	labeled_narrow_to_region (make_fixnum (begv), make_fixnum (zv),
+				  Qlong_line_optimizations_in_command_hooks);
     }
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),

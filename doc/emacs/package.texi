@@ -160,7 +160,13 @@ current line by an @kbd{i} or @kbd{d} command
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions (marked with status @samp{obsolete}).
+installed versions (marked with status @samp{obsolete}).  By default,
+this won't mark built-in packages for which a newer version is
+available, but customizing @code{package-install-upgrade-built-in} can
+change that.  @xref{Package Installation}.  If you customize
+@code{package-install-upgrade-built-in} to a non-@code{nil} value, be
+sure to review all the built-in packages the @kbd{U} command marks, to
+avoid updating built-in packages you don't want to overwrite.
 
 @item x
 @kindex x @r{(Package Menu)}
@@ -258,7 +264,11 @@ This shows only the packages that have been marked to be installed or deleted.
 @kindex / u @r{(Package Menu)}
 @findex package-menu-filter-upgradable
 Filter package list to show only packages for which there are
-available upgrades (@code{package-menu-filter-upgradable}).
+available upgrades (@code{package-menu-filter-upgradable}).  By
+default, this filter excludes the built-in packages for which a newer
+version is available, but customizing
+@code{package-install-upgrade-built-in} can change that.
+@xref{Package Installation}.
 
 @item / /
 @kindex / / @r{(Package Menu)}
@@ -286,9 +296,12 @@ the package archive.
 The package is available for installation, but a newer version is also
 available.  Packages with this status are hidden by default.
 
+@cindex built-in package
 @item built-in
 The package is included in Emacs by default.  It cannot be deleted
-through the package menu, and is not considered for upgrading.
+through the package menu, and by default is not considered for
+upgrading (but you can change that by customizing
+@code{package-install-upgrade-built-in}, @pxref{Package Installation}).
 
 @item dependency
 The package was installed automatically to satisfy a dependency of
@@ -338,6 +351,37 @@ package-install}.  This prompts for the name of a package with the
 if you want to upgrade a package, you can use the @kbd{M-x
 package-upgrade} command, and if you want to upgrade all the packages,
 you can use the @kbd{M-x package-upgrade-all} command.
+
+@vindex package-install-upgrade-built-in
+  By default, @code{package-install} doesn't consider built-in
+packages for which new versions are available from the archives.  (A
+package is built-in if it is included in the Emacs distribution.)  In
+particular, it will not show built-in packages in the list of
+completion candidates when you type at its prompt.  But if you invoke
+@code{package-install} with a prefix argument, it will also consider
+built-in packages that can be upgraded.  You can make this behavior
+the default by customizing the variable
+@code{package-install-upgrade-built-in}: if its value is
+non-@code{nil}, @code{package-install} will consider built-in packages
+even when invoked without a prefix argument.  Note that the
+package-menu commands (@pxref{Package Menu}) are also affected by
+@code{package-install-upgrade-built-in}.
+
+  By contrast, @code{package-upgrade} and @code{package-upgrade-all}
+never consider built-in packages.  If you want to use these commands
+for upgrading some built-in packages, you need to upgrade each of
+those packages, once, either via @kbd{C-u M-x package-install
+@key{RET}}, or by customizing @code{package-install-upgrade-built-in}
+to a non-@code{nil} value, and then upgrading the package once via the
+package menu or by @code{package-install}.
+
+  If you customize @code{package-install-upgrade-built-in} to a
+non-@code{nil} value, be very careful when using commands that update
+many packages at once, like @code{package-upgrade-all} and @kbd{U} in
+the package menu: those might overwrite built-in packages that you
+didn't intent to replace with newer versions from the archives.  Don't
+use these bulk commands if you want to update only a small number of
+built-in packages.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,

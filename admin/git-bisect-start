@@ -82,7 +82,7 @@ done
 # SKIP-BRANCH 58cc931e92ece70c3e64131ee12a799d65409100
 
 ## The list below is the exhaustive list of all commits between Dec 1
-## 2016 and Feb 28 2023 on which building Emacs with the default
+## 2016 and Apr 30 2023 on which building Emacs with the default
 ## options, on a GNU/Linux computer and with GCC, fails.  It is
 ## possible (though unlikely) that building Emacs with non-default
 ## options, with other compilers, or on other platforms, would succeed
@@ -1720,3 +1720,6 @@ $REAL_GIT bisect skip $(cat $0 | grep '^# SKIP-SINGLE ' | sed 's/^# SKIP-SINGLE 
 # SKIP-SINGLE 95692f6754c3a8f55a90df2d6f7ce62be55cdcfc
 # SKIP-SINGLE a3edacd3f547195740304139cb68aaa94d7b18ee
 # SKIP-SINGLE ae4ff4f25fbf704446f8f38d8e818f223b79042b
+# SKIP-SINGLE 9686b015a0d71d08828afb0cfe6e477bbc4909ae
+# SKIP-SINGLE 621e732ade0f3dc165498ebde4d55d5aacb05b56
+# SKIP-SINGLE 200dbf7d302e659e618f74bde81c7b3ccd795639
