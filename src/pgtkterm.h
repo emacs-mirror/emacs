@@ -553,7 +553,6 @@ extern void pgtk_clear_frame (struct frame *);
 extern char *pgtk_xlfd_to_fontname (const char *);
 
 /* Implemented in pgtkfns.c.  */
-extern void pgtk_set_doc_edited (void);
 extern const char *pgtk_get_defaults_value (const char *);
 extern const char *pgtk_get_string_resource (XrmDatabase, const char *, const char *);
 extern void pgtk_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);

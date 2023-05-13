@@ -2212,10 +2212,16 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 
     w->pixel_left = 0;
     w->left_col = 0;
-    w->pixel_top = FRAME_MENU_BAR_HEIGHT (f)
-      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_HEIGHT (f) : 0);
-    w->top_line = FRAME_MENU_BAR_LINES (f)
-      + (!NILP (Vtab_bar_position) ? FRAME_TOOL_BAR_LINES (f) : 0);
+
+    /* Note that tab and tool bar windows appear above the internal
+       border, as enforced by WINDOW_TOP_EDGE_Y.  */
+
+    w->pixel_top = (FRAME_MENU_BAR_HEIGHT (f)
+		    + (!NILP (Vtab_bar_position)
+		       ? FRAME_TOOL_BAR_HEIGHT (f) : 0));
+    w->top_line = (FRAME_MENU_BAR_LINES (f)
+		   + (!NILP (Vtab_bar_position)
+		      ? FRAME_TOOL_BAR_LINES (f) : 0));
     w->total_cols = FRAME_TOTAL_COLS (f);
     w->pixel_width = (FRAME_PIXEL_WIDTH (f)
 		       - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
