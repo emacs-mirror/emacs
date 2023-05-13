@@ -344,6 +344,40 @@ asynchronously."
         "\n")
        nil pkg-file nil 'silent))))
 
+(defcustom package-vc-allow-side-effects nil
+  "Whether to process :make and :shell-command spec arguments.
+
+It may be necessary to run :make and :shell-command arguments in
+order to initialize a package or build its documentation, but
+please be careful when changing this option, as installing and
+updating a package can run potentially harmful code.
+
+When set to a list of symbols (packages), run commands for only
+packages in the list.  When nil, never run commands.  Otherwise
+when non-nil, run commands for any package with :make or
+:shell-command specified.
+
+Package specs are loaded from trusted package archives."
+  :type '(choice (const :tag "Run for all packages" t)
+                 (repeat :tag "Run only for selected packages" (symbol :tag "Package name"))
+                 (const :tag "Never run" nil))
+  :version "30.1")
+
+(defun package-vc--make (pkg-spec pkg-desc)
+  "Process :make and :shell-command in PKG-SPEC.
+PKG-DESC is the package descriptor for the package that is being
+prepared."
+  (let ((target (plist-get pkg-spec :make))
+        (cmd (plist-get pkg-spec :shell-command))
+        (buf (format " *package-vc make %s*" (package-desc-name pkg-desc))))
+    (when (or cmd target)
+      (with-current-buffer (get-buffer-create buf)
+        (erase-buffer)
+        (when (and cmd (/= 0 (call-process shell-file-name nil t nil shell-command-switch cmd)))
+          (warn "Failed to run %s, see buffer %S" cmd (buffer-name)))
+        (when (and target (/= 0 (apply #'call-process "make" nil t nil (if (consp target) target (list target)))))
+          (warn "Failed to make %s, see buffer %S" target (buffer-name)))))))
+
 (declare-function org-export-to-file "ox" (backend file))
 
 (defun package-vc--build-documentation (pkg-desc file)
@@ -485,6 +519,12 @@ documentation and marking the package as installed."
 
       ;; Generate package file
       (package-vc--generate-description-file pkg-desc pkg-file)
+
+      ;; Process :make and :shell-command arguments before building documentation
+      (when (or (eq package-vc-allow-side-effects t)
+                (memq (package-desc-name pkg-desc)
+                      package-vc-allow-side-effects))
+        (package-vc--make pkg-spec pkg-desc))
 
       ;; Detect a manual
       (when (executable-find "install-info")

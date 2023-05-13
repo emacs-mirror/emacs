@@ -294,6 +294,11 @@ When non-nil, it will automatically register every package as a
 project, that you can quickly select using 'project-switch-project'
 ('C-x p p').
 
+---
+*** New user option 'package-vc-allow-side-effects'.
+When non-nil, package specifications with side-effects for building
+software will used when building a package.
+
 ** Flymake
 
 +++
