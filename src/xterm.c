@@ -21178,14 +21178,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	x_cr_update_surface_desired_size (any,
 					  configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
-      if (f || (any && configureEvent.xconfigure.window == FRAME_X_WINDOW (any)))
-	x_update_opaque_region (f ? f : any, &configureEvent);
 #endif
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+
+      /* Make the new size of the frame its opaque region.  This is a
+	 region describing areas of the window which are always
+	 guaranteed to be completely opaque and can be treated as such
+	 by the compositor.  It is set to the width and height of the
+	 only window in no-toolkit builds when `alpha_background' is
+	 not set, and is cleared otherwise.  */
+
+      if (f || (any && configureEvent.xconfigure.window
+		== FRAME_OUTER_WINDOW (any)))
+	x_update_opaque_region (f ? f : any, &configureEvent);
+
+#endif /* !defined USE_X_TOOLKIT && !defined USE_GTK */
+
 #ifdef USE_GTK
       if (!f
 	  && (f = any)
 	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
-	  && (FRAME_VISIBLE_P(f)
+	  && (FRAME_VISIBLE_P (f)
 	      || !(configureEvent.xconfigure.width <= 1
 		   && configureEvent.xconfigure.height <= 1)))
         {
@@ -21212,10 +21226,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 	}
 #endif
-      if (f
-	  && (FRAME_VISIBLE_P(f)
-	      || !(configureEvent.xconfigure.width <= 1
-		   && configureEvent.xconfigure.height <= 1)))
+      if (f && (FRAME_VISIBLE_P (f)
+		|| !(configureEvent.xconfigure.width <= 1
+		     && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar
