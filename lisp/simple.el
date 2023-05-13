@@ -4490,7 +4490,7 @@ a shell (with its need to quote arguments)."
 				((eq major-mode 'dired-mode)
 				 (dired-get-filename nil t)))))
 			  (and filename (file-relative-name filename))))
-    current-prefix-arg
+    nil
     shell-command-default-error-buffer))
   (unless (string-match "&[ \t]*\\'" command)
     (setq command (concat command " &")))
