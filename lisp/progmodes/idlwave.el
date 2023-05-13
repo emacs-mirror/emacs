@@ -3891,7 +3891,7 @@ you specify /."
 	    (while (and item)
 	      ;;
 	      ;; Call etags
-	      (if (not (string-match "^[ \\t]*$" item))
+	      (if (not (string-match "^[ \t]*$" item))
 		  (progn
 		    (message "%s" (concat "Tagging " item "..."))
 		    (setq errbuf (get-buffer-create "*idltags-error*"))
