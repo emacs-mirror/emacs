@@ -2045,22 +2045,26 @@ This section is not yet written.
 @node Writing a module
 @section Writing a module
 
-An Eshell module is defined the same as any other library but one requirement: the
-module must define a Customize@footnote{@xref{Customization, , ,
-elisp, The Emacs Lisp Reference Manual}.}
-group using @code{eshell-defgroup} (in place of @code{defgroup}) with
-@code{eshell-module} as the parent group.@footnote{If the module has
-no user-customizable options, then there is no need to define it as an
-Eshell module.}  You also need to load the following as shown:
+An Eshell module is defined the same as any other library but with two
+additional requirements: first, the module's source file should be
+named @file{em-@var{name}.el}; second, the module must define an
+autoloaded Customize group (@pxref{Customization, , , elisp, The Emacs
+Lisp Reference Manual}) with @code{eshell-module} as the parent group.
+In order to properly autoload this group, you should wrap its
+definition with @code{progn} as follows:
 
 @example
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-mode)
-  (require 'eshell))
-
-(require 'esh-util)
+;;;###autoload
+(progn
+(defgroup eshell-my-module nil
+  "My module lets you do very cool things in Eshell."
+  :tag "My module"
+  :group 'eshell-module))
 @end example
+
+Even if you don't have any Customize options in your module, you
+should still define the group so that Eshell can include your module
+in the Customize interface for @code{eshell-modules-list}.
 
 @node Bugs and ideas
 @chapter Bugs and ideas
