@@ -586,14 +586,6 @@ the buffer is merely buried instead.
 Set environment variables using input like Bash's @command{export}, as
 in @samp{export @var{var1}=@var{val1} @var{var2}=@var{val2} @dots{}}.
 
-@item expr
-@cmindex expr
-An implementation of @command{expr} using the Calc package.
-@xref{Top,,, calc, The GNU Emacs Calculator}.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
-
 @item grep
 @cmindex grep
 @itemx agrep
@@ -625,15 +617,6 @@ Browse the available Info documentation.  This command is the same as
 the external @command{info} command, but uses Emacs's internal Info
 reader.
 @xref{Misc Help, , , emacs, The GNU Emacs Manual}.
-
-@item intersection
-@cmindex intersection
-A wrapper around the function @code{cl-intersection} (@pxref{Lists as
-Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
-can be used for comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
 
 @item jobs
 @cmindex jobs
@@ -704,15 +687,6 @@ Manual}.  Otherwise call the external @command{make} command.
 Display Man pages using the Emacs @code{man} command.
 @xref{Man Page, , , emacs, The GNU Emacs Manual}.
 
-@item mismatch
-@cmindex mismatch
-A wrapper around the function @code{cl-mismatch} (@pxref{Searching
-Sequences,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
-be used for comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
-
 @item mkdir
 @cmindex mkdir
 Make new directories.
@@ -769,24 +743,6 @@ is required.
 @cmindex rmdir
 Removes directories if they are empty.
 
-@item set-difference
-@cmindex set-difference
-A wrapper around the function @code{cl-set-difference} (@pxref{Lists as
-Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
-can be used for comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
-
-@item set-exclusive-or
-@cmindex set-exclusive-or
-A wrapper around the function @code{cl-set-exclusive-or} (@pxref{Lists
-as Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command can be
-used for comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
-
 @item set
 @cmindex set
 Set variable values, using the function @code{set} like a command
@@ -806,27 +762,6 @@ Source an Eshell file in a subshell environment.  This is not to be
 confused with the command @command{.}, which sources a file in the
 current environment.
 
-@item su
-@cmindex su
-@itemx sudo
-@cmindex sudo
-@itemx doas
-@cmindex doas
-Uses TRAMP's @command{su}, @command{sudo}, or @command{doas} method
-@pxref{Inline methods, , , tramp} to run a command via @command{su},
-@command{sudo}, or @command{doas}.  These commands are in the
-eshell-tramp module, which is disabled by default.
-
-
-@item substitute
-@cmindex substitute
-A wrapper around the function @code{cl-substitute} (@pxref{Sequence
-Functions,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
-be used for comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
-
 @item time
 @cmindex time
 Show the time elapsed during a command's execution.
@@ -835,15 +770,6 @@ Show the time elapsed during a command's execution.
 @cmindex umask
 Set or view the default file permissions for newly created files and
 directories.
-
-@item union
-@cmindex union
-A wrapper around the function @code{cl-union} (@pxref{Lists as Sets,,,
-cl, GNU Emacs Common Lisp Emulation}).  This command can be used for
-comparing lists of strings.
-
-This command can be loaded as part of the eshell-xtra module, which is
-disabled by default.
 
 @item unset
 @cmindex unset
@@ -1957,7 +1883,10 @@ modules.@footnote{ERC provides a similar module facility.}
 @node Optional modules
 @section Optional modules
 
-This section is not yet written.
+In addition to the various modules enabled by default (documented
+above), Eshell provides several other modules which are @emph{not}
+enabled by default.  If you want to enable these, you can add them to
+@code{eshell-modules-list}.
 
 @menu
 * Key rebinding::
@@ -1970,12 +1899,66 @@ This section is not yet written.
 @node Key rebinding
 @subsection Key rebinding
 
-This section is not yet written.
+This module allows for special keybindings that only take effect
+while the point is in a region of input text.  The default keybindings
+mimic the bindings used in other shells when the user is editing new
+input text.  To enable this module, add @code{eshell-rebind} to
+@code{eshell-modules-list}.
+
+For example, it binds @kbd{C-a} to move to the beginning of the input
+text, @kbd{C-u} to kill the current input text, and @kbd{C-w} to
+@code{backward-kill-word}.  If the history module is enabled, it also
+binds @kbd{C-p} and @kbd{C-n} to move through the input history.
+
+If @code{eshell-confine-point-to-input} is non-@code{nil}, this module
+prevents certain commands from causing the point to leave the input
+area, such as @code{backward-word}, @code{previous-line}, etc.
 
 @node Smart scrolling
 @subsection Smart scrolling
 
-This section is not yet written.
+This module combines the facility of normal, modern shells with some
+of the edit/review concepts inherent in the design of Plan 9's 9term.
+To enable it, add @code{eshell-smart} to @code{eshell-modules-list}.
+
+@itemize @bullet
+@item
+When you invoke a command, it is assumed that you want to read the
+output of that command.
+
+@item
+If the output is not what you wanted, it is assumed that you will want
+to edit, and then resubmit a refined version of that command.
+
+@item
+If the output is valid, pressing any self-inserting character key will
+jump to end of the buffer and insert that character, in order to begin
+entry of a new command.
+
+@item
+If you show an intention to edit the previous command -- by moving
+around within it -- then the next self-inserting characters will
+insert *there*, instead of at the bottom of the buffer.
+
+@item
+If you show an intention to review old commands, such as @kbd{M-p} or
+@kbd{M-r}, point will jump to the bottom of the buffer before invoking
+that command.
+
+@item
+If none of the above has happened yet (i.e.@: your point is just
+sitting on the previous command), you can use @kbd{SPC} and
+@kbd{BACKSPACE} (or @kbd{Delete}) to page forward and backward
+@emph{through the output of the last command only}.  It will constrain
+the movement of the point and window so that the maximum amount of
+output is always displayed at all times.
+
+@item
+While output is being generated from a command, the window will be
+constantly reconfigured (until it would otherwise make no difference)
+in order to always show you the most output from the command possible.
+This happens if you change window sizes, scroll, etc.
+@end itemize
 
 @node Electric forward slash
 @subsection Electric forward slash
@@ -2035,12 +2018,76 @@ within the first command.
 @node Tramp extensions
 @subsection Tramp extensions
 
-This section is not yet written.
+This module adds built-in commands that use Tramp to handle running
+other commands as different users, replacing the corresponding
+external commands.  To enable it, add @code{eshell-tramp} to
+@code{eshell-modules-list}.
 
-@node Extra built-in functions
-@subsection Extra built-in functions
+@table @code
 
-This section is not yet written.
+@item su
+@cmindex su
+@itemx sudo
+@cmindex sudo
+@itemx doas
+@cmindex doas
+Uses TRAMP's @command{su}, @command{sudo}, or @command{doas} method
+(@pxref{Inline methods, , , tramp, The Tramp Manual}) to run a command
+via @command{su}, @command{sudo}, or @command{doas}.
+
+@end table
+
+@node Extra built-in commands
+@subsection Extra built-in commands
+
+This module provides several extra built-in commands documented below,
+primarily for working with lists of strings in Eshell.  To enable it,
+add @code{eshell-xtra} to @code{eshell-modules-list}.
+
+@table @code
+
+@item expr
+@cmindex expr
+An implementation of @command{expr} using the Calc package.
+@xref{Top,,, calc, The GNU Emacs Calculator}.
+
+@item intersection
+@cmindex intersection
+A wrapper around the function @code{cl-intersection} (@pxref{Lists as
+Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
+can be used for comparing lists of strings.
+
+@item mismatch
+@cmindex mismatch
+A wrapper around the function @code{cl-mismatch} (@pxref{Searching
+Sequences,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
+
+@item set-difference
+@cmindex set-difference
+A wrapper around the function @code{cl-set-difference} (@pxref{Lists
+as Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command can be
+used for comparing lists of strings.
+
+@item set-exclusive-or
+@cmindex set-exclusive-or
+A wrapper around the function @code{cl-set-exclusive-or} (@pxref{Lists
+as Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command can be
+used for comparing lists of strings.
+
+@item substitute
+@cmindex substitute
+A wrapper around the function @code{cl-substitute} (@pxref{Sequence
+Functions,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
+
+@item union
+@cmindex union
+A wrapper around the function @code{cl-union} (@pxref{Lists as Sets,,,
+cl, GNU Emacs Common Lisp Emulation}).  This command can be used for
+comparing lists of strings.
+
+@end table
 
 @node Writing a module
 @section Writing a module
@@ -2092,8 +2139,6 @@ Below is a list of some known problems with Eshell version 2.4.2,
 which is the version included with Emacs 22.
 
 @table @asis
-@item Documentation incomplete
-
 @item Differentiate between aliases and functions
 
 Allow for a Bash-compatible syntax, such as:
