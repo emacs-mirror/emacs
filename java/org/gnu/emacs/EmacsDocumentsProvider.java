@@ -38,7 +38,9 @@ import android.webkit.MimeTypeMap;
 import android.net.Uri;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /* ``Documents provider''.  This allows Emacs's home directory to be
@@ -155,6 +157,22 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
     context.getContentResolver ().notifyChange (updatedUri, null);
   }
 
+  /* Inform the system that FILE's contents (or FILE itself) has
+     changed.  FILE is a string describing containing the file name of
+     a directory as opposed to a File.  */
+
+  private void
+  notifyChangeByName (String file)
+  {
+    Uri updatedUri;
+    Context context;
+
+    context = getContext ();
+    updatedUri
+      = buildChildDocumentsUri ("org.gnu.emacs", file);
+    context.getContentResolver ().notifyChange (updatedUri, null);
+  }
+
   /* Return the MIME type of a file FILE.  */
 
   private String
@@ -212,6 +230,9 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
 
 	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
 	      flags |= Document.FLAG_SUPPORTS_RENAME;
+
+	    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+	      flags |= Document.FLAG_SUPPORTS_MOVE;
 	  }
       }
     else if (file.canWrite ())
@@ -224,7 +245,10 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
 	  flags |= Document.FLAG_SUPPORTS_RENAME;
 
 	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-	  flags |= Document.FLAG_SUPPORTS_REMOVE;
+	  {
+	    flags |= Document.FLAG_SUPPORTS_REMOVE;
+	    flags |= Document.FLAG_SUPPORTS_MOVE;
+	  }
       }
 
     displayName = file.getName ();
@@ -459,5 +483,93 @@ public final class EmacsDocumentsProvider extends DocumentsProvider
   isChildDocument (String parentDocumentId, String documentId)
   {
     return documentId.startsWith (parentDocumentId);
+  }
+
+  @Override
+  public String
+  moveDocument (String sourceDocumentId,
+		String sourceParentDocumentId,
+		String targetParentDocumentId)
+    throws FileNotFoundException
+  {
+    File file, newName;
+    FileInputStream inputStream;
+    FileOutputStream outputStream;
+    byte buffer[];
+    int length;
+
+    file = new File (sourceDocumentId);
+
+    /* Now, create the file name of the parent document.  */
+    newName = new File (targetParentDocumentId,
+			file.getName ());
+
+    /* Try to perform a simple rename, before falling back to
+       copying.  */
+
+    if (file.renameTo (newName))
+      {
+	notifyChangeByName (file.getParent ());
+	notifyChangeByName (targetParentDocumentId);
+	return newName.getAbsolutePath ();
+      }
+
+    /* If that doesn't work, create the new file and copy over the old
+       file's contents.  */
+
+    inputStream = null;
+    outputStream = null;
+
+    try
+      {
+	if (!newName.createNewFile ()
+	    || !newName.setWritable (true)
+	    || !newName.setReadable (true))
+	  throw new FileNotFoundException ("failed to create new file");
+
+	/* Open the file in preparation for a copy.  */
+
+	inputStream = new FileInputStream (file);
+	outputStream = new FileOutputStream (newName);
+
+	/* Allocate the buffer used to hold data.  */
+
+	buffer = new byte[4096];
+
+	while ((length = inputStream.read (buffer)) > 0)
+	  outputStream.write (buffer, 0, length);
+      }
+    catch (IOException e)
+      {
+	throw new FileNotFoundException ("IOException: " + e);
+      }
+    finally
+      {
+	try
+	  {
+	    if (inputStream != null)
+	      inputStream.close ();
+	  }
+	catch (IOException e)
+	  {
+
+	  }
+
+	try
+	  {
+	    if (outputStream != null)
+	      outputStream.close ();
+	  }
+	catch (IOException e)
+	  {
+
+	  }
+      }
+
+    file.delete ();
+    notifyChangeByName (file.getParent ());
+    notifyChangeByName (targetParentDocumentId);
+
+    return newName.getAbsolutePath ();
   }
 }
