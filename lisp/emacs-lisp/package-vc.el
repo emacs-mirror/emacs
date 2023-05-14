@@ -506,9 +506,11 @@ documentation and marking the package as installed."
         (package--reload-previously-loaded new-desc)))
 
     ;; Mark package as selected
-    (package--save-selected-packages
-     (cons (package-desc-name pkg-desc)
-           package-selected-packages))
+    (let ((name (package-desc-name pkg-desc)))
+      (unless (memq name package-selected-packages)
+        (package--save-selected-packages
+         (cons name package-selected-packages))))
+
     (package--quickstart-maybe-refresh)
 
     ;; Confirm that the installation was successful
