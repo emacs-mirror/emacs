@@ -9232,6 +9232,7 @@ Turn on EDT Emulation." t)
 
 ;;; Generated autoloads from progmodes/eglot.el
 
+(push (purecopy '(eglot 1 12 29)) package--builtin-versions)
 (autoload 'eglot "eglot" "\
 Start LSP server in support of PROJECT's buffers under MANAGED-MAJOR-MODE.
 
@@ -9274,6 +9275,11 @@ INTERACTIVE is ignored and provided for backward compatibility.
 (fn MANAGED-MAJOR-MODE PROJECT CLASS CONTACT LANGUAGE-ID &optional INTERACTIVE)" t)
 (autoload 'eglot-ensure "eglot" "\
 Start Eglot session for current buffer if there isn't one.")
+(autoload 'eglot-upgrade-eglot "eglot" "\
+Update Eglot to latest version.
+
+(fn &rest _)" t)
+(define-obsolete-function-alias 'eglot-update 'eglot-upgrade-eglot "29.1")
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
 (put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
 (defun eglot--debbugs-or-github-bug-uri nil (format (if (string= (match-string 2) "github") "https://github.com/joaotavora/eglot/issues/%s" "https://debbugs.gnu.org/%s") (match-string 3)))
@@ -10196,7 +10202,7 @@ Look at CONFIG and try to expand GROUP.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push (purecopy '(erc 5 5)) package--builtin-versions)
+(push (purecopy '(erc 5 5 0 29 1)) package--builtin-versions)
 (autoload 'erc-select-read-args "erc" "\
 Prompt the user for values of nick, server, port, and password.")
 (autoload 'erc "erc" "\
@@ -12339,7 +12345,7 @@ Variables of interest include:
    If non-nil, always attempt to create the other file if it was not found.
 
  - `ff-quiet-mode'
-   If non-nil, traces which directories are being searched.
+   If non-nil, does not trace which directories are being searched.
 
  - `ff-special-constructs'
    A list of regular expressions specifying how to recognize special
@@ -18522,6 +18528,11 @@ sequence inside of a word.
 
 Standard ispell choices are then available.
 
+This command uses a word-list file specified
+by `ispell-alternate-dictionary' or by `ispell-complete-word-dict';
+if none of those name an existing word-list file, this command
+signals an error.
+
 (fn &optional INTERIOR-FRAG)" t)
 (autoload 'ispell-complete-word-interior-frag "ispell" "\
 Completes word matching character sequence inside a word." t)
@@ -22454,7 +22465,7 @@ Coloring:
 
 ;;; Generated autoloads from org/org.el
 
-(push (purecopy '(org 9 6 3)) package--builtin-versions)
+(push (purecopy '(org 9 6 5)) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
 
@@ -23446,8 +23457,7 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored.
 (autoload 'package-install "package" "\
 Install the package PKG.
 PKG can be a `package-desc' or a symbol naming one of the
-available packages in an archive in `package-archives'.  When
-called interactively, prompt for the package name.
+available packages in an archive in `package-archives'.
 
 Mark the installed package as selected by adding it to
 `package-selected-packages'.
@@ -23459,15 +23469,29 @@ non-nil, install the package but do not add it to
 If PKG is a `package-desc' and it is already installed, don't try
 to install it but still mark it as selected.
 
+If the command is invoked with a prefix argument, it will allow
+upgrading of built-in packages, as if `package-install-upgrade-built-in'
+had been enabled.
+
 (fn PKG &optional DONT-SELECT)" t)
-(autoload 'package-update "package" "\
-Update package NAME if a newer version exists.
+(autoload 'package-upgrade "package" "\
+Upgrade package NAME if a newer version exists.
+
+Currently, packages which are part of the Emacs distribution
+cannot be upgraded that way.  To enable upgrades of such a
+package using this command, first upgrade the package to a
+newer version from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'.
 
 (fn NAME)" t)
-(autoload 'package-update-all "package" "\
+(autoload 'package-upgrade-all "package" "\
 Refresh package list and upgrade all packages.
-If QUERY, ask the user before updating packages.  When called
+If QUERY, ask the user before upgrading packages.  When called
 interactively, QUERY is always true.
+
+Currently, packages which are part of the Emacs distribution are
+not upgraded by this command.  To enable upgrading such a package
+using this command, first upgrade  the package to a newer version
+from ELPA by using `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'.
 
 (fn &optional QUERY)" t)
 (autoload 'package-install-from-buffer "package" "\
@@ -23548,10 +23572,10 @@ Location of the file used to speed up activation of packages at startup." :type 
 
 (autoload 'package-vc-install-selected-packages "package-vc" "\
 Ensure packages specified in `package-vc-selected-packages' are installed." t)
-(autoload 'package-vc-update-all "package-vc" "\
-Attempt to update all installed VC packages." t)
-(autoload 'package-vc-update "package-vc" "\
-Attempt to update the package PKG-DESC.
+(autoload 'package-vc-upgrade-all "package-vc" "\
+Attempt to upgrade all installed VC packages." t)
+(autoload 'package-vc-upgrade "package-vc" "\
+Attempt to upgrade the package PKG-DESC.
 
 (fn PKG-DESC)" t)
 (autoload 'package-vc-install "package-vc" "\
@@ -23567,11 +23591,13 @@ indicating the package name and SPEC is a plist as described in
 symbol whose name is the package name, and the URL for the
 package will be taken from the package's metadata.
 
-By default, this function installs the last version of the package
-available from its repository, but if REV is given and non-nil, it
-specifies the revision to install.  If REV has the special value
-`:last-release' (interactively, the prefix argument), that stands
-for the last released version of the package.
+By default, this function installs the last revision of the
+package available from its repository.  If REV is a string, it
+describes the revision to install, as interpreted by the VC
+backend.  The special value `:last-release' (interactively, the
+prefix argument), will use the commit of the latest release, if
+it exists.  The last release is the latest revision which changed
+the \"Version:\" header of the package's main Lisp file.
 
 Optional argument BACKEND specifies the VC backend to use for cloning
 the package's repository; this is only possible if NAME-OR-URL is a URL,
@@ -23608,7 +23634,7 @@ Rebuilding an installation means scraping for new autoload
 cookies, re-compiling Emacs Lisp files, building and installing
 any documentation, downloading any missing dependencies.  This
 command does not fetch new revisions from a remote server.  That
-is the responsibility of `package-vc-update'.  Interactively,
+is the responsibility of `package-vc-upgrade'.  Interactively,
 prompt for the name of the package to rebuild.
 
 (fn PKG-DESC)" t)
@@ -23663,7 +23689,9 @@ The values returned are identical to those of `decode-time', but
 any unknown values other than DST are returned as nil, and an
 unknown DST value is returned as -1.
 
-(fn STRING)")
+See `decode-time' for the meaning of FORM.
+
+(fn STRING &optional FORM)")
 (register-definition-prefixes "parse-time" '("parse-"))
 
 
@@ -26020,7 +26048,7 @@ ENCRYPTION, CERTFP, SERVER-ALIAS are interpreted as in
 `rcirc-server-alist'.  STARTUP-CHANNELS is a list of channels
 that are joined after authentication.
 
-(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION CERTFP SERVER-ALIAS)")
+(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS CERTFP)")
 (defvar rcirc-track-minor-mode nil "\
 Non-nil if Rcirc-Track minor mode is enabled.
 See the `rcirc-track-minor-mode' command
@@ -31769,7 +31797,7 @@ Entering Texinfo mode calls the value of `text-mode-hook', and then the
 value of `texinfo-mode-hook'.
 
 (fn)" t)
-(register-definition-prefixes "texinfo" '("texinfo-"))
+(register-definition-prefixes "texinfo" '("fill-paragraph-separate" "texinfo-"))
 
 
 ;;; Generated autoloads from textmodes/texnfo-upd.el
@@ -37150,10 +37178,9 @@ run a specific program.  The program must be a member of
 (provide 'loaddefs)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
-;; no-native-compile: t
+;; no-byte-compile: t
 ;; coding: utf-8-emacs-unix
 ;; End:
 
