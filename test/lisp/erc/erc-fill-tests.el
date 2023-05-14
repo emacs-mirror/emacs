@@ -120,10 +120,14 @@
 ;; Obviously, only run one test at a time.
 (defvar erc-fill-tests--save-p nil)
 
+;; On graphical displays, echo .graphic >> .git/info/exclude
+(defvar erc-fill-tests--graphic-dir "fill/snapshots/.graphic")
+
 (defun erc-fill-tests--compare (name)
-  (when (display-graphic-p)
-    (setq name (concat name "-graphic")))
-  (let* ((dir (expand-file-name "fill/snapshots/" (ert-resource-directory)))
+  (let* ((dir (expand-file-name (if (display-graphic-p)
+                                    erc-fill-tests--graphic-dir
+                                  "fill/snapshots/")
+                                (ert-resource-directory)))
          (expect-file (file-name-with-extension (expand-file-name name dir)
                                                 "eld"))
          (erc--own-property-names
@@ -231,6 +235,20 @@
         "*** " "<alice> " "<bob> "
         "<bob> " "<alice> " "<alice> " "<bob> " "<bob> " "<Dummy> " "<Dummy> ")
        (erc-fill-tests--compare "merge-02-right")))))
+
+(ert-deftest erc-fill-line-spacing ()
+  :tags '(:unstable)
+  (unless (>= emacs-major-version 29)
+    (ert-skip "Emacs version too low, missing `buffer-text-pixel-size'"))
+
+  (let ((erc-fill-line-spacing 0.5))
+    (erc-fill-tests--wrap-populate
+     (lambda ()
+       (erc-fill-tests--insert-privmsg "bob" "This buffer is for text.")
+       (erc-display-message nil 'notice (current-buffer) "one two three")
+       (erc-display-message nil 'notice (current-buffer) "four five six")
+       (erc-fill-tests--insert-privmsg "bob" "Somebody stop me")
+       (erc-fill-tests--compare "spacing-01-mono")))))
 
 (ert-deftest erc-fill-wrap-visual-keys--body ()
   :tags '(:unstable)

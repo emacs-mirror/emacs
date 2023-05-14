@@ -5403,6 +5403,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     }
 
   record_unwind_protect (save_restriction_restore, save_restriction_save ());
+  labeled_restrictions_remove_in_current_buffer ();
 
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))

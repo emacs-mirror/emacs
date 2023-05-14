@@ -4056,7 +4056,7 @@ same LABEL argument.
   "Helper function for `with-restriction', which see."
   (save-restriction
     (narrow-to-region start end)
-    (if label (internal--lock-narrowing label))
+    (if label (internal--label-restriction label))
     (funcall body)))
 
 (defmacro without-restriction (&rest rest)
@@ -4078,7 +4078,7 @@ are lifted.
 (defun internal--without-restriction (body &optional label)
   "Helper function for `without-restriction', which see."
   (save-restriction
-    (if label (internal--unlock-narrowing label))
+    (if label (internal--unlabel-restriction label))
     (widen)
     (funcall body)))
 

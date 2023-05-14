@@ -90,6 +90,13 @@ from the same connection.  This customization depends on the option
 'frame'.  If you find the name 'displayed' unhelpful, please suggest
 an alternative by writing to the mailing list.
 
+** Module 'fill' can add a bit of space between messages.
+On graphical displays, it's now possible to add some breathing room
+around certain messages via the new option 'erc-fill-line-spacing'.
+This is especially handy when using the option 'erc-fill-wrap-merge'
+to omit repeated speaker tags, which can make message boundaries less
+detectable by tired eyes.
+
 ** Some keybindings are now set by modules rather than their libraries.
 To put it another way, simply loading a built-in module's library no
 longer modifies 'erc-mode-map'.  Instead, modifications occur during

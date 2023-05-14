@@ -1363,6 +1363,20 @@ See also `erc-show-my-nick'."
 Bound to local variables from an existing (logical) session's
 buffer during local-module setup and `erc-mode-hook' activation.")
 
+(defmacro erc--restore-initialize-priors (mode &rest vars)
+  "Restore local VARS for MODE from a previous session."
+  (declare (indent 1))
+  (let ((existing (make-symbol "existing"))
+        ;;
+        restore initialize)
+    (while-let ((k (pop vars)) (v (pop vars)))
+      (push `(,k (alist-get ',k ,existing)) restore)
+      (push `(,k ,v) initialize))
+    `(if-let* ((,existing (or erc--server-reconnecting erc--target-priors))
+               ((alist-get ',mode ,existing)))
+         (setq ,@(mapcan #'identity (nreverse restore)))
+       (setq ,@(mapcan #'identity (nreverse initialize))))))
+
 (defun erc--target-from-string (string)
   "Construct an `erc--target' variant from STRING."
   (funcall (if (erc-channel-p string)
@@ -1411,6 +1425,37 @@ capabilities."
                 (funcall f proc parsed)))
     (add-hook hook fun nil t)
     fun))
+
+(defun erc--warn-once-before-connect (mode-var &rest args)
+  "Display an \"error notice\" once.
+Expect ARGS to be `erc-button--display-error-notice-with-keys'
+compatible parameters, except without any leading buffers or
+processes.  If we're in an ERC buffer with a network process when
+called, print the notice immediately.  Otherwise, if we're in a
+server buffer, arrange to do so after local modules have been set
+up and mode hooks have run.  Otherwise, if MODE-VAR is a global
+module, try again at most once the next time `erc-mode-hook'
+runs."
+  (declare (indent 1))
+  (cl-assert (stringp (car args)))
+  (if (derived-mode-p 'erc-mode)
+      (unless (or (erc-with-server-buffer ; needs `erc-server-process'
+                    (apply #'erc-button--display-error-notice-with-keys
+                           (current-buffer) args)
+                    t)
+                  erc--target) ; unlikely
+        (let (hook)
+          (setq hook
+                (lambda (_)
+                  (remove-hook 'erc-connect-pre-hook hook t)
+                  (apply #'erc-button--display-error-notice-with-keys args)))
+          (add-hook 'erc-connect-pre-hook hook nil t)))
+    (when (custom-variable-p mode-var)
+      (let (hook)
+        (setq hook (lambda ()
+                     (remove-hook 'erc-mode-hook hook)
+                     (apply #'erc--warn-once-before-connect 'erc-fake args)))
+        (add-hook 'erc-mode-hook hook)))))
 
 (defun erc-server-buffer ()
   "Return the server buffer for the current buffer's process.
@@ -2039,6 +2084,26 @@ Except ignore all local modules, which were introduced in ERC 5.5."
             (push mode local-modes))
         (error "`%s' is not a known ERC module" module)))))
 
+(defvar erc--updating-modules-p nil
+  "Non-nil when running `erc--update-modules' in `erc-open'.
+This allows global modules with known or likely dependents (or
+some other reason for activating after session initialization) to
+conditionally run setup code traditionally reserved for
+`erc-mode-hook' in the setup portion of their mode toggle.  Note
+that being \"global\", they'll likely want to do so in all ERC
+buffers and ensure the code is idempotent.  For example:
+
+  (add-hook \\='erc-mode-hook #\\='erc-foo-setup-fn)
+  (unless erc--updating-modules-p
+    (erc-with-all-buffers-of-server nil
+        (lambda () some-condition-p)
+      (erc-foo-setup-fn)))
+
+This means that when a dependent module is initializing and
+realizes it's missing some required module \"foo\", it can
+confidently call (erc-foo-mode 1) without having to learn
+anything about the dependency's implementation.")
+
 (defun erc--setup-buffer-first-window (frame a b)
   (catch 'found
     (walk-window-tree
@@ -2198,7 +2263,8 @@ Returns the buffer for the given server or channel."
     (set-buffer buffer)
     (setq old-point (point))
     (setq delayed-modules
-          (erc--merge-local-modes (erc--update-modules)
+          (erc--merge-local-modes (let ((erc--updating-modules-p t))
+                                    (erc--update-modules))
                                   (or erc--server-reconnecting
                                       erc--target-priors)))
 
@@ -6093,6 +6159,21 @@ If the value is a number, `erc-send-current-line' signals an error
 if its previous invocation was fewer than this many seconds ago.
 This is useful so that if you accidentally enter large amounts of text
 into the ERC buffer, that text is not sent to the IRC server.
+
+This option only concerns the rapid submission of successive
+lines of prompt input from an \"external\" source, such as GNU
+screen or a desktop-automation script.  For example, typing
+
+  \\[kmacro-start-macro-or-insert-counter] \
+one \\`RET' two \\`RET' three \\`RET'
+  \\[kmacro-end-or-call-macro] in the \"*scratch*\" buffer, \
+followed by a
+  \\[kmacro-end-or-call-macro] again in a channel buffer,
+
+will send \"one\" to the server, leave \"two\" at the prompt, and
+insert \"three\" in an \"overflow\" buffer.  For suppression
+involving input yanked from the clipboard or the kill ring, see
+`erc-inhibit-multiline-input' and `erc-warn-about-blank-lines'.
 
 If the value is nil, `erc-send-current-line' always considers any
 submitted line to be intentional."

@@ -769,7 +769,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
 #endif
 
 /* True if W is a tab bar window.  */
-#if defined (HAVE_WINDOW_SYSTEM) && !defined (HAVE_PGTK)
+#if defined (HAVE_WINDOW_SYSTEM)
 # define WINDOW_TAB_BAR_P(W) \
    (WINDOWP (WINDOW_XFRAME (W)->tab_bar_window) \
     && (W) == XWINDOW (WINDOW_XFRAME (W)->tab_bar_window))

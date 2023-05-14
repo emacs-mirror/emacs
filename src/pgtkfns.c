@@ -398,13 +398,6 @@ pgtk_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   pgtk_set_name_internal (f, name);
 }
 
-
-void
-pgtk_set_doc_edited (void)
-{
-}
-
-
 static void
 pgtk_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {

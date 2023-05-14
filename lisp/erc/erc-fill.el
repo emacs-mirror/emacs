@@ -116,12 +116,30 @@ Set to nil to disable."
   "The column at which a filled paragraph is broken."
   :type 'integer)
 
+(defcustom erc-fill-line-spacing nil
+  "Extra space between messages on graphical displays.
+This may need adjusting depending on how your faces are
+configured.  Its value should be larger than that of the variable
+`line-spacing', if set.  If unsure, try 0.5."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(choice (const nil) number))
+
+(defcustom erc-fill-spaced-commands '(PRIVMSG NOTICE)
+  "Types of mesages to add space between on graphical displays.
+Only considered when `erc-fill-line-spacing' is non-nil."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(set integer symbol))
+
+(defvar-local erc-fill--function nil
+  "Internal copy of `erc-fill-function'.
+Takes precedence over the latter when non-nil.")
+
 ;;;###autoload
 (defun erc-fill ()
   "Fill a region using the function referenced in `erc-fill-function'.
 You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
   (unless (erc-string-invisible-p (buffer-substring (point-min) (point-max)))
-    (when erc-fill-function
+    (when (or erc-fill--function erc-fill-function)
       ;; skip initial empty lines
       (goto-char (point-min))
       (save-match-data
@@ -130,7 +148,19 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
       (unless (eobp)
         (save-restriction
           (narrow-to-region (point) (point-max))
-          (funcall erc-fill-function))))))
+          (funcall (or erc-fill--function erc-fill-function))
+          (when-let* ((erc-fill-line-spacing)
+                      (p (point-min)))
+            (widen)
+            (when (or (and-let* ((cmd (get-text-property p 'erc-command)))
+                        (memq cmd erc-fill-spaced-commands))
+                      (and-let* ((cmd (save-excursion
+                                        (forward-line -1)
+                                        (get-text-property (point)
+                                                           'erc-command))))
+                        (memq cmd erc-fill-spaced-commands)))
+              (put-text-property (1- p) p
+                                 'line-spacing erc-fill-line-spacing))))))))
 
 (defun erc-fill-static ()
   "Fills a text such that messages start at column `erc-fill-static-center'."
@@ -264,71 +294,63 @@ is 0, reset to value of `erc-fill-wrap-visual-keys'."
 (defvar erc-button-mode)
 (defvar erc-match--hide-fools-offset-bounds)
 
-(defun erc-fill--make-module-dependency-msg (module)
-  (concat "Enabling default global module `" module "' needed by local"
-          " module `fill-wrap'.  This will impact \C-]all\C-] ERC"
-          " sessions.  Add `" module "' to `erc-modules' to avoid this"
-          " warning.  See Info:\"(erc) Modules\" for more."))
+(defun erc-fill--wrap-ensure-dependencies ()
+  (let (missing-deps)
+    (unless erc-fill-mode
+      (push 'fill missing-deps)
+      (erc-fill-mode +1))
+    (when erc-fill-wrap-merge
+      (require 'erc-button)
+      (unless erc-button-mode
+        (push 'button missing-deps)
+        (erc-button-mode +1))
+      (require 'erc-stamp)
+      (unless erc-stamp-mode
+        (push 'stamp missing-deps)
+        (erc-stamp-mode +1)))
+    (when missing-deps
+      (erc--warn-once-before-connect 'erc-fill-wrap-mode
+        "Enabling missing global modules %s needed by local"
+        " module `fill-wrap'. This will impact \C-]all\C-] ERC"
+        " sessions. Add them to `erc-modules' to avoid this"
+        " warning. See Info:\"(erc) Modules\" for more."
+        (mapcar (lambda (s) (format "`%s'" s)) missing-deps)))))
 
 ;;;###autoload(put 'fill-wrap 'erc--feature 'erc-fill)
 (define-erc-module fill-wrap nil
   "Fill style leveraging `visual-line-mode'.
-This module displays nickname labels for speakers as overhanging
-leftward (and thus right-aligned) to a common offset, as
-determined by the option `erc-fill-static-center'.  It depends on
-the `fill' and `button' modules and assumes the option
+This local module displays nicks overhanging leftward to a common
+offset, as determined by the option `erc-fill-static-center'.  It
+depends on the `fill' and `button' modules and assumes the option
 `erc-insert-timestamp-function' is `erc-insert-timestamp-right'
-or `erc-insert-timestamp-left-and-right' (recommended) so that it
+or the default `erc-insert-timestamp-left-and-right', so that it
 can display right-hand stamps in the right margin.  A value of
-`erc-insert-timestamp-left' is unsupported.  This local module
-depends on the global `fill' module.  To use it, either include
-`fill-wrap' in `erc-modules' or set `erc-fill-function' to
-`erc-fill-wrap' (recommended).  You can also manually invoke one
-of the minor-mode toggles as usual."
-  ((let (msg)
-     (unless erc-fill-mode
-       (unless (memq 'fill erc-modules)
-         (setq msg
-               ;; FIXME use `erc-button--display-error-notice-with-keys'
-               ;; when bug#60933 is ready.
-               (erc-fill--make-module-dependency-msg "fill")))
-       (erc-fill-mode +1))
-     (when erc-fill-wrap-merge
-       (require 'erc-button)
-       (unless erc-button-mode
-         (unless (memq 'button erc-modules)
-           (setq msg (concat msg (and msg " ")
-                             (erc-fill--make-module-dependency-msg "button"))))
-         (erc-with-server-buffer
-           (erc-button-mode +1)))
-       (add-hook 'erc-button--prev-next-predicate-functions
-                 #'erc-fill--wrap-merged-button-p nil t))
-     ;; Set local value of user option (can we avoid this somehow?)
-     (unless (eq erc-fill-function #'erc-fill-wrap)
-       (setq-local erc-fill-function #'erc-fill-wrap))
-     (when-let* ((vars (or erc--server-reconnecting erc--target-priors))
-                 ((alist-get 'erc-fill-wrap-mode vars)))
-       (setq erc-fill--wrap-visual-keys (alist-get 'erc-fill--wrap-visual-keys
-                                                   vars)
-             erc-fill--wrap-value (alist-get 'erc-fill--wrap-value vars)))
-     (add-function :filter-args (local 'erc-stamp--insert-date-function)
-                   #'erc-fill--wrap-stamp-insert-prefixed-date)
-     (when (or erc-stamp-mode (memq 'stamp erc-modules))
-       (erc-stamp--display-margin-mode +1))
-     (when (or (bound-and-true-p erc-match-mode) (memq 'match erc-modules))
-       (require 'erc-match)
-       (setq erc-match--hide-fools-offset-bounds t))
-     (setq erc-fill--wrap-value
-           (or erc-fill--wrap-value erc-fill-static-center))
-     (visual-line-mode +1)
-     (unless (local-variable-p 'erc-fill--wrap-visual-keys)
-       (setq erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys))
-     (when msg
-       (erc-display-error-notice nil msg))))
+`erc-insert-timestamp-left' is unsupported.  To use it, either
+include `fill-wrap' in `erc-modules' or set `erc-fill-function'
+to `erc-fill-wrap' (recommended).  You can also manually invoke
+one of the minor-mode toggles if really necessary."
+  ((erc-fill--wrap-ensure-dependencies)
+   ;; Restore or initialize local state variables.
+   (erc--restore-initialize-priors erc-fill-wrap-mode
+     erc-fill--wrap-visual-keys erc-fill-wrap-visual-keys
+     erc-fill--wrap-value erc-fill-static-center)
+   (setq erc-fill--function #'erc-fill-wrap)
+   ;; Internal integrations.
+   (add-function :filter-args (local 'erc-stamp--insert-date-function)
+                 #'erc-fill--wrap-stamp-insert-prefixed-date)
+   (when (or erc-stamp-mode (memq 'stamp erc-modules))
+     (erc-stamp--display-margin-mode +1))
+   (when (or (bound-and-true-p erc-match-mode) (memq 'match erc-modules))
+     (require 'erc-match)
+     (setq erc-match--hide-fools-offset-bounds t))
+   (when erc-fill-wrap-merge
+     (add-hook 'erc-button--prev-next-predicate-functions
+               #'erc-fill--wrap-merged-button-p nil t))
+   (visual-line-mode +1))
   ((when erc-stamp--display-margin-mode
      (erc-stamp--display-margin-mode -1))
    (kill-local-variable 'erc-fill--wrap-value)
-   (kill-local-variable 'erc-fill-function)
+   (kill-local-variable 'erc-fill--function)
    (kill-local-variable 'erc-fill--wrap-visual-keys)
    (remove-hook 'erc-button--prev-next-predicate-functions
                 #'erc-fill--wrap-merged-button-p t)
@@ -422,28 +444,6 @@ See `erc-fill-wrap-mode' for details."
 (defun erc-fill--wrap-merged-button-p (point)
   (equal "" (get-text-property point 'display)))
 
-;; This is an experimental helper for third-party modules.  You could,
-;; for example, use this to automatically resize the prefix to a
-;; fraction of the window's width on some event change.  Another use
-;; case would be to fix lines affected by toggling a display-oriented
-;; mode, like `display-line-numbers-mode'.
-
-(defun erc-fill--wrap-fix (&optional value)
-  "Re-wrap from `point-min' to `point-max'.
-That is, recalculate the width of all accessible lines and reset
-local prefix VALUE when non-nil."
-  (save-excursion
-    (when value
-      (setq erc-fill--wrap-value value))
-    (let ((inhibit-field-text-motion t)
-          (inhibit-read-only t))
-      (goto-char (point-min))
-      (while (and (zerop (forward-line))
-                  (< (point) (min (point-max) erc-insert-marker)))
-        (save-restriction
-          (narrow-to-region (line-beginning-position) (line-end-position))
-          (erc-fill-wrap))))))
-
 (defun erc-fill--wrap-nudge (arg)
   (when (zerop arg)
     (setq arg (- erc-fill-static-center erc-fill--wrap-value)))
@@ -463,8 +463,7 @@ Offer to repeat command in a manner similar to
    \\`)' Reset the right margin to the default
 
 Note that misalignment may occur when messages contain
-decorations applied by third-party modules.  See
-`erc-fill--wrap-fix' for a temporary workaround."
+decorations applied by third-party modules."
   (interactive "p")
   (unless erc-fill--wrap-value
     (cl-assert (not erc-fill-wrap-mode))

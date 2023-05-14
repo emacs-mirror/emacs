@@ -1077,7 +1077,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	     with long lines, however, NL might be far away, so
 	     pretend that the buffer is smaller.  */
 	  if (current_buffer->long_line_optimizations_p)
-	    endpos = get_closer_narrowed_begv (cmp_it->parent_it->w, charpos);
+	    endpos = get_small_narrowing_begv (cmp_it->parent_it->w, charpos);
 	}
     }
   cmp_it->id = -1;
@@ -1660,7 +1660,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 	{
 	  /* In buffers with very long lines, this function becomes very
 	     slow.  Pretend that the buffer is narrowed to make it fast.  */
-	  ptrdiff_t begv = get_closer_narrowed_begv (w, window_point (w));
+	  ptrdiff_t begv = get_small_narrowing_begv (w, window_point (w));
 	  if (pos > begv)
 	    head = begv;
 	}

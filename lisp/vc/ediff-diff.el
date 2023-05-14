@@ -142,7 +142,7 @@ The status can be =diff(A), =diff(B), or =diff(A+B).")
 
 ;;; Fine differences
 
-(ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
+(ediff-defvar-local ediff-auto-refine 'on
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
 If `off', auto-highlighting is not used.  If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.

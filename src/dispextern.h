@@ -2374,21 +2374,20 @@ struct it
      with which display_string was called.  */
   ptrdiff_t end_charpos;
 
-  /* Alternate begin position of the buffer that may be used to
-     optimize display (see the SET_WITH_NARROWED_BEGV macro).  */
-  ptrdiff_t narrowed_begv;
+  /* Alternate begin and end positions of the buffer that are used to
+     optimize display of buffers with long lines.  These two fields
+     hold the return value of the 'get_medium_narrowing_begv' and
+     'get_medium_narrowing_zv' functions.  */
+  ptrdiff_t medium_narrowing_begv;
+  ptrdiff_t medium_narrowing_zv;
 
-  /* Alternate end position of the buffer that may be used to
-     optimize display.  */
-  ptrdiff_t narrowed_zv;
-
-  /* Begin position of the buffer for the locked narrowing around
-     low-level hooks.  */
-  ptrdiff_t locked_narrowing_begv;
-
-  /* End position of the buffer for the locked narrowing around
-     low-level hooks.  */
-  ptrdiff_t locked_narrowing_zv;
+  /* Alternate begin and end positions of the buffer that are used for
+     labeled narrowings around low-level hooks in buffers with long
+     lines.  These two fields hold the return value of the
+     'get_large_narrowing_begv' and 'get_large_narrowing_zv'
+     functions.  */
+  ptrdiff_t large_narrowing_begv;
+  ptrdiff_t large_narrowing_zv;
 
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
@@ -3458,11 +3457,9 @@ void mark_window_display_accurate (Lisp_Object, bool);
 void redisplay_preserve_echo_area (int);
 void init_iterator (struct it *, struct window *, ptrdiff_t,
                     ptrdiff_t, struct glyph_row *, enum face_id);
-ptrdiff_t get_narrowed_begv (struct window *, ptrdiff_t);
-ptrdiff_t get_narrowed_zv (struct window *, ptrdiff_t);
-ptrdiff_t get_closer_narrowed_begv (struct window *, ptrdiff_t);
-ptrdiff_t get_locked_narrowing_begv (ptrdiff_t);
-ptrdiff_t get_locked_narrowing_zv (ptrdiff_t);
+ptrdiff_t get_small_narrowing_begv (struct window *, ptrdiff_t);
+ptrdiff_t get_large_narrowing_begv (ptrdiff_t);
+ptrdiff_t get_large_narrowing_zv (ptrdiff_t);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);

@@ -3740,7 +3740,7 @@ corresponding to the newer version."
       ;; ENTRY is (PKG-DESC [NAME VERSION STATUS DOC])
       (let ((pkg-desc (car entry))
             (status (aref (cadr entry) 2)))
-        (cond ((member status '("installed" "dependency" "unsigned" "external"))
+        (cond ((member status '("installed" "dependency" "unsigned" "external" "built-in"))
                (push pkg-desc installed))
               ((member status '("available" "new"))
                (setq available (package--append-to-alist pkg-desc available))))))
@@ -3751,6 +3751,8 @@ corresponding to the newer version."
         (and avail-pkg
              (version-list-< (package-desc-priority-version pkg-desc)
                              (package-desc-priority-version avail-pkg))
+             (xor (not package-install-upgrade-built-in)
+                  (package--active-built-in-p pkg-desc))
              (push (cons name avail-pkg) upgrades))))
     upgrades))
 

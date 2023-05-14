@@ -4954,22 +4954,19 @@ pgtk_clear_under_internal_border (struct frame *f)
 
       if (face)
 	{
-#define x_fill_rectangle(f, gc, x, y, w, h) \
-	    fill_background_by_face (f, face, x, y, w, h)
-	  x_fill_rectangle (f, gc, 0, margin, width, border);
-	  x_fill_rectangle (f, gc, 0, 0, border, height);
-	  x_fill_rectangle (f, gc, width - border, 0, border, height);
-	  x_fill_rectangle (f, gc, 0, height - border, width, border);
-#undef x_fill_rectangle
+	  fill_background_by_face (f, face, 0, margin, width, border);
+	  fill_background_by_face (f, face, 0, 0, border, height);
+	  fill_background_by_face (f, face, width - border, 0, border,
+				   height);
+	  fill_background_by_face (f, face, 0, height - border, width,
+				   border);
 	}
       else
 	{
-#define x_clear_area(f, x, y, w, h)  pgtk_clear_area (f, x, y, w, h)
-	  x_clear_area (f, 0, 0, border, height);
-	  x_clear_area (f, 0, margin, width, border);
-	  x_clear_area (f, width - border, 0, border, height);
-	  x_clear_area (f, 0, height - border, width, border);
-#undef x_clear_area
+	  pgtk_clear_area (f, 0, 0, border, height);
+	  pgtk_clear_area (f, 0, margin, width, border);
+	  pgtk_clear_area (f, width - border, 0, border, height);
+	  pgtk_clear_area (f, 0, height - border, width, border);
 	}
 
       unblock_input ();

@@ -53,9 +53,8 @@ argument to `recenter'."
   "This mode causes the prompt to stay at the end of the window."
   ((add-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
    (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
-   (dolist (buffer (erc-buffer-list))
-     (with-current-buffer buffer
-       (erc-add-scroll-to-bottom))))
+   (unless erc--updating-modules-p
+     (erc-buffer-filter #'erc-add-scroll-to-bottom)))
   ((remove-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
    (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
@@ -120,9 +119,8 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
 (define-erc-module move-to-prompt nil
   "This mode causes the point to be moved to the prompt when typing text."
   ((add-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
-   (dolist (buffer (erc-buffer-list))
-     (with-current-buffer buffer
-       (erc-move-to-prompt-setup))))
+   (unless erc--updating-modules-p
+     (erc-buffer-filter #'erc-move-to-prompt-setup)))
   ((remove-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
@@ -154,21 +152,21 @@ displays an arrow in the left fringe or margin.  When it's
 `face', ERC adds the face `erc-keep-place-indicator-line' to the
 appropriate line.  A value of t does both."
   :group 'erc
-  :package-version '(ERC . "5.6")
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const t) (const server) (const target)))
 
 (defcustom erc-keep-place-indicator-buffer-type t
   "ERC buffer type in which to display `keep-place-indicator'.
 A value of t means \"all\" ERC buffers."
   :group 'erc
-  :package-version '(ERC . "5.6")
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type '(choice (const t) (const server) (const target)))
 
 (defcustom erc-keep-place-indicator-follow nil
   "Whether to sync visual kept place to window's top when reading.
 For use with `erc-keep-place-indicator-mode'."
   :group 'erc
-  :package-version '(ERC . "5.6")
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :type 'boolean)
 
 (defface erc-keep-place-indicator-line
@@ -209,11 +207,8 @@ the active frame."
 (defun erc--keep-place-indicator-setup ()
   "Initialize buffer for maintaining `erc--keep-place-indicator-overlay'."
   (require 'fringe)
-  (setq erc--keep-place-indicator-overlay
-        (if-let* ((vars (or erc--server-reconnecting erc--target-priors))
-                  ((alist-get 'erc-keep-place-indicator-mode vars)))
-            (alist-get 'erc--keep-place-indicator-overlay vars)
-          (make-overlay 0 0)))
+  (erc--restore-initialize-priors erc-keep-place-indicator-mode
+    erc--keep-place-indicator-overlay (make-overlay 0 0))
   (add-hook 'window-configuration-change-hook
             #'erc--keep-place-indicator-on-window-configuration-change nil t)
   (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
@@ -232,13 +227,10 @@ the active frame."
   "`keep-place' with a fringe arrow and/or highlighted face."
   ((unless erc-keep-place-mode
      (unless (memq 'keep-place erc-modules)
-       ;; FIXME use `erc-button--display-error-notice-with-keys'
-       ;; to display this message when bug#60933 is ready.
-       (erc-display-error-notice
-        nil (concat
-             "Local module `keep-place-indicator' needs module `keep-place'."
-             "  Enabling now.  This will affect \C-]all\C-] ERC sessions."
-             "  Add `keep-place' to `erc-modules' to silence this message.")))
+       (erc--warn-once-before-connect 'erc-keep-place-mode
+         "Local module `keep-place-indicator' needs module `keep-place'."
+         " Enabling now. This will affect \C-]all\C-] ERC sessions."
+         " Add `keep-place' to `erc-modules' to silence this message."))
      (erc-keep-place-mode +1))
    (if (pcase erc-keep-place-indicator-buffer-type
          ('target erc--target)

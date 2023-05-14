@@ -40,7 +40,7 @@
       (insert "hello")
       (let ((ol (make-overlay (point) (point)))
             (max-mini-window-height 1)
-            (text "askdjfhaklsjdfhlkasjdfhklasdhflkasdhflkajsdhflkashdfkljahsdlfkjahsdlfkjhasldkfhalskdjfhalskdfhlaksdhfklasdhflkasdhflkasdhflkajsdhklajsdgh"))
+            (text (copy-sequence "askdjfhaklsjdfhlkasjdfhklasdhflkasdhflkajsdhflkashdfkljahsdlfkjahsdlfkjhasldkfhalskdjfhalskdfhlaksdhfklasdhflkasdhflkasdhflkajsdhklajsdgh")))
         ;; (save-excursion (insert text))
         ;; (sit-for 2)
         ;; (delete-region (point) (point-max))

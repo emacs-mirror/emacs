@@ -845,7 +845,8 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
                                        `(:valueSet
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
-            :window `(:workDoneProgress t)
+            :window `(:showDocument (:support t)
+                      :workDoneProgress t)
             :general (list :positionEncodings ["utf-32" "utf-8" "utf-16"])
             :experimental eglot--{})))
 
@@ -2365,6 +2366,28 @@ THINGS are either registrations or unregisterations (sic)."
   (server (_method (eql workspace/workspaceFolders)))
   "Handle server request workspace/workspaceFolders."
   (eglot-workspace-folders server))
+
+(cl-defmethod eglot-handle-request
+  (_server (_method (eql window/showDocument)) &key
+           uri external takeFocus selection)
+  "Handle request window/showDocument."
+  (if (eq external t) (browse-url uri)
+    ;; Use run-with-timer to avoid nested client requests like the
+    ;; synchronous imenu case caused by which-func-mode.
+    (run-with-timer
+     0 nil
+     (lambda ()
+       (with-current-buffer (find-file-noselect (eglot--uri-to-path uri))
+         (cond (takeFocus
+                (pop-to-buffer (current-buffer))
+                (select-frame-set-input-focus (selected-frame)))
+               ((display-buffer (current-buffer))))
+         (when selection
+           (eglot--widening
+            (pcase-let ((`(,beg . ,end) (eglot--range-region selection)))
+              (goto-char beg)
+              (pulse-momentary-highlight-region beg end 'highlight))))))))
+  '(:success t))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."

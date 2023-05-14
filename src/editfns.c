@@ -2661,182 +2661,203 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
   return del_range_1 (XFIXNUM (start), XFIXNUM (end), 1, 1);
 }
 
-/* Alist of buffers in which locked narrowing is used.  The car of
-   each list element is a buffer, the cdr is a list of triplets (tag
-   begv-marker zv-marker).  The last element of that list always uses
-   the (uninterned) Qoutermost_narrowing tag and records the narrowing
-   bounds that were set by the user and that are visible on display.
-   This alist is used internally by narrow-to-region, widen,
-   internal--lock-narrowing, internal--unlock-narrowing and
-   save-restriction.  For efficiency reasons, an alist is used instead
-   of a buffer-local variable: otherwise reset_outermost_narrowings,
-   which is called during each redisplay cycle, would have to loop
-   through all live buffers.  */
-static Lisp_Object narrowing_locks;
+/* Alist of buffers in which labeled restrictions are used.  The car
+   of each list element is a buffer, the cdr is a list of triplets
+   (label begv-marker zv-marker).  The last triplet of that list
+   always uses the (uninterned) Qoutermost_restriction label, and
+   records the restriction bounds that were current when the first
+   labeled restriction was entered (which may be a narrowing that was
+   set by the user and is visible on display).  This alist is used
+   internally by narrow-to-region, widen, internal--label-restriction,
+   internal--unlabel-restriction and save-restriction.  For efficiency
+   reasons, an alist is used instead of a buffer-local variable:
+   otherwise reset_outermost_restrictions, which is called during each
+   redisplay cycle, would have to loop through all live buffers.  */
+static Lisp_Object labeled_restrictions;
 
-/* Add BUF with its LOCKS in the narrowing_locks alist.  */
+/* Add BUF with its list of labeled RESTRICTIONS in the
+   labeled_restrictions alist.  */
 static void
-narrowing_locks_add (Lisp_Object buf, Lisp_Object locks)
+labeled_restrictions_add (Lisp_Object buf, Lisp_Object restrictions)
 {
-  narrowing_locks = nconc2 (list1 (list2 (buf, locks)), narrowing_locks);
+  labeled_restrictions = nconc2 (list1 (list2 (buf, restrictions)),
+				 labeled_restrictions);
 }
 
-/* Remove BUF and its locks from the narrowing_locks alist.  Do
-   nothing if BUF is not present in narrowing_locks.  */
+/* Remove BUF and its list of labeled restrictions from the
+   labeled_restrictions alist.  Do nothing if BUF is not present in
+   labeled_restrictions.  */
 static void
-narrowing_locks_remove (Lisp_Object buf)
+labeled_restrictions_remove (Lisp_Object buf)
 {
-  narrowing_locks = Fdelq (Fassoc (buf, narrowing_locks, Qnil),
-			   narrowing_locks);
+  labeled_restrictions = Fdelq (Fassoc (buf, labeled_restrictions, Qnil),
+				labeled_restrictions);
 }
 
-/* Retrieve one of the BEGV/ZV bounds of a narrowing in BUF from the
-   narrowing_locks alist, as a pointer to a struct Lisp_Marker, or
-   NULL if BUF is not in narrowing_locks or is a killed buffer.  When
-   OUTERMOST is true, the bounds that were set by the user and that
-   are visible on display are returned.  Otherwise the innermost
-   locked narrowing bounds are returned.  */
-static struct Lisp_Marker *
-narrowing_lock_get_bound (Lisp_Object buf, bool begv, bool outermost)
+/* Retrieve one of the labeled restriction bounds in BUF from the
+   labeled_restrictions alist, as a marker, or return nil if BUF is
+   not in labeled_restrictions or is a killed buffer.  When OUTERMOST
+   is true, the restriction bounds that were current when the first
+   labeled restriction was entered are returned.  Otherwise the bounds
+   of the innermost labeled restriction are returned.  */
+static Lisp_Object
+labeled_restrictions_get_bound (Lisp_Object buf, bool begv, bool outermost)
 {
   if (NILP (Fbuffer_live_p (buf)))
-    return NULL;
-  Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
-  if (NILP (buffer_locks))
-    return NULL;
-  buffer_locks = XCAR (XCDR (buffer_locks));
+    return Qnil;
+  Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
+  if (NILP (restrictions))
+    return Qnil;
+  restrictions = XCAR (XCDR (restrictions));
   Lisp_Object bounds
     = outermost
-      ? XCDR (assq_no_quit (Qoutermost_narrowing, buffer_locks))
-      : XCDR (XCAR (buffer_locks));
+      ? XCDR (assq_no_quit (Qoutermost_restriction, restrictions))
+      : XCDR (XCAR (restrictions));
   eassert (! NILP (bounds));
   Lisp_Object marker = begv ? XCAR (bounds) : XCAR (XCDR (bounds));
   eassert (EQ (Fmarker_buffer (marker), buf));
-  return XMARKER (marker);
+  return marker;
 }
 
-/* Retrieve the tag of the innermost narrowing in BUF.  Return nil if
-   BUF is not in narrowing_locks or is a killed buffer.  */
+/* Retrieve the label of the innermost labeled restriction in BUF.
+   Return nil if BUF is not in labeled_restrictions or is a killed
+   buffer.  */
 static Lisp_Object
-narrowing_lock_peek_tag (Lisp_Object buf)
+labeled_restrictions_peek_label (Lisp_Object buf)
 {
   if (NILP (Fbuffer_live_p (buf)))
     return Qnil;
-  Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
-  if (NILP (buffer_locks))
+  Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
+  if (NILP (restrictions))
     return Qnil;
-  Lisp_Object tag = XCAR (XCAR (XCAR (XCDR (buffer_locks))));
-  eassert (! NILP (tag));
-  return tag;
+  Lisp_Object label = XCAR (XCAR (XCAR (XCDR (restrictions))));
+  eassert (! NILP (label));
+  return label;
 }
 
-/* Add a LOCK for BUF in the narrowing_locks alist.  */
+/* Add a labeled RESTRICTION for BUF in the labeled_restrictions
+   alist.  */
 static void
-narrowing_lock_push (Lisp_Object buf, Lisp_Object lock)
+labeled_restrictions_push (Lisp_Object buf, Lisp_Object restriction)
 {
-  Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
-  if (NILP (buffer_locks))
-    narrowing_locks_add (buf, list1 (lock));
+  Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
+  if (NILP (restrictions))
+    labeled_restrictions_add (buf, list1 (restriction));
   else
-    XSETCDR (buffer_locks, list1 (nconc2 (list1 (lock),
-					  XCAR (XCDR (buffer_locks)))));
+    XSETCDR (restrictions, list1 (nconc2 (list1 (restriction),
+					  XCAR (XCDR (restrictions)))));
 }
 
-/* Remove the innermost lock in BUF from the narrowing_locks alist.
-   Do nothing if BUF is not present in narrowing_locks.  */
+/* Remove the innermost labeled restriction in BUF from the
+   labeled_restrictions alist.  Do nothing if BUF is not present in
+   labeled_restrictions.  */
 static void
-narrowing_lock_pop (Lisp_Object buf)
+labeled_restrictions_pop (Lisp_Object buf)
 {
-  Lisp_Object buffer_locks = assq_no_quit (buf, narrowing_locks);
-  if (NILP (buffer_locks))
+  Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
+  if (NILP (restrictions))
     return;
-  if (EQ (narrowing_lock_peek_tag (buf), Qoutermost_narrowing))
-    narrowing_locks_remove (buf);
+  if (EQ (labeled_restrictions_peek_label (buf), Qoutermost_restriction))
+    labeled_restrictions_remove (buf);
   else
-    XSETCDR (buffer_locks, list1 (XCDR (XCAR (XCDR (buffer_locks)))));
+    XSETCDR (restrictions, list1 (XCDR (XCAR (XCDR (restrictions)))));
+}
+
+/* Unconditionally remove all labeled restrictions in current_buffer.  */
+void
+labeled_restrictions_remove_in_current_buffer (void)
+{
+  labeled_restrictions_remove (Fcurrent_buffer ());
 }
 
 static void
-unwind_reset_outermost_narrowing (Lisp_Object buf)
+unwind_reset_outermost_restriction (Lisp_Object buf)
 {
-  struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
-  struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
-  if (begv != NULL && zv != NULL)
+  Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+  Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+  if (! NILP (begv) && ! NILP (zv))
     {
-      SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
-      SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
+      SET_BUF_BEGV_BOTH (XBUFFER (buf),
+			 marker_position (begv), marker_byte_position (begv));
+      SET_BUF_ZV_BOTH (XBUFFER (buf),
+		       marker_position (zv), marker_byte_position (zv));
     }
   else
-    narrowing_locks_remove (buf);
+    labeled_restrictions_remove (buf);
 }
 
-/* Restore the narrowing bounds that were set by the user, and restore
-   the bounds of the locked narrowing upon return.
+/* Restore the restriction bounds that were current when the first
+   labeled restriction was entered, and restore the bounds of the
+   innermost labeled restriction upon return.
    In particular, this function is called when redisplay starts, so
    that if a Lisp function executed during redisplay calls (redisplay)
-   while a locked narrowing is in effect, the locked narrowing will
-   not be visible on display.
+   while labeled restrictions are in effect, these restrictions will
+   not become visible on display.
    See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57207#140 and
    https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57207#254 for example
    recipes that demonstrate why this is necessary.  */
 void
-reset_outermost_narrowings (void)
+reset_outermost_restrictions (void)
 {
   Lisp_Object val, buf;
-  for (val = narrowing_locks; CONSP (val); val = XCDR (val))
+  for (val = labeled_restrictions; CONSP (val); val = XCDR (val))
     {
       buf = XCAR (XCAR (val));
       eassert (BUFFERP (buf));
-      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, true);
-      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, true);
-      if (begv != NULL && zv != NULL)
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, true);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, true);
+      if (! NILP (begv) && ! NILP (zv))
 	{
-	  SET_BUF_BEGV_BOTH (XBUFFER (buf), begv->charpos, begv->bytepos);
-	  SET_BUF_ZV_BOTH (XBUFFER (buf), zv->charpos, zv->bytepos);
-	  record_unwind_protect (unwind_reset_outermost_narrowing, buf);
+	  SET_BUF_BEGV_BOTH (XBUFFER (buf),
+			     marker_position (begv), marker_byte_position (begv));
+	  SET_BUF_ZV_BOTH (XBUFFER (buf),
+			   marker_position (zv), marker_byte_position (zv));
+	  record_unwind_protect (unwind_reset_outermost_restriction, buf);
 	}
       else
-	narrowing_locks_remove (buf);
+	labeled_restrictions_remove (buf);
     }
 }
 
-/* Helper functions to save and restore the narrowing locks of the
-   current buffer in Fsave_restriction.  */
+/* Helper functions to save and restore the labeled restrictions of
+   the current buffer in Fsave_restriction.  */
 static Lisp_Object
-narrowing_locks_save (void)
+labeled_restrictions_save (void)
 {
   Lisp_Object buf = Fcurrent_buffer ();
-  Lisp_Object locks = assq_no_quit (buf, narrowing_locks);
-  if (!NILP (locks))
-    locks = XCAR (XCDR (locks));
-  return Fcons (buf, Fcopy_sequence (locks));
+  Lisp_Object restrictions = assq_no_quit (buf, labeled_restrictions);
+  if (! NILP (restrictions))
+    restrictions = XCAR (XCDR (restrictions));
+  return Fcons (buf, Fcopy_sequence (restrictions));
 }
 
 static void
-narrowing_locks_restore (Lisp_Object buf_and_saved_locks)
+labeled_restrictions_restore (Lisp_Object buf_and_restrictions)
 {
-  Lisp_Object buf = XCAR (buf_and_saved_locks);
-  Lisp_Object saved_locks = XCDR (buf_and_saved_locks);
-  narrowing_locks_remove (buf);
-  if (!NILP (saved_locks))
-    narrowing_locks_add (buf, saved_locks);
+  Lisp_Object buf = XCAR (buf_and_restrictions);
+  Lisp_Object restrictions = XCDR (buf_and_restrictions);
+  labeled_restrictions_remove (buf);
+  if (! NILP (restrictions))
+    labeled_restrictions_add (buf, restrictions);
 }
 
 static void
-unwind_narrow_to_region_locked (Lisp_Object tag)
+unwind_labeled_narrow_to_region (Lisp_Object label)
 {
-  Finternal__unlock_narrowing (tag);
+  Finternal__unlabel_restriction (label);
   Fwiden ();
 }
 
-/* Narrow current_buffer to BEGV-ZV with a narrowing locked with TAG.  */
+/* Narrow current_buffer to BEGV-ZV with a restriction labeled with
+   LABEL.  */
 void
-narrow_to_region_locked (Lisp_Object begv, Lisp_Object zv, Lisp_Object tag)
+labeled_narrow_to_region (Lisp_Object begv, Lisp_Object zv,
+			  Lisp_Object label)
 {
   Fnarrow_to_region (begv, zv);
-  Finternal__lock_narrowing (tag);
+  Finternal__label_restriction (label);
   record_unwind_protect (restore_point_unwind, Fpoint_marker ());
-  record_unwind_protect (unwind_narrow_to_region_locked, tag);
+  record_unwind_protect (unwind_labeled_narrow_to_region, label);
 }
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
@@ -2850,11 +2871,11 @@ To gain access to other portions of the buffer, use
 `without-restriction' with the same label.  */)
   (void)
 {
-  Fset (Qoutermost_narrowing, Qnil);
+  Fset (Qoutermost_restriction, Qnil);
   Lisp_Object buf = Fcurrent_buffer ();
-  Lisp_Object tag = narrowing_lock_peek_tag (buf);
+  Lisp_Object label = labeled_restrictions_peek_label (buf);
 
-  if (NILP (tag))
+  if (NILP (label))
     {
       if (BEG != BEGV || Z != ZV)
 	current_buffer->clip_changed = 1;
@@ -2864,19 +2885,23 @@ To gain access to other portions of the buffer, use
     }
   else
     {
-      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
-      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
-      eassert (begv != NULL && zv != NULL);
-      if (begv->charpos != BEGV || zv->charpos != ZV)
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+      eassert (! NILP (begv) && ! NILP (zv));
+      ptrdiff_t begv_charpos = marker_position (begv);
+      ptrdiff_t zv_charpos = marker_position (zv);
+      if (begv_charpos != BEGV || zv_charpos != ZV)
 	current_buffer->clip_changed = 1;
-      SET_BUF_BEGV_BOTH (current_buffer, begv->charpos, begv->bytepos);
-      SET_BUF_ZV_BOTH (current_buffer, zv->charpos, zv->bytepos);
-      /* If the only remaining bounds in narrowing_locks for
+      SET_BUF_BEGV_BOTH (current_buffer,
+			 begv_charpos, marker_byte_position (begv));
+      SET_BUF_ZV_BOTH (current_buffer,
+		       zv_charpos, marker_byte_position (zv));
+      /* If the only remaining bounds in labeled_restrictions for
 	 current_buffer are the bounds that were set by the user, no
-	 locked narrowing is in effect in current_buffer anymore:
-	 remove it from the narrowing_locks alist.  */
-      if (EQ (tag, Qoutermost_narrowing))
-	narrowing_lock_pop (buf);
+	 labeled restriction is in effect in current_buffer anymore:
+	 remove it from the labeled_restrictions alist.  */
+      if (EQ (label, Qoutermost_restriction))
+	labeled_restrictions_pop (buf);
     }
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
@@ -2913,25 +2938,27 @@ argument.  To gain access to other portions of the buffer, use
     args_out_of_range (start, end);
 
   Lisp_Object buf = Fcurrent_buffer ();
-  if (! NILP (narrowing_lock_peek_tag (buf)))
+  if (! NILP (labeled_restrictions_peek_label (buf)))
     {
-      struct Lisp_Marker *begv = narrowing_lock_get_bound (buf, true, false);
-      struct Lisp_Marker *zv = narrowing_lock_get_bound (buf, false, false);
-      eassert (begv != NULL && zv != NULL);
-      /* Limit the start and end positions to those of the locked
-	 narrowing.  */
-      if (s < begv->charpos) s = begv->charpos;
-      if (s > zv->charpos) s = zv->charpos;
-      if (e < begv->charpos) e = begv->charpos;
-      if (e > zv->charpos) e = zv->charpos;
+      /* Limit the start and end positions to those of the innermost
+	 labeled restriction.  */
+      Lisp_Object begv = labeled_restrictions_get_bound (buf, true, false);
+      Lisp_Object zv = labeled_restrictions_get_bound (buf, false, false);
+      eassert (! NILP (begv) && ! NILP (zv));
+      ptrdiff_t begv_charpos = marker_position (begv);
+      ptrdiff_t zv_charpos = marker_position (zv);
+      if (s < begv_charpos) s = begv_charpos;
+      if (s > zv_charpos) s = zv_charpos;
+      if (e < begv_charpos) e = begv_charpos;
+      if (e > zv_charpos) e = zv_charpos;
     }
 
   /* Record the accessible range of the buffer when narrow-to-region
-     is called, that is, before applying the narrowing.  It is used
-     only by internal--lock-narrowing.  */
-  Fset (Qoutermost_narrowing, list3 (Qoutermost_narrowing,
-				     Fpoint_min_marker (),
-				     Fpoint_max_marker ()));
+     is called, that is, before applying the narrowing.  That
+     information is used only by internal--label-restriction.  */
+  Fset (Qoutermost_restriction, list3 (Qoutermost_restriction,
+				       Fpoint_min_marker (),
+				       Fpoint_max_marker ()));
 
   if (BEGV != s || ZV != e)
     current_buffer->clip_changed = 1;
@@ -2948,38 +2975,38 @@ argument.  To gain access to other portions of the buffer, use
   return Qnil;
 }
 
-DEFUN ("internal--lock-narrowing", Finternal__lock_narrowing,
-       Sinternal__lock_narrowing, 1, 1, 0,
-       doc: /* Lock the current narrowing with LABEL.
+DEFUN ("internal--label-restriction", Finternal__label_restriction,
+       Sinternal__label_restriction, 1, 1, 0,
+       doc: /* Label the current restriction with LABEL.
 
 This is an internal function used by `with-restriction'.  */)
-  (Lisp_Object tag)
+  (Lisp_Object label)
 {
   Lisp_Object buf = Fcurrent_buffer ();
-  Lisp_Object outermost_narrowing
-    = buffer_local_value (Qoutermost_narrowing, buf);
-  /* If internal--lock-narrowing is ever called without being preceded
-     by narrow-to-region, do nothing.  */
-  if (NILP (outermost_narrowing))
+  Lisp_Object outermost_restriction
+    = buffer_local_value (Qoutermost_restriction, buf);
+  /* If internal--label-restriction is ever called without being
+     preceded by narrow-to-region, do nothing.  */
+  if (NILP (outermost_restriction))
     return Qnil;
-  if (NILP (narrowing_lock_peek_tag (buf)))
-    narrowing_lock_push (buf, outermost_narrowing);
-  narrowing_lock_push (buf, list3 (tag,
-				   Fpoint_min_marker (),
-				   Fpoint_max_marker ()));
+  if (NILP (labeled_restrictions_peek_label (buf)))
+    labeled_restrictions_push (buf, outermost_restriction);
+  labeled_restrictions_push (buf, list3 (label,
+					 Fpoint_min_marker (),
+					 Fpoint_max_marker ()));
   return Qnil;
 }
 
-DEFUN ("internal--unlock-narrowing", Finternal__unlock_narrowing,
-       Sinternal__unlock_narrowing, 1, 1, 0,
-       doc: /* Unlock a narrowing locked with LABEL.
+DEFUN ("internal--unlabel-restriction", Finternal__unlabel_restriction,
+       Sinternal__unlabel_restriction, 1, 1, 0,
+       doc: /* If the current restriction is labeled with LABEL, remove its label.
 
 This is an internal function used by `without-restriction'.  */)
-  (Lisp_Object tag)
+  (Lisp_Object label)
 {
   Lisp_Object buf = Fcurrent_buffer ();
-  if (EQ (narrowing_lock_peek_tag (buf), tag))
-    narrowing_lock_pop (buf);
+  if (EQ (labeled_restrictions_peek_label (buf), label))
+    labeled_restrictions_pop (buf);
   return Qnil;
 }
 
@@ -3079,15 +3106,15 @@ save_restriction_restore_1 (Lisp_Object data)
 Lisp_Object
 save_restriction_save (void)
 {
-  Lisp_Object restr = save_restriction_save_1 ();
-  Lisp_Object locks = narrowing_locks_save ();
-  return Fcons (restr, locks);
+  Lisp_Object restriction = save_restriction_save_1 ();
+  Lisp_Object labeled_restrictions = labeled_restrictions_save ();
+  return Fcons (restriction, labeled_restrictions);
 }
 
 void
 save_restriction_restore (Lisp_Object data)
 {
-  narrowing_locks_restore (XCDR (data));
+  labeled_restrictions_restore (XCDR (data));
   save_restriction_restore_1 (XCAR (data));
 }
 
@@ -4756,7 +4783,7 @@ syms_of_editfns (void)
   DEFSYM (Qwall, "wall");
   DEFSYM (Qpropertize, "propertize");
 
-  staticpro (&narrowing_locks);
+  staticpro (&labeled_restrictions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);
@@ -4817,12 +4844,12 @@ This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
 
-  DEFVAR_LISP ("outermost-narrowing", Voutermost_narrowing,
+  DEFVAR_LISP ("outermost-restriction", Voutermost_restriction,
 	       doc: /* Outermost narrowing bounds, if any.  Internal use only.  */);
-  Voutermost_narrowing = Qnil;
-  Fmake_variable_buffer_local (Qoutermost_narrowing);
-  DEFSYM (Qoutermost_narrowing, "outermost-narrowing");
-  Funintern (Qoutermost_narrowing, Qnil);
+  Voutermost_restriction = Qnil;
+  Fmake_variable_buffer_local (Qoutermost_restriction);
+  DEFSYM (Qoutermost_restriction, "outermost-restriction");
+  Funintern (Qoutermost_restriction, Qnil);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
@@ -4915,8 +4942,8 @@ it to be non-nil.  */);
   defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
-  defsubr (&Sinternal__lock_narrowing);
-  defsubr (&Sinternal__unlock_narrowing);
+  defsubr (&Sinternal__label_restriction);
+  defsubr (&Sinternal__unlabel_restriction);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }

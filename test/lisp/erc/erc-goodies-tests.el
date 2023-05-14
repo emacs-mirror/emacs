@@ -21,7 +21,6 @@
 ;;; Code:
 (require 'ert-x)
 (require 'erc-goodies)
-(declare-function erc--initialize-markers "erc" (old-point continued) t)
 
 (defun erc-goodies-tests--assert-face (beg end-str present &optional absent)
   (setq beg (+ beg (point-min)))
@@ -44,9 +43,6 @@
 ;; https://modern.ircdocs.horse/formatting.html
 
 (ert-deftest erc-controls-highlight--examples ()
-  ;; FIXME remove after adding
-  (unless (fboundp 'erc--initialize-markers)
-    (ert-skip "Missing required function"))
   (should (eq t erc-interpret-controls-p))
   (let ((erc-insert-modify-hook '(erc-controls-highlight))
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
@@ -130,9 +126,6 @@
 ;; in a high-contrast face.
 
 (ert-deftest erc-controls-highlight--inverse ()
-  ;; FIXME remove after adding
-  (unless (fboundp 'erc--initialize-markers)
-    (ert-skip "Missing required function"))
   (should (eq t erc-interpret-controls-p))
   (let ((erc-insert-modify-hook '(erc-controls-highlight))
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
@@ -212,9 +205,6 @@
     (":- ")))
 
 (ert-deftest erc-controls-highlight--motd ()
-  ;; FIXME remove after adding
-  (unless (fboundp 'erc--initialize-markers)
-    (ert-skip "Missing required function"))
   (should (eq t erc-interpret-controls-p))
   (let ((erc-insert-modify-hook '(erc-controls-highlight))
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
@@ -256,12 +246,12 @@
 ;; needed.
 
 (ert-deftest erc-keep-place-indicator-mode ()
-  ;; FIXME remove after adding
-  (unless (fboundp 'erc--initialize-markers)
-    (ert-skip "Missing required function"))
   (with-current-buffer (get-buffer-create "*erc-keep-place-indicator-mode*")
     (erc-mode)
     (erc--initialize-markers (point) nil)
+    (setq erc-server-process
+          (start-process "sleep" (current-buffer) "sleep" "1"))
+    (set-process-query-on-exit-flag erc-server-process nil)
     (let ((assert-off
            (lambda ()
              (should-not erc-keep-place-indicator-mode)
@@ -275,6 +265,7 @@
              (should erc-keep-place-mode)))
           ;;
           erc-insert-pre-hook
+          erc-connect-pre-hook
           erc-modules)
 
       (funcall assert-off)

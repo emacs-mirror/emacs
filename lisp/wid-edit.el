@@ -502,7 +502,7 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
 
 (defmacro widget-specify-insert (&rest form)
   "Execute FORM without inheriting any text properties."
-   (declare (debug body))
+   (declare (debug (body)))
   `(save-restriction
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))

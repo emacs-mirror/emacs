@@ -165,11 +165,17 @@ from entering them and instead jump over them."
   ((add-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (add-hook 'erc-insert-modify-hook #'erc-add-timestamp t)
    (add-hook 'erc-send-modify-hook #'erc-add-timestamp t)
-   (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect))
+   (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
+   (unless erc--updating-modules-p
+     (erc-buffer-filter #'erc-munge-invisibility-spec)))
   ((remove-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
    (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
-   (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)))
+   (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
+   (erc-with-all-buffers-of-server nil nil
+     (kill-local-variable 'erc-timestamp-last-inserted)
+     (kill-local-variable 'erc-timestamp-last-inserted-left)
+     (kill-local-variable 'erc-timestamp-last-inserted-right))))
 
 (defun erc-stamp--recover-on-reconnect ()
   (when-let ((priors (or erc--server-reconnecting erc--target-priors)))

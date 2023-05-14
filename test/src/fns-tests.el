@@ -1101,7 +1101,7 @@
 
 (ert-deftest test-vector-delete ()
   (let ((v1 (make-vector 1000 1)))
-    (should (equal (delete t [nil t]) [nil]))
+    (should (equal (delete t (vector nil t)) [nil]))
     (should (equal (delete 1 v1) (vector)))
     (should (equal (delete 2 v1) v1))))
 

@@ -152,7 +152,7 @@ the lines."
     (while (re-search-forward "^.+" nil t)
       (progn
 	(beginning-of-line)
-	(if (looking-at "struct[\\t ]+\\|class[\\t ]+")
+	(if (looking-at "struct[\t ]+\\|class[\t ]+")
 	    (insert "template ")
 	  (insert "template class "))))
     (goto-char (point-min))

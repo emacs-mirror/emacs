@@ -587,11 +587,11 @@ This checks also `file-name-as-directory', `file-name-directory',
 			 (mapcar (lambda (x) (concat tmp-name x)) files)))
 	  (should (equal (directory-files
 			  tmp-name nil directory-files-no-dot-files-regexp)
-			 (delete "." (delete ".." files))))
+			 (remove "." (remove ".." files))))
 	  (should (equal (directory-files
 			  tmp-name 'full directory-files-no-dot-files-regexp)
 			 (mapcar (lambda (x) (concat tmp-name x))
-				 (delete "." (delete ".." files))))))
+				 (remove "." (remove ".." files))))))
 
       ;; Cleanup.
       (tramp-archive-cleanup-hash))))
