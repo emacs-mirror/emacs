@@ -1,3 +1,1335 @@
+2023-05-14  Gabriel do Nascimento Ribeiro  <gabriel376@hotmail.com>
+
+	Ignore current-prefix-arg in async-shell-command
+
+	* lisp/simple.el (async-shell-command): Ignore current-prefix-arg and
+	always pass nil to second argument of `shell-command'.  (Bug#63432)
+
+2023-05-13  Joseph Turner  <joseph@breatheoutbreathe.in>
+
+	Fix building of VC package manuals with relative includes
+
+	* lisp/emacs-lisp/package-vc.el (package-vc--build-documentation):
+	Invoke makeinfo with -I to ensure the package directory is always
+	consulted for @include statements.  (Bug#63337)
+
+2023-05-13  Cyril Arnould  <cyril.arnould@outlook.com>  (tiny change)
+
+	Another fix for VHDL mode highlighting
+
+	* lisp/progmodes/vhdl-mode.el (vhdl-version): Bump to 3.38.5.
+	(vhdl-compiler-alist): Fix the regexps and the doc string.
+
+2023-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix auto-filling in Texinfo mode
+
+	This fixes auto-filling in Texinfo buffers.  It was broken by the
+	fix to bug#49558, which made M-q fill over-long @noindent lines by
+	refraining from customizing 'paragraph-separate' in Texinfo mode.
+	The underlying problem here is that 'auto-fill-mode' doesn't call
+	mode-specific filling functions, but does its job by itself, and
+	depends on 'forward-paragraph' to find the beginning of the
+	paragraph as appropriate for calculation of 'fill-prefix', and a
+	different value of 'paragraph-separate' broke that.  As a side
+	effect, the change below also changes paragraph-movement commands
+	in Texinfo back to how they behaved prior to that bugfix, but I
+	don't see why the paragraph-movement behavior introduced by that
+	fix made more sense.  Try to move through a series of
+	@-directives, like a paragraph preceded by several @cindex
+	entries, and you will see the inconsistencies.  In any case, the
+	adverse effects of that fix on auto-filling is unacceptable.
+
+	* lisp/textmodes/texinfo.el (fill-paragraph-separate): New
+	variable.
+	(texinfo-mode): Set 'fill-paragraph-separate' to the default value
+	of 'paragraph-separate'.  Customize 'paragraph-separate' to the
+	Texinfo-specific value, as it was before commit dde591571abf.
+	(texinfo--fill-paragraph): Bind 'paragraph-separate' to the value
+	of 'fill-paragraph-separate', to keep 'M-q' happy.
+
+2023-05-12  Gregory Heytings  <gregory@heytings.org>
+
+	Merge branch 'scratch/long-lines-cleanup' into 'emacs-29'
+
+2023-05-12  Gregory Heytings  <gregory@heytings.org>
+
+	Add an assertion in, and a commentary for, 'get_nearby_bol_pos'
+
+	* src/xdisp.c:
+	(get_nearby_bol_pos): Document the function, and add an assertion
+	on its return value.
+
+2023-05-12  Gregory Heytings  <gregory@heytings.org>
+
+	Fix the return type of 'labeled_restrictions_get_bound'
+
+	* src/editfns.c:
+	(labeled_restrictions_get_bound): Return a Lisp_Object instead of
+	a pointer to a struct Lisp_Marker.
+	(unwind_reset_outermost_restriction, reset_outermost_restrictions)
+	(Fwiden, Fnarrow_to_region): Adapt to the new return type.
+
+2023-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix mouse highlight with some fonts in Cairo builds
+
+	* src/ftcrfont.c (ftcrfont_draw): Don't set the
+	'background_filled_p' flag of the glyph string.  (Bug#63271)
+
+2023-05-12  Philip Kaludercic  <philipk@posteo.net>
+
+	Ensure that package menu respects 'package-install-upgrade-built-in'
+
+	* lisp/emacs-lisp/package.el (package-menu--find-upgrades): Check if
+	built-in packages can be upgraded if
+	'package-install-upgrade-built-in' is non-nil.
+
+2023-05-12  Philip Kaludercic  <philipk@posteo.net>
+
+	Ensure that EXTRA-DATA are always written when generating autoloads
+
+	* lisp/emacs-lisp/loaddefs-gen.el (loaddefs-generate): Handle
+	edge-case where no autoloads are found.  (Bug#63260)
+
+2023-05-11  Jonas Bernoulli  <jonas@bernoul.li>
+
+	Update to Transient v0.4.0
+
+	Or strictly speaking v0.4.0-1-g428576a4.)
+
+2023-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "Don't have nntp-report signal an error"
+
+	This reverts commit 032969e8c65ba1ccda8466f6c61f20e0c7293ebf.
+	The commit is being reverted because it caused bug#62845.
+
+2023-05-10  Alan Mackenzie  <acm@muc.de>
+
+	Make c-emacs-features use the proper binding of parse-sexp-lookup-properties
+
+	This is relevant for bug #58558, although it does not fix it.  Due to a wrong
+	ordering of with-current-buffer and a let form, the function overwrote the
+	global value of parse-sexp-lookup-properties and two other variables.
+
+	* lisp/progmodes/cc-defs.el (c-emacs-features): Change the nesting of
+	with-current-buffer and let so that the let bindings get used.
+
+2023-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	with-display-message: Workaround for bug#63253
+
+	Running arbitrary ELisp code from an atimer is still dangerous,
+	at least because the regexp engine is not-reentrant, so let's patch up
+	the case we bumped into.  There are probably many other such holes :-(
+
+	* src/alloc.c (garbage_collection_inhibited): Make it non-static.
+
+	* src/xdisp.c (garbage_collection_inhibited): Declare it.
+	(set_message, clear_message): Use it as a proxy for "we're in
+	a dangerous context like within `probably_quit`".
+
+2023-05-09  João Távora  <joaotavora@gmail.com>
+
+	Fido-mode: never shadow 'external' completion style
+
+	As explained in the manual (20.7.2 Fast minibuffer selection)
+	'fido-mode' and 'fido-vertical-mode' give priority the "flex"
+	completion style.
+
+	In fact, bug#62015 was recently fixed in commit because that priority
+	was not taking place correctly and some completions were missed.
+
+	However, an exception must be made for the 'external' completion
+	style.
+
+	That style, made available by the lisp/external-completion.el library,
+	is specifically designed to work with backends that provide only a
+	partial view of all completions.  If we allow 'flex' to step in front
+	of 'external' it could mean that 'flex' matches something and
+	'external' isn't triggered as it probably should.
+
+	To reproduce have the rust-mode ELPA package and the rust-analyzer LSP
+	server handy.  Then:
+
+	  emacs -Q -f package-initialize main.rs
+
+	Where main.rs is this content:
+
+	  fn foo1()    {} fn foo2()    {} fn foo3() {}
+	  fn foobar1() {} fn foobar2() {} fn foobar3() {}
+
+	The rust-analyzer server can be quickly configured to return only 3
+	workspace symbols max, so evaluate:
+
+	  (setq-default eglot-workspace-configuration
+	                '(:rust-analyzer
+	                    (:workspace (:symbol (:search (:limit 3))))))
+
+	Now start M-x eglot and M-x fido-vertical-mode and type C-u M-. to
+	find an arbitrary symbol in this one-file project.
+
+	Type 'f'.  You will see the three foo's are listed, correctly.
+
+	Now type '3'.   You will only see "foo3".
+
+	But that's wrong because "foobar3" was available, if only the server
+	had been asked for it.  This commit fixes the situation and no
+	completions are lost.
+
+	As an unfortunate side-effect of this commit, the fontification of
+	completions-common-part on the matches is lost, but that is not worse
+	than missing out on completions and there are better ways to recover
+	the fontification anyway (in external-completion.el).
+
+	See also:
+	https://github.com/joaotavora/eglot/discussions/1219#discussioncomment-5818336
+
+	* lisp/icomplete.el (icomplete--fido-ccd): Do not touch entries
+	with 'external in them.
+
+	Do not merge to master.
+	Backport:
+
+	(cherry picked from commit 0e8d8a72284f6b3aaa1bbce73d41c7d84bbc4d3c)
+
+2023-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes in --without-all build trying to scale non-ASCII char
+
+	* src/fontset.c (face_for_char): Display a non-ASCII character as
+	glyphless if the ASCII face has no fontset.  (Bug#63283)
+
+2023-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve instructions for dealing with Emacs crashes
+
+	* doc/emacs/trouble.texi (Crashing): Show the variant of the
+	'addr2line' command for MS-Windows.
+
+2023-05-08  Mohsen Banan  <form@mohsen.banan.1.byname.net>
+
+	Improved transliterations + improved bidi insertion support for Farsi
+
+	* lisp/leim/quail/persian.el ("farsi-transliterate-banan"):
+	Improve and add transliterations.  (Bug#63361)
+
+2023-05-08  Alan Third  <alan@idiocy.org>
+
+	Fix crash when creating a child frame in NS (bug#63107)
+
+	* src/nsterm.m ([EmacsView initFrameFromEmacs:]): Have a second go at
+	creating the toolbar.
+	([EmacsWindow createToolbar:]): If there is already a toolbar or the
+	EmacsView's layer is not an EmacsLayer, then do nothing.
+
+	(cherry picked from commit 3adc1e7f37901235bda83ea65a90644b7b0a8dbf)
+
+2023-05-07  Andrew G Cohen  <cohen@andy.bu.edu>
+
+	Fix outgoing mime type regression (Bug#62815)
+
+	* lisp/net/mailcap.el (mailcap-mime-extensions,
+	mailcap-parse-mimetype-file, mailcap-mime-types): Don't regexp-quote
+	mimetypes in a context where they should be strings.
+	(mailcap--regexp-quote-type): Remove.
+
+	(cherry picked from commit 605414d018da47f99dec5019142f584b6eb174c8)
+
+2023-05-07  Nicholas Vollmer  <iarchivedmywholelife@gmail.com>
+
+	define-minor-mode: sanitize mode function messages
+
+	* lisp/emacs-lisp/easy-mmode.el (define-minor-mode): Ensure mode's
+	pretty name is not interprted as a message formatting string,
+	e.g., if the mode name contains a '%'.  (Bug#63343)
+
+2023-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix beginning/end-of-defun with tree-sitter
+
+	* lisp/treesit.el (treesit-beginning-of-defun)
+	(treesit-end-of-defun): Push mark, as other beginning/end-of-defun
+	functions do.
+
+2023-05-06  Theodor Thornhill  <theo@thornhill.no>
+
+	Fix indent for enums in csharp-mode
+
+	* lisp/progmodes/csharp-mode.el (csharp-guess-basic-syntax): Check for
+	keywords containing 'enum' on the line before an opening bracket, and
+	make it behave like a class-open token.
+
+2023-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Teach c-ts-mode about the 'restrict' keyword
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--keywords): Add
+	"restrict" and "_Atomic" type qualifiers.  (Bug#63323)
+
+2023-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/x-dnd.el (x-dnd-after-move-frame): Skip dead frames.  (Bug#63312)
+
+2023-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doc strings of 'mark-sexp' and 'mark-word'
+
+	* lisp/emacs-lisp/lisp.el (mark-sexp):
+	* lisp/simple.el (mark-word): Clarify the doc strings in various
+	usage cases.  (Bug#62892)
+
+2023-05-05  Dmitry Gutov  <dmitry@gutov.dev>
+
+	(package-upgrade): Don't remove the package from 'package-selected-packages'
+
+	* lisp/emacs-lisp/package.el (package-upgrade):
+	Don't remove the package from 'package-selected-packages', fixing
+	the problem described in https://debbugs.gnu.org/62720#718.
+
+2023-05-05  João Távora  <joaotavora@gmail.com>
+
+	Eglot: re-rename eglot-upgrade to eglot-upgrade-eglot
+
+	* doc/misc/eglot.texi (Getting the latest version): Mention
+	eglot-upgrade-eglot.
+
+	* etc/EGLOT-NEWS: Mention eglot-upgrade-eglot.
+
+	* lisp/progmodes/eglot.el (eglot-upgrade-eglot): Rename from
+	eglot-update.
+	(eglot-update): New compatibility alias.
+
+2023-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix arguments of xml.c functions as displayed in Help buffers
+
+	* lisp/subr.el (libxml-parse-xml-region)
+	(libxml-parse-html-region): Adjust advertised-calling-convention
+	to the changes in commit cc33c6cf3a.  (Bug#63291)
+
+2023-05-05  Po Lu  <luangruo@yahoo.com>
+
+	More fixes for NetBSD/vax
+
+	* src/sysdep.c (init_signals) [__vax__]: Treat SIGILL
+	as a floating point error on VAXen.
+	Otherwise, (log 0.0) crashes Emacs.
+
+2023-05-05  Cyril Arnould  <cyril.arnould@outlook.com>  (tiny change)
+
+	Improve VHDL mode highlighting
+
+	* lisp/progmodes/vhdl-mode.el (vhdl-compiler-alist): Differentiate
+	between ModelSim errors, warnings, and notes when highlighting
+	them.  Add a new entry for Xilinx Vivado.  (Bug#63251)
+
+2023-05-04  Po Lu  <luangruo@yahoo.com>
+
+	Clarify documentation wrt floating point division by zero and NaN
+
+	* doc/lispref/numbers.texi (Float Basics)
+	(Arithmetic Operations): Document what happens on a VAX.
+	Tested on NetBSD 9.3.
+
+2023-05-04  Robert Pluim  <rpluim@gmail.com>
+
+	Make loaddefs-generate slightly more tolerant
+
+	There are packages in the wild, such as vlf-20191126.2250, which have
+	entries that are not terminated by three ';', but by two.  Tolerate
+	such entries.
+
+	* lisp/emacs-lisp/loaddefs-gen.el (loaddefs-generate): Search for two
+	';' as a delimiter, not three.  (Bug#63236)
+
+2023-05-04  Philip Kaludercic  <philipk@posteo.net>
+
+	Fix order of rcirc-connect arguments
+
+	* lisp/net/rcirc.el (rcirc): Pass SERVER-ALIAS before CLIENT-CERT.
+	(rcirc-connect): Take SERVER-ALIAS before CLIENT-CERT.
+
+	This is necessary for the 'rcirc-reconnect' trick to work that applies
+	the contents of 'rcirc-connection-info' to 'rcirc-connect', otherwise
+	the server alias gets lost as certfp information.
+
+	This addresses a change made in b79cb838a477ee5a5c3660e81264991ff833a82f.
+
+2023-05-04  Thuna  <thuna.cing@gmail.com>  (tiny change)
+
+	Fix rcirc messages printing in the wrong place
+
+	* lisp/net/rcirc.el (rcirc-send-message): Print the message before
+	sending it to the server.
+	(rcirc-print): Get the time with subsecond precision.
+	* lisp/calendar/parse-time.el (parse-time-string
+	parse-iso8601-time-string): Accept optional second FORM arguments,
+	with the same meaning as in `decode-time'.  Mention as such in the
+	docstring.  (Bug#59501)
+
+2023-05-04  Philip Kaludercic  <philipk@posteo.net>
+
+	Prevent unnecessary modifications of 'package-vc-selected-packages'
+
+	* lisp/emacs-lisp/package-vc.el (package-vc--unpack): Handle the
+	structure of correctly, not as an alist but a list of alists.
+	(package-vc--archive-spec-alist, package-vc--archive-spec-alists,
+	package-vc--desc->spec, package-vc--read-archive-data,
+	package-vc--download-and-read-archives, package-vc--unpack): Rename
+	'package-vc--archive-spec-alist' to 'package-vc--archive-spec-alists'.
+
+2023-05-03  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Rename eglot-update to eglot-upgrade
+
+	* doc/misc/eglot.texi (Getting the latest version):
+	Update the reference.
+
+	* lisp/progmodes/eglot.el (eglot-upgrade): Rename from
+	'eglot-update', as discussed on emacs-devel, in line with
+	'package-upgrade'.
+
+2023-05-03  Randy Taylor  <dev@rjt.dev>
+
+	go-ts-mode: Use iota query only if supported (Bug#63086)
+
+	iota query support was added on January 5, 2022.  To support older
+	versions of the tree-sitter-go grammar (like the latest tagged version,
+	v0.19.1, which was released on March 3, 2021), check if the query is
+	supported before trying to use it.
+
+	* lisp/progmodes/go-ts-mode.el (go-ts-mode--iota-query-supported-p): New
+	function.
+	(go-ts-mode--font-lock-settings): Use it.
+
+2023-05-03  Dmitry Gutov  <dmitry@gutov.dev>
+
+	(rng-complete-tag): Add the (ignored) argument to the :company-kind function
+
+	* lisp/nxml/rng-nxml.el (rng-complete-tag): Add the (ignored)
+	argument to the :company-kind function.  Fixes the "Wrong number
+	of arguments" error reported at
+	https://github.com/company-mode/company-mode/issues/1386.
+
+2023-05-03  Jonas Bernoulli  <jonas@bernoul.li>
+
+	Update to Transient v0.3.7-219-g3ded15b
+
+2023-05-03  Po Lu  <luangruo@yahoo.com>
+
+	Fix inserting selection data into Mozilla programs
+
+	* lisp/select.el (xselect-convert-to-text-uri-list): Don't
+	return any value when converting non-DND selections to this
+	drag-and-drop target.
+
+	Reported by Tobias Bading <tbading@web.de>.
+
+2023-05-03  Thuna  <thuna.cing@gmail.com>  (tiny change)
+
+	Recognize defstruct slot names in various eieio functions
+
+	* lisp/emacs-lisp/cl-preloaded.el (cl-struct-define): Set
+	each slot's name's 'slot-name' property so that
+	'eieio--known-slot-name-p' can recognize them.  (Bug#62959)
+
+2023-05-02  Thuna  <thuna.cing@gmail.com>  (tiny change)
+
+	Use 'calendar-buffer' instead of fixed string
+
+	* test/lisp/calendar/cal-julian-tests.el (with-cal-julian-test):
+	Use 'calendar-buffer' instead of a literal fixed name.
+	(Bug#61546)
+
+2023-05-02  Spencer Baugh  <sbaugh@catern.com>
+
+	Handle point not at EOB in minibuffer-choose-completion
+
+	Without this change, only the minibuffer contents before point
+	are cleared when a completion is chosen, which results in stray
+	text when point is in the middle of the minibuffer.
+
+	After this change, we heuristically decide either to clear the
+	whole buffer or only part of it, taking into account the
+	location of point.
+
+	This is a backport for the Emacs 29 release branch of a simpler
+	fix in minibuffer-completion-help.
+
+	* lisp/minibuffer.el (minibuffer-next-completion):
+	(minibuffer-choose-completion):
+	Recalculate completion-base-affixes with point.  (Bug#62700)
+
+2023-05-02  Spencer Baugh  <sbaugh@catern.com>
+
+	Note that Emacs pauses when handling sentinel errors
+
+	Noting this behavior and variable here makes it easier to
+	understand the behavior of Emacs when a sentinel has an error.
+
+	* doc/lispref/processes.texi (Filter Functions): Note that Emacs
+	pauses when handling sentinel errors.
+	(Sentinels): Note that Emacs pauses when handling sentinel errors.
+	(Bug#63096)
+
+2023-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix vertical-motion when tab-line is displayed in a window
+
+	* src/xdisp.c (try_window, try_window_id): Account for tab-line,
+	if present, when converting scroll-margin at the top of the window
+	to vertical pixel coordinate.  (Bug#63201)
+
+2023-04-30  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.5-3-g2993f4
+
+2023-04-30  Philip Kaludercic  <philipk@posteo.net>
+
+	Prevent generating empty autoload files
+
+	* lisp/emacs-lisp/loaddefs-gen.el (loaddefs-generate): Remove
+	optimisation that would mistakenly discard old loaddefs in case a file
+	was not modified by EXTRA-DATA is non-nil.  (Bug#62734)
+
+2023-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/org/org-macs.el (org--inhibit-version-check): Fix docstring
+
+	Also, add an explanation to the docstring for what the version
+	check is about.
+
+2023-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix redisplay of mode line after its format changes from nil
+
+	* src/dispnew.c (update_window): Make sure a mode-line's row of
+	the current glyph matrix is disabled when the mode line is not
+	being displayed.  (Bug#63186)
+
+2023-04-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix c-ts-mode--emacs-c-range-query
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--emacs-c-range-query):
+	Check for (treesit-available-p).
+
+2023-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of warnings
+
+	* doc/lispref/control.texi (Errors):
+	* doc/lispref/os.texi (Startup Summary):
+	* doc/lispref/display.texi (Warning Basics, Warning Variables)
+	(Warning Options, Delayed Warnings): Improve documentation of
+	warnings.  Document the automatic delaying of warnings during
+	startup.  (Bug#63181)
+
+2023-04-29  Yuan Fu  <casouri@gmail.com>
+
+	Fix FOR_EACH_TAIL fontification (bug#62951)
+
+	Fix the fontification inconsistency between different FOR_EACH_TAIL's.
+	See the comment for more explanation.  Also enable the emacs-devel
+	feature automatically when c-ts-mode-emacs-sources-support is on.
+
+	* lisp/progmodes/c-ts-mode.el:
+	(c-ts-mode--for-each-tail-regexp): Move up.
+	(c-ts-mode--font-lock-settings): New font-lock rule for FOR_EACH_TAIL.
+	(c-ts-mode--fontify-for-each-tail): New function.
+	(c-ts-mode): Automatically enable emacs-devel feature.
+
+2023-04-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix documentation of libxml-parse-* functions
+
+	* doc/lispref/text.texi (Parsing HTML/XML):
+	* src/xml.c (Flibxml_parse_html_region, Flibxml_parse_xml_region):
+	Update the documentation regarding the use of BASE-URL argument.
+	(Bug#63125)
+
+2023-04-28  Theodor Thornhill  <theo@thornhill.no>
+
+	Skip over whitespace in annotation-top-cont check (bug#63141)
+
+	* lisp/progmodes/csharp-mode.el (csharp-guess-basic-syntax): Make sure
+	we skip over whitespace when looking for the next '['.
+
+2023-04-28  Ruijie Yu  <ruijie@netyu.xyz>
+
+	Update zh-CN tutorial translation
+
+	* etc/tutorials/TUTORIAL.cn (INTRO): Additions from English
+	version; say "interrupt" not "quit" a partially-entered command;
+	fixed minor inconsistency (English says partially-entered command,
+	Chinese used to say partially-executed command -- they are
+	different); converted half-width square brackets containing
+	translators' notes into full-width ones for consistency.
+	(BASIC CURSOR CONTROL): mention that a word boundary for Chinese
+	can also be space; fixed incorrect terminology (keyboard vs
+	terminal); retain English term "terminal"; retain English term
+	"prefix argument"; "most commands _interpret_ prefix args as
+	repeat-count", not "explain"; ensure space is added on both ends
+	of an English word.
+	(WINDOWS): Clarify it is the digit 1 in C-x 1.
+	(INSERTING AND DELETING): Mention the term "continuation line" and
+	retain its English term, because this term is mentioned again
+	later in the tutorial; avoid saying the name of "\\"; add
+	description for "electric" and a rough translation; sync English
+	for prefix argument for DEL and C-d; ensure that translators'
+	notes are marked explicitly so; add indentation to the instruction
+	about continuation lines; additional translations such as
+	mentioning C--, etc.
+	(FILES): Re-pluralize the heading; space around English words;
+	describe what C-g cancels (the command) when entering file name;
+	replace "search for" with "find"; minor rephrasing; explicit
+	translator notes; fixed the write-file message to no longer
+	contain ellipses (see src/fileio.c:5541).
+	(BUFFERS): Re-pluralize the heading; mention that C-x C-b also
+	shows buffer name; C-x s only looks for file-visiting buffers.
+	(EXTENDING THE COMMAND SET): Include C-x s and C-x b in list of
+	learned commands.
+	(MODE LINE): Remove the dashes in description on the point
+	location.
+	(MULTIPLE WINDOWS): Mention the difference between frame
+	and window; also add translator notes pointing to end of
+	tutorial which contains a terminology list.
+	(MULTIPLE FRAMES): Change the M-x commands to keybinds C-x 5 2 and
+	C-x 5 0 to sync with English.
+	(GETTING MORE HELP): Change C-h f to C-h x, to sync with English.
+	(INSTALLING PACKAGES): Rephrase "available packages", used to say
+	lit., "existing", now says lit., "installable"; consistently
+	translate the term "package", and retain its English name.
+	(TRANSLATION): Add my name as co-maintainer of this file.
+
+	* etc/tutorials/TUTORIAL.translators (TUTORIAL.cn): Add my name
+	as co-maintainer for TUTORIAL.cn.
+
+2023-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix eglot.texi
+
+	* doc/misc/eglot.texi (Troubleshooting Eglot): Add missing @menu.
+	(Performance, Getting the latest version): Improve wording and
+	indexing, add cross-references.
+
+2023-04-27  Po Lu  <luangruo@yahoo.com>
+
+	Fix two crashes upon startup
+
+	* src/image.c (image_create_bitmap_from_data)
+	(image_create_bitmap_from_file): Specify a Window or a Pixmap
+	describing the screen, not a back buffer drawable which may not exist.
+	Otherwise, Emacs crashes on startup when a bitmap icon is in use.
+
+2023-04-27  João Távora  <joaotavora@gmail.com>
+
+	Eglot: explain how to update Eglot in manual (bug#62720)
+
+	* lisp/progmodes/eglot.el (eglot-update): New command.
+
+	* doc/misc/eglot.texi (Troubleshooting): Rework.
+
+2023-04-27  João Távora  <joaotavora@gmail.com>
+
+	Eglot: fix edge case when deleting inlay hint overlays
+
+	When asked to update hints in a region (FROM TO),
+	eglot--update-hints-1 first deletes the existing hints.  It must
+	however take care to delete all overlays that logically belong to the
+	region, even if they don't physically belong to it, e.g. inlay
+	overlays spanning (FROM-1 FROM) and having a 'after-string' property.
+
+	* lisp/progmodes/eglot.el (eglot--update-hints-1): Fix edge case.
+
+2023-04-27  Dmitry Gutov  <dmitry@gutov.dev>
+
+	package-upgrade[-all]: Expand docstrings to note the current limitation
+
+	* lisp/emacs-lisp/package.el (package-upgrade, package-upgrade-all):
+	Expand docstrings to note the current limitation (bug#62720).
+
+2023-04-27  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Rename all functions called package-*-update-* to package-*-upgrade-*
+
+	* lisp/emacs-lisp/package-vc.el (package-vc-upgrade-all):
+	Rename from 'package-vc-update-all'.
+	(package-vc-upgrade): Rename from 'package-vc-update'.
+
+	* lisp/emacs-lisp/package.el (package-upgrade):
+	Rename from 'package-update' (bug#62750).
+	(package--upgradeable-packages):
+	Rename from 'package--updateable-packages'.
+	(package-upgrade-all): Rename from 'package-update-all'.
+
+2023-04-27  Yuan Fu  <casouri@gmail.com>
+
+	Fix FOR_EACH_TAIL in c-ts-mode (bug#62951)
+
+	* lisp/progmodes/c-ts-mode.el
+	(c-ts-mode--indent-styles): New indent rule.
+
+	(c-ts-mode--for-each-tail-regexp)
+	(c-ts-mode--for-each-tail-body-matcher)
+	(c-ts-mode--emacs-c-range-query)
+	(c-ts-mode--for-each-tail-ranges)
+	(c-ts-mode--reverse-ranges)
+	(c-ts-mode--emacs-set-ranges): New functions and variables.
+
+	(c-ts-mode): Create a emacs-c parser.  More setup for Emacs source
+	support.
+
+	* lisp/treesit.el (treesit-query-range): Ignore underscore-prefixed
+	capture names.
+
+2023-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (distclean): Remove the 'native-lisp' directory.
+
+2023-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve greek-ibycus4 input method
+
+	* lisp/leim/quail/greek.el ("greek-ibycus4"): Add another sequence
+	for CAPITAL LETTER RHO WITH DASIA.  (Bug#63104)
+
+2023-04-26  F. Jason Park  <jp@neverwas.me>
+
+	Explain ERC 5.5 regressions in new version 5.5.0.29.1
+
+	* doc/misc/erc.texi: Bump version to 5.5.0.29.1.
+	* etc/ERC-NEWS: Don't hype bugged option `erc-reconnect-display'.
+	* lisp/erc/erc-dcc.el (erc-dcc-do-GET-command): Add comment explaining
+	parsing bug in ERC 5.5 (bug#62444).
+	* lisp/erc/erc-networks.el (erc-networks-on-MOTD-end): Mention known
+	/MOTD bug in error notice so people don't waste energy reporting
+	it (bug#62151).
+	* lisp/erc/erc.el: Change Version header to 5.5.0.29.1.  Don't bother
+	updating the `customize-package-emacs-version-alist' entry
+	because no option defaults are affected.
+	(erc-version): Change version to 5.5.0.29.1.
+	(erc-reconnect-display, erc-query-on-unjoined-chan-privmsg): Add
+	warning to doc strings and `custom-set' functions.  It's believed that
+	these bugs degrade the user experience significantly enough to warrant
+	such mentions (bug#62833).
+	(erc-query): Fix erroneous redirect string in deprecation spec.
+	Do not merge to master.
+
+2023-04-26  F. Jason Park  <jp@neverwas.me>
+
+	* doc/misc/erc.texi: Elaborate on upgrading via ELPA.
+
+2023-04-26  Robert Pluim  <rpluim@gmail.com>
+
+	Improve outline-default-state docstring
+
+	* lisp/outline.el (outline-default-state): Explain which functions are
+	available to affect heading visibility.
+
+2023-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Document problems with /bin/sh on Solaris 10
+
+	* etc/PROBLEMS (Solaris): Document problems with '/bin/sh'.
+	Suggested by Paul Eggert <eggert@cs.ucla.edu>.  (Bug#63067)
+
+2023-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Followup to addition of TUTORIAL.fa
+
+	* etc/NEWS: Announce addition of TUTORIAL.fa.
+
+	* etc/tutorials/TUTORIAL.translators (TUTORIAL.fa): New entry.
+
+	* lisp/language/misc-lang.el ("Persian"): Add tutorial property.
+
+2023-04-25  Mohsen Banan  <form@mohsen.banan.1.byname.net>
+
+	Add Farsi/Persian translation of the tutorial
+
+	* etc/tutorials/TUTORIAL.fa: New file.
+
+	* lisp/language/misc-lang.el (arabic-shaper-ZWNJ-handling): Fix
+	typo in doc string.
+
+2023-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Add Mongolian language environments
+
+	* lisp/language/misc-lang.el ("Mongolian-traditional"):
+	* lisp/language/cyrillic.el ("Mongolian-cyrillic"): New
+	language environments.
+
+	* etc/HELLO: Add Mongolian Traditional.
+	* etc/NEWS: Announce the new language environments.
+
+	(Bug#63028)
+
+2023-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Document the 'end-session' event on MS-Windows
+
+	* doc/lispref/commands.texi (Misc Events): Document the
+	'end-session' event.  (Bug#63058)
+
+2023-04-24  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.4-9-g8eb209
+
+2023-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Don't support versioned grammar libraries on MS-Windows
+
+	* src/treesit.c (treesit_load_language_push_for_each_suffix):
+	Don't append ".0.0" on WINDOWSNT.
+
+2023-04-24  Yuan Fu  <casouri@gmail.com>
+
+	Accept versioned tree-sitter language grammar files
+
+	By discussion on emacs-devel, titled "Versioned Tree-sitter parser
+	libraries".
+
+	* src/treesit.c (Vtreesit_str_dot_0): New variable.
+	(treesit_load_language_push_for_each_suffix): Additionally look for
+	lib_base_name.0 and lib_base_name.0.0.
+	(syms_of_treesit): Initialize Vtreesit_str_dot_0.
+
+2023-04-24  Benson Chu  <bensonchu457@gmail.com>  (tiny change)
+
+	tab-bar-new-tab: inhibit side-window checks
+
+	Previously, calling 'tab-bar-new-tab-to' only removed the
+	'window-side' property on the currently selected window,
+	and then a call to 'delete-other-windows' was made to
+	ensure that the selected window was the only window.
+	We can skip this check by shadowing 'window--sides-inhibit-check'
+	to t.
+	* lisp/tab-bar.el (tab-bar-new-tab-to): Inhibit side-window checks.
+	(Bug#62427)
+
+2023-04-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* etc/NEWS: Fix outline level.  (Bug#63042)
+
+	Fix typos.
+
+2023-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix rendering of Traditional Mongolian script
+
+	* lisp/international/characters.el: Set punctuation syntax for Po
+	characters from the Mongolian block
+	* lisp/international/fontset.el (setup-default-fontset): Add
+	fontset setting for Traditional Mongolic.
+	* lisp/language/misc-lang.el (composition-function-table): Add
+	rules for Traditional Mongolic.  (Bug#63028)
+
+2023-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix line-number-at-pos when POSITION is out of narrowing
+
+	* src/fns.c (Fline_number_at_pos): Don't signal an error when
+	ABSOLUTE is nil and POSITION is outside of the narrowing, like the
+	original Lisp implementation did.  Minor speedup by using the byte
+	position where it is available from the get-go.  (Bug#62857)
+
+2023-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix exiting Emacs after saving a tutorial
+
+	* lisp/tutorial.el (tutorial--starting-point): Make it
+	permanent-local, so that saving the tutorial to some file doesn't
+	kill this buffer-local variable.  Otherwise, trying to exit Emacs
+	after saving the tutorial will signal an error, because
+	'tutorial--starting-point' is void.  (Bug#37326)
+
+2023-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Add indentation style setting for c-ts-mode in .dir-locals.el
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-indent-style-safep): New
+	predicate.
+	(c-ts-mode-indent-style): Use it to test the value for being safe.
+
+	* .dir-locals.el (c-ts-mode): Set 'c-ts-mode-indent-style' to 'gnu'.
+
+2023-04-20  Nicolas Martyanoff  <nicolas@n16f.net>
+
+	sql: add missing postgresql types
+
+	* lisp/progmodes/sql.el: Add multiple missing PostgreSQL types: bigserial,
+	smallserial, macaddr8, jsonb, jsonpath, built-in range types, object
+	identifier types (oid & co).
+
+2023-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of menu-bar bindings of commands in *Help* buffers
+
+	* lisp/help-fns.el (help-fns--insert-menu-bindings): Propertize
+	with 'help-key-binding' face only the menu items, not the arrows
+	between successive items.  This is because 'char-displayable-p' is
+	unreliable when we propertize the character with an arbitrary
+	face: that face could specify a font which doesn't support the
+	character after all, while 'char-displayable-p' assumes there are
+	no restrictions on fonts that can be used for displaying the
+	character.  Also, make the code more efficient by avoiding the
+	call to 'char-displayable-p' inside the loop.
+
+2023-04-19  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Improve Completion Example section in the Emacs manual
+
+	This can be a useful substitute for full-on fuzzy completion, as
+	provided by other completion styles and completion packages.
+	* doc/emacs/mini.texi (Completion Example): Give an example of
+	completion with point not at end of minibuffer.  Also, use
+	@kbd{@key{TAB}} when telling the user to hit TAB.  (Bug#62836)
+
+2023-04-19  Robert Pluim  <rpluim@gmail.com>
+
+	Improve 'message-server-alist' docstring
+
+	* lisp/gnus/message.el (message-server-alist): Fix typo and clarify
+	what happens if there is already an X-Message-SMTP-Method header.
+
+2023-04-19  Robert Pluim  <rpluim@gmail.com>
+
+	Add index entry for fallback modes
+
+	* doc/emacs/custom.texi (Specifying File Variables): Add index for
+	'fallback modes'.
+
+2023-04-18  Dmitry Gutov  <dmitry@gutov.dev>
+
+	xref-search-program-alist: Fix searching larger file lists on MS Windows
+
+	* lisp/progmodes/xref.el (xref-search-program-alist):
+	Add '-s 10000' to xargs' options when on Windows or DOS.
+	Apparently the xargs port doesn't currently know how to obey the
+	system-wide limits (https://debbugs.gnu.org/bug=61667#521).
+
+2023-04-18  Shynur  <one.last.kiss@outlook.com>  (tiny change)
+
+	Fix typo and inaccuracy in the ELisp Reference manual
+
+	* doc/lispref/loading.texi (Dynamic Modules): Fix a typo.
+	* doc/lispref/customize.texi (Group Definitions): Faces are also
+	in the 'custom-group' property of a customization group.
+	(Bug#62887)
+
+2023-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix description of lexical environment's internals
+
+	* doc/lispref/variables.texi (Lexical Binding): Update the
+	description of how the lexical environment is represented
+	internally.  (Bug#62840)
+
+2023-04-16  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.6.4-2-g0f6ae7
+
+2023-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Documentation copyedits for 'package-install-upgrade-built-in' etc
+
+	* etc/NEWS: More details about the new option
+	'package-install-upgrade-built-in'.
+
+	* lisp/emacs-lisp/package.el (package-install-upgrade-built-in)
+	(package--active-built-in-p, package-install): Doc fixes.
+	(Bug#62720)
+
+2023-04-16  Philip Kaludercic  <philipk@posteo.net>
+
+	Allow upgrading built-in packages with 'package-install'
+
+	* etc/NEWS: Mention the change
+	* lisp/emacs-lisp/package.el (package--upgradable-built-in-p): Add new
+	predicate.
+	(package-install-upgrade-built-in): Add new user option to enable
+	feature.
+	(package-install): Respect new user option.
+
+2023-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Minor changes in c-ts-mode.el's support of DEFUNs
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--fontify-DEFUN): Renamed
+	from 'c-ts-mode--fontify-defun'; all callers changed.
+	(c-ts-mode-emacs-sources-support): Renamed from
+	'c-ts-mode-emacs-devel' and made into a defcustom; all users
+	changed.
+	(c-ts-mode--emacs-defun-p, c-ts-mode--emacs-defun-at-point)
+	(c-ts-mode--emacs-current-defun-name): Doc fixes.  (Bug#62825)
+
+2023-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix strike-through attribute support on TTY frames
+
+	* src/term.c (init_tty): Fix setting the strike-through capability
+	with "smxx".  (Bug#62265)
+
+2023-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes in 'describe-keymap' due to shadowing
+
+	* src/keymap.c (describe_vector): Handle shadowing by something
+	other than a symbol.  (Bug#62867)
+
+2023-04-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Make image-map bindings available on image links
+
+	* lisp/net/shr.el (shr-map): Move shr-browse-image to "M-i".
+	* lisp/net/eww.el (eww-image-link-keymap): Use shr-image-map.
+
+2023-04-15  Alan Mackenzie  <acm@muc.de>
+
+	* CONTRIBUTE: Fix a typo
+
+2023-04-15  Jostein Kjønigsen  <jostein@kjonigsen.net>
+
+	Add to Eglot support for additional language-servers.
+
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add
+	'vscode-markdown-language-server' for Markdown and
+	'dot-language-server' for GraphViz.  (Bug#62844)
+
+2023-04-14  Yuan Fu  <casouri@gmail.com>
+
+	Partial support for DEFUN in c-ts-mode (bug#62825)
+
+	The DEFUN is hard to incorporate because it's made of two nodes rather
+	than one, and most tree-sitter functionalities assume a defun is one
+	node.  I fixed the indent-defun and add-log functionality, but
+	beginning/end-of-defun and imenu still don't recognize DEFUN.
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode-emacs-devel): New variable.
+	(c-ts-mode--defun-name): Support DEFUN.
+	(c-ts-mode--defun-valid-p): Support DEFUN.
+	(c-ts-mode--emacs-defun-p)
+	(c-ts-mode--emacs-defun-at-point): New functions.
+	(c-ts-mode-indent-defun): Use c-ts-mode--emacs-defun-at-point.
+	(c-ts-mode--emacs-current-defun-name): New function.
+	(c-ts-mode, c++-ts-mode): Optionally setup custom defun-name function.
+
+2023-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix style and unwinding code in treesit.c
+
+	This was supposed to be a cherry-pick from master, but
+	isn't, due to the unnecessary rush to fix master without
+	cleaning up the mess first and without separating changes
+	that can and cannot be backported.
+	* src/treesit.c (treesit_traverse_cleanup_cursor): Fix indentation
+	style.
+	(Ftreesit_search_subtree, Ftreesit_search_forward)
+	(Ftreesit_induce_sparse_tree): Fix specpdl unwinding.  (Bug#62823)
+	Do not merge to master.
+
+2023-04-14  Yuan Fu  <casouri@gmail.com>
+
+	Catch signals produced by PRED in tree-sitter search functions
+
+	Earlier we switched to using cursors rather than nodes to traverse the
+	parse tree.  Because cursors need cleanup, we have to catch signals
+	thrown by the predicate functions and free the cursor. Failing to do
+	this will result in leaking the cursor whenever the predicate function
+	signals in a search function.  This change fixes the leak.
+	* src/treesit.c (treesit_traverse_cleanup_cursor): New function.
+	(Ftreesit_search_subtree)
+	(Ftreesit_search_forward)
+	(Ftreesit_induce_sparse_tree): Catch signals.  (Bug#62823)
+
+	(cherry picked from commit a5eb9f6ad4e6f5a2819b540a477f1e889f6ef355)
+
+2023-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix compilation of w32.c with old MinGW system headers
+
+	* src/w32.c (CONSOLE_FONT_INFO): Make sure the definition is not
+	visible for MinGW versions whose w32api's version is before 5.2.0.
+	(Bug#52792)
+
+2023-04-12  Dmitry Gutov  <dgutov@yandex.ru>
+
+	ruby-add-log-current-method: Reduce the use of 'nreverse'
+
+	* lisp/progmodes/ruby-mode.el (ruby-add-log-current-method):
+	Reduce the use of 'nreverse' (bug#62761).
+
+	* test/lisp/progmodes/ruby-mode-tests.el
+	(ruby-add-log-current-method-singleton-referencing-outer):
+	New test.
+
+2023-04-12  Visuwesh  <visuweshm@gmail.com>
+
+	Fix detection of WebP images by their signature
+
+	* lisp/image.el (image-type-header-regexps): The 4 characters
+	between "RIFF" and "WEBP" in WebP images can also be newlines.
+	(Bug#62790)
+
+2023-04-12  Earl Hyatt  <okamsn@protonmail.com>
+
+	Add more documentation for the keys of `package-vc-selected-packages`.
+
+	* doc/emacs/package.texi (Specifying Package Sources): List the
+	accepted keys in a new subsection of Fetching Package Sources.
+
+	* lisp/emacs-lisp/package-vc.el (package-vc-selected-packages):
+	Mention the `:doc` key.  Add the `:doc` key to the Customize form,
+	mention the new Info node, correct "TexInfo" to "Texinfo", avoid
+	Git-specific terms for the description of `:branch`, mention guessing
+	`:vc-backend` based on the URL.
+
+2023-04-11  Dmitry Gutov  <dgutov@yandex.ru>
+
+	vc-checkout: Try to use the vc-dir's backend first
+
+	* lisp/vc/vc.el (vc-checkout): Try to use the vc-dir's backend
+	before looking for the file's one.  The latter doesn't work when
+	the file doesn't exist on disk yet (bug#62674).
+
+2023-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation related to 'ispell-complete-word'
+
+	* lisp/textmodes/ispell.el (ispell-alternate-dictionary)
+	(ispell-complete-word-dict, ispell-complete-word): Doc fixes.
+	(Bug#62775)
+
+2023-04-11  Po Lu  <luangruo@yahoo.com>
+
+	* configure.ac: Add -lbsd on Haiku.
+
+2023-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Add menu to 'c-ts-mode' and 'c++-ts-mode'
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode-menu): New menu.
+
+2023-04-11  Mattias Engdegård  <mattiase@acm.org>
+
+	Update manual about `sort`
+
+	* doc/lispref/sequences.texi (Sequence Functions):
+	Remove inaccurate and over-specific claims about how `sort` works for
+	lists: there is no guarantee that it doesn't modify the `car` fields
+	of the input list (which is precisely what it does at this time).
+
+	(cherry picked from commit c753a9592345e2084d69e9e2cc458c16db2e4141)
+
+2023-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix wallpaper-tests on MS-Windows
+
+	* test/lisp/image/wallpaper-tests.el (wallpaper--find-setter)
+	(wallpaper--find-setter/call-predicate)
+	(wallpaper--find-setter/set-current-setter)
+	(wallpaper-set/calls-init-action)
+	(wallpaper-set/calls-wallpaper-set-function)
+	(wallpaper-set/runs-command, wallpaper-set/runs-command/detach):
+	Skip these tests if native functions are used for changing
+	wallpaper.  These tests are irrelevant in that case.
+
+2023-04-11  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix a couple of eglot-tests
+
+	* test/lisp/progmodes/eglot-tests.el
+	(eglot-test-rust-analyzer-watches-files): Bump timeout.
+	(eglot-test-json-basic): Check for yas-minor-mode before using it,
+	like other tests do (bug#61637).
+
+2023-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix visiting RPM files
+
+	We cannot call 'sh-set-shell' inside 'sh-base-mode', since various
+	settings of 'sh-mode', in particular the syntax table, is not yet
+	set.  Likewise with various hooks: since 'sh-base-mode' is not a
+	mode any file should be visited with, it makes no sense to set up
+	stuff like 'hack-local-variables-hook' in 'sh-base-mode'; it
+	should be set in the descendant modes instead.
+	* lisp/progmodes/sh-script.el (sh-base-mode): Move the call to
+	'sh-set-shell' from here...
+	(sh-mode): ...to here...
+	(bash-ts-mode): ...with a copy here.  (Bug#62748)
+
+2023-04-10  Basil L. Contovounesios  <contovob@tcd.ie>
+
+	Fix ff-quiet-mode doc
+
+	* lisp/find-file.el (ff-quiet-mode, ff-find-other-file): Say that
+	ff-quiet-mode disables tracing, not the inverse.
+
+2023-04-01  Gregory Heytings  <gregory@heytings.org>
+
+	Another final fix to last changes
+
+	* src/xdisp.c (get_small_narrowing_begv): Refine the value of 'bol_pos'.
+
+2023-04-01  Gregory Heytings  <gregory@heytings.org>
+
+	Three final fixes to last changes
+
+	* src/xdisp.c (get_nearby_bol_pos): Initialize 'bol' to BEGV - 1
+	instead of 0 (which fixes cursor motion commands in the presence
+	of a narrowing), adapt the return condition accordingly, and do
+	not restart the loop when BEGV has been reached.
+	(get_small_narrowing_begv): Use correct type.
+
+2023-04-01  Gregory Heytings  <gregory@heytings.org>
+
+	Two further fixes to last changes
+
+	* src/xdisp.c (get_narrowed_width): Use FRAME_WINDOW_P instead of
+	Fterminal_live_p.  Also take WINDOW_LEFT_FRINGE_WIDTH into
+	account.
+
+2023-04-01  Gregory Heytings  <gregory@heytings.org>
+
+	Improve and fix last changes
+
+	* src/xdisp.c (get_narrowed_width): Use WINDOW_RIGHT_FRINGE_WIDTH,
+	which works both for character-only terminals and for GUI frames
+	without fringes.
+	(get_nearby_bol_pos): Instead of searching for BOL in
+	[pos-500000..pos], gradually extend the region, starting with
+	[pos-500..pos].  This is much faster in buffers with some long
+	lines in the middle of lots of short lines.
+
+2023-03-29  Gregory Heytings  <gregory@heytings.org>
+
+	Fix cursor motion in character-only terminals
+
+	* src/xdisp.c (get_narrowed_width): Subtract 1 from
+	window_body_width to account for the '\' line wrapping indication.
+
+2023-03-28  Gregory Heytings  <gregory@heytings.org>
+
+	Make get_medium_narrowing_begv/zv static
+
+	* src/xdisp.c (get_medium_narrowing_begv):
+	(get_medium_narrowing_zv): Make these two functions static, they
+	are only used in xdisp.c.
+
+	* src/dispextern.h: Remove the prototypes.
+
+2023-03-28  Gregory Heytings  <gregory@heytings.org>
+
+	Improve accuracy of cursor motion commands in long lines
+
+	* src/xdisp.c (get_nearby_bol_pos): New function.
+	(get_small_narrowing_begv): Use it.  This makes cursor motion
+	commands much more accurate in the first 500K characters of each
+	long line.
+
+2023-03-28  Gregory Heytings  <gregory@heytings.org>
+
+	Remove labeled restrictions before calling Fwiden
+
+	* src/editfns.c (labeled_restrictions_remove_in_current_buffer):
+	New function.
+
+	* src/lisp.h: Make it externally visible.
+
+	* src/xdisp.c (display_count_lines_logically):
+	* src/lread.c (readevalloop):
+	* src/indent.c (line_number_display_width):
+	* src/fileio.c (write_region):
+	* src/callproc.c (Fcall_process_region):
+	* src/buffer.c (Ferase_buffer): Use it.
+
+2023-03-28  Gregory Heytings  <gregory@heytings.org>
+
+	Code cleanup for long line optimizations
+
+	This commit does not change any code, it merely renames functions
+	and clarifies the documentation, to make the code hopefully easier
+	to grasp.
+
+	* src/dispextern.h (struct it): Rename the 'narrowed_begv',
+	'narrowed_zv', 'locked_narrowing_begv', 'locked_narrowing_zv' to
+	'medium_narrowing_begv', 'medium_narrowing_zv',
+	'large_narrowing_begv', 'large_narrowing_zv'.  Clarify the
+	comments.
+	Update the prototypes of the functions renamed in xdisp.c.
+
+	* src/lisp.h: Update the prototypes of the functions renamed in
+	editfns.c.  Remove the prototype of
+	'safe_run_hooks_maybe_narrowed', which is used only in keyboard.c.
+
+	* src/xdisp.c
+	(get_small_narrowing_begv): Renamed from
+	'get_closer_narrowed_begv'.
+	(get_medium_narrowing_begv): Renamed from 'get_narrowed_begv'.
+	(get_medium_narrowing_zv): Renamed from 'get_narrowed_zv'.
+	(get_large_narrowing_begv): Renamed from 'get_locked_narrowing_begv'.
+	(get_large_narrowing_zv): Renamed from 'get_locked_narrowing_zv'.
+	(SET_WITH_NARROWED_BEGV): Use the new field names.
+	(handle_fontified_prop): Use the new function and new field names.
+	(back_to_previous_line_start): Use the new field name.
+	(back_to_previous_visible_line_start): Use the new field name.
+	(reseat): Use the new function and new field names.
+	(get_visually_first_element): Use the new field name.
+	(move_it_vertically_backward): Use the new function name.
+	(redisplay_internal): Use the new function name.
+	Also add a large comment to explain how Emacs deals with long lines.
+
+	* src/keyboard.c:
+	(safe_run_hooks_maybe_narrowed): Use the new function names from
+	xdisp.c and editfns.c.  Make the function static, and add a
+	prototype.
+
+	* src/editfns.c:
+	(labeled_restrictions): Renamed from 'narrowing_locks'.
+	(labeled_restrictions_add): Renamed from 'narrowing_locks_add'.
+	(labeled_restrictions_remove): Renamed from
+	'narrowing_locks_remove'.
+	(labeled_restrictions_get_bound): Renamed from
+	'narrowing_lock_get_bound'.
+	(labeled_restrictions_peek_label): Renamed from
+	'narrowing_lock_peek_tag'.
+	(labeled_restrictions_push): Renamed from 'narrowing_lock_push'.
+	(labeled_restrictions_pop): Renamed from 'narrowing_lock_pop'.
+	(unwind_reset_outermost_restriction): Renamed from
+	'unwind_reset_outermost_narrowing'.
+	(reset_outermost_restrictions): Renamed from
+	'reset_outermost_narrowings'.
+	(labeled_restrictions_save): Renamed from 'narrowing_locks_save'.
+	(labeled_restrictions_restore): Renamed from
+	'narrowing_locks_restore'.
+	(unwind_labeled_narrow_to_region): Renamed from
+	'unwind_narrow_to_region_locked'.
+	(labeled_narrow_to_region): Renamed from
+	'narrow_to_region_locked'.
+	(Finternal__label_restriction): Renamed from
+	'Finternal__lock_narrowing'.
+	(Finternal__unlabel_restriction): Renamed from
+	'Finternal__unlock_narrowing'.
+	(Fwiden): Use the new function names.
+	(Fnarrow_to_region): Use the new function names.
+	(save_restriction_save): Use the new function names.
+	(syms_of_editfns): Use the new function names.
+	<outermost-restriction>: Renamed from 'outermost-narrowing'.
+
+	* lisp/subr.el (internal--with-restriction): Use the new internal
+	function name.
+	(internal--without-restriction): Use the new internal function
+	name.
+
+	* src/composite.c (composition_compute_stop_pos):
+	(find_automatic_composition): Use the new function name.
+
+	* doc/lispref/positions.texi (Narrowing): Add index entry.
+
 2023-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp/ldefs-boot.el: Regenerate.
@@ -114322,7 +115654,7 @@
 
 This file records repository revisions from
 commit f2ae39829812098d8269eafbc0fcb98959ee5bb7 (exclusive) to
-commit 5e039d5a6e99d8380044f410673b8ee51dbc1711 (inclusive).
+commit ce7d18cbc07886b0d62110a6d26e25271017cd2a (inclusive).
 See ChangeLog.3 for earlier changes.
 
 ;; Local Variables:
