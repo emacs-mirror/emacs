@@ -75,9 +75,10 @@ General steps (for each step, check for possible errors):
     For the first pretest of a new major release, consider starting a
     new top-level ChangeLog.N file if the last versioned ChangeLog.N
     file is too large.  A good point to start a new ChangeLog.N file
-    is when the last one gets larger than 1.5 MiB.  If so, start a new
-    one by bumping N, and also update the line in top-level
-    Makefile.in which says
+    is when the last one gets larger than 5 MiB, or when you make the
+    first pretest of a new major release, whichever happens later.  If
+    so, start a new ChangeLog.N file by bumping N, and also update the
+    line in top-level Makefile.in which says
 
       CHANGELOG_HISTORY_INDEX_MAX = N
 
