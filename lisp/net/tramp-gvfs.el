@@ -2537,7 +2537,8 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
   (let ((tramp-verbose 0)
 	tramp-gvfs-dbus-event-vector fun)
     (when (and (autoload 'zeroconf-init "zeroconf")
-	       (tramp-compat-funcall 'dbus-get-unique-name :system))
+               (ignore-error dbus-error
+	         (tramp-compat-funcall 'dbus-get-unique-name :system)))
       ;; Add completion functions for services announced by DNS-SD.
       ;; See <http://www.dns-sd.org/ServiceTypes.html> for valid service types.
       (zeroconf-init tramp-gvfs-zeroconf-domain)
