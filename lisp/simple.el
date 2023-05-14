@@ -4460,11 +4460,13 @@ whose `car' is BUFFER."
 Like `shell-command', but adds `&' at the end of COMMAND
 to execute it asynchronously.
 
-The output appears in the buffer whose name is stored in the
-variable `shell-command-buffer-name-async'.  That buffer is in
-shell mode.
+The output appears in OUTPUT-BUFFER, which could be a buffer or
+the name of a buffer, and defaults to `shell-command-buffer-name-async'
+if nil or omitted.  That buffer is in shell mode.  Note that, unlike
+with `shell-command', OUTPUT-BUFFER can only be a buffer, a buffer's
+name (a string), or nil.
 
-You can configure `async-shell-command-buffer' to specify what to do
+You can customize `async-shell-command-buffer' to specify what to do
 when the buffer specified by `shell-command-buffer-name-async' is
 already taken by another running shell command.
 
@@ -4472,6 +4474,10 @@ To run COMMAND without displaying the output in a window you can
 configure `display-buffer-alist' to use the action
 `display-buffer-no-window' for the buffer given by
 `shell-command-buffer-name-async'.
+
+Optional argument ERROR-BUFFER is for backward compatibility; it
+is ignored, and error output of the async command is always
+mingled with its regular output.
 
 In Elisp, you will often be better served by calling `start-process'
 directly, since it offers more control and does not impose the use of
@@ -4491,6 +4497,9 @@ a shell (with its need to quote arguments)."
 				 (dired-get-filename nil t)))))
 			  (and filename (file-relative-name filename))))
     nil
+    ;; FIXME: the following argument is always ignored by 'shell-commnd',
+    ;; when the command is invoked asynchronously, except, perhaps, when
+    ;; 'default-directory' is remote.
     shell-command-default-error-buffer))
   (unless (string-match "&[ \t]*\\'" command)
     (setq command (concat command " &")))
