@@ -331,7 +331,7 @@ names."
                              (vminor
                               (w32-read-registry 'HKLM key
                                                  "CurrentMinorVersionNumber")))
-                         (if (and vmajor vmajor)
+                         (if (and vmajor vminor)
                              (format "%d.%d" vmajor vminor)
                            (w32-read-registry 'HKLM key "CurrentVersion")))))
          (os-csd (w32-read-registry 'HKLM key "CSDVersion"))
