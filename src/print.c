@@ -2204,7 +2204,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		     max ((sizeof " with data 0x"
 			   + (sizeof (uintmax_t) * CHAR_BIT + 4 - 1) / 4),
 			  40)))];
-  current_thread->stack_top = buf;
+  current_thread->stack_top = NEAR_STACK_TOP (buf);
 
  print_obj:
   maybe_quit ();
