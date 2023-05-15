@@ -342,6 +342,51 @@ The new Rmail commands 'rmail-mailing-list-post',
 'rmail-mailing-list-archive allow to, respectively, post to,
 unsubscribe from, request help about, and browse the archives, of the
 mailing list from which the current email message was delivered.
+
+** Dictionary
+
+---
+*** New user option 'dictionary-search-interface'.
+Controls how the 'dictionary-search' command prompts for and displays
+dictionary definitions.  Customize this user option to 'help' to have
+'dictionary-search' display definitions in a *Help* buffer and provide
+dictionary-based minibuffer completion for word selection.
+
+---
+*** New user option 'dictionary-read-word-prompt'.
+This allows the user to customize the prompt that is used by
+'dictionary-search' when asking for a word to search in the
+dictionary.
+
+---
+*** New user option 'dictionary-display-definition-function'.
+This allows the user to customize the way in which 'dictionary-search'
+displays word definitions.  If non-nil, this user option should be set
+to a function that displays a word definition obtained from a
+dictionary server.  The new function
+'dictionary-display-definition-in-help-buffer' can be used to display
+the definition in a *Help* buffer, instead of the default *Dictionary*
+buffer.
+
+---
+*** New user option 'dictionary-read-word-function'.
+This allows the user to customize the way in which 'dictionary-search'
+prompts for a word to search in the dictionary.  This user option
+should be set to a function that lets the user select a word and
+returns it as a string.  The new function
+'dictionary-completing-read-word' can be used to prompt with
+completion based on dictionary matches.
+
+---
+*** New user option 'dictionary-read-dictionary-function'.
+This allows the user to customize the way in which 'dictionary-search'
+prompts for a dictionary to search in.  This user option should be set
+to a function that lets the user select a dictionary and returns its
+name as a string.  The new function
+'dictionary-completing-read-dictionary' can be used to prompt with
+completion based on dictionaries that the server supports.
+
+
 
 * New Modes and Packages in Emacs 30.1
 
