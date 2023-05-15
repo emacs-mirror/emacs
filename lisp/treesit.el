@@ -2300,7 +2300,10 @@ instead of emitting a warning."
     ;; Check for each condition and set MSG.
     (catch 'term
       (when (not (treesit-available-p))
-        (setq msg "tree-sitter library is not compiled with Emacs")
+        (setq msg (if (fboundp 'treesit-node-p)
+                      ;; Windows loads tree-sitter dynakically.
+                      "tree-sitter library is not available or failed to load"
+                    "Emacs is not compiled with tree-sitter library"))
         (throw 'term nil))
       (when (> (position-bytes (max (point-min) (1- (point-max))))
                treesit-max-buffer-size)
