@@ -470,7 +470,7 @@ main (int argc, char **argv)
 	     that were set on the file.  Better to just empty the file.  */
 	  if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
-	    creat (inname, 0600);
+	    close (creat (inname, 0600));
 	}
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 

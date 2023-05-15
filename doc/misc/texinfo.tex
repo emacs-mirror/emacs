@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2023-03-04.12}
+\def\texinfoversion{2023-03-27.21}
 %
 % Copyright 1985, 1986, 1988, 1990-2023 Free Software Foundation, Inc.
 %
@@ -1102,27 +1102,33 @@ where each line of input produces a line of output.}
 
 % Output page labels information.
 % See PDF reference v.1.7 p.594, section 8.3.1.
+% Page label ranges must be increasing.
 \ifpdf
 \def\pagelabels{%
   \def\title{0 << /P (T-) /S /D >>}%
-  \edef\roman{\the\romancount << /S /r >>}%
-  \edef\arabic{\the\arabiccount << /S /D >>}%
   %
-  % Page label ranges must be increasing.  Remove any duplicates.
-  % (There is a slight chance of this being wrong if e.g. there is
-  % a @contents but no @titlepage, etc.)
-  %
-  \ifnum\romancount=0 \def\roman{}\fi
-  \ifnum\arabiccount=0 \def\title{}%
+  % support @contents at very end of document
+  \ifnum\contentsendcount=\pagecount
+    \ifnum\arabiccount<\romancount
+      \pdfcatalog{/PageLabels << /Nums
+                  [\title
+                   \the\arabiccount << /S /D >>
+                   \the\romancount << /S /r >>
+                  ] >> }\relax
+    \fi
+  % no contents in document
+  \else\ifnum\contentsendcount=0
+    \pdfcatalog{/PageLabels << /Nums
+                [\title
+                 \the\arabiccount << /S /D >>
+                ] >> }\relax
   \else
-    \ifnum\romancount=\arabiccount \def\roman{}\fi
-  \fi
-  %
-  \ifnum\romancount<\arabiccount
-    \pdfcatalog{/PageLabels << /Nums [\title \roman \arabic ] >> }\relax
-  \else
-    \pdfcatalog{/PageLabels << /Nums [\title \arabic \roman ] >> }\relax
-  \fi
+    \pdfcatalog{/PageLabels << /Nums
+                [\title
+                 \the\romancount << /S /r >>
+                 \the\contentsendcount << /S /D >>
+                ] >> }\relax
+  \fi\fi
 }
 \else
   \let\pagelabels\relax
@@ -1131,6 +1137,8 @@ where each line of input produces a line of output.}
 \newcount\pagecount \pagecount=0
 \newcount\romancount \romancount=0
 \newcount\arabiccount \arabiccount=0
+\newcount\contentsendcount \contentsendcount=0
+
 \ifpdf
   \let\ptxadvancepageno\advancepageno
   \def\advancepageno{%
@@ -4102,7 +4110,6 @@ $$%
     \nobreak\kern\dimen0
     \endgroup
     \itemxneedsnegativevskiptrue
-    \penalty 10021 % for \indexpar
   \fi
 }
 
@@ -4219,7 +4226,6 @@ $$%
    % We can be in inner vertical mode in a footnote, although an
    % @itemize looks awful there.
   }%
-  \penalty 10021 % for \indexpar
   \flushcr
 }
 
@@ -4784,17 +4790,11 @@ $$%
 % and it is the two-letter name of the index.
 
 \def\doindex#1{\edef\indexname{#1}\parsearg\doindexxxx}
-\def\doindexxxx #1{\indexpar\doind{\indexname}{#1}}
+\def\doindexxxx #1{\doind{\indexname}{#1}}
 
 % like the previous two, but they put @code around the argument.
 \def\docodeindex#1{\edef\indexname{#1}\parsearg\docodeindexxxx}
-\def\docodeindexxxx #1{\indexpar\docind{\indexname}{#1}}
-
-% End any open paragraph, unless we are immediately after @item in
-% @itemize or @enumerate.
-\def\indexpar{%
-\ifnum\lastpenalty=10021 \else\endgraf\fi
-}
+\def\docodeindexxxx #1{\docind{\indexname}{#1}}
 
 
 % \definedummyword defines \#1 as \string\#1\space, thus effectively
@@ -5351,9 +5351,7 @@ $$%
 % ..., ready, GO:
 %
 \def\safewhatsit#1{\ifhmode
-  \whatsitpenalty = \lastpenalty
   #1%
-  \ifnum\whatsitpenalty>9999 \penalty\whatsitpenalty \fi
  \else
   % \lastskip and \lastpenalty cannot both be nonzero simultaneously.
   \whatsitskip = \lastskip
@@ -6819,12 +6817,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Get ready to use Arabic numerals again
 \def\contentsendroman{%
   \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
-  %
-  % If \romancount > \arabiccount, the contents are at the end of the
-  % document.  Otherwise, advance where the Arabic numerals start for
-  % the page numbers.
-  \ifnum\romancount>\arabiccount\else\global\arabiccount=\pagecount\fi
+  \global\pageno=1
+  \contentsendcount = \pagecount
 }
 
 % Typeset the label for a chapter or appendix for the short contents.
@@ -7597,7 +7591,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \parseargusing\activeparens{\printdefunline\deflineheader}%
 }
 \def\deflineheader#1 #2 #3\endheader{%
-  \defname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+  \printdefname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
 }
 \def\deftypeline{%
   \doingtypefntrue
@@ -7660,14 +7654,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % @deffn category name args
 \makedefun{deffn}#1 #2 #3\endheader{%
   \doind{fn}{\code{#2}}%
-  \defname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+  \printdefname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
 }
 
 % @defop category class name args
 \makedefun{defop}#1 {\defopheaderx{#1\ \putwordon}}
 \def\defopheaderx#1#2 #3 #4\endheader{%
   \doind{fn}{\code{#3}\space\putwordon\ \code{#2}}%
-  \defname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
+  \printdefname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
 }
 
 % Typed functions:
@@ -7676,7 +7670,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \makedefun{deftypefn}#1 #2 #3 #4\endheader{%
   \doind{fn}{\code{#3}}%
   \doingtypefntrue
-  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+  \printdefname{#1}{#2}{#3}\defunargs{#4\unskip}%
 }
 
 % @deftypeop category class type name args
@@ -7684,7 +7678,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\deftypeopheaderx#1#2 #3 #4 #5\endheader{%
   \doind{fn}{\code{#4}\space\putwordon\ \code{#1\ \code{#2}}}%
   \doingtypefntrue
-  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
+  \printdefname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Typed variables:
@@ -7692,14 +7686,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % @deftypevr category type var args
 \makedefun{deftypevr}#1 #2 #3 #4\endheader{%
   \doind{vr}{\code{#3}}%
-  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+  \printdefname{#1}{#2}{#3}\defunargs{#4\unskip}%
 }
 
 % @deftypecv category class type var args
 \makedefun{deftypecv}#1 {\deftypecvheaderx{#1\ \putwordof}}
 \def\deftypecvheaderx#1#2 #3 #4 #5\endheader{%
   \doind{vr}{\code{#4}\space\putwordof\ \code{#2}}%
-  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
+  \printdefname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Untyped variables:
@@ -7716,7 +7710,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % @deftp category name args
 \makedefun{deftp}#1 #2 #3\endheader{%
   \doind{tp}{\code{#2}}%
-  \defname{#1}{}{#2}\defunargs{#3\unskip}%
+  \printdefname{#1}{}{#2}\defunargs{#3\unskip}%
 }
 
 % Remaining @defun-like shortcuts:
@@ -7732,14 +7726,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \makedefun{defivar}{\defcvheaderx\putwordInstanceVariableof}
 \makedefun{deftypeivar}{\deftypecvheaderx\putwordInstanceVariableof}
 
-% \defname, which formats the name of the @def (not the args).
+% \printdefname, which formats the name of the @def (not the args).
 % #1 is the category, such as "Function".
 % #2 is the return type, if any.
 % #3 is the function name.
 %
 % We are followed by (but not passed) the arguments, if any.
 %
-\def\defname#1#2#3{%
+\def\printdefname#1#2#3{%
   \par
   % Get the values of \leftskip and \rightskip as they were outside the @def...
   \advance\leftskip by -\defbodyindent
@@ -7864,7 +7858,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % If we encounter &foo, then turn on ()-hacking afterwards
 \newif\ifampseen
-\def\amprm#1 {\ampseentrue{\bf\&#1 }}
+\def\amprm#1 {\ampseentrue{\rm\&#1 }}
 
 \def\parenfont{%
   \ifampseen
@@ -8188,12 +8182,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 % We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro
 % body to be transformed.
-% Set \macrobody to the body of the macro, and call \defmacro.
+% Set \macrobody to the body of the macro, and call \macrodef.
 %
 {\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
-\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+\xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
 {\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
-\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+\xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
 
 % Make @ a letter, so that we can make private-to-Texinfo macro names.
 \edef\texiatcatcode{\the\catcode`\@}
@@ -8412,16 +8406,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % \xdef is used so that macro definitions will survive the file
 % they're defined in: @include reads the file inside a group.
 %
-\def\defmacro{%
+\def\macrodef{%
   \let\hash=##% convert placeholders to macro parameter chars
   \ifnum\paramno=1
-    \def\xeatspaces##1{##1}%
-    % This removes the pair of braces around the argument.  We don't
-    % use \eatspaces, because this can cause ends of lines to be lost
-    % when the argument to \eatspaces is read, leading to line-based
-    % commands like "@itemize" not being read correctly.
+    \long\def\xeatspaces##1{##1}%
+    % We don't use \xeatspaces for single-argument macros, because we
+    % want to keep ends of lines.  This definition removes \xeatspaces
+    % when \macrobody is expanded below.
   \else
-    \let\xeatspaces\relax % suppress expansion
+    \def\xeatspaces{\string\xeatspaces}%
+    % This expands \xeatspaces as a sequence of character tokens, which
+    % stops \scantokens inserting an extra space after the control sequence.
   \fi
   \ifcase\paramno
   % 0
@@ -8590,40 +8585,35 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % @linemacro
 
 \parseargdef\linemacro{%
-  \linegetargs#1 \linegetargs
-  \expandafter\linegetparamlist\argl;%
+  \getargs{#1}% now \macname is the macname and \argl the arglist
+  \ifx\argl\empty
+    \paramno=0
+    \let\hash\relax
+    \def\paramlist{\hash 1\endlinemacro}%
+  \else
+    \expandafter\linegetparamlist\argl;%
+  \fi
   \begingroup \macrobodyctxt \usembodybackslash
   \parselinemacrobody
-}
-
-% Parse the arguments to a @linemacro line.  Set \macname to the name
-% of the macro and \argl to the list of arguments.
-\def\linegetargs#1 #2\linegetargs{%
-  \macname={#1}%
-  \def\argl{#2}%
 }
 
 % Build up \paramlist which will be used as the parameter text for the macro.
 % At the end it will be like "#1 #2 #3\endlinemacro".
 \def\linegetparamlist#1;{%
   \paramno=0\def\paramlist{}%
-  \let\hash\relax \let\xeatspaces\relax
-  \linegetparamlistxxx#1; %
+  \let\hash\relax
+  \linegetparamlistxxx#1,;,%
 }
-\def\linegetparamlistxxx#1 {%
+\def\linegetparamlistxxx#1,{%
   \if#1;\let\next=\linegetparamlistxxxx
   \else \let\next=\linegetparamlistxxx
     \advance\paramno by 1
     \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
-        {\noexpand\xeatspaces{\hash\the\paramno}}%
+        {\hash\the\paramno}%
     \edef\paramlist{\paramlist\hash\the\paramno\space}%
   \fi\next}
 \def\linegetparamlistxxxx{%
-  \ifx\paramlist\empty
-     \def\paramlist{\hash 1\endlinemacro}%
-  \else
-    \expandafter\fixparamlist\paramlist\fixparamlist
-  \fi
+  \expandafter\fixparamlist\paramlist\fixparamlist
 }
 % Replace final space token
 \def\fixparamlist#1 \fixparamlist{%
@@ -8633,7 +8623,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Read the body of the macro, replacing backslash-surrounded variables
 %
 {\catcode`\ =\other\long\gdef\parselinemacrobody#1@end linemacro{%
-\let\xeatspaces\relax
 \xdef\macrobody{#1}%
 \endgroup
 \linemacrodef
@@ -8642,26 +8631,20 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Make the definition
 \def\linemacrodef{%
   \let\hash=##%
-  \let\xeatspaces\relax
   \expandafter\xdef\csname\the\macname\endcsname{%
     \bgroup
-    \noexpand\scanctxt
     \noexpand\parsearg
     \expandafter\noexpand\csname\the\macname @@\endcsname
   }
   \expandafter\xdef\csname\the\macname @@\endcsname##1{%
     \egroup
     \expandafter\noexpand
-    \csname\the\macname @@@\endcsname##1 \noexpand\endlinemacro
-    % Note that we append a space to the macro line to terminate the last
-    % argument in case the final argument is empty.  @xeatspaces may be needed
-    % to remove this space.
+    \csname\the\macname @@@\endcsname##1\noexpand\endlinemacro
   }
   \expandafter\expandafter
   \expandafter\xdef
   \expandafter\expandafter\csname\the\macname @@@\endcsname\paramlist{%
     \newlinechar=13 % split \macrobody into lines
-    \let\noexpand\xeatspaces\noexpand\eatspaces
     \noexpand\scantokens{\macrobody}%
   }
 }
@@ -9659,8 +9642,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\caption{\docaption\thiscaption}
 \def\shortcaption{\docaption\thisshortcaption}
-\def\docaption{\checkenv\float \bgroup\scanctxt\defcaption}
-\def\defcaption#1#2{\egroup \def#1{#2}}
+\def\docaption{\checkenv\float \bgroup\scanctxt\docaptionz}
+\def\docaptionz#1#2{\egroup \def#1{#2}}
 
 % The parameter is the control sequence identifying the counter we are
 % going to use.  Create it if it doesn't exist and assign it to \floatno.

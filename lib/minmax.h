@@ -23,6 +23,11 @@
    MIN, MAX macro redefinitions on some systems; the workaround is to
    #include this file as the last one among the #include list.  */
 
+/* This file uses HAVE_MINMAX_IN_LIMITS_H, HAVE_MINMAX_IN_SYS_PARAM_H.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* Before we define the following symbols we get the <limits.h> file
    since otherwise we get redefinitions on some systems if <limits.h> is
    included after this file.  Likewise for <sys/param.h>.

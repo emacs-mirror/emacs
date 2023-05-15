@@ -55,8 +55,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
-#include <count-leading-zeros.h>
-
 /* Emacs needs proper handling of +/-inf; correct printing as well as
    important packages depend on it.  Make sure the user didn't specify
    -ffinite-math-only, either directly or implicitly with -Ofast or
@@ -304,14 +302,6 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
   return FLOATP (arg) ? arg : make_float (XFLOATINT (arg));
 }
 
-static int
-ecount_leading_zeros (EMACS_UINT x)
-{
-  return (EMACS_UINT_WIDTH == UINT_WIDTH ? count_leading_zeros (x)
-	  : EMACS_UINT_WIDTH == ULONG_WIDTH ? count_leading_zeros_l (x)
-	  : count_leading_zeros_ll (x));
-}
-
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
        doc: /* Returns largest integer <= the base 2 log of the magnitude of ARG.
 This is the same as the exponent of a float.  */)
@@ -338,7 +328,7 @@ This is the same as the exponent of a float.  */)
       EMACS_INT i = XFIXNUM (arg);
       if (i == 0)
 	return make_float (-HUGE_VAL);
-      value = EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (eabs (i));
+      value = elogb (eabs (i));
     }
 
   return make_fixnum (value);

@@ -31,6 +31,11 @@
    the *_unlocked functions directly.  On hosts that lack those
    functions, invoke the non-thread-safe versions instead.  */
 
+/* This file uses HAVE_DECL_*_UNLOCKED.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <stdio.h>
 
 # if HAVE_DECL_CLEARERR_UNLOCKED || defined clearerr_unlocked

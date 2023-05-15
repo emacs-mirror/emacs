@@ -20,15 +20,18 @@
 #ifndef STAT_TIME_H
 #define STAT_TIME_H 1
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE, _GL_UNUSED,
+   _GL_ATTRIBUTE_PURE, HAVE_STRUCT_STAT_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <errno.h>
 #include <stdckdint.h>
 #include <stddef.h>
 #include <sys/stat.h>
 #include <time.h>
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_STAT_TIME_INLINE
 # define _GL_STAT_TIME_INLINE _GL_INLINE

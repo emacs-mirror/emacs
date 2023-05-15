@@ -605,6 +605,14 @@ do							\
   }							\
 while (0)
 
+/* Work around GCC bug 109579
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
+   which causes GCC to mistakenly complain about
+   popping the mapping stack.  */
+#if GNUC_PREREQ (13, 0, 0)
+# pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
+#endif
+
 #define POP_MAPPING_STACK(restlen, orig)		\
 do							\
   {							\

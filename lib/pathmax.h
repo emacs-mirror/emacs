@@ -39,6 +39,11 @@
          #endif
  */
 
+/* This file uses HAVE_SYS_PARAM_H.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <unistd.h>
 
 # include <limits.h>

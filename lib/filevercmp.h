@@ -20,6 +20,11 @@
 #ifndef FILEVERCMP_H
 #define FILEVERCMP_H
 
+/* This file uses _GL_ATTRIBUTE_PURE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stddef.h>
 
 /* Compare strings A and B as file names containing version numbers,

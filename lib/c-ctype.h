@@ -23,9 +23,11 @@
 #ifndef C_CTYPE_H
 #define C_CTYPE_H
 
-#ifndef _GL_INLINE_HEADER_BEGIN
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE.  */
+#if !_GL_CONFIG_H_INCLUDED
  #error "Please include config.h first."
 #endif
+
 _GL_INLINE_HEADER_BEGIN
 #ifndef C_CTYPE_INLINE
 # define C_CTYPE_INLINE _GL_INLINE

@@ -20,6 +20,11 @@
 
    Written by Paul Eggert.  */
 
+/* This file uses _Alignof.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stddef.h>
 
 /* Nonzero multiple of alignment of TYPE, suitable for FLEXSIZEOF below.

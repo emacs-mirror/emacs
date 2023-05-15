@@ -18,6 +18,11 @@
 #ifndef C_STRCASE_H
 #define C_STRCASE_H
 
+/* This file uses _GL_ATTRIBUTE_PURE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stddef.h>
 
 

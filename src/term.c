@@ -3387,7 +3387,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 		       active submenu.  */
 		    if (i != statecount - 2
 			|| state[i].menu->submenu[dy] != state[i + 1].menu)
-		      while (i != statecount - 1)
+		      while (i < statecount - 1)
 			{
 			  statecount--;
 			  screen_update (sf, state[statecount].screen_behind);

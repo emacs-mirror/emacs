@@ -45,6 +45,11 @@
 #ifndef _@GUARD_PREFIX@_SYS_RANDOM_H
 #define _@GUARD_PREFIX@_SYS_RANDOM_H
 
+/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <sys/types.h>
 
 /* Define the GRND_* constants.  */

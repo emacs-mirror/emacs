@@ -25,6 +25,13 @@
 #endif
 @PRAGMA_COLUMNS@
 
+/* This file uses #include_next of a system file that defines time_t.
+   For the 'year2038' module to work right, <config.h> needs to have been
+   included before.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #if defined __need_system_sys_stat_h
 /* Special invocation convention.  */
 
@@ -47,6 +54,11 @@
 
 #ifndef _@GUARD_PREFIX@_SYS_STAT_H
 #define _@GUARD_PREFIX@_SYS_STAT_H
+
+/* This file uses GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 

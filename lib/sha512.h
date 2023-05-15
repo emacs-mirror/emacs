@@ -18,6 +18,11 @@
 #ifndef SHA512_H
 # define SHA512_H 1
 
+/* This file uses HAVE_OPENSSL_SHA512.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <stdio.h>
 # include "u64.h"
 
