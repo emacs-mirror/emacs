@@ -167,7 +167,8 @@
 #  update-copyright \
 #  utimensat \
 #  vla \
-#  warnings
+#  warnings \
+#  year2038
 
 
 MOSTLYCLEANFILES += core *.stackdump
