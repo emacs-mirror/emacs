@@ -81,6 +81,9 @@ This function returns a new record with type @var{type} and
 @end example
 @end defun
 
+@code{copy-tree} works with records when its optional second argument
+is non-@code{nil} (@pxref{Building Lists}).
+
 @node Backward Compatibility
 @section Backward Compatibility
 

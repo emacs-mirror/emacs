@@ -824,26 +824,26 @@ of course, also replace TO with a slightly larger value
                 next (+ from (* n inc)))))
       (nreverse seq))))
 
-(defun copy-tree (tree &optional vecp)
+(defun copy-tree (tree &optional vector-like-p)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
 Contrast to `copy-sequence', which copies only along the cdrs.  With second
-argument VECP, this copies vectors as well as conses."
+argument VECTOR-LIKE-P, this copies vectors and records as well as conses."
   (declare (side-effect-free error-free))
   (if (consp tree)
       (let (result)
 	(while (consp tree)
 	  (let ((newcar (car tree)))
-	    (if (or (consp (car tree)) (and vecp (vectorp (car tree))))
-		(setq newcar (copy-tree (car tree) vecp)))
+	    (if (or (consp (car tree)) (and vector-like-p (or (vectorp (car tree)) (recordp (car tree)))))
+		(setq newcar (copy-tree (car tree) vector-like-p)))
 	    (push newcar result))
 	  (setq tree (cdr tree)))
 	(nconc (nreverse result)
-               (if (and vecp (vectorp tree)) (copy-tree tree vecp) tree)))
-    (if (and vecp (vectorp tree))
+               (if (and vector-like-p (or (vectorp tree) (recordp tree))) (copy-tree tree vector-like-p) tree)))
+    (if (and vector-like-p (or (vectorp tree) (recordp tree)))
 	(let ((i (length (setq tree (copy-sequence tree)))))
 	  (while (>= (setq i (1- i)) 0)
-	    (aset tree i (copy-tree (aref tree i) vecp)))
+	    (aset tree i (copy-tree (aref tree i) vector-like-p)))
 	  tree)
       tree)))
 

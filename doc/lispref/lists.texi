@@ -696,16 +696,17 @@ not a list, the sequence's elements do not become elements of the
 resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
 
-@defun copy-tree tree &optional vecp
+@defun copy-tree tree &optional vector-like-p
 This function returns a copy of the tree @var{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
 @sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
 same way.
 
 Normally, when @var{tree} is anything other than a cons cell,
-@code{copy-tree} simply returns @var{tree}.  However, if @var{vecp} is
-non-@code{nil}, it copies vectors too (and operates recursively on
-their elements).  This function cannot cope with circular lists.
+@code{copy-tree} simply returns @var{tree}.  However, if
+@var{vector-like-p} is non-@code{nil}, it copies vectors and records
+too (and operates recursively on their elements).  This function
+cannot cope with circular lists.
 @end defun
 
 @defun flatten-tree tree

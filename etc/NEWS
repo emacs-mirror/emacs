@@ -585,6 +585,9 @@ Since circular alias chains now cannot occur, 'function-alias-p',
 'indirect-function' and 'indirect-variable' will never signal an error.
 Their 'noerror' arguments have no effect and are therefore obsolete.
 
++++
+** 'copy-tree' now copies records when its optional argument is non-nil.
+
 
 * Changes in Emacs 30.1 on Non-Free Operating Systems
 
