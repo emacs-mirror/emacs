@@ -17,6 +17,11 @@
 
 /* Written by Paul Eggert.  */
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <time.h>
 int fdutimens (int, char const *, struct timespec const [2]);
 int utimens (char const *, struct timespec const [2]);
@@ -26,9 +31,6 @@ int lutimens (char const *, struct timespec const [2]);
 # include <fcntl.h>
 # include <sys/stat.h>
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_UTIMENS_INLINE
 # define _GL_UTIMENS_INLINE _GL_INLINE

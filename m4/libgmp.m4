@@ -1,4 +1,4 @@
-# libgmp.m4 serial 7
+# libgmp.m4 serial 8
 # Configure the GMP library or a replacement.
 dnl Copyright 2020-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
@@ -15,7 +15,7 @@ dnl empty.
 AC_DEFUN([gl_LIBGMP],
 [
   AC_ARG_WITH([libgmp],
-    [AS_HELP_STRING([--without-libgmp],
+    [AS_HELP_STRING([[--without-libgmp]],
        [do not use the GNU Multiple Precision (GMP) library;
         this is the default on systems lacking libgmp.])])
   HAVE_LIBGMP=no

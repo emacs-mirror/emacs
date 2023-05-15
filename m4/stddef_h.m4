@@ -1,4 +1,4 @@
-# stddef_h.m4 serial 13
+# stddef_h.m4 serial 14
 dnl Copyright (C) 2009-2023 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -65,6 +65,21 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
       [gl_cv_decl_null_works=no])])
   if test $gl_cv_decl_null_works = no; then
     REPLACE_NULL=1
+    GL_GENERATE_STDDEF_H=true
+  fi
+
+  AC_CACHE_CHECK([for unreachable],
+    [gl_cv_func_unreachable],
+    [AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM(
+          [[#include <stddef.h>
+          ]],
+          [[unreachable ();
+          ]])],
+       [gl_cv_func_unreachable=yes],
+       [gl_cv_func_unreachable=no])
+    ])
+  if test $gl_cv_func_unreachable = no; then
     GL_GENERATE_STDDEF_H=true
   fi
 

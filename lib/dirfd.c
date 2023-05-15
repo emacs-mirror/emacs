@@ -22,6 +22,10 @@
 #include <dirent.h>
 #include <errno.h>
 
+#if GNULIB_defined_DIR
+# include "dirent-private.h"
+#endif
+
 #ifdef __KLIBC__
 # include <stdlib.h>
 # include <io.h>
@@ -78,11 +82,17 @@ _gl_unregister_dirp_fd (int fd)
 int
 dirfd (DIR *dir_p)
 {
+#if GNULIB_defined_DIR
+  int fd = dir_p->fd_to_close;
+  if (fd == -1)
+    errno = EINVAL;
+  return fd;
+#else
   int fd = DIR_TO_FD (dir_p);
   if (fd == -1)
-#ifndef __KLIBC__
+# ifndef __KLIBC__
     errno = ENOTSUP;
-#else
+# else
     {
       struct dirp_fd_list *dirp_fd;
 
@@ -92,7 +102,8 @@ dirfd (DIR *dir_p)
 
       errno = EINVAL;
     }
-#endif
+# endif
 
   return fd;
+#endif
 }

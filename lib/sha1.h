@@ -19,6 +19,11 @@
 #ifndef SHA1_H
 # define SHA1_H 1
 
+/* This file uses HAVE_OPENSSL_SHA1.  */
+# if !_GL_CONFIG_H_INCLUDED
+#  error "Please include config.h first."
+# endif
+
 # include <stdio.h>
 # include <stdint.h>
 

@@ -20,6 +20,11 @@
 #ifndef _GL_ACL_H
 #define _GL_ACL_H 1
 
+/* This file uses _GL_ATTRIBUTE_CONST.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 

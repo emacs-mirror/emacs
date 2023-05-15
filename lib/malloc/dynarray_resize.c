@@ -22,7 +22,7 @@
 
 #include <dynarray.h>
 #include <errno.h>
-#include <intprops.h>
+#include <stdckdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,7 +42,7 @@ __libc_dynarray_resize (struct dynarray_header *list, size_t size,
      over-allocation here.  */
 
   size_t new_size_bytes;
-  if (INT_MULTIPLY_WRAPV (size, element_size, &new_size_bytes))
+  if (ckd_mul (&new_size_bytes, size, element_size))
     {
       /* Overflow.  */
       __set_errno (ENOMEM);

@@ -25,44 +25,27 @@
 
 #if !HAVE_FDOPENDIR
 
-# include "openat.h"
-# include "openat-priv.h"
-# include "save-cwd.h"
+# if GNULIB_defined_DIR
+/* We are in control of the file descriptor of a DIR.  */
 
-# if GNULIB_DIRENT_SAFER
-#  include "dirent--.h"
-# endif
+#  include "dirent-private.h"
 
-# ifndef REPLACE_FCHDIR
-#  define REPLACE_FCHDIR 0
-# endif
+#  if !REPLACE_FCHDIR
+#   error "unexpected configuration: GNULIB_defined_DIR but fchdir not replaced"
+#  endif
 
-static DIR *fdopendir_with_dup (int, int, struct saved_cwd const *);
-static DIR *fd_clone_opendir (int, struct saved_cwd const *);
+DIR *
+fdopendir (int fd)
+{
+  char const *name = _gl_directory_name (fd);
+  DIR *dirp = name ? opendir (name) : NULL;
+  if (dirp != NULL)
+    dirp->fd_to_close = fd;
+  return dirp;
+}
 
-/* Replacement for POSIX fdopendir.
+# elif defined __KLIBC__
 
-   First, try to simulate it via opendir ("/proc/self/fd/...").  Failing
-   that, simulate it by using fchdir metadata, or by doing
-   save_cwd/fchdir/opendir(".")/restore_cwd.
-   If either the save_cwd or the restore_cwd fails (relatively unlikely),
-   then give a diagnostic and exit nonzero.
-
-   If successful, the resulting stream is based on FD in
-   implementations where streams are based on file descriptors and in
-   applications where no other thread or signal handler allocates or
-   frees file descriptors.  In other cases, consult dirfd on the result
-   to find out whether FD is still being used.
-
-   Otherwise, this function works just like POSIX fdopendir.
-
-   W A R N I N G:
-
-   Unlike other fd-related functions, this one places constraints on FD.
-   If this function returns successfully, FD is under control of the
-   dirent.h system, and the caller should not close or modify the state of
-   FD other than by the dirent.h functions.  */
-# ifdef __KLIBC__
 #  include <InnoTekLIBC/backend.h>
 
 DIR *
@@ -96,7 +79,48 @@ fdopendir (int fd)
 
   return dirp;
 }
+
 # else
+/* We are not in control of the file descriptor of a DIR, and therefore have to
+   play tricks with file descriptors before and after a call to opendir().  */
+
+#  include "openat.h"
+#  include "openat-priv.h"
+#  include "save-cwd.h"
+
+#  if GNULIB_DIRENT_SAFER
+#   include "dirent--.h"
+#  endif
+
+#  ifndef REPLACE_FCHDIR
+#   define REPLACE_FCHDIR 0
+#  endif
+
+static DIR *fdopendir_with_dup (int, int, struct saved_cwd const *);
+static DIR *fd_clone_opendir (int, struct saved_cwd const *);
+
+/* Replacement for POSIX fdopendir.
+
+   First, try to simulate it via opendir ("/proc/self/fd/...").  Failing
+   that, simulate it by using fchdir metadata, or by doing
+   save_cwd/fchdir/opendir(".")/restore_cwd.
+   If either the save_cwd or the restore_cwd fails (relatively unlikely),
+   then give a diagnostic and exit nonzero.
+
+   If successful, the resulting stream is based on FD in
+   implementations where streams are based on file descriptors and in
+   applications where no other thread or signal handler allocates or
+   frees file descriptors.  In other cases, consult dirfd on the result
+   to find out whether FD is still being used.
+
+   Otherwise, this function works just like POSIX fdopendir.
+
+   W A R N I N G:
+
+   Unlike other fd-related functions, this one places constraints on FD.
+   If this function returns successfully, FD is under control of the
+   dirent.h system, and the caller should not close or modify the state of
+   FD other than by the dirent.h functions.  */
 DIR *
 fdopendir (int fd)
 {
@@ -119,7 +143,6 @@ fdopendir (int fd)
 
   return dir;
 }
-# endif
 
 /* Like fdopendir, except that if OLDER_DUPFD is not -1, it is known
    to be a dup of FD which is less than FD - 1 and which will be
@@ -188,7 +211,7 @@ fd_clone_opendir (int fd, struct saved_cwd const *cwd)
           if (proc_file != buf)
             free (proc_file);
         }
-# if REPLACE_FCHDIR
+#  if REPLACE_FCHDIR
       if (! dir && EXPECTED_ERRNO (saved_errno))
         {
           char const *name = _gl_directory_name (fd);
@@ -203,7 +226,7 @@ fd_clone_opendir (int fd, struct saved_cwd const *cwd)
 
           return dp;
         }
-# endif
+#  endif
       errno = saved_errno;
       return dir;
     }
@@ -222,6 +245,8 @@ fd_clone_opendir (int fd, struct saved_cwd const *cwd)
         }
     }
 }
+
+# endif
 
 #else /* HAVE_FDOPENDIR */
 

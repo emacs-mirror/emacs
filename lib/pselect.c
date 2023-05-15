@@ -45,6 +45,12 @@ pselect (int nfds, fd_set *restrict rfds,
   sigset_t origmask;
   struct timeval tv, *tvp;
 
+  if (nfds < 0 || nfds > FD_SETSIZE)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
   if (timeout)
     {
       if (! (0 <= timeout->tv_nsec && timeout->tv_nsec < 1000000000))

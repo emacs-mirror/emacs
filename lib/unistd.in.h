@@ -69,6 +69,12 @@
 #if !defined _@GUARD_PREFIX@_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
 #define _@GUARD_PREFIX@_UNISTD_H
 
+/* This file uses _GL_INLINE_HEADER_BEGIN, _GL_INLINE, GNULIB_POSIXCHECK,
+   HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* NetBSD 5.0 mis-defines NULL.  Also get size_t.  */
 /* But avoid namespace pollution on glibc systems.  */
 #ifndef __GLIBC__
@@ -170,9 +176,6 @@
 # include <getopt-pfx-core.h>
 #endif
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_UNISTD_INLINE
 # define _GL_UNISTD_INLINE _GL_INLINE

@@ -18,6 +18,12 @@
 
    Written by Jim Meyering.  */
 
+/* This file uses _GL_ATTRIBUTE_PURE, HAVE_STDIO_EXT_H,
+   HAVE_DECL___FPENDING.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stddef.h>
 #include <stdio.h>
 #if HAVE_STDIO_EXT_H

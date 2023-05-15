@@ -37,6 +37,12 @@
 #ifndef _@GUARD_PREFIX@_STDLIB_H
 #define _@GUARD_PREFIX@_STDLIB_H
 
+/* This file uses _Noreturn, _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_MALLOC,
+   _GL_ATTRIBUTE_PURE, GNULIB_POSIXCHECK, HAVE_RAW_DECL_*.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
 
@@ -67,9 +73,7 @@
 #  include <random.h>
 # endif
 
-# if !@HAVE_STRUCT_RANDOM_DATA@ || @REPLACE_RANDOM_R@ || !@HAVE_RANDOM_R@
-#  include <stdint.h>
-# endif
+# include <stdint.h>
 
 # if !@HAVE_STRUCT_RANDOM_DATA@
 /* Define 'struct random_data'.
@@ -461,7 +465,7 @@ _GL_WARN_ON_USE (getloadavg, "getloadavg is not portable - "
 #   undef getprogname
 #   define getprogname rpl_getprogname
 #  endif
-#  ifdef HAVE_DECL_PROGRAM_INVOCATION_NAME
+#  if @HAVE_DECL_PROGRAM_INVOCATION_NAME@
 _GL_FUNCDECL_RPL (getprogname, const char *, (void) _GL_ATTRIBUTE_PURE);
 #  else
 _GL_FUNCDECL_RPL (getprogname, const char *, (void));
@@ -469,7 +473,7 @@ _GL_FUNCDECL_RPL (getprogname, const char *, (void));
 _GL_CXXALIAS_RPL (getprogname, const char *, (void));
 # else
 #  if !@HAVE_GETPROGNAME@
-#   ifdef HAVE_DECL_PROGRAM_INVOCATION_NAME
+#   if @HAVE_DECL_PROGRAM_INVOCATION_NAME@
 _GL_FUNCDECL_SYS (getprogname, const char *, (void) _GL_ATTRIBUTE_PURE);
 #   else
 _GL_FUNCDECL_SYS (getprogname, const char *, (void));
@@ -586,6 +590,51 @@ _GL_FUNCDECL_SYS (malloc, void *,
 /* Assume malloc is always declared.  */
 _GL_WARN_ON_USE (malloc, "malloc is not POSIX compliant everywhere - "
                  "use gnulib module malloc-posix for portability");
+# endif
+#endif
+
+/* Return maximum number of bytes of a multibyte character.  */
+#if @REPLACE_MB_CUR_MAX@
+# if !GNULIB_defined_MB_CUR_MAX
+static inline
+int gl_MB_CUR_MAX (void)
+{
+  /* Turn the value 3 to the value 4, as needed for the UTF-8 encoding.  */
+  return MB_CUR_MAX + (MB_CUR_MAX == 3);
+}
+#  undef MB_CUR_MAX
+#  define MB_CUR_MAX gl_MB_CUR_MAX ()
+#  define GNULIB_defined_MB_CUR_MAX 1
+# endif
+#endif
+
+/* Convert a string to a wide string.  */
+#if @GNULIB_MBSTOWCS@
+# if @REPLACE_MBSTOWCS@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mbstowcs
+#   define mbstowcs rpl_mbstowcs
+#  endif
+_GL_FUNCDECL_RPL (mbstowcs, size_t,
+                  (wchar_t *restrict dest, const char *restrict src,
+                   size_t len)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (mbstowcs, size_t,
+                  (wchar_t *restrict dest, const char *restrict src,
+                   size_t len));
+# else
+_GL_CXXALIAS_SYS (mbstowcs, size_t,
+                  (wchar_t *restrict dest, const char *restrict src,
+                   size_t len));
+# endif
+# if __GLIBC__ >= 2
+_GL_CXXALIASWARN (mbstowcs);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef mbstowcs
+# if HAVE_RAW_DECL_MBSTOWCS
+_GL_WARN_ON_USE (mbstowcs, "mbstowcs is unportable - "
+                 "use gnulib module mbstowcs for portability");
 # endif
 #endif
 
@@ -1009,7 +1058,9 @@ _GL_FUNCDECL_SYS (random, long, (void));
                                int.  */
 _GL_CXXALIAS_SYS_CAST (random, long, (void));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (random);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef random
 # if HAVE_RAW_DECL_RANDOM
@@ -1034,7 +1085,9 @@ _GL_FUNCDECL_SYS (srandom, void, (unsigned int seed));
                                        unsigned long seed.  */
 _GL_CXXALIAS_SYS_CAST (srandom, void, (unsigned int seed));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (srandom);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef srandom
 # if HAVE_RAW_DECL_SRANDOM
