@@ -132,5 +132,7 @@ cp -- "$gnulib_srcdir"/build-aux/config.guess \
 cp -- "$gnulib_srcdir"/lib/af_alg.h \
       "$gnulib_srcdir"/lib/save-cwd.h \
    "$src"lib &&
+cp -- "$gnulib_srcdir"/m4/codeset.m4 \
+   "$src"m4 &&
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh

@@ -5409,29 +5409,21 @@ if test "${emacs_cv_links_glib}" = "yes"; then
 fi
 AC_SUBST([XGSELOBJ])
 
-dnl Adapted from Haible's version.
-AC_CACHE_CHECK([for nl_langinfo and CODESET], [emacs_cv_langinfo_codeset],
-  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
-    [[char *cs = nl_langinfo(CODESET);]])],
-    [emacs_cv_langinfo_codeset=yes],
-    [emacs_cv_langinfo_codeset=no])
-  ])
-if test "$emacs_cv_langinfo_codeset" = yes; then
-  AC_DEFINE([HAVE_LANGINFO_CODESET], [1],
-    [Define if you have <langinfo.h> and nl_langinfo (CODESET).])
-
-  AC_CACHE_CHECK([for nl_langinfo and _NL_PAPER_WIDTH],
-    [emacs_cv_langinfo__nl_paper_width],
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
-      [[char *cs = nl_langinfo (_NL_PAPER_WIDTH);]])],
-      [emacs_cv_langinfo__nl_paper_width=yes],
-      [emacs_cv_langinfo__nl_paper_width=no])
-    ])
-  if test "$emacs_cv_langinfo__nl_paper_width" = yes; then
-    AC_DEFINE([HAVE_LANGINFO__NL_PAPER_WIDTH], [1],
-      [Define if you have <langinfo.h> and nl_langinfo (_NL_PAPER_WIDTH).])
-  fi
-fi
+AC_DEFUN([EMACS_PAPER_WIDTH],
+  [AC_REQUIRE([AM_LANGINFO_CODESET])
+   AS_IF([test "$am_cv_langinfo_codeset" = yes],
+     [AC_CACHE_CHECK([for nl_langinfo and _NL_PAPER_WIDTH],
+	[emacs_cv_langinfo__nl_paper_width],
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
+	  [[char *cs = nl_langinfo (_NL_PAPER_WIDTH);]])],
+	  [emacs_cv_langinfo__nl_paper_width=yes],
+	  [emacs_cv_langinfo__nl_paper_width=no])
+	])
+      AS_IF([test "$emacs_cv_langinfo__nl_paper_width" = yes],
+	[AC_DEFINE([HAVE_LANGINFO__NL_PAPER_WIDTH], [1],
+	   [Define if you have <langinfo.h>
+	    and nl_langinfo (_NL_PAPER_WIDTH).])])])])
+EMACS_PAPER_WIDTH
 
 AC_TYPE_MBSTATE_T
 
