@@ -200,6 +200,9 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
+# Miscellaneous variables.
+/^DIR_HAS_FD_MEMBER *=/s/@DIR_HAS_FD_MEMBER@/0/
+/^LOCALE_FR_UTF8 *=/s/@LOCALE_FR_UTF8@/none/
 #
 # Edit the HAVE_foo variables
 /^HAVE_ATOLL *=/s/@HAVE_ATOLL@/0/
