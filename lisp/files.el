@@ -3250,6 +3250,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.pict\\'" . image-mode)
      ("\\.rgb\\'" . image-mode)
      ("\\.rgba\\'" . image-mode)
+     ("\\.six\\'" . image-mode)
      ("\\.tga\\'" . image-mode)
      ("\\.wbmp\\'" . image-mode)
      ("\\.webp\\'" . image-mode)
