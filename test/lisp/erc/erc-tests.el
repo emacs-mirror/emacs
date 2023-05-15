@@ -2204,9 +2204,10 @@ Some docstring."
                         :group (erc--find-group 'mname 'malias)
                         :require 'nil
                         :type "mname"
-                        (if erc-mname-mode
-                            (erc-mname-enable)
-                          (erc-mname-disable)))
+                        (let ((erc--module-toggle-prefix-arg arg))
+                          (if erc-mname-mode
+                              (erc-mname-enable)
+                            (erc-mname-disable))))
 
                       (defun erc-mname-enable ()
                         "Enable ERC mname mode."
@@ -2259,9 +2260,10 @@ ARG is omitted or nil.
 Some docstring."
                         :global nil
                         :group (erc--find-group 'mname nil)
-                        (if erc-mname-mode
-                            (erc-mname-enable)
-                          (erc-mname-disable)))
+                        (let ((erc--module-toggle-prefix-arg arg))
+                          (if erc-mname-mode
+                              (erc-mname-enable)
+                            (erc-mname-disable))))
 
                       (defun erc-mname-enable (&optional ,arg-en)
                         "Enable ERC mname mode.

@@ -289,6 +289,15 @@ instead of a `set' state, which precludes any actual saving."
              (intern (file-name-base file))))
      (v v)))
 
+(defvar erc--module-toggle-prefix-arg nil
+  "The interpreted prefix arg of the minor-mode toggle.
+Non-nil inside an ERC module's activation (or deactivation)
+command, such as `erc-spelling-enable', when it's been called
+indirectly via the module's minor-mode toggle, i.e.,
+`erc-spelling-mode'.  Nil otherwise.  Its value is either the
+symbol `toggle' or an integer produced by `prefix-numeric-value'.
+See Info node `(elisp) Defining Minor Modes' for more.")
+
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
   "Define a new minor mode using ERC conventions.
@@ -337,9 +346,8 @@ if ARG is omitted or nil.
          :group (erc--find-group ',name ,(and alias (list 'quote alias)))
          ,@(unless local-p `(:require ',(erc--find-feature name alias)))
          ,@(unless local-p `(:type ,(erc--prepare-custom-module-type name)))
-         (if ,mode
-             (,enable)
-           (,disable)))
+         (let ((erc--module-toggle-prefix-arg arg))
+           (if ,mode (,enable) (,disable))))
        ,(erc--assemble-toggle local-p name enable mode t enable-body)
        ,(erc--assemble-toggle local-p name disable mode nil disable-body)
        ,@(and-let* ((alias)
