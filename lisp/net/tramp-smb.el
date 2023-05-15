@@ -637,9 +637,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  ;; We must also flush the cache of the directory, because
-	  ;; `file-attributes' reads the values from there.
-	  (tramp-flush-file-properties v localname)
 	  (unless (tramp-smb-get-share v)
 	    (tramp-error
 	     v 'file-error "Target `%s' must contain a share name" newname))
@@ -648,7 +645,12 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			     (tramp-smb-shell-quote-argument filename)
 			     (tramp-smb-shell-quote-localname v)))
 	    (tramp-error
-	     v 'file-error "Cannot copy `%s' to `%s'" filename newname)))))
+	     v 'file-error "Cannot copy `%s' to `%s'" filename newname))
+
+	  ;; When newname did exist, we have wrong cached values.
+	  (when (tramp-tramp-file-p newname)
+	    (with-parsed-tramp-file-name newname v2
+	      (tramp-flush-file-properties v2 v2-localname))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
