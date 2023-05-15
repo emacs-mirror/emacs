@@ -40,9 +40,9 @@ if test "$XCONFIGURE" = "android"; then
   CFLAGS="$ANDROID_CFLAGS -Werror=implicit-function-declaration"
   # Don't explicitly enable support for large files unless Emacs is
   # being built for API 21 or later.  Otherwise, mmap does not work.
-  if test "$ANDROID_SDK" -lt "21"; then
+  AS_IF([test "$ANDROID_SDK" -lt "21"], [
     enable_largefile=no
-  fi
+    enable_year2038=no])
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
