@@ -774,11 +774,11 @@ and `network-connection-service-alist', which see."
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
 	 ) ;; found
-    (and regexps
-	 (while (not (string-match (car regexps) host))
-	   (setq regexps (cdr regexps)))
-	 (when regexps
-	   (setq user-and-host user)))
+    (when regexps
+      (while (not (string-match (car regexps) host))
+	(setq regexps (cdr regexps)))
+      (when regexps
+	(setq user-and-host user)))
     (run-network-program
      process-name
      host
