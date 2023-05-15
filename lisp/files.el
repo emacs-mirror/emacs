@@ -3221,6 +3221,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.cmyk\\'" . image-mode)
      ("\\.cmyka\\'" . image-mode)
      ("\\.crw\\'" . image-mode)
+     ("\\.dcm\\'" . image-mode)
      ("\\.dcr\\'" . image-mode)
      ("\\.dcx\\'" . image-mode)
      ("\\.dng\\'" . image-mode)
