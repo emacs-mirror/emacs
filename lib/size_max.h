@@ -18,6 +18,11 @@
 #ifndef GNULIB_SIZE_MAX_H
 #define GNULIB_SIZE_MAX_H
 
+/* This file uses HAVE_STDINT_H.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* Get SIZE_MAX declaration on systems like Solaris 7/8/9.  */
 # include <limits.h>
 /* Get SIZE_MAX declaration on systems like glibc 2.  */

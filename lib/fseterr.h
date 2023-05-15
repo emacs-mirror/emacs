@@ -17,6 +17,11 @@
 #ifndef _FSETERR_H
 #define _FSETERR_H
 
+/* This file uses HAVE___FSETERR.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #include <stdio.h>
 
 /* Set the error indicator of the stream FP.

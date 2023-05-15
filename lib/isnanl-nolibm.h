@@ -14,6 +14,11 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* This file uses HAVE_ISNANL_IN_LIBC.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 #if HAVE_ISNANL_IN_LIBC
 /* Get declaration of isnan macro or (older) isnanl function.  */
 # include <math.h>

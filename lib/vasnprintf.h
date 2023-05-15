@@ -17,6 +17,11 @@
 #ifndef _VASNPRINTF_H
 #define _VASNPRINTF_H
 
+/* This file uses _GL_ATTRIBUTE_FORMAT.  */
+#if !_GL_CONFIG_H_INCLUDED
+ #error "Please include config.h first."
+#endif
+
 /* Get va_list.  */
 #include <stdarg.h>
 

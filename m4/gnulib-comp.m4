@@ -232,12 +232,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module vla:
   # Code from module warnings:
   # Code from module xalloc-oversized:
-<<<<<<< HEAD
   # Code from module xsize:
-=======
   # Code from module year2038:
   AC_REQUIRE([AC_SYS_YEAR2038])
->>>>>>> origin/master
 ])
 
 # This macro should be invoked from ./configure.ac, in the section
@@ -803,7 +800,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_fseterr ()
   {
-    if ! $gl_gnulib_enabled_fseterr; then
+    if $gl_gnulib_enabled_fseterr; then :; else
       gl_FUNC_FSETERR
       gl_CONDITIONAL([GL_COND_OBJ_FSETERR], [test $ac_cv_func___fseterr = no])
       gl_gnulib_enabled_fseterr=true
@@ -811,7 +808,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_getdelim ()
   {
-    if ! $gl_gnulib_enabled_getdelim; then
+    if $gl_gnulib_enabled_getdelim; then :; else
       gl_FUNC_GETDELIM
       gl_CONDITIONAL([GL_COND_OBJ_GETDELIM],
                      [test $HAVE_GETDELIM = 0 || test $REPLACE_GETDELIM = 1])
@@ -892,7 +889,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_3f0e593033d1fc2c127581960f641b66 ()
   {
-    if ! $gl_gnulib_enabled_3f0e593033d1fc2c127581960f641b66; then
+    if $gl_gnulib_enabled_3f0e593033d1fc2c127581960f641b66; then :; else
       gl_FUNC_ISNANF_NO_LIBM
       if test $gl_func_isnanf_no_libm != yes; then
         AC_LIBOBJ([isnanf])
@@ -1029,7 +1026,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_size_max ()
   {
-    if ! $gl_gnulib_enabled_size_max; then
+    if $gl_gnulib_enabled_size_max; then :; else
       gl_SIZE_MAX
       gl_gnulib_enabled_size_max=true
     fi
@@ -1056,7 +1053,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_vasnprintf ()
   {
-    if ! $gl_gnulib_enabled_vasnprintf; then
+    if $gl_gnulib_enabled_vasnprintf; then :; else
       AC_REQUIRE([AC_C_RESTRICT])
       gl_FUNC_VASNPRINTF
       gl_gnulib_enabled_vasnprintf=true
@@ -1065,7 +1062,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_ed5616be3593d355b981ffab56b9f37b ()
   {
-    if ! $gl_gnulib_enabled_ed5616be3593d355b981ffab56b9f37b; then
+    if $gl_gnulib_enabled_ed5616be3593d355b981ffab56b9f37b; then :; else
       gl_FUNC_VFPRINTF_POSIX
       gl_STDIO_MODULE_INDICATOR([vfprintf-posix])
       gl_MODULE_INDICATOR([vfprintf-posix])
@@ -1086,7 +1083,7 @@ AC_DEFUN([gl_INIT],
   }
   func_gl_gnulib_m4code_xsize ()
   {
-    if ! $gl_gnulib_enabled_xsize; then
+    if $gl_gnulib_enabled_xsize; then :; else
       gl_XSIZE
       gl_gnulib_enabled_xsize=true
       func_gl_gnulib_m4code_size_max
@@ -1749,7 +1746,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pipe2.m4
   m4/printf-frexp.m4
   m4/printf-frexpl.m4
-  m4/printf-posix-rpl.m4
+  m4/printf-posix.m4
   m4/printf.m4
   m4/pselect.m4
   m4/pthread_sigmask.m4
