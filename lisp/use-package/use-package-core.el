@@ -1619,7 +1619,8 @@ Also see the Info node `(use-package) Creating an extension'."
     ;; See `use-package-handler/:ensure' for an explanation.
     (if (bound-and-true-p byte-compile-current-file)
         (funcall #'use-package-vc-install arg local-path)        ; compile time
-      (push `(use-package-vc-install ',arg ,local-path) body)))) ; runtime
+      (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
+    body))
 
 (defun use-package-normalize--vc-arg (arg)
   "Normalize possible arguments to the `:vc' keyword.
