@@ -57,6 +57,7 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
+  /*CHECKL(FUNCHECK(klass->addrObject));*/
 
   /* Check that pool classes overide sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) ==
@@ -302,6 +303,17 @@ Size PoolFreeSize(Pool pool)
   return Method(Pool, pool, freeSize)(pool);
 }
 
+/* PoolAddrObject -- return base pointer from interior pointer */
+Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+{
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(pool == SegPool(seg));
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  return Method(Pool, pool, addrObject)(pReturn, pool, seg, addr);
+}
 
 /* PoolDescribe -- describe a pool */
 
