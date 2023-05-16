@@ -441,7 +441,12 @@ BBDB fields.  SPECs are sexps which are evaluated:
   "LDAP attributes which are always searched for without wildcard character.
 This is the list of special dictionary-valued attributes, where
 wildcarded search may fail.  For example, it fails with
-objectclass in Active Directory servers."
+objectclass in Active Directory servers.
+
+You may not want functions like `eudc-query-form' and
+`eudc-expand-inline' to do LDAP wildcard expansion by default on
+certain fields.  If so, add the relevant symbol to this list, for
+example `samaccountname' for the \"E-Mail\" field."
   :type  '(repeat (symbol :tag "Directory attribute")))
 
 

@@ -180,7 +180,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-crypt-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-crypt-handle-file-exists-p)
     ;; `file-group-gid' performed by default-handler.
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-handle-file-local-copy)
@@ -722,6 +722,11 @@ absolute file names."
   "Like `file-executable-p' for Tramp files."
   (let (tramp-crypt-enabled)
     (file-executable-p (tramp-crypt-encrypt-file-name filename))))
+
+(defun tramp-crypt-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  (let (tramp-crypt-enabled)
+    (file-exists-p (tramp-crypt-encrypt-file-name filename))))
 
 (defun tramp-crypt-handle-file-locked-p (filename)
   "Like `file-locked-p' for Tramp files."
