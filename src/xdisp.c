@@ -14584,21 +14584,32 @@ tab_bar_item_info (struct frame *f, struct glyph *glyph,
 			     Qmenu_item, f->current_tab_bar_string);
   if (! FIXNUMP (prop))
     return false;
+
   *prop_idx = XFIXNUM (prop);
 
-  *close_p = !NILP (Fget_text_property (make_fixnum (charpos),
-                                        Qclose_tab,
-                                        f->current_tab_bar_string));
+  if (close_p)
+    *close_p = !NILP (Fget_text_property (make_fixnum (charpos),
+					  Qclose_tab,
+					  f->current_tab_bar_string));
 
   return true;
 }
 
 
-/* Get information about the tab-bar item at position X/Y on frame F.
-   Return in *GLYPH a pointer to the glyph of the tab-bar item in
-   the current matrix of the tab-bar window of F, or NULL if not
-   on a tab-bar item.  Return in *PROP_IDX the index of the tab-bar
-   item in F->tab_bar_items.  Value is
+/* Get information about the tab-bar item at position X/Y on frame F's
+   tab bar window.
+
+   Set *GLYPH to a pointer to the glyph of the tab-bar item in the
+   current matrix of the tab-bar window of F, or NULL if not on a
+   tab-bar item.  Return in *PROP_IDX the index of the tab-bar item in
+   F->tab_bar_items.
+
+   Place the window-relative vpos of Y in *VPOS, and the
+   window-relative hpos of X in *HPOS.  If CLOSE_P, set it to whether
+   or not the tab bar item represents a button that should close a
+   tab.
+
+   Value is
 
    -1	if X/Y is not on a tab-bar item
    0	if X/Y is on the same item that was highlighted before.
@@ -14606,7 +14617,7 @@ tab_bar_item_info (struct frame *f, struct glyph *glyph,
 
 static int
 get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
-		   int *hpos, int *vpos, int *prop_idx, bool *close_p)
+		  int *hpos, int *vpos, int *prop_idx, bool *close_p)
 {
   struct window *w = XWINDOW (f->tab_bar_window);
   int area;
@@ -14624,6 +14635,38 @@ get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
   return *prop_idx == f->last_tab_bar_item ? 0 : 1;
 }
 
+/* EXPORT:
+
+   Like `get_tab_bar_item'.  However, don't return anything for GLYPH,
+   HPOS, or VPOS, and treat X and Y as relative to F itself, as
+   opposed to its tab bar window.  */
+
+int
+get_tab_bar_item_kbd (struct frame *f, int x, int y, int *prop_idx,
+		      bool *close_p)
+{
+  struct window *w;
+  int area, vpos, hpos;
+  struct glyph *glyph;
+
+  w = XWINDOW (f->tab_bar_window);
+
+  /* Convert X and Y to window coordinates.  */
+  frame_to_window_pixel_xy (w, &x, &y);
+
+  /* Find the glyph under X/Y.  */
+  glyph = x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0,
+			    0, &area);
+  if (glyph == NULL)
+    return -1;
+
+  /* Get the start of this tab-bar item's properties in
+     f->tab_bar_items.  */
+  if (!tab_bar_item_info (f, glyph, prop_idx, close_p))
+    return -1;
+
+  return *prop_idx == f->last_tab_bar_item ? 0 : 1;
+}
 
 /* EXPORT:
    Handle mouse button event on the tab-bar of frame F, at

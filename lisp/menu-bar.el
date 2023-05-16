@@ -2669,20 +2669,25 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 POSITION can be an event, a posn- value, a value having the
 form ((XOFFSET YOFFSET) WINDOW), or nil.
 If nil, the current mouse position is used, or nil if there is no mouse."
-  (pcase position
+  (cond
     ;; nil -> mouse cursor position
-    ('nil
+    ((eq position nil)
      (let ((mp (mouse-pixel-position)))
        (list (list (cadr mp) (cddr mp)) (car mp))))
     ;; Value returned from `event-end' or `posn-at-point'.
-    ((pred posnp)
+    ((posnp position)
      (let ((xy (posn-x-y position)))
        (list (list (car xy) (cdr xy))
 	     (posn-window position))))
+    ;; `touchscreen-begin' or `touchscreen-end' event.
+    ((or (eq (car-safe position) 'touchscreen-begin)
+         (eq (car-safe position) 'touchscreen-end))
+     position)
     ;; Event.
-    ((pred eventp)
+    ((eventp position)
      (popup-menu-normalize-position (event-end position)))
-    (_ position)))
+    ;; Some other value.
+    (t position)))
 
 (defcustom tty-menu-open-use-tmm nil
   "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.

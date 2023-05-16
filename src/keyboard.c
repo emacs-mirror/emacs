@@ -5875,6 +5875,25 @@ coords_in_menu_bar_window (struct frame *f, int x, int y)
 
 #endif
 
+/* Return whether or not the coordinates X and Y are inside the
+   tab-bar window of the given frame F.  */
+
+static bool
+coords_in_tab_bar_window (struct frame *f, int x, int y)
+{
+  struct window *window;
+
+  if (!WINDOWP (f->tab_bar_window))
+    return false;
+
+  window = XWINDOW (f->tab_bar_window);
+
+  return (y >= WINDOW_TOP_EDGE_Y (window)
+	  && x >= WINDOW_LEFT_EDGE_X (window)
+	  && y <= WINDOW_BOTTOM_EDGE_Y (window)
+	  && x <= WINDOW_RIGHT_EDGE_X (window));
+}
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -6522,11 +6541,14 @@ make_lispy_event (struct input_event *event)
     case TOUCHSCREEN_END_EVENT:
       {
 	Lisp_Object x, y, id, position;
-	struct frame *f = XFRAME (event->frame_or_window);
+	struct frame *f;
+	int tab_bar_item;
+	bool close;
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
 	int column, row, dummy;
-#endif
+#endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
 
+	f = XFRAME (event->frame_or_window);
 	id = event->arg;
 	x = event->x;
 	y = event->y;
@@ -6589,9 +6611,52 @@ make_lispy_event (struct input_event *event)
 
 	    return Qnil;
 	  }
-#endif
+#endif /* defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR */
 
 	position = make_lispy_position (f, x, y, event->timestamp);
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+	/* Now check if POSITION lies on the tab bar.  If so, look up
+	   the corresponding tab bar item's propertized string as the
+	   OBJECT.  */
+
+	if (coords_in_tab_bar_window (f, XFIXNUM (event->x),
+				      XFIXNUM (event->y))
+	    /* `get_tab_bar_item_kbd' returns 0 if the item was
+	       previously highlighted, 1 otherwise, and -1 if there is
+	       no tab bar item.  */
+	    && get_tab_bar_item_kbd (f, XFIXNUM (event->x),
+				     XFIXNUM (event->y), &tab_bar_item,
+				     &close) >= 0)
+	  {
+	    /* First, obtain the propertized string.  */
+	    x = Fcopy_sequence (AREF (f->tab_bar_items,
+				      (tab_bar_item
+				       + TAB_BAR_ITEM_CAPTION)));
+
+	    /* Next, add the key binding.  */
+	    AUTO_LIST2 (y, Qmenu_item, list3 (AREF (f->tab_bar_items,
+						    (tab_bar_item
+						     + TAB_BAR_ITEM_KEY)),
+					      AREF (f->tab_bar_items,
+						    (tab_bar_item
+						     + TAB_BAR_ITEM_BINDING)),
+					      close ? Qt : Qnil));
+
+	    /* And add the new properties to the propertized string.  */
+	    Fadd_text_properties (make_fixnum (0),
+				  make_fixnum (SCHARS (x)),
+				  y, x);
+
+	    /* Set the position to 0.  */
+	    x = Fcons (x, make_fixnum (0));
+
+	    /* Finally, add the OBJECT.  */
+	    position = nconc2 (position, Fcons (x, Qnil));
+	  }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	return list2 (((event->kind
 			== TOUCHSCREEN_BEGIN_EVENT)

@@ -529,7 +529,7 @@ otherwise, return t once the `touchscreen-end' event arrives."
 
 (defun touch-screen-track-drag (event update &optional data)
   "Track a single drag starting from EVENT.
-EVENT should be a `touchscreen-end' event.
+EVENT should be a `touchscreen-begin' event.
 
 Read touch screen events until a `touchscreen-end' event is
 received with the same ID as in EVENT.  For each
