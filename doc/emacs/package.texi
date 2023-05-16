@@ -685,11 +685,13 @@ an Org file.
 @item :make
 A string or list of strings providing the target or targets defined in
 the repository Makefile which should run before building the Info
-file. Only takes effect when package-vc-allow-side-effects is non-nil.
+file.  Only takes effect when @code{package-vc-allow-side-effects} is
+non-nil.
 
 @item :shell-command
 A string providing the shell command to run before building the Info
-file. Only takes effect when package-vc-allow-side-effects is non-nil.
+file.  Only takes effect when @code{package-vc-allow-side-effects} is
+non-@code{nil}.
 
 @item :vc-backend
 A symbol naming the VC backend to use for downloading a copy of the
