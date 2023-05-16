@@ -57,7 +57,7 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->debugMixin));
   CHECKL(FUNCHECK(klass->totalSize));
   CHECKL(FUNCHECK(klass->freeSize));
-  /*CHECKL(FUNCHECK(klass->addrObject));*/
+  CHECKL(FUNCHECK(klass->addrObject));
 
   /* Check that pool classes overide sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) ==
