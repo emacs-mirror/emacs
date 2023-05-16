@@ -1893,6 +1893,69 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
   }
 }
 
+static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
+    Addr searchLimit, Addr addr)
+{
+  Format format;
+  Size hdrSize;
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(objBase <= searchLimit);
+
+  format = pool->format;
+  hdrSize = format->headerSize;
+  while (objBase < searchLimit) {
+    Addr objRef = AddrAdd(objBase, hdrSize);
+    Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
+    AVER(objBase < objLimit);
+
+    if (addr < objLimit) {
+      AVER(objBase <= addr);
+      AVER(addr < objLimit);
+
+      /* Don't return base pointer if object is moved */
+      if (NULL == (*format->isMoved)(objRef)) {
+        *pReturn = objRef;
+        return ResOK;
+      }
+      break;
+    }
+    objBase = objLimit;
+  }
+  return ResFAIL;
+}
+
+/* AMCAddrObject -- return base pointer from interior pointer */
+
+static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
+{
+  Res res;
+  Arena arena;
+  Addr base, limit;
+  Buffer buffer;
+
+
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegPool(seg) == pool);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+
+  arena = PoolArena(pool);
+  base = SegBase(seg);
+  if (SegBuffer(&buffer, seg))
+    limit = BufferGetInit(buffer);
+  else
+    limit = SegLimit(seg);
+
+  ShieldExpose(arena, seg);
+  res = amcAddrObjectSearch(pReturn, pool, base, limit, addr);
+  ShieldCover(arena, seg);
+  return res;
+}
+
 
 /* AMCTotalSize -- total memory allocated from the arena */
 
@@ -2008,6 +2071,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
   klass->freeSize = AMCFreeSize;
+  klass->addrObject = AMCAddrObject;
   AVERT(PoolClass, klass);
 }
 
