@@ -122,10 +122,8 @@ get_stat_atime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_atim);
 #else
-  struct timespec t;
-  t.tv_sec = st->st_atime;
-  t.tv_nsec = get_stat_atime_ns (st);
-  return t;
+  return (struct timespec) { .tv_sec = st->st_atime,
+                             .tv_nsec = get_stat_atime_ns (st) };
 #endif
 }
 
@@ -136,10 +134,8 @@ get_stat_ctime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_ctim);
 #else
-  struct timespec t;
-  t.tv_sec = st->st_ctime;
-  t.tv_nsec = get_stat_ctime_ns (st);
-  return t;
+  return (struct timespec) { .tv_sec = st->st_ctime,
+                             .tv_nsec = get_stat_ctime_ns (st) };
 #endif
 }
 
@@ -150,10 +146,8 @@ get_stat_mtime (struct stat const *st)
 #ifdef STAT_TIMESPEC
   return STAT_TIMESPEC (st, st_mtim);
 #else
-  struct timespec t;
-  t.tv_sec = st->st_mtime;
-  t.tv_nsec = get_stat_mtime_ns (st);
-  return t;
+  return (struct timespec) { .tv_sec = st->st_mtime,
+                             .tv_nsec = get_stat_mtime_ns (st) };
 #endif
 }
 
@@ -168,8 +162,8 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
      || defined HAVE_STRUCT_STAT_ST_BIRTHTIM_TV_NSEC)
   t = STAT_TIMESPEC (st, st_birthtim);
 #elif defined HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC
-  t.tv_sec = st->st_birthtime;
-  t.tv_nsec = st->st_birthtimensec;
+  t = (struct timespec) { .tv_sec = st->st_birthtime,
+                          .tv_nsec = st->st_birthtimensec };
 #elif defined _WIN32 && ! defined __CYGWIN__
   /* Native Windows platforms (but not Cygwin) put the "file creation
      time" in st_ctime (!).  See
@@ -177,13 +171,11 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
 # if _GL_WINDOWS_STAT_TIMESPEC
   t = st->st_ctim;
 # else
-  t.tv_sec = st->st_ctime;
-  t.tv_nsec = 0;
+  t = (struct timespec) { .tv_sec = st->st_ctime };
 # endif
 #else
   /* Birth time is not supported.  */
-  t.tv_sec = -1;
-  t.tv_nsec = -1;
+  t = (struct timespec) { .tv_sec = -1, .tv_nsec = -1 };
 #endif
 
 #if (defined HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC_TV_NSEC \
@@ -195,10 +187,7 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
      sometimes returns junk in the birth time fields; work around this
      bug if it is detected.  */
   if (! (t.tv_sec && 0 <= t.tv_nsec && t.tv_nsec < 1000000000))
-    {
-      t.tv_sec = -1;
-      t.tv_nsec = -1;
-    }
+    t = (struct timespec) { .tv_sec = -1, .tv_nsec = -1 };
 #endif
 
   return t;

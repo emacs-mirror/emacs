@@ -29,7 +29,10 @@
 
 #include "acl-internal.h"
 
+#include "minmax.h"
+
 #if USE_ACL && HAVE_LINUX_XATTR_H && HAVE_LISTXATTR
+# include <stdckdint.h>
 # include <string.h>
 # include <arpa/inet.h>
 # include <sys/xattr.h>
@@ -181,32 +184,44 @@ file_has_acl (char const *name, struct stat const *sb)
              && errno == ERANGE)
         {
           free (heapbuf);
-          listbufsize = listxattr (name, NULL, 0);
-          if (listbufsize < 0)
-            return -1;
-          if (SIZE_MAX < listbufsize)
+          ssize_t newsize = listxattr (name, NULL, 0);
+          if (newsize <= 0)
+            return newsize;
+
+          /* Grow LISTBUFSIZE to at least NEWSIZE.  Grow it by a
+             nontrivial amount too, to defend against denial of
+             service by an adversary that fiddles with ACLs.  */
+          bool overflow = ckd_add (&listbufsize, listbufsize, listbufsize >> 1);
+          listbufsize = MAX (listbufsize, newsize);
+          if (overflow || SIZE_MAX < listbufsize)
             {
               errno = ENOMEM;
               return -1;
             }
+
           listbuf = heapbuf = malloc (listbufsize);
           if (!listbuf)
             return -1;
         }
 
+      /* In Fedora 39, a file can have both NFSv4 and POSIX ACLs,
+         but if it has an NFSv4 ACL that's the one that matters.
+         In earlier Fedora the two types of ACLs were mutually exclusive.
+         Attempt to work correctly on both kinds of systems.  */
+      bool nfsv4_acl
+        = 0 < listsize && have_xattr (XATTR_NAME_NFSV4_ACL, listbuf, listsize);
       int ret
-        = (listsize < 0 ? -1
-           : (have_xattr (XATTR_NAME_POSIX_ACL_ACCESS, listbuf, listsize)
+        = (listsize <= 0 ? listsize
+           : (nfsv4_acl
+              || have_xattr (XATTR_NAME_POSIX_ACL_ACCESS, listbuf, listsize)
               || (S_ISDIR (sb->st_mode)
                   && have_xattr (XATTR_NAME_POSIX_ACL_DEFAULT,
                                  listbuf, listsize))));
-      bool nfsv4_acl_but_no_posix_acl
-        = ret == 0 && have_xattr (XATTR_NAME_NFSV4_ACL, listbuf, listsize);
       free (heapbuf);
 
-      /* If there is an NFSv4 ACL but no POSIX ACL, follow up with a
-         getxattr syscall to see whether the NFSv4 ACL is nontrivial.  */
-      if (nfsv4_acl_but_no_posix_acl)
+      /* If there is an NFSv4 ACL, follow up with a getxattr syscall
+         to see whether the NFSv4 ACL is nontrivial.  */
+      if (nfsv4_acl)
         {
           ret = getxattr (name, XATTR_NAME_NFSV4_ACL,
                           stackbuf.xattr, sizeof stackbuf.xattr);

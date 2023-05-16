@@ -55,10 +55,7 @@ enum { LOG10_TIMESPEC_RESOLUTION = LOG10_TIMESPEC_HZ };
 _GL_TIMESPEC_INLINE struct timespec
 make_timespec (time_t s, long int ns)
 {
-  struct timespec r;
-  r.tv_sec = s;
-  r.tv_nsec = ns;
-  return r;
+  return (struct timespec) { .tv_sec = s, .tv_nsec = ns };
 }
 
 /* Return negative, zero, positive if A < B, A == B, A > B, respectively.  */
