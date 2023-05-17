@@ -2,6 +2,7 @@
 Test case      Flags             Notes
 =============  ================  ==========================================
 abqtest
+addrobj        =W                TODO: Enable when we can update Xcode project. See GitHub issue #217 <https://github.com/Ravenbrook/mps/issues/217>
 airtest
 amcss          =P
 amcsshe        =P
