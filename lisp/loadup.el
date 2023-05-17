@@ -103,7 +103,7 @@
       ;; During bootstrapping the byte-compiler is run interpreted
       ;; when compiling itself, which uses a lot more stack
       ;; than usual.
-      (setq max-lisp-eval-depth 2200)))
+      (setq max-lisp-eval-depth 3400)))
 
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.

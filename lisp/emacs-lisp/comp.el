@@ -1543,7 +1543,7 @@ STACK-OFF is the index of the first slot frame involved."
                              for sp from stack-off
                              collect (comp-slot-n sp))))
 
-(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type neg)
   "`comp-mvar' initializer."
   (let ((mvar (make--comp-mvar :slot slot)))
     (when const-vld
@@ -1551,6 +1551,8 @@ STACK-OFF is the index of the first slot frame involved."
       (setf (comp-cstr-imm mvar) constant))
     (when type
       (setf (comp-mvar-typeset mvar) (list type)))
+    (when neg
+      (setf (comp-mvar-neg mvar) t))
     mvar))
 
 (defun comp-new-frame (size vsize &optional ssa)
@@ -2546,6 +2548,19 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
+      (`((set ,(and (pred comp-mvar-p) mvar-tested-copy)
+              ,(and (pred comp-mvar-p) mvar-tested))
+         (set ,(and (pred comp-mvar-p) mvar-1)
+              (call type-of ,(and (pred comp-mvar-p) mvar-tested-copy)))
+         (set ,(and (pred comp-mvar-p) mvar-2)
+              (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
+         (set ,(and (pred comp-mvar-p) mvar-3)
+              (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
+         (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,bb1 ,bb2))
+       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag)))
+              (comp-block-insns (comp-add-cond-cstrs-target-block b bb2)))
+       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag) :neg t))
+              (comp-block-insns (comp-add-cond-cstrs-target-block b bb1))))
       (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp-call-op-p)
                ,(and (or (pred comp-equality-fun-p)

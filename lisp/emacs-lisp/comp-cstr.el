@@ -895,6 +895,23 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
 
+;; Move to comp.el?
+(defsubst comp-cstr-cl-tag-p (cstr)
+  "Return non-nil if CSTR is a CL tag."
+  (with-comp-cstr-accessors
+    (and (null (range cstr))
+         (null (neg cstr))
+         (null (typeset cstr))
+         (length= (valset cstr) 1)
+         (string-match (rx "cl-struct-" (group-n 1 (1+ not-newline)) "-tags")
+                       (symbol-name (car (valset cstr)))))))
+
+(defsubst comp-cstr-cl-tag (cstr)
+  "If CSTR is a CL tag return its tag name."
+  (with-comp-cstr-accessors
+    (and (comp-cstr-cl-tag-p cstr)
+         (intern (match-string 1 (symbol-name (car (valset cstr))))))))
+
 (defun comp-cstr-= (dst op1 op2)
   "Constraint OP1 being = OP2 setting the result into DST."
   (with-comp-cstr-accessors
