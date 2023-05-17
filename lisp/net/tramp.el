@@ -5142,7 +5142,7 @@ support symbolic links."
 
 (defun tramp-handle-memory-info ()
   "Like `memory-info' for Tramp files."
-  (let ((result '(0 0 0 0))
+  (let ((result (list 0 0 0 0))
         process-file-side-effects)
     (with-temp-buffer
       (cond

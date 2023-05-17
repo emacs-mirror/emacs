@@ -2285,7 +2285,7 @@ significant attribute change was made."
             (insert value)))
       ;; Otherwise add a header line to record the attributes and set
       ;; all but this one to no.
-      (let ((header-value "--------"))
+      (let ((header-value (copy-sequence "--------")))
         (aset header-value attr value)
         (goto-char (if limit (1- limit) (point-max)))
         (setq altered (/= value ?-))

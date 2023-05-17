@@ -484,7 +484,7 @@ To get complete usage, invoke:
 (defmacro skkdic-set-postfix (&rest entries)
   `(defconst skkdic-postfix
      ',(let ((l entries)
-	     (map '(nil))
+	     (map (list nil))
 	     (longest 1)
 	     len entry)
 	 (while l
@@ -507,7 +507,7 @@ To get complete usage, invoke:
 (defmacro skkdic-set-prefix (&rest entries)
   `(defconst skkdic-prefix
      ',(let ((l entries)
-	     (map '(nil))
+	     (map (list nil))
 	     (longest 1)
 	     len entry)
 	 (while l
