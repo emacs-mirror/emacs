@@ -6157,26 +6157,28 @@ If that function has never been called, the value is 0.")
   "Minimum time, in seconds, before sending new lines via IRC.
 If the value is a number, `erc-send-current-line' signals an error
 if its previous invocation was fewer than this many seconds ago.
-This is useful so that if you accidentally enter large amounts of text
-into the ERC buffer, that text is not sent to the IRC server.
-
-This option only concerns the rapid submission of successive
-lines of prompt input from an \"external\" source, such as GNU
-screen or a desktop-automation script.  For example, typing
-
-  \\[kmacro-start-macro-or-insert-counter] \
-one \\`RET' two \\`RET' three \\`RET'
-  \\[kmacro-end-or-call-macro] in the \"*scratch*\" buffer, \
-followed by a
-  \\[kmacro-end-or-call-macro] again in a channel buffer,
-
-will send \"one\" to the server, leave \"two\" at the prompt, and
-insert \"three\" in an \"overflow\" buffer.  For suppression
-involving input yanked from the clipboard or the kill ring, see
-`erc-inhibit-multiline-input' and `erc-warn-about-blank-lines'.
-
 If the value is nil, `erc-send-current-line' always considers any
-submitted line to be intentional."
+submitted line to be intentional.
+
+This option mainly prevents text accidentally entered into Emacs
+from being sent to the server.  Offending sources include
+terminal multiplexers, desktop-automation scripts, and anything
+capable of rapidly submitting successive lines of prompt input.
+For example, entering \"one\\ntwo\\nthree\\n\" will send \"one\"
+to the server, leave \"two\" at the prompt, and insert \"three\"
+into an \"overflow\" buffer.  See `erc-inhibit-multiline-input'
+and `erc-warn-about-blank-lines' for suppression involving input
+yanked from the clipboard or the kill ring, which is a related
+but separate concern.
+
+Users of terminal multiplexers, in particular, should look into
+support for \"bracketed pasting\", provided on the Emacs side by
+libraries like `xterm' (and usually enabled by default).  When
+everything's working smoothly, Emacs transparently arranges for
+pasted text to appear on the kill ring, regardless of any
+read-only warnings you may encounter.  And when point is in the
+prompt area, ERC automatically yanks that text for previewing but
+holds off on submitting it, for obvious reasons."
   :group 'erc
   :version "26.1"
   :type '(choice number (other :tag "disabled" nil)))
