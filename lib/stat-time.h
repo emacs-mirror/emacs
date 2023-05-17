@@ -221,8 +221,7 @@ stat_time_normalize (int result, _GL_UNUSED struct stat *st)
             }
           ts->tv_nsec = r;
           /* Overflow is possible, as Solaris 11 stat can yield
-             tv_sec == TYPE_MINIMUM (time_t) && tv_nsec == -1000000000.
-             INT_ADD_WRAPV is OK, since time_t is signed on Solaris.  */
+             tv_sec == TYPE_MINIMUM (time_t) && tv_nsec == -1000000000.  */
           if (ckd_add (&ts->tv_sec, q, ts->tv_sec))
             {
               errno = EOVERFLOW;
