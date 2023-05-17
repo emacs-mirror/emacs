@@ -44,7 +44,7 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
-  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stddef stdio
+  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool stdckdint stddef stdio
   stpcpy strnlen strtoimax symlink sys_stat sys_time
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat

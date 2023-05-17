@@ -744,13 +744,13 @@ selection_data_size (struct selection_data *data)
       return (size_t) data->size;
 
     case 16:
-      if (INT_MULTIPLY_WRAPV (data->size, 2, &scratch))
+      if (ckd_mul (&scratch, data->size, 2))
 	return SIZE_MAX;
 
       return scratch;
 
     case 32:
-      if (INT_MULTIPLY_WRAPV (data->size, 4, &scratch))
+      if (ckd_mul (&scratch, data->size, 4))
 	return SIZE_MAX;
 
       return scratch;
@@ -3027,7 +3027,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 {
   ptrdiff_t format_bytes = format >> 3;
   ptrdiff_t data_bytes;
-  if (INT_MULTIPLY_WRAPV (size, format_bytes, &data_bytes))
+  if (ckd_mul (&data_bytes, size, format_bytes))
     memory_full (SIZE_MAX);
   return selection_data_to_lisp_data (FRAME_DISPLAY_INFO (f), data,
 				      data_bytes, type, format);

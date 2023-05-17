@@ -514,8 +514,8 @@ timespec_ticks (struct timespec t)
   /* For speed, use intmax_t arithmetic if it will do.  */
   intmax_t accum;
   if (FASTER_TIMEFNS
-      && !INT_MULTIPLY_WRAPV (t.tv_sec, TIMESPEC_HZ, &accum)
-      && !INT_ADD_WRAPV (t.tv_nsec, accum, &accum))
+      && !ckd_mul (&accum, t.tv_sec, TIMESPEC_HZ)
+      && !ckd_add (&accum, accum, t.tv_nsec))
     return make_int (accum);
 
   /* Fall back on bignum arithmetic.  */
@@ -543,7 +543,7 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
       /* For speed, use intmax_t arithmetic if it will do.  */
       intmax_t ticks;
       if (FASTER_TIMEFNS && FIXNUMP (t.ticks) && FIXNUMP (t.hz)
-	  && !INT_MULTIPLY_WRAPV (XFIXNUM (t.ticks), XFIXNUM (hz), &ticks))
+	  && !ckd_mul (&ticks, XFIXNUM (t.ticks), XFIXNUM (hz)))
 	return make_int (ticks / XFIXNUM (t.hz)
 			 - (ticks % XFIXNUM (t.hz) < 0));
     }
@@ -1557,12 +1557,10 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
       Lisp_Object ticks;
       intmax_t n;
       if (FASTER_TIMEFNS && FIXNUMP (lt.ticks) && FIXNUMP (hz)
-	  && !INT_MULTIPLY_WRAPV (XFIXNUM (hz), local_tm.tm_sec, &n)
-	  && ! (INT_ADD_WRAPV
-		(n, (XFIXNUM (lt.ticks) % XFIXNUM (hz)
-		     + (XFIXNUM (lt.ticks) % XFIXNUM (hz) < 0
-			? XFIXNUM (hz) : 0)),
-		 &n)))
+	  && !ckd_mul (&n, XFIXNUM (hz), local_tm.tm_sec)
+	  && !ckd_add (&n, n, (XFIXNUM (lt.ticks) % XFIXNUM (hz)
+			       + (XFIXNUM (lt.ticks) % XFIXNUM (hz) < 0
+				  ? XFIXNUM (hz) : 0))))
 	ticks = make_int (n);
       else
 	{
@@ -1603,7 +1601,7 @@ check_tm_member (Lisp_Object obj, int offset)
       CHECK_FIXNUM (obj);
       EMACS_INT n = XFIXNUM (obj);
       int i;
-      if (INT_SUBTRACT_WRAPV (n, offset, &i))
+      if (ckd_sub (&i, n, offset))
 	time_overflow ();
       return i;
     }

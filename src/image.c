@@ -4003,7 +4003,7 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 		  digit = char_hexdigit (c);
 		  if (digit < 0)
 		    break;
-		  overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
+		  overflow |= ckd_mul (&value, value, 16);
 		  value += digit;
 		}
 	    }
@@ -4013,7 +4013,7 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	      while (*s < end
 		     && (c = *(*s)++, '0' <= c && c <= '7'))
 		{
-		  overflow |= INT_MULTIPLY_WRAPV (value, 8, &value);
+		  overflow |= ckd_mul (&value, value, 8);
 		  value += c - '0';
 		}
 	    }
@@ -4024,8 +4024,8 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	  while (*s < end
 		 && (c = *(*s)++, c_isdigit (c)))
 	    {
-	      overflow |= INT_MULTIPLY_WRAPV (value, 10, &value);
-	      overflow |= INT_ADD_WRAPV (value, c - '0', &value);
+	      overflow |= ckd_mul (&value, value, 10);
+	      overflow |= ckd_add (&value, value, c - '0');
 	    }
 	}
 
@@ -4069,7 +4069,7 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	      if (digit < 0)
 		return 0;
 
-	      overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
+	      overflow |= ckd_mul (&value, value, 16);
 	      value += digit;
 	    }
 	}
@@ -6136,8 +6136,8 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   HGDIOBJ prev;
 #endif /* HAVE_NTGUI */
 
-  if (INT_MULTIPLY_WRAPV (sizeof *colors, img->width, &nbytes)
-      || INT_MULTIPLY_WRAPV (img->height, nbytes, &nbytes)
+  if (ckd_mul (&nbytes, sizeof *colors, img->width)
+      || ckd_mul (&nbytes, nbytes, img->height)
       || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
   colors = xmalloc (nbytes);
@@ -6282,8 +6282,8 @@ image_detect_edges (struct frame *f, struct image *img,
 
 #define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
 
-  if (INT_MULTIPLY_WRAPV (sizeof *new, img->width, &nbytes)
-      || INT_MULTIPLY_WRAPV (img->height, nbytes, &nbytes))
+  if (ckd_mul (&nbytes, sizeof *new, img->width)
+      || ckd_mul (&nbytes, nbytes, img->height))
     memory_full (SIZE_MAX);
   new = xmalloc (nbytes);
 
@@ -7655,8 +7655,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   row_bytes = png_get_rowbytes (png_ptr, info_ptr);
 
   /* Allocate memory for the image.  */
-  if (INT_MULTIPLY_WRAPV (row_bytes, sizeof *pixels, &nbytes)
-      || INT_MULTIPLY_WRAPV (nbytes, height, &nbytes))
+  if (ckd_mul (&nbytes, row_bytes, sizeof *pixels)
+      || ckd_mul (&nbytes, nbytes, height))
     memory_full (SIZE_MAX);
   c->pixels = pixels = xmalloc (nbytes);
   c->rows = rows = xmalloc (height * sizeof *rows);

@@ -2322,13 +2322,10 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	  target_count = header.target_list_count;
 	  rc = false;
 
-	  if (INT_ADD_WRAPV (header.target_list_count, 1,
-			     &header.target_list_count)
-	      || INT_MULTIPLY_WRAPV (ntargets, 4, &size)
-	      || INT_ADD_WRAPV (header.total_data_size, size,
-				&header.total_data_size)
-	      || INT_ADD_WRAPV (header.total_data_size, 2,
-				&header.total_data_size))
+	  if (ckd_add (&header.target_list_count, header.target_list_count, 1)
+	      || ckd_mul (&size, ntargets, 4)
+	      || ckd_add (&header.total_data_size, header.total_data_size, size)
+	      || ckd_add (&header.total_data_size, header.total_data_size, 2))
 	    {
 	      /* Overflow, remove every entry from the targets table
 		 and add one for our current targets list.  This
@@ -6949,8 +6946,7 @@ x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
     return 0;
 
   uint_fast64_t t;
-  return (INT_SUBTRACT_WRAPV (timestamp, dpyinfo->server_time_offset, &t)
-	  ? 0 : t);
+  return ckd_sub (&t, timestamp, dpyinfo->server_time_offset) ? 0 : t;
 }
 
 # ifndef CLOCK_MONOTONIC
@@ -6968,8 +6964,8 @@ x_sync_current_monotonic_time (void)
   return (((clock_gettime (CLOCK_MONOTONIC, &time) != 0
 	    && (CLOCK_MONOTONIC == CLOCK_REALTIME
 		|| clock_gettime (CLOCK_REALTIME, &time) != 0))
-	   || INT_MULTIPLY_WRAPV (time.tv_sec, 1000000, &t)
-	   || INT_ADD_WRAPV (t, time.tv_nsec / 1000, &t))
+	   || ckd_mul (&t, time.tv_sec, 1000000)
+	   || ckd_add (&t, t, time.tv_nsec / 1000))
 	  ? 0 : t);
 }
 
@@ -6990,8 +6986,7 @@ x_sync_note_frame_times (struct x_display_info *dpyinfo,
   time = x_sync_get_monotonic_time (dpyinfo, low | (high << 32));
 
   if (!time || !output->temp_frame_time
-      || INT_SUBTRACT_WRAPV (time, output->temp_frame_time,
-			     &output->last_frame_time))
+      || ckd_sub (&output->last_frame_time, time, output->temp_frame_time))
     output->last_frame_time = 0;
 
 #ifdef FRAME_DEBUG
@@ -7967,7 +7962,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
       dpyinfo->server_time_monotonic_p
 	= (monotonic_time != 0
-	   && !INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	   && !ckd_sub (&diff_ms, time, monotonic_ms)
 	   && -500 < diff_ms && diff_ms < 500);
 
       if (!dpyinfo->server_time_monotonic_p)
@@ -7976,10 +7971,9 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     time to estimate the monotonic time on the X server.  */
 
 	  if (!monotonic_time
-	      || INT_MULTIPLY_WRAPV (time, 1000, &dpyinfo->server_time_offset)
-	      || INT_SUBTRACT_WRAPV (dpyinfo->server_time_offset,
-				     monotonic_time,
-				     &dpyinfo->server_time_offset))
+	      || ckd_mul (&dpyinfo->server_time_offset, time, 1000)
+	      || ckd_sub (&dpyinfo->server_time_offset,
+			  dpyinfo->server_time_offset, monotonic_time))
 	    dpyinfo->server_time_offset = 0;
 
 	  /* If the server time is reasonably close to the monotonic
@@ -7988,18 +7982,18 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	     actual time in ms.  */
 
 	  monotonic_ms = monotonic_ms & 0xffffffff;
-	  if (!INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	  if (!ckd_sub (&diff_ms, time, monotonic_ms)
 	      && -500 < diff_ms && diff_ms < 500)
 	    {
 	      /* The server timestamp overflowed.  Make the time
 		 offset exactly how much it overflowed by.  */
 
-	      if (INT_SUBTRACT_WRAPV (monotonic_time / 1000, monotonic_ms,
-				      &dpyinfo->server_time_offset)
-		  || INT_MULTIPLY_WRAPV (dpyinfo->server_time_offset,
-					 1000, &dpyinfo->server_time_offset)
-		  || INT_SUBTRACT_WRAPV (0, dpyinfo->server_time_offset,
-					 &dpyinfo->server_time_offset))
+	      if (ckd_sub (&dpyinfo->server_time_offset,
+			   monotonic_time / 1000, monotonic_ms)
+		  || ckd_mul (&dpyinfo->server_time_offset,
+			      dpyinfo->server_time_offset, 1000)
+		  || ckd_sub (&dpyinfo->server_time_offset,
+			      0, dpyinfo->server_time_offset))
 		dpyinfo->server_time_offset = 0;
 	    }
 	}
@@ -30199,7 +30193,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     {
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
-      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+      if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
 	memory_full (SIZE_MAX);
       dpyinfo->x_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->x_id_name, "%s%s%s", title, at, SDATA (system_name));

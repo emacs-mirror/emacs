@@ -602,8 +602,8 @@ fill_column_indicator_column (struct it *it, int char_width)
       if (RANGED_FIXNUMP (0, col, INT_MAX))
 	{
           int icol = XFIXNUM (col);
-	  if (!INT_MULTIPLY_WRAPV (char_width, icol, &icol)
-	      && !INT_ADD_WRAPV (it->lnum_pixel_width, icol, &icol))
+	  if (!ckd_mul (&icol, icol, char_width)
+	      && !ckd_add (&icol, icol, it->lnum_pixel_width))
 	    return icol;
 	}
     }
@@ -28216,9 +28216,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	    ptrdiff_t position;
 	    ptrdiff_t distance
 	      = (line_number_display_limit_width < 0 ? 0
-		 : INT_MULTIPLY_WRAPV (line_number_display_limit_width,
-				       height * 2 + 30,
-				       &distance)
+		 : ckd_mul (&distance, line_number_display_limit_width,
+			    height * 2 + 30)
 		 ? PTRDIFF_MAX : distance);
 
 	    if (startpos - distance > limit)

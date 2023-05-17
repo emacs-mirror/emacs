@@ -863,7 +863,7 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
   eassert (0 <= nitems && 0 < item_size);
   ptrdiff_t nbytes;
-  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
+  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
   return xmalloc (nbytes);
 }
@@ -877,7 +877,7 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   eassert (0 <= nitems && 0 < item_size);
   ptrdiff_t nbytes;
-  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
+  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
   return xrealloc (pa, nbytes);
 }
@@ -924,13 +924,13 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
      NITEMS_MAX, and what the C language can represent safely.  */
 
   ptrdiff_t n, nbytes;
-  if (INT_ADD_WRAPV (n0, n0 >> 1, &n))
+  if (ckd_add (&n, n0, n0 >> 1))
     n = PTRDIFF_MAX;
   if (0 <= nitems_max && nitems_max < n)
     n = nitems_max;
 
   ptrdiff_t adjusted_nbytes
-    = ((INT_MULTIPLY_WRAPV (n, item_size, &nbytes) || SIZE_MAX < nbytes)
+    = ((ckd_mul (&nbytes, n, item_size) || SIZE_MAX < nbytes)
        ? min (PTRDIFF_MAX, SIZE_MAX)
        : nbytes < DEFAULT_MXFAST ? DEFAULT_MXFAST : 0);
   if (adjusted_nbytes)
@@ -942,9 +942,9 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
   if (! pa)
     *nitems = 0;
   if (n - n0 < nitems_incr_min
-      && (INT_ADD_WRAPV (n0, nitems_incr_min, &n)
+      && (ckd_add (&n, n0, nitems_incr_min)
 	  || (0 <= nitems_max && nitems_max < n)
-	  || INT_MULTIPLY_WRAPV (n, item_size, &nbytes)))
+	  || ckd_mul (&nbytes, n, item_size)))
     memory_full (SIZE_MAX);
   pa = xrealloc (pa, nbytes);
   *nitems = n;
@@ -2375,7 +2375,7 @@ a multibyte string even if INIT is an ASCII character.  */)
       ptrdiff_t len = CHAR_STRING (c, str);
       EMACS_INT string_len = XFIXNUM (length);
 
-      if (INT_MULTIPLY_WRAPV (len, string_len, &nbytes))
+      if (ckd_mul (&nbytes, len, string_len))
 	string_overflow ();
       val = make_clear_multibyte_string (string_len, nbytes, clearit);
       if (!clearit)
@@ -5226,7 +5226,7 @@ mark_memory (void const *start, void const *end)
 	 a Lisp_Object might be split into registers saved into
 	 non-adjacent words and P might be the low-order word's value.  */
       intptr_t ip;
-      INT_ADD_WRAPV ((intptr_t) p, (intptr_t) lispsym, &ip);
+      ckd_add (&ip, (intptr_t) p, (intptr_t) lispsym);
       mark_maybe_pointer ((void *) ip, true);
     }
 }

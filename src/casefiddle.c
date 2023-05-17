@@ -283,8 +283,8 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
 
   ptrdiff_t size = SCHARS (obj), n;
   USE_SAFE_ALLOCA;
-  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n)
-      || INT_ADD_WRAPV (n, sizeof (struct casing_str_buf), &n))
+  if (ckd_mul (&n, size, MAX_MULTIBYTE_LENGTH)
+      || ckd_add (&n, n, sizeof (struct casing_str_buf)))
     n = PTRDIFF_MAX;
   unsigned char *dst = SAFE_ALLOCA (n);
   unsigned char *dst_end = dst + n;

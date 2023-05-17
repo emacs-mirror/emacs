@@ -1385,7 +1385,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 	       || matrix_dim.width != pool->ncolumns);
 
   /* Enlarge the glyph pool.  */
-  if (INT_MULTIPLY_WRAPV (matrix_dim.height, matrix_dim.width, &needed))
+  if (ckd_mul (&needed, matrix_dim.height, matrix_dim.width))
     memory_full (SIZE_MAX);
   if (needed > pool->nglyphs)
     {
@@ -6653,8 +6653,8 @@ init_display_interactive (void)
        change.  It's not clear what better we could do.  The rest of
        the code assumes that (width + 2) * height * sizeof (struct glyph)
        does not overflow and does not exceed PTRDIFF_MAX or SIZE_MAX.  */
-    if (INT_ADD_WRAPV (width, 2, &area)
-	|| INT_MULTIPLY_WRAPV (height, area, &area)
+    if (ckd_add (&area, width, 2)
+	|| ckd_mul (&area, area, height)
 	|| min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph) < area)
       fatal ("screen size %dx%d too big", width, height);
   }

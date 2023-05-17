@@ -1327,7 +1327,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object v1 = TOP;
 	    intmax_t res;
 	    if (FIXNUMP (v1) && FIXNUMP (v2)
-		&& !INT_MULTIPLY_WRAPV (XFIXNUM (v1), XFIXNUM (v2), &res)
+		&& !ckd_mul (&res, XFIXNUM (v1), XFIXNUM (v2))
 		&& !FIXNUM_OVERFLOW_P (res))
 	      TOP = make_fixnum (res);
 	    else

@@ -3377,8 +3377,8 @@ read_bool_vector (Lisp_Object readcharfun)
 	    invalid_syntax ("#&", readcharfun);
 	  break;
 	}
-      if (INT_MULTIPLY_WRAPV (length, 10, &length)
-	  || INT_ADD_WRAPV (length, c - '0', &length))
+      if (ckd_mul (&length, length, 10)
+	  || ckd_add (&length, length, c - '0'))
 	invalid_syntax ("#&", readcharfun);
     }
 
@@ -3423,8 +3423,8 @@ skip_lazy_string (Lisp_Object readcharfun)
 	    UNREAD (c);
 	  break;
 	}
-      if (INT_MULTIPLY_WRAPV (nskip, 10, &nskip)
-	  || INT_ADD_WRAPV (nskip, c - '0', &nskip))
+      if (ckd_mul (&nskip, nskip, 10)
+	  || ckd_add (&nskip, nskip, c - '0'))
 	invalid_syntax ("#@", readcharfun);
       digits++;
       if (digits == 2 && nskip == 0)
@@ -3988,8 +3988,8 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		    c = READCHAR;
 		    if (c < '0' || c > '9')
 		      break;
-		    if (INT_MULTIPLY_WRAPV (n, 10, &n)
-			|| INT_ADD_WRAPV (n, c - '0', &n))
+		    if (ckd_mul (&n, n, 10)
+			|| ckd_add (&n, n, c - '0'))
 		      invalid_syntax ("#", readcharfun);
 		  }
 		if (c == 'r' || c == 'R')

@@ -3190,9 +3190,9 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
 	intmax_t a;
 	switch (code)
 	  {
-	  case Aadd : overflow = INT_ADD_WRAPV (accum, next, &a); break;
-	  case Amult: overflow = INT_MULTIPLY_WRAPV (accum, next, &a); break;
-	  case Asub : overflow = INT_SUBTRACT_WRAPV (accum, next, &a); break;
+	  case Aadd : overflow = ckd_add (&a, accum, next); break;
+	  case Amult: overflow = ckd_mul (&a, accum, next); break;
+	  case Asub : overflow = ckd_sub (&a, accum, next); break;
 	  case Adiv:
 	    if (next == 0)
 	      xsignal0 (Qarith_error);
