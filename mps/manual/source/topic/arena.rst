@@ -1040,3 +1040,37 @@ Arena introspection and debugging
         :c:func:`mps_addr_pool`, and to find out which :term:`object
         format` describes the object at the address, use
         :c:func:`mps_addr_fmt`.
+
+
+.. c:function:: mps_res_t mps_addr_object(mps_addr_t *p_o, mps_arena_t arena, mps_addr_t addr)
+
+    Return the :term:`base pointer` of an :term:`object` from an
+    :term:`interior pointer` to the object, or the object's base pointer.
+
+    ``p_o`` points to the :term:`address` to which the object's base pointer
+    should be returned.
+
+    ``arena`` is an arena.
+
+    ``addr`` is an address that might be an interior or base pointer.
+
+    Returns MPS_RES_OK if a base pointer to an object into which ``addr``
+    points was successfully returned. Returns MPS_RES_FAIL if ``addr``
+    points to memory not managed by the ``arena`` or if ``addr`` points
+    to the interior of an object which has been moved by a :term:`moving memory manager`.
+    If ``addr`` is found to be managed by a :term:`pool` which does not support this feature,
+    MPS_RES_FAIL or MPS_RES_UNIMPL may be returned, depending on the :term:`pool class`.
+
+    :c:func:`mps_addr_object` allows a client program that allocates
+    code on the heap to implement debugging and stack tracing.
+
+    This feature is supported by AMC and AMCZ pools only.
+
+    .. note::
+
+        This function is intended to assist with debugging fatal
+        errors in the :term:`client program`. It is not expected to be
+        needed in normal use. If you find yourself wanting to use this
+        function other than in the use case described, there may
+        be a better way to meet your requirements: please
+        :ref:`contact us <contact>`.
