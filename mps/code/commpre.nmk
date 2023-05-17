@@ -59,7 +59,7 @@ LIB_TARGETS=mps.lib
 
 TEST_TARGETS=\
     abqtest.exe \
-    addrObj.exe \
+    addrobj.exe \
     airtest.exe \
     amcss.exe \
     amcsshe.exe \
