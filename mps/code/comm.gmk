@@ -446,7 +446,7 @@ ifdef VARIETY
 $(PFM)/$(VARIETY)/abqtest: $(PFM)/$(VARIETY)/abqtest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
-$(PFM)/$(VARIETY)/adrobj: $(PFM)/$(VARIETY)/addrobj.o \
+$(PFM)/$(VARIETY)/addrobj: $(PFM)/$(VARIETY)/addrobj.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/airtest: $(PFM)/$(VARIETY)/airtest.o \
