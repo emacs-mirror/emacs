@@ -405,10 +405,10 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
     struct timeval *t;
     if (ts)
       {
-        timeval[0].tv_sec = ts[0].tv_sec;
-        timeval[0].tv_usec = ts[0].tv_nsec / 1000;
-        timeval[1].tv_sec = ts[1].tv_sec;
-        timeval[1].tv_usec = ts[1].tv_nsec / 1000;
+        timeval[0] = (struct timeval) { .tv_sec  = ts[0].tv_sec,
+                                        .tv_usec = ts[0].tv_nsec / 1000 };
+        timeval[1] = (struct timeval) { .tv_sec  = ts[1].tv_sec,
+                                        .tv_usec = ts[1].tv_nsec / 1000 };
         t = timeval;
       }
     else
@@ -502,8 +502,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       struct utimbuf *ut;
       if (ts)
         {
-          utimbuf.actime = ts[0].tv_sec;
-          utimbuf.modtime = ts[1].tv_sec;
+          utimbuf = (struct utimbuf) { .actime  = ts[0].tv_sec,
+                                       .modtime = ts[1].tv_sec };
           ut = &utimbuf;
         }
       else
@@ -621,10 +621,10 @@ lutimens (char const *file, struct timespec const timespec[2])
     int result;
     if (ts)
       {
-        timeval[0].tv_sec = ts[0].tv_sec;
-        timeval[0].tv_usec = ts[0].tv_nsec / 1000;
-        timeval[1].tv_sec = ts[1].tv_sec;
-        timeval[1].tv_usec = ts[1].tv_nsec / 1000;
+        timeval[0] = (struct timeval) { .tv_sec = ts[0].tv_sec,
+                                        .tv_usec = ts[0].tv_nsec / 1000 };
+        timeval[1] = (struct timeval) { .tv_sec = ts[1].tv_sec,
+                                        .tv_usec = ts[1].tv_nsec / 1000 };
         t = timeval;
       }
     else

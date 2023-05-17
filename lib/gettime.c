@@ -35,8 +35,8 @@ gettime (struct timespec *ts)
 #else
   struct timeval tv;
   gettimeofday (&tv, NULL);
-  ts->tv_sec = tv.tv_sec;
-  ts->tv_nsec = tv.tv_usec * 1000;
+  *ts = (struct timespec) { .tv_sec  = tv.tv_sec,
+                            .tv_nsec = tv.tv_usec * 1000 };
 #endif
 }
 

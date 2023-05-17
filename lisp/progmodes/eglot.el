@@ -2371,23 +2371,31 @@ THINGS are either registrations or unregisterations (sic)."
   (_server (_method (eql window/showDocument)) &key
            uri external takeFocus selection)
   "Handle request window/showDocument."
-  (if (eq external t) (browse-url uri)
-    ;; Use run-with-timer to avoid nested client requests like the
-    ;; synchronous imenu case caused by which-func-mode.
-    (run-with-timer
-     0 nil
-     (lambda ()
-       (with-current-buffer (find-file-noselect (eglot--uri-to-path uri))
-         (cond (takeFocus
-                (pop-to-buffer (current-buffer))
-                (select-frame-set-input-focus (selected-frame)))
-               ((display-buffer (current-buffer))))
-         (when selection
-           (eglot--widening
-            (pcase-let ((`(,beg . ,end) (eglot--range-region selection)))
-              (goto-char beg)
-              (pulse-momentary-highlight-region beg end 'highlight))))))))
-  '(:success t))
+  (let ((success t)
+        (filename))
+    (cond
+     ((eq external t) (browse-url uri))
+     ((file-readable-p (setq filename (eglot--uri-to-path uri)))
+      ;; Use run-with-timer to avoid nested client requests like the
+      ;; "synchronous imenu" floated in bug#62116 presumably caused by
+      ;; which-func-mode.
+      (run-with-timer
+       0 nil
+       (lambda ()
+         (with-current-buffer (find-file-noselect filename)
+           (cond (takeFocus
+                  (pop-to-buffer (current-buffer))
+                  (select-frame-set-input-focus (selected-frame)))
+                 ((display-buffer (current-buffer))))
+           (when selection
+             (pcase-let ((`(,beg . ,end) (eglot--range-region selection)))
+               ;; FIXME: it is very naughty to use someone else's `--'
+               ;; function, but `xref--goto-char' happens to have
+               ;; exactly the semantics we want vis-a-vis widening.
+               (xref--goto-char beg)
+               (pulse-momentary-highlight-region beg end 'highlight)))))))
+     (t (setq success :json-false)))
+    `(:success ,success)))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."

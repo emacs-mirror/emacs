@@ -60,8 +60,7 @@ nanosleep (const struct timespec *requested_delay,
     static_assert (TYPE_MAXIMUM (time_t) / 24 / 24 / 60 / 60);
     const time_t limit = 24 * 24 * 60 * 60;
     time_t seconds = requested_delay->tv_sec;
-    struct timespec intermediate;
-    intermediate.tv_nsec = requested_delay->tv_nsec;
+    struct timespec intermediate = *requested_delay;
 
     while (limit < seconds)
       {

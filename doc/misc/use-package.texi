@@ -1554,8 +1554,11 @@ The standard Emacs package manager is documented in the Emacs manual
 (@pxref{Package Installation,,, emacs, GNU Emacs Manual}).  The
 @code{use-package} macro provides the @code{:ensure} and @code{:pin}
 keywords that interface with that package manager to automatically
-install packages.  This is particularly useful if you use your init
-file on more than one system.
+install packages.  The @code{:vc} keyword may be used to control how
+package sources are downloaded; e.g., from remote hosts
+(@pxref{Fetching Package Sources,,, emacs, GNU Emacs Manual}).  This
+is particularly useful if you use your init file on more than one
+system.
 
 @menu
 * Install package::
@@ -1606,6 +1609,49 @@ packages:
 @noindent
 You can override the above setting for a single package by adding
 @w{@code{:ensure nil}} to its declaration.
+
+@findex :vc
+The @code{:vc} keyword can be used to control how packages are
+downloaded and/or installed. More specifically, it allows one to fetch
+and update packages directly from a version control system. This is
+especially convenient when wanting to install a package that is not on
+any package archive.
+
+The keyword accepts the same arguments as specified in
+@pxref{Fetching Package Sources,,, emacs, GNU Emacs Manual}, except
+that a name need not explicitly be given: it is inferred from the
+declaration.  The accepted property list is augmented by a @code{:rev}
+keyword, which has the same shape as the @code{REV} argument to
+@code{package-vc-install}.  Notably -- even when not specified --
+@code{:rev} defaults to checking out the last release of the package.
+You can use @code{:rev :newest} to check out the latest commit.
+
+For example,
+
+@example
+@group
+(use-package bbdb
+  :vc (:url "https://git.savannah.nongnu.org/git/bbdb.git"
+       :rev :newest))
+@end group
+@end example
+
+would try -- by invoking @code{package-vc-install} -- to install the
+latest commit of the package @code{foo} from the specified remote.
+
+This can also be used for local packages, by combining it with the
+@code{:load-path} (@pxref{Load path}) keyword:
+
+@example
+@group
+;; Use a local copy of BBDB instead of the one from GNU ELPA.
+(use-package bbdb
+  :vc t
+  :load-path "/path/to/bbdb/dir/")
+@end group
+@end example
+
+The above dispatches to @code{package-vc-install-from-checkout}.
 
 @node Pinning packages
 @section Pinning packages using @code{:pin}
