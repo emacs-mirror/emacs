@@ -66,16 +66,15 @@ static void test_main(void)
 
   /* Make an arbitrary sized object, size = (N_SLOT_TESTOBJ+2) * sizeof(mps_word_t).
      (See fmtdytst.c for size calculation) */
-
-  /* Because make_dylan_vector returns its pointer-to-object as an mps_word_t rather than an
-     mps_addr_t, and commits the object, we need to somehow safely allocate our object without
-     type punning and without risking that our object be destroyed.
-     Rather than redefine our reference table with type mps_word_t, which hides the intention of the table,
-     park the arena to disable garbage collection. Allocate our dylan object on the (unregistered) stack
-     storing its address in an mps_word_t. Then store this mps_word_t as an mps_addr_t in our reference
-     table, and release the arena since our object is now safely pinned.
-  */
   {
+    /* Because make_dylan_vector returns its pointer-to-object as an mps_word_t rather than an
+       mps_addr_t, and commits the object, we need to somehow safely allocate our object without
+       type punning and without risking that our object be destroyed.
+       Rather than redefine our reference table with type mps_word_t, which hides the intention of the table,
+       park the arena to disable garbage collection. Allocate our dylan object on the (unregistered) stack
+       storing its address in an mps_word_t. Then store this mps_word_t as an mps_addr_t in our reference
+       table, and release the arena since our object is now safely pinned.
+    */
     mps_word_t p_word;
     mps_arena_park(arena);
     die(make_dylan_vector(&p_word, obj_ap, N_SLOT_TESTOBJ), "make_dylan_vector");
