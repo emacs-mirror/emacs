@@ -66,7 +66,7 @@
       (should
        (equal (treesit-node-string
                (treesit-parser-root-node parser))
-              "(ERROR)"))
+              "(document)"))
 
       (insert "[1,2,3]")
       (should
