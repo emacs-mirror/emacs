@@ -152,7 +152,7 @@ to call it without any argument."
 (defmacro benchmark-progn (&rest body)
   "Evaluate BODY and message the time taken.
 The return value is the value of the final form in BODY."
-  (declare (debug body) (indent 0))
+  (declare (debug t) (indent 0))
   (let ((value (make-symbol "value"))
 	(start (make-symbol "start"))
 	(gcs (make-symbol "gcs"))
