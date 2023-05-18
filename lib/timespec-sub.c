@@ -24,6 +24,7 @@
 #include <config.h>
 #include "timespec.h"
 
+#include <stdckdint.h>
 #include "intprops.h"
 
 struct timespec
@@ -38,7 +39,7 @@ timespec_sub (struct timespec a, struct timespec b)
     {
       rns = ns + TIMESPEC_HZ;
       time_t bs1;
-      if (!INT_ADD_WRAPV (bs, 1, &bs1))
+      if (!ckd_add (&bs1, bs, 1))
         bs = bs1;
       else if (- TYPE_SIGNED (time_t) < rs)
         rs--;
@@ -46,7 +47,7 @@ timespec_sub (struct timespec a, struct timespec b)
         goto low_overflow;
     }
 
-  if (INT_SUBTRACT_WRAPV (rs, bs, &rs))
+  if (ckd_sub (&rs, rs, bs))
     {
       if (0 < bs)
         {

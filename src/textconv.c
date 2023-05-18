@@ -235,7 +235,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
      overflows, move back to point or to the extremes of the
      accessible region.  */
 
-  if (INT_ADD_WRAPV (pos, query->position, &pos))
+  if (ckd_add (&pos, pos, query->position))
     pos = PT;
 
  escape1:
@@ -257,7 +257,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
     {
     case TEXTCONV_FORWARD_CHAR:
       /* Move forward by query->factor characters.  */
-      if (INT_ADD_WRAPV (pos, query->factor, &end) || end > ZV)
+      if (ckd_add (&end, pos, query->factor) || end > ZV)
 	end = ZV;
 
       end_byte = CHAR_TO_BYTE (end);
@@ -265,7 +265,7 @@ textconv_query (struct frame *f, struct textconv_callback_struct *query,
 
     case TEXTCONV_BACKWARD_CHAR:
       /* Move backward by query->factor characters.  */
-      if (INT_SUBTRACT_WRAPV (pos, query->factor, &end) || end < BEGV)
+      if (ckd_sub (&end, pos, query->factor) || end < BEGV)
 	end = BEGV;
 
       end_byte = CHAR_TO_BYTE (end);

@@ -11452,7 +11452,7 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   (void)
 {
   EMACS_INT sum;
-  INT_ADD_WRAPV (command_loop_level, minibuf_level, &sum);
+  ckd_add (&sum, command_loop_level, minibuf_level);
   return make_fixnum (sum);
 }
 

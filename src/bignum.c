@@ -354,7 +354,7 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
   enum { lim = min (NLIMBS_LIMIT, GMP_NLIMBS_MAX - pow_ui_extra_limbs) };
 
   int nbase = emacs_mpz_size (base), n;
-  if (INT_MULTIPLY_WRAPV (nbase, exp, &n) || lim < n)
+  if (ckd_mul (&n, nbase, exp) || lim < n)
     overflow_error ();
   mpz_pow_ui (rop, base, exp);
 }

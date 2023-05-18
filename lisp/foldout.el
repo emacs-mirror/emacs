@@ -229,7 +229,7 @@ An end marker of nil means the fold ends after (point-max).")
 	  (error "Can't find outline-minor-mode in minor-mode-alist"))
 
       ;; slip our fold announcement into the list
-      (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))))
+      (setcdr outl-entry (append foldout-entry (cdr outl-entry)))))
 
 
 

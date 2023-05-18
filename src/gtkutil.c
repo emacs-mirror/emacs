@@ -694,8 +694,8 @@ get_utf8_string (const char *str)
 
       len = strlen (str);
       ptrdiff_t alloc;
-      if (INT_MULTIPLY_WRAPV (nr_bad, 4, &alloc)
-	  || INT_ADD_WRAPV (len + 1, alloc, &alloc)
+      if (ckd_mul (&alloc, nr_bad, 4)
+	  || ckd_add (&alloc, alloc, len + 1)
 	  || SIZE_MAX < alloc)
 	memory_full (SIZE_MAX);
       up = utf8_str = xmalloc (alloc);

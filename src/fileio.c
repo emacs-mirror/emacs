@@ -6441,7 +6441,7 @@ static Lisp_Object
 blocks_to_bytes (uintmax_t blocksize, uintmax_t blocks, bool negate)
 {
   intmax_t n;
-  if (!INT_MULTIPLY_WRAPV (blocksize, blocks, &n))
+  if (!ckd_mul (&n, blocksize, blocks))
     return make_int (negate ? -n : n);
   Lisp_Object bs = make_uint (blocksize);
   if (negate)

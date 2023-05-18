@@ -2035,8 +2035,8 @@ nil.  */)
   ptrdiff_t ins_bytes = size_b / CHAR_BIT + 1;
   ptrdiff_t *buffer;
   ptrdiff_t bytes_needed;
-  if (INT_MULTIPLY_WRAPV (diags, 2 * sizeof *buffer, &bytes_needed)
-      || INT_ADD_WRAPV (del_bytes + ins_bytes, bytes_needed, &bytes_needed))
+  if (ckd_mul (&bytes_needed, diags, 2 * sizeof *buffer)
+      || ckd_add (&bytes_needed, bytes_needed, del_bytes + ins_bytes))
     memory_full (SIZE_MAX);
   USE_SAFE_ALLOCA;
   buffer = SAFE_ALLOCA (bytes_needed);
@@ -3304,7 +3304,7 @@ str2num (char *str, char **str_end)
 {
   ptrdiff_t n = 0;
   for (; c_isdigit (*str); str++)
-    if (INT_MULTIPLY_WRAPV (n, 10, &n) || INT_ADD_WRAPV (n, *str - '0', &n))
+    if (ckd_mul (&n, n, 10) || ckd_add (&n, n, *str - '0'))
       n = PTRDIFF_MAX;
   *str_end = str;
   return n;
@@ -3472,8 +3472,8 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
   /* Allocate the info and discarded tables.  */
   ptrdiff_t info_size, alloca_size;
-  if (INT_MULTIPLY_WRAPV (nspec_bound, sizeof *info, &info_size)
-      || INT_ADD_WRAPV (formatlen, info_size, &alloca_size)
+  if (ckd_mul (&info_size, nspec_bound, sizeof *info)
+      || ckd_add (&alloca_size, formatlen, info_size)
       || SIZE_MAX < alloca_size)
     memory_full (SIZE_MAX);
   info = SAFE_ALLOCA (alloca_size);
@@ -4020,8 +4020,8 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      /* Compute the total bytes needed for this item, including
 		 excess precision and padding.  */
 	      ptrdiff_t numwidth;
-	      if (INT_ADD_WRAPV (prefixlen + sprintf_bytes, excess_precision,
-				 &numwidth))
+	      if (ckd_add (&numwidth, prefixlen + sprintf_bytes,
+			   excess_precision))
 		numwidth = PTRDIFF_MAX;
 	      ptrdiff_t padding
 		= numwidth < field_width ? field_width - numwidth : 0;
@@ -4181,7 +4181,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
       ptrdiff_t used = p - buf;
       ptrdiff_t buflen_needed;
-      if (INT_ADD_WRAPV (used, convbytes, &buflen_needed))
+      if (ckd_add (&buflen_needed, used, convbytes))
 	string_overflow ();
       if (bufsize <= buflen_needed)
 	{

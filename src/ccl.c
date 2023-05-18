@@ -1156,9 +1156,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_expr_self:
 	  switch (op)
 	    {
-	    case CCL_PLUS: INT_ADD_WRAPV (reg[rrr], i, &reg[rrr]); break;
-	    case CCL_MINUS: INT_SUBTRACT_WRAPV (reg[rrr], i, &reg[rrr]); break;
-	    case CCL_MUL: INT_MULTIPLY_WRAPV (reg[rrr], i, &reg[rrr]); break;
+	    case CCL_PLUS: ckd_add (&reg[rrr], reg[rrr], i); break;
+	    case CCL_MINUS: ckd_sub (&reg[rrr], reg[rrr], i); break;
+	    case CCL_MUL: ckd_mul (&reg[rrr], reg[rrr], i); break;
 	    case CCL_DIV:
 	      if (!i)
 		CCL_INVALID_CMD;
@@ -1194,7 +1194,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      if (i == -1)
 		{
 		  reg[7] = 0;
-		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  ckd_sub (&reg[rrr], 0, reg[rrr]);
 		}
 	      else
 		{
@@ -1251,9 +1251,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	ccl_set_expr:
 	  switch (op)
 	    {
-	    case CCL_PLUS: INT_ADD_WRAPV (i, j, &reg[rrr]); break;
-	    case CCL_MINUS: INT_SUBTRACT_WRAPV (i, j, &reg[rrr]); break;
-	    case CCL_MUL: INT_MULTIPLY_WRAPV (i, j, &reg[rrr]); break;
+	    case CCL_PLUS: ckd_add (&reg[rrr], i, j); break;
+	    case CCL_MINUS: ckd_sub (&reg[rrr], i, j); break;
+	    case CCL_MUL: ckd_mul (&reg[rrr], i, j); break;
 	    case CCL_DIV:
 	      if (!j)
 		CCL_INVALID_CMD;
@@ -1288,7 +1288,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		CCL_INVALID_CMD;
 	      if (j == -1)
 		{
-		  INT_SUBTRACT_WRAPV (0, reg[rrr], &reg[rrr]);
+		  ckd_sub (&reg[rrr], 0, reg[rrr]);
 		  reg[7] = 0;
 		}
 	      else
@@ -2169,8 +2169,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 
   buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
   outbufsize = str_bytes;
-  if (INT_MULTIPLY_WRAPV (buf_magnification, outbufsize, &outbufsize)
-      || INT_ADD_WRAPV (256, outbufsize, &outbufsize))
+  if (ckd_mul (&outbufsize, outbufsize, buf_magnification)
+      || ckd_add (&outbufsize, outbufsize, 256))
     memory_full (SIZE_MAX);
   outp = outbuf = xmalloc (outbufsize);
 

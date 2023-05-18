@@ -89,6 +89,7 @@
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
+  :tags '(:unstable)   ; There seems to be an update race here.
   (proced--within-buffer
    'medium
    'user

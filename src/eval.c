@@ -254,7 +254,7 @@ init_eval (void)
 static void
 max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
 {
-  intmax_t sum = INT_ADD_WRAPV (a, b, &sum) ? INTMAX_MAX : sum;
+  intmax_t sum = ckd_add (&sum, a, b) ? INTMAX_MAX : sum;
   *m = max (*m, sum);
 }
 

@@ -305,7 +305,7 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 	    {
 	      if (i == len)
 		return make_fixnum (n);
-	      if (INT_MULTIPLY_WRAPV (n, 10, &n))
+	      if (ckd_mul (&n, n, 10))
 		break;
 	    }
 

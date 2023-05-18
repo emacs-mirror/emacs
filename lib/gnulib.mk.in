@@ -149,6 +149,7 @@
 #  stat-time \
 #  std-gnu11 \
 #  stdbool \
+#  stdckdint \
 #  stddef \
 #  stdio \
 #  stpcpy \

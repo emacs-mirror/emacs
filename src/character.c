@@ -250,7 +250,7 @@ char_width (int c, struct Lisp_Char_Table *dp)
 	    if (c >= 0)
 	      {
 		int w = CHARACTER_WIDTH (c);
-		if (INT_ADD_WRAPV (width, w, &width))
+		if (ckd_add (&width, width, w))
 		  string_overflow ();
 	      }
 	  }
@@ -301,7 +301,7 @@ c_string_width (const unsigned char *str, ptrdiff_t len, int precision,
 	  *nbytes = i_byte;
 	  return width;
 	}
-      if (INT_ADD_WRAPV (thiswidth, width, &width))
+      if (ckd_add (&width, width, thiswidth))
 	string_overflow ();
       i++;
       i_byte += bytes;
@@ -441,7 +441,7 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 	  *nbytes = i_byte - from_byte;
 	  return width;
 	}
-      if (INT_ADD_WRAPV (thiswidth, width, &width))
+      if (ckd_add (&width, width, thiswidth))
 	string_overflow ();
       i += chars;
       i_byte += bytes;
@@ -664,7 +664,7 @@ count_size_as_multibyte (const unsigned char *str, ptrdiff_t len)
   for (ptrdiff_t i = 0; i < len; i++)
     nonascii += str[i] >> 7;
   ptrdiff_t bytes;
-  if (INT_ADD_WRAPV (len, nonascii, &bytes))
+  if (ckd_add (&bytes, len, nonascii))
     string_overflow ();
   return bytes;
 }
@@ -780,21 +780,21 @@ string_escape_byte8 (Lisp_Object string)
   if (byte8_count == 0)
     return string;
 
-  if (INT_MULTIPLY_WRAPV (byte8_count, 3, &thrice_byte8_count))
+  if (ckd_mul (&thrice_byte8_count, byte8_count, 3))
     string_overflow ();
 
   if (multibyte)
     {
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
-      if (INT_ADD_WRAPV (nchars, thrice_byte8_count, &uninit_nchars)
-	  || INT_ADD_WRAPV (nbytes, 2 * byte8_count, &uninit_nbytes))
+      if (ckd_add (&uninit_nchars, nchars, thrice_byte8_count)
+	  || ckd_add (&uninit_nbytes, nbytes, 2 * byte8_count))
 	string_overflow ();
       val = make_uninit_multibyte_string (uninit_nchars, uninit_nbytes);
     }
   else
     {
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
-      if (INT_ADD_WRAPV (thrice_byte8_count, nbytes, &uninit_nbytes))
+      if (ckd_add (&uninit_nbytes, thrice_byte8_count, nbytes))
 	string_overflow ();
       val = make_uninit_string (uninit_nbytes);
     }

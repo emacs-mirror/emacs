@@ -446,7 +446,7 @@ objectclass in Active Directory servers.
 You may not want functions like `eudc-query-form' and
 `eudc-expand-inline' to do LDAP wildcard expansion by default on
 certain fields.  If so, add the relevant symbol to this list, for
-example `samaccountname' for the \"E-Mail\" field."
+example `mail' for the \"E-Mail\" field."
   :type  '(repeat (symbol :tag "Directory attribute")))
 
 

@@ -296,7 +296,7 @@ tputs (register const char *str, int nlines, int (*outfun) (int))
      BAUD_RATE is measured in characters per 10 seconds.
      Compute PADFACTOR = 100000 * (how many padding bytes are needed).  */
   intmax_t padfactor;
-  if (INT_MULTIPLY_WRAPV (padcount, baud_rate, &padfactor))
+  if (ckd_mul (&padfactor, padcount, baud_rate))
     padfactor = baud_rate < 0 ? INTMAX_MIN : INTMAX_MAX;
 
   for (; 50000 <= padfactor; padfactor -= 100000)

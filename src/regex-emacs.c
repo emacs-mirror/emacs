@@ -2202,9 +2202,8 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 				FALLTHROUGH;
 			      case '1': case '2': case '3': case '4':
 			      case '5': case '6': case '7': case '8': case '9':
-				if (INT_MULTIPLY_WRAPV (regnum, 10, &regnum)
-				    || INT_ADD_WRAPV (regnum, c - '0',
-						      &regnum))
+				if (ckd_mul (&regnum, regnum, 10)
+				    || ckd_add (&regnum, regnum, c - '0'))
 				  FREE_STACK_RETURN (REG_ESIZE);
 				break;
 			      default:

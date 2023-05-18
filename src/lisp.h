@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <alloca.h>
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdckdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
@@ -3911,18 +3912,11 @@ integer_to_uintmax (Lisp_Object num, uintmax_t *n)
 }
 
 /* Return floor (log2 (N)) as an int, where 0 < N <= ULLONG_MAX.  */
-#if (201112 <= __STDC_VERSION__ && INT_MAX <= UINT_MAX \
-     && LONG_MAX <= ULONG_MAX && LLONG_MAX <= ULLONG_MAX)
-# define elogb(n) \
-    _Generic (+(n), \
-	      int:           UINT_WIDTH   - 1 - count_leading_zeros    (n), \
-	      unsigned int:  UINT_WIDTH   - 1 - count_leading_zeros    (n), \
-	      long:          ULONG_WIDTH  - 1 - count_leading_zeros_l  (n), \
-	      unsigned long: ULONG_WIDTH  - 1 - count_leading_zeros_l  (n), \
-	      default:       ULLONG_WIDTH - 1 - count_leading_zeros_ll (n))
-#else
-# define elogb(n) (ULLONG_WIDTH - 1 - count_leading_zeros_ll (n))
-#endif
+INLINE int
+elogb (unsigned long long int n)
+{
+  return ULLONG_WIDTH - 1 - count_leading_zeros_ll (n);
+}
 
 /* A modification count.  These are wide enough, and incremented
    rarely enough, so that they should never overflow a 60-bit counter
@@ -3939,7 +3933,7 @@ modiff_incr (modiff_count *a, ptrdiff_t len)
      increasing it too much.  */
   verify (PTRDIFF_MAX <= ULLONG_MAX);
   int incr = len == 0 ? 1 : elogb (len) + 1;
-  bool modiff_overflow = INT_ADD_WRAPV (a0, incr, a);
+  bool modiff_overflow = ckd_add (a, a0, incr);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);
   return a0;
 }
@@ -5451,8 +5445,8 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 #define SAFE_ALLOCA_LISP_EXTRA(buf, nelt, extra)	       \
   do {							       \
     ptrdiff_t alloca_nbytes;				       \
-    if (INT_MULTIPLY_WRAPV (nelt, word_size, &alloca_nbytes)   \
-	|| INT_ADD_WRAPV (alloca_nbytes, extra, &alloca_nbytes) \
+    if (ckd_mul (&alloca_nbytes, nelt, word_size)	       \
+	|| ckd_add (&alloca_nbytes, alloca_nbytes, extra)      \
 	|| SIZE_MAX < alloca_nbytes)			       \
       memory_full (SIZE_MAX);				       \
     else if (alloca_nbytes <= sa_avail)			       \
