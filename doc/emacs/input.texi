@@ -51,17 +51,20 @@ window horizontally to follow (@pxref{Horizontal Scrolling}.)
 
 @item
 @cindex dragging, touchscreens
-  ``Dragging'', meaning to place a tool on the display and leave it
-there for a while before moving the tool around, will make Emacs set
-the point to where the tool was and begin selecting text under the
-tool as it moves around, much like what would happen if @code{mouse-1}
-were to be held down.  @xref{Mouse Commands}.
+@cindex long-press, touchscreens
+  ``Dragging'', meaning to perform a @dfn{long-press} (placing a tool
+on the display and leaving it there for a while) before moving the
+tool around, will make Emacs set the point to where the tool was and
+begin selecting text under the tool as it moves around, much like what
+would happen if @code{mouse-1} were to be held down.  @xref{Mouse
+Commands}.
 @end itemize
 
 @vindex touch-screen-delay
   By default, Emacs considers a tool as having been left on the
-display for a while after 0.7 seconds, but this can be changed by
-customizing the variable @code{touch-screen-delay}.
+display long enough to trigger a ``long-press'' after 0.7 seconds, but
+this can be changed by customizing the variable
+@code{touch-screen-delay}.
 
 @node On-Screen Keyboards
 @section Using Emacs with virtual keyboards
