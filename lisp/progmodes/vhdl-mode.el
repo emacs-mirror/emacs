@@ -16,7 +16,7 @@
 ;; Reto also said in Apr 2021 that he preferred to keep the XEmacs
 ;; compatibility code.
 
-(defconst vhdl-version "3.38.1"
+(defconst vhdl-version "3.38.5"
   "VHDL Mode version number.")
 
 (defconst vhdl-time-stamp "2015-03-12"
@@ -229,20 +229,20 @@ Overrides local variable `indent-tabs-mode'."
     ;; [Error] Assignment error: variable is illegal target of signal assignment
     ("ADVance MS" "vacom" "-work \\1" "make" "-f \\1"
      nil "valib \\1; vamap \\2 \\1" "./" "work/" "Makefile" "adms"
-     ("^\\s-+\\([0-9]+\\):\\s-+" nil 1 nil) ("^Compiling file \\(.+\\)" 1)
+     ("^\\s-+\\([0-9]+\\):\\s-+" nil 1 nil nil) ("^Compiling file \\(.+\\)" 1)
      ("ENTI/\\1.vif" "ARCH/\\1-\\2.vif" "CONF/\\1.vif"
       "PACK/\\1.vif" "BODY/\\1.vif" upcase))
     ;; Aldec
     ;; COMP96 ERROR COMP96_0018: "Identifier expected." "test.vhd" 66 3
     ("Aldec" "vcom" "-work \\1" "make" "-f \\1"
      nil "vlib \\1; vmap \\2 \\1" "./" "work/" "Makefile" "aldec"
-     ("^.* ERROR [^:]+: \".*\" \"\\([^ \t\n]+\\)\" \\([0-9]+\\) \\([0-9]+\\)" 1 2 3) ("" 0)
+     ("^.* ERROR [^:]+: \".*\" \"\\([^ \t\n]+\\)\" \\([0-9]+\\) \\([0-9]+\\)" 1 2 3 nil) ("" 0)
      nil)
     ;; Cadence Leapfrog: cv -file test.vhd
     ;; duluth: *E,430 (test.vhd,13): identifier (POSITIV) is not declared
     ("Cadence Leapfrog" "cv" "-work \\1 -file" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "leapfrog"
-     ("^duluth: \\*E,[0-9]+ (\\([^ \t\n]+\\),\\([0-9]+\\)):" 1 2 nil) ("" 0)
+     ("^duluth: \\*E,[0-9]+ (\\([^ \t\n]+\\),\\([0-9]+\\)):" 1 2 nil nil) ("" 0)
      ("\\1/entity" "\\2/\\1" "\\1/configuration"
       "\\1/package" "\\1/body" downcase))
     ;; Cadence Affirma NC vhdl: ncvhdl test.vhd
@@ -250,7 +250,7 @@ Overrides local variable `indent-tabs-mode'."
     ;; (PLL_400X_TOP) is not declared [10.3].
     ("Cadence NC" "ncvhdl" "-work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "ncvhdl"
-     ("^ncvhdl_p: \\*E,\\w+ (\\([^ \t\n]+\\),\\([0-9]+\\)|\\([0-9]+\\)):" 1 2 3) ("" 0)
+     ("^ncvhdl_p: \\*E,\\w+ (\\([^ \t\n]+\\),\\([0-9]+\\)|\\([0-9]+\\)):" 1 2 3 nil) ("" 0)
      ("\\1/entity/pc.db" "\\2/\\1/pc.db" "\\1/configuration/pc.db"
       "\\1/package/pc.db" "\\1/body/pc.db" downcase))
     ;; ghdl vhdl
@@ -258,21 +258,21 @@ Overrides local variable `indent-tabs-mode'."
     ;; bad_counter.vhdl:13:14: operator "=" is overloaded
     ("GHDL" "ghdl" "-i --workdir=\\1 --ieee=synopsys -fexplicit " "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "ghdl"
-     ("^ghdl_p: \\*E,\\w+ (\\([^ \t\n]+\\),\\([0-9]+\\)|\\([0-9]+\\)):" 1 2 3) ("" 0)
+     ("^ghdl_p: \\*E,\\w+ (\\([^ \t\n]+\\),\\([0-9]+\\)|\\([0-9]+\\)):" 1 2 3 nil) ("" 0)
      ("\\1/entity" "\\2/\\1" "\\1/configuration"
       "\\1/package" "\\1/body" downcase))
     ;; IBM Compiler
     ;; 00 COACHDL* | [CCHDL-1]: File: adder.vhd, line.column: 120.6
     ("IBM Compiler" "g2tvc" "-src" "precomp" "\\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "ibm"
-     ("^[0-9]+ COACHDL.*: File: \\([^ \t\n]+\\), *line.column: \\([0-9]+\\).\\([0-9]+\\)" 1 2 3) (" " 0)
+     ("^[0-9]+ COACHDL.*: File: \\([^ \t\n]+\\), *line.column: \\([0-9]+\\).\\([0-9]+\\)" 1 2 3 nil) (" " 0)
      nil)
     ;; Ikos Voyager: analyze test.vhd
     ;; analyze test.vhd
     ;; E L4/C5:        this library unit is inaccessible
     ("Ikos" "analyze" "-l \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "ikos"
-     ("^E L\\([0-9]+\\)/C\\([0-9]+\\):" nil 1 2)
+     ("^E L\\([0-9]+\\)/C\\([0-9]+\\):" nil 1 2 nil)
      ("^analyze +\\(.+ +\\)*\\(.+\\)$" 2)
      nil)
     ;; ModelSim, Model Technology: vcom test.vhd
@@ -294,7 +294,7 @@ Overrides local variable `indent-tabs-mode'."
     ;; test.vhd:34: error message
     ("LEDA ProVHDL" "provhdl" "-w \\1 -f" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "provhdl"
-     ("^\\([^ \t\n:]+\\):\\([0-9]+\\): " 1 2 nil) ("" 0)
+     ("^\\([^ \t\n:]+\\):\\([0-9]+\\): " 1 2 nil nil) ("" 0)
      ("ENTI/\\1.vif" "ARCH/\\1-\\2.vif" "CONF/\\1.vif"
       "PACK/\\1.vif" "BODY/BODY-\\1.vif" upcase))
     ;; Quartus compiler
@@ -305,21 +305,21 @@ Overrides local variable `indent-tabs-mode'."
     ;; Warning: VHDL Process Statement warning at dvi2sdi_tst.vhd(172): ...
     ("Quartus" "make" "-work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "quartus"
-     ("^\\(Error\\|Warning\\): .* \\([^ \t\n]+\\)(\\([0-9]+\\))" 2 3 nil) ("" 0)
+     ("^\\(Error\\|Warning\\): .* \\([^ \t\n]+\\)(\\([0-9]+\\))" 2 3 nil nil) ("" 0)
      nil)
     ;; QuickHDL, Mentor Graphics: qvhcom test.vhd
     ;; ERROR: test.vhd(24): near "dnd": expecting: END
     ;; WARNING[4]: test.vhd(30): A space is required between ...
     ("QuickHDL" "qvhcom" "-work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "quickhdl"
-     ("^\\(ERROR\\|WARNING\\)[^:]*: \\([^ \t\n]+\\)(\\([0-9]+\\)):" 2 3 nil) ("" 0)
+     ("^\\(ERROR\\|WARNING\\)[^:]*: \\([^ \t\n]+\\)(\\([0-9]+\\)):" 2 3 nil nil) ("" 0)
      ("\\1/_primary.dat" "\\2/\\1.dat" "\\1/_primary.dat"
       "\\1/_primary.dat" "\\1/body.dat" downcase))
     ;; Savant: scram -publish-cc test.vhd
     ;; test.vhd:87: _set_passed_through_out_port(IIR_Boolean) not defined for
     ("Savant" "scram" "-publish-cc -design-library-name \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work._savant_lib/" "Makefile" "savant"
-     ("^\\([^ \t\n:]+\\):\\([0-9]+\\): " 1 2 nil) ("" 0)
+     ("^\\([^ \t\n:]+\\):\\([0-9]+\\): " 1 2 nil nil) ("" 0)
      ("\\1_entity.vhdl" "\\2_secondary_units._savant_lib/\\2_\\1.vhdl"
       "\\1_config.vhdl" "\\1_package.vhdl"
       "\\1_secondary_units._savant_lib/\\1_package_body.vhdl" downcase))
@@ -327,39 +327,39 @@ Overrides local variable `indent-tabs-mode'."
     ;; Error: CSVHDL0002: test.vhd: (line 97): Invalid prefix
     ("Simili" "vhdlp" "-work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "simili"
-     ("^\\(Error\\|Warning\\): \\w+: \\([^ \t\n]+\\): (line \\([0-9]+\\)): " 2 3 nil) ("" 0)
+     ("^\\(Error\\|Warning\\): \\w+: \\([^ \t\n]+\\): (line \\([0-9]+\\)): " 2 3 nil nil) ("" 0)
      ("\\1/prim.var" "\\2/_\\1.var" "\\1/prim.var"
       "\\1/prim.var" "\\1/_body.var" downcase))
     ;; Speedwave (Innoveda): analyze -libfile vsslib.ini -src test.vhd
     ;;     ERROR[11]::File test.vhd Line 100: Use of undeclared identifier
     ("Speedwave" "analyze" "-libfile vsslib.ini -src" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "speedwave"
-     ("^ *ERROR\\[[0-9]+]::File \\([^ \t\n]+\\) Line \\([0-9]+\\):" 1 2 nil) ("" 0)
+     ("^ *ERROR\\[[0-9]+]::File \\([^ \t\n]+\\) Line \\([0-9]+\\):" 1 2 nil nil) ("" 0)
      nil)
     ;; Synopsys, VHDL Analyzer (sim): vhdlan -nc test.vhd
     ;; **Error: vhdlan,703 test.vhd(22): OTHERS is not legal in this context.
     ("Synopsys" "vhdlan" "-nc -work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "synopsys"
-     ("^\\*\\*Error: vhdlan,[0-9]+ \\([^ \t\n]+\\)(\\([0-9]+\\)):" 1 2 nil) ("" 0)
+     ("^\\*\\*Error: vhdlan,[0-9]+ \\([^ \t\n]+\\)(\\([0-9]+\\)):" 1 2 nil nil) ("" 0)
      ("\\1.sim" "\\2__\\1.sim" "\\1.sim" "\\1.sim" "\\1__.sim" upcase))
     ;; Synopsys, VHDL Analyzer (syn): vhdlan -nc -spc test.vhd
     ;; **Error: vhdlan,703 test.vhd(22): OTHERS is not legal in this context.
     ("Synopsys Design Compiler" "vhdlan" "-nc -spc -work \\1" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "synopsys_dc"
-     ("^\\*\\*Error: vhdlan,[0-9]+ \\([^ \t\n]+\\)(\\([0-9]+\\)):" 1 2 nil) ("" 0)
+     ("^\\*\\*Error: vhdlan,[0-9]+ \\([^ \t\n]+\\)(\\([0-9]+\\)):" 1 2 nil nil) ("" 0)
      ("\\1.syn" "\\2__\\1.syn" "\\1.syn" "\\1.syn" "\\1__.syn" upcase))
     ;; Synplify:
     ;; @W:"test.vhd":57:8:57:9|Optimizing register bit count_x(5) to a constant 0
     ("Synplify" "n/a" "n/a" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "synplify"
-     ("^@[EWN]:\"\\([^ \t\n]+\\)\":\\([0-9]+\\):\\([0-9]+\\):" 1 2 3) ("" 0)
+     ("^@[EWN]:\"\\([^ \t\n]+\\)\":\\([0-9]+\\):\\([0-9]+\\):" 1 2 3 nil) ("" 0)
      nil)
     ;; Vantage: analyze -libfile vsslib.ini -src test.vhd
     ;;     Compiling "test.vhd" line 1...
     ;; **Error: LINE 49 *** No aggregate value is valid in this context.
     ("Vantage" "analyze" "-libfile vsslib.ini -src" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "vantage"
-     ("^\\*\\*Error: LINE \\([0-9]+\\) \\*\\*\\*" nil 1 nil)
+     ("^\\*\\*Error: LINE \\([0-9]+\\) \\*\\*\\*" nil 1 nil nil)
      ("^ *Compiling \"\\(.+\\)\" " 1)
      nil)
     ;; VeriBest: vc vhdl test.vhd
@@ -369,26 +369,26 @@ Overrides local variable `indent-tabs-mode'."
     ;; [Error] Name BITA is unknown
     ("VeriBest" "vc" "vhdl" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "veribest"
-     ("^ +\\([0-9]+\\): +[^ ]" nil 1 nil) ("" 0)
+     ("^ +\\([0-9]+\\): +[^ ]" nil 1 nil nil) ("" 0)
      nil)
     ;; Viewlogic: analyze -libfile vsslib.ini -src test.vhd
     ;;     Compiling "test.vhd" line 1...
     ;; **Error: LINE 49 *** No aggregate value is valid in this context.
     ("Viewlogic" "analyze" "-libfile vsslib.ini -src" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "viewlogic"
-     ("^\\*\\*Error: LINE \\([0-9]+\\) \\*\\*\\*" nil 1 nil)
+     ("^\\*\\*Error: LINE \\([0-9]+\\) \\*\\*\\*" nil 1 nil nil)
      ("^ *Compiling \"\\(.+\\)\" " 1)
      nil)
     ;; Xilinx XST:
     ;; ERROR:HDLParsers:164 - "test.vhd" Line 3. parse error
     ("Xilinx XST" "xflow" "" "make" "-f \\1"
      nil "mkdir \\1" "./" "work/" "Makefile" "xilinx"
-     ("^ERROR:HDLParsers:[0-9]+ - \"\\([^ \t\n]+\\)\" Line \\([0-9]+\\)\\." 1 2 nil) ("" 0)
+     ("^ERROR:HDLParsers:[0-9]+ - \"\\([^ \t\n]+\\)\" Line \\([0-9]+\\)\\." 1 2 nil nil) ("" 0)
      nil)
     ;; Xilinx Vivado:
     ;; ERROR: [VRFC 10-1412] syntax error near o_idle [test.vhd:23]
     ("Xilinx Vivado" "xvhdl" "" "make" "-f \\1"
-     nil "mkdir \\1" "./" "work" "Makefile" "vivado"
+     nil "mkdir \\1" "./" "work/" "Makefile" "vivado"
      ("^\\(?:\\(?1:ERROR\\)\\|\\(?2:WARNING\\)\\|\\(?3:INFO\\)\\): \\(.+\\) \\[\\(?4:[^ \t\n]+\\):\\(?5:[0-9]+\\)\\]" 4 5 nil (2 . 3)) ("" 0)
      ("\\1/entity" "\\2/\\1" "\\1/configuration"
       "\\1/package" "\\1/body" downcase))
@@ -414,6 +414,13 @@ Error message:
   File subexp index: index of subexpression that matches the file name
   Line subexp index: index of subexpression that matches the line number
   Column subexp idx: index of subexpression that matches the column number
+  Type subexp      : message type, can be nil for a real error, 1 for warning
+                     or 0 for info. Type can also be detected using the form
+                     (WARNING . INFO).  In that case this will be equivalent to
+                     1 if the WARNING’th subexpression matched or else
+                     equivalent to 0 if the INFO’th subexpression matched, or
+                     else equivalent to nil if neither of them matched. See
+                     also `compilation-error-regexp-alist'.
 File message:
   Regexp           : regular expression to match a file name message
   File subexp index: index of subexpression that matches the file name
@@ -483,7 +490,14 @@ NOTE: Activate new error and file message regexps and reflect the new setting
 		      (integer :tag "Line subexp index")
 		      (choice  :tag "Column subexp    "
 			      (integer :tag "Index")
-			      (const :tag "No column number" nil)))
+			      (const :tag "No column number" nil))
+			    (choice  :tag "Type    "
+			      (const :tag "Info" 0)
+			      (const :tag "Warning" 1)
+			      (const :tag "Error" nil)
+			      (cons :tag "Type detection"
+			        (natnum :tag "Warning subexp index")
+			        (natnum :tag "Info subexp index   "))))
 		(list :tag "File message" :indent 4
 		      (regexp  :tag "Regexp           ")
 		      (integer :tag "File subexp index"))
