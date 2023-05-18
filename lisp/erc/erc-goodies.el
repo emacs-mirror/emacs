@@ -91,6 +91,7 @@ variable `erc-input-line-position'."
     (save-restriction
       (widen)
       (when (and erc-insert-marker
+                 (eq (current-buffer) (window-buffer))
 		 ;; we're editing a line. Scroll.
 		 (> (point) erc-insert-marker))
 	(save-excursion

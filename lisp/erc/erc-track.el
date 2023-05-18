@@ -923,13 +923,20 @@ is relative to `erc-track-switch-direction'."
 	   (setq offset 0)))
     (car (nth offset erc-modified-channels-alist))))
 
+(defvar erc-track--switch-fallback-blockers '((derived-mode . erc-mode))
+  "List of `buffer-match-p' conditions OR'd together.
+ERC sets `erc-track-last-non-erc-buffer' to the current buffer
+unless any passes.")
+
 (defun erc-track--switch-buffer (fun arg)
   (if (not erc-track-mode)
       (message (concat "Enable the ERC track module if you want to use the"
 		       " tracking minor mode"))
     (cond (erc-modified-channels-alist
 	   ;; if we're not in erc-mode, set this buffer to return to
-	   (unless (eq major-mode 'erc-mode)
+           (unless (buffer-match-p (cons 'or
+                                         erc-track--switch-fallback-blockers)
+                                   (current-buffer))
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
            (if-let ((buf (erc-track-get-active-buffer arg))
