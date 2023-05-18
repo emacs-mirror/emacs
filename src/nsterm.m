@@ -2704,11 +2704,12 @@ ns_scroll_run (struct window *w, struct run *run)
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
     NSPoint dest = NSMakePoint (x, to_y);
+    NSRect destRect = NSMakeRect (x, from_y, width, height);
     EmacsView *view = FRAME_NS_VIEW (f);
 
     [view copyRect:srcRect to:dest];
 #ifdef NS_IMPL_COCOA
-    [view setNeedsDisplayInRect:srcRect];
+    [view setNeedsDisplayInRect:destRect];
 #endif
   }
 
