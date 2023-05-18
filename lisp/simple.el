@@ -4463,6 +4463,10 @@ whose `car' is BUFFER."
                           '(nil (inhibit-switch-frame . t)))))
                 (set-window-point win pos)))))))))
 
+;; Implementation note: the next function intentionally tries to use
+;; the same signature as 'shell-command', although the 3rd arg is
+;; currently ignored, to allow us to implement support for specifying
+;; ERROR-BUFFER in the future.
 (defun async-shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND asynchronously in background.
 
