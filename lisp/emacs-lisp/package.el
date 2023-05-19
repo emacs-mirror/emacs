@@ -3597,7 +3597,8 @@ The regexp is added to the list in the user option
 `package-hidden-regexps' and saved for future sessions.
 
 To unhide a package, type
-`\\[customize-variable] RET package-hidden-regexps'.
+`\\[customize-variable] RET package-hidden-regexps', and then modify
+the regexp such that it no longer matches the package's name.
 
 Type \\[package-menu-toggle-hiding] to toggle package hiding."
   (declare (interactive-only "change `package-hidden-regexps' instead."))
@@ -3624,7 +3625,9 @@ Type \\[package-menu-toggle-hiding] to toggle package hiding."
 
 (defun package-menu-describe-package (&optional button)
   "Describe the current package.
-If optional arg BUTTON is non-nil, describe its associated package."
+The current package is the package at point.
+If optional arg BUTTON is non-nil, describe its associated
+package(s); this is always nil in interactive invocations."
   (interactive nil package-menu-mode)
   (let ((pkg-desc (if button (button-get button 'package-desc)
                     (tabulated-list-get-id))))
@@ -3634,7 +3637,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
 
 ;; fixme numeric argument
 (defun package-menu-mark-delete (&optional _num)
-  "Mark a package for deletion and move to the next line."
+  "Mark the current package for deletion and move to the next line.
+The current package is the package at point."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status)
@@ -3643,7 +3647,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
     (forward-line)))
 
 (defun package-menu-mark-install (&optional _num)
-  "Mark a package for installation and move to the next line."
+  "Mark the current package for installation and move to the next line.
+The current package is the package at point."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status) '("available" "avail-obso" "new" "dependency"))
@@ -3651,13 +3656,14 @@ If optional arg BUTTON is non-nil, describe its associated package."
     (forward-line)))
 
 (defun package-menu-mark-unmark (&optional _num)
-  "Clear any marks on a package and move to the next line."
+  "Clear any marks on the current package and move to the next line.
+The current package is the package at point."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (tabulated-list-put-tag " " t))
 
 (defun package-menu-backup-unmark ()
-  "Back up one line and clear any marks on that package."
+  "Back up one line and clear any marks on that line's package."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (forward-line -1)
@@ -3695,15 +3701,15 @@ If optional arg BUTTON is non-nil, describe its associated package."
     (package--prettify-quick-help-key (cons desc 0))))
 
 (defun package-menu-quick-help ()
-  "Show short key binding help for `package-menu-mode'.
-The full list of keys can be viewed with \\[describe-mode]."
+  "Show short help for key bindings in `package-menu-mode'.
+You can view the full list of keys with \\[describe-mode]."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (message (mapconcat #'package--prettify-quick-help-key
                       package--quick-help-keys "\n")))
 
 (defun package-menu-get-status ()
-  "Return status text of package at point in Package Menu."
+  "Return status description of package at point in Package Menu."
   (package--ensure-package-menu-mode)
   (let* ((id (tabulated-list-get-id))
          (entry (and id (assoc id tabulated-list-entries))))
@@ -3732,8 +3738,8 @@ consideration."
 (defun package-menu--find-upgrades ()
   "In Package Menu, return an alist of packages that can be upgraded.
 The alist has the same form as `package-alist', namely a list
-of (PKG . DESCS), but where DESCS is the `package-desc' object
-corresponding to the newer version."
+of elements of the form (PKG . DESCS), but where DESCS is the `package-desc'
+object corresponding to the newer version."
   (let (installed available upgrades)
     ;; Build list of installed/available packages in this buffer.
     (dolist (entry tabulated-list-entries)
@@ -3784,10 +3790,10 @@ Implementation of `package-menu-mark-upgrades'."
 
 (defun package-menu-mark-upgrades ()
   "Mark all upgradable packages in the Package Menu.
-For each installed package with a newer version available, place
-an (I)nstall flag on the available version and a (D)elete flag on
-the installed version.  A subsequent \\[package-menu-execute]
-call will upgrade the package.
+For each installed package for which a newer version is available,
+place an (I)nstall flag on the available version and a (D)elete flag
+on the installed version.  A subsequent \\[package-menu-execute] command will upgrade
+the marked packages.
 
 If there's an async refresh operation in progress, the flags will
 be placed as part of `package-menu--post-refresh' instead of
@@ -3906,17 +3912,19 @@ packages list, respectively."
     (package--save-selected-packages package-selected-packages)))
 
 (defun package-menu-execute (&optional noquery)
-  "Perform marked Package Menu actions.
+  "Perform Package Menu actions on marked packages.
 Packages marked for installation are downloaded and installed,
 packages marked for deletion are removed, and packages marked for
 upgrading are downloaded and upgraded.
 
 If no packages are marked, the action taken depends on the state
-of the package under point.  If it's not already installed, this
-command will install the package, and if it's installed, it will
-delete the package.
+of the current package, the one at point.  If it's not already
+installed, this command will install the package; if it's installed,
+the command will delete the package.
 
-Optional argument NOQUERY non-nil means do not ask the user to confirm."
+Optional argument NOQUERY non-nil means do not ask the user to
+confirm the installations/deletions; this is always nil in interactive
+invocations."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (let (install-list delete-list cmd pkg-desc)
@@ -4167,13 +4175,12 @@ the header line of the first column."
 (defun package-menu-filter-by-archive (archive)
   "Filter the \"*Packages*\" buffer by ARCHIVE.
 Display only packages from package archive ARCHIVE.
+ARCHIVE can be the name of a single archive (a string), or
+a list of archive names.  If ARCHIVE is nil or an empty
+string, show all packages.
 
-When called interactively, prompt for ARCHIVE, which can be a
-comma-separated string.  If ARCHIVE is empty, show all packages.
-
-When called from Lisp, ARCHIVE can be a string or a list of
-strings.  If ARCHIVE is nil or the empty string, show all
-packages."
+When called interactively, prompt for ARCHIVE.  To specify
+several archives, type their names separated by commas."
   (interactive (list (completing-read-multiple
                       "Filter by archive (comma separated): "
                       (mapcar #'car package-archives)))
@@ -4189,9 +4196,9 @@ packages."
      (concat "archive:" (string-join archives ",")))))
 
 (defun package-menu-filter-by-description (description)
-  "Filter the \"*Packages*\" buffer by DESCRIPTION regexp.
-Display only packages with a description that matches regexp
-DESCRIPTION.
+  "Filter the \"*Packages*\" buffer by the regexp DESCRIPTION.
+Display only packages whose description matches the regexp
+given as DESCRIPTION.
 
 When called interactively, prompt for DESCRIPTION.
 
@@ -4208,14 +4215,16 @@ If DESCRIPTION is nil or the empty string, show all packages."
 
 (defun package-menu-filter-by-keyword (keyword)
   "Filter the \"*Packages*\" buffer by KEYWORD.
-Display only packages with specified KEYWORD.
+Display only packages whose keywords match the specified KEYWORD.
+KEYWORD can be a string or a list of strings.  If KEYWORD is nil
+or the empty string, show all packages.
 
-When called interactively, prompt for KEYWORD, which can be a
-comma-separated string.  If KEYWORD is empty, show all packages.
+In addition to package keywords, KEYWORD can include the name(s)
+of archive(s) and the package status, such as \"available\"
+or \"built-in\" or \"obsolete\".
 
-When called from Lisp, KEYWORD can be a string or a list of
-strings.  If KEYWORD is nil or the empty string, show all
-packages."
+When called interactively, prompt for KEYWORD.  To specify several
+keywords, type them separated by commas."
   (interactive (list (completing-read-multiple
                       "Keywords (comma separated): "
                       (package-all-keywords)))
@@ -4233,8 +4242,8 @@ packages."
   'package-menu-filter #'package-menu-filter-by-keyword "27.1")
 
 (defun package-menu-filter-by-name-or-description (name-or-description)
-  "Filter the \"*Packages*\" buffer by NAME-OR-DESCRIPTION regexp.
-Display only packages with a name-or-description that matches regexp
+  "Filter the \"*Packages*\" buffer by the regexp NAME-OR-DESCRIPTION.
+Display only packages whose name or description matches the regexp
 NAME-OR-DESCRIPTION.
 
 When called interactively, prompt for NAME-OR-DESCRIPTION.
@@ -4255,8 +4264,8 @@ packages."
                       (format "name-or-desc:%s" name-or-description))))
 
 (defun package-menu-filter-by-name (name)
-  "Filter the \"*Packages*\" buffer by NAME regexp.
-Display only packages with name that matches regexp NAME.
+  "Filter the \"*Packages*\" buffer by the regexp NAME.
+Display only packages whose name matches the regexp NAME.
 
 When called interactively, prompt for NAME.
 
@@ -4274,13 +4283,11 @@ If NAME is nil or the empty string, show all packages."
 (defun package-menu-filter-by-status (status)
   "Filter the \"*Packages*\" buffer by STATUS.
 Display only packages with specified STATUS.
+STATUS can be a single status, a string, or a list of strings.
+If STATUS is nil or the empty string, show all packages.
 
-When called interactively, prompt for STATUS, which can be a
-comma-separated string.  If STATUS is empty, show all packages.
-
-When called from Lisp, STATUS can be a string or a list of
-strings.  If STATUS is nil or the empty string, show all
-packages."
+When called interactively, prompt for STATUS.  To specify
+several possible status values, type them seperated by commas."
   (interactive (list (completing-read "Filter by status: "
                                       '("avail-obso"
                                         "available"
@@ -4309,12 +4316,12 @@ packages."
 
 (defun package-menu-filter-by-version (version predicate)
   "Filter the \"*Packages*\" buffer by VERSION and PREDICATE.
-Display only packages with a matching version.
+Display only packages whose version satisfies the condition
+defined by VERSION and PREDICATE.
 
-When called interactively, prompt for one of the qualifiers `<',
-`>' or `=', and a package version.  Show only packages that has a
-lower (`<'), equal (`=') or higher (`>') version than the
-specified one.
+When called interactively, prompt for one of the comparison operators
+`<', `>' or `=', and for a version.  Show only packages whose version
+is lower (`<'), equal (`=') or higher (`>') than the specified VERSION.
 
 When called from Lisp, VERSION should be a version string and
 PREDICATE should be the symbol `=', `<' or `>'.
@@ -4352,7 +4359,8 @@ If VERSION is nil or the empty string, show all packages."
        (format "versions:%s%s" predicate version)))))
 
 (defun package-menu-filter-marked ()
-  "Filter \"*Packages*\" buffer by non-empty upgrade mark.
+  "Filter \"*Packages*\" buffer by non-empty mark.
+Show only the packages that have been marked for installation or deletion.
 Unlike other filters, this leaves the marks intact."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)

@@ -125,10 +125,10 @@ configured.  Its value should be larger than that of the variable
   :type '(choice (const nil) number))
 
 (defcustom erc-fill-spaced-commands '(PRIVMSG NOTICE)
-  "Types of mesages to add space between on graphical displays.
+  "Types of messages to add space between on graphical displays.
 Only considered when `erc-fill-line-spacing' is non-nil."
   :package-version '(ERC . "5.6") ; FIXME sync on release
-  :type '(set integer symbol))
+  :type '(repeat (choice integer symbol)))
 
 (defvar-local erc-fill--function nil
   "Internal copy of `erc-fill-function'.

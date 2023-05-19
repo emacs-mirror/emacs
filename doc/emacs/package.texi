@@ -207,7 +207,8 @@ from lower-priority archives (@code{package-menu-toggle-hiding}).
 @findex package-menu-filter-by-archive
 Filter package list by archive (@code{package-menu-filter-by-archive}).
 This prompts for a package archive (e.g., @samp{gnu}), then shows only
-packages from that archive.
+packages from that archive.  You can specify several archives by
+typing their names separated by commas.
 
 @item / d
 @kindex / d @r{(Package Menu)}
@@ -222,7 +223,8 @@ matching that regexp.
 @findex package-menu-filter-by-keyword
 Filter package list by keyword (@code{package-menu-filter-by-keyword}).
 This prompts for a keyword (e.g., @samp{games}), then shows only
-packages with that keyword.
+packages with that keyword.  You can specify several keywords by
+typing them separated by commas.
 
 @item / N
 @kindex / N @r{(Package Menu)}
@@ -243,16 +245,19 @@ with names matching that regexp.
 @kindex / s @r{(Package Menu)}
 @findex package-menu-filter-by-status
 Filter package list by status (@code{package-menu-filter-by-status}).
-This prompts for one or more statuses (e.g., @samp{available}), then
-shows only packages with matching status.
+This prompts for one or more statuses (e.g., @samp{available},
+@pxref{Package Statuses}), then shows only packages with matching
+status.  You can specify several status values by typing them
+separated by commas.
 
 @item / v
 @kindex / v @r{(Package Menu)}
 @findex package-menu-filter-by-version
 Filter package list by version (@code{package-menu-filter-by-version}).
-This prompts first for one of the qualifiers @samp{<}, @samp{>} or
-@samp{=}, and then a package version, and shows packages that has a
-lower, equal or higher version than the one specified.
+This prompts first for one of the comparison symbols @samp{<},
+@samp{>} or @samp{=} and for a version string, and then shows packages
+whose versions are correspondingly lower, equal or higher than the
+version you typed.
 
 @item / m
 @kindex / m @r{(Package Menu)}

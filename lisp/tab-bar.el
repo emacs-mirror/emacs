@@ -1657,7 +1657,9 @@ After the tab is created, the hooks in
           (delete-other-windows)
           (if (eq tab-bar-new-tab-choice 'window)
               ;; Create new unique window from remaining window
-              (window-state-put (window-state-get))
+              (progn
+                (set-window-parameter nil 'window-side nil)
+                (window-state-put (window-state-get)))
             ;; Create a new window to get rid of old window parameters
             ;; (e.g. prev/next buffers) of old window.
             (split-window) (delete-window))))

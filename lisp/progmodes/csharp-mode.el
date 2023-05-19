@@ -920,7 +920,6 @@ Return nil if there is no name or if NODE is not a defun node."
          "struct_declaration"
          "enum_declaration"
          "interface_declaration"
-         "class_declaration"
          "class_declaration")
      (treesit-node-text
       (treesit-node-child-by-field-name
