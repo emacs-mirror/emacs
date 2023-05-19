@@ -2805,6 +2805,18 @@ this option to nil."
           (cl-assert (< erc-insert-marker erc-input-marker))
           (cl-assert (= (field-end erc-insert-marker) erc-input-marker)))))
 
+(defun erc--refresh-prompt ()
+  "Re-render ERC's prompt when the option `erc-prompt' is a function."
+  (erc--assert-input-bounds)
+  (when (functionp erc-prompt)
+    (save-excursion
+      (goto-char erc-insert-marker)
+      ;; Avoid `erc-prompt' (the named function), which appends a
+      ;; space, and `erc-display-prompt', which propertizes all but
+      ;; that space.
+      (insert-and-inherit (funcall erc-prompt))
+      (delete-region (point) (1- erc-input-marker)))))
+
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
 Auxiliary function used in `erc-display-line'.  The line gets filtered to
@@ -2848,7 +2860,7 @@ If STRING is nil, the function does nothing."
                   (when erc-remove-parsed-property
                     (remove-text-properties (point-min) (point-max)
                                             '(erc-parsed nil))))
-                (erc--assert-input-bounds)))))
+                (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
         (erc-update-undo-list (- (or (marker-position erc-insert-marker)
                                      (point-max))
@@ -6470,7 +6482,7 @@ Return non-nil only if we actually send anything."
           (narrow-to-region insert-position (point))
           (run-hooks 'erc-send-modify-hook)
           (run-hooks 'erc-send-post-hook))
-        (erc--assert-input-bounds)))))
+        (erc--refresh-prompt)))))
 
 (defun erc-command-symbol (command)
   "Return the ERC command symbol for COMMAND if it exists and is bound."
