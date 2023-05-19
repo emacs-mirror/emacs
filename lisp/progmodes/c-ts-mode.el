@@ -627,6 +627,13 @@ MODE is either `c' or `cpp'."
 
      (function_definition
       declarator: (_) @c-ts-mode--fontify-declarator)
+     ;; When a function definition has preproc directives in its body,
+     ;; it can't correctly parse into a function_definition.  We still
+     ;; want to highlight the function_declarator correctly, hence
+     ;; this rule.  See bug#63390 for more detail.
+     ((function_declarator) @c-ts-mode--fontify-declarator
+      (:pred c-ts-mode--top-level-declarator
+             @c-ts-mode--fontify-declarator))
 
      (parameter_declaration
       declarator: (_) @c-ts-mode--fontify-declarator)
@@ -749,6 +756,19 @@ For NODE, OVERRIDE, START, END, and ARGS, see
       (treesit-fontify-with-override
        (treesit-node-start identifier) (treesit-node-end identifier)
        face override start end))))
+
+(defun c-ts-mode--top-level-declarator (node)
+  "Return non-nil if NODE is a top-level function_declarator."
+  ;; These criterion are observed in
+  ;; xterm.c:x_draw_glyphless_glyph_string_foreground on emacs-29
+  ;; branch, described in bug#63390.  They might not cover all cases
+  ;; where a function_declarator is at top-level, outside of a
+  ;; function_definition.  We might need to amend them as we discover
+  ;; more cases.
+  (let* ((parent (treesit-node-parent node))
+         (grandparent (treesit-node-parent parent)))
+    (and (treesit-node-match-p parent "ERROR")
+         (null grandparent))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
   "Fontify an identifier node if it is a variable.
