@@ -834,7 +834,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-subseq [1 2 3 4 5] 1 3)
    :eval (seq-subseq [1 2 3 4 5] 1))
   (copy-tree
-   :eval (copy-tree [1 2 3 4]))
+   :eval (copy-tree [1 (2 3) [4 5]] t))
   "Mapping Over Vectors"
   (mapcar
    :eval (mapcar #'identity [1 2 3]))
