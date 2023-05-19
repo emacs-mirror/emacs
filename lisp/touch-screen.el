@@ -662,6 +662,58 @@ bound, run that command instead."
 (global-set-key [bottom-divider touchscreen-begin]
                 #'touch-screen-drag-mode-line)
 
+
+
+;; Header line tapping.
+
+(defun touch-screen-tap-header-line (event)
+  "Handle a `touchscreen-begin' EVENT on the header line.
+Wait for the tap to complete, then run any command bound to
+`mouse-1' at the position of EVENT.
+
+If another keymap is bound to `down-mouse-1', then display a menu
+with its contents instead, and run the selected command."
+  (interactive "e")
+  (let* ((posn (cdadr event))
+         (object (posn-object posn))
+         ;; Look for the keymap defined by the object itself.
+         (object-keymap (and (consp object)
+                             (stringp (car object))
+                             (or (get-text-property (cdr object)
+                                                    'keymap
+                                                    (car object))
+                                 (get-text-property (cdr object)
+                                                    'local-map
+                                                    (car object)))))
+         command keymap)
+    ;; Now look for either a command bound to `mouse-1' or a keymap
+    ;; bound to `down-mouse-1'.
+    (with-selected-window (posn-window posn)
+      (setq command (lookup-key object-keymap
+				[header-line mouse-1] t)
+            keymap (lookup-key object-keymap
+			       [header-line down-mouse-1] t))
+      (unless (keymapp keymap)
+	(setq keymap nil)))
+    ;; Wait for the tap to complete.
+    (when (touch-screen-track-tap event)
+      ;; Select the window whose header line was clicked.
+      (with-selected-window (posn-window posn)
+        (if keymap
+            (when-let* ((command (x-popup-menu event keymap))
+                        (tem (lookup-key keymap
+                                         (if (consp command)
+                                             (apply #'vector command)
+                                           (vector command))
+                                         t)))
+              (call-interactively tem))
+          (when (commandp command)
+            (call-interactively command nil
+                                (vector (list 'mouse-1 (cdadr event))))))))))
+
+(global-set-key [header-line touchscreen-begin]
+                #'touch-screen-tap-header-line)
+
 (provide 'touch-screen)
 
 ;;; touch-screen ends here
