@@ -6382,7 +6382,7 @@ windows can get as small as `window-safe-min-height' and
                      (selected-window)))
       (delete-other-windows-internal window root)
       ;; Create a new window to replace the existing one.
-      (setq window (prog1 (split-window window)
+      (setq window (prog1 (split-window window window-safe-min-width t)
                      (delete-window window)))))
 
   (set-window-dedicated-p window nil)

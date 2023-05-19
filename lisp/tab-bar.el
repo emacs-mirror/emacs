@@ -1568,7 +1568,8 @@ After the tab is created, the hooks in
                 (window-state-put (window-state-get)))
             ;; Create a new window to get rid of old window parameters
             ;; (e.g. prev/next buffers) of old window.
-            (split-window) (delete-window))))
+            (split-window nil window-safe-min-width t)
+            (delete-window))))
 
       (let ((buffer
              (if (and (functionp tab-bar-new-tab-choice)
