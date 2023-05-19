@@ -30,6 +30,11 @@ applies, and please also update docstrings as needed.
 
 * Changes in Emacs 30.1
 
+** Help
+** 'describe-function' shows function inferred type when available.
+For native compiled Lisp functions 'describe-function' prints (after
+the signature) the automatically inferred function type as well.
+
 ---
 ** New user option 'describe-bindings-outline-rules'.
 This user option controls outline visibility in the output buffer of

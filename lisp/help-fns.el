@@ -710,7 +710,11 @@ the C sources, too."
               (high-doc (cdr high)))
           (unless (and (symbolp function)
                        (get function 'reader-construct))
-            (insert high-usage "\n"))
+            (insert high-usage "\n")
+            (when (and (featurep 'native-compile)
+                       (subr-native-elisp-p (symbol-function function))
+                       (subr-type (symbol-function function)))
+              (insert (format "\nInferred type: %s\n" (subr-type (symbol-function function))))))
           (fill-region fill-begin (point))
           high-doc)))))
 
