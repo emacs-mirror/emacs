@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+(require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
 (require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
