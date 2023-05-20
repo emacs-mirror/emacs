@@ -3871,6 +3871,19 @@ The following generalized variables have been made obsolete:
 'standard-case-table', 'syntax-table', 'visited-file-modtime',
 'window-height', 'window-width', and 'x-get-secondary-selection'.
 
+---
+** The 'dotimes' loop variable can no longer be manipulated in loop body
+Previously, the 'dotimes' loop counter could be modified inside the
+loop body, but only in code using dynamic binding.  Now the behaviour
+is the same as when using lexical binding: changes to the loop
+variable has no effect on subsequent iterations.  That is,
+
+    (dotimes (i 10)
+      (print i)
+      (setq i (+ i 6)))
+
+now always prints the numbers 0 .. 9.
+
 
 * Lisp Changes in Emacs 29.1
 
