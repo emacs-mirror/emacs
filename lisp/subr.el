@@ -6940,7 +6940,10 @@ returned list are in the same order as in TREE.
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+  (if (string-match (if regexp
+                        (concat "\\`\\(?:" regexp "\\)")
+                      "\\`[ \t\n\r]+")
+                    string)
       (substring string (match-end 0))
     string))
 
@@ -6949,7 +6952,9 @@ REGEXP defaults to \"[ \\t\\n\\r]+\"."
 
 REGEXP defaults to  \"[ \\t\\n\\r]+\"."
   (declare (side-effect-free t))
-  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+  (let ((i (string-match-p (if regexp
+                               (concat "\\(?:" regexp "\\)\\'")
+                             "[ \t\n\r]+\\'")
                            string)))
     (if i (substring string 0 i) string)))
 
