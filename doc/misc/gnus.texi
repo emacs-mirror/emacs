@@ -713,7 +713,6 @@ Choosing a Mail Back End
 
 Browsing the Web
 
-* Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
 
@@ -17244,7 +17243,6 @@ Gnus has been getting a bit of a collection of back ends for providing
 interfaces to these sources.
 
 @menu
-* Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
 * RSS::                         Reading RDF site summary.
 @end menu
@@ -17260,29 +17258,6 @@ are often down, unavailable or just plain too slow to be fun.  In those
 cases, it makes a lot of sense to let the Gnus Agent (@pxref{Gnus
 Unplugged}) handle downloading articles, and then you can read them at
 leisure from your local disk.  No more World Wide Wait for you.
-
-@node Archiving Mail
-@subsection Archiving Mail
-@cindex archiving mail
-@cindex backup of mail
-
-Some of the back ends, notably @code{nnml}, @code{nnfolder}, and
-@code{nnmaildir}, now actually store the article marks with each group.
-For these servers, archiving and restoring a group while preserving
-marks is fairly simple.
-
-(Preserving the group level and group parameters as well still
-requires ritual dancing and sacrifices to the @file{.newsrc.eld} deity
-though.)
-
-To archive an entire @code{nnml}, @code{nnfolder}, or @code{nnmaildir}
-server, take a recursive copy of the server directory.  There is no need
-to shut down Gnus, so archiving may be invoked by @code{cron} or
-similar.  You restore the data by restoring the directory tree, and
-adding a server definition pointing to that directory in Gnus.  The
-@ref{Article Backlog}, @ref{Asynchronous Fetching} and other things
-might interfere with overwriting data, so you may want to shut down Gnus
-before you restore the data.
 
 @node Web Searches
 @subsection Web Searches
