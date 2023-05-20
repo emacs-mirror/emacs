@@ -893,6 +893,7 @@ Non-strings in LIST are ignored."
 Compare keys with TEST.  Defaults to `equal'.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (unless test (setq test #'equal))
   (while (and (consp (car alist))
 	      (funcall test (caar alist) key))
@@ -909,12 +910,14 @@ Elements of ALIST that are not conses are ignored."
   "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (assoc-delete-all key alist #'eq))
 
 (defun rassq-delete-all (value alist)
   "Delete from ALIST all elements whose cdr is `eq' to VALUE.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (while (and (consp (car alist))
 	      (eq (cdr (car alist)) value))
     (setq alist (cdr alist)))
@@ -957,6 +960,7 @@ Example:
   (setf (alist-get \\='b foo nil \\='remove) nil)
 
   foo => ((a . 1))"
+  (declare (important-return-value t))
   (ignore remove) ;;Silence byte-compiler.
   (let ((x (if (not testfn)
                (assq key alist)
