@@ -3877,7 +3877,7 @@ The following generalized variables have been made obsolete:
 'window-height', 'window-width', and 'x-get-secondary-selection'.
 
 ---
-** The 'dotimes' loop variable can no longer be manipulated in loop body.
+** The 'dotimes' loop variable can no longer be manipulated in the loop body.
 Previously, the 'dotimes' loop counter could be modified inside the
 loop body, but only in code using dynamic binding.  Now the behavior
 is the same as when using lexical binding: changes to the loop
