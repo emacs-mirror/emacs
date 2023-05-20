@@ -137,11 +137,11 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (assoc-string "foo" '(("foo" . "bar") ("zot" "baz"))))
   "Manipulating Alists"
   (assoc-delete-all
-   :eval (assoc-delete-all "foo" '(("foo" . "bar") ("zot" . "baz")) #'equal))
+   :eval (assoc-delete-all "b" (list '("a" . a) '("b" . b) '("b" . c))))
   (assq-delete-all
-   :eval (assq-delete-all 'foo '((foo . bar) (zot . baz))))
+   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
   (rassq-delete-all
-   :eval (rassq-delete-all 'bar '((foo . bar) (zot . baz))))
+   :eval (rassq-delete-all 'b (list '(1 . a) '(2 . b) '(2 . c))))
   (alist-get
    :eval (let ((foo '((bar . baz))))
            (setf (alist-get 'bar foo) 'zot)
@@ -705,10 +705,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (assoc-default 2 '((1 . a) (2 . b) #'=)))
   (copy-alist
    :eval (copy-alist '((1 . a) (2 . b))))
-  (assq-delete-all
-   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
   (assoc-delete-all
    :eval (assoc-delete-all "b" (list '("a" . a) '("b" . b) '("b" . c))))
+  (assq-delete-all
+   :eval (assq-delete-all 2 (list '(1 . a) '(2 . b) '(2 . c))))
+  (rassq-delete-all
+   :eval (rassq-delete-all 'b (list '(1 . a) '(2 . b) '(2 . c))))
   "Property Lists"
   (plist-get
    :eval (plist-get '(a 1 b 2 c 3) 'b))
