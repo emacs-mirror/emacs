@@ -356,16 +356,23 @@ public final class EmacsView extends ViewGroup
 
     damageRect = null;
 
+    /* Now see if there is a damage region.  */
+
     synchronized (damageRegion)
       {
 	if (damageRegion.isEmpty ())
 	  return;
 
+	/* And extract and clear the damage region.  */
+
+	damageRect = damageRegion.getBounds ();
+	damageRegion.setEmpty ();
+
 	bitmap = getBitmap ();
 
 	/* Transfer the bitmap to the surface view, then invalidate
 	   it.  */
-        surfaceView.setBitmap (bitmap, damageRect);
+	surfaceView.setBitmap (bitmap, damageRect);
       }
   }
 
@@ -545,20 +552,17 @@ public final class EmacsView extends ViewGroup
   {
     isAttachedToWindow = false;
 
-    synchronized (this)
-      {
-	/* Recycle the bitmap and call GC.  */
+    /* Recycle the bitmap and call GC.  */
 
-	if (bitmap != null)
-	  bitmap.recycle ();
+    if (bitmap != null)
+      bitmap.recycle ();
 
-	bitmap = null;
-	canvas = null;
-	surfaceView.setBitmap (null, null);
+    bitmap = null;
+    canvas = null;
+    surfaceView.setBitmap (null, null);
 
-	/* Collect the bitmap storage; it could be large.  */
-	Runtime.getRuntime ().gc ();
-      }
+    /* Collect the bitmap storage; it could be large.  */
+    Runtime.getRuntime ().gc ();
 
     super.onDetachedFromWindow ();
   }
