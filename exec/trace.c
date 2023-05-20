@@ -456,6 +456,12 @@ handle_clone_prepare (struct exec_tracee *parent)
       tracee = &static_tracees[tracees];
       tracees++;
     }
+#ifndef REENTRANT
+  /* Try to allocate a tracee using `malloc' if this library is
+     not being built to run inside a signal handler.  */
+  else if ((tracee = malloc (sizeof *tracee)))
+    ;
+#endif /* REENTRANT */
   else
     return;
 
@@ -506,6 +512,12 @@ handle_clone (struct exec_tracee *tracee, pid_t pid)
 	  tracee = &static_tracees[tracees];
 	  tracees++;
 	}
+#ifndef REENTRANT
+      /* Try to allocate a tracee using `malloc' if this library is
+	 not being built to run inside a signal handler.  */
+      else if ((tracee = malloc (sizeof *tracee)))
+	;
+#endif /* REENTRANT */
       else
 	return 1;
 
