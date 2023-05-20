@@ -767,7 +767,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   ;; more cases.
   (let* ((parent (treesit-node-parent node))
          (grandparent (treesit-node-parent parent)))
-    (and (treesit-node-match-p parent "ERROR")
+    (and (equal (treesit-node-type parent) "ERROR")
          (null grandparent))))
 
 (defun c-ts-mode--fontify-variable (node override start end &rest _)
