@@ -624,9 +624,7 @@ Sometimes the prompt is reported to look like \"login as:\"."
   ;; connection initialization; Tramp redefines the prompt afterwards.
   (rx (| bol "\r")
       (* (not (any "\n#$%>]")))
-      (? "#") (any "#$%>]") (* blank)
-      ;; Escape characters.
-      (* "[" (* (any ";" digit)) alpha (* blank)))
+      (? "#") (any "#$%>]") (* blank))
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -5711,6 +5709,12 @@ Wait, until the connection buffer changes."
   "Wait for output from the shell and perform one action.
 See `tramp-process-actions' for the format of ACTIONS."
   (let ((case-fold-search t)
+	(shell-prompt-pattern
+	 (rx (regexp shell-prompt-pattern)
+	     (? (regexp ansi-color-control-seq-regexp))))
+	(tramp-shell-prompt-pattern
+	 (rx (regexp tramp-shell-prompt-pattern)
+	     (? (regexp ansi-color-control-seq-regexp))))
 	tramp-process-action-regexp
 	found todo item pattern action)
     (while (not found)
@@ -5721,7 +5725,7 @@ See `tramp-process-actions' for the format of ACTIONS."
       (while todo
 	(setq item (pop todo)
 	      tramp-process-action-regexp (symbol-value (nth 0 item))
-	      pattern (format "\\(%s\\)\\'" tramp-process-action-regexp)
+	      pattern (rx (group (regexp tramp-process-action-regexp)) eos)
 	      action (nth 1 item))
 	(tramp-message
 	 vec 5 "Looking for regexp \"%s\" from remote shell" pattern)
@@ -6278,8 +6282,7 @@ to cache the result.  Return the modified ATTR."
 	       (save-match-data
 		 ;; Remove color escape sequences from symlink.
 		 (when (stringp (car attr))
-		   (while (string-match
-			   tramp-display-escape-sequence-regexp (car attr))
+		   (while (string-match ansi-color-control-seq-regexp (car attr))
 		     (setcar attr (replace-match "" nil nil (car attr)))))
 		 ;; Convert uid and gid.  Use `tramp-unknown-id-integer'
 		 ;; as indication of unusable value.

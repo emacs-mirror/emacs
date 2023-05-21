@@ -80,13 +80,6 @@ the default storage location, e.g. \"$HOME/.sh_history\"."
                  (const :tag "Unset HISTFILE" t)
                  (string :tag "Redirect to a file")))
 
-;;;###tramp-autoload
-(defconst tramp-display-escape-sequence-regexp (rx "\e" (+ (any ";[" digit)) "m")
-  "Terminal control escape sequences for display attributes.")
-
-(defconst tramp-device-escape-sequence-regexp (rx "\e" (+ (any "[" digit)) "n")
-  "Terminal control escape sequences for device status.")
-
 ;; ksh on OpenBSD 4.5 requires that $PS1 contains a `#' character for
 ;; root users.  It uses the `$' character for other users.  In order
 ;; to guarantee a proper prompt, we use "#$ " for the prompt.
@@ -2654,7 +2647,7 @@ The method used must be an out-of-band method."
 	  (unless (tramp-compat-string-search
 		   "color" (tramp-get-connection-property v "ls" ""))
 	    (goto-char (point-min))
-	    (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	    (while (re-search-forward ansi-color-control-seq-regexp nil t)
 	      (replace-match "")))
 
           ;; Now decode what read if necessary.  Stolen from `insert-directory'.
@@ -4323,6 +4316,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
 	 proc timeout
 	 (rx
 	  (| (regexp shell-prompt-pattern) (regexp tramp-shell-prompt-pattern))
+	  (? (regexp ansi-color-control-seq-regexp))
 	  eos))
       (error
        (delete-process proc)
@@ -4831,6 +4825,7 @@ Goes through the list `tramp-inline-compress-commands'."
   "Check, whether local ssh OPTION is applicable."
   ;; We don't want to cache it persistently.
   (with-tramp-connection-property nil option
+    ;; "ssh -G" is introduced in OpenSSH 6.7.
     ;; We use a non-existing IP address for check, in order to avoid
     ;; useless connections, and DNS timeouts.
     (zerop
@@ -5306,7 +5301,7 @@ function waits for output unless NOOUTPUT is set."
 	   (regexp (rx
 		    (* (not (any "#$\n")))
 		    (literal tramp-end-of-output)
-		    (? (regexp tramp-device-escape-sequence-regexp))
+		    (? (regexp ansi-color-control-seq-regexp))
 		    (? "\r") eol))
 	   ;; Sometimes, the commands do not return a newline but a
 	   ;; null byte before the shell prompt, for example "git

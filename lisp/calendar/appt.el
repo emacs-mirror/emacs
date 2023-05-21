@@ -707,7 +707,7 @@ ARG is positive, otherwise off."
                         (not appt-active)))
     (remove-hook 'write-file-functions #'appt-update-list)
     (or global-mode-string (setq global-mode-string '("")))
-    (delq 'appt-mode-string global-mode-string)
+    (setq global-mode-string (delq 'appt-mode-string global-mode-string))
     (when appt-timer
       (cancel-timer appt-timer)
       (setq appt-timer nil))

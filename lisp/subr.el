@@ -824,26 +824,31 @@ of course, also replace TO with a slightly larger value
                 next (+ from (* n inc)))))
       (nreverse seq))))
 
-(defun copy-tree (tree &optional vector-like-p)
+(defun copy-tree (tree &optional vectors-and-records)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
-Contrast to `copy-sequence', which copies only along the cdrs.  With second
-argument VECTOR-LIKE-P, this copies vectors and records as well as conses."
+Contrast to `copy-sequence', which copies only along the cdrs.
+With the second argument VECTORS-AND-RECORDS non-nil, this
+traverses and copies vectors and records as well as conses."
   (declare (side-effect-free error-free))
   (if (consp tree)
       (let (result)
 	(while (consp tree)
 	  (let ((newcar (car tree)))
-	    (if (or (consp (car tree)) (and vector-like-p (or (vectorp (car tree)) (recordp (car tree)))))
-		(setq newcar (copy-tree (car tree) vector-like-p)))
+	    (if (or (consp (car tree))
+                    (and vectors-and-records
+                         (or (vectorp (car tree)) (recordp (car tree)))))
+		(setq newcar (copy-tree (car tree) vectors-and-records)))
 	    (push newcar result))
 	  (setq tree (cdr tree)))
 	(nconc (nreverse result)
-               (if (and vector-like-p (or (vectorp tree) (recordp tree))) (copy-tree tree vector-like-p) tree)))
-    (if (and vector-like-p (or (vectorp tree) (recordp tree)))
+               (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
+                   (copy-tree tree vectors-and-records)
+                 tree)))
+    (if (and vectors-and-records (or (vectorp tree) (recordp tree)))
 	(let ((i (length (setq tree (copy-sequence tree)))))
 	  (while (>= (setq i (1- i)) 0)
-	    (aset tree i (copy-tree (aref tree i) vector-like-p)))
+	    (aset tree i (copy-tree (aref tree i) vectors-and-records)))
 	  tree)
       tree)))
 
@@ -888,6 +893,7 @@ Non-strings in LIST are ignored."
 Compare keys with TEST.  Defaults to `equal'.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (unless test (setq test #'equal))
   (while (and (consp (car alist))
 	      (funcall test (caar alist) key))
@@ -904,12 +910,14 @@ Elements of ALIST that are not conses are ignored."
   "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (assoc-delete-all key alist #'eq))
 
 (defun rassq-delete-all (value alist)
   "Delete from ALIST all elements whose cdr is `eq' to VALUE.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
+  (declare (important-return-value t))
   (while (and (consp (car alist))
 	      (eq (cdr (car alist)) value))
     (setq alist (cdr alist)))
@@ -952,6 +960,7 @@ Example:
   (setf (alist-get \\='b foo nil \\='remove) nil)
 
   foo => ((a . 1))"
+  (declare (important-return-value t))
   (ignore remove) ;;Silence byte-compiler.
   (let ((x (if (not testfn)
                (assq key alist)
@@ -6973,7 +6982,10 @@ returned list are in the same order as in TREE.
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+  (if (string-match (if regexp
+                        (concat "\\`\\(?:" regexp "\\)")
+                      "\\`[ \t\n\r]+")
+                    string)
       (substring string (match-end 0))
     string))
 
@@ -6982,7 +6994,9 @@ REGEXP defaults to \"[ \\t\\n\\r]+\"."
 
 REGEXP defaults to  \"[ \\t\\n\\r]+\"."
   (declare (side-effect-free t))
-  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+  (let ((i (string-match-p (if regexp
+                               (concat "\\(?:" regexp "\\)\\'")
+                             "[ \t\n\r]+\\'")
                            string)))
     (if i (substring string 0 i) string)))
 
