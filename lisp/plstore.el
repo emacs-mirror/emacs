@@ -24,6 +24,14 @@
 
 ;; Plist based data store providing search and partial encryption.
 ;;
+;; By default, this package uses symmetric encryption, which means
+;; that you have to enter the password protecting your store more
+;; often than you probably expect to.  To use public key encryption
+;; with this package, create a GnuPG key and customize user option
+;; `plstore-encrypt-to' to use it.  You can then configure the GnuPG
+;; agent to adjust caching and expiration of the passphrase for your
+;; store.
+;;
 ;; Creating:
 ;;
 ;; ;; Open a new store associated with ~/.emacs.d/auth.plist.
@@ -43,12 +51,16 @@
 ;; ;; Kill the buffer visiting ~/.emacs.d/auth.plist.
 ;; (plstore-close store)
 ;;
+;; Avoid marking one property both as public *and* secret, as the
+;; behavior of this package with respect to such duplicate properties
+;; is not (yet) defined.
+;;
 ;; Searching:
 ;;
 ;; (setq store (plstore-open (expand-file-name "~/.emacs.d/auth.plist")))
 ;;
 ;; ;; As the entry "foo" associated with "foo.example.org" has no
-;; ;; secret properties, no need to decryption.
+;; ;; secret properties, no need for decryption.
 ;; (plstore-find store '(:host ("foo.example.org")))
 ;;
 ;; ;; As the entry "bar" associated with "bar.example.org" has a
@@ -73,10 +85,112 @@
 ;;
 ;; where the prefixing `:secret-' means the property (without
 ;; `:secret-' prefix) is marked as secret.  Thus, when you save the
-;; buffer, the `:secret-user' property is encrypted as `:user'.
+;; buffer, the `:secret-user' property is encrypted as `:user'.  Do
+;; not use a property consisting solely of the prefix, as the behavior
+;; of this package with respect to such properties is not (yet)
+;; defined.
 ;;
 ;; You can toggle the view between encrypted form and the decrypted
 ;; form with C-c C-c.
+;;
+;; If you have opened a plstore with `plstore-open' you should not
+;; edit its underlying buffer in `plstore-mode' or in any other way at
+;; the same time, since your manual changes will be overwritten when
+;; `plstore-save' is called on that plstore.
+;;
+;; Internals:
+;;
+;; This is information on the internal data structure and functions of
+;; this package.  None of it should be necessary to actually use it.
+;; For easier reading, we usually do not distinguish in this internal
+;; documentation between a Lisp object and its printed representation.
+;;
+;; A plstore corresponds to an alist mapping strings to property
+;; lists.  Internally, that alist is organized as two alists, one
+;; mapping to the non-secret properties and placeholders for the
+;; secret properties (called "template alist" with identifier ALIST)
+;; and one mapping to the secret properties ("secret alist",
+;; SECRET-ALIST).  The secret alist is read from and written to file
+;; as pgp-encrypted printed representation of the alist ("encrypted
+;; data", ENCRYPTED-DATA).
+;;
+;; During the lifetime of a plstore, a third type of alist may pop up,
+;; which maps to the merged non-secret properties and plain-text
+;; secret properties ("merged alist", MERGED-ALIST).
+;;
+;; After executing the "foo", "bar", "baz" example from above the
+;; alists described above look like the following:
+;;
+;;   Template Alist:
+;;
+;;     (("foo" :host "foo.example.org" :port 80)
+;;      ("bar" :secret-user t :host "bar.example.org")
+;;      ("baz" :secret-password t :host "baz.example.org"))
+;;
+;;   Secret Alist:
+;;
+;;     (("bar" :user "test")
+;;      ("baz" :password "test"))
+;;
+;;   Merged Alist:
+;;
+;;     (("foo" :host "foo.example.org" :port 80)
+;;      ("bar" :user "test" :host "bar.example.org")
+;;      ("baz" :password "test" :host "baz.example.org"))
+;;
+;; Finally, a plstore requires a buffer ("plstore buffer", BUFFER) for
+;; conversion between its Lisp objects and its file representation.
+;; It is important to note that this buffer is *not* continuously
+;; synchronized as the plstore changes.  During the lifetime of a
+;; plstore, its buffer is read from in function `plstore-open' and
+;; (destructively) written to in `plstore-save', but not touched
+;; otherwise.  We call the file visited by the plstore buffer the
+;; associated file of the plstore.
+;;
+;; With the identifiers defined above a plstore is a vector with the
+;; following elements and accessor functions:
+;;
+;;   [
+;;     BUFFER           ; plstore--get/set-buffer
+;;     ALIST            ; plstore--get/set-alist
+;;     ENCRYPTED-DATA   ; plstore--get/set-encrypted-data
+;;     SECRET-ALIST     ; plstore--get/set-secret-alist
+;;     MERGED-ALIST     ; plstore--get/set-merged-alist
+;;   ]
+;;
+;; When a plstore is created through `plstore-open', its ALIST and
+;; ENCRYPTED-DATA are initialized from the contents of BUFFER without
+;; any decryption taking place, and MERGED-ALIST is initialized as a
+;; copy of ALIST.  (Which means that at that stage the merged alist
+;; still contains the secret property placeholders!)
+;;
+;; During on-demand decryption of a plstore through function
+;; `plstore--decrypt', SECRET-ALIST is populated from ENCRYPTED-DATA,
+;; which is in turn replaced by value nil.  (Which further serves as
+;; an indicator that the plstore has been decrypted already.)  In
+;; addition, MERGED-ALIST is recomputed by function
+;; `plstore--merge-secret' to replace the secret property placeholders
+;; by their plain-text secret property equivalents.
+;;
+;; The file representation of a plstore consists of two Lisp forms plus
+;; markers to introduce them:
+;;
+;;   ;;; public entries
+;;   ALIST
+;;   ;;; secret entries
+;;   ENCRYPTED-DATA
+;;
+;; Both of these are optional, but the first section must be present
+;; if the second one is.  If both sections are missing, the plstore is
+;; empty.  If the second section is missing, it contains only
+;; non-secret data.  If present, the printed representation of the
+;; encrypted data includes the delimiting double quotes.
+;;
+;; The plstore API (`plstore-open', `plstore-put', etc.) and the
+;; plstore mode implemented by `plstore-mode' are orthogonal to each
+;; other and should not be mixed up.  In particular, encoding and
+;; decoding a plstore mode buffer with `plstore-mode-toggle-display'
+;; is not related in any way to the state of the plstore buffer.
 
 ;;; Code:
 
@@ -456,6 +570,21 @@ If no one is selected, symmetric encryption will be performed.  "
     (erase-buffer)
     (plstore--insert-buffer plstore)
     (save-buffer)))
+
+;; The functions related to plstore mode unfortunately introduce yet
+;; another alist format ("decoded alist").  After executing the "foo",
+;; "bar", "baz" example from above the decoded alist of the plstore
+;; would look like the following:
+;;
+;;   (("foo" :host "foo.example.org" :port 80)
+;;    ("bar" :secret-user "test" :host "bar.example.org")
+;;    ("baz" :secret-password "test" :host "baz.example.org"))
+;;
+;; Even more unfortunately, variable and function names of the
+;; following are a bit mixed up IMHO: With the current names, the
+;; result of function `plstore--encode' is used to create what is
+;; presented as "decoded form of a plstore" to the user.  And variable
+;; `plstore-encoded' is non-nil if a buffer shows the decoded form.
 
 (defun plstore--encode (plstore)
   (plstore--decrypt plstore)
