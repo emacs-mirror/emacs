@@ -166,18 +166,20 @@ is an upper-case character."
     (upcase-region (point) (progn (forward-char arg) (point)))))
 
 ;;;###autoload
-(defun forward-to-word (arg)
+(defun forward-to-word (&optional arg)
   "Move forward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "^p")
+  (unless arg (setq arg 1))
   (or (re-search-forward (if (> arg 0) "\\W\\b" "\\b\\W") nil t arg)
       (goto-char (if (> arg 0) (point-max) (point-min)))))
 
 ;;;###autoload
-(defun backward-to-word (arg)
+(defun backward-to-word (&optional arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times."
   (interactive "^p")
+  (unless arg (setq arg 1))
   (forward-to-word (- arg)))
 
 ;;;###autoload
