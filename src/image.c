@@ -842,9 +842,17 @@ static void
 free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 {
 #ifdef HAVE_X_WINDOWS
-  XFreePixmap (dpyinfo->display, bm->pixmap);
-  if (bm->have_mask)
-    XFreePixmap (dpyinfo->display, bm->mask);
+  /* Free the pixmap and mask.  Only do this if DPYINFO->display is
+     still set, which may not be the case if the connection has
+     already been closed in response to an IO error.  */
+
+  if (dpyinfo->display)
+    {
+      XFreePixmap (dpyinfo->display, bm->pixmap);
+      if (bm->have_mask)
+	XFreePixmap (dpyinfo->display, bm->mask);
+    }
+
 #ifdef USE_CAIRO
   if (bm->stipple)
     cairo_pattern_destroy (bm->stipple);
