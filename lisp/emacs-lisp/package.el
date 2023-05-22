@@ -904,7 +904,12 @@ correspond to previously loaded files."
           (package--reload-previously-loaded pkg-desc))
         (with-demoted-errors "Error loading autoloads: %s"
           (load (package--autoloads-file-name pkg-desc) nil t))
-        (add-to-list 'load-path (directory-file-name pkg-dir)))
+        ;; FIXME: Since 2013 (commit 4fac34cee97a), the autoload files take
+        ;; care of changing the `load-path', so maybe it's time to
+        ;; remove this fallback code?
+        (unless (or (member (file-name-as-directory pkg-dir) load-path)
+                    (member (directory-file-name pkg-dir) load-path))
+          (add-to-list 'load-path pkg-dir)))
       ;; Add info node.
       (when (file-exists-p (expand-file-name "dir" pkg-dir))
         ;; FIXME: not the friendliest, but simple.
