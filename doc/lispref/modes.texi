@@ -4073,8 +4073,8 @@ replacing syntactic font lock, then the regexp-based font lock.
 
 Although parser-based font lock doesn't share the same customization
 variables with regexp-based font lock, it uses similar customization
-schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
-@var{treesit-font-lock-settings}.
+schemes.  The tree-sitter counterpart of @code{font-lock-keywords} is
+@code{treesit-font-lock-settings}.
 
 @cindex tree-sitter fontifications, overview
 @cindex fontifications with tree-sitter, overview
@@ -4108,9 +4108,9 @@ To setup tree-sitter fontification, a major mode should first set
 @code{treesit-major-mode-setup}.
 
 @defun treesit-font-lock-rules &rest query-specs
-This function is used to set @var{treesit-font-lock-settings}.  It
+This function is used to set @code{treesit-font-lock-settings}.  It
 takes care of compiling queries and other post-processing, and outputs
-a value that @var{treesit-font-lock-settings} accepts.  Here's an
+a value that @code{treesit-font-lock-settings} accepts.  Here's an
 example:
 
 @example
@@ -4981,7 +4981,7 @@ below: then the major mode needs only to write some indentation rules
 and the engine takes care of the rest.
 
 To enable the parser-based indentation engine, either set
-@var{treesit-simple-indent-rules} and call
+@code{treesit-simple-indent-rules} and call
 @code{treesit-major-mode-setup}, or equivalently, set the value of
 @code{indent-line-function} to @code{treesit-indent}.
 

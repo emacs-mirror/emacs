@@ -1644,9 +1644,9 @@ directly translate into operations shown above.
 @end example
 
 @defun treesit-range-rules &rest query-specs
-This function is used to set @var{treesit-range-settings}.  It
-takes care of compiling queries and other post-processing, and outputs
-a value that @var{treesit-range-settings} can have.
+This function is used to set @code{treesit-range-settings}.  It takes
+care of compiling queries and other post-processing, and outputs a
+value that @code{treesit-range-settings} can have.
 
 It takes a series of @var{query-spec}s, where each @var{query-spec} is
 a @var{query} preceded by zero or more @var{keyword}/@var{value}
