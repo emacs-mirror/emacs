@@ -1215,7 +1215,6 @@ START, and END.  Note that START and END should be markers."
   (add-text-properties
    start (point)
    (list 'shr-url url
-         'shr-tab-stop t
          'button t
          'category 'shr                ; For button.el button buffers.
 	 'help-echo (let ((parsed (url-generic-parse-url
@@ -1240,6 +1239,8 @@ START, and END.  Note that START and END should be markers."
          ;; Make separate regions not `eq' so that they'll get
          ;; separate mouse highlights.
 	 'mouse-face (list 'highlight)))
+  (when (< start (point))
+    (add-text-properties start (1+ start) '(shr-tab-stop t)))
   ;; Don't overwrite any keymaps that are already in the buffer (i.e.,
   ;; image keymaps).
   (while (and start
