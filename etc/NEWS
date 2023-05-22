@@ -140,9 +140,9 @@ various issues with keyboard input of sequences such as 'C-;' and
 'C-S-u'.
 
 Note that, unlike the X build of Emacs, the PGTK build cannot
-automatically switch to text-mode interface (thus emulating -nw) if it
-cannot determine the default display; it will instead complain and ask
-you to invoke it with the explicit -nw option.
+automatically switch to text-mode interface (thus emulating '-nw') if
+it cannot determine the default display; it will instead complain and
+ask you to invoke it with the explicit '-nw' option.
 
 ---
 ** Emacs no longer reduces the size of the Japanese dictionary.
