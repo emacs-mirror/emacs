@@ -2323,13 +2323,16 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  return 0;
 	}
       c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+      prev_syntax = syntax;
       syntax = SYNTAX_WITH_FLAGS (c);
       code = syntax & 0xff;
       if (code == Sendcomment
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
 	      (nesting > 0 && --nesting == 0) : nesting < 0)
-          && !(comment_end_can_be_escaped && char_quoted (from, from_byte)))
+          && !(comment_end_can_be_escaped
+	       && ((prev_syntax & 0xff) == Sescape
+		   || (prev_syntax & 0xff) == Scharquote)))
 	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section.  */
@@ -2353,7 +2356,11 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
           inc_both (&from, &from_byte);
           UPDATE_SYNTAX_TABLE_FORWARD (from);
           if (from == stop) continue; /* Failure */
-        }
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	  prev_syntax = syntax;
+	  syntax = Smax;
+	  code = syntax;
+	}
       inc_both (&from, &from_byte);
       UPDATE_SYNTAX_TABLE_FORWARD (from);
 
@@ -3334,7 +3341,14 @@ do { prev_from = from;				\
 	     are invalid now.  Luckily, the `done' doesn't use them
 	     and the INC_FROM sets them to a sane value without
 	     looking at them. */
-	  if (!found) goto done;
+	  if (!found)
+	    {
+	      if ((prev_from_syntax & 0xff) == Sescape
+		  || (prev_from_syntax & 0xff) == Scharquote)
+		goto endquoted;
+	      else
+		goto done;
+	    }
 	  INC_FROM;
 	  state->incomment = 0;
 	  state->comstyle = 0;	/* reset the comment style */
