@@ -649,7 +649,11 @@ struct x_display_info
 
   /* The named coding system to use for this input method.  */
   Lisp_Object xim_coding;
-#endif
+
+  /* Whether or not X input methods should be used on this
+     display.  */
+  bool use_xim;
+#endif /* HAVE_X_I18N */
 
   /* A cache mapping color names to RGB values.  */
   struct color_name_cache_entry **color_names;
@@ -928,11 +932,6 @@ struct x_display_info
   /* The last time that keysym was pressed.  */
   Time quit_keysym_time;
 };
-
-#ifdef HAVE_X_I18N
-/* Whether or not to use XIM if we have it.  */
-extern bool use_xim;
-#endif
 
 #ifdef HAVE_XINPUT2
 /* Defined in xmenu.c. */

@@ -51,7 +51,7 @@
 ;; argument, a `let*'-style VAR-LIST.  Relying on such a macro is
 ;; unfortunate because in many ways it actually hampers readability by
 ;; favoring magic over verbosity.  But without it (or something
-;; similar), any failing test would cause all subsequent tests in this
+;; similar), any failing test would cause all subsequent tests in a
 ;; file to fail like dominoes (making all but the first backtrace
 ;; useless).
 ;;

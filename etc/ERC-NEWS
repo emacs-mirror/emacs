@@ -366,8 +366,8 @@ In an effort to help further tame ERC's complexity, the variable
 'erc-default-recipients' is now expected to hold but a single target.
 As a consequence, functions like 'erc-add-default-channel' that
 imagine an alternate, aspirational model of buffer-target relations
-have been deprecated.  Grep for their names in ChangeLog.4 for
-details.
+have been deprecated.  For specifics, see entries in Emacs'
+ChangeLog.4 from around June 30, 2022.
 
 A number of less consequential deprecations also debut in this
 release.  For example, the function 'erc-auto-query' was deemed too
