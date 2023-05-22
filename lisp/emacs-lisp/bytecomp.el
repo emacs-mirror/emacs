@@ -3590,6 +3590,7 @@ lambda-expression."
          (delq 2) (delete 2)
          (delete-dups 1) (delete-consecutive-dups 1)
          (plist-put 1)
+         (assoc-delete-all 2) (assq-delete-all 2) (rassq-delete-all 2)
          (fillarray 1)
          (store-substring 1)
          (clear-string 1)

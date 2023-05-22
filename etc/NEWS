@@ -351,6 +351,15 @@ instead of:
 *** New ':vc' keyword.
 This keyword enables the user to install packages using 'package-vc'.
 
+** Rmail
+
+---
+*** New commands for reading mailing lists.
+The new Rmail commands 'rmail-mailing-list-post',
+'rmail-mailing-list-unsubscribe', 'rmail-mailing-list-help', and
+'rmail-mailing-list-archive allow to, respectively, post to,
+unsubscribe from, request help about, and browse the archives, of the
+mailing list from which the current email message was delivered.
 
 * New Modes and Packages in Emacs 30.1
 
