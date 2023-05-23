@@ -125,7 +125,7 @@ typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
  * <https://docs.microsoft.com/en-gb/windows/win32/api/winnt/nf-winnt-rtlinstallfunctiontablecallback>
  * so that the client can unwind the stack through functions in the arena.
  */
-typedef void (*mps_arena_extendedar_t)(mps_arena_t, void *, size_t);
+typedef void (*mps_arena_extended_t)(mps_arena_t, void *, size_t);
 typedef void (*mps_arena_contracted_t)(mps_arena_t, void *, size_t);
 
 /* Keyword argument lists */
