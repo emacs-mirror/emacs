@@ -901,8 +901,7 @@ correspond to previously loaded files."
         (when reload
           (package--reload-previously-loaded pkg-desc))
         (with-demoted-errors "Error loading autoloads: %s"
-          (load (package--autoloads-file-name pkg-desc) nil t))
-        (add-to-list 'load-path (directory-file-name pkg-dir)))
+          (load (package--autoloads-file-name pkg-desc) nil t)))
       ;; Add info node.
       (when (file-exists-p (expand-file-name "dir" pkg-dir))
         ;; FIXME: not the friendliest, but simple.
