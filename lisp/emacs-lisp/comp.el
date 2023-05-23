@@ -164,6 +164,7 @@ Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
                         comp--ipa-pure
                         comp--add-cstrs
                         comp--fwprop
+                        comp--type-branch-optim
                         comp--tco
                         comp--fwprop
                         comp--remove-type-hints
@@ -2811,6 +2812,55 @@ Return t if something was changed."
                  (comp--rewrite-non-locals)
                  (comp--log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
+
+
+;;; Branch optim pass specific code.
+;; Remove conditional branches if they can be predicted at compile time.
+
+(defun comp--type-branch-optim-block (block)
+  "Optimize conditional branches in BLOCK when possible."
+  (cl-loop
+   named in-the-basic-block
+   for insns-seq on (comp-block-insns block)
+   do (pcase insns-seq
+        (`((set ,(and (pred comp-mvar-p) mvar-tested-copy)
+                ,(and (pred comp-mvar-p) mvar-tested))
+           (set ,(and (pred comp-mvar-p) mvar-1)
+                (call type-of ,(and (pred comp-mvar-p) mvar-tested-copy)))
+           (set ,(and (pred comp-mvar-p) mvar-2)
+                (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
+           (set ,(and (pred comp-mvar-p) mvar-3)
+                (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
+           (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,_bb1 ,bb2))
+         (cl-assert (comp-cstr-imm-vld-p mvar-tag))
+         (when (and (length= (comp-mvar-typeset mvar-tested) 1)
+                    (member
+                     (car (comp-mvar-typeset mvar-tested))
+                     (symbol-value (comp-cstr-imm mvar-tag))))
+           (comp-log (format "Optimizing conditional branch in function: %s"
+                             (comp-func-name comp-func))
+                     3)
+           (setf (car insns-seq) '(comment "optimized by comp--type-branch-optim")
+                 (cdr insns-seq) `((jump ,bb2))
+                 ;; Set the SSA status as dirty so
+                 ;; `comp--ssa-function' will remove the unreachable
+                 ;; branches later.
+                 (comp-func-ssa-status comp-func) 'dirty))))))
+
+(defun comp--type-branch-optim (_)
+  "Optimize conditional branches when possible."
+  (cl-loop
+   for f being each hash-value of (comp-ctxt-funcs-h comp-ctxt)
+   for comp-func = f
+   when (>= (comp-func-speed f) 2)
+   do (cl-loop
+       for b being each hash-value of (comp-func-blocks f)
+       do (comp--type-branch-optim-block b)
+       finally
+       (progn
+         (when (eq (comp-func-ssa-status f) 'dirty)
+           (comp--ssa-function f))
+         (comp--log-func comp-func 3)))))
 
 
 ;;; Call optimizer pass specific code.
