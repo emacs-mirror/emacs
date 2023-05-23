@@ -516,6 +516,13 @@ directory copy is ineffective.
 This is due to an arbitrary limit in certain versions of awk.
 The solution is to use gawk (GNU awk).
 
+*** Saving, via EasyPG, a file encrypted with GnuPG hangs
+
+This is known to happen with GnuPG v2.4.1.  The only known workaround
+is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
+future, upgrade to a newer version which solves the problem, when such
+a fixed version becomes available)
+
 ** Problems with hostname resolution
 
 *** Emacs does not know your host's fully-qualified domain name.
