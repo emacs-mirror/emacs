@@ -232,12 +232,13 @@ static void test_main(void *cold_stack_end)
 
   /* Clean up */
   mps_root_destroy(testobj_root);
-  /* mps_root_destroy(stack_root);*/
+  /* mps_root_destroy(stack_root);*/ /*commented out while not using stack root */
   mps_thread_dereg(thread);
   mps_ap_destroy(obj_ap);
   mps_pool_destroy(obj_pool);
   mps_fmt_destroy(obj_fmt);
   mps_arena_destroy(arena);
+  /* comment out some diagnostics for investigating issue #210 mentioned above */
 #if 0
   printf("&testobj[N_TESTOBJ] = %p\n", (void *)&testobj[N_TESTOBJ]);
   printf("cold_stack_end = %p\n", cold_stack_end);
