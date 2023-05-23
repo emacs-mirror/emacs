@@ -128,6 +128,7 @@ longer than `erc-fill-column'."
   ;; things hard to maintain.
   '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
     (erc-button-url-regexp 0 t browse-url-button-open-url 0)
+    ;; ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
     ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
@@ -629,15 +630,13 @@ greater than `point-min' with a text property of `erc-callback'.")
   "Go to the ARGth next button."
   (declare (advertised-calling-convention (arg) "30.1"))
   (interactive "p")
-  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
-  (erc--button-next arg))
+  (erc--button-next (or arg 1)))
 
 (defun erc-button-previous (&optional arg)
   "Go to ARGth previous button."
   (declare (advertised-calling-convention (arg) "30.1"))
   (interactive "p")
-  (setq arg (pcase arg ((pred listp) (prefix-numeric-value arg)) (_ arg)))
-  (erc--button-next (- arg)))
+  (erc--button-next (- (or arg 1))))
 
 (defun erc-button-previous-of-nick (arg)
   "Go to ARGth previous button for nick at point."

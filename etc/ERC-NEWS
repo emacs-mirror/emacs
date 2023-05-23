@@ -216,12 +216,12 @@ changes are encouraged to voice their concerns on the bug list.
 *** Miscellaneous changes
 Two helper macros from GNU ELPA's Compat library are now available to
 third-party modules as 'erc-compat-call' and 'erc-compat-function'.
-In the area of buttons, 'Info-goto-node' has been supplanted by plain
-old 'info' in 'erc-button-alist', and the bracketed "<URL:...>"
-pattern entry has been removed because it was more or less redundant.
-And the "TAB" key is now bound to a new command, 'erc-tab', that only
-calls 'completion-at-point' when point is in the input area and
-module-specific commands, like 'erc-button-next', otherwise.
+In 'erc-button-alist', 'Info-goto-node' has been supplanted by plain
+old 'info', and the "<URL:...>" entry has been removed because it was
+more or less redundant.  In all ERC buffers, the "<TAB>" key is now
+bound to a new command, 'erc-tab', that calls 'completion-at-point'
+inside the input area and otherwise dispatches module-specific
+commands, like 'erc-button-next'.
 
 
 * Changes in ERC 5.5

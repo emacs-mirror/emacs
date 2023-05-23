@@ -4773,11 +4773,11 @@ This places `point' just after the prompt, or at the beginning of the line."
   "Functions to try when user hits \\`TAB' outside of input area.
 Called with a numeric prefix arg.")
 
-(defun erc-tab (&optional arg)
+(defun erc-tab (arg)
   "Call `completion-at-point' when typing in the input area.
-Otherwise call members of `erc--tab-functions' with raw prefix
-ARG until one of them returns non-nil."
-  (interactive "P")
+Otherwise call members of `erc--tab-functions' with a numeric
+prefix ARG until one of them returns non-nil."
+  (interactive "p")
   (if (>= (point) erc-input-marker)
       (completion-at-point)
     (run-hook-with-args-until-success 'erc--tab-functions arg)))
