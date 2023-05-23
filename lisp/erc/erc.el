@@ -144,6 +144,8 @@ concerning buffers."
 (declare-function word-at-point "thingatpt" (&optional no-properties))
 (autoload 'word-at-point "thingatpt") ; for hl-nicks
 
+(declare-function gnutls-negotiate "gnutls" (&rest rest))
+(declare-function socks-open-network-stream "socks" (name buffer host service))
 (declare-function url-host "url-parse" (cl-x))
 (declare-function url-password "url-parse" (cl-x))
 (declare-function url-portspec "url-parse" (cl-x))
@@ -2597,6 +2599,22 @@ PARAMETERS should be a sequence of keywords and values, per
       (setq p (plist-put p :nowait t)))
     (setq args `(,name ,buffer ,host ,port ,@p))
     (apply #'open-network-stream args)))
+
+(defun erc-open-socks-tls-stream (name buffer host service &rest parameters)
+  "Connect to an IRC server via SOCKS proxy over TLS.
+Bind `erc-server-connect-function' to this function around calls
+to `erc-tls'.  See `erc-open-network-stream' for the meaning of
+NAME and BUFFER.  HOST should be a \".onion\" URL, SERVICE a TLS
+port number, and PARAMETERS a sequence of key/value pairs, per
+`open-network-stream'.  See Info node `(erc) SOCKS' for more
+info."
+  (require 'gnutls)
+  (require 'socks)
+  (let ((proc (socks-open-network-stream name buffer host service))
+        (cert-info (plist-get parameters :client-certificate)))
+    (gnutls-negotiate :process proc
+                      :hostname host
+                      :keylist (and cert-info (list cert-info)))))
 
 ;;; Displaying error messages
 

@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
-@set ERCVER 5.5
+@set ERCVER 5.6
 @set ERCDIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex fn cp
@@ -611,6 +611,7 @@ And unlike global toggles, none of these ever mutates
 Integrations
 
 * URL::                         Opening IRC URLs in ERC.
+* SOCKS::                       Connecting to IRC with a SOCKS proxy.
 * auth-source::                 Retrieving auth-source entries with ERC.
 
 @end detailmenu
@@ -1251,6 +1252,57 @@ need a function as well:
 
 @noindent
 Users on Emacs 28 and below may need to use @code{browse-url} instead.
+
+@anchor{SOCKS}
+@subsection SOCKS
+@cindex SOCKS
+
+People wanting to connect to IRC through a @acronym{SOCKS} proxy are
+most likely interested in doing so over @acronym{TOR} (The Onion
+Router).  If that's @emph{not} you, please adapt these instructions
+accordingly.  Otherwise, keep in mind that support for Tor is
+experimental and thus insufficient for safeguarding a user's identity
+and location, especially in the case of targeted individuals.
+
+ERC's preferred Tor setup works by accessing a local Tor service
+through the built-in @file{socks.el} library that ships with Emacs.
+Other means of accessing Tor, such as via @command{torsocks}, are not
+supported.  Before getting started, check that your Tor service is up
+and running.  You can do that with the following command:
+
+@example
+curl --proxy socks5h://localhost:9050 https://check.torproject.org | \
+  grep 'Congratulations'
+@end example
+
+Networks and servers differ in how they expose Tor endpoints.  In all
+cases, you'll want to first set the option @code{socks-server} to
+something appropriate, like @code{("tor" "127.0.0.1" 9050 5)}.  For
+some networks, setting @code{erc-server-connect-function} to
+@code{socks-open-network-stream} might be enough.  Others, like
+@samp{Libera.Chat}, involve additional setup.  At the time of writing,
+connecting to @samp{Libera.Chat} requires both @acronym{TLS} and a
+non-@samp{PLAIN} @acronym{SASL} mechanism (@pxref{SASL}).  One way to
+achieve that is by using the @samp{EXTERNAL} mechanism, as shown in
+the following example:
+
+@lisp
+(require 'erc)
+(require 'socks)
+
+(let* ((socks-password "")
+       (socks-server '("tor" "localhost" 9050 5))
+       (erc-modules (cons 'sasl erc-modules))
+       (erc-sasl-mechanism 'external)
+       (erc-server-connect-function #'erc-open-socks-tls-stream))
+  (erc-tls
+   :server "libera75jm6of4wxpxt4aynol3xjmbtxgfyjpu34ss4d7r7q2v5zrpyd.onion"
+   :port 6697
+   :nick "jrh"
+   :user "jrandomhacker"
+   :full-name "J. Random Hacker"
+   :client-certificate (list "/home/jrh/key.pem" "/home/jrh/cert.pem")))
+@end lisp
 
 @node auth-source
 @subsection auth-source
