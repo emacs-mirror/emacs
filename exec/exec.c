@@ -983,7 +983,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	  /* Copy over /proc, the PID, and /cwd/.  */
 	  rewrite = stpcpy (buffer, "/proc/");
 	  rewrite = format_pid (rewrite, tracee->pid);
-	  stpcpy (rewrite, "/cwd");
+	  strcpy (rewrite, "/cwd");
 
 	  /* Resolve this symbolic link.  */
 
