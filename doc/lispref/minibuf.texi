@@ -2174,13 +2174,14 @@ will not have serious consequences.  @code{yes-or-no-p} is suitable for
 more momentous questions, since it requires three or four characters to
 answer.
 
-   If either of these functions is called in a command that was invoked
-using the mouse---more precisely, if @code{last-nonmenu-event}
-(@pxref{Command Loop Info}) is either @code{nil} or a list---then it
-uses a dialog box or pop-up menu to ask the question.  Otherwise, it
-uses keyboard input.  You can force use either of the mouse or of keyboard
-input by binding @code{last-nonmenu-event} to a suitable value around
-the call.
+   If either of these functions is called in a command that was
+invoked using the mouse or some other window-system gesture, or in a
+command invoked via a menu, then they use a dialog box or pop-up menu
+to ask the question if dialog boxes are supported.  Otherwise, they
+use keyboard input.  You can force use either of the mouse or of
+keyboard input by binding @code{last-nonmenu-event} to a suitable
+value around the call---bind it to @code{t} to force keyboard
+interaction, and to a list to force dialog boxes.
 
   Both @code{yes-or-no-p} and @code{y-or-n-p} use the minibuffer.
 
@@ -2378,13 +2379,14 @@ Normally, @code{map-y-or-n-p} binds @code{cursor-in-echo-area} while
 prompting.  But if @var{no-cursor-in-echo-area} is non-@code{nil}, it
 does not do that.
 
-If @code{map-y-or-n-p} is called in a command that was invoked using the
-mouse---more precisely, if @code{last-nonmenu-event} (@pxref{Command
-Loop Info}) is either @code{nil} or a list---then it uses a dialog box
-or pop-up menu to ask the question.  In this case, it does not use
-keyboard input or the echo area.  You can force use either of the mouse or
-of keyboard input by binding @code{last-nonmenu-event} to a suitable
-value around the call.
+If @code{map-y-or-n-p} is called in a command that was invoked using
+the mouse or some other window-system gesture, or a command invoked
+via a menu, then it uses a dialog box or pop-up menu to ask the
+question if dialog boxes are supported.  In this case, it does not use
+keyboard input or the echo area.  You can force use either of the
+mouse or of keyboard input by binding @code{last-nonmenu-event} to a
+suitable value around the call---bind it to @code{t} to force keyboard
+interaction, and to a list to force dialog boxes.
 
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
