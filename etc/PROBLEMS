@@ -521,7 +521,7 @@ The solution is to use gawk (GNU awk).
 This is known to happen with GnuPG v2.4.1.  The only known workaround
 is to downgrade to a version of GnuPG older than 2.4.1 (or, in the
 future, upgrade to a newer version which solves the problem, when such
-a fixed version becomes available)
+a fixed version becomes available).
 
 ** Problems with hostname resolution
 
