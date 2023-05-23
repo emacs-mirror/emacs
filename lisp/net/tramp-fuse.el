@@ -141,7 +141,7 @@
 
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point")
+  (or (tramp-get-file-property vec "/" "mount-point")
       (expand-file-name
        (concat
 	tramp-temp-name-prefix
@@ -173,8 +173,11 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec)))
+		      " on " (group (+ (not blank))) blank)
 	          mount)
+	     (tramp-set-file-property
+	      vec "/" "mount-point" (match-string 2 mount))
              (match-string 1 mount)))))))
 
 (defun tramp-fuse-get-fusermount ()
