@@ -136,9 +136,10 @@ Some minor quality-of-life niceties have finally made their way to
 ERC.  For example, the function 'erc-echo-timestamp' is now
 interactive and can be invoked on any message to view its timestamp in
 the echo area.  The command 'erc-button-previous' now moves to the
-beginning instead of the end of buttons.  And the 'irccontrols' module
-now supports additional colors and special handling for "spoilers"
-(hidden text).
+beginning instead of the end of buttons.  A new command, 'erc-news',
+can now be invoked to visit this very file.  And the 'irccontrols'
+module now supports additional colors and special handling for
+"spoilers" (hidden text).
 
 ** Changes in the library API.
 
