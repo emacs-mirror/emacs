@@ -160,14 +160,15 @@ Client arenas
       :c:func:`mps_arena_pause_time_set` for details.
 
     * :c:macro:`MPS_KEY_ARENA_EXTENDED` (type :c:type:`mps_fun_t`) is
-      a function that will be called when the arena is *extended*:
-      that is, when it acquires a new chunk of address space from the
-      operating system. See :ref:`topic-arena-extension` for details.
+      a function that will be called immediately after the arena is
+      *extended*: that is, just after it acquires a new chunk of address
+      space from the operating system. See :ref:`topic-arena-extension`
+      for details.
 
     * :c:macro:`MPS_KEY_ARENA_CONTRACTED` (type :c:type:`mps_fun_t`)
-      is a function that will be called when the arena is
-      *contracted*: that is, when it finishes with a chunk of address
-      space and returns it to the operating system. See
+      is a function that will be called immediately before the arena is
+      *contracted*: that is, just before it finishes with a chunk of
+      address space and returns it to the operating system. See
       :ref:`topic-arena-extension` for details.
 
     For example::
@@ -1124,6 +1125,21 @@ chunk, in bytes). They must not call any function in the MPS, and must
 not access any memory managed by the MPS.
 
 .. note::
+
+    The extenstion callback is also called immediately after the arena
+    is created, in other words, the creation of the arena is treated as
+    a special example of an extension of the arena.
+
+    Unlike the extension callback, the contraction callback is not called
+    when the arena is destroyed.
+
+    Every contraction of the arena will match one-to-one with the arena
+    extensions that have already taken place. After creation, any
+    contractions performed by the arena will be the same size as the
+    extensions that have already taken place. Contractions never occur as
+    amalgamations nor as fractions of previous arena extensions.
+    If an arena has never extended beyond its original size, it will never
+    call the contraction callback.
 
     Arena extension callbacks are only supported by :term:`virtual
     memory arenas`.
