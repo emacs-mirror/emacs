@@ -127,7 +127,10 @@ command leaves point in the window.  This variable affects all the
 scroll commands documented in this section, as well as scrolling with
 the mouse wheel (@pxref{Mouse Commands}); in general, it affects any
 command that has a non-@code{nil} @code{scroll-command} property.
-@xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.
+@xref{Property Lists,,, elisp, The Emacs Lisp Reference Manual}.  The
+same property also causes Emacs not to exit incremental search when
+one of these commands is invoked and @code{isearch-allow-scroll} is
+non-@code{nil} (@pxref{Not Exiting Isearch}).
 
 @vindex fast-but-imprecise-scrolling
   Sometimes, particularly when you hold down keys such as @kbd{C-v}
