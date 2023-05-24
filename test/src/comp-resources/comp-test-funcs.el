@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defvar comp-tests-var1 3)
 
 (defun comp-tests-varref-f ()
@@ -530,6 +532,12 @@
     (comp-test-62537-1-f))
   t)
 
+(cl-defstruct comp-test-struct)
+
+(defun comp-test-63674-1-f (x)
+  (or
+   (if (comp-test-struct-p pkg) x)
+   t))
 
 
 ;;;;;;;;;;;;;;;;;;;;
