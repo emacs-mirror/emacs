@@ -2633,7 +2633,9 @@ sfnt_round_fixed (int32_t number)
    CONTEXT should be zeroed and put on the stack.  OFF_X and OFF_Y
    should be zero, as should RECURSION_COUNT.  GET_GLYPH and
    FREE_GLYPH, along with DCONTEXT, mean the same as in
-   sfnt_decompose_glyph.  */
+   sfnt_decompose_glyph.
+
+   Value is 1 upon failure, else 0.  */
 
 static int
 sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
@@ -2664,8 +2666,10 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
      point 1 will be 1 + base_index, and so on.  */
   base_index = context->num_points;
 
-  /* Prevent infinite loops.  */
-  if (recursion_count > 12)
+  /* Prevent infinite loops.  Simply limit the level of nesting to the
+     maximum valid value of `max_component_depth', which is 16.  */
+
+  if (recursion_count > 16)
     return 1;
 
   /* Don't defer offsets.  */
@@ -2679,7 +2683,7 @@ sfnt_decompose_compound_glyph (struct sfnt_glyph *glyph,
 			    dcontext, &need_free);
 
       if (!subglyph)
-	return -1;
+	return 1;
 
       /* Record the size of the point array before expansion.  This
 	 will be the base to apply to all points coming from this
@@ -6005,26 +6009,26 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	  TRAP ("invalid function");		\
 						\
 	if (def->opcode == id)			\
-	  sfnt_interpret_call (def,		\
-			       interpreter,	\
-			       why);		\
-	if (def->opcode == id)			\
-	  break;				\
+	  {					\
+	    sfnt_interpret_call (def,		\
+				 interpreter,	\
+				 why);		\
+	    goto next_instruction;		\
+	  }					\
       }						\
 						\
-    if (i == interpreter->function_defs_size)	\
-      TRAP ("invalid function");		\
+    TRAP ("invalid function");			\
   }
 
 #define LOOPCALL()				\
   {						\
-    uint32_t id, i;				\
+    uint32_t id;				\
     int32_t n;					\
+    int i;					\
     struct sfnt_interpreter_definition *def;	\
 						\
     id = POP ();				\
     n = POP ();					\
-    def = NULL; /* Pacify -fanalyzer.  */	\
 						\
     if (n > 65535)				\
       TRAP ("invalid LOOPCALL count");		\
@@ -6039,11 +6043,10 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
 	  TRAP ("invalid function");		\
 						\
 	if (def->opcode == id)			\
-	  break;				\
+	  goto loopcall_begin;			\
       }						\
 						\
-    if (i == interpreter->function_defs_size)	\
-      TRAP ("invalid function");		\
+    TRAP ("invalid function");			\
 						\
   loopcall_begin:				\
     if (n-- <= 0)				\
@@ -10828,6 +10831,7 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	    NOT_IMPLEMENTED ();
 	}
 
+    next_instruction:
       /* In the case of an NPUSHB or NPUSHW instruction,
 	 interpreter->IP has only been increased to skip over the
 	 extra bytes, and not the byte containing the instruction
@@ -11568,7 +11572,8 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
    METRICS are the unscaled metrics of this compound glyph.
 
    Other arguments mean the same as they do in
-   `sfnt_interpret_compound_glyph'.  */
+   `sfnt_interpret_compound_glyph'.  Value is NULL upon success, or a
+   string describing the reason for failure.  */
 
 static const char *
 sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
@@ -11613,8 +11618,10 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
   /* And this is the index of the first contour in this glyph.  */
   base_contour = context->num_end_points;
 
-  /* Prevent infinite loops.  */
-  if (recursion_count > 12)
+  /* Prevent infinite loops.  Simply limit the level of nesting to the
+     maximum valid value of `max_component_depth', which is 16.  */
+
+  if (recursion_count > 16)
     return "Overly deep recursion in compound glyph data";
 
   /* Don't defer offsets.  */
@@ -12014,14 +12021,22 @@ sfnt_interpret_compound_glyph (struct sfnt_glyph *glyph,
   outline->flags = (unsigned char *) (outline->y_points
 				      + outline->num_points);
 
-  /* Copy over the contour endpoints, points, and flags.  */
-  memcpy (outline->contour_end_points, context.contour_end_points,
-	  outline->num_contours * sizeof *outline->contour_end_points);
-  memcpy (outline->x_points, context.x_coordinates,
-	  outline->num_points * sizeof *outline->x_points);
-  memcpy (outline->y_points, context.y_coordinates,
-	  outline->num_points * sizeof *outline->y_points);
-  memcpy (outline->flags, context.flags, context.num_points);
+  /* Copy over the contour endpoints, points, and flags.  Note that
+     all arrays in `context' are NULL unless num_contours is
+     non-zero.  */
+
+  if (context.num_end_points)
+    memcpy (outline->contour_end_points, context.contour_end_points,
+	    outline->num_contours * sizeof *outline->contour_end_points);
+
+  if (context.num_points)
+    {
+      memcpy (outline->x_points, context.x_coordinates,
+	      outline->num_points * sizeof *outline->x_points);
+      memcpy (outline->y_points, context.y_coordinates,
+	      outline->num_points * sizeof *outline->y_points);
+      memcpy (outline->flags, context.flags, context.num_points);
+    }
 
   /* Free the context data.  */
   xfree (context.x_coordinates);
@@ -13360,6 +13375,16 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
   tuple = buffer;
   points = NULL;
 
+  /* Initialize `npoints' to zero.  The specification doesn't say what
+     should happen with tuples using shared point numbers if it is not
+     set later on; simply assume no points at all apply to such a
+     tuple.  */
+
+  npoints = 0;
+
+  /* Initialize `size' to 0.  */
+  size = 0;
+
   if (cvar->tuple_count & 0x8000)
     {
       points = sfnt_read_packed_points (data, &npoints, end,
@@ -13367,11 +13392,12 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
       if (!points)
 	goto bail1;
 
-      /* Add npoints words to the size.  */
-      size = npoints * sizeof *points;
+      /* Add npoints words to the size.  If npoints is UINT16_MAX, no
+	 coordinates will actually be allocated.  */
+
+      if (npoints != UINT16_MAX)
+	size = npoints * sizeof *points;
     }
-  else
-    size = 0;
 
   while (ntuples--)
     {
@@ -13394,8 +13420,8 @@ sfnt_read_cvar_table (int fd, struct sfnt_offset_subtable *subtable,
 
       if (index & 0x8000)
 	{
-	  /* Embedded coordinates are present.  Read each
-	     coordinate and add it to the size.  */
+	  /* Embedded coordinates are present.  Read each coordinate
+	     and add it to the size.  */
 
 	  if (tuple + fvar->axis_count * sizeof *coords - 1 >= end)
 	    goto bail2;
@@ -14289,7 +14315,10 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   data_offset = header.data_offset;
 
   /* If gvar->flags & tuples_share_point_numbers, read the shared
-     point numbers.  */
+     point numbers.  Initialize `npoints' to zero.  The specification
+     doesn't say what should happen with tuples using shared point
+     numbers if it is not set later on; simply assume no points at all
+     apply to such a tuple.  */
 
   npoints = 0;
 
