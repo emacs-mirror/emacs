@@ -641,11 +641,14 @@ Useful to hook into pass checkers.")
 
 (defun comp-known-predicate-p (predicate)
   "Return t if PREDICATE is known."
-  (when (gethash predicate comp-known-predicates-h) t))
+  (when (or (gethash predicate comp-known-predicates-h)
+            (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt)))
+    t))
 
 (defun comp-pred-to-cstr (predicate)
   "Given PREDICATE, return the corresponding constraint."
-  (gethash predicate comp-known-predicates-h))
+  (or (gethash predicate comp-known-predicates-h)
+      (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
@@ -1540,7 +1543,7 @@ STACK-OFF is the index of the first slot frame involved."
                              for sp from stack-off
                              collect (comp-slot-n sp))))
 
-(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
+(cl-defun make-comp-mvar (&key slot (constant nil const-vld) type neg)
   "`comp-mvar' initializer."
   (let ((mvar (make--comp-mvar :slot slot)))
     (when const-vld
@@ -1548,6 +1551,8 @@ STACK-OFF is the index of the first slot frame involved."
       (setf (comp-cstr-imm mvar) constant))
     (when type
       (setf (comp-mvar-typeset mvar) (list type)))
+    (when neg
+      (setf (comp-mvar-neg mvar) t))
     mvar))
 
 (defun comp-new-frame (size vsize &optional ssa)
@@ -2543,6 +2548,19 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
+      (`((set ,(and (pred comp-mvar-p) mvar-tested-copy)
+              ,(and (pred comp-mvar-p) mvar-tested))
+         (set ,(and (pred comp-mvar-p) mvar-1)
+              (call type-of ,(and (pred comp-mvar-p) mvar-tested-copy)))
+         (set ,(and (pred comp-mvar-p) mvar-2)
+              (call symbol-value ,(and (pred comp-cstr-cl-tag-p) mvar-tag)))
+         (set ,(and (pred comp-mvar-p) mvar-3)
+              (call memq ,(and (pred comp-mvar-p) mvar-1) ,(and (pred comp-mvar-p) mvar-2)))
+         (cond-jump ,(and (pred comp-mvar-p) mvar-3) ,(pred comp-mvar-p) ,bb1 ,bb2))
+       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag)))
+              (comp-block-insns (comp-add-cond-cstrs-target-block b bb2)))
+       (push  `(assume ,mvar-tested ,(make-comp-mvar :type (comp-cstr-cl-tag mvar-tag) :neg t))
+              (comp-block-insns (comp-add-cond-cstrs-target-block b bb1))))
       (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp-call-op-p)
                ,(and (or (pred comp-equality-fun-p)
@@ -3198,7 +3216,11 @@ Fold the call in case."
       (+ (comp-cstr-add lval args))
       (- (comp-cstr-sub lval args))
       (1+ (comp-cstr-add lval `(,(car args) ,comp-cstr-one)))
-      (1- (comp-cstr-sub lval `(,(car args) ,comp-cstr-one))))))
+      (1- (comp-cstr-sub lval `(,(car args) ,comp-cstr-one)))
+      (record (when (comp-cstr-imm-vld-p (car args))
+                (comp-cstr-shallow-copy lval
+                                        (comp-type-spec-to-cstr
+                                         (comp-cstr-imm (car args)))))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."

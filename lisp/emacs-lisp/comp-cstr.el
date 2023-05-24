@@ -86,7 +86,35 @@ Integer values are handled in the `range' slot.")
   (ret nil :type (or comp-cstr comp-cstr-f)
        :documentation "Returned value."))
 
+(defun comp--cl-class-hierarchy (x)
+  "Given a class name `x' return its hierarchy."
+  `(,@(mapcar #'cl--struct-class-name (cl--struct-all-parents
+                                       (cl--struct-get-class x)))
+    atom
+    t))
+
+(defun comp--all-classes ()
+  "Return all non built-in type names currently defined."
+  (let (res)
+    (mapatoms (lambda (x)
+                (when (cl-find-class x)
+                  (push x res)))
+              obarray)
+    res))
+
 (cl-defstruct comp-cstr-ctxt
+  (typeof-types (append comp--typeof-builtin-types
+                        (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
+                :type list
+                :documentation "Type hierarchy.")
+  (pred-type-h (cl-loop with h = (make-hash-table :test #'eq)
+	                for class-name in (comp--all-classes)
+                        for pred = (get class-name 'cl-deftype-satisfies)
+                        when pred
+                          do (puthash pred class-name h)
+	                finally return h)
+               :type hash-table
+               :documentation "Hash pred -> type.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
                       :documentation "Serve memoization for
 `comp-union-typesets'.")
@@ -230,7 +258,7 @@ Return them as multiple value."
   (cl-loop
    named outer
    with found = nil
-   for l in comp--typeof-builtin-types
+   for l in (comp-cstr-ctxt-typeof-types comp-ctxt)
    do (cl-loop
        for x in l
        for i from (length l) downto 0
@@ -273,7 +301,7 @@ Return them as multiple value."
                (cl-loop
                 with types = (apply #'append typesets)
                 with res = '()
-                for lane in comp--typeof-builtin-types
+                for lane in (comp-cstr-ctxt-typeof-types comp-ctxt)
                 do (cl-loop
                     with last = nil
                     for x in lane
@@ -866,6 +894,23 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (range cstr))
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
+
+;; Move to comp.el?
+(defsubst comp-cstr-cl-tag-p (cstr)
+  "Return non-nil if CSTR is a CL tag."
+  (with-comp-cstr-accessors
+    (and (null (range cstr))
+         (null (neg cstr))
+         (null (typeset cstr))
+         (length= (valset cstr) 1)
+         (string-match (rx "cl-struct-" (group-n 1 (1+ not-newline)) "-tags")
+                       (symbol-name (car (valset cstr)))))))
+
+(defsubst comp-cstr-cl-tag (cstr)
+  "If CSTR is a CL tag return its tag name."
+  (with-comp-cstr-accessors
+    (and (comp-cstr-cl-tag-p cstr)
+         (intern (match-string 1 (symbol-name (car (valset cstr))))))))
 
 (defun comp-cstr-= (dst op1 op2)
   "Constraint OP1 being = OP2 setting the result into DST."
