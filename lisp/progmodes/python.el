@@ -6018,8 +6018,7 @@ point's current `syntax-ppss'."
     (let ((counter 1)
           (indentation (current-indentation))
           (backward-sexp-point)
-          (re (concat "[uU]?[rR]?"
-                      (python-rx string-delimiter))))
+          (re "[uU]?[rR]?[\"']"))
       (when (and
              (not (python-info-assignment-statement-p))
              (looking-at-p re)
@@ -6040,9 +6039,7 @@ point's current `syntax-ppss'."
                                                     backward-sexp-point))
                                      (setq last-backward-sexp-point
                                            backward-sexp-point))
-                                   (looking-at-p
-                                    (concat "[uU]?[rR]?"
-                                            (python-rx string-delimiter))))))
+                                   (looking-at-p re))))
                   ;; Previous sexp was a string, restore point.
                   (goto-char backward-sexp-point)
                   (cl-incf counter))
