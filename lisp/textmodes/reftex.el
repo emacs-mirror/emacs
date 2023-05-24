@@ -477,9 +477,9 @@ will deactivate it."
 		     changed t)
 	       (setq list (delete style list))))
 	    (t
-	     (if (member style list)
-		 (delete style list)
-	       (setq list (append list (list style))))
+             (setq list (if (member style list)
+		            (delete style list)
+                          (append list (list style))))
 	     (setq reftex-tables-dirty t
 		   changed t)))
       (when changed

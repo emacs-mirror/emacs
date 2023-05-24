@@ -6307,7 +6307,7 @@ not its value."
           (if (yes-or-no-p (format-message
 			    "%s entry `%s' is unbound -- remove it? "
 			    configvar-name sym))
-              (delq sym (symbol-value configvar-name)))
+              (set configvar-name (delq sym (symbol-value configvar-name))))
         (push (symbol-value sym) got)))
     (reverse got)))
 ;;;_  : Topics:

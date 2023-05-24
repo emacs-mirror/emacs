@@ -4653,7 +4653,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	    (setcar alias (car x))
 	    (push alias idlwave-system-routines)))
     (cl-loop for x in remove-list do
-	  (delq x idlwave-system-routines))))
+	     (setq idlwave-system-routines (delq x idlwave-system-routines)))))
 
 (defun idlwave-convert-xml-clean-sysvar-aliases (aliases)
   ;; Duplicate and trim original routine aliases from rinfo list
@@ -4666,7 +4666,8 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	    (setcar alias (car x))
 	    (push alias idlwave-system-variables-alist)))
     (cl-loop for x in remove-list do
-	  (delq x idlwave-system-variables-alist))))
+	     (setq idlwave-system-variables-alist
+                   (delq x idlwave-system-variables-alist)))))
 
 
 (defun idlwave-xml-create-sysvar-alist (xml-entry)
