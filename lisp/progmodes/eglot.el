@@ -741,7 +741,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
      (((Command)) (eglot--request server :workspace/executeCommand action))
      (((CodeAction) edit command)
       (when edit (eglot--apply-workspace-edit edit))
-      (when command (eglot--request server :workspace/executeCommand action))))))
+      (when command (eglot--request server :workspace/executeCommand command))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
