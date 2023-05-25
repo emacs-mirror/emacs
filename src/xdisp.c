@@ -21081,8 +21081,10 @@ try_window_reusing_current_matrix (struct window *w)
 	    pt_row = first_row_to_display;
 	}
 
+      if (first_row_to_display->y >= yb)
+	return false;
+
       /* Start displaying at the start of first_row_to_display.  */
-      eassert (first_row_to_display->y < yb);
       init_to_row_start (&it, w, first_row_to_display);
 
       nrows_scrolled = (MATRIX_ROW_VPOS (first_reusable_row, w->current_matrix)
