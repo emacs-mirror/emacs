@@ -4867,8 +4867,11 @@ Goes through the list `tramp-inline-compress-commands'."
          (if (eq tramp-use-connection-share 'suppress)
              "none"
            ;; Hashed tokens are introduced in OpenSSH 6.7.
-	   (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
-	       "tramp.%%C" "tramp.%%r@%%h:%%p"))
+	   (expand-file-name
+	    (if (tramp-ssh-option-exists-p vec "ControlPath=tramp.%C")
+		"tramp.%%C" "tramp.%%r@%%h:%%p")
+	    (or small-temporary-file-directory
+		tramp-compat-temporary-file-directory)))
 
          ;; ControlPersist option is introduced in OpenSSH 5.6.
 	 (when (and (not (eq tramp-use-connection-share 'suppress))

@@ -850,12 +850,16 @@ It is the default value of the variable `top-level'."
     (let ((display (frame-parameter nil 'display)))
       ;; Be careful which DISPLAY to remove from process-environment: follow
       ;; the logic of `callproc.c'.
-      (if (stringp display) (setq display (concat "DISPLAY=" display))
-        (dolist (varval initial-environment)
-          (if (string-match "\\`DISPLAY=" varval)
-              (setq display varval))))
+      (if (stringp display)
+          (setq display (concat "DISPLAY=" display))
+        (let ((env initial-environment))
+          (while (and env (or (not (string-match "\\`DISPLAY=" (car env)))
+                              (progn
+                                (setq display (car env))
+                                nil)))
+            (setq env (cdr env)))))
       (when display
-        (delete display process-environment))))
+        (setq process-environment (delete display process-environment)))))
   (startup--honor-delayed-native-compilations))
 
 ;; Precompute the keyboard equivalents in the menu bar items.

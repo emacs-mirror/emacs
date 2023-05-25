@@ -149,7 +149,8 @@
 	(when (tramp-file-name-user vec)
 	  (concat (tramp-file-name-user-domain vec) "@"))
 	(tramp-file-name-host-port vec))
-       tramp-compat-temporary-file-directory)))
+       (or small-temporary-file-directory
+	   tramp-compat-temporary-file-directory))))
 
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)

@@ -3093,13 +3093,16 @@ To see the documentation for a defined struct type, use
                               (cons 'and (cdddr pred-form))
                             `(,predicate cl-x))))
     (when pred-form
-      (push `(,defsym ,predicate (cl-x)
+      (push `(eval-and-compile
+               ;; Define the predicate to be effective at compile time
+               ;; as native comp relies on `cl-typep' that relies on
+               ;; predicates to be defined as they are registered in
+               ;; cl-deftype-satisfies.
+               (,defsym ,predicate (cl-x)
                (declare (side-effect-free error-free) (pure t))
                ,(if (eq (car pred-form) 'and)
                     (append pred-form '(t))
                   `(and ,pred-form t)))
-            forms)
-      (push `(eval-and-compile
                (define-symbol-prop ',name 'cl-deftype-satisfies ',predicate))
             forms))
     (let ((pos 0) (descp descs))

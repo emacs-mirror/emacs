@@ -2277,7 +2277,9 @@ still unanswered LSP requests to the server\n")))
               (buffer (find-buffer-visiting path)))
         (with-current-buffer buffer
           (cl-loop
-           initially (assoc-delete-all path flymake-list-only-diagnostics)
+           initially
+           (setq flymake-list-only-diagnostics
+                 (assoc-delete-all path flymake-list-only-diagnostics))
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
