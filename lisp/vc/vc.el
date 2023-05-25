@@ -2851,7 +2851,8 @@ with its diffs (if the underlying VCS backend supports that)."
 
 ;;;###autoload
 (defun vc-print-branch-log (branch)
-  "Show the change log for BRANCH root in a window."
+  "Show the change log for BRANCH in a window.
+The command prompts for the branch to log."
   (interactive
    (let* ((backend (vc-responsible-backend default-directory))
           (rootdir (vc-call-backend backend 'root default-directory)))
