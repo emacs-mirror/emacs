@@ -3401,7 +3401,7 @@ read_bool_vector (Lisp_Object readcharfun)
 
 /* Skip (and optionally remember) a lazily-loaded string
    preceded by "#@".  Return true if this was a normal skip,
-   false if we read #@00 (which skips to EOB).  */
+   false if we read #@00 (which skips to EOB/EOF).  */
 static bool
 skip_lazy_string (Lisp_Object readcharfun)
 {
@@ -3938,7 +3938,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	       and function definitions that can be loaded lazily.  */
 	    if (skip_lazy_string (readcharfun))
 	      goto read_obj;
-	    obj = Qnil;	      /* #@00 skips to EOB and yields nil.  */
+	    obj = Qnil;	      /* #@00 skips to EOB/EOF and yields nil.  */
 	    break;
 
 	  case '$':
