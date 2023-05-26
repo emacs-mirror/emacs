@@ -154,6 +154,7 @@ usually more efficient than that of a simplified version:
   "Return the depth of REGEXP.
 This means the number of non-shy regexp grouping constructs
 \(parenthesized expressions) in REGEXP."
+  (declare (pure t) (side-effect-free t))
   (save-match-data
     ;; Hack to signal an error if REGEXP does not have balanced parentheses.
     (string-match regexp "")
@@ -270,6 +271,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 CHARS should be a list of characters.
 If CHARS is the empty list, the return value is a regexp that
 never matches anything."
+  (declare (pure t) (side-effect-free t))
   ;; The basic idea is to find character ranges.  Also we take care in the
   ;; position of character set meta characters in the character set regexp.
   ;;

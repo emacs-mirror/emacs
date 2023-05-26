@@ -1144,6 +1144,7 @@ If NO-GROUP is non-nil, don't bracket the result in a non-capturing
 group.
 
 For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
+  (declare (important-return-value t))
   (let* ((item (rx--translate form))
          (exprs (if no-group
                     (car item)
