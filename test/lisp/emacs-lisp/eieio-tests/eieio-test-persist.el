@@ -40,7 +40,7 @@ This is usually a symbol that starts with `:'."
 	(car tuple)
       nil)))
 
-(defun hash-equal (hash1 hash2)
+(defun eieio-test--hash-equal (hash1 hash2)
   "Compare two hash tables to see whether they are equal."
   (and (= (hash-table-count hash1)
           (hash-table-count hash2))
@@ -78,7 +78,7 @@ This is usually a symbol that starts with `:'."
 	(if initarg-p
 	    (unless
 		(cond ((and (hash-table-p origvalue) (hash-table-p fromdiskvalue))
-		       (hash-equal origvalue fromdiskvalue))
+		       (eieio-test--hash-equal origvalue fromdiskvalue))
 		      (t (equal origvalue fromdiskvalue)))
 	      (error "Slot %S Original Val %S != Persistent Val %S"
 		     oneslot origvalue fromdiskvalue))
@@ -87,7 +87,7 @@ This is usually a symbol that starts with `:'."
 		(diskval fromdiskvalue))
 	    (unless
 		(cond ((and (hash-table-p origval) (hash-table-p diskval))
-		       (hash-equal origval diskval))
+		       (eieio-test--hash-equal origval diskval))
 		      (t (equal origval diskval)))
 	    (error "Slot %S Persistent Val %S != Default Value %S"
 		   oneslot diskval origvalue))))))))

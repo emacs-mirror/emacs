@@ -231,6 +231,7 @@ chosen (interactively or automatically)."
                                 (erlang-mode . ("erlang_ls" "--transport" "stdio"))
                                 ((yaml-ts-mode yaml-mode) . ("yaml-language-server" "--stdio"))
                                 (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp")))
+                                (nickel-mode . ("nls"))
                                 (gdscript-mode . ("localhost" 6008))
                                 ((fortran-mode f90-mode) . ("fortls"))
                                 (futhark-mode . ("futhark" "lsp"))
@@ -740,7 +741,7 @@ ACTION is an LSP object of either `CodeAction' or `Command' type."
      (((Command)) (eglot--request server :workspace/executeCommand action))
      (((CodeAction) edit command)
       (when edit (eglot--apply-workspace-edit edit))
-      (when command (eglot--request server :workspace/executeCommand action))))))
+      (when command (eglot--request server :workspace/executeCommand command))))))
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'."
