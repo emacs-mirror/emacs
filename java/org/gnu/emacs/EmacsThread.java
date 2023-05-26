@@ -29,8 +29,9 @@ public class EmacsThread extends Thread
 {
   private static final String TAG = "EmacsThread";
 
-  /* Whether or not Emacs should be started -Q.  */
-  private boolean startDashQ;
+  /* Whether or not Emacs should be started with an additional
+     argument, and that additional argument if non-NULL.  */
+  private String extraStartupArgument;
 
   /* Runnable run to initialize Emacs.  */
   private Runnable paramsClosure;
@@ -40,10 +41,10 @@ public class EmacsThread extends Thread
 
   public
   EmacsThread (EmacsService service, Runnable paramsClosure,
-	       boolean startDashQ, String fileToOpen)
+	       String extraStartupArgument, String fileToOpen)
   {
     super ("Emacs main thread");
-    this.startDashQ = startDashQ;
+    this.extraStartupArgument = extraStartupArgument;
     this.paramsClosure = paramsClosure;
     this.fileToOpen = fileToOpen;
   }
@@ -56,18 +57,20 @@ public class EmacsThread extends Thread
 
     if (fileToOpen == null)
       {
-	if (!startDashQ)
+	if (extraStartupArgument == null)
 	  args = new String[] { "libandroid-emacs.so", };
 	else
-	  args = new String[] { "libandroid-emacs.so", "-Q", };
+	  args = new String[] { "libandroid-emacs.so",
+				extraStartupArgument, };
       }
     else
       {
-	if (!startDashQ)
+	if (extraStartupArgument != null)
 	  args = new String[] { "libandroid-emacs.so",
 				fileToOpen, };
 	else
-	  args = new String[] { "libandroid-emacs.so", "-Q",
+	  args = new String[] { "libandroid-emacs.so",
+				extraStartupArgument,
 				fileToOpen, };
       }
 

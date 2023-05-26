@@ -19,10 +19,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <Preference android:key="start_quick"
-		android:title="Restart Emacs with -Q"
-		android:summary="Restart Emacs, but do not load site lisp or init files."/>
-
+		android:title="@string/start_quick_title"
+		android:summary="@string/start_quick_caption"/>
+    <Preference android:key="start_debug_init"
+		android:title="@string/start_debug_init_title"
+		android:summary="@string/start_debug_init_caption"/>
     <Preference android:key="erase_dump"
-		android:title="Delete dump file"
-		android:summary="Remove the dumped state created when Emacs was installed"/>
+		android:title="@string/erase_dump_title"
+		android:summary="@string/erase_dump_caption"/>
 </PreferenceScreen>

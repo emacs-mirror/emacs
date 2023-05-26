@@ -42,10 +42,11 @@ import android.preference.*;
    Unfortunately, there is no alternative that looks the same way.  */
 
 @SuppressWarnings ("deprecation")
-public final class EmacsPreferencesActivity extends PreferenceActivity
+public class EmacsPreferencesActivity extends PreferenceActivity
 {
-  /* Restart Emacs with -Q.  Call EmacsThread.exit to kill Emacs now, and
-     tell the system to EmacsActivity with some parameters later.  */
+  /* Restart Emacs with -Q.  Call EmacsThread.exit to kill Emacs now,
+     and tell the system to start EmacsActivity with some parameters
+     later.  */
 
   private void
   startEmacsQ ()
@@ -55,7 +56,24 @@ public final class EmacsPreferencesActivity extends PreferenceActivity
     intent = new Intent (this, EmacsActivity.class);
     intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
 		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    intent.putExtra ("org.gnu.emacs.START_DASH_Q", true);
+    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--quick");
+    startActivity (intent);
+    System.exit (0);
+  }
+
+  /* Restart Emacs with `--debug-init'.  Call EmacsThread.exit to kill
+     Emacs now, and tell the system to EmacsActivity with some
+     parameters later.  */
+
+  private void
+  startEmacsDebugInit ()
+  {
+    Intent intent;
+
+    intent = new Intent (this, EmacsActivity.class);
+    intent.addFlags (Intent.FLAG_ACTIVITY_NEW_TASK
+		     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    intent.putExtra ("org.gnu.emacs.STARTUP_ARGUMENT", "--debug-init");
     startActivity (intent);
     System.exit (0);
   }
@@ -89,7 +107,7 @@ public final class EmacsPreferencesActivity extends PreferenceActivity
   }
 
   @Override
-  public void
+  public final void
   onCreate (Bundle savedInstanceState)
   {
     Preference tem;
@@ -111,7 +129,6 @@ public final class EmacsPreferencesActivity extends PreferenceActivity
        items.  */
 
     tem = findPreference ("start_quick");
-
     listener = new Preference.OnPreferenceClickListener () {
 	@Override
 	public boolean
@@ -123,9 +140,19 @@ public final class EmacsPreferencesActivity extends PreferenceActivity
       };
 
     tem.setOnPreferenceClickListener (listener);
+    tem = findPreference ("start_debug_init");
+    listener = new Preference.OnPreferenceClickListener () {
+	@Override
+	public boolean
+	onPreferenceClick (Preference preference)
+	{
+	  startEmacsDebugInit ();
+	  return true;
+	}
+      };
 
+    tem.setOnPreferenceClickListener (listener);
     tem = findPreference ("erase_dump");
-
     listener = new Preference.OnPreferenceClickListener () {
 	@Override
 	public boolean

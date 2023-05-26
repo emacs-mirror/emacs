@@ -193,11 +193,11 @@ public class EmacsActivity extends Activity
     ViewTreeObserver observer;
     int matchParent;
 
-    /* See if Emacs should be started with -Q.  */
+    /* See if Emacs should be started with any extra arguments, such
+       as `--quick'.  */
     intent = getIntent ();
-    EmacsService.needDashQ
-      = intent.getBooleanExtra ("org.gnu.emacs.START_DASH_Q",
-				false);
+    EmacsService.extraStartupArgument
+      = intent.getStringExtra ("org.gnu.emacs.STARTUP_ARGUMENT");
 
     matchParent = FrameLayout.LayoutParams.MATCH_PARENT;
     params

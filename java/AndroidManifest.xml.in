@@ -180,6 +180,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
       </intent-filter>
     </activity>
 
+    <!-- Android 6 and earlier don't display ``application
+         preferences'' activities in Settings, so display the
+         preferences activity as a launcher icon instead.  -->
+
+    <activity android:autoRemoveFromRecents="true"
+              android:label="Emacs options"
+	      android:enabled="@bool/isBeforeNougat"
+	      android:exported="@bool/isBeforeNougat"
+	      android:icon="@drawable/emacs_wrench"
+              android:name=".EmacsLauncherPreferencesActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+
     <provider android:name="org.gnu.emacs.EmacsDocumentsProvider"
 	      android:authorities="org.gnu.emacs"
 	      android:exported="true"

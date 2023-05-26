@@ -79,7 +79,10 @@ public final class EmacsService extends Service
 {
   public static final String TAG = "EmacsService";
   public static volatile EmacsService SERVICE;
-  public static boolean needDashQ;
+
+  /* If non-NULL, an extra argument to pass to
+     `android_emacs_init'.  */
+  public static String extraStartupArgument;
 
   private EmacsThread thread;
   private Handler handler;
@@ -231,7 +234,7 @@ public final class EmacsService extends Service
 					  (float) pixelDensityY,
 					  classPath, EmacsService.this);
 	    }
-	  }, needDashQ,
+	  }, extraStartupArgument,
 	  /* If any file needs to be opened, open it now.  */
 	  EmacsOpenActivity.fileToOpen);
 	thread.start ();

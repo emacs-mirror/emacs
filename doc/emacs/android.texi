@@ -608,16 +608,20 @@ to provide that style.
 @cindex troubleshooting, android
 
 @cindex emacs -Q, android
+@cindex emacs --debug-init, android
   Since Android has no command line, there is normally no way to
 specify command-line arguments when starting Emacs.  This is very
 nasty when you make a mistake in your Emacs initialization files that
 prevents Emacs from starting up at all, as the system normally
 prevents other programs from accessing Emacs's home directory.
+@xref{Initial Options}.
 
-  However, Emacs can be started with the equivalent of the
-@code{--quick} option (@pxref{Initial Options}) through a special
-preferences screen, which can be accessed through the Emacs ``app
-info'' page in the system settings application.
+  However, Emacs can be started with the equivalent of either the
+option @code{--quick}, or @code{--debug-init}, through a special
+preferences screen.  Under Android 7.0 and later, this can be accessed
+through the Emacs ``app info'' page in the system settings program; on
+older systems, this is displayed as a separate icon on the desktop
+labeled ``Emacs options''.
 
   Consult the manufacturer of your device for more details, as how to
 do this varies by device.
