@@ -350,7 +350,10 @@ Return nil if there is no name or if NODE is not a defun node."
       (treesit-node-child-by-field-name node "name") t))))
 
 (defun rust-ts-mode--syntax-propertize (beg end)
-  "Apply syntax text property to template delimiters between BEG and END.
+  "Apply syntax properties to various special characters with
+contextual meaning between BEG and END.
+
+' should be treated as string when used for char literals.
 
 < and > are usually punctuation, e.g., as greater/less-than.  But
 when used for types, they should be considered pairs.
@@ -359,11 +362,18 @@ This function checks for < and > in the changed RANGES and apply
 appropriate text property to alter the syntax of template
 delimiters < and >'s."
   (goto-char beg)
+  (while (search-forward "'" end t)
+    (when (string-equal "char_literal"
+                        (treesit-node-type
+                         (treesit-node-at (match-beginning 0))))
+      (put-text-property (match-beginning 0) (match-end 0)
+                         'syntax-table (string-to-syntax "\""))))
+  (goto-char beg)
   (while (re-search-forward (rx (or "<" ">")) end t)
     (pcase (treesit-node-type
             (treesit-node-parent
              (treesit-node-at (match-beginning 0))))
-      ("type_arguments"
+      ((or "type_arguments" "type_parameters")
        (put-text-property (match-beginning 0)
                           (match-end 0)
                           'syntax-table
