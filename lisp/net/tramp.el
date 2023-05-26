@@ -1670,8 +1670,9 @@ The structure consists of method, user, domain, host, port,
 localname (file name on remote host), and hop.
 
 Unless NODEFAULT is non-nil, method, user and host are expanded
-to their default values.  For the other file name parts, no
-default values are used."
+to their default values.  Hop is set to nil if NODEFAULT is non-nil.
+
+For the other file name parts, no default values are used."
   (save-match-data
     (unless (tramp-tramp-file-p name)
       (tramp-user-error nil "Not a Tramp file name: \"%s\"" name))
@@ -1697,7 +1698,8 @@ default values are used."
 	  (when (string-match tramp-postfix-ipv6-regexp host)
 	    (setq host (replace-match "" nil t host))))
 
-	(unless nodefault
+	(if nodefault
+	    (setq hop nil)
 	  (when hop
 	    (setq v (tramp-dissect-hop-name hop)
 		  hop (and hop (tramp-make-tramp-hop-name v))))

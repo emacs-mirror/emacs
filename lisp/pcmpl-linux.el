@@ -119,7 +119,8 @@ Test is done using `equal'."
   (with-temp-buffer
     (apply #'call-process
            "systemctl" nil '(t nil) nil
-           "list-units" "--full" "--legend=no" "--plain" args)
+           ;; "--legend=no" doesn't exist before systemd v248
+           "list-units" "--full" "--no-legend" "--plain" args)
     (goto-char (point-min))
     (let (result)
       (while (re-search-forward (rx bol (group (+ (not space)))

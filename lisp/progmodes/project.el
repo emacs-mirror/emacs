@@ -1808,11 +1808,12 @@ invoked immediately without any dispatch menu."
           (symbol :tag "Single command")))
 
 (defcustom project-switch-use-entire-map nil
-  "Make `project-switch-project' use entire `project-prefix-map'.
+  "Whether `project-switch-project' will use the entire `project-prefix-map'.
 If nil, `project-switch-project' will only recognize commands
-listed in `project-switch-commands' and signal an error when
-others are invoked.  Otherwise, all keys in `project-prefix-map'
-are legal even if they aren't listed in the dispatch menu."
+listed in `project-switch-commands', and will signal an error
+when other commands are invoked.  If this is non-nil, all the
+keys in `project-prefix-map' are valid even if they aren't
+listed in the dispatch menu produced from `project-switch-commands'."
   :type 'boolean
   :group 'project
   :version "28.1")

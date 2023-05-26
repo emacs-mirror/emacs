@@ -139,6 +139,11 @@ known to have problems, such as undesirable frame positioning and
 various issues with keyboard input of sequences such as 'C-;' and
 'C-S-u'.
 
+Note that, unlike the X build of Emacs, the PGTK build cannot
+automatically switch to text-mode interface (thus emulating '-nw') if
+it cannot determine the default display; it will instead complain and
+ask you to invoke it with the explicit '-nw' option.
+
 ---
 ** Emacs no longer reduces the size of the Japanese dictionary.
 Building Emacs includes generation of a Japanese dictionary, which is
@@ -1844,10 +1849,10 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 
 +++
 *** New command 'package-upgrade'.
-This command allows you to upgrade packages without using 'M-x
-list-packages'.  A package that comes with the Emacs distribution can
-only be upgraded after you install, once, a newer version from ELPA
-via the package-menu displayed by 'list-packages'.
+This command allows you to upgrade packages without using 'list-packages'.
+A package that comes with the Emacs distribution can only be upgraded
+after you install, once, a newer version from ELPA via the
+package-menu displayed by 'list-packages'.
 
 +++
 *** New command 'package-upgrade-all'.
@@ -1908,10 +1913,10 @@ enabled.
 
 In addition, when this option is non-nil, built-in packages for which
 a new version is available in archives can be upgraded via the package
-menu produced by 'M-x list-packages'.  If you do set this option
-non-nil, we recommend not to use the 'U' command, but instead to use
-'/ u' to show the packages which can be upgraded, and then decide
-which ones of them you actually want to update from the archives.
+menu produced by 'list-packages'.  If you do set this option non-nil,
+we recommend not to use the 'U' command, but instead to use '/ u' to
+show the packages which can be upgraded, and then decide which ones of
+them you actually want to update from the archives.
 
 If you customize this option, we recommend you place its non-default
 setting in your early-init file.
@@ -3870,6 +3875,19 @@ The following generalized variables have been made obsolete:
 'selected-frame', 'selected-screen', 'selected-window',
 'standard-case-table', 'syntax-table', 'visited-file-modtime',
 'window-height', 'window-width', and 'x-get-secondary-selection'.
+
+---
+** The 'dotimes' loop variable can no longer be manipulated in the loop body.
+Previously, the 'dotimes' loop counter could be modified inside the
+loop body, but only in code using dynamic binding.  Now the behavior
+is the same as when using lexical binding: changes to the loop
+variable have no effect on subsequent iterations.  That is,
+
+    (dotimes (i 10)
+      (print i)
+      (setq i (+ i 6)))
+
+now always prints the numbers 0 .. 9.
 
 
 * Lisp Changes in Emacs 29.1
