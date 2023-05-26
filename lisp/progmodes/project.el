@@ -468,7 +468,7 @@ variables, such as `project-vc-ignores' or `project-vc-name'."
   :type '(repeat string)
   :version "29.1"
   :package-version '(project . "0.9.0"))
-;;;###autoload(put 'project-vc-extra-root-markers 'safe-local-variable (lambda (val) (and (listp val) (cl-every #'stringp val))))
+;;;###autoload(put 'project-vc-extra-root-markers 'safe-local-variable (lambda (val) (and (listp val) (not (memq nil (mapcar #'stringp val))))))
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
