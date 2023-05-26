@@ -412,8 +412,8 @@ the buffer's value of `default-directory'."
 
 (defcustom project-vc-ignores nil
   "List of patterns to add to `project-ignores'."
-  :type '(repeat string)
-  :safe #'listp)
+  :type '(repeat string))
+;;;###autoload(put 'project-vc-ignores 'safe-local-variable #'listp)
 
 (defcustom project-vc-merge-submodules t
   "Non-nil to consider submodules part of the parent project.
@@ -422,14 +422,14 @@ After changing this variable (using Customize or .dir-locals.el)
 you might have to restart Emacs to see the effect."
   :type 'boolean
   :version "28.1"
-  :package-version '(project . "0.2.0")
-  :safe #'booleanp)
+  :package-version '(project . "0.2.0"))
+;;;###autoload(put 'project-vc-merge-submodules 'safe-local-variable #'booleanp)
 
 (defcustom project-vc-include-untracked t
   "When non-nil, the VC-aware project backend includes untracked files."
   :type 'boolean
-  :version "29.1"
-  :safe #'booleanp)
+  :version "29.1")
+;;;###autoload(put 'project-vc-include-untracked 'safe-local-variable #'booleanp)
 
 (defcustom project-vc-name nil
   "When non-nil, the name of the current VC-aware project.
@@ -439,8 +439,8 @@ its name, is by setting this in .dir-locals.el."
   :type '(choice (const :tag "Default to the base name" nil)
                  (string :tag "Custom name"))
   :version "29.1"
-  :package-version '(project . "0.9.0")
-  :safe #'stringp)
+  :package-version '(project . "0.9.0"))
+;;;###autoload(put 'project-vc-name 'safe-local-variable #'stringp)
 
 ;; Not using regexps because these wouldn't work in Git pathspecs, in
 ;; case we decide we need to be able to list nested projects.
@@ -467,8 +467,8 @@ In either case, their behavior will still obey the relevant
 variables, such as `project-vc-ignores' or `project-vc-name'."
   :type '(repeat string)
   :version "29.1"
-  :package-version '(project . "0.9.0")
-  :safe (lambda (val) (and (listp val) (cl-every #'stringp val))))
+  :package-version '(project . "0.9.0"))
+;;;###autoload(put 'project-vc-extra-root-markers 'safe-local-variable (lambda (val) (and (listp val) (cl-every #'stringp val))))
 
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
@@ -1476,8 +1476,8 @@ Used by `project-kill-buffers'."
   :type 'boolean
   :version "29.1"
   :group 'project
-  :package-version '(project . "0.8.2")
-  :safe #'booleanp)
+  :package-version '(project . "0.8.2"))
+;;;###autoload(put 'project-kill-buffers-display-buffer-list 'safe-local-variable #'booleanp)
 
 (defun project--buffer-check (buf conditions)
   "Check if buffer BUF matches any element of the list CONDITIONS.

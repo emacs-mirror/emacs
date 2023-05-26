@@ -730,10 +730,12 @@ Only modules on Emacs' list of allowed modules can be loaded.  */)
   bool do_allow = false;
   for (const char **allow = allowlist; *allow; allow++)
     {
-      if (strlen (*allow) < strlen (name)
-	  && !strncmp (*allow, name, strlen (*allow))
-	  && (!strcmp (name + strlen (*allow), ".so")
-	      || !strcasecmp (name + strlen (*allow), ".dll")))
+      ptrdiff_t allow_len = strlen (*allow);
+      if (allow_len < strlen (name)
+	  && !strncmp (*allow, name, allow_len)
+	  && (!strcmp (name + allow_len, ".so")
+	      ||!strcmp (name + allow_len, ".dylib")
+	      || !strcasecmp (name + allow_len, ".dll")))
 	{
 	  do_allow = true;
 	  break;

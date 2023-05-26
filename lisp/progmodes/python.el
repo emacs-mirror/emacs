@@ -869,18 +869,22 @@ decorators, exceptions, and assignments.")
 Which one will be chosen depends on the value of
 `font-lock-maximum-decoration'.")
 
-(defun python-font-lock-extend-region (beg end _old-len)
-  "Extend font-lock region given by BEG and END to statement boundaries."
-  (save-excursion
-    (save-match-data
-      (goto-char beg)
-      (python-nav-beginning-of-statement)
-      (setq beg (point))
-      (goto-char end)
-      (python-nav-end-of-statement)
-      (setq end (point))
-      (cons beg end))))
-
+(defvar font-lock-beg)
+(defvar font-lock-end)
+(defun python-font-lock-extend-region ()
+  "Extend font-lock region to statement boundaries."
+  (let ((beg font-lock-beg)
+        (end font-lock-end))
+    (goto-char beg)
+    (python-nav-beginning-of-statement)
+    (beginning-of-line)
+    (when (< (point) beg)
+      (setq font-lock-beg (point)))
+    (goto-char end)
+    (python-nav-end-of-statement)
+    (when (< end (point))
+      (setq font-lock-end (point)))
+    (or (/= beg font-lock-beg) (/= end font-lock-end))))
 
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
@@ -6078,8 +6082,7 @@ point's current `syntax-ppss'."
     (let ((counter 1)
           (indentation (current-indentation))
           (backward-sexp-point)
-          (re (concat "[uU]?[rR]?"
-                      (python-rx string-delimiter))))
+          (re "[uU]?[rR]?[\"']"))
       (when (and
              (not (python-info-assignment-statement-p))
              (looking-at-p re)
@@ -6100,9 +6103,7 @@ point's current `syntax-ppss'."
                                                     backward-sexp-point))
                                      (setq last-backward-sexp-point
                                            backward-sexp-point))
-                                   (looking-at-p
-                                    (concat "[uU]?[rR]?"
-                                            (python-rx string-delimiter))))))
+                                   (looking-at-p re))))
                   ;; Previous sexp was a string, restore point.
                   (goto-char backward-sexp-point)
                   (cl-incf counter))
@@ -6767,9 +6768,9 @@ implementations: `python-mode' and `python-ts-mode'."
               `(,python-font-lock-keywords
                 nil nil nil nil
                 (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)
-                (font-lock-extend-after-change-region-function
-                 . python-font-lock-extend-region)))
+                 . python-font-lock-syntactic-face-function)))
+  (add-hook 'font-lock-extend-region-functions
+            #'python-font-lock-extend-region nil t)
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)
   (setq-local imenu-create-index-function

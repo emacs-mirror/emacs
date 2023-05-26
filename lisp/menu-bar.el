@@ -2567,10 +2567,11 @@ See `menu-bar-mode' for more information."
       binding)))
 
 (defun popup-menu (menu &optional position prefix from-menu-bar)
-  "Popup the given menu and call the selected option.
+  "Popup MENU and call the selected option.
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
 `x-popup-menu'.
-The menu is shown at the place where POSITION specifies.
+The menu is shown at the location specified by POSITION, which
+defaults to the place of the mouse click that popped the menu.
 For the form of POSITION, see `popup-menu-normalize-position'.
 PREFIX is the prefix argument (if any) to pass to the command.
 FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."

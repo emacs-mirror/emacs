@@ -91,24 +91,6 @@ available, and includes support for animated WebP images.  To disable
 WebP support, use the '--without-webp' configure flag.  Image
 specifiers can now use ':type webp'.
 
-+++
-** Emacs has been ported to the Haiku operating system.
-The configuration process should automatically detect and build for
-Haiku.  There is also an optional window-system port to Haiku, which
-can be enabled by configuring Emacs with the option '--with-be-app',
-which will require the Haiku Application Kit development headers and a
-C++ compiler to be present on your system.  If Emacs is not built with
-the option '--with-be-app', the resulting Emacs will only run in
-text-mode terminals.
-
-To enable Cairo support, ensure that the Cairo and FreeType
-development files are present on your system, and configure Emacs with
-'--with-be-cairo'.
-
-Unlike X, there is no compile-time option to enable or disable
-double-buffering; it is always enabled.  To disable it, change the
-frame parameter 'inhibit-double-buffering' instead.
-
 ---
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
@@ -125,6 +107,16 @@ option '--without-xinput2' to disable this support.
 
 '(featurep 'xinput2)' can be used to test for the presence of XInput 2
 support from Lisp programs.
+
+---
+** Emacs can now be optionally built with the Cairo XCB backend.
+Configure Emacs with the '--with-cairo-xcb' option to use the Cairo
+XCB backend; the default is not to use it.  This backend makes Emacs
+moderately faster when running over X connections with high latency,
+but is currently known to crash when Emacs repeatedly closes and opens
+a display connection to the same terminal; this could happen, for
+example, if you repeatedly visit files via emacsclient in a single
+client frame, each time deleting the frame with 'C-x C-c'.
 
 +++
 ** Emacs now supports being built with pure GTK.
@@ -143,6 +135,24 @@ Note that, unlike the X build of Emacs, the PGTK build cannot
 automatically switch to text-mode interface (thus emulating '-nw') if
 it cannot determine the default display; it will instead complain and
 ask you to invoke it with the explicit '-nw' option.
+
++++
+** Emacs has been ported to the Haiku operating system.
+The configuration process should automatically detect and build for
+Haiku.  There is also an optional window-system port to Haiku, which
+can be enabled by configuring Emacs with the option '--with-be-app',
+which will require the Haiku Application Kit development headers and a
+C++ compiler to be present on your system.  If Emacs is not built with
+the option '--with-be-app', the resulting Emacs will only run in
+text-mode terminals.
+
+To enable Cairo support, ensure that the Cairo and FreeType
+development files are present on your system, and configure Emacs with
+'--with-be-cairo'.
+
+Unlike X, there is no compile-time option to enable or disable
+double-buffering; it is always enabled.  To disable it, change the
+frame parameter 'inhibit-double-buffering' instead.
 
 ---
 ** Emacs no longer reduces the size of the Japanese dictionary.

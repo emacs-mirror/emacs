@@ -3591,6 +3591,8 @@ confusing to some users.")
   "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
        (or (consp last-nonmenu-event)   ; invoked by a mouse event
+           (and (null last-nonmenu-event)
+                (consp last-input-event))
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
@@ -3623,8 +3625,9 @@ If the user enters `recenter', `scroll-up', or `scroll-down'
 responses, perform the requested window recentering or scrolling
 and ask again.
 
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil.
+If dialog boxes are supported, this function will use a dialog box
+if `use-dialog-box' is non-nil and the last input event was produced
+by a mouse, or by some window-system gesture, or via a menu.
 
 By default, this function uses the minibuffer to read the key.
 If `y-or-n-p-use-read-key' is non-nil, `read-key' is used
