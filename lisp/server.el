@@ -1143,8 +1143,18 @@ The following commands are accepted by the client:
 	  (process-put proc :authenticated t)
 	  (server-log "Authentication successful" proc))
       (server-log "Authentication failed" proc)
+      ;; Display the error as a message and give the user time to see
+      ;; it, in case the error written by emacsclient to stderr is not
+      ;; visible for some reason.
+      (message "Authentication failed")
+      (sit-for 2)
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
+      (unless (eq system-type 'windows-nt)
+        (let ((terminal (process-get proc 'terminal)))
+          ;; Only delete the terminal if it is non-nil.
+          (when (and terminal (eq (terminal-live-p terminal) t))
+	    (delete-terminal terminal))))
       ;; Before calling `delete-process', give emacsclient time to
       ;; receive the error string and shut down on its own.
       (sit-for 1)
@@ -1462,10 +1472,20 @@ The following commands are accepted by the client:
 
 (defun server-return-error (proc err)
   (ignore-errors
+    ;; Display the error as a message and give the user time to see
+    ;; it, in case the error written by emacsclient to stderr is not
+    ;; visible for some reason.
+    (message (error-message-string err))
+    (sit-for 2)
     (server-send-string
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
     (server-log (error-message-string err) proc)
+    (unless (eq system-type 'windows-nt)
+      (let ((terminal (process-get proc 'terminal)))
+        ;; Only delete the terminal if it is non-nil.
+        (when (and terminal (eq (terminal-live-p terminal) t))
+	  (delete-terminal terminal))))
     ;; Before calling `delete-process', give emacsclient time to
     ;; receive the error string and shut down on its own.
     (sit-for 5)
