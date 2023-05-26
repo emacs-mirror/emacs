@@ -3400,8 +3400,9 @@ read_bool_vector (Lisp_Object readcharfun)
 }
 
 /* Skip (and optionally remember) a lazily-loaded string
-   preceded by "#@".  */
-static void
+   preceded by "#@".  Return true if this was a normal skip,
+   false if we read #@00 (which skips to EOF).  */
+static bool
 skip_lazy_string (Lisp_Object readcharfun)
 {
   ptrdiff_t nskip = 0;
@@ -3427,9 +3428,9 @@ skip_lazy_string (Lisp_Object readcharfun)
       digits++;
       if (digits == 2 && nskip == 0)
 	{
-	  /* #@00 means "skip to end" */
+	  /* #@00 means "read nil and skip to end" */
 	  skip_dyn_eof (readcharfun);
-	  return;
+	  return false;
 	}
     }
 
@@ -3476,6 +3477,8 @@ skip_lazy_string (Lisp_Object readcharfun)
   else
     /* Skip that many bytes.  */
     skip_dyn_bytes (readcharfun, nskip);
+
+  return true;
 }
 
 /* Given a lazy-loaded string designator VAL, return the actual string.
@@ -3933,8 +3936,10 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    /* #@NUMBER is used to skip NUMBER following bytes.
 	       That's used in .elc files to skip over doc strings
 	       and function definitions that can be loaded lazily.  */
-	    skip_lazy_string (readcharfun);
-	    goto read_obj;
+	    if (skip_lazy_string (readcharfun))
+	      goto read_obj;
+	    obj = Qnil;	      /* #@00 skips to EOF and yields nil.  */
+	    break;
 
 	  case '$':
 	    /* #$ -- reference to lazy-loaded string */
