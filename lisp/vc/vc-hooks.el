@@ -899,7 +899,7 @@ In the latter case, VC mode is deactivated for this buffer."
 		  :help "Create version tag"))
     (bindings--define-key map [vc-print-branch-log]
       '(menu-item "Show Branch History..." vc-print-branch-log
-		  :help "List the change log for a branch"))
+		  :help "List the change log for another branch"))
     (bindings--define-key map [vc-switch-branch]
       '(menu-item "Switch Branch..." vc-switch-branch
 		  :help "Switch to another branch"))

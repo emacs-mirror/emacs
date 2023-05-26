@@ -1071,8 +1071,9 @@ revision at point.  A second @key{RET} hides it again.
 @findex vc-print-branch-log
   @kbd{C-x v b l @var{branch-name} @key{RET}} (@code{vc-print-branch-log})
 displays a @file{*vc-change-log*} buffer showing the history of the
-version-controlled directory tree like @code{vc-print-root-log} does,
-but in another branch provided as an argument.
+version-controlled directory tree, like @code{vc-print-root-log} does,
+but it shows the history of a branch other than the current one; it
+prompts for the branch whose history to display.
 
 @kindex C-x v I
 @kindex C-x v O
@@ -1690,7 +1691,7 @@ and so on, depending on the number of existing branches at that point.
 @findex vc-create-branch
   This procedure will not work for distributed version control systems
 like git or Mercurial.  For those systems you should use the command
-@code{vc-create-branch} (@kbd{C-x v b c @var{branch-name} @key{RET}})
+@code{vc-create-branch} (@w{@kbd{C-x v b c @var{branch-name} @key{RET}}})
 instead.
 
   To create a new branch at an older revision (one that is no longer
