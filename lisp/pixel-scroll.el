@@ -290,6 +290,10 @@ This is and alternative of `scroll-down'.  Scope moves upward."
             (scroll-down 1)              ; relay on robust method
           (pixel-scroll-pixel-down amt))))))
 
+;; isearch-scroll support
+(put 'pixel-scroll-up 'scroll-command t)
+(put 'pixel-scroll-down 'scroll-command t)
+
 (defun pixel-bob-at-top-p (amt)
   "Return non-nil if window-start is at beginning of the current buffer.
 Window must be vertically scrolled by not more than AMT pixels."
@@ -729,6 +733,9 @@ wheel."
                     (end-of-buffer
                      (message (error-message-string '(end-of-buffer))))))))))
       (mwheel-scroll event nil))))
+
+;; isearch-scroll support
+(put 'pixel-scroll-precision 'scroll-command t)
 
 (defun pixel-scroll-kinetic-state (&optional window)
   "Return the kinetic scroll state of WINDOW.

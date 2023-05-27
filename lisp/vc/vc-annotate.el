@@ -330,7 +330,7 @@ cover the range from the oldest annotation to the newest."
     ["Show changeset diff of revision at line"
      vc-annotate-show-changeset-diff-revision-at-line
      :enable
-     (eq 'repository (vc-call-backend ,vc-annotate-backend 'revision-granularity))
+     (eq 'repository (vc-call-backend vc-annotate-backend 'revision-granularity))
      :help "Visit the diff of the revision at line from its previous revision"]
     ["Visit revision at line" vc-annotate-find-revision-at-line
      :help "Visit the revision identified in the current line"]))

@@ -376,6 +376,13 @@ mark_pgtkterm (void)
   for (i = 0; i < n; i++)
     {
       union buffered_input_event *ev = &evq->q[i];
+
+      /* Selection requests don't have Lisp object members.  */
+
+      if (ev->ie.kind == SELECTION_REQUEST_EVENT
+	  || ev->ie.kind == SELECTION_CLEAR_EVENT)
+	continue;
+
       mark_object (ev->ie.x);
       mark_object (ev->ie.y);
       mark_object (ev->ie.frame_or_window);

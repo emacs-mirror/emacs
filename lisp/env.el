@@ -76,6 +76,7 @@ If it is non-nil and not a function, references to undefined variables are
 left unchanged.
 
 Use `$$' to insert a single dollar sign."
+  (declare (important-return-value t))
   (let ((start 0))
     (while (string-match env--substitute-vars-regexp string start)
       (cond ((match-beginning 1)
@@ -94,6 +95,7 @@ Use `$$' to insert a single dollar sign."
     string))
 
 (defun substitute-env-in-file-name (filename)
+  (declare (important-return-value t))
   (substitute-env-vars filename
                        ;; How 'bout we lookup other tables than the env?
                        ;; E.g. we could accept bookmark names as well!
@@ -104,6 +106,7 @@ Use `$$' to insert a single dollar sign."
 (defun setenv-internal (env variable value keep-empty)
   "Set VARIABLE to VALUE in ENV, adding empty entries if KEEP-EMPTY.
 Changes ENV by side-effect, and returns its new value."
+  (declare (important-return-value t))
   (let ((pattern (concat "\\`" (regexp-quote variable) "\\(=\\|\\'\\)"))
 	(case-fold-search nil)
 	(scan env)

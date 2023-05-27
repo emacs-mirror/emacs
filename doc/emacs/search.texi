@@ -587,26 +587,30 @@ i.e., they don't terminate the search, even if
 @item Scrolling Commands
 @cindex scrolling commands, during incremental search
 @vindex isearch-allow-scroll
-  Normally, scrolling commands exit incremental search.  If you change
-the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
-that enables the use of the scroll-bar, as well as keyboard scrolling
-commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l} (@pxref{Scrolling}).
-This applies only to calling these commands via their bound key
-sequences---typing @kbd{M-x} will still exit the search.  You can give
-prefix arguments to these commands in the usual way.  This feature
-normally won't let you scroll the current match out of visibility; but
-if you customize @code{isearch-allow-scroll} to the special value
-@code{unlimited}, that restriction is lifted.
+@cindex @code{scroll-command} property, and incremental search
+  Normally, scrolling commands exit incremental search.  But if you
+change the variable @code{isearch-allow-scroll} to a non-@code{nil}
+value, that enables the use of the scroll-bar, as well as keyboard
+scrolling commands like @kbd{C-v}, @kbd{M-v}, and @kbd{C-l}
+(@pxref{Scrolling}), which have a non-@code{nil} @code{scroll-command}
+property, without exiting the search.  This applies only to calling
+these commands via their bound key sequences---typing @kbd{M-x} will
+still exit the search.  You can give prefix arguments to these
+commands in the usual way.  This feature normally won't let you scroll
+the current match out of visibility; but if you customize
+@code{isearch-allow-scroll} to the special value @code{unlimited},
+that restriction is lifted.
 
+@cindex @code{isearch-scroll} property
+@cindex prevent commands from exiting incremental search
   The @code{isearch-allow-scroll} feature also affects some other
 commands, such as @kbd{C-x 2} (@code{split-window-below}) and
 @kbd{C-x ^} (@code{enlarge-window}), which don't exactly scroll but do
-affect where the text appears on the screen.  It applies to any
-command whose name has a non-@code{nil} @code{isearch-scroll}
-property.  So you can control which commands are affected by changing
-these properties.
+affect where the text appears on the screen.  In fact, it affects
+any command that has a non-@code{nil} @code{isearch-scroll} property.
+So you can control which commands are affected by changing these
+properties.
 
-@cindex prevent commands from exiting incremental search
   For example, to make @kbd{C-h l} usable within an incremental search
 in all future Emacs sessions, use @kbd{C-h c} to find what command it
 runs (@pxref{Key Help}), which is @code{view-lossage}.  Then you can
@@ -643,6 +647,7 @@ you can extend the search string by holding down the shift key while
 typing cursor motion commands.  It will yank text that ends at the new
 position after moving point in the current buffer.
 
+@cindex @code{isearch-move} property
 When @code{isearch-yank-on-move} is @code{t}, you can extend the
 search string without using the shift key for cursor motion commands,
 but it applies only for certain motion command that have the

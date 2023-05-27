@@ -38,6 +38,8 @@
 (require 'custom)
 (require 'dictionary-connection)
 (require 'button)
+(require 'help-mode)
+(require 'external-completion)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuff for customizing.
@@ -247,6 +249,65 @@ is utf-8"
                                )))
   :version "28.1")
 
+(defcustom dictionary-read-word-prompt "Search word"
+  "Prompt string to use when prompting for a word."
+  :type 'string
+  :version "30.1")
+
+(defcustom dictionary-display-definition-function nil
+  "Function to use for displaying dictionary definitions.
+It is called with three string arguments: the word being defined,
+the dictionary name, and the full definition."
+  :type '(choice (const :tag "Dictionary buffer" nil)
+                 (const :tag "Help buffer"
+                        dictionary-display-definition-in-help-buffer)
+                 (function :tag "Custom function"))
+  :version "30.1")
+
+(defcustom dictionary-read-word-function #'dictionary-read-word-default
+  "Function to use for prompting for a word.
+It is called with one string argument, the name of the dictionary to use, and
+must return a string."
+  :type '(choice (const :tag "Default" dictionary-read-word-default)
+                 (const :tag "Dictionary-based completion"
+                        dictionary-completing-read-word)
+                 (function :tag "Custom function"))
+  :version "30.1")
+
+(defcustom dictionary-read-dictionary-function
+  #'dictionary-read-dictionary-default
+  "Function to use for prompting for a dictionary.
+It is called with no arguments and must return a string."
+  :type '(choice (const :tag "Default" dictionary-read-dictionary-default)
+                 (const :tag "Choose among server-provided dictionaries"
+                        dictionary-completing-read-dictionary)
+                 (function :tag "Custom function"))
+  :version "30.1")
+
+(defcustom dictionary-search-interface nil
+  "Controls how `dictionary-search' prompts for words and displays definitions.
+
+When set to `help', `dictionary-search' displays definitions in a *Help* buffer,
+and provides completion for word selection based on dictionary matches.
+
+Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
+  :type '(choice (const :tag "Dictionary buffer" nil)
+                 (const :tag "Help buffer" help))
+  :set (lambda (symbol value)
+         (let ((vals (pcase value
+                       ('help '(dictionary-display-definition-in-help-buffer
+                                dictionary-completing-read-word
+                                dictionary-completing-read-dictionary))
+                       (_     '(nil
+                                dictionary-read-word-default
+                                dictionary-read-dictionary-default)))))
+           (seq-setq (dictionary-display-definition-function
+                      dictionary-read-word-function
+                      dictionary-read-dictionary-function)
+                     vals))
+         (set-default-toplevel-value symbol value))
+  :version "30.1")
+
 (defface dictionary-word-definition-face
 '((((supports (:family "DejaVu Serif")))
    (:family "DejaVu Serif"))
@@ -365,6 +426,8 @@ is utf-8"
 (defvar dictionary-word-history
   '()
   "History list of searched word.")
+
+(defvar dictionary--last-match nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Basic function providing startup actions
@@ -1139,6 +1202,20 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
    ((car (get-char-property (point) 'data)))
    (t (current-word t))))
 
+(defun dictionary-read-dictionary-default ()
+  "Prompt for a dictionary name."
+  (read-string (if dictionary-default-dictionary
+		   (format "Dictionary (%s): "
+                           dictionary-default-dictionary)
+		 "Dictionary: ")
+	       nil nil dictionary-default-dictionary))
+
+(defun dictionary-read-word-default (_dictionary)
+  "Prompt for a word to search in the dictionary."
+  (let ((default (dictionary-search-default)))
+    (read-string (format-prompt dictionary-read-word-prompt default)
+                 nil 'dictionary-word-history default)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User callable commands
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1149,23 +1226,22 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 It presents the selection or word at point as default input and
 allows editing it."
   (interactive
-   (list (let ((default (dictionary-search-default)))
-           (read-string (format-prompt "Search word" default)
-                        nil 'dictionary-word-history default))
-	 (if current-prefix-arg
-	     (read-string (if dictionary-default-dictionary
-			      (format "Dictionary (%s): " dictionary-default-dictionary)
-			    "Dictionary: ")
-			  nil nil dictionary-default-dictionary)
-	   dictionary-default-dictionary)))
-
-  ;; if called by pressing the button
-  (unless word
-    (setq word (read-string "Search word: " nil 'dictionary-word-history)))
-  ;; just in case non-interactively called
+   (let ((dict
+          (if current-prefix-arg
+              (funcall dictionary-read-dictionary-function)
+	    dictionary-default-dictionary)))
+     (list (funcall dictionary-read-word-function dict) dict)))
   (unless dictionary
     (setq dictionary dictionary-default-dictionary))
-  (dictionary-new-search (cons word dictionary)))
+  (if dictionary-display-definition-function
+      (if-let ((definition (dictionary-define-word word dictionary)))
+          (funcall dictionary-display-definition-function word dictionary definition)
+        (user-error "No definition found for \"%s\"" word))
+    ;; if called by pressing the button
+    (unless word
+      (setq word (read-string "Search word: " nil 'dictionary-word-history)))
+    ;; just in case non-interactively called
+    (dictionary-new-search (cons word dictionary))))
 
 ;;;###autoload
 (defun dictionary-lookup-definition ()
@@ -1385,6 +1461,103 @@ the word at mouse click."
                   :help "Search the word at mouse click in dictionary")
       'dictionary-separator))
   menu)
+
+(defun dictionary-define-word (word dictionary)
+  "Return the definition of WORD in DICTIONARY, or nil if not found."
+  (dictionary-send-command
+   (format "define %s \"%s\"" dictionary word))
+  (when (and (= (read (dictionary-read-reply)) 150)
+             (= (read (dictionary-read-reply)) 151))
+    (dictionary-read-answer)))
+
+(defun dictionary-match-word (word &rest _)
+  "Return dictionary matches for WORD as a list of strings.
+Further arguments are currently ignored."
+  (unless (string-empty-p word)
+    (if (string= (car dictionary--last-match) word)
+        (cdr dictionary--last-match)
+      (dictionary-send-command
+       (format "match %s %s \"%s\""
+               dictionary-default-dictionary
+               dictionary-default-strategy
+               word))
+      (when (and (= (read (dictionary-read-reply)) 152))
+        (with-temp-buffer
+          (insert (dictionary-read-answer))
+          (goto-char (point-min))
+          (let ((result nil))
+            (while (not (eobp))
+              (search-forward " " nil t)
+              (push (read (current-buffer)) result)
+              (search-forward "\n" nil t))
+            (setq result (reverse result))
+            (setq dictionary--last-match (cons word result))
+            result))))))
+
+(defun dictionary-completing-read-word (dictionary)
+  "Prompt for a word with completion based on matches in DICTIONARY."
+  (let* ((completion-ignore-case t)
+         (dictionary-default-dictionary dictionary)
+         (word-at-point (thing-at-point 'word t))
+         (default (dictionary-match-word word-at-point)))
+    (completing-read (format-prompt dictionary-read-word-prompt default)
+                     (external-completion-table 'dictionary-definition
+                                                #'dictionary-match-word)
+                     nil t nil 'dictionary-word-history default t)))
+
+(defun dictionary-dictionaries ()
+  "Return the list of dictionaries the server supports."
+  (dictionary-send-command "show db")
+  (when (and (= (read (dictionary-read-reply)) 110))
+    (with-temp-buffer
+      (insert (dictionary-read-answer))
+      (goto-char (point-min))
+      (let ((result '(("!" . "First matching dictionary")
+                      ("*" . "All dictionaries"))))
+        (while (not (eobp))
+          (push (cons (buffer-substring
+                       (search-forward "\n" nil t)
+                       (1- (search-forward " " nil t)))
+                      (read (current-buffer)))
+                result))
+        (reverse result)))))
+
+(defun dictionary-completing-read-dictionary ()
+  "Prompt for a dictionary the server supports."
+  (let* ((dicts (dictionary-dictionaries))
+         (len (apply #'max (mapcar #'length (mapcar #'car dicts))))
+         (completion-extra-properties
+          (list :annotation-function
+                (lambda (key)
+                  (concat (make-string (1+ (- len (length key))) ?\s)
+                          (alist-get key dicts nil nil #'string=))))))
+    (completing-read (format-prompt "Select dictionary"
+                                    dictionary-default-dictionary)
+                     dicts nil t nil nil dictionary-default-dictionary)))
+
+(define-button-type 'help-word
+  :supertype 'help-xref
+  'help-function 'dictionary-search
+  'help-echo "mouse-2, RET: describe this word")
+
+(defun dictionary-display-definition-in-help-buffer (word dictionary definition)
+  "Display DEFINITION, the definition of WORD in DICTIONARY."
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'dictionary-search word dictionary)
+                     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer (help-buffer)
+        (insert definition)
+        ;; Buttonize references to other definitions.  These appear as
+        ;; words enclosed with curly braces.
+        (goto-char (point-min))
+        (while (re-search-forward (rx "{"
+                                      (group-n 1 (* (not (any ?}))))
+                                      "}")
+                                  nil t)
+          (help-xref-button 1 'help-word
+                            (match-string 1)
+                            dictionary))))))
 
 (provide 'dictionary)
 ;;; dictionary.el ends here

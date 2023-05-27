@@ -3611,8 +3611,10 @@ confusing to some users.")
 (defun use-dialog-box-p ()
   "Return non-nil if the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
-       (or (featurep 'android)		; prefer dialog boxes on Android
-           (consp last-nonmenu-event)   ; invoked by a mouse event
+       (or (consp last-nonmenu-event)   ; invoked by a mouse event
+           (and (null last-nonmenu-event)
+                (consp last-input-event))
+           (featurep 'android)		; Prefer dialog boxes on Android.
            from--tty-menu-p)            ; invoked via TTY menu
        use-dialog-box))
 
@@ -3649,8 +3651,9 @@ If the user enters `recenter', `scroll-up', or `scroll-down'
 responses, perform the requested window recentering or scrolling
 and ask again.
 
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil.
+If dialog boxes are supported, this function will use a dialog box
+if `use-dialog-box' is non-nil and the last input event was produced
+by a mouse, or by some window-system gesture, or via a menu.
 
 By default, this function uses the minibuffer to read the key.
 If `y-or-n-p-use-read-key' is non-nil, `read-key' is used
@@ -4041,6 +4044,7 @@ See also `locate-user-emacs-file'.")
 
 (defsubst buffer-narrowed-p ()
   "Return non-nil if the current buffer is narrowed."
+  (declare (side-effect-free t))
   (/= (- (point-max) (point-min)) (buffer-size)))
 
 (defmacro with-restriction (start end &rest rest)
@@ -4167,7 +4171,7 @@ See Info node `(elisp)Security Considerations'.
 If the optional POSIX argument is non-nil, ARGUMENT is quoted
 according to POSIX shell quoting rules, regardless of the
 system's shell."
-(cond
+  (cond
    ((and (not posix) (eq system-type 'ms-dos))
     ;; Quote using double quotes, but escape any existing quotes in
     ;; the argument with backslashes.
@@ -4299,6 +4303,7 @@ string; otherwise returna 40-character string.
 Note that SHA-1 is not collision resistant and should not be used
 for anything security-related.  See `secure-hash' for
 alternatives."
+  (declare (side-effect-free t))
   (secure-hash 'sha1 object start end binary))
 
 (defun function-get (f prop &optional autoload)
@@ -4306,6 +4311,7 @@ alternatives."
 If AUTOLOAD is non-nil and F is autoloaded, try to load it
 in the hope that it will set PROP.  If AUTOLOAD is `macro', do it only
 if it's an autoloaded macro."
+  (declare (important-return-value t))
   (let ((val nil))
     (while (and (symbolp f)
                 (null (setq val (get f prop)))
@@ -5261,6 +5267,7 @@ In other words, all back-references in the form `\\&' and `\\N'
 are substituted with actual strings matched by the last search.
 Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
 meaning as for `replace-match'."
+  (declare (side-effect-free t))
   (let ((match (match-string 0 string)))
     (save-match-data
       (match-data--translate (- (match-beginning 0)))
@@ -5322,6 +5329,7 @@ A non-subregexp context is for example within brackets, or within a
 repetition bounds operator `\\=\\{...\\}', or right after a `\\'.
 If START is non-nil, it should be a position in REGEXP, smaller
 than POS, and known to be in a subregexp context."
+  (declare (important-return-value t))
   ;; Here's one possible implementation, with the great benefit that it
   ;; reuses the regexp-matcher's own parser, so it understands all the
   ;; details of the syntax.  A disadvantage is that it needs to match the
@@ -5403,6 +5411,7 @@ case that you wish to retain zero-length substrings when splitting on
 whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
+  (declare (important-return-value t))
   (let* ((keep-nulls (not (if separators omit-nulls t)))
 	 (rexp (or separators split-string-default-separators))
 	 (start 0)
@@ -5460,6 +5469,7 @@ Only some SEPARATORs will work properly.
 
 Note that this is not intended to protect STRINGS from
 interpretation by shells, use `shell-quote-argument' for that."
+  (declare (important-return-value t))
   (let* ((sep (or separator " "))
          (re (concat "[\\\"]" "\\|" (regexp-quote sep))))
     (mapconcat
@@ -5474,6 +5484,7 @@ interpretation by shells, use `shell-quote-argument' for that."
 It understands Emacs Lisp quoting within STRING, such that
   (split-string-and-unquote (combine-and-quote-strings strs)) == strs
 The SEPARATOR regexp defaults to \"\\s-+\"."
+  (declare (important-return-value t))
   (let ((sep (or separator "\\s-+"))
 	(i (string-search "\"" string)))
     (if (null i)
@@ -5541,6 +5552,7 @@ To replace only the first match (if any), make REGEXP match up to \\\\='
 and replace a sub-expression, e.g.
   (replace-regexp-in-string \"\\\\(foo\\\\).*\\\\\\='\" \"bar\" \" foo foo\" nil nil 1)
     => \" bar foo\""
+  (declare (important-return-value t))
 
   ;; To avoid excessive consing from multiple matches in long strings,
   ;; don't just call `replace-match' continually.  Walk down the
@@ -5896,6 +5908,7 @@ from `standard-syntax-table' otherwise."
 (defun syntax-after (pos)
   "Return the raw syntax descriptor for the char after POS.
 If POS is outside the buffer's accessible portion, return nil."
+  (declare (important-return-value t))
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
@@ -6710,6 +6723,7 @@ Examples of version conversion:
    \"22.8beta3\"       (22 8 -2 3)
 
 See documentation for `version-separator' and `version-regexp-alist'."
+  (declare (side-effect-free t))
   (unless (stringp ver)
     (error "Version must be a string"))
   ;; Change .x.y to 0.x.y
@@ -6840,6 +6854,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 (defun version<= (v1 v2)
@@ -6850,6 +6865,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -6860,6 +6876,7 @@ etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
 which is higher than \"1alpha\", which is higher than \"1snapshot\".
 Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
+  (declare (side-effect-free t))
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 (defvar package--builtin-versions
@@ -6982,6 +6999,7 @@ returned list are in the same order as in TREE.
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
+  (declare (important-return-value t))
   (if (string-match (if regexp
                         (concat "\\`\\(?:" regexp "\\)")
                       "\\`[ \t\n\r]+")
@@ -7004,6 +7022,7 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
   "Trim STRING of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
 
 TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
+  (declare (important-return-value t))
   (string-trim-left (string-trim-right string trim-right) trim-left))
 
 ;; The initial anchoring is for better performance in searching matches.

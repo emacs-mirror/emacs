@@ -197,10 +197,13 @@
      (sqlite-load-extension db "/usr/lib/sqlite3/"))
     (should-error
      (sqlite-load-extension db "/usr/lib/sqlite3"))
-    (should
-     (memq
-      (sqlite-load-extension db "/usr/lib/sqlite3/pcre.so")
-      '(nil t)))
+    (if (eq system-type 'windows-nt)
+        (should
+         (eq (sqlite-load-extension db "/usr/lib/sqlite3/pcre.dll")
+             (file-readable-p "/usr/lib/sqlite3/pcre.dll")))
+      (should
+       (eq (sqlite-load-extension db "/usr/lib/sqlite3/pcre.so")
+           (file-readable-p "/usr/lib/sqlite3/pcre.so"))))
 
     (should-error
      (sqlite-load-extension
@@ -211,11 +214,13 @@
     (should-error
      (sqlite-load-extension
       db "/usr/lib/x86_64-linux-gnu/libsqlite3_mod_csvtable"))
-    (should
-     (memq
-      (sqlite-load-extension
-       db "/usr/lib/x86_64-linux-gnu/libsqlite3_mod_csvtable.so")
-      '(nil t)))))
+    (if (eq system-type 'windows-nt)
+        (should
+         (eq (sqlite-load-extension db "/usr/lib/sqlite3/csvtable.dll")
+             (file-readable-p "/usr/lib/sqlite3/csvtable.dll")))
+      (should
+       (eq (sqlite-load-extension db "/usr/lib/x86_64-linux-gnu/libsqlite3_mod_csvtable.so")
+           (file-readable-p "/usr/lib/x86_64-linux-gnu/libsqlite3_mod_csvtable.so"))))))
 
 (ert-deftest sqlite-blob ()
   (skip-unless (sqlite-available-p))

@@ -1408,8 +1408,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
 
          (ws
           ;; `window-state-put' fails when called in the minibuffer
-          (when (minibuffer-selected-window)
-            (select-window (minibuffer-selected-window)))
+          (when (window-minibuffer-p)
+            (select-window (get-mru-window)))
           (window-state-put ws nil 'safe)))
 
         ;; Select the minibuffer when it was active before switching tabs
@@ -1420,8 +1420,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
         ;; another tab, then after going back to the first tab, it has
         ;; such inconsistent state that the current buffer is the minibuffer,
         ;; but its window is not active.  So try to undo this mess.
-        (when (and (minibufferp) (not (active-minibuffer-window)))
-          (other-window 1))
+        (when (and (window-minibuffer-p) (not (active-minibuffer-window)))
+          (select-window (get-mru-window)))
 
         (when tab-bar-history-mode
           (setq tab-bar-history-omit t))
@@ -1644,8 +1644,8 @@ After the tab is created, the hooks in
 
     (when tab-bar-new-tab-choice
       ;; Handle the case when it's called in the active minibuffer.
-      (when (minibuffer-selected-window)
-        (select-window (minibuffer-selected-window)))
+      (when (window-minibuffer-p)
+        (select-window (get-mru-window)))
       (let ((ignore-window-parameters t)
             (window--sides-inhibit-check t))
         (if (eq tab-bar-new-tab-choice 'clone)
@@ -1662,7 +1662,8 @@ After the tab is created, the hooks in
                 (window-state-put (window-state-get)))
             ;; Create a new window to get rid of old window parameters
             ;; (e.g. prev/next buffers) of old window.
-            (split-window) (delete-window))))
+            (split-window nil window-safe-min-width t)
+            (delete-window))))
 
       (let ((buffer
              (if (and (functionp tab-bar-new-tab-choice)

@@ -470,6 +470,9 @@ non-nil means return old filename."
     (insert wdired--old-content)
     (goto-char wdired--old-point))
   (wdired-change-to-dired-mode)
+  ;; Make sure the display is in synch, and all the variables are set
+  ;; correctly.
+  (dired-revert)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (message "Changes aborted"))

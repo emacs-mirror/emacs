@@ -3213,16 +3213,21 @@ If the `use-short-answers' variable is non-nil, instead of asking for
 \"yes\" or \"no\", this function will ask for \"y\" or \"n\" (and
 ignore the value of `yes-or-no-prompt').
 
-If dialog boxes are supported, a dialog box will be used
-if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
+If dialog boxes are supported, this function will use a dialog box
+if `use-dialog-box' is non-nil and the last input event was produced
+by a mouse, or by some window-system gesture, or via a menu.  */)
   (Lisp_Object prompt)
 {
-  Lisp_Object ans;
+  Lisp_Object ans, val;
 
   CHECK_STRING (prompt);
 
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box && ! NILP (last_input_event))
+  if (!NILP (last_input_event)
+      && (CONSP (last_nonmenu_event)
+	  || (NILP (last_nonmenu_event) && CONSP (last_input_event))
+	  || (val = find_symbol_value (Qfrom__tty_menu_p),
+	      (!NILP (val) && !EQ (val, Qunbound))))
+      && use_dialog_box)
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);
@@ -6401,4 +6406,5 @@ For best results this should end in a space.  */);
   defsubr (&Sbuffer_line_statistics);
 
   DEFSYM (Qreal_this_command, "real-this-command");
+  DEFSYM (Qfrom__tty_menu_p, "from--tty-menu-p");
 }

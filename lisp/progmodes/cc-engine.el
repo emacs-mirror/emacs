@@ -10636,6 +10636,10 @@ This function might do hidden buffer changes."
 	  got-parens
 	  ;; True if there is a terminated argument list.
 	  got-arglist
+	  ;; True when `got-arglist' and the token after the end of the
+	  ;; arglist is an opening brace.  Used only when we have a
+	  ;; suspected typeless function name.
+	  got-stmt-block
 	  ;; True if there is an identifier in the declarator.
 	  got-identifier
 	  ;; True if we find a number where an identifier was expected.
@@ -10788,6 +10792,10 @@ This function might do hidden buffer changes."
 		    (setq got-arglist t))
 		  t)
 	      (when (cond
+		      ((and (eq (char-after) ?\()
+			    (c-safe (c-forward-sexp 1) t))
+		       (when (eq (char-before) ?\))
+			 (setq got-arglist t)))
 		     ((save-match-data (looking-at "\\s("))
 		      (c-safe (c-forward-sexp 1) t))
 		     ((save-match-data
@@ -10801,6 +10809,11 @@ This function might do hidden buffer changes."
 			   (= paren-depth 0))
 		  (setq got-suffix-after-parens (match-beginning 0)))
 		(setq got-suffix t))))
+
+	   ((and got-arglist
+		 (eq (char-after) ?{))
+	    (setq got-stmt-block t)
+	    nil)
 
 	   (t
 	    ;; No suffix matched.  We might have matched the
@@ -10870,9 +10883,17 @@ This function might do hidden buffer changes."
 		     (not (memq context '(arglist decl))))
 		 (or (and new-style-auto
 			  (looking-at c-auto-ops-re))
-		     (and (or maybe-typeless backup-maybe-typeless)
-			  (not got-prefix)
-			  at-type)))
+		     (and (not got-prefix)
+			  at-type
+			  (or maybe-typeless backup-maybe-typeless
+			      ;; Do we have a (typeless) constructor?
+			      (and got-stmt-block
+				   (save-excursion
+				     (goto-char type-start)
+				     (and
+				      (looking-at c-identifier-key)
+				      (c-directly-in-class-called-p
+				       (match-string 0)))))))))
 	;; Have found no identifier but `c-typeless-decl-kwds' has
 	;; matched so we know we're inside a declaration.  The
 	;; preceding type must be the identifier instead.
@@ -12554,7 +12575,8 @@ comment at the start of cc-engine.el for more info."
 		   (looking-at c-class-key))
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)
-	  (looking-at name))))))
+	  (and (looking-at c-identifier-key)
+	       (string= (match-string 0) name)))))))
 
 (defun c-search-uplist-for-classkey (paren-state)
   ;; Check if the closest containing paren sexp is a declaration

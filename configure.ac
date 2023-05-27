@@ -551,6 +551,7 @@ OPTION_DEFAULT_ON([sqlite3],[don't compile with sqlite3 support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
+OPTION_DEFAULT_OFF([cairo-xcb], [use XCB surfaces for Cairo support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
 OPTION_DEFAULT_ON([native-image-api], [don't use native image APIs (GDI+ on Windows)])
@@ -4355,14 +4356,14 @@ if test "${HAVE_X11}" = "yes"; then
     CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
     EMACS_CHECK_MODULES([CAIRO], [$CAIRO_MODULE])
     if test $HAVE_CAIRO = yes; then
-      CAIRO_XCB_MODULE="cairo-xcb >= $CAIRO_REQUIRED"
-      EMACS_CHECK_MODULES([CAIRO_XCB], [$CAIRO_XCB_MODULE])
-      if test $HAVE_CAIRO_XCB = yes; then
-	CAIRO_CFLAGS="$CAIRO_CFLAGS $CAIRO_XCB_CFLAGS"
-	CAIRO_LIBS="$CAIRO_LIBS $CAIRO_XCB_LIBS"
-	AC_DEFINE([USE_CAIRO_XCB], [1],
-	  [Define to 1 if cairo XCB surfaces are available.])
-      fi
+      AS_IF([test "x$with_cairo_xcb" = "xyes"], [
+	CAIRO_XCB_MODULE="cairo-xcb >= $CAIRO_REQUIRED"
+	EMACS_CHECK_MODULES([CAIRO_XCB], [$CAIRO_XCB_MODULE])
+	AS_IF([test "x$HAVE_CAIRO_XCB" = "xyes"], [
+	  CAIRO_CFLAGS="$CAIRO_CFLAGS $CAIRO_XCB_CFLAGS"
+	  CAIRO_LIBS="$CAIRO_LIBS $CAIRO_XCB_LIBS"
+	  AC_DEFINE([USE_CAIRO_XCB], [1],
+	    [Define to 1 if cairo XCB surfaces are available.])])])
       AC_DEFINE([USE_CAIRO], [1], [Define to 1 if using cairo.])
       CFLAGS="$CFLAGS $CAIRO_CFLAGS"
       LIBS="$LIBS $CAIRO_LIBS"
