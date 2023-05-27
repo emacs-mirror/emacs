@@ -2025,11 +2025,14 @@ completions."
 
 (defcustom completions-header-format
   (propertize "%s possible completions:\n" 'face 'shadow)
-  "Format of completions header.
-It may contain one %s to show the total count of completions.
-When nil, no header is shown."
-  :type '(choice (const :tag "No header" nil)
-                 (string :tag "Header format string"))
+  "If non-nil, the format string for completions heading line.
+The heading line is inserted before the completions, and is intended
+to summarize the completions.
+The format string may include one %s, which will be replaced with
+the total count of possible completions.
+If this is nil, no heading line will be shown."
+  :type '(choice (const :tag "No heading line" nil)
+                 (string :tag "Format string for heading line"))
   :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
