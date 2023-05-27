@@ -3769,8 +3769,8 @@ object corresponding to the newer version."
         (and avail-pkg
              (version-list-< (package-desc-priority-version pkg-desc)
                              (package-desc-priority-version avail-pkg))
-             (xor (not package-install-upgrade-built-in)
-                  (package--active-built-in-p pkg-desc))
+             (or (not (package--active-built-in-p pkg-desc))
+                 package-install-upgrade-built-in)
              (push (cons name avail-pkg) upgrades))))
     upgrades))
 
