@@ -1802,7 +1802,9 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
       (when (cadr args)
 	(setq localname (and (stringp (cadr args)) (cadr args))))
       (when hop
-	(setq hop nil)
+	;; Keep hop in file name for completion.
+	(unless minibuffer-completing-file-name
+	  (setq hop nil))
 	;; Assure that the hops are in `tramp-default-proxies-alist'.
 	;; In tramp-archive.el, the slot `hop' is used for the archive
 	;; file name.
@@ -5720,7 +5722,7 @@ See `tramp-process-actions' for the format of ACTIONS."
       ;; Obviously, the output was not complete.
       (while (tramp-accept-process-output proc))
       ;; Remove ANSI control escape sequences.
-      (with-current-buffer  (tramp-get-connection-buffer vec)
+      (with-current-buffer (tramp-get-connection-buffer vec)
 	(goto-char (point-min))
 	(while (re-search-forward ansi-color-control-seq-regexp nil t)
 	  (replace-match "")))
