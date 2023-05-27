@@ -100,6 +100,10 @@ public final class EmacsService extends Service
      information.  */
   public static final boolean DEBUG_IC = false;
 
+  /* Flag that says whether or not to perform extra checks on threads
+     performing drawing calls.  */
+  private static final boolean DEBUG_THREADS = false;
+
   /* Return the directory leading to the directory in which native
      library files are stored on behalf of CONTEXT.  */
 
@@ -309,10 +313,29 @@ public final class EmacsService extends Service
     syncRunnable (runnable);
   }
 
+
+
+  public static void
+  checkEmacsThread ()
+  {
+    if (DEBUG_THREADS)
+      {
+	if (Thread.currentThread () instanceof EmacsThread)
+	  return;
+
+	throw new RuntimeException ("Emacs thread function"
+				    + " called from other thread!");
+      }
+  }
+
+  /* These drawing functions must only be called from the Emacs
+     thread.  */
+
   public void
   fillRectangle (EmacsDrawable drawable, EmacsGC gc,
 		 int x, int y, int width, int height)
   {
+    checkEmacsThread ();
     EmacsFillRectangle.perform (drawable, gc, x, y,
 				width, height);
   }
@@ -321,6 +344,7 @@ public final class EmacsService extends Service
   fillPolygon (EmacsDrawable drawable, EmacsGC gc,
 	       Point points[])
   {
+    checkEmacsThread ();
     EmacsFillPolygon.perform (drawable, gc, points);
   }
 
@@ -328,6 +352,7 @@ public final class EmacsService extends Service
   drawRectangle (EmacsDrawable drawable, EmacsGC gc,
 		 int x, int y, int width, int height)
   {
+    checkEmacsThread ();
     EmacsDrawRectangle.perform (drawable, gc, x, y,
 				width, height);
   }
@@ -336,6 +361,7 @@ public final class EmacsService extends Service
   drawLine (EmacsDrawable drawable, EmacsGC gc,
 	    int x, int y, int x2, int y2)
   {
+    checkEmacsThread ();
     EmacsDrawLine.perform (drawable, gc, x, y,
 			   x2, y2);
   }
@@ -344,6 +370,7 @@ public final class EmacsService extends Service
   drawPoint (EmacsDrawable drawable, EmacsGC gc,
 	     int x, int y)
   {
+    checkEmacsThread ();
     EmacsDrawPoint.perform (drawable, gc, x, y);
   }
 
@@ -353,6 +380,7 @@ public final class EmacsService extends Service
 	    int srcX, int srcY, int width, int height, int destX,
 	    int destY)
   {
+    checkEmacsThread ();
     EmacsCopyArea.perform (srcDrawable, gc, dstDrawable,
 			   srcX, srcY, width, height, destX,
 			   destY);
@@ -361,6 +389,7 @@ public final class EmacsService extends Service
   public void
   clearWindow (EmacsWindow window)
   {
+    checkEmacsThread ();
     window.clearWindow ();
   }
 
@@ -368,6 +397,7 @@ public final class EmacsService extends Service
   clearArea (EmacsWindow window, int x, int y, int width,
 	     int height)
   {
+    checkEmacsThread ();
     window.clearArea (x, y, width, height);
   }
 

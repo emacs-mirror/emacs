@@ -25,7 +25,7 @@ import java.util.Arrays;
 import android.os.Build;
 import android.util.Log;
 
-public class EmacsThread extends Thread
+public final class EmacsThread extends Thread
 {
   private static final String TAG = "EmacsThread";
 

@@ -338,6 +338,7 @@ public final class EmacsView extends ViewGroup
   public void
   damageRect (Rect damageRect)
   {
+    EmacsService.checkEmacsThread ();
     damageRegion.union (damageRect);
   }
 
@@ -350,6 +351,10 @@ public final class EmacsView extends ViewGroup
     Canvas canvas;
     Rect damageRect;
     Bitmap bitmap;
+
+    /* Make sure this function is called only from the Emacs
+       thread.  */
+    EmacsService.checkEmacsThread ();
 
     damageRect = null;
 
