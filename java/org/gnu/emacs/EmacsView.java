@@ -338,10 +338,7 @@ public final class EmacsView extends ViewGroup
   public void
   damageRect (Rect damageRect)
   {
-    synchronized (damageRegion)
-      {
-	damageRegion.union (damageRect);
-      }
+    damageRegion.union (damageRect);
   }
 
   /* This method is called from both the UI thread and the Emacs
@@ -358,22 +355,19 @@ public final class EmacsView extends ViewGroup
 
     /* Now see if there is a damage region.  */
 
-    synchronized (damageRegion)
-      {
-	if (damageRegion.isEmpty ())
-	  return;
+    if (damageRegion.isEmpty ())
+      return;
 
-	/* And extract and clear the damage region.  */
+    /* And extract and clear the damage region.  */
 
-	damageRect = damageRegion.getBounds ();
-	damageRegion.setEmpty ();
+    damageRect = damageRegion.getBounds ();
+    damageRegion.setEmpty ();
 
-	bitmap = getBitmap ();
+    bitmap = getBitmap ();
 
-	/* Transfer the bitmap to the surface view, then invalidate
-	   it.  */
-	surfaceView.setBitmap (bitmap, damageRect);
-      }
+    /* Transfer the bitmap to the surface view, then invalidate
+       it.  */
+    surfaceView.setBitmap (bitmap, damageRect);
   }
 
   @Override
