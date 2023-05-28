@@ -2884,7 +2884,9 @@ See `treesit-language-source-alist' for details."
 
 Interactively, if `treesit-language-source-alist' doesn't already
 have data for building the grammar for LANG, prompt for its
-repository URL and the C/C++ compiler to use.
+repository URL and the C/C++ compiler to use.  The recipe built
+by the prompts are saved for the current session if the
+installation is successful and the grammar is loadable.
 
 This command requires Git, a C compiler and (sometimes) a C++ compiler,
 and the linker to be installed and on PATH.  It also requires that the
@@ -2901,27 +2903,31 @@ executable programs, such as the C/C++ compiler and linker."
                   (treesit--install-language-grammar-build-recipe
                    lang))))
     (condition-case err
-        (apply #'treesit--install-language-grammar-1
-               ;; The nil is OUT-DIR.
-               (cons nil recipe))
+        (progn
+          (apply #'treesit--install-language-grammar-1
+                 ;; The nil is OUT-DIR.
+                 (cons nil recipe))
+
+          ;; Check that the installed language grammar is loadable.
+          (pcase-let ((`(,available . ,err)
+                       (treesit-language-available-p lang t)))
+            (if (not available)
+                (display-warning
+                 'treesit
+                 (format "The installed language grammar for %s cannot be located or has problems (%s): %s"
+                         lang (nth 0 err)
+                         (string-join
+                          (mapcar (lambda (x) (format "%s" x))
+                                  (cdr err))
+                          " ")))
+              ;; If success, Save the recipe for the current session.
+              (setf (alist-get lang treesit-language-source-alist)
+                    recipe))))
       (error
        (display-warning
         'treesit
         (format "Error encountered when installing language grammar: %s"
-                err)))))
-
-  ;; Check that the installed language grammar is loadable.
-  (pcase-let ((`(,available . ,err)
-               (treesit-language-available-p lang t)))
-    (when (not available)
-      (display-warning
-       'treesit
-       (format "The installed language grammar for %s cannot be located or has problems (%s): %s"
-               lang (nth 0 err)
-               (string-join
-                (mapcar (lambda (x) (format "%s" x))
-                        (cdr err))
-                " "))))))
+                err))))))
 
 (defun treesit--call-process-signal (&rest args)
   "Run `call-process' with ARGS.
