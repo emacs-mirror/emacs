@@ -3297,29 +3297,33 @@ instead removed from the current item list."
 
 (defun ido-wide-find-dirs-or-files (dir file &optional prefix finddir)
   ;; As ido-run-find-command, but returns a list of cons pairs ("file" . "dir")
-  (let ((filenames
-         (delq nil
-               (mapcar (lambda (name)
-                         (unless (ido-ignore-item-p name ido-ignore-files t)
-                           name))
-                       (split-string
-                        (shell-command-to-string
-                         (concat "find "
-                                 (shell-quote-argument dir)
-                                 (if ido-case-fold " -iname " " -name ")
-                                 (shell-quote-argument
-                                  (concat (if prefix "" "*") file "*"))
-                                 " -type " (if finddir "d" "f") " -print"))))))
-	filename d f
-	res)
+  (let* ((remote-prefix (file-remote-p dir))
+         (default-directory dir)
+         (filenames
+          (delq nil
+                (mapcar (lambda (name)
+                          (unless (ido-ignore-item-p name ido-ignore-files t)
+                            name))
+                        (split-string
+                         (shell-command-to-string
+                          (concat "find "
+                                  (shell-quote-argument
+                                   (if remote-prefix
+                                       (string-remove-prefix remote-prefix dir) dir))
+                                  (if ido-case-fold " -iname " " -name ")
+                                  (shell-quote-argument
+                                   (concat (if prefix "" "*") file "*"))
+                                  " -type " (if finddir "d" "f") " -print"))))))
+         filename d f
+         res)
     (while filenames
-      (setq filename (car filenames)
-	    filenames (cdr filenames))
+      (setq filename (format "%s%s" (or remote-prefix "") (car filenames))
+            filenames (cdr filenames))
       (if (and (file-name-absolute-p filename)
-	       (file-exists-p filename))
-	  (setq d (file-name-directory filename)
-		f (file-name-nondirectory filename)
-		res (cons (cons (if finddir (ido-final-slash f t) f) d) res))))
+               (file-exists-p filename))
+          (setq d (file-name-directory filename)
+                f (file-name-nondirectory filename)
+                res (cons (cons (if finddir (ido-final-slash f t) f) d) res))))
     res))
 
 (defun ido-flatten-merged-list (items)
