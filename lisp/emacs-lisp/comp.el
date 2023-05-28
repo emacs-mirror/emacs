@@ -1431,11 +1431,13 @@ clashes."
   "Byte-compile and spill the LAP representation for INPUT.
 If INPUT is a symbol, it is the function-name to be compiled.
 If INPUT is a string, it is the filename to be compiled."
-  (let ((byte-native-compiling t)
-        (byte-to-native-lambdas-h (make-hash-table :test #'eq))
-        (byte-to-native-top-level-forms ())
-        (byte-to-native-plist-environment ()))
-    (comp-spill-lap-function input)))
+  (let* ((byte-native-compiling t)
+         (byte-to-native-lambdas-h (make-hash-table :test #'eq))
+         (byte-to-native-top-level-forms ())
+         (byte-to-native-plist-environment ())
+         (res (comp-spill-lap-function input)))
+    (comp-cstr-ctxt-update-type-slots comp-ctxt)
+    res))
 
 
 ;;; Limplification pass specific code.

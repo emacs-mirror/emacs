@@ -102,17 +102,23 @@ Integer values are handled in the `range' slot.")
               obarray)
     res))
 
+(defun comp--compute-typeof-types ()
+  (append comp--typeof-builtin-types
+          (mapcar #'comp--cl-class-hierarchy (comp--all-classes))))
+
+(defun comp--compute--pred-type-h ()
+  (cl-loop with h = (make-hash-table :test #'eq)
+	   for class-name in (comp--all-classes)
+           for pred = (get class-name 'cl-deftype-satisfies)
+           when pred
+             do (puthash pred class-name h)
+	   finally return h))
+
 (cl-defstruct comp-cstr-ctxt
-  (typeof-types (append comp--typeof-builtin-types
-                        (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
+  (typeof-types (comp--compute-typeof-types)
                 :type list
                 :documentation "Type hierarchy.")
-  (pred-type-h (cl-loop with h = (make-hash-table :test #'eq)
-	                for class-name in (comp--all-classes)
-                        for pred = (get class-name 'cl-deftype-satisfies)
-                        when pred
-                          do (puthash pred class-name h)
-	                finally return h)
+  (pred-type-h (comp--compute--pred-type-h)
                :type hash-table
                :documentation "Hash pred -> type.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
@@ -134,6 +140,15 @@ Integer values are handled in the `range' slot.")
   (intersection-mem (make-hash-table :test #'equal) :type hash-table
                     :documentation "Serve memoization for
 `intersection-mem'."))
+
+(defun comp-cstr-ctxt-update-type-slots (ctxt)
+  "Update the type related slots of CTXT.
+This must run after byte compilation in order to account for user
+defined types."
+  (setf (comp-cstr-ctxt-typeof-types ctxt)
+        (comp--compute-typeof-types))
+  (setf (comp-cstr-ctxt-pred-type-h ctxt)
+        (comp--compute--pred-type-h)))
 
 (defmacro with-comp-cstr-accessors (&rest body)
   "Define some quick accessor to reduce code vergosity in BODY."
