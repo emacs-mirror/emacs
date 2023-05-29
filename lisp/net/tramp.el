@@ -4851,25 +4851,29 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
   "Add ad-hoc proxy definitions to `tramp-default-proxies-alist'."
   (when-let ((hops (tramp-file-name-hop vec))
 	     (item vec))
-    (dolist (proxy (reverse (split-string hops tramp-postfix-hop-regexp 'omit)))
-      (let* ((host-port (tramp-file-name-host-port item))
-	     (user-domain (tramp-file-name-user-domain item))
-	     (proxy (concat
-		     tramp-prefix-format proxy tramp-postfix-host-format))
-	     (entry
-	      (list (and (stringp host-port)
-			 (rx bol (literal host-port) eol))
-		    (and (stringp user-domain)
-			 (rx bol (literal user-domain) eol))
-		    (propertize proxy 'tramp-ad-hoc t))))
-	(tramp-message vec 5 "Add %S to `tramp-default-proxies-alist'" entry)
-	;; Add the hop.
-	(add-to-list 'tramp-default-proxies-alist entry)
-	(setq item (tramp-dissect-file-name proxy))))
-    ;; Save the new value.
-    (when tramp-save-ad-hoc-proxies
-      (customize-save-variable
-       'tramp-default-proxies-alist tramp-default-proxies-alist))))
+    (let (signal-hook-function changed)
+      (dolist
+	  (proxy (reverse (split-string hops tramp-postfix-hop-regexp 'omit)))
+	(let* ((host-port (tramp-file-name-host-port item))
+	       (user-domain (tramp-file-name-user-domain item))
+	       (proxy (concat
+		       tramp-prefix-format proxy tramp-postfix-host-format))
+	       (entry
+		(list (and (stringp host-port)
+			   (rx bol (literal host-port) eol))
+		      (and (stringp user-domain)
+			   (rx bol (literal user-domain) eol))
+		      (propertize proxy 'tramp-ad-hoc t))))
+	  ;; Add the hop.
+	  (unless (member entry tramp-default-proxies-alist)
+	    (tramp-message vec 5 "Add %S to `tramp-default-proxies-alist'" entry)
+	    (add-to-list 'tramp-default-proxies-alist entry)
+	    (setq changed t))
+	  (setq item (tramp-dissect-file-name proxy))))
+      ;; Save the new value.
+      (when (and tramp-save-ad-hoc-proxies changed)
+	(customize-save-variable
+	 'tramp-default-proxies-alist tramp-default-proxies-alist)))))
 
 (defun tramp-compute-multi-hops (vec)
   "Expands VEC according to `tramp-default-proxies-alist'."
