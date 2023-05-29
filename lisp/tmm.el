@@ -329,7 +329,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (with-current-buffer standard-output
     (goto-char (point-min))
     (let* (;; First candidate: first string with mouse-face
-           (menu-start-1 (next-single-char-property-change (point) 'mouse-face))
+           (menu-start-1 (or (and (get-text-property (point) 'mouse-face) (point))
+                             (next-single-char-property-change (point) 'mouse-face)))
            ;; Second candidate: an inactive menu item with tmm-inactive face
            (tps-result (save-excursion
                          (text-property-search-forward 'face 'tmm-inactive t)))
